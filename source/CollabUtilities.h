@@ -349,5 +349,7 @@ class CSourcePhrase;
 
 	long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp);
 
+	void OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
+
 #endif
 

@@ -103,11 +103,6 @@
 #include "DVCSLogDlg.h"
 #include "StatusBar.h"
 
-// whm added 10Jul2015 for temporary testing of the CCollabVerseConflictDlg dialog
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#include "CollabVerseConflictDlg.h"
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 // GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
 void init_utf8_char_table();
 const char* tellenc(const char* const buffer, const size_t len);
@@ -354,8 +349,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 
 // whm added 10Jul2015 for temporary testing of the CCollabVerseConflictDlg dialog
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	EVT_MENU(ID_VERSE_CONFLICT_DLG, CAdapt_ItDoc::OnVerseConflictDlg)
-	EVT_UPDATE_UI(ID_VERSE_CONFLICT_DLG, CAdapt_ItDoc::OnUpdateVerseConflictDlg)
+//	EVT_MENU(ID_VERSE_CONFLICT_DLG, CAdapt_ItDoc::OnVerseConflictDlg)
+//	EVT_UPDATE_UI(ID_VERSE_CONFLICT_DLG, CAdapt_ItDoc::OnUpdateVerseConflictDlg)
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 END_EVENT_TABLE()
@@ -421,21 +416,10 @@ CAdapt_ItDoc::~CAdapt_ItDoc() // from MFC version
 /// and OnCreate() for the view class.)
 ///////////////////////////////////////////////////////////////////////////////
 
-// whm added 10Jul2015 for temporary testing of the CCollabVerseConflictDlg dialog
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-void CAdapt_ItDoc::OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event))
-{
-	// Display the dialog
-	CAdapt_ItApp* pApp = GetApp();
-	CCollabVerseConflictDlg cvcdlg(pApp->GetMainFrame()); 
-	cvcdlg.Centre();
-	cvcdlg.ShowModal();
-}
-
-void CAdapt_ItDoc::OnUpdateVerseConflictDlg(wxUpdateUIEvent& event)
-{
-	event.Enable(TRUE);
-}
+//void CAdapt_ItDoc::OnUpdateVerseConflictDlg(wxUpdateUIEvent& event)
+//{
+//	event.Enable(TRUE);
+//}
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 

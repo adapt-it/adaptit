@@ -10787,7 +10787,7 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_TOP, _("One or more verses are different when comparing the Adapt It verse contents with the Paratext verse contents. Adapt It needs your help to choose which version of each of the listed verses is the best to have in Paratext."), wxDefaultPosition, wxSize(80,40), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_TOP, _("Some verses are different when comparing the Adapt It verse contents with the Paratext verse contents. Please choose which version of each of the listed verses is the best to have in Paratext. The versions in the Paratext box can be edited."), wxDefaultPosition, wxSize(80,60), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_INFO_1, _("Highlight a verse reference in the list to see its source text and the conflicting versions of the verse."), wxDefaultPosition, wxDefaultSize, 0 );
@@ -10796,10 +10796,10 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
     wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_INFO_2, _("Put a tick in the check box if you want to transfer the Adapt It version. It will then replace the Paratext version."), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_INFO_3, _("Leave the check box empty if you want to retain the Paratext version."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_INFO_3, _("Leave the check box empty if you want to retain the Paratext version. (The displayed Paratext verse is fully editable.)"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_INFO_4, _("After you have finished making your choices, click the \"Transfer Selected Verses\" button."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_INFO_4, _("After you have finished making your choices or edits, click the \"Transfer The Listed Verses\" button."), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
     wxFlexGridSizer *item7 = new wxFlexGridSizer( 2, 0, 0 );
@@ -10837,68 +10837,84 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
 
     wxBoxSizer *item18 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Translation of verse in Adapt It"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Translation of verse in Adapt It (not editable)"), wxDefaultPosition, wxDefaultSize, 0 );
     item18->Add( item19, 0, wxALIGN_CENTER, 5 );
 
     wxTextCtrl *item20 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_AI_VERSION, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_MULTILINE|wxTE_READONLY );
     item20->SetFont( wxFont( 11, wxROMAN, wxNORMAL, wxNORMAL ) );
     item18->Add( item20, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
-    wxRadioButton *item21 = new wxRadioButton( parent, ID_RADIOBUTTON_USE_AI_VERSION, _("Use this Adapt It version"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxRadioButton *item22 = new wxRadioButton( parent, ID_RADIOBUTTON_USE_AI_VERSION, _("Send this Adapt It version"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
     item18->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item17->Add( item18, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
     item16->Add( item17, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
-    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item24 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_STATIC_PT_VS_TITLE, _("Translation of verse in Paratext"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->Add( item24, 0, wxALIGN_CENTER, 5 );
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT_STATIC_PT_VS_TITLE, _("Translation of verse in Paratext (editable)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item25, 0, wxALIGN_CENTER, 5 );
 
-    wxTextCtrl *item25 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_PT_VERSION, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_MULTILINE|wxTE_READONLY );
-    item25->SetFont( wxFont( 11, wxROMAN, wxNORMAL, wxNORMAL ) );
-    item23->Add( item25, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_PT_VERSION, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_MULTILINE );
+    item26->SetFont( wxFont( 11, wxROMAN, wxNORMAL, wxNORMAL ) );
+    item24->Add( item26, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
-    wxRadioButton *item26 = new wxRadioButton( parent, ID_RADIOBUTTON_RETAIN_PT_VERSION, _("Retain this Paratext version"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
 
-    item22->Add( item23, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+    item27->Add( 8, 6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item16->Add( item22, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+    wxRadioButton *item28 = new wxRadioButton( parent, ID_RADIOBUTTON_RETAIN_PT_VERSION, _("Send this Paratext version"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->Add( item28, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    item27->Add( 4, 6, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item29 = new wxButton( parent, ID_BUTTON_RESTORE, _("Restore"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Restore the original Paratext version of this verse") );
+    item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item24->Add( item27, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    item23->Add( item24, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+
+    item16->Add( item23, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
     item11->Add( item16, 3, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     item7->Add( item11, 2, wxGROW|wxALIGN_CENTER_HORIZONTAL, 0 );
 
-    wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item30 = new wxBoxSizer( wxVERTICAL );
 
-    wxButton *item28 = new wxButton( parent, ID_BUTTON_SELECT_ALL_VS, _("Select All Verses"), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->SetToolTip( _("Mark all of the verses with a tick in their boxes. All verses should be transferred.") );
-    item27->Add( item28, 0, wxALIGN_CENTER, 5 );
-
-    wxButton *item29 = new wxButton( parent, ID_BUTTON_UNSELECT_ALL_VS, _("Un-Select All Verses"), wxDefaultPosition, wxDefaultSize, 0 );
-    item29->SetToolTip( _("Un-Mark all of the verses (remove all tick marks from their boxes). None of the verses should be transferred.") );
-    item27->Add( item29, 0, wxALIGN_CENTER, 5 );
-
-    item7->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item31 = new wxButton( parent, wxID_OK, _("Transfer Selected Verses"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->SetDefault();
-    item31->SetToolTip( _("Removes the entries which are ticked, and closes the dialog") );
+    wxButton *item31 = new wxButton( parent, ID_BUTTON_SELECT_ALL_VS, _("Tick All Verses"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("This causes every Adapt It version to be transferred to Paratext.") );
     item30->Add( item31, 0, wxALIGN_CENTER, 5 );
 
-    item30->Add( 20, 12, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item32 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item32->SetToolTip( _("Ignore any selections made, just Cancel the dialog") );
+    wxButton *item32 = new wxButton( parent, ID_BUTTON_UNSELECT_ALL_VS, _("Tick No Verses"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->SetToolTip( _("This causes every Paratext version (with any edits you make) to be transferred back to Paratext") );
     item30->Add( item32, 0, wxALIGN_CENTER, 5 );
 
     item7->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item33 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item34 = new wxButton( parent, wxID_OK, _("Transfer The Listed Verses"), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->SetDefault();
+    item34->SetToolTip( _("Paratext receives whichever versions you chose, including any edits") );
+    item33->Add( item34, 0, wxALIGN_CENTER, 5 );
+
+    item33->Add( 20, 12, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item35 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->SetToolTip( _("Ignore all choices or edits, just Cancel the dialog") );
+    item33->Add( item35, 0, wxALIGN_CENTER, 5 );
+
+    item7->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item7->AddGrowableCol( 1 );
 
@@ -10906,8 +10922,8 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
 
     item1->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, _("You can resize this dialog by dragging the bottom right corner."), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item33, 0, wxALIGN_CENTER, 5 );
+    wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, _("You can resize this dialog by dragging the bottom right corner."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item36, 0, wxALIGN_CENTER, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -10970,7 +10986,7 @@ wxSizer *ConflictResolutionActionFunc( wxWindow *parent, bool call_fit, bool set
     item12->SetToolTip( _("Compiles a list, shows the conflicts in a dialog, you can choose which version of each is best, the source text is also shown") );
     item10->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_BOTTOM, _("For this Save operation, all the identified verse conflicts will be shown to you in a dialog which appears just once. The conflicting verses are listed. Clicking a verse reference in the list, shows the Adapt It and Paratext versions of that verse, and you can choose the best version. (No editing allowed.) The versions are displayed side by side; the source text is above. Make your choice either using radio buttons, or choose the Adapt It version by clicking the checkbox beside it. Leaving the checkbox empty chooses the Paratext version."), wxDefaultPosition, wxSize(80,80), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_BOTTOM, _("For this Save operation, all the identified verse conflicts will be shown to you in a dialog which appears just once. The conflicting verses are listed. Clicking a verse reference in the list, shows the Adapt It and Paratext versions of that verse, and you can choose the best version. The versions are displayed side by side; the source text is above. Make your choice either using radio buttons, or choose the Adapt It version by clicking the checkbox beside it. Leaving the checkbox empty chooses the Paratext version. The displayed Paratext version of the verse is fully editable."), wxDefaultPosition, wxSize(80,80), wxTE_MULTILINE|wxTE_READONLY );
     item10->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item1->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
@@ -11096,8 +11112,6 @@ wxMenuBar *AIMenuBarFunc()
     item4->Append( ID_TOOLS_SPLIT_DOC, _("Split Document..."), _("Split the document into two or more documents") );
     item4->Append( ID_TOOLS_JOIN_DOCS, _("Join Documents..."), _("Join two or more documents into a single document") );
     item4->Append( ID_TOOLS_MOVE_DOC, _("Move Document..."), _("Move documents between the Adaptations folder and a book folder location") );
-    item4->AppendSeparator();
-    item4->Append( ID_VERSE_CONFLICT_DLG, _("Verse Conflict Dialog for Testing"), _("Choose the best verses to transfer to Paratext") );
     item0->Append( item4, _("&Tools") );
     
     wxMenu* item5 = new wxMenu;

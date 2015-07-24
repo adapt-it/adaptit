@@ -260,7 +260,9 @@ extern std::string str_CURLheaders;
 // leak is unclear, uncomment the following include, recompile, run and
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
+#ifdef _DEBUG
 //#include "vld.h"
+#endif
 #endif
 
 // Other includes
@@ -21106,6 +21108,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	int sizeofSPList = sizeof(SPList); // 28 bytes
 	int sizeofwxArrayString = sizeof(wxArrayString); // 16 bytes
 	int stophere = 1;
+	int collabaction = sizeof(CollabAction); // 168 bytes
 	*/
 	/*
 	// check what the character counts in GetUsfmStructureAndExtent(fileBuffer)
