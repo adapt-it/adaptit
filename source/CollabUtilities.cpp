@@ -9260,7 +9260,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
         //    he does. This way we avoid DVCS conflicts if the user happens to have made
         //    some edits back in the external editor while the AI session is in progress.
 		//    
-		// 7. BEW added this note 27Ju11. We have to ALWAYS do a resursive merge of the
+		// 7. BEW added this note 27Ju11. We have to ALWAYS do a recursive merge of the
 		//    source text obtained from Paratext or Bibledit whenever there is an already
         //    saved chapter document (or whole book document) for that information stored
         //    in Adapt It. The reason is as follows. Suppose we didn't, and then the
