@@ -48,7 +48,7 @@ enum ProcessHow {
 
 enum SubspanType {
 	beforeSpan, // whatever subspan precedes those which are in common
-	commonSpan, // the in common subspan (at can be empty, in which case only the 
+	commonSpan, // the in common subspan (it can be empty, in which case only the 
 				// beforeSpan has content)
 	afterSpan   // whatever subspan follows those which are in common (this can be 
 				// as large as the remaining CSourcePhrase instances in oldSPArray

@@ -105,7 +105,7 @@ void InitializeUsfmMkrs()
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 /// \return                    the word count
-/// \param  arr             -> the arrOld from which we extract the m_key member
+/// \param  arr             -> the arrOld from which we extract the m_srcPhrase member
 ///                            from each CSourcePhrase instance
 /// \param  pSubspan        -> the subspan in arrOld we are dealing with, from it we need the
 ///                            bClosedEnd value, and also the oldEndPos value - we use the
@@ -140,6 +140,7 @@ void InitializeUsfmMkrs()
 /// Note 2: pSubspan passed in may have one of the subspans with indices (-1,-1) because
 /// the subspan in the relevant array is empty, so we need to protect from using such
 /// bogus index values as real indices for lookup
+/// BEW refactored 27Jul15 to use m_srcPhrase rather than the key
 /////////////////////////////////////////////////////////////////////////////////////////////
 int GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldSrcKeysStr, int limit)
 {
@@ -205,7 +206,7 @@ int GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldS
 	{
 		CSourcePhrase* pSrcPhrase = arr.Item(index);
 		wxASSERT(pSrcPhrase != NULL);
-		wxString aKey = pSrcPhrase->m_key;
+		wxString aKey = pSrcPhrase->m_srcPhrase;
 		aSrcPhraseCounter++;
 		index++;
 
@@ -229,7 +230,7 @@ int GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldS
 				{
 					CSourcePhrase* pSP = pos->GetData();
 					pos = pos->GetNext();
-					aWordToken = pSP->m_key;
+					aWordToken = pSP->m_srcPhrase;
 					int offset = oldSrcKeysStr.Find(aWordToken);
 					if (offset == wxNOT_FOUND)
 					{
@@ -276,8 +277,8 @@ int GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldS
 	return wordCount;
 }
 
-// Like GetUniqueOldSrcKeysAsAString() except removing duplicates is not done, the m_key words
-// (some will be merged phrases) are gathered in natural storage order (that is, from left
+// Like GetUniqueOldSrcKeysAsAString() except removing duplicates is not done, the m_srcPhrase
+// words (some will be merged phrases) are gathered in natural storage order (that is, from left
 // to right), so it's correct for LTR or RTL reading scripts; ellipses (placeholders), if
 // present, are not retained; nStartAt is the index for the CSourcePhrase instance at
 // which to start getting; return the count of words gotten
@@ -289,6 +290,7 @@ int GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldS
 // limits to that value except when pSubspan has bClosedEnd set TRUE, in which case the
 // span end index (ie. either oldEndAt or newEndAT) is used depending on which array we
 // are displaying
+/// BEW refactored 27Jul15 to use m_srcPhrase rather than the key
 int GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowOld, wxString& keysStr, int limit)
 {
 	int count = arr.GetCount();
@@ -341,7 +343,7 @@ int GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowO
 	}
 	else
 	{
-		// we are showing words from the CSourcePhrase::m_key members in arrNew
+		// we are showing words from the CSourcePhrase::m_srcPhrase members in arrNew
 		if (pSubspan->bClosedEnd)
 		{
 			// we must not display more content than up to and including the oldEndAt
@@ -386,7 +388,7 @@ int GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowO
 	{
 		CSourcePhrase* pSrcPhrase = arr.Item(index);
 		wxASSERT(pSrcPhrase != NULL);
-		wxString aKey = pSrcPhrase->m_key;
+		wxString aKey = pSrcPhrase->m_srcPhrase;
 		if (aKey == ellipsis)
 			continue; // skip over any ... ellipses (placeholders)
 		if (pSrcPhrase->m_nSrcWords > 1)
@@ -422,7 +424,7 @@ int GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowO
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return                    the count of the words which are in common
-/// \param  arr             -> the arrNew from which we extract the m_key member from
+/// \param  arr             -> the arrNew from which we extract the m_srcPhrase member from
 ///                            each CSourcePhrase instance (the words are keys and so
 ///                            have any beginning and ending puntuation stripped off)
 /// \param  pSubspan        -> from this we get the starting index for the search
@@ -430,7 +432,7 @@ int GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowO
 ///                            how we calculate the howMany value which determines how
 ///                            many new CSourcePhrase instances we check when looking for
 ///                            in-common words with the associated subspan in arrOld
-/// \param  uniqueKeysStr   -> the string of unique old m_key values, in the form "word1
+/// \param  uniqueKeysStr   -> the string of unique old m_srcPhrase values, in the form "word1
 ///                            word2 word3 ... wordn", with which the keys from arrNew
 ///                            are compared
 /// \param  strArray        <- pass in an empty string array, return the "words in common"
@@ -461,6 +463,7 @@ int GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowO
 ///
 /// Note 2: Beware, empty subspans within a Subspan instance will manifest as starting and
 /// ending index pairs with values (-1,-1), so protect from using these as real index values
+/// BEW refactored 27Jul15 to use m_srcPhrase rather than the key
 ////////////////////////////////////////////////////////////////////////////////////////
 int GetWordsInCommon(SPArray& arrNew, Subspan* pSubspan, wxString& uniqueKeysStr, wxArrayString& strArray, int limit)
 {
@@ -528,7 +531,7 @@ int GetWordsInCommon(SPArray& arrNew, Subspan* pSubspan, wxString& uniqueKeysStr
 	{
 		CSourcePhrase* pSrcPhrase = arrNew.Item(index);
 		wxASSERT(pSrcPhrase != NULL);
-		wxString aKey = pSrcPhrase->m_key;
+		wxString aKey = pSrcPhrase->m_srcPhrase;
 		index++;
 		aSrcPhraseCounter++;
 		if (aKey == ellipsis)
@@ -550,7 +553,7 @@ int GetWordsInCommon(SPArray& arrNew, Subspan* pSubspan, wxString& uniqueKeysStr
 				{
 					CSourcePhrase* pSP = pos->GetData();
 					pos = pos->GetNext();
-					aWordToken = pSP->m_key;
+					aWordToken = pSP->m_srcPhrase;
 					int offset = uniqueKeysStr.Find(aWordToken);
 					if (offset != wxNOT_FOUND)
 					{
@@ -619,7 +622,7 @@ int	GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArra
 {
 	strArray.Clear();
     // turn the array of old CSourcePhrase instances into a fast access string made up of
-    // the unique m_key words (note, if the instances contain mergers, phrases will be
+    // the unique m_srcPhrase words (note, if the instances contain mergers, phrases will be
     // obtained, but that's fine - they will have spaces between the words as required
     // here)
     wxString oldUniqueSrcWords;
@@ -703,26 +706,27 @@ void InitializeSubspan(Subspan* pSubspan, SubspanType spanType, int oldStartPos,
 /// \return             the index at or after startFrom at which the matched CSourcePhrase is
 ///                     found; or wxNOT_FOUND if no match was made
 /// \param  word    ->  the word (no punctuation either end) which is searched for in the
-///                     arr containing CSourcePhrase instances to find one with a matching m_key
-///                     containing it
+///                     arr containing CSourcePhrase instances to find one with a matching
+///                     m_srcPhrase containing it
 /// \param  arr     ->  the array of CSourcePhrase instances being searched, from
 ///                     startFrom index and onwards
 /// \param  startFrom -> index in arr at which to start looking for a match
 /// \param  endAt   ->  index (inclusive) at which to cease looking for a match
-/// \param  phrase  <-  when the m_key matched contains only a single word, phrase is
-///                     returned empty; but when m_key contains more than one word (any of
-///                     them could have therefore been matched), the whole m_key phrase is
+/// \param  phrase  <-  when the m_srcPhrase matched contains only a single word, phrase is
+///                     returned empty; but when m_srcPhrase contains more than one word (any of
+///                     them could have therefore been matched), the whole m_srcPhrase phrase is
 ///                     returned here
 /// \remarks
 /// Get the index for whichever CSourcePhrase instance in arr contains the searched for
 /// word, starting the search from the index value startFrom, and searching as far as
-/// endAt (inclusing that index as a possible match location). Return the whole m_key if the
-/// latter is within a matched CSourcePhrase which is a merger, returning it in the phrase
+/// endAt (inclusing that index as a possible match location). Return the whole m_srcPhrase if
+/// the latter is within a matched CSourcePhrase which is a merger, returning it in the phrase
 /// parameter ( so that the caller can check if the phrase occurs in the other array).
 /// We have startFrom and endAt bounds because we want to limit our algorithms to a short
 /// span in which we have a certainty of there being at least one word in common - the
 /// default value of SPAN_LIMIT (set to 80) is suitably large without generating heaps of
 /// possibilities which all have to be checked.
+/// BEW refactored 27Jul15 to use m_srcPhrase rather than the key string
 /////////////////////////////////////////////////////////////////////////////////////////////
 int FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxString& phrase)
 {
@@ -733,7 +737,7 @@ int FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxSt
 		if (pSrcPhrase->m_nSrcWords == 1)
 		{
 			// make sure all the word matches, not just part of it
-			if (pSrcPhrase->m_key == word)
+			if (pSrcPhrase->m_srcPhrase == word)
 			{
 				phrase.Empty();
 				return i;
@@ -742,7 +746,7 @@ int FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxSt
 		else
 		{
 			// must be a merger, or a fixedspsace pseudo-merger
-			phrase = pSrcPhrase->m_key;
+			phrase = pSrcPhrase->m_srcPhrase;
 			if (IsFixedSpaceSymbolWithin(phrase))
 			{
 				int offset2 = phrase.Find(_T("~"));
@@ -763,7 +767,7 @@ int FindNextInArray(wxString& word, SPArray& arr, int startFrom, int endAt, wxSt
 				// word matches any of them
 				wxArrayString arrStr;
 				wxString delim = _T(' ');
-				long aCount = SmartTokenize(delim, pSrcPhrase->m_key, arrStr, FALSE);
+				long aCount = SmartTokenize(delim, pSrcPhrase->m_srcPhrase, arrStr, FALSE);
 				int index;
 				for (index = 0; index < (int)aCount; index++)
 				{
@@ -1298,15 +1302,15 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                   // carefully placed tests at the loop end below.
 		while(oldChunkIndex < countOldChunks && newChunkIndex < countNewChunks)
 		{
-/*
+
 #if defined(_DEBUG) && defined(LOOPINDEX)
-			wxLogDebug(_T("while loop indices: oldChunkIndex %d   newChunkIndex %d"),oldChunkIndex,newChunkIndex);
-			if (newChunkIndex >= 22)
+			wxLogDebug(_T("start WHILE LOOP:  oldChunkIndex %d   newChunkIndex %d"),oldChunkIndex,newChunkIndex);
+			/* if (newChunkIndex >= 22)
 			{
 				int break_here = 1;
-			}
+			} */
 #endif
-*/
+
 			// we still have chunks that potentially can be matched up to each other
 			pOldChunk = (SfmChunk*)pChunksOld->Item(oldChunkIndex);
 			pNewChunk = (SfmChunk*)pChunksNew->Item(newChunkIndex);
@@ -1315,9 +1319,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			if (bInitialRefsSame)
 			{
                 // Collect successive paired chunks into a superchunk, and process the
-                // superchunk with a single MergeRecursively() call, with limit set to
-                // defaultLimit ( = SPAN_LIMIT = 80, see AdaptitConstants.h); FALSE is
-                // returned if a pairing failure occurs prior to reaching the end of one or
+                // superchunk with a single MergeRecursively() call, with limit set dynamically.
+                // FALSE returned if a pairing failure occurs prior to reaching the end of one or
                 // both of the arrays, or a pairing of two chunks is done but the word
                 // counts within those two chunks are disparate; if pairing gets to the end
                 // of one or both arrays, it returns TRUE
@@ -1330,7 +1333,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			// text has only negligable or partial USFM marker content, and the user has
 			// exported the source text, added fuller or full USFM content, and then
 			// imported the marker-rich edited source text back into the document. We want
-			// this process to preserve many of the original adaptations (and
+			// this process to preserve as many of the original adaptations (and
 			// placeholders) as possible, since it's likely that only markers, or mainly
 			// markers, are the sum total of the external editing changes. In this
 			// scenario, it's likely that the final chunk of the old text will be very
@@ -1378,17 +1381,48 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 
 					CopySubArray(arrOld, pOldChunk->startsAt, pEndChunkOld->endsAt, subArrOld);
 					CopySubArray(arrNew, pNewChunk->startsAt, pEndChunkNew->endsAt, subArrNew);
-					// MergeRecursively() appends to pMergedList and updates sequ numbers, and
-					// copies changed punctuation and/or USFMs for material "in common",
-					// etc; for in-sync milestoned chunk pairings, use the (small) default
-					// value of limit
-					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum,
-						pChunksOld, pChunksNew, processPerMilestone, arrPairingOld,
-						arrOld, arrNew, oldChunkIndex, newChunkIndex);
+
+					// BEW 27Jul15, in debug mode working on all 1068 pairings for Matthew, 
+					// here the legacy code would call MergeRecursively with a limit value of
+					// 80, but pairings will have spanned all of Matthew. So the smart merge
+					// bogged down trying to cope with the legacy way, for 1068 pairings at
+					// 4 secs each! What we have to do here is force limit to be -1 when the
+					// pairings are many, and use processStartToEnd (not the milestoning algorithm)
+					// so that the largest in-common span is found by the sampling method. Hence
+					// the next few lines of code before we call the MergeRecursively() function.
+					// (the indices in each chunk pairing are indices (start and end) into the
+					// CSourcePhrase instances of the original SPArray either doc or from external
+					// editor; so we count them - some will be mergers, but we'll treat those as
+					// if they had only a single word, as we don't need to be precise here)
+					int oldNumSrcPhrasesPaired = pEndChunkOld->endsAt - ((SfmChunk*)pChunksOld->Item(0))->startsAt;
+					int newNumSrcPhrasesPaired = pEndChunkNew->endsAt - ((SfmChunk*)pChunksNew->Item(0))->startsAt;
+					if (oldNumSrcPhrasesPaired > defaultLimit || newNumSrcPhrasesPaired > defaultLimit)
+					{
+						// Do it the 'sampling' way...
+						// MergeRecursively() appends to pMergedList and updates sequ numbers, and
+						// copies changed punctuation and/or USFMs for material "in common", etc
+						MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum,
+							pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
+							arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
-			wxLogDebug(_T("MergeRecursively() milestoned, paired: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
-				pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, defaultLimit, nStartingSequNum);
+						wxLogDebug(_T("MergeRecursively() forcing SAMPLING way, paired && initialRefsSame: OLD num CSourcePhrases: %d   NEW num CSourcePhrases: %d limit=%d  starting sequnum = %d"),
+							oldNumSrcPhrasesPaired, newNumSrcPhrasesPaired, -1, nStartingSequNum);
 #endif
+					}
+					else
+					{
+						// It's only a small chunk, so handle it the legacy way
+
+						// MergeRecursively() appends to pMergedList and updates sequ numbers, and
+						// copies changed punctuation and/or USFMs for material "in common", etc
+						MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum,
+							pChunksOld, pChunksNew, processPerMilestone, arrPairingOld,
+							arrOld, arrNew, oldChunkIndex, newChunkIndex);
+#if defined(_DEBUG) && defined(MERGE_Recursively)
+						wxLogDebug(_T("MergeRecursively() milestoned, paired && initialRefsSame: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
+							pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, defaultLimit, nStartingSequNum);
+#endif
+					}
 					RemoveAll(&subArrOld);
 					RemoveAll(&subArrNew);
 					// m_nSequNumber values have been made up-to-date already, for
@@ -1462,6 +1496,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			} // end of TRUE block for test: if (bPairedOK && bInitialRefsSame)
 			else
 			{
+#if defined(_DEBUG) && defined(MERGE_Recursively)
+				wxLogDebug(_T("MergeRecursively() milestoned, SUPER-CHUNK  else block ENTERED"));
+#endif
 				// Came to a halt-forcing location, so process the superchunk
 				// collected up to that point (oldLastChunkIndex and newLastChunkIndex
 				// are returned pointing at the previous locations - that is, the last
@@ -1477,10 +1514,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				bool bDoMyEndTweak = FALSE;
 				// The following complex 3-part test has the following meaning: if one of
 				// the conditions is TRUE, then there is at least one (but possibly more,
-				// even hundreds) paired chunk which were successfully matched
-				// simple-verse chunks, and so should be processed recursively with the
-				// minimal limit value defaultLimit (the value passed in, which equals
-				// SPAN_LIMIT and the latter is set at 80 in AdaptitConstants.h).
+				// even hundreds) paired chunk(s) which were successfully matched
+				// simple-verse chunks, and so should be processed recursively.
 				// After that successfully paired lot of chunks there will be a location
 				// where the pairing attempt failed - either due to disparate sizes in the
 				// pair being considered, or because the verse referencing etc is messy
@@ -1491,7 +1526,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                 // 1st: bInitialRefsSame is TRUE -- the first chunks considered for pairing
                 // turned out to be pairable simple-verse chunks, and therefore any halting
                 // location for aggregating would have to be later in the chunk arrays, so
-                // at least the first pair need a recursive merge with minimal limit value.
+                // at least the first pair need a recursive merge.
 				// But a FALSE value means there was nothing successfully aggregated and
 				// so this block has to be skipped.
 				// 2nd: the last pair considered for a match were not disparate sized, and
@@ -1506,7 +1541,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				// not so, the disparate sized chunk pair would be at the same values as
 				// oldChunkIndex and newChunkIndex and there would be nothing successfully
 				// aggreagated for us to handle in the next block.
-				if ( bInitialRefsSame && (!bDisparateSizes ||
+				if (bInitialRefsSame && (!bDisparateSizes ||
 					(bDisparateSizes && (oldChunkIndex < oldLastChunkIndex && newChunkIndex < newLastChunkIndex)))
 					)
 				{
@@ -1516,10 +1551,10 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						// the end of the "successfully paired" chunks is the chunks
 						// preceding those which oldLastChunkIndex and
 						// newLastChunkIndex point at (because GetMaxInSyncChunksPairing()
-                        // for a return due to disparate sizes returns not the previous
-                        // indices to the matchup, but the indices of the matchup
-                        // itself, so the 'normal' stuff ends at the previous indices
-                        // to those returned)
+						// for a return due to disparate sizes returns not the previous
+						// indices to the matchup, but the indices of the matchup
+						// itself, so the 'normal' stuff ends at the previous indices
+						// to those returned)
 						// The following tweak is a bit of a kludge. If there is a
 						// disparate sized pairing at the end of the arrays, the
 						// exclusion of that pairing can lead to a less than
@@ -1554,15 +1589,30 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					CopySubArray(arrNew, pNewChunk->startsAt, pEndChunkNew->endsAt, subArrNew);
 					// MergeRecursively() appends to pMergedList and updates sequ
 					// numbers, and copies changed punctuation and/or USFMs for
-					// material "in common", etc; for in-sync milestoned chunk
-					// pairings, use the (small) default value of limit
-					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum,
-						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
-						arrOld, arrNew, oldChunkIndex, newChunkIndex);
+					// material "in common", etc
+					if (subArrOld.GetCount() > (size_t)defaultLimit || subArrNew.GetCount() > (size_t)defaultLimit)
+					{
+						// a limit of -1, together with processStartToEnd, will select the 'sampling'
+						// method for determining the largest in-common synced set of CSourcePhrases,
+						// which is the fastest way to do it for a largish amount of instances
+						MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum,
+							pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
+							arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
-			wxLogDebug(_T("MergeRecursively() milestoned, disparate super-chunk -- earlier: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
-				pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, defaultLimit, nStartingSequNum);
+						wxLogDebug(_T("MergeRecursively() non-milestoned legacy way (short section), disparate super-chunk -- earlier: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
+							pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, defaultLimit, nStartingSequNum);
 #endif
+					}
+					else
+					{
+						MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum,
+							pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
+							arrOld, arrNew, oldChunkIndex, newChunkIndex);
+#if defined(_DEBUG) && defined(MERGE_Recursively)
+						wxLogDebug(_T("MergeRecursively() non-milestoned legacy way (short section), disparate super-chunk -- earlier: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
+							pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, defaultLimit, nStartingSequNum);
+#endif
+					}
 					RemoveAll(&subArrOld);
 					RemoveAll(&subArrNew);
 				} // end of TRUE block for complex 3-part test:
@@ -1593,7 +1643,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
-			wxLogDebug(_T("MergeRecursively() milestoned, disparate super-chunk -- at end: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
+			wxLogDebug(_T("MergeRecursively() uses SAMPLING way, disparate super-chunk -- at end: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pEndChunkOld->startsAt, pEndChunkOld->endsAt, pEndChunkNew->startsAt, pEndChunkNew->endsAt, -1, nStartingSequNum);
 #endif
 					RemoveAll(&subArrOld);
@@ -1743,7 +1793,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 							pNewChunk = (SfmChunk*)pChunksNew->Item(newMatchedChunk);
 							pEndChunkOld = pOldChunk;
 							pEndChunkNew = pNewChunk;
-#if defined(_DEBUG) && defined(MERGE_Recursively)
+#if defined(_DEBUG) //&& defined(MERGE_Recursively)
 							wxLogDebug(_T("Removing some OLD: disparate sizes, oldChunkIndex < oldMatchedChunk && newChunkIndex == newMatchedChunk: old word count %d  new word count %d, uses max"),
 								oldCountOfWords, newCountOfWords);
 #endif
@@ -1841,7 +1891,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				// for in those blocks and passing bFinished = FALSE to here
 				if (!bFinished)
 				{
-					// make the subarrays to pass in
+#if defined(_DEBUG) && defined(MERGE_Recursively)
+					wxLogDebug(_T("MergeRecursively() Doing !bFinished TRUE block at 1848 line"));
+#endif					// make the subarrays to pass in
 					CopySubArray(arrOld, pOldChunk->startsAt, pEndChunkOld->endsAt, subArrOld);
 					CopySubArray(arrNew, pNewChunk->startsAt, pEndChunkNew->endsAt, subArrNew);
 					// MergeRecursively() with the word-count-based limit value, which
@@ -1911,6 +1963,10 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				oldLastChunkIndex = oldMaxIndex; // not needed, but documents where
 													 // processing has finished to
 			}
+#if defined(_DEBUG) && defined(MERGE_Recursively)
+			wxLogDebug(_T("MergeRecursively() At LOOP END and iterating with updated values: oldChunkIndex %d , newChunkIndex %d"),
+					oldChunkIndex, newChunkIndex);
+#endif
 		} // end of loop: while (oldIndex < countOldChunks && newIndex < countNewChunks)
 
 		// Since the above loop can exit with one of the two arrays still with data, we
@@ -1936,16 +1992,30 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			// now set up the content of subArrOld and subArrNew
 			CopySubArray(arrOld, pOldChunk->startsAt, pEndChunkOld->endsAt, subArrOld);
 			CopySubArray(arrNew, pNewChunk->startsAt, pEndChunkNew->endsAt, subArrNew);
-			// Merge the superchunks. Fot the processStartToEnd enum value, params
+			// Merge the superchunks. For the processStartToEnd enum value, params
 			// after the nStartingSequNum param are not used, and what's passed in are
 			// just fillers that are ignored.
-			MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum,
-				pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
-				arrOld, arrNew, oldChunkIndex, newChunkIndex);
+			if (subArrOld.GetCount() > (size_t)defaultLimit || subArrNew.GetCount() > (size_t)defaultLimit)
+			{
+				// if one count is big, use the 'sampling' method to find the largest in-sync common span
+				MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum,
+					pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
+					arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
-			wxLogDebug(_T("MergeRecursively() last old chunk & disparate sized, take all remaining in both old & new \nas super-chunk -- earlier: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
-				pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, -1, nStartingSequNum);
+				wxLogDebug(_T("MergeRecursively() SAMPLING way: last old chunk & disparate sized, take all remaining in both old & new \nas super-chunk -- earlier: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
+					pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, -1, nStartingSequNum);
 #endif
+			}
+			else
+			{
+				MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum,
+					pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
+					arrOld, arrNew, oldChunkIndex, newChunkIndex);
+#if defined(_DEBUG) && defined(MERGE_Recursively)
+				wxLogDebug(_T("MergeRecursively() NON_SAMPLING way: last old chunk & disparate sized, take all remaining in both old & new \nas super-chunk -- earlier: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
+					pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, defaultLimit, nStartingSequNum);
+#endif
+			}
 			RemoveAll(&subArrOld);
 			RemoveAll(&subArrNew);
 		}
@@ -2012,10 +2082,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		}
 		else
 		{
-            // this will be very inefficient and slow because all unique words in arrOld
-            // must be checked for all matchups with all unique words in arrNew, an order
-            // of N squared operation, where N = total words (but if one or the other array
-            // is markedly shorter, it isn't so bad)
+            // This would be slow if the limit was not -1, so we will use the 'sampling'
+			// method to get the largest common span, to prevent it bogging down
 			MergeRecursively(arrOld, arrNew, pMergedList, -1, nStartingSequNum,
 				pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 				arrOld, arrNew, oldChunkIndex, newChunkIndex);
@@ -2401,7 +2469,7 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 ///
 /// BEW 16Aug12 Here's how I plan to tackle a problem identified by Kim Blewett
 /// (17July2012) in an email. She had added several verses, more than SPAN_LIMIT's value of
-/// extra words, at the end of the source text in Paratext - and the Adapt It messed up the
+/// extra words, at the end of the source text in Paratext - and then Adapt It messed up the
 /// merger of the new source text. I'll define a new array, arrPairingOld, of integers
 /// which work in to defined the sequence of paired milestones; offsets to the values at
 /// any one index account for differences in chunk indices between a pair of matched
@@ -2427,7 +2495,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 	int newIndex = newStartChunk;
 	int oldChunkCount = pOldChunksArray->GetCount();
 	int newChunkCount = pNewChunksArray->GetCount();
-#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
+#if defined(_DEBUG) && defined(myMilestoneDebugCalls)
 	wxLogDebug(_T("GetMaxInSyncChunksPairing() before loop, oldChunkCount %d   newChunkCount %d"),
 		oldChunkCount, newChunkCount);
 #endif
@@ -2445,7 +2513,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 			// far, and then do a special collection of the not-in-sync material etc
 			oldEndChunk = oldIndex - 1; // points to part of the last matched pair
 			newEndChunk = newIndex - 1; // points to the other part of the last matched pair
-#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
+#if defined(_DEBUG) && defined(myMilestoneDebugCalls)
 			wxLogDebug(_T("GetMaxInSyncChunksPairing() in loop: last matched pairs, oldEndChunk index: %d newEndChunk index: %d  Returning FALSE"),
 			oldEndChunk, newEndChunk);
 #endif
@@ -2461,7 +2529,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 			// don't want to return index values that assume previous chunks exist
 			oldEndChunk = oldIndex;
 			newEndChunk = newIndex;
-#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
+#if defined(_DEBUG) && defined(myMilestoneDebugCalls)
 			wxLogDebug(_T("GetMaxInSyncChunksPairing() in loop: DISPARATE SIZES (current indices), oldEndChunk index: %d newEndChunk index: %d  Returning FALSE"),
 			oldEndChunk, newEndChunk);
 #endif
@@ -2476,7 +2544,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 			arrPairingOld.Add(oldIndex);
 			//arrPairingNew.Add(newIndex);
 
-#if defined( myMilestoneDebugCalls) && defined( _DEBUG)
+#if defined(_DEBUG) && defined(myMilestoneDebugCalls)
 			// log the pair we've just accepted
 			SfmChunk* pAnOldChunk = (SfmChunk*)pOldChunksArray->Item(oldIndex);
 			SfmChunk* pANewChunk = (SfmChunk*)pNewChunksArray->Item(newIndex);
@@ -2491,7 +2559,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 				// return TRUE, and with the last paired SfmChunk instances' indices set
 				oldEndChunk = oldIndex - 1;
 				newEndChunk = newIndex - 1;
-#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
+#if defined(_DEBUG) //&& defined(myMilestoneDebugCalls)
 				wxLogDebug(_T("GetMaxInSyncChunksPairing() ELSE block, returns TRUE (oldIndex >= oldChunkCount) last pairing: oldEndChunk index: %d newEndChunk index: %d"),
 			oldEndChunk, newEndChunk);
 #endif
@@ -2502,7 +2570,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 				// return TRUE, and with the last paired SfmChunk instances' indices set
 				oldEndChunk = oldIndex - 1;
 				newEndChunk = newIndex - 1;
-#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
+#if defined(_DEBUG) && defined(myMilestoneDebugCalls)
 				wxLogDebug(_T("GetMaxInSyncChunksPairing() ELSE block, returns TRUE (newIndex >= newChunkCount) last pairing: oldEndChunk index: %d newEndChunk index: %d"),
 			oldEndChunk, newEndChunk);
 #endif
@@ -2510,7 +2578,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 			}
 			// if control reaches here, neither index is at the end of its array, so the
 			// chunks can be accessed for testing on next iteration
-#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
+#if defined(_DEBUG) && defined(myMilestoneDebugCalls)
 			wxLogDebug(_T("GetMaxInSyncChunksPairing() 'neither index is at end of its array', oldIndex: %d  newIndex index: %d  will iterate"),
 			oldIndex, newIndex);
 #endif
@@ -2524,8 +2592,8 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 	// control should never get to here, but just in case
 	oldEndChunk = oldIndex - 1;
 	newEndChunk = newIndex - 1;
-#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
-	wxLogDebug(_T("GetMaxInSyncChunksPairing() end 'control should not get here' returns TRUE, oldEndChunk index: %d  newEndChunk index: %d"),
+#if defined(_DEBUG) && defined(myMilestoneDebugCalls)
+	wxLogDebug(_T("GetMaxInSyncChunksPairing() at func end 'control should not get here' returns TRUE, oldEndChunk index: %d  newEndChunk index: %d"),
 			oldIndex, newIndex);
 #endif
 	return TRUE;
@@ -2814,6 +2882,12 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 			pPairedChunkOld = (SfmChunk*)pChunksOld->Item(pairingsIndex + oldChunkIndexKickoff);
 			indexOldStart = pPairedChunkOld->startsAt;
 			indexOldEnd   = pPairedChunkOld->endsAt;
+#if defined(_DEBUG) && defined(_RECURSE_)
+			wxLogDebug(_T("([arrOld] pairings: indexOldStart %d  indexOldEnd %d  ,strChapter %s , strStartingVerse %s , strEndingVerse %s , bContainsText %d , type (subheading 5 verse 6) %d"),
+				indexOldStart, indexOldEnd, pPairedChunkOld->strChapter.c_str(), 
+				pPairedChunkOld->strStartingVerse.c_str(), pPairedChunkOld->strEndingVerse.c_str(), 
+				(int)pPairedChunkOld->bContainsText, (int)pPairedChunkOld->type);
+#endif
 			CopySubArray(arrOldFull, indexOldStart, indexOldEnd, arrSubOld);
 
 			// do the same for the new CSourcePhrase instances
@@ -2863,12 +2937,12 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 				wxASSERT(indexNewStart == indexNewEnd);
 				CopyToList(arrNewFull, indexNewStart, indexNewEnd, pMergedList); // makes a deep copy
 			}
-			else
+			else 
 			{
-				// neither are empty, we should be safe for a recursive merger
+				// neither are empty, and their contents are not identical, so do a recursive merger
 #if defined (myLogDebugCalls) && defined (_DEBUG)
 				wxLogDebug(_T("\n*** pairingIndex = %d  In MergeRecursively() per-Milestone; pairings LOOP: OLD [ %d : %d ] NEW [ %d : %d ]  (new) Verse = %d\n RECURSING..."),
-				pairingsIndex, indexOldStart, indexOldEnd, indexNewStart, indexNewEnd, pPairedChunkNew->nStartingVerse);
+					pairingsIndex, indexOldStart, indexOldEnd, indexNewStart, indexNewEnd, pPairedChunkNew->nStartingVerse);
 #endif
 				Subspan* tuple[3]; // an array of three pointer-to-Subspan
 				tuple[0] = NULL;
@@ -2879,12 +2953,6 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 #endif
 				tuple[2] = pSubspan;
 
-#if defined(_DEBUG) && defined(_RECURSE_)
-//				if (pairingsIndex == 2) // this correspondes to chapter 1 verse 3, which has 23 old and 24 new words
-//				{
-//					int break_here = 1;
-//				}
-#endif
 				// initialize tuple[2] to store an open-ended Subspan pointer spanning the whole
 				// extents of arrSubOld and arrSubNew
 				// In this call: FALSE is bClosedEnd, i.e. it's an open-ended afterSpan
@@ -2894,7 +2962,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 				// call finally returns after being recursively called possibly a few times, the
 				// merging for this one milestoned chunk is complete
 				RecursiveTupleProcessor(arrSubOld, arrSubNew, pMergedList, limit, tuple);
-			}
+			} // end of else block for test: else if (bNewChunkEmpty)
 		} // end of loop: for (pairingsIndex = 0; pairingsIndex < pairingsCount; pairingsIndex++)
 
 	} // end of else block for test: if (howToProcess == processStartToEnd)
@@ -2944,11 +3012,12 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 // Return TRUE if the milestoned chunk is empty. Typically a milestoned chunk is a verse
 // chunk, but we won't insist on it being a verse chunk. It will be a candidate for being
 // empty if the starting index and ending index are the same (ie. the one CSourcePhrase is
-// all there is in the chunk), AND, its m_key value is an empty string. In this
+// all there is in the chunk), AND, its m_srcPhrase value is an empty string. In this
 // circumstance, we must not try a recursive merger because the algorithm breaks down. We
 // instead copy the new material if the empty chunk is old array data, or replace the old chunk
 // with an empty new CSourcePhrase (typically with \v num in m_markers) if the empty chunk
 // is new array data (the replacements, of course, are done elsewhere, not here)
+// BEW refactored 27Jul15 to use m_srcPhrase rather than the key
 bool IsChunkEmpty(SPArray arr, int indexStart, int indexEnd)
 {
 	if (indexEnd > indexStart)
@@ -2956,7 +3025,7 @@ bool IsChunkEmpty(SPArray arr, int indexStart, int indexEnd)
 		return FALSE;
 	}
 	CSourcePhrase* pSrcPhrase = arr.Item(indexStart);
-	if (pSrcPhrase->m_key.IsEmpty())
+	if (pSrcPhrase->m_srcPhrase.IsEmpty())
 	{
 		return TRUE;
 	}
@@ -3539,7 +3608,7 @@ bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldI
 	// m_pMedialPuncts array and m_pMedialMarkers array, as appropriate; it also copies the
 	// pTo m_adaption and m_targetStr contents to the equivalent new CSourcePhrase
 	// instance, so that the m_pSavedWords list on pNewSrcPhrase gets updated with any src
-	// text respellings; and returns composed strings for updating m_srcPhrase and m_key
+	// text respellings; and returns composed strings for updating m_srcPhrase and m_srcPhrase
 	// on the merger if those were different in the arrNew data
 	wxString parentPrecPunct = pTo->m_precPunct;
 	wxString parentFollPunct = pTo->m_follPunct + pTo->GetFollowingOuterPunct();
@@ -3690,26 +3759,19 @@ int PutEndMarkersIntoArray(CSourcePhrase* pSrcPhrase, wxArrayString* pArray)
 // members has been cleared of their former contents - if any. parentPrevPunct is for
 // inputting the intial m_precPunct value for the parent instance, and parentFollPunct
 // does the same for the m_follPunct and m_follOuterPunct values for the parent; while the
-// medial information builds srcPhrFromInstances from the new material's m_key members plus
+// medial information builds srcPhrFromInstances from the new material's the key members plus
 // punctuation, and returns it to the caller by means of the signature, where it will have
 // the parent's previous and following puncts added - to form a new m_srcPhrase value.
 // We also rebuild the m_targetStr members for both parent and it's children.
 // This function is used within TransferPunctsAndMarkersToMerger()
-// BEW refactored 21Jul14, but only to support ZWSP etc storage and replacement. Support for
-// changes to m_srcPhrase and m_key for support of -srcRespell command line switch will be
-// done in a new function which is only to be invoked within
-// TransferPunctsAndMarkersToMerger() when the -srcRespell switch is in operation - and in
-// that scenario the code in the new function will assume *THERE ARE NO PUNCTUATION
-// CHANGES* in the arrNew data that has come from PT or BE in order to rebuild the merger
-// (if there are, well too bad, the resultant AI document will lack the puncts changes, but
-// will have the correct source respellings nevertheless)
+// BEW refactored 21Jul14, but only to support ZWSP etc storage and replacement.
 // Since we are supporting ZWSP and similar spaces here now, the first word's
 // CSourcePhrase will get whatever preceding wordbreak string is to be added, in the
 // caller, rather than here. So we only get and use the wordbreaks here from the second
 // and later CSourcePhrase new instances. We will, however, add a new parameter wxString&
-// keyFromInstances, since ZWSP support will need to potentially rebuild m_key for
+// keyFromInstances, since ZWSP support will need to potentially rebuild m_ key for
 // pMergedSP as well as m_srcPhrase (only the latter was done in the past because if space
-// was the only wordbreak, m_key was able to be assumed to have not changed; but that is
+// was the only wordbreak, m_ key was able to be assumed to have not changed; but that is
 // no longer the case now)
 void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew,
 				wxString& parentPrevPunct, wxString& parentFollPunct, wxString& srcPhrFromInstances,
@@ -3740,7 +3802,7 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 		CSourcePhrase* pNewSrcPhrase = (CSourcePhrase*)pArrayNew->Item(index);
 		if (index == 0)
 		{
-            // add the new instance's m_key to the string being composed for parent's
+            // add the new instance's m_ key to the string being composed for parent's
             // m_srcPhrase updated value
 			srcPhrFromInstances += pNewSrcPhrase->m_key;
 			srcPhrFromInstances += pNewSrcPhrase->m_follPunct;
@@ -3794,7 +3856,7 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 		}
 		else if (index == total - 1)
 		{
-            // at the last instance, add the new instance's m_key to the string being
+            // at the last instance, add the new instance's key to the string being
 			// composed for parent's m_srcPhrase updated value; also precede with the
 			// wordbreak for this location
 			srcPhrFromInstances += PutSrcWordBreak(pNewSrcPhrase);
@@ -3844,7 +3906,7 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 		}
 		else
 		{
-            // add the new instance's m_key to the string being composed for parent's
+            // add the new instance's key to the string being composed for parent's
             // m_srcPhrase updated value
 			srcPhrFromInstances += PutSrcWordBreak(pNewSrcPhrase);
 			srcPhrFromInstances += pNewSrcPhrase->m_precPunct;
@@ -3923,7 +3985,7 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 // m_pSavedWords's instances (the old originals from before the merger), and copies those
 // adaptations to the matching instances in pArrayNew. Then m_pSavedWords is cleared, and
 // the instances in pArrayNew are deep copied, in top down order (which corresponds to the
-// word order of their m_key words within the (here unedited) source text just imported)
+// word order of their m_srcPhrase words within the (here unedited) source text just imported)
 // into m_pSavedWords - so that if the user later decides to unmerge the merger, the
 // exposed now-unmerged instances will show any user edits of punctuation or USFM
 // structure done when the source text was outside of Adapt It and potentially edited
@@ -3996,8 +4058,8 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// since it is called repeatedly until a failure results, the kick off point will move
 /// leftwards for each iteration in both arrOld and arrNew. If there are no placeholders,
 /// or retranslations to the immediate left, then we have only to make a simple
-/// test for matching m_key values in the CSourcePhrase to the immediate left (i.e. in the
-/// array, at the next smallest index value) in both arrOld and arrNew. Return TRUE if they
+/// test for matching m_srcPhrase values in the CSourcePhrase to the immediate left (i.e. in
+/// the array, at the next smallest index value) in both arrOld and arrNew. Return TRUE if they
 /// match, FALSE if they don't - and returning FALSE indicates we've come to what is to be
 /// the left bound of this in-common span of CSourcePhrase instances.
 ///
@@ -4030,8 +4092,8 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// (if another such placeholder precedes, continue checking leftwards until a
 /// non-placeholder is encountered)
 /// (2) When a non-retranslation, and non-placeholder CSourcePhrase is encountered in
-/// arrOld, the next-to-the-left CSourcePhrase instance in arrNew is compared (their m_key
-/// values are what are checked, for identity) - if the keys are identical, then the
+/// arrOld, the next-to-the-left CSourcePhrase instance in arrNew is compared (their m_srcPhrase
+/// values are what are checked, for identity) - if the srcPhrases are identical, then the
 /// leftwards widening has succeeded. At this point, any placeholders traversed in arrOld
 /// are added to the oldCount value - in that way, oldCount can be greater than 1; and so
 /// those placeholders are deemed to lie within the commonSpan. However, if the test of
@@ -4042,9 +4104,9 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// (3) The rules for any placeholder which is not within a retranslation are a bit
 /// different. Moving leftwards and encountering such a placeholder, any decision about
 /// inclusion within commonSpan is deferred until a non-placeholder potential match pair is
-/// checked for identity of m_key values. If the latter's keys match, then the widening
+/// checked for identity of m_srcPhrase values. If the latter's values match, then the widening
 /// attempt has succeeded and both the matched CSourcePhrase and its following placeholder
-/// are accepted into the commonSpan. If the non-placeholder CSourcePhrase pair's m_key
+/// are accepted into the commonSpan. If the non-placeholder CSourcePhrase pair's m_srcPhrase
 /// values are not identical, then the left bound of the commonSpan has been reached, and
 /// we need additional criteria to help us decide whether or not the placeholder should be
 /// included in the commonSpan, or considered to belong in the beforeSpan. Here is the
@@ -4095,7 +4157,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 		if (pOldSrcPhrase->m_nSrcWords == 1 && !pOldSrcPhrase->m_bRetranslation && 
 			!pOldSrcPhrase->m_bNullSourcePhrase)
 		{
-			if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
+			if (pOldSrcPhrase->m_srcPhrase == pNewSrcPhrase->m_srcPhrase)
 			{
 				// we can extend the commonSpan successfully leftwards to this
 				// pair of instances
@@ -4136,11 +4198,11 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
             // if so
 			if (bIsFixedspaceConjoined)
 			{
-				if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
+				if (pOldSrcPhrase->m_srcPhrase == pNewSrcPhrase->m_srcPhrase)
 				{
 					// we can extend the commonSpan successfully leftwards to this
 					// pair of instances, each has the fixedspace (~) marker in its
-					// m_key member
+					// m_srcPhrase member
 					oldCount++;
 					newCount++;
 					return TRUE;
@@ -4153,15 +4215,15 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 					{
                         // there are enough words available for a match attempt... get the
                         // individual words in pOldSrcPhrase and then check for a match
-                        // with two successive new CSourcePhrase instances' m_key values
+                        // with two successive new CSourcePhrase instances' m_srcPhrase values
 						int newStartingIndex = newIndex - numWords + 1;
 						SPList::Node* pos = pOldSrcPhrase->m_pSavedWords->GetFirst();
 						wxASSERT(pos != NULL);
-						wxString word1 = pos->GetData()->m_key;
+						wxString word1 = pos->GetData()->m_srcPhrase;
 						pos = pos->GetNext();
-						wxString word2 = pos->GetData()->m_key;
-						wxString newWord1 = arrNew.Item(newStartingIndex)->m_key;
-						wxString newWord2 = arrNew.Item(newStartingIndex + 1)->m_key;
+						wxString word2 = pos->GetData()->m_srcPhrase;
+						wxString newWord1 = arrNew.Item(newStartingIndex)->m_srcPhrase;
+						wxString newWord2 = arrNew.Item(newStartingIndex + 1)->m_srcPhrase;
 						if (word1 == newWord1 && word2 == newWord2)
 						{
 							// consider this a match
@@ -4294,7 +4356,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 			// Get past this and any additional non-retranslation placeholders until
 			// either we reach oldStartAt and can't check further, or we get a
 			// non-placeholder which is at or after oldStartAt which we can test for a
-			// match of m_Key values with the one at arrNew; decide what to do
+			// match of m_srcPhrase values with the one at arrNew; decide what to do
 			// according to the protocols spelled out above.
 			int nExtraCount = 0;
 			int prevIndex = oldIndex - 1;
@@ -4321,7 +4383,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 					if (pPrevSrcPhrase->m_nSrcWords == 1 || bItsInARetranslation)
 					{
 						// it's not a merger - so check for a match with the one in arrNew
-						if (pPrevSrcPhrase->m_key == pNewSrcPhrase->m_key)
+						if (pPrevSrcPhrase->m_srcPhrase == pNewSrcPhrase->m_srcPhrase)
 						{
 							// we can extend the commonSpan successfully leftwards to this
 							// pair of instances, pulling the traversed placeholders
@@ -4399,7 +4461,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 								//newCount is unchanged (still zero)
 								return FALSE;
 							} // end of else block for test: if (bItsInARetranslation)
-						} // end of else block for test: if (pPrevSrcPhrase->m_key == pNewSrcPhrase->m_key)
+						} // end of else block for test: if (pPrevSrcPhrase->m_srcPhrase == pNewSrcPhrase->m_srcPhrase)
 					} // end of TRUE block for test: if (pPrevSrcPhrase->m_nSrcWords == 1 || bItsInARetranslation)
 					else
 					{
@@ -4544,7 +4606,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 /// and since it is called repeatedly until a failure results, the kick off point will move
 /// rightwards for each iteration in both arrOld and arrNew. If there are no placeholders
 /// nor retranslations to the immediate right, then we have only to make a simple test for
-/// matching m_key values in the CSourcePhrase to the immediate right (i.e. in the array,
+/// matching m_srcPhrase values in the CSourcePhrase to the immediate right (i.e. in the array,
 /// at the next greater index value) in both arrOld and arrNew. 
 /// Return TRUE if they match, FALSE if they don't - and returning FALSE indicates
 /// we've come to the right bound of an in-common span of CSourcePhrase instances. (Note:
@@ -4582,7 +4644,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 /// (if another such placeholder follows, continue checking rightwards until a
 /// non-placeholder is encountered, including each in the commonSpan)
 /// (2) When a non-retranslation, and non-placeholder CSourcePhrase is encountered in
-/// arrOld, the next-to-the-right CSourcePhrase instance in arrNew is compared (their m_key
+/// arrOld, the next-to-the-right CSourcePhrase instance in arrNew is compared (their m_srcPhrase
 /// values are what are checked, for identity) - if the keys are identical, then the
 /// rightwards widening has succeeded. At this point, any placeholders traversed in arrOld
 /// are added to the oldCount value - in that way, oldCount can be greater than 1; and
@@ -4595,9 +4657,9 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 /// (3) The rules for any placeholder which is not within a retranslation are a bit
 /// different. Moving rightwards and encountering such a placeholder, any decision about
 /// inclusion within commonSpan is deferred until a non-placeholder potential match pair is
-/// checked for identity of m_key values. If the latter's keys match, then the widening
+/// checked for identity of m_srcPhrase values. If the latter's keys match, then the widening
 /// attempt has succeeded and both the matched CSourcePhrase and its preceding placeholder
-/// are accepted into the commonSpan. If the non-placeholder CSourcePhrase pair's m_key
+/// are accepted into the commonSpan. If the non-placeholder CSourcePhrase pair's m_srcPhrase
 /// values are not identical, then the right bound of the commonSpan has been reached, and
 /// we need additional criteria to help us decide whether or not the placeholder should be
 /// included in the commonSpan, or considered to belong in the afterSpan. Here is the
@@ -4651,7 +4713,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
         // it is not a placeholder instance
 		if (pOldSrcPhrase->m_nSrcWords == 1 && !pOldSrcPhrase->m_bNullSourcePhrase)
 		{
-			if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
+			if (pOldSrcPhrase->m_srcPhrase == pNewSrcPhrase->m_srcPhrase)
 			{
 				// we can extend the commonSpan successfully rightwards to this
 				// pair of instances
@@ -4692,11 +4754,11 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
             // if so
 			if (bIsFixedspaceConjoined)
 			{
-				if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
+				if (pOldSrcPhrase->m_srcPhrase == pNewSrcPhrase->m_srcPhrase)
 				{
 					// we can extend the commonSpan successfully rightwards to this
 					// pair of instances, each has the fixedspace (~) marker in its
-					// m_key member
+					// m_srcPhrase member
 					oldCount++;
 					newCount++;
 					return TRUE;
@@ -4709,15 +4771,15 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 					{
                         // there are enough words available for a match attempt... get the
                         // individual words in pOldSrcPhrase and then check for a match
-                        // with two successive new CSourcePhrase instances' m_key values
+                        // with two successive new CSourcePhrase instances' m_srcPhrase values
 						int newStartingIndex = newIndex;
 						SPList::Node* pos = pOldSrcPhrase->m_pSavedWords->GetFirst();
 						wxASSERT(pos != NULL);
-						wxString word1 = pos->GetData()->m_key;
+						wxString word1 = pos->GetData()->m_srcPhrase;
 						pos = pos->GetNext();
-						wxString word2 = pos->GetData()->m_key;
-						wxString newWord1 = arrNew.Item(newStartingIndex)->m_key;
-						wxString newWord2 = arrNew.Item(newStartingIndex + 1)->m_key;
+						wxString word2 = pos->GetData()->m_srcPhrase;
+						wxString newWord1 = arrNew.Item(newStartingIndex)->m_srcPhrase;
+						wxString newWord2 = arrNew.Item(newStartingIndex + 1)->m_srcPhrase;
 						if (word1 == newWord1 && word2 == newWord2)
 						{
 							// consider this a match
@@ -4828,7 +4890,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 			// Get past this and any additional non-retranslation placeholders until
 			// either we reach oldEndAt and can't check further, or we get a
 			// non-placeholder which is at or before oldEndAt which we can test for a
-			// match of m_Key values with the one at arrNew; decide what to do
+			// match of m_srcPhrase values with the one at arrNew; decide what to do
 			// according to the protocols spelled out above.
 			int nExtraCount = 0;
 			int nextIndex = oldIndex + 1;
@@ -4856,7 +4918,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 					if (pNextSrcPhrase->m_nSrcWords == 1 || bItsInARetranslation)
 					{
 						// it's not a merger - so check for a match with the one in arrNew
-						if (pNextSrcPhrase->m_key == pNewSrcPhrase->m_key)
+						if (pNextSrcPhrase->m_srcPhrase == pNewSrcPhrase->m_srcPhrase)
 						{
                             // we can extend the commonSpan successfully rightwards to this
                             // pair of instances, pulling the traversed placeholders into
@@ -4934,7 +4996,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 #endif
 								return FALSE;
 							} // end of else block for test: if (bItsInARetranslation)
-						} // end of else block for test: if (pPrevSrcPhrase->m_key == pNewSrcPhrase->m_key)
+						} // end of else block for test: if (pPrevSrcPhrase->m_srcPhrase == pNewSrcPhrase->srcPhrase)
 					} // end of TRUE block for test: if (pNextSrcPhrase->m_nSrcWords == 1 || bItsInARetranslation)
 					else
 					{
@@ -5144,7 +5206,7 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 	// chunk is less than the SPAN_LIMIT value (currently defined as 80, in AdaptitConstants.h)
 	int nSmallEnoughToUseLegacyWayInstead = (int)SPAN_LIMIT; // 80
 	int countOfSrcPhrases_Old = pParentSubspan->oldEndPos - pParentSubspan->oldStartPos;
-	if (limit == -1 && (countOfSrcPhrases_Old > (3 * nSmallEnoughToUseLegacyWayInstead)  / 2))
+	if (limit == -1 && (countOfSrcPhrases_Old > nSmallEnoughToUseLegacyWayInstead))
 	{
 		pMaxInCommonSubspan = GetMaxInCommonSubspan_ByWordGroupSampling(arrOld, arrNew, 
 					   pParentSubspan, limit, &arrSubspans, &arrWidths);
@@ -5154,6 +5216,11 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 		// further below.
 		if (pMaxInCommonSubspan != NULL)
 		{
+#if defined(_DEBUG)
+			wxLogDebug(_T("GetMaxInCommonSubspan(), by SAMPLING way,  OLD <-> NEW matched: (%d,%d) <-> (%d,%d)"),
+				pMaxInCommonSubspan->oldStartPos, pMaxInCommonSubspan->oldEndPos,
+				pMaxInCommonSubspan->newStartPos, pMaxInCommonSubspan->newEndPos);
+#endif
 			return pMaxInCommonSubspan;
 		}
 		// fall through to the code below if the word-group method fails
@@ -5165,6 +5232,9 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
     // single word in length. 
     // Our first task is to populate the arrUniqueInCommonWords array, based on the data in
     // pParentSubspan
+#if defined(_DEBUG)
+	wxLogDebug(_T("GetMaxInCommonSubspan(): by non-sampling WORD-BASED way"));
+#endif
 	wxArrayString arrUniqueInCommonWords;
 	int wordCount = GetWordsInCommon(arrOld, arrNew, pParentSubspan, arrUniqueInCommonWords, limit);
 	wordCount = wordCount; // avoid compiler warning
@@ -5303,13 +5373,17 @@ Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arr
 			pOldBeginSPh->m_nSequNumber, pOldEndSPh->m_nSequNumber, pNewBeginSPh->m_nSequNumber, pNewEndSPh->m_nSequNumber);
 	#endif
 	Subspan* pMaxSubspan = NULL;
+	// BEW 27Jul15, the legacy algorithm used key matchups within CSourcePhrase instances,
+	// but this is not as helpful as I first thought. I'll now use m_srcPhrase matchups,
+	// which will give a non-match when a punctuation change is detected.
+	// Legacy comment follows...
     // A note about how we process the data. The check for matching a subarray in arrOld
     // with a subarray in arrNew must, of necessity, test that two sequences of words are
     // identical. We don't, however, give primacy to strings of words. The basic units of
     // data we deal with are CSourcePhrase instances in arrOld and arrNew, and our indexing
     // is easier to keep track of things if we index into these objects for defining the
     // extents of our subarrays which are "in common". So we only extract words (ie. source
-    // text words from m_key members) temporarily on an as-needed basis, and for storage
+    // text words from key members) temporarily on an as-needed basis, and for storage
     // and matching we'll have such word groups contained sequentially in their natural
     // order from the top down in small wxArrayString arrays created temporarily on the
     // heap. The words in these short-lived arrays are copies, and so we can delete the
@@ -5434,13 +5508,15 @@ Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arr
 		newIndex = newArr_StartAt; // loop from start of arrNew to near the end
 
 		// Inner loop commmences - it scans within arrNew
+		// BEW 27Jul15, changed from using key member to m_srcPhrase, but I'll retain the local
+		// variable names unchanged, such as firstKey_New, secondKey_New, etc
 		do {
-			wxString firstKey_New = (arrNew.Item(newIndex))->m_key;
+			wxString firstKey_New = (arrNew.Item(newIndex))->m_srcPhrase;
 			// enter the following block only if there is the potential for a matchup at
 			// this newIndex location within arrNew
 			if (firstKey_New == oldFirstWord)
 			{
-				wxString secondKey_New = (arrNew.Item(newIndex + 1))->m_key;
+				wxString secondKey_New = (arrNew.Item(newIndex + 1))->m_srcPhrase;
 				// enter the following block only if there is still the potential for a 
 				// matchup at this (newIndex + 1) location within arrNew
 				bool bMatched = FALSE; // initialise
@@ -5771,30 +5847,35 @@ void CleanUpForWordGroups(Subspan* pMaxSubspan_NoDelete, wxArrayPtrVoid* pSubspa
 	}
 }
 
-
-// Starting at nStartIndex in the array of CSourcePhrase instances, arr, extract the m_key
+// BEW 27Jul15, don't use key member, but rather m_srcPhrase -- this will lead to more unique
+// words, but it will avoid unhelpful spurious matchups because a word without punctuation
+// and the same word plus punctuation will, for this algorithm, appear to be distinct words.
+// That's a better way to do things. The legacy comments follow...
+//
+// Starting at nStartIndex in the array of CSourcePhrase instances, arr, extract the key
 // string from each, appending it to pWordGroupArray. Do at least as many as nGroupSize
 // (which typically will have a passed in value between 2 and 7 inclusive), but if there is
 // a merger or two in the array at the sample location, then the words collected may be one
 // or more than the passed in nGroupSize -- we don't care and it shouldn't matter, so we
-// will accept all words in a merger's m_key member even if it pushes the count a bit
+// will accept all words in a merger's key member even if it pushes the count a bit
 // higher. It just means the caller will need to match a few more when looking for the
 // in-common location, which is safe to do because that reduces the risk of a spurious
 // matchup. 
 // When one or more CSourcePhrase instance is a merger, the code will extract each
-// m_key string from the stored original CSourcePhrase instances that make up the merger
+// key string from the stored original CSourcePhrase instances that make up the merger
 // (this is quicker than tokenizing the string of src text words, and safe, because even if
 // the user has edited the source text, mergers are unmerged automatically before the edit
 // can be done, and if re-merged, the saved originals will have the edits in them).
 // Conjoinings with USFM fixed space marker (a tilde, ~) will be treated as a single word.
 // The caller will use the pWordGroupArray passed back, in order to try find a matching
-// sequence of source text words (with punctuation stripped off, so comparing the m_key
+// sequence of source text words (with punctuation stripped off, so comparing the key
 // members) in the set of CSourcePhrase instances resulting from the import.
 // pWordGroupArray, when returned to the caller, will be empty if near the end we couldn't
 // access at least two CSourcePhrase instances.
 // Returns the actual size of the group of words extracted. If there were no mergers
 // involved, then the value of nGroupSize would be returned, but if mergers were present,
 // the value returned could be greater than that. Zero is returned if nothing was done.
+// BEW refactored 27Jul15 to use m_srcPhrase rather than the key member
 int SetWordGroupArray(SPArray& arr, wxArrayString*& pWordGroupArray, int nStartIndex, int nGroupSize)
 {
 	size_t instancesCount = arr.GetCount();
@@ -5816,7 +5897,7 @@ int SetWordGroupArray(SPArray& arr, wxArrayString*& pWordGroupArray, int nStartI
 		pSrcPhrase = arr.Item(i);
 		if (pSrcPhrase->m_nSrcWords > 1)
 		{
-			wxString mykey = pSrcPhrase->m_key;
+			wxString mykey = pSrcPhrase->m_srcPhrase;
 			// check if it's conjoined by tilde, if so, treat it as a single word
 			offset = mykey.Find(tilde);
 			if (offset != wxNOT_FOUND)
@@ -5835,7 +5916,7 @@ int SetWordGroupArray(SPArray& arr, wxArrayString*& pWordGroupArray, int nStartI
 				while (pos != NULL)
 				{
 					CSourcePhrase* pSPhr = pos->GetData();
-					pWordGroupArray->Add(pSPhr->m_key);
+					pWordGroupArray->Add(pSPhr->m_srcPhrase);
 					pos = pos->GetNext();
 					wordCount += 1;
 				}
@@ -5845,7 +5926,7 @@ int SetWordGroupArray(SPArray& arr, wxArrayString*& pWordGroupArray, int nStartI
 		}
 		else
 		{
-			pWordGroupArray->Add(pSrcPhrase->m_key);
+			pWordGroupArray->Add(pSrcPhrase->m_srcPhrase);
 			wordCount += 1;
 			if (wordCount >= nGroupSize)
 				break;
@@ -5866,7 +5947,7 @@ bool AreTheWordGroupArraysEqual(wxArrayString* pOldArray, wxArrayString* pNewArr
 		return FALSE;
 	}
 	size_t i;
-	// we only call this function provided we have matches for the m_key strings at index
+	// we only call this function provided we have matches for the m_srcPhrase strings at index
 	// values 0 and 1; so we only need to test any which lie beyond 1
 	for (i = 2; i < oldOnesCount; i++)
 	{
@@ -5881,7 +5962,7 @@ bool AreTheWordGroupArraysEqual(wxArrayString* pOldArray, wxArrayString* pNewArr
 
 // The two params, numGroupWords and jumpDistance should be calculated from the "old"
 // array size, as arrNew's CSourcePhrase instances have only a single word in each
-// m_key, no mergers, & no placeholders, and so it's convenient to look for matchups in
+// m_srcPhrase, no mergers, & no placeholders, and so it's convenient to look for matchups in
 // the simpler of the two arrays, that is, within arrNew.
 // BEW created 18Dec12, to support more quickly finding the longest in-common word
 // sequences from a pair of parent arrays, one 'old' the other 'new'
@@ -5900,8 +5981,7 @@ void CalcWordGroupSizeAndJumpDistance(int arrOldSize, int* pNumGroupWords, int* 
 	// more than one matchup in arrNew, then all but one of those are accidental (and
 	// therefore bogus as far as determining the locations of the matched in-common data
 	// from each of the two arrays). If *pNumGroupWords is small, then there are lots of
-	// bogus matchups. If it is large, there is only one matchup for each can of all of
-	// arrNew.
+	// bogus matchups. If it is large, there is only one matchup for all of arrNew.
     // The experiment was done with Boko to Busa Proverbs (all 31 chapters), related west
     // african languages. Both have tonal diacritics, and a nasalization diacritic; and are
     // of semi agglutinative type, the affixation isn't complex. Boko Proverbs, having some
@@ -5937,16 +6017,16 @@ void CalcWordGroupSizeAndJumpDistance(int arrOldSize, int* pNumGroupWords, int* 
 	else if (totalSpan < 840)
 	{
 		*pNumGroupWords = 4;
-		*pJumpDistance = wxMin(26, totalSpan / 15);
+		*pJumpDistance = wxMin(32, totalSpan / 15);
 	}
 	else if (totalSpan < 2000)
 	{
 		*pNumGroupWords = 5;
-		*pJumpDistance = wxMin(32, totalSpan / 34);
+		*pJumpDistance = wxMin(50, totalSpan / 34);
 	}
 	// default for anything larger than 2000
 	*pNumGroupWords = 6;
-	*pJumpDistance = wxMin(60, totalSpan / 40);
+	*pJumpDistance = wxMin(70, totalSpan / 45);
 }
 
 
@@ -6335,6 +6415,7 @@ bool GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew,
 /// oldLastIndex and newLastIndex values in order to increment them by one and use the
 /// resulting values as the new oldStartAt and newStartAt values for a new call of
 /// GetNextMatchup()
+/// BEW refactored 27Jul15 to use m_srcPhrase rather than the key member
 bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldStartAt,
 		int newStartAt, int oldStartFrom, int oldEndAt, int newStartFrom, int newEndAt,
 		int& oldMatchedStart, int& oldMatchedEnd, int & newMatchedStart,
@@ -6397,7 +6478,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 		word.c_str(), oldStartFrom, newStartFrom, oldMatchIndex, newMatchIndex);
 #endif
 
-	// get the CSourcePhrase's m_key value - what we do depends on whether it is a single
+	// get the CSourcePhrase's m_srcPhrase value - what we do depends on whether it is a single
 	// word, a merger, or a fixed space conjoining (placeholder ... ellipses are never
 	// matched)
 	pOldSrcPhrase = arrOld.Item(oldMatchIndex);
@@ -6408,7 +6489,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 		pNewSrcPhrase = arrNew.Item(newMatchIndex);
 		if (pNewSrcPhrase->m_nSrcWords == 1)
 		{
-			// the keys match, we don't need a further test
+			// the m_srcPhrase strings match, we don't need a further test
 			oldMatchedStart = oldMatchIndex;
 			oldMatchedEnd = oldMatchIndex;
 			newMatchedStart = newMatchIndex;
@@ -6437,8 +6518,8 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 				CSourcePhrase* pSP1 = pos->GetData();
 				pos = pos->GetNext();
 				CSourcePhrase* pSP2 = pos->GetData();
-				word1 = pSP1->m_key;
-				word2 = pSP2->m_key;
+				word1 = pSP1->m_srcPhrase;
+				word2 = pSP2->m_srcPhrase;
 				if (word == word1)
 				{
 					// the match is with the first word of the pseudo-merger, so require
@@ -6449,7 +6530,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 					{
 						CSourcePhrase* pNextSP = arrOld.Item(nextOldIndex);
 						wxASSERT(pNextSP != NULL);
-						if (pNextSP->m_key == word2)
+						if (pNextSP->m_srcPhrase == word2)
 						{
 							oldMatchedStart = oldMatchIndex;
 							oldMatchedEnd = nextOldIndex;
@@ -6480,7 +6561,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 					{
 						CSourcePhrase* pPrevSP = arrOld.Item(prevOldIndex);
 						wxASSERT(pPrevSP != NULL);
-						if (pPrevSP->m_key == word1)
+						if (pPrevSP->m_srcPhrase == word1)
 						{
 							oldMatchedStart = prevOldIndex;
 							oldMatchedEnd = oldMatchIndex;
@@ -6526,7 +6607,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 
 			// test for identical fixedspace pseudo-mergers first
 			pNewSrcPhrase = arrNew.Item(newMatchIndex);
-			if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
+			if (pOldSrcPhrase->m_srcPhrase == pNewSrcPhrase->m_srcPhrase)
 			{
 				// they match, so this is a successful matchup
 				oldMatchedStart = oldMatchIndex;
@@ -6539,7 +6620,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 				return TRUE;
 			}
 			// there was no matching fixedspace pseudo-merger, so look for two ordinary
-			// CSourcePhrase instances with matching m_key values for the two words in the
+			// CSourcePhrase instances with matching m_srcPhrase values for the two words in the
 			// arrOld's fixedspace pseudo-merger
 			wxString word1;
 			wxString word2;
@@ -6548,15 +6629,15 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			CSourcePhrase* pSP1 = pos->GetData();
 			pos = pos->GetNext();
 			CSourcePhrase* pSP2 = pos->GetData();
-			word1 = pSP1->m_key;
-			word2 = pSP2->m_key;
+			word1 = pSP1->m_srcPhrase;
+			word2 = pSP2->m_srcPhrase;
 			// test for a match of word1 with what is at the match location in arrNew
-			if (word1 == pNewSrcPhrase->m_key)
+			if (word1 == pNewSrcPhrase->m_srcPhrase)
 			{
 				// the first word matches, test now for a match of word2 with the key
 				// within the next CSourcePhrase instance in arrNew
 				CSourcePhrase* pNextNewSrcPhrase = arrNew.Item(newMatchIndex + 1);
-				if (word2 == pNextNewSrcPhrase->m_key)
+				if (word2 == pNextNewSrcPhrase->m_srcPhrase)
 				{
 					// both match, so treat this as a successful matchup
 					oldMatchedStart = oldMatchIndex;
@@ -6591,17 +6672,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			// word in arrNew at newStartAt and onwards, and if matched, see if the
 			// adjoining words either side match those in the arrOld's merger & if they do
 			// then we have a successful matchup
-			wxString thePhrase = pOldSrcPhrase->m_key;
-			// BEW 24Jun13, beware the next line. Kim Blewett had a file of source text in
-			// which the user had a detached comma, and so the source was "hanon<SP>emu<SP>,<SP>"
-			// that is, "hanon emu , " and so the AI parser made 3 CSourcePhrase
-			// instances, the last having m_key empty, m_srcPhrase ",", etc. And it had
-			// been made into a phrase by the user, so that the phrase's m_key string was 
-			// "hanon emu " which, when run through SmartTokenize() below, produced just 2
-			// words. Then the wxASSERT that howmanywords == numWords fails, since 2 == 3
-			// is FALSE. I'll try get control safely past this problem, by getting the
-			// list of keys by accessing the m_key value on each CSourcePhrase, so that if
-			// one is an empty string, we can legally test it for a match with "word"
+			wxString thePhrase = pOldSrcPhrase->m_srcPhrase;
 			int numWords = pOldSrcPhrase->m_nSrcWords; // see note above, can be greater than expected
 			wxArrayString arrKeys; // store the individual word tokens here
 			// BEW 24Jun13, use this loop to get the key strings safely, even empty ones
@@ -6609,21 +6680,11 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			while (pos != NULL)
 			{
 				CSourcePhrase* pSP = pos->GetData();
-				wxString aKey = pSP->m_key; // accept empty ones, shouldn't happen, but could if
+				wxString aKey = pSP->m_srcPhrase; // accept empty ones, shouldn't happen, but could if
 							// a newbie user typed detached punctuation like a comma or period etc
 				arrKeys.Add(aKey);
 				pos = pos->GetNext();
 			}
-
-
-			/* dangerous code if punctuation was detached from the word, so don't use it
-			wxString delimiters = _T(' ');
-			// in the next call, FALSE is bStoreEmptyStringsToo value
-			long howmanywords = SmartTokenize(delimiters, thePhrase, arrKeys, FALSE);
-			howmanywords = howmanywords; // avoid compiler warning in release version
-			wxASSERT((int)howmanywords == numWords);
-			wxASSERT(howmanywords > 1L);
-			*/
 			// find the index for the word which matches the one passed in
 			int i;
 			wxString aWord;
@@ -6649,32 +6710,20 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 					}
 				}
 			}
-			/* old code, deprecated 24Jun13
-			int i;
-			wxString aWord;
-			for (i = 0; i < numWords; i++)
-			{
-				aWord = arrKeys.Item(i);
-				if (aWord == word)
-				{
-					break;
-				}
-			}
-			*/
 			wxASSERT(i < numWords); // must match one of them!
 			int numBefore = i;
 			int numAfter = numWords - i - 1;
 
 			// now try for a match in arrNew, the match must do the following:
 			// (a) FindNextInArray() must return a positive index <= newEndAt
-			// (b) the m_key value for that location's CSourcePhrase must equal the
+			// (b) the m_srcPhrase value for that location's CSourcePhrase must equal the
 			// string in the passed-in word parameter
 			// (c) the numBefore amount of preceding CSourcePhrase instances in arrNew
-			// must be all single-word CSourceInstances with m_key values matching those
+			// must be all single-word CSourceInstances with m_srcPhrase values matching those
 			// in arrKeys, in reverse order, starting from the index one less than
 			// newMatchIndex's value
 			// (d) the numAfter amount of following CSourcePhrase instances in arrNew
-			// must be all single-word CSourcePhrase instances with m_key values
+			// must be all single-word CSourcePhrase instances with m_srcPhrase values
 			// matching those in arrKeys, in increasing order, starting from the index one
 			// more than newMatchIndex's value
 
@@ -6693,7 +6742,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			while (leftIndex >= newStartFrom && leftWordCount < numBefore)
 			{
 				CSourcePhrase* pSrcPhrase = arrNew.Item(leftIndex);
-				wxString aWord = pSrcPhrase->m_key;
+				wxString aWord = pSrcPhrase->m_srcPhrase;
 				bool bHasFixedspaceMkr = IsFixedSpaceSymbolWithin(aWord);
 				if (bHasFixedspaceMkr)
 				{
@@ -6737,7 +6786,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 				} // end of TRUE block for test: if (bHasFixedspaceMkr)
 				else
 				{
-					// the m_key value is just a single source text word
+					// the m_srcPhrase value is just a single source text word
 					int anIndex = numBefore - leftWordCount - 1;
 					if (arrKeys.Item(anIndex) == aWord)
 					{
@@ -6784,7 +6833,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			while (rightIndex <= newEndAt && rightWordCount < numAfter)
 			{
 				CSourcePhrase* pSrcPhrase = arrNew.Item(rightIndex);
-				wxString aWord = pSrcPhrase->m_key;
+				wxString aWord = pSrcPhrase->m_srcPhrase;
 				bool bHasFixedspaceMkr = IsFixedSpaceSymbolWithin(aWord);
 				if (bHasFixedspaceMkr)
 				{
@@ -6832,7 +6881,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 				} // end of TRUE block for test: if (bHasFixedspaceMkr)
 				else
 				{
-					// the m_key value is just a single source text word
+					// the m_srcPhrase value is just a single source text word
 					int anIndex = rightWordCount + 1;
 					if (arrKeys.Item(anIndex) == aWord)
 					{
@@ -7182,14 +7231,15 @@ bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
 	return FALSE;
 }
 
-// Test if the merged's CSourcePhrase at oldLoc has a m_key which matches the string
-// formed by taking the appropriate number of m_key values in arrNew starting at
+// Test if the merged's CSourcePhrase at oldLoc has a m_srcPhrase which matches the string
+// formed by taking the appropriate number of m_srcPhrase values in arrNew starting at
 // newFirstLoc. (Since newArray is a just-tokenized array of CSourcePhrase instances,
 // there can be no mergers in it as yet, since the user hasn't had a chance to even see it
 // yet)
+// BEW refactored 27Jul15 to use m_srcPhrase rather than the key
 bool IsMergerAMatch(SPArray& arrOld, SPArray& arrNew, int oldLoc, int newFirstLoc)
 {
-	wxString oldPhrase = arrOld.Item(oldLoc)->m_key; // what we want to check for a match in arrNew
+	wxString oldPhrase = arrOld.Item(oldLoc)->m_srcPhrase; // what we want to check for a match in arrNew
 	int numWords = arrOld.Item(oldLoc)->m_nSrcWords;
 	// first check there are enough words to enable the check
 	int count = arrNew.GetCount();
@@ -7204,7 +7254,7 @@ bool IsMergerAMatch(SPArray& arrOld, SPArray& arrNew, int oldLoc, int newFirstLo
 	for (index = 0; index < numWords; index++)
 	{
 		CSourcePhrase* pSrcPhrase = arrNew.Item(newIndex + index);
-		newPhrase += pSrcPhrase->m_key;
+		newPhrase += pSrcPhrase->m_srcPhrase;
 		newPhrase += _T(' ');
 	}
 	newPhrase.Trim(); // chop off final space
@@ -7268,7 +7318,7 @@ void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limi
 ///                         and punctuation data which needs to flow to the retained original
 ///                         instances in arrOld
 /// \remarks
-/// Because the edited source text import / merging algorithm only looks at the m_key
+/// Because the edited source text import / merging algorithm only looks at the m_srcPhrase
 /// members for its decisions, if the user has left words unchanged but edited the USFM
 /// structure or changed the punctuation or its location, those kinds of changes would not
 /// be seen. So this function rectifies the situation, making sure that such changes are
@@ -7363,6 +7413,7 @@ void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limi
 /// not have to recreate all the thinking that went into making this import feature work
 /// robustly.
 /// BEW refactored 21Jul14 to add support for ZWSP feature
+/// BEW refactored 27Jul15 to use m_srcPhrase rather than the key
 ////////////////////////////////////////////////////////////////////////////////////////
 bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan)
 {
@@ -7597,7 +7648,7 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			TransferPunctsAndMarkersOnly(pWordLastSP, pOldNextSP, FALSE);
 
 			// punctuation changes will affect m_srcPhrase and m_targetStr in both pOldSP
-			// and pOldNextSP, so generate the relevant punctuated strings using the m_key
+			// and pOldNextSP, so generate the relevant punctuated strings using the m_ key
 			// and m_adaption members (both are punctuation-less members) as starting points
 			wxString srcPhrase = GetConvertedPunct(pOldSP->m_precPunct);
 			srcPhrase += pOldSP->m_key;
@@ -7816,14 +7867,14 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			// Now we need to rebuild pOldSP->m_srcPhrase, and pOldSP->m_targetStr with
 			// the new punctuation (possibly changed) settings, and also the same members
 			// in the instances stored in pOldSP->m_pSavedWords.
-			// Start by rebuilding pWordFirstSP->m_srcPhrase starting from its m_key member
+			// Start by rebuilding pWordFirstSP->m_srcPhrase starting from its m_ key member
 			pWordFirstSP->m_srcPhrase = pNewSP->m_precPunct;
-			pWordFirstSP->m_srcPhrase += pNewSP->m_key; // RHS could instead be pWordFirstSP->m_key
+			pWordFirstSP->m_srcPhrase += pNewSP->m_key; // RHS could instead be pWordFirstSP->m_ key
 			pWordFirstSP->m_srcPhrase += pNewSP->m_follPunct;
 			pWordFirstSP->m_srcPhrase += pNewSP->GetFollowingOuterPunct();
-			// Next, rebuild pWordLastSP->m_srcPhrase, starting from m_key
+			// Next, rebuild pWordLastSP->m_srcPhrase, starting from m_ key
 			pWordLastSP->m_srcPhrase = pNewNextSP->m_precPunct;
-			pWordLastSP->m_srcPhrase += pNewNextSP->m_key; // RHS could instead be pWordLastSP->m_key
+			pWordLastSP->m_srcPhrase += pNewNextSP->m_key; // RHS could instead be pWordLastSP->m_ key
 			pWordLastSP->m_srcPhrase += pNewNextSP->m_follPunct;
 			pWordLastSP->m_srcPhrase += pNewNextSP->GetFollowingOuterPunct();
 			// now rebuild the parent's m_srcPhrase member
@@ -8081,8 +8132,8 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 			bDidItOk = TransferToSingleton(arrOld, arrNew, oldFollIndex, newIndex, pSubspan,
 						 nOldTempIndex, nNewTempIndex);
 			// it's unlikely that the return value will be FALSE
-			gpApp->LogUserAction(_T("TransferToManualPlaceholder(): did not transfer - might be a bounds error, line 6333 in MergeUpdatedSrc.cpp"));
-			wxCHECK_MSG(bDidItOk, FALSE, _T("TransferToManualPlaceholder(): did not transfer - probably a bounds error, line 6333 in MergeUpdatedSrc.cpp, processing will continue..."));
+			gpApp->LogUserAction(_T("TransferToManualPlaceholder(): did not transfer - might be a bounds error, line 8080 in MergeUpdatedSrc.cpp"));
+			wxCHECK_MSG(bDidItOk, FALSE, _T("TransferToManualPlaceholder(): did not transfer - probably a bounds error, line 8080 in MergeUpdatedSrc.cpp, processing will continue..."));
 			// get the updated copy of pFollSrcPhrase
 			pFollSrcPhrase = arrOld.Item(oldFollIndex);
 
@@ -8251,11 +8302,9 @@ bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int new
 	CSourcePhrase* pOldSP = arrOld.Item(oldIndex);
 	CSourcePhrase* pNewSP = arrNew.Item(newIndex);
 #if defined( myLogDebugCalls) && defined(_DEBUG)
-	wxLogDebug(_T("singleton: <old key>  %s , at oldIndex = %d ; <new key>  %s , at newIndex = %d"),
-		pOldSP->m_key.c_str(), oldIndex, pNewSP->m_key.c_str(), newIndex);
+	wxLogDebug(_T("singleton: <old m_srcPhrase>  %s , at oldIndex = %d ; <new m_srcPhrase>  %s , at newIndex = %d"),
+		pOldSP->m_srcPhrase.c_str(), oldIndex, pNewSP->m_srcPhrase.c_str(), newIndex);
 #endif
-	//wxASSERT(pOldSP->m_key == pNewSP->m_key); // they should be in sync <<-- not valid
-	//after 21Jul14
 	
 	// and for support of ZWSP (don't copy tgt one, as it is always empty for what comes
 	// from the PT or BE data, & it will only be non-empty at retranslations in pOldSp, so
@@ -8308,14 +8357,6 @@ bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int new
 		// view's member function MakeTargetStringIncludingPunctuation() for that job; but
 		// don't do it if the pOldSP instance is in a retranslation
 		pOldSP->m_srcPhrase = pNewSP->m_srcPhrase;
-		/* 
-		// BEW deprecated 21May14, it's not 100% trustworthy for here - so use the comparisons
-		// above and rebuild from those
-		if (!pOldSP->m_bRetranslation)
-		{
-			pView->MakeTargetStringIncludingPunctuation(pOldSP, pOldSP->m_targetStr);
-		}
-		*/
 		// BEW 21May14, changes to support punctuation changes at start of word and/or
 		// at end of word
 		if (bPrecedingPunctsChanged || bFollowingPunctsChanged)
@@ -8420,7 +8461,7 @@ bool TransferToPlaceholderInRetranslation(SPArray& arrOld, SPArray& arrNew, int 
 /// the subspan being (-1,-1). Inserting words manifests as an empty subspan in arrOld
 /// (indicated by indices (-1,-1) for (oldStartPos,oldEndPos) within the Subspan instance).
 /// Words edited in their spelling manifest by a subspan within arrOld having a different
-/// set of CSourcePhrase instances (ie. different m_key values in the latter) in the
+/// set of CSourcePhrase instances (ie. different m_srcPhrase values in the latter) in the
 /// subspan within arrNew. The arrNew instances then must replace the arrOld instances.
 ///
 /// Note 2: after the merger done as described above, the Subspan instance passed in MUST
@@ -8631,7 +8672,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 			int nLines = incommonsCount / 12;
 			if (incommonsCount % 12 > 0)
 				nLines++;
-			wxLogDebug(_T("\n\n  MAX Subspan, incommonsCount = %d     in-common CSourcePhrase instances' m_keys in succession:"), incommonsCount);
+			wxLogDebug(_T("\n\n  MAX Subspan, incommonsCount = %d     in-common CSourcePhrase instances' m_srcPhrases in succession:"), incommonsCount);
 			int index = 0;
 			for (i = 0; i < nLines; i++)
 			{
@@ -8641,7 +8682,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 					if (index2 < incommonsCount + pMaxInCommonSubspan->oldStartPos)
 					{
 						CSourcePhrase* pSP = arrOld.Item(index2);
-						word[index] = pSP->m_key;
+						word[index] = pSP->m_srcPhrase;
 					}
 					else
 					{
@@ -8678,7 +8719,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 						if (index2 < nonCommonsCount + pParentSubspan->newStartPos)
 						{
 							CSourcePhrase* pSP = arrNew.Item(index2);
-							word[index] = pSP->m_key;
+							word[index] = pSP->m_srcPhrase;
 						}
 						else
 						{
@@ -10598,15 +10639,15 @@ void InitializeNonVerseChunk(SfmChunk* pStruct)
 }
 
 // Test whether or not the chunk of CSourcePhrase instances delineated by the range
-// [startsAt,endsAt] contains any text in their m_key members - only need a single
-// character to force a return of TRUE, return FALSE if **ALL** m_key members are empty
+// [startsAt,endsAt] contains any text in their m_srcPhrase members - only need a single
+// character to force a return of TRUE, return FALSE if **ALL** m_srcPhrase members are empty
 bool DoesChunkContainSourceText(SPArray* pArray, int startsAt, int endsAt)
 {
 	int index;
 	for (index = startsAt; index <= endsAt; index++)
 	{
 		CSourcePhrase* pSrcPhrase = pArray->Item(index);
-		if (!pSrcPhrase->m_key.IsEmpty())
+		if (!pSrcPhrase->m_srcPhrase.IsEmpty())
 		{
 			// at least one has some text content, so return TRUE
 			return TRUE;

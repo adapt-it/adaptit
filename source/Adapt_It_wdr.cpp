@@ -10787,7 +10787,7 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_TOP, _("Some verses are different when comparing the Adapt It verse contents with the Paratext verse contents. Please choose which version of each of the listed verses is the best to have in Paratext. The versions in the Paratext box can be edited."), wxDefaultPosition, wxSize(80,60), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_TOP, _("Some verses are different when comparing the Adapt It verse contents with the Paratext verse contents. Please choose which version of each of the listed verses is the best to have in Paratext. The version of the text in the Paratext box can be edited. USFM markers within the verse are shown. Do not add, remove or change a USFM marker, edit only the text. "), wxDefaultPosition, wxSize(80,60), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_INFO_1, _("Highlight a verse reference in the list to see its source text and the conflicting versions of the verse."), wxDefaultPosition, wxDefaultSize, 0 );
@@ -10876,7 +10876,7 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
     item27->Add( 4, 6, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item29 = new wxButton( parent, ID_BUTTON_RESTORE, _("Restore"), wxDefaultPosition, wxDefaultSize, 0 );
-    item29->SetToolTip( _("Restore the original Paratext version of this verse") );
+    item29->SetToolTip( _("Restore this verse to what it was before you edited it") );
     item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item24->Add( item27, 0, wxALIGN_CENTER_VERTICAL, 5 );
@@ -10892,11 +10892,11 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
     wxBoxSizer *item30 = new wxBoxSizer( wxVERTICAL );
 
     wxButton *item31 = new wxButton( parent, ID_BUTTON_SELECT_ALL_VS, _("Tick All Verses"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->SetToolTip( _("This causes every Adapt It version to be transferred to Paratext.") );
+    item31->SetToolTip( _("The verse version in each left hand box is sent") );
     item30->Add( item31, 0, wxALIGN_CENTER, 5 );
 
     wxButton *item32 = new wxButton( parent, ID_BUTTON_UNSELECT_ALL_VS, _("Tick No Verses"), wxDefaultPosition, wxDefaultSize, 0 );
-    item32->SetToolTip( _("This causes every Paratext version (with any edits you make) to be transferred back to Paratext") );
+    item32->SetToolTip( _("The verse version in every right hand box is sent") );
     item30->Add( item32, 0, wxALIGN_CENTER, 5 );
 
     item7->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -10905,7 +10905,7 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
 
     wxButton *item34 = new wxButton( parent, wxID_OK, _("Transfer The Listed Verses"), wxDefaultPosition, wxDefaultSize, 0 );
     item34->SetDefault();
-    item34->SetToolTip( _("Paratext receives whichever versions you chose, including any edits") );
+    item34->SetToolTip( _("Sends the versions of the verses you chose to the external editor program") );
     item33->Add( item34, 0, wxALIGN_CENTER, 5 );
 
     item33->Add( 20, 12, 0, wxALIGN_CENTER|wxALL, 0 );

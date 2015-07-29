@@ -197,6 +197,9 @@ a merger of externally edited source text to an existing
 document, or in collaboration mode, has been removed. No
 one used it, and it was of very limited value anyway,
 and somewhat risky.
+* The merge of source from Paratext or Bibledit, when
+the source text was manually edited, has been speeded up
+for large documents (about 100 times faster).
 ----------------------------------------------
 Bug fixes in 6.5.9 release 4 July 2015
 ----------------------------------------------

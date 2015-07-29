@@ -1087,6 +1087,7 @@ wxString MakePathToFileInTempFolder_For_Collab(enum DoFor textKind)
 		chStrForFilename = _T("");
 
 	wxString bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
+	gpApp->m_Collab_BookCode = bookCode; // The collaboration Conflict Resolution dialog will use this
 
 	wxString tempFolder;
 	wxString path;
@@ -6962,6 +6963,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	// level of conflict resolution support he wants).
 	wxArrayPtrVoid collabActionsArr;
 	CollabAction* pAction = NULL; // create them on the heap, store in collabActionsArr
+	gpApp->m_Collab_LastChapterStr = _T("1"); // a safe default, in case book has no \c
 
 	// When transferring data from any document, whether a chapter or whole book, the
 	// following three application globals must start off FALSE. The first pertains to
@@ -7024,8 +7026,10 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
         // not cleared out after each chapter is completed; it is processed after the whole
         // doc (if multiple chapters) has been processed.
 		pAction = new CollabAction;
-		SetCollabActionDefaults(pAction); // 4 strings and 5 booleans
+		SetCollabActionDefaults(pAction); // 7 strings and 5 booleans
 		collabActionsArr.Add(pAction);
+		pAction->bookCode = gpApp->m_Collab_BookCode;
+		pAction->chapter_ref = gpApp->m_Collab_LastChapterStr; // defaults to "1" if no \c line encountered yet
 		// After the chapter's data is collected and any user responses have been added to 
 		// the structs, the structs are used in an loop which follows the main loop, when a 
 		// \c marker has been arrived at, or end of document, to build that content of 
@@ -7067,11 +7071,18 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			fromEditorEnd = fromEditorStart;
 			sourceTextIndex = sourceTextStart;
 			sourceTextEnd = sourceTextStart;
+			if (bIsPostEditChapterLine)
+			{
+				// Set m_Collab_LastChapterStr on the app, the Conflict Resolution dlg will
+				// make use of this, for the chapter part of the constructed reference
+				gpApp->m_Collab_LastChapterStr = chapNumStr;
+				pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
+			}
 		}
 		else
 		{
-			// When processing "whole book", at each non-chapter \c marker we'll need
-			// control to come in here to get the stuff like a \s \mt \p etc
+			// When processing "whole book", after each \c marker we'll need
+			// control to come in here to get the other stuff like a \s \mt \p etc
 			// transferred, before we deal with the new chapter's verses; for single-chapter
 			// collaborations control also will sometimes come in here
 			
@@ -7115,6 +7126,8 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			pAction = new CollabAction;
 			SetCollabActionDefaults(pAction);
 			collabActionsArr.Add(pAction);
+			pAction->bookCode = gpApp->m_Collab_BookCode;
+			pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
 
 			// Set the indices for where to start from next, for preEdit, postEdit, fromEditor 
 			// & source text; the scanning loop needs correct verse indices, since we advance now
@@ -7149,20 +7162,42 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 										chapNumReached);
 		if (bFoundVerse)
 		{
+			// if \c found, store the chapter number string on the app, for conflict dlg to use
+			if (!chapNumReached.IsEmpty())
+			{
+				// Set m_Collab_LastChapterStr on the app, the Conflict Resolution dlg will
+				// make use of this, for the chapter part of the constructed reference
+				gpApp->m_Collab_LastChapterStr = chapNumReached;
+				pAction->chapter_ref = chapNumStr;
+			}
             // Not yet at the end of the chapter. Handle the verse just delineated. The
             // index value returned should point at the next line if there is one, but the
             // safest way to get a next line's index is to do index = postEditEnd + 1, and
             // let the while loop's test check if it is valid
 			wxASSERT(lineIndicesArr.GetCount() > 0);
+
+			// Get and store the verse number string,in the CollabAction struct which is current;
+			// Note: pAction struct has the chapter_ref defaulting to "1", so for a chapterless
+			// book like 2John, 3John, Jude, where there is no \c marker, "1" will already be
+			// set when the \v verse number strings are collected here
+			wxString aLine;
+			wxString aVerseNum;
+			if (IsVerseLine(postEditMd5Arr, postEditStart))
+			{
+				// We found a verse md5line, not a chapter one, so there is a verse number to get
+				aLine = postEditMd5Arr.Item(postEditStart);
+				aVerseNum = GetNumberFromChapterOrVerseStr(aLine);
+				pAction->verse_ref = aVerseNum;
+				pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
+			}
+
 //* This logging was very useful, don't delete it
 #if defined(_DEBUG)
 			// Verify we get the right groupings of md5 lines
-			wxString aLine;
-			wxString aVerseNum;
 			int aCount;
 			aLine = postEditMd5Arr.Item(postEditStart);
-			aCount = lineIndicesArr.GetCount();
 			aVerseNum = GetNumberFromChapterOrVerseStr(aLine);
+			aCount = lineIndicesArr.GetCount();
 			wxLogDebug(_T("\nGet...UsfmsUnchanged(): Line grouping for verse:  %s   Number of lines: %d  postEditStart %d  postEditEnd %d"), 
 				aVerseNum.c_str(), aCount, postEditStart, postEditEnd);
 			int anIndex;
@@ -7182,10 +7217,12 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			sourceTextEnd = postEditEnd;
 			
 #if defined(_DEBUG)
+			/*
 			if (postEditStart >= 4)
 			{
 				int break_here = 1;
 			}
+			*/
 #endif
 			// Implement our data transfer protocols, they start of with the PT verse
 			// empty check....
@@ -7292,6 +7329,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 									gpApp->m_bUseConflictResolutionDlg = dlg.m_bUserWantsVisualConflictResolution;
 
 // FIX ************** protect from verse erasure by user making 3rd choice, until Bill's dialog is supported *******************************************
+									/*
 									if (gpApp->m_bUseConflictResolutionDlg)
 									{
 										//  **** temporarily disallow ****
@@ -7300,6 +7338,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 										gpApp->m_bUseConflictResolutionDlg = FALSE;
 										gpApp->m_bRetainPTorBEversion = TRUE;
 									}
+									*/
 								}
 								else
 								{
@@ -7444,15 +7483,18 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		// Get the conflicted verse CollabAction structs fully fleshed out with the
 		// user's choice for each conflicted verse pair of versions; the structs
 		// to use for this are the ones with bConflictedVerses set TRUE
-		/*
 		for (i=0; i< structsCount; i++)
 		{
-// TODO
-// ALSO  check above for this FIX and remove the code there....
-// FIX ************** protect from verse erasure by user making 3rd choice, until Bill's dialog is supported *******************************************
+			// first - log what we got, to check chapter and verse and bookCode are set right
+			pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
+#if defined(_DEBUG)
+			wxLogDebug(_T("CollabAction struct: index %d ; bookCode:  %s  , Chapter:  %s  , Verse:  %s  , bConflictedVerse = %s"),
+				i, pAction->bookCode.c_str(), pAction->chapter_ref.c_str(), pAction->verse_ref.c_str(),
+				pAction->bConflictedVerses ? _T("TRUE") : _T("FALSE"));
+#endif
+
 
 		}
-		*/
 	}
 
 	// Now the loop which builds newText based on what is in the structs
@@ -7516,6 +7558,9 @@ void SetCollabActionDefaults(CollabAction* p)
 	p->bAI_verse_empty = FALSE;
 	p->bPTorBE_verse_empty = FALSE;
 	p->bUserEditsDetected = FALSE;
+	p->chapter_ref = _T("1");
+	p->bookCode = _T("");
+	p->verse_ref = _T("1");
 }
 
 bool AreTheseTwoTextVersionsDifferent(const wxArrayString& preEditMd5Arr, 
@@ -7950,6 +7995,7 @@ wxString GetUpdatedText_UsfmsChanged(
 	// level of conflict resolution support he wants).
 	wxArrayPtrVoid collabActionsArr;
 	CollabAction* pAction = NULL; // create them on the heap, store in collabActionsArr
+	gpApp->m_Collab_LastChapterStr = _T("1"); // a safe default, in case book has no \c
 
 	// The next three record the user's response to being asked for what level of 
 	// conflict resolution he wants, via a dialog which shows at the first encounter of
@@ -8001,8 +8047,10 @@ wxString GetUpdatedText_UsfmsChanged(
 	{
 		// Need a CollabAction struct ready for use
 		pAction = new CollabAction;
-		SetCollabActionDefaults(pAction); // 3 strings and 8 booleans
+		SetCollabActionDefaults(pAction); // 7 strings and 5 booleans
 		collabActionsArr.Add(pAction);
+		pAction->bookCode = gpApp->m_Collab_BookCode;
+		pAction->chapter_ref = gpApp->m_Collab_LastChapterStr; // defaults to "1" if no \c line encountered yet
 
 		bTheTwoTextsDiffer = FALSE; // reinitialize
 
@@ -8028,6 +8076,14 @@ wxString GetUpdatedText_UsfmsChanged(
 		bool bIsSourceTextChapterLine = IsChapterLine(sourceTextMd5Arr, sourceTextStart, chapNumStr);
 		if (bIsPostEditVerseLine || bIsPostEditChapterLine)
 		{
+			if (bIsPostEditChapterLine)
+			{
+				// Set m_Collab_LastChapterStr on the app, the Conflict Resolution dlg will
+				// make use of this, for the chapter part of the constructed reference
+				gpApp->m_Collab_LastChapterStr = chapNumStr;
+				pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
+			}
+
 			// Note: the logic here might seem faulty, having bIsPostEditVerseLine in
 			// a test, and the other two tests contained with its TRUE block. The reason
 			// we do this is because the postEdit text is what governs what happens: if
@@ -8092,6 +8148,15 @@ wxString GetUpdatedText_UsfmsChanged(
 				wxASSERT(fromEditorIndex != wxNOT_FOUND && bFoundVerse == TRUE);
 				fromEditorEnd = fromEditorIndex - 1;
 			}
+
+			// Did we just get to a \c line?
+			if (IsChapterLine(postEditMd5Arr, postEditIndex, chapNumStr))
+			{
+				// Set m_Collab_LastChapterStr on the app, the Conflict Resolution dlg will
+				// make use of this, for the chapter part of the constructed reference
+				gpApp->m_Collab_LastChapterStr = chapNumStr;
+				pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
+			}
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
 			wxLogDebug(_T("Nothing is before \v 1, so nothing to transfer yet; postEdit indices [%d,%d] Substring: %s"),
 				postEditStart, postEditEnd, emptyStr.c_str());
@@ -8130,6 +8195,8 @@ wxString GetUpdatedText_UsfmsChanged(
 			pAction = new CollabAction;
 			SetCollabActionDefaults(pAction);
 			collabActionsArr.Add(pAction);
+			pAction->bookCode = gpApp->m_Collab_BookCode;
+			pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
 
 #if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
 			wxLogDebug(_T("PRE-\\v 1 Material: postEdit start & end indices [%d,%d], mapped to [%d,%d], Substring: %s"),
@@ -8253,6 +8320,20 @@ wxString GetUpdatedText_UsfmsChanged(
 		preEditVerseNumStr = GetNumberFromChapterOrVerseStr(preEditMd5Line);
 		sourceTextVerseNumStr = GetNumberFromChapterOrVerseStr(sourceTextMd5Line);
 
+		// If we came to a \c line, store the new chapter number
+		if (IsChapterLine(postEditMd5Arr, postEditStart, chapNumStr))
+		{
+			// pAction already has bookCode set
+			gpApp->m_Collab_LastChapterStr = chapNumStr; // for subsequent verses to use
+			pAction->chapter_ref = chapNumStr;
+		}
+		// If we came to a \v line, store the new verse number in the CollabAction struct
+		if (IsVerseLine(postEditMd5Arr, postEditStart))
+		{
+			pAction->verse_ref = postEditVerseNumStr;
+			pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
+		}
+
 		// BEW 22Jun15 Note: Adapt It will not allow filtering out of verses, so even
 		// if filtering is done in the work session, the Adapt It chapter's or books's
 		// verses are retained - but bridging or unbridging is allowed, and catered for
@@ -8275,6 +8356,18 @@ wxString GetUpdatedText_UsfmsChanged(
             // chapter, in which case the "next" verse line does not exist - so take this
             // possibility into account too. The next call makes the tests needed, and also
             // updates the indices giving us the chunk ends in the last 3 params
+#if defined(_DEBUG) 
+		if (
+			(gpApp->m_Collab_LastChapterStr == _T("1") && postEditVerseNumStr == _T("1")) ||
+			(gpApp->m_Collab_LastChapterStr == _T("1") && postEditVerseNumStr == _T("2")) ||
+			(gpApp->m_Collab_LastChapterStr == _T("1") && postEditVerseNumStr == _T("5")) ||
+			(gpApp->m_Collab_LastChapterStr == _T("1") && postEditVerseNumStr == _T("24")) ||
+			(gpApp->m_Collab_LastChapterStr == _T("2") && postEditVerseNumStr == _T("9")) ||
+			(gpApp->m_Collab_LastChapterStr == _T("2") && postEditVerseNumStr == _T("11")))
+		{
+			int break_here = 1;
+		}
+#endif
 
 			// BEW 10July15 and refactored again on 20Jul15, added next lines, so that 
 			// "empty verse" tests succeeding can be used for AI verse content or PT/BE
@@ -8416,6 +8509,7 @@ wxString GetUpdatedText_UsfmsChanged(
 							gpApp->m_bUseConflictResolutionDlg = dlg.m_bUserWantsVisualConflictResolution;
 
 // FIX ************** protect from verse erasure by user making 3rd choice, until Bill's dialog is supported *******************************************
+							/*
 							if (gpApp->m_bUseConflictResolutionDlg)
 							{
 								//  **** temporarily disallow ****
@@ -8424,6 +8518,7 @@ wxString GetUpdatedText_UsfmsChanged(
 								gpApp->m_bUseConflictResolutionDlg = FALSE;
 								gpApp->m_bRetainPTorBEversion = TRUE;
 							}
+							*/
 						}
 						else
 						{
@@ -8565,6 +8660,17 @@ wxString GetUpdatedText_UsfmsChanged(
 			bOK = GetMatchedChunksUsingVerseInfArrays(postEditStart, fromEditorStart, preEditStart,
 						sourceTextStart, postEditMd5Arr, fromEditorMd5Arr, preEditMd5Arr, 
 						sourceTextMd5Arr, postEditEnd, fromEditorEnd, preEditEnd, sourceTextEnd);
+
+			// Setup the bookCode, chapter string and start of chunk's verse string, no matter whether
+			// TRUE or FALSE was returned; bookCode and chapter_ref strings should already have been
+			// set - only the verse at start of this chunk is now wanted
+			wxString aLine;
+			wxString aVerseNum;
+			wxASSERT(IsVerseLine(postEditMd5Arr, postEditStart));
+			aLine = postEditMd5Arr.Item(postEditStart);
+			aVerseNum = GetNumberFromChapterOrVerseStr(aLine);
+			pAction->verse_ref = aVerseNum;
+
 			if (bOK)
 			{
 				// Do the transfer of AI data to PT or BE, overwriting the external editor's
@@ -8644,13 +8750,19 @@ wxString GetUpdatedText_UsfmsChanged(
 		// Get the conflicted verse CollabAction structs fully fleshed out with the
 		// user's choice for each conflicted verse pair of versions; the structs
 		// to use for this are the ones with bConflictedVerses set TRUE
-		/*
+		CollabAction* pAction = NULL;
 		for (i=0; i< structsCount; i++)
 		{
-		// TODO
+			// first - log what we got, to check chapter and verse and bookCode are set right
+			pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
+#if defined(_DEBUG)
+			wxLogDebug(_T("CollabAction struct: index %d ; bookCode:  %s  , Chapter:  %s  , Verse:  %s  , bConflictedVerse = %s"),
+				i, pAction->bookCode.c_str(), pAction->chapter_ref.c_str(), pAction->verse_ref.c_str(),
+				pAction->bConflictedVerses ? _T("TRUE") : _T("FALSE"));
+#endif
 
 		}
-		*/
+		
 	}
 #if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
 	wxLogDebug(_T("\nnewText LOOP STARTS\n"));
@@ -9515,10 +9627,11 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 					bDoMerger = FALSE; // use the AI document 'as is'
 				}
 
-//#if defined(_DEBUG)
+#if defined(_DEBUG)
 // Force bDoMerger to be TRUE, for testing the source text Merger process
-//bDoMerger = TRUE;
-//#endif
+//	int remove_this = 1;
+//	bDoMerger = TRUE;
+#endif
 
 
 

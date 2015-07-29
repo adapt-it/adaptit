@@ -1127,6 +1127,9 @@ struct CollabAction  {
 	bool		bAI_verse_empty;      // TRUE if the md5sum(s) for the AI verse are all empty
 	bool		bUserEditsDetected;   // TRUE if preEdit and postEdit versions differ
 	bool		bConflictedVerses;	  // TRUE if the Conflict Resolution dlg needs to be used
+	wxString	bookCode; // the 3-letter code for the currently open book or chapter of a book
+	wxString	chapter_ref; // the string form of the chapter eg. "3"
+	wxString	verse_ref; // the string form of the verse (e.g. "23" or "15-16" or whatever)
 };
 
 // An enum for specifying the program mode for use in the
@@ -4032,6 +4035,9 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	bool m_bRetainPTorBEversion;
 	bool m_bForceAIversion;
 	bool m_bUseConflictResolutionDlg;
+	wxString m_Collab_BookCode; // the 3-letter book code for the currently open collaborating document
+	wxString m_Collab_LastChapterStr; // the chapter reference string (e.g.  "15", or for a chunk "3-5")
+									  // last encountered when populating CollabAction structs
 
 	// whm 27Mar12 Note:
 	// If Paratext is installed (either on Windows or Linux) we give priority to
