@@ -8356,18 +8356,6 @@ wxString GetUpdatedText_UsfmsChanged(
             // chapter, in which case the "next" verse line does not exist - so take this
             // possibility into account too. The next call makes the tests needed, and also
             // updates the indices giving us the chunk ends in the last 3 params
-#if defined(_DEBUG) 
-		if (
-			(gpApp->m_Collab_LastChapterStr == _T("1") && postEditVerseNumStr == _T("1")) ||
-			(gpApp->m_Collab_LastChapterStr == _T("1") && postEditVerseNumStr == _T("2")) ||
-			(gpApp->m_Collab_LastChapterStr == _T("1") && postEditVerseNumStr == _T("5")) ||
-			(gpApp->m_Collab_LastChapterStr == _T("1") && postEditVerseNumStr == _T("24")) ||
-			(gpApp->m_Collab_LastChapterStr == _T("2") && postEditVerseNumStr == _T("9")) ||
-			(gpApp->m_Collab_LastChapterStr == _T("2") && postEditVerseNumStr == _T("11")))
-		{
-			int break_here = 1;
-		}
-#endif
 
 			// BEW 10July15 and refactored again on 20Jul15, added next lines, so that 
 			// "empty verse" tests succeeding can be used for AI verse content or PT/BE
