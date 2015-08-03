@@ -7474,28 +7474,65 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		}
 	} // end of loop: while (index < (int)postEditMd5Arr_Count) <- may involve multiple chapters
 
-	int structsCount = collabActionsArr.GetCount();
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+	wxLogDebug(_T("STRUCT POPULATING LOOP HAS ENDED: num structs: %d"), structsCount);
+#endif
+	int structsCount = (int)collabActionsArr.GetCount();
 	int i;
-	// show conflict res dlg here if needed user requested it, and fill out the booleans
-	// in the structs based on the users choice
+
+#if defined(_DEBUG)
+	// log the CollabAction structs' contents
+	{ // start a limiting scope
+		if (gpApp->m_bUseConflictResolutionDlg)
+		{
+			CollabAction* pAction = NULL;
+			int i;
+			for (i=0; i< structsCount; i++)
+			{
+				// log what we got, check chapter and verse and bookCode are set right, etc
+				pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
+				wxLogDebug(_T("CollabAction struct: index %d ; bookCode:  %s  , Chapter:  %s  , Verse:  %s  , bConflictedVerse = %s\npostEditText:  %s\nfromEditorText:  %s"),
+					i, pAction->bookCode.c_str(), pAction->chapter_ref.c_str(), pAction->verse_ref.c_str(),
+					pAction->bConflictedVerses ? _T("TRUE") : _T("FALSE"), 
+					pAction->bConflictedVerses ? pAction->AI_verse_version.c_str() : _T("AI no conflict"),
+					pAction->bConflictedVerses ? pAction->PTorBE_verse_version.c_str() : _T("PT no conflict"));
+			}
+		}
+	} // end the limiting scope
+#endif
+
+
+	// Add the handling for the CollabAction structs - it's the same code as in
+	// GetUpdatedText_UsfmsUnchanged()
+	wxArrayPtrVoid conflictsArr; // stores ConflictRes struct pointers
+	CollectConflicts(collabActionsArr, conflictsArr);
+
+
+	// show conflict res dlg here if needed & the user requested it, and fill
+	// out the booleans in the structs based on the users choice
 	if (gpApp->m_bUseConflictResolutionDlg)
 	{
 		// Get the conflicted verse CollabAction structs fully fleshed out with the
 		// user's choice for each conflicted verse pair of versions; the structs
-		// to use for this are the ones with bConflictedVerses set TRUE
+		// to use for this are the ones with bConflictedVerses set TRUE; these
+		// are revamped as ConflictRes structs and are stored in conflictsArr
+		
+		
+// TODO		
+		
+		
+		
+		/*
+		CollabAction* pAction = NULL;
 		for (i=0; i< structsCount; i++)
 		{
-			// first - log what we got, to check chapter and verse and bookCode are set right
-			pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
-#if defined(_DEBUG)
-			wxLogDebug(_T("CollabAction struct: index %d ; bookCode:  %s  , Chapter:  %s  , Verse:  %s  , bConflictedVerse = %s"),
-				i, pAction->bookCode.c_str(), pAction->chapter_ref.c_str(), pAction->verse_ref.c_str(),
-				pAction->bConflictedVerses ? _T("TRUE") : _T("FALSE"));
-#endif
-
 
 		}
+		*/
 	}
+#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+	wxLogDebug(_T("\nnewText LOOP STARTS\n"));
+#endif
 
 	// Now the loop which builds newText based on what is in the structs
 	// The debug logging here was invaluable, don't delete it
@@ -7537,6 +7574,9 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	gpApp->m_bRetainPTorBEversion = FALSE;
 	gpApp->m_bForceAIversion = FALSE;
 	gpApp->m_bUseConflictResolutionDlg = FALSE;
+
+	// destroy the ConflictRes structs
+	DestroyConflictResStructs(conflictsArr);
 
 	// destroy the CollabAction structs
 	for (i=0; i< structsCount; i++)
@@ -8736,33 +8776,70 @@ wxString GetUpdatedText_UsfmsChanged(
 
 	} // end of while loop
 
-	// Add the handling for the CollabAction structs - it's the same code as in
-	// GetUpdatedText_UsfmsUnchanged()
-	int structsCount = collabActionsArr.GetCount();
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 	wxLogDebug(_T("STRUCT POPULATING LOOP HAS ENDED: num structs: %d"), structsCount);
 #endif
+	int structsCount = (int)collabActionsArr.GetCount();
 	int i;
-	// show conflict res dlg here if needed user requested it, and fill out the booleans
-	// in the structs based on the users choice
+
+#if defined(_DEBUG)
+	// log the CollabAction structs' contents
+	{ // start a limiting scope
+		if (gpApp->m_bUseConflictResolutionDlg)
+		{
+			CollabAction* pAction = NULL;
+			int i;
+			for (i=0; i< structsCount; i++)
+			{
+				// log what we got, check chapter and verse and bookCode are set right, etc
+				pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
+				wxLogDebug(_T("CollabAction struct: index %d ; bookCode:  %s  , Chapter:  %s  , Verse:  %s  , bConflictedVerse = %s\npostEditText:  %s\nfromEditorText:  %s"),
+					i, pAction->bookCode.c_str(), pAction->chapter_ref.c_str(), pAction->verse_ref.c_str(),
+					pAction->bConflictedVerses ? _T("TRUE") : _T("FALSE"), 
+					pAction->bConflictedVerses ? pAction->AI_verse_version.c_str() : _T("AI no conflict"),
+					pAction->bConflictedVerses ? pAction->PTorBE_verse_version.c_str() : _T("PT no conflict"));
+			}
+		}
+	} // end the limiting scope
+#endif
+
+
+	// Add the handling for the CollabAction structs - it's the same code as in
+	// GetUpdatedText_UsfmsUnchanged()
+	wxArrayPtrVoid conflictsArr; // stores ConflictRes struct pointers
+	CollectConflicts(collabActionsArr, conflictsArr);
+
+
+	// show conflict res dlg here if needed & the user requested it, and fill
+	// out the booleans in the structs based on the users choice
 	if (gpApp->m_bUseConflictResolutionDlg)
 	{
 		// Get the conflicted verse CollabAction structs fully fleshed out with the
 		// user's choice for each conflicted verse pair of versions; the structs
-		// to use for this are the ones with bConflictedVerses set TRUE
+		// to use for this are the ones with bConflictedVerses set TRUE; these
+		// are revamped as ConflictRes structs and are stored in conflictsArr
+		CCollabVerseConflictDlg confDlg(gpApp->GetMainFrame(), &conflictsArr);
+		confDlg.Centre();
+		if (confDlg.ShowModal() == wxID_OK)
+		{
+			int ii = 1;
+		
+// TODO		
+		
+		
+		}
+		else
+		{
+			int ii = 1;
+
+		}
+		/*
 		CollabAction* pAction = NULL;
 		for (i=0; i< structsCount; i++)
 		{
-			// first - log what we got, to check chapter and verse and bookCode are set right
-			pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
-#if defined(_DEBUG)
-			wxLogDebug(_T("CollabAction struct: index %d ; bookCode:  %s  , Chapter:  %s  , Verse:  %s  , bConflictedVerse = %s"),
-				i, pAction->bookCode.c_str(), pAction->chapter_ref.c_str(), pAction->verse_ref.c_str(),
-				pAction->bConflictedVerses ? _T("TRUE") : _T("FALSE"));
-#endif
 
 		}
-		
+		*/
 	}
 #if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
 	wxLogDebug(_T("\nnewText LOOP STARTS\n"));
@@ -8809,6 +8886,9 @@ wxString GetUpdatedText_UsfmsChanged(
 	gpApp->m_bForceAIversion = FALSE;
 	gpApp->m_bUseConflictResolutionDlg = FALSE;
 
+	// destroy the ConflictRes structs
+	DestroyConflictResStructs(conflictsArr);
+
 	// destroy the CollabAction structs
 	for (i = 0; i< structsCount; i++)
 	{
@@ -8816,6 +8896,57 @@ wxString GetUpdatedText_UsfmsChanged(
 		delete pAction; // internal strings are automatically freed
 	}
 	return newText;
+}
+
+// Collect each conflict, and create a ConflictRes struct for each - these are what
+// the Conflict Resolution dialog will use for initialization etc
+void CollectConflicts(wxArrayPtrVoid& collabActionsArr, wxArrayPtrVoid& conflictsArr)
+{
+	DestroyConflictResStructs(conflictsArr);
+	size_t count = collabActionsArr.GetCount();
+	CollabAction* pAction = NULL;
+	ConflictRes* pConflict = NULL;
+	size_t i;
+	for (i = 0; i < count; i++)
+	{
+		pAction = (CollabAction*)collabActionsArr.Item(i);
+		if (pAction->bConflictedVerses)
+		{
+			pConflict = new ConflictRes;
+			conflictsArr.Add(pConflict);
+			pConflict->collabActionsArrIndex = i;
+			pConflict->bUserWantsAIverse = FALSE; // default to keeping PT or BE verse
+			pConflict->srcText = pAction->sourceText;
+			pConflict->AIText = pAction->AI_verse_version;
+			pConflict->PTorBEText_original = pAction->PTorBE_verse_version;
+			pConflict->PTorBEText_edited = pAction->PTorBE_verse_version; // default to a copy of original
+			pConflict->bookCodeStr = pAction->bookCode;
+			pConflict->chapterRefStr = pAction->chapter_ref;
+			pConflict->verseRefStr = pAction->verse_ref;
+#if defined(_DEBUG)
+		wxLogDebug(_T("ConflictRes_struct: index %d, %s%s:%s  AItext: %s\n PTtext: %s"),
+			pConflict->collabActionsArrIndex, pConflict->bookCodeStr.c_str(),
+			pConflict->chapterRefStr.c_str(), pConflict->verseRefStr.c_str(),
+			pConflict->AIText.c_str(), pConflict->PTorBEText_edited.c_str());
+#endif
+		}
+	}
+}
+
+// Destroy all the ConflictRes struct pointer
+void DestroyConflictResStructs(wxArrayPtrVoid& arr)
+{
+	if (arr.IsEmpty())
+		return;
+	size_t count = arr.GetCount();
+	ConflictRes* pStruct = NULL;
+	size_t i;
+	for (i = 0; i < count; i++)
+	{
+		pStruct = (ConflictRes*)arr.Item(i);
+		delete pStruct;
+	}
+	arr.clear();
 }
 
 wxString RemoveIDMarkerAndCode(wxString text)
@@ -9984,6 +10115,7 @@ wxString MakeSourceTextForCollabConflictResDlg()
 // whm added 10Jul2015 for temporary testing of the CCollabVerseConflictDlg dialog
 // BEW moved to here from doc.cpp, on 23Jul15
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/* no longer needed
 void OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event))
 {
 	// Display the dialog
@@ -9991,4 +10123,4 @@ void OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event))
 	cvcdlg.Centre();
 	cvcdlg.ShowModal();
 }
-
+*/

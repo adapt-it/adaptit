@@ -10781,9 +10781,12 @@ wxSizer *SingleLanguageCodeDlgFunc( wxWindow *parent, bool call_fit, bool set_si
     return item0;
 }
 
+wxSizer *pConflictDlgTopSizer;
+wxSizer *pPT_BoxSizer;
 wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+    pConflictDlgTopSizer = item0;
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
@@ -10811,7 +10814,7 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
 
     wxString *strs10 = (wxString*) NULL;
     wxCheckListBox *item10 = new wxCheckListBox( parent, ID_CHECKLISTBOX_VERSE_REFS, wxDefaultPosition, wxSize(80,300), 0, strs10, 0 );
-    item8->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item8->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
 
     item7->Add( item8, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -10858,11 +10861,12 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
     wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
 
     wxBoxSizer *item24 = new wxBoxSizer( wxVERTICAL );
+    pPT_BoxSizer = item24;
 
     wxStaticText *item25 = new wxStaticText( parent, ID_TEXT_STATIC_PT_VS_TITLE, _("Translation of verse in Paratext (editable)"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->Add( item25, 0, wxALIGN_CENTER, 5 );
 
-    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_PT_VERSION, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_MULTILINE );
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_EDITABLE_PT_VERSION, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_MULTILINE );
     item26->SetFont( wxFont( 11, wxROMAN, wxNORMAL, wxNORMAL ) );
     item24->Add( item26, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
@@ -10914,7 +10918,13 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
     item35->SetToolTip( _("Ignore all choices or edits, just Cancel the dialog") );
     item33->Add( item35, 0, wxALIGN_CENTER, 5 );
 
-    item7->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
+    item33->Add( 40, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxCheckBox *item36 = new wxCheckBox( parent, ID_CHECKBOX_PT_EDITABLE, _("Make Paratext box editable"), wxDefaultPosition, wxDefaultSize, 0 );
+    item36->SetToolTip( _("Makes the box editable, or read-only") );
+    item33->Add( item36, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item7->Add( item33, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item7->AddGrowableCol( 1 );
 
@@ -10922,8 +10932,8 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
 
     item1->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, _("You can resize this dialog by dragging the bottom right corner."), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item36, 0, wxALIGN_CENTER, 5 );
+    wxStaticText *item37 = new wxStaticText( parent, ID_TEXT, _("You can resize this dialog by dragging the bottom right corner."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item37, 0, wxALIGN_CENTER, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
