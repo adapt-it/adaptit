@@ -111,6 +111,7 @@ adaptit_SOURCES = \
 	../../source/md5_SB.cpp ../../source/MergeUpdatedSrc.cpp \
 	../../source/MoveDialog.cpp \
 	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NavProtectNewDoc.cpp \
+	../../source/MyTextCtrl \
 	../../source/NoteDlg.cpp ../../source/Notes.cpp \
 	../../source/OpenExistingProjectDlg.cpp ../../source/OutputFilenameDlg.cpp \
 	../../source/Pathway.cpp ../../source/PeekAtFile.cpp ../../source/PhraseBox.cpp \
