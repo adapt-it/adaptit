@@ -20,11 +20,12 @@
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma interface "CollabVerseConflictDlg.h"
 #endif
+#include "CollabUtilities.h"
 
 class CCollabVerseConflictDlg : public AIModalDialog
 {
 public:
-	CCollabVerseConflictDlg(wxWindow* parent); // constructor
+	CCollabVerseConflictDlg(wxWindow* parent, wxArrayPtrVoid* pConfArr); // constructor
 	virtual ~CCollabVerseConflictDlg(void); // destructor
 	// other methods
 
@@ -44,14 +45,17 @@ public:
 	wxStaticText* pStaticInfoLine3; // for substituting Paratext/Bibledit into %s
 	wxStaticText* pStaticInfoLine4; // for substituting Paratext/Bibledit into %s
 	wxStaticText* pStaticPTVsTitle;
+	wxCheckBox*   pCheckBoxMakeEditable;
 
 	wxArrayString verseRefsArray;
 	wxArrayString sourceTextVsArray;
 	wxArrayString aiTargetTextVsArray;
 	wxArrayString ptTargetTextVsArray;
+	wxArrayString ptTargetTextVsOriginalArray;
+	wxArrayPtrVoid* pConflictsArray;
 
 	int CurrentListBoxHighlightedIndex; // The index of the list box's highlighted/selected item kept current
-
+	bool m_bMakePTboxEditable;
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
@@ -66,6 +70,9 @@ protected:
 
 private:
 	CAdapt_ItApp* m_pApp;
+
+	wxString MakeVerseReference(ConflictRes* p);
+	
 
 	// class attributes
 	// wxString m_stringVariable;

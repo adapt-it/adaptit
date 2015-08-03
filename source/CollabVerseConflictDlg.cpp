@@ -28,6 +28,7 @@
 #ifndef WX_PRECOMP
 // Include your minimal set of headers here, or wx.h
 #include <wx/wx.h>
+#include <wx/event.h>
 #endif
 
 // other includes
@@ -35,7 +36,9 @@
 //#include <wx/valgen.h> // for wxGenericValidator
 //#include <wx/valtext.h> // for wxTextValidator
 #include "Adapt_It.h"
+#include "CollabUtilities.h"
 #include "CollabVerseConflictDlg.h"
+#include "MyTextCtrl.h"
 
 // event handler table
 BEGIN_EVENT_TABLE(CCollabVerseConflictDlg, AIModalDialog)
@@ -50,18 +53,10 @@ BEGIN_EVENT_TABLE(CCollabVerseConflictDlg, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_SELECT_ALL_VS, CCollabVerseConflictDlg::OnSelectAllVersesButton)
 	EVT_BUTTON(ID_BUTTON_UNSELECT_ALL_VS, CCollabVerseConflictDlg::OnUnSelectAllVersesButton)
 
-	//EVT_MENU(ID_SOME_MENU_ITEM, CCollabVerseConflictDlg::OnDoSomething)
-	//EVT_UPDATE_UI(ID_SOME_MENU_ITEM, CCollabVerseConflictDlg::OnUpdateDoSomething)
-	//EVT_BUTTON(ID_SOME_BUTTON, CCollabVerseConflictDlg::OnDoSomething)
-	//EVT_CHECKBOX(ID_SOME_CHECKBOX, CCollabVerseConflictDlg::OnDoSomething)
-	//EVT_RADIOBUTTON(ID_SOME_RADIOBUTTON, CCollabVerseConflictDlg::DoSomething)
-	//EVT_LISTBOX(ID_SOME_LISTBOX, CCollabVerseConflictDlg::DoSomething)
-	//EVT_COMBOBOX(ID_SOME_COMBOBOX, CCollabVerseConflictDlg::DoSomething)
-	//EVT_TEXT(IDC_SOME_EDIT_CTRL, CCollabVerseConflictDlg::OnEnChangeEditSomething)
 	// ... other menu, button or control events
 END_EVENT_TABLE()
 
-CCollabVerseConflictDlg::CCollabVerseConflictDlg(wxWindow* parent) // dialog constructor
+CCollabVerseConflictDlg::CCollabVerseConflictDlg(wxWindow* parent, wxArrayPtrVoid* pConfArr) // dialog constructor
 	: AIModalDialog(parent, -1, _("Choose The Best Verses To Transfer To Paratext"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
@@ -69,11 +64,28 @@ CCollabVerseConflictDlg::CCollabVerseConflictDlg(wxWindow* parent) // dialog con
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	AI_PT_ConflictingVersesFunc(this, TRUE, TRUE);
+	pConflictDlgTopSizer = AI_PT_ConflictingVersesFunc(this, TRUE, TRUE);
 	// The declaration is: AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
-	
+
+	pConflictsArray = pConfArr;
+	m_bMakePTboxEditable = FALSE;
+
+	// EvtHandler::Connect() didn't work for me, to connect the focus event to the
+	// dialog's event handling table; so instead try subclassing the relevant wxTextCtrl
+	// and trap the wxEVT_KILL_FOCUS there. wxTextCtrl events do not propagate up to the
+	// parent because they are not wxCommandEvent type
+	//this->Connect(ID_TEXTCTRL_EDITABLE_PT_VERSION, wxEVT_KILL_FOCUS, wxFocusEventHandler(CCollabVerseConflictDlg::OnKillFocus));
+
+	// See the comment by Bill at lines 140++ in ChoseTranslation.cpp, for how to
+	// substitute a subclass for a control in a wxDesigner generated dialog. We
+	// have to remove the control, and substitute our new one in its place. It's tricky.
+	// We need to do it below, for pTextCtrlPTTargetVersion, substituting for the
+	// wxTextCtrl from wxDesigner the MyTextCtrl subclass which allows me to intercept
+	// EVT_KILL_FOCUS events. (I may need to support EVT_SET_FOCUS events too, not sure
+	// yet, but so far I suspect not.)
+
 	// Setup dialog box control pointers below:
 	pCheckListBoxVerseRefs = (wxCheckListBox*)FindWindowById(ID_CHECKLISTBOX_VERSE_REFS);
 	wxASSERT(pCheckListBoxVerseRefs != NULL);
@@ -85,10 +97,6 @@ CCollabVerseConflictDlg::CCollabVerseConflictDlg(wxWindow* parent) // dialog con
 	pTextCtrlAITargetVersion = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_READONLY_AI_VERSION);
 	wxASSERT(pTextCtrlAITargetVersion != NULL);
 	pTextCtrlAITargetVersion->SetBackgroundColour(m_pApp->sysColorBtnFace);
-
-	pTextCtrlPTTargetVersion = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_READONLY_PT_VERSION);
-	wxASSERT(pTextCtrlPTTargetVersion != NULL);
-	pTextCtrlPTTargetVersion->SetBackgroundColour(m_pApp->sysColorBtnFace);
 
 	pBtnSelectAllVerses = (wxButton*)FindWindowById(ID_BUTTON_SELECT_ALL_VS);
 	wxASSERT(pBtnSelectAllVerses != NULL);
@@ -127,7 +135,28 @@ CCollabVerseConflictDlg::CCollabVerseConflictDlg(wxWindow* parent) // dialog con
 	pStaticPTVsTitle = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_PT_VS_TITLE);
 	wxASSERT(pStaticPTVsTitle != NULL);
 
+	pCheckBoxMakeEditable = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PT_EDITABLE);
+
 	CurrentListBoxHighlightedIndex = 0;
+
+	// The following is the wxTextCtrl we want to replace
+	pTextCtrlPTTargetVersion = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDITABLE_PT_VERSION);
+	wxASSERT(pTextCtrlPTTargetVersion != NULL);
+	pTextCtrlPTTargetVersion->SetBackgroundColour(m_pApp->sysColorBtnFace);
+
+	// Get parameters relevant to the window
+	wxSize size = pTextCtrlPTTargetVersion->GetSize();
+	int id = pTextCtrlPTTargetVersion->GetId();
+	wxPoint position = pTextCtrlPTTargetVersion->GetPosition();
+
+	// Do the replacement... (see ChooseTranslation.cpp 140-180 for how)
+	wxBoxSizer* pContSizerOfTextCtrl = (wxBoxSizer*)pTextCtrlPTTargetVersion->GetContainingSizer();
+    wxASSERT(pContSizerOfTextCtrl == pPT_BoxSizer);
+	// We don't have a tooltip on the text box, it would get in the user's way and be annoying
+    // Delete the existing text box
+	if (pTextCtrlPTTargetVersion != NULL)
+	    delete pTextCtrlPTTargetVersion;
+
 }
 
 CCollabVerseConflictDlg::~CCollabVerseConflictDlg() // destructor
@@ -138,6 +167,7 @@ CCollabVerseConflictDlg::~CCollabVerseConflictDlg() // destructor
 void CCollabVerseConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
+	wxASSERT(pConflictsArray != NULL);
 	
 	// Testing Data:
 	/*
@@ -189,7 +219,11 @@ void CCollabVerseConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 \q1\v 12 Olgeta i lusim gutpela rot pinis.\q1 Olgeta i wankain tasol,\q2 ol i man nogut tru.\q1 I no gat wanpela bilong ol\q2 i save mekim gutpela pasin.\q1 Nogat tru.
 */
 
-// one wxArrayString will contain the verse_references of conflicted verses, one wxArrayString will contain the source_text verses, one wxArrayString will contain the ai_target_text verses and the fourth one will contain the pt_target_text verses.
+	/*
+	// one wxArrayString will contain the verse_references of conflicted verses, 
+	// one wxArrayString will contain the source_text verses, one wxArrayString 
+	// will contain the ai_target_text verses and the fourth one will contain the 
+	// pt_target_text verses, and the original pt target verses will be in another
 	verseRefsArray.Add(_T("ROM 3:1"));
 	verseRefsArray.Add(_T("ROM 3:2"));
 	verseRefsArray.Add(_T("ROM 3:3"));
@@ -242,6 +276,20 @@ void CCollabVerseConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	ptTargetTextVsArray.Add(_T("\\v 10 Buk bilong God i gat tok long dispela olsem,\\q1 <<I no gat wanpela man\\q2 i save mekim stretpela pasin.\\q1 Nogat tru."));
 	ptTargetTextVsArray.Add(_T("\\q1\\v 11 I no gat wanpela man\\q2 i gat gutpela save.\\q1 I no gat wanpela\\q2 i wok long painim God."));
 	ptTargetTextVsArray.Add(_T("\\q1\\v 12 Olgeta i lusim gutpela rot pinis.\\q1 Olgeta i wankain tasol,\\q2 ol i man nogut tru.\\q1 I no gat wanpela bilong ol\\q2 i save mekim gutpela pasin.\\q1 Nogat tru."));
+	*/
+	size_t count = pConflictsArray->GetCount();
+	size_t index;
+	ConflictRes* pCR = NULL;
+	for (index = 0; index < count; index++)
+	{
+		pCR = (ConflictRes*)pConflictsArray->Item(index);
+		wxASSERT(pCR != NULL);
+		verseRefsArray.Add(MakeVerseReference(pCR));
+		sourceTextVsArray.Add(pCR->srcText);
+		aiTargetTextVsArray.Add(pCR->AIText);
+		ptTargetTextVsArray.Add(pCR->PTorBEText_edited);
+		ptTargetTextVsOriginalArray.Add(pCR->PTorBEText_original);
+	}
 
 	// Set font and directionality for the three edit boxes
 	// For the "Source text of verse selected at left" edit box:
@@ -468,4 +516,13 @@ void CCollabVerseConflictDlg::OnOK(wxCommandEvent& event)
 
 
 // other class methods
+wxString CCollabVerseConflictDlg::MakeVerseReference(ConflictRes* p)
+{
+	wxString aVsRef = _T(" ");
+	wxASSERT(p != NULL);
+	aVsRef = p->bookCodeStr + _T(" ");
+	aVsRef += p->chapterRefStr + _T(":");
+	aVsRef += p->verseRefStr;
+	return aVsRef;
+}
 

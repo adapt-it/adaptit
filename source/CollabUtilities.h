@@ -96,6 +96,34 @@ enum Complexity {
 	bothAreComplex
 };
 
+/// a struct for use in collaboration conflict resolution dialog
+struct CollabAction  {
+	wxString	preVerseOneText;      // the \c and any other pre-verse-1 information
+	wxString	sourceText;           // empty except for a conflicted verse instance
+	wxString	AI_verse_version;     // this or the next may be empty, depending on action
+	wxString	PTorBE_verse_version; // to be taken; for a conflict, both are non-empty
+	bool		bIsPreVerseOne;		  // TRUE when this struct just has the preVerseOneText for obligatory transfer
+	bool		bPTorBE_verse_empty;  // TRUE if the md5sum(s) for the PTorBE verse are all empty
+	bool		bAI_verse_empty;      // TRUE if the md5sum(s) for the AI verse are all empty
+	bool		bUserEditsDetected;   // TRUE if preEdit and postEdit versions differ
+	bool		bConflictedVerses;	  // TRUE if the Conflict Resolution dlg needs to be used
+	wxString	bookCode; // the 3-letter code for the currently open book or chapter of a book
+	wxString	chapter_ref; // the string form of the chapter eg. "3"
+	wxString	verse_ref; // the string form of the verse (e.g. "23" or "15-16" or whatever)
+};
+
+/// another struct for use in collaboration conflict resolution dialog
+struct ConflictRes  {
+	int			collabActionsArrIndex; // which struct in the collabActionsArr generated this one
+	bool		bUserWantsAIverse; // user's response for which verse version to send
+	wxString	srcText;
+	wxString	AIText;
+	wxString	PTorBEText_original; // Restore button will use this for resetting RHS text box
+	wxString	PTorBEText_edited; // the adaptation or free translation text to send
+	wxString	bookCodeStr;
+	wxString	chapterRefStr;
+	wxString	verseRefStr;
+};
 
 class CBString;
 class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPList); macro 
@@ -345,11 +373,18 @@ class CSourcePhrase;
 	// scores of whole-book files, wasting disk space needlessly. Call it from OnExit(). If
 	// OnExit() isn't called (eg. an abnormal shutdown) it won't matter, they can be removed
 	// at the next normal shutdown
-	void			EmptyCollaborationTempFolder();
+	void	EmptyCollaborationTempFolder();
+	long	OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp);
+	void	OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
 
-	long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp);
 
-	void OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
+	/////////////////////////////////////////////////////////////////////////////////////
+	///     Functions for support of the conflict resolution process
+	/////////////////////////////////////////////////////////////////////////////////////
+	
+	void CollectConflicts(wxArrayPtrVoid& collabActionsArr, wxArrayPtrVoid& conflictsArr); 
+	void DestroyConflictResStructs(wxArrayPtrVoid& arr);
+
 
 #endif
 

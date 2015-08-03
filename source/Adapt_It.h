@@ -1116,22 +1116,6 @@ struct EthnologueCodePair {
 	wxString projectFolderPath;
 };
 
-/// a struct for use in collaboration conflict resolution dialog
-struct CollabAction  {
-	wxString	preVerseOneText;      // the \c and any other pre-verse-1 information
-	wxString	sourceText;           // empty except for a conflicted verse instance
-	wxString	AI_verse_version;     // this or the next may be empty, depending on action
-	wxString	PTorBE_verse_version; // to be taken; for a conflict, both are non-empty
-	bool		bIsPreVerseOne;		  // TRUE when this struct just has the preVerseOneText for obligatory transfer
-	bool		bPTorBE_verse_empty;  // TRUE if the md5sum(s) for the PTorBE verse are all empty
-	bool		bAI_verse_empty;      // TRUE if the md5sum(s) for the AI verse are all empty
-	bool		bUserEditsDetected;   // TRUE if preEdit and postEdit versions differ
-	bool		bConflictedVerses;	  // TRUE if the Conflict Resolution dlg needs to be used
-	wxString	bookCode; // the 3-letter code for the currently open book or chapter of a book
-	wxString	chapter_ref; // the string form of the chapter eg. "3"
-	wxString	verse_ref; // the string form of the verse (e.g. "23" or "15-16" or whatever)
-};
-
 // An enum for specifying the program mode for use in the
 // MakeMenuInitializationsAdnPlatformAdjustments(). Values can
 // be one of the following: collabIndeterminate, collabAvailableTurnedOn,
