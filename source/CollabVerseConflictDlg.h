@@ -22,6 +22,9 @@
 #endif
 #include "CollabUtilities.h"
 
+// forward references
+
+
 class CCollabVerseConflictDlg : public AIModalDialog
 {
 public:
@@ -29,6 +32,7 @@ public:
 	virtual ~CCollabVerseConflictDlg(void); // destructor
 	// other methods
 
+protected:
 	wxCheckListBox* pCheckListBoxVerseRefs;
 	wxTextCtrl* pTextCtrlSourceText;
 	wxTextCtrl* pTextCtrlAITargetVersion;
@@ -45,20 +49,20 @@ public:
 	wxStaticText* pStaticInfoLine3; // for substituting Paratext/Bibledit into %s
 	wxStaticText* pStaticInfoLine4; // for substituting Paratext/Bibledit into %s
 	wxStaticText* pStaticPTVsTitle;
-	wxCheckBox*   pCheckBoxMakeEditable;
 
 	wxArrayString verseRefsArray;
 	wxArrayString sourceTextVsArray;
 	wxArrayString aiTargetTextVsArray;
 	wxArrayString ptTargetTextVsArray;
-	wxArrayString ptTargetTextVsOriginalArray;
-	wxArrayPtrVoid* pConflictsArray;
+	wxArrayString ptTargetTextVsEditedArray;
 
+	wxArrayPtrVoid* pConflictsArray;
 	int CurrentListBoxHighlightedIndex; // The index of the list box's highlighted/selected item kept current
-	bool m_bMakePTboxEditable;
+	int lastIndex; // to give access to the old index when user has clicked elsewhere in the list
+	void UpdatePTorBEtext(int index, wxArrayString* ptTargetTextVsEditedArrayPtr, wxTextCtrl* pTxtCtrl);
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	void OnOK(wxCommandEvent& event);
+	void OnCancel(wxCommandEvent& event);
 	void SyncRadioButtonsWithHighlightedItemTickState();
 	void FillEditBoxesWithVerseTextForHighlightedItem();
 	void OnCheckListBoxTickChange(wxCommandEvent& event);
@@ -67,17 +71,14 @@ protected:
 	void OnRadioRetainPTVersion(wxCommandEvent& WXUNUSED(event));
 	void OnSelectAllVersesButton(wxCommandEvent& WXUNUSED(event));
 	void OnUnSelectAllVersesButton(wxCommandEvent& WXUNUSED(event));
-
+	//void OnLeftBtnDown(wxMouseEvent& event);
+	void OnOK(wxCommandEvent& event);
+	void OnPTorBEtextUpdated(wxCommandEvent& event);
+	void OnRestoreBtn(wxCommandEvent& WXUNUSED(event));
 private:
 	CAdapt_ItApp* m_pApp;
-
 	wxString MakeVerseReference(ConflictRes* p);
-	
 
-	// class attributes
-	// wxString m_stringVariable;
-	// bool m_bVariable;
-	
 	// other class attributes
 
 	DECLARE_EVENT_TABLE()

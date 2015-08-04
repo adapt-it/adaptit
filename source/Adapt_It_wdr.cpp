@@ -10912,19 +10912,13 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
     item34->SetToolTip( _("Sends the versions of the verses you chose to the external editor program") );
     item33->Add( item34, 0, wxALIGN_CENTER, 5 );
 
-    item33->Add( 20, 12, 0, wxALIGN_CENTER|wxALL, 0 );
+    item33->Add( 60, 12, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item35 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item35->SetToolTip( _("Ignore all choices or edits, just Cancel the dialog") );
     item33->Add( item35, 0, wxALIGN_CENTER, 5 );
 
-    item33->Add( 40, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxCheckBox *item36 = new wxCheckBox( parent, ID_CHECKBOX_PT_EDITABLE, _("Make Paratext box editable"), wxDefaultPosition, wxDefaultSize, 0 );
-    item36->SetToolTip( _("Makes the box editable, or read-only") );
-    item33->Add( item36, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item7->Add( item33, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item7->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item7->AddGrowableCol( 1 );
 
@@ -10932,8 +10926,8 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
 
     item1->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticText *item37 = new wxStaticText( parent, ID_TEXT, _("You can resize this dialog by dragging the bottom right corner."), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item37, 0, wxALIGN_CENTER, 5 );
+    wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, _("You can resize this dialog by dragging the bottom right corner."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item36, 0, wxALIGN_CENTER, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 

@@ -28,17 +28,14 @@
 #ifndef WX_PRECOMP
 // Include your minimal set of headers here, or wx.h
 #include <wx/wx.h>
-#include <wx/event.h>
 #endif
 
 // other includes
-//#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
-//#include <wx/valgen.h> // for wxGenericValidator
-//#include <wx/valtext.h> // for wxTextValidator
 #include "Adapt_It.h"
 #include "CollabUtilities.h"
 #include "CollabVerseConflictDlg.h"
-#include "MyTextCtrl.h"
+
+extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CCollabVerseConflictDlg, AIModalDialog)
@@ -52,6 +49,11 @@ BEGIN_EVENT_TABLE(CCollabVerseConflictDlg, AIModalDialog)
 
 	EVT_BUTTON(ID_BUTTON_SELECT_ALL_VS, CCollabVerseConflictDlg::OnSelectAllVersesButton)
 	EVT_BUTTON(ID_BUTTON_UNSELECT_ALL_VS, CCollabVerseConflictDlg::OnUnSelectAllVersesButton)
+	EVT_BUTTON(wxID_OK, CCollabVerseConflictDlg::OnOK)
+	EVT_BUTTON(wxID_CANCEL, CCollabVerseConflictDlg::OnCancel)
+	//EVT_LEFT_DOWN(CCollabVerseConflictDlg::OnLeftBtnDown)
+	EVT_TEXT(ID_TEXTCTRL_EDITABLE_PT_VERSION, CCollabVerseConflictDlg::OnPTorBEtextUpdated)
+	EVT_BUTTON(ID_BUTTON_RESTORE, CCollabVerseConflictDlg::OnRestoreBtn)
 
 	// ... other menu, button or control events
 END_EVENT_TABLE()
@@ -66,25 +68,9 @@ CCollabVerseConflictDlg::CCollabVerseConflictDlg(wxWindow* parent, wxArrayPtrVoi
 	// size dialog.
 	pConflictDlgTopSizer = AI_PT_ConflictingVersesFunc(this, TRUE, TRUE);
 	// The declaration is: AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
-	m_pApp = (CAdapt_ItApp*)&wxGetApp();
-
+	wxUnusedVar(pConflictDlgTopSizer);
+	m_pApp = gpApp;  // was (CAdapt_ItApp*)&wxGetApp();
 	pConflictsArray = pConfArr;
-	m_bMakePTboxEditable = FALSE;
-
-	// EvtHandler::Connect() didn't work for me, to connect the focus event to the
-	// dialog's event handling table; so instead try subclassing the relevant wxTextCtrl
-	// and trap the wxEVT_KILL_FOCUS there. wxTextCtrl events do not propagate up to the
-	// parent because they are not wxCommandEvent type
-	//this->Connect(ID_TEXTCTRL_EDITABLE_PT_VERSION, wxEVT_KILL_FOCUS, wxFocusEventHandler(CCollabVerseConflictDlg::OnKillFocus));
-
-	// See the comment by Bill at lines 140++ in ChoseTranslation.cpp, for how to
-	// substitute a subclass for a control in a wxDesigner generated dialog. We
-	// have to remove the control, and substitute our new one in its place. It's tricky.
-	// We need to do it below, for pTextCtrlPTTargetVersion, substituting for the
-	// wxTextCtrl from wxDesigner the MyTextCtrl subclass which allows me to intercept
-	// EVT_KILL_FOCUS events. (I may need to support EVT_SET_FOCUS events too, not sure
-	// yet, but so far I suspect not.)
 
 	// Setup dialog box control pointers below:
 	pCheckListBoxVerseRefs = (wxCheckListBox*)FindWindowById(ID_CHECKLISTBOX_VERSE_REFS);
@@ -97,6 +83,10 @@ CCollabVerseConflictDlg::CCollabVerseConflictDlg(wxWindow* parent, wxArrayPtrVoi
 	pTextCtrlAITargetVersion = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_READONLY_AI_VERSION);
 	wxASSERT(pTextCtrlAITargetVersion != NULL);
 	pTextCtrlAITargetVersion->SetBackgroundColour(m_pApp->sysColorBtnFace);
+
+	pTextCtrlPTTargetVersion = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDITABLE_PT_VERSION);
+	wxASSERT(pTextCtrlPTTargetVersion != NULL);
+	pTextCtrlPTTargetVersion->SetBackgroundColour(m_pApp->sysColorBtnFace);
 
 	pBtnSelectAllVerses = (wxButton*)FindWindowById(ID_BUTTON_SELECT_ALL_VS);
 	wxASSERT(pBtnSelectAllVerses != NULL);
@@ -135,33 +125,18 @@ CCollabVerseConflictDlg::CCollabVerseConflictDlg(wxWindow* parent, wxArrayPtrVoi
 	pStaticPTVsTitle = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_PT_VS_TITLE);
 	wxASSERT(pStaticPTVsTitle != NULL);
 
-	pCheckBoxMakeEditable = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PT_EDITABLE);
-
 	CurrentListBoxHighlightedIndex = 0;
+	lastIndex = 0;
 
-	// The following is the wxTextCtrl we want to replace
-	pTextCtrlPTTargetVersion = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDITABLE_PT_VERSION);
-	wxASSERT(pTextCtrlPTTargetVersion != NULL);
-	pTextCtrlPTTargetVersion->SetBackgroundColour(m_pApp->sysColorBtnFace);
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	wxUnusedVar(bOK); // avoid warning
 
-	// Get parameters relevant to the window
-	wxSize size = pTextCtrlPTTargetVersion->GetSize();
-	int id = pTextCtrlPTTargetVersion->GetId();
-	wxPoint position = pTextCtrlPTTargetVersion->GetPosition();
-
-	// Do the replacement... (see ChooseTranslation.cpp 140-180 for how)
-	wxBoxSizer* pContSizerOfTextCtrl = (wxBoxSizer*)pTextCtrlPTTargetVersion->GetContainingSizer();
-    wxASSERT(pContSizerOfTextCtrl == pPT_BoxSizer);
-	// We don't have a tooltip on the text box, it would get in the user's way and be annoying
-    // Delete the existing text box
-	if (pTextCtrlPTTargetVersion != NULL)
-	    delete pTextCtrlPTTargetVersion;
-
+	pTextCtrlPTTargetVersion->SetEditable(TRUE); // ensure it is editable
 }
 
 CCollabVerseConflictDlg::~CCollabVerseConflictDlg() // destructor
 {
-	
 }
 
 void CCollabVerseConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -169,114 +144,6 @@ void CCollabVerseConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	//InitDialog() is not virtual, no call needed to a base class
 	wxASSERT(pConflictsArray != NULL);
 	
-	// Testing Data:
-	/*
-	// Source text data for ROM 3:1-12 (from PT's NIV version)
-\v 1 What advantage, then, is there in being a Jew, or what value is there in circumcision?
-\v 2 Much in every way! First of all, they have been entrusted with the very words of God.
-\p\v 3 What if some did not have faith? Will their lack of faith nullify God's faithfulness?
-\v 4 Not at all! Let God be true, and every man a liar. As it is written:\q1 “So that you may be proved right when you speak\q2 and prevail when you judge.”\f + \fr 3.4 \ft PSA 51.4\f*
-\p\v 5 But if our unrighteousness brings out God's righteousness more clearly, what shall we say? That God is unjust in bringing his wrath on us? (I am using a human argument.)
-\v 6 Certainly not! If that were so, how could God judge the world?
-\v 7 Someone might argue, “If my falsehood enhances God's truthfulness and so increases his glory, why am I still condemned as a sinner?”
-\v 8 Why not say–as we are being slanderously reported as saying and as some claim that we say–“Let us do evil that good may result”? Their condemnation is deserved.\s1 No One is Righteous
-\p\v 9 What shall we conclude then? Are we any better\f + \fr 3.9 \ft Or \fq worse\f*? Not at all! We have already made the charge that Jews and Gentiles alike are all under sin.
-\v 10 As it is written:\q1 “There is no one righteous, not even one;
-\q2\v 11 there is no one who understands,\q2 no one who seeks God.
-\q1\v 12 All have turned away,\q2 they have together become worthless;\q1 there is no one who does good,\q2 not even one.”\f + \fr 3.12 \ft PSA 14.1-3; PSA 53.1-3; ECC 7.20\f*
-*/
-
-	// Initialize some wxArrayStrings for test data
-/*
-	// AI Translation data for ROM 3:1-12 (Dynamic Tok Pisin)
-\v 1 Sapos dispela tok mi bin raitim yupela i tru, ol lain Ju i winim ol arapela manmeri olsem wanem? Pasin bilong katim skin na kamap lain Ju i save helpim ol manmeri o nogat a?
-\v 2 Olaman! I gat kain kain gutpela helpim bilong en ia! Nambawan em i olsem: God em i bin givim tok bilong en long ol lain Ju long lukautim (na helpim ol manmeri i ken save long ol tok bilong en.)
-\v 3 Tru, sampela ol i no bin bilip na bihainim dispela tok. Tasol yupela i ting wanem? Ating dispela pasin nogut ol i bihainim bai i mekim God i (senisim tingting bilong en na) lusim tok bilong en a?
-\v 4 Nogat tru! Sapos olgeta man i mas mekim pasin bilong giaman, God wanpela tasol nogat! Bai em i save tok tru oltaim, olsem buk Sam i tok:\q<<Olgeta manmeri i ken save tok bilong yu i stret tumas na sapos ol i kotim yu, bai yu winim kot tru.>>
-\p\v 5 Orait, yupela i ting mi tok wanem a? Sapos pasin nogut yumi save mekim em i soim olgeta manmeri stretpela pasin bilong God, bai yumi tok wanem? God em i save bekim pe bilong sin long yumi, ating pasin bilong God em i no stret a? (Mi bihainim tingting bilong yumi man tasol na mi mekim dispela tok.)
-\v 6 (Yupela ting mi tok olsem a?) Nogat tru! Sapos God em i no stretpela, olsem wanem bai em i skelim pasin bilong olgeta manmeri? Em i no inap ia?
-\v 7 (Orait i gat narapela askim.) Sapos tok giaman bilong mi i helpim ol manmeri i save tok tru bilong God. Na sapos dispela i mekim biknem bilong en i kamap moa yet, orait, bilong wanem em i kolim mi man nogut i gat sin na i bekim pe nogut long mi?
-\v 8 Sapos dispela kain tok i tru, mobeta yumi tok olsem, <<Goan,yumi mekim pasin nogut, long wanem, gutpela pasin i ken kamaplong dispela samting.>> Ating pasin olsem em i orait a? Nogat tru! Tasol sampela manmeri i tok, <<Yes, tok bilong Pol i olsem tasol.>> Em i stret bai God i bekim pe nogut long ol dispelamanmeri.\s I no gat wanpela man o meri i stretpela long tingting bilong God
-\p\v 9 Orait bai yumi tok wanem? Ating yumi ol lain Ju i winim ol (lain) arapela manmeri? Ating nogat ia? Long wanem, yumi tok pinis, sin i karamapim yumi olgeta lain Ju wantaim ol arapela lain.
-\v 10 Dispela tok em i tru. Long wanem, buk Sam bilong Olpela Testamen (o Baibel) i tok olsem:\q<<I no gat wanpela stretpela man i stap. Nogat tru.
-\q\v 11 I no gat wanpela man i gat save. I no gat wanpela i wok long painim God.
-\q\v 12 Olgeta i bin lusim rot. Olgeta i bin kamap man nogut tru.\qI no gat man i save mekim gutpela pasin. Yes, i no gat wanpela.
-*/
-
-/*
-	// PT Translation data for ROM 3:1-12 (From PT's UBS Tok Pisin)
-	// Removed the /x ... /x* x-refs
-\v 1 Sapos pasin bilong katim skin em i no samting bilong bodi tasol, orait ol Juda i winim ol arapela man olsem wanem? Wanem gutpela samting i save kamap long pasin bilong katim skin?
-\v 2 Olaman! God i givim ol kain kain gutpela samting long ol Juda. Namba wan em i olsem. God i bin givim tok bilong en long ol Juda bilong lukautim.
-\v 3 Tru, sampela i no bin bihainim dispela tok. Tasol olsem wanem? Sapos ol i no bilip, ating dispela bai i mekim God i no bihainim tok bilong em?
-\v 4 Nogat tru. Olgeta man i save giaman, tasol God wanpela i save mekim tok tru oltaim. Olsem buk bilong God i tok,\q1 <<God, yu mekim\q3 stretpela pasin tasol\q2 na yu kotim mi.\q1 Na sapos ol i ting long kotim yu,\q2 bai yu winim kot tru.>>
-\p\v 5-6 Orait olsem wanem? Sapos pasin nogut bilong yumi em i kamapim ples klia stretpela pasin bilong God, bai yumi tok wanem? Taim God i bekim pe nogut bilong sin bilong yumi, ating em i mekim pasin i no stret, a? Nogat tru. Sapos God i no bihainim stretpela pasin oltaim, olsem wanem bai em inap skelim pasin bilong olgeta manmeri? Dispela kain tingting em i tingting bilong yumi man tasol.
-\v 7 Em i wankain olsem tingting bilong man i tok olsem, <<Sapos tok giaman bilong mi i mekim tok tru bilong God i kamap ples klia, na dispela i mekim biknem bilong en i kamap moa yet, orait olsem wanem na em i kolim mi man bilong mekim sin, na em i bekim pe nogut long mi?>>
-\v 8 Na em i wankain olsem dispela rabis tok, <<Goan, yumi mekim pasin nogut, na long dispela rot gutpela pasin bai i kamap.>> Sampela man i save sutim tok long mi na tok olsem, tok mi yet mi save autim em i wankain olsem dispela rabis tok. God bai i kotim ol dispela man na bekim pe nogut long ol inap long pasin ol i bin mekim.\s I no gat wanpela man i save mekim stretpela pasin
-\p\v 9 Orait olsem wanem? Ating yumi Juda i winim ol arapela man? Nogat tru. Yumi tok pinis, sin i karamapim yumi olgeta, yumi Juda na Grik wantaim.
-\v 10 Buk bilong God i gat tok long dispela olsem,\q1 <<I no gat wanpela man\q2 i save mekim stretpela pasin.\q1 Nogat tru.
-\q1\v 11 I no gat wanpela man\q2 i gat gutpela save.\q1 I no gat wanpela\q2 i wok long painim God.
-\q1\v 12 Olgeta i lusim gutpela rot pinis.\q1 Olgeta i wankain tasol,\q2 ol i man nogut tru.\q1 I no gat wanpela bilong ol\q2 i save mekim gutpela pasin.\q1 Nogat tru.
-*/
-
-	/*
-	// one wxArrayString will contain the verse_references of conflicted verses, 
-	// one wxArrayString will contain the source_text verses, one wxArrayString 
-	// will contain the ai_target_text verses and the fourth one will contain the 
-	// pt_target_text verses, and the original pt target verses will be in another
-	verseRefsArray.Add(_T("ROM 3:1"));
-	verseRefsArray.Add(_T("ROM 3:2"));
-	verseRefsArray.Add(_T("ROM 3:3"));
-	verseRefsArray.Add(_T("ROM 3:4"));
-	verseRefsArray.Add(_T("ROM 3:5"));
-	verseRefsArray.Add(_T("ROM 3:6"));
-	verseRefsArray.Add(_T("ROM 3:7"));
-	verseRefsArray.Add(_T("ROM 3:8"));
-	verseRefsArray.Add(_T("ROM 3:9"));
-	verseRefsArray.Add(_T("ROM 3:10"));
-	verseRefsArray.Add(_T("ROM 3:11"));
-	verseRefsArray.Add(_T("ROM 3:12"));
-	
-	// Note: back slash characters \ need to be escaped as \\ within the string elements.
-	sourceTextVsArray.Add(_T("\\v 1 What advantage, then, is there in being a Jew, or what value is there in circumcision?"));
-	sourceTextVsArray.Add(_T("\\v 2 Much in every way! First of all, they have been entrusted with the very words of God."));
-	sourceTextVsArray.Add(_T("\\p\\v 3 What if some did not have faith? Will their lack of faith nullify God's faithfulness?"));
-	sourceTextVsArray.Add(_T("\\v 4 Not at all! Let God be true, and every man a liar. As it is written:\\q1 <<So that you may be proved right when you speak\\q2 and prevail when you judge.>>\\f + \\fr 3.4 \\ft PSA 51.4\\f*"));
-	sourceTextVsArray.Add(_T("\\p\\v 5 But if our unrighteousness brings out God's righteousness more clearly, what shall we say? That God is unjust in bringing his wrath on us? (I am using a human argument.)"));
-	sourceTextVsArray.Add(_T("\\v 6 Certainly not! If that were so, how could God judge the world?"));
-	sourceTextVsArray.Add(_T("\\v 7 Someone might argue, <<If my falsehood enhances God's truthfulness and so increases his glory, why am I still condemned as a sinner?>>"));
-	sourceTextVsArray.Add(_T("\\v 8 Why not say-as we are being slanderously reported as saying and as some claim that we say-<<Let us do evil that good may result>>? Their condemnation is deserved.\\s1 No One is Righteous"));
-	sourceTextVsArray.Add(_T("\\p\\v 9 What shall we conclude then? Are we any better\\f + \\fr 3.9 \\ft Or \\fq worse\\f*? Not at all! We have already made the charge that Jews and Gentiles alike are all under sin."));
-	sourceTextVsArray.Add(_T("\\v 10 As it is written:\\q1 <<There is no one righteous, not even one;"));
-	sourceTextVsArray.Add(_T("\\q2\\v 11 there is no one who understands,\\q2 no one who seeks God."));
-	sourceTextVsArray.Add(_T("\\q1\\v 12 All have turned away,\\q2 they have together become worthless;\\q1 there is no one who does good,\\q2 not even one.>>\\f + \\fr 3.12 \\ft PSA 14.1-3; PSA 53.1-3; ECC 7.20\\f*"));
-	
-	aiTargetTextVsArray.Add(_T("\\v 1 Sapos dispela tok mi bin raitim yupela i tru, ol lain Ju i winim ol arapela manmeri olsem wanem? Pasin bilong katim skin na kamap lain Ju i save helpim ol manmeri o nogat a?"));
-	aiTargetTextVsArray.Add(_T("\\v 2 Olaman! I gat kain kain gutpela helpim bilong en ia! Nambawan em i olsem: God em i bin givim tok bilong en long ol lain Ju long lukautim (na helpim ol manmeri i ken save long ol tok bilong en.)"));
-	aiTargetTextVsArray.Add(_T("\\v 3 Tru, sampela ol i no bin bilip na bihainim dispela tok. Tasol yupela i ting wanem? Ating dispela pasin nogut ol i bihainim bai i mekim God i (senisim tingting bilong en na) lusim tok bilong en a?"));
-	aiTargetTextVsArray.Add(_T("\\v 4 Nogat tru! Sapos olgeta man i mas mekim pasin bilong giaman, God wanpela tasol nogat! Bai em i save tok tru oltaim, olsem buk Sam i tok:\\q<<Olgeta manmeri i ken save tok bilong yu i stret tumas na sapos ol i kotim yu, bai yu winim kot tru.>>"));
-	aiTargetTextVsArray.Add(_T("\\p\\v 5 Orait, yupela i ting mi tok wanem a? Sapos pasin nogut yumi save mekim em i soim olgeta manmeri stretpela pasin bilong God, bai yumi tok wanem? God em i save bekim pe bilong sin long yumi, ating pasin bilong God em i no stret a? (Mi bihainim tingting bilong yumi man tasol na mi mekim dispela tok.)"));
-	aiTargetTextVsArray.Add(_T("\\v 6 (Yupela ting mi tok olsem a?) Nogat tru! Sapos God em i no stretpela, olsem wanem bai em i skelim pasin bilong olgeta manmeri? Em i no inap ia?"));
-	aiTargetTextVsArray.Add(_T("\\v 7 (Orait i gat narapela askim.) Sapos tok giaman bilong mi i helpim ol manmeri i save tok tru bilong God. Na sapos dispela i mekim biknem bilong en i kamap moa yet, orait, bilong wanem em i kolim mi man nogut i gat sin na i bekim pe nogut long mi?"));
-	aiTargetTextVsArray.Add(_T("\\v 8 Sapos dispela kain tok i tru, mobeta yumi tok olsem, <<Goan,yumi mekim pasin nogut, long wanem, gutpela pasin i ken kamaplong dispela samting.>> Ating pasin olsem em i orait a? Nogat tru! Tasol sampela manmeri i tok, <<Yes, tok bilong Pol i olsem tasol.>> Em i stret bai God i bekim pe nogut long ol dispelamanmeri.\\s I no gat wanpela man o meri i stretpela long tingting bilong God"));
-	aiTargetTextVsArray.Add(_T("\\p\\v 9 Orait bai yumi tok wanem? Ating yumi ol lain Ju i winim ol (lain) arapela manmeri? Ating nogat ia? Long wanem, yumi tok pinis, sin i karamapim yumi olgeta lain Ju wantaim ol arapela lain."));
-	aiTargetTextVsArray.Add(_T("\\v 10 Dispela tok em i tru. Long wanem, buk Sam bilong Olpela Testamen (o Baibel) i tok olsem:\\q<<I no gat wanpela stretpela man i stap. Nogat tru."));
-	aiTargetTextVsArray.Add(_T("\\q\\v 11 I no gat wanpela man i gat save. I no gat wanpela i wok long painim God."));
-	aiTargetTextVsArray.Add(_T("\\q\\v 12 Olgeta i bin lusim rot. Olgeta i bin kamap man nogut tru.\\qI no gat man i save mekim gutpela pasin. Yes, i no gat wanpela."));
-	
-	ptTargetTextVsArray.Add(_T("\\v 1 Sapos pasin bilong katim skin em i no samting bilong bodi tasol, orait ol Juda i winim ol arapela man olsem wanem? Wanem gutpela samting i save kamap long pasin bilong katim skin?"));
-	ptTargetTextVsArray.Add(_T("\\v 2 Olaman! God i givim ol kain kain gutpela samting long ol Juda. Namba wan em i olsem. God i bin givim tok bilong en long ol Juda bilong lukautim."));
-	ptTargetTextVsArray.Add(_T("\\v 3 Tru, sampela i no bin bihainim dispela tok. Tasol olsem wanem? Sapos ol i no bilip, ating dispela bai i mekim God i no bihainim tok bilong em?"));
-	ptTargetTextVsArray.Add(_T("\\v 4 Nogat tru. Olgeta man i save giaman, tasol God wanpela i save mekim tok tru oltaim. Olsem buk bilong God i tok,\\q1 <<God, yu mekim\\q3 stretpela pasin tasol\\q2 na yu kotim mi.\\q1 Na sapos ol i ting long kotim yu,\\q2 bai yu winim kot tru.>>"));
-	ptTargetTextVsArray.Add(_T("\\p\\v 5-6 Orait olsem wanem? Sapos pasin nogut bilong yumi em i kamapim ples klia stretpela pasin bilong God, bai yumi tok wanem? Taim God i bekim pe nogut bilong sin bilong yumi, ating em i mekim pasin i no stret, a? Nogat tru. Sapos God i no bihainim stretpela pasin oltaim, olsem wanem bai em inap skelim pasin bilong olgeta manmeri? Dispela kain tingting em i tingting bilong yumi man tasol."));
-	ptTargetTextVsArray.Add(_T(""));
-	ptTargetTextVsArray.Add(_T("\\v 7 Em i wankain olsem tingting bilong man i tok olsem, <<Sapos tok giaman bilong mi i mekim tok tru bilong God i kamap ples klia, na dispela i mekim biknem bilong en i kamap moa yet, orait olsem wanem na em i kolim mi man bilong mekim sin, na em i bekim pe nogut long mi?>>"));
-	ptTargetTextVsArray.Add(_T("\\v 8 Na em i wankain olsem dispela rabis tok, <<Goan, yumi mekim pasin nogut, na long dispela rot gutpela pasin bai i kamap.>> Sampela man i save sutim tok long mi na tok olsem, tok mi yet mi save autim em i wankain olsem dispela rabis tok. God bai i kotim ol dispela man na bekim pe nogut long ol inap long pasin ol i bin mekim.\\s I no gat wanpela man i save mekim stretpela pasin"));
-	ptTargetTextVsArray.Add(_T("\\p\\v 9 Orait olsem wanem? Ating yumi Juda i winim ol arapela man? Nogat tru. Yumi tok pinis, sin i karamapim yumi olgeta, yumi Juda na Grik wantaim."));
-	ptTargetTextVsArray.Add(_T("\\v 10 Buk bilong God i gat tok long dispela olsem,\\q1 <<I no gat wanpela man\\q2 i save mekim stretpela pasin.\\q1 Nogat tru."));
-	ptTargetTextVsArray.Add(_T("\\q1\\v 11 I no gat wanpela man\\q2 i gat gutpela save.\\q1 I no gat wanpela\\q2 i wok long painim God."));
-	ptTargetTextVsArray.Add(_T("\\q1\\v 12 Olgeta i lusim gutpela rot pinis.\\q1 Olgeta i wankain tasol,\\q2 ol i man nogut tru.\\q1 I no gat wanpela bilong ol\\q2 i save mekim gutpela pasin.\\q1 Nogat tru."));
-	*/
 	size_t count = pConflictsArray->GetCount();
 	size_t index;
 	ConflictRes* pCR = NULL;
@@ -287,8 +154,8 @@ void CCollabVerseConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 		verseRefsArray.Add(MakeVerseReference(pCR));
 		sourceTextVsArray.Add(pCR->srcText);
 		aiTargetTextVsArray.Add(pCR->AIText);
-		ptTargetTextVsArray.Add(pCR->PTorBEText_edited);
-		ptTargetTextVsOriginalArray.Add(pCR->PTorBEText_original);
+		ptTargetTextVsArray.Add(pCR->PTorBEText_original);
+		ptTargetTextVsEditedArray.Add(pCR->PTorBEText_edited);
 	}
 
 	// Set font and directionality for the three edit boxes
@@ -352,7 +219,7 @@ void CCollabVerseConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 		this->SetTitle(tempStr);
 
 	}
-	
+
 	// Load the test arrays into the appropriate dialog controls
 	pCheckListBoxVerseRefs->Clear();
 	pCheckListBoxVerseRefs->Append(verseRefsArray);
@@ -367,6 +234,7 @@ void CCollabVerseConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	}
 	FillEditBoxesWithVerseTextForHighlightedItem();
 	SyncRadioButtonsWithHighlightedItemTickState();
+
 }
 
 void CCollabVerseConflictDlg::SyncRadioButtonsWithHighlightedItemTickState()
@@ -391,7 +259,21 @@ void CCollabVerseConflictDlg::FillEditBoxesWithVerseTextForHighlightedItem()
 {
 	pTextCtrlSourceText->ChangeValue(sourceTextVsArray.Item(CurrentListBoxHighlightedIndex));
 	pTextCtrlAITargetVersion->ChangeValue(aiTargetTextVsArray.Item(CurrentListBoxHighlightedIndex));
-	pTextCtrlPTTargetVersion->ChangeValue(ptTargetTextVsArray.Item(CurrentListBoxHighlightedIndex));
+	// We use the ptTargetTextVsArray for getting the string value whenever that value is the
+	// same as what we'd get from ptTargetTextVsEditedArray; but if the latter is different than
+	// the former, it's because of user edits and so the user will want to see his edited version
+	// anytime he clicks back at this verse reference in the list - so in that case we use
+	// the ptTargetTextVsEditedArray verse version in the PT or BE text ctrl box
+	wxString original = ptTargetTextVsArray.Item(CurrentListBoxHighlightedIndex);
+	wxString edited = ptTargetTextVsEditedArray.Item(CurrentListBoxHighlightedIndex);
+	if (original == edited)
+	{
+		pTextCtrlPTTargetVersion->ChangeValue(ptTargetTextVsArray.Item(CurrentListBoxHighlightedIndex));
+	}
+	else
+	{
+		pTextCtrlPTTargetVersion->ChangeValue(ptTargetTextVsEditedArray.Item(CurrentListBoxHighlightedIndex));
+	}
 }
 
 void CCollabVerseConflictDlg::OnCheckListBoxTickChange(wxCommandEvent& event)
@@ -424,18 +306,38 @@ void CCollabVerseConflictDlg::OnListBoxSelChange(wxCommandEvent& WXUNUSED(event)
 	// This handler is entered when a list box selection has changed (user clicks
 	// on a line item in the list box, but not on the check box itself).
 	//wxMessageBox(_T("List box selection changed"));
-	
+	lastIndex = CurrentListBoxHighlightedIndex; // remember, user can click a second time on same list item, so check
+
 	// Make the radio buttons agree with the current check box selection
 	int nSel;
 	nSel = pCheckListBoxVerseRefs->GetSelection();
-	CurrentListBoxHighlightedIndex = nSel; // keep the CurrentListBoxHighlightedIndex up to date
-	// Change the displayed text in the 3 edit boxes to match the
-	// selection/highlight index. Use the wxTextCtrl::ChangeValue() method rather 
-	// than the deprecated SetValue() method. SetValue() generates an undesirable
-	// wxEVT_COMMAND_TEXT_UPDATED event whereas ChangeValue() does not trigger
-	// that event.
-	FillEditBoxesWithVerseTextForHighlightedItem();
-	SyncRadioButtonsWithHighlightedItemTickState(); // keep the radio buttons in sync
+
+	// If we have moved to a different line, then update the old location's text
+	// in the struct, for the PT or BE edited version first. If we didn't move
+	// to a new ch/verse ref, then there is nothing to do
+	if (nSel != lastIndex)
+	{
+		// Get the update done for the old index's stored (possibly edited) PT or BE text;
+		// this code is also called at the start of the Transfer... button handler, since
+		// the user will probably go from working with whatever is the final list item he
+		// wants to deal with straight to the Transfer The Listed Verses button - and so
+		// without a copy of this code in that button's handler, the final update would not
+		// get done, because the update here would not get called
+		wxASSERT(lastIndex >= 0 && lastIndex < (int)pConflictsArray->GetCount()); // no bounds error
+		if (!ptTargetTextVsEditedArray.IsEmpty())
+		{
+			UpdatePTorBEtext(lastIndex, &ptTargetTextVsEditedArray, pTextCtrlPTTargetVersion);
+		}
+
+		CurrentListBoxHighlightedIndex = nSel; // keep the CurrentListBoxHighlightedIndex up to date
+		// Change the displayed text in the 3 edit boxes to match the
+		// selection/highlight index. Use the wxTextCtrl::ChangeValue() method rather 
+		// than the deprecated SetValue() method. SetValue() generates an undesirable
+		// wxEVT_COMMAND_TEXT_UPDATED event whereas ChangeValue() does not trigger
+		// that event.
+		FillEditBoxesWithVerseTextForHighlightedItem();
+		SyncRadioButtonsWithHighlightedItemTickState(); // keep the radio buttons in sync
+	}
 }
 
 void CCollabVerseConflictDlg::OnRadioUseAIVersion(wxCommandEvent& WXUNUSED(event))
@@ -492,29 +394,87 @@ void CCollabVerseConflictDlg::OnUnSelectAllVersesButton(wxCommandEvent& WXUNUSED
 	SyncRadioButtonsWithHighlightedItemTickState();
 }
 
-
-
-// OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
-// If this returns TRUE, the function either calls EndModal(wxID_OK) if the
-// dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
-// if the dialog is modeless.
-void CCollabVerseConflictDlg::OnOK(wxCommandEvent& event) 
+void CCollabVerseConflictDlg::OnPTorBEtextUpdated(wxCommandEvent& event)
 {
-	// sample code
-	//wxListBox* pListBox;
-	//pListBox = (wxListBox*)FindWindowById(IDC_LISTBOX_ADAPTIONS);
-	//int nSel;
-	//nSel = pListBox->GetSelection();
-	//if (nSel == LB_ERR) // LB_ERR is #define -1
-	//{
-	//	wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION | wxOK);
-	//}
-	//m_projectName = pListBox->GetString(nSel);
-	
-	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
+	// We get here for every edit (per keystroke!) done by the user in the PTorBE box
+	// so we have to update the stored string in the edited array each time
+	wxASSERT(CurrentListBoxHighlightedIndex >= 0 && CurrentListBoxHighlightedIndex < (int)pConflictsArray->GetCount()); // no bounds error
+	if (!ptTargetTextVsEditedArray.IsEmpty())
+	{
+		UpdatePTorBEtext(CurrentListBoxHighlightedIndex, &ptTargetTextVsEditedArray, pTextCtrlPTTargetVersion);
+#if defined(_DEBUG)
+		wxLogDebug(_T("OnPTorBEtextUpdated() at index %d: original:  %s  <>  edited:  %s"),
+			CurrentListBoxHighlightedIndex, ptTargetTextVsArray.Item(CurrentListBoxHighlightedIndex).c_str(), 
+					ptTargetTextVsEditedArray.Item(CurrentListBoxHighlightedIndex).c_str());
+#endif
+	}
+	event.Skip();
+}
+
+void CCollabVerseConflictDlg::OnOK(wxCommandEvent& event)
+{
+	//lastIndex = CurrentListBoxHighlightedIndex;
+	//wxASSERT(lastIndex >= 0 && lastIndex < (int)pConflictsArray->GetCount()); // no bounds error
+	if (!ptTargetTextVsEditedArray.IsEmpty())
+	{
+		// We don't need this call, the 'edited' array is kept continuously uptodate
+		//UpdatePTorBEtext(lastIndex, &ptTargetTextVsEditedArray, pTextCtrlPTTargetVersion);
+#if defined(_DEBUG)
+		wxLogDebug(_T("OnOK() at index %d: original:  %s  <>  edited:  %s"),
+			CurrentListBoxHighlightedIndex, ptTargetTextVsArray.Item(CurrentListBoxHighlightedIndex).c_str(),
+			ptTargetTextVsEditedArray.Item(CurrentListBoxHighlightedIndex).c_str());
+#endif
+	}
+	event.Skip();
+}
+
+void CCollabVerseConflictDlg::OnCancel(wxCommandEvent& event)
+{
+	// When the user cancels, we should restore the original PT or BE versions
+	// to the RHS text box, and do the "safe" legacy thing, which is to retain
+	// the PT or BE versions when conflicts arise
+	lastIndex = CurrentListBoxHighlightedIndex;
+
+	event.Skip();
+}
+
+void CCollabVerseConflictDlg::UpdatePTorBEtext(int index, wxArrayString* ptTargetTextVsEditedArrayPtr, wxTextCtrl* pTxtCtrl)
+{
+	if (ptTargetTextVsEditedArrayPtr->IsEmpty())
+	{
+		gpApp->LogUserAction(_T("UpdatePTorBEtext() error, ptTargetTextVsEditedArrayPtr passed in was Empty"));
+		return;
+	}
+	else
+	{
+		// Non empty, so go ahead
+		wxString currentStr = pTxtCtrl->GetValue(); // it may, or may not, have been edited by the user
+		ptTargetTextVsEditedArrayPtr->RemoveAt(index);
+		ptTargetTextVsEditedArrayPtr->Insert(currentStr, index);
+	}
+}
+
+void CCollabVerseConflictDlg::OnRestoreBtn(wxCommandEvent& WXUNUSED(event))
+{	
+	// Restore the original PT or BE text value to the text box. We use SetValue()
+	// because we want to generate an update event that will get the restored
+	// original value back into the ptTargetTextVsEditedArray at the correct
+	// location
+	wxString original = ptTargetTextVsArray.Item(CurrentListBoxHighlightedIndex);
+	pTextCtrlPTTargetVersion->SetValue(original);
 }
 
 
+/* unneeded
+void CCollabVerseConflictDlg::OnLeftBtnDown(wxMouseEvent& event)
+{
+	if (event.GetButton() == wxID_OK)
+	{
+		; // nothing to do yet
+	}
+	event.Skip();
+}
+*/
 // other class methods
 wxString CCollabVerseConflictDlg::MakeVerseReference(ConflictRes* p)
 {

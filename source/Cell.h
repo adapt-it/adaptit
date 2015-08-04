@@ -26,7 +26,6 @@
 
 // forward references
 class CAdapt_ItDoc;
-class CSourceBundle;
 class CFont;
 
 /// The CCell class represents the next smaller division of a CPile, there

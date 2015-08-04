@@ -42073,7 +42073,7 @@ void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTex
     // dialog font pDlgFont, but sets its size to pApp->m_dialogFontSize.
 	wxASSERT(pFont != NULL);
 	wxASSERT(pDlgFont != NULL);
-	CopyFontBaseProperties(pFont,pDlgFont);
+	CopyFontBaseProperties(pFont, pDlgFont);
 	// The CopyFontBaseProperties function above doesn't copy the point size, so
 	// make the dialog font show in the proper dialog font size.
 	pDlgFont->SetPointSize(m_dialogFontSize);
@@ -42141,7 +42141,7 @@ void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTex
 			pListBox2->SetLayoutDirection(wxLayout_LeftToRight);
 		//}
 	}
-	#endif
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

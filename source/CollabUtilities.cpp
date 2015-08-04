@@ -7501,12 +7501,10 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	} // end the limiting scope
 #endif
 
-
 	// Add the handling for the CollabAction structs - it's the same code as in
-	// GetUpdatedText_UsfmsUnchanged()
+	// GetUpdatedText_UsfmsChanged()
 	wxArrayPtrVoid conflictsArr; // stores ConflictRes struct pointers
 	CollectConflicts(collabActionsArr, conflictsArr);
-
 
 	// show conflict res dlg here if needed & the user requested it, and fill
 	// out the booleans in the structs based on the users choice
@@ -7516,12 +7514,22 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		// user's choice for each conflicted verse pair of versions; the structs
 		// to use for this are the ones with bConflictedVerses set TRUE; these
 		// are revamped as ConflictRes structs and are stored in conflictsArr
-		
-		
-// TODO		
-		
-		
-		
+		CCollabVerseConflictDlg confDlg(gpApp->GetMainFrame(), &conflictsArr);
+		confDlg.Centre();
+		if (confDlg.ShowModal() == wxID_OK)
+		{
+// TODO
+			;	
+
+
+		}
+		else
+		{
+// TODO	
+			;
+
+
+		}
 		/*
 		CollabAction* pAction = NULL;
 		for (i=0; i< structsCount; i++)
@@ -8791,12 +8799,10 @@ wxString GetUpdatedText_UsfmsChanged(
 	} // end the limiting scope
 #endif
 
-
 	// Add the handling for the CollabAction structs - it's the same code as in
 	// GetUpdatedText_UsfmsUnchanged()
 	wxArrayPtrVoid conflictsArr; // stores ConflictRes struct pointers
 	CollectConflicts(collabActionsArr, conflictsArr);
-
 
 	// show conflict res dlg here if needed & the user requested it, and fill
 	// out the booleans in the structs based on the users choice
@@ -8810,15 +8816,16 @@ wxString GetUpdatedText_UsfmsChanged(
 		confDlg.Centre();
 		if (confDlg.ShowModal() == wxID_OK)
 		{
-			int ii = 1;
-		
 // TODO		
-		
+			;
+			
 		
 		}
 		else
 		{
-			int ii = 1;
+// TODO		
+			;
+
 
 		}
 		/*
@@ -8835,6 +8842,7 @@ wxString GetUpdatedText_UsfmsChanged(
 
 	// Now the loop which builds newText based on what is in the structs
 	// The debug logging here was invaluable, don't delete it
+/* temporary, so I can test the above safely in Release mode
 	for (i = 0; i< structsCount; i++)
 	{
 		pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
@@ -8869,6 +8877,7 @@ wxString GetUpdatedText_UsfmsChanged(
 		}
 
 	}
+*/
 	// Tidy up (unneeded, but a good idea)
 	gpApp->m_bRetainPTorBEversion = FALSE;
 	gpApp->m_bForceAIversion = FALSE;
@@ -8883,6 +8892,9 @@ wxString GetUpdatedText_UsfmsChanged(
 		pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
 		delete pAction; // internal strings are automatically freed
 	}
+
+	// temporary
+	wxMessageBox(_T("Stop now - halt run in IDE"), _T("Stop!"), wxICON_WARNING | wxOK);
 	return newText;
 }
 
@@ -8907,7 +8919,10 @@ void CollectConflicts(wxArrayPtrVoid& collabActionsArr, wxArrayPtrVoid& conflict
 			pConflict->srcText = pAction->sourceText;
 			pConflict->AIText = pAction->AI_verse_version;
 			pConflict->PTorBEText_original = pAction->PTorBE_verse_version;
-			pConflict->PTorBEText_edited = pAction->PTorBE_verse_version; // default to a copy of original
+			pConflict->PTorBEText_edited = pAction->PTorBE_verse_version; // default to a copy of original;
+				// after the user has done his conflict resolutions, this might then be different, and
+				// whether different or not, this is the one we use for updating the external editor when
+				// the PT or BE version is the one the user has chosen (and perhaps edited)
 			pConflict->bookCodeStr = pAction->bookCode;
 			pConflict->chapterRefStr = pAction->chapter_ref;
 			pConflict->verseRefStr = pAction->verse_ref;
