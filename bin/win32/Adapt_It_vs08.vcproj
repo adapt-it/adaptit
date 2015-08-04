@@ -793,10 +793,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\MyTextCtrl.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\NavProtectNewDoc.cpp"
 				>
 			</File>
@@ -1415,10 +1411,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\MyListBox.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\MyTextCtrl.h"
 				>
 			</File>
 			<File
