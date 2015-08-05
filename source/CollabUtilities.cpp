@@ -130,6 +130,9 @@ extern bool gbDoingInitialSetup;
 
 #ifdef _UNICODE
 
+// Uncomment to turn on the July 2015 wxLogDebug calls, for code fixes and conflict
+// resolution etc; same #define is in CollabVerseConflictDlg.cpp near top
+//#define JUL15
 // comment out when the bugs become history - the next #define is the main one for
 // debugging collaboration sync failuress, and SHOW_INDICES_RANGE is also useful,
 // as also is LIST_MD5LINES
@@ -4194,7 +4197,7 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 
 		lastMarkerNumericAugment.Empty();
 	}
-#if defined(_DEBUG) //&& defined(LIST_MD5LINES)
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
 	// This version shows the whole list, or just the bits we want if the gbShowFreeTransLogsOnly flag is not commented out
 /*	if (gbShowFreeTransLogsOnly)
 	{
@@ -4208,9 +4211,9 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 			wxLogDebug(str.c_str());
 		}
 	}
-	else
-	{
 */
+#endif
+#if defined(_DEBUG) && defined(JUL15)
 		int ct;
 		int aCount = (int)UsfmStructureAndExtentArray.GetCount();
 		for (ct = 0; ct < aCount ; ct++)
@@ -4218,21 +4221,8 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 			wxString str = UsfmStructureAndExtentArray.Item(ct);
 			wxLogDebug(str.c_str());
 		}
-/*	}
-*/
-#endif
-/*
-#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-	int ct;
-	int aCount = (int)UsfmStructureAndExtentArray.GetCount();
-	int aboutThirty = aCount / 5;
-	for (ct = 0; ct < aboutThirty ; ct++)
-	{
-		wxString str = UsfmStructureAndExtentArray.Item(ct);
-		wxLogDebug(str.c_str());
 	}
 #endif
-*/
 
 	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
 	// the actual last character so it represents the total number of characters in the buffer.
@@ -5178,7 +5168,8 @@ bool GetMatchedChunksUsingVerseInfArrays(
 	GetRemainingMd5VerseLines(preEditMd5Arr, preEditStart, preEditVerseArr);
 	GetRemainingMd5VerseLines(sourceTextMd5Arr, sourceTextStart, sourceTextVerseArr);
 	//*
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+//#if defined(_DEBUG) && defined(JUL15)
 	// display up to the next 10 verse lines -- that should be enough for a safe matchup
 	int i;
 	int countOfVersesPostEd = postEditVerseArr.GetCount();
@@ -5313,7 +5304,7 @@ bool GetMatchedChunksUsingVerseInfArrays(
 	wxLogDebug(_T("  %s"), fromVsStr.c_str());
 	wxLogDebug(_T("  %s"), srcVsStr.c_str());
 #endif
-//*/
+
 	VerseInf* postEditVInf = NULL;
 	VerseInf* fromEditorVInf = NULL;
 	VerseInf* preEditVInf = NULL;
@@ -6477,20 +6468,20 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// are including source text tracking, so that we can have a conflict resolution
 	// mechanism where the user can eyeball conflicting verse versions, and also see what
 	// the source text there is.
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
 			wxLogDebug(_T("\nStructureAndExtent, for preEdit "));
 #endif
 	wxArrayString preEditMd5Arr = GetUsfmStructureAndExtent(preEditText);
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
 			wxLogDebug(_T("StructureAndExtent, for postEdit "));
 #endif
 	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);;
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
 	wxLogDebug(_T("StructureAndExtent, for fromEditor "));
 #endif
 	wxArrayString fromEditorMd5Arr = GetUsfmStructureAndExtent(fromEditorText);
 // BEW 10Jul15 add the sourceText which has been exported... need it for conflict resolution dlg
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
 	wxLogDebug(_T("StructureAndExtent, for sourceText "));
 #endif
 	wxArrayString sourceTextMd5Arr = GetUsfmStructureAndExtent(sourceText);
@@ -6548,7 +6539,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	}
 #endif
 
-	#if defined(_DEBUG) && defined(WXGTK)
+#if defined(_DEBUG) && defined(WXGTK)
 	// in this block, wxLogDebug the last 5 offsets into postEditText , and display
 	// the first 16 characters at each offset
 	{
@@ -6561,13 +6552,14 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
                        countPost, offset, s.c_str());
         }
 	}
-	#endif
+#endif
 
 	// BEW 10Jul15 do the same, for the source text md5 structure & extents array
 	size_t countSrc = sourceTextMd5Arr.GetCount();
 	wxArrayPtrVoid sourceTextOffsetsArr;
 	sourceTextOffsetsArr.Alloc(countSrc); // pre-allocate sufficient space
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+//#if defined(_DEBUG) && defined(JUL15)
 	wxLogDebug(_T("\n\nMapping Extents, for sourceText "));
 #endif
 	MapMd5ArrayToItsText(sourceText, sourceTextOffsetsArr, sourceTextMd5Arr);
@@ -6616,8 +6608,8 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	{
 		// something's different, so do the more complex algorithm
 
-#if defined(SHOW_INDICES_RANGE) && defined(_DEBUG)
-/*
+#if defined(_DEBUG) && defined(SHOW_INDICES_RANGE)
+
 		wxString s;
 		switch (makeTextType)
 		{
@@ -6662,7 +6654,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			wxLogDebug(_T("Data type = %s  INDEX = %d  postEdChap = %s  postEditArr  %s , fromEdChap = %s fromEditorArr  %s"),
 				s.c_str(), ct, postEdChap.c_str(), postStr.c_str(), fromEdChap.c_str(), fromStr.c_str());
 		}
-*/
+
 #endif
 		// the USFM structure has changed in at least one location in the text
 #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
@@ -6673,7 +6665,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 				sourceTextMd5Arr, preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
  				postEditOffsetsArr, fromEditorOffsetsArr, sourceTextOffsetsArr);
 
-    #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
     {
 		/*
 		// show the first 1200 characters that are in the returned text wxString, or all
@@ -6690,8 +6682,8 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
         length = length; // put break point here
 		*/
     }
-    #endif
-    #if defined(_DEBUG) && defined(WXGTK)
+#endif
+#if defined(_DEBUG) && defined(WXGTK)
     {
         // show the last 240 characters that are in the returned text wxString
         int length = text.Len();
@@ -6699,7 +6691,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
         wxLogDebug(_T("text after GetUpdatedText_UsfmsChanged(): last 240 Chars: %s"), s.c_str());
         length = length; // put break point here
     }
-    #endif
+#endif
 	}
 
 	// whm 24Aug11 Note: we don't need to call Destroy() on the pProgdlg.
@@ -6823,7 +6815,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr,
 	wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr)
 {
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d");
 	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
@@ -7013,7 +7005,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
     // commences each verse
 	wxArrayInt lineIndicesArr; lineIndicesArr.Clear();
 	int index = postEditIndex; // starting at 0
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 	wxLogDebug(_T("sizeof(CollabAction) struct: %d bytes"), sizeof(CollabAction));
 #endif
 
@@ -7191,8 +7183,8 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 				pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
 			}
 
-//* This logging was very useful, don't delete it
-#if defined(_DEBUG)
+// This logging was very useful, don't delete it
+#if defined(_DEBUG) && defined(JUL15)
 			// Verify we get the right groupings of md5 lines
 			int aCount;
 			aLine = postEditMd5Arr.Item(postEditStart);
@@ -7207,7 +7199,6 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 				wxLogDebug(_T("Md5Line:  %s"), postEditMd5Arr.Item(offsetIndex).c_str());
 			}
 #endif
-//*/
 			// Get the other indices updated
 			preEditStart = postEditStart;
 			preEditEnd = postEditEnd;
@@ -7215,15 +7206,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			fromEditorEnd = postEditEnd;
 			sourceTextStart = postEditStart;
 			sourceTextEnd = postEditEnd;
-			
-#if defined(_DEBUG)
-			/*
-			if (postEditStart >= 4)
-			{
-				int break_here = 1;
-			}
-			*/
-#endif
+
 			// Implement our data transfer protocols, they start of with the PT verse
 			// empty check....
 			// First check - is the PT (or BE) verse empty?
@@ -7474,13 +7457,14 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		}
 	} // end of loop: while (index < (int)postEditMd5Arr_Count) <- may involve multiple chapters
 
-#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
 	wxLogDebug(_T("STRUCT POPULATING LOOP HAS ENDED: num structs: %d"), structsCount);
 #endif
 	int structsCount = (int)collabActionsArr.GetCount();
 	int i;
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 	// log the CollabAction structs' contents
 	{ // start a limiting scope
 		if (gpApp->m_bUseConflictResolutionDlg)
@@ -7518,27 +7502,34 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		confDlg.Centre();
 		if (confDlg.ShowModal() == wxID_OK)
 		{
-// TODO
-			;	
-
-
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG)
+		// wxLogDebugging will be helpful here, to verify results are as expected
+		{ // start a limiting scope
+			ConflictRes* pCR = NULL;
+			int count = (int)conflictsArr.GetCount();
+			int i;
+			for (i=0; i < count; i++)
+			{
+				pCR = (ConflictRes*)conflictsArr.Item((size_t)i);
+				wxLogDebug(_T("ConflictRes struct: conflictsArr index: %d ; bUserWantsAIverse %d ; bookCode:  %s  ; Chapter:  %s  ; Verse:  %s   srcText = %s   PT original:  %s   PT edited:  %s"),
+					i, (int)pCR->bUserWantsAIverse, pCR->bookCodeStr.c_str(), pCR->chapterRefStr.c_str(), pCR->verseRefStr.c_str(),
+					pCR->srcText.c_str(), 
+					pCR->PTorBEText_original.c_str(),
+					pCR->PTorBEText_edited.c_str());
+			}
+		}
+#endif
+			MeldConflictResolutionsBackIntoActionsArray(collabActionsArr, conflictsArr);
 		}
 		else
 		{
-// TODO	
-			;
-
-
+			// User cancelled from the dialog - reverts to legacy "keep PT or BE version"
+			MeldConflictsUserCancelBackIntoActionsArray(collabActionsArr, conflictsArr);
 		}
-		/*
-		CollabAction* pAction = NULL;
-		for (i=0; i< structsCount; i++)
-		{
-
-		}
-		*/
 	}
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 	wxLogDebug(_T("\nnewText LOOP STARTS\n"));
 #endif
 
@@ -7551,28 +7542,28 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		if (pAction->bIsPreVerseOne)
 		{
 			newText += pAction->preVerseOneText;
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 			wxLogDebug(_T("..UsfmsUnchanged() sending:  %s"), pAction->preVerseOneText.c_str());
 #endif
 		}
 		else if (pAction->bPTorBE_verse_empty)
 		{
 			newText += pAction->AI_verse_version;
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 			wxLogDebug(_T("..UsfmsUnchanged() sending:  %s"), pAction->AI_verse_version.c_str());
 #endif
 		}
 		else if (pAction->bAI_verse_empty)
 		{
 			newText += pAction->PTorBE_verse_version;
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 			wxLogDebug(_T("..UsfmsUnchanged() sending:  %s"), pAction->PTorBE_verse_version.c_str());
 #endif
 		}
 		else if (pAction->bUserEditsDetected)
 		{
 			newText += pAction->AI_verse_version;
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 			wxLogDebug(_T("..UsfmsUnchanged() sending:  %s"), pAction->AI_verse_version.c_str());
 #endif
 		}
@@ -7592,6 +7583,14 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
 		delete pAction; // internal strings are automatically freed
 	}
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG)
+	wxLogDebug(_T("\nnewText: ..UsfmsUnchanged:   %s\n"), newText.c_str());
+#endif
+
+	// temporary - while in development stage for conflict resolution
+	//wxMessageBox(_T("Stop now - halt run in IDE"), _T("Stop!"), wxICON_WARNING | wxOK);
+
 	return newText;
 }
 
@@ -7788,12 +7787,13 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 	wxChar* pStrBegin = NULL;
 #endif
 #endif
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 	wxChar* pStrBegin = NULL;
 #endif
 
-
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 	wxString aSubrange = _T("Indices 0 to the end, inclusive");
 		wxLogDebug(_T("MapMd5ArrayToItsText(), a subrange logged:\n%s"),aSubrange.c_str());
 #endif
@@ -7819,7 +7819,8 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 		pStrBegin = ptr;
 #endif
 #endif
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 		if (lineIndex >= 0 && lineIndex < md5ArrayCount)
 		{
 			pStrBegin = ptr;
@@ -7869,7 +7870,8 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 		wxLogDebug(_T("MapMd5ArrayToItsText(), map index = %d: nSpan = %d, textSpan = %s"),lineIndex, nSpan, str.c_str());
 #endif
 #endif
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 		if (lineIndex >= 0 && lineIndex < md5ArrayCount)
 		{
 			// show what the subspan of text is
@@ -7963,7 +7965,7 @@ wxString GetUpdatedText_UsfmsChanged(
 	wxArrayPtrVoid& sourceTextOffsetsArr)  // array of MD5Map structs which index the span of text in sourceText
 										  // which corresponds to a single line of info from sourceTextMd5Arr
 {
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 	wxString msg1 = _T("GetUpdatedText_UsfmsChanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d");
 	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
@@ -8246,7 +8248,8 @@ wxString GetUpdatedText_UsfmsChanged(
 			pAction->bookCode = gpApp->m_Collab_BookCode;
 			pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
 
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 			wxLogDebug(_T("PRE-\\v 1 Material: postEdit start & end indices [%d,%d], mapped to [%d,%d], Substring: %s"),
 				postEditStart, postEditEnd, pPostEditArr_StartMap->startOffset,
 				pPostEditArr_LastMap->endOffset, substring.c_str());
@@ -8389,7 +8392,8 @@ wxString GetUpdatedText_UsfmsChanged(
 			&& postEditVerseNumStr == preEditVerseNumStr
 			&& postEditVerseNumStr == sourceTextVerseNumStr)
 		{
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 		wxString msg = _T("Synced Verses or Chapter? postEditVerseNumStr: %s  preEditVerseNumStr: %s  fromEditorVerseNumStr: %s  sourceText: %s");
 		msg = msg.Format(msg, postEditVerseNumStr.c_str(), preEditVerseNumStr.c_str(),
 					fromEditorVerseNumStr.c_str(), sourceTextVerseNumStr.c_str());
@@ -8431,7 +8435,8 @@ wxString GetUpdatedText_UsfmsChanged(
 				// Adapt It has text content for the verse. In this scenario we
 				// unilaterally transfer the AI version to PT or BE
 				bStructureOrTextHasChanged = TRUE;
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 					wxString msg = _T("bPTorBE_verse_empty block: fromEditorStart %d  ,  fromEditorEnd %d  , fromEditorMd5Arr count %d  start: %s  end: %s");
 					msg = msg.Format(msg, fromEditorStart, fromEditorEnd, fromEditorMd5Arr.GetCount(),
 						fromEditorMd5Arr.Item(fromEditorStart).c_str(), fromEditorMd5Arr.Item(fromEditorEnd).c_str());
@@ -8451,7 +8456,8 @@ wxString GetUpdatedText_UsfmsChanged(
 				// debug code, for running in Release mode (to cancel out, a CTRL ALT DEL and kill process is required)
 				if (postEditIndex > 1100)
 				{
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 					wxString msg = _T("bAI_verse_empty block: postEditStart %d  ,  postEditEnd %d  , postEditMd5Arr count %d  start: %s  end: %s");
 					msg = msg.Format(msg, postEditStart, postEditEnd, postEditMd5Arr.GetCount(),
 						postEditMd5Arr.Item(postEditStart).c_str(), postEditMd5Arr.Item(postEditEnd).c_str());
@@ -8485,7 +8491,8 @@ wxString GetUpdatedText_UsfmsChanged(
 					fromEditorMd5Arr, sourceTextMd5Arr, preEditEnd, postEditEnd, 
 					fromEditorEnd, sourceTextEnd, bTheTwoTextsDiffer);
 
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 				wxString val = bStructureOrTextHasChanged ? _T("TRUE") : _T("FALSE");
 				wxLogDebug(_T("HasInfoChanged() returned %s  , At matching verse: %s"),
 				val.c_str(), postEditVerseNumStr.c_str());
@@ -8502,7 +8509,8 @@ wxString GetUpdatedText_UsfmsChanged(
 				substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
 					pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
 				pAction->AI_verse_version = substring;
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG) 
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG) 
 				wxLogDebug(_T("bStructureOrTextHasChanged == TRUE: AI verse %s overwrites PT, postEdit indices [%d,%d] Substring: %s"),
 					postEditVerseNumStr.c_str(), postEditStart, postEditEnd, substring.c_str());
 #endif
@@ -8512,7 +8520,8 @@ wxString GetUpdatedText_UsfmsChanged(
 				// Check for a conflict situation
 				if (bTheTwoTextsDiffer && !bAI_verse_is_empty && !bPTorBE_verse_is_empty)
 				{
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 				MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
 				MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
 				wxString substring3 = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
@@ -8593,7 +8602,8 @@ wxString GetUpdatedText_UsfmsChanged(
 							substring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
 								pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
 							pAction->PTorBE_verse_version = substring;
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 							// debug code
 							wxString msg = _T("Conflict: Retain PT: fromEditorStart %d  ,  fromEditorEnd %d  , count %d  substring: %s");
 							msg = msg.Format(msg, fromEditorStart, fromEditorEnd, fromEditorOffsetsArr.GetCount(), substring.c_str());
@@ -8608,7 +8618,8 @@ wxString GetUpdatedText_UsfmsChanged(
 							substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
 								pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
 							pAction->AI_verse_version = substring;
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 							// debug code
 							wxString msg = _T("Conflict: Forcing AI: postEditStart %d  ,  postEditEnd %d  , count %d  substring: %s");
 							msg = msg.Format(msg, postEditStart, postEditEnd, postEditOffsetsArr.GetCount(), substring.c_str());
@@ -8645,7 +8656,8 @@ wxString GetUpdatedText_UsfmsChanged(
 							substring = ExtractSubstring(pSourceTextBuffer, pSourceTextEnd,
 								pSourceTextArr_StartMap->startOffset, pSourceTextArr_LastMap->endOffset);
 							pAction->sourceText = substring;
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 							// debug code
 							wxString msg = _T("Conflict: Eyeball it: postEditVerseNumStr: %s  , postEdit: %s  , fromEditor: %s  , sourceT: %s");
 							msg = msg.Format(msg, postEditVerseNumStr.c_str(), pAction->AI_verse_version.c_str(),
@@ -8669,7 +8681,8 @@ wxString GetUpdatedText_UsfmsChanged(
 					substring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
 						pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
 					pAction->PTorBE_verse_version = substring;
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG) 
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG) 
 					wxLogDebug(_T("No changes: keep PT verse %s  , fromEditor indices [%d,%d] Substring: %s"),
 						fromEditorVerseNumStr.c_str(), fromEditorStart, fromEditorEnd, substring.c_str());
 #endif
@@ -8717,7 +8730,8 @@ wxString GetUpdatedText_UsfmsChanged(
 				substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
 							pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
 				pAction->AI_verse_version = substring;
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 				wxLogDebug(_T("CHUNK MATCH: AI chunk overwrites PT, postEdit [%d,%d]  fromEditor [%d,%d] Substring: %s"),
 					postEditStart, postEditEnd, fromEditorStart, fromEditorEnd, substring.c_str());
 #endif
@@ -8741,7 +8755,8 @@ wxString GetUpdatedText_UsfmsChanged(
 				substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
 							pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
 				pAction->AI_verse_version = substring;
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 				wxLogDebug(_T("CHUNK TO END: AI chunk overwrites PT, postEdit [%d,%d]  fromEditor [%d,%d] Substring: %s"),
 					postEditStart, postEditEnd, fromEditorStart, fromEditorEnd, substring.c_str());
 #endif
@@ -8772,13 +8787,14 @@ wxString GetUpdatedText_UsfmsChanged(
 
 	} // end of while loop
 
-#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 	wxLogDebug(_T("STRUCT POPULATING LOOP HAS ENDED: num structs: %d"), structsCount);
 #endif
 	int structsCount = (int)collabActionsArr.GetCount();
 	int i;
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 	// log the CollabAction structs' contents
 	{ // start a limiting scope
 		if (gpApp->m_bUseConflictResolutionDlg)
@@ -8816,33 +8832,39 @@ wxString GetUpdatedText_UsfmsChanged(
 		confDlg.Centre();
 		if (confDlg.ShowModal() == wxID_OK)
 		{
-// TODO		
-			;
-			
-		
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG)
+		// wxLogDebugging will be helpful here, to verify results are as expected
+		{ // start a limiting scope
+			ConflictRes* pCR = NULL;
+			int count = (int)conflictsArr.GetCount();
+			int i;
+			for (i=0; i < count; i++)
+			{
+				pCR = (ConflictRes*)conflictsArr.Item((size_t)i);
+				wxLogDebug(_T("ConflictRes struct: conflictsArr index: %d ; bUserWantsAIverse %d ; bookCode:  %s  ; Chapter:  %s  ; Verse:  %s   srcText = %s   PT original:  %s   PT edited:  %s"),
+					i, (int)pCR->bUserWantsAIverse, pCR->bookCodeStr.c_str(), pCR->chapterRefStr.c_str(), pCR->verseRefStr.c_str(),
+					pCR->srcText.c_str(), 
+					pCR->PTorBEText_original.c_str(),
+					pCR->PTorBEText_edited.c_str());
+			}
+		}
+#endif	
+			MeldConflictResolutionsBackIntoActionsArray(collabActionsArr, conflictsArr);
 		}
 		else
 		{
-// TODO		
-			;
-
-
+			// User cancelled from the dialog - reverts to legacy "keep PT or BE version"
+			MeldConflictsUserCancelBackIntoActionsArray(collabActionsArr, conflictsArr);
 		}
-		/*
-		CollabAction* pAction = NULL;
-		for (i=0; i< structsCount; i++)
-		{
-
-		}
-		*/
 	}
-#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 	wxLogDebug(_T("\nnewText LOOP STARTS\n"));
 #endif
 
 	// Now the loop which builds newText based on what is in the structs
 	// The debug logging here was invaluable, don't delete it
-/* temporary, so I can test the above safely in Release mode
 	for (i = 0; i< structsCount; i++)
 	{
 		pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
@@ -8850,34 +8872,33 @@ wxString GetUpdatedText_UsfmsChanged(
 		if (pAction->bIsPreVerseOne)
 		{
 			newText += pAction->preVerseOneText;
-			#if defined(_DEBUG)
+			#if defined(_DEBUG) && defined(JUL15)
 				wxLogDebug(_T("..UsfmsChanged() sending:  %s"), pAction->preVerseOneText.c_str());
 			#endif
 		}
 		else if (pAction->bPTorBE_verse_empty)
 		{
 			newText += pAction->AI_verse_version;
-			#if defined(_DEBUG)
+			#if defined(_DEBUG) && defined(JUL15)
 				wxLogDebug(_T("..UsfmsChanged() sending:  %s"), pAction->AI_verse_version.c_str());
 			#endif
 		}
 		else if (pAction->bAI_verse_empty)
 		{
 			newText += pAction->PTorBE_verse_version;
-			#if defined(_DEBUG)
+			#if defined(_DEBUG) && defined(JUL15)
 				wxLogDebug(_T("..UsfmsChanged() sending:  %s"), pAction->PTorBE_verse_version.c_str());
 			#endif
 		}
 		else if (pAction->bUserEditsDetected)
 		{
 			newText += pAction->AI_verse_version;
-			#if defined(_DEBUG)
+			#if defined(_DEBUG) && defined(JUL15)
 				wxLogDebug(_T("..UsfmsChanged() sending:  %s"), pAction->AI_verse_version.c_str());
 			#endif
 		}
-
 	}
-*/
+
 	// Tidy up (unneeded, but a good idea)
 	gpApp->m_bRetainPTorBEversion = FALSE;
 	gpApp->m_bForceAIversion = FALSE;
@@ -8893,9 +8914,119 @@ wxString GetUpdatedText_UsfmsChanged(
 		delete pAction; // internal strings are automatically freed
 	}
 
-	// temporary
-	wxMessageBox(_T("Stop now - halt run in IDE"), _T("Stop!"), wxICON_WARNING | wxOK);
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG)
+	wxLogDebug(_T("\nnewText: ..UsfmsChanged:   %s\n"), newText.c_str());
+#endif
+
+	// temporary - while in development stage for conflict resolution
+	//wxMessageBox(_T("Stop now - halt run in IDE"), _T("Stop!"), wxICON_WARNING | wxOK);
+
 	return newText;
+}
+
+void MeldConflictResolutionsBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
+												wxArrayPtrVoid& conflictsArr)
+{
+	if (collabActionsArr.IsEmpty())
+	{
+		gpApp->LogUserAction(_T("MeldConflictResolutionsBackIntoActionsArray(): collabActionsArr was empty"));
+		return;
+	}
+	if (conflictsArr.IsEmpty())
+	{
+		gpApp->LogUserAction(_T("MeldConflictResolutionsBackIntoActionsArray(): conflictsArr was empty"));
+		return;
+	}
+	unsigned int conflictsCount = (unsigned int)conflictsArr.GetCount();
+	unsigned int actionsIndex;
+	unsigned int conflictsIndex;
+	CollabAction* pAction = NULL;
+	ConflictRes* pCR = NULL;
+	for (conflictsIndex = 0; conflictsIndex < conflictsCount; conflictsIndex++)
+	{
+		pCR = (ConflictRes*)conflictsArr.Item(conflictsIndex);
+		actionsIndex = pCR->collabActionsArrIndex;
+		pAction = (CollabAction*)collabActionsArr.Item(actionsIndex); // update this one
+		if (pCR->bUserWantsAIverse)
+		{
+			pAction->bUserEditsDetected = TRUE;
+			// 	AI_verse_version has not been changed, so no need to update it
+//#if defined(_DEBUG) && defined(JUL15)
+#if defined(_DEBUG)
+			wxLogDebug(_T("MeldConflictResolutions...() actionsIndex %d:   [ USING AI VERSION]"), actionsIndex);
+#endif
+		}
+		else
+		{
+			// User wants PT or BE version to be sent to the external editor
+			pAction->bAI_verse_empty = TRUE; // forces the PT or BE version to be sent
+			// The user may have updated the PTorBE version manually, so must update
+			// it here just in case he/she did
+			pAction->PTorBE_verse_version = pCR->PTorBEText_edited;
+//#if defined(_DEBUG) && defined(JUL15)
+#if defined(_DEBUG)
+			wxLogDebug(_T("MeldConflictResolutions...() actionsIndex %d:   [ USING PT VERSION]\n %s"), 
+				actionsIndex, pCR->PTorBEText_edited.c_str());
+#endif
+		}
+	}
+}
+
+void MeldConflictsUserCancelBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
+												wxArrayPtrVoid& conflictsArr)
+{
+	// What to do if the user cancels from the Conflict Resolution dialog?
+	// There are two possibilities which might be considered, but are no good.
+	// a) Return to the Conflict Actions 3-radio button dialog for a new choice
+	// of what level of conflict resolution to attempt. Can't do this, that
+	// dialog is closed and processing has already gone through the whole
+	// document. (And a Save of the document already done.)
+	// b) Cancel out from the whole File > Save operation. Can't do this either,
+	// because the Save of the document to the AI Adaptations folder is already
+	// completed, and so if the collaboration transfer were abandoned, we'd 
+	// produce heaps of new conflicts because the next File > Save would lose the
+	// information about what edits formerly were done in AI.
+	// That leaves only one possibility. We must continue with the conflict
+	// resolution but resolve ALL conflicts in the same way as would have happened
+	// had the user in the 3-radio button dialog chosen the top option, which was
+	// to keep the PT or BE version of each conflicted verse unchanged. So that is
+	// what our code below does. The end result is the same as the legacy File >
+	// Save's result, before manual conflict resolution support was added
+	if (collabActionsArr.IsEmpty())
+	{
+		gpApp->LogUserAction(_T("MeldConflictResolutionsBackIntoActionsArray(): collabActionsArr was empty"));
+		return;
+	}
+	if (conflictsArr.IsEmpty())
+	{
+		gpApp->LogUserAction(_T("MeldConflictResolutionsBackIntoActionsArray(): conflictsArr was empty"));
+		return;
+	}
+	unsigned int conflictsCount = (unsigned int)conflictsArr.GetCount();
+	unsigned int actionsIndex;
+	unsigned int conflictsIndex;
+	CollabAction* pAction = NULL;
+	ConflictRes* pCR = NULL;
+	for (conflictsIndex = 0; conflictsIndex < conflictsCount; conflictsIndex++)
+	{
+		pCR = (ConflictRes*)conflictsArr.Item(conflictsIndex);
+		actionsIndex = pCR->collabActionsArrIndex;
+		pAction = (CollabAction*)collabActionsArr.Item(actionsIndex); // update this one
+
+		// User wants PT or BE version to be sent to the external editor
+		pAction->bAI_verse_empty = TRUE; // forces the PT or BE version to be sent
+		// Any user manual updates to the PT or BE verse's version are ignored, and
+		// the CollabAction struct's PTorBE_verse_version member's contents (which 
+		// already store the original form of the PTorBE verse version) are what will
+		// get sent. This is accomplished merely by setting the above flag to TRUE
+
+//#if defined(_DEBUG) && defined(JUL15)
+#if defined(_DEBUG)
+		wxLogDebug(_T("MeldConflictResolutions...() CANCEL by user: actionsIndex %d:   [ USING PT ORIGINAL VERSION]\n %s"), 
+			actionsIndex, pAction->PTorBE_verse_version.c_str());
+#endif	
+	}
 }
 
 // Collect each conflict, and create a ConflictRes struct for each - these are what
@@ -8926,7 +9057,8 @@ void CollectConflicts(wxArrayPtrVoid& collabActionsArr, wxArrayPtrVoid& conflict
 			pConflict->bookCodeStr = pAction->bookCode;
 			pConflict->chapterRefStr = pAction->chapter_ref;
 			pConflict->verseRefStr = pAction->verse_ref;
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG)
 		wxLogDebug(_T("ConflictRes_struct: index %d, %s%s:%s  AItext: %s\n PTtext: %s"),
 			pConflict->collabActionsArrIndex, pConflict->bookCodeStr.c_str(),
 			pConflict->chapterRefStr.c_str(), pConflict->verseRefStr.c_str(),
@@ -10053,7 +10185,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 			m_collab_freeTransWholeBookBuffer = ZWSPtoFwdSlash(m_collab_freeTransWholeBookBuffer);
 			m_collab_freeTransWholeBookBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_freeTransWholeBookBuffer);
 //#endif
-#if defined (_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 			//wxLogDebug(_T("OnOK() of GetSourceTextFromEditor(), for Free Translation transfer - the preEdit text\n"));
 			//wxLogDebug(_T("%s\n"), freeTransWholeBookBuffer.c_str());
 #endif
@@ -10109,7 +10241,7 @@ wxString MakeSourceTextForCollabConflictResDlg()
 	// flag for Forward Slash Delimitation alternating with ZWSP (Dennis Walters requested) is TRUE, then
 	// in RebuildSourceText() the calls DoFwdSlashConsistentChanges(removeAtPunctuation, target) and
 	// followed by FwdSlashtoZWSP(target) are made, so neither is need here
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 	wxLogDebug(_T("MakeSourceTextForCollabConflictResDlg(): Text Length:  %d\n%s"), textLen, srcText.c_str());
 #endif
 	return srcText;

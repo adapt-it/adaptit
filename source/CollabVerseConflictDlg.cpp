@@ -35,6 +35,10 @@
 #include "CollabUtilities.h"
 #include "CollabVerseConflictDlg.h"
 
+// Uncomment to turn on the July 2015 wxLogDebug calls, for code fixes and conflict
+// resolution etc; same #define is in CollabUtilities.cpp near top
+//#define JUL15
+
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
@@ -293,12 +297,15 @@ void CCollabVerseConflictDlg::OnCheckListBoxTickChange(wxCommandEvent& event)
 	// item, but away from the check box) we don't change any ticks in any
 	// check boxes.
 	int nTickSel;
-	nTickSel = event.GetSelection(); // GetSelection here gets the index of the check box item in which the tick was made
+	nTickSel = event.GetSelection(); // GetSelection here gets the index of the 
+									 // check box item in which the tick was made
 	// Change the highlight selection to the tick change item
 	CurrentListBoxHighlightedIndex = nTickSel; // keep the CurrentListBoxHighlightedIndex up to date
-	pCheckListBoxVerseRefs->SetSelection(CurrentListBoxHighlightedIndex); // sync the highlighted to a newly ticked/unticked box - no command events emitted
+	pCheckListBoxVerseRefs->SetSelection(CurrentListBoxHighlightedIndex); // sync the
+		// highlighted item to a just ticked or unticked box - no command events emitted
 	FillEditBoxesWithVerseTextForHighlightedItem();
-	SyncRadioButtonsWithHighlightedItemTickState(); // sync the radio buttons to agree with the highlight
+	// sync the radio buttons to agree with the highlight
+	SyncRadioButtonsWithHighlightedItemTickState(); 
 }
 
 void CCollabVerseConflictDlg::OnListBoxSelChange(wxCommandEvent& WXUNUSED(event))
@@ -402,7 +409,7 @@ void CCollabVerseConflictDlg::OnPTorBEtextUpdated(wxCommandEvent& event)
 	if (!ptTargetTextVsEditedArray.IsEmpty())
 	{
 		UpdatePTorBEtext(CurrentListBoxHighlightedIndex, &ptTargetTextVsEditedArray, pTextCtrlPTTargetVersion);
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 		wxLogDebug(_T("OnPTorBEtextUpdated() at index %d: original:  %s  <>  edited:  %s"),
 			CurrentListBoxHighlightedIndex, ptTargetTextVsArray.Item(CurrentListBoxHighlightedIndex).c_str(), 
 					ptTargetTextVsEditedArray.Item(CurrentListBoxHighlightedIndex).c_str());
@@ -419,12 +426,41 @@ void CCollabVerseConflictDlg::OnOK(wxCommandEvent& event)
 	{
 		// We don't need this call, the 'edited' array is kept continuously uptodate
 		//UpdatePTorBEtext(lastIndex, &ptTargetTextVsEditedArray, pTextCtrlPTTargetVersion);
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 		wxLogDebug(_T("OnOK() at index %d: original:  %s  <>  edited:  %s"),
 			CurrentListBoxHighlightedIndex, ptTargetTextVsArray.Item(CurrentListBoxHighlightedIndex).c_str(),
 			ptTargetTextVsEditedArray.Item(CurrentListBoxHighlightedIndex).c_str());
 #endif
 	}
+	
+	// Next, we now have wxArrayString arrays, and in the ptTargetTextVsEditedArray there
+	// may be user edits. We must, for each ConflictRes struct (ptr) in conflictsArr, set
+	// or clear the bUserWantsAIverse boolean, and when it's value is FALSE, we must test
+	// for the edited PTorBE text being different from the original PTorBE text, and when
+	// it is, we must update the ConflictRes struct's PTorBEText_edited member too
+	unsigned int count = (unsigned int)pConflictsArray->GetCount();
+	unsigned int index;
+	ConflictRes* pCR = NULL; // pointer to ConflictRes struct
+	for (index = 0; index < count; index++)
+	{
+		pCR = (ConflictRes*)pConflictsArray->Item((size_t)index);
+		pCR->bUserWantsAIverse = pCheckListBoxVerseRefs->IsChecked(index) ? TRUE : FALSE;
+		if (!pCR->bUserWantsAIverse)
+		{
+			// PT or BE version of the verse is wanted. Check for user edits & update
+			// accordingly
+			wxString oldversion = ptTargetTextVsArray.Item(index);
+			wxString newversion = ptTargetTextVsEditedArray.Item(index);
+			if (oldversion != newversion)
+			{
+				// Give PT or BE the user's edited version
+				pCR->PTorBEText_edited = newversion;
+			}
+		}
+	}
+	// Moving the data in the pConflictsArray items back, where needed, into the items of
+	// the parent CollabActionsArr array, for the newText building loop to use, will be
+	// done in the caller when this dialog is dismissed
 	event.Skip();
 }
 

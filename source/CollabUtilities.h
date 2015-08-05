@@ -384,7 +384,10 @@ class CSourcePhrase;
 	
 	void CollectConflicts(wxArrayPtrVoid& collabActionsArr, wxArrayPtrVoid& conflictsArr); 
 	void DestroyConflictResStructs(wxArrayPtrVoid& arr);
-
+	void MeldConflictResolutionsBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
+					wxArrayPtrVoid& conflictsArr);
+	void MeldConflictsUserCancelBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
+					wxArrayPtrVoid& conflictsArr);
 
 #endif
 
