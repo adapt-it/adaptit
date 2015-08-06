@@ -49,6 +49,7 @@ protected:
 	wxStaticText* pStaticInfoLine3; // for substituting Paratext/Bibledit into %s
 	wxStaticText* pStaticInfoLine4; // for substituting Paratext/Bibledit into %s
 	wxStaticText* pStaticPTVsTitle;
+	wxCheckBox*   pCheckboxShowSolidi;
 
 	wxArrayString verseRefsArray;
 	wxArrayString sourceTextVsArray;
@@ -71,13 +72,16 @@ protected:
 	void OnRadioRetainPTVersion(wxCommandEvent& WXUNUSED(event));
 	void OnSelectAllVersesButton(wxCommandEvent& WXUNUSED(event));
 	void OnUnSelectAllVersesButton(wxCommandEvent& WXUNUSED(event));
-	//void OnLeftBtnDown(wxMouseEvent& event);
+	void OnCheckboxShowSlashes(wxCommandEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnPTorBEtextUpdated(wxCommandEvent& event);
 	void OnRestoreBtn(wxCommandEvent& WXUNUSED(event));
 private:
 	CAdapt_ItApp* m_pApp;
 	wxString MakeVerseReference(ConflictRes* p);
+	bool bIsShowingSlashes;
+	void ShowSlashesNotZWSP();
+	void ShowZWSPsNotSlashes();
 
 	// other class attributes
 

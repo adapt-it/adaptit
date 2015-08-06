@@ -55,9 +55,9 @@ BEGIN_EVENT_TABLE(CCollabVerseConflictDlg, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_UNSELECT_ALL_VS, CCollabVerseConflictDlg::OnUnSelectAllVersesButton)
 	EVT_BUTTON(wxID_OK, CCollabVerseConflictDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CCollabVerseConflictDlg::OnCancel)
-	//EVT_LEFT_DOWN(CCollabVerseConflictDlg::OnLeftBtnDown)
 	EVT_TEXT(ID_TEXTCTRL_EDITABLE_PT_VERSION, CCollabVerseConflictDlg::OnPTorBEtextUpdated)
 	EVT_BUTTON(ID_BUTTON_RESTORE, CCollabVerseConflictDlg::OnRestoreBtn)
+	EVT_CHECKBOX(ID_CHECKBOX_MAKE_SOLIDUS_VISIBLE, CCollabVerseConflictDlg::OnCheckboxShowSlashes)
 
 	// ... other menu, button or control events
 END_EVENT_TABLE()
@@ -129,8 +129,12 @@ CCollabVerseConflictDlg::CCollabVerseConflictDlg(wxWindow* parent, wxArrayPtrVoi
 	pStaticPTVsTitle = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_PT_VS_TITLE);
 	wxASSERT(pStaticPTVsTitle != NULL);
 
+	pCheckboxShowSolidi = (wxCheckBox*)FindWindowById(ID_CHECKBOX_MAKE_SOLIDUS_VISIBLE);
+	wxASSERT(pCheckboxShowSolidi != NULL);
+
 	CurrentListBoxHighlightedIndex = 0;
 	lastIndex = 0;
+	bIsShowingSlashes = FALSE;
 
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
@@ -222,6 +226,48 @@ void CCollabVerseConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 		tempStr.Replace(_T("Paratext"),_T("Bibledit"));
 		this->SetTitle(tempStr);
 
+	}
+
+	// The RHS textbox is always editable, but when the app boolean m_bFwdSlashDelimiter
+	// is TRUE, we are dealing with an Asian language which uses delimitation by ZWSP
+	// but switches to solidus (a forward slash) when user editability is to be had. If
+	// TRUE we need to support this in BOTH AI version and PTorBE version text boxes 
+	// (because showing or hiding solidus are two modes, and the modes must be consistent
+	// across those two wxTextCtrls because the user may copy from the read only left box
+	// to paste into the right box, and so both boxes must be displaying / or both boxes
+	// must be displaying ZWSP; we must not allow mixing, otherwise our functions for
+	// switching the modes will leave part of the text in the other mode. We'll risk
+	// not supporting these two modes for the source text box, assuming the user will not
+	// want to copy from there to the RH box; and so for source text we'll show the ZWSP
+	// delimited wordforms regardless of what the lower two boxes are showing.
+	// ZWSP delimitation is easier for the user to read the text, but harder for support
+	// of editing; solidi visible make editing easier, but reading harder. So we allow
+	// the user to easily switch between these two modes, with a checkbox 
+	// "Show Slashes ( / ) at the bottom right of the dialog. It is a hidden checkbox,
+	// only being shown when the app (via a Preferences choice) has been put into the
+	// solidus support mode by a checkbox in View tab (I think it's there), which sets
+	// or clears m_bFwdSlashDelimiter. The conflict res dlg is populated from exports, and
+	// they have ZWSP restored (solidi removed from visibility), and so the checkbox
+	// in the conflict res dlg should default to being unticked when the dlg is built.
+	// For both the Transfer... and Cancel buttons, our handlers must interrogate the
+	// state of this checkbox, and if the current mode is to Show Slashes being ON, then
+	// each handler must, before anything else, restore all text strings to have only
+	// ZWSP word delimitations, and then the handlers can do their thing.
+	// Note: the state cannot be changed within the dialog. The m_bFwdSlashDelimiter
+	// flag must be set from Preferences before a document is loaded or created.
+	if (gpApp->m_bFwdSlashDelimiter)
+	{
+		// Solidus support is turned ON, so the app must support switching the view
+		// between ZWSP word delimitation, and (for checkbox ticked) Solidus delimitation
+		pCheckboxShowSolidi->Show(TRUE);
+	}
+	else
+	{
+		// Solidus support is not wanted. Text with ZWSP will be displayed with that
+		// delimitation, and/or latin spaces as latin spaces, where present, so in
+		// these cases the checkbox would be confusing, so we hide it. This is also
+		// the default.
+		pCheckboxShowSolidi->Show(FALSE);
 	}
 
 	// Load the test arrays into the appropriate dialog controls
@@ -420,17 +466,17 @@ void CCollabVerseConflictDlg::OnPTorBEtextUpdated(wxCommandEvent& event)
 
 void CCollabVerseConflictDlg::OnOK(wxCommandEvent& event)
 {
-	//lastIndex = CurrentListBoxHighlightedIndex;
-	//wxASSERT(lastIndex >= 0 && lastIndex < (int)pConflictsArray->GetCount()); // no bounds error
-	if (!ptTargetTextVsEditedArray.IsEmpty())
+	if (gpApp->m_bFwdSlashDelimiter)
 	{
-		// We don't need this call, the 'edited' array is kept continuously uptodate
-		//UpdatePTorBEtext(lastIndex, &ptTargetTextVsEditedArray, pTextCtrlPTTargetVersion);
-#if defined(_DEBUG) && defined(JUL15)
-		wxLogDebug(_T("OnOK() at index %d: original:  %s  <>  edited:  %s"),
-			CurrentListBoxHighlightedIndex, ptTargetTextVsArray.Item(CurrentListBoxHighlightedIndex).c_str(),
-			ptTargetTextVsEditedArray.Item(CurrentListBoxHighlightedIndex).c_str());
-#endif
+		// We are in the mode in which ZWSP and solidus ( / ) are interchangeable, check
+		// the flag to see if the wxTextCtrl pair for AI and PTorBE are displaying 
+		// words delimited with /, if so we must change back to ZWSP delimitation before
+		// going any further - the default text state for collaborating is to use ZWSP
+		// for this mode
+		if (bIsShowingSlashes)
+		{
+			ShowZWSPsNotSlashes();
+		}
 	}
 	
 	// Next, we now have wxArrayString arrays, and in the ptTargetTextVsEditedArray there
@@ -464,14 +510,104 @@ void CCollabVerseConflictDlg::OnOK(wxCommandEvent& event)
 	event.Skip();
 }
 
-void CCollabVerseConflictDlg::OnCancel(wxCommandEvent& event)
+void CCollabVerseConflictDlg::ShowSlashesNotZWSP()
 {
-	// When the user cancels, we should restore the original PT or BE versions
-	// to the RHS text box, and do the "safe" legacy thing, which is to retain
-	// the PT or BE versions when conflicts arise
-	lastIndex = CurrentListBoxHighlightedIndex;
+	//#if defined(FWD_SLASH_DELIM)
+	wxString str;
 
-	event.Skip();
+	// Handle left wxTextCtrl
+	str = pTextCtrlAITargetVersion->GetValue();
+	str = ZWSPtoFwdSlash(str);
+	str = DoFwdSlashConsistentChanges(insertAtPunctuation, str);
+	pTextCtrlAITargetVersion->ChangeValue(str);
+
+	// Handle left wxTextCtrl
+	str = pTextCtrlPTTargetVersion->GetValue();
+	str = ZWSPtoFwdSlash(str);
+	str = DoFwdSlashConsistentChanges(insertAtPunctuation, str);
+	pTextCtrlPTTargetVersion->ChangeValue(str);
+
+	// In a loop, change the AI text version, the original PTorBE version,
+	// and the edited PTorBE version, in the relevant wxArrayString arrays
+	unsigned int count = (unsigned int)aiTargetTextVsArray.GetCount();
+	unsigned int index;
+	wxString aiText;
+	wxString ptTextOriginal;
+	wxString ptTextEdited;
+	for (index = 0; index < count; index++)
+	{
+		// Do the AI target text version of the verse
+		aiText = aiTargetTextVsArray.Item(index);
+		aiText = ZWSPtoFwdSlash(aiText);
+		aiText = DoFwdSlashConsistentChanges(insertAtPunctuation, aiText);
+		aiTargetTextVsArray.RemoveAt(index);
+		aiTargetTextVsArray.Insert(aiText, index);
+
+		// Do the PT original target text version of the verse
+		ptTextOriginal = ptTargetTextVsArray.Item(index);
+		ptTextOriginal = ZWSPtoFwdSlash(ptTextOriginal);
+		ptTextOriginal = DoFwdSlashConsistentChanges(insertAtPunctuation, ptTextOriginal);
+		ptTargetTextVsArray.RemoveAt(index);
+		ptTargetTextVsArray.Insert(ptTextOriginal, index);
+
+		// Do the user-edited PT original target text version of the verse
+		ptTextEdited = ptTargetTextVsEditedArray.Item(index);
+		ptTextEdited = ZWSPtoFwdSlash(ptTextEdited);
+		ptTextEdited = DoFwdSlashConsistentChanges(insertAtPunctuation, ptTextEdited);
+		ptTargetTextVsEditedArray.RemoveAt(index);
+		ptTargetTextVsEditedArray.Insert(ptTextEdited, index);
+	}
+	//#endif
+}
+
+void CCollabVerseConflictDlg::ShowZWSPsNotSlashes()
+{
+	//#if defined(FWD_SLASH_DELIM)
+	wxString str;
+
+	// Handle left wxTextCtrl
+	str = pTextCtrlAITargetVersion->GetValue();
+	str = DoFwdSlashConsistentChanges(removeAtPunctuation, str);
+	str = FwdSlashtoZWSP(str);
+	pTextCtrlAITargetVersion->ChangeValue(str);
+
+	// Handle left wxTextCtrl
+	str = pTextCtrlPTTargetVersion->GetValue();
+	str = DoFwdSlashConsistentChanges(removeAtPunctuation, str);
+	str = FwdSlashtoZWSP(str);
+	pTextCtrlPTTargetVersion->ChangeValue(str);
+
+	// In a loop, change the AI text version, the original PTorBE version,
+	// and the edited PTorBE version, in the relevant wxArrayString arrays
+	unsigned int count = (unsigned int)aiTargetTextVsArray.GetCount();
+	unsigned int index;
+	wxString aiText;
+	wxString ptTextOriginal;
+	wxString ptTextEdited;
+	for (index = 0; index < count; index++)
+	{
+		// Do the AI target text version of the verse
+		aiText = aiTargetTextVsArray.Item(index);
+		aiText = DoFwdSlashConsistentChanges(removeAtPunctuation, aiText);
+		aiText = FwdSlashtoZWSP(aiText);
+		aiTargetTextVsArray.RemoveAt(index);
+		aiTargetTextVsArray.Insert(aiText, index);
+
+		// Do the PT original target text version of the verse
+		ptTextOriginal = ptTargetTextVsArray.Item(index);
+		ptTextOriginal = DoFwdSlashConsistentChanges(removeAtPunctuation, ptTextOriginal);
+		ptTextOriginal = FwdSlashtoZWSP(ptTextOriginal);
+		ptTargetTextVsArray.RemoveAt(index);
+		ptTargetTextVsArray.Insert(ptTextOriginal, index);
+
+		// Do the user-edited PT original target text version of the verse
+		ptTextEdited = ptTargetTextVsEditedArray.Item(index);
+		ptTextEdited = DoFwdSlashConsistentChanges(removeAtPunctuation, ptTextEdited);
+		ptTextEdited = FwdSlashtoZWSP(ptTextEdited);
+		ptTargetTextVsEditedArray.RemoveAt(index);
+		ptTargetTextVsEditedArray.Insert(ptTextEdited, index);
+	}
+	//#endif
 }
 
 void CCollabVerseConflictDlg::UpdatePTorBEtext(int index, wxArrayString* ptTargetTextVsEditedArrayPtr, wxTextCtrl* pTxtCtrl)
@@ -490,6 +626,30 @@ void CCollabVerseConflictDlg::UpdatePTorBEtext(int index, wxArrayString* ptTarge
 	}
 }
 
+void CCollabVerseConflictDlg::OnCancel(wxCommandEvent& event)
+{
+	// When the user cancels, we should restore the original PT or BE versions
+	// to the RHS text box, and do the "safe" legacy thing, which is to retain
+	// the PT or BE versions when conflicts arise
+	lastIndex = CurrentListBoxHighlightedIndex;
+
+	if (gpApp->m_bFwdSlashDelimiter)
+	{
+		// We are in the mode in which ZWSP and solidus ( / ) are interchangeable, check
+		// the flag to see if the wxTextCtrl pair for AI and PTorBE are displaying 
+		// words delimited with /, if so we must change back to ZWSP delimitation before
+		// going any further - the default text state for collaborating is to use ZWSP
+		// for this mode
+		if (bIsShowingSlashes)
+		{
+			ShowZWSPsNotSlashes();
+		}
+	}
+	// The caller is responsible for melding the "keep PTorBE version" for all conflicts
+	// into the various conflict-bearing structs in the CollabActionsArr
+	event.Skip();
+}
+
 void CCollabVerseConflictDlg::OnRestoreBtn(wxCommandEvent& WXUNUSED(event))
 {	
 	// Restore the original PT or BE text value to the text box. We use SetValue()
@@ -500,18 +660,30 @@ void CCollabVerseConflictDlg::OnRestoreBtn(wxCommandEvent& WXUNUSED(event))
 	pTextCtrlPTTargetVersion->SetValue(original);
 }
 
-
-/* unneeded
-void CCollabVerseConflictDlg::OnLeftBtnDown(wxMouseEvent& event)
+void CCollabVerseConflictDlg::OnCheckboxShowSlashes(wxCommandEvent& WXUNUSED(event))
 {
-	if (event.GetButton() == wxID_OK)
+	if (gpApp->m_bFwdSlashDelimiter)
 	{
-		; // nothing to do yet
+		// Set the member boolean to reflect the checkbox's new value
+		// (gets the checkbox value as it is after the click has changed its state)
+		bIsShowingSlashes = pCheckboxShowSolidi->IsChecked();
+
+		if (bIsShowingSlashes)
+		{
+			// User has just requested that slashes be made visible (ie. all ZWSP replaced by /,
+			// and / inserted at punctuation locations)
+			ShowSlashesNotZWSP();
+		}
+		else
+		{
+			// User has just requested that slashes be made invisible (ie. all / replaced by ZWSP,
+			// and / removed at punctuation locations)
+			ShowZWSPsNotSlashes();
+		}
 	}
-	event.Skip();
+	// Else, do nothing if solidus support is not enabled in View tab of Preferences
 }
-*/
-// other class methods
+
 wxString CCollabVerseConflictDlg::MakeVerseReference(ConflictRes* p)
 {
 	wxString aVsRef = _T(" ");

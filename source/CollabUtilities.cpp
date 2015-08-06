@@ -3830,7 +3830,11 @@ wxString GetPathToBeRdwrt()
 	}
 	if (!::wxFileExists(beRdwrtPathAndFileName))
 	{
-		// TODO:
+		wxFileName fn(beRdwrtPathAndFileName);
+		wxString msg = _("Adapt It cannot find the helper application %s at the following location:\n\n%s\n\nFor more information see the Trouble Shooting topic in Help for Administrators (HTML) on the Help Menu.");
+		msg = msg.Format(msg,fn.GetFullName().c_str(), beRdwrtPathAndFileName.c_str(),fn.GetFullName().c_str());
+		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+		gpApp->LogUserAction(msg);
 	}
 	else if (!wxFileName::IsFileExecutable(beRdwrtPathAndFileName))
 	{
@@ -7310,18 +7314,6 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 									gpApp->m_bRetainPTorBEversion = dlg.m_bLegacy_retain_PTorBE_version;
 									gpApp->m_bForceAIversion = dlg.m_bForce_AI_version_transfer;
 									gpApp->m_bUseConflictResolutionDlg = dlg.m_bUserWantsVisualConflictResolution;
-
-// FIX ************** protect from verse erasure by user making 3rd choice, until Bill's dialog is supported *******************************************
-									/*
-									if (gpApp->m_bUseConflictResolutionDlg)
-									{
-										//  **** temporarily disallow ****
-										wxMessageBox(_T("This choice has not yet been implemented, it will temporarily give you the top option instead"),
-											_T("Not Implemented Yet"), wxICON_WARNING | wxOK);
-										gpApp->m_bUseConflictResolutionDlg = FALSE;
-										gpApp->m_bRetainPTorBEversion = TRUE;
-									}
-									*/
 								}
 								else
 								{
@@ -7512,9 +7504,9 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			for (i=0; i < count; i++)
 			{
 				pCR = (ConflictRes*)conflictsArr.Item((size_t)i);
-				wxLogDebug(_T("ConflictRes struct: conflictsArr index: %d ; bUserWantsAIverse %d ; bookCode:  %s  ; Chapter:  %s  ; Verse:  %s   srcText = %s   PT original:  %s   PT edited:  %s"),
+				wxLogDebug(_T("ConflictRes struct: conflictsArr index: %d ; bUserWantsAIverse %d ; bookCode:  %s  ; Chapter:  %s  ; Verse:  %s   AIText = %s   PT original:  %s   PT edited:  %s"),
 					i, (int)pCR->bUserWantsAIverse, pCR->bookCodeStr.c_str(), pCR->chapterRefStr.c_str(), pCR->verseRefStr.c_str(),
-					pCR->srcText.c_str(), 
+					pCR->AIText.c_str(), 
 					pCR->PTorBEText_original.c_str(),
 					pCR->PTorBEText_edited.c_str());
 			}
@@ -8552,18 +8544,6 @@ wxString GetUpdatedText_UsfmsChanged(
 							gpApp->m_bRetainPTorBEversion = dlg.m_bLegacy_retain_PTorBE_version;
 							gpApp->m_bForceAIversion = dlg.m_bForce_AI_version_transfer;
 							gpApp->m_bUseConflictResolutionDlg = dlg.m_bUserWantsVisualConflictResolution;
-
-// FIX ************** protect from verse erasure by user making 3rd choice, until Bill's dialog is supported *******************************************
-							/*
-							if (gpApp->m_bUseConflictResolutionDlg)
-							{
-								//  **** temporarily disallow ****
-								wxMessageBox(_T("This choice has not yet been implemented, it will temporarily give you the top option instead"),
-									_T("Not Implemented Yet"), wxICON_WARNING | wxOK);
-								gpApp->m_bUseConflictResolutionDlg = FALSE;
-								gpApp->m_bRetainPTorBEversion = TRUE;
-							}
-							*/
 						}
 						else
 						{
@@ -8842,9 +8822,9 @@ wxString GetUpdatedText_UsfmsChanged(
 			for (i=0; i < count; i++)
 			{
 				pCR = (ConflictRes*)conflictsArr.Item((size_t)i);
-				wxLogDebug(_T("ConflictRes struct: conflictsArr index: %d ; bUserWantsAIverse %d ; bookCode:  %s  ; Chapter:  %s  ; Verse:  %s   srcText = %s   PT original:  %s   PT edited:  %s"),
+				wxLogDebug(_T("ConflictRes struct: conflictsArr index: %d ; bUserWantsAIverse %d ; bookCode:  %s  ; Chapter:  %s  ; Verse:  %s   AIText = %s   PT original:  %s   PT edited:  %s"),
 					i, (int)pCR->bUserWantsAIverse, pCR->bookCodeStr.c_str(), pCR->chapterRefStr.c_str(), pCR->verseRefStr.c_str(),
-					pCR->srcText.c_str(), 
+					pCR->AIText.c_str(), 
 					pCR->PTorBEText_original.c_str(),
 					pCR->PTorBEText_edited.c_str());
 			}

@@ -1715,7 +1715,7 @@ wxString DoFwdSlashConsistentChanges(enum FwdSlashDelimiterSupport whichTable, w
 		wxString msg;
 		msg = msg.Format(_("The consistent changes table file: %s , does not exist in the folder _CCTABLE_INPUTS_OUTPUTS"),
 			pathToCCTable.c_str());
-		wxMessageBox(msg, title, wxICON_WARNING | wxID_OK);
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 		gpApp->LogUserAction(msg);
 		return str; // return the input string unchanged
 	}

@@ -787,7 +787,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 				wxString msg;
 				msg = msg.Format(_T("Thread_PseudoDelete in ChooseTranslation::OnButtonRemove(): thread creation failed, error number: %d"),
 					(int)error);
-				wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+				wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 				//m_pApp->LogUserAction(msg);
 			}
 			else
@@ -799,7 +799,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 				wxString msg;
 				msg = msg.Format(_T("Thread_PseudoDelete in ChooseTranslation::OnButtonRemove(), Thread_Run(): cannot make the thread run, error number: %d"),
 				  (int)error);
-				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 				//m_pApp->LogUserAction(msg);
 				}
 			}
