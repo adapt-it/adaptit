@@ -1,5 +1,5 @@
 ----------------------------------------------
-Version 6.6.0 release ?? July 2015
+Version 6.6.0 release 12 August 2015
 ----------------------------------------------
 
 ----------------------------------------------
@@ -32,15 +32,16 @@ be given a different level of conflict resolution
 according to what the user deems to be most helpful.
 
 ----------------------------------------------
-Bug fixes in 6.6.0 release ?? July 2015
+Bug fixes in 6.6.0 release 12 August 2015
 ----------------------------------------------
-* "Improvements" added to the functions for calculating the text
-to send to Paratext or Bibledit at a File > Save done in collaboration
-mode, worked only provided collaboration was "by chapter". If the
-collaboration mode was by "whole book" then the File > Save crashed
-at the point where the transfer of data to Paratext or Bibledit
-commenced. (The Adapt It document was not damaged or unsaved though.)
-This is now fixed.
+* "Improvements" added to the functions for calculating 
+the text to send to Paratext or Bibledit at a File > Save 
+done in collaboration mode, worked only provided 
+collaboration was "by chapter". If the collaboration 
+mode was by "whole book" then the File > Save crashed
+at the point where the transfer of data to Paratext or 
+Bibledit commenced. (The Adapt It document was not 
+damaged or unsaved though.) This is now fixed.
 
 ----------------------------------------------
 Version 6.5.9 release 4 July 2015
