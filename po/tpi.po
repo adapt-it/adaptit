@@ -11286,12 +11286,12 @@ msgid ""
 "requires you to interact with another dialog.)"
 msgstr ""
 "Long olgeta Adapt It i gat namba bipo 6.6.0 dispela rot em i stap wanpis. "
-"Sapos sampela senis i stap insait long bilong ves i stap insait long Adapt "
-"It, rot i no stap bilong mekim olgeta senis igo long Paratext. Olsem na "
-"Paratext ves i gat wankain ves namba, Paratext i save holim yet na i no gat "
-"senis, na yu no gat hamamas.  (Sapos yu kros long dispela, orait, wanpela "
-"baton daunbilo bai halivim yu. Namba tri baton i mobeta, tasol yu bai lukim "
-"narapela daialog.)"
+"Sapos sampela senis i stap insait long sampela ves long Adapt It, rot i no "
+"stap bilong mekim ol dispela senis igo long Paratext. Olsem na Paratext ves "
+"yu no inap apdetim, olsem na Paratext i save holim olpela mining yet, na "
+"mining i no gat senis, na yu no gat hamamas.  (Sapos yu kros long dispela, "
+"orait, wanpela baton daunbilo bai halivim yu. Namba tri baton i mobeta, "
+"tasol yu bai lukim narapela daialog.)"
 
 #: source/Adapt_It_wdr.cpp:10984
 msgid "Transfer the Adapt It version of the verse"
@@ -11334,7 +11334,7 @@ msgstr ""
 #: source/Adapt_It_wdr.cpp:10998
 msgid "Show a dialog with a list, comparing the two versions of each verse"
 msgstr ""
-"Soim daialog igat lista. Skelim long ai bilong yu yet difren difre mining "
+"Soim daialog igat lista. Skelim long ai bilong yu yet difren difren mining "
 "bilong wanwan ves"
 
 #: source/Adapt_It_wdr.cpp:11002
