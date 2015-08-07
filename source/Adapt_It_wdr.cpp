@@ -10791,7 +10791,7 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_TOP, _("Some verses are different when comparing the Adapt It verse contents with the Paratext verse contents. Please choose which version of each of the listed verses is the best to have in Paratext. The version of the text in the Paratext box can be edited. USFM markers within the verse are shown. Do not add, remove or change a USFM marker, edit only the text. "), wxDefaultPosition, wxSize(80,50), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_TOP, _("Some verses are different when comparing the Adapt It verse contents with the Paratext verse contents. Please choose which version of each of the listed verses is the best to have in Paratext. The version of the text in the Paratext box can be edited. USFM markers within the verse are shown. Do not add, remove or change a USFM marker, edit only the text. "), wxDefaultPosition, wxSize(80,60), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_INFO_1, _("Highlight a verse reference in the list to see its source text and the conflicting versions of the verse."), wxDefaultPosition, wxDefaultSize, 0 );
