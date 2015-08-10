@@ -30,6 +30,7 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --cppflags`" />
+					<Add option="-D_KBSERVER" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -517,8 +518,6 @@
 		<Unit filename="../../source/Thread_PseudoDelete.h" />
 		<Unit filename="../../source/Thread_PseudoUndelete.cpp" />
 		<Unit filename="../../source/Thread_PseudoUndelete.h" />
-		<Unit filename="../../source/Thread_UploadMulti.cpp" />
-		<Unit filename="../../source/Thread_UploadMulti.h" />
 		<Unit filename="../../source/Timer_KbServerChangedSince.cpp" />
 		<Unit filename="../../source/Timer_KbServerChangedSince.h" />
 		<Unit filename="../../source/ToolbarPage.cpp" />
