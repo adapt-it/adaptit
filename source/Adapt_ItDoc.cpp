@@ -346,6 +346,13 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_UPDATE_UI(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages)
 	EVT_MENU(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages)
 	EVT_UPDATE_UI(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnUpdateAdvancedSendSynchronizedScrollingMessages)
+
+// whm added 10Jul2015 for temporary testing of the CCollabVerseConflictDlg dialog
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//	EVT_MENU(ID_VERSE_CONFLICT_DLG, CAdapt_ItDoc::OnVerseConflictDlg)
+//	EVT_UPDATE_UI(ID_VERSE_CONFLICT_DLG, CAdapt_ItDoc::OnUpdateVerseConflictDlg)
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 END_EVENT_TABLE()
 
 
@@ -408,6 +415,13 @@ CAdapt_ItDoc::~CAdapt_ItDoc() // from MFC version
 /// or READ-ONLY access (if TRUE is returned). (Also added to LoadKB() and OnOpenDocument()
 /// and OnCreate() for the view class.)
 ///////////////////////////////////////////////////////////////////////////////
+
+//void CAdapt_ItDoc::OnUpdateVerseConflictDlg(wxUpdateUIEvent& event)
+//{
+//	event.Enable(TRUE);
+//}
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 bool CAdapt_ItDoc::OnNewDocument()
 // amended for support of glossing or adapting
@@ -2653,20 +2667,18 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 		// error handling
 		wxString msg;
 		// BEW 27Feb15 added more details about a possible fix for the likely cause of the problem
-		msg = _(
-			"Error when trying to write free translation text to the %s project. Please ensure that the book exists in the %s project and that no other program is using the file and try again.\nIf the problem persists submit a problem report to the Adapt It developers (see the Help menu).\n\nThis error is known to happen when Paratext has been installed in the machine's Administrator account by someone with Paratext registration credentials (username, registration code, etc), but the user works in a standard account. A possible solution is to launch Paratext, open it in the standard user account, re-enter and accept the administrator's registration credentials, close Paratext. Shut down Adapt It. Turn off the computer, then restart it. Run Adapt It and retry the Save in collaboration mode. If the write to Paratext is accepted, the fix will be permanent.\nIf that fails, manual transfer can be done. Export the target text, load it into a word processor, copy it and paste chapter by chapter into Paratext; or if adapting a whole book, slightly rename the book in the My Paratext Projects project folder, remember its filename before you changed it, then copy the exported book to there, rename it to have the remembered filename.");
 		if (resultTgt != 0)
 		{
 			wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
 			// Not likely to happen, but it is possible if there are no books created for the PT/BE
 			// project, or the files are locked/access denied.
-			msg = msg.Format(msg,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
-			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
-			wxString temp;
-			temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error when writing target text. resultTgt = %d (Paratext permissions problem?)"),resultTgt);
-			gpApp->LogUserAction(temp);
-			wxLogDebug(temp);
+			//msg = msg.Format(msg,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
+			wxString temp1;
+			temp1 = temp1.Format(_T("PT/BE Collaboration wxExecute returned error when writing target text. resultTgt = %d (Paratext permissions problem? rdwrtp7 returned: )"),resultTgt);
+			gpApp->LogUserAction(temp1);
+			wxLogDebug(temp1);
 			int ct;
+			wxString temp;
 			temp.Empty();
 			for (ct = 0; ct < (int)outputTgt.GetCount(); ct++)
 			{
@@ -2674,12 +2686,17 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 				gpApp->LogUserAction(temp);
 				wxLogDebug(temp);
 			}
+			temp1 += temp;
+			temp.Empty();
 			for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
 			{
 				temp += errorsTgt.Item(ct);
 				gpApp->LogUserAction(temp);
 				wxLogDebug(temp);
 			}
+			temp1 += temp;
+			msg = temp1;
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			return FALSE;
 		} // end of TRUE block for test: if (resultTgt != 0)
 
@@ -2751,13 +2768,13 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 					wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
 					// Not likely to happen, but it is possible if there are no books created for the PT/BE
 					// project, or the files are locked/access denied.
-					msg = msg.Format(msg,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
-					wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
-					wxString temp;
-					temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error when writing free translation text. resultFreeTrans = %d (PT permissions problem?)"),resultFreeTrans);
-					gpApp->LogUserAction(temp);
-					wxLogDebug(temp);
+					//msg = msg.Format(msg,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
+					wxString temp1;
+					temp1 = temp1.Format(_T("PT/BE Collaboration wxExecute returned error when writing free translation text. resultFreeTrans = %d (PT permissions problem?) rdwrtp7 returned: "),resultFreeTrans);
+					gpApp->LogUserAction(temp1);
+					wxLogDebug(temp1);
 					int ct;
+					wxString temp;
 					temp.Empty();
 					for (ct = 0; ct < (int)outputFreeTrans.GetCount(); ct++)
 					{
@@ -2765,12 +2782,17 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 						gpApp->LogUserAction(temp);
 						wxLogDebug(temp);
 					}
+					temp1 += temp;
+					temp.Empty();
 					for (ct = 0; ct < (int)errorsFreeTrans.GetCount(); ct++)
 					{
 						temp += errorsFreeTrans.Item(ct);
 						gpApp->LogUserAction(temp);
 						wxLogDebug(temp);
 					}
+					temp1 += temp;
+					msg = temp1;
+					wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 					return FALSE;
 				} // end of TRUE block for test: if (resultFreeTrans != 0)
 

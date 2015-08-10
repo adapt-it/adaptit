@@ -674,7 +674,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 					wxString msg;
 					msg = msg.Format(_T("Thread_KbEditorUpdateButton: thread creation failed, error number: %d"),
 						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 					//m_pApp->LogUserAction(msg);
 				}
 				else
@@ -686,7 +686,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 					wxString msg;
 					msg = msg.Format(_T("Thread_KbEditorUpdateButton, Thread_Run(): cannot make the thread run, error number: %d"),
 					  (int)error);
-					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 					//m_pApp->LogUserAction(msg);
 					}
 				}
@@ -831,7 +831,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 				wxString msg;
 				msg = msg.Format(_T("Thread_KbEditorUpdateButton, Thread_Run(): cannot make the thread run, error number: %d"),
 				  (int)error);
-				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 				//m_pApp->LogUserAction(msg);
 				}
 			}
@@ -945,7 +945,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 					wxString msg;
 					msg = msg.Format(_T("Thread_CreateEntry in KBEditor::OnButtonAdd() for empty string: thread creation failed, error number: %d"),
 						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 					//m_pApp->LogUserAction(msg);
 				}
 				else
@@ -957,7 +957,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 					wxString msg;
 					msg = msg.Format(_T("Thread_CreateEntry in KBEditor::OnButtonAdd() for empty string, Thread_Run(): cannot make the thread run, error number: %d"),
 					  (int)error);
-					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 					//m_pApp->LogUserAction(msg);
 					}
 				}
@@ -1120,7 +1120,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 					wxString msg;
 					msg = msg.Format(_T("Thread_CreateEntry in KBEditor::OnButtonAdd(): thread creation failed, error number: %d"),
 						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 					//m_pApp->LogUserAction(msg);
 				}
 				else
@@ -1132,7 +1132,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 					wxString msg;
 					msg = msg.Format(_T("Thread_CreateEntry in KBEditor::OnButtonAdd(), Thread_Run(): cannot make the thread run, error number: %d"),
 					  (int)error);
-					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 					//m_pApp->LogUserAction(msg);
 					}
 				}
@@ -1642,7 +1642,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 				wxString msg;
 				msg = msg.Format(_T("Thread_PseudoDelete in KBEditor::OnButtonRemove(): thread creation failed, error number: %d"),
 					(int)error);
-				wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+				wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 				//m_pApp->LogUserAction(msg);
 			}
 			else
@@ -1654,7 +1654,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 				wxString msg;
 				msg = msg.Format(_T("Thread_PseudoDelete in KBEditor::OnButtonRemove(), Thread_Run(): cannot make the thread run, error number: %d"),
 				  (int)error);
-				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 				//m_pApp->LogUserAction(msg);
 				}
 			}

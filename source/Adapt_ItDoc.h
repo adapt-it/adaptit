@@ -470,6 +470,7 @@ protected:
 	// Generated message map functions (from MFC version) ... most of these should not be
 	// public!!! (BEW 17May10)
 public:
+
 	void OnFileSave(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSave(wxUpdateUIEvent& event);
 	void DocChangedExternally();

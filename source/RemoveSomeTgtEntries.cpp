@@ -526,7 +526,7 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 					wxString msg;
 					msg = msg.Format(_T("Thread_PseudoDelete in RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool): thread creation failed, error number: %d  For src = %s , non_src = %s"),
 						(int)error, src.c_str(), nonsrc.c_str());
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 					m_pApp->LogUserAction(msg);
 				}
 				else
@@ -540,7 +540,7 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 					wxString msg;
 					msg = msg.Format(_T("Thread_PseudoDelete in RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool), Thread_Run(): cannot make the thread run, error number: %d  For src = %s , non_src = %s"),
 					  (int)error, src.c_str(), nonsrc.c_str());
-					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 					m_pApp->LogUserAction(msg);
 					}
 				}

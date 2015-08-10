@@ -260,7 +260,9 @@ extern std::string str_CURLheaders;
 // leak is unclear, uncomment the following include, recompile, run and
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
+#ifdef _DEBUG
 //#include "vld.h"
+#endif
 #endif
 
 // Other includes
@@ -15305,6 +15307,11 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	// initialize these collaboration variables, which are relevant to conflict resolution
+	m_bRetainPTorBEversion = FALSE;
+	m_bForceAIversion = FALSE;
+	m_bUseConflictResolutionDlg = FALSE;
+
 	// BEW 21May15 added next five, for support of the freeze/thaw optimization for a sequence
 	// of consecutive auto-inserts from the KB, see AdaptitConstants.h for NUMINSERTS value
 	// as well (currently 8)
@@ -15341,37 +15348,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// Used when collaborating with PT or BE
     m_bPunctChangesDetectedInSourceTextMerge = FALSE; // BEW 21May14
-	// BEW added 21Jul14 to support not dropping adaptations in collaboration mode when
-	// edited source text has spelling changes which are to be interpretted as simple
-	// orthography changes and typos fixed and so forth - with no actual meaning changes,
-	// that is, the words changed are changed to remain themselves in their current places
-	// - in such a scenario, MergeOldAndNew() in MergeUpdatedSrc.cpp should retain the
-	// target text when the smart merge from Paratext's source text project is done back
-	// to the Adapt It Document
-	//*********************************************************************************************************************
-    // The -srcRespell switch had a problem - it lost data if a respelling was in a merger.
-    // If there were mergers in the AI text, and in PT src project the first word of what
-    // is to be that phrasal group again after the smart merge is done, is edited to be
-    // different - then the whole group drops out of the AI document. Same if done outside
-    // of collab mode. Reason? Because the algorithms which decide what goes into
-    // beforeSpan and afterSpan look for which words differ - and if the group of words
-    // spans that boundary (e.g. first word (changed in PT src proj) is in beforeSpan but
-    // the rest of the words to be in the merger are in the following commonSpan, then the
-	// attempt to rebuild the merger fails - the whole merger disappears. Ditto if the
-	// merger is across the boundary between commonSpan and the following afterSpan. 
-	// Since it's only mergers that give the potential for this data loss, the feature can
-	// be supported only for smart mergers of edited source text to an AI document which
-	// has no mergers. So that's what I've done. MergeUpdatedSourceText() tests for a
-	// merger and if the document contains one, it turns the flag
-	// m_bKeepAdaptationsForSrcRespellings back to FALSE, and gives the user a message
-	// telling him that the legacy smart merge will be done instead. 
-	// I've tested this, and tested with starting the app from a shortcut with the switch,
-	// and it works as it should. So this -srcRespell switch can now be released in 6.5.4
-	//*********************************************************************************************************************
-	m_bKeepAdaptationsForSrcRespellings = FALSE; // -srcRespell switch sets it to TRUE
-#if defined (_DEBUG)
-	//m_bKeepAdaptationsForSrcRespellings = TRUE; // for testing in debug mode, comment out when done testing
-#endif
 
 	// BEW added 17Jul14 in support of languages like Lao, Kmer, etc
 	m_bUseSrcWordBreak = true; // default until the project config file is read
@@ -17669,18 +17645,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// using the Programs menu or desktop shortcuts, etc, should not use this switch
 			// because it would turn off important functionality irrevokably on every launch
 			m_bForce_Review_Mode = TRUE;
-		}
-
-		if (m_pParser->Found(_T("srcRespell")))
-		{
-			// BEW added 21Jul14 to support not dropping adaptations in collaboration mode when
-			// edited source text has spelling changes which are to be interpretted as simple
-			// orthography changes and typos fixed and so forth - with no actual meaning changes,
-			// that is, the words changed are changed to remain themselves in their current places
-			// - in such a scenario, MergeOldAndNew() in MergeUpdatedSrc.cpp should retain the
-			// target text when the smart merge from Paratext's source text project is done back
-			// to the Adapt It Document. See MergeOldAndNew() in MergeUpdatedSrc.cpp
-			m_bKeepAdaptationsForSrcRespellings = TRUE;
 		}
 
 		//m_bForce_Review_Mode = TRUE; // for debugging the frm switch, comment out for
@@ -21144,6 +21108,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	int sizeofSPList = sizeof(SPList); // 28 bytes
 	int sizeofwxArrayString = sizeof(wxArrayString); // 16 bytes
 	int stophere = 1;
+	int collabaction = sizeof(CollabAction); // 168 bytes
 	*/
 	/*
 	// check what the character counts in GetUsfmStructureAndExtent(fileBuffer)
@@ -42108,7 +42073,7 @@ void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTex
     // dialog font pDlgFont, but sets its size to pApp->m_dialogFontSize.
 	wxASSERT(pFont != NULL);
 	wxASSERT(pDlgFont != NULL);
-	CopyFontBaseProperties(pFont,pDlgFont);
+	CopyFontBaseProperties(pFont, pDlgFont);
 	// The CopyFontBaseProperties function above doesn't copy the point size, so
 	// make the dialog font show in the proper dialog font size.
 	pDlgFont->SetPointSize(m_dialogFontSize);
@@ -42176,7 +42141,7 @@ void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTex
 			pListBox2->SetLayoutDirection(wxLayout_LeftToRight);
 		//}
 	}
-	#endif
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -47245,6 +47210,15 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
 						booksPresentFlags = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+//#if defined(_DEBUG)
+//                      // BEW fixed 3July15, added else block in the above function
+//						// The failure of collaboration in 2014 &15 was due to structure
+//						// changes at end of .ssf files making <BooksPresent> tag not line
+//						// initial, resulting in GetStingBetweenXMLTags() returning empty
+//						// string - which then clobbered progressing in the collab setup dlg
+//						wxLogDebug(_T("GetListOfPTProjects(): File: %s  booksPresentFlags:  %s"), 
+//							str.c_str(), booksPresentFlags.c_str());
+//#endif
 						pPTInfo->booksPresentFlags = booksPresentFlags;
 					}
 
@@ -47911,6 +47885,24 @@ wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, 
 			// <tag>PCDATA</endtag>
 			// and doesn't have a nested <value>...</value> set of tags
 			tempStr = lineStr.Mid(beginTag.Length(),nEndTagPos - beginTag.Length());
+		}
+	}
+	else
+	{
+		// BEW 3Jul15 added this block because recent .ssf files for settings for
+		// Paratext projects have not been storing the <BooksPresent> element at
+		// the start of its own line preceded only by whitespace (two spaces), but
+		// rather, immediately after </Directory> endtag at the file end. That 
+		// resulted in the legacy block above being skipped, and the user can't
+		// setup the collaboration because the gets the error message that "This
+		// Paratext project has no books. ...." This else block fixes the problem
+		int nEndTagPos;
+		nEndTagPos = lineStr.Find(endTag);
+		if (nEndTagPos != wxNOT_FOUND)
+		{
+			// The endtag is in the line, so this is a Paratext .ssf file
+			size_t start = (size_t)nTagPos + beginTag.Len();
+			tempStr = lineStr.Mid(start,nEndTagPos - start);
 		}
 	}
 	return tempStr;
@@ -48643,7 +48635,7 @@ wxArrayString CAdapt_ItApp::GetBooksArrayFromBookFlagsString(wxString bookFlagsS
 }
 
 // BEW 10Jul11, for collaborating with external editor..., for
-// temporary storage and retieval of "pre-edit" USFM text for
+// temporary storage and retrieval of "pre-edit" USFM text for
 // the current active document
 
 //setters
@@ -48655,6 +48647,10 @@ void CAdapt_ItApp::StoreFreeTransText_PreEdit(wxString s)
 {
 	m_freeTransTextBuffer_PreEdit = s;
 }
+void CAdapt_ItApp::StoreSourceText_PostEdit(wxString s)
+{
+	m_sourceTextBuffer_PostEdit = s;
+}
 // getters
 wxString CAdapt_ItApp::GetStoredTargetText_PreEdit()
 {
@@ -48663,6 +48659,10 @@ wxString CAdapt_ItApp::GetStoredTargetText_PreEdit()
 wxString CAdapt_ItApp::GetStoredFreeTransText_PreEdit()
 {
 	return m_freeTransTextBuffer_PreEdit;
+}
+wxString CAdapt_ItApp::GetStoredSourceText_PostEdit()
+{
+	return m_sourceTextBuffer_PostEdit;
 }
 
 // support for saving and restoring the selection, and clearing saved selection members

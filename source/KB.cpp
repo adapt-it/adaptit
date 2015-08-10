@@ -913,7 +913,7 @@ void CKB::FireOffCreateEntryThread(wxString srcStr, CRefString* pRefString)
 			wxString msg;
 			msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
 				(int)error);
-			wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+			wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 			//m_pApp->LogUserAction(msg);
 		}
 		else
@@ -925,7 +925,7 @@ void CKB::FireOffCreateEntryThread(wxString srcStr, CRefString* pRefString)
 			  wxString msg;
 			  msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
 				(int)error);
-			  wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+			  wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 			  //m_pApp->LogUserAction(msg);
 			}
 		}
@@ -955,7 +955,7 @@ void CKB::FireOffPseudoUndeleteThread(wxString srcStr, CRefString* pRefString)
 			wxString msg;
 			msg = msg.Format(_T("Thread_PseudoUndelete(): thread creation failed, error number: %d"),
 				(int)error);
-			wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+			wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 			//m_pApp->LogUserAction(msg);
 		}
 		else
@@ -967,7 +967,7 @@ void CKB::FireOffPseudoUndeleteThread(wxString srcStr, CRefString* pRefString)
 			wxString msg;
 			msg = msg.Format(_T("PseudoUndelete, Thread_Run(): cannot make the thread run, error number: %d"),
 			  (int)error);
-			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 			//m_pApp->LogUserAction(msg);
 			}
 		}
@@ -997,7 +997,7 @@ void CKB::FireOffPseudoDeleteThread(wxString srcStr, CRefString* pRefString)
 			wxString msg;
 			msg = msg.Format(_T("Thread_PseudoDelete(): thread creation failed, error number: %d"),
 				(int)error);
-			wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+			wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 			//m_pApp->LogUserAction(msg);
 		}
 		else
@@ -1009,7 +1009,7 @@ void CKB::FireOffPseudoDeleteThread(wxString srcStr, CRefString* pRefString)
 			wxString msg;
 			msg = msg.Format(_T("PseudoDelete, Thread_Run(): cannot make the thread run, error number: %d"),
 			  (int)error);
-			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 			//m_pApp->LogUserAction(msg);
 			}
 		}
@@ -4217,7 +4217,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					wxString msg;
 					msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
 						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 					//m_pApp->LogUserAction(msg);
 				}
 				else
@@ -4229,7 +4229,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						wxString msg;
 						msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
 						  (int)error);
-						wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+						wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 						//m_pApp->LogUserAction(msg);
 					}
 				}
@@ -4402,7 +4402,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						wxString msg;
 						msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
 							(int)error);
-						wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+						wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 						//m_pApp->LogUserAction(msg);
 					}
 					else
@@ -4414,7 +4414,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						wxString msg;
 						msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
 						  (int)error);
-						wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+						wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 						//m_pApp->LogUserAction(msg);
 						}
 					}
@@ -4577,7 +4577,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 									wxString msg;
 									msg = msg.Format(_T("Thread_PseudoUndelete(): thread creation failed, error number: %d"),
 										(int)error);
-									wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+									wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 									//m_pApp->LogUserAction(msg);
 								}
 								else
@@ -4589,7 +4589,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 									wxString msg;
 									msg = msg.Format(_T("PseudoUndelete, Thread_Run(): cannot make the thread run, error number: %d"),
 									  (int)error);
-									wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+									wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 									//m_pApp->LogUserAction(msg);
 									}
 								}
@@ -4747,7 +4747,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								wxString msg;
 								msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
 									(int)error);
-								wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+								wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 								//m_pApp->LogUserAction(msg);
 							}
 							else
@@ -4759,7 +4759,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								  wxString msg;
 								  msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
 									(int)error);
-								  wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+								  wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 								  //m_pApp->LogUserAction(msg);
 								}
 							}
@@ -5058,7 +5058,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					wxString msg;
 					msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
 						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 					//m_pApp->LogUserAction(msg);
 				}
 				else
@@ -5070,7 +5070,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						wxString msg;
 						msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
 							(int)error);
-						wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+						wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 						//m_pApp->LogUserAction(msg);
 					}
 				}
@@ -5158,7 +5158,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						wxString msg;
 						msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
 							(int)error);
-						wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+						wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 						//m_pApp->LogUserAction(msg);
 					}
 					else
@@ -5170,7 +5170,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 							wxString msg;
 							msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
 								(int)error);
-							wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+							wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 							//m_pApp->LogUserAction(msg);
 						}
 					}
@@ -5293,7 +5293,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 									wxString msg;
 									msg = msg.Format(_T("Thread_PseudoUndelete(): thread creation failed, error number: %d"),
 										(int)error);
-									wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+									wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 									//m_pApp->LogUserAction(msg);
 								}
 								else
@@ -5305,7 +5305,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 										wxString msg;
 										msg = msg.Format(_T("PseudoUndelete, Thread_Run(): cannot make the thread run, error number: %d"),
 											(int)error);
-										wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+										wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 										//m_pApp->LogUserAction(msg);
 									}
 								}
@@ -5427,7 +5427,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 								wxString msg;
 								msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
 									(int)error);
-								wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+								wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 								//m_pApp->LogUserAction(msg);
 							}
 							else
@@ -5439,7 +5439,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 									wxString msg;
 									msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
 										(int)error);
-									wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+									wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 									//m_pApp->LogUserAction(msg);
 								}
 							}

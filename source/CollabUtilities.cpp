@@ -75,6 +75,9 @@
 #include "md5.h"
 #include "CollabUtilities.h"
 #include "StatusBar.h"
+#include "ConflictResActionDlg.h"
+#include "CollabVerseConflictDlg.h"
+
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -110,9 +113,9 @@ extern bool gbDoingInitialSetup;
 	// disappear before source text is grabbed from the external editor and especially
 	// before a target text export is done to form the preEdit chapter text - since the
 	// latter could put up a Place Medial Markers dialog, and we don't want to see it
-	// until the dialog has disappear. Doing this requires moving some class variables to
+	// until the dialog has disappeared. Doing this requires moving some class variables to
 	// become global variables here, since the delayed handler function parts will become
-	// gloabl functions of CollabUtilities.cpp - all this stuff is immediately below. We'll
+	// global functions of CollabUtilities.cpp - all this stuff is immediately below. We'll
 	// add a prefix  m_collab_<old name> to keep it clear which they are
 	bool m_collab_bTextOrPunctsChanged;
 	bool m_collab_bUsfmStructureChanged;
@@ -127,6 +130,9 @@ extern bool gbDoingInitialSetup;
 
 #ifdef _UNICODE
 
+// Uncomment to turn on the July 2015 wxLogDebug calls, for code fixes and conflict
+// resolution etc; same #define is in CollabVerseConflictDlg.cpp near top
+//#define JUL15
 // comment out when the bugs become history - the next #define is the main one for
 // debugging collaboration sync failuress, and SHOW_INDICES_RANGE is also useful,
 // as also is LIST_MD5LINES
@@ -1084,6 +1090,7 @@ wxString MakePathToFileInTempFolder_For_Collab(enum DoFor textKind)
 		chStrForFilename = _T("");
 
 	wxString bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
+	gpApp->m_Collab_BookCode = bookCode; // The collaboration Conflict Resolution dialog will use this
 
 	wxString tempFolder;
 	wxString path;
@@ -3823,7 +3830,11 @@ wxString GetPathToBeRdwrt()
 	}
 	if (!::wxFileExists(beRdwrtPathAndFileName))
 	{
-		// TODO:
+		wxFileName fn(beRdwrtPathAndFileName);
+		wxString msg = _("Adapt It cannot find the helper application %s at the following location:\n\n%s\n\nFor more information see the Trouble Shooting topic in Help for Administrators (HTML) on the Help Menu.");
+		msg = msg.Format(msg,fn.GetFullName().c_str(), beRdwrtPathAndFileName.c_str(),fn.GetFullName().c_str());
+		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+		gpApp->LogUserAction(msg);
 	}
 	else if (!wxFileName::IsFileExecutable(beRdwrtPathAndFileName))
 	{
@@ -4192,7 +4203,7 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 	}
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
 	// This version shows the whole list, or just the bits we want if the gbShowFreeTransLogsOnly flag is not commented out
-	if (gbShowFreeTransLogsOnly)
+/*	if (gbShowFreeTransLogsOnly)
 	{
 		// show range of indices from 22 to 25
 		int ct;
@@ -4204,30 +4215,18 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 			wxLogDebug(str.c_str());
 		}
 	}
-	else
-	{
-/*		int ct;
+*/
+#endif
+#if defined(_DEBUG) && defined(JUL15)
+		int ct;
 		int aCount = (int)UsfmStructureAndExtentArray.GetCount();
 		for (ct = 0; ct < aCount ; ct++)
 		{
 			wxString str = UsfmStructureAndExtentArray.Item(ct);
 			wxLogDebug(str.c_str());
 		}
-*/
 	}
 #endif
-/*
-#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-	int ct;
-	int aCount = (int)UsfmStructureAndExtentArray.GetCount();
-	int aboutThirty = aCount / 5;
-	for (ct = 0; ct < aboutThirty ; ct++)
-	{
-		wxString str = UsfmStructureAndExtentArray.Item(ct);
-		wxLogDebug(str.c_str());
-	}
-#endif
-*/
 
 	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
 	// the actual last character so it represents the total number of characters in the buffer.
@@ -4628,7 +4627,6 @@ bool CollabProjectFoundInListOfEditorProjects(wxString projName, wxArrayString p
 	return bProjFound;
 }
 
-
 // Advances index until usfmText array at that index points to a \v n line.
 // If there are no more \v n lines, then the function returns FALSE. The
 // index is returned to the caller via the index reference parameter; but
@@ -4637,13 +4635,23 @@ bool CollabProjectFoundInListOfEditorProjects(wxString projName, wxArrayString p
 // index into the array it will cause a bounds error.
 // Assumes that index is not already at a line with \v when called; that is, the line
 // pointed at on entry is a candidate for being the next verse line
-bool GetNextVerseLine(const wxArrayString& usfmText, int& index)
+// BEW 10Jul15 added bool argument since I want this to be used also in
+// GetUpdatedText_UsfmsChanged() where I want iterating over md5sum etc lines
+// to halt not just at the next \v, but also at the next\c (either of these
+// returning TRUE, but getting to doc end returning FALSE as earlier.
+// Parameter 3 is default FALSE. In GetUpdatedText_UsfmsUnchanged() it is used
+// with that value only.
+bool GetNextVerseLine(const wxArrayString& usfmText, int& index, bool bOrTestForChapterLine)
 {
 	int totLines = (int)usfmText.GetCount();
 	while (index < totLines)
 	{
 		wxString testingStr = usfmText.Item(index);
 		if (testingStr.Find(_T("\\v")) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+		else if (bOrTestForChapterLine && (testingStr.Find(_T("\\c")) != wxNOT_FOUND))
 		{
 			return TRUE;
 		}
@@ -5035,19 +5043,19 @@ bool FindMatchingVerseInf(SearchWhere whichArray,
 }
 
 // Return TRUE if a successful matchup was made, FALSE otherwise
-bool FindPreEditMatchingVerseInf(
+bool FindAMatchingVerseInf(
 	VerseInf*   matchThisOne, // the struct instance for what a matchup is being tried in the being-scanned preEditVerseArr
 	int&		atIndex, // the index into the being-scanned VerseInf array at which the matchup succeeded
-	const wxArrayPtrVoid& preEditVerseArr) // the temporary array of VerseInf structs for preEdit data
+	const wxArrayPtrVoid& inWhichVerseArr) // the temporary array of VerseInf structs for preEdit data or sourceText data
 {
-	size_t preEditCount = preEditVerseArr.size();
+	size_t inWhichCount = inWhichVerseArr.size();
 	int index;
 	VerseInf* vi;
-	// Matchup criterion? The verseNumStr members, whether complex or simple, are an exact
-	// match.
-	for (index = 0; index < (int)preEditCount; index++)
+	// Matchup criterion? The verseNumStr members, whether complex or simple,
+	// must be an exact match.
+	for (index = 0; index < (int)inWhichCount; index++)
 	{
-		vi = (VerseInf*)preEditVerseArr.Item((size_t)index);
+		vi = (VerseInf*)inWhichVerseArr.Item((size_t)index);
 		if (vi->verseNumStr == matchThisOne->verseNumStr)
 		{
 			atIndex = index;
@@ -5112,46 +5120,68 @@ bool FindPreEditMatchingVerseInf(
 // postEditIndex and postEditEnd values, so that preEditIndex does not loose track of
 // the verse it should be associated with, and preEditEnd does not loose track of the
 // chunk end if should be associated with.
+// Note: 10Jul15, sourceText params included, the indices for this must be kept in sync
+// with the equivalent text in AI as specified by the postEdit md5 line indices, because
+// the conflict resolution dialog, if it shows, will use the sourceTextStart and 
+// sourceTextEnd indices to grab the equivalent source text verse, or more-than-a-verse
+// chunk, to show it to the user in the dialog - so it HAS TO HAVE the right text content
+// otherwise the user will be misled by seeing spurious differences with the AI version.
+// BEW refactored 10Jul15 to support conflict resolution & its dialogs in collab mode
 bool GetMatchedChunksUsingVerseInfArrays(
 		int   postEditStart,   // index of non-matched verse md5 line in postEditMd5Arr
 		int   fromEditorStart, // index of non-matched verse md5 line in fromEditorMd5Arr
 		int   preEditStart,    // index of equivalent-to-postEdit verse md5 line in preEditMd5Arr
+		int   sourceTextStart, // index of equivalent-to-postEdit verse md5 line in sourceTextMd5Arr
 		const wxArrayString& postEditMd5Arr,   // full md5 lines array for AI postEdit text
 		const wxArrayString& fromEditorMd5Arr, // full md5 lines array for PT fromEditor text
 		const wxArrayString& preEditMd5Arr,    // full md5 lines array for AI preEdit text
+		const wxArrayString& sourceTextMd5Arr, // full md5 lines array for sourceText AS IN ADAPT IT (it may
+								// have had changes done due to filterings, making it permanently different
+								// in USFM structure than the source text which is in Paratext or BE;
+								// there is no feedback mechanism for filterings to change the PT or BE
+								// structure of the source text in either of those editors
 		int&  postEditEnd,     // points at index in the md5 array of last postEdit field in the matched chunk
 		int&  fromEditorEnd,   // points at index into the md5 array of last fromEditor field in the matched chunk
-		int&  preEditEnd)      // points at index in the md5 array of last preEdit field in the matched chunk
+		int&  preEditEnd,      // points at index in the md5 array of last preEdit field in the matched chunk
+		int&  sourceTextEnd)   // points at index in the md5 array of last sourceText field in the matched chunk
 {
 	// Generate the verseArrays needed for making comparisons and searches for matching
-	// verseNum strings to define where the end of the chunk is; we need a three local
+	// verseNum strings to define where the end of the chunk is; we need a four local
 	// sub-arrays containing data going to the end of the whole arrays
 	wxArrayPtrVoid postEditVerseArr;
 	wxArrayPtrVoid fromEditorVerseArr;
 	wxArrayPtrVoid preEditVerseArr;
+	wxArrayPtrVoid sourceTextVerseArr;
 
-    // Populate the two arrays of verse information - stored in VerseInf structs storing
+    // Populate the four arrays of verse information - stored in VerseInf structs storing
     // (verseStr, index, chapterStr, bIsComplex flag) for each verse or chapter line --
-	// generated from the passed in postEditMd5Arr, fromEditorMd5Arr and preEditMd5Arr 
-	// arrays; populating goes to the end of each parent array, but when delineating the 
-	// complex chunk, the next chapter marker (or end of arrays when in final chapter) 
-	// constitues a bounding value where syncing of all three texts must happen with
-	// respect to this milestone location, and so testing for a matchup always succeeds at
-	// such a boundary. The arrays passed in are the whole array, not subfields drawn from
-	// the whole arrays; but the VerseInf arrays constructed from them will commence at
-	// the postEditStart, fromEditorStart, and preEditStart locations if those are indices
-	// to md5 verse lines, but if not, then at the indices for the next md5 verse lines
+	// generated from the passed in postEditMd5Arr, fromEditorMd5Arr, preEditMd5Arr and
+	// sourceTextMd5Arr arrays; populating goes to the end of each parent array, but when 
+	// delineating the complex chunk, the next chapter marker (or end of arrays when in 
+	// final chapter) constitues a bounding value where syncing of all four texts must happen
+	// with respect to this milestone location, and so testing for a matchup always succeeds at
+	// such a boundary (because we enforce it). The arrays passed in are the whole array, not 
+	// subfields drawn from the whole arrays; but the VerseInf arrays constructed from them 
+	// will commence at the postEditStart, fromEditorStart, preEditStart and sourceTextStart
+	// locations if those are indices to md5 verse lines, but if not, then at the indices for 
+	// the next md5 verse lines (remember the indices passed in, while not necessarily all
+	// having the same value, they were at synced locations within each of the four texts, 
+	// and so each constitutes a valid location from which to search forward for the chunk end)
 	GetRemainingMd5VerseLines(postEditMd5Arr, postEditStart, postEditVerseArr);
 	GetRemainingMd5VerseLines(fromEditorMd5Arr, fromEditorStart, fromEditorVerseArr);
 	GetRemainingMd5VerseLines(preEditMd5Arr, preEditStart, preEditVerseArr);
-	/*
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+	GetRemainingMd5VerseLines(sourceTextMd5Arr, sourceTextStart, sourceTextVerseArr);
+	//*
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+//#if defined(_DEBUG) && defined(JUL15)
 	// display up to the next 10 verse lines -- that should be enough for a safe matchup
 	int i;
 	int countOfVersesPostEd = postEditVerseArr.GetCount();
 	int countOfVersesFromEd = fromEditorVerseArr.GetCount();
+	int countOfVersesSourceText = sourceTextVerseArr.GetCount();
 	wxString postVsStr;
 	wxString fromVsStr;
+	wxString srcVsStr;
 	wxString gap = _T("   ; ");
 	wxString twoSpaces = _T("  ");
 	wxString bit[10];
@@ -5238,35 +5268,89 @@ bool GetMatchedChunksUsingVerseInfArrays(
 	}
 	fromVsStr = _T("10 of fromEditorVerseArr:  ");
 	fromVsStr += bit[0] + bit[1] + bit[2] + bit[3] + bit[4] + bit[5] + bit[6] + bit[7] + bit[8] + bit[9];
+	for (i = 0; i < 10; i++)
+	{
+	if (i < countOfVersesSourceText)
+	{
+	pVI = (VerseInf*)sourceTextVerseArr.Item(i);
+	theIndexStr.Empty();
+	theIndexStr << pVI->indexIntoArray;
+	if (pVI->bIsComplex)
+	{
+	kind = _T("  Complex");
+	}
+	else
+	{
+	kind = _T("  Simple");
+	}
+	if (pVI->chapterStr.IsEmpty())
+	{
+	// it's a \v line
+	ss = _T("verse: ");
+	ss += pVI->verseNumStr + twoSpaces + aLabel + theIndexStr + kind;
+	}
+	else
+	{
+	// it's a \c line
+	ss = _T("chapt: ");
+	ss += pVI->chapterStr + twoSpaces + aLabel + theIndexStr + kind;
+	}
+	bit[i] = indices[i] + ss + gap;
+	}
+	else
+	{
+	bit[i] = indices[i] + _T("  --   ;");
+	}
+	}
+	srcVsStr = _T("10 of SourceTextVerseArr:  ");
+	srcVsStr += bit[0] + bit[1] + bit[2] + bit[3] + bit[4] + bit[5] + bit[6] + bit[7] + bit[8] + bit[9];
 	wxLogDebug(_T("  %s"), postVsStr.c_str());
 	wxLogDebug(_T("  %s"), fromVsStr.c_str());
+	wxLogDebug(_T("  %s"), srcVsStr.c_str());
 #endif
-*/
+
 	VerseInf* postEditVInf = NULL;
 	VerseInf* fromEditorVInf = NULL;
 	VerseInf* preEditVInf = NULL;
+	VerseInf* sourceTextVInf = NULL;
 
-	// Each 'verse array' is a smaller array than postEditMd5Arr and fromEditorMd5Arr,
+	// Each 'verse array' is a smaller array than postEditMd5Arr and fromEditorMd5Arr, etc
 	// since we use only the \c and \v fields to populate them -- what we put in them is
 	// pointers to VerseInf structs, as these are more useful than the bare md5 lines
     int postEditVerseArr_Count = postEditVerseArr.GetCount();
-	// (We get counts for the preEditVerseArr and fromEditorVerseArr not here, but in
-	// functions we call below)
+	// (We get counts for the preEditVerseArr, fromEditorVerseArr and sourceTextVerseArr,
+	// not here, but in functions we call below)
 
-	// Make sure that we are starting from md5lines which are for commencement for a verse
+	// Make sure that we are starting from md5lines which are the commencement of a verse
 	wxASSERT(IsVerseLine(postEditMd5Arr, postEditStart));
 	wxASSERT(IsVerseLine(fromEditorMd5Arr, fromEditorStart));
 	wxASSERT(IsVerseLine(preEditMd5Arr, preEditStart));
+	wxASSERT(IsVerseLine(sourceTextMd5Arr, sourceTextStart));
 
-	// Create a loop index, and the loop which will loop (reluctantly) over successive
-	// postEdit VerseInf instances while we are scanning for a verse string matchup from
+	// Create a loop index, and the loop which will loop over successive postEdit
+	// VerseInf instances while we are scanning for a verse string matchup from
 	// somewhere within the VerseInf instances stored in the fromEdit array.
 	// BEW 22Jun15, having added preEdit data, we'll also have to keep preEdit VerseInf
 	// instances tracking with their postEdit "master" - these two will need to be same
 	// value in order for the chunk to be potentially ended at a verse matchup with the
 	// fromEdit verse number.
+	// BEW 10Jul15, adding sourceText VerseInf array, we have to also keep this synced.
+	// sourceTextIndex has to track with postEditIndex (well, kind of), because the user
+	// may have filtered or unfiltered: so fromEditor text will reflect what PT or BE
+	// has, while sourceText text will track what the exported AI source text has (which
+	// could be a little different); but we cannot assume postEditIndex will, at identical
+	// values to sourceTextIndex, be looking at synced text bits - the syncing may easily
+	// be at differing index values for these two. So we need to rely on verse number 
+	// matching, which means that after we've a fromEditor matchup, we are not done, we
+	// have to add a further scan for a sourceText matchup at the same 'simple' verse
+	// and only when we achieve that as well, do we have the full set of matchups which
+	// define the chunk end. Without the sourceText matchup, we have to bump postEdit
+	// index to the next 'simple' verse and try for a 3-ways matchup there, etc, until
+	// we succeed or if not, we just chunk to the start of the next chapter or doc end.
 	int postEditLoopIndex = 0;
-	bool bSuccesfulMatch = FALSE;
+	bool bSuccessfulMatch = FALSE;
+	bool bConfirmedMatch = FALSE;
+	bool bConfirmedSourceTextMatch = FALSE; // added because this is a further matching effort
 	// Our FindMatchingVerseInf() calls, which scan the whole fromEditor array of VerseInf
 	// instances from start to (potentially) the end, will use the following variable for
 	// returning a matched md5 verse line in the fromEditor tests, or wxNOT_FOUND if no
@@ -5275,8 +5359,14 @@ bool GetMatchedChunksUsingVerseInfArrays(
 	// identical when a postEdit and fromEditor matchup has been obtained, then we should
 	// advance postEdit index by one again, in the hope that the next matchup try will get all
 	// three arrays having the verses the same, etc, until we succeed or come to the end.
+	// BEW 10Jul15 for conflict resolution, source text is added to this, so we use the same
+	// criteria to match the verse number when scanning in the array of VerseInf instances for
+	// source text verses, to make this additional matchup. If no such matchup, as above, we
+	// bump postEdit index by one and try again doing scans in the other 3 arrays looking for
+	// a valid 3-ways matchup
 	int fromEditorMatchIndex = wxNOT_FOUND; // initialize
 	int preEditMatchIndex = wxNOT_FOUND; // initialize
+	int sourceTextMatchIndex = wxNOT_FOUND; // initialize
 
 	// First get each passed in index's VerseInf struct in order to examine its contents
 	// in the do loop below; the VerseInf instances first in the two arrays are the ones
@@ -5292,23 +5382,40 @@ bool GetMatchedChunksUsingVerseInfArrays(
 	// to the caller. If the third match isn't achieved, then the potential match is
 	// abandoned and we bump the postEdit verse to whatever one comes next, and try get a 
 	// two ways matchup with that. Continue like this until success (or we run out of array)
+	// BEW 10Jul15, for support of conflict resolution, we have to extent the above paragraph's
+	// protocol to the fourth sourceTextVerseArr array - so now a "real" matchup is all four
+	// match.
 	postEditVInf = (VerseInf*)postEditVerseArr.Item(0);
-	fromEditorVInf = (VerseInf*)fromEditorVerseArr.Item(0);
+	//fromEditorVInf = (VerseInf*)fromEditorVerseArr.Item(0); <<-- unneeded here
 
 	do {
-		bSuccesfulMatch = FindMatchingVerseInf(editorData, postEditVInf, fromEditorMatchIndex,
+		// In the next call, editorData is an enum value for SearchWhere, with values aiData
+		// and editorData (the latter is for fromEditor VerseInf struct instances in the
+		// array fromEditorVerseArr passed in). The function permits searching in the array
+		// postEditVerseArr but in Adapt It so far we've not needed to do so). postEditVInf
+		// for a potential matchup location is passed in, a scan in fromEditorVerseArr is done
+		// to find a matching index location in the latter at which a string equality test done
+		// on the verseNum string (which could be a simple verse, or complex - such as 6b, or
+		// 3-5a, or 14-15, or 6,7,8 etc) succeeds. The index in fromEditorVerseArr at which
+		// that success happened is passed back in fromEditorMatchIndex. That value will be
+		// valid only provided TRUE is returned, otherwise it will be 1 greater than the
+		// index of the last VerseInf* instance in fromEditorVerseArr.
+		bSuccessfulMatch = FindMatchingVerseInf(editorData, postEditVInf, fromEditorMatchIndex,
 												postEditVerseArr, fromEditorVerseArr);
-		if (bSuccesfulMatch)
+		if (bSuccessfulMatch)
 		{
 			// Return the bounding index values. That is, the md5 line indices which are
 			// the last line of each chunk. The matched verse lines are NOT to be included
 			// in the chunk - we do a little arithmetic below to ensure that
-			// BEW 22Jun15, but first, get a preEdit matchup also - only then is it "real" success
+			// BEW 22Jun15, but first, get a preEdit matchup also - it's required for a "real" success
+			// BEW 10Jul15 but is not sufficient, for we then must get a sourceText matchup - then we
+			// will have our "real" matchup success
 			fromEditorVInf = (VerseInf*)fromEditorVerseArr.Item(fromEditorMatchIndex); // <- try match this
-			bool bConfirmedMatch = FindPreEditMatchingVerseInf(
+			bConfirmedMatch = FindAMatchingVerseInf(
 				fromEditorVInf, // try to match this (matching its verse string)
-				preEditMatchIndex, // where the match happened, if it happened
-				preEditVerseArr); // search in this array
+				preEditMatchIndex, // where the match happened, if it happened 
+				preEditVerseArr); // search in the preEditVerseArr to get the 
+								  // sync location for the preEdit md5 line
 			if (bConfirmedMatch)
 			{
 				postEditEnd = postEditVInf->indexIntoArray; // the index into the md5 lines wxArrayString
@@ -5316,25 +5423,41 @@ bool GetMatchedChunksUsingVerseInfArrays(
 				preEditVInf = (VerseInf*)preEditVerseArr.Item(preEditMatchIndex);
 				preEditEnd = preEditVInf->indexIntoArray;
 
-				// The postEditEnd and fromEditorEnd indices point at the matched verse md5
-				// lines. We want whatever md5 line precedes (whatever it's marker may be - it
-				// may or may not be a verse number line, it may be a \q2 line, or \m or lots
-				// of possible markers which may occur within a verse). So subtract 1 from
-				// each. This should not produce a bounds error, because we started from
-				// non-matching verse numbers, so presumably we've advanced over a verse,
-				// maybe more.
-				--postEditEnd;
-				--fromEditorEnd;
-				--preEditEnd;
-				return TRUE;
+				// BEW 10Jul15 added this extra test
+				// Okay, the final text is an equivalent one done for the source text verse array
+				// and we'll pass in the postEditVInf as the one with the verse string we want to
+				// match, and we'll scan the VerseInf structs in the sourceTextVerseArr for a
+				// match - if we succeed, we've got our necessary 3-ways sync location; if not,
+				// iterate the outer loop (at the next postEditVInf)
+				bConfirmedSourceTextMatch = FindAMatchingVerseInf(
+					postEditVInf, // try to match this (matching its verse string)
+					sourceTextMatchIndex, // where the match happened, if it happened
+					sourceTextVerseArr); // search in this array
+				if (bConfirmedMatch)
+				{
+					sourceTextVInf = (VerseInf*)sourceTextVerseArr.Item(sourceTextMatchIndex);
+					sourceTextEnd = sourceTextVInf->indexIntoArray;
+					// The sourceTextEnd index points at the matched verse md5 line. We want 
+					// whatever md5 line precedes that (whatever it's marker may be - it
+					// may or may not be a verse number line, it may be a \q2 line, or \m or lots
+					// of possible markers which may occur within a verse). So just subtract 1
+					--postEditEnd;
+					--fromEditorEnd;
+					--preEditEnd;
+					--sourceTextEnd;
+					return TRUE;
+				}
+				// If no match, outer loop must iterate - see next comment
 			}
 			// If control gets to here, the potential matchup turned out to not be a real
 			// matchup, because while we got verse matches for postEdit and fromEditor
 			// texts, we didn't find the same verse in the preEdit text (it may have
 			// been a bridge, and the user's edits removed or changed it), so iterate
-			// and try the next postEdit verse....
-			preEditMatchIndex = wxNOT_FOUND;
-		}
+			// and try the next postEdit verse; ditto if the attempt to match the verse
+			// in the sourceTextVerseArr array was where the failure happened
+
+		} // end of TRUE block for test: if (bSuccessfulMatch)
+
 		// The scan did not achieve a match. (An example of this scenario would be the
 		// postEdit verse string is a bridge, such as 1-3, and the fromEditor string does
 		// not yet have the bridge, but rather verse lines for 1, 2 and 3 as separate md5
@@ -5348,6 +5471,12 @@ bool GetMatchedChunksUsingVerseInfArrays(
 		// same bridge is in both texts. Similarly for a partial, like \v 7b, if it is in
 		// both texts.
 		postEditLoopIndex++;
+		bSuccessfulMatch = FALSE;
+		bConfirmedMatch = FALSE;
+		bConfirmedSourceTextMatch = FALSE;
+		fromEditorMatchIndex = wxNOT_FOUND;
+		preEditMatchIndex = wxNOT_FOUND;
+		sourceTextMatchIndex = wxNOT_FOUND;
 		// We may have just exceeded the maximum legal index value, so test, and if so
 		// break from the loop and we'd rely on the FALSE being returned at function end
 		// so that the caller will handle the last bit of data for transfer correctly
@@ -5372,10 +5501,122 @@ bool GetMatchedChunksUsingVerseInfArrays(
 	DeleteAllVerseInfStructs(postEditVerseArr); // don't leak memory
 	DeleteAllVerseInfStructs(fromEditorVerseArr); // don't leak memory
 	DeleteAllVerseInfStructs(preEditVerseArr); // don't leak memory
+	DeleteAllVerseInfStructs(sourceTextVerseArr); // don't leak memory
 	postEditEnd = wxNOT_FOUND;   // returning -1 ensures that if my logic is incorrect in the
 	fromEditorEnd = wxNOT_FOUND; // caller, I'm guaranteed a crash - that should tell me something!
 	preEditEnd = wxNOT_FOUND;
+	sourceTextEnd = wxNOT_FOUND;
 	return FALSE;
+}
+
+// BEW 10Jul15 a function for imposing a by-verse advancing scan in the loop within
+// the GetUpdatedText_UsfmsUnchanged() function, used in collaborating with PT or BE
+// This function will call GetAnotherVerseOrChapterLine(), and so is similar in some
+// respects to the internals of GetRemainingMd5VerseLines() except that it does not
+// try to create structs to store parameters; we here want only the starting and ending
+// indices for those USFM lines which belong to a single verse, or complex verse (ie.
+// a bridging or part verse, so long as it has a \v initially), where the \v marker
+// is at the nStart index. We will, however, return an array of int which are the
+// index values for the md5 lines that comprise this verse.
+// Return FALSE if nStart is referring to an md5line beyond the end of the array,
+// or not pointing at a \v line. Return TRUE if we are within bounds and starting 
+// from a \v md5 line, and nStart is pointing at a next verse, or a \c line. 
+// The value of nEnd will end up the same as nStart if nStart refers to the
+// last md5line in the array, or the last one prior to a \c line.
+// It is the caller's responsibility to ensure that nStart is referencing a \v line.
+// At the last verse of the chapter, we want nStart to be pointing at the \c line
+// of the next chapter, at function exit; at doc end, just have it point at last
+// verse
+bool DelineateThisVerse(const wxArrayString& md5Arr, int& nStart, int& nEnd, 
+						wxArrayInt* lineIndicesArr, wxString& chapNumReached)
+{
+	wxString lineStr;
+	lineIndicesArr->Clear();
+	int nBoundingIndex = md5Arr.GetCount() - nStart; // since we begin at nStart
+	if (nBoundingIndex == 0)
+	{
+		// we are beyond the array end
+		return FALSE;
+	}
+	//Must be either a verse line or a chapter line
+	int index = nStart;
+	wxString chapterStr; chapterStr.Empty();
+	bool bIsChapterLine = IsChapterLine(md5Arr, index, chapterStr);
+	bool bIsVerseLine = IsVerseLine(md5Arr, nStart);
+	if (!(bIsVerseLine || bIsChapterLine))
+	{
+		return FALSE; 
+	}
+	// If we haven't returned FALSE, then nStart is a verse md5 line, and so we can start
+	// looking ahead for the rest, after storing its index in the wxArrayInt
+	lineIndicesArr->Add(nStart);
+
+	// That handles the line pointed at on entry, now collect md5 lines from
+	// what lies ahead of that, until we come to \c, or end of array
+	bool bGotAnotherVerseOrChapterLine = FALSE;
+	// Next call starts at the current line, and starts looking by getting
+	// the next line after index's line, and keeps iterating until it
+	// finds either a \c line a \v verse line - returning TRUE for either,
+	// and in the case of a chapter line, returns the chapterStr wxString
+	// chapter number - else an empty chapterStr if at a \v line, and if it
+	// finds neither before the end of array is reached, it returns FALSE
+	bGotAnotherVerseOrChapterLine = GetAnotherVerseOrChapterLine(md5Arr, index, chapterStr);
+	if (bGotAnotherVerseOrChapterLine)
+	{
+		lineStr = md5Arr.Item(index);
+		// is it a chapter line, or a verse line?
+		if (chapterStr.IsEmpty())
+		{
+			// it's a \v line 
+			wxASSERT(chapterStr.IsEmpty());
+			nEnd = index - 1; // last within-the-verse marker line preceding this next verse's line
+			// We possibly jumped over several nonverse marker lines, so add the
+			// indices for those to the array; there will be one or more only if
+			// nEnd is greater than nStart
+			if (nEnd > nStart)
+			{
+				int i;
+				for (i = nStart + 1; i <= nEnd; i++)
+				{
+					lineIndicesArr->Add(i);
+				}
+			}
+			chapNumReached.Empty();
+			return TRUE;
+		}
+		else
+		{
+			// we got to a \c line, so this must be the start of a following chapter,
+			// so don't include it in the array (BEW changed to not include it, 13May14)
+			// (This is what makes our chapter-based algorithms work correctly within a
+			// whole book collaboration)
+			chapNumReached = chapterStr;
+			// For an explanation of the following logic, see comment in block above
+			nEnd = index - 1;
+			if (nEnd > nStart)
+			{
+				int i;
+				for (i = nStart + 1; i <= nEnd; i++)
+				{
+					lineIndicesArr->Add(i);
+				}
+			}
+			return TRUE;
+		}
+	}
+	else
+	{
+		// Did not get a verse or chapter line, so we must have come to the doc end.
+		// In this circumstance, the value of index returned from the call:
+		// GetAnotherVerseOrChapterLine(md5Arr, index, chapterStr) above, will be 1 greater
+		// than the index of the last md5sum line in the array.
+		// so nEnd must now be set the index of that last valid line. The following does it:
+        // nstart less 1 plus however many indices are stored in lineIndicesArr (since the
+        // verse may end with \q or other non-verse markers), or, index - 1
+		nEnd = index - 1; // or nStart -1 + lineIndicesArr->GetCount();
+		chapNumReached.Empty();
+	}
+	return TRUE;
 }
 
 // When processing comes, when comparing lines in two md5Array instances (one for
@@ -5812,6 +6053,9 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 /// are done at the one File / Save -- first the adaptation is sent, and then if free
 /// translation is expected to be be sent, it is sent after the adaptation is sent,
 /// automatically.
+/// BEW 10Jul15, added wxString MakeSourceTextForCollabConflictResDlg() call, etc, to get
+/// the source text, make md5sums for it, map it's text extents, etc, for use of the source
+/// text in the new conflict resolution dialog Bill and I are currently building.
 ///////////////////////////////////////////////////////////////////////////////////////
 wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextType makeTextType,
 										   wxString& postEditText)
@@ -5886,6 +6130,11 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		}
 	}
 ******** */
+
+	// BEW 10Jul15, get the USFM source text - if the conflict resolution dialog
+	// were to be shown, this will be needed (and more processing of the export
+	// will be done below). The store is done in app variable m_sourceTextBuffer_PostEdit
+	gpApp->StoreSourceText_PostEdit(MakeSourceTextForCollabConflictResDlg());
     
 	wxString bookCode;
 	bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
@@ -6090,6 +6339,9 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		return text;
 	}
 
+	// BEW 10Jul15 need this for our new conflict resolution dlg
+	wxString sourceText = gpApp->GetStoredSourceText_PostEdit();
+
 	// if control gets here, then we've 3 text variants to manage & compare; pre-edit,
 	// post-edit, and fromEditor; we've not yet got the post-edit text from the document,
 	// so do it now
@@ -6120,6 +6372,8 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 					&& (gpApp->m_CollabChapterSelected != _T("1") && gpApp->m_CollabChapterSelected != _T("0"))))
 				{
 					postEditText = RemoveIDMarkerAndCode(postEditText);
+					sourceText = RemoveIDMarkerAndCode(sourceText); // must do this one too!! or they won't be in sync
+
 				}
 			}
 		}
@@ -6153,13 +6407,14 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 					&& (gpApp->m_CollabChapterSelected != _T("1") && gpApp->m_CollabChapterSelected != _T("0"))))
 				{
 					postEditText = RemoveIDMarkerAndCode(postEditText);
+					sourceText = RemoveIDMarkerAndCode(sourceText); // must do this one too!! or they won't be in sync
 				}
 			}
 		}
 		break;
 	}
 
-	// abandon any wxChars which precede first marker in text, for each of the 3 texts, so
+	// Abandon any wxChars which precede first marker in text, for each of the 3 texts, so
 	// that we make sure each text we compare starts with a marker
 	// (RemoveIDMarkerAndCode() will have done this already, but this is insurance because
 	// if there was no \id marker, it won't have removed anything)
@@ -6177,6 +6432,11 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	if (offset != wxNOT_FOUND && offset > 0)
 	{
 		fromEditorText = fromEditorText.Mid(offset); // guarantees fromEditorText starts with a marker
+	}
+	offset = sourceText.Find(_T('\\'));
+	if (offset != wxNOT_FOUND && offset > 0)
+	{
+		sourceText = sourceText.Mid(offset); // guarantees sourceText starts with a marker
 	}
 
     // If the user changes the USFM structure for the text within Paratext or Bibledit,
@@ -6201,20 +6461,34 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// To determine whether or not the USFM structure has changed we must now calculate the
 	// UsfmStructure&Extents arrays for each of the 3 text variants, then test if the USFM
 	// in the post-edit text is any different from the USFM in the grabbed text.
-	// (The pre-edit text is ALWAYS the same in USFM structure as the post-edit text,
-	// because editing of the source text is not allowed when in collaboration mode.)
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+	// BEW 10Jul15, In the early versions of this functionality, the following was true:
+	// The pre-edit text is ALWAYS the same in USFM structure as the post-edit text,
+	// because editing of the source text is not allowed when in collaboration mode.
+	// But in recent versions - say later than about 6.5.4, this began to be violated, and
+	// I refactored to allow more freedoom. Finally, with 6.5.9, the usfm structure can be
+	// changed during collaboration due to a filtering or unfiltering, and robustly. To
+	// cater for this additional flexibility, it became necessary to track the preEditText
+	// as closes as both the postEditText and the fromEditorText. And for 6.6.0, we
+	// are including source text tracking, so that we can have a conflict resolution
+	// mechanism where the user can eyeball conflicting verse versions, and also see what
+	// the source text there is.
+#if defined(_DEBUG) && defined(JUL15)
 			wxLogDebug(_T("\nStructureAndExtent, for preEdit "));
 #endif
 	wxArrayString preEditMd5Arr = GetUsfmStructureAndExtent(preEditText);
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 			wxLogDebug(_T("StructureAndExtent, for postEdit "));
 #endif
 	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);;
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-			wxLogDebug(_T("StructureAndExtent, for fromEditor "));
+#if defined(_DEBUG) && defined(JUL15)
+	wxLogDebug(_T("StructureAndExtent, for fromEditor "));
 #endif
 	wxArrayString fromEditorMd5Arr = GetUsfmStructureAndExtent(fromEditorText);
+// BEW 10Jul15 add the sourceText which has been exported... need it for conflict resolution dlg
+#if defined(_DEBUG) && defined(JUL15)
+	wxLogDebug(_T("StructureAndExtent, for sourceText "));
+#endif
+	wxArrayString sourceTextMd5Arr = GetUsfmStructureAndExtent(sourceText);
 
 	#if defined(_DEBUG) && defined(WXGTK)
 	// in this block, wxLogDebug the last 5 Md5Arr lines for the postEditText from the array
@@ -6237,11 +6511,12 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	size_t countPre = preEditMd5Arr.GetCount();
 	wxArrayPtrVoid preEditOffsetsArr;
 	preEditOffsetsArr.Alloc(countPre); // pre-allocate sufficient space
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 			wxLogDebug(_T("\n\nMapping Extents, for preEdit "));
 #endif
 	MapMd5ArrayToItsText(preEditText, preEditOffsetsArr, preEditMd5Arr);
 
+	// This one, for the postEdit array
 	size_t countPost = postEditMd5Arr.GetCount();
 	wxArrayPtrVoid postEditOffsetsArr;
 	postEditOffsetsArr.Alloc(countPost); // pre-allocate sufficient space
@@ -6268,7 +6543,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	}
 #endif
 
-	#if defined(_DEBUG) && defined(WXGTK)
+#if defined(_DEBUG) && defined(WXGTK)
 	// in this block, wxLogDebug the last 5 offsets into postEditText , and display
 	// the first 16 characters at each offset
 	{
@@ -6281,8 +6556,19 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
                        countPost, offset, s.c_str());
         }
 	}
-	#endif
+#endif
 
+	// BEW 10Jul15 do the same, for the source text md5 structure & extents array
+	size_t countSrc = sourceTextMd5Arr.GetCount();
+	wxArrayPtrVoid sourceTextOffsetsArr;
+	sourceTextOffsetsArr.Alloc(countSrc); // pre-allocate sufficient space
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+//#if defined(_DEBUG) && defined(JUL15)
+	wxLogDebug(_T("\n\nMapping Extents, for sourceText "));
+#endif
+	MapMd5ArrayToItsText(sourceText, sourceTextOffsetsArr, sourceTextMd5Arr);
+
+	// Now the fromEditor one
 	size_t countFrom = fromEditorMd5Arr.GetCount();
 	wxArrayPtrVoid fromEditorOffsetsArr;
 	fromEditorOffsetsArr.Alloc(countFrom); // pre-allocate sufficient space
@@ -6318,15 +6604,16 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	{
 		// usfm markers same in each, so do the simple line-by-line algorithm
 		text = GetUpdatedText_UsfmsUnchanged(postEditText, fromEditorText,
-					preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
-					postEditOffsetsArr, fromEditorOffsetsArr);
+				sourceText, sourceTextMd5Arr, preEditMd5Arr, postEditMd5Arr, 
+				fromEditorMd5Arr, postEditOffsetsArr, fromEditorOffsetsArr, 
+				sourceTextOffsetsArr);
 	}
 	else
 	{
 		// something's different, so do the more complex algorithm
 
-#if defined(SHOW_INDICES_RANGE) && defined(_DEBUG)
-/*
+#if defined(_DEBUG) && defined(SHOW_INDICES_RANGE)
+
 		wxString s;
 		switch (makeTextType)
 		{
@@ -6371,18 +6658,18 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			wxLogDebug(_T("Data type = %s  INDEX = %d  postEdChap = %s  postEditArr  %s , fromEdChap = %s fromEditorArr  %s"),
 				s.c_str(), ct, postEdChap.c_str(), postStr.c_str(), fromEdChap.c_str(), fromStr.c_str());
 		}
-*/
+
 #endif
 		// the USFM structure has changed in at least one location in the text
 #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 		wxLogDebug(_T("\n\n** ABOUT TO CALL GetUpdatedText_UsfmsChanged()  **"));
 
 #endif
-		text = GetUpdatedText_UsfmsChanged(postEditText, fromEditorText,
-					preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
-					postEditOffsetsArr, fromEditorOffsetsArr);
+		text = GetUpdatedText_UsfmsChanged(postEditText, fromEditorText, sourceText,
+				sourceTextMd5Arr, preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
+ 				postEditOffsetsArr, fromEditorOffsetsArr, sourceTextOffsetsArr);
 
-    #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
     {
 		/*
 		// show the first 1200 characters that are in the returned text wxString, or all
@@ -6399,8 +6686,8 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
         length = length; // put break point here
 		*/
     }
-    #endif
-    #if defined(_DEBUG) && defined(WXGTK)
+#endif
+#if defined(_DEBUG) && defined(WXGTK)
     {
         // show the last 240 characters that are in the returned text wxString
         int length = text.Len();
@@ -6408,7 +6695,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
         wxLogDebug(_T("text after GetUpdatedText_UsfmsChanged(): last 240 Chars: %s"), s.c_str());
         length = length; // put break point here
     }
-    #endif
+#endif
 	}
 
 	// whm 24Aug11 Note: we don't need to call Destroy() on the pProgdlg.
@@ -6425,6 +6712,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	DeleteMD5MapStructs(preEditOffsetsArr);
 	DeleteMD5MapStructs(postEditOffsetsArr);
 	DeleteMD5MapStructs(fromEditorOffsetsArr);
+	DeleteMD5MapStructs(sourceTextOffsetsArr);
 
 	return text;
 }
@@ -6524,36 +6812,110 @@ void DeleteMD5MapStructs(wxArrayPtrVoid& structsArr)
 // with the external editor's chunk, or whether the user edited something in AI from that
 // chunk; it is just unilaterally sent to the external editor to overwrite whatever the
 // external editor's matching chunk may happen to have been.
+// BEW refactored 10Jul15 for support of conflict resolution
 wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
-			wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr,
-			wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr,
-			wxArrayPtrVoid& fromEditorOffsetsArr)
+	wxString& sourceText, wxArrayString& sourceTextMd5Arr,
+	wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr,
+	wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr,
+	wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr)
 {
+#if defined(_DEBUG) && defined(JUL15)
+	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d");
+	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
+	wxLogDebug(msg1);
+#endif
+
 	wxString newText; newText.Empty();
 	wxString zeroStr = _T("0");
-    // each text variant's MD5 structure&extents array has exactly the same USFMs in the
-    // same order -- verify before beginning
+	// The postEditOffsetsArr, fromEditorOffsetsArr, and sourceTextOffsetsArr, store
+	// MD5Map* instances, these are instances of struct pointer - defining where where
+	// the text substrings start by locating the pointer to their start, and a count
+	// for where each ends.
+	// Each text variant's MD5 structure&extents array has exactly the same USFMs in the
+	// same order -- verify before beginning...
 	size_t preEditMd5Arr_Count;
 	preEditMd5Arr_Count = preEditMd5Arr.GetCount();
 	size_t postEditMd5Arr_Count = postEditMd5Arr.GetCount();
 	size_t fromEditorMd5Arr_Count;
 	fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();
-	wxASSERT( preEditMd5Arr_Count == postEditMd5Arr_Count &&
-			  preEditMd5Arr_Count == fromEditorMd5Arr_Count);
-	preEditMd5Arr_Count = preEditMd5Arr_Count; // avoid warning
-	fromEditorMd5Arr_Count = fromEditorMd5Arr_Count; // avoid warning
-	MD5Map* pPostEditOffsets = NULL; // stores ptr of MD5Map from postEditOffsetsArr
-	MD5Map* pFromEditorOffsets = NULL; // stores ptr of MD5Map from fromEditorOffsetsArr
+	wxASSERT(preEditMd5Arr_Count == postEditMd5Arr_Count &&
+		preEditMd5Arr_Count == fromEditorMd5Arr_Count);
+	// BEW added next two lines 10Jul15
+	size_t sourceTextMd5Arr_Count = sourceTextMd5Arr.GetCount();
+	wxASSERT(postEditMd5Arr_Count == sourceTextMd5Arr_Count);
+	wxUnusedVar(preEditMd5Arr_Count); // avoid compiler warning
+	wxUnusedVar(fromEditorMd5Arr_Count); // avoid compiler warning
 	wxString preEditMd5Line;
 	wxString postEditMd5Line;
 	wxString fromEditorMd5Line;
 	wxString preEditMD5Sum;
 	wxString postEditMD5Sum;
 	wxString fromEditorMD5Sum;
+	// BEW added following 14 locals on 10Jul15 ...
+	wxString sourceTextMd5Line;
+	wxString sourceTextMD5Sum;
+	// ... and for tracking where each verse starts and ends. Strictly speaking
+	// only one pair of ...Start and ...End indices need to be tracked, the postEditVerse
+	// ones, because the other three pairs have same index values due to the fact
+	// that the UFSM structure is identical in AI and PT or BE. However, having
+	// the different variables better documents what is going on in the code.
+	int preEditIndex = 0; // indexing into the MD5 array for preEdit adaptation text from AI
+	int postEditIndex = 0; // indexing into the MD5 array for postEdit adaptation text from AI
+	int fromEditorIndex = 0;  // indexing into the MD5 array for text from PT or BE chapter
+	int preEditEnd = 0; // index of last md5 line of the current chunk from preEdit array
+	int postEditEnd = 0; // index of last md5 line of the current chunk from postEdit array
+	int fromEditorEnd = 0; // index of last md5 line of the current chunk from fromEditor array
+	// Note: user as of 6.5.9 can edit source text in AI in collaboration mode (e.g. do a
+	// filtering or unfiltering), so preEditIndex and postEditIndex won't necessarily stay
+	// in sync from that version onwards; and fromEditIndex can come to differ from these.
+	int preEditStart = 0; // starting when searching forwards
+	int postEditStart = 0; // ditto
+	int fromEditorStart = 0;  // ditto
+	// ... and for the source text, md5 line indices in the source structure & extents array
+	int sourceTextStart = 0;
+	int sourceTextIndex = 0;
+	int sourceTextEnd = 0;
 
-	// work with wxChar pointers for each of the postEditText and fromEditorText texts (we
+	// BEW 10Jul15 refactored. In order to support conflict resolution in a verse-based
+	// way across both this function, and GetUpdatedText_UsfmsChanged() which is already
+	// verse-based with a pre-verse 1 chunking that obligatorily transfers to PT or BE
+	// the AI pre-verse-1 chunk, we have to impose the same verse-based protocol here in
+	// the GetUpdatedText_UsfmsUnchanged() function. One major difference here is that
+	// there will be no usfm-difference-based "chunking" in this function, because this
+	// one is called only when it's been established that there are no usfm differences
+	// in the chapter, or whole book, which is to be transferred to the external editor.
+	// So the approach here is to chunk and obligatorily send to PT or BE any pre-verse-1
+	// material, then iterate from verse to verse md5sum lines, and for each gather however
+	// many USFM fields comprise each verse. There will be, in general, n markers per verse
+	// where the first will be the \v marker, and others up to but not including the next
+	// \v line, or the document end, will contain zero or more other USFM markers - such
+	// as \q markers, \li markers, \f ... \f* possibly, and so forth.
+	// The other major change here is that the former per-line testing for empty content
+	// or edits or differences between the AI marker content and what PT or BE have in the
+	// identical (matched) USFM marker, become the same tests but done over a series of
+	// n markers, where n >= 1. So all must be empty in AI' verse, or all empty in PT's
+	// verse, or any one of them must have AI user edits in them, or all aggregated are
+	// identical in markers and their content with what PT or BE has for the same matching
+	// set of markers and their content, or there is a conflict of content and no detection
+	// of user edits done in the verse. So first I will impose these new protocols and
+	// build some functions for doing the necessary marker + content aggregations, and
+	// testings. When that is working, I'll refactor again to build in the conflict
+	// resolution tests and dialogs, etc. The legacy loop will be refactored to collect
+	// data and test results in structs. If the conflict resolution dialog is to be shown
+	// (the user can request it), then his choices are transferred from there to the 
+	// relevant structs. At that point, the accumulated structs have all the info needed
+	// for creating the output text - so a loop over those structs does that. Job done.
+	// The user's choice of conflict resolution will be made in response to a dialog shown
+	// at the first detection of a conflict.That dialog will have 3 choices - 1. legacy way,
+	// 2. force AI verse each time, 3.choose via a further dialog of listed conflicted 
+	// verses, shown once at end of the traverse of the refactored loop. 
+	// We'll also need a new wxArrayPtrVoid to store the structs which will perserve the
+	// stored data from the loop traverse.
+
+	// Work with wxChar pointers for each of the postEditText, fromEditorText texts (we
 	// don't need a block like this for the preEditText because we don't access it's data
-	// directly in this function)
+	// directly in this function) and SourceText (BEW added 10Jul15) as well, to support
+	// grabbing source text for conflicted verses to put in the conflict resolution dlg
 	const wxChar* pPostEditBuffer = postEditText.GetData();
 	int nPostEditBufLen = postEditText.Len();
 	wxChar* pPostEditStart = (wxChar*)pPostEditBuffer;
@@ -6566,132 +6928,820 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxChar* pFromEditorEnd = pFromEditorStart + nFromEditorBufLen;
 	wxASSERT(*pFromEditorEnd == '\0');
 
-	size_t index;
-	for (index = 0; index < postEditMd5Arr_Count; index++)
+	const wxChar* pSourceTextBuffer = sourceText.GetData();
+	int nSourceTextBufLen = sourceText.Len();
+	wxChar* pSourceTextStart = (wxChar*)pSourceTextBuffer;
+	wxChar* pSourceTextEnd = pSourceTextStart + nSourceTextBufLen;
+	wxASSERT(*pSourceTextEnd == '\0');
+
+	// The text data usually starts with the \c marker information for each of preEdit,
+	// postEdit and fromEditor texts. However, some books (e.g. 2John, 3John) do not have
+	// \c markers, so we will do some pre-verse 1 processing to get control to the first \v
+	// marker in each text; from that point on, we go verse by verse. Also, chapter 1 is
+	// often preceded by a number of markers only occuring book initially - such as 
+	// introductory material, main title, secondary title, running header, and the like.
+	// So we deal with such material as a chunk, and send it to the external editor.
+	wxString substring; // scratch variable
+	bool bFoundVerse = FALSE; // initialize
+	wxUnusedVar(bFoundVerse); // whm added 25Jun2015 to avoid gcc "not used" warning
+	wxString emptyStr = _T("");
+
+	// In the loop advance by md5 lines until the one for next verse is encountered.
+	// Since the USFM structure is identical in each text version, the postEdit
+	// text's verse string will be the same as what would be extracted from the
+	// other three texts, so we'll not bother to extract those
+	// 
+	// BEW 15Jul15 the major part of the refactoring for support of conflict resolution
+	// options also starts here - this is where we create the list that stores ptr to
+	// CollabAction struct instances, one such for each verse in the document. The
+	// structs are created on the heap as control iterates through the loop, and populated
+	// by the data, tests, (and to some extent by the user choices - depending on the 
+	// level of conflict resolution support he wants).
+	wxArrayPtrVoid collabActionsArr;
+	CollabAction* pAction = NULL; // create them on the heap, store in collabActionsArr
+	gpApp->m_Collab_LastChapterStr = _T("1"); // a safe default, in case book has no \c
+
+	// When transferring data from any document, whether a chapter or whole book, the
+	// following three application globals must start off FALSE. The first pertains to
+	// the legacy protocol of retaining the PT or BE data unchanged when no user edits
+	// are detected in the AI verse; the second pertains to a choice offered (by a dialog)
+	// to the user - to force the AI version of the verse, provided it is a conflicted
+	// verse, to be transferred to PT or BE (that is, the opposite of the legacy 
+	// protocol. This is useful if AI edits fail to make it into PT or BE, which can
+	// happen if the legacy protocol is used after the user did some verse edits in
+	// AI outside of collaboration mode, then later turned collaboration mode back on;
+	// or if a bug prevented the edited AI verses from getting into PT or BE at a
+	// File > Save invocation. The third is to govern the user choice to have a conflict
+	// resolution dialog shown which lists the conflicts to be resolved and which have
+	// arisen when the loop below has been traversed. The CollabAction structs will have
+	// collected all the data and test decisions necessary for constructing the final
+	// version of the text to be transferred to PT or BE, so in that situation the
+	// array of structs is then used in a further loop to build the text. Because the
+	// first conflict may not be encountered until partway through the loop's iterations,
+	// it is too late to begin creating and populating structs for a conflict resolution
+	// dialog at that point in time. We therefore do it for every verse, and use the
+	// stucts after the loop terminates, and the user's intentions are known.
+	gpApp->m_bRetainPTorBEversion = FALSE; // initialize (TRUE is the default option)
+	gpApp->m_bForceAIversion = FALSE;     // initialize (user can set TRUE using dlg)
+	gpApp->m_bUseConflictResolutionDlg = FALSE; // initialize (user can set TRUE using dlg)
+    // Note, the dlg referred to just above is the ConflictResolutionActionFunc - it has 3
+    // radio button choices and explanatory text for each. This dialog is not openable by
+    // user choice, instead, it opens at the first detection of a conflict. The user can
+    // then choose what level of personal interaction he wants: top choice is the legacy
+    // protocol, middle choice prefers the AI version of a conflicted verse and results in
+    // that being transferred -- without any further dialog being shown, and bottom choice
+    // results in all conflicts being collected and shown in a purpose-built
+    // AI_PT_ConflictingVersesFunc dialog which Bill designed. It is shown just once, but
+    // within it the user makes his choice for which is best for each of the compared
+    // verses; source text is shown too, so that the "best" decision can be made in the
+    // light of the original meaning. What constitutes a "conflict" is all of the following
+    // being satisfied:
+    // a) the AI verse is not empty b) the PT or BE verse is not empty c) the PT or BE
+    // verse's content differs from the AI verse's content d) AI cannot detect any user
+    // edits in the AI verse's content (that is, the preEdit and postEdit versions of the
+    // AI verse text are identical since the last File >Save, or opening of the document
+    // for editing, whichever last happened). If any one of these conditions is not true,
+    // the AI code knows what to do and does it automatically without any conflict resolution.
+
+    // lineIndicesArr holds the subset of indices into the postEditMd5Arr array for each
+    // marker, text extent, and md5sum line belonging in the verse being delineated - the
+    // first index in the array must refer to the line whose marker is \v, since it
+    // commences each verse
+	wxArrayInt lineIndicesArr; lineIndicesArr.Clear();
+	int index = postEditIndex; // starting at 0
+#if defined(_DEBUG) && defined(JUL15)
+	wxLogDebug(_T("sizeof(CollabAction) struct: %d bytes"), sizeof(CollabAction));
+#endif
+
+	// LOOP STARTS
+	while (index < (int)postEditMd5Arr_Count)
 	{
-		// get the next line from each of the MD5 structure&extents arrays
-		preEditMd5Line = preEditMd5Arr.Item(index);
-		postEditMd5Line = postEditMd5Arr.Item(index);
-		fromEditorMd5Line = fromEditorMd5Arr.Item(index);
-		// get the MD5 checksums from each line
-		preEditMD5Sum = GetFinalMD5FromStructExtentString(preEditMd5Line);
-		postEditMD5Sum = GetFinalMD5FromStructExtentString(postEditMd5Line);
-		fromEditorMD5Sum = GetFinalMD5FromStructExtentString(fromEditorMd5Line);
+        // Anticipating possible conflicting verses, we create and populate a CollabAction
+        // struct for every verse, (and also one for any pre-verse-1 information) while
+        // iterating this loop. We work a chapter at a time, but the collabActionsArr is
+        // not cleared out after each chapter is completed; it is processed after the whole
+        // doc (if multiple chapters) has been processed.
+		pAction = new CollabAction;
+		SetCollabActionDefaults(pAction); // 7 strings and 5 booleans
+		collabActionsArr.Add(pAction);
+		pAction->bookCode = gpApp->m_Collab_BookCode;
+		pAction->chapter_ref = gpApp->m_Collab_LastChapterStr; // defaults to "1" if no \c line encountered yet
+		// After the chapter's data is collected and any user responses have been added to 
+		// the structs, the structs are used in an loop which follows the main loop, when a 
+		// \c marker has been arrived at, or end of document, to build that content of 
+		// newText for that chapter.
 
-        // BEW 27Feb12, this first block added to fix a problem produced by Teus's decision
-        // to end a default chapter template (\c plus the \v markers, with the chapter num
-        // and the verse numbers) with a period following the last verse marker in the
-        // chapter. This mucked up the algorithm, since the single period makes the verse
-        // have a non-zero md5 checksum. So without the rectification provided by the
-        // following block, the period results in the final verse's marker and the
-        // following period being sent back to Bibledit, blocking the sending of the
-        // adaptation (and free trans, if present) from being sent -- this happened in a
-        // scenario where an adapted and/or glossed chapter doc file is copied to the AI
-        // project folder on another machine, and File / Save done in order to have the
-        // adaptations and free translations transferred. They would get transferred,
-        // except not those for the final verse -- due to that pesky period. Since we can't
-        // ask Teus to remove the period from the template, we need this extra code block
-        // here to program our way round it.
-        size_t numberOfChars = (size_t)GetCharCountFromStructExtentString(fromEditorMd5Line);
-		if (gpApp->m_bCollaboratingWithBibledit // because it's only a problem when collaborating with BE
-			&& (index == postEditMd5Arr_Count - 1) // because the problem occurs only at the very end of the loop
-			&& (numberOfChars == 1) // because there's only one character present after the delimiting space (a period)
-		   )
-		{
-			// text from this last verse, in Bibledit, is absent so far (other than
-			// the period, which we want to ignore), so transfer the Adapt It material
-			pPostEditOffsets = (MD5Map*)postEditOffsetsArr.Item(index);
-			wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
-							pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
-			newText += fragmentStr;
-		}
-		// now check for MD5 checksum of "0" in fromEditorMD5Sum,
-		// and if so, the copy the span over from postEditText unilaterally (marker and
-		// text, or marker an no text, as the case may be - doesn't matter since the
-		// fromEditorText's marker had no content anyway)
-		else if (fromEditorMD5Sum == zeroStr)
-		{
-			// text from Paratext or Bibledit for this marker is absent so far, or the
-			// marker is a contentless one anyway (we have to transfer them too)
-			pPostEditOffsets = (MD5Map*)postEditOffsetsArr.Item(index);
-			wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
-							pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
-#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-			wxString strEnd;
-			if (index >= 23 && index <= 32)
-			{
-			// next four lines, a quick way to see what's been added at the end of newText
-			strEnd = newText;
-			strEnd = MakeReverse(strEnd);
-			strEnd = strEnd.Left(100);
-			strEnd = MakeReverse(strEnd);
-			wxLogDebug(_T("SfmsUnchanged: index = %d  , newText BEFORE: %s"), index, newText.c_str());
-			// For a couple of days in May 2014, either the adaptation transfer was being skipped (but
-			// I could not verify that it happened) or the += operation of the next line of code was
-			// not appending the fragmentStr contents to newText. Before I could track down what was
-			// happening, the problem went away. That's why I've left so much debugging code here - to
-			// track down the bug if it happens again.
-			}
-#endif
-			newText += fragmentStr;
+		// Setup starting indices at first of the md5sum lines - each starts with a USFM
+		bool bIsPostEditVerseLine = IsVerseLine(postEditMd5Arr, postEditStart);
+		bool bIsFromEditorVerseLine = IsVerseLine(fromEditorMd5Arr, fromEditorStart);
+		wxUnusedVar(bIsFromEditorVerseLine);
+		bool bIsPreEditVerseLine = IsVerseLine(preEditMd5Arr, preEditStart);
+		wxUnusedVar(bIsPreEditVerseLine);
+		bool bIsSourceTextVerseLine = IsVerseLine(sourceTextMd5Arr, sourceTextStart);
+		wxUnusedVar(bIsSourceTextVerseLine);
 
-#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-			if (index >= 23 && index <= 32)
+		wxString chapNumStr = _T("0"); // initialize
+		bool bIsPostEditChapterLine = IsChapterLine(postEditMd5Arr, postEditStart, chapNumStr);
+		bool bIsPreEditChapterLine = IsChapterLine(preEditMd5Arr, preEditStart, chapNumStr);
+		wxUnusedVar(bIsPreEditChapterLine);
+		bool bIsFromEditorChapterLine = IsChapterLine(fromEditorMd5Arr, fromEditorStart, chapNumStr);
+		wxUnusedVar(bIsFromEditorChapterLine);
+		bool bIsSourceTextChapterLine = IsChapterLine(sourceTextMd5Arr, sourceTextStart, chapNumStr);
+		wxUnusedVar(bIsSourceTextChapterLine);
+
+		// Since all 4 indices will stay in sync as we advance, we can use any of them to
+		// advance with - so we will use postEditIndex
+		// Find out if the md5 line at index 0 is a verse one, if so, deal with that; if
+		// not, then there are USFMs prior to \v 1, if so, chunk for those until the \v 1
+		// line is found, but don't include that in the chunk
+		if (bIsPostEditVerseLine || bIsPostEditChapterLine)
+		{
+			// First marker is \v, this is very unusual and not likely, but allow for it;
+			// or (more likely) it is a \c line - if so, we treat it like a verse here
+			postEditIndex = postEditStart; // always 0 if working with a single chapter doc
+			postEditEnd = postEditStart;   // ditto
+			// Next ones have to be so, since USFM structure is same in AI and PT or BE
+			preEditIndex = preEditStart;
+			preEditEnd = preEditStart;
+			fromEditorIndex = fromEditorStart;
+			fromEditorEnd = fromEditorStart;
+			sourceTextIndex = sourceTextStart;
+			sourceTextEnd = sourceTextStart;
+			if (bIsPostEditChapterLine)
 			{
-			// next four lines allow me to quickly check that the fragmentStr actually got appended
-			// without having to go to the log window
-			strEnd = newText;
-			strEnd = MakeReverse(strEnd);
-			strEnd = strEnd.Left(100);
-			strEnd = MakeReverse(strEnd);
-			wxLogDebug(_T("SfmsUnchanged: index = %d  , fromEditor md5 = %s  , Tfer to PT, Substring: %s"),
-				index, fromEditorMD5Sum.c_str(), fragmentStr.c_str());
-			wxLogDebug(_T("SfmsUnchanged: index = %d  , newText AFTER: %s"), index, newText.c_str());
+				// Set m_Collab_LastChapterStr on the app, the Conflict Resolution dlg will
+				// make use of this, for the chapter part of the constructed reference
+				gpApp->m_Collab_LastChapterStr = chapNumStr;
+				pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
 			}
-#endif
 		}
 		else
 		{
-			// the MD5 checksum for the external editor's marker contents for this
-			// particular marker is non-empty; so, if the preEditText and postEditText at
-			// the matching marker have the same checksum, then copy the fromEditorText's
-			// text (and marker) 'as is'; otherwise, if they have different checksums,
-			// then the user has done some adapting (or free translating if the text we
-			// are dealing with is free translation text) and so the from-AI-document text
-			// has to instead be copied to newText
-			if (preEditMD5Sum == postEditMD5Sum)
+			// When processing "whole book", after each \c marker we'll need
+			// control to come in here to get the other stuff like a \s \mt \p etc
+			// transferred, before we deal with the new chapter's verses; for single-chapter
+			// collaborations control also will sometimes come in here
+			
+			// First line is not a verse line, so there are prior markers; so find where
+			// the first \v line (the one for \v 1) actually is
+			postEditIndex = postEditStart + 1; // index passed into GetNextVerse() must be for
+			// the first line line which potentially may be a verse line, so add 1 to 
+			// postEditStart's 0 value. If a verse is found, TRUE is returned in the
+			// following call, and the signature returns the index to the verse's line
+			bFoundVerse = GetNextVerseLine(postEditMd5Arr, postEditIndex);
+			// We are collaborating with a scripture edit, and USFM scripture must have verse 
+			// markers, so -1 should never be returned - check
+			wxASSERT(postEditIndex != wxNOT_FOUND && bFoundVerse == TRUE);
+			// The end of the chunk is the index of whatever marker immediately precedes the
+			// verse marker that was found
+			postEditEnd = postEditIndex - 1;
+			// Now we know the other index values...
+			preEditIndex = postEditIndex;
+			preEditEnd = postEditEnd;
+			fromEditorIndex = postEditIndex;
+			fromEditorEnd = postEditEnd;
+			sourceTextIndex = postEditIndex;
+			sourceTextEnd = postEditEnd;
+		
+			// The indices are not indices to verses, since the postEditOffsetsArr array
+			// stores the indices to all markers, typically only some are verse ones,
+			// so to extract the text we have to aggregate maps of offsets to the start and
+			// end of each marker's text content, for later use by Extract Substring().
+			// We get the postEditText we want to send to PT or BE, so we are not here
+			// interested in the fromEditor data content (which will be replaced by what
+			// is transferred)
+			MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+			MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+			substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+				pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+			pAction->bIsPreVerseOne = TRUE;
+			pAction->preVerseOneText = substring;
+			
+			// We've used up that CollabAction struct, so create another for the verse 1
+			// data to be processed further below
+			pAction = new CollabAction;
+			SetCollabActionDefaults(pAction);
+			collabActionsArr.Add(pAction);
+			pAction->bookCode = gpApp->m_Collab_BookCode;
+			pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
+
+			// Set the indices for where to start from next, for preEdit, postEdit, fromEditor 
+			// & source text; the scanning loop needs correct verse indices, since we advance now
+			// by verses, we need to start the loop with the indices pointing to the first verse.
+
+			// postEditIndex, preEditIndex, fromEditorIndex, and sourceTextIndex are all currently
+			// referencing the \v 1 line in their respective Md5sum structure & extents arrays.
+			postEditStart = postEditIndex; // the \v 1 md5 line in postEditMd5Arr
+			postEditEnd = wxNOT_FOUND;
+
+			preEditStart = preEditIndex; // the \v 1 md5 line in preEditMd5Arr
+			preEditEnd = wxNOT_FOUND; // we don't use it, but no harm in doing this
+
+			fromEditorStart = fromEditorIndex; // the \v 1 md5 line in fromEditorMd5Arr
+			fromEditorEnd = wxNOT_FOUND;
+
+			sourceTextStart = sourceTextIndex; // the \v 1 md5 line in sourceTextMd5Arr
+			sourceTextEnd = wxNOT_FOUND;
+		}
+        // Any pre-verse-1 info has been dealt with, now the loop handles just verses - the
+        // loop index, index, will move forward in variable increments, depending on what
+        // usfm fields are present, it can't be assumed that it increases by +1 at each
+        // iteration
+
+		// Delineate the verse, returning the chapter number string if \c reached
+		wxString chapNumReached = _T(""); // turned out we don't need to make use of
+										  // the returned chapter number
+		index = postEditStart;
+		// Next call sets postEditEnd index, which then defines the verse's last md5sum line;
+		// the function returns TRUE if it reaches a \v line, or a \c line
+		bFoundVerse = DelineateThisVerse(postEditMd5Arr, index, postEditEnd, &lineIndicesArr,
+										chapNumReached);
+		if (bFoundVerse)
+		{
+			// if \c found, store the chapter number string on the app, for conflict dlg to use
+			if (!chapNumReached.IsEmpty())
 			{
-				// no user edits, so keep the from-external-editor version for this marker
-				pFromEditorOffsets = (MD5Map*)fromEditorOffsetsArr.Item(index);
-				wxString fragmentStr = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
-								pFromEditorOffsets->startOffset, pFromEditorOffsets->endOffset);
-				newText += fragmentStr;
-#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-			if (index >= 23 && index <= 32)
+				// Set m_Collab_LastChapterStr on the app, the Conflict Resolution dlg will
+				// make use of this, for the chapter part of the constructed reference
+				gpApp->m_Collab_LastChapterStr = chapNumReached;
+				pAction->chapter_ref = chapNumStr;
+			}
+            // Not yet at the end of the chapter. Handle the verse just delineated. The
+            // index value returned should point at the next line if there is one, but the
+            // safest way to get a next line's index is to do index = postEditEnd + 1, and
+            // let the while loop's test check if it is valid
+			wxASSERT(lineIndicesArr.GetCount() > 0);
+
+			// Get and store the verse number string,in the CollabAction struct which is current;
+			// Note: pAction struct has the chapter_ref defaulting to "1", so for a chapterless
+			// book like 2John, 3John, Jude, where there is no \c marker, "1" will already be
+			// set when the \v verse number strings are collected here
+			wxString aLine;
+			wxString aVerseNum;
+			if (IsVerseLine(postEditMd5Arr, postEditStart))
 			{
-			wxLogDebug(_T("SfmsUnchanged: index = %d  , SAME MD5: preEdit  %s  , postEdit  %s  , Keeping PT, Substring: %s"),
-				index, preEditMD5Sum.c_str(), postEditMD5Sum.c_str(), fragmentStr.c_str());
+				// We found a verse md5line, not a chapter one, so there is a verse number to get
+				aLine = postEditMd5Arr.Item(postEditStart);
+				aVerseNum = GetNumberFromChapterOrVerseStr(aLine);
+				pAction->verse_ref = aVerseNum;
+				pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
+			}
+
+// This logging was very useful, don't delete it
+#if defined(_DEBUG) && defined(JUL15)
+			// Verify we get the right groupings of md5 lines
+			int aCount;
+			aLine = postEditMd5Arr.Item(postEditStart);
+			aVerseNum = GetNumberFromChapterOrVerseStr(aLine);
+			aCount = lineIndicesArr.GetCount();
+			wxLogDebug(_T("\nGet...UsfmsUnchanged(): Line grouping for verse:  %s   Number of lines: %d  postEditStart %d  postEditEnd %d"), 
+				aVerseNum.c_str(), aCount, postEditStart, postEditEnd);
+			int anIndex;
+			for (anIndex = 0; anIndex < aCount; anIndex++)
+			{
+				int offsetIndex = anIndex + postEditStart;
+				wxLogDebug(_T("Md5Line:  %s"), postEditMd5Arr.Item(offsetIndex).c_str());
 			}
 #endif
+			// Get the other indices updated
+			preEditStart = postEditStart;
+			preEditEnd = postEditEnd;
+			fromEditorStart = postEditStart;
+			fromEditorEnd = postEditEnd;
+			sourceTextStart = postEditStart;
+			sourceTextEnd = postEditEnd;
+
+			// Implement our data transfer protocols, they start of with the PT verse
+			// empty check....
+			// First check - is the PT (or BE) verse empty?
+			bool bUserEditedVerseInAI = FALSE; // initialize
+			bool bAI_verse_is_empty = FALSE; // initialize
+			bool bPTorBE_verse_is_empty = IsPTorBEverseEmpty(fromEditorMd5Arr, lineIndicesArr);
+			if (bPTorBE_verse_is_empty)
+			{
+				// When the PT or BE verse is empty, obligatorily transfer what the AI verse has
+				pAction->bPTorBE_verse_empty = TRUE;
+				MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+				MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+				substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+					pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+				pAction->AI_verse_version = substring;
 			}
 			else
 			{
-				// must be user edits done, so send them to newText along with the marker
-				pPostEditOffsets = (MD5Map*)postEditOffsetsArr.Item(index);
-				wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
-								pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
-				newText += fragmentStr;
-#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-			if (index >= 23 && index <= 32)
-			{
-			wxLogDebug(_T("SfmsUnchanged: index = %d  , DIFF MD5: preEdit  %s  , postEdit  %s  , Tfer to PT, Substring: %s"),
-				index, preEditMD5Sum.c_str(), postEditMD5Sum.c_str(), fragmentStr.c_str());
-			}
+				// PTorBE verse has content, so next check is to see if the AI verse is empty;
+				// if it is, we let the PTorBE form of the verse stand unchanged, and so we
+				// then send copy of the PTorBE verse back to PTorBE
+				bAI_verse_is_empty = IsAIverseEmpty(postEditMd5Arr, lineIndicesArr);
+				if (bAI_verse_is_empty)
+				{
+					// Return's PTorBE's verse to PTorBE
+					pAction->bAI_verse_empty = TRUE;
+					MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorStart);
+					MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorEnd);
+					substring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
+						pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
+					pAction->PTorBE_verse_version = substring;
+				}
+				else
+				{
+                    // Next check the preEditMd5Sum and postEditMd5Sum - if they are
+                    // different, then the user has done some editing of this verse in AI,
+                    // and so it must be transferred to PTorBE; if they are the same, the
+                    // user did no detectable edits, and so we will let the PTorBE form of
+                    // the verse remain unchanged (that is, send if back to the external
+                    // editor). The catch here is that we have aggregated possibly more
+                    // than one md5 line in order to generate the verse; so we have to call
+                    // a function here that looks for at least one difference in the
+                    // internal md5 sums between the PTorBE verse and the AI verse
+					bUserEditedVerseInAI = AreTheseTwoTextVersionsDifferent(preEditMd5Arr, postEditMd5Arr,
+																			lineIndicesArr);
+					if (bUserEditedVerseInAI)
+					{
+                        // User edits done in AI were detected for this verse, so it must
+                        // be transferred to PTorBE
+						pAction->bUserEditsDetected = TRUE;
+						MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+						MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+						substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+							pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+						pAction->AI_verse_version = substring;
+					}
+					else
+					{
+						// User edits were not detected, so send the PTorBE verse back to
+						// the external edit
+                        // BEW 15Jul15 this is a potential conflict situation, provided the
+                        // PTorBE verse version is different than the AI verse version, and
+                        // if the latter is so, then the ConflictResolutionActionFunc
+                        // dialog will get opened here if this is the first conflict
+                        // detected for this construction of the text for transferring to
+                        // PT or BE
+						// The first thing is to check for a text difference...
+						bool bTheVersionsDiffer = AreTheseTwoTextVersionsDifferent(postEditMd5Arr, 
+														fromEditorMd5Arr,lineIndicesArr);
+						if (!bTheVersionsDiffer)
+						{
+							// No conflict, both versions of the verse are identical. So
+							// just return the PT or BE version to the external editor
+							pAction->bAI_verse_empty = TRUE; // causes PT version to be retained
+							MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorStart);
+							MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorEnd);
+							substring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
+								pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
+							pAction->PTorBE_verse_version = substring;
+						}
+						else
+						{
+							// This is a genuine conflict (as defined by our protocols), so
+							// find out what the user wants to do, and proceed accordingly
+							
+							// All three app variables must be false in order to get the
+							// ConflictResolutionActionFunc dialog open; and once it closes,
+							// one of the three variables will be TRUE, which will prevent
+							// a second opening of this dialog in this document's
+							// generation of the text to send to PT or BE
+							if (!gpApp->m_bRetainPTorBEversion && !gpApp->m_bForceAIversion &&
+								!gpApp->m_bUseConflictResolutionDlg)
+							{
+								// Ask for the user's choice of action
+								gpApp->LogUserAction(_T("Showing CConflictResActionDlg()"));
+								CConflictResActionDlg dlg(gpApp->GetMainFrame());
+								dlg.Centre();
+								if (dlg.ShowModal() == wxID_OK)
+								{
+									// Get the user's choice of conflict resolution protocol
+									gpApp->m_bRetainPTorBEversion = dlg.m_bLegacy_retain_PTorBE_version;
+									gpApp->m_bForceAIversion = dlg.m_bForce_AI_version_transfer;
+									gpApp->m_bUseConflictResolutionDlg = dlg.m_bUserWantsVisualConflictResolution;
+								}
+								else
+								{
+									// Set the legacy choice -- resolve in favour of
+									// keeping PT or BE version of the conflicted verses
+									gpApp->m_bRetainPTorBEversion = TRUE;
+									gpApp->m_bForceAIversion = FALSE;
+									gpApp->m_bUseConflictResolutionDlg = FALSE;
+								}
+							}
+							// Act according to the user's choice (a Cancel chooses the
+							// legacy protocol)
+							// The secondary loop later to build newText must not have any
+							// of these 3 app global booleans within it, because whichever
+							// was in effect would do its work from the start of that loop,
+							// when here in general the conflict dialog just exited will 
+							// have come up part way though the document processing. So
+							// our approach has to be to use whichever of these was
+							// chosen, and have the code simulate a state of affairs which
+							// did not actually happen. E.g. if the user chose to Force the
+							// AI version, then we would set bUserEditsDetected to TRUE
+							// even though it's actually FALSE, and store the AI version
+							// in AI_verse_version wxString, so that the later processing
+							// loop will do the wanted transfer of the AI verse version.
+							if (gpApp->m_bRetainPTorBEversion ||
+								gpApp->m_bForceAIversion ||
+								gpApp->m_bUseConflictResolutionDlg)
+							{
+								// Process whichever is the case, right here and now;
+								// and for the else block, continue the legacy protocols
+								if (gpApp->m_bRetainPTorBEversion)
+								{
+									pAction->bAI_verse_empty = TRUE; // causes transfer of PTorBE version
+									MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorStart);
+									MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorEnd);
+									substring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
+										pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
+									pAction->PTorBE_verse_version = substring;
+								}
+								else if (gpApp->m_bForceAIversion)
+								{
+									pAction->bUserEditsDetected = TRUE; // causes transfer of AI version
+									MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+									MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+									substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+										pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+									pAction->AI_verse_version = substring;
+								}
+								else
+								{
+									// The user must have chosen the low radio button, wanting
+									// to see the conflicting verses side-by-side and manually choose
+									wxASSERT(gpApp->m_bUseConflictResolutionDlg); // verify our assumption
+									pAction->bConflictedVerses = TRUE; // gets confl res dlg open later
+									// In the conflict resolution dialog, the user will make
+									// his choice for each conflict, later, not here; so 
+									// just provide the data for him to make the choice.
+									// pAction has to be given both versions of the verse, so that
+									// the conflict resolution dialog can display them, and also
+									// the original source text verse's text for comparing with
+									// First PTorBE version
+									MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorStart);
+									MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorEnd);
+									substring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
+										pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
+									pAction->PTorBE_verse_version = substring;
+									//Second AI version
+									MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+									MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+									substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+										pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+									pAction->AI_verse_version = substring;
+									// Third, the sourceText original verse text
+									MD5Map* pSourceTextArr_StartMap = (MD5Map*)sourceTextOffsetsArr.Item(sourceTextStart);
+									MD5Map* pSourceTextArr_LastMap = (MD5Map*)sourceTextOffsetsArr.Item(sourceTextEnd);
+									substring = ExtractSubstring(pSourceTextBuffer, pSourceTextEnd,
+										pSourceTextArr_StartMap->startOffset, pSourceTextArr_LastMap->endOffset);
+									pAction->sourceText = substring;
+								} // end of else block for test: else if (gpApp->m_bForceAIversion)
+
+							} // end of TRUE block for test:
+							  // if (gpApp->m_bRetainPTorBEversion || gpApp->m_bForceAIversion ||
+							  //gpApp->m_bUseConflictResolutionDlg)
+							else
+							{
+								// What here? When the versions of the text for the verse differ
+								// and no user edits were detected, the legacy protocol was to
+								// retain the PTorBE version of the verse. So do that here
+								pAction->bAI_verse_empty = TRUE; // causes transfer of PTorBE version
+								MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorStart);
+								MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorEnd);
+								substring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
+									pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
+								pAction->PTorBE_verse_version = substring;
+							}
+						} // end of the else block for test: if (!bTheVersionsDiffer)
+					}
+				}
+			} // end of else block for test: if (bPTorBE_verse_is_empty)
+			// That is, here ends are data transfer protocols checks, and 
+			// pAction struct populating for the current verse we delineated
+
+            // Prepare for iteration, for the next verse or pre-chapter-1 material (index
+            // could could be a "next" verse line's index, or at at the next chapter's \c
+            // line's index value in the array, or beyond the array's bound if we've come
+            // to the document's end)
+			lineIndicesArr.Clear();
+			index = postEditEnd + 1;
+			// Update them
+			postEditIndex = index;
+			postEditStart = index;
+			postEditEnd = -1;
+			preEditIndex = index;
+			preEditStart = index;
+			preEditEnd = -1;
+			fromEditorIndex = index;
+			fromEditorStart = index;
+			fromEditorEnd = -1;
+			sourceTextIndex = index;
+			sourceTextStart = index;
+			sourceTextEnd = -1;
+			chapNumReached.Empty();
+			
+		} // ends TRUE block for: if (bFoundVerse)
+		else
+		{
+            // The DelineateThisVerse() call did not start properly, so we cannot continue.
+            // The only safe thing to do is to exit the loop here; and perhaps ringing the
+            // bell might help to warn that something is seriously amiss; the transfer of
+            // data to PT or BE will not have happened
+			wxBell();
+			break;
+		}
+	} // end of loop: while (index < (int)postEditMd5Arr_Count) <- may involve multiple chapters
+
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+#if defined(_DEBUG) && defined(JUL15)
+	wxLogDebug(_T("STRUCT POPULATING LOOP HAS ENDED: num structs: %d"), structsCount);
 #endif
+	int structsCount = (int)collabActionsArr.GetCount();
+	int i;
+
+#if defined(_DEBUG) && defined(JUL15)
+	// log the CollabAction structs' contents
+	{ // start a limiting scope
+		if (gpApp->m_bUseConflictResolutionDlg)
+		{
+			CollabAction* pAction = NULL;
+			int i;
+			for (i=0; i< structsCount; i++)
+			{
+				// log what we got, check chapter and verse and bookCode are set right, etc
+				pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
+				wxLogDebug(_T("CollabAction struct: index %d ; bookCode:  %s  , Chapter:  %s  , Verse:  %s  , bConflictedVerse = %s\npostEditText:  %s\nfromEditorText:  %s"),
+					i, pAction->bookCode.c_str(), pAction->chapter_ref.c_str(), pAction->verse_ref.c_str(),
+					pAction->bConflictedVerses ? _T("TRUE") : _T("FALSE"), 
+					pAction->bConflictedVerses ? pAction->AI_verse_version.c_str() : _T("AI no conflict"),
+					pAction->bConflictedVerses ? pAction->PTorBE_verse_version.c_str() : _T("PT no conflict"));
 			}
 		}
-	} // end of loop: for (index = 0; index < postEditMd5Arr_Count; index++)
+	} // end the limiting scope
+#endif
+
+	// Add the handling for the CollabAction structs - it's the same code as in
+	// GetUpdatedText_UsfmsChanged()
+	wxArrayPtrVoid conflictsArr; // stores ConflictRes struct pointers
+	CollectConflicts(collabActionsArr, conflictsArr);
+
+	// show conflict res dlg here if needed & the user requested it, and fill
+	// out the booleans in the structs based on the users choice
+	if (gpApp->m_bUseConflictResolutionDlg)
+	{
+		// Get the conflicted verse CollabAction structs fully fleshed out with the
+		// user's choice for each conflicted verse pair of versions; the structs
+		// to use for this are the ones with bConflictedVerses set TRUE; these
+		// are revamped as ConflictRes structs and are stored in conflictsArr
+		CCollabVerseConflictDlg confDlg(gpApp->GetMainFrame(), &conflictsArr);
+		confDlg.Centre();
+		if (confDlg.ShowModal() == wxID_OK)
+		{
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG)
+		// wxLogDebugging will be helpful here, to verify results are as expected
+		{ // start a limiting scope
+			ConflictRes* pCR = NULL;
+			int count = (int)conflictsArr.GetCount();
+			int i;
+			for (i=0; i < count; i++)
+			{
+				pCR = (ConflictRes*)conflictsArr.Item((size_t)i);
+				wxLogDebug(_T("ConflictRes struct: conflictsArr index: %d ; bUserWantsAIverse %d ; bookCode:  %s  ; Chapter:  %s  ; Verse:  %s   AIText = %s   PT original:  %s   PT edited:  %s"),
+					i, (int)pCR->bUserWantsAIverse, pCR->bookCodeStr.c_str(), pCR->chapterRefStr.c_str(), pCR->verseRefStr.c_str(),
+					pCR->AIText.c_str(), 
+					pCR->PTorBEText_original.c_str(),
+					pCR->PTorBEText_edited.c_str());
+			}
+		}
+#endif
+			MeldConflictResolutionsBackIntoActionsArray(collabActionsArr, conflictsArr);
+		}
+		else
+		{
+			// User cancelled from the dialog - reverts to legacy "keep PT or BE version"
+			MeldConflictsUserCancelBackIntoActionsArray(collabActionsArr, conflictsArr);
+		}
+	}
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+	wxLogDebug(_T("\nnewText LOOP STARTS\n"));
+#endif
+
+	// Now the loop which builds newText based on what is in the structs
+	// The debug logging here was invaluable, don't delete it
+	for (i=0; i< structsCount; i++)
+	{
+		pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
+		wxASSERT(pAction != NULL);
+		if (pAction->bIsPreVerseOne)
+		{
+			newText += pAction->preVerseOneText;
+#if defined(_DEBUG) && defined(JUL15)
+			wxLogDebug(_T("..UsfmsUnchanged() sending:  %s"), pAction->preVerseOneText.c_str());
+#endif
+		}
+		else if (pAction->bPTorBE_verse_empty)
+		{
+			newText += pAction->AI_verse_version;
+#if defined(_DEBUG) && defined(JUL15)
+			wxLogDebug(_T("..UsfmsUnchanged() sending:  %s"), pAction->AI_verse_version.c_str());
+#endif
+		}
+		else if (pAction->bAI_verse_empty)
+		{
+			newText += pAction->PTorBE_verse_version;
+#if defined(_DEBUG) && defined(JUL15)
+			wxLogDebug(_T("..UsfmsUnchanged() sending:  %s"), pAction->PTorBE_verse_version.c_str());
+#endif
+		}
+		else if (pAction->bUserEditsDetected)
+		{
+			newText += pAction->AI_verse_version;
+#if defined(_DEBUG) && defined(JUL15)
+			wxLogDebug(_T("..UsfmsUnchanged() sending:  %s"), pAction->AI_verse_version.c_str());
+#endif
+		}
+	} // end of loop: for (i=0; i< structsCount; i++) for building newText
+
+	// Tidy up (unneeded, but a good idea)
+	gpApp->m_bRetainPTorBEversion = FALSE;
+	gpApp->m_bForceAIversion = FALSE;
+	gpApp->m_bUseConflictResolutionDlg = FALSE;
+
+	// destroy the ConflictRes structs
+	DestroyConflictResStructs(conflictsArr);
+
+	// destroy the CollabAction structs
+	for (i=0; i< structsCount; i++)
+	{
+		pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
+		delete pAction; // internal strings are automatically freed
+	}
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG)
+	wxLogDebug(_T("\nnewText: ..UsfmsUnchanged:   %s\n"), newText.c_str());
+#endif
+
+	// temporary - while in development stage for conflict resolution
+	//wxMessageBox(_T("Stop now - halt run in IDE"), _T("Stop!"), wxICON_WARNING | wxOK);
+
 	return newText;
+}
+
+void SetCollabActionDefaults(CollabAction* p)
+{
+	p->preVerseOneText.Empty();
+	p->sourceText.Empty();
+	p->AI_verse_version.Empty();
+	p->PTorBE_verse_version.Empty();
+	p->bIsPreVerseOne = FALSE;
+	p->bConflictedVerses = FALSE;
+	p->bAI_verse_empty = FALSE;
+	p->bPTorBE_verse_empty = FALSE;
+	p->bUserEditsDetected = FALSE;
+	p->chapter_ref = _T("1");
+	p->bookCode = _T("");
+	p->verse_ref = _T("1");
+}
+
+bool AreTheseTwoTextVersionsDifferent(const wxArrayString& preEditMd5Arr, 
+		const wxArrayString& postEditMd5Arr, wxArrayInt& lineIndices)
+{
+	// Note, the first line index could be to either a verse marker (\v)
+	// or to a chapter marker (\c), so take the latter into consideration.
+	// Chapter markers do not have any text content with them.
+	int i;
+	int count = (int)lineIndices.GetCount();
+	wxASSERT(count > 0);
+	// The caller has guaranteed that each line index is a valid index into the md5Arr array
+	// so we don't need to check for bounds errors here.
+	int md5LineIndex;
+	wxString preEditMd5Line;
+	wxString preEditMd5Sum;
+	wxString postEditMd5Line;
+	wxString postEditMd5Sum;
+	for (i = 0; i < count; i++)
+	{
+		md5LineIndex = lineIndices.Item(i);
+		preEditMd5Line = preEditMd5Arr.Item(md5LineIndex);
+		postEditMd5Line = postEditMd5Arr.Item(md5LineIndex);
+		preEditMd5Sum = GetFinalMD5FromStructExtentString(preEditMd5Line);
+		postEditMd5Sum = GetFinalMD5FromStructExtentString(postEditMd5Line);
+		if (preEditMd5Sum != postEditMd5Sum)
+		{
+			return TRUE; // there's at least one user edit found
+		}
+	}
+	// If control gets here, no detectable user edit was encountered
+	return FALSE;
+}
+
+bool IsAIverseEmpty(const wxArrayString& md5Arr, wxArrayInt& lineIndices)
+{
+	int i;
+	int count = (int)lineIndices.GetCount();
+	wxASSERT(count > 0);
+	// The caller has guaranteed that each line index is a valid index into the md5Arr array
+	// so we don't need to check for bounds errors here.
+	// The 'verse' actually may be an md5 line for a chapter marker (\c ) so that that into
+	// account to. If it is, we treat it as an empty verse, and return TRUE
+	int md5LineIndex;
+	wxString md5Line;
+	wxString md5Sum;
+	wxString aChapter;
+	// index can only be 0 for \c line, but other markers may follow, eg \s, \p
+	md5LineIndex = lineIndices.Item(0); // index for the first line - is it a \c one?
+	bool bIsChapterLine = IsChapterLine(md5Arr,md5LineIndex,aChapter);
+	for (i = 0; i < count; i++)
+	{
+		if (i == 0 && bIsChapterLine)
+		{
+			// Chapter markers do not have text content, so it's empty
+			bIsChapterLine = FALSE; // Subsequent lines will not be \c ones
+			continue;
+		}
+		md5LineIndex = lineIndices.Item(i);
+		md5Line = md5Arr.Item(md5LineIndex);
+		md5Sum = GetFinalMD5FromStructExtentString(md5Line);
+		if (md5Sum != _T("0"))
+		{
+			return FALSE;
+		}
+	}
+	// If control gets to here, all md5 lines have a zero string for the md5sum
+	return TRUE;
+}
+
+// Return TRUE if each of the md5 lines in this verse has an md5sum string value of _T("0");
+// a \c md5 line is considered to be an empty verse for purposes of this test too.
+// 
+// Note: Bibledit has a period after the \v <number><space>. of the last verse of the last
+// chapter of a book. Bummer. It servers no useful purpose, but it causes the otherwise empty
+// verse to have a non-0 md5 sum. So, like in the legacy form of GetUpdatedText_UsfmsUnchanged() 
+// where we did a check for this, and if found we still declared that verse "empty", we must
+// do similarly here too. We could dispense with a BE running check, just checking for an
+// extents value of 1 (. is a single character) is sufficient, because no verse in PT that
+// has any meaningful content is only going to be comprised of a single character.
+// The index values stored in lineIndices array are into the relevant part of the md5Arr array,
+// and so the first is not usually going to be 0
+bool IsPTorBEverseEmpty(const wxArrayString& md5Arr, wxArrayInt& lineIndices)
+{
+	int i;
+	int count = (int)lineIndices.GetCount();
+	wxASSERT(count > 0);
+	// The caller has guaranteed that each line index is a valid index into the md5Arr array
+	// so we don't need to check for bounds errors here. The first index should always be to
+	// a verse (\v ) md5 line, or to a chapter (\c ) md5 line, so at a verse line is where 
+	// we'll also check for a Bibledit unwanted . (a period character)
+	int md5LineIndex;
+	wxString md5Line;
+	wxString md5Sum;
+	wxString aChapter;
+	// index can only be 0 for \c line, but other markers may follow, eg \s, \p
+	bool bIsChapterLine = FALSE;
+	md5LineIndex = lineIndices.Item(0);
+	bIsChapterLine = IsChapterLine(md5Arr,md5LineIndex,aChapter); // checking first md5 line
+	for (i = 0; i < count; i++)
+	{
+		md5LineIndex = lineIndices.Item(i);
+		md5Line = md5Arr.Item(md5LineIndex);
+		if (i == 0 && bIsChapterLine)
+		{
+			// This should never have any text content, so is empty
+			bIsChapterLine = FALSE; // subsequent lines will not be \c ones
+			continue;
+		}
+		// If control gets this far, a \c line is eliminated, so only \v or
+		// other lines are now to be considered
+		if (i == 0)
+		{
+			// should be a verse line
+			wxASSERT(IsVerseLine(md5Arr, md5LineIndex));
+			md5Sum = GetFinalMD5FromStructExtentString(md5Line);
+			if (md5Sum != _T("0"))
+			{
+				// We need to check for the Bibledit rogue period (.) now
+				int numChars = GetCharCountFromStructExtentString(md5Line);
+				if (numChars > 1)
+				{
+					return FALSE; // it's not a single character only, so has real content
+				}
+				// Otherwise, it's a single character so must be that pesky period, so
+				// all's well - continue looping
+			}
+		}
+		else
+		{
+			// Non-verse  md5 lines...
+			md5Sum = GetFinalMD5FromStructExtentString(md5Line);
+			if (md5Sum != _T("0"))
+			{
+				return FALSE;
+			}
+		}
+	}
+	// If control gets to here, all md5 lines have a zero string for the md5sum,
+	// and if Bibledit's verse final . (period) was found, it has been counted as
+	// an empty verse too
+	return TRUE;
 }
 
 // on invocation, the caller will have ensured that a USFM marker is the first character of
@@ -6729,13 +7779,14 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 	wxChar* pStrBegin = NULL;
 #endif
 #endif
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 	wxChar* pStrBegin = NULL;
 #endif
 
-
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-		wxString aSubrange = _T("Indices 22 to 25 inclusive");
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+	wxString aSubrange = _T("Indices 0 to the end, inclusive");
 		wxLogDebug(_T("MapMd5ArrayToItsText(), a subrange logged:\n%s"),aSubrange.c_str());
 #endif
 
@@ -6760,8 +7811,9 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 		pStrBegin = ptr;
 #endif
 #endif
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-		if (lineIndex >= 22 && lineIndex <= 25)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+		if (lineIndex >= 0 && lineIndex < md5ArrayCount)
 		{
 			pStrBegin = ptr;
 		}
@@ -6810,8 +7862,9 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 		wxLogDebug(_T("MapMd5ArrayToItsText(), map index = %d: nSpan = %d, textSpan = %s"),lineIndex, nSpan, str.c_str());
 #endif
 #endif
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-		if (lineIndex >= 22 && lineIndex <= 25)
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+		if (lineIndex >= 0 && lineIndex < md5ArrayCount)
 		{
 			// show what the subspan of text is
 			unsigned int nSpan = (unsigned int)((pStart + pMapStruct->endOffset) - pStrBegin);
@@ -6872,23 +7925,43 @@ wxArrayString ObtainSubarray(const wxArrayString arr, size_t nStart, size_t nFin
 // chunk of mismatched marker lines which have to be deal with as a whole (e.g. user may
 // have added or removed markers, bridged some verses, etc and such changes appear in only
 // one of the texts).
+// BEW 10Jul15 conflict resolution protocals added. First conflict encountered shows the
+// 3-radio-button dialog ConflictResActionDlgFunc, which gives the user the legacy option,
+// or the option to force the AI verse version at each programmatically unsolvable
+// conflict, or to show a further dialog defined by Bill, AI_PT_COnflictingVersesFunc,
+// which lists the conflicts by ch:verse, and displays each conflict side by side, AI version
+// on the left and PT version on the right, with source text above. See the function
+// GetUpdatedText_UsfmsUnchanged() for extensive commments on what and why and the explanations
+// of protocols added. In this present case, which already does things on a verse by verse
+// basis, I am just adding the support for the 3 kinds of conflict handling mentioned above,
+// and will be doing to identically to what I did in the other function, to the extent that
+// that is possible. If something is not clear - look there.
 //
 // That should help explain the complexities in the code below, and why they are there.
 // BEW 22Jun15, refactored, simplified, comments expanded, and now supporting filtering
 // or unfiltering on the fly.
+// BEW refactored 10Jul15 for support of visual user-directed conflict resolution
 wxString GetUpdatedText_UsfmsChanged(
-	wxString& postEditText,   // the same text, but after editing, at the time when File / Save was requested
-	wxString& fromEditorText, // the version of the same chapter or book that PT or BE has at the time that
-							  // File / Save was requested
-	wxArrayString& preEditMd5Arr,	 // the array of MD5sum values & their markers, obtained from preEditText
-	wxArrayString& postEditMd5Arr,   // ditto, but obtained from postEditText at File / Save time
-	wxArrayString& fromEditorMd5Arr, // ditto, but obtained from fromEditorText, at File / Save time
-
+	wxString& postEditText,    // the same text, but after editing, at the time when File / Save was requested
+	wxString& fromEditorText,  // the version of the same chapter or book that PT or BE has at the time that
+							   // File / Save was requested				
+	wxString& sourceText,      // the source text (at time of File > Save exported from the AI document)
+	wxArrayString& sourceTextMd5Arr,  // the array of MD5sum values & their markers, obtained from sourceText				
+	wxArrayString& preEditMd5Arr,     // the array of MD5sum values & their markers, obtained from preEditText
+	wxArrayString& postEditMd5Arr,	  // ditto, but obtained from postEditText at File / Save time	
+	wxArrayString& fromEditorMd5Arr,  // ditto, but obtained from fromEditorText, at File / Save time
 	wxArrayPtrVoid& postEditOffsetsArr,   // array of MD5Map structs which index the span of text in postEditText
 										  // which corresponds to a single line of info from postEditMd5Arr
-	wxArrayPtrVoid& fromEditorOffsetsArr) // array of MD5Map structs which index the span of text in fromEditorText
+	wxArrayPtrVoid& fromEditorOffsetsArr, // array of MD5Map structs which index the span of text in fromEditorText
 										  // which corresponds to a single line of info from fromEditorMd5Arr
+	wxArrayPtrVoid& sourceTextOffsetsArr)  // array of MD5Map structs which index the span of text in sourceText
+										  // which corresponds to a single line of info from sourceTextMd5Arr
 {
+#if defined(_DEBUG) && defined(JUL15)
+	wxString msg1 = _T("GetUpdatedText_UsfmsChanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d");
+	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
+	wxLogDebug(msg1);
+#endif
 	wxString newText; newText.Empty();
 	wxString zeroStr = _T("0");
 	// each text variant's MD5 structure&extents array has exactly the same USFMs, but
@@ -6897,12 +7970,16 @@ wxString GetUpdatedText_UsfmsChanged(
 	size_t preEditMd5Arr_Count = preEditMd5Arr.GetCount();
 	size_t postEditMd5Arr_Count = postEditMd5Arr.GetCount();
 	size_t fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();
+	size_t sourceTextMd5Arr_Count = sourceTextMd5Arr.GetCount();
+	wxASSERT(postEditMd5Arr_Count == sourceTextMd5Arr_Count);
 	wxString preEditMd5Line;
 	wxString postEditMd5Line;
 	wxString fromEditorMd5Line;
 	wxString preEditMD5Sum;
 	wxString postEditMD5Sum;
 	wxString fromEditorMD5Sum;
+	wxString sourceTextMd5Line;
+	wxString sourceTextMD5Sum;
 
 	// work with wxChar pointers for each of the postEditText and fromEditorText texts
 	const wxChar* pPostEditBuffer = postEditText.GetData();
@@ -6917,6 +7994,11 @@ wxString GetUpdatedText_UsfmsChanged(
 	wxChar* pFromEditorEnd = pFromEditorStart + nFromEditorBufLen;
 	wxASSERT(*pFromEditorEnd == '\0');
 
+	const wxChar* pSourceTextBuffer = sourceText.GetData();
+	int nSourceTextBufLen = sourceText.Len();
+	wxChar* pSourceTextStart = (wxChar*)pSourceTextBuffer;
+	wxChar* pSourceTextEnd = pSourceTextStart + nSourceTextBufLen;
+	wxASSERT(*pSourceTextEnd == '\0');
 
 	// The text data should start with the \c marker information for each of preEdit,
 	// postEdit and fromEditor texts. However, some books (e.g. 2John, 3John) do not have
@@ -6931,18 +8013,38 @@ wxString GetUpdatedText_UsfmsChanged(
 	int preEditEnd = 0; // index of last md5 line of the current chunk from preEdit array
 	int postEditEnd = 0; // index of last md5 line of the current chunk from postEdit array
 	int fromEditorEnd = 0; // index of last md5 line of the current chunk from fromEditor array
-	// Note: user cannot edit source text in AI in collaboration mode, so preEditIndex and
-	// postEditIndex stay in sync; fromEditIndex can come to differ from these.
+	// Note: user as of 6.5.9 can edit source text in AI in collaboration mode (e.g. do a
+	// filtering or unfiltering), so preEditIndex and postEditIndex won't necessarily stay
+	// in sync from that version onwards; and fromEditIndex can come to differ from these.
 	int preEditStart = 0; // starting when searching forwards
 	int postEditStart = 0; // ditto
 	int fromEditorStart = 0;  // ditto
-	//bool bPostEdit_BeforeChapterOne = FALSE; // inialize to "nothing preceeds the \c line"
-	//bool bFromEditor_BeforeChapterOne = FALSE; // inialize to "nothing preceeds the \c line"
+	int sourceTextStart = 0;
+	int sourceTextIndex = 0;
+	int sourceTextEnd = 0;
+
 	wxString substring; // scratch variable
 	bool bOK = FALSE; // initialize
 	bool bFoundVerse = FALSE; // initialize
-        wxUnusedVar(bFoundVerse); // whm added 25Jun2015 to avoid gcc "not used" warning
+    wxUnusedVar(bFoundVerse); // whm added 25Jun2015 to avoid gcc "not used" warning
 	wxString emptyStr = _T("");
+
+	// BEW 15Jul15 the major part of the refactoring for support of conflict resolution
+	// options also starts here - this is where we create the list that stores ptr to
+	// CollabAction struct instances, one such for each verse in the document. The
+	// structs are created on the heap as control iterates through the loop, and populated
+	// by the data, tests, (and to some extent by the user choices - depending on the 
+	// level of conflict resolution support he wants).
+	wxArrayPtrVoid collabActionsArr;
+	CollabAction* pAction = NULL; // create them on the heap, store in collabActionsArr
+	gpApp->m_Collab_LastChapterStr = _T("1"); // a safe default, in case book has no \c
+
+	// The next three record the user's response to being asked for what level of 
+	// conflict resolution he wants, via a dialog which shows at the first encounter of
+	// a conflict
+	gpApp->m_bRetainPTorBEversion = FALSE; // initialize (TRUE is the default option)
+	gpApp->m_bForceAIversion = FALSE;     // initialize (user can set TRUE using dlg)
+	gpApp->m_bUseConflictResolutionDlg = FALSE; // initialize (user can set TRUE using dlg)
 
 	// BEW 22Jun15, refactored to remove unneeded complexity. Since I intend to unilaterally
 	// transfer whatever precedes \v 1 line in the file, whether or not a chapter marker is
@@ -6961,180 +8063,273 @@ wxString GetUpdatedText_UsfmsChanged(
 	// different markup structures at the start of short books; so we need to test 
 	// for \c 1 being present & allow for the variability robustly
 
-	// Look for whatever information precedes the first \v marker, and unilaterally
-	// transfer that to PT or BE chapter. It could be introductory material, title,
-	// book name, etc; so if something is "there" then the IsVerseLine() call done
-	// with index 0 will return FALSE; if TRUE is returned, then a \v is at the
-	// start of the data
-	// BEW 22Jun15 Keep preEdit indices in sync the same way we set postEdit indices; 
-	// since now that we are supporting user filtering done at any arbitrary time, 
-	// we cannot assume that the fields in the pre-edit md5 array are all present 
-	// unchanged in the post-edit md5 array; so we have to use GetNextVerseLine()
-	// for setting preEditIndex (and preEditEnd though we make no use of this) 
-	bool bIsPostEditVerseLine = IsVerseLine(postEditMd5Arr, postEditStart);
-	bool bIsFromEditorVerseLine = IsVerseLine(fromEditorMd5Arr, fromEditorStart);
-	bool bIsPreEditVerseLine = IsVerseLine(preEditMd5Arr, preEditStart);
-	if (bIsPostEditVerseLine)
-	{
-		// Note: the logic here might seem faulty, having bIsPostEditVerseLine in
-		// a test, and the other two tests contained with its TRUE block. The reason
-		// we do this is because the postEdit text is what governs what happens: if
-		// there is some, it will be unilaterally transferred to the external editor
-		// overwriting whatever is in the latter's file-initial pre-verse-1 chunk.
-		// The other two texts basically just need to have their relevant indices
-		// kept uptodate with what is going on.
-
-		// We don't expect control to enter here, but just in case there isn't
-		// anything (really) in the text prior to \v 1, here's where we handle it;
-		// postEditIndex is to point at the start of whatever verse comes first, and
-		// since postEditEnd should point at the end of the "chunk" and here the 
-		// chunk has no content, then postEditEnd also must be postEditStart's value
-		postEditIndex = postEditStart;
-		postEditEnd = postEditStart; // BEW 22Jun15, formerly I had wxNOT_FOUND here
-
-		// Do equivalent updates for preEdit text and fromEditor text
-		if (bIsPreEditVerseLine)
-		{
-			preEditIndex = preEditStart;
-			preEditEnd = preEditStart;
-		}
-		else
-		{
-			// Index 0 is not a verse line, so find where the next verse line is
-			preEditIndex = preEditStart + 1;
-			bFoundVerse = GetNextVerseLine(preEditMd5Arr, preEditIndex);
-			wxASSERT(preEditIndex != wxNOT_FOUND && bFoundVerse == TRUE);
-			preEditEnd = preEditIndex - 1;
-		}
-		// This one, for the fromEditor indices
-		if (bIsFromEditorVerseLine)
-		{
-			fromEditorIndex = fromEditorStart;
-			fromEditorEnd = fromEditorStart;
-		}
-		else
-		{
-			// Index 0 is not a verse line, so find where the next verse line is
-			fromEditorIndex = fromEditorStart + 1;
-			bFoundVerse = GetNextVerseLine(fromEditorMd5Arr, fromEditorIndex);
-			wxASSERT(fromEditorIndex != wxNOT_FOUND && bFoundVerse == TRUE);
-			fromEditorEnd = fromEditorIndex - 1;
-		}
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-			wxLogDebug(_T("Nothing is before \v 1, so nothing to transfer yet; postEdit indices [%d,%d] Substring: %s"),
-				postEditStart, postEditEnd, emptyStr.c_str());
-#endif
-	} // end of TRUE block for test: if (bIsPostEditVerseLine)
-	else
-	{
-		// There are other markers preceding the first \v, get them transferred to PT
-		// or BE unilaterally
-		postEditIndex = postEditStart + 1; // index passed into GetNextVerse() must be for
-				// the first line line which potentially may be a verse line, so add 1 to 
-				// postEditStart's 0 value. If a verse is found, TRUE is returned in the
-				// following call, and the signature returns the index to the verse's line
-		bFoundVerse = GetNextVerseLine(postEditMd5Arr, postEditIndex);
-		// We are collaborating with a scripture edit, and USFM scripture must have verse 
-		// markers, so -1 should never be returned - check
-		wxASSERT(postEditIndex != wxNOT_FOUND && bFoundVerse == TRUE);
-		// The end of the chunk is the index of whatever marker immediately precedes the
-		// verse marker that was found
-		postEditEnd = postEditIndex - 1;
-		// The verse indices are not indices into the postEditOffsetsArr array, as the
-		// latter stores the indices to all markers, typically only some are verse ones,
-		// so to extract the text we have to aggregate maps of offsets to the start and
-		// end of each marker's text content, for later use by Extract Substring()
-		MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
-		MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
-		substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
-					pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
-		newText += substring;
-#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-		wxLogDebug(_T("PRE-\\v 1 Material In SHORT book, postEdit start & end indices [%d,%d], mapped to [%d,%d], Substring: %s"),
-			postEditStart, postEditEnd, pPostEditArr_StartMap->startOffset,
-			pPostEditArr_LastMap->endOffset, substring.c_str());
-#endif
-		// Do the same settings operations for the pre-edit indices; we don't
-		// extract any of this stuff since the user's edits will have changed
-		// it and some markers may have been filtered. We only need to keep
-		// the preEditIndex in a matched location c.f. postEditIndex
-		if (IsVerseLine(preEditMd5Arr, preEditStart))
-		{
-			preEditIndex = preEditStart;
-			preEditEnd = preEditStart;
-		}
-		else
-		{
-			// Index 0 is not a verse line, so find where the next verse line is
-			preEditIndex = preEditStart + 1;
-			bFoundVerse = GetNextVerseLine(preEditMd5Arr, preEditIndex);
-			wxASSERT(preEditIndex != wxNOT_FOUND && bFoundVerse == TRUE);
-			preEditEnd = preEditIndex - 1;
-		}
-		// Finally, do it for the fromEditor indices; we don't extract any text
-		// so delimited, because it is a 'chunk' to be overwritten by whatever
-		// is in the preEdit initial chunk. (This unilateral chunk overwrite may
-		// mean that 'nothing' from the AI document chunk overwrites 'something'
-		// in the matching 'fromEditor' chunk. So be it.) Our purpose here is
-		// therefore to get fromEditorIndex in the matching location to where
-		// postEditIndex is, but in the from Paratext (or from Bibledit) text,
-		// prior to the scanning loop which begins further below
-		if (IsVerseLine(fromEditorMd5Arr, fromEditorStart))
-		{
-			fromEditorIndex = fromEditorStart;
-			fromEditorEnd = fromEditorStart;
-		}
-		else
-		{
-			// Index 0 is not a verse line, so find where the next verse line is
-			fromEditorIndex = fromEditorStart + 1;
-			bFoundVerse = GetNextVerseLine(fromEditorMd5Arr, fromEditorIndex);
-			wxASSERT(fromEditorIndex != wxNOT_FOUND && bFoundVerse == TRUE);
-			fromEditorEnd = fromEditorIndex - 1;
-		}
-
-	} // end of else block for test: if (bIsPostEditVerseLine)
-
-	// *** Set the indices for where to start from next, for preEdit, postEdit and 
-	// fromEditor text; the scanning loop needs correct indices for when it commences ***
-
-	// Using wxNOT_FOUND will cause a crash if my logic is faulty below, but
-	// provided the code for determining chunk or verse end locations works
-	// right, it will compute the correct xxx...End index values before they
-	// have to be used
-	postEditStart = postEditIndex; // the \v 1 md5 line in postEditMd5Arr
-	postEditEnd = wxNOT_FOUND;
-
-	preEditStart = preEditIndex; // the \v 1 md5 line in preEditMd5Arr
-	preEditEnd = wxNOT_FOUND; // we don't use it, but no harm in doing this
-
-	fromEditorStart = fromEditorIndex; // the \v 1 md5 line in fromEditorMd5Arr
-	fromEditorEnd = wxNOT_FOUND;
-
-	// LOOP STARTS - advance by md5 verse lines; and for complex verses (e.g. bridges)
-	// call a function to handle the matching by chunking until matched verse numbers are
-	// again encountered - such chunks are to be unilaterally sent to PT or BE overwriting
-	// the equivalent material there
+	// LOOP STARTS - the pre-verse-1 material (eg even in chapter 2 and higher, there
+	// are markers to deal with - such as \c itself, and maybe \s etc)
+	// Advance by md5 verse lines; and for complex verses (e.g. bridges) call a function to 
+	// handle the matching by chunking until matched verse numbers are again encountered - 
+	// such chunks are to be unilaterally sent to PT or BE overwriting the equivalent 
+	// material there
 	wxString postEditVerseNumStr;
 	wxString fromEditorVerseNumStr;
 	wxString preEditVerseNumStr; // BEW added 22Jun15 since preEdit text structure can now
-								 // differ from that of postEdit text structure
+	// differ from that of postEdit text structure
+	wxString sourceTextVerseNumStr;
 	bool bStructureOrTextHasChanged = FALSE; // initialize
+	bool bTheTwoTextsDiffer = FALSE; // initialize (it's for support of conflict resolution)
 
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-		wxLogDebug(_T("\n\n >>>>>   GetUpdatedText_UsfmsChanged() LOOP ENTERED  <<<<<\n\n"));
+	wxLogDebug(_T("\n\n >>>>>   GetUpdatedText_UsfmsChanged() LOOP ENTERED  <<<<<\n\n"));
 #endif
 
 	while (
 		(preEditStart < (int)preEditMd5Arr_Count) &&
 		(postEditStart < (int)postEditMd5Arr_Count) &&
-		(fromEditorStart < (int)fromEditorMd5Arr_Count))
+		(fromEditorStart < (int)fromEditorMd5Arr_Count) &&
+		(sourceTextStart < (int)sourceTextMd5Arr_Count))
 	{
-		// At iteration of the loop, we expect the ...Start indices to be pointing at
-		// 'verse' md5 lines in their respective arrays. Make sure.
-		wxASSERT(IsVerseLine(preEditMd5Arr, preEditStart));
-		wxASSERT(IsVerseLine(postEditMd5Arr, postEditStart));
-		wxASSERT(IsVerseLine(fromEditorMd5Arr, fromEditorStart));
+		// Need a CollabAction struct ready for use
+		pAction = new CollabAction;
+		SetCollabActionDefaults(pAction); // 7 strings and 5 booleans
+		collabActionsArr.Add(pAction);
+		pAction->bookCode = gpApp->m_Collab_BookCode;
+		pAction->chapter_ref = gpApp->m_Collab_LastChapterStr; // defaults to "1" if no \c line encountered yet
+
+		bTheTwoTextsDiffer = FALSE; // reinitialize
+
+		// Look for whatever information precedes the first \v marker, and unilaterally
+		// transfer that to PT or BE chapter. It could be introductory material, title,
+		// book name, etc; so if something is "there" then the IsVerseLine() call done
+		// with index 0 will return FALSE; if TRUE is returned, then a \v is at the
+		// start of the data
+		// BEW 22Jun15 Keep preEdit indices in sync the same way we set postEdit indices; 
+		// since now that we are supporting user filtering done at any arbitrary time, 
+		// we cannot assume that the fields in the pre-edit md5 array are all present 
+		// unchanged in the post-edit md5 array; so we have to use GetNextVerseLine()
+		// for setting preEditIndex (and preEditEnd though we make no use of this) 
+		bool bIsPostEditVerseLine = IsVerseLine(postEditMd5Arr, postEditStart);
+		bool bIsFromEditorVerseLine = IsVerseLine(fromEditorMd5Arr, fromEditorStart);
+		bool bIsPreEditVerseLine = IsVerseLine(preEditMd5Arr, preEditStart);
+		bool bIsSourceTextVerseLine = IsVerseLine(sourceTextMd5Arr, sourceTextStart);
+
+		wxString chapNumStr = _T("0"); // initialize
+		bool bIsPostEditChapterLine = IsChapterLine(postEditMd5Arr, postEditStart, chapNumStr);
+		bool bIsPreEditChapterLine = IsChapterLine(preEditMd5Arr, preEditStart, chapNumStr);
+		bool bIsFromEditorChapterLine = IsChapterLine(fromEditorMd5Arr, fromEditorStart, chapNumStr);
+		bool bIsSourceTextChapterLine = IsChapterLine(sourceTextMd5Arr, sourceTextStart, chapNumStr);
+		if (bIsPostEditVerseLine || bIsPostEditChapterLine)
+		{
+			if (bIsPostEditChapterLine)
+			{
+				// Set m_Collab_LastChapterStr on the app, the Conflict Resolution dlg will
+				// make use of this, for the chapter part of the constructed reference
+				gpApp->m_Collab_LastChapterStr = chapNumStr;
+				pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
+			}
+
+			// Note: the logic here might seem faulty, having bIsPostEditVerseLine in
+			// a test, and the other two tests contained with its TRUE block. The reason
+			// we do this is because the postEdit text is what governs what happens: if
+			// there is some, it will be unilaterally transferred to the external editor
+			// overwriting whatever is in the latter's file-initial pre-verse-1 chunk.
+			// The other texts basically just need to have their relevant indices
+			// kept up-to-date with what is going on, for this block.
+
+			// postEditIndex is to point at the start of whatever verse comes first, and
+			// since postEditEnd should point at the end of the "chunk" and here the 
+			// chunk has no content, then postEditEnd also must be postEditStart's value
+			postEditIndex = postEditStart;
+			postEditEnd = postEditStart; // BEW 22Jun15, formerly I had wxNOT_FOUND here
+
+			// Do equivalent updates for preEdit text, fromEditor text, and sourceText
+			// Note: the GetNextVerseLine() calls, if last param is TRUE, return TRUE
+			// for any md5 line which contains \v OR \c. Doing it this way, the \c to
+			// up to (but not including) the following \v 1 is handled as a separate
+			// chunk
+			if (bIsPreEditVerseLine || bIsPreEditChapterLine)
+			{
+				preEditIndex = preEditStart;
+				preEditEnd = preEditStart;
+			}
+			else
+			{
+				// Index 0 is not a verse or chapter line, so find where the next 
+				// verse or chapter line is.
+				// TRUE is the value of param bOrTestForChapterLine
+				preEditIndex = preEditStart + 1;
+				bFoundVerse = GetNextVerseLine(preEditMd5Arr, preEditIndex,TRUE);
+				wxASSERT(preEditIndex != wxNOT_FOUND && bFoundVerse == TRUE);
+				preEditEnd = preEditIndex - 1;
+			}
+			// This one, for the sourceText indices
+			if (bIsSourceTextVerseLine || bIsSourceTextChapterLine)
+			{
+				sourceTextIndex = sourceTextStart;
+				sourceTextEnd = sourceTextStart;
+			}
+			else
+			{
+				// Index 0 is not a verse line, so find where the next verse or
+				// chapter line is
+				sourceTextIndex = sourceTextStart + 1;
+				bFoundVerse = GetNextVerseLine(sourceTextMd5Arr, sourceTextIndex, TRUE);
+				wxASSERT(sourceTextIndex != wxNOT_FOUND && bFoundVerse == TRUE);
+				sourceTextEnd = sourceTextIndex - 1;
+			}
+			// This one, for the fromEditor indices
+			if (bIsFromEditorVerseLine || bIsFromEditorChapterLine)
+			{
+				fromEditorIndex = fromEditorStart;
+				fromEditorEnd = fromEditorStart;
+			}
+			else
+			{
+				// Index 0 is not a verse or chapter line, so find where the next
+				// verse or chapter line is
+				fromEditorIndex = fromEditorStart + 1;
+				bFoundVerse = GetNextVerseLine(fromEditorMd5Arr, fromEditorIndex, TRUE);
+				wxASSERT(fromEditorIndex != wxNOT_FOUND && bFoundVerse == TRUE);
+				fromEditorEnd = fromEditorIndex - 1;
+			}
+
+			// Did we just get to a \c line?
+			if (IsChapterLine(postEditMd5Arr, postEditIndex, chapNumStr))
+			{
+				// Set m_Collab_LastChapterStr on the app, the Conflict Resolution dlg will
+				// make use of this, for the chapter part of the constructed reference
+				gpApp->m_Collab_LastChapterStr = chapNumStr;
+				pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
+			}
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+			wxLogDebug(_T("Nothing is before \v 1, so nothing to transfer yet; postEdit indices [%d,%d] Substring: %s"),
+				postEditStart, postEditEnd, emptyStr.c_str());
+#endif
+		} // end of TRUE block for test: if (bIsPostEditVerseLine)
+		else
+		{
+			// There are other markers preceding the first \v, get them transferred to PT
+			// or BE unilaterally
+			// In this block we don't have the param bOrTestForChapterLine set TRUE in
+			// the GetNextVerseLine() because here we really are looking just for a \v line
+			postEditIndex = postEditStart + 1; // index passed into GetNextVerse() must be for
+					// the first line line which potentially may be a verse line, so add 1 to 
+					// postEditStart's 0 value. If a verse is found, TRUE is returned in the
+					// following call, and the signature returns the index to the verse's line
+			bFoundVerse = GetNextVerseLine(postEditMd5Arr, postEditIndex);
+			// We are collaborating with a scripture edit, and USFM scripture must have verse 
+			// markers, so -1 should never be returned - check
+			wxASSERT(postEditIndex != wxNOT_FOUND && bFoundVerse == TRUE);
+			// The end of the chunk is the index of whatever marker immediately precedes the
+			// verse marker that was found
+			postEditEnd = postEditIndex - 1;
+			// The indices are not indices to verses, since the postEditOffsetsArr array
+			// stores the indices to all markers, typically only some are verse ones,
+			// so to extract the text we have to aggregate maps of offsets to the start and
+			// end of each marker's text content, for later use by Extract Substring()
+			MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+			MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+			substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+						pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+			pAction->bIsPreVerseOne = TRUE;
+			pAction->preVerseOneText = substring;
+
+			// We've used up that CollabAction struct, so create another for the verse 1
+			// data to be processed further below
+			pAction = new CollabAction;
+			SetCollabActionDefaults(pAction);
+			collabActionsArr.Add(pAction);
+			pAction->bookCode = gpApp->m_Collab_BookCode;
+			pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
+
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+			wxLogDebug(_T("PRE-\\v 1 Material: postEdit start & end indices [%d,%d], mapped to [%d,%d], Substring: %s"),
+				postEditStart, postEditEnd, pPostEditArr_StartMap->startOffset,
+				pPostEditArr_LastMap->endOffset, substring.c_str());
+#endif
+			// Do the same settings operations for the pre-edit indices; we don't
+			// extract any of this stuff since the user's edits will have changed
+			// it and some markers may have been filtered. We only need to keep
+			// the preEditIndex in a matched location c.f. postEditIndex
+			if (IsVerseLine(preEditMd5Arr, preEditStart))
+			{
+				preEditIndex = preEditStart;
+				preEditEnd = preEditStart;
+			}
+			else
+			{
+				// Index 0 is not a verse line, so find where the next verse line is
+				preEditIndex = preEditStart + 1;
+				bFoundVerse = GetNextVerseLine(preEditMd5Arr, preEditIndex);
+				wxASSERT(preEditIndex != wxNOT_FOUND && bFoundVerse == TRUE);
+				preEditEnd = preEditIndex - 1;
+			}
+			// And for sourceText verse line
+			if (IsVerseLine(sourceTextMd5Arr, sourceTextStart))
+			{
+				sourceTextIndex = sourceTextStart;
+				sourceTextEnd = sourceTextStart;
+			}
+			else
+			{
+				// Index 0 is not a verse line, so find where the next verse line is
+				sourceTextIndex = sourceTextStart + 1;
+				bFoundVerse = GetNextVerseLine(sourceTextMd5Arr, sourceTextIndex);
+				wxASSERT(sourceTextIndex != wxNOT_FOUND && bFoundVerse == TRUE);
+				sourceTextEnd = sourceTextIndex - 1;
+			}
+			// Finally, do it for the fromEditor indices; we don't extract any text
+			// so delimited, because it is a 'chunk' to be overwritten by whatever
+			// is in the preEdit initial chunk. (This unilateral chunk overwrite may
+			// mean that 'nothing' from the AI document chunk overwrites 'something'
+			// in the matching 'fromEditor' chunk. So be it.) Our purpose here is
+			// therefore to get fromEditorIndex in the matching location to where
+			// postEditIndex is, but in the from Paratext (or from Bibledit) text,
+			// prior to the scanning loop which begins further below
+			if (IsVerseLine(fromEditorMd5Arr, fromEditorStart))
+			{
+				fromEditorIndex = fromEditorStart;
+				fromEditorEnd = fromEditorStart;
+			}
+			else
+			{
+				// Index 0 is not a verse line, so find where the next verse line is
+				fromEditorIndex = fromEditorStart + 1;
+				bFoundVerse = GetNextVerseLine(fromEditorMd5Arr, fromEditorIndex);
+				wxASSERT(fromEditorIndex != wxNOT_FOUND && bFoundVerse == TRUE);
+				fromEditorEnd = fromEditorIndex - 1;
+			}
+			// Set the indices for where to start from next, for preEdit, postEdit and 
+			// fromEditor text; the scanning loop needs correct indices for when it commences
+
+			// Using wxNOT_FOUND will cause a crash if my logic is faulty below, but
+			// provided the code for determining chunk or verse end locations works
+			// right, it will compute the correct xxx...End index values before they
+			// have to be used
+			postEditStart = postEditIndex; // the \v 1 md5 line in postEditMd5Arr
+			postEditEnd = wxNOT_FOUND;
+
+			preEditStart = preEditIndex; // the \v 1 md5 line in preEditMd5Arr
+			preEditEnd = wxNOT_FOUND; // we don't use it, but no harm in doing this
+
+			fromEditorStart = fromEditorIndex; // the \v 1 md5 line in fromEditorMd5Arr
+			fromEditorEnd = wxNOT_FOUND;
+
+			sourceTextStart = sourceTextIndex; // the \v 1 md5 line in sourceTextMd5Arr
+			sourceTextEnd = wxNOT_FOUND;
+		} // end of else block for test: if (bIsPostEditVerseLine || bIsPostEditChapterLine)
+
+		// legacy LOOP's start was moved up from here... on 10Jul15
+
+        // At iteration of the loop, we expect the ...Start indices to be pointing at
+        // 'verse' md5 lines in their respective arrays, or a 'chapter' line. Make sure. We
+        // are treating a chapter line (one with \c ) also as a 'verse' md5 line so the
+        // following asserts have to handle \c too
+		wxASSERT(IsVerseLine(preEditMd5Arr, preEditStart) || 
+					IsChapterLine(preEditMd5Arr, preEditStart, chapNumStr));
+		wxASSERT(IsVerseLine(postEditMd5Arr, postEditStart) || 
+					IsChapterLine(postEditMd5Arr, postEditStart, chapNumStr));
+		wxASSERT(IsVerseLine(fromEditorMd5Arr, fromEditorStart) || 
+					IsChapterLine(fromEditorMd5Arr, fromEditorStart, chapNumStr));
 
 		// To delimit the verse chunks that we need to inspect and transfer, or not
 		// transfer if there have been no structure or text changes, find the next md5
@@ -7154,93 +8349,370 @@ wxString GetUpdatedText_UsfmsChanged(
 		postEditIndex = postEditStart; // initialize postEditIndex
 		preEditIndex = preEditStart; // initialize preEditIndex
 		fromEditorIndex = fromEditorStart; // initialize postEditIndex
+		sourceTextIndex = sourceTextStart;
 
 		// Test for matched md5 verse lines - matching the verse information if possible
 		// (ignoring the md5sums for this test)
 		postEditMd5Line = postEditMd5Arr.Item(postEditStart);
 		fromEditorMd5Line = fromEditorMd5Arr.Item(fromEditorStart);
 		preEditMd5Line = preEditMd5Arr.Item(preEditStart); // BEW added 22Jun15
+		sourceTextMd5Line = sourceTextMd5Arr.Item(sourceTextStart); // BEW added 10Jul15
+
 		postEditVerseNumStr = GetNumberFromChapterOrVerseStr(postEditMd5Line);
 		fromEditorVerseNumStr = GetNumberFromChapterOrVerseStr(fromEditorMd5Line);
 		preEditVerseNumStr = GetNumberFromChapterOrVerseStr(preEditMd5Line);
+		sourceTextVerseNumStr = GetNumberFromChapterOrVerseStr(sourceTextMd5Line);
+
+		// If we came to a \c line, store the new chapter number
+		if (IsChapterLine(postEditMd5Arr, postEditStart, chapNumStr))
+		{
+			// pAction already has bookCode set
+			gpApp->m_Collab_LastChapterStr = chapNumStr; // for subsequent verses to use
+			pAction->chapter_ref = chapNumStr;
+		}
+		// If we came to a \v line, store the new verse number in the CollabAction struct
+		if (IsVerseLine(postEditMd5Arr, postEditStart))
+		{
+			pAction->verse_ref = postEditVerseNumStr;
+			pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
+		}
+
 		// BEW 22Jun15 Note: Adapt It will not allow filtering out of verses, so even
 		// if filtering is done in the work session, the Adapt It chapter's or books's
 		// verses are retained - but bridging or unbridging is allowed, and catered for
 		if (postEditVerseNumStr == fromEditorVerseNumStr
-			&& postEditVerseNumStr == preEditVerseNumStr)
+			&& postEditVerseNumStr == preEditVerseNumStr
+			&& postEditVerseNumStr == sourceTextVerseNumStr)
 		{
-			// Matched verse strings, or matched verse bridges, or matched part verses -
-			// whichever is the case, we test for structure or text changes, and then
-			// either transfer the AI information, or retain the PT or BE information, as
-			// the case may be. First we must find where the verse material ends before we
-			// can do any transferring etc. We may also be a the last verse of the
-			// chapter, in which case the "next" verse line does not exist - so take this
-			// possibility into account too. The next call makes the tests needed, and
-			// also updates the indices giving us the chunk ends in the last 3 params
-			bStructureOrTextHasChanged = HasInfoChanged(preEditStart, postEditStart,
-				fromEditorStart, preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
-				preEditEnd, postEditEnd, fromEditorEnd, postEditOffsetsArr, fromEditorOffsetsArr,
-				pPostEditBuffer, pPostEditEnd, pFromEditorBuffer, pFromEditorEnd);
-#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-			wxString val = bStructureOrTextHasChanged ? _T("TRUE") : _T("FALSE");
-		wxLogDebug(_T("HasInfoChanged() returned %s  at verses matching for value = %s"),
-			val.c_str(), postEditVerseNumStr.c_str());
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+		wxString msg = _T("Synced Verses or Chapter? postEditVerseNumStr: %s  preEditVerseNumStr: %s  fromEditorVerseNumStr: %s  sourceText: %s");
+		msg = msg.Format(msg, postEditVerseNumStr.c_str(), preEditVerseNumStr.c_str(),
+					fromEditorVerseNumStr.c_str(), sourceTextVerseNumStr.c_str());
+		wxLogDebug(msg);
 #endif
+
+            // Matched verse or chapter strings, or matched verse bridges, or matched part
+            // verses - whichever is the case, we test for structure or text changes, and
+            // then either transfer the AI information, or retain the PT or BE information,
+            // as the case may be. First we must find where the verse material ends before
+            // we can do any transferring etc. We may also be a the last verse of the
+            // chapter, in which case the "next" verse line does not exist - so take this
+            // possibility into account too. The next call makes the tests needed, and also
+            // updates the indices giving us the chunk ends in the last 3 params
+
+			// BEW 10July15 and refactored again on 20Jul15, added next lines, so that 
+			// "empty verse" tests succeeding can be used for AI verse content or PT/BE
+			// verse content, like in GetUpdatedText_UsfmsUnchanged(); if we arrive at
+			// next chapter's \c md5 line, we treat that as the same as arriving at the
+			// next verse line, in that scanning forward halts because the scan index has
+			// moved beyond the verse or chunk's end
+
+			// So far, postEditEnd, preEditEnd, fromEditorEnd and sourceTextEnd are
+			// unset (all are -1) so use GetNextVerseLine() for each, with the bool
+			// param, bOrTestForShapterLine set TRUE, so it will halt at \c if
+			// encountered. The code is now in EndOfVerse() for convenience
+			postEditEnd = EndOfVerse(postEditMd5Arr, postEditStart);
+			preEditEnd = EndOfVerse(preEditMd5Arr, preEditStart);
+			fromEditorEnd = EndOfVerse(fromEditorMd5Arr, fromEditorStart);
+			sourceTextEnd = EndOfVerse(sourceTextMd5Arr, sourceTextStart);
+			// Test for emptiness
+			bool bPTorBE_verse_is_empty = IsThisChunkEmpty(fromEditorMd5Arr, fromEditorStart, fromEditorEnd);
+			bool bAI_verse_is_empty = IsThisChunkEmpty(postEditMd5Arr, postEditStart, postEditEnd);
+			if (bPTorBE_verse_is_empty && !bAI_verse_is_empty)
+			{
+				// The PT or BE external editor has no content for this verse, or at least
+				// for the first USFM in the verse (which is the \v marker) and the
+				// adaptation (or free translation if that is being transferred) in
+				// Adapt It has text content for the verse. In this scenario we
+				// unilaterally transfer the AI version to PT or BE
+				bStructureOrTextHasChanged = TRUE;
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+					wxString msg = _T("bPTorBE_verse_empty block: fromEditorStart %d  ,  fromEditorEnd %d  , fromEditorMd5Arr count %d  start: %s  end: %s");
+					msg = msg.Format(msg, fromEditorStart, fromEditorEnd, fromEditorMd5Arr.GetCount(),
+						fromEditorMd5Arr.Item(fromEditorStart).c_str(), fromEditorMd5Arr.Item(fromEditorEnd).c_str());
+					wxLogDebug(msg);
+#endif
+			}
+			else if (bAI_verse_is_empty)
+			{
+				// We  have this block because we want the user to be able to establish a
+				// collaboration with a drafted book, and be able to selectively edit some
+				// verses of some chapters within it, knowing that any of the verses he's 
+				// left untranslated (ie. target text empty for them) in the AI document, 
+				// are not going to wipe out the contents of those verses in the PT or BE 
+				// equivalent chapter(s). 
+				bStructureOrTextHasChanged = FALSE; // triggers retaining the PT version
+
+				// debug code, for running in Release mode (to cancel out, a CTRL ALT DEL and kill process is required)
+				if (postEditIndex > 1100)
+				{
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+					wxString msg = _T("bAI_verse_empty block: postEditStart %d  ,  postEditEnd %d  , postEditMd5Arr count %d  start: %s  end: %s");
+					msg = msg.Format(msg, postEditStart, postEditEnd, postEditMd5Arr.GetCount(),
+						postEditMd5Arr.Item(postEditStart).c_str(), postEditMd5Arr.Item(postEditEnd).c_str());
+					wxLogDebug(msg);
+#endif
+				}
+			}
+			else
+			{
+				// In other circumstances, careful testing is required...; the function
+				// HasInfoChanged() also calculates the ....End index values for the last 
+				// md5 line of the verse, for all four arrays -- strictly speaking it no
+				// longer needs to (as of 10Jul15) because these are calculated above
+				// and have not changed, but the above calls are part of the refactoring
+				// and earlier on HasInfoChanged() needed to do the calculations in it, so
+				// I'll just let it keep doing so, as it wastes very little time
+				// BEW 10Jul15, bTheTwoTextsDiffer will be returned TRUE if the fromEditor
+				// and proEdit texts differ, & that may be a conflict situation; if it's
+				// TRUE the test for it is done only when no other "something has changed"
+				// battery of tests has failed to find anything different - so the function
+				// return is FALSE when  bTheTwoTextsDiffer is TRUE. When the function
+				// return is TRUE, the AI version of the verse is obligatorily transferred
+				// to PT or BE, as that is not considered a conflict.
+				// When there is a conflict we want to support 3 levels of conflict
+				// resolution: legacy way (keep PTorBE verse unchanged, force AI
+				// verse or chunk transfer, show the conflicting data in a dialog for the 
+				// user to make his choice for each conflict)
+				bTheTwoTextsDiffer = FALSE;
+				bStructureOrTextHasChanged = HasInfoChanged(preEditStart, postEditStart,
+					fromEditorStart, sourceTextStart, preEditMd5Arr, postEditMd5Arr,
+					fromEditorMd5Arr, sourceTextMd5Arr, preEditEnd, postEditEnd, 
+					fromEditorEnd, sourceTextEnd, bTheTwoTextsDiffer);
+
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+				wxString val = bStructureOrTextHasChanged ? _T("TRUE") : _T("FALSE");
+				wxLogDebug(_T("HasInfoChanged() returned %s  , At matching verse: %s"),
+				val.c_str(), postEditVerseNumStr.c_str());
+#endif
+			} // end of else block for test: else if (bAI_verse_is_empty)
+
 			if (bStructureOrTextHasChanged)
 			{
-				// The AI data for this verse has been changed - either the text or the
-				// USFM structure, so this requires the AI data overwrite the PT contents
-				// for this verse
+				// The AI data for this verse has been changed so it must be transferred to PT or BE
+				pAction->bUserEditsDetected = TRUE; // not necessary semantically true, but it
+				// forces the transfer of the AI verse version
 				MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
 				MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
 				substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
-							pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
-				newText += substring;
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-				wxLogDebug(_T("LOOP, AI verse %s overwrites PT, postEdit indices [%d,%d] Substring: %s"),
+					pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+				pAction->AI_verse_version = substring;
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG) 
+				wxLogDebug(_T("bStructureOrTextHasChanged == TRUE: AI verse %s overwrites PT, postEdit indices [%d,%d] Substring: %s"),
 					postEditVerseNumStr.c_str(), postEditStart, postEditEnd, substring.c_str());
 #endif
 			} // end of TRUE block for test: if (bStructureOrTextHasChanged)
 			else
 			{
-				// The AI data for this verse has not been changed - neither the text nor the
-				// USFM structure, so this requires the PT data for this verse be retained
+				// Check for a conflict situation
+				if (bTheTwoTextsDiffer && !bAI_verse_is_empty && !bPTorBE_verse_is_empty)
+				{
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+				MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+				MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+				wxString substring3 = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+					pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
 				MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorStart);
 				MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorEnd);
-				substring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
-							pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
-				newText += substring;
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-				wxLogDebug(_T("LOOP, PT verse %s is retained, fromEditor indices [%d,%d] Substring: %s"),
-					fromEditorVerseNumStr.c_str(), fromEditorStart, fromEditorEnd, substring.c_str());
+				wxString substring2 = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
+					pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
+				wxLogDebug(_T("FIRST DETECTION bTheTwoTextsDiffer == TRUE: AI verse: %s <> PT verse %s, postEdit indices [%d,%d]"),
+				substring3.c_str(), substring2.c_str(), postEditStart, postEditEnd);
 #endif
+					// It's a conflict scenario, so let the user decide what to do....
+					// All three app variables must be false in order to get the
+					// ConflictResolutionActionFunc dialog open; and once it closes,
+					// one of the three variables will be TRUE, which will prevent
+					// a second opening of this dialog in this document's
+					// generation of the text to send to PT or BE
+					if (!gpApp->m_bRetainPTorBEversion && !gpApp->m_bForceAIversion &&
+						!gpApp->m_bUseConflictResolutionDlg)
+					{
+						// Ask for the user's choice of action
+						gpApp->LogUserAction(_T("Showing CConflictResActionDlg()"));
+						CConflictResActionDlg dlg(gpApp->GetMainFrame());
+						dlg.Centre();
+						if (dlg.ShowModal() == wxID_OK)
+						{
+							// Get the user's choice of conflict resolution protocol
+							gpApp->m_bRetainPTorBEversion = dlg.m_bLegacy_retain_PTorBE_version;
+							gpApp->m_bForceAIversion = dlg.m_bForce_AI_version_transfer;
+							gpApp->m_bUseConflictResolutionDlg = dlg.m_bUserWantsVisualConflictResolution;
+						}
+						else
+						{
+							// Set the legacy choice -- resolve in favour of
+							// keeping PT or BE version of the conflicted verses
+							gpApp->m_bRetainPTorBEversion = TRUE;
+							gpApp->m_bForceAIversion = FALSE;
+							gpApp->m_bUseConflictResolutionDlg = FALSE;
+						}
+					}
+					// Act according to the user's choice (a Cancel chooses the
+					// legacy protocol)
+					// The secondary loop later to build newText must not have any
+					// of these 3 app global booleans within it, because whichever
+					// was in effect would do its work from the start of that loop,
+					// when here in general the conflict dialog just exited will 
+					// have come up part way though the document processing. So
+					// our approach has to be to use whichever of these was
+					// chosen, and have the code simulate a state of affairs which
+					// did not actually happen. E.g. if the user chose to Force the
+					// AI version, then we would set bUserEditsDetected to TRUE
+					// even though it's actually FALSE, and store the AI version
+					// in AI_verse_version wxString, so that the later processing
+					// loop will do the wanted transfer of the AI verse version.
+					if (gpApp->m_bRetainPTorBEversion ||
+						gpApp->m_bForceAIversion ||
+						gpApp->m_bUseConflictResolutionDlg)
+					{
+						// Process whichever is the case, right here and now;
+						// and for the else block, continue the legacy protocols
+						if (gpApp->m_bRetainPTorBEversion)
+						{
+							pAction->bAI_verse_empty = TRUE; // causes transfer of PTorBE version
+							MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorStart);
+							MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorEnd);
+							substring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
+								pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
+							pAction->PTorBE_verse_version = substring;
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+							// debug code
+							wxString msg = _T("Conflict: Retain PT: fromEditorStart %d  ,  fromEditorEnd %d  , count %d  substring: %s");
+							msg = msg.Format(msg, fromEditorStart, fromEditorEnd, fromEditorOffsetsArr.GetCount(), substring.c_str());
+							wxLogDebug(msg);
+#endif
+						}
+						else if (gpApp->m_bForceAIversion)
+						{
+							pAction->bUserEditsDetected = TRUE; // causes transfer of AI version
+							MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+							MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+							substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+								pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+							pAction->AI_verse_version = substring;
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+							// debug code
+							wxString msg = _T("Conflict: Forcing AI: postEditStart %d  ,  postEditEnd %d  , count %d  substring: %s");
+							msg = msg.Format(msg, postEditStart, postEditEnd, postEditOffsetsArr.GetCount(), substring.c_str());
+							wxLogDebug(msg);
+#endif
+						}
+						else
+						{
+							// The user must have chosen the low radio button, wanting
+							// to see the conflicting verses side-by-side and manually choose
+							wxASSERT(gpApp->m_bUseConflictResolutionDlg); // verify our assumption
+							pAction->bConflictedVerses = TRUE; // gets confl res dlg open later
+							// In the conflict resolution dialog, the user will make
+							// his choice for each conflict, later, not here; so 
+							// just provide the data for him to make the choice.
+							// pAction has to be given both versions of the verse, so that
+							// the conflict resolution dialog can display them, and also
+							// the original source text verse's text for comparing with
+							// First PTorBE version
+							MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorStart);
+							MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorEnd);
+							substring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
+								pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
+							pAction->PTorBE_verse_version = substring;
+							//Second AI version
+							MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+							MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+							substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+								pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+							pAction->AI_verse_version = substring;
+							// Third, the sourceText original verse text
+							MD5Map* pSourceTextArr_StartMap = (MD5Map*)sourceTextOffsetsArr.Item(sourceTextStart);
+							MD5Map* pSourceTextArr_LastMap = (MD5Map*)sourceTextOffsetsArr.Item(sourceTextEnd);
+							substring = ExtractSubstring(pSourceTextBuffer, pSourceTextEnd,
+								pSourceTextArr_StartMap->startOffset, pSourceTextArr_LastMap->endOffset);
+							pAction->sourceText = substring;
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+							// debug code
+							wxString msg = _T("Conflict: Eyeball it: postEditVerseNumStr: %s  , postEdit: %s  , fromEditor: %s  , sourceT: %s");
+							msg = msg.Format(msg, postEditVerseNumStr.c_str(), pAction->AI_verse_version.c_str(),
+								pAction->PTorBE_verse_version.c_str(), pAction->sourceText.c_str());
+							wxLogDebug(msg);
+#endif
+						} // end of else block for test: else if (gpApp->m_bForceAIversion)
+
+					} // end of TRUE block for test:
+					  // if (gpApp->m_bRetainPTorBEversion || gpApp->m_bForceAIversion ||
+					  //gpApp->m_bUseConflictResolutionDlg)
+				} // end of TRUE block for test: if (bTheTwoTextsDiffer)
+				else
+				{
+					// The AI data for this verse has not been changed - neither the text nor the
+					// USFM structure, so this requires the PT data for this verse be retained
+					pAction->bAI_verse_empty = TRUE;  // not necessary semantically true, but it
+					// forces the transfer of the PT or BE verse version
+					MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorStart);
+					MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorEnd);
+					substring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
+						pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
+					pAction->PTorBE_verse_version = substring;
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG) 
+					wxLogDebug(_T("No changes: keep PT verse %s  , fromEditor indices [%d,%d] Substring: %s"),
+						fromEditorVerseNumStr.c_str(), fromEditorStart, fromEditorEnd, substring.c_str());
+#endif
+				} // end of else block for test: if (bTheTwoTextsDiffer)
+
 			} // end of else block for test: if (bStructureOrTextHasChanged)
 		} // end of TRUE block for test: if (postEditVerseNumStr == fromEditorVerseNumStr
-		  //                                 && postEditVerseNumStr == preEditVerseNumStr)
+		  //                                 && postEditVerseNumStr == preEditVerseNumStr
+		  //								 && postEditVerseNumStr == sourceTextVerseNumStr)
 		else
 		{
-            // Both compared verse string pairs are not each a match, or we've come to the
-            // document's end with the returned postEditEnd and fromEditorEnd values not set,
-            // returning FALSE. Delineate the matched wrapping chunks which will subsume their
-            // differences within them. When we do this, we assume that the AI data is to
-            // be retained, at the expense of whatever the PT chunk holds.
+			// Control enters here when the verse numberings after a verse which matches
+			// in all four texts are no longer matched, because of a usfm structural change
+
+			// Both compared verse string pairs are not each a match, or we've come to the
+			// document's end with the returned postEditEnd and fromEditorEnd values not set,
+			// returning FALSE. Delineate the matched wrapping chunks which will subsume their
+			// differences within them. When we do this, we assume that the AI data is to
+			// be retained, at the expense of whatever the PT chunk holds.
 			// BEW 22Jun15, because we now support filtering, we have to maintain the
 			// match of preEditIndex to whatever postEditIndex might become - so the next
 			// function needs to include preEditStart, preEditMd5Arr, and preEditEnd in
 			// its signature
 			bOK = GetMatchedChunksUsingVerseInfArrays(postEditStart, fromEditorStart, preEditStart,
-			postEditMd5Arr, fromEditorMd5Arr, preEditMd5Arr, postEditEnd, fromEditorEnd, preEditEnd);
+						sourceTextStart, postEditMd5Arr, fromEditorMd5Arr, preEditMd5Arr, 
+						sourceTextMd5Arr, postEditEnd, fromEditorEnd, preEditEnd, sourceTextEnd);
+
+			// Setup the bookCode, chapter string and start of chunk's verse string, no matter whether
+			// TRUE or FALSE was returned; bookCode and chapter_ref strings should already have been
+			// set - only the verse at start of this chunk is now wanted
+			wxString aLine;
+			wxString aVerseNum;
+			wxASSERT(IsVerseLine(postEditMd5Arr, postEditStart));
+			aLine = postEditMd5Arr.Item(postEditStart);
+			aVerseNum = GetNumberFromChapterOrVerseStr(aLine);
+			pAction->verse_ref = aVerseNum;
+
 			if (bOK)
 			{
 				// Do the transfer of AI data to PT or BE, overwriting the external editor's
 				// material for the verse(s) chunk delimited by the above call
+				pAction->bUserEditsDetected = TRUE; // forces AI version to be transferred
 				MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
 				MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
 				substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
 							pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
-				newText += substring;
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-				wxLogDebug(_T("LOOP, MISMATCH function: AI chunk overwrites PT, postEdit [%d,%d]  fromEditor [%d,%d] Substring: %s"),
+				pAction->AI_verse_version = substring;
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+				wxLogDebug(_T("CHUNK MATCH: AI chunk overwrites PT, postEdit [%d,%d]  fromEditor [%d,%d] Substring: %s"),
 					postEditStart, postEditEnd, fromEditorStart, fromEditorEnd, substring.c_str());
 #endif
 			}
@@ -7257,31 +8729,36 @@ wxString GetUpdatedText_UsfmsChanged(
 
 				// Do the transfer of AI data to PT or BE, overwriting the external editor's
 				// material for the verse(s) chunk delimited by the above call
+				pAction->bUserEditsDetected = TRUE; // forces AI verse version to be transferred
 				MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
 				MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
 				substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
 							pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
-				newText += substring;
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-				wxLogDebug(_T("LOOP, MISMATCH function FALSE returned: AI chunk overwrites PT, postEdit [%d,%d]  fromEditor [%d,%d] Substring: %s"),
+				pAction->AI_verse_version = substring;
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+				wxLogDebug(_T("CHUNK TO END: AI chunk overwrites PT, postEdit [%d,%d]  fromEditor [%d,%d] Substring: %s"),
 					postEditStart, postEditEnd, fromEditorStart, fromEditorEnd, substring.c_str());
 #endif
 				break; // since we've just done the last extraction, don't iterate because
-				       // if we do, the three wxASSERT() calls at loop top will trip
-				       // in the debug build
+						// if we do, the three wxASSERT() calls at loop top will trip
+						// in the debug build
 			}
-		} // end of else block for test: if (postEditVerseNumStr == fromEditorVerseNumStr)
+		} // end of TRUE block for test: if (postEditVerseNumStr == fromEditorVerseNumStr
+		  //                                 && postEditVerseNumStr == preEditVerseNumStr)
 
-        // Advance indices ready for iteration of loop line - it's the preEditStart,
-        // postEditStart and fromEditorStart ones which are vital to get right;
-        // even if the others are set wrong here, the top of the loop will set
-        // correct values
+		// Advance indices ready for iteration of loop line - it's the preEditStart,
+		// postEditStart, fromEditorStart and sourceTextStart ones which are vital to get
+		// right; even if the others are set wrong here, the top of the loop will set
+		// correct values once the functions for finding the verse or chunk ends are called
 		postEditStart = ++postEditEnd;
-		postEditEnd = wxNOT_FOUND; // no longer needed in this iteraton
+		postEditEnd = wxNOT_FOUND;        // gets reset within the new iteraton
 		preEditStart = ++preEditEnd;
-		preEditEnd = wxNOT_FOUND;  // no longer needed in this iteraton
+		preEditEnd = wxNOT_FOUND;         // gets reset within the new iteraton
 		fromEditorStart = ++fromEditorEnd;
-		fromEditorEnd = wxNOT_FOUND;  // no longer needed in this iteraton
+		fromEditorEnd = wxNOT_FOUND;      // gets reset within the new iteraton
+		sourceTextStart = ++sourceTextEnd;
+		sourceTextEnd = wxNOT_FOUND;      // gets reset within the new iteraton
 
 		// next 3 are not required, but safe to do - since this is done at loop top anyway
 		postEditIndex = postEditStart;
@@ -7289,7 +8766,302 @@ wxString GetUpdatedText_UsfmsChanged(
 		fromEditorIndex = fromEditorStart;
 
 	} // end of while loop
+
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+	wxLogDebug(_T("STRUCT POPULATING LOOP HAS ENDED: num structs: %d"), structsCount);
+#endif
+	int structsCount = (int)collabActionsArr.GetCount();
+	int i;
+
+#if defined(_DEBUG) && defined(JUL15)
+	// log the CollabAction structs' contents
+	{ // start a limiting scope
+		if (gpApp->m_bUseConflictResolutionDlg)
+		{
+			CollabAction* pAction = NULL;
+			int i;
+			for (i=0; i< structsCount; i++)
+			{
+				// log what we got, check chapter and verse and bookCode are set right, etc
+				pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
+				wxLogDebug(_T("CollabAction struct: index %d ; bookCode:  %s  , Chapter:  %s  , Verse:  %s  , bConflictedVerse = %s\npostEditText:  %s\nfromEditorText:  %s"),
+					i, pAction->bookCode.c_str(), pAction->chapter_ref.c_str(), pAction->verse_ref.c_str(),
+					pAction->bConflictedVerses ? _T("TRUE") : _T("FALSE"), 
+					pAction->bConflictedVerses ? pAction->AI_verse_version.c_str() : _T("AI no conflict"),
+					pAction->bConflictedVerses ? pAction->PTorBE_verse_version.c_str() : _T("PT no conflict"));
+			}
+		}
+	} // end the limiting scope
+#endif
+
+	// Add the handling for the CollabAction structs - it's the same code as in
+	// GetUpdatedText_UsfmsUnchanged()
+	wxArrayPtrVoid conflictsArr; // stores ConflictRes struct pointers
+	CollectConflicts(collabActionsArr, conflictsArr);
+
+	// show conflict res dlg here if needed & the user requested it, and fill
+	// out the booleans in the structs based on the users choice
+	if (gpApp->m_bUseConflictResolutionDlg)
+	{
+		// Get the conflicted verse CollabAction structs fully fleshed out with the
+		// user's choice for each conflicted verse pair of versions; the structs
+		// to use for this are the ones with bConflictedVerses set TRUE; these
+		// are revamped as ConflictRes structs and are stored in conflictsArr
+		CCollabVerseConflictDlg confDlg(gpApp->GetMainFrame(), &conflictsArr);
+		confDlg.Centre();
+		if (confDlg.ShowModal() == wxID_OK)
+		{
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG)
+		// wxLogDebugging will be helpful here, to verify results are as expected
+		{ // start a limiting scope
+			ConflictRes* pCR = NULL;
+			int count = (int)conflictsArr.GetCount();
+			int i;
+			for (i=0; i < count; i++)
+			{
+				pCR = (ConflictRes*)conflictsArr.Item((size_t)i);
+				wxLogDebug(_T("ConflictRes struct: conflictsArr index: %d ; bUserWantsAIverse %d ; bookCode:  %s  ; Chapter:  %s  ; Verse:  %s   AIText = %s   PT original:  %s   PT edited:  %s"),
+					i, (int)pCR->bUserWantsAIverse, pCR->bookCodeStr.c_str(), pCR->chapterRefStr.c_str(), pCR->verseRefStr.c_str(),
+					pCR->AIText.c_str(), 
+					pCR->PTorBEText_original.c_str(),
+					pCR->PTorBEText_edited.c_str());
+			}
+		}
+#endif	
+			MeldConflictResolutionsBackIntoActionsArray(collabActionsArr, conflictsArr);
+		}
+		else
+		{
+			// User cancelled from the dialog - reverts to legacy "keep PT or BE version"
+			MeldConflictsUserCancelBackIntoActionsArray(collabActionsArr, conflictsArr);
+		}
+	}
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+	wxLogDebug(_T("\nnewText LOOP STARTS\n"));
+#endif
+
+	// Now the loop which builds newText based on what is in the structs
+	// The debug logging here was invaluable, don't delete it
+	for (i = 0; i< structsCount; i++)
+	{
+		pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
+		wxASSERT(pAction != NULL);
+		if (pAction->bIsPreVerseOne)
+		{
+			newText += pAction->preVerseOneText;
+			#if defined(_DEBUG) && defined(JUL15)
+				wxLogDebug(_T("..UsfmsChanged() sending:  %s"), pAction->preVerseOneText.c_str());
+			#endif
+		}
+		else if (pAction->bPTorBE_verse_empty)
+		{
+			newText += pAction->AI_verse_version;
+			#if defined(_DEBUG) && defined(JUL15)
+				wxLogDebug(_T("..UsfmsChanged() sending:  %s"), pAction->AI_verse_version.c_str());
+			#endif
+		}
+		else if (pAction->bAI_verse_empty)
+		{
+			newText += pAction->PTorBE_verse_version;
+			#if defined(_DEBUG) && defined(JUL15)
+				wxLogDebug(_T("..UsfmsChanged() sending:  %s"), pAction->PTorBE_verse_version.c_str());
+			#endif
+		}
+		else if (pAction->bUserEditsDetected)
+		{
+			newText += pAction->AI_verse_version;
+			#if defined(_DEBUG) && defined(JUL15)
+				wxLogDebug(_T("..UsfmsChanged() sending:  %s"), pAction->AI_verse_version.c_str());
+			#endif
+		}
+	}
+
+	// Tidy up (unneeded, but a good idea)
+	gpApp->m_bRetainPTorBEversion = FALSE;
+	gpApp->m_bForceAIversion = FALSE;
+	gpApp->m_bUseConflictResolutionDlg = FALSE;
+
+	// destroy the ConflictRes structs
+	DestroyConflictResStructs(conflictsArr);
+
+	// destroy the CollabAction structs
+	for (i = 0; i< structsCount; i++)
+	{
+		pAction = (CollabAction*)collabActionsArr.Item((size_t)i);
+		delete pAction; // internal strings are automatically freed
+	}
+
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG)
+	wxLogDebug(_T("\nnewText: ..UsfmsChanged:   %s\n"), newText.c_str());
+#endif
+
+	// temporary - while in development stage for conflict resolution
+	//wxMessageBox(_T("Stop now - halt run in IDE"), _T("Stop!"), wxICON_WARNING | wxOK);
+
 	return newText;
+}
+
+void MeldConflictResolutionsBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
+												wxArrayPtrVoid& conflictsArr)
+{
+	if (collabActionsArr.IsEmpty())
+	{
+		gpApp->LogUserAction(_T("MeldConflictResolutionsBackIntoActionsArray(): collabActionsArr was empty"));
+		return;
+	}
+	if (conflictsArr.IsEmpty())
+	{
+		gpApp->LogUserAction(_T("MeldConflictResolutionsBackIntoActionsArray(): conflictsArr was empty"));
+		return;
+	}
+	unsigned int conflictsCount = (unsigned int)conflictsArr.GetCount();
+	unsigned int actionsIndex;
+	unsigned int conflictsIndex;
+	CollabAction* pAction = NULL;
+	ConflictRes* pCR = NULL;
+	for (conflictsIndex = 0; conflictsIndex < conflictsCount; conflictsIndex++)
+	{
+		pCR = (ConflictRes*)conflictsArr.Item(conflictsIndex);
+		actionsIndex = pCR->collabActionsArrIndex;
+		pAction = (CollabAction*)collabActionsArr.Item(actionsIndex); // update this one
+		if (pCR->bUserWantsAIverse)
+		{
+			pAction->bUserEditsDetected = TRUE;
+			// 	AI_verse_version has not been changed, so no need to update it
+//#if defined(_DEBUG) && defined(JUL15)
+#if defined(_DEBUG)
+			wxLogDebug(_T("MeldConflictResolutions...() actionsIndex %d:   [ USING AI VERSION]"), actionsIndex);
+#endif
+		}
+		else
+		{
+			// User wants PT or BE version to be sent to the external editor
+			pAction->bAI_verse_empty = TRUE; // forces the PT or BE version to be sent
+			// The user may have updated the PTorBE version manually, so must update
+			// it here just in case he/she did
+			pAction->PTorBE_verse_version = pCR->PTorBEText_edited;
+//#if defined(_DEBUG) && defined(JUL15)
+#if defined(_DEBUG)
+			wxLogDebug(_T("MeldConflictResolutions...() actionsIndex %d:   [ USING PT VERSION]\n %s"), 
+				actionsIndex, pCR->PTorBEText_edited.c_str());
+#endif
+		}
+	}
+}
+
+void MeldConflictsUserCancelBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
+												wxArrayPtrVoid& conflictsArr)
+{
+	// What to do if the user cancels from the Conflict Resolution dialog?
+	// There are two possibilities which might be considered, but are no good.
+	// a) Return to the Conflict Actions 3-radio button dialog for a new choice
+	// of what level of conflict resolution to attempt. Can't do this, that
+	// dialog is closed and processing has already gone through the whole
+	// document. (And a Save of the document already done.)
+	// b) Cancel out from the whole File > Save operation. Can't do this either,
+	// because the Save of the document to the AI Adaptations folder is already
+	// completed, and so if the collaboration transfer were abandoned, we'd 
+	// produce heaps of new conflicts because the next File > Save would lose the
+	// information about what edits formerly were done in AI.
+	// That leaves only one possibility. We must continue with the conflict
+	// resolution but resolve ALL conflicts in the same way as would have happened
+	// had the user in the 3-radio button dialog chosen the top option, which was
+	// to keep the PT or BE version of each conflicted verse unchanged. So that is
+	// what our code below does. The end result is the same as the legacy File >
+	// Save's result, before manual conflict resolution support was added
+	if (collabActionsArr.IsEmpty())
+	{
+		gpApp->LogUserAction(_T("MeldConflictResolutionsBackIntoActionsArray(): collabActionsArr was empty"));
+		return;
+	}
+	if (conflictsArr.IsEmpty())
+	{
+		gpApp->LogUserAction(_T("MeldConflictResolutionsBackIntoActionsArray(): conflictsArr was empty"));
+		return;
+	}
+	unsigned int conflictsCount = (unsigned int)conflictsArr.GetCount();
+	unsigned int actionsIndex;
+	unsigned int conflictsIndex;
+	CollabAction* pAction = NULL;
+	ConflictRes* pCR = NULL;
+	for (conflictsIndex = 0; conflictsIndex < conflictsCount; conflictsIndex++)
+	{
+		pCR = (ConflictRes*)conflictsArr.Item(conflictsIndex);
+		actionsIndex = pCR->collabActionsArrIndex;
+		pAction = (CollabAction*)collabActionsArr.Item(actionsIndex); // update this one
+
+		// User wants PT or BE version to be sent to the external editor
+		pAction->bAI_verse_empty = TRUE; // forces the PT or BE version to be sent
+		// Any user manual updates to the PT or BE verse's version are ignored, and
+		// the CollabAction struct's PTorBE_verse_version member's contents (which 
+		// already store the original form of the PTorBE verse version) are what will
+		// get sent. This is accomplished merely by setting the above flag to TRUE
+
+//#if defined(_DEBUG) && defined(JUL15)
+#if defined(_DEBUG)
+		wxLogDebug(_T("MeldConflictResolutions...() CANCEL by user: actionsIndex %d:   [ USING PT ORIGINAL VERSION]\n %s"), 
+			actionsIndex, pAction->PTorBE_verse_version.c_str());
+#endif	
+	}
+}
+
+// Collect each conflict, and create a ConflictRes struct for each - these are what
+// the Conflict Resolution dialog will use for initialization etc
+void CollectConflicts(wxArrayPtrVoid& collabActionsArr, wxArrayPtrVoid& conflictsArr)
+{
+	DestroyConflictResStructs(conflictsArr);
+	size_t count = collabActionsArr.GetCount();
+	CollabAction* pAction = NULL;
+	ConflictRes* pConflict = NULL;
+	size_t i;
+	for (i = 0; i < count; i++)
+	{
+		pAction = (CollabAction*)collabActionsArr.Item(i);
+		if (pAction->bConflictedVerses)
+		{
+			pConflict = new ConflictRes;
+			conflictsArr.Add(pConflict);
+			pConflict->collabActionsArrIndex = i;
+			pConflict->bUserWantsAIverse = FALSE; // default to keeping PT or BE verse
+			pConflict->srcText = pAction->sourceText;
+			pConflict->AIText = pAction->AI_verse_version;
+			pConflict->PTorBEText_original = pAction->PTorBE_verse_version;
+			pConflict->PTorBEText_edited = pAction->PTorBE_verse_version; // default to a copy of original;
+				// after the user has done his conflict resolutions, this might then be different, and
+				// whether different or not, this is the one we use for updating the external editor when
+				// the PT or BE version is the one the user has chosen (and perhaps edited)
+			pConflict->bookCodeStr = pAction->bookCode;
+			pConflict->chapterRefStr = pAction->chapter_ref;
+			pConflict->verseRefStr = pAction->verse_ref;
+#if defined(_DEBUG) && defined(JUL15)
+//#if defined(_DEBUG)
+		wxLogDebug(_T("ConflictRes_struct: index %d, %s%s:%s  AItext: %s\n PTtext: %s"),
+			pConflict->collabActionsArrIndex, pConflict->bookCodeStr.c_str(),
+			pConflict->chapterRefStr.c_str(), pConflict->verseRefStr.c_str(),
+			pConflict->AIText.c_str(), pConflict->PTorBEText_edited.c_str());
+#endif
+		}
+	}
+}
+
+// Destroy all the ConflictRes struct pointer
+void DestroyConflictResStructs(wxArrayPtrVoid& arr)
+{
+	if (arr.IsEmpty())
+		return;
+	size_t count = arr.GetCount();
+	ConflictRes* pStruct = NULL;
+	size_t i;
+	for (i = 0; i < count; i++)
+	{
+		pStruct = (ConflictRes*)arr.Item(i);
+		delete pStruct;
+	}
+	arr.clear();
 }
 
 wxString RemoveIDMarkerAndCode(wxString text)
@@ -7322,6 +9094,58 @@ wxString RemoveIDMarkerAndCode(wxString text)
 	return text;
 }
 
+// Pass in at nVerseStart the md5 line index of the currently pointed at \v md5 line
+// of the verse; usfmText is the particular md5 array which holds the lines, such as
+// postEditMd5Arr, and it uses GetNextVerseLine with bOrTestForChapterLine TRUE
+// so it halts and succeeds if a \c line is found, not just a \v line; and passes
+// back in the int return variable the index of the \v or \c or just past doc end
+// found, less 1 -- that is, the last md5 line of the verse, in all circumstances
+int	EndOfVerse(const wxArrayString& usfmMd5LinesArr, int nVerseStart)
+{
+	int nLastInVerse = nVerseStart + 1; // + 1 otherwise GetNextVerseLine() would only find current line
+	int bFoundVerseOrChapter = GetNextVerseLine(usfmMd5LinesArr, nLastInVerse, TRUE);
+	if (bFoundVerseOrChapter)
+	{
+		--nLastInVerse; // The \v or \c found is not included in the verse
+	}
+	else
+	{
+		// FALSE returned means we got to array end, so set postEditEnd to
+		// the last md5 line of the array
+		nLastInVerse = usfmMd5LinesArr.GetCount() - 1;
+	}
+	return nLastInVerse;
+}
+
+// Next one used in GetUpdatedText_UsfmsChanged(), 'chunk' here could be a chunk defined
+// by a group of md5 lines which have a structural change within, or by a verse matchup
+// which has no structural change but potentially may have other verse-internal usfms; we
+// pass in starting and ending indices into the md5 array because we'll have calculated
+// those parameters prior to making these calls; nEnd refers to the last md5 line within
+// the chunk being examined. We use this function for testing postEditMd5Arr or
+// fromEditorMd5Arr since these govern our data transfer protocol
+// BEW created 10Jul15 (actually, 20Jul15 but the early date keeps like functionality 
+// findable with the one string search)
+bool IsThisChunkEmpty(const wxArrayString& md5Arr, int nStart, int nEnd)
+{
+	// The caller has guaranteed that each line index is a valid index into the md5Arr array
+	// so we don't need to check for bounds errors here.
+	int md5LineIndex;
+	wxString md5Line;
+	wxString md5Sum;
+	for (md5LineIndex = nStart; md5LineIndex <= nEnd; md5LineIndex++)
+	{
+		md5Line = md5Arr.Item(md5LineIndex);
+		md5Sum = GetFinalMD5FromStructExtentString(md5Line);
+		if (md5Sum != _T("0"))
+		{
+			return FALSE;
+		}
+	}
+	// If control gets to here, all md5 lines tested have a zero string for the md5sum
+	return TRUE;
+}
+
 // Returns TRUE if, when comparing the pointed at preEdit and postEdit md5lines, there is
 // a difference in the text within one or more of the verse-internal text or embedded md5lines
 // (such as in\q1 \q2 etc lines, or in a subtitle etc) - the preEdit and postEdit text
@@ -7343,136 +9167,117 @@ wxString RemoveIDMarkerAndCode(wxString text)
 // have been made in that verse, so we can let the in-Paratext form of that verse stand
 // unchanged, provided it has content; if it has no content, we send the AI text to it of
 // course.
+// BEW 10Jul15 added support for conflict resolution; also removed the calculation of the
+// postEditEnd and other ...End indices internally here, because they are now calculated
+// in the caller before HasInfoChanged() is called (leaving the calcs here led to error,
+// because they were then incremented twice and so the syncing got destroyed)
 bool HasInfoChanged(
-	int preEditIndex, // index of current preEdit text verse md5 line in preEditMd5Arr
-	int postEditIndex, // index of current postEdit text verse md5 line in postEditMd5Arr
+	int preEditIndex,    // index of current preEdit text verse md5 line in preEditMd5Arr
+	int postEditIndex,   // index of current postEdit text verse md5 line in postEditMd5Arr
 	int fromEditorIndex, // index of current fromEditor verse md5 line in fromEditorMd5Arr
-	const wxArrayString& preEditMd5Arr, // full one-chapter md5 lines array for AI preEdit text
-	const wxArrayString& postEditMd5Arr, // full one-chapter md5 lines array for AI postEdit text
+	int sourceTextIndex, // index of current sourceText verse md5 line in sourceTextMd5Arr
+	const wxArrayString& preEditMd5Arr,	   // full one-chapter md5 lines array for AI preEdit text
+	const wxArrayString& postEditMd5Arr,   // full one-chapter md5 lines array for AI postEdit text
 	const wxArrayString& fromEditorMd5Arr, // full one-Chapter md5 lines array for PT or BE fromEditor text
-	int&  preEditEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
+	const wxArrayString& sourceTextMd5Arr, // full one-Chapter md5 lines array for PT or BE fromEditor text
+	int  preEditEnd, // index of the last md5 line of preEdit text immediately prior to next verse
 					  // or if no next verse, the last md5 line (it may not be a verse line) in the array
-	int&  postEditEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
+	int  postEditEnd, // index of the last md5 line of preEdit text immediately prior to next verse
 					   // or if no next verse, the last md5 line (it may not be a verse line) in the array
-	int&  fromEditorEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
+	int  fromEditorEnd, // index of the last md5 line of preEdit text immediately prior to next verse
 						 // or if no next verse, the last md5 line (it may not be a verse line) in the array
-	wxArrayPtrVoid& postEditOffsetsArr,   // needed so we can grab the postEdit verse's text
-	wxArrayPtrVoid& fromEditorOffsetsArr, // needed so we can grab the fromEditor verse's text
-	const wxChar* pPostEditBuffer,    // start of the postEdit text buffer
-	wxChar* pPostEditEnd,             // end of the postEdit text buffer
-	const wxChar* pFromEditorBuffer,  // start of the fromEditor text buffer
-	wxChar* pFromEditorEnd)           // end of the fromEditor text buffer
+	int  sourceTextEnd, // index of the last md5 line of sourceText immediately prior to next verse
+						 // or if no next verse, the last md5 line (it may not be a verse line) in the array
+	bool&	bTheTwoTextsDiffer	// return FALSE if there was no detected punctuation difference AND
+								// no detected overall text difference; but TRUE if either kind of
+								// difference was detected (BEW added 10Jul15, for conflict res support)
+	)
 {
 	int preEditArrCount;
 	int postEditArrCount;
 	int fromEditorArrCount;
+	int sourceTextArrCount;
 	preEditArrCount = preEditMd5Arr.GetCount();
 	postEditArrCount = postEditMd5Arr.GetCount();
 	fromEditorArrCount = fromEditorMd5Arr.GetCount();
-	//wxASSERT(preEditIndex == postEditIndex); // BEW removed 22Jun15, allowing filtering makes this violable
+	sourceTextArrCount = sourceTextMd5Arr.GetCount();
 	wxASSERT(postEditIndex < postEditArrCount);
 	wxASSERT(fromEditorIndex < fromEditorArrCount);
 	wxASSERT(preEditIndex < preEditArrCount); // BEW added 22Jun15
+	wxASSERT(sourceTextIndex < sourceTextArrCount); // BEW added 17Jul15
 	bool bIsPostEditVerseLine = FALSE;
 	bool bIsFromEditorVerseLine = FALSE;
 	bool bIsPreEditVerseLine = FALSE;
+	bool bIsSourceTextVerseLine = FALSE;
+	wxString chapStr = _T("0");
+	wxUnusedVar(chapStr);
+
+	bool bIsPostEditChapterLine = FALSE;
+	bool bIsFromEditorChapterLine = FALSE;
+	bool bIsPreEditChapterLine = FALSE;
+	bool bIsSourceTextChapterLine = FALSE;
 	// Verify expected entry state is correct - we expect to be pointing at md5lines which
-	// contain \v or \vn markers
+	// contain \v or \vn markers; but we could be at a \c line instead
 	bIsPostEditVerseLine = IsVerseLine(postEditMd5Arr, postEditIndex);
 	bIsFromEditorVerseLine = IsVerseLine(fromEditorMd5Arr, fromEditorIndex);
 	bIsPreEditVerseLine = IsVerseLine(preEditMd5Arr, preEditIndex);
-	wxASSERT(bIsPostEditVerseLine == bIsFromEditorVerseLine && bIsFromEditorVerseLine == TRUE);
-        wxUnusedVar(bIsPostEditVerseLine); // whm added 25Jun2015 to avoid gcc "not used" warning
-        wxUnusedVar(bIsFromEditorVerseLine); // whm added 25Jun2015 to avoid gcc "not used" warning
-	wxUnusedVar(bIsPreEditVerseLine); // whm added 25Jun2015 to avoid gcc "not used" warning
+	bIsSourceTextVerseLine = IsVerseLine(sourceTextMd5Arr, sourceTextIndex);
 
-	// Get the next md5 verse line in each array - that will be the upper bound
-	// (non-inclusive) for the material to be dealt with in this invocation; we have to
-	// pre-increment the indices, otherwise the calls return the passed in current indices as
-	// bogus 'next' verse lines
-	int preEditNextVerseLine = preEditIndex + 1; // initialize
-	int postEditNextVerseLine = postEditIndex + 1; // initialize
-	int fromEditorNextVerseLine = fromEditorIndex + 1; // initialize
-	bool bOK = FALSE;
-	// Start with the preEditMd5Arr array
-	bOK = GetNextVerseLine(preEditMd5Arr, preEditNextVerseLine);
-	if (bOK)
-	{
-		// There was a next md5line which is a verse, we want the line for the md5 field
-		// which immediately precedes - so subtract 1; note, if there are no internal
-		// markers then subtracting 1 would result in preEditNextVerseLine being the same
-		// value as the passed in preEditIndex
-		--preEditNextVerseLine;
-	}
-	else
-	{
-		// We reached the end of the md5line array, so set preEditNextVerseLine to
-		// whatever md5line is last in the array (it may or may not be a verse line)
-		preEditNextVerseLine = preEditArrCount - 1;
-	}
-	// Now do the postEditMd5Arr and fromEditorMd5Arr likewise, we can omit comments
-	bOK = GetNextVerseLine(postEditMd5Arr, postEditNextVerseLine);
-	if (bOK)
-	{
-		--postEditNextVerseLine;
-	}
-	else
-	{
-		postEditNextVerseLine = postEditArrCount - 1;
-	}
-	bOK = GetNextVerseLine(fromEditorMd5Arr, fromEditorNextVerseLine);
-	if (bOK)
-	{
-		--fromEditorNextVerseLine;
-	}
-	else
-	{
-		fromEditorNextVerseLine = fromEditorArrCount - 1;
-	}
-	// Set the ref params to the values to be returned to the caller
-	preEditEnd = preEditNextVerseLine;
-	postEditEnd = postEditNextVerseLine;
-	fromEditorEnd = fromEditorNextVerseLine;
+	bIsPostEditChapterLine = IsChapterLine(postEditMd5Arr, postEditIndex, chapStr);
+	bIsFromEditorChapterLine = IsChapterLine(fromEditorMd5Arr, fromEditorIndex, chapStr);
+	bIsPreEditChapterLine = IsChapterLine(preEditMd5Arr, preEditIndex, chapStr);
+	bIsSourceTextChapterLine = IsChapterLine(sourceTextMd5Arr, sourceTextIndex, chapStr);
 
-	// Now do the analysis of what lies within the matched chunks of data. First, there
-	// will have been a USFM structure change if the difference between postEditIndex and
-	// postEditEnd is different from the difference between fromEditorEnd and
-	// fromEditorIndex. Evaluate, and return TRUE if so; else continue with other checks
+	wxASSERT((bIsPostEditVerseLine == bIsFromEditorVerseLine && bIsFromEditorVerseLine == TRUE)
+		|| (bIsPostEditChapterLine == bIsFromEditorChapterLine && bIsFromEditorChapterLine == TRUE));
+
+	// whm added 25Jun2015 to avoid gcc "not used" warning for these
+    wxUnusedVar(bIsPostEditVerseLine);
+    wxUnusedVar(bIsFromEditorVerseLine); 
+	wxUnusedVar(bIsPreEditVerseLine);
+	wxUnusedVar(bIsSourceTextVerseLine);
+
+    wxUnusedVar(bIsPostEditChapterLine);
+    wxUnusedVar(bIsFromEditorChapterLine); 
+	wxUnusedVar(bIsPreEditChapterLine);
+	wxUnusedVar(bIsSourceTextChapterLine);
+
+	// Analysis, check for USFM structure changes. There will have been a USFM structure change
+	// if the difference between postEditIndex and postEditEnd is different from the 
+	// difference between fromEditorEnd and fromEditorIndex. Evaluate, and return TRUE if
+	// so; else continue with other checks. Filtering or unfiltering can produce this kind of
+	// change of USFM structure
 	wxASSERT(postEditEnd >= postEditIndex);
 	wxASSERT(fromEditorEnd >= fromEditorIndex);
+	wxASSERT(preEditEnd >= preEditIndex);
 	if ((postEditEnd - postEditIndex) != (fromEditorEnd - fromEditorIndex))
 	{
 		// The marker inventories differ in their counts - this is a USFM structure change
 		return TRUE;
 	}
-	// BEW added 22Jun15, second, there will have been a structure change (e.g. a filtering
-	// or unfiltering) if postEditNextVerseLine - postEditIndex is a different value than
-	// preEditNextVerseLine - preEditIndex. Evaluate and return TRUE if so, else continue
-	// with other checks
-	wxASSERT(preEditEnd >= preEditIndex);
-	if ((postEditNextVerseLine - postEditIndex) != (fromEditorNextVerseLine - fromEditorIndex))
-	{
-		// The marker inventories differ in their counts - this is a USFM structure change
-		return TRUE;
-	}
+
 	// A USFM structure change may still have happened, if, say, the fromEditor text has a
 	// USFM marker, and postEdit text has a different USFM marker; or even if there are
 	// the same marker inventories but the order has changed - so loop over all
 	// within-verse markers to check if they are the same markers in the same order
-	// BEW 22Jun15, add test of preEdit text's markers compared to postEdit texts markers
+	// BEW 22Jun15, add test of preEdit text's markers compared to postEdit text's markers
+	// BEW 17Jul15, add test of sourceText's markers too
 	int postIndex = postEditIndex;
 	int fromIndex = fromEditorIndex;
 	int preIndex = preEditIndex;
-	wxString postMkr, fromMkr, preMkr;
+	int srcIndex = sourceTextIndex;
+	wxString postMkr, fromMkr, preMkr, srcMkr;
 	do {
 		wxString postEditMd5Line = postEditMd5Arr.Item(postIndex);
 		wxString preEditMd5Line = preEditMd5Arr.Item(preIndex);
 		wxString fromEditorMd5Line = fromEditorMd5Arr.Item(fromIndex);
+		wxString sourceTextMd5Line = sourceTextMd5Arr.Item(srcIndex);
 		// We don't try to match the md5sums, what's at issue here is instead identity or
 		// otherwise of the USFM markers in the lines being compared
 		postMkr = GetStrictUsfmMarkerFromStructExtentString(postEditMd5Line);
 		fromMkr = GetStrictUsfmMarkerFromStructExtentString(fromEditorMd5Line);
 		preMkr = GetStrictUsfmMarkerFromStructExtentString(preEditMd5Line);
+		srcMkr = GetStrictUsfmMarkerFromStructExtentString(sourceTextMd5Line);
 		if (postMkr != fromMkr)
 		{
 			// The USFM structure differs
@@ -7483,10 +9288,16 @@ bool HasInfoChanged(
 			// The USFM structure differs
 			return TRUE;
 		}
+		else if (postMkr != srcMkr)
+		{
+			// The USFM structure differs
+			return TRUE;
+		}
 		// Otherwise, so far the markers are identical, so keep checking
-		++postIndex; ++fromIndex; ++preIndex;
+		++postIndex; ++fromIndex; ++preIndex; ++srcIndex;
 	}
-	while (postIndex <= postEditEnd && fromIndex <= fromEditorEnd && preIndex <= preEditEnd);
+	while (postIndex <= postEditEnd && fromIndex <= fromEditorEnd && preIndex <= preEditEnd
+			&& srcIndex <= sourceTextEnd);
 	// If control gets to here, then there has been no change in the USFM structure.
 	// However, it is possible that the user has done some edits of the text of the verse
 	// within Adapt It, so check now for that and return TRUE if at least one edit is
@@ -7500,7 +9311,8 @@ bool HasInfoChanged(
 	// every conflict.)
 	preIndex = preEditIndex;
 	postIndex = postEditIndex;
-	// The USFMs are guaranteed to be matched, so we are just checking for md5sum differences
+	// The USFMs are guaranteed to be matched, so we are just checking for md5sum
+	// differences between preEdit and postEdit versions of the text
 	wxString preMd5Sum, postMd5Sum;
 	do {
 		wxString preEditMd5Line = preEditMd5Arr.Item(preIndex);
@@ -7509,41 +9321,42 @@ bool HasInfoChanged(
 		postMd5Sum = GetFinalMD5FromStructExtentString(postEditMd5Line);
 		if (preMd5Sum != postMd5Sum)
 		{
-			// The text in the fields differs in content
+			// The text in the compared fields, for each preEditIndex line and 
+			// postEditIndex line differs at some line in the line's content;
+			// this means the user did some editing in this verse, so it
+			// has to be transferred to PT or BE by the caller
 			return TRUE;
 		}
 		// The text in the fields has not been edited, so keep checking
 		++postIndex; ++preIndex;
 	} while (preIndex <= preEditEnd && postIndex <= postEditEnd);
-	// Nothing has changed so far, the only remaining possibility is that the user changed
-	// the verse's punctuation only, in the Paratext or Bibledit fromEditor verse, or in
-	// the Adapt It verse - so detect if either was the case
-	wxString postEditVerseContents;
-	MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditIndex);
-	MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
-	postEditVerseContents = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
-				pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
-	wxString postEditBleached = ReduceStringToStructuredPuncts(postEditVerseContents);
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-	wxLogDebug(_T("Bleached postEdit verse text:   %s"), postEditBleached.c_str());
-#endif
 
-	wxString fromEditorVerseContents;
-	MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorIndex);
-	MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorEnd);
-	fromEditorVerseContents = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
-				pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
-	wxString fromEditorBleached = ReduceStringToStructuredPuncts(fromEditorVerseContents);
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-	wxLogDebug(_T("Bleached fromEditor verse text: %s"), fromEditorBleached.c_str());
-#endif
-	if (postEditBleached != fromEditorBleached)
-	{
-		// The punctuation has been changed in the PT or BE source text project's
-		// matching verse
-		return TRUE;
-	}
-	// If all tests fail to detect a difference, the info has not changed for this verse
+	// BEW added 10Jul15, finally, if the content of the markers differs, then this is
+	// grounds for a conflict, and so we should give the user the option to decide what
+	// to do (this test subsumes the immediately above, so the above test is now deprecated)
+	postIndex = postEditIndex;
+	fromIndex = fromEditorIndex;
+	// We are just checking for md5sum differences between postEdit and fromEditor
+	// versions of the text
+	wxString fromMd5Sum;
+	do {
+		wxString fromEditorMd5Line = fromEditorMd5Arr.Item(fromIndex);
+		wxString postEditMd5Line = postEditMd5Arr.Item(postIndex);
+		fromMd5Sum = GetFinalMD5FromStructExtentString(fromEditorMd5Line);
+		postMd5Sum = GetFinalMD5FromStructExtentString(postEditMd5Line);
+		if (fromMd5Sum != postMd5Sum)
+		{
+			// The text in the fields differs in content
+			bTheTwoTextsDiffer = TRUE; // this may mean conflicted verses
+			break; // no structure diffs or diffs due to user edits
+		}
+		// The text in the fields has not been edited, so keep checking
+		++postIndex; ++fromIndex;
+	} while (fromIndex <= fromEditorEnd && postIndex <= postEditEnd);
+
+	// If all the penultimate tests fail to detect a difference, the info has not changed 
+	// for this verse so return FALSE, but bTheTwoTextsDiffer may have been set to TRUE
+	// (which is a potential conflict)
 	return FALSE;
 }
 
@@ -7939,7 +9752,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
         //    he does. This way we avoid DVCS conflicts if the user happens to have made
         //    some edits back in the external editor while the AI session is in progress.
 		//    
-		// 7. BEW added this note 27Ju11. We have to ALWAYS do a resursive merge of the
+		// 7. BEW added this note 27Ju11. We have to ALWAYS do a recursive merge of the
 		//    source text obtained from Paratext or Bibledit whenever there is an already
         //    saved chapter document (or whole book document) for that information stored
         //    in Adapt It. The reason is as follows. Suppose we didn't, and then the
@@ -8036,11 +9849,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 					m_collab_bUsfmStructureChanged = IsUsfmStructureChanged(oldSrcText, m_collab_sourceWholeBookBuffer);
 				}
 
-				// BEW 21Jul14, added 3rd subtest, so that when adaptations are being
-				// retained, Copy Source does not get turned off, and the message box
-				// further below doesn't get shown in that case
-				if (m_collab_bTextOrPunctsChanged && pApp->m_bCopySource &&
-					!pApp->m_bKeepAdaptationsForSrcRespellings)
+				if (m_collab_bTextOrPunctsChanged && pApp->m_bCopySource)
 				{
 					// for safety's sake, turn off copying of the source text, but tell the
 					// user below that he can turn it back on if he wants
@@ -8063,6 +9872,15 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 				{
 					bDoMerger = FALSE; // use the AI document 'as is'
 				}
+
+#if defined(_DEBUG)
+// Force bDoMerger to be TRUE, for testing the source text Merger process
+//	int remove_this = 1;
+//	bDoMerger = TRUE;
+#endif
+
+
+
 				// comment out next line when this modification is no longer wanted for 
 				// debugging purposes
 //#define _DO_NO_MERGER_BUT_INSTEAD_LEAVE_m_pSourcePhrases_UNCHANGED
@@ -8119,13 +9937,8 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 				// whm 25Aug11 reset the App's maxProgDialogValue back to MAXINT
 				pApp->maxProgDialogValue = 2147483647; //MAXINT; // temporary hack while calling OpenDocWithMerger() above
 				
-				// warn user about the copy flag having been changed, if such a warning is
-				// necessary; note the last test - if the -srcRespell command line flag is
-				// currently in operation, then there won't be any "holes" produced in the
-				// smart merger back to the AI document, so we don't have to turn off the
-				// copy source flag & no warning is therefore needed					   
 				if (pApp->m_bSaveCopySourceFlag_For_Collaboration && !pApp->m_bCopySource
-					&& m_collab_bTextOrPunctsChanged && !pApp->m_bKeepAdaptationsForSrcRespellings)
+					&& m_collab_bTextOrPunctsChanged)
 				{
                     // the copy flag was ON, and was just turned off above, and there are
                     // probably going to be new adaptable 'holes' in the document, so tell
@@ -8352,7 +10165,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 			m_collab_freeTransWholeBookBuffer = ZWSPtoFwdSlash(m_collab_freeTransWholeBookBuffer);
 			m_collab_freeTransWholeBookBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_freeTransWholeBookBuffer);
 //#endif
-#if defined (_DEBUG)
+#if defined(_DEBUG) && defined(JUL15)
 			//wxLogDebug(_T("OnOK() of GetSourceTextFromEditor(), for Free Translation transfer - the preEdit text\n"));
 			//wxLogDebug(_T("%s\n"), freeTransWholeBookBuffer.c_str());
 #endif
@@ -8394,3 +10207,35 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
     return resultSrc;
 }
 
+// BEW 10Jul15, since this was created after my refactoring of the export functions to
+// not obligatorily unfilter and include any filtered text, no internal extra calls should
+// need to be made (I hope)
+wxString MakeSourceTextForCollabConflictResDlg()
+{
+	wxString srcText = _T("");
+	int textLen = RebuildSourceText(srcText); // NULL for 2nd param, means m_pSourcePhrases SPList* is used
+	wxUnusedVar(textLen);
+	srcText = RemoveMultipleSpaces(srcText);
+
+	// Note: ZWSP restoration is automatically done, if flag TRUE, in RebuildSourceText(), similarly, if the
+	// flag for Forward Slash Delimitation alternating with ZWSP (Dennis Walters requested) is TRUE, then
+	// in RebuildSourceText() the calls DoFwdSlashConsistentChanges(removeAtPunctuation, target) and
+	// followed by FwdSlashtoZWSP(target) are made, so neither is need here
+#if defined(_DEBUG) && defined(JUL15)
+	wxLogDebug(_T("MakeSourceTextForCollabConflictResDlg(): Text Length:  %d\n%s"), textLen, srcText.c_str());
+#endif
+	return srcText;
+}
+
+// whm added 10Jul2015 for temporary testing of the CCollabVerseConflictDlg dialog
+// BEW moved to here from doc.cpp, on 23Jul15
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/* no longer needed
+void OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event))
+{
+	// Display the dialog
+	CCollabVerseConflictDlg cvcdlg(gpApp->GetMainFrame()); 
+	cvcdlg.Centre();
+	cvcdlg.ShowModal();
+}
+*/

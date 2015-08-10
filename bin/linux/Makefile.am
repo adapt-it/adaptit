@@ -7,7 +7,7 @@ noinst_HEADERS = $(wildcard $(srcdir)/../../source/*.h)
 
 # whm added the following due to "warning: source file '../../source/*.cpp' is in a subdirectory,
 # ...but option 'subdir-objects' is disabled"
-AUTOMAKE_OPTIONS = subdir-objects
+#AUTOMAKE_OPTIONS = subdir-objects
 
 # this is the program that gets installed.  it's name is used for all
 # of the other Makefile.am variables
@@ -83,8 +83,10 @@ adaptit_SOURCES = \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
 	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp ../../source/ChooseLanguageCode.cpp \
 	../../source/ChooseCollabOptionsDlg.cpp \
-	../../source/ChooseTranslation.cpp ../../source/ClientServerConnection.cpp ../../source/CollectBacktranslations.cpp \
+	../../source/ChooseTranslation.cpp ../../source/ClientServerConnection.cpp \
+	../../source/CollabVerseConflictDlg.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
+	../../source/ConflictResActionDlg.cpp \
 	../../source/ConsistentChanger.cpp ../../source/convauto.cpp \
 	../../source/CorGuess.cpp ../../source/CreateNewAIProjForCollab.cpp \
 	../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
@@ -128,7 +130,7 @@ adaptit_SOURCES = \
 	../../source/Thread_ChangedSince.cpp ../../source/Thread_CreateEntry.cpp \
 	../../source/Thread_DoEntireKbDeletion.cpp \
 	../../source/Thread_KbEditorUpdateButton.cpp ../../source/Thread_PseudoDelete.cpp \
-	../../source/Thread_PseudoUndelete.cpp ../../source/Thread_UploadMulti.cpp \
+	../../source/Thread_PseudoUndelete.cpp \
 	../../source/Timer_KbServerChangedSince.cpp \
 	../../source/ToolbarPage.cpp ../../source/TransformToGlossesDlg.cpp \
 	../../source/UsernameInput.cpp ../../source/UsfmFilterPage.cpp \

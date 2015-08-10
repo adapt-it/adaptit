@@ -21436,7 +21436,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 
         // Get any unknown markers stored in the m_markers member of the Doc's
         // source phrases whm ammended 29May06: Bruce desired that the filter
-        // status of unk markers be preserved for new documents created within the
+        // status of unknow markers be preserved for new documents created within the
         // same project within the same session, so I've changed the last parameter
         // of GetUnknownMarkersFromDoc from setAllUnfiltered to
 		// useCurrentUnkMkrFilterStatus. (Re-call this because the user may have removed,

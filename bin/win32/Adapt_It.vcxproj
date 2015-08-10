@@ -517,7 +517,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswu;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_KBSERVER;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
       <PrecompiledHeaderOutputFile>$(IntDir)Adapt_It.pch</PrecompiledHeaderOutputFile>
@@ -632,8 +632,10 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\ChooseTranslation.cpp" />
     <ClCompile Include="..\..\source\ClientServerConnection.cpp" />
     <ClCompile Include="..\..\source\CollabUtilities.cpp" />
+    <ClCompile Include="..\..\source\CollabVerseConflictDlg.cpp" />
     <ClCompile Include="..\..\source\CollectBacktranslations.cpp" />
     <ClCompile Include="..\..\source\ComposeBarEditBox.cpp" />
+    <ClCompile Include="..\..\source\ConflictResActionDlg.cpp" />
     <ClCompile Include="..\..\source\ConsChk_Empty_noTU_Dlg.cpp" />
     <ClCompile Include="..\..\source\conschk_exists_notu_dlg.cpp" />
     <ClCompile Include="..\..\source\ConsistencyCheckDlg.cpp" />
@@ -792,8 +794,10 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\ChooseTranslation.h" />
     <ClInclude Include="..\..\source\ClientServerConnection.h" />
     <ClInclude Include="..\..\source\CollabUtilities.h" />
+    <ClInclude Include="..\..\source\CollabVerseConflictDlg.h" />
     <ClInclude Include="..\..\source\CollectBacktranslations.h" />
     <ClInclude Include="..\..\source\ComposeBarEditBox.h" />
+    <ClInclude Include="..\..\source\ConflictResActionDlg.h" />
     <ClInclude Include="..\..\source\ConsChk_Empty_noTU_Dlg.h" />
     <ClInclude Include="..\..\source\conschk_exists_notu_dlg.h" />
     <ClInclude Include="..\..\source\ConsistencyCheckDlg.h" />

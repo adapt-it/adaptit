@@ -96,6 +96,34 @@ enum Complexity {
 	bothAreComplex
 };
 
+/// a struct for use in collaboration conflict resolution dialog
+struct CollabAction  {
+	wxString	preVerseOneText;      // the \c and any other pre-verse-1 information
+	wxString	sourceText;           // empty except for a conflicted verse instance
+	wxString	AI_verse_version;     // this or the next may be empty, depending on action
+	wxString	PTorBE_verse_version; // to be taken; for a conflict, both are non-empty
+	bool		bIsPreVerseOne;		  // TRUE when this struct just has the preVerseOneText for obligatory transfer
+	bool		bPTorBE_verse_empty;  // TRUE if the md5sum(s) for the PTorBE verse are all empty
+	bool		bAI_verse_empty;      // TRUE if the md5sum(s) for the AI verse are all empty
+	bool		bUserEditsDetected;   // TRUE if preEdit and postEdit versions differ
+	bool		bConflictedVerses;	  // TRUE if the Conflict Resolution dlg needs to be used
+	wxString	bookCode; // the 3-letter code for the currently open book or chapter of a book
+	wxString	chapter_ref; // the string form of the chapter eg. "3"
+	wxString	verse_ref; // the string form of the verse (e.g. "23" or "15-16" or whatever)
+};
+
+/// another struct for use in collaboration conflict resolution dialog
+struct ConflictRes  {
+	int			collabActionsArrIndex; // which struct in the collabActionsArr generated this one
+	bool		bUserWantsAIverse; // user's response for which verse version to send
+	wxString	srcText;
+	wxString	AIText;
+	wxString	PTorBEText_original; // Restore button will use this for resetting RHS text box
+	wxString	PTorBEText_edited; // the adaptation or free translation text to send
+	wxString	bookCodeStr;
+	wxString	chapterRefStr;
+	wxString	verseRefStr;
+};
 
 class CBString;
 class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPList); macro 
@@ -117,7 +145,8 @@ class CSourcePhrase;
 	// is simple
 	bool			DoVerseAnalysis(VerseAnalysis& refVAnal, const wxArrayString& md5Array, size_t lineIndex);
 	void			DeleteAllVerseInfStructs(wxArrayPtrVoid& arr);
-	bool			GetNextVerseLine(const wxArrayString& usfmText, int& index);
+	bool			GetNextVerseLine(const wxArrayString& usfmText, int& index, bool bOrTestForChapterLine = FALSE);
+	int				EndOfVerse(const wxArrayString& usfmMd5LinesArr, int nVerseStart); // deprecated 20Jul15
 	bool			GetAnotherVerseOrChapterLine(const wxArrayString& usfmText, int& index, wxString& chapterStr);
 	wxString		GetInitialUsfmMarkerFromStructExtentString(const wxString str);
 	wxString		GetStrictUsfmMarkerFromStructExtentString(const wxString str);
@@ -145,41 +174,50 @@ class CSourcePhrase;
 		const wxArrayPtrVoid& fromEditorVerseArr); // the temporary array of VerseInf structs for fromEditor data
 
 	// BEW added 22Jun15 to support preEdit data being structurally different due to things like filtering
-	bool FindPreEditMatchingVerseInf(
+	// BEW 10Jul15 changed parameter names a bit so it can be reused with different text's array
+	bool FindAMatchingVerseInf(
 		VerseInf*   matchThisOne, // the struct instance for what a matchup is being tried in the being-scanned preEditVerseArr
 		int&		atIndex, // the index into the being-scanned VerseInf array at which the matchup succeeded
-		const wxArrayPtrVoid& preEditVerseArr); // the temporary array of VerseInf structs for preEdit data
-
+		const wxArrayPtrVoid& inWhichVerseArr); // the temporary array of VerseInf structs, 
+												// will be either preEdit data or sourceText data
 	bool GetMatchedChunksUsingVerseInfArrays(int postEditStart, // index of non-matched verse md5 line in postEditMd5Arr
 		int   fromEditorStart, // index of non-matched verse md5 line in fromEditorMd5Arr
 		int   preEditStart, // index of equivalent-to-postEdit verse md5 line in preEditMd5Arr
+		int   sourceTextStart, // index of equivalent-to-postEdit verse md5 line in sourceTextMd5Arr
 		const wxArrayString& postEditMd5Arr, // full md5 lines array for AI postEdit text
 		const wxArrayString& fromEditorMd5Arr, // full md5 lines array for PT fromEditor text
 		const wxArrayString& preEditMd5Arr, // full md5 lines array for AI preEdit text
+		const wxArrayString& sourceTextMd5Arr, // full md5 lines array for sourceText AS IN ADAPT IT (it may
+		// have had changes done due to filterings, making it permanently different
+		// in USFM structure than the source text which is in Paratext or BE;
+		// there is no feedback mechanism for filterings to change the PT or BE
+		// structure of the source text in either of those editors
 		int&  postEditEnd,     // points at index in the md5 array of last postEdit field in the matched chunk
 		int&  fromEditorEnd,   // points at index into the md5 array of last fromEditor field in the matched chunk
-		int&  preEditEnd);     // points at index in the md5 array of last preEdit field in the matched chunk
+		int&  preEditEnd,      // points at index in the md5 array of last preEdit field in the matched chunk
+		int&  sourceTextEnd);  // points at index in the md5 array of last sourceText field in the matched chunk
 
 	bool HasInfoChanged(
-		int preEditIndex, // index of current preEdit text verse md5 line in preEditMd5Arr
-		int postEditIndex, // index of current postEdit text verse md5 line in postEditMd5Arr
+		int preEditIndex,    // index of current preEdit text verse md5 line in preEditMd5Arr
+		int postEditIndex,   // index of current postEdit text verse md5 line in postEditMd5Arr
 		int fromEditorIndex, // index of current fromEditor verse md5 line in fromEditorMd5Arr
+		int sourceTextIndex, // index of current sourceText verse md5 line in sourceTextMd5Arr
 		const wxArrayString& preEditMd5Arr, // full one-chapter md5 lines array for AI preEdit text
 		const wxArrayString& postEditMd5Arr, // full one-chapter md5 lines array for AI postEdit text
 		const wxArrayString& fromEditorMd5Arr, // full one-Chapter md5 lines array for PT or BE fromEditor text
-		int&  preEditEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
+		const wxArrayString& sourceTextMd5Arr, // full one-Chapter md5 lines array for PT or BE fromEditor text
+		int  preEditEnd, // index of the last md5 line of preEdit text immediately prior to next verse
 						  // or if no next verse, the last md5 line (it may not be a verse line) in the array
-		int&  postEditEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
+		int  postEditEnd, // index of the last md5 line of preEdit text immediately prior to next verse
 						   // or if no next verse, the last md5 line (it may not be a verse line) in the array
-		int&  fromEditorEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
-						     // or if no next verse, the last md5 line (it may not be a verse line) in the array
-		wxArrayPtrVoid& postEditOffsetsArr, // needed so we can grab the postEdit verse's text
-		wxArrayPtrVoid& fromEditorOffsetsArr, // needed so we can grab the fromEditor verse's text
-		const wxChar* pPostEditBuffer, // start of the postEdit text buffer
-		wxChar* pPostEditEnd,   // end of the postEdit text buffer
-		const wxChar* pFromEditorBuffer, // start of the fromEditor text buffer
-		wxChar* pFromEditorEnd);    // end of the fromEditor text buffer
-
+		int  fromEditorEnd, // index of the last md5 line of preEdit text immediately prior to next verse
+							 // or if no next verse, the last md5 line (it may not be a verse line) in the array
+		int  sourceTextEnd, // index of the last md5 line of sourceText immediately prior to next verse
+							 // or if no next verse, the last md5 line (it may not be a verse line) in the array
+		bool&	bTheTwoTextsDiffer	// return FALSE if there was no detected punctuation difference AND
+									// no detected overall text difference; but TRUE if either kind of
+									// difference was detected (BEW added 10Jul15, for conflict res support)
+		);        
 
 	int				FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& verseNum);
 	int				FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBeforeChapterOne);
@@ -203,13 +241,34 @@ class CSourcePhrase;
 	bool			OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText, 
 						    bool bDoMerger, bool bDoLayout, bool bCopySourceWanted);
 	wxString		GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
+							wxString& sourceText, wxArrayString& sourceTextMd5Arr,
 							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
 							wxArrayString& fromEditorMd5Arr,wxArrayPtrVoid& postEditOffsetsArr, 
-							wxArrayPtrVoid& fromEditorOffsetsArr);
-	wxString		GetUpdatedText_UsfmsChanged(wxString& postEditText, wxString& fromEditorText, 
+							wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr);
+	wxString		GetUpdatedText_UsfmsChanged(wxString& postEditText, wxString& fromEditorText,
+							wxString& sourceText, wxArrayString& sourceTextMd5Arr,
 							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
 							wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr, 
-							wxArrayPtrVoid& fromEditorOffsetsArr);
+							wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr);
+	// BEW 10Jul15, next ones needed for conflict resolution dialog, and imposing verse-based advances
+    // on the former marker-based advancing in the loop in GetUpdatedText_UsfmsUnchanged() function
+	wxString		MakeSourceTextForCollabConflictResDlg();
+	bool            DelineateThisVerse(const wxArrayString& md5Arr, int& nStart, int& nEnd, 
+		                            wxArrayInt* lineIndicesArr, wxString& chapNumReached);
+	bool			IsPTorBEverseEmpty(const wxArrayString& md5Arr, wxArrayInt& lineIndices);
+	bool			IsAIverseEmpty(const wxArrayString& md5Arr, wxArrayInt& lineIndices);
+	bool			AreTheseTwoTextVersionsDifferent(const wxArrayString& preEditMd5Arr, 
+						const wxArrayString& postEditMd5Arr, wxArrayInt& lineIndices);
+	void			SetCollabActionDefaults(CollabAction* p);
+	// Next one used in GetUpdatedText_UsfmsChanged(), 'chunk' here could be a chunk defined
+	// by a group of md5 lines which have a structural change within, or by a verse matchup
+	// which has no structural change but potentially may have other verse-internal usfms; we
+	// pass in starting and ending indices into the md5 array because we'll have calculated
+	// those parameters prior to making these calls; nEnd refers to the last md5 line within
+	// the chunk being examined. We use this function for testing postEditMd5Arr or
+	// fromEditorMd5Arr since these govern our data transfer protocol
+	bool			IsThisChunkEmpty(const wxArrayString& md5Arr, int nStart, int nEnd);
+
 	////////////////// end of those for analysis of texts //////////////////////////
 
 
@@ -314,9 +373,21 @@ class CSourcePhrase;
 	// scores of whole-book files, wasting disk space needlessly. Call it from OnExit(). If
 	// OnExit() isn't called (eg. an abnormal shutdown) it won't matter, they can be removed
 	// at the next normal shutdown
-	void			EmptyCollaborationTempFolder();
+	void	EmptyCollaborationTempFolder();
+	long	OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp);
+	void	OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
 
-	long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp);
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	///     Functions for support of the conflict resolution process
+	/////////////////////////////////////////////////////////////////////////////////////
+	
+	void CollectConflicts(wxArrayPtrVoid& collabActionsArr, wxArrayPtrVoid& conflictsArr); 
+	void DestroyConflictResStructs(wxArrayPtrVoid& arr);
+	void MeldConflictResolutionsBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
+					wxArrayPtrVoid& conflictsArr);
+	void MeldConflictsUserCancelBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
+					wxArrayPtrVoid& conflictsArr);
 
 #endif
 

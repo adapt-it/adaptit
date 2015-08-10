@@ -192,14 +192,14 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 // ******** START ACCUMULATING COPIES OF THE AI_UserProfiles.xml *************************
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_MINOR_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 9 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_MINOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 0 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 1
-#define VERSION_DATE_MONTH 7
+#define VERSION_DATE_DAY 12
+#define VERSION_DATE_MONTH 8
 #define VERSION_DATE_YEAR 2015
-const wxString appVerStr(_T("6.5.9"));
+const wxString appVerStr(_T("6.6.0"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -698,14 +698,6 @@ struct PageOffsets
 	int nLastStrip; // 0-based index of the last strip to appear on the current page
 };
 
-// a struct for use in collaboration with Paratext or Bibledit (BEW added 22Jun11)
-struct EthnologueCodePair {
-	wxString srcLangCode;
-	wxString tgtLangCode;
-	wxString projectFolderName;
-	wxString projectFolderPath;
-};
-
 /// wxList declaration and partial implementation of the POList class being
 /// a list of pointers to PageOffsets objects
 WX_DECLARE_LIST(PageOffsets, POList); // see list definition macro in .cpp file
@@ -1114,6 +1106,14 @@ enum AiProjectCollabStatus
 	collabProjExistsAndIsValid,
 	collabProjExistsButIsInvalid,
 	collabProjNotConfigured,
+};
+
+/// a struct for use in collaboration with Paratext or Bibledit (BEW added 22Jun11)
+struct EthnologueCodePair {
+	wxString srcLangCode;
+	wxString tgtLangCode;
+	wxString projectFolderName;
+	wxString projectFolderPath;
 };
 
 // An enum for specifying the program mode for use in the
@@ -2408,16 +2408,6 @@ public:
                 // empty source phrase every time the user finishes editing something &
                 // hits RETURN) This flag's functionality is the same for adapting and for
                 // glossing.
-    bool m_bKeepAdaptationsForSrcRespellings; // default is FALSE, only -srcRespell turns it on
-				// BEW added 21Jul14 to support not dropping adaptations in collaboration mode when
-				// edited source text has spelling changes which are to be interpretted as simple
-				// orthography changes and typos fixed and so forth - with no actual meaning changes,
-				// that is, the words changed are changed to remain themselves in their current places
-				// - in such a scenario, MergeOldAndNew() in MergeUpdatedSrc.cpp should retain the
-				// target text when the smart merge from Paratext's source text project is done back
-	            // to the Adapt It Document (associates with -srcRespell command line
-	            // switch)
-
 	bool m_bForce_Review_Mode; // added by BEW, 23Oct09, to support Bob Eaton's wish for
 				// shell opening to add a frm switch to have the document opened be opened
 				// in a launched app where review mode radio button is obligatory on, and
@@ -4025,6 +4015,14 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	bool m_bCollaborationDocHasFreeTrans;
 	bool m_bSaveCopySourceFlag_For_Collaboration; // save value so it can be
 												  // later restored in File / Close
+	// BEW added 10Jul15 for support of conflict resolution in collaboration mode
+	bool m_bRetainPTorBEversion;
+	bool m_bForceAIversion;
+	bool m_bUseConflictResolutionDlg;
+	wxString m_Collab_BookCode; // the 3-letter book code for the currently open collaborating document
+	wxString m_Collab_LastChapterStr; // the chapter reference string (e.g.  "15", or for a chunk "3-5")
+									  // last encountered when populating CollabAction structs
+
 	// whm 27Mar12 Note:
 	// If Paratext is installed (either on Windows or Linux) we give priority to
 	// it as the installed external Scripture editor for collaboration. If neither
@@ -4154,11 +4152,14 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 private:
 	wxString m_targetTextBuffer_PreEdit;
 	wxString m_freeTransTextBuffer_PreEdit;
+	wxString m_sourceTextBuffer_PostEdit; // export the source text, in collaboration, to here
 public:
 	void     StoreTargetText_PreEdit(wxString s);
 	void     StoreFreeTransText_PreEdit(wxString s);
+	void	 StoreSourceText_PostEdit(wxString s); // accessor for storing the src text
 	wxString GetStoredTargetText_PreEdit();
 	wxString GetStoredFreeTransText_PreEdit();
+	wxString GetStoredSourceText_PostEdit(); // accessor for getting the src text
 	// end of collaboration declarations
 
 	// BEW added 6Aug2012 for maintaining a book name (user defined, although a suggestion

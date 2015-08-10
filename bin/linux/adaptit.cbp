@@ -331,6 +331,8 @@
 		<Unit filename="../../source/ClientServerConnection.h" />
 		<Unit filename="../../source/CollabUtilities.cpp" />
 		<Unit filename="../../source/CollabUtilities.h" />
+		<Unit filename="../../source/CollabVerseConflictDlg.cpp" />
+		<Unit filename="../../source/CollabVerseConflictDlg.h" />
 		<Unit filename="../../source/CollectBacktranslations.cpp" />
 		<Unit filename="../../source/CollectBacktranslations.h" />
 		<Unit filename="../../source/ComposeBarEditBox.cpp" />

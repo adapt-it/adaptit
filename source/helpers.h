@@ -310,7 +310,7 @@ bool      GetSFMarkersAsArray(wxString& strToParse, wxArrayString& arr);
 wxString  GetLastMarker(wxString markers);
 bool      IsOneOfAndIfSoGetSpan(wxString inputStr, wxString& charSet, int& span); // BEW added 22May14
 bool      IsNotOneOfNorSpaceAndIfSoGetSpan(wxChar* pStart, wxChar* pEnd, wxString& charSet, int& span); // BEW added 22May14
-wxString  ReduceStringToStructuredPuncts(wxString& inputStr); // BEW added 22May14
+//wxString  ReduceStringToStructuredPuncts(wxString& inputStr); // BEW added 22May14 Deprecated 10Jul15
 bool      IsWhiteSpace(const wxChar *pChar);
 int       ParseWhiteSpace(const wxChar *pChar); // returns a length (num chars of whitespace)
 int       ParseMarker(const wxChar *pChar); // returns a length (num chars in the marker, including backslash)
