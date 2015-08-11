@@ -25,6 +25,7 @@
 #ifndef WX_PRECOMP
 // Include your minimal set of headers here, or wx.h
 #include <wx/wx.h>
+#include <wx/wfstream.h>
 #endif
 
 #include <wx/utils.h> // for ::wxDirExists, ::wxSetWorkingDirectory, etc
@@ -1357,13 +1358,43 @@ int KbServer::ListLanguages(wxString username, wxString password)
 		int numErrors = reader.Parse(myArray, &jsonval);
 		if (numErrors > 0)
 		{
-			// A non-localizable message will do, it's unlikely to happen (we hope)
-			wxMessageBox(_T("In ListLanguages(): json reader.Parse() failed. Unexpected bad data from server."),
-				_T("kbserver error"), wxICON_ERROR | wxOK);
+			// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent, 
+			// the developers would love to have this info. The latest copy only is 
+			// retained, the "w" mode clears the earlier file if there is one, and 
+			// writes new content to it
+			wxString aFilename = _T("ListLanguages_bad_utf8_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+			if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
+			{
+				wxASSERT(!m_pApp->m_curProjectName.IsEmpty());
+				wxString workOrCustomFolderPath;
+				if (!m_pApp->m_bUseCustomWorkFolderPath)
+				{
+					workOrCustomFolderPath = m_pApp->m_workFolderPath;
+				}
+				else
+				{
+					workOrCustomFolderPath = m_pApp->m_customWorkFolderPath;
+				}
+				wxString path2BadData = workOrCustomFolderPath + m_pApp->PathSeparator +
+					m_pApp->m_logsEmailReportsFolderName + m_pApp->PathSeparator + aFilename;
+				size_t mySize = str_CURLbuffer.size();
+				wxFFile ff(path2BadData, "w");
+				wxASSERT(ff.IsOpened());
+				ff.Write(str_CURLbuffer.c_str(), mySize);
+				ff.Close();
+			}
+			// a non-localizable message will do, it's unlikely to ever be seen
+			// once correct utf-8 consistently comes from the remote server
+			wxString msg;
+			msg = msg.Format(_T("ListLanguages(): json reader.Parse() failed. Server sent bad UTF-8 data.\nThe bad data is stored in the file with path: \n%s \nSend this file to the developers please."),
+				aFilename.c_str());
+			wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
 			return CURLE_HTTP_RETURNED_ERROR;
-		}
+		} // end of TRUE block for test: if (numErrors > 0)
+
 		// We extract everything: id, desxcription, user, timestamp at which the language code was added 
 		// to the language table
 		ClearLanguagesList(&m_languagesList); // deletes from the heap any KbServerLanguage structs still in m_languageList
@@ -3754,10 +3785,11 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 							tgtPhrase = pRefString->m_translation; // might be empty
 #if defined(_DEBUG)
 							//if (tgtPhrase == _T("will not") || tgtPhrase == _T("might not") || tgtPhrase == _T("ross"))
-							if (tgtPhrase == _T("could not") || tgtPhrase == _T("can not"))
+/*							if (tgtPhrase == _T("could not") || tgtPhrase == _T("can not"))
 							{
 								int break_here = 1;
 							}
+*/
 #endif
 							if (tgtPhrase.IsEmpty())
 							{
@@ -4430,17 +4462,46 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 		if (offset == 0) // TRUE means JSON data starts at the buffer's beginning
 		{
             wxString myList = wxString::FromUTF8(str_CURLbuffer.c_str()); // I'm assuming no BOM gets inserted
+			//wxString myList = buffer; // <<-- makes no difference
 
             wxJSONValue jsonval;
             wxJSONReader reader;
-            int numErrors = reader.Parse(myList, &jsonval);
-
-            if (numErrors > 0)
-            {
+			int numErrors = reader.Parse(myList, &jsonval);
+			if (numErrors > 0)
+			{
+				// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent, 
+				// the developers would love to have this info. The latest copy only is 
+				// retained, the "w" mode clears the earlier file if there is one, and 
+				// writes new content to it
+				wxString aFilename = _T("ChangedSince_bad_utf8_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+				if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
+				{
+					wxASSERT(!m_pApp->m_curProjectName.IsEmpty());
+					wxString workOrCustomFolderPath;
+					if (!m_pApp->m_bUseCustomWorkFolderPath)
+					{
+						workOrCustomFolderPath = m_pApp->m_workFolderPath;
+					}
+					else
+					{
+						workOrCustomFolderPath = m_pApp->m_customWorkFolderPath;
+					}
+					wxString path2BadData = workOrCustomFolderPath + m_pApp->PathSeparator + 
+						m_pApp->m_logsEmailReportsFolderName + m_pApp->PathSeparator + aFilename;
+					size_t mySize = str_CURLbuffer.size();
+					wxFFile ff(path2BadData, "w");
+					wxASSERT(ff.IsOpened());
+					ff.Write(str_CURLbuffer.c_str(), mySize);
+					ff.Close();
+				}
                 // a non-localizable message will do, it's unlikely to ever be seen
-                wxMessageBox(_T("ChangedSince_Queued(): json reader.Parse() failed. Unexpected bad data from server"),
-                    _T("kbserver error"), wxICON_ERROR | wxOK);
-                str_CURLbuffer.clear(); // always clear it before returning
+				// once correct utf-8 consistently comes from the remote server
+				wxString msg;
+				msg = msg.Format(_T("ChangedSince_Queued(): json reader.Parse() failed. Server sent bad UTF-8 data.\nThe bad data is stored in the file with path: \n%s \nSend this file to the developers please."),
+									aFilename.c_str());
+				wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+
+				str_CURLbuffer.clear(); // always clear it before returning
                 str_CURLheaders.clear(); // always clear it before returning
                return -1;
             }
@@ -4498,6 +4559,9 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 			{
 				UpdateLastSyncTimestamp();
 			}
+#if defined(_DEBUG)
+			//wxRemoveFile(tempjsonfile); // <<-- uncomment out, if we don't want to keep the latest one
+#endif
 		} // end of TRUE block for test: if (offset == 0)
 		else
 		{
