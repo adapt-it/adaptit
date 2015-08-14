@@ -1040,6 +1040,7 @@ int KbServer::ChangedSince(wxString timeStamp)
         // "No matching entry found", in which case, don't do any of the json stuff, and
         // the value in m_kbServerLastTimestampReceived will be correct and can be used
         // to update the persistent storage file for the time of the lastsync
+/* old code
         wxString strStartJSON = _T("[{");
 		CBString cbstr(str_CURLbuffer.c_str());
 		wxString buffer(ToUtf16(cbstr));
@@ -1067,6 +1068,76 @@ int KbServer::ChangedSince(wxString timeStamp)
                 pStatusBar->FinishProgress(_("Receiving..."));
                 return -1;
             }
+*/
+		// Experimental (rough) code
+        wxString strStartJSON = _T("[{");
+		CBString cbstr(str_CURLbuffer.c_str());
+		wxString buffer(ToUtf16(cbstr));
+		int offset = buffer.Find(strStartJSON);
+
+		
+		if (offset == 0) // TRUE means JSON data starts at the buffer's beginning
+		{
+            // Before extracting the substrings from the JSON data, the storage arrays must be
+            // cleared with a call of ClearAllPrivateStorageArrays()
+            ClearAllPrivateStorageArrays(); // always must start off empty
+
+            //wxString jsonArray = wxString::FromUTF8(str_CURLbuffer.c_str()); // I'm assuming no BOM gets inserted
+            wxString jsonArray(str_CURLbuffer.c_str()); // no encoding conversion attempted
+
+            wxJSONValue jsonval;
+            wxJSONReader reader;
+            int numErrors = reader.Parse(jsonArray, &jsonval);
+            pStatusBar->UpdateProgress(_("Receiving..."), 4);
+
+            if (numErrors > 0)
+            {
+				// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent, 
+				// the developers would love to have this info. The latest copy only is 
+				// retained, the "w" mode clears the earlier file if there is one, and 
+				// writes new content to it
+				wxString aFilename = _T("ReceiveAllButton_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+				wxString workOrCustomFolderPath;
+				if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
+				{
+					wxASSERT(!m_pApp->m_curProjectName.IsEmpty());
+					
+					if (!m_pApp->m_bUseCustomWorkFolderPath)
+					{
+						workOrCustomFolderPath = m_pApp->m_workFolderPath;
+					}
+					else
+					{
+						workOrCustomFolderPath = m_pApp->m_customWorkFolderPath;
+					}
+					wxString path2BadData = workOrCustomFolderPath + m_pApp->PathSeparator +
+						m_pApp->m_logsEmailReportsFolderName + m_pApp->PathSeparator + aFilename;
+					size_t mySize = str_CURLbuffer.size();
+					wxFFile ff(path2BadData, "w");
+					wxASSERT(ff.IsOpened());
+					ff.Write(str_CURLbuffer.c_str(), mySize);
+					ff.Close();
+				}
+
+                // a non-localizable message will do, it's unlikely to ever be seen
+                wxMessageBox(_T("ChangedSince(): json reader.Parse() failed. Unexpected bad data from server"),
+                    _T("kbserver error"), wxICON_ERROR | wxOK);
+                str_CURLbuffer.clear(); // always clear it before returning
+                str_CURLheaders.clear(); // always clear it before returning
+                pStatusBar->FinishProgress(_("Receiving..."));
+                return -1;
+            }
+			else
+			{
+				// Yay! no errors
+				int break_here = 1;
+			}
+		
+
+
+
+
+		// End of experimental (rough) code
             size_t arraySize = jsonval.Size();
 #if defined (_DEBUG)
             // get feedback about now many entries we got
@@ -1362,7 +1433,7 @@ int KbServer::ListLanguages(wxString username, wxString password)
 			// the developers would love to have this info. The latest copy only is 
 			// retained, the "w" mode clears the earlier file if there is one, and 
 			// writes new content to it
-			wxString aFilename = _T("ListLanguages_bad_utf8_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+			wxString aFilename = _T("ListLanguages_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
 			wxString workOrCustomFolderPath;
 			if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
 			{
@@ -4474,7 +4545,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 				// the developers would love to have this info. The latest copy only is 
 				// retained, the "w" mode clears the earlier file if there is one, and 
 				// writes new content to it
-				wxString aFilename = _T("ChangedSince_bad_utf8_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+				wxString aFilename = _T("DownloadAllButton_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
 				wxString workOrCustomFolderPath;
 				if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
 				{
