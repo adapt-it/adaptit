@@ -1233,9 +1233,9 @@ wxJSONReader::ReadString( wxInputStream& is, wxJSONValue& val )
         // UTF-8 code points.
         // this works in both ANSI and Unicode builds.
         size_t convLen = wxConvUTF8.ToWChar( 0,        // wchar_t destination
-                        0,                            // size_t  destLenght
+                        0,                            // size_t  destLength
             (const char*) utf8Buff.GetData(),        // char_t  source
-                utf8Buff.GetDataLen());                // size_t  sourceLenght
+                utf8Buff.GetDataLen());                // size_t  sourceLength
 
         if ( convLen == wxCONV_FAILED )    {
             AddError( _T( "String value: the UTF-8 stream is invalid"));
@@ -1633,22 +1633,26 @@ wxJSONReader::AppendUES( wxMemoryBuffer& utf8Buff, const char* uesBuffer )
         return -1;
     }
 #if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
-    wxLogTrace( traceMask, _T("(%s) unicode sequence=%s code=%ld"),
-              __PRETTY_FUNCTION__, uesBuffer, l );
+    //wxLogTrace( traceMask, _T("(%s) unicode sequence=%s code=%ld"),
+    //          __PRETTY_FUNCTION__, uesBuffer, l );
 #endif
 
     wchar_t ch = (wchar_t) l;
     char buffer[16];
     size_t len = wxConvUTF8.FromWChar( buffer, 10, &ch, 1 );
 
+	/* // BEW 14AUg15 commented out next five lines, the len = len - 1; line was removing the last byte
+	   // of each unicode character converted to utf-8 byte sequence, producing invalid utf-8. This bug
+	   // was noted in wxWidgets 2.9.3 (years ago) and never fixed. So I've done it.
     // seems that the wxMBConv classes always appends a NULL byte to
     // the converted buffer
-    if ( len > 1 )    {
-        len = len - 1;
-    }
+    // if ( len > 1 )    {
+    //    len = len - 1;
+    //}
+	*/
     utf8Buff.AppendData( buffer, len );
 
-    // sould never fail
+    // should never fail
     wxASSERT( len != wxCONV_FAILED );
     return 0;
 }

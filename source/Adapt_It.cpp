@@ -48107,7 +48107,7 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 			f.Close();
 		} // end of if (f.Open...
 		if (pBuff != NULL) // whm 11Jun12 added NULL test
-			delete pBuff;
+			delete[] pBuff;
 	} // end of if (wxFileExists(pathAndName))
 	if (bFoundCode && bookCd.GetLength() == 3)
 	{

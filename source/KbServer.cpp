@@ -51,8 +51,8 @@ wxMutex s_BulkDeleteMutex; // Because PseudoDeleteOrUndeleteEntry() is used some
 #include <wx/listimpl.cpp>
 
 
-//using namespace std;
-//#include <string>
+using namespace std;
+#include <string>
 
 #include "Adapt_It.h"
 #include "TargetUnit.h"
@@ -1069,27 +1069,33 @@ int KbServer::ChangedSince(wxString timeStamp)
                 return -1;
             }
 */
-		// Experimental (rough) code
-        wxString strStartJSON = _T("[{");
-		CBString cbstr(str_CURLbuffer.c_str());
-		wxString buffer(ToUtf16(cbstr));
-		int offset = buffer.Find(strStartJSON);
 
-		
-		if (offset == 0) // TRUE means JSON data starts at the buffer's beginning
+        //wxString strStartJSON = _T("[{");
+		//CBString cbstr(str_CURLbuffer.c_str());
+		//wxString buffer(ToUtf16(cbstr));
+		//int offset = buffer.Find(strStartJSON);
+
+		std::string srch = "[{";
+		size_t offset = str_CURLbuffer.find(srch);
+
+		// not npos means JSON data starts somewhere; a JSON parse ignores all before [ or {
+		if (offset != string::npos) 
 		{
             // Before extracting the substrings from the JSON data, the storage arrays must be
             // cleared with a call of ClearAllPrivateStorageArrays()
             ClearAllPrivateStorageArrays(); // always must start off empty
 
             //wxString jsonArray = wxString::FromUTF8(str_CURLbuffer.c_str()); // I'm assuming no BOM gets inserted
-            wxString jsonArray(str_CURLbuffer.c_str()); // no encoding conversion attempted
+            wxString jsonArray(str_CURLbuffer.c_str()); // JSON expects byte data, convert after Parse()
 
             wxJSONValue jsonval;
             wxJSONReader reader;
-            int numErrors = reader.Parse(jsonArray, &jsonval);
-            pStatusBar->UpdateProgress(_("Receiving..."), 4);
+			// The Parse() function will convert any \uNNNN representations of unicode 
+			// characters to valid UTF-8 byte sequences. Conversion to UTF-16 or UCS-4
+			// is done further below, when extracting strings from jsonval
+			int numErrors = reader.Parse(jsonArray, &jsonval);
 
+            pStatusBar->UpdateProgress(_("Receiving..."), 4);
             if (numErrors > 0)
             {
 				// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent, 
@@ -1120,24 +1126,18 @@ int KbServer::ChangedSince(wxString timeStamp)
 				}
 
                 // a non-localizable message will do, it's unlikely to ever be seen
-                wxMessageBox(_T("ChangedSince(): json reader.Parse() failed. Unexpected bad data from server"),
-                    _T("kbserver error"), wxICON_ERROR | wxOK);
-                str_CURLbuffer.clear(); // always clear it before returning
+				wxString msg;
+				msg = msg.Format(_T("ChangedSince(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
+					aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
+				wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+
+				str_CURLbuffer.clear(); // always clear it before returning
                 str_CURLheaders.clear(); // always clear it before returning
+
                 pStatusBar->FinishProgress(_("Receiving..."));
                 return -1;
             }
-			else
-			{
-				// Yay! no errors
-				int break_here = 1;
-			}
-		
-
-
-
-
-		// End of experimental (rough) code
+			// There were no errors
             size_t arraySize = jsonval.Size();
 #if defined (_DEBUG)
             // get feedback about now many entries we got
@@ -1148,7 +1148,8 @@ int KbServer::ChangedSince(wxString timeStamp)
             }
 #endif
             size_t index;
-			wxString noform = _T("<noform>");
+			std::string noform = "<noform>";
+			std::string s;
             for (index = 0; index < arraySize; index++)
             {
                 // We can extract id, source phrase, target phrase, deleted flag value,
@@ -1157,18 +1158,18 @@ int KbServer::ChangedSince(wxString timeStamp)
                 // deleted flag. So the others can be commented out.
                 // BEW changed 16Jan13, to have the username included in the arrays, so that we
                 // can track who originated each of the entries in the group's various local KBs
-                m_arrSource.Add(jsonval[index][_T("source")].AsString());
+				s = jsonval[index][_T("source")].AsString(); // get utf8 string
+				m_arrSource.Add(wxString::FromUTF8((const char*)s.c_str(), s.length()));
 				// BEW 11Jun15 restore <noform> to an empty string
-				wxString aTgt = jsonval[index][_T("target")].AsString();
-				if (aTgt == noform)
+				s = jsonval[index][_T("target")].AsString();
+				if (s == noform)
 				{
-					aTgt.Empty();
+					s.clear();
 				}
-				m_arrTarget.Add(aTgt);
+				m_arrTarget.Add(wxString::FromUTF8((const char*)s.c_str(), s.length()));
                 m_arrDeleted.Add(jsonval[index][_T("deleted")].AsInt());
-                //m_arrID.Add(jsonval[index][_T("id")].AsLong());
-                m_arrUsername.Add(jsonval[index][_T("user")].AsString());
-                //m_arrTimestamp.Add(jsonval[index][_T("timestamp")].AsString());
+				s = jsonval[index][_T("user")].AsString();
+				m_arrUsername.Add(wxString::FromUTF8((const char*)s.c_str(), s.length()));
 #if defined (_DEBUG)
                 // list what entries were returned
                 wxLogDebug(_T("Downloaded:  %s  ,  %s  ,  deleted = %d"),
@@ -1458,7 +1459,7 @@ int KbServer::ListLanguages(wxString username, wxString password)
 			// a non-localizable message will do, it's unlikely to ever be seen
 			// once correct utf-8 consistently comes from the remote server
 			wxString msg;
-			msg = msg.Format(_T("ListLanguages(): json reader.Parse() failed. Server sent bad UTF-8 data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
+			msg = msg.Format(_T("ListLanguages(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
 				aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
 			wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
 
@@ -4569,7 +4570,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
                 // a non-localizable message will do, it's unlikely to ever be seen
 				// once correct utf-8 consistently comes from the remote server
 				wxString msg;
-				msg = msg.Format(_T("ChangedSince_Queued(): json reader.Parse() failed. Server sent bad UTF-8 data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
+				msg = msg.Format(_T("ChangedSince_Queued(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
 					aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
 				wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
 
