@@ -1040,41 +1040,6 @@ int KbServer::ChangedSince(wxString timeStamp)
         // "No matching entry found", in which case, don't do any of the json stuff, and
         // the value in m_kbServerLastTimestampReceived will be correct and can be used
         // to update the persistent storage file for the time of the lastsync
-/* old code
-        wxString strStartJSON = _T("[{");
-		CBString cbstr(str_CURLbuffer.c_str());
-		wxString buffer(ToUtf16(cbstr));
-		int offset = buffer.Find(strStartJSON);
-		if (offset == 0) // TRUE means JSON data starts at the buffer's beginning
-		{
-            // Before extracting the substrings from the JSON data, the storage arrays must be
-            // cleared with a call of ClearAllPrivateStorageArrays()
-            ClearAllPrivateStorageArrays(); // always must start off empty
-
-            wxString jsonArray = wxString::FromUTF8(str_CURLbuffer.c_str()); // I'm assuming no BOM gets inserted
-
-            wxJSONValue jsonval;
-            wxJSONReader reader;
-            int numErrors = reader.Parse(jsonArray, &jsonval);
-            pStatusBar->UpdateProgress(_("Receiving..."), 4);
-
-            if (numErrors > 0)
-            {
-                // a non-localizable message will do, it's unlikely to ever be seen
-                wxMessageBox(_T("ChangedSince(): json reader.Parse() failed. Unexpected bad data from server"),
-                    _T("kbserver error"), wxICON_ERROR | wxOK);
-                str_CURLbuffer.clear(); // always clear it before returning
-                str_CURLheaders.clear(); // always clear it before returning
-                pStatusBar->FinishProgress(_("Receiving..."));
-                return -1;
-            }
-*/
-
-        //wxString strStartJSON = _T("[{");
-		//CBString cbstr(str_CURLbuffer.c_str());
-		//wxString buffer(ToUtf16(cbstr));
-		//int offset = buffer.Find(strStartJSON);
-
 		std::string srch = "[{";
 		size_t offset = str_CURLbuffer.find(srch);
 
@@ -1085,9 +1050,7 @@ int KbServer::ChangedSince(wxString timeStamp)
             // cleared with a call of ClearAllPrivateStorageArrays()
             ClearAllPrivateStorageArrays(); // always must start off empty
 
-            //wxString jsonArray = wxString::FromUTF8(str_CURLbuffer.c_str()); // I'm assuming no BOM gets inserted
             wxString jsonArray(str_CURLbuffer.c_str()); // JSON expects byte data, convert after Parse()
-
             wxJSONValue jsonval;
             wxJSONReader reader;
 			// The Parse() function will convert any \uNNNN representations of unicode 
@@ -1136,7 +1099,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 
                 pStatusBar->FinishProgress(_("Receiving..."));
                 return -1;
-            }
+            } // end of TRUE block for test: if (numErrors > 0)
 			// There were no errors
             size_t arraySize = jsonval.Size();
 #if defined (_DEBUG)
@@ -1424,97 +1387,115 @@ int KbServer::ListLanguages(wxString username, wxString password)
 	//  the custom code definitions are to be shown to the user of the KB Sharing Manager tabbed dlg
 	if (!str_CURLbuffer.empty())
 	{
-		wxString myArray = wxString::FromUTF8(str_CURLbuffer.c_str());
-		wxJSONValue jsonval;
-		wxJSONReader reader;
-		int numErrors = reader.Parse(myArray, &jsonval);
-		if (numErrors > 0)
+		// json data beginswith "[{", so test for the payload starting this way, if it
+		// doesn't, then there is only an error string to grab -- quite possibly
+		// "No matching entry found"
+		std::string srch = "[{";
+		size_t offset = str_CURLbuffer.find(srch);
+
+		// not npos means JSON data starts somewhere; a JSON parse ignores all before [ or {
+		if (offset != string::npos)
 		{
-			// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent, 
-			// the developers would love to have this info. The latest copy only is 
-			// retained, the "w" mode clears the earlier file if there is one, and 
-			// writes new content to it
-			wxString aFilename = _T("ListLanguages_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
-			wxString workOrCustomFolderPath;
-			if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
+			wxString jsonArray(str_CURLbuffer.c_str()); // JSON expects byte data, convert after Parse()
+
+			wxJSONValue jsonval;
+			wxJSONReader reader;
+			int numErrors = reader.Parse(jsonArray, &jsonval);
+			if (numErrors > 0)
 			{
-				wxASSERT(!m_pApp->m_curProjectName.IsEmpty());
-				
-				if (!m_pApp->m_bUseCustomWorkFolderPath)
+				// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent, 
+				// the developers would love to have this info. The latest copy only is 
+				// retained, the "w" mode clears the earlier file if there is one, and 
+				// writes new content to it
+				wxString aFilename = _T("ListLanguages_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+				wxString workOrCustomFolderPath;
+				if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
 				{
-					workOrCustomFolderPath = m_pApp->m_workFolderPath;
+					wxASSERT(!m_pApp->m_curProjectName.IsEmpty());
+
+					if (!m_pApp->m_bUseCustomWorkFolderPath)
+					{
+						workOrCustomFolderPath = m_pApp->m_workFolderPath;
+					}
+					else
+					{
+						workOrCustomFolderPath = m_pApp->m_customWorkFolderPath;
+					}
+					wxString path2BadData = workOrCustomFolderPath + m_pApp->PathSeparator +
+						m_pApp->m_logsEmailReportsFolderName + m_pApp->PathSeparator + aFilename;
+					size_t mySize = str_CURLbuffer.size();
+					wxFFile ff(path2BadData, "w");
+					wxASSERT(ff.IsOpened());
+					ff.Write(str_CURLbuffer.c_str(), mySize);
+					ff.Close();
+				}
+				// a non-localizable message will do, it's unlikely to ever be seen
+				wxString msg;
+				msg = msg.Format(_T("ListLanguages(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
+					aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
+				wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+
+				str_CURLbuffer.clear(); // always clear it before returning
+				str_CURLheaders.clear();
+				return -1;
+			} // end of TRUE block for test: if (numErrors > 0)
+
+			// We extract all but timestamp: that is, id, description, user
+			ClearLanguagesList(&m_languagesList); // deletes from the heap any KbServerLanguage structs still in m_languageList
+			wxASSERT(m_languagesList.empty());
+			size_t arraySize = jsonval.Size();
+			wxASSERT(arraySize > 0);
+			size_t index;
+			std::string three = "-x-";
+			KbServerLanguage* pLanguageStruct = NULL; // initialize
+			std::string aCode;
+			std::string s;
+			for (index = 0; index < arraySize; index++)
+			{
+				aCode = jsonval[index][_T("id")].AsString();
+				if (aCode.find(three) != string::npos)
+				{
+					// Contains -x- so we want this one
+					pLanguageStruct = new KbServerLanguage;
+					pLanguageStruct->code = wxString::FromUTF8((const char*)aCode.c_str(), aCode.length());
+					s = jsonval[index][_T("user")].AsString();
+					pLanguageStruct->username = wxString::FromUTF8((const char*)s.c_str(), s.length());
+					s = jsonval[index][_T("description")].AsString();
+					pLanguageStruct->description = wxString::FromUTF8((const char*)s.c_str(), s.length());
+					// to get rid of thesepLanguageStruct pointers once their job is done, if not, memory will be leaked
+
+					/* This is slow... so comment out unnecessary stuff
+					s = jsonval[index][_T("timestamp")].AsString();
+					pLanguageStruct->timestamp = wxString::FromUTF8((const char*)s.c_str(), s.length());
+					// Add the pLanguageStruct to the m_languagesList stored in the KbServer instance
+					// which is this (Caller should only use the adaptations instance of KbServer)
+					m_languagesList.Append(pLanguageStruct); // Caller must later use ClearLanguagesList()
+					// to get rid of these pointers once their job is done, if not, memory will be leaked
+					#if defined (_DEBUG)
+					// commented out, though it works, because it slows down the processing required to put the custom codes into the list box
+					wxLogDebug(_T("ListLanguages(): code = %s , description = %s , username = %s , timestamp = %s"),
+					pLanguageStruct->code.c_str(), pLanguageStruct->description.c_str(), pLanguageStruct->username.c_str(),
+					pLanguageStruct->timestamp.c_str());
+					#endif
+					*/
+					// Add the pLanguageStruct to the m_languagesList stored in the KbServer instance
+					// which is this (Caller should only use the adaptations instance of KbServer)
+					m_languagesList.Append(pLanguageStruct); // Caller must later use ClearLanguagesList()
 				}
 				else
 				{
-					workOrCustomFolderPath = m_pApp->m_customWorkFolderPath;
+					continue;
 				}
-				wxString path2BadData = workOrCustomFolderPath + m_pApp->PathSeparator +
-					m_pApp->m_logsEmailReportsFolderName + m_pApp->PathSeparator + aFilename;
-				size_t mySize = str_CURLbuffer.size();
-				wxFFile ff(path2BadData, "w");
-				wxASSERT(ff.IsOpened());
-				ff.Write(str_CURLbuffer.c_str(), mySize);
-				ff.Close();
-			}
-			// a non-localizable message will do, it's unlikely to ever be seen
-			// once correct utf-8 consistently comes from the remote server
-			wxString msg;
-			msg = msg.Format(_T("ListLanguages(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
-				aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
-			wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+			} // end of loop: for (index = 0; index < arraySize; index++)
 
-			str_CURLbuffer.clear(); // always clear it before returning
-			str_CURLheaders.clear();
-			return CURLE_HTTP_RETURNED_ERROR;
-		} // end of TRUE block for test: if (numErrors > 0)
-
-		// We extract everything: id, desxcription, user, timestamp at which the language code was added 
-		// to the language table
-		ClearLanguagesList(&m_languagesList); // deletes from the heap any KbServerLanguage structs still in m_languageList
-		wxASSERT(m_languagesList.empty());
-		size_t arraySize = jsonval.Size();
-		wxASSERT(arraySize > 0);
-		size_t index;
-		wxString three = _T("-x-");
-		KbServerLanguage* pLanguageStruct = NULL; // initialize
-		wxString aCode;
-		for (index = 0; index < arraySize; index++)
+		} // end of TRUE block for test: if (offset != string::npos)
+		else
 		{
-			aCode = jsonval[index][_T("id")].AsString();
-			if (aCode.Find(three) != wxNOT_FOUND)
-			{
-				// Contains -x- so we want this one
-				pLanguageStruct = new KbServerLanguage;
-				pLanguageStruct->code = aCode;
-				pLanguageStruct->username = jsonval[index][_T("user")].AsString();
-				pLanguageStruct->description = jsonval[index][_T("description")].AsString();
-				// Save time by ignoring timestamp, we don't use it or show it to the user
-				// Add the pLanguageStruct to the m_languagesList stored in the KbServer instance
-				// which is this (Caller should only use the adaptations instance of KbServer)
-				m_languagesList.Append(pLanguageStruct); // Caller must later use ClearLanguagesList()
-				// to get rid of these pointers once their job is done, if not, memory will be leaked
-			}
-			else
-				continue;
-
-			/* This is slow, 56 sec to handle 8000 entries from JM's server, try speed it up with code above
-			KbServerLanguage* pLanguageStruct = new KbServerLanguage;
-			// Extract the field values, store them in pLanguageStruct
-			pLanguageStruct->code = jsonval[index][_T("id")].AsString();
-			pLanguageStruct->username = jsonval[index][_T("user")].AsString();
-			pLanguageStruct->description = jsonval[index][_T("description")].AsString();
-			pLanguageStruct->timestamp = jsonval[index][_T("timestamp")].AsString();
-			// Add the pLanguageStruct to the m_languagesList stored in the KbServer instance
-			// which is this (Caller should only use the adaptations instance of KbServer)
-			m_languagesList.Append(pLanguageStruct); // Caller must later use ClearLanguagesList()
-			// to get rid of these pointers once their job is done, if not, memory will be leaked
-#if defined (_DEBUG)
-			// commented out, though it works, because it slows down the processing required to put the custom codes into the list box
-			wxLogDebug(_T("ListLanguages(): code = %s , description = %s , username = %s , timestamp = %s"),
-				pLanguageStruct->code.c_str(), pLanguageStruct->description.c_str(), pLanguageStruct->username.c_str(),
-				 pLanguageStruct->timestamp.c_str());
-#endif
-			*/
+			// There was no JSON returned, so treat this the same as if the "-x-" entries
+			// were filtered at server end, and there were none of them. That is, just
+			// do nothing here. If Jonathan then were to actually do the filtering at the
+			// server end, then no code change is needed here
+			;
 		}
 
 		str_CURLbuffer.clear(); // always clear it before returning
@@ -1613,19 +1594,50 @@ int KbServer::ListUsers(wxString username, wxString password)
 	//  the json string for the constructed list of user entries
 	if (!str_CURLbuffer.empty())
 	{
-		wxString myArray = wxString::FromUTF8(str_CURLbuffer.c_str());
+		wxString jsonArray(str_CURLbuffer.c_str()); // JSON expects byte data, convert after Parse()
 		wxJSONValue jsonval;
 		wxJSONReader reader;
-		int numErrors = reader.Parse(myArray, &jsonval);
+		int numErrors = reader.Parse(jsonArray, &jsonval);
 		if (numErrors > 0)
 		{
-			// A non-localizable message will do, it's unlikely to happen (we hope)
-			wxMessageBox(_T("In ListUsers(): json reader.Parse() failed. Unexpected bad data from server."),
-				_T("kbserver error"), wxICON_ERROR | wxOK);
+			// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent, 
+			// the developers would love to have this info. The latest copy only is 
+			// retained, the "w" mode clears the earlier file if there is one, and 
+			// writes new content to it
+			wxString aFilename = _T("ListUsers_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+			wxString workOrCustomFolderPath;
+			if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
+			{
+				wxASSERT(!m_pApp->m_curProjectName.IsEmpty());
+
+				if (!m_pApp->m_bUseCustomWorkFolderPath)
+				{
+					workOrCustomFolderPath = m_pApp->m_workFolderPath;
+				}
+				else
+				{
+					workOrCustomFolderPath = m_pApp->m_customWorkFolderPath;
+				}
+				wxString path2BadData = workOrCustomFolderPath + m_pApp->PathSeparator +
+					m_pApp->m_logsEmailReportsFolderName + m_pApp->PathSeparator + aFilename;
+				size_t mySize = str_CURLbuffer.size();
+				wxFFile ff(path2BadData, "w");
+				wxASSERT(ff.IsOpened());
+				ff.Write(str_CURLbuffer.c_str(), mySize);
+				ff.Close();
+			}
+
+			// a non-localizable message will do, it's unlikely to ever be seen
+			wxString msg;
+			msg = msg.Format(_T("ListUsers(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
+				aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
+			wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
-			return CURLE_HTTP_RETURNED_ERROR;
+			return -1;
 		}
+		// No errors....
         // We extract everything: id, username, fullname, kbadmin flag value, useradmin
         // flag value, and the timestamp at which the username was added to the entry table
 		ClearUsersList(&m_usersList); // deletes from the heap any KbServerUser structs still in m_userList
@@ -1633,20 +1645,24 @@ int KbServer::ListUsers(wxString username, wxString password)
         size_t arraySize = jsonval.Size();
 		wxASSERT(arraySize > 0);
         size_t index;
-        for (index = 0; index < arraySize; index++)
+		std::string s;
+		for (index = 0; index < arraySize; index++)
         {
 			KbServerUser* pUserStruct = new KbServerUser;
 			// Extract the field values, store them in pUserStruct
 			pUserStruct->id = jsonval[index][_T("id")].AsLong();
-			pUserStruct->username = jsonval[index][_T("username")].AsString();
-			pUserStruct->fullname = jsonval[index][_T("fullname")].AsString();
-			// do the following fiddle to avoid a compiler "performance warning" 
+			s = jsonval[index][_T("username")].AsString();
+			pUserStruct->username = wxString::FromUTF8((const char*)s.c_str(), s.length());
+			s = jsonval[index][_T("fullname")].AsString();
+			pUserStruct->fullname = wxString::FromUTF8((const char*)s.c_str(), s.length());
+			// do the following fiddles to avoid compiler "performance warning"s 
 			// if a (bool) cast was used instead
 			unsigned long val = jsonval[index][_T("kbadmin")].AsLong();
 			pUserStruct->kbadmin = val == 1L ? TRUE : FALSE;
 			val = jsonval[index][_T("useradmin")].AsLong();
 			pUserStruct->useradmin = val == 1L ? TRUE : FALSE;
-			pUserStruct->timestamp = jsonval[index][_T("timestamp")].AsString();
+			s = jsonval[index][_T("timestamp")].AsString();
+			pUserStruct->timestamp = wxString::FromUTF8((const char*)s.c_str(), s.length());
 			// Add the pUserStruct to the m_usersList stored in the KbServer instance
 			// which is this (Caller should only use the adaptations instance of KbServer)
 			m_usersList.Append(pUserStruct); // Caller must later use ClearUsersList() to get
@@ -1658,7 +1674,6 @@ int KbServer::ListUsers(wxString username, wxString password)
 				pUserStruct->useradmin ? 1 : 0, pUserStruct->kbadmin ? 1 : 0, pUserStruct->timestamp.c_str());
 #endif
 		}
-
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
 	}
@@ -1755,18 +1770,48 @@ int KbServer::ListKbs(wxString username, wxString password)
 	//  the json string for the constructed json array of kb entries
 	if (!str_CURLbuffer.empty())
 	{
-		wxString myArray = wxString::FromUTF8(str_CURLbuffer.c_str());
+		wxString jsonArray(str_CURLbuffer.c_str()); // JSON expects byte data, convert after Parse()
 		wxJSONValue jsonval;
 		wxJSONReader reader;
-		int numErrors = reader.Parse(myArray, &jsonval);
+		int numErrors = reader.Parse(jsonArray, &jsonval);
 		if (numErrors > 0)
 		{
-			// A non-localizable message will do, it's unlikely to happen (we hope)
-			wxMessageBox(_T("In ListKbs(): json reader.Parse() failed. Unexpected bad data from server."),
-				_T("kbserver error"), wxICON_ERROR | wxOK);
+			// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent, 
+			// the developers would love to have this info. The latest copy only is 
+			// retained, the "w" mode clears the earlier file if there is one, and 
+			// writes new content to it
+			wxString aFilename = _T("ListKbs_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+			wxString workOrCustomFolderPath;
+			if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
+			{
+				wxASSERT(!m_pApp->m_curProjectName.IsEmpty());
+
+				if (!m_pApp->m_bUseCustomWorkFolderPath)
+				{
+					workOrCustomFolderPath = m_pApp->m_workFolderPath;
+				}
+				else
+				{
+					workOrCustomFolderPath = m_pApp->m_customWorkFolderPath;
+				}
+				wxString path2BadData = workOrCustomFolderPath + m_pApp->PathSeparator +
+					m_pApp->m_logsEmailReportsFolderName + m_pApp->PathSeparator + aFilename;
+				size_t mySize = str_CURLbuffer.size();
+				wxFFile ff(path2BadData, "w");
+				wxASSERT(ff.IsOpened());
+				ff.Write(str_CURLbuffer.c_str(), mySize);
+				ff.Close();
+			}
+
+			// a non-localizable message will do, it's unlikely to ever be seen
+			wxString msg;
+			msg = msg.Format(_T("Listkbs(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
+				aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
+			wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
-			return CURLE_HTTP_RETURNED_ERROR;
+			return -1;
 		}
         // We extract everything: id, sourcelanguage, targetlanguage, type, username,
         // deleted flag value, and the timestamp at which the definition was added to the
@@ -1776,18 +1821,23 @@ int KbServer::ListKbs(wxString username, wxString password)
         size_t arraySize = jsonval.Size();
 		wxASSERT(arraySize > 0);
         size_t index;
-        for (index = 0; index < arraySize; index++)
+		std::string s;
+		for (index = 0; index < arraySize; index++)
         {
 			KbServerKb* pKbStruct = new KbServerKb;
 			// Extract the field values, store them in pKbStruct
 			pKbStruct->id = jsonval[index][_T("id")].AsLong();
-			pKbStruct->sourceLanguageCode = jsonval[index][_T("sourcelanguage")].AsString();
-			pKbStruct->targetLanguageCode = jsonval[index][_T("targetlanguage")].AsString();
+			s = jsonval[index][_T("sourcelanguage")].AsString();
+			pKbStruct->sourceLanguageCode = wxString::FromUTF8((const char*)s.c_str(), s.length());
+			s = jsonval[index][_T("targetlanguage")].AsString();
+			pKbStruct->targetLanguageCode = wxString::FromUTF8((const char*)s.c_str(), s.length());
 			pKbStruct->kbType = jsonval[index][_T("type")].AsLong();
-			pKbStruct->username = jsonval[index][_T("user")].AsString();
+			s = jsonval[index][_T("user")].AsString();
+			pKbStruct->username = wxString::FromUTF8((const char*)s.c_str(), s.length());
 			unsigned long val = jsonval[index][_T("deleted")].AsLong();
 			pKbStruct->deleted = val == 1L ? TRUE : FALSE;
-			pKbStruct->timestamp = jsonval[index][_T("timestamp")].AsString();
+			s = jsonval[index][_T("timestamp")].AsString();
+			pKbStruct->timestamp = wxString::FromUTF8((const char*)s.c_str(), s.length());
 
 			// Add the pKbStruct to the m_kbsList stored in the KbServer instance
 			// which is this (Caller should only use the adaptations instance of KbServer)
@@ -1806,7 +1856,6 @@ int KbServer::ListKbs(wxString username, wxString password)
 	}
 	return 0;
 }
-
 
 // Note: before running LookupUser(), ClearStrCURLbuffer() should be called,
 // and always remember to clear str_CURLbuffer before returning.
@@ -1833,26 +1882,14 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 	wxString colon(_T(':'));
 	wxString container = _T("user");
 
-	// The URL has to be url-encoded for safety
-	//char *encodeduser = NULL;	// Encoded username string
-
 	aUrl = url + slash + container + slash + whichusername;
 	//aUrl = url + slash + container + slash; // later add url-encoded whichusername;
 	charUrl = ToUtf8(aUrl);
 	aPwd = username + colon + password;
 	charUserpwd = ToUtf8(aPwd);
 
-	// url-encode  whichusername   before appending 
-	// to charUrl within the if (curl) block below
-	//CBString utf8User = ToUtf8(whichusername); // justs in case it's a phrase, make it url-encoded
-	//char* pUtf8User = (char*)utf8User; // need in this form for the curl_easy_escape() call below
-
 	curl = curl_easy_init();
-
 	if (curl) {
-		//encodeduser = curl_easy_escape(curl, pUtf8User, strlen(pUtf8User));
-		//strcat(charUrl, encodeduser);	// Append url-encoded username to URL
-
 		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -1914,39 +1951,70 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 	//  the json string for the looked up entry
 	if (!str_CURLbuffer.empty())
 	{
-		// Note: normally before calling LookupEntryForSrcTgtPair() the storage arrays
-		// should be cleared with a call of ClearAllPrivateStorageArrays()
-		wxString myObject = wxString::FromUTF8(str_CURLbuffer.c_str());
+		wxString jsonArray(str_CURLbuffer.c_str()); // JSON expects byte data, convert after Parse()
 		wxJSONValue jsonval;
 		wxJSONReader reader;
-		int numErrors = reader.Parse(myObject, &jsonval);
+		int numErrors = reader.Parse(jsonArray, &jsonval);
 		if (numErrors > 0)
 		{
-			// A non-localizable message will do, it's unlikely to happen (we hope)
-			wxMessageBox(_T("In LookupUser(): json reader.Parse() failed. Unexpected bad data from server."),
-				_T("kbserver error"), wxICON_ERROR | wxOK);
+			// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent, 
+			// the developers would love to have this info. The latest copy only is 
+			// retained, the "w" mode clears the earlier file if there is one, and 
+			// writes new content to it
+			wxString aFilename = _T("LookupUser_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+			wxString workOrCustomFolderPath;
+			if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
+			{
+				wxASSERT(!m_pApp->m_curProjectName.IsEmpty());
+
+				if (!m_pApp->m_bUseCustomWorkFolderPath)
+				{
+					workOrCustomFolderPath = m_pApp->m_workFolderPath;
+				}
+				else
+				{
+					workOrCustomFolderPath = m_pApp->m_customWorkFolderPath;
+				}
+				wxString path2BadData = workOrCustomFolderPath + m_pApp->PathSeparator +
+					m_pApp->m_logsEmailReportsFolderName + m_pApp->PathSeparator + aFilename;
+				size_t mySize = str_CURLbuffer.size();
+				wxFFile ff(path2BadData, "w");
+				wxASSERT(ff.IsOpened());
+				ff.Write(str_CURLbuffer.c_str(), mySize);
+				ff.Close();
+			}
+
+			// a non-localizable message will do, it's unlikely to ever be seen
+			wxString msg;
+			msg = msg.Format(_T("LookupUser(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
+				aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
+			wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
-			//curl_free(encodeduser);
-			return CURLE_HTTP_RETURNED_ERROR;
+			return -1;
 		}
+		// No errors...
 		// We extract id, username, fullname, kbadmin flag value, useradmin flag value,
 		// and the timestamp at which the definition was added to the user table.
 		ClearUserStruct(); // re-initializes m_userStruct member to be empty
+		std::string s;
 		m_userStruct.id = jsonval[0][_T("id")].AsLong();
-		m_userStruct.username = jsonval[0][_T("username")].AsString();
-		m_userStruct.fullname = jsonval[0][_T("fullname")].AsString();
-		// do the following fiddle to avoid a compiler "performance warning" 
+		s = jsonval[0][_T("username")].AsString();
+		m_userStruct.username = wxString::FromUTF8((const char*)s.c_str(), s.length());
+		s = jsonval[0][_T("fullname")].AsString();
+		m_userStruct.fullname = wxString::FromUTF8((const char*)s.c_str(), s.length());
+		// do the following fiddles to avoid compiler "performance warning"s 
 		// if a (bool) cast was used instead
 		unsigned long val = jsonval[0][_T("kbadmin")].AsLong();
 		m_userStruct.kbadmin = val == 1L ? TRUE : FALSE;
 		val = jsonval[0][_T("useradmin")].AsLong();
 		m_userStruct.useradmin = val == 1L ? TRUE : FALSE;
-		m_userStruct.timestamp = jsonval[0][_T("timestamp")].AsString();
+		s = jsonval[0][_T("timestamp")].AsString();
+		m_userStruct.timestamp = wxString::FromUTF8((const char*)s.c_str(), s.length());
 
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
-		//curl_free(encodeduser);
 	}
 	return 0;
 }
@@ -2055,29 +2123,62 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
         // json array data begins with "[{", so test for the payload starting this way, if
         // it doesn't, then there is only an error string to grab -- quite possibly "No
         // matching entry found"
-        wxString strStartJSON = _T("[{");
-		CBString cbstr(str_CURLbuffer.c_str());
-		wxString buffer(ToUtf16(cbstr));
-		int offset = buffer.Find(strStartJSON);
-		if (offset == 0) // TRUE means JSON data starts at the buffer's beginning
-		{		
-			wxString myObject = wxString::FromUTF8(str_CURLbuffer.c_str());
+		// json data beginswith "[{", so test for the payload starting this way, if it
+		// doesn't, then there is only an error string to grab -- quite possibly
+		// "No matching entry found", in which case, don't do any of the json stuff, and
+		// the value in m_kbServerLastTimestampReceived will be correct and can be used
+		// to update the persistent storage file for the time of the lastsync
+		std::string srch = "[{";
+		size_t offset = str_CURLbuffer.find(srch);
+
+		// not npos means JSON data starts somewhere; a JSON parse ignores all before [ or {
+		if (offset != string::npos)
+		{
+			wxString jsonArray(str_CURLbuffer.c_str()); // JSON expects byte data, convert after Parse()
 			wxJSONValue jsonval;
 			wxJSONReader reader;
-			int numErrors = reader.Parse(myObject, &jsonval);
+			int numErrors = reader.Parse(jsonArray, &jsonval);
 			if (numErrors > 0)
 			{
-				// A non-localizable message will do, it's unlikely to happen often
-				// but if it does, there is probably a connection problem that the user should
-				// deal with if possible, before going much further. 
-				wxMessageBox(_T("In LookupSingleKb(): json reader.Parse() failed. Unexpected bad data from server."),
-					_T("kbserver error"), wxICON_ERROR | wxOK);
+				// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent, 
+				// the developers would love to have this info. The latest copy only is 
+				// retained, the "w" mode clears the earlier file if there is one, and 
+				// writes new content to it
+				wxString aFilename = _T("LookupSingleKb_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+				wxString workOrCustomFolderPath;
+				if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
+				{
+					wxASSERT(!m_pApp->m_curProjectName.IsEmpty());
+
+					if (!m_pApp->m_bUseCustomWorkFolderPath)
+					{
+						workOrCustomFolderPath = m_pApp->m_workFolderPath;
+					}
+					else
+					{
+						workOrCustomFolderPath = m_pApp->m_customWorkFolderPath;
+					}
+					wxString path2BadData = workOrCustomFolderPath + m_pApp->PathSeparator +
+						m_pApp->m_logsEmailReportsFolderName + m_pApp->PathSeparator + aFilename;
+					size_t mySize = str_CURLbuffer.size();
+					wxFFile ff(path2BadData, "w");
+					wxASSERT(ff.IsOpened());
+					ff.Write(str_CURLbuffer.c_str(), mySize);
+					ff.Close();
+				}
+
+				// a non-localizable message will do, it's unlikely to ever be seen
+				wxString msg;
+				msg = msg.Format(_T("LookupSingleKb(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
+					aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
+				wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+
 				str_CURLbuffer.clear(); // always clear it before returning
 				str_CURLheaders.clear();
 				return -1; // this is better, neither curl nor http failed
-				//return CURLE_HTTP_RETURNED_ERROR;
 			}
-			unsigned int listSize = jsonval.Size();
+			// No errors...
+			unsigned int listSize = (unsigned int)jsonval.Size();
 #if defined (_DEBUG)
 			// get feedback about now many table lines we got, in debug mode - we expect
 			// multiples of 2, from which we later must match the one with same type as was
@@ -2090,6 +2191,7 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 			wxArrayPtrVoid kbStructsArray;
 			unsigned int index;
 			KbServerKb* pKbStruct = NULL;
+			std::string s;
 			for (index = 0; index < listSize; index++)
 			{
 				// We extract all fields for each of the KB lines in the kb table
@@ -2098,13 +2200,17 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 				// We extract id, username, fullname, kbadmin flag value, useradmin flag value,
 				// and the timestamp at which the username was added to the entry table.
 				pKbStruct->id = jsonval[index][_T("id")].AsLong();
-				pKbStruct->sourceLanguageCode = jsonval[index][_T("sourcelanguage")].AsString();
-				pKbStruct->targetLanguageCode = jsonval[index][_T("targetlanguage")].AsString();
-				pKbStruct->kbType = jsonval[index][_T("type")].AsInt();
-				pKbStruct->username = jsonval[index][_T("username")].AsString(); // this is who created
-									// this particular entry in the kb table; which is not something
-									// we particularly care about for the client API functions
-				pKbStruct->timestamp = jsonval[index][_T("timestamp")].AsString();
+				s = jsonval[index][_T("sourcelanguage")].AsString();
+				pKbStruct->sourceLanguageCode = wxString::FromUTF8((const char*)s.c_str(), s.length());
+				s = jsonval[index][_T("targetlanguage")].AsString();
+				pKbStruct->targetLanguageCode = wxString::FromUTF8((const char*)s.c_str(), s.length());
+				pKbStruct->kbType = jsonval[index][_T("type")].AsInt(); // could use AsLong() here instead
+				s = jsonval[index][_T("username")].AsString(); // this is who created
+								// this particular entry in the kb table; which is not something
+								// we particularly care about for the client API functions
+				pKbStruct->username = wxString::FromUTF8((const char*)s.c_str(), s.length());
+				s = jsonval[index][_T("timestamp")].AsString();
+				pKbStruct->timestamp = wxString::FromUTF8((const char*)s.c_str(), s.length());
 				pKbStruct->deleted = jsonval[index][_T("deleted")].AsInt();
 
 #if defined (_DEBUG)
@@ -2307,17 +2413,45 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	//  the json string for the looked up entry
 	if (!str_CURLbuffer.empty())
 	{
-		// Note: normally before calling LookupEntryForSrcTgtPair() the storage arrays
-		// should be cleared with a call of ClearAllPrivateStorageArrays()
-		wxString myObject = wxString::FromUTF8(str_CURLbuffer.c_str());
+		wxString jsonArray(str_CURLbuffer.c_str()); // JSON expects byte data, convert after Parse()
 		wxJSONValue jsonval;
 		wxJSONReader reader;
-		int numErrors = reader.Parse(myObject, &jsonval);
+		int numErrors = reader.Parse(jsonArray, &jsonval);
 		if (numErrors > 0)
 		{
-			// A non-localizable message will do, it's unlikely to happen (we hope)
-			wxMessageBox(_T("In LookupEntryFields(): json reader.Parse() failed. Unexpected bad data from server."),
-				_T("kbserver error"), wxICON_ERROR | wxOK);
+			// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent, 
+			// the developers would love to have this info. The latest copy only is 
+			// retained, the "w" mode clears the earlier file if there is one, and 
+			// writes new content to it
+			wxString aFilename = _T("LookupEntryFields_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+			wxString workOrCustomFolderPath;
+			if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
+			{
+				wxASSERT(!m_pApp->m_curProjectName.IsEmpty());
+
+				if (!m_pApp->m_bUseCustomWorkFolderPath)
+				{
+					workOrCustomFolderPath = m_pApp->m_workFolderPath;
+				}
+				else
+				{
+					workOrCustomFolderPath = m_pApp->m_customWorkFolderPath;
+				}
+				wxString path2BadData = workOrCustomFolderPath + m_pApp->PathSeparator +
+					m_pApp->m_logsEmailReportsFolderName + m_pApp->PathSeparator + aFilename;
+				size_t mySize = str_CURLbuffer.size();
+				wxFFile ff(path2BadData, "w");
+				wxASSERT(ff.IsOpened());
+				ff.Write(str_CURLbuffer.c_str(), mySize);
+				ff.Close();
+			}
+
+			// a non-localizable message will do, it's unlikely to ever be seen
+			wxString msg;
+			msg = msg.Format(_T("LookupEntryFields(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
+				aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
+			wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+
 			curl_free(encodedsource);
 			curl_free(encodedtarget);
 			str_CURLbuffer.clear(); // always clear it before returning
@@ -2326,19 +2460,24 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		}
 		// we extract id, source phrase, target phrase, deleted flag value & username
 		// for index value 0 only (there should only be one json object to deal with)
+		std::string s;
+		std::string noform1 = "<noform>";
 		ClearEntryStruct(); // re-initializes m_entryStruct member
 		m_entryStruct.id = jsonval[_T("id")].AsLong(); // needed, as there may be a
 					// subsequent pseudo-delete or undelete, and those are id-based
-		m_entryStruct.source = jsonval[_T("source")].AsString();
+		s = jsonval[_T("source")].AsString();
+		m_entryStruct.source = wxString::FromUTF8((const char*)s.c_str(), s.length());
 		// BEW 11Jun15 restore <noform> to an empty string
-		wxString aTgt = jsonval[_T("target")].AsString();
-		if (aTgt == noform)
+		s = jsonval[_T("target")].AsString();
+		if (s == noform1)
 		{
-			aTgt.Empty();
+			s.clear();
 		}
-		m_entryStruct.translation = aTgt;
-		m_entryStruct.username = jsonval[_T("user")].AsString();
+		m_entryStruct.translation = wxString::FromUTF8((const char*)s.c_str(), s.length());
+		s = jsonval[_T("user")].AsString();
+		m_entryStruct.username = wxString::FromUTF8((const char*)s.c_str(), s.length());
 		m_entryStruct.deleted = jsonval[_T("deleted")].AsInt();
+
 		curl_free(encodedsource);
 		curl_free(encodedtarget);
 		str_CURLbuffer.clear(); // always clear it before returning
@@ -2946,26 +3085,60 @@ int KbServer::ReadLanguage(wxString url, wxString username, wxString password, w
 	//  the json string for the looked up entry
 	if (!str_CURLbuffer.empty())
 	{
-		wxString myObject = wxString::FromUTF8(str_CURLbuffer.c_str());
+		wxString jsonArray(str_CURLbuffer.c_str()); // JSON expects byte data, convert after Parse()
 		wxJSONValue jsonval;
 		wxJSONReader reader;
-		int numErrors = reader.Parse(myObject, &jsonval);
+		int numErrors = reader.Parse(jsonArray, &jsonval);
 		if (numErrors > 0)
 		{
-			// A non-localizable message will do, it's unlikely to happen (we hope)
-			wxMessageBox(_T("In ReadLanguage(): json reader.Parse() failed. Unexpected bad data from server."),
-				_T("kbserver error"), wxICON_ERROR | wxOK);
+			// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent, 
+			// the developers would love to have this info. The latest copy only is 
+			// retained, the "w" mode clears the earlier file if there is one, and 
+			// writes new content to it
+			wxString aFilename = _T("ReadLanguage_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+			wxString workOrCustomFolderPath;
+			if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
+			{
+				wxASSERT(!m_pApp->m_curProjectName.IsEmpty());
+
+				if (!m_pApp->m_bUseCustomWorkFolderPath)
+				{
+					workOrCustomFolderPath = m_pApp->m_workFolderPath;
+				}
+				else
+				{
+					workOrCustomFolderPath = m_pApp->m_customWorkFolderPath;
+				}
+				wxString path2BadData = workOrCustomFolderPath + m_pApp->PathSeparator +
+					m_pApp->m_logsEmailReportsFolderName + m_pApp->PathSeparator + aFilename;
+				size_t mySize = str_CURLbuffer.size();
+				wxFFile ff(path2BadData, "w");
+				wxASSERT(ff.IsOpened());
+				ff.Write(str_CURLbuffer.c_str(), mySize);
+				ff.Close();
+			}
+
+			// a non-localizable message will do, it's unlikely to ever be seen
+			wxString msg;
+			msg = msg.Format(_T("ReadLanguage(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
+				aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
+			wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
-			return CURLE_HTTP_RETURNED_ERROR;
+			return -1;
 		}
 		// We extract id (the code), username, description, and the timestamp at which the definition
 		// was added to the language table.
 		ClearLanguageStruct(); // re-initializes private member, m_languageStruct, to be empty strings
+		std::string s;
 		m_languageStruct.code = jsonval[_T("id")].AsString();
-		m_languageStruct.username = jsonval[_T("username")].AsString();
-		m_languageStruct.description = jsonval[_T("fullname")].AsString();
-		m_userStruct.timestamp = jsonval[_T("timestamp")].AsString();
+		s = jsonval[_T("username")].AsString();
+		m_languageStruct.username = wxString::FromUTF8((const char*)s.c_str(), s.length());
+		s = jsonval[_T("fullname")].AsString();
+		m_languageStruct.description = wxString::FromUTF8((const char*)s.c_str(), s.length());
+		s = jsonval[_T("timestamp")].AsString();
+		m_userStruct.timestamp = wxString::FromUTF8((const char*)s.c_str(), s.length());
 
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
@@ -3120,13 +3293,7 @@ int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 	}
 	if (bUpdatePassword)
 	{
-
-// *** TODO **** possibly I need to make a digest password here, using my md5 function,
-// and username, realm, and the passed in password -- I've asked Jonathan, no
-// reply yet ********************************************************************************************************************************************	
-		//jsonval[_T("password")] = password;
-		
-		// trial code... using digest created here from password passed in; sb
+		// using digest created here from password passed in; sb
 		// prefix means 'single byte (encoded)'
 		CBString sbPassword = ToUtf8(password);
 		CBString sbUsername = ToUtf8(theUsername);
@@ -3137,9 +3304,6 @@ int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 		// wxJson will need it as a UTF-16 string
 		wxString myDigest = ToUtf16(sbDigest); // it's null-byte extended to UTF16 format
 		jsonval[_T("password")] = myDigest;
-/*
-************ BE sure to verify with Jonathan that the above is the right thing to do !!!! **************
-*/
 	}
 	if (bUpdateKbadmin)
 	{
@@ -3308,7 +3472,6 @@ int KbServer::DeleteSingleKbEntry(int entryID)
 	}
 	return (CURLcode)0;
 }
-
 
 int KbServer::RemoveUser(int userID)
 {
@@ -4523,30 +4686,29 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
     //  return 0 (CURLE_OK)
 	if (!str_CURLbuffer.empty())
 	{
-        // json array data begins with "[{", so test for the payload starting this way, if
-        // it doesn't, then there is only an error string to grab -- quite possibly "No
-        // matching entry found", in which case, don't do any of the json stuff, and the
-        // value in m_kbServerLastTimestampReceived will be correct and can be used to
-        // update the persistent storage file for the time of the lastsync
-        wxString strStartJSON = _T("[{");
-		CBString cbstr(str_CURLbuffer.c_str());
-		wxString buffer(ToUtf16(cbstr));
-		int offset = buffer.Find(strStartJSON);
-		if (offset == 0) // TRUE means JSON data starts at the buffer's beginning
+		// json data beginswith "[{", so test for the payload starting this way, if it
+		// doesn't, then there is only an error string to grab -- quite possibly
+		// "No matching entry found", in which case, don't do any of the json stuff, and
+		// the value in m_kbServerLastTimestampReceived will be correct and can be used
+		// to update the persistent storage file for the time of the lastsync
+		std::string srch = "[{";
+		size_t offset = str_CURLbuffer.find(srch);
+
+		// not npos means JSON data starts somewhere; a JSON parse ignores all before [ or {
+		if (offset != string::npos)
 		{
-            wxString myList = wxString::FromUTF8(str_CURLbuffer.c_str()); // I'm assuming no BOM gets inserted
-			//wxString myList = buffer; // <<-- makes no difference
+			wxString jsonArray(str_CURLbuffer.c_str()); // JSON expects byte data, convert after Parse()
 
             wxJSONValue jsonval;
             wxJSONReader reader;
-			int numErrors = reader.Parse(myList, &jsonval);
+			int numErrors = reader.Parse(jsonArray, &jsonval);
 			if (numErrors > 0)
 			{
 				// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent, 
 				// the developers would love to have this info. The latest copy only is 
 				// retained, the "w" mode clears the earlier file if there is one, and 
 				// writes new content to it
-				wxString aFilename = _T("DownloadAllButton_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+				wxString aFilename = _T("ChangedSince_Queued_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
 				wxString workOrCustomFolderPath;
 				if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
 				{
@@ -4588,7 +4750,8 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
             }
 #endif
             unsigned int index;
-			wxString noform = _T("<noform>");
+			std::string noform = "<noform>";
+			std::string s;
 			KbServerEntry* pEntryStruct = NULL;
             for (index = 0; index < listSize; index++)
             {
@@ -4599,16 +4762,18 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
                 // structs
                 pEntryStruct = new KbServerEntry;
 				pEntryStruct->id = jsonval[index][_T("id")].AsLong();
-				pEntryStruct->source = jsonval[index][_T("source")].AsString();
+				s = jsonval[index][_T("source")].AsString();
+				pEntryStruct->source = wxString::FromUTF8((const char*)s.c_str(), s.length());
 				// BEW 11Jun15 restore <noform> to an empty string
-				wxString aTgt = jsonval[index][_T("target")].AsString();
-				if (aTgt == noform)
+				s = jsonval[index][_T("target")].AsString();
+				if (s == noform)
 				{
-					aTgt.Empty();
+					s.clear();
 				}
-				pEntryStruct->translation = aTgt;
+				pEntryStruct->translation = wxString::FromUTF8((const char*)s.c_str(), s.length());
 				pEntryStruct->deleted = jsonval[index][_T("deleted")].AsInt();
-				pEntryStruct->username = jsonval[index][_T("user")].AsString();
+				s = jsonval[index][_T("user")].AsString();
+				pEntryStruct->username = wxString::FromUTF8((const char*)s.c_str(), s.length());
 
                 // Append to the end of the queue (if the main thread is removing the first
                 // struct in the queue currently, this will block until the s_QueueMutex is
