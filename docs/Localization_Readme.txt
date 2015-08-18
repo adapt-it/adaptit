@@ -90,44 +90,44 @@ folder structure:
     |
     |- az -               <- subfolder for Azeri
     |     |- LC_MESSAGES
-    |           |- Adapt_It_Unicode.mo
+    |           |- adaptit.mo       <- Name of file on Mac is Adapt It.mo
     |
     |- es -               <- subfolder for Spanish
     |     |- LC_MESSAGES
-    |           |- Adapt_It_Unicode.mo
+    |           |- adaptit.mo       <- Name of file on Mac is Adapt It.mo
     |           |- wxstd.mo
     |
     |- fr -               <- subfolder for French
     |     |- LC_MESSAGES
-    |           |- Adapt_It_Unicode.mo
+    |           |- adaptit.mo       <- Name of file on Mac is Adapt It.mo
     |           |- wxstd.mo
     |
     |- id -               <- subfolder for Indonesian
     |     |- LC_MESSAGES
-    |           |- Adapt_It_Unicode.mo
+    |           |- adaptit.mo
     |
     |- pt -               <- subfolder for Portuguese
     |     |- LC_MESSAGES
-    |           |- Adapt_It_Unicode.mo
+    |           |- adaptit.mo       <- Name of file on Mac is Adapt It.mo
     |           |- wxstd.mo
     |
     |- ru -               <- subfolder for Russian
     |     |- LC_MESSAGES
-    |           |- Adapt_It_Unicode.mo
+    |           |- adaptit.mo       <- Name of file on Mac is Adapt It.mo
     |           |- wxstd.mo
     |
     |- swh -               <- subfolder for Swahili
     |     |- LC_MESSAGES
-    |           |- Adapt_It_Unicode.mo
+    |           |- adaptit.mo       <- Name of file on Mac is Adapt It.mo
     |
     |- tpi -               <- subfolder for PNG Tok Pisin
     |     |- LC_MESSAGES
-    |           |- Adapt_It_Unicode.mo
+    |           |- adaptit.mo       <- Name of file on Mac is Adapt It.mo
     |           |- wxstd.mo
     |
     |- zh -               <- subfolder for Mandarin Chinese
     |     |- LC_MESSAGES
-    |           |- Adapt_It_Unicode.mo
+    |           |- adaptit.mo       <- Name of file on Mac is Adapt It.mo
     |           |- wxstd.mo
     |
     | ... [other localizations]
@@ -154,51 +154,59 @@ be installed - usually these are included with the installer when a newly
 updated version of Adapt It becomes available. Once in a while a 
 localization is updated or corrected. In this case you only need to 
 download and install the localization installer (about 1MB in size) to 
-get any new and/or updated localizations. Once a new or updated Adapt_It.mo 
+get any new and/or updated localizations. Once a new or updated <adaptit>.mo 
 and/or wxstd.mo files is present in a named language subfolder, they 
 become immediately available to the program and can be chosen using the 
 "Change Interface Language..." menu item from the View menu. 
 
 How to EDIT an EXISTING localization for Adapt It's interface:
 
-As mentioned the localizations initially provided with Adapt It WX and
-Adapt It WX Unicode are only partial. These partial localizations 
-include Spanish, French, Russian, Portuguese, Indonesian, Chinese
-and Azeri. If you would like to help complete or correct any of the 
-existing translations for these languages, the Adapt It team welcomes 
-your help! If you want to help complete or correct the localizations 
-for Spanish, French, Russian, Portuguese, Indonesian, Chinese, or Azeri, 
-here is how you can do so:
-   * The easiest way to edit or correct an existing localization is to
-register as a localization translator and use Adapt It's Pootle web 
-translation interface at: http://pootle.sil.org/projects/adaptit/. Using
-Adapt It's Pootle localization web site, you can help to get Adapt It's
-interface fully translated into the language of your choice! If you
-have any problems getting registered there please send an email to
-Bill Martin at bill_martin@sil.org for assistance and instructions. 
-   * Another way to edit or correct an existing localization is
+The Tok Pisin (tpi) localization is maintained by the Adapt It developers 
+and its translated interface strings are regularly updated by them. 
+As mentioned most of the localizations of the other language interfaces
+are only partial - some having more interface strings translated than
+others. These partial localizations include Spanish, French, Russian, 
+Portuguese, Indonesian, Chinese and Azeri. If you would like to help 
+complete or correct any of the existing translations for these languages, 
+the Adapt It team welcomes your help!
+
+You can help to get Adapt It's interface fully translated into the 
+language of your choice! If you wish to help translate Adapt It's 
+interface to a new language, or want to help bring up-to-date one of
+the existing translations (mentioned above), please send an email to
+Bill Martin at bill_martin@sil.org or Bruce Waters at bruce_waters@sil.org
+for assistance and further instructions.
+
+Here is how to help with an existing (partial) localization:
+
+   * The primary way to edit or correct an existing localization is
 to first install a free program called Poedit. PoEdit is an easy to 
 use program with a graphical interface that helps you translate 
 Adapt It's interface elements. Poedit can be downloaded from the 
 internet at the following address:
 
-http://www.poedit.net/download.php
+https://poedit.net/
 
 After downloading and installing Poedit on your computer, you need
 to get a .po file for the Adapt It localization you wish to modify 
 or create. The existing localization .po files (or a default.po 
 template) can be downloaded from Adapt It's open source site at:
 
-http://code.google.com/p/adaptit/source
+https://github.com/adapt-it/adaptit
 
-The best way currently to get the localization files is to use a 
-subversion program (such as TortoiseSVN on Windows) and do an
-anonymous "check out" of the source code for the entire adaptit 
-project from Google Code. The po directory contains all the po
-files for the existing Adapt It localizations. If you cannot 
-figure out how to use subversion, you can email Bill Martin at 
-bill_martin@sil.org and request him to send you the appropriate 
-Adapt It po file via email attachment.
+The best way currently to get the localization files is to ensure
+that the git program is installed on your computer and then clone
+the adaptit repository for the entire adaptit from the GitHub site:
+
+https://github.com/adapt-it/adaptit.git
+
+All of Adapt It's localization files are located in the adaptit
+GitHub site's po directory. The po directory contains all the po
+files for the existing Adapt It localizations. Note: There are 
+various other files contained in the po directory. The files with
+a .po extension are the ones that contain the English and the 
+translations of those English words, phrases, and sentences that
+may appear within the Adapt It program.
 
 The .po files are currently named in the repository as follows:
 
@@ -214,12 +222,11 @@ zh.po      - Chinese (Mandarin)
 default.po - an "empty" localization ready to begin a new language
              langauge localization using Poedit.
 
-Once you have the appropriate po file for a given language, and 
-you have installed the Poedit program, you can then use Poedit 
+Once you have installed the Poedit program, you can then use Poedit 
 to update or create a localization for Adapt It's interface in 
 that given language. 
 
-Here is how to edit/update a localization po file with Poedit:
+Here is how to edit/update an existing localization po file with Poedit:
    * Acquire the appropriate po file and copy it to your computer (see 
 above).
    * Double click on the .po file you want to work on (for example 
@@ -256,7 +263,7 @@ directory (es, fr, pt, etc) and copy the newly produced .mo file from
 Poedit there; rename any existing .mo file there to Adapt_It.old (or 
 adaptit.old on Linux); then rename the newly created es.mo file to 
 Adapt_It.mo (or adaptit.mo on Linux). 
-(Note: on Linux you should insure that the new mo file has the 
+(Note: on Linux you should ensure that the new mo file has the 
 proper read permissions).
 Once you have done this Adapt It should automatically show any 
 editing changes or new translations the next time you run Adapt It 
@@ -276,27 +283,16 @@ and restart Adapt It for the change to become effective.
 How to prepare a NEW localization for Adapt It's interface:
 
 Any translator can prepare a new localization for Adapt It. 
-   * The easiest way to prepare a new localization is to
-register as a localization translator and use Adapt It's Pootle web 
-translation interface at: http://pootle.sil.org/projects/adaptit/. Using
-Adapt It's Pootle localization web site, you can help to get Adapt It's
-interface fully translated into the language of your choice! After you
-have registered there please send an email to Bill Martin at 
-bill_martin@sil.org to inform him of your intent, and for assistance and 
-instructions - especially if the language you want to prepare a 
-localization for is not yet listed in the Pootle web site.
-
-   * To use the Poedit method for starting a new localization, see the
+You can use Poedit for starting a new localization. See the
 discussion above on how to get a .po file from Adapt It's open source
-Google Code site or via email from bill_martin@sil.org. To create a
+GitHub site or via email from bill_martin@sil.org. To create a
 translation of Adapt It's interface into a new language, you will 
-need the default.po template file. This template file is contains
+need the default.po template file. This template file contains
 all the message text from Adapt It's interface ready to translate.
-The easiest way to do the actual translation is to first install a 
-free program called Poedit. Poedit can be downloaded from the internet 
-at the following address:
+If you have not already done so, install the free Poedit program. 
+Poedit can be downloaded from the following Internet address:
 
-http://www.poedit.net/download.php
+https://poedit.net/
 
 After downloading and installing Poedit on your computer, you can 
 locate the default.po file on your computer and simply double click 
@@ -308,7 +304,7 @@ Poedit automatically creates an updated default.mo file (this is a
 compiled version of the interface translations that you create in the 
 default.po file. 
 
-There are about 1,700 text elements to translate in Adapt It's 
+There are about 2,800 text elements to translate in Adapt It's 
 interface, so translating the interface into a new language is a 
 fairly large task. If you do translate Adapt It's interface there 
 are a few remaining steps you must do in order to be able to use 
@@ -326,7 +322,7 @@ add any existing wxstd.mo localization file if it already exists
 for that language.
    
 2. If you are anxious to use your translation/localization you
-prepare using Poedit for Adapt It interface right away, you can 
+prepared using Poedit for Adapt It interface right away, you can 
 install the localization yourself on your own computer. Here are 
 the steps:
 
@@ -336,6 +332,8 @@ this folder will be located by default at:
  c:\Program Files\Adapt It WX\Languages
 or, if you've installed the Unicode version it will be located at:
  c:\Program Files\Adapt It WX Unicode\Languages
+ Note: The "Program Files" folder may be called "Program (x86) Files"
+ if you are using a 64-bit Windows operating system.
 
    2.b. Within your "Languages" folder create a subfolder and give
 this subfolder a name that corresponds to the two-letter or 
@@ -369,7 +367,7 @@ If no folder exists with your language's abbreviation, you can create
 one yourself using the abbreviation from the IANA registry, or from the
 three-letter language code listed in the Ethnologue if your langauge 
 isn't listed in the IANA registry. For example, on Linux you could do
-this:
+this from a command-line terminal:
 
    cd /usr/share/locale
    sudo mkdir xxx
@@ -399,15 +397,8 @@ and click OK. Adapt It reminds you that you will need to quit and restart
 Adapt It for the change to become effective.
 
 As mentioned in 1 above, the quickest way to add a new interface
-localization is to register as a localization translator and use 
-Adapt It's Pootle web translation interface at: 
-http://pootle.sil.org/projects/adaptit/
-Using Adapt It's Pootle localization web site, you can help to get 
-Adapt It's interface fully translated into the language of your 
-choice! If you have any problems getting registered there please 
-send an email to Bill Martin at bill_martin@sil.org for assistance 
-and instructions. If you use the Poedit method for creating and/or
-modifying a localization, please send your translation prepared by 
+localization is to use the Poedit method for creating and
+modifying a localization. Please send your translation prepared by 
 Poedit to Bill Martin who will gladly do the steps in point 2 above 
 and send you a special installer to add your new localization, and 
 also make the localization you prepare available to other Adapt It 

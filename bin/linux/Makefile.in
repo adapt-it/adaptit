@@ -83,16 +83,16 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	ClientServerConnection.$(OBJEXT) \
 	CollabVerseConflictDlg.$(OBJEXT) \
 	CollectBacktranslations.$(OBJEXT) ComposeBarEditBox.$(OBJEXT) \
-	ConsistencyCheckDlg.$(OBJEXT) ConsistentChanger.$(OBJEXT) \
-	convauto.$(OBJEXT) CorGuess.$(OBJEXT) \
-	CreateNewAIProjForCollab.$(OBJEXT) DocPage.$(OBJEXT) \
-	EarlierTranslationDlg.$(OBJEXT) EditPreferencesDlg.$(OBJEXT) \
-	EditSourceTextDlg.$(OBJEXT) EmailReportDlg.$(OBJEXT) \
-	DVCS.$(OBJEXT) DVCSNavDlg.$(OBJEXT) DVCSLogDlg.$(OBJEXT) \
-	ExportFunctions.$(OBJEXT) ExportInterlinearDlg.$(OBJEXT) \
-	ExportOptionsDlg.$(OBJEXT) ExportSaveAsDlg.$(OBJEXT) \
-	FilenameConflictDlg.$(OBJEXT) FindReplace.$(OBJEXT) \
-	FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
+	ConsistencyCheckDlg.$(OBJEXT) ConflictResActionDlg.$(OBJEXT) \
+	ConsistentChanger.$(OBJEXT) convauto.$(OBJEXT) \
+	CorGuess.$(OBJEXT) CreateNewAIProjForCollab.$(OBJEXT) \
+	DocPage.$(OBJEXT) EarlierTranslationDlg.$(OBJEXT) \
+	EditPreferencesDlg.$(OBJEXT) EditSourceTextDlg.$(OBJEXT) \
+	EmailReportDlg.$(OBJEXT) DVCS.$(OBJEXT) DVCSNavDlg.$(OBJEXT) \
+	DVCSLogDlg.$(OBJEXT) ExportFunctions.$(OBJEXT) \
+	ExportInterlinearDlg.$(OBJEXT) ExportOptionsDlg.$(OBJEXT) \
+	ExportSaveAsDlg.$(OBJEXT) FilenameConflictDlg.$(OBJEXT) \
+	FindReplace.$(OBJEXT) FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
 	FreeTransAdjustDlg.$(OBJEXT) FreeTransSplitterDlg.$(OBJEXT) \
 	GetSourceTextFromEditor.$(OBJEXT) GoToDlg.$(OBJEXT) \
 	GuesserAffix.$(OBJEXT) GuesserSettingsDlg.$(OBJEXT) \
@@ -456,6 +456,7 @@ adaptit_SOURCES = \
 	../../source/ChooseTranslation.cpp ../../source/ClientServerConnection.cpp \
 	../../source/CollabVerseConflictDlg.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
+	../../source/ConflictResActionDlg.cpp \
 	../../source/ConsistentChanger.cpp ../../source/convauto.cpp \
 	../../source/CorGuess.cpp ../../source/CreateNewAIProjForCollab.cpp \
 	../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
@@ -631,6 +632,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollabVerseConflictDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollectBacktranslations.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ComposeBarEditBox.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConflictResActionDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsChk_Empty_noTU_Dlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsistencyCheckDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsistentChanger.Po@am__quote@
@@ -1234,6 +1236,20 @@ ConsistencyCheckDlg.obj: ../../source/ConsistencyCheckDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ConsistencyCheckDlg.cpp' object='ConsistencyCheckDlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConsistencyCheckDlg.obj `if test -f '../../source/ConsistencyCheckDlg.cpp'; then $(CYGPATH_W) '../../source/ConsistencyCheckDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ConsistencyCheckDlg.cpp'; fi`
+
+ConflictResActionDlg.o: ../../source/ConflictResActionDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConflictResActionDlg.o -MD -MP -MF $(DEPDIR)/ConflictResActionDlg.Tpo -c -o ConflictResActionDlg.o `test -f '../../source/ConflictResActionDlg.cpp' || echo '$(srcdir)/'`../../source/ConflictResActionDlg.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConflictResActionDlg.Tpo $(DEPDIR)/ConflictResActionDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ConflictResActionDlg.cpp' object='ConflictResActionDlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConflictResActionDlg.o `test -f '../../source/ConflictResActionDlg.cpp' || echo '$(srcdir)/'`../../source/ConflictResActionDlg.cpp
+
+ConflictResActionDlg.obj: ../../source/ConflictResActionDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConflictResActionDlg.obj -MD -MP -MF $(DEPDIR)/ConflictResActionDlg.Tpo -c -o ConflictResActionDlg.obj `if test -f '../../source/ConflictResActionDlg.cpp'; then $(CYGPATH_W) '../../source/ConflictResActionDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ConflictResActionDlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConflictResActionDlg.Tpo $(DEPDIR)/ConflictResActionDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ConflictResActionDlg.cpp' object='ConflictResActionDlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConflictResActionDlg.obj `if test -f '../../source/ConflictResActionDlg.cpp'; then $(CYGPATH_W) '../../source/ConflictResActionDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ConflictResActionDlg.cpp'; fi`
 
 ConsistentChanger.o: ../../source/ConsistentChanger.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConsistentChanger.o -MD -MP -MF $(DEPDIR)/ConsistentChanger.Tpo -c -o ConsistentChanger.o `test -f '../../source/ConsistentChanger.cpp' || echo '$(srcdir)/'`../../source/ConsistentChanger.cpp

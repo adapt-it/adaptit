@@ -1,5 +1,5 @@
 #!/bin/bash
-# aid-dev-setup.sh -- Set up environment for developing Adapt It Desktop (AID) on Ubuntu 12.04, 14.04 or higher
+# aid-dev-setup.sh -- Set up environment for developing Adapt It Desktop (AID) on Ubuntu/Wasta 12.04, 14.04 or higher
 # Note: This scipt may be called from the setup-work-dev-tools.sh script (option 1), or it 
 #       can be called independently as a stand-alone script.
 # Date: 2015-06-23
