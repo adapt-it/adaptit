@@ -6,18 +6,18 @@
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CChooseConsistencyCheckTypeDlg class. 
+/// \description	This is the implementation file for the CChooseConsistencyCheckTypeDlg class.
 /// The CChooseConsistencyCheckTypeDlg class puts up a dialog for the user to indicate
 /// whether the consistency check should be done on only the current document or also on
 /// other documents in the current project.
 /// \derivation		The CChooseConsistencyCheckTypeDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in ChooseConsistencyCheckTypeDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -75,7 +75,7 @@ CChooseConsistencyCheckTypeDlg::CChooseConsistencyCheckTypeDlg(wxWindow* parent)
 
 CChooseConsistencyCheckTypeDlg::~CChooseConsistencyCheckTypeDlg() // destructor
 {
-	
+
 }
 
 void CChooseConsistencyCheckTypeDlg::OnBnClickedRadioCheckOpenDocOnly(wxCommandEvent& WXUNUSED(event))
@@ -108,9 +108,11 @@ void CChooseConsistencyCheckTypeDlg::InitDialog(wxInitDialogEvent& WXUNUSED(even
 
 	wxRadioButton* pRadioAll = (wxRadioButton*)FindWindowById(IDC_RADIO_CHECK_SELECTED_DOCS);
 	wxASSERT(pRadioAll != NULL);
+	wxUnusedVar(pRadioAll);
 
 	wxTextCtrl* pTextCtrlMsg = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_MSG);
 	wxASSERT(pTextCtrlMsg != NULL);
+	wxUnusedVar(pTextCtrlMsg);
 
 	/*
 	wxTextCtrl* pTextCtrlAsStaticChooseConsChkType = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_CHOOSE_CONSISTENCY_CHECK_TYPE);

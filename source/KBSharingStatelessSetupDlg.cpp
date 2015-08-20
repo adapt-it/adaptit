@@ -87,10 +87,10 @@ KBSharingStatelessSetupDlg::KBSharingStatelessSetupDlg(wxWindow* parent, bool bU
 #endif
 	// This contructor doesn't make any attempt to link to any CKB instance, or to support
 	// only the hardware's current user; params are in t whichType (we use 1, for an adapting
-	// type even though type is internally irrelevant for the stateless one), 
+	// type even though type is internally irrelevant for the stateless one),
 	// and bool bStateless, which must be TRUE -- since KbServer class has the bool
 	// m_bStateless member also
-	m_pStatelessKbServer = new KbServer(1, TRUE); 
+	m_pStatelessKbServer = new KbServer(1, TRUE);
 }
 
 KBSharingStatelessSetupDlg::~KBSharingStatelessSetupDlg() // destructor
@@ -140,11 +140,11 @@ void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// Knowledge Base Sharing Manager GUI and do things like add users, create kb
 	// definitions, and so forth without having to impersonate the actual machine owner,
 	// and without any project yet having become a KB Sharing one
-	
+
 	// If the app members have values for the url and username already (from having been
 	// just set earlier, or from the project config file, then reinstate them so that if
 	// the kb sharing was turned off it can be quickly re-enabled
-	// When running for authentication to the KB Sharing Manager, don't try initialize 
+	// When running for authentication to the KB Sharing Manager, don't try initialize
 	// these boxes -- they start off empty. But for normal authentication, try to
 	// initialize them, and then set the username one to be read-only because a unique
 	// username should be set in 6.4.3 and later version for this and other features on
@@ -224,7 +224,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			wxString msg = _("The username text box is empty, and it is read-only, so you cannot type into it.\nCancel now, then go to the Edit menu and click Change Username.\nAfter you have setup your unique username there, retry setting up knowledge base sharing.");
 			wxString title = _("Setup correct unique username");
 		wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-			return; // return to the active dialog window, he can then type Cancel and 
+			return; // return to the active dialog window, he can then type Cancel and
 					// follow the above instruction & retry after that
 	}
 	}
@@ -248,7 +248,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 #if defined(_DEBUG)
 		wxLogDebug(_T("KBSharingSetupDlg.cpp strUsername = %s"), strUsername.c_str());
 #endif
-		
+
 	// Get the server password. Returns an empty string if nothing is typed, or if the
 	// user Cancels from the dialog. m_bStateless being TRUE, the password will be the one
 	// belonging to the administrator currently using the KB Sharing Manager GUI, not the
@@ -295,7 +295,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			// Password was empty. Tell user and return to the active dialog for a retry
 			// of OnOK()
 			this->Show(TRUE); // make the dialog visible again
-			wxMessageBox(msg_empty, title_empty, wxICON_WARNING | wxOK); // warn about the empty password (the 
+			wxMessageBox(msg_empty, title_empty, wxICON_WARNING | wxOK); // warn about the empty password (the
 											// dialog has a Cancel button to allow bailing out from there)
 			return; // to the dialog
 		}
@@ -356,7 +356,11 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 		}
 	} // end of TRUE block for test: if (m_bStateless)
 
-	myevent.Skip(); // the dialog will be exited now
+    // BEW 19Aug15, in Code::Blocks in ubuntu laptop, OK button click is returning
+    // wxID_CANCEL rather than wxID_OK, so I'll try setting wxID_OK explicitly here using
+    // the SetReturnCode() function
+    SetReturnCode(wxID_OK);
+	//myevent.Skip(); // the dialog will be exited now
 }
 
 void KBSharingStatelessSetupDlg::OnCancel(wxCommandEvent& myevent)

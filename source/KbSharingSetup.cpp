@@ -88,6 +88,7 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pAdaptingCheckBox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHARE_MY_TGT_KB);
 	m_pGlossingCheckBox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHARE_MY_GLOSS_KB);
 	m_pRemoveSetupBtn = (wxButton*)FindWindowById(ID_BUTTON_REMOVE_MY_SETUP);
+	m_pSetupBtn = (wxButton*)FindWindowById(wxID_OK);
 
     // If the project is currently a KB sharing project, then initialise to the current
     // values for which of the two KBs (or both) is being shared; otherwise, set the member
@@ -296,7 +297,7 @@ here:	dlgReturnCode = dlg.ShowModal();
 		// most likely due to an empty password submitted  or a Cancel from within
 		// one of the lower level calls, so allow retry, or a change to the settings,
 		// or a Cancel button press at this level instead
-		goto here; 
+		goto here;
 	}
 }
 
