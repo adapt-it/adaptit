@@ -152,6 +152,18 @@ void CCollabVerseConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	//InitDialog() is not virtual, no call needed to a base class
 	wxASSERT(pConflictsArray != NULL);
 	
+	// Get the app's current setting (as set by user's choice, on a per-doc basis) for
+	// having the user-directed conflict resolution dialogs shown. If turned off, they
+	// will be hidden and the legacy conflict resolution protocol is done automatically,
+	// which is to retain the Paratext or Bibledit version of any conflicted verse
+	m_bShowingConflictResolutionDialogs = gpApp->m_bConflictResolutionTurnedOn;
+
+	pCheckboxConflictResolutionDlgsToBeTurnedOff = (wxCheckBox*)FindWindowById(ID_CHECKBOX_TURN_OFF_CONFRES2);
+	wxASSERT(pCheckboxConflictResolutionDlgsToBeTurnedOff != NULL);
+	// If user requests no dlgs be shown, checkbox will be ticked (by him), so
+	// the value here is the opposite
+	pCheckboxConflictResolutionDlgsToBeTurnedOff->SetValue(!m_bShowingConflictResolutionDialogs);
+
 	size_t count = pConflictsArray->GetCount();
 	size_t index;
 	ConflictRes* pCR = NULL;
@@ -507,6 +519,15 @@ void CCollabVerseConflictDlg::OnOK(wxCommandEvent& event)
 	// Moving the data in the pConflictsArray items back, where needed, into the items of
 	// the parent CollabActionsArr array, for the newText building loop to use, will be
 	// done in the caller when this dialog is dismissed
+
+	// The value of the user's choice to show or hide subsequent dialogs has to be recorded
+	// here, and saved to the app flag; and we must act on it if the user wants no dlgs shown -
+	// acting on it means that the legacy protocol happens no matter what the user may have
+	// chosen by clicking one of the three radio buttons earlier; this does not
+	gpApp->m_bConflictResolutionTurnedOn = !pCheckboxConflictResolutionDlgsToBeTurnedOff->GetValue();
+	// If the value is '' be turned off " then set the legacy protocol to be in effect; but it
+	// will start to be off at the point where the next call of the conflict action dlg is done,
+	// (i.e. next File > Save) rather than immediately
 	event.Skip();
 }
 

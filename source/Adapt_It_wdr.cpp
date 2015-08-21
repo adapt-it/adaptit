@@ -2145,6 +2145,18 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item4->Add( item49, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
+    wxBoxSizer *item51 = new wxBoxSizer( wxVERTICAL );
+
+    item4->Add( item51, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item52 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxCheckBox *item53 = new wxCheckBox( parent, ID_CHECKBOX_TURN_ON_CONFRES, _("Turn on user-guided conflict resolution (for collaboration mode)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item53->SetToolTip( _("Turned on, identified conflicts will allow the conflict resolution dialogs be shown") );
+    item52->Add( item53, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item4->Add( item52, 0, wxALIGN_CENTER|wxALL, 5 );
+
     item3->Add( item4, 1, wxGROW|wxALL, 5 );
 
     item1->Add( item3, 1, wxALIGN_CENTER, 5 );
@@ -10910,38 +10922,54 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
 
     wxButton *item33 = new wxButton( parent, ID_BUTTON_UNSELECT_ALL_VS, _("Tick No Verses"), wxDefaultPosition, wxDefaultSize, 0 );
     item33->SetToolTip( _("The verse version in every right hand box is sent") );
-    item31->Add( item33, 0, wxALIGN_CENTER, 5 );
+    item31->Add( item33, 0, wxALIGN_CENTER|wxTOP, 5 );
 
-    item30->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
+    item30->Add( item31, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     wxBoxSizer *item34 = new wxBoxSizer( wxHORIZONTAL );
     pTransferBtnBoxSizerH = item34;
 
-    item34->Add( 66, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item35 = new wxBoxSizer( wxVERTICAL );
 
-    wxButton *item35 = new wxButton( parent, wxID_OK, _("Transfer The Listed Verses"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->SetDefault();
-    item35->SetToolTip( _("Sends the versions of the verses you chose to the external editor program") );
-    item34->Add( item35, 0, wxALIGN_CENTER, 5 );
+    wxBoxSizer *item36 = new wxBoxSizer( wxHORIZONTAL );
 
-    item34->Add( 44, 12, 0, wxALIGN_CENTER|wxALL, 0 );
+    item36->Add( 66, 12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item36 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item36->SetToolTip( _("Ignore all choices or edits, just Cancel the dialog") );
-    item34->Add( item36, 0, wxALIGN_CENTER, 5 );
+    wxButton *item37 = new wxButton( parent, wxID_OK, _("Transfer The Listed Verses"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->SetDefault();
+    item37->SetToolTip( _("Sends the versions of the verses you chose to the external editor program") );
+    item36->Add( item37, 0, wxALIGN_CENTER, 5 );
 
-    item34->Add( 36, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+    item36->Add( 44, 12, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxCheckBox *item37 = new wxCheckBox( parent, ID_CHECKBOX_MAKE_SOLIDUS_VISIBLE, _("Show Slashes ( / )"), wxDefaultPosition, wxDefaultSize, 0 );
-    item37->SetToolTip( _("Show all slashes ( / ) to make editing easier") );
-    item34->Add( item37, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item38 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->SetToolTip( _("Ignore all choices or edits, just Cancel the dialog") );
+    item36->Add( item38, 0, wxALIGN_CENTER, 5 );
 
-    item30->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
+    item36->Add( 36, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxCheckBox *item39 = new wxCheckBox( parent, ID_CHECKBOX_MAKE_SOLIDUS_VISIBLE, _("Show Slashes ( / )"), wxDefaultPosition, wxDefaultSize, 0 );
+    item39->SetToolTip( _("Show all slashes ( / ) to make editing easier") );
+    item36->Add( item39, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item35->Add( item36, 0, wxALIGN_CENTER, 5 );
+
+    wxBoxSizer *item40 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxCheckBox *item41 = new wxCheckBox( parent, ID_CHECKBOX_TURN_OFF_CONFRES2, _("Turn off conflict resolution. (Turn it on again, in Preferences)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item41->SetToolTip( _("Hides the two conflict resolution dialogs. Legacy conflict resolution applies.") );
+    item40->Add( item41, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item35->Add( item40, 0, wxALIGN_CENTER|wxTOP, 5 );
+
+    item34->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item30->Add( item34, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item1->Add( item30, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxStaticText *item38 = new wxStaticText( parent, ID_TEXT, _("You can resize this dialog by dragging the bottom right corner."), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item38, 0, wxALIGN_CENTER, 5 );
+    wxStaticText *item42 = new wxStaticText( parent, ID_TEXT, _("You can resize this dialog by dragging the bottom right corner."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item42, 0, wxALIGN_CENTER, 5 );
 
     item0->Add( item1, 1, wxGROW|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
@@ -11009,19 +11037,31 @@ wxSizer *ConflictResolutionActionFunc( wxWindow *parent, bool call_fit, bool set
 
     item1->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
 
-    item14->Add( 240, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item15 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( 240, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item16 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item16, 0, wxALIGN_CENTER, 5 );
+
+    item15->Add( 70, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item17 = new wxButton( parent, wxID_CANCEL, _("Cancel (Selects top radio button choice)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item17, 0, wxALIGN_CENTER, 5 );
+
     item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item14->Add( 70, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item16 = new wxButton( parent, wxID_CANCEL, _("Cancel (Selects top radio button choice)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxCheckBox *item19 = new wxCheckBox( parent, ID_CHECKBOX_TURN_OFF_CONFRES, _("Turn off conflict resolution. (Turn it on again, in Preferences)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetToolTip( _("Hides the two conflict resolution dialogs. Legacy conflict resolution applies.") );
+    item18->Add( item19, 0, wxALIGN_CENTER, 5 );
 
-    item1->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+    item14->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item14, 0, wxALIGN_CENTER, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

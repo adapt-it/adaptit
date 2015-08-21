@@ -2730,6 +2730,10 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	gbDoingInitialSetup = FALSE; // ensure it's off, otherwise RecalcLayout() may
 			// fail after phrase box gets past end of doc
 
+	// BEW 21Aug15, Default the following flag to a TRUE value - just in case 
+	// collaboration mode may be in effect
+	pApp->m_bConflictResolutionTurnedOn = TRUE;
+
 	// BEW changed 9Apr12, to support highlighting when auto-inserts are not
 	// contiguous
 	pApp->m_pLayout->ClearAutoInsertionsHighlighting(); // ensure there are none
@@ -6842,6 +6846,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		preEditMd5Arr_Count == fromEditorMd5Arr_Count);
 	// BEW added next two lines 10Jul15
 	size_t sourceTextMd5Arr_Count = sourceTextMd5Arr.GetCount();
+	wxUnusedVar(sourceTextMd5Arr_Count);
 	wxASSERT(postEditMd5Arr_Count == sourceTextMd5Arr_Count);
 	wxUnusedVar(preEditMd5Arr_Count); // avoid compiler warning
 	wxUnusedVar(fromEditorMd5Arr_Count); // avoid compiler warning
@@ -7300,9 +7305,17 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 							// ConflictResolutionActionFunc dialog open; and once it closes,
 							// one of the three variables will be TRUE, which will prevent
 							// a second opening of this dialog in this document's
-							// generation of the text to send to PT or BE
+							// generation of the text to send to PT or BE; for A version 6.6.1
+							// BEW 21Aug15 added the flag m_bConflictResolutionTurnedOn to the
+							// test below. If TRUE, then the conflict action dialog can open
+							// so that the user can specify what level of conflict res he wants,
+							// but if the flag is FALSE, then both this and the subsequent
+							// conflict res dialog cannot open, and legacy conflict resolution
+							// applies (at least until the user goes to the View tab of Preferences
+							// to turn user-directed conflict resolution back on (ie. allow the
+							// dialogs to be shown again)
 							if (!gpApp->m_bRetainPTorBEversion && !gpApp->m_bForceAIversion &&
-								!gpApp->m_bUseConflictResolutionDlg)
+								!gpApp->m_bUseConflictResolutionDlg && gpApp->m_bConflictResolutionTurnedOn)
 							{
 								// Ask for the user's choice of action
 								gpApp->LogUserAction(_T("Showing CConflictResActionDlg()"));
@@ -7319,6 +7332,10 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 								{
 									// Set the legacy choice -- resolve in favour of
 									// keeping PT or BE version of the conflicted verses
+									// (BEW 21Aug15 and if the user clicked the checkbox
+									// to have user-directed conflict resolution turned off,
+									// control will go thru here too, regardless of what
+									// button he may have clicked in the dialog)
 									gpApp->m_bRetainPTorBEversion = TRUE;
 									gpApp->m_bForceAIversion = FALSE;
 									gpApp->m_bUseConflictResolutionDlg = FALSE;
@@ -7492,6 +7509,15 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		// are revamped as ConflictRes structs and are stored in conflictsArr
 		CCollabVerseConflictDlg confDlg(gpApp->GetMainFrame(), &conflictsArr);
 		confDlg.Centre();
+		// BEW 21Aug15, note, this dialog also has a checkbox for turning off the
+		// user-directed conflict resolution process (if he does, the legacy PT or
+		// BE 'keep verse unchanged' protocol is what operates without any dialog
+		// being shown), but his clicking of the checkbox does not have any effect
+		// on the completion of the processing of conflicts here. Rather, it just
+		// sets a flag on the app, and the next File > Save will then have any
+		// conflict resolution done the legacy way (without dialogs showing). The
+		// turning off can be undone by a clicking a checkbox in the View tab of
+		// the Preferences dialog
 		if (confDlg.ShowModal() == wxID_OK)
 		{
 #if defined(_DEBUG) && defined(JUL15)
@@ -8530,9 +8556,17 @@ wxString GetUpdatedText_UsfmsChanged(
 					// ConflictResolutionActionFunc dialog open; and once it closes,
 					// one of the three variables will be TRUE, which will prevent
 					// a second opening of this dialog in this document's
-					// generation of the text to send to PT or BE
+					// generation of the text to send to PT or BE; for A version 6.6.1
+					// BEW 21Aug15 added the flag m_bConflictResolutionTurnedOn to the
+					// test below. If TRUE, then the conflict action dialog can open
+					// so that the user can specify what level of conflict res he wants,
+					// but if the flag is FALSE, then both this and the subsequent
+					// conflict res dialog cannot open, and legacy conflict resolution
+					// applies (at least until the user goes to the View tab of Preferences
+					// to turn user-directed conflict resolution back on (ie. allow the
+					// dialogs to be shown again)
 					if (!gpApp->m_bRetainPTorBEversion && !gpApp->m_bForceAIversion &&
-						!gpApp->m_bUseConflictResolutionDlg)
+						!gpApp->m_bUseConflictResolutionDlg && gpApp->m_bConflictResolutionTurnedOn)
 					{
 						// Ask for the user's choice of action
 						gpApp->LogUserAction(_T("Showing CConflictResActionDlg()"));
@@ -8549,6 +8583,10 @@ wxString GetUpdatedText_UsfmsChanged(
 						{
 							// Set the legacy choice -- resolve in favour of
 							// keeping PT or BE version of the conflicted verses
+							// (BEW 21Aug15 and if the user clicked the checkbox
+							// to have user-directed conflict resolution turned off,
+							// control will go thru here too, regardless of what
+							// button he may have clicked in the dialog)
 							gpApp->m_bRetainPTorBEversion = TRUE;
 							gpApp->m_bForceAIversion = FALSE;
 							gpApp->m_bUseConflictResolutionDlg = FALSE;
@@ -8810,6 +8848,15 @@ wxString GetUpdatedText_UsfmsChanged(
 		// are revamped as ConflictRes structs and are stored in conflictsArr
 		CCollabVerseConflictDlg confDlg(gpApp->GetMainFrame(), &conflictsArr);
 		confDlg.Centre();
+		// BEW 21Aug15, note, this dialog also has a checkbox for turning off the
+		// user-directed conflict resolution process (if he does, the legacy PT or
+		// BE 'keep verse unchanged' protocol is what operates without any dialog
+		// being shown), but his clicking of the checkbox does not have any effect
+		// on the completion of the processing of conflicts here. Rather, it just
+		// sets a flag on the app, and the next File > Save will then have any
+		// conflict resolution done the legacy way (without dialogs showing). The
+		// turning off can be undone by a clicking a checkbox in the View tab of
+		// the Preferences dialog
 		if (confDlg.ShowModal() == wxID_OK)
 		{
 #if defined(_DEBUG) && defined(JUL15)

@@ -4018,6 +4018,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	// BEW added 10Jul15 for support of conflict resolution in collaboration mode
 	bool m_bRetainPTorBEversion;
 	bool m_bForceAIversion;
+	bool m_bConflictResolutionTurnedOn;
 	bool m_bUseConflictResolutionDlg;
 	wxString m_Collab_BookCode; // the 3-letter book code for the currently open collaborating document
 	wxString m_Collab_LastChapterStr; // the chapter reference string (e.g.  "15", or for a chunk "3-5")

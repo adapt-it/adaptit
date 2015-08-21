@@ -14253,6 +14253,11 @@ void CAdapt_ItView::ClobberDocument()
 	wxASSERT(pDoc != NULL);
 	CLayout* pLayout = GetLayout();
 
+	// BEW 21Aug15, Default the following flag to a TRUE value - just in case 
+	// collaboration mode may be in effect, next doc open should not have the 
+	// flag with a FALSE value when first opened
+	pApp->m_bConflictResolutionTurnedOn = TRUE;
+
 	// when collaborating on a doc is finished, restore the Copy Source flag value to what
 	// it was before it was automatically turned off
 	if (pApp->m_bSaveCopySourceFlag_For_Collaboration)

@@ -4245,6 +4245,11 @@ void CAdapt_ItDoc::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+
+	// BEW 21Aug15, Default the following flag to a TRUE value - just in case 
+	// collaboration mode may be in effect
+	pApp->m_bConflictResolutionTurnedOn = TRUE;
+
     // ensure that the current work folder is the Adaptations one for default; unless book
     // mode is ON, in which case it must the the current book folder.
 	wxString dirPath;
@@ -19297,6 +19302,10 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	pApp->GetBasePointers(pDoc,pView,pBox);
 	wxASSERT(pView);
 
+	// Anticipate perhaps a new document may be opened, so default the following flag to
+	// a TRUE value - just in case collaboration mode may be in effect
+	pApp->m_bConflictResolutionTurnedOn = TRUE;
+
     // mrh Sept 13 - if a trial look at previously committed versions is current, we MUST NOT close the document!
     // However we can be called from DocumentChangedExternally(), in which case m_bReopeningAfterClosing is TRUE, and in this
     //  case we must perform the close.
@@ -20020,6 +20029,11 @@ void CAdapt_ItDoc::OnFileNew(wxCommandEvent& event)
 	// Note: The App's OnInit() skips this and calls pApp->OnFileNew directly
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+
+	// BEW 21Aug15, Default the following flag to a TRUE value - just in case 
+	// collaboration mode may be in effect
+	pApp->m_bConflictResolutionTurnedOn = TRUE;
+
 	pApp->OnFileNew(event);
 	// BEW added 7Oct14
 	pApp->m_bZWSPinDoc = pApp->IsZWSPinDoc(pApp->m_pSourcePhrases);
@@ -21954,7 +21968,6 @@ void CAdapt_ItDoc::MakeOutputBackupFilenames(wxString& curOutputFilename)
 /// \remarks
 /// Called from: the Tools menu "Split Document..." command.
 /// Invokes the CSplitDialog dialog.
-/// Invokes the CSplitDialog dialog.
 /// BEW 29Mar10, added RemoveSelection() call, because if the command is entered and acted
 /// upon immediately after, say, a Find which gets the wanted location and shows it
 /// selected, a later RemoveSelection() call will try remove m_selection data which by
@@ -21973,7 +21986,6 @@ void CAdapt_ItDoc::OnSplitDocument(wxCommandEvent& WXUNUSED(event))
 /// \remarks
 /// Called from: the Tools menu "Join Document..." command.
 /// Invokes the CJoinDialog dialog.
-/// Invokes the CSplitDialog dialog.
 /// BEW 29Mar10, added RemoveSelection() call, because if the command is entered and acted
 /// upon immediately after, say, a Find which gets the wanted location and shows it
 /// selected, a later RemoveSelection() call will try remove m_selection data which by
@@ -21981,6 +21993,9 @@ void CAdapt_ItDoc::OnSplitDocument(wxCommandEvent& WXUNUSED(event))
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnJoinDocuments(wxCommandEvent& WXUNUSED(event))
 {
+	// BEW 21Aug15, Default the following flag to a TRUE value - just in case 
+	// collaboration mode may be in effect
+	gpApp->m_bConflictResolutionTurnedOn = TRUE;
 	gpApp->GetView()->RemoveSelection();
 	CJoinDialog d(gpApp->GetMainFrame());
 	d.ShowModal();
@@ -22250,6 +22265,9 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 	// first, get the file and load it into a CBString
 	wxString defaultDir;
 	wxString packedDocPath;
+	// BEW 21Aug15, Default the following flag to a TRUE value - just in case 
+	// collaboration mode may be in effect
+	gpApp->m_bConflictResolutionTurnedOn = TRUE;
 
 	// Check whether navigation protection is in effect for _PACKED_INPUTS_OUTPUTS,
 	// and whether the App's m_lastPackedOutputPath is empty or has a valid path,
