@@ -179,6 +179,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 {
 	wxString msg_empty = _("The password was empty. Please try again.");
 	wxString title_empty = _("No password");
+	wxUnusedVar(myevent);
 
 	wxString strURL;
 	strURL = m_pURLCtrl->GetValue();
