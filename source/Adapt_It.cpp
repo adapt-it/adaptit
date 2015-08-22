@@ -15311,6 +15311,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bRetainPTorBEversion = FALSE;
 	m_bForceAIversion = FALSE;
 	m_bUseConflictResolutionDlg = FALSE;
+	m_bConflictResolutionTurnedOn = TRUE; // default is TRUE, reset to TRUE at every opening
+			// of a doc; and don't store any value for this in a config file
 
 	// BEW 21May15 added next five, for support of the freeze/thaw optimization for a sequence
 	// of consecutive auto-inserts from the KB, see AdaptitConstants.h for NUMINSERTS value

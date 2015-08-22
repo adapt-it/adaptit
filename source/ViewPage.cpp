@@ -106,6 +106,8 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	m_pCheckboxSolidusSupport = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SOLIDUS_WDBREAK);
 //#endif
 	m_pExtraPixelsSlider = (wxSlider*)FindWindowById(ID_DIACRITICS_SLIDER);
+	// BEW added 21Aug15 for conflict resolution support
+	m_pCheckboxTurnOnConflictRes = (wxCheckBox*)FindWindowById(ID_CHECKBOX_TURN_ON_CONFRES);
 }
 
 CViewPage::~CViewPage() // destructor
@@ -360,6 +362,8 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	pApp->m_bSuppressTargetHighlighting = !m_pCheckHighlightAutoInsertedTrans->GetValue();
 	pApp->m_AutoInsertionsHighlightColor = tempAutoInsertionsHighlightColor;
 	pApp->m_bShowAdministratorMenu = m_pCheckShowAdminMenu->GetValue();
+	// BEW added 21Aug15
+	pApp->m_bConflictResolutionTurnedOn = m_pCheckboxTurnOnConflictRes->GetValue();
 }
 
 void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -387,10 +391,14 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	// BEW added 15Dec14
 	tempExtraPixelsHeight = pApp->m_nExtraPixelsForDiacritics; // current value, most likely from Project config file
 	m_pExtraPixelsSlider->SetValue(tempExtraPixelsHeight);
+	// BEW added 21Aug15
+	tempTurnOnConflictRes = pApp->m_bConflictResolutionTurnedOn; // get value from the app boolean member
 
 	// transfer initial values to controls
 	wxString strTemp;
 	strTemp.Empty();
+
+	m_pCheckboxTurnOnConflictRes->SetValue(tempTurnOnConflictRes);
 
 	strTemp.Empty();
 	strTemp << tempLeading;

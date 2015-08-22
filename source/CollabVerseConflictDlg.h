@@ -50,6 +50,8 @@ protected:
 	wxStaticText* pStaticInfoLine4; // for substituting Paratext/Bibledit into %s
 	wxStaticText* pStaticPTVsTitle;
 	wxCheckBox*   pCheckboxShowSolidi;
+	wxCheckBox*   pCheckboxConflictResolutionDlgsToBeTurnedOff;
+	bool          m_bShowingConflictResolutionDialogs;
 
 	wxArrayString verseRefsArray;
 	wxArrayString sourceTextVsArray;
