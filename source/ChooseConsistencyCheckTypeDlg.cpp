@@ -108,9 +108,11 @@ void CChooseConsistencyCheckTypeDlg::InitDialog(wxInitDialogEvent& WXUNUSED(even
 
 	wxRadioButton* pRadioAll = (wxRadioButton*)FindWindowById(IDC_RADIO_CHECK_SELECTED_DOCS);
 	wxASSERT(pRadioAll != NULL);
+	wxUnusedVar(pRadioAll);
 
 	wxTextCtrl* pTextCtrlMsg = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_MSG);
 	wxASSERT(pTextCtrlMsg != NULL);
+	wxUnusedVar(pTextCtrlMsg);
 
 	/*
 	wxTextCtrl* pTextCtrlAsStaticChooseConsChkType = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_CHOOSE_CONSISTENCY_CHECK_TYPE);
