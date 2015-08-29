@@ -56,10 +56,6 @@
 extern bool gbAdaptBeforeGloss;
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool gbLegacySourceTextCopy;	// default is legacy behaviour, to copy the source text (unless
-									// the project config file establishes the FALSE value instead)
-
-/// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 /// This global is defined in Adapt_ItView.cpp.
@@ -97,8 +93,6 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	tempDisableAutoKBBackups = FALSE;
 	tempBackupDocument = FALSE;
 	tempAdaptBeforeGloss = TRUE;
-	tempNotLegacySourceTextCopy = FALSE;
-	bTempFreezeAndThaw = FALSE;
 	tempSrcName = _T("");
 	tempTgtName = _T("");
 	tempGlsName = _T("");
@@ -126,9 +120,6 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 
 	m_pCheckNoFootnotesSent = (wxCheckBox*)FindWindowById(ID_CHECKBOX_NO_FOOTNOTES_IN_COLLAB);
 	wxASSERT(m_pCheckNoFootnotesSent != NULL);
-
-	m_pCheckFreezeAndThaw = (wxCheckBox*)FindWindowById(ID_CHECKBOX_FREEZE_THAW);
-	wxASSERT(m_pCheckFreezeAndThaw != NULL);
 
 	m_pCheckBkupWhenClosing = (wxCheckBox*)FindWindowById(IDC_CHECK_BAKUP_DOC);
 	wxASSERT(m_pCheckBkupWhenClosing != NULL);
@@ -159,15 +150,15 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	pRadioUseLatinSpace = (wxRadioButton*)FindWindowById(IDC_RADIO_USE_ONLY_LATIN_SPACE);
 	wxASSERT(pRadioUseLatinSpace != NULL);
 
-	m_pCheckLegacySourceTextCopy = (wxCheckBox*)FindWindowById(IDC_CHECK_LEGACY_SRC_TEXT_COPY);
-	//m_pCheckLegacySourceTextCopy->SetValidator(wxGenericValidator(&tempNotLegacySourceTextCopy));
-	wxASSERT(m_pCheckLegacySourceTextCopy != NULL);
-
 	pTextCtrlAsStaticTextBackupsKB = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_BACKUPS_AND_KB_PAGE);
 	wxASSERT(pTextCtrlAsStaticTextBackupsKB != NULL);
 	// Make the wxTextCtrl that is displaying static text have window background color
 	wxColor backgrndColor = this->GetBackgroundColour();
 	pTextCtrlAsStaticTextBackupsKB->SetBackgroundColour(gpApp->sysColorBtnFace);
+
+	// BEW added 21Aug15 for conflict resolution support
+	m_pCheckboxTurnOnConflictRes = (wxCheckBox*)FindWindowById(ID_CHECKBOX_TURN_ON_CONFRES);
+	wxASSERT(m_pCheckboxTurnOnConflictRes != NULL);
 }
 
 CKBPage::~CKBPage() // destructor
@@ -304,18 +295,10 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 		// vertical edit order; whether adaptations updating precedes or follows
 		// glosses updating (this setting is preserved in the project config file)
 
-	// determine what the Copy of the source text when pile has no adaptation, or gloss,
-	// should do in gloss mode, or adaptations mode, respectively (BEW added 16July08)
-	gbLegacySourceTextCopy = !tempNotLegacySourceTextCopy;
-
 	// Get the checkbox value for the no sending of footnotes to PT or BE
 	// and set the app boolean (value gets to be stored in basic config file)
 	bTempNoFootnotesSent = m_pCheckNoFootnotesSent->GetValue();
 	pApp->m_bNoFootnotesInCollabToPTorBE = bTempNoFootnotesSent;
-
-	// Get checkbox value for the support of freeze &  thaw
-	bTempFreezeAndThaw = m_pCheckFreezeAndThaw->GetValue();
-	pApp->m_bSupportFreeze = bTempFreezeAndThaw;
 
 	if (strSaveSrcName != tempSrcName || strSaveTgtName != tempTgtName)
 	{
@@ -356,6 +339,9 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 				// and it will be saved to basic and project config files
 	}
 
+	// BEW added 21Aug15
+	pApp->m_bConflictResolutionTurnedOn = m_pCheckboxTurnOnConflictRes->GetValue();
+
 	// BEW added 21Jul14 support for new flag - commit to its value as set
 	// currently
 	pApp->m_bUseSrcWordBreak = bTempUseSrcWordBreak;
@@ -367,7 +353,6 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	tempDisableAutoKBBackups = !pApp->m_bAutoBackupKB;
 	tempBackupDocument = pApp->m_bBackupDocument;
 	tempAdaptBeforeGloss = gbAdaptBeforeGloss;
-	tempNotLegacySourceTextCopy = !gbLegacySourceTextCopy;
 	tempSrcName = pApp->m_sourceName;
 	tempTgtName = pApp->m_targetName;
 	tempGlsName = pApp->m_glossesName; // Bill & I added 6Dec11
@@ -376,14 +361,15 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	tempTgtLangCode = pApp->m_targetLanguageCode;
 	tempGlsLangCode = pApp->m_glossesLanguageCode;
 	tempFreeTransLangCode = pApp->m_freeTransLanguageCode;
+	// BEW added 21Aug15
+	tempTurnOnConflictRes = pApp->m_bConflictResolutionTurnedOn; // get value from the app boolean member
 	// BEW added 21Jul14, the next two
 	bTempUseSrcWordBreak = pApp->m_bUseSrcWordBreak;
 	// BEW 20May15 added next two lines
 	bTempNoFootnotesSent = pApp->m_bNoFootnotesInCollabToPTorBE;
-	m_pCheckNoFootnotesSent->SetValue(bTempNoFootnotesSent);
-	// BEW 21May15 added next two lines
-	bTempFreezeAndThaw = pApp->m_bSupportFreeze;
-	m_pCheckFreezeAndThaw->SetValue(bTempFreezeAndThaw);
+	m_pCheckNoFootnotesSent->SetValue(bTempNoFootnotesSent);	
+	
+	m_pCheckboxTurnOnConflictRes->SetValue(tempTurnOnConflictRes);
 
 	m_pCheckDisableAutoBkups->SetValue(tempDisableAutoKBBackups);
 	m_pCheckBkupWhenClosing->SetValue(tempBackupDocument);
@@ -398,7 +384,6 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 		pRadioAdaptBeforeGloss->SetValue(FALSE);
 		pRadioGlossBeforeAdapt->SetValue(TRUE);
 	}
-	m_pCheckLegacySourceTextCopy->SetValue(tempNotLegacySourceTextCopy);
 	m_pEditSrcName->SetValue(tempSrcName);
 	m_pEditTgtName->SetValue(tempTgtName);
 	m_pEditGlsName->SetValue(tempGlsName);

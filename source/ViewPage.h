@@ -58,11 +58,12 @@ public:
 	wxTextCtrl*		m_pEditDlgFontSize;
 	wxCheckBox*		m_pCheckWelcomeVisible;
 	wxCheckBox*		m_pCheckHighlightAutoInsertedTrans;
+	wxCheckBox*		m_pCheckLegacySourceTextCopy;
+	wxCheckBox*		m_pCheckFreezeAndThaw;
 	wxPanel*		m_pPanelAutoInsertColor;
 	wxCheckBox*		m_pCheckShowAdminMenu;
 	wxRadioBox*		m_pRadioBox;
 	wxCheckBox*		m_pCheckboxEnableInsertZWSP;
-	wxCheckBox*		m_pCheckboxTurnOnConflictRes;
 //#if defined(FWD_SLASH_DELIM)  <<-- I don't want to have to #include Adapt_It.h in this header file
 	wxCheckBox*		m_pCheckboxSolidusSupport; // BEW 23Apr15 for support of / as wordbreaker
 	void           OnCheckboxSolidusWordBreak(wxCommandEvent& WXUNUSED(event));
@@ -84,7 +85,8 @@ public:
 	bool	tempUseStartupWizardOnLaunch;
 	bool	tempHighlightAutoInsertions;
 	bool	tempShowAdminMenu;
-	bool	tempTurnOnConflictRes;
+	bool	tempNotLegacySourceTextCopy;
+	bool	bTempFreezeAndThaw;
 	wxColour tempAutoInsertionsHighlightColor;
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

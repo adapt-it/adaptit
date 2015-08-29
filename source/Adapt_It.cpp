@@ -25430,12 +25430,12 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 	{
 		m_nCorrespondencesLoadedInGlossingGuesser = numCorrespondencesLoaded;
 		//wxLogDebug(_T("The Glossing guesser has %d correspondences loaded"), m_nCorrespondencesLoadedInGlossingGuesser);
-		wxLogDebug(_T("The Glossing Guesser is not currently supported, and probably never will be."));
+		//wxLogDebug(_T("The Glossing Guesser is not currently supported, and probably never will be."));
 	}
 	else
 	{
 		m_nCorrespondencesLoadedInAdaptationsGuesser = numCorrespondencesLoaded;
-		wxLogDebug(_T("The Adaptations Guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInAdaptationsGuesser);
+		//wxLogDebug(_T("The Adaptations Guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInAdaptationsGuesser);
 	}
 
 	// Check for xml prefix file/document, and load prefixes into guesser if found
@@ -47064,7 +47064,7 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 	wxString msg;
 	msg = msg.Format(_T("***FILTERED MARKERS:    location: %d\n%s\nEND FILTERED MARKERS***"),
 		refNum, s.c_str());
-	wxLogDebug(msg);
+	//wxLogDebug(msg);
 	//*/
 }
 #endif

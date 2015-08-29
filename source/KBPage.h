@@ -51,9 +51,8 @@ public:
 	wxSizer*	pKBPageSizer;
 	wxCheckBox* m_pCheckDisableAutoBkups;
 	wxCheckBox* m_pCheckBkupWhenClosing;
-	wxCheckBox* m_pCheckLegacySourceTextCopy;
 	wxCheckBox* m_pCheckNoFootnotesSent;
-	wxCheckBox* m_pCheckFreezeAndThaw;
+	wxCheckBox*	m_pCheckboxTurnOnConflictRes;
 	wxTextCtrl*	m_pEditSrcName;
 	wxTextCtrl*	m_pEditTgtName;
 	wxTextCtrl* m_pEditGlsName;
@@ -76,11 +75,10 @@ public:
 	// the app flag value stays unchanged (eg. by a Cancel click)
 	bool		tempDisableAutoKBBackups;
 	bool		tempAdaptBeforeGloss;
-	bool		tempNotLegacySourceTextCopy;
 	bool		tempBackupDocument;
 	bool		bTempUseSrcWordBreak;
 	bool		bTempNoFootnotesSent;
-	bool		bTempFreezeAndThaw;
+	bool		tempTurnOnConflictRes;
 	wxString	tempSrcName;
 	wxString	tempTgtName;
 	wxString	tempGlsName;

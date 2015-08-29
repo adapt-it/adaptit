@@ -1100,7 +1100,7 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 		bOpenOK = bOpenOK; // avoid warning TODO: Check for failures?
 		}
 #ifdef _DEBUG // whm added 4Feb10
-		wxLogDebug(_T("m_pROPwxFile Open(readOnlyProtectionFilePath,wxFile::write_excl) was %u where 1=true and 0=false"),bOpenOK);
+		//wxLogDebug(_T("m_pROPwxFile Open(readOnlyProtectionFilePath,wxFile::write_excl) was %u where 1=true and 0=false"),bOpenOK);
 #endif
 		wxASSERT(m_pApp->m_pROPwxFile->IsOpened()); // check it got opened
 	}
