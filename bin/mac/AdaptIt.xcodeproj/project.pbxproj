@@ -9,6 +9,13 @@
 /* Begin PBXBuildFile section */
 		0311D9811A72F43D0052BC3E /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0311D9801A72F43D0052BC3E /* Images.xcassets */; };
 		031BF31A11932FF6005223ED /* Uuid_AI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 031BF31811932FF6005223ED /* Uuid_AI.cpp */; };
+		03260F1B1B82481E004B8988 /* ConflictResActionDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03260F191B82481E004B8988 /* ConflictResActionDlg.cpp */; };
+		03260F1E1B824849004B8988 /* CollabVerseConflictDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03260F1C1B824849004B8988 /* CollabVerseConflictDlg.cpp */; };
+		03260F211B82486D004B8988 /* LanguageCodesDlg_Single.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03260F1F1B82486D004B8988 /* LanguageCodesDlg_Single.cpp */; };
+		03260F261B826D14004B8988 /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03260F221B826D14004B8988 /* AGL.framework */; };
+		03260F271B826D14004B8988 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03260F231B826D14004B8988 /* AppKit.framework */; };
+		03260F281B826D14004B8988 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03260F241B826D14004B8988 /* IOKit.framework */; };
+		03260F291B826D14004B8988 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03260F251B826D14004B8988 /* OpenGL.framework */; };
 		034B73FC16EFAC53009A6389 /* ToolbarPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 034B73FA16EFAC53009A6389 /* ToolbarPage.cpp */; };
 		0386CB751140CEB9000F9E2E /* Retranslation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0386CB741140CEB9000F9E2E /* Retranslation.cpp */; };
 		0396BFCD11BEA67600100CC4 /* LanguageCodesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */; };
@@ -38,7 +45,6 @@
 		27BD963C16E0161700583C59 /* Thread_KbEditorUpdateButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27BD963816E0161700583C59 /* Thread_KbEditorUpdateButton.cpp */; };
 		27BD963D16E0161700583C59 /* Timer_KbServerChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27BD963A16E0161700583C59 /* Timer_KbServerChangedSince.cpp */; };
 		27D067361713A27800A2607D /* DVCSLogDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27D067341713A27800A2607D /* DVCSLogDlg.cpp */; };
-		27F3CA0216E867AE0065D2D6 /* Thread_UploadMulti.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27F3CA0016E867AE0065D2D6 /* Thread_UploadMulti.cpp */; };
 		7D4C1A2F125D7EAA005DF3C6 /* UsfmFilterPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */; };
 		7D4E56ED142EDDE0007A4424 /* AIPrintPreviewFrame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4E56EB142EDDE0007A4424 /* AIPrintPreviewFrame.cpp */; };
 		7D4EEBC11471932C003B4CC2 /* scrollingdialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4EEBBD1471932C003B4CC2 /* scrollingdialog.cpp */; };
@@ -176,10 +182,6 @@
 		C8F82EAC0F3F9CAB007579B8 /* XML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E570F3F9CAB007579B8 /* XML.cpp */; };
 		C8F82EAD0F3F9CAB007579B8 /* XMLErrorDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E590F3F9CAB007579B8 /* XMLErrorDlg.cpp */; };
 		C8F82F370F3F9CE7007579B8 /* AIWX.gif in Resources */ = {isa = PBXBuildFile; fileRef = C8F82EBF0F3F9CE7007579B8 /* AIWX.gif */; };
-		C8F830B00F3FA3EE007579B8 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830AF0F3FA3EE007579B8 /* AppKit.framework */; };
-		C8F830B40F3FA41B007579B8 /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830B30F3FA41B007579B8 /* AGL.framework */; };
-		C8F830B80F3FA455007579B8 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830B70F3FA455007579B8 /* IOKit.framework */; };
-		C8F830BC0F3FA47D007579B8 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830BB0F3FA47D007579B8 /* OpenGL.framework */; };
 		C8F830C00F3FA4AA007579B8 /* System.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830BF0F3FA4AA007579B8 /* System.framework */; };
 /* End PBXBuildFile section */
 
@@ -187,6 +189,16 @@
 		0311D9801A72F43D0052BC3E /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = AdaptIt/Images.xcassets; sourceTree = "<group>"; };
 		031BF31811932FF6005223ED /* Uuid_AI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Uuid_AI.cpp; path = ../../source/Uuid_AI.cpp; sourceTree = SOURCE_ROOT; };
 		031BF31911932FF6005223ED /* Uuid_AI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Uuid_AI.h; path = ../../source/Uuid_AI.h; sourceTree = SOURCE_ROOT; };
+		03260F191B82481E004B8988 /* ConflictResActionDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConflictResActionDlg.cpp; path = ../../source/ConflictResActionDlg.cpp; sourceTree = "<group>"; };
+		03260F1A1B82481E004B8988 /* ConflictResActionDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConflictResActionDlg.h; path = ../../source/ConflictResActionDlg.h; sourceTree = "<group>"; };
+		03260F1C1B824849004B8988 /* CollabVerseConflictDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CollabVerseConflictDlg.cpp; path = ../../source/CollabVerseConflictDlg.cpp; sourceTree = "<group>"; };
+		03260F1D1B824849004B8988 /* CollabVerseConflictDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CollabVerseConflictDlg.h; path = ../../source/CollabVerseConflictDlg.h; sourceTree = "<group>"; };
+		03260F1F1B82486D004B8988 /* LanguageCodesDlg_Single.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LanguageCodesDlg_Single.cpp; path = ../../source/LanguageCodesDlg_Single.cpp; sourceTree = "<group>"; };
+		03260F201B82486D004B8988 /* LanguageCodesDlg_Single.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LanguageCodesDlg_Single.h; path = ../../source/LanguageCodesDlg_Single.h; sourceTree = "<group>"; };
+		03260F221B826D14004B8988 /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = System/Library/Frameworks/AGL.framework; sourceTree = SDKROOT; };
+		03260F231B826D14004B8988 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		03260F241B826D14004B8988 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
+		03260F251B826D14004B8988 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		034B73FA16EFAC53009A6389 /* ToolbarPage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ToolbarPage.cpp; path = ../../source/ToolbarPage.cpp; sourceTree = "<group>"; };
 		034B73FB16EFAC53009A6389 /* ToolbarPage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ToolbarPage.h; path = ../../source/ToolbarPage.h; sourceTree = "<group>"; };
 		0386CB731140CEB9000F9E2E /* Retranslation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Retranslation.h; path = ../../source/Retranslation.h; sourceTree = SOURCE_ROOT; };
@@ -249,8 +261,6 @@
 		27BD963B16E0161700583C59 /* Timer_KbServerChangedSince.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Timer_KbServerChangedSince.h; path = ../../source/Timer_KbServerChangedSince.h; sourceTree = "<group>"; };
 		27D067341713A27800A2607D /* DVCSLogDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DVCSLogDlg.cpp; path = ../../source/DVCSLogDlg.cpp; sourceTree = "<group>"; };
 		27D067351713A27800A2607D /* DVCSLogDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DVCSLogDlg.h; path = ../../source/DVCSLogDlg.h; sourceTree = "<group>"; };
-		27F3CA0016E867AE0065D2D6 /* Thread_UploadMulti.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_UploadMulti.cpp; path = ../../source/Thread_UploadMulti.cpp; sourceTree = "<group>"; };
-		27F3CA0116E867AE0065D2D6 /* Thread_UploadMulti.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_UploadMulti.h; path = ../../source/Thread_UploadMulti.h; sourceTree = "<group>"; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		7D22945D0FE9C0EA00D49638 /* tellenc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = tellenc.cpp; path = ../../source/tellenc.cpp; sourceTree = SOURCE_ROOT; };
@@ -524,10 +534,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */,
-				C8F830B00F3FA3EE007579B8 /* AppKit.framework in Frameworks */,
-				C8F830B40F3FA41B007579B8 /* AGL.framework in Frameworks */,
-				C8F830B80F3FA455007579B8 /* IOKit.framework in Frameworks */,
-				C8F830BC0F3FA47D007579B8 /* OpenGL.framework in Frameworks */,
 				C8F830C00F3FA4AA007579B8 /* System.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -829,8 +835,6 @@
 				272E3D1A16BF646900566D31 /* Adapt_ItKBServer.h */,
 				272E3D2216BF64B000566D31 /* Thread_CreateEntry.cpp */,
 				272E3D2316BF64B000566D31 /* Thread_CreateEntry.h */,
-				27F3CA0016E867AE0065D2D6 /* Thread_UploadMulti.cpp */,
-				27F3CA0116E867AE0065D2D6 /* Thread_UploadMulti.h */,
 				27093C1816D1D79200253291 /* Thread_PseudoDelete.cpp */,
 				27093C1916D1D79200253291 /* Thread_PseudoDelete.h */,
 				27093C1A16D1D79200253291 /* Thread_PseudoUndelete.cpp */,
@@ -1175,7 +1179,6 @@
 				27093C1D16D1D79200253291 /* Thread_PseudoUndelete.cpp in Sources */,
 				27BD963C16E0161700583C59 /* Thread_KbEditorUpdateButton.cpp in Sources */,
 				27BD963D16E0161700583C59 /* Timer_KbServerChangedSince.cpp in Sources */,
-				27F3CA0216E867AE0065D2D6 /* Thread_UploadMulti.cpp in Sources */,
 				277D32EB18CD34700089CFC2 /* GuesserAffix.cpp in Sources */,
 				034B73FC16EFAC53009A6389 /* ToolbarPage.cpp in Sources */,
 				271F29C216FFCD0000E107A6 /* DVCSNavDlg.cpp in Sources */,
