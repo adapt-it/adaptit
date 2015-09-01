@@ -52,7 +52,8 @@ BEGIN_EVENT_TABLE(CChooseConsistencyCheckTypeDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CChooseConsistencyCheckTypeDlg::InitDialog)
 	EVT_RADIOBUTTON(IDC_RADIO_CHECK_OPEN_DOC_ONLY, CChooseConsistencyCheckTypeDlg::OnBnClickedRadioCheckOpenDocOnly)
 	EVT_RADIOBUTTON(IDC_RADIO_CHECK_SELECTED_DOCS, CChooseConsistencyCheckTypeDlg::OnBnClickedRadioCheckSelectedDocs)
-END_EVENT_TABLE()
+	EVT_BUTTON(wxID_OK, CChooseConsistencyCheckTypeDlg::OnOK)
+	END_EVENT_TABLE()
 
 
 CChooseConsistencyCheckTypeDlg::CChooseConsistencyCheckTypeDlg(wxWindow* parent) // dialog constructor
@@ -67,15 +68,28 @@ CChooseConsistencyCheckTypeDlg::CChooseConsistencyCheckTypeDlg(wxWindow* parent)
 	// The declaration is: ChooseConsistencyCheckTypeDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+	wxUnusedVar(bOK); // avoid warning
 	wxColor backgrndColor = this->GetBackgroundColour();
+
 	pTextCtrlAsStaticChooseConsChkType = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_MSG);
 	pTextCtrlAsStaticChooseConsChkType->SetBackgroundColour(gpApp->sysColorBtnFace);
+
+	pTextCtrlAsStaticBlindFixes = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_MSG2);
+	pTextCtrlAsStaticBlindFixes->SetBackgroundColour(gpApp->sysColorBtnFace);
+
+	pCheckBoxBlindFixes = (wxCheckBox*)FindWindowById(ID_CHECKBOXBLIND_FIXES);
+	pCheckBoxBlindFixes->SetValue(FALSE);
 }
 
 CChooseConsistencyCheckTypeDlg::~CChooseConsistencyCheckTypeDlg() // destructor
 {
 
+}
+
+void CChooseConsistencyCheckTypeDlg::OnOK(wxCommandEvent& WXUNUSED(event))
+{
+	bool value = pCheckBoxBlindFixes->GetValue();
+	gpApp->m_bBlindFixInConsCheck = value; // pass user's choice back to the app
 }
 
 void CChooseConsistencyCheckTypeDlg::OnBnClickedRadioCheckOpenDocOnly(wxCommandEvent& WXUNUSED(event))

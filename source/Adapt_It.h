@@ -3761,6 +3761,10 @@ public:
 				// of Adapt_ItDoc::OnNewDocument() - it suppresses setting read-only protection
 				// while OnInit() is running
 	bool	m_bForceFullConsistencyCheck;
+	bool	m_bBlindFixInConsCheck; // BEW added 1Sep15, if TRUE, then if inconsistency is found
+				// and there is only a single adaptation in KB for the source text, then it is
+				// used in the document at that location without asking the user via a dialog
+				// (requested by Mike Hore)
 
 public:
 
