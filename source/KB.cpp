@@ -1177,7 +1177,11 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 		}
 	}
 	int nRefCount = pRefString->m_refCount;
-	wxASSERT(nRefCount > 0);
+	//wxASSERT(nRefCount > 0); BEW removed 1Sep15 because when playing with
+	// <Not In KB> entries, it is quite possible to have a pRefString with
+	// and empty or non-empty translation string, yet m_refCount is 0; so
+	// well let the latter be tolerated until in KB editor removal is forced,
+	// or something else effects its removal
 	if (nRefCount > 1)
 	{
         // more than one reference to it, so just decrement & remove the srcPhrase's
@@ -1251,7 +1255,9 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 		wxASSERT(pTU != NULL);
 		int nTranslations = pTU->m_pTranslations->GetCount();
 		wxASSERT(nTranslations > 0); // must be at least one
-		if (nTranslations == 1)
+		// BEW 1Sep15 in next test, changed from == 1, to <= 1, because it is possible
+		// to produce a pRefString with m_refCount of zero
+		if (nTranslations <= 1)
 		{
 			// BEW 8Jun10, changed next section to kbVersion 2 protocol; DO NOT DELETE OLD CODE
 			// because it may be required later if we provide a "clear" option for deleted

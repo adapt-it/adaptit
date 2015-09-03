@@ -86,10 +86,11 @@ CChooseConsistencyCheckTypeDlg::~CChooseConsistencyCheckTypeDlg() // destructor
 
 }
 
-void CChooseConsistencyCheckTypeDlg::OnOK(wxCommandEvent& WXUNUSED(event))
+void CChooseConsistencyCheckTypeDlg::OnOK(wxCommandEvent& event)
 {
 	bool value = pCheckBoxBlindFixes->GetValue();
 	gpApp->m_bBlindFixInConsCheck = value; // pass user's choice back to the app
+	event.Skip();
 }
 
 void CChooseConsistencyCheckTypeDlg::OnBnClickedRadioCheckOpenDocOnly(wxCommandEvent& WXUNUSED(event))

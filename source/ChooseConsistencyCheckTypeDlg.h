@@ -30,7 +30,7 @@ class CChooseConsistencyCheckTypeDlg : public AIModalDialog
 public:
 	CChooseConsistencyCheckTypeDlg(wxWindow* parent); // constructor
 	virtual ~CChooseConsistencyCheckTypeDlg(void); // destructor
-	void OnOK(wxCommandEvent& WXUNUSED(event));
+	void OnOK(wxCommandEvent& event);
 
 	wxCheckBox* pBlindFixCheckBox;
 	bool m_bDoBlindFixes;

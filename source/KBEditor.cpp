@@ -78,21 +78,20 @@
 
 // for support of auto-capitalization
 
-/// This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp
 extern bool	gbAutoCaps;
 
-/// This global is defined in Adapt_It.cpp.
+/// These globals are defined in Adapt_It.cpp
 extern bool	gbSourceIsUpperCase;
-
-//extern bool	gbNonSourceIsUpperCase;
-//extern bool	gbMatchedKB_UCentry;
-//extern bool	gbNoSourceCaseEquivalents;
-//extern bool	gbNoTargetCaseEquivalents;
-//extern bool	gbNoGlossCaseEquivalents;
-//extern wxChar gcharNonSrcLC;
-//extern wxChar gcharNonSrcUC;
-//extern wxChar gcharSrcLC;
-//extern wxChar gcharSrcUC;
+extern bool	gbNonSourceIsUpperCase;
+extern bool	gbMatchedKB_UCentry;
+extern bool	gbNoSourceCaseEquivalents;
+extern bool	gbNoTargetCaseEquivalents;
+extern bool	gbNoGlossCaseEquivalents;
+extern wxChar gcharNonSrcLC;
+extern wxChar gcharNonSrcUC;
+extern wxChar gcharSrcLC;
+extern wxChar gcharSrcUC;
 
 extern bool	gbCallerIsRemoveButton;
 
@@ -549,13 +548,28 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	wxString newText = _T("");
 	newText = m_pEditOrAddTranslationBox->GetValue();
 
+    // BEW additions 1Sep15, so we can check active location for same text and force a
+    // replacement there if it's identical, otherwise when the active location changes, the
+    // oldText being at the active location still would cause oldText to be reentered into
+    // the KB by the StoreText() call done at phrasebox movement time. So we'll check and
+    // replace it with the updated text automatically to prevent this happening (as a
+    // consistency check done subsequently would not help, because there would be no
+    // inconsistency at that location; so we must prevent it here)
+    // 
+	// BEW 1Sep15, Get the active location's pSrcPhrase, m_adaption so we can 
+	// make the above check and do the replacement if it is needed
+	CPile* pActivePile = gpApp->m_pActivePile;
+	CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
+	// Our further tweaks need to happen after the next couple of bleeding exit clauses
+
 	// IDS_CONSISTENCY_CHECK_NEEDED
 	int ok = wxMessageBox(_(
 "Changing the spelling in this editor will leave the instances in the document unchanged.\n(Do a Consistency Check later to fix this problem.)\nDo you wish to go ahead with the spelling change?"),
 	_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 	if (ok != wxYES)
+	{
 		return;
-
+	}
 	if (newText.IsEmpty())
 	{
 		// IDS_REDUCED_TO_NOTHING
@@ -563,8 +577,83 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 "You have made the translation nothing. This is okay, but is it what you want to do?"),
 		_T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (value != wxYES)
+		{
 			return;
+		}
 	}
+	// BEW 1Sep15 continuing the additions started above...
+	wxString activeKey = pSrcPhrase->m_key; // might be upper or lower case
+	wxString activeAdaption; // use for m_gloss or m_adaption according to mode that is current
+	if (gbIsGlossing)
+	{
+		activeAdaption = pSrcPhrase->m_gloss;
+	}
+	else
+	{
+		activeAdaption = pSrcPhrase->m_adaption;
+	}
+
+	// We want this check to work whether or not there is capital letter intial in either
+	// source or target to both, so we must do the usual auto-caps fiddles and end up
+	// testing for identity of lower case strings if auto-caps is on.
+	// 
+    // But... If using solidus as a word delimiter, and the active location is a merger,
+    // then solidus would have replaced ZWSP at the active location's phrasebox, but
+    // solidus must not go into the KB - so the from-KB strings will have ZWSP if they
+    // are more than one word and solidus support is turned on. So we will convert the
+    // from-KB strings to have solidi before we make our checks, because if replacement
+    // in the phrasebox is required, it's the solidus-delimited string form that we'll
+    // need to use. We'll use new local strings so we don't mess with legacy code...
+    // (These strings may be glosses, or adaptations, depending on what kind of KB is current)
+    wxString maybeSolidusOldText = oldText;
+	wxString maybeSolidusNewText = newText;
+	maybeSolidusOldText = ZWSPtoFwdSlash(maybeSolidusOldText);
+	maybeSolidusNewText = ZWSPtoFwdSlash(maybeSolidusNewText);
+	// New we can do our auto-caps fiddles. If auto-caps is ON, then the from-KB strings
+	// will be lower-case initial already, so we only need bother with the pSrcPhrase ones;
+	// If auto-caps is not ON, then we just check the unadjusted strings 'as is'
+	bool bNoError = TRUE;
+	bool bNoError2 = TRUE;
+	if (gbAutoCaps)
+	{
+		// TRUE here means 'we are dealing with source text'
+		bNoError = gpApp->GetDocument()->SetCaseParameters(activeKey, TRUE); // TRUE means 'for source text'
+		bNoError2 = gpApp->GetDocument()->SetCaseParameters(activeAdaption, FALSE); // NonSource text
+	}
+	if (gbAutoCaps && bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
+	{
+		// change it to lower case
+		activeKey.SetChar(0, gcharSrcLC);
+	}
+	if (gbAutoCaps && bNoError2 && gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
+	{
+		// change it to lower case
+		activeAdaption.SetChar(0, gcharNonSrcLC);
+	}
+	// Make the tests... and do the replacement if the tests succeed
+	if (activeKey == m_curKey && activeAdaption == maybeSolidusOldText)
+	{
+		// The pSrcPhrase at the active location has to be updated in order to prevent
+		// the oldText from sneaking back into the KB unbidden. Do it here.
+		// Also update app's m_pTargetBox, and m_targetPhrase, so that when the phrasebox
+		// is later moved, m_targetStr gets calculated correctly etc
+		if (gbIsGlossing)
+		{
+			pSrcPhrase->m_gloss = maybeSolidusNewText;
+		}
+		else
+		{
+			pSrcPhrase->m_adaption = maybeSolidusNewText;
+		}
+		gpApp->m_targetPhrase = maybeSolidusNewText;
+		gpApp->m_pTargetBox->ChangeValue(maybeSolidusNewText);
+		// Select the text in the box (focus will be returned there later)
+		int len = gpApp->m_targetPhrase.Length();
+		gpApp->m_nStartChar = len;
+		gpApp->m_nEndChar = len;
+		gpApp->m_pTargetBox->SetSelection(len,len);
+	}
+
 //#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15 Punctuation should not get into the KB, so we'll not expect to
 	// have to restore punctuation contiguous to / character, but the user may have edited
@@ -749,7 +838,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	// newText, if gbAutoCaps is TRUE, then we should store a lower case entry only
 	// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to 
 	// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
-	bool bNoError = TRUE;
+	bNoError = TRUE;
 	if (gbAutoCaps)
 	{
 		//bNoError = pApp->GetDocument()->SetCaseParameters(m_curKey); // for source word or phrase

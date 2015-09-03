@@ -24314,6 +24314,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 	wxASSERT(nCount > 0);
 	int nTotal = 0;
+	bool bBlindFix = pApp->m_bBlindFixInConsCheck; // a nice short synonym is helpful
 
 	// iterate over the document files
 	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope
@@ -24359,7 +24360,6 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		bool bNoStore = FALSE;
 		bool bAttemptStoreToKB = TRUE;
 		bool bSuppressWarningOnStoreKBFailure = TRUE;
-		bool bBlindFix = pApp->m_bBlindFixInConsCheck; // a nice short synonym is helpful
 
         // BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
         // returns TRUE to the caller if the attempted store fails for some reason, for all
@@ -24383,10 +24383,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		bool bDeleted = FALSE;
 		bool bDeleted_OnOrig = FALSE;
 
-		// these two, for CTargetUnit and CRefString pts within pKBCopy
+		// these two, for CTargetUnit and CRefString ptrs within pKBCopy
 		CTargetUnit* pTU = NULL;
 		CRefString* pRefStr = NULL;
-		// these two, for CTargetUnit and CRefString pts within pKB
+		// these two, for CTargetUnit and CRefString ptrs within pKB
 		CTargetUnit* pTU_OnOrig = NULL;
 		CRefString* pRefStr_OnOrig = NULL;
 		// we may need two flags here too
@@ -24931,13 +24931,61 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					{
 						bFoundTgtUnit = TRUE;
 
-                        // this is the 'split adaptation' case - the only options are to
+                        // This is the 'split adaptation' case - the only options are to
                         // undelete, or to give a different adaptation (contextually
                         // defined by the user eye-balling the document to figure out what
                         // other adaptation is appropriate at the active location rather
                         // than the one shown in the phrase box), or type something
                         // different or do an edit of something shown in the list of
                         // adaptations, or ignore the location entirely.
+                        // BEW 1Sep15, the deletion could be because the user edited the KB
+                        // target text, or gloss in glossing mode, which also then makes the
+                        // unedited form become pseudo-deleted. Mike Hore wants these auto-fixed
+                        // blindly if there is only a single (unique) form associated with the
+						// source text form - so we do that here, provided bBlindFix is TRUE
+						if (bBlindFix)
+						{
+							// First, check to make sure there is but a single translation
+							// or gloss
+							wxString newAdaption = _T("");
+							bool bIsUnique = pKBCopy->GetUniqueTranslation(nWords,key,newAdaption);
+							if (bIsUnique)
+							{
+								// Blind fix this one, do a StoreText() on pKB, then iterate the loop
+								pSrcPhrase->m_adaption = newAdaption; // StoreText() will do
+															// this, but no harm to do it here								// Get the punctuation, if any, right
+								pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, newAdaption);
+
+//#if defined(FWD_SLASH_DELIM)
+								// BEW added 23Apr15, in case there is a merger
+								pSrcPhrase->m_adaption = FwdSlashtoZWSP(pSrcPhrase->m_adaption);
+								pSrcPhrase->m_targetStr = FwdSlashtoZWSP(pSrcPhrase->m_targetStr);
+//#endif
+								// TRUE in StoreText call is support for a <no adaptation> empty
+								// string; if has effect only if newAdaption is empty
+								gbInhibitMakeTargetStringCall = TRUE;
+								pKB->StoreText(pSrcPhrase, pSrcPhrase->m_adaption, TRUE);
+								gbInhibitMakeTargetStringCall = FALSE;
+
+								// check if it has also a non-deleted <Not In KB>
+								// CRefString in pTU, if so, it would be inconsistent to
+								// leave it undeleted
+								// And since we have installed a replacement adaptation,
+								// pSrcPhrase->m_bHasKbEntry will already be TRUE
+								if (pTU_OnOrig != NULL)
+								{
+									if (pTU_OnOrig->IsItNotInKB())
+									{
+										pTU_OnOrig->DeleteOnlyNotInKB();
+										pSrcPhrase->m_bNotInKB = FALSE; // ensure it is OFF
+									}
+								}
+
+								continue;
+							}
+						}
+						// If bBlindFix was not chosen in the cons.chk.type dialog, then
+						// do the legacy showing of the consistency check dialog
 						bInconsistency = TRUE;
 						inconsistencyType = member_exists_flag_on_PTUexists_deleted_Refstr;
 						pAutoFixRec = new AutoFixRecord;

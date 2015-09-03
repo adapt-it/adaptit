@@ -1,5 +1,47 @@
 ----------------------------------------------
-Version 6.6.0 release ?? July 2015
+Version 6.6.2 release ?? ?? 2015
+----------------------------------------------
+
+----------------------------------------------
+Feature changes and new features in 6.6.2
+----------------------------------------------
+* A new checkbox was added to the Consistency Check
+Type dialog. "Do blind fixes whenever possible". When
+turned on, an automatic fix is done for any inconsistency
+which matches the following criterion: there is only a
+single adaptation (or gloss, if working in glossing mode)
+in the knowledge base for the current source text word
+or phrase. Instead of showing a dialog for the user to
+manually choose what to do, Adapt It makes the fix itself,
+replacing the old text with the updated text. Typically
+to get updated text, the user will have used the 
+Knowledge Base Editor dialog to update the adaptations
+or glosses in the KB, with respelled better versions, and
+had those accepted by using the Update button. Then he
+would do a Consistency Check (of "all documents") with 
+this new checkbox ticked. Then those updates will get
+inserted into the documents at the correct locations
+without user intervention being required.
+
+----------------------------------------------
+Version 6.6.1 release 29 Aug 2015
+----------------------------------------------
+
+----------------------------------------------
+Feature changes and new features in 6.6.1
+----------------------------------------------
+* A minor update. A new checkbox, "Turn off conflict
+resolution. (Turn it on again, in Preferences)" was
+added to each of the two new conflict resolution dialogs
+introduced at version 6.6.0. This extra checkbox allows
+suppression of both the conflict dialogs once a satisfactory
+conflict resolution has been performed on the current
+document. When suppressed, the legacy automatic conflict
+resolution happens - which is to retain the Paratext
+or Bibledit conflicting verses unchanged.
+
+----------------------------------------------
+Version 6.6.0 release 17 Aug 2015
 ----------------------------------------------
 
 ----------------------------------------------
@@ -32,7 +74,7 @@ be given a different level of conflict resolution
 according to what the user deems to be most helpful.
 
 ----------------------------------------------
-Bug fixes in 6.6.0 release ?? July 2015
+Bug fixes in 6.6.0 release 17 Aug 2015
 ----------------------------------------------
 * "Improvements" added to the functions for calculating the text
 to send to Paratext or Bibledit at a File > Save done in collaboration
