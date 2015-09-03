@@ -22,6 +22,16 @@ would do a Consistency Check (of "all documents") with
 this new checkbox ticked. Then those updates will get
 inserted into the documents at the correct locations
 without user intervention being required.
+* The Update button in the Knowledge Base Editor is
+smarter. If the phrase box contains the same text as that
+which you are updating in the KB Editor dialog, then your
+edits done in the KB Editor also update the phrasebox
+text automatically.
+* The Update button shows a Yes/No question box each time
+you press the button. Now, this question box will appear
+only three times for every KB Editor session. (It got to
+be nuisance to have to dismisss it hundreds of times if
+you edited hundreds of KB entries.)
 
 ----------------------------------------------
 Version 6.6.1 release 29 Aug 2015

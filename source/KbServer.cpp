@@ -33,6 +33,7 @@
 
 #if defined(_KBSERVER)
 
+
 static wxMutex s_QueueMutex; // only need one, because we cannot have
 							 // glossing & adapting modes on concurrently
 static wxMutex s_DoGetAllMutex; // UploadToKbServer() calls DoGetAll() which
