@@ -23606,6 +23606,10 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	CChooseConsistencyCheckTypeDlg ccDlg(pApp->GetMainFrame());
 	if (ccDlg.ShowModal() == wxID_OK)
 	{
+		// BEW 1Sep15 Whatever the user's choice for whether current doc only, or all docs,
+		// the new checkbox, "Do blind fixes whenever possible" applies, or doesn't apply, 
+		// to either choice; it's value has been already set in app's m_bBlindFixesInConsCheck
+
 		// handle user's choice of consistency check type
 		if (ccDlg.m_bCheckOpenDocOnly)
 		{
@@ -23626,6 +23630,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				// If there was an error, afList or afgList (which depends on
 				// gbIsGlossing) is cleared internally, as is m_acceptedFilesList, 
 				// and progress bar finished off; all that remains to do here is return
+				pApp->m_bBlindFixInConsCheck = FALSE; // restore default value (BEW 1Sep15)
 				return;
 			}
 			// This open-doc-only option is available only provided a document is
@@ -23681,6 +23686,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                 // it before return.
 				pApp->LogUserAction(_T("User asked for current doc consistency check without a document being open."));
 				pStatusBar->FinishProgress(_("Performing Consistency Check"));
+				pApp->m_bBlindFixInConsCheck = FALSE; // restore default value (BEW 1Sep15)
 				return;
 			} // end of else block for test: if (!bDocIsClosed)
 			pStatusBar->UpdateProgress(_("Performing Consistency Check"), 2, _("Checking current document"));
@@ -23702,6 +23708,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					// If there was an error, afList or afgList (which depends on
 					// gbIsGlossing) is cleared internally, as is m_acceptedFilesList, 
 					// and progress bar finished off; all that remains to do here is return
+					pApp->m_bBlindFixInConsCheck = FALSE; // restore default value (BEW 1Sep15)
 					return;
 				}
 				pApp->LogUserAction(_T("Check all docs within all book folders"));
@@ -23839,6 +23846,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					// If there was an error, afList or afgList (which depends on
 					// gbIsGlossing) is cleared internally, as is m_acceptedFilesList, 
 					// and progress bar finished off; all that remains to do here is return
+					pApp->m_bBlindFixInConsCheck = FALSE; // restore default value (BEW 1Sep15)
 					return;
 				}
 				// need a copy of pKB to check for inconsistencies in
@@ -23939,6 +23947,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
         // return.
 		pApp->LogUserAction(_T("Cancelled OnEditConsistencyCheck()"));
 		pStatusBar->FinishProgress(_("Performing Consistency Check"));
+		pApp->m_bBlindFixInConsCheck = FALSE; // restore default value (BEW 1Sep15)
 		return;
 	}
 	pStatusBar->UpdateProgress(_("Performing Consistency Check"), 3, _("Cleaning up..."));
@@ -23971,6 +23980,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(stats,_T(""),wxICON_INFORMATION | wxOK);
 	}
 	pStatusBar->FinishProgress(_("Performing Consistency Check"));
+	pApp->m_bBlindFixInConsCheck = FALSE; // restore default value (BEW 1Sep15)
 }
 
 bool CAdapt_ItDoc::ConsistencyCheck_ClobberDoc(CAdapt_ItApp* pApp, bool& bDocIsClosed, bool& bDocForcedToClose,
@@ -24277,13 +24287,20 @@ void CAdapt_ItDoc::ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& a
 // BEW note added 20Feb12: pCopyKB is temporary, for finding glitches, pKB is permanent,
 // and changes are added within it - and so there are pKB->StoreText() calls; we allow
 // kbserver support to apply to these calls, if KB sharing is turned on, and so we don't
-// make use of gbConstencyCheckCurrent to either enable or disable KB sharing during a
+// make use of gbConsistencyCheckCurrent to either enable or disable KB sharing during a
 // consistency check. Instead, if KB sharing is ON, it continues to be on during any
 // consistency check, and should fire off threads as needed, and those firings should
 // therefore be well motivated firings since the KB changes are those which are wanted by
 // the user. (The only pCopyKB->StoreText() calls are for support of <Not In KB> and we
 // don't care about those because <Not In KB> entries are not sent to the remote kbserver.)
 // BEW 23Apr15 added support for / used as a word-breaking whitespace character (in 8 places)
+// BEW 1Sep15 added support for a "blind fix" checkbox option that automatically, if chosen,
+// causes the location's adaptation where an inconsistency has been identified to get the
+// KB's CTargetUnit's CRefString instances translation, but only provided that translation
+// string (which may be an adaptation, or in DoConsistencyCheckG, a gloss) is the only 
+// valid entry for that CTargetUnit instance (i.e. there could be one or more pseudo-deleted
+// entries, but they won't be considered; but there can only be one non-deleted entry; otherwise
+// the dialog will show in the usual way)
 bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy,
 						AFList& afList, int& nCumulativeTotal, wxArrayString& arrSetNotInKB,
 						wxArrayString& arrRemoveNotInKB)
@@ -24315,6 +24332,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 	wxASSERT(nCount > 0);
 	int nTotal = 0;
+	bool bBlindFix = pApp->m_bBlindFixInConsCheck; // a nice short synonym is helpful
 
 	// iterate over the document files
 	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope
@@ -24383,10 +24401,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		bool bDeleted = FALSE;
 		bool bDeleted_OnOrig = FALSE;
 
-		// these two, for CTargetUnit and CRefString pts within pKBCopy
+		// these two, for CTargetUnit and CRefString ptrs within pKBCopy
 		CTargetUnit* pTU = NULL;
 		CRefString* pRefStr = NULL;
-		// these two, for CTargetUnit and CRefString pts within pKB
+		// these two, for CTargetUnit and CRefString ptrs within pKB
 		CTargetUnit* pTU_OnOrig = NULL;
 		CRefString* pRefStr_OnOrig = NULL;
 		// we may need two flags here too
@@ -24480,6 +24498,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			// pKB and what belongs to pKBCopy!!
 			if (pTU != NULL)
 			{
+				// The first subtext checks for the pTU storing a <Not In KB> entry
 				if (pTU->IsItNotInKB() && pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_bHasKBEntry)
 				{
                     // we can't collect what might be inconsistencies, so the two boolean
@@ -24525,7 +24544,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 #endif
 					continue;
 				}
-			}
+			} // end of TRUE block for test: if (pTU != NULL)
+
 			// In the following block, we must test if the source word or phrase belongs
 			// to either array, arrSetNotInKB or arrRemoveNotInKB (and remember, the
 			// contents of these arrays were gathered only from valid entries, and / or
@@ -24657,10 +24677,13 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						}
 					}
 				}
-			}
+			} // end of TRUE block for test: if (bUnmakeNotInKB)
+
 			// do any inconsistencies which remain
 			if (bIsInKB)
 			{
+				// The adaptation at the location of the key passed to pKBCopy->IsAlreadyInKB()
+				// already exists within the pKBCopy knowledge base, and is not pseudo-deleted
 				if (pTU != NULL)
 				{
 					bFoundTgtUnit = TRUE;
@@ -24747,11 +24770,11 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								continue;
 							}
 						} // end of else block for test: if (pSrcPhrase->m_bNotInKB == FALSE)
-					}
+					} // end of TRUE block for test: if (adaption.IsEmpty())
 					else
 					{
                         // m_adaption is in the KB, m_bHasKBEntry is FALSE, but
-                        // pSrcPhrase->m_adaption is not an emptry string; this is an
+                        // pSrcPhrase->m_adaption is not an empty string; this is an
                         // inconsistency which we can auto-correct here & now by setting
 						// the flag to agree with the KB entry, no GUI needed for this -
 						// provided there is no <Not In KB> lurking in the pKBCopy's entry
@@ -24808,6 +24831,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				// we'll deal with it below first, it's also what the legacy dialog was
 				// mostly about, but a redesign of that is called for here
 				// (2) pTU exists but the expected pRefStr it should contain isn't there
+				// BEW 1Sep15, added support for the user editing the one and only KB translation
+				// or gloss, and then wanting an auto-fix (done blindly) to get the docs to
+				// update to the new adaptation or gloss without a dialog being shown.
 				// (3) pTU matching the key value was expected to exist but doesn't
 				// (4) no pTU exists because the source text key has not hitherto been
 				// encountered when adapting, and so this location is a "hole" -- this
@@ -24923,13 +24949,61 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					{
 						bFoundTgtUnit = TRUE;
 
-                        // this is the 'split adaptation' case - the only options are to
+                        // This is the 'split adaptation' case - the only options are to
                         // undelete, or to give a different adaptation (contextually
                         // defined by the user eye-balling the document to figure out what
                         // other adaptation is appropriate at the active location rather
                         // than the one shown in the phrase box), or type something
                         // different or do an edit of something shown in the list of
                         // adaptations, or ignore the location entirely.
+                        // BEW 1Sep15, the deletion could be because the user edited the KB
+                        // target text, or gloss in glossing mode, which also then makes the
+                        // unedited form become pseudo-deleted. Mike Hore wants these auto-fixed
+                        // blindly if there is only a single (unique) form associated with the
+						// source text form - so we do that here, provided bBlindFix is TRUE
+						if (bBlindFix)
+						{
+							// First, check to make sure there is but a single translation
+							// or gloss
+							wxString newAdaption = _T("");
+							bool bIsUnique = pKBCopy->GetUniqueTranslation(nWords,key,newAdaption);
+							if (bIsUnique)
+							{
+								// Blind fix this one, do a StoreText() on pKB, then iterate the loop
+								pSrcPhrase->m_adaption = newAdaption; // StoreText() will do
+															// this, but no harm to do it here								// Get the punctuation, if any, right
+								pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, newAdaption);
+
+//#if defined(FWD_SLASH_DELIM)
+								// BEW added 23Apr15, in case there is a merger
+								pSrcPhrase->m_adaption = FwdSlashtoZWSP(pSrcPhrase->m_adaption);
+								pSrcPhrase->m_targetStr = FwdSlashtoZWSP(pSrcPhrase->m_targetStr);
+//#endif
+								// TRUE in StoreText call is support for a <no adaptation> empty
+								// string; if has effect only if newAdaption is empty
+								gbInhibitMakeTargetStringCall = TRUE;
+								pKB->StoreText(pSrcPhrase, pSrcPhrase->m_adaption, TRUE);
+								gbInhibitMakeTargetStringCall = FALSE;
+
+								// check if it has also a non-deleted <Not In KB>
+								// CRefString in pTU, if so, it would be inconsistent to
+								// leave it undeleted
+								// And since we have installed a replacement adaptation,
+								// pSrcPhrase->m_bHasKbEntry will already be TRUE
+								if (pTU_OnOrig != NULL)
+								{
+									if (pTU_OnOrig->IsItNotInKB())
+									{
+										pTU_OnOrig->DeleteOnlyNotInKB();
+										pSrcPhrase->m_bNotInKB = FALSE; // ensure it is OFF
+									}
+								}
+
+								continue;
+							}
+						}
+						// If bBlindFix was not chosen in the cons.chk.type dialog, then
+						// do the legacy showing of the consistency check dialog
 						bInconsistency = TRUE;
 						inconsistencyType = member_exists_flag_on_PTUexists_deleted_Refstr;
 						pAutoFixRec = new AutoFixRecord;
@@ -26066,6 +26140,13 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 // BEW 2Nov12, fixed a bug in which adaptations got lost if the corrected entry was
 // created with AutoCaps off but the check was later done with AutoCaps on
 // BEW 23Apr15 added support for / used as a word-breaking whitespace character
+// BEW 1Sep15 added support for a "blind fix" checkbox option that automatically, if chosen,
+// causes the location's adaptation where an inconsistency has been identified to get the
+// KB's CTargetUnit's CRefString instances translation, but only provided that translation
+// string (which is a gloss, or in DoConsistencyCheck, an adaptation) is the only 
+// valid entry for that CTargetUnit instance (i.e. there could be one or more pseudo-deleted
+// entries, but they won't be considered; but there can only be one non-deleted entry; otherwise
+// the dialog will show in the usual way)
 bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy,
 									   AFGList& afgList, int& nCumulativeTotal)
 {

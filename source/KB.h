@@ -139,6 +139,7 @@ public:
 	enum KB_Entry	GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRefStr);
 
 	CTargetUnit*	GetTargetUnit(int nSrcWords, wxString keyStr);
+	bool			GetUniqueTranslation(int nWords, wxString key, wxString& adaptation); // BEW added 1Sep15
 	bool			IsAlreadyInKB(int nWords, wxString key, wxString adaptation);
 	// overloaded version below, for use when Consistency Check is being done
 	bool			IsAlreadyInKB(int nWords, wxString key, wxString adaptation,

@@ -77,6 +77,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("August 29, 2015"), wxDefaultPosition, wxDefaultSize, 0 );
+	
     item11->SetToolTip( wxT("This date should be the same as the executable file") );
     item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -3884,7 +3885,7 @@ wxSizer *ChooseConsistencyCheckTypeDlgFunc( wxWindow *parent, bool call_fit, boo
     item3->SetToolTip( _("Select this button if you only want to check the consistency of the open document") );
     item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item1->Add( 500, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( 540, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxRadioButton *item4 = new wxRadioButton( parent, IDC_RADIO_CHECK_SELECTED_DOCS, _("Check this &and other documents in this project"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->SetToolTip( _("Select this button if you want to check the consistency of this and other documents in the project") );
@@ -3897,22 +3898,34 @@ wxSizer *ChooseConsistencyCheckTypeDlgFunc( wxWindow *parent, bool call_fit, boo
 
     item1->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
+    item1->Add( 540, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxCheckBox *item7 = new wxCheckBox( parent, ID_CHECKBOXBLIND_FIXES, _("Do blind fixes whenever possible"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG2, _("A blind fix is a correction made to the document without asking you in a dialog. It would happen every time an inconsistency has been detected and the source text at that location has only a single adaptation available in the knowledge base. If you tick the above checkbox, then every time the conditions are met, the knowledge base entry will replace whatever adaptation the document has at that location. If you make a lot of manual edits in the knowledge base, then tick this checkbox - it will save you a lot of work."), wxDefaultPosition, wxSize(-1,100), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    item8->Add( item9, 2, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item1->Add( item8, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item8 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->SetDefault();
-    item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item11 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetDefault();
+    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item7->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item10->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item9 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item12 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item7->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item10->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item0->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item10, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -9047,11 +9060,11 @@ wxSizer *kb_sharing_dlg_func( wxWindow *parent, bool call_fit, bool set_sizer )
     item8->SetToolTip( _("How often newly added entries from the remote server are downloaded") );
     item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxSpinCtrl *item9 = new wxSpinCtrl( parent, ID_SPINCTRL_RECEIVE, wxT("5"), wxDefaultPosition, wxSize(45,-1), 0, 1, 20, 5 );
+    wxSpinCtrl *item9 = new wxSpinCtrl( parent, ID_SPINCTRL_RECEIVE, wxT("5"), wxDefaultPosition, wxSize(45,-1), 0, 1, 120, 5 );
     item9->SetToolTip( _("Periodic receiving interval (minutes)") );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("minutes. Minimum 1, maximum 20."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("minutes. Minimum 1, maximum 120. ( 5 or less is good )"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item6->Add( item7, 0, wxALIGN_CENTER, 5 );

@@ -59,7 +59,7 @@ public:
 	// Store checkbox settings here
 	bool	m_bSharingAdaptations;
 	bool	m_bSharingGlosses;
-	// Need the following to be able to test for changes to url or username 
+	// Need the following to be able to test for changes to url or username
 	wxString m_saveOldURLStr;
 	wxString m_saveOldUsernameStr;
 	wxString m_savePassword;
@@ -75,6 +75,7 @@ protected:
 	wxButton*   m_pRemoveSetupBtn; //ID_KB_SHARING_REMOVE_SETUP_WHICH
 	wxCheckBox* m_pAdaptingCheckBox;
 	wxCheckBox* m_pGlossingCheckBox;
+	wxButton*   m_pSetupBtn; //wxID_OK
 
 	DECLARE_EVENT_TABLE()
 };

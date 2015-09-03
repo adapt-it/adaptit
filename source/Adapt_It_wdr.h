@@ -470,6 +470,7 @@ const int ID_JOIN_NOW = 10334;
 const int IDC_STATIC_JOINING_WAIT = 10335;
 const int ID_TEXTCTRL_AS_STATIC_JOIN4 = 10336;
 const int IDC_EDIT_NEW_FILENAME = 10337;
+
 wxSizer *JoinDlgFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
 wxSizer *ListDocInOtherFolderDlgFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
@@ -651,6 +652,7 @@ const int IDC_EDIT_2SRC8 = 10487;
 const int IDC_EDIT_2TGT8 = 10488;
 const int IDC_EDIT_2SRC9 = 10489;
 const int IDC_EDIT_2TGT9 = 10490;
+
 wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
 extern wxSizer *ID_CONTROLBAR_2_LINE_SIZER_TOP;
@@ -866,6 +868,7 @@ const int ID_TEXT_GLOSS_CODE = 10659;
 const int ID_LISTBOX_GLOSS = 10660;
 const int ID_TEXTCTRL_TELL = 10661;
 const int ID_TEXTCTRL_MSG2 = 10662;
+
 wxSizer *LiftLangFilterFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
 const int ID_RADIOBOX_KB_EXPORT_IMPORT_OPTIONS = 10663;
@@ -1103,10 +1106,12 @@ const int ID_BUTTON_UNSELECT_ALL_VS = 10842;
 extern wxSizer *pTransferBtnBoxSizerH;
 const int ID_CHECKBOX_MAKE_SOLIDUS_VISIBLE = 10843;
 const int ID_CHECKBOX_TURN_OFF_CONFRES2 = 10844;
+
 wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
 extern wxSizer *CollabActionDlgSizer;
 extern wxSizer *TopStaticSizer;
+
 const int ID_RADIOBUTTON_PTorBE_RETAIN = 10845;
 const int ID_TEXTCTRL_TOP = 10846;
 extern wxSizer *MiddleStaticSizer;
@@ -1116,9 +1121,11 @@ extern wxSizer *BottomStaticSizer;
 const int ID_RADIOBUTTON_USER_CHOICE_FOR_CONFLICT_RESOLUTION = 10849;
 const int ID_TEXTCTRL_BOTTOM = 10850;
 const int ID_CHECKBOX_TURN_OFF_CONFRES = 10851;
+
 wxSizer *ConflictResolutionActionFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
 // Declare menubar functions
+
 
 const int ID_FILE_MENU = 10852;
 const int ID_SAVE_AS = 10853;
@@ -1217,6 +1224,7 @@ const int ID_UNLOCK_CUSTOM_LOCATION = 10945;
 const int ID_LOCAL_WORK_FOLDER_MENU = 10946;
 const int ID_DVCS_VERSION = 10947;
 const int ID_MENU_KBSHARINGMGR = 10948;
+
 wxMenuBar *AIMenuBarFunc();
 
 // Declare toolbar functions
@@ -1243,6 +1251,7 @@ const int ID_BUTTON_CHOOSE_TRANSLATION = 10967;
 const int ID_SHOWING_ALL = 10968;
 const int ID_BUTTON_EARLIER_TRANSLATION = 10969;
 const int ID_BUTTON_NO_PUNCT_COPY = 10970;
+
 void AIToolBarFunc( wxToolBar *parent );
 
 void AIToolBar32x30Func( wxToolBar *parent );
@@ -1260,6 +1269,7 @@ const int ID_BUTTON_IGNORING_BDRY = 10974;
 const int ID_BUTTON_HIDING_PUNCT = 10975;
 const int ID_SHOWING_TGT = 10976;
 const int ID_BUTTON_ENABLE_PUNCT_COPY = 10977;
+
 wxBitmap AIToolBarBitmapsToggledFunc( size_t index );
 
 wxBitmap WhichFilesBitmapsFunc( size_t index );
@@ -1272,6 +1282,7 @@ wxBitmap HtmlWindowBitmapsFunc( size_t index );
 
 const int ID_BITMAP_CHBOX_OFF = 10978;
 const int ID_BITMAP_CHBOX_ON = 10979;
+
 wxBitmap BulkKbDeleteFunc( size_t index );
 
 #endif

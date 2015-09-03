@@ -78,21 +78,20 @@
 
 // for support of auto-capitalization
 
-/// This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp
 extern bool	gbAutoCaps;
 
-/// This global is defined in Adapt_It.cpp.
+/// These globals are defined in Adapt_It.cpp
 extern bool	gbSourceIsUpperCase;
-
-//extern bool	gbNonSourceIsUpperCase;
-//extern bool	gbMatchedKB_UCentry;
-//extern bool	gbNoSourceCaseEquivalents;
-//extern bool	gbNoTargetCaseEquivalents;
-//extern bool	gbNoGlossCaseEquivalents;
-//extern wxChar gcharNonSrcLC;
-//extern wxChar gcharNonSrcUC;
-//extern wxChar gcharSrcLC;
-//extern wxChar gcharSrcUC;
+extern bool	gbNonSourceIsUpperCase;
+extern bool	gbMatchedKB_UCentry;
+extern bool	gbNoSourceCaseEquivalents;
+extern bool	gbNoTargetCaseEquivalents;
+extern bool	gbNoGlossCaseEquivalents;
+extern wxChar gcharNonSrcLC;
+extern wxChar gcharNonSrcUC;
+extern wxChar gcharSrcLC;
+extern wxChar gcharSrcUC;
 
 extern bool	gbCallerIsRemoveButton;
 
@@ -260,7 +259,7 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	wxString str;
 	str = m_pListBoxKeys->GetStringSelection();
 	// BEW 9Jun15, if the user clicked an entry in the list, the m_pTypeSourceBox
-	// below the list should reflect the choice; but before now it didn't. This 
+	// below the list should reflect the choice; but before now it didn't. This
 	// next line fixes it.
 	m_pTypeSourceBox->ChangeValue(str);
 	int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,exactString);
@@ -549,13 +548,32 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	wxString newText = _T("");
 	newText = m_pEditOrAddTranslationBox->GetValue();
 
-	// IDS_CONSISTENCY_CHECK_NEEDED
-	int ok = wxMessageBox(_(
-"Changing the spelling in this editor will leave the instances in the document unchanged.\n(Do a Consistency Check later to fix this problem.)\nDo you wish to go ahead with the spelling change?"),
-	_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
-	if (ok != wxYES)
-		return;
+    // BEW additions 1Sep15, so we can check active location for same text and force a
+    // replacement there if it's identical, otherwise when the active location changes, the
+    // oldText being at the active location still would cause oldText to be reentered into
+    // the KB by the StoreText() call done at phrasebox movement time. So we'll check and
+    // replace it with the updated text automatically to prevent this happening (as a
+    // consistency check done subsequently would not help, because there would be no
+    // inconsistency at that location; so we must prevent it here)
+    //
+	// BEW 1Sep15, Get the active location's pSrcPhrase, m_adaption so we can
+	// make the above check and do the replacement if it is needed
+	CPile* pActivePile = gpApp->m_pActivePile;
+	CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
+	// Our further tweaks need to happen after the next couple of bleeding exit clauses
 
+	// BEW 1Sep15 added 2 more lines to the message
+	m_messageCount++; //incremement the message count, if greater than 3, don't show the message again in this sesion
+	if (m_messageCount < m_maxMessageCount)
+	{
+        int ok = wxMessageBox(_(
+"Changing the spelling in this editor will leave the instances in the document unchanged.\n(Do a Consistency Check later to fix this problem,\nand tick its checkbox: Do blind fixes whenever possible.)\n(You will see this message only three times in this session.)\nDo you wish to go ahead with the spelling change?"),
+	_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+        if (ok != wxYES)
+        {
+            return;
+        }
+	}
 	if (newText.IsEmpty())
 	{
 		// IDS_REDUCED_TO_NOTHING
@@ -563,8 +581,83 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 "You have made the translation nothing. This is okay, but is it what you want to do?"),
 		_T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (value != wxYES)
+		{
 			return;
+		}
 	}
+	// BEW 1Sep15 continuing the additions started above...
+	wxString activeKey = pSrcPhrase->m_key; // might be upper or lower case
+	wxString activeAdaption; // use for m_gloss or m_adaption according to mode that is current
+	if (gbIsGlossing)
+	{
+		activeAdaption = pSrcPhrase->m_gloss;
+	}
+	else
+	{
+		activeAdaption = pSrcPhrase->m_adaption;
+	}
+
+	// We want this check to work whether or not there is capital letter intial in either
+	// source or target to both, so we must do the usual auto-caps fiddles and end up
+	// testing for identity of lower case strings if auto-caps is on.
+	//
+    // But... If using solidus as a word delimiter, and the active location is a merger,
+    // then solidus would have replaced ZWSP at the active location's phrasebox, but
+    // solidus must not go into the KB - so the from-KB strings will have ZWSP if they
+    // are more than one word and solidus support is turned on. So we will convert the
+    // from-KB strings to have solidi before we make our checks, because if replacement
+    // in the phrasebox is required, it's the solidus-delimited string form that we'll
+    // need to use. We'll use new local strings so we don't mess with legacy code...
+    // (These strings may be glosses, or adaptations, depending on what kind of KB is current)
+    wxString maybeSolidusOldText = oldText;
+	wxString maybeSolidusNewText = newText;
+	maybeSolidusOldText = ZWSPtoFwdSlash(maybeSolidusOldText);
+	maybeSolidusNewText = ZWSPtoFwdSlash(maybeSolidusNewText);
+	// New we can do our auto-caps fiddles. If auto-caps is ON, then the from-KB strings
+	// will be lower-case initial already, so we only need bother with the pSrcPhrase ones;
+	// If auto-caps is not ON, then we just check the unadjusted strings 'as is'
+	bool bNoError = TRUE;
+	bool bNoError2 = TRUE;
+	if (gbAutoCaps)
+	{
+		// TRUE here means 'we are dealing with source text'
+		bNoError = gpApp->GetDocument()->SetCaseParameters(activeKey, TRUE); // TRUE means 'for source text'
+		bNoError2 = gpApp->GetDocument()->SetCaseParameters(activeAdaption, FALSE); // NonSource text
+	}
+	if (gbAutoCaps && bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
+	{
+		// change it to lower case
+		activeKey.SetChar(0, gcharSrcLC);
+	}
+	if (gbAutoCaps && bNoError2 && gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
+	{
+		// change it to lower case
+		activeAdaption.SetChar(0, gcharNonSrcLC);
+	}
+	// Make the tests... and do the replacement if the tests succeed
+	if (activeKey == m_curKey && activeAdaption == maybeSolidusOldText)
+	{
+		// The pSrcPhrase at the active location has to be updated in order to prevent
+		// the oldText from sneaking back into the KB unbidden. Do it here.
+		// Also update app's m_pTargetBox, and m_targetPhrase, so that when the phrasebox
+		// is later moved, m_targetStr gets calculated correctly etc
+		if (gbIsGlossing)
+		{
+			pSrcPhrase->m_gloss = maybeSolidusNewText;
+		}
+		else
+		{
+			pSrcPhrase->m_adaption = maybeSolidusNewText;
+		}
+		gpApp->m_targetPhrase = maybeSolidusNewText;
+		gpApp->m_pTargetBox->ChangeValue(maybeSolidusNewText);
+		// Select the text in the box (focus will be returned there later)
+		int len = gpApp->m_targetPhrase.Length();
+		gpApp->m_nStartChar = len;
+		gpApp->m_nEndChar = len;
+		gpApp->m_pTargetBox->SetSelection(len,len);
+	}
+
 //#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15 Punctuation should not get into the KB, so we'll not expect to
 	// have to restore punctuation contiguous to / character, but the user may have edited
@@ -573,7 +666,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	newText = FwdSlashtoZWSP(newText);// m_bFwdSlashDelimiter is checked internally
 //#endif
 	// Ensure we are not duplicating an undeleted translation already in the list box
-	// 
+	//
 	// BEW changed from here on, 24Jan13, because with kbVersion 2 deletions are present
 	// but with m_bDeleted = TRUE, and if an edit is done that makes the final form of
 	// the translation string identical to that in m_translation of a deleted entry, the
@@ -626,7 +719,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 
 		// does it match? (The second subtest is redundant, but is safety-first)
 		if (pARefStr->m_translation == newText && pARefStr->GetDeletedFlag() == TRUE)
-		{	
+		{
 			// we've matched a deleted entry, so set the flag and exit the loop
 			bUndeleting = TRUE;
 			break;
@@ -747,9 +840,9 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	// BEW 9Jun15, the old one we can leave unmodified by any auto-caps ON setting, since
 	// presumably the matchups above needed to be with the unmodified contents; but for the
 	// newText, if gbAutoCaps is TRUE, then we should store a lower case entry only
-	// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to 
+	// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to
 	// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
-	bool bNoError = TRUE;
+	bNoError = TRUE;
 	if (gbAutoCaps)
 	{
 		//bNoError = pApp->GetDocument()->SetCaseParameters(m_curKey); // for source word or phrase
@@ -1066,7 +1159,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	m_srcKeyStr = m_pTypeSourceBox->GetValue();
 	wxASSERT(pCurTgtUnit != 0);
 
-	// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to 
+	// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to
 	// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
 	bool bNoError = TRUE;
 	if (gbAutoCaps)
@@ -1084,7 +1177,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 			newText = pKB->AutoCapsMakeStorageString(newText, FALSE); // might be returned as lower case initial
 		}
 	}
-	
+
 	bOK = AddRefString(pCurTgtUnit,newText); // if 'undelete' happens, AddRefString() will
 				// have repositioned the undeleted CRefString to the end of the CTargetUnit
 				// instance's list, so that the Append() call on the list box done below
@@ -1531,7 +1624,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 #if defined(_DEBUG) && defined(DUALS_BUG)
 	wxString flag = pRefString->GetDeletedFlag() ? _T("TRUE") : _T("FALSE");
 	wxLogDebug(_T("OnButtonRemove(): found pRefString with m_translation = %s  m_bDeleted = %s"),
-		pRefString->m_translation.c_str(), flag.c_str());		
+		pRefString->m_translation.c_str(), flag.c_str());
 #endif
 
     // do legacy checks that we have the right reference string instance; we must allow for
@@ -1601,7 +1694,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 #if defined(_DEBUG) && defined(DUALS_BUG)
 		wxString flag = pCurRefString->GetDeletedFlag() ? _T("TRUE") : _T("FALSE");
 		wxLogDebug(_T("OnButtonRemove(): AFTER removal, remainder's top pCurRefString has m_translation = %s  m_bDeleted = %s"),
-			pCurRefString->m_translation.c_str(), flag.c_str());	
+			pCurRefString->m_translation.c_str(), flag.c_str());
 #endif
 
 	}
@@ -1675,7 +1768,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 #if defined(_DEBUG) && defined(DUALS_BUG)
 	flag = pRefString->GetDeletedFlag() ? _T("TRUE") : _T("FALSE");
 	wxLogDebug(_T("OnButtonRemove(): KB update section, just deleted pRefString with m_translation = %s  m_bDeleted = %s"),
-		pRefString->m_translation.c_str(), flag.c_str());	
+		pRefString->m_translation.c_str(), flag.c_str());
 #endif
 
 	// get the count of non-deleted CRefString instances for this CTargetUnit instance
@@ -1683,7 +1776,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 
  #if defined(_DEBUG) && defined(DUALS_BUG)
 	wxLogDebug(_T("OnButtonRemove(): KB update section, number of non-deleted ones remaining = %d   and function ends."),
-		numNotDeleted );	
+		numNotDeleted );
 #endif
    // We'll also need the index of the source word/phrase selected in the keys list box.
     // If it turns out that we have just deleted all of a source word/phrase's
@@ -2032,6 +2125,9 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 															   // method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
+
+	m_maxMessageCount = 3; // that's enough, (Update button may be used hundreds of times)
+	m_messageCount = 0;
 
     // wx Note: The dialog fonts for the list boxes are set by calls to
     // SetFontAndDirectionalityForDialogControl() in the LoadDataForPage() function. That
@@ -2610,7 +2706,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
             // is called.
 
 			m_srcKeyStr = m_TheSelectedKey;
-			// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to 
+			// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to
 			// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
 			bool bNoError = TRUE;
 			if (gbAutoCaps)
@@ -2640,7 +2736,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			// get the key for the source phrase at the active location
 			wxString srcKey;
 			srcKey = gpApp->m_pActivePile->GetSrcPhrase()->m_key;
-			// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to 
+			// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to
 			// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
 			bool bNoError = TRUE;
 			if (gbAutoCaps)
@@ -2667,7 +2763,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		{
 			m_pListBoxKeys->SetSelection(nStartingSelection);
 			wxString str = m_pListBoxKeys->GetString(nStartingSelection);
-			// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to 
+			// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to
 			// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
 			bool bNoError = TRUE;
 			if (gbAutoCaps)
@@ -2698,7 +2794,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			counter = 0;
 		}
 #endif
-		
+
 		// we're not using validators here so fill the textbox, but only if m_srcKeyStr
 		// is different from the current contents (avoids a spurious system beep)
 		// Also, instead of calling SetValue() we use ChangeValue() here to avoid spurious calling
@@ -2732,7 +2828,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	}
 	// show user how many entries - whm moved here from inside end of above block
 	// nCount was set above before if (nCount > 0) block
-	// 
+	//
     // BEW 16Jan13, changed to use two strings, because the specifier string was being
     // loaded from the wxStatic label object, and the result was put back in the wxStatic
     // label object - thereby turning that object into a string without a formatting
@@ -2761,7 +2857,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		while (pos != NULL)
 		{
 			pCurRefString = (CRefString*)pos->GetData();
-			
+
 #if defined(_DEBUG) && defined(DUALS_BUG)
 			if (bDoAbaotem)
 			{
@@ -2772,7 +2868,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 					pCurRefString->m_translation.c_str(), flag.c_str());
 			}
 #endif
-			
+
 			pos = pos->GetNext();
 			// only put into the list CRefString instances which are not marked as deleted
 			if (!pCurRefString->GetDeletedFlag())

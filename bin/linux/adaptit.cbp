@@ -15,7 +15,6 @@
 					<Add option="-g" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
-					<Add option="-D_KBSERVER" />
 				</Compiler>
 				<Linker>
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
@@ -30,6 +29,7 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --cppflags`" />
+					<Add option="-D_UNICODE" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -336,6 +336,8 @@
 		<Unit filename="../../source/CollectBacktranslations.h" />
 		<Unit filename="../../source/ComposeBarEditBox.cpp" />
 		<Unit filename="../../source/ComposeBarEditBox.h" />
+		<Unit filename="../../source/ConflictResActionDlg.cpp" />
+		<Unit filename="../../source/ConflictResActionDlg.h" />
 		<Unit filename="../../source/ConsChk_Empty_noTU_Dlg.cpp" />
 		<Unit filename="../../source/ConsChk_Empty_noTU_Dlg.h" />
 		<Unit filename="../../source/ConsistencyCheckDlg.cpp" />

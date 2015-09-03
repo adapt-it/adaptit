@@ -85,8 +85,9 @@ enum InconsistencyType {
 	member_exists_flag_on_PTUexists_deleted_Refstr, // done, use revamped legacy dlg... 
 													// this is the "split meaning" possibility
 	member_exists_flag_off_PTUexists_deleted_RefStr, // done,  use revamped legacy dlg here too
-	flag_on_NotInKB_off_hasActiveNotInKB_in_KB // done // use dlg for either normal entry or <Not In KB> 
+	flag_on_NotInKB_off_hasActiveNotInKB_in_KB, // done // use dlg for either normal entry or <Not In KB> 
 					// m_bNotInKB TRUE and ensure pTU have valid <Not In KB> entry
+	// BEW added next, 1Sep15, to support the "blind fix" feature Mike Hore requested
 };
 
 // some of these enum values are not actually needed, because they all are handled in ways

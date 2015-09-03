@@ -6,7 +6,7 @@
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the CKBEditor class. 
+/// \description	This is the header file for the CKBEditor class.
 /// The CKBEditor class provides a tabbed dialog (one tab for each of one to
 /// ten word source phrases stored in the knowledge base). It allows the user
 /// to examine, edit, add, or delete the translations that have been stored for
@@ -38,14 +38,14 @@ class MapKeyStringToTgtUnit;
 class CKBEditor : public AIModalDialog
 {
 	// friend functions (definitions are in helpers.cpp)
-	friend void PopulateTranslationsListBox(CKB* pKB, CTargetUnit* pTgtUnit, 
+	friend void PopulateTranslationsListBox(CKB* pKB, CTargetUnit* pTgtUnit,
 											CKBEditor* pKBEditor);
 
 public:
 	CKBEditor(wxWindow* parent); // constructor
 	virtual ~CKBEditor(void); // destructor
 	// other methods
-	
+
 	//enum { IDD = IDD_EDITKB_PAGE };
 	wxTextCtrl*		m_pFlagBox;
 	wxTextCtrl*		m_pTypeSourceBox;
@@ -70,14 +70,14 @@ public:
 	// BEW added 22Jan10, next 3 buttons
 	wxButton*		m_pBtnGo;
 	wxButton*		m_pBtnEraseAllLines;
-	
+
 	wxString		m_edTransStr;
 	wxString		m_srcKeyStr;
 	int				m_refCount;
 	wxString		m_refCountStr;
 	wxString		m_flagSetting;
 	wxString		m_entryCountStr;
-	wxString		m_entryCountLabel; // BEW added 16Jan13, so we don't put a formatted string 
+	wxString		m_entryCountLabel; // BEW added 16Jan13, so we don't put a formatted string
 									   // into m_entryCountStr thereby removing the %d format specifier
 	wxString		m_ON;
 	wxString		m_OFF;
@@ -86,11 +86,14 @@ public:
 
 	wxString		m_curKey;
 	int				m_nCurPage; // whm added for wx version
+	// BEW 1Sep15 added next two so that the message shown at the Update button does not get shown more than 3 times per KB editor session
+	int             m_messageCount;
+	int             m_maxMessageCount;
 
 	/// Indicates the count of entries in each of the 10 MapKeyStringToTgtUnit maps in the KB. Used for
 	/// support of preallocation of storage prior to opening KB editor with list controls of many entries.
 	int				m_nMapLength[10]; // whm eliminated gnMapLength[10] global by using an int array local to CKBEditor
-	
+
 	CAdapt_ItApp*	pApp;
 	CKB*			pKB;
 	CTargetUnit*	pCurTgtUnit;
