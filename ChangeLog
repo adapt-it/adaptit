@@ -1,4 +1,34 @@
 ----------------------------------------------
+Version 6.6.1 release 29 August 2015
+----------------------------------------------
+
+----------------------------------------------
+Feature changes and new features in 6.6.1
+----------------------------------------------
+* One small addition to the conflict resolution
+pair of dialogs, used when collaborating with Paratext
+or Bibledit. A checkbox: "Turn off conflict resolution.
+(Turn it on again, in Preferences)"
+has been added near the bottom of each dialog. Ticking
+the checkbox suppresses the showing of either of the
+conflict resolution dialogs, for subsequent File > 
+Save (Transfer Translation Draft To Paratext) command
+invocations while that particular adaptation document
+is open, or until the user goes to the View tab of
+Preferences to turn the showing of the two dialogs
+back on. The checkbox is alwas ON (ticked) by default
+when a new adaptation document is opened.
+The reason for this checkbox is that once a set of
+conflicts has been dealt with, the user will not want
+to see the conflict action dialog come up again at
+subsequent File > Save requests, because normal adapting
+does not produce new conflicts. When the user-guided 
+conflict resolution is suppressed, conflicts are dealt
+with in the legacy way - which is to retain unchanged
+the Paratext (or Bibledit) version of the text in each
+conflicted verse.
+
+----------------------------------------------
 Version 6.6.0 release 12 August 2015
 ----------------------------------------------
 

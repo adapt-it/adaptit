@@ -48,7 +48,8 @@ BEGIN_EVENT_TABLE(CConflictResActionDlg, AIModalDialog)
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_PTorBE_RETAIN, CConflictResActionDlg::OnBnClickedRadioRetainPTorBE)
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_FORCE_AI_VERSE_TRANSFER, CConflictResActionDlg::OnBnClickedRadioForceAI)
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_USER_CHOICE_FOR_CONFLICT_RESOLUTION, CConflictResActionDlg::OnBnClickedRadioConflictResDlg)
-END_EVENT_TABLE()
+	EVT_BUTTON(wxID_OK, CConflictResActionDlg::OnOK)
+	END_EVENT_TABLE()
 
 
 CConflictResActionDlg::CConflictResActionDlg(wxWindow* parent) // dialog constructor
@@ -76,7 +77,19 @@ CConflictResActionDlg::CConflictResActionDlg(wxWindow* parent) // dialog constru
 void CConflictResActionDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
 	//InitDialog() is not virtual, no call needed to a base class
-	
+
+	// Get the app's current setting (as set by user's choice, on a per-doc basis) for
+	// having the user-directed conflict resolution dialogs shown. If turned off, they
+	// will be hidden and the legacy conflict resolution protocol is done automatically,
+	// which is to retain the Paratext or Bibledit version of any conflicted verse
+	m_bShowingConflictResolutionDialogs = gpApp->m_bConflictResolutionTurnedOn;
+
+	pCheckboxConflictResolutionDlgsToBeTurnedOff = (wxCheckBox*)FindWindowById(ID_CHECKBOX_TURN_OFF_CONFRES);
+	wxASSERT(pCheckboxConflictResolutionDlgsToBeTurnedOff != NULL);
+	// If user requests no dlgs be shown, checkbox will be ticked (by him), so
+	// the value here is the opposite
+	pCheckboxConflictResolutionDlgsToBeTurnedOff->SetValue(!m_bShowingConflictResolutionDialogs);
+
 	// Top button
 	pRadioRetainPT = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_PTorBE_RETAIN);
 	wxASSERT(pRadioRetainPT != NULL);
@@ -195,4 +208,26 @@ void CConflictResActionDlg::OnBnClickedRadioConflictResDlg(wxCommandEvent& WXUNU
 	m_bLegacy_retain_PTorBE_version = FALSE;
 	m_bForce_AI_version_transfer = FALSE;
 	m_bUserWantsVisualConflictResolution = TRUE;
+}
+
+void CConflictResActionDlg::OnOK(wxCommandEvent& event)
+{
+	// The value of the user's choice to show or hide subsequent dialogs has to be recorded
+	// here, and saved to the app flag; and we must act on it if the user wants no dlgs shown -
+	// acting on it means that the legacy protocol happens no matter what the user may have
+	// chosen by clicking one of the three radio buttons earlier
+	gpApp->m_bConflictResolutionTurnedOn = !pCheckboxConflictResolutionDlgsToBeTurnedOff->GetValue();
+	// If the value is '' be turned off " then set the legacy protocol to be in effect
+	if (!gpApp->m_bConflictResolutionTurnedOn)
+	{
+		pRadioRetainPT->SetValue(TRUE);
+		pRadioForceAI->SetValue(FALSE);
+		pRadioConflictResDlg->SetValue(FALSE);
+
+		m_bLegacy_retain_PTorBE_version = TRUE;
+		m_bForce_AI_version_transfer = FALSE;
+		m_bUserWantsVisualConflictResolution = FALSE;
+	}
+
+	event.Skip();
 }

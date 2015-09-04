@@ -51,6 +51,10 @@
 #include "Layout.h"
 
 /// This global is defined in Adapt_ItView.cpp.
+extern bool gbLegacySourceTextCopy;	// default is legacy behaviour, to copy the source text (unless
+									// the project config file establishes the FALSE value instead)
+
+/// This global is defined in Adapt_ItView.cpp.
 extern short gnExpandBox;
 
 IMPLEMENT_DYNAMIC_CLASS( CViewPage, wxPanel )
@@ -88,6 +92,8 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	tempMakeWelcomeVisible = TRUE;
 	tempHighlightAutoInsertions = TRUE;
 	tempShowAdminMenu = pApp->m_bShowAdministratorMenu;
+	tempNotLegacySourceTextCopy = FALSE;
+	bTempFreezeAndThaw = FALSE;
 
 	m_pEditLeading = (wxTextCtrl*)FindWindowById(IDC_EDIT_LEADING);
 	m_pEditGapWidth = (wxTextCtrl*)FindWindowById(IDC_EDIT_GAP_WIDTH);
@@ -102,6 +108,14 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	m_pCheckShowAdminMenu = (wxCheckBox*)FindWindowById(IDC_CHECK_SHOW_ADMIN_MENU);
 	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIOBOX_SCROLL_INTO_VIEW);
 	m_pCheckboxEnableInsertZWSP = (wxCheckBox*)FindWindowById(ID_CHECKBOX_ENABLE_INSERT_ZWSP);
+
+	m_pCheckLegacySourceTextCopy = (wxCheckBox*)FindWindowById(IDC_CHECK_LEGACY_SRC_TEXT_COPY);
+	//m_pCheckLegacySourceTextCopy->SetValidator(wxGenericValidator(&tempNotLegacySourceTextCopy));
+	wxASSERT(m_pCheckLegacySourceTextCopy != NULL);
+
+	m_pCheckFreezeAndThaw = (wxCheckBox*)FindWindowById(ID_CHECKBOX_FREEZE_THAW);
+	wxASSERT(m_pCheckFreezeAndThaw != NULL);
+
 //#if defined(FWD_SLASH_DELIM)
 	m_pCheckboxSolidusSupport = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SOLIDUS_WDBREAK);
 //#endif
@@ -277,6 +291,14 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	int nVal;
 	wxString strTemp;
 
+	// determine what the Copy of the source text when pile has no adaptation, or gloss,
+	// should do in gloss mode, or adaptations mode, respectively (BEW added 16July08)
+	gbLegacySourceTextCopy = !tempNotLegacySourceTextCopy;
+
+	// Get checkbox value for the support of freeze &  thaw
+	bTempFreezeAndThaw = m_pCheckFreezeAndThaw->GetValue();
+	pApp->m_bSupportFreeze = bTempFreezeAndThaw;
+
 	/* refactored 22Mar09, this value no longer needed now we have no bundles
 	// so set it to a value which we can output in the config file safely but not use
 	strTemp = m_pEditMaxSrcWordsDisplayed->GetValue();
@@ -377,6 +399,7 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	tempUseStartupWizardOnLaunch = pApp->m_bUseStartupWizardOnLaunch; // always remains true since version 3
 	tempHighlightAutoInsertions = !pApp->m_bSuppressTargetHighlighting;
 	tempAutoInsertionsHighlightColor = pApp->m_AutoInsertionsHighlightColor;
+	tempNotLegacySourceTextCopy = !gbLegacySourceTextCopy;
 	int nRadioBoxSelection = pApp->m_bKeepBoxMidscreen ? 0 : 1;
 	m_pRadioBox->SetSelection(nRadioBoxSelection);
 	// BEW added 9Jul14
@@ -387,6 +410,12 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	// BEW added 15Dec14
 	tempExtraPixelsHeight = pApp->m_nExtraPixelsForDiacritics; // current value, most likely from Project config file
 	m_pExtraPixelsSlider->SetValue(tempExtraPixelsHeight);
+
+	m_pCheckLegacySourceTextCopy->SetValue(tempNotLegacySourceTextCopy);
+
+	// BEW 21May15 added next two lines
+	bTempFreezeAndThaw = pApp->m_bSupportFreeze;
+	m_pCheckFreezeAndThaw->SetValue(bTempFreezeAndThaw);
 
 	// transfer initial values to controls
 	wxString strTemp;

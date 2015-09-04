@@ -4,7 +4,7 @@
 #       can be called independently as a stand-alone script.
 # Date: 2015-06-23
 # Author: Bill Martin <bill_martin@sil.org>
-
+# Revision: 29August2015 whm added support for Linux Mint Rafaela
 # Setup AID development tools
 echo "Seting up AID Tools..."
 
@@ -17,7 +17,7 @@ AID_DEV_TOOLS="codeblocks gnome-common libgtk2.0-0-dbg libgtk2.0-dev \
   libwxgtk2.8-dev wx-common wx2.8-headers wx2.8-i18n subversion"
 # Removed libgnomeprintui2.2-dev from AID_DEV_TOOLS list above (it's not in 14.04)
 supportedDistIDs="LinuxMint Ubuntu"
-supportedCodenames="maya qiana rebecca precise trusty utopic vivid wily"
+supportedCodenames="maya qiana rebecca rafaela precise trusty utopic vivid wily"
 SILKEYURL="http://packages.sil.org/sil.gpg"
 echo -e "\nDetermine if system is LinuxMint or Ubuntu and its Codename"
 # Determine whether we are setting up a LinuxMint/Wasta system or a straight Ubuntu system
@@ -25,7 +25,7 @@ echo -e "\nDetermine if system is LinuxMint or Ubuntu and its Codename"
 distID=`lsb_release -is`
 echo "  This system is: $distID"
 # Determine what the Codename is of the system
-# The 'lsb_release -cs' command returns "maya", "qiana" or "rebecca" on Mint LTS systems, 
+# The 'lsb_release -cs' command returns "maya", "qiana", "rebecca", or "rafaela" on Mint LTS systems, 
 #   and "precise", "trusty", "utopic", "vivid", or "wily" on Ubuntu systems"
 distCodename=`lsb_release -cs`
 echo "  The Codename is: $distCodename"
@@ -45,7 +45,7 @@ fi
 
 # Ensure the apt repository is setup for the SIL repository using the proper Codename.
 # On LinuxMint/Wasta systems, the Codename for the SIL repo must use the Ubuntu equivalent 
-#   LTS Codename, i.e., "precise" for maya, or "trusty" for either qiana or rebecca.
+#   LTS Codename, i.e., "precise" for maya, or "trusty" for qiana, rebecca, or rafaela.
 case $distCodename in
   "maya")
   distCodename="precise"
@@ -54,6 +54,9 @@ case $distCodename in
   distCodename="trusty"
   ;;
   "rebecca")
+  distCodename="trusty"
+  ;;
+  "rafaela")
   distCodename="trusty"
   ;;
 esac

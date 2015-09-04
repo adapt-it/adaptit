@@ -38,6 +38,7 @@ public:
 	bool m_bLegacy_retain_PTorBE_version;
 	bool m_bForce_AI_version_transfer;
 	bool m_bUserWantsVisualConflictResolution;
+	bool m_bShowingConflictResolutionDialogs;
 	wxRadioButton* pRadioRetainPT;
 	wxRadioButton* pRadioForceAI;
 	wxRadioButton* pRadioConflictResDlg;
@@ -50,10 +51,11 @@ public:
 	wxTextCtrl* topBox;
 	wxTextCtrl* middleBox;
 	wxTextCtrl* bottomBox;
+	wxCheckBox* pCheckboxConflictResolutionDlgsToBeTurnedOff;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-
+	void OnOK(wxCommandEvent& event);
 private:
 	// class attributes
 	

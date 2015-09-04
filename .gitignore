@@ -11,6 +11,11 @@
 *.pot
 /bin/win32/Unicode Debug/
 /bin/win32/Unicode Release/
+/bin/win32/Debug/
+/bin/win32/Adapt_It.depend
+/bin/win32/Adapt_It.layout
+/bin/win32/Adapt_It.sdf
+/bin/win32/vc90.pdb
 /bin/linux/build_debug/
 /bin/linux/build_release/
 /bin/linux/adaptit.depend
@@ -26,3 +31,5 @@
 /AIWX Installers/
 /hlp/Adapt_It.htb
 
+
+*.xcuserstate

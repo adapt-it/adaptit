@@ -193,13 +193,13 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 0 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 1 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 12
+#define VERSION_DATE_DAY 29
 #define VERSION_DATE_MONTH 8
 #define VERSION_DATE_YEAR 2015
-const wxString appVerStr(_T("6.6.0"));
+const wxString appVerStr(_T("6.6.1"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -3761,6 +3761,10 @@ public:
 				// of Adapt_ItDoc::OnNewDocument() - it suppresses setting read-only protection
 				// while OnInit() is running
 	bool	m_bForceFullConsistencyCheck;
+	bool	m_bBlindFixInConsCheck; // BEW added 1Sep15, if TRUE, then if inconsistency is found
+				// and there is only a single adaptation in KB for the source text, then it is
+				// used in the document at that location without asking the user via a dialog
+				// (requested by Mike Hore)
 
 public:
 
@@ -4018,6 +4022,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	// BEW added 10Jul15 for support of conflict resolution in collaboration mode
 	bool m_bRetainPTorBEversion;
 	bool m_bForceAIversion;
+	bool m_bConflictResolutionTurnedOn;
 	bool m_bUseConflictResolutionDlg;
 	wxString m_Collab_BookCode; // the 3-letter book code for the currently open collaborating document
 	wxString m_Collab_LastChapterStr; // the chapter reference string (e.g.  "15", or for a chunk "3-5")

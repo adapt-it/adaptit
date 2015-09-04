@@ -30,6 +30,11 @@ class CChooseConsistencyCheckTypeDlg : public AIModalDialog
 public:
 	CChooseConsistencyCheckTypeDlg(wxWindow* parent); // constructor
 	virtual ~CChooseConsistencyCheckTypeDlg(void); // destructor
+	void OnOK(wxCommandEvent& event);
+
+	wxCheckBox* pBlindFixCheckBox;
+	bool m_bDoBlindFixes;
+
 	// other methods
 	//enum { IDD = IDD_CONSISTENCY_CHECK_TYPE };
 
@@ -37,7 +42,9 @@ public:
 	void OnBnClickedRadioCheckSelectedDocs(wxCommandEvent& WXUNUSED(event));
 	bool m_bCheckOpenDocOnly;
 
+	wxTextCtrl* pTextCtrlAsStaticBlindFixes;
 	wxTextCtrl* pTextCtrlAsStaticChooseConsChkType;
+	wxCheckBox* pCheckBoxBlindFixes;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

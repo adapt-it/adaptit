@@ -58,6 +58,8 @@ public:
 	wxTextCtrl*		m_pEditDlgFontSize;
 	wxCheckBox*		m_pCheckWelcomeVisible;
 	wxCheckBox*		m_pCheckHighlightAutoInsertedTrans;
+	wxCheckBox*		m_pCheckLegacySourceTextCopy;
+	wxCheckBox*		m_pCheckFreezeAndThaw;
 	wxPanel*		m_pPanelAutoInsertColor;
 	wxCheckBox*		m_pCheckShowAdminMenu;
 	wxRadioBox*		m_pRadioBox;
@@ -83,6 +85,8 @@ public:
 	bool	tempUseStartupWizardOnLaunch;
 	bool	tempHighlightAutoInsertions;
 	bool	tempShowAdminMenu;
+	bool	tempNotLegacySourceTextCopy;
+	bool	bTempFreezeAndThaw;
 	wxColour tempAutoInsertionsHighlightColor;
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

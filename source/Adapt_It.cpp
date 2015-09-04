@@ -237,16 +237,16 @@ extern std::string str_CURLheaders;
 // 2. Make sure the Visual C++ project is in Unicode Debug mode.
 //
 // 3. Add the VLD include paths ($(ProgramFiles)\Visual Leak
-// Detector\include) to the C++ compiler's "Additional Include 
+// Detector\include) to the C++ compiler's "Additional Include
 // Directories" and ($(ProgramFiles)\Visual Leak
-// Detector\lib\win32) to the Linker's "Additional Library 
-// Directories" of the project. The use of the $(ProgramFiles) macro 
+// Detector\lib\win32) to the Linker's "Additional Library
+// Directories" of the project. The use of the $(ProgramFiles) macro
 // will ensure that the "Program Files (x86)" directory is referenced
 // on 64-bit Windows and the "Program Files" directory is referenced
-// on 32-bit Windows systems. This makes the Visual Studio's project 
+// on 32-bit Windows systems. This makes the Visual Studio's project
 // file work on either 64-bit or 32-bit Windows OS.
 //
-// 4. Uncomment the #include "vld.h" line below. This header will 
+// 4. Uncomment the #include "vld.h" line below. This header will
 // bring in vld.lib during the linking stage.
 //
 // 5. Rebuild the project and execute the compiled program in Debug
@@ -5707,10 +5707,10 @@ wxString szEnableZWSPinsertion = _T("Enable_ZWSP_Insertion");
 /// When its checkbox is TRUE, / (solidus, or 'forward slash') is supported
 /// as a word-break delimiter, along with other whitespace characters, between
 /// words. This applies to certain east asian languages where normally only
-/// ZWSP (zero width space) would be used - but the Paratext people have 
+/// ZWSP (zero width space) would be used - but the Paratext people have
 /// provided certain users with this option, since the people have no mental concept
 /// of a "word". Paratext shows the / only in Unformatted view; other views
-/// show ZWSP (replaced by auto-calling a Consistent Changes table, and 
+/// show ZWSP (replaced by auto-calling a Consistent Changes table, and
 /// converting back to the forward slash is auto-done by a different table).
 /// We have emulated this kind of support, and it is turned on by a checkbox
 /// in the ViewPage class, and the app flag is m_bFwdSlashDelimiter; code
@@ -6784,7 +6784,7 @@ wxString szAutoCapitalization = _T("AutoCapitalizationFlag");
 
 /// The label that identifies the following string encoded value as the application's
 /// "UseSourceWordBreak" boolean choice. This value is written in the "Settings" part of the
-/// project configuration file. It is stored in the App's m_bUseSrcWordBreak boolean 
+/// project configuration file. It is stored in the App's m_bUseSrcWordBreak boolean
 /// member variable.
 wxString szUseSourceWordBreak = _T("UseSourceWordBreakFlag");
 
@@ -6795,7 +6795,7 @@ wxString szForceVerseSectioning = _T("ForceVerseSectioning");
 
 /// The label that identifies the following string encoded value as the application's
 /// "FreeTranslationUsesZWSP" boolean choice. This value is written in the "Settings" part of
-/// the project configuration file. It is stored in the App's m_bFreeTransUsesZWSP boolean 
+/// the project configuration file. It is stored in the App's m_bFreeTransUsesZWSP boolean
 /// member variable.
 wxString szFreeTranslationUsesZWSP = _T("FreeTranslationUsesZWSPFlag");
 
@@ -9333,14 +9333,14 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
 		defaultMenuLabel = _("&Open...\tCtrl-O"); // must be same as in wxDesigner resource
 		labelFromPT = _("&Open... (Get Source Text From Paratext)\tCtrl-O");
 		labelFromBE = _("&Open... (Get Source Text From Bibledit)\tCtrl-O");
-		// whm modified 22Aug14. When a project is closed, we preserve the existing values of 
+		// whm modified 22Aug14. When a project is closed, we preserve the existing values of
 		// m_bCollaboratingWithParatext and m_bCollaboratingWithBibledit so that the last
 		// option that was selected in the CollabOptionsDlg would still be selected. This is
 		// more often desired since after a Close>Project command, the user would most likely
 		// want to open the same project or another one that was at some time set up for
 		// collaboration. That being said, we need to remove the parenthetical material here
 		// when m_bStartWorkUsingCollaboration is set to FALSE, which happens upon a Close
-		// Project situation. Otherwise, when a user selects a non-collaboration project 
+		// Project situation. Otherwise, when a user selects a non-collaboration project
 		// after a Project>Close, the parenthetical material would still be appended to the
 		// menu item.
 		if (m_bCollaboratingWithParatext)
@@ -15311,7 +15311,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bRetainPTorBEversion = FALSE;
 	m_bForceAIversion = FALSE;
 	m_bUseConflictResolutionDlg = FALSE;
-
+	m_bConflictResolutionTurnedOn = TRUE; // default is TRUE, reset to TRUE at every opening
+			// of a doc; and don't store any value for this in a config file
+	m_bBlindFixInConsCheck = FALSE; // default should be the option which allows the user to
+									// maximize visual control of the fixes (user can change
+									// when initiating a new Consistency Check; we don't save
+									// this flag in any config file
 	// BEW 21May15 added next five, for support of the freeze/thaw optimization for a sequence
 	// of consecutive auto-inserts from the KB, see AdaptitConstants.h for NUMINSERTS value
 	// as well (currently 8)
@@ -15343,7 +15348,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 							// file may change this to TRUE; Backups and Misc in Preferences
 							// is where the user can tick a checkbox to make this TRUE
 
-	m_nExtraPixelsForDiacritics = 0; // default, but Project config file may override it 
+	m_nExtraPixelsForDiacritics = 0; // default, but Project config file may override it
 									 // (see View page of Prefs, the slider control)
 
 	// Used when collaborating with PT or BE
@@ -20068,29 +20073,29 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15. The _CC_INPUTS_OUTPUTS folder now exists in the work folder. Path to
 	// it is:  m_ccTableInputsAndOutputsFolderPath, which will not be an empty string.
-	// whm: 15May15 corrected the value to be stored in AIccTableInstallFolderPathOnly 
-	// to reflect the fact that the two CC table files, FwdSlashInsertAtPuncts.cct and 
-	// FwdSlashRemoveAtPuncts.cct are stored in a CC subfolder on Windows' installations, 
+	// whm: 15May15 corrected the value to be stored in AIccTableInstallFolderPathOnly
+	// to reflect the fact that the two CC table files, FwdSlashInsertAtPuncts.cct and
+	// FwdSlashRemoveAtPuncts.cct are stored in a CC subfolder on Windows' installations,
 	// but not stored in a CC subfolder on Linux nor Mac installations. We set up a path
 	// to that CC subfolder on Windows, but not to a CC subfolder on the other
 	// two platforms. Then we check if those .cct table files are present etc. We'll
 	// eventually store the path in a new wxString, m_ccTableInstallPath
-	
+
 #ifdef __WXMSW__
 	AIccTableInstallFolderPathOnly = m_xmlInstallPath + PathSeparator + _T("CC");
 #else
 	AIccTableInstallFolderPathOnly = m_xmlInstallPath;
 #endif
 	bool bCcInstallFolderExists = wxDirExists(AIccTableInstallFolderPathOnly);
-	bool bWorkCcFwdSlashInsertTableFileExists = FALSE; // initialize, assume it is not in 
+	bool bWorkCcFwdSlashInsertTableFileExists = FALSE; // initialize, assume it is not in
 									// _CCTABLE_INPUTS_OUTPUTS until we confirm it is there
-	bool bWorkCcFwdSlashRemoveTableFileExists = FALSE; // initialize, assume it is not in 
+	bool bWorkCcFwdSlashRemoveTableFileExists = FALSE; // initialize, assume it is not in
 									// _CCTABLE_INPUTS_OUTPUTS until we confirm it is there
 	wxString pathToWorkFolderFwdSlashInsertCcFile;
 	wxString pathToWorkFolderFwdSlashRemoveCcFile;
 	pathToWorkFolderFwdSlashInsertCcFile = m_ccTableInputsAndOutputsFolderPath + PathSeparator + _T("FwdSlashInsertAtPuncts.cct");
 	pathToWorkFolderFwdSlashRemoveCcFile = m_ccTableInputsAndOutputsFolderPath + PathSeparator + _T("FwdSlashRemoveAtPuncts.cct");
-	// Check if these files are present in the m_ccTableInputsAndOutputsFolderPath folder. It 
+	// Check if these files are present in the m_ccTableInputsAndOutputsFolderPath folder. It
 	// could be so by virtue of the user having manually placed them there earlier, even it
 	// not included in the most recent installer
 	bWorkCcFwdSlashInsertTableFileExists = wxFileExists(pathToWorkFolderFwdSlashInsertCcFile);
@@ -20098,9 +20103,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString pathToFwdSlashInsertCcFileInCcFolder = _T("");
 	wxString pathToFwdSlashRemoveCcFileInCcFolder = _T("");
 	m_ccTableInstallPath = _T(""); // assume no valid path until we confirm it's present
-	bool bInstallFolderCcFwdSlashInsertTableFileExists = FALSE; // initialize, assume it is not in 
+	bool bInstallFolderCcFwdSlashInsertTableFileExists = FALSE; // initialize, assume it is not in
 								// CC folder of m_xmlInstallPath folder until we confirm it is there
-	bool bInstallFolderCcFwdSlashRemoveTableFileExists = FALSE; // initialize, assume it is not in 
+	bool bInstallFolderCcFwdSlashRemoveTableFileExists = FALSE; // initialize, assume it is not in
 								// CC folder of m_xmlInstallPath folder until we confirm it is there
 	if (bCcInstallFolderExists)
 	{
@@ -20111,7 +20116,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		bInstallFolderCcFwdSlashInsertTableFileExists = wxFileExists(pathToFwdSlashInsertCcFileInCcFolder);
 		bInstallFolderCcFwdSlashRemoveTableFileExists = wxFileExists(pathToFwdSlashRemoveCcFileInCcFolder);
 		// If both the booleans of the previous two lines are TRUE, then we need to copy each
-		// .cct table file and move the copies to the _CCTABLE_INPUTS_OUTPUTS folder if they are 
+		// .cct table file and move the copies to the _CCTABLE_INPUTS_OUTPUTS folder if they are
 		// not already there. If there are already such files there, then we must instead
 		// check the modification dates... if the ones in the install folder's CC folder are
 		// datetimed later than the ones of same name in _CCTABLE_INPUTS_OUTPUTS folder, then we
@@ -20312,7 +20317,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			{
 				bWorkStyleFileExists = FALSE;
 				// BEW 23Apr15 changed to make this not localizable, it is better to put the English message up, and have
-				// it also in the usage log - so that the devs can potentially get the needed info 
+				// it also in the usage log - so that the devs can potentially get the needed info
 				wxString msg = _T("Could NOT copy the existing AI_USFM.xml from m_xmlInstallPath to user's work folder.");
 				wxLogDebug(msg);
 				LogUserAction(msg);
@@ -21596,7 +21601,7 @@ int ii = 1;
 	// Add Guesser support here. m_pAdaptationsGuesser and m_pGlossesGuesser are destroyed in OnExit()
 	m_pAdaptationsGuesser = new Guesser;
 	m_pGlossesGuesser = new Guesser;
-	
+
 	GuesserPrefixesLoaded = false;
 	GuesserSuffixesLoaded = false;
 	GuesserPrefixCorrespondencesLoaded = false;
@@ -21660,9 +21665,9 @@ int ii = 1;
 #if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("OnInit() at end: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
 #endif
-	
-	// Guesser support - initialize the current counts for each KB  (first 4 maps only) if guessing is 
-	// to be on. This also needs to be done in other places, like when entering a project, and also when 
+
+	// Guesser support - initialize the current counts for each KB  (first 4 maps only) if guessing is
+	// to be on. This also needs to be done in other places, like when entering a project, and also when
 	// changing from guesser off to on
 	if (m_bUseAdaptationsGuesser)
 	{
@@ -21740,12 +21745,12 @@ int CAdapt_ItApp::OnExit(void)
 
 	// Remove any files lurking there, they don't need to persist
 	EmptyCollaborationTempFolder(); // see CollabUtilities.h (at bottom)
-    
+
 	// m_pSavedDocForClipboardAdapt should be empty, but if not destroy the CSourcePhrase
 	// instances in it before deleting the list instance
     if (m_pSavedDocForClipboardAdapt->size() > 0)
 	{
-		GetDocument()->DeleteSourcePhrases(m_pSavedDocForClipboardAdapt, FALSE); // FALSE means 
+		GetDocument()->DeleteSourcePhrases(m_pSavedDocForClipboardAdapt, FALSE); // FALSE means
 												// 'don't try delete partner piles too'
 	}
    	delete m_pSavedDocForClipboardAdapt;
@@ -25167,7 +25172,7 @@ wxString CAdapt_ItApp::GetMostCommonForm(CTargetUnit* pTU, wxString* pNotInKBstr
 	bool bSkipIt_ItsEmpty = aForm.IsEmpty();
 	bool bIsDeleted = pRefStr->GetDeletedFlag();
 
-	// If the first boolean is TRUE and next two are FALSE, then we can accept this aForm 
+	// If the first boolean is TRUE and next two are FALSE, then we can accept this aForm
 	// as the first (perhaps only) possibility for presenting to the guesser
 	if (bNotNotInKB && !bSkipIt_ItsEmpty && !bIsDeleted)
 	{
@@ -25230,7 +25235,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 	// to do guesses for that kind of scenario makes no sense)
 	if (m_pKB->IsThisAGlossingKB())
 	{
-		m_pGlossesGuesser->Init(m_nGuessingLevel); // use defaults for params 2 and 3, 
+		m_pGlossesGuesser->Init(m_nGuessingLevel); // use defaults for params 2 and 3,
 		// as we never use a glosses guesser
 	}
 	else
@@ -25288,7 +25293,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 				wxASSERT(posRef != 0);
 				wxUnusedVar(posRef); // whm 21Jan2015 avoid warning
                 // If control gets here, there will be at least one non-null posRef
-                
+
 				// BEW 21Jan15, Alan Buseman's suggestion of using just the most common tgt form
 				// is implemented by the following call
 				form = GetMostCommonForm(pTU, &strNotInKB);
@@ -25385,7 +25390,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 				// forward as a guess. My reply was that this hibiting seems like a proper thing to do
 				// because (a) users don't always move the most common meaning to the top of the list,
 				// (b) they don't necessarily know which is most common anyway, and (c) biasing one
-				// particular meaning over others in order to get a guess is not an optimal strategy 
+				// particular meaning over others in order to get a guess is not an optimal strategy
 				// (better to make no guess). Alan's view is that it's better to try a guess.
 				// Alan then replied that I should use the CRefString's frequency count to get the
 				// most commonly occurring form, to make that the only suggestion for the given source
@@ -25428,12 +25433,12 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 	{
 		m_nCorrespondencesLoadedInGlossingGuesser = numCorrespondencesLoaded;
 		//wxLogDebug(_T("The Glossing guesser has %d correspondences loaded"), m_nCorrespondencesLoadedInGlossingGuesser);
-		wxLogDebug(_T("The Glossing Guesser is not currently supported, and probably never will be."));
+		//wxLogDebug(_T("The Glossing Guesser is not currently supported, and probably never will be."));
 	}
 	else
 	{
 		m_nCorrespondencesLoadedInAdaptationsGuesser = numCorrespondencesLoaded;
-		wxLogDebug(_T("The Adaptations Guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInAdaptationsGuesser);
+		//wxLogDebug(_T("The Adaptations Guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInAdaptationsGuesser);
 	}
 
 	// Check for xml prefix file/document, and load prefixes into guesser if found
@@ -25508,10 +25513,10 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 	if (!GuesserPrefixCorrespondencesLoaded && bPrefixesFileExists)
 	{
 		if (GetGuesserPrefixes() && !GetGuesserPrefixes()->IsEmpty())
-		{	
+		{
 			CGuesserAffixArray* pArray = GetGuesserPrefixes();
 			for (int i = 0; i < (int)pArray->GetCount(); i++)
-			{				
+			{
 				CGuesserAffix m_currentGuesserAffix = pArray->Item(i);
 
 				// Add correspondence to the Guesser
@@ -25529,10 +25534,10 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 	if (!GuesserSuffixCorrespondencesLoaded && bSuffixesFileExists)
 	{
 		if (GetGuesserSuffixes() && !GetGuesserSuffixes()->IsEmpty())
-		{	
+		{
 			CGuesserAffixArray* pArray = GetGuesserSuffixes();
 			for (int i = 0; i < (int)pArray->GetCount(); i++)
-			{				
+			{
 				CGuesserAffix m_currentGuesserAffix = pArray->Item(i);
 
 				// Add correspondence to the Guesser
@@ -25548,13 +25553,13 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-/// \return     m_GuesserPrefixList, instance of CGuesserAffixList  
+/// \return     m_GuesserPrefixList, instance of CGuesserAffixList
 /// \param      -> nothing
 /// \remarks
-/// Returns list of previously input prefixes (if they exist) from xml file. 
-/// These can (optionally) be fed into the Guesser to hopefully improve guesser performance 
-///     by giving it more linguistic information to utilize, based on Guesser improvements 
-///     by Alan Buseman October 2013. -klb  
+/// Returns list of previously input prefixes (if they exist) from xml file.
+/// These can (optionally) be fed into the Guesser to hopefully improve guesser performance
+///     by giving it more linguistic information to utilize, based on Guesser improvements
+///     by Alan Buseman October 2013. -klb
 /////////////////////////////////////////////////////////////////////////////////////////
 CGuesserAffixArray*	CAdapt_ItApp::GetGuesserPrefixes()
 {
@@ -25563,26 +25568,26 @@ CGuesserAffixArray*	CAdapt_ItApp::GetGuesserPrefixes()
 size_t	CAdapt_ItApp::FindGuesserPrefixIndex( CGuesserAffix inAffix )
 {
 	for (int i = 0; i < (int)GetGuesserPrefixes()->GetCount(); i++)
-	{				
+	{
 		CGuesserAffix m_currentGuesserAffix = GetGuesserPrefixes()->Item(i);
 		if (m_currentGuesserAffix.getSourceAffix() == inAffix.getSourceAffix() &&
 			m_currentGuesserAffix.getTargetAffix() == inAffix.getTargetAffix() )
 		{
 			return i;
 		}
-		
+
 	}
-	
+
 	return (size_t)-1;
 }
 /////////////////////////////////////////////////////////////////////////////////////////
-/// \return     m_GuesserPrefixList, instance of CGuesserAffixList  
+/// \return     m_GuesserPrefixList, instance of CGuesserAffixList
 /// \param      -> nothing
 /// \remarks
-/// Returns list of previously input prefixes (if they exist) from xml file. 
-/// These can (optionally) be fed into the Guesser to hopefully improve guesser performance 
-///     by giving it more linguistic information to utilize, based on Guesser improvements 
-///     by Alan Buseman October 2013. -klb  
+/// Returns list of previously input prefixes (if they exist) from xml file.
+/// These can (optionally) be fed into the Guesser to hopefully improve guesser performance
+///     by giving it more linguistic information to utilize, based on Guesser improvements
+///     by Alan Buseman October 2013. -klb
 /////////////////////////////////////////////////////////////////////////////////////////
 CGuesserAffixArray*	CAdapt_ItApp::GetGuesserSuffixes()
 {
@@ -25591,16 +25596,16 @@ CGuesserAffixArray*	CAdapt_ItApp::GetGuesserSuffixes()
 size_t	CAdapt_ItApp::FindGuesserSuffixIndex( CGuesserAffix inAffix )
 {
 	for (int i = 0; i < (int)GetGuesserSuffixes()->GetCount(); i++)
-	{				
+	{
 		CGuesserAffix m_currentGuesserAffix = GetGuesserSuffixes()->Item(i);
 		if (m_currentGuesserAffix.getSourceAffix() == inAffix.getSourceAffix() &&
 			m_currentGuesserAffix.getTargetAffix() == inAffix.getTargetAffix() )
 		{
 			return i;
 		}
-		
+
 	}
-	
+
 	return (size_t)-1;
 }
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -25608,7 +25613,7 @@ size_t	CAdapt_ItApp::FindGuesserSuffixIndex( CGuesserAffix inAffix )
 /// \param      pFile   ->  output file name
 /// \remarks
 /// Called from: ???
-/// Writes guesser prefixes, if they exist in app (GetGuesserPrefixes()), 
+/// Writes guesser prefixes, if they exist in app (GetGuesserPrefixes()),
 ///             to xml file on disk. Defaults to project path.
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::DoGuesserPrefixWriteToFile(wxFile* pFile) // Write Guesser prefixes to file
@@ -25629,7 +25634,7 @@ bool CAdapt_ItApp::DoGuesserPrefixWriteToFile(wxFile* pFile) // Write Guesser pr
 	}
 	else
 		DoGuesserAffixWriteXML(pFile, mAffixType);
-	
+
 	return true;
 }
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -25637,7 +25642,7 @@ bool CAdapt_ItApp::DoGuesserPrefixWriteToFile(wxFile* pFile) // Write Guesser pr
 /// \param      pFile   ->  output file name
 /// \remarks
 /// Called from: ???
-/// Writes guesser suffixes, if they exist in app (GetGuesserSuffixes()), 
+/// Writes guesser suffixes, if they exist in app (GetGuesserSuffixes()),
 ///             to xml file on disk. Defaults to project path.
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::DoGuesserSuffixWriteToFile(wxFile* pFile) // Write Guesser suffixes to file
@@ -25658,7 +25663,7 @@ bool CAdapt_ItApp::DoGuesserSuffixWriteToFile(wxFile* pFile) // Write Guesser su
 	}
 	else
 		DoGuesserAffixWriteXML(pFile, mAffixType);
-	
+
 	return true;
 }
 
@@ -25668,7 +25673,7 @@ bool CAdapt_ItApp::DoGuesserSuffixWriteToFile(wxFile* pFile) // Write Guesser su
 /// \param      inGuesserAffixType   ->  affix type (prefix or suffix). enum defined in Adapt_It.h
 /// \remarks
 /// Called from: DoGuesserPrefixWriteToFile(), DoGuesserSuffixWriteToFile()
-/// If prefixes and/or suffixes are found in app (GetGuesserPrefixes() or GetGuesserSuffixes()), 
+/// If prefixes and/or suffixes are found in app (GetGuesserPrefixes() or GetGuesserSuffixes()),
 ///             writes xml file to disk.
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::DoGuesserAffixWriteXML(wxFile* pFile, GuesserAffixType inGuesserAffixType)
@@ -25707,7 +25712,7 @@ bool CAdapt_ItApp::DoGuesserAffixWriteXML(wxFile* pFile, GuesserAffixType inGues
 	if (inGuesserAffixType == GuesserPrefix)
 	{
 		if (GetGuesserPrefixes() && !GetGuesserPrefixes()->IsEmpty())
-		{	
+		{
 			pArray = GetGuesserPrefixes();
 		}
 	}
@@ -25725,7 +25730,7 @@ bool CAdapt_ItApp::DoGuesserAffixWriteXML(wxFile* pFile, GuesserAffixType inGues
 	}
 
 	for (int i = 0; i < (int)pArray->GetCount(); i++)
-	{				
+	{
 		CGuesserAffix m_currentGuesserAffix = pArray->Item(i);
 
 		// Add affix to XML
@@ -25737,17 +25742,17 @@ bool CAdapt_ItApp::DoGuesserAffixWriteXML(wxFile* pFile, GuesserAffixType inGues
 		m_sComposeXMLString += "\" target=\"";
 		m_sComposeXMLString += m_currentGuesserAffix.getTargetAffix().ToUTF8();
 		m_sComposeXMLString += "\" n=\"0\" ";
-		//m_sComposeXMLString += "wC=\"kbradford:KBRADFORDSIL\" "; 
-		m_sComposeXMLString += "wC=\""; 
-		m_sComposeXMLString += m_sUserID; 
-		m_sComposeXMLString += "\" "; 
+		//m_sComposeXMLString += "wC=\"kbradford:KBRADFORDSIL\" ";
+		m_sComposeXMLString += "wC=\"";
+		m_sComposeXMLString += m_sUserID;
+		m_sComposeXMLString += "\" ";
 		//m_sComposeXMLString += "cDT=\"2012-10-24T14:13:06Z\" />";
 		m_sComposeXMLString += "cDT=\"";
 		m_sComposeXMLString += m_Date.FormatISODate().char_str();
 		m_sComposeXMLString += ":";
 		m_sComposeXMLString += m_Date.FormatISOTime().char_str();
 		m_sComposeXMLString += "\" />";
-		
+
 		m_sComposeXMLString += "\r\n";
 	}
 
@@ -26565,7 +26570,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
                 if (response == wxYES)
                 {
                     // The user selected to "Turn Collaboration OFF"
-                    
+
 					// whm modified 25Nov2013. It is sufficient here to set
 					// the m_bStartWorkUsingCollaboration flag to FALSE. We
 					// should not reset the PT and BE m_bCollaboratingWith...
@@ -27697,7 +27702,7 @@ void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event
 		m_pActivePile = NULL;
 	}
 	m_bADocIsLoaded = FALSE; // restore default value
-	m_bClipboardTextLoaded = FALSE; // default, in case user does another 
+	m_bClipboardTextLoaded = FALSE; // default, in case user does another
 									// clipboard adaptation attempt
 	m_bClipboardAdaptMode = FALSE; // turn the mode flag back off to default FALSE
 	m_savedTextBoxStr.Empty();
@@ -27752,7 +27757,7 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 
 	m_bClipboardAdaptMode = TRUE; // set the flag which indicates the mode is turned on
 
-	// Now that m_bClipboardAdaptMode is TRUE, the status bar refresh will have 
+	// Now that m_bClipboardAdaptMode is TRUE, the status bar refresh will have
 	// the project information, etc, with "Clipboard Text" added at the end instead of
 	// Folder: followed by the folder name
 	RefreshStatusBarInfo();
@@ -27762,7 +27767,7 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 	CMainFrame* pMainFrame = GetMainFrame();
 	// If free translation mode is current, clear the ComposeBar's text box
 	if (m_bFreeTranslationMode)
-	{	
+	{
 		pMainFrame->m_pComposeBarEditBox->ChangeValue(wxEmptyString);
 	}
 	SPList* pSaveList = m_pSavedDocForClipboardAdapt; // our cache, if we need it
@@ -27770,7 +27775,7 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 	size_t nStartAt = 0;
 	size_t nEndAt = 0;
 	CAdapt_ItView* pView = GetView();
-	pView->RemoveSelection(); // must not have an active selection, 
+	pView->RemoveSelection(); // must not have an active selection,
 							  // or the update handlers will give a crash of app
 	wxString loadedSrcText; loadedSrcText.Empty();
 	m_bIsPrinting = FALSE;
@@ -27809,16 +27814,16 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 		  {
 			bClipboardTextAbsent = FALSE;
 		  }
-		}  
+		}
 		wxTheClipboard->Close();
 	}
 	// Check the clipboard is not empty, if it is, get out gracefully and with a message
 	if (bClipboardTextAbsent)
 	{
 		// nothing to do, so restore old state
-		RestoreDocStateWhenEmptyClipboard(pSaveList, (int)nStartAt, (int)nEndAt, 
+		RestoreDocStateWhenEmptyClipboard(pSaveList, (int)nStartAt, (int)nEndAt,
 											m_pSourcePhrases, m_bADocIsLoaded);
-		wxMessageBox(_("The clipboard was empty; there is nothing to do."), 
+		wxMessageBox(_("The clipboard was empty; there is nothing to do."),
 			_("No Source Text"), wxICON_INFORMATION | wxOK);
 		return;
 	}
@@ -27829,11 +27834,11 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 	int numInstances = pView->TokenizeTextString(m_pSourcePhrases, loadedSrcText, 0);
 	if (numInstances == 0)
 	{
-		// We can get here if, for example, the clipboard just contained some 
+		// We can get here if, for example, the clipboard just contained some
 		// whitespace characters; we treat this the same as an empty clipboard
-		RestoreDocStateWhenEmptyClipboard(pSaveList, (int)nStartAt, (int)nEndAt, 
+		RestoreDocStateWhenEmptyClipboard(pSaveList, (int)nStartAt, (int)nEndAt,
 											m_pSourcePhrases, m_bADocIsLoaded);
-		wxMessageBox(_("The clipboard was empty; there is nothing to do."), 
+		wxMessageBox(_("The clipboard was empty; there is nothing to do."),
 			_("No Source Text"), wxICON_INFORMATION | wxOK);
 		return;
 	}
@@ -27845,7 +27850,7 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 
 		// get rid of any relic text in phrase box storage
 		m_pTargetBox->Clear();
-		m_targetPhrase.Empty();		
+		m_targetPhrase.Empty();
 
         // Make visible the mode's toolbar at the top of the client area of the frame
         // window, and get the client area resized (using CMainFrm::OnSize()) and redrawn
@@ -27881,7 +27886,7 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 	} // end of TRUE block for test: if (numInstances > 0)
 }
 
-void CAdapt_ItApp::RestoreDocStateWhenEmptyClipboard(SPList* pList,	int nStartingSequNum, 
+void CAdapt_ItApp::RestoreDocStateWhenEmptyClipboard(SPList* pList,	int nStartingSequNum,
 	int nEndingSequNum, SPList* pOldList, bool bDocIsLoaded) // this is a private function
 {
     CAdapt_ItDoc* pDoc = GetDocument();
@@ -27926,7 +27931,7 @@ void CAdapt_ItApp::RestoreDocStateWhenEmptyClipboard(SPList* pList,	int nStartin
 
 	// Restore the status bar text, and the window's former Title
 	m_bADocIsLoaded = FALSE; // restore default value
-	m_bClipboardTextLoaded = FALSE; // default, in case user does another 
+	m_bClipboardTextLoaded = FALSE; // default, in case user does another
 									// clipboard adaptation attempt
 	m_savedTextBoxStr.Empty();
 	// the window title restore is next 4 lines
@@ -27955,7 +27960,7 @@ void CAdapt_ItApp::OnUpdateButtonCopyToClipboard(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnButtonCopyToClipboard(wxCommandEvent& WXUNUSED(event))
 {
-	// If the phrasebox is still at an active location, make sure the adaptation 
+	// If the phrasebox is still at an active location, make sure the adaptation
 	// there has been saved to the KB and m_targetStr constructed for its CSourcePhrase
 	// In the signature below, first bool is bAttamptyStoreToKB, second is bNoStore (a
 	// return value which tells us when the attempt went wrong and no store got done)
@@ -27979,7 +27984,7 @@ void CAdapt_ItApp::OnButtonCopyToClipboard(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		// Alter user to the problem. Localizable message.
-		wxMessageBox(_("The clipboard could not be opened for writing."), 
+		wxMessageBox(_("The clipboard could not be opened for writing."),
 			_("Clipboard Unavailable"), wxICON_EXCLAMATION | wxOK);
 	}
 }
@@ -28009,7 +28014,7 @@ void CAdapt_ItApp::OnUpdateButtonCopyFreeTransToClipboard(wxUpdateUIEvent& event
 
 void CAdapt_ItApp::OnButtonCopyFreeTransToClipboard(wxCommandEvent& WXUNUSED(event))
 {
-	// If the phrasebox is still at an active location, make sure the adaptation 
+	// If the phrasebox is still at an active location, make sure the adaptation
 	// there has been saved to the KB and m_targetStr constructed for its CSourcePhrase
 	// In the signature below, first bool is bAttamptyStoreToKB, second is bNoStore (a
 	// return value which tells us when the attempt went wrong and no store got done)
@@ -28033,7 +28038,7 @@ void CAdapt_ItApp::OnButtonCopyFreeTransToClipboard(wxCommandEvent& WXUNUSED(eve
 	else
 	{
 		// Alter user to the problem. Localizable message.
-		wxMessageBox(_("The clipboard could not be opened for writing."), 
+		wxMessageBox(_("The clipboard could not be opened for writing."),
 			_("Clipboard Unavailable"), wxICON_EXCLAMATION | wxOK);
 	}
 }
@@ -41138,7 +41143,7 @@ SPList *CAdapt_ItApp::LoadSourcePhraseListFromFile(wxString FilePath)
 /// match, and does other housekeeping to make sure end markers and sequence numbers are
 /// handled properly.
 /// BEW 12Apr10, changed for support of doc version 5
-/// BEW 18Oct14 refactored the early part to allow appending the stored copy of the 
+/// BEW 18Oct14 refactored the early part to allow appending the stored copy of the
 /// old current document to an empty m_pSourcePhrases list - this, since empty, won't
 /// have any book ID to compare, so we just accept whatever ID is in the list being
 /// appended
@@ -42793,7 +42798,7 @@ void CAdapt_ItApp::DoPrintCleanup()
 		m_nActiveSequNum = m_nSaveActiveSequNum; // restore active location sequ num
 		m_pActivePile = NULL; // the piles are destroyed and recreated
 							  // so the old pointer is useless
-		m_bSuppressFreeTransRestoreAfterPrint = TRUE; // ensure internal block (at 
+		m_bSuppressFreeTransRestoreAfterPrint = TRUE; // ensure internal block (at
 			// end) that requires a valid m_pActivePile is not entered for next call
 #ifdef _NEW_LAYOUT
 		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
@@ -47062,7 +47067,7 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 	wxString msg;
 	msg = msg.Format(_T("***FILTERED MARKERS:    location: %d\n%s\nEND FILTERED MARKERS***"),
 		refNum, s.c_str());
-	wxLogDebug(msg);
+	//wxLogDebug(msg);
 	//*/
 }
 #endif
@@ -47216,7 +47221,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 //						// changes at end of .ssf files making <BooksPresent> tag not line
 //						// initial, resulting in GetStingBetweenXMLTags() returning empty
 //						// string - which then clobbered progressing in the collab setup dlg
-//						wxLogDebug(_T("GetListOfPTProjects(): File: %s  booksPresentFlags:  %s"), 
+//						wxLogDebug(_T("GetListOfPTProjects(): File: %s  booksPresentFlags:  %s"),
 //							str.c_str(), booksPresentFlags.c_str());
 //#endif
 						pPTInfo->booksPresentFlags = booksPresentFlags;
@@ -47892,7 +47897,7 @@ wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, 
 		// BEW 3Jul15 added this block because recent .ssf files for settings for
 		// Paratext projects have not been storing the <BooksPresent> element at
 		// the start of its own line preceded only by whitespace (two spaces), but
-		// rather, immediately after </Directory> endtag at the file end. That 
+		// rather, immediately after </Directory> endtag at the file end. That
 		// resulted in the legacy block above being skipped, and the user can't
 		// setup the collaboration because the gets the error message that "This
 		// Paratext project has no books. ...." This else block fixes the problem
@@ -48047,9 +48052,9 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 			{
 				if (*ptr == '\\' && *(ptr+1) == 'i' && *(ptr+2) == 'd' && *(ptr+3) == ' ')
 				{
-					// we are at an \id marker. 
-					// BEW 18Oct14: Bill's old comment follows: If the "\id " we've detected so far 
-					// is followed by a quote mark and closing tag '>' then we know we are in 
+					// we are at an \id marker.
+					// BEW 18Oct14: Bill's old comment follows: If the "\id " we've detected so far
+					// is followed by a quote mark and closing tag '>' then we know we are in
 					// an AI xml document. <<-- this assertion was invalidated by the introduction
 					// of ZWSP support, because now after the closing " there is a space, then
 					// swsp=" <a character here> ">   Because of this I have to change
@@ -48107,7 +48112,7 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 			f.Close();
 		} // end of if (f.Open...
 		if (pBuff != NULL) // whm 11Jun12 added NULL test
-			delete pBuff;
+			delete[] pBuff;
 	} // end of if (wxFileExists(pathAndName))
 	if (bFoundCode && bookCd.GetLength() == 3)
 	{
@@ -48757,7 +48762,7 @@ void CAdapt_ItApp::ClearSavedSelection()
 
 void CAdapt_ItApp::ClobberGuesser()
 {
-	m_bUseAdaptationsGuesser = TRUE; // always TRUE, we don't support a glosses guesser, 
+	m_bUseAdaptationsGuesser = TRUE; // always TRUE, we don't support a glosses guesser,
 	// and probably never will (unrelated languages, so a bad idea)
 	m_preGuesserStr.Empty();
 	m_bIsGuess = FALSE;

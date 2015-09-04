@@ -1177,7 +1177,11 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 		}
 	}
 	int nRefCount = pRefString->m_refCount;
-	wxASSERT(nRefCount > 0);
+	//wxASSERT(nRefCount > 0); BEW removed 1Sep15 because when playing with
+	// <Not In KB> entries, it is quite possible to have a pRefString with
+	// and empty or non-empty translation string, yet m_refCount is 0; so
+	// well let the latter be tolerated until in KB editor removal is forced,
+	// or something else effects its removal
 	if (nRefCount > 1)
 	{
         // more than one reference to it, so just decrement & remove the srcPhrase's
@@ -1251,7 +1255,9 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 		wxASSERT(pTU != NULL);
 		int nTranslations = pTU->m_pTranslations->GetCount();
 		wxASSERT(nTranslations > 0); // must be at least one
-		if (nTranslations == 1)
+		// BEW 1Sep15 in next test, changed from == 1, to <= 1, because it is possible
+		// to produce a pRefString with m_refCount of zero
+		if (nTranslations <= 1)
 		{
 			// BEW 8Jun10, changed next section to kbVersion 2 protocol; DO NOT DELETE OLD CODE
 			// because it may be required later if we provide a "clear" option for deleted
@@ -2016,6 +2022,111 @@ CRefString*	CKB::GetMatchingRefString(CTargetUnit* pTU, wxString& tgtPhrase, boo
 
 
 #endif // for _KBSERVER
+
+// BEW added 1Sep15
+// Returns FALSE if there is no available (ie. not pseudo-deleted) CRefString
+// translation string; or if there are two or more available ones. TRUE if
+// there is a unique translation string (adaptation, or gloss) available
+// nWords -> the number of words in the key (it could be a merger)
+// key	  -> the key (m_key from CSourcePhrase instance) without any adjustments
+//			 having been done before passing it in here
+// adaptation <- The (adjusted for case, if required) adaptation, or gloss string
+//			 if called from DoConsistencyCheckG(), provided only one is available
+//			 otherwise an empty string is returned
+// Consistency Check feature will use this, to support Mike Hore's equired for a
+// "blind fix" feature (ie. fix an inconsistency automatically without a dialog being
+// shown if the kb entry has a unique value available, and an inconsistency was
+// detected. (The KB's entry replace's the document's entry unilaterally in that 
+// case.)
+// This function was built by plagiarizing IsAlreadyInKB() below, and so it
+// will correctly handle differences due to the document's entry having upper or 
+// lower case initial letter; and if auto-caps is ON, the adaptation string
+// returned in the signature will have the appropriate case adjustment done so
+// that the caller can immediately insert the value into the document at the
+// appropriate location
+bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation) 
+{
+	CTargetUnit* pTgtUnit = NULL;
+	bool bDeleted = FALSE;
+	CRefString* pRefStr = NULL;
+
+	// Is there a targetunit for this key in the KB?
+	// Note: FindMatchInKB() internally does an AutoCapsLookup(), so that does any needed
+	// adjustment to lowercase if gAutoCaps is TRUE and an upper case key was passed in.
+	bool bFound = FindMatchInKB(nWords, key, pTgtUnit);
+	if (!bFound)
+	{
+		pRefStr = NULL;
+		bDeleted = FALSE;
+		return FALSE;
+	}
+	bool bNoError = TRUE;
+	bool bNoError2 = TRUE;
+	gbByCopyOnly = FALSE; // restore default value (should have been done in caller,
+	// but this will make sure)
+	wxString adjusted = _T(""); // use for the final translation value
+	wxString adjustedKey = key;
+	if (gbAutoCaps)
+	{
+		// TRUE here means 'we are dealing with source text'
+		bNoError = m_pApp->GetDocument()->SetCaseParameters(key, TRUE);
+	}
+	if (gbAutoCaps && bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
+	{
+		// change it to lower case
+		adjustedKey.SetChar(0, gcharSrcLC);
+	}
+
+	// Check if there is a matching adaptation (or gloss if we are calling on a glossing KB)
+	// BEW 21Jun10, FindMatchInKB() only returns a pointer to a CTargetUnit instance, and
+	// that instance may contain CRefString instances marked as deleted. So matching any
+	// of these in the loop below has to be deemed a non-match, so that only matches with
+	// the m_bDeleted flag with value FALSE qualify as a match.
+	// We also must try all possibilities, and count those with m_bDeleted set to FALSE so
+	// that if the count is greater than 1, we must return FALSE to the caller, and empty
+	// string as the adaptation value
+	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst();
+	size_t count = 0;
+	while (pos != 0)
+	{
+		pRefStr = (CRefString*)pos->GetData();
+		pos = pos->GetNext();
+		wxASSERT(pRefStr);
+		// Do we handle <no adaptation> as a valid value? Yes, we must
+		if (!pRefStr->m_bDeleted)
+		{ 
+			// It is not deleted, so it's a potential unique entry, so remember it
+			// provided count is not already >= 1
+			if (count >= 1)
+			{
+				// The entry is not unique, so return false etc
+				adaptation.Empty();
+				return FALSE;
+			}
+			count++;
+			adjusted = pRefStr->m_translation;
+		}
+	}
+	// If control gets to here, we have a value in adjusted (it may be an empty string)
+	// and so we must do any needed case adjustment on it, and then return it
+	if (gbAutoCaps)
+	{
+		// FALSE here means 'we are dealing with target text, or gloss text'
+		bNoError2 = m_pApp->GetDocument()->SetCaseParameters(adjusted, FALSE);
+	}
+	if (gbAutoCaps && bNoError && gbSourceIsUpperCase)
+	{
+		// If the source key was upper-case-initial, then make the translation be 
+		// upper case too if possible
+		if (bNoError2 && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+		{
+			// change it to upper case
+			adjusted.SetChar(0, gcharNonSrcUC);
+		}
+	}
+	adaptation = adjusted;
+	return TRUE;
+}
 
 // BEWw added 29Aug11: overloaded version below, for use when Consistency Check
 // is being done (return pTU, pRefStr, m_bDeleted flag value by ref)
