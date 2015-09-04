@@ -374,6 +374,11 @@ protected:
 							CSourcePhrase* pFollSrcPhrase, EditRecord* pRec); //BEW added 7May08
 							// 22Mar10, name changed from TransportWidowedEndmarkersToFollowingContext
 	wxString	RemoveAllCRandLF(wxString* pStr);
+	bool		DoGlobalRestoreOfSaveToKB(); // BEW added 4Sep15, called only in OnCheckKBSave(), when
+							// the latter is used by the user to ask for a <Not In KB> entry to be
+							// reverted to saved in the KB; this should be done everywhere in all docs
+							// for this pSrcPhrase's m_key/m_adaption pair where the GUI would show it
+							// as asterisked in the navigation text area otherwise. This function does that job.
 
 protected:
 	void OnEditPreferences(wxCommandEvent& WXUNUSED(event));

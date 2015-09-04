@@ -14229,6 +14229,13 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 		// user wants it in the KB
 		pApp->m_bSaveToKB = TRUE;
 		pApp->m_pKB->DoNotInKB(pSrcPhrase,FALSE);
+		// BEW 4Sep15 added following function call, to make the reversion
+		// happen in every location in every document where it exists as a
+		// pSrcPhrase with m_bNotInKB TRUE. Otherwise the user has to search
+		// manually for them all and manually switch the value - ugh!
+		bool bRevertedEverywhere = DoGlobalRestoreOfSaveToKB();
+		wxASSERT(bRevertedEverywhere);
+		wxUnusedVar(bRevertedEverywhere); // so there is no compile warning in Release build
 	}
 
 	// restore focus to the targetBox, if it is visible
@@ -14240,6 +14247,50 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 	GetLayout()->Redraw();
 	GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
 }
+
+// BEW added 4Sep15, called only in OnCheckKBSave() - see above, when
+// the latter is used by the user to ask for a <Not In KB> entry to be
+// reverted to saved in the KB; this should be done everywhere in all docs
+// for this pSrcPhrase's m_key/m_adaption pair where the GUI would show it
+// as asterisked in the navigation text area otherwise. This function does that job.
+// Note: no gui is needed for this function. When called, the pSrcPhrase at the
+// active location will already have been reverted, but the document unsaved.
+// So the first thing we must do is force a save, and let the user know that that
+// is necessary, and that all locations will be fixed in all documents. There could
+// be places where the searched-for pair are saved to the KB still, so our code
+// must test for those just in case there are some, and do nothing at those locations.
+// The restoration will involve a storage being done to the KB at each location that 
+// is reverted - and so since adapations may be present at some, many or all of the
+// relevant pile locations, adaptations (or glosses) will enter the KB and if the
+// reference counts incremented etc. When a location has no adapation yet, but the
+// location's m_bNotInKB flag is nevertheless TRUE, a <no adaptation> entry is made
+// to the KB. This process will not change any of the text in any of the documents,
+// so it will not produce any conflict if collaboration mode is in effect. The way
+// we will do it is to freeze the screen, with a Please Wait message, save and close
+// the current document - but remember what it is for restoring later (Mike Hore has
+// a nice function or two for doing that in his DVCS Nav dlg handler) - and when we
+// restore we'll unfree the screen and the Please Wait dlg will disappear, and the
+// app will be responsive again. Inbetween those times, we'll read in each document,
+// do the scans and changes, save any which we made dirty. The whole lot can be
+// encapsulated in this DoGlobalRestoreOfSavetoKB() function.
+bool CAdapt_ItView::DoGlobalRestoreOfSaveToKB()
+{
+
+
+
+
+
+
+
+
+
+
+// TODO
+
+	return TRUE;
+}
+
+
 
 // BEW changed 25Aug11, removed the code for unloading the KBs, it is bad design to have
 // it in here
@@ -16878,7 +16929,35 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 			// update the active sequ number, only if not matching text in a pile of a
 			// retranslation (because we can't put the phrase box at such a pile)
 			if (!pApp->m_bMatchedRetranslation)
+			{
 				pApp->m_nActiveSequNum = nSequNum;
+
+				// BEW addition 4Sep15. If landing at a pile where m_bNotInKB is TRUE, the
+				// Save To Knowledge Base checkbox should be unticked, but won't be. So here
+				// we must get the pSrcPhrase value of the m_bNotInKB, set to opposite value,
+				// then call view class's OnCheckKBSave() passing in a dummy wxCommandEvent
+				// to get the checkbox to be in sync with the CSourcePhrase instance's setting
+				CPile* pPile = GetPile(nSequNum);
+				CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+				if (pSrcPhrase->m_bNotInKB)
+				{
+					// It's a pile with an asterisk above, indicating there is no value in KB
+					// for this pile's source text; make the checkbox agree
+					CMainFrame* pFrame = pApp->GetMainFrame();
+					wxPanel* pPanel = pFrame->m_pControlBar;
+					// ensure the Save To Knowledge Base checkbox is in sync
+					wxCheckBox* pKBSave = (wxCheckBox*)pFrame->FindWindowById(IDC_CHECK_KB_SAVE);
+					bool bTicked = pKBSave->GetValue();
+					if (bTicked)
+					{
+						// The checkbox is out of sync, so fix it
+						pApp->m_bSaveToKB = TRUE; // this is the opposite of the value we want
+						wxCommandEvent dummyEvent; // anything command event will do
+						OnCheckKBSave(dummyEvent); // this gets the sync done
+					}
+					pPanel->Refresh(); // make sure the change is visible
+				}
+			}
 			return TRUE;
 		}
 	}

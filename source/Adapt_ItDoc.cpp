@@ -23304,6 +23304,30 @@ bool CAdapt_ItDoc::ReOpenDocument (
 	pLayout->m_docEditOperationType = default_op; // sets (-1,-1) as box selection (all its text)
 	pLayout->PlaceBox();
 
+	// BEW added 4Sep15 restore the "Save To Knowledge Base" checkbox to enabled, similarly the
+	// checkbox next to it "Force Choice For This Item". These were not re-enabled when user
+	// chose an earlier snapshot to be the current document
+	CMainFrame* pFrame = pApp->GetMainFrame();
+	wxPanel* pPanel = pFrame->m_pControlBar;
+	// ensure the Save To Knowledge Base checkbox is enabled
+	pApp->m_bSaveToKB = TRUE;
+	wxCheckBox* pKBSave = (wxCheckBox*)pFrame->FindWindowById(IDC_CHECK_KB_SAVE);
+	// whm modified 12Oct10 for user profiles compatibility
+	if (pKBSave != NULL)
+	{
+		pKBSave->Enable(TRUE);
+	}
+	// ensure the Force Choice For This Item checkbox is enabled
+	wxCheckBox* pForceChoice = (wxCheckBox*)pFrame->FindWindowById(IDC_CHECK_FORCE_ASK);
+	// whm modified 12Oct10 for user profiles compatibility
+	pApp->m_bForceAsk = TRUE;
+	if (pForceChoice != NULL)
+	{
+		pForceChoice->Enable(TRUE);
+	}
+	pPanel->Refresh();
+	// end of BEW 4Sep15 addition
+
 	// set the doc dirty or clean
 	Modify(bMarkAsDirty);
 	return bOK;
