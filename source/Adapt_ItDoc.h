@@ -203,6 +203,7 @@ public:
     virtual void Modify(bool mod);
 
 	virtual bool OnSaveModified(); // in protected area of MFC app
+	bool         DoAbsolutePathFileSave(wxString absPath); // BEW created 7Sep15
 
 	// Implementation
 protected:

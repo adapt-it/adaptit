@@ -2947,6 +2947,10 @@ public:
 	bool		m_bIsGlossingKBServerProject; // TRUE for sharing a glossing KB
 									  // in the same AI project as for previous member
 	wxString	m_strKbServerURL; // for the server's url, e.g. https://kbserver.jmarsden.org
+	// BEW added next, 7Sep15, to store whether or not sharing is temporarily disabled
+	bool		m_bKBSharingEnabled; // the seeing applies to the one or both kbserver types,
+									 // depending on which one or ones are defined
+
 
 	// Deleting an entire KB's entries in the entry table of kbserver will be done as a
 	// background task - so we need storage capability that persists after the KB Sharing
@@ -4244,6 +4248,8 @@ public:
 	bool	DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event));
 	bool	DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon,
 				enum Reparse reparseDoc); // whm revised 23May05 and 5Oct10
+	size_t 	EnumerateAllDocFiles(wxArrayString& paths, wxString adaptationsFolderPath); //BEW added 7Sep15,
+					// for support of removing a certain <Not In KB> in all docs & re-storing its pair to KB
 	bool	EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString folderPath,
 				bool bSuppressDialog = FALSE);
 	bool	EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesList, wxString folderPath); // BEW added 6July10

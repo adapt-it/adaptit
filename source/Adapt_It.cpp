@@ -267,8 +267,8 @@ extern std::string str_CURLheaders;
 
 // Other includes
 #include "AIPrintout.h"
-#include "Adapt_It.h"
 #include "ReadOnlyProtection.h"
+#include "Adapt_It.h"
 #include "MainFrm.h"
 #include "Adapt_ItDoc.h"
 #include "Adapt_ItView.h"
@@ -15307,6 +15307,8 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bKBSharingEnabled = TRUE; // default
+
 	// initialize these collaboration variables, which are relevant to conflict resolution
 	m_bRetainPTorBEversion = FALSE;
 	m_bForceAIversion = FALSE;
@@ -29124,6 +29126,89 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 
 	// done -- update the embedded progress bar
 	((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Restoring Knowledge Base..."));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     The count of how many document *.xml files were enumerated
+/// \param      paths					<-  reference to the array of absolute paths to all documents
+/// \param      adaptationsFolderPath	->  the absolute path to the project's Adaptations folder
+///                             is to have its document files enumerated
+/// \remarks
+/// Called from: the View's DoGlobalRestoreOfSaveToKB().
+/// This function collects the paths, relative to the passed in Adaptation's folders path,
+/// to every document with name of form *.xml regardless of whether the document is a collaboration
+/// document or not, and regardless of whether it is stored in a book folder (when Book Mode is or was
+/// turned on) or just in the parent Adaptations folder. So the function will enumerate the filenames
+/// in the Adaptations folder, and then the partial paths (relative to the Adaptations folder) of
+/// any files of the above form in the Bible Book folders. So for the latter, the subpaths will be
+/// of form  "Matthew + PathSeparator + <filename>".
+/// The aggregated set of these strings are then each appended to the passed in 
+/// "adaptationsFolderPath + PathSeparator" path prefix, resulting in a set of absolute paths to
+/// all files of form *.xml within the Adaptations folder any any child folders. This set of paths
+/// are then returned to the caller in the paths parameter. (The caller will then loop over them
+/// to make the relevant internal changes, if any, within each document file.) No user involvement
+/// is supported.
+/// Created: BEW 7Sept15
+////////////////////////////////////////////////////////////////////////////////////////
+size_t CAdapt_ItApp::EnumerateAllDocFiles(wxArrayString& paths, wxString adaptationsFolderPath)
+{
+	paths.Clear();
+	wxString pathPrefix = adaptationsFolderPath;
+	wxASSERT(!pathPrefix.IsEmpty());
+	wxArrayString arrInAdaptionsFolder;
+	wxArrayString arrInBookFolders;
+	wxString absolutePath = _T("");
+	bool bOK = EnumerateDocFiles_ParametizedStore(arrInAdaptionsFolder, pathPrefix);
+	size_t count = 0;
+	size_t count1 = 0;
+	size_t count2 = 0;
+	size_t i;
+	// The returned list being empty is not an error. The only documents may lie in the Bible Book folders
+	if (bOK)
+	{
+		count1 = arrInAdaptionsFolder.GetCount();
+		for (i = 0; i < count1; i++)
+		{
+			absolutePath = pathPrefix + PathSeparator + arrInAdaptionsFolder.Item(i);
+			paths.Add(absolutePath);
+		}
+
+		// Now handle the Bible Book files - there may be more than one document in any 
+		// one of them, so enumerate each folder (code here pinched & tweaked from doc's 
+		// OnEditConsistencyCheck))
+		wxString folderPath;
+		BookNamePair aBookNamePair;
+		BookNamePair* pBookNamePair = &aBookNamePair;
+		int nMaxBookFolders = (int)m_pBibleBooks->GetCount();
+		int bookIndex;
+		size_t count3 = 0;
+		for (bookIndex = 0; bookIndex < nMaxBookFolders; bookIndex++)
+		{
+			pBookNamePair = ((BookNamePair*)(*m_pBibleBooks)[bookIndex]);
+			folderPath = m_curAdaptationsPath + PathSeparator + pBookNamePair->dirName;
+			// clear the list
+			arrInBookFolders.Clear();
+			// get a list of all the document files, and set the working directory to
+			// the passed in path ( DoConsistencyCheck() internally relies on this
+			// being set here to the correct folder )
+			bOK = EnumerateDocFiles_ParametizedStore(arrInBookFolders, folderPath);
+			wxASSERT(bOK);
+			if (bOK && !arrInBookFolders.IsEmpty())
+			{
+				count3 = arrInBookFolders.GetCount();
+				size_t j;
+				for (j = 0; j < count3; j++)
+				{
+					wxString aDocument = arrInBookFolders.Item(j);
+					absolutePath = folderPath + PathSeparator + aDocument;
+					paths.Add(absolutePath);
+					count2++; // count it
+				}
+			}
+		}
+	}
+	count = count1 + count2;
+	return count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -48203,7 +48288,7 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 		bool bAddDotToExt = FALSE;
 		if (extFilterLower.Find(_T('.')) != wxNOT_FOUND)
 		{
-			// incoming extenstionFilter has the dot in the extension, so set flag to add dot below
+			// incoming extensionFilter has the dot in the extension, so set flag to add dot below
 			bAddDotToExt = TRUE;
 		}
 

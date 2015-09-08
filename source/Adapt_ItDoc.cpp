@@ -2370,22 +2370,25 @@ void CAdapt_ItDoc::PutPhraseBoxAtDocEnd()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	int sequNumAtEnd = pApp->GetMaxIndex();
-	pApp->m_pActivePile = GetPile(sequNumAtEnd);
-	pApp->m_nActiveSequNum = sequNumAtEnd;
-	wxString boxValue;
-	if (gbIsGlossing)
+	pApp->m_pActivePile = GetPile(sequNumAtEnd); // this may return NULL
+	if (pApp->m_pActivePile != NULL)
 	{
-		boxValue = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+		pApp->m_nActiveSequNum = sequNumAtEnd;
+		wxString boxValue;
+		if (gbIsGlossing)
+		{
+			boxValue = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+		}
+		else
+		{
+			boxValue = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+			translation = boxValue;
+		}
+		pApp->m_targetPhrase = boxValue;
+		pApp->m_pTargetBox->ChangeValue(boxValue);
+		pApp->GetView()->PlacePhraseBox(pApp->m_pActivePile->GetCell(1), 2);
+		pApp->GetView()->Invalidate();
 	}
-	else
-	{
-		boxValue = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
-		translation = boxValue;
-	}
-	pApp->m_targetPhrase = boxValue;
-	pApp->m_pTargetBox->ChangeValue(boxValue);
-	pApp->GetView()->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2);
-	pApp->GetView()->Invalidate();
 }
 
 // a smarter wrapper for DoFileSave(), to replace where that is called in various places
@@ -2427,11 +2430,16 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 	// the document before going on
 	if (gpApp->m_pActivePile == NULL || gpApp->m_nActiveSequNum == -1)
 	{
-		PutPhraseBoxAtDocEnd();
+		if (gpApp->m_pActivePile != NULL)
+		{
+			// No use trying if the active pile is NULL - we may be processing a doc 
+			// which has no visible phrasebox, or the normal GUI isn't being used
+			PutPhraseBoxAtDocEnd();
 #if defined(_DEBUG)
-		wxLogDebug(_T("DoFileSave_Protected() relocation codeblock: translation = %s , m_pTargetBox has: %s"),
-			translation.c_str(), gpApp->m_pTargetBox->GetValue().c_str());
+			wxLogDebug(_T("DoFileSave_Protected() relocation codeblock: translation = %s , m_pTargetBox has: %s"),
+				translation.c_str(), gpApp->m_pTargetBox->GetValue().c_str());
 #endif
+		}
 	}
 
     // SaveType enum value (2nd param) for the following call is default: normal_save BEW
@@ -2874,10 +2882,13 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 
 #if defined(_DEBUG)
 	CPile* myPilePtr = gpApp->m_pActivePile;
-	CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
-	wxLogDebug(_T("DoFileSave() start: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
-		mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(),
-		mySrcPhrasePtr->m_targetStr.c_str(), gpApp->m_targetPhrase.c_str());
+	if (myPilePtr != NULL)
+	{
+		CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
+		wxLogDebug(_T("DoFileSave() start: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
+			mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(),
+			mySrcPhrasePtr->m_targetStr.c_str(), gpApp->m_targetPhrase.c_str());
+	}
 #endif
 
 	// BEW added 19Apr10 -- ensure we start with the latest doc version for saving if the
@@ -3478,6 +3489,98 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	// whm 20Aug11 note: since a file save operation is very frequent, we avoid inflating the user log
 	// with successful saves.
 	return TRUE;
+}
+
+// Return TRUE if the save was successful, FALSE if some error
+// absPath is an absolute path to the file to be saved - it can be in either
+// the Adaptations folder, or to any of the Bible Book folders, and it ignores
+// whether the app is in Bible Book folder mode or not. It just does the save,
+// overwriting the former file contents. Use this when we do 'all document'
+// tweaks that involve loading in each doc file, tweaking its contents in
+// m_pSourcePhrases, and then saving over the top of the old file on disk.
+// This function has no GUI information in it.
+bool CAdapt_ItDoc::DoAbsolutePathFileSave(wxString absPath)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (!absPath.IsEmpty())
+	{
+		wxFile f; // create a CFile instance with default constructor
+
+		wxFileName fn(absPath);
+		wxString pathToFolder = fn.GetPath();
+		wxASSERT(!pathToFolder.IsEmpty());
+		// Set the current working directory
+		wxString saveCurWorkingDir = _T("");
+		saveCurWorkingDir = fn.GetCwd(); // so we can restore it later
+		// Get the filename, since we are working with a relative path now
+		wxString fullName = fn.GetFullName();
+		wxASSERT(!fullName.IsEmpty());
+		bool bOK = fn.SetCwd(pathToFolder);
+		if (bOK)
+		{
+			if (!f.Open(fullName, wxFile::write))
+			{
+				pApp->LogUserAction(_T("Failed f.Open() for writing in doc::DoAbsolutePathFileSave(wxString absPath)"));
+				return FALSE;
+			}
+			// The following code is taken from doc::DoSaveFile(), and many comments removed to
+			// keep it short. If anything is unclear then look there for the details
+			CSourcePhrase* pSrcPhrase;
+			CBString aStr;
+			CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
+
+			// prologue (Changed BEW 02July07 at Bob Eaton's request)
+			gpApp->GetEncodingStringForXmlFiles(aStr);
+			DoWrite(f, aStr);
+
+			// add the comment with the warning about not opening the XML file in MS WORD
+			// 'coz is corrupts it - presumably because there is no XSLT file defined for it
+			// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
+			// the latter goes into an infinite loop when the file is being parsed in.
+			aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
+
+			// doc opening tag
+			aStr += "<";
+			aStr += xml_adaptitdoc;
+			aStr += ">\r\n"; // eol chars OK for cross-platform???
+			DoWrite(f, aStr);
+			// Construct the initial <Settings> tag
+			aStr = ConstructSettingsInfoAsXML(1); // internally sets the docVersion attribute
+			// to whatever is the current value of m_docVersionCurrent
+			DoWrite(f, aStr);
+			// Process the list of CSourcePhrase instances
+			SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
+			while (pos != NULL)
+			{
+				pSrcPhrase = (CSourcePhrase*)pos->GetData();
+				pos = pos->GetNext();
+				aStr = pSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
+				DoWrite(f, aStr);
+			}
+			// doc closing tag
+			aStr = xml_adaptitdoc;
+			aStr = openBraceSlash + aStr; //"</" + aStr;
+			aStr += ">\r\n"; // eol chars OK for cross-platform???
+			DoWrite(f, aStr);
+
+			// close the file
+			f.Flush();
+			f.Close();
+			// Restore original current working directory
+			bOK = fn.SetCwd(saveCurWorkingDir);
+			wxASSERT(bOK);
+			return TRUE;
+		}
+	}
+	else
+	{
+		pApp->LogUserAction(_T("Passed in empty path in signature. In doc::DoAbsolutePathFileSave(wxString absPath)"));
+	}
+	// Path was empty, or could not reset the current working volume to the 
+	// document's folder, or the attempt to do f.Open() for writing failed; so
+	// could not save the file - the old version of it will remain on disk
+	return FALSE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -19433,16 +19536,13 @@ bool CAdapt_ItDoc::OnCloseDocument()
 #if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject)
 		{
-			if (pApp->m_bIsKBServerProject)
-			{
-				pApp->ReleaseKBServer(1); // the adaptations one
-				pApp->LogUserAction(_T("ReleaseKBServer(1) called in OnCloseDocument()"));
-			}
-			if (pApp->m_bIsGlossingKBServerProject)
-			{
-				pApp->ReleaseKBServer(2); // the glossings one
-				pApp->LogUserAction(_T("ReleaseKBServer(2) called in OnCloseDocument()"));
-			}
+			pApp->ReleaseKBServer(1); // the adaptations one
+			pApp->LogUserAction(_T("ReleaseKBServer(1) called in OnCloseDocument()"));
+		}
+		if (pApp->m_bIsGlossingKBServerProject)
+		{
+			pApp->ReleaseKBServer(2); // the glossings one
+			pApp->LogUserAction(_T("ReleaseKBServer(2) called in OnCloseDocument()"));
 		}
 #endif
 
@@ -23348,8 +23448,6 @@ bool CAdapt_ItDoc::ReOpenDocument (
 // the response from c: instead) Also removed legacy DoConsistencyCheck(), and added an int
 // nCumulativeTotal 4th param to the signature of its overloaded version, which now is the
 // only version; and restored a stats dialog for when all is done
-// BEW 22Aug14 When collaborating, the consistency check must be limited to a), that is,
-// to the current doc only
 void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 {
 	// the 'accepted' list holds the document filenames to be used
@@ -23771,7 +23869,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				int nMaxBookFolders = (int)pApp->m_pBibleBooks->GetCount();
 				int bookIndex;
 
-				// need a copy of pKB to check for inconsistencies in
+				// need a temporary copy of pKB to check for inconsistencies within that,
+				// use pKB for storage of our fixes
 				pKBCopy = new CKB();
 				pKBCopy->Copy(*pKB);
 
@@ -23873,7 +23972,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					pApp->m_bBlindFixInConsCheck = FALSE; // restore default value (BEW 1Sep15)
 					return;
 				}
-				// need a copy of pKB to check for inconsistencies in
+				// need a temporary copy of pKB to check for inconsistencies within that,
+				// use pKB for storage of our fixes
 				pKBCopy = new CKB();
 				pKBCopy->Copy(*pKB);
 
@@ -24981,21 +25081,21 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                         // different or do an edit of something shown in the list of
                         // adaptations, or ignore the location entirely.
                         // BEW 1Sep15, the deletion could be because the user edited the KB
-                        // target text, or gloss in glossing mode, which also then makes the
-                        // unedited form become pseudo-deleted. Mike Hore wants these auto-fixed
-                        // blindly if there is only a single (unique) form associated with the
-						// source text form - so we do that here, provided bBlindFix is TRUE
+                        // target text, which also then makes the unedited form become 
+						// pseudo-deleted. Mike Hore wants these auto-fixed blindly if there
+						// is only a single (unique) form associated with the source text form
+						// - so we do that here, provided bBlindFix is TRUE
 						if (bBlindFix)
 						{
 							// First, check to make sure there is but a single translation
-							// or gloss
 							wxString newAdaption = _T("");
 							bool bIsUnique = pKBCopy->GetUniqueTranslation(nWords,key,newAdaption);
 							if (bIsUnique)
 							{
 								// Blind fix this one, do a StoreText() on pKB, then iterate the loop
 								pSrcPhrase->m_adaption = newAdaption; // StoreText() will do
-															// this, but no harm to do it here								// Get the punctuation, if any, right
+															// this, but no harm to do it here
+								// Get the punctuation, if any, correctly restored
 								pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, newAdaption);
 
 //#if defined(FWD_SLASH_DELIM)
@@ -26171,6 +26271,13 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 // valid entry for that CTargetUnit instance (i.e. there could be one or more pseudo-deleted
 // entries, but they won't be considered; but there can only be one non-deleted entry; otherwise
 // the dialog will show in the usual way)
+// BEW 1Sep15 added support for a "blind fix" checkbox option that automatically, if chosen,
+// causes the location's adaptation where an inconsistency has been identified to get the
+// KB's CTargetUnit's CRefString instances translation, but only provided that translation
+// string (which may be an adaptation, or in DoConsistencyCheckG, a gloss) is the only 
+// valid entry for that CTargetUnit instance (i.e. there could be one or more pseudo-deleted
+// entries, but they won't be considered; but there can only be one non-deleted entry; otherwise
+// the dialog will show in the usual way)
 bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy,
 									   AFGList& afgList, int& nCumulativeTotal)
 {
@@ -26196,6 +26303,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 	}
 	wxASSERT(nCount > 0);
 	int nTotal = 0;
+	bool bBlindFix = pApp->m_bBlindFixInConsCheck; // a nice short synonym is helpful
 
 	// iterate over the document files
 	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope
@@ -26468,6 +26576,33 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					// eye-balling the document to figure out what other gloss is
 					// appropriate at the active location rather than the one shown in the
 					// phrase box)
+					// BEW 1Sep15, the deletion could be because the user edited the KB
+					// target text, which also then makes the unedited form become 
+					// pseudo-deleted. Mike Hore wants these auto-fixed blindly if there
+					// is only a single (unique) form associated with the source text form
+					// - so we do that here, provided bBlindFix is TRUE
+					if (bBlindFix)
+					{
+						// First, check to make sure there is but a single gloss
+						wxString newGloss = _T("");
+						bool bIsUnique = pKBCopy->GetUniqueTranslation(nWords, key, newGloss);
+						if (bIsUnique)
+						{
+							// Blind fix this one, do a StoreText() on pKB, then iterate the loop
+							pSrcPhrase->m_gloss = newGloss; // StoreText() will do
+															// this, but no harm to do it here
+							// (Remember, in glossing mode, there is no punctuation stripping or restoring)
+							// TRUE in StoreText call is support for a <no adaptation> empty
+							// string; if has effect only if newAdaption is empty
+							gbInhibitMakeTargetStringCall = TRUE;
+							pKB->StoreText(pSrcPhrase, pSrcPhrase->m_gloss, TRUE);
+							gbInhibitMakeTargetStringCall = FALSE;
+
+							continue;
+						}
+					}
+					// If bBlindFix was not chosen in the cons.chk.type dialog, then
+					// do the legacy showing of the consistency check dialog
 					bInconsistency = TRUE;
 					inconsistencyType = member_exists_flag_on_PTUexists_deleted_Refstr;
 					pAutoFixGRec = new AutoFixRecordG;

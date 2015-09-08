@@ -105,6 +105,9 @@ void KBSharing::OnOK(wxCommandEvent& myevent)
 		// restart the time with the new interval
 		m_pApp->m_pKbServerDownloadTimer->Start(60000 * receiveInterval); // param is milliseconds
 	}
+	// Tell the app whether the user has kb sharing temporarily off, or not
+	m_pApp->m_bKBSharingEnabled = bKBSharingEnabled;
+
 	myevent.Skip();
 }
 
@@ -116,10 +119,20 @@ void KBSharing::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIO_SHARING_OFF);
 	m_pSpinReceiving = (wxSpinCtrl*)FindWindowById(ID_SPINCTRL_RECEIVE);
 
+	// initialize this; it applies to whatever kbserver(s) are open for business -
+	// but only one at a time can be active, since glossing is a different mode
+	// than adapting
+	bKBSharingEnabled = TRUE;
+
 	// get the current state of the two radio buttons
 	KbServer* pAdaptingSvr = m_pApp->GetKbServer(1); // both are in same state, so this one is enough
 	m_nRadioBoxSelection = pAdaptingSvr->IsKBSharingEnabled() ? 0 : 1;
 	m_pRadioBox->SetSelection(m_nRadioBoxSelection);
+
+	// update the 'save' boolean to whatever is the current state (user may Cancel and
+	// we would need to restore the initial state)
+	bSaveKBSharingEnabled = m_nRadioBoxSelection == 0 ? TRUE: FALSE;
+	bKBSharingEnabled = bSaveKBSharingEnabled;
 
 	// initialize the spin control to the current value (from project config file, or as
 	// recently changed by the user)
@@ -133,6 +146,7 @@ void KBSharing::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 void KBSharing::OnCancel(wxCommandEvent& myevent)
 {
+	m_pApp->m_bKBSharingEnabled = bSaveKBSharingEnabled; 
 	myevent.Skip();
 }
 
@@ -173,6 +187,7 @@ void KBSharing::OnRadioOnOff(wxCommandEvent& WXUNUSED(event))
 			{
 				pGlossingSvr->EnableKBSharing(TRUE);
 			}
+			bKBSharingEnabled = TRUE;
 		}
 		else
 		{
@@ -187,6 +202,7 @@ void KBSharing::OnRadioOnOff(wxCommandEvent& WXUNUSED(event))
 			{
 				pGlossingSvr->EnableKBSharing(FALSE);
 			}
+			bKBSharingEnabled = FALSE;
 		}
 	}
 }

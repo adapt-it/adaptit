@@ -93,6 +93,7 @@ public:
 	// line to ensure that it gets initialized first. See if it works properly in the wxWidgets
 	// version and avoids the same problem Bruce encountered in the MFC version. cf similar notes
 	// for CTargetUnit.
+	void SetRefCountsTo(int refCountValue, CSourcePhrase* pSrcPhrase);
 
 // implementation
 public:

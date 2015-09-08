@@ -3708,6 +3708,37 @@ bool CKB::IsMatchForKbSharing(CTargetUnit* pTU, wxString& translation,
 
 #endif // for _KBSERVER #defined
 
+// Make all the CRefString instances in the CTargetUnit, provided they are
+//  not deleted ones, have a m_refCount value set to refCountValue
+// (typically, we use it to reset to a value of 1)
+// BEW created 7Sep15 for support of making <Not IN KB> entries reverted to
+// being restored to KB when user clicks the Save To Knowledge Base checkbox
+// at a given unsaved one (shown with asterisk above it in the GUI)
+void CKB::SetRefCountsTo(int refCountValue, CSourcePhrase* pSrcPhrase)
+{
+	CTargetUnit* pTgtUnit = GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
+	if (pTgtUnit != NULL)
+	{
+		TranslationsList* pList = pTgtUnit->m_pTranslations;
+		if (!pList->IsEmpty())
+		{
+			TranslationsList::Node* pos = pList->GetFirst();
+			while (pos != NULL)
+			{
+				CRefString* pRefString = (CRefString*)pos->GetData();
+				pos = pos->GetNext();
+				if (pRefString != NULL)
+				{
+					if (!pRefString->m_bDeleted)
+					{
+						pRefString->m_refCount = refCountValue;
+					}
+				}
+			} // end of loop
+		}
+	}
+}
+
 // This is the inner workings of the handler OnCheckKBSave() -- the latter being called
 // when the user clicks the GUI checkbox "Save to knowledge base" (the latter is checked
 // by default, it takes a user click to uncheck it, and that results in "<Not In KB>"
