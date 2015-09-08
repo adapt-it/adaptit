@@ -15307,7 +15307,6 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
-	m_bKBSharingEnabled = TRUE; // default
 
 	// initialize these collaboration variables, which are relevant to conflict resolution
 	m_bRetainPTorBEversion = FALSE;
@@ -15375,6 +15374,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_suppress_KB_messages = FALSE;     // normal default
 
 #if defined(_KBSERVER)
+
+	m_bKBSharingEnabled = TRUE; // default
 
 	m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
 	m_pKbServerForDeleting = NULL;
