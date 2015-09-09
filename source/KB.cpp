@@ -4793,7 +4793,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				// check that there isn't somehow an undeleted <Not In KB> CRefString as
 				// the only one - if there is, and <Not In KB> was passed in, then we've
 				// no store to make and can just set the flags and return TRUE
-				if (!m_bGlossingKB && pRefStr->m_translation == strNot)
+				if (!m_bGlossingKB && (pRefStr->m_translation == strNot)
+					&& !pRefStr->m_bDeleted) // BEW 7Sep15 added 3rd subtest because
+					// without it a deleted <Not In KB> was causing control to enter
+					// the TRUE block, and then the phrasebox's adaptation was not
+					// being used to make a normal KB entry (and it should be)
 				{
                     // keep it that way (the way to cancel this setting is with the toolbar
                     // checkbox) But leave m_adaption and m_targetStr (or m_gloss) having

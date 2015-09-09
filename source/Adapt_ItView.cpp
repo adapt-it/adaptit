@@ -32,7 +32,7 @@
 // and the doc aut-reloaded when done. The screen is frozen throughout, and a WaitDlg used,
 // and also a progress bar - ticking off each doc as done. All docs, in Adaptations and any
 // Bible Book folders, are processed.
-#define NO_ASTERISK
+//#define NO_ASTERISK
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItView.h"
@@ -143,6 +143,7 @@
 #include "GuesserSettingsDlg.h"
 #include "MergeUpdatedSrc.h"
 #include "KBExportImportOptionsDlg.h"
+#include "StatusBar.h"
 
 // Temporary - while using OnAdvancedDelay() as a way to test code for kbserver class
 #include "KbServer.h"
@@ -14241,6 +14242,11 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 		// user wants it in the KB
 		pApp->m_bSaveToKB = TRUE;
 		pApp->m_pKB->DoNotInKB(pSrcPhrase,FALSE);
+		// If there is a subsequent StoreText() call, we'll want m_targetStr
+		// in the pSrcPhrase to get any punctuation addition done, so ensure
+		// this flag is FALSE so that can happen
+		gbInhibitMakeTargetStringCall = FALSE;
+
 		// Reversion to "Save In Knowledge base" is only able to be done in
 		// adapting mode. In glossing mode, the checkbox is always ticked and
 		// clicking it is ignored, and the glossing KB has no <Not In KB> and
@@ -14255,9 +14261,32 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 			// happen in every location in every document where it exists as a
 			// pSrcPhrase with m_bNotInKB TRUE. Otherwise the user has to search
 			// manually for them all and manually switch the value - ugh!
-			bool bRevertedEverywhere = DoGlobalRestoreOfSaveToKB(pSrcPhrase->m_key);
-			wxASSERT(bRevertedEverywhere);
-			wxUnusedVar(bRevertedEverywhere); // so there is no compile warning in Release build
+			// Ask the user - he may want a single local change, so give the option
+			wxString sourceKey = pSrcPhrase->m_key;
+			CMainFrame* pFrame = pApp->GetMainFrame();
+			wxString title = _("Here Only, or Everywhere It Occurs");
+			wxString msg;
+			msg = msg.Format(
+				_("You have changed this source text ( %s ) to be stored in the knowledge base, along with its translation.\nDo you want this to happen, in all documents, at every location where the same source text occurs with an asterisk?\n(The translations at other locations can be the same or different, that will not matter.)"),
+				sourceKey.c_str());
+			int style = wxYES_NO;
+			int choice = wxMessageBox(msg, title, style, pFrame);
+			if (choice == wxYES)
+			{
+				// DoNotInKB(pSrcPhrase,FALSE) above leaves pSrcPhrase's m_bHasKBEntry
+				// cleared to FALSE, because when control doesn't enter this block
+				// a move of the phrasebox will cause that flag to get a TRUE value
+				// set. But when the user has requested that an 'all documents' fix
+				// is to be done, there will be no phrasebox movement, instead, the
+				// document will be saved and closed - and so the flag would remain
+				// unset for the pSrcPhrase at the active location. So we set it
+				// now, so that the document state remains well formed.
+				pSrcPhrase->m_bHasKBEntry = TRUE;
+				// Now, we can do the global reversion...
+				bool bRevertedEverywhere = DoGlobalRestoreOfSaveToKB(pSrcPhrase->m_key);
+				wxASSERT(bRevertedEverywhere);
+				wxUnusedVar(bRevertedEverywhere); // prevent compiler warning in Release build
+			}
 		}
 	}
 
@@ -14306,381 +14335,238 @@ bool CAdapt_ItView::DoGlobalRestoreOfSaveToKB(wxString sourceKey)
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	CMainFrame* pFrame = pApp->GetMainFrame();
 	CKB* pKB = NULL;
-	wxString title = _("Here Only, or Everywhere It Occurs");
-	wxString msg;
-	msg = msg.Format(
-		_("You have changed this source text ( %s ),\nand its translation, to be stored in the knowledge base.\nDo you want this same change made in all documents at every location it occurs, as well?"),
-		sourceKey.c_str());
-	int style = wxYES_NO;
-	int choice = wxMessageBox(msg, title, style, pFrame);
-	if (choice == wxNO)
-	{
-		return TRUE; // it is a valid response - user wants only the 
-					 // single local change done in the current document
-	}
+	
+	// All locations in all documents which have this src and whatever is its adaptation at 
+	// that location, providing pSrcPhrase has m_bNotInKB TRUE, are to be switched to 
+	// "Save To Knowledge Base" turned ON, and the relevant StoreText() call done there also,
+	// so that the KB gets the needed entry or bump of the entry's CRefString count value
+
+	m_nCallCount = 0; // initialize the member int which we'll use to limit
+	// calls of void CKB::SetRefCountsTo(int refCountValue, CSourcePhrase* pSrcPhrase)
+	// to one per call of RestoreKBStorageForSourceKey() - if we don't do that, calling
+	// it at every matching location keeps the KB's m_refCount values at 1 for the 
+	// restored entries
+
+	// put up a Wait dialog (we'll also use a progress bar - see below)
+	CWaitDlg waitDlg(pFrame);
+	// indicate we want the closing the document wait message
+	waitDlg.m_nWaitMsgNum = 23;	// 23 has  _("This may take a while. Identical changes are being done in all the documents...")
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below.
+	canvas->Freeze();
+
+	// Probably I need to close doc here ?? Yes, do it
+	wxString dirPath;
+	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
+		dirPath = pApp->m_bibleBooksFolderPath;
 	else
+		dirPath = pApp->m_curAdaptationsPath;
+	bool bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+
+	// BEW added 05Jan07 to enable work folder on input to be restored when done
+	wxString strSaveCurrentDirectoryFullPath = dirPath;
+
+	// get the KB entry for the current active location updated so as to avoid 
+	// a spurious entry (we have to assume it's okay, but if not it's not a big
+	// deal as when we are done we'll reopen this doc and but the phrasebox at
+	// it's former (that is, current) location
+	bool bNoStore = FALSE;
+	bool bAttemptStoreToKB = TRUE;
+	bool bSuppressWarningOnStoreKBFailure = TRUE;
+	bOK = TRUE;
+
+	// BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
+	// returns TRUE to the caller if the attempted store fails for some reason, for all
+	// other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure
+	// is TRUE as we don't expect a failure and anyway we will ignore the fact if it does fail
+	UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
+	// We will base our clobbering of the document and later reopening of it on 
+	// what OnEditConsistencyCheck() does, it's a doc member function
+	wxString savedCurOutputPath = pApp->m_curOutputPath;	// includes filename
+	wxString savedCurOutputFilename = pApp->m_curOutputFilename;
+	// for resetting the box location, a saved document internally stores the last active sequ num value
+	bool	 savedBookmodeFlag = pApp->m_bBookMode;	// for ensuring correct mode
+	bool	 savedDisableBookmodeFlag = pApp->m_bDisableBookMode;		// ditto
+	int		 savedBookIndex = pApp->m_nBookIndex;
+	BookNamePair*	pSavedCurBookNamePair = pApp->m_pCurrBookNamePair;
+	bool bDocIsClosed = FALSE; // initialize, set it at next line
+	bDocIsClosed = pApp->m_pSourcePhrases->GetCount() == 0; // set bDocIsClosed to either true or false
+	bool bDocForcedToClose = FALSE;
+	bool savedConflictResolutionFlag = pApp->m_bConflictResolutionTurnedOn; // for resetting later, as 
+											// opening a document defaults it to TRUE
+	// Next bit is a tweak of the contents of ConsistencyCheck_ClobberDocument()
+	// save and remove open doc, if a doc is open
+	if (!bDocIsClosed)
 	{
-		// All locations in all documents which have this src and whatever is its adaptation at 
-		// that location, providing pSrcPhrase has m_bNotInKB TRUE, are to be switched to 
-		// "Save To Knowledge Base" turned ON, and the relevant StoreText() call done there also,
-		// so that the KB gets the needed entry or bump of the entry's CRefString count value
+		// Save the Doc (and DoFileSave_Protected() also automatically saves, without backup,
+		// both the glossing and adapting KBs); FALSE is bool bShowWaitDlg, and the emtpy
+		// string is progressItem - it's empty as we don't want any progress shown for this
+		bool fsOK = pDoc->DoFileSave_Protected(FALSE, _T(""));
+		if (!fsOK)
+		{
+			// something's real wrong! An English message will do
+			wxMessageBox(_T(
+				"Could not save the current document. DoGlobalRestoreOfSaveToKB() was aborted. You can continue working."),
+				_T(""), wxICON_EXCLAMATION | wxOK);
+			// whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
+			// current working directory has not changed, so no need here to reset
+			// it before return.
+			pApp->LogUserAction(_T("Current document not saved. DoGlobalRestoreOfSaveToKB() is aborted, app continues."));
+			canvas->Thaw();
+			return FALSE; // can't recover the correct operation of this feature after 
+						  // this error, but app can continue after the user is warned
+		}
 
-		// put up a Wait dialog (we'll also use a progress bar - see below)
-		CWaitDlg waitDlg(pApp->GetMainFrame());
-		// indicate we want the closing the document wait message
-		waitDlg.m_nWaitMsgNum = 23;	// 23 has  _("This may take a while. Identical changes are being done in all the documents...")
-		waitDlg.Centre();
-		waitDlg.Show(TRUE);
-		waitDlg.Update();
-		// the wait dialog is automatically destroyed when it goes out of scope below.
-		pFrame->Freeze();
+		// Ensure the current document's contents are removed. We will reuse this
+		// m_pSourcePhrases list for storing the parse of each document read in.
+		// The only KB that will be affected is the adapting one. The glossing KB
+		// does not support <Not In KB> entries.
 
-		// Probably I need to close doc here ?? Yes, do it
-		wxString dirPath;
-		if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
-			dirPath = pApp->m_bibleBooksFolderPath;
+		// ClobberDocument() does not clobber the in-memory glossing and adapting
+		// KBs - - we will do those separately; it does though empty the gEditRecord - so
+		// if that had content it would be lost; however, it's used only when processing
+		// the document because editing of the source text has taken place - and this is
+		// not likely to ever be the case when doing global restoring of <Not In KB> to having
+		// a kb entry in all the places the src/tgt pair occur in all docs.
+		pApp->GetView()->ClobberDocument();
+		pApp->m_acceptedFilesList.Clear();
+		bDocForcedToClose = TRUE;
+	} // end of TRUE block for test: if (!bDocIsClosed)
+
+	// Get the list of all docs, in Adaptations folder and in Book Folders as well
+	wxArrayString allPaths;
+	size_t count = pApp->EnumerateAllDocFiles(allPaths, pApp->m_curAdaptationsPath);
+#if defined(_DEBUG) && defined(NO_ASTERISK)
+	size_t k;
+	for (k = 0; k < count; k++)
+	{
+		wxLogDebug(_T("EnumerateAllDocFiles() a path is: %s"), allPaths.Item(k).c_str());
+	}
+#endif
+	wxASSERT(pApp->m_bKBReady);
+	pKB = pApp->m_pKB;
+	wxString saveOutputPath = pApp->m_curOutputPath; // save, because we'll reuse this
+		// for saving our temporarily loaded documents back to the original locations
+
+	// Progress Bar initialization is next
+	pApp->m_bShowProgress = TRUE;
+	wxString msgDisplayed;
+	const int nTotal = (int)count;
+	wxString progMsg = _("Editing document %d of %d");
+	msgDisplayed = progMsg.Format(progMsg,0,nTotal);
+	CStatusBar *pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)pApp->GetMainFrame()->m_pStatusBar;
+	if (pApp->m_bShowProgress)
+	{
+		pStatusBar->StartProgress(_T("MakeInKB"), msgDisplayed, nTotal);
+	}
+	
+	// I don't need to clobber the kbs, and any current kbserver sharing. All I'm doing 
+	// is loading in a doc and running it thru a process that will update it and some 
+	// kb entries. We only need that m_pSourcePhrases is available for temporary
+	// use for storing each doc that we load in for our scan and fixes. So kbserver
+	// connection needs to persist because some entries in the adapting KB will change.
+	// So also, the KBs need to be present, for the same reason.
+	// Only adaptations can have <Not In KB> entries, so glossing KB is unaffected,
+	// and no document adaptations either m_adaption nor m_targetStr get changed, so
+	// StoreText() can be used safely, as so can m_pSourcePhrases. The resulting changed
+	// document will therefore not have any collaboration conflicts created by the process.
+
+	// Prepare and then loop over all the documents, calling the single-document
+	// core processing function: RestoreKBStorageForSourceKey(sourceKey, pKB)
+	CLayout* pLayout = pApp->GetLayout();
+	bool bShowProgressInDocLoad = FALSE; // suppress the OnOpenDocument()'s internal progress tracking
+	pApp->m_bWantSourcePhrasesOnly = TRUE; // this causes OnOpenDocument() to exit immediately after
+										   // populating pSrcPhrases list has completed, because that's
+										   // all we need done
+	pApp->m_bConflictResolutionTurnedOn = FALSE; // keep off for this loop's processing
+	size_t i;
+	wxString aPath;
+	wxASSERT(pApp->m_pSourcePhrases->IsEmpty());
+	for (i = 0; i < count; i++)
+	{
+		aPath = allPaths.Item(i);
+#if defined(_DEBUG) && defined(NO_ASTERISK)
+		wxLogDebug(_T("\nDoGLobalRestoreOfSaveToKB() Loop iteration number %d of %d  This path: %s"), i, count, aPath.c_str());
+#endif
+		bOK = pDoc->OnOpenDocument(aPath, bShowProgressInDocLoad /* is set FALSE above */);
+		if (!bOK)
+		{
+			// If we fail to read in a document, just skip it, but inform the user
+			pLayout->m_bLayoutWithoutVisiblePhraseBox = TRUE; // suppresses phrasebox stuff
+			ClobberDocument();
+			// Inform the user
+			wxString title = _("File read failure");
+			wxFileName fn(aPath);
+			wxString fullFilename = fn.GetFullName();
+			wxString msg;
+			msg = msg.Format(_("Loading the document (  %s ) failed. So processing this document has been skipped."), fullFilename.c_str());
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		}
 		else
-			dirPath = pApp->m_curAdaptationsPath;
-		bool bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
-
-		// BEW added 05Jan07 to enable work folder on input to be restored when done
-		wxString strSaveCurrentDirectoryFullPath = dirPath;
-
-		// get the KB entry for the current active location updated so as to avoid 
-		// a spurious entry (we have to assume it's okay, but if not it's not a big
-		// deal as when we are done we'll reopen this doc and but the phrasebox at
-		// it's former (that is, current) location
-		bool bNoStore = FALSE;
-		bool bAttemptStoreToKB = TRUE;
-		bool bSuppressWarningOnStoreKBFailure = TRUE;
-		bOK = TRUE;
-
-		// BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
-		// returns TRUE to the caller if the attempted store fails for some reason, for all
-		// other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure
-		// is TRUE as we don't expect a failure and anyway we will ignore the fact if it does fail
-		UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
-		// We will base our clobbering of the document and later reopening of it on 
-		// what OnEditConsistencyCheck() does, it's a doc member function
-		wxString savedCurOutputPath = pApp->m_curOutputPath;	// includes filename
-		wxString savedCurOutputFilename = pApp->m_curOutputFilename;
-		// for resetting the box location, a saved document internally stores the last active sequ num value
-		bool	 savedBookmodeFlag = pApp->m_bBookMode;	// for ensuring correct mode
-		bool	 savedDisableBookmodeFlag = pApp->m_bDisableBookMode;		// ditto
-		int		 savedBookIndex = pApp->m_nBookIndex;
-		BookNamePair*	pSavedCurBookNamePair = pApp->m_pCurrBookNamePair;
-		bool bDocIsClosed = FALSE; // initialize, set it at next line
-		bDocIsClosed = pApp->m_pSourcePhrases->GetCount() == 0; // set bDocIsClosed to either true or false
-		bool bDocForcedToClose = FALSE;
-		bool savedConflictResolutionFlag = pApp->m_bConflictResolutionTurnedOn; // for resetting later, as 
-												// opening a document defaults it to TRUE
-/* Keep this, but we don't need it here. We may use it somewhere else someday - we can clobber the doc without damage to our kbserver connection etc
-#if defined(_KBSERVER)
-		// Since we are going to close the current document and later reopening, we have to take into
-		// account that the current document might be in a project which is currently a kbserver one,
-		// and that connections to a remote kbserver may be open. Closing the document will sever the
-		// connection? (No, not if ClobberDocument() is used).
-		// So when we restore the document, we don't want to ask the user to type in any
-		// credentials - instead, we must save here everything needed for automatic restoration of the
-		// connection to the same remote kbserver; initialize the params, then set to current values
-		// see AI.h at approx lines 2914++
-		wxString savedPassword = _T("");
-		bool savedIsKBServerProject = FALSE;
-		bool savedIsGLossingKBServerProject = FALSE;
-		bool savedKBSharingEnabled = TRUE; 
-		int  savedKbServerType = 1; // an adapting one
-		wxString savedKbserverURL = _T("");
-		wxString savedKbserverUsername = _T(""); // the "informal name", not the one for logging in
-		wxString savedKbserverUserID = _T(""); // this is the one for logging in
-		if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 		{
-			savedIsKBServerProject = pApp->m_bIsKBServerProject;
-			savedIsGLossingKBServerProject = pApp->m_bIsGlossingKBServerProject;
-			savedPassword = pFrame->GetKBSvrPassword();
-			savedKbServerType = pApp->GetKBTypeForServer(); // 1 or 2, and only on type can be current at a time
-			savedKbserverURL = pApp->m_strKbServerURL;
-			savedKbserverUsername = pApp->m_strUsername;
-			savedKbserverUserID = pApp->m_strUserID;
-			savedKBSharingEnabled = pApp->m_bKBSharingEnabled; // it might have been disabled by the user
-					// (if so, we'll later below need to restore the kbserver, and then re-disable it)
-		}
-#endif
-*/
-		// Next bit is a tweak of the contents of ConsistencyCheck_ClobberDocument()
-		// save and remove open doc, if a doc is open
-		if (!bDocIsClosed)
-		{
-			// Save the Doc (and DoFileSave_Protected() also automatically saves, without backup,
-			// both the glossing and adapting KBs); FALSE is bool bShowWaitDlg, and the emtpy
-			// string is progressItem - it's empty as we don't want any progress shown for this
-			bool fsOK = pDoc->DoFileSave_Protected(FALSE, _T(""));
-			if (!fsOK)
-			{
-				// something's real wrong! An English message will do
-				wxMessageBox(_T(
-					"Could not save the current document. DoGlobalRestoreOfSaveToKB() was aborted. You can continue working."),
-					_T(""), wxICON_EXCLAMATION | wxOK);
-				// whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
-				// current working directory has not changed, so no need here to reset
-				// it before return.
-				pApp->LogUserAction(_T("Current document not saved. DoGlobalRestoreOfSaveToKB() is aborted, app continues."));
-				pFrame->Thaw();
-				return FALSE; // can't recover the correct operation of this feature after 
-							  // this error, but app can continue after the user is warned
-			}
+			// Process the document's CSourcePhrase inventory, which is now in app's m_pSourcePhrases list
+			RestoreKBStorageForSourceKey(sourceKey, pKB);
 
-			// Ensure the current document's contents are removed. We will reuse this
-			// m_pSourcePhrases list for storing the parse of each document read in.
-			// The only KB that will be affected is the adapting one. The glossing KB
-			// does not support <Not In KB> entries.
-
-			// ClobberDocument() does not clobber the in-memory glossing and adapting
-			// KBs - - we will do those separately; it does though empty the gEditRecord - so
-			// if that had content it would be lost; however, it's used only when processing
-			// the document because editing of the source text has taken place - and this is
-			// not likely to ever be the case when doing global restoring of <Not In KB> to having
-			// a kb entry in all the places the src/tgt pair occur in all docs.
-			pApp->GetView()->ClobberDocument();
-			pApp->m_acceptedFilesList.Clear();
-			bDocForcedToClose = TRUE;
-/* Keep this, but we don't need it here. Someday we may want to kill KBs and kbserver across some kind of scan and restore after it
-#if defined(_KBSERVER)
-			// Ensure any currently running kbserver instances are shut down and the connection
-			// to the one currently active is disconnected (we'll re-establish it or them below,
-			// when we are done)
-			if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
-			{
-				if (pApp->m_bIsKBServerProject)
-				{
-					pApp->ReleaseKBServer(1); // the adaptations one
-					pApp->LogUserAction(_T("ReleaseKBServer(1) called in OnCloseDocument()"));
-				}
-				if (pApp->m_bIsGlossingKBServerProject)
-				{
-					pApp->ReleaseKBServer(2); // the glossings one
-					pApp->LogUserAction(_T("ReleaseKBServer(2) called in OnCloseDocument()"));
-				}
-			}
-#endif
-			// the EraseKB() call will also try to remove any read-only protection
-			pDoc->EraseKB(pApp->m_pKB);
-			pApp->m_pKB = (CKB*)NULL;
-			pDoc->EraseKB(pApp->m_pGlossingKB);
-			pApp->m_pGlossingKB = (CKB*)NULL;
-*/
-		} // end of TRUE block for test: if (!bDocIsClosed)
-
-		// Get the list of all docs, in Adaptations folder and in Book Folders as well
-		wxArrayString allPaths;
-		size_t count = pApp->EnumerateAllDocFiles(allPaths, pApp->m_curAdaptationsPath);
-#if defined(_DEBUG) && defined(NO_ASTERISK)
-		size_t k;
-		for (k = 0; k < count; k++)
-		{
-			wxLogDebug(_T("EnumerateAllDocFiles() a path is: %s"), allPaths.Item(k).c_str());
-		}
-#endif
-
-		wxASSERT(pApp->m_bKBReady);
-		pKB = pApp->m_pKB;
-		wxString saveOutputPath = pApp->m_curOutputPath; // save, because we'll reuse this
-			// for saving our temporarily loaded documents back to the original locations
-
-		// Progress Bar initialization is next
-
-// TODO
-
-		// I don't need to clobber the kbs, and any current kbserver sharing. All I'm doing 
-		// is loading in a doc and running it thru a process that will update it and some 
-		// kb entries. We only need that m_pSourcePhrases is available for temporary
-		// use for storing each doc that we load in for our scan and fixes. So kbserver
-		// connection needs to persist because some entries in the adapting KB will change.
-		// So also, the KBs need to be present, for the same reason.
-		// Only adaptations can have <Not In KB> entries, so glossing KB is unaffected,
-		// and no document adaptations either m_adaption nor m_targetStr get changed, so
-		// StoreText() can be used safely, as so can m_pSourcePhrases. The resulting changed
-		// document will therefore not have any collaboration conflicts created by the process.
-
-		// Prepare and then loop over all the documents, calling the single-document
-		// core processing function: RestoreKBStorageForSourceKey(sourceKey, pKB)
-		CLayout* pLayout = pApp->GetLayout();
-		bool bShowProgressInDocLoad = FALSE; // suppress the OnOpenDocument()'s internal progress tracking
-		pApp->m_bWantSourcePhrasesOnly = TRUE; // this causes OnOpenDocument() to exit immediately after
-											   // populating pSrcPhrases list has completed, because that's
-											   // all we need done
-		pApp->m_bConflictResolutionTurnedOn = FALSE; // keep off for this loop's processing
-		size_t i;
-		wxString aPath;
-		SPList* pSrcPhrases = pApp->m_pSourcePhrases;
-		for (i = 0; i < count; i++)
-		{
-			aPath = allPaths.Item(i);
-#if defined(_DEBUG) && defined(NO_ASTERISK)
-			wxLogDebug(_T("\nDoGLobalRestoreOfSaveToKB() Loop iteration number %d of %d  This path: %s"), i, count, aPath.c_str());
-#endif
-			wxASSERT(pSrcPhrases->IsEmpty());
-			bOK = pDoc->OnOpenDocument(aPath, bShowProgressInDocLoad /* is set FALSE above */);
+			// Save the tweaked document
+			bOK = pDoc->DoAbsolutePathFileSave(aPath); // BEW created 7Sep15
 			if (!bOK)
 			{
-				// If we fail to read in a document, just skip it, but inform the user
-				pLayout->m_bLayoutWithoutVisiblePhraseBox = TRUE; // suppresses phrasebox stuff
-				ClobberDocument();
 				// Inform the user
-				wxString title = _("File read failure");
+				wxString title = _("File write failure");
 				wxFileName fn(aPath);
 				wxString fullFilename = fn.GetFullName();
 				wxString msg;
-				msg = msg.Format(_("Loading the document (  %s ) failed. So processing this document has been skipped."), fullFilename.c_str());
+				msg = msg.Format(_("Writing the automatically updated document (  %s ) failed. So the older version remains unchanged."), fullFilename.c_str());
 				wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 			}
-			else
-			{
-				// Process the document's CSourcePhrase inventory, which is now in app's m_pSourcePhrases list
-				RestoreKBStorageForSourceKey(sourceKey, pKB);
-
-				// Save the tweaked document
-				bOK = pDoc->DoAbsolutePathFileSave(aPath); // BEW created 7Sep15
-				if (!bOK)
-				{
-					// Inform the user
-					wxString title = _("File write failure");
-					wxFileName fn(aPath);
-					wxString fullFilename = fn.GetFullName();
-					wxString msg;
-					msg = msg.Format(_("Writing the automatically updated document (  %s ) failed. So the older version remains unchanged."), fullFilename.c_str());
-					wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-				}
-				// Clobber the document - clearing pSrcPhrases to empty
-				pLayout->m_bLayoutWithoutVisiblePhraseBox = TRUE; // suppresses phrasebox stuff
-				ClobberDocument(); // clears pSrcPhrases list
-			}
+			// Clobber the document - clearing pSrcPhrases to empty
+			pLayout->m_bLayoutWithoutVisiblePhraseBox = TRUE; // suppresses phrasebox stuff
+			ClobberDocument(); // clears pSrcPhrases list
 		}
 
+		// Update the progress bar
+		if (pApp->m_bShowProgress)
+		{
+			msgDisplayed = progMsg.Format(progMsg,(int)(i + 1),nTotal);
+			pStatusBar->UpdateProgress(_T("MakeInKB"), (int)(i + 1), msgDisplayed);
+		}
+	}
 
-		// Close off Progress Bar
-
-/* Keep this, but we don't need it here. We didn't clobber the KBs
-		// Get the project's KBs loaded into memory again
-		bOK = pApp->CreateAndLoadKBs();
+	// Restore the document before exiting, if one was open formerly
+	pApp->m_bWantSourcePhrasesOnly = FALSE; // restore default, so that
+					// all of OnOpenDocument()'s code is used from now on
+	pApp->m_curOutputPath = saveOutputPath; // restore original doc's output path
+	pLayout->m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
+	pApp->m_bConflictResolutionTurnedOn = savedConflictResolutionFlag; // restore original value
+	if (bDocForcedToClose)
+	{
+		// reopen the doc with all as it was before; TRUE is bMarkAsDirty
+		// (This call does not re-establish any kbserver connection that may have
+		// been open when this function was entered, so we need to do that separately)
+		bOK = pDoc->ReOpenDocument(pApp, strSaveCurrentDirectoryFullPath,
+			savedCurOutputPath, savedCurOutputFilename, savedBookmodeFlag,
+			savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE);
 		wxASSERT(bOK);
 		if (!bOK)
 		{
-			wxString msg = _("The adapting and glossing knowledge bases could not be reloaded into memory. Adapt It is in a non-stable state. You should close down immediately without saving, then launch and enter your project again.");
+			wxString msg = _("The former open document could not be reopened. Adapt It is in a non-stable state. You should close down immediately without saving, then launch and enter your project again.");
 			pApp->LogUserAction(msg);
 			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
-			pFrame->Thaw();
+			canvas->Thaw();
 			return FALSE;
 		}
-*/
-		// Restore the document before exiting, if one was open formerly
-		pApp->m_bWantSourcePhrasesOnly = FALSE; // restore default, so that
-						// all of OnOpenDocument()'s code is used from now on
-		pApp->m_curOutputPath = saveOutputPath; // restore original doc's output path
-		pLayout->m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
-		pApp->m_bConflictResolutionTurnedOn = savedConflictResolutionFlag; // restore original value
-		if (bDocForcedToClose)
-		{
-			// reopen the doc with all as it was before; TRUE is bMarkAsDirty
-			// (This call does not re-establish any kbserver connection that may have
-			// been open when this function was entered, so we need to do that separately)
-			bOK = pDoc->ReOpenDocument(pApp, strSaveCurrentDirectoryFullPath,
-				savedCurOutputPath, savedCurOutputFilename, savedBookmodeFlag,
-				savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE);
-			wxASSERT(bOK);
-			if (!bOK)
-			{
-				wxString msg = _("The former open document could not be reopened. Adapt It is in a non-stable state. You should close down immediately without saving, then launch and enter your project again.");
-				pApp->LogUserAction(msg);
-				wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
-				pFrame->Thaw();
-				return FALSE;
-			}
-		}
+	}
+	// Close off Progress Bar & thaw the frozen client area
+	if (pApp->m_bShowProgress)
+	{
+		pStatusBar->FinishProgress(_T("MakeInKB"));
+	}
+	canvas->Thaw();
 
-/* Keep this, we didn't clobber our kbserver setup nor connection, if we had one active (we may someday want to use this code elsewhere)
-#if defined(_KBSERVER)
-		// If a kbserver connection was open, reopen it
-		pApp->m_bIsKBServerProject = savedIsKBServerProject;
-		pApp->m_bIsGlossingKBServerProject = savedIsGLossingKBServerProject;
-		pApp->m_strUserID = savedKbserverUserID;
-		pApp->m_strUsername = savedKbserverUsername;
-		pApp->m_strKbServerURL = savedKbserverURL;
-		pFrame->SetKBSvrPassword(savedPassword);
-		pApp->m_bKBSharingEnabled = savedKBSharingEnabled;
-		if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
-		{
-			// The language codes for source and target will not have changed, nor will
-			// the userID for authentication (the user name)
-			// so we do not need to check them again for validity
-			bool bOK1 = TRUE;
-			bool bOK2 = TRUE;
-			if (pApp->m_bIsKBServerProject)
-			{
-				wxString title = _("Restoring the setup has failed");
-				if (!pApp->SetupForKBServer(1)) // also enables it by default
-				{
-					// an error message will have been shown, so just log the failure
-					pApp->LogUserAction(_T("Restoring adaptations sharing by calling SetupForKBServer(1) failed in DoGlobalRestoreOfSaveToKB()"));
-					pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
-					// Tell the user
-					wxString msg = _("The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base is no longer turned on. You can turn it on again using the Tools menu.");
-					wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-					bOK1 = FALSE;
-				}
-			}
-			if (pApp->m_bIsGlossingKBServerProject)
-			{
-				if (!pApp->SetupForKBServer(2)) // also enables it by default
-				{
-					// an error message will have been shown, so just log the failure
-					pApp->LogUserAction(_T("Restoring glosses sharing by calling SetupForKBServer(2) failed in DoGlobalRestoreOfSaveToKB()"));
-					pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
-					// Tell the user
-					wxString msg = _("The attempt to restore sharing the glossing knowledge base failed.\nYou can continue working, but sharing of this knowledge base is no longer turned on. You can turn it on again using the Tools menu.");
-					wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-					bOK2 = FALSE;
-				}
-			}
-			if (bOK1 == FALSE || bOK2 == FALSE)
-			{
-				pFrame->Thaw();
-				return FALSE;
-			}
-			// Restore the enabled/disabled state as it was at entry to this function
-			if (pApp->m_bKBSharingEnabled)
-			{
-				// Sharing was not (temporarily) disabled by the user, so restore that setting
-				KbServer* pAdaptingSvr = pApp->GetKbServer(1);
-				KbServer* pGlossingSvr = pApp->GetKbServer(2);
-				if (pAdaptingSvr != NULL)
-				{
-					pAdaptingSvr->EnableKBSharing(TRUE);
-				}
-				if (pGlossingSvr != NULL)
-				{
-					pGlossingSvr->EnableKBSharing(TRUE);
-				}
-			}
-			else
-			{
-				// Sharing was (temporarily) disabled by the user
-				KbServer* pAdaptingSvr = pApp->GetKbServer(1);
-				KbServer* pGlossingSvr = pApp->GetKbServer(2);
-				if (pAdaptingSvr != NULL)
-				{
-					pAdaptingSvr->EnableKBSharing(FALSE);
-				}
-				if (pGlossingSvr != NULL)
-				{
-					pGlossingSvr->EnableKBSharing(FALSE);
-				}
-			}
-		}
-#endif
-*/
-		pFrame->Thaw();
-	} // end of else block for test: if (choice == wxNO)
-
+	pApp->m_bShowProgress = FALSE;
 	return TRUE;
 }
 
@@ -14707,11 +14593,6 @@ void CAdapt_ItView::RestoreKBStorageForSourceKey(wxString sourceKey, CKB* pKB)
 	wxASSERT(pApp != NULL);
 	SPList* pSPList = pApp->m_pSourcePhrases;
 	CSourcePhrase* pSP = NULL;
-	m_nCallCount = 0; // initialize the member int which we'll use to limit
-		// calls of void CKB::SetRefCountsTo(int refCountValue, CSourcePhrase* pSrcPhrase)
-		// to one per call of RestoreKBStorageForSourceKey() - if we don't do that, calling
-		// it at every matching location keeps the KB's m_refCount values at 1 for the 
-		// restored entries
 	if (!pSPList->IsEmpty())
 	{
 		SPList::Node* pos = pSPList->GetFirst();
@@ -14748,6 +14629,9 @@ void CAdapt_ItView::RestoreKBStorageForSourceKey(wxString sourceKey, CKB* pKB)
 					// calls won't be able to accumulate reference counts in the KB. So use a counter to prevent
 					// calling it more than once.
 					m_nCallCount++;
+#if defined(_DEBUG) && defined(NO_ASTERISK)
+					wxLogDebug(_T("m_nCallCout: %d  at sequNum  %d"), m_nCallCount, pSP->m_nSequNumber);
+#endif
 					if (m_nCallCount == 1)
 					{
 						int refCountWanted = 1;
@@ -14762,7 +14646,7 @@ void CAdapt_ItView::RestoreKBStorageForSourceKey(wxString sourceKey, CKB* pKB)
 						str = _T("<no adaptation>");
 					else
 						str = adaption;
-					wxLogDebug(_T("Storing KB entry: %s / %s for sequNum %d"), 
+					wxLogDebug(_T("Storing KB entry: [ %s / %s ]  for sequNum %d"), 
 						sourceKey.c_str(), str.c_str(), pSP->m_nSequNumber);
 #endif
 				}

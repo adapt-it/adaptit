@@ -394,6 +394,7 @@ extern int	gnFromChapter;
 extern int	gnFromVerse;
 extern int	gnToChapter;
 extern int	gnToVerse;
+extern bool gbInhibitMakeTargetStringCall;
 
 /// This global is defined in CAdapt_ItView
 extern bool	gbCheckInclFreeTransText;
@@ -15318,6 +15319,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 									// maximize visual control of the fixes (user can change
 									// when initiating a new Consistency Check; we don't save
 									// this flag in any config file
+	gbInhibitMakeTargetStringCall = FALSE; // app should start with this OFF
 	// BEW 21May15 added next five, for support of the freeze/thaw optimization for a sequence
 	// of consecutive auto-inserts from the KB, see AdaptitConstants.h for NUMINSERTS value
 	// as well (currently 8)
