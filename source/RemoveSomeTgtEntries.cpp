@@ -338,7 +338,7 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 #if defined(_KBSERVER)
 		if (m_pApp->m_bIsGlossingKBServerProject)
 		{
-			// This project is one for sharing gloss entries to a remote kbserver,
+			// This project is one for sharing gloss entries to a remote KBserver,
 			// and entry to this handler would be prevented if sharing was disabled, so
 			// no need to test for the latter here
 			KbServer* pKbServer = m_pApp->GetKbServer(2);
@@ -366,11 +366,11 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 		GetPhrasePairsForBulkRemoval(&m_leftCheckedArray, m_pGroupsArray,
 			&m_pApp->m_arrSourcesForPseudoDeletion, &m_pApp->m_arrTargetsForPseudoDeletion);
 
-		// Start the background kbserver deletions first, then do the local KB
+		// Start the background KBserver deletions first, then do the local KB
 		// deletions after that thread has been fired off
 #if defined(_KBSERVER)
 
-		// ***********************  TODO  the thread for the kbserver deletions **********************
+		// ***********************  TODO  the thread for the KBserver deletions **********************
 
 #endif
 		// Now the local KB deletions
@@ -382,7 +382,7 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 #if defined(_KBSERVER)
 		if (m_pApp->m_bIsKBServerProject)
 		{
-			// This project is one for sharing adaptation entries to a remote kbserver,
+			// This project is one for sharing adaptation entries to a remote KBserver,
 			// and entry to this handler would be prevented if sharing was disabled, so
 			// no need to test for the latter here
 			KbServer* pKbServer = m_pApp->GetKbServer(1);
@@ -424,12 +424,12 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 		} // <<- end of scope limitation
 */
 #endif
-		// Start the background kbserver deletions first, then do the local KB
+		// Start the background KBserver deletions first, then do the local KB
 		// deletions after that thread has been fired off
 
 #if defined(_KBSERVER)
 
-		// ***********************  TODO  the thread for the kbserver deletions **********************
+		// ***********************  TODO  the thread for the KBserver deletions **********************
 
 #endif
 		// Now the local KB deletions
@@ -496,7 +496,7 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 		}
 		else
 		{
-		// BEW added 22Oct12 for kbserver support
+		// BEW added 22Oct12 for KBserver support
 #if defined(_KBSERVER)
 			int kbServerType = 1; // default, for an adapting kb (2 is for a glossing one)
 			if (bIsGlossingKB)
@@ -1397,7 +1397,7 @@ void RemoveSomeTgtEntries::SetCheckboxes(bool bBySrcGroups)
 // same length and have the same data, only differing in the order of the displayed lines
 // and the order of the subfields in each line. We choose to use the arrays for the left
 // radio button for our calculations of which src/tgt phrase pairs to remove from the kb,
-// and if we are in a shared KB project, also from the remote kbserver (the latter using a
+// and if we are in a shared KB project, also from the remote KBserver (the latter using a
 // background thread which unfortunately has to work as a pair per transmission, so if there
 // is significant netword latency, the thread may take a long time to complete its work)
 void RemoveSomeTgtEntries::GetPhrasePairsForBulkRemoval(TrackingArray* pCheckboxTickedArray,
@@ -1410,7 +1410,7 @@ void RemoveSomeTgtEntries::GetPhrasePairsForBulkRemoval(TrackingArray* pCheckbox
 	// We scan for which lines have a ticked checkbox, get the index for each such line,
 	// and that gives us the NonSrcListRec elements in pArray which have the source and
 	// target phrase strings (also the reference count, but we don't need that) for the kb
-	// entries which are to be pseudo-deleted (and removed from kbserver if sharing is on)
+	// entries which are to be pseudo-deleted (and removed from KBserver if sharing is on)
 	for (nLine = 0; nLine < count; nLine++)
 	{
 		nValue = pCheckboxTickedArray->Item(nLine);

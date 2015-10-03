@@ -8,7 +8,7 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the Thread_ChangedSince class.
 /// The Thread_ChangedSince is a "detached" thread class for downloading a bunch of
-/// database entries from kbserver, to be merged to the local KB. The download is
+/// database entries from KBserver, to be merged to the local KB. The download is
 /// incremental, that is, those entries added remotely since the time of the last
 /// ChangedSince() type of download - whether done by a thread, or manually
 /// (synchronously). This thread downloads to a queue, the latter is protected by a mutex,

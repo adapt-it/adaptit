@@ -5934,7 +5934,7 @@ wxString szKbServerURL = _T("KbServerURL");
 /// sharing, and xhtml & Pathway export, and any other future feature needing a username
 wxString szUniqueUsername = _T("UniqueUsername");
 /// The following one is an informal one, can be a pseudonom, for the user - but needed
-/// for kbserver, and git
+/// for KBserver, and git
 wxString szInformalUsername = _T("InformalUsername");
 
 /// The minimum interval, in minutes, from one incremental download attempt to the next
@@ -15029,7 +15029,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		wxString msg;
 		msg = msg.Format(_T("Error: SetupForKBServer(), kbType = %d - could not instantiate KbServer class; setup aborted"),
 			whichType);
-		wxMessageBox(msg, _T("KbServer error"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
 	// store it for the user's adapting or glossing session in this project
@@ -15082,7 +15082,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		wxString msg;
 		msg = msg.Format(_T("Error: SetupForKBServer(), kbType = %d - could not get the credentials from credentials.txt; setup aborted"),
 			whichType);
-		wxMessageBox(msg, _T("KbServer error"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 		DeleteKbServer(whichType);
 		return FALSE;
 	}
@@ -15234,7 +15234,7 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 	{
 		// couldn't find credentials.txt file in project folder
 		wxString msg = _T("wxFileExists() called in KbServer::GetCredentials(): The credentials.txt file does not exist");
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
 		return FALSE; // signature params are empty still
 	}
 	wxTextFile f;
@@ -15252,7 +15252,7 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 	{
 		// warn developer that the wxTextFile could not be opened
 		wxString msg = _T("GetTextFileOpened()called in GetCredentials(): The wxTextFile could not be opened");
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
 		return FALSE; // signature params are empty still
 	}
 	size_t numLines = f.GetLineCount();
@@ -15263,7 +15263,7 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 		wxString msg;
 		msg = msg.Format(_T("GetTextFileOpened()called in GetCredentials(): The credentials.txt file lacks one or more lines, it has %d of expected 3 (url,username,password)"),
 			numLines);
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
 		f.Close();
 		return FALSE; // signature params are empty still
 	}
@@ -15434,7 +15434,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                             // at the wxTextCtrl on Bruce's dialog.  If not set, NOOWNER is a good
                             // anonymous value and simplifies some later tests.
                             // NOTE: NOOWNER is #defined as _T("****")
-	m_strUsername.Empty(); // GIT uses it, also used as a human-readable informal name in kbserver
+	m_strUsername.Empty(); // GIT uses it, also used as a human-readable informal name in KBserver
 						   // and is stored in the basic config file as is m_strUserID
 
 	m_bClosingDown = FALSE; // gets set to TRUE at start of OnExit()
@@ -28160,7 +28160,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pApp != NULL);
 	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
 
-	// The administrator must authenticate to whichever kbserver he wants to adjust or view
+	// The administrator must authenticate to whichever KBserver he wants to adjust or view
 	// Note: the next line sets up a "stateless" instance of the dialog - it doesn't know
 	// or care about the adapting/glossing mode, the machine's owner, or either of the
 	// glossing or adapting local KBs. It only uses the KbServer class for the services it
@@ -32614,9 +32614,9 @@ bool CAdapt_ItApp::MoveCollabSettingsToProjectConfigFile(wxString collabProjName
 		// been wrong or corrupted, so it is best that we just assume that the
 		// administrator will set collaboration up properly in this new version
 		// for the desired AI project(s).
-		wxString msg = _("Adapt It was not able to upgrade the collaboration settings for use in this version (%s) of Adapt It.\nPlease ask your administrator to setup Adapt It for collaboration with %s.");
+		wxString msg = _("Adapt It was not able to upgrade the collaboration settings for use in this version (%s) of Adapt It.\nThe settings were inconsistent or broken for collaboration with %s.\nAdapt It will remove those setting now. If you want to collaborate with %s, you or your administrator will need to manually set up the collaboration again.");
 		wxASSERT(!m_collaborationEditor.IsEmpty());
-		msg = msg.Format(msg,appVerStr.c_str(),m_collaborationEditor.c_str());
+		msg = msg.Format(msg, appVerStr.c_str(), m_collaborationEditor.c_str(), m_collaborationEditor.c_str());
 		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 	}
 	return TRUE;
@@ -34304,7 +34304,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				num = 5; // if out of range default to 5
 			m_nKbServerIncrementalDownloadInterval = num;
 		}
-#else		// mrh - avoid warning if we're switching from a kbserver to non-kbserver build
+#else		// mrh - avoid warning if we're switching from a KBserver to non-KBserver build
 		else if (name == szIsKBServerProject)
 			;	// do nothing
 		else if (name == szIsGlossingKBServerProject)
@@ -38781,7 +38781,7 @@ void CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& WXUNUS
 				// lookup within the passed in pMap - it will find at most only two
 				// matches (one if there is no upper-case-keyed CTargetUnit with the
 				// needed key), and so the loops are not order-N-squared, but order-N only
-				pKB->UpperToLowerAndTransfer(pMap, srcKey); // supports kbserver createentry etc
+				pKB->UpperToLowerAndTransfer(pMap, srcKey); // supports KBserver createentry etc
 			} // end of loop: for (iter = pMap->begin(); iter != pMap->end(); ++iter)
 		} // end of TRUE block for test: if (!pMap->empty())
 	} // end of loop: for (mapIndex = 0; mapIndex < curMaxWords; mapIndex++)

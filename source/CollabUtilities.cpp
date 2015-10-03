@@ -2168,7 +2168,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 			else
 			{
 				// The password submitted was just an empty string...
-				wxString msg = _("No password was typed. So knowledge base sharing setup is now cancelled for this project.\nUse the command on the Advanced menu to setup again if you wish; but you must first find out your correct password.\nAsk your kbserver administrator.");
+				wxString msg = _("No password was typed. So knowledge base sharing setup is now cancelled for this project.\nUse the command on the Advanced menu to setup again if you wish; but you must first find out your correct password.\nAsk your KBserver administrator.");
 				// We have no option in this circumstance but to turn off any previous kb sharing setup;
 				// which setup types exist could be adapting, or glossing, or both; so we just turn both off.
 				// The Release calls, if a server is setup, will call DeleteKbserver() which will ensure
@@ -2179,7 +2179,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 				pApp->m_bIsKBServerProject = FALSE;
 				pApp->m_bIsGlossingKBServerProject = FALSE;
 				wxMessageBox(msg, _("No Password Typed"), wxICON_WARNING | wxOK);
-				pApp->LogUserAction(_T("OnWizardPageChanging(): no kbserver password typed; so any kb sharing setup is now cancelled; but collaboration continues"));
+				pApp->LogUserAction(_T("OnWizardPageChanging(): no KBserver password typed; so any kb sharing setup is now cancelled; but collaboration continues"));
 			}
 		} // end of else block for test: if (!bUserDidNotCancel)
 	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)

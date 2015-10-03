@@ -6,7 +6,7 @@
 /// \rcs_id $Id$
 /// \copyright		2012 Kevin Bradford, Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for functions involved in kbserver support.
+/// \description	This is the implementation file for functions involved in KBserver support.
 /// This .cpp file contains member functions of the KbServer class.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -70,7 +70,7 @@ using namespace std;
 #include "md5_SB.h"
 
 WX_DEFINE_LIST(DownloadsQueue);
-WX_DEFINE_LIST(UploadsList);  // for use by Thread_UploadMulti, for kbserver support
+WX_DEFINE_LIST(UploadsList);  // for use by Thread_UploadMulti, for KBserver support
 							  // (see member m_uploadsList)
 WX_DEFINE_LIST(UsersList);    // for use by the ListUsers() client, stores KbServerUser structs
 WX_DEFINE_LIST(KbsList);    // for use by the ListKbs() client, stores KbServerKb structs
@@ -94,7 +94,7 @@ extern bool		gbIsGlossing;
 // test or an if (m_bIsGlossingKBServerProject) text.
 // However, looking at which functionalities, at a higher level, call
 // CreateAndLoadKBs(), many of these are too early for any association of a project with
-// a kbserver to have been set up already. Therefore, possibly after a read of the
+// a KBserver to have been set up already. Therefore, possibly after a read of the
 // project configuration file may be appropriate - since it's that configuration file
 // which sets or clears the ywo above boolean flags. This is so: there are
 // 4 contexts where the project config file is read: in DoUnpackDocument(), in
@@ -613,7 +613,7 @@ wxString KbServer::ImportLastSyncTimestamp()
             msg = _T("wxFileExists() called in ImportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_glosses.txt, does not exist");
 		}
 		m_pApp->LogUserAction(msg);
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
 		return dateTimeStr; // it's empty still
 		*/
 	}
@@ -626,7 +626,7 @@ wxString KbServer::ImportLastSyncTimestamp()
 	{
 		// warn developer that the wxTextFile could not be opened
 		wxString msg = _T("GetTextFileOpened() called in ImportLastSyncTimestamp(): The wxTextFile could not be opened");
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
 		return dateTimeStr; // it will be the early safe default value hard coded above, i.e. start of 2012
 	}
 	size_t numLines = f.GetLineCount();
@@ -644,11 +644,11 @@ wxString KbServer::ImportLastSyncTimestamp()
             msg = _T("GetTextFileOpened( )called in ImportLastSyncTimestamp(): The lastsync_glosses.txt file is empty");
             m_pApp->LogUserAction(msg);
 		}
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
 		f.Close();
 		return dateTimeStr; // it's empty still
 	}
-	// whew, finally, we have the lastsync datetime string for this kbserver type
+	// whew, finally, we have the lastsync datetime string for this KBserver type
 	dateTimeStr = f.GetLine(0);
     // BEW added 28Jan13, somehow a UTF8 BOM ended up in the dateTimeStr passed to
     // ChangedSince(), so as I've not got detection and removal code in both ToUtf8() and
@@ -661,7 +661,7 @@ wxString KbServer::ImportLastSyncTimestamp()
 	return dateTimeStr;
 }
 
-// Takes the kbserver's datetime supplied with downloaded data, as stored in the
+// Takes the KBserver's datetime supplied with downloaded data, as stored in the
 // m_kbServerLastSync member, and stores it on disk (in the file lastsync_adaptations.txt
 // when the instance is dealing with adaptations, and lastsync_glosses.txt when dealing with
 // glosses KB; each is located in the AI project folder)
@@ -684,7 +684,7 @@ bool KbServer::ExportLastSyncTimestamp()
             // it's the glosses KB which is being shared
             msg = _T("wxFileExists()called in ExportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_glosses.txt, does not exist");
         }
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
 	wxTextFile f;
@@ -707,7 +707,7 @@ bool KbServer::ExportLastSyncTimestamp()
 		    // it's the glosses KB which is being shared
             msg = _T("GetTextFileOpened()called in ExportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_glosses.txt, could not be opened");
 		}
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
 	f.Clear(); // chuck earlier value
@@ -889,7 +889,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 		{
 			// a non-localizable message will do, it's unlikely to ever be seen
 			wxMessageBox(_T("LookupEntriesForSourcePhrase(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
-				_T("kbserver error"), wxICON_ERROR | wxOK);
+				_T("KBserver error"), wxICON_ERROR | wxOK);
 			str_CURLbuffer.clear(); // always clear it before returning
 			curl_free(encodedsource);
 			return -1;
@@ -1094,7 +1094,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 				wxString msg;
 				msg = msg.Format(_T("ChangedSince(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
 					aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
-				wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+				wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 
 				str_CURLbuffer.clear(); // always clear it before returning
                 str_CURLheaders.clear(); // always clear it before returning
@@ -1108,7 +1108,7 @@ int KbServer::ChangedSince(wxString timeStamp)
             // get feedback about now many entries we got
             if (arraySize > 0)
             {
-                wxLogDebug(_T("ChangedSince() returned %d entries, for data added to kbserver since %s"),
+                wxLogDebug(_T("ChangedSince() returned %d entries, for data added to KBserver since %s"),
                     arraySize, timeStamp.c_str());
             }
 #endif
@@ -1434,7 +1434,7 @@ int KbServer::ListLanguages(wxString username, wxString password)
 				wxString msg;
 				msg = msg.Format(_T("ListLanguages(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
 					aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
-				wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+				wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 
 				str_CURLbuffer.clear(); // always clear it before returning
 				str_CURLheaders.clear();
@@ -1630,7 +1630,7 @@ int KbServer::ListUsers(wxString username, wxString password)
 			wxString msg;
 			msg = msg.Format(_T("ListUsers(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
 				aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
-			wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+			wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
@@ -1803,7 +1803,7 @@ int KbServer::ListKbs(wxString username, wxString password)
 			wxString msg;
 			msg = msg.Format(_T("Listkbs(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
 				aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
-			wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+			wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
@@ -1980,7 +1980,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 			wxString msg;
 			msg = msg.Format(_T("LookupUser(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
 				aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
-			wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+			wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
@@ -2160,7 +2160,7 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 				wxString msg;
 				msg = msg.Format(_T("LookupSingleKb(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
 					aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
-				wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+				wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 
 				str_CURLbuffer.clear(); // always clear it before returning
 				str_CURLheaders.clear();
@@ -2217,7 +2217,7 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 				wxASSERT(pKbStruct != NULL);
 				if ((pKbStruct->targetLanguageCode == tgtLangCode) && (pKbStruct->kbType == kbType))
 				{
-					bMatchedKB = TRUE; // the looked up KB exists in the kb table of this kbserver
+					bMatchedKB = TRUE; // the looked up KB exists in the kb table of this KBserver
 				}
 				// no longer need the struct once it has been tested
 				delete pKbStruct;
@@ -2435,7 +2435,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 			wxString msg;
 			msg = msg.Format(_T("LookupEntryFields(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
 				aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
-			wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+			wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 
 			curl_free(encodedsource);
 			curl_free(encodedtarget);
@@ -2633,7 +2633,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 				wxString msg;
 				msg = msg.Format(_T("ChangedSince_Queued(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
 					aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
-				wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+				wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 
 				str_CURLbuffer.clear(); // always clear it before returning
                 str_CURLheaders.clear(); // always clear it before returning
@@ -2644,7 +2644,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
             // get feedback about now many entries we got, in debug mode
             if (listSize > 0)
             {
-                wxLogDebug(_T("ChangedSince_Queued() returned %d entries, for data added to kbserver since %s"),
+                wxLogDebug(_T("ChangedSince_Queued() returned %d entries, for data added to KBserver since %s"),
                     listSize, timeStamp.c_str());
             }
 #endif
@@ -3020,7 +3020,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 
 // Pass in the params, because we use this only from the KB Sharing Manager, and there's no guarantee that
 // the person doing the administrative task is the computer's normal user; we con't want administrator
-// temporary access to clobber the normal user's kbserver access credentials
+// temporary access to clobber the normal user's KBserver access credentials
 int	KbServer::CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description)
 {
 	CURL *curl;
@@ -3383,7 +3383,7 @@ int KbServer::ReadLanguage(wxString url, wxString username, wxString password, w
 			wxString msg;
 			msg = msg.Format(_T("ReadLanguage(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
 				aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
-			wxMessageBox(msg, _T("kbserver error"), wxICON_ERROR | wxOK);
+			wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
@@ -4158,7 +4158,7 @@ void KbServer::DoGetAll(bool bUpdateTimestampOnSuccess)
 			// There was a cURL error, display it - but only if we were trying to do a
 			// DoGetAll() to update the local KB. It we were calling DoGetAll() as the
 			// first step in the process required for the first upload of the local
-			// KB to the remote DB on kbserver, then the DoGetAll() returns a
+			// KB to the remote DB on KBserver, then the DoGetAll() returns a
 			// http error 404 NOT FOUND - and we don't want an error message to show in
 			// that circumstance, because the upload will deduce from the 7 parallel
 			// arrays being empty that the remote DB has nothing in it yet, and use that
@@ -4727,7 +4727,7 @@ void KbServer::UploadToKbServer()
 				// convert it to utf-8 stored in CBString
 				jsonUtf8Str = ToUtf8(jsonStr);
 
-				// Call BulkUpdate() to get the data entered to the remote kbserver
+				// Call BulkUpdate() to get the data entered to the remote KBserver
 				//pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 				rv = (int)pKbSvr->BulkUpload(chunkIndex, url, username, password, jsonUtf8Str);
 

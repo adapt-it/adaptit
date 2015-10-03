@@ -7,7 +7,7 @@
 /// \copyright		2013 Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the Thread_CreateEntry class.
-/// The Thread_CreateEntry is a thread class for uploading a single new kbserver entry for
+/// The Thread_CreateEntry is a thread class for uploading a single new KBserver entry for
 /// eventual sharing; it decouples the upload from the user's normal adapting work --
 /// needed because of the potential for high network latency causing unacceptable delays in
 /// the responsiveness of the GUI for the interlinear layout.

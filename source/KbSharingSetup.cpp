@@ -138,7 +138,7 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 	}
 
 	// Authenticate to the server. Authentication also chooses, via the url provided or
-	// typed, which particular kbserver we connect to - there may be more than one available
+	// typed, which particular KBserver we connect to - there may be more than one available
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	bool bUserAuthenticating = TRUE; // when true, url is stored in app class, & pwd in the MainFrm class
 	KBSharingStatelessSetupDlg dlg(pFrame, bUserAuthenticating);// bUserAuthenticating
@@ -223,7 +223,7 @@ here:	dlgReturnCode = dlg.ShowModal();
 		// If control gets to here, we can go ahead and establish the setup(s)
 
 		// Shut down the old settings, and reestablish connection using the new
-		// settings (this may involve a url change to share using a different kbserver)
+		// settings (this may involve a url change to share using a different KBserver)
 		m_pApp->ReleaseKBServer(1); // the adaptations one
 		m_pApp->ReleaseKBServer(2); // the glossing one
 		m_pApp->m_bIsKBServerProject = FALSE;

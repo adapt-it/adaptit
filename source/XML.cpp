@@ -3335,7 +3335,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 			gpApp->m_owner = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 #endif	
             
-// (May 2013) If m_strUserID is not NOOWNER, it's the unique user ID for DVCS or kbserver.  If the incoming doc has a real
+// (May 2013) If m_strUserID is not NOOWNER, it's the unique user ID for DVCS or KBserver.  If the incoming doc has a real
 // owner, we leave that alone.  Otherwise the incoming doc's owner becomes m_strUserID, NOOWNER or otherwise.
             
             if (gpApp->m_owner == NOOWNER)

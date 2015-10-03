@@ -29,7 +29,7 @@
 /// remote DB.
 /// This thread is a "detached" type (the wx default for thread objects); that is, it will
 /// destroy itself once it completes.
-/// It is created on the heap, and potentially calls several kbserver API functions.
+/// It is created on the heap, and potentially calls several KBserver API functions.
 /// \derivation		The Thread_KbEditorUpdateButton class is derived from wxThread.
 /////////////////////////////////////////////////////////////////////////////
 

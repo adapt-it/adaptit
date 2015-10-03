@@ -855,7 +855,7 @@ a:		iter = pMap->find(keyStr);
 // In this function, the keyStr parameter will always be a source string; the caller must
 // determine which particular map is to be looked up and provide it's pointer as the first
 // parameter; and if the lookup succeeds, pTU is the associated CTargetUnit instance's
-// pointer. This function has no smarts for AutoCapitalization support, because KbServer
+// pointer. This function has no smarts for AutoCapitalization support, because KBserver
 // database simply takes whatever is passed to it, and returns same when requested. A
 // failure to find an associated CTargetUnit instance for the passed in keyStr also results
 // in pTU being returned as NULL; otherwise.
@@ -1492,8 +1492,8 @@ void CKB::StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase,
         // another have it off, nevertheless we just lookup without checking for case
         // and then doing any needed case conversions. This may result in one user not
         // receiving entries for upper case keys that he'd like to receive but which
-        // aren't in the kbserver and so can't be sent, or alternatively, receiving
-        // entries for upper case keys which are in kbserver but which he'll never use
+        // aren't in the KBserver and so can't be sent, or alternatively, receiving
+        // entries for upper case keys which are in KBserver but which he'll never use
         // while he has autocaptalization turned on. So be it. But no damage is done
         // either way.
         nMapIndex = nWordCount - 1;
@@ -1548,23 +1548,23 @@ void CKB::StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase,
 				{
 					// We must take <Not In KB> entries into account. These
 					// can occur in the local KB, but we never propagate them to a
-					// kbserver, and so the latter's downloaded entries will never
+					// KBserver, and so the latter's downloaded entries will never
 					// contain them. However, the entry we are about to deal with
 					// may be, in this particular local KB, a <Not In KB> entry.
 					// In which case, the <Not In KB> status must win, until such
 					// time as the user of the local KB removes that status on
 					// that entry. So we much check for <Not In KB> and if the pTU
 					// current stores such an entry, then we abandon the non-<Not
-					// In KB> entry coming from the kbserver
+					// In KB> entry coming from the KBserver
 					wxString strNotInKB = _T("<Not In KB>");
 					if (pTU->IsItNotInKB())
 					{
 						// we should not override the user's choice, so we must
-						// abandon this entry received from the kbserver
+						// abandon this entry received from the KBserver
 						return;
 					}
 					// The m_pTranslations list is not empty, so check if the
-					// kbserver entry is already present with the same value of
+					// KBserver entry is already present with the same value of
 					// the deleted flag - if so, we abandon this entry as it's
 					// already in the local KB; but if absent, or the deleted flag
 					// value is different, then we have to update the local KB
@@ -1579,7 +1579,7 @@ void CKB::StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase,
 					{
 						// No match. So we can add the new entry, and give it's
 						// m_bDeleted flag whatever value is in the bDeletedFlag
-						// as passed from the kbserver entry's download
+						// as passed from the KBserver entry's download
 						MakeAndStoreNewRefString(pTU, tgtPhrase, username, bDeletedFlag);
 						// pTU is already in pMap, and the value of m_nMaxWords is
 						// already set correctly, so we've no more to do here
@@ -1591,7 +1591,7 @@ void CKB::StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase,
                     // the value of it's m_bDeleted flag which tells us whether or
                     // not this is a normal or a deleted entry in the local KB.
                     // So if we got a match, and the two flags are equal, then the
-                    // local KB has this entry from the kbserver, and we can throw
+                    // local KB has this entry from the KBserver, and we can throw
                     // it away and iterate the loop; but if the flags differ, then
                     // we either have to pseudo-delete this local KB entry, or
                     // undelete this local KB entry.
@@ -1809,23 +1809,23 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 					{
 						// We must take <Not In KB> entries into account. These
 						// can occur in the local KB, but we never propagate them to a
-						// kbserver, and so the latter's downloaded entries will never
+						// KBserver, and so the latter's downloaded entries will never
 						// contain them. However, the entry we are about to deal with
 						// may be, in this particular local KB, a <Not In KB> entry.
 						// In which case, the <Not In KB> status must win, until such
 						// time as the user of the local KB removes that status on
 						// that entry. So we much check for <Not In KB> and if the pTU
 						// current stores such an entry, then we abandon the non-<Not
-						// In KB> entry coming from the kbserver
+						// In KB> entry coming from the KBserver
 						wxString strNotInKB = _T("<Not In KB>");
 						if (pTU->IsItNotInKB())
 						{
 							// we should not override the user's choice, so we must
-							// abandon this entry received from the kbserver
+							// abandon this entry received from the KBserver
 							continue;
 						}
 						// The m_pTranslations list is not empty, so check if the
-						// kbserver entry is already present with the same value of
+						// KBserver entry is already present with the same value of
 						// the deleted flag - if so, we abandon this entry as it's
 						// already in the local KB; but if absent, or the deleted flag
 						// value is different, then we have to update the local KB
@@ -1943,13 +1943,13 @@ KbServer* CKB::GetMyKbServer()
 /// \param tgtPhrase    ->  the adaptation or gloss which is associated with pTU's key
 /// \param username     ->  a record of who contributed the entry originally
 /// \param bDeletedFlag ->  passes in the value of the kbserver entry's deleted flag
-///                         as a boolean (kbserver entry's 0 is here passed as FALSE,
+///                         as a boolean (KBserver entry's 0 is here passed as FALSE,
 ///                          and 1 is passed here as TRUE)
 /// \remarks
-/// Encapsulates the making of a CRefString added because of a new entry from kbserver.
+/// Encapsulates the making of a CRefString added because of a new entry from KBserver.
 /// We need this in more than one place, so made a function of it
 /// BEW 23Apr15, I think no change is needed for support of / as a word-breaker char,
-/// because what comes from the kbserver should have ZWSP as delimiters already if it
+/// because what comes from the KBserver should have ZWSP as delimiters already if it
 /// was a phrase that originally had / as delimiter(s).
 void CKB::MakeAndStoreNewRefString(CTargetUnit* pTU, wxString& tgtPhrase,
 								   wxString& username, bool bDeletedFlag)
@@ -1958,9 +1958,9 @@ void CKB::MakeAndStoreNewRefString(CTargetUnit* pTU, wxString& tgtPhrase,
 	// up it's owned CRefStringMetadata instance, and sets its creator
 	// and creation datetime (creator is initialized to the user
 	// account on the local machine, but we then overwrite now with the
-	// username received in the kbserver entry)
+	// username received in the KBserver entry)
 	pRefString->GetRefStringMetadata()->SetWhoCreated(username);
-	// default is to create a normal entry, but if the kbserver
+	// default is to create a normal entry, but if the KBserver
 	// entry is a pseudo-deleted one, we have extra work to do
 	if (bDeletedFlag)
 	{
@@ -1991,7 +1991,7 @@ void CKB::MakeAndStoreNewRefString(CTargetUnit* pTU, wxString& tgtPhrase,
 /// \param bIsDeleted   <-  for passing back the local CRefString instance's m_bDeleted
 ///                         flag's value ( a boolean, TRUE or FALSE)
 /// \remarks
-/// Finds if the kbserver entry has a matching <key,tgtPhrase> pair stored in the passed
+/// Finds if the KBserver entry has a matching <key,tgtPhrase> pair stored in the passed
 /// in pTU (the latter is a pointer to a CTargetUnit instance), and it also returns the
 /// m_bDeleted flag's value, since the local KB may have this entry as a normal entry, or
 /// as a pseudo-deleted one.
@@ -3670,7 +3670,7 @@ CTargetUnit* CKB::GetTargetUnitForKbSharing(wxString keyStr)
 ///                 translation string could be target text, or glossing text (if the latter
 ///                 then it may have punctuation in it - we allow punctuation only in the
 ///                 glossing KB) - the origin of the translation string most likely is
-///                 from a kbserver on the LAN or the web and some kind of GET has just
+///                 from a KBserver on the LAN or the web and some kind of GET has just
 ///                 been done
 /// \param deletedFlag -> the value (0 is FALSE, 1 is TRUE) of the deleted flag for the
 ///                 pair being considered for a match (pair being the key and the
@@ -4335,7 +4335,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 #endif
 
 #if defined(_KBSERVER)
-		// BEW added 5Oct12, here is a suitable place for kbserver support of
+		// BEW added 5Oct12, here is a suitable place for KBserver support of
 		// CreateEntry(), since both the key and the translation (both possibly with a case
 		// adjustment for the first letter) are defined.
 		if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
@@ -4344,7 +4344,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		{
 			KbServer* pKbSvr = GetMyKbServer();
 
-			// don't send to kbserver if it's a <Not In KB> entry
+			// don't send to KBserver if it's a <Not In KB> entry
 			if (!bStoringNotInKB)
 			{
 				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
@@ -4520,7 +4520,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 #endif
 
 #if defined(_KBSERVER)
-			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
+			// BEW added 5Oct12, here is a suitable place for KBserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined.
 			if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
@@ -4529,7 +4529,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			{
 				KbServer* pKbSvr = GetMyKbServer();
 
-				// don't send to kbserver if it's a <Not In KB> entry
+				// don't send to KBserver if it's a <Not In KB> entry
 				if(!bStoringNotInKB)
 				{
 					Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
@@ -4689,16 +4689,16 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// we add it instead as a normal entry. If it's in the remote
 						// database already as a normal entry, then we make no change.
 						//
-						// BEW 15Nov12, we don't store <Not In KB> as kbserver entries,
+						// BEW 15Nov12, we don't store <Not In KB> as KBserver entries,
 						// and when user locally unticks the Save in KB checkbox to make
 						// that key have only <Not In KB> as the pseudo-adaptation, it
 						// makes any normal adaptations for that key become pseudo-deleted
-						// but we don't inform kbserver of that fact. Therefore, an
+						// but we don't inform KBserver of that fact. Therefore, an
 						// attempt to undelete any of those pseudo-deleted entries needs
-						// to be stopped from sending anything to kbserver also. We want to
+						// to be stopped from sending anything to KBserver also. We want to
 						// keep use of <Not In KB> restricted to the particular user who
 						// wants to do that, and not propagate it and deletions /
-						// undeletions that may happen as part of it, to the kbserver.
+						// undeletions that may happen as part of it, to the KBserver.
 						if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 							||
 							(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
@@ -4869,7 +4869,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 //						m_pApp->m_pAdaptationsGuesser->AddCorrespondence(key, pRefString->m_translation);
 #endif
 #if defined(_KBSERVER)
-					// BEW added 5Oct12, here is a suitable place for kbserver support of
+					// BEW added 5Oct12, here is a suitable place for KBserver support of
 					// CreateEntry(), since both the key and the translation (both possibly
 					// with a case adjustment for the first letter) are defined.
 					if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
@@ -4878,7 +4878,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					{
 						KbServer* pKbSvr = GetMyKbServer();
 
-						// don't send a <Not In KB> entry to kbserver
+						// don't send a <Not In KB> entry to KBserver
 						if (!bStoringNotInKB)
 						{
 							Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
@@ -5175,11 +5175,11 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		}
 
 #if defined(_KBSERVER)
-		// BEW added 5Oct12, here is a suitable place for kbserver support of
+		// BEW added 5Oct12, here is a suitable place for KBserver support of
 		// CreateEntry(), since both the key and the translation (both possibly with a case
 		// adjustment for the first letter) are defined.
 		// Note: we can't reliably assume that the newly typed translation or gloss has not
-		// been, independently by some other user, added to the kbserver already, and also
+		// been, independently by some other user, added to the KBserver already, and also
 		// subsequently deleted by him before the present; therefore we must test for the
 		// absence of this src/tgt pair and only upload if the entry really is going to be
 		// a new one.
@@ -5189,7 +5189,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		{
 			KbServer* pKbSvr = GetMyKbServer();
 
-			// don't send to kbserver if it's a <Not In KB> entry
+			// don't send to KBserver if it's a <Not In KB> entry
 			if (!bStoringNotInKB)
 			{
 				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
@@ -5280,7 +5280,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			}
 
 #if defined(_KBSERVER)
-			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
+			// BEW added 5Oct12, here is a suitable place for KBserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined.
 			if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
@@ -5289,7 +5289,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			{
 				KbServer* pKbSvr = GetMyKbServer();
 
-				// don't send to kbserver if it's a <Not In KB> entry
+				// don't send to KBserver if it's a <Not In KB> entry
 				if (!bStoringNotInKB)
 				{
 					Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
@@ -5409,16 +5409,16 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						// we add it instead as a normal entry. If it's in the remote
 						// database already as a normal entry, then we make no change.
 						//
-						// BEW 15Nov12, we don't store <Not In KB> as kbserver entries,
+						// BEW 15Nov12, we don't store <Not In KB> as KBserver entries,
 						// and when user locally unticks the Save in KB checkbox to make
 						// that key have only <Not In KB> as the pseudo-adaptation, it
 						// makes any normal adaptations for that key become pseudo-deleted
-						// but we don't inform kbserver of that fact. Therefore, an
+						// but we don't inform KBserver of that fact. Therefore, an
 						// attempt to undelete any of those pseudo-deleted entries needs
-						// to be stopped from sending anything to kbserver also. We want to
+						// to be stopped from sending anything to KBserver also. We want to
 						// keep use of <Not In KB> restricted to the particular user who
 						// wants to do that, and not propagate it and deletions /
-						// undeletions that may happen as part of it, to the kbserver.
+						// undeletions that may happen as part of it, to the KBserver.
 						if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 							||
 							(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
@@ -5550,7 +5550,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					}
 
 #if defined(_KBSERVER)
-					// BEW added 5Oct12, here is a suitable place for kbserver support of
+					// BEW added 5Oct12, here is a suitable place for KBserver support of
 					// CreateEntry(), since both the key and the translation (both possibly
 					// with a case adjustment for the first letter) are defined.
 					if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())

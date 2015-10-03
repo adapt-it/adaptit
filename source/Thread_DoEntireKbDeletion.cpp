@@ -179,7 +179,7 @@ void* Thread_DoEntireKbDeletion::Entry()
         // to reflect the kb definition has gone. If the GUI isn't open, we just remove the
         // definition from the kb table of the mysql database, and no more needs to be done
         // other than housekeeping cleanup (eg. clearing of the queue of KbServerEntry
-        // structs, and deletion of the stateless kbserver instance used for doing this
+        // structs, and deletion of the stateless KbServer instance used for doing this
 		// work. How do we proceed...? I think a boolean on the app to say that the
 		// Manager GUI is open for business, and another that the kbs page is active, and
 		// we also need to check that the radiobutton setting hasn't changed (to switch

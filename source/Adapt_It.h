@@ -99,7 +99,7 @@ class AIPrintout;
 
 class NavProtectNewDoc; // for user navigation protection feature
 // for support of the  m_pKbServer public member (pointer to the current instance of
-// KbServer class - which is non_NULL only when kbserver support is instantiated for an
+// KbServer class - which is non_NULL only when KBserver support is instantiated for an
 // adaptation project designated as one which is to support KB sharing
 
 // _KBSERVER has been moved to be a precompilation define (both debug and release builds)
@@ -2900,7 +2900,7 @@ public:
 	// m_pKB and m_pGlossingKB, so that the are created and destroyed when the adapting
 	// CKB instances are created and destroyed, respectively, is deliberate. There are
 	// times when local KBs are instantiated for processes that are best handled without
-	// an active connection to a remote kbserver database - for instance, transferring
+	// an active connection to a remote KBserver database - for instance, transferring
 	// adaptations to glosses in a new project; KB restoration via the File > Restore
 	// Knowledge Base command; reconstituting a CKB from a git repository, and maybe
 	// others. So we'll instantiate KbServer instances only when appropriate.
@@ -2933,7 +2933,7 @@ public:
 	// those in the
 	// KB Sharing Support.odt document
 
-	// BEW added 25Sep12 for support of kbserver sharing of kb data between clients
+	// BEW added 25Sep12 for support of KBserver sharing of kb data between clients
 	// For testing the development of the code, url, username and password are stored in
 	// the project folder in credentials.txt, one per line. And in the same folder,
 	// lastsync_adaptations.txt stores the date & time for an adaptations KbServer instance,

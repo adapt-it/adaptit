@@ -10582,7 +10582,7 @@ wxSizer *SharedKBManager_CreateCodesPageFunc( wxWindow *parent, bool call_fit, b
 
     wxString *strs17 = (wxString*) NULL;
     wxListBox *item17 = new wxListBox( parent, ID_LISTBOX_CUSTOM_CODES, wxDefaultPosition, wxSize(280,120), 0, strs17, wxLB_SINGLE );
-    item17->SetToolTip( _("Lists custom language codes known to this kbserver instance") );
+    item17->SetToolTip( _("Lists custom language codes known to this KBserver instance") );
     item15->Add( item17, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item14->Add( item15, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );

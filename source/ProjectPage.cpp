@@ -1348,7 +1348,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					{
 						// A m_strUserID and m_strUsername should be in place now due to
 						// the above call of CheckUsername, so go ahead with next steps:
-						// a) to check the user is authorized to use the kbserver, and
+						// a) to check the user is authorized to use the KBserver, and
 						// b) to check for valid language codes
 						pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
 													   // ready for SetupForKBServer() below to use it
@@ -1367,18 +1367,18 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 							// Access is denied to this user, so turn off the setting
 							// which says that this project is one for sharing, and tell
 							// the user
-							pApp->LogUserAction(_T("Kbserver user is invalid; in OnWizardPageChanging() in ProjectPage.cpp"));
+							pApp->LogUserAction(_T("KBserver user is invalid; in OnWizardPageChanging() in ProjectPage.cpp"));
 							pApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
 							pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
 							pApp->m_bIsKBServerProject = FALSE;
 							pApp->m_bIsGlossingKBServerProject = FALSE;
-							wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.");
+							wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your KBserver administrator to add your username to the server's list.");
 							msg = msg.Format(msg, pApp->m_strUserID.c_str());
 							wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
 						}
 						else
 						{
-							// The username is valid for this kbserver, so check language codes
+							// The username is valid for this KBserver, so check language codes
 							bool bDidFirstOK = TRUE;
 							bool bDidSecondOK = TRUE;
 							bool bFirstBlockFailure = FALSE;
@@ -1458,18 +1458,18 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 				}
 				else
 				{
-					wxString msg = _("No password was typed. The knowledge base sharing setup for this project is now cancelled.\nUse the command on the Advanced menu to setup again if you wish; but you must first find out your correct password.\nAsk your kbserver administrator.");
+					wxString msg = _("No password was typed. The knowledge base sharing setup for this project is now cancelled.\nUse the command on the Advanced menu to setup again if you wish; but you must first find out your correct password.\nAsk your KBserver administrator.");
 					// We have no option in this circumstance but to turn off any previous kb sharing setup; 
 					// which setup types exist could be adapting, or glossing, or both; so we just turn both off.
 					// The Release calls, if a server is setup, will call DeleteKbserver() which will ensure
-					// the pointer to the relevant kbserver type is set to NULL. If already NULL, the Release...
+					// the pointer to the relevant KBserver type is set to NULL. If already NULL, the Release...
 					// calls do nothing.
 					pApp->ReleaseKBServer(1); 
 					pApp->ReleaseKBServer(2);
 					pApp->m_bIsKBServerProject = FALSE;
 					pApp->m_bIsGlossingKBServerProject = FALSE;
 					wxMessageBox(msg, _("No Password Typed"), wxICON_WARNING | wxOK);
-					pApp->LogUserAction(_T("OnWizardPageChanging(): no kbserver password typed"));
+					pApp->LogUserAction(_T("OnWizardPageChanging(): no KBserver password typed"));
 				}
 			}
 #endif

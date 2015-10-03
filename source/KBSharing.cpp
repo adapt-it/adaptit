@@ -119,7 +119,7 @@ void KBSharing::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIO_SHARING_OFF);
 	m_pSpinReceiving = (wxSpinCtrl*)FindWindowById(ID_SPINCTRL_RECEIVE);
 
-	// initialize this; it applies to whatever kbserver(s) are open for business -
+	// initialize this; it applies to whatever KBserver(s) are open for business -
 	// but only one at a time can be active, since glossing is a different mode
 	// than adapting
 	bKBSharingEnabled = TRUE;
@@ -347,7 +347,7 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 	// Timing feedback: the UploadToKbServer() call took 13 seconds, for 145 entries, in
 	// my debug build (Release build would be quicker); most of the time is taken in the
 	// bulk download and comparison of local versus remote data to find out what to upload.
-	// I was uploading to a kbserver in VBox VM on the same computer - my XPS Win7 machine.
+	// I was uploading to a KBserver in VBox VM on the same computer - my XPS Win7 machine.
 	pKbServer->ClearReturnedCurlCodes(); // sets the array to 50 zeros
 	pKbServer->UploadToKbServer();
 

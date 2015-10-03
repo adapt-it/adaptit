@@ -2716,7 +2716,7 @@ void CMainFrame::SetKBSvrPassword(wxString pwd)
 	m_kbserverPassword = pwd;
 }
 
-// The public function for getting a kbserver's password. We have it here because we want
+// The public function for getting a KBserver's password. We have it here because we want
 // to get it typed in only once - not twice (ie. not for the adapting KB's KbServer
 // instance and then again for the glossing KB's KbServer instance)
 wxString CMainFrame::GetKBSvrPasswordFromUser()
@@ -4386,7 +4386,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 #if defined(_KBSERVER)
 
-	// TODO -- code for cached new kbserver entries to be sent to remote server
+	// TODO -- code for cached new KBserver entries to be sent to remote server
 	KbServer* pKbSvr = NULL;
 	CKB* pKB = NULL;
 	if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
@@ -4443,7 +4443,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 					}
 				}
 				return; // only do this thread on one OnIdle() call, subsequent OnIdle() calls
-						// can attempt the additional kbserver actions in the code below
+						// can attempt the additional KBserver actions in the code below
 			}
 			else
 			{

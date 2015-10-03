@@ -827,9 +827,9 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
     // then gets the modified datetime, and the new adaptation (or gloss) text, and is
     // shown in the translations list on the edit page, while the old pCurRefString merely
     // gets it's m_deleted flag set TRUE, and a deletion datetime, and is removed from the
-    // edit page's list -- this is in anticipation of kbserver support, which will work
+    // edit page's list -- this is in anticipation of KBserver support, which will work
     // correctly (ie. the uploaded deletions will cause deletions in the other connected
-    // clients, and the new entry will result in a new kbserver pair with the edited
+    // clients, and the new entry will result in a new KBserver pair with the edited
     // adaptation or gloss text as the second member of the pair).
 
 	// clone the pCurRefString, the clone will become the new entry, pCurRefString will
@@ -840,7 +840,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	// BEW 9Jun15, the old one we can leave unmodified by any auto-caps ON setting, since
 	// presumably the matchups above needed to be with the unmodified contents; but for the
 	// newText, if gbAutoCaps is TRUE, then we should store a lower case entry only
-	// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to
+	// BEW 9Jun15, looking at what goes into KBserver, I noticed that no adjustment to
 	// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
 	bNoError = TRUE;
 	if (gbAutoCaps)
@@ -885,7 +885,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	pCurRefString->GetRefStringMetadata()->SetDeletedDateTime(nowStr);
 	pCurRefString->SetDeletedFlag(TRUE);
 
-	// BEW added 26Oct12 for kbserver support
+	// BEW added 26Oct12 for KBserver support
 //*
 #if defined(_KBSERVER)
 		if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
@@ -1013,7 +1013,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 												  // not already there
 	if (bOK)
 	{
-		// BEW added 19Feb13 for kbserver support
+		// BEW added 19Feb13 for KBserver support
 #if defined(_KBSERVER)
 		if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
 				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
@@ -1159,7 +1159,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	m_srcKeyStr = m_pTypeSourceBox->GetValue();
 	wxASSERT(pCurTgtUnit != 0);
 
-	// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to
+	// BEW 9Jun15, looking at what goes into KBserver, I noticed that no adjustment to
 	// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
 	bool bNoError = TRUE;
 	if (gbAutoCaps)
@@ -1184,11 +1184,11 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 				// will match in position
 	wxString s = _("<no adaptation>");
 
-	// if it was added successfully, show it in the listbox & select it; and do kbserver
+	// if it was added successfully, show it in the listbox & select it; and do KBserver
 	// support if required
 	if (bOK)
 	{
-		// BEW added 26Oct12 for kbserver support
+		// BEW added 26Oct12 for KBserver support
 #if defined(_KBSERVER)
 		if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
 				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
@@ -1474,7 +1474,7 @@ void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 	// spend an hour or more working through thousands of entries, ticking hundreds of
 	// obsolete ones for deletion. If the Remove Selected Entries button were then
 	// clicked, the local KB would have those entries pseudo-deleted, but the uploads to
-	// the kbserver would not get done. That would result in a kbserver database out of
+	// the kbserver would not get done. That would result in a KBserver database out of
 	// sync with the local KB on this machine, and we cannot correct that with a bulk
 	// upload because the latter does not include any pseudo deleted entries in a bulk
 	// upload. Nor would retrying the removals in the dialog window work either, because
@@ -1485,7 +1485,7 @@ void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 	{
 		bool bTellUser = FALSE;
-		// This project is one for sharing entries to a remote kbserver
+		// This project is one for sharing entries to a remote KBserver
 		if (gbIsGlossing)
 		{
 			KbServer* pKbServer = pApp->GetKbServer(2);
@@ -1710,7 +1710,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		m_pListBoxExistingTranslations->Clear();
 	}
 
-	// BEW added 22Oct12 for kbserver support
+	// BEW added 22Oct12 for KBserver support
 #if defined(_KBSERVER)
 	if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
@@ -2706,7 +2706,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
             // is called.
 
 			m_srcKeyStr = m_TheSelectedKey;
-			// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to
+			// BEW 9Jun15, looking at what goes into KBserver, I noticed that no adjustment to
 			// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
 			bool bNoError = TRUE;
 			if (gbAutoCaps)
@@ -2736,7 +2736,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			// get the key for the source phrase at the active location
 			wxString srcKey;
 			srcKey = gpApp->m_pActivePile->GetSrcPhrase()->m_key;
-			// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to
+			// BEW 9Jun15, looking at what goes into KBserver, I noticed that no adjustment to
 			// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
 			bool bNoError = TRUE;
 			if (gbAutoCaps)
@@ -2763,7 +2763,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		{
 			m_pListBoxKeys->SetSelection(nStartingSelection);
 			wxString str = m_pListBoxKeys->GetString(nStartingSelection);
-			// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to
+			// BEW 9Jun15, looking at what goes into KBserver, I noticed that no adjustment to
 			// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
 			bool bNoError = TRUE;
 			if (gbAutoCaps)
