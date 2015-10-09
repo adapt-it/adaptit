@@ -365,19 +365,7 @@ void KbSharingSetup::OnCancel(wxCommandEvent& myevent)
 	m_pApp->m_bIsGlossingKBServerProject = m_saveSharingGlossesFlag;
 	myevent.Skip();
 }
-/*
-void KbSharingSetup::OnUpdateButtonRemoveSetup(wxUpdateUIEvent& event)
-{
-	if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
-	{
-		event.Enable(TRUE);
-	}
-	else
-	{
-		event.Enable(FALSE);
-	}
-}
-*/
+
 void KbSharingSetup::OnButtonRemoveSetup(wxCommandEvent& WXUNUSED(event))
 {
 	m_pApp->m_bIsKBServerProject = FALSE;

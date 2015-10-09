@@ -74,7 +74,6 @@ protected:
 	void OnCheckBoxShareGlosses(wxCommandEvent& WXUNUSED(event));
 
 	CAdapt_ItApp* m_pApp;
-	//wxButton*   m_pRemoveSetupBtn; //ID_KB_SHARING_REMOVE_SETUP_WHICH
 	wxCheckBox* m_pAdaptingCheckBox;
 	wxCheckBox* m_pGlossingCheckBox;
 	wxButton*   m_pSetupBtn; //wxID_OK

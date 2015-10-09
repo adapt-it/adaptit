@@ -32,6 +32,14 @@ you press the button. Now, this question box will appear
 only three times for every KB Editor session. (It got to
 be nuisance to have to dismisss it hundreds of times if
 you edited hundreds of KB entries.)
+* The "Save To Knowledge Base" checkbox, if the user ticks
+it at a location where it was unticked, Adapt It now asks
+the user if he wants all locations with that "not in knowledge
+base" entry in all documents reverted to being "in knowledge
+base". If the user reponds with a Yes, the restoration is
+done on all documents. If such a location has no adaptation
+text, then an empty <no adaptation> entry is added to the
+knowledge base at each relevant location.
 
 ----------------------------------------------
 Bug fixes in 6.6.2 release ?? ?? 2015

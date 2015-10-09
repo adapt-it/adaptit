@@ -29194,7 +29194,12 @@ size_t CAdapt_ItApp::EnumerateAllDocFiles(wxArrayString& paths, wxString adaptat
 
 		// Now handle the Bible Book files - there may be more than one document in any 
 		// one of them, so enumerate each folder (code here pinched & tweaked from doc's 
-		// OnEditConsistencyCheck))
+		// OnEditConsistencyCheck)).
+		// Beware, the user may never have used the Bible Book Folders mode, in which case
+		// there will be no such folders in the Adaptations folder - and so if we try to
+		// set a path to a non-existing folder and make that folder the current working
+		// directory, the app would fail. So we need to test the path and ignore any folder
+		// which is absent (BEW added 9Oct15)
 		wxString folderPath;
 		BookNamePair aBookNamePair;
 		BookNamePair* pBookNamePair = &aBookNamePair;
@@ -29203,25 +29208,30 @@ size_t CAdapt_ItApp::EnumerateAllDocFiles(wxArrayString& paths, wxString adaptat
 		size_t count3 = 0;
 		for (bookIndex = 0; bookIndex < nMaxBookFolders; bookIndex++)
 		{
-			pBookNamePair = ((BookNamePair*)(*m_pBibleBooks)[bookIndex]);
-			folderPath = m_curAdaptationsPath + PathSeparator + pBookNamePair->dirName;
-			// clear the list
+			// Clear the list
 			arrInBookFolders.Clear();
-			// get a list of all the document files, and set the working directory to
-			// the passed in path ( DoConsistencyCheck() internally relies on this
-			// being set here to the correct folder )
-			bOK = EnumerateDocFiles_ParametizedStore(arrInBookFolders, folderPath);
-			wxASSERT(bOK);
-			if (bOK && !arrInBookFolders.IsEmpty())
+			pBookNamePair = ((BookNamePair*)(*m_pBibleBooks)[bookIndex]);
+			// Set up the expected path
+			folderPath = m_curAdaptationsPath + PathSeparator + pBookNamePair->dirName;
+			bool bDirectoryExists = wxDirExists((const wxChar*)folderPath);
+			if (bDirectoryExists)
 			{
-				count3 = arrInBookFolders.GetCount();
-				size_t j;
-				for (j = 0; j < count3; j++)
+				// Get a list of all the document files, and set the working directory to
+				// the passed in path ( DoConsistencyCheck() internally relies on this
+				// being set here to the correct folder )
+				bOK = EnumerateDocFiles_ParametizedStore(arrInBookFolders, folderPath);
+				wxASSERT(bOK);
+				if (bOK && !arrInBookFolders.IsEmpty())
 				{
-					wxString aDocument = arrInBookFolders.Item(j);
-					absolutePath = folderPath + PathSeparator + aDocument;
-					paths.Add(absolutePath);
-					count2++; // count it
+					count3 = arrInBookFolders.GetCount();
+					size_t j;
+					for (j = 0; j < count3; j++)
+					{
+						wxString aDocument = arrInBookFolders.Item(j);
+						absolutePath = folderPath + PathSeparator + aDocument;
+						paths.Add(absolutePath);
+						count2++; // count it
+					}
 				}
 			}
 		}
