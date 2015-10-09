@@ -224,10 +224,10 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 		{
 			wxString msg = _("The username text box is empty, and it is read-only, so you cannot type into it.\nCancel now, then go to the Edit menu and click Change Username.\nAfter you have setup your unique username there, retry setting up knowledge base sharing.");
 			wxString title = _("Setup correct unique username");
-		wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+			wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 			return; // return to the active dialog window, he can then type Cancel and
 					// follow the above instruction & retry after that
-	}
+		}
 	}
 	else
 	{
@@ -244,7 +244,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 	// Manager gui
 	if (!m_bUserIsAuthenticating)
 	{
-	m_strStatelessUsername = strUsername;
+		m_strStatelessUsername = strUsername;
 	}
 #if defined(_DEBUG)
 		wxLogDebug(_T("KBSharingSetupDlg.cpp strUsername = %s"), strUsername.c_str());

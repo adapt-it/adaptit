@@ -9067,7 +9067,7 @@ wxSizer *kb_sharing_dlg_func( wxWindow *parent, bool call_fit, bool set_sizer )
     item9->SetToolTip( _("Periodic receiving interval (minutes)") );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("minutes. Minimum 1, maximum 20."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("minutes. Minimum 1, maximum 120."), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item6->Add( item7, 0, wxALIGN_CENTER, 5 );
@@ -10020,48 +10020,53 @@ wxSizer *kb_share_setup_or_remove_func( wxWindow *parent, bool call_fit, bool se
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_INDICATE_SHARE, _("Indicate the knowledge bases you want to share, using the checkboxes below"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item6, 0, wxALIGN_CENTER, 5 );
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_INDICATE_SHARE, _("Tick the knowledge bases you want to share, using the checkboxes below. You can start or stop sharing at any time."), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_LABEL2, _("Either or both boxes can be ticked. Removing the tick in a box stops the sharing of that knowledge base type.  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_LABEL2, _("Most users should only need to share adaptations. (That is true even if glossing mode is sometimes used.)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT_LABEL4, _("Sharing of glosses only happens while glossing mode is on. Use that checkbox if needed, otherwise ignore it."), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item8 = new wxCheckBox( parent, ID_CHECKBOX_SHARE_MY_TGT_KB, _("Share adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->SetValue( TRUE );
-    item8->SetToolTip( _("Shares target language translations entered in adaptation mode") );
-    item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxCheckBox *item11 = new wxCheckBox( parent, ID_CHECKBOX_SHARE_MY_TGT_KB, _("Share adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetValue( TRUE );
+    item11->SetToolTip( _("Shares target language translations entered in adaptation mode") );
+    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item7->Add( 50, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+    item10->Add( 50, 8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxCheckBox *item9 = new wxCheckBox( parent, ID_CHECKBOX_SHARE_MY_GLOSS_KB, _("Share glosses"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->SetToolTip( _("Shares glosses entered in glossing mode") );
-    item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxCheckBox *item12 = new wxCheckBox( parent, ID_CHECKBOX_SHARE_MY_GLOSS_KB, _("Share glosses"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetToolTip( _("Shares glosses entered in glossing mode") );
+    item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item4->Add( item7, 0, wxALIGN_CENTER, 5 );
+    item4->Add( item10, 0, wxALIGN_CENTER, 5 );
 
     item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item11 = new wxButton( parent, ID_BUTTON_REMOVE_MY_SETUP, _("End Sharing"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->SetToolTip( _("No longer share any of this project's local knowledge bases") );
-    item10->Add( item11, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item13->Add( 50, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item10->Add( 26, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item14 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetDefault();
+    item13->Add( item14, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxButton *item12 = new wxButton( parent, wxID_OK, _("Start Sharing"), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->SetDefault();
-    item10->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item13->Add( 60, 8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item10->Add( 26, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item15 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->Add( item15, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxButton *item13 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item13, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
-
-    item3->Add( item10, 0, wxALIGN_CENTER, 5 );
+    item3->Add( item13, 0, wxALIGN_CENTER, 5 );
 
     item2->Add( item3, 0, wxALIGN_CENTER, 5 );
 

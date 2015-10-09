@@ -300,7 +300,7 @@ wxString KbServer::ToUtf16(CBString& bstr)
 	}
 }
 
-// the private getters
+// the public getters
 
 int KbServer::GetKBServerType()
 {
@@ -568,12 +568,12 @@ bool KbServer::GetTextFileOpened(wxTextFile* pf, wxString& path)
 // lastsync_adaptations.txt located in the project folder, and for working with glosses, a
 // file called lastsync_glosses.txt, in the same folder.
 // KbServer class has a private CBString member, m_kbServerLastSync to store the
-// returned value. (This function may be called more than once in the life of a KbServer
-// instance)
+// returned value. (This function is normally called often in the life of a KbServer
+// instance, depending on what the user's chosen syncing interval is)
 wxString KbServer::ImportLastSyncTimestamp()
 {
 	wxString dateTimeStr;
-	dateTimeStr = _T("2012-01-01 00:00::00"); // initialize to a safe "early" value
+	dateTimeStr = _T("1920-01-01 00:00:00"); // initialize to a safe "early" value
 
 	wxString path = GetPathToPersistentDataStore() + GetPathSeparator() + GetLastSyncFilename();
 	bool bLastSyncFileExists = ::wxFileExists(path);
@@ -582,7 +582,7 @@ wxString KbServer::ImportLastSyncTimestamp()
 		// couldn't find lastsync... .txt file in project folder
 		// BEW 13Jun13, don't just show an error message, do the job for the user - make a
 		// file and put an "early" timestamp in it guaranteed to be earlier than anyone's
-		// actual work using a shared KB. E.g. "2012-01-01 00:00::00" as above
+		// actual work using a shared KB. E.g. "1920-01-01 00:00:00" as above
 		wxTextFile myTimestampFile;
 		bool bDidIt = myTimestampFile.Create(path);
 		if (bDidIt)
@@ -596,31 +596,17 @@ wxString KbServer::ImportLastSyncTimestamp()
 		{
 			// warn developer
 			wxString msg;
-			msg = msg.Format(_T("Failed to create last sync file with path: %s\n\"2012-01-01 00:00::00\" will be used for the imported timestamp, so you can continue working."),
+			msg = msg.Format(_T("Failed to create last sync file with path: %s\n\"1920-01-01 00:00:00\" will be used for the imported timestamp, so you can continue working."),
 								dateTimeStr.c_str());
 			wxMessageBox(msg, _T("Text File Creation Error"), wxICON_ERROR | wxOK);
 			return dateTimeStr; // send something useful
 		}
-
-		/* deprecated 13Jun13
-		wxString msg;
-		if (GetKBServerType() == 1)
-		{
-            msg = _T("wxFileExists() called in ImportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_adaptations.txt, does not exist");
-		}
-		else
-		{
-            msg = _T("wxFileExists() called in ImportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_glosses.txt, does not exist");
-		}
-		m_pApp->LogUserAction(msg);
-		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
-		return dateTimeStr; // it's empty still
-		*/
 	}
 	wxTextFile f;
 	bool bSuccess = FALSE;
-	// for 2.9.4 builds, the conditional compile isn't needed I think, and for Linux and
-	// Mac builds which are Unicode only, it isn't needed either but I'll keep it for now
+	// for wx 2.9.4 builds or later, the conditional compile within GetTextFileOpened() 
+	// isn't needed I think, and for Linux and Mac builds which are Unicode only, it 
+	// isn't needed either but I'll keep it for now
 	bSuccess = GetTextFileOpened(&f, path);
 	if (!bSuccess)
 	{
@@ -956,12 +942,25 @@ int KbServer::ChangedSince(wxString timeStamp)
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
 	wxString kbType;
-	wxItoa(GetKBServerType(),kbType);
+	int type = GetKBServerType();
+	wxItoa(type,kbType);
+	wxString langcode;
+	if (type == 1)
+	{
+		langcode = GetTargetLanguageCode();
+	}
+	else
+	{
+		langcode = GetGlossLanguageCode();
+	}
 	wxString container = _T("entry");
 	wxString changedSince = _T("/?changedsince=");
 
 	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() + slash +
-			GetTargetLanguageCode() + slash + kbType + changedSince + timeStamp;
+			langcode + slash + kbType + changedSince + timeStamp;
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+	wxLogDebug(_T("ChangedSince(): wxString aUrl = %s"), aUrl.c_str());
+#endif
 	charUrl = ToUtf8(aUrl);
 	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
@@ -2303,19 +2302,24 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
 	wxString kbType;
-	wxItoa(GetKBServerType(),kbType);
+	int type = GetKBServerType();
+	wxItoa(type,kbType);
+	wxString langcode;
+	if (type == 1)
+	{
+		langcode = GetTargetLanguageCode();
+	}
+	else
+	{
+		langcode = GetGlossLanguageCode();
+	}
 	wxString container = _T("entry");
-	// The URL has to be url-encoded -- do it with Jonathan's custom function, urlencode()
-	// This is instead of using curl_easy_encode() and curl_free(); these are okay but
-	// involve creating a heap block, and we can avoid that using urlencode() instead
-	//CBString utf8Src = ToUtf8(sourcePhrase); // could be a phrase, so it needs to be url-encoded
-	//CBString utf8Tgt = ToUtf8(targetPhrase); // before being appended to charUrl, & ditto for tgt one
-
-	//aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() +
-	//		slash + GetTargetLanguageCode() + slash + kbType + slash + sourcePhrase
-	//		+ slash + targetPhrase;
+	// The URL has to be url-encoded -- do it later below with curl_easy_escape()
 	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() +
-			slash + GetTargetLanguageCode() + slash + kbType + slash; // url-encode the new 2 fields
+			slash + langcode + slash + kbType + slash; // url-encode the new 2 fields
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+	wxLogDebug(_T("LookupEntryFields(): wxString aUrl = %s"), aUrl.c_str());
+#endif
 	charUrl = ToUtf8(aUrl);
 
 	// Create the username:password string
@@ -2507,12 +2511,25 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
 	wxString kbType;
-	wxItoa(GetKBServerType(),kbType);
+	int type = GetKBServerType();
+	wxItoa(type,kbType);
+	wxString langcode;
+	if (type == 1)
+	{
+		langcode = GetTargetLanguageCode();
+	}
+	else
+	{
+		langcode = GetGlossLanguageCode();
+	}
 	wxString container = _T("entry");
 	wxString changedSince = _T("/?changedsince=");
 
 	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() + slash +
-			GetTargetLanguageCode() + slash + kbType + changedSince + timeStamp;
+			langcode + slash + kbType + changedSince + timeStamp;
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+	wxLogDebug(_T("ChangedSince_Queued(): wxString aUrl = %s"), aUrl.c_str());
+#endif
 	charUrl = ToUtf8(aUrl);
 	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
@@ -2905,7 +2922,17 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
 	wxString kbType;
-	wxItoa(GetKBServerType(),kbType);
+	int type = GetKBServerType();
+	wxItoa(type,kbType);
+	wxString langcode;
+	if (type == 1)
+	{
+		langcode = GetTargetLanguageCode();
+	}
+	else
+	{
+		langcode = GetGlossLanguageCode();
+	}
 	wxJSONValue jsonval; // construct JSON object
 	CBString strVal; // to store wxString form of the jsonval object, for curl
 	wxString container = _T("entry");
@@ -2920,7 +2947,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 
 	// populate the JSON object
 	jsonval[_T("sourcelanguage")] = GetSourceLanguageCode();
-	jsonval[_T("targetlanguage")] = GetTargetLanguageCode();
+	jsonval[_T("targetlanguage")] = langcode;
 	jsonval[_T("source")] = srcPhrase;
 	// BEW 11Jun15 support <noform> as standin for empty string
 	wxString noform = _T("<noform>");
@@ -3990,7 +4017,8 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
 	wxString kbType;
-	wxItoa(GetKBServerType(),kbType);
+	int type = GetKBServerType();
+	wxItoa(type,kbType);
 	wxJSONValue jsonval; // construct JSON object
 	CBString strVal; // to store wxString form of the jsonval object, for curl
 	wxString container = _T("entry");

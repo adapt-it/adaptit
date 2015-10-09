@@ -2918,6 +2918,7 @@ public:
 	void	  DeleteKbServer(int whichType);
 	bool	  SetupForKBServer(int whichType);
 	bool	  ReleaseKBServer(int whichType);
+	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
 	// BEW deprecated 31Jan13
@@ -2939,8 +2940,7 @@ public:
 	// lastsync_adaptations.txt stores the date & time for an adaptations KbServer instance,
 	// or lastsync_glosses.txt stores the timestamp for a glossess KbServer instance. The first
 	// of these files will be abandoned once we get a GUI built; the two "lastsync..." ones
-	// will be retained permanently. Some metadata may also be (perhaps) stored in a hidden file,
-	// .kbserver in the project folder -- but I've not done so yet.
+	// will be retained permanently.
 	// Next three are stored in the project configuration file
 	bool		m_bIsKBServerProject; // TRUE if the user wants an adapting kbserver for
 									  // sharing kb data between clients in the same AI project

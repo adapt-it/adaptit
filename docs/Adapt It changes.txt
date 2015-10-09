@@ -205,9 +205,9 @@ type a / between each word, whenever typing text which is
 intended to be displayed as if there were no word separations.
 * Support for ZWSP was (deliberately) omitted for exports
 of the glosses 'as if they were connected text'. But it
-has now been included. This means it will also work with
-the use of solidus (the / forward slash) as a word-break
-character.
+has now been included. This means glossing mode will also
+work with the use of solidus (the / forward slash) as a 
+word-break character.
 * The View tab of Preferences had a new interlinear display
 configuration item:
 "Minimum pile width (in pixes, min5, max 40)" and a textbox

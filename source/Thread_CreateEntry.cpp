@@ -51,7 +51,8 @@ Thread_CreateEntry::Thread_CreateEntry():wxThread()
 	// The location which creates and fires off the thread should set
 	// m_source and m_translation after creating the thread object and 
 	// before calling Run()
-	m_pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+	int type = m_pApp->GetKBTypeForServer();
+	m_pKbSvr = m_pApp->GetKbServer(type);
 	m_translation.Empty(); // default, caller should set it after creation
 }
 

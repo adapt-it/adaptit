@@ -8,7 +8,7 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the Timer_KbServerChangedSince class.
 /// The Timer_KbServerChangedSince class provides a shot at predetermined intervals - we
-/// set the interval in the spin control in the KbSharing dialog handler class - allowed
+/// set the interval in the spin control in the KBSharing dialog handler class - allowed
 /// values range from 1 through 10 (minutes). The Start() function, which takes the
 /// interval (in milliseconds) starts the timer running, or if running already, it
 /// restarts the timer with the new passed in timer interval value. The only function which

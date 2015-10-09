@@ -15093,7 +15093,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	password = GetMainFrame()->GetKBSvrPassword();
 	wxASSERT(!password.IsEmpty());
 
-	if (m_bIsKBServerProject)
+	if (whichType == 1)
 	{
 		GetKbServer(whichType)->SetSourceLanguageCode(m_sourceLanguageCode);
 		GetKbServer(whichType)->SetTargetLanguageCode(m_targetLanguageCode);
@@ -15128,9 +15128,9 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
             // CAdapt_ItApp's flag m_bIsKBServerProject. The user must see a helpful
             // message first though.
 			wxString msg;
-			msg = msg.Format(_("A shared knowledge base for language codes ( %s , %s ) does not exist on the remote server.\nSomeone with 'knowledge base administrator' access level must first create entries in the remote server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local adapting knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
-								m_sourceLanguageCode.c_str(), m_targetLanguageCode.c_str());
-			wxString title = _T("Remote adapting knowledge base is absent");
+			msg = msg.Format(_("An adapting KBserver for language codes ( %s , %s ) does not exist on the server %s.\nSomeone with 'knowledge base administrator' access level must first create an adaptations KBserver with those language codes\nin the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local adapting knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
+								m_sourceLanguageCode.c_str(), m_targetLanguageCode.c_str(), url.c_str(), url.c_str());
+			wxString title = _T("Adapting KBserver is undefined");
 			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 			DeleteKbServer(1);
 			m_bIsKBServerProject = FALSE;
@@ -15148,10 +15148,10 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
             // CAdapt_ItApp's flag m_bIsGlossingKBServerProject. The user must see a
             // helpful message first though.
 			wxString msg;
-			msg = msg.Format(_("A shared knowledge base for language codes ( %s , %s ) does not exist on the remote server.\nSomeone with 'knowledge base administrator' access level must first create entries in the remote server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local glossing knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
-								m_sourceLanguageCode.c_str(), m_glossesLanguageCode.c_str());
-			wxString title = _T("Remote glossing knowledge base is absent");
-			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			msg = msg.Format(_("A glossing KBserver for language codes ( %s , %s ) does not exist on the server %s.\nSomeone with 'knowledge base administrator' access level must first create a glosses KBserver with those language codes\nin the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local glossing knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
+								m_sourceLanguageCode.c_str(), m_glossesLanguageCode.c_str(), url.c_str(), url.c_str());
+			wxString title = _T("Glossing KBserver is undefined");
+			wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 			DeleteKbServer(2);
 			m_bIsGlossingKBServerProject = FALSE;
 			return FALSE;
@@ -15161,6 +15161,21 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	return TRUE;
 }
 
+// Checks m_pKbServer[0] or [1] for non-NULL or NULL
+// Note: if the KBserver is currently disabled (that is, m_bEnableKBSharing is FALSE)
+// but the KbServer pointer is non-NULL, TRUE is still returned. When not enabled it
+// is defined, but in hiatus until the user enables it again, or until it is shut down.
+bool CAdapt_ItApp::KbServerRunning(int whichType)
+{
+	if (whichType == 1) // checking for a running adaptations KBserver
+	{
+		return m_pKbServer[0] != NULL;
+	}
+	else // must be we are checking for a running glossing KBserver
+	{
+		return m_pKbServer[1] != NULL;
+	}
+}
 // Return TRUE if there was no error, FALSE otherwise. The function is used for doing
 // cleanup, and any needed making of data persistent between adapting sessions within a
 // project which is a KB sharing project, when the user exits the project or Adapt It is
@@ -15459,7 +15474,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bKbServerIncrementalDownloadPending = FALSE;
 
 	// incremental download default interval (5 seconds) - but will be overridden
-	// by whatever is in the project config file, or defaulted to 5 there if out of range (1-20)
+	// by whatever is in the project config file, or defaulted to 5 there if out of 
+	// range (range is: 1-120 minutes)
 	m_nKbServerIncrementalDownloadInterval = 5;
 
     // initialize kbadmin and useradmin flags associated with username (both being false
