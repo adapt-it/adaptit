@@ -1,5 +1,5 @@
 ----------------------------------------------
-Version 6.6.2 release ?? ?? 2015
+Version 6.6.2 release 15 October 2015
 ----------------------------------------------
 
 ----------------------------------------------
@@ -42,7 +42,7 @@ text, then an empty <no adaptation> entry is added to the
 knowledge base at each relevant location.
 
 ----------------------------------------------
-Bug fixes in 6.6.2 release ?? ?? 2015
+Bug fixes in 6.6.2 release 15 October 2015
 ----------------------------------------------
 * Restoring an earlier document snapshot to being the current
 document failed to re-enable to two checkboxes: Save To

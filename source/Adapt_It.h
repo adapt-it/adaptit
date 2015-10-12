@@ -169,7 +169,7 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 //    #include "wx/msw/wx.rc" statement and add a lot of other
 //    Windows-specific stuff to the file - resulting in a build failure.
 // 4. The Visual Studio 2008 Adapt_It > Properties > Linker > Version (do for All Configurations).
-//    For this version, just use the first two version digits, i.e., 6.5 to
+//    For this version, just use the first two version digits, i.e., 6.6 to
 //    keep things compatible with newer versions of Visual Studio.
 // 5. The Mac's Info.plist file in adaptit/bin/mac/.
 // 6. The Linux's ChangeLog (done automatically by batch file if the version number in
@@ -193,13 +193,13 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 1 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 2 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 29
-#define VERSION_DATE_MONTH 8
+#define VERSION_DATE_DAY 15
+#define VERSION_DATE_MONTH 10
 #define VERSION_DATE_YEAR 2015
-const wxString appVerStr(_T("6.6.1"));
+const wxString appVerStr(_T("6.6.2"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
