@@ -1372,7 +1372,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 							pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
 							pApp->m_bIsKBServerProject = FALSE;
 							pApp->m_bIsGlossingKBServerProject = FALSE;
-							wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your KBserver administrator to add your username to the server's list.");
+							wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nOr, perhaps more likely, you simply forgot to start the KBserver running.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your KBserver administrator to add your username to the server's list.");
 							msg = msg.Format(msg, pApp->m_strUserID.c_str());
 							wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
 						}

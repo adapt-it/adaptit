@@ -2084,7 +2084,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 					pApp->ReleaseKBServer(2);
 					pApp->m_bIsKBServerProject = FALSE;
 					pApp->m_bIsGlossingKBServerProject = FALSE;
-					wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.\n(To change the username, use the Change Username item in the Edit menu.");
+					wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nOr, perhaps more likely, you simply forgot to start the KBserver running before you supplied the needed password.\nYou may continue working; but for you, knowledge base sharing is now turned off.\nIf forgetting was the reason, then start the KBserver now. Then open the dialog to start sharing and supply the needed credentials; otherwise, keep reading... \nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.\n(To change the username, use the Change Username item in the Edit menu.)");
 					msg = msg.Format(msg, pApp->m_strUserID.c_str());
 					wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
 					return TRUE; // failure to reinstate KB sharing doesn't constitute a

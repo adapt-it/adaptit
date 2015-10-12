@@ -284,7 +284,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 				// Username is unknown to the KBserver. Setup of sharing won't be turned
 				// on until a valid username is supplied
 				m_pApp->LogUserAction(_T("Trying to authenticate, but user unknown to server; in OnOK() of KBSharingStatelessSetupDlg.cpp"));
-				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou are unable to turn on sharing until this is fixed.\nPerhaps ask your server administrator to help you. Click Cancel to continue working.\nYou can use the Edit menu item Change Username... to set a different one.");
+				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nOr, perhaps more likely, you simply forgot to start the KBserver running before you supplied the needed password.\nYou are unable to turn on sharing until the problem is fixed.\nPerhaps ask your server administrator to help you. Click Cancel to continue working.\nYou can use the Edit menu item Change Username... to set a different one.");
 				msg = msg.Format(msg, m_saveOldUsernameStr.c_str());
 				wxMessageBox(msg, _("Unknown username"), wxICON_WARNING | wxOK);
 				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
@@ -326,7 +326,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			{
 				// Access to the Manager GUI is denied to this user
 				m_pApp->LogUserAction(_T("Stateless KBserver user is unknown; in OnOK() of KBSharingStatelessSetupDlg.cpp"));
-				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou are not permitted to access the Knowledge Base Sharing Manager dialog.\nAsk your KBserver administrator to do it for you. Click Cancel to continue working.");
+				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nOr, perhaps more likely, you simply forgot to start the KBserver running.\nYou are not permitted to access the Knowledge Base Sharing Manager dialog.\nAsk your KBserver administrator to do it for you. Click Cancel to continue working.");
 				msg = msg.Format(msg, m_strStatelessUsername.c_str());
 				wxMessageBox(msg, _("Unknown username"), wxICON_WARNING | wxOK);
 				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
