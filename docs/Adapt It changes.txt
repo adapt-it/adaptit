@@ -51,16 +51,19 @@ Knowledge Base, and, Force Choice For This Item.
 landed at a location where the checkbox "Save To Knowledge
 Base" had been turned off (ie. the checkbox should have no
 tick), the checkbox wrongly showed a tick. Now it has been
-fixed to show the value synced correctly - it will be shown
-that is, it will be shown unticked in that circumstance.
+fixed to show the value synced correctly - that is, it will be
+shown unticked in that circumstance.
 
 ----------------------------------------------
+
 Version 6.6.1 release 29 August 2015
+
 ----------------------------------------------
 
 ----------------------------------------------
 Feature changes and new features in 6.6.1
 ----------------------------------------------
+
 * One small addition to the conflict resolution
 pair of dialogs, used when collaborating with Paratext
 or Bibledit. A checkbox: "Turn off conflict resolution.
