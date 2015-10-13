@@ -2058,6 +2058,7 @@ bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation)
 	{
 		pRefStr = NULL;
 		bDeleted = FALSE;
+		bDeleted = bDeleted; // whm 12Oct2015 avoid gcc unused warning
 		return FALSE;
 	}
 	bool bNoError = TRUE;

@@ -1,10 +1,69 @@
 ----------------------------------------------
+Version 6.6.2 release 15 October 2015
+----------------------------------------------
+
+----------------------------------------------
+Feature changes and new features in 6.6.2
+----------------------------------------------
+* A new checkbox was added to the Consistency Check
+Type dialog. "Do blind fixes whenever possible". When
+turned on, an automatic fix is done for any inconsistency
+which matches the following criterion: there is only a
+single adaptation (or gloss, if working in glossing mode)
+in the knowledge base for the current source text word
+or phrase. Instead of showing a dialog for the user to
+manually choose what to do, Adapt It makes the fix itself,
+replacing the old text with the updated text. Typically
+to get updated text, the user will have used the 
+Knowledge Base Editor dialog to update the adaptations
+or glosses in the KB, with respelled better versions, and
+had those accepted by using the Update button. Then he
+would do a Consistency Check (of "all documents") with 
+this new checkbox ticked. Then those updates will get
+inserted into the documents at the correct locations
+without user intervention being required.
+* The Update button in the Knowledge Base Editor is
+smarter. If the phrase box contains the same text as that
+which you are updating in the KB Editor dialog, then your
+edits done in the KB Editor also update the phrasebox
+text automatically.
+* The Update button shows a Yes/No question box each time
+you press the button. Now, this question box will appear
+only three times for every KB Editor session. (It got to
+be nuisance to have to dismisss it hundreds of times if
+you edited hundreds of KB entries.)
+* The "Save To Knowledge Base" checkbox, if the user ticks
+it at a location where it was unticked, Adapt It now asks
+the user if he wants all locations with that "not in knowledge
+base" entry in all documents reverted to being "in knowledge
+base". If the user reponds with a Yes, the restoration is
+done on all documents. If such a location has no adaptation
+text, then an empty <no adaptation> entry is added to the
+knowledge base at each relevant location.
+
+----------------------------------------------
+Bug fixes in 6.6.2 release 15 October 2015
+----------------------------------------------
+* Restoring an earlier document snapshot to being the current
+document failed to re-enable to two checkboxes: Save To
+Knowledge Base, and, Force Choice For This Item.
+* If a Find Next search was being done, and the phrasebox 
+landed at a location where the checkbox "Save To Knowledge
+Base" had been turned off (ie. the checkbox should have no
+tick), the checkbox wrongly showed a tick. Now it has been
+fixed to show the value synced correctly - that is, it will be
+shown unticked in that circumstance.
+
+----------------------------------------------
+
 Version 6.6.1 release 29 August 2015
+
 ----------------------------------------------
 
 ----------------------------------------------
 Feature changes and new features in 6.6.1
 ----------------------------------------------
+
 * One small addition to the conflict resolution
 pair of dialogs, used when collaborating with Paratext
 or Bibledit. A checkbox: "Turn off conflict resolution.
@@ -30,6 +89,7 @@ conflicted verse.
 
 ----------------------------------------------
 Version 6.6.0 release 12 August 2015
+
 ----------------------------------------------
 
 ----------------------------------------------
@@ -156,9 +216,9 @@ type a / between each word, whenever typing text which is
 intended to be displayed as if there were no word separations.
 * Support for ZWSP was (deliberately) omitted for exports
 of the glosses 'as if they were connected text'. But it
-has now been included. This means it will also work with
-the use of solidus (the / forward slash) as a word-break
-character.
+has now been included. This means glossing mode will also
+work with the use of solidus (the / forward slash) as a 
+word-break character.
 * The View tab of Preferences had a new interlinear display
 configuration item:
 "Minimum pile width (in pixes, min5, max 40)" and a textbox
