@@ -23085,7 +23085,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 #if defined(_KBSERVER)
 	// It isn't a foregone conclusion that because the sender was sharing one or both kbs,
 	// that the one who receives and unpacks the document will also want to share. He may
-	// only want to inspect what was sent. So check if the sender had sharing one, and
+	// only want to inspect what was sent. So check if the sender had sharing on, and
 	// give a suitable message to inform the user which kbs the sender was sharing and
 	// invite him to do the same if the wants to share any editing changes he makes
 	bool bForeignAdaptingSharing = FALSE;

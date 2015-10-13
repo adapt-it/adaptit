@@ -4229,7 +4229,6 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 			wxString str = UsfmStructureAndExtentArray.Item(ct);
 			wxLogDebug(str.c_str());
 		}
-	}
 #endif
 
 	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
@@ -6598,13 +6597,21 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		// count, so we can set the bUsfmIsTheSame flag safely
 		bUsfmIsTheSame = TRUE;
 	}
+	// BEW added 13Oct15, while sourceText should be same as fromEditorText text, if there
+	// is a doc data error involving adding or subtracting a marker (it happened that
+	// Matt 2:2 got first 4 piles duplicated at a refactoring data error which I missed)
+	// they could differ and we don't want that to crash the transfer. So also test
+	// these are same or not, and if not the same, then the GetUpdated....UsfmsChanged()
+	// function should be called - because the UsfmsUnchanged() version is guaranteed to
+	// crash if *any* of the marker counts differ!
+	bool bIsSrcChanged = IsUsfmStructureChanged(sourceText, fromEditorText);
 
 #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 		wxLogDebug(_T("\n** m_bPunctChangesDetectedInSourceTextMerge  has value = %d"),
 			(int)gpApp->m_bPunctChangesDetectedInSourceTextMerge);
 #endif
 
-	if (bUsfmIsTheSame && !gpApp->m_bPunctChangesDetectedInSourceTextMerge)
+	if (bUsfmIsTheSame && !gpApp->m_bPunctChangesDetectedInSourceTextMerge && !bIsSrcChanged)
 	{
 		// usfm markers same in each, so do the simple line-by-line algorithm
 		text = GetUpdatedText_UsfmsUnchanged(postEditText, fromEditorText,
@@ -7467,12 +7474,11 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		}
 	} // end of loop: while (index < (int)postEditMd5Arr_Count) <- may involve multiple chapters
 
-//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+	int structsCount = (int)collabActionsArr.GetCount();
+	int i;
 #if defined(_DEBUG) && defined(JUL15)
 	wxLogDebug(_T("STRUCT POPULATING LOOP HAS ENDED: num structs: %d"), structsCount);
 #endif
-	int structsCount = (int)collabActionsArr.GetCount();
-	int i;
 
 #if defined(_DEBUG) && defined(JUL15)
 	// log the CollabAction structs' contents
@@ -7802,9 +7808,9 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 	int mkrCount = 0;
 	size_t charOffset = 0;
 #ifdef FIRST_250
-#ifdef _DEBUG
-	wxChar* pStrBegin = NULL;
-#endif
+//#ifdef _DEBUG
+//	wxChar* pStrBegin = NULL;
+//#endif
 #endif
 #if defined(_DEBUG) && defined(JUL15)
 //#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
@@ -7998,7 +8004,7 @@ wxString GetUpdatedText_UsfmsChanged(
 	size_t postEditMd5Arr_Count = postEditMd5Arr.GetCount();
 	size_t fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();
 	size_t sourceTextMd5Arr_Count = sourceTextMd5Arr.GetCount();
-	wxASSERT(postEditMd5Arr_Count == sourceTextMd5Arr_Count);
+	//wxASSERT(postEditMd5Arr_Count == sourceTextMd5Arr_Count);
 	wxString preEditMd5Line;
 	wxString postEditMd5Line;
 	wxString fromEditorMd5Line;
@@ -8806,12 +8812,12 @@ wxString GetUpdatedText_UsfmsChanged(
 
 	} // end of while loop
 
-#if defined(_DEBUG) && defined(JUL15)
-//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-	wxLogDebug(_T("STRUCT POPULATING LOOP HAS ENDED: num structs: %d"), structsCount);
-#endif
 	int structsCount = (int)collabActionsArr.GetCount();
 	int i;
+#if defined(_DEBUG) && defined(JUL15)
+	//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+	wxLogDebug(_T("STRUCT POPULATING LOOP HAS ENDED: num structs: %d"), structsCount);
+#endif
 
 #if defined(_DEBUG) && defined(JUL15)
 	// log the CollabAction structs' contents
