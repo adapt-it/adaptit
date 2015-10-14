@@ -1,4 +1,31 @@
 ----------------------------------------------
+Version 6.6.4 release 15 October 2015
+----------------------------------------------
+
+----------------------------------------------
+Bug fixes in 6.6.4 release 15 October 2015
+----------------------------------------------
+* Fixed a bug in collaboration mode, in which
+filtered information (such as a free translation)
+wrongly was retained in an export of the adaptation
+text, and that led to a crash.
+
+----------------------------------------------
+Version 6.6.3 release 14 October 2015
+----------------------------------------------
+
+----------------------------------------------
+Bug fixes in 6.6.3 release 14 October 2015
+----------------------------------------------
+* Fixed a bug in collaboration mode, when the source
+text in the Adapt It document differed from the 
+source text taken from the Paratext project, the
+application crashed.
+* This 6.6.3 version was released briefly, and 
+then, only for Linux. Another bug had surfaced in
+testing and so 6.6.4 was released to fix that.
+
+----------------------------------------------
 Version 6.6.2 release 12 October 2015
 ----------------------------------------------
 

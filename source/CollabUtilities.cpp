@@ -6137,7 +6137,8 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// BEW 10Jul15, get the USFM source text - if the conflict resolution dialog
 	// were to be shown, this will be needed (and more processing of the export
 	// will be done below). The store is done in app variable m_sourceTextBuffer_PostEdit
-	gpApp->StoreSourceText_PostEdit(MakeSourceTextForCollabConflictResDlg());
+	wxString cleansed_src = MakeSourceTextForCollabConflictResDlg();
+	gpApp->StoreSourceText_PostEdit(cleansed_src); // put it in m_sourceTextBuffer_PostEdit
 
 	wxString bookCode;
 	bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
@@ -10263,18 +10264,84 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 
 // BEW 10Jul15, since this was created after my refactoring of the export functions to
 // not obligatorily unfilter and include any filtered text, no internal extra calls should
-// need to be made (I hope)
+// need to be made (I hope) <<-- BEW 14Oct15 that hope was a sheer guess and totally wrong!
+// I didn't do ANY refactoring of RebuildSourceText() and so it automatically restores all
+// notes, free translations, xrefs, whatever.... and so that stuff will mess with the
+// collaboration functionality which expects a pristine clean USFM source text with none of
+// that extra stuff present. So grab the functions which filter that stuff out and put them
+// here. (See the code at top of MakeUpdatedTextForExternalEditor() for code blocks which
+// call them - copy to here.)
 wxString MakeSourceTextForCollabConflictResDlg()
 {
 	wxString srcText = _T("");
 	int textLen = RebuildSourceText(srcText); // NULL for 2nd param, means m_pSourcePhrases SPList* is used
 	wxUnusedVar(textLen);
+
+	// Cause \note, \free, \bt etc (the custom ones to be removed)
+	ExcludeCustomMarkersFromExport();
+	// Also have \rem excluded
+	wxString rem = _T("rem"); // bareMkr for \rem
+	int index = FindMkrInMarkerInventory(rem);
+	if (index != wxNOT_FOUND)
+	{
+		m_exportFilterFlags[index] = 1;
+	}
+	// The ApplyOutputFilterToText() call gets the exclusions done
+	bool bRTFOutput = FALSE;
+	srcText = ApplyOutputFilterToText(srcText, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+	// Remove footnote contents, leave markers, (the default option), but if
+	// m_bNoFootnotesInCollabToPTorBE is TRUE, then remove the markers too
+	wxString footnote = _T("\\f ");
+	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
+	bool bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
+	if (bIsFiltered)
+	{
+		// Check for existence of the marker within the document
+		int index = FindMkrInMarkerInventory(footnote); // signature accepts \mkr or mkr,
+		if (index != wxNOT_FOUND)
+		{
+			// Remove the content from all footnote markers; they all begin with "\f"
+			// But if the flag is TRUE, then also remove the footnote markers as well
+			if (gpApp->m_bNoFootnotesInCollabToPTorBE)
+			{
+				// 2nd param is boolean bAlsoRemoveTheMarkers; Ross Jones needs this option
+				// because he doesn't want footnote markers to be transferred in collab mode
+				RemoveContentFromFootnotes(&srcText, TRUE);
+			}
+			else
+			{
+				// This is the default in collab mode for \f stuff, the markers are left
+				// in the export, and any text content is removed
+				RemoveContentFromFootnotes(&srcText); // 2nd param is default FALSE
+			}
+		}
+	}
 	srcText = RemoveMultipleSpaces(srcText);
 
 	// Note: ZWSP restoration is automatically done, if flag TRUE, in RebuildSourceText(), similarly, if the
 	// flag for Forward Slash Delimitation alternating with ZWSP (Dennis Walters requested) is TRUE, then
 	// in RebuildSourceText() the calls DoFwdSlashConsistentChanges(removeAtPunctuation, target) and
 	// followed by FwdSlashtoZWSP(target) are made, so neither is need here
+	
+	// ensure no \id and book code is present for non-chapter-1 chapters when collaborating
+	// by chapter rather than by whole book
+	if (gpApp->m_bCollabByChapterOnly)
+	{
+		// BEW 22Jun15, added subtest: || gpApp->m_CollabChapterSelected != _T("0")
+		// because we don't want to remove any \id and bookcode if we are in a
+		// chapterless book, such as 2JN, 3JN or JUD
+		if (gpApp->m_bCollaboratingWithBibledit
+			|| (gpApp->m_bCollaboratingWithParatext
+			&& (gpApp->m_CollabChapterSelected != _T("1") && gpApp->m_CollabChapterSelected != _T("0"))))
+		{
+			srcText = RemoveIDMarkerAndCode(srcText);
+		}
+	}
+	int offset = srcText.Find(_T('\\'));
+	if (offset != wxNOT_FOUND && offset > 0)
+	{
+		srcText = srcText.Mid(offset); // guarantees srcText starts with a marker
+	}
 #if defined(_DEBUG) && defined(JUL15)
 	wxLogDebug(_T("MakeSourceTextForCollabConflictResDlg(): Text Length:  %d\n%s"), textLen, srcText.c_str());
 #endif
