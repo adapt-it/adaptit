@@ -9,28 +9,17 @@ Bug fixes in 6.6.4 release 15 October 2015
 filtered information (such as a free translation)
 wrongly was retained in an export of the adaptation
 text, and that led to a crash.
+* Fixed a bug in collaboration mode caused by 
+differences between the source text as exported
+from Adapt It, and the source text obtained from
+the Paratext source text project. It led to a crash.
 
 ----------------------------------------------
-Version 6.6.3 release 14 October 2015
-----------------------------------------------
-
-----------------------------------------------
-Bug fixes in 6.6.3 release 14 October 2015
-----------------------------------------------
-* Fixed a bug in collaboration mode, when the source
-text in the Adapt It document differed from the 
-source text taken from the Paratext project, the
-application crashed.
-* This 6.6.3 version was released briefly, and 
-then, only for Linux. Another bug had surfaced in
-testing and so 6.6.4 was released to fix that.
-
-----------------------------------------------
-Version 6.6.2 release 12 October 2015
+Version 6.6.3 release 13 October 2015
 ----------------------------------------------
 
 ----------------------------------------------
-Feature changes and new features in 6.6.2
+Feature changes and new features in 6.6.3
 ----------------------------------------------
 * A new checkbox was added to the Consistency Check
 Type dialog. "Do blind fixes whenever possible". When
@@ -69,7 +58,7 @@ text, then an empty <no adaptation> entry is added to the
 knowledge base at each relevant location.
 
 ----------------------------------------------
-Bug fixes in 6.6.2 release 12 October 2015
+Bug fixes in 6.6.3 release 13 October 2015
 ----------------------------------------------
 * Restoring an earlier document snapshot to being the current
 document failed to re-enable to two checkboxes: Save To
