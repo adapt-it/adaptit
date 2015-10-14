@@ -3241,6 +3241,22 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 	// Call the App's MakeMenuInitializationsAndPlatformAdjustments() to made the
 	// Administrator menu visible/hidden and verify its toggle state
 	pApp->MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
+#if !defined(_KBSERVER)
+	{
+		// If not a _KBSERVER build, disable the Knowledge Base Sharing Manager menu command
+		// on Administrator menu (at bottom)
+		if (pApp->m_bShowAdministratorMenu)
+		{
+			// Don't call this code when the menu has just been hidden - that would crash
+			// the app since the menu is then not available, hence this test
+			wxMenuBar* pMenuBar = GetMenuBar();
+			int nAdminMenu = pMenuBar->FindMenu(_T("Administrator"));
+			wxMenu* pAdminMenu = pMenuBar->GetMenu(nAdminMenu);
+			wxMenuItem* pShareMgrMenuItem = pAdminMenu->FindItem(ID_MENU_KBSHARINGMGR,&pAdminMenu);
+			pShareMgrMenuItem->Enable(FALSE);
+		}
+	}
+#endif
 }
 
 
