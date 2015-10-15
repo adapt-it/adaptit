@@ -1,9 +1,9 @@
 ----------------------------------------------
-Version 6.6.3 release 13 October 2015
+Version 6.6.4 release 15 October 2015
 ----------------------------------------------
 
 ----------------------------------------------
-Feature changes and new features in 6.6.3
+Feature changes and new features in 6.6.4
 ----------------------------------------------
 * A new checkbox was added to the Consistency Check
 Type dialog. "Do blind fixes whenever possible". When
