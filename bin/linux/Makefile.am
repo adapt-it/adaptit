@@ -61,7 +61,9 @@ htmlhelp_DATA = adaptit.htb
 install-adaptit-docs-data: install-htmlhelpDATA install-docFileDATA
 
 docFiledir = $(pkgdatadir)/help
-docFile_DATA = ../../docs/Localization_Readme.txt
+docFile_DATA = ../../docs/Localization_Readme.txt \
+	../../docs/Tok_Pisin_fragment_1John.txt \
+	../../docs/KJV_1Jn_2.12-17.txt
 
 # Rule to build adaptit.htb
 adaptit.htb: ../../hlp
