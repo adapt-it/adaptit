@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
-"POT-Creation-Date: 2015-10-12 13:26-0500\n"
-"PO-Revision-Date: 2015-10-12 13:27-0500\n"
+"POT-Creation-Date: 2015-10-15 08:07-0500\n"
+"PO-Revision-Date: 2015-10-15 08:07-0500\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: ru\n"
@@ -3065,11 +3065,9 @@ msgstr ""
 msgid "Built with wxWidgets version"
 msgstr "Со встроенной версией wxWidgets "
 
-# do not translate
 #: Adapt_It_wdr.cpp:144
-#, fuzzy
-msgid "3.x.x"
-msgstr "2.x.x"
+msgid "2.8.12"
+msgstr ""
 
 #: Adapt_It_wdr.cpp:164
 msgid "Language and Locale Information:"
@@ -6412,7 +6410,7 @@ msgstr "Щелкните на кнопку 'Отменить', чтобы не �
 msgid "Removed:"
 msgstr "Удален:"
 
-#: Adapt_It_wdr.cpp:5720 MainFrm.cpp:4845 MainFrm.cpp:4969 MainFrm.cpp:5115 MainFrm.cpp:5313 MainFrm.cpp:5557 MainFrm.cpp:5763 MainFrm.cpp:5900 MainFrm.cpp:6022
+#: Adapt_It_wdr.cpp:5720 MainFrm.cpp:4861 MainFrm.cpp:4985 MainFrm.cpp:5131 MainFrm.cpp:5329 MainFrm.cpp:5573 MainFrm.cpp:5779 MainFrm.cpp:5916 MainFrm.cpp:6038
 msgid "Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."
 msgstr "Щелчок на каком-либо элементе в приведенном выше списке копирует его в фразовое окно, затирая все имеющиеся там данные"
 
@@ -10818,32 +10816,32 @@ msgstr "Свободный перевод"
 msgid "translation"
 msgstr "С переводом:"
 
-#: CollabUtilities.cpp:9484
+#: CollabUtilities.cpp:9491
 #, c-format
 msgid "Getting the chapter and laying out the document... step %d of %d"
 msgstr ""
 
-#: CollabUtilities.cpp:9488
+#: CollabUtilities.cpp:9495
 #, c-format
 msgid "Getting the book and laying out the document... step %d of %d"
 msgstr ""
 
 # Priority 1
-#: CollabUtilities.cpp:9493 CollabUtilities.cpp:9497 CollabUtilities.cpp:9501 CollabUtilities.cpp:9545 CollabUtilities.cpp:9579 CollabUtilities.cpp:9669 CollabUtilities.cpp:9829 CollabUtilities.cpp:9881 CollabUtilities.cpp:9943 CollabUtilities.cpp:10007 CollabUtilities.cpp:10035 CollabUtilities.cpp:10074 CollabUtilities.cpp:10087
-#: CollabUtilities.cpp:10093 CollabUtilities.cpp:10142 CollabUtilities.cpp:10152 CollabUtilities.cpp:10158 CollabUtilities.cpp:10226 CollabUtilities.cpp:10237
+#: CollabUtilities.cpp:9500 CollabUtilities.cpp:9504 CollabUtilities.cpp:9508 CollabUtilities.cpp:9552 CollabUtilities.cpp:9586 CollabUtilities.cpp:9676 CollabUtilities.cpp:9836 CollabUtilities.cpp:9888 CollabUtilities.cpp:9950 CollabUtilities.cpp:10014 CollabUtilities.cpp:10042 CollabUtilities.cpp:10081 CollabUtilities.cpp:10094
+#: CollabUtilities.cpp:10100 CollabUtilities.cpp:10149 CollabUtilities.cpp:10159 CollabUtilities.cpp:10165 CollabUtilities.cpp:10233 CollabUtilities.cpp:10244
 #, fuzzy
 msgid "Getting Document for Collaboration"
 msgstr "Установить цвет для текста повторного перевода"
 
-#: CollabUtilities.cpp:9556
+#: CollabUtilities.cpp:9563
 msgid "Could not read data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."
 msgstr ""
 
-#: CollabUtilities.cpp:9979
+#: CollabUtilities.cpp:9986
 msgid "The document was corrupt, but we have successfully restored the last version saved in the history.  Please re-attempt what you were doing."
 msgstr ""
 
-#: CollabUtilities.cpp:9995
+#: CollabUtilities.cpp:10002
 msgid ""
 "The Copy Source (to Target) command on View Menu is temporarily turned off because the source text was edited outside of Adapt It.\n"
 "Now you need to adapt the changed parts again.\n"
@@ -12960,24 +12958,24 @@ msgid "Type Administrator Password"
 msgstr "Наберите пароль администатора"
 
 # Priority 1
-#: MainFrm.cpp:4270 PhraseBox.cpp:2215 PhraseBox.cpp:2433
+#: MainFrm.cpp:4286 PhraseBox.cpp:2215 PhraseBox.cpp:2433
 msgid "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."
 msgstr "Конец. Если вы ничего раньше не пропустили, то в этом файле нет больше текстов для адаптирования."
 
 # Priority 1
-#: MainFrm.cpp:4835 MainFrm.cpp:4961 MainFrm.cpp:5107 MainFrm.cpp:5305
+#: MainFrm.cpp:4851 MainFrm.cpp:4977 MainFrm.cpp:5123 MainFrm.cpp:5321
 msgid "Vertical Editing - adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."
 msgstr ""
 "Вертикальное редактирование - этап адаптаций: наберите требуемые адаптации в редактируемой зоне.  Адаптации, сделанные ранее, хранятся в верхней части списка 'Удаленные'.  Доступ к серому тексту закрыт. Режим адаптирования сейчас включен и действуют все функции адаптации, включая программы соединения, вставку меток-заполнителей и повторные "
 "переводы."
 
 # Priority 1
-#: MainFrm.cpp:5547 MainFrm.cpp:5755 MainFrm.cpp:5892 MainFrm.cpp:6014
+#: MainFrm.cpp:5563 MainFrm.cpp:5771 MainFrm.cpp:5908 MainFrm.cpp:6030
 msgid "Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."
 msgstr "Вертикальное редактирование - этап глосс: наберите требуемые адаптации в редактируемой зоне.  Глоссы, сделанные ранее, хранятся в верхней части списка 'Удаленные'.  Доступ к серому тексту закрыт. Режим глоcсирования сейчас включен."
 
 # Priority 1
-#: MainFrm.cpp:6346 MainFrm.cpp:6635
+#: MainFrm.cpp:6362 MainFrm.cpp:6651
 msgid ""
 "Vertical Editing - free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is "
 "currently on and all free translation functionalities are enabled."
@@ -12986,11 +12984,11 @@ msgstr ""
 "перевод по умолчанию. Доступ к серому тексту закрыт.  Сейчас включен режим свободных переводов и работают все функции свободного перевода. "
 
 # Priority 1
-#: MainFrm.cpp:6357 MainFrm.cpp:6647
+#: MainFrm.cpp:6373 MainFrm.cpp:6663
 msgid "Clicking on an item in the above list copies it to the Compose Bar's text box, overwriting anything there."
 msgstr "Щелчок на пункт в данном выше списке скопирует его в текстовое окно в строке компоновки, затирая все имеющиеся там данные."
 
-#: MainFrm.cpp:6754
+#: MainFrm.cpp:6770
 msgid "Warning: recollecting the back translations did not succeed. Try doing it manually."
 msgstr "Внимание: не удалось снова собрать обратные пререводы.  Попробуйте сделать это вручную."
 
@@ -14719,6 +14717,11 @@ msgstr "&Закончить"
 #, fuzzy
 msgid "Print Preview"
 msgstr "Пре&дварительный просмотр перед печатью"
+
+# do not translate
+#, fuzzy
+#~ msgid "3.x.x"
+#~ msgstr "2.x.x"
 
 # Priority 1
 #, fuzzy
