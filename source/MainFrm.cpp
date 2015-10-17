@@ -2721,8 +2721,8 @@ void CMainFrame::SetKBSvrPassword(wxString pwd)
 // instance and then again for the glossing KB's KbServer instance)
 wxString CMainFrame::GetKBSvrPasswordFromUser()
 {
-	wxString msg = _T("Type the knowledge base server's password.\nYou should have received it from your administrator.\nWithout the correct password, sharing your knowledge base data\nwith others cannot happen, nor can they share theirs with you.");
-	wxString caption = _T("Type the server's password");
+	wxString msg = _("Type the knowledge base server's password.\nYou should have received it from your administrator.\nWithout the correct password, sharing your knowledge base data\nwith others cannot happen, nor can they share theirs with you.");
+	wxString caption = _("Type the server's password");
 	wxString default_value = _T("");
 #if defined(_DEBUG) && defined(AUTHENTICATE_AS_BRUCE) // see top of Adapt_It.h
 	// Simplify my life during development
@@ -2745,8 +2745,6 @@ wxString CMainFrame::GetKBSvrPasswordFromUser()
 		// entered, so the user can either Cancel from there, or change url, or change 
 		// the username
 		gpApp->LogUserAction(_T("GetPasswordFromUser(): No password was entered; returning to previous dialog where use can change url or username, or cancel the setup"));
-
-
 	}
 	return password;
 }

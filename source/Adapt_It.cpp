@@ -21654,12 +21654,12 @@ int ii = 1;
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxMenu* pAdvancedMenu = pMenuBar->GetMenu(nAdvancedMenuIndex);
 	pAdvancedMenu->AppendSeparator(); // ignore returned pointer
-	wxMenuItem* pKBSharingSetupMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_SETUP_DLG, _T("Setup Or Remove Knowledge Base Sharing..."));
+	wxMenuItem* pKBSharingSetupMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_SETUP_DLG, _("Setup Or Remove Knowledge Base Sharing..."));
 	pKBSharingSetupMenuItem = pKBSharingSetupMenuItem; // avoid compiler warning
 
     // append a "Controls For Knowledge Base Sharing..." menu item to the Advanced menu in
     // the _Debug build
-	wxMenuItem* pKBSharingMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_DLG, _T("Controls For Knowledge Base Sharing..."));
+	wxMenuItem* pKBSharingMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_DLG, _("Controls For Knowledge Base Sharing..."));
 	pKBSharingMenuItem = pKBSharingMenuItem; // avoid compiler warning
 
 	// DONT FORGET UPDATE HANDLERS!
