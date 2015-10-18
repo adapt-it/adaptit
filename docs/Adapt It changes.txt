@@ -1,25 +1,8 @@
 ----------------------------------------------
 Version 6.6.4 release 15 October 2015
 ----------------------------------------------
-
 ----------------------------------------------
-Bug fixes in 6.6.4 release 15 October 2015
-----------------------------------------------
-* Fixed a bug in collaboration mode, in which
-filtered information (such as a free translation)
-wrongly was retained in an export of the adaptation
-text, and that led to a crash.
-* Fixed a bug in collaboration mode caused by 
-differences between the source text as exported
-from Adapt It, and the source text obtained from
-the Paratext source text project. It led to a crash.
-
-----------------------------------------------
-Version 6.6.3 release 13 October 2015
-----------------------------------------------
-
-----------------------------------------------
-Feature changes and new features in 6.6.3
+Feature changes and new features in 6.6.4
 ----------------------------------------------
 * A new checkbox was added to the Consistency Check
 Type dialog. "Do blind fixes whenever possible". When
@@ -58,8 +41,19 @@ text, then an empty <no adaptation> entry is added to the
 knowledge base at each relevant location.
 
 ----------------------------------------------
-Bug fixes in 6.6.3 release 13 October 2015
+Bug fixes in 6.6.4 release 15 October 2015
 ----------------------------------------------
+* Fixed a bug in collaboration mode, in which
+filtered information (such as a free translation)
+wrongly was retained in an export of the adaptation
+text, and that led to a crash.
+* Fixed a bug in collaboration mode caused by 
+differences between the source text as exported
+from Adapt It, and the source text obtained from
+the Paratext source text project. It led to a crash.
+Note: The following bugs were fixed in versions 6.6.2 and 
+6.6.3 which were release only on Linux and are now fixed on
+Windows:
 * Restoring an earlier document snapshot to being the current
 document failed to re-enable to two checkboxes: Save To
 Knowledge Base, and, Force Choice For This Item.
