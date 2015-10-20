@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
-"POT-Creation-Date: 2015-10-15 08:08-0500\n"
-"PO-Revision-Date: 2015-10-15 08:08-0500\n"
+"POT-Creation-Date: 2015-10-19 20:29-0500\n"
+"PO-Revision-Date: 2015-10-19 20:29-0500\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: zh\n"
@@ -918,6 +918,18 @@ msgstr ""
 #: Adapt_It.cpp:21060
 msgid "Initialization complete. Call Start Working..."
 msgstr ""
+
+# Priority 1
+#: Adapt_It.cpp:21657
+#, fuzzy
+msgid "Setup Or Remove Knowledge Base Sharing..."
+msgstr "保存到资料库"
+
+# Priority 1
+#: Adapt_It.cpp:21662
+#, fuzzy
+msgid "Controls For Knowledge Base Sharing..."
+msgstr "导入至资料库..."
 
 #: Adapt_It.cpp:22893
 msgid ""
@@ -6285,7 +6297,7 @@ msgstr ""
 msgid "Removed:"
 msgstr "选择一个标记，然后点击\"\"筛选出\"\" 或 \"\"包含在导出中\"\" 检查之后，标记和与之相关联的文本将会从导出文本中被筛选出 注：若字符格式标记已被筛选出，则仅是格式被删除，文本本身没有被删除。"
 
-#: Adapt_It_wdr.cpp:5720 MainFrm.cpp:4861 MainFrm.cpp:4985 MainFrm.cpp:5131 MainFrm.cpp:5329 MainFrm.cpp:5573 MainFrm.cpp:5779 MainFrm.cpp:5916 MainFrm.cpp:6038
+#: Adapt_It_wdr.cpp:5720 MainFrm.cpp:4859 MainFrm.cpp:4983 MainFrm.cpp:5129 MainFrm.cpp:5327 MainFrm.cpp:5571 MainFrm.cpp:5777 MainFrm.cpp:5914 MainFrm.cpp:6036
 msgid "Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."
 msgstr ""
 
@@ -12612,11 +12624,23 @@ msgid ""
 "Therefore knowledge base sharing is now turned off for this project, neither knowledge base is shared)."
 msgstr ""
 
-#: MainFrm.cpp:2770
+#: MainFrm.cpp:2724
+msgid ""
+"Type the knowledge base server's password.\n"
+"You should have received it from your administrator.\n"
+"Without the correct password, sharing your knowledge base data\n"
+"with others cannot happen, nor can they share theirs with you."
+msgstr ""
+
+#: MainFrm.cpp:2725
+msgid "Type the server's password"
+msgstr ""
+
+#: MainFrm.cpp:2768
 msgid "Change the amount of time tooltips are displayed"
 msgstr ""
 
-#: MainFrm.cpp:2772
+#: MainFrm.cpp:2770
 #, c-format
 msgid ""
 "The current tooltip display time is %d milliseconds which is %d seconds.\n"
@@ -12624,43 +12648,43 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:3220 ViewPage.cpp:233
+#: MainFrm.cpp:3218 ViewPage.cpp:233
 msgid "Access to Administrator privileges requires that you type a password"
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:3221 ViewPage.cpp:234
+#: MainFrm.cpp:3219 ViewPage.cpp:234
 msgid "Type Administrator Password"
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:4286 PhraseBox.cpp:2215 PhraseBox.cpp:2433
+#: MainFrm.cpp:4284 PhraseBox.cpp:2215 PhraseBox.cpp:2433
 msgid "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."
 msgstr "结束。如果先前没有任何遗漏的话，那此文件中就没有需要对应转换的内容了。"
 
 # Priority 1
-#: MainFrm.cpp:4851 MainFrm.cpp:4977 MainFrm.cpp:5123 MainFrm.cpp:5321
+#: MainFrm.cpp:4849 MainFrm.cpp:4975 MainFrm.cpp:5121 MainFrm.cpp:5319
 msgid "Vertical Editing - adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:5563 MainFrm.cpp:5771 MainFrm.cpp:5908 MainFrm.cpp:6030
+#: MainFrm.cpp:5561 MainFrm.cpp:5769 MainFrm.cpp:5906 MainFrm.cpp:6028
 msgid "Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:6362 MainFrm.cpp:6651
+#: MainFrm.cpp:6360 MainFrm.cpp:6649
 msgid ""
 "Vertical Editing - free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is "
 "currently on and all free translation functionalities are enabled."
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:6373 MainFrm.cpp:6663
+#: MainFrm.cpp:6371 MainFrm.cpp:6661
 msgid "Clicking on an item in the above list copies it to the Compose Bar's text box, overwriting anything there."
 msgstr ""
 
-#: MainFrm.cpp:6770
+#: MainFrm.cpp:6768
 msgid "Warning: recollecting the back translations did not succeed. Try doing it manually."
 msgstr ""
 
@@ -14287,523 +14311,3 @@ msgstr ""
 #, fuzzy
 msgid "Print Preview"
 msgstr "打印预览"
-
-# Priority 1
-#, fuzzy
-#~ msgid "No longer share any of this project's local knowledge bases"
-#~ msgstr "编辑或检查资料库"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Choose language codes for at least the Source and Target languages"
-#~ msgstr "键入源语和目标语言的名称。"
-
-#~ msgid "Sorry, within this dialog it is an error to place phrase medial punctuation at the beginning or end of a phrase."
-#~ msgstr "对不起，在此对话框中，不能将短语中间标点置于一个短语的开头或结尾处。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Adding text to a free translation widener is not permitted."
-#~ msgstr "对不起，不允许编辑此类词条。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Merging a selection which contains a free translation widener (represented by five ..... dots with * above it) is not permitted."
-#~ msgstr "对不起，不允许合并含有占位符（用...表示）的选区。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "&New Translation:"
-#~ msgstr "新译文:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Remove Setup"
-#~ msgstr "删除 %s"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Rename Not Done"
-#~ msgstr "重命名文档..."
-
-# Priority 1
-#, fuzzy
-#~ msgid "There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."
-#~ msgstr "对不起，此文件中没有数据。由于创建不正确，所以无法打开。请将其删除。"
-
-# Priority 1
-#~ msgid "Respect boundaries when selecting"
-#~ msgstr "选取时服从边界"
-
-#~ msgid "Re-enable automatic copying of source text punctuation"
-#~ msgstr "重新开启自动复制源文本标点符号功能"
-
-# Priority 1
-#~ msgid "Show normal view"
-#~ msgstr "显示正常外观"
-
-#~ msgid "Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"
-#~ msgstr "对不起，载入资料库失败。（可能别的程序正在调用此文件，或者此文件已经损坏，必须删除。）"
-
-#~ msgid "The file you clicked could not be opened. It probably no longer exists. When you click OK the Start Working... wizard will open to let you open a project and document from there instead."
-#~ msgstr "不能打开你所点击的文件。你可以点击OK按钮来打开启动精灵…向导，重新打开工程和所需文档。"
-
-#~ msgid "Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."
-#~ msgstr "对不起 ，当书卷文件夹不可用时，不可以直接在文件菜单中点击最近使用最多的文档，来打开以前保存在书卷文件夹中的文件。"
-
-# Priority 1
-#~ msgid "Export File Format Options:"
-#~ msgstr "导出文件格式选项:"
-
-# Priority 1
-#~ msgid "&Standard Format Text File (.txt)"
-#~ msgstr "标准格式文本文件 (.txt)"
-
-# Priority 1
-#~ msgid "Export Document Content:"
-#~ msgstr "导出文本内容："
-
-# Priority 1
-#~ msgid "Document export will include ALL standard format markers and the text associated with them (including any filtered markers). If you do not want to export everything, click on the \"Export Filter/Options\" button below to specify what to exclude from exports."
-#~ msgstr "导出文本中包含所有的标准格式标记和与之相关联的文本（包括已筛选出的标记）。如果你不想导出所有的内容，请单击下边的\"\"导出筛选/选项\"\"按钮来确定需要导出的内容。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "&Source Language Code:"
-#~ msgstr "源语"
-
-# Priority 1
-#, fuzzy
-#~ msgid "&Target Language Code:"
-#~ msgstr "目标语言"
-
-# Priority 1
-#, fuzzy
-#~ msgid "&Gloss Language Code:"
-#~ msgstr "注释语言"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Enter Language Names:"
-#~ msgstr "源语"
-
-# Priority 1
-#, fuzzy
-#~ msgid "FreeTrans Proj: "
-#~ msgstr "自由翻译"
-
-# Priority 1
-# Could translate as "Kind of Marker" (this is with respect to whether its associated text can be made available for adaptation or not. Use as short a translation as possible to preserve space for the following text that might read "The text associated with \x can be made available for adaptation".
-#, fuzzy
-#~ msgid "Chapter Status"
-#~ msgstr "标记状态:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "No Source Language Name entered"
-#~ msgstr "源语"
-
-# Priority 1
-#, fuzzy
-#~ msgid "No Target Language Name entered"
-#~ msgstr "目标语言"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Unknown Target Language Name"
-#~ msgstr "目标语言"
-
-#, fuzzy
-#~ msgid "1. Export the Knowledge Base in Standard Format (\\x and \\ge)."
-#~ msgstr "以SIL标准格式导出资料库"
-
-#, fuzzy
-#~ msgid "2. Export the Knowledge Base in LIFT Format."
-#~ msgstr "以SIL标准格式导出资料库"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Export the Knowledge Base as SFM or LIFT dictionary records"
-#~ msgstr "通过导入词典记录扩展资料库"
-
-# Priority 1
-#, fuzzy
-#~ msgid "2. Import LIFT records into the Knowledge Base."
-#~ msgstr "导入至资料库..."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Extend the knowledge base by importing SFM or LIFT dictionary records"
-#~ msgstr "通过导入词典记录扩展资料库"
-
-#, fuzzy
-#~ msgid "Click this button to browse for a different localization path "
-#~ msgstr "设定导航文本颜色..."
-
-#~ msgid "Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."
-#~ msgstr "错误：首次将注释资料库存入磁盘失败。程序将被关闭。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It saves the KB..."
-#~ msgstr "请稍等，Adapt It正在重新安排文档的布局。"
-
-# Priority 1
-#~ msgid "There was an error parsing in the XML file. If you edited the XML file earlier, you may have introduced an error. Edit it in a word processor then try again."
-#~ msgstr "XML文件中有一个短语错误。假若你提早编辑了XML文件，你可能会被告知有一个错误。请在一个文字处理器中编辑它，然后重试。"
-
-#~ msgid "Please locate the following chapter:verse locations and perhaps manually edit any section where the original adaptation had to be abandoned, or filtered material was not made visible, or visible material was not filtered, in the rebuild of the document: "
-#~ msgstr "文档重建时，请定位以下章节的位置；在已放弃的源对应转换资料、或筛选出的不可见资料、或不可筛选的可见资料中，做可能的手动编辑。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Consistency Check of all folders?"
-#~ msgstr "协调性检查"
-
-# Priority 1
-#~ msgid "This phrase has the following translation, or gloss, which is not in the knowledge base:"
-#~ msgstr "此短语有下述译文或注释，它们没有包括在资料库中:"
-
-# Priority 1
-#~ msgid "Translations or glosses currently in the knowledge base:"
-#~ msgstr "当前资料库中的译文或注释:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Translation or Gloss:"
-#~ msgstr "新译文:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Select from the &list on the left, to replace what is above."
-#~ msgstr "从左边的列表中选择以替换上面的内容"
-
-# Priority 1
-#, fuzzy
-#~ msgid "&Accept what is above (entering it into the knowledge base)"
-#~ msgstr "接受上面的内容（将其放入资料库中）"
-
-# Priority 1
-# Refers to typing a new word or phrase
-#, fuzzy
-#~ msgid "Type a &new one:"
-#~ msgstr "键入一个新的XXX:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Accept <n&o adaptation> for this item"
-#~ msgstr "接受此项不使用对应转换"
-
-# Priority 1
-#~ msgid "This selection will first save the currently open document. You will then be able to choose the documents you want checked."
-#~ msgstr "选择此项将首先保存当前所打开的文档，然后才能选择希望检查的文档。"
-
-# Priority 1
-#~ msgid "Remove Filtered Back Translations"
-#~ msgstr "清空筛选出的回译"
-
-#~ msgid "Sorry, loading the glossing knowledge base failed, and then the attempt to substitute a new (empty) one also failed. This error is fatal."
-#~ msgstr "对不起，载入注释资料库失败，尝试用新（空）的资料库替换也失败。这是一个毁灭性的错误。"
-
-#~ msgid ""
-#~ "The retranslation report will be based on this open document only.\n"
-#~ "To get a report based on many or all documents,\n"
-#~ "close the document and select this command again.\n"
-#~ "Do you want a report only for this document?"
-#~ msgstr "此重译报告将仅基于当前打开的文档。要获取基于多个或所有文档的报告，关闭当前文档，然后重新选择此命令。是否需要仅针对此文档的报告？"
-
-#~ msgid "Please wait for Adapt It to output the RTF file. This may take a while..."
-#~ msgstr "请稍等，Adapt It正在输出RTF文件..."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It opens the document..."
-#~ msgstr "请稍等，Adapt It正在重新安排文档的布局。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It processes filter changes..."
-#~ msgstr "请稍等，Adapt It正在重新安排文档的布局。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It saves the Glossing KB..."
-#~ msgstr "请稍等，Adapt It正在重新安排文档的布局。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It loads the KB..."
-#~ msgstr "请稍等，Adapt It正在重新安排文档的布局。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It loads the Glossing KB..."
-#~ msgstr "请稍等，Adapt It正在重新安排文档的布局。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It backs up the KB..."
-#~ msgstr "请稍等，Adapt It正在重新安排文档的布局。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It backs up the Glossing KB..."
-#~ msgstr "请稍等，Adapt It正在重新安排文档的布局。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It prepares the document for printing"
-#~ msgstr "请稍等，Adapt It正在重新安排文档的布局。"
-
-# Priority 1
-#, fuzzy
-#~ msgid "target langugage code"
-#~ msgstr "目标语言"
-
-#~ msgid ""
-#~ "Warning: You just made changes to the document's inventory of filter markers in the Filtering page\n"
-#~ "where the %s was in effect. If you make this change the document will use\n"
-#~ "the Filtering page's settings for the %s. Do you want to make this change?"
-#~ msgstr ""
-#~ "警告：你的修改只对筛选页中文档筛选标记列表有效\n"
-#~ "即对%s有效。如果你做这个修改，文档在%s范围内将会使用\n"
-#~ "筛选页的设置。你要做这个修改吗？"
-
-#, fuzzy
-#~ msgid ""
-#~ "Warning: the Transform Adaptations Into Glosses command will clear out the contents of the current project's knowledge base, which contains %d entries.\n"
-#~ "Likewise for the glossing knowledge base, which contains %d entries.\n"
-#~ "Are you willing for this to happen?"
-#~ msgstr "警告：当前工程资料库含有%d个词条，“转换对应转换内容为注释”命令将会清除其中的内容。注释资料库含有%d个词条，此命令也清楚其中的内容。希望执行此操作吗？"
-
-#~ msgid "Recognise standard format markers only following newlines"
-#~ msgstr "只沿新行识别标准格式标记"
-
-# Priority 1
-#~ msgid "Target:"
-#~ msgstr "目标:"
-
-# Priority 1
-#~ msgid "USFM Set changes should be made here BEFORE making changes on the Filtering page. Normally the sfm set for the document should be the same as the sfm set used for the project. After setting the appropriate sfm set here, you can set marker filtering on the Filtering page."
-#~ msgstr "在筛选页中更改设置前，先在此更改USFM设置。通常文档的sfm 设置要和其工程的sfm 设置一致。在此设置了合适的sfm 设置后，你就可以在筛选页中设置标记筛选。"
-
-# Priority 1
-#~ msgid "UB&S USFM 2.0 Set Only"
-#~ msgstr "UBS USFM 2.0设置"
-
-# Priority 1
-#~ msgid "SILPN&G 1998 Set Only"
-#~ msgstr "SILPNG 1998设置"
-
-# Priority 1
-#~ msgid "Bot&h UBS and SILPNG Sets"
-#~ msgstr "UBS和SILPNG 设置"
-
-# Priority 1
-#~ msgid "&Factory Filter Defaults (read only):"
-#~ msgstr "初始筛选默认值（只读）："
-
-# Priority 1
-#, fuzzy
-#~ msgid "Contents of the destination folder:"
-#~ msgstr "文档会被保存到对应转换文件夹中"
-
-# Priority 1
-#~ msgid "USFM"
-#~ msgstr "USFM"
-
-# Priority 1
-#~ msgid "All Gloss Words Or Phrases"
-#~ msgstr "全部注释单词或短语"
-
-#~ msgid "USFM Set changes should be made here BEFORE making changes on the Filtering page. Normally the sfm set for the document should be the same as the sfm set used for the project."
-#~ msgstr ""
-#~ "在筛选页中更改设置前，先在此更改USFM设置。\n"
-#~ "通常文档的sfm 设置要和其工程的sfm 设置一致。"
-
-#~ msgid "After setting the appropriate sfm set here, you can set marker filtering on the Filtering page."
-#~ msgstr "在此设置了合适的sfm 设置后，你就可以在筛选页中设置标记筛选。"
-
-#~ msgid "Please note: the order of the TU elements in this xml file might differ each time the knowledge base is saved. This is not an error."
-#~ msgstr "请注意：每次保存资料库后，xml文件中TU 元素的顺序都可能会发生变换。这不只一个错误。"
-
-#~ msgid "Sorry, Adapt It cannot step down because it cannot find a legal place to put the phrase box. Open the View tab of the Preferences dialog, set a larger value for the \"Maximum source words displayed\" parameter, and then try to step down again."
-#~ msgstr "对不起，由于没有放置短语框的有效位置，所以Adapt It无法向下移。打开“参数设定”对话框的“查看”页卡，增大“最大源文单词显示数量”的参数值，然后再重试向下移。"
-
-# Priority 1
-#~ msgid "File: "
-#~ msgstr "文件:"
-
-# Priority 1
-#~ msgid "Total words and phrases: "
-#~ msgstr "单词和短语的总数:"
-
-# Priority 1
-#~ msgid "Maximum source words (or phrases) displayed at one time (60 to 4000)"
-#~ msgstr "每次显示源文单词（或短语）的最大数目（60至4000）"
-
-# Priority 1
-#~ msgid "Minimum words (or phrases) in the preceding context (min 20, max 80)"
-#~ msgstr "Minimum words (or phrases) in the preceding context (min 20, max 80)"
-
-# Priority 1
-#~ msgid "Minimum words (or phrases) in the following context (min 20, max 60)"
-#~ msgstr "后面上下文中的最少单词（或短语）数（最少20，最多60）"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Do not show an extra source line (without punctuation)"
-#~ msgstr "限制源文首行"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Do not show an extra target line (without punctuation)"
-#~ msgstr "限制目标文本末行"
-
-#~ msgid "Sorry, opening the new document failed. Perhaps you cancelled the output filename dialog, or maybe the source text file is open in another application?"
-#~ msgstr "对不起，打开新文档失败。你可能取消了输出文件名的对话框，或者源文文件正被其它程序所调用。"
-
-# Priority 1
-#~ msgid "Progress"
-#~ msgstr "进程"
-
-#~ msgid "Do you wish to substitute the backup knowledge base for the faulty one? (Entries made since you last saved will not be included.)"
-#~ msgstr "是否希望用备份的资料库替换有问题的资料库？(自上次保存以来所加入的词条将会丢失。）"
-
-#~ msgid "Sorry, integrity checking of the knowledge base revealed there were some errors. See the KBErrorLog.txt file in your project folder. Delete the bad knowledge base and build a new one."
-#~ msgstr "对不起，完整性检查发现资料库中存在错误。请查看你工程文件夹中的KBErrorLog.txt文件。删除损坏的资料库并重建新的资料库。"
-
-#~ msgid "No errors were detected in the glossing knowledge base."
-#~ msgstr "注释资料库中没有发现错误。"
-
-#~ msgid "No errors were detected in the knowledge base."
-#~ msgstr "资料库中没有发现错误。"
-
-# Priority 1
-# Put a space before translation of "Word"
-#~ msgid " Word"
-#~ msgstr "用字"
-
-# Priority 1
-# Put a space before translation of "Words"
-#~ msgid " Words"
-#~ msgstr " 用字"
-
-# Priority 1
-#~ msgid "&Check Knowledge Base"
-#~ msgstr "检查资料库"
-
-#~ msgid "Perform an integrity check of the knowledge base, report errors"
-#~ msgstr "检查资料库的完整性，并报告错误"
-
-#~ msgid ""
-#~ "Please wait while Adapt It collects the back translations and stores them.\n"
-#~ "This may take a while..."
-#~ msgstr "请稍后… Adapt It正在收集回译并存储它们。这可能需要花一点时间…"
-
-#~ msgid "No SILConverter configured! Click 'Tools', 'SIL Converters...' to re-configure a new converter"
-#~ msgstr "无SIL转换器配置！请点击‘工具’，‘SIL转换器...’来重配置一个新的转换器"
-
-#~ msgid ""
-#~ "The SILConverter named \n"
-#~ "\n"
-#~ "\t'%s'\n"
-#~ "\n"
-#~ "is no longer in the system repository! Click 'Tools', 'SIL Converters...' to re-configure a new converter"
-#~ msgstr ""
-#~ "名为\n"
-#~ "\n"
-#~ "\t'%s'\n"
-#~ "\n"
-#~ "的SIL转换器没有存储在系统中，请点击‘工具’，‘SIL转换器...’来重配置一个新的转换器"
-
-#~ msgid "Unable to launch the SIL Converters Selection Dialog! Are you using SIL Converters version v 2.2 or greater? Otherwise, you need to re-install or reboot"
-#~ msgstr "无法快速启动SIL转换器选项对话框！如果使用的不是2.2或更高版本的SIL转换 器，您需要重新安装或启动。"
-
-#~ msgid ""
-#~ "Sorry, editing the source text is not permitted when there is a free translation anywhere within the selected text.\n"
-#~ "First remove the free translations in the selection range."
-#~ msgstr ""
-#~ "对不起，当所选文本中含有任何一个自由翻译时将无法对源文本进行编辑。\n"
-#~ "请先删除所选范围内的自由翻译。"
-
-#~ msgid "Editing the source text is not permitted when there is a filtered information within the selection."
-#~ msgstr "当所选区域内有信息被筛选时不允许编辑源文本。"
-
-# Priority 1
-#~ msgid "Maximum output table width designed for:"
-#~ msgstr "设计的最大输出表格宽度针对:"
-
-# Priority 1
-#~ msgid "Change the following source text according to your requirements (and remember to include any needed punctuation):"
-#~ msgstr "根据你的需要改变下面的源文（记住包括必要的标点）:"
-
-# Priority 1
-#~ msgid "I want to add, remove, or change standard format markers in the new source text "
-#~ msgstr "我要加入、删除或改变新源文中的标准格式标记"
-
-# Priority 1
-#~ msgid "Current target language translation. (This can be selected and copied to the above edit box using CTRL+C and CTRL+V)"
-#~ msgstr "当前的目标语言译文(用CTRL+C和CTRL+V可以将其选中并复制到上面的编辑框中)"
-
-# Priority 1
-#~ msgid "OLD"
-#~ msgstr "旧"
-
-# Priority 1
-#~ msgid "Old source text (with standard format markers shown preceding the source text words where they are stored)."
-#~ msgstr "旧源文（显示和原始文本单词一同保存并放在它们前面的标准格式标记）"
-
-# Priority 1
-#, fuzzy
-#~ msgid "1. Old Source words storing sfms:"
-#~ msgstr "1. 源文单词。一同保存有它们前面的标准格式标记:"
-
-# Priority 1
-# Note: The marker list mentioned is now at the left, not above.
-#, fuzzy
-#~ msgid "2. Sfms stored preceding word selected in listbox at left:"
-#~ msgstr "2. 标准格式标记或标记列表，一同保存有上面的原始文本单词:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Click the \"Transfer\" button below to transfer the above word's sfm(s) to the best new source word at right:"
-#~ msgstr "点击下面的按钮，将上面的标记或标记列表转移到右边组合框中当前所显示的新的源文单词中来:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "4. Transfer To: %s"
-#~ msgstr "4. 转移致： %s"
-
-# Priority 1
-#~ msgid "NEW"
-#~ msgstr "新"
-
-# Priority 1
-#, fuzzy
-#~ msgid "New source text (for showing your edits). Use the lists and buttons below to select, transfer and update sfms."
-#~ msgstr "新的源文（显示当前和新的源文单词连用的标准格式标记）"
-
-# Priority 1
-#, fuzzy
-#~ msgid "3. New Source words; Select one:"
-#~ msgstr "3. 新的源文单词 :"
-
-# Priority 1
-#, fuzzy
-#~ msgid "5. Edit the sfm(s) in this box if needed, then click 6."
-#~ msgstr "5. 和上面新单词一同保存的标准格式标记或标记列表是:（此内容可以编辑）"
-
-# Priority 1
-#, fuzzy
-#~ msgid "6. Update Markers in New source text"
-#~ msgstr "6. 升级标记"
-
-# Priority 1
-#~ msgid "7. OK"
-#~ msgstr "7. 确定"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Remove Markers from New source text"
-#~ msgstr "删除标记"

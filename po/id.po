@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
-"POT-Creation-Date: 2015-10-15 08:06-0500\n"
-"PO-Revision-Date: 2015-10-15 08:06-0500\n"
+"POT-Creation-Date: 2015-10-19 20:26-0500\n"
+"PO-Revision-Date: 2015-10-19 20:27-0500\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: id\n"
@@ -917,6 +917,18 @@ msgstr ""
 #: Adapt_It.cpp:21060
 msgid "Initialization complete. Call Start Working..."
 msgstr ""
+
+# Priority 1
+#: Adapt_It.cpp:21657
+#, fuzzy
+msgid "Setup Or Remove Knowledge Base Sharing..."
+msgstr "Simpan Ke Kamus"
+
+# Priority 1
+#: Adapt_It.cpp:21662
+#, fuzzy
+msgid "Controls For Knowledge Base Sharing..."
+msgstr "&Import to Knowledge Base..."
 
 #: Adapt_It.cpp:22893
 msgid ""
@@ -6283,7 +6295,7 @@ msgstr ""
 msgid "Removed:"
 msgstr "Pilih penandanya dan klik \"\"Saring\"\" atau \"\" Masukkan dalam Ekspor\"\" Jika dipilih, penanda dan teks yang berkaitan akan disaring dari dokumen yang diekspor\" Catatan: Jika penanda format karakter disaring, hanya formatnya yang dikeluarkan – teksnya sendiri tidak dikeluarkan."
 
-#: Adapt_It_wdr.cpp:5720 MainFrm.cpp:4861 MainFrm.cpp:4985 MainFrm.cpp:5131 MainFrm.cpp:5329 MainFrm.cpp:5573 MainFrm.cpp:5779 MainFrm.cpp:5916 MainFrm.cpp:6038
+#: Adapt_It_wdr.cpp:5720 MainFrm.cpp:4859 MainFrm.cpp:4983 MainFrm.cpp:5129 MainFrm.cpp:5327 MainFrm.cpp:5571 MainFrm.cpp:5777 MainFrm.cpp:5914 MainFrm.cpp:6036
 msgid "Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."
 msgstr ""
 
@@ -12603,11 +12615,23 @@ msgid ""
 "Therefore knowledge base sharing is now turned off for this project, neither knowledge base is shared)."
 msgstr ""
 
-#: MainFrm.cpp:2770
+#: MainFrm.cpp:2724
+msgid ""
+"Type the knowledge base server's password.\n"
+"You should have received it from your administrator.\n"
+"Without the correct password, sharing your knowledge base data\n"
+"with others cannot happen, nor can they share theirs with you."
+msgstr ""
+
+#: MainFrm.cpp:2725
+msgid "Type the server's password"
+msgstr ""
+
+#: MainFrm.cpp:2768
 msgid "Change the amount of time tooltips are displayed"
 msgstr ""
 
-#: MainFrm.cpp:2772
+#: MainFrm.cpp:2770
 #, c-format
 msgid ""
 "The current tooltip display time is %d milliseconds which is %d seconds.\n"
@@ -12615,43 +12639,43 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:3220 ViewPage.cpp:233
+#: MainFrm.cpp:3218 ViewPage.cpp:233
 msgid "Access to Administrator privileges requires that you type a password"
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:3221 ViewPage.cpp:234
+#: MainFrm.cpp:3219 ViewPage.cpp:234
 msgid "Type Administrator Password"
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:4286 PhraseBox.cpp:2215 PhraseBox.cpp:2433
+#: MainFrm.cpp:4284 PhraseBox.cpp:2215 PhraseBox.cpp:2433
 msgid "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."
 msgstr "Selesai. Kalau tidak ada yang terlewat sebelumnya, maka tidak lagi yang akan diadaptasi dalam arsip ini."
 
 # Priority 1
-#: MainFrm.cpp:4851 MainFrm.cpp:4977 MainFrm.cpp:5123 MainFrm.cpp:5321
+#: MainFrm.cpp:4849 MainFrm.cpp:4975 MainFrm.cpp:5121 MainFrm.cpp:5319
 msgid "Vertical Editing - adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:5563 MainFrm.cpp:5771 MainFrm.cpp:5908 MainFrm.cpp:6030
+#: MainFrm.cpp:5561 MainFrm.cpp:5769 MainFrm.cpp:5906 MainFrm.cpp:6028
 msgid "Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:6362 MainFrm.cpp:6651
+#: MainFrm.cpp:6360 MainFrm.cpp:6649
 msgid ""
 "Vertical Editing - free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is "
 "currently on and all free translation functionalities are enabled."
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:6373 MainFrm.cpp:6663
+#: MainFrm.cpp:6371 MainFrm.cpp:6661
 msgid "Clicking on an item in the above list copies it to the Compose Bar's text box, overwriting anything there."
 msgstr ""
 
-#: MainFrm.cpp:6770
+#: MainFrm.cpp:6768
 msgid "Warning: recollecting the back translations did not succeed. Try doing it manually."
 msgstr ""
 
@@ -14281,523 +14305,3 @@ msgstr ""
 #, fuzzy
 msgid "Print Preview"
 msgstr "&Lihat Hasil Cetak"
-
-# Priority 1
-#, fuzzy
-#~ msgid "No longer share any of this project's local knowledge bases"
-#~ msgstr "Ubah atau Periksa Kamus"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Choose language codes for at least the Source and Target languages"
-#~ msgstr "Ketik nama bahasa sumber dan sasaran."
-
-#~ msgid "Sorry, within this dialog it is an error to place phrase medial punctuation at the beginning or end of a phrase."
-#~ msgstr "Maaf, dengan perintah ini Anda tidak bisa menaruh tanda baca tengah frasa di awal atau akhir frasa."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Adding text to a free translation widener is not permitted."
-#~ msgstr "Maaf, tidak boleh ubah kata pokok seperti ini."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Merging a selection which contains a free translation widener (represented by five ..... dots with * above it) is not permitted."
-#~ msgstr "Maaf, tidak boleh menggabung pilihan yang berisi tempat untuk kata tambahan khusus (ditandai dengan titik-titik ...)."
-
-# Priority 1
-#, fuzzy
-#~ msgid "&New Translation:"
-#~ msgstr "Terjemahan Baru:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Remove Setup"
-#~ msgstr "Hapuskan %s"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Rename Not Done"
-#~ msgstr "Ganti nama dokumen…"
-
-# Priority 1
-#, fuzzy
-#~ msgid "There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."
-#~ msgstr "Maaf, tidak ada data apa-apa dalam arsip ini. Dokumen ini tidak dibuat dengan benar sehingga tidak bisa dibuka. Hapus dokumen ini."
-
-# Priority 1
-#~ msgid "Respect boundaries when selecting"
-#~ msgstr "Ikut batas ketika memilih bagian tertentu"
-
-#~ msgid "Re-enable automatic copying of source text punctuation"
-#~ msgstr "Mengaktifkan penggandaan tanda baca dari teks sumber secara otomatis"
-
-# Priority 1
-#~ msgid "Show normal view"
-#~ msgstr "Pakai tampilan biasa"
-
-#~ msgid "Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"
-#~ msgstr "Maaf, gagal keluarkan arsip. (Arsip tersebut mungkin sedang dipakai oleh program lain. Atau sudah rusak dan harus dihapus.)"
-
-#~ msgid "The file you clicked could not be opened. It probably no longer exists. When you click OK the Start Working... wizard will open to let you open a project and document from there instead."
-#~ msgstr "Arsip yang Anda klik tidak dapat dibuka. Mungkin sudah tidak ada. Ketika Anda klik OK untuk Mulai Bekerja… akan tersedia panduan untuk membuka proyek dan dokumen."
-
-#~ msgid "Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."
-#~ msgstr "Maaf, ketika setelan map kitab sedang tidak aktif, menu ‘Dokumen Yang Baru Dipakai’ tidak dapat dijalankan untuk membuka dokumen yang disimpan dengan setelan map kitab."
-
-# Priority 1
-#~ msgid "Export File Format Options:"
-#~ msgstr "Pilihan Format Arsip yang Diekspor:"
-
-# Priority 1
-#~ msgid "&Standard Format Text File (.txt)"
-#~ msgstr "Arsip Standard Format Text (.txt)"
-
-# Priority 1
-#~ msgid "Export Document Content:"
-#~ msgstr "Ekspor Isi Dokumen:"
-
-# Priority 1
-#~ msgid "Document export will include ALL standard format markers and the text associated with them (including any filtered markers). If you do not want to export everything, click on the \"Export Filter/Options\" button below to specify what to exclude from exports."
-#~ msgstr "Ekspor Dokumen akan mencakup SEMUA penanda format standar dan teks yang berhubungan dengannya (termasuk semua  penanda yang disaring). Jika Anda tidak mau mengekspor semuanya, klik tombol “Penyaring/Pilihan Ekspor” di bawah ini dan pilih mana yang tidak akan diekspor."
-
-# Priority 1
-#, fuzzy
-#~ msgid "&Source Language Code:"
-#~ msgstr "Bahasa Sumber"
-
-# Priority 1
-#, fuzzy
-#~ msgid "&Target Language Code:"
-#~ msgstr "Bahasa Sasaran"
-
-# Priority 1
-#, fuzzy
-#~ msgid "&Gloss Language Code:"
-#~ msgstr "Bahasa Kamus"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Enter Language Names:"
-#~ msgstr "Bahasa Sumber"
-
-# Priority 1
-#, fuzzy
-#~ msgid "FreeTrans Proj: "
-#~ msgstr "Terjemahan Bebas"
-
-# Priority 1
-# Could translate as "Kind of Marker" (this is with respect to whether its associated text can be made available for adaptation or not. Use as short a translation as possible to preserve space for the following text that might read "The text associated with \x can be made available for adaptation".
-#, fuzzy
-#~ msgid "Chapter Status"
-#~ msgstr "Status Penanda:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "No Source Language Name entered"
-#~ msgstr "Bahasa Sumber"
-
-# Priority 1
-#, fuzzy
-#~ msgid "No Target Language Name entered"
-#~ msgstr "Bahasa Sasaran"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Unknown Target Language Name"
-#~ msgstr "Bahasa Sasaran"
-
-#, fuzzy
-#~ msgid "1. Export the Knowledge Base in Standard Format (\\x and \\ge)."
-#~ msgstr "Ekspor kamus dalam format standar SIL"
-
-#, fuzzy
-#~ msgid "2. Export the Knowledge Base in LIFT Format."
-#~ msgstr "Ekspor kamus dalam format standar SIL"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Export the Knowledge Base as SFM or LIFT dictionary records"
-#~ msgstr "Tambahkan kamus, diambil dari rekaman-rekaman kamus"
-
-# Priority 1
-#, fuzzy
-#~ msgid "2. Import LIFT records into the Knowledge Base."
-#~ msgstr "&Import to Knowledge Base..."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Extend the knowledge base by importing SFM or LIFT dictionary records"
-#~ msgstr "Tambahkan kamus, diambil dari rekaman-rekaman kamus"
-
-#, fuzzy
-#~ msgid "Click this button to browse for a different localization path "
-#~ msgstr "Atur Warna Teks Petunjuk..."
-
-#~ msgid "Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."
-#~ msgstr "Salah: gagal simpan kamus untuk pertama kali ke disket. Program akan ditutup."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It saves the KB..."
-#~ msgstr "Mohon Tunggu, Adapt It sedang mengatur letak dokumen."
-
-# Priority 1
-#~ msgid "There was an error parsing in the XML file. If you edited the XML file earlier, you may have introduced an error. Edit it in a word processor then try again."
-#~ msgstr "Ada kesalahan penguraian dalam arsip XML. Jika Anda mengubah arsip XML sebelumnya, Anda mungkin telah membuat kesalahan. Ubah di program pengolah kata dan coba kembali."
-
-#~ msgid "Please locate the following chapter:verse locations and perhaps manually edit any section where the original adaptation had to be abandoned, or filtered material was not made visible, or visible material was not filtered, in the rebuild of the document: "
-#~ msgstr "Cari pasal berikut:lokasi-lokasi ayat dan ubah setiap bagian yang adaptasi aslinya diabaikan, atau bahan yang tersaring tidak terlihat, atau bahan yang terlihat tidak tersaring, pada proses pembuatan dokumen:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Consistency Check of all folders?"
-#~ msgstr "Cek Konsistensi "
-
-# Priority 1
-#~ msgid "This phrase has the following translation, or gloss, which is not in the knowledge base:"
-#~ msgstr "Frasa ini punya terjemahan atau arti kata berikut ini, yang tidak ada dalam kamus:"
-
-# Priority 1
-#~ msgid "Translations or glosses currently in the knowledge base:"
-#~ msgstr "Terjemahan atau arti kata yang ada sekarang di dalam kamus:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Translation or Gloss:"
-#~ msgstr "Terjemahan Baru:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Select from the &list on the left, to replace what is above."
-#~ msgstr "Pilih dalam daftar di sebelah kiri, untuk menggantikan yang ada di atasnya."
-
-# Priority 1
-#, fuzzy
-#~ msgid "&Accept what is above (entering it into the knowledge base)"
-#~ msgstr "Terima yang di atas (masukkan ke kamus)"
-
-# Priority 1
-# Refers to typing a new word or phrase
-#, fuzzy
-#~ msgid "Type a &new one:"
-#~ msgstr "Ketik yang baru:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Accept <n&o adaptation> for this item"
-#~ msgstr "Terima <Tidak ada adaptasi> untuk bagian ini"
-
-# Priority 1
-#~ msgid "This selection will first save the currently open document. You will then be able to choose the documents you want checked."
-#~ msgstr "Pilihan ini pertama-tema akan menyimpan dokumen yang sedang dibuka sekarang ini. Setelah itu Anda boleh pilih dokumen lain juga untuk diperiksa."
-
-# Priority 1
-#~ msgid "Remove Filtered Back Translations"
-#~ msgstr "Hapuskan Terjemahan Balik yang sudah Disaring"
-
-#~ msgid "Sorry, loading the glossing knowledge base failed, and then the attempt to substitute a new (empty) one also failed. This error is fatal."
-#~ msgstr "Maaf, gagal munculkan kamus, dan percobaan untuk mengganti dengan yang baru (kosong) juga gagal. Kesalahan ini serius."
-
-#~ msgid ""
-#~ "The retranslation report will be based on this open document only.\n"
-#~ "To get a report based on many or all documents,\n"
-#~ "close the document and select this command again.\n"
-#~ "Do you want a report only for this document?"
-#~ msgstr "Laporan terjemahan ulang akan berdasarkan dokumen ini saja. Untuk mendapat laporan terjemahan dari banyak atau semua dokumen, tutup dokumen ini dan jalankan perintah ini sekali lagi. Anda perlu laporan dari dokumen ini saja?"
-
-#~ msgid "Please wait for Adapt It to output the RTF file. This may take a while..."
-#~ msgstr "Mohon tunggu, Adapt It sedang membuat arsip RTF..."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It opens the document..."
-#~ msgstr "Mohon Tunggu, Adapt It sedang mengatur letak dokumen."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It processes filter changes..."
-#~ msgstr "Mohon Tunggu, Adapt It sedang mengatur letak dokumen."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It saves the Glossing KB..."
-#~ msgstr "Mohon Tunggu, Adapt It sedang mengatur letak dokumen."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It loads the KB..."
-#~ msgstr "Mohon Tunggu, Adapt It sedang mengatur letak dokumen."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It loads the Glossing KB..."
-#~ msgstr "Mohon Tunggu, Adapt It sedang mengatur letak dokumen."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It backs up the KB..."
-#~ msgstr "Mohon Tunggu, Adapt It sedang mengatur letak dokumen."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It backs up the Glossing KB..."
-#~ msgstr "Mohon Tunggu, Adapt It sedang mengatur letak dokumen."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It prepares the document for printing"
-#~ msgstr "Mohon Tunggu, Adapt It sedang mengatur letak dokumen."
-
-# Priority 1
-#, fuzzy
-#~ msgid "target langugage code"
-#~ msgstr "Bahasa Sasaran"
-
-#~ msgid ""
-#~ "Warning: You just made changes to the document's inventory of filter markers in the Filtering page\n"
-#~ "where the %s was in effect. If you make this change the document will use\n"
-#~ "the Filtering page's settings for the %s. Do you want to make this change?"
-#~ msgstr ""
-#~ "Peringatan: Anda baru saja mengubah inventaris penanda saring dokumen pada halaman Penyaringan\n"
-#~ "dimana %s berlaku. Jika Anda mengubah ini, dokumen akan menggunakan\n"
-#~ "aturan pada halaman Penyaringan untuk %s. Apakah Anda mau membuat perubahan ini?"
-
-#, fuzzy
-#~ msgid ""
-#~ "Warning: the Transform Adaptations Into Glosses command will clear out the contents of the current project's knowledge base, which contains %d entries.\n"
-#~ "Likewise for the glossing knowledge base, which contains %d entries.\n"
-#~ "Are you willing for this to happen?"
-#~ msgstr "Peringatan: perintah Ubah Adaptasi Jadi Daftar Arti Kata akan menghapus semua isi kamus dari proyek ini yang berisi kata-kata pokok %d. Juga semua isi kamus arti kata yang berisi kata-kata pokok %d. Anda setuju?"
-
-#~ msgid "Recognise standard format markers only following newlines"
-#~ msgstr "Penanda format dimulai pada setiap awal baris baru"
-
-# Priority 1
-#~ msgid "Target:"
-#~ msgstr "Sasaran:"
-
-# Priority 1
-#~ msgid "USFM Set changes should be made here BEFORE making changes on the Filtering page. Normally the sfm set for the document should be the same as the sfm set used for the project. After setting the appropriate sfm set here, you can set marker filtering on the Filtering page."
-#~ msgstr "Perubahan perangkat USFM harus dibuat SEBELUM mengubah halaman Penyaringan. Biasanya perangkat sfm di dokumen harus sama dengan perangkat sfm yang dipakai untuk proyek. Setelah menetapkan perangkat sfm yang cocok, Anda dapat menetapkan penanda penyaring pada halaman Penyaringan."
-
-# Priority 1
-#~ msgid "UB&S USFM 2.0 Set Only"
-#~ msgstr "Hanya Perangkat UB&S USFM 2.0"
-
-# Priority 1
-#~ msgid "SILPN&G 1998 Set Only"
-#~ msgstr "Hanya Perangkat SILPN&G 1998"
-
-# Priority 1
-#~ msgid "Bot&h UBS and SILPNG Sets"
-#~ msgstr "Ke&dua Perangkat UBS dan SILPNG"
-
-# Priority 1
-#~ msgid "&Factory Filter Defaults (read only):"
-#~ msgstr "&Setelan Baku (hanya untuk dibaca):"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Contents of the destination folder:"
-#~ msgstr "Dokumen akan disimpan pada map Adaptasi"
-
-# Priority 1
-#~ msgid "USFM"
-#~ msgstr "USFM"
-
-# Priority 1
-#~ msgid "All Gloss Words Or Phrases"
-#~ msgstr "Semua Arti Kata dari Kata Atau Frasa"
-
-#~ msgid "USFM Set changes should be made here BEFORE making changes on the Filtering page. Normally the sfm set for the document should be the same as the sfm set used for the project."
-#~ msgstr ""
-#~ "Perubahan perangkat USFM harus dibuat SEBELUM mengubah halaman Penyaringan.\n"
-#~ "Biasanya perangkat sfm di dokumen harus sama dengan perangkat sfm yang dipakai untuk proyek."
-
-#~ msgid "After setting the appropriate sfm set here, you can set marker filtering on the Filtering page."
-#~ msgstr "Setelah menetapkan perangkat sfm yang cocok, Anda dapat menetapkan penanda penyaring pada halaman Penyaringan."
-
-#~ msgid "Please note: the order of the TU elements in this xml file might differ each time the knowledge base is saved. This is not an error."
-#~ msgstr "Perhatian: susunan elemen TU pada arsip XML ini mungkin berbeda setiap kali kamus disimpan. Ini bukan kesalahan."
-
-#~ msgid "Sorry, Adapt It cannot step down because it cannot find a legal place to put the phrase box. Open the View tab of the Preferences dialog, set a larger value for the \"Maximum source words displayed\" parameter, and then try to step down again."
-#~ msgstr "Maaf, Adapt It tidak bisa turun karena tidak bisa temukan tempat yang benar untuk menaruh kotak frasa. Tekan kotak Lihat dalam menu Pilihan, masukkan angka yang lebih besar untuk parameter\"\"Maksimum kata sumber yang dimunculkan\"\" dan coba turun lagi."
-
-# Priority 1
-#~ msgid "File: "
-#~ msgstr "Arsip:"
-
-# Priority 1
-#~ msgid "Total words and phrases: "
-#~ msgstr "Jumlah Kata dan Frasa:"
-
-# Priority 1
-#~ msgid "Maximum source words (or phrases) displayed at one time (60 to 4000)"
-#~ msgstr "Maksimum kata (atau frasa) sumber yang ditampilkan sekaligus (60 sampai 4000)"
-
-# Priority 1
-#~ msgid "Minimum words (or phrases) in the preceding context (min 20, max 80)"
-#~ msgstr "Minimum kata (atau frasa) dalam konteks sebelumnya (min 20, maks 80)"
-
-# Priority 1
-#~ msgid "Minimum words (or phrases) in the following context (min 20, max 60)"
-#~ msgstr "Minimum kata (atau frasa) dalam konteks berikutnya  (min 20, maks 60)"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Do not show an extra source line (without punctuation)"
-#~ msgstr "Sembunyikan baris teks sumber yang pertama"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Do not show an extra target line (without punctuation)"
-#~ msgstr "Sembunyikan baris teks sasaran yang terakhir"
-
-#~ msgid "Sorry, opening the new document failed. Perhaps you cancelled the output filename dialog, or maybe the source text file is open in another application?"
-#~ msgstr "Maaf, gagal buka dokumen baru. Mungkin Anda sudah hapus nama arsipnya dalam kotak perintah, atau arsip teks sumbernya sedang dipakai dengan program lain?"
-
-# Priority 1
-#~ msgid "Progress"
-#~ msgstr "Kemajuan"
-
-#~ msgid "Do you wish to substitute the backup knowledge base for the faulty one? (Entries made since you last saved will not be included.)"
-#~ msgstr "Anda mau menggantikan kamus yang salah dengan kamus cadangan? (Kata-kata yang disimpan terakhir tidak ikut dimasukkan.)"
-
-#~ msgid "Sorry, integrity checking of the knowledge base revealed there were some errors. See the KBErrorLog.txt file in your project folder. Delete the bad knowledge base and build a new one."
-#~ msgstr "Maaf, cek integritas menemukan ada kesalahan dalam kamus. Lihat arsip KBErrorLog.txt dalam map proyek Anda. Hapus arsip kamus yang jelek dan buat yang baru kembali."
-
-#~ msgid "No errors were detected in the glossing knowledge base."
-#~ msgstr "Tidak ditemukan kesalahan dalam kamus."
-
-#~ msgid "No errors were detected in the knowledge base."
-#~ msgstr "Tidak ditemukan kesalahan dalam kamus."
-
-# Priority 1
-# Put a space before translation of "Word"
-#~ msgid " Word"
-#~ msgstr "Kata"
-
-# Priority 1
-# Put a space before translation of "Words"
-#~ msgid " Words"
-#~ msgstr " Kata-Kata"
-
-# Priority 1
-#~ msgid "&Check Knowledge Base"
-#~ msgstr "Cek Kamus"
-
-#~ msgid "Perform an integrity check of the knowledge base, report errors"
-#~ msgstr "Buat cek integritas untuk kamus dan laporkan kesalahan"
-
-#~ msgid ""
-#~ "Please wait while Adapt It collects the back translations and stores them.\n"
-#~ "This may take a while..."
-#~ msgstr "Mohon tunggu. Adapt It sedang mengumpulkan terjemahan balik dan menyimpannya. Proses ini perlu waktu sebentar... "
-
-#~ msgid "No SILConverter configured! Click 'Tools', 'SIL Converters...' to re-configure a new converter"
-#~ msgstr "Alat Konversi SIL tidak tersusun! Pilih ‘Alat-Alat’, ‘Alat Konversi SIL…’ untuk menyusun ulang alat konversi baru "
-
-#~ msgid ""
-#~ "The SILConverter named \n"
-#~ "\n"
-#~ "\t'%s'\n"
-#~ "\n"
-#~ "is no longer in the system repository! Click 'Tools', 'SIL Converters...' to re-configure a new converter"
-#~ msgstr ""
-#~ "Nama Alat Konversi SIL\n"
-#~ "\n"
-#~ "\t'%s'\n"
-#~ "\n"
-#~ "tidak ada lagi di tempat penyimpanan sistem! Pilih ‘Alat-Alat’, ‘Alat Konversi SIL…’ untuk menyusun ulang alat konversi baru"
-
-#~ msgid "Unable to launch the SIL Converters Selection Dialog! Are you using SIL Converters version v 2.2 or greater? Otherwise, you need to re-install or reboot"
-#~ msgstr "Tidak dapat menjalankan dialog pilihan Alat Konversi SIL! Apakah Anda menggunakan Alat Konversi SIL versi v 2.2 atau versi lebih baru? Jika tidak, Anda harus memasangnya atau menyalakan kembali komputer"
-
-#~ msgid ""
-#~ "Sorry, editing the source text is not permitted when there is a free translation anywhere within the selected text.\n"
-#~ "First remove the free translations in the selection range."
-#~ msgstr ""
-#~ "Maaf, mengubah teks sumber tidak diperbolehkan jika ada terjemahan bebas dalam teks yang dipilih.\n"
-#~ "Hapus dahulu terjemahan bebas dalam pilihan yang ditentukan."
-
-#~ msgid "Editing the source text is not permitted when there is a filtered information within the selection."
-#~ msgstr "Mengubah teks sumber tidak diizinkan jika ada informasi yang disaring pada pilihan."
-
-# Priority 1
-#~ msgid "Maximum output table width designed for:"
-#~ msgstr "Batas lebar tabel dibuat untuk:"
-
-# Priority 1
-#~ msgid "Change the following source text according to your requirements (and remember to include any needed punctuation):"
-#~ msgstr "Ubah teks sumber berikut ini sesuai dengan permintaan Anda (jangan lupa masukkan tanda baca yang perlu):"
-
-# Priority 1
-#~ msgid "I want to add, remove, or change standard format markers in the new source text "
-#~ msgstr "Saya mau tambah, hapus, atau ubah penanda format baku dalam teks sumber yang baru"
-
-# Priority 1
-#~ msgid "Current target language translation. (This can be selected and copied to the above edit box using CTRL+C and CTRL+V)"
-#~ msgstr "Terjemahan bahasa sasaran sekarang ini. (Ini bisa dipilih dan disalin ke dalam kotak di atas untuk diperbaiki dengan menekan tombol CTRL+C dan CTRL+V)"
-
-# Priority 1
-#~ msgid "OLD"
-#~ msgstr "LAMA"
-
-# Priority 1
-#~ msgid "Old source text (with standard format markers shown preceding the source text words where they are stored)."
-#~ msgstr "Teks sumber lama (dengan penanda-penanda format baku di depan kata-kata teks sumber)"
-
-# Priority 1
-#, fuzzy
-#~ msgid "1. Old Source words storing sfms:"
-#~ msgstr "1. Kata-kata teks sumber yang di depannya ada penanda format baku yang disimpan bersama kata-kata itu:"
-
-# Priority 1
-# Note: The marker list mentioned is now at the left, not above.
-#, fuzzy
-#~ msgid "2. Sfms stored preceding word selected in listbox at left:"
-#~ msgstr "2. Penanda format baku, atau daftar penanda, yang disimpan bersama kata-kata teks sumber di atas:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Click the \"Transfer\" button below to transfer the above word's sfm(s) to the best new source word at right:"
-#~ msgstr "Klik tombol di bawah untuk pindahkan penanda, atau daftar penanda di atas ke teks sumber baru yang sedang ditampilkan dalam kotak besar di sebelah kanan:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "4. Transfer To: %s"
-#~ msgstr "4. Pindahkan Ke:  %s"
-
-# Priority 1
-#~ msgid "NEW"
-#~ msgstr "BARU"
-
-# Priority 1
-#, fuzzy
-#~ msgid "New source text (for showing your edits). Use the lists and buttons below to select, transfer and update sfms."
-#~ msgstr "Teks sumber baru (dengan penanda-penanda format baku di depan kata-kata teks yang baru itu)"
-
-# Priority 1
-#, fuzzy
-#~ msgid "3. New Source words; Select one:"
-#~ msgstr "3. Kata-kata teks sumber baru :"
-
-# Priority 1
-#, fuzzy
-#~ msgid "5. Edit the sfm(s) in this box if needed, then click 6."
-#~ msgstr "5. Penanda format baku, atau daftar penanda, yang disimpan dengan kata baru di atas adalah:  (ini bisa diubah)"
-
-# Priority 1
-#, fuzzy
-#~ msgid "6. Update Markers in New source text"
-#~ msgstr "6. Ubah Penanda"
-
-# Priority 1
-#~ msgid "7. OK"
-#~ msgstr "7. OK"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Remove Markers from New source text"
-#~ msgstr "Hapus Penanda"

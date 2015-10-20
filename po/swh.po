@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
-"POT-Creation-Date: 2015-10-15 08:07-0500\n"
-"PO-Revision-Date: 2015-10-15 08:07-0500\n"
+"POT-Creation-Date: 2015-10-19 20:28-0500\n"
+"PO-Revision-Date: 2015-10-19 20:28-0500\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: sw\n"
@@ -927,6 +927,18 @@ msgstr "Kuanzisha jalada msaada %s..."
 #: Adapt_It.cpp:21060
 msgid "Initialization complete. Call Start Working..."
 msgstr "Kuanzisha kumeisha. Lete, Anza kufanya kazi..."
+
+# Priority 1
+#: Adapt_It.cpp:21657
+#, fuzzy
+msgid "Setup Or Remove Knowledge Base Sharing..."
+msgstr "Tunza kwenye kamusi"
+
+# Priority 1
+#: Adapt_It.cpp:21662
+#, fuzzy
+msgid "Controls For Knowledge Base Sharing..."
+msgstr "Agiza kwenye Kamusi..."
 
 #: Adapt_It.cpp:22893
 msgid ""
@@ -6359,7 +6371,7 @@ msgstr "Bonyeza tengua kutobadilisha lugha ya programa."
 msgid "Removed:"
 msgstr "Yaliyofutwa:"
 
-#: Adapt_It_wdr.cpp:5720 MainFrm.cpp:4861 MainFrm.cpp:4985 MainFrm.cpp:5131 MainFrm.cpp:5329 MainFrm.cpp:5573 MainFrm.cpp:5779 MainFrm.cpp:5916 MainFrm.cpp:6038
+#: Adapt_It_wdr.cpp:5720 MainFrm.cpp:4859 MainFrm.cpp:4983 MainFrm.cpp:5129 MainFrm.cpp:5327 MainFrm.cpp:5571 MainFrm.cpp:5777 MainFrm.cpp:5914 MainFrm.cpp:6036
 msgid "Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."
 msgstr ""
 
@@ -12735,11 +12747,23 @@ msgid ""
 "Therefore knowledge base sharing is now turned off for this project, neither knowledge base is shared)."
 msgstr ""
 
-#: MainFrm.cpp:2770
+#: MainFrm.cpp:2724
+msgid ""
+"Type the knowledge base server's password.\n"
+"You should have received it from your administrator.\n"
+"Without the correct password, sharing your knowledge base data\n"
+"with others cannot happen, nor can they share theirs with you."
+msgstr ""
+
+#: MainFrm.cpp:2725
+msgid "Type the server's password"
+msgstr ""
+
+#: MainFrm.cpp:2768
 msgid "Change the amount of time tooltips are displayed"
 msgstr "Badili kiwango cha muda wa unaotumika kuonyesha maneno ya msaada"
 
-#: MainFrm.cpp:2772
+#: MainFrm.cpp:2770
 #, c-format
 msgid ""
 "The current tooltip display time is %d milliseconds which is %d seconds.\n"
@@ -12749,43 +12773,43 @@ msgstr ""
 "Ingiza kiwango kipya cha muda katika moja chini ya elfu ya sekunde:"
 
 # Priority 1
-#: MainFrm.cpp:3220 ViewPage.cpp:233
+#: MainFrm.cpp:3218 ViewPage.cpp:233
 msgid "Access to Administrator privileges requires that you type a password"
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:3221 ViewPage.cpp:234
+#: MainFrm.cpp:3219 ViewPage.cpp:234
 msgid "Type Administrator Password"
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:4286 PhraseBox.cpp:2215 PhraseBox.cpp:2433
+#: MainFrm.cpp:4284 PhraseBox.cpp:2215 PhraseBox.cpp:2433
 msgid "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."
 msgstr "Mwisho. Kama hukukosea jambo lolote, hakuna cha kutafsiri zaidi katika jalada hili."
 
 # Priority 1
-#: MainFrm.cpp:4851 MainFrm.cpp:4977 MainFrm.cpp:5123 MainFrm.cpp:5321
+#: MainFrm.cpp:4849 MainFrm.cpp:4975 MainFrm.cpp:5121 MainFrm.cpp:5319
 msgid "Vertical Editing - adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:5563 MainFrm.cpp:5771 MainFrm.cpp:5908 MainFrm.cpp:6030
+#: MainFrm.cpp:5561 MainFrm.cpp:5769 MainFrm.cpp:5906 MainFrm.cpp:6028
 msgid "Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:6362 MainFrm.cpp:6651
+#: MainFrm.cpp:6360 MainFrm.cpp:6649
 msgid ""
 "Vertical Editing - free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is "
 "currently on and all free translation functionalities are enabled."
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:6373 MainFrm.cpp:6663
+#: MainFrm.cpp:6371 MainFrm.cpp:6661
 msgid "Clicking on an item in the above list copies it to the Compose Bar's text box, overwriting anything there."
 msgstr ""
 
-#: MainFrm.cpp:6770
+#: MainFrm.cpp:6768
 msgid "Warning: recollecting the back translations did not succeed. Try doing it manually."
 msgstr ""
 
@@ -14408,826 +14432,3 @@ msgstr "&Mwisho"
 #, fuzzy
 msgid "Print Preview"
 msgstr "Ona karatasi kabla hujachapisha"
-
-# Priority 1
-#, fuzzy
-#~ msgid "No longer share any of this project's local knowledge bases"
-#~ msgstr "Inarudisha kamusi kutoka nakala iliyotunzwa"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Start Sharing"
-#~ msgstr "Anza kazi"
-
-#~ msgid "Could not remove the AI_USFM.xml file from the work folder."
-#~ msgstr "Ilishindwa kuondoa jalada la AI_USFM.xml kutoka katika mfuko wa kazi."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Select from &List"
-#~ msgstr "Chagua mpango kutoka orodha hii"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Select from L&ist"
-#~ msgstr "Chagua mpango kutoka orodha hii"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Select from Li&st"
-#~ msgstr "Chagua mpango kutoka orodha hii"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Nothing to do"
-#~ msgstr "Hakuna yaliyochaguliwa"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Choose language codes for at least the Source and Target languages"
-#~ msgstr "Chapa majina la lugha chanzo na  lugha  lengwa."
-
-#~ msgid "Genesis"
-#~ msgstr "Mwanzo"
-
-#~ msgid "Exodus"
-#~ msgstr "Kutoka"
-
-#~ msgid "Leviticus"
-#~ msgstr "Mambo ya Walawi"
-
-#~ msgid "Numbers"
-#~ msgstr "Hesabu"
-
-#~ msgid "Deuteronomy"
-#~ msgstr "Kumbukumbu"
-
-#~ msgid "Joshua"
-#~ msgstr "Yoshua"
-
-#~ msgid "Judges"
-#~ msgstr "Waamuzi"
-
-#~ msgid "Ruth"
-#~ msgstr "Ruthu"
-
-#~ msgid "1 Samuel"
-#~ msgstr "1 Samueli"
-
-#~ msgid "2 Samuel"
-#~ msgstr "2 Samueli"
-
-#~ msgid "1 Kings"
-#~ msgstr "1 Wafalme"
-
-#~ msgid "2 Kings"
-#~ msgstr "2 Wafalme"
-
-#~ msgid "1 Chronicles"
-#~ msgstr "1 Mambo ya Nyakati"
-
-#~ msgid "2 Chronicles"
-#~ msgstr "2 Mambo ya Nyakati"
-
-#~ msgid "Ezra"
-#~ msgstr "Ezra"
-
-#~ msgid "Nehemiah"
-#~ msgstr "Nehemia"
-
-#~ msgid "Esther"
-#~ msgstr "Esta"
-
-#~ msgid "Job"
-#~ msgstr "Yobu"
-
-#~ msgid "Psalms"
-#~ msgstr "Zaburi"
-
-#~ msgid "Proverbs"
-#~ msgstr "Methali"
-
-#~ msgid "Ecclesiastes"
-#~ msgstr "Mhubiri"
-
-#~ msgid "Song of Songs"
-#~ msgstr "Wimbo ulio Bora"
-
-#~ msgid "Isaiah"
-#~ msgstr "Isaya"
-
-#~ msgid "Jeremiah"
-#~ msgstr "Yeremia"
-
-#~ msgid "Lamentations"
-#~ msgstr "Maombolezo"
-
-#~ msgid "Ezekiel"
-#~ msgstr "Ezekieli"
-
-#~ msgid "Daniel"
-#~ msgstr "Danieli"
-
-#~ msgid "Hosea"
-#~ msgstr "Hosea"
-
-#~ msgid "Joel"
-#~ msgstr "Yoeli"
-
-#~ msgid "Amos"
-#~ msgstr "Amosi"
-
-#~ msgid "Obadiah"
-#~ msgstr "Obadia"
-
-#~ msgid "Jonah"
-#~ msgstr "Yona"
-
-#~ msgid "Micah"
-#~ msgstr "Mika"
-
-#~ msgid "Nahum"
-#~ msgstr "Nahumu"
-
-#~ msgid "Habakkuk"
-#~ msgstr "Habakuki"
-
-#~ msgid "Zephaniah"
-#~ msgstr "Sefania"
-
-#~ msgid "Haggai"
-#~ msgstr "Hagai"
-
-#~ msgid "Zechariah"
-#~ msgstr "Zekaria"
-
-#~ msgid "Malachi"
-#~ msgstr "Malaki"
-
-#~ msgid "Matthew"
-#~ msgstr "Mathayo"
-
-#~ msgid "Mark"
-#~ msgstr "Marko"
-
-#~ msgid "Luke"
-#~ msgstr "Luka"
-
-#~ msgid "John"
-#~ msgstr "Yohana"
-
-#~ msgid "Acts"
-#~ msgstr "Matendo"
-
-#~ msgid "Romans"
-#~ msgstr "Warumi"
-
-#~ msgid "1 Corinthians"
-#~ msgstr "Wakorintho 1"
-
-#~ msgid "2 Corinthians"
-#~ msgstr "Wakorintho 2"
-
-#~ msgid "Galatians"
-#~ msgstr "Wagalatia"
-
-#~ msgid "Ephesians"
-#~ msgstr "Waefeso"
-
-#~ msgid "Philippians"
-#~ msgstr "Wafilipi"
-
-#~ msgid "Colossians"
-#~ msgstr "Wakolosai"
-
-#~ msgid "1 Thessalonians"
-#~ msgstr "1 Wathesalonike"
-
-#~ msgid "2 Thessalonians"
-#~ msgstr "2 Wathesalonike"
-
-#~ msgid "1 Timothy"
-#~ msgstr "1 Timotheo"
-
-#~ msgid "2 Timothy"
-#~ msgstr "2 Timotheo"
-
-#~ msgid "Titus"
-#~ msgstr "Tito"
-
-#~ msgid "Philemon"
-#~ msgstr "Filemoni"
-
-#~ msgid "Hebrews"
-#~ msgstr "Waebrania"
-
-#~ msgid "James"
-#~ msgstr "Yakobo"
-
-#~ msgid "1 Peter"
-#~ msgstr "1 Petro"
-
-#~ msgid "2 Peter"
-#~ msgstr "2 Petro"
-
-#~ msgid "1 John"
-#~ msgstr "1 Yohana"
-
-#~ msgid "2 John"
-#~ msgstr "2 Yohana"
-
-#~ msgid "3 John"
-#~ msgstr "3 Yohana"
-
-#~ msgid "Jude"
-#~ msgstr "Yuda"
-
-#~ msgid "Revelation"
-#~ msgstr "Ufunuo"
-
-#~ msgid "GEN"
-#~ msgstr "MWA"
-
-#~ msgid "EXO"
-#~ msgstr "KUT"
-
-#~ msgid "LEV"
-#~ msgstr "LAW"
-
-#~ msgid "NUM"
-#~ msgstr "HES"
-
-#~ msgid "DEU"
-#~ msgstr "KUM"
-
-#~ msgid "JOS"
-#~ msgstr "YOS"
-
-#~ msgid "JDG"
-#~ msgstr "AMU"
-
-#~ msgid "RUT"
-#~ msgstr "RUT"
-
-#~ msgid "1SA"
-#~ msgstr "1SAM"
-
-#~ msgid "2SA"
-#~ msgstr "2SAM"
-
-#~ msgid "1KI"
-#~ msgstr "1FAL"
-
-#~ msgid "2KI"
-#~ msgstr "1FAL"
-
-#~ msgid "1CH"
-#~ msgstr "1NYA"
-
-#~ msgid "2CH"
-#~ msgstr "2NYA"
-
-#~ msgid "EZR"
-#~ msgstr "EZR"
-
-#~ msgid "NEH"
-#~ msgstr "NEH"
-
-#~ msgid "EST"
-#~ msgstr "EST"
-
-#~ msgid "JOB"
-#~ msgstr "YOB"
-
-#~ msgid "PSA"
-#~ msgstr "ZAB"
-
-#~ msgid "PRO"
-#~ msgstr "MIT"
-
-#~ msgid "ECC"
-#~ msgstr "MHU"
-
-#~ msgid "SNG"
-#~ msgstr "WIM"
-
-#~ msgid "ISA"
-#~ msgstr "ISA"
-
-#~ msgid "JER"
-#~ msgstr "YER"
-
-#~ msgid "LAM"
-#~ msgstr "OMB"
-
-#~ msgid "EZK"
-#~ msgstr "EZE"
-
-#~ msgid "DAN"
-#~ msgstr "DAN"
-
-#~ msgid "HOS"
-#~ msgstr "HOS"
-
-#~ msgid "JOL"
-#~ msgstr "YOE"
-
-#~ msgid "AMO"
-#~ msgstr "AMO"
-
-#~ msgid "OBA"
-#~ msgstr "OBA"
-
-#~ msgid "JON"
-#~ msgstr "YON"
-
-#~ msgid "MIC"
-#~ msgstr "MIK"
-
-#~ msgid "NAH"
-#~ msgstr "NAH"
-
-#~ msgid "HAB"
-#~ msgstr "HAB"
-
-#~ msgid "ZEP"
-#~ msgstr "SEF"
-
-#~ msgid "HAG"
-#~ msgstr "HAG"
-
-#~ msgid "ZEC"
-#~ msgstr "ZEK"
-
-#~ msgid "MAL"
-#~ msgstr "MAL"
-
-#~ msgid "MAT"
-#~ msgstr "MAT"
-
-#~ msgid "MRK"
-#~ msgstr "MRK"
-
-#~ msgid "LUK"
-#~ msgstr "LUK"
-
-#~ msgid "JHN"
-#~ msgstr "YOH"
-
-#~ msgid "ACT"
-#~ msgstr "MDO"
-
-#~ msgid "ROM"
-#~ msgstr "RUM"
-
-#~ msgid "1CO"
-#~ msgstr "1KOR"
-
-#~ msgid "2CO"
-#~ msgstr "2KOR"
-
-#~ msgid "GAL"
-#~ msgstr "GAL"
-
-#~ msgid "EPH"
-#~ msgstr "EFE"
-
-#~ msgid "PHP"
-#~ msgstr "FLP"
-
-#~ msgid "COL"
-#~ msgstr "KOL"
-
-#~ msgid "1TH"
-#~ msgstr "1THE"
-
-#~ msgid "2TH"
-#~ msgstr "2THE"
-
-#~ msgid "1TI"
-#~ msgstr "1TIM"
-
-#~ msgid "2TI"
-#~ msgstr "2TIM"
-
-#~ msgid "TIT"
-#~ msgstr "TIT"
-
-#~ msgid "PHM"
-#~ msgstr "FLM"
-
-#~ msgid "HEB"
-#~ msgstr "EBR"
-
-#~ msgid "JAS"
-#~ msgstr "YAK"
-
-#~ msgid "1PE"
-#~ msgstr "1PET"
-
-#~ msgid "2PE"
-#~ msgstr "2PET"
-
-#~ msgid "1JN"
-#~ msgstr "1YOH"
-
-#~ msgid "2JN"
-#~ msgstr "2YOH"
-
-#~ msgid "3JN"
-#~ msgstr "3YOH"
-
-#~ msgid "JUD"
-#~ msgstr "YUD"
-
-#~ msgid "REV"
-#~ msgstr "UFU"
-
-#~ msgid "OTX"
-#~ msgstr "OTX"
-
-# Priority 1
-#~ msgid "(Use system default language) [%s]"
-#~ msgstr "(Tumia lugha ya kawaida ya  kompyuta) [%s]"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Adding text to a free translation widener is not permitted."
-#~ msgstr "Kubadilisha la aina hii haruhusiwi. "
-
-# Priority 1
-#, fuzzy
-#~ msgid "Merging a selection which contains a free translation widener (represented by five ..... dots with * above it) is not permitted."
-#~ msgstr "Samahani, lakini kuunganisha chaguzi zilizo na nafasi za wazi (zinazowakilisha na ... vidoti) hairuhusiwi."
-
-#, fuzzy
-#~ msgid "Attempting removal of a free translation widener"
-#~ msgstr "Fupisha muda wa Tafsiri huru"
-
-# Priority 1
-#, fuzzy
-#~ msgid "&New Translation:"
-#~ msgstr "Tafsiri mpya:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Remove Setup"
-#~ msgstr "Ondoa %s"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Rename Not Done"
-#~ msgstr "Badilisha jina la waraka"
-
-# Priority 1
-#, fuzzy
-#~ msgid "There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."
-#~ msgstr "Samahani, hakuna taarifa yoyote katika jalada hili. Waraka huu haukuundwa ipasavyo na hivyo hauwezi kufunguka. Ufute tafadhali."
-
-# Priority 1
-#~ msgid "Respect boundaries when selecting"
-#~ msgstr "Heshimu mipaka wakati inachagua"
-
-#~ msgid "Re-enable automatic copying of source text punctuation"
-#~ msgstr "Wezesha tena kunakili alama za uandishi za maandiko chanzo bila ya kuagizwa"
-
-# Priority 1
-#~ msgid "Show normal view"
-#~ msgstr "Onyesha mwonekano wa kawaida"
-
-#~ msgid "The file you clicked could not be opened. It probably no longer exists. When you click OK the Start Working... wizard will open to let you open a project and document from there instead."
-#~ msgstr "Jalada ulilobonyeza halingaliweza kufunguka. Labda halipo. Wakati unabonyeza Sawa kisanduku cha Inaanza kufanya kazi kitafunguka kukuruhusu kufungua mpango na waraka kutoka vilipo."
-
-#~ msgid "Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."
-#~ msgstr "Samahani, wakati mtindo wa mfuko wa kitabu hauwezeshwi, tumia sehemu zilizotumiwa muda si mrefu kubonyeza waraka uliohifadhiwa mapema katika mtindo wa mfuko hautafungua jalada hiyo"
-
-#~ msgid "This version of Adapt It built with wxWidgets"
-#~ msgstr "Toleo hili la Adapt It lilijengwa na wxWidgets"
-
-#~ msgid "wxWidgets is a cross-platform GUI library"
-#~ msgstr "wxWidgets ni maktaba ya GUI ya kutumia kwa aina mbalimbali ya kompyuta"
-
-# Priority 1
-#~ msgid "Export File Format Options:"
-#~ msgstr "Toa machaguo ya mpangilio wa jalada"
-
-# Priority 1
-#~ msgid "&Standard Format Text File (.txt)"
-#~ msgstr "&Jalada la maandiko ya Standard Format (.txt)"
-
-# Priority 1
-#~ msgid "&Rich Text Format (RTF) Document File (.rtf)"
-#~ msgstr "&Jalada la waraka wa Rich Text Format (RTF) (.rtf)"
-
-# Priority 1
-#~ msgid "Export Document Content:"
-#~ msgstr "Toa yaliyomo kwenye Waraka:"
-
-# Priority 1
-#~ msgid "Document export will include ALL standard format markers and the text associated with them (including any filtered markers). If you do not want to export everything, click on the \"Export Filter/Options\" button below to specify what to exclude from exports."
-#~ msgstr "Kusafirisha waraka kutajumuisha alama zote za Standard Format pamoja na maandiko yanayohusiana kama vile alama za kuchujia. Kama unataka kutoa kila kitu, bonyeza kitufe kwenye \"machaguo/Kichujuo cha kutoa\" hapo chini ili kuonesha mambo yasiyojumuishwa ndani ya kutoa."
-
-# Priority 1
-#, fuzzy
-#~ msgid "&Source Language Code:"
-#~ msgstr "Lugha  Chanzo"
-
-# Priority 1
-#, fuzzy
-#~ msgid "&Target Language Code:"
-#~ msgstr "Lugha Lengwa"
-
-# Priority 1
-#, fuzzy
-#~ msgid "&Gloss Language Code:"
-#~ msgstr "Lugha Fafanuzi"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Enter Language Names:"
-#~ msgstr "Ingiza Jina la Lugha"
-
-# Priority 1
-#, fuzzy
-#~ msgid "FreeTrans Proj: "
-#~ msgstr "Tafsiri huru"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Chapter Status"
-#~ msgstr "Sura:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "No Source Language Name entered"
-#~ msgstr "Lugha  Chanzo"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please enter a Target Language Name."
-#~ msgstr "Weka majina ya Lugha Chanzo na Lugha Lengwa"
-
-# Priority 1
-#, fuzzy
-#~ msgid "No Target Language Name entered"
-#~ msgstr "Lugha Lengwa"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Unknown Target Language Name"
-#~ msgstr "Lugha Lengwa"
-
-#, fuzzy
-#~ msgid "1. Export the Knowledge Base in Standard Format (\\x and \\ge)."
-#~ msgstr "Tumia kamusia katika mfumo rasmi wa SIL"
-
-#, fuzzy
-#~ msgid "2. Export the Knowledge Base in LIFT Format."
-#~ msgstr "Tumia kamusia katika mfumo rasmi wa SIL"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Export the Knowledge Base as SFM or LIFT dictionary records"
-#~ msgstr "Ongeza kwenye kamusi kwa kuagiza kumbukumbu."
-
-# Priority 1
-#, fuzzy
-#~ msgid "2. Import LIFT records into the Knowledge Base."
-#~ msgstr "Agiza kwenye Kamusi..."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Extend the knowledge base by importing SFM or LIFT dictionary records"
-#~ msgstr "Ongeza kwenye kamusi kwa kuagiza kumbukumbu."
-
-#~ msgid "Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."
-#~ msgstr "Kosa: Kutunza kamusi ya fafanuzi kwenye diski kumeshindwa. Sasa, Adapt It itafungwa"
-
-# Priority 1
-#~ msgid "Please wait while Adapt It saves the KB..."
-#~ msgstr "Subiri wakati Adapt It inatunza Kamusi"
-
-# Priority 1
-#~ msgid "There was an error parsing in the XML file. If you edited the XML file earlier, you may have introduced an error. Edit it in a word processor then try again."
-#~ msgstr "Kulikuwa na kosa lililofanyika katika jalada la XML. Kama ulihariri jalada la XML mapema, unaweza kuwa umeleta kosa. Hariri jalada hilo likiwa katika sehemu ya kuchapa maneno kisha jaribu tena."
-
-# Priority 1
-# Do not change the number or order of the placeholders %s - %d of %d
-#~ msgid "Pass 2 - File: %s  - %d of %d Total words and phrases"
-#~ msgstr "Jalada la Pitio la Pili: %s - %d ya %d Jumla ya maneno na virai"
-
-#~ msgid "Please locate the following chapter:verse locations and perhaps manually edit any section where the original adaptation had to be abandoned, or filtered material was not made visible, or visible material was not filtered, in the rebuild of the document: "
-#~ msgstr "Tafadhali elekeza maeneo ya sura: mistari na ikiwezekana hariri kwa kuamuru sehemu yoyote ambapo tafsiri halisi ilikuwa imetupwa, au vitu vilivyochujwa havikuonekana, au vitu vilivyoonekana havikuchujwa, katika kujenga tena waraka: "
-
-# Priority 1
-#, fuzzy
-#~ msgid "Consistency Check of all folders?"
-#~ msgstr "Uthibitisho Thabiti"
-
-# Priority 1
-#~ msgid "Consistency Checking"
-#~ msgstr "Uthibitisho thabiti"
-
-#~ msgid "User Forum: "
-#~ msgstr "Eneo la msaada na maelezo kwa mtumiaji:"
-
-# Priority 1
-#~ msgid "This phrase has the following translation, or gloss, which is not in the knowledge base:"
-#~ msgstr "Kirai hiki kina tafsiri ifuatoyo au ufafanuzi ambao haupo kwenye kamusi: "
-
-# Priority 1
-#~ msgid "Translations or glosses currently in the knowledge base:"
-#~ msgstr "Tafsiri au fufunuzi zilizomo kwenye kamusi:"
-
-#~ msgid "Translation or Gloss:"
-#~ msgstr "Tafsiri au Ufafanuzi:"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Select from the &list on the left, to replace what is above."
-#~ msgstr "Chagua kutoka orodha hapo kushoto kubadilisha lililopo juu. "
-
-# Priority 1
-#, fuzzy
-#~ msgid "&Accept what is above (entering it into the knowledge base)"
-#~ msgstr "kubali lililopo juu na kuliingiza kwenye kamusi. "
-
-# Priority 1
-# Refers to typing a new word or phrase
-#, fuzzy
-#~ msgid "Type a &new one:"
-#~ msgstr "Chapa mpya"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Accept <n&o adaptation> for this item"
-#~ msgstr "Kubali <Hakuna Tafsiri> hilo."
-
-#~ msgid "Use <no adaptation> for this item"
-#~ msgstr "Tumia <Hakuna Tafsiri> hilo."
-
-# Priority 1
-#~ msgid "This selection will first save the currently open document. You will then be able to choose the documents you want checked."
-#~ msgstr "Chaguo hili litatunza kwanza waraka ulioko wazi. Kisha utaweza kuchagua nyaraka ulizotaka kuchagua."
-
-# Priority 1
-#~ msgid "Remove Filtered Back Translations"
-#~ msgstr "Ondoa Tafsiri Rejeshi zilizochujiwa"
-
-# Priority 1
-#~ msgid "Online Help (Requires Internet Access)"
-#~ msgstr "Msaada (Mtandao unatakiwa)"
-
-# Priority 1
-#~ msgid "Get Adapt It Help from the Internet in your browser"
-#~ msgstr "Pata Msaada na Adapt It kutoka Mtandao. "
-
-#~ msgid ""
-#~ "The retranslation report will be based on this open document only.\n"
-#~ "To get a report based on many or all documents,\n"
-#~ "close the document and select this command again.\n"
-#~ "Do you want a report only for this document?"
-#~ msgstr ""
-#~ "Taarifa ya tafsiri inayojuridia haitahusika na waraka huu tu uliofunguliwa.\n"
-#~ "Kupata taarifa inayohusika na nyaraka nyingi au zote,\n"
-#~ "funga waraka na kisha chagua amri hii tena.\n"
-#~ "Unahitaji taarifa yenyewe kutoka katika waraka huu?"
-
-#~ msgid "Please wait for Adapt It to output the RTF file. This may take a while..."
-#~ msgstr "Subiri wakati Adapt It inatengeneza waraka wa RTF. Kazi hii inaweza kuchukua muda..."
-
-# Priority 1
-#~ msgid "Please wait while Adapt It processes filter changes..."
-#~ msgstr "Subiri wakati Adapt It inafanya mabadiliko ya kuchuja"
-
-# Priority 1
-#~ msgid "Please wait while Adapt It saves the Glossing KB..."
-#~ msgstr "Subiri wakati Adapt It inatunza kamusi ya fafanuzi..."
-
-# Priority 1
-#~ msgid "Please wait while Adapt It loads the KB..."
-#~ msgstr "Subiri wakati Adapt It inafungua Kamusi..."
-
-# Priority 1
-#~ msgid "Please wait while Adapt It loads the Glossing KB..."
-#~ msgstr "Subiri wakati Adapt It inafungua Kamusi ya ufafanuzi..."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It backs up the KB..."
-#~ msgstr "Subiri wakati Adapt It inaweka kamusi kwenye akiba..."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It backs up the Glossing KB..."
-#~ msgstr "Subiri wakati Adapt It inaweka kamusi ya fafanuzi kwenye akiba..."
-
-# Priority 1
-#, fuzzy
-#~ msgid "Please wait while Adapt It prepares the document for printing"
-#~ msgstr "Subiri wakati  Adapt It inafungua waraka..."
-
-# Priority 1
-#~ msgid "Reading XML Data For: %s Please Wait..."
-#~ msgstr "Inasoma XML Data For: %s Subiri..."
-
-# Priority 1
-#, fuzzy
-#~ msgid "target langugage code"
-#~ msgstr "Lugha Lengwa"
-
-#~ msgid "Error renaming backup glossing KB file with path:\n"
-#~ msgstr "Kosa limebaki katika waraka wa kamusi ya marekebisho ya tafsiri fafanuzi pamoja na njia: \n"
-
-#, fuzzy
-#~ msgid ""
-#~ "\n"
-#~ "Backup copy of glossing knowledge base was not created."
-#~ msgstr ""
-#~ "\n"
-#~ "Nakala ya Marekebisho ya Kamusi ya Tafsiri fafanuzi haikutengenezwa."
-
-#, fuzzy
-#~ msgid "Could not remove the *.BAK backup glossing knowledge base alternate file"
-#~ msgstr "Isingeliweza kuondoa *.Jalada la kupokezana la kamusi ya marekebisho ya tafsiri fafanuzi"
-
-#~ msgid "Could not remove the *.KB knowledge base alternate file"
-#~ msgstr "Isingeliweza kuondoa *.Jalada la kupokezana la Kamusi"
-
-#~ msgid "Error renaming backup KB file with path:\n"
-#~ msgstr "Kosa limebaki katika waraka wa kamusi ya marekebisho pamoja na njia:\n"
-
-#~ msgid ""
-#~ "\n"
-#~ "Backup copy of knowledge base was not created."
-#~ msgstr ""
-#~ "\n"
-#~ "Nakala ya Marekebisho ya kamusi haukutengenezwa."
-
-#~ msgid "Could not remove the *.BAK backup knowledge base alternate file"
-#~ msgstr "Isingeliweza kuondoa *.Jalada la kupokezana la kamusi ya marekebisho"
-
-#~ msgid ""
-#~ "Warning: the Transform Adaptations Into Glosses command will clear out the contents of the current project's knowledge base, which contains %d entries.\n"
-#~ "Likewise for the glossing knowledge base, which contains %d entries.\n"
-#~ "Are you willing for this to happen?"
-#~ msgstr ""
-#~ "Onyo: kubadilisha tafsiri ziwe fafanuzi kutafuta yaliyomo kamusi ya mradi unaotumia. Mradi huu unazo %d tafsiri. \n"
-#~ "vilevile kwa kamusi ya fafanuzi ambayo inazo %d fafanuzi\n"
-#~ "Bado unataka kufanya hivi?"
-
-# Translate but leave "Adaptations" in English.
-#~ msgid "Failed to set the current directory to the Adaptations folder. Command aborted."
-#~ msgstr "Imeshindwa kutengeneza  maelekezo ya sasa kwenye mfuko wa Adaptations. Amuru yaliyotolewa au kuharibiwa"
-
-#~ msgid "Unable to open knowledge base export file.\n"
-#~ msgstr "Haiwezi kufungua jalada linalotoa kutoka kwenye Kamusi\n"
-
-# Priority 1
-#~ msgid "Check the box below only if the standard format markers in the source language input data always start on new lines"
-#~ msgstr "Weka alama ya tiki kwenye kisanduku hapa chini kama wakati wote Alama za SFM katika jalada la kungizia zinaanzisha mistari "
-
-#~ msgid "Recognise standard format markers only following newlines"
-#~ msgstr "Baini Alama za SFM tu kama zinaanzisha mistari"
-
-#~ msgid "Check this box only if the standard format markers always start on new lines"
-#~ msgstr "Weka tiki katika kisanduku hiki SFM zikianza katika mistari mipya"
-
-# Priority 1
-#~ msgid "Target:"
-#~ msgstr "Lugha lengwa:"
-
-# Priority 1
-#~ msgid "Define Uniform Standard Format Marker (USFM) Sets"
-#~ msgstr "Fafanua Makundi ya Uniform Standard Format Marker (USFM)"
-
-# Priority 1
-#~ msgid "USFM Set changes should be made here BEFORE making changes on the Filtering page. Normally the sfm set for the document should be the same as the sfm set used for the project. After setting the appropriate sfm set here, you can set marker filtering on the Filtering page."
-#~ msgstr "Ubadilishe Makundi ya USFM kabla ya kufanya mabadiliko kwenya ukurasa wa kuchujia. Kwa kawaida, makundi ya USFM yaliyotumika katika waraka  na mpango lazima yawe sawa. Baada ya kutengeneza kundi la USFM hapa, unaweza kuwasha kichujio katika ukurasa wa kuchujia. "
-
-# Priority 1
-#~ msgid "UB&S USFM 2.0 Set Only"
-#~ msgstr "Kundi la USFM UBS 2.0 tu"
-
-#~ msgid "The Factory default is USFM and cannot be changed"
-#~ msgstr "Mpangilio wa kawaida wa kazi ni USFM na haiwezekani kubadilisha"
-
-# Priority 1
-#~ msgid "SILPN&G 1998 Set Only"
-#~ msgstr "Kundi la SIL PNG 1998 Tu"
-
-# Priority 1
-#~ msgid "Bot&h UBS and SILPNG Sets"
-#~ msgstr "Makundi ya UBS na SILPNG Pamoja"
-
-# Priority 1
-#~ msgid "&Factory Filter Defaults (read only):"
-#~ msgstr "&Chujio la mipangilio ya kawaida ya Programa"
-
-#~ msgid "This is the list of default standard format markers that come from the Factory (at installation); their filter status cannot be changed"
-#~ msgstr "Hii ni orodha ya mpangilio wa kawaida wa SFM ambayo iliyotokea Kazi (wakati wa kuingiza); sifa za kuchujia haziwezi kubadilishwa"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Contents of the destination folder:"
-#~ msgstr "Nyaraka zitatunzwa kwenye mfuko wa Tafsiri. "
