@@ -1124,6 +1124,16 @@ x:					CCell* pCell = 0;
 					pApp->m_pTargetBox->SetFocus();
 					return;
 				}
+				else
+				{
+					// Click was within the span, so the phrasebox location
+					// needs to be stored on the app for later use in restoring
+					// the original mode's state
+					pApp->m_vertEdit_LastActiveSequNum = nClickedSequNum;
+#if defined(_DEBUG)
+					wxLogDebug(_T("VertEdit OnLButtonDown() storing click at sequ num: %d  adaptations step"), nClickedSequNum);
+#endif
+				}
 			}
 			else if (gEditStep == glossesStep && gEditRecord.bGlossStepEntered)
 			{
@@ -1136,6 +1146,16 @@ x:					CCell* pCell = 0;
 					_T(""), wxICON_EXCLAMATION | wxOK);
 					pApp->m_pTargetBox->SetFocus();
 					return;
+				}
+				else
+				{
+					// Click was within the span, so the phrasebox location
+					// needs to be stored on the app for later use in restoring
+					// the original mode's state
+					pApp->m_vertEdit_LastActiveSequNum = nClickedSequNum;
+#if defined(_DEBUG)
+					wxLogDebug(_T("VertEdit OnLButtonDown() storing click at sequ num: %d  glosses step"), nClickedSequNum);
+#endif
 				}
 			}
 			else if (gEditStep == freeTranslationsStep &&
@@ -1150,6 +1170,18 @@ x:					CCell* pCell = 0;
 					_T(""), wxICON_EXCLAMATION | wxOK);
 					pApp->m_pTargetBox->SetFocus();
 					return;
+				}
+				else
+				{
+					// Click was within the span, so the phrasebox location
+					// needs to be stored on the app for later use in restoring
+					// the original mode's state - but in this case, phrasebox
+					// will get moved to the anchor, so set it to that location
+					pApp->m_vertEdit_LastActiveSequNum = gEditRecord.nFreeTranslationStep_StartingSequNum;
+#if defined(_DEBUG)
+					wxLogDebug(_T("VertEdit OnLButtonDown() storing click at anchor sequ num: %d  freeTrans step"),
+						gEditRecord.nFreeTranslationStep_StartingSequNum);
+#endif
 				}
 			}
 		}
