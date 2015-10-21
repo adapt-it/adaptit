@@ -162,7 +162,9 @@ Name: "{group}\CC\CC Debug Document"; Filename: {app}\CC\CCDebug.doc; WorkingDir
 
 ; edb 11 Oct 2013: Code changes to download / install Git
 [Code]
-const GitSetupURL = 'https://github.com/msysgit/msysgit/releases/download/Git-1.9.5-preview20150319/Git-1.9.5-preview20150319.exe';
+//const GitSetupURL = 'https://github.com/msysgit/msysgit/releases/download/Git-1.9.5-preview20150319/Git-1.9.5-preview20150319.exe';
+const GitSetupURL = 'https://github.com/git-for-windows/git/releases/download/v2.6.2.windows.1/Git-2.6.2-32-bit.exe';
+const GitSetupURL64 = 'https://github.com/git-for-windows/git/releases/download/v2.6.2.windows.1/Git-2.6.2-64-bit.exe';
 var GitInstalled: Boolean;  // Is Git installed?
 var ShouldInstallGit: Boolean; // should the installer download and run the Git installer?
 var tmpResult: Integer;     
@@ -198,7 +200,7 @@ begin
           ITD_AddFile(GitSetupURL, GitName);
         end
       else begin
-        msg := 'You chose not to download and install the Git program as part of the Adapt It installation. Adapt It will still run, but it will not be able to track changes in your translated documents (nor be able to restore a previous version) until you install the Git program on this computer. If you have not previously downloaded the Git installer (15MB) and you have Internet access, the recommended way to obtain the Git program is to run the Adapt It installer again and choose to have it automatically download and install the Git program with the correct settings.' + Chr(13) + Chr(13);
+        msg := 'You chose not to download and install the Git program as part of the Adapt It installation. Adapt It will still run, but it will not be able to track changes in your translated documents (nor be able to restore a previous version) until you install the Git program on this computer. If you have not previously downloaded the Git installer (29MB) and you have Internet access, the recommended way to obtain the Git program is to run the Adapt It installer again and choose to have it automatically download and install the Git program with the correct settings.' + Chr(13) + Chr(13);
         msg := msg + 'If you have no Internet access (or it is too slow/expensive) at the time you wish to Install Adapt It, the Git installer can be downloaded separately (from: http://git-scm.com/downloads) and installed at a later time after this installer has finished.';
         MsgBox(msg, mbInformation, MB_OK);
       end
