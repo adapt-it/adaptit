@@ -5358,6 +5358,7 @@ bool GetMatchedChunksUsingVerseInfArrays(
 	// instances from start to (potentially) the end, will use the following variable for
 	// returning a matched md5 verse line in the fromEditor tests, or wxNOT_FOUND if no
 	// match succeeded.
+	bConfirmedSourceTextMatch = bConfirmedSourceTextMatch; // whm added 19Oct2015 to avoid gcc's set but not used warning
 	// BEW 22Jun15, We try to keep the preEdit and post edit verse numbers identical, if not
 	// identical when a postEdit and fromEditor matchup has been obtained, then we should
 	// advance postEdit index by one again, in the hope that the next matchup try will get all
@@ -6877,6 +6878,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	int postEditIndex = 0; // indexing into the MD5 array for postEdit adaptation text from AI
 	int fromEditorIndex = 0;  // indexing into the MD5 array for text from PT or BE chapter
 	int preEditEnd = 0; // index of last md5 line of the current chunk from preEdit array
+	preEditEnd = preEditEnd; // whm added 19Oct2015 to avoid gcc's set but not used warning
 	int postEditEnd = 0; // index of last md5 line of the current chunk from postEdit array
 	int fromEditorEnd = 0; // index of last md5 line of the current chunk from fromEditor array
 	// Note: user as of 6.5.9 can edit source text in AI in collaboration mode (e.g. do a
