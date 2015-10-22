@@ -2705,6 +2705,10 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 			temp1 += temp;
 			msg = temp1;
 			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+			wxString msg2;
+			wxString title = _("Elevate Permission Level?");
+			msg2 = msg2.Format(_("Probably the owner of the text being transferred lacks Translator or Administrator permission level for the target text project within Paratext, or Bibledit.\nA permissison level that allows editing is necessary for a successful transfer of text when collaborating."));
+			wxMessageBox(msg2, title, wxICON_INFORMATION | wxOK);
 			return FALSE;
 		} // end of TRUE block for test: if (resultTgt != 0)
 
@@ -2801,6 +2805,10 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 					temp1 += temp;
 					msg = temp1;
 					wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+					wxString msg2;
+					wxString title = _("Elevate Permission Level?");
+					msg2 = msg2.Format(_("Probably the owner of the text being transferred lacks Translator or Administrator permission level for the target text project within Paratext, or Bibledit.\nA permissison level that allows editing is necessary for a successful transfer of text when collaborating."));
+					wxMessageBox(msg2, title, wxICON_INFORMATION | wxOK);
 					return FALSE;
 				} // end of TRUE block for test: if (resultFreeTrans != 0)
 
