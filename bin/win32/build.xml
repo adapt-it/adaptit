@@ -11,6 +11,7 @@
     </description>
   <!-- global properties for this build -->
   <property environment="env"/>
+  <property name="ai_version" value="6.6.4"/>
 
   <!-- other directories -->
   <property name="SVNROOT" location="..\..\.."/>
@@ -165,8 +166,8 @@
 	<!-- VS2012 -->
 	<!-- <exec executable="${env.VS110COMNTOOLS}/vsvars32.bat" failonerror="no" /> -->
     <!-- Set the svn version numbers in Adapt_It.h and Adapt_It.rc. -->
-	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
-	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
+	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${ai_version}" />
+	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${ai_version}' />
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="30"/>
@@ -196,8 +197,8 @@
 	<!-- VS2012 -->
 	<!-- <exec executable="${env.VS110COMNTOOLS}/vsvars32.bat" failonerror="no" /> -->
     <!-- Set the svn version numbers in Adapt_It.h and Adapt_It.rc. -->
-	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
-	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
+	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${ai_version}" />
+	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${ai_version}' />
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="30"/>
