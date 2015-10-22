@@ -2620,6 +2620,22 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		m_pLayout->PlaceBox();
 	}
 
+	// BEW 19Oct15 No transition of vert edit modes,
+	// so we can store this location on the app, provided
+	// we are in bounds -- do the following just to be sure
+	if (gbVerticalEditInProgress)
+	{
+		if (gEditRecord.nAdaptationStep_StartingSequNum <= m_pApp->m_nActiveSequNum &&
+			gEditRecord.nAdaptationStep_EndingSequNum >= m_pApp->m_nActiveSequNum)
+		{
+			// BEW 19Oct15, store new active loc'n on app
+			m_pApp->m_vertEdit_LastActiveSequNum = m_pApp->m_nActiveSequNum;
+#if defined(_DEBUG)
+			wxLogDebug(_T("VertEdit PhrBox, OnButtonRetranslation() storing loc'n: %d "), m_pApp->m_nActiveSequNum);
+#endif
+		}
+	}
+
 	// ensure respect for boundaries is turned back on
 	if (!m_pApp->m_bRespectBoundaries)
 	{
@@ -3325,6 +3341,22 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 
 		// get a new valid active pile pointer
 		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+
+		// BEW 19Oct15 No transition of vert edit modes,
+		// so we can store this location on the app, provided
+		// we are in bounds -- do the following just to be sure
+		if (gbVerticalEditInProgress)
+		{
+			if (gEditRecord.nAdaptationStep_StartingSequNum <= m_pApp->m_nActiveSequNum &&
+				gEditRecord.nAdaptationStep_EndingSequNum >= m_pApp->m_nActiveSequNum)
+			{
+				// BEW 19Oct15, store new active loc'n on app
+				m_pApp->m_vertEdit_LastActiveSequNum = m_pApp->m_nActiveSequNum;
+#if defined(_DEBUG)
+			wxLogDebug(_T("VertEdit PhrBox, OnButtonEditRetranslation() storing loc'n: %d "), m_pApp->m_nActiveSequNum);
+#endif
+			}
+		}
 
 		m_pApp->m_nStartChar = -1;
 		m_pApp->m_nEndChar = -1;

@@ -2810,7 +2810,24 @@ public:
                 // color we set with SetTextBackground(). Each call to SetTextBackground
                 // should have a prior call to SetBackgroundMode(m_backgroundMode), in
                 // which the m_backgroundMode = wxSOLID.
-
+                
+	// BEW 19Oct15 vertical edit needs some help. When fixing Seth's bug, dropping into
+	// vertical edit at the edit of the source text where the wrongly moved word intial
+	// " character gets moved to end of previous word after <space>, editing out the
+	// space after " so as to get " on the next word's start again, that was fine, but
+	// exiting vert edit mode, the last phrasebox's text was carried unilaterally back
+	// to the first active location of the two words, and rubbed out the meaning in the
+	// box there. Turns out, some refactoring is needed in a few places.
+	int			  m_vertEdit_LastActiveSequNum;  // where the phrasebox last was
+	wxString	  m_vertEdit_LastActiveLoc_Adaptation; // if in adaption mode, the m_pTargetBox value
+	wxString	  m_vertEdit_LastActiveLoc_Gloss; // if in gloss mode, the m_pTargetBox value
+	bool		  m_bVertEdit_WithinSpan; // whatever DoConditionalStore() has for bWithinSpan
+										  // default it to FALSE (which results in a hack)
+	bool		  m_bVertEdit_IsGlossing; // set TRUE if glossing mode was on at entry
+										  // (using pRec->bGlossingModeOnEntry)
+	bool		  m_bVertEdit_SeeGlosses; // set TRUE if gbGlosingEnabled was TRUE on entry
+										  // (using pRec->bSeeGlossesEnabledAtEntry)
+										  
 	// source encoding as in input data, and system encoding as defined by system codepage,
 	// and the target encoding (determined by tellenc.cpp 3rd party encoding detector)
 	wxFontEncoding	m_srcEncoding;

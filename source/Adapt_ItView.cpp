@@ -59,6 +59,7 @@
 #endif
 
 //#define _Trace_DrawFreeTrans
+//#define CHECK_GEDITSTEP
 
 #include <wx/docview.h>	// includes wxWidgets doc/view framework
 #include <wx/file.h>
@@ -25029,6 +25030,7 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 /// from part of PlacePhraseBox() and tweaked a bit
 /// BEW 23Mar10, updated for support of doc version 5 (no changes needed)
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW refactored 19Oct15 to support the better way of exiting vertical edit
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 {
@@ -25054,7 +25056,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
     // state we have, and either do a store or restore the active location back to where
     // the phrase box is and not do a store (since it would have been done already at the
     // start of the lookahead loop); and then set up the phrase box at the appropriate
-    // place in the document for when vertical editig mode is off. We use the current
+    // place in the document for when vertical editing mode is off. We use the current
     // m_pActivePile to determine where the active location is, and act accordingly.
 	CPile* pPile = pApp->m_pActivePile;
 	if (pPile == NULL)
@@ -25063,43 +25065,103 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 		return;
 	}
 	wxASSERT(pPile != NULL);
-	bool bWithinSpan = FALSE;
 	bool bFreeTransStepIsCurrent = FALSE; // storing to KB or glossingKB is needed
 										  // when FALSE, not when TRUE
 	bool bUnknownStep = FALSE;
 	int nCurSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
-	switch (gEditStep) {
-		case adaptationsStep:
+
+	// We do our tests in the order in which the modes were tried
+	bool bWithinSpan = FALSE;	
+	if (gbAdaptBeforeGloss)
+	{
+		// we only need one test to succeed, in order to get the value of 
+		// bWithinSpan set
+		if (pRec->bEditSpanHasAdaptations)
+		{
 			if (nCurSequNum >= pRec->nAdaptationStep_StartingSequNum &&
 				nCurSequNum <= pRec->nAdaptationStep_EndingSequNum)
 			{
 				bWithinSpan = TRUE;
 			}
-			break;
-		case glossesStep:
+		}
+		else if (pRec->bEditSpanHasGlosses)
+		{
 			if (nCurSequNum >= pRec->nGlossStep_StartingSequNum &&
 				nCurSequNum <= pRec->nGlossStep_EndingSequNum)
 			{
 				bWithinSpan = TRUE;
 			}
-			break;
-		case freeTranslationsStep:
-			bFreeTransStepIsCurrent = TRUE;
+		}
+		else if (pRec->bEditSpanHasFreeTranslations)
+		{
+			if (gEditStep == freeTranslationsStep)
+			{
+				// free trans step was what we last were in, and we did something
+				// within it (so we won't do a StoreText() now)
+				bFreeTransStepIsCurrent = TRUE;
+			}
 			if (nCurSequNum >= pRec->nFreeTranslationStep_StartingSequNum &&
 				nCurSequNum <= pRec->nFreeTranslationStep_EndingSequNum)
 			{
 				bWithinSpan = TRUE;
 			}
-			break;
-		default:
+		}
+		else if (pRec->bEditSpanHasBackTranslations)
+		{
+			// never see a GUI for this, treat as unknown
 			bUnknownStep = TRUE;
+		}
 	}
-
+	else // glosses step tried before adaptations step
+	{
+		// we only need one test to succeed, in order to get the value of 
+		// bWithinSpan set
+		if (pRec->bEditSpanHasGlosses)
+		{
+			if (nCurSequNum >= pRec->nGlossStep_StartingSequNum &&
+				nCurSequNum <= pRec->nGlossStep_EndingSequNum)
+			{
+				bWithinSpan = TRUE;
+			}
+		}
+		else if (pRec->bEditSpanHasAdaptations)
+		{
+			if (nCurSequNum >= pRec->nAdaptationStep_StartingSequNum &&
+				nCurSequNum <= pRec->nAdaptationStep_EndingSequNum)
+			{
+				bWithinSpan = TRUE;
+			}
+		}
+		else if (pRec->bEditSpanHasFreeTranslations)
+		{
+			if (gEditStep == freeTranslationsStep)
+			{
+				// free trans step was what we last were in, and we did something
+				// within it (so we won't do a StoreText() now)
+				bFreeTransStepIsCurrent = TRUE;
+			}
+			if (nCurSequNum >= pRec->nFreeTranslationStep_StartingSequNum &&
+				nCurSequNum <= pRec->nFreeTranslationStep_EndingSequNum)
+			{
+				bWithinSpan = TRUE;
+			}
+		}
+		else if (pRec->bEditSpanHasBackTranslations)
+		{
+			// never see a GUI for this, treat as unknown
+			bUnknownStep = TRUE;
+		}
+	}
+	// If we allow storing in KB for pSrcPhrase beyond the span, check,
+	// and treat as if it's within the span for the code which follows
 	if (!bOnlyWithinSpan)
 	{
 		// cause unilateral store attempt, provided other conditions are met
 		bWithinSpan =  TRUE;
 	}
+	// Store the bWithinSpan value on the app too - a later function may want to check it
+	pApp->m_bVertEdit_WithinSpan = bWithinSpan;
+
 	if (!bUnknownStep && bWithinSpan && !bFreeTransStepIsCurrent)
 	{
 		// any one of the following 3 tests is sufficient cause for attempting to store
@@ -25250,253 +25312,77 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 /// rather than just toning up the active strip; also EditRecord has had CSourcePhrase*
 /// activeCSourcePhrasePtr added, to store the pointer value we search to match.
 /// BEW 23Nov12, added the bool bCalledFromOnVerticalEditCancelAllSteps param, default is FALSE
+/// BEW 19Oct15 refactored to use saved params on app, rather than pRec->activeCSourcePhrasePtr
+/// because the latter is always garbage by the time this function is entered
 void CAdapt_ItView::RestoreBoxOnFinishVerticalMode(bool bCalledFromOnVerticalEditCancelAllSteps)
 {
 	EditRecord* pRec = &gEditRecord;
 	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItView* pView = pApp->GetView();
 	CLayout* pLayout = GetLayout();
-	CSourcePhrase* pOldActiveSrcPhrase = pRec->activeCSourcePhrasePtr; // might be NULL
-	int nSequNum = pRec->nSaveActiveSequNum; // original active location as stored in
-											 // the EditRecord, but might not now be valid
- 	bool bOriginalLocationWithinSpan = FALSE;
 	SPList* pSrcPhrases = pApp->m_pSourcePhrases;
+	//CSourcePhrase* pOldActiveSrcPhrase = pRec->activeCSourcePhrasePtr; // bogus
 
-    // here use pOldActiveSrcPhrase, if not NULL, to try find original active sequ number
-    // -- its CSourcePhrase instance may have moved due to user's edits, or become lost -
-    // for example, if he changed the SPList inventory and cancelled out of vertical edit
-    if (pOldActiveSrcPhrase != NULL)
+	wxUnusedVar(bCalledFromOnVerticalEditCancelAllSteps); // the flag is no longer needed I think
+	
+	pRec->nStartingSequNum;
+	int nSequNum = pRec->nStartingSequNum; // leftmost 'in span' location as stored in
+										   // the EditRecord, use as a fallback
+ 	bool bOriginalLocationWithinSpan = FALSE;
+	if (pApp->m_bVertEdit_WithinSpan)
 	{
-		SPList::Node* pos = pSrcPhrases->GetFirst();
-		bool bFoundMatch = FALSE;
-		while (pos != NULL)
-		{
-			CSourcePhrase* pSP = pos->GetData();
-			if (pSP == pOldActiveSrcPhrase)
-			{
-				bFoundMatch = TRUE;
-				break;
-			}
-			pos = pos->GetNext();
-		}
-		if (bFoundMatch)
-		{
-			// The old active location is intact, so we can reuse it; and we can
-			// infer that bOriginalLocationWithinSpan should remain FALSE. An
-			// UpdateSequNumbers() call will have already been done, so we can
-			// get the text for the box and the sequ number easily, etc... do all this
-			// here and return
-			nSequNum = pOldActiveSrcPhrase->m_nSequNumber;
-			pApp->m_nActiveSequNum = nSequNum;
-			// tone up the strips by doing a completely new recalculation of them
-			pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
-			pApp->m_pActivePile = pApp->GetView()->GetPile(nSequNum); // uses CLayout's PileList
-			// the old phrase box text has been stored in the EditRecord, so use it
-			wxString boxText = pRec->oldPhraseBoxText;
-			pApp->m_targetPhrase = boxText;
-			pApp->m_pTargetBox->ChangeValue(boxText);
-			// in the next call, TRUE means "suppress recalculation of the phrase box gap
-			// in the layout"
-			pApp->GetDocument()->ResetPartnerPileWidth(pOldActiveSrcPhrase, TRUE);
-			pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum); // BEW added 12June09
-			pLayout->m_docEditOperationType = vert_edit_exit_op;
-			// call Invalidate() in the caller, which is OnCustomEventEndVerticalEdit() & that is
-			// the only place in the application where RestoreBoxOnFinishVerticalMode() is called
-			//return; // don't return here, we need window cleanup etc to happen later
-		}
-		else
-		{
-			// the original pointer got lost, so we can infer that the old active location
-			// was involved in deep copies and even if restoration of the original is
-			// done, it is done by deep copies, and so the pointers will be different -
-			// which is why the loop aabove didn't find a match
-			bOriginalLocationWithinSpan = TRUE;
-		}
-	} // end of TRUE block for test:  if (pOldActiveSrcPhrase != NULL)
-
-    // If control gets to here, we have more work to do to get an acceptable active
-    // location for the phrase box; so try a modified legacy means to do it
-
-	// when this function is called, the original pre-Vertical Edit Process mode (either
-	// glossing or adapting) will have been restored, but the gEditRecord has not yet been
-	// initialized so as to clear it; so use its contents to work out where the active
-	// location should be put
-	if (!gbIsGlossing)
-	{
-		// we are in adapting mode
-		if (pRec->nAdaptationStep_NewSpanCount != 0)
-		{
-			if (bCalledFromOnVerticalEditCancelAllSteps)
-			{
-				// rollback was done, so the original span is now replaced
-				if (nSequNum >= pRec->nStartingSequNum && nSequNum <= pRec->nEndingSequNum)
-				{
-					bOriginalLocationWithinSpan = TRUE;
-				}
-			}
-			else
-			{
-				// not a cancel, so no rollback done, so use the following span
-				if (nSequNum >= pRec->nAdaptationStep_StartingSequNum &&
-					nSequNum <= pRec->nAdaptationStep_EndingSequNum)
-				{
-					bOriginalLocationWithinSpan = TRUE;
-				}
-			}
-		}
-	}
-	else
-	{
-		// we are in glossing mode
-		if (pRec->nAdaptationStep_NewSpanCount != 0)
-		{
-			if (bCalledFromOnVerticalEditCancelAllSteps)
-			{
-				// rollback was done, so the original span is now replaced
-				if (nSequNum >= pRec->nStartingSequNum && nSequNum <= pRec->nEndingSequNum)
-				{
-					bOriginalLocationWithinSpan = TRUE;
-				}
-			}
-			else
-			{
-				// not a cancel, so no rollback done, so use the following span
-				if (nSequNum >= pRec->nGlossStep_StartingSequNum &&
-					nSequNum <= pRec->nGlossStep_EndingSequNum)
-				{
-					bOriginalLocationWithinSpan = TRUE;
-				}
-			}
-		}
-	}
-    // now we attempt to find a safe final active location; and it can be within a
-    // retranslation if we are restoring glossing mode, but not if we are restoring
-    // adapting mode; vertical edit in MFC legacy app is only available from a Source Text
-    // Edit, and it is not possible to do that from free translations mode, so we know we
-    // are not restoring to the latter mode (**** NOT TRUE for wxWidgets *** where
-    // eventually vert edit will be available in any mode except when collecting back
-    // translations -- in that case extend this function to handle those extra options)
-	CSourcePhrase* pSrcPhrase = NULL;
-	CSourcePhrase* pOldSrcPhrase = NULL;
-	if (!gbIsGlossing)
-	{
-		// adapting mode was on when the user first entered the edit process
-		// & is now back on
-		if (bOriginalLocationWithinSpan || pRec->nAdaptationStep_NewSpanCount == 0)
-		{
-            // the original location was either within the (non-empty) span, or the span is
-            // now empty because the user deleted all of its CSourcePhrase instances - in
-            // which case the old sequence number at entry would now be somewhere in the
-            // context or even possibly beyond the end of the document, so we have to look
-            // carefully for a suitable place to rebuild the box -- it could be within a
-            // retranslation, so find a safe place to put the box
-			if (nSequNum > pApp->GetMaxIndex())
-			{
-				// the old location is beyond the end of the document, so initialize to the
-				// last CSourcePhrase instance in the document, and then check it is safe
-				nSequNum =  pApp->GetMaxIndex();
-			}
-			pSrcPhrase = GetSrcPhrase(nSequNum); // won't return NULL because the
-												 // CSourcePhrase at nSequNum we know exists
-			pOldSrcPhrase = pSrcPhrase; // in case we want to try again from same initial one
-			wxASSERT(pSrcPhrase != NULL);
-			if (pSrcPhrase->m_bRetranslation)
-			{
-                // this location is within a retranslation, and because of the possibility
-                // the edit span may be at the end of the document, we'll look for a safe
-                // location preceding the retranslation rather than following it
-				pSrcPhrase = GetPrevSafeSrcPhrase(pSrcPhrase);
-				if (pSrcPhrase == NULL)
-				{
-                    // we expect this never to happen, but if we can't find such a
-                    // location, try following the the retranslation
-					pSrcPhrase = pOldSrcPhrase;
-					pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase);
-					if (pSrcPhrase == NULL)
-					{
-						// unthinkable, but if it happens, violate rule about retranslations
-						// and put the box within it!
-						pSrcPhrase = pOldSrcPhrase;
-					}
-				}
-			}
-			// get the safe sequence number index
-			nSequNum = pSrcPhrase->m_nSequNumber;
-		}
-		else
-		{
-            // the original location, being outside the span, must already be a safe
-            // location, so do the restoration at nSequNum's location
-			;
-		}
+		// We don't need the fallback active location, nSequNum, if this
+		// value is TRUE, as we can get needed params from the app instance
+		bOriginalLocationWithinSpan = TRUE;
 	}
 
-	// we now have the nSequNum at which we want to restore the box, so do it
-	// BEW 10Jan12, bug fix needed here - use GetSrcPhrase() and gbIsGlossing
-	// to find the appropriate text for the box, don't use the translation (wxString)
-	// global variable's value - it isn't guaranteed to contain the wanted string
-	bool bOldIsOK = TRUE;
-	if (nSequNum == pRec->nSaveActiveSequNum)
+	if (bOriginalLocationWithinSpan)
 	{
-		// the old location is still good, use it -- grab whatever is the
-		// appropriate text in the CSourcePhrase instance at that location
-		CSourcePhrase* spPtr = GetSrcPhrase(nSequNum);
-		wxASSERT(spPtr != NULL);
+		// Use the saved parameters to reestablish the last active location
+		pApp->m_pActivePile = pView->GetPile(pApp->m_vertEdit_LastActiveSequNum);
+		wxASSERT(pApp->m_pActivePile != NULL);
+		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		wxASSERT(pSrcPhrase->m_nSequNumber == pApp->m_vertEdit_LastActiveSequNum);
+		// RestoreMode() has been called, so the GUI is back in the original state,
+		// and so gbIsGlossing and gbGlossingEnabled have their original values again
+		// and m_targetPhrase and m_pTargetBox are restored to the values this present
+		// location should have, so insert them into pSrcPhrase now, depending on mode
 		if (gbIsGlossing)
 		{
-			pApp->m_targetPhrase = spPtr->m_gloss;
+			pSrcPhrase->m_gloss = pApp->m_targetPhrase; // or m_vertEdit_LastActiveLoc_Gloss
+			wxASSERT(pApp->m_vertEdit_LastActiveLoc_Gloss == pApp->m_targetPhrase);
 		}
 		else
 		{
-			pApp->m_targetPhrase = spPtr->m_adaption;
+			pSrcPhrase->m_adaption = pApp->m_targetPhrase; // or m_vertEdit_LastActiveLoc_Adaptation
+			wxASSERT(pApp->m_vertEdit_LastActiveLoc_Adaptation == pApp->m_targetPhrase);
 		}
-		translation.Empty();
 	}
 	else
 	{
-		// clear, and do a lookup below instead
-		translation.Empty();
-		pApp->m_targetPhrase.Empty();
-		bOldIsOK = FALSE;
-	}
-
-	// now set up the phrase box
-	pApp->m_nActiveSequNum = nSequNum; // needed, as a test for m_nActiveSequNum
-				// < 0 done internally will have box placement skipped if we get
-				// here and it is -1
-	pApp->m_pActivePile = GetPile(nSequNum);
-	bool bFoundSomething = FALSE;
-	if (!bOldIsOK)
-	{
-		if (!pRec->bGlossingModeOnEntry)
+		// We'll have to resort to a hack, that is, the fallback location. It probably
+		// won't be the last active location (except if restoring from free trans mode,
+		// where the active location stays stuck to the anchor pile)
+		pApp->m_pActivePile = pView->GetPile(nSequNum);
+		wxASSERT(pApp->m_pActivePile != NULL);
+		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		// Our job now is to ignore the saved parameters on the app, and instead
+		// set m_targetPhrase and m_pTargetBox contents to agree with what is on
+		// pSrcPhrase. It should be safe to assume that the fallback location is
+		// not in a retranslation in adapting mode, since the app won't allow that
+		// for any vertical edit step in adapting mode (glossing mode allows it though)
+		if (gbIsGlossing)
 		{
-			if (pApp->m_pActivePile->GetSrcPhrase()->m_adaption.IsEmpty())
-				bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
-			if (bFoundSomething)
-			{
-				pApp->m_targetPhrase = translation;
-			}
-			else
-			{
-				translation = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
-				pApp->m_targetPhrase = translation;
-			}
+			pApp->m_targetPhrase = pSrcPhrase->m_gloss;
+			pApp->m_pTargetBox->ChangeValue(pSrcPhrase->m_gloss);
 		}
 		else
 		{
-			// it was glossing mode on entry
-			if (pApp->m_pActivePile->GetSrcPhrase()->m_gloss.IsEmpty())
-				bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
-			if (bFoundSomething)
-			{
-				pApp->m_targetPhrase = translation;
-			}
-			else
-			{
-				translation = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
-				pApp->m_targetPhrase = translation;
-			}
+			pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+			pApp->m_pTargetBox->ChangeValue(pSrcPhrase->m_adaption);
 		}
 	}
+
 #ifdef _NEW_LAYOUT
 	//pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
 	// BEW 20Jan11, need to recreate the strips on Restoration because there will have
@@ -25526,193 +25412,6 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode(bool bCalledFromOnVerticalEdi
 		wxLogDebug(_T("RestoreBoxOnFinishVerticalMode(), location - at end of function: PhraseBox contents:     %s"), pApp->m_pTargetBox->GetValue());
 #endif
 }
-
-/* Old version saved here, new one is rewritten above by BEW on 21Nov12
-void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
-{
-	EditRecord* pRec = &gEditRecord;
-	CAdapt_ItApp* pApp = &wxGetApp();
-
-    // when this function is called, the original pre-Vertical Edit Process mode (either
-    // glossing or adapting) will have been restored, but the gEditRecord has not yet been
-    // initialized so as to clear it; so use its contents to work out where the active
-    // location should be put
-	int nSequNum = pRec->nSaveActiveSequNum; // original location
-	bool bOriginalLocationWithinSpan = FALSE;
-	if (!gbIsGlossing)
-	{
-		// we are in adapting mode
-		if (pRec->nAdaptationStep_NewSpanCount != 0)
-		{
-			if (nSequNum >= pRec->nAdaptationStep_StartingSequNum &&
-				nSequNum <= pRec->nAdaptationStep_EndingSequNum)
-			{
-				bOriginalLocationWithinSpan = TRUE;
-			}
-		}
-	}
-	else
-	{
-		// we are in glossing mode
-		if (pRec->nAdaptationStep_NewSpanCount != 0)
-		{
-			if (nSequNum >= pRec->nGlossStep_StartingSequNum &&
-				nSequNum <= pRec->nGlossStep_EndingSequNum)
-			{
-				bOriginalLocationWithinSpan = TRUE;
-			}
-		}
-	}
-
-    // now we attempt to find a safe final active location; and it can be within a
-    // retranslation if we are restoring glossing mode, but not if we are restoring
-    // adapting mode; vertical edit in MFC legacy app is only available from a Source Text
-    // Edit, and it is not possible to do that from free translations mode, so we know we
-    // are not restoring to the latter mode (**** NOT TRUE for wxWidgets *** where
-    // eventually vert edit will be available in any mode except when collecting back
-    // translations -- in that case extend this function to handle those extra options)
-	CSourcePhrase* pSrcPhrase = NULL;
-	CSourcePhrase* pOldSrcPhrase = NULL;
-	if (!gbIsGlossing)
-	{
-		// adapting mode was on when the user first entered the edit process
-		// & is now back on
-		if (bOriginalLocationWithinSpan || pRec->nAdaptationStep_NewSpanCount == 0)
-		{
-            // the original location was either within the (non-empty) span, or the span is
-            // now empty because the user deleted all of its CSourcePhrase instances - in
-            // which case the old sequence number at entry would now be somewhere in the
-            // context or even possibly beyond the end of the document, so we have to look
-            // carefully for a suitable place to rebuild the box -- it could be within a
-            // retranslation, so find a safe place to put the box
-			if (nSequNum > pApp->GetMaxIndex())
-			{
-				// the old location is beyond the end of the document, so initialize to the
-				// last CSourcePhrase instance in the document, and then check it is safe
-				nSequNum =  pApp->GetMaxIndex();
-			}
-			pSrcPhrase = GetSrcPhrase(nSequNum); // won't return NULL because the
-												 // CSourcePhrase at nSequNum we know exists
-			pOldSrcPhrase = pSrcPhrase; // in case we want to try again from same initial one
-			wxASSERT(pSrcPhrase != NULL);
-			if (pSrcPhrase->m_bRetranslation)
-			{
-                // this location is within a retranslation, and because of the possibility
-                // the edit span may be at the end of the document, we'll look for a safe
-                // location preceding the retranslation rather than following it
-				pSrcPhrase = GetPrevSafeSrcPhrase(pSrcPhrase);
-				if (pSrcPhrase == NULL)
-				{
-                    // we expect this never to happen, but if we can't find such a
-                    // location, try following the the retranslation
-					pSrcPhrase = pOldSrcPhrase;
-					pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase);
-					if (pSrcPhrase == NULL)
-					{
-						// unthinkable, but if it happens, violate rule about retranslations
-						// and put the box within it!
-						pSrcPhrase = pOldSrcPhrase;
-					}
-				}
-			}
-			// get the safe sequence number index
-			nSequNum = pSrcPhrase->m_nSequNumber;
-		}
-		else
-		{
-            // the original location, being outside the span, must already be a safe
-            // location, so do the restoration at nSequNum's location
-			;
-		}
-	}
-
-	// we now have the nSequNum at which we want to restore the box, so do it
-	// BEW 10Jan12, bug fix needed here - use GetSrcPhrase() and gbIsGlossing
-	// to find the appropriate text for the box, don't use the translation (wxString)
-	// global variable's value - it isn't guaranteed to contain the wanted string
-	bool bOldIsOK = TRUE;
-	if (nSequNum == pRec->nSaveActiveSequNum)
-	{
-		// the old location is still good, use it -- grab whatever is the
-		// appropriate text in the CSourcePhrase instance at that location
-		CSourcePhrase* spPtr = GetSrcPhrase(nSequNum);
-		wxASSERT(spPtr != NULL);
-		if (gbIsGlossing)
-		{
-			pApp->m_targetPhrase = spPtr->m_gloss;
-		}
-		else
-		{
-			pApp->m_targetPhrase = spPtr->m_adaption;
-		}
-		translation.Empty();
-	}
-	else
-	{
-		// clear, and do a lookup below instead
-		translation.Empty();
-		pApp->m_targetPhrase.Empty();
-		bOldIsOK = FALSE;
-	}
-
-	// now set up the phrase box
-	pApp->m_nActiveSequNum = nSequNum; // needed, as a test for m_nActiveSequNum
-				// < 0 done internally will have box placement skipped if we get
-				// here and it is -1
-	pApp->m_pActivePile = GetPile(nSequNum);
-	bool bFoundSomething = FALSE;
-	if (!bOldIsOK)
-	{
-		if (!pRec->bGlossingModeOnEntry)
-		{
-			if (pApp->m_pActivePile->GetSrcPhrase()->m_adaption.IsEmpty())
-				bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
-			if (bFoundSomething)
-			{
-				pApp->m_targetPhrase = translation;
-			}
-			else
-			{
-				translation = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
-				pApp->m_targetPhrase = translation;
-			}
-		}
-		else
-		{
-			// it was glossing mode on entry
-			if (pApp->m_pActivePile->GetSrcPhrase()->m_gloss.IsEmpty())
-				bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
-			if (bFoundSomething)
-			{
-				pApp->m_targetPhrase = translation;
-			}
-			else
-			{
-				translation = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
-				pApp->m_targetPhrase = translation;
-			}
-		}
-	}
-	CLayout* pLayout = GetLayout();
-#ifdef _NEW_LAYOUT
-	//pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-	// BEW 20Jan11, need to recreate the strips on Restoration because there will have
-	// been piles replaced and possibly some created in order to restore the original
-	// state, and they will still have default value for m_pOwningStrip of NULL, and that
-	// will cause a crash unless the strips are rebuilt so as to be synched to whatever
-	// pile array was reestablished
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#else
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum); // BEW added 12June09
-
-	pLayout->m_docEditOperationType = vert_edit_exit_op;
-    // call Invalidate() in the caller, which is OnCustomEventEndVerticalEdit() & that is
-    // the only place in the application where RestoreBoxOnFinishVerticalMode() is called
-}
-*/
 
 // public accessor
 void CAdapt_ItView::EditSourceText(wxCommandEvent& event)
@@ -25888,6 +25587,10 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 				// starting type for this vertical edit
 	gEditStep = sourceTextStep; // indicate that editing of source text is the
 				// current step within the vertical edit process
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At A: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 	int nSaveSequNum = pSrcPhrase->m_nSequNumber; // save the sequ number of the
         // start of user's selection -- though we must update this value to a smaller value
@@ -26255,6 +25958,10 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 				wxExit();
 			pApp->LogUserAction(_T("Error from DeepCopySourcePhraseSublist() in OnEditSourceText()"));
 		}
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At B: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // work out if the subspan for back translations starts earlier, or ends later,
         // than the current bounds for the cancel span; if so, work out the new bounds
@@ -26561,6 +26268,10 @@ bailout:	pAdaptList->Clear();
 	RemoveSelection();
 
 	// The document's native structures are as yet still unchanged.
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At C: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
     // create the edit source text dialog; then prepare the preceding and following context
     // strings (we decline to display the SFM markup in the context strings, because we
@@ -26588,6 +26299,10 @@ bailout:	pAdaptList->Clear();
 								precedingSrc, followingSrc, precedingTgt, followingTgt);
 	dlg.m_preContext = precedingSrc;
 	dlg.m_follContext = followingSrc;
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At D: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 	// put up the Edit Source Text dialog's window
 	bool bMarkerSetsAreDifferent = FALSE;
@@ -26605,6 +26320,10 @@ bailout:	pAdaptList->Clear();
 
 		// treat the doc as dirty, regardeless of the outcome
 		pDoc->Modify(TRUE);
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At E: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // Before we do anything to the CSourcePhrase instances, we have to set up a
         // correct value for the chapter number used in the Document's member m_curChapter,
@@ -26688,6 +26407,10 @@ bailout:	pAdaptList->Clear();
 		bool bUnfilteringRequired = FALSE;  // a TRUE value that we are interested in
 		bMarkerSetsAreDifferent = AreMarkerSetsDifferent(strSource, strNewSrcText,
 										bUnfilteringRequired, bFilteringRequired);
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At F: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // Any unfiltering & filtering will be handled by the TokenizeTextString(), but it
         // doesn't necessarily handle required filtering completely because only the user's
@@ -26766,6 +26489,10 @@ bailout:	pAdaptList->Clear();
         //     BailOut() function uses this value to work out what needs to be done if
         //     there was a cancel, or a failure after the document has been modified
 		gbEditingSourceAndDocNotYetChanged = FALSE;
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At G: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // Before going further, we must replace the CSourcePhrase instances in the cancel
         // span with the modified ones in the modifications list. This is to ensure that
@@ -26832,6 +26559,10 @@ bailout:	pAdaptList->Clear();
 			pApp->LogUserAction(errStr);
 			goto exit;
 		}
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At H: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 		// do a while loop for looking at the pSrcPhrase instances after the
 		// replacements, in debug mode
@@ -26915,6 +26646,10 @@ bailout:	pAdaptList->Clear();
 		}
 		// note, we must set gpFollSrcPhrase because our later DoMarkerHousekeeping() call
 		// uses it internally
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At I: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 		// now get the preceding CSourcePhrase's pointer (ie. preceding the editable span),
 		// it could be NULL if we edited right at the start of the doc
@@ -27081,6 +26816,10 @@ bailout:	pAdaptList->Clear();
 		if (gbPropagationNeeded)
 			pRec->bSpecialText = gbSpecialText; // update the EditRecord,
 												// to keep everything straight
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At J: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // do any forward propagation, halting at the first CSourcePhrase in the following
         // context which has the member flag m_bFirstOfType set TRUE (Note; so far, nothing
@@ -27161,6 +26900,10 @@ bailout:	pAdaptList->Clear();
 		int nFinishAt = pRec->nEndingSequNum;
 		TransferCompletedSrcPhrases(pRec,&pRec->editableSpan_NewSrcPhraseList,
 									pSrcPhrases,nBeginAt,nFinishAt);
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At K: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // get a new valid starting pile pointer for the inserted new source text --
         // because for a source text edit, this is where the active location needs to be
@@ -27245,6 +26988,10 @@ bailout:	pAdaptList->Clear();
 				goto exit;
 			}
 		}
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At L: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // the restoration of markers did not attend to making sure every Note recreated
         // has its parent CSourcePhrase's m_bHasNote boolean set TRUE. We do that check now
@@ -27314,6 +27061,10 @@ bailout:	pAdaptList->Clear();
 		}
 
 		// prepare for next step, eg, combobox etc
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At M: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 		// post the custom event for adaptations step of the vertical edit, or for the
 		// glossing step, depending on the user's preference (I want return immediately,
@@ -27362,6 +27113,10 @@ bailout:	pAdaptList->Clear();
 		pApp->m_pTargetBox->SetSelection(-1,-1); // select it all
 		pApp->LogUserAction(_T("Cancelled from OnEditSourceText()"));
 	}
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At N: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 	// delay cancel cleanup to here, as the restoration of the view needed
 	// to use the pRec values which are to be initialized here
@@ -28928,7 +28683,7 @@ void CAdapt_ItView::ToggleGlossingMode()
 			if (!pApp->m_bFreeTranslationMode)
 			{
 				bAllsWell = PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
-				bAllsWell = bAllsWell; // avoid warning (it can return FALSE, in which
+				wxUnusedVar(bAllsWell); // avoid warning (it can return FALSE, in which
 									   // case the Combobox is empty - we can tolerate that)
 			}
 		}
@@ -28942,7 +28697,7 @@ void CAdapt_ItView::ToggleGlossingMode()
 			if (!pApp->m_bFreeTranslationMode)
 			{
 				bAllsWell = PopulateRemovalsComboBox(glossesStep, &gEditRecord);
-				bAllsWell = bAllsWell; // avoid warning (it can return FALSE, in which
+				wxUnusedVar(bAllsWell); // avoid warning (it can return FALSE, in which
 									   // case the Combobox is empty - we can tolerate that)
 			}
 		}
@@ -30015,8 +29770,41 @@ void CAdapt_ItView::OnUpdateButtonNextStep(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
+// BEW refactored 19Oct15 to support the better way of exiting vertical edit
 void CAdapt_ItView::OnButtonNextStep(wxCommandEvent& WXUNUSED(event))
 {
+	// BEW added 19Oct15, for refactored vert edit ending - the info
+	// saved on the app instance needs to be used here to configure
+	// the active CSourcePhrase instance at ending time.
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItView* pView = pApp->GetView();
+	pApp->m_pActivePile = pView->GetPile(pApp->m_vertEdit_LastActiveSequNum);
+	wxString phraseboxContents = pApp->m_pTargetBox->GetValue();
+	pApp->m_pTargetBox->m_bAbandonable = FALSE;
+	pApp->m_targetPhrase = phraseboxContents;
+	bool bGlossingWasON = gEditRecord.bGlossingModeOnEntry;
+	CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+	if (bGlossingWasON)
+	{
+		pSrcPhrase->m_gloss = phraseboxContents;
+	}
+	else
+	{
+		pSrcPhrase->m_adaption = phraseboxContents;
+	}
+	// And the handler for wxEVT_END_VERTICAL_EDIT requires the following
+	// be set (m_vertEdit_LastActiveSequNum omitted as it is set already
+	// by the process of getting the active location where it is now)
+	if (bGlossingWasON)
+	{
+		pApp->m_vertEdit_LastActiveLoc_Gloss = phraseboxContents;
+	}
+	else
+	{
+		pApp->m_vertEdit_LastActiveLoc_Adaptation = phraseboxContents;
+	}
+	pApp->m_bVertEdit_WithinSpan = TRUE;
+
 	int sequNum = -1; // value not needed
 	bool bCustomMessageSent;
 	bCustomMessageSent = VerticalEdit_CheckForEndRequiringTransition(
@@ -30078,10 +29866,42 @@ void CAdapt_ItView::OnUpdateButtonEndNow(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
+// BEW refactored 19Oct15 to support the better way of exiting vertical edit
 void CAdapt_ItView::OnButtonEndNow(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	// instead of calling VerticalEdit_CheckForEndRequiringTransition(),
+	// BEW added 19Oct15, for refactored vert edit ending - the info
+	// saved on the app instance needs to be used here to configure
+	// the active CSourcePhrase instance at ending time.
+	CAdapt_ItView* pView = pApp->GetView();
+	pApp->m_pActivePile = pView->GetPile(pApp->m_vertEdit_LastActiveSequNum);
+	wxString phraseboxContents = pApp->m_pTargetBox->GetValue();
+	pApp->m_pTargetBox->m_bAbandonable = FALSE;
+	pApp->m_targetPhrase = phraseboxContents;
+	bool bGlossingWasON = gEditRecord.bGlossingModeOnEntry;
+	CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+	if (bGlossingWasON)
+	{
+		pSrcPhrase->m_gloss = phraseboxContents;
+	}
+	else
+	{
+		pSrcPhrase->m_adaption = phraseboxContents;
+	}
+	// And the handler for wxEVT_END_VERTICAL_EDIT requires the following
+	// be set (m_vertEdit_LastActiveSequNum omitted as it is set already
+	// by the process of getting the active location where it is now)
+	if (bGlossingWasON)
+	{
+		pApp->m_vertEdit_LastActiveLoc_Gloss = phraseboxContents;
+	}
+	else
+	{
+		pApp->m_vertEdit_LastActiveLoc_Adaptation = phraseboxContents;
+	}
+	pApp->m_bVertEdit_WithinSpan = TRUE;
+	
+	// Instead of calling VerticalEdit_CheckForEndRequiringTransition(),
 	// just post the required message immediately
 	wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
 	wxPostEvent(pApp->GetMainFrame(), eventCustom); // the event handlers

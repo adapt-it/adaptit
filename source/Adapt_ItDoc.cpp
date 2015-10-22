@@ -134,6 +134,8 @@ extern enum TextType gPreviousTextType; // moved to global space in the App, mad
 /// in UTF-16 encoding.
 #define nU16BOMLen 2
 
+#define SETH_16OCT15
+
 #ifdef _UNICODE
 
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
@@ -10216,6 +10218,48 @@ bool CAdapt_ItDoc::IsClosingQuote(wxChar* pChar)
 	return FALSE;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if pChar is pointing to a closing doublequote " (straight, not curly)
+///             which should NOT be interpretted as a closing quote, but rather as an
+///             opening quote for the word which follows; FALSE if it is acceptable as
+///             a closing quote to the just parsed word
+/// \param		pChar		-> a pointer to the character to be examined
+/// \param      pPunctStart -> a pointer to the start of the string being parsed
+///             (typically, it would point at a space which is ambiguous as to
+///             whether it is a word delimiting space, or a closing punctuation
+///             delimiting space)
+/// \remarks
+/// Called from: the Doc's ParseAdditionalFinalPuncts(). This is a hack. It's "protection"
+/// just in case the clearing of the flag m_bHasPrecedingStraightQuote did not stop the
+/// caller from recognising a straight doublequote wrongly as a closing quote - so this
+/// hack should catch anything that leaks through. m_bHasPrecedingStraightQuote is TRUE
+/// only when " is encountered as a word initial quote, ' is not so interpretted because we
+/// assume ' is more likely to be a glottal stop symbol, so we assume it is word-building,
+/// and so we keep m_bSingleQuoteAsPunct set to FALSE in Adapt It - been so since version 4
+/// and on. 
+/// The function looks at what follows *ptr, and what precedes, since *ptr is " character.
+/// If what follows it not a whitespace, then " must be interpretted as belonging to the
+/// next word in the parse, and so we return TRUE. It can't be a closing quote. Looking
+/// to what precedes, we examine the character immediately preceding *pPunctStart - that
+/// will typically be a parsed over punctuation character. The " we are concerned about
+/// should only be a 'detached quote' if there was, prior to any just-pased-over whitespace,
+/// another straight quote, or a curly closed quote, or a > chevron.
+///////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItDoc::CannotBeClosingQuote(wxChar* ptr, wxChar* pPunctStart)
+{
+	wxChar charNext = *(ptr + 1);
+	if (!IsWhiteSpace(&charNext))
+	{
+		return TRUE;
+	}
+	wxChar charBeforeParseStartLoc = *(pPunctStart - 1);
+	if (!IsClosingQuote(&charBeforeParseStartLoc))
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
 //////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param	span		           -> span of characters extracted from the text buffer
@@ -11768,6 +11812,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
     // would only be compromised if there were sequences of vertical quotes with spaces
     // both at the end of a word and at the start of the next word in the source text data,
     // and this would be highly unlikely to ever occur in published source text.
+
 	while (IsOpeningQuote(ptr) || IsWhiteSpace(ptr))
 	{
 		// check if a straight quote is in the preceding punctuation - setting the boolean
@@ -12603,6 +12648,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		{
 			// m_srcPhrase has been updated with any additional final punctuation within
 			// the above call, so just return len to the caller
+			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
 			// BEW 14Jul14, decrement len until it points to start of any 
 			// preceding whitespace, and then return
@@ -12984,6 +13030,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		if (IsOpeningQuote(ptr))
 		{
 			// oops, HALT! don't parse further, we've come to where the next word's stuff is
+			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
 			// BEW 14Jul14, decrement len until it points to start of any 
 			// preceding whitespace, and then return
@@ -13022,6 +13069,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// whitespace parse block
 			//if (nWhiteSpaceSpan > 0)
 			//	len += nWhiteSpaceSpan;
+			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
 			// BEW 14Jul14, decrement len until it points to start of any 
 			// preceding whitespace, and then return
@@ -13075,6 +13123,8 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// the above call, so just return len to the caller after updating it
 			if (bExitParseWordOnReturn)
 			{
+				m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
+
 				// since we must now return, the tentative former decisions have to become
 				// concrete, so do the arithmetic to get len value correct (if not
 				// returning here, the arithmetic is done further down in ParseWord() when
@@ -13189,6 +13239,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		if (*ptr == _T(']'))
 		{
 			// we must return
+			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
 			// BEW 14Jul14, decrement len until it points to start of any 
 			// preceding whitespace, and then return
@@ -13228,6 +13279,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		{
 			// m_srcPhrase has been updated with any additional final punctuation within
 			// the above call, so just return len to the caller; ptr is updated too
+			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
 			// BEW 14Jul14, decrement len until it points to start of any 
 			// preceding whitespace, and then return
@@ -13926,7 +13978,18 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
                 // just hope that that situation won't ever occur.
 				if (bHasPrecedingStraightQuote || *ptr == _T(']'))
 				{
-					// take the lot
+					// Do a sanity (hack) test here, just in case markup inconsistency
+					// let a straight doublequote get to here wrongly as a candidate
+					// for closing quote, when it should be opening quote for the
+					// word which follows (Seth's bug) BEW 19Oct15
+					if (CannotBeClosingQuote(ptr, pPunctStart))
+					{
+						// reject the extras just parsed over
+						ptr = pPunctStart; // restore ptr to location where we started from
+						bExitOnReturn = TRUE;
+						return len;
+					}
+					// okay, take the extras just parsed over
 					if (counter > 0)
 					{
 						wxString finalPunct(pPunctStart,counter);
@@ -13946,7 +14009,7 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 				}
 				else
 				{
-					// reject the lot
+					// reject the extras just parsed over
 					ptr = pPunctStart; // restore ptr to location where we started from
 					bExitOnReturn = TRUE;
 					return len;

@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
-"POT-Creation-Date: 2015-10-15 08:06-0500\n"
-"PO-Revision-Date: 2015-10-15 08:06-0500\n"
+"POT-Creation-Date: 2015-10-19 20:27-0500\n"
+"PO-Revision-Date: 2015-10-19 20:27-0500\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: fr\n"
@@ -262,7 +262,7 @@ msgstr "Aller à  la fin du texte"
 #: Adapt_It.cpp:9024 ToolbarPage.cpp:204
 #, fuzzy
 msgid "Start"
-msgstr "Revenir au début du texte"
+msgstr "Commencez à travailler...\tCtrl-W"
 
 # Priority 1
 #: Adapt_It.cpp:9024 Adapt_It_wdr.cpp:11306 Adapt_It_wdr.cpp:11361 MainFrm.cpp:1642 ToolbarPage.cpp:204
@@ -901,6 +901,18 @@ msgstr ""
 #: Adapt_It.cpp:21060
 msgid "Initialization complete. Call Start Working..."
 msgstr ""
+
+# Priority 1
+#: Adapt_It.cpp:21657
+#, fuzzy
+msgid "Setup Or Remove Knowledge Base Sharing..."
+msgstr "Enregistrer la base "
+
+# Priority 1
+#: Adapt_It.cpp:21662
+#, fuzzy
+msgid "Controls For Knowledge Base Sharing..."
+msgstr "&Importer dans la base de connaissances..."
 
 #: Adapt_It.cpp:22893
 msgid ""
@@ -6191,7 +6203,7 @@ msgstr ""
 msgid "Removed:"
 msgstr ""
 
-#: Adapt_It_wdr.cpp:5720 MainFrm.cpp:4861 MainFrm.cpp:4985 MainFrm.cpp:5131 MainFrm.cpp:5329 MainFrm.cpp:5573 MainFrm.cpp:5779 MainFrm.cpp:5916 MainFrm.cpp:6038
+#: Adapt_It_wdr.cpp:5720 MainFrm.cpp:4859 MainFrm.cpp:4983 MainFrm.cpp:5129 MainFrm.cpp:5327 MainFrm.cpp:5571 MainFrm.cpp:5777 MainFrm.cpp:5914 MainFrm.cpp:6036
 msgid "Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."
 msgstr ""
 
@@ -7248,7 +7260,7 @@ msgstr ""
 #: Adapt_It_wdr.cpp:8345
 #, fuzzy
 msgid "location:"
-msgstr "Retourner au dernier emplacement sélectionné"
+msgstr "&Restaurer l’emplacement du dossier par défaut"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:8379
@@ -8294,7 +8306,7 @@ msgstr ""
 #: Adapt_It_wdr.cpp:10298
 #, fuzzy
 msgid "Done"
-msgstr "La sauvegarde du document a échoué car le nom : %s n'est pas valable. Aucune sauvegarde n'a été effectuée."
+msgstr "Impossible d'effectuer le déplacement vers l'avant, car la pile suivante n'est pas un emplacement valable !"
 
 #: Adapt_It_wdr.cpp:10327
 msgid "Click here for an explanation of how to use this dialog..."
@@ -9981,7 +9993,7 @@ msgstr ""
 #: CCModule.cpp:3320
 #, fuzzy
 msgid "Consistent Changes"
-msgstr "Sélectionnez la table !"
+msgstr "Tables des modifications cohérentes (*.cct)|*.cct||"
 
 #: CCTabbedDialog.cpp:73
 msgid "Get One Or More Consistent Change Tables"
@@ -10970,7 +10982,7 @@ msgstr "Exporter le texte source"
 #: ExportFunctions.cpp:982
 #, fuzzy
 msgid "target_text_"
-msgstr "Lire le texte cible de droite à  gauche     "
+msgstr "Traduction libre avec texte &cible par défaut"
 
 # Priority 1
 #: ExportFunctions.cpp:984
@@ -11201,7 +11213,7 @@ msgstr "Exporter un document"
 #: ExportSaveAsDlg.cpp:137
 #, fuzzy
 msgid "Export to:"
-msgstr "Autres options..."
+msgstr "Exporter le texte &Source..."
 
 #: ExportSaveAsDlg.cpp:258
 msgid "Export a Rich Text Format file that can be loaded into a Word processor like MS Word. Adapt It will format the file using the Word Scripture Template, so that you can print it in a publishable format."
@@ -12011,7 +12023,7 @@ msgstr ""
 #: KBSharingMgrTabbedDlg.cpp:1553 KBSharingMgrTabbedDlg.cpp:1679
 #, fuzzy
 msgid "Error"
-msgstr "Erreur au caractère numéro :"
+msgstr "Erreur de balise XML dans :\n"
 
 #: KBSharingMgrTabbedDlg.cpp:1554
 msgid "The custom code text box must not be empty"
@@ -12405,11 +12417,25 @@ msgid ""
 "Therefore knowledge base sharing is now turned off for this project, neither knowledge base is shared)."
 msgstr ""
 
-#: MainFrm.cpp:2770
+#: MainFrm.cpp:2724
+msgid ""
+"Type the knowledge base server's password.\n"
+"You should have received it from your administrator.\n"
+"Without the correct password, sharing your knowledge base data\n"
+"with others cannot happen, nor can they share theirs with you."
+msgstr ""
+
+# Priority 1
+#: MainFrm.cpp:2725
+#, fuzzy
+msgid "Type the server's password"
+msgstr "Créer un mot de &Passe"
+
+#: MainFrm.cpp:2768
 msgid "Change the amount of time tooltips are displayed"
 msgstr ""
 
-#: MainFrm.cpp:2772
+#: MainFrm.cpp:2770
 #, c-format
 msgid ""
 "The current tooltip display time is %d milliseconds which is %d seconds.\n"
@@ -12417,43 +12443,43 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:3220 ViewPage.cpp:233
+#: MainFrm.cpp:3218 ViewPage.cpp:233
 msgid "Access to Administrator privileges requires that you type a password"
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:3221 ViewPage.cpp:234
+#: MainFrm.cpp:3219 ViewPage.cpp:234
 msgid "Type Administrator Password"
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:4286 PhraseBox.cpp:2215 PhraseBox.cpp:2433
+#: MainFrm.cpp:4284 PhraseBox.cpp:2215 PhraseBox.cpp:2433
 msgid "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:4851 MainFrm.cpp:4977 MainFrm.cpp:5123 MainFrm.cpp:5321
+#: MainFrm.cpp:4849 MainFrm.cpp:4975 MainFrm.cpp:5121 MainFrm.cpp:5319
 msgid "Vertical Editing - adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:5563 MainFrm.cpp:5771 MainFrm.cpp:5908 MainFrm.cpp:6030
+#: MainFrm.cpp:5561 MainFrm.cpp:5769 MainFrm.cpp:5906 MainFrm.cpp:6028
 msgid "Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:6362 MainFrm.cpp:6651
+#: MainFrm.cpp:6360 MainFrm.cpp:6649
 msgid ""
 "Vertical Editing - free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is "
 "currently on and all free translation functionalities are enabled."
 msgstr ""
 
 # Priority 1
-#: MainFrm.cpp:6373 MainFrm.cpp:6663
+#: MainFrm.cpp:6371 MainFrm.cpp:6661
 msgid "Clicking on an item in the above list copies it to the Compose Bar's text box, overwriting anything there."
 msgstr ""
 
-#: MainFrm.cpp:6770
+#: MainFrm.cpp:6768
 msgid "Warning: recollecting the back translations did not succeed. Try doing it manually."
 msgstr ""
 
@@ -14048,273 +14074,3 @@ msgstr "Terminer"
 #, fuzzy
 msgid "Print Preview"
 msgstr "Aperçu avant impression"
-
-# do not translate
-#, fuzzy
-#~ msgid "3.x.x"
-#~ msgstr "2.x.x"
-
-#, fuzzy
-#~ msgid "Choose language codes for at least the Source and Target languages"
-#~ msgstr "Tapez le nom des langues source et cible."
-
-#~ msgid "Sorry, within this dialog it is an error to place phrase medial punctuation at the beginning or end of a phrase."
-#~ msgstr "Dans ce dialogue il n'est pas possible de placer la ponctuation médiale de la locution au début ou à  la fin d'une locution."
-
-#~ msgid "Genesis"
-#~ msgstr "Genèse"
-
-#~ msgid "Exodus"
-#~ msgstr "Exode"
-
-#~ msgid "Leviticus"
-#~ msgstr "Lévitique"
-
-#~ msgid "Numbers"
-#~ msgstr "Nombres"
-
-#~ msgid "Deuteronomy"
-#~ msgstr "Deutéronome"
-
-#~ msgid "Joshua"
-#~ msgstr "Josué"
-
-#~ msgid "Judges"
-#~ msgstr "Juges"
-
-#~ msgid "Ruth"
-#~ msgstr "Ruth"
-
-#~ msgid "1 Samuel"
-#~ msgstr "1 Samuel"
-
-#~ msgid "2 Samuel"
-#~ msgstr "2 Samuel"
-
-#~ msgid "1 Kings"
-#~ msgstr "1 Rois"
-
-#~ msgid "2 Kings"
-#~ msgstr "2 Rois"
-
-#~ msgid "1 Chronicles"
-#~ msgstr "1 Chroniques"
-
-#~ msgid "2 Chronicles"
-#~ msgstr "2 Chroniques"
-
-#~ msgid "Ezra"
-#~ msgstr "Esdras"
-
-#~ msgid "Nehemiah"
-#~ msgstr "Néhémie"
-
-#~ msgid "Esther"
-#~ msgstr "Esther"
-
-#~ msgid "Job"
-#~ msgstr "Job"
-
-#~ msgid "Psalms"
-#~ msgstr "Psaumes"
-
-#~ msgid "Proverbs"
-#~ msgstr "Proverbes"
-
-#~ msgid "Ecclesiastes"
-#~ msgstr "Ecclésiaste"
-
-#~ msgid "Song of Songs"
-#~ msgstr "Cantique des Cantiques"
-
-#~ msgid "Isaiah"
-#~ msgstr "Ésaïe"
-
-#~ msgid "Jeremiah"
-#~ msgstr "Jérémie"
-
-#~ msgid "Lamentations"
-#~ msgstr "Lamentations"
-
-#~ msgid "Ezekiel"
-#~ msgstr "Ézéchiel"
-
-#~ msgid "Daniel"
-#~ msgstr "Daniel"
-
-#~ msgid "Hosea"
-#~ msgstr "Osée"
-
-#~ msgid "Joel"
-#~ msgstr "Joël"
-
-#~ msgid "Amos"
-#~ msgstr "Amos"
-
-#~ msgid "Obadiah"
-#~ msgstr "Abdias"
-
-#~ msgid "Jonah"
-#~ msgstr "Jonas"
-
-#~ msgid "Micah"
-#~ msgstr "Michée"
-
-#~ msgid "Nahum"
-#~ msgstr "Nahum"
-
-#~ msgid "Habakkuk"
-#~ msgstr "Habacuc"
-
-#~ msgid "Zephaniah"
-#~ msgstr "Sophonie"
-
-#~ msgid "Haggai"
-#~ msgstr "Aggée"
-
-#~ msgid "Zechariah"
-#~ msgstr "Zacharie"
-
-#~ msgid "Malachi"
-#~ msgstr "Malachie"
-
-#~ msgid "Matthew"
-#~ msgstr "Matthieu"
-
-#~ msgid "Mark"
-#~ msgstr "Marc"
-
-#~ msgid "Luke"
-#~ msgstr "Luc"
-
-#~ msgid "John"
-#~ msgstr "Jean"
-
-#~ msgid "Acts"
-#~ msgstr "Actes"
-
-#~ msgid "Romans"
-#~ msgstr "Romains"
-
-#~ msgid "1 Corinthians"
-#~ msgstr "1 Corinthiens"
-
-#~ msgid "2 Corinthians"
-#~ msgstr "2 Corinthiens"
-
-#~ msgid "Galatians"
-#~ msgstr "Galates"
-
-#~ msgid "Ephesians"
-#~ msgstr "Éphésiens"
-
-#~ msgid "Philippians"
-#~ msgstr "Philippiens"
-
-#~ msgid "Colossians"
-#~ msgstr "Colossiens"
-
-#~ msgid "1 Thessalonians"
-#~ msgstr "1 Thessaloniciens"
-
-#~ msgid "2 Thessalonians"
-#~ msgstr "2 Thessaloniciens"
-
-#~ msgid "1 Timothy"
-#~ msgstr "1 Timothée"
-
-#~ msgid "2 Timothy"
-#~ msgstr "2 Timothée"
-
-#~ msgid "Titus"
-#~ msgstr "Tite"
-
-#~ msgid "Philemon"
-#~ msgstr "Philémon"
-
-#~ msgid "Hebrews"
-#~ msgstr "Hébreux"
-
-#~ msgid "James"
-#~ msgstr "Jacques"
-
-#~ msgid "1 Peter"
-#~ msgstr "1 Pierre"
-
-#~ msgid "2 Peter"
-#~ msgstr "2 Pierre"
-
-#~ msgid "1 John"
-#~ msgstr "1 Jean"
-
-#~ msgid "2 John"
-#~ msgstr "2 Jean"
-
-#~ msgid "3 John"
-#~ msgstr "3 Jean"
-
-#~ msgid "Jude"
-#~ msgstr "Jude"
-
-#~ msgid "Revelation"
-#~ msgstr "Apocalypse"
-
-#~ msgid "Esther (Hebrew)"
-#~ msgstr "Esther (hébreu)"
-
-#~ msgid "Daniel (Hebrew)"
-#~ msgstr "Daniel (hébreu)"
-
-# Priority 1
-#~ msgid "(Use system default language) [%s]"
-#~ msgstr "(Utiliser la langue par défaut du système) [%s]"
-
-# Priority 1
-#, fuzzy
-#~ msgid "Remove Setup"
-#~ msgstr "Supprime %s"
-
-# Priority 1
-#~ msgid "Respect boundaries when selecting"
-#~ msgstr "Respecter les limites en sélectionnant"
-
-#~ msgid "Re-enable automatic copying of source text punctuation"
-#~ msgstr "Active la copie automatique de la ponctuation du texte source"
-
-# Priority 1
-#~ msgid "Show normal view"
-#~ msgstr "Afficher la vue normale"
-
-#~ msgid "Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."
-#~ msgstr "Ce fichier enregistré en mode dossiers séparés ne peut pas être ouvert par le menu des derniers fichiers utilisés car le mode dossiers séparés est désactivé."
-
-#~ msgid "This version of Adapt It built with wxWidgets"
-#~ msgstr "Cette version d'Adapt It construit avec wxWidgets"
-
-# Priority 1
-#~ msgid "Export File Format Options:"
-#~ msgstr "Choix du format de fichier :"
-
-# Priority 1
-#~ msgid "&Standard Format Text File (.txt)"
-#~ msgstr "Texte seulement (.txt)"
-
-# Priority 1
-#, fuzzy
-#~ msgid "&Gloss Language Code:"
-#~ msgstr "Glose"
-
-#~ msgid "3. Use the drop-down list below to see if Adapt It has an existing adaptation project suitable for hooking up to for collaboration purposes."
-#~ msgstr "3. Use the drop-down list below to see if Adapt It has an existing adaptation project suitable for hooking up to for collaboration purposes."
-
-#~ msgid "4. Turn %s Collaboration ON or OFF here:"
-#~ msgstr "4. Turn %s Collaboration ON or OFF here:"
-
-#~ msgid "1. Export the Knowledge Base in Standard Format (\\x and \\ge)."
-#~ msgstr "1. Export the Knowledge Base in Standard Format (\\x and \\ge)."
-
-#~ msgid "2. Export the Knowledge Base in LIFT Format."
-#~ msgstr "2. Export the Knowledge Base in LIFT Format."
-
-#~ msgid "1. Import standard format records (\\x and \\ge) into the Knowledge Base."
-#~ msgstr "1. Import standard format records (\\x and \\ge) into the Knowledge Base."

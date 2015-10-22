@@ -234,7 +234,7 @@ public:
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 	//void OnShowContextHelp(wxCommandEvent& event);
-
+	
 #if defined(_KBSERVER)
 
 	void OnKBSharingDlg(wxCommandEvent& event);
