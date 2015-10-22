@@ -166,7 +166,8 @@ Name: "{group}\CC\CC Debug Document"; Filename: {app}\CC\CCDebug.doc; WorkingDir
 ; edb 11 Oct 2013: Code changes to download / install Git
 [Code]
 //const GitSetupURL = 'https://github.com/msysgit/msysgit/releases/download/Git-1.9.5-preview20150319/Git-1.9.5-preview20150319.exe';
-const GitSetupURL = 'https://github.com/git-for-windows/git/releases/download/v2.6.2.windows.1/Git-2.6.2-32-bit.exe';
+//const GitSetupURL = 'https://github.com/git-for-windows/git/releases/download/v2.6.2.windows.1/Git-2.6.2-32-bit.exe';
+const GitSetupURL = 'http://www.adapt-it.org/Git-2.6.2-32-bit.exe';
 const GitSetupURL64 = 'https://github.com/git-for-windows/git/releases/download/v2.6.2.windows.1/Git-2.6.2-64-bit.exe';
 var GitInstalled: Boolean;  // Is Git installed?
 var ShouldInstallGit: Boolean; // should the installer download and run the Git installer?
