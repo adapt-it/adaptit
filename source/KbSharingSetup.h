@@ -48,7 +48,10 @@ public:
 	// m_bStateless from the one passed to it from here.
 	bool m_bStateless;
 
-	// other methods
+	bool m_bOnEntry_AdaptationsKBserverRunning;
+	bool m_bOnEntry_GlossesKBserverRunning;
+	bool m_bSharingAdaptations;
+	bool m_bSharingGlosses;
 
 	// Next two are needed because the user can invoke this dialog on an existing setup
 	// not realizing it is already running, and so we need to be able to check for that
@@ -57,8 +60,6 @@ public:
 	bool	m_saveSharingAdaptationsFlag;
 	bool	m_saveSharingGlossesFlag;
 	// Store checkbox settings here
-	bool	m_bSharingAdaptations;
-	bool	m_bSharingGlosses;
 	// Need the following to be able to test for changes to url or username
 	wxString m_saveOldURLStr;
 	wxString m_saveOldUsernameStr;
@@ -69,10 +70,10 @@ protected:
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
 	void OnButtonRemoveSetup(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateButtonRemoveSetup(wxUpdateUIEvent& event);
+	void OnCheckBoxShareAdaptations(wxCommandEvent& WXUNUSED(event));
+	void OnCheckBoxShareGlosses(wxCommandEvent& WXUNUSED(event));
 
 	CAdapt_ItApp* m_pApp;
-	wxButton*   m_pRemoveSetupBtn; //ID_KB_SHARING_REMOVE_SETUP_WHICH
 	wxCheckBox* m_pAdaptingCheckBox;
 	wxCheckBox* m_pGlossingCheckBox;
 	wxButton*   m_pSetupBtn; //wxID_OK

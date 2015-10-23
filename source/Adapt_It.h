@@ -99,7 +99,7 @@ class AIPrintout;
 
 class NavProtectNewDoc; // for user navigation protection feature
 // for support of the  m_pKbServer public member (pointer to the current instance of
-// KbServer class - which is non_NULL only when kbserver support is instantiated for an
+// KbServer class - which is non_NULL only when KBserver support is instantiated for an
 // adaptation project designated as one which is to support KB sharing
 
 // _KBSERVER has been moved to be a precompilation define (both debug and release builds)
@@ -169,7 +169,7 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 //    #include "wx/msw/wx.rc" statement and add a lot of other
 //    Windows-specific stuff to the file - resulting in a build failure.
 // 4. The Visual Studio 2008 Adapt_It > Properties > Linker > Version (do for All Configurations).
-//    For this version, just use the first two version digits, i.e., 6.5 to
+//    For this version, just use the first two version digits, i.e., 6.6 to
 //    keep things compatible with newer versions of Visual Studio.
 // 5. The Mac's Info.plist file in adaptit/bin/mac/.
 // 6. The Linux's ChangeLog (done automatically by batch file if the version number in
@@ -193,13 +193,13 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 1 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 4 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 29
-#define VERSION_DATE_MONTH 8
+#define VERSION_DATE_DAY 15
+#define VERSION_DATE_MONTH 10
 #define VERSION_DATE_YEAR 2015
-const wxString appVerStr(_T("6.6.1"));
+const wxString appVerStr(_T("6.6.4"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -2810,7 +2810,24 @@ public:
                 // color we set with SetTextBackground(). Each call to SetTextBackground
                 // should have a prior call to SetBackgroundMode(m_backgroundMode), in
                 // which the m_backgroundMode = wxSOLID.
-
+                
+	// BEW 19Oct15 vertical edit needs some help. When fixing Seth's bug, dropping into
+	// vertical edit at the edit of the source text where the wrongly moved word intial
+	// " character gets moved to end of previous word after <space>, editing out the
+	// space after " so as to get " on the next word's start again, that was fine, but
+	// exiting vert edit mode, the last phrasebox's text was carried unilaterally back
+	// to the first active location of the two words, and rubbed out the meaning in the
+	// box there. Turns out, some refactoring is needed in a few places.
+	int			  m_vertEdit_LastActiveSequNum;  // where the phrasebox last was
+	wxString	  m_vertEdit_LastActiveLoc_Adaptation; // if in adaption mode, the m_pTargetBox value
+	wxString	  m_vertEdit_LastActiveLoc_Gloss; // if in gloss mode, the m_pTargetBox value
+	bool		  m_bVertEdit_WithinSpan; // whatever DoConditionalStore() has for bWithinSpan
+										  // default it to FALSE (which results in a hack)
+	bool		  m_bVertEdit_IsGlossing; // set TRUE if glossing mode was on at entry
+										  // (using pRec->bGlossingModeOnEntry)
+	bool		  m_bVertEdit_SeeGlosses; // set TRUE if gbGlosingEnabled was TRUE on entry
+										  // (using pRec->bSeeGlossesEnabledAtEntry)
+										  
 	// source encoding as in input data, and system encoding as defined by system codepage,
 	// and the target encoding (determined by tellenc.cpp 3rd party encoding detector)
 	wxFontEncoding	m_srcEncoding;
@@ -2900,7 +2917,7 @@ public:
 	// m_pKB and m_pGlossingKB, so that the are created and destroyed when the adapting
 	// CKB instances are created and destroyed, respectively, is deliberate. There are
 	// times when local KBs are instantiated for processes that are best handled without
-	// an active connection to a remote kbserver database - for instance, transferring
+	// an active connection to a remote KBserver database - for instance, transferring
 	// adaptations to glosses in a new project; KB restoration via the File > Restore
 	// Knowledge Base command; reconstituting a CKB from a git repository, and maybe
 	// others. So we'll instantiate KbServer instances only when appropriate.
@@ -2918,6 +2935,7 @@ public:
 	void	  DeleteKbServer(int whichType);
 	bool	  SetupForKBServer(int whichType);
 	bool	  ReleaseKBServer(int whichType);
+	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
 	// BEW deprecated 31Jan13
@@ -2933,20 +2951,23 @@ public:
 	// those in the
 	// KB Sharing Support.odt document
 
-	// BEW added 25Sep12 for support of kbserver sharing of kb data between clients
+	// BEW added 25Sep12 for support of KBserver sharing of kb data between clients
 	// For testing the development of the code, url, username and password are stored in
 	// the project folder in credentials.txt, one per line. And in the same folder,
 	// lastsync_adaptations.txt stores the date & time for an adaptations KbServer instance,
 	// or lastsync_glosses.txt stores the timestamp for a glossess KbServer instance. The first
 	// of these files will be abandoned once we get a GUI built; the two "lastsync..." ones
-	// will be retained permanently. Some metadata may also be (perhaps) stored in a hidden file,
-	// .kbserver in the project folder -- but I've not done so yet.
+	// will be retained permanently.
 	// Next three are stored in the project configuration file
 	bool		m_bIsKBServerProject; // TRUE if the user wants an adapting kbserver for
 									  // sharing kb data between clients in the same AI project
 	bool		m_bIsGlossingKBServerProject; // TRUE for sharing a glossing KB
 									  // in the same AI project as for previous member
 	wxString	m_strKbServerURL; // for the server's url, e.g. https://kbserver.jmarsden.org
+	// BEW added next, 7Sep15, to store whether or not sharing is temporarily disabled
+	bool		m_bKBSharingEnabled; // the seeing applies to the one or both kbserver types,
+									 // depending on which one or ones are defined
+
 
 	// Deleting an entire KB's entries in the entry table of kbserver will be done as a
 	// background task - so we need storage capability that persists after the KB Sharing
@@ -4244,6 +4265,8 @@ public:
 	bool	DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event));
 	bool	DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon,
 				enum Reparse reparseDoc); // whm revised 23May05 and 5Oct10
+	size_t 	EnumerateAllDocFiles(wxArrayString& paths, wxString adaptationsFolderPath); //BEW added 7Sep15,
+					// for support of removing a certain <Not In KB> in all docs & re-storing its pair to KB
 	bool	EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString folderPath,
 				bool bSuppressDialog = FALSE);
 	bool	EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesList, wxString folderPath); // BEW added 6July10

@@ -134,6 +134,8 @@ extern enum TextType gPreviousTextType; // moved to global space in the App, mad
 /// in UTF-16 encoding.
 #define nU16BOMLen 2
 
+#define SETH_16OCT15
+
 #ifdef _UNICODE
 
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
@@ -2370,22 +2372,25 @@ void CAdapt_ItDoc::PutPhraseBoxAtDocEnd()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	int sequNumAtEnd = pApp->GetMaxIndex();
-	pApp->m_pActivePile = GetPile(sequNumAtEnd);
-	pApp->m_nActiveSequNum = sequNumAtEnd;
-	wxString boxValue;
-	if (gbIsGlossing)
+	pApp->m_pActivePile = GetPile(sequNumAtEnd); // this may return NULL
+	if (pApp->m_pActivePile != NULL)
 	{
-		boxValue = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+		pApp->m_nActiveSequNum = sequNumAtEnd;
+		wxString boxValue;
+		if (gbIsGlossing)
+		{
+			boxValue = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+		}
+		else
+		{
+			boxValue = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+			translation = boxValue;
+		}
+		pApp->m_targetPhrase = boxValue;
+		pApp->m_pTargetBox->ChangeValue(boxValue);
+		pApp->GetView()->PlacePhraseBox(pApp->m_pActivePile->GetCell(1), 2);
+		pApp->GetView()->Invalidate();
 	}
-	else
-	{
-		boxValue = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
-		translation = boxValue;
-	}
-	pApp->m_targetPhrase = boxValue;
-	pApp->m_pTargetBox->ChangeValue(boxValue);
-	pApp->GetView()->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2);
-	pApp->GetView()->Invalidate();
 }
 
 // a smarter wrapper for DoFileSave(), to replace where that is called in various places
@@ -2427,11 +2432,16 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 	// the document before going on
 	if (gpApp->m_pActivePile == NULL || gpApp->m_nActiveSequNum == -1)
 	{
-		PutPhraseBoxAtDocEnd();
+		if (gpApp->m_pActivePile != NULL)
+		{
+			// No use trying if the active pile is NULL - we may be processing a doc 
+			// which has no visible phrasebox, or the normal GUI isn't being used
+			PutPhraseBoxAtDocEnd();
 #if defined(_DEBUG)
-		wxLogDebug(_T("DoFileSave_Protected() relocation codeblock: translation = %s , m_pTargetBox has: %s"),
-			translation.c_str(), gpApp->m_pTargetBox->GetValue().c_str());
+			wxLogDebug(_T("DoFileSave_Protected() relocation codeblock: translation = %s , m_pTargetBox has: %s"),
+				translation.c_str(), gpApp->m_pTargetBox->GetValue().c_str());
 #endif
+		}
 	}
 
     // SaveType enum value (2nd param) for the following call is default: normal_save BEW
@@ -2697,6 +2707,10 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 			temp1 += temp;
 			msg = temp1;
 			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+			wxString msg2;
+			wxString title = _("Elevate Permission Level?");
+			msg2 = msg2.Format(_("Probably the owner of the text being transferred lacks Translator or Administrator permission level for the target text project within Paratext, or Bibledit.\nA permissison level that allows editing is necessary for a successful transfer of text when collaborating."));
+			wxMessageBox(msg2, title, wxICON_INFORMATION | wxOK);
 			return FALSE;
 		} // end of TRUE block for test: if (resultTgt != 0)
 
@@ -2793,6 +2807,10 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 					temp1 += temp;
 					msg = temp1;
 					wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+					wxString msg2;
+					wxString title = _("Elevate Permission Level?");
+					msg2 = msg2.Format(_("Probably the owner of the text being transferred lacks Translator or Administrator permission level for the target text project within Paratext, or Bibledit.\nA permissison level that allows editing is necessary for a successful transfer of text when collaborating."));
+					wxMessageBox(msg2, title, wxICON_INFORMATION | wxOK);
 					return FALSE;
 				} // end of TRUE block for test: if (resultFreeTrans != 0)
 
@@ -2874,10 +2892,13 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 
 #if defined(_DEBUG)
 	CPile* myPilePtr = gpApp->m_pActivePile;
-	CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
-	wxLogDebug(_T("DoFileSave() start: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
-		mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(),
-		mySrcPhrasePtr->m_targetStr.c_str(), gpApp->m_targetPhrase.c_str());
+	if (myPilePtr != NULL)
+	{
+		CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
+		wxLogDebug(_T("DoFileSave() start: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
+			mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(),
+			mySrcPhrasePtr->m_targetStr.c_str(), gpApp->m_targetPhrase.c_str());
+	}
 #endif
 
 	// BEW added 19Apr10 -- ensure we start with the latest doc version for saving if the
@@ -3478,6 +3499,98 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	// whm 20Aug11 note: since a file save operation is very frequent, we avoid inflating the user log
 	// with successful saves.
 	return TRUE;
+}
+
+// Return TRUE if the save was successful, FALSE if some error
+// absPath is an absolute path to the file to be saved - it can be in either
+// the Adaptations folder, or to any of the Bible Book folders, and it ignores
+// whether the app is in Bible Book folder mode or not. It just does the save,
+// overwriting the former file contents. Use this when we do 'all document'
+// tweaks that involve loading in each doc file, tweaking its contents in
+// m_pSourcePhrases, and then saving over the top of the old file on disk.
+// This function has no GUI information in it.
+bool CAdapt_ItDoc::DoAbsolutePathFileSave(wxString absPath)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (!absPath.IsEmpty())
+	{
+		wxFile f; // create a CFile instance with default constructor
+
+		wxFileName fn(absPath);
+		wxString pathToFolder = fn.GetPath();
+		wxASSERT(!pathToFolder.IsEmpty());
+		// Set the current working directory
+		wxString saveCurWorkingDir = _T("");
+		saveCurWorkingDir = fn.GetCwd(); // so we can restore it later
+		// Get the filename, since we are working with a relative path now
+		wxString fullName = fn.GetFullName();
+		wxASSERT(!fullName.IsEmpty());
+		bool bOK = fn.SetCwd(pathToFolder);
+		if (bOK)
+		{
+			if (!f.Open(fullName, wxFile::write))
+			{
+				pApp->LogUserAction(_T("Failed f.Open() for writing in doc::DoAbsolutePathFileSave(wxString absPath)"));
+				return FALSE;
+			}
+			// The following code is taken from doc::DoSaveFile(), and many comments removed to
+			// keep it short. If anything is unclear then look there for the details
+			CSourcePhrase* pSrcPhrase;
+			CBString aStr;
+			CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
+
+			// prologue (Changed BEW 02July07 at Bob Eaton's request)
+			gpApp->GetEncodingStringForXmlFiles(aStr);
+			DoWrite(f, aStr);
+
+			// add the comment with the warning about not opening the XML file in MS WORD
+			// 'coz is corrupts it - presumably because there is no XSLT file defined for it
+			// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
+			// the latter goes into an infinite loop when the file is being parsed in.
+			aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
+
+			// doc opening tag
+			aStr += "<";
+			aStr += xml_adaptitdoc;
+			aStr += ">\r\n"; // eol chars OK for cross-platform???
+			DoWrite(f, aStr);
+			// Construct the initial <Settings> tag
+			aStr = ConstructSettingsInfoAsXML(1); // internally sets the docVersion attribute
+			// to whatever is the current value of m_docVersionCurrent
+			DoWrite(f, aStr);
+			// Process the list of CSourcePhrase instances
+			SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
+			while (pos != NULL)
+			{
+				pSrcPhrase = (CSourcePhrase*)pos->GetData();
+				pos = pos->GetNext();
+				aStr = pSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
+				DoWrite(f, aStr);
+			}
+			// doc closing tag
+			aStr = xml_adaptitdoc;
+			aStr = openBraceSlash + aStr; //"</" + aStr;
+			aStr += ">\r\n"; // eol chars OK for cross-platform???
+			DoWrite(f, aStr);
+
+			// close the file
+			f.Flush();
+			f.Close();
+			// Restore original current working directory
+			bOK = fn.SetCwd(saveCurWorkingDir);
+			wxASSERT(bOK);
+			return TRUE;
+		}
+	}
+	else
+	{
+		pApp->LogUserAction(_T("Passed in empty path in signature. In doc::DoAbsolutePathFileSave(wxString absPath)"));
+	}
+	// Path was empty, or could not reset the current working volume to the 
+	// document's folder, or the attempt to do f.Open() for writing failed; so
+	// could not save the file - the old version of it will remain on disk
+	return FALSE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -10105,6 +10218,48 @@ bool CAdapt_ItDoc::IsClosingQuote(wxChar* pChar)
 	return FALSE;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if pChar is pointing to a closing doublequote " (straight, not curly)
+///             which should NOT be interpretted as a closing quote, but rather as an
+///             opening quote for the word which follows; FALSE if it is acceptable as
+///             a closing quote to the just parsed word
+/// \param		pChar		-> a pointer to the character to be examined
+/// \param      pPunctStart -> a pointer to the start of the string being parsed
+///             (typically, it would point at a space which is ambiguous as to
+///             whether it is a word delimiting space, or a closing punctuation
+///             delimiting space)
+/// \remarks
+/// Called from: the Doc's ParseAdditionalFinalPuncts(). This is a hack. It's "protection"
+/// just in case the clearing of the flag m_bHasPrecedingStraightQuote did not stop the
+/// caller from recognising a straight doublequote wrongly as a closing quote - so this
+/// hack should catch anything that leaks through. m_bHasPrecedingStraightQuote is TRUE
+/// only when " is encountered as a word initial quote, ' is not so interpretted because we
+/// assume ' is more likely to be a glottal stop symbol, so we assume it is word-building,
+/// and so we keep m_bSingleQuoteAsPunct set to FALSE in Adapt It - been so since version 4
+/// and on. 
+/// The function looks at what follows *ptr, and what precedes, since *ptr is " character.
+/// If what follows it not a whitespace, then " must be interpretted as belonging to the
+/// next word in the parse, and so we return TRUE. It can't be a closing quote. Looking
+/// to what precedes, we examine the character immediately preceding *pPunctStart - that
+/// will typically be a parsed over punctuation character. The " we are concerned about
+/// should only be a 'detached quote' if there was, prior to any just-pased-over whitespace,
+/// another straight quote, or a curly closed quote, or a > chevron.
+///////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItDoc::CannotBeClosingQuote(wxChar* ptr, wxChar* pPunctStart)
+{
+	wxChar charNext = *(ptr + 1);
+	if (!IsWhiteSpace(&charNext))
+	{
+		return TRUE;
+	}
+	wxChar charBeforeParseStartLoc = *(pPunctStart - 1);
+	if (!IsClosingQuote(&charBeforeParseStartLoc))
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
 //////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param	span		           -> span of characters extracted from the text buffer
@@ -11657,6 +11812,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
     // would only be compromised if there were sequences of vertical quotes with spaces
     // both at the end of a word and at the start of the next word in the source text data,
     // and this would be highly unlikely to ever occur in published source text.
+
 	while (IsOpeningQuote(ptr) || IsWhiteSpace(ptr))
 	{
 		// check if a straight quote is in the preceding punctuation - setting the boolean
@@ -12492,6 +12648,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		{
 			// m_srcPhrase has been updated with any additional final punctuation within
 			// the above call, so just return len to the caller
+			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
 			// BEW 14Jul14, decrement len until it points to start of any 
 			// preceding whitespace, and then return
@@ -12873,6 +13030,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		if (IsOpeningQuote(ptr))
 		{
 			// oops, HALT! don't parse further, we've come to where the next word's stuff is
+			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
 			// BEW 14Jul14, decrement len until it points to start of any 
 			// preceding whitespace, and then return
@@ -12911,6 +13069,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// whitespace parse block
 			//if (nWhiteSpaceSpan > 0)
 			//	len += nWhiteSpaceSpan;
+			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
 			// BEW 14Jul14, decrement len until it points to start of any 
 			// preceding whitespace, and then return
@@ -12964,6 +13123,8 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// the above call, so just return len to the caller after updating it
 			if (bExitParseWordOnReturn)
 			{
+				m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
+
 				// since we must now return, the tentative former decisions have to become
 				// concrete, so do the arithmetic to get len value correct (if not
 				// returning here, the arithmetic is done further down in ParseWord() when
@@ -13078,6 +13239,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		if (*ptr == _T(']'))
 		{
 			// we must return
+			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
 			// BEW 14Jul14, decrement len until it points to start of any 
 			// preceding whitespace, and then return
@@ -13117,6 +13279,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		{
 			// m_srcPhrase has been updated with any additional final punctuation within
 			// the above call, so just return len to the caller; ptr is updated too
+			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
 			// BEW 14Jul14, decrement len until it points to start of any 
 			// preceding whitespace, and then return
@@ -13815,7 +13978,18 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
                 // just hope that that situation won't ever occur.
 				if (bHasPrecedingStraightQuote || *ptr == _T(']'))
 				{
-					// take the lot
+					// Do a sanity (hack) test here, just in case markup inconsistency
+					// let a straight doublequote get to here wrongly as a candidate
+					// for closing quote, when it should be opening quote for the
+					// word which follows (Seth's bug) BEW 19Oct15
+					if (CannotBeClosingQuote(ptr, pPunctStart))
+					{
+						// reject the extras just parsed over
+						ptr = pPunctStart; // restore ptr to location where we started from
+						bExitOnReturn = TRUE;
+						return len;
+					}
+					// okay, take the extras just parsed over
 					if (counter > 0)
 					{
 						wxString finalPunct(pPunctStart,counter);
@@ -13835,7 +14009,7 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 				}
 				else
 				{
-					// reject the lot
+					// reject the extras just parsed over
 					ptr = pPunctStart; // restore ptr to location where we started from
 					bExitOnReturn = TRUE;
 					return len;
@@ -19433,16 +19607,13 @@ bool CAdapt_ItDoc::OnCloseDocument()
 #if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject)
 		{
-			if (pApp->m_bIsKBServerProject)
-			{
-				pApp->ReleaseKBServer(1); // the adaptations one
-				pApp->LogUserAction(_T("ReleaseKBServer(1) called in OnCloseDocument()"));
-			}
-			if (pApp->m_bIsGlossingKBServerProject)
-			{
-				pApp->ReleaseKBServer(2); // the glossings one
-				pApp->LogUserAction(_T("ReleaseKBServer(2) called in OnCloseDocument()"));
-			}
+			pApp->ReleaseKBServer(1); // the adaptations one
+			pApp->LogUserAction(_T("ReleaseKBServer(1) called in OnCloseDocument()"));
+		}
+		if (pApp->m_bIsGlossingKBServerProject)
+		{
+			pApp->ReleaseKBServer(2); // the glossings one
+			pApp->LogUserAction(_T("ReleaseKBServer(2) called in OnCloseDocument()"));
 		}
 #endif
 
@@ -22985,7 +23156,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 #if defined(_KBSERVER)
 	// It isn't a foregone conclusion that because the sender was sharing one or both kbs,
 	// that the one who receives and unpacks the document will also want to share. He may
-	// only want to inspect what was sent. So check if the sender had sharing one, and
+	// only want to inspect what was sent. So check if the sender had sharing on, and
 	// give a suitable message to inform the user which kbs the sender was sharing and
 	// invite him to do the same if the wants to share any editing changes he makes
 	bool bForeignAdaptingSharing = FALSE;
@@ -23304,6 +23475,30 @@ bool CAdapt_ItDoc::ReOpenDocument (
 	pLayout->m_docEditOperationType = default_op; // sets (-1,-1) as box selection (all its text)
 	pLayout->PlaceBox();
 
+	// BEW added 4Sep15 restore the "Save To Knowledge Base" checkbox to enabled, similarly the
+	// checkbox next to it "Force Choice For This Item". These were not re-enabled when user
+	// chose an earlier snapshot to be the current document
+	CMainFrame* pFrame = pApp->GetMainFrame();
+	wxPanel* pPanel = pFrame->m_pControlBar;
+	// ensure the Save To Knowledge Base checkbox is enabled
+	pApp->m_bSaveToKB = TRUE;
+	wxCheckBox* pKBSave = (wxCheckBox*)pFrame->FindWindowById(IDC_CHECK_KB_SAVE);
+	// whm modified 12Oct10 for user profiles compatibility
+	if (pKBSave != NULL)
+	{
+		pKBSave->Enable(TRUE);
+	}
+	// ensure the Force Choice For This Item checkbox is enabled
+	wxCheckBox* pForceChoice = (wxCheckBox*)pFrame->FindWindowById(IDC_CHECK_FORCE_ASK);
+	// whm modified 12Oct10 for user profiles compatibility
+	pApp->m_bForceAsk = TRUE;
+	if (pForceChoice != NULL)
+	{
+		pForceChoice->Enable(TRUE);
+	}
+	pPanel->Refresh();
+	// end of BEW 4Sep15 addition
+
 	// set the doc dirty or clean
 	Modify(bMarkAsDirty);
 	return bOK;
@@ -23324,8 +23519,6 @@ bool CAdapt_ItDoc::ReOpenDocument (
 // the response from c: instead) Also removed legacy DoConsistencyCheck(), and added an int
 // nCumulativeTotal 4th param to the signature of its overloaded version, which now is the
 // only version; and restored a stats dialog for when all is done
-// BEW 22Aug14 When collaborating, the consistency check must be limited to a), that is,
-// to the current doc only
 void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 {
 	// the 'accepted' list holds the document filenames to be used
@@ -23747,7 +23940,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				int nMaxBookFolders = (int)pApp->m_pBibleBooks->GetCount();
 				int bookIndex;
 
-				// need a copy of pKB to check for inconsistencies in
+				// need a temporary copy of pKB to check for inconsistencies within that,
+				// use pKB for storage of our fixes
 				pKBCopy = new CKB();
 				pKBCopy->Copy(*pKB);
 
@@ -23849,7 +24043,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					pApp->m_bBlindFixInConsCheck = FALSE; // restore default value (BEW 1Sep15)
 					return;
 				}
-				// need a copy of pKB to check for inconsistencies in
+				// need a temporary copy of pKB to check for inconsistencies within that,
+				// use pKB for storage of our fixes
 				pKBCopy = new CKB();
 				pKBCopy->Copy(*pKB);
 
@@ -24957,21 +25152,21 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                         // different or do an edit of something shown in the list of
                         // adaptations, or ignore the location entirely.
                         // BEW 1Sep15, the deletion could be because the user edited the KB
-                        // target text, or gloss in glossing mode, which also then makes the
-                        // unedited form become pseudo-deleted. Mike Hore wants these auto-fixed
-                        // blindly if there is only a single (unique) form associated with the
-						// source text form - so we do that here, provided bBlindFix is TRUE
+                        // target text, which also then makes the unedited form become 
+						// pseudo-deleted. Mike Hore wants these auto-fixed blindly if there
+						// is only a single (unique) form associated with the source text form
+						// - so we do that here, provided bBlindFix is TRUE
 						if (bBlindFix)
 						{
 							// First, check to make sure there is but a single translation
-							// or gloss
 							wxString newAdaption = _T("");
 							bool bIsUnique = pKBCopy->GetUniqueTranslation(nWords,key,newAdaption);
 							if (bIsUnique)
 							{
 								// Blind fix this one, do a StoreText() on pKB, then iterate the loop
 								pSrcPhrase->m_adaption = newAdaption; // StoreText() will do
-															// this, but no harm to do it here								// Get the punctuation, if any, right
+															// this, but no harm to do it here
+								// Get the punctuation, if any, correctly restored
 								pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, newAdaption);
 
 //#if defined(FWD_SLASH_DELIM)
@@ -26147,6 +26342,13 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 // valid entry for that CTargetUnit instance (i.e. there could be one or more pseudo-deleted
 // entries, but they won't be considered; but there can only be one non-deleted entry; otherwise
 // the dialog will show in the usual way)
+// BEW 1Sep15 added support for a "blind fix" checkbox option that automatically, if chosen,
+// causes the location's adaptation where an inconsistency has been identified to get the
+// KB's CTargetUnit's CRefString instances translation, but only provided that translation
+// string (which may be an adaptation, or in DoConsistencyCheckG, a gloss) is the only 
+// valid entry for that CTargetUnit instance (i.e. there could be one or more pseudo-deleted
+// entries, but they won't be considered; but there can only be one non-deleted entry; otherwise
+// the dialog will show in the usual way)
 bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy,
 									   AFGList& afgList, int& nCumulativeTotal)
 {
@@ -26172,6 +26374,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 	}
 	wxASSERT(nCount > 0);
 	int nTotal = 0;
+	bool bBlindFix = pApp->m_bBlindFixInConsCheck; // a nice short synonym is helpful
 
 	// iterate over the document files
 	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope
@@ -26444,6 +26647,33 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					// eye-balling the document to figure out what other gloss is
 					// appropriate at the active location rather than the one shown in the
 					// phrase box)
+					// BEW 1Sep15, the deletion could be because the user edited the KB
+					// target text, which also then makes the unedited form become 
+					// pseudo-deleted. Mike Hore wants these auto-fixed blindly if there
+					// is only a single (unique) form associated with the source text form
+					// - so we do that here, provided bBlindFix is TRUE
+					if (bBlindFix)
+					{
+						// First, check to make sure there is but a single gloss
+						wxString newGloss = _T("");
+						bool bIsUnique = pKBCopy->GetUniqueTranslation(nWords, key, newGloss);
+						if (bIsUnique)
+						{
+							// Blind fix this one, do a StoreText() on pKB, then iterate the loop
+							pSrcPhrase->m_gloss = newGloss; // StoreText() will do
+															// this, but no harm to do it here
+							// (Remember, in glossing mode, there is no punctuation stripping or restoring)
+							// TRUE in StoreText call is support for a <no adaptation> empty
+							// string; if has effect only if newAdaption is empty
+							gbInhibitMakeTargetStringCall = TRUE;
+							pKB->StoreText(pSrcPhrase, pSrcPhrase->m_gloss, TRUE);
+							gbInhibitMakeTargetStringCall = FALSE;
+
+							continue;
+						}
+					}
+					// If bBlindFix was not chosen in the cons.chk.type dialog, then
+					// do the legacy showing of the consistency check dialog
 					bInconsistency = TRUE;
 					inconsistencyType = member_exists_flag_on_PTUexists_deleted_Refstr;
 					pAutoFixGRec = new AutoFixRecordG;

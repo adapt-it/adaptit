@@ -21,8 +21,11 @@
 /bin/linux/adaptit.depend
 /bin/linux/bin/
 /bin/linux/obj/
+/bin/mac/build/
+/bin/mac/DerivedData/
 /bin/source/
 /bin/linux/adaptit.layout
+/hlp_temp/
 /setup Unicode/
 /setup Unicode - Minimal/
 /setup Unicode - No Html Help/

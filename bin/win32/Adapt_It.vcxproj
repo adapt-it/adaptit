@@ -415,7 +415,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <Version>6.5</Version>
+      <Version>6.6</Version>
     </Link>
     <PostBuildEvent>
       <Command>copy "..\..\xml\AI_UserProfiles.xml" "Unicode Debug\AI_UserProfiles.xml"
@@ -541,7 +541,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <Version>6.5</Version>
+      <Version>6.6</Version>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "..\..\setup Unicode\"
@@ -605,7 +605,6 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\Adapt_It.cpp" />
-    <ClCompile Include="..\..\source\Adapt_ItKBServer.cpp" />
     <ClCompile Include="..\..\source\Adapt_It_wdr.cpp" />
     <ClCompile Include="..\..\source\Adapt_ItCanvas.cpp" />
     <ClCompile Include="..\..\source\Adapt_ItDoc.cpp" />
@@ -764,7 +763,6 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\Adapt_It.h" />
-    <ClInclude Include="..\..\source\Adapt_ItKBServer.h" />
     <ClInclude Include="..\..\source\Adapt_It_Resources.h" />
     <ClInclude Include="..\..\source\Adapt_It_wdr.h" />
     <ClInclude Include="..\..\source\Adapt_ItCanvas.h" />

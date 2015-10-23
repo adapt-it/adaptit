@@ -203,6 +203,7 @@ public:
     virtual void Modify(bool mod);
 
 	virtual bool OnSaveModified(); // in protected area of MFC app
+	bool         DoAbsolutePathFileSave(wxString absPath); // BEW created 7Sep15
 
 	// Implementation
 protected:
@@ -344,6 +345,7 @@ public:
 	bool			IsStraightQuote(wxChar* pChar);
 	bool			IsClosingQuote(wxChar* pChar);
 	bool			IsClosingCurlyQuote(wxChar* pChar);
+	bool			CannotBeClosingQuote(wxChar* pChar, wxChar* pPunctStart); // BEW added 19Oct15, for Seth's bug
 	bool			IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis);
 	bool			IsAFilteringUnknownSFM(wxString unkMkr);
 	//bool			IsMarker(wxChar* pChar, wxChar* pBuffStart);

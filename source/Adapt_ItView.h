@@ -362,6 +362,7 @@ public: // edb 05 March 2010 - need this public in order to call it from CRetran
 	void		MakeSelectionForFind(int nNewSequNum, int nCount, int nSelectionLine,
 									 bool bDoRecalcLayoutInternally);
 	void		ToggleCopySource();
+	int			m_nCallCount;
 protected:
 	bool		ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
 							wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
@@ -374,7 +375,12 @@ protected:
 							CSourcePhrase* pFollSrcPhrase, EditRecord* pRec); //BEW added 7May08
 							// 22Mar10, name changed from TransportWidowedEndmarkersToFollowingContext
 	wxString	RemoveAllCRandLF(wxString* pStr);
-
+	bool		DoGlobalRestoreOfSaveToKB(wxString sourceKey); // BEW added 4Sep15, called only in OnCheckKBSave(), when
+							// the latter is used by the user to ask for a <Not In KB> entry to be
+							// reverted to saved in the KB; this should be done everywhere in all docs
+							// for this pSrcPhrase's m_key/m_adaption pair where the GUI would show it
+							// as asterisked in the navigation text area otherwise. This function does that job.
+	void		RestoreKBStorageForSourceKey(wxString sourceKey, CKB* pKB);
 protected:
 	void OnEditPreferences(wxCommandEvent& WXUNUSED(event));
 	void OnFileSaveKB(wxCommandEvent& event);

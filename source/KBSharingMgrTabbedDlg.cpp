@@ -8,7 +8,7 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the KBSharingMgrTabbedDlg class.
 /// The KBSharingMgrTabbedDlg class provides a dialog with tabbed pages in which an
-/// appropriately authenticated user/manager of a remote kbserver installation may add,
+/// appropriately authenticated user/manager of a remote KBserver installation may add,
 /// edit or remove users stored in the user table of the mysql server, and/or add or
 /// remove knowledge base definitions stored in the kb table of the mysql server.
 /// \derivation		The KBSharingMgrTabbedDlg class is derived from AIModalDialog.
@@ -469,7 +469,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		// time the radio button choice is changed. Strictly speaking, one listing of the
 		// KB definitions gets all the adapting ones, and all the glossing ones, in one
 		// hit - so once called for, say, to see the adapting KB definitions, we don't
-		// need to make another call of ListKbs() to the kbserver to get the glossing ones
+		// need to make another call of ListKbs() to the KBserver to get the glossing ones
 		// - we already have those in a separate list. But it convolutes the code if we
 		// want to inhibit a second ListKbs() call when, say, the glossing KB definitions
 		// radio button is clicked. Much easier just to recall it, and separate into
@@ -1058,8 +1058,8 @@ void KBSharingMgrTabbedDlg::OnTabPageChanged(wxNotebookEvent& event)
 void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 {
     // This is a stateless dialog - nothing we did is communicated back to the application
-	// (It's the remote kbserver instance that has whatever we did, if in fact we did
-	// something more than just inspect what is on the kbserver's user, kb or
+	// (It's the remote KBserver instance that has whatever we did, if in fact we did
+	// something more than just inspect what is on the KBserver's user, kb or
 	// language definition tables)
 
 	// Tidy up
@@ -1276,7 +1276,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 		bKbadmin = m_pCheckKbAdmin->GetValue();
 		bUseradmin = m_pCheckUserAdmin->GetValue();
 
-		// Create the new entry in the kbserver's user table
+		// Create the new entry in the KBserver's user table
 		CURLcode result = CURLE_OK;
 		result = (CURLcode)m_pKbServer->CreateUser(strUsername, strFullname, strPassword, bKbadmin, bUseradmin);
 		// Update the page if we had success, if no success, just clear the controls
@@ -1392,7 +1392,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 	}
 	else
 	{
-		// Create the new KB definition in the kbserver's kb table.
+		// Create the new KB definition in the KBserver's kb table.
 
 		// Now that Jonathan has created a languageadmin permission, we must add extra code here.
 		// Analysis dictates that languageadmin level must be identical to kbadmin level. That is,
@@ -1403,7 +1403,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 		// languageadmin permission separate from allowing or denying kbadmin permission.
 		// What does this mean here? Well, since the user has to have kbadmin permision to get to
 		// the page of the tabbed dialog this button handler is only accessible from, so we can say
-		// languageadmin is TRUE, and use a local variable for it, and then use it in a kbserver
+		// languageadmin is TRUE, and use a local variable for it, and then use it in a KBserver
 		// access to find out if each of the language codes is already in the remote database, and for
 		// any which are not, the third tab (for adding custom language definitions) must be accessed
 		// in order to create the needed language definition(s).
@@ -1417,7 +1417,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 		// Note: KB Sharing Manager uses a stateless setup of the KbServer class. That means that
 		// the Manager's class instance's m_pKbServer instance points at a stateless instance, and that
 		// the url, username and password stored within it are separate from any used by the user for
-		// a kbserver access as stored in the project config file; so the following calls will not clobber
+		// a KBserver access as stored in the project config file; so the following calls will not clobber
 		// any of the user's authentication credentials. Any person with relevant permissions and valid
 		// credentials can use the KB Sharing Manager from anyone's computer, without interfering with
 		// the normal user of that computer's login credentials and permission levels.
@@ -1614,10 +1614,10 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageCreateCustomCode(wxCommandEvent
 	// Note: KB Sharing Manager uses a stateless setup of the KbServer class. That means that
 	// the Manager's class instance's m_pKbServer instance points at a stateless instance, and that
 	// the url, username and password stored within it are separate from any used by the user for
-	// a kbserver access as stored in the project config file; so the following calls will not clobber
+	// a KBserver access as stored in the project config file; so the following calls will not clobber
 	// any of the user's authentication credentials. Any person with relevant permissions and valid
 	// credentials can use the KB Sharing Manager from anyone's computer, with compromising the
-	// integrity of the normal user's kbserver settings.
+	// integrity of the normal user's KBserver settings.
 	wxString username = m_pKbServer->GetKBServerUsername(); // for authentication & same is used for
 												// the creator of this particular custom language code
 	wxString password = m_pKbServer->GetKBServerPassword(); // for authentication
@@ -1790,7 +1790,7 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent
 		// Note: KB Sharing Manager uses a stateless setup of the KbServer class. That means that
 		// the Manager's class instance's m_pKbServer instance points at a stateless instance, and that
 		// the url, username and password stored within it are separate from any used by the user for
-		// a kbserver access as stored in the project config file; so the following calls will not clobber
+		// a KBserver access as stored in the project config file; so the following calls will not clobber
 		// any of the user's authentication credentials. Any person with relevant permissions and valid
 		// credentials can use the KB Sharing Manager from anyone's computer, with complete safety.
 		CURLcode result = CURLE_OK;
@@ -1849,7 +1849,7 @@ bool KBSharingMgrTabbedDlg::IsThisKBDefinitionInSessionList(KbServerKb* pKbDefTo
 	return FALSE;
 }
 
-// When I checked the kbserver at kbserver.jmarsden.org, I found that the earliest user
+// When I checked the KBserver at kbserver.jmarsden.org, I found that the earliest user
 // (using timestamp values) was not Jonathan as expected, but me - and I didn't set up
 // that server instance, he did. So preventing the earliest user from being deleted may
 // not be a robust way to ensure someone with useradmin = true privilege level is always
@@ -1882,7 +1882,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(
 			return;
 		}
 		int nID = (int)m_pOriginalUserStruct->id;
-		// Remove the selected user from the kbserver's user table
+		// Remove the selected user from the KBserver's user table
 		CURLcode result = CURLE_OK;
 		result = (CURLcode)m_pKbServer->RemoveUser(nID);
 		// Update the page if we had success, if no success, just clear the controls
@@ -2032,7 +2032,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 					// Removing this instance from the heap should be done as the last step
 					// after the KB database has been cleared and it's KB language pair,
 					// which constitutes the database definition, has been removed from the
-					// kb table of the kbserver (doing so in the thread's end) -- or, if the
+					// kb table of the KBserver (doing so in the thread's end) -- or, if the
 					// user shuts down the app or machine prematurely, at the end of the
 					// OnExit() function
 			// Most of m_pKbServerForDeleting members are as yet undefined, so populate them
@@ -2119,7 +2119,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 					// call the thread; instead, just do the kb definition deletion, and
 					// clean up
 					int nID = (int)m_pOriginalKbStruct->id;
-					// Remove the selected kb definition from the kbserver's kb table
+					// Remove the selected kb definition from the KBserver's kb table
 					CURLcode result = CURLE_OK;
 					result = (CURLcode)m_pKbServer->RemoveKb(nID);
 					// Update the page if we had success, if no success, just clear the controls
@@ -2277,7 +2277,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 			// It was created in this session, so we can safely remove it - it can't
 			// possibly own any KB entries yet
 			int nID = (int)m_pOriginalKbStruct->id;
-			// Remove the selected kb definition from the kbserver's kb table
+			// Remove the selected kb definition from the KBserver's kb table
 			CURLcode result = CURLE_OK;
 			result = (CURLcode)m_pKbServer->RemoveKb(nID);
 			// Update the page if we had success, if no success, just clear the controls
@@ -2397,7 +2397,7 @@ void KBSharingMgrTabbedDlg::OnCheckboxKbadmin(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-// The API call to kbserver should only generate a json field for those fields which have
+// The API call to a KBserver should only generate a json field for those fields which have
 // been changed; in the case of a password, leave the two edit boxes empty to retain the
 // use of the old password, but if a password change is required, both boxes must have the
 // same new password. The function works out what's changed by comparing the old values
@@ -2510,7 +2510,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 	// Set the booleans...
     // Note: in the case of a successful attempt to update the password of the person who
     // is currently logged in, on return from the UpdateUser() call, and provided it
-    // returned CURLE_OK and there was no HTTP error, then subsequent accesses of kbserver
+    // returned CURLE_OK and there was no HTTP error, then subsequent accesses of KBserver
     // will fail unless the password change is immediately propagated to the KbServers'
     // private m_kbServerPassword member for both adapting and glossing KbServer instances.
     // So we must check for these conditions being in effect, and make the changes with the
@@ -2567,7 +2567,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 		return;
 	}
 
-	// Update the user's details in the kbserver's user table
+	// Update the user's details in the KBserver's user table
 	result = (CURLcode)m_pKbServer->UpdateUser(nID, bUpdateUsername, bUpdateFullName,
 										bUpdatePassword, bUpdateKbadmin, bUpdateUseradmin,
 										m_pUserStruct, strPassword);

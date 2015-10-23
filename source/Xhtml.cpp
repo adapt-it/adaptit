@@ -937,7 +937,7 @@ CBString Xhtml::GetExporterID()
 {
 	// BEW refactored 20May13, to give priority to the app-wide username string, which is
 	// stored in the m_strUserID wxString variable; the latter is used for DVCS, and 
-	// KbServer support, and since it's supposed to be a unique string, we'll use it here
+	// KBserver support, and since it's supposed to be a unique string, we'll use it here
 	// too. Typically it's the user's full email address string, but it can be any string
 	// the user types at the ProjectPage of the wizard, where it can be reset to a
 	// different string if designed, and only can be changed there. Stored in basic config.

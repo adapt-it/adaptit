@@ -267,8 +267,8 @@ extern std::string str_CURLheaders;
 
 // Other includes
 #include "AIPrintout.h"
-#include "Adapt_It.h"
 #include "ReadOnlyProtection.h"
+#include "Adapt_It.h"
 #include "MainFrm.h"
 #include "Adapt_ItDoc.h"
 #include "Adapt_ItView.h"
@@ -394,6 +394,7 @@ extern int	gnFromChapter;
 extern int	gnFromVerse;
 extern int	gnToChapter;
 extern int	gnToVerse;
+extern bool gbInhibitMakeTargetStringCall;
 
 /// This global is defined in CAdapt_ItView
 extern bool	gbCheckInclFreeTransText;
@@ -5933,7 +5934,7 @@ wxString szKbServerURL = _T("KbServerURL");
 /// sharing, and xhtml & Pathway export, and any other future feature needing a username
 wxString szUniqueUsername = _T("UniqueUsername");
 /// The following one is an informal one, can be a pseudonom, for the user - but needed
-/// for kbserver, and git
+/// for KBserver, and git
 wxString szInformalUsername = _T("InformalUsername");
 
 /// The minimum interval, in minutes, from one incremental download attempt to the next
@@ -15028,7 +15029,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		wxString msg;
 		msg = msg.Format(_T("Error: SetupForKBServer(), kbType = %d - could not instantiate KbServer class; setup aborted"),
 			whichType);
-		wxMessageBox(msg, _T("KbServer error"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
 	// store it for the user's adapting or glossing session in this project
@@ -15081,7 +15082,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		wxString msg;
 		msg = msg.Format(_T("Error: SetupForKBServer(), kbType = %d - could not get the credentials from credentials.txt; setup aborted"),
 			whichType);
-		wxMessageBox(msg, _T("KbServer error"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 		DeleteKbServer(whichType);
 		return FALSE;
 	}
@@ -15092,7 +15093,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	password = GetMainFrame()->GetKBSvrPassword();
 	wxASSERT(!password.IsEmpty());
 
-	if (m_bIsKBServerProject)
+	if (whichType == 1)
 	{
 		GetKbServer(whichType)->SetSourceLanguageCode(m_sourceLanguageCode);
 		GetKbServer(whichType)->SetTargetLanguageCode(m_targetLanguageCode);
@@ -15127,9 +15128,9 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
             // CAdapt_ItApp's flag m_bIsKBServerProject. The user must see a helpful
             // message first though.
 			wxString msg;
-			msg = msg.Format(_("A shared knowledge base for language codes ( %s , %s ) does not exist on the remote server.\nSomeone with 'knowledge base administrator' access level must first create entries in the remote server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local adapting knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
-								m_sourceLanguageCode.c_str(), m_targetLanguageCode.c_str());
-			wxString title = _T("Remote adapting knowledge base is absent");
+			msg = msg.Format(_("An adapting KBserver for language codes ( %s , %s ) does not exist on the server %s.\nSomeone with 'knowledge base administrator' access level must first create an adaptations KBserver with those language codes\nin the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local adapting knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
+								m_sourceLanguageCode.c_str(), m_targetLanguageCode.c_str(), url.c_str(), url.c_str());
+			wxString title = _T("Adapting KBserver is undefined");
 			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 			DeleteKbServer(1);
 			m_bIsKBServerProject = FALSE;
@@ -15147,10 +15148,10 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
             // CAdapt_ItApp's flag m_bIsGlossingKBServerProject. The user must see a
             // helpful message first though.
 			wxString msg;
-			msg = msg.Format(_("A shared knowledge base for language codes ( %s , %s ) does not exist on the remote server.\nSomeone with 'knowledge base administrator' access level must first create entries in the remote server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local glossing knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
-								m_sourceLanguageCode.c_str(), m_glossesLanguageCode.c_str());
-			wxString title = _T("Remote glossing knowledge base is absent");
-			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			msg = msg.Format(_("A glossing KBserver for language codes ( %s , %s ) does not exist on the server %s.\nSomeone with 'knowledge base administrator' access level must first create a glosses KBserver with those language codes\nin the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local glossing knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
+								m_sourceLanguageCode.c_str(), m_glossesLanguageCode.c_str(), url.c_str(), url.c_str());
+			wxString title = _T("Glossing KBserver is undefined");
+			wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 			DeleteKbServer(2);
 			m_bIsGlossingKBServerProject = FALSE;
 			return FALSE;
@@ -15160,6 +15161,21 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	return TRUE;
 }
 
+// Checks m_pKbServer[0] or [1] for non-NULL or NULL
+// Note: if the KBserver is currently disabled (that is, m_bEnableKBSharing is FALSE)
+// but the KbServer pointer is non-NULL, TRUE is still returned. When not enabled it
+// is defined, but in hiatus until the user enables it again, or until it is shut down.
+bool CAdapt_ItApp::KbServerRunning(int whichType)
+{
+	if (whichType == 1) // checking for a running adaptations KBserver
+	{
+		return m_pKbServer[0] != NULL;
+	}
+	else // must be we are checking for a running glossing KBserver
+	{
+		return m_pKbServer[1] != NULL;
+	}
+}
 // Return TRUE if there was no error, FALSE otherwise. The function is used for doing
 // cleanup, and any needed making of data persistent between adapting sessions within a
 // project which is a KB sharing project, when the user exits the project or Adapt It is
@@ -15233,7 +15249,7 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 	{
 		// couldn't find credentials.txt file in project folder
 		wxString msg = _T("wxFileExists() called in KbServer::GetCredentials(): The credentials.txt file does not exist");
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
 		return FALSE; // signature params are empty still
 	}
 	wxTextFile f;
@@ -15251,7 +15267,7 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 	{
 		// warn developer that the wxTextFile could not be opened
 		wxString msg = _T("GetTextFileOpened()called in GetCredentials(): The wxTextFile could not be opened");
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
 		return FALSE; // signature params are empty still
 	}
 	size_t numLines = f.GetLineCount();
@@ -15262,7 +15278,7 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 		wxString msg;
 		msg = msg.Format(_T("GetTextFileOpened()called in GetCredentials(): The credentials.txt file lacks one or more lines, it has %d of expected 3 (url,username,password)"),
 			numLines);
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
 		f.Close();
 		return FALSE; // signature params are empty still
 	}
@@ -15307,6 +15323,7 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+
 	// initialize these collaboration variables, which are relevant to conflict resolution
 	m_bRetainPTorBEversion = FALSE;
 	m_bForceAIversion = FALSE;
@@ -15317,6 +15334,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 									// maximize visual control of the fixes (user can change
 									// when initiating a new Consistency Check; we don't save
 									// this flag in any config file
+	gbInhibitMakeTargetStringCall = FALSE; // app should start with this OFF
 	// BEW 21May15 added next five, for support of the freeze/thaw optimization for a sequence
 	// of consecutive auto-inserts from the KB, see AdaptitConstants.h for NUMINSERTS value
 	// as well (currently 8)
@@ -15374,6 +15392,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 #if defined(_KBSERVER)
 
+	m_bKBSharingEnabled = TRUE; // default
+
 	m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
 	m_pKbServerForDeleting = NULL;
 	m_srcLangCodeOfCurrentRemoval.Empty();
@@ -15429,7 +15449,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                             // at the wxTextCtrl on Bruce's dialog.  If not set, NOOWNER is a good
                             // anonymous value and simplifies some later tests.
                             // NOTE: NOOWNER is #defined as _T("****")
-	m_strUsername.Empty(); // GIT uses it, also used as a human-readable informal name in kbserver
+	m_strUsername.Empty(); // GIT uses it, also used as a human-readable informal name in KBserver
 						   // and is stored in the basic config file as is m_strUserID
 
 	m_bClosingDown = FALSE; // gets set to TRUE at start of OnExit()
@@ -15454,7 +15474,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bKbServerIncrementalDownloadPending = FALSE;
 
 	// incremental download default interval (5 seconds) - but will be overridden
-	// by whatever is in the project config file, or defaulted to 5 there if out of range (1-20)
+	// by whatever is in the project config file, or defaulted to 5 there if out of 
+	// range (range is: 1-120 minutes)
 	m_nKbServerIncrementalDownloadInterval = 5;
 
     // initialize kbadmin and useradmin flags associated with username (both being false
@@ -21633,12 +21654,12 @@ int ii = 1;
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxMenu* pAdvancedMenu = pMenuBar->GetMenu(nAdvancedMenuIndex);
 	pAdvancedMenu->AppendSeparator(); // ignore returned pointer
-	wxMenuItem* pKBSharingSetupMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_SETUP_DLG, _T("Setup Or Remove Knowledge Base Sharing..."));
+	wxMenuItem* pKBSharingSetupMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_SETUP_DLG, _("Setup Or Remove Knowledge Base Sharing..."));
 	pKBSharingSetupMenuItem = pKBSharingSetupMenuItem; // avoid compiler warning
 
     // append a "Controls For Knowledge Base Sharing..." menu item to the Advanced menu in
     // the _Debug build
-	wxMenuItem* pKBSharingMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_DLG, _T("Controls For Knowledge Base Sharing..."));
+	wxMenuItem* pKBSharingMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_DLG, _("Controls For Knowledge Base Sharing..."));
 	pKBSharingMenuItem = pKBSharingMenuItem; // avoid compiler warning
 
 	// DONT FORGET UPDATE HANDLERS!
@@ -28155,7 +28176,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pApp != NULL);
 	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
 
-	// The administrator must authenticate to whichever kbserver he wants to adjust or view
+	// The administrator must authenticate to whichever KBserver he wants to adjust or view
 	// Note: the next line sets up a "stateless" instance of the dialog - it doesn't know
 	// or care about the adapting/glossing mode, the machine's owner, or either of the
 	// glossing or adapting local KBs. It only uses the KbServer class for the services it
@@ -29124,6 +29145,99 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 
 	// done -- update the embedded progress bar
 	((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Restoring Knowledge Base..."));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     The count of how many document *.xml files were enumerated
+/// \param      paths					<-  reference to the array of absolute paths to all documents
+/// \param      adaptationsFolderPath	->  the absolute path to the project's Adaptations folder
+///                             is to have its document files enumerated
+/// \remarks
+/// Called from: the View's DoGlobalRestoreOfSaveToKB().
+/// This function collects the paths, relative to the passed in Adaptation's folders path,
+/// to every document with name of form *.xml regardless of whether the document is a collaboration
+/// document or not, and regardless of whether it is stored in a book folder (when Book Mode is or was
+/// turned on) or just in the parent Adaptations folder. So the function will enumerate the filenames
+/// in the Adaptations folder, and then the partial paths (relative to the Adaptations folder) of
+/// any files of the above form in the Bible Book folders. So for the latter, the subpaths will be
+/// of form  "Matthew + PathSeparator + <filename>".
+/// The aggregated set of these strings are then each appended to the passed in 
+/// "adaptationsFolderPath + PathSeparator" path prefix, resulting in a set of absolute paths to
+/// all files of form *.xml within the Adaptations folder any any child folders. This set of paths
+/// are then returned to the caller in the paths parameter. (The caller will then loop over them
+/// to make the relevant internal changes, if any, within each document file.) No user involvement
+/// is supported.
+/// Created: BEW 7Sept15
+////////////////////////////////////////////////////////////////////////////////////////
+size_t CAdapt_ItApp::EnumerateAllDocFiles(wxArrayString& paths, wxString adaptationsFolderPath)
+{
+	paths.Clear();
+	wxString pathPrefix = adaptationsFolderPath;
+	wxASSERT(!pathPrefix.IsEmpty());
+	wxArrayString arrInAdaptionsFolder;
+	wxArrayString arrInBookFolders;
+	wxString absolutePath = _T("");
+	bool bOK = EnumerateDocFiles_ParametizedStore(arrInAdaptionsFolder, pathPrefix);
+	size_t count = 0;
+	size_t count1 = 0;
+	size_t count2 = 0;
+	size_t i;
+	// The returned list being empty is not an error. The only documents may lie in the Bible Book folders
+	if (bOK)
+	{
+		count1 = arrInAdaptionsFolder.GetCount();
+		for (i = 0; i < count1; i++)
+		{
+			absolutePath = pathPrefix + PathSeparator + arrInAdaptionsFolder.Item(i);
+			paths.Add(absolutePath);
+		}
+
+		// Now handle the Bible Book files - there may be more than one document in any 
+		// one of them, so enumerate each folder (code here pinched & tweaked from doc's 
+		// OnEditConsistencyCheck)).
+		// Beware, the user may never have used the Bible Book Folders mode, in which case
+		// there will be no such folders in the Adaptations folder - and so if we try to
+		// set a path to a non-existing folder and make that folder the current working
+		// directory, the app would fail. So we need to test the path and ignore any folder
+		// which is absent (BEW added 9Oct15)
+		wxString folderPath;
+		BookNamePair aBookNamePair;
+		BookNamePair* pBookNamePair = &aBookNamePair;
+		int nMaxBookFolders = (int)m_pBibleBooks->GetCount();
+		int bookIndex;
+		size_t count3 = 0;
+		for (bookIndex = 0; bookIndex < nMaxBookFolders; bookIndex++)
+		{
+			// Clear the list
+			arrInBookFolders.Clear();
+			pBookNamePair = ((BookNamePair*)(*m_pBibleBooks)[bookIndex]);
+			// Set up the expected path
+			folderPath = m_curAdaptationsPath + PathSeparator + pBookNamePair->dirName;
+			bool bDirectoryExists = wxDirExists((const wxChar*)folderPath);
+			if (bDirectoryExists)
+			{
+				// Get a list of all the document files, and set the working directory to
+				// the passed in path ( DoConsistencyCheck() internally relies on this
+				// being set here to the correct folder )
+				bOK = EnumerateDocFiles_ParametizedStore(arrInBookFolders, folderPath);
+				wxASSERT(bOK);
+				if (bOK && !arrInBookFolders.IsEmpty())
+				{
+					count3 = arrInBookFolders.GetCount();
+					size_t j;
+					for (j = 0; j < count3; j++)
+					{
+						wxString aDocument = arrInBookFolders.Item(j);
+						absolutePath = folderPath + PathSeparator + aDocument;
+						paths.Add(absolutePath);
+						count2++; // count it
+					}
+				}
+			}
+		}
+	}
+	count = count1 + count2;
+	return count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -32526,9 +32640,9 @@ bool CAdapt_ItApp::MoveCollabSettingsToProjectConfigFile(wxString collabProjName
 		// been wrong or corrupted, so it is best that we just assume that the
 		// administrator will set collaboration up properly in this new version
 		// for the desired AI project(s).
-		wxString msg = _("Adapt It was not able to upgrade the collaboration settings for use in this version (%s) of Adapt It.\nPlease ask your administrator to setup Adapt It for collaboration with %s.");
+		wxString msg = _("Adapt It was not able to upgrade the collaboration settings for use in this version (%s) of Adapt It.\nThe settings were inconsistent or broken for collaboration with %s.\nAdapt It will remove those setting now. If you want to collaborate with %s, you or your administrator will need to manually set up the collaboration again.");
 		wxASSERT(!m_collaborationEditor.IsEmpty());
-		msg = msg.Format(msg,appVerStr.c_str(),m_collaborationEditor.c_str());
+		msg = msg.Format(msg, appVerStr.c_str(), m_collaborationEditor.c_str(), m_collaborationEditor.c_str());
 		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 	}
 	return TRUE;
@@ -34216,7 +34330,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				num = 5; // if out of range default to 5
 			m_nKbServerIncrementalDownloadInterval = num;
 		}
-#else		// mrh - avoid warning if we're switching from a kbserver to non-kbserver build
+#else		// mrh - avoid warning if we're switching from a KBserver to non-KBserver build
 		else if (name == szIsKBServerProject)
 			;	// do nothing
 		else if (name == szIsGlossingKBServerProject)
@@ -38693,7 +38807,7 @@ void CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& WXUNUS
 				// lookup within the passed in pMap - it will find at most only two
 				// matches (one if there is no upper-case-keyed CTargetUnit with the
 				// needed key), and so the loops are not order-N-squared, but order-N only
-				pKB->UpperToLowerAndTransfer(pMap, srcKey); // supports kbserver createentry etc
+				pKB->UpperToLowerAndTransfer(pMap, srcKey); // supports KBserver createentry etc
 			} // end of loop: for (iter = pMap->begin(); iter != pMap->end(); ++iter)
 		} // end of TRUE block for test: if (!pMap->empty())
 	} // end of loop: for (mapIndex = 0; mapIndex < curMaxWords; mapIndex++)
@@ -48203,7 +48317,7 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 		bool bAddDotToExt = FALSE;
 		if (extFilterLower.Find(_T('.')) != wxNOT_FOUND)
 		{
-			// incoming extenstionFilter has the dot in the extension, so set flag to add dot below
+			// incoming extensionFilter has the dot in the extension, so set flag to add dot below
 			bAddDotToExt = TRUE;
 		}
 

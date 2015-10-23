@@ -7,7 +7,7 @@
 /// \copyright		2013 Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the Thread_CreateEntry class.
-/// The Thread_CreateEntry is a thread class for uploading a single new kbserver entry for
+/// The Thread_CreateEntry is a thread class for uploading a single new KBserver entry for
 /// eventual sharing; it decouples the upload from the user's normal adapting work --
 /// needed because of the potential for high network latency causing unacceptable delays in
 /// the responsiveness of the GUI for the interlinear layout.
@@ -51,7 +51,8 @@ Thread_CreateEntry::Thread_CreateEntry():wxThread()
 	// The location which creates and fires off the thread should set
 	// m_source and m_translation after creating the thread object and 
 	// before calling Run()
-	m_pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+	int type = m_pApp->GetKBTypeForServer();
+	m_pKbSvr = m_pApp->GetKbServer(type);
 	m_translation.Empty(); // default, caller should set it after creation
 }
 

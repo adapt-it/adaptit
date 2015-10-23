@@ -69,6 +69,7 @@ extern wxString gOldChapVerseStr;
 extern bool gbVerticalEditInProgress;
 extern EditStep gEditStep;
 extern EditRecord gEditRecord;
+extern CAdapt_ItApp* gpApp; // to access it fast
 
 bool gbTunnellingOut = FALSE; // TRUE when control needs to tunnel out of nested procedures when
 							  // gbVerticalEditInProgress is TRUE and a step-changing custom message
@@ -469,6 +470,16 @@ bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pVi
 		}
 		return FALSE;
 	}
+	if (gbVerticalEditInProgress)
+	{
+		// BEW 19Oct15 No transition of vert edit modes, and not landing in a retranslation,
+		// so we can store this location on the app
+		gpApp->m_vertEdit_LastActiveSequNum = pNextEmptyPile->GetSrcPhrase()->m_nSequNumber;
+#if defined(_DEBUG)
+		wxLogDebug(_T("VertEdit PhrBox, CheckPhraseBoxDoesNotLandWithinRetranslation() storing loc'n: %d "),
+			pNextEmptyPile->GetSrcPhrase()->m_nSequNumber);
+#endif
+	}
 	return TRUE;
 }
 
@@ -530,6 +541,16 @@ void CPhraseBox::DealWithUnsuccessfulStore(CAdapt_ItApp* pApp, CAdapt_ItView* pV
 			// caller unilaterally returns FALSE  when this function returns,
 			// this, together with gbTunnellingOut,  enables the caller of the caller to
 			// recognise the need to tunnel out of the lookup loop
+		}
+		else
+		{
+			// BEW 19Oct15 No transition of vert edit modes,
+			// so we can store this location on the app
+			gpApp->m_vertEdit_LastActiveSequNum = pNextEmptyPile->GetSrcPhrase()->m_nSequNumber;
+#if defined(_DEBUG)
+		wxLogDebug(_T("VertEdit PhrBox, DealWithUnsuccessfulStore() storing loc'n: %d "),
+			pNextEmptyPile->GetSrcPhrase()->m_nSequNumber);
+#endif
 		}
 	}
 }
@@ -978,6 +999,15 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 				gbTunnellingOut = TRUE; // so caller can use it
 				return FALSE; // try returning FALSE
 			}
+			else
+			{
+				// BEW 19Oct15 No transition of vert edit modes,
+				// so we can store this location on the app
+				gpApp->m_vertEdit_LastActiveSequNum = nCurrentSequNum;
+#if defined(_DEBUG)
+				wxLogDebug(_T("VertEdit PhrBox, MoveToNextPile() storing loc'n: %d "), nCurrentSequNum);
+#endif
+			}
 		}
 
         // set active pile, and same var on the phrase box, and active sequ number - but
@@ -1407,6 +1437,16 @@ b:	pApp->m_bSaveToKB = TRUE;
 				gbTunnellingOut = TRUE; // so caller can use it
 				return FALSE;
 			}
+			else
+			{
+				// BEW 19Oct15 No transition of vert edit modes,
+				// so we can store this location on the app
+				gpApp->m_vertEdit_LastActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
+#if defined(_DEBUG)
+				wxLogDebug(_T("VertEdit PhrBox, MoveToNextPile_InTransliterationMode() storing loc'n: %d "), 
+					pNewPile->GetSrcPhrase()->m_nSequNumber);
+#endif
+			}
 		}
 
 		if (!pApp->m_bSingleStep)
@@ -1446,6 +1486,16 @@ b:	pApp->m_bSaveToKB = TRUE;
 				// don't proceed further because the current vertical edit step has ended
 				gbTunnellingOut = TRUE; // so caller can use it
 				return FALSE; // try returning FALSE
+			}
+			else
+			{
+				// BEW 19Oct15 No transition of vert edit modes,
+				// so we can store this location on the app
+				gpApp->m_vertEdit_LastActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
+#if defined(_DEBUG)
+				wxLogDebug(_T("VertEdit PhrBox, MoveToNextPile_InTransliterationMode() storing loc'n: %d "), 
+					pNewPile->GetSrcPhrase()->m_nSequNumber);
+#endif
 			}
 		}
 
@@ -2402,6 +2452,15 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				pLayout->m_docEditOperationType = no_edit_op;
 				return;
 			}
+			else
+			{
+				// BEW 19Oct15 No transition of vert edit modes,
+				// so we can store this location on the app
+				gpApp->m_vertEdit_LastActiveSequNum = pApp->m_nActiveSequNum;
+#if defined(_DEBUG)
+				wxLogDebug(_T("VertEdit PhrBox, JumpForward() storing loc'n: %d "), pApp->m_nActiveSequNum);
+#endif
+			}
 		}
 		if (pApp->m_bTransliterationMode)
 		{
@@ -2509,7 +2568,23 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			// CLayout::m_invalidStripArray
 			pApp->m_nActiveSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 			pLayout->m_pDoc->ResetPartnerPileWidth(pSPhr);
-
+			
+			// BEW 19Oct15 No transition of vert edit modes,
+			// so we can store this location on the app, provided
+			// we are in bounds
+			if (gbVerticalEditInProgress)
+			{
+				if (gEditRecord.nAdaptationStep_StartingSequNum <= pApp->m_nActiveSequNum &&
+					gEditRecord.nAdaptationStep_EndingSequNum >= pApp->m_nActiveSequNum)
+				{
+					// BEW 19Oct15, store new active loc'n on app
+					gpApp->m_vertEdit_LastActiveSequNum = pApp->m_nActiveSequNum;
+#if defined(_DEBUG)
+				wxLogDebug(_T("VertEdit PhrBox, JumpForward() storing loc'n: %d "), pApp->m_nActiveSequNum);
+#endif
+				}
+			}
+			
 			if (pSPhr->m_targetStr.IsEmpty() || pSPhr->m_adaption.IsEmpty())
 			{
 				// no text or punctuation, or no text and punctuation not yet placed,
@@ -3546,6 +3621,15 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 				pLayout->m_docEditOperationType = no_edit_op;
 				return FALSE; // try returning FALSE
 			}
+			else
+			{
+				// BEW 19Oct15 No transition of vert edit modes,
+				// so we can store this location on the app
+				gpApp->m_vertEdit_LastActiveSequNum = nCurrentSequNum;
+#if defined(_DEBUG)
+				wxLogDebug(_T("VertEdit PhrBox, MoveToPrevPile() storing loc'n: %d "), nCurrentSequNum);
+#endif
+			}
 		}
 
 		pApp->m_bUserTypedSomething = FALSE; // user has not typed at the new location yet
@@ -3880,6 +3964,15 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 				gbTunnellingOut = TRUE; // so caller can use it
 				GetLayout()->m_docEditOperationType = no_edit_op;
 				return FALSE; // try returning FALSE
+			}
+			else
+			{
+				// BEW 19Oct15 No transition of vert edit modes,
+				// so we can store this location on the app
+				gpApp->m_vertEdit_LastActiveSequNum = nCurrentSequNum;
+#if defined(_DEBUG)
+				wxLogDebug(_T("VertEdit PhrBox, MoveToImmedNextPile() storing loc'n: %d "), nCurrentSequNum);
+#endif
 			}
 		}
 

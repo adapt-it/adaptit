@@ -234,7 +234,7 @@ public:
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 	//void OnShowContextHelp(wxCommandEvent& event);
-
+	
 #if defined(_KBSERVER)
 
 	void OnKBSharingDlg(wxCommandEvent& event);
@@ -248,7 +248,7 @@ public:
 	// two accessors
 	wxString GetKBSvrPassword();
 	void	 SetKBSvrPassword(wxString pwd);
-	// Next is the function for getting the kbserver password typed in by the
+	// Next is the function for getting the KBserver password typed in by the
 	// user via a dialog
 	wxString GetKBSvrPasswordFromUser();
 

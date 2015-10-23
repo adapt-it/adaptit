@@ -189,10 +189,11 @@ private:
 	bool		m_bScrolling; // TRUE when scrolling is happening
 	bool		m_bDoFullWindowDraw;
 #endif
+public: // BEW made public on 7Sep15 because View's DoGLosbalREstoreOfSaveToKB() needs to use it
     // use the following to suppress phrasebox being made visible in the middle of
     // procedures when strips have to be updated but we've not yet got to the final layout
     bool		m_bLayoutWithoutVisiblePhraseBox;
-
+private:
 	// private copies of the src, tgt &navText colors stored in app class
 	wxColour	m_srcColor;
 	wxColour	m_tgtColor;

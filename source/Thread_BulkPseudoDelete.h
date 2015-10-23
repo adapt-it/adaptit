@@ -7,7 +7,7 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the Thread_BulkPseudoDelete class.
 /// Thread_BulkPseudoDelete is a thread class for PUTing a 1 value in the deleted flag
-/// within a kbserver entry which is for eventual sharing - doing so for potentially
+/// within a KBserver entry which is for eventual sharing - doing so for potentially
 /// thousands of requested deletions from the KB Editor dialog; using a thread decouples
 /// the transmissions from the user's normal adapting work, which is needed because of high
 /// network latency causing unacceptable delays in the responsiveness of the GUI for the
@@ -17,7 +17,7 @@
 /// phrases and target phrases for the pairs to be pseudo-deleted. (Until those arrays are
 /// cleared, the user is prevented from initiating a further bulk delete.)
 /// It is created on the heap, and changes the value of the deleted flag in as many entries 
-/// of the kbserver database as their are entries in one or other of the input arrays
+/// of the KBserver database as their are entries in one or other of the input arrays
 /// \derivation		The Thread_BulkPseudoDelete class is derived from wxThread.
 /////////////////////////////////////////////////////////////////////////////
 

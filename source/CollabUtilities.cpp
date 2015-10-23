@@ -2084,7 +2084,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 					pApp->ReleaseKBServer(2);
 					pApp->m_bIsKBServerProject = FALSE;
 					pApp->m_bIsGlossingKBServerProject = FALSE;
-					wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.\n(To change the username, use the Change Username item in the Edit menu.");
+					wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nOr, perhaps more likely, you simply forgot to start the KBserver running before you supplied the needed password.\nYou may continue working; but for you, knowledge base sharing is now turned off.\nIf forgetting was the reason, then start the KBserver now. Then open the dialog to start sharing and supply the needed credentials; otherwise, keep reading... \nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.\n(To change the username, use the Change Username item in the Edit menu.)");
 					msg = msg.Format(msg, pApp->m_strUserID.c_str());
 					wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
 					return TRUE; // failure to reinstate KB sharing doesn't constitute a
@@ -2168,7 +2168,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 			else
 			{
 				// The password submitted was just an empty string...
-				wxString msg = _("No password was typed. So knowledge base sharing setup is now cancelled for this project.\nUse the command on the Advanced menu to setup again if you wish; but you must first find out your correct password.\nAsk your kbserver administrator.");
+				wxString msg = _("No password was typed. So knowledge base sharing setup is now cancelled for this project.\nUse the command on the Advanced menu to setup again if you wish; but you must first find out your correct password.\nAsk your KBserver administrator.");
 				// We have no option in this circumstance but to turn off any previous kb sharing setup;
 				// which setup types exist could be adapting, or glossing, or both; so we just turn both off.
 				// The Release calls, if a server is setup, will call DeleteKbserver() which will ensure
@@ -2179,7 +2179,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 				pApp->m_bIsKBServerProject = FALSE;
 				pApp->m_bIsGlossingKBServerProject = FALSE;
 				wxMessageBox(msg, _("No Password Typed"), wxICON_WARNING | wxOK);
-				pApp->LogUserAction(_T("OnWizardPageChanging(): no kbserver password typed; so any kb sharing setup is now cancelled; but collaboration continues"));
+				pApp->LogUserAction(_T("OnWizardPageChanging(): no KBserver password typed; so any kb sharing setup is now cancelled; but collaboration continues"));
 			}
 		} // end of else block for test: if (!bUserDidNotCancel)
 	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
@@ -4229,7 +4229,6 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 			wxString str = UsfmStructureAndExtentArray.Item(ct);
 			wxLogDebug(str.c_str());
 		}
-	}
 #endif
 
 	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
@@ -5359,6 +5358,7 @@ bool GetMatchedChunksUsingVerseInfArrays(
 	// instances from start to (potentially) the end, will use the following variable for
 	// returning a matched md5 verse line in the fromEditor tests, or wxNOT_FOUND if no
 	// match succeeded.
+	bConfirmedSourceTextMatch = bConfirmedSourceTextMatch; // whm added 19Oct2015 to avoid gcc's set but not used warning
 	// BEW 22Jun15, We try to keep the preEdit and post edit verse numbers identical, if not
 	// identical when a postEdit and fromEditor matchup has been obtained, then we should
 	// advance postEdit index by one again, in the hope that the next matchup try will get all
@@ -6138,7 +6138,8 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// BEW 10Jul15, get the USFM source text - if the conflict resolution dialog
 	// were to be shown, this will be needed (and more processing of the export
 	// will be done below). The store is done in app variable m_sourceTextBuffer_PostEdit
-	gpApp->StoreSourceText_PostEdit(MakeSourceTextForCollabConflictResDlg());
+	wxString cleansed_src = MakeSourceTextForCollabConflictResDlg();
+	gpApp->StoreSourceText_PostEdit(cleansed_src); // put it in m_sourceTextBuffer_PostEdit
 
 	wxString bookCode;
 	bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
@@ -6598,13 +6599,21 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		// count, so we can set the bUsfmIsTheSame flag safely
 		bUsfmIsTheSame = TRUE;
 	}
+	// BEW added 13Oct15, while sourceText should be same as fromEditorText text, if there
+	// is a doc data error involving adding or subtracting a marker (it happened that
+	// Matt 2:2 got first 4 piles duplicated at a refactoring data error which I missed)
+	// they could differ and we don't want that to crash the transfer. So also test
+	// these are same or not, and if not the same, then the GetUpdated....UsfmsChanged()
+	// function should be called - because the UsfmsUnchanged() version is guaranteed to
+	// crash if *any* of the marker counts differ!
+	bool bIsSrcChanged = IsUsfmStructureChanged(sourceText, fromEditorText);
 
 #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 		wxLogDebug(_T("\n** m_bPunctChangesDetectedInSourceTextMerge  has value = %d"),
 			(int)gpApp->m_bPunctChangesDetectedInSourceTextMerge);
 #endif
 
-	if (bUsfmIsTheSame && !gpApp->m_bPunctChangesDetectedInSourceTextMerge)
+	if (bUsfmIsTheSame && !gpApp->m_bPunctChangesDetectedInSourceTextMerge && !bIsSrcChanged)
 	{
 		// usfm markers same in each, so do the simple line-by-line algorithm
 		text = GetUpdatedText_UsfmsUnchanged(postEditText, fromEditorText,
@@ -6869,6 +6878,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	int postEditIndex = 0; // indexing into the MD5 array for postEdit adaptation text from AI
 	int fromEditorIndex = 0;  // indexing into the MD5 array for text from PT or BE chapter
 	int preEditEnd = 0; // index of last md5 line of the current chunk from preEdit array
+	preEditEnd = preEditEnd; // whm added 19Oct2015 to avoid gcc's set but not used warning
 	int postEditEnd = 0; // index of last md5 line of the current chunk from postEdit array
 	int fromEditorEnd = 0; // index of last md5 line of the current chunk from fromEditor array
 	// Note: user as of 6.5.9 can edit source text in AI in collaboration mode (e.g. do a
@@ -7467,12 +7477,11 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		}
 	} // end of loop: while (index < (int)postEditMd5Arr_Count) <- may involve multiple chapters
 
-//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+	int structsCount = (int)collabActionsArr.GetCount();
+	int i;
 #if defined(_DEBUG) && defined(JUL15)
 	wxLogDebug(_T("STRUCT POPULATING LOOP HAS ENDED: num structs: %d"), structsCount);
 #endif
-	int structsCount = (int)collabActionsArr.GetCount();
-	int i;
 
 #if defined(_DEBUG) && defined(JUL15)
 	// log the CollabAction structs' contents
@@ -7802,9 +7811,9 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 	int mkrCount = 0;
 	size_t charOffset = 0;
 #ifdef FIRST_250
-#ifdef _DEBUG
-	wxChar* pStrBegin = NULL;
-#endif
+//#ifdef _DEBUG
+//	wxChar* pStrBegin = NULL;
+//#endif
 #endif
 #if defined(_DEBUG) && defined(JUL15)
 //#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
@@ -7998,7 +8007,7 @@ wxString GetUpdatedText_UsfmsChanged(
 	size_t postEditMd5Arr_Count = postEditMd5Arr.GetCount();
 	size_t fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();
 	size_t sourceTextMd5Arr_Count = sourceTextMd5Arr.GetCount();
-	wxASSERT(postEditMd5Arr_Count == sourceTextMd5Arr_Count);
+	//wxASSERT(postEditMd5Arr_Count == sourceTextMd5Arr_Count);
 	wxString preEditMd5Line;
 	wxString postEditMd5Line;
 	wxString fromEditorMd5Line;
@@ -8806,12 +8815,12 @@ wxString GetUpdatedText_UsfmsChanged(
 
 	} // end of while loop
 
-#if defined(_DEBUG) && defined(JUL15)
-//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-	wxLogDebug(_T("STRUCT POPULATING LOOP HAS ENDED: num structs: %d"), structsCount);
-#endif
 	int structsCount = (int)collabActionsArr.GetCount();
 	int i;
+#if defined(_DEBUG) && defined(JUL15)
+	//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+	wxLogDebug(_T("STRUCT POPULATING LOOP HAS ENDED: num structs: %d"), structsCount);
+#endif
 
 #if defined(_DEBUG) && defined(JUL15)
 	// log the CollabAction structs' contents
@@ -10257,18 +10266,84 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 
 // BEW 10Jul15, since this was created after my refactoring of the export functions to
 // not obligatorily unfilter and include any filtered text, no internal extra calls should
-// need to be made (I hope)
+// need to be made (I hope) <<-- BEW 14Oct15 that hope was a sheer guess and totally wrong!
+// I didn't do ANY refactoring of RebuildSourceText() and so it automatically restores all
+// notes, free translations, xrefs, whatever.... and so that stuff will mess with the
+// collaboration functionality which expects a pristine clean USFM source text with none of
+// that extra stuff present. So grab the functions which filter that stuff out and put them
+// here. (See the code at top of MakeUpdatedTextForExternalEditor() for code blocks which
+// call them - copy to here.)
 wxString MakeSourceTextForCollabConflictResDlg()
 {
 	wxString srcText = _T("");
 	int textLen = RebuildSourceText(srcText); // NULL for 2nd param, means m_pSourcePhrases SPList* is used
 	wxUnusedVar(textLen);
+
+	// Cause \note, \free, \bt etc (the custom ones to be removed)
+	ExcludeCustomMarkersFromExport();
+	// Also have \rem excluded
+	wxString rem = _T("rem"); // bareMkr for \rem
+	int index = FindMkrInMarkerInventory(rem);
+	if (index != wxNOT_FOUND)
+	{
+		m_exportFilterFlags[index] = 1;
+	}
+	// The ApplyOutputFilterToText() call gets the exclusions done
+	bool bRTFOutput = FALSE;
+	srcText = ApplyOutputFilterToText(srcText, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+	// Remove footnote contents, leave markers, (the default option), but if
+	// m_bNoFootnotesInCollabToPTorBE is TRUE, then remove the markers too
+	wxString footnote = _T("\\f ");
+	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
+	bool bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
+	if (bIsFiltered)
+	{
+		// Check for existence of the marker within the document
+		int index = FindMkrInMarkerInventory(footnote); // signature accepts \mkr or mkr,
+		if (index != wxNOT_FOUND)
+		{
+			// Remove the content from all footnote markers; they all begin with "\f"
+			// But if the flag is TRUE, then also remove the footnote markers as well
+			if (gpApp->m_bNoFootnotesInCollabToPTorBE)
+			{
+				// 2nd param is boolean bAlsoRemoveTheMarkers; Ross Jones needs this option
+				// because he doesn't want footnote markers to be transferred in collab mode
+				RemoveContentFromFootnotes(&srcText, TRUE);
+			}
+			else
+			{
+				// This is the default in collab mode for \f stuff, the markers are left
+				// in the export, and any text content is removed
+				RemoveContentFromFootnotes(&srcText); // 2nd param is default FALSE
+			}
+		}
+	}
 	srcText = RemoveMultipleSpaces(srcText);
 
 	// Note: ZWSP restoration is automatically done, if flag TRUE, in RebuildSourceText(), similarly, if the
 	// flag for Forward Slash Delimitation alternating with ZWSP (Dennis Walters requested) is TRUE, then
 	// in RebuildSourceText() the calls DoFwdSlashConsistentChanges(removeAtPunctuation, target) and
 	// followed by FwdSlashtoZWSP(target) are made, so neither is need here
+	
+	// ensure no \id and book code is present for non-chapter-1 chapters when collaborating
+	// by chapter rather than by whole book
+	if (gpApp->m_bCollabByChapterOnly)
+	{
+		// BEW 22Jun15, added subtest: || gpApp->m_CollabChapterSelected != _T("0")
+		// because we don't want to remove any \id and bookcode if we are in a
+		// chapterless book, such as 2JN, 3JN or JUD
+		if (gpApp->m_bCollaboratingWithBibledit
+			|| (gpApp->m_bCollaboratingWithParatext
+			&& (gpApp->m_CollabChapterSelected != _T("1") && gpApp->m_CollabChapterSelected != _T("0"))))
+		{
+			srcText = RemoveIDMarkerAndCode(srcText);
+		}
+	}
+	int offset = srcText.Find(_T('\\'));
+	if (offset != wxNOT_FOUND && offset > 0)
+	{
+		srcText = srcText.Mid(offset); // guarantees srcText starts with a marker
+	}
 #if defined(_DEBUG) && defined(JUL15)
 	wxLogDebug(_T("MakeSourceTextForCollabConflictResDlg(): Text Length:  %d\n%s"), textLen, srcText.c_str());
 #endif

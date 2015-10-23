@@ -100,7 +100,7 @@ public:
 
 	// A variant of the above FindRefString() function. Returns the matched (not
 	// pseudo-deleted) CRefString instance's pointer, or NULL if no match could be made
-	// BEW 24Oct13, formerly only for kbserver API, but needed more widely now, so removed
+	// BEW 24Oct13, formerly only for KBserver API, but needed more widely now, so removed
 	// from being wrapped by _KBSERVER #ifdef
 	CRefString*	FindRefStringUndeleted(wxString& translationStr);
 

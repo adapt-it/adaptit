@@ -178,6 +178,9 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		case 22:  // whm 28Aug11 Note: This is used in OnCloseDocument()
 			WaitMsg = _("Closing the document...");
 			break;
+		case 23:  // BEW 4Sep15 this is used in DoGlobalRestoreOfSaveToKB() within view's OnCheckKBSave()
+			WaitMsg = _("This may take a while. Identical changes are being done in all the documents...");
+			break;
 		default: // whm 28Aug11 Note: keep as a default message
 			WaitMsg = _("Please wait. This may take a while...");
 	}

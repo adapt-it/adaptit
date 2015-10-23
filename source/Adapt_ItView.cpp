@@ -21,6 +21,18 @@
 
 //#define _debugLayout
 
+// Next #define turns on wxLogDebug() calls in the feature where the user clicks on a
+// doc location where asterisk shows (a <Not In KB> entry in adaption KB) and then
+// clicks the Save To Knowledge Base checkbox to revert the KB entry to a normal one.
+// Doing this in one place in one document causes all docs to be scanned for that src
+// key where m_bNotInKB is set TRUE, and have them reverted to normal entries, and a
+// StoreText() done to the adapting KB (and if kbserver is operating, the remote kb
+// will also be updated automatically). m_pSourcePhrases is made available for reuse for
+// this feature by auto-closing the current doc with a protected save being done beforehand,
+// and the doc aut-reloaded when done. The screen is frozen throughout, and a WaitDlg used,
+// and also a progress bar - ticking off each doc as done. All docs, in Adaptations and any
+// Bible Book folders, are processed.
+//#define NO_ASTERISK
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItView.h"
@@ -47,6 +59,7 @@
 #endif
 
 //#define _Trace_DrawFreeTrans
+//#define CHECK_GEDITSTEP
 
 #include <wx/docview.h>	// includes wxWidgets doc/view framework
 #include <wx/file.h>
@@ -131,6 +144,7 @@
 #include "GuesserSettingsDlg.h"
 #include "MergeUpdatedSrc.h"
 #include "KBExportImportOptionsDlg.h"
+#include "StatusBar.h"
 
 // Temporary - while using OnAdvancedDelay() as a way to test code for kbserver class
 #include "KbServer.h"
@@ -14229,6 +14243,52 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 		// user wants it in the KB
 		pApp->m_bSaveToKB = TRUE;
 		pApp->m_pKB->DoNotInKB(pSrcPhrase,FALSE);
+		// If there is a subsequent StoreText() call, we'll want m_targetStr
+		// in the pSrcPhrase to get any punctuation addition done, so ensure
+		// this flag is FALSE so that can happen
+		gbInhibitMakeTargetStringCall = FALSE;
+
+		// Reversion to "Save In Knowledge base" is only able to be done in
+		// adapting mode. In glossing mode, the checkbox is always ticked and
+		// clicking it is ignored, and the glossing KB has no <Not In KB> and
+		// so no change of state for the glossing KB is able to be achieved by
+		// the following call, so wrap it with a test so as to prevent wasting
+		// processing time. The second subtest causes a skip of the call if
+		// Bob Eaton's special use of the KB in collaboration with the
+		// SIL Converters feature is currently turned on
+		if (!gbIsGlossing && !gbSuppressStoreForAltBackspaceKeypress)
+		{
+			// BEW 4Sep15 added following function call, to make the reversion
+			// happen in every location in every document where it exists as a
+			// pSrcPhrase with m_bNotInKB TRUE. Otherwise the user has to search
+			// manually for them all and manually switch the value - ugh!
+			// Ask the user - he may want a single local change, so give the option
+			wxString sourceKey = pSrcPhrase->m_key;
+			CMainFrame* pFrame = pApp->GetMainFrame();
+			wxString title = _("Here Only, or Everywhere It Occurs");
+			wxString msg;
+			msg = msg.Format(
+				_("You have changed this source text ( %s ) to be stored in the knowledge base, along with its translation.\nDo you want this to happen, in all documents, at every location where the same source text occurs with an asterisk?\n(The translations at other locations can be the same or different, that will not matter.)"),
+				sourceKey.c_str());
+			int style = wxYES_NO;
+			int choice = wxMessageBox(msg, title, style, pFrame);
+			if (choice == wxYES)
+			{
+				// DoNotInKB(pSrcPhrase,FALSE) above leaves pSrcPhrase's m_bHasKBEntry
+				// cleared to FALSE, because when control doesn't enter this block
+				// a move of the phrasebox will cause that flag to get a TRUE value
+				// set. But when the user has requested that an 'all documents' fix
+				// is to be done, there will be no phrasebox movement, instead, the
+				// document will be saved and closed - and so the flag would remain
+				// unset for the pSrcPhrase at the active location. So we set it
+				// now, so that the document state remains well formed.
+				pSrcPhrase->m_bHasKBEntry = TRUE;
+				// Now, we can do the global reversion...
+				bool bRevertedEverywhere = DoGlobalRestoreOfSaveToKB(pSrcPhrase->m_key);
+				wxASSERT(bRevertedEverywhere);
+				wxUnusedVar(bRevertedEverywhere); // prevent compiler warning in Release build
+			}
+		}
 	}
 
 	// restore focus to the targetBox, if it is visible
@@ -14239,6 +14299,361 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 	// BEW added 20May09, next line required in order to get * shown
 	GetLayout()->Redraw();
 	GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
+}
+
+// BEW added 4Sep15, called only in OnCheckKBSave() - see above, when
+// the latter is used by the user to ask for a <Not In KB> entry to be
+// reverted to saved in the KB; this should be done everywhere in all docs
+// for this pSrcPhrase's m_key/m_adaption pair where the GUI would show it
+// as asterisked in the navigation text area otherwise. This function does that job.
+// Note: no gui is needed for this function. When called, the pSrcPhrase at the
+// active location will already have been reverted, but the document unsaved.
+// So the first thing we must do is force a save, and let the user know that that
+// is necessary, and that all locations will be fixed in all documents. There could
+// be places where the searched-for pair are saved to the KB still, so our code
+// must test for those just in case there are some, and do nothing at those locations.
+// The restoration will involve a storage being done to the KB at each location that 
+// is reverted - and so since adapations may be present at some, many or all of the
+// relevant pile locations, adaptations (or glosses) will enter the KB and if the
+// reference counts incremented etc. When a location has no adapation yet, but the
+// location's m_bNotInKB flag is nevertheless TRUE, a <no adaptation> entry is made
+// to the KB. This process will not change any of the text in any of the documents,
+// so it will not produce any conflict if collaboration mode is in effect. The way
+// we will do it is to freeze the screen, with a Please Wait message, save and close
+// the current document - but remember what it is for restoring later (Mike Hore has
+// a nice function or two for doing that in his DVCS Nav dlg handler) - and when we
+// restore we'll unfree the screen and the Please Wait dlg will disappear, and the
+// app will be responsive again. Inbetween those times, we'll read in each document,
+// do the scans and changes, save any which we made dirty. The whole lot can be
+// encapsulated in this DoGlobalRestoreOfSavetoKB() function.
+// Return TRUE if the user chooses either of the Yes/No message box options. Return
+// FALSE if the function failed at some point.
+// The sourceKey param is the pSrcPhrase->m_key value at the active location which
+// is being reverted to normal KB storage by the user clicking the checkbox
+bool CAdapt_ItView::DoGlobalRestoreOfSaveToKB(wxString sourceKey)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	CMainFrame* pFrame = pApp->GetMainFrame();
+	CKB* pKB = NULL;
+	
+	// All locations in all documents which have this src and whatever is its adaptation at 
+	// that location, providing pSrcPhrase has m_bNotInKB TRUE, are to be switched to 
+	// "Save To Knowledge Base" turned ON, and the relevant StoreText() call done there also,
+	// so that the KB gets the needed entry or bump of the entry's CRefString count value
+
+	m_nCallCount = 0; // initialize the member int which we'll use to limit
+	// calls of void CKB::SetRefCountsTo(int refCountValue, CSourcePhrase* pSrcPhrase)
+	// to one per call of RestoreKBStorageForSourceKey() - if we don't do that, calling
+	// it at every matching location keeps the KB's m_refCount values at 1 for the 
+	// restored entries
+
+	// put up a Wait dialog (we'll also use a progress bar - see below)
+	CWaitDlg waitDlg(pFrame);
+	// indicate we want the closing the document wait message
+	waitDlg.m_nWaitMsgNum = 23;	// 23 has  _("This may take a while. Identical changes are being done in all the documents...")
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below.
+	canvas->Freeze();
+
+	// Probably I need to close doc here ?? Yes, do it
+	wxString dirPath;
+	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
+		dirPath = pApp->m_bibleBooksFolderPath;
+	else
+		dirPath = pApp->m_curAdaptationsPath;
+	bool bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+
+	// BEW added 05Jan07 to enable work folder on input to be restored when done
+	wxString strSaveCurrentDirectoryFullPath = dirPath;
+
+	// get the KB entry for the current active location updated so as to avoid 
+	// a spurious entry (we have to assume it's okay, but if not it's not a big
+	// deal as when we are done we'll reopen this doc and but the phrasebox at
+	// it's former (that is, current) location
+	bool bNoStore = FALSE;
+	bool bAttemptStoreToKB = TRUE;
+	bool bSuppressWarningOnStoreKBFailure = TRUE;
+	bOK = TRUE;
+
+	// BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
+	// returns TRUE to the caller if the attempted store fails for some reason, for all
+	// other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure
+	// is TRUE as we don't expect a failure and anyway we will ignore the fact if it does fail
+	UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
+	// We will base our clobbering of the document and later reopening of it on 
+	// what OnEditConsistencyCheck() does, it's a doc member function
+	wxString savedCurOutputPath = pApp->m_curOutputPath;	// includes filename
+	wxString savedCurOutputFilename = pApp->m_curOutputFilename;
+	// for resetting the box location, a saved document internally stores the last active sequ num value
+	bool	 savedBookmodeFlag = pApp->m_bBookMode;	// for ensuring correct mode
+	bool	 savedDisableBookmodeFlag = pApp->m_bDisableBookMode;		// ditto
+	int		 savedBookIndex = pApp->m_nBookIndex;
+	BookNamePair*	pSavedCurBookNamePair = pApp->m_pCurrBookNamePair;
+	bool bDocIsClosed = FALSE; // initialize, set it at next line
+	bDocIsClosed = pApp->m_pSourcePhrases->GetCount() == 0; // set bDocIsClosed to either true or false
+	bool bDocForcedToClose = FALSE;
+	bool savedConflictResolutionFlag = pApp->m_bConflictResolutionTurnedOn; // for resetting later, as 
+											// opening a document defaults it to TRUE
+	// Next bit is a tweak of the contents of ConsistencyCheck_ClobberDocument()
+	// save and remove open doc, if a doc is open
+	if (!bDocIsClosed)
+	{
+		// Save the Doc (and DoFileSave_Protected() also automatically saves, without backup,
+		// both the glossing and adapting KBs); FALSE is bool bShowWaitDlg, and the emtpy
+		// string is progressItem - it's empty as we don't want any progress shown for this
+		bool fsOK = pDoc->DoFileSave_Protected(FALSE, _T(""));
+		if (!fsOK)
+		{
+			// something's real wrong! An English message will do
+			wxMessageBox(_T(
+				"Could not save the current document. DoGlobalRestoreOfSaveToKB() was aborted. You can continue working."),
+				_T(""), wxICON_EXCLAMATION | wxOK);
+			// whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
+			// current working directory has not changed, so no need here to reset
+			// it before return.
+			pApp->LogUserAction(_T("Current document not saved. DoGlobalRestoreOfSaveToKB() is aborted, app continues."));
+			canvas->Thaw();
+			return FALSE; // can't recover the correct operation of this feature after 
+						  // this error, but app can continue after the user is warned
+		}
+
+		// Ensure the current document's contents are removed. We will reuse this
+		// m_pSourcePhrases list for storing the parse of each document read in.
+		// The only KB that will be affected is the adapting one. The glossing KB
+		// does not support <Not In KB> entries.
+
+		// ClobberDocument() does not clobber the in-memory glossing and adapting
+		// KBs - - we will do those separately; it does though empty the gEditRecord - so
+		// if that had content it would be lost; however, it's used only when processing
+		// the document because editing of the source text has taken place - and this is
+		// not likely to ever be the case when doing global restoring of <Not In KB> to having
+		// a kb entry in all the places the src/tgt pair occur in all docs.
+		pApp->GetView()->ClobberDocument();
+		pApp->m_acceptedFilesList.Clear();
+		bDocForcedToClose = TRUE;
+	} // end of TRUE block for test: if (!bDocIsClosed)
+
+	// Get the list of all docs, in Adaptations folder and in Book Folders as well
+	wxArrayString allPaths;
+	size_t count = pApp->EnumerateAllDocFiles(allPaths, pApp->m_curAdaptationsPath);
+#if defined(_DEBUG) && defined(NO_ASTERISK)
+	size_t k;
+	for (k = 0; k < count; k++)
+	{
+		wxLogDebug(_T("EnumerateAllDocFiles() a path is: %s"), allPaths.Item(k).c_str());
+	}
+#endif
+	wxASSERT(pApp->m_bKBReady);
+	pKB = pApp->m_pKB;
+	wxString saveOutputPath = pApp->m_curOutputPath; // save, because we'll reuse this
+		// for saving our temporarily loaded documents back to the original locations
+
+	// Progress Bar initialization is next
+	pApp->m_bShowProgress = TRUE;
+	wxString msgDisplayed;
+	const int nTotal = (int)count;
+	wxString progMsg = _("Editing document %d of %d");
+	msgDisplayed = progMsg.Format(progMsg,0,nTotal);
+	CStatusBar *pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)pApp->GetMainFrame()->m_pStatusBar;
+	if (pApp->m_bShowProgress)
+	{
+		pStatusBar->StartProgress(_T("MakeInKB"), msgDisplayed, nTotal);
+	}
+	
+	// I don't need to clobber the kbs, and any current kbserver sharing. All I'm doing 
+	// is loading in a doc and running it thru a process that will update it and some 
+	// kb entries. We only need that m_pSourcePhrases is available for temporary
+	// use for storing each doc that we load in for our scan and fixes. So kbserver
+	// connection needs to persist because some entries in the adapting KB will change.
+	// So also, the KBs need to be present, for the same reason.
+	// Only adaptations can have <Not In KB> entries, so glossing KB is unaffected,
+	// and no document adaptations either m_adaption nor m_targetStr get changed, so
+	// StoreText() can be used safely, as so can m_pSourcePhrases. The resulting changed
+	// document will therefore not have any collaboration conflicts created by the process.
+
+	// Prepare and then loop over all the documents, calling the single-document
+	// core processing function: RestoreKBStorageForSourceKey(sourceKey, pKB)
+	CLayout* pLayout = pApp->GetLayout();
+	bool bShowProgressInDocLoad = FALSE; // suppress the OnOpenDocument()'s internal progress tracking
+	pApp->m_bWantSourcePhrasesOnly = TRUE; // this causes OnOpenDocument() to exit immediately after
+										   // populating pSrcPhrases list has completed, because that's
+										   // all we need done
+	pApp->m_bConflictResolutionTurnedOn = FALSE; // keep off for this loop's processing
+	size_t i;
+	wxString aPath;
+	wxASSERT(pApp->m_pSourcePhrases->IsEmpty());
+	for (i = 0; i < count; i++)
+	{
+		aPath = allPaths.Item(i);
+#if defined(_DEBUG) && defined(NO_ASTERISK)
+		wxLogDebug(_T("\nDoGLobalRestoreOfSaveToKB() Loop iteration number %d of %d  This path: %s"), i, count, aPath.c_str());
+#endif
+		bOK = pDoc->OnOpenDocument(aPath, bShowProgressInDocLoad /* is set FALSE above */);
+		if (!bOK)
+		{
+			// If we fail to read in a document, just skip it, but inform the user
+			pLayout->m_bLayoutWithoutVisiblePhraseBox = TRUE; // suppresses phrasebox stuff
+			ClobberDocument();
+			// Inform the user
+			wxString title = _("File read failure");
+			wxFileName fn(aPath);
+			wxString fullFilename = fn.GetFullName();
+			wxString msg;
+			msg = msg.Format(_("Loading the document (  %s ) failed. So processing this document has been skipped."), fullFilename.c_str());
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		}
+		else
+		{
+			// Process the document's CSourcePhrase inventory, which is now in app's m_pSourcePhrases list
+			RestoreKBStorageForSourceKey(sourceKey, pKB);
+
+			// Save the tweaked document
+			bOK = pDoc->DoAbsolutePathFileSave(aPath); // BEW created 7Sep15
+			if (!bOK)
+			{
+				// Inform the user
+				wxString title = _("File write failure");
+				wxFileName fn(aPath);
+				wxString fullFilename = fn.GetFullName();
+				wxString msg;
+				msg = msg.Format(_("Writing the automatically updated document (  %s ) failed. So the older version remains unchanged."), fullFilename.c_str());
+				wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			}
+			// Clobber the document - clearing pSrcPhrases to empty
+			pLayout->m_bLayoutWithoutVisiblePhraseBox = TRUE; // suppresses phrasebox stuff
+			ClobberDocument(); // clears pSrcPhrases list
+		}
+
+		// Update the progress bar
+		if (pApp->m_bShowProgress)
+		{
+			msgDisplayed = progMsg.Format(progMsg,(int)(i + 1),nTotal);
+			pStatusBar->UpdateProgress(_T("MakeInKB"), (int)(i + 1), msgDisplayed);
+		}
+	}
+
+	// Restore the document before exiting, if one was open formerly
+	pApp->m_bWantSourcePhrasesOnly = FALSE; // restore default, so that
+					// all of OnOpenDocument()'s code is used from now on
+	pApp->m_curOutputPath = saveOutputPath; // restore original doc's output path
+	pLayout->m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
+	pApp->m_bConflictResolutionTurnedOn = savedConflictResolutionFlag; // restore original value
+	if (bDocForcedToClose)
+	{
+		// reopen the doc with all as it was before; TRUE is bMarkAsDirty
+		// (This call does not re-establish any kbserver connection that may have
+		// been open when this function was entered, so we need to do that separately)
+		bOK = pDoc->ReOpenDocument(pApp, strSaveCurrentDirectoryFullPath,
+			savedCurOutputPath, savedCurOutputFilename, savedBookmodeFlag,
+			savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE);
+		wxASSERT(bOK);
+		if (!bOK)
+		{
+			wxString msg = _("The former open document could not be reopened. Adapt It is in a non-stable state. You should close down immediately without saving, then launch and enter your project again.");
+			pApp->LogUserAction(msg);
+			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+			canvas->Thaw();
+			return FALSE;
+		}
+	}
+	// Close off Progress Bar & thaw the frozen client area
+	if (pApp->m_bShowProgress)
+	{
+		pStatusBar->FinishProgress(_T("MakeInKB"));
+	}
+	canvas->Thaw();
+
+	pApp->m_bShowProgress = FALSE;
+	return TRUE;
+}
+
+/// \return			nothing
+/// \param	sourceKey ->	The m_key value at the CSourcePhrase instance which
+///							is at the active location where the user has clicked
+///							the Save To Knowledge Base checkbox, to cause the
+///							m_bNotInKB TRUE instance to become FALSE and have a
+///							a norm KB entry done to the adaptations KB.
+/// \remarks
+/// This function does the above task on all locations within the currently loaded
+/// document (in m_pSourcePhrases list) as follows. We scan for each pSrcPhrase
+/// which has a m_key value which is an identity match for the passed in sourceKey,
+/// and for each of those, and only provided it also has m_bNotInKB TRUE, we change
+/// that flag to FALSE and do a StoreText with the sourceKey and whatever is that
+/// location's adaptation - it could be an empty string (if it is, we store it), so
+/// the KB storages could result in non-empty adaptations going to the KB or empty ones.
+/// Cleanup and saving of the tweaked m_pSourcePhrases list contents is done in the
+/// caller.
+/// BEW created 7Sept15, called only in DoGlobalRestoreOfSaveToKB()'s loop
+void CAdapt_ItView::RestoreKBStorageForSourceKey(wxString sourceKey, CKB* pKB)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	SPList* pSPList = pApp->m_pSourcePhrases;
+	CSourcePhrase* pSP = NULL;
+	if (!pSPList->IsEmpty())
+	{
+		SPList::Node* pos = pSPList->GetFirst();
+		while (pos != NULL)
+		{
+			pSP = pos->GetData();
+			pos = pos->GetNext();
+			if (pSP->m_bNotInKB)
+			{
+				if (pSP->m_key == sourceKey)
+				{
+					// We have found a CSourcePhrase instance which has its "not in kb" flag
+					// set TRUE, so this is now to be reverted to being KB storable, and then
+					// the function restores what used to be there
+					wxString adaption = pSP->m_adaption; // could be an empty string, 
+							// and if so, we want is in the kb as a <no adaptation> entry
+					pKB->DoNotInKB(pSP, FALSE); // FALSE is the user's choice to NOT make it a <Not In KB> entry
+					// The DoNotInKB() function internally sets m_bNotInKB to FALSE. Also, DoNotInKB() sets
+					// pSP->m_bHasKBEntry to FALSE, because normally it is used with a normal
+					// interlinear layout with a phrasebox, and when the phrasebox moves from the current location
+					// that is when pSP->m_bHasKBEntry gets set to TRUE. But in this function we have no GUI
+					// currently in effect, and no phrasebox, so we must set the flag here to TRUE ourselves
+					pSP->m_bHasKBEntry = TRUE;
+					// The above call will delete the KB entry's <Not In KB>, and restore to being present in
+					// the KB any other deleted entries of normal kind which may be present. Because it does
+					// this, the pseudo-deleted entries will reemerge in the KB - with their old reference counts. 
+					// However there could have been numerous "Not In KB" doc locations with new adaptations in them
+					// that never have been stored in the KB, so we must do a StoreText() call to get those
+					// into the KB. This, unfortunately, will skew the reference counts (making them larger than they
+					// should be). The only way round this is to have a function which iterates across the normal
+					// CRefString instances in the CTargetUnit, and resets them 1 (since a 0 value is illegal) and 
+					// then we can do the StoreText() call. The result will then be close to correct when all the 
+					// docs have been processed. But note, we can do this call only once, otherwise the StoreText()
+					// calls won't be able to accumulate reference counts in the KB. So use a counter to prevent
+					// calling it more than once.
+					m_nCallCount++;
+#if defined(_DEBUG) && defined(NO_ASTERISK)
+					wxLogDebug(_T("m_nCallCout: %d  at sequNum  %d"), m_nCallCount, pSP->m_nSequNumber);
+#endif
+					if (m_nCallCount == 1)
+					{
+						int refCountWanted = 1;
+						pKB->SetRefCountsTo(refCountWanted, pSP);
+					}
+					// Now do the StoreText call so that the KB gets the adaptation for this src text stored in it
+					pKB->StoreText(pSP, adaption, TRUE); // TRUE is bool bSupportNoAdaptationButton (so that the
+														 // StoreText will do a store of an empty string for adaption
+#if defined(_DEBUG) && defined(NO_ASTERISK)
+					wxString str;
+					if (adaption.IsEmpty())
+						str = _T("<no adaptation>");
+					else
+						str = adaption;
+					wxLogDebug(_T("Storing KB entry: [ %s / %s ]  for sequNum %d"), 
+						sourceKey.c_str(), str.c_str(), pSP->m_nSequNumber);
+#endif
+				}
+			}
+		}
+	}
 }
 
 // BEW changed 25Aug11, removed the code for unloading the KBs, it is bad design to have
@@ -16878,7 +17293,35 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 			// update the active sequ number, only if not matching text in a pile of a
 			// retranslation (because we can't put the phrase box at such a pile)
 			if (!pApp->m_bMatchedRetranslation)
+			{
 				pApp->m_nActiveSequNum = nSequNum;
+
+				// BEW addition 4Sep15. If landing at a pile where m_bNotInKB is TRUE, the
+				// Save To Knowledge Base checkbox should be unticked, but won't be. So here
+				// we must get the pSrcPhrase value of the m_bNotInKB, set to opposite value,
+				// then call view class's OnCheckKBSave() passing in a dummy wxCommandEvent
+				// to get the checkbox to be in sync with the CSourcePhrase instance's setting
+				CPile* pPile = GetPile(nSequNum);
+				CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+				if (pSrcPhrase->m_bNotInKB)
+				{
+					// It's a pile with an asterisk above, indicating there is no value in KB
+					// for this pile's source text; make the checkbox agree
+					CMainFrame* pFrame = pApp->GetMainFrame();
+					wxPanel* pPanel = pFrame->m_pControlBar;
+					// ensure the Save To Knowledge Base checkbox is in sync
+					wxCheckBox* pKBSave = (wxCheckBox*)pFrame->FindWindowById(IDC_CHECK_KB_SAVE);
+					bool bTicked = pKBSave->GetValue();
+					if (bTicked)
+					{
+						// The checkbox is out of sync, so fix it
+						pApp->m_bSaveToKB = TRUE; // this is the opposite of the value we want
+						wxCommandEvent dummyEvent; // anything command event will do
+						OnCheckKBSave(dummyEvent); // this gets the sync done
+					}
+					pPanel->Refresh(); // make sure the change is visible
+				}
+			}
 			return TRUE;
 		}
 	}
@@ -24587,6 +25030,7 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 /// from part of PlacePhraseBox() and tweaked a bit
 /// BEW 23Mar10, updated for support of doc version 5 (no changes needed)
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW refactored 19Oct15 to support the better way of exiting vertical edit
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 {
@@ -24612,7 +25056,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
     // state we have, and either do a store or restore the active location back to where
     // the phrase box is and not do a store (since it would have been done already at the
     // start of the lookahead loop); and then set up the phrase box at the appropriate
-    // place in the document for when vertical editig mode is off. We use the current
+    // place in the document for when vertical editing mode is off. We use the current
     // m_pActivePile to determine where the active location is, and act accordingly.
 	CPile* pPile = pApp->m_pActivePile;
 	if (pPile == NULL)
@@ -24621,43 +25065,103 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 		return;
 	}
 	wxASSERT(pPile != NULL);
-	bool bWithinSpan = FALSE;
 	bool bFreeTransStepIsCurrent = FALSE; // storing to KB or glossingKB is needed
 										  // when FALSE, not when TRUE
 	bool bUnknownStep = FALSE;
 	int nCurSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
-	switch (gEditStep) {
-		case adaptationsStep:
+
+	// We do our tests in the order in which the modes were tried
+	bool bWithinSpan = FALSE;	
+	if (gbAdaptBeforeGloss)
+	{
+		// we only need one test to succeed, in order to get the value of 
+		// bWithinSpan set
+		if (pRec->bEditSpanHasAdaptations)
+		{
 			if (nCurSequNum >= pRec->nAdaptationStep_StartingSequNum &&
 				nCurSequNum <= pRec->nAdaptationStep_EndingSequNum)
 			{
 				bWithinSpan = TRUE;
 			}
-			break;
-		case glossesStep:
+		}
+		else if (pRec->bEditSpanHasGlosses)
+		{
 			if (nCurSequNum >= pRec->nGlossStep_StartingSequNum &&
 				nCurSequNum <= pRec->nGlossStep_EndingSequNum)
 			{
 				bWithinSpan = TRUE;
 			}
-			break;
-		case freeTranslationsStep:
-			bFreeTransStepIsCurrent = TRUE;
+		}
+		else if (pRec->bEditSpanHasFreeTranslations)
+		{
+			if (gEditStep == freeTranslationsStep)
+			{
+				// free trans step was what we last were in, and we did something
+				// within it (so we won't do a StoreText() now)
+				bFreeTransStepIsCurrent = TRUE;
+			}
 			if (nCurSequNum >= pRec->nFreeTranslationStep_StartingSequNum &&
 				nCurSequNum <= pRec->nFreeTranslationStep_EndingSequNum)
 			{
 				bWithinSpan = TRUE;
 			}
-			break;
-		default:
+		}
+		else if (pRec->bEditSpanHasBackTranslations)
+		{
+			// never see a GUI for this, treat as unknown
 			bUnknownStep = TRUE;
+		}
 	}
-
+	else // glosses step tried before adaptations step
+	{
+		// we only need one test to succeed, in order to get the value of 
+		// bWithinSpan set
+		if (pRec->bEditSpanHasGlosses)
+		{
+			if (nCurSequNum >= pRec->nGlossStep_StartingSequNum &&
+				nCurSequNum <= pRec->nGlossStep_EndingSequNum)
+			{
+				bWithinSpan = TRUE;
+			}
+		}
+		else if (pRec->bEditSpanHasAdaptations)
+		{
+			if (nCurSequNum >= pRec->nAdaptationStep_StartingSequNum &&
+				nCurSequNum <= pRec->nAdaptationStep_EndingSequNum)
+			{
+				bWithinSpan = TRUE;
+			}
+		}
+		else if (pRec->bEditSpanHasFreeTranslations)
+		{
+			if (gEditStep == freeTranslationsStep)
+			{
+				// free trans step was what we last were in, and we did something
+				// within it (so we won't do a StoreText() now)
+				bFreeTransStepIsCurrent = TRUE;
+			}
+			if (nCurSequNum >= pRec->nFreeTranslationStep_StartingSequNum &&
+				nCurSequNum <= pRec->nFreeTranslationStep_EndingSequNum)
+			{
+				bWithinSpan = TRUE;
+			}
+		}
+		else if (pRec->bEditSpanHasBackTranslations)
+		{
+			// never see a GUI for this, treat as unknown
+			bUnknownStep = TRUE;
+		}
+	}
+	// If we allow storing in KB for pSrcPhrase beyond the span, check,
+	// and treat as if it's within the span for the code which follows
 	if (!bOnlyWithinSpan)
 	{
 		// cause unilateral store attempt, provided other conditions are met
 		bWithinSpan =  TRUE;
 	}
+	// Store the bWithinSpan value on the app too - a later function may want to check it
+	pApp->m_bVertEdit_WithinSpan = bWithinSpan;
+
 	if (!bUnknownStep && bWithinSpan && !bFreeTransStepIsCurrent)
 	{
 		// any one of the following 3 tests is sufficient cause for attempting to store
@@ -24808,253 +25312,77 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 /// rather than just toning up the active strip; also EditRecord has had CSourcePhrase*
 /// activeCSourcePhrasePtr added, to store the pointer value we search to match.
 /// BEW 23Nov12, added the bool bCalledFromOnVerticalEditCancelAllSteps param, default is FALSE
+/// BEW 19Oct15 refactored to use saved params on app, rather than pRec->activeCSourcePhrasePtr
+/// because the latter is always garbage by the time this function is entered
 void CAdapt_ItView::RestoreBoxOnFinishVerticalMode(bool bCalledFromOnVerticalEditCancelAllSteps)
 {
 	EditRecord* pRec = &gEditRecord;
 	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItView* pView = pApp->GetView();
 	CLayout* pLayout = GetLayout();
-	CSourcePhrase* pOldActiveSrcPhrase = pRec->activeCSourcePhrasePtr; // might be NULL
-	int nSequNum = pRec->nSaveActiveSequNum; // original active location as stored in
-											 // the EditRecord, but might not now be valid
- 	bool bOriginalLocationWithinSpan = FALSE;
 	SPList* pSrcPhrases = pApp->m_pSourcePhrases;
+	//CSourcePhrase* pOldActiveSrcPhrase = pRec->activeCSourcePhrasePtr; // bogus
 
-    // here use pOldActiveSrcPhrase, if not NULL, to try find original active sequ number
-    // -- its CSourcePhrase instance may have moved due to user's edits, or become lost -
-    // for example, if he changed the SPList inventory and cancelled out of vertical edit
-    if (pOldActiveSrcPhrase != NULL)
+	wxUnusedVar(bCalledFromOnVerticalEditCancelAllSteps); // the flag is no longer needed I think
+	
+	pRec->nStartingSequNum;
+	int nSequNum = pRec->nStartingSequNum; // leftmost 'in span' location as stored in
+										   // the EditRecord, use as a fallback
+ 	bool bOriginalLocationWithinSpan = FALSE;
+	if (pApp->m_bVertEdit_WithinSpan)
 	{
-		SPList::Node* pos = pSrcPhrases->GetFirst();
-		bool bFoundMatch = FALSE;
-		while (pos != NULL)
-		{
-			CSourcePhrase* pSP = pos->GetData();
-			if (pSP == pOldActiveSrcPhrase)
-			{
-				bFoundMatch = TRUE;
-				break;
-			}
-			pos = pos->GetNext();
-		}
-		if (bFoundMatch)
-		{
-			// The old active location is intact, so we can reuse it; and we can
-			// infer that bOriginalLocationWithinSpan should remain FALSE. An
-			// UpdateSequNumbers() call will have already been done, so we can
-			// get the text for the box and the sequ number easily, etc... do all this
-			// here and return
-			nSequNum = pOldActiveSrcPhrase->m_nSequNumber;
-			pApp->m_nActiveSequNum = nSequNum;
-			// tone up the strips by doing a completely new recalculation of them
-			pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
-			pApp->m_pActivePile = pApp->GetView()->GetPile(nSequNum); // uses CLayout's PileList
-			// the old phrase box text has been stored in the EditRecord, so use it
-			wxString boxText = pRec->oldPhraseBoxText;
-			pApp->m_targetPhrase = boxText;
-			pApp->m_pTargetBox->ChangeValue(boxText);
-			// in the next call, TRUE means "suppress recalculation of the phrase box gap
-			// in the layout"
-			pApp->GetDocument()->ResetPartnerPileWidth(pOldActiveSrcPhrase, TRUE);
-			pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum); // BEW added 12June09
-			pLayout->m_docEditOperationType = vert_edit_exit_op;
-			// call Invalidate() in the caller, which is OnCustomEventEndVerticalEdit() & that is
-			// the only place in the application where RestoreBoxOnFinishVerticalMode() is called
-			//return; // don't return here, we need window cleanup etc to happen later
-		}
-		else
-		{
-			// the original pointer got lost, so we can infer that the old active location
-			// was involved in deep copies and even if restoration of the original is
-			// done, it is done by deep copies, and so the pointers will be different -
-			// which is why the loop aabove didn't find a match
-			bOriginalLocationWithinSpan = TRUE;
-		}
-	} // end of TRUE block for test:  if (pOldActiveSrcPhrase != NULL)
-
-    // If control gets to here, we have more work to do to get an acceptable active
-    // location for the phrase box; so try a modified legacy means to do it
-
-	// when this function is called, the original pre-Vertical Edit Process mode (either
-	// glossing or adapting) will have been restored, but the gEditRecord has not yet been
-	// initialized so as to clear it; so use its contents to work out where the active
-	// location should be put
-	if (!gbIsGlossing)
-	{
-		// we are in adapting mode
-		if (pRec->nAdaptationStep_NewSpanCount != 0)
-		{
-			if (bCalledFromOnVerticalEditCancelAllSteps)
-			{
-				// rollback was done, so the original span is now replaced
-				if (nSequNum >= pRec->nStartingSequNum && nSequNum <= pRec->nEndingSequNum)
-				{
-					bOriginalLocationWithinSpan = TRUE;
-				}
-			}
-			else
-			{
-				// not a cancel, so no rollback done, so use the following span
-				if (nSequNum >= pRec->nAdaptationStep_StartingSequNum &&
-					nSequNum <= pRec->nAdaptationStep_EndingSequNum)
-				{
-					bOriginalLocationWithinSpan = TRUE;
-				}
-			}
-		}
-	}
-	else
-	{
-		// we are in glossing mode
-		if (pRec->nAdaptationStep_NewSpanCount != 0)
-		{
-			if (bCalledFromOnVerticalEditCancelAllSteps)
-			{
-				// rollback was done, so the original span is now replaced
-				if (nSequNum >= pRec->nStartingSequNum && nSequNum <= pRec->nEndingSequNum)
-				{
-					bOriginalLocationWithinSpan = TRUE;
-				}
-			}
-			else
-			{
-				// not a cancel, so no rollback done, so use the following span
-				if (nSequNum >= pRec->nGlossStep_StartingSequNum &&
-					nSequNum <= pRec->nGlossStep_EndingSequNum)
-				{
-					bOriginalLocationWithinSpan = TRUE;
-				}
-			}
-		}
-	}
-    // now we attempt to find a safe final active location; and it can be within a
-    // retranslation if we are restoring glossing mode, but not if we are restoring
-    // adapting mode; vertical edit in MFC legacy app is only available from a Source Text
-    // Edit, and it is not possible to do that from free translations mode, so we know we
-    // are not restoring to the latter mode (**** NOT TRUE for wxWidgets *** where
-    // eventually vert edit will be available in any mode except when collecting back
-    // translations -- in that case extend this function to handle those extra options)
-	CSourcePhrase* pSrcPhrase = NULL;
-	CSourcePhrase* pOldSrcPhrase = NULL;
-	if (!gbIsGlossing)
-	{
-		// adapting mode was on when the user first entered the edit process
-		// & is now back on
-		if (bOriginalLocationWithinSpan || pRec->nAdaptationStep_NewSpanCount == 0)
-		{
-            // the original location was either within the (non-empty) span, or the span is
-            // now empty because the user deleted all of its CSourcePhrase instances - in
-            // which case the old sequence number at entry would now be somewhere in the
-            // context or even possibly beyond the end of the document, so we have to look
-            // carefully for a suitable place to rebuild the box -- it could be within a
-            // retranslation, so find a safe place to put the box
-			if (nSequNum > pApp->GetMaxIndex())
-			{
-				// the old location is beyond the end of the document, so initialize to the
-				// last CSourcePhrase instance in the document, and then check it is safe
-				nSequNum =  pApp->GetMaxIndex();
-			}
-			pSrcPhrase = GetSrcPhrase(nSequNum); // won't return NULL because the
-												 // CSourcePhrase at nSequNum we know exists
-			pOldSrcPhrase = pSrcPhrase; // in case we want to try again from same initial one
-			wxASSERT(pSrcPhrase != NULL);
-			if (pSrcPhrase->m_bRetranslation)
-			{
-                // this location is within a retranslation, and because of the possibility
-                // the edit span may be at the end of the document, we'll look for a safe
-                // location preceding the retranslation rather than following it
-				pSrcPhrase = GetPrevSafeSrcPhrase(pSrcPhrase);
-				if (pSrcPhrase == NULL)
-				{
-                    // we expect this never to happen, but if we can't find such a
-                    // location, try following the the retranslation
-					pSrcPhrase = pOldSrcPhrase;
-					pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase);
-					if (pSrcPhrase == NULL)
-					{
-						// unthinkable, but if it happens, violate rule about retranslations
-						// and put the box within it!
-						pSrcPhrase = pOldSrcPhrase;
-					}
-				}
-			}
-			// get the safe sequence number index
-			nSequNum = pSrcPhrase->m_nSequNumber;
-		}
-		else
-		{
-            // the original location, being outside the span, must already be a safe
-            // location, so do the restoration at nSequNum's location
-			;
-		}
+		// We don't need the fallback active location, nSequNum, if this
+		// value is TRUE, as we can get needed params from the app instance
+		bOriginalLocationWithinSpan = TRUE;
 	}
 
-	// we now have the nSequNum at which we want to restore the box, so do it
-	// BEW 10Jan12, bug fix needed here - use GetSrcPhrase() and gbIsGlossing
-	// to find the appropriate text for the box, don't use the translation (wxString)
-	// global variable's value - it isn't guaranteed to contain the wanted string
-	bool bOldIsOK = TRUE;
-	if (nSequNum == pRec->nSaveActiveSequNum)
+	if (bOriginalLocationWithinSpan)
 	{
-		// the old location is still good, use it -- grab whatever is the
-		// appropriate text in the CSourcePhrase instance at that location
-		CSourcePhrase* spPtr = GetSrcPhrase(nSequNum);
-		wxASSERT(spPtr != NULL);
+		// Use the saved parameters to reestablish the last active location
+		pApp->m_pActivePile = pView->GetPile(pApp->m_vertEdit_LastActiveSequNum);
+		wxASSERT(pApp->m_pActivePile != NULL);
+		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		wxASSERT(pSrcPhrase->m_nSequNumber == pApp->m_vertEdit_LastActiveSequNum);
+		// RestoreMode() has been called, so the GUI is back in the original state,
+		// and so gbIsGlossing and gbGlossingEnabled have their original values again
+		// and m_targetPhrase and m_pTargetBox are restored to the values this present
+		// location should have, so insert them into pSrcPhrase now, depending on mode
 		if (gbIsGlossing)
 		{
-			pApp->m_targetPhrase = spPtr->m_gloss;
+			pSrcPhrase->m_gloss = pApp->m_targetPhrase; // or m_vertEdit_LastActiveLoc_Gloss
+			wxASSERT(pApp->m_vertEdit_LastActiveLoc_Gloss == pApp->m_targetPhrase);
 		}
 		else
 		{
-			pApp->m_targetPhrase = spPtr->m_adaption;
+			pSrcPhrase->m_adaption = pApp->m_targetPhrase; // or m_vertEdit_LastActiveLoc_Adaptation
+			wxASSERT(pApp->m_vertEdit_LastActiveLoc_Adaptation == pApp->m_targetPhrase);
 		}
-		translation.Empty();
 	}
 	else
 	{
-		// clear, and do a lookup below instead
-		translation.Empty();
-		pApp->m_targetPhrase.Empty();
-		bOldIsOK = FALSE;
-	}
-
-	// now set up the phrase box
-	pApp->m_nActiveSequNum = nSequNum; // needed, as a test for m_nActiveSequNum
-				// < 0 done internally will have box placement skipped if we get
-				// here and it is -1
-	pApp->m_pActivePile = GetPile(nSequNum);
-	bool bFoundSomething = FALSE;
-	if (!bOldIsOK)
-	{
-		if (!pRec->bGlossingModeOnEntry)
+		// We'll have to resort to a hack, that is, the fallback location. It probably
+		// won't be the last active location (except if restoring from free trans mode,
+		// where the active location stays stuck to the anchor pile)
+		pApp->m_pActivePile = pView->GetPile(nSequNum);
+		wxASSERT(pApp->m_pActivePile != NULL);
+		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		// Our job now is to ignore the saved parameters on the app, and instead
+		// set m_targetPhrase and m_pTargetBox contents to agree with what is on
+		// pSrcPhrase. It should be safe to assume that the fallback location is
+		// not in a retranslation in adapting mode, since the app won't allow that
+		// for any vertical edit step in adapting mode (glossing mode allows it though)
+		if (gbIsGlossing)
 		{
-			if (pApp->m_pActivePile->GetSrcPhrase()->m_adaption.IsEmpty())
-				bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
-			if (bFoundSomething)
-			{
-				pApp->m_targetPhrase = translation;
-			}
-			else
-			{
-				translation = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
-				pApp->m_targetPhrase = translation;
-			}
+			pApp->m_targetPhrase = pSrcPhrase->m_gloss;
+			pApp->m_pTargetBox->ChangeValue(pSrcPhrase->m_gloss);
 		}
 		else
 		{
-			// it was glossing mode on entry
-			if (pApp->m_pActivePile->GetSrcPhrase()->m_gloss.IsEmpty())
-				bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
-			if (bFoundSomething)
-			{
-				pApp->m_targetPhrase = translation;
-			}
-			else
-			{
-				translation = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
-				pApp->m_targetPhrase = translation;
-			}
+			pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+			pApp->m_pTargetBox->ChangeValue(pSrcPhrase->m_adaption);
 		}
 	}
+
 #ifdef _NEW_LAYOUT
 	//pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
 	// BEW 20Jan11, need to recreate the strips on Restoration because there will have
@@ -25084,193 +25412,6 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode(bool bCalledFromOnVerticalEdi
 		wxLogDebug(_T("RestoreBoxOnFinishVerticalMode(), location - at end of function: PhraseBox contents:     %s"), pApp->m_pTargetBox->GetValue());
 #endif
 }
-
-/* Old version saved here, new one is rewritten above by BEW on 21Nov12
-void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
-{
-	EditRecord* pRec = &gEditRecord;
-	CAdapt_ItApp* pApp = &wxGetApp();
-
-    // when this function is called, the original pre-Vertical Edit Process mode (either
-    // glossing or adapting) will have been restored, but the gEditRecord has not yet been
-    // initialized so as to clear it; so use its contents to work out where the active
-    // location should be put
-	int nSequNum = pRec->nSaveActiveSequNum; // original location
-	bool bOriginalLocationWithinSpan = FALSE;
-	if (!gbIsGlossing)
-	{
-		// we are in adapting mode
-		if (pRec->nAdaptationStep_NewSpanCount != 0)
-		{
-			if (nSequNum >= pRec->nAdaptationStep_StartingSequNum &&
-				nSequNum <= pRec->nAdaptationStep_EndingSequNum)
-			{
-				bOriginalLocationWithinSpan = TRUE;
-			}
-		}
-	}
-	else
-	{
-		// we are in glossing mode
-		if (pRec->nAdaptationStep_NewSpanCount != 0)
-		{
-			if (nSequNum >= pRec->nGlossStep_StartingSequNum &&
-				nSequNum <= pRec->nGlossStep_EndingSequNum)
-			{
-				bOriginalLocationWithinSpan = TRUE;
-			}
-		}
-	}
-
-    // now we attempt to find a safe final active location; and it can be within a
-    // retranslation if we are restoring glossing mode, but not if we are restoring
-    // adapting mode; vertical edit in MFC legacy app is only available from a Source Text
-    // Edit, and it is not possible to do that from free translations mode, so we know we
-    // are not restoring to the latter mode (**** NOT TRUE for wxWidgets *** where
-    // eventually vert edit will be available in any mode except when collecting back
-    // translations -- in that case extend this function to handle those extra options)
-	CSourcePhrase* pSrcPhrase = NULL;
-	CSourcePhrase* pOldSrcPhrase = NULL;
-	if (!gbIsGlossing)
-	{
-		// adapting mode was on when the user first entered the edit process
-		// & is now back on
-		if (bOriginalLocationWithinSpan || pRec->nAdaptationStep_NewSpanCount == 0)
-		{
-            // the original location was either within the (non-empty) span, or the span is
-            // now empty because the user deleted all of its CSourcePhrase instances - in
-            // which case the old sequence number at entry would now be somewhere in the
-            // context or even possibly beyond the end of the document, so we have to look
-            // carefully for a suitable place to rebuild the box -- it could be within a
-            // retranslation, so find a safe place to put the box
-			if (nSequNum > pApp->GetMaxIndex())
-			{
-				// the old location is beyond the end of the document, so initialize to the
-				// last CSourcePhrase instance in the document, and then check it is safe
-				nSequNum =  pApp->GetMaxIndex();
-			}
-			pSrcPhrase = GetSrcPhrase(nSequNum); // won't return NULL because the
-												 // CSourcePhrase at nSequNum we know exists
-			pOldSrcPhrase = pSrcPhrase; // in case we want to try again from same initial one
-			wxASSERT(pSrcPhrase != NULL);
-			if (pSrcPhrase->m_bRetranslation)
-			{
-                // this location is within a retranslation, and because of the possibility
-                // the edit span may be at the end of the document, we'll look for a safe
-                // location preceding the retranslation rather than following it
-				pSrcPhrase = GetPrevSafeSrcPhrase(pSrcPhrase);
-				if (pSrcPhrase == NULL)
-				{
-                    // we expect this never to happen, but if we can't find such a
-                    // location, try following the the retranslation
-					pSrcPhrase = pOldSrcPhrase;
-					pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase);
-					if (pSrcPhrase == NULL)
-					{
-						// unthinkable, but if it happens, violate rule about retranslations
-						// and put the box within it!
-						pSrcPhrase = pOldSrcPhrase;
-					}
-				}
-			}
-			// get the safe sequence number index
-			nSequNum = pSrcPhrase->m_nSequNumber;
-		}
-		else
-		{
-            // the original location, being outside the span, must already be a safe
-            // location, so do the restoration at nSequNum's location
-			;
-		}
-	}
-
-	// we now have the nSequNum at which we want to restore the box, so do it
-	// BEW 10Jan12, bug fix needed here - use GetSrcPhrase() and gbIsGlossing
-	// to find the appropriate text for the box, don't use the translation (wxString)
-	// global variable's value - it isn't guaranteed to contain the wanted string
-	bool bOldIsOK = TRUE;
-	if (nSequNum == pRec->nSaveActiveSequNum)
-	{
-		// the old location is still good, use it -- grab whatever is the
-		// appropriate text in the CSourcePhrase instance at that location
-		CSourcePhrase* spPtr = GetSrcPhrase(nSequNum);
-		wxASSERT(spPtr != NULL);
-		if (gbIsGlossing)
-		{
-			pApp->m_targetPhrase = spPtr->m_gloss;
-		}
-		else
-		{
-			pApp->m_targetPhrase = spPtr->m_adaption;
-		}
-		translation.Empty();
-	}
-	else
-	{
-		// clear, and do a lookup below instead
-		translation.Empty();
-		pApp->m_targetPhrase.Empty();
-		bOldIsOK = FALSE;
-	}
-
-	// now set up the phrase box
-	pApp->m_nActiveSequNum = nSequNum; // needed, as a test for m_nActiveSequNum
-				// < 0 done internally will have box placement skipped if we get
-				// here and it is -1
-	pApp->m_pActivePile = GetPile(nSequNum);
-	bool bFoundSomething = FALSE;
-	if (!bOldIsOK)
-	{
-		if (!pRec->bGlossingModeOnEntry)
-		{
-			if (pApp->m_pActivePile->GetSrcPhrase()->m_adaption.IsEmpty())
-				bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
-			if (bFoundSomething)
-			{
-				pApp->m_targetPhrase = translation;
-			}
-			else
-			{
-				translation = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
-				pApp->m_targetPhrase = translation;
-			}
-		}
-		else
-		{
-			// it was glossing mode on entry
-			if (pApp->m_pActivePile->GetSrcPhrase()->m_gloss.IsEmpty())
-				bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
-			if (bFoundSomething)
-			{
-				pApp->m_targetPhrase = translation;
-			}
-			else
-			{
-				translation = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
-				pApp->m_targetPhrase = translation;
-			}
-		}
-	}
-	CLayout* pLayout = GetLayout();
-#ifdef _NEW_LAYOUT
-	//pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-	// BEW 20Jan11, need to recreate the strips on Restoration because there will have
-	// been piles replaced and possibly some created in order to restore the original
-	// state, and they will still have default value for m_pOwningStrip of NULL, and that
-	// will cause a crash unless the strips are rebuilt so as to be synched to whatever
-	// pile array was reestablished
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#else
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum); // BEW added 12June09
-
-	pLayout->m_docEditOperationType = vert_edit_exit_op;
-    // call Invalidate() in the caller, which is OnCustomEventEndVerticalEdit() & that is
-    // the only place in the application where RestoreBoxOnFinishVerticalMode() is called
-}
-*/
 
 // public accessor
 void CAdapt_ItView::EditSourceText(wxCommandEvent& event)
@@ -25446,6 +25587,10 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 				// starting type for this vertical edit
 	gEditStep = sourceTextStep; // indicate that editing of source text is the
 				// current step within the vertical edit process
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At A: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 	int nSaveSequNum = pSrcPhrase->m_nSequNumber; // save the sequ number of the
         // start of user's selection -- though we must update this value to a smaller value
@@ -25813,6 +25958,10 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 				wxExit();
 			pApp->LogUserAction(_T("Error from DeepCopySourcePhraseSublist() in OnEditSourceText()"));
 		}
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At B: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // work out if the subspan for back translations starts earlier, or ends later,
         // than the current bounds for the cancel span; if so, work out the new bounds
@@ -26119,6 +26268,10 @@ bailout:	pAdaptList->Clear();
 	RemoveSelection();
 
 	// The document's native structures are as yet still unchanged.
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At C: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
     // create the edit source text dialog; then prepare the preceding and following context
     // strings (we decline to display the SFM markup in the context strings, because we
@@ -26146,6 +26299,10 @@ bailout:	pAdaptList->Clear();
 								precedingSrc, followingSrc, precedingTgt, followingTgt);
 	dlg.m_preContext = precedingSrc;
 	dlg.m_follContext = followingSrc;
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At D: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 	// put up the Edit Source Text dialog's window
 	bool bMarkerSetsAreDifferent = FALSE;
@@ -26163,6 +26320,10 @@ bailout:	pAdaptList->Clear();
 
 		// treat the doc as dirty, regardeless of the outcome
 		pDoc->Modify(TRUE);
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At E: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // Before we do anything to the CSourcePhrase instances, we have to set up a
         // correct value for the chapter number used in the Document's member m_curChapter,
@@ -26246,6 +26407,10 @@ bailout:	pAdaptList->Clear();
 		bool bUnfilteringRequired = FALSE;  // a TRUE value that we are interested in
 		bMarkerSetsAreDifferent = AreMarkerSetsDifferent(strSource, strNewSrcText,
 										bUnfilteringRequired, bFilteringRequired);
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At F: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // Any unfiltering & filtering will be handled by the TokenizeTextString(), but it
         // doesn't necessarily handle required filtering completely because only the user's
@@ -26324,6 +26489,10 @@ bailout:	pAdaptList->Clear();
         //     BailOut() function uses this value to work out what needs to be done if
         //     there was a cancel, or a failure after the document has been modified
 		gbEditingSourceAndDocNotYetChanged = FALSE;
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At G: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // Before going further, we must replace the CSourcePhrase instances in the cancel
         // span with the modified ones in the modifications list. This is to ensure that
@@ -26390,6 +26559,10 @@ bailout:	pAdaptList->Clear();
 			pApp->LogUserAction(errStr);
 			goto exit;
 		}
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At H: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 		// do a while loop for looking at the pSrcPhrase instances after the
 		// replacements, in debug mode
@@ -26473,6 +26646,10 @@ bailout:	pAdaptList->Clear();
 		}
 		// note, we must set gpFollSrcPhrase because our later DoMarkerHousekeeping() call
 		// uses it internally
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At I: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 		// now get the preceding CSourcePhrase's pointer (ie. preceding the editable span),
 		// it could be NULL if we edited right at the start of the doc
@@ -26639,6 +26816,10 @@ bailout:	pAdaptList->Clear();
 		if (gbPropagationNeeded)
 			pRec->bSpecialText = gbSpecialText; // update the EditRecord,
 												// to keep everything straight
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At J: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // do any forward propagation, halting at the first CSourcePhrase in the following
         // context which has the member flag m_bFirstOfType set TRUE (Note; so far, nothing
@@ -26719,6 +26900,10 @@ bailout:	pAdaptList->Clear();
 		int nFinishAt = pRec->nEndingSequNum;
 		TransferCompletedSrcPhrases(pRec,&pRec->editableSpan_NewSrcPhraseList,
 									pSrcPhrases,nBeginAt,nFinishAt);
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At K: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // get a new valid starting pile pointer for the inserted new source text --
         // because for a source text edit, this is where the active location needs to be
@@ -26803,6 +26988,10 @@ bailout:	pAdaptList->Clear();
 				goto exit;
 			}
 		}
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At L: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
         // the restoration of markers did not attend to making sure every Note recreated
         // has its parent CSourcePhrase's m_bHasNote boolean set TRUE. We do that check now
@@ -26872,6 +27061,10 @@ bailout:	pAdaptList->Clear();
 		}
 
 		// prepare for next step, eg, combobox etc
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At M: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 		// post the custom event for adaptations step of the vertical edit, or for the
 		// glossing step, depending on the user's preference (I want return immediately,
@@ -26920,6 +27113,10 @@ bailout:	pAdaptList->Clear();
 		pApp->m_pTargetBox->SetSelection(-1,-1); // select it all
 		pApp->LogUserAction(_T("Cancelled from OnEditSourceText()"));
 	}
+#if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
+	wxLogDebug(_T("OnEditSourceText() At N: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 	// delay cancel cleanup to here, as the restoration of the view needed
 	// to use the pRec values which are to be initialized here
@@ -28486,7 +28683,7 @@ void CAdapt_ItView::ToggleGlossingMode()
 			if (!pApp->m_bFreeTranslationMode)
 			{
 				bAllsWell = PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
-				bAllsWell = bAllsWell; // avoid warning (it can return FALSE, in which
+				wxUnusedVar(bAllsWell); // avoid warning (it can return FALSE, in which
 									   // case the Combobox is empty - we can tolerate that)
 			}
 		}
@@ -28500,7 +28697,7 @@ void CAdapt_ItView::ToggleGlossingMode()
 			if (!pApp->m_bFreeTranslationMode)
 			{
 				bAllsWell = PopulateRemovalsComboBox(glossesStep, &gEditRecord);
-				bAllsWell = bAllsWell; // avoid warning (it can return FALSE, in which
+				wxUnusedVar(bAllsWell); // avoid warning (it can return FALSE, in which
 									   // case the Combobox is empty - we can tolerate that)
 			}
 		}
@@ -29573,8 +29770,41 @@ void CAdapt_ItView::OnUpdateButtonNextStep(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
+// BEW refactored 19Oct15 to support the better way of exiting vertical edit
 void CAdapt_ItView::OnButtonNextStep(wxCommandEvent& WXUNUSED(event))
 {
+	// BEW added 19Oct15, for refactored vert edit ending - the info
+	// saved on the app instance needs to be used here to configure
+	// the active CSourcePhrase instance at ending time.
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItView* pView = pApp->GetView();
+	pApp->m_pActivePile = pView->GetPile(pApp->m_vertEdit_LastActiveSequNum);
+	wxString phraseboxContents = pApp->m_pTargetBox->GetValue();
+	pApp->m_pTargetBox->m_bAbandonable = FALSE;
+	pApp->m_targetPhrase = phraseboxContents;
+	bool bGlossingWasON = gEditRecord.bGlossingModeOnEntry;
+	CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+	if (bGlossingWasON)
+	{
+		pSrcPhrase->m_gloss = phraseboxContents;
+	}
+	else
+	{
+		pSrcPhrase->m_adaption = phraseboxContents;
+	}
+	// And the handler for wxEVT_END_VERTICAL_EDIT requires the following
+	// be set (m_vertEdit_LastActiveSequNum omitted as it is set already
+	// by the process of getting the active location where it is now)
+	if (bGlossingWasON)
+	{
+		pApp->m_vertEdit_LastActiveLoc_Gloss = phraseboxContents;
+	}
+	else
+	{
+		pApp->m_vertEdit_LastActiveLoc_Adaptation = phraseboxContents;
+	}
+	pApp->m_bVertEdit_WithinSpan = TRUE;
+
 	int sequNum = -1; // value not needed
 	bool bCustomMessageSent;
 	bCustomMessageSent = VerticalEdit_CheckForEndRequiringTransition(
@@ -29636,10 +29866,42 @@ void CAdapt_ItView::OnUpdateButtonEndNow(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
+// BEW refactored 19Oct15 to support the better way of exiting vertical edit
 void CAdapt_ItView::OnButtonEndNow(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	// instead of calling VerticalEdit_CheckForEndRequiringTransition(),
+	// BEW added 19Oct15, for refactored vert edit ending - the info
+	// saved on the app instance needs to be used here to configure
+	// the active CSourcePhrase instance at ending time.
+	CAdapt_ItView* pView = pApp->GetView();
+	pApp->m_pActivePile = pView->GetPile(pApp->m_vertEdit_LastActiveSequNum);
+	wxString phraseboxContents = pApp->m_pTargetBox->GetValue();
+	pApp->m_pTargetBox->m_bAbandonable = FALSE;
+	pApp->m_targetPhrase = phraseboxContents;
+	bool bGlossingWasON = gEditRecord.bGlossingModeOnEntry;
+	CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+	if (bGlossingWasON)
+	{
+		pSrcPhrase->m_gloss = phraseboxContents;
+	}
+	else
+	{
+		pSrcPhrase->m_adaption = phraseboxContents;
+	}
+	// And the handler for wxEVT_END_VERTICAL_EDIT requires the following
+	// be set (m_vertEdit_LastActiveSequNum omitted as it is set already
+	// by the process of getting the active location where it is now)
+	if (bGlossingWasON)
+	{
+		pApp->m_vertEdit_LastActiveLoc_Gloss = phraseboxContents;
+	}
+	else
+	{
+		pApp->m_vertEdit_LastActiveLoc_Adaptation = phraseboxContents;
+	}
+	pApp->m_bVertEdit_WithinSpan = TRUE;
+	
+	// Instead of calling VerticalEdit_CheckForEndRequiringTransition(),
 	// just post the required message immediately
 	wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
 	wxPostEvent(pApp->GetMainFrame(), eventCustom); // the event handlers

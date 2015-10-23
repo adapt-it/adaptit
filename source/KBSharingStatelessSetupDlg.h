@@ -9,7 +9,7 @@
 /// \description	This is the header file for the KBSharingStatelessSetupDlg class.
 /// The KBSharingStatelessSetupDlg class provides an authentication dialog for KB sharing, in a
 /// context where no connection to any local KB is wanted, and the username can be anyone
-/// listed for the kbserver with given url. Authentication is that kind of context - so it
+/// listed for the KBserver with given url. Authentication is that kind of context - so it
 /// just wants to use a "stateless" KbServer instance for the services it provides for the
 /// authentication operation.
 /// We provided a boolean param when instantiating, because when used to set up computer
@@ -55,7 +55,7 @@ public:
 	// open (just the adapting one will do) in order to get access to it's methods and the
 	// stateless storage - i.e. wxString stateless_username, etc. And also 3 strings for
 	// storing url, username, and password when running stateless, so that the person
-	// using the Manager dialog can be accessing any kbserver accessible to him and in which
+	// using the Manager dialog can be accessing any KBserver accessible to him and in which
 	// he's a listed user, without impinging on any other setup resulting from the similar
 	// class, KBSharingSetupDlg. 
 	bool m_bStateless;
@@ -64,7 +64,7 @@ public:
 	wxString m_strStatelessPassword;
 	KbServer* m_pStatelessKbServer;
 	bool m_bUserIsAuthenticating; // TRUE if computer owner is authenticating, FALSE if some other
-								  // person known to the kbserver is doing so
+								  // person known to the KBserver is doing so
 
 	// other methods
 

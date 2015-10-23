@@ -9,11 +9,11 @@
 /// \description	This is the implementation file for the KBSharingStatelessSetupDlg class.
 /// The KBSharingStatelessSetupDlg class provides a dialog for turning on KB sharing, in a
 /// context where no connection to any local KB is wanted, and the username can be anyone
-/// listed for the kbserver with given url.
+/// listed for the KBserver with given url.
 /// The dialog is not used in the legacy way, but rather as stateless, when
 /// authenticating someone-or-other (an administrator typically) to use
 /// the Knowledge Base Sharing Manager GUI - available from the Administrator menu, to
-/// add,edit or remove users of the kbserver, and/or add or edit definitions for shared
+/// add,edit or remove users of the KBserver, and/or add or edit definitions for shared
 /// KBs, etc. A flag m_bStateless is always TRUE when this class is instantiated.
 /// Note: This stateless instantiation creates a stateless instance of KbServer on the
 /// heap, in the creator, and deletes it in the destructor. This instance of KbServer
@@ -126,7 +126,7 @@ void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	wxString otherLabel = _("This is your unique username");
 	if (m_bUserIsAuthenticating)
 	{
-		// Flag is TRUE, so user is authenticating and user is an owner of this kbserver
+		// Flag is TRUE, so user is authenticating and user is an owner of this KBserver
 		m_pUsernameLabel->SetLabel(otherLabel);
 	}
 	else
@@ -224,10 +224,10 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 		{
 			wxString msg = _("The username text box is empty, and it is read-only, so you cannot type into it.\nCancel now, then go to the Edit menu and click Change Username.\nAfter you have setup your unique username there, retry setting up knowledge base sharing.");
 			wxString title = _("Setup correct unique username");
-		wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+			wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 			return; // return to the active dialog window, he can then type Cancel and
 					// follow the above instruction & retry after that
-	}
+		}
 	}
 	else
 	{
@@ -244,7 +244,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 	// Manager gui
 	if (!m_bUserIsAuthenticating)
 	{
-	m_strStatelessUsername = strUsername;
+		m_strStatelessUsername = strUsername;
 	}
 #if defined(_DEBUG)
 		wxLogDebug(_T("KBSharingSetupDlg.cpp strUsername = %s"), strUsername.c_str());
@@ -281,10 +281,10 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			bool bUserIsValid = CheckForValidUsernameForKbServer(strURL, m_saveOldUsernameStr, pwd);
 			if (!bUserIsValid)
 			{
-				// Username is unknown to the kbserver. Setup of sharing won't be turned
+				// Username is unknown to the KBserver. Setup of sharing won't be turned
 				// on until a valid username is supplied
 				m_pApp->LogUserAction(_T("Trying to authenticate, but user unknown to server; in OnOK() of KBSharingStatelessSetupDlg.cpp"));
-				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou are unable to turn on sharing until this is fixed.\nPerhaps ask your server administrator to help you. Click Cancel to continue working.\nYou can use the Edit menu item Change Username... to set a different one.");
+				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nOr, perhaps more likely, you simply forgot to start the KBserver running before you supplied the needed password.\nYou are unable to turn on sharing until the problem is fixed.\nPerhaps ask your server administrator to help you. Click Cancel to continue working.\nYou can use the Edit menu item Change Username... to set a different one.");
 				msg = msg.Format(msg, m_saveOldUsernameStr.c_str());
 				wxMessageBox(msg, _("Unknown username"), wxICON_WARNING | wxOK);
 				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
@@ -309,7 +309,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			m_strStatelessPassword = pwd; // store it publicly only in this class's instance
 										  // so that the stateless KbServer instance can access
 										  // it from the app's member of the same name
-										  // when it does kbserver transmissions
+										  // when it does KBserver transmissions
 #if defined(_DEBUG)
 		wxLogDebug(_T("KBSharingSetupDlg.cpp pwd = %s"), pwd.c_str());
 #endif
@@ -325,8 +325,8 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			if (!bUserIsValid)
 			{
 				// Access to the Manager GUI is denied to this user
-				m_pApp->LogUserAction(_T("Stateless Kbserver user is unknown; in OnOK() of KBSharingStatelessSetupDlg.cpp"));
-				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou are not permitted to access the Knowledge Base Sharing Manager dialog.\nAsk your kbserver administrator to do it for you. Click Cancel to continue working.");
+				m_pApp->LogUserAction(_T("Stateless KBserver user is unknown; in OnOK() of KBSharingStatelessSetupDlg.cpp"));
+				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nOr, perhaps more likely, you simply forgot to start the KBserver running.\nYou are not permitted to access the Knowledge Base Sharing Manager dialog.\nAsk your KBserver administrator to do it for you. Click Cancel to continue working.");
 				msg = msg.Format(msg, m_strStatelessUsername.c_str());
 				wxMessageBox(msg, _("Unknown username"), wxICON_WARNING | wxOK);
 				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet

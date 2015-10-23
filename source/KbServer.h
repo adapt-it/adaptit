@@ -8,7 +8,7 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the KbServer class.
 /// The KbServer class encapsulates the transport mechanism and client API functions for
-/// communicating with a kbserver located on a lan, a remote server on the web, or on a
+/// communicating with a KBserver located on a lan, a remote server on the web, or on a
 /// networked computer.
 /// \derivation		The KbServer class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
@@ -68,7 +68,7 @@ struct KbServerLanguage;
 // KbServer.cpp at line 73 and following. E.g. WX_DEFINE_LIST(LanguagesList); etc
 WX_DECLARE_LIST(KbServerEntry, DownloadsQueue);
 WX_DECLARE_LIST(KbServerEntry, UploadsList); // we'll need such a list in the app instance
-		// because kbserver upload threads may not all be finished when the two kbserver
+		// because KBserver upload threads may not all be finished when the two KBserver
 		// instances are released, and if they are not finished, then the KbServerEntry 
 		// structs they store will need to live on as long as possible
 WX_DECLARE_LIST(KbServerUser, UsersList); // stores pointers to KbServerUser structs for 
@@ -178,7 +178,7 @@ public:
 	// main thread before the containing thread is fired, and so the parameter accesses
 	// are synchronous and no mutex is required
 	
-	// The functions in this next block do the actual calls to the remote kbserver, they are
+	// The functions in this next block do the actual calls to the remote KBserver, they are
 	// public access because KBSharingStatelessSetupDlg will need to use several of them, as
 	// do other classes
 	int		 BulkUpload(int chunkIndex, // use for choosing which buffer to return results in
@@ -293,7 +293,7 @@ private:
 	wxString    m_httpStatusText; 
 
 	// the following 8 are used for setting up the https transport of data to/from the
-	// kbserver for a given KB type (their getters are further below)
+	// KBserver for a given KB type (their getters are further below)
 	wxString	m_kbServerURLBase;
 	wxString	m_kbServerUsername; // typically the email address of the user, or other unique identifier
 	wxString	m_kbServerPassword; // we never store this, the user has to remember it
@@ -329,7 +329,7 @@ public:
 	// password and username - and those will get stored in the relevant places in the ptr to the
 	// "stateless" KbServer ptr instance which, for example, the Manager points at with its
 	// m_pKbServer member. So then the getters below will get the stateless strings, and that means
-	// any user settings for access to a kbserver instance, whether same one or not, won't get 
+	// any user settings for access to a KBserver instance, whether same one or not, won't get 
 	// clobbered by some administrator person accessing the KB Sharing Manager from the user's machine.
 	wxString	GetKBServerURL();
 	wxString	GetKBServerUsername();
@@ -374,11 +374,11 @@ private:
 	// For use in full KB uploads
 	UploadsMap		m_uploadsMap;
 
-	// For use when listing all the user definitions in the kbserver
+	// For use when listing all the user definitions in the KBserver
 	UsersList       m_usersList;
-	// For use when listing all the kb definitions in the kbserver
+	// For use when listing all the kb definitions in the KBserver
 	KbsList         m_kbsList;
-	// For use when listing all the custom language definitions in the kbserver
+	// For use when listing all the custom language definitions in the KBserver
 	LanguagesList   m_languagesList;
 
 

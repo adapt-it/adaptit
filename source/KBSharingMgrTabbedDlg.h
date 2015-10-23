@@ -8,7 +8,7 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the KBSharingMgrTabbedDlg class.
 /// The KBSharingMgrTabbedDlg class provides a dialog with tabbed pages in which an
-/// appropriately authenticated user/manager of a remote kbserver installation may add,
+/// appropriately authenticated user/manager of a remote KBserver installation may add,
 /// edit or remove users stored in the user table of the mysql server, and/or add or
 /// remove knowledge base definitions stored in the kb table of the mysql server.
 /// \derivation		The KBSharingMgrTabbedDlg class is derived from AIModalDialog.

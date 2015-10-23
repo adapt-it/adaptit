@@ -6904,7 +6904,17 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 					m_pView->VerticalEdit_CheckForEndRequiringTransition(sn, nextStep);
 												// FALSE is bForceTransition
 				if (bCommandPosted)
+				{
 					return;
+				}
+				else
+				{
+					// BEW 19Oct15 save loc'n on the app instance
+					m_pApp->m_vertEdit_LastActiveSequNum = sn;
+#if defined(_DEBUG)
+					wxLogDebug(_T("VertEdit freeTrans OnAdvanceButton() storing loc'n: %d "), sn);
+#endif
+				}
 			}
 			m_pApp->m_pActivePile = pPile;
 			m_pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
@@ -7038,7 +7048,17 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 					m_pView->VerticalEdit_CheckForEndRequiringTransition(sn, nextStep);
 												// FALSE is bForceTransition
 				if (bCommandPosted)
+				{
 					return; // we've reached gray text, so step transition is wanted
+				}
+				else
+				{
+					// BEW 19Oct15 save loc'n on the app instance
+					m_pApp->m_vertEdit_LastActiveSequNum = sn;
+#if defined(_DEBUG)
+					wxLogDebug(_T("VertEdit freeTrans OnNextButton() storing loc'n: %d "), sn);
+#endif
+				}
 			}
 
 			m_pApp->m_pActivePile = pPile;
@@ -7514,6 +7534,14 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 					// make it 'stick' before returning
 					StoreFreeTranslationOnLeaving();
 					return;
+				}
+				else
+				{
+					// BEW 19Oct15 save loc'n on the app instance
+					m_pApp->m_vertEdit_LastActiveSequNum = pPrevPile->GetSrcPhrase()->m_nSequNumber;
+#if defined(_DEBUG)
+					wxLogDebug(_T("VertEdit freeTrans OnPrevButton() storing loc'n: %d "), pPrevPile->GetSrcPhrase()->m_nSequNumber);
+#endif
 				}
 			}
 

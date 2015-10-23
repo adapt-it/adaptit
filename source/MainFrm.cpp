@@ -2716,13 +2716,13 @@ void CMainFrame::SetKBSvrPassword(wxString pwd)
 	m_kbserverPassword = pwd;
 }
 
-// The public function for getting a kbserver's password. We have it here because we want
+// The public function for getting a KBserver's password. We have it here because we want
 // to get it typed in only once - not twice (ie. not for the adapting KB's KbServer
 // instance and then again for the glossing KB's KbServer instance)
 wxString CMainFrame::GetKBSvrPasswordFromUser()
 {
-	wxString msg = _T("Type the knowledge base server's password.\nYou should have received it from your administrator.\nWithout the correct password, sharing your knowledge base data\nwith others cannot happen, nor can they share theirs with you.");
-	wxString caption = _T("Type the server's password");
+	wxString msg = _("Type the knowledge base server's password.\nYou should have received it from your administrator.\nWithout the correct password, sharing your knowledge base data\nwith others cannot happen, nor can they share theirs with you.");
+	wxString caption = _("Type the server's password");
 	wxString default_value = _T("");
 #if defined(_DEBUG) && defined(AUTHENTICATE_AS_BRUCE) // see top of Adapt_It.h
 	// Simplify my life during development
@@ -2745,8 +2745,6 @@ wxString CMainFrame::GetKBSvrPasswordFromUser()
 		// entered, so the user can either Cancel from there, or change url, or change 
 		// the username
 		gpApp->LogUserAction(_T("GetPasswordFromUser(): No password was entered; returning to previous dialog where use can change url or username, or cancel the setup"));
-
-
 	}
 	return password;
 }
@@ -3241,6 +3239,22 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 	// Call the App's MakeMenuInitializationsAndPlatformAdjustments() to made the
 	// Administrator menu visible/hidden and verify its toggle state
 	pApp->MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
+#if !defined(_KBSERVER)
+	{
+		// If not a _KBSERVER build, disable the Knowledge Base Sharing Manager menu command
+		// on Administrator menu (at bottom)
+		if (pApp->m_bShowAdministratorMenu)
+		{
+			// Don't call this code when the menu has just been hidden - that would crash
+			// the app since the menu is then not available, hence this test
+			wxMenuBar* pMenuBar = GetMenuBar();
+			int nAdminMenu = pMenuBar->FindMenu(_T("Administrator"));
+			wxMenu* pAdminMenu = pMenuBar->GetMenu(nAdminMenu);
+			wxMenuItem* pShareMgrMenuItem = pAdminMenu->FindItem(ID_MENU_KBSHARINGMGR,&pAdminMenu);
+			pShareMgrMenuItem->Enable(FALSE);
+		}
+	}
+#endif
 }
 
 
@@ -4386,7 +4400,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 #if defined(_KBSERVER)
 
-	// TODO -- code for cached new kbserver entries to be sent to remote server
+	// TODO -- code for cached new KBserver entries to be sent to remote server
 	KbServer* pKbSvr = NULL;
 	CKB* pKB = NULL;
 	if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
@@ -4443,7 +4457,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 					}
 				}
 				return; // only do this thread on one OnIdle() call, subsequent OnIdle() calls
-						// can attempt the additional kbserver actions in the code below
+						// can attempt the additional KBserver actions in the code below
 			}
 			else
 			{
@@ -4667,6 +4681,10 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 	// of the frame window class
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnCustomEventAdaptationsEdit() gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -5400,6 +5418,8 @@ void CMainFrame::OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(ev
 // to the window event loop by a wxPostEvent() call
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+// All steps are tried, but only if the pRec boolean bEditSpanHasGlosses
+// having a TRUE value results in something being done & user seeing the mode's view
 void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// glosses updating is potentially required
@@ -5407,6 +5427,10 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 	// of the frame window class
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnCustomEventGlossesEdit() gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 	CAdapt_ItView* pView = gpApp->GetView();
 	wxASSERT(pView != NULL);
@@ -6072,6 +6096,10 @@ cancel:		;
 // sent to the window event loop by a wxPostEvent call
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+// All steps are tried, but only if the pRec boolean bEditSpanHasFreeTranslations
+// having a TRUE value results in something being done & user seeing the mode's view
+// All steps are tried, but only if the pRec boolean bEditSpanHasAdaptations
+// having a TRUE value results in something being done & user seeing the mode's view
 void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// free translations updating is potentially required
@@ -6079,6 +6107,10 @@ void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(even
 	// of the frame window class
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnCustomEventFreeTranslationsEdit() 1. gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 
 	CAdapt_ItView* pView = gpApp->GetView();
 
@@ -6624,6 +6656,10 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
                     // set up (it is done once only, see above)
 					pRec->bFreeTranslationStepEntered = TRUE;
 
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnCustomEventFreeTranslationsEdit() 2. gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 					if (bShowGUI)
 					{
 						// populate the combobox with the required removals data for
@@ -6725,12 +6761,18 @@ cancel:		;
 			return;
 		}
 	}
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnCustomEventFreeTranslationsEdit() 3. gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+#endif
 }
 
 // The following is the handler for a CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT event message, sent
 // to the window event loop by a PostMessage(CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT,0,0) call
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+// All steps are tried, but only if the pRec boolean bEditSpanHasBackTranslations
+// having a TRUE value results in something being done
 void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItView* pView = gpApp->GetView();
@@ -6782,6 +6824,26 @@ void CMainFrame::OnCustomEventSplitIt(wxCommandEvent& WXUNUSED(event))
 
 /// BEW 26Mar10, no changes needed for support of doc version 5
 /// BEW 9July10, no changes needed for support of kbVersion 2
+// All steps are tried, but only if the pRec booleans of type bEditSpanHasXXXXX
+// having a TRUE value results in something being done & user seeing that mode's 
+// view. It's normal therefore for gEditStep to be 4 or maybe even 5 when
+// control enters here; gEditStep tracks the modes which were entered to be tried
+// but it does not imply something significant happened in any given mode
+// BEW 19Oct15, pRec->pOldActiveSrcPhrase will be garbage after the edit dlg
+// is done, so we need to refactor to save the last active location's sequ
+// num, the adaptation or gloss there (depending on gIsGlossing), and the
+// bool value of DoConditionalStore()'s bWithinSpan value, all on the app
+// class as public members, and then the RestoreBoxOnFinishVerticalMode()
+// below, and subsequent function calls after it, can use those values to
+// work out where to put the phrasebox. If the span is not a kosher place
+// in which to locate the active pile (the user edit may have wiped it out)
+// then resort to pRec->nEndingSequNum (which is the sequ num of the former
+// span's leftmost pile) as the active location (it must exist), and since
+// putting the box there is a hack, make sure that m_pTargetBox's contents
+// are reset to whatever is that pile's adaptation (or gloss if glossing
+// mode is current) - otherwise the wrong value would be in the phrasebox
+// when all is done.
+// BEW refactored 19Oct15 to support the better way of exiting vertical edit
 void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -6789,6 +6851,18 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 	CLayout* pLayout = gpApp->m_pLayout;
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	wxASSERT(pFreeTrans != NULL);
+
+	// Get from the app the various phrasebox and sequ num location params
+	// needed for restoring the original state
+	int nLastActiveSequNum = gpApp->m_vertEdit_LastActiveSequNum;
+	wxASSERT(nLastActiveSequNum >= 0 && nLastActiveSequNum <= gpApp->GetMaxIndex());
+	wxString strLastBoxContents;
+
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnCustomEventEndVerticalEdit() gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
+		(int)gEditStep);
+	wxLogDebug(_T("OnCustomEventEndVerticalEdit() nLastActiveSequNum = %d"), nLastActiveSequNum);
+#endif
 
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
@@ -6838,6 +6912,14 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 			pFreeTrans->ToggleFreeTranslationMode();
 		}
 
+		// Restore the saved pile location to being active - it should not be NULL
+		// (DoConditionalStore() below, needs it to be set)
+		gpApp->m_pActivePile = pView->GetPile(nLastActiveSequNum);
+		wxASSERT(gpApp->m_pActivePile != NULL);
+#if defined(_DEBUG)
+		wxLogDebug(_T("OnCustomEventEndVerticalEdit() m_pActivePile = %x"), gpApp->m_pActivePile);
+#endif
+
 		// hide the toolbar with the vertical edit process control buttons and user message,
 		// and make it show-able
 		if (m_pVertEditBar->IsShown())
@@ -6849,6 +6931,68 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		{
 			m_pRemovalsBar->Hide();
 		}
+
+		// Restoration of the original mode is done later, but we need to get either the
+		// gloss or the adaptation which should be in m_pTargetBox and m_targetPhrase - we
+		// can do that using values stored in the EditRecord; also set whichever of
+		// app's m_vertEdit_LastActiveLoc_Adaptation or m_vertEdit_LastActiveLoc_Gloss
+		// is appropriate for the original mode (adapting, or glossing mode)
+		CSourcePhrase* pSrcPhrase = gpApp->m_pActivePile->GetSrcPhrase();
+		if (pSrcPhrase != NULL)
+		{
+			if (gEditRecord.bGlossingModeOnEntry)
+			{
+				// We need to grab the source phrase's m_gloss value
+				strLastBoxContents = pSrcPhrase->m_gloss;
+				gpApp->m_vertEdit_LastActiveLoc_Gloss = strLastBoxContents;
+#if defined(_DEBUG)
+				wxLogDebug(_T("OnCustomEventEndVerticalEdit() m_pTargetBox contents set to: %s  (a gloss)"), 
+					strLastBoxContents.c_str());
+#endif
+			}
+			else
+			{
+				// We need to grab the source phrase's m_adaption value
+				strLastBoxContents = pSrcPhrase->m_adaption;
+				gpApp->m_vertEdit_LastActiveLoc_Adaptation = strLastBoxContents;
+#if defined(_DEBUG)
+				wxLogDebug(_T("OnCustomEventEndVerticalEdit() m_pTargetBox contents set to: %s  (an adaption)"), 
+					strLastBoxContents.c_str());
+#endif
+			}
+			gpApp->m_targetPhrase = strLastBoxContents;
+			gpApp->m_pTargetBox->ChangeValue(strLastBoxContents);
+		}
+		else
+		{
+			gpApp->m_targetPhrase.Empty();
+			gpApp->m_pTargetBox->ChangeValue(_T(""));
+		}
+		// Make sure the box contents is not abandonable
+		gpApp->m_pTargetBox->m_bAbandonable = FALSE;
+
+		// The 'see glosses' choice may be on or off, and glossing mode on or off, originally
+		// so set the appropriate values on the app so that other functions can grab them
+		if (gEditRecord.bGlossingModeOnEntry)
+		{
+			gpApp->m_bVertEdit_IsGlossing = TRUE;
+		}
+		else
+		{
+			gpApp->m_bVertEdit_IsGlossing = FALSE;
+		}
+		if (gEditRecord.bSeeGlossesEnabledOnEntry)
+		{
+			gpApp->m_bVertEdit_SeeGlosses = TRUE;
+		}
+		else
+		{
+			gpApp->m_bVertEdit_SeeGlosses = FALSE;
+		}
+#if defined(_DEBUG)
+		wxLogDebug(_T("OnCustomEventEndVerticalEdit() SeeGlosses: %d   IsGlossing: %d"), 
+					(int)gpApp->m_bVertEdit_SeeGlosses, (int)gpApp->m_bVertEdit_IsGlossing);
+#endif
 
         // typically, the user will have entered text in the phrase box, and we don't want
         // it lost at the restoration of the original mode; while we can't be sure there

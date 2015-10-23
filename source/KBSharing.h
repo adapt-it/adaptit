@@ -32,6 +32,8 @@ public:
 	wxButton*		m_pBtnGetAll;
 	wxRadioBox*		m_pRadioBox;
 	wxSpinCtrl*		m_pSpinReceiving;
+	bool			bKBSharingEnabled;
+	bool			bSaveKBSharingEnabled;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

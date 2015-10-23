@@ -1,9 +1,8 @@
 ----------------------------------------------
-Version 6.6.2 release ?? ?? 2015
+Version 6.6.4 release 15 October 2015
 ----------------------------------------------
-
 ----------------------------------------------
-Feature changes and new features in 6.6.2
+Feature changes and new features in 6.6.4
 ----------------------------------------------
 * A new checkbox was added to the Consistency Check
 Type dialog. "Do blind fixes whenever possible". When
@@ -32,14 +31,53 @@ you press the button. Now, this question box will appear
 only three times for every KB Editor session. (It got to
 be nuisance to have to dismisss it hundreds of times if
 you edited hundreds of KB entries.)
+* The "Save To Knowledge Base" checkbox, if the user ticks
+it at a location where it was unticked, Adapt It now asks
+the user if he wants all locations with that "not in knowledge
+base" entry in all documents reverted to being "in knowledge
+base". If the user reponds with a Yes, the restoration is
+done on all documents. If such a location has no adaptation
+text, then an empty <no adaptation> entry is added to the
+knowledge base at each relevant location.
 
 ----------------------------------------------
+Bug fixes in 6.6.4 release 15 October 2015
+----------------------------------------------
+* Fixed a bug in collaboration mode, in which
+filtered information (such as a free translation)
+wrongly was retained in an export of the adaptation
+text, and that led to a crash.
+* Fixed a bug in collaboration mode caused by 
+differences between the source text as exported
+from Adapt It, and the source text obtained from
+the Paratext source text project. It led to a crash.
+Note: The following bugs were fixed in versions 6.6.2 and 
+6.6.3 which were release only on Linux and are now fixed on
+Windows:
+* Restoring an earlier document snapshot to being the current
+document failed to re-enable to two checkboxes: Save To
+Knowledge Base, and, Force Choice For This Item.
+* If a Find Next search was being done, and the phrasebox 
+landed at a location where the checkbox "Save To Knowledge
+Base" had been turned off (ie. the checkbox should have no
+tick), the checkbox wrongly showed a tick. Now it has been
+fixed to show the value synced correctly - that is, it will be
+shown unticked in that circumstance.
+* Collaboration: it was possible for the transfer of the 
+translation text to Paratext to fail if the Adapt It document's
+source text had a different number of USFM markers than did
+the Paratext project's source text.
+
+----------------------------------------------
+
 Version 6.6.1 release 29 August 2015
+
 ----------------------------------------------
 
 ----------------------------------------------
 Feature changes and new features in 6.6.1
 ----------------------------------------------
+
 * One small addition to the conflict resolution
 pair of dialogs, used when collaborating with Paratext
 or Bibledit. A checkbox: "Turn off conflict resolution.
@@ -65,6 +103,7 @@ conflicted verse.
 
 ----------------------------------------------
 Version 6.6.0 release 12 August 2015
+
 ----------------------------------------------
 
 ----------------------------------------------
@@ -191,9 +230,9 @@ type a / between each word, whenever typing text which is
 intended to be displayed as if there were no word separations.
 * Support for ZWSP was (deliberately) omitted for exports
 of the glosses 'as if they were connected text'. But it
-has now been included. This means it will also work with
-the use of solidus (the / forward slash) as a word-break
-character.
+has now been included. This means glossing mode will also
+work with the use of solidus (the / forward slash) as a 
+word-break character.
 * The View tab of Preferences had a new interlinear display
 configuration item:
 "Minimum pile width (in pixes, min5, max 40)" and a textbox
