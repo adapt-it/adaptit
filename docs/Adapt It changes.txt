@@ -1,10 +1,11 @@
-
 ----------------------------------------------
-Version 6.?.? (or 7.0.0) release ?? month 2015
+Feature changes and new features in ?.?.?
 ----------------------------------------------
-----------------------------------------------
-Feature changes and new features in ????
-----------------------------------------------
+* The tooltip in the Choose Translation dialog, and also
+those in the two listboxes in the KB Editor's 10 panes, 
+were nuisances - obscuring the list contents. The effect
+was particularly bad in Ubuntu, with its solid black
+background to the tooltip. So I removed them.
 
 ----------------------------------------------
 Bug fixes in ??? release ?? month ???
