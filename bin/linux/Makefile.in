@@ -435,7 +435,10 @@ docStart_DATA = $(wildcard $(srcdir)/../../docs/Images/Adapt_It_Quick_Start/*)
 htmlhelpdir = $(pkgdatadir)/help
 htmlhelp_DATA = adaptit.htb
 docFiledir = $(pkgdatadir)/help
-docFile_DATA = ../../docs/Localization_Readme.txt
+docFile_DATA = ../../docs/Localization_Readme.txt \
+	../../docs/Tok_Pisin_fragment_1John.txt \
+	../../docs/KJV_1Jn_2.12-17.txt
+
 
 #
 # the application source, library search path, and link libraries
