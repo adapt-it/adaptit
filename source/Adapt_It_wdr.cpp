@@ -141,7 +141,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("Built with wxWidgets version"), wxDefaultPosition, wxDefaultSize, 0 );
     item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item29 = new wxStaticText( parent, ID_STATIC_WX_VERSION_USED, _("2.8.12"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item29 = new wxStaticText( parent, ID_STATIC_WX_VERSION_USED, _("3.x.x"), wxDefaultPosition, wxDefaultSize, 0 );
     item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item26->Add( item27, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -4108,7 +4108,6 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxString *strs10 = (wxString*) NULL;
     wxListBox *item10 = new wxListBox( parent, IDC_LIST_SRC_KEYS, wxDefaultPosition, wxSize(300,280), 0, strs10, wxLB_SINGLE|wxLB_SORT );
-    item10->SetToolTip( _("Source words or phrases that have existing translations in the knowledge base") );
     item9->Add( item10, 0, wxGROW|wxALL, 0 );
 
     item5->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -4130,7 +4129,6 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxString *strs15 = (wxString*) NULL;
     wxListBox *item15 = new wxListBox( parent, IDC_LIST_EXISTING_TRANSLATIONS, wxDefaultPosition, wxSize(-1,80), 0, strs15, wxLB_SINGLE );
-    item15->SetToolTip( _("Existing translation(s) for the source phrase selected in list at left") );
     item14->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item11->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -9263,7 +9261,6 @@ wxSizer *ChooseTranslationDlgFunc2( wxWindow *parent, bool call_fit, bool set_si
 
     wxString *strs7 = (wxString*) NULL;
     wxListBox *item7 = new wxListBox( parent, IDC_MYLISTBOX_TRANSLATIONS, wxDefaultPosition, wxDefaultSize, 0, strs7, wxLB_SINGLE );
-    item7->SetToolTip( _("List of translations currently in the knowledge base for the source text above") );
     item6->Add( item7, 1, wxGROW, 0 );
 
     item4->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
