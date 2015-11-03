@@ -1,3 +1,30 @@
+
+----------------------------------------------
+Version 6.?.? (or 7.0.0) release ?? month 2015
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in ????
+----------------------------------------------
+
+----------------------------------------------
+Bug fixes in ??? release ?? month ???
+----------------------------------------------
+* The built-in source text parser misparsed:
+word.<space>"word (where a straight doublequote is supposed
+to be the opening quote of the second word, to have the
+three characters .<space>" as final punctuation on the
+first word.
+* Vertical Edit mode could produce differing final
+document states, depending on how the editing was done
+while verticall mode was operational. This has been 
+fixed, so that the return to normal mode gives
+predictable results. The phrasebox will be left
+at the same location as it was in when last at some
+pile or other in the document during vertical editing
+mode. And if a fallback location is needed, the fallback
+will be the leftmost pile of the section of edited source
+text.
+
 ----------------------------------------------
 Version 6.6.4 release 15 October 2015
 ----------------------------------------------
