@@ -273,6 +273,10 @@
 		<Unit filename="../../res/wxWindowsLogo2.svg" />
 		<Unit filename="../../res/wxwidgets02-small.bmp" />
 		<Unit filename="../../res/wxwidgets02-small.svg" />
+		<Unit filename="../../source/1035.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../source/1035.h" />
 		<Unit filename="../../source/AIPrintPreviewFrame.cpp" />
 		<Unit filename="../../source/AIPrintPreviewFrame.h" />
 		<Unit filename="../../source/AIPrintout.cpp" />
@@ -284,8 +288,6 @@
 		<Unit filename="../../source/Adapt_ItCanvas.h" />
 		<Unit filename="../../source/Adapt_ItDoc.cpp" />
 		<Unit filename="../../source/Adapt_ItDoc.h" />
-		<Unit filename="../../source/Adapt_ItKBServer.cpp" />
-		<Unit filename="../../source/Adapt_ItKBServer.h" />
 		<Unit filename="../../source/Adapt_ItView.cpp" />
 		<Unit filename="../../source/Adapt_ItView.h" />
 		<Unit filename="../../source/Adapt_It_Resources.h" />
@@ -578,12 +580,18 @@
 		<Unit filename="../../source/md5.h" />
 		<Unit filename="../../source/md5_SB.cpp" />
 		<Unit filename="../../source/md5_SB.h" />
+		<Unit filename="../../source/mdnsd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../source/mdnsd.h" />
 		<Unit filename="../../source/scrollingdialog.cpp" />
 		<Unit filename="../../source/scrollingdialog.h" />
 		<Unit filename="../../source/scrollingwizard.cpp" />
 		<Unit filename="../../source/scrollingwizard.h" />
 		<Unit filename="../../source/tellenc.cpp" />
 		<Unit filename="../../source/tellenc.h" />
+		<Unit filename="../../source/wxServDisc.cpp" />
+		<Unit filename="../../source/wxServDisc.h" />
 		<Unit filename="../../source/wxUUID.h" />
 		<Extensions>
 			<code_completion />
