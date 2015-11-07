@@ -397,6 +397,10 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath="..\..\source\1035.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Adapt_It.cpp"
 				>
 			</File>
@@ -777,6 +781,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\mdnsd.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\MergeUpdatedSrc.cpp"
 				>
 			</File>
@@ -1025,6 +1033,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\wxServDisc.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Xhtml.cpp"
 				>
 			</File>
@@ -1041,6 +1053,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath="..\..\source\1035.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\source\Adapt_It.h"
 				>
@@ -1398,6 +1414,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\mdnsd.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\MergeUpdatedSrc.h"
 				>
 			</File>
@@ -1643,6 +1663,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\WhichFilesDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\wxServDisc.h"
 				>
 			</File>
 			<File

@@ -5,6 +5,18 @@
 // for the inet related functions
 #include <ws2tcpip.h>
 #endif
+#ifdef _WIN32
+// BEW added the next one, probably the __WIN32__ one above would work, but __WIN32__ is
+// not defined at present, but _WIN32 is, so I'll add the inet_addr() and htons() support
+// here, as they are each in winsock2.h
+#include <winsock2.h>
+#endif
+
+// BEW moved struct definition from .h to here (the one in winsock2.h is not being picked up)
+//struct timeval {
+//        long    tv_sec;         /* seconds */
+//        long    tv_usec;        /* and microseconds */
+//};
 
 #define bzero(b,len) (memset((b), '\0', (len)), (void) 0)
 

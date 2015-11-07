@@ -32,7 +32,6 @@
 #include <vector>
 
 #include "1035.h"
-#include "mdnsd.h"
 
 // all the nice socket includes in one place here
 #ifdef _WIN32
@@ -54,6 +53,7 @@ typedef int SOCKET;       // under windows, SOCKET is unsigned
 #include <netdb.h>
 #endif
 
+#include "mdnsd.h"
 
 
 

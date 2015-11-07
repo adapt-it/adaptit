@@ -6,7 +6,14 @@ extern "C"
 #ifndef mdnsd_h
 #define mdnsd_h
 #include "1035.h"
-#include <sys/time.h>
+#include <time.h>
+
+#ifndef _WIN32
+struct timeval {
+        long    tv_sec;         /* seconds */
+        long    tv_usec;        /* and microseconds */
+};
+#endif
 
 typedef struct mdnsd_struct *mdnsd; // main daemon data
 typedef struct mdnsdr_struct *mdnsdr; // record entry
