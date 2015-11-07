@@ -8,12 +8,12 @@ extern "C"
 #include "1035.h"
 #include <time.h>
 
-#ifndef _WIN32
-struct timeval {
-        long    tv_sec;         /* seconds */
-        long    tv_usec;        /* and microseconds */
-};
-#endif
+//#ifndef _WIN32
+//struct timeval {
+//        long    tv_sec;         /* seconds */
+//        long    tv_usec;        /* and microseconds */
+//};
+//#endif
 
 typedef struct mdnsd_struct *mdnsd; // main daemon data
 typedef struct mdnsdr_struct *mdnsdr; // record entry

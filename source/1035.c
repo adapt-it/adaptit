@@ -2,7 +2,10 @@
 #include <string.h> 
 #include <stdio.h> 
 
-
+// whm added 7Nov2015 to remove gcc warnings about pointer signs in old C code
+#if defined(__GNUC__)
+	#pragma GCC diagnostic ignored "-Wpointer-sign"
+#endif
 
 unsigned short int net2short(unsigned char **bufp)
 {

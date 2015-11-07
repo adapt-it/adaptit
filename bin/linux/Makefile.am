@@ -73,6 +73,7 @@ adaptit.htb: ../../hlp
 # the application source, library search path, and link libraries
 #
 adaptit_SOURCES = \
+	../../source/1035.c \
 	../../source/AIPrintout.cpp ../../source/AIPrintPreviewFrame.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
 	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp \
@@ -110,7 +111,7 @@ adaptit_SOURCES = \
 	../../source/KBSharingStatelessSetupDlg.cpp ../../source/KbSharingSetup.cpp ../../source/LanguageCodesDlg_Single.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/md5.cpp \
-	../../source/md5_SB.cpp ../../source/MergeUpdatedSrc.cpp \
+	../../source/md5_SB.cpp ../../source/mdnsd.c ../../source/MergeUpdatedSrc.cpp \
 	../../source/MoveDialog.cpp \
 	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NavProtectNewDoc.cpp \
 	../../source/NoteDlg.cpp ../../source/Notes.cpp \
@@ -139,7 +140,7 @@ adaptit_SOURCES = \
 	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
 	../../source/Uuid_AI.cpp ../../source/ViewFilteredMaterialDlg.cpp \
 	../../source/ViewPage.cpp ../../source/WaitDlg.cpp \
-	../../source/Welcome.cpp ../../source/WhichBook.cpp ../../source/WhichFilesDlg.cpp \
+	../../source/Welcome.cpp ../../source/WhichBook.cpp ../../source/WhichFilesDlg.cpp ../../source/wxServDisc.cpp \
 	../../source/Xhtml.cpp \
 	../../source/XML.cpp ../../source/XMLErrorDlg.cpp ../../source/helpers.cpp
 
