@@ -5,6 +5,10 @@
 // for the inet related functions
 #include <ws2tcpip.h>
 #endif
+
+// This header is portable for all platforms, needed for uint64_t
+#include "pstdint.h" // for uint64_t definition
+
 #ifdef _WIN32
 // BEW added the next one, probably the __WIN32__ one above would work, but __WIN32__ is
 // not defined at present, but _WIN32 is, so I'll add the inet_addr() and htons() support
@@ -14,9 +18,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 //#include <stdint.h> // portable: uint64_t   MSVC: __int64 <- stdint.h was removed by MS before VS2008, but reinstated in VS2010, we'll use pstdint.h instead
-// This header is portable for all platforms, needed for uint64_t
-#include "pstdint.h" // for uint64_t definition
-
 
 int gettimeofday(struct timeval * tp, struct timezone * tzp)
 {
