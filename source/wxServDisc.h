@@ -37,6 +37,8 @@
 #ifdef _WIN32
 // https://stackoverflow.com/questions/5004858/stdmin-gives-error
 #define NOMINMAX
+#define _WINSOCK_DEPRECATED_NO_WARNINGS   /* allow the old inet_addr() call in implementation file */
+
 // mingw/ visual studio socket includes
 #include <winsock2.h>
 #include <ws2tcpip.h>

@@ -92,7 +92,7 @@ void _label(struct message *m, unsigned char **bufp, unsigned char **namep)
     *name = '\0';
     for(x = 0; x <= 19 && m->_labels[x]; x++)
     {
-        if(strcmp(*namep,m->_labels[x])) continue;
+		if (strcmp((const char*)*namep, (const char*)m->_labels[x])) continue;
         *namep = m->_labels[x];
         return;
     }
@@ -131,7 +131,7 @@ int _lmatch(struct message *m, unsigned char *l1, unsigned char *l2)
 }
 
 // nasty, convert host into label using compression
-int _host(struct message *m, unsigned char **bufp, unsigned char *name)
+int _host(struct message *m, unsigned char **bufp, unsigned char *name) // BEW added casts (unsigned char) & (unsigned short)
 {
     unsigned char label[256], *l;
     int len = 0, x = 1, y = 0, last = 0;
@@ -144,7 +144,7 @@ int _host(struct message *m, unsigned char **bufp, unsigned char *name)
         if(name[y] == '.')
         {
             if(!name[y+1]) break;
-            label[last] = x - (last + 1);
+            label[last] = (unsigned char)(x - (last + 1));
             last = x;
         }else{
             label[x] = name[y];
@@ -152,7 +152,7 @@ int _host(struct message *m, unsigned char **bufp, unsigned char *name)
         if(x++ == 255) return 0;
         y++;
     }
-    label[last] = x - (last + 1);
+    label[last] = (unsigned char)(x - (last + 1));
     if(x == 1) x--; // special case, bad names, but handle correctly
     len = x + 1;
     label[x] = 0; // always terminate w/ a 0
@@ -165,7 +165,7 @@ int _host(struct message *m, unsigned char **bufp, unsigned char *name)
             {
                 // matching label, set up pointer
                 l = label + x;
-                short2net(m->_labels[y] - m->_packet, &l);
+                short2net((unsigned short)(m->_labels[y] - m->_packet), &l);
                 label[x] |= 0xc0;
                 len = x + 2;
                 break;
@@ -193,7 +193,7 @@ int _host(struct message *m, unsigned char **bufp, unsigned char *name)
 /** 
     Return 1 on success, 0 on failure. 
  */
-int _rrparse(struct message *m, struct resource *rr, int count, unsigned char **bufp)
+int _rrparse(struct message *m, struct resource *rr, int count, unsigned char **bufp) // BEW added cast (char*)
 {
     int i;
     for(i=0; i < count; i++)
@@ -215,7 +215,7 @@ int _rrparse(struct message *m, struct resource *rr, int count, unsigned char **
         {
         case 1:
             if(m->_len + 16 > MAX_PACKET_LEN) return 0;
-            rr[i].known.a.name = m->_packet + m->_len;
+            rr[i].known.a.name = (char*)(m->_packet + m->_len);
             m->_len += 16;
             sprintf(rr[i].known.a.name,"%d.%d.%d.%d",(*bufp)[0],(*bufp)[1],(*bufp)[2],(*bufp)[3]);
             rr[i].known.a.ip = net2long(bufp);
@@ -341,21 +341,22 @@ void message_rdata_long(struct message *m, unsigned long int l)
     long2net(l, &(m->_buf));
 }
 
-void message_rdata_name(struct message *m, unsigned char *name)
+void message_rdata_name(struct message *m, unsigned char *name) // BEW added cast (unsigned short)
 {
     unsigned char *mybuf = m->_buf;
     m->_buf += 2;
-    short2net(_host(m, &(m->_buf), name),&mybuf); // hackish, but cute
+    short2net((unsigned short)_host(m, &(m->_buf), name),&mybuf); // hackish, but cute
 }
 
 void message_rdata_srv(struct message *m, unsigned short int priority, unsigned short int weight, unsigned short int port, unsigned char *name)
+// BEW added cast (unsigned short)
 {
     unsigned char *mybuf = m->_buf;
     m->_buf += 2;
     short2net(priority, &(m->_buf));
     short2net(weight, &(m->_buf));
     short2net(port, &(m->_buf));
-    short2net(_host(m, &(m->_buf), name) + 6, &mybuf);
+	short2net((unsigned short)_host(m, &(m->_buf), name) + 6, &mybuf);
 }
 
 void message_rdata_raw(struct message *m, unsigned char *rdata, unsigned short int rdlength)
@@ -366,18 +367,18 @@ void message_rdata_raw(struct message *m, unsigned char *rdata, unsigned short i
     m->_buf += rdlength;
 }
 
-unsigned char *message_packet(struct message *m)
+unsigned char *message_packet(struct message *m) // BEW added casts (unsigned char); allow assignments in conditionals at 376 & 381
 {
     unsigned char c, *buf = m->_buf;
     m->_buf = m->_packet;
     short2net(m->id, &(m->_buf));
     if(m->header.qr) m->_buf[0] |= 0x80;
-    if((c = m->header.opcode)) m->_buf[0] |= (c << 3);
+    if((c = (unsigned char)m->header.opcode)) m->_buf[0] |= (c << 3);
     if(m->header.aa) m->_buf[0] |= 0x04;
     if(m->header.tc) m->_buf[0] |= 0x02;
     if(m->header.rd) m->_buf[0] |= 0x01;
     if(m->header.ra) m->_buf[1] |= 0x80;
-    if((c = m->header.z)) m->_buf[1] |= (c << 4);
+	if ((c = (unsigned char)m->header.z)) m->_buf[1] |= (c << 4);
     if(m->header.rcode) m->_buf[1] |= m->header.rcode;
     m->_buf += 2;
     short2net(m->qdcount, &(m->_buf));

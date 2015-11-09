@@ -27,6 +27,7 @@ struct question
 #define QTYPE_PTR 12
 #define QTYPE_SRV 33
 
+#define _CRT_SECURE_NO_WARNINGS // BEW added, allow use of sprintf
 struct resource
 {
     unsigned char *name;
@@ -47,6 +48,9 @@ struct message
 {
     // external data
     unsigned short int id;
+	// BEW: In C99 the short should not be used in bitfields, because it's length is not guaranteed
+	// to be invariant for all C compilers. Hence unsigned short is here flagged as a warning.
+	// I'll leave this warning as I'm not sure that changing it to unsigned int would work as expected
     struct { unsigned short qr:1, opcode:4, aa:1, tc:1, rd:1, ra:1, z:3, rcode:4; } header;
     unsigned short int qdcount, ancount, nscount, arcount;
     struct question *qd;

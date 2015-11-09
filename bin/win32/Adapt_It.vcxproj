@@ -604,6 +604,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\source\1035.c" />
     <ClCompile Include="..\..\source\Adapt_It.cpp" />
     <ClCompile Include="..\..\source\Adapt_It_wdr.cpp" />
     <ClCompile Include="..\..\source\Adapt_ItCanvas.cpp" />
@@ -689,6 +690,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\MainFrm.cpp" />
     <ClCompile Include="..\..\source\md5.cpp" />
     <ClCompile Include="..\..\source\md5_SB.cpp" />
+    <ClCompile Include="..\..\source\mdnsd.c" />
     <ClCompile Include="..\..\source\MergeUpdatedSrc.cpp" />
     <ClCompile Include="..\..\source\MoveDialog.cpp" />
     <ClCompile Include="..\..\source\Mover.cpp" />
@@ -751,6 +753,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\Welcome.cpp" />
     <ClCompile Include="..\..\source\WhichBook.cpp" />
     <ClCompile Include="..\..\source\WhichFilesDlg.cpp" />
+    <ClCompile Include="..\..\source\wxServDisc.cpp" />
     <ClCompile Include="..\..\source\Xhtml.cpp" />
     <ClCompile Include="..\..\source\XML.cpp" />
     <ClCompile Include="..\..\source\XMLErrorDlg.cpp" />
@@ -762,6 +765,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\1035.h" />
     <ClInclude Include="..\..\source\Adapt_It.h" />
     <ClInclude Include="..\..\source\Adapt_It_Resources.h" />
     <ClInclude Include="..\..\source\Adapt_It_wdr.h" />
@@ -820,10 +824,12 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\KBSharingStatelessSetupDlg.h" />
     <ClInclude Include="..\..\source\LanguageCodesDlg_Single.h" />
     <ClInclude Include="..\..\source\md5_SB.h" />
+    <ClInclude Include="..\..\source\mdnsd.h" />
     <ClInclude Include="..\..\source\RemoveSomeTgtEntries.h" />
     <ClInclude Include="..\..\source\Thread_BulkPseudoDelete.h" />
     <ClInclude Include="..\..\source\Thread_DoEntireKbDeletion.h" />
     <ClInclude Include="..\..\source\UsernameInput.h" />
+    <ClInclude Include="..\..\source\wxServDisc.h" />
     <ClInclude Include="Equivalents_for_reference.h" />
     <ClInclude Include="..\..\source\ExportFunctions.h" />
     <ClInclude Include="..\..\source\ExportInterlinearDlg.h" />

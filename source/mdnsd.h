@@ -16,6 +16,13 @@ extern "C"
 //#endif
 
 #ifdef _WIN32
+#define _WINSOCK_DEPRECATED_NO_WARNINGS   /* allow the old inet_addr() call at lien 521 of mdnsd.c */
+
+#include <winsock2.h> // this puts the timeval struct within scope, to avoid c4115 warning
+	struct timezone {
+		int tz_minuteswest;     /* minutes west of Greenwich */
+		int tz_dsttime;         /* type of DST correction */
+	}; // ditto, need a definition which is in scope - winsock2.h does not have it
 	//Do our own implementation, from code on the web
 int gettimeofday(struct timeval * tp, struct timezone * tzp);
 #endif
@@ -45,7 +52,7 @@ mdnsd mdnsd_new(int rr_class, int frame);
 void mdnsd_shutdown(mdnsd d);
 //
 // flush all cached records (network/interface changed)
-void mdnsd_flush(mdnsd d);
+//void mdnsd_flush(mdnsd d);  BEW removed, this function is never called
 //
 // free given mdnsd (should have used mdnsd_shutdown() first!)
 void mdnsd_free(mdnsd d);
