@@ -21,8 +21,6 @@
 
 int gettimeofday(struct timeval * tp, struct timezone * tzp)
 {
-	// BEW nobody uses tzp anymore, so pass it as NULL
-	tzp = NULL;
     // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
     static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
 
@@ -37,6 +35,9 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp)
 
     tp->tv_sec  = (long) ((time - EPOCH) / 10000000L);
     tp->tv_usec = (long) (system_time.wMilliseconds * 1000);
+
+	// BEW nobody uses tzp anymore, so pass it as NULL
+	tzp = 0;
     return 0;
 }
 
