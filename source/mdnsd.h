@@ -15,6 +15,7 @@ extern "C"
 //};
 //#endif
 
+
 #ifdef _WIN32
 #define _WINSOCK_DEPRECATED_NO_WARNINGS   /* allow the old inet_addr() call at lien 521 of mdnsd.c */
 

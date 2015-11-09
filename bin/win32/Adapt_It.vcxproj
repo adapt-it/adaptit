@@ -825,6 +825,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\LanguageCodesDlg_Single.h" />
     <ClInclude Include="..\..\source\md5_SB.h" />
     <ClInclude Include="..\..\source\mdnsd.h" />
+    <ClInclude Include="..\..\source\pstdint.h" />
     <ClInclude Include="..\..\source\RemoveSomeTgtEntries.h" />
     <ClInclude Include="..\..\source\Thread_BulkPseudoDelete.h" />
     <ClInclude Include="..\..\source\Thread_DoEntireKbDeletion.h" />

@@ -13,8 +13,10 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-//#include <stdint.h> // portable: uint64_t   MSVC: __int64
-#define uint64_t __int64
+//#include <stdint.h> // portable: uint64_t   MSVC: __int64 <- stdint.h was removed by MS before VS2008, but reinstated in VS2010, we'll use pstdint.h instead
+// This header is portable for all platforms, needed for uint64_t
+#include "pstdint.h" // for uint64_t definition
+
 
 int gettimeofday(struct timeval * tp, struct timezone * tzp)
 {
