@@ -14,6 +14,7 @@ extern "C"
 //        long    tv_usec;        /* and microseconds */
 //};
 //#endif
+
 #ifdef _WIN32
 	//Do our own implementation, from code on the web
 int gettimeofday(struct timeval * tp, struct timezone * tzp);
