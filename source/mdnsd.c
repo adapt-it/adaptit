@@ -13,7 +13,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-//#include <stdint.h> // portable: uint64_t   MSVC: __int64
+#include <stdint.h> // portable: uint64_t   MSVC: __int64
 #define uint64_t __int64
 
 int gettimeofday(struct timeval * tp, struct timezone * tzp)
