@@ -8,11 +8,15 @@ extern "C"
 #include "1035.h"
 #include <time.h>
 
-#ifndef _WIN32
-struct timeval {
-        long    tv_sec;         /* seconds */
-        long    tv_usec;        /* and microseconds */
-};
+//#ifndef _WIN32
+//struct timeval {
+//        long    tv_sec;         /* seconds */
+//        long    tv_usec;        /* and microseconds */
+//};
+//#endif
+#ifdef _WIN32
+	//Do our own implementation, from code on the web
+int gettimeofday(struct timeval * tp, struct timezone * tzp);
 #endif
 
 typedef struct mdnsd_struct *mdnsd; // main daemon data

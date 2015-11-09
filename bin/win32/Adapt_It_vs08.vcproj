@@ -269,7 +269,7 @@
 				Version="6.6"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;lib\silconverters"
+				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;lib\silconverters;&quot;$(BOOST)&quot;"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
