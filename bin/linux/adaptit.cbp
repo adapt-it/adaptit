@@ -584,6 +584,7 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../source/mdnsd.h" />
+		<Unit filename="../../source/pstdint.h" />
 		<Unit filename="../../source/scrollingdialog.cpp" />
 		<Unit filename="../../source/scrollingdialog.h" />
 		<Unit filename="../../source/scrollingwizard.cpp" />
