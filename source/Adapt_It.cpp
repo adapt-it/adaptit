@@ -208,11 +208,6 @@
 #include "../res/vectorized/punctuation-do-not-copy_32.cpp"
 #include "../res/vectorized/help-browser_32.cpp"
 
-#if defined(_KBSERVER)
-extern std::string str_CURLbuffer;
-extern std::string str_CURLheaders;
-#endif
-
 // The following include was originally Copyright (c) 2005 by Dan
 // Moulding, but the features of version 2.0 were implemented by
 // Arkadiy Shapkin. It is used under the GNU General Public License
@@ -348,8 +343,20 @@ extern std::string str_CURLheaders;
 #include "KBSharingStatelessSetupDlg.h"
 #include "Timer_KbServerChangedSince.h"
 #include "KBSharingMgrTabbedDlg.h"
+#include "ServDisc.h" // for service discovery, this is a wrapper class
+					  // for isolating the CServiceDiscovery class from
+					  // namespace clashes with parts of wx. My class
+					  // CServiceDiscovery is defined within wxServDisc.h & .cpp
+					  // The isolating may be a forlorn hope....no, it's
+					  // sort of possible so long as wxServDisc.h is never
+					  // included in this app class; therefore, the
+					  // CServiceDiscovery class instance has to take care
+					  // of deleting itself when no longer needed, and 
+					  // deleting it's parent class ServDisc at same time
+extern std::string str_CURLbuffer;
+extern std::string str_CURLheaders;
 
-#endif
+#endif // _KBSERVER
 
 // whm added 8Oct12
 #include <curl/curl.h>
@@ -15343,6 +15350,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bSupportFreeze = FALSE; // set FALSE once the GUI checkbox has been added to the app
 	m_nInsertCount = 0;
 
+#if defined(_KBSERVER)
+	m_pServDisc = NULL; // initialize to 0
+#endif
+
     //bool bMain = wxThread::IsMain(); // yep, correctly returns true
     m_bRestorePhraseBoxToActiveLocAfterFreeTransExited = FALSE; // used to relocate the
 		// phrasebox to the active pile's hole when free trans mode is exited. (Because
@@ -21701,6 +21712,14 @@ int ii = 1;
 			m_pGlossingKB->GetMinimumExtras(m_numLastGlossingEntriesAggregate); // ignore returned minimumExtras value
 		}
 	}
+
+#if defined(_KBSERVER)
+
+	// Test ServiceDiscovery module
+	wxString serviceStr = _T("_kbserver._tcp.local.");
+	m_pServDisc = new ServDisc(pFrame, serviceStr);
+	// At the moment, we don't anywhere try to delete it... do that later
+#endif
 
 	return TRUE;
 }

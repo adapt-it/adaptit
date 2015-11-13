@@ -78,6 +78,12 @@ class DVCS;         // class of the object giving access to the DVCS operations
 class DVCSNavDlg;   // dialog for navigating through previous versions
 class TranslationsList; // the CTargetUnit's list of CRefString instances
 
+#if defined(_KBSERVER)
+
+class ServDisc; 
+
+#endif // _KBSERVER
+
 // while Graeme and Bruce work on the codefix refactoring, Graeme needs to test his
 // boolean removal efforts with existing xml adaptation documents, and Bruce needs to test
 // his version 5 parsing of xml documents - so Bruce will wrap his code changes in a
@@ -1972,7 +1978,10 @@ public:
 
 class wxDynamicLibrary;
 class AI_Server;
+
+#if defined(_KBSERVER)
 class Timer_KbServerChangedSince;
+#endif // _KBSRVER
 
 //////////////////////////////////////////////////////////////////////////////////
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of
@@ -2012,7 +2021,9 @@ class CAdapt_ItApp : public wxApp
 	bool	m_kbserver_kbadmin;  // initialize to default FALSE in OnInit()
 	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
 
-#endif
+	ServDisc* m_pServDisc;
+
+#endif // _KBSERVER
 
 	wxUint32 maxProgDialogValue; // whm added 25Aug11 as a temporary measure until we can
 							// sub-class the wxProgressDialog which currently has no
