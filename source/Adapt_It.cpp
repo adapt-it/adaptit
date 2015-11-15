@@ -21713,13 +21713,19 @@ int ii = 1;
 		}
 	}
 
+	// Run Service Discovery...
 #if defined(_KBSERVER)
-
-	// Test ServiceDiscovery module
 	wxString serviceStr = _T("_kbserver._tcp.local.");
+	//CMainFrame* pFrame = GetMainFrame();
 	m_pServDisc = new ServDisc(pFrame, serviceStr);
-	// At the moment, we don't anywhere try to delete it... do that later
+	// We delete it from within as soon as possible, the call on entry to the scanthread, when mdnsd_in()
+	// is called, leaks a small cache block on every entry to the thread - and there are many of these,
+	// they are timed to happen periodically, so leak a bit of memory every time. Minimum run to get
+	// a single KBserver URL done is enough time to get 40 leaks. There is a single once only 2kb leak, and
+	// then about 50 to 80 bytes for every entry to the thread. So we only want this service discovery to
+	// be done once per AI session, until we have a better leakless solution.
 #endif
+
 
 	return TRUE;
 }

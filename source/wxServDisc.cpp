@@ -794,7 +794,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 			{
 				m_pFrame->m_urlsArr.Add(protocol + m_addr);
 #if defined(_DEBUG)
-				wxLogDebug(_T("Found: [Service:  %s  ] URL:  %s   for entry index = i"), 
+				wxLogDebug(_T("Found: [Service:  %s  ] URL:  %s   for entry index = %d"), 
 						m_sd_items.Item(i).c_str(), (protocol + m_addr).c_str(), i);
 #endif
 			}
@@ -808,23 +808,28 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 		;
 	} // end of else block for test: if (event.GetEventObject() == m_pSD)
 
-	// here is where we clear any heap blocks remaining, and kill the module
-	// 
-	// Oops. The thread is still running, so can't delete the main process from underneath
-	// it until it has finished.... how do I get it killed first>?
-	// 
-	//delete this; // this does it all, including wxServDisc instance, 
-				 // and the parent ServDisc instance
+	// here is where we might clear any heap blocks remaining, and kill the module
+	// At this point, the destructor of the scan thread (code embedded within
+	// ~wxServDisc() ) has been run, because ~wxServDisc() has been run - I didn't
+	// need to cause that) has destroyed the tread. It remains only to destroy
+	// this CServiceDiscovery instance, and its parent ServDisc instance
+	// BUT: if there is no service to find, wxServDisc clobbers itself early
+	// without calling onSDNotify() and so my delete this call is not done, and
+	// memory leaks result. Consider posting a custom event from ~wxServDisc()
+	// with a handler in CServiceDiscovery instance that gets it and parent etc
+	// deleted from the heap...
+	// If I debug slowly enough, the wxServDisc thread will be restarted - my last
+	// output had two sets of log entries indicating the ~wxServDisc() destructor
+	// was called.  Try explicitly calling it again here....
+	m_pSD->~wxServDisc();
+	delete m_pSD;
+	delete this;
 }
 
 
 CServiceDiscovery::~CServiceDiscovery()
 {
-	wxLogDebug(_T("Deleting the wxServDisc class instance, the CServiceDiscovery instance, and its parent class ServDisc"));
-	if (m_pSD != NULL)
-	{
-		delete m_pSD;
-	}
+	wxLogDebug(_T("Deleting the CServiceDiscovery instance, and its parent class ServDisc"));
     // This destructor has to take responsibility for deleting the parent of
     // CServiceDiscovery, otherwise if we did it from the parent, we'd have to #include
     // wxServDisc.h in the scope of the app class, and that leads to name clashes with

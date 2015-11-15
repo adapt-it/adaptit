@@ -344,7 +344,7 @@ void _cache(mdnsd d, struct resource *r) // BEW added cast (const char*) & (char
 
     if(r->rr_class == 32768 + d->class)
     { // cache flush
-		// BEW changed while(c = _c_next(d,c,(char*)r->name,r->type)) to make explicit test for not null
+		// BEW changed   while(c = _c_next(d,c,(char*)r->name,r->type)) c->rr.ttl = 0;   to make explicit test for not null
         while((c = _c_next(d,c,(char*)r->name,r->type)) != 0) c->rr.ttl = 0;
         _c_expire(d,&d->cache[i]);
     }
