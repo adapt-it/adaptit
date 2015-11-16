@@ -65,11 +65,13 @@ typedef int SOCKET;       // under windows, SOCKET is unsigned
 
 
 
-// make available custom notify event if getResults() would yield sth new
+// make available custom notify event if getResults() would yield something new
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscNOTIFY, -1);
+DEFINE_EVENT_TYPE(wxServDiscHALTING);
 #else
 wxDECLARE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
+wxDEFINE_EVENT(wxServDiscHALTING, wxCommandEvent);
 #endif
 
 
@@ -196,6 +198,8 @@ public:
 
 	wxServDisc* m_pSD; // main service scanner
 	ServDisc* m_pParent;
+	bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this in Frame's OnIdle()
+								 // for deleting CServiceDiscovery & ServDisc instances
 
 	// Temporarily store these
 	wxString m_hostname;
@@ -214,7 +218,7 @@ public:
 protected:
 
 	void onSDNotify(wxCommandEvent& event);
-
+	void onSDHalting(wxCommandEvent& event);
 
 private:
 	DECLARE_EVENT_TABLE();

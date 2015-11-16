@@ -39,7 +39,7 @@ using namespace std;
 class ServDisc : public wxObject
 {
 	friend class CMainFrame;
-	//friend class CServiceDiscovery;
+	friend class CServiceDiscovery;
 
 public:
 	ServDisc();
@@ -47,6 +47,7 @@ public:
 	virtual ~ServDisc();
 
 	wxString m_serviceStr; // service to be scanned for
+	bool m_bSDIsRunning;
 
 	CMainFrame* m_pFrame;  // pointer to Adapt It's frame window
 

@@ -61,11 +61,13 @@
 #endif
 #endif
 
-// define our new notify event!
+// define our new notify event! (BEW added the ...HALTING one)
 #if wxVERSION_NUMBER < 2900
 DEFINE_EVENT_TYPE(wxServDiscNOTIFY);
+//DEFINE_EVENT_TYPE(wxServDiscHALTING);
 #else
 wxDEFINE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
+//wxDEFINE_EVENT(wxServDiscHALTING, wxCommandEvent);
 #endif
 
 /*
@@ -101,6 +103,9 @@ wxThread::ExitCode wxServDisc::Entry()
   sigaddset(&newsigs, SIGRTMIN-1);
 #endif
 
+  // BEW I want to count the outer loop iterations
+  unsigned long BEWcount = 0;
+
   while(!GetThread()->TestDestroy() && !exit)
     {
       tv = mdnsd_sleep(d);
@@ -108,6 +113,32 @@ wxThread::ExitCode wxServDisc::Entry()
       long msecs = tv->tv_sec == 0 ? 100 : tv->tv_sec*1000; // so that the while loop beneath gets executed once
       wxLogDebug(wxT("wxServDisc %p: scanthread waiting for data, timeout %i seconds"), this, (int)tv->tv_sec);
 
+	  // BEW put this test here
+	  if ((int)tv->tv_sec > 101)
+	  {
+		  // halt & shut the discovery module down because no KBserver service was discovered
+		wxLogDebug(_T("BEW: No KB server discovered. Approx 7 seconds elapsed. Halting now..."));
+		// BEW copied next 5 lines from code which follows main loop (which never got called)
+		// so hopefully this may clean up without memory leaks
+		mdnsd_shutdown(d);
+		mdnsd_free(d);
+		if(mSock != INVALID_SOCKET)
+			closesocket(mSock);
+		wxLogDebug(wxT("wxServDisc %p: scanthread exiting"), this);
+
+		// post a custom wxServDiscHALTING event here
+        wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
+        event.SetEventObject(this); // set sender
+
+        // BEW added this posting...  Send it
+#if wxVERSION_NUMBER < 2900
+        wxPostEvent((wxEvtHandler*)parent, event);
+#else
+        wxQueueEvent((wxEvtHandler*)parent, event.Clone());
+#endif
+		// BEW copied next line from code which follows main loop
+		return NULL;
+	  } // end of BEW addition
 
       // we split the one select() call into several ones every 100ms
       // to be able to catch TestDestroy()...
@@ -154,6 +185,9 @@ wxThread::ExitCode wxServDisc::Entry()
 	    exit = true;
 	    break;
 	  }
+	// BEW log what iteration this is:
+	BEWcount++;
+	wxLogDebug(_T("BEW  outer loop iteration:  %d"), BEWcount);
     }
 
   mdnsd_shutdown(d);
@@ -585,23 +619,28 @@ IMPLEMENT_DYNAMIC_CLASS(CServiceDiscovery, wxEvtHandler)
 
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)
 	EVT_COMMAND (wxID_ANY, wxServDiscNOTIFY, CServiceDiscovery::onSDNotify)
+	EVT_COMMAND (wxID_ANY, wxServDiscHALTING, CServiceDiscovery::onSDHalting)
 END_EVENT_TABLE()
 
 CServiceDiscovery::CServiceDiscovery()
 {
 	m_servicestring = _T("");
+	m_bWxServDiscIsRunning = TRUE;
 	wxUnusedVar(m_servicestring);
 }
 
 CServiceDiscovery::CServiceDiscovery(CMainFrame* pFrame, wxString servicestring, ServDisc* pParentClass)
 {
 	
-	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, passing in pFrame and servicestring: %s"),
-		servicestring.c_str());
+	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, passing in pFrame and servicestring: %s, ptr to instance: %p"),
+		servicestring.c_str(), this);
 
 	m_servicestring = servicestring; // service to be scanned for
 	m_pFrame = pFrame; // Adapt It app's frame window
 	m_pParent = pParentClass; // so we can delete the parent from within this class
+	m_bWxServDiscIsRunning = TRUE; // Gets set FALSE only in my added onServDiscHalting() handler
+		// and the OnIdle() hander will use the FALSE to get CServiceDiscovery and ServDisc
+		// class instances deleted, and app's m_pServDisc pointer reset to NULL afterwards
 
 	m_hostname = _T("");
 	m_addr = _T("");
@@ -624,6 +663,10 @@ CServiceDiscovery::CServiceDiscovery(CMainFrame* pFrame, wxString servicestring,
 	// to which the pending custom event (ie. wxServDiskNOTIFY event) is to be
 	// sent -- and that is to this CServiceDiscovery instance. So pass in this
 	m_pSD = new wxServDisc(this, m_servicestring, QTYPE_PTR);
+
+	// Try putting a destructor here -- nope the same thread.cpp line 170 m_buffer freed
+	// crash happens with this too. 
+	//delete this;
 }
 
 // When wxServDisc discovers a service (one or more of them) that it is scanning
@@ -826,18 +869,55 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 	delete this;
 }
 
+// BEW Getting the module shut down in the two circumstances we need, is a can of worms.
+// (a) after one or more KBserver instances running have been discovered (onServDiscNotify()
+// gets called, and we can put shut-down code in the end of that handler - but I may need
+// to improve on it some more)
+// (b) when no KBserver instance is runnning (I use an onServDiscHalting() handler of my
+// own to get ~wxServDisc() destructor called, but that's all it can do safely).
+// 
+// In the (b) case, my CServiceDiscovery instance, and my ServDisc instance, live on. 
+// So I've resorted to a hack, using a m_bWxServDiscIsRunning boolean, set to FALSE
+// when no KBserver was discovered, at end of the ...Halting() handler,
+// and the OnIdle() handler in frame window, to get the latter two classes clobbered.
+// 
+// SDWrap embedded the wxServDisc instance in the app, and so when the app got shut down,
+// the lack of well-designed shutdown code didn't matter, as everything got blown away. 
+// But for me, ServDisc needs to exist only for a single try at finding a KBserver instance,
+// and then die forever - or until explicitly instantiated again (which currently, 
+// requires a relaunch of AI)
+void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
+{
+	wxUnusedVar(event);
+	// BEW made this handler, for shutting down the module when no KBserver
+	// service was discovered
+	wxLogDebug(wxT("BEW: No KBserver found, removing module by means of onSDHalting()"));
+	wxLogDebug(_T("this [ from CServiceDiscovery:onSDHalting() ] = %p"), this);
+	wxLogDebug(_T("m_pParent [ from CServiceDiscovery:onSDHalting() ] = %p"), m_pParent);
+	delete m_pSD; // must have this, it gets ~wxServDisc() destructor called
+	m_bWxServDiscIsRunning = FALSE;
+	m_pParent->m_bSDIsRunning = FALSE; // enables our code in CMainFrame::OnIdle() to
+		// figure out that no KBserver was found and so a partial removal of the
+		// module has been done so far (ie. wxServDisc instance only), and so the
+		// class ServDisc (the parent of the CServiceDiscovery instance) can be
+		// deleted from within OnIdle() when this flag is FALSE, and the app's 
+		// m_pServDisc pointer reset to NULL. That doesn't however get the 
+		// CServiceDiscovery instance deleted, so it will leak memory unless we can
+		// get it deleted from within itself. Trying to do it from elsewhere means
+		// that #include wxServDisc has to be mixed with #include "Adapt_It.h" and
+		// that leads to hundreds of name clashes.
+		// Ugly hacks, but hey, I didn't write the wxServDisc code.
+	//delete this;  // must not call this here, let this handler complete, otherwise
+	// event.cpp, line 1211, when entered, will crash because m_buffer has been freed
+	
+	// So far I'm at an impass; I can't delete this ptr from within an event being handled
+	// by this; and name conflicts prevent me doing it from anywhere where Adapt_It.h is
+	// in scope! Ouch.
+}
 
 CServiceDiscovery::~CServiceDiscovery()
 {
-	wxLogDebug(_T("Deleting the CServiceDiscovery instance, and its parent class ServDisc"));
-    // This destructor has to take responsibility for deleting the parent of
-    // CServiceDiscovery, otherwise if we did it from the parent, we'd have to #include
-    // wxServDisc.h in the scope of the app class, and that leads to name clashes with
-    // winsock.h etc
-    if (m_pParent != NULL)
-	{
-		delete m_pParent;
-	}
+	wxLogDebug(_T("Deleting the CServiceDiscovery instance"));
 }
 
 

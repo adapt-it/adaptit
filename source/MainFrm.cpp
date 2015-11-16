@@ -94,6 +94,7 @@
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
 #include "Thread_ChangedSince.h" // BEW added 13Feb13
 #include "Timer_KbServerChangedSince.h"
+#include "ServDisc.h"
 #endif
 
 #if wxCHECK_VERSION(2,9,0)
@@ -4495,6 +4496,18 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
+
+	if (gpApp->m_pServDisc != NULL)
+	{
+		// Getting rid of our ServDisc instance, and it's child, CServiceDiscovery instance,
+		// is wanted - and then set gpApp->m_pServDisc to NULL
+		if (!gpApp->m_pServDisc->m_bSDIsRunning)
+		{
+			delete gpApp->m_pServDisc;
+			gpApp->m_pServDisc = NULL;
+		}
+	}
+
 #endif // for _KBSERVER #defined
 
 	// mrh - if doc recovery is pending, we must skip all the following, since the doc won't be valid:

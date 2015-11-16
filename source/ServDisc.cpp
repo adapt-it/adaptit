@@ -55,7 +55,7 @@ IMPLEMENT_DYNAMIC_CLASS(ServDisc, wxObject)
 
 ServDisc::ServDisc()
 {
-	wxLogDebug(_T("\nInstantiating a default ServDisc class"));
+	wxLogDebug(_T("\nInstantiating a default ServDisc class, ptr to instance = %p"), this);
 
 	m_serviceStr = _T(""); // service to be scanned for
 
@@ -67,10 +67,11 @@ ServDisc::ServDisc()
 
 ServDisc::ServDisc(CMainFrame* pFrame, wxString serviceStr)
 {
-	wxLogDebug(_T("\nInstantiating a ServDisc class, passing in pFrame and serviceStr: %s"),
-		serviceStr.c_str());
+	wxLogDebug(_T("\nInstantiating a ServDisc class, passing in pFrame and serviceStr: %s, ptr to instance = %p"),
+		serviceStr.c_str(), this);
 
 	m_serviceStr = serviceStr; // service to be scanned for
+	m_bSDIsRunning = TRUE;
 
 	m_pFrame = pFrame;
 
