@@ -23,18 +23,6 @@
 #pragma hdrstop
 #endif
 
-//namespace std {}
-//using namespace std;
-
-
-#ifndef WX_PRECOMP
-// Include your minimal set of wx headers here
-//#include <wx/arrstr.h> 
-//#include <wx/docview.h>
-//#include "SourcePhrase.h" // needed for definition of SPList, which MainFrm.h uses
-//#include "MainFrm.h"
-#endif
-
 #ifndef WX_PRECOMP
 #include <wx/list.h>
 #include <wx/string.h>    // for wxString definition
@@ -43,14 +31,19 @@
 #include "MainFrm.h"      // for the pFrame param
 #include <wx/log.h>       // for wxLogDebug()
 
-
 #endif
 
 #include "wxServDisc.h"
 #include "ServDisc.h"
+#include <wx/event.h>
 
 
-IMPLEMENT_DYNAMIC_CLASS(ServDisc, wxObject)
+IMPLEMENT_DYNAMIC_CLASS(ServDisc, wxEvtHandler)
+
+
+BEGIN_EVENT_TABLE(ServDisc, wxEvtHandler)
+EVT_COMMAND(wxID_ANY, serviceDiscoveryHALTING, ServDisc::onServDiscHalting)
+END_EVENT_TABLE()
 
 
 ServDisc::ServDisc()
@@ -88,6 +81,14 @@ ServDisc::~ServDisc()
 	wxLogDebug(_T("Deleting the ServDisc class instance"));
 }
 
+void ServDisc::onServDiscHalting(wxCommandEvent& event)
+{
+	wxObject* pChildFromEvent = event.GetEventObject();
+	wxObject* pChild = (wxObject*)m_pServiceDisc;
+	// Are those pointers the same?
+	wxLogDebug(_T("onServDiscHalting: pChildFromEvent:  %p    pChild (actual):  %p"), pChildFromEvent, pChild);
 
+
+}
 
 #endif // _KBSERVER

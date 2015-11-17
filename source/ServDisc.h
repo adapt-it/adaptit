@@ -31,12 +31,12 @@ class CServiceDiscovery;
 
 namespace std {}
 using namespace std;
-//#include "wxServDisc.h"
+
+#include <wx/event.h>
+//#include <wx/object.h>
 
 
-#include <wx/object.h>
-
-class ServDisc : public wxObject
+class ServDisc : public wxEvtHandler
 {
 	friend class CMainFrame;
 	friend class CServiceDiscovery;
@@ -52,9 +52,14 @@ public:
 	CMainFrame* m_pFrame;  // pointer to Adapt It's frame window
 
 	CServiceDiscovery* m_pServiceDisc;
-private:
 
-    DECLARE_DYNAMIC_CLASS(CServDisc)
+protected:
+	void onServDiscHalting(wxCommandEvent& event);
+
+private:
+	DECLARE_EVENT_TABLE();
+
+    DECLARE_DYNAMIC_CLASS(ServDisc)
 };
 
 #endif // SERVDISC_h

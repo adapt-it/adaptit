@@ -894,7 +894,11 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	wxLogDebug(wxT("BEW: No KBserver found, removing module by means of onSDHalting()"));
 	wxLogDebug(_T("this [ from CServiceDiscovery:onSDHalting() ] = %p"), this);
 	wxLogDebug(_T("m_pParent [ from CServiceDiscovery:onSDHalting() ] = %p"), m_pParent);
+
+
 	delete m_pSD; // must have this, it gets ~wxServDisc() destructor called
+
+
 	m_bWxServDiscIsRunning = FALSE;
 	m_pParent->m_bSDIsRunning = FALSE; // enables our code in CMainFrame::OnIdle() to
 		// figure out that no KBserver was found and so a partial removal of the
@@ -912,7 +916,18 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	
 	// So far I'm at an impass; I can't delete this ptr from within an event being handled
 	// by this; and name conflicts prevent me doing it from anywhere where Adapt_It.h is
-	// in scope! Ouch.
+	// in scope! -- No! Yes I can, post an event which the parent handles to clear out the
+	// child class instance.
+	// post a custom wxServDiscHALTING event here
+	wxCommandEvent upevent(serviceDiscoveryHALTING, wxID_ANY);
+	upevent.SetEventObject(this); // set sender
+
+	// BEW added this posting...  Send it
+#if wxVERSION_NUMBER < 2900
+	wxPostEvent((wxEvtHandler*)m_pParent, upevent);
+#else
+	wxQueueEvent((wxEvtHandler*)m_pParent, upevent.Clone());
+#endif
 }
 
 CServiceDiscovery::~CServiceDiscovery()

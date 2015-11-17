@@ -69,9 +69,11 @@ typedef int SOCKET;       // under windows, SOCKET is unsigned
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscNOTIFY, -1);
 DEFINE_EVENT_TYPE(wxServDiscHALTING);
+DEFINE_EVENT_TYPE(serviceDiscoveryHALTING);
 #else
 wxDECLARE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
 wxDEFINE_EVENT(wxServDiscHALTING, wxCommandEvent);
+wxDEFINE_EVENT(serviceDiscoveryHALTING, wxCommandEvent);
 #endif
 
 
@@ -185,8 +187,6 @@ class ServDisc;
 
 class CServiceDiscovery : public wxEvtHandler
 {
-	//friend class CMainFrame;
-	//friend class wxServDisc;
 
 public:
 	CServiceDiscovery();
