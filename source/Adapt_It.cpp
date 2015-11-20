@@ -256,7 +256,7 @@
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
 #ifdef _DEBUG
-//#include "vld.h"
+#include "vld.h"
 #endif
 #endif
 
@@ -21724,6 +21724,7 @@ int ii = 1;
 	// a single KBserver URL done is enough time to get 40 leaks. There is a single once only 2kb leak, and
 	// then about 50 to 80 bytes for every entry to the thread. So we only want this service discovery to
 	// be done once per AI session, until we have a better leakless solution.
+	serviceStr.Clear(); // don't leak it
 #endif
 
 
@@ -21788,6 +21789,14 @@ int CAdapt_ItApp::OnExit(void)
     // internal structures. All wxWidgets' objects that the program creates should be
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
+    // 
+#if defined(_KBSERVER)
+	if (m_pServDisc != NULL)
+	{
+		delete m_pServDisc;
+	}
+#endif
+
 
 	// Remove any files lurking there, they don't need to persist
 	EmptyCollaborationTempFolder(); // see CollabUtilities.h (at bottom)

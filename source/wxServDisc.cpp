@@ -25,11 +25,10 @@
 
 #ifndef WX_PRECOMP
 // Include your minimal set of headers here
-#include <wx/arrstr.h>
-#include <wx/docview.h>
-//#include "Adapt_It.h" omit - heaps of clashes with ws2tcpip.h
-#include "SourcePhrase.h" // needed for definition of SPList, which MainFrm.h uses
-#include "MainFrm.h"
+//#include <wx/arrstr.h>
+//#include <wx/docview.h>
+//#include "SourcePhrase.h" // needed for definition of SPList, which MainFrm.h uses
+//#include "MainFrm.h"
 #endif
 
 
@@ -46,12 +45,14 @@
 #ifdef _WIN32
 
 #pragma comment(lib, "Ws2_32.lib")
-#include <winsock2.h> // moved there from wxServDisc.h, otherwise get name clashes
+#include <winsock2.h> // moved here from wxServDisc.h, otherwise get name clashes
+#include <ws2tcpip.h> // ditto
 
 #endif
 
 #include "wxServDisc.h"
 #include "ServDisc.h"
+#include "ServiceDiscovery.h"
 
 // Compatability defines
 #ifdef __APPLE__
@@ -62,13 +63,21 @@
 #endif
 
 // define our new notify event! (BEW added the ...HALTING one)
+
 #if wxVERSION_NUMBER < 2900
 DEFINE_EVENT_TYPE(wxServDiscNOTIFY);
-//DEFINE_EVENT_TYPE(wxServDiscHALTING);
 #else
 wxDEFINE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
-//wxDEFINE_EVENT(wxServDiscHALTING, wxCommandEvent);
 #endif
+
+#if wxVERSION_NUMBER < 2900
+DEFINE_EVENT_TYPE(wxServDiscHALTING);
+DEFINE_EVENT_TYPE(serviceDiscoveryHALTING);
+#else
+wxDEFINE_EVENT(wxServDiscHALTING, wxCommandEvent);
+wxDEFINE_EVENT(serviceDiscoveryHALTING, wxCommandEvent);
+#endif
+
 
 /*
   private member functions
@@ -116,15 +125,38 @@ wxThread::ExitCode wxServDisc::Entry()
 	  // BEW put this test here
 	  if ((int)tv->tv_sec > 101)
 	  {
-		  // halt & shut the discovery module down because no KBserver service was discovered
-		wxLogDebug(_T("BEW: No KB server discovered. Approx 7 seconds elapsed. Halting now..."));
+		// halt & shut the discovery module down because no KBserver service was discovered
 		// BEW copied next 5 lines from code which follows main loop (which never got called)
-		// so hopefully this may clean up without memory leaks
+		  // so hopefully this may clean up without memory leaks - it does, but not quite,
+		  // so I've added a hack and a loop of my own at the end to clean up stragglers
 		mdnsd_shutdown(d);
 		mdnsd_free(d);
-		if(mSock != INVALID_SOCKET)
-			closesocket(mSock);
-		wxLogDebug(wxT("wxServDisc %p: scanthread exiting"), this);
+
+		// BEW the above doesn't eliminate all leaks. A query struct, at least one, remains
+		// unfreed. This hack hopefully takes care of any such. queryPtrArray[] is my own
+		// thing, number of elements as many as QUERYARRAY_LEN (which I think I'll set at 40
+		// as there could be a lot of services available from the scan - see mdnsd.h line 60,
+		// the definition is in mdnsd.c, and the .h file uses extern to avoid multiple
+		// redefinitions). The for loop below fixed the leak.
+		int i, j;
+		if (!m_bOnSDNotifyStarted)
+		{
+			// scanning found no KBserver service being multicasted
+			for (i = 0; i < (int)QUERYARRAY_LEN; i++)
+			{
+				struct query* q = queryPtrArray[i];
+				if (q != NULL)
+				{
+					free(q->name);
+					free(q);
+				}
+			}
+			ClearQueryPtrArray();
+			// end of BEW's hack for leak elimination
+
+			if(mSock != INVALID_SOCKET)
+				closesocket(mSock);
+			wxLogDebug(wxT("wxServDisc %p: BEW: scanthread exiting; No KBserver discovered on this iteration"), this);
 
 		// post a custom wxServDiscHALTING event here
         wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
@@ -136,6 +168,100 @@ wxThread::ExitCode wxServDisc::Entry()
 #else
         wxQueueEvent((wxEvtHandler*)parent, event.Clone());
 #endif
+		wxLogDebug(_T("BEW: No KB server discovered. Posted event wxServDiscHALTING. Halting now..."));
+			//return NULL;
+		}
+		else
+		{
+			// scanning discovered a multicasting KBserver, so wait until
+			// onSDNotify() finishes before doing cleanup here - OnSDNotify()
+			// is on the main thread, but we are on a detached thread here
+			while (!m_bOnSDNotifyEnded)
+			{
+				wxMilliSleep(100); // wait for 1/10 of a second, then test again
+			}
+ 			wxLogDebug(_T("onSDNotify() has finished. In my halt block in Entry()'s scanning loop, at mdnsd_in() MEMORY LEAKS ELIMINATION cleanup"));
+
+			// Here is where we can clear any heap blocks remaining. The leaks
+			// come from mdnsd_query() (a few - typically 3 for one KBserver found)
+			// and from mdnsd_in() - about 30, for one KBserver found; these are
+			// mostly (unsigned char *) malloc() string buffers, about 20, and
+			// about 9 (struct cached*) buffers containing a cached struct in each,
+			// each of the latter stores 3 structs, a mdsnda_struct, a query struct
+			// pointer, and a cached struct pointer (for next one in the linked list).
+			// My hack will be to accumulate the string buffer pointers into a public
+			// array, and the cashed struct pointers into another public array, and
+			// then just free() them in loops here. A gross hack, but easier than
+			// trying to figure out the details of all that's going on in order to
+			// write proper sensible deletion code. More services are found than
+			// just the _kbserver._tcp.local. one or ones; so my arrays need to be
+			// big enough to cater for a LAN with a bit of stuff available. I'm at
+			// SIL A for the above figures, so what's above is probably a reasonable
+			// guestimate, and add a bit more for padding.
+
+		/*	
+			for (i = 0; i < (int)QUERYARRAY_LEN; i++)
+			{
+				struct query* q = queryPtrArray[i];
+				if (q != NULL)
+				{
+					free(q->name);
+					free(q);
+				}
+			}
+			ClearQueryPtrArray();
+		*/	
+			for (i = 0; i < (int)CACHEDARRAY_LEN; i++)
+			{
+				// Outer loop iterates by rows, each row's [0] element is a void* which we must
+				// cast to (struct cached*) - actually, may be unnecessary, but no harm in the casting
+				if (cachedPtr2DArray[i][0] != NULL)
+				{
+					// delay deletion till its strings are deleted
+					struct cached* c = (struct cached*)cachedPtr2DArray[i][0]; 
+					// First delete as many unsigned char* are we stored at their allocations
+					for (j = 1; j < STRINGARRAY_LEN; j++)
+					{
+						if (cachedPtr2DArray[i][j] != NULL)
+						{
+							// static wxString From8BitData(const char* buf)
+							const char* aStringPtr = (const char*)(cachedPtr2DArray[i][j]);
+							wxString s = wxString::From8BitData(aStringPtr);
+							wxLogDebug(_T("     Leak Elimination: DELETING string at index = %d, %s"), j, s.c_str());
+							free((unsigned char*)cachedPtr2DArray[i][j]);
+						}
+						else
+						{
+							wxLogDebug(_T("     Leak Elimination: ABSENT string at index = %d"), j);
+							free((unsigned char*)cachedPtr2DArray[i][j]);
+						}
+					}
+					wxLogDebug(_T("Leak Elimination: DELETING struct cached, for index = %d"), i);
+					free(c);
+				}
+				else
+				{
+					wxLogDebug(_T("Leak Elimination: ABSENT: struct cached, for index = %d"), i);
+				}
+			}
+			ClearCachedPtr2DArray(); // this also sets cacheCounter back to -1
+
+			// end of BEW's hack for leak elimination
+		}
+		wxLogDebug(_T("After mdnsd_in() LEAKS ELIMINATION:  now posting wxServDiscHALTING event"));
+
+		// post a custom wxServDiscHALTING event here
+        wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
+        event.SetEventObject(this); // set sender
+
+        // BEW added this posting...  Send it
+#if wxVERSION_NUMBER < 2900
+        wxPostEvent((wxEvtHandler*)parent, event);
+#else
+        wxQueueEvent((wxEvtHandler*)parent, event.Clone());
+#endif
+		wxLogDebug(_T("BEW: No KB server discovered. Posted event wxServDiscHALTING. Halting now..."));
+
 		// BEW copied next line from code which follows main loop
 		return NULL;
 	  } // end of BEW addition
@@ -188,17 +314,126 @@ wxThread::ExitCode wxServDisc::Entry()
 	// BEW log what iteration this is:
 	BEWcount++;
 	wxLogDebug(_T("BEW  outer loop iteration:  %d"), BEWcount);
-    }
+    } // end of outer loop
 
   mdnsd_shutdown(d);
   mdnsd_free(d);
+
+	int i, j;
+//	if (!m_bOnSDNotifyStarted)
+//	{
+		/*
+		// scanning found no KBserver service being multicasted
+		for (i = 0; i < (int)QUERYARRAY_LEN; i++)
+		{
+			struct query* q = queryPtrArray[i];
+			if (q != NULL)
+			{
+				free(q->name);
+				free(q);
+			}
+		}
+		ClearQueryPtrArray();
+		*/
+		// end of BEW's hack for leak elimination
+
+//		wxLogDebug(wxT("wxServDisc %p: BEW: scanthread exiting; No KBserver discovered on this iteration"), this);
+/* don't post, it kills the discovery too early
+		// post a custom wxServDiscHALTING event here
+		wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
+		event.SetEventObject(this); // set sender
+
+		// BEW added this posting...  Send it
+		#if wxVERSION_NUMBER < 2900
+		wxPostEvent((wxEvtHandler*)parent, event);
+		#else
+		wxQueueEvent((wxEvtHandler*)parent, event.Clone());
+		#endif
+		wxLogDebug(_T("BEW: AFTER LOOP: No KB server discovered. Posted event wxServDiscHALTING"));
+*/
+//	}
+//	else
+//	{
+		// scanning discovered a multicasting KBserver, so wait until
+		// onSDNotify() finishes before doing cleanup here - OnSDNotify()
+		// is on the main thread, but we are on a detached thread here
+/* do it unilaterally here
+		while (!m_bOnSDNotifyEnded)
+		{
+			wxMilliSleep(100); // wait for 1/10 of a second, then test again
+		}
+		wxLogDebug(_T("onSDNotify() has finished. AFTER LOOP, at mdnsd_in() MEMORY LEAKS ELIMINATION cleanup"));
+*/
+	/*	Do I need this here?? Yes!
+		for (i = 0; i < (int)QUERYARRAY_LEN; i++)
+		{
+			struct query* q = queryPtrArray[i];
+			if (q != NULL)
+			{
+				free(q->name);
+				free(q);
+			}
+		}
+		ClearQueryPtrArray();
+	*/	
+		for (i = 0; i < (int)CACHEDARRAY_LEN; i++)
+		{
+			// Outer loop iterates by rows, each row's [0] element is a void* which we must
+			// cast to (struct cached*) - actually, may be unnecessary, but no harm in the casting
+			if (cachedPtr2DArray[i][0] != NULL)
+			{
+				// delay deletion till its strings are deleted
+				struct cached* c = (struct cached*)cachedPtr2DArray[i][0]; 
+				// First delete as many unsigned char* are we stored at their allocations
+				for (j = 1; j < STRINGARRAY_LEN; j++)
+				{
+					if (cachedPtr2DArray[i][j] != NULL)
+					{
+						// static wxString From8BitData(const char* buf)
+						const char* aStringPtr = (const char*)(cachedPtr2DArray[i][j]);
+						wxString s = wxString::From8BitData(aStringPtr);
+						wxLogDebug(_T("     Leak Elimination: DELETING string at index = %d, %s"), j, s.c_str());
+						free((unsigned char*)cachedPtr2DArray[i][j]);
+					}
+					else
+					{
+						wxLogDebug(_T("     Leak Elimination: ABSENT string at index = %d"), j);
+						free((unsigned char*)cachedPtr2DArray[i][j]);
+					}
+				}
+				wxLogDebug(_T("Leak Elimination: DELETING struct cached, for index = %d"), i);
+				free(c);
+			}
+			else
+			{
+				wxLogDebug(_T("Leak Elimination: ABSENT: struct cached, for index = %d"), i);
+			}
+		}
+		ClearCachedPtr2DArray(); // this also sets cacheCounter back to -1
+
+		// end of BEW's hack for leak elimination
+/* don't post here, it kills process to early		
+		// post a custom wxServDiscHALTING event here
+		wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
+		event.SetEventObject(this); // set sender
+
+		// BEW added this posting...  Send it
+		#if wxVERSION_NUMBER < 2900
+		wxPostEvent((wxEvtHandler*)parent, event);
+		#else
+		wxQueueEvent((wxEvtHandler*)parent, event.Clone());
+		#endif
+		wxLogDebug(_T("BEW: AFTER LOOP: A KB server discovered. Posted event wxServDiscHALTING"));
+*/
+//	}
+	wxLogDebug(_T("AFTER LOOP, & after mdnsd_in() LEAKS ELIMINATION: & now exiting Entry()"));
 
 
   if(mSock != INVALID_SOCKET)
     closesocket(mSock);
 
 
-  wxLogDebug(wxT("wxServDisc %p: scanthread exiting"), this);
+  wxLogDebug(wxT("wxServDisc %p: scanthread exiting, after loop, at end of Entry()"), this);
 
   return NULL;
 }
@@ -493,6 +728,11 @@ SOCKET wxServDisc::msock()
 
 wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 {
+  // BEW addition, initialize our cached struct pointer, for later clobbering memory leaks
+  cacheCounter = -1; // defined in mdnsd.h,  set in mdnsd_in()'s caching loop, approx line 554 onwards
+  m_bOnSDNotifyStarted = FALSE;
+  m_bOnSDNotifyEnded = FALSE;
+
   // save our caller
   parent = p;
 
@@ -526,7 +766,7 @@ wxServDisc::~wxServDisc()
     GetThread()->Delete(); // blocks, this makes TestDestroy() return true and cleans up the thread
 
   wxLogDebug(wxT("wxServDisc %p: scanthread deleted, wxServDisc destroyed, query was '%s', lifetime was %ld"), this, query.c_str(), mWallClock.Time());
-  wxLogDebug(wxT(""));
+  wxLogDebug(wxT("Finished call of ~wxServDisc()"));
 }
 
 std::vector<wxSDEntry> wxServDisc::getResults() const
@@ -549,7 +789,9 @@ void wxServDisc::post_notify()
 {
   if(parent)
     {
-      // new NOTIFY event, we got no window id
+ 	  wxLogDebug(_T("post_notify():  posting event")); // BEW added this call
+		
+		// new NOTIFY event, we got no window id
       wxCommandEvent event(wxServDiscNOTIFY, wxID_ANY);
       event.SetEventObject(this); // set sender
 
@@ -559,382 +801,6 @@ void wxServDisc::post_notify()
 #else
       wxQueueEvent((wxEvtHandler*)parent, event.Clone());
 #endif
-    }
+  }
 }
 
-#if defined(_KBSERVER)
-
-///////////////////////////////////////////////////////////////////////////
-/// NOTE: in the class below, we cannot #include all the wx headers - it results
-/// in massive amounts of clashes with winsock2.h etc; just include the ones
-/// actually needed, such as (see line 28) <wx/arrstr.h> provided there are no
-/// conflicts. Keep to just C++ and std library in CServiceDiscover class, when
-/// otherwise conflicts would arise. Or experiment with using namespace ...
-///////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-/// \project		adaptit
-/// \file			ServiceDiscovery.h
-/// \author			Bruce Waters
-/// \date_created	10 November 2015
-/// \rcs_id $Id$
-/// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the CServiceDiscovery class.
-/// The CServiceDiscovery class automates the detection of the service 
-/// _kbserver._tcp.local. (the final period is obligatory) on the LAN.
-/// It is used in order to avoid having the user take explicit steps
-/// to determine the ipv4 address of the running service to be used
-/// when sharing KB data between multiple users within the same AI project.
-/// \derivation		The CServiceDiscovery class is derived from wxObject.
-/// ======================================================================
-/// Thanks to Christian Beier, <dontmind@freeshell.org>
-/// who made the SDWrap application available under the GNU General Public License
-/// along with the wxServDisc and related software which forms the core of the
-/// Zeroconf service discovery wrapper.
-/// SDWrap was distributed in the hope that it would be useful, but WITHOUT
-/// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-/// FITNESS FOR A PARTICULAR PURPOSE. His original license details are available
-/// at the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA
-/// ======================================================================
-/// This CServiceDiscovery class utilizes the six core resources, wxServDisc.h,
-/// wxServDisc.cpp, mdnsd.h, mdnsd.c, 1035.h and 1035; and also some parts of
-/// the MyFrameMain class, modified and simplified in order to suit our own
-/// requirements - which do not require a GUI, nor spawning of a command 
-/// process for automated connection to some other resource.
-/////////////////////////////////////////////////////////////////////////////
-
-#if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma implementation "ServiceDiscovery.h"
-#endif
-
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
-
-#include "wxServDisc.h"
-
-IMPLEMENT_DYNAMIC_CLASS(CServiceDiscovery, wxEvtHandler)
-
-BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)
-	EVT_COMMAND (wxID_ANY, wxServDiscNOTIFY, CServiceDiscovery::onSDNotify)
-	EVT_COMMAND (wxID_ANY, wxServDiscHALTING, CServiceDiscovery::onSDHalting)
-END_EVENT_TABLE()
-
-CServiceDiscovery::CServiceDiscovery()
-{
-	m_servicestring = _T("");
-	m_bWxServDiscIsRunning = TRUE;
-	wxUnusedVar(m_servicestring);
-}
-
-CServiceDiscovery::CServiceDiscovery(CMainFrame* pFrame, wxString servicestring, ServDisc* pParentClass)
-{
-	
-	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, passing in pFrame and servicestring: %s, ptr to instance: %p"),
-		servicestring.c_str(), this);
-
-	m_servicestring = servicestring; // service to be scanned for
-	m_pFrame = pFrame; // Adapt It app's frame window
-	m_pParent = pParentClass; // so we can delete the parent from within this class
-	m_bWxServDiscIsRunning = TRUE; // Gets set FALSE only in my added onServDiscHalting() handler
-		// and the OnIdle() hander will use the FALSE to get CServiceDiscovery and ServDisc
-		// class instances deleted, and app's m_pServDisc pointer reset to NULL afterwards
-
-	m_hostname = _T("");
-	m_addr = _T("");
-	m_port = _T("");
-
-	// Clear the reporting member variables on the CMainFrame instance, as we are 
-	// doing a new discovery attempt
-	m_pFrame->m_urlsArr.Clear();
-	m_pFrame->m_bArr_ScanFoundNoKBserver.Clear();
-	m_pFrame->m_bArr_HostnameLookupFailed.Clear();
-	m_pFrame->m_bArr_IPaddrLookupFailed.Clear();
-
-	// wxServDisc creator is: wxServDisc::wxServDisc(void* p, const wxString& what, int type)
-	// where p is pointer to the parent class & what is the service to scan for, its type 
-	// is QTYPE_PTR
-	// ********************** NOTE ******************************
-	// The "parent" class for instantiating wxServDisc, is NOT the parent to
-	// this CServiceDiscovery class instance! The latter is the pParentClass 
-	// passed in; but for wxServDisc, the p parameter is the destination object
-	// to which the pending custom event (ie. wxServDiskNOTIFY event) is to be
-	// sent -- and that is to this CServiceDiscovery instance. So pass in this
-	m_pSD = new wxServDisc(this, m_servicestring, QTYPE_PTR);
-
-	// Try putting a destructor here -- nope the same thread.cpp line 170 m_buffer freed
-	// crash happens with this too. 
-	//delete this;
-}
-
-// When wxServDisc discovers a service (one or more of them) that it is scanning
-// for, it reports its success here. Adapt It needs just the ip address(s), and
-// maybe the port, so that we can present URL(s) to the AI code which it can use
-// for automatic connection to the running KBserver. Ideally, only one KBserver
-// runs at any given time, but we have to allow for users being perverse and running
-// more than one. If they do, we'll have to let them make a choice of which URL to
-// connect to. onSDNotify is an amalgamation of a few separate functions from the
-// original sdwrap code. We don't have a gui, so all we need do is the minimal task
-// of looking up the ip address and port of each discovered _kbserver service, and
-// turning each such into an ip address from which we can construct the appropriate
-// URL (one or more) which we'll make available to the rest of Adapt It via a
-// wxArrayString plus some booleans for error states, on the CMainFrame class instance.
-// The logic for using the one or more URLs will be constructed externally to this
-// service discovery module. This service discovery module will just be instantiated,
-// scan for _kbserver._tcp.local. , lookup the ip addresses, deposit finished URL or 
-// URLs in the wxArrayString in CMainFrame, and then kill itself. We'll probably
-// run it at the entry to any Adapt It project, and those projects which are supporting
-// KBserver syncing, will then make use of what has been returned, to make the connection
-// as simple and automatic for the user as possible. Therefore, onSDNotify will do
-// all this stuff, and at the end, kill the module, and it's parent classes.
-void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
-{
-	if (event.GetEventObject() == m_pSD)
-	{
-		// initialize my reporting context (Use .Clear() rather than
-		// .Empty() because from one run to another we don't know if the 
-		// number of items discovered will be the same as discovered previously
-		m_sd_items.Clear();
-		m_pFrame->m_urlsArr.Clear();
-		m_pFrame->m_bArr_ScanFoundNoKBserver.Clear();
-		m_pFrame->m_bArr_HostnameLookupFailed.Clear();
-		m_pFrame->m_bArr_IPaddrLookupFailed.Clear();
-		m_hostname.Empty();
-		m_addr.Empty();
-		m_port.Empty();
-		size_t entry_count = 0;
-		int timeout;
-		// How will the rest of Adapt It find out if there was no _kbserver service
-		// discovered? That is, nobody has got one running on the LAN yet.
-		// Answer: m_pFrame->m_urlsArr will be empty, and m_pFrame->m_bArr_ScanFoundNoKBserver
-		// will also be empty. The wxServDisc module doesn't post a wxServDiscNotify event,
-		// as far as I know, if no service is discovered, so we can't rely on this
-		// handler being called if what we want to know is that no KBserver is currently
-		// running. Each explicit attempt to run this service discovery module will start
-		// by clearing the results arrays on the CFrameInstance.
-
-		// length of query plus leading dot
-		size_t qlen = m_pSD->getQuery().Len() + 1;
-#if defined(_DEBUG)
-		wxString theQuery = m_pSD->getQuery(); // temp, to see what's in it
-		wxLogDebug(_T("theQuery:  %s  Its Length plus 1: %d"), theQuery.c_str(), (int)qlen);
-#endif
-		vector<wxSDEntry> entries = m_pSD->getResults();
-		vector<wxSDEntry>::const_iterator it;
-		for (it = entries.begin(); it != entries.end(); it++)
-		{
-#if defined(_DEBUG)
-			// let's have a look at what is returned
-			wxString aName = it->name;
-			int nameLen = aName.Len();
-			wxString ip = it->ip;
-			int port = it->port;
-			long time = it->time;
-			wxLogDebug(_T("name: %s  Len(): %d  ip: %s  port: %d  time: %d"), 
-				aName.c_str(), nameLen, ip.c_str(), port, time);
-#endif
-			// what's really wanted - just the bit before the first ._ sequence
-			entry_count++;
-#if defined(_DEBUG)
-			wxLogDebug(_T("m_sd_items receives string:  %s   for entry index = %d"), 
-				it->name.Mid(0, it->name.Len() - qlen), entry_count - 1);
-#endif
-			m_sd_items.Add(it->name.Mid(0, it->name.Len() - qlen));
-			m_pFrame->m_bArr_ScanFoundNoKBserver.Add(0); // add FALSE, as we successfully
-				// discovered one (but that does not necessarily mean we will
-				// subsequently succeed at geting hostname, port, and ip address)
-
-		} // end of loop: for (it = entries.begin(); it != entries.end(); it++)
-
-		// Next, lookup hostname and port. Code for this is copied and tweaked,
-		// from the list_select() event handler of MyFrameMain. Since we have
-		// this now in a loop in case more than one KBserver is running, we
-		// must then embed the associated addrscan() call within the loop
-		size_t i;
-		for (i = 0; i < entry_count; i++)
-		{
-			wxServDisc namescan(0, m_pSD->getResults().at(i).name, QTYPE_SRV);
-
-			timeout = 3000;
-			while(!namescan.getResultCount() && timeout > 0)
-			{
-				wxMilliSleep(25);
-				timeout-=25;
-			}
-			if(timeout <= 0)
-			{
-				wxLogError(_("Timeout looking up hostname. Entry index: %d"), i);
-				m_hostname = m_addr = m_port = wxEmptyString;
-				m_pFrame->m_bArr_HostnameLookupFailed.Add(1); // adding TRUE
-				m_pFrame->m_bArr_IPaddrLookupFailed.Add(-1); // because we won't try addrscan() for this index
-#if defined(_DEBUG)
-				wxLogDebug(_T("Found: [Service:  %s  ] Timeout:  m_hostname:  %s   m_port  %s   for entry index = %d"), 
-				m_sd_items.Item(i).c_str(), m_hostname.c_str(), m_port.c_str(), i);
-#endif
-				//return;
-				continue; // don't return, we need to try every iteration
-			}
-			else
-			{
-				// The namescan found something...
-				m_hostname = namescan.getResults().at(0).name;
-				m_port = wxString() << namescan.getResults().at(0).port;
-				m_pFrame->m_bArr_HostnameLookupFailed.Add(0); // adding FALSE
-#if defined(_DEBUG)
-				wxLogDebug(_T("Found: [Service:  %s  ] Looked up:  m_hostname:  %s   m_port  %s   for entry index = %d"), 
-				m_sd_items.Item(i).c_str(), m_hostname.c_str(), m_port.c_str(), i);
-#endif
-				// For each successful namescan(), we must do an addrscan, so as to fill
-				// out the full info needed for constucting a URL; if the namescan was
-				// not successful, the m_bArr_IPaddrLookupFailed entry for this index
-				// should be neither true (1) or false (0), so use -1 for "no test was made"
-				{
-					wxServDisc addrscan(0, m_hostname, QTYPE_A);
-			  
-					timeout = 3000;
-					while(!addrscan.getResultCount() && timeout > 0)
-					{
-						wxMilliSleep(25);
-						timeout-=25;
-					}
-					if(timeout <= 0)
-					{
-						wxLogError(_("Timeout looking up IP address."));
-						m_hostname = m_addr = m_port = wxEmptyString;
-						m_pFrame->m_bArr_IPaddrLookupFailed.Add(1); // for TRUE
-#if defined(_DEBUG)
-						wxLogDebug(_T("Found: [Service:  %s  ] Timeout:  ip addr:  %s   for entry index = i"), 
-						m_sd_items.Item(i).c_str(), m_addr.c_str(), i);
-#endif
-						//return;
-						continue; // do all iterations
-					}
-					else
-					{
-						// succeeded in getting the service's ip address
-						m_addr = addrscan.getResults().at(0).ip;
-						m_pFrame->m_bArr_IPaddrLookupFailed.Add(0); // for FALSE
-#if defined(_DEBUG)
-						wxLogDebug(_T("Found: [Service:  %s  ] Looked up:  ip addr:  %s   for entry index = i"), 
-						m_sd_items.Item(i).c_str(), m_addr.c_str(), i);
-#endif
-					}
-				} // end of TRUE block for namescan() finding something
-
-			} // end of else block for test: if(timeout <= 0) for namescan() attempt
-
-			// Put it all together to get URL(s) & store in CMainFrame's m_urlsArr.
-			// Since we here are still within the loop, we are going to try create a
-			// url for what this iteration has succeeded in looking up. We can do so
-			// provided hostname, ip, and port are not empty strings. We'll let
-			// port be empty, as long as hostname and ip are not empty. ( I won't
-			// construct a url with :port appended, unless Jonathan says I should.)
-			wxString protocol = _T("https://");
-			if (m_pFrame->m_bArr_HostnameLookupFailed.Item(i) == 0 &&
-				m_pFrame->m_bArr_IPaddrLookupFailed.Item(i) == 0)
-			{
-				m_pFrame->m_urlsArr.Add(protocol + m_addr);
-#if defined(_DEBUG)
-				wxLogDebug(_T("Found: [Service:  %s  ] URL:  %s   for entry index = %d"), 
-						m_sd_items.Item(i).c_str(), (protocol + m_addr).c_str(), i);
-#endif
-			}
-		} // end of loop: for (i = 0; i < entry_count; i++)
-
-	} // end of TRUE block for test: if (event.GetEventObject() == m_pSD)
-	else
-	{
-		// major error, so don't wipe out what an earlier run may have
-		// stored in the CMainFrame instance
-		;
-	} // end of else block for test: if (event.GetEventObject() == m_pSD)
-
-	// here is where we might clear any heap blocks remaining, and kill the module
-	// At this point, the destructor of the scan thread (code embedded within
-	// ~wxServDisc() ) has been run, because ~wxServDisc() has been run - I didn't
-	// need to cause that) has destroyed the tread. It remains only to destroy
-	// this CServiceDiscovery instance, and its parent ServDisc instance
-	// BUT: if there is no service to find, wxServDisc clobbers itself early
-	// without calling onSDNotify() and so my delete this call is not done, and
-	// memory leaks result. Consider posting a custom event from ~wxServDisc()
-	// with a handler in CServiceDiscovery instance that gets it and parent etc
-	// deleted from the heap...
-	// If I debug slowly enough, the wxServDisc thread will be restarted - my last
-	// output had two sets of log entries indicating the ~wxServDisc() destructor
-	// was called.  Try explicitly calling it again here....
-	m_pSD->~wxServDisc();
-	delete m_pSD;
-	delete this;
-}
-
-// BEW Getting the module shut down in the two circumstances we need, is a can of worms.
-// (a) after one or more KBserver instances running have been discovered (onServDiscNotify()
-// gets called, and we can put shut-down code in the end of that handler - but I may need
-// to improve on it some more)
-// (b) when no KBserver instance is runnning (I use an onServDiscHalting() handler of my
-// own to get ~wxServDisc() destructor called, but that's all it can do safely).
-// 
-// In the (b) case, my CServiceDiscovery instance, and my ServDisc instance, live on. 
-// So I've resorted to a hack, using a m_bWxServDiscIsRunning boolean, set to FALSE
-// when no KBserver was discovered, at end of the ...Halting() handler,
-// and the OnIdle() handler in frame window, to get the latter two classes clobbered.
-// 
-// SDWrap embedded the wxServDisc instance in the app, and so when the app got shut down,
-// the lack of well-designed shutdown code didn't matter, as everything got blown away. 
-// But for me, ServDisc needs to exist only for a single try at finding a KBserver instance,
-// and then die forever - or until explicitly instantiated again (which currently, 
-// requires a relaunch of AI)
-void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
-{
-	wxUnusedVar(event);
-	// BEW made this handler, for shutting down the module when no KBserver
-	// service was discovered
-	wxLogDebug(wxT("BEW: No KBserver found, removing module by means of onSDHalting()"));
-	wxLogDebug(_T("this [ from CServiceDiscovery:onSDHalting() ] = %p"), this);
-	wxLogDebug(_T("m_pParent [ from CServiceDiscovery:onSDHalting() ] = %p"), m_pParent);
-
-
-	delete m_pSD; // must have this, it gets ~wxServDisc() destructor called
-
-
-	m_bWxServDiscIsRunning = FALSE;
-	m_pParent->m_bSDIsRunning = FALSE; // enables our code in CMainFrame::OnIdle() to
-		// figure out that no KBserver was found and so a partial removal of the
-		// module has been done so far (ie. wxServDisc instance only), and so the
-		// class ServDisc (the parent of the CServiceDiscovery instance) can be
-		// deleted from within OnIdle() when this flag is FALSE, and the app's 
-		// m_pServDisc pointer reset to NULL. That doesn't however get the 
-		// CServiceDiscovery instance deleted, so it will leak memory unless we can
-		// get it deleted from within itself. Trying to do it from elsewhere means
-		// that #include wxServDisc has to be mixed with #include "Adapt_It.h" and
-		// that leads to hundreds of name clashes.
-		// Ugly hacks, but hey, I didn't write the wxServDisc code.
-	//delete this;  // must not call this here, let this handler complete, otherwise
-	// event.cpp, line 1211, when entered, will crash because m_buffer has been freed
-	
-	// So far I'm at an impass; I can't delete this ptr from within an event being handled
-	// by this; and name conflicts prevent me doing it from anywhere where Adapt_It.h is
-	// in scope! -- No! Yes I can, post an event which the parent handles to clear out the
-	// child class instance.
-	// post a custom wxServDiscHALTING event here
-	wxCommandEvent upevent(serviceDiscoveryHALTING, wxID_ANY);
-	upevent.SetEventObject(this); // set sender
-
-	// BEW added this posting...  Send it
-#if wxVERSION_NUMBER < 2900
-	wxPostEvent((wxEvtHandler*)m_pParent, upevent);
-#else
-	wxQueueEvent((wxEvtHandler*)m_pParent, upevent.Clone());
-#endif
-}
-
-CServiceDiscovery::~CServiceDiscovery()
-{
-	wxLogDebug(_T("Deleting the CServiceDiscovery instance"));
-}
-
-
-
-#endif // _KBSERVER

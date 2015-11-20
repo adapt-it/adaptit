@@ -53,6 +53,10 @@ public:
 
 	CServiceDiscovery* m_pServiceDisc;
 
+	CServiceDiscovery* m_backup_ThisPtr; // m_pServiceDisc gets reset to 0xcdcdcdcd before
+		// it can be deleted, so I'll store a copy here, and use ithat the pointer in the
+		// onServDiscHalting() handler when I want to get m_pServiceDisc deleted
+
 protected:
 	void onServDiscHalting(wxCommandEvent& event);
 

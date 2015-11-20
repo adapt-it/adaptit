@@ -901,6 +901,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\ServiceDiscovery.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\SetDelay.cpp"
 				>
 			</File>
@@ -1535,6 +1539,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\ServDisc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\ServiceDiscovery.h"
 				>
 			</File>
 			<File
