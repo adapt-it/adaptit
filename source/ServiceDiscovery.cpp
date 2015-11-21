@@ -206,8 +206,9 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 			// what's really wanted - just the bit before the first ._ sequence
 			entry_count++;
 #if defined(_DEBUG)
+			wxString astring = it->name.Mid(0, it->name.Len() - qlen);
 			wxLogDebug(_T("m_sd_items receives string:  %s   for entry index = %d"), 
-				it->name.Mid(0, it->name.Len() - qlen), entry_count - 1);
+				astring.c_str(), entry_count - 1);
 #endif
 			m_sd_items.Add(it->name.Mid(0, it->name.Len() - qlen));
 			m_pFrame->m_bArr_ScanFoundNoKBserver.Add(0); // add FALSE, as we successfully

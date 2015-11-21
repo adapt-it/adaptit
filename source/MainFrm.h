@@ -27,6 +27,8 @@
 #include <wx/html/helpctrl.h> //(wxHTML based help controller: wxHtmlHelpController)
 #include <wx/aui/aui.h>
 
+#include "Adapt_It.h"
+
 // forward declarations
 class CAdapt_ItCanvas;
 class wxHelpControllerBase;
