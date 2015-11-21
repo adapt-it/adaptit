@@ -27,6 +27,10 @@
 #include <wx/html/helpctrl.h> //(wxHTML based help controller: wxHtmlHelpController)
 #include <wx/aui/aui.h>
 
+
+
+#include "Adapt_It.h"
+
 // forward declarations
 class CAdapt_ItCanvas;
 class wxHelpControllerBase;
@@ -169,7 +173,7 @@ public:
 	wxComboBox* m_pRemovalsBarComboBox;
 	wxTextCtrl* m_pVertEditMsgBox;
 	//wxTextCtrl* m_pVertEditStepTransMsgBox;
-	
+
 	wxSizer* pRemovalsBarSizer;
 	wxSizer* pVertEditBarSizer;
 	wxSizer* pClipboardAdaptBarSizer;
@@ -234,7 +238,7 @@ public:
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 	//void OnShowContextHelp(wxCommandEvent& event);
-	
+
 #if defined(_KBSERVER)
 
 	void OnKBSharingDlg(wxCommandEvent& event);

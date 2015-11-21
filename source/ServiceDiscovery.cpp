@@ -17,7 +17,7 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CServiceDiscovery class.
-/// The CServiceDiscovery class automates the detection of the service 
+/// The CServiceDiscovery class automates the detection of the service
 /// _kbserver._tcp.local. (the final period is obligatory) on the LAN.
 /// It is used in order to avoid having the user take explicit steps
 /// to determine the ipv4 address of the running service to be used
@@ -36,7 +36,7 @@
 /// This CServiceDiscovery class utilizes the six core resources, wxServDisc.h,
 /// wxServDisc.cpp, mdnsd.h, mdnsd.c, 1035.h and 1035; and also some parts of
 /// the MyFrameMain class, modified and simplified in order to suit our own
-/// requirements - which do not require a GUI, nor spawning of a command 
+/// requirements - which do not require a GUI, nor spawning of a command
 /// process for automated connection to some other resource.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -96,7 +96,7 @@ CServiceDiscovery::CServiceDiscovery()
 
 CServiceDiscovery::CServiceDiscovery(CMainFrame* pFrame, wxString servicestring, ServDisc* pParentClass)
 {
-	
+
 	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, passing in pFrame and servicestring: %s, ptr to instance: %p"),
 		servicestring.c_str(), this);
 
@@ -112,7 +112,7 @@ CServiceDiscovery::CServiceDiscovery(CMainFrame* pFrame, wxString servicestring,
 	m_addr = _T("");
 	m_port = _T("");
 
-	// Clear the reporting member variables on the CMainFrame instance, as we are 
+	// Clear the reporting member variables on the CMainFrame instance, as we are
 	// doing a new discovery attempt
 	m_pFrame->m_urlsArr.Clear();
 	m_pFrame->m_bArr_ScanFoundNoKBserver.Clear();
@@ -120,11 +120,11 @@ CServiceDiscovery::CServiceDiscovery(CMainFrame* pFrame, wxString servicestring,
 	m_pFrame->m_bArr_IPaddrLookupFailed.Clear();
 
 	// wxServDisc creator is: wxServDisc::wxServDisc(void* p, const wxString& what, int type)
-	// where p is pointer to the parent class & what is the service to scan for, its type 
+	// where p is pointer to the parent class & what is the service to scan for, its type
 	// is QTYPE_PTR
 	// ********************** NOTE ******************************
 	// The "parent" class for instantiating wxServDisc, is NOT the parent to
-	// this CServiceDiscovery class instance! The latter is the pParentClass 
+	// this CServiceDiscovery class instance! The latter is the pParentClass
 	// passed in; but for wxServDisc, the p parameter is the destination object
 	// to which the pending custom event (ie. wxServDiskNOTIFY event) is to be
 	// sent -- and that is to this CServiceDiscovery instance. So pass in this
@@ -149,7 +149,7 @@ CServiceDiscovery::CServiceDiscovery(CMainFrame* pFrame, wxString servicestring,
 // wxArrayString plus some booleans for error states, on the CMainFrame class instance.
 // The logic for using the one or more URLs will be constructed externally to this
 // service discovery module. This service discovery module will just be instantiated,
-// scan for _kbserver._tcp.local. , lookup the ip addresses, deposit finished URL or 
+// scan for _kbserver._tcp.local. , lookup the ip addresses, deposit finished URL or
 // URLs in the wxArrayString in CMainFrame, and then kill itself. We'll probably
 // run it at the entry to any Adapt It project, and those projects which are supporting
 // KBserver syncing, will then make use of what has been returned, to make the connection
@@ -162,7 +162,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 		 m_pSD->m_bOnSDNotifyStarted = TRUE;
 
 		// initialize my reporting context (Use .Clear() rather than
-		// .Empty() because from one run to another we don't know if the 
+		// .Empty() because from one run to another we don't know if the
 		// number of items discovered will be the same as discovered previously
 		m_sd_items.Clear();
 		m_pFrame->m_urlsArr.Clear();
@@ -200,14 +200,15 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 			wxString ip = it->ip;
 			int port = it->port;
 			long time = it->time;
-			wxLogDebug(_T("name: %s  Len(): %d  ip: %s  port: %d  time: %d"), 
+			wxLogDebug(_T("name: %s  Len(): %d  ip: %s  port: %d  time: %d"),
 				aName.c_str(), nameLen, ip.c_str(), port, time);
 #endif
 			// what's really wanted - just the bit before the first ._ sequence
 			entry_count++;
 #if defined(_DEBUG)
-			wxLogDebug(_T("m_sd_items receives string:  %s   for entry index = %d"), 
-				it->name.Mid(0, it->name.Len() - qlen), entry_count - 1);
+            wxString astring = it->name.Mid(0, it->name.Len() - qlen);
+			wxLogDebug(_T("m_sd_items receives string:  %s   for entry index = %d"),
+				astring.c_str(), entry_count - 1);
 #endif
 			m_sd_items.Add(it->name.Mid(0, it->name.Len() - qlen));
 			m_pFrame->m_bArr_ScanFoundNoKBserver.Add(0); // add FALSE, as we successfully
@@ -238,7 +239,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 				m_pFrame->m_bArr_HostnameLookupFailed.Add(1); // adding TRUE
 				m_pFrame->m_bArr_IPaddrLookupFailed.Add(-1); // because we won't try addrscan() for this index
 #if defined(_DEBUG)
-				wxLogDebug(_T("Found: [Service:  %s  ] Timeout:  m_hostname:  %s   m_port  %s   for entry index = %d"), 
+				wxLogDebug(_T("Found: [Service:  %s  ] Timeout:  m_hostname:  %s   m_port  %s   for entry index = %d"),
 				m_sd_items.Item(i).c_str(), m_hostname.c_str(), m_port.c_str(), i);
 #endif
 				//return;
@@ -251,7 +252,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 				m_port = wxString() << namescan.getResults().at(0).port;
 				m_pFrame->m_bArr_HostnameLookupFailed.Add(0); // adding FALSE
 #if defined(_DEBUG)
-				wxLogDebug(_T("Found: [Service:  %s  ] Looked up:  m_hostname:  %s   m_port  %s   for entry index = %d"), 
+				wxLogDebug(_T("Found: [Service:  %s  ] Looked up:  m_hostname:  %s   m_port  %s   for entry index = %d"),
 				m_sd_items.Item(i).c_str(), m_hostname.c_str(), m_port.c_str(), i);
 #endif
 				// For each successful namescan(), we must do an addrscan, so as to fill
@@ -260,7 +261,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 				// should be neither true (1) or false (0), so use -1 for "no test was made"
 				{
 					wxServDisc addrscan(0, m_hostname, QTYPE_A);
-			  
+
 					timeout = 3000;
 					while(!addrscan.getResultCount() && timeout > 0)
 					{
@@ -273,7 +274,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 						m_hostname = m_addr = m_port = wxEmptyString;
 						m_pFrame->m_bArr_IPaddrLookupFailed.Add(1); // for TRUE
 #if defined(_DEBUG)
-						wxLogDebug(_T("ip Not Found: [Service:  %s  ] Timeout:  ip addr:  %s   for entry index = %d"), 
+						wxLogDebug(_T("ip Not Found: [Service:  %s  ] Timeout:  ip addr:  %s   for entry index = %d"),
 						m_sd_items.Item(i).c_str(), m_addr.c_str(), i);
 #endif
 						//return;
@@ -285,7 +286,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 						m_addr = addrscan.getResults().at(0).ip;
 						m_pFrame->m_bArr_IPaddrLookupFailed.Add(0); // for FALSE
 #if defined(_DEBUG)
-						wxLogDebug(_T("Found: [Service:  %s  ] Looked up:  ip addr:  %s   for entry index = %d"), 
+						wxLogDebug(_T("Found: [Service:  %s  ] Looked up:  ip addr:  %s   for entry index = %d"),
 						m_sd_items.Item(i).c_str(), m_addr.c_str(), i);
 #endif
 					}
@@ -305,7 +306,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 			{
 				m_pFrame->m_urlsArr.Add(protocol + m_addr);
 #if defined(_DEBUG)
-				wxLogDebug(_T("Found: [Service:  %s  ] URL:  %s   for entry index = %d"), 
+				wxLogDebug(_T("Found: [Service:  %s  ] URL:  %s   for entry index = %d"),
 						m_sd_items.Item(i).c_str(), (protocol + m_addr).c_str(), i);
 #endif
 			}
@@ -336,16 +337,16 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 // to improve on it some more)
 // (b) when no KBserver instance is runnning (I use an onServDiscHalting() handler of my
 // own to get ~wxServDisc() destructor called, but that's all it can do safely).
-// 
-// In the (b) case, my CServiceDiscovery instance, and my ServDisc instance, live on. 
+//
+// In the (b) case, my CServiceDiscovery instance, and my ServDisc instance, live on.
 // So I've resorted to a hack, using a m_bWxServDiscIsRunning boolean, set to FALSE
 // when no KBserver was discovered, at end of the ...Halting() handler,
 // and the OnIdle() handler in frame window, to get the latter two classes clobbered.
-// 
+//
 // SDWrap embedded the wxServDisc instance in the app, and so when the app got shut down,
-// the lack of well-designed shutdown code didn't matter, as everything got blown away. 
+// the lack of well-designed shutdown code didn't matter, as everything got blown away.
 // But for me, ServDisc needs to exist only for a single try at finding a KBserver instance,
-// and then die forever - or until explicitly instantiated again (which currently, 
+// and then die forever - or until explicitly instantiated again (which currently,
 // requires a relaunch of AI)
 void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 {
@@ -374,8 +375,8 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 		// figure out that no KBserver was found and so a partial removal of the
 		// module has been done so far (ie. wxServDisc instance only), and so the
 		// class ServDisc (the parent of the CServiceDiscovery instance) can be
-		// deleted from within OnIdle() when this flag is FALSE, and the app's 
-		// m_pServDisc pointer reset to NULL. That doesn't however get the 
+		// deleted from within OnIdle() when this flag is FALSE, and the app's
+		// m_pServDisc pointer reset to NULL. That doesn't however get the
 		// CServiceDiscovery instance deleted, so it will leak memory unless we can
 		// get it deleted from within itself. Trying to do it from elsewhere means
 		// that #include wxServDisc has to be mixed with #include "Adapt_It.h" and
@@ -383,7 +384,7 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 		// Ugly hacks, but hey, I didn't write the wxServDisc code.
 	//delete this;  // must not call this here, let this handler complete, otherwise
 	// event.cpp, line 1211, when entered, will crash because m_buffer has been freed
-	
+
 	// post a custom serviceDiscoveryHALTING event here, for the parent class to
 	// supply the handler needed. Doing this here, as this makes the posting of
 	// the event and the handler be as temporally close to each other as possible.
