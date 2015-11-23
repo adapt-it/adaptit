@@ -311,23 +311,31 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 			}
 		} // end of loop: for (i = 0; i < entry_count; i++)
 
-		m_pSD->m_bOnSDNotifyEnded = FALSE; // leak elimination and module shutdown can now happen
+		m_pSD->m_bOnSDNotifyEnded = TRUE; // leak elimination and module shutdown can now happen
 
 	} // end of TRUE block for test: if (event.GetEventObject() == m_pSD)
 	else
 	{
-		// major error, so don't wipe out what an earlier run may have
-		// stored in the CMainFrame instance
+		// major error, so don't wipe out what an earlier run may have stored
+		// in the CMainFrame instance - program counter has never entered here
 		;
 	} // end of else block for test: if (event.GetEventObject() == m_pSD)
+	
+	//  Post a custom wxServDiscHALTING event here, to get rid of my parent classes
+	{
+    wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
+    event.SetEventObject(this); // set sender
 
-	// Can't do leak elimination here, or post an event for halting the
-	// module, because the module thread becomes ready to shut down well before
-	// this handler, which is on the main thread, has completed. So we put
-	// a delay loop in the module thread to have the latter wait until
-	// m_pSD->m_bOnSDNotifyEnded has become TRUE - then we can do cleanup etc
+    // BEW added this posting...  Send it
+#if wxVERSION_NUMBER < 2900
+    wxPostEvent(this, event);
+#else
+    wxQueueEvent(this, event.Clone());
+#endif
+    wxLogDebug(_T("BEW: onSDNotify, block finished. Now have posted event wxServDiscHALTING."));
+	}
 
-	wxLogDebug(wxT("BEW: A KBserver was found. onSDHalting() is exiting"));
+	wxLogDebug(wxT("BEW: A KBserver was found. onSDNotify() is exiting right now"));
 }
 
 // BEW Getting the module shut down in the two circumstances we need, is a can of worms.
@@ -381,8 +389,6 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 		// that #include wxServDisc has to be mixed with #include "Adapt_It.h" and
 		// that leads to hundreds of name clashes.
 		// Ugly hacks, but hey, I didn't write the wxServDisc code.
-	//delete this;  // must not call this here, let this handler complete, otherwise
-	// event.cpp, line 1211, when entered, will crash because m_buffer has been freed
 	
 	// post a custom serviceDiscoveryHALTING event here, for the parent class to
 	// supply the handler needed. Doing this here, as this makes the posting of

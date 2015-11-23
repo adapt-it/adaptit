@@ -133,57 +133,7 @@ int _namehash(const char *s)
     return (int)h;
 }
 
-// BEW added
-/* from mdnsd.h
-#define QUERYARRAY_LEN 40 // allow up to 40 query structs
-#define CACHEDARRAY_LEN 40 // allow up to 40 cached structs
-#define STRINGARRAY_LEN 5 // allow up to 5 unsigned char* per cached struct (max 4 needed) 
-void ClearQueryPtrArray();
-void ClearCachedPtr2DArray();
-extern struct query* queryPtrArray[];
-extern void* cachedPtr2DArray[][]; // I'll cast void* to (struct cached*) or
-			// to (unsigned char*) as required, prior to deleting each pointer
-extern int cacheCounter;
-*/
-// Definitions and Implementations
-// Note: putting these definitions here, and using repeating them in the .h file after
-// extern, prevents the .h file, when #included in other files, from generating multiple
-// redefinition compiler errors
-struct query* queryPtrArray[QUERYARRAY_LEN];
-void* cachedPtr2DArray[CACHEDARRAY_LEN][STRINGARRAY_LEN];
-int cacheCounter = -1; // initialization
 
-void ClearQueryPtrArray()
-{
-	int i;
-	for (i = 0; i < (int)QUERYARRAY_LEN; i++)
-	{
-		queryPtrArray[i] = NULL;
-	}
-}
-// We use this 2 dimensional array as follows:
-// Element [0] of each row will be a (struct cached*) pointer,
-// the other STRINGARRAY_LEN - 1 row elements, [1] [2] etc, will be
-// (unsigned char*) string pointers. We'll do the necessary casting
-// at the place where the deletions are to be done at module shutdown
-// - which I expect to be near the end of the onSDNotify() handler
-// which is called when one or more _kbserver._tcp.local. services
-// has been discovered
-void ClearCachedPtr2DArray()
-{
-	int i,j; // elements are void* formally
-	for (i = 0; i < (int)CACHEDARRAY_LEN; i++)
-	{
-		for (j = 0; j < STRINGARRAY_LEN; j++)
-		{
-			cachedPtr2DArray[i][j] = NULL;
-		}
-	}
-	// return the cacheCounter to it's initialized value
-	cacheCounter = -1;
-}
-
-// end BEW additions
 
 // basic linked list and hash primitives
 struct query *_q_next(mdnsd d, struct query *q, char *host, int type)
@@ -417,28 +367,13 @@ void _cache(mdnsd d, struct resource *r) // BEW added cast (const char*) & (char
     }
 
     c = (struct cached *)malloc(sizeof(struct cached));
-
-	// BEW hack, get copy of the cached struct, so I can explicitly delete it at module shutdown
-	// This _cache() function is called from a loop, which sets cacheCounter value -- see approx
-	// line 578; the cached struct instance we store in a 2-D cachedPtrArray, and it's string
-	// ptrs in the subarray for the same cacheCounter value
-	cachedPtr2DArray[cacheCounter][0] = (void*) c;  // first element of each row is the struct ptr
-	// unsigned char* values are put in subsequent rows - as below (the memory leak data, using
-	// visual leak detector, identified a max of 3 strings which were leaked per cached struct)
-
     bzero(c,sizeof(struct cached));
 	c->rr.name = (unsigned char*)strdup((const char*)r->name);
-
-	cachedPtr2DArray[cacheCounter][1] = (void*)c->rr.name; // BEW added
-
     c->rr.type = r->type;
     c->rr.ttl = d->now.tv_sec + (r->ttl / 2) + 8; // XXX hack for now, BAD SPEC, start retrying just after half-waypoint, then expire
     c->rr.rdlen = r->rdlength;
     c->rr.rdata = (unsigned char *)malloc(r->rdlength);
     memcpy(c->rr.rdata,r->rdata,r->rdlength);
-
-	cachedPtr2DArray[cacheCounter][2] = (void*)c->rr.rdata; // BEW added
-
     switch(r->type)
     {
     case QTYPE_A:
@@ -448,16 +383,10 @@ void _cache(mdnsd d, struct resource *r) // BEW added cast (const char*) & (char
     case QTYPE_CNAME:
     case QTYPE_PTR:
 		c->rr.rdname = (unsigned char*)strdup((const char*)r->known.ns.name);
-
-		cachedPtr2DArray[cacheCounter][3] = (void*)c->rr.rdname; // BEW added
-
         break;
     case QTYPE_SRV:
 		c->rr.rdname = (unsigned char*)strdup((const char*)r->known.srv.name);
- 
-		cachedPtr2DArray[cacheCounter][3] = (void*)c->rr.rdname; // BEW added
-
-       c->rr.srv.port = r->known.srv.port;
+        c->rr.srv.port = r->known.srv.port;
         c->rr.srv.weight = r->known.srv.weight;
         c->rr.srv.priority = r->known.srv.priority;
         break;
@@ -588,12 +517,6 @@ void mdnsd_in(mdnsd d, struct message *m, unsigned long int ip, unsigned short i
     { // process each answer, check for a conflict, and cache
         if((r = _r_next(d,0,(char*)m->an[i].name,m->an[i].type)) != 0 && r->unique && _a_match(&m->an[i],&r->rr) == 0) _conflict(d,r);
         _cache(d,&m->an[i]);
-
-		// BEW hack, count each iteration, the cacheCounter is used with the cachedPtrArray[]
-		// to do the cache and string deletions that will get rid of lots of memory leaks
-		// from mdnsdd_in() when the service discovery module is shut down
-		cacheCounter++; // it's been initialized to -1, and when ClearCachedPtrArray() is
-					   // called, it will be reinitialized to -1 there
     }
 }
 
@@ -802,27 +725,11 @@ void mdnsd_query(mdnsd d, char *host, int type, int (*answer)(mdnsda a, void *ar
     struct query *q;
     struct cached *cur = 0;
     int i = _namehash(host) % SPRIME;
-
-	int iBEW = -1; // BEW addition, initialize loop counter for my storage array queryPtrArray
-
 	// BEW changed test  if(!(q = _q_next(d,0,host,type))) which does the true block only if q is null to be explicit
     if(!((q = _q_next(d,0,host,type)) != 0))
     {
         if(!answer) return;
         q = (struct query *)malloc(sizeof(struct query));
-
-        // BEW hack, I need a way to free the query struct's block, without having to
-        // understand this stuff in depth, so I'll store pointers to these (as many as
-        // QUERYARRAY_LEN, current set to 6) so I can free the memory from my code in
-        // wxServDisc, and onSDNotify, when shutting down the service discovery module. We
-        // don't expect more than two KBservers to be running on the one LAN, and we expect
-        // only one should be, so allowing for a few more is probably more than we'll need
-		iBEW++;
-		if (iBEW < (int)QUERYARRAY_LEN)
-		{
-			queryPtrArray[iBEW] = q;
-		}
-		
 		bzero(q,sizeof(struct query));
         q->name = strdup(host);
         q->type = type;

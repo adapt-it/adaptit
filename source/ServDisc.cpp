@@ -99,7 +99,7 @@ void ServDisc::onServDiscHalting(wxCommandEvent& event)
 {
 	wxUnusedVar(event);
 
-	// What are pointers?
+	// What are the pointer values?
 	wxLogDebug(_T("onServDiscHalting: this:  %p    The Child (m_pServiceDisc):  %p"), this, m_pServiceDisc);
 
 	wxLogDebug(_T("onServDiscHalting: this:  %p    Backup: m_backup_ThisPtr:  %p"), this, m_backup_ThisPtr);
@@ -108,17 +108,13 @@ void ServDisc::onServDiscHalting(wxCommandEvent& event)
 	{
 		// this hack correctly restores the pointer value, if it has become 0xcdcdcdcd
 		m_pServiceDisc = m_backup_ThisPtr; 
+		wxLogDebug(_T("Needed to restore the CServiceDiscovery instance's this pointer, within onServDiscHalting()"));
 	}
 
 	// BUT, it turns out we can't delete the child class now, because the onSDNotify() event has
 	// not yet completed - it has only got as far as just prior to computing the URL value
 	// which is to be stored in pFrame. So we've got to let that handler complete before
-	// we try delete this CServiceDiscovery class instance - try doing that in pFrame's OnIdle()
-	
-	//delete m_pServiceDisc; // delete the CServiceDiscovery class
-
-	//wxLogDebug(_T("Deleted the CServiceDiscovery instance from onServDiscHalting"));
-	wxLogDebug(_T("Restored the CServiceDiscovery instance's this pointer, from onServDiscHalting (onSDHalting() still is running)"));
+	// we try delete this CServiceDiscovery class instance - do that in pFrame's OnIdle()
 }
 
 #endif // _KBSERVER

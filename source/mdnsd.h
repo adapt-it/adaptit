@@ -54,20 +54,6 @@ struct query
     struct query *next, *list;
 };
 
-// Try see if I can kill the malloc() leak. Let's store the query pointers which get
-// leaked - currently only one, but there could be more than one kbserver, so allow
-// for a half dozen; but other unwanted services could have been found, so make it
-// big enough to clobber a lot of undeleted ones if necessary - try 40
-#define QUERYARRAY_LEN 40 // allow up to 40 query structs
-#define CACHEDARRAY_LEN 40 // allow up to 40 cached structs
-#define STRINGARRAY_LEN 5 // allow 5, first is struct cached*, rest are unsigned char*
-void ClearQueryPtrArray();
-void ClearCachedPtr2DArray();
-extern struct query* queryPtrArray[QUERYARRAY_LEN];
-extern void* cachedPtr2DArray[CACHEDARRAY_LEN][STRINGARRAY_LEN]; // I'll cast void* to (struct cached*) or
-			// to (unsigned char*) as required, prior to deleting each pointer
-extern int cacheCounter;
-
 ///////////
 // Global functions
 //

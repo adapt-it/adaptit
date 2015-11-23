@@ -76,7 +76,6 @@ public:
     // that will be in a function called from elsewhere, the function will make use of the
     // data we sent to the CMainFrame class from here. (See MainFrm.h approx lines 262-7)
 protected:
-
 	void onSDNotify(wxCommandEvent& event);
 	void onSDHalting(wxCommandEvent& event);
  
