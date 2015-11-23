@@ -4498,7 +4498,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 
-	//* Remove if it turns out it is not needed
 	if (gpApp->m_pServDisc != NULL)
 	{
 			// Getting rid of our ServDisc instance, and it's child, CServiceDiscovery instance,
@@ -4533,7 +4532,6 @@ wxLogDebug(_T("OnIdle() first result: URL: %s   ScanFoundNoKBserver: %d  Hostnam
 			gpApp->m_pServDisc = NULL;
 		}
 	}
-	//*/
 
 #endif // for _KBSERVER #defined
 

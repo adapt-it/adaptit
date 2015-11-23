@@ -720,6 +720,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\scrollingdialog.cpp" />
     <ClCompile Include="..\..\source\scrollingwizard.cpp" />
     <ClCompile Include="..\..\source\ServDisc.cpp" />
+    <ClCompile Include="..\..\source\ServiceDiscovery.cpp" />
     <ClCompile Include="..\..\source\SetDelay.cpp" />
     <ClCompile Include="..\..\source\SetEncodingDlg.cpp" />
     <ClCompile Include="..\..\source\SetupEditorCollaboration.cpp" />
@@ -829,6 +830,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\pstdint.h" />
     <ClInclude Include="..\..\source\RemoveSomeTgtEntries.h" />
     <ClInclude Include="..\..\source\ServDisc.h" />
+    <ClInclude Include="..\..\source\ServiceDiscovery.h" />
     <ClInclude Include="..\..\source\Thread_BulkPseudoDelete.h" />
     <ClInclude Include="..\..\source\Thread_DoEntireKbDeletion.h" />
     <ClInclude Include="..\..\source\UsernameInput.h" />

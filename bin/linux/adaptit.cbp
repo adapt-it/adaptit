@@ -488,6 +488,10 @@
 		<Unit filename="../../source/Retranslation.h" />
 		<Unit filename="../../source/RetranslationDlg.cpp" />
 		<Unit filename="../../source/RetranslationDlg.h" />
+		<Unit filename="../../source/ServDisc.cpp" />
+		<Unit filename="../../source/ServDisc.h" />
+		<Unit filename="../../source/ServiceDiscovery.cpp" />
+		<Unit filename="../../source/ServiceDiscovery.h" />
 		<Unit filename="../../source/SetDelay.cpp" />
 		<Unit filename="../../source/SetDelay.h" />
 		<Unit filename="../../source/SetEncodingDlg.cpp" />
