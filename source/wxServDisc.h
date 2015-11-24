@@ -31,9 +31,6 @@
 #include <wx/stopwatch.h>
 #include <vector>
 
-#include "1035.h"
-#include "mdnsd.h"
-
 // all the nice socket includes in one place here (I changed _WIN32 to __WIN32__)
 #ifdef __WIN32__
 
@@ -67,7 +64,8 @@ typedef int SOCKET;       // under windows, SOCKET is unsigned
 
 #endif // __WIN32__
 
-
+#include "1035.h"
+#include "mdnsd.h"
 
 
 // make available custom notify event if getResults() would yield something new

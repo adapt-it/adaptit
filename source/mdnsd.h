@@ -6,7 +6,12 @@ extern "C"
 #ifndef mdnsd_h
 #define mdnsd_h
 #include "1035.h"
+#ifdef __WIN32__
 #include <time.h>
+#else
+#include <sys/time.h>
+#include <arpa/inet.h>
+#endif
 
 //#ifndef _WIN32
 //struct timeval {
