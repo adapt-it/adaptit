@@ -6,7 +6,7 @@ extern "C"
 #ifndef mdnsd_h
 #define mdnsd_h
 #include "1035.h"
-#ifdef __WIN32__
+#ifdef WIN32
 #include <time.h>
 #else
 #include <sys/time.h>
@@ -21,7 +21,7 @@ extern "C"
 //#endif
 
 
-#ifdef __WIN32__
+#ifdef WIN32
 #define _WINSOCK_DEPRECATED_NO_WARNINGS   /* allow the old inet_addr() call at lien 521 of mdnsd.c */
 
 // the next is supposed to prevent winsock.h being included in <windows.h>

@@ -32,7 +32,7 @@
 #include <vector>
 
 // all the nice socket includes in one place here (I changed _WIN32 to __WIN32__)
-#ifdef __WIN32__
+#ifdef WIN32
 
 // the next is supposed to prevent winsock.h being included in <windows.h>
 #define _WINSOCKAPI_
@@ -62,7 +62,7 @@ typedef int SOCKET;       // under windows, SOCKET is unsigned
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#endif // __WIN32__
+#endif // WIN32
 
 #include "1035.h"
 #include "mdnsd.h"

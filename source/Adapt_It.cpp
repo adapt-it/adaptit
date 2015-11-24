@@ -14386,7 +14386,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 					wxLanguageInfo langInfo;
 					langInfo.Language = nCodeToAssign;
 					langInfo.CanonicalName = tempShortName;
-		#ifdef __WIN32__
+		#ifdef WIN32
 					// Win32 language identifiers
 					langInfo.WinLang = 0;		// We don't know the Windows LANG_xxxx
 												// value so enter zero
@@ -17912,7 +17912,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		wxLogDebug(_T("m_languageInfo->Description = %s"),m_languageInfo->Description.c_str()); // "English (U.S.)"
 		wxLogDebug(_T("m_languageInfo->CanonicalName = %s"),m_languageInfo->CanonicalName.c_str()); // "en_US"
 		wxLogDebug(_T("m_languageInfo->Language = %d"),m_languageInfo->Language); // 58 (both Windows and Ubuntu)
-#ifdef __WIN32__
+#ifdef WIN32
 		wxLogDebug(_T("m_languageInfo->WinLang = %d"),m_languageInfo->WinLang); // Windows: 9
 		wxLogDebug(_T("m_languageInfo->WinSublang = %d"),m_languageInfo->WinSublang); // Windows: 1
 #endif

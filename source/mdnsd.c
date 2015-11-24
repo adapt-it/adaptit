@@ -1,7 +1,7 @@
 #include "mdnsd.h"
 #include <string.h>
 #include <stdlib.h>
-#ifdef __WIN32__
+#ifdef WIN32
 
 // the next is supposed to prevent winsock.h being included in <windows.h>
 #define _WINSOCKAPI_
@@ -15,9 +15,8 @@
 // This header is portable for all platforms, needed for uint64_t
 #include "pstdint.h" // for uint64_t definition
 
-#ifdef _WIN32
-// BEW added the next one, probably the __WIN32__ one above would work, but __WIN32__ is
-// not defined at present, but _WIN32 is, so I'll add the inet_addr() and htons() support
+#ifdef WIN32
+// BEW added the next one, I'll add the inet_addr() and htons() support
 // here, as they are each in winsock2.h
 #include <winsock2.h>
 
