@@ -29,6 +29,13 @@
 
 //#include "Adapt_It.h"
 
+// whm 24Nov2015 moved here from Adapt_It.h
+enum composeBarViewSwitch
+{
+	composeBarHide,
+	composeBarShow
+};
+
 // forward declarations
 class CAdapt_ItApp;
 class CAdapt_ItCanvas;

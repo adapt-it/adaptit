@@ -1449,11 +1449,11 @@ enum freeTransModeSwitch
 	ftModeON
 };
 
-enum composeBarViewSwitch
-{
-	composeBarHide,
-	composeBarShow
-};
+//enum composeBarViewSwitch // whm 24Nov2015 moved to MainFrm.h
+//{
+//	composeBarHide,
+//	composeBarShow
+//};
 
 enum UniqueFileIncrementMethod
 {

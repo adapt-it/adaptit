@@ -25,7 +25,11 @@
 #ifndef WXSERVDISC_H
 #define WXSERVDISC_H
 
-
+#include <wx/event.h>
+#include <wx/string.h>
+#include <wx/hashmap.h>
+#include <wx/stopwatch.h>
+#include <vector>
 
 #include "1035.h"
 #include "mdnsd.h"
@@ -45,11 +49,6 @@
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <wx/event.h>
-#include <wx/string.h>
-#include <wx/hashmap.h>
-#include <wx/stopwatch.h>
-#include <vector>
 // BEW requires the next one
 #include <wx/dynarray.h>
 
