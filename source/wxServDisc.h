@@ -25,6 +25,26 @@
 #ifndef WXSERVDISC_H
 #define WXSERVDISC_H
 
+
+
+#include "1035.h"
+#include "mdnsd.h"
+
+// all the nice socket includes in one place here (I changed _WIN32 to __WIN32__)
+#ifdef __WIN32__
+
+// the next is supposed to prevent winsock.h being included in <windows.h>
+#define _WINSOCKAPI_
+// this is supposed to do the same job
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#define _WINSOCK_DEPRECATED_NO_WARNINGS   /* allow the old inet_addr() call in implementation file */
+// mingw/ visual studio socket includes
+#define SHUT_RDWR SD_BOTH
+
+
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <wx/event.h>
 #include <wx/string.h>
 #include <wx/hashmap.h>
@@ -34,23 +54,8 @@
 #include <wx/dynarray.h>
 
 
-#include "1035.h"
-
-// all the nice socket includes in one place here
-#ifdef _WIN32
-// https://stackoverflow.com/questions/5004858/stdmin-gives-error
-#define NOMINMAX
-#define _WINSOCK_DEPRECATED_NO_WARNINGS   /* allow the old inet_addr() call in implementation file */
-
-namespace std {}
-using namespace std;
-
-// mingw/ visual studio socket includes
-//#include <winsock2.h> <- No! put it in wxServDisc.cpp
-//#include <ws2tcpip.h>
-
-#define SHUT_RDWR SD_BOTH
 #else // proper UNIX
+
 typedef int SOCKET;       // under windows, SOCKET is unsigned
 #define INVALID_SOCKET -1 // so there also is no -1 return value
 #define closesocket(s) close(s) // under windows, it's called closesocket
@@ -60,9 +65,9 @@ typedef int SOCKET;       // under windows, SOCKET is unsigned
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#endif // _WIN32
 
-#include "mdnsd.h"
+#endif // __WIN32__
+
 
 
 

@@ -62,24 +62,13 @@
 #endif
 #include "wx/log.h"
 
+#define _WINSOCKAPI_
+#define WIN32_LEAN_AND_MEAN
 #include "wxServDisc.h"
 #include "ServDisc.h"
 #include "ServiceDiscovery.h"
-/*
-#if wxVERSION_NUMBER < 2900
-DEFINE_EVENT_TYPE(wxServDiscNOTIFY);
-#else
-wxDEFINE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
-#endif
 
-#if wxVERSION_NUMBER < 2900
-DEFINE_EVENT_TYPE(wxServDiscHALTING);
-DEFINE_EVENT_TYPE(serviceDiscoveryHALTING);
-#else
-wxDEFINE_EVENT(wxServDiscHALTING, wxCommandEvent);
-wxDEFINE_EVENT(serviceDiscoveryHALTING, wxCommandEvent);
-#endif
-*/
+
 IMPLEMENT_DYNAMIC_CLASS(CServiceDiscovery, wxEvtHandler)
 
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)

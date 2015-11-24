@@ -384,6 +384,12 @@ extern std::string str_CURLheaders;
 
 // Added for win32 API calls required to determine if Paratext is running on a windows host - KLB
 #ifdef __WXMSW__
+	// Each of the next 2 lines is supposed to effect excluding winsock.h from <windows.h>,
+	// but they don't work - perhaps <windows.h> is being compiled with it in wxWidgets.
+	// winsock.h and winsock2.h are incompatible, and service discovery in Windows needs
+	// the lattter
+	#define WIN32_LEAN_AND_MEAN
+	#define _WINSOCKAPI_
 	#include <windows.h>
 	#include <tlhelp32.h>
 	#include <tchar.h>

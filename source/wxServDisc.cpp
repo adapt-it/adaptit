@@ -45,8 +45,8 @@
 #ifdef _WIN32
 
 #pragma comment(lib, "Ws2_32.lib")
-#include <winsock2.h> // moved here from wxServDisc.h, otherwise get name clashes
-#include <ws2tcpip.h> // ditto
+//#include <winsock2.h> // moved here from wxServDisc.h, otherwise get name clashes
+//#include <ws2tcpip.h> // ditto
 
 #endif
 

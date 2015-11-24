@@ -16,8 +16,13 @@ extern "C"
 //#endif
 
 
-#ifdef _WIN32
+#ifdef __WIN32__
 #define _WINSOCK_DEPRECATED_NO_WARNINGS   /* allow the old inet_addr() call at lien 521 of mdnsd.c */
+
+// the next is supposed to prevent winsock.h being included in <windows.h>
+#define _WINSOCKAPI_
+// this is supposed to do the same job
+#define WIN32_LEAN_AND_MEAN
 
 #include <winsock2.h> // this puts the timeval struct within scope, to avoid c4115 warning
 	struct timezone {

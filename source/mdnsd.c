@@ -2,6 +2,12 @@
 #include <string.h>
 #include <stdlib.h>
 #ifdef __WIN32__
+
+// the next is supposed to prevent winsock.h being included in <windows.h>
+#define _WINSOCKAPI_
+// this is supposed to do the same job
+#define WIN32_LEAN_AND_MEAN
+
 // for the inet related functions
 #include <ws2tcpip.h>
 #endif
@@ -15,7 +21,6 @@
 // here, as they are each in winsock2.h
 #include <winsock2.h>
 
-#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 //#include <stdint.h> // portable: uint64_t   MSVC: __int64 <- stdint.h was removed by MS before VS2008, but reinstated in VS2010, we'll use pstdint.h instead
 
