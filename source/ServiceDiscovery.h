@@ -78,6 +78,7 @@ public:
 	wxArrayString m_sd_lines;
 	wxArrayString m_urlsArr;
 
+	void wxItoa(int val, wxString& str); // copied from helpers.h & .cpp, it creates problems to #include "helpers.h"
 
     // bools (as int 0 or 1, in int arrays) for error conditions are on the CMainFrame
     // instance and the array of URLs for the one or more _kbserver._tcp.local. services

@@ -57,6 +57,7 @@
 // Include your minimal set of headers here
 #include <wx/arrstr.h>
 #include "wx/log.h"
+#include <wx/textfile.h>
 #endif
 
 #define _WINSOCKAPI_ // keeps winsock.h from being included in <Windows.h>, it's here just in case
@@ -64,7 +65,6 @@
 #include "wxServDisc.h"
 #include "ServDisc.h"
 #include "ServiceDiscovery.h"
-
 
 IMPLEMENT_DYNAMIC_CLASS(CServiceDiscovery, wxEvtHandler)
 
@@ -282,6 +282,8 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 			// port be empty, as long as hostname and ip are not empty. ( I won't
 			// construct a url with :port appended, unless Jonathan says I should.)
 			wxString protocol = _T("https://");
+			// Note: onSDNotify() will not have been called if no service was discovered,
+			// so we don't need to test m_bArr_ScanFoundNoKBserver, as it will be 0
 			if (m_bArr_HostnameLookupFailed.Item(i) == 0 && m_bArr_IPaddrLookupFailed.Item(i) == 0)
 			{
 				m_urlsArr.Add(protocol + m_addr);
@@ -290,20 +292,68 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 						m_sd_servicenames.Item(i).c_str(), (protocol + m_addr).c_str(), i);
 #endif
 			}
-
-			// Make the results accessible: store them as 1 or more lines in a TextFile,
-			// in the Adapt It Unicode Work folder
-
-
-
-// TODO  -- have to pass in the work folder path -- do that, then come here & finish
-
-
-
-
-
+			else
+			{
+				wxString emptyStr = _T("");
+				m_urlsArr.Add(emptyStr);
+			}
 
 		} // end of loop: for (i = 0; i < entry_count; i++)
+
+		// Make the results accessible: store them as 1 or more lines in a TextFile,
+		// in the Adapt It Unicode Work folder
+		wxString path = m_workFolderPath;
+		// Can't use PathSeparator here, as it would make CAdapt_ItApp includes visible
+		// to wxServDisc includes, leading to hundreds of name conflicts and
+		// redefinitions etc. So use conditional compile
+#ifdef WIN32
+		path += _T("\\");
+#else
+		path += _T("/");
+#endif
+		path += _T("ServDiscResults.txt");
+		bool bOpenedOK;
+		wxTextFile f(path);
+		bool bAlreadyExists = f.Exists();
+
+		// If the file already exists, open it and Clear() its contents ready for the
+		// new stuff; if not in existence Open() will fail, in which case use Create()
+		// to create a new instance ready for writing data to it
+		if (bAlreadyExists)
+		{
+			if (!f.IsOpened())
+			{
+				bOpenedOK = f.Open(path);
+			}
+			f.Clear();
+		}
+		else
+		{
+			f.Create(path);
+		}
+		wxUnusedVar(bOpenedOK);
+		// Generate the one (usually only one) or more lines, each corresponding to
+		// a discovery of a multicasting KBserver instance (not all lookups might
+		// have been error free, so nome urls may be absent, and such lines may just
+		// contain error data
+		wxString colon = _T(":");
+		wxString intStr;
+		bool bOK;
+		for (i = 0; i < (size_t)entry_count; i++)
+		{
+			wxString aLine = m_urlsArr.Item((size_t)i); // either a URL, or an empty string
+			aLine += colon;
+			wxItoa(m_bArr_ScanFoundNoKBserver.Item((size_t)i), intStr);
+			aLine += intStr + colon;
+			wxItoa(m_bArr_HostnameLookupFailed.Item((size_t)i), intStr);
+			aLine += intStr + colon;
+			wxItoa(m_bArr_IPaddrLookupFailed.Item((size_t)i), intStr);
+			aLine += intStr;
+			f.AddLine(aLine);
+		}
+		// Write the aggregated results lines to disk, in the work folder
+		bOK = f.Write();
+		wxUnusedVar(bOK);
 
 		m_pSD->m_bOnSDNotifyEnded = TRUE; // leak elimination and module shutdown can now happen
 
@@ -405,5 +455,12 @@ CServiceDiscovery::~CServiceDiscovery()
 	wxLogDebug(_T("Deleting the CServiceDiscovery instance"));
 }
 
+// Copied wxItoa from helpers.cpp, as including helpers.h leads to problems
+void CServiceDiscovery::wxItoa(int val, wxString& str)
+{
+	wxString valStr;
+	valStr << val;
+	str = valStr;
+}
 
 #endif // _KBSERVER

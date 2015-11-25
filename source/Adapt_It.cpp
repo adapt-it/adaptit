@@ -256,7 +256,7 @@
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
 #ifdef _DEBUG
-#include "vld.h"
+//#include "vld.h"
 #endif
 #endif
 
@@ -21723,12 +21723,13 @@ int ii = 1;
 #if defined(_KBSERVER)
 	wxString serviceStr = _T("_kbserver._tcp.local.");
 	m_pServDisc = new ServDisc(m_workFolderPath, serviceStr);
-	// We delete it from within as soon as possible, the call on entry to the scanthread, when mdnsd_in()
-	// is called, leaks a small cache block on every entry to the thread - and there are many of these,
-	// they are timed to happen periodically, so leak a bit of memory every time. Minimum run to get
-	// a single KBserver URL done is enough time to get 40 leaks. There is a single once only 2kb leak, and
-	// then about 50 to 80 bytes for every entry to the thread. So we only want this service discovery to
-	// be done once per AI session, until we have a better leakless solution.
+    // There are a few kb of memory leaks, at least in the Windows version of this service
+    // discovery module. There may be leaks in Linux too, I don't know, as Code::Blocks did
+    // not report any, but that might just be my ignorance of how to get them displayed.
+    // Anyhow, our solution for Windows will be to do the work in a small console app run
+    // via wxExecute() which can be exited once the module completes, so that leaked memory
+    // is blown away too. The Linux and Mac OSX versions can just use the embedded solution
+    // 'as is' until we find a need to do otherwise..
 	serviceStr.Clear(); // don't leak it
 #endif
 
