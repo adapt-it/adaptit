@@ -26,7 +26,6 @@
 
 // Forward declarations
 class wxString;
-class CMainFrame;
 class CServiceDiscovery;
 
 namespace std {}
@@ -38,21 +37,16 @@ using namespace std;
 
 class ServDisc : public wxEvtHandler
 {
-	friend class CMainFrame;
-	friend class CServiceDiscovery;
-
 public:
 	ServDisc();
-	ServDisc(CMainFrame* pFrame, wxString serviceStr);
+	ServDisc(wxString workFolderPath, wxString serviceStr);
 	virtual ~ServDisc();
 
+	wxString m_workFolderPath; // location where we'll temporarily store a file of results
 	wxString m_serviceStr; // service to be scanned for
-	bool m_bSDIsRunning;
-
-	CMainFrame* m_pFrame;  // pointer to Adapt It's frame window
+	bool     m_bSDIsRunning;
 
 	CServiceDiscovery* m_pServiceDisc;
-
 	CServiceDiscovery* m_backup_ThisPtr; // m_pServiceDisc gets reset to 0xcdcdcdcd before
 		// it can be deleted, so I'll store a copy here, and use ithat the pointer in the
 		// onServDiscHalting() handler when I want to get m_pServiceDisc deleted

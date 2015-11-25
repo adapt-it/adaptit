@@ -56,14 +56,11 @@
 #ifndef WX_PRECOMP
 // Include your minimal set of headers here
 #include <wx/arrstr.h>
-#include <wx/docview.h>
-#include "SourcePhrase.h" // needed for definition of SPList, which MainFrm.h uses
-#include "MainFrm.h"
-#endif
 #include "wx/log.h"
+#endif
 
-#define _WINSOCKAPI_
-#define WIN32_LEAN_AND_MEAN
+#define _WINSOCKAPI_ // keeps winsock.h from being included in <Windows.h>, it's here just in case
+#define WIN32_LEAN_AND_MEAN // does the same job as above, likewise here just in case
 #include "wxServDisc.h"
 #include "ServDisc.h"
 #include "ServiceDiscovery.h"
@@ -79,34 +76,39 @@ END_EVENT_TABLE()
 CServiceDiscovery::CServiceDiscovery()
 {
 	m_servicestring = _T("");
+	m_workFolderPath.Empty();
 	m_bWxServDiscIsRunning = TRUE;
 	wxUnusedVar(m_servicestring);
 }
 
-CServiceDiscovery::CServiceDiscovery(CMainFrame* pFrame, wxString servicestring, ServDisc* pParentClass)
+CServiceDiscovery::CServiceDiscovery(wxString workFolderPath, wxString servicestring, ServDisc* pParentClass)
 {
 
 	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, passing in pFrame and servicestring: %s, ptr to instance: %p"),
 		servicestring.c_str(), this);
 
 	m_servicestring = servicestring; // service to be scanned for
-	m_pFrame = pFrame; // Adapt It app's frame window
-	m_pParent = pParentClass; // so we can delete the parent from within this class
+	m_workFolderPath = workFolderPath; // location where the file of our results will be stored temporarily
+	m_pParent = pParentClass; // so we can delete this class from a handler in the parent class
 	m_pParent->m_backup_ThisPtr = NULL; // initialize
 	m_bWxServDiscIsRunning = TRUE; // Gets set FALSE only in my added onServDiscHalting() handler
 		// and the OnIdle() hander will use the FALSE to get CServiceDiscovery and ServDisc
 		// class instances deleted, and app's m_pServDisc pointer reset to NULL afterwards
-
+	// scratch variables...
 	m_hostname = _T("");
 	m_addr = _T("");
 	m_port = _T("");
 
-	// Clear the reporting member variables on the CMainFrame instance, as we are
-	// doing a new discovery attempt
-	m_pFrame->m_urlsArr.Clear();
-	m_pFrame->m_bArr_ScanFoundNoKBserver.Clear();
-	m_pFrame->m_bArr_HostnameLookupFailed.Clear();
-	m_pFrame->m_bArr_IPaddrLookupFailed.Clear();
+	// Initialize my reporting context (Use .Clear() rather than
+	// .Empty() because from one run to another we don't know if the
+	// number of items discovered will be the same as discovered previously
+	// Note: if no KBserver service is discovered, these will remain cleared.
+	m_sd_servicenames.Clear();
+	m_urlsArr.Clear();
+	m_sd_lines.Clear(); //for finished  string:flag:flag:flag lines, string can be empty
+	m_bArr_ScanFoundNoKBserver.Clear();  // stores 0, 1 or -1 per item
+	m_bArr_HostnameLookupFailed.Clear(); // ditto
+	m_bArr_IPaddrLookupFailed.Clear();   // ditto
 
 	// wxServDisc creator is: wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 	// where p is pointer to the parent class & what is the service to scan for, its type
@@ -118,10 +120,7 @@ CServiceDiscovery::CServiceDiscovery(CMainFrame* pFrame, wxString servicestring,
 	// to which the pending custom event (ie. wxServDiskNOTIFY event) is to be
 	// sent -- and that is to this CServiceDiscovery instance. So pass in this
 	m_pSD = new wxServDisc(this, m_servicestring, QTYPE_PTR);
-
-	// Could posting serviceDiscoveryHALTING event here work? Test that control gets here...
-	// It does, but this constructor then is exitted before the service discovery
-	// gets a chance to do anything, so halting from here is too early
+	wxUnusedVar(m_pSD);
 }
 
 // When wxServDisc discovers a service (one or more of them) that it is scanning
@@ -148,16 +147,8 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 {
 	if (event.GetEventObject() == m_pSD)
 	{
-		 m_pSD->m_bOnSDNotifyStarted = TRUE;
+		m_pSD->m_bOnSDNotifyStarted = TRUE;
 
-		// initialize my reporting context (Use .Clear() rather than
-		// .Empty() because from one run to another we don't know if the
-		// number of items discovered will be the same as discovered previously
-		m_sd_items.Clear();
-		m_pFrame->m_urlsArr.Clear();
-		m_pFrame->m_bArr_ScanFoundNoKBserver.Clear();
-		m_pFrame->m_bArr_HostnameLookupFailed.Clear();
-		m_pFrame->m_bArr_IPaddrLookupFailed.Clear();
 		m_hostname.Empty();
 		m_addr.Empty();
 		m_port.Empty();
@@ -196,13 +187,14 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 			entry_count++;
 #if defined(_DEBUG)
 			wxString astring = it->name.Mid(0, it->name.Len() - qlen);
-			wxLogDebug(_T("m_sd_items receives string:  %s   for entry index = %d"), 
+			wxLogDebug(_T("m_sd_servicenames receives servicename:  %s   for entry index = %d"), 
 				astring.c_str(), entry_count - 1);
 #endif
-			m_sd_items.Add(it->name.Mid(0, it->name.Len() - qlen));
-			m_pFrame->m_bArr_ScanFoundNoKBserver.Add(0); // add FALSE, as we successfully
+			m_sd_servicenames.Add(it->name.Mid(0, it->name.Len() - qlen));
+
+			m_bArr_ScanFoundNoKBserver.Add(0); // add FALSE, as we successfully
 				// discovered one (but that does not necessarily mean we will
-				// subsequently succeed at geting hostname, port, and ip address)
+				// subsequently succeed at looking up hostname, port, and ip address)
 
 		} // end of loop: for (it = entries.begin(); it != entries.end(); it++)
 
@@ -223,13 +215,13 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 			}
 			if(timeout <= 0)
 			{
-				wxLogError(_("Timeout looking up hostname. Entry index: %d"), i);
+				wxLogError(_T("Timeout looking up hostname. Entry index: %d"), i);
 				m_hostname = m_addr = m_port = wxEmptyString;
-				m_pFrame->m_bArr_HostnameLookupFailed.Add(1); // adding TRUE
-				m_pFrame->m_bArr_IPaddrLookupFailed.Add(-1); // because we won't try addrscan() for this index
+				m_bArr_HostnameLookupFailed.Add(1); // adding TRUE
+				m_bArr_IPaddrLookupFailed.Add(-1); // undefined, addrscan() for this index is not tried
 #if defined(_DEBUG)
-				wxLogDebug(_T("Found: [Service:  %s  ] Timeout:  m_hostname:  %s   m_port  %s   for entry index = %d"),
-				m_sd_items.Item(i).c_str(), m_hostname.c_str(), m_port.c_str(), i);
+				wxLogDebug(_T("Found: [Service:  %s  ] but timed out:  m_hostname:  %s   m_port  %s   for entry index = %d"),
+				m_sd_servicenames.Item(i).c_str(), m_hostname.c_str(), m_port.c_str(), i);
 #endif
 				//return;
 				continue; // don't return, we need to try every iteration
@@ -239,13 +231,13 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 				// The namescan found something...
 				m_hostname = namescan.getResults().at(0).name;
 				m_port = wxString() << namescan.getResults().at(0).port;
-				m_pFrame->m_bArr_HostnameLookupFailed.Add(0); // adding FALSE
+				m_bArr_HostnameLookupFailed.Add(0); // adding FALSE, the lookup succeeded
 #if defined(_DEBUG)
-				wxLogDebug(_T("Found: [Service:  %s  ] Looked up:  m_hostname:  %s   m_port  %s   for entry index = %d"),
-				m_sd_items.Item(i).c_str(), m_hostname.c_str(), m_port.c_str(), i);
+				wxLogDebug(_T("Found: [Service:  %s  ] Successful looked up:  m_hostname:  %s   m_port  %s   for entry index = %d"),
+				m_sd_servicenames.Item(i).c_str(), m_hostname.c_str(), m_port.c_str(), i);
 #endif
 				// For each successful namescan(), we must do an addrscan, so as to fill
-				// out the full info needed for constucting a URL; if the namescan was
+				// out the full info needed for constructing a URL; if the namescan was
 				// not successful, the m_bArr_IPaddrLookupFailed entry for this index
 				// should be neither true (1) or false (0), so use -1 for "no test was made"
 				{
@@ -259,12 +251,12 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 					}
 					if(timeout <= 0)
 					{
-						wxLogError(_("Timeout looking up IP address."));
+						wxLogError(_T("Timeout looking up IP address."));
 						m_hostname = m_addr = m_port = wxEmptyString;
-						m_pFrame->m_bArr_IPaddrLookupFailed.Add(1); // for TRUE
+						m_bArr_IPaddrLookupFailed.Add(1); // for TRUE, unsuccessful lookup
 #if defined(_DEBUG)
-						wxLogDebug(_T("ip Not Found: [Service:  %s  ] Timeout:  ip addr:  %s   for entry index = %d"),
-						m_sd_items.Item(i).c_str(), m_addr.c_str(), i);
+						wxLogDebug(_T("ip Not Found: [Service:  %s  ] Timed out:  ip addr:  %s   for entry index = %d"),
+						m_sd_servicenames.Item(i).c_str(), m_addr.c_str(), i);
 #endif
 						//return;
 						continue; // do all iterations
@@ -273,10 +265,10 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 					{
 						// succeeded in getting the service's ip address
 						m_addr = addrscan.getResults().at(0).ip;
-						m_pFrame->m_bArr_IPaddrLookupFailed.Add(0); // for FALSE
+						m_bArr_IPaddrLookupFailed.Add(0); // for FALSE, a successful ip lookup
 #if defined(_DEBUG)
 						wxLogDebug(_T("Found: [Service:  %s  ] Looked up:  ip addr:  %s   for entry index = %d"),
-						m_sd_items.Item(i).c_str(), m_addr.c_str(), i);
+						m_sd_servicenames.Item(i).c_str(), m_addr.c_str(), i);
 #endif
 					}
 				} // end of TRUE block for namescan() finding something
@@ -290,15 +282,27 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 			// port be empty, as long as hostname and ip are not empty. ( I won't
 			// construct a url with :port appended, unless Jonathan says I should.)
 			wxString protocol = _T("https://");
-			if (m_pFrame->m_bArr_HostnameLookupFailed.Item(i) == 0 &&
-				m_pFrame->m_bArr_IPaddrLookupFailed.Item(i) == 0)
+			if (m_bArr_HostnameLookupFailed.Item(i) == 0 && m_bArr_IPaddrLookupFailed.Item(i) == 0)
 			{
-				m_pFrame->m_urlsArr.Add(protocol + m_addr);
+				m_urlsArr.Add(protocol + m_addr);
 #if defined(_DEBUG)
-				wxLogDebug(_T("Found: [Service:  %s  ] URL:  %s   for entry index = %d"),
-						m_sd_items.Item(i).c_str(), (protocol + m_addr).c_str(), i);
+				wxLogDebug(_T("Found: [Service:  %s  ] Constructed URL:  %s   for entry index = %d"),
+						m_sd_servicenames.Item(i).c_str(), (protocol + m_addr).c_str(), i);
 #endif
 			}
+
+			// Make the results accessible: store them as 1 or more lines in a TextFile,
+			// in the Adapt It Unicode Work folder
+
+
+
+// TODO  -- have to pass in the work folder path -- do that, then come here & finish
+
+
+
+
+
+
 		} // end of loop: for (i = 0; i < entry_count; i++)
 
 		m_pSD->m_bOnSDNotifyEnded = TRUE; // leak elimination and module shutdown can now happen

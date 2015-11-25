@@ -262,20 +262,6 @@ public:
 	// user via a dialog
 	wxString GetKBSvrPasswordFromUser();
 
-	// Members for storage of results from CServiceDiscovery module, scanning
-	// for one or more services _kbserver._tcp.local.
-	// The logic for utilizing the values of these variables is not within
-	// the service discovery modules/classes themselves. We will define a
-	// function to make intelligent use of this data, for helping the user
-	// to best effect, when a connection is about to be made to a running
-	// KBserver
-	wxArrayString m_urlsArr;
-	// The follow int arrays are for storing booleans, 1 for TRUE, 0 for FALSE
-	// in parallel with the URLs (or empty strings) in m_urlsArr
-	wxArrayInt m_bArr_ScanFoundNoKBserver;
-	wxArrayInt m_bArr_HostnameLookupFailed;
-	wxArrayInt m_bArr_IPaddrLookupFailed;
-
 #endif // _KBSERVER
 
     //void ShowHelp(int commandId, wxHelpControllerBase& helpController);

@@ -4504,23 +4504,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// is wanted - and then set gpApp->m_pServDisc to NULL
 		if (!gpApp->m_pServDisc->m_bSDIsRunning)
 		{
-			// How many entries in m_urlsArr ??
-			wxLogDebug(_T("OnIdle service discovery shutdown: num m_urlsArr entries: %d"), m_urlsArr.GetCount());
-			/*
-				wxArrayString m_urlsArr;
-				// The follow int arrays are for storing booleans, 1 for TRUE, 0 for FALSE
-				// in parallel with the URLs (or empty strings) in m_urlsArr
-				wxArrayInt m_bArr_ScanFoundNoKBserver;
-				wxArrayInt m_bArr_HostnameLookupFailed;
-				wxArrayInt m_bArr_IPaddrLookupFailed;
-			*/
-			if (m_urlsArr.GetCount() > 0)
-			{
-wxLogDebug(_T("OnIdle() first result: URL: %s   ScanFoundNoKBserver: %d  HostnameLookupFailed: %d  IPaddrLookupFailed %d"), 
-				m_urlsArr.Item(0).c_str(),m_bArr_ScanFoundNoKBserver.Item(0),
-				m_bArr_HostnameLookupFailed.Item(0), m_bArr_IPaddrLookupFailed.Item(0));
-			}
-
 			// This next deletion had to be delayed, because onSDNotify() runs on after
 			// the onServDiscHalting() has been called - so deleting the class that onSDNotify
 			// relies on at that point causes a crash in the latter. So we delay the deletion

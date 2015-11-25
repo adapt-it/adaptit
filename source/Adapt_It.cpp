@@ -21722,8 +21722,7 @@ int ii = 1;
 	// Run Service Discovery...
 #if defined(_KBSERVER)
 	wxString serviceStr = _T("_kbserver._tcp.local.");
-	//CMainFrame* pFrame = GetMainFrame();
-	m_pServDisc = new ServDisc(pFrame, serviceStr);
+	m_pServDisc = new ServDisc(m_workFolderPath, serviceStr);
 	// We delete it from within as soon as possible, the call on entry to the scanthread, when mdnsd_in()
 	// is called, leaks a small cache block on every entry to the thread - and there are many of these,
 	// they are timed to happen periodically, so leak a bit of memory every time. Minimum run to get

@@ -26,75 +26,57 @@
 #ifndef WX_PRECOMP
 #include <wx/list.h>
 #include <wx/string.h>    // for wxString definition
-#include <wx/docview.h>   // for wxDocParentFrame base class for CMainFrame
-#include "SourcePhrase.h" // CMainFrame needs this for the SPList declaration
-#include "MainFrm.h"      // for the pFrame param
 #include <wx/log.h>       // for wxLogDebug()
-
+#include <wx/event.h>
 #endif
 
 #include "wxServDisc.h"
 #include "ServiceDiscovery.h"
 #include "ServDisc.h"
-#include <wx/event.h>
 
 
 IMPLEMENT_DYNAMIC_CLASS(ServDisc, wxEvtHandler)
-/*
-#if wxVERSION_NUMBER < 2900
-DEFINE_EVENT_TYPE(wxServDiscNOTIFY);
-#else
-wxDEFINE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
-#endif
 
-#if wxVERSION_NUMBER < 2900
-DEFINE_EVENT_TYPE(wxServDiscHALTING);
-DEFINE_EVENT_TYPE(serviceDiscoveryHALTING);
-#else
-wxDEFINE_EVENT(wxServDiscHALTING, wxCommandEvent);
-wxDEFINE_EVENT(serviceDiscoveryHALTING, wxCommandEvent);
-#endif
-*/
 BEGIN_EVENT_TABLE(ServDisc, wxEvtHandler)
 EVT_COMMAND(wxID_ANY, serviceDiscoveryHALTING, ServDisc::onServDiscHalting)
 END_EVENT_TABLE()
 
-
+// We don't use this creator
 ServDisc::ServDisc()
 {
 	wxLogDebug(_T("\nInstantiating a default ServDisc class, ptr to instance = %p"), this);
 
 	m_serviceStr = _T(""); // service to be scanned for
-
-	m_pFrame = NULL; 
+	m_workFolderPath.Empty();
 
 	CServiceDiscovery* m_pServiceDisc = NULL;
 	wxUnusedVar(m_pServiceDisc);
 }
 
-ServDisc::ServDisc(CMainFrame* pFrame, wxString serviceStr)
+ServDisc::ServDisc(wxString workFolderPath, wxString serviceStr)
 {
-	wxLogDebug(_T("\nInstantiating a ServDisc class, passing in pFrame and serviceStr: %s, ptr to instance = %p"),
-		serviceStr.c_str(), this);
+	wxLogDebug(_T("\nInstantiating a ServDisc class, passing in workFolderPath %s and serviceStr: %s, ptr to instance = %p"),
+		workFolderPath.c_str(), serviceStr.c_str(), this);
 
 	m_serviceStr = serviceStr; // service to be scanned for
 	m_bSDIsRunning = TRUE;
 
-	m_pFrame = pFrame;
+	m_workFolderPath = workFolderPath; // pass this on to CServiceDiscovery instance
 
-	CServiceDiscovery* m_pServiceDisc = new CServiceDiscovery(m_pFrame, m_serviceStr, this);
+	CServiceDiscovery* m_pServiceDisc = new CServiceDiscovery(m_workFolderPath, m_serviceStr, this);
 	wxUnusedVar(m_pServiceDisc); // prevent compiler warning
 }
 
 ServDisc::~ServDisc()
 {
-	// We require the child, m_pServiceDisc to delete this parent class,
-	// and then delete itself (otherwise we have to #include wxServDisc in
-	// the app class, and that leads to heaps of name clashes between wx
-	// and winsock2.h etc)
+	// OnIdle() handler will delete this top level class of ours, lower level ones will
+	// be deleted by passing up a halting event request to the parent class which will
+	// then delete the child (when the child has no handler still running)
 	wxLogDebug(_T("Deleting the ServDisc class instance by ~ServDisc() destructor"));
 }
 
+// Need a hack here, the this point gets clobbered and I don't know why, so store a copy
+// so it can be restored when we want to destroy the service discovery module
 void ServDisc::onServDiscHalting(wxCommandEvent& event)
 {
 	wxUnusedVar(event);
@@ -107,8 +89,9 @@ void ServDisc::onServDiscHalting(wxCommandEvent& event)
 	if (m_pServiceDisc != m_backup_ThisPtr)
 	{
 		// this hack correctly restores the pointer value, if it has become 0xcdcdcdcd
+		// (which it regularly does, unfortunately)
 		m_pServiceDisc = m_backup_ThisPtr; 
-		wxLogDebug(_T("Needed to restore the CServiceDiscovery instance's this pointer, within onServDiscHalting()"));
+		wxLogDebug(_T("It was necessary to restore the CServiceDiscovery instance's this pointer, within onServDiscHalting()"));
 	}
 
 	// BUT, it turns out we can't delete the child class now, because the onSDNotify() event has
