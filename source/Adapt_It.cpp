@@ -208,6 +208,19 @@
 #include "../res/vectorized/punctuation-do-not-copy_32.cpp"
 #include "../res/vectorized/help-browser_32.cpp"
 
+// Added for win32 API calls required to determine if Paratext is running on a windows host - KLB
+#ifdef __WXMSW__
+#define WIN32_LEAN_AND_MEAN
+// BEW added the above #define on 21Nov15, because it prevents WinSock.h being #included withint windows.h
+// which is what we need, since our service discovery module needs to use WinSock2.h; and if WinSock.h 
+// is present we get 118 compile conflicts, mostly redefinitions and conflicting definitions etc. Hmmm,
+// I did this, but I still got the 118 compile errors, so there must be somewhere else that needs this protection
+//#include <windows.h>
+#include <tlhelp32.h>
+#include <tchar.h>
+#endif
+
+
 // The following include was originally Copyright (c) 2005 by Dan
 // Moulding, but the features of version 2.0 were implemented by
 // Arkadiy Shapkin. It is used under the GNU General Public License
@@ -256,7 +269,7 @@
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
 #ifdef _DEBUG
-#include "vld.h"
+//#include "vld.h"
 #endif
 #endif
 
@@ -381,13 +394,6 @@ extern std::string str_CURLheaders;
 #endif
 #include <wx/ipc.h> // for wxServer, wxClient and wxConnection
 
-
-// Added for win32 API calls required to determine if Paratext is running on a windows host - KLB
-#ifdef __WXMSW__
-	#include <windows.h>
-	#include <tlhelp32.h>
-	#include <tchar.h>
-#endif
 
 #if !wxUSE_WXHTML_HELP
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"

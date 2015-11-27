@@ -42,6 +42,7 @@
 #define NOMINMAX
 #define _WINSOCK_DEPRECATED_NO_WARNINGS   /* allow the old inet_addr() call in implementation file */
 
+#define WIN32_LEAN_AND_MEAN // BEW added in the hope it would remove conflicts with winsock.h, but it didn't
 namespace std {}
 using namespace std;
 

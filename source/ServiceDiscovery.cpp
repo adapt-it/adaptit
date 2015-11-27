@@ -62,6 +62,7 @@
 #endif
 #include "wx/log.h"
 
+#define WIN32_LEAN_AND_MEAN
 #include "wxServDisc.h"
 #include "ServDisc.h"
 #include "ServiceDiscovery.h"

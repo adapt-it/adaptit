@@ -10,14 +10,15 @@
 #include "pstdint.h" // for uint64_t definition
 
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+//#include <Windows.h>
+//#include <stdint.h> // portable: uint64_t   MSVC: __int64 <- stdint.h was removed by MS before VS2008, but reinstated in VS2010, we'll use pstdint.h instead
+
 // BEW added the next one, probably the __WIN32__ one above would work, but __WIN32__ is
 // not defined at present, but _WIN32 is, so I'll add the inet_addr() and htons() support
 // here, as they are each in winsock2.h
 #include <winsock2.h>
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-//#include <stdint.h> // portable: uint64_t   MSVC: __int64 <- stdint.h was removed by MS before VS2008, but reinstated in VS2010, we'll use pstdint.h instead
 
 int gettimeofday(struct timeval * tp, struct timezone * tzp)
 {

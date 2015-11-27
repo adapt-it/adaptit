@@ -44,8 +44,9 @@
 // only used by VC++
 #ifdef _WIN32
 
+
 #pragma comment(lib, "Ws2_32.lib")
-#include <winsock2.h> // moved here from wxServDisc.h, otherwise get name clashes
+#include <winsock2.h> // moved here, from .h to avoid name clashes
 #include <ws2tcpip.h> // ditto
 
 #endif

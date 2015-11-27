@@ -19,6 +19,8 @@ extern "C"
 #ifdef _WIN32
 #define _WINSOCK_DEPRECATED_NO_WARNINGS   /* allow the old inet_addr() call at lien 521 of mdnsd.c */
 
+#define WIN32_LEAN_AND_MEAN
+//#include <windows.h>
 #include <winsock2.h> // this puts the timeval struct within scope, to avoid c4115 warning
 	struct timezone {
 		int tz_minuteswest;     /* minutes west of Greenwich */
