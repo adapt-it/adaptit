@@ -27,6 +27,7 @@
 #include <wx/list.h>
 #include <wx/string.h>    // for wxString definition
 #include <wx/log.h>       // for wxLogDebug()
+#include <wx/utils.h>
 //#include <wx/event.h>
 //#include <wx/thread.h>
 #endif
@@ -45,9 +46,11 @@ EVT_COMMAND(wxID_ANY, serviceDiscoveryHALTING, ServDisc::onServDiscHalting)
 END_EVENT_TABLE()
 */
 // We don't use this creator
-ServDisc::ServDisc(wxThreadKind)
+ServDisc::ServDisc(wxThreadKind kind)
 {
 	wxLogDebug(_T("\nInstantiating a joinable ServDisc thread class, ptr to instance = %p"), this);
+	wxUnusedVar(kind);
+	wxASSERT(kind == wxTHREAD_JOINABLE);
 
 	m_serviceStr = _T(""); // service to be scanned for
 	m_workFolderPath.Empty();
@@ -112,9 +115,33 @@ void ServDisc::onServDiscHalting(wxCommandEvent& event)
 // Do our service discovery work here; we don't pause our thread, so we'll not use TestDestroy()
 void* ServDisc::Entry()
 {
-	//CServiceDiscovery* m_pServiceDisc = new CServiceDiscovery(m_workFolderPath, m_serviceStr, this);
-	//wxUnusedVar(m_pServiceDisc); // prevent compiler warning
-
+	CServiceDiscovery* m_pServiceDisc = new CServiceDiscovery(m_workFolderPath, m_serviceStr, this);
+	wxUnusedVar(m_pServiceDisc); // prevent compiler warning
+	
+	// Try a wait loop, up to 10 seconds, until the child class's m_bWxServDiscIsRunning goes FALSE
+	// (problem isn't here I think, wxServDisc is detecting the service, but won't do the right thing at mdnsd_in()
+	int mytimeout = 10000; // milliseconds
+	int mytime = mytimeout;
+	while (mytime >= 0)
+	{
+		if (m_pServiceDisc->m_bWxServDiscIsRunning)
+		{
+			wxMilliSleep(200);
+			mytime -= 200;
+			wxLogDebug(_T("ServDisc::Entry: waiting for 10 seconds, mytime  %d  milliseconds"), mytime);
+		}
+		else
+		{
+			break;
+		}
+	}
+	
+/*
+	if (IsRunning())
+	{
+		Wait(); // this crashes, it thinks my thread is not joinable
+	}
+*/
 	return (void*)NULL;
 }
 
@@ -130,11 +157,12 @@ void ServDisc::OnExit()
 }
 
 
-// We won't use this, because if we did we'd get instance (and premature) thread destruction
-bool ServDisc::TestDestroy()
-{
-  return true;
-}
+// We won't use this our own, just rely on the internal test detecting STATE_CANCELED
+// and a Delete() call will do that
+//bool ServDisc::TestDestroy()
+//{
+//  return true;
+//}
 
 
 

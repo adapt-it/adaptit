@@ -15256,7 +15256,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, wxSt
 {
 	wxString serviceStr = _T("_kbserver._tcp.local.");
 	wxString path = workFolderPath;
-	path += PathSeparator + _T("ServDiscResults.txt");
+	//path += PathSeparator + _T("ServDiscResults.txt"); <<--onSDNotify will do it
 /*
 		// Can't use PathSeparator here, as it would make CAdapt_ItApp includes visible
 		// to wxServDisc includes, leading to hundreds of name conflicts and
@@ -15273,7 +15273,24 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, wxSt
 
 
 	ServDisc* pSDThread = new ServDisc(wxTHREAD_JOINABLE);
-	wxUnusedVar(pSDThread);
+	//wxUnusedVar(pSDThread);
+
+	// Set the input variables
+	pSDThread->m_workFolderPath = path; // location where we'll temporarily store a file of results
+	pSDThread->m_serviceStr = serviceStr; // service to be scanned for
+	bool     m_bSDIsRunning = TRUE;
+
+	int rv = pSDThread->Create();
+
+	if (rv == wxTHREAD_NO_ERROR)
+	{
+		pSDThread->Run();
+
+	}
+	else
+	{
+		m_bSDIsRunning = FALSE;
+	}
 
 
 
@@ -15465,6 +15482,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 #if defined(_KBSERVER)
 	m_pServDisc = NULL; // initialize to 0
+	m_strKbServerURL.Empty(); // assume none ever set, Basic config file may restore a value
+							  // to this variable further down in OnInit()
 #endif
 
     //bool bMain = wxThread::IsMain(); // yep, correctly returns true
@@ -21826,11 +21845,27 @@ int ii = 1;
 		}
 	}
 
-	// Run Service Discovery...
+	// Run Service Discovery...  <<-- a temporary location, later move it to KB sharing setup code
 #if defined(_KBSERVER)
+
 	wxString curURL = m_strKbServerURL;
 	wxString chosenURL = _T("");
 	bool bOK = DoServiceDiscovery(m_strKbServerURL, chosenURL, m_workFolderPath);
+	if (bOK)
+	{
+		// Got a URL to connect to
+
+
+	}
+	else
+	{
+		// Something is wrong, or no KBserver has yet been set running
+
+
+	}
+
+
+	/* OLD CODE BELOW
 	//wxString serviceStr = _T("_kbserver._tcp.local.");
 	//m_pServDisc = new ServDisc(m_workFolderPath, serviceStr);
     // There are a few kb of memory leaks, at least in the Windows version of this service
@@ -21841,7 +21876,8 @@ int ii = 1;
     // is blown away too. The Linux and Mac OSX versions can just use the embedded solution
     // 'as is' until we find a need to do otherwise..
 	//serviceStr.Clear(); // don't leak it
-#endif
+	*/
+#endif // _KBSERVER
 
 
 	return TRUE;

@@ -88,8 +88,8 @@ CServiceDiscovery::CServiceDiscovery()
 CServiceDiscovery::CServiceDiscovery(wxString workFolderPath, wxString servicestring, ServDisc* pParentClass)
 {
 
-	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, passing in pFrame and servicestring: %s, ptr to instance: %p"),
-		servicestring.c_str(), this);
+	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, passing in workFolderPath: %s , and servicestring: %s, ptr to instance: %p"),
+		workFolderPath.c_str(), servicestring.c_str(), this);
 
 	m_servicestring = servicestring; // service to be scanned for
 	m_workFolderPath = workFolderPath; // location where the file of our results will be stored temporarily

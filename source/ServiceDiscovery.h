@@ -59,8 +59,8 @@ public:
 
 	wxServDisc* m_pSD; // main service scanner (a child class of this one)
 	ServDisc* m_pParent;
-	bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this in Frame's OnIdle()
-								 // for deleting CServiceDiscovery & ServDisc instances
+	bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this set in onSDHalthing
+								 // informing CServiceDiscovery instance that we are done
 	// scratch variables, used in the loop in onSDNotify() handler
 	wxString m_hostname;
 	wxString m_addr;

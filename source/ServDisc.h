@@ -61,7 +61,8 @@ public:
 	// begins. Our thread will be of the joinable type (wxTHREAD_JOINABLE)
 	virtual void*		Entry();
 
-	virtual bool    TestDestroy();
+	//virtual bool    TestDestroy(); <<-- don't provide one, rely on the internal one from thread.h
+	// which does the test:  return m_internal->GetState() == STATE_CANCELLED;
 
 protected:
 	//void onServDiscHalting(wxCommandEvent& event); <<-- we are not an event handler object
