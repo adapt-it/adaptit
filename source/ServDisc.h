@@ -27,19 +27,19 @@
 // Forward declarations
 class wxString;
 class CServiceDiscovery;
+//#include "wx/thread.h"
 
 namespace std {}
 using namespace std;
 
-#include <wx/event.h>
-//#include <wx/object.h>
+//#include <wx/event.h>
 
 
-class ServDisc : public wxEvtHandler
+class ServDisc : public wxThread  // earlier, base class was wxEvtHandler
 {
 public:
-	ServDisc();
-	ServDisc(wxString workFolderPath, wxString serviceStr);
+	ServDisc(wxThreadKind = wxTHREAD_DETACHED);
+	//ServDisc(wxString workFolderPath, wxString serviceStr);
 	virtual ~ServDisc();
 
 	wxString m_workFolderPath; // location where we'll temporarily store a file of results
@@ -51,13 +51,25 @@ public:
 		// it can be deleted, so I'll store a copy here, and use ithat the pointer in the
 		// onServDiscHalting() handler when I want to get m_pServiceDisc deleted
 
+	// for support of subclassing from wxThread...
+	// wxThread::OnExit() is called when the thread exits at termination - for self
+	// destruction termination or by Delete(), but not if Kill() is used - the latter
+	// should never be used, it can leave resources in an indeterminate state
+	virtual void		OnExit();
+
+	// This must be defined to have our work content - this is where thread execution
+	// begins. Our thread will be of the joinable type (wxTHREAD_JOINABLE)
+	virtual void*		Entry();
+
+	virtual bool    TestDestroy();
+
 protected:
-	void onServDiscHalting(wxCommandEvent& event);
+	//void onServDiscHalting(wxCommandEvent& event); <<-- we are not an event handler object
 
 private:
-	DECLARE_EVENT_TABLE();
+	//DECLARE_EVENT_TABLE();
 
-    DECLARE_DYNAMIC_CLASS(ServDisc)
+    //DECLARE_DYNAMIC_CLASS(ServDisc)
 };
 
 #endif // SERVDISC_h

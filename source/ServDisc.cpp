@@ -27,7 +27,8 @@
 #include <wx/list.h>
 #include <wx/string.h>    // for wxString definition
 #include <wx/log.h>       // for wxLogDebug()
-#include <wx/event.h>
+//#include <wx/event.h>
+//#include <wx/thread.h>
 #endif
 
 #include "wxServDisc.h"
@@ -35,38 +36,44 @@
 #include "ServDisc.h"
 
 
-IMPLEMENT_DYNAMIC_CLASS(ServDisc, wxEvtHandler)
 
+//IMPLEMENT_DYNAMIC_CLASS(ServDisc, wxThread)// earlier, base class was wxEvtHandler
+
+/* wxThread is based on nothing, can't be an event hander unless I mix in using wxThreadHelper
 BEGIN_EVENT_TABLE(ServDisc, wxEvtHandler)
 EVT_COMMAND(wxID_ANY, serviceDiscoveryHALTING, ServDisc::onServDiscHalting)
 END_EVENT_TABLE()
-
+*/
 // We don't use this creator
-ServDisc::ServDisc()
+ServDisc::ServDisc(wxThreadKind)
 {
-	wxLogDebug(_T("\nInstantiating a default ServDisc class, ptr to instance = %p"), this);
+	wxLogDebug(_T("\nInstantiating a joinable ServDisc thread class, ptr to instance = %p"), this);
 
 	m_serviceStr = _T(""); // service to be scanned for
 	m_workFolderPath.Empty();
 
 	CServiceDiscovery* m_pServiceDisc = NULL;
+	CServiceDiscovery* m_backup_ThisPtr = NULL; 
 	wxUnusedVar(m_pServiceDisc);
+	wxUnusedVar(m_backup_ThisPtr);
 }
-
+/*
 ServDisc::ServDisc(wxString workFolderPath, wxString serviceStr)
 {
 	wxLogDebug(_T("\nInstantiating a ServDisc class, passing in workFolderPath %s and serviceStr: %s, ptr to instance = %p"),
 		workFolderPath.c_str(), serviceStr.c_str(), this);
 
 	m_serviceStr = serviceStr; // service to be scanned for
+
 	m_bSDIsRunning = TRUE;
 
 	m_workFolderPath = workFolderPath; // pass this on to CServiceDiscovery instance
 
-	CServiceDiscovery* m_pServiceDisc = new CServiceDiscovery(m_workFolderPath, m_serviceStr, this);
-	wxUnusedVar(m_pServiceDisc); // prevent compiler warning
+	//this will be moved to the Entry() function of the thread, so that memory leaks will stay in the thread's process
+	//CServiceDiscovery* m_pServiceDisc = new CServiceDiscovery(m_workFolderPath, m_serviceStr, this);
+	//wxUnusedVar(m_pServiceDisc); // prevent compiler warning
 }
-
+*/
 ServDisc::~ServDisc()
 {
 	// OnIdle() handler will delete this top level class of ours, lower level ones will
@@ -75,6 +82,7 @@ ServDisc::~ServDisc()
 	wxLogDebug(_T("Deleting the ServDisc class instance by ~ServDisc() destructor"));
 }
 
+/* We are not an event handler, so we can't have this unless we use wxThreadHelper & mix with wxEvtHandler
 // Need a hack here, the this point gets clobbered and I don't know why, so store a copy
 // so it can be restored when we want to destroy the service discovery module
 void ServDisc::onServDiscHalting(wxCommandEvent& event)
@@ -99,5 +107,35 @@ void ServDisc::onServDiscHalting(wxCommandEvent& event)
 	// which is to be stored in pFrame. So we've got to let that handler complete before
 	// we try delete this CServiceDiscovery class instance - do that in pFrame's OnIdle()
 }
+*/
+
+// Do our service discovery work here; we don't pause our thread, so we'll not use TestDestroy()
+void* ServDisc::Entry()
+{
+	//CServiceDiscovery* m_pServiceDisc = new CServiceDiscovery(m_workFolderPath, m_serviceStr, this);
+	//wxUnusedVar(m_pServiceDisc); // prevent compiler warning
+
+	return (void*)NULL;
+}
+
+// Probably a good place to do any cleanup, but we can't call Delete() from here, or we'll
+// crash the app. We may have to put bool m_bSDIsRunning set to FALSE, onto the app instance
+// and then rely on frame's OnIdle() to determine that thread Exit() is wanted -- nope, won't
+// work, as Exit() is a protected member of wxThread therefore I can only call it from ServDisc
+// hmmm, how to I get cleanup? I may have to use wxThreadHelper, mixing in wxEvtHandler --
+// let's try how things go before I make a decision on this issue...
+void ServDisc::OnExit()
+{
+
+}
+
+
+// We won't use this, because if we did we'd get instance (and premature) thread destruction
+bool ServDisc::TestDestroy()
+{
+  return true;
+}
+
+
 
 #endif // _KBSERVER

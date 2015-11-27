@@ -58,12 +58,16 @@
 #include <wx/arrstr.h>
 #include "wx/log.h"
 #include <wx/textfile.h>
+#include <wx/thread.h>
+#include <wx/msgdlg.h>
+
 #endif
 
+#include <vector>
 #define _WINSOCKAPI_ // keeps winsock.h from being included in <Windows.h>, it's here just in case
 #define WIN32_LEAN_AND_MEAN // does the same job as above, likewise here just in case
-#include "wxServDisc.h"
 #include "ServDisc.h"
+#include "wxServDisc.h"
 #include "ServiceDiscovery.h"
 
 IMPLEMENT_DYNAMIC_CLASS(CServiceDiscovery, wxEvtHandler)
@@ -312,7 +316,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 		path += _T("/");
 #endif
 		path += _T("ServDiscResults.txt");
-		bool bOpenedOK;
+		bool bOpenedOK = TRUE;
 		wxTextFile f(path);
 		bool bAlreadyExists = f.Exists();
 
@@ -329,31 +333,39 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 		}
 		else
 		{
-			f.Create(path);
+			bOpenedOK = f.Create(path);
 		}
-		wxUnusedVar(bOpenedOK);
-		// Generate the one (usually only one) or more lines, each corresponding to
-		// a discovery of a multicasting KBserver instance (not all lookups might
-		// have been error free, so nome urls may be absent, and such lines may just
-		// contain error data
-		wxString colon = _T(":");
-		wxString intStr;
-		bool bOK;
-		for (i = 0; i < (size_t)entry_count; i++)
+		if (bOpenedOK)
 		{
-			wxString aLine = m_urlsArr.Item((size_t)i); // either a URL, or an empty string
-			aLine += colon;
-			wxItoa(m_bArr_ScanFoundNoKBserver.Item((size_t)i), intStr);
-			aLine += intStr + colon;
-			wxItoa(m_bArr_HostnameLookupFailed.Item((size_t)i), intStr);
-			aLine += intStr + colon;
-			wxItoa(m_bArr_IPaddrLookupFailed.Item((size_t)i), intStr);
-			aLine += intStr;
-			f.AddLine(aLine);
+			// Generate the one (usually only one) or more lines, each corresponding to
+			// a discovery of a multicasting KBserver instance (not all lookups might
+			// have been error free, so nome urls may be absent, and such lines may just
+			// contain error data
+			wxString colon = _T(":");
+			wxString intStr;
+			bool bOK;
+			for (i = 0; i < (size_t)entry_count; i++)
+			{
+				wxString aLine = m_urlsArr.Item((size_t)i); // either a URL, or an empty string
+				aLine += colon;
+				wxItoa(m_bArr_ScanFoundNoKBserver.Item((size_t)i), intStr);
+				aLine += intStr + colon;
+				wxItoa(m_bArr_HostnameLookupFailed.Item((size_t)i), intStr);
+				aLine += intStr + colon;
+				wxItoa(m_bArr_IPaddrLookupFailed.Item((size_t)i), intStr);
+				aLine += intStr;
+				f.AddLine(aLine);
+			}
+			// Write the aggregated results lines to disk, in the work folder
+			bOK = f.Write();
+			f.Close();
 		}
-		// Write the aggregated results lines to disk, in the work folder
-		bOK = f.Write();
-		wxUnusedVar(bOK);
+		else
+		{
+			// Unlikely to fail, so an English message will suffice
+			wxString msg = _T("Error: could not open or create the temporary file ServDiscResults.txt in the work folder.\nTry a manual connection to the KBserver.");
+			wxMessageBox(msg,_T("Cannot provide URL"),wxICON_EXCLAMATION | wxOK);
+		}
 
 		m_pSD->m_bOnSDNotifyEnded = TRUE; // leak elimination and module shutdown can now happen
 

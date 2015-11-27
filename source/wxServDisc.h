@@ -25,13 +25,20 @@
 #ifndef WXSERVDISC_H
 #define WXSERVDISC_H
 
+//namespace std {}
+//using namespace std;
+
 #include <wx/event.h>
 #include <wx/string.h>
 #include <wx/hashmap.h>
 #include <wx/stopwatch.h>
+
+namespace std {}
+using namespace std;
+
 #include <vector>
 
-// all the nice socket includes in one place here (I changed _WIN32 to __WIN32__)
+// all the nice socket includes in one place here (I changed _WIN32 to WIN32)
 #ifdef WIN32
 
 // the next is supposed to prevent winsock.h being included in <windows.h>

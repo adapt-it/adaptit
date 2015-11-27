@@ -44,6 +44,7 @@
 
 class ServDisc;
 class wxServDisc;
+class wxThread;
 
 class CServiceDiscovery : public wxEvtHandler
 {
