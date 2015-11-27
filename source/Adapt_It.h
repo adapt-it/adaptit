@@ -749,6 +749,24 @@ enum SendBackTextType
 	makeFreeTransText
 };
 
+#if defined(_KBSERVER)
+/// An enum for reporting errors, or user choice, or other service discovery details
+/// pertinent to subsequent processing after a service discovery attempt - such as
+/// whether one or more than one KBserver was discovered on the LAN
+enum ServDiscDetail
+{
+	SD_Okay,
+	SD_ThreadCreateFailed,
+	SD_ThreadRunFailed,
+	SD_NoKBserverFound,
+	SD_LookupHostnameFailed,
+	SD_LookupIPaddrFailed,
+	SD_UserCancelled,
+	SD_UserWantsManualAuthentication,
+	SD_UrlDiffers
+};
+#endif
+
 // whm NOTE 21Sep10: Moved this TopLevelMenu enum to become a private member of the
 // App because its enumerations should not be accessed directly, but only through
 // the GetTopLevelMenuName(TopLevelMenu topLevelMenu) function. We may decide at
@@ -1449,11 +1467,11 @@ enum freeTransModeSwitch
 	ftModeON
 };
 
-enum composeBarViewSwitch
-{
-	composeBarHide,
-	composeBarShow
-};
+//enum composeBarViewSwitch // whm 24Nov2015 moved to MainFrm.h
+//{
+//	composeBarHide,
+//	composeBarShow
+//};
 
 enum UniqueFileIncrementMethod
 {
@@ -2947,6 +2965,8 @@ public:
 	bool	  SetupForKBServer(int whichType);
 	bool	  ReleaseKBServer(int whichType);
 	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
+	// BEW added next, 26Nov15
+	bool	  DoServiceDiscovery(wxString curURL, wxString& chosenURL, wxString workFolderPath);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
 	// BEW deprecated 31Jan13

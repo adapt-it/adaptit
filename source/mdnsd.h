@@ -6,7 +6,12 @@ extern "C"
 #ifndef mdnsd_h
 #define mdnsd_h
 #include "1035.h"
+#ifdef WIN32
 #include <time.h>
+#else
+#include <sys/time.h>
+#include <arpa/inet.h>
+#endif
 
 //#ifndef _WIN32
 //struct timeval {
@@ -15,12 +20,14 @@ extern "C"
 //};
 //#endif
 
-
-#ifdef _WIN32
+#ifdef WIN32
 #define _WINSOCK_DEPRECATED_NO_WARNINGS   /* allow the old inet_addr() call at lien 521 of mdnsd.c */
 
+// the next is supposed to prevent winsock.h being included in <windows.h>
+#define _WINSOCKAPI_
+// this is supposed to do the same job
 #define WIN32_LEAN_AND_MEAN
-//#include <windows.h>
+
 #include <winsock2.h> // this puts the timeval struct within scope, to avoid c4115 warning
 	struct timezone {
 		int tz_minuteswest;     /* minutes west of Greenwich */
@@ -55,20 +62,6 @@ struct query
     void *arg;
     struct query *next, *list;
 };
-
-// Try see if I can kill the malloc() leak. Let's store the query pointers which get
-// leaked - currently only one, but there could be more than one kbserver, so allow
-// for a half dozen; but other unwanted services could have been found, so make it
-// big enough to clobber a lot of undeleted ones if necessary - try 40
-#define QUERYARRAY_LEN 40 // allow up to 40 query structs
-#define CACHEDARRAY_LEN 40 // allow up to 40 cached structs
-#define STRINGARRAY_LEN 5 // allow 5, first is struct cached*, rest are unsigned char*
-void ClearQueryPtrArray();
-void ClearCachedPtr2DArray();
-extern struct query* queryPtrArray[QUERYARRAY_LEN];
-extern void* cachedPtr2DArray[CACHEDARRAY_LEN][STRINGARRAY_LEN]; // I'll cast void* to (struct cached*) or
-			// to (unsigned char*) as required, prior to deleting each pointer
-extern int cacheCounter;
 
 ///////////
 // Global functions

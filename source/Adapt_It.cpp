@@ -394,6 +394,18 @@ extern std::string str_CURLheaders;
 #endif
 #include <wx/ipc.h> // for wxServer, wxClient and wxConnection
 
+// Added for win32 API calls required to determine if Paratext is running on a windows host - KLB
+#ifdef __WXMSW__
+	// Each of the next 2 lines is supposed to effect excluding winsock.h from <windows.h>,
+	// but they don't work - perhaps <windows.h> is being compiled with it in wxWidgets.
+	// winsock.h and winsock2.h are incompatible, and service discovery in Windows needs
+	// the lattter
+	#define WIN32_LEAN_AND_MEAN
+	#define _WINSOCKAPI_
+	#include <windows.h>
+	#include <tlhelp32.h>
+	#include <tchar.h>
+#endif
 
 #if !wxUSE_WXHTML_HELP
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
@@ -14386,7 +14398,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 					wxLanguageInfo langInfo;
 					langInfo.Language = nCodeToAssign;
 					langInfo.CanonicalName = tempShortName;
-		#ifdef __WIN32__
+		#ifdef WIN32
 					// Win32 language identifiers
 					langInfo.WinLang = 0;		// We don't know the Windows LANG_xxxx
 												// value so enter zero
@@ -15173,6 +15185,101 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	// all's well
 	return TRUE;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if chosenURL contains a URL string to be used for authenticating to
+///             a discovered running KBserver; FALSE if there was a problem or choice by
+///             the user to do otherwise than return a URL for auto-connection purposes
+/// \param      curURL         -> the current URL - as currently in force, or just provided
+///                               by reading from the AI-BasicConfiguration.aic file (it
+///                               might be an empty string)
+/// \param      chosenURL      <- the URL to which connection is to be done (it
+///                               may not be the same as the curURL)
+/// \param      workFolderPath -> the path to the Adapt It Unicode Work folder (where the
+///                               ServDiscResults.txt file resides)
+/// \remarks
+/// Our implementation of service discovery, cross platform, is based on the sdwrap/wxServDisc
+/// resources provided by Christian Beier, 2008. (See the wxServDisc.h header for more detail.)
+/// Our use of those resources is GUI-less, since the service we listen for is fixed.
+/// Beier's code works, but leaks a few kilobytes of memory when it is shut down - the leaks
+/// are of his making, due to incomplete cleanup code. Because fixing the leaks is a major
+/// task for someone not acquainted with the details of service discovery, we have embedded
+/// our tweak of his solution within a joinable thread. So, when the thread is disposed of,
+/// the leaks are blown away when its process is destroyed.
+/// 
+/// DoServiceDiscovery is called prior to an authentication attempt to a running KBserver.
+/// The service:  "_kbserver._tcp.local." is scanned for (note, there MUST be a period 
+/// following .local, the wrapping " " are not part of the string), and if one of more
+/// KBservers are running and discovered, their ip addresses are looked up and a URL for
+/// each constructed. Normally, only one KBserver should be running; if that is not the
+/// case, user confusion may result, or users may connect to differing KBservers which
+/// would waste the benefits of this KB syncing capacity. If two or more are running, a
+/// dialog will open to allow the user to select one for connecting to. (A better option
+/// would be to Cancel, and turn off all KBserver instances except the one to which
+/// everyone is to connect, then retry setting up the KB sharing - then connection will be
+/// automatic and invisible and nobody will get confused.)
+/// 
+/// Of course, a lot of things may go wrong. Everybody may forget to turn on a KBserver -
+/// if so, they'll need to be warned that no sharing can happen till they run one. Or the thread
+/// which does the service discovery may not be able to be created (unlikely though), or it
+/// refuses to run (also unlikely), or a KBserver instance was detected, but looking up either
+/// the hostname, or ip address, failed. Also, there may be a KBserver running, but it may not
+/// be the one used previously - in which case the function needs to compare the old url with
+/// the current running server's url, and if they differ, ask the user if he wants a connection
+/// to the different url. The service discovery thread will only run for up to 3 seconds,
+/// and that is enough time to detect a KBserver instance multicasting on the LAN. It will report
+/// the URLs for the KBserver or Kbservers it detects in a file, ServDiscResults.txt,
+/// stored in the work folder (that is, in the Adapt It Unicode Work folder). DoServiceDiscovery
+/// will, after the file is stored there, read in its data and use it for implementing the
+/// protocols described above. Every DoServiceDiscovery() call will overwrite the earlier contents
+/// of that file. We leave the file in the work folder, there's nothing dangerous about
+/// doing so, and it may be useful for checking what yesterday's session used for the sharing.
+/// 
+/// Because of the variety of possible states, the following enum will be used internally
+/// to help with implementing suitable protocols: The enum is defined in Adapt_It.h at
+/// about line 752
+/// enum ServDiscDetail
+/// {
+/// 	SD_Okay,
+/// 	SD_ThreadCreateFailed,
+/// 	SD_ThreadRunFailed,
+/// 	SD_NoKBserverFound,
+/// 	SD_LookupHostnameFailed,
+/// 	SD_LookupIPaddrFailed,
+/// 	SD_UserCancelled,
+/// 	SD_UserWantsManualAuthentication,
+/// 	SD_UrlDiffers
+/// };
+////////////////////////////////////////////////////////////////////////////////////////
+
+bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, wxString workFolderPath)
+{
+	wxString serviceStr = _T("_kbserver._tcp.local.");
+	wxString path = workFolderPath;
+	path += PathSeparator + _T("ServDiscResults.txt");
+/*
+		// Can't use PathSeparator here, as it would make CAdapt_ItApp includes visible
+		// to wxServDisc includes, leading to hundreds of name conflicts and
+		// redefinitions etc. So use conditional compile
+#ifdef WIN32
+		path += _T("\\");
+#else
+		path += _T("/");
+#endif
+		path += _T("ServDiscResults.txt");
+*/
+	chosenURL = _T(""); // initialize
+
+
+
+	ServDisc* pSDThread = new ServDisc(wxTHREAD_JOINABLE);
+	wxUnusedVar(pSDThread);
+
+
+
+	return TRUE;
+}
+
 
 // Checks m_pKbServer[0] or [1] for non-NULL or NULL
 // Note: if the KBserver is currently disabled (that is, m_bEnableKBSharing is FALSE)
@@ -17912,7 +18019,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		wxLogDebug(_T("m_languageInfo->Description = %s"),m_languageInfo->Description.c_str()); // "English (U.S.)"
 		wxLogDebug(_T("m_languageInfo->CanonicalName = %s"),m_languageInfo->CanonicalName.c_str()); // "en_US"
 		wxLogDebug(_T("m_languageInfo->Language = %d"),m_languageInfo->Language); // 58 (both Windows and Ubuntu)
-#ifdef __WIN32__
+#ifdef WIN32
 		wxLogDebug(_T("m_languageInfo->WinLang = %d"),m_languageInfo->WinLang); // Windows: 9
 		wxLogDebug(_T("m_languageInfo->WinSublang = %d"),m_languageInfo->WinSublang); // Windows: 1
 #endif
@@ -21721,16 +21828,19 @@ int ii = 1;
 
 	// Run Service Discovery...
 #if defined(_KBSERVER)
-	wxString serviceStr = _T("_kbserver._tcp.local.");
-	//CMainFrame* pFrame = GetMainFrame();
-	m_pServDisc = new ServDisc(pFrame, serviceStr);
-	// We delete it from within as soon as possible, the call on entry to the scanthread, when mdnsd_in()
-	// is called, leaks a small cache block on every entry to the thread - and there are many of these,
-	// they are timed to happen periodically, so leak a bit of memory every time. Minimum run to get
-	// a single KBserver URL done is enough time to get 40 leaks. There is a single once only 2kb leak, and
-	// then about 50 to 80 bytes for every entry to the thread. So we only want this service discovery to
-	// be done once per AI session, until we have a better leakless solution.
-	serviceStr.Clear(); // don't leak it
+	wxString curURL = m_strKbServerURL;
+	wxString chosenURL = _T("");
+	bool bOK = DoServiceDiscovery(m_strKbServerURL, chosenURL, m_workFolderPath);
+	//wxString serviceStr = _T("_kbserver._tcp.local.");
+	//m_pServDisc = new ServDisc(m_workFolderPath, serviceStr);
+    // There are a few kb of memory leaks, at least in the Windows version of this service
+    // discovery module. There may be leaks in Linux too, I don't know, as Code::Blocks did
+    // not report any, but that might just be my ignorance of how to get them displayed.
+    // Anyhow, our solution for Windows will be to do the work in a small console app run
+    // via wxExecute() which can be exited once the module completes, so that leaked memory
+    // is blown away too. The Linux and Mac OSX versions can just use the embedded solution
+    // 'as is' until we find a need to do otherwise..
+	//serviceStr.Clear(); // don't leak it
 #endif
 
 

@@ -152,7 +152,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 			// database of wxWidgets' known languages
 			langInfo.Language = gpApp->currLocalizationInfo.curr_UI_Language;
 			langInfo.CanonicalName = gpApp->currLocalizationInfo.curr_shortName;
-#ifdef __WIN32__
+#ifdef WIN32
 			// Win32 language identifiers
 			langInfo.WinLang = 0;			// We don't know the Windows LANG_xxxx value so enter zero
 			langInfo.WinSublang = 0;		// We don't know the Windows SUBLANG_xxxx value so enter zero 
@@ -771,7 +771,7 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 				// database of wxWidgets' known languages.
 				langInfo.Language = new_wxLangCode;
 				langInfo.CanonicalName = m_strCurrentLanguage;
-	#ifdef __WIN32__
+	#ifdef WIN32
 				// Win32 language identifiers
 				langInfo.WinLang = 0;			// We don't know the Windows LANG_xxxx value so enter zero
 				langInfo.WinSublang = 0;		// We don't know the Windows SUBLANG_xxxx value so enter zero 

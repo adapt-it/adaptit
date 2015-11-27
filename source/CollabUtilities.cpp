@@ -9258,8 +9258,12 @@ bool HasInfoChanged(
 	postEditArrCount = postEditMd5Arr.GetCount();
 	fromEditorArrCount = fromEditorMd5Arr.GetCount();
 	sourceTextArrCount = sourceTextMd5Arr.GetCount();
+	sourceTextArrCount = sourceTextArrCount; // whm 24Nov2015 avoid variable set but not used warning in release build
+	postEditArrCount = postEditArrCount; // whm 24Nov2015 avoid variable set but not used warning in release build
 	wxASSERT(postEditIndex < postEditArrCount);
+	fromEditorArrCount = fromEditorArrCount; // whm 24Nov2015 avoid variable set but not used warning in release build
 	wxASSERT(fromEditorIndex < fromEditorArrCount);
+	preEditArrCount = preEditArrCount; // whm 24Nov2015 avoid variable set but not used warning in release build
 	wxASSERT(preEditIndex < preEditArrCount); // BEW added 22Jun15
 	wxASSERT(sourceTextIndex < sourceTextArrCount); // BEW added 17Jul15
 	bool bIsPostEditVerseLine = FALSE;

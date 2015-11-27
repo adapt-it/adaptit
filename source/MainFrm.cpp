@@ -4498,17 +4498,12 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 
-	//* Remove if it turns out it is not needed
 	if (gpApp->m_pServDisc != NULL)
 	{
 			// Getting rid of our ServDisc instance, and it's child, CServiceDiscovery instance,
 		// is wanted - and then set gpApp->m_pServDisc to NULL
 		if (!gpApp->m_pServDisc->m_bSDIsRunning)
 		{
-			// How many entries in m_urlsArr ??
-			wxLogDebug(_T("OnIdle service discovery shutdown: num m_urlsArr entries: %d"),
-				m_urlsArr.GetCount());
-
 			// This next deletion had to be delayed, because onSDNotify() runs on after
 			// the onServDiscHalting() has been called - so deleting the class that onSDNotify
 			// relies on at that point causes a crash in the latter. So we delay the deletion
@@ -4520,7 +4515,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			gpApp->m_pServDisc = NULL;
 		}
 	}
-	//*/
 
 #endif // for _KBSERVER #defined
 

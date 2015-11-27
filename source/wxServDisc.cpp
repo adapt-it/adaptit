@@ -42,12 +42,12 @@
 #include <csignal>
 
 // only used by VC++
-#ifdef _WIN32
+#ifdef WIN32
 
 
 #pragma comment(lib, "Ws2_32.lib")
-#include <winsock2.h> // moved here, from .h to avoid name clashes
-#include <ws2tcpip.h> // ditto
+//#include <winsock2.h> // moved here from wxServDisc.h, otherwise get name clashes
+//#include <ws2tcpip.h> // ditto
 
 #endif
 
@@ -123,151 +123,7 @@ wxThread::ExitCode wxServDisc::Entry()
       long msecs = tv->tv_sec == 0 ? 100 : tv->tv_sec*1000; // so that the while loop beneath gets executed once
       wxLogDebug(wxT("wxServDisc %p: scanthread waiting for data, timeout %i seconds"), this, (int)tv->tv_sec);
 
-	  // BEW put this test here
-	  if ((int)tv->tv_sec > 101)
-	  {
-		// halt & shut the discovery module down because no KBserver service was discovered
-		// BEW copied next 5 lines from code which follows main loop (which never got called)
-		  // so hopefully this may clean up without memory leaks - it does, but not quite,
-		  // so I've added a hack and a loop of my own at the end to clean up stragglers
-		mdnsd_shutdown(d);
-		mdnsd_free(d);
-
-		// BEW the above doesn't eliminate all leaks. A query struct, at least one, remains
-		// unfreed. This hack hopefully takes care of any such. queryPtrArray[] is my own
-		// thing, number of elements as many as QUERYARRAY_LEN (which I think I'll set at 40
-		// as there could be a lot of services available from the scan - see mdnsd.h line 60,
-		// the definition is in mdnsd.c, and the .h file uses extern to avoid multiple
-		// redefinitions). The for loop below fixed the leak.
-		int i, j;
-		if (!m_bOnSDNotifyStarted)
-		{
-			// scanning found no KBserver service being multicasted
-			for (i = 0; i < (int)QUERYARRAY_LEN; i++)
-			{
-				struct query* q = queryPtrArray[i];
-				if (q != NULL)
-				{
-					free(q->name);
-					free(q);
-				}
-			}
-			ClearQueryPtrArray();
-			// end of BEW's hack for leak elimination
-
-			if(mSock != INVALID_SOCKET)
-				closesocket(mSock);
-			wxLogDebug(wxT("wxServDisc %p: BEW: scanthread exiting; No KBserver discovered on this iteration"), this);
-
-		// post a custom wxServDiscHALTING event here
-        wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
-        event.SetEventObject(this); // set sender
-
-        // BEW added this posting...  Send it
-#if wxVERSION_NUMBER < 2900
-        wxPostEvent((wxEvtHandler*)parent, event);
-#else
-        wxQueueEvent((wxEvtHandler*)parent, event.Clone());
-#endif
-		wxLogDebug(_T("BEW: No KB server discovered. Posted event wxServDiscHALTING. Halting now..."));
-			//return NULL;
-		}
-		else
-		{
-			// scanning discovered a multicasting KBserver, so wait until
-			// onSDNotify() finishes before doing cleanup here - OnSDNotify()
-			// is on the main thread, but we are on a detached thread here
-			while (!m_bOnSDNotifyEnded)
-			{
-				wxMilliSleep(100); // wait for 1/10 of a second, then test again
-			}
- 			wxLogDebug(_T("onSDNotify() has finished. In my halt block in Entry()'s scanning loop, at mdnsd_in() MEMORY LEAKS ELIMINATION cleanup"));
-
-			// Here is where we can clear any heap blocks remaining. The leaks
-			// come from mdnsd_query() (a few - typically 3 for one KBserver found)
-			// and from mdnsd_in() - about 30, for one KBserver found; these are
-			// mostly (unsigned char *) malloc() string buffers, about 20, and
-			// about 9 (struct cached*) buffers containing a cached struct in each,
-			// each of the latter stores 3 structs, a mdsnda_struct, a query struct
-			// pointer, and a cached struct pointer (for next one in the linked list).
-			// My hack will be to accumulate the string buffer pointers into a public
-			// array, and the cashed struct pointers into another public array, and
-			// then just free() them in loops here. A gross hack, but easier than
-			// trying to figure out the details of all that's going on in order to
-			// write proper sensible deletion code. More services are found than
-			// just the _kbserver._tcp.local. one or ones; so my arrays need to be
-			// big enough to cater for a LAN with a bit of stuff available. I'm at
-			// SIL A for the above figures, so what's above is probably a reasonable
-			// guestimate, and add a bit more for padding.
-
-		/*	
-			for (i = 0; i < (int)QUERYARRAY_LEN; i++)
-			{
-				struct query* q = queryPtrArray[i];
-				if (q != NULL)
-				{
-					free(q->name);
-					free(q);
-				}
-			}
-			ClearQueryPtrArray();
-		*/	
-			for (i = 0; i < (int)CACHEDARRAY_LEN; i++)
-			{
-				// Outer loop iterates by rows, each row's [0] element is a void* which we must
-				// cast to (struct cached*) - actually, may be unnecessary, but no harm in the casting
-				if (cachedPtr2DArray[i][0] != NULL)
-				{
-					// delay deletion till its strings are deleted
-					struct cached* c = (struct cached*)cachedPtr2DArray[i][0]; 
-					// First delete as many unsigned char* are we stored at their allocations
-					for (j = 1; j < STRINGARRAY_LEN; j++)
-					{
-						if (cachedPtr2DArray[i][j] != NULL)
-						{
-							// static wxString From8BitData(const char* buf)
-							const char* aStringPtr = (const char*)(cachedPtr2DArray[i][j]);
-							wxString s = wxString::From8BitData(aStringPtr);
-							wxLogDebug(_T("     Leak Elimination: DELETING string at index = %d, %s"), j, s.c_str());
-							free((unsigned char*)cachedPtr2DArray[i][j]);
-						}
-						else
-						{
-							wxLogDebug(_T("     Leak Elimination: ABSENT string at index = %d"), j);
-							free((unsigned char*)cachedPtr2DArray[i][j]);
-						}
-					}
-					wxLogDebug(_T("Leak Elimination: DELETING struct cached, for index = %d"), i);
-					free(c);
-				}
-				else
-				{
-					wxLogDebug(_T("Leak Elimination: ABSENT: struct cached, for index = %d"), i);
-				}
-			}
-			ClearCachedPtr2DArray(); // this also sets cacheCounter back to -1
-
-			// end of BEW's hack for leak elimination
-		}
-		wxLogDebug(_T("After mdnsd_in() LEAKS ELIMINATION:  now posting wxServDiscHALTING event"));
-
-		// post a custom wxServDiscHALTING event here
-        wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
-        event.SetEventObject(this); // set sender
-
-        // BEW added this posting...  Send it
-#if wxVERSION_NUMBER < 2900
-        wxPostEvent((wxEvtHandler*)parent, event);
-#else
-        wxQueueEvent((wxEvtHandler*)parent, event.Clone());
-#endif
-		wxLogDebug(_T("BEW: No KB server discovered. Posted event wxServDiscHALTING. Halting now..."));
-
-		// BEW copied next line from code which follows main loop
-		return NULL;
-	  } // end of BEW addition
-
-      // we split the one select() call into several ones every 100ms
+	  // we split the one select() call into several ones every 100ms
       // to be able to catch TestDestroy()...
       int datatoread = 0;
       while(msecs > 0 && !GetThread()->TestDestroy() && !datatoread)
@@ -320,121 +176,10 @@ wxThread::ExitCode wxServDisc::Entry()
   mdnsd_shutdown(d);
   mdnsd_free(d);
 
-	int i, j;
-//	if (!m_bOnSDNotifyStarted)
-//	{
-		/*
-		// scanning found no KBserver service being multicasted
-		for (i = 0; i < (int)QUERYARRAY_LEN; i++)
-		{
-			struct query* q = queryPtrArray[i];
-			if (q != NULL)
-			{
-				free(q->name);
-				free(q);
-			}
-		}
-		ClearQueryPtrArray();
-		*/
-		// end of BEW's hack for leak elimination
-
-//		wxLogDebug(wxT("wxServDisc %p: BEW: scanthread exiting; No KBserver discovered on this iteration"), this);
-/* don't post, it kills the discovery too early
-		// post a custom wxServDiscHALTING event here
-		wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
-		event.SetEventObject(this); // set sender
-
-		// BEW added this posting...  Send it
-		#if wxVERSION_NUMBER < 2900
-		wxPostEvent((wxEvtHandler*)parent, event);
-		#else
-		wxQueueEvent((wxEvtHandler*)parent, event.Clone());
-		#endif
-		wxLogDebug(_T("BEW: AFTER LOOP: No KB server discovered. Posted event wxServDiscHALTING"));
-*/
-//	}
-//	else
-//	{
-		// scanning discovered a multicasting KBserver, so wait until
-		// onSDNotify() finishes before doing cleanup here - OnSDNotify()
-		// is on the main thread, but we are on a detached thread here
-/* do it unilaterally here
-		while (!m_bOnSDNotifyEnded)
-		{
-			wxMilliSleep(100); // wait for 1/10 of a second, then test again
-		}
-		wxLogDebug(_T("onSDNotify() has finished. AFTER LOOP, at mdnsd_in() MEMORY LEAKS ELIMINATION cleanup"));
-*/
-	/*	Do I need this here?? Yes!
-		for (i = 0; i < (int)QUERYARRAY_LEN; i++)
-		{
-			struct query* q = queryPtrArray[i];
-			if (q != NULL)
-			{
-				free(q->name);
-				free(q);
-			}
-		}
-		ClearQueryPtrArray();
-	*/	
-		for (i = 0; i < (int)CACHEDARRAY_LEN; i++)
-		{
-			// Outer loop iterates by rows, each row's [0] element is a void* which we must
-			// cast to (struct cached*) - actually, may be unnecessary, but no harm in the casting
-			if (cachedPtr2DArray[i][0] != NULL)
-			{
-				// delay deletion till its strings are deleted
-				struct cached* c = (struct cached*)cachedPtr2DArray[i][0]; 
-				// First delete as many unsigned char* are we stored at their allocations
-				for (j = 1; j < STRINGARRAY_LEN; j++)
-				{
-					if (cachedPtr2DArray[i][j] != NULL)
-					{
-						// static wxString From8BitData(const char* buf)
-						const char* aStringPtr = (const char*)(cachedPtr2DArray[i][j]);
-						wxString s = wxString::From8BitData(aStringPtr);
-						wxLogDebug(_T("     Leak Elimination: DELETING string at index = %d, %s"), j, s.c_str());
-						free((unsigned char*)cachedPtr2DArray[i][j]);
-					}
-					else
-					{
-						wxLogDebug(_T("     Leak Elimination: ABSENT string at index = %d"), j);
-						free((unsigned char*)cachedPtr2DArray[i][j]);
-					}
-				}
-				wxLogDebug(_T("Leak Elimination: DELETING struct cached, for index = %d"), i);
-				free(c);
-			}
-			else
-			{
-				wxLogDebug(_T("Leak Elimination: ABSENT: struct cached, for index = %d"), i);
-			}
-		}
-		ClearCachedPtr2DArray(); // this also sets cacheCounter back to -1
-
-		// end of BEW's hack for leak elimination
-/* don't post here, it kills process to early		
-		// post a custom wxServDiscHALTING event here
-		wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
-		event.SetEventObject(this); // set sender
-
-		// BEW added this posting...  Send it
-		#if wxVERSION_NUMBER < 2900
-		wxPostEvent((wxEvtHandler*)parent, event);
-		#else
-		wxQueueEvent((wxEvtHandler*)parent, event.Clone());
-		#endif
-		wxLogDebug(_T("BEW: AFTER LOOP: A KB server discovered. Posted event wxServDiscHALTING"));
-*/
-//	}
-	wxLogDebug(_T("AFTER LOOP, & after mdnsd_in() LEAKS ELIMINATION: & now exiting Entry()"));
-
-
   if(mSock != INVALID_SOCKET)
     closesocket(mSock);
 
-
-  wxLogDebug(wxT("wxServDisc %p: scanthread exiting, after loop, at end of Entry()"), this);
+  wxLogDebug(wxT("wxServDisc %p: scanthread exiting, after loop has ended, now at end of Entry(), returning NULL"), this);
 
   return NULL;
 }
@@ -463,7 +208,7 @@ int wxServDisc::recvm(struct message* m, SOCKET s, unsigned long int *ip, unsign
   struct sockaddr_in from;
   int bsize;
   static unsigned char buf[MAX_PACKET_LEN];
-#ifdef __WIN32__
+#ifdef WIN32
   int ssize  = sizeof(struct sockaddr_in);
 #else
   socklen_t ssize  = sizeof(struct sockaddr_in);
@@ -479,7 +224,7 @@ int wxServDisc::recvm(struct message* m, SOCKET s, unsigned long int *ip, unsign
       return bsize;
     }
 
-#ifdef __WIN32__
+#ifdef WIN32
   if(bsize < 0 && WSAGetLastError() != WSAEWOULDBLOCK)
 #else
     if(bsize < 0 && errno != EAGAIN)
@@ -567,7 +312,7 @@ SOCKET wxServDisc::msock()
   struct addrinfo* multicastAddr;  // Multicast address
   struct addrinfo* localAddr;      // Local address to bind to
 
-#ifdef __WIN32__
+#ifdef WIN32
   /*
     Start up WinSock
    */
@@ -729,8 +474,7 @@ SOCKET wxServDisc::msock()
 
 wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 {
-  // BEW addition, initialize our cached struct pointer, for later clobbering memory leaks
-  cacheCounter = -1; // defined in mdnsd.h,  set in mdnsd_in()'s caching loop, approx line 554 onwards
+  // BEW addition - next 2 lines
   m_bOnSDNotifyStarted = FALSE;
   m_bOnSDNotifyEnded = FALSE;
 
@@ -766,7 +510,7 @@ wxServDisc::~wxServDisc()
   if(GetThread() && GetThread()->IsRunning())
     GetThread()->Delete(); // blocks, this makes TestDestroy() return true and cleans up the thread
 
-  wxLogDebug(wxT("wxServDisc %p: scanthread deleted, wxServDisc destroyed, query was '%s', lifetime was %ld"), this, query.c_str(), mWallClock.Time());
+  wxLogDebug(wxT("wxServDisc %p: scanthread deleted, wxServDisc destroyed, hostname was '%s', lifetime was %ld"), this, query.c_str(), mWallClock.Time());
   wxLogDebug(wxT("Finished call of ~wxServDisc()"));
 }
 
@@ -788,6 +532,16 @@ size_t wxServDisc::getResultCount() const
 
 void wxServDisc::post_notify()
 {
+#if defined(_EMBED_HANDLER)
+	CServiceDiscovery* pParent = (CServiceDiscovery*)parent;
+	if (pParent)
+	{
+		wxCommandEvent event = wxServDiscNOTIFY;
+		pParent->onSDNotify(event);
+
+	}
+#else
+  // The original way
   if(parent)
     {
  	  wxLogDebug(_T("post_notify():  posting event")); // BEW added this call
@@ -797,11 +551,12 @@ void wxServDisc::post_notify()
       event.SetEventObject(this); // set sender
 
       // Send it
-#if wxVERSION_NUMBER < 2900
-      wxPostEvent((wxEvtHandler*)parent, event);
-#else
-      wxQueueEvent((wxEvtHandler*)parent, event.Clone());
-#endif
+	#if wxVERSION_NUMBER < 2900
+		  wxPostEvent((wxEvtHandler*)parent, event);
+	#else
+		  wxQueueEvent((wxEvtHandler*)parent, event.Clone());
+	#endif
   }
+#endif
 }
 

@@ -25325,7 +25325,7 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode(bool bCalledFromOnVerticalEdi
 
 	wxUnusedVar(bCalledFromOnVerticalEditCancelAllSteps); // the flag is no longer needed I think
 	
-	pRec->nStartingSequNum;
+	//pRec->nStartingSequNum; // whm removed - statement has no effect warning in gcc
 	int nSequNum = pRec->nStartingSequNum; // leftmost 'in span' location as stored in
 										   // the EditRecord, use as a fallback
  	bool bOriginalLocationWithinSpan = FALSE;

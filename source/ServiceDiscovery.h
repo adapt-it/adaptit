@@ -44,29 +44,42 @@
 
 class ServDisc;
 class wxServDisc;
+class wxThread;
 
 class CServiceDiscovery : public wxEvtHandler
 {
 
 public:
 	CServiceDiscovery();
-	CServiceDiscovery(CMainFrame* pFrame, wxString servicestring, ServDisc* pParentClass);
+	CServiceDiscovery(wxString workFolderPath, wxString servicestring, ServDisc* pParentClass);
 	virtual ~CServiceDiscovery();
 
 	wxString m_servicestring; // service to be scanned for
+	wxString m_workFolderPath; // where we'll tem[porarily store our file of results
 
-	wxServDisc* m_pSD; // main service scanner
+	wxServDisc* m_pSD; // main service scanner (a child class of this one)
 	ServDisc* m_pParent;
 	bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this in Frame's OnIdle()
 								 // for deleting CServiceDiscovery & ServDisc instances
-	CMainFrame* m_pFrame; // Adapt It app's frame window
-
-	// Temporarily store these
+	// scratch variables, used in the loop in onSDNotify() handler
 	wxString m_hostname;
 	wxString m_addr;
 	wxString m_port;
 
-	wxArrayString m_sd_items;
+	wxArrayString m_sd_servicenames; // for servicenames, as discovered
+	// The follow int arrays are for storing booleans, 1 for TRUE, 0 for FALSE
+	// in parallel with the URLs (or empty strings) in m_urlsArr
+	wxArrayInt m_bArr_ScanFoundNoKBserver;
+	wxArrayInt m_bArr_HostnameLookupFailed;
+	wxArrayInt m_bArr_IPaddrLookupFailed;
+	// Flags are 1 (true), 0 (false), -1 (undefined)
+	// put out constructed lines here: each is  url:0:0:0 (the failure flags are
+	// each zero if a url is constructed), or if no KBserver was discovered:  :1:-1:-1,
+	// or if some other error,  :0:1:-1 or :0:0:-1
+	wxArrayString m_sd_lines;
+	wxArrayString m_urlsArr;
+
+	void wxItoa(int val, wxString& str); // copied from helpers.h & .cpp, it creates problems to #include "helpers.h"
 
     // bools (as int 0 or 1, in int arrays) for error conditions are on the CMainFrame
     // instance and the array of URLs for the one or more _kbserver._tcp.local. services
@@ -76,7 +89,6 @@ public:
     // that will be in a function called from elsewhere, the function will make use of the
     // data we sent to the CMainFrame class from here. (See MainFrm.h approx lines 262-7)
 protected:
-
 	void onSDNotify(wxCommandEvent& event);
 	void onSDHalting(wxCommandEvent& event);
  
