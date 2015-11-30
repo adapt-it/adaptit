@@ -70,7 +70,19 @@
 #include "wxServDisc.h"
 #include "ServiceDiscovery.h"
 
-IMPLEMENT_DYNAMIC_CLASS(CServiceDiscovery, wxEvtHandler)
+#ifdef __WXMSW__
+// The following include prevents the #include of Adapt_It.h from generating Yield() macro
+// conflicts, because somewhere I've got windows.h already defined and the latter also has
+// its own Yield() macro. Vadim Zeitlin said to add the following include "after including
+// windows.h" and since that would have been in wxServDisc.h, it needs to come before
+// the include of Adapt_It.h which internally has the wx version. Did so, and the compile
+// errors disappeared from here
+#include <wx/msw/winundef.h>
+#endif
+#include "Adapt_It.h"
+
+
+//IMPLEMENT_DYNAMIC_CLASS(CServiceDiscovery, wxEvtHandler)
 
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)
 	EVT_COMMAND (wxID_ANY, wxServDiscNOTIFY, CServiceDiscovery::onSDNotify)
@@ -102,6 +114,10 @@ CServiceDiscovery::CServiceDiscovery(wxString workFolderPath, wxString servicest
 	m_hostname = _T("");
 	m_addr = _T("");
 	m_port = _T("");
+
+	// initialize our flag which helps this process and the wxServDisc child process,
+	// to work out when to initiate the posting of wxServDiscHALTING to get cleanup done
+    m_bOnSDNotifyEnded = FALSE;
 
 	// Initialize my reporting context (Use .Clear() rather than
 	// .Empty() because from one run to another we don't know if the
@@ -151,7 +167,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 {
 	if (event.GetEventObject() == m_pSD)
 	{
-		m_pSD->m_bOnSDNotifyStarted = TRUE;
+		m_bOnSDNotifyEnded = FALSE;
 
 		m_hostname.Empty();
 		m_addr.Empty();
@@ -304,70 +320,27 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 
 		} // end of loop: for (i = 0; i < entry_count; i++)
 
-		// Make the results accessible: store them as 1 or more lines in a TextFile,
-		// in the Adapt It Unicode Work folder
-		wxString path = m_workFolderPath;
-		// Can't use PathSeparator here, as it would make CAdapt_ItApp includes visible
-		// to wxServDisc includes, leading to hundreds of name conflicts and
-		// redefinitions etc. So use conditional compile
-#ifdef WIN32
-		path += _T("\\");
-#else
-		path += _T("/");
-#endif
-		path += _T("ServDiscResults.txt");
-		bool bOpenedOK = TRUE;
-		wxTextFile f(path);
-		bool bAlreadyExists = f.Exists();
-
-		// If the file already exists, open it and Clear() its contents ready for the
-		// new stuff; if not in existence Open() will fail, in which case use Create()
-		// to create a new instance ready for writing data to it
-		if (bAlreadyExists)
+		// Make the results accessible: store them as 1 or more strings in m_pApp->m_servDiscResults
+		// Generate the one (usually only one) or more lines, each corresponding to
+		// a discovery of a multicasting KBserver instance (not all lookups might
+		// have been error free, so some urls may be absent, and such lines may just
+		// contain error data
+		wxString colon = _T(":");
+		wxString intStr;
+		for (i = 0; i < (size_t)entry_count; i++)
 		{
-			if (!f.IsOpened())
-			{
-				bOpenedOK = f.Open(path);
-			}
-			f.Clear();
-		}
-		else
-		{
-			bOpenedOK = f.Create(path);
-		}
-		if (bOpenedOK)
-		{
-			// Generate the one (usually only one) or more lines, each corresponding to
-			// a discovery of a multicasting KBserver instance (not all lookups might
-			// have been error free, so nome urls may be absent, and such lines may just
-			// contain error data
-			wxString colon = _T(":");
-			wxString intStr;
-			bool bOK;
-			for (i = 0; i < (size_t)entry_count; i++)
-			{
-				wxString aLine = m_urlsArr.Item((size_t)i); // either a URL, or an empty string
-				aLine += colon;
-				wxItoa(m_bArr_ScanFoundNoKBserver.Item((size_t)i), intStr);
-				aLine += intStr + colon;
-				wxItoa(m_bArr_HostnameLookupFailed.Item((size_t)i), intStr);
-				aLine += intStr + colon;
-				wxItoa(m_bArr_IPaddrLookupFailed.Item((size_t)i), intStr);
-				aLine += intStr;
-				f.AddLine(aLine);
-			}
-			// Write the aggregated results lines to disk, in the work folder
-			bOK = f.Write();
-			f.Close();
-		}
-		else
-		{
-			// Unlikely to fail, so an English message will suffice
-			wxString msg = _T("Error: could not open or create the temporary file ServDiscResults.txt in the work folder.\nTry a manual connection to the KBserver.");
-			wxMessageBox(msg,_T("Cannot provide URL"),wxICON_EXCLAMATION | wxOK);
+			wxString aLine = m_urlsArr.Item((size_t)i); // either a URL, or an empty string
+			aLine += colon;
+			wxItoa(m_bArr_ScanFoundNoKBserver.Item((size_t)i), intStr);
+			aLine += intStr + colon;
+			wxItoa(m_bArr_HostnameLookupFailed.Item((size_t)i), intStr);
+			aLine += intStr + colon;
+			wxItoa(m_bArr_IPaddrLookupFailed.Item((size_t)i), intStr);
+			aLine += intStr;
+			m_pParent->m_pApp->m_servDiscResults.Add(aLine);
 		}
 
-		m_pSD->m_bOnSDNotifyEnded = TRUE; // leak elimination and module shutdown can now happen
+		m_bOnSDNotifyEnded = TRUE; // module shutdown can now happen
 
 	} // end of TRUE block for test: if (event.GetEventObject() == m_pSD)
 	else
@@ -415,8 +388,25 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 {
 	wxUnusedVar(event);
 
+	// If wxServDisc at process end has posted this wxServDiscHALTING event, then
+	// it's almost certain that the onSDNotify() handler has not yet finished its
+	// work (it's on a different thread to that of wxServDisc), and so we check
+	// the flag m_bOnSDNotifyEnded. It the latter is not yet TRUE, then we must allow
+	// onSDNotify() to complete before we initiate module shutdown, so test here
+	if (!m_bOnSDNotifyEnded)
+	{
+		// Return without doing anything here. onSDNotify() will, after it sets the
+		// flag true, post another wxServDiscHALTING event to its class instance,
+		// and then the cleanup code further below will be done
+		wxLogDebug(_T("onSDHalting(): RETURNING EARLY because onSDNofify() is not yet finished."));
+		return;
+	}
+
 	// BEW made this handler, for shutting down the module when no KBserver
-	// service was discovered
+	// service was discovered, and for when one was discovered and post_notify()
+	// posted a wxServDiscNOTIFY event to get the lookup and reporting done for
+	// the discovered service(s) (there could be 2 or more KBserver instances running
+	// so more than one could be discovered)
 	wxLogDebug(_T("this [ from CServiceDiscovery:onSDHalting() ] = %p"), this);
 	wxLogDebug(_T("m_pParent [ from CServiceDiscovery:onSDHalting() ] = %p"), m_pParent);
 
@@ -434,37 +424,34 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	wxLogDebug(_T("this [ from CServiceDiscovery:onSDHalting() ] AFTER delete m_pSD call = %p"), this);
 
 	m_bWxServDiscIsRunning = FALSE;
-	m_pParent->m_bSDIsRunning = FALSE; // enables our code in CMainFrame::OnIdle() to
-		// figure out that no KBserver was found and so a partial removal of the
-		// module has been done so far (ie. wxServDisc instance only), and so the
-		// class ServDisc (the parent of the CServiceDiscovery instance) can be
-		// deleted from within OnIdle() when this flag is FALSE, and the app's
-		// m_pServDisc pointer reset to NULL. That doesn't however get the
-		// CServiceDiscovery instance deleted, so it will leak memory unless we can
-		// get it deleted from within itself. Trying to do it from elsewhere means
-		// that #include wxServDisc has to be mixed with #include "Adapt_It.h" and
-		// that leads to hundreds of name clashes.
-		// Ugly hacks, but hey, I didn't write the wxServDisc code.
+	wxLogDebug(_T("In CServiceDiscovery:onSDHalting(): ~wxServDisc() destructor called, m_bWxServDiscIsRunning set FALSE"));
 
-	// post a custom serviceDiscoveryHALTING event here, for the parent class to
-	// supply the handler needed. Doing this here, as this makes the posting of
-	// the event and the handler be as temporally close to each other as possible.
-	// Nevertheless, the this pointer somehow gets clobbered (see above)
-	wxCommandEvent upevent(serviceDiscoveryHALTING, wxID_ANY);
+    // It's not necessary to clear the following, the destructor would do it,
+    // but no harm in it
+	m_sd_servicenames.Clear();
+	m_urlsArr.Clear();
+	m_sd_lines.Clear();
+	m_bArr_ScanFoundNoKBserver.Clear();
+	m_bArr_HostnameLookupFailed.Clear();
+	m_bArr_IPaddrLookupFailed.Clear();
+
+    // BEW: Post a custom serviceDiscoveryHALTING event here, for the parent class to
+    // supply the handler needed for destroying this CServiceDiscovery instance
+	wxCommandEvent upevent(wxServDiscHALTING, wxID_ANY);
 	upevent.SetEventObject(this); // set sender
 
-	// BEW added this posting...  Send it
 #if wxVERSION_NUMBER < 2900
 	wxPostEvent((wxEvtHandler*)m_pParent, upevent);
 #else
 	wxQueueEvent((wxEvtHandler*)m_pParent, upevent.Clone());
 #endif
-	wxLogDebug(_T("[ from CServiceDiscovery:onSDHalting() ] AFTER posting serviceDiscoveryHALTING event, this = %p"), this);
+	wxLogDebug(_T("[ from CServiceDiscovery:onSDHalting() ] AFTER posting wxServDiscHALTING event, this = %p, m_pParent = %p"), 
+			this, m_pParent);
 }
 
 CServiceDiscovery::~CServiceDiscovery()
 {
-	wxLogDebug(_T("Deleting the CServiceDiscovery instance"));
+	wxLogDebug(_T("Deleting the CServiceDiscovery instance, in ~CServiceDiscovery()"));
 }
 
 // Copied wxItoa from helpers.cpp, as including helpers.h leads to problems

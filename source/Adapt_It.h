@@ -82,6 +82,12 @@ class TranslationsList; // the CTargetUnit's list of CRefString instances
 
 class ServDisc; 
 
+#if wxVERSION_NUMBER < 2900
+DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
+#else
+wxDECLARE_EVENT(wxServDiscHALTING, wxCommandEvent);
+#endif
+
 #endif // _KBSERVER
 
 // while Graeme and Bruce work on the codefix refactoring, Graeme needs to test his
@@ -2018,6 +2024,13 @@ class CAdapt_ItApp : public wxApp
 
 #if defined(_KBSERVER)
 
+    // This needs to be accessible to other classes, it's used in app instance, and in
+    // CServiceDiscovery instance to ensure that the ServDiscResults.txt file is written to
+    // Adapt It Unicode Work folder before app's DoServiceDiscovery() function internally
+    // tries to read in that file to get the service discovery's results for subsequent
+    // processing. This mutext is a must-have
+	wxMutex s_SDResultsMutex;
+
 	// The following is the timer for incremental downloads; defaulted to
 	// 5 minutes, but settable by the user to other values in the range 1-10 minutes,
 	// and the minutes valuewill be stored in the project config file
@@ -2040,6 +2053,9 @@ class CAdapt_ItApp : public wxApp
 	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
 
 	ServDisc* m_pServDisc;
+	wxArrayString m_servDiscResults;
+
+	void onServDiscHalting(wxCommandEvent& WXUNUSED(event));
 
 #endif // _KBSERVER
 

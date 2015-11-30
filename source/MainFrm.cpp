@@ -4498,23 +4498,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 
-	if (gpApp->m_pServDisc != NULL)
-	{
-			// Getting rid of our ServDisc instance, and it's child, CServiceDiscovery instance,
-		// is wanted - and then set gpApp->m_pServDisc to NULL
-		if (!gpApp->m_pServDisc->m_bSDIsRunning)
-		{
-			// This next deletion had to be delayed, because onSDNotify() runs on after
-			// the onServDiscHalting() has been called - so deleting the class that onSDNotify
-			// relies on at that point causes a crash in the latter. So we delay the deletion
-			// of CServiceDiscovery instance to here
-			delete gpApp->m_pServDisc->m_pServiceDisc;
 
-			delete gpApp->m_pServDisc;
-
-			gpApp->m_pServDisc = NULL;
-		}
-	}
 
 #endif // for _KBSERVER #defined
 

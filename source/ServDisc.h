@@ -27,25 +27,33 @@
 // Forward declarations
 class wxString;
 class CServiceDiscovery;
-//#include "wx/thread.h"
+class CAdapt_ItApp;
 
 namespace std {}
 using namespace std;
 
+//#include "wx/thread.h"
 //#include <wx/event.h>
 
 
-class ServDisc : public wxThread  // earlier, base class was wxEvtHandler
+// The order of the base classes must be as below. Reverse order puts wxEvtHandler at a non-zero
+// offset in the derived class, making it likely that ptr-to-member of wxEventHandler
+// would generate incorrect code. A C4407 compiler error is given for the reverse order. Either
+// I keep the order and have to use classnames to qualify pointer-to-member, or I need to alter
+// the base class order - clearly the latter is easiest. And it worked.
+class ServDisc : public wxEvtHandler, public wxThread
 {
 public:
-	ServDisc(wxThreadKind = wxTHREAD_DETACHED);
+	ServDisc(wxThreadKind = wxTHREAD_DETACHED); // detached is default, but we'll pass in wxTHREAD_JOINABLE
+												// when we instantiate within DoServiceDiscovery
 	//ServDisc(wxString workFolderPath, wxString serviceStr);
 	virtual ~ServDisc();
 
-	wxString m_workFolderPath; // location where we'll temporarily store a file of results
+	wxString		m_workFolderPath; // location where we'll temporarily store a file of results
 	wxString m_serviceStr; // service to be scanned for
-	bool     m_bSDIsRunning;
 
+	bool     m_bServDiscCanExit;
+	CAdapt_ItApp* m_pApp;
 	CServiceDiscovery* m_pServiceDisc;
 	CServiceDiscovery* m_backup_ThisPtr; // m_pServiceDisc gets reset to 0xcdcdcdcd before
 		// it can be deleted, so I'll store a copy here, and use ithat the pointer in the
@@ -61,14 +69,13 @@ public:
 	// begins. Our thread will be of the joinable type (wxTHREAD_JOINABLE)
 	virtual void*		Entry();
 
-	//virtual bool    TestDestroy(); <<-- don't provide one, rely on the internal one from thread.h
-	// which does the test:  return m_internal->GetState() == STATE_CANCELLED;
+	bool    TestDestroy(); // terminate when m_bServDiscCanExit goes TRUE
 
 protected:
-	//void onServDiscHalting(wxCommandEvent& event); <<-- we are not an event handler object
+	void onServDiscHalting(wxCommandEvent& event);
 
 private:
-	//DECLARE_EVENT_TABLE();
+	DECLARE_EVENT_TABLE();
 
     //DECLARE_DYNAMIC_CLASS(ServDisc)
 };

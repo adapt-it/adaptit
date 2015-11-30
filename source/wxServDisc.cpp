@@ -20,6 +20,42 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
+
+// BEW: ************* IMPORTANT **********************
+// The wx documentation for threads says that TestDestroy() should be used for determining
+// when a thread should be shut down. (Test state of the thread's job, in a loop, and when
+// the job is done, have TestDestroy() return true, otherwise, while the job is unfinished
+// then return false. TestDestroy() is then typically used in the test condition of the
+// thread's loop for processing the job, so as to obtain break from the loop at job end.
+// However, this cannot be made to work in Beier's solution. The reason is that Beier's
+// solution, on it's own thread, posts a wxServDiscNOTIFY() event to the calling thread
+// (which could be the main thread, or in our case, another worker thread), and so the
+// calling thread and the wxServDisc thread work on independently. Typically, the
+// wxServDisc thread finishes long before the calling thread's onSDNotify() has finished
+// the hostname and ip address and port lookups. But both the onSDNotify() handler, and the
+// wxServDisc thread, rely on mdnsd.h and .c, and that in turn on 10.35.h and .c. If
+// TestDestroy() was used as recommended in the wx documention for determining when
+// wxServDisc is to be terminated, doing so would destroy the code resources that the
+// running onSDNotify() handler is using to do its job, and crash the app. So our approach
+// is to have both the onSDNOTIFY() handler, and the wx::ServDisc::Entry() function, when
+// each is done, post a custom event which I have called wxServDiscHALTING, to the parent
+// CServiceDiscovery class instance. If that instance receives that event while the boolean
+// m_bOnSDNotifyEnded is FALSE, the onSDHALTING() handler returns immediately without doing
+// anything. But if the boolean is TRUE (and it is set TRUE only at the end of onSDNotify's
+// job having been completed), then the handler continues to do the code for shutting down
+// wxServDisc. It also posts a further wxServDiscHALTING event to the caller, which is my
+// ServDisc thread - and there the handler for the halt can delete the CServiceDiscovery
+// instance. And that handler then also posts a further wxServDiscHALTING event to
+// ServDisc's caller, which is the app instance, and the app's handler for that event can
+// then delete the ServDisc instance. That's how we get cleanup done. To make sure
+// processes don't end early and trigger self deletion leading to a crash, we have to put a
+// timeout loop in ServDisc, (6 seconds) so that everything that needs to be done can be
+// done in the approx 3 seconds it normally takes, and so we rely on these posted
+// wxServDiscHALTING events for cleanup, rather than job completion from within a thread
+// and the thread returning (void*)NULL to get itself cleaned up.
+// (Semaphores are the device normally used for this kind of process, but that's another
+// learning curve for me, which I prefer to avoid for now.)
+
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
 
@@ -474,10 +510,6 @@ SOCKET wxServDisc::msock()
 
 wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 {
-  // BEW addition - next 2 lines
-  m_bOnSDNotifyStarted = FALSE;
-  m_bOnSDNotifyEnded = FALSE;
-
   // save our caller
   parent = p;
 

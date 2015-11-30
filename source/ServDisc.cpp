@@ -35,32 +35,54 @@
 #include "wxServDisc.h"
 #include "ServiceDiscovery.h"
 #include "ServDisc.h"
-
-
+#ifdef __WXMSW__
+// The following include prevents the #include of Adapt_It.h from generating Yield() macro
+// conflicts, because somewhere I've got windows.h already defined and the latter also has
+// its own Yield() macro. Vadim Zeitlin said to add the following include "after including
+// windows.h" and since that would have been in wxServDisc.h, it needs to come before
+// the include of Adapt_It.h which internally has the wx version. Did so, and the compile
+// errors disappeared from here
+#include <wx/msw/winundef.h>
+#endif
+#include "Adapt_It.h"
 
 //IMPLEMENT_DYNAMIC_CLASS(ServDisc, wxThread)// earlier, base class was wxEvtHandler
 
-/* wxThread is based on nothing, can't be an event hander unless I mix in using wxThreadHelper
 BEGIN_EVENT_TABLE(ServDisc, wxEvtHandler)
-EVT_COMMAND(wxID_ANY, serviceDiscoveryHALTING, ServDisc::onServDiscHalting)
+EVT_COMMAND(wxID_ANY, wxServDiscHALTING, ServDisc::onServDiscHalting)
 END_EVENT_TABLE()
-*/
-// We don't use this creator
+
+// ******************** NOTE *****************
+// The 38 memory leaks from mdnsd, a couple of queries, and the strings and cached structs
+// of a number of _cache structs, are leaked into the main thread's namespace. Putting the
+// service discovery into a thread process does not solve our problem of the leaks. It
+// looks like the only way to do it is for me to learn how to fix Beier's incomplete
+// cleanup.
+
 ServDisc::ServDisc(wxThreadKind kind)
 {
-	wxLogDebug(_T("\nInstantiating a joinable ServDisc thread class, ptr to instance = %p"), this);
+	wxLogDebug(_T("\nInstantiating a detached ServDisc thread class, ptr to instance = %p"), this);
 	wxUnusedVar(kind);
-	wxASSERT(kind == wxTHREAD_JOINABLE);
+	wxASSERT(kind != wxTHREAD_JOINABLE);
 
+	// Check again, my logging says that it is running as a detached thread....
+	bool bIsDetached = FALSE;
+	bool bIsMain = FALSE;
+	bIsMain = wxThread::IsMain(); // This returns TRUE, which is correct
+	bIsDetached = wxThread::IsDetached();
+	wxLogDebug(_T("ServDisc is a thread of kind: %s "), bIsDetached ? wxString(_T("DETACHED")).c_str() :
+					wxString(_T("JOINABLE")).c_str());
+
+	m_bServDiscCanExit = FALSE;
 	m_serviceStr = _T(""); // service to be scanned for
 	m_workFolderPath.Empty();
-
+	m_pApp = NULL; // initializations, the needed values will be assigned after instantiation
 	CServiceDiscovery* m_pServiceDisc = NULL;
 	CServiceDiscovery* m_backup_ThisPtr = NULL; 
 	wxUnusedVar(m_pServiceDisc);
 	wxUnusedVar(m_backup_ThisPtr);
 }
-/*
+/* old code, before I made this a threaded solution
 ServDisc::ServDisc(wxString workFolderPath, wxString serviceStr)
 {
 	wxLogDebug(_T("\nInstantiating a ServDisc class, passing in workFolderPath %s and serviceStr: %s, ptr to instance = %p"),
@@ -79,15 +101,9 @@ ServDisc::ServDisc(wxString workFolderPath, wxString serviceStr)
 */
 ServDisc::~ServDisc()
 {
-	// OnIdle() handler will delete this top level class of ours, lower level ones will
-	// be deleted by passing up a halting event request to the parent class which will
-	// then delete the child (when the child has no handler still running)
 	wxLogDebug(_T("Deleting the ServDisc class instance by ~ServDisc() destructor"));
 }
 
-/* We are not an event handler, so we can't have this unless we use wxThreadHelper & mix with wxEvtHandler
-// Need a hack here, the this point gets clobbered and I don't know why, so store a copy
-// so it can be restored when we want to destroy the service discovery module
 void ServDisc::onServDiscHalting(wxCommandEvent& event)
 {
 	wxUnusedVar(event);
@@ -102,25 +118,40 @@ void ServDisc::onServDiscHalting(wxCommandEvent& event)
 		// this hack correctly restores the pointer value, if it has become 0xcdcdcdcd
 		// (which it regularly does, unfortunately)
 		m_pServiceDisc = m_backup_ThisPtr; 
-		wxLogDebug(_T("It was necessary to restore the CServiceDiscovery instance's this pointer, within onServDiscHalting()"));
+		wxLogDebug(_T("NEEDED to RESTORE the CServiceDiscovery instance's this pointer, within onServDiscHalting()"));
 	}
+	
+	// We can safely shutdown the CServiceDiscovery instance. It creates no heap blocks
+	// using new, so a simple delete is all we need here
+	delete m_pServiceDisc;
 
-	// BUT, it turns out we can't delete the child class now, because the onSDNotify() event has
-	// not yet completed - it has only got as far as just prior to computing the URL value
-	// which is to be stored in pFrame. So we've got to let that handler complete before
-	// we try delete this CServiceDiscovery class instance - do that in pFrame's OnIdle()
+	// Set the boolean TRUE which tells this thread it can destroy itself
+	m_bServDiscCanExit = TRUE;	
 }
-*/
+
 
 // Do our service discovery work here; we don't pause our thread, so we'll not use TestDestroy()
 void* ServDisc::Entry()
 {
+	m_pApp->m_servDiscResults.Clear(); // clear the array where we'll deposit results
+
+	// Commence the service discovery
 	CServiceDiscovery* m_pServiceDisc = new CServiceDiscovery(m_workFolderPath, m_serviceStr, this);
 	wxUnusedVar(m_pServiceDisc); // prevent compiler warning
-	
-	// Try a wait loop, up to 10 seconds, until the child class's m_bWxServDiscIsRunning goes FALSE
-	// (problem isn't here I think, wxServDisc is detecting the service, but won't do the right thing at mdnsd_in()
-	int mytimeout = 10000; // milliseconds
+
+	while (!TestDestroy())
+	{
+		wxMilliSleep(100); // check TestDestroy every 1/10 of a second
+	}
+
+/*
+	// Need a timeout loop, of 5 seconds, so that the return NULL statement will not be
+	// executed before the service discovery has sufficient time to get it's job done
+	// (which takes about 3 seconds for wxServDisc timeout to expire, or 1.5 seconds
+	// if a _kbserver._tcp.local. service is present waiting for discovery). We want
+	// a wxServDiscHALTING event to cause the app instance to deleted ServDisc, rather
+	// than it halt itself and leak memory
+	int mytimeout = 5000; // milliseconds
 	int mytime = mytimeout;
 	while (mytime >= 0)
 	{
@@ -128,42 +159,46 @@ void* ServDisc::Entry()
 		{
 			wxMilliSleep(200);
 			mytime -= 200;
-			wxLogDebug(_T("ServDisc::Entry: waiting for 10 seconds, mytime  %d  milliseconds"), mytime);
+			wxLogDebug(_T("ServDisc::Entry: waiting for 5 seconds, mytime  %d  milliseconds"), mytime);
 		}
 		else
 		{
 			break;
 		}
 	}
-	
-/*
-	if (IsRunning())
-	{
-		Wait(); // this crashes, it thinks my thread is not joinable
-	}
+
+	wxLogDebug(_T("ServDisc::Entry: timed out; returning (void*)NULL now. ****** We don't want to see this log message. We want app to delete ServDisc instance.******"));
 */
+	// Now post a wxServDiscHALTING event to the app instance, so it can shut down this
+	// ServDisc instance
+	{
+    wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
+    event.SetEventObject(this); // set sender
+
+    // BEW added this posting...  Send it
+#if wxVERSION_NUMBER < 2900
+    wxPostEvent(m_pApp, event);
+#else
+    wxQueueEvent(m_pApp, event.Clone());
+#endif
+	wxLogDebug(_T("BEW: ServDisc::Entry() m_bServDiscCanExit has gone TRUE, just posted wxServDiscHalting to m_pApp"));
+	}
+
+	wxLogDebug(_T("ServDisc::Entry() returning (void*)NULL  so ServDisc will delete itself now"));
 	return (void*)NULL;
 }
 
-// Probably a good place to do any cleanup, but we can't call Delete() from here, or we'll
-// crash the app. We may have to put bool m_bSDIsRunning set to FALSE, onto the app instance
-// and then rely on frame's OnIdle() to determine that thread Exit() is wanted -- nope, won't
-// work, as Exit() is a protected member of wxThread therefore I can only call it from ServDisc
-// hmmm, how to I get cleanup? I may have to use wxThreadHelper, mixing in wxEvtHandler --
-// let's try how things go before I make a decision on this issue...
+// We can't call Delete() from here, or we'll crash the app. We'll use the event handling
+// mechanism, with a wxServDiscHALTING event instead; and TestDestroy()
 void ServDisc::OnExit()
 {
-
+	wxLogDebug(_T("ServDisc::OnExit() called. (It has nothing to do though.)"));
 }
 
 
-// We won't use this our own, just rely on the internal test detecting STATE_CANCELED
-// and a Delete() call will do that
-//bool ServDisc::TestDestroy()
-//{
-//  return true;
-//}
-
-
+bool ServDisc::TestDestroy()
+{
+  return m_bServDiscCanExit == TRUE;
+}
 
 #endif // _KBSERVER

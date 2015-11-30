@@ -59,7 +59,7 @@ public:
 
 	wxServDisc* m_pSD; // main service scanner (a child class of this one)
 	ServDisc* m_pParent;
-	bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this set in onSDHalthing
+	bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this set in onSDHalting
 								 // informing CServiceDiscovery instance that we are done
 	// scratch variables, used in the loop in onSDNotify() handler
 	wxString m_hostname;
@@ -78,6 +78,7 @@ public:
 	// or if some other error,  :0:1:-1 or :0:0:-1
 	wxArrayString m_sd_lines;
 	wxArrayString m_urlsArr;
+    bool m_bOnSDNotifyEnded;
 
 	void wxItoa(int val, wxString& str); // copied from helpers.h & .cpp, it creates problems to #include "helpers.h"
 
@@ -95,7 +96,7 @@ protected:
 private:
 	DECLARE_EVENT_TABLE();
 
-    DECLARE_DYNAMIC_CLASS(CServiceDiscovery)
+    //DECLARE_DYNAMIC_CLASS(CServiceDiscovery)
 };
 
 #endif // SERVICEDISCOVERY_h

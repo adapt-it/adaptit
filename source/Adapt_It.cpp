@@ -269,7 +269,7 @@
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
 #ifdef _DEBUG
-//#include "vld.h"
+#include "vld.h"
 #endif
 #endif
 
@@ -5673,6 +5673,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 #if defined(_KBSERVER)
 	EVT_MENU(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnKBSharingManagerTabbedDlg) // always potentially needed
 	EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
+	EVT_COMMAND(wxID_ANY, wxServDiscHALTING, CAdapt_ItApp::onServDiscHalting)
+
 #endif
 	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
 
@@ -15256,45 +15258,74 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, wxSt
 {
 	wxString serviceStr = _T("_kbserver._tcp.local.");
 	wxString path = workFolderPath;
-	//path += PathSeparator + _T("ServDiscResults.txt"); <<--onSDNotify will do it
-/*
-		// Can't use PathSeparator here, as it would make CAdapt_ItApp includes visible
-		// to wxServDisc includes, leading to hundreds of name conflicts and
-		// redefinitions etc. So use conditional compile
-#ifdef WIN32
-		path += _T("\\");
-#else
-		path += _T("/");
-#endif
-		path += _T("ServDiscResults.txt");
-*/
+	// onSDNotify will use this path to append ServDiscResults.txt for where to store 
+	// the results (temporarily) of the service discovery, & further below we file them
+	// in and use them
+
 	chosenURL = _T(""); // initialize
 
+	// Assign to the app's member pointer, m_pServDisc; we can then pass this pointer in
+	// to the solution's classes, to access any of the classes to perform actions such as
+	// deletions, thread destruction, etc
+	
+	// I can't get wxTHREAD_JOINABLE to work. It says it's joinable when I test with IsDetached()
+	// but the m_isDetached value of the m_internal pointer is ALWAYS true, no matter what
+	// I try. So try deliberately making it detached
+	
+	// Ensure sequentiality for m_servDiscResults. Don't try to access the results before
+	// they have been created
+	s_SDResultsMutex.Lock(); // it will be .Unlocked() in ~ServDisc() the destructor
 
+	// Give it a go...
+	m_pServDisc = new ServDisc(wxTHREAD_DETACHED); // default is a self-destroying detached thread
 
-	ServDisc* pSDThread = new ServDisc(wxTHREAD_JOINABLE);
-	//wxUnusedVar(pSDThread);
 
 	// Set the input variables
-	pSDThread->m_workFolderPath = path; // location where we'll temporarily store a file of results
-	pSDThread->m_serviceStr = serviceStr; // service to be scanned for
-	bool     m_bSDIsRunning = TRUE;
+	m_pServDisc->m_workFolderPath = path; // location where we'll temporarily store a file of results
+	m_pServDisc->m_serviceStr = serviceStr; // service to be scanned for
+	m_pServDisc->m_pApp = this;
 
-	int rv = pSDThread->Create();
+	int rv = m_pServDisc->Create();
 
 	if (rv == wxTHREAD_NO_ERROR)
 	{
-		pSDThread->Run();
-
+		m_pServDisc->Run();
 	}
 	else
 	{
-		m_bSDIsRunning = FALSE;
+		s_SDResultsMutex.Unlock();
+		return FALSE;
 	}
+	s_SDResultsMutex.Unlock();
 
 
+	// Ensure sequentiality; don't try to access the contents of app's m_servDiscResults
+	// string array until the s_SDResultsMutext has been released above
+	s_SDResultsMutex.Lock(); // it has been locked above, and until ServDisc is destroyed
+			// and by then, if a _kbserver service was to be had, the results are 
+			// existing in app's m_servDiscResults wxArrayString, in form url:int:int:int
+			// and url may be an empty string, and the int's each -1 or 1 or 0
+	bool bResultsFileExists = FALSE;
+	wxString filePath = path + PathSeparator + _T("ServDiscResults.txt"); // in Adapt It Unicode Work folder
+	bResultsFileExists = wxFileExists(filePath);
+	if (!m_servDiscResults.IsEmpty())
+	{
+		// Some data was returned. Process its contents
+		wxLogDebug(_T("DoServiceDiscovery(): about to ACCESS the m_servDiscResults wxArrayString"));
+
+		// TODO -- ********* more logic etc to access the results and work out what ******
+		//         ********* to do with them,  including error states, etc          ******
+
+	}
+	s_SDResultsMutex.Unlock();
 
 	return TRUE;
+}
+
+void CAdapt_ItApp::onServDiscHalting(wxCommandEvent& WXUNUSED(event))
+{
+	m_pServDisc = NULL; 
+	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() called after detached ServDisc thread has died"));
 }
 
 
@@ -15430,7 +15461,6 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 	return TRUE;
 }
 */
-
 
 #endif // for _KBSERVER
 //*/
@@ -21847,7 +21877,14 @@ int ii = 1;
 
 	// Run Service Discovery...  <<-- a temporary location, later move it to KB sharing setup code
 #if defined(_KBSERVER)
+	// Leave the following initialization line here...
+	m_pServDisc = NULL;
 
+	// The following can be moved elsewhere. DoServiceDiscovery() internally creates
+	// an instantiation of the ServDisc event-handling & wxThread multiply defined
+	// class, on the heap, and assigns it to the app's m_pServDisc pointer. That pointer
+	// is non-NULL while the service discovery runs, but when it is shut down, that
+	// pointer needs to again be set to NULL.
 	wxString curURL = m_strKbServerURL;
 	wxString chosenURL = _T("");
 	bool bOK = DoServiceDiscovery(m_strKbServerURL, chosenURL, m_workFolderPath);
@@ -21943,10 +21980,11 @@ int CAdapt_ItApp::OnExit(void)
     // application class destructor!"
     // 
 #if defined(_KBSERVER)
-	if (m_pServDisc != NULL)
-	{
-		delete m_pServDisc;
-	}
+//	if (m_pServDisc != NULL)
+//	{
+	//		delete m_pServDisc; <<-- crashes app, even though innards are freed, for
+	//		detachable without code for cleanup done
+//	}
 #endif
 
 

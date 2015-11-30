@@ -79,11 +79,11 @@ typedef int SOCKET;       // under windows, SOCKET is unsigned
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscNOTIFY, -1);
 DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
-DECLARE_EVENT_TYPE(serviceDiscoveryHALTING, -1);
+//DECLARE_EVENT_TYPE(serviceDiscoveryHALTING, -1);
 #else
 wxDECLARE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
 wxDECLARE_EVENT(wxServDiscHALTING, wxCommandEvent);
-wxDECLARE_EVENT(serviceDiscoveryHALTING, wxCommandEvent);
+//wxDECLARE_EVENT(serviceDiscoveryHALTING, wxCommandEvent);
 #endif
 
 // resource name with ip addr and port number
