@@ -115,9 +115,12 @@ CServiceDiscovery::CServiceDiscovery(wxString workFolderPath, wxString servicest
 	m_addr = _T("");
 	m_port = _T("");
 
-	// initialize our flag which helps this process and the wxServDisc child process,
+	// Initialize our flag which helps this process and the wxServDisc child process,
 	// to work out when to initiate the posting of wxServDiscHALTING to get cleanup done
     m_bOnSDNotifyEnded = FALSE;
+	// Also need this one, because we must exit from onSDHalting() early only when
+	// onSDNotify() has started, but not yet ended
+	m_bOnSDNotifyStarted = FALSE;
 
 	// Initialize my reporting context (Use .Clear() rather than
 	// .Empty() because from one run to another we don't know if the
@@ -168,6 +171,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 	if (event.GetEventObject() == m_pSD)
 	{
 		m_bOnSDNotifyEnded = FALSE;
+		m_bOnSDNotifyStarted = TRUE;
 
 		m_hostname.Empty();
 		m_addr.Empty();
@@ -392,8 +396,14 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	// it's almost certain that the onSDNotify() handler has not yet finished its
 	// work (it's on a different thread to that of wxServDisc), and so we check
 	// the flag m_bOnSDNotifyEnded. It the latter is not yet TRUE, then we must allow
-	// onSDNotify() to complete before we initiate module shutdown, so test here
-	if (!m_bOnSDNotifyEnded)
+	// onSDNotify() to complete before we initiate module shutdown, so test here.
+	// If there was no running KBserver's service to discover, then of course 
+	// onSDNotify() would not get called - in that circumstance we DON'T want to
+	// exit onSDHalting() here early, as there will not be any other wxServDiscHALTING
+	// event posted, and without the test of m_bOnSDNotifyStarted the posting of
+	// subsequent HALTING events would not happen, and a lot of memory would leak at
+	// app shutdown
+	if (m_bOnSDNotifyStarted && !m_bOnSDNotifyEnded)
 	{
 		// Return without doing anything here. onSDNotify() will, after it sets the
 		// flag true, post another wxServDiscHALTING event to its class instance,

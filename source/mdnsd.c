@@ -462,21 +462,34 @@ void mdnsd_shutdown(mdnsd d)
         }
     d->shutdown = 1;
 }
-/* BEW removed, this function is never called
-void mdnsd_flush(mdnsd d)
-{
-    // set all querys to 0 tries
-    // free whole cache
-    // set all mdnsdr to probing
-    // reset all answer lists
-}
-*/
 void mdnsd_free(mdnsd d)
 {
 	//int i; BEW removed, this variable is not used
+	
+	// BEW addition - to free the heap blocks that Beier's incomplete cleanup
+	// code in mdnsd_shutdown() ignored
+	if (d->shutdown == 1)
+	{
+		// Shutdown is wanted
+	
+		// First, handle the query and its heap objects (the name member is the only
+		// one we need worry about). The query is pointed at by the d->qlist member
+		free(d->qlist->name);
+		// Now free the memory occupied by the query struct
+		free(d->qlist);
+
+
+
+
+
+	}
+	// The only line of the original version of this function follows (note, it
+	// leaves query struct, and its heap objects, and everyy cached struct instance
+	// generated in the mdnsd_in() function unfreed as well. So they got leaked.
+	// My code above is added in order
+	// to get that stuff freed before d itself is freed
     free(d);
 }
-
 void mdnsd_in(mdnsd d, struct message *m, unsigned long int ip, unsigned short int port) // BEW added cast (char*) & (const char*)
 {
     int i, j;
@@ -523,6 +536,16 @@ void mdnsd_in(mdnsd d, struct message *m, unsigned long int ip, unsigned short i
         _cache(d,&m->an[i]);
     }
 }
+
+/* BEW removed, this function is never called
+void mdnsd_flush(mdnsd d)
+{
+    // set all querys to 0 tries
+    // free whole cache
+    // set all mdnsdr to probing
+    // reset all answer lists
+}
+*/
 
 int mdnsd_out(mdnsd d, struct message *m, unsigned long int *ip, unsigned short int *port) 
 // BEW added casts (unsigned short) & (unsigned long) & some others too
@@ -744,7 +767,7 @@ void mdnsd_query(mdnsd d, char *host, int type, int (*answer)(mdnsda a, void *ar
         while((cur = _c_next(d,cur,q->name,q->type)) != 0)
             cur->q = q; // any cached entries should be associated
         _q_reset(d,q);
-        q->nexttry = d->checkqlist = d->now.tv_sec; // new questin, immediately send out
+        q->nexttry = d->checkqlist = d->now.tv_sec; // new question, immediately send out
     }
     if(!answer)
     { // no answer means we don't care anymore

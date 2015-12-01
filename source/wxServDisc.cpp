@@ -159,6 +159,17 @@ wxThread::ExitCode wxServDisc::Entry()
       long msecs = tv->tv_sec == 0 ? 100 : tv->tv_sec*1000; // so that the while loop beneath gets executed once
       wxLogDebug(wxT("wxServDisc %p: scanthread waiting for data, timeout %i seconds"), this, (int)tv->tv_sec);
 
+	  // BEW addition. If there is no KBserver multicasting, this loop behaves poorly.
+	  // It does a few quick iterations, and then suddenly msecs jumps to 86221000 microsecs,
+	  // and so it's timeout loop runs for a minute and a half (maybe, but it times out
+	  // and does not enter the after-loop cleanup code where my HALTING event gets posted,
+	  // so here I'll do a hack. If msecs goes > 86000000, the break from the outer loop.
+	  if (msecs > 86000000)
+	  {
+		break;  // clean up and shut down the module
+	  }
+	  // end BEW addition
+	  
 	  // we split the one select() call into several ones every 100ms
       // to be able to catch TestDestroy()...
       int datatoread = 0;
@@ -214,6 +225,18 @@ wxThread::ExitCode wxServDisc::Entry()
 
   if(mSock != INVALID_SOCKET)
     closesocket(mSock);
+
+  // BEW: Post a custom serviceDiscoveryHALTING event here, for the parent class to
+  // supply the handler needed for destroying this CServiceDiscovery instance
+  wxCommandEvent upevent(wxServDiscHALTING, wxID_ANY);
+  upevent.SetEventObject(this); // set sender
+
+#if wxVERSION_NUMBER < 2900
+  wxPostEvent((wxEvtHandler*)parent, upevent);
+#else
+  wxQueueEvent((wxEvtHandler*)parent, upevent.Clone());
+#endif
+  wxLogDebug(_T("from wxServDisc after timeout of Entry()'s loop, no KBserver running, so posting wxServDiscHALTING event")); 
 
   wxLogDebug(wxT("wxServDisc %p: scanthread exiting, after loop has ended, now at end of Entry(), returning NULL"), this);
 

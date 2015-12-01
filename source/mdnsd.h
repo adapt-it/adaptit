@@ -13,13 +13,6 @@ extern "C"
 #include <arpa/inet.h>
 #endif
 
-//#ifndef _WIN32
-//struct timeval {
-//        long    tv_sec;         /* seconds */
-//        long    tv_usec;        /* and microseconds */
-//};
-//#endif
-
 #ifdef WIN32
 #define _WINSOCK_DEPRECATED_NO_WARNINGS   /* allow the old inet_addr() call at lien 521 of mdnsd.c */
 

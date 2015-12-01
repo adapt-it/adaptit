@@ -79,6 +79,7 @@ public:
 	wxArrayString m_sd_lines;
 	wxArrayString m_urlsArr;
     bool m_bOnSDNotifyEnded;
+	bool m_bOnSDNotifyStarted;
 
 	void wxItoa(int val, wxString& str); // copied from helpers.h & .cpp, it creates problems to #include "helpers.h"
 
