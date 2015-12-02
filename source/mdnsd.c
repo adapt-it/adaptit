@@ -92,13 +92,6 @@ struct unicast
     struct unicast *next;
 };
 
-struct cached
-{
-    struct mdnsda_struct rr;
-    struct query *q;
-    struct cached *next;
-};
-
 struct mdnsdr_struct
 {
     struct mdnsda_struct rr;
@@ -184,7 +177,7 @@ int _a_match(struct resource *r, mdnsda a) // BEW added cast (const char*)
 	if (r->type == QTYPE_SRV && !strcmp((const char*)r->known.srv.name, (const char*)a->rdname) &&
 		a->srv.port == r->known.srv.port && a->srv.weight == r->known.srv.weight &&
 		a->srv.priority == r->known.srv.priority) return 1;
-	if ((r->type == QTYPE_PTR || r->type == QTYPE_NS || r->type == QTYPE_CNAME) && 
+	if ((r->type == QTYPE_PTR || r->type == QTYPE_NS || r->type == QTYPE_CNAME) &&
 		!strcmp((const char*)a->rdname, (const char*)r->known.ns.name)) return 1;
     if(r->rdlength == a->rdlen && !memcmp(r->rdata,a->rdata,r->rdlength)) return 1;
     return 0;
@@ -338,7 +331,7 @@ void _c_expire(mdnsd d, struct cached **list) // BEW added cast (unsigned long)
 }
 
 // BEW added 2Dec15
-void my_c_expire(struct cached **list) 
+void my_c_expire(struct cached **list)
 { // expire any old entries in this list
     struct cached *next, *cur = *list;
     while(cur != 0)
@@ -388,7 +381,7 @@ void _cache(mdnsd d, struct resource *r) // BEW added cast (const char*) & (char
         while((c = _c_next(d,c,(char*)r->name,r->type)) != 0) c->rr.ttl = 0;
         _c_expire(d,&d->cache[i]);
     }
-    
+
     if(r->ttl == 0)
     { // process deletes
 		// BEW changed while(c = _c_next(d,c,(char*)r->name,r->type)) to make explicit test for not null
@@ -496,13 +489,13 @@ void mdnsd_shutdown(mdnsd d)
 void mdnsd_free(mdnsd d)
 {
 	//int i; BEW removed, this variable is not used
-	
+
 	// BEW addition - to free the heap blocks that Beier's incomplete cleanup
 	// code in mdnsd_shutdown() ignored
 	if (d->shutdown == 1)
 	{
 		// Shutdown is wanted
-	
+
 		// First, handle the query and its heap objects (the name member is the only
 		// one we need worry about). The query is pointed at by the d->qlist member
 		free(d->qlist->name);
@@ -578,7 +571,7 @@ void mdnsd_flush(mdnsd d)
 }
 */
 
-int mdnsd_out(mdnsd d, struct message *m, unsigned long int *ip, unsigned short int *port) 
+int mdnsd_out(mdnsd d, struct message *m, unsigned long int *ip, unsigned short int *port)
 // BEW added casts (unsigned short) & (unsigned long) & some others too
 {
     mdnsdr r;
@@ -592,7 +585,7 @@ int mdnsd_out(mdnsd d, struct message *m, unsigned long int *ip, unsigned short 
     *ip = inet_addr("224.0.0.251");
     m->header.qr = 1;
     m->header.aa = 1;
-    
+
     if(d->uanswers) // BEW u struct has int id; but port expects unsigned short*, the old code runs
 					// okay so I'm presuming it will be safe to cast u->id to unsigned short,
 					// and likewise d->class
@@ -721,7 +714,7 @@ int mdnsd_out(mdnsd d, struct message *m, unsigned long int *ip, unsigned short 
                 nextbest = q->nexttry;
             // if room, add all known good entries
             c = 0;
-			while ((c = _c_next(d, c, q->name, q->type)) != 0 && 
+			while ((c = _c_next(d, c, q->name, q->type)) != 0 &&
 				c->rr.ttl > (unsigned long)d->now.tv_sec + 8 && message_packet_len(m) + _rr_len(&c->rr) < d->frame)
             {
                 message_an(m,(unsigned char*)q->name,(unsigned short)q->type,(unsigned short)d->class,c->rr.ttl - d->now.tv_sec);
@@ -748,7 +741,7 @@ struct timeval *mdnsd_sleep(mdnsd d)
     if(d->uanswers || d->a_now) return &d->sleep;
 
     gettimeofday(&d->now,0);
-    
+
     if(d->a_pause)
     { // then check for paused answers
         if((usec = _tvdiff(d->now,d->pause)) > 0) d->sleep.tv_usec = usec;
