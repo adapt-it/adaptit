@@ -164,7 +164,13 @@ wxThread::ExitCode wxServDisc::Entry()
 	  // and so it's timeout loop runs for a minute and a half (maybe, but it times out
 	  // and does not enter the after-loop cleanup code where my HALTING event gets posted,
 	  // so here I'll do a hack. If msecs goes > 86000000, the break from the outer loop.
-	  if (msecs > 86000000)
+	  if (msecs > 4000000) // it goes (when nothing discovered) to 86400000, but if I delay
+							// when debugging, or if takes a while, msecs > 860000000 may
+							// be false and then the break doesn't happen, another wxServDisc
+							// gets created and p passed in is NULL, and so the wxPostEvent
+							// below post to dest = NULL, which gives wxASSERT error. So,
+							// use a smaller limit which msecs when it goes large is likely
+							// to be much bigger than. Try 4,000,000 (4 secs)
 	  {
 		break;  // clean up and shut down the module
 	  }
@@ -226,18 +232,30 @@ wxThread::ExitCode wxServDisc::Entry()
   if(mSock != INVALID_SOCKET)
     closesocket(mSock);
 
-  // BEW: Post a custom serviceDiscoveryHALTING event here, for the parent class to
-  // supply the handler needed for destroying this CServiceDiscovery instance
-  wxCommandEvent upevent(wxServDiscHALTING, wxID_ANY);
-  upevent.SetEventObject(this); // set sender
+  // Skip the posting of the halting event if onSDNotify() has been called, because
+  // that will initiate the cleanup and shutdown, and if Entry() then tried to do it
+  // here, the posting would be to a NULL pointer, and the app crash. So we must skip
+  // in that case
+  wxLogDebug(_T("wxServDisc::Entry(): m_bSdNotifyStarted is %s "),
+	  m_bSdNotifyStarted ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str()); // interested in the time this log is displayed
 
-#if wxVERSION_NUMBER < 2900
-  wxPostEvent((wxEvtHandler*)parent, upevent);
-#else
-  wxQueueEvent((wxEvtHandler*)parent, upevent.Clone());
-#endif
-  wxLogDebug(_T("from wxServDisc after timeout of Entry()'s loop, no KBserver running, so posting wxServDiscHALTING event")); 
+  if (!m_bSdNotifyStarted)
+  {
+	  // No KBserver was discovered, so onSDNotify() will not have been called, so
+	  // we need to initiate the cleanup of the owning classes from here
+	  
+	  // BEW: Post a custom serviceDiscoveryHALTING event here, for the parent class to
+	  // supply the handler needed for destroying this CServiceDiscovery instance
+	  wxCommandEvent upevent(wxServDiscHALTING, wxID_ANY);
+	  upevent.SetEventObject(this); // set sender
 
+	#if wxVERSION_NUMBER < 2900
+	  wxPostEvent((CServiceDiscovery*)parent, upevent);
+	#else
+	  wxQueueEvent((CServiceDiscovery*)parent, upevent.Clone());
+	#endif
+	  wxLogDebug(_T("from wxServDisc after timeout of Entry()'s loop, no KBserver running, so posting wxServDiscHALTING event")); 
+  }
   wxLogDebug(wxT("wxServDisc %p: scanthread exiting, after loop has ended, now at end of Entry(), returning NULL"), this);
 
   return NULL;
@@ -536,6 +554,8 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
   // save our caller
   parent = p;
 
+  m_bSdNotifyStarted = FALSE; // Only onSDNotify() sets it to TRUE
+
   // save query
   query = what;
   querytype = type;
@@ -587,16 +607,13 @@ size_t wxServDisc::getResultCount() const
 
 void wxServDisc::post_notify()
 {
-#if defined(_EMBED_HANDLER)
-	CServiceDiscovery* pParent = (CServiceDiscovery*)parent;
-	if (pParent)
-	{
-		wxCommandEvent event = wxServDiscNOTIFY;
-		pParent->onSDNotify(event);
+	// Tell the running wxServDisc thread that onSDNotify() was invoked, so that
+	// wxServDisc won't itself send a halting event to the CServiceDiscovery instance
+	// after the latter's  pointer to it has become NULL
+	m_bSdNotifyStarted = TRUE;
+	wxLogDebug(_T("m_pSD->m_bSdNotifyStarted SET to TRUE")); // interested in the time this log is displayed
 
-	}
-#else
-  // The original way
+  // Beier's code follows
   if(parent)
     {
  	  wxLogDebug(_T("post_notify():  posting event")); // BEW added this call
@@ -607,11 +624,10 @@ void wxServDisc::post_notify()
 
       // Send it
 	#if wxVERSION_NUMBER < 2900
-		  wxPostEvent((wxEvtHandler*)parent, event);
+		  wxPostEvent((CServiceDiscovery*)parent, event);
 	#else
-		  wxQueueEvent((wxEvtHandler*)parent, event.Clone());
+		  wxQueueEvent((CServiceDiscovery*)parent, event.Clone());
 	#endif
   }
-#endif
 }
 

@@ -56,8 +56,8 @@ public:
 	CAdapt_ItApp* m_pApp;
 	CServiceDiscovery* m_pServiceDisc;
 	CServiceDiscovery* m_backup_ThisPtr; // m_pServiceDisc gets reset to 0xcdcdcdcd before
-		// it can be deleted, so I'll store a copy here, and use ithat the pointer in the
-		// onServDiscHalting() handler when I want to get m_pServiceDisc deleted
+		// it can be deleted, so I'll store a copy here, and use it to restore the pointer
+		// in the onServDiscHalting() handler when I want to get m_pServiceDisc deleted
 
 	// for support of subclassing from wxThread...
 	// wxThread::OnExit() is called when the thread exits at termination - for self

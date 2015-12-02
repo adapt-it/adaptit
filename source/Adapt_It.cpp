@@ -15298,6 +15298,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, wxSt
 	}
 	s_SDResultsMutex.Unlock();
 
+	serviceStr.Clear(); // so we don't leak its memory
 
 	// Ensure sequentiality; don't try to access the contents of app's m_servDiscResults
 	// string array until the s_SDResultsMutext has been released above

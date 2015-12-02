@@ -73,6 +73,9 @@ typedef int SOCKET;       // under windows, SOCKET is unsigned
 #include "1035.h"
 #include "mdnsd.h"
 
+// Forward declaration
+//class CServiceDiscovery;
+#include "ServiceDiscovery.h"
 
 // make available custom notify event if getResults() would yield something new
 
@@ -102,7 +105,7 @@ class wxServDisc: public wxObject, public wxThreadHelper
 {
 public:
   // type can be one of QTYPE_A, QTYPE_NS, QTYPE_CNAME, QTYPE_PTR or QTYPE_SRV 
-  wxServDisc(void* parent, const wxString& what, int type);
+  wxServDisc(void* p, const wxString& what, int type);
   ~wxServDisc();
  
   /// Returns true if service discovery successfully started. If not, getErr() may contain a hint.
@@ -124,8 +127,28 @@ public:
   // onSDNotify finishes. Then, in the shutdown code in Entry(), we have a waiting loop which
   // waits for a short interval and checks for the 2nd boolean TRUE, then it will know that
   // module completion and leak elimination can happen, safely we hope... let's see...
-  bool m_bOnSDNotifyStarted;
-  bool m_bOnSDNotifyEnded;
+  // 
+  // Beier, in ~wxServDisc() destructor, has GetThread()->Delete(). But his thread is not
+  // a joinable one, it's detached, and as far as I can determine, and despite the wx
+  // documentation saying otherwise, Delete() doesn't stop the wxServDisc's thread from
+  // running and so it goes on until timeout happens and then cleanup. Because of this,
+  // it can be running long after everything else has done their job and been cleaned up,
+  // so it must not rely on classes above it being in existence when it nears its end.
+  // The following flag is defaulted to FALSE, and if a KBserver is found, it is handled
+  // by the calling CServiceDiscovery::onSDNotify() handler, and at the end of the latter
+  // a wxServDiscHALTING event is posted to shut everything down; but wxServDisc::Entry()
+  // has it's own code for posting that event to CServiceDiscovery instance. If the latter
+  // has already been destroyed because onSDNotify has completed, and wxServDisc's thread
+  // runs on for a while, when it gets to its wxPostEvent() call, the CServiceDiscovery
+  // instances pointer has become null, and so there is an app crash(accessing null ptr).
+  // To prevent this, we have onSDNotify(), when it starts to run, set to TRUE the
+  // following boolean, and in wxServDisc::Entry() we use that TRUE value to cause the
+  // posting of the wxServDiscHALTING event to be skipped; we just let cleanup happen and
+  // the thread then destroys itself. wxServDisc::Entry() needs to retain the event posting
+  // code, because when no KBserver is running on the LAN, then the only place the event
+  // posting that gets the calling classes cleaned up is at the end of wxServDisc::Entry()
+  bool m_bSdNotifyStarted;
+
 
 private:
   SOCKET mSock;

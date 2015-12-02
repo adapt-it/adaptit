@@ -427,6 +427,7 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	// the handler to get the deletion of this class done.
 	m_pParent->m_backup_ThisPtr = this;
 
+
 	delete m_pSD; // must have this, it gets ~wxServDisc() destructor called
 
 	// Check if the above deletion is the culprit for the loss of the this ptr value;
@@ -451,9 +452,9 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	upevent.SetEventObject(this); // set sender
 
 #if wxVERSION_NUMBER < 2900
-	wxPostEvent((wxEvtHandler*)m_pParent, upevent);
+	wxPostEvent((ServDisc*)m_pParent, upevent);
 #else
-	wxQueueEvent((wxEvtHandler*)m_pParent, upevent.Clone());
+	wxQueueEvent((ServDisc*)m_pParent, upevent.Clone());
 #endif
 	wxLogDebug(_T("[ from CServiceDiscovery:onSDHalting() ] AFTER posting wxServDiscHALTING event, this = %p, m_pParent = %p"), 
 			this, m_pParent);
