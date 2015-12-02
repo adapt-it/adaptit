@@ -120,7 +120,12 @@ void mdnsd_set_raw(mdnsd d, mdnsdr r, char *data, int len);
 void mdnsd_set_host(mdnsd d, mdnsdr r, char *name);
 void mdnsd_set_ip(mdnsd d, mdnsdr r, unsigned long int ip);
 void mdnsd_set_srv(mdnsd d, mdnsdr r, int priority, int weight, int port, char *name);
-//
+void _gc(mdnsd d);
+
+// BEW 2Dec15 added these cache deletion functions
+void my_c_expire(struct cached **list);
+void my_gc(mdnsd d); // roll my own
+
 ///////////
 
 

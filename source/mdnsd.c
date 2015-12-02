@@ -337,12 +337,43 @@ void _c_expire(mdnsd d, struct cached **list) // BEW added cast (unsigned long)
     }
 }
 
+// BEW added 2Dec15
+void my_c_expire(struct cached **list) 
+{ // expire any old entries in this list
+    struct cached *next, *cur = *list;
+    while(cur != 0)
+    {
+        next = cur->next;
+        free(cur->rr.name);
+        free(cur->rr.rdata);
+        free(cur->rr.rdname);
+        free(cur);
+         cur = next;
+    }
+}
+
+// BEW added 2Dec15
+void my_gc(mdnsd d)
+{
+    int i;
+    for(i=0;i<LPRIME;i++)
+	{
+        if(d->cache[i])
+		{
+			my_c_expire(&d->cache[i]);
+		}
+	}
+}
+
 // brute force expire any old cached records
 void _gc(mdnsd d)
 {
     int i;
     for(i=0;i<LPRIME;i++)
-        if(d->cache[i]) _c_expire(d,&d->cache[i]);
+        if(d->cache[i])
+		{
+			_c_expire(d,&d->cache[i]);
+		}
     d->expireall = d->now.tv_sec + GC;
 }
 

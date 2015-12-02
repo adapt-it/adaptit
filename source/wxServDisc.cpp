@@ -90,6 +90,7 @@
 #include "wxServDisc.h"
 #include "ServDisc.h"
 #include "ServiceDiscovery.h"
+//#include "mdnsd.h"
 
 // Compatability defines
 #ifdef __APPLE__
@@ -134,7 +135,7 @@ wxThread::ExitCode wxServDisc::Entry()
 
   mWallClock.Start();
 
-  d = mdnsd_new(1,1000);
+  d = mdnsd_new(1,1000); // class is 1, frame is 1000
 
   // register query(w,t) at mdnsd d, submit our address for callback ans()
   mdnsd_query(d, query.char_str(), querytype, ans, this);
@@ -226,6 +227,14 @@ wxThread::ExitCode wxServDisc::Entry()
 	wxLogDebug(_T("BEW  outer loop iteration:  %d"), BEWcount);
     } // end of outer loop
 
+
+  // BEW 2Dec15 added cache freeing (d's shutdown is not yet 1, but it doesn't test for it
+  // so do this first, as shutdown will be set to 1 in mdnsd_shutdown(d) immediately after
+  my_gc(d); // is based on Beier's _gd(d), but removing every instance 
+            // of the cached struct regardless in the cache array (it's a sparse array
+            // because he puts structs in it by a hashed index)
+
+  // Beier's two cleanup functions (they ignore cached structs)
   mdnsd_shutdown(d);
   mdnsd_free(d);
 
@@ -237,7 +246,7 @@ wxThread::ExitCode wxServDisc::Entry()
   // here, the posting would be to a NULL pointer, and the app crash. So we must skip
   // in that case
   wxLogDebug(_T("wxServDisc::Entry(): m_bSdNotifyStarted is %s "),
-	  m_bSdNotifyStarted ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str()); // interested in the time this log is displayed
+	  m_bSdNotifyStarted ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
 
   if (!m_bSdNotifyStarted)
   {
