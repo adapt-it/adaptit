@@ -25,6 +25,8 @@
 #ifndef WXSERVDISC_H
 #define WXSERVDISC_H
 
+#if defined(_KBSERVER) // whm 2Dec2015 added otherwise build breaks in Linux when _KBSERVER is not defined
+
 //namespace std {}
 //using namespace std;
 
@@ -173,6 +175,8 @@ WX_DECLARE_STRING_HASH_MAP(wxSDEntry, wxSDMap);
 
   void post_notify();
 };
+
+#endif // _KBSERVER // whm 2Dec2015 added otherwise Linux build breaks when _KBSERVER is not defined
 
 #endif // WXSERVDISC_H
 

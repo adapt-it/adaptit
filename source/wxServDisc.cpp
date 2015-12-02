@@ -68,6 +68,8 @@
 #endif
 
 
+#if defined(_KBSERVER) // whm 2Dec2015 added otherwise build breaks in Linux when _KBSERVER is not defined
+
 #include "wx/object.h"
 #include "wx/thread.h"
 #include "wx/intl.h"
@@ -639,4 +641,6 @@ void wxServDisc::post_notify()
 	#endif
   }
 }
+
+#endif // _KBSERVER // whm 2Dec2015 added otherwise Linux build breaks when _KBSERVER is not defined
 
