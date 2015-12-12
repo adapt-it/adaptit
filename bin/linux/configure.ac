@@ -7,6 +7,9 @@ AC_PROG_INSTALL
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 
+# Define _KBSERVER for all builds - whm added 11Dec2015
+AC_DEFINE(_KBSERVER)
+
 # Debug builds pass --debug to wx-config and define _DEBUG
 AC_ARG_ENABLE([debug],
             [AS_HELP_STRING([--enable-debug],
@@ -19,8 +22,8 @@ AS_IF([test "x$enable_debug" != xno],
     [AC_SUBST([WXDEBUG], ["--debug"])
      AC_DEFINE([_DEBUG], [1],
                [Define for debug builds])
-     AC_DEFINE([_KBSERVER], [1],
-               [Define for KBServer builds])
+#     AC_DEFINE([_KBSERVER], [1],
+#               [Define for KBServer builds])
     ])
 
 CPPFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -Wno-unused-local-typedefs -Wno-sizeof-pointer-memaccess -g -fexceptions"

@@ -14945,6 +14945,10 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+# Define _KBSERVER for all builds - whm added 11Dec2015
+$as_echo "#define _KBSERVER 1" >>confdefs.h
+
+
 # Debug builds pass --debug to wx-config and define _DEBUG
 # Check whether --enable-debug was given.
 if test "${enable_debug+set}" = set; then :
@@ -14961,9 +14965,8 @@ if test "x$enable_debug" != xno; then :
 
 $as_echo "#define _DEBUG 1" >>confdefs.h
 
-
-$as_echo "#define _KBSERVER 1" >>confdefs.h
-
+#     AC_DEFINE([_KBSERVER], [1],
+#               [Define for KBServer builds])
 
 fi
 
