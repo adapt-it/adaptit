@@ -21820,7 +21820,7 @@ int ii = 1;
 	wxLog::SetActiveTarget(m_pLogWindow);
 #endif
 */
-
+/*
 #if defined(_KBSERVER)
     // append a menu separator and then a "Setup Knowledge Base Sharing..." menu item to
     // the Advanced menu in the _Debug build
@@ -21838,6 +21838,7 @@ int ii = 1;
 
 	// DONT FORGET UPDATE HANDLERS!
 #endif
+*/
 
 /* test that GetWholeMarker() and IsMarker() and ParseMarker() work right for \f* followed by a closing double quote (they do)
 	wxString sss;

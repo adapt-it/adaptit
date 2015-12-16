@@ -11224,6 +11224,9 @@ wxMenuBar *AIMenuBarFunc()
     item6->AppendSeparator();
     item6->Append( ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, _("Send Synchronized Scrolling Messages"), _("Select this item to cause applications such as Paratext and TW to automatically scroll to the same location"), wxITEM_CHECK );
     item6->Append( ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, _("Receive Synchronized Scrolling Messages"), _("Select this item to cause Adapt It to scroll to the same location being displayed in other applications such as Paratext and TW"), wxITEM_CHECK );
+    item6->AppendSeparator();
+    item6->Append( ID_MENU_SHOW_KBSERVER_SETUP_DLG, _("Setup Or Remove Knowledge Base Sharing..."), wxT("") );
+    item6->Append( ID_MENU_SHOW_KBSERVER_DLG, _("Controls For Knowledge Base Sharing..."), wxT("") );
     item0->Append( item6, _("&Advanced") );
     
     wxMenu* item7 = new wxMenu;
