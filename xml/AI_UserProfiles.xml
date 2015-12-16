@@ -1494,6 +1494,60 @@ Description:	This file contains the user profile definitions and
 		>
 		</PROFILE>
 </MENU>
+<MENU itemID="ID_MENU_SHOW_KBSERVER_SETUP_DLG"
+	itemType="subMenu"
+	itemText="Setup Or Remove Knowledge Base Sharing..."
+	itemDescr="Advanced menu"
+	adminCanChange="1"
+	>
+		<PROFILE userProfile="Novice"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Experienced"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Skilled"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+</MENU>
+<MENU itemID="ID_MENU_SHOW_KBSERVER_DLG"
+	itemType="subMenu"
+	itemText="Controls For Knowledge Base Sharing..."
+	itemDescr="Advanced menu"
+	adminCanChange="1"
+	>
+		<PROFILE userProfile="Novice"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Experienced"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Skilled"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+</MENU>
 <MENU itemID="ID_ALIGNMENT"
 	itemType="subMenu"
 	itemText="Layout Window Right To Left\tCtrl-1"
