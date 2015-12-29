@@ -15316,7 +15316,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, wxSt
 		s_SDResultsMutex.Unlock();
 		return FALSE;
 	}
-	s_SDResultsMutex.Unlock();
+	//s_SDResultsMutex.Unlock(); BEW moved it to CAdapt_ItApp::onServDiscHALTING() on 29Dec15
 
 	serviceStr.Clear(); // so we don't leak its memory
 
@@ -15326,9 +15326,12 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, wxSt
 			// and by then, if a _kbserver service was to be had, the results are 
 			// existing in app's m_servDiscResults wxArrayString, in form url:int:int:int
 			// and url may be an empty string, and the int's each -1 or 1 or 0
-	bool bResultsFileExists = FALSE;
-	wxString filePath = path + PathSeparator + _T("ServDiscResults.txt"); // in Adapt It Unicode Work folder
-	bResultsFileExists = wxFileExists(filePath);
+	//bool bResultsFileExists = FALSE;
+	//wxString filePath = path + PathSeparator + _T("ServDiscResults.txt"); // in Adapt It Unicode Work folder
+	//bResultsFileExists = wxFileExists(filePath);
+
+	wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() About to access the m_servDiscResults string array"));
+
 	if (!m_servDiscResults.IsEmpty())
 	{
 		// Some data was returned. Process its contents
@@ -15346,7 +15349,11 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, wxSt
 void CAdapt_ItApp::onServDiscHalting(wxCommandEvent& WXUNUSED(event))
 {
 	m_pServDisc = NULL; 
-	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() called after detached ServDisc thread has died"));
+	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() called after detached ServDisc thread has died. Unlock() s_SDResultsMutex here"));
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	s_SDResultsMutex.Unlock(); // until this is called, the second part of the DoServiceDiscovery() 
+							   // function which attempts to grab the returned KBserver
+							   // result, is blocked
 }
 
 

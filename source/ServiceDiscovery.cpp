@@ -263,7 +263,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 				// For each successful namescan(), we must do an addrscan, so as to fill
 				// out the full info needed for constructing a URL; if the namescan was
 				// not successful, the m_bArr_IPaddrLookupFailed entry for this index
-				// should be neither true (1) or false (0), so use -1 for "no test was made"
+				// should be neither true (1) nor false (0), so use -1 for "no test was made"
 				{
 					wxServDisc addrscan(0, m_hostname, QTYPE_A);
 
