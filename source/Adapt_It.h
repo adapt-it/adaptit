@@ -2040,7 +2040,7 @@ class CAdapt_ItApp : public wxApp
 	// It will happen only after a boolean flag goes TRUE; the flag is the following
 	bool	m_bKbServerIncrementalDownloadPending;
 
-	// Storage for the download intervals (in minutes; but for use with the
+	// Periodicity for the new entry downloads (in minutes; but for use with the
 	// timer, multiply by 1000*60 since the timer's units are milliseconds)
 	int		m_nKbServerIncrementalDownloadInterval;
 

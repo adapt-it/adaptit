@@ -1382,10 +1382,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\KBSharingSetupDlg.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\KBSharingStatelessSetupDlg.h"
 				>
 			</File>

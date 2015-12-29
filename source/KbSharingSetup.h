@@ -6,7 +6,7 @@
 /// \rcs_id $Id: KbSharingSetup.h 3028 2013-01-15 11:38:00Z bruce_waters@sil.org $
 /// \copyright		2013 Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the KbSharingSetupDlg class.
+/// \description	This is the header file for the KbSharingSetup class.
 /// The KbSharingSetup class provides a dialog for the turning on, or off, KB Sharing for
 /// the currently open Adapt It project. When setting up, checkboxes stipulate which of the
 /// local KBs gets shared. Default is to share just the adapting KB. As long as at least

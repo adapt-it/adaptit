@@ -28497,9 +28497,17 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 /// can set up a new KB definition, or people with user administrator privilege can do
 /// things on the Users page. We can't assume the current Adapt It project is a shared one
 /// when someone may want to do such things, so the item needs to be available to them.
+/// However, if for any reason the app is in read-only mode, we disallow using the manager
+/// at that time as well.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
 {
+	// Disable when in read-only mode.
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (m_bClipboardAdaptMode)
 	{
 		event.Enable(FALSE);
