@@ -767,7 +767,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_TOOLS_AUTO_CAPITALIZATION"
 	itemType="subMenu"
-	itemText="Use Automatic Capitalization"
+	itemText="Use Automatic Ca&amp;pitalization"
 	itemDescr="Tools menu"
 	adminCanChange="1"
 	>
@@ -1010,7 +1010,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_EXPORT_FREE_TRANS"
 	itemType="subMenu"
-	itemText="Export Free Translation..."
+	itemText="Export &amp;Free Translation..."
 	itemDescr="Export-Import menu"
 	adminCanChange="1"
 	>
@@ -1091,7 +1091,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_MENU_IMPORT_EDITED_SOURCE_TEXT"
 	itemType="subMenu"
-	itemText="Import Edited Source Text..."
+	itemText="Imp&amp;ort Edited Source Text..."
 	itemDescr="Export-Import menu"
 	adminCanChange="1"
 	>
@@ -1118,7 +1118,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ADVANCED_SEE_GLOSSES"
 	itemType="subMenu"
-	itemText="See Glosses"
+	itemText="&amp;See Glosses"
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>
@@ -1145,7 +1145,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ADVANCED_GLOSSING_USES_NAV_FONT"
 	itemType="subMenu"
-	itemText="Glossing Uses Navigation Text&apos;s Font"
+	itemText="Glossing Uses &amp;Navigation Text&apos;s Font"
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>
@@ -1172,7 +1172,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES"
 	itemType="subMenu"
-	itemText="Transform Adaptations Into Glosses..."
+	itemText="Transform &amp;Adaptations Into Glosses..."
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>
@@ -1199,7 +1199,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ADVANCED_DELAY"
 	itemType="subMenu"
-	itemText="Delay..."
+	itemText="&amp;Delay..."
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>
@@ -1226,7 +1226,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ADVANCED_BOOKMODE"
 	itemType="subMenu"
-	itemText="Storing Documents in Book Folders"
+	itemText="Storing Documents in &amp;Book Folders"
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>
@@ -1253,7 +1253,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ADVANCED_FREE_TRANSLATION_MODE"
 	itemType="subMenu"
-	itemText="Free Translation Mode"
+	itemText="&amp;Free Translation Mode"
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>
@@ -1280,7 +1280,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ADVANCED_TARGET_TEXT_IS_DEFAULT"
 	itemType="subMenu"
-	itemText="Use Target Text As Default Free Translation"
+	itemText="Use &amp;Target Text As Default Free Translation"
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>
@@ -1307,7 +1307,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT"
 	itemType="subMenu"
-	itemText="Use Gloss Text As Default Free Translation"
+	itemText="Use &amp;Gloss Text As Default Free Translation"
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>
@@ -1334,7 +1334,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS"
 	itemType="subMenu"
-	itemText="Remove Free Translations"
+	itemText="&amp;Remove Free Translations"
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>
@@ -1415,7 +1415,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_ADVANCED_USETRANSLITERATIONMODE"
 	itemType="subMenu"
-	itemText="Use Transliteration Mode"
+	itemText="&amp;Use Transliteration Mode"
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>
@@ -1496,7 +1496,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_MENU_SHOW_KBSERVER_SETUP_DLG"
 	itemType="subMenu"
-	itemText="Setup Or Remove Knowledge Base Sharing..."
+	itemText="Setup Or Remove &amp;Knowledge Base Sharing..."
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>
@@ -1523,7 +1523,7 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_MENU_SHOW_KBSERVER_DLG"
 	itemType="subMenu"
-	itemText="Controls For Knowledge Base Sharing..."
+	itemText="&amp;Controls For Knowledge Base Sharing..."
 	itemDescr="Advanced menu"
 	adminCanChange="1"
 	>
