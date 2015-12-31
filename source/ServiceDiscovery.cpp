@@ -165,7 +165,12 @@ CServiceDiscovery::CServiceDiscovery(wxString servicestring, ServDisc* pParentCl
 // all this stuff, and at the end, kill the module, and it's parent classes.
 void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 {
-	if (event.GetEventObject() == m_pSD)
+
+	//if (event.GetEventObject() == m_pSD)
+	// BEW 31Dec15 changed to a benign test, trying no-event-handling solution
+	// (m_pSD was set in post_notify() as tweaked by me, so point at the wxServDisc instance)
+	wxUnusedVar(event);
+	if (m_pSD != NULL)
 	{
 		m_bOnSDNotifyEnded = FALSE;
 		m_bOnSDNotifyStarted = TRUE;

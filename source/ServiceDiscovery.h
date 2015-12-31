@@ -89,7 +89,8 @@ public:
     // happens, we'll need to let them choose which URL to connect to. The logic for all
     // that will be in a function called from elsewhere, the function will make use of the
     // data we sent to the CMainFrame class from here. (See MainFrm.h approx lines 262-7)
-protected:
+//protected:
+public:  // changed to public when testing the no-event-handling solution (at least for onSDNotify)
 	void onSDNotify(wxCommandEvent& event);
 	void onSDHalting(wxCommandEvent& event);
  

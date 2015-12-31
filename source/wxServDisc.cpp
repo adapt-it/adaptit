@@ -618,13 +618,23 @@ size_t wxServDisc::getResultCount() const
 
 void wxServDisc::post_notify()
 {
-	// Tell the running wxServDisc thread that onSDNotify() was invoked, so that
+	// BEW Tell the running wxServDisc thread that onSDNotify() was invoked, so that
 	// wxServDisc won't itself send a halting event to the CServiceDiscovery instance
 	// after the latter's  pointer to it has become NULL
 	m_bSdNotifyStarted = TRUE;
-	wxLogDebug(_T("m_pSD->m_bSdNotifyStarted SET to TRUE")); // interested in the time this log is displayed
+	wxLogDebug(_T("m_pSD->m_bSdNotifyStarted SET to TRUE. Doing nonEvent approach.")); // interested in the time this log is displayed
+
+	// BEW - the nonEvent approach follows...
+	if (parent)
+	{
+		((CServiceDiscovery*)parent)->m_pSD = this;
+
+		wxCommandEvent dummy;
+		((CServiceDiscovery*)parent)->onSDNotify(dummy);
+	}
 
   // Beier's code follows
+  /*
   if(parent)
     {
  	  wxLogDebug(_T("post_notify():  posting event")); // BEW added this call
@@ -640,6 +650,7 @@ void wxServDisc::post_notify()
 		  wxQueueEvent((CServiceDiscovery*)parent, event.Clone());
 	#endif
   }
+  */
 }
 
 #endif // _KBSERVER // whm 2Dec2015 added otherwise Linux build breaks when _KBSERVER is not defined
