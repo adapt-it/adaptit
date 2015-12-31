@@ -51,11 +51,10 @@ class CServiceDiscovery : public wxEvtHandler
 
 public:
 	CServiceDiscovery();
-	CServiceDiscovery(wxString workFolderPath, wxString servicestring, ServDisc* pParentClass);
+	CServiceDiscovery(wxString servicestring, ServDisc* pParentClass);
 	virtual ~CServiceDiscovery();
 
 	wxString m_servicestring; // service to be scanned for
-	wxString m_workFolderPath; // where we'll tem[porarily store our file of results
 
 	wxServDisc* m_pSD; // main service scanner (a child class of this one)
 	ServDisc* m_pParent;

@@ -80,7 +80,7 @@ class TranslationsList; // the CTargetUnit's list of CRefString instances
 
 #if defined(_KBSERVER)
 
-class ServDisc; 
+class ServDisc;
 
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
@@ -758,7 +758,8 @@ enum SendBackTextType
 #if defined(_KBSERVER)
 /// An enum for reporting errors, or user choice, or other service discovery details
 /// pertinent to subsequent processing after a service discovery attempt - such as
-/// whether one or more than one KBserver was discovered on the LAN
+/// whether one or more than one KBserver was discovered on the LAN, various error
+/// states, various user action possibilities
 enum ServDiscDetail
 {
 	SD_Okay,
@@ -768,8 +769,9 @@ enum ServDiscDetail
 	SD_LookupHostnameFailed,
 	SD_LookupIPaddrFailed,
 	SD_UserCancelled,
-	SD_UserWantsManualAuthentication,
-	SD_UrlDiffers
+	SD_UrlDiffers_UserAcceptedIt,
+	SD_UrlDiffers_UserRejectedIt,
+	SD_MultipleUrls_UserRejectedAll
 };
 #endif
 
@@ -2024,13 +2026,6 @@ class CAdapt_ItApp : public wxApp
 
 #if defined(_KBSERVER)
 
-    // This needs to be accessible to other classes, it's used in app instance, and in
-    // CServiceDiscovery instance to ensure that the ServDiscResults.txt file is written to
-    // Adapt It Unicode Work folder before app's DoServiceDiscovery() function internally
-    // tries to read in that file to get the service discovery's results for subsequent
-    // processing. This mutext is a must-have
-	wxMutex s_SDResultsMutex;
-
 	// The following is the timer for incremental downloads; defaulted to
 	// 5 minutes, but settable by the user to other values in the range 1-10 minutes,
 	// and the minutes valuewill be stored in the project config file
@@ -2052,7 +2047,7 @@ class CAdapt_ItApp : public wxApp
 	bool	m_kbserver_kbadmin;  // initialize to default FALSE in OnInit()
 	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
 
-	ServDisc* m_pServDisc;
+	ServDisc*     m_pServDisc;
 	wxArrayString m_servDiscResults;
 
 	void onServDiscHalting(wxCommandEvent& WXUNUSED(event));
@@ -2982,7 +2977,7 @@ public:
 	bool	  ReleaseKBServer(int whichType);
 	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
 	// BEW added next, 26Nov15
-	bool	  DoServiceDiscovery(wxString curURL, wxString& chosenURL, wxString workFolderPath);
+	bool	  DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
 	// BEW deprecated 31Jan13

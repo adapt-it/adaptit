@@ -92,21 +92,18 @@ END_EVENT_TABLE()
 CServiceDiscovery::CServiceDiscovery()
 {
 	m_servicestring = _T("");
-	m_workFolderPath.Empty();
 	m_bWxServDiscIsRunning = TRUE;
 	wxUnusedVar(m_servicestring);
 }
 
-CServiceDiscovery::CServiceDiscovery(wxString workFolderPath, wxString servicestring, ServDisc* pParentClass)
+CServiceDiscovery::CServiceDiscovery(wxString servicestring, ServDisc* pParentClass)
 {
 
-	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, passing in workFolderPath: %s , and servicestring: %s, ptr to instance: %p"),
-		workFolderPath.c_str(), servicestring.c_str(), this);
+	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, passing in servicestring: %s, ptr to instance: %p"),
+		servicestring.c_str(), this);
 
 	m_servicestring = servicestring; // service to be scanned for
-	m_workFolderPath = workFolderPath; // location where the file of our results will be stored temporarily
 	m_pParent = pParentClass; // so we can delete this class from a handler in the parent class
-	m_pParent->m_backup_ThisPtr = NULL; // initialize
 	m_bWxServDiscIsRunning = TRUE; // Gets set FALSE only in my added onServDiscHalting() handler
 		// and the OnIdle() hander will use the FALSE to get CServiceDiscovery and ServDisc
 		// class instances deleted, and app's m_pServDisc pointer reset to NULL afterwards
@@ -420,19 +417,7 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	wxLogDebug(_T("this [ from CServiceDiscovery:onSDHalting() ] = %p"), this);
 	wxLogDebug(_T("m_pParent [ from CServiceDiscovery:onSDHalting() ] = %p"), m_pParent);
 
-	// The this pointer is valid here, but gets lost by the time the parent
-	// class's onServDiscHalting() handler is called (by lost I mean it has
-	// the value 0xcdcdcdcd in the handler, instead of this class's correct
-	// this ptr value. So I'll store a copy in the parent, and use that in
-	// the handler to get the deletion of this class done.
-	m_pParent->m_backup_ThisPtr = this;
-
-
 	delete m_pSD; // must have this, it gets ~wxServDisc() destructor called
-
-	// Check if the above deletion is the culprit for the loss of the this ptr value;
-	// answer? No it's not the culprit. Ptr value is still the same here.
-	wxLogDebug(_T("this [ from CServiceDiscovery:onSDHalting() ] AFTER delete m_pSD call = %p"), this);
 
 	m_bWxServDiscIsRunning = FALSE;
 	wxLogDebug(_T("In CServiceDiscovery:onSDHalting(): ~wxServDisc() destructor called, m_bWxServDiscIsRunning set FALSE"));

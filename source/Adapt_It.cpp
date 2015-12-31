@@ -91,6 +91,9 @@
 #include <wx/timer.h> // for wxTimer
 #include <wx/tokenzr.h>
 #include <wx/stockitem.h> // for ::wxGetStockLabel()
+#if defined(_KBSERVER)
+#include <wx/thread.h>
+#endif
 
 #ifdef __WXGTK__
 #include <wx/dcps.h> // for wxPostScriptDC
@@ -15211,7 +15214,8 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if chosenURL contains a URL string to be used for authenticating to
 ///             a discovered running KBserver; FALSE if there was a problem or choice by
-///             the user to do otherwise than return a URL for auto-connection purposes
+///             the user to do otherwise than return a URL for auto-connection purposes,
+///             or if no kbserver is running on the LAN as yet
 /// \param      curURL         -> the current URL - as currently in force, or just provided
 ///                               by reading from the AI-BasicConfiguration.aic file (it
 ///                               might be an empty string)
@@ -15262,27 +15266,29 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 /// about line 752
 /// enum ServDiscDetail
 /// {
-/// 	SD_Okay,
-/// 	SD_ThreadCreateFailed,
-/// 	SD_ThreadRunFailed,
-/// 	SD_NoKBserverFound,
-/// 	SD_LookupHostnameFailed,
-/// 	SD_LookupIPaddrFailed,
-/// 	SD_UserCancelled,
-/// 	SD_UserWantsManualAuthentication,
-/// 	SD_UrlDiffers
+///   SD_Okay,
+///   SD_ThreadCreateFailed,
+///   SD_ThreadRunFailed,
+///   SD_NoKBserverFound,
+///   SD_LookupHostnameFailed,
+///   SD_LookupIPaddrFailed,
+///   SD_UserCancelled,
+///   SD_UrlDiffers_UserAcceptedIt,
+///   SD_UrlDiffers_UserRejectedIt,
+///   SD_MultipleUrls_UserRejectedAll
 /// };
 ////////////////////////////////////////////////////////////////////////////////////////
 
-bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, wxString workFolderPath)
+bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result)
 {
 	wxString serviceStr = _T("_kbserver._tcp.local.");
-	wxString path = workFolderPath;
-	// onSDNotify will use this path to append ServDiscResults.txt for where to store 
-	// the results (temporarily) of the service discovery, & further below we file them
-	// in and use them
 
-	chosenURL = _T(""); // initialize
+	// onSDNotify will return any discovery results in the app wxArrayString m_servDiscResults
+	// as one or more lines, each of form  url:int:int:int where url potentially could be empty
+	// and the int values are 0, 1, -1 being false, true, undefined
+
+	chosenURL = _T(""); // initialize, we return the chosen url using this parameter
+	result = SD_Okay; // initialize to a 'success' result
 
 	// Assign to the app's member pointer, m_pServDisc; we can then pass this pointer in
 	// to the solution's classes, to access any of the classes to perform actions such as
@@ -15290,18 +15296,28 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, wxSt
 	
 	// I can't get wxTHREAD_JOINABLE to work. It says it's joinable when I test with IsDetached()
 	// but the m_isDetached value of the m_internal pointer is ALWAYS true, no matter what
-	// I try. So try deliberately making it detached
+	// I try. So try deliberately making it detached - yep, did so, and got this solution
+	// to work
 	
-	// Ensure sequentiality for m_servDiscResults. Don't try to access the results before
-	// they have been created
-	s_SDResultsMutex.Lock(); // it will be .Unlocked() in ~ServDisc() the destructor
+	// The wxMutext to use in conjunction with SD_condition
+	wxMutex       SD_mutex;
+	// wxCondition is needed so that within DoServiceDiscovery() we can Wait() 
+	// for the results to be ready
+	wxCondition   SD_condition(SD_mutex); 
 
-	// Give it a go...
-	m_pServDisc = new ServDisc(wxTHREAD_DETACHED); // default is a self-destroying detached thread
+	// The SD_mutex must start of locked (ie. owned)
+	SD_mutex.Lock();
+#if defined(_KBSERVER)
+	wxLogDebug(_T("DoServiceDiscovery(): addr of SD_mutex  =  %p"), &SD_mutex);
+#endif
 
+	// ServDisc internally will acquire the lock, using wxMutexLocker::lock(), and the
+	// main thread will Wait() for the SD_condition to be Signal()-ed, which then allows
+	// DoServiceDiscovery() to awake, and be automatically given the lock, so it can then
+	// access the service discovery results
+	m_pServDisc = new ServDisc(&SD_mutex, &SD_condition, wxTHREAD_DETACHED); // default is a self-destroying detached thread
 
 	// Set the input variables
-	m_pServDisc->m_workFolderPath = path; // location where we'll temporarily store a file of results
 	m_pServDisc->m_serviceStr = serviceStr; // service to be scanned for
 	m_pServDisc->m_pApp = this;
 
@@ -15310,50 +15326,50 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, wxSt
 	if (rv == wxTHREAD_NO_ERROR)
 	{
 		m_pServDisc->Run();
+		// .Wait() alone blocks the main thread, which then blocks the event mechanism
+		// from responding to the posting of the onServDiscHALTING event and other events,
+		// so that the main thread cannot get to the event handler which calls Signal(),
+		// and so the app waits forever. The timeout will probably fix this, but a better
+		// solution would be to put the mutex and condition deeper in the service discovery
+		// code at place(s) where the results are generated but before event posting needs
+		// to happen in order to remove the module
+		SD_condition.WaitTimeout(4000); // allows the ServDisc thread to do its job, until Signal() get's called at its exit
 	}
 	else
 	{
-		s_SDResultsMutex.Unlock();
+		result = SD_ThreadCreateFailed;
+		SD_mutex.Unlock();
 		return FALSE;
 	}
-	//s_SDResultsMutex.Unlock(); BEW moved it to CAdapt_ItApp::onServDiscHALTING() on 29Dec15
 
+	// When the Wait() is over, we can go on now to access the results, if any exist
 	serviceStr.Clear(); // so we don't leak its memory
 
-	// Ensure sequentiality; don't try to access the contents of app's m_servDiscResults
-	// string array until the s_SDResultsMutext has been released above
-	s_SDResultsMutex.Lock(); // it has been locked above, and until ServDisc is destroyed
-			// and by then, if a _kbserver service was to be had, the results are 
-			// existing in app's m_servDiscResults wxArrayString, in form url:int:int:int
-			// and url may be an empty string, and the int's each -1 or 1 or 0
-	//bool bResultsFileExists = FALSE;
-	//wxString filePath = path + PathSeparator + _T("ServDiscResults.txt"); // in Adapt It Unicode Work folder
-	//bResultsFileExists = wxFileExists(filePath);
-
-	wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() About to access the m_servDiscResults string array"));
+	wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() Now accessing the m_servDiscResults string array"));
 
 	if (!m_servDiscResults.IsEmpty())
 	{
 		// Some data was returned. Process its contents
-		wxLogDebug(_T("DoServiceDiscovery(): about to ACCESS the m_servDiscResults wxArrayString"));
+		wxLogDebug(_T("m_servDiscResults[] first = %s"), m_servDiscResults.Item(0).c_str());
 
 		// TODO -- ********* more logic etc to access the results and work out what ******
 		//         ********* to do with them,  including error states, etc          ******
 
 	}
-	s_SDResultsMutex.Unlock();
-
+	else
+	{
+		wxLogDebug(_T("m_servDiscResults[] The service discovery results array is empty."));
+	}
+	// When Wait() returns, we will have reacquired the lock automatically, so release it 
+	SD_mutex.Unlock();
 	return TRUE;
 }
 
 void CAdapt_ItApp::onServDiscHalting(wxCommandEvent& WXUNUSED(event))
 {
-	m_pServDisc = NULL; 
-	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() called after detached ServDisc thread has died. Unlock() s_SDResultsMutex here"));
-	//CAdapt_ItApp* pApp = &wxGetApp();
-	s_SDResultsMutex.Unlock(); // until this is called, the second part of the DoServiceDiscovery() 
-							   // function which attempts to grab the returned KBserver
-							   // result, is blocked
+	m_pServDisc = NULL;
+	//m_bServiceDiscoveryHasFinished = TRUE;
+	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() called after detached ServDisc thread has died"));
 }
 
 
@@ -15518,6 +15534,11 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	// wxMutex instantiations
+#if defined(_KBSERVER)
+#endif
+
+
 
 	// initialize these collaboration variables, which are relevant to conflict resolution
 	m_bRetainPTorBEversion = FALSE;
@@ -21916,7 +21937,8 @@ int ii = 1;
 	// pointer needs to again be set to NULL.
 	wxString curURL = m_strKbServerURL;
 	wxString chosenURL = _T("");
-	bool bOK = DoServiceDiscovery(m_strKbServerURL, chosenURL, m_workFolderPath);
+	enum ServDiscDetail returnedValue = SD_Okay;
+	bool bOK = DoServiceDiscovery(curURL, chosenURL, returnedValue);
 	if (bOK)
 	{
 		// Got a URL to connect to
@@ -22009,6 +22031,12 @@ int CAdapt_ItApp::OnExit(void)
     // application class destructor!"
     // 
 #if defined(_KBSERVER)
+
+	// wxMutex destructions
+
+
+
+
 //	if (m_pServDisc != NULL)
 //	{
 	//		delete m_pServDisc; <<-- crashes app, even though innards are freed, for

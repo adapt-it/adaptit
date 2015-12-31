@@ -46,8 +46,6 @@
 #endif
 #include "Adapt_It.h"
 
-//IMPLEMENT_DYNAMIC_CLASS(ServDisc, wxThread)// earlier, base class was wxEvtHandler
-
 BEGIN_EVENT_TABLE(ServDisc, wxEvtHandler)
 EVT_COMMAND(wxID_ANY, wxServDiscHALTING, ServDisc::onServDiscHalting)
 END_EVENT_TABLE()
@@ -57,13 +55,16 @@ END_EVENT_TABLE()
 // of a number of _cache structs, are leaked into the main thread's namespace. Putting the
 // service discovery into a thread process does not solve our problem of the leaks. It
 // looks like the only way to do it is for me to learn how to fix Beier's incomplete
-// cleanup.
+// cleanup. Yep, did so, making use of a function he created but did not use.
 
-ServDisc::ServDisc(wxThreadKind kind)
+ServDisc::ServDisc(wxMutex* mutex, wxCondition* condition, wxThreadKind kind)
 {
 	wxLogDebug(_T("\nInstantiating a detached ServDisc thread class, ptr to instance = %p"), this);
 	wxUnusedVar(kind);
 	wxASSERT(kind != wxTHREAD_JOINABLE);
+
+	m_pMutex = mutex;
+	m_pCondition = condition;
 
 	// Check again, my logging says that it is running as a detached thread....
 	bool bIsDetached = FALSE;
@@ -75,30 +76,15 @@ ServDisc::ServDisc(wxThreadKind kind)
 
 	m_bServDiscCanExit = FALSE;
 	m_serviceStr = _T(""); // service to be scanned for
-	m_workFolderPath.Empty();
-	m_pApp = NULL; // initializations, the needed values will be assigned after instantiation
+	m_pApp = &wxGetApp();
+
+	// initializations, the needed values will be assigned after instantiation
 	CServiceDiscovery* m_pServiceDisc = NULL;
 	CServiceDiscovery* m_backup_ThisPtr = NULL; 
 	wxUnusedVar(m_pServiceDisc);
 	wxUnusedVar(m_backup_ThisPtr);
 }
-/* old code, before I made this a threaded solution
-ServDisc::ServDisc(wxString workFolderPath, wxString serviceStr)
-{
-	wxLogDebug(_T("\nInstantiating a ServDisc class, passing in workFolderPath %s and serviceStr: %s, ptr to instance = %p"),
-		workFolderPath.c_str(), serviceStr.c_str(), this);
 
-	m_serviceStr = serviceStr; // service to be scanned for
-
-	m_bSDIsRunning = TRUE;
-
-	m_workFolderPath = workFolderPath; // pass this on to CServiceDiscovery instance
-
-	//this will be moved to the Entry() function of the thread, so that memory leaks will stay in the thread's process
-	//CServiceDiscovery* m_pServiceDisc = new CServiceDiscovery(m_workFolderPath, m_serviceStr, this);
-	//wxUnusedVar(m_pServiceDisc); // prevent compiler warning
-}
-*/
 ServDisc::~ServDisc()
 {
 	wxLogDebug(_T("Deleting the ServDisc class instance by ~ServDisc() destructor"));
@@ -107,19 +93,8 @@ ServDisc::~ServDisc()
 void ServDisc::onServDiscHalting(wxCommandEvent& event)
 {
 	wxUnusedVar(event);
-
-	// What are the pointer values?
-	wxLogDebug(_T("onServDiscHalting: this:  %p    The Child (m_pServiceDisc):  %p"), this, m_pServiceDisc);
-
-	wxLogDebug(_T("onServDiscHalting: this:  %p    Backup: m_backup_ThisPtr:  %p"), this, m_backup_ThisPtr);
-
-	if (m_pServiceDisc != m_backup_ThisPtr)
-	{
-		// this hack correctly restores the pointer value, if it has become 0xcdcdcdcd
-		// (which it regularly does, unfortunately)
-		m_pServiceDisc = m_backup_ThisPtr; 
-		wxLogDebug(_T("NEEDED to RESTORE the CServiceDiscovery instance's this pointer, within onServDiscHalting()"));
-	}
+	// What is the pointer value?
+	wxLogDebug(_T("onServDiscHalting: this:  %p    The Child instance (m_pServiceDisc):  %p"), this, m_pServiceDisc);
 	
 	// We can safely shutdown the CServiceDiscovery instance. It creates no heap blocks
 	// using new, so a simple delete is all we need here
@@ -136,7 +111,7 @@ void* ServDisc::Entry()
 	m_pApp->m_servDiscResults.Clear(); // clear the array where we'll deposit results
 
 	// Commence the service discovery
-	CServiceDiscovery* m_pServiceDisc = new CServiceDiscovery(m_workFolderPath, m_serviceStr, this);
+	m_pServiceDisc = new CServiceDiscovery(m_serviceStr, this);
 	wxUnusedVar(m_pServiceDisc); // prevent compiler warning
 
 	while (!TestDestroy())
@@ -144,31 +119,6 @@ void* ServDisc::Entry()
 		wxMilliSleep(100); // check TestDestroy every 1/10 of a second
 	}
 
-/*
-	// Need a timeout loop, of 5 seconds, so that the return NULL statement will not be
-	// executed before the service discovery has sufficient time to get it's job done
-	// (which takes about 3 seconds for wxServDisc timeout to expire, or 1.5 seconds
-	// if a _kbserver._tcp.local. service is present waiting for discovery). We want
-	// a wxServDiscHALTING event to cause the app instance to deleted ServDisc, rather
-	// than it halt itself and leak memory
-	int mytimeout = 5000; // milliseconds
-	int mytime = mytimeout;
-	while (mytime >= 0)
-	{
-		if (m_pServiceDisc->m_bWxServDiscIsRunning)
-		{
-			wxMilliSleep(200);
-			mytime -= 200;
-			wxLogDebug(_T("ServDisc::Entry: waiting for 5 seconds, mytime  %d  milliseconds"), mytime);
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	wxLogDebug(_T("ServDisc::Entry: timed out; returning (void*)NULL now. ****** We don't want to see this log message. We want app to delete ServDisc instance.******"));
-*/
 	// Now post a wxServDiscHALTING event to the app instance, so it can shut down this
 	// ServDisc instance
 	{
@@ -192,9 +142,37 @@ void* ServDisc::Entry()
 // mechanism, with a wxServDiscHALTING event instead; and TestDestroy()
 void ServDisc::OnExit()
 {
-	wxLogDebug(_T("ServDisc::OnExit() called. (It has nothing to do though.)"));
+	wxLogDebug(_T("ServDisc::OnExit() called. [ It has nothing to do except acquire the lock and call Signal() ]"));
+	wxLogDebug(_T("ServDisc::OnExit() m_pMutex  =  %p"), m_pMutex);
+	wxMutexLocker locker(*m_pMutex);
+	bool bIsOK = locker.IsOk();
+	wxCondError condError = m_pCondition->Signal();
+#if defined(_DEBUG)
+	wxString cond0 = _T("wxCOND_NO_ERROR");
+	wxString cond1 = _T("wxCOND_INVALID");
+	wxString cond2 = _T("wxCOND_TIMEOUT");
+	wxString cond3 = _T("wxCOND_MISC_ERROR");
+	wxString myError = _T("");
+	if (condError == wxCOND_NO_ERROR)
+	{
+		myError = cond0;
+	}
+	else if (condError == wxCOND_INVALID)
+	{
+		myError = cond1;
+	}
+	else if (condError == wxCOND_TIMEOUT)
+	{
+		myError = cond2;
+	}
+	else if (condError == wxCOND_INVALID)
+	{
+		myError = cond3;
+	}
+	wxLogDebug(_T("ServDisc::OnExit() error condition for Signal() call: %s   locker.IsOk() returns %s"), 
+		myError.c_str(), bIsOK ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
+#endif
 }
-
 
 bool ServDisc::TestDestroy()
 {
