@@ -60,9 +60,10 @@
 
 #if defined(_KBSERVER)
 
-class ServDisc;
+//class ServDisc;
 class wxServDisc;
 class wxThread;
+class CAdapt_ItApp; // BEW 4Jan16
 
 class CServiceDiscovery : public wxEvtHandler
 {
@@ -70,13 +71,14 @@ class CServiceDiscovery : public wxEvtHandler
 public:
 	CServiceDiscovery();
 	CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
-						wxString servicestring, ServDisc* pParentClass);
+					wxString servicestring, CAdapt_ItApp* pParentClass); // <<- replacement solution (noservdisc branch)
 	virtual ~CServiceDiscovery();
 
 	wxString m_servicestring; // service to be scanned for
+	CAdapt_ItApp* m_pApp;
 
 	wxServDisc* m_pSD; // main service scanner (a child class of this one)
-	ServDisc* m_pParent;
+	CAdapt_ItApp* m_pParent; // BEW 4Jan16
 	bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this set in onSDHalting
 								 // informing CServiceDiscovery instance that we are done
 	// scratch variables, used in the loop in onSDNotify() handler

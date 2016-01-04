@@ -223,10 +223,12 @@ wxThread::ExitCode wxServDisc::Entry()
   if(mSock != INVALID_SOCKET)
     closesocket(mSock);
 
-  // Skip the posting of the halting event if onSDNotify() has been called, because
-  // that will initiate the cleanup and shutdown, and if Entry() then tried to do it
-  // here, the posting would be to a NULL pointer, and the app crash. So we must skip
-  // in that case
+  // Skip the posting of the halting event if GetResults() has been called, because
+  // it will be done from the end of that function if it gets called; otherwise,
+  // when m_bGetResultsStart is FALSE still here, then no running KBserver was
+  // discovered and we then should do it here. But to get event handling to happen,
+  // the main thread needs to be awakened, so Signal() is to be called so that 
+  // waiting finishes - so we do that before we post the halting event
   wxLogDebug(_T("wxServDisc::Entry(): m_bGetResultsStarted is %s "),
 	  m_bGetResultsStarted ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
 
@@ -234,9 +236,14 @@ wxThread::ExitCode wxServDisc::Entry()
   {
 	  // No KBserver was discovered, so GetResults() will not have been called, so
 	  // we need to initiate the cleanup of the owning classes from here
-	  
+
 	  // BEW: Post a custom serviceDiscoveryHALTING event here, for the parent class to
 	  // supply the handler needed for destroying this CServiceDiscovery instance
+	  // Note: attempting to precede this with the code which includes the Signal() call
+	  // leads to an app crash, because the mutex & associated condition objects are
+	  // clobbered before the code gets called - so we must rely on DoServiceDiscovery()'s
+	  // WaitTimeout(3500) to awaken the main thread, when no KBserver can be found because
+	  // one is not yet running on the LAN
 	  wxCommandEvent upevent(wxServDiscHALTING, wxID_ANY);
 	  upevent.SetEventObject(this); // set sender
 

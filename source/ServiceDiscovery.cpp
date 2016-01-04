@@ -111,7 +111,8 @@ CServiceDiscovery::CServiceDiscovery()
 }
 
 CServiceDiscovery::CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
-							wxString servicestring, ServDisc* pParentClass)
+//							wxString servicestring, ServDisc* pParentClass)
+							wxString servicestring, CAdapt_ItApp* pParentClass) // <- no ServDisc in solution
 {
 	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, passing in servicestring: %s, ptr to instance: %p"),
 		servicestring.c_str(), this);
@@ -342,14 +343,14 @@ void CServiceDiscovery::GetResults()
 			aLine += intStr + colon;
 			wxItoa(m_bArr_IPaddrLookupFailed.Item((size_t)i), intStr);
 			aLine += intStr;
-			m_pParent->m_pApp->m_servDiscResults.Add(aLine);
+			m_pApp->m_servDiscResults.Add(aLine); // BEW 4Jan16
 		}
 	} // end of TRUE block for test: if (m_pSD != NULL)
 	else
 	{
 		// major error, but the program counter has never entered here, so
 		// just log it if it happens
-		m_pParent->m_pApp->LogUserAction(_T("GetResults():unexpected error: ptr to wxServDisc instance,m_pSD, is NULL"));
+		m_pApp->LogUserAction(_T("GetResults():unexpected error: ptr to wxServDisc instance,m_pSD, is NULL"));
 	}
 
 	// App's DoServiceDiscovery() function can exit from WaitTimeout(), awakening main

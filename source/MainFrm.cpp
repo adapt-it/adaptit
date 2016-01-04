@@ -94,7 +94,6 @@
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
 #include "Thread_ChangedSince.h" // BEW added 13Feb13
 #include "Timer_KbServerChangedSince.h"
-#include "ServDisc.h"
 #include "ServiceDiscovery.h"
 #endif
 

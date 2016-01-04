@@ -359,16 +359,7 @@
 #include "KBSharingStatelessSetupDlg.h"
 #include "Timer_KbServerChangedSince.h"
 #include "KBSharingMgrTabbedDlg.h"
-#include "ServDisc.h" // for service discovery, this is a wrapper class
-					  // for isolating the CServiceDiscovery class from
-					  // namespace clashes with parts of wx. My class
-					  // CServiceDiscovery is defined within wxServDisc.h & .cpp
-					  // The isolating may be a forlorn hope....no, it's
-					  // sort of possible so long as wxServDisc.h is never
-					  // included in this app class; therefore, the
-					  // CServiceDiscovery class instance has to take care
-					  // of deleting itself when no longer needed, and 
-					  // deleting it's parent class ServDisc at same time
+#include "ServiceDiscovery.h" // BEW 4Jan16
 extern std::string str_CURLbuffer;
 extern std::string str_CURLheaders;
 
@@ -15315,43 +15306,27 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	// main thread will Wait() for the SD_condition to be Signal()-ed, which then allows
 	// DoServiceDiscovery() to awake, and be automatically given the lock, so it can then
 	// access the service discovery results
-	m_pServDisc = new ServDisc(&SD_mutex, &SD_condition, wxTHREAD_DETACHED); // default is a self-destroying detached thread
+	//m_pServDisc = new ServDisc(&SD_mutex, &SD_condition, wxTHREAD_DETACHED); // default is a self-destroying detached thread
+
+	// BEW 4Jan16, 4th param is the parent class for CServiceDiscovery instance, the app class
+	m_pServDisc = new CServiceDiscovery(&SD_mutex, &SD_condition, serviceStr, this); 
 
 	// Set the input variables
-	m_pServDisc->m_serviceStr = serviceStr; // service to be scanned for
-	m_pServDisc->m_pApp = this;
+	m_pServDisc->m_servicestring = serviceStr; // service to be scanned for
 
-	int rv = m_pServDisc->Create();
+	m_pServDisc->m_pApp = this; // set CServiceDiscovery's m_pApp pointer
 
-	if (rv == wxTHREAD_NO_ERROR)
-	{
-		m_pServDisc->Run();
-		// .Wait() alone blocks the main thread, which then blocks the event mechanism
-		// from responding to the posting of the onServDiscHALTING event and other events,
-		// so that the main thread cannot get to the event handler which calls Signal(),
-		// and so the app waits forever. The timeout will probably fix this, but a better
-		// solution would be to put the mutex and condition deeper in the service discovery
-		// code at place(s) where the results are generated but before event posting needs
-		// to happen in order to remove the module
-#if defined(_KBSERVER)
-		wxLogDebug(_T("DoServiceDiscovery(): WaitTimeout(4500) is called next"));
-#endif
-		SD_condition.WaitTimeout(4500); // allows the ServiceDiscovery object on the 
-					// ServDisc thread to do its job, until Signal() get's called at its exit
-					// 4.5 seconds of wait is conservative, 3.5 may be adequate; when no
-					// KBserver is running, we rely in the WaitTimeout() to return the lock
-					// to the DoServiceDiscovery() function, and awaken the main thread;
-					// when a KBserver is running, CServiceDiscovery::GetResults(), at its
-					// end, calls Signal() to awaken the main thread and get the results
-					// from m_servDiscResults wxString array - the results are typically
-					// ready within 2 seconds of entering the DoServiceDiscovery()function
-	}
-	else
-	{
-		result = SD_ThreadCreateFailed;
-		SD_mutex.Unlock();
-		return FALSE;
-	}
+	// BEW 4Jan16
+	wxLogDebug(_T("DoServiceDiscovery(): WaitTimeout(3500) is called next"));
+	SD_condition.WaitTimeout(3500); // allows the ServiceDiscovery object on the 
+				// ServDisc thread to do its job, until Signal() get's called at its exit
+				// 3.5 seconds of wait is conservative, 3.2 may be adequate; when no
+				// KBserver is running, we rely in the WaitTimeout() to return the lock
+				// to the DoServiceDiscovery() function, and awaken the main thread;
+				// when a KBserver is running, CServiceDiscovery::GetResults(), at its
+				// end, calls Signal() to awaken the main thread and get the results
+				// from m_servDiscResults wxString array - the results are typically
+				// ready within 3 seconds of entering the DoServiceDiscovery()function
 
 	// When the Wait() is over, we can go on now to access the results, if any exist
 	serviceStr.Clear(); // so we don't leak its memory
@@ -15378,11 +15353,10 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 
 void CAdapt_ItApp::onServDiscHalting(wxCommandEvent& WXUNUSED(event))
 {
+	delete m_pServDisc; // BEW 4Dec16
 	m_pServDisc = NULL;
-	//m_bServiceDiscoveryHasFinished = TRUE;
-	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() called after detached ServDisc thread has died"));
+	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() - deleted CServiceDiscovery instance, set m_pServDisc to NULL"));
 }
-
 
 // Checks m_pKbServer[0] or [1] for non-NULL or NULL
 // Note: if the KBserver is currently disabled (that is, m_bEnableKBSharing is FALSE)

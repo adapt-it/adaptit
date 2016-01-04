@@ -897,10 +897,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\ServDisc.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\ServiceDiscovery.cpp"
 				>
 			</File>
@@ -1531,10 +1527,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\scrollingwizard.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\ServDisc.h"
 				>
 			</File>
 			<File

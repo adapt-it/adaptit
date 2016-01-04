@@ -80,7 +80,7 @@ class TranslationsList; // the CTargetUnit's list of CRefString instances
 
 #if defined(_KBSERVER)
 
-class ServDisc;
+class CServiceDiscovery; // BEW 4Jan16
 
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
@@ -2047,8 +2047,9 @@ class CAdapt_ItApp : public wxApp
 	bool	m_kbserver_kbadmin;  // initialize to default FALSE in OnInit()
 	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
 
-	ServDisc*     m_pServDisc;
-	wxArrayString m_servDiscResults;
+	//ServDisc*     m_pServDisc; <<-- this solution includes ServDisc as top level class
+	CServiceDiscovery*  m_pServDisc; // was ServDisc* 
+	wxArrayString       m_servDiscResults;
 
 	void onServDiscHalting(wxCommandEvent& WXUNUSED(event));
 
