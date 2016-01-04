@@ -174,11 +174,9 @@ public:
 	wxPanel* m_pRemovalsBar;	// whm added for 12Sep08 refactored source text editing
 	wxPanel* m_pVertEditBar;	// whm added for 12Sep08 refactored source text editing
 	wxPanel* m_pClipboardAdaptBar; // BEW added 9May14, for support of adapting clipboard text
-	//wxPanel* m_pVertEditStepTransBar; // whm added for 12Sep08 refactored source text editing
 	wxTextCtrl* m_pComposeBarEditBox;
 	wxComboBox* m_pRemovalsBarComboBox;
 	wxTextCtrl* m_pVertEditMsgBox;
-	//wxTextCtrl* m_pVertEditStepTransMsgBox;
 
 	wxSizer* pRemovalsBarSizer;
 	wxSizer* pVertEditBarSizer;
@@ -191,9 +189,6 @@ public:
 	int m_removalsBarHeight;
 	int m_vertEditBarHeight;
 	int m_clipboardAdaptBarHeight; // BEW added 9May14
-	//int m_vertEditStepTransBarHeight;
-
-	//wxHtmlHelpController m_help;
 
     void OnAppAbout(wxCommandEvent& WXUNUSED(event));
 	// OnIdle moved here from the App. When it was in the App it was causing
@@ -201,10 +196,7 @@ public:
 	int idleCount;
 	bool m_bShowScrollData;
 
-	//bool m_bUsingHighResDPIScreen;
-
 	void OnIdle(wxIdleEvent& event); // MFC is virtual and returns BOOL
-
 
 	CAdapt_ItCanvas *canvas;	// The MainFrame holds the main pointer to our canvas
 								// Note: The View also holds its own pointer to this canvas
@@ -232,18 +224,14 @@ public:
 	void OnSize(wxSizeEvent& WXUNUSED(event));
 	void OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event));
 
-	//void OnHelp(wxHelpEvent& WXUNUSED(event));
 	void OnAdvancedHtmlHelp(wxCommandEvent& WXUNUSED(event));
 	void OnQuickStartHelp(wxCommandEvent& WXUNUSED(event));
-	//void OnOnlineHelp(wxCommandEvent& WXUNUSED(event));
-	//void OnUserForum(wxCommandEvent& WXUNUSED(event));
 	void OnHelpReportAProblem(wxCommandEvent& WXUNUSED(event));
 	void OnHelpGiveFeedback(wxCommandEvent& WXUNUSED(event));
 	void OnUseToolTips(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateUseToolTips(wxUpdateUIEvent& event);
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
-	//void OnShowContextHelp(wxCommandEvent& event);
 
 #if defined(_KBSERVER)
 
@@ -264,7 +252,6 @@ public:
 
 #endif // _KBSERVER
 
-    //void ShowHelp(int commandId, wxHelpControllerBase& helpController);
 	void OnClose(wxCloseEvent& event);
 	// UI handlers for the checkboxes in the controlBar
 	void OnUpdateCheckKBSave(wxUpdateUIEvent& event);
@@ -302,7 +289,6 @@ public:
 	//void OnMRUFile(wxCommandEvent& event); //whm removed 1Oct12
 
   private:
-	//wxHelpController		m_help;
     void DoNoOp(); // does nothing - used in switch in OnIdle()
 
    DECLARE_CLASS(CMainFrame);

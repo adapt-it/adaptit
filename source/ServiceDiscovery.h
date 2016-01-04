@@ -30,6 +30,24 @@
 /// the sdwrap application, modified and simplified in order to suit our own
 /// requirements - which do not require a GUI, nor spawning of a command
 /// process for automated connection to some other resource.
+/// ======================================================================
+/// *********** IMPORTANT ****************** for future maintainers **************
+/// It would be possible to remove this class from the service discovery module
+/// except for one thing. #include "Adapt_It.h" would need to be included in
+/// wxServDisc.cpp if the results are to be reported to a wxArrayString member
+/// of the CAdapt_ItApp class instance. Doing that creates a multitude of name
+/// conflicts with winsock.h and other Microsoft classes. To avoid this, the
+/// CServiceDiscovery serves to isolate the namespace for the service discovery
+/// code from clashes with the GUI support's namespace. So it must be retained.
+/// 
+/// Also, DO NOT return GetResults() to be an event handler (formerly it was
+/// onSDNotify() for a wxServDiscNOTIFY event posted within Post_Notify())
+/// because our mutex & condition solution uses .WaitTimeout() in he app's
+/// DoServiceDiscovery() function, and when waiting, main thread event handling
+/// is asleep - so if you tried to do things Beier's way, the essential
+/// address lookup etc would not get called until the main thread's sleep ended -
+/// which would be too late because DoServiceDiscovery() would have been exited
+/// before the service discovery results could be computed.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef SERVICEDISCOVERY_h
@@ -51,7 +69,8 @@ class CServiceDiscovery : public wxEvtHandler
 
 public:
 	CServiceDiscovery();
-	CServiceDiscovery(wxString servicestring, ServDisc* pParentClass);
+	CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
+						wxString servicestring, ServDisc* pParentClass);
 	virtual ~CServiceDiscovery();
 
 	wxString m_servicestring; // service to be scanned for
@@ -77,27 +96,28 @@ public:
 	// or if some other error,  :0:1:-1 or :0:0:-1
 	wxArrayString m_sd_lines;
 	wxArrayString m_urlsArr;
-    bool m_bOnSDNotifyEnded;
-	bool m_bOnSDNotifyStarted;
+	// The mutex and condition were created within CAdapt_ItApp::DoServiceDiscovery()
+	// which is on the main thread
+	wxMutex*      m_pMutex;
+	wxCondition*  m_pCondition;
 
-	void wxItoa(int val, wxString& str); // copied from helpers.h & .cpp, it creates problems to #include "helpers.h"
-
-    // bools (as int 0 or 1, in int arrays) for error conditions are on the CMainFrame
+	void wxItoa(int val, wxString& str); // copied from helpers.h & .cpp, it creates 
+										 // name conflict problems to #include "helpers.h"
+    // bools (as int 0 or 1, in int arrays) for error conditions are on the CAdapt_ItApp
     // instance and the array of URLs for the one or more _kbserver._tcp.local. services
     // that are discovered is there also. It is NAUGHTY to have two or more KBservers
     // running on the LAN at once, but we can't prevent someone from doing so - when that
     // happens, we'll need to let them choose which URL to connect to. The logic for all
-    // that will be in a function called from elsewhere, the function will make use of the
-    // data we sent to the CMainFrame class from here. (See MainFrm.h approx lines 262-7)
-//protected:
-public:  // changed to public when testing the no-event-handling solution (at least for onSDNotify)
-	void onSDNotify(wxCommandEvent& event);
-	void onSDHalting(wxCommandEvent& event);
+    // that will be in a function called DoServiceDiscovery() - an app member function.
+    // The function will make use of the data we send to the app's m_servDiscResults
+    // wxArrayString member.
+public:
+	void GetResults(); // BEW replacement for Beier's onSDNotify(). Our replacement is
+					   // called directly, not as a handler for an onSDNotify event
+	void onSDHalting(wxCommandEvent& event); // we do cleanup by handlers of this type
  
 private:
 	DECLARE_EVENT_TABLE();
-
-    //DECLARE_DYNAMIC_CLASS(CServiceDiscovery)
 };
 
 #endif // SERVICEDISCOVERY_h

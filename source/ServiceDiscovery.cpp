@@ -38,6 +38,24 @@
 /// the MyFrameMain class, modified and simplified in order to suit our own
 /// requirements - which do not require a GUI, nor spawning of a command
 /// process for automated connection to some other resource.
+/// ======================================================================
+/// *********** IMPORTANT ****************** for future maintainers **************
+/// It would be possible to remove this class from the service discovery module
+/// except for one thing. #include "Adapt_It.h" would need to be included in
+/// wxServDisc.cpp if the results are to be reported to a wxArrayString member
+/// of the CAdapt_ItApp class instance. Doing that creates a multitude of name
+/// conflicts with winsock.h and other Microsoft classes. To avoid this, the
+/// CServiceDiscovery serves to isolate the namespace for the service discovery
+/// code from clashes with the GUI support's namespace. So it must be retained.
+/// 
+/// Also, DO NOT return GetResults() to be an event handler (formerly it was
+/// onSDNotify() for a wxServDiscNOTIFY event posted within Post_Notify())
+/// because our mutex & condition solution uses .WaitTimeout() in he app's
+/// DoServiceDiscovery() function, and when waiting, main thread event handling
+/// is asleep - so if you tried to do things Beier's way, the essential
+/// address lookup etc would not get called until the main thread's sleep ended -
+/// which would be too late because DoServiceDiscovery() would have been exited
+/// before the service discovery results could be computed.
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -81,11 +99,7 @@
 #endif
 #include "Adapt_It.h"
 
-
-//IMPLEMENT_DYNAMIC_CLASS(CServiceDiscovery, wxEvtHandler)
-
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)
-	EVT_COMMAND (wxID_ANY, wxServDiscNOTIFY, CServiceDiscovery::onSDNotify)
 	EVT_COMMAND (wxID_ANY, wxServDiscHALTING, CServiceDiscovery::onSDHalting)
 END_EVENT_TABLE()
 
@@ -96,11 +110,14 @@ CServiceDiscovery::CServiceDiscovery()
 	wxUnusedVar(m_servicestring);
 }
 
-CServiceDiscovery::CServiceDiscovery(wxString servicestring, ServDisc* pParentClass)
+CServiceDiscovery::CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
+							wxString servicestring, ServDisc* pParentClass)
 {
-
 	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, passing in servicestring: %s, ptr to instance: %p"),
 		servicestring.c_str(), this);
+
+	m_pMutex = mutex;
+	m_pCondition = condition;
 
 	m_servicestring = servicestring; // service to be scanned for
 	m_pParent = pParentClass; // so we can delete this class from a handler in the parent class
@@ -111,13 +128,6 @@ CServiceDiscovery::CServiceDiscovery(wxString servicestring, ServDisc* pParentCl
 	m_hostname = _T("");
 	m_addr = _T("");
 	m_port = _T("");
-
-	// Initialize our flag which helps this process and the wxServDisc child process,
-	// to work out when to initiate the posting of wxServDiscHALTING to get cleanup done
-    m_bOnSDNotifyEnded = FALSE;
-	// Also need this one, because we must exit from onSDHalting() early only when
-	// onSDNotify() has started, but not yet ended
-	m_bOnSDNotifyStarted = FALSE;
 
 	// Initialize my reporting context (Use .Clear() rather than
 	// .Empty() because from one run to another we don't know if the
@@ -130,64 +140,52 @@ CServiceDiscovery::CServiceDiscovery(wxString servicestring, ServDisc* pParentCl
 	m_bArr_HostnameLookupFailed.Clear(); // ditto
 	m_bArr_IPaddrLookupFailed.Clear();   // ditto
 
-	// wxServDisc creator is: wxServDisc::wxServDisc(void* p, const wxString& what, int type)
-	// where p is pointer to the parent class & what is the service to scan for, its type
-	// is QTYPE_PTR
-	// ********************** NOTE ******************************
-	// The "parent" class for instantiating wxServDisc, is NOT the parent to
-	// this CServiceDiscovery class instance! The latter is the pParentClass
-	// passed in; but for wxServDisc, the p parameter is the destination object
-	// to which the pending custom event (ie. wxServDiskNOTIFY event) is to be
-	// sent -- and that is to this CServiceDiscovery instance. So pass in this
+    // wxServDisc creator is: wxServDisc::wxServDisc(void* p, const wxString& what, int
+    // type) where p is pointer to the parent class & what is the service to scan for, its
+    // type is QTYPE_PTR
 	m_pSD = new wxServDisc(this, m_servicestring, QTYPE_PTR);
 	wxUnusedVar(m_pSD);
 }
 
-// When wxServDisc discovers a service (one or more of them) that it is scanning
-// for, it reports its success here. Adapt It needs just the ip address(s), and
-// maybe the port, so that we can present URL(s) to the AI code which it can use
-// for automatic connection to the running KBserver. Ideally, only one KBserver
-// runs at any given time, but we have to allow for users being perverse and running
-// more than one. If they do, we'll have to let them make a choice of which URL to
-// connect to. onSDNotify is an amalgamation of a few separate functions from the
-// original sdwrap code. We don't have a gui, so all we need do is the minimal task
-// of looking up the ip address and port of each discovered _kbserver service, and
-// turning each such into an ip address from which we can construct the appropriate
-// URL (one or more) which we'll make available to the rest of Adapt It via a
-// wxArrayString plus some booleans for error states, on the CMainFrame class instance.
-// The logic for using the one or more URLs will be constructed externally to this
-// service discovery module. This service discovery module will just be instantiated,
-// scan for _kbserver._tcp.local. , lookup the ip addresses, deposit finished URL or
-// URLs in the wxArrayString in CMainFrame, and then kill itself. We'll probably
-// run it at the entry to any Adapt It project, and those projects which are supporting
-// KBserver syncing, will then make use of what has been returned, to make the connection
-// as simple and automatic for the user as possible. Therefore, onSDNotify will do
-// all this stuff, and at the end, kill the module, and it's parent classes.
-void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
+// This function in Beier's solution was an even handler called onSDNotify(), but in my
+// solution it is called directly and I've renamed it GetResults().
+// When wxServDisc discovers a service (one or more of them) that it is scanning for, it
+// reports its success here. Adapt It needs just the ip address(s), and maybe the port, so
+// that we can present URL(s) to the AI code which it can use for automatic connection to
+// the running KBserver. Ideally, only one KBserver runs at any given time, but we have to
+// allow for users being perverse and running more than one. If they do, we'll have to let
+// them make a choice of which URL to connect to. GetResulsts is an amalgamation of a few
+// separate functions from the original sdwrap code. We don't have a gui, so all we need do
+// is the minimal task of looking up the ip address and port of each discovered _kbserver
+// service, and turning each such into an ip address from which we can construct the
+// appropriate URL (one or more) which we'll make available to the rest of Adapt It via a
+// wxArrayString plus some booleans for error states, on the CAdapt_ItApp instance. The
+// logic for using the one or more URLs will be constructed externally to this service
+// discovery module - see DoServiceDiscovery().
+// This service discovery module will just be instantiated, scan for _kbserver._tcp.local.
+// lookup the ip addresses, deposit finished URL or URLs in the wxArrayString in the
+// CAdapt_ItApp::m_servDiscResults array, and then kill itself. We'll probably run it at
+// the entry to any Adapt It project, and those projects which are supporting KBserver
+// syncing, will then make use of what has been returned, to make the connection as simple
+// and automatic for the user as possible. Therefore, GetResults() will do all this stuff,
+// and at the end, kill the module, and it's parent classes.
+void CServiceDiscovery::GetResults()
 {
-
-	//if (event.GetEventObject() == m_pSD)
-	// BEW 31Dec15 changed to a benign test, trying no-event-handling solution
-	// (m_pSD was set in post_notify() as tweaked by me, so point at the wxServDisc instance)
-	wxUnusedVar(event);
 	if (m_pSD != NULL)
 	{
-		m_bOnSDNotifyEnded = FALSE;
-		m_bOnSDNotifyStarted = TRUE;
-
 		m_hostname.Empty();
 		m_addr.Empty();
 		m_port.Empty();
 		size_t entry_count = 0;
 		int timeout;
-		// How will the rest of Adapt It find out if there was no _kbserver service
-		// discovered? That is, nobody has got one running on the LAN yet.
-		// Answer: m_pFrame->m_urlsArr will be empty, and m_pFrame->m_bArr_ScanFoundNoKBserver
-		// will also be empty. The wxServDisc module doesn't post a wxServDiscNotify event,
-		// as far as I know, if no service is discovered, so we can't rely on this
-		// handler being called if what we want to know is that no KBserver is currently
-		// running. Each explicit attempt to run this service discovery module will start
-		// by clearing the results arrays on the CFrameInstance.
+        // How will the rest of Adapt It find out if there was no _kbserver service
+        // discovered? That is, nobody has got one running on the LAN yet. Answer:
+        // m_pFrame->m_urlsArr will be empty, and m_pFrame->m_bArr_ScanFoundNoKBserver will
+        // also be empty. The wxServDisc module doesn't post a wxServDiscNotify event, as
+        // far as I know, if no service is discovered, so we can't rely on this handler
+        // being called if what we want to know is that no KBserver is currently running.
+        // Each explicit attempt to run this service discovery module will start by
+        // clearing the results arrays on the CFrameInstance.
 
 		// length of query plus leading dot
 		size_t qlen = m_pSD->getQuery().Len() + 1;
@@ -326,11 +324,12 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 
 		} // end of loop: for (i = 0; i < entry_count; i++)
 
-		// Make the results accessible: store them as 1 or more strings in m_pApp->m_servDiscResults
+		// Make the results accessible: store them as 1 or more strings in 
+		// m_pApp->m_servDiscResults
 		// Generate the one (usually only one) or more lines, each corresponding to
 		// a discovery of a multicasting KBserver instance (not all lookups might
 		// have been error free, so some urls may be absent, and such lines may just
-		// contain error data
+		// end up containing error data)
 		wxString colon = _T(":");
 		wxString intStr;
 		for (i = 0; i < (size_t)entry_count; i++)
@@ -345,17 +344,46 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 			aLine += intStr;
 			m_pParent->m_pApp->m_servDiscResults.Add(aLine);
 		}
-
-		m_bOnSDNotifyEnded = TRUE; // module shutdown can now happen
-
-	} // end of TRUE block for test: if (event.GetEventObject() == m_pSD)
+	} // end of TRUE block for test: if (m_pSD != NULL)
 	else
 	{
-		// major error, so don't wipe out what an earlier run may have stored
-		// in the CMainFrame instance - program counter has never entered here
-		;
-	} // end of else block for test: if (event.GetEventObject() == m_pSD)
-	
+		// major error, but the program counter has never entered here, so
+		// just log it if it happens
+		m_pParent->m_pApp->LogUserAction(_T("GetResults():unexpected error: ptr to wxServDisc instance,m_pSD, is NULL"));
+	}
+
+	// App's DoServiceDiscovery() function can exit from WaitTimeout(), awakening main
+	// thread and it's event handling etc, so do Signal() to make this happen
+	wxLogDebug(_T("At end of CServiceDiscovery::GetResults() m_pMutex  =  %p"), m_pMutex);
+	wxMutexLocker locker(*m_pMutex); // make sure it is locked
+	bool bIsOK = locker.IsOk(); // check the locker object successfully acquired the lock
+	wxCondError condError = m_pCondition->Signal(); // tell main thread to awaken, at WaitTimeout(3500)
+													// in DoServiceDiscovery() function
+#if defined(_DEBUG)
+	wxString cond0 = _T("wxCOND_NO_ERROR");
+	wxString cond1 = _T("wxCOND_INVALID");
+	wxString cond2 = _T("wxCOND_TIMEOUT");
+	wxString cond3 = _T("wxCOND_MISC_ERROR");
+	wxString myError = _T("");
+	if (condError == wxCOND_NO_ERROR)
+	{
+		myError = cond0;
+	}
+	else if (condError == wxCOND_INVALID)
+	{
+		myError = cond1;
+	}
+	else if (condError == wxCOND_TIMEOUT)
+	{
+		myError = cond2;
+	}
+	else if (condError == wxCOND_INVALID)
+	{
+		myError = cond3;
+	}
+	wxLogDebug(_T("ServiceDiscovery::GetResults() error condition for Signal() call: %s   locker.IsOk() returns %s"), 
+		myError.c_str(), bIsOK ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
+#endif
 	//  Post a custom wxServDiscHALTING event here, to get rid of my parent classes
 	{
     wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
@@ -367,52 +395,31 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& event)
 #else
     wxQueueEvent(this, event.Clone());
 #endif
-    wxLogDebug(_T("BEW: onSDNotify, block finished. Now have posted event wxServDiscHALTING."));
+    wxLogDebug(_T("BEW: GetResults(), block finished. Now have posted event wxServDiscHALTING."));
 	}
 
-	wxLogDebug(wxT("BEW: A KBserver was found. onSDNotify() is exiting right now"));
+	wxLogDebug(wxT("BEW: A KBserver was found. GetResults() is exiting right now"));
 }
 
-// BEW Getting the module shut down in the two circumstances we need, is a can of worms.
-// (a) after one or more KBserver instances running have been discovered (onServDiscNotify()
-// gets called, and we can put shut-down code in the end of that handler - but I may need
-// to improve on it some more)
-// (b) when no KBserver instance is runnning (I use an onServDiscHalting() handler of my
-// own to get ~wxServDisc() destructor called, but that's all it can do safely).
+// BEW Getting the module shut down in the two circumstances we need:
+// (a) after one or more KBserver instances running have been discovered -- GetResults()
+// is called, and we can put shut-down code in the end of that handler - we post an
+// event to say we are halting service discovery -- event is wxServDiscHALTING
+// (b) when no KBserver instance is runnning (I let a WaitTimeout() do it's job and
+// the main thread wakes up, tests and finds no results, etc).
 //
-// In the (b) case, my CServiceDiscovery instance, and my ServDisc instance, live on.
-// So I've resorted to a hack, using a m_bWxServDiscIsRunning boolean, set to FALSE
-// when no KBserver was discovered, at end of the ...Halting() handler,
-// and the OnIdle() handler in frame window, to get the latter two classes clobbered.
-//
-// SDWrap embedded the wxServDisc instance in the app, and so when the app got shut down,
-// the lack of well-designed shutdown code didn't matter, as everything got blown away.
-// But for me, ServDisc needs to exist only for a single try at finding a KBserver instance,
-// and then die forever - or until explicitly instantiated again (which currently,
-// requires a relaunch of AI)
+// Beier's SDWrap embedded the wxServDisc instance in the app, and so when the app got shut
+// down, the lack of well-designed shutdown code didn't matter, as everything got blown
+// away. But for me, ServDisc needs to exist only for a single try at finding a KBserver
+// instance, and then die forever - or until explicitly instantiated again; so I've
+// encapsulated it all within a DoServiceDiscovery() function, an app member function
 void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 {
 	wxUnusedVar(event);
 
 	// If wxServDisc at process end has posted this wxServDiscHALTING event, then
-	// it's almost certain that the onSDNotify() handler has not yet finished its
-	// work (it's on a different thread to that of wxServDisc), and so we check
-	// the flag m_bOnSDNotifyEnded. It the latter is not yet TRUE, then we must allow
-	// onSDNotify() to complete before we initiate module shutdown, so test here.
-	// If there was no running KBserver's service to discover, then of course 
-	// onSDNotify() would not get called - in that circumstance we DON'T want to
-	// exit onSDHalting() here early, as there will not be any other wxServDiscHALTING
-	// event posted, and without the test of m_bOnSDNotifyStarted the posting of
-	// subsequent HALTING events would not happen, and a lot of memory would leak at
-	// app shutdown
-	if (m_bOnSDNotifyStarted && !m_bOnSDNotifyEnded)
-	{
-		// Return without doing anything here. onSDNotify() will, after it sets the
-		// flag true, post another wxServDiscHALTING event to its class instance,
-		// and then the cleanup code further below will be done
-		wxLogDebug(_T("onSDHalting(): RETURNING EARLY because onSDNofify() is not yet finished."));
-		return;
-	}
+	// it's almost certain that the GetResults() function has not yet finished its
+	// work (it's on a different thread to that of wxServDisc).
 
 	// BEW made this handler, for shutting down the module when no KBserver
 	// service was discovered, and for when one was discovered and post_notify()
@@ -425,7 +432,7 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	delete m_pSD; // must have this, it gets ~wxServDisc() destructor called
 
 	m_bWxServDiscIsRunning = FALSE;
-	wxLogDebug(_T("In CServiceDiscovery:onSDHalting(): ~wxServDisc() destructor called, m_bWxServDiscIsRunning set FALSE"));
+	wxLogDebug(_T("Starting CServiceDiscovery:onSDHalting(): m_bWxServDiscIsRunning initialized to FALSE"));
 
     // It's not necessary to clear the following, the destructor would do it,
     // but no harm in it
@@ -436,7 +443,7 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	m_bArr_HostnameLookupFailed.Clear();
 	m_bArr_IPaddrLookupFailed.Clear();
 
-    // BEW: Post a custom serviceDiscoveryHALTING event here, for the parent class to
+    // BEW: Post the custom wxServDiscHALTING event here, for the parent class to
     // supply the handler needed for destroying this CServiceDiscovery instance
 	wxCommandEvent upevent(wxServDiscHALTING, wxID_ANY);
 	upevent.SetEventObject(this); // set sender

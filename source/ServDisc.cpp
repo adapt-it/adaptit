@@ -105,15 +105,19 @@ void ServDisc::onServDiscHalting(wxCommandEvent& event)
 }
 
 
-// Do our service discovery work here; we don't pause our thread, so we'll not use TestDestroy()
+// Do our service discovery work here; when the boolean m_bServDiscCanExit goes TRUE,
+// then TestDestroy() will return TRUE and this thread can exit
 void* ServDisc::Entry()
 {
 	m_pApp->m_servDiscResults.Clear(); // clear the array where we'll deposit results
 
 	// Commence the service discovery
-	m_pServiceDisc = new CServiceDiscovery(m_serviceStr, this);
+	m_pServiceDisc = new CServiceDiscovery(m_pMutex, m_pCondition, m_serviceStr, this);
 	wxUnusedVar(m_pServiceDisc); // prevent compiler warning
 
+    // Service discovery happens at a deeper level within the above call, so we don't want
+    // this thread to exit now, but to wait until the discovery is done and results are
+    // stored, so sleep here until TextDestroy() returns TRUE
 	while (!TestDestroy())
 	{
 		wxMilliSleep(100); // check TestDestroy every 1/10 of a second
@@ -139,39 +143,10 @@ void* ServDisc::Entry()
 }
 
 // We can't call Delete() from here, or we'll crash the app. We'll use the event handling
-// mechanism, with a wxServDiscHALTING event instead; and TestDestroy()
+// mechanism, with a wxServDiscHALTING event instead; and TestDestroy() - see above
 void ServDisc::OnExit()
 {
-	wxLogDebug(_T("ServDisc::OnExit() called. [ It has nothing to do except acquire the lock and call Signal() ]"));
-	wxLogDebug(_T("ServDisc::OnExit() m_pMutex  =  %p"), m_pMutex);
-	wxMutexLocker locker(*m_pMutex);
-	bool bIsOK = locker.IsOk();
-	wxCondError condError = m_pCondition->Signal();
-#if defined(_DEBUG)
-	wxString cond0 = _T("wxCOND_NO_ERROR");
-	wxString cond1 = _T("wxCOND_INVALID");
-	wxString cond2 = _T("wxCOND_TIMEOUT");
-	wxString cond3 = _T("wxCOND_MISC_ERROR");
-	wxString myError = _T("");
-	if (condError == wxCOND_NO_ERROR)
-	{
-		myError = cond0;
-	}
-	else if (condError == wxCOND_INVALID)
-	{
-		myError = cond1;
-	}
-	else if (condError == wxCOND_TIMEOUT)
-	{
-		myError = cond2;
-	}
-	else if (condError == wxCOND_INVALID)
-	{
-		myError = cond3;
-	}
-	wxLogDebug(_T("ServDisc::OnExit() error condition for Signal() call: %s   locker.IsOk() returns %s"), 
-		myError.c_str(), bIsOK ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
-#endif
+	wxLogDebug(_T("ServDisc::OnExit() called. [ It has nothing to do ]"));
 }
 
 bool ServDisc::TestDestroy()

@@ -43,8 +43,7 @@ public:
 	ServDisc(
 		wxMutex* mutex,
 		wxCondition* condition,
-		wxThreadKind = wxTHREAD_DETACHED); // detached is default, but we'll pass in wxTHREAD_JOINABLE
-												// when we instantiate within DoServiceDiscovery
+		wxThreadKind = wxTHREAD_DETACHED);
 	virtual ~ServDisc();
 
 	wxString           m_serviceStr; // service to be scanned for
@@ -59,16 +58,16 @@ public:
 	virtual void  OnExit();
 
 	// This must be defined to have our work content - this is where thread execution
-	// begins. Our thread will be of the joinable type (wxTHREAD_JOINABLE)
+	// begins. Our thread will be of the default type (wxTHREAD_DETACHED)
 	virtual void* Entry();
 	bool          TestDestroy(); // terminate when m_bServDiscCanExit goes TRUE
-
-protected:
-	void          onServDiscHalting(wxCommandEvent& event);
-
-private:
 	wxMutex*      m_pMutex;
 	wxCondition*  m_pCondition;
+
+protected:
+	void          onServDiscHalting(wxCommandEvent& event); // use for effecting cleanup
+
+private:
 	DECLARE_EVENT_TABLE();
 };
 

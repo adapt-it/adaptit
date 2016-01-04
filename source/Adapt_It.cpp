@@ -15333,7 +15333,18 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 		// solution would be to put the mutex and condition deeper in the service discovery
 		// code at place(s) where the results are generated but before event posting needs
 		// to happen in order to remove the module
-		SD_condition.WaitTimeout(4000); // allows the ServDisc thread to do its job, until Signal() get's called at its exit
+#if defined(_KBSERVER)
+		wxLogDebug(_T("DoServiceDiscovery(): WaitTimeout(4500) is called next"));
+#endif
+		SD_condition.WaitTimeout(4500); // allows the ServiceDiscovery object on the 
+					// ServDisc thread to do its job, until Signal() get's called at its exit
+					// 4.5 seconds of wait is conservative, 3.5 may be adequate; when no
+					// KBserver is running, we rely in the WaitTimeout() to return the lock
+					// to the DoServiceDiscovery() function, and awaken the main thread;
+					// when a KBserver is running, CServiceDiscovery::GetResults(), at its
+					// end, calls Signal() to awaken the main thread and get the results
+					// from m_servDiscResults wxString array - the results are typically
+					// ready within 2 seconds of entering the DoServiceDiscovery()function
 	}
 	else
 	{

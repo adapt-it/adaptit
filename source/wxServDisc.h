@@ -27,9 +27,6 @@
 
 #if defined(_KBSERVER) // whm 2Dec2015 added otherwise build breaks in Linux when _KBSERVER is not defined
 
-//namespace std {}
-//using namespace std;
-
 #include <wx/event.h>
 #include <wx/string.h>
 #include <wx/hashmap.h>
@@ -57,7 +54,6 @@ using namespace std;
 // BEW requires the next one
 #include <wx/dynarray.h>
 
-
 #else // proper UNIX
 
 typedef int SOCKET;       // under windows, SOCKET is unsigned
@@ -76,19 +72,16 @@ typedef int SOCKET;       // under windows, SOCKET is unsigned
 #include "mdnsd.h"
 
 // Forward declaration
-//class CServiceDiscovery;
-#include "ServiceDiscovery.h"
+class CServiceDiscovery;
 
 // make available custom notify event if getResults() would yield something new
 
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscNOTIFY, -1);
 DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
-//DECLARE_EVENT_TYPE(serviceDiscoveryHALTING, -1);
 #else
 wxDECLARE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
 wxDECLARE_EVENT(wxServDiscHALTING, wxCommandEvent);
-//wxDECLARE_EVENT(serviceDiscoveryHALTING, wxCommandEvent);
 #endif
 
 // resource name with ip addr and port number
@@ -112,6 +105,8 @@ public:
  
   /// Returns true if service discovery successfully started. If not, getErr() may contain a hint.
   bool isOK() const { return err.length() == 0; };
+
+  CServiceDiscovery* m_pSD; // BEW added
  
   // yeah well...
   std::vector<wxSDEntry> getResults() const;
@@ -122,18 +117,14 @@ public:
   // get error string
   const wxString& getErr() const { const wxString& ref = err; return ref; };
 
-  // onSDNotify() takes longer to complete than the service discovery thread, so we can't
+  // GetResults() takes longer to complete than the service discovery thread, so we can't
   // assume that initiating service discovery halting from the end of onSDNotify will
-  // allow clean leak elimination - the latter crashes. So I'm creating two booleans,
-  // each defaults to FALSE, and if onSDNotify() is called, both will be TRUE by the time
-  // onSDNotify finishes. Then, in the shutdown code in Entry(), we have a waiting loop which
-  // waits for a short interval and checks for the 2nd boolean TRUE, then it will know that
-  // module completion and leak elimination can happen, safely we hope... let's see...
+  // allow clean leak elimination - the latter crashes. So I'm using a mutex and condition
+  // approach to cause the main thread to sleep while the service discovery job is done
   // 
   // Beier, in ~wxServDisc() destructor, has GetThread()->Delete(). But his thread is not
-  // a joinable one, it's detached, and as far as I can determine, and despite the wx
-  // documentation saying otherwise, Delete() doesn't stop the wxServDisc's thread from
-  // running and so it goes on until timeout happens and then cleanup. Because of this,
+  // a joinable one, it's detached, and as far as I can determine, and its reentrant. 
+  // Because of this,
   // it can be running long after everything else has done their job and been cleaned up,
   // so it must not rely on classes above it being in existence when it nears its end.
   // The following flag is defaulted to FALSE, and if a KBserver is found, it is handled
@@ -149,8 +140,7 @@ public:
   // the thread then destroys itself. wxServDisc::Entry() needs to retain the event posting
   // code, because when no KBserver is running on the LAN, then the only place the event
   // posting that gets the calling classes cleaned up is at the end of wxServDisc::Entry()
-  bool m_bSdNotifyStarted;
-
+  bool m_bGetResultsStarted; // was m_bOnSdNotifyStarted
 
 private:
   SOCKET mSock;

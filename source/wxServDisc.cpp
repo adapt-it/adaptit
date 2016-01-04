@@ -37,36 +37,20 @@
 // TestDestroy() was used as recommended in the wx documention for determining when
 // wxServDisc is to be terminated, doing so would destroy the code resources that the
 // running onSDNotify() handler is using to do its job, and crash the app. So our approach
-// is to have both the onSDNOTIFY() handler, and the wx::ServDisc::Entry() function, when
+// is to have both the GetResults() handler, and the wx::ServDisc::Entry() function, when
 // each is done, post a custom event which I have called wxServDiscHALTING, to the parent
-// CServiceDiscovery class instance. If that instance receives that event while the boolean
-// m_bOnSDNotifyEnded is FALSE, the onSDHALTING() handler returns immediately without doing
-// anything. But if the boolean is TRUE (and it is set TRUE only at the end of onSDNotify's
-// job having been completed), then the handler continues to do the code for shutting down
-// wxServDisc. It also posts a further wxServDiscHALTING event to the caller, which is my
-// ServDisc thread - and there the handler for the halt can delete the CServiceDiscovery
-// instance. And that handler then also posts a further wxServDiscHALTING event to
-// ServDisc's caller, which is the app instance, and the app's handler for that event can
-// then delete the ServDisc instance. That's how we get cleanup done. To make sure
-// processes don't end early and trigger self deletion leading to a crash, we have to put a
-// timeout loop in ServDisc, (6 seconds) so that everything that needs to be done can be
-// done in the approx 3 seconds it normally takes, and so we rely on these posted
-// wxServDiscHALTING events for cleanup, rather than job completion from within a thread
-// and the thread returning (void*)NULL to get itself cleaned up.
-// (Semaphores are the device normally used for this kind of process, but that's another
-// learning curve for me, which I prefer to avoid for now.)
+// CServiceDiscovery class instance. It's handler in turn posts a further wxServDiscHALTING
+// event to the caller, which is my ServDisc thread - and there the handler for the halt
+// can delete the CServiceDiscovery instance. And that handler then also posts a further
+// wxServDiscHALTING event to ServDisc's caller, which is the app instance, and the app's
+// handler for that event can then delete the ServDisc instance. That's how we get cleanup
+// done. Clearly, cleanup requires that the main thread must not be asleep, and since we
+// use a mutex and condition in our solution, the Signal() call which ends the main
+// thread's sleep must be given before the cleanup event handling does its work, and
+// *after* any results have been stored in the app's m_servDiscResults wxArrayString
 
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
-
-#ifndef WX_PRECOMP
-// Include your minimal set of headers here
-//#include <wx/arrstr.h>
-//#include <wx/docview.h>
-//#include "SourcePhrase.h" // needed for definition of SPList, which MainFrm.h uses
-//#include "MainFrm.h"
-#endif
-
 
 #if defined(_KBSERVER) // whm 2Dec2015 added otherwise build breaks in Linux when _KBSERVER is not defined
 
@@ -82,17 +66,13 @@
 // only used by VC++
 #ifdef WIN32
 
-
 #pragma comment(lib, "Ws2_32.lib")
-//#include <winsock2.h> // moved here from wxServDisc.h, otherwise get name clashes
-//#include <ws2tcpip.h> // ditto
 
 #endif
 
 #include "wxServDisc.h"
 #include "ServDisc.h"
 #include "ServiceDiscovery.h"
-//#include "mdnsd.h"
 
 // Compatability defines
 #ifdef __APPLE__
@@ -104,11 +84,11 @@
 
 // define our new notify event! (BEW added the ...HALTING one)
 
-#if wxVERSION_NUMBER < 2900
-DEFINE_EVENT_TYPE(wxServDiscNOTIFY);
-#else
-wxDEFINE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
-#endif
+//#if wxVERSION_NUMBER < 2900
+//DEFINE_EVENT_TYPE(wxServDiscNOTIFY);
+//#else
+//wxDEFINE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
+//#endif
 
 #if wxVERSION_NUMBER < 2900
 DEFINE_EVENT_TYPE(wxServDiscHALTING);
@@ -247,12 +227,12 @@ wxThread::ExitCode wxServDisc::Entry()
   // that will initiate the cleanup and shutdown, and if Entry() then tried to do it
   // here, the posting would be to a NULL pointer, and the app crash. So we must skip
   // in that case
-  wxLogDebug(_T("wxServDisc::Entry(): m_bSdNotifyStarted is %s "),
-	  m_bSdNotifyStarted ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
+  wxLogDebug(_T("wxServDisc::Entry(): m_bGetResultsStarted is %s "),
+	  m_bGetResultsStarted ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
 
-  if (!m_bSdNotifyStarted)
+  if (!m_bGetResultsStarted)
   {
-	  // No KBserver was discovered, so onSDNotify() will not have been called, so
+	  // No KBserver was discovered, so GetResults() will not have been called, so
 	  // we need to initiate the cleanup of the owning classes from here
 	  
 	  // BEW: Post a custom serviceDiscoveryHALTING event here, for the parent class to
@@ -565,7 +545,7 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
   // save our caller
   parent = p;
 
-  m_bSdNotifyStarted = FALSE; // Only onSDNotify() sets it to TRUE
+  m_bGetResultsStarted = FALSE; // Only onSDNotify() sets it to TRUE
 
   // save query
   query = what;
@@ -596,8 +576,9 @@ wxServDisc::~wxServDisc()
   if(GetThread() && GetThread()->IsRunning())
     GetThread()->Delete(); // blocks, this makes TestDestroy() return true and cleans up the thread
 
-  wxLogDebug(wxT("wxServDisc %p: scanthread deleted, wxServDisc destroyed, hostname was '%s', lifetime was %ld"), this, query.c_str(), mWallClock.Time());
-  wxLogDebug(wxT("Finished call of ~wxServDisc()"));
+  wxLogDebug(wxT("In ~wxServDisc() wxServDisc %p: scanthread deleted, wxServDisc destroyed, hostname was '%s', lifetime was %ld"),
+	  this, query.c_str(), mWallClock.Time());
+  wxLogDebug(wxT("End of ~wxServDisc() Finished call of ~wxServDisc()"));
 }
 
 std::vector<wxSDEntry> wxServDisc::getResults() const
@@ -618,19 +599,19 @@ size_t wxServDisc::getResultCount() const
 
 void wxServDisc::post_notify()
 {
-	// BEW Tell the running wxServDisc thread that onSDNotify() was invoked, so that
-	// wxServDisc won't itself send a halting event to the CServiceDiscovery instance
-	// after the latter's  pointer to it has become NULL
-	m_bSdNotifyStarted = TRUE;
-	wxLogDebug(_T("m_pSD->m_bSdNotifyStarted SET to TRUE. Doing nonEvent approach.")); // interested in the time this log is displayed
-
+	// BEW Tell the running wxServDisc thread that GetResults() was invoked
+	m_bGetResultsStarted = TRUE;
+	wxLogDebug(_T("m_pSD->m_bGetResultsStarted SET to TRUE. Doing nonEvent approach.")); // interested 
+																	// in the time this log is displayed
 	// BEW - the nonEvent approach follows...
 	if (parent)
 	{
 		((CServiceDiscovery*)parent)->m_pSD = this;
 
-		wxCommandEvent dummy;
-		((CServiceDiscovery*)parent)->onSDNotify(dummy);
+		//wxCommandEvent dummy;
+		//((CServiceDiscovery*)parent)->onSDNotify(dummy);
+		
+		((CServiceDiscovery*)parent)->GetResults();
 	}
 
   // Beier's code follows
