@@ -84,7 +84,6 @@
 #include <vector>
 #define _WINSOCKAPI_ // keeps winsock.h from being included in <Windows.h>, it's here just in case
 #define WIN32_LEAN_AND_MEAN // does the same job as above, likewise here just in case
-#include "ServDisc.h"
 #include "wxServDisc.h"
 #include "ServiceDiscovery.h"
 
@@ -450,11 +449,11 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	upevent.SetEventObject(this); // set sender
 
 #if wxVERSION_NUMBER < 2900
-	wxPostEvent((ServDisc*)m_pParent, upevent);
+	wxPostEvent((CAdapt_ItApp*)m_pParent, upevent);
 #else
-	wxQueueEvent((ServDisc*)m_pParent, upevent.Clone());
+	wxQueueEvent((CAdapt_ItApp*)m_pParent, upevent.Clone());
 #endif
-	wxLogDebug(_T("[ from CServiceDiscovery:onSDHalting() ] AFTER posting wxServDiscHALTING event, this = %p, m_pParent = %p"), 
+	wxLogDebug(_T("[ from CServiceDiscovery:onSDHalting() ] AFTER posting wxServDiscHALTING event, this = %p, m_pParent (the app) = %p"), 
 			this, m_pParent);
 }
 

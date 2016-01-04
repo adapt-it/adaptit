@@ -15285,11 +15285,6 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	// to the solution's classes, to access any of the classes to perform actions such as
 	// deletions, thread destruction, etc
 	
-	// I can't get wxTHREAD_JOINABLE to work. It says it's joinable when I test with IsDetached()
-	// but the m_isDetached value of the m_internal pointer is ALWAYS true, no matter what
-	// I try. So try deliberately making it detached - yep, did so, and got this solution
-	// to work
-	
 	// The wxMutext to use in conjunction with SD_condition
 	wxMutex       SD_mutex;
 	// wxCondition is needed so that within DoServiceDiscovery() we can Wait() 
@@ -15302,11 +15297,10 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	wxLogDebug(_T("DoServiceDiscovery(): addr of SD_mutex  =  %p"), &SD_mutex);
 #endif
 
-	// ServDisc internally will acquire the lock, using wxMutexLocker::lock(), and the
-	// main thread will Wait() for the SD_condition to be Signal()-ed, which then allows
-	// DoServiceDiscovery() to awake, and be automatically given the lock, so it can then
-	// access the service discovery results
-	//m_pServDisc = new ServDisc(&SD_mutex, &SD_condition, wxTHREAD_DETACHED); // default is a self-destroying detached thread
+    // ServDisc internally will acquire the lock, using wxMutexLocker to create a locker()
+    // object, and the main thread will wait (I'm using WaitTimeout(3500)) for the
+    // SD_condition to be Signal()-ed, which then allows DoServiceDiscovery() to awake, and
+    // be automatically given the lock, so it can then access the service discovery results
 
 	// BEW 4Jan16, 4th param is the parent class for CServiceDiscovery instance, the app class
 	m_pServDisc = new CServiceDiscovery(&SD_mutex, &SD_condition, serviceStr, this); 

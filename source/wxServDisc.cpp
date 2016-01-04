@@ -71,7 +71,6 @@
 #endif
 
 #include "wxServDisc.h"
-#include "ServDisc.h"
 #include "ServiceDiscovery.h"
 
 // Compatability defines
