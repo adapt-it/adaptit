@@ -86,16 +86,19 @@ public:
 	wxString m_addr;
 	wxString m_port;
 
-	wxArrayString m_sd_servicenames; // for servicenames, as discovered
+	wxArrayString m_sd_servicenames;   // for servicenames, as discovered (always "kbserver")
+	wxArrayString m_uniqueIpAddresses; // for each 192.168.n.m  (we store unique ip addresses)
 	// The follow int arrays are for storing booleans, 1 for TRUE, 0 for FALSE
 	// in parallel with the URLs (or empty strings) in m_urlsArr
 	wxArrayInt m_bArr_ScanFoundNoKBserver;
 	wxArrayInt m_bArr_HostnameLookupFailed;
 	wxArrayInt m_bArr_IPaddrLookupFailed;
+	wxArrayInt m_bArr_DuplicateIPaddr;
 	// Flags are 1 (true), 0 (false), -1 (undefined)
-	// put out constructed lines here: each is  url:0:0:0 (the failure flags are
-	// each zero if a url is constructed), or if no KBserver was discovered:  :1:-1:-1,
-	// or if some other error,  :0:1:-1 or :0:0:-1
+	// Put our constructed lines in m_sd_lines: each is  url:0:0:0:0 (the failure flags are
+	// each zero if a url is constructed and it is unique), or if no KBserver was discovered:
+	// :1:-1:-1:-1, or a duplicate discovered, url:0:0:0:1, or if some other error, :0:1:-1:-1 
+	// or :0:0:-1:-1
 	wxArrayString m_sd_lines;
 	wxArrayString m_urlsArr;
 	// The mutex and condition were created within CAdapt_ItApp::DoServiceDiscovery()
