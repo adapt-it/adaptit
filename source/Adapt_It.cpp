@@ -15202,6 +15202,93 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	return TRUE;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// param       result          ->  a line of form "<url>:int:int:int:int  where each int
+///                                 may be 0 (false), 1 (true), -1 (undefined), and <url>
+///                                 is either an empty string, or of form https://192.168.n.m
+///             url             <-  reference to a url wxString of form https://192.168.n.m
+///             intNoKBserver   <-  0 if a kbserver multicast was discovered, 1 if none
+///                                 was discovered, -1 if a value was not set (this one will
+///                                 always be 0 or 1, never -1)
+///             intHostnameLookupFailed <-  0 for a successful lookup (hostname will
+///                                         be "kbserver", we ignore other services), 1 if
+///                                         the lookup failed, -1 if no value set
+///             intIpAddrLookupFailed   <-  0 for a successful lookup (a string of form
+///                                         192.168.n.m), 1 if the lookup failed, -1 if
+///                                         no value was set
+///             intDuplicateIpAddr      <-  0 if the discovered KBserver has not been
+///                                         discovered earlier in this attempt, 1 for 
+///                                         the same running KBserver identified a second
+///                                         time (timeouts should prevent this, but it has
+///                                         happened once in my testing), -1 if unset
+/// \remarks
+/// The service discovery encapsulated in the DoServiceDiscovery() function, looks for a
+/// service with name _kbserver._tcp.local. and finds nothing if no KBserver is running
+/// on the LAN at the time the function is called. If one is discovered, lookups are done
+/// to determine the hostname, port and ip address. We don't bother to return the port (
+/// KBserver will use port 443), but just collect the error results if lookups failed, or
+/// if they did not fail, construct the url for connecting to the server. The results are
+/// reported to the app's m_servDiscResults wxArrayString, in one or more lines of form
+/// <url string>:flag:flag:flag:flag, where the flag values are integer, and may be 0 (false)
+/// 1 (true) or -1 (undefined). The meaning of each flag is as in the parameters in top to
+/// bottom order in the signature. If no KBserver is running on the LAN, then m_servDiscResults
+/// will be an empty array. Extraction of the discovered results is done in a loop using this
+/// ExtractServiceDiscoveryResult() function. It is possible for the one KBserver to be discovered
+/// more than once (but this is unlikely). This function returns the results in a form useful
+/// for determining what to do with them as far as subsequent actions in the GUI for KBserver
+/// support. It's also possible that no running KBserver exists, in which case url will be empty                              
+void CAdapt_ItApp::ExtractServiceDiscoveryResult(wxString& result, wxString& url, int& intNoKBserver,
+				int& intHostnameLookupFailed, int& intIpAddrLookupFailed, int& intDuplicateIpAddr)
+{
+	wxString reversed = MakeReverse(result);
+	wxString colon = _T(":");
+	wxString numStr;
+	wxString left = wxEmptyString;
+	int offset = wxNOT_FOUND;
+
+	offset = reversed.Find(colon);
+	wxASSERT(offset != wxNOT_FOUND);
+	left = reversed.Left(offset);
+	left = MakeReverse(left); // it might have been  "1-"
+	intDuplicateIpAddr = wxAtoi(left);
+	reversed = reversed.Mid(offset + 1); // get past the colon just matched, intIpAddrLookupFailed is next
+
+	offset = reversed.Find(colon);
+	wxASSERT(offset != wxNOT_FOUND);
+	left = reversed.Left(offset);
+	left = MakeReverse(left); // it might have been  "1-"
+	intIpAddrLookupFailed = wxAtoi(left);
+	reversed = reversed.Mid(offset + 1); // get past the colon just matched, intHostnameLookupFailed is next
+
+	offset = reversed.Find(colon);
+	wxASSERT(offset != wxNOT_FOUND);
+	left = reversed.Left(offset);
+	left = MakeReverse(left); // it might have been  "1-"
+	intHostnameLookupFailed = wxAtoi(left);
+	reversed = reversed.Mid(offset + 1); // get past the colon just matched, intNoKBserver is next
+
+	offset = reversed.Find(colon);
+	wxASSERT(offset != wxNOT_FOUND);
+	left = reversed.Left(offset);
+	left = MakeReverse(left); // it might have been  "1-"
+	intNoKBserver = wxAtoi(left);
+	reversed = reversed.Mid(offset + 1); // get past the colon just matched, url is next
+
+	// At this point, only the reversed url is left; but it may have been an empty string,
+	// in which case reversed would now be empty
+	if (reversed.IsEmpty())
+	{
+		url = wxEmptyString;
+	}
+	else
+	{
+		url = MakeReverse(reversed);
+		wxASSERT(url.Len() >= 18);
+	}
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if chosenURL contains a URL string to be used for authenticating to
 ///             a discovered running KBserver; FALSE if there was a problem or choice by
@@ -15254,19 +15341,23 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 /// 
 /// Because of the variety of possible states, the following enum will be used internally
 /// to help with implementing suitable protocols: The enum is defined in Adapt_It.h at
-/// about line 752
+/// about line 763
 /// enum ServDiscDetail
 /// {
-///   SD_Okay,
-///   SD_ThreadCreateFailed,
-///   SD_ThreadRunFailed,
-///   SD_NoKBserverFound,
-///   SD_LookupHostnameFailed,
-///   SD_LookupIPaddrFailed,
-///   SD_UserCancelled,
-///   SD_UrlDiffers_UserAcceptedIt,
-///   SD_UrlDiffers_UserRejectedIt,
-///   SD_MultipleUrls_UserRejectedAll
+///	SD_NoResultsYet,
+///	SD_ThreadCreateFailed,
+///	SD_ThreadRunFailed,
+///	SD_NoKBserverFound,
+///	SD_LookupHostnameFailed,
+///	SD_LookupIPaddrFailed,
+///	SD_UserCancelled,
+///	SD_FirstTime,
+///	SD_SameUrl,
+///	SD_UrlDiffers_UserAcceptedIt,
+///	SD_UrlDiffers_UserRejectedIt,
+///	SD_MultipleUrls_UserCancelled,
+///	SD_MultipleUrls_UserChoseEarlierOne,
+///	SD_MultipleUrls_UserChoseDifferentOne
 /// };
 ////////////////////////////////////////////////////////////////////////////////////////
 
@@ -15279,7 +15370,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	// and the int values are 0, 1, -1 being false, true, undefined
 
 	chosenURL = _T(""); // initialize, we return the chosen url using this parameter
-	result = SD_Okay; // initialize to a 'success' result
+	result = SD_NoResultsYet; // initialize to a 'success' result
 
 	// Assign to the app's member pointer, m_pServDisc; we can then pass this pointer in
 	// to the solution's classes, to access any of the classes to perform actions such as
@@ -15338,10 +15429,19 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	}
 	else
 	{
+		// m_servDiscResults is an empty string. Typically, this happening means that the
+		// user forgot to get a KBserver running on the LAN before DoServiceDiscovery() was
+		// entered. Tell the user - either the LAN is not operational, or no KBserver is running
 		wxLogDebug(_T("m_servDiscResults[] The service discovery results array is empty."));
+		chosenURL = wxEmptyString;
+		result = SD_NoKBserverFound;
+		wxString error_msg = _(
+		"Failed to discover a KBserver service on the local area network.\nProbably you forgot to set the KBserver running,\nor the local area network is not currently working.\nFix the problem, then try again.");
+        wxMessageBox(error_msg,_("KBserver Not Found"), wxICON_WARNING | wxOK);
+		return FALSE;
 	}
 	// When Wait() returns, we will have reacquired the lock automatically, so release it 
-	SD_mutex.Unlock();
+	//SD_mutex.Unlock(); // unnecessary, it will go out of scope
 	return TRUE;
 }
 
@@ -21916,7 +22016,7 @@ int ii = 1;
 	// pointer needs to again be set to NULL.
 	wxString curURL = m_strKbServerURL;
 	wxString chosenURL = _T("");
-	enum ServDiscDetail returnedValue = SD_Okay;
+	enum ServDiscDetail returnedValue = SD_NoResultsYet;
 	bool bOK = DoServiceDiscovery(curURL, chosenURL, returnedValue);
 	if (bOK)
 	{
@@ -21932,18 +22032,6 @@ int ii = 1;
 	}
 
 
-	/* OLD CODE BELOW
-	//wxString serviceStr = _T("_kbserver._tcp.local.");
-	//m_pServDisc = new ServDisc(m_workFolderPath, serviceStr);
-    // There are a few kb of memory leaks, at least in the Windows version of this service
-    // discovery module. There may be leaks in Linux too, I don't know, as Code::Blocks did
-    // not report any, but that might just be my ignorance of how to get them displayed.
-    // Anyhow, our solution for Windows will be to do the work in a small console app run
-    // via wxExecute() which can be exited once the module completes, so that leaked memory
-    // is blown away too. The Linux and Mac OSX versions can just use the embedded solution
-    // 'as is' until we find a need to do otherwise..
-	//serviceStr.Clear(); // don't leak it
-	*/
 #endif // _KBSERVER
 
 

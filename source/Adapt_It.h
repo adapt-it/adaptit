@@ -762,16 +762,20 @@ enum SendBackTextType
 /// states, various user action possibilities
 enum ServDiscDetail
 {
-	SD_Okay,
+	SD_NoResultsYet,
 	SD_ThreadCreateFailed,
 	SD_ThreadRunFailed,
 	SD_NoKBserverFound,
 	SD_LookupHostnameFailed,
 	SD_LookupIPaddrFailed,
 	SD_UserCancelled,
+	SD_FirstTime,
+	SD_SameUrl,
 	SD_UrlDiffers_UserAcceptedIt,
 	SD_UrlDiffers_UserRejectedIt,
-	SD_MultipleUrls_UserRejectedAll
+	SD_MultipleUrls_UserCancelled,
+	SD_MultipleUrls_UserChoseEarlierOne,
+	SD_MultipleUrls_UserChoseDifferentOne
 };
 #endif
 
@@ -2979,6 +2983,8 @@ public:
 	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
 	// BEW added next, 26Nov15
 	bool	  DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result);
+	void	  ExtractServiceDiscoveryResult(wxString& result, wxString& url, int& intNoKBserver,
+				int& intHostnameLookupFailed, int& intIpAddrLookupFailed, int& intDuplicateIpAddr);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
 	// BEW deprecated 31Jan13
