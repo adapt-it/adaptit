@@ -11038,5 +11038,21 @@ wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase)
 	}
 }
 
+void ShortWait(int tenthsOfSeconds)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CWaitDlg waitDlg(pApp->GetMainFrame(),TRUE); // the constructor with TRUE has no title in titlebar
+	waitDlg.m_nWaitMsgNum = 24;	// 24 is "Connected to KBserver successfully"
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below.
+	int timeout = tenthsOfSeconds * 100;
+	while (timeout > 0)
+	{
+		wxMilliSleep(100);
+		timeout -= 100;
+	}
+}
 
 

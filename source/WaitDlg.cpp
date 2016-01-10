@@ -79,6 +79,37 @@ CWaitDlg::CWaitDlg(wxWindow* parent) // dialog constructor
 	wxASSERT(m_pApp != NULL);
 }
 
+CWaitDlg::CWaitDlg(wxWindow* parent, bool bNoTitle) // dialog constructor
+	: wxDialog(parent, -1, _T(""),
+	wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+	, m_nWaitMsgNum(0)
+{
+	wxUnusedVar(bNoTitle);
+	pWaitDlgSizer = WaitDlgFunc(this, TRUE, TRUE);
+	// This dialog function is generated in wxDesigner, and defines the controls and sizers
+	// for the dialog. The first parameter is the parent which should normally be "this".
+	// The second and third parameters should both be TRUE to utilize the sizers and create the right
+	// size dialog.
+	// The declaration is: WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+	pStatic = (wxStaticText*)FindWindowById(IDC_PLEASE_WAIT);
+	// Use wxGenericValidator to transfer WaitMsg string to static text control
+	//pStatic->SetValidator(wxGenericValidator(&WaitMsg)); // whm removed 21Nov11
+
+	// whm 24Aug11 Note: The following could be used to put an animated
+	// busy image, such as the throbber.gif used in a wxWidgets sample.
+	// However, it is a bit difficult to get it to actually animate under
+	// highly intemsive cpu activities which is usually the case with
+	// situations needing a wait dialog. It could be done with a timer
+	// utilizing calls to ::wxSafeYield() at the pre-determined time
+	// ticks.
+	//pAnimatedPanel = (wxPanel*)FindWindowById(ID_PANEL_ANIMATION);
+	//wxASSERT(pAnimatedPanel != NULL);
+
+	m_pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxASSERT(m_pApp != NULL);
+}
+
 // event handler table
 BEGIN_EVENT_TABLE(CWaitDlg, wxDialog)
 	EVT_INIT_DIALOG(CWaitDlg::InitDialog)
@@ -180,6 +211,9 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			break;
 		case 23:  // BEW 4Sep15 this is used in DoGlobalRestoreOfSaveToKB() within view's OnCheckKBSave()
 			WaitMsg = _("This may take a while. Identical changes are being done in all the documents...");
+			break;
+		case 24: // feedback to user that the running KBserver was connected to successfully; use in a ShortWait(int numSecs) function with a timeout loop in it
+			WaitMsg = _("Connected to KBserver successfully");
 			break;
 		default: // whm 28Aug11 Note: keep as a default message
 			WaitMsg = _("Please wait. This may take a while...");
