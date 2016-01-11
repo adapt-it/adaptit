@@ -120,9 +120,9 @@ am_adaptit_OBJECTS = 1035.$(OBJEXT) AIPrintout.$(OBJEXT) \
 	RefString.$(OBJEXT) RemoveSomeTgtEntries.$(OBJEXT) \
 	RefStringMetadata.$(OBJEXT) Retranslation.$(OBJEXT) \
 	RetranslationDlg.$(OBJEXT) scrollingdialog.$(OBJEXT) \
-	scrollingwizard.$(OBJEXT) ServDisc.$(OBJEXT) \
-	ServiceDiscovery.$(OBJEXT) SetDelay.$(OBJEXT) \
-	SetEncodingDlg.$(OBJEXT) SetupEditorCollaboration.$(OBJEXT) \
+	scrollingwizard.$(OBJEXT) ServiceDiscovery.$(OBJEXT) \
+	SetDelay.$(OBJEXT) SetEncodingDlg.$(OBJEXT) \
+	SetupEditorCollaboration.$(OBJEXT) \
 	SilConverterSelectDlg.$(OBJEXT) SourcePhrase.$(OBJEXT) \
 	SplitDialog.$(OBJEXT) Stack.$(OBJEXT) \
 	StartWorkingWizard.$(OBJEXT) StatusBar.$(OBJEXT) \
@@ -498,7 +498,7 @@ adaptit_SOURCES = \
 	../../source/RemoveSomeTgtEntries.cpp \
 	../../source/RefStringMetadata.cpp ../../source/Retranslation.cpp ../../source/RetranslationDlg.cpp \
 	../../source/scrollingdialog.cpp ../../source/scrollingwizard.cpp \
-	../../source/ServDisc.cpp ../../source/ServiceDiscovery.cpp \
+	../../source/ServiceDiscovery.cpp \
 	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SetupEditorCollaboration.cpp \
 	../../source/SilConverterSelectDlg.cpp \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
@@ -714,7 +714,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RemoveSomeTgtEntries.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Retranslation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RetranslationDlg.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ServDisc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ServiceDiscovery.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SetDelay.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SetEncodingDlg.Po@am__quote@
@@ -2404,20 +2403,6 @@ scrollingwizard.obj: ../../source/scrollingwizard.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/scrollingwizard.cpp' object='scrollingwizard.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o scrollingwizard.obj `if test -f '../../source/scrollingwizard.cpp'; then $(CYGPATH_W) '../../source/scrollingwizard.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/scrollingwizard.cpp'; fi`
-
-ServDisc.o: ../../source/ServDisc.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ServDisc.o -MD -MP -MF $(DEPDIR)/ServDisc.Tpo -c -o ServDisc.o `test -f '../../source/ServDisc.cpp' || echo '$(srcdir)/'`../../source/ServDisc.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ServDisc.Tpo $(DEPDIR)/ServDisc.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ServDisc.cpp' object='ServDisc.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ServDisc.o `test -f '../../source/ServDisc.cpp' || echo '$(srcdir)/'`../../source/ServDisc.cpp
-
-ServDisc.obj: ../../source/ServDisc.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ServDisc.obj -MD -MP -MF $(DEPDIR)/ServDisc.Tpo -c -o ServDisc.obj `if test -f '../../source/ServDisc.cpp'; then $(CYGPATH_W) '../../source/ServDisc.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ServDisc.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ServDisc.Tpo $(DEPDIR)/ServDisc.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ServDisc.cpp' object='ServDisc.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ServDisc.obj `if test -f '../../source/ServDisc.cpp'; then $(CYGPATH_W) '../../source/ServDisc.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ServDisc.cpp'; fi`
 
 ServiceDiscovery.o: ../../source/ServiceDiscovery.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ServiceDiscovery.o -MD -MP -MF $(DEPDIR)/ServiceDiscovery.Tpo -c -o ServiceDiscovery.o `test -f '../../source/ServiceDiscovery.cpp' || echo '$(srcdir)/'`../../source/ServiceDiscovery.cpp

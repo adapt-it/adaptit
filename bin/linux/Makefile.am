@@ -124,7 +124,7 @@ adaptit_SOURCES = \
 	../../source/RemoveSomeTgtEntries.cpp \
 	../../source/RefStringMetadata.cpp ../../source/Retranslation.cpp ../../source/RetranslationDlg.cpp \
 	../../source/scrollingdialog.cpp ../../source/scrollingwizard.cpp \
-	../../source/ServDisc.cpp ../../source/ServiceDiscovery.cpp \
+	../../source/ServiceDiscovery.cpp \
 	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SetupEditorCollaboration.cpp \
 	../../source/SilConverterSelectDlg.cpp \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
