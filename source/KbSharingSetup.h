@@ -65,6 +65,11 @@ public:
 	wxString m_saveOldUsernameStr;
 	wxString m_savePassword;
 
+	void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
+		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag);
+	void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
+		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag);
+
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);

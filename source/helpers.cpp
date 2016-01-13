@@ -11055,4 +11055,20 @@ void ShortWait(int tenthsOfSeconds)
 	}
 }
 
+void ShortWaitSharingOff(int tenthsOfSeconds)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CWaitDlg waitDlg(pApp->GetMainFrame(),TRUE); // the constructor with TRUE has no title in titlebar
+	waitDlg.m_nWaitMsgNum = 25;	// 25 is "Knowledge base sharing is OFF"
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below.
+	int timeout = tenthsOfSeconds * 100;
+	while (timeout > 0)
+	{
+		wxMilliSleep(100);
+		timeout -= 100;
+	}
+}
 

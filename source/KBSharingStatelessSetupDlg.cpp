@@ -102,15 +102,17 @@ KBSharingStatelessSetupDlg::~KBSharingStatelessSetupDlg() // destructor
 
 void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
+	// If service discovery succeeded, a valid URL should now be in the app member
+	// m_strKbServerURL
 	if (m_bUserIsAuthenticating)
 	{
-	m_saveOldURLStr = m_pApp->m_strKbServerURL; // save existing value (could be empty)
-	m_saveOldUsernameStr = m_pApp->m_strUserID; // ditto
-	m_savePassword = m_pApp->GetMainFrame()->GetKBSvrPassword(); // might be empty
+		m_saveOldURLStr = m_pApp->m_strKbServerURL; // save value (could be empty)
+		m_saveOldUsernameStr = m_pApp->m_strUserID; // ditto
+		m_savePassword = m_pApp->GetMainFrame()->GetKBSvrPassword(); // might be empty
 	}
 	else
 	{
-		m_saveOldURLStr.Empty();
+		m_saveOldURLStr = m_pApp->m_strKbServerURL; // save value (could be empty)
 		m_saveOldUsernameStr.Empty();
 		m_savePassword.Empty();
 	}
@@ -164,7 +166,7 @@ void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	else
 	{
 		wxString emptyStr = _T("");
-		m_pURLCtrl->ChangeValue(emptyStr);
+		m_pURLCtrl->ChangeValue(m_saveOldURLStr);
 		m_pUsernameCtrl->ChangeValue(emptyStr);
 
 #if defined(_DEBUG) && defined(AUTHENTICATE_AS_BRUCE) // see top of Adapt_It.h
@@ -204,7 +206,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 	}
 	else
 	{
-	m_strStatelessURL = strURL;
+		m_strStatelessURL = strURL;
 	}
 #if defined(_DEBUG)
 		wxLogDebug(_T("KBSharingStatelessSetupDlg.cpp strURL = %s"), strURL.c_str());
@@ -284,7 +286,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 				// Username is unknown to the KBserver. Setup of sharing won't be turned
 				// on until a valid username is supplied
 				m_pApp->LogUserAction(_T("Trying to authenticate, but user unknown to server; in OnOK() of KBSharingStatelessSetupDlg.cpp"));
-				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nOr, perhaps more likely, you simply forgot to start the KBserver running before you supplied the needed password.\nYou are unable to turn on sharing until the problem is fixed.\nPerhaps ask your server administrator to help you. Click Cancel to continue working.\nYou can use the Edit menu item Change Username... to set a different one.");
+				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server. Or the URL is not correct.\nOr, perhaps you simply forgot to start the KBserver running before you supplied the needed password.\nYou are unable to turn on sharing until the problem is fixed.\nPerhaps ask your server administrator to help you. Click Cancel to continue working.\nYou can use the Edit menu item Change Username... to set a different one.");
 				msg = msg.Format(msg, m_saveOldUsernameStr.c_str());
 				wxMessageBox(msg, _("Unknown username"), wxICON_WARNING | wxOK);
 				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
@@ -326,7 +328,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			{
 				// Access to the Manager GUI is denied to this user
 				m_pApp->LogUserAction(_T("Stateless KBserver user is unknown; in OnOK() of KBSharingStatelessSetupDlg.cpp"));
-				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nOr, perhaps more likely, you simply forgot to start the KBserver running.\nYou are not permitted to access the Knowledge Base Sharing Manager dialog.\nAsk your KBserver administrator to do it for you. Click Cancel to continue working.");
+				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server. Or the URL is not correct.\nOr, perhaps you simply forgot to start the KBserver running.\nYou are not permitted to access the Knowledge Base Sharing Manager dialog.\nAsk your KBserver administrator to do it for you. Click Cancel to continue working.");
 				msg = msg.Format(msg, m_strStatelessUsername.c_str());
 				wxMessageBox(msg, _("Unknown username"), wxICON_WARNING | wxOK);
 				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet

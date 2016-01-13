@@ -388,8 +388,11 @@ void CServiceDiscovery::GetResults()
 	wxLogDebug(_T("At end of CServiceDiscovery::GetResults() m_pMutex  =  %p"), m_pMutex);
 	wxMutexLocker locker(*m_pMutex); // make sure it is locked
 	bool bIsOK = locker.IsOk(); // check the locker object successfully acquired the lock
+	wxUnusedVar(bIsOK);
 	wxCondError condError = m_pCondition->Signal(); // tell main thread to awaken, at WaitTimeout(3500)
 													// in DoServiceDiscovery() function
+	wxUnusedVar(condError); // it's used in the debug build, for logging
+
 #if defined(_DEBUG)
 	wxString cond0 = _T("wxCOND_NO_ERROR");
 	wxString cond1 = _T("wxCOND_INVALID");

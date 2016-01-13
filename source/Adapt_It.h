@@ -81,6 +81,7 @@ class TranslationsList; // the CTargetUnit's list of CRefString instances
 #if defined(_KBSERVER)
 
 class CServiceDiscovery; // BEW 4Jan16
+class CServDisc_KBserversDlg; // BEW 12Jan16
 
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);

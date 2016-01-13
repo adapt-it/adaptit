@@ -215,6 +215,9 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		case 24: // feedback to user that the running KBserver was connected to successfully; use in a ShortWait(int numSecs) function with a timeout loop in it
 			WaitMsg = _("Connected to KBserver successfully");
 			break;
+		case 25: // feedback to the user that there is now no connection to a KBserver for KB sharing
+			WaitMsg = _("Knowledge base sharing is OFF");
+			break;
 		default: // whm 28Aug11 Note: keep as a default message
 			WaitMsg = _("Please wait. This may take a while...");
 	}

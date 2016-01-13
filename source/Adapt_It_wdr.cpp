@@ -11093,6 +11093,55 @@ wxSizer *ConflictResolutionActionFunc( wxWindow *parent, bool call_fit, bool set
     return item0;
 }
 
+wxSizer *ServDisc_KBserversDlg( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_TOPMSG, _("The list box displays the URLs (Universal Resource Locators) of the currently running KBservers.  You can connect to a KBserver using only one of these URLs. The KBserver at the chosen URL must contain the knowledge base defined by the source and target text language codes for your translation project.  If you try to connect using the wrong URL, the connection will not succeed and you will see an error mesage.  Nothing bad will happen if your attempt fails. Just try again, and choose a different URL.  Remember, each URL is the address of a different KBserver, and each KBserver will have its own password.  You will need to know the correct password associated with the URL you try to connect with."), wxDefaultPosition, wxSize(80,120), wxTE_MULTILINE|wxTE_READONLY );
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_MAIN, _("Click the URL of the  KBserver you wish to connect to, then click OK"), wxDefaultPosition, wxSize(560,-1), wxTE_READONLY );
+    item3->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
+    item1->Add( item3, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxString *strs4 = (wxString*) NULL;
+    wxListBox *item4 = new wxListBox( parent, ID_LISTBOX_URLS, wxDefaultPosition, wxSize(600,108), 0, strs4, wxLB_SINGLE );
+    item1->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Click OK to cause the KBserver located at the selected URL be the one you connect to.    If you click Cancel, it cancels your whole attempt to connect to any KBserver. But you can then setup your project for KB sharing a second time, and again try to connect to the correct KBserver."), wxDefaultPosition, wxSize(80,70), wxTE_MULTILINE|wxTE_READONLY );
+    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+
+    item6->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item7 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->SetDefault();
+    item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item6->Add( 160, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item8 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item6->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
