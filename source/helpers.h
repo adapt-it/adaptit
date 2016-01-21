@@ -530,7 +530,22 @@ bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString passwo
 					wxString srcLangCode, wxString tgtLangCode, int kbType);
 CBString MakeDigestPassword(const wxString& user, const wxString& password);
 
-#endif
+void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
+		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag,
+		bool bJustRestore = FALSE);
+
+void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
+		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag);
+
+// The following function encapsulates KBserver service discovery, authentication to a running
+// KBserver (error if one is not running of course), checks for valid language codes, username,
+// and calls to GetKBServer[0] and [1] as required, with error checking and error messages as
+// required, and failure to setup sharing if there was error - with user notification visually.
+// The bUserAuthenticating is usually TRUE, but must be input as FALSE when the function is
+// used for the "anybody with sufficient permission level" login to the KB Sharing Manager 
+bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout);
+
+#endif // _KBSERVER
 
 // Support for ZWSP insertion in any AI wxTextCtrl (e.g. see OnKeyUp() in ComposeBarEditBox.cpp)
 void OnCtrlShiftSpacebar(wxTextCtrl* pTextCtrl);

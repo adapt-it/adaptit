@@ -82,6 +82,10 @@
 #include "ReadOnlyProtection.h"
 #include "ProjectPage.h"
 
+#if defined(_KBSERVER)
+#include "KbServer.h"
+#include "KBSharingStatelessSetupDlg.h"
+#endif
 // globals
 
 /// This global is defined in Adapt_It.cpp.
@@ -1302,176 +1306,13 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					_T(""), wxICON_INFORMATION | wxOK);
 				}
 			}
+
 #if defined(_KBSERVER)
-            // BEW 28Sep12, this seems to be the appropriate place, if this project has
-            // been designated as one for support of KB sharing, to put the
-            // SetupForKBServer() calls to get two instances running, and basic
-            // credentials, and the lastsync datetime into the appropriate holding
-            // variables defined in the CAdapt_ItApp class
-			if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
-			{
-				// Ask for the password --- we no longer use a "credentials.txt"
-				// temporary file. Returns an empty string if nothing is typed
-				CMainFrame* pFrame = pApp->GetMainFrame();
-				wxString pwd = pFrame->GetKBSvrPasswordFromUser(); // user types pwd in dialog
-				// there will be a beep if no password was typed
-				if (!pwd.IsEmpty())
-				{
-                    // BEW 21May13 added the CheckLanguageCodes() call and the if-else
-                    // block, to ensure valid codes and if not, or if user cancelled, then
-                    // turn off KB Sharing
-					bool bUserCancelled = FALSE;
 
-                    // BEW added 28May13, check the m_strUserID and m_strUsername strings
-                    // are setup up, if not, open the dialog to get them set up -- the
-                    // dialog cannot be closed except by providing non-empty strings for
-                    // the two text controls in it. Setting the strings once from any
-                    // project, sets them for all projects forever unless the user
-                    // deliberately opens the dialog using the command in the View menu.
-                    // (The strings are not set up if one is empty)
-					// If the user elects to hit the Cancel button, then we must unset
-					// this project from being a KB Sharing one, and tell the user so
-					bool bUserDidNotCancel = CheckUsername();
-					if (!bUserDidNotCancel)
-					{
-						// He or she cancelled. So remove KB sharing for this project
-						pApp->LogUserAction(_T("User cancelled from CheckUsername() in ProjectPage.cpp"));
-						pApp->ReleaseKBServer(1); // the adapting one
-						pApp->ReleaseKBServer(2); // the glossing one
-						pApp->m_bIsKBServerProject = FALSE;
-						pApp->m_bIsGlossingKBServerProject = FALSE;
-						wxMessageBox(_(
-"This project previously shared one or both of its knowledge bases.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
-						_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
-					}
-					else
-					{
-						// A m_strUserID and m_strUsername should be in place now due to
-						// the above call of CheckUsername, so go ahead with next steps:
-						// a) to check the user is authorized to use the KBserver, and
-						// b) to check for valid language codes
-						pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
-													   // ready for SetupForKBServer() below to use it
-
-						// test for an authorized user; since we are coming via the
-						// wizard, not from the SetupForKBServer() dialog, the username
-						// and url will come from the project config file. The password
-						// has been obtained from the dialog called above. The following
-						// call will set up a temporary instance of the adapting KbServer
-						// in order to call it's LookupUser() member, to check that this
-						// user has an entry in the entry table; and delete the temporary
-						// instance before returning
-						bool bUserIsValid = CheckForValidUsernameForKbServer(pApp->m_strKbServerURL, pApp->m_strUserID, pwd);
-						if (!bUserIsValid)
-						{
-							// Access is denied to this user, so turn off the setting
-							// which says that this project is one for sharing, and tell
-							// the user
-							pApp->LogUserAction(_T("KBserver user is invalid; in OnWizardPageChanging() in ProjectPage.cpp"));
-							pApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
-							pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
-							pApp->m_bIsKBServerProject = FALSE;
-							pApp->m_bIsGlossingKBServerProject = FALSE;
-							wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nOr, perhaps more likely, you simply forgot to start the KBserver running.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your KBserver administrator to add your username to the server's list.");
-							msg = msg.Format(msg, pApp->m_strUserID.c_str());
-							wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
-						}
-						else
-						{
-							// The username is valid for this KBserver, so check language codes
-							bool bDidFirstOK = TRUE;
-							bool bDidSecondOK = TRUE;
-							bool bFirstBlockFailure = FALSE;
-							if (pApp->m_bIsKBServerProject)
-							{
-								bDidFirstOK = CheckLanguageCodes(TRUE, TRUE, FALSE, FALSE, bUserCancelled);
-								if (!bDidFirstOK || bUserCancelled)
-								{
-									bFirstBlockFailure = TRUE;
-
-									// We must assume the src/tgt codes are wrong or incomplete, or that the
-									// user has changed his mind about KB Sharing being on - so turn it off
-									pApp->LogUserAction(_T("Wrong src/tgt codes, or user cancelled in CheckLanguageCodes() in ProjectPage::OnWizardPageChanging()"));
-									wxString title = _("Adaptations language code check failed");
-									wxString msg = _("Either the source or target language code is wrong, incomplete or absent; or you chose to Cancel.\nSharing has been turned off. First setup correct language codes, then try again.");
-									wxMessageBox(msg,title,wxICON_WARNING | wxOK);
-									pApp->ReleaseKBServer(1); // the adapting one
-									pApp->ReleaseKBServer(2); // the glossing one
-									pApp->m_bIsKBServerProject = FALSE;
-									pApp->m_bIsGlossingKBServerProject = FALSE;
-								}
-							}
-							// Now, check for the glossing kb code, if that kb is to be shared
-							// and we haven't already clobbered the setup in the above block
-							bUserCancelled = FALSE; // re-initialize
-							if (pApp->m_bIsGlossingKBServerProject && !bFirstBlockFailure)
-							{
-								bDidSecondOK = CheckLanguageCodes(TRUE, FALSE, TRUE, FALSE, bUserCancelled);
-								if (!bDidSecondOK || bUserCancelled)
-								{
-									// We must assume the src/gloss codes are wrong or incomplete, or that the
-									// user has changed his mind about KB Sharing being on - so turn it off
-									pApp->LogUserAction(_T("Wrong src/glossing codes, or user cancelled in CheckLanguageCodes() in KbSharingSetup::OnOK()"));
-									wxString title = _("Glosses language code check failed");
-									wxString msg = _("Either the source or glossing language code is wrong, incomplete or absent; or you chose to Cancel.\nSharing has been turned off. First setup correct language codes, then try again.");
-									wxMessageBox(msg,title,wxICON_WARNING | wxOK);
-									pApp->ReleaseKBServer(1); // the adapting one
-									pApp->ReleaseKBServer(2); // the glossing one
-									pApp->m_bIsKBServerProject = FALSE;
-									pApp->m_bIsGlossingKBServerProject = FALSE;
-								}
-							}
-							else
-							{
-								// All's well, go ahead
-								pApp->LogUserAction(_T("SetupForKBServer(1 or 2 or both) called OnWizardPageChanging() in ProjectPage.cpp"));
-								// instantiate an adapting and/or a glossing KbServer class instance
-								if (pApp->m_bIsKBServerProject)
-								{
-									if (!pApp->SetupForKBServer(1)) // also enables it by default
-									{
-										// an error message will have been shown, so just log the failure
-										pApp->LogUserAction(_T("SetupForKBServer(1) failed in OnWizardPageChanging() in ProjectPage.cpp)"));
-										pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
-										// Tell the user
-										wxString title = _("Setup of adaptations sharing failed");
-										wxString msg = _("The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
-										wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-									}
-								}
-								if (pApp->m_bIsGlossingKBServerProject)
-								{
-									if (!pApp->SetupForKBServer(2)) // also enables it by default
-									{
-										// an error message will have been shown, so just log the failure
-										pApp->LogUserAction(_T("SetupForKBServer(2) failed in OnWizardPageChanging() in ProjectPage.cpp)"));
-										pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
-										// Tell the user
-										wxString title = _("Setup of glosses sharing failed");
-										wxString msg = _("The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
-										wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-									}
-								}
-							}
-						} // end of else block for test: if (!bUserIsValid)
-					} // end of else block for test: if (!bUserDidNotCancel)
-				}
-				else
-				{
-					wxString msg = _("No password was typed. The knowledge base sharing setup for this project is now cancelled.\nUse the command on the Advanced menu to setup again if you wish; but you must first find out your correct password.\nAsk your KBserver administrator.");
-					// We have no option in this circumstance but to turn off any previous kb sharing setup; 
-					// which setup types exist could be adapting, or glossing, or both; so we just turn both off.
-					// The Release calls, if a server is setup, will call DeleteKbserver() which will ensure
-					// the pointer to the relevant KBserver type is set to NULL. If already NULL, the Release...
-					// calls do nothing.
-					pApp->ReleaseKBServer(1); 
-					pApp->ReleaseKBServer(2);
-					pApp->m_bIsKBServerProject = FALSE;
-					pApp->m_bIsGlossingKBServerProject = FALSE;
-					wxMessageBox(msg, _("No Password Typed"), wxICON_WARNING | wxOK);
-					pApp->LogUserAction(_T("OnWizardPageChanging(): no KBserver password typed"));
-				}
-			}
+			// Do service discovery of KBserver, authentication, checking, and KB Sharing
+			// setup. Second param, bool bUserAuthenticating, is default TRUE
+			bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout);
+			wxUnusedVar(bSuccess);
 #endif
 			// The pDocPage's InitDialog need to be called here just before going to it
 			// make sure the pDocPage is initialized to show the documents for the selected project
@@ -1479,6 +1320,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 			pDocPage->InitDialog(idevent);
 
 		} // end of else block (it's for entering an existing project)
+
         // whm added 12Jun11. Ensure the inputs and outputs directories are created.
         // SetupDirectories() normally takes care of this for a new project, but we also
         // want existing projects created before version 6 to have these directories too.

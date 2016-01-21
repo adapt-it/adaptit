@@ -20,6 +20,17 @@
 /// supplies needed resources for the Manager GUI, but makes no assumptions about whether
 /// or not any kb definitions are in place, and no assumptions about any projects being
 /// previously made sharing ones, or not.
+/// That is, this 'stateless' instantiation is what is used for authenticating within the
+/// AuthenticateCheckAndSetupKBSharing() function, which we use everywhere, ie. for user
+/// authentication, and for KB Sharing Manager authentication. The latter can be done by
+/// any username so long as it is a username the KBserver recognises and which has sufficient
+/// privileges. KBSharingStatelessSetupDlg uses an instance of GetKbServer[0] (an 'adaptations'
+/// one) and throws that instance away when authentication etc is done. It's the m_bStateless
+/// being TRUE that causes this to happen. However, the creator requires bUserAuthenticating
+/// be passed in, as TRUE or FALSE. FALSE is to be used when authenticating to the Manager.
+/// A further use of bUserAuthenticating = FALSE is to force saving of temporary values for
+/// certain parameters such as url, username, password and two other flags to be divorced from
+/// the same ones (on the app) for saving state for a user authentication, as described above.
 /// \derivation		The KBSharingStatelessSetupDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -86,8 +97,8 @@ KBSharingStatelessSetupDlg::KBSharingStatelessSetupDlg(wxWindow* parent, bool bU
 	// line 2630, within GetKBSvrPasswordFromUser()
 #endif
 	// This contructor doesn't make any attempt to link to any CKB instance, or to support
-	// only the hardware's current user; params are in t whichType (we use 1, for an adapting
-	// type even though type is internally irrelevant for the stateless one),
+	// only the hardware's current user; params are in the signature: whichType (we use 1, 
+	// for an adapting type even though type is internally irrelevant for the stateless one),
 	// and bool bStateless, which must be TRUE -- since KbServer class has the bool
 	// m_bStateless member also
 	m_pStatelessKbServer = new KbServer(1, TRUE);
@@ -277,9 +288,10 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
             // in the user table. If he isn't, he cannot authenticate and so is denied
             // access to the server and setup of sharing remains off until this is fixed
 
-			// The following call will set up a temporary instance of the adapting KbServer in
-			// order to call it's LookupUser() member, to check that this user has an entry in
-			// the entry table; and delete the temporary instance before returning
+            // The following call will set up a temporary instance of the adapting KbServer
+            // class instance in order to call it's LookupUser() member, to check that this
+            // user has an entry in the entry table; and delete the temporary instance
+            // before returning
 			bool bUserIsValid = CheckForValidUsernameForKbServer(strURL, m_saveOldUsernameStr, pwd);
 			if (!bUserIsValid)
 			{

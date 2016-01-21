@@ -5967,6 +5967,12 @@ wxString szIsGlossingKBServerProject = _T("IsGlossingKBServerProject");
 /// used server for knowledge base sharing within a project designated as one for sharing
 wxString szKbServerURL = _T("KbServerURL");
 
+/// The label for the value of the WaitTimeout(value, in thousandths of a second) used
+/// in DoServiceDiscovery() in order to guarantee that a constructed URL for a KBserver
+/// discovered running on the LAN if stored in m_servDiscResults array before the timeout
+/// expires
+wxString szKBserverTimeout = _T("KBserverTimeout(minimum: 3500 thousandths of a second)");
+
 /// The label for the project configuration file's line which stores the assigned username
 /// for the last used server for knowledge base sharing within a project designated as one
 /// for sharing. Because an email address is unique, we recommend the user's email address
@@ -15302,6 +15308,14 @@ void CAdapt_ItApp::ExtractServiceDiscoveryResult(wxString& result, wxString& url
 ///                               may not be the same as the curURL)
 /// \param      workFolderPath -> the path to the Adapt It Unicode Work folder (where the
 ///                               ServDiscResults.txt file resides)
+/// \param      nKBserverTimeout -> the 'wait timeout' value, in thousandths of a second, for
+///                               the awakening of the DoServiceDiscovery() function in order
+///                               to read what URL or URLs have been put in m_servDiscResults
+///                               wxArrayString - an app member (if the value is too low,
+///                               service discover won't find a URL ready for use and think
+///                               that there was no running KBserver on the LAN, when in fact
+///                               there may well have been; a 3500 value is minimal for safety
+///                               but I've had this be insufficient by 1/2 sec once)
 /// \remarks
 /// Our implementation of service discovery, cross platform, is based on the sdwrap/wxServDisc
 /// resources provided by Christian Beier, 2008. (See the wxServDisc.h header for more detail.)
@@ -15365,7 +15379,8 @@ void CAdapt_ItApp::ExtractServiceDiscoveryResult(wxString& result, wxString& url
 /// };
 ////////////////////////////////////////////////////////////////////////////////////////
 
-bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result)
+bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, 
+									  enum ServDiscDetail &result, int nKBserverTimeout)
 {
 	wxString serviceStr = _T("_kbserver._tcp.local.");
 
@@ -15407,15 +15422,27 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 
 	// BEW 4Jan16
 	wxLogDebug(_T("DoServiceDiscovery(): WaitTimeout(3500) is called next"));
-	SD_condition.WaitTimeout(3500); // allows the ServiceDiscovery object on the 
-				// ServDisc thread to do its job, until Signal() get's called at its exit
-				// 3.5 seconds of wait is conservative, 3.2 may be adequate; when no
+	// TODO - make the wait timeout value (in seconds) be a basic config file value that
+	// is grabbed in OnInit() when that config file is loaded, and use it here
+	SD_condition.WaitTimeout(nKBserverTimeout); // allows the ServiceDiscovery object on the 
+				// ServDisc thread to do its job, until Signal() get's called at its exit.
+				// At least 3.5 seconds of wait is necessary, 4 may be adequate; when no
 				// KBserver is running, we rely in the WaitTimeout() to return the lock
 				// to the DoServiceDiscovery() function, and awaken the main thread;
 				// when a KBserver is running, CServiceDiscovery::GetResults(), at its
 				// end, calls Signal() to awaken the main thread and get the results
 				// from m_servDiscResults wxString array - the results are typically
-				// ready within 3 seconds of entering the DoServiceDiscovery()function
+				// ready within 3 to 4 seconds of entering the DoServiceDiscovery()function.
+				// The value is parameterized, because some AI configurations may require
+				// a longer wait timeout, and so we store in the basic configuration file
+				// a value which we read from there in OnInit() and pass in to here. No
+				// gui support for changing the config file value for this parameter is
+				// built in. However, the user can edit the config file directly to use a
+				// larger value. (We also try two extra times, if there was no discovery,
+				// with a wait which is 2 seconds longer each time, before we declare the 
+				// LAN to actually have no running KBserver. (And when that is the case,
+				// we put up the authentication dialog anyway, as the user may want to
+				// connect to a web-based KBserver instance anyway.)
 
 	// When the Wait() is over, we can go on now to access the results, if any exist
 	serviceStr.Clear(); // so we don't leak its memory
@@ -15755,14 +15782,25 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	{
 		// m_servDiscResults is an empty string. Typically, this happening means that the
 		// user forgot to get a KBserver running on the LAN before DoServiceDiscovery() was
-		// entered. Tell the user - either the LAN is not operational, or no KBserver is running
+		// entered. The LAN might be down. Or possibly, the wait timeout for accessing
+		// the computed URL was set too close to the bone, and a little extra delay has
+		// occurred - enough for the timeout to expire before the URL gets put into the
+		// m_servDiscResults array - in which case the user needs to use a slightly
+		// bigger timeout value. Tell the user what the options are.
 		wxLogDebug(_T("m_servDiscResults[] The service discovery results array is empty."));
 		chosenURL = wxEmptyString;
 		result = SD_NoKBserverFound;
-		wxString error_msg = _(
-		"Failed to discover a KBserver service on the local area network.\nProbably you forgot to set the KBserver running,\nor the local area network is not currently working.\nFix the problem, then try again.");
-        wxMessageBox(error_msg,_("KBserver not found"), wxICON_WARNING | wxOK);
 		SD_mutex.Unlock();
+        // Our protocol here is that if there is no KBserver found on the LAN, that is not
+        // a 'real' error, but rather it is an indication that the user wants the
+        // Authenticate dialog to be opened so that he can connect to a KBserver wherever
+        // he knows one is running - typically, on the web somewhere. Or that he needs to
+        // get a LAN based KBserver running before proceeding. So give the needed feedback
+        // here via a message, and halt till OK button clicked
+		wxString error_msg = _(
+"No KBserver is running on the local area network.\nYou can instead type the URL of a KBserver on the web, after you click OK.\nOr while this message is showing, you can get a KBserver running on the local area network,\nthen click OK, and try to connect to that local KBserver.");
+        wxMessageBox(error_msg,_("A local KBserver is not running"), wxICON_WARNING | wxOK);
+
 		return FALSE;
 
 	} // end of ELSE block for test: if (!m_servDiscResults.IsEmpty())
@@ -15949,9 +15987,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
 	// wxMutex instantiations
 #if defined(_KBSERVER)
+	// Next two booleans are set to FALSE unilaterally (as initialization)only here. They
+	// get set to whatever the project config file has for the IsKBServerProject and
+	// IsGlossingKBServerProject config file lines (which are used to set m_bIsKBServerProject
+	// and m_bIsGlossingKBServerProject - but the latter too readily can be cleared to
+	// FALSE at various places), and we want two booleans which preserve the current project
+	// config file values for these booleans in all circumstances (at least until new values
+	// are in the config file), so that we can recover the config file values anytime we
+	// want - in particular in the OnProjectPageChanging() handler.
+	m_bIsKBServerProject_FromConfigFile = FALSE;
+	m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
+	m_KBserverTimeout = 3500; // minimum value of 3.5 seconds - basic config file can 
+							  // override with a larger value, by direct user edit only
 #endif
-
-
 
 	// initialize these collaboration variables, which are relevant to conflict resolution
 	m_bRetainPTorBEversion = FALSE;
@@ -30666,6 +30714,10 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szKbServerURL << tab << m_strKbServerURL;
 	pf->AddLine(data);
 
+	data.Empty();
+	data << szKBserverTimeout << tab << m_KBserverTimeout;
+	pf->AddLine(data);
+
 #endif
 
 	data.Empty();
@@ -31815,13 +31867,19 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 	nLastActiveSequNum = 0;		// mrh Oct12 -- this field is going west, so for now we ensure it's zero
 								//  unless changed
 
-	do
+	// Too much nesting of if ... else if ... else if .... etc; so handle the first ten
+	// lines in a separate loop. The compiler won't handle too much nesting - fails
+	// fatally. So a couple of loops will ease the problem, at the cost of 'fixing'
+	// the content of the first ten lines - but their order could be varied if we wish
+	int i;
+	for (i = 0; i < 10; i++)
 	{
 		data = pf->GetNextLine();
-
+/* deprecated, this is ancient - "NR Work" has not been used for "Unicode Work" for over a decade
 #ifdef _UNICODE
 		ChangeNRtoUnicode(data);
 #endif
+*/
 		GetValue(data, strValue, name);
 
 		if (name == szSourceLanguageName)
@@ -31866,12 +31924,34 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 			m_strUsername = strValue;
             if (m_strUsername.IsEmpty())  m_strUsername = NOOWNER;  // ditto
         }
+	}
+
+	do
+	{
+		data = pf->GetNextLine();
+		GetValue(data, strValue, name);
+
 #if defined (_KBSERVER)
 		// whm 30Oct13 moved the KbServerURL value handling here to the basic
 		// config file
-		else if (name == szKbServerURL)
+		if (name == szKbServerURL)
 		{
 			m_strKbServerURL = strValue;
+		}
+		else if (name == szKBserverTimeout)
+		{
+			// There is no GUI support for changing the value stored for this param, but
+			// the user is welcome to experiment and directly edit the basic config file
+			// to give it a larger value if the minimum of 3500 leads to occasional bogus
+			// failures to get the url due to an unexpected delay (but two tries are made 
+			// with an increase in the timeout of 2 seconds each time, before non-presence
+			// of a running KBserver on the LAN is assumed to be a fact)
+			num = wxAtoi(strValue);
+			if (num < 3500)
+			{
+				num = 3500;
+			}
+			m_KBserverTimeout = num;
 		}
 #endif
 		else if (name == szAdaptitPath)
@@ -34983,10 +35063,12 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			if (strValue == _T("1"))
 			{
 				m_bIsKBServerProject = TRUE;
+				m_bIsKBServerProject_FromConfigFile = TRUE; // this variable retains the value set
 			}
 			else
 			{
 				m_bIsKBServerProject = FALSE;
+				m_bIsKBServerProject_FromConfigFile = FALSE; // this variable retains the value set
 			}
 		}
 		else if (name == szIsGlossingKBServerProject)
@@ -34994,10 +35076,12 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			if (strValue == _T("1"))
 			{
 				m_bIsGlossingKBServerProject = TRUE;
+				m_bIsGlossingKBServerProject_FromConfigFile = TRUE; // this variable retains the value set
 			}
 			else
 			{
 				m_bIsGlossingKBServerProject = FALSE;
+				m_bIsGlossingKBServerProject_FromConfigFile = FALSE; // this variable retains the value set
 			}
 		}
 		// whm 30Oct13 moved the KbServerURL value handling to the basic config file

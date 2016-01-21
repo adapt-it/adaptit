@@ -38,37 +38,8 @@ public:
 
 	virtual ~KbSharingSetup(void); // destructor
 
-	// A public boolean member to specify whether stateless (ie. opened by anyone
-	// regardless of whether a project is open or whether it is one for kb sharing), or
-	// not (default is not to be stateless). The stateless instantiation if for use by
-	// the KB Sharing Manager - which needs to get a temporary instance of KbServer class
-	// open (just the adapting one will do) in order to get access to it's methods and the
-	// stateless storage - i.e. wxString stateless_username, etc. For normal adapting or
-	// glossing work, m_bStateless must be FALSE. KbServer class sets its value of
-	// m_bStateless from the one passed to it from here.
-	bool m_bStateless;
-
-	bool m_bOnEntry_AdaptationsKBserverRunning;
-	bool m_bOnEntry_GlossesKBserverRunning;
 	bool m_bSharingAdaptations;
 	bool m_bSharingGlosses;
-
-	// Next two are needed because the user can invoke this dialog on an existing setup
-	// not realizing it is already running, and so we need to be able to check for that
-	// and tell him all's well; and we also need to be able to check for when the user
-	// wants to alter what kbs are to be shared
-	bool	m_saveSharingAdaptationsFlag;
-	bool	m_saveSharingGlossesFlag;
-	// Store checkbox settings here
-	// Need the following to be able to test for changes to url or username
-	wxString m_saveOldURLStr;
-	wxString m_saveOldUsernameStr;
-	wxString m_savePassword;
-
-	void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
-		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag);
-	void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
-		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag);
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

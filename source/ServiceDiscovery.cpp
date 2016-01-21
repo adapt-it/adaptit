@@ -389,8 +389,10 @@ void CServiceDiscovery::GetResults()
 	wxMutexLocker locker(*m_pMutex); // make sure it is locked
 	bool bIsOK = locker.IsOk(); // check the locker object successfully acquired the lock
 	wxUnusedVar(bIsOK);
-	wxCondError condError = m_pCondition->Signal(); // tell main thread to awaken, at WaitTimeout(3500)
-													// in DoServiceDiscovery() function
+	wxCondError condError = m_pCondition->Signal(); // tell main thread to awaken, at WaitTimeout(5000)
+					// in DoServiceDiscovery() function -- I'll make the timeout a basic config
+					// file parameter I think, getting the url into m_servDiscResults can take
+					// four seconds or so, even on a laptop and speedy LAN
 	wxUnusedVar(condError); // it's used in the debug build, for logging
 
 #if defined(_DEBUG)
