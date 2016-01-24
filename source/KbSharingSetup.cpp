@@ -76,6 +76,8 @@ KbSharingSetup::KbSharingSetup(wxWindow* parent) // dialog constructor
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 	wxUnusedVar(bOK);
+
+	m_bServiceDiscWanted = TRUE; // initialize
  }
 
 KbSharingSetup::~KbSharingSetup() // destructor
@@ -87,6 +89,9 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pAdaptingCheckBox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHARE_MY_TGT_KB);
 	m_pGlossingCheckBox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHARE_MY_GLOSS_KB);
 	m_pSetupBtn = (wxButton*)FindWindowById(wxID_OK);
+	m_pRadioBoxHow = (wxRadioBox*)FindWindowById(ID_RADIOBOX_HOW);
+	m_nRadioBoxSelection = 0; // top button selected
+	m_pRadioBoxHow->SetSelection(m_nRadioBoxSelection);
 
     // If the project is currently a KB sharing project, then initialise to the current
     // values for which of the two KBs (or both) is being shared; otherwise, set the member
@@ -118,6 +123,8 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		m_pGlossingCheckBox->SetValue(FALSE); // unticked
 		m_bSharingGlosses = FALSE; // initialize
 	}
+
+	m_bServiceDiscWanted = m_pApp->m_bServiceDiscoveryWanted;
 }
 
 void KbSharingSetup::OnCheckBoxShareAdaptations(wxCommandEvent& WXUNUSED(event))
@@ -162,20 +169,29 @@ void KbSharingSetup::OnCheckBoxShareGlosses(wxCommandEvent& WXUNUSED(event))
 
 void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 {
-    bool bSuccess = AuthenticateCheckAndSetupKBSharing(m_pApp, m_pApp->m_KBserverTimeout);
+	int nRadioBoxSelection = m_pRadioBoxHow->GetSelection();
+	m_bServiceDiscWanted = nRadioBoxSelection == 0 ? TRUE : FALSE;
+    bool bSuccess = AuthenticateCheckAndSetupKBSharing(m_pApp, m_pApp->m_KBserverTimeout, m_bServiceDiscWanted);
+	// pass the final value back to the app,
+	m_pApp->m_bServiceDiscoveryWanted = TRUE; // Restore default value
 	wxUnusedVar(bSuccess);
 	myevent.Skip();
+	/* deprecated, I think AuthenticateCheckAndSetupKBSharing() will do it internally
 	if (!bSuccess)
 	{
 		ShortWaitSharingOff(35); //displays "Knowledge base sharing is OFF" for 3.5 seconds
 	}
+	*/
 }
 
 void KbSharingSetup::OnCancel(wxCommandEvent& myevent)
 {
+	// Cancelling from this dialog should leave the older setting unchanged. The way to
+	// remove the setup is now to untick both checkboxes, and then dismiss the dialog
 	myevent.Skip();
 }
 
+/* deprecated
 void KbSharingSetup::OnButtonRemoveSetup(wxCommandEvent& WXUNUSED(event))
 {
 	m_pApp->m_bIsKBServerProject = FALSE;
@@ -188,5 +204,6 @@ void KbSharingSetup::OnButtonRemoveSetup(wxCommandEvent& WXUNUSED(event))
 	// message about the empty top editctrl, etc
 	EndModal(wxID_OK);
 }
+*/
 
 #endif

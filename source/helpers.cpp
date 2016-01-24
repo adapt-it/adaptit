@@ -10964,13 +10964,20 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 // and calls to GetKBServer[0] and [1] as required, with error checking and error messages as
 // required, and failure to setup sharing if there was error - with user notification visually.
 // Use this function only when the user is authenticating. Authentication to the KB Sharing
-// Manager requires a different function (see below)
+// Manager requires a different function (see below). bServiceDiscoveryWanted is set or cleared
+// in the OnOK() handler of KbSharing Setup instance, where the options are the default - to
+// let service discovery search on the LAN for a KBserver, or the user knows a URL and elects
+// to type it in (if not shown from last-used stored value on basic config file). If he elects
+// to let discovery happen, KBSharingStatelessSetupDlg will hide the top multiline message in
+// the Authenticate dialog as it applies only when the user is doing a manual type in of the URL
 // Returns TRUE for success, FALSE is there was an error
-bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout)
+bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout, bool bServiceDiscoveryWanted)
 {
 	bool bUserAuthenticating = TRUE; // use this function only when the user is authenticating,
 									 // do not use if for authentication to the KB Sharing Manager
 	CMainFrame* pFrame = pApp->GetMainFrame();
+	// Make the bServiceDiscoveryWanted param accessible to KBSharingStatelessSetupDlg (the "Authenticate" dialog)
+	pApp->m_bServiceDiscoveryWanted = bServiceDiscoveryWanted;
 
 	// BEW 11Jan16, save these five, so we can restore them if some kind of
 	// failure happens
@@ -11015,6 +11022,18 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout
 			pApp->ReleaseKBServer(2); // the glossings one
 		}
 		return FALSE;
+	}
+
+	if (!bServiceDiscoveryWanted)
+	{
+		// The user wants to manually type the url -- possibly for a web-based KBserver
+
+
+
+// TODO  - code for this option
+
+
+		// return here
 	}
 
     // If an adapting or glossing (or both) KBserver is wanted, do service
@@ -11124,9 +11143,52 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout
 			// KBservers on the LAN, which would be too restrictive.
 			if (returnedValue == SD_NoKBserverFound)
 			{
-				bServiceDiscoverySucceeded = TRUE; // not really so, but it makes the logic below work
-				goto secondchance;
-			}
+				// Before we let the user do a manual connect, we want to eliminate the possibility
+				// that failure was due to a too-short wait timeout value; so we'll here do one or
+				// two extra calls of DoServiceDiscovery() but with an increased timeout value each
+				// time. First time, the base value plus 2 seconds, the second time, the base value
+				// plus 5 seconds. If those also fail, we can be sure no KBserver is running on the LAN
+				bOK = pApp->DoServiceDiscovery(curURL, chosenURL, returnedValue, nKBserverTimeout + 2000);
+				if (bOK)
+				{
+					// Success! So chosenURL is what we'll use. To acccomplish this, just replace the
+					// stored URL in m_strKbSvrURL with the contents of chosenURL and then goto secondchance
+					pApp->m_strKbServerURL = chosenURL;
+					bServiceDiscoverySucceeded = TRUE;
+					goto secondchance;
+				}
+				else
+				{
+					// Failure again, but the failure may be due to internal errors in service discovery, 
+					// in which case we abandon the attempt and report the error etc; but if the reason
+					// is SD_NoKBserverFound, then try again with the final (larger) wait timeout value
+					if (returnedValue == SD_NoKBserverFound)
+					{
+						bOK = pApp->DoServiceDiscovery(curURL, chosenURL, returnedValue, nKBserverTimeout + 5000);
+						if (bOK)
+						{
+							// Success on third try! So chosenURL is what we'll use. To acccomplish this, 
+							// just replace the stored URL in m_strKbSvrURL with the contents of chosenURL
+							// and then goto secondchance
+							pApp->m_strKbServerURL = chosenURL;
+							bServiceDiscoverySucceeded = TRUE;
+							goto secondchance;
+						}
+						else
+						{
+							if (returnedValue == SD_NoKBserverFound)
+							{
+								// Third failure - so we accept defeat and tell use what might be the problem;
+								// leave pApp->m_strKbServerURL unchanged
+								wxString error_msg = _(
+"No KBserver is running on the local area network yet.\nPossibly you forgot to set it running.\nKnowledge Base sharing will now be turned off.\nFirst get a KBserver running, and then try again to connect to it.");
+								wxMessageBox(error_msg, _("A local KBserver is not running"), wxICON_WARNING | wxOK);
+							}
+						} // end of else block for test: if (bOK)  (for the second repeat attempt)
+					} // end of TRUE block for test: if (returnedValue == SD_NoKBserverFound) (for second repeat attempt)
+				} // end of else block for test: if (bOK)  (for the first repeat attempt)
+			} // end of TRUE block for test: if (returnedValue == SD_NoKBserverFound)
+
 			// An error message will have been seen already; so just treat this as a cancellation
 			pApp->ReleaseKBServer(1); // the adapting one
 			pApp->ReleaseKBServer(2); // the glossing one
@@ -11157,16 +11219,19 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout
 			// control a do-nothing path to the end of the KBserver stuff's code
 			// from wherever an error occured herein, and then give the short
 			// message to the user that the KB sharing is OFF
-
 		if (bShowUrlAndUsernameDlg == TRUE)
 		{
 			// Authenticate to the server. Authentication also chooses, via the url provided or
 			// typed, which particular KBserver we connect to - there may be more than one available
 			// 
-			// If coming here via the secondchance label, the app variable
-			// m_strKbServerURL will not have been changed by service discovery and any
-			// related user choice, it will still be as last used and stored in the basic
-			// configuration file. Likewise, m_strUserID is unchanged (the username associated
+			// If coming here via the secondchance label, the app variable m_strKbServerURL 
+			// may have not been changed by service discovery and any related user choice, and
+			// if so it will still be as last used and stored in the basic configuration file.
+			// (This would be an empty string if no earlier connection has been made.)
+			// On the other hand, one of the two extra DoServiceDiscovery() calls done above
+			// may have succeeded - in which case the m_strKbServerURL will have been changed
+			// to the URL generated from within the successful discovery.
+			// In either case, m_strUserID is unchanged (the username associated
 			// with this adaptation project). Hence KBSharingStatelessSetupDlg will use those
 			// values. Of course, if no KBserver was used earlier, the URL will be an
 			// empty string, and the user can then type it in

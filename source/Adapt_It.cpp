@@ -15379,8 +15379,8 @@ void CAdapt_ItApp::ExtractServiceDiscoveryResult(wxString& result, wxString& url
 /// };
 ////////////////////////////////////////////////////////////////////////////////////////
 
-bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, 
-									  enum ServDiscDetail &result, int nKBserverTimeout)
+bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result,
+								int nKBserverTimeout)
 {
 	wxString serviceStr = _T("_kbserver._tcp.local.");
 
@@ -15785,22 +15785,17 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL,
 		// entered. The LAN might be down. Or possibly, the wait timeout for accessing
 		// the computed URL was set too close to the bone, and a little extra delay has
 		// occurred - enough for the timeout to expire before the URL gets put into the
-		// m_servDiscResults array - in which case the user needs to use a slightly
-		// bigger timeout value. Tell the user what the options are.
+		// m_servDiscResults array - for the latter possibility we'll have the this
+		// function called 3 times with increasing timeout values, to be sure that was not
+		// the reason for m_servDiscResults array being empty
 		wxLogDebug(_T("m_servDiscResults[] The service discovery results array is empty."));
 		chosenURL = wxEmptyString;
 		result = SD_NoKBserverFound;
 		SD_mutex.Unlock();
-        // Our protocol here is that if there is no KBserver found on the LAN, that is not
-        // a 'real' error, but rather it is an indication that the user wants the
-        // Authenticate dialog to be opened so that he can connect to a KBserver wherever
-        // he knows one is running - typically, on the web somewhere. Or that he needs to
-        // get a LAN based KBserver running before proceeding. So give the needed feedback
-        // here via a message, and halt till OK button clicked
-		wxString error_msg = _(
-"No KBserver is running on the local area network.\nYou can instead type the URL of a KBserver on the web, after you click OK.\nOr while this message is showing, you can get a KBserver running on the local area network,\nthen click OK, and try to connect to that local KBserver.");
-        wxMessageBox(error_msg,_("A local KBserver is not running"), wxICON_WARNING | wxOK);
-
+        // Our protocol here is to let the caller try 3 times, as mentioned above. So we
+		// don't want a message here, else the user would see it two or three times! We
+		// want the message seen only after 3 attempts have failed, so the message has to
+		// be in the caller
 		return FALSE;
 
 	} // end of ELSE block for test: if (!m_servDiscResults.IsEmpty())
@@ -15812,6 +15807,8 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL,
 	// If the unexpected happens, at least end safely...returning FALSE
 	if (chosenURL.IsEmpty() || result == SD_NoResultsYet)
 	{
+		result = SD_NoResultsYet; // probably the best indicator, we don't want 
+					// to use SD_NoKBserverFound here and hence trigger multiple tries
 		return FALSE;
 	}
 	return TRUE;
@@ -15999,6 +15996,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
 	m_KBserverTimeout = 3500; // minimum value of 3.5 seconds - basic config file can 
 							  // override with a larger value, by direct user edit only
+	m_bServiceDiscoveryWanted = TRUE; // initialize
 #endif
 
 	// initialize these collaboration variables, which are relevant to conflict resolution

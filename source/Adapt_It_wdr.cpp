@@ -9926,11 +9926,13 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
     return item0;
 }
 
+wxSizer *m_pTopSizer;
 wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+    m_pTopSizer = item1;
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
@@ -9938,58 +9940,63 @@ wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool 
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_SERVER_URL_LABEL_STATELESS, _("Type the URL for the knowledge base server:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item4->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_URLMSG, _("If this dialog opens showing a URL, it is the URL that was used for the last connection. You can remove it and type a different URL if necessary."), wxDefaultPosition, wxSize(430,38), wxTE_MULTILINE|wxTE_READONLY );
+    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL_SERVER_URL_STATELESS, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
-    item6->SetToolTip( _("The URL may be something like https://kbserver.domain, where domain may be something like name.org") );
+    wxStaticText *item6 = new wxStaticText( parent, ID_SERVER_URL_LABEL_STATELESS, _("Type the URL for the knowledge base server:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
     item4->Add( item6, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_SERVER_URL_STATELESS, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
+    item7->SetToolTip( _("The URL may be something like https://kbserver.domain, where domain may be something like name.org") );
+    item4->Add( item7, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item3->Add( item4, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     item2->Add( item3, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL_STATELESS, _("Type your username:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item9->Add( item10, 0, wxALIGN_CENTER, 5 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL_STATELESS, _("Type your username:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item10->Add( item11, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT_USERNAME_MSG_LABEL_STATELESS, _("(If empty, Cancel then click the Edit menu item Change Username...)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->Add( item11, 0, wxALIGN_CENTER, 5 );
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT_USERNAME_MSG_LABEL_STATELESS, _("(If empty, Cancel then click the Edit menu item Change Username...)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->Add( item12, 0, wxALIGN_CENTER, 5 );
 
-    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_STATELESS, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
-    item12->SetToolTip( _("Type your email or the unique name assigned to you by your administrator") );
-    item9->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_STATELESS, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
+    item13->SetToolTip( _("Type your email or the unique name assigned to you by your administrator") );
+    item10->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item8->Add( item9, 0, wxALIGN_CENTER|wxRIGHT, 5 );
+    item9->Add( item10, 0, wxALIGN_CENTER|wxRIGHT, 5 );
 
-    item7->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+    item8->Add( item9, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT_ASKED_STATELESS, _("You will be asked for the server's password when you click the OK button."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item13->Add( item14, 0, wxALIGN_CENTER, 5 );
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT_ASKED_STATELESS, _("You will be asked for the server's password when you click the OK button."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item14->Add( item15, 0, wxALIGN_CENTER, 5 );
 
-    item7->Add( item13, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item8->Add( item14, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item2->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+    item2->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item16 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->SetDefault();
-    item15->Add( item16, 0, wxALIGN_CENTER, 5 );
+    item16->Add( 100, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item15->Add( 26, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item17 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->SetDefault();
+    item16->Add( item17, 0, wxALIGN_CENTER, 5 );
 
-    wxButton *item17 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->Add( item17, 0, wxALIGN_CENTER, 5 );
+    item16->Add( 60, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item15, 0, wxALIGN_CENTER, 5 );
+    wxButton *item18 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item18, 0, wxALIGN_CENTER, 5 );
+
+    item2->Add( item16, 0, wxALIGN_CENTER, 5 );
 
     item1->Add( item2, 0, wxLEFT|wxRIGHT|wxTOP, 10 );
 
@@ -10019,57 +10026,88 @@ wxSizer *kb_share_setup_or_remove_func( wxWindow *parent, bool call_fit, bool se
 
     wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_INDICATE_SHARE, _("Tick the knowledge bases you want to share, using the checkboxes below. You can start or stop sharing at any time."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_INDICATE_SHARE, _("Tick the checkboxes for which knowledge bases you want to share. You can start or stop sharing anytime."), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
-    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_LABEL2, _("Either or both boxes can be ticked. Removing the tick in a box stops the sharing of that knowledge base type.  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_LABEL2, _("Either or both checkboxes can be ticked. Remove the tick for any knowledge base you do not want to share."), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_LABEL2, _("Most users should only need to share adaptations. (That is true even if glossing mode is sometimes used.)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_LABEL4, _("Note: glosses are shared only while glossing mode is turned on."), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT_LABEL4, _("Sharing of glosses only happens while glossing mode is on. Use that checkbox if needed, otherwise ignore it."), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT_LABEL2, _("Most users should only need to share adaptations. (That is true even if glossing mode is sometimes used.)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT_LABEL2, _("The Cancel button dismisses the dialog without changing any of the settings that were in place earlier."), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxCheckBox *item11 = new wxCheckBox( parent, ID_CHECKBOX_SHARE_MY_TGT_KB, _("Share adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->SetValue( TRUE );
-    item11->SetToolTip( _("Shares target language translations entered in adaptation mode") );
-    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
-    item10->Add( 50, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxCheckBox *item12 = new wxCheckBox( parent, ID_CHECKBOX_SHARE_MY_TGT_KB, _("Share adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetValue( TRUE );
+    item12->SetToolTip( _("Shares target language translations entered in adaptation mode") );
+    item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxCheckBox *item12 = new wxCheckBox( parent, ID_CHECKBOX_SHARE_MY_GLOSS_KB, _("Share glosses"), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->SetToolTip( _("Shares glosses entered in glossing mode") );
-    item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+    item11->Add( 50, 8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item4->Add( item10, 0, wxALIGN_CENTER, 5 );
+    wxCheckBox *item13 = new wxCheckBox( parent, ID_CHECKBOX_SHARE_MY_GLOSS_KB, _("Share glosses"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->SetToolTip( _("Shares glosses entered in glossing mode") );
+    item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item4->Add( item11, 0, wxALIGN_CENTER|wxTOP, 5 );
 
     item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
 
-    item13->Add( 50, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
 
-    wxButton *item14 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetDefault();
-    item13->Add( item14, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT_1, _("Discovery of the URL for a KBserver only works when that KBserver is running on the local area network."), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item16, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
-    item13->Add( 60, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT_2, _("To connect to a KBserver running on the web, or having a known URL, click  the bottom radio button."), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item17, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxButton *item15 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->Add( item15, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item14->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item3->Add( item13, 0, wxALIGN_CENTER, 5 );
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxGridSizer *item19 = new wxGridSizer( 2, 2, 4 );
+
+    wxString strs20[] = 
+    {
+        _("Let service discovery find the URL and show it"), 
+        _("I know the URL and I will type it")
+    };
+    wxRadioBox *item20 = new wxRadioBox( parent, ID_RADIOBOX_HOW, _("How do you want to get the URL?"), wxDefaultPosition, wxDefaultSize, 2, strs20, 2, wxRA_SPECIFY_ROWS );
+    item19->Add( item20, 0, wxALIGN_CENTER, 5 );
+
+    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item22 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->SetDefault();
+    item21->Add( item22, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item21->Add( 14, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item23 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item23, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item19->Add( item21, 0, wxALIGN_CENTER, 5 );
+
+    item18->Add( item19, 0, wxALIGN_CENTER, 5 );
+
+    item14->Add( item18, 0, wxALIGN_CENTER, 5 );
+
+    item3->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item2->Add( item3, 0, wxALIGN_CENTER, 5 );
 
     item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
-    item0->Add( item1, 0, wxALL, 5 );
+    item0->Add( item1, 0, wxTOP, 5 );
 
     if (set_sizer)
     {
@@ -11129,6 +11167,63 @@ wxSizer *ServDisc_KBserversDlg( wxWindow *parent, bool call_fit, bool set_sizer 
     item6->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *kb_ask_how_get_url_func( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_1, _("Discovery of the URL for a KBserver only works when that KBserver is running on the local area network."), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_2, _("To connect to a KBserver running on the web, or having a known URL, click  the bottom radio button."), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item4, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxGridSizer *item6 = new wxGridSizer( 2, 2, 4 );
+
+    wxString strs7[] = 
+    {
+        _("Let service discovery find the URL and show it"), 
+        _("I know the URL and I will type it")
+    };
+    wxRadioBox *item7 = new wxRadioBox( parent, ID_RADIOBOX_TYPE_IT, _("How do you want to get the URL?"), wxDefaultPosition, wxDefaultSize, 2, strs7, 2, wxRA_SPECIFY_ROWS );
+    item6->Add( item7, 0, wxALIGN_CENTER, 5 );
+
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item9 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetDefault();
+    item8->Add( item9, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item8->Add( 14, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item10 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item6->Add( item8, 0, wxALIGN_CENTER, 5 );
+
+    item5->Add( item6, 0, wxALIGN_CENTER, 5 );
+
+    item1->Add( item5, 0, wxALIGN_CENTER, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

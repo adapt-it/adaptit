@@ -2025,7 +2025,9 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
     // PT or BE collaboration are orthogonal to each other, any project can have one or the
     // other or both turned on. KB sharing not on does not prevent collaboration from doing
     // its job
-	bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout);
+	bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout,
+														pApp->m_bServiceDiscoveryWanted);
+	pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
 	wxUnusedVar(bSuccess);
 
 #endif // _KBSERVER

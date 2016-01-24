@@ -1311,7 +1311,9 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 
 			// Do service discovery of KBserver, authentication, checking, and KB Sharing
 			// setup. Second param, bool bUserAuthenticating, is default TRUE
-			bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout);
+			bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout,
+												pApp->m_bServiceDiscoveryWanted);
+			pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
 			wxUnusedVar(bSuccess);
 #endif
 			// The pDocPage's InitDialog need to be called here just before going to it

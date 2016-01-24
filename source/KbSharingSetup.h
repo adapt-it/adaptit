@@ -45,7 +45,6 @@ protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
-	void OnButtonRemoveSetup(wxCommandEvent& WXUNUSED(event));
 	void OnCheckBoxShareAdaptations(wxCommandEvent& WXUNUSED(event));
 	void OnCheckBoxShareGlosses(wxCommandEvent& WXUNUSED(event));
 
@@ -53,7 +52,11 @@ protected:
 	wxCheckBox* m_pAdaptingCheckBox;
 	wxCheckBox* m_pGlossingCheckBox;
 	wxButton*   m_pSetupBtn; //wxID_OK
-
+	bool        m_bServiceDiscWanted;  // store final value in the app's m_bServiceDiscoveryWanted,
+				// and herein initialize to TRUE, and then the button presses determine what 
+				// value is passed back to the app for this boolean
+	wxRadioBox*		m_pRadioBoxHow;
+	int			m_nRadioBoxSelection;
 	DECLARE_EVENT_TABLE()
 };
 

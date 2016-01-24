@@ -113,6 +113,15 @@ KBSharingStatelessSetupDlg::~KBSharingStatelessSetupDlg() // destructor
 
 void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
+	// Don't show the top message box if the user is wanting service discovery done
+	m_pMessageAtTop = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_URLMSG);
+	m_pSizer = m_pTopSizer;
+	if (m_pApp->m_bServiceDiscoveryWanted)
+	{
+		m_pMessageAtTop->Destroy();
+		m_pSizer->Layout();
+	}
+
 	// If service discovery succeeded, a valid URL should now be in the app member
 	// m_strKbServerURL
 	if (m_bUserIsAuthenticating)

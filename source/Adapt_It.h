@@ -3003,6 +3003,8 @@ public:
 	// BEW added next, 26Nov15
 	bool	  DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result,
 								 int nKBserverTimeout);
+	bool	  m_bServiceDiscoveryWanted; // TRUE if DoServiceDiscovery() is wanted, FALSE for manual URL entry
+										 // and don't ever store the value in any config file; default TRUE
 	void	  ExtractServiceDiscoveryResult(wxString& result, wxString& url, int& intNoKBserver,
 				int& intHostnameLookupFailed, int& intIpAddrLookupFailed, int& intDuplicateIpAddr);
 

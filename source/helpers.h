@@ -543,7 +543,7 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 // required, and failure to setup sharing if there was error - with user notification visually.
 // The bUserAuthenticating is usually TRUE, but must be input as FALSE when the function is
 // used for the "anybody with sufficient permission level" login to the KB Sharing Manager 
-bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout);
+bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout, bool bServiceDiscoveryWanted);
 
 #endif // _KBSERVER
 

@@ -79,6 +79,8 @@ public:
 	KbServer* m_pStatelessKbServer;
 	bool m_bUserIsAuthenticating; // TRUE if computer owner is authenticating, FALSE if some other
 								  // person known to the KBserver is doing so
+	wxTextCtrl* m_pMessageAtTop;
+	wxSizer* m_pSizer;
 
 	// other methods
 
