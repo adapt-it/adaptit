@@ -85,6 +85,7 @@
 #if defined(_KBSERVER)
 #include "KbServer.h"
 #include "KBSharingStatelessSetupDlg.h"
+#include "KbSvrHowGetUrl.h"
 #endif
 // globals
 
@@ -1308,13 +1309,48 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 			}
 
 #if defined(_KBSERVER)
+			// Show the dialog which allows the user to set the boolean:
+			// m_bServiceDiscoveryWanted, for the following 
+			// AuthenticateCheckAndSetupKBSharing() call to use
+			bool bUserCancelled = FALSE; // initialize
+			KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame());
+			pHowGetUrl->Center();
+			int dlgReturnCode;
+			dlgReturnCode = pHowGetUrl->ShowModal();
+			if (dlgReturnCode == wxID_OK)
+			{ 
+				// m_bServiceDiscoveryWanted will have been set or cleared in
+				// the OnOK() handler of the above dialog
+				wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
+			}
+			else
+			{
+				// User cancelled. This clobbers the sharing setup - that clobbering is
+				// already done in the OnCancel() handler
+				wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
+			}
+			bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
+			delete pHowGetUrl; // We don't want the dlg showing any longer
 
-			// Do service discovery of KBserver, authentication, checking, and KB Sharing
-			// setup. Second param, bool bUserAuthenticating, is default TRUE
-			bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout,
-												pApp->m_bServiceDiscoveryWanted);
+			// If the user didn't cancel, then call Authenticate....()
+			if (!bUserCancelled) // if user did not cancel...
+			{
+				// Do service discovery of KBserver, authentication, checking, and KB Sharing
+				// setup. Internally bool bUserAuthenticating, is default TRUE.
+				// The function will internally show either the connection message, or the OFF
+				// message, depending on the result of the call
+				bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout,
+													pApp->m_bServiceDiscoveryWanted);
+				wxUnusedVar(bSuccess);
+			}
+			else
+			{
+				// User canceled before Authentication could be attempted - so tell him
+				// that sharing is OFF
+				ShortWaitSharingOff(30); //displays "Knowledge base sharing is OFF" for 3.0 seconds
+			}
 			pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
-			wxUnusedVar(bSuccess);
+
 #endif
 			// The pDocPage's InitDialog need to be called here just before going to it
 			// make sure the pDocPage is initialized to show the documents for the selected project

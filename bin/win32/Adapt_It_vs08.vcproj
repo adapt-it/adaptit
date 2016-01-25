@@ -749,6 +749,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\KbSvrHowGetUrl.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\LanguageCodesDlg.cpp"
 				>
 			</File>
@@ -1383,6 +1387,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\KBSharingStatelessSetupDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\KbSvrHowGetUrl.h"
 				>
 			</File>
 			<File

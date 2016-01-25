@@ -171,17 +171,20 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 {
 	int nRadioBoxSelection = m_pRadioBoxHow->GetSelection();
 	m_bServiceDiscWanted = nRadioBoxSelection == 0 ? TRUE : FALSE;
-    bool bSuccess = AuthenticateCheckAndSetupKBSharing(m_pApp, m_pApp->m_KBserverTimeout, m_bServiceDiscWanted);
-	// pass the final value back to the app,
-	m_pApp->m_bServiceDiscoveryWanted = TRUE; // Restore default value
-	wxUnusedVar(bSuccess);
-	myevent.Skip();
-	/* deprecated, I think AuthenticateCheckAndSetupKBSharing() will do it internally
-	if (!bSuccess)
-	{
-		ShortWaitSharingOff(35); //displays "Knowledge base sharing is OFF" for 3.5 seconds
-	}
-	*/
+	m_pApp->m_bServiceDiscoveryWanted = m_bServiceDiscWanted; // Set app member, OnIdle's call
+			// of AuthenticateCheckAndSetupKBSharing() will use it, and reset to TRUE afterwards
+	// We don't call AuthenticateCheckAndSetupKBSharing() directly here, if we did, 
+	// the Authenticate dialog is ends up lower in the z-order and the parent
+	// KbSharingSetup dialog hides it - and as both are modal, the user cannot
+	// get to the Authenticate dialog if control is sent back there (e.g. when the
+	// password is empty, or there is a curl error, or the URL is wrong or the wanted
+	// KBserver is not running). So, we post a custom event here, and the event's
+	// handler will run the Authenticate dialog at idle time, when KbSharingSetup will
+	// have been closed
+	wxCommandEvent eventCustom(wxEVT_Call_Authenticate_Dlg);
+	wxPostEvent(m_pApp->GetMainFrame(), eventCustom); // custom event handlers are in CMainFrame
+
+	myevent.Skip(); // close the KbSharingSetup dialog
 }
 
 void KbSharingSetup::OnCancel(wxCommandEvent& myevent)
@@ -190,20 +193,5 @@ void KbSharingSetup::OnCancel(wxCommandEvent& myevent)
 	// remove the setup is now to untick both checkboxes, and then dismiss the dialog
 	myevent.Skip();
 }
-
-/* deprecated
-void KbSharingSetup::OnButtonRemoveSetup(wxCommandEvent& WXUNUSED(event))
-{
-	m_pApp->m_bIsKBServerProject = FALSE;
-	m_pApp->m_bIsGlossingKBServerProject = FALSE;
-	m_pApp->ReleaseKBServer(1); // the adaptations one
-	m_pApp->ReleaseKBServer(2); // the glossings one
-
-	// make the dialog close (a good way to say, "it's been done");
-	// also, we don't want a subsequent OK button click, because the user would then see a
-	// message about the empty top editctrl, etc
-	EndModal(wxID_OK);
-}
-*/
 
 #endif

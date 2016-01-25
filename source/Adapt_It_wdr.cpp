@@ -11205,7 +11205,7 @@ wxSizer *kb_ask_how_get_url_func( wxWindow *parent, bool call_fit, bool set_size
         _("Let service discovery find the URL and show it"), 
         _("I know the URL and I will type it")
     };
-    wxRadioBox *item7 = new wxRadioBox( parent, ID_RADIOBOX_TYPE_IT, _("How do you want to get the URL?"), wxDefaultPosition, wxDefaultSize, 2, strs7, 2, wxRA_SPECIFY_ROWS );
+    wxRadioBox *item7 = new wxRadioBox( parent, ID_RADIOBOX_HOW, _("How do you want to get the URL?"), wxDefaultPosition, wxDefaultSize, 2, strs7, 2, wxRA_SPECIFY_ROWS );
     item6->Add( item7, 0, wxALIGN_CENTER, 5 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );

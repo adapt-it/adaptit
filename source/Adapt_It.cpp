@@ -15586,7 +15586,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
                                 // password as well). The following are relevant flags:
                                 // SD_UrlDiffers_UserAcceptedIt or SD_UrlDiffers_UserRejectedIt
 								wxString message;  message = message.Format(_(
-"The URL previously used was:  %s\nThe KBserver running now has URL: %s\nThe URL of a KBserver can change. So it may be the same KBserver, or a different one.\nIf it is a different KBserver, usually its password is also different, and you will need to know what it is. If it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.\n\nDo you wish to connect using this new URL?"),
+"The URL previously used was:  %s\nThe KBserver running now has URL: %s\nThe URL of a KBserver can change. So it may be the same KBserver, or a different one.\nIf it is a different KBserver, usually its password is also different, and you will need to know what it is.\nIf it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.\n\nDo you wish to connect using this new URL?"),
 									curURL.c_str(), aUrl.c_str());
 								int value = wxMessageBox(message,_("The URL has changed"), 
 												wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
@@ -15726,7 +15726,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
                     // password as well). The following is the relevant flag:
                     // SD_MultipleUrls_UserChoseDifferentOne
 					wxString message;  message = message.Format(_(
-"More than one KBserver is running on the local area network.\nThe URL previously used was:  %s  The URL you chose to connect with is: %s\nThe URL of a KBserver can change. So your choice may locate the same KBserver as before, or a different one.\n(If it is a different KBserver, usually its password is also different, and you will need to know what it is. If it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.)\n\nDo you wish to connect using this new URL?"),
+"More than one KBserver is running on the local area network.\nThe URL previously used was:  %s  The URL you chose to connect with is: %s\nThe URL of a KBserver can change. So your choice may locate the same KBserver as before, or a different one.\n(If it is a different KBserver, usually its password is also different, and you will need to know what it is.\nIf it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.)\n\nDo you wish to connect using this new URL?"),
 					curURL.c_str(), chosenURL.c_str());
 					int value = wxMessageBox(message,_("The chosen URL is different"), 
 									wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
@@ -22392,7 +22392,7 @@ int ii = 1;
 	wxString aUrl_first_T = _T("https://192.168.2.12");
 	wxString messageT;
 	messageT = messageT.Format(_(
-		"The URL previously used was:  %s\nThe KBserver running now has URL: %s\nThe URL of a KBserver can change. So it may be the same KBserver, or a different one.\n(If it is a different KBserver, usually its password is also different, and you will need to know what it is. If it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.)\n\nDo you wish to connect using this new URL?"),
+		"The URL previously used was:  %s\nThe KBserver running now has URL: %s\nThe URL of a KBserver can change. So it may be the same KBserver, or a different one.\n(If it is a different KBserver, usually its password is also different, and you will need to know what it is.\nIf it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.)\n\nDo you wish to connect using this new URL?"),
 		curURL_T.c_str(), aUrl_first_T.c_str());
 	int value = wxMessageBox(messageT, _("The URL Has Changed"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 

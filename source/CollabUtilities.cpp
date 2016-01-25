@@ -77,6 +77,7 @@
 #include "StatusBar.h"
 #include "ConflictResActionDlg.h"
 #include "CollabVerseConflictDlg.h"
+#include "KbSvrHowGetUrl.h"
 
 
 /// This global is defined in Adapt_It.cpp.
@@ -2018,17 +2019,48 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 
 #if defined(_KBSERVER)
 
-    // Do service discovery of KBserver, authentication, checking, and KB Sharing setup.
-    // Second param, bool bUserAuthenticating, is default TRUE. Note: the function could
-    // fail, in which case KB sharing will be turned off - this does **not** mean that 
-    // the HookUpToExistingAIProject() function will, or should, also fail. KB sharing and
-    // PT or BE collaboration are orthogonal to each other, any project can have one or the
-    // other or both turned on. KB sharing not on does not prevent collaboration from doing
-    // its job
-	bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout,
-														pApp->m_bServiceDiscoveryWanted);
-	pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
-	wxUnusedVar(bSuccess);
+			bool bUserCancelled = FALSE; // initialize
+			KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame());
+			pHowGetUrl->Center();
+			int dlgReturnCode;
+			dlgReturnCode = pHowGetUrl->ShowModal();
+			if (dlgReturnCode == wxID_OK)
+			{ 
+				// m_bServiceDiscoveryWanted will have been set or cleared in
+				// the OnOK() handler of the above dialog
+				wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
+			}
+			else
+			{
+				// User cancelled. This clobbers the sharing setup - that clobbering is
+				// already done in the OnCancel() handler
+				wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
+			}
+			bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
+			delete pHowGetUrl; // We don't want the dlg showing any longer
+
+			// If the user didn't cancel, then call Authenticate....()
+			if (!bUserCancelled) // if user did not cancel...
+			{
+                // Do service discovery of KBserver, authentication, checking, and KB
+                // Sharing setup. Second param, bool bUserAuthenticating, is default TRUE.
+                // Note: the function could fail, in which case KB sharing will be turned
+                // off - this does **not** mean that the HookUpToExistingAIProject()
+                // function will, or should, also fail. KB sharing and PT or BE
+                // collaboration are orthogonal to each other, any project can have one or
+                // the other or both turned on. KB sharing not on does not prevent
+                // collaboration from doing its job
+				bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout,
+													pApp->m_bServiceDiscoveryWanted);
+				wxUnusedVar(bSuccess);
+			}
+			else
+			{
+				// User canceled before Authentication could be attempted - so tell him
+				// that sharing is OFF
+				ShortWaitSharingOff(30); //displays "Knowledge base sharing is OFF" for 3.0 seconds
+			}
+			pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
 
 #endif // _KBSERVER
 
