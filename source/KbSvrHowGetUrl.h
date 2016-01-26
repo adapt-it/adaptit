@@ -16,7 +16,9 @@
 /// files, and the KbSvrHowGetUrl.h and .cpp files are just a cut-down version
 /// of that dialog. 
 /// This dialog is used in the ProjectPage of the wizard, and for access to the
-/// KB Sharing Manager (tabbed dialog).
+/// KB Sharing Manager (tabbed dialog), and in the HookUpToExistingAIProject in
+/// the CollabUtilities.cpp file. It is not used in KbSharingSetup.cpp because
+/// the same controls are already built in to the latter dialog.
 /// \derivation		The KbSvrHowGetUrl class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 

@@ -361,6 +361,7 @@
 #include "KBSharingMgrTabbedDlg.h"
 #include "ServiceDiscovery.h" // BEW 4Jan16
 #include "ServDisc_KBserversDlg.h" // BEW 12Jan16
+#include "KbSvrHowGetUrl.h"
 extern std::string str_CURLbuffer;
 extern std::string str_CURLheaders;
 
@@ -28896,65 +28897,164 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pApp != NULL);
 	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
 
-	// The administrator must authenticate to whichever KBserver he wants to adjust or view
-	// Note: the next line sets up a "stateless" instance of the dialog - it doesn't know
-	// or care about the adapting/glossing mode, the machine's owner, or either of the
-	// glossing or adapting local KBs. It only uses the KbServer class for the services it
-	// provides for the KB Sharing Manager gui
-	KBSharingStatelessSetupDlg dlg(GetMainFrame(),FALSE); // FALSE is bUserAuthenticating
-	dlg.Center();
-	if (dlg.ShowModal() == wxID_OK)
-	{
-		gpApp->LogUserAction(_T("Authenticated for opening the KB Sharing Manager dlg"));
+	bool bUserAuthenticating = FALSE;
+
+	// The one using the manager has to first be given the option for how to get the url for
+	// the KBserver which is being targetted for being setup for kb sharing or whatever other
+	// reason (such as adding or removing a user, a kb, or a custom code). Call the dialog
+	// for this step - on exist from it, app's m_bServiceDiscoveryWanted will have been set
+	// to TRUE if discovery is to be done on the LAN, FALSE if the user is going to type a
+	// url he knows (which could be on the LAN, that is not precluded)
+	bool bLoginPersonCancelled = FALSE; // initialize
+	KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame());
+	pHowGetUrl->Center();
+	int dlgReturnCode;
+	dlgReturnCode = pHowGetUrl->ShowModal();
+	if (dlgReturnCode == wxID_OK)
+	{ 
+		// m_bServiceDiscoveryWanted will have been set or cleared in
+		// the OnOK() handler of the above dialog
+		wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
 	}
 	else
 	{
-		gpApp->LogUserAction(_T("Cancelled authenticating for KB Sharing Manager dlg"));
-		return;
+		// User cancelled. This clobbers the Manager access attempt setup
+		wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
 	}
+	bLoginPersonCancelled = pHowGetUrl->m_bUserClickedCancel;
+	// The app's value for m_bServiceDiscoveryWanted will have been set within
+	// the OnOK() handler of the above dialog
+	delete pHowGetUrl; // We don't want the dlg showing any longer
 
-	m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pApp->GetMainFrame());
+	// If the user didn't cancel, then call Authenticate....()
+	if (!bLoginPersonCancelled) // if the person doing the login did not cancel...
+	{
+		// Save these user-related values, and restore them after the Manager is
+		// closed down, so that anything the login person does does not permanently
+		// affect any of the user's KB sharing settings which may have been in place
+		// while the login person had control of this computer for using the Manager
+		CMainFrame* pFrame = GetMainFrame();
+		m_saveOldURLStr = m_strKbServerURL;
+		m_saveOldUsernameStr = m_strUserID;
+		m_savePassword = pFrame->GetKBSvrPassword();
+		m_saveSharingAdaptationsFlag = m_bIsKBServerProject;
+		m_saveSharingGlossesFlag = m_bIsGlossingKBServerProject;
 
-	m_pKBSharingMgrTabbedDlg->SetStatelessKbServerPtr(dlg.m_pStatelessKbServer); // sets up our m_pKbServer pointer
+		// Service discovery, if wanted, goes here
+		wxString currentURL = m_strKbServerURL; // m_bServiceDiscoveryWanted == FALSE will use this
+		wxString chosenURL = wxEmptyString;
+		if (m_bServiceDiscoveryWanted)
+		{
+			enum ServDiscDetail returnedValue = SD_NoResultsYet;
+			bool bOK = DoServiceDiscovery(currentURL, chosenURL, returnedValue, m_KBserverTimeout);
+			if (bOK)
+			{
+				// Got a URL to connect to
+				wxASSERT(returnedValue != SD_NoKBserverFound && (
+					returnedValue == SD_FirstTime ||
+					returnedValue == SD_SameUrl ||
+					returnedValue == SD_UrlDiffers_UserAcceptedIt ||
+					returnedValue == SD_MultipleUrls_UserChoseEarlierOne ||
+					returnedValue == SD_MultipleUrls_UserChoseDifferentOne ) );
 
-	// BEW 14Sept. Push this object on to the event queue, so it can trap our custom events
-	// Oops, nope! It then receives command events when the object is instantiated it
-	// never displays because wx gets into an infinite loop of focus event handling which
-	// continues until the stack is full and the app crashes. The only way I think I can
-	// get what I want is to use the fact that the app class is tried last in the event
-	// loop, so send a custom event from the thread, have it trapped in CAdapt_ItApp
-	// instance, and the handler then checks for pApp->m_pKBSharingMgrTabbedDlg being
-	// non-NULL, and if so, uses other state-preserving variable on the app to determine
-	// which page is active (change to kb page if user page is active), which radio button
-	// is active (change to the one matching the kb type just removed, if necesary), and
-	// then get the page update done to show that the kb definition is no longer in the list)
-	//CMainFrame* pFrame = GetMainFrame();
-	//pFrame->PushEventHandler(pApp->m_pKBSharingMgrTabbedDlg); <<-- must NOT do this (see
-	//                                                             comment immediately above)
+				// Make the chosen URL accessible to authentication
+				m_strKbServerURL = chosenURL;
 
-	// make the font show only 12 point size in the dialog
-	CopyFontBaseProperties(m_pSourceFont,m_pDlgSrcFont);
-	m_pDlgSrcFont->SetPointSize(12);
+				// test I got the logic right - if I have, I'll see this bogus url
+				// shown in the Authenticate dialog
+				//m_strKbServerURL = _T("https://kbserver.gobbledegook.org"); <<-- yep, it got shown
+			}
+			else
+			{
+				// Something is wrong, or no KBserver has yet been set running, etc
+				wxASSERT(returnedValue == SD_NoKBserverFound || 
+						 returnedValue == SD_UrlDiffers_UserRejectedIt ||
+						 returnedValue == SD_LookupHostnameFailed ||
+						 returnedValue == SD_LookupIPaddrFailed ||
+						 returnedValue == SD_MultipleUrls_UserCancelled ||
+						 returnedValue == SD_UserCancelled
+						 );
+				// The login person should have seen an error message, so just
+				// restore the user settings and return without opening the Manager
+				m_strKbServerURL = m_saveOldURLStr;
+				m_strUserID = m_saveOldUsernameStr;
+				pFrame->SetKBSvrPassword(m_savePassword);
+				m_bIsKBServerProject = m_saveSharingAdaptationsFlag;
+				m_bIsGlossingKBServerProject = m_saveSharingGlossesFlag;
+				return;
+			}
+		}
+
+        // The administrator or login person must authenticate to whichever KBserver he
+        // wants to adjust or view Note: the next line sets up a "stateless" instance of
+        // the dialog - it doesn't know or care about the adapting/glossing mode, the
+        // machine's owner, or either of the glossing or adapting local KBs. It only uses
+        // the KbServer class for the services it provides for the KB Sharing Manager gui
+		KBSharingStatelessSetupDlg dlg(GetMainFrame(), bUserAuthenticating); // FALSE for 2nd param
+		dlg.Center();
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			gpApp->LogUserAction(_T("Authenticated for opening the KB Sharing Manager dlg"));
+		}
+		else
+		{
+			gpApp->LogUserAction(_T("Cancelled authenticating for KB Sharing Manager dlg"));
+			return;
+		}
+
+		m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pApp->GetMainFrame());
+
+		m_pKBSharingMgrTabbedDlg->SetStatelessKbServerPtr(dlg.m_pStatelessKbServer); // sets up our m_pKbServer pointer
+
+		// BEW 14Sept. Push this object on to the event queue, so it can trap our custom events
+		// Oops, nope! It then receives command events when the object is instantiated it
+		// never displays because wx gets into an infinite loop of focus event handling which
+		// continues until the stack is full and the app crashes. The only way I think I can
+		// get what I want is to use the fact that the app class is tried last in the event
+		// loop, so send a custom event from the thread, have it trapped in CAdapt_ItApp
+		// instance, and the handler then checks for pApp->m_pKBSharingMgrTabbedDlg being
+		// non-NULL, and if so, uses other state-preserving variable on the app to determine
+		// which page is active (change to kb page if user page is active), which radio button
+		// is active (change to the one matching the kb type just removed, if necesary), and
+		// then get the page update done to show that the kb definition is no longer in the list)
+		//CMainFrame* pFrame = GetMainFrame();
+		//pFrame->PushEventHandler(pApp->m_pKBSharingMgrTabbedDlg); <<-- must NOT do this (see
+		//                                                             comment immediately above)
+
+		// make the font show only 12 point size in the dialog
+		CopyFontBaseProperties(m_pSourceFont,m_pDlgSrcFont);
+		m_pDlgSrcFont->SetPointSize(12);
 
 #if defined(_DEBUG)
-	wxLogDebug(_T("OnKBSharingManagerTabbedDialog() before ShowModal(): KbServer's m_usersList's count = %d"),
-		pApp->m_pKBSharingMgrTabbedDlg->GetKbServer()->GetUsersList()->GetCount());
+		wxLogDebug(_T("OnKBSharingManagerTabbedDialog() before ShowModal(): KbServer's m_usersList's count = %d"),
+			pApp->m_pKBSharingMgrTabbedDlg->GetKbServer()->GetUsersList()->GetCount());
 #endif
 
-	// Get the "stateless" strings into the relevant storage in the stateless m_pKbServer
-	KbServer* pStatelessKbServer = pApp->m_pKBSharingMgrTabbedDlg->GetKbServer();
-	pStatelessKbServer->SetKBServerUsername(dlg.m_strStatelessUsername);
-	pStatelessKbServer->SetKBServerURL(dlg.m_strStatelessURL);
-	pStatelessKbServer->SetKBServerPassword(dlg.m_strStatelessPassword);
+		// Get the "stateless" strings into the relevant storage in the stateless m_pKbServer
+		KbServer* pStatelessKbServer = pApp->m_pKBSharingMgrTabbedDlg->GetKbServer();
+		pStatelessKbServer->SetKBServerUsername(dlg.m_strStatelessUsername);
+		pStatelessKbServer->SetKBServerURL(dlg.m_strStatelessURL);
+		pStatelessKbServer->SetKBServerPassword(dlg.m_strStatelessPassword);
 
-	// show the property sheet
-	//if(kbSharingPropertySheet.ShowModal() == wxID_OK)
-	if(pApp->m_pKBSharingMgrTabbedDlg->ShowModal() == wxID_OK)
-	{
-	}
-	// When done, remove from the heap, and set the ptr to NULL
-	delete pApp->m_pKBSharingMgrTabbedDlg;
-	pApp->m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
+		// show the property sheet
+		//if(kbSharingPropertySheet.ShowModal() == wxID_OK)
+		if(pApp->m_pKBSharingMgrTabbedDlg->ShowModal() == wxID_OK)
+		{
+		}
+		// When done, remove from the heap, and set the ptr to NULL
+		delete pApp->m_pKBSharingMgrTabbedDlg;
+		pApp->m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
+
+		// Restore the user's KBserver-related settings
+		m_strKbServerURL = m_saveOldURLStr;
+		m_strUserID = m_saveOldUsernameStr;
+		pFrame->SetKBSvrPassword(m_savePassword);
+		m_bIsKBServerProject = m_saveSharingAdaptationsFlag;
+		m_bIsGlossingKBServerProject = m_saveSharingGlossesFlag;
+
+	} // end of TRUE block for test: if (!bLoginPersonCancelled)  i.e. there was no cancel button press
+	// There is no need to give a message saying there was a cancellation, as a
+	// cancellation is volitional and the user would expect nothing to happen
 }
 
 
