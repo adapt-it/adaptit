@@ -3159,7 +3159,8 @@ int	KbServer::CreateLanguage(wxString url, wxString username, wxString password,
 	return 0; // no error
 }
 
-int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bKbadmin, bool bUseradmin)
+int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassword, 
+						 bool bKbadmin, bool bUseradmin, bool bLanguageadmin)
 {
 	CURL *curl;
 	CURLcode result = CURLE_OK; // initialize result code
@@ -3197,6 +3198,8 @@ int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassw
 	jsonval[_T("kbadmin")] = kbadmin;
 	long useradmin = bUseradmin ? 1L : 0L;
 	jsonval[_T("useradmin")] = useradmin;
+	long languageadmin = bLanguageadmin ? 1L : 0L;
+	jsonval[_T("languageadmin")] = languageadmin;
 
 	// convert it to string form
 	wxJSONWriter writer; wxString str;
@@ -3228,6 +3231,7 @@ int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassw
 		// because no json data is to be returned
 		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
 		// get the headers stuff this way...
+		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
 		curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
 

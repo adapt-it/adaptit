@@ -1229,31 +1229,15 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 	// and inform the user why. Also, a selection in the list is irrelevant, and it may
 	// mean that the logged in person is about to try to add the selected user a second
 	// time - which is illegal, so test for this and if so, warn, and remove the
-	// selection, and clear the controls & return
-	m_nSel = m_pUsersListBox->GetSelection();
+	// selection, and clear the controls & return. In fact, ensure no duplication of username
 	wxString strUsername = m_pTheUsername->GetValue();
-	if (m_nSel != wxNOT_FOUND)
-	{
-		m_nSel = m_pUsersListBox->GetSelection();
-		wxString selectedUser = m_pUsersListBox->GetString(m_nSel);
-		if (selectedUser == strUsername)
-		{
-			// Oops, he's trying to add someone who is already there. Warn, and probably
-			// best to clear the controls to force him to start over
-			wxBell();
-			wxString title = _("This user already exists");
-			wxString msg = _("Warning: you are trying to add a username which already exists in the server. This is illegal, each username must be unique.\n To add a new user, do not make any selection in the list; just use the text boxes, the checkboxes too if appropriate, and the Add User button.");
-			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-			wxCommandEvent dummy;
-			OnButtonUserPageClearControls(dummy);
-			return;
-		}
-	}
 	wxString strFullname = m_pEditInformalUsername->GetValue();
 	wxString strPassword = m_pEditPersonalPassword->GetValue();
 	wxString strPasswordTwo = m_pEditPasswordTwo->GetValue();
 	bool bKbadmin = FALSE; // initialize to default value
 	bool bUseradmin = FALSE; // initialize to default value
+
+	// First, test all the textboxes that should have a value in them, actually have something
 	if (strUsername.IsEmpty() || strFullname.IsEmpty() || strPassword.IsEmpty() || strPasswordTwo.IsEmpty())
 	{
 		wxString msg = _("One or more of the text boxes: Username, Informal username, or one or both password boxes, are empty.\nEach of these must have appropriate text typed into them before an Add User request will be honoured. Do so now.\nIf you want to give this new user more than minimal privileges, use the checkboxes also.");
@@ -1263,6 +1247,30 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 	}
 	else
 	{
+        // BEW 27Jan16 refactored, to test strUsername against *all* currently listed
+        // usernames, to ensure this is not an attempt to create a duplicate - that's a
+        // fatal error
+		int count = m_pUsersListBox->GetCount();
+		int index;
+		for (index = 0; index < count; index++)
+		{
+			m_pUsersListBox->SetSelection(index);
+			wxString selectedUser = m_pUsersListBox->GetString(index);
+			if (selectedUser == strUsername)
+			{
+				// Oops, he's trying to add someone who is already there. Warn, and probably
+				// best to clear the controls to force him to start over
+				wxBell();
+				wxString title = _("Warning: this user already exists");
+				wxString msg = _(
+"You are trying to add a username which already exists in the server. This is illegal, each username must be unique.\n To add a new user, no selection in the list is needed; just use the text boxes.\nIf he new user is to have privileges higher than the minimum then tick one or both checkboxes, then click Add User.");
+				wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+				wxCommandEvent dummy;
+				OnButtonUserPageClearControls(dummy);
+				return;
+			}
+		}
+
 		// Test the passwords match (if they don't match, or a box is empty, then the call
 		// will show an exclamation message from within it, and clear both password text boxes)
 		bool bMatchedPasswords = CheckThatPasswordsMatch(strPassword, strPasswordTwo);
@@ -1275,10 +1283,12 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 		// Get the checkbox values
 		bKbadmin = m_pCheckKbAdmin->GetValue();
 		bUseradmin = m_pCheckUserAdmin->GetValue();
+		bool bLanguageadmin = bKbadmin ? TRUE : FALSE; // a user can't be a languageadmin but not a kbadmin
 
 		// Create the new entry in the KBserver's user table
 		CURLcode result = CURLE_OK;
-		result = (CURLcode)m_pKbServer->CreateUser(strUsername, strFullname, strPassword, bKbadmin, bUseradmin);
+		result = (CURLcode)m_pKbServer->CreateUser(strUsername, strFullname, strPassword, 
+													bKbadmin, bUseradmin, bLanguageadmin);
 		// Update the page if we had success, if no success, just clear the controls
 		if (result == CURLE_OK)
 		{
@@ -1924,7 +1934,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 	}
 	else
 	{
-		wxString msg = _("This shared database was not created in this session, so a background deletion of the database entries will be done.\n This may take several hours. You can shut the machine down safely anytime, and later repeat the removal to get rid of any that remained when you shut down.\nYou can safely close the Knowledge Base Sharing Manager while the deletions are in progress, and even work in a different project if you wish. The background deletions will continue for as long as the Adapt It session is active, or until the deletions are finished.\nWhen all entries in the selected database are deleted, the language codes for it are automatically removed from the list as the last step.\nAt that time you can be certain the entire database no longer exists on the server to which you are currently connected.\nDatabases not chosen for deletion will, of course, remain intact on the server.");
+		wxString msg = _("This shared database was not created in this session, so a background deletion of the database entries will be done.\n This may take several hours. You can shut the machine down safely anytime, and later repeat the removal to get rid of any that remained when you shut down.\nYou can safely close the Knowledge Base Sharing Manager while the deletions are in progress, and even work in a different project if you wish.\nThe background deletions will continue for as long as the Adapt It session is active, or until the deletions are finished.\nWhen all entries in the selected database are deleted, the language codes for it are automatically removed from the list as the last step.\nAt that time you can be certain the entire database no longer exists on the server to which you are currently connected.\nDatabases not chosen for deletion will, of course, remain intact on the server.");
 		wxString title = _("Warning: a lengthy background deletion is happening");
 
 		// Test for absence of the selected definition being in the list of KB definitions
@@ -2001,7 +2011,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 						}
 					}
 				}
-			}
+			} // end of TRUE block for test: if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady)
 
 			// It's okay, we can go ahead with the removal request
 			m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = TRUE;

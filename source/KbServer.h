@@ -187,7 +187,8 @@ public:
 	int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description);
-	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bKbadmin, bool bUseradmin);
+	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, 
+						bool bKbadmin, bool bUseradmin, bool bLanguageadmin);
 	int		 CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTypeIsScrTgt);
 	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
 	int		 ListKbs(wxString username, wxString password);
