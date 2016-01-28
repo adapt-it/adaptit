@@ -1934,7 +1934,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 	}
 	else
 	{
-		wxString msg = _("This shared database was not created in this session, so a background deletion of the database entries will be done.\n This may take several hours. You can shut the machine down safely anytime, and later repeat the removal to get rid of any that remained when you shut down.\nYou can safely close the Knowledge Base Sharing Manager while the deletions are in progress, and even work in a different project if you wish.\nThe background deletions will continue for as long as the Adapt It session is active, or until the deletions are finished.\nWhen all entries in the selected database are deleted, the language codes for it are automatically removed from the list as the last step.\nAt that time you can be certain the entire database no longer exists on the server to which you are currently connected.\nDatabases not chosen for deletion will, of course, remain intact on the server.");
+		wxString msg = _("This shared database was not created in this session, so a background deletion of the database entries will be done.\n This may take several hours if the KBserver is located on the web; or minutes if located on the local area network.\nYou can shut the machine down safely anytime, and later repeat the removal to get rid of any that remained undeleted when you shut down.\nYou can safely close the Knowledge Base Sharing Manager while the deletions are in progress, and even work in a different project if you wish.\nThe background deletions will continue for as long as the Adapt It session is active, or until the deletions are finished.\nWhen all entries in the selected database are deleted, the language codes for it are automatically removed from the list as the last step.\nAt that time you can be certain the entire database no longer exists on the server to which you are currently connected.\nDatabases not chosen for deletion will, of course, remain intact on the server.");
 		wxString title = _("Warning: a lengthy background deletion is happening");
 
 		// Test for absence of the selected definition being in the list of KB definitions
@@ -1943,7 +1943,8 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 		if (!IsThisKBDefinitionInSessionList(m_pOriginalKbStruct, m_pKbsAddedInSession))
 		{
 			// If an "all entries" emptying as part of a removal is already in progress,
-			// don't start another....
+			// don't start another.... (the next line must be commented out when the
+			// code is compiled for a release)
 			//m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = TRUE; // uncomment out to test showing
 																// of the information message
 			if (m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
@@ -2003,14 +2004,36 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 								wxCommandEvent dummy;
 								OnButtonKbsPageClearListSelection(dummy);
 								OnButtonKbsPageClearBoxes(dummy);
-								wxString msg3 = _("The knowledge base you selected for removal is active as a shared knowledge base for the current adaptation project.\nIt makes no sense to try to remove the contents of a knowledge base that is currently able to accept new entries.\nClose this Knowledge Base Sharing Manager now, then use the Setup Or Remove Knowledge Base Sharing command in the Advanced menu to remove the shared status from the current project.\nThen reopen the Knowledge Base Sharing Manager and retry the removal. This time it should succeed.\n Please make sure no users anywhere are trying to use the shared database you are trying to remove from the server.");
+								wxString msg3 = _(
+"The knowledge base you selected for removal is active as a shared knowledge base for the current adaptation project.\nIt makes no sense to try to remove the contents of a knowledge base that is currently able to accept new entries.\nClose this Knowledge Base Sharing Manager now, then use the Setup Or Remove Knowledge Base Sharing command\nin the Advanced menu to remove the shared status from the current project.\nThen reopen the Knowledge Base Sharing Manager and retry the removal. This time it should succeed.\n Please make sure no users anywhere are trying to use the shared database you are trying to remove from the server.");
 								wxString title3 = _("Illegal Removal Attempt");
 								wxMessageBox(msg3, title3, wxICON_INFORMATION | wxOK);
 								return;
 							}
 						}
 					}
-				}
+				} // end of TRUE block for test: if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
+				else
+				{
+                    // Sharing to either the adaptations or glossing KB is not currently
+                    // on. However, our Manager can only delete the KB definition if it
+                    // matches one of this active project's CKB instances - either adapting
+                    // or glossing. So we have to check here that the language codes of our
+                    // relevant KB currently open match the codes for what we want to
+                    // delete. If that is the case, break out to continue the deletion. If
+                    // not, warn user and return to the Manager's kb page without doing any
+                    // harm
+					bool bDeletingAdaptingKB = m_kbTypeOfDeletion == 1 ? TRUE : FALSE;
+					//m_srcLangCodeOfDeletion = m_pOriginalKbStruct->sourceLanguageCode; set above
+					//m_nonsrcLangCodeOfDeletion = m_pOriginalKbStruct->targetLanguageCode; set above
+					// app has m_targetLanguageCode and m_sourceLanguageCode and m_glossesLanguageCode
+
+// *** TODO *** new code, as above
+
+
+
+				} // end of else block for test: if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
+
 			} // end of TRUE block for test: if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady)
 
 			// It's okay, we can go ahead with the removal request
@@ -2045,6 +2068,18 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 					// kb table of the KBserver (doing so in the thread's end) -- or, if the
 					// user shuts down the app or machine prematurely, at the end of the
 					// OnExit() function
+// **** TODO ******
+			// the KbServer instance has an internal m_pKB which points at an instance of an adapting
+			// or glossing CKB from some project (not necessarily the AI project currently active)
+			// So we need code here to determine a project ?? (could be more than one??) in the 
+			// AI Unicode Work folder which matches the language codes, we'd have to run
+			// it's KB?? -- this seems wrong. But KbServer assumes that the m_pKB KB is belonging
+			// to the current open project. This assumption can be wrong. Or, check that
+			// we ARE in a project which has this particular KB, but that no sharing is on,
+			// and then set m_pKB to it's pApp->m_pKB or pApp->m_pGlossingKB -- then we
+			// can delete....  do it this way
+			// ... we need a check to ensure we are in the right project!!  <<-- TODO
+
 			// Most of m_pKbServerForDeleting members are as yet undefined, so populate them
 			// from the KB Sharing Manager's stateless KbServer instance
 			wxString aURL = m_pKbServer->GetKBServerURL();

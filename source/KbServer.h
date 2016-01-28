@@ -287,7 +287,7 @@ protected:
 
 private:
 	// class variables
-	CKB*		m_pKB; // whichever of the m_pKB versus m_pGlossingKB this instance is associated with
+	CKB*		m_pKB; // pointer to either the adapting KB, or glossing KB, instance
 	bool		m_bUseNewEntryCaching; // eventually set this via the GUI
 
 	int			m_httpStatusCode; // for OK it is 200, anything 400 or over is an error
