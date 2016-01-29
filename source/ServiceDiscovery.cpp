@@ -237,7 +237,8 @@ void CServiceDiscovery::GetResults()
 
 			bThrowAwayDuplicateIPaddr = FALSE; // initialize for every iteration
 			timeout = 3000;
-			while(!namescan.getResultCount() && timeout > 0)
+			//timeout = 5000;
+			while (!namescan.getResultCount() && timeout > 0)
 			{
 				wxMilliSleep(25);
 				timeout-=25;
@@ -274,7 +275,8 @@ void CServiceDiscovery::GetResults()
 					wxServDisc addrscan(0, m_hostname, QTYPE_A);
 
 					timeout = 3000;
-					while(!addrscan.getResultCount() && timeout > 0)
+					//timeout = 5000;
+					while (!addrscan.getResultCount() && timeout > 0)
 					{
 						wxMilliSleep(25);
 						timeout-=25;

@@ -11362,9 +11362,7 @@ here2:	dlgReturnCode = dlg.ShowModal();
 				pApp->m_strKbServerURL = pApp->m_saveOldURLStr;
 				pApp->m_strUserID = pApp->m_saveOldUsernameStr;
 				pApp->GetMainFrame()->SetKBSvrPassword(pApp->m_savePassword);
-				pApp->m_bIsKBServerProject = pApp->m_saveSharingAdaptationsFlag;
-				pApp->m_bIsGlossingKBServerProject = pApp->m_saveSharingGlossesFlag;
-
+				
 				bServiceDiscoverySucceeded = FALSE;
 			} // end of else block for test: if(bOK)
 
@@ -11463,15 +11461,6 @@ here2:	dlgReturnCode = dlg.ShowModal();
 					pApp->ReleaseKBServer(2); // the glossing one
 					pApp->m_bIsKBServerProject = FALSE;
 					pApp->m_bIsGlossingKBServerProject = FALSE;
-
-					// Give the password to the frame instance which stores it because
-					// SetupForKBServer() will look for it there; for normal user authentications
-					// it's already stored in pFrame, but for KBSharingManager gui, it needs to
-					// store whatever password the manager person is using
-					//if (!bUserAuthenticating)
-					//{
-					//	pFrame->SetKBSvrPassword(dlg.m_strStatelessPassword);
-					//}
 
 					// Do the setup or setups; use bSetupKBserverFailed = TRUE to carry
 					// forward any error state, and skip functions that cannot succeed

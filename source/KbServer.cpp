@@ -372,6 +372,11 @@ bool KbServer::IsKBSharingEnabled()
 	return m_bEnableKBSharing;
 }
 
+void KbServer::SetKB(CKB* pKB)
+{
+	m_pKB = pKB;
+}
+
 void KbServer::SetKBServerType(int type)
 {
 	m_kbServerType = type;

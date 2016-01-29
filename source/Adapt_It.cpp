@@ -15413,6 +15413,8 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
     // SD_condition to be Signal()-ed, which then allows DoServiceDiscovery() to awake, and
     // be automatically given the lock, so it can then access the service discovery results
 
+	wxLogDebug(_T("DoServiceDiscovery(): WaitTimeout(nKBserverTimeout) when called has value:  %d  milliseconds"), nKBserverTimeout);
+
 	// BEW 4Jan16, 4th param is the parent class for CServiceDiscovery instance, the app class
 	m_pServDisc = new CServiceDiscovery(&SD_mutex, &SD_condition, serviceStr, this); 
 
@@ -15421,8 +15423,6 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 
 	m_pServDisc->m_pApp = this; // set CServiceDiscovery's m_pApp pointer
 
-	// BEW 4Jan16
-	wxLogDebug(_T("DoServiceDiscovery(): WaitTimeout(3500) is called next"));
 	// TODO - make the wait timeout value (in seconds) be a basic config file value that
 	// is grabbed in OnInit() when that config file is loaded, and use it here
 	SD_condition.WaitTimeout(nKBserverTimeout); // allows the ServiceDiscovery object on the 

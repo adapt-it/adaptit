@@ -682,6 +682,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\KBSharingMgrTabbedDlg.cpp" />
     <ClCompile Include="..\..\source\KbSharingSetup.cpp" />
     <ClCompile Include="..\..\source\KBSharingStatelessSetupDlg.cpp" />
+    <ClCompile Include="..\..\source\KbSvrHowGetUrl.cpp" />
     <ClCompile Include="..\..\source\LanguageCodesDlg.cpp" />
     <ClCompile Include="..\..\source\LanguageCodesDlg_Single.cpp" />
     <ClCompile Include="..\..\source\LanguagesPage.cpp" />
@@ -824,6 +825,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\KBSharingMgrTabbedDlg.h" />
     <ClInclude Include="..\..\source\KbSharingSetup.h" />
     <ClInclude Include="..\..\source\KBSharingStatelessSetupDlg.h" />
+    <ClInclude Include="..\..\source\KbSvrHowGetUrl.h" />
     <ClInclude Include="..\..\source\LanguageCodesDlg_Single.h" />
     <ClInclude Include="..\..\source\md5_SB.h" />
     <ClInclude Include="..\..\source\mdnsd.h" />

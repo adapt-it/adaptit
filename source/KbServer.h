@@ -224,6 +224,7 @@ public:
 	void	 DeleteUploadEntries();
 
 	// public setters
+	void     SetKB(CKB* pKB); // sets m_pKB to point at either the local adaptations KB or local glosses KB
 	void	 SetKBServerType(int type);
 	void	 SetKBServerURL(wxString url);
 	void	 SetKBServerUsername(wxString username);
