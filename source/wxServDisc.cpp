@@ -314,7 +314,9 @@ int wxServDisc::recvm(struct message* m, SOCKET s, unsigned long int *ip, unsign
 
 int wxServDisc::ans(mdnsda a, void *arg)
 {
-  wxServDisc *moi = (wxServDisc*)arg;
+	wxLogDebug(wxT("wxServDisc: got answer: ans(mdnsda a, void* arg) just entered"));
+
+	wxServDisc *moi = (wxServDisc*)arg;
 
   wxString key;
   switch(a->type)
