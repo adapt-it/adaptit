@@ -81,6 +81,9 @@
 #endif
 #endif
 
+extern wxMutex gBlockForGetResults; // global, which ServiceDiscovery.cpp also will use
+
+
 // define our new notify event! (BEW added the ...HALTING one)
 
 //#if wxVERSION_NUMBER < 2900
@@ -208,7 +211,6 @@ wxThread::ExitCode wxServDisc::Entry()
 	wxLogDebug(_T("wxServDisc %p:   BEW  end of outer loop iteration:  %d"), this, BEWcount);
     } // end of outer loop
 
-
   // BEW 2Dec15 added cache freeing (d's shutdown is not yet 1, but it doesn't test for it
   // so do this first, as shutdown will be set to 1 in mdnsd_shutdown(d) immediately after
   my_gc(d); // is based on Beier's _gd(d), but removing every instance 
@@ -318,9 +320,7 @@ int wxServDisc::recvm(struct message* m, SOCKET s, unsigned long int *ip, unsign
 
 int wxServDisc::ans(mdnsda a, void *arg)
 {
-	wxLogDebug(wxT("wxServDisc: got answer: ans(mdnsda a, void* arg) just entered"));
-
-	wxServDisc *moi = (wxServDisc*)arg;
+  wxServDisc *moi = (wxServDisc*)arg;
 
   wxString key;
   switch(a->type)
@@ -359,7 +359,11 @@ int wxServDisc::ans(mdnsda a, void *arg)
     // entry update
     moi->results[key] = result;
 
+  //gBlockForGetResults.Lock();
+
   moi->post_notify();
+
+  //gBlockForGetResults.Unlock();
 
   wxLogDebug(wxT("wxServDisc %p: got answer:"), moi);
   wxLogDebug(wxT("wxServDisc %p:    key:  %s"), moi, key.c_str());
@@ -610,7 +614,8 @@ size_t wxServDisc::getResultCount() const
 }
 
 void wxServDisc::post_notify()
-{
+{	
+
 	// BEW Tell the running wxServDisc thread that GetResults() was invoked
 	m_bGetResultsStarted = TRUE;
 	wxLogDebug(_T("wxServDisc %p:  post_notify(). Doing non-event approach."), this);
@@ -622,7 +627,11 @@ void wxServDisc::post_notify()
 		//wxCommandEvent dummy;
 		//((CServiceDiscovery*)parent)->onSDNotify(dummy);
 		
+		//gBlockForGetResults.Unlock(); // so that GetResults() can acquire the Lock()
 		((CServiceDiscovery*)parent)->GetResults();
+		//gBlockForGetResults.Lock(); // GetResults() released the lock, acquire it again now
+									// (as soon as post_notify() is exitted, it will be
+									// again released
 	}
 
   // Beier's code follows

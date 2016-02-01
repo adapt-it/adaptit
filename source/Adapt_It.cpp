@@ -15484,7 +15484,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 		// Generate some extra (but bogus) URLs and add them to m_servDiscResults array
 		// in order to test the ServDisc_KBserversDlg which handles what to do if more
 		// than on KBserver is discovered running on the LAN
-/* disable for now, enable when further muli-url testing is desired
+/* disable for now, enable when further multi-url testing is desired
 		if (m_servDiscResults.GetCount() > 0)
 		{
 			aResultLine = m_servDiscResults.Item(0);

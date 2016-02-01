@@ -99,6 +99,8 @@
 #endif
 #include "Adapt_It.h"
 
+wxMutex gBlockForGetResults; // global, which wxServDisc also will use
+
 extern CAdapt_ItApp* gpApp;
 
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)
@@ -183,8 +185,11 @@ void CServiceDiscovery::GetResults()
 		wxLogDebug(_T("ServiceDiscovery::GetResults() if (m_pApp->m_pServDisc == NULL) test:  was TRUE, return immediately"));
 		return;
 	}
+
 	if (m_pSD != NULL)
 	{
+		//gBlockForGetResults.Lock(); // in wxServDisc, just prior to post_notify() call, the mutex is released
+
 		m_hostname.Empty();
 		m_addr.Empty();
 		m_port.Empty();
@@ -245,8 +250,8 @@ void CServiceDiscovery::GetResults()
 			wxServDisc namescan(0, m_pSD->getResults().at(i).name, QTYPE_SRV);
 
 			bThrowAwayDuplicateIPaddr = FALSE; // initialize for every iteration
-			timeout = 3000;
-			//timeout = 5000;
+			//timeout = 3000;
+			timeout = 5000; // try 5 seconds
 			while (!namescan.getResultCount() && timeout > 0)
 			{
 				wxMilliSleep(25);
@@ -283,8 +288,8 @@ void CServiceDiscovery::GetResults()
 				{
 					wxServDisc addrscan(0, m_hostname, QTYPE_A);
 
-					timeout = 3000;
-					//timeout = 5000;
+					//timeout = 3000;
+					timeout = 5000; // try 5 seconds
 					while (!addrscan.getResultCount() && timeout > 0)
 					{
 						wxMilliSleep(25);
@@ -318,8 +323,8 @@ void CServiceDiscovery::GetResults()
 							m_bArr_IPaddrLookupFailed.Add(0); // for FALSE, a successful ip lookup
 							m_bArr_DuplicateIPaddr.Add(0); // it's not a duplicate
 #if defined(_DEBUG)
-							wxLogDebug(_T("Found: [Service:  %s  ] Looked up:  ip addr:  %s   for entry index = %d"),
-							m_sd_servicenames.Item(i).c_str(), m_addr.c_str(), i);
+							wxLogDebug(_T("wxServDisc %p: Found: [Service:  %s  ] Looked up:  ip addr:  %s   for entry index = %d"),
+							m_pSD, m_sd_servicenames.Item(i).c_str(), m_addr.c_str(), i);
 #endif
 						}
 						else
@@ -374,6 +379,7 @@ void CServiceDiscovery::GetResults()
 		wxString intStr;
 		if (m_urlsArr.IsEmpty())
 		{
+			//gBlockForGetResults.Unlock();
 			return;
 		}
 		for (i = 0; i < (size_t)entry_count; i++)
@@ -390,11 +396,17 @@ void CServiceDiscovery::GetResults()
 			aLine += intStr;
 			m_pApp->m_servDiscResults.Add(aLine); // BEW 4Jan16
 		}
+#if defined(_DEBUG)
+		wxLogDebug(_T("wxServDisc %p:  Finished storing constructed URLs in m_pApp->m_pServDiscResults  ******"));
+#endif
+		//gBlockForGetResults.Unlock(); // in wxServDisc, just after post_notify() call, the mutex is relocked
+
 	} // end of TRUE block for test: if (m_pSD != NULL)
 	else
 	{
 		// major error, but the program counter has never entered here, so
 		// just log it if it happens
+		//gBlockForGetResults.Unlock();
 		gpApp->LogUserAction(_T("GetResults():unexpected error: ptr to wxServDisc instance, m_pSD, is NULL"));
 		wxLogDebug(_T("ServiceDiscovery::GetResults() (m_pSD != NULL) test:  was FALSE, m_pSD =  %p"), m_pSD);
 		return;
@@ -452,7 +464,7 @@ void CServiceDiscovery::GetResults()
     wxLogDebug(_T("wxServDisc %p: BEW: GetResults(), block finished. Now have posted event wxServDiscHALTING."), m_pSD);
 	}
 
-	wxLogDebug(wxT("wxServDisc %p: BEW: A KBserver was found. GetResults() is exiting right now"), m_pSD);
+	wxLogDebug(wxT("wxServDisc %p: BEW: A KBserver was found. GetResults() is exiting, wxServDiscHALTING has been posted"), m_pSD);
 }
 
 // BEW Getting the module shut down in the two circumstances we need:
@@ -516,7 +528,7 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 
 CServiceDiscovery::~CServiceDiscovery()
 {
-	wxLogDebug(_T("Deleting the CServiceDiscovery instance, in ~CServiceDiscovery()"));
+	wxLogDebug(_T("Deleting  %p , the CServiceDiscovery instance, in ~CServiceDiscovery()"), this);
 }
 
 // Copied wxItoa from helpers.cpp, as including helpers.h leads to problems

@@ -11021,7 +11021,7 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout
 		{
 			pApp->ReleaseKBServer(2); // the glossings one
 		}
-		ShortWaitSharingOff(30); //displays "Knowledge base sharing is OFF" for 3.0 seconds
+		ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
 		return FALSE;
 	}
 
@@ -11103,15 +11103,6 @@ here2:	dlgReturnCode = dlg.ShowModal();
 				pApp->m_bIsKBServerProject = FALSE;
 				pApp->m_bIsGlossingKBServerProject = FALSE;
 
-				// Give the password to the frame instance which stores it because
-				// SetupForKBServer() will look for it there; for normal user authentications
-				// it's already stored in pFrame, but for KBSharingManager gui, it needs to
-				// store whatever password the manager person is using
-				//if (!bUserAuthenticating)
-				//{
-				//	pFrame->SetKBSvrPassword(dlg.m_strStatelessPassword);
-				//}
-
 				// Do the setup or setups; use bSetupKBserverFailed = TRUE to carry
 				// forward any error state, and skip functions that cannot succeed
 				if (m_bSharingAdaptations)
@@ -11192,14 +11183,14 @@ here2:	dlgReturnCode = dlg.ShowModal();
 			if (bSimulateUserCancellation || bSetupKBserverFailed)
 			{
 				// There was an error, and sharing was turned off
-				ShortWaitSharingOff(30); //displays "Knowledge base sharing is OFF" for 3.0 seconds
+				ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
 				return FALSE;
 			}
 			else
 			{
 				// No error, authentication and setup succeeded
-				ShortWait(25);  // shows "Connected to KBserver successfully"
-								// for 2.5 secs (and no title in titlebar)
+				ShortWait(20);  // shows "Connected to KBserver successfully"
+								// for 2.0 secs (and no title in titlebar)
 			}
 			return TRUE;
 		} // end of TRUE block for test: if (!bServiceDiscoveryWanted)
@@ -11306,50 +11297,11 @@ here2:	dlgReturnCode = dlg.ShowModal();
 				// KBservers on the LAN, which would be too restrictive.
 				if (returnedValue == SD_NoKBserverFound)
 				{
-					// Before we let the user do a manual connect, we want to eliminate the possibility
-					// that failure was due to a too-short wait timeout value; so we'll here do one or
-					// two extra calls of DoServiceDiscovery() but with an increased timeout value each
-					// time. First time, the base value plus 2 seconds, the second time, the base value
-					// plus 5 seconds. If those also fail, we can be sure no KBserver is running on the LAN
-					bOK = pApp->DoServiceDiscovery(curURL, chosenURL, returnedValue, nKBserverTimeout + 2000);
-					if (bOK)
-					{
-						// Success! So chosenURL is what we'll use. To acccomplish this, just replace the
-						// stored URL in m_strKbSvrURL with the contents of chosenURL and then goto secondchance
-						pApp->m_strKbServerURL = chosenURL;
-						bServiceDiscoverySucceeded = TRUE;
-						goto secondchance;
-					}
-					else
-					{
-						// Failure again, but the failure may be due to internal errors in service discovery, 
-						// in which case we abandon the attempt and report the error etc; but if the reason
-						// is SD_NoKBserverFound, then try again with the final (larger) wait timeout value
-						if (returnedValue == SD_NoKBserverFound)
-						{
-							bOK = pApp->DoServiceDiscovery(curURL, chosenURL, returnedValue, nKBserverTimeout + 5000);
-							if (bOK)
-							{
-								// Success on third try! So chosenURL is what we'll use. To acccomplish this, 
-								// just replace the stored URL in m_strKbSvrURL with the contents of chosenURL
-								// and then goto secondchance
-								pApp->m_strKbServerURL = chosenURL;
-								bServiceDiscoverySucceeded = TRUE;
-								goto secondchance;
-							}
-							else
-							{
-								if (returnedValue == SD_NoKBserverFound)
-								{
-									// Third failure - so we accept defeat and tell use what might be the problem;
-									// leave pApp->m_strKbServerURL unchanged
-									wxString error_msg = _(
-	"No KBserver is running on the local area network yet.\nPossibly you forgot to set it running.\nKnowledge Base sharing will now be turned off.\nFirst get a KBserver running, and then try again to connect to it.");
-									wxMessageBox(error_msg, _("A local KBserver is not running"), wxICON_WARNING | wxOK);
-								}
-							} // end of else block for test: if (bOK)  (for the second repeat attempt)
-						} // end of TRUE block for test: if (returnedValue == SD_NoKBserverFound) (for second repeat attempt)
-					} // end of else block for test: if (bOK)  (for the first repeat attempt)
+					// Defeat! Tell use what might be the problem (be sure to leave 
+					// pApp->m_strKbServerURL unchanged)
+					wxString error_msg = _(
+"No KBserver is running on the local area network yet.\nOr maybe you cancelled. Or possibly you forgot to set a KBserver running. Or maybe the local area network is not working.\nKnowledge Base sharing will now be turned off.\nFirst get a KBserver running, and then try again to connect to it.\n If necessary, ask your administrator to help you.");
+					wxMessageBox(error_msg, _("A local KBserver was not discovered"), wxICON_WARNING | wxOK);
 				} // end of TRUE block for test: if (returnedValue == SD_NoKBserverFound)
 
 				// An error message will have been seen already; so just treat this as a cancellation
@@ -11384,24 +11336,12 @@ here2:	dlgReturnCode = dlg.ShowModal();
 			{
 				// Authenticate to the server. Authentication also chooses, via the url provided or
 				// typed, which particular KBserver we connect to - there may be more than one available
-				// 
-				// If coming here via the secondchance label, the app variable m_strKbServerURL 
-				// may have not been changed by service discovery and any related user choice, and
-				// if so it will still be as last used and stored in the basic configuration file.
-				// (This would be an empty string if no earlier connection has been made.)
-				// On the other hand, one of the two extra DoServiceDiscovery() calls done above
-				// may have succeeded - in which case the m_strKbServerURL will have been changed
-				// to the URL generated from within the successful discovery.
-				// In either case, m_strUserID is unchanged (the username associated
-				// with this adaptation project). Hence KBSharingStatelessSetupDlg will use those
-				// values. Of course, if no KBserver was used earlier, the URL will be an
-				// empty string, and the user can then type it in
-	secondchance: KBSharingStatelessSetupDlg dlg(pFrame, bUserAuthenticating); // bUserAuthenticating
+				KBSharingStatelessSetupDlg dlg(pFrame, bUserAuthenticating); // bUserAuthenticating
 							//  should be passed in FALSE only when someone who may not be the
 							// user is authenticating to the KB Sharing Manager tabbed dialog gui
 				dlg.Center();
 				int dlgReturnCode;
-	here:		dlgReturnCode = dlg.ShowModal();
+here:			dlgReturnCode = dlg.ShowModal();
 				if (dlgReturnCode == wxID_OK)
 				{
 					// Since KBSharingSetup.cpp uses the above KBSharingstatelessSetupDlg, we
@@ -11563,7 +11503,7 @@ here2:	dlgReturnCode = dlg.ShowModal();
 				{
 					// The password is not stored, so we must ask for it - insist on something
 					// being typed in
-	back:			thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show the password dialog
+back:				thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show the password dialog
 					if (thePassword.IsEmpty())
 					{
 						wxString title = _("No Password Typed");
@@ -11688,14 +11628,14 @@ here2:	dlgReturnCode = dlg.ShowModal();
 			if (!bServiceDiscoverySucceeded || bSimulateUserCancellation || bSetupKBserverFailed)
 			{
 				// There was an error, and sharing was turned off
-				ShortWaitSharingOff(30); //displays "Knowledge base sharing is OFF" for 3.0 seconds
+				ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
 				return FALSE;
 			}
 			else
 			{
 				// No error, authentication and setup succeeded
-				ShortWait(25);  // shows "Connected to KBserver successfully"
-								// for 2.5 secs (and no title in titlebar)
+				ShortWait(20);  // shows "Connected to KBserver successfully"
+								// for 2.0 secs (and no title in titlebar)
 			}
 		} // end of else block for test: if (!bServiceDiscoveryWanted), i.e. it was wanted
 	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject ||
@@ -11703,7 +11643,7 @@ here2:	dlgReturnCode = dlg.ShowModal();
 	else
 	{
 		// If not either type of sharing is wanted, set up nothing, sharing is OFF
-		// Don't call ShortWaitSharingOff(30) here, because if the user has not been
+		// Don't call ShortWaitSharingOff(20) here, because if the user has not been
 		// using KB sharing, he does not need to be informed that it is off
 		return FALSE;
 	} // end of else block for test: if (pApp->m_bIsKBServerProject ||

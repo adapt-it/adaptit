@@ -1347,7 +1347,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 			{
 				// User canceled before Authentication could be attempted - so tell him
 				// that sharing is OFF
-				ShortWaitSharingOff(30); //displays "Knowledge base sharing is OFF" for 3.0 seconds
+				ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
 			}
 			pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
 
