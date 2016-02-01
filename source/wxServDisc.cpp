@@ -205,7 +205,7 @@ wxThread::ExitCode wxServDisc::Entry()
 	  }
 	// BEW log what iteration this is:
 	BEWcount++;
-	wxLogDebug(_T("BEW  outer loop iteration:  %d"), BEWcount);
+	wxLogDebug(_T("wxServDisc %p:   BEW  end of outer loop iteration:  %d"), this, BEWcount);
     } // end of outer loop
 
 
@@ -228,7 +228,7 @@ wxThread::ExitCode wxServDisc::Entry()
   // discovered and we then should do it here. But to get event handling to happen,
   // the main thread needs to be awakened, so Signal() is to be called so that 
   // waiting finishes - so we do that before we post the halting event
-  wxLogDebug(_T("wxServDisc::Entry(): m_bGetResultsStarted is %s "),
+  wxLogDebug(_T("wxServDisc %p: wxServDisc::Entry(): m_bGetResultsStarted is %s "), this,
 	  m_bGetResultsStarted ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
 
   if (!m_bGetResultsStarted)
@@ -246,12 +246,16 @@ wxThread::ExitCode wxServDisc::Entry()
 	  wxCommandEvent upevent(wxServDiscHALTING, wxID_ANY);
 	  upevent.SetEventObject(this); // set sender
 
-	#if wxVERSION_NUMBER < 2900
-	  wxPostEvent((CServiceDiscovery*)parent, upevent);
-	#else
-	  wxQueueEvent((CServiceDiscovery*)parent, upevent.Clone());
-	#endif
-	  wxLogDebug(_T("from wxServDisc after timeout of Entry()'s loop, no KBserver running, so posting wxServDiscHALTING event")); 
+	  if ((CServiceDiscovery*)parent != NULL)
+	  {
+#if wxVERSION_NUMBER < 2900
+		wxPostEvent((CServiceDiscovery*)parent, upevent);
+#else
+		wxQueueEvent((CServiceDiscovery*)parent, upevent.Clone());
+#endif
+		wxLogDebug(_T("wxServDisc %p: after timeout of Entry()'s loop, no KBserver running, so posting wxServDiscHALTING event"),
+					this);
+	  }
   }
   wxLogDebug(wxT("wxServDisc %p: scanthread exiting, after loop has ended, now at end of Entry(), returning NULL"), this);
 
@@ -584,7 +588,7 @@ wxServDisc::~wxServDisc()
 
   wxLogDebug(wxT("In ~wxServDisc() wxServDisc %p: scanthread deleted, wxServDisc destroyed, hostname was '%s', lifetime was %ld"),
 	  this, query.c_str(), mWallClock.Time());
-  wxLogDebug(wxT("End of ~wxServDisc() Finished call of ~wxServDisc()"));
+  wxLogDebug(wxT("wxServDisc %p:  End of ~wxServDisc() Finished call of ~wxServDisc()"), this);
 }
 
 std::vector<wxSDEntry> wxServDisc::getResults() const
@@ -607,8 +611,7 @@ void wxServDisc::post_notify()
 {
 	// BEW Tell the running wxServDisc thread that GetResults() was invoked
 	m_bGetResultsStarted = TRUE;
-	wxLogDebug(_T("m_pSD->m_bGetResultsStarted SET to TRUE. Doing nonEvent approach.")); // interested 
-																	// in the time this log is displayed
+	wxLogDebug(_T("wxServDisc %p:  post_notify(). Doing non-event approach."), this);
 	// BEW - the nonEvent approach follows...
 	if (parent)
 	{
@@ -624,7 +627,7 @@ void wxServDisc::post_notify()
   /*
   if(parent)
     {
- 	  wxLogDebug(_T("post_notify():  posting event")); // BEW added this call
+ 	  wxLogDebug(_T("wxServDisc %p:  post_notify():  posting event"), this); // BEW added this call
 		
 		// new NOTIFY event, we got no window id
       wxCommandEvent event(wxServDiscNOTIFY, wxID_ANY);

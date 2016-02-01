@@ -776,8 +776,8 @@ void mdnsd_query(mdnsd d, char *host, int type, int (*answer)(mdnsda a, void *ar
     struct query *q;
     struct cached *cur = 0;
     int i = _namehash(host) % SPRIME;
-	// BEW changed test  if(!(q = _q_next(d,0,host,type))) which does the true block only if q is null to be explicit
-    if(!((q = _q_next(d,0,host,type)) != 0))
+	//if(!((q = _q_next(d,0,host,type)) != 0)) <- BEW worked on XP machine, failed on XPS machine (no answers ever)
+	if(!(q = _q_next(d,0,host,type))) // <- original, leave it though it gives compiler warning
     {
         if(!answer) return;
         q = (struct query *)malloc(sizeof(struct query));

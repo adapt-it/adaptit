@@ -15646,16 +15646,16 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 						if (intHostnameLookupFailed_first == 1)
 						{
 							wxString message;  message = message.Format(_(
-"The correct service was discovered, but looking up its hostname has failed.\nThe hostname is: \"kbserver.local.\", and the reason for the failure is unknown.\nPerhaps shut down everything and then restart everything, then try again to connect. Or ask your administrator to help you."));
-							wxMessageBox(message,_("Hostname lookup failed"), wxICON_WARNING | wxID_OK);
+"The correct service was discovered, but looking up its hostname has failed, reason unknown.\nPerhaps shut down and start again, or ask your administrator to help you."));
+							wxMessageBox(message,_("Hostname lookup failed"), wxICON_WARNING | wxOK);
 							chosenURL = wxEmptyString;
 							result = SD_LookupHostnameFailed;
 						}
 						else if (intIpAddrLookupFailed_first == 1)
 						{
 							wxString message;  message = message.Format(_(
-"The correct service was discovered, but looking up its Internet Protocol address has failed.\nAn IP address is something like  192.168.n.m  where n and m are small numbers usually.\nThe reason for the failure is unknown.\nPerhaps shut down everything and then restart everything, then try again to connect. Or ask your administrator to help you."));
-							wxMessageBox(message,_("IP address lookup failed"), wxICON_WARNING | wxID_OK);
+"The correct service was discovered, but looking up its Internet Protocol address has failed, reason unknown.\nAn IP address is something like  192.168.n.m  where n and m are typically small numbers.\nPerhaps shut down and start again, or ask your administrator to help you."));
+							wxMessageBox(message,_("IP address lookup failed"), wxICON_WARNING | wxOK);
 							chosenURL = wxEmptyString;
 							result = SD_LookupIPaddrFailed;
 						}
@@ -15817,9 +15817,10 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 
 void CAdapt_ItApp::onServDiscHalting(wxCommandEvent& WXUNUSED(event))
 {
+	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() - deleted CServiceDiscovery instance %p, setting m_pServDisc to NULL"),
+		m_pServDisc);
 	delete m_pServDisc; // BEW 4Dec16
 	m_pServDisc = NULL;
-	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() - deleted CServiceDiscovery instance, set m_pServDisc to NULL"));
 }
 
 // Checks m_pKbServer[0] or [1] for non-NULL or NULL
