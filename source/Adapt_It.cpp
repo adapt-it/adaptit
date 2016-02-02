@@ -215,7 +215,7 @@
 #ifdef __WXMSW__
 #define WIN32_LEAN_AND_MEAN
 // BEW added the above #define on 21Nov15, because it prevents WinSock.h being #included withint windows.h
-// which is what we need, since our service discovery module needs to use WinSock2.h; and if WinSock.h 
+// which is what we need, since our service discovery module needs to use WinSock2.h; and if WinSock.h
 // is present we get 118 compile conflicts, mostly redefinitions and conflicting definitions etc. Hmmm,
 // I did this, but I still got the 118 compile errors, so there must be somewhere else that needs this protection
 //#include <windows.h>
@@ -15223,9 +15223,9 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 /// task for someone not acquainted with the details of service discovery, we have embedded
 /// our tweak of his solution within a joinable thread. So, when the thread is disposed of,
 /// the leaks are blown away when its process is destroyed.
-/// 
+///
 /// DoServiceDiscovery is called prior to an authentication attempt to a running KBserver.
-/// The service:  "_kbserver._tcp.local." is scanned for (note, there MUST be a period 
+/// The service:  "_kbserver._tcp.local." is scanned for (note, there MUST be a period
 /// following .local, the wrapping " " are not part of the string), and if one of more
 /// KBservers are running and discovered, their ip addresses are looked up and a URL for
 /// each constructed. Normally, only one KBserver should be running; if that is not the
@@ -15235,7 +15235,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 /// would be to Cancel, and turn off all KBserver instances except the one to which
 /// everyone is to connect, then retry setting up the KB sharing - then connection will be
 /// automatic and invisible and nobody will get confused.)
-/// 
+///
 /// Of course, a lot of things may go wrong. Everybody may forget to turn on a KBserver -
 /// if so, they'll need to be warned that no sharing can happen till they run one. Or the thread
 /// which does the service discovery may not be able to be created (unlikely though), or it
@@ -15251,7 +15251,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 /// protocols described above. Every DoServiceDiscovery() call will overwrite the earlier contents
 /// of that file. We leave the file in the work folder, there's nothing dangerous about
 /// doing so, and it may be useful for checking what yesterday's session used for the sharing.
-/// 
+///
 /// Because of the variety of possible states, the following enum will be used internally
 /// to help with implementing suitable protocols: The enum is defined in Adapt_It.h at
 /// about line 752
@@ -15284,12 +15284,12 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	// Assign to the app's member pointer, m_pServDisc; we can then pass this pointer in
 	// to the solution's classes, to access any of the classes to perform actions such as
 	// deletions, thread destruction, etc
-	
+
 	// The wxMutext to use in conjunction with SD_condition
 	wxMutex       SD_mutex;
-	// wxCondition is needed so that within DoServiceDiscovery() we can Wait() 
+	// wxCondition is needed so that within DoServiceDiscovery() we can Wait()
 	// for the results to be ready
-	wxCondition   SD_condition(SD_mutex); 
+	wxCondition   SD_condition(SD_mutex);
 
 	// The SD_mutex must start of locked (ie. owned)
 	SD_mutex.Lock();
@@ -15303,7 +15303,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
     // be automatically given the lock, so it can then access the service discovery results
 
 	// BEW 4Jan16, 4th param is the parent class for CServiceDiscovery instance, the app class
-	m_pServDisc = new CServiceDiscovery(&SD_mutex, &SD_condition, serviceStr, this); 
+	m_pServDisc = new CServiceDiscovery(&SD_mutex, &SD_condition, serviceStr, this);
 
 	// Set the input variables
 	m_pServDisc->m_servicestring = serviceStr; // service to be scanned for
@@ -15312,7 +15312,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 
 	// BEW 4Jan16
 	wxLogDebug(_T("DoServiceDiscovery(): WaitTimeout(3500) is called next"));
-	SD_condition.WaitTimeout(3500); // allows the ServiceDiscovery object on the 
+	SD_condition.WaitTimeout(3500); // allows the ServiceDiscovery object on the
 				// ServDisc thread to do its job, until Signal() get's called at its exit
 				// 3.5 seconds of wait is conservative, 3.2 may be adequate; when no
 				// KBserver is running, we rely in the WaitTimeout() to return the lock
@@ -15340,7 +15340,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	{
 		wxLogDebug(_T("m_servDiscResults[] The service discovery results array is empty."));
 	}
-	// When Wait() returns, we will have reacquired the lock automatically, so release it 
+	// When Wait() returns, we will have reacquired the lock automatically, so release it
 	SD_mutex.Unlock();
 	return TRUE;
 }
@@ -15675,7 +15675,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bKbServerIncrementalDownloadPending = FALSE;
 
 	// incremental download default interval (5 seconds) - but will be overridden
-	// by whatever is in the project config file, or defaulted to 5 there if out of 
+	// by whatever is in the project config file, or defaulted to 5 there if out of
 	// range (range is: 1-120 minutes)
 	m_nKbServerIncrementalDownloadInterval = 5;
 
@@ -22008,7 +22008,7 @@ int CAdapt_ItApp::OnExit(void)
     // internal structures. All wxWidgets' objects that the program creates should be
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
-    // 
+    //
 #if defined(_KBSERVER)
 
 	// wxMutex destructions
@@ -29429,7 +29429,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 /// in the Adaptations folder, and then the partial paths (relative to the Adaptations folder) of
 /// any files of the above form in the Bible Book folders. So for the latter, the subpaths will be
 /// of form  "Matthew + PathSeparator + <filename>".
-/// The aggregated set of these strings are then each appended to the passed in 
+/// The aggregated set of these strings are then each appended to the passed in
 /// "adaptationsFolderPath + PathSeparator" path prefix, resulting in a set of absolute paths to
 /// all files of form *.xml within the Adaptations folder any any child folders. This set of paths
 /// are then returned to the caller in the paths parameter. (The caller will then loop over them
@@ -29460,8 +29460,8 @@ size_t CAdapt_ItApp::EnumerateAllDocFiles(wxArrayString& paths, wxString adaptat
 			paths.Add(absolutePath);
 		}
 
-		// Now handle the Bible Book files - there may be more than one document in any 
-		// one of them, so enumerate each folder (code here pinched & tweaked from doc's 
+		// Now handle the Bible Book files - there may be more than one document in any
+		// one of them, so enumerate each folder (code here pinched & tweaked from doc's
 		// OnEditConsistencyCheck)).
 		// Beware, the user may never have used the Bible Book Folders mode, in which case
 		// there will be no such folders in the Adaptations folder - and so if we try to
