@@ -75,8 +75,9 @@ KbSharingSetup::KbSharingSetup(wxWindow* parent) // dialog constructor
 	// The declaration is: functionname( wxWindow *parent, bool call_fit, bool set_sizer );
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
-	m_bStateless = FALSE;
+	wxUnusedVar(bOK);
+
+	m_bServiceDiscWanted = TRUE; // initialize
  }
 
 KbSharingSetup::~KbSharingSetup() // destructor
@@ -88,6 +89,9 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pAdaptingCheckBox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHARE_MY_TGT_KB);
 	m_pGlossingCheckBox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHARE_MY_GLOSS_KB);
 	m_pSetupBtn = (wxButton*)FindWindowById(wxID_OK);
+	m_pRadioBoxHow = (wxRadioBox*)FindWindowById(ID_RADIOBOX_HOW);
+	m_nRadioBoxSelection = 0; // top button selected
+	m_pRadioBoxHow->SetSelection(m_nRadioBoxSelection);
 
     // If the project is currently a KB sharing project, then initialise to the current
     // values for which of the two KBs (or both) is being shared; otherwise, set the member
@@ -95,13 +99,10 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// wxDesigner initial values are, for adapting and glossing choices, respectively)
 	m_bSharingAdaptations = FALSE; // initialize (user's final choice on exit is stored here)
 	m_bSharingGlosses = FALSE; // initialize (user's final choice on exit is stored here)
-	m_bOnEntry_AdaptationsKBserverRunning = FALSE;
-	m_bOnEntry_GlossesKBserverRunning = FALSE;
-	if (m_pApp->m_bIsKBServerProject && m_pApp->KbServerRunning(1)) // adaptations KBserver 
+	if (m_pApp->m_bIsKBServerProject) // adaptations KBserver 
 	{
 		// It's an existing shared kb project - so initialize to what the current settings
 		// are, and make the checkbox comply
-		m_bOnEntry_AdaptationsKBserverRunning = TRUE;
 		m_pAdaptingCheckBox->SetValue(TRUE); // "Share adaptations" checkbox is to be shown ticked
 		m_bSharingAdaptations = TRUE; // initialize
 	}
@@ -110,11 +111,10 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		m_pAdaptingCheckBox->SetValue(FALSE); // unticked
 		m_bSharingAdaptations = FALSE; // initialize
 	}
-	if (m_pApp->m_bIsGlossingKBServerProject && m_pApp->KbServerRunning(2)) // glosses KBserver
+	if (m_pApp->m_bIsGlossingKBServerProject) // glosses KBserver
 	{
 		// It's an existing shared glossing kb project - so initialize to what the current
 		// settings are, and make the checkbox comply
-		m_bOnEntry_GlossesKBserverRunning = TRUE;
 		m_pGlossingCheckBox->SetValue(TRUE);
 		m_bSharingGlosses = TRUE; // initialize
 	}
@@ -124,17 +124,7 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		m_bSharingGlosses = FALSE; // initialize
 	}
 
-    // Save any existing values (from the app variables which are tied to the project
-    // configuration file entries), so that if user is making changes to any of these and
-	// the changes fail, the old settings can be restored. Note, on first attempt at
-	// sharing, these app variables will be empty or in the case of booleans, FALSE
-	m_saveSharingAdaptationsFlag = m_bSharingAdaptations;
-	m_saveSharingGlossesFlag = m_bSharingGlosses;
-
-	// save old url and username, we need to test for changes in these
-	m_saveOldURLStr = m_pApp->m_strKbServerURL; // save existing value (could be empty)
-	m_saveOldUsernameStr = m_pApp->m_strUserID; // ditto
-	m_savePassword = m_pApp->GetMainFrame()->GetKBSvrPassword();
+	m_bServiceDiscWanted = m_pApp->m_bServiceDiscoveryWanted;
 }
 
 void KbSharingSetup::OnCheckBoxShareAdaptations(wxCommandEvent& WXUNUSED(event))
@@ -143,11 +133,17 @@ void KbSharingSetup::OnCheckBoxShareAdaptations(wxCommandEvent& WXUNUSED(event))
 	bool bTicked = m_pAdaptingCheckBox->GetValue();
 	if (bTicked)
 	{
-		m_bSharingAdaptations = TRUE;
+		// The values set in the dialog must win
+		m_pApp->m_bIsKBServerProject = TRUE;
+		m_pApp->m_bIsKBServerProject_FromConfigFile = TRUE; // sets m_bSharingAdaptations to TRUE
+					// within the function AuthenticateCheckAndSetupKBSharing()
 	}
 	else
 	{
-		m_bSharingAdaptations = FALSE;
+		// The values set in the dialog must win
+		m_pApp->m_bIsKBServerProject = FALSE;
+		m_pApp->m_bIsKBServerProject_FromConfigFile = FALSE; // sets m_bSharingAdaptations to FALSE
+					// within the function AuthenticateCheckAndSetupKBSharing()
 	}
 }
 
@@ -157,226 +153,45 @@ void KbSharingSetup::OnCheckBoxShareGlosses(wxCommandEvent& WXUNUSED(event))
 	bool bTicked = m_pGlossingCheckBox->GetValue();
 	if (bTicked)
 	{
-		m_bSharingGlosses = TRUE;
+		// The values set in the dialog must win
+		m_pApp->m_bIsGlossingKBServerProject = TRUE;
+		m_pApp->m_bIsGlossingKBServerProject_FromConfigFile = TRUE; // sets m_bSharingGlosses to TRUE
+					// within the function AuthenticateCheckAndSetupKBSharing()
 	}
 	else
 	{
-		m_bSharingGlosses = FALSE;
+		// The values set in the dialog must win
+		m_pApp->m_bIsGlossingKBServerProject = FALSE;
+		m_pApp->m_bIsGlossingKBServerProject_FromConfigFile = FALSE; // sets m_bSharingGlosses to FALSE
+					// within the function AuthenticateCheckAndSetupKBSharing()
 	}
 }
 
 void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 {
-    // Don't commit to the possibly new checkbox values until authentication succeeds,
-    // but when we get to the commit stage write them out to the app members so that
-    // the project config file can get the updated values
+	int nRadioBoxSelection = m_pRadioBoxHow->GetSelection();
+	m_bServiceDiscWanted = nRadioBoxSelection == 0 ? TRUE : FALSE;
+	m_pApp->m_bServiceDiscoveryWanted = m_bServiceDiscWanted; // Set app member, OnIdle's call
+			// of AuthenticateCheckAndSetupKBSharing() will use it, and reset to TRUE afterwards
+	// We don't call AuthenticateCheckAndSetupKBSharing() directly here, if we did, 
+	// the Authenticate dialog is ends up lower in the z-order and the parent
+	// KbSharingSetup dialog hides it - and as both are modal, the user cannot
+	// get to the Authenticate dialog if control is sent back there (e.g. when the
+	// password is empty, or there is a curl error, or the URL is wrong or the wanted
+	// KBserver is not running). So, we post a custom event here, and the event's
+	// handler will run the Authenticate dialog at idle time, when KbSharingSetup will
+	// have been closed
+	wxCommandEvent eventCustom(wxEVT_Call_Authenticate_Dlg);
+	wxPostEvent(m_pApp->GetMainFrame(), eventCustom); // custom event handlers are in CMainFrame
 
-	// If at least one of the checkboxes is ticked, then authentication is required
-	if (m_bSharingAdaptations || m_bSharingGlosses)
-	{
-
-		// Authenticate to the server. Authentication also chooses, via the url provided or
-		// typed, which particular KBserver we connect to - there may be more than one available
-		CMainFrame* pFrame = m_pApp->GetMainFrame();
-		bool bUserAuthenticating = TRUE; // when true, url is stored in app class, & pwd in the MainFrm class
-		KBSharingStatelessSetupDlg dlg(pFrame, bUserAuthenticating);// bUserAuthenticating
-								//  should be set FALSE only when someone who may not
-								//  be the user is authenticating to the KB Sharing Manager
-								//  tabbed dialog gui
-		dlg.Center();
-		int dlgReturnCode;
-here:	dlgReturnCode = dlg.ShowModal();
-		if (dlgReturnCode == wxID_OK)
-		{
-			// Since KBSharingSetup.cpp uses the above KBSharingstatelessSetupDlg, we have to
-			// ensure that MainFrms's m_kbserverPassword member is set. Also...
-			// Check that needed language codes are defined for source, target, and if a
-			// glossing kb share is also wanted, that source and glosses codes are set too. Get
-			// them set up if not so. If user cancels, don't go ahead with the setup, and in
-			// that case if app's m_bIsKBServerProject is TRUE, make it FALSE, and likewise for
-			// m_bIsGlossingKBServerProject if relevant
-			bool bUserCancelled = FALSE;
-			// We want valid codes for source and target if sharing the adaptations KB, and
-			// for source and glosses languages if sharing the glossing KB. (CheckLanguageCodes
-			// is in helpers.h & .cpp) We'll start by testing adaptations KB, if that is
-			// wanted. Then again for glossing KB if that is wanted (usually it won't be)
-			bool bDidFirstOK = TRUE;
-			bool bDidSecondOK = TRUE;
-			if (m_bSharingAdaptations)
-			{
-				bDidFirstOK = CheckLanguageCodes(TRUE, TRUE, FALSE, FALSE, bUserCancelled);
-				if (!bDidFirstOK || bUserCancelled)
-				{
-					// We must assume the src/tgt codes are wrong or incomplete, or that the
-					// user has changed his mind about KB Sharing being on - so turn it off
-					m_pApp->LogUserAction(_T("Wrong src/tgt codes, or user cancelled in CheckLanguageCodes() in KbSharingSetup::OnOK()"));
-					wxString title = _("Adaptations language code check failed");
-					wxString msg = _("Either the source or target language code is wrong, incomplete or absent; or you chose to Cancel.\nSharing has been turned off. First setup correct language codes, then try again.");
-					wxMessageBox(msg,title,wxICON_WARNING | wxOK);
-					m_pApp->ReleaseKBServer(1); // the adapting one
-					m_pApp->ReleaseKBServer(2); // the glossing one
-					m_pApp->m_bIsKBServerProject = FALSE;
-					m_pApp->m_bIsGlossingKBServerProject = FALSE;
-
-					// Restore the earlier settings for url, username & password
-					m_pApp->m_strKbServerURL = m_saveOldURLStr;
-					m_pApp->m_strUserID = m_saveOldUsernameStr;
-					m_pApp->GetMainFrame()->SetKBSvrPassword(m_savePassword);
-					m_pApp->m_bIsKBServerProject = m_saveSharingAdaptationsFlag;
-					m_pApp->m_bIsGlossingKBServerProject = m_saveSharingGlossesFlag;
-
-					myevent.Skip(); // the dialog will be exited now
-					return;
-				}
-			}
-			// Now, check for the glossing kb code, if that kb is to be shared
-			bUserCancelled = FALSE; // re-initialize
-			if (m_bSharingGlosses)
-			{
-				bDidSecondOK = CheckLanguageCodes(TRUE, FALSE, TRUE, FALSE, bUserCancelled);
-				if (!bDidSecondOK || bUserCancelled)
-				{
-					// We must assume the src/gloss codes are wrong or incomplete, or that the
-					// user has changed his mind about KB Sharing being on - so turn it off
-					m_pApp->LogUserAction(_T("Wrong src/glossing codes, or user cancelled in CheckLanguageCodes() in KbSharingSetup::OnOK()"));
-					wxString title = _("Glosses language code check failed");
-					wxString msg = _("Either the source or glossing language code is wrong, incomplete or absent; or you chose to Cancel.\nSharing has been turned off. First setup correct language codes, then try again.");
-					wxMessageBox(msg,title,wxICON_WARNING | wxOK);
-					m_pApp->ReleaseKBServer(1); // the adapting one
-					m_pApp->ReleaseKBServer(2); // the glossing one
-					m_pApp->m_bIsKBServerProject = FALSE;
-					m_pApp->m_bIsGlossingKBServerProject = FALSE;
-
-					// Restore the earlier settings for url, username & password
-					m_pApp->m_strKbServerURL = m_saveOldURLStr;
-					m_pApp->m_strUserID = m_saveOldUsernameStr;
-					m_pApp->GetMainFrame()->SetKBSvrPassword(m_savePassword);
-					m_pApp->m_bIsKBServerProject = m_saveSharingAdaptationsFlag;
-					m_pApp->m_bIsGlossingKBServerProject = m_saveSharingGlossesFlag;
-
-					myevent.Skip(); // the dialog will be exited now
-					return;
-				}
-			}
-			// If control gets to here, we can go ahead and establish the setup(s)
-
-			// Shut down the old settings, and reestablish connection using the new
-			// settings (this may involve a url change to share using a different KBserver)
-			m_pApp->ReleaseKBServer(1); // the adaptations one
-			m_pApp->ReleaseKBServer(2); // the glossing one
-			m_pApp->m_bIsKBServerProject = FALSE;
-			m_pApp->m_bIsGlossingKBServerProject = FALSE;
-
-			// Give the password to the frame instance which stores it because
-			// SetupForKBServer() will look for it there; for normal user authentications it's
-			// already stored in pFrame, but for KBSharingManager gui, it needs to store
-			// whatever password the manager person is using
-			if (!bUserAuthenticating)
-			{
-				pFrame->SetKBSvrPassword(dlg.m_strStatelessPassword);
-			}
-
-			// Do the setup or setups
-			if (m_bSharingAdaptations)
-			{
-				// We want to share the local adaptations KB
-				m_pApp->m_bIsKBServerProject = TRUE;
-				if (!m_pApp->SetupForKBServer(1)) // try to set up an adapting KB share
-				{
-					// an error message will have been shown, so just log the failure
-					m_pApp->LogUserAction(_T("SetupForKBServer(1) failed in OnOK()"));
-					m_pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
-					// Tell the user
-					wxString title = _("Setup failed");
-					wxString msg = _("The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
-					wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-				}
-			}
-			if (m_bSharingGlosses)
-			{
-				// We want to share the local glossing KB
-				m_pApp->m_bIsGlossingKBServerProject = TRUE;
-				if (!m_pApp->SetupForKBServer(2)) // try to set up a glossing KB share
-				{
-					// an error message will have been shown, so just log the failure
-					m_pApp->LogUserAction(_T("SetupForKBServer(2) failed in OnOK()"));
-					m_pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
-					// Tell the user
-					wxString title = _("Setup failed");
-					wxString msg = _("The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
-					wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-				}
-			}
-			// ensure sharing starts off enabled
-			if (m_pApp->GetKbServer(1) != NULL)
-			{
-				// Success if control gets to this line
-				m_pApp->GetKbServer(1)->EnableKBSharing(TRUE);
-			}
-			if (m_pApp->GetKbServer(2) != NULL)
-			{
-				m_pApp->GetKbServer(2)->EnableKBSharing(TRUE);
-			}
-			myevent.Skip(); // the dialog will be exited now
-		} // end of TRUE block for test: if (dlg.ShowModal() == wxID_OK) -- for authenticating
-		else if (dlgReturnCode == wxID_CANCEL)
-		{
-			// User Cancelled the authentication, so the old url, username and password have
-			// been restored to their storage in the app and frame window instance; so it
-			// remains only to restore the old flag values
-			m_pApp->m_bIsKBServerProject = m_saveSharingAdaptationsFlag;
-			m_pApp->m_bIsGlossingKBServerProject = m_saveSharingGlossesFlag;
-			myevent.Skip(); // the dialog will be exited now
-			return;
-		}
-		else
-		{
-			// User clicked OK button but in the OnOK() handler, premature return was asked for
-			// most likely due to an empty password submitted or a Cancel from within one of
-			// the lower level calls, so allow retry, or a change to the settings, or a Cancel
-			// button press at this level instead
-			goto here;
-		}
-
-	} // end of TRUE block for test: if (m_bSharingAdaptations || m_bSharingGlosses)
-	else
-	{
-		// Neither checkbox was ticked. Possibly the user is shutting down the current KBserver
-		// or KBservers. (He may want to then setup again for a different URL with a second
-		// invocation of the dialog.) Handle the possibilities...
-
-		// Shut down the old settings. (This also sets app's m_pKbServer[0] and m_pKbServer[1]
-		// to each be NULL.)
-		m_pApp->ReleaseKBServer(1); // the adaptations one
-		m_pApp->ReleaseKBServer(2); // the glossing one
-		m_pApp->m_bIsKBServerProject = FALSE;
-		m_pApp->m_bIsGlossingKBServerProject = FALSE;
-		myevent.Skip(); // the dialog will be exited now
-	}
+	myevent.Skip(); // close the KbSharingSetup dialog
 }
 
 void KbSharingSetup::OnCancel(wxCommandEvent& myevent)
 {
-	// Changed no settings; so restore what was saved
-	m_pApp->m_strKbServerURL = m_saveOldURLStr;
-	m_pApp->m_strUserID = m_saveOldUsernameStr;
-	m_pApp->GetMainFrame()->SetKBSvrPassword(m_savePassword);
-	m_pApp->m_bIsKBServerProject = m_saveSharingAdaptationsFlag;
-	m_pApp->m_bIsGlossingKBServerProject = m_saveSharingGlossesFlag;
+	// Cancelling from this dialog should leave the older setting unchanged. The way to
+	// remove the setup is now to untick both checkboxes, and then dismiss the dialog
 	myevent.Skip();
-}
-
-void KbSharingSetup::OnButtonRemoveSetup(wxCommandEvent& WXUNUSED(event))
-{
-	m_pApp->m_bIsKBServerProject = FALSE;
-	m_pApp->m_bIsGlossingKBServerProject = FALSE;
-	m_pApp->ReleaseKBServer(1); // the adaptations one
-	m_pApp->ReleaseKBServer(2); // the glossings one
-
-	// make the dialog close (a good way to say, "it's been done");
-	// also, we don't want a subsequent OK button click, because the user would then see a
-	// message about the empty top editctrl, etc
-	EndModal(wxID_OK);
 }
 
 #endif

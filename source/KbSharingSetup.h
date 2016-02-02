@@ -38,38 +38,13 @@ public:
 
 	virtual ~KbSharingSetup(void); // destructor
 
-	// A public boolean member to specify whether stateless (ie. opened by anyone
-	// regardless of whether a project is open or whether it is one for kb sharing), or
-	// not (default is not to be stateless). The stateless instantiation if for use by
-	// the KB Sharing Manager - which needs to get a temporary instance of KbServer class
-	// open (just the adapting one will do) in order to get access to it's methods and the
-	// stateless storage - i.e. wxString stateless_username, etc. For normal adapting or
-	// glossing work, m_bStateless must be FALSE. KbServer class sets its value of
-	// m_bStateless from the one passed to it from here.
-	bool m_bStateless;
-
-	bool m_bOnEntry_AdaptationsKBserverRunning;
-	bool m_bOnEntry_GlossesKBserverRunning;
 	bool m_bSharingAdaptations;
 	bool m_bSharingGlosses;
-
-	// Next two are needed because the user can invoke this dialog on an existing setup
-	// not realizing it is already running, and so we need to be able to check for that
-	// and tell him all's well; and we also need to be able to check for when the user
-	// wants to alter what kbs are to be shared
-	bool	m_saveSharingAdaptationsFlag;
-	bool	m_saveSharingGlossesFlag;
-	// Store checkbox settings here
-	// Need the following to be able to test for changes to url or username
-	wxString m_saveOldURLStr;
-	wxString m_saveOldUsernameStr;
-	wxString m_savePassword;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
-	void OnButtonRemoveSetup(wxCommandEvent& WXUNUSED(event));
 	void OnCheckBoxShareAdaptations(wxCommandEvent& WXUNUSED(event));
 	void OnCheckBoxShareGlosses(wxCommandEvent& WXUNUSED(event));
 
@@ -77,7 +52,11 @@ protected:
 	wxCheckBox* m_pAdaptingCheckBox;
 	wxCheckBox* m_pGlossingCheckBox;
 	wxButton*   m_pSetupBtn; //wxID_OK
-
+	bool        m_bServiceDiscWanted;  // store final value in the app's m_bServiceDiscoveryWanted,
+				// and herein initialize to TRUE, and then the button presses determine what 
+				// value is passed back to the app for this boolean
+	wxRadioBox*		m_pRadioBoxHow;
+	int			m_nRadioBoxSelection;
 	DECLARE_EVENT_TABLE()
 };
 

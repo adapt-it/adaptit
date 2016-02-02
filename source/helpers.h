@@ -368,6 +368,8 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 // for doing so, we'll also make it possible to do this from the view menu
 bool CheckUsername(); // returns TRUE if all's well, FALSE if user hit 
 					  // Cancel button in the internal dialog
+void ShortWait(int tenthsOfSeconds); // param is how many 1/10 seconds to wait for
+void ShortWaitSharingOff(int tenthsOfSeconds); // param is how many 1/10 seconds to wait for
 
 // A helper for the wxList class (legacy class, using Node*) - to replace the pointed at original
 // CSourcePhrase instance (param 2) at whatever Node it is stored on, with the pointed at
@@ -448,6 +450,8 @@ bool      HasParagraphMkr(wxString& str);
 // situations 
 void      AddUniqueInt(wxArrayInt* pArrayInt, int nInt);
 void      AddUniqueString(wxArrayString* pArrayStr, wxString& str); // BEW created 11Sep11
+void	  AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
+bool	  IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
 
 // input: pList = ptr to the SPList to be converted to a dynamic array
 // output: pArray = ptr to the SPArray which is passed in empty and populated within;
@@ -526,7 +530,22 @@ bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString passwo
 					wxString srcLangCode, wxString tgtLangCode, int kbType);
 CBString MakeDigestPassword(const wxString& user, const wxString& password);
 
-#endif
+void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
+		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag,
+		bool bJustRestore = FALSE);
+
+void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
+		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag);
+
+// The following function encapsulates KBserver service discovery, authentication to a running
+// KBserver (error if one is not running of course), checks for valid language codes, username,
+// and calls to GetKBServer[0] and [1] as required, with error checking and error messages as
+// required, and failure to setup sharing if there was error - with user notification visually.
+// The bUserAuthenticating is usually TRUE, but must be input as FALSE when the function is
+// used for the "anybody with sufficient permission level" login to the KB Sharing Manager 
+bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout, bool bServiceDiscoveryWanted);
+
+#endif // _KBSERVER
 
 // Support for ZWSP insertion in any AI wxTextCtrl (e.g. see OnKeyUp() in ComposeBarEditBox.cpp)
 void OnCtrlShiftSpacebar(wxTextCtrl* pTextCtrl);

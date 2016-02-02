@@ -3726,7 +3726,7 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	        delete preview;
 		wxString msg = _T(
 		"There was a problem previewing.\nPerhaps your current printer is not set correctly?");
-        wxMessageBox(msg,_T("Previewing"), wxOK);
+        wxMessageBox(msg,_T("Previewing"), wxICON_WARNING | wxOK);
         pApp->LogUserAction(msg);
 		return;
     }

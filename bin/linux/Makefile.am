@@ -107,7 +107,7 @@ adaptit_SOURCES = \
 	../../source/jsonwriter.cpp ../../source/jsonwriter.h \
 	../../source/JoinDialog.cpp ../../source/KB.cpp ../../source/KBExportImportOptionsDlg.cpp \
 	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
-	../../source/KbServer.cpp ../../source/KBSharing.cpp ../../source/KBSharingMgrTabbedDlg.cpp \
+	../../source/KbServer.cpp ../../source/KbSvrHowGetUrl.cpp ../../source/KBSharing.cpp ../../source/KBSharingMgrTabbedDlg.cpp \
 	../../source/KBSharingStatelessSetupDlg.cpp ../../source/KbSharingSetup.cpp ../../source/LanguageCodesDlg_Single.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/md5.cpp \
@@ -124,7 +124,8 @@ adaptit_SOURCES = \
 	../../source/RemoveSomeTgtEntries.cpp \
 	../../source/RefStringMetadata.cpp ../../source/Retranslation.cpp ../../source/RetranslationDlg.cpp \
 	../../source/scrollingdialog.cpp ../../source/scrollingwizard.cpp \
-	../../source/ServDisc.cpp ../../source/ServiceDiscovery.cpp \
+	../../source/ServiceDiscovery.cpp \
+	../../source/ServDisc_KBserversDlg.cpp \
 	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SetupEditorCollaboration.cpp \
 	../../source/SilConverterSelectDlg.cpp \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \

@@ -27,6 +27,17 @@
 /// supplies needed resources for the Manager GUI, but makes no assumptions about whether
 /// or not any kb definitions are in place, and no assumptions about any projects being
 /// previously made sharing ones, or not.
+/// That is, this 'stateless' instantiation is what is used for authenticating within the
+/// AuthenticateCheckAndSetupKBSharing() function, which we use everywhere, ie. for user
+/// authentication, and for KB Sharing Manager authentication. The latter can be done by
+/// any username so long as it is a username the KBserver recognises and which has sufficient
+/// privileges. KBSharingStatelessSetupDlg uses an instance of GetKbServer[0] (an 'adaptations'
+/// one) and throws that instance away when authentication etc is done. It's the m_bStateless
+/// being TRUE that causes this to happen. However, the creator requires bUserAuthenticating
+/// be passed in, as TRUE or FALSE. FALSE is to be used when authenticating to the Manager.
+/// A further use of bUserAuthenticating = FALSE is to force saving of temporary values for
+/// certain parameters such as url, username, password and two other flags to be divorced from
+/// the same ones (on the app) for saving state for a user authentication, as described above.
 /// \derivation		The KBSharingStatelessSetupDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -43,7 +54,10 @@
 class KBSharingStatelessSetupDlg : public AIModalDialog
 {
 public:
-	// constructor (this one defaults m_bStateless to TRUE)
+    // constructor (this one defaults m_bStateless to TRUE unilaterally), and pass in FALSE
+    // for bUserAuthenticating if the computer user is assumed not to be whoever is
+    // authenticating (eg when using the KB Sharing Manager), otherwise pass in TRUE - in
+    // which case the username, and password get remembered in the session, etc.
 	KBSharingStatelessSetupDlg(wxWindow* parent, bool bUserAuthenticating);
 
 	virtual ~KBSharingStatelessSetupDlg(void); // destructor
@@ -53,7 +67,7 @@ public:
 	// not (default is not to be stateless). This stateless instantiation if for use by
 	// the KB Sharing Manager - which needs to get a temporary instance of KbServer class
 	// open (just the adapting one will do) in order to get access to it's methods and the
-	// stateless storage - i.e. wxString stateless_username, etc. And also 3 strings for
+	// stateless storage - i.e. wxString m_strStatelessUsername, etc. And also 3 strings for
 	// storing url, username, and password when running stateless, so that the person
 	// using the Manager dialog can be accessing any KBserver accessible to him and in which
 	// he's a listed user, without impinging on any other setup resulting from the similar
@@ -65,6 +79,8 @@ public:
 	KbServer* m_pStatelessKbServer;
 	bool m_bUserIsAuthenticating; // TRUE if computer owner is authenticating, FALSE if some other
 								  // person known to the KBserver is doing so
+	wxTextCtrl* m_pMessageAtTop;
+	wxSizer* m_pSizer;
 
 	// other methods
 

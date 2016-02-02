@@ -749,6 +749,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\KbSvrHowGetUrl.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\LanguageCodesDlg.cpp"
 				>
 			</File>
@@ -894,6 +898,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\scrollingwizard.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\ServDisc_KBserversDlg.cpp"
 				>
 			</File>
 			<File
@@ -1382,6 +1390,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\KbSvrHowGetUrl.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\LanguageCodesDlg.h"
 				>
 			</File>
@@ -1527,6 +1539,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\scrollingwizard.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\ServDisc_KBserversDlg.h"
 				>
 			</File>
 			<File

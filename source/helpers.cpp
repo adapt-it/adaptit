@@ -76,6 +76,7 @@
 #include "KbServer.h"
 #include "md5_SB.h"
 #include "ConsistentChanger.h"
+#include "KBSharingStatelessSetupDlg.h"
 
 // GDLC 20OCT12 md5.h is not needed for compiling helpers.cpp
 //#include "md5.h"
@@ -6896,6 +6897,85 @@ void AddUniqueString(wxArrayString* pArrayStr, wxString& str)
 	}
 }
 
+// BEW created 5Jan16
+// This is similar to AddUniqueString() above, but AddUniqueString() does
+// case or caseless compare using the global gbAutoCaps; but for
+// AddUniqueStrCase() I want to control whether the comparison is cased or
+// caseless from the signature. What prompted me to make this version is
+// for comparison of ipaddr strings in the KBserver's service discovery
+// module
+void AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase)
+{
+	int count = pArrayStr->GetCount();
+	if (count == 0)
+	{
+		pArrayStr->Add(str);
+	}
+	else
+	{
+		int index;
+		if (!bCase)
+		{
+			// case insensitive compare
+			index = pArrayStr->Index(str, FALSE); // bCase is FALSE, so A and a
+						// are the same character (wxWidgets comparison used)
+		}
+		else
+		{
+			//case sensitive (ie. case differentiates)
+			index = pArrayStr->Index(str); // bCase is default TRUE, so A and a
+						// are different characters (wxWidgets comparison used)
+		}
+		if (index == wxNOT_FOUND)
+		{
+			// it's not in there yet, so add it
+			pArrayStr->Add(str);
+		}
+		else
+		{
+			// it's in the array already, so ignore it
+			return;
+		}
+	}
+}
+
+// BEW created 5Jan16, needed for GetResults() in CServiceDiscovery instance
+bool IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase) 
+{
+	int count = pArrayStr->GetCount();
+	if (count == 0)
+	{
+		return FALSE;
+	}
+	else
+	{
+		int index;
+		if (!bCase)
+		{
+			// case insensitive compare
+			index = pArrayStr->Index(str, FALSE); // bCase is FALSE, so A and a
+						// are the same character (wxWidgets comparison used)
+		}
+		else
+		{
+			//case sensitive (ie. case differentiates)
+			index = pArrayStr->Index(str); // bCase is default TRUE, so A and a
+						// are different characters (wxWidgets comparison used)
+		}
+		if (index == wxNOT_FOUND)
+		{
+			// it's not in there yet, so add it
+			return FALSE;
+		}
+		else
+		{
+			// it's in the array already, so ignore it
+			return TRUE;
+		}
+	}
+}
+
+
 // Any strings in pPossiblesArray not already in pBaseStrArray, append them to
 // pBaseStrArray, return TRUE if at least one was added, FALSE if none were added
 // BEW 11Oct10, added param bExcludeDuplicates, with default FALSE (which means everything
@@ -10826,6 +10906,751 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 	return FALSE;
 }
 
+void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
+		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag,
+		bool bJustRestore)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (!bJustRestore)
+	{
+		pApp->LogUserAction(_T("Wrong src/tgt codes, or user cancelled in CheckLanguageCodes() when authenticating()"));
+		wxString title = _("Adaptations language code check failed");
+		wxString msg = _("Either the source or target language code is wrong, incomplete or absent; or you chose to Cancel.\nSharing has been turned off. First setup correct language codes, then try again.");
+		wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+	}
+	else
+	{
+		// Don't show an error - the location where the actual error happened should
+		// already have shown one, so just do nothing visible - so this function can
+		// be used as a way to reset the saved original state upon error
+		pApp->LogUserAction(_T("Need to reset original KBserver parameters after error"));
+	}
+	pApp->ReleaseKBServer(1); // the adapting one
+	pApp->ReleaseKBServer(2); // the glossing one
+	pApp->m_bIsKBServerProject = FALSE;
+	pApp->m_bIsGlossingKBServerProject = FALSE;
+
+	// Restore the earlier settings for url, username & password
+	pApp->m_strKbServerURL = saveOldURLStr;
+	pApp->m_strUserID = saveOldUsernameStr;
+	pApp->GetMainFrame()->SetKBSvrPassword(savePassword);
+	pApp->m_bIsKBServerProject = saveSharingAdaptationsFlag;
+	pApp->m_bIsGlossingKBServerProject = saveSharingGlossesFlag;
+}
+
+void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
+		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->LogUserAction(_T("Wrong src/glossing codes, or user cancelled in CheckLanguageCodes() when authenticating"));
+	wxString title = _("Glosses language code check failed");
+	wxString msg = _("Either the source or glossing language code is wrong, incomplete or absent; or you chose to Cancel.\nSharing has been turned off. First setup correct language codes, then try again.");
+	wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+	pApp->ReleaseKBServer(1); // the adapting one
+	pApp->ReleaseKBServer(2); // the glossing one
+	pApp->m_bIsKBServerProject = FALSE;
+	pApp->m_bIsGlossingKBServerProject = FALSE;
+
+	// Restore the earlier settings for url, username & password
+	pApp->m_strKbServerURL = saveOldURLStr;
+	pApp->m_strUserID = saveOldUsernameStr;
+	pApp->GetMainFrame()->SetKBSvrPassword(savePassword);
+	pApp->m_bIsKBServerProject = saveSharingAdaptationsFlag;
+	pApp->m_bIsGlossingKBServerProject = saveSharingGlossesFlag;
+}
+
+// The following function encapsulates KBserver service discovery, authentication to a running
+// KBserver (error if one is not running of course), checks for valid language codes, username,
+// and calls to GetKBServer[0] and [1] as required, with error checking and error messages as
+// required, and failure to setup sharing if there was error - with user notification visually.
+// Use this function only when the user is authenticating. Authentication to the KB Sharing
+// Manager requires a different function (see below). bServiceDiscoveryWanted is set or cleared
+// in the OnOK() handler of KbSharing Setup instance, where the options are the default - to
+// let service discovery search on the LAN for a KBserver, or the user knows a URL and elects
+// to type it in (if not shown from last-used stored value on basic config file). If he elects
+// to let discovery happen, KBSharingStatelessSetupDlg will hide the top multiline message in
+// the Authenticate dialog as it applies only when the user is doing a manual type in of the URL
+// Returns TRUE for success, FALSE is there was an error
+bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout, bool bServiceDiscoveryWanted)
+{
+	bool bUserAuthenticating = TRUE; // use this function only when the user is authenticating,
+									 // do not use if for authentication to the KB Sharing Manager
+	CMainFrame* pFrame = pApp->GetMainFrame();
+	// Make the bServiceDiscoveryWanted param accessible to KBSharingStatelessSetupDlg (the "Authenticate" dialog)
+	pApp->m_bServiceDiscoveryWanted = bServiceDiscoveryWanted;
+
+	// BEW 11Jan16, save these five, so we can restore them if some kind of
+	// failure happens
+	pApp->m_saveOldURLStr = pApp->m_strKbServerURL;
+	pApp->m_saveOldUsernameStr = pApp->m_strUserID;
+	pApp->m_savePassword = pFrame->GetKBSvrPassword();
+	pApp->m_saveSharingAdaptationsFlag = pApp->m_bIsKBServerProject;
+	pApp->m_saveSharingGlossesFlag = pApp->m_bIsGlossingKBServerProject;
+
+	bool m_bSharingAdaptations;
+	bool m_bSharingGlosses;
+
+    // There may be a password stored in this session from an earlier connect lost
+    // for some reason, or there may be no password yet stored. Get the password,
+    // or empty string as the case may be, and set a boolean to carry the result forward
+    bool bPasswordExists = FALSE; // this would be correct setting if authenticating 
+								  // to the Manager dlg
+	wxString existingPassword = pFrame->GetKBSvrPassword();
+	bPasswordExists = existingPassword.IsEmpty() ? FALSE : TRUE;
+	bool bShowUrlAndUsernameDlg = TRUE; // initialize to the most likely situation
+	bool bShowPasswordDlgOnly = FALSE;  // initialize
+	bool bAutoConnectKBSvr = FALSE;     // initialize
+
+	// Get the project config file values for the adapting & glossing sharing flags
+	m_bSharingAdaptations = pApp->m_bIsKBServerProject_FromConfigFile;
+	m_bSharingGlosses = pApp->m_bIsGlossingKBServerProject_FromConfigFile;
+
+	// The user may want to turn of sharing by setting both checkboxes to be unticked
+	// in the Setup Or Remove Knowledge Base Sharing, and if so, then the above two
+	// lines will have FALSE for both left hand variable. Check if so, and turn off
+	// sharing, etc and exit without doing any service discovery etc
+	if (!m_bSharingAdaptations && !m_bSharingGlosses)
+	{
+		pApp->m_bIsKBServerProject = FALSE;
+		pApp->m_bIsGlossingKBServerProject = FALSE;
+		if (pApp->KbServerRunning(1))
+		{
+			pApp->ReleaseKBServer(1); // the adaptations one
+		}
+		if (pApp->KbServerRunning(2))
+		{
+			pApp->ReleaseKBServer(2); // the glossings one
+		}
+		ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
+		return FALSE;
+	}
+
+    // If an adapting or glossing (or both) KBserver is wanted, do service
+	// discovery of _kbserver._tcp.local. and if found, get its URL, and then check
+	// language codes and username and if all is well, login and set up the sharing
+	// instance or instances KbServer[0] and/or KbServer[1]
+	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
+	{
+		if (!bServiceDiscoveryWanted)
+		{ // 1
+			bool bSimulateUserCancellation = FALSE; // initialize
+			bool bSetupKBserverFailed = FALSE; // initialize
+
+			// The user wants to manually type the url -- possibly for a web-based KBserver.
+			// For this option, we can't assume the old URL will be valid - but we'll show it
+			// nevertheles, but with a message above to warn the user it could be incorrect.
+			// We also can't assume the password, which may be already stored in the frame
+			// member within this session, is going to be the one required for whatever URL
+			// gets typed in. We can only assume the username is correct, but it will be
+			// checked as part of the Authenticate dialog's OnOK() handler. 
+			KBSharingStatelessSetupDlg dlg(pFrame, bUserAuthenticating);
+			dlg.Center();
+			int dlgReturnCode;
+here2:	dlgReturnCode = dlg.ShowModal();
+			if (dlgReturnCode == wxID_OK)
+			{ // 2
+				// Check that needed language codes are defined for source, target, and if
+				// a glossing kb share is also wanted, that source and glosses codes are
+				// set too. Get them set up if not so.
+				bool bUserCancelled = FALSE;
+
+				// We want valid codes for source and target if sharing the adaptations KB, and
+				// for source and glosses languages if sharing the glossing KB. (CheckLanguageCodes
+				// is in helpers.h & .cpp) We'll start by testing adaptations KB, if that is
+				// wanted. Then again for glossing KB if that is wanted (usually it won't be)
+				bool bDidFirstOK = TRUE;
+				bool bDidSecondOK = TRUE;
+				if (m_bSharingAdaptations)
+				{ // 3
+					bDidFirstOK = CheckLanguageCodes(TRUE, TRUE, FALSE, FALSE, bUserCancelled);
+					if (!bDidFirstOK || bUserCancelled)
+					{ // 4
+						// We must assume the src/tgt codes are wrong or incomplete, or that the
+						// user has changed his mind about KB Sharing being on - so turn it off
+						HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr, 
+							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+							pApp->m_saveSharingGlossesFlag);
+
+						bSimulateUserCancellation = TRUE;
+					}  // 3
+				} // 2
+				// Now, check for the glossing kb code, if that kb is to be shared
+				bUserCancelled = FALSE; // re-initialize
+				if (m_bSharingGlosses && !bSimulateUserCancellation)
+				{ // 3
+					bDidSecondOK = CheckLanguageCodes(TRUE, FALSE, TRUE, FALSE, bUserCancelled);
+					if (!bDidSecondOK || bUserCancelled)
+					{ // 4
+						// We must assume the src/gloss codes are wrong or incomplete, or that the
+						// user has changed his mind about KB Sharing being on - so turn it off
+						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr, 
+							pApp->m_saveOldUsernameStr,  pApp->m_savePassword, 
+							pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
+
+						bSimulateUserCancellation = TRUE;
+					} // 3
+				} // 2
+
+				// If control gets to here, we can go ahead and establish the
+				// setup(s), provided bSimulateUserCancellation is not TRUE
+				if (!bSimulateUserCancellation)
+				{ // 3
+
+				// Shut down the old settings, and reestablish connection using the new
+				// settings (this may involve a url change to share using a different KBserver)
+				pApp->ReleaseKBServer(1); // the adaptations one
+				pApp->ReleaseKBServer(2); // the glossing one
+				pApp->m_bIsKBServerProject = FALSE;
+				pApp->m_bIsGlossingKBServerProject = FALSE;
+
+				// Do the setup or setups; use bSetupKBserverFailed = TRUE to carry
+				// forward any error state, and skip functions that cannot succeed
+				if (m_bSharingAdaptations)
+				{ // 4
+					// We want to share the local adaptations KB
+					pApp->m_bIsKBServerProject = TRUE;
+					if (!pApp->SetupForKBServer(1)) // try to set up an adapting KB share
+					{ // 5
+						// an error message will have been shown, so just log the failure
+						pApp->LogUserAction(_T("SetupForKBServer(1) failed in OnOK()"));
+						pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+						// Tell the user
+						wxString title = _("Setup failed");
+						wxString msg = _("The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
+						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+
+						bSetupKBserverFailed = TRUE;
+					} // 4
+				} // 3
+				if (m_bSharingGlosses && !bSetupKBserverFailed)
+				{ // 4
+					// We want to share the local glossing KB
+					pApp->m_bIsGlossingKBServerProject = TRUE;
+					if (!pApp->SetupForKBServer(2)) // try to set up a glossing KB share
+					{ // 5
+						// an error message will have been shown, so just log the failure
+						pApp->LogUserAction(_T("SetupForKBServer(2) failed in OnOK()"));
+						pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
+						// Tell the user
+						wxString title = _("Setup failed");
+						wxString msg = _("The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
+						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+
+						bSetupKBserverFailed = TRUE;
+					} // 4
+				} // 3
+				// ensure sharing starts off enabled
+				if (pApp->GetKbServer(1) != NULL && !bSetupKBserverFailed)
+				{ // 4
+					// Success if control gets to this line
+					pApp->GetKbServer(1)->EnableKBSharing(TRUE);
+				} // 3
+				if (pApp->GetKbServer(2) != NULL && !bSetupKBserverFailed)
+				{ // 4
+					pApp->GetKbServer(2)->EnableKBSharing(TRUE);
+				} // 3
+
+				} // 2 // end of TRUE block for test: if (!bSimulateUserCancellation)
+
+			} // 1 // end of TRUE block for test: if (dlg.ShowModal() == wxID_OK)
+
+			else if (dlgReturnCode == wxID_CANCEL)
+			{ // 2
+				// User Cancelled the authentication, so the old url, username and
+				// password have been restored to their storage in the app and
+				// frame window instance; so it remains only to restore the old
+				// flag values. TRUE param is bJustRestore (the url, username and
+				// password). The function always sets m_bIsKBServerProject and 
+				// m_bIsGlossingKBServerProject to FALSE
+				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr, 
+					pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+					pApp->m_saveSharingGlossesFlag, TRUE);
+				bSetupKBserverFailed = TRUE;
+			} // 1
+			else
+			{  // 2
+				// User clicked OK button but in the OnOK() handler, premature return was
+				// asked for most likely due to an empty password submitted or a Cancel
+				// from within one of the lower level calls, or there was a error, such as
+				// a cURL error saying that the connection could not be made, etc. So allow
+				// retry, or a change to the settings, or a Cancel button press at this
+				// level instead (the Authenticate dialog includes a Cancel button, pressing
+				// it makes the project not be a sharing one for adapting or glossing kbs)
+				goto here2;
+			} // 1
+
+			// Do the feedback to the user with the special wait dialogs here
+			if (bSimulateUserCancellation || bSetupKBserverFailed)
+			{
+				// There was an error, and sharing was turned off
+				ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
+				return FALSE;
+			}
+			else
+			{
+				// No error, authentication and setup succeeded
+				ShortWait(20);  // shows "Connected to KBserver successfully"
+								// for 2.0 secs (and no title in titlebar)
+			}
+			return TRUE;
+		} // end of TRUE block for test: if (!bServiceDiscoveryWanted)
+		else // service discovery is wanted
+		{
+			// BEW 11Jan16. This is the appropriate place for having
+			// DoServiceDiscovery() and its subsequent code. Prior to this, the flag or
+			// flags being TRUE meant that a URL was stored on the basic config file
+			// (all other KBserver related config params are in the project config
+			// file) - so all we needed to do here was give the correct password in the
+			// password dialog. But that assumed the URL is still the same (and that
+			// assumption is easily violated by other computers being added or removed
+			// from the LAN). Putting service discovery here will catch the changes,
+			// and give the user guidance about how to proceed to connect; and if an
+			// automatic connection is possible (it should be if the url has not
+			// changed, and there is a stored password available within this session)
+			// then it can be done. So copy the code from the OnOK() handler of
+			// KbSharingSetup.cpp and put it here, and make any tweaks needed - e.g.
+			// here, any failures should not result in a return from this wizard
+			// function, but just cancellation of the sharing setup.
+			// We need a few booleans so that if an error happens, we can skip code
+			// that should not be attempted subsequently
+			bool bServiceDiscoverySucceeded = TRUE; // initialize to TRUE, even though
+										// service discovery is yet to be attempted
+			bool bSimulateUserCancellation = FALSE; // initialize
+			bool bSetupKBserverFailed = FALSE; // initialize
+
+			// DoServiceDiscovery() internally creates an instantiation of the ServiceDiscovery
+			// class. Internally it uses the wxServDisc class to get the work done. That in
+			// turn uses lower level C functions. The pointer CAdapt_ItApp::m_pServDisc points
+			// to the ServiceDiscovery instance and is non-NULL while the service discovery
+			// runs, but when it is shut down, that pointer needs to again be set to NULL
+			wxString curURL = pApp->m_strKbServerURL;
+			wxString chosenURL = _T("");
+			enum ServDiscDetail returnedValue = SD_NoResultsYet;
+			bool bOK = pApp->DoServiceDiscovery(curURL, chosenURL, returnedValue, nKBserverTimeout);
+			if (bOK)
+			{
+				// Got a URL to connect to
+				wxASSERT(returnedValue != SD_NoKBserverFound && (
+					returnedValue == SD_FirstTime ||
+					returnedValue == SD_SameUrl ||
+					returnedValue == SD_UrlDiffers_UserAcceptedIt ||
+					returnedValue == SD_MultipleUrls_UserChoseEarlierOne ||
+					returnedValue == SD_MultipleUrls_UserChoseDifferentOne ) );
+
+				// Make the chosen URL accessible to authentication (this is the hookup location
+				// of the service discovery's url to the earlier KBserver GUI code) for this situation
+				pApp->m_strKbServerURL = chosenURL;
+				
+				if (returnedValue == SD_FirstTime || returnedValue == SD_UrlDiffers_UserAcceptedIt
+					|| returnedValue == SD_MultipleUrls_UserChoseDifferentOne)
+				{
+					// If first time, or if url differs, show url & username dlg. 
+					bShowUrlAndUsernameDlg = TRUE;
+					bShowPasswordDlgOnly = FALSE;
+				}
+				else if (returnedValue == SD_SameUrl || returnedValue == SD_MultipleUrls_UserChoseEarlierOne )
+				{
+					// If same url, then autoconnect if there is a password stored; 
+					// if no stored password, then just ask for that.
+					bShowUrlAndUsernameDlg = FALSE; // no need for it
+					if (bPasswordExists)
+					{
+						bShowPasswordDlgOnly = FALSE;
+						bAutoConnectKBSvr = TRUE;
+					}
+					else
+					{
+						bShowPasswordDlgOnly = TRUE;
+						bAutoConnectKBSvr = FALSE;
+					}
+				}
+
+			} // end of TRUE block for test: if (bOK)
+			else
+			{
+				// Something is wrong, or no KBserver has yet been set running; or what's running
+				// is not the one the user wants to connect to (treat this as same as a
+				// cancellation), or user cancelled, etc
+				wxASSERT(returnedValue == SD_NoKBserverFound || 
+						 returnedValue == SD_UrlDiffers_UserRejectedIt ||
+						 returnedValue == SD_LookupHostnameFailed ||
+						 returnedValue == SD_LookupIPaddrFailed ||
+						 returnedValue == SD_MultipleUrls_UserCancelled ||
+						 returnedValue == SD_UserCancelled
+						 );
+				// We need to distinguish here between service discovery that failed in the
+				// course of doing its job, versus failure because there is no KBserver
+				// running on the LAN. In the latter scenario, what we want is that the authentication
+				// dialog (url and username, to be followed by the password dlg) should be
+				// shown, with the url being whatever was in the basic config file (or empty
+				// string if none was earlier used), and the username - because the user may
+				// wish to connect to a KBserver on the web. So, our protocol is to try find
+				// one on the LAN, and if not there, let the user supply a url for one on the
+				// web. If he cancels from that, then that means the project must cease being
+				// a KB Sharing one, until there is a successful login later on.
+				//
+				// The goto command is anathaema, but here it makes good sense. We'll check for
+				// failure due to the LAN having no KBserver running, and if that's the cause of
+				// the failure, we'll not treat this as a failure, but as grounds for letting the
+				// user connect to whatever URL was last used (stored in basic config file).
+				// If we don't do this, we'd lock KB Sharing in to just being supportable from
+				// KBservers on the LAN, which would be too restrictive.
+				if (returnedValue == SD_NoKBserverFound)
+				{
+					// Defeat! Tell use what might be the problem (be sure to leave 
+					// pApp->m_strKbServerURL unchanged)
+					wxString error_msg = _(
+"No KBserver is running on the local area network yet.\nOr maybe you cancelled. Or possibly you forgot to set a KBserver running. Or maybe the local area network is not working.\nKnowledge Base sharing will now be turned off.\nFirst get a KBserver running, and then try again to connect to it.\n If necessary, ask your administrator to help you.");
+					wxMessageBox(error_msg, _("A local KBserver was not discovered"), wxICON_WARNING | wxOK);
+				} // end of TRUE block for test: if (returnedValue == SD_NoKBserverFound)
+
+				// An error message will have been seen already; so just treat this as a cancellation
+				pApp->ReleaseKBServer(1); // the adapting one
+				pApp->ReleaseKBServer(2); // the glossing one
+				pApp->m_bIsKBServerProject = FALSE;
+				pApp->m_bIsGlossingKBServerProject = FALSE;
+
+				// Restore the earlier settings for url, username & password
+				pApp->m_strKbServerURL = pApp->m_saveOldURLStr;
+				pApp->m_strUserID = pApp->m_saveOldUsernameStr;
+				pApp->GetMainFrame()->SetKBSvrPassword(pApp->m_savePassword);
+				
+				bServiceDiscoverySucceeded = FALSE;
+			} // end of else block for test: if(bOK)
+
+			// *** End of the block of service discovery code. Results will be carried
+			// forward into the following legacy code, using booleans ***
+			
+			if (bServiceDiscoverySucceeded)
+			{
+				// Copy the code from KbSharingSetup.cpp from 274 to 556 to here, and
+				// tweak it to comply with variables above if necessary. The logic
+				// should be the same in both places (i.e. both here and in 274-556)
+				// except that the convenience of an error causing control to exit the
+				// function after a message to the user and resetting the earlier state
+				// is not available; here we have to do the later things, but give
+				// control a do-nothing path to the end of the KBserver stuff's code
+				// from wherever an error occured herein, and then give the short
+				// message to the user that the KB sharing is OFF
+			if (bShowUrlAndUsernameDlg == TRUE)
+			{
+				// Authenticate to the server. Authentication also chooses, via the url provided or
+				// typed, which particular KBserver we connect to - there may be more than one available
+				KBSharingStatelessSetupDlg dlg(pFrame, bUserAuthenticating); // bUserAuthenticating
+							//  should be passed in FALSE only when someone who may not be the
+							// user is authenticating to the KB Sharing Manager tabbed dialog gui
+				dlg.Center();
+				int dlgReturnCode;
+here:			dlgReturnCode = dlg.ShowModal();
+				if (dlgReturnCode == wxID_OK)
+				{
+					// Since KBSharingSetup.cpp uses the above KBSharingstatelessSetupDlg, we
+					// have to ensure that MainFrms's m_kbserverPassword member is set. Also...
+					// Check that needed language codes are defined for source, target, and if
+					// a glossing kb share is also wanted, that source and glosses codes are
+					// set too. Get them set up if not so. If user cancels, don't go ahead with
+					// the setup, and in that case if app's m_bIsKBServerProject is TRUE, make
+					// it FALSE, and likewise for m_bIsGlossingKBServerProject if relevant
+					bool bUserCancelled = FALSE;
+
+					// We want valid codes for source and target if sharing the adaptations KB, and
+					// for source and glosses languages if sharing the glossing KB. (CheckLanguageCodes
+					// is in helpers.h & .cpp) We'll start by testing adaptations KB, if that is
+					// wanted. Then again for glossing KB if that is wanted (usually it won't be)
+					bool bDidFirstOK = TRUE;
+					bool bDidSecondOK = TRUE;
+					if (m_bSharingAdaptations)
+					{
+						bDidFirstOK = CheckLanguageCodes(TRUE, TRUE, FALSE, FALSE, bUserCancelled);
+						if (!bDidFirstOK || bUserCancelled)
+						{
+							// We must assume the src/tgt codes are wrong or incomplete, or that the
+							// user has changed his mind about KB Sharing being on - so turn it off
+							HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr, 
+								pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+								pApp->m_saveSharingGlossesFlag);
+
+							bSimulateUserCancellation = TRUE;
+						}
+					}
+					// Now, check for the glossing kb code, if that kb is to be shared
+					bUserCancelled = FALSE; // re-initialize
+					if (m_bSharingGlosses && !bSimulateUserCancellation)
+					{
+						bDidSecondOK = CheckLanguageCodes(TRUE, FALSE, TRUE, FALSE, bUserCancelled);
+						if (!bDidSecondOK || bUserCancelled)
+						{
+							// We must assume the src/gloss codes are wrong or incomplete, or that the
+							// user has changed his mind about KB Sharing being on - so turn it off
+							HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr, 
+								pApp->m_saveOldUsernameStr,  pApp->m_savePassword, 
+								pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
+
+							bSimulateUserCancellation = TRUE;
+						}
+					}
+
+					// If control gets to here, we can go ahead and establish the
+					// setup(s), provided bSimulateUserCancellation is not TRUE
+					if (!bSimulateUserCancellation)
+					{
+
+					// Shut down the old settings, and reestablish connection using the new
+					// settings (this may involve a url change to share using a different KBserver)
+					pApp->ReleaseKBServer(1); // the adaptations one
+					pApp->ReleaseKBServer(2); // the glossing one
+					pApp->m_bIsKBServerProject = FALSE;
+					pApp->m_bIsGlossingKBServerProject = FALSE;
+
+					// Do the setup or setups; use bSetupKBserverFailed = TRUE to carry
+					// forward any error state, and skip functions that cannot succeed
+					if (m_bSharingAdaptations)
+					{
+						// We want to share the local adaptations KB
+						pApp->m_bIsKBServerProject = TRUE;
+						if (!pApp->SetupForKBServer(1)) // try to set up an adapting KB share
+						{
+							// an error message will have been shown, so just log the failure
+							pApp->LogUserAction(_T("SetupForKBServer(1) failed in OnOK()"));
+							pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+							// Tell the user
+							wxString title = _("Setup failed");
+							wxString msg = _("The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
+							wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+
+							bSetupKBserverFailed = TRUE;
+						}
+					}
+					if (m_bSharingGlosses && !bSetupKBserverFailed)
+					{
+						// We want to share the local glossing KB
+						pApp->m_bIsGlossingKBServerProject = TRUE;
+						if (!pApp->SetupForKBServer(2)) // try to set up a glossing KB share
+						{
+							// an error message will have been shown, so just log the failure
+							pApp->LogUserAction(_T("SetupForKBServer(2) failed in OnOK()"));
+							pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
+							// Tell the user
+							wxString title = _("Setup failed");
+							wxString msg = _("The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
+							wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+
+							bSetupKBserverFailed = TRUE;
+						}
+					}
+					// ensure sharing starts off enabled
+					if (pApp->GetKbServer(1) != NULL && !bSetupKBserverFailed)
+					{
+						// Success if control gets to this line
+						pApp->GetKbServer(1)->EnableKBSharing(TRUE);
+					}
+					if (pApp->GetKbServer(2) != NULL && !bSetupKBserverFailed)
+					{
+						pApp->GetKbServer(2)->EnableKBSharing(TRUE);
+					}
+
+					} // end of TRUE block for test: if (!bSimulateUserCancellation)
+
+				} // end of TRUE block for test: if (dlg.ShowModal() == wxID_OK) -- for authenticating
+
+				else if (dlgReturnCode == wxID_CANCEL)
+				{
+					// User Cancelled the authentication, so the old url, username and
+					// password have been restored to their storage in the app and
+					// frame window instance; so it remains only to restore the old
+					// flag values. TRUE param is bJustRestore (the url, username and
+					// password). The function always sets m_bIsKBServerProject and 
+					// m_bIsGlossingKBServerProject to FALSE
+					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr, 
+						pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+						pApp->m_saveSharingGlossesFlag, TRUE);
+					bSetupKBserverFailed = TRUE;
+				}
+				else
+				{
+					// User clicked OK button but in the OnOK() handler, premature return was
+					// asked for most likely due to an empty password submitted or a Cancel
+					// from within one of the lower level calls, or there was a error, such as
+					// a cURL error saying that the connection could not be made, etc. So allow
+					// retry, or a change to the settings, or a Cancel button press at this
+					// level instead (the Authenticate dialog includes a Cancel button, pressing
+					// it makes the project not be a sharing one for adapting or glossing kbs)
+					goto here;
+				}
+
+			} // end of TRUE block for test: if (bShowUrlAndUsernameDlg == TRUE)
+			else
+			{
+				// The Authentication dialog (with url and username) does not need to be shown. So
+				// we either just show the password dialog (if no password yet is stored), or 
+				// autoconnect (if a password is stored already - this latter option is only offered
+				// when we know that the config file's url is the same as what was just created from
+				// the service discovery results - in this situation, we can pretty safely assume
+				// that the stored password applies)
+
+				// Control would get here if the "Setup or Remove Knowledge Base Sharing" menu command
+				// is clicked a second time, to change the settings (eg. turn on sharing of glossing
+				// KB, or some change - such as turning off sharing to one of the KB types)
+				wxString theUrl = pApp->m_strKbServerURL;
+				wxString theUsername = pApp->m_strUserID;
+				wxString thePassword;
+				if (bPasswordExists && bAutoConnectKBSvr)
+				{
+					// The url, username and password are all in existence and known, so autoconnect
+					thePassword = pApp->GetMainFrame()->GetKBSvrPassword();		
+				}
+				else if (bShowPasswordDlgOnly)
+				{
+					// The password is not stored, so we must ask for it - insist on something
+					// being typed in
+back:				thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show the password dialog
+					if (thePassword.IsEmpty())
+					{
+						wxString title = _("No Password Typed");
+						wxString msg = _("No password was typed in. You must type something in the password dialog, even if it is a wrong password.\nTry again now...");
+						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+						goto back;
+					}
+					else
+					{
+						// Whatever was typed has to be stored in CMainFrame::m_kbserverPassword so
+						// that GetKbServer{0] or [1] can access it in the setup
+						pApp->GetMainFrame()->SetKBSvrPassword(thePassword); 
+						wxLogDebug(_T("AuthenticateCheckAndSetupKBSharing(): the typed password was stored in the CMainFrame instance"));
+					}
+				}
+
+				bool bUserCancelled = FALSE;
+				// We want valid codes for source and target if sharing the adaptations
+				// KB, and for source and glosses languages if sharing the glossing KB.
+				// (CheckLanguageCodes is in helpers.h & .cpp) We'll start by testing
+				// adaptations KB, if that is wanted. Then again for glossing KB if
+				// that is wanted (usually it won't be)
+				bool bDidFirstOK = TRUE;
+				bool bDidSecondOK = TRUE;
+				if (m_bSharingAdaptations && !bSimulateUserCancellation)
+				{
+					bDidFirstOK = CheckLanguageCodes(TRUE, TRUE, FALSE, FALSE, bUserCancelled);
+					if (!bDidFirstOK || bUserCancelled)
+					{
+						// We must assume the src/tgt codes are wrong or incomplete, or
+						// that the user has changed his mind about KB Sharing being on
+						// - so turn it off. The function clears m_bIsKBServerProject
+						// and m_bIsGlossingKBServerProject to FALSE
+						HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr, 
+							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+							pApp->m_saveSharingGlossesFlag);
+
+						bSimulateUserCancellation = TRUE;
+					}
+				}
+				// Now, check for the glossing kb code, if that kb is to be shared
+				bUserCancelled = FALSE; // re-initialize
+				if (m_bSharingGlosses && !bSimulateUserCancellation)
+				{
+					bDidSecondOK = CheckLanguageCodes(TRUE, FALSE, TRUE, FALSE, bUserCancelled);
+					if (!bDidSecondOK || bUserCancelled)
+					{
+						// We must assume the src/gloss codes are wrong or incomplete, or that the
+						// user has changed his mind about KB Sharing being on - so turn it off
+						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr, 
+								pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+								pApp->m_saveSharingGlossesFlag);
+
+						bSimulateUserCancellation = TRUE;
+					}
+				}
+				// If control gets to here without error, we can go ahead and establish the setup(s)
+
+				if (!bSimulateUserCancellation)
+				{
+
+				// Shut down the old settings, and reestablish connection using the new
+				// settings (this may involve a url change to share using a different KBserver)
+				pApp->ReleaseKBServer(1); // the adaptations one
+				pApp->ReleaseKBServer(2); // the glossing one
+				pApp->m_bIsKBServerProject = FALSE;
+				pApp->m_bIsGlossingKBServerProject = FALSE;
+
+				// Do the setup or setups
+				if (m_bSharingAdaptations)
+				{
+					// We want to share the local adaptations KB
+					pApp->m_bIsKBServerProject = TRUE;
+					if (!pApp->SetupForKBServer(1)) // try to set up an adapting KB share
+					{
+						// an error message will have been shown, so just log the failure
+						pApp->LogUserAction(_T("SetupForKBServer(1) failed in OnOK()"));
+						pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+						// Tell the user
+						wxString title = _("Setup failed");
+						wxString msg = _("The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
+						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+
+						bSetupKBserverFailed = TRUE;
+					}
+				}
+				if (m_bSharingGlosses && !bSetupKBserverFailed)
+				{
+					// We want to share the local glossing KB
+					pApp->m_bIsGlossingKBServerProject = TRUE;
+					if (!pApp->SetupForKBServer(2)) // try to set up a glossing KB share
+					{
+						// an error message will have been shown, so just log the failure
+						pApp->LogUserAction(_T("SetupForKBServer(2) failed in OnOK()"));
+						pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
+						// Tell the user
+						wxString title = _("Setup failed");
+						wxString msg = _("The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
+						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+
+						bSetupKBserverFailed = TRUE;
+					}
+				}
+				// ensure sharing starts off enabled; provided there was no error
+				if (pApp->GetKbServer(1) != NULL && !bSetupKBserverFailed)
+				{
+					// Success if control gets to this line
+					pApp->GetKbServer(1)->EnableKBSharing(TRUE);
+				}
+				if (pApp->GetKbServer(2) != NULL && !bSetupKBserverFailed)
+				{
+					pApp->GetKbServer(2)->EnableKBSharing(TRUE);
+				}
+
+				} // end of TRUE block for test: if (!bSimulateUserCancellation)
+
+			} // end of else block for test: if (bShowUrlAndUsernameDlg == TRUE)
+
+			} // end of TRUE block for test: if (bServiceDiscoverySucceeded)
+
+			// Do the feedback to the user with the special wait dialogs here
+			if (!bServiceDiscoverySucceeded || bSimulateUserCancellation || bSetupKBserverFailed)
+			{
+				// There was an error, and sharing was turned off
+				ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
+				return FALSE;
+			}
+			else
+			{
+				// No error, authentication and setup succeeded
+				ShortWait(20);  // shows "Connected to KBserver successfully"
+								// for 2.0 secs (and no title in titlebar)
+			}
+		} // end of else block for test: if (!bServiceDiscoveryWanted), i.e. it was wanted
+	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject ||
+	  //                                 pApp->m_bIsGlossingKBServerProject)
+	else
+	{
+		// If not either type of sharing is wanted, set up nothing, sharing is OFF
+		// Don't call ShortWaitSharingOff(20) here, because if the user has not been
+		// using KB sharing, he does not need to be informed that it is off
+		return FALSE;
+	} // end of else block for test: if (pApp->m_bIsKBServerProject ||
+	  //                                 pApp->m_bIsGlossingKBServerProject)
+	return TRUE;
+}
+
 #endif
 
 // Support for ZWSP insertion in any AI wxTextCtrl
@@ -10959,5 +11784,37 @@ wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase)
 	}
 }
 
+void ShortWait(int tenthsOfSeconds)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CWaitDlg waitDlg(pApp->GetMainFrame(),TRUE); // the constructor with TRUE has no title in titlebar
+	waitDlg.m_nWaitMsgNum = 24;	// 24 is "Connected to KBserver successfully"
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below.
+	int timeout = tenthsOfSeconds * 100;
+	while (timeout > 0)
+	{
+		wxMilliSleep(100);
+		timeout -= 100;
+	}
+}
 
+void ShortWaitSharingOff(int tenthsOfSeconds)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CWaitDlg waitDlg(pApp->GetMainFrame(),TRUE); // the constructor with TRUE has no title in titlebar
+	waitDlg.m_nWaitMsgNum = 25;	// 25 is "Knowledge base sharing is OFF"
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below.
+	int timeout = tenthsOfSeconds * 100;
+	while (timeout > 0)
+	{
+		wxMilliSleep(100);
+		timeout -= 100;
+	}
+}
 

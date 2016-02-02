@@ -117,6 +117,7 @@ extern bool		gbIsGlossing;
 std::string str_CURLbuffer;
 const size_t npos = (size_t)-1; // largest possible value, for use with std:find()
 std::string str_CURLheaders;
+std::string str_CURLbuffer_for_deletekb; // used only when deleting a KB (row by row)
 
 // The UploadToKbServer() call, will create up to 50 threads. To permit parallel
 // processing we need an array of 50 standard buffers, so that we don't have to force
@@ -369,6 +370,11 @@ void KbServer::EnableKBSharing(bool bEnable)
 bool KbServer::IsKBSharingEnabled()
 {
 	return m_bEnableKBSharing;
+}
+
+void KbServer::SetKB(CKB* pKB)
+{
+	m_pKB = pKB;
 }
 
 void KbServer::SetKBServerType(int type)
@@ -761,6 +767,18 @@ size_t curl_read_data_callback2(void *ptr, size_t size, size_t nmemb, void *user
 //						(size*nmemb), threadIndex);
 //	wxLogDebug(msg);
 //#endif
+	return size*nmemb;
+}
+
+// This next one is dedicated to the thread which, in loop, deletes one KB entry at a 
+// time, and then the KB definition when no more entries are in the entry table for that KB
+size_t curl_read_data_callback_for_deletekb(void *ptr, size_t size, size_t nmemb, void *userdata)
+{
+	userdata = userdata; // avoid "unreferenced formal parameter" warning
+	//wxString msg;
+	//msg = msg.Format(_T("In curl_read_data_callback_for_deletekb: sending %d bytes."),(size*nmemb));
+	//wxLogDebug(msg);
+	str_CURLbuffer_for_deletekb.append((char*)ptr, size*nmemb);
 	return size*nmemb;
 }
 
@@ -3159,7 +3177,8 @@ int	KbServer::CreateLanguage(wxString url, wxString username, wxString password,
 	return 0; // no error
 }
 
-int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bKbadmin, bool bUseradmin)
+int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassword, 
+						 bool bKbadmin, bool bUseradmin, bool bLanguageadmin)
 {
 	CURL *curl;
 	CURLcode result = CURLE_OK; // initialize result code
@@ -3197,6 +3216,8 @@ int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassw
 	jsonval[_T("kbadmin")] = kbadmin;
 	long useradmin = bUseradmin ? 1L : 0L;
 	jsonval[_T("useradmin")] = useradmin;
+	long languageadmin = bLanguageadmin ? 1L : 0L;
+	jsonval[_T("languageadmin")] = languageadmin;
 
 	// convert it to string form
 	wxJSONWriter writer; wxString str;
@@ -3228,6 +3249,7 @@ int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassw
 		// because no json data is to be returned
 		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
 		// get the headers stuff this way...
+		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
 		curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
 
@@ -3684,7 +3706,7 @@ int KbServer::DeleteSingleKbEntry(int entryID)
 	wxString container = _T("entry");
 	wxString aUrl, aPwd;
 
-	str_CURLbuffer.clear(); // use for headers return when there's no json to be returned
+	str_CURLbuffer_for_deletekb.clear(); // use for headers return when there's no json to be returned
 
 	CBString charUrl; // use for curl options
 	CBString charUserpwd; // ditto
@@ -3715,19 +3737,19 @@ int KbServer::DeleteSingleKbEntry(int entryID)
 		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
 		// get the headers stuff this way when no json is expected back...
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback_for_deletekb);
 
 		result = curl_easy_perform(curl);
 
 #if defined (_DEBUG)
-        CBString s(str_CURLbuffer.c_str());
+        CBString s(str_CURLbuffer_for_deletekb.c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("\n\n DeleteSingleEntry() Returned: %s    CURLcode %d  for entryID = %d"),
 					showit.c_str(), (unsigned int)result, entryID);
 #endif
 		// The kind of error we are looking for isn't a CURLcode one, but a HTTP one
 		// (400 or higher)
-		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
+		ExtractHttpStatusEtc(str_CURLbuffer_for_deletekb, m_httpStatusCode, m_httpStatusText);
 
 		curl_slist_free_all(headers);
 		if (result) {
@@ -3742,7 +3764,7 @@ int KbServer::DeleteSingleKbEntry(int entryID)
 		}
 	}
 	curl_easy_cleanup(curl);
-	str_CURLbuffer.clear();
+	str_CURLbuffer_for_deletekb.clear();
 
 	// handle any HTTP error code, if one was returned
 	if (m_httpStatusCode >= 400)
@@ -3852,7 +3874,7 @@ int KbServer::RemoveKb(int kbID)
 	wxString container = _T("kb");
 	wxString aUrl, aPwd;
 
-	str_CURLbuffer.clear(); // use for headers return when there's no json to be returned
+	str_CURLbuffer_for_deletekb.clear(); // use for headers return when there's no json to be returned
 
 	CBString charUrl; // use for curl options
 	CBString charUserpwd; // ditto
@@ -3882,18 +3904,18 @@ int KbServer::RemoveKb(int kbID)
 		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
 		// get the headers stuff this way when no json is expected back...
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback_for_deletekb);
 
 		result = curl_easy_perform(curl);
 
 #if defined (_DEBUG)
-        CBString s(str_CURLbuffer.c_str());
+        CBString s(str_CURLbuffer_for_deletekb.c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("\n\n *** RemoveKb() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
 #endif
 		// The kind of error we are looking for isn't a CURLcode one, but a HTTP one
 		// (400 or higher)
-		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
+		ExtractHttpStatusEtc(str_CURLbuffer_for_deletekb, m_httpStatusCode, m_httpStatusText);
 
 		curl_slist_free_all(headers);
 		if (result) {
@@ -3904,12 +3926,12 @@ int KbServer::RemoveKb(int kbID)
 			wxMessageBox(msg, _T("Error when deleting a KB definition"), wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(msg);
 			curl_easy_cleanup(curl);
-			str_CURLbuffer.clear();
+			str_CURLbuffer_for_deletekb.clear();
 			return result;
 		}
 	}
 	curl_easy_cleanup(curl);
-	str_CURLbuffer.clear();
+	str_CURLbuffer_for_deletekb.clear();
 
 	// handle any HTTP error code, if one was returned
 	if (m_httpStatusCode >= 400)

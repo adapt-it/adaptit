@@ -187,7 +187,8 @@ public:
 	int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description);
-	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bKbadmin, bool bUseradmin);
+	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, 
+						bool bKbadmin, bool bUseradmin, bool bLanguageadmin);
 	int		 CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTypeIsScrTgt);
 	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
 	int		 ListKbs(wxString username, wxString password);
@@ -223,6 +224,7 @@ public:
 	void	 DeleteUploadEntries();
 
 	// public setters
+	void     SetKB(CKB* pKB); // sets m_pKB to point at either the local adaptations KB or local glosses KB
 	void	 SetKBServerType(int type);
 	void	 SetKBServerURL(wxString url);
 	void	 SetKBServerUsername(wxString username);
@@ -286,7 +288,7 @@ protected:
 
 private:
 	// class variables
-	CKB*		m_pKB; // whichever of the m_pKB versus m_pGlossingKB this instance is associated with
+	CKB*		m_pKB; // pointer to either the adapting KB, or glossing KB, instance
 	bool		m_bUseNewEntryCaching; // eventually set this via the GUI
 
 	int			m_httpStatusCode; // for OK it is 200, anything 400 or over is an error

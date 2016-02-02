@@ -78,6 +78,7 @@ DECLARE_EVENT_TYPE(wxEVT_Delayed_GetChapter, -1)
 #if defined(_KBSERVER)
 
 DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
+DECLARE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg, -1)
 
 #endif
 
@@ -277,6 +278,7 @@ public:
 
 #if defined(_KBSERVER)
 	void OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event));
 #endif
 
     void OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event));

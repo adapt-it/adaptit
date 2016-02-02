@@ -77,6 +77,7 @@
 #include "StatusBar.h"
 #include "ConflictResActionDlg.h"
 #include "CollabVerseConflictDlg.h"
+#include "KbSvrHowGetUrl.h"
 
 
 /// This global is defined in Adapt_It.cpp.
@@ -2017,173 +2018,51 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	// ignore dealing with any unlikely pathCreationErrors at this point
 
 #if defined(_KBSERVER)
-	// BEW 28Sep12. If kbserver support was in effect and the project hasn't changed (see
-    // the note above immediately after the GetProjectConfiguration() call), then we must
-    // restore the KB sharing status to ON if it previously was ON
-	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
-	{
-		// BEW 21May13 added the CheckLanguageCodes() call and the if-else block, to
-		// ensure valid codes and if not, or if user cancelled, then turn off KB Sharing
-		bool bUserCancelled = FALSE;
 
-        // BEW added 28May13, check the m_strUserID and m_strUsername strings are setup up,
-        // if not, open the dialog to get them set up -- the dialog cannot be closed except
-        // by providing non-empty strings for the two text controls in it. Setting the
-        // strings once from any project, sets them for all projects forever unless the
-		// user deliberately opens the dialog using the command in the View menu. (The
-		// strings are not set up if one is empty, or is the  ****  (NOOWNER) string)
-		bool bUserDidNotCancel = CheckUsername();
-		if (!bUserDidNotCancel)
-		{
-			// He or she cancelled. So remove KB sharing for this project
-			pApp->LogUserAction(_T("User cancelled from CheckUsername() in HookupToExistingAIProject() in CollabUtilities.cpp"));
-			pApp->ReleaseKBServer(1); // the adapting one
-			pApp->ReleaseKBServer(2); // the glossing one
-			pApp->m_bIsKBServerProject = FALSE;
-			pApp->m_bIsGlossingKBServerProject = FALSE;
-			wxMessageBox(_(
-"This project previously shared one or both of its knowledge bases.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
-			_("A username is not correct"), wxICON_EXCLAMATION | wxOK);
-		}
-		else
-		{
-			// Valid m_strUserID and m_strUsername should be in place now, so
-			// go ahead with next steps which are to get the password to this server, and
-			// then to check for valid language codes
-
-			// Get the server password. Returns an empty string if nothing is typed, or if the
-			// user Cancels from the dialog
-			CMainFrame* pFrame = pApp->GetMainFrame();
-			wxString pwd = pFrame->GetKBSvrPasswordFromUser();
-			// there will be a beep if no password was typed, or it the user cancelled; and an
-			// empty string is returned if so
-			if (!pwd.IsEmpty())
-			{
-				pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
-											   // ready for SetupForKBServer() below to use it
-                // Since a password has now been typed, we can check if the username is
-                // listed in the user table. If he isn't, the hookup can still succeed, but
-                // we must turn KB sharing to be OFF
-
-                // The following call will set up a temporary instance of the adapting
-                // KbServer in order to call it's LookupUser() member, to check that this
-                // user has an entry in the entry table; and delete the temporary instance
-                // before returning
-				bool bUserIsValid = CheckForValidUsernameForKbServer(pApp->m_strKbServerURL, pApp->m_strUserID, pwd);
-				if (!bUserIsValid)
-				{
-                    // Access is denied to this user, so turn off the setting which says
-                    // that this project is one for sharing, and tell the user
-					pApp->LogUserAction(_T("Kbserver user is invalid; in HookUpToExistingAIProject() in CollabUtilities.cpp, so any kb sharing setups are now cleared."));
-					// We have no option in this circumstance but to turn off any previous kb sharing setup;
-					// which setup types exist could be adapting, or glossing, or both; so we just turn both off.
-					// The Release calls, if a server is setup, will call DeleteKbserver() which will ensure
-					// the pointer to the relevant kbserver type is set to NULL. If already NULL, the Release...
-					// calls do nothing.
-					pApp->ReleaseKBServer(1);
-					pApp->ReleaseKBServer(2);
-					pApp->m_bIsKBServerProject = FALSE;
-					pApp->m_bIsGlossingKBServerProject = FALSE;
-					wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nOr, perhaps more likely, you simply forgot to start the KBserver running before you supplied the needed password.\nYou may continue working; but for you, knowledge base sharing is now turned off.\nIf forgetting was the reason, then start the KBserver now. Then open the dialog to start sharing and supply the needed credentials; otherwise, keep reading... \nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.\n(To change the username, use the Change Username item in the Edit menu.)");
-					msg = msg.Format(msg, pApp->m_strUserID.c_str());
-					wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
-					return TRUE; // failure to reinstate KB sharing doesn't constitute a
-					// failure to hook up to an existing Adapt It project, so return
-					// TRUE here
-				}
-				else
-				{
-					// We want to ensure valid codes for source, target if sharing
-					// adaptations, or source and glosses if sharing glosses, or all 3 if
-					// sharing both knowledge bases.
-					// (CheckLanguageCodes is in helpers.h & .cpp)
-					bool bDidFirstOK = TRUE;
-					bool bDidSecondOK = TRUE;
-					if (pApp->m_bIsKBServerProject)
-					{
-						bDidFirstOK = CheckLanguageCodes(TRUE, TRUE, FALSE, FALSE, bUserCancelled);
-						if (!bDidFirstOK || bUserCancelled)
-						{
-							// We must assume the src/tgt codes are wrong or incomplete, or that the
-							// user has changed his mind about KB Sharing being on - so turn it off
-							pApp->LogUserAction(_T("Wrong src/tgt codes, or user cancelled in CheckLanguageCodes() in HookUpToExistingAIProject()"));
-							wxString title = _("Adaptations language code check failed");
-							wxString msg = _("Either the source or target language code is wrong, incomplete or absent; or you chose to Cancel.\nKnowledge base sharing has been turned off (but collaboration is not affected).\nFirst setup correct language codes, then try again.");
-							wxMessageBox(msg,title,wxICON_WARNING | wxOK);
-							pApp->ReleaseKBServer(1); // the adapting one
-							pApp->ReleaseKBServer(2); // the glossing one
-							pApp->m_bIsKBServerProject = FALSE;
-							pApp->m_bIsGlossingKBServerProject = FALSE;
-						}
-					}
-					// Now, check for the glossing kb code, if that kb is to be shared.
-					// However, we'll do a little differently here. When collaborating,
-					// only adaptations and free translations can flow to Paratext or
-					// Bibledit, and so it doesn't really matter if the glossing KB is not
-					// being shared - that's not very important. So if the glossing
-					// language code is wrong or absent, just turn off sharing of the
-					// glossing KB and tell the user, but leave adapting kb shared
-					// (assuming it is shared, which is very likely to be so)
-					bUserCancelled = FALSE; // re-initialize
-					if (pApp->m_bIsGlossingKBServerProject)
-					{
-						bDidSecondOK = CheckLanguageCodes(TRUE, FALSE, TRUE, FALSE, bUserCancelled);
-						if (!bDidSecondOK || bUserCancelled)
-						{
-							// We must assume the src/gloss codes are wrong or incomplete, or that the
-							// user has changed his mind about KB Sharing being on - so turn it off
-							pApp->LogUserAction(_T("Wrong src/glossing codes, or user cancelled in CheckLanguageCodes() in HookUpToExistingAIProject()"));
-							wxString title = _("Glosses language code check failed");
-							wxString msg = _("Either the source or glossing language code is wrong, incomplete or absent; or you chose to Cancel.\nSharing of the glossing knowledge base has been turned off (but collaboration is not affected).\nIf the adapting knowledge base is shared then it will continue to be so, unless a message to the contrary was shown.");
-							wxMessageBox(msg,title,wxICON_WARNING | wxOK);
-							pApp->ReleaseKBServer(2); // the glossing one
-							pApp->m_bIsGlossingKBServerProject = FALSE;
-						}
-					}
-					// Go ahead with sharing setup if at least one kb is still shared
-					if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
-					{
-						pApp->LogUserAction(_T("SetupForKBServer() called for one or both kbs, in HookUpToExistingAIProject()"));
-						if (pApp->m_bIsKBServerProject)
-						{
-							if (!pApp->SetupForKBServer(1))
-							{
-								// an error message will have been shown, so just log the failure
-								pApp->LogUserAction(_T("SetupForKBServer(1) failed in HookUpToExistingAIProject()"));
-								pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
-							}
-						}
-						if (pApp->m_bIsGlossingKBServerProject)
-						{
-							if (!pApp->SetupForKBServer(2))
-							{
-								// an error message will have been shown, so just log the failure
-								pApp->LogUserAction(_T("SetupForKBServer(2) failed in HookUpToExistingAIProject()"));
-								pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
-							}
-						}
-					}
-				} // end of else block for test: if (!bUserIsValid)
-			} // end of TRUE block for test: if (!pwd.IsEmpty())
+			bool bUserCancelled = FALSE; // initialize
+			KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame());
+			pHowGetUrl->Center();
+			int dlgReturnCode;
+			dlgReturnCode = pHowGetUrl->ShowModal();
+			if (dlgReturnCode == wxID_OK)
+			{ 
+				// m_bServiceDiscoveryWanted will have been set or cleared in
+				// the OnOK() handler of the above dialog
+				wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
+			}
 			else
 			{
-				// The password submitted was just an empty string...
-				wxString msg = _("No password was typed. So knowledge base sharing setup is now cancelled for this project.\nUse the command on the Advanced menu to setup again if you wish; but you must first find out your correct password.\nAsk your KBserver administrator.");
-				// We have no option in this circumstance but to turn off any previous kb sharing setup;
-				// which setup types exist could be adapting, or glossing, or both; so we just turn both off.
-				// The Release calls, if a server is setup, will call DeleteKbserver() which will ensure
-				// the pointer to the relevant kbserver type is set to NULL. If already NULL, the Release...
-				// calls do nothing.
-				pApp->ReleaseKBServer(1);
-				pApp->ReleaseKBServer(2);
-				pApp->m_bIsKBServerProject = FALSE;
-				pApp->m_bIsGlossingKBServerProject = FALSE;
-				wxMessageBox(msg, _("No Password Typed"), wxICON_WARNING | wxOK);
-				pApp->LogUserAction(_T("OnWizardPageChanging(): no KBserver password typed; so any kb sharing setup is now cancelled; but collaboration continues"));
+				// User cancelled. This clobbers the sharing setup - that clobbering is
+				// already done in the OnCancel() handler
+				wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
 			}
-		} // end of else block for test: if (!bUserDidNotCancel)
-	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
-#endif
+			bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
+			delete pHowGetUrl; // We don't want the dlg showing any longer
+
+			// If the user didn't cancel, then call Authenticate....()
+			if (!bUserCancelled) // if user did not cancel...
+			{
+                // Do service discovery of KBserver, authentication, checking, and KB
+                // Sharing setup. Second param, bool bUserAuthenticating, is default TRUE.
+                // Note: the function could fail, in which case KB sharing will be turned
+                // off - this does **not** mean that the HookUpToExistingAIProject()
+                // function will, or should, also fail. KB sharing and PT or BE
+                // collaboration are orthogonal to each other, any project can have one or
+                // the other or both turned on. KB sharing not on does not prevent
+                // collaboration from doing its job
+				bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout,
+													pApp->m_bServiceDiscoveryWanted);
+				wxUnusedVar(bSuccess);
+			}
+			else
+			{
+				// User canceled before Authentication could be attempted - so tell him
+				// that sharing is OFF
+				ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
+			}
+			pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
+
+#endif // _KBSERVER
 
 	return TRUE;
 }

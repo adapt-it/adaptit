@@ -81,6 +81,7 @@ class TranslationsList; // the CTargetUnit's list of CRefString instances
 #if defined(_KBSERVER)
 
 class CServiceDiscovery; // BEW 4Jan16
+class CServDisc_KBserversDlg; // BEW 12Jan16
 
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
@@ -762,16 +763,20 @@ enum SendBackTextType
 /// states, various user action possibilities
 enum ServDiscDetail
 {
-	SD_Okay,
+	SD_NoResultsYet,
 	SD_ThreadCreateFailed,
 	SD_ThreadRunFailed,
 	SD_NoKBserverFound,
 	SD_LookupHostnameFailed,
 	SD_LookupIPaddrFailed,
 	SD_UserCancelled,
+	SD_FirstTime,
+	SD_SameUrl,
 	SD_UrlDiffers_UserAcceptedIt,
 	SD_UrlDiffers_UserRejectedIt,
-	SD_MultipleUrls_UserRejectedAll
+	SD_MultipleUrls_UserCancelled,
+	SD_MultipleUrls_UserChoseEarlierOne,
+	SD_MultipleUrls_UserChoseDifferentOne
 };
 #endif
 
@@ -2039,6 +2044,17 @@ class CAdapt_ItApp : public wxApp
 	// timer, multiply by 1000*60 since the timer's units are milliseconds)
 	int		m_nKbServerIncrementalDownloadInterval;
 
+	// Base value for the WaitTimeout(thousandths) in DoServiceDiscovery() which ensures
+	// m_servDiscResults array is not accessed before service discovery has time to get
+	// the _kbserver._tcp.local. service discovered, the URL built, and stored in the array
+	// (Base value of 3500 set in OnInit(), and there is no GUI way to change the value.
+	// However, the user can edit the value in the basic configuration file directly.
+	// If a KBserver not found on the LAN, two more tries are made with a timeout value
+	// 2 seconds longer each time, but the base value as written to the config file is
+	// is not programmatically changed. What's read in, gets written out. OnInit()
+	// initializes to 3500.)
+	int		m_KBserverTimeout;
+
 	// storage of username's value for the boolean flags, kbadmin, and useradmin; we store
 	// them here rather than in the KbServer class itself, because the value of these
 	// flags need to be known before either of the adapting or glossing KbServer classes
@@ -2052,6 +2068,13 @@ class CAdapt_ItApp : public wxApp
 	wxArrayString       m_servDiscResults;
 
 	void onServDiscHalting(wxCommandEvent& WXUNUSED(event));
+
+	// for support of service discovery
+	wxString m_saveOldURLStr;
+	wxString m_saveOldUsernameStr;
+	wxString m_savePassword;
+	bool     m_saveSharingAdaptationsFlag;
+	bool     m_saveSharingGlossesFlag;
 
 #endif // _KBSERVER
 
@@ -2978,7 +3001,12 @@ public:
 	bool	  ReleaseKBServer(int whichType);
 	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
 	// BEW added next, 26Nov15
-	bool	  DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result);
+	bool	  DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result,
+								 int nKBserverTimeout);
+	bool	  m_bServiceDiscoveryWanted; // TRUE if DoServiceDiscovery() is wanted, FALSE for manual URL entry
+										 // and don't ever store the value in any config file; default TRUE
+	void	  ExtractServiceDiscoveryResult(wxString& result, wxString& url, int& intNoKBserver,
+				int& intHostnameLookupFailed, int& intIpAddrLookupFailed, int& intDuplicateIpAddr);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
 	// BEW deprecated 31Jan13
@@ -3010,7 +3038,18 @@ public:
 	// BEW added next, 7Sep15, to store whether or not sharing is temporarily disabled
 	bool		m_bKBSharingEnabled; // the seeing applies to the one or both kbserver types,
 									 // depending on which one or ones are defined
-
+	// m_bIsKBServerProject and m_bIsGlossingKBServerProject, while set from the project config
+	// file, can be cleared to FALSE at initialization of a setup, losing the values from the
+	// config file. So I've defined two new booleans which likewise are set from the project
+	// config file, but don't get cleared to FALSE anywhere, except at start of OnInit()
+	// and also potentially in the dialog shown to the user when Setup Or Remove Knowledge
+	// Base Sharing is interacted with - via it's two checkboxes (the latter, if different
+	// valued than what was gotten from earlier settings or from config file, must be obeyed). 
+	// This way I can, at any time, determine what the project settings for sharing the
+	// adapting and/or glossing KB actually currently are; or alter them via the
+	// KbSharingSetup instance as mentioned just above.
+	bool		m_bIsKBServerProject_FromConfigFile;
+	bool		m_bIsGlossingKBServerProject_FromConfigFile;
 
 	// Deleting an entire KB's entries in the entry table of kbserver will be done as a
 	// background task - so we need storage capability that persists after the KB Sharing

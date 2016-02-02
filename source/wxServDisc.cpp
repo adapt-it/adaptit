@@ -140,7 +140,7 @@ wxThread::ExitCode wxServDisc::Entry()
 
       long msecs = tv->tv_sec == 0 ? 100 : tv->tv_sec*1000; // so that the while loop beneath gets executed once
       wxLogDebug(wxT("wxServDisc %p: scanthread waiting for data, timeout %i seconds"), this, (int)tv->tv_sec);
-
+	  
 	  // BEW addition. If there is no KBserver multicasting, this loop behaves poorly.
 	  // It does a few quick iterations, and then suddenly msecs jumps to 86221000 microsecs,
 	  // and so it's timeout loop runs for a minute and a half (maybe, but it times out
@@ -205,9 +205,8 @@ wxThread::ExitCode wxServDisc::Entry()
 	  }
 	// BEW log what iteration this is:
 	BEWcount++;
-	wxLogDebug(_T("BEW  outer loop iteration:  %d"), BEWcount);
+	wxLogDebug(_T("wxServDisc %p:   BEW  end of outer loop iteration:  %d"), this, BEWcount);
     } // end of outer loop
-
 
   // BEW 2Dec15 added cache freeing (d's shutdown is not yet 1, but it doesn't test for it
   // so do this first, as shutdown will be set to 1 in mdnsd_shutdown(d) immediately after
@@ -228,7 +227,7 @@ wxThread::ExitCode wxServDisc::Entry()
   // discovered and we then should do it here. But to get event handling to happen,
   // the main thread needs to be awakened, so Signal() is to be called so that 
   // waiting finishes - so we do that before we post the halting event
-  wxLogDebug(_T("wxServDisc::Entry(): m_bGetResultsStarted is %s "),
+  wxLogDebug(_T("wxServDisc %p: wxServDisc::Entry(): m_bGetResultsStarted is %s "), this,
 	  m_bGetResultsStarted ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
 
   if (!m_bGetResultsStarted)
@@ -241,17 +240,21 @@ wxThread::ExitCode wxServDisc::Entry()
 	  // Note: attempting to precede this with the code which includes the Signal() call
 	  // leads to an app crash, because the mutex & associated condition objects are
 	  // clobbered before the code gets called - so we must rely on DoServiceDiscovery()'s
-	  // WaitTimeout(3500) to awaken the main thread, when no KBserver can be found because
+	  // WaitTimeout() to awaken the main thread, when no KBserver can be found because
 	  // one is not yet running on the LAN
 	  wxCommandEvent upevent(wxServDiscHALTING, wxID_ANY);
 	  upevent.SetEventObject(this); // set sender
 
-	#if wxVERSION_NUMBER < 2900
-	  wxPostEvent((CServiceDiscovery*)parent, upevent);
-	#else
-	  wxQueueEvent((CServiceDiscovery*)parent, upevent.Clone());
-	#endif
-	  wxLogDebug(_T("from wxServDisc after timeout of Entry()'s loop, no KBserver running, so posting wxServDiscHALTING event")); 
+	  if ((CServiceDiscovery*)parent != NULL)
+	  {
+#if wxVERSION_NUMBER < 2900
+		wxPostEvent((CServiceDiscovery*)parent, upevent);
+#else
+		wxQueueEvent((CServiceDiscovery*)parent, upevent.Clone());
+#endif
+		wxLogDebug(_T("wxServDisc %p: after timeout of Entry()'s loop, no KBserver running, so posting wxServDiscHALTING event"),
+					this);
+	  }
   }
   wxLogDebug(wxT("wxServDisc %p: scanthread exiting, after loop has ended, now at end of Entry(), returning NULL"), this);
 
@@ -347,11 +350,15 @@ int wxServDisc::ans(mdnsda a, void *arg)
   result.port = a->srv.port;
 
   if(a->ttl == 0)
+  {
     // entry was expired
     moi->results.erase(key);
+  }
   else
+  {
     // entry update
     moi->results[key] = result;
+  }
 
   moi->post_notify();
 
@@ -584,7 +591,7 @@ wxServDisc::~wxServDisc()
 
   wxLogDebug(wxT("In ~wxServDisc() wxServDisc %p: scanthread deleted, wxServDisc destroyed, hostname was '%s', lifetime was %ld"),
 	  this, query.c_str(), mWallClock.Time());
-  wxLogDebug(wxT("End of ~wxServDisc() Finished call of ~wxServDisc()"));
+  wxLogDebug(wxT("wxServDisc %p:  End of ~wxServDisc() Finished call of ~wxServDisc()"), this);
 }
 
 std::vector<wxSDEntry> wxServDisc::getResults() const
@@ -604,11 +611,11 @@ size_t wxServDisc::getResultCount() const
 }
 
 void wxServDisc::post_notify()
-{
+{	
+
 	// BEW Tell the running wxServDisc thread that GetResults() was invoked
 	m_bGetResultsStarted = TRUE;
-	wxLogDebug(_T("m_pSD->m_bGetResultsStarted SET to TRUE. Doing nonEvent approach.")); // interested 
-																	// in the time this log is displayed
+	wxLogDebug(_T("wxServDisc %p:  post_notify(). Doing non-event approach."), this);
 	// BEW - the nonEvent approach follows...
 	if (parent)
 	{
@@ -616,7 +623,7 @@ void wxServDisc::post_notify()
 
 		//wxCommandEvent dummy;
 		//((CServiceDiscovery*)parent)->onSDNotify(dummy);
-		
+			
 		((CServiceDiscovery*)parent)->GetResults();
 	}
 
@@ -624,7 +631,7 @@ void wxServDisc::post_notify()
   /*
   if(parent)
     {
- 	  wxLogDebug(_T("post_notify():  posting event")); // BEW added this call
+ 	  wxLogDebug(_T("wxServDisc %p:  post_notify():  posting event"), this); // BEW added this call
 		
 		// new NOTIFY event, we got no window id
       wxCommandEvent event(wxServDiscNOTIFY, wxID_ANY);

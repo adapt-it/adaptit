@@ -382,6 +382,7 @@ DEFINE_EVENT_TYPE(wxEVT_Delayed_GetChapter)
 
 #if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
+DEFINE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg)
 #endif
 
 //BEW 10Dec12, new custom event for the kludge for working around the scrollPos bug in GTK build
@@ -485,6 +486,14 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
         (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
         (wxObject *) NULL \
     ),
+
+#define EVT_CALL_AUTHENTICATE_DLG(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Call_Authenticate_Dlg, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+
 #endif
 
 
@@ -562,6 +571,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 
 #if defined(_KBSERVER)
 	EVT_KBDELETE_UPDATE_PROGRESS(-1, CMainFrame::OnCustomEventKbDeleteUpdateProgress)
+	EVT_CALL_AUTHENTICATE_DLG(-1, CMainFrame::OnCustomEventCallAuthenticateDlg)
 #endif
 
 	//BEW added 10Dec12
@@ -2704,6 +2714,21 @@ void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 	}
 	// Enable if both KBs of the project are ready for work
 	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
+}
+
+void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event))
+{
+	// this delays getting the Authenticate dialog open until after the
+	// OnOK() handler of the KbSharingSetup instance has finished and that
+	// dialog is no longer on the screen. (Otherwise, calling the authenticate
+	// dialog from within its OnOK() handler leaves the child dialog lower in
+	// the z-order, and it then is hidden if control is sent back to it - which
+	// locks up the app and the user can't do anything
+    bool bSuccess = AuthenticateCheckAndSetupKBSharing(gpApp, gpApp->m_KBserverTimeout,
+												gpApp->m_bServiceDiscoveryWanted);
+	// pass the final value back to the app,
+	gpApp->m_bServiceDiscoveryWanted = TRUE; // Restore default value
+	wxUnusedVar(bSuccess);
 }
 
 // public accessor

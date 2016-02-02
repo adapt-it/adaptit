@@ -83,20 +83,31 @@ void* Thread_DoEntireKbDeletion::Entry()
 	// pointer should be set NULL as well, as that pointer is permanent in the CAdapt_ItApp
 	// instantiation, and testing it for NULL is important for its management.
 	
-	CURLcode rv = (CURLcode)0; // initialize return value, when loop completes, rv will return the
+	CURLcode rv = (CURLcode)0; // initialize return value, when loop completes, rv will 
+							   // the error result code (0 for no error, i.e. CURLE_OK)
 
-// **** TODO *************
-	// Mutex outside loop would block other threads until loop finishes - maybe a day or
-	// two later! Instead, the delete entire kb needs its own dedicated queue, and
-	// something like str_CURLbuffer_EntireDelete and other things, so it's stuff is
-	// accessed by nothing else
-	wxASSERT(FALSE); // ensure I do it!!
+	// Our thread uses a dedicated standard string for the data callback,
+	// str_CURLbuffer_for_deletekb, which is used by no other threads, so
+	// it will never have data in it from any user adaptation work done while
+	// KB deletion is taking place. No mutex is needed.
+	//wxASSERT(FALSE); // ensure I do the final tweaks
+	
+	// Note: if this thread is still running when the user shuts the machine down,
+	// the thread will terminate without having removed all the KB's row entries.
+	// The integrity of the MySQL database is not compromised. When the user next
+	// runs Adapt It, the KB will still be in the kb table, but the entry table
+	// will have fewer records in it that belong to this KB. It is then possible
+	// to use the KB Sharing Manager a second time, to try delete the KB. If it runs to
+	// completion before the machine is again closed down, the KB will have been removed.
+	// If not, repeat at a later time(s), until the KB is fully emptied and then its
+	// definition is deleted from the kb table.
 
-	// value CURLE_HTTP_RETURNED_ERROR - but unfortunately, there may be an
-	// unexpected http error -- that means we can't rely on the error as a diagnotic for
-	// when the loop is completed. So we'll do a for loop, since we know how many we need
-	// to delete, and count
-	DownloadsQueue* pQueue = m_pKbSvr->GetDownloadsQueue();
+	// We'll do a for loop, since we know how many we need to delete
+	DownloadsQueue* pQueue = m_pKbSvr->GetDownloadsQueue(); // Note: this m_queue instance
+								// is embedded in the stateless KbServer instance pointed 
+								// at by m_pKbSvr. No other code will access this particular
+								// queue, and so it needs no mutex protection should the 
+								// user be doing adapting work while the KB is removed
 	wxASSERT((pQueue != NULL) && (!pQueue->IsEmpty()) && (pQueue->GetCount() == m_TotalEntriesToDelete));
 	DownloadsQueue::iterator iter;
 	KbServerEntry* pKbSvrEntry = NULL;
@@ -140,9 +151,9 @@ void* Thread_DoEntireKbDeletion::Entry()
 #endif
 			// Copy it to the app member ready for display in main window at bottom
 			m_pApp->m_nIterationCounter = successCount;
-			if ((successCount/20)*20 == successCount)
+			if ((successCount/50)*50 == successCount)
 			{
-                // Update the value every 20th iteration, otherwise more frequently may bog
+                // Update the value every 50th iteration, otherwise more frequently may bog
                 // the process down if latency is very low
 				wxCommandEvent eventCustom(wxEVT_KbDelete_Update_Progress);
 				wxPostEvent(m_pApp->GetMainFrame(), eventCustom); // custom event handlers are in CMainFrame
@@ -151,7 +162,7 @@ void* Thread_DoEntireKbDeletion::Entry()
 	}
 
 	// If control gets to here, we've either deleted all entries of the selected database,
-	// or most of them with some errors resulting in a those entries remaining owned by
+	// or most of them with some errors resulting in the leftover entries remaining owned by
 	// the selected kb definition. Only if all entries were deleted can we now attempt the
 	// removal of the KB definition itself. Otherwise, tell the user some were not
 	// deleted, and he'll have to retry later - and leave the definition in the Mgr list.
@@ -193,8 +204,8 @@ void* Thread_DoEntireKbDeletion::Entry()
             // The definition should have been deleted, but wasn't. Tell the user to try
             // again later. (This error is quite unexpected, an English error message will
             // do). Then do the cleanup and let the thread die
-			wxString msg = _T("Thread_DoEntireKbDeletion): unexpected failure to remove a shared KB (definition) after completing the removal of all the entries it owned.\n Try again later. The next attempt may succeed.");
-			wxString title = _T("Error: could not remove the emptied database's definition");
+			wxString msg = _("Unexpected failure to remove a shared KB definition after completing the removal of all the entries it owned.\n Try again later. The next attempt may succeed.");
+			wxString title = _("Error: could not remove knowledge base definition");
 			m_pApp->LogUserAction(msg);
 			wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 
