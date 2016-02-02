@@ -3979,7 +3979,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	GetMarkersAndFilteredStrings(pMergedSrcPhrase, markersStr, endMarkersStr,
 					freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
 	{
-		// BEW 22Jun15 refactoring, we just empty these of any content - no filtered 
+		// BEW 22Jun15 refactoring, we just empty these of any content - no filtered
 		// data should be in the export
 		freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
 	}
@@ -3989,7 +3989,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	if (!filteredInfoStr.IsEmpty())
 	{
 		filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
-	
+
 		// separate out any crossReference info (plus marker & endmarker) if within this
 		// filtered information
 		SeparateOutCrossRefInfo(filteredInfoStr, xrefStr, otherFiltered);
@@ -4210,7 +4210,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 						endMarkersStr_forLoop, freeTransStr, noteStr, collBackTransStr,
 						filteredInfoStr);
 			{
-				// BEW 22Jun15 refactoring, we just empty these of any content - no filtered 
+				// BEW 22Jun15 refactoring, we just empty these of any content - no filtered
 				// data should be in the export
 				freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
 			}
@@ -5642,7 +5642,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	GetMarkersAndFilteredStrings(pSingleSrcPhrase, markersStr, endMarkersStr,
 					freeTransStr, noteStr, collBackTransStr,filteredInfoStr);
 	{
-		// BEW 22Jun15 refactoring, we just empty these of any content - no filtered 
+		// BEW 22Jun15 refactoring, we just empty these of any content - no filtered
 		// data should be in the export
 		freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
 	}
@@ -6482,7 +6482,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	GetMarkersAndFilteredStrings(pSingleSrcPhrase, markersStr, endMarkersStr,
 					freeTransStr, noteStr, collBackTransStr,filteredInfoStr2);
 	{
-		// BEW 22Jun15 refactoring, we just empty these of any content - no filtered 
+		// BEW 22Jun15 refactoring, we just empty these of any content - no filtered
 		// data should be in the export
 		freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
 	}
@@ -6940,7 +6940,7 @@ void AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase)
 }
 
 // BEW created 5Jan16, needed for GetResults() in CServiceDiscovery instance
-bool IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase) 
+bool IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase)
 {
 	int count = pArrayStr->GetCount();
 	if (count == 0)
@@ -10993,7 +10993,7 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout
     // There may be a password stored in this session from an earlier connect lost
     // for some reason, or there may be no password yet stored. Get the password,
     // or empty string as the case may be, and set a boolean to carry the result forward
-    bool bPasswordExists = FALSE; // this would be correct setting if authenticating 
+    bool bPasswordExists = FALSE; // this would be correct setting if authenticating
 								  // to the Manager dlg
 	wxString existingPassword = pFrame->GetKBSvrPassword();
 	bPasswordExists = existingPassword.IsEmpty() ? FALSE : TRUE;
@@ -11042,7 +11042,7 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout
 			// We also can't assume the password, which may be already stored in the frame
 			// member within this session, is going to be the one required for whatever URL
 			// gets typed in. We can only assume the username is correct, but it will be
-			// checked as part of the Authenticate dialog's OnOK() handler. 
+			// checked as part of the Authenticate dialog's OnOK() handler.
 			KBSharingStatelessSetupDlg dlg(pFrame, bUserAuthenticating);
 			dlg.Center();
 			int dlgReturnCode;
@@ -11067,8 +11067,8 @@ here2:	dlgReturnCode = dlg.ShowModal();
 					{ // 4
 						// We must assume the src/tgt codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
-						HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr, 
-							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+						HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
+							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
 							pApp->m_saveSharingGlossesFlag);
 
 						bSimulateUserCancellation = TRUE;
@@ -11083,8 +11083,8 @@ here2:	dlgReturnCode = dlg.ShowModal();
 					{ // 4
 						// We must assume the src/gloss codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
-						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr, 
-							pApp->m_saveOldUsernameStr,  pApp->m_savePassword, 
+						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr,
+							pApp->m_saveOldUsernameStr,  pApp->m_savePassword,
 							pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 
 						bSimulateUserCancellation = TRUE;
@@ -11160,10 +11160,10 @@ here2:	dlgReturnCode = dlg.ShowModal();
 				// password have been restored to their storage in the app and
 				// frame window instance; so it remains only to restore the old
 				// flag values. TRUE param is bJustRestore (the url, username and
-				// password). The function always sets m_bIsKBServerProject and 
+				// password). The function always sets m_bIsKBServerProject and
 				// m_bIsGlossingKBServerProject to FALSE
-				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr, 
-					pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
+					pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
 					pApp->m_saveSharingGlossesFlag, TRUE);
 				bSetupKBserverFailed = TRUE;
 			} // 1
@@ -11240,17 +11240,17 @@ here2:	dlgReturnCode = dlg.ShowModal();
 				// Make the chosen URL accessible to authentication (this is the hookup location
 				// of the service discovery's url to the earlier KBserver GUI code) for this situation
 				pApp->m_strKbServerURL = chosenURL;
-				
+
 				if (returnedValue == SD_FirstTime || returnedValue == SD_UrlDiffers_UserAcceptedIt
 					|| returnedValue == SD_MultipleUrls_UserChoseDifferentOne)
 				{
-					// If first time, or if url differs, show url & username dlg. 
+					// If first time, or if url differs, show url & username dlg.
 					bShowUrlAndUsernameDlg = TRUE;
 					bShowPasswordDlgOnly = FALSE;
 				}
 				else if (returnedValue == SD_SameUrl || returnedValue == SD_MultipleUrls_UserChoseEarlierOne )
 				{
-					// If same url, then autoconnect if there is a password stored; 
+					// If same url, then autoconnect if there is a password stored;
 					// if no stored password, then just ask for that.
 					bShowUrlAndUsernameDlg = FALSE; // no need for it
 					if (bPasswordExists)
@@ -11271,7 +11271,7 @@ here2:	dlgReturnCode = dlg.ShowModal();
 				// Something is wrong, or no KBserver has yet been set running; or what's running
 				// is not the one the user wants to connect to (treat this as same as a
 				// cancellation), or user cancelled, etc
-				wxASSERT(returnedValue == SD_NoKBserverFound || 
+				wxASSERT(returnedValue == SD_NoKBserverFound ||
 						 returnedValue == SD_UrlDiffers_UserRejectedIt ||
 						 returnedValue == SD_LookupHostnameFailed ||
 						 returnedValue == SD_LookupIPaddrFailed ||
@@ -11297,7 +11297,7 @@ here2:	dlgReturnCode = dlg.ShowModal();
 				// KBservers on the LAN, which would be too restrictive.
 				if (returnedValue == SD_NoKBserverFound)
 				{
-					// Defeat! Tell use what might be the problem (be sure to leave 
+					// Defeat! Tell use what might be the problem (be sure to leave
 					// pApp->m_strKbServerURL unchanged)
 					wxString error_msg = _(
 "No KBserver is running on the local area network yet.\nOr maybe you cancelled. Or possibly you forgot to set a KBserver running. Or maybe the local area network is not working.\nKnowledge Base sharing will now be turned off.\nFirst get a KBserver running, and then try again to connect to it.\n If necessary, ask your administrator to help you.");
@@ -11314,13 +11314,13 @@ here2:	dlgReturnCode = dlg.ShowModal();
 				pApp->m_strKbServerURL = pApp->m_saveOldURLStr;
 				pApp->m_strUserID = pApp->m_saveOldUsernameStr;
 				pApp->GetMainFrame()->SetKBSvrPassword(pApp->m_savePassword);
-				
+
 				bServiceDiscoverySucceeded = FALSE;
 			} // end of else block for test: if(bOK)
 
 			// *** End of the block of service discovery code. Results will be carried
 			// forward into the following legacy code, using booleans ***
-			
+
 			if (bServiceDiscoverySucceeded)
 			{
 				// Copy the code from KbSharingSetup.cpp from 274 to 556 to here, and
@@ -11366,8 +11366,8 @@ here:			dlgReturnCode = dlg.ShowModal();
 						{
 							// We must assume the src/tgt codes are wrong or incomplete, or that the
 							// user has changed his mind about KB Sharing being on - so turn it off
-							HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr, 
-								pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+							HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
+								pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
 								pApp->m_saveSharingGlossesFlag);
 
 							bSimulateUserCancellation = TRUE;
@@ -11382,8 +11382,8 @@ here:			dlgReturnCode = dlg.ShowModal();
 						{
 							// We must assume the src/gloss codes are wrong or incomplete, or that the
 							// user has changed his mind about KB Sharing being on - so turn it off
-							HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr, 
-								pApp->m_saveOldUsernameStr,  pApp->m_savePassword, 
+							HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr,
+								pApp->m_saveOldUsernameStr,  pApp->m_savePassword,
 								pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 
 							bSimulateUserCancellation = TRUE;
@@ -11459,10 +11459,10 @@ here:			dlgReturnCode = dlg.ShowModal();
 					// password have been restored to their storage in the app and
 					// frame window instance; so it remains only to restore the old
 					// flag values. TRUE param is bJustRestore (the url, username and
-					// password). The function always sets m_bIsKBServerProject and 
+					// password). The function always sets m_bIsKBServerProject and
 					// m_bIsGlossingKBServerProject to FALSE
-					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr, 
-						pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
+						pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
 						pApp->m_saveSharingGlossesFlag, TRUE);
 					bSetupKBserverFailed = TRUE;
 				}
@@ -11482,7 +11482,7 @@ here:			dlgReturnCode = dlg.ShowModal();
 			else
 			{
 				// The Authentication dialog (with url and username) does not need to be shown. So
-				// we either just show the password dialog (if no password yet is stored), or 
+				// we either just show the password dialog (if no password yet is stored), or
 				// autoconnect (if a password is stored already - this latter option is only offered
 				// when we know that the config file's url is the same as what was just created from
 				// the service discovery results - in this situation, we can pretty safely assume
@@ -11497,7 +11497,7 @@ here:			dlgReturnCode = dlg.ShowModal();
 				if (bPasswordExists && bAutoConnectKBSvr)
 				{
 					// The url, username and password are all in existence and known, so autoconnect
-					thePassword = pApp->GetMainFrame()->GetKBSvrPassword();		
+					thePassword = pApp->GetMainFrame()->GetKBSvrPassword();
 				}
 				else if (bShowPasswordDlgOnly)
 				{
@@ -11515,7 +11515,7 @@ back:				thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show
 					{
 						// Whatever was typed has to be stored in CMainFrame::m_kbserverPassword so
 						// that GetKbServer{0] or [1] can access it in the setup
-						pApp->GetMainFrame()->SetKBSvrPassword(thePassword); 
+						pApp->GetMainFrame()->SetKBSvrPassword(thePassword);
 						wxLogDebug(_T("AuthenticateCheckAndSetupKBSharing(): the typed password was stored in the CMainFrame instance"));
 					}
 				}
@@ -11537,8 +11537,8 @@ back:				thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show
 						// that the user has changed his mind about KB Sharing being on
 						// - so turn it off. The function clears m_bIsKBServerProject
 						// and m_bIsGlossingKBServerProject to FALSE
-						HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr, 
-							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+						HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
+							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
 							pApp->m_saveSharingGlossesFlag);
 
 						bSimulateUserCancellation = TRUE;
@@ -11553,8 +11553,8 @@ back:				thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show
 					{
 						// We must assume the src/gloss codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
-						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr, 
-								pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
+								pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
 								pApp->m_saveSharingGlossesFlag);
 
 						bSimulateUserCancellation = TRUE;
@@ -11791,7 +11791,7 @@ void ShortWait(int tenthsOfSeconds)
 	waitDlg.m_nWaitMsgNum = 24;	// 24 is "Connected to KBserver successfully"
 	waitDlg.Centre();
 	waitDlg.Show(TRUE);
-	waitDlg.Update();
+    waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 	int timeout = tenthsOfSeconds * 100;
 	while (timeout > 0)

@@ -421,6 +421,8 @@
 		<Unit filename="../../source/KbServer.h" />
 		<Unit filename="../../source/KbSharingSetup.cpp" />
 		<Unit filename="../../source/KbSharingSetup.h" />
+		<Unit filename="../../source/KbSvrHowGetUrl.cpp" />
+		<Unit filename="../../source/KbSvrHowGetUrl.h" />
 		<Unit filename="../../source/LanguageCodesDlg.cpp" />
 		<Unit filename="../../source/LanguageCodesDlg.h" />
 		<Unit filename="../../source/LanguageCodesDlg_Single.cpp" />
@@ -488,6 +490,8 @@
 		<Unit filename="../../source/Retranslation.h" />
 		<Unit filename="../../source/RetranslationDlg.cpp" />
 		<Unit filename="../../source/RetranslationDlg.h" />
+		<Unit filename="../../source/ServDisc_KBserversDlg.cpp" />
+		<Unit filename="../../source/ServDisc_KBserversDlg.h" />
 		<Unit filename="../../source/ServiceDiscovery.cpp" />
 		<Unit filename="../../source/ServiceDiscovery.h" />
 		<Unit filename="../../source/SetDelay.cpp" />

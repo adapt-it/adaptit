@@ -6,7 +6,7 @@
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CWaitDlg class. 
+/// \description	This is the implementation file for the CWaitDlg class.
 /// The CWaitDlg class provides a custom "Please wait" dialog to notify the
 /// user that the current process will take some time to complete.
 /// The CWaitDlg is created as a Modeless dialog. It is created on the heap and
@@ -14,11 +14,11 @@
 /// \derivation		The CWaitDlg class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in WaitDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -45,7 +45,7 @@
 
 #include "Adapt_It.h"
 #include "WaitDlg.h"
- 
+
 /////////////////////////////////////////////////////////////////////////////
 // CWaitDlg dialog
 
@@ -74,7 +74,7 @@ CWaitDlg::CWaitDlg(wxWindow* parent) // dialog constructor
 	// ticks.
 	//pAnimatedPanel = (wxPanel*)FindWindowById(ID_PANEL_ANIMATION);
 	//wxASSERT(pAnimatedPanel != NULL);
-	
+
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);
 }
@@ -126,7 +126,7 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// situations needing a wait dialog. It could be done with a timer
 	// utilizing calls to ::wxSafeYield() at the pre-determined time
 	// ticks.
-    
+
     //m_pAnimationCtrl = new wxAnimationCtrl(pAnimatedPanel, wxID_ANY);
 	// TODO: Use appropriate path for platform!
 	//wxString m_throbberPathAndName = m_pApp->m_appInstallPathOnly + m_pApp->PathSeparator + _T("throbber.gif");
@@ -138,72 +138,72 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		// whm 28Aug11 commented out most of these since they are no longer needed
 		// after implementing more instances of the wxProgressDialog.
-		//case 0: 
+		//case 0:
 		//	WaitMsg = _("Please wait while Adapt It restores the knowledge base...");
 		//	break;
 		//case 1:
 		//	// IDS_WAIT_FOR_RTF_OUTPUT
 		//	WaitMsg = _("Please wait for Adapt It to output the RTF file. This may take a while...");
 		//	break;
-		//case 2: 
+		//case 2:
 		//	WaitMsg = _("Please wait while Adapt It opens the document...");
 		//	break;
-		//case 3: 
+		//case 3:
 		//	WaitMsg = _("Please wait while Adapt It processes filter changes...");
 		//	break;
-		//case 4: 
+		//case 4:
 		//	WaitMsg = _("Please wait while Adapt It saves the File...");
 		//	break;
 		case 5: // whm 28Aug11 Note: May be useful somewhere
 			WaitMsg = _T("");
 			pStatic->Hide(); // this selection just hides the static text message leaving the Title "Please Wait..."
 			break;
-		//case 6: 
+		//case 6:
 		//	WaitMsg = _("Please wait while Adapt It saves the KB...");
 		//	break;
-		//case 7: 
+		//case 7:
 		//	WaitMsg = _("Please wait while Adapt It saves the Glossing KB...");
 		//	break;
-		//case 8: 
+		//case 8:
 		//	WaitMsg = _("Please wait while Adapt It loads the KB...");
 		//	break;
-		//case 9: 
+		//case 9:
 		//	WaitMsg = _("Please wait while Adapt It loads the Glossing KB...");
 		//	break;
-		//case 10: 
+		//case 10:
 		//	WaitMsg = _("Please wait while Adapt It backs up the KB...");
 		//	break;
-		//case 11: 
+		//case 11:
 		//	WaitMsg = _("Please wait while Adapt It backs up the Glossing KB...");
 		//	break;
-		//case 12: 
+		//case 12:
 		//	WaitMsg = _("Please wait while Adapt It prepares the document for printing");
 		//	break;
 		case 13: // whm 28Aug11 Note: this is only used in KBEditSearch::InitDialog()
 			WaitMsg = _("Searching...");
 			break;
-		//case 14: 
+		//case 14:
 		//	WaitMsg = _("Please wait while Adapt It exports the KB...");
 		//	break;
-		//case 15: 
+		//case 15:
 		//	WaitMsg = _("Please wait while the translation is sent to Paratext...");
 		//	break;
-		//case 16: 
+		//case 16:
 		//	WaitMsg = _("Please wait while the translation is sent to Bibledit...");
 		//	break;
-		//case 17: 
+		//case 17:
 		//	WaitMsg = _("Please wait while the free translation is sent to Paratext...");
 		//	break;
-		//case 18: 
+		//case 18:
 		//	WaitMsg = _("Please wait while the free translation is sent to Bibledit...");
 		//	break;
-		//case 19: 
+		//case 19:
 		//	WaitMsg = _("Exporting the translation...");
 		//	break;
-		//case 20: 
+		//case 20:
 		//	WaitMsg = _("Exporting the free translation...");
 		//	break;
-		//case 21: 
+		//case 21:
 		//	WaitMsg = _("Please wait, getting the chapter and laying out the document...");
 		//	break;
 		case 22:  // whm 28Aug11 Note: This is used in OnCloseDocument()
