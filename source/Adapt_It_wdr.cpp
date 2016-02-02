@@ -967,7 +967,7 @@ wxSizer *WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item2 = new wxStaticText( parent, IDC_PLEASE_WAIT, _("Please wait while Adapt It lays out the document again. This may take a while..."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item2 = new wxStaticText( parent, IDC_PLEASE_WAIT, _("Please wait while Adapt It lays out the document again. This may take a while..."), wxDefaultPosition, wxSize(-1,32), 0 );
     item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
