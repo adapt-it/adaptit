@@ -81,9 +81,6 @@
 #endif
 #endif
 
-extern wxMutex gBlockForGetResults; // global, which ServiceDiscovery.cpp also will use
-
-
 // define our new notify event! (BEW added the ...HALTING one)
 
 //#if wxVERSION_NUMBER < 2900
@@ -143,7 +140,7 @@ wxThread::ExitCode wxServDisc::Entry()
 
       long msecs = tv->tv_sec == 0 ? 100 : tv->tv_sec*1000; // so that the while loop beneath gets executed once
       wxLogDebug(wxT("wxServDisc %p: scanthread waiting for data, timeout %i seconds"), this, (int)tv->tv_sec);
-
+	  
 	  // BEW addition. If there is no KBserver multicasting, this loop behaves poorly.
 	  // It does a few quick iterations, and then suddenly msecs jumps to 86221000 microsecs,
 	  // and so it's timeout loop runs for a minute and a half (maybe, but it times out
@@ -243,7 +240,7 @@ wxThread::ExitCode wxServDisc::Entry()
 	  // Note: attempting to precede this with the code which includes the Signal() call
 	  // leads to an app crash, because the mutex & associated condition objects are
 	  // clobbered before the code gets called - so we must rely on DoServiceDiscovery()'s
-	  // WaitTimeout(3500) to awaken the main thread, when no KBserver can be found because
+	  // WaitTimeout() to awaken the main thread, when no KBserver can be found because
 	  // one is not yet running on the LAN
 	  wxCommandEvent upevent(wxServDiscHALTING, wxID_ANY);
 	  upevent.SetEventObject(this); // set sender
@@ -353,17 +350,17 @@ int wxServDisc::ans(mdnsda a, void *arg)
   result.port = a->srv.port;
 
   if(a->ttl == 0)
+  {
     // entry was expired
     moi->results.erase(key);
+  }
   else
+  {
     // entry update
     moi->results[key] = result;
-
-  //gBlockForGetResults.Lock();
+  }
 
   moi->post_notify();
-
-  //gBlockForGetResults.Unlock();
 
   wxLogDebug(wxT("wxServDisc %p: got answer:"), moi);
   wxLogDebug(wxT("wxServDisc %p:    key:  %s"), moi, key.c_str());
@@ -626,12 +623,8 @@ void wxServDisc::post_notify()
 
 		//wxCommandEvent dummy;
 		//((CServiceDiscovery*)parent)->onSDNotify(dummy);
-		
-		//gBlockForGetResults.Unlock(); // so that GetResults() can acquire the Lock()
+			
 		((CServiceDiscovery*)parent)->GetResults();
-		//gBlockForGetResults.Lock(); // GetResults() released the lock, acquire it again now
-									// (as soon as post_notify() is exitted, it will be
-									// again released
 	}
 
   // Beier's code follows

@@ -99,8 +99,6 @@
 #endif
 #include "Adapt_It.h"
 
-wxMutex gBlockForGetResults; // global, which wxServDisc also will use
-
 extern CAdapt_ItApp* gpApp;
 
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)
@@ -188,8 +186,6 @@ void CServiceDiscovery::GetResults()
 
 	if (m_pSD != NULL)
 	{
-		//gBlockForGetResults.Lock(); // in wxServDisc, just prior to post_notify() call, the mutex is released
-
 		m_hostname.Empty();
 		m_addr.Empty();
 		m_port.Empty();
@@ -379,7 +375,6 @@ void CServiceDiscovery::GetResults()
 		wxString intStr;
 		if (m_urlsArr.IsEmpty())
 		{
-			//gBlockForGetResults.Unlock();
 			return;
 		}
 		for (i = 0; i < (size_t)entry_count; i++)
@@ -399,14 +394,12 @@ void CServiceDiscovery::GetResults()
 #if defined(_DEBUG)
 		wxLogDebug(_T("wxServDisc %p:  Finished storing constructed URLs in m_pApp->m_pServDiscResults  ******"));
 #endif
-		//gBlockForGetResults.Unlock(); // in wxServDisc, just after post_notify() call, the mutex is relocked
 
 	} // end of TRUE block for test: if (m_pSD != NULL)
 	else
 	{
 		// major error, but the program counter has never entered here, so
 		// just log it if it happens
-		//gBlockForGetResults.Unlock();
 		gpApp->LogUserAction(_T("GetResults():unexpected error: ptr to wxServDisc instance, m_pSD, is NULL"));
 		wxLogDebug(_T("ServiceDiscovery::GetResults() (m_pSD != NULL) test:  was FALSE, m_pSD =  %p"), m_pSD);
 		return;
