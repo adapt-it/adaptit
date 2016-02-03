@@ -128,6 +128,7 @@ const int IDC_RETRANSLATION_BUTTON = 10066;
 const int ID_BUTTON_TEXT_DIFFS = 10067;
 wxSizer *FontsPageFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
+extern wxSizer *myboxsizer;
 const int IDC_PLEASE_WAIT = 10068;
 wxSizer *WaitDlgFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 

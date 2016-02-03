@@ -2063,9 +2063,16 @@ class CAdapt_ItApp : public wxApp
 	bool	m_kbserver_kbadmin;  // initialize to default FALSE in OnInit()
 	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
 
-	//ServDisc*     m_pServDisc; <<-- this solution includes ServDisc as top level class
-	CServiceDiscovery*  m_pServDisc; // was ServDisc* 
+	CServiceDiscovery*  m_pServDisc;
 	wxArrayString       m_servDiscResults;
+	bool				m_bResultsAccessedOnce; // in DoServiceDiscovery(), start of FALSE
+							// and set TRUE after Signal() is called for first time (there
+							// can be more than one wxServDisc accessing the GetResults()
+							// function simultaneously), and use the TRUE value to
+							// have the Signal() call skipped by other processes - so that
+							// when CServiceDiscovery instance is deleted, which removes
+							// what Signal() tries to awaken, a still-running GetResults()
+							// function doesn't call Signal() but instead just exits and dies.
 
 	void onServDiscHalting(wxCommandEvent& WXUNUSED(event));
 
