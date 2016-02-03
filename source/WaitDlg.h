@@ -43,6 +43,7 @@ public:
 	wxSizer* pWaitDlgSizer;
 	//wxPanel* pAnimatedPanel;
 	wxAnimationCtrl* m_pAnimationCtrl;
+	wxSizer* pMySizer;
 
 // Overrides
 

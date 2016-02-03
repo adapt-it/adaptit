@@ -133,6 +133,8 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// load animated image into a sizer created within pAnimatedPanel
 	//if (m_pAnimationCtrl->LoadFile(m_throbberPathAndName))
     //    m_pAnimationCtrl->Play();
+    
+	pMySizer = myboxsizer;
 
 	switch (m_nWaitMsgNum)
 	{

@@ -15830,8 +15830,10 @@ void CAdapt_ItApp::onServDiscHalting(wxCommandEvent& WXUNUSED(event))
     // after it has been deleted and such access attempts cause an app crash - so wait .25
     // seconds before clobbering it - no .25 succeeded once, & failed once. Try .35 - better,
     // but it fails about once every half dozen logins; so maybe .4 is best
-	int timeout = 400; // it delays the screen refresh of the Authenticate dialog by
-					   // about .35 secs, but that's so small its almost unnoticed
+	int timeout = 1000; // it delays the screen refresh of the Authenticate dialog by
+					   // about .35 secs, but that's so small its almost unnoticed.
+					   // Hmm, even .4 can be too short. I'll make it 1 second,
+					   // and put a 1 sec delay also at start of request for Authenticate dlg
 	while (timeout > 0)
 	{
 		wxMilliSleep(50);

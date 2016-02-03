@@ -11025,6 +11025,17 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout
 		return FALSE;
 	}
 
+	// Put a delay here, as this can get called after service discovery finishes, and
+	// the latter needs a delay before CServiceDiscovery instance is deleted, so
+	// we want the Authenticate dialog, when it shows, to not be waiting around with
+	// its contents un-updated - looks ugly, so delay its inception for a second
+	int timeout = 1000;
+	while (timeout > 0)
+	{
+		wxMilliSleep(50);
+		timeout -= 50;
+	}
+
     // If an adapting or glossing (or both) KBserver is wanted, do service
 	// discovery of _kbserver._tcp.local. and if found, get its URL, and then check
 	// language codes and username and if all is well, login and set up the sharing
