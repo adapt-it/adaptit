@@ -11634,8 +11634,12 @@ back:				thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show
 			else
 			{
 				// No error, authentication and setup succeeded
+#if defined(_DEBUG)
+				ShortWait(60);
+#else
 				ShortWait(20);  // shows "Connected to KBserver successfully"
 								// for 2.0 secs (and no title in titlebar)
+#endif
 			}
 		} // end of else block for test: if (!bServiceDiscoveryWanted), i.e. it was wanted
 	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject ||

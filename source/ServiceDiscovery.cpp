@@ -409,40 +409,66 @@ void CServiceDiscovery::GetResults()
 	// thread and it's event handling etc, so do Signal() to make this happen
 	wxLogDebug(_T("wxServDisc %p:  At end of CServiceDiscovery::GetResults() m_pMutex  =  %p"), 
 				m_pSD, m_pMutex);
-	wxMutexLocker locker(*m_pMutex); // make sure it is locked
-	bool bIsOK = locker.IsOk(); // check the locker object successfully acquired the lock
-	wxUnusedVar(bIsOK);
-	wxCondError condError = m_pCondition->Signal(); // tell main thread to awaken, at WaitTimeout(5000)
-					// in DoServiceDiscovery() function -- I'll make the timeout a basic config
-					// file parameter I think, getting the url into m_servDiscResults can take
-					// four seconds or so, even on a laptop and speedy LAN
-	wxUnusedVar(condError); // it's used in the debug build, for logging
-
+	if (gpApp->m_bResultsAccessedOnce == FALSE)
+	{
+        // This is the first access by one of the possibly several post_notify() calls made
+        // by a few (mostly 3) wxServDisc processes, to get this far. We want only the
+        // first such one to actually access the locker and call Signal(), because calling
+        // GetResults() can happen again because another owning wxServDisc process is still
+        // not timed out and is still runing, AFTER the CServiceDiscovery instance which
+        // kicked the whole service discovery functionality off has been deleted in
+        // response to the wxServDiscHALTING event having been posted earlier. If such
+        // access is made, of course there would be an app crash. So we set
+        // m_bResultsAccessedOnce to TRUE after having entered this block here once, and
+        // thereafter, other processes getting to this point subsequently will have access
+        // to this block skipped, and go to the else block where they will exit
+        // immediately, letting the function die without causing a crash
+		gpApp->m_bResultsAccessedOnce = TRUE;
+		wxMutexLocker locker(*m_pMutex); // make sure it is locked
+		bool bIsOK = locker.IsOk(); // check the locker object successfully acquired the lock
+		wxUnusedVar(bIsOK);
+		wxCondError condError = m_pCondition->Signal(); // tell main thread to awaken
+				// The WaitTimeout(value) will pass in the value (default 8000) from the
+				// basic config file, but the user can manually put a different value there,
+				// but for safety's sake a minimum of 8 secs  is best - even though most
+				// successful discovery runs will succeed within 4 seconds, usually within 3;
+				// but the timeout being 8 or more does not mean it waits for the timeout
+				// to happen, instead, Signal() determines when the awakening happens and
+				// the array access then happens, and typically that's after 2 to 3 seconds
+				// of run time
+		wxUnusedVar(condError); // it's used in the debug build, for logging
 #if defined(_DEBUG)
-	wxString cond0 = _T("wxCOND_NO_ERROR");
-	wxString cond1 = _T("wxCOND_INVALID");
-	wxString cond2 = _T("wxCOND_TIMEOUT");
-	wxString cond3 = _T("wxCOND_MISC_ERROR");
-	wxString myError = _T("");
-	if (condError == wxCOND_NO_ERROR)
-	{
-		myError = cond0;
-	}
-	else if (condError == wxCOND_INVALID)
-	{
-		myError = cond1;
-	}
-	else if (condError == wxCOND_TIMEOUT)
-	{
-		myError = cond2;
-	}
-	else if (condError == wxCOND_INVALID)
-	{
-		myError = cond3;
-	}
-	wxLogDebug(_T("wxServDisc %p: ServiceDiscovery::GetResults() error condition for Signal() call: %s   locker.IsOk() returns %s"), 
-		m_pSD, myError.c_str(), bIsOK ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
+		wxString cond0 = _T("wxCOND_NO_ERROR");
+		wxString cond1 = _T("wxCOND_INVALID");
+		wxString cond2 = _T("wxCOND_TIMEOUT");
+		wxString cond3 = _T("wxCOND_MISC_ERROR");
+		wxString myError = _T("");
+		if (condError == wxCOND_NO_ERROR)
+		{
+			myError = cond0;
+		}
+		else if (condError == wxCOND_INVALID)
+		{
+			myError = cond1;
+		}
+		else if (condError == wxCOND_TIMEOUT)
+		{
+			myError = cond2;
+		}
+		else if (condError == wxCOND_INVALID)
+		{
+			myError = cond3;
+		}
+		wxLogDebug(_T("wxServDisc %p: ServiceDiscovery::GetResults() error condition for Signal() call: %s   locker.IsOk() returns %s"), 
+			m_pSD, myError.c_str(), bIsOK ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
 #endif
+	}
+	else
+	{
+		// Go no further -- see the comments in the block above
+		return;
+	}
+
 	//  Post a custom wxServDiscHALTING event here, to get rid of my parent classes
 	{
     wxCommandEvent event(wxServDiscHALTING, wxID_ANY);

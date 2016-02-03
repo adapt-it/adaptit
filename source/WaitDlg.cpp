@@ -42,9 +42,13 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/animate.h>
+#include <wx/window.h>
+//#include <wx/caret.h>
 
 #include "Adapt_It.h"
 #include "WaitDlg.h"
+
+extern wxSizer* myboxsizer; // from the wxDesigner resource for WaitDlgFunc
  
 /////////////////////////////////////////////////////////////////////////////
 // CWaitDlg dialog
@@ -61,9 +65,7 @@ CWaitDlg::CWaitDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	// The declaration is: WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
-	pStatic = (wxStaticText*)FindWindowById(IDC_PLEASE_WAIT);
-	// Use wxGenericValidator to transfer WaitMsg string to static text control
-	//pStatic->SetValidator(wxGenericValidator(&WaitMsg)); // whm removed 21Nov11
+	pTextCtrl = (wxTextCtrl*)FindWindowById(IDC_PLEASE_WAIT);
 
 	// whm 24Aug11 Note: The following could be used to put an animated
 	// busy image, such as the throbber.gif used in a wxWidgets sample.
@@ -92,9 +94,7 @@ CWaitDlg::CWaitDlg(wxWindow* parent, bool bNoTitle) // dialog constructor
 	// size dialog.
 	// The declaration is: WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
-	pStatic = (wxStaticText*)FindWindowById(IDC_PLEASE_WAIT);
-	// Use wxGenericValidator to transfer WaitMsg string to static text control
-	//pStatic->SetValidator(wxGenericValidator(&WaitMsg)); // whm removed 21Nov11
+	pTextCtrl = (wxTextCtrl*)FindWindowById(IDC_PLEASE_WAIT);
 
 	// whm 24Aug11 Note: The following could be used to put an animated
 	// busy image, such as the throbber.gif used in a wxWidgets sample.
@@ -156,7 +156,7 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		//	break;
 		case 5: // whm 28Aug11 Note: May be useful somewhere
 			WaitMsg = _T("");
-			pStatic->Hide(); // this selection just hides the static text message leaving the Title "Please Wait..."
+			pTextCtrl->Hide(); // this selection just hides the static text message leaving the Title "Please Wait..."
 			break;
 		//case 6: 
 		//	WaitMsg = _("Please wait while Adapt It saves the KB...");
@@ -221,9 +221,38 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		default: // whm 28Aug11 Note: keep as a default message
 			WaitMsg = _("Please wait. This may take a while...");
 	}
-	//TransferDataToWindow(); // whm removed 21Nov11
-	pStatic->SetLabel(WaitMsg); // not needed with validator
-	pWaitDlgSizer->Layout();
+	pTextCtrl->SetEditable(FALSE);
+	// We take control of setting the window's size, based on the extents of the text
+	// within it
+	int x, y, descent, externalLeading;
+	wxFont aFont = pTextCtrl->GetFont();
+	pTextCtrl->GetTextExtent(WaitMsg,&x,&y,&descent,&externalLeading,&aFont);
+	wxSize newSize;
+	newSize.x = x + 1;
+	newSize.y = y + externalLeading + descent + 4;
+	pTextCtrl->SetSize(newSize.x, newSize.y);
+	pTextCtrl->Clear();
+	pTextCtrl->ClearBackground();
+	/* can't get rid of the caret this way, pTextCtrl->GetCaret() returns NULL, despite doc'n saying it returns wxCaret*
+	wxCaret* caret = pTextCtrl->GetCaret();
+	caret->SetSize(0,0);
+	pTextCtrl->SetCaret(caret);
+	*/
+	wxString morespaces = _T("                                                                                               ");
+	wxString s = WaitMsg;
+	s += morespaces; // adding them at least puts the caret at end of the text control. Would be nice to have a white caret
+	pTextCtrl->WriteText(s);
+
+
+	// need to set the sizer too -- hmm, this doesn't have any effect - why?
+	wxPoint pt = myboxsizer->GetPosition();
+	// Make it appear 100 pixes below center
+	pt.y += 100;
+	wxSize minSize = myboxsizer->GetMinSize();
+	minSize.x = newSize.x;
+	//myboxsizer->SetMinSize(minSize.x, minSize.y);
+	myboxsizer->SetDimension(pt.x, pt.y, minSize.x, minSize.y);
+	myboxsizer->Layout();
 	Refresh();
 }
 

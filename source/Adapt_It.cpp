@@ -5972,7 +5972,7 @@ wxString szKbServerURL = _T("KbServerURL");
 /// in DoServiceDiscovery() in order to guarantee that a constructed URL for a KBserver
 /// discovered running on the LAN if stored in m_servDiscResults array before the timeout
 /// expires
-wxString szKBserverTimeout = _T("KBserverTimeout(minimum: 3500 thousandths of a second)");
+wxString szKBserverTimeout = _T("KBserverTimeout(minimum: 8000 thousandths of a second)");
 
 /// The label for the project configuration file's line which stores the assigned username
 /// for the last used server for knowledge base sharing within a project designated as one
@@ -15177,12 +15177,15 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
             // CAdapt_ItApp's flag m_bIsKBServerProject. The user must see a helpful
             // message first though.
 			wxString msg;
-			msg = msg.Format(_("An adapting KBserver for language codes ( %s , %s ) does not exist on the server %s.\nSomeone with 'knowledge base administrator' access level must first create an adaptations KBserver with those language codes\nin the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local adapting knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
+			msg = msg.Format(_("A bad password was used, or an adaptations KBserver for language codes (%s , %s) does not exist on the server %s.\nIf the password was bad, it has now been cleared and you can just try again.\nIf the problem is the language codes, someone with 'knowledge base administrator' access level must first create an adaptations KBserver\nwith those language codes in the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local adapting knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
 								m_sourceLanguageCode.c_str(), m_targetLanguageCode.c_str(), url.c_str(), url.c_str());
-			wxString title = _T("Adapting KBserver is undefined");
+			wxString title = _("Bad password or adaptations database lacking");
 			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 			DeleteKbServer(1);
 			m_bIsKBServerProject = FALSE;
+			// Ensure the session's stored password is cleared, so this error will not
+			// reoccur if the user retries
+			GetMainFrame()->SetKBSvrPassword(_T(""));
 			return FALSE;
 		}
 	}
@@ -15197,12 +15200,15 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
             // CAdapt_ItApp's flag m_bIsGlossingKBServerProject. The user must see a
             // helpful message first though.
 			wxString msg;
-			msg = msg.Format(_("A glossing KBserver for language codes ( %s , %s ) does not exist on the server %s.\nSomeone with 'knowledge base administrator' access level must first create a glosses KBserver with those language codes\nin the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local glossing knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
+			msg = msg.Format(_("A bad password was used, or a glosses KBserver for language codes (%s , %s) does not exist on the server %s.\nIf the password was bad, it has now been cleared and you can just try again.\nIf the problem is the language codes, someone with 'knowledge base administrator' access level must first create a glosses KBserver\nwith those language codes in the %s server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local glossing knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
 								m_sourceLanguageCode.c_str(), m_glossesLanguageCode.c_str(), url.c_str(), url.c_str());
-			wxString title = _T("Glossing KBserver is undefined");
+			wxString title = _("Bad password or glosses database lacking");
 			wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 			DeleteKbServer(2);
 			m_bIsGlossingKBServerProject = FALSE;
+			// Ensure the session's stored password is cleared, so this error will not
+			// reoccur if the user retries
+			GetMainFrame()->SetKBSvrPassword(_T(""));
 			return FALSE;
 		}
 	}
@@ -15384,9 +15390,17 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 {
 	wxString serviceStr = _T("_kbserver._tcp.local.");
 
+    // Start of FALSE and set TRUE after Signal() is called for first time (there can be
+    // more than one wxServDisc accessing the GetResults() function simultaneously), and
+    // use the TRUE value to have the Signal() call skipped by other processes - so that
+    // when CServiceDiscovery instance is deleted, which removes what Signal() tries to
+    // awaken, a still-running GetResults() function doesn't call Signal() but instead just
+    // exits and dies.
+	m_bResultsAccessedOnce = FALSE;
+
 	// onSDNotify will return any discovery results in the app wxArrayString m_servDiscResults
 	// as one or more lines, each of form  url:int:int:int:int where url potentially could be
-	//  empty and the int values are 0, 1, -1 being false, true, undefined
+	// empty and the int values are 0, 1, -1 being false, true, undefined
 
 	chosenURL = _T(""); // initialize, we return the chosen url using this parameter
 	result = SD_NoResultsYet; // initialize to a 'success' result
@@ -15812,7 +15826,18 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 
 void CAdapt_ItApp::onServDiscHalting(wxCommandEvent& WXUNUSED(event))
 {
-	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() - deleted CServiceDiscovery instance %p, setting m_pServDisc to NULL"),
+    // Need a small delay loop here, otherwise there will be accesses to CServiceDiscovery
+    // after it has been deleted and such access attempts cause an app crash - so wait .25
+    // seconds before clobbering it - no .25 succeeded once, & failed once. Try .35 - better,
+    // but it fails about once every half dozen logins; so maybe .4 is best
+	int timeout = 400; // it delays the screen refresh of the Authenticate dialog by
+					   // about .35 secs, but that's so small its almost unnoticed
+	while (timeout > 0)
+	{
+		wxMilliSleep(50);
+		timeout -= 50;
+	}
+	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() - after .4 sec delay, deleting CServiceDiscovery instance %p, setting m_pServDisc to NULL"),
 		m_pServDisc);
 	delete m_pServDisc; // BEW 4Dec16
 	m_pServDisc = NULL;
