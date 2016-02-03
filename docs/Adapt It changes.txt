@@ -1,5 +1,5 @@
 ----------------------------------------------
-Feature changes and new features in ?.?.?
+Feature changes and new features in ?.?.? 
 ----------------------------------------------
 * The tooltip in the Choose Translation dialog, and also
 those in the two listboxes in the KB Editor's 10 panes, 
