@@ -11645,12 +11645,8 @@ back:				thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show
 			else
 			{
 				// No error, authentication and setup succeeded
-#if defined(_DEBUG)
-				ShortWait(60);
-#else
 				ShortWait(20);  // shows "Connected to KBserver successfully"
 								// for 2.0 secs (and no title in titlebar)
-#endif
 			}
 		} // end of else block for test: if (!bServiceDiscoveryWanted), i.e. it was wanted
 	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject ||
@@ -11801,35 +11797,44 @@ wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase)
 
 void ShortWait(int tenthsOfSeconds)
 {
+#if defined(__WXMSW__)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CWaitDlg waitDlg(pApp->GetMainFrame(),TRUE); // the constructor with TRUE has no title in titlebar
 	waitDlg.m_nWaitMsgNum = 24;	// 24 is "Connected to KBserver successfully"
 	waitDlg.Centre();
-	waitDlg.Show(TRUE);
+	waitDlg.Show(TRUE); // <<- useless on Linux, the text in it does not display, so do for Windows only
 	waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
+
 	int timeout = tenthsOfSeconds * 100;
 	while (timeout > 0)
 	{
 		wxMilliSleep(100);
 		timeout -= 100;
 	}
+#endif
+	// Hmm, we might perhaps give non-Windows users a pleasant system sound here
+	// TODO ?
 }
 
 void ShortWaitSharingOff(int tenthsOfSeconds)
 {
+#if defined(__WXMSW__)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CWaitDlg waitDlg(pApp->GetMainFrame(),TRUE); // the constructor with TRUE has no title in titlebar
 	waitDlg.m_nWaitMsgNum = 25;	// 25 is "Knowledge base sharing is OFF"
 	waitDlg.Centre();
-	waitDlg.Show(TRUE);
+	waitDlg.Show(TRUE); // <<- useless on Linux, the text in it does not display, so Windows only
 	waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
+	// the wait dialog is automatically destroyed when it goes out of scope below
+	
 	int timeout = tenthsOfSeconds * 100;
 	while (timeout > 0)
 	{
 		wxMilliSleep(100);
 		timeout -= 100;
 	}
+#endif
+	// Hmm, we might perhaps give non-Windows users an unpleasant system sound here
+	// TODO?
 }
 

@@ -969,10 +969,10 @@ wxSizer *WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
     myboxsizer = item1;
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, IDC_PLEASE_WAIT, _("Please wait while Adapt It lays out the document again. This may take a while..."), wxDefaultPosition, wxSize(400,-1), wxGROW );
-    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+    wxStaticText *item2 = new wxStaticText( parent, IDC_PLEASE_WAIT, _("Please wait while Adapt It lays out the document again. This may take a while..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxTOP|wxBOTTOM, 0 );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxTOP|wxBOTTOM, 0 );
 
     if (set_sizer)
     {

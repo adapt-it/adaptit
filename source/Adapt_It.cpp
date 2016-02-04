@@ -15839,7 +15839,7 @@ void CAdapt_ItApp::onServDiscHalting(wxCommandEvent& WXUNUSED(event))
 		wxMilliSleep(50);
 		timeout -= 50;
 	}
-	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() - after .4 sec delay, deleting CServiceDiscovery instance %p, setting m_pServDisc to NULL"),
+	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() - after 1.0 sec delay, deleting CServiceDiscovery instance %p, setting m_pServDisc to NULL"),
 		m_pServDisc);
 	delete m_pServDisc; // BEW 4Dec16
 	m_pServDisc = NULL;
@@ -39667,11 +39667,18 @@ void CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& WXUNUS
 	int curMaxWords = pKB->m_nMaxWords; // how many of the maps are currently
 										// in use for this type of KB
 	{
-	CWaitDlg wait(GetMainFrame());
-	wait.Show(); // The function, even for a large KB, is very speedy,
-				 // so the wait dialog may not be needed. However,
-				 // seeing it, however briefly, does clearly indicate
-				 // the end of the operation
+#if defined(__WXMSW__)
+		CWaitDlg wait(GetMainFrame());
+		wait.Show(TRUE); // The function, even for a large KB, is very speedy,
+					 // so the wait dialog may not be needed. However,
+					 // seeing it briefly does clearly indicate
+					 // the end of the operation when it disappears
+	// BEW note 4Feb16, .Show(true) on Linux only shows the waitDlg frame,
+	// but the contents are not displayed. To display the string within it
+	// in Linux requires we use .ShowModal() but then that would block the
+	// code below, so on linux (and OSX) we just won't show it
+#endif
+
 	// Iterate over all the maps potentially with content
 	MapKeyStringToTgtUnit::iterator iter;
 	for (mapIndex = 0; mapIndex < curMaxWords; mapIndex++)

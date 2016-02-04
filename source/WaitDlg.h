@@ -30,6 +30,7 @@
 /// user that the current process will take some time to complete.
 /// The CWaitDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
+/// BEW note, 4Feb2016: .Show(true) on Linux only shows the dialog frame, with no content visible
 /// \derivation		The CWaitDlg class is derived from wxDialog.
 class CWaitDlg : public wxDialog
 {
@@ -39,7 +40,7 @@ public:
 	CWaitDlg(wxWindow* parent, bool bNoTitle); // alternate constructor for an empty titlebar
 // Dialog Data
 	//enum { IDD = IDD_WAIT };
-	wxTextCtrl* pTextCtrl;
+	wxStaticText* pStatic;
 	wxSizer* pWaitDlgSizer;
 	//wxPanel* pAnimatedPanel;
 	wxAnimationCtrl* m_pAnimationCtrl;
