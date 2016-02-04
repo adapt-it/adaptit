@@ -19490,14 +19490,17 @@ bool CAdapt_ItDoc::OnCloseDocument()
         return FALSE;
     }
 
-	// put up a Wait dialog
+	// put up a Wait dialog; but it's nonmodal and on Linux its contents are now shown
+	// so do it only for Windows
+#if defined(__WXMSW__)
 	CWaitDlg waitDlg(pApp->GetMainFrame());
 	// indicate we want the closing the document wait message
 	waitDlg.m_nWaitMsgNum = 22;	// 22 has "Closing the document..."
 	waitDlg.Centre();
 	waitDlg.Show(TRUE);
 	waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
+	// the wait dialog is automatically destroyed when it goes out of scope below
+#endif
 
 //#define BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
 #ifdef BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG

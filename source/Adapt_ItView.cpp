@@ -14348,14 +14348,19 @@ bool CAdapt_ItView::DoGlobalRestoreOfSaveToKB(wxString sourceKey)
 	// it at every matching location keeps the KB's m_refCount values at 1 for the 
 	// restored entries
 
+
 	// put up a Wait dialog (we'll also use a progress bar - see below)
+	// BEW 5Feb16 this modeless dialog on Linux doesn't display its contents, so show
+	// it only for Windows
+#if defined(__WXMSW__)
 	CWaitDlg waitDlg(pFrame);
 	// indicate we want the closing the document wait message
 	waitDlg.m_nWaitMsgNum = 23;	// 23 has  _("This may take a while. Identical changes are being done in all the documents...")
 	waitDlg.Centre();
-	waitDlg.Show(TRUE);
+	waitDlg.Show(TRUE);// On Linux, the dialog frame appears, but the text in it is not displayed (need ShowModal() for that)
 	waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
+	// the wait dialog is automatically destroyed when it goes out of scope below
+#endif
 	canvas->Freeze();
 
 	// Probably I need to close doc here ?? Yes, do it

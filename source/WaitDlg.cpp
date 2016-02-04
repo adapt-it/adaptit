@@ -11,14 +11,8 @@
 /// user that the current process will take some time to complete.
 /// The CWaitDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
+/// BEW note, 4Feb2016: .Show(true) on Linux only shows the dialog frame, with no content visible
 /// \derivation		The CWaitDlg class is derived from wxDialog.
-/////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in WaitDlg.cpp (in order of importance): (search for "TODO")
-// 1.
-//
-// Unanswered questions: (search for "???")
-// 1.
-//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -40,10 +34,9 @@
 
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
-#include <wx/valgen.h> // for wxGenericValidator
+//#include <wx/valgen.h> // for wxGenericValidator
 #include <wx/animate.h>
 #include <wx/window.h>
-//#include <wx/caret.h>
 
 #include "Adapt_It.h"
 #include "WaitDlg.h"
@@ -64,8 +57,7 @@ CWaitDlg::CWaitDlg(wxWindow* parent) // dialog constructor
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
 	// The declaration is: WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-
-	pTextCtrl = (wxTextCtrl*)FindWindowById(IDC_PLEASE_WAIT);
+	pStatic = (wxStaticText*)FindWindowById(IDC_PLEASE_WAIT);
 
 	// whm 24Aug11 Note: The following could be used to put an animated
 	// busy image, such as the throbber.gif used in a wxWidgets sample.
@@ -94,7 +86,7 @@ CWaitDlg::CWaitDlg(wxWindow* parent, bool bNoTitle) // dialog constructor
 	// size dialog.
 	// The declaration is: WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
-	pTextCtrl = (wxTextCtrl*)FindWindowById(IDC_PLEASE_WAIT);
+	pStatic = (wxStaticText*)FindWindowById(IDC_PLEASE_WAIT);
 
 	// whm 24Aug11 Note: The following could be used to put an animated
 	// busy image, such as the throbber.gif used in a wxWidgets sample.
@@ -133,6 +125,8 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// load animated image into a sizer created within pAnimatedPanel
 	//if (m_pAnimationCtrl->LoadFile(m_throbberPathAndName))
     //    m_pAnimationCtrl->Play();
+    
+	pMySizer = myboxsizer;
 
 	switch (m_nWaitMsgNum)
 	{
@@ -156,7 +150,7 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		//	break;
 		case 5: // whm 28Aug11 Note: May be useful somewhere
 			WaitMsg = _T("");
-			pTextCtrl->Hide(); // this selection just hides the static text message leaving the Title "Please Wait..."
+			pStatic->Hide(); // this selection just hides the static text message leaving the Title "Please Wait..."
 			break;
 		//case 6:
 		//	WaitMsg = _("Please wait while Adapt It saves the KB...");
@@ -221,38 +215,10 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		default: // whm 28Aug11 Note: keep as a default message
 			WaitMsg = _("Please wait. This may take a while...");
 	}
-	pTextCtrl->SetEditable(FALSE);
 	// We take control of setting the window's size, based on the extents of the text
 	// within it
-	int x, y, descent, externalLeading;
-	wxFont aFont = pTextCtrl->GetFont();
-	pTextCtrl->GetTextExtent(WaitMsg,&x,&y,&descent,&externalLeading,&aFont);
-	wxSize newSize;
-	newSize.x = x + 1;
-	newSize.y = y + externalLeading + descent + 4;
-	pTextCtrl->SetSize(newSize.x, newSize.y);
-	pTextCtrl->Clear();
-	pTextCtrl->ClearBackground();
-	/* can't get rid of the caret this way, pTextCtrl->GetCaret() returns NULL, despite doc'n saying it returns wxCaret*
-	wxCaret* caret = pTextCtrl->GetCaret();
-	caret->SetSize(0,0);
-	pTextCtrl->SetCaret(caret);
-	*/
-	wxString morespaces = _T("                                                                                               ");
-	wxString s = WaitMsg;
-	s += morespaces; // adding them at least puts the caret at end of the text control. Would be nice to have a white caret
-	pTextCtrl->WriteText(s);
-
-
-	// need to set the sizer too -- hmm, this doesn't have any effect - why?
-	wxPoint pt = myboxsizer->GetPosition();
-	// Make it appear 100 pixes below center
-	pt.y += 100;
-	wxSize minSize = myboxsizer->GetMinSize();
-	minSize.x = newSize.x;
-	//myboxsizer->SetMinSize(minSize.x, minSize.y);
-	myboxsizer->SetDimension(pt.x, pt.y, minSize.x, minSize.y);
-	myboxsizer->Layout();
-	Refresh();
+	pStatic->SetLabel(WaitMsg);
+	pMySizer->Layout();
+	this->Refresh();
 }
 

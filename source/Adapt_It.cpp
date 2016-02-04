@@ -15830,14 +15830,16 @@ void CAdapt_ItApp::onServDiscHalting(wxCommandEvent& WXUNUSED(event))
     // after it has been deleted and such access attempts cause an app crash - so wait .25
     // seconds before clobbering it - no .25 succeeded once, & failed once. Try .35 - better,
     // but it fails about once every half dozen logins; so maybe .4 is best
-	int timeout = 400; // it delays the screen refresh of the Authenticate dialog by
-					   // about .35 secs, but that's so small its almost unnoticed
+	int timeout = 1000; // it delays the screen refresh of the Authenticate dialog by
+					   // about .35 secs, but that's so small its almost unnoticed.
+					   // Hmm, even .4 can be too short. I'll make it 1 second,
+					   // and put a 1 sec delay also at start of request for Authenticate dlg
 	while (timeout > 0)
 	{
 		wxMilliSleep(50);
 		timeout -= 50;
 	}
-	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() - after .4 sec delay, deleting CServiceDiscovery instance %p, setting m_pServDisc to NULL"),
+	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() - after 1.0 sec delay, deleting CServiceDiscovery instance %p, setting m_pServDisc to NULL"),
 		m_pServDisc);
 	delete m_pServDisc; // BEW 4Dec16
 	m_pServDisc = NULL;
@@ -39665,11 +39667,18 @@ void CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& WXUNUS
 	int curMaxWords = pKB->m_nMaxWords; // how many of the maps are currently
 										// in use for this type of KB
 	{
-	CWaitDlg wait(GetMainFrame());
-	wait.Show(); // The function, even for a large KB, is very speedy,
-				 // so the wait dialog may not be needed. However,
-				 // seeing it, however briefly, does clearly indicate
-				 // the end of the operation
+#if defined(__WXMSW__)
+		CWaitDlg wait(GetMainFrame());
+		wait.Show(TRUE); // The function, even for a large KB, is very speedy,
+					 // so the wait dialog may not be needed. However,
+					 // seeing it briefly does clearly indicate
+					 // the end of the operation when it disappears
+	// BEW note 4Feb16, .Show(true) on Linux only shows the waitDlg frame,
+	// but the contents are not displayed. To display the string within it
+	// in Linux requires we use .ShowModal() but then that would block the
+	// code below, so on linux (and OSX) we just won't show it
+#endif
+
 	// Iterate over all the maps potentially with content
 	MapKeyStringToTgtUnit::iterator iter;
 	for (mapIndex = 0; mapIndex < curMaxWords; mapIndex++)

@@ -273,6 +273,8 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	waitDlg.Show(TRUE);
 	waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
+	// BEW 4Feb16, but unfortunately, Show() on Linux does not get the dialog's text
+	// displayed, only the empty frame appears. Users will just have to suffer in silence
 
 	// find the matches -- all search strings are tested against all of KB contents in the
 	// set of CTargetUnit pointer instances of all relevant maps (1 for glossing KB, 10
