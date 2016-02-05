@@ -40,11 +40,10 @@ public:
 	CWaitDlg(wxWindow* parent, bool bNoTitle); // alternate constructor for an empty titlebar
 // Dialog Data
 	//enum { IDD = IDD_WAIT };
-	wxStaticText* pStatic;
+	wxStaticText* pStaticText;
 	wxSizer* pWaitDlgSizer;
 	//wxPanel* pAnimatedPanel;
-	wxAnimationCtrl* m_pAnimationCtrl;
-	wxSizer* pMySizer;
+	//wxAnimationCtrl* m_pAnimationCtrl;
 
 // Overrides
 
