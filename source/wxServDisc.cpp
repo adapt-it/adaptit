@@ -52,6 +52,7 @@
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
 
+
 #if defined(_KBSERVER) // whm 2Dec2015 added otherwise build breaks in Linux when _KBSERVER is not defined
 
 #include "wx/object.h"
@@ -103,6 +104,83 @@ wxDEFINE_EVENT(serviceDiscoveryHALTING, wxCommandEvent);
 
 */
 
+wxServDisc::wxServDisc(void* p, const wxString& what, int type)
+{
+  // save our caller
+  parent = p;
+
+  m_bGetResultsStarted = FALSE; // Only onSDNotify() sets it to TRUE
+
+  // save query
+  query = what;
+  querytype = type;
+
+  wxLogDebug(wxT(""));
+  wxLogDebug(wxT("wxServDisc %p: about to query '%s'"), this, query.c_str());
+
+  if((mSock = msock()) == INVALID_SOCKET) {
+    wxLogDebug(wxT("Ouch, error creating socket: ") + err);
+    return;
+  }
+
+#if wxVERSION_NUMBER >= 2905 // 2.9.4 still has a bug here: http://trac.wxwidgets.org/ticket/14626
+  if( CreateThread(wxTHREAD_DETACHED) != wxTHREAD_NO_ERROR )
+#else
+  if( Create() != wxTHREAD_NO_ERROR )
+#endif
+    err.Printf(_("Could not create scan thread!"));
+  else
+    if( GetThread()->Run() != wxTHREAD_NO_ERROR )
+      err.Printf(_("Could not start scan thread!"));
+}
+
+void wxServDisc::post_notify()
+{	
+
+	// BEW Tell the running wxServDisc thread that GetResults() was invoked
+	m_bGetResultsStarted = TRUE;
+	wxLogDebug(_T("wxServDisc %p:  post_notify(). Doing non-event approach."), this);
+	// BEW - the nonEvent approach follows...
+	if (parent)
+	{
+		((CServiceDiscovery*)parent)->m_pSD = this;
+
+		//wxCommandEvent dummy;
+		//((CServiceDiscovery*)parent)->onSDNotify(dummy);
+			
+		((CServiceDiscovery*)parent)->GetResults();
+	}
+
+  // Beier's code follows
+  /*
+  if(parent)
+    {
+ 	  wxLogDebug(_T("wxServDisc %p:  post_notify():  posting event"), this); // BEW added this call
+		
+		// new NOTIFY event, we got no window id
+      wxCommandEvent event(wxServDiscNOTIFY, wxID_ANY);
+      event.SetEventObject(this); // set sender
+
+      // Send it
+	#if wxVERSION_NUMBER < 2900
+		  wxPostEvent((CServiceDiscovery*)parent, event);
+	#else
+		  wxQueueEvent((CServiceDiscovery*)parent, event.Clone());
+	#endif
+  }
+  */
+}
+
+wxServDisc::~wxServDisc()
+{
+  wxLogDebug(wxT("wxServDisc %p: before scanthread delete"), this);
+  if(GetThread() && GetThread()->IsRunning())
+    GetThread()->Delete(); // blocks, this makes TestDestroy() return true and cleans up the thread
+
+  wxLogDebug(wxT("In ~wxServDisc() wxServDisc %p: scanthread deleted, wxServDisc destroyed, hostname was '%s', lifetime was %ld"),
+	  this, query.c_str(), mWallClock.Time());
+  wxLogDebug(wxT("wxServDisc %p:  End of ~wxServDisc() Finished call of ~wxServDisc()"), this);
+}
 
 wxThread::ExitCode wxServDisc::Entry()
 {
@@ -361,15 +439,15 @@ int wxServDisc::ans(mdnsda a, void *arg)
   }
 
   moi->post_notify();
-
+  
   wxLogDebug(wxT("wxServDisc %p: got answer:"), moi);
   wxLogDebug(wxT("wxServDisc %p:    key:  %s"), moi, key.c_str());
   wxLogDebug(wxT("wxServDisc %p:    ttl:  %i"), moi, (int)a->ttl);
   wxLogDebug(wxT("wxServDisc %p:    time: %lu"), moi, result.time);
   if(a->ttl != 0) {
-    wxLogDebug(wxT("wxServDisc %p:    name: %s"), moi, moi->results[key].name.c_str());
-    wxLogDebug(wxT("wxServDisc %p:    ip:   %s"), moi, moi->results[key].ip.c_str());
-    wxLogDebug(wxT("wxServDisc %p:    port: %u"), moi, moi->results[key].port);
+	wxLogDebug(wxT("wxServDisc %p:    name: %s"), moi, moi->results[key].name.c_str());
+	wxLogDebug(wxT("wxServDisc %p:    ip:   %s"), moi, moi->results[key].ip.c_str());
+	wxLogDebug(wxT("wxServDisc %p:    port: %u"), moi, moi->results[key].port);
   }
   wxLogDebug(wxT("wxServDisc %p: answer end"),  moi);
 
@@ -553,46 +631,6 @@ SOCKET wxServDisc::msock()
 
 */
 
-wxServDisc::wxServDisc(void* p, const wxString& what, int type)
-{
-  // save our caller
-  parent = p;
-
-  m_bGetResultsStarted = FALSE; // Only onSDNotify() sets it to TRUE
-
-  // save query
-  query = what;
-  querytype = type;
-
-  wxLogDebug(wxT(""));
-  wxLogDebug(wxT("wxServDisc %p: about to query '%s'"), this, query.c_str());
-
-  if((mSock = msock()) == INVALID_SOCKET) {
-    wxLogDebug(wxT("Ouch, error creating socket: ") + err);
-    return;
-  }
-
-#if wxVERSION_NUMBER >= 2905 // 2.9.4 still has a bug here: http://trac.wxwidgets.org/ticket/14626
-  if( CreateThread(wxTHREAD_DETACHED) != wxTHREAD_NO_ERROR )
-#else
-  if( Create() != wxTHREAD_NO_ERROR )
-#endif
-    err.Printf(_("Could not create scan thread!"));
-  else
-    if( GetThread()->Run() != wxTHREAD_NO_ERROR )
-      err.Printf(_("Could not start scan thread!"));
-}
-
-wxServDisc::~wxServDisc()
-{
-  wxLogDebug(wxT("wxServDisc %p: before scanthread delete"), this);
-  if(GetThread() && GetThread()->IsRunning())
-    GetThread()->Delete(); // blocks, this makes TestDestroy() return true and cleans up the thread
-
-  wxLogDebug(wxT("In ~wxServDisc() wxServDisc %p: scanthread deleted, wxServDisc destroyed, hostname was '%s', lifetime was %ld"),
-	  this, query.c_str(), mWallClock.Time());
-  wxLogDebug(wxT("wxServDisc %p:  End of ~wxServDisc() Finished call of ~wxServDisc()"), this);
-}
 
 std::vector<wxSDEntry> wxServDisc::getResults() const
 {
@@ -608,43 +646,6 @@ std::vector<wxSDEntry> wxServDisc::getResults() const
 size_t wxServDisc::getResultCount() const
 {
   return results.size();
-}
-
-void wxServDisc::post_notify()
-{	
-
-	// BEW Tell the running wxServDisc thread that GetResults() was invoked
-	m_bGetResultsStarted = TRUE;
-	wxLogDebug(_T("wxServDisc %p:  post_notify(). Doing non-event approach."), this);
-	// BEW - the nonEvent approach follows...
-	if (parent)
-	{
-		((CServiceDiscovery*)parent)->m_pSD = this;
-
-		//wxCommandEvent dummy;
-		//((CServiceDiscovery*)parent)->onSDNotify(dummy);
-			
-		((CServiceDiscovery*)parent)->GetResults();
-	}
-
-  // Beier's code follows
-  /*
-  if(parent)
-    {
- 	  wxLogDebug(_T("wxServDisc %p:  post_notify():  posting event"), this); // BEW added this call
-		
-		// new NOTIFY event, we got no window id
-      wxCommandEvent event(wxServDiscNOTIFY, wxID_ANY);
-      event.SetEventObject(this); // set sender
-
-      // Send it
-	#if wxVERSION_NUMBER < 2900
-		  wxPostEvent((CServiceDiscovery*)parent, event);
-	#else
-		  wxQueueEvent((CServiceDiscovery*)parent, event.Clone());
-	#endif
-  }
-  */
 }
 
 #endif // _KBSERVER // whm 2Dec2015 added otherwise Linux build breaks when _KBSERVER is not defined

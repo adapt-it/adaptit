@@ -4522,162 +4522,21 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 
+	if ( gpApp->m_bCServiceDiscoveryCanBeDeleted )
+	{
+		wxLogDebug(_T("OnIdle(): m_bCServiceDiscoveryCanBeDeleted is TRUE, so deleting CServiceDiscovery instance %p, & setting m_pServDisc to NULL"),
+			gpApp->m_pServDisc);
+		delete gpApp->m_pServDisc; // BEW 4Dec16
+		gpApp->m_pServDisc = NULL;
 
+		gpApp->m_bCServiceDiscoveryCanBeDeleted = FALSE; // reinitialize
+	}
 
 #endif // for _KBSERVER #defined
 
 	// mrh - if doc recovery is pending, we must skip all the following, since the doc won't be valid:
     if (pApp->m_recovery_pending)
         return;
-
-/* // bug fixed 24Sept13 BEW, so this hack is no longer needed, nor is the app member, limiter
-	if (pApp->limiter == 0 && gbPassedAppInitialization && pApp->m_pSourcePhrases->GetCount() > 1)
-	{
-        // THE HACK (BEW 8Aug13) A hack fix for RossJones reported bug, of m_targetStr
-        // edited value not sticking when the phrase box moves on.
-        // Check if the m_pPhrase being written at the last active location is the same as
-        // what is in the CSourcePhrase's m_targetStr at that location. There's a strange
-        // bug that an edit made in the phrase box goes into the KB normally but when the
-        // box moves on the pre-edited form of the string gets shown at the last box
-        // location. Putting the box there makes the edited form reappear in it, and then
-        // it will 'stick' after the box is moved a second time. It's hard to make this
-		// error happen. One day it happened 4 times in 280 words tested, next day, once
-		// on same data, next day, not at all on same data plus and extra 300 words, and
-		// tested on Linux by me - didn't happen at all.
-		int sn = gnOldSequNum;
-		if (sn < 0)
-		{
-		    sn = 0;
-		}
-
-		CPile* pPile = pView->GetPile(sn);
-		CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-
-		// Don't do the check if a) this pSrcPhrase is a merger, or b) it's a fixed space
-		// conjoining - why? because the bug is rare and we've no proof yet that it
-		// manifests in either of these cases, so since it would take a lot more work to
-		// support these, we'll not bother until we have to
-		if (!((pSrcPhrase->m_nSrcWords > 1) || (IsFixedSpaceSymbolWithin(pSrcPhrase))))
-		{
-			int offset = wxNOT_FOUND;
-			wxString adaptn = pSrcPhrase->m_adaption;
-			wxString tgtStr = pSrcPhrase->m_targetStr;
-			wxString oldTgtStr = tgtStr;
-			// The check is better if we remove any punctuation in m_targetStr
-			pView->RemovePunctuation(pDoc, &tgtStr, 1); // 3rd param being 1 selects 'use target punctuation chars'
-			bool bOK = TRUE;
-			if (tgtStr.IsEmpty())
-			{
-				bOK = TRUE; // assume user cleared the phrasebox, so it's okay
-			}
-			else
-			{
-				offset = tgtStr.Find(adaptn);
-				if (offset != wxNOT_FOUND)
-				{
-					// Found m_adaption within m_targetStr, so all's well
-					bOK = TRUE;
-				}
-				else
-				{
-                    // Couldn't find m_adaption within m_targetStr -- this result is not
-                    // expected when the application is behaving as it should; but it is
-                    // exactly what we expect when the bug has manifested, otherwise
-                    // m_adaption and and the punctuation-less m_targetStr should be
-                    // identical.
-					bOK = FALSE;
-				}
-			}
-			// For some debug logging, the two wxLogDebug, or in particular the second,
-			// can have the commenting out removed. For now, I'll content myself with a
-			// simple bell chime to indicate that the bug has reared its head again
-			if (bOK)
-			{
-				//wxLogDebug(_T("  OK (they are different)   sequnum = %d ;  m_key =  %s  ;  m_adaption =  %s  ;  m_targetStr =  %s"),
-				//	sn, pSrcPhrase->m_key.c_str(), adaptn.c_str(), tgtStr.c_str());
-				;
-			}
-			else
-			{
-				//wxLogDebug(_T("** BAD ** (similar or same, or tgtStr NULL)    sequnum = %d ;  m_key =  %s  ;  m_adaption =  %s  ;  m_targetStr =  %s"),
-				//	sn, pSrcPhrase->m_key.c_str(), adaptn.c_str(), tgtStr.c_str());
-				wxBell();
-
-				// Log the bug happening... it's rare, so shouldn't bloat the file, and we
-				// want to know when people encounter it
-				wxString msgStr;
-				msgStr = msgStr.Format(
-				_T("Non-sticking value of m_targetStr was fixed by a hack: m_adaption was: [ %s  ]  But m_targetStr incorrectly was: [ %s ]"),
-				adaptn.c_str(), oldTgtStr.c_str());
-				pApp->LogUserAction(msgStr);
-
-                // THE HACK goes here... we'll add punctuation to m_adaption value, do
-                // autocaps adjustments if required, and store the result in m_targetStr,
-                // and then get the layout updated
-                tgtStr = adaptn;
-				bool bWantChangeToUC = FALSE; // if TRUE, we want the change to upper case
-											  // done if possible
-				bool bNoError = TRUE;
-				// Do any needed automatic capitalization adjustment
-				if (gbAutoCaps)
-				{
-					// Get the autocaps status of the m_key value
-					bNoError = pDoc->SetCaseParameters(adaptn);
-					if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
-					{
-						bWantChangeToUC = TRUE;
-					}
-					// Do same for the non-source string, and change the case if appropriate
-					if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
-					{
-						bNoError = pDoc->SetCaseParameters(tgtStr, FALSE); // FALSE
-												// means: testing the non-source text
-						if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
-						{
-						    if (bWantChangeToUC)
-						    {
-                                // a change to upper case is called for
-                                tgtStr.SetChar((long)0,gcharNonSrcUC); // change to upper case initial
-						    }
-						}
-					}
-				} // end of TRUE block for test: if (gbAutoCaps)
-
-				// add the punctuation, if any, to each end
-				if (!pSrcPhrase->m_precPunct.IsEmpty())
-				{
-					tgtStr = pSrcPhrase->m_precPunct + tgtStr;
-				}
-				if (!pSrcPhrase->m_follPunct.IsEmpty())
-				{
-					tgtStr += pSrcPhrase->m_follPunct;
-				}
-				if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
-				{
-					tgtStr += pSrcPhrase->GetFollowingOuterPunct();
-				}
-
-				// We now have the corrected value, set m_targetStr with it, and update
-				// the layout & re-place the phrasebox after recalculating the pile width
-				pSrcPhrase->m_targetStr = tgtStr;
-#ifdef _NEW_LAYOUT
-				pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#else
-				pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-				pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-				pDoc->ResetPartnerPileWidth(pSrcPhrase,FALSE); // FALSE is the boolean
-							// bNoActiveLocationCalculation, we want the pile width
-							// recalculated at the pSrcPhrase location given by gnOldSequNum
-				pView->Invalidate();
-				pApp->GetLayout()->PlaceBox();
-
-			} // end of else block for test: if (bOK)
-
-		} // end of TRUE block for test: if (!((pSrcPhrase->m_nSrcWords > 1) || (IsFixedSpaceSymbolWithin(pSrcPhrase))))
-		//pApp->limiter = 1; // prohibit reentry to this hack block until limiter is reset to 0
-	}
-	*/
 }
 
 // BEW added 10Dec12, to workaround the GTK scrollPos bug (it gets bogusly reset to old position)

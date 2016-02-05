@@ -11025,17 +11025,6 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout
 		return FALSE;
 	}
 
-	// Put a delay here, as this can get called after service discovery finishes, and
-	// the latter needs a delay before CServiceDiscovery instance is deleted, so
-	// we want the Authenticate dialog, when it shows, to not be waiting around with
-	// its contents un-updated - looks ugly, so delay its inception for a second
-	int timeout = 1000;
-	while (timeout > 0)
-	{
-		wxMilliSleep(50);
-		timeout -= 50;
-	}
-
     // If an adapting or glossing (or both) KBserver is wanted, do service
 	// discovery of _kbserver._tcp.local. and if found, get its URL, and then check
 	// language codes and username and if all is well, login and set up the sharing
@@ -11797,12 +11786,11 @@ wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase)
 
 void ShortWait(int tenthsOfSeconds)
 {
-#if defined(__WXMSW__)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CWaitDlg waitDlg(pApp->GetMainFrame(),TRUE); // the constructor with TRUE has no title in titlebar
 	waitDlg.m_nWaitMsgNum = 24;	// 24 is "Connected to KBserver successfully"
 	waitDlg.Centre();
-	waitDlg.Show(TRUE); // <<- useless on Linux, the text in it does not display, so do for Windows only
+	waitDlg.Show(TRUE);
 	waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below
 
@@ -11812,19 +11800,15 @@ void ShortWait(int tenthsOfSeconds)
 		wxMilliSleep(100);
 		timeout -= 100;
 	}
-#endif
-	// Hmm, we might perhaps give non-Windows users a pleasant system sound here
-	// TODO ?
 }
 
 void ShortWaitSharingOff(int tenthsOfSeconds)
 {
-#if defined(__WXMSW__)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CWaitDlg waitDlg(pApp->GetMainFrame(),TRUE); // the constructor with TRUE has no title in titlebar
 	waitDlg.m_nWaitMsgNum = 25;	// 25 is "Knowledge base sharing is OFF"
 	waitDlg.Centre();
-	waitDlg.Show(TRUE); // <<- useless on Linux, the text in it does not display, so Windows only
+	waitDlg.Show(TRUE);
 	waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below
 	
@@ -11834,8 +11818,5 @@ void ShortWaitSharingOff(int tenthsOfSeconds)
 		wxMilliSleep(100);
 		timeout -= 100;
 	}
-#endif
-	// Hmm, we might perhaps give non-Windows users an unpleasant system sound here
-	// TODO?
 }
 

@@ -15826,23 +15826,14 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 
 void CAdapt_ItApp::onServDiscHalting(wxCommandEvent& WXUNUSED(event))
 {
-    // Need a small delay loop here, otherwise there will be accesses to CServiceDiscovery
-    // after it has been deleted and such access attempts cause an app crash - so wait .25
-    // seconds before clobbering it - no .25 succeeded once, & failed once. Try .35 - better,
-    // but it fails about once every half dozen logins; so maybe .4 is best
-	int timeout = 1000; // it delays the screen refresh of the Authenticate dialog by
-					   // about .35 secs, but that's so small its almost unnoticed.
-					   // Hmm, even .4 can be too short. I'll make it 1 second,
-					   // and put a 1 sec delay also at start of request for Authenticate dlg
-	while (timeout > 0)
-	{
-		wxMilliSleep(50);
-		timeout -= 50;
-	}
-	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() - after 1.0 sec delay, deleting CServiceDiscovery instance %p, setting m_pServDisc to NULL"),
-		m_pServDisc);
-	delete m_pServDisc; // BEW 4Dec16
-	m_pServDisc = NULL;
+	m_bCServiceDiscoveryCanBeDeleted = TRUE; //Set TRUE here, the handler of the
+				// wxServDiscHALTING custom event, and now the next OnIdle()
+				// can attempt the CServiceDiscovery* m_pServDisc deletion (if
+				// done late enough, there'll be no app crash)
+	// CServiceDiscovery deleted before its wxServDisc gets deleted gives crash;
+	// the deletion order has to be reversed; class and window deletions are
+	// lazy and don't happen till idle time. Deleting CServiceDiscovery in OnIdle()
+	// accomplishes the needed deletion re-ordering
 }
 
 // Checks m_pKbServer[0] or [1] for non-NULL or NULL
@@ -16021,6 +16012,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_KBserverTimeout = 3500; // minimum value of 3.5 seconds - basic config file can 
 							  // override with a larger value, by direct user edit only
 	m_bServiceDiscoveryWanted = TRUE; // initialize
+	m_bCServiceDiscoveryCanBeDeleted = FALSE; // initialize, it gets set TRUE in the
+				// handler of the wxServDiscHALTING custom event, and then OnIdle()
+				// will attempt the CServiceDiscovery* m_pServDisc deletion (if done
+				// late enough, there'll be no app crash)
 #endif
 
 	// initialize these collaboration variables, which are relevant to conflict resolution

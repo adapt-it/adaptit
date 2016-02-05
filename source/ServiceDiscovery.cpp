@@ -127,6 +127,12 @@ CServiceDiscovery::CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
 	m_bWxServDiscIsRunning = TRUE; // Gets set FALSE only in my added onServDiscHalting() handler
 		// and the OnIdle() hander will use the FALSE to get CServiceDiscovery and ServDisc
 		// class instances deleted, and app's m_pServDisc pointer reset to NULL afterwards
+	m_postNotifyCount = 0; // use this int to allow only one GetResults() call
+	m_pParent->m_bCServiceDiscoveryCanBeDeleted = FALSE; // initialize, it gets set TRUE in the
+				// handler of the wxServDiscHALTING custom event, and then OnIdle()
+				// will attempt the CServiceDiscovery* m_pServDisc deletion (if done
+				// late enough, there'll be no app crash) Reinitialize it there afterwards
+
 	// scratch variables...
 	m_hostname = _T("");
 	m_addr = _T("");
@@ -181,6 +187,12 @@ void CServiceDiscovery::GetResults()
 	{
 		// The parent class no longer exists, so just exit now
 		wxLogDebug(_T("ServiceDiscovery::GetResults() if (m_pApp->m_pServDisc == NULL) test:  was TRUE, return immediately"));
+		return;
+	}
+	// Allow only the first call of this
+	m_postNotifyCount++;  // set to 0 in the CServicDiscovery constructor
+	if (m_postNotifyCount > 1)
+	{
 		return;
 	}
 
