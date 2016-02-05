@@ -35,13 +35,11 @@
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 //#include <wx/valgen.h> // for wxGenericValidator
-#include <wx/animate.h>
+//#include <wx/animate.h>
 #include <wx/window.h>
 
 #include "Adapt_It.h"
 #include "WaitDlg.h"
-
-extern wxSizer* myboxsizer; // from the wxDesigner resource for WaitDlgFunc
  
 /////////////////////////////////////////////////////////////////////////////
 // CWaitDlg dialog
@@ -57,7 +55,7 @@ CWaitDlg::CWaitDlg(wxWindow* parent) // dialog constructor
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
 	// The declaration is: WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	pStatic = (wxStaticText*)FindWindowById(IDC_PLEASE_WAIT);
+	pStaticText = (wxStaticText*)FindWindowById(IDC_PLEASE_WAIT);
 
 	// whm 24Aug11 Note: The following could be used to put an animated
 	// busy image, such as the throbber.gif used in a wxWidgets sample.
@@ -86,7 +84,7 @@ CWaitDlg::CWaitDlg(wxWindow* parent, bool bNoTitle) // dialog constructor
 	// size dialog.
 	// The declaration is: WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
-	pStatic = (wxStaticText*)FindWindowById(IDC_PLEASE_WAIT);
+	pStaticText = (wxStaticText*)FindWindowById(IDC_PLEASE_WAIT);
 
 	// whm 24Aug11 Note: The following could be used to put an animated
 	// busy image, such as the throbber.gif used in a wxWidgets sample.
@@ -126,8 +124,6 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	//if (m_pAnimationCtrl->LoadFile(m_throbberPathAndName))
     //    m_pAnimationCtrl->Play();
     
-	pMySizer = myboxsizer;
-
 	switch (m_nWaitMsgNum)
 	{
 		// whm 28Aug11 commented out most of these since they are no longer needed
@@ -150,7 +146,7 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		//	break;
 		case 5: // whm 28Aug11 Note: May be useful somewhere
 			WaitMsg = _T("");
-			pStatic->Hide(); // this selection just hides the static text message leaving the Title "Please Wait..."
+			pStaticText->Hide(); // this selection just hides the static text message leaving the Title "Please Wait..."
 			break;
 		//case 6: 
 		//	WaitMsg = _("Please wait while Adapt It saves the KB...");
@@ -217,8 +213,8 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	}
 	// We take control of setting the window's size, based on the extents of the text
 	// within it
-	pStatic->SetLabel(WaitMsg);
-	pMySizer->Layout();
-	this->Refresh();
+	pStaticText->SetLabel(WaitMsg);
+	pStaticText->Update();
+	pWaitDlgSizer->Layout();
 }
 
