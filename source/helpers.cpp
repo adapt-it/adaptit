@@ -11786,12 +11786,11 @@ wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase)
 
 void ShortWait(int tenthsOfSeconds)
 {
-#if defined(__WXMSW__)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CWaitDlg waitDlg(pApp->GetMainFrame(),TRUE); // the constructor with TRUE has no title in titlebar
 	waitDlg.m_nWaitMsgNum = 24;	// 24 is "Connected to KBserver successfully"
 	waitDlg.Centre();
-	waitDlg.Show(TRUE); // <<- useless on Linux, the text in it does not display, so do for Windows only
+	waitDlg.Show(TRUE);
 	waitDlg.Update();
 
 	int timeout = tenthsOfSeconds * 100;
@@ -11800,19 +11799,15 @@ void ShortWait(int tenthsOfSeconds)
 		wxMilliSleep(100);
 		timeout -= 100;
 	}
-#endif
-	// Hmm, we might perhaps give non-Windows users a pleasant system sound here
-	// TODO ?
 }
 
 void ShortWaitSharingOff(int tenthsOfSeconds)
 {
-#if defined(__WXMSW__)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CWaitDlg waitDlg(pApp->GetMainFrame(),TRUE); // the constructor with TRUE has no title in titlebar
 	waitDlg.m_nWaitMsgNum = 25;	// 25 is "Knowledge base sharing is OFF"
 	waitDlg.Centre();
-	waitDlg.Show(TRUE); // <<- useless on Linux, the text in it does not display, so Windows only
+	waitDlg.Show(TRUE);
 	waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below
 	
@@ -11822,8 +11817,5 @@ void ShortWaitSharingOff(int tenthsOfSeconds)
 		wxMilliSleep(100);
 		timeout -= 100;
 	}
-#endif
-	// Hmm, we might perhaps give non-Windows users an unpleasant system sound here
-	// TODO?
 }
 
