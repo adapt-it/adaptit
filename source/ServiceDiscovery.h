@@ -81,6 +81,12 @@ public:
 	CAdapt_ItApp* m_pParent; // BEW 4Jan16
 	bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this set in onSDHalting
 								 // informing CServiceDiscovery instance that we are done
+	int	m_postNotifyCount;  // count the number of Post_Notify() call attempts
+							// and only allow the function to be actually called when the
+							// count value is zero -- this is to prevent multiple accesses
+							// to the CServiceDiscovery::GetResults() code - it appears that
+							// this can be running after CServiceDiscovery instance has been
+							// deleted - we get a crash with ptr in CriticalSection code
 	// scratch variables, used in the loop in onSDNotify() handler
 	wxString m_hostname;
 	wxString m_addr;

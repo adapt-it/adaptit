@@ -2073,6 +2073,12 @@ class CAdapt_ItApp : public wxApp
 							// when CServiceDiscovery instance is deleted, which removes
 							// what Signal() tries to awaken, a still-running GetResults()
 							// function doesn't call Signal() but instead just exits and dies.
+	bool				m_bCServiceDiscoveryCanBeDeleted; // set FALSE in creation of
+							// CServiceDiscovery, set TRUE in onServDiscHALTING event handler,
+							// and do the actual deletion in OnIdle() handler - hopefully it
+							// will happen after the lazy class deletions are done, and there
+							// will no longer be an app crash at m_buffer being garbage in 
+							// CriticalSection::Entry() after service discovery completes
 
 	void onServDiscHalting(wxCommandEvent& WXUNUSED(event));
 

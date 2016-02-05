@@ -2018,49 +2018,52 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	// ignore dealing with any unlikely pathCreationErrors at this point
 
 #if defined(_KBSERVER)
+	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
+	{
+		// We need to try re-establish a connection to the KBserver if one is running
+		bool bUserCancelled = FALSE; // initialize
+		KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame());
+		pHowGetUrl->Center();
+		int dlgReturnCode;
+		dlgReturnCode = pHowGetUrl->ShowModal();
+		if (dlgReturnCode == wxID_OK)
+		{ 
+			// m_bServiceDiscoveryWanted will have been set or cleared in
+			// the OnOK() handler of the above dialog
+			wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
+		}
+		else
+		{
+			// User cancelled. This clobbers the sharing setup - that clobbering is
+			// already done in the OnCancel() handler
+			wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
+		}
+		bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
+		delete pHowGetUrl; // We don't want the dlg showing any longer
 
-			bool bUserCancelled = FALSE; // initialize
-			KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame());
-			pHowGetUrl->Center();
-			int dlgReturnCode;
-			dlgReturnCode = pHowGetUrl->ShowModal();
-			if (dlgReturnCode == wxID_OK)
-			{ 
-				// m_bServiceDiscoveryWanted will have been set or cleared in
-				// the OnOK() handler of the above dialog
-				wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
-			}
-			else
-			{
-				// User cancelled. This clobbers the sharing setup - that clobbering is
-				// already done in the OnCancel() handler
-				wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
-			}
-			bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
-			delete pHowGetUrl; // We don't want the dlg showing any longer
-
-			// If the user didn't cancel, then call Authenticate....()
-			if (!bUserCancelled) // if user did not cancel...
-			{
-                // Do service discovery of KBserver, authentication, checking, and KB
-                // Sharing setup. Second param, bool bUserAuthenticating, is default TRUE.
-                // Note: the function could fail, in which case KB sharing will be turned
-                // off - this does **not** mean that the HookUpToExistingAIProject()
-                // function will, or should, also fail. KB sharing and PT or BE
-                // collaboration are orthogonal to each other, any project can have one or
-                // the other or both turned on. KB sharing not on does not prevent
-                // collaboration from doing its job
-				bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout,
-													pApp->m_bServiceDiscoveryWanted);
-				wxUnusedVar(bSuccess);
-			}
-			else
-			{
-				// User canceled before Authentication could be attempted - so tell him
-				// that sharing is OFF
-				ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
-			}
-			pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
+		// If the user didn't cancel, then call Authenticate....()
+		if (!bUserCancelled) // if user did not cancel...
+		{
+            // Do service discovery of KBserver, authentication, checking, and KB
+            // Sharing setup. Second param, bool bUserAuthenticating, is default TRUE.
+            // Note: the function could fail, in which case KB sharing will be turned
+            // off - this does **not** mean that the HookUpToExistingAIProject()
+            // function will, or should, also fail. KB sharing and PT or BE
+            // collaboration are orthogonal to each other, any project can have one or
+            // the other or both turned on. KB sharing not on does not prevent
+            // collaboration from doing its job
+			bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout,
+												pApp->m_bServiceDiscoveryWanted);
+			wxUnusedVar(bSuccess);
+		}
+		else
+		{
+			// User canceled before Authentication could be attempted - so tell him
+			// that sharing is OFF
+			ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
+		}
+		pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
+	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 
 #endif // _KBSERVER
 
