@@ -39,10 +39,16 @@
 #include <wx/window.h>
 
 #include "Adapt_It.h"
+#include "Adapt_ItView.h"
 #include "WaitDlg.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CWaitDlg dialog
+
+// event handler table
+BEGIN_EVENT_TABLE(CWaitDlg, wxDialog)
+EVT_INIT_DIALOG(CWaitDlg::InitDialog)
+END_EVENT_TABLE()
 
 CWaitDlg::CWaitDlg(wxWindow* parent) // dialog constructor
 	: wxDialog(parent, -1, _("Please Wait..."),
@@ -67,6 +73,8 @@ CWaitDlg::CWaitDlg(wxWindow* parent) // dialog constructor
 	//pAnimatedPanel = (wxPanel*)FindWindowById(ID_PANEL_ANIMATION);
 	//wxASSERT(pAnimatedPanel != NULL);
 
+	m_bNoTitle = FALSE;
+	
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);
 }
@@ -76,7 +84,6 @@ CWaitDlg::CWaitDlg(wxWindow* parent, bool bNoTitle) // dialog constructor
 	wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 	, m_nWaitMsgNum(0)
 {
-	wxUnusedVar(bNoTitle);
 	pWaitDlgSizer = WaitDlgFunc(this, TRUE, TRUE);
 	// This dialog function is generated in wxDesigner, and defines the controls and sizers
 	// for the dialog. The first parameter is the parent which should normally be "this".
@@ -96,14 +103,15 @@ CWaitDlg::CWaitDlg(wxWindow* parent, bool bNoTitle) // dialog constructor
 	//pAnimatedPanel = (wxPanel*)FindWindowById(ID_PANEL_ANIMATION);
 	//wxASSERT(pAnimatedPanel != NULL);
 
+	m_bNoTitle = bNoTitle;
+
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);
 }
-
-// event handler table
-BEGIN_EVENT_TABLE(CWaitDlg, wxDialog)
-	EVT_INIT_DIALOG(CWaitDlg::InitDialog)
-END_EVENT_TABLE()
+CWaitDlg::~CWaitDlg()
+{
+	m_pApp->m_pWaitDlg = NULL;
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // CWaitDlg message handlers
@@ -202,7 +210,7 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		case 23:  // BEW 4Sep15 this is used in DoGlobalRestoreOfSaveToKB() within view's OnCheckKBSave()
 			WaitMsg = _("This may take a while. Identical changes are being done in all the documents...");
 			break;
-		case 24: // feedback to user that the running KBserver was connected to successfully; use in a ShortWait(int numSecs) function with a timeout loop in it
+		case 24: // feedback to user that the running KBserver was connected to successfully
 			WaitMsg = _("Connected to KBserver successfully");
 			break;
 		case 25: // feedback to the user that there is now no connection to a KBserver for KB sharing
@@ -216,5 +224,10 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	pStaticText->SetLabel(WaitMsg);
 	pStaticText->Update();
 	pWaitDlgSizer->Layout();
+
+	if (m_bNoTitle)
+	{
+		m_pApp->GetView()->PositionDlgNearBottomRight(this);
+	}
 }
 
