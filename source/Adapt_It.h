@@ -82,6 +82,7 @@ class TranslationsList; // the CTargetUnit's list of CRefString instances
 
 class CServiceDiscovery; // BEW 4Jan16
 class CServDisc_KBserversDlg; // BEW 12Jan16
+class CWaitDlg; // BEW 8Feb16
 
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
@@ -2083,11 +2084,15 @@ class CAdapt_ItApp : public wxApp
 	void onServDiscHalting(wxCommandEvent& WXUNUSED(event));
 
 	// for support of service discovery
-	wxString m_saveOldURLStr;
-	wxString m_saveOldUsernameStr;
-	wxString m_savePassword;
-	bool     m_saveSharingAdaptationsFlag;
-	bool     m_saveSharingGlossesFlag;
+	wxString		m_saveOldURLStr;
+	wxString		m_saveOldUsernameStr;
+	wxString		m_savePassword;
+	bool			m_saveSharingAdaptationsFlag;
+	bool			m_saveSharingGlossesFlag;
+	CWaitDlg*		m_pWaitDlg; // for feedback messages, connection succeeded, or, sharing is OFF
+						// Keep m_pWaitDlg NULL except when a message is up, so that OnIdle() can
+						// destroy the dlg message when the wait timespan has expired (1.3 secs)
+	wxDateTime		m_msgShownTime; // set by a call to Now()
 
 #endif // _KBSERVER
 

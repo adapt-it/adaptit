@@ -2060,7 +2060,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 		{
 			// User canceled before Authentication could be attempted - so tell him
 			// that sharing is OFF
-			ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
+			ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
 		}
 		pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
 	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)

@@ -11021,7 +11021,7 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout
 		{
 			pApp->ReleaseKBServer(2); // the glossings one
 		}
-		ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
+		ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
 		return FALSE;
 	}
 
@@ -11183,14 +11183,14 @@ here2:	dlgReturnCode = dlg.ShowModal();
 			if (bSimulateUserCancellation || bSetupKBserverFailed)
 			{
 				// There was an error, and sharing was turned off
-				ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
+				ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
 				return FALSE;
 			}
 			else
 			{
 				// No error, authentication and setup succeeded
-				ShortWait(20);  // shows "Connected to KBserver successfully"
-								// for 2.0 secs (and no title in titlebar)
+				ShortWait();  // shows "Connected to KBserver successfully"
+							  // for 1.3 secs (and no title in titlebar)
 			}
 			return TRUE;
 		} // end of TRUE block for test: if (!bServiceDiscoveryWanted)
@@ -11628,14 +11628,14 @@ back:				thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show
 			if (!bServiceDiscoverySucceeded || bSimulateUserCancellation || bSetupKBserverFailed)
 			{
 				// There was an error, and sharing was turned off
-				ShortWaitSharingOff(20); //displays "Knowledge base sharing is OFF" for 2.0 seconds
+				ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
 				return FALSE;
 			}
 			else
 			{
 				// No error, authentication and setup succeeded
-				ShortWait(20);  // shows "Connected to KBserver successfully"
-								// for 2.0 secs (and no title in titlebar)
+				ShortWait();  // shows "Connected to KBserver successfully"
+							  // for 1.3 secs (and no title in titlebar)
 			}
 		} // end of else block for test: if (!bServiceDiscoveryWanted), i.e. it was wanted
 	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject ||
@@ -11784,38 +11784,27 @@ wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase)
 	}
 }
 
-void ShortWait(int tenthsOfSeconds)
+void ShortWait()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	CWaitDlg waitDlg(pApp->GetMainFrame(),TRUE); // the constructor with TRUE has no title in titlebar
-	waitDlg.m_nWaitMsgNum = 24;	// 24 is "Connected to KBserver successfully"
-	waitDlg.Centre();
-	waitDlg.Show(TRUE);
-	waitDlg.Update();
-
-	int timeout = tenthsOfSeconds * 100;
-	while (timeout > 0)
-	{
-		wxMilliSleep(100);
-		timeout -= 100;
-	}
+	pApp->m_pWaitDlg = new CWaitDlg(pApp->GetMainFrame(), TRUE);
+	pApp->m_pWaitDlg->m_nWaitMsgNum = 24;	// 24 is "Connected to KBserver successfully"
+	pApp->m_pWaitDlg->Centre();
+	pApp->m_pWaitDlg->Show(TRUE);
+	pApp->m_pWaitDlg->Update();
+	pApp->m_msgShownTime = wxDateTime::Now();
+	pApp->m_pWaitDlg->Raise(); // send to top of z-order
 }
 
-void ShortWaitSharingOff(int tenthsOfSeconds)
+void ShortWaitSharingOff()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	CWaitDlg waitDlg(pApp->GetMainFrame(),TRUE); // the constructor with TRUE has no title in titlebar
-	waitDlg.m_nWaitMsgNum = 25;	// 25 is "Knowledge base sharing is OFF"
-	waitDlg.Centre();
-	waitDlg.Show(TRUE);
-	waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below
-	
-	int timeout = tenthsOfSeconds * 100;
-	while (timeout > 0)
-	{
-		wxMilliSleep(100);
-		timeout -= 100;
-	}
+	pApp->m_pWaitDlg = new CWaitDlg(pApp->GetMainFrame(), TRUE);
+	pApp->m_pWaitDlg->m_nWaitMsgNum = 25;	// 25 is "Knowledge base sharing is OFF"
+	pApp->m_pWaitDlg->Centre();
+	pApp->m_pWaitDlg->Show(TRUE);
+	pApp->m_pWaitDlg->Update();
+	pApp->m_msgShownTime = wxDateTime::Now();
+	pApp->m_pWaitDlg->Raise(); // send to top of z-order
 }
 
