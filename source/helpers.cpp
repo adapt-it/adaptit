@@ -11811,7 +11811,7 @@ void ShortWaitSharingOff(int tenthsOfSeconds)
 	waitDlg.Show(TRUE);
 	waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below
-	
+
 	int timeout = tenthsOfSeconds * 100;
 	while (timeout > 0)
 	{
