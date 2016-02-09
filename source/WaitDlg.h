@@ -38,6 +38,7 @@ class CWaitDlg : public wxDialog
 public:
 	CWaitDlg(wxWindow* parent);   // standard constructor
 	CWaitDlg(wxWindow* parent, bool bNoTitle); // alternate constructor for an empty titlebar
+	~CWaitDlg(); // destructor
 // Dialog Data
 	//enum { IDD = IDD_WAIT };
 	wxStaticText* pStaticText;
@@ -51,6 +52,7 @@ public:
 protected:
 	CAdapt_ItApp*	m_pApp;
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
+	bool m_bNoTitle;
 	DECLARE_EVENT_TABLE()
 public:
 	int m_nWaitMsgNum;

@@ -15056,12 +15056,13 @@ void CAdapt_ItApp::DeleteKbServer(int whichType)
 	m_pKbServer[whichType - 1] = NULL;
 }
 
-// Call SetupForKBServer() twice (once for an adapting KB, the second for a glossing KB)
-// when re-opening a project which has been designated earlier as associating with a
-// kbserver (ie. m_bKBServerProject is TRUE after the project's configuration file has been
-// read), or when the user, in the GUI, designates the current project as being a kb
-// sharing one. Return TRUE for a successful setup, FALSE if something was not right and in
-// that case don't perform a setup.
+// Call SetupForKBServer() once or twice (once for an adapting KB, the second for a
+// glossing KB, or vise versa; or have just one of the two set up) when re-opening a
+// project which has been designated earlier as associating with a KBserver (ie.
+// m_bIsKBServerProject is TRUE after the project's configuration file has been read), or
+// when m_bIsGlossingKBServerProject is TRUE; when the user, in the GUI, designates the
+// current project as being a KB sharing one. Return TRUE for a successful setup, FALSE if
+// something was not right and in that case don't perform a setup.
 // BEW 3Oct12, changed from using wxString to using CBString
 // BEW 27Feb13, added instantiating a single timer for BOTH instances of KbServer to use
 bool CAdapt_ItApp::SetupForKBServer(int whichType)
@@ -15071,7 +15072,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	wxASSERT(pKbSvr == NULL);
 	pKbSvr = new KbServer(whichType);
 
-	// if instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
+	// If instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
 	if (pKbSvr == NULL)
 	{
 		// warn developer, message does not need to be localizable
@@ -15081,13 +15082,13 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
-	// store it for the user's adapting or glossing session in this project
+	// Store it for the user's adapting or glossing session in this project
 	SetKbServer(whichType, pKbSvr);
 
-	// enable it (that's default, if the project is a KB sharing one or either type)
+	// enable it (that's default, if the project is a KB sharing one of either type)
 	pKbSvr->EnableKBSharing(TRUE);
 
-	// instantiate a single timer instance; once instantiated, a second call of
+	// Instantiate a single timer instance; once instantiated, a second call of
 	// SetupForKBServer()for a different type will skip this block
 	if (m_pKbServerDownloadTimer == NULL)
 	{
@@ -15101,8 +15102,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	}
 
 	// get the kbserver credentials we need
-	//wxString credsfilename = _T("credentials.txt"); // temporary, later we will use project config file
-	wxString syncfilename; // probably use this file permanently
+	wxString syncfilename; // use this file permanently
 	if (whichType == 1)
 	{
 	    // this kbserver instance is for handling adaptations KB
@@ -15117,25 +15117,12 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	wxString username; username.Empty();
 	wxString password; password.Empty();
 
-    // Deprecated 31Jan13, we get credentials, and show a password dialog, from the
-    // KbSharingSetup now, and we store url and username as app variables m_strKbServerURL
-    // and m_strUserID from now on (these are saved in the project config file too), and we
-    // get those here now, instead of from the credentials.txt file; the password from the
-    // password dialog is stored in CMainFrame class as the member m_kbserverPassword,
-    // private, and so accessed with GetKBSvrPassword(), & SetKBSvrPassword(wxString pwd)
-	/*
-	bool bOpenedOK = GetCredentials(credsfilename, url, username, password);
-	if (!bOpenedOK)
-	{
-		// warn developer, message does not need to be localizable
-		wxString msg;
-		msg = msg.Format(_T("Error: SetupForKBServer(), kbType = %d - could not get the credentials from credentials.txt; setup aborted"),
-			whichType);
-		wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
-		DeleteKbServer(whichType);
-		return FALSE;
-	}
-	*/
+    // 31Jan13, we get credentials, and show a password dialog, from the KbSharingSetup
+    // dialog, and we store url and username as app variables m_strKbServerURL and
+    // m_strUserID from now on (these are saved in the project config file too), and we get
+    // those here now; the password from the password dialog is stored in CMainFrame class
+    // as the member m_kbserverPassword, private, and so accessed with GetKBSvrPassword(),
+    // & SetKBSvrPassword(wxString pwd)
 	wxASSERT(!m_strKbServerURL.IsEmpty() && !m_strUserID.IsEmpty());
 	url = m_strKbServerURL;
 	username = m_strUserID;
@@ -15305,13 +15292,13 @@ void CAdapt_ItApp::ExtractServiceDiscoveryResult(wxString& result, wxString& url
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if chosenURL contains a URL string to be used for authenticating to
-///             a discovered running KBserver; FALSE if there was a problem or choice by
-///             the user to do otherwise than return a URL for auto-connection purposes,
-///             or if no kbserver is running on the LAN as yet
+///             a discovered running KBserver on the LAN; FALSE if there was a problem or
+///             choice by the user to do otherwise than return a URL for auto-connection 
+///             purposes, or if no kbserver is running on the LAN as yet
 /// \param      curURL         -> the current URL - as currently in force, or just provided
 ///                               by reading from the AI-BasicConfiguration.aic file (it
 ///                               might be an empty string)
-/// \param      chosenURL      <- the URL to which connection is to be done (it
+/// \param      chosenURL      <- the URL to which connection is to be attempted (it
 ///                               may not be the same as the curURL)
 /// \param      workFolderPath -> the path to the Adapt It Unicode Work folder (where the
 ///                               ServDiscResults.txt file resides)
@@ -15321,22 +15308,21 @@ void CAdapt_ItApp::ExtractServiceDiscoveryResult(wxString& result, wxString& url
 ///                               wxArrayString - an app member (if the value is too low,
 ///                               service discover won't find a URL ready for use and think
 ///                               that there was no running KBserver on the LAN, when in fact
-///                               there may well have been; a 3500 value is minimal for safety
-///                               but I've had this be insufficient by 1/2 sec once)
+///                               there may well be one there; a 8000 value is good for safety
+///                               but values as low as 3500 to 4000 usually work okay, but
+///                               there is risk of occasional failure - so 8000 is wiser)
 /// \remarks
 /// Our implementation of service discovery, cross platform, is based on the sdwrap/wxServDisc
 /// resources provided by Christian Beier, 2008. (See the wxServDisc.h header for more detail.)
 /// Our use of those resources is GUI-less, since the service we listen for is fixed.
 /// Beier's code works, but leaks a few kilobytes of memory when it is shut down - the leaks
-/// are of his making, due to incomplete cleanup code. Because fixing the leaks is a major
-/// task for someone not acquainted with the details of service discovery, we have embedded
-/// our tweak of his solution within a joinable thread. So, when the thread is disposed of,
-/// the leaks are blown away when its process is destroyed.
+/// are of his making, due to incomplete cleanup code. We have spent time utilizing a function
+/// he provided but failed to provide body code within it, to get the leaks reduced to zero.
 ///
 /// DoServiceDiscovery is called prior to an authentication attempt to a running KBserver.
 /// The service:  "_kbserver._tcp.local." is scanned for (note, there MUST be a period
-/// following .local, the wrapping " " are not part of the string), and if one of more
-/// KBservers are running and discovered, their ip addresses are looked up and a URL for
+/// following the word local & the wrapping " " are not part of the string), and if one or
+/// more KBservers are running and discovered, their ip addresses are looked up and a URL for
 /// each constructed. Normally, only one KBserver should be running; if that is not the
 /// case, user confusion may result, or users may connect to differing KBservers which
 /// would waste the benefits of this KB syncing capacity. If two or more are running, a
@@ -15362,10 +15348,11 @@ void CAdapt_ItApp::ExtractServiceDiscoveryResult(wxString& result, wxString& url
 /// for the KBserver or Kbservers it detects in CAdapt_ItApp::m_servDiscResults which is a
 /// wxArrayString array. DoServiceDiscovery will, after the data is stored there, access that
 /// data and use it for implementing the protocols described above. Every DoServiceDiscovery()
-/// call will overwrite the earlier contents of that array.
+/// call will overwrite the earlier contents of that array, but of course only one call is made
+/// per login attempt.
 /// Because of the variety of possible states, the following enum will be used internally
 /// to help with implementing suitable protocols: The enum is defined in Adapt_It.h at
-/// about line 763
+/// about line 765
 /// enum ServDiscDetail
 /// {
 ///	SD_NoResultsYet,
@@ -15395,12 +15382,15 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
     // use the TRUE value to have the Signal() call skipped by other processes - so that
     // when CServiceDiscovery instance is deleted, which removes what Signal() tries to
     // awaken, a still-running GetResults() function doesn't call Signal() but instead just
-    // exits and dies.
+    // exits and dies. (Subsequent to this comment, I've built a test for multiple accesses
+    // to the GetResults() function, and filtering all attempts but the first - that is,
+    // unwanted attempts are detected and the function exits immediately.)
 	m_bResultsAccessedOnce = FALSE;
 
-	// onSDNotify will return any discovery results in the app wxArrayString m_servDiscResults
-	// as one or more lines, each of form  url:int:int:int:int where url potentially could be
-	// empty and the int values are 0, 1, -1 being false, true, undefined
+    // GetResults() will return any discovery results in the app wxArrayString
+    // m_servDiscResults as one or more lines, each of form url:int:int:int:int where url
+    // potentially could be empty and the int values are 0, 1, -1 being false, true,
+    // undefined
 
 	chosenURL = _T(""); // initialize, we return the chosen url using this parameter
 	result = SD_NoResultsYet; // initialize to a 'success' result
@@ -15417,12 +15407,11 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 
 	// The SD_mutex must start of locked (ie. owned)
 	SD_mutex.Lock();
-#if defined(_KBSERVER)
+
 	wxLogDebug(_T("DoServiceDiscovery(): addr of SD_mutex  =  %p"), &SD_mutex);
-#endif
 
     // ServDisc internally will acquire the lock, using wxMutexLocker to create a locker()
-    // object, and the main thread will wait (I'm using WaitTimeout(3500)) for the
+    // object, and the main thread will wait (I'm using WaitTimeout(8000)) for the
     // SD_condition to be Signal()-ed, which then allows DoServiceDiscovery() to awake, and
     // be automatically given the lock, so it can then access the service discovery results
 
@@ -15441,24 +15430,21 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	// is grabbed in OnInit() when that config file is loaded, and use it here
 	SD_condition.WaitTimeout(nKBserverTimeout); // allows the ServiceDiscovery object on the 
 		// ServDisc thread to do its job, until Signal() get's called at its exit.
-		// At least 6 to 8 seconds of wait is necessary, 6 may be adequate but is
-		// risky. When no KBserver is running, we rely in the WaitTimeout() to 
+		// Usually about 3 seconds of wait is necessary, but much more is less risky if
+		// there is particular sluggish network.
+		// When no KBserver is running, we rely in the WaitTimeout() to 
 		// return the lock to the DoServiceDiscovery() function, and awaken 
 		// the main thread (by calling Signal()); that is, when a KBserver is 
 		// running, CServiceDiscovery::GetResults(), at its end, calls Signal()
 		// to awaken the main thread and get the results from the
 		// m_servDiscResults wxString array - the results are typically
-		// ready within 3 to 4 seconds of entering the DoServiceDiscovery()function.
+		// ready within 2.5 to 4 seconds of entering the DoServiceDiscovery()function.
 		// The value is parameterized, because some AI configurations may require
 		// a longer wait timeout, and so we store in the basic configuration file
 		// a value which we read from there in OnInit() and pass in to here. No
 		// gui support for changing the config file value for this parameter is
 		// built in. However, the user can edit the config file directly to use a
-		// larger value. (We also try two extra times, if there was no discovery,
-		// with a wait which is 2 seconds longer each time, before we declare the 
-		// LAN to actually have no running KBserver. (And when that is the case,
-		// we put up the authentication dialog anyway, as the user may want to
-		// connect to a web-based KBserver instance anyway.)
+		// larger value.
 
 	// When the Wait() is over, we can go on now to access the results, if any exist
 	serviceStr.Clear(); // so we don't leak its memory
@@ -15494,7 +15480,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
         // confidence in error results in lines later than the first, since wxServDisc is
         // reentrant for discovery, it can be awakened several times before timeouts kick
         // in, and so non-first discoveries may not complete before the module is
-        // destroyed.
+        // destroyed - in fact, we now suppress reentrancy
 #if defined(_DEBUG)
 		// Generate some extra (but bogus) URLs and add them to m_servDiscResults array
 		// in order to test the ServDisc_KBserversDlg which handles what to do if more
@@ -15619,7 +15605,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
                                     // Since the only KBserver on offer has been rejected,
                                     // the caller should probably not show an
                                     // authentication dialog as that would be confusing. So
-                                    // the caller should detect the result enum value, and
+                                    // the caller should detect the resulting enum value, and
                                     // treat the situation as equivalent to a cancellation
                                     // of the connection & authentication process. He can
                                     // then either have another go, or take the opportunity
@@ -15669,7 +15655,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 						else if (intIpAddrLookupFailed_first == 1)
 						{
 							wxString message;  message = message.Format(_(
-"The correct service was discovered, but looking up its Internet Protocol address has failed, reason unknown.\nAn IP address is something like  192.168.n.m  where n and m are typically small numbers.\nPerhaps shut down and start again, or ask your administrator to help you."));
+"The correct service was discovered, but looking up its Internet Protocol address has failed, reason unknown.\nAn IP address is something like  192.168.n.m  where n and m are small numbers usually.\nPerhaps shut down and start again, or ask your administrator to help you."));
 							wxMessageBox(message,_("IP address lookup failed"), wxICON_WARNING | wxOK);
 							chosenURL = wxEmptyString;
 							result = SD_LookupIPaddrFailed;
@@ -15767,7 +15753,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 						chosenURL = wxEmptyString;
 						result = SD_MultipleUrls_UserCancelled;
 						wxString message;  message = message.Format(_(
-"Your attempt to connect to a KBserver has been abandoned.\nCheck the KBserver you want to connect to is actually running.\nYou can stop unwanted KBservers from running now. Then try to connect again, or ask your administrator to help you."));
+"Your attempt to connect to a KBserver has been abandoned.\nCheck the KBserver you want to connect to is actually running.\nYou can stop unwanted KBservers from running. Do so, then try to connect again, or ask your administrator to help you."));
 						wxMessageBox(message,_("Connection attempt abandoned"), wxICON_WARNING | wxID_OK);
 						SD_mutex.Unlock();
 						m_servDiscResults.Clear();
@@ -15796,15 +15782,13 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	} // end of TRUE block for test: if (!m_servDiscResults.IsEmpty())
 	else
 	{
-		// m_servDiscResults is an empty string. Typically, this happening means that the
-		// user forgot to get a KBserver running on the LAN before DoServiceDiscovery() was
-		// entered. The LAN might be down. Or possibly, the wait timeout for accessing
-		// the computed URL was set too close to the bone, and a little extra delay has
-		// occurred - enough for the timeout to expire before the URL gets put into the
-		// m_servDiscResults array - for the latter possibility we'll have the this
-		// function called 3 times with increasing timeout values, to be sure that was not
-		// the reason for m_servDiscResults array being empty
-		wxLogDebug(_T("m_servDiscResults[] The service discovery results array is empty."));
+        // m_servDiscResults is an empty string. Typically, this happening means that the
+        // user forgot to get a KBserver running on the LAN before DoServiceDiscovery() was
+        // entered; or the KBserver's host machine has lost power and shut down. The LAN
+        // might be down. Or possibly, the wait timeout for accessing the computed URL was
+        // set too close to the bone, and a little extra delay has occurred - enough for
+        // the timeout to expire before the URL gets put into the m_servDiscResults array.
+		wxLogDebug(_("m_servDiscResults[] The service discovery results array is empty."));
 		chosenURL = wxEmptyString;
 		result = SD_NoKBserverFound;
 		SD_mutex.Unlock();
@@ -15829,7 +15813,8 @@ void CAdapt_ItApp::onServDiscHalting(wxCommandEvent& WXUNUSED(event))
 	m_bCServiceDiscoveryCanBeDeleted = TRUE; //Set TRUE here, the handler of the
 				// wxServDiscHALTING custom event, and now the next OnIdle()
 				// can attempt the CServiceDiscovery* m_pServDisc deletion (if
-				// done late enough, there'll be no app crash)
+				// done late enough, there'll be no app crash; OnIdle() makes
+				// it late enough, fortunately)
 	// CServiceDiscovery deleted before its wxServDisc gets deleted gives crash;
 	// the deletion order has to be reversed; class and window deletions are
 	// lazy and don't happen till idle time. Deleting CServiceDiscovery in OnIdle()
@@ -15890,6 +15875,7 @@ bool CAdapt_ItApp::ReleaseKBServer(int whichType)
 	// after ReleaseKBServer() returns, and EraseKB() doesn't update the KB on disk before
 	// it does it's erasure of the in-memory copy of the KB), so we should do those final
 	// things above and put code to SAVE THE KB which is active RIGHT HERE!
+	// BEW 9Feb16 -- turns out we don't need to do anything extra here.
 	return bOK;
 }
 
@@ -15905,72 +15891,8 @@ int CAdapt_ItApp::GetKBTypeForServer()
 	return 1; // for adaptingKB
 }
 
-// Return TRUE, and the url and username credentials (and while doing testing, also the
-// kbserver password) to be stored in the app class. Temporarily this data is storedin a
-// file called credentials.txt located in the project folder and contains url, username,
-// password, one string per line. But later something more permanent will be used, and the
-// kbserver password will never be stored in the app (so a permanent version of this code
-// will only have the first two params in its signature) once a releasable version of kbserver
-// support has been built (use a hidden file for url and username in the project folder?)
-/* BEW deprecated 31Jan13 -- we use project config file now, and ask for the password in a pwd dialog
-bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& username, wxString& password)
-{
-	bool bSuccess = FALSE;
-	url.Empty(); username.Empty(); password.Empty();
-
-	wxString path = m_curProjectPath + PathSeparator + filename;
-	bool bCredentialsFileExists = ::wxFileExists(path);
-	if (!bCredentialsFileExists)
-	{
-		// couldn't find credentials.txt file in project folder
-		wxString msg = _T("wxFileExists() called in KbServer::GetCredentials(): The credentials.txt file does not exist");
-		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
-		return FALSE; // signature params are empty still
-	}
-	wxTextFile f;
-	// for 2.9.4 builds, the conditional compile isn't needed I think, and for Linux and
-	// Mac builds which are Unicode only, it isn't needed either but I'll keep it for now
-#ifndef _UNICODE
-		// ANSI
-		bSuccess = pf->Open(path); // read ANSI file into memory
-#else
-		// UNICODE
-		bSuccess = f.Open(path, wxConvUTF8); // read UNICODE file into memory
-#endif
-
-	if (!bSuccess)
-	{
-		// warn developer that the wxTextFile could not be opened
-		wxString msg = _T("GetTextFileOpened()called in GetCredentials(): The wxTextFile could not be opened");
-		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
-		return FALSE; // signature params are empty still
-	}
-	size_t numLines = f.GetLineCount();
-	if (numLines < 3)
-	{
-		// warn developer that the wxTextFile lackes expected 3 lines: url, username,
-		// password -- NOTE: password is only a TEMPORARY PARAMETER
-		wxString msg;
-		msg = msg.Format(_T("GetTextFileOpened()called in GetCredentials(): The credentials.txt file lacks one or more lines, it has %d of expected 3 (url,username,password)"),
-			numLines);
-		wxMessageBox(msg, _T("Error in support for KBserver"), wxICON_ERROR | wxOK);
-		f.Close();
-		return FALSE; // signature params are empty still
-	}
-	url = f.GetLine(0);
-	username = f.GetLine(1);
-	password = f.GetLine(2);
-
-	wxLogDebug(_T("GetCredentials(): url = %s  ,  username = %s , password = %s"),
-		url.c_str(), username.c_str(), password.c_str());
-
-	f.Close();
-	return TRUE;
-}
-*/
-
 #endif // for _KBSERVER
-//*/
+
 #if defined(SCROLLPOS) && defined(__WXGTK__)
 void CAdapt_ItApp::SetAdjustScrollPosFlag(bool bDoAdjustment)
 {
@@ -15997,7 +15919,6 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
-	// wxMutex instantiations
 #if defined(_KBSERVER)
 	// Next two booleans are set to FALSE unilaterally (as initialization)only here. They
 	// get set to whatever the project config file has for the IsKBServerProject and
@@ -16009,13 +15930,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// want - in particular in the OnProjectPageChanging() handler.
 	m_bIsKBServerProject_FromConfigFile = FALSE;
 	m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
-	m_KBserverTimeout = 3500; // minimum value of 3.5 seconds - basic config file can 
+	m_KBserverTimeout = 8000; // minimum value of 8.0 seconds - basic config file can 
 							  // override with a larger value, by direct user edit only
+							  // (or a smaller value; values less than 5 sec are risky)
 	m_bServiceDiscoveryWanted = TRUE; // initialize
 	m_bCServiceDiscoveryCanBeDeleted = FALSE; // initialize, it gets set TRUE in the
 				// handler of the wxServDiscHALTING custom event, and then OnIdle()
-				// will attempt the CServiceDiscovery* m_pServDisc deletion (if done
-				// late enough, there'll be no app crash)
+				// will attempt the CServiceDiscovery* m_pServDisc deletion (that reorders
+				// class instance deletions, so that the parent gets deleted last)
+	m_pWaitDlg = NULL; // initialize; it's only non-NULL when a message is up. OnIdle() kills
+					   // the message & restores NULL, use NULL as a flag in OnIdle()
 #endif
 
 	// initialize these collaboration variables, which are relevant to conflict resolution
@@ -16165,7 +16089,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pKbServer[1] = NULL; // for glossing; always NULL, except when a KB sharing project is active
 	m_bIsKBServerProject = FALSE; m_bIsGlossingKBServerProject = FALSE; // initialise both flags
 	// start off with the timer not instantiated; only set a single one in first call of
-	// SetupForKbServer(), second call (for the glossing KB) should check for NULL and do
+	// SetupForKbServer(), a second call (for the glossing KB) should check for NULL and do
 	// nothing if the timer already exists; use similar logic for destroying the timer in
 	// ReleaseKbServer()
 	m_pKbServerDownloadTimer = NULL;
@@ -16181,7 +16105,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // initialize kbadmin and useradmin flags associated with username (both being false
     // constitutes 'minimal' privilege level for access to the KB sharing remote database;
     // these values may be overridden by ascertaining the username has increased privileges
-    // when a CheckForValidUsernameForKbServer() call, see helpers.cpp, is done)
+    // when a CheckForValidUsernameForKbServer() call is done. see helpers.cpp)
 	m_kbserver_kbadmin = FALSE;
 	m_kbserver_useradmin = FALSE;
 
@@ -16192,16 +16116,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxLogDebug(_T("OnInit() #1: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
 #endif
 
-// mrh - the user was previously the login user, but now is read from the project dialog and stored in m_strUserID.
-//  We're just temporarily keeping the old m_AIuser because existing files will still be using this as their owner,
-//  and we want to change them over to use m_strUserID automatically.
+    // mrh - the user was previously the login user, but now is read from the project
+    // dialog and stored in m_strUserID. We're just temporarily keeping the old m_AIuser
+    // because existing files will still be using this as their owner, and we want to
+    // change them over to use m_strUserID automatically.
 
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
 	m_trialVersionNum = -1;			// negative means no trial going on - the normal case
     m_bBackedUpForTrial = FALSE;
 	m_pDVCS = new (DVCS);           // the single object we use for all DVCS ops
 
-// Note: our check for git being installed is now moved down to after the user log file setup, so we can log the git calls.
+    // Note: our check for git being installed is now moved down to after the user log file
+    // setup, so we can log the git calls.
 
 	// initialize Printing support members
 	m_bFrozenForPrinting = FALSE;
@@ -21765,6 +21691,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gbPassedAppInitialization = TRUE;
 
 	// curl needs to be initialized just once per run of the application
+	// Note: curl leaks this small heap block; and openssl also leaks a small heap block.
+	// Can't prevent those. One is 16 bytes, the other about 20 or 22 - something like that
 #if defined (_KBSERVER)
 #if defined(__WXMSW__)
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -21787,36 +21715,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString tst2 = _T("start\\f + \\fr 1.1: \\ft Various commentators agree that \\fq the Son of God \\ft is vital to spiritual vitality.\\f* second \\f + \\fr 1.1: \\ft Some manuscripts do not have \\fq the Son of God.\\f*third.");
 	RemoveContentFromFootnotes(&tst2, TRUE);
 	int stop_here = 1;
-
-#if defined (_KBSERVER)
-	// test KbServer API functions
-    SetupForKBServer(1);
-    wxString srcText2 = _T("niuspepa");
-	//wxString srcText2 = _T("i toksave");
-	wxString tgtText2 = _T("mazazine");
-	wxString tgtText21 = _T("newspaper");
-	wxString tgtText22 = _T("brochure");
-	wxString tgtText23 = _T("tabloid");
-	//wxString srcText = _T("giaman");
-	//wxString tgtText = _T("untrue");
-	//m_pKbServer[0]->LookupEntryForSourcePhrase( srcText2 );
-	//int aresult = m_pKbServer[0]->LookupEntryForSourcePhrase( srcText );
-	//int result = m_pKbServer[0]->SendEntry(srcText,tgtText);
-	int result = 0;
-	int entryID = 0;
-	bool bDeleted = TRUE;
-	//entryID = m_pKbServer[0]->LookupEntryID(srcText2, tgtText2, bDeleted);
-	//entryID = m_pKbServer[0]->LookupEntryID(srcText2, tgtText21, bDeleted);
-	//entryID = m_pKbServer[0]->LookupEntryID(srcText2, tgtText22, bDeleted);
-	//entryID = m_pKbServer[0]->LookupEntryID(srcText2, tgtText23, bDeleted);
-	//result = m_pKbServer[0]->PseudoDeleteEntry(srcText2, tgtText2);
-	result = m_pKbServer[0]->LookupEntryFields(srcText2, tgtText23);
-	result = result;
-	result = m_pKbServer[0]->ChangedSince(_T("2012-09-01"));
-	m_pKbServer[0]->ClearAllPrivateStorageArrays();
-
-	delete m_pKbServer[0];
-#endif
 */
 	/* last test: March 9, 2011
 	//int sizeofCStrip = sizeof(CStrip); // 48 bytes
@@ -22421,8 +22319,6 @@ int ii = 1;
 #if defined(_KBSERVER)
 	// Leave the following initialization line here...
 	m_pServDisc = NULL;
-
-
 #endif // _KBSERVER
 
 
@@ -22487,21 +22383,6 @@ int CAdapt_ItApp::OnExit(void)
     // internal structures. All wxWidgets' objects that the program creates should be
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
-    //
-#if defined(_KBSERVER)
-
-	// wxMutex destructions
-
-
-
-
-//	if (m_pServDisc != NULL)
-//	{
-	//		delete m_pServDisc; <<-- crashes app, even though innards are freed, for
-	//		detachable without code for cleanup done
-//	}
-#endif
-
 
 	// Remove any files lurking there, they don't need to persist
 	EmptyCollaborationTempFolder(); // see CollabUtilities.h (at bottom)
@@ -25642,7 +25523,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 	// BEW 11Oct13 BEWARE OF THE ABOVE TODO - some time back I found it needs to stay as is
 	CAdapt_ItDoc* pDoc = GetDocument();
 	wxASSERT(pDoc != NULL);
-//*
+
 #if defined(_KBSERVER)
 	// BEW 28Sep12, the still-open KBs might be for a kb sharing project, so to be safe,
 	// we should call ReleaseKBServer() here (this will reset m_bIsKBServerProject to
@@ -25664,7 +25545,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 		}
 	}
 #endif
-//*/
+
 	if (pDoc != NULL && m_pKB != NULL)
 	{
 		// delete the adapting one we successfully loaded
@@ -28881,32 +28762,22 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 /// vertically editing).
 /// Called from: the Administrator menu when the "Knowledge Base Sharing Manager..." menu
 /// item is clicked.
-/// The authentication dialog (KBSharingSetupDlg -- I should rename this to
-/// KBSharingAuthenticationDlg sometime) produces a stateless KbServer instance which the
-/// KB Sharing Manager GUI uses; it is produced on the heap, and deleted by the destructor
-/// of KBSharingSetupDlg when this handler function returns.
-/// OnKBSharingManagerTabbedDlg handler class is a tabbed dialog with two tabs- one for
+/// The authentication dialog (KBSharingStatelessSetupDlg) produces a stateless KbServer
+/// instance which the KB Sharing Manager GUI uses; it is produced on the heap, and deleted
+/// by the destructor of KBSharingStatelessSetupDlg when this handler function returns.
+/// OnKBSharingManagerTabbedDlg handler class is a tabbed dialog with three tabs- one for
 /// adding, editing or removing users from the mysql user table; the second for adding,
 /// editing or removing shared knowledge bases from the kbs table - and since a kb
 /// definition owns entries in the entry table, removing a kb requires a lengthy prior
 /// removal of all owned kb entries from the database before the definition (the
-/// src/nonsrc code pair) can be removed.
+/// src/nonsrc code pair) can be removed; and the third is to create custom language codes
+/// compliant with the protocols in the RFC5646 standard.
 /// Because the removals need to be done by a detached thread, and due to netword latency
 /// might take anything from hours to days to complete, the thread doing the job can't
 /// assume this Manager GUI will remain open until the thread completes. It's permissible
 /// to shut Adapt It, or the machine, down before the thread completes. If so, another
 /// removal (of fewer entries) will be required to remove them all so that the definition
-/// can be removed as the last step. However, to communicate with this Mngr gui in the
-/// event that the removals go faster than exected, the thread can post events for cleanup
-/// if it completes while the mngr GUI is running. To facilitate this, wxPushEventHander()
-/// and wxPopEventHandler() are used so that this gui can be part of the event mechanism.
-/// Custom events used herein are defined in MainFrm.h and .cpp; and the Manager GUI is
-/// created on the heap as a m_pKBSharingMgrTabbedDlg ptr in the CAdapt_ItApp class. When
-/// the manager gui is not open, that pointer is set to NULL. Also, if the manager GUI is
-/// not running when the thread completes, a block of code at the end of OnExit() does the
-/// necessary housework.
-/// Hmmm... making it receive events, puts it into an infinite loop of focus events... can this be
-/// prevented? Nah, find another way.
+/// can be removed as the last step.
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 {
@@ -28922,7 +28793,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	// reason (such as adding or removing a user, a kb, or a custom code). Call the dialog
 	// for this step - on exist from it, app's m_bServiceDiscoveryWanted will have been set
 	// to TRUE if discovery is to be done on the LAN, FALSE if the user is going to type a
-	// url he knows (which could be on the LAN, that is not precluded)
+	// url he knows (which could be on the LAN, that posibility is not precluded)
 	bool bLoginPersonCancelled = FALSE; // initialize
 	KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame());
 	pHowGetUrl->Center();
@@ -29004,7 +28875,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		}
 
         // The administrator or login person must authenticate to whichever KBserver he
-        // wants to adjust or view Note: the next line sets up a "stateless" instance of
+        // wants to adjust or view. Note: the next line sets up a "stateless" instance of
         // the dialog - it doesn't know or care about the adapting/glossing mode, the
         // machine's owner, or either of the glossing or adapting local KBs. It only uses
         // the KbServer class for the services it provides for the KB Sharing Manager gui
@@ -29114,11 +28985,10 @@ void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
 	// the url, username, and password from the user - and anyone who can authenticate can
 	// then see the Manager and at least view it's tabs, and see which users and kbs are
 	// defined. But only users with heightened privilege level (i.e. not minimal) can
-	// add or change a Shared KB definition, or with user privilege leve can add, change
+	// add or change a Shared KB definition, or with user privilege level can add, change
 	// or remove user definitions.
 	event.Enable(TRUE);
 }
-
 
 #endif // for _KBSERVER
 
@@ -32059,13 +31929,13 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 			// There is no GUI support for changing the value stored for this param, but
 			// the user is welcome to experiment and directly edit the basic config file
 			// to give it a larger value if the minimum of 3500 leads to occasional bogus
-			// failures to get the url due to an unexpected delay (but two tries are made 
-			// with an increase in the timeout of 2 seconds each time, before non-presence
-			// of a running KBserver on the LAN is assumed to be a fact)
+			// failures to get the url due to an unexpected delay
 			num = wxAtoi(strValue);
+			// Allow values as low as 3.5 secs - very risky, but sometimes it is enough.
+			// Recommended is 8 secs, and if the value is too low, that's what we set
 			if (num < 3500)
 			{
-				num = 3500;
+				num = 8000;
 			}
 			m_KBserverTimeout = num;
 		}
@@ -34575,7 +34445,8 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szIsGlossingKBServerProject << tab << (int)m_bIsGlossingKBServerProject;
 	pf->AddLine(data);
 
-	// whm 30Oct13 moved the KbServerURL value handling to the basic config file
+	// whm 30Oct13 moved the KbServerURL value handling to the basic config file, as
+	// it makes more sense to be there
 	//data.Empty();
 	//data << szKbServerURL << tab << m_strKbServerURL;
 	//pf->AddLine(data);
@@ -35208,7 +35079,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szKbServerDownloadInterval)
 		{
 			num = wxAtoi(strValue);
-			if (num < 1 || num > 20)
+			if (num < 1 || num > 120)
 				num = 5; // if out of range default to 5
 			m_nKbServerIncrementalDownloadInterval = num;
 		}

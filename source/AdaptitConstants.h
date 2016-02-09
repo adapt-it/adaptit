@@ -131,3 +131,8 @@
 // call which is penultimate to this NUMINSERTS call.
 #define NUMINSERTS 8
 
+#if defined(_KBSERVER)
+#define MSG_SECONDS 1
+#define MSG_MILLISECONDS 300
+#endif
+

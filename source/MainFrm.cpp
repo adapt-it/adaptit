@@ -95,6 +95,7 @@
 #include "Thread_ChangedSince.h" // BEW added 13Feb13
 #include "Timer_KbServerChangedSince.h"
 #include "ServiceDiscovery.h"
+#include "WaitDlg.h"
 #endif
 
 #if wxCHECK_VERSION(2,9,0)
@@ -4531,6 +4532,30 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 		gpApp->m_bCServiceDiscoveryCanBeDeleted = FALSE; // reinitialize
 	}
+//*
+	if (pApp->m_pWaitDlg != NULL)
+	{
+		// There is a service discovery feedback message being displayed, if the current time
+		// greater than the start time (m_msgShownTime) plus MSG_SECONDS + MSG_MILLISECONDS
+		// (currently Adapt_ItConstants.h gives these as 1 and 300 respectively), then
+		// it is time to destroy the message and reset m_pWaitDlg to NULL
+		wxTimeSpan secs = wxTimeSpan::Seconds((long)MSG_SECONDS);
+		wxTimeSpan millisecs = wxTimeSpan::Milliseconds((long)MSG_MILLISECONDS);
+		wxTimeSpan delay = secs;
+		delay = delay.Add(millisecs);
+		wxDateTime deathTime = pApp->m_msgShownTime;
+		deathTime = deathTime.Add(delay);
+		wxDateTime rightnow = wxDateTime::Now();
+		if (rightnow.IsLaterThan(deathTime))
+		{
+			delete pApp->m_pWaitDlg;
+			//pApp->m_pWaitDlg = NULL; <-- don't set to NULL here, dialog deletion
+			// is lazy, done at idle time, so when ~CWaitDlg() gets called, the
+			// pointer to the class instance has been set NULL already; so set
+			// the ptr to null *within* ~CWaitDlg()
+		}
+	}
+//*/
 
 #endif // for _KBSERVER #defined
 

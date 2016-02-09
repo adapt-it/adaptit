@@ -16775,6 +16775,81 @@ void CAdapt_ItView::OnUpdateFind(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
+#if defined(_KBSERVER)
+void CAdapt_ItView::PositionDlgNearBottomRight(wxDialog* pDlg)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	// The wxWidgets docs say, "::wxClientDisplayRect() method returns the dimensions of
+	// the work area on the display. On Windows this means the area not covered by the
+	// taskbar, etc. Other platforms are currently defaulting to the whole display until a
+	// way is found to provide this info for all window managers, etc."
+	// Note: All calls that have no wxDC as a parameter deal in display device/pixels, and
+	// MM_TEXT mapping mode, never in logical coordinates (or other mapping modes).
+	wxRect rectScreen;
+	int displayX;
+	int displayY;
+	int displayWidth;
+	int displayHeight;
+	::wxClientDisplayRect(&displayX, &displayY, &displayWidth, &displayHeight);
+	// units for returned values from next call are in screen/device coords (pixels)
+	rectScreen = wxRect(displayX, displayY, displayWidth, displayHeight);
+
+	int dlgWidth;
+	int dlgHeight;
+	pDlg->GetSize(&dlgWidth, &dlgHeight); // dialog's window; gets the width and height in pixels
+	wxASSERT(dlgHeight > 0);
+
+	// It doesn't look good if we use screen position, because the user may be on a large screen
+	// and using a smallish frame window moved to the side, for Adapt It's frame window. So find
+	// where the frame window is (in device coords), and do our calculations relative to the
+	// screen position of the top left of the frame window
+	CMainFrame* pFrame = pApp->GetMainFrame();
+	wxRect frameRect;
+	frameRect = pFrame->GetScreenRect();
+	int frameHeight = frameRect.GetHeight();
+	int frameWidth = frameRect.GetWidth();
+	int frameTop = frameRect.y;
+	int frameLeft = frameRect.x;
+
+	int myTopCoord;
+	if (frameHeight < 650)
+	{
+		myTopCoord = frameTop + frameHeight - (40 + dlgHeight);
+	}
+	else if (frameHeight < 850)
+	{
+		myTopCoord = frameTop + frameHeight - (50 + dlgHeight);
+	}
+	else if (frameHeight < 1100)
+	{
+		myTopCoord = frameTop + frameHeight - (80 + dlgHeight);
+	}
+	else
+	{
+		myTopCoord = frameTop + frameHeight - (100 + dlgHeight);
+	}
+	int myLeftCoord;
+	if (frameWidth < 810)
+	{
+		myLeftCoord = frameLeft + frameWidth - (60 + dlgWidth);
+	}
+	else if (frameWidth < 1100)
+	{
+		myLeftCoord = frameLeft + frameWidth - (70 + dlgWidth);
+	}
+	else
+	{
+		myLeftCoord = frameLeft + frameWidth - (80 + dlgWidth);
+	}
+	pDlg->SetSize( // set size in device/screen pixels
+		myLeftCoord, // position of left of dlg
+		myTopCoord,  // position of top of dlg
+		wxDefaultCoord, // use wxSIZE_USE_EXISTING with this param value for width
+		wxDefaultCoord, // use wxSIZE_USE_EXISTING with this param value for height
+		wxSIZE_USE_EXISTING);
+}
+#endif
+
 void CAdapt_ItView::AdjustDialogPosition(wxDialog* pDlg)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
