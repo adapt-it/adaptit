@@ -15938,6 +15938,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				// handler of the wxServDiscHALTING custom event, and then OnIdle()
 				// will attempt the CServiceDiscovery* m_pServDisc deletion (that reorders
 				// class instance deletions, so that the parent gets deleted last)
+
 	m_pWaitDlg = NULL; // initialize; it's only non-NULL when a message is up. OnIdle() kills
 					   // the message & restores NULL, use NULL as a flag in OnIdle()
 #endif

@@ -2111,8 +2111,10 @@ class CAdapt_ItApp : public wxApp
 	CWaitDlg*		m_pWaitDlg; // for feedback messages, connection succeeded, or, sharing is OFF
 						// Keep m_pWaitDlg NULL except when a message is up, so that OnIdle() can
 						// destroy the dlg message when the wait timespan has expired (1.3 secs)
+
 						// The timespan value is in AdaptitConstants.h - two #defines
 	wxDateTime		m_msgShownTime; // set by a call to wxDateTime::Now()
+
 
 #endif // _KBSERVER
 
