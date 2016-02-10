@@ -41,13 +41,11 @@
 // each is done, post a custom event which I have called wxServDiscHALTING, to the parent
 // CServiceDiscovery class instance. It's handler in turn posts a further wxServDiscHALTING
 // event to the caller, which is my ServDisc thread - and there the handler for the halt
-// can delete the CServiceDiscovery instance. And that handler then also posts a further
-// wxServDiscHALTING event to ServDisc's caller, which is the app instance, and the app's
-// handler for that event can then delete the ServDisc instance. That's how we get cleanup
-// done. Clearly, cleanup requires that the main thread must not be asleep, and since we
-// use a mutex and condition in our solution, the Signal() call which ends the main
-// thread's sleep must be given before the cleanup event handling does its work, and
-// *after* any results have been stored in the app's m_servDiscResults wxArrayString
+// can delete the CServiceDiscovery instance- eventually, in OnIdle() - I've documented
+// why there in the code for CServiceDiscovery. Since we use a mutex and condition in our
+// solution, the Signal() call which ends the main thread's sleep must be given before the
+// cleanup event handling does its work, and *after* any results have been stored in the 
+// app's m_servDiscResults wxArrayString
 
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
@@ -83,12 +81,6 @@
 #endif
 
 // define our new notify event! (BEW added the ...HALTING one)
-
-//#if wxVERSION_NUMBER < 2900
-//DEFINE_EVENT_TYPE(wxServDiscNOTIFY);
-//#else
-//wxDEFINE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
-//#endif
 
 #if wxVERSION_NUMBER < 2900
 DEFINE_EVENT_TYPE(wxServDiscHALTING);
@@ -151,7 +143,7 @@ void wxServDisc::post_notify()
 		((CServiceDiscovery*)parent)->GetResults();
 	}
 
-  // Beier's code follows
+  // Beier's code follows - we don't need to do it this way
   /*
   if(parent)
     {
@@ -288,8 +280,8 @@ wxThread::ExitCode wxServDisc::Entry()
 
   // BEW 2Dec15 added cache freeing (d's shutdown is not yet 1, but it doesn't test for it
   // so do this first, as shutdown will be set to 1 in mdnsd_shutdown(d) immediately after
-  my_gc(d); // is based on Beier's _gd(d), but removing every instance 
-            // of the cached struct regardless in the cache array (it's a sparse array
+  my_gc(d); // is based on Beier's _gd(d), but removing every instance of the
+            // cached struct regardless in the cache array (it's a sparse array
             // because he puts structs in it by a hashed index)
 
   // Beier's two cleanup functions (they ignore cached structs)

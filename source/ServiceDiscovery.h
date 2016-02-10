@@ -42,7 +42,7 @@
 /// 
 /// Also, DO NOT return GetResults() to be an event handler (formerly it was
 /// onSDNotify() for a wxServDiscNOTIFY event posted within Post_Notify())
-/// because our mutex & condition solution uses .WaitTimeout() in he app's
+/// because our mutex & condition solution uses .WaitTimeout() in the app's
 /// DoServiceDiscovery() function, and when waiting, main thread event handling
 /// is asleep - so if you tried to do things Beier's way, the essential
 /// address lookup etc would not get called until the main thread's sleep ended -
@@ -82,11 +82,11 @@ public:
 	bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this set in onSDHalting
 								 // informing CServiceDiscovery instance that we are done
 	int	m_postNotifyCount;  // count the number of Post_Notify() call attempts
-							// and only allow the function to be actually called when the
-							// count value is zero -- this is to prevent multiple accesses
-							// to the CServiceDiscovery::GetResults() code - it appears that
-							// this can be running after CServiceDiscovery instance has been
-							// deleted - we get a crash with ptr in CriticalSection code
+            // and only allow the function to be actually called when the count value is
+            // zero -- this is to prevent multiple accesses to the
+            // CServiceDiscovery::GetResults() code - it appears that this can otherwise be
+            // running after the CServiceDiscovery instance has been deleted which could
+            // lead to a crash
 	// scratch variables, used in the loop in onSDNotify() handler
 	wxString m_hostname;
 	wxString m_addr;
@@ -94,6 +94,7 @@ public:
 
 	wxArrayString m_sd_servicenames;   // for servicenames, as discovered (always "kbserver")
 	wxArrayString m_uniqueIpAddresses; // for each 192.168.n.m  (we store unique ip addresses)
+
 	// The follow int arrays are for storing booleans, 1 for TRUE, 0 for FALSE
 	// in parallel with the URLs (or empty strings) in m_urlsArr
 	wxArrayInt m_bArr_ScanFoundNoKBserver;
@@ -126,7 +127,7 @@ public:
 	void GetResults(); // BEW replacement for Beier's onSDNotify(). Our replacement is
 					   // called directly, not as a handler for an onSDNotify event
 	void onSDHalting(wxCommandEvent& event); // we do cleanup by handlers of this type
- 
+					   // invoked by our posting of custom events at the right time
 private:
 	DECLARE_EVENT_TABLE();
 };
