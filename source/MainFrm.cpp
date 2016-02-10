@@ -4532,7 +4532,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 		gpApp->m_bCServiceDiscoveryCanBeDeleted = FALSE; // reinitialize
 	}
-//*
+
 	if (pApp->m_pWaitDlg != NULL)
 	{
 		// There is a service discovery feedback message being displayed, if the current time
@@ -4555,7 +4555,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			// the ptr to null *within* ~CWaitDlg()
 		}
 	}
-//*/
 
 #endif // for _KBSERVER #defined
 
