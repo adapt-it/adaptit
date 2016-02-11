@@ -4548,7 +4548,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		wxDateTime rightnow = wxDateTime::Now();
 		if (rightnow.IsLaterThan(deathTime))
 		{
-			delete pApp->m_pWaitDlg;
+			pApp->m_pWaitDlg->Destroy();
 			//pApp->m_pWaitDlg = NULL; <-- don't set to NULL here, dialog deletion
 			// is lazy, done at idle time, so when ~CWaitDlg() gets called, the
 			// pointer to the class instance has been set NULL already; so set
