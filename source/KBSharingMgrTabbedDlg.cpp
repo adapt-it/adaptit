@@ -48,6 +48,7 @@
 #include "KbServer.h"
 #include "LanguageCodesDlg.h"
 #include "LanguageCodesDlg_Single.h"
+#include "Adapt_ItView.h"
 #include "KBSharingMgrTabbedDlg.h"
 #include "HtmlFileViewer.h"
 #include "Thread_DoEntireKbDeletion.h"
@@ -294,6 +295,8 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// Start by showing Users page
 	m_nCurPage = 0;
 	LoadDataForPage(m_nCurPage); // start off showing the Users page (for now)
+
+	m_pApp->GetView()->PositionDlgNearTop(this);
 }
 
 // Setter for the stateless instance of KbServer created by KBSharingSetupDlg's creator
@@ -2116,10 +2119,13 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 				m_pApp->m_pKbServerForDeleting->SetKBServerType(m_kbTypeOfDeletion);
 
 #if defined (_DEBUG) && defined(_WANT_DEBUGLOG)
-			wxLogDebug(_T("1. OnButtonKbsPageRemoveKb: URL  %s , m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
-				m_pApp->m_pKbServerForDeleting->GetKBServerURL().c_str(), m_pApp->m_srcLangCodeOfCurrentRemoval.c_str(), 
-				m_pApp->m_nonsrcLangCodeOfCurrentRemoval.c_str(), (int)m_pApp->m_kbTypeOfCurrentRemoval, 
-				(int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
+				wxString strUrl = m_pApp->m_pKbServerForDeleting->GetKBServerURL();
+				wxString strSrcCode = m_pApp->m_srcLangCodeOfCurrentRemoval;
+				wxString strNonsrcCode = m_pApp->m_nonsrcLangCodeOfCurrentRemoval;
+				int myType = (int)m_pApp->m_kbTypeOfCurrentRemoval;
+				int nDeleting = (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress;
+				wxLogDebug(_T("1. OnButtonKbsPageRemoveKb: URL  %s , m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
+					strUrl.c_str(), m_pApp->m_pKbServerForDeleting, strSrcCode.c_str(), strNonsrcCode.c_str(), myType, nDeleting);
 #endif
 				// Which do we want to delete?
 				long nID = (int)m_pOriginalKbStruct->id; // this is the one we selected in the listbox

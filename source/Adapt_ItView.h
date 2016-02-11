@@ -275,6 +275,7 @@ public:
 	void		AdjustDialogPositionByClick(wxDialog* pDlg,wxPoint ptClick);
 #if defined(_KBSERVER)
 	void		PositionDlgNearBottomRight(wxDialog* pDlg);
+	void		PositionDlgNearTop(wxDialog* pDlg);
 #endif
 	void		UnmergePhrase();
 	void		UpdateSequNumbers(int nFirstSequNum);

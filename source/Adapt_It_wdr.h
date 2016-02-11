@@ -1133,6 +1133,8 @@ wxSizer *ServDisc_KBserversDlg( wxWindow *parent, bool call_fit = true, bool set
 
 wxSizer *kb_ask_how_get_url_func( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
+wxSizer *PasswordDlgFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
+
 // Declare menubar functions
 
 const int ID_FILE_MENU = 10861;

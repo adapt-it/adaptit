@@ -825,6 +825,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\PasswordDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Pathway.cpp"
 				>
 			</File>
@@ -1463,6 +1467,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\OutputFilenameDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\PasswordDlg.h"
 				>
 			</File>
 			<File
