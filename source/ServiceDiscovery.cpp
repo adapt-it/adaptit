@@ -113,8 +113,7 @@ CServiceDiscovery::CServiceDiscovery()
 }
 
 CServiceDiscovery::CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
-//							wxString servicestring, ServDisc* pParentClass)
-							wxString servicestring, CAdapt_ItApp* pParentClass) // <- no ServDisc in solution
+							wxString servicestring, CAdapt_ItApp* pParentClass)
 {
 	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, passing in servicestring: %s, ptr to instance: %p"),
 		servicestring.c_str(), this);
@@ -127,11 +126,12 @@ CServiceDiscovery::CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
 	m_bWxServDiscIsRunning = TRUE; // Gets set FALSE only in my added onServDiscHalting() handler
 		// and the OnIdle() hander will use the FALSE to get CServiceDiscovery and ServDisc
 		// class instances deleted, and app's m_pServDisc pointer reset to NULL afterwards
-	m_postNotifyCount = 0; // use this int to allow only one GetResults() call
+	m_postNotifyCount = 0; // use this int as a filter to allow only one GetResults() call
 	m_pParent->m_bCServiceDiscoveryCanBeDeleted = FALSE; // initialize, it gets set TRUE in the
 				// handler of the wxServDiscHALTING custom event, and then OnIdle()
 				// will attempt the CServiceDiscovery* m_pServDisc deletion (if done
-				// late enough, there'll be no app crash) Reinitialize it there afterwards
+				// there, deletions are reordered so that the parent is deleted last -
+				// which avoids a crash) Reinitialize it there afterwards, to NULL
 
 	// scratch variables...
 	m_hostname = _T("");
@@ -160,27 +160,24 @@ CServiceDiscovery::CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
 }
 
 // This function in Beier's solution was an even handler called onSDNotify(), but in my
-// solution it is called directly and I've renamed it GetResults().
-// When wxServDisc discovers a service (one or more of them) that it is scanning for, it
-// reports its success here. Adapt It needs just the ip address(s), and maybe the port, so
-// that we can present URL(s) to the AI code which it can use for automatic connection to
-// the running KBserver. Ideally, only one KBserver runs at any given time, but we have to
-// allow for users being perverse and running more than one. If they do, we'll have to let
-// them make a choice of which URL to connect to. GetResulsts is an amalgamation of a few
-// separate functions from the original sdwrap code. We don't have a gui, so all we need do
-// is the minimal task of looking up the ip address and port of each discovered _kbserver
-// service, and turning each such into an ip address from which we can construct the
-// appropriate URL (one or more) which we'll make available to the rest of Adapt It via a
-// wxArrayString plus some booleans for error states, on the CAdapt_ItApp instance. The
-// logic for using the one or more URLs will be constructed externally to this service
+// solution it is called directly and I've renamed it GetResults(). When wxServDisc
+// discovers a service (one or more of them) that it is scanning for, it reports its
+// success here. Adapt It needs just the ip address(s), but not the port. We present URL(s)
+// to the AI code which it can use for automatic connection to the running KBserver.
+// Ideally, only one KBserver runs at any given time, but we have to allow for users being
+// perverse and running more than one, or for a workshop in which different groups each
+// have a running KBserver on the LAN. If they do, we'll have to let them make a choice of
+// which URL to connect to. GetResults is an amalgamation of a few separate functions from
+// the original sdwrap code. We don't have a gui, so all we need do is the minimal task of
+// looking up the ip address and port of each discovered _kbserver service, and turning
+// each such into an ip address from which we can construct the appropriate URL (one or
+// more) which we'll make available to the rest of Adapt It via a wxArrayString plus some
+// booleans for error states, on the CAdapt_ItApp instance. The logic for using the one or
+// more URLs will be constructed externally to this service
 // discovery module - see DoServiceDiscovery().
 // This service discovery module will just be instantiated, scan for _kbserver._tcp.local.
 // lookup the ip addresses, deposit finished URL or URLs in the wxArrayString in the
-// CAdapt_ItApp::m_servDiscResults array, and then kill itself. We'll probably run it at
-// the entry to any Adapt It project, and those projects which are supporting KBserver
-// syncing, will then make use of what has been returned, to make the connection as simple
-// and automatic for the user as possible. Therefore, GetResults() will do all this stuff,
-// and at the end, kill the module, and it's parent classes.
+// CAdapt_ItApp::m_servDiscResults array, and then kill itself.
 void CServiceDiscovery::GetResults()
 {
 	if (gpApp->m_pServDisc == NULL)
@@ -206,11 +203,11 @@ void CServiceDiscovery::GetResults()
         // How will the rest of Adapt It find out if there was no _kbserver service
         // discovered? That is, nobody has got one running on the LAN yet. Answer:
         // m_pFrame->m_urlsArr will be empty, and m_pFrame->m_bArr_ScanFoundNoKBserver will
-        // also be empty. The wxServDisc module doesn't post a wxServDiscNotify event, as
-        // far as I know, if no service is discovered, so we can't rely on this handler
-        // being called if what we want to know is that no KBserver is currently running.
-        // Each explicit attempt to run this service discovery module will start by
-        // clearing the results arrays on the CFrameInstance.
+        // also be empty. The wxServDisc module doesn't call post_notify() if no service is
+        // discovered, so we can't rely on this handler being called if what we want to
+        // know is that no KBserver is currently running. Each explicit attempt to run this
+        // service discovery module will start by clearing the results arrays on the
+        // CFrameInstance.
 
 		// length of query plus leading dot
 		size_t qlen = m_pSD->getQuery().Len() + 1;
@@ -259,7 +256,7 @@ void CServiceDiscovery::GetResults()
 
 			bThrowAwayDuplicateIPaddr = FALSE; // initialize for every iteration
 			//timeout = 3000;
-			timeout = 5000; // try 5 seconds
+			timeout = 5000; // try 5 seconds, it's safer for a slow network
 			while (!namescan.getResultCount() && timeout > 0)
 			{
 				wxMilliSleep(25);
@@ -435,6 +432,15 @@ void CServiceDiscovery::GetResults()
         // thereafter, other processes getting to this point subsequently will have access
         // to this block skipped, and go to the else block where they will exit
         // immediately, letting the function die without causing a crash
+        // BEW additional note: the system is lazy for class and window deletions, it
+        // apparently waits for idle time to do so. An unwanted consequence is that the
+        // wxServDisc instance which succeeded first in the discovery gets deleted after
+        // the parent CServiceDiscovery instance it depends on has been deleted - that 
+        // persistently led to a crash on every test. The solution was to use the halting
+        // event for CServiceDiscovery to just set a boolean to TRUE, and in the OnIdle()
+        // handler, check for this boolaean being TRUE, and if so, do the deletion of
+        // CServiceDiscovery there, and set its m_pServDisc pointer to NULL. That removed
+        // the crash, because it resulted in a reordering of the sequence of deletions.
 		gpApp->m_bResultsAccessedOnce = TRUE;
 		wxMutexLocker locker(*m_pMutex); // make sure it is locked
 		bool bIsOK = locker.IsOk(); // check the locker object successfully acquired the lock
@@ -506,9 +512,10 @@ void CServiceDiscovery::GetResults()
 // the main thread wakes up, tests and finds no results, etc).
 //
 // Beier's SDWrap embedded the wxServDisc instance in the app, and so when the app got shut
-// down, the lack of well-designed shutdown code didn't matter, as everything got blown
+// down, the lack of well-designed shutdown code didn't matter, as the memory leaks got blown
 // away. But for me, ServDisc needs to exist only for a single try at finding a KBserver
-// instance, and then die forever - or until explicitly instantiated again; so I've
+// instance, and then die forever - or until explicitly instantiated again, and die without
+// leaking memory. So I've beefed up the code for returning blocks to the heap, and
 // encapsulated it all within a DoServiceDiscovery() function, an app member function
 void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 {
@@ -516,7 +523,7 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 
 	// If wxServDisc at process end has posted this wxServDiscHALTING event, then
 	// it's almost certain that the GetResults() function has not yet finished its
-	// work (it's on a different thread to that of wxServDisc).
+	// work (it's on the main thread, while wxServDisc is a detached thread)
 
 	// BEW made this handler, for shutting down the module when no KBserver
 	// service was discovered, and for when one was discovered and post_notify()

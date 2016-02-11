@@ -120,27 +120,10 @@ public:
   // GetResults() takes longer to complete than the service discovery thread, so we can't
   // assume that initiating service discovery halting from the end of onSDNotify will
   // allow clean leak elimination - the latter crashes. So I'm using a mutex and condition
-  // approach to cause the main thread to sleep while the service discovery job is done
-  // 
-  // Beier, in ~wxServDisc() destructor, has GetThread()->Delete(). But his thread is not
-  // a joinable one, it's detached, and as far as I can determine, and its reentrant. 
-  // Because of this,
-  // it can be running long after everything else has done their job and been cleaned up,
-  // so it must not rely on classes above it being in existence when it nears its end.
-  // The following flag is defaulted to FALSE, and if a KBserver is found, it is handled
-  // by the calling CServiceDiscovery::onSDNotify() handler, and at the end of the latter
-  // a wxServDiscHALTING event is posted to shut everything down; but wxServDisc::Entry()
-  // has it's own code for posting that event to CServiceDiscovery instance. If the latter
-  // has already been destroyed because onSDNotify has completed, and wxServDisc's thread
-  // runs on for a while, when it gets to its wxPostEvent() call, the CServiceDiscovery
-  // instances pointer has become null, and so there is an app crash(accessing null ptr).
-  // To prevent this, we have onSDNotify(), when it starts to run, set to TRUE the
-  // following boolean, and in wxServDisc::Entry() we use that TRUE value to cause the
-  // posting of the wxServDiscHALTING event to be skipped; we just let cleanup happen and
-  // the thread then destroys itself. wxServDisc::Entry() needs to retain the event posting
-  // code, because when no KBserver is running on the LAN, then the only place the event
-  // posting that gets the calling classes cleaned up is at the end of wxServDisc::Entry()
-  bool m_bGetResultsStarted; // was m_bOnSdNotifyStarted
+  // approach to cause the main thread to sleep while the service discovery job is done 
+  
+  // I've left this bool in the solution, but I think it no longer plays any useful function
+  bool m_bGetResultsStarted;
 
 private:
   SOCKET mSock;

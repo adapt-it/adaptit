@@ -2033,10 +2033,10 @@ class CAdapt_ItApp : public wxApp
 #if defined(_KBSERVER)
 
 	// The following is the timer for incremental downloads; defaulted to
-	// 5 minutes, but settable by the user to other values in the range 1-10 minutes,
-	// and the minutes valuewill be stored in the project config file
+	// 5 minutes, but settable by the user to other values in the range 1-120 minutes,
+	// and the minutes value will be stored in the project config file
 	Timer_KbServerChangedSince* m_pKbServerDownloadTimer; // for periodic incremental
-												// download of entries from server
+											// download of entries from the KBserver
 	// OnIdle() will be used for initiating a download of the incremental type.
 	// It will happen only after a boolean flag goes TRUE; the flag is the following
 	bool	m_bKbServerIncrementalDownloadPending;
@@ -2045,43 +2045,62 @@ class CAdapt_ItApp : public wxApp
 	// timer, multiply by 1000*60 since the timer's units are milliseconds)
 	int		m_nKbServerIncrementalDownloadInterval;
 
-	// Base value for the WaitTimeout(thousandths) in DoServiceDiscovery() which ensures
-	// m_servDiscResults array is not accessed before service discovery has time to get
-	// the _kbserver._tcp.local. service discovered, the URL built, and stored in the array
-	// (Base value of 3500 set in OnInit(), and there is no GUI way to change the value.
-	// However, the user can edit the value in the basic configuration file directly.
-	// If a KBserver not found on the LAN, two more tries are made with a timeout value
-	// 2 seconds longer each time, but the base value as written to the config file is
-	// is not programmatically changed. What's read in, gets written out. OnInit()
-	// initializes to 3500.)
+    // Base value for the WaitTimeout(thousandths of a second) in DoServiceDiscovery()
+    // which ensures m_servDiscResults array is not accessed before service discovery has
+    // time to get the _kbserver._tcp.local. service discovered, the URL built, and stored
+    // in that array. (Base value of 8000 set in OnInit(), and there is no GUI way to
+    // change the value. However, the user can edit the value in the basic configuration
+    // file directly. The base value as written to the config file is is not
+    // programmatically changed. What's read in, gets written out again.
 	int		m_KBserverTimeout;
 
-	// storage of username's value for the boolean flags, kbadmin, and useradmin; we store
+	// Storage of username's value for the boolean flags, kbadmin, and useradmin; we store
 	// them here rather than in the KbServer class itself, because the value of these
 	// flags need to be known before either of the adapting or glossing KbServer classes
-	// are instantiated (i.e. when checking if the user is in user table, and if the user
-	// is authorized to create an entry in the kb table)
-	bool	m_kbserver_kbadmin;  // initialize to default FALSE in OnInit()
+    // are instantiated (i.e. when checking if the user is in user table, and if the user
+    // is authorized to create an entry in the kb table). These two flags implement the
+    // non-basic privilege levels for users of the KBserver. ( A third privilege,
+    // m_kbserver_languageadmin is defined, but is programmatically set to whatever is the
+    // value for m_kbserver_kbadmin, because it makes no sense to have one of those two
+    // without the other being set to the same value.)
+	bool	m_kbserver_kbadmin;   // initialize to default FALSE in OnInit()
 	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
 
-	CServiceDiscovery*  m_pServDisc;
-	wxArrayString       m_servDiscResults;
-	bool				m_bResultsAccessedOnce; // in DoServiceDiscovery(), start of FALSE
-							// and set TRUE after Signal() is called for first time (there
-							// can be more than one wxServDisc accessing the GetResults()
-							// function simultaneously), and use the TRUE value to
-							// have the Signal() call skipped by other processes - so that
+	CServiceDiscovery*  m_pServDisc; // The top level class which manages the service 
+									 // discovery module
+	wxArrayString       m_servDiscResults; // Discovered URLS and error flags are sent here
+	bool				m_bResultsAccessedOnce; // In DoServiceDiscovery(), start of FALSE
+							// and set TRUE after Signal() is called for first time.
+							// In development, Beier's code permits the GetResults() function
+							// to be accessed simultaneously by more than one wxServDisc
+							// process, but I've changed this so that only the first
+							// instantiation of wxServDisc actually is permitted to traverse
+							// GetResults()'s  code - others I cause to exit immediately, as 
+							// they just waste time and potentially could be a nuisance.
+							// We use the TRUE value of m_bResultsAccessedOnce to have the
+							// Signal() call skipped by other wxServDisc processes - so that
 							// when CServiceDiscovery instance is deleted, which removes
 							// what Signal() tries to awaken, a still-running GetResults()
 							// function doesn't call Signal() but instead just exits and dies.
-	bool				m_bCServiceDiscoveryCanBeDeleted; // set FALSE in creation of
-							// CServiceDiscovery, set TRUE in onServDiscHALTING event handler,
-							// and do the actual deletion in OnIdle() handler - hopefully it
-							// will happen after the lazy class deletions are done, and there
-							// will no longer be an app crash at m_buffer being garbage in 
-							// CriticalSection::Entry() after service discovery completes
+	bool				m_bCServiceDiscoveryCanBeDeleted; // set FALSE in the creation of the
+                            // CServiceDiscovery instance, set TRUE in the
+                            // onServDiscHALTING event handler, and do the actual deletion
+                            // of the CServiceDiscovery instance in the OnIdle() handler - it
+                            // then is done after the lazy class deletions are done, and that
+                            // prevents an app crash because m_buffer in thread.cpp is 
+                            // garbage in CriticalSection::Entry() after service discovery 
+                            // completes
+                            
+	// NOTE - IMPORTANT. The service discovery code, at the top levels, is copiously
+	// commented and there are many wxLogDebug() calls. Timing annotations in the debugger
+	// window and those logging messages are VITAL for understanding how the module works,
+	// and when things go wrong, what might be causing the error. DO NOT DELETE THE
+	// wxLogDebug() CALLS!!
 
-	void onServDiscHalting(wxCommandEvent& WXUNUSED(event));
+	void onServDiscHalting(wxCommandEvent& WXUNUSED(event)); // posted at the final cleanup,
+				// it just sets a flag, but the handler for doing the deletion is in OnIdle()
+				// so that CServiceDiscovery gets deleted AFTER the last wxServDisc instance
+				// has been deleted
 
 	// for support of service discovery
 	wxString		m_saveOldURLStr;
@@ -2092,7 +2111,10 @@ class CAdapt_ItApp : public wxApp
 	CWaitDlg*		m_pWaitDlg; // for feedback messages, connection succeeded, or, sharing is OFF
 						// Keep m_pWaitDlg NULL except when a message is up, so that OnIdle() can
 						// destroy the dlg message when the wait timespan has expired (1.3 secs)
-	wxDateTime		m_msgShownTime; // set by a call to Now()
+
+						// The timespan value is in AdaptitConstants.h - two #defines
+	wxDateTime		m_msgShownTime; // set by a call to wxDateTime::Now()
+
 
 #endif // _KBSERVER
 
@@ -2986,7 +3008,7 @@ public:
 	KBSharingMgrTabbedDlg* m_pKBSharingMgrTabbedDlg;
 	KBSharingMgrTabbedDlg* GetKBSharingMgrTabbedDlg();
 	// Next three are set when authenticating with the bool bStateless 2nd param of the
-	// KbSharingAuthentication constructor set TRUE. When TRUE, someone is authenticating
+	// KBSharingStatelessSetupDlg constructor set TRUE. When TRUE, someone is authenticating
 	// to use the KB Sharing Manager gui; his credentials must be stored separately from
 	// the normal user's otherwise the advisor or administrator would overwrite the user's
 	// settings when he uses the mananger gui
@@ -2996,7 +3018,7 @@ public:
 
 	// BEW 1Oct12
 	// Note: the choice to locate m_pKBServer[2] pointers here, rather than one in each of
-	// m_pKB and m_pGlossingKB, so that the are created and destroyed when the adapting
+	// m_pKB and m_pGlossingKB, so that they are created and destroyed when the adapting
 	// CKB instances are created and destroyed, respectively, is deliberate. There are
 	// times when local KBs are instantiated for processes that are best handled without
 	// an active connection to a remote KBserver database - for instance, transferring
@@ -3007,8 +3029,8 @@ public:
 	// m_pKbServer is an array of two pointers to KbServer instances. Each is NULL
 	// everywhere except in a project designated for KB sharing, and that project is
 	// currently active (creation and destruction are handled within SetupForKBServer()
-	// and ReleaseKBServer(), respectively) See KbServer.cpp, and KbServer.h. The first is
-	// for an adapting KB, the second for a glossing KB.
+	// and ReleaseKBServer(), respectively) See KbServer.cpp, and KbServer.h. The first
+	// is for an adapting KB, the second for a glossing KB.
 private:
 	KbServer* m_pKbServer[2]; // [0] one for adapting, [1] one for glossing
 public:
@@ -3027,8 +3049,6 @@ public:
 				int& intHostnameLookupFailed, int& intIpAddrLookupFailed, int& intDuplicateIpAddr);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
-	// BEW deprecated 31Jan13
-	//bool	  GetCredentials(wxString filename, wxString& url, wxString& username, wxString& password);
 
 	// These next two are not part of the AI_UserProfiles feature, we want them for every profile
 	void	  OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event));
@@ -3038,24 +3058,29 @@ public:
 	// keeps the line
 	// numbers matching
 	// those in the
-	// KB Sharing Support.odt document
+	// KB Sharing Support.odt document <- hmm, probably well out of date by now (Feb 2016)
+	// 
+	// 
+	// 
+	// 
+	// 
+	// 
+	// 
+	// 
+	// 
+	// 
 
-	// BEW added 25Sep12 for support of KBserver sharing of kb data between clients
-	// For testing the development of the code, url, username and password are stored in
-	// the project folder in credentials.txt, one per line. And in the same folder,
-	// lastsync_adaptations.txt stores the date & time for an adaptations KbServer instance,
-	// or lastsync_glosses.txt stores the timestamp for a glossess KbServer instance. The first
-	// of these files will be abandoned once we get a GUI built; the two "lastsync..." ones
-	// will be retained permanently.
 	// Next three are stored in the project configuration file
 	bool		m_bIsKBServerProject; // TRUE if the user wants an adapting kbserver for
-									  // sharing kb data between clients in the same AI project
+								// sharing kb data between clients in the same AI project
 	bool		m_bIsGlossingKBServerProject; // TRUE for sharing a glossing KB
 									  // in the same AI project as for previous member
 	wxString	m_strKbServerURL; // for the server's url, e.g. https://kbserver.jmarsden.org
+								  // or something like https://192.168.2.8 on a LAN
 	// BEW added next, 7Sep15, to store whether or not sharing is temporarily disabled
-	bool		m_bKBSharingEnabled; // the seeing applies to the one or both kbserver types,
-									 // depending on which one or ones are defined
+	bool		m_bKBSharingEnabled; // the setting applies to the one, or both kbserver types
+									 // simultaneously if sharing both was requested
+	
 	// m_bIsKBServerProject and m_bIsGlossingKBServerProject, while set from the project config
 	// file, can be cleared to FALSE at initialization of a setup, losing the values from the
 	// config file. So I've defined two new booleans which likewise are set from the project
@@ -3073,7 +3098,7 @@ public:
 	// background task - so we need storage capability that persists after the KB Sharing
 	// Manager GUI has been closed (the button for getting the job started is in the GUI)
 	// - the job may take as long as a couple of days to complete, so the needed storage
-	// of ID values is the queue in the KbServer instance we use here for the job
+	// of ID values is in the queue in the KbServer instance we use here for the job
 	bool		m_bKbSvrMgr_DeleteAllIsInProgress; // use to prevent 'entire deletion'
                     // of more than one, of a shared kb from the currently accessed
                     // kbserver, at a time; this will also absolve us of the need to set up

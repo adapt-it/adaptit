@@ -16776,6 +16776,56 @@ void CAdapt_ItView::OnUpdateFind(wxUpdateUIEvent& event)
 }
 
 #if defined(_KBSERVER)
+
+void CAdapt_ItView::PositionDlgNearTop(wxDialog* pDlg)
+{
+	// Keep it within the CMainFrame bounds, but near it's top, and centered
+	CAdapt_ItApp* pApp = &wxGetApp();
+	int dlgWidth;
+	int dlgHeight;
+	pDlg->GetSize(&dlgWidth, &dlgHeight); // dialog's window; gets the width and height in pixels
+	wxASSERT(dlgHeight > 0);
+
+    // It doesn't look good if we use screen position, because the user may be on a large
+    // screen and using a smallish frame window moved to the side, for Adapt It's frame
+    // window. So find where the frame window is (in device coords), and do our
+    // calculations relative to the screen position of the top left of the frame window
+	CMainFrame* pFrame = pApp->GetMainFrame();
+	wxRect frameRect;
+	frameRect = pFrame->GetScreenRect();
+	int frameHeight = frameRect.GetHeight();
+	int frameWidth = frameRect.GetWidth();
+	int frameTop = frameRect.y;
+	int frameLeft = frameRect.x;
+
+	int myTopCoord;
+	if (frameHeight < 650)
+	{
+		myTopCoord = frameTop + 30;
+	}
+	else if (frameHeight < 850)
+	{
+		myTopCoord = frameTop + 36;
+	}
+	else if (frameHeight < 1100)
+	{
+		myTopCoord = frameTop + 40;
+	}
+	else
+	{
+		myTopCoord = frameTop + 44;
+	}
+	int myLeftCoord;
+	myLeftCoord = frameLeft + frameWidth/2 - dlgWidth/2;
+
+	pDlg->SetSize( // set size in device/screen pixels
+		myLeftCoord, // position of left of dlg
+		myTopCoord,  // position of top of dlg
+		wxDefaultCoord, // use wxSIZE_USE_EXISTING with this param value for width
+		wxDefaultCoord, // use wxSIZE_USE_EXISTING with this param value for height
+		wxSIZE_USE_EXISTING);
+}
+
 void CAdapt_ItView::PositionDlgNearBottomRight(wxDialog* pDlg)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();

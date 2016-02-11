@@ -11239,6 +11239,54 @@ wxSizer *kb_ask_how_get_url_func( wxWindow *parent, bool call_fit, bool set_size
     return item0;
 }
 
+wxSizer *PasswordDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Type the knowledge base server's password."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("You should have received it from your administrator."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Without the correct password, sharing your knowledge base data"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("with others cannot happen, nor can they share theirs with you."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL, wxT(""), wxDefaultPosition, wxSize(300,-1), wxTE_PASSWORD );
+    item1->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticLine *item7 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item9 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item8->Add( 28, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item10 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item8, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()

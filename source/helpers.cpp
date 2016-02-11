@@ -10970,17 +10970,19 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 // to type it in (if not shown from last-used stored value on basic config file). If he elects
 // to let discovery happen, KBSharingStatelessSetupDlg will hide the top multiline message in
 // the Authenticate dialog as it applies only when the user is doing a manual type in of the URL
-// Returns TRUE for success, FALSE is there was an error
+// Returns TRUE for success, FALSE if there was an error
 bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout, bool bServiceDiscoveryWanted)
 {
 	bool bUserAuthenticating = TRUE; // use this function only when the user is authenticating,
-									 // do not use if for authentication to the KB Sharing Manager
+						// do not use if for authentication to the KB Sharing Manager -- the
+						// latter authentication job is done from the app instance, in the 
+						// handler which creates and launches the KB Sharing Manager instance
 	CMainFrame* pFrame = pApp->GetMainFrame();
-	// Make the bServiceDiscoveryWanted param accessible to KBSharingStatelessSetupDlg (the "Authenticate" dialog)
+	// Make the bServiceDiscoveryWanted param accessible to KBSharingStatelessSetupDlg 
+	// (the "Authenticate" dialog)
 	pApp->m_bServiceDiscoveryWanted = bServiceDiscoveryWanted;
 
-	// BEW 11Jan16, save these five, so we can restore them if some kind of
-	// failure happens
+	// BEW 11Jan16, save these five, so we can restore them if some kind of failure happens
 	pApp->m_saveOldURLStr = pApp->m_strKbServerURL;
 	pApp->m_saveOldUsernameStr = pApp->m_strUserID;
 	pApp->m_savePassword = pFrame->GetKBSvrPassword();
@@ -11046,7 +11048,7 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout
 			KBSharingStatelessSetupDlg dlg(pFrame, bUserAuthenticating);
 			dlg.Center();
 			int dlgReturnCode;
-here2:	dlgReturnCode = dlg.ShowModal();
+here2:		dlgReturnCode = dlg.ShowModal();
 			if (dlgReturnCode == wxID_OK)
 			{ // 2
 				// Check that needed language codes are defined for source, target, and if
@@ -11054,10 +11056,11 @@ here2:	dlgReturnCode = dlg.ShowModal();
 				// set too. Get them set up if not so.
 				bool bUserCancelled = FALSE;
 
-				// We want valid codes for source and target if sharing the adaptations KB, and
-				// for source and glosses languages if sharing the glossing KB. (CheckLanguageCodes
-				// is in helpers.h & .cpp) We'll start by testing adaptations KB, if that is
-				// wanted. Then again for glossing KB if that is wanted (usually it won't be)
+                // We want valid codes for source and target if sharing the adaptations KB,
+                // and for source and glosses languages if sharing the glossing KB.
+                // (CheckLanguageCodes is in helpers.h & .cpp) We'll start by testing
+                // adaptations KB, if that is wanted. Then again for glossing KB if that is
+                // wanted (usually it won't be)
 				bool bDidFirstOK = TRUE;
 				bool bDidSecondOK = TRUE;
 				if (m_bSharingAdaptations)
@@ -11116,7 +11119,8 @@ here2:	dlgReturnCode = dlg.ShowModal();
 						pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 						// Tell the user
 						wxString title = _("Setup failed");
-						wxString msg = _("The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
+						wxString msg = 
+_("The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
 						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 
 						bSetupKBserverFailed = TRUE;
@@ -11133,7 +11137,8 @@ here2:	dlgReturnCode = dlg.ShowModal();
 						pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
 						// Tell the user
 						wxString title = _("Setup failed");
-						wxString msg = _("The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
+						wxString msg = 
+_("The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
 						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 
 						bSetupKBserverFailed = TRUE;
@@ -11278,29 +11283,31 @@ here2:	dlgReturnCode = dlg.ShowModal();
 						 returnedValue == SD_MultipleUrls_UserCancelled ||
 						 returnedValue == SD_UserCancelled
 						 );
-				// We need to distinguish here between service discovery that failed in the
-				// course of doing its job, versus failure because there is no KBserver
-				// running on the LAN. In the latter scenario, what we want is that the authentication
-				// dialog (url and username, to be followed by the password dlg) should be
-				// shown, with the url being whatever was in the basic config file (or empty
-				// string if none was earlier used), and the username - because the user may
-				// wish to connect to a KBserver on the web. So, our protocol is to try find
-				// one on the LAN, and if not there, let the user supply a url for one on the
-				// web. If he cancels from that, then that means the project must cease being
-				// a KB Sharing one, until there is a successful login later on.
-				//
-				// The goto command is anathaema, but here it makes good sense. We'll check for
-				// failure due to the LAN having no KBserver running, and if that's the cause of
-				// the failure, we'll not treat this as a failure, but as grounds for letting the
-				// user connect to whatever URL was last used (stored in basic config file).
-				// If we don't do this, we'd lock KB Sharing in to just being supportable from
-				// KBservers on the LAN, which would be too restrictive.
+                // We need to distinguish here between service discovery that failed in the
+                // course of doing its job, versus failure because there is no KBserver
+                // running on the LAN. In the latter scenario, what we want is that the
+                // authentication dialog (url and username, to be followed by the password
+                // dlg) should be shown, with the url being whatever was in the basic
+                // config file (or empty string if none was earlier used), and the username
+                // - because the user may wish to connect to a KBserver on the web. So, our
+                // protocol is to try find one on the LAN, and if not there, let the user
+                // supply a url for one on the web. If he cancels from that, then that
+                // means the project must cease being a KB Sharing one, until there is a
+                // successful login later on.
+                //
+                // The goto command is anathaema, but here it makes good sense. We'll check
+                // for failure due to the LAN having no KBserver running, and if that's the
+                // cause of the failure, we'll not treat this as a failure, but as grounds
+                // for letting the user connect to whatever URL was last used (stored in
+                // basic config file), or type something different himself. If we don't do
+                // this, we'd lock KB Sharing in to just being supportable from KBservers
+                // on the LAN, which would be too restrictive.
 				if (returnedValue == SD_NoKBserverFound)
 				{
 					// Defeat! Tell use what might be the problem (be sure to leave
 					// pApp->m_strKbServerURL unchanged)
 					wxString error_msg = _(
-"No KBserver is running on the local area network yet.\nOr maybe you cancelled. Or possibly you forgot to set a KBserver running. Or maybe the local area network is not working.\nKnowledge Base sharing will now be turned off.\nFirst get a KBserver running, and then try again to connect to it.\n If necessary, ask your administrator to help you.");
+"No KBserver is running on the local area network yet.\nOr maybe you cancelled. Or possibly you forgot to set a KBserver running. Or maybe the machine hosting the KBserver has lost power.\nKnowledge Base sharing will now be turned off.\nFirst get a KBserver running, and then try again to connect to it.\n If necessary, ask your administrator to help you.");
 					wxMessageBox(error_msg, _("A local KBserver was not discovered"), wxICON_WARNING | wxOK);
 				} // end of TRUE block for test: if (returnedValue == SD_NoKBserverFound)
 
@@ -11415,7 +11422,8 @@ here:			dlgReturnCode = dlg.ShowModal();
 							pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 							// Tell the user
 							wxString title = _("Setup failed");
-							wxString msg = _("The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
+							wxString msg = _(
+"The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
 							wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 
 							bSetupKBserverFailed = TRUE;
@@ -11432,7 +11440,8 @@ here:			dlgReturnCode = dlg.ShowModal();
 							pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
 							// Tell the user
 							wxString title = _("Setup failed");
-							wxString msg = _("The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
+							wxString msg = _(
+"The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
 							wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 
 							bSetupKBserverFailed = TRUE;
@@ -11507,7 +11516,8 @@ back:				thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show
 					if (thePassword.IsEmpty())
 					{
 						wxString title = _("No Password Typed");
-						wxString msg = _("No password was typed in. You must type something in the password dialog, even if it is a wrong password.\nTry again now...");
+						wxString msg = _(
+"No password was typed in. You must type something in the password dialog, even if it is a wrong password.\nTry again now...");
 						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 						goto back;
 					}
@@ -11584,7 +11594,8 @@ back:				thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show
 						pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 						// Tell the user
 						wxString title = _("Setup failed");
-						wxString msg = _("The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
+						wxString msg = _(
+"The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
 						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 
 						bSetupKBserverFailed = TRUE;
@@ -11601,7 +11612,8 @@ back:				thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show
 						pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
 						// Tell the user
 						wxString title = _("Setup failed");
-						wxString msg = _("The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
+						wxString msg = _(
+"The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of of this glossing knowledge base will not happen.");
 						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 
 						bSetupKBserverFailed = TRUE;
