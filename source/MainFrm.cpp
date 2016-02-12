@@ -2755,8 +2755,38 @@ wxString CMainFrame::GetKBSvrPasswordFromUser()
 	// Simplify my life during development
 	default_value = _T("TPI0907en");
 #endif
-	// it will be shown centred with default coords, and without any parent window
-	wxString password = ::wxGetPasswordFromUser(msg,caption,default_value);
+	// it will be shown centred with default coords, and with the frame as parent window
+
+	wxRect frameRect;
+	frameRect = this->GetScreenRect();
+	int frameHeight = frameRect.GetHeight();
+	int frameWidth = frameRect.GetWidth();
+	int frameTop = frameRect.y;
+	int frameLeft = frameRect.x;
+
+	int myTopCoord;
+	if (frameHeight < 650)
+	{
+		myTopCoord = frameTop + 30;
+	}
+	else if (frameHeight < 850)
+	{
+		myTopCoord = frameTop + 36;
+	}
+	else if (frameHeight < 1100)
+	{
+		myTopCoord = frameTop + 40;
+	}
+	else
+	{
+		myTopCoord = frameTop + 44;
+	}
+	int myLeftCoord;
+	// I have to guess how many pixels horizontally for half the dlg width. I'll guess 150
+	myLeftCoord = frameLeft + frameWidth / 2 - 150;
+
+	wxString password = ::wxGetPasswordFromUser(msg,caption,default_value,this,
+								myLeftCoord, myTopCoord, FALSE); // FALSE is bool centre
 	if (!password.IsEmpty())
 	{
 		// a password was typed

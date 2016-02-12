@@ -44907,7 +44907,36 @@ void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
 	// and that should be okay because the Administrator menu should not be open in the
 	// novice user's presence, but if it is, its the administrator's problem to sort out
 	wxString default_value = m_adminPassword;
-	wxString password = ::wxGetTextFromUser(message,caption,default_value,m_pMainFrame);
+
+	wxRect frameRect;
+	frameRect = m_pMainFrame->GetScreenRect();
+	int frameHeight = frameRect.GetHeight();
+	int frameWidth = frameRect.GetWidth();
+	int frameTop = frameRect.y;
+	int frameLeft = frameRect.x;
+
+	int myTopCoord; // do it a bit lower from the top of the frame than I did for 
+					// the KBserver password dialog
+	if (frameHeight < 650)
+	{
+		myTopCoord = frameTop + 40;
+	}
+	else if (frameHeight < 850)
+	{
+		myTopCoord = frameTop + 46;
+	}
+	else if (frameHeight < 1100)
+	{
+		myTopCoord = frameTop + 50;
+	}
+	else
+	{
+		myTopCoord = frameTop + 54;
+	}
+	int myLeftCoord;
+	// I have to guess how many pixels horizontally for half the dlg width. I'll guess 150
+	myLeftCoord = frameLeft + frameWidth / 2 - 150;
+	wxString password = ::wxGetTextFromUser(message,caption,default_value,m_pMainFrame,myLeftCoord,myTopCoord,FALSE);
 	int length = password.Len();
 	if (length == 0)
 	{
