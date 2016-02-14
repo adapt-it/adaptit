@@ -130,8 +130,6 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 				wxDefaultPosition, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 #endif
 {
-	// The Start Working Wizard is not generated in wxDesigner.
-	
 	// Create the wizard pages
     
 	pStartWorkingWizard = this;

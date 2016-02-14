@@ -16843,25 +16843,10 @@ void CAdapt_ItView::PositionDlgNearBottomRight(wxDialog* pDlg)
 	int frameTop = frameRect.y;
 	int frameLeft = frameRect.x;
 
-	int myTopCoord = frameTop + frameHeight*6/7; // near bottom of frame
+	int myTopCoord = frameTop + frameHeight; // near bottom of frame
 	myTopCoord -= dlgHeight; // go back up a bit, allow for height of the dialog
 	// And now raise it higher a tad more
-	if (frameHeight < 650)
-	{
-		myTopCoord = myTopCoord - 30;
-	}
-	else if (frameHeight < 850)
-	{
-		myTopCoord = myTopCoord - 34;
-	}
-	else if (frameHeight < 1100)
-	{
-		myTopCoord = myTopCoord - 38;
-	}
-	else
-	{
-		myTopCoord = myTopCoord - 40;
-	}
+	myTopCoord = myTopCoord - 30;
 
 	int myLeftCoord;
 	myLeftCoord = frameLeft + frameWidth - (dlgWidth + 30); // right is 30 pixels in from left of frame

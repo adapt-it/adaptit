@@ -701,7 +701,6 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\Notes.cpp" />
     <ClCompile Include="..\..\source\OpenExistingProjectDlg.cpp" />
     <ClCompile Include="..\..\source\OutputFilenameDlg.cpp" />
-    <ClCompile Include="..\..\source\PasswordDlg.cpp" />
     <ClCompile Include="..\..\source\Pathway.cpp" />
     <ClCompile Include="..\..\source\PeekAtFile.cpp" />
     <ClCompile Include="..\..\source\PhraseBox.cpp" />
@@ -830,7 +829,6 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\LanguageCodesDlg_Single.h" />
     <ClInclude Include="..\..\source\md5_SB.h" />
     <ClInclude Include="..\..\source\mdnsd.h" />
-    <ClInclude Include="..\..\source\PasswordDlg.h" />
     <ClInclude Include="..\..\source\pstdint.h" />
     <ClInclude Include="..\..\source\RemoveSomeTgtEntries.h" />
     <ClInclude Include="..\..\source\ServDisc_KBserversDlg.h" />

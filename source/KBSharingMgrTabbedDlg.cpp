@@ -2076,6 +2076,9 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 						// kb table of the KBserver (doing so in the thread's end) -- or, if the
 						// user shuts down the app or machine prematurely, at the end of the
 						// OnExit() function
+				m_pApp->m_pKbServerForDeleting->SetKB(m_pApp->m_pKB); // we are not deleting this, 
+				// but just getting access to its services
+/*  this duplicates the above two calls, and leads to a crash due to variable hiding
 				if (bDeletingAdaptionKB)
 				{
 					m_pApp->m_pKbServerForDeleting = new KbServer(1, TRUE); // TRUE is bool bStateless,
@@ -2102,7 +2105,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 					m_pApp->m_pKbServerForDeleting->SetKB(m_pApp->m_pGlossingKB); // we are not deleting this, 
 															// but just getting access to its services
 				}
-
+*/
 				// Most of m_pKbServerForDeleting members are as yet undefined, so populate them
 				// from the KB Sharing Manager's stateless KbServer instance
 				wxString aURL = m_pKbServer->GetKBServerURL();
@@ -2320,8 +2323,8 @@ tidyup:	if (m_pApp->m_pKbServerForDeleting != NULL)
 	{
 #if defined (_DEBUG) && defined(_WANT_DEBUGLOG)
 		wxLogDebug(_T("At tidyup OnButtonKbsPageRemoveKb: URL  %s , m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
-			m_pApp->m_pKbServerForDeleting->GetKBServerURL().c_str(), m_pApp->m_srcLangCodeOfCurrentRemoval.c_str(), m_pApp->m_nonsrcLangCodeOfCurrentRemoval.c_str(),
-			(int)m_pApp->m_kbTypeOfCurrentRemoval, (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
+			m_pApp->m_pKbServerForDeleting->GetKBServerURL().c_str(), m_pApp->m_pKbServerForDeleting, m_pApp->m_srcLangCodeOfCurrentRemoval.c_str(),
+			m_pApp->m_nonsrcLangCodeOfCurrentRemoval.c_str(), (int)m_pApp->m_kbTypeOfCurrentRemoval, (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
 #endif
 		delete m_pApp->m_pKbServerForDeleting;
 		m_pApp->m_pKbServerForDeleting = NULL;

@@ -2767,19 +2767,19 @@ wxString CMainFrame::GetKBSvrPasswordFromUser()
 	int myTopCoord;
 	if (frameHeight < 650)
 	{
-		myTopCoord = frameTop + 30;
+		myTopCoord = frameTop + (frameHeight / 5) + 30;
 	}
 	else if (frameHeight < 850)
 	{
-		myTopCoord = frameTop + 36;
+		myTopCoord = frameTop + (frameHeight / 5) + 36;
 	}
 	else if (frameHeight < 1100)
 	{
-		myTopCoord = frameTop + 40;
+		myTopCoord = frameTop + (frameHeight / 5) + 40;
 	}
 	else
 	{
-		myTopCoord = frameTop + 44;
+		myTopCoord = frameTop + (frameHeight / 5) + 44;
 	}
 	int myLeftCoord;
 	// I have to guess how many pixels horizontally for half the dlg width. I'll guess 150

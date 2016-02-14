@@ -437,7 +437,6 @@ void CDocPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 			gpApp->m_pGlossingKB->GetMinimumExtras(gpApp->m_numLastGlossingEntriesAggregate); // ignore returned minimumExtras value
 		}
 	}
-
 }
 
 // wx version note: This OnSetActive() is not called by the EVT_ACTIVATE handler in wx, so it
