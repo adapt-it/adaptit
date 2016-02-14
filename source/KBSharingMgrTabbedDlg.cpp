@@ -2078,7 +2078,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 						// OnExit() function
 				m_pApp->m_pKbServerForDeleting->SetKB(m_pApp->m_pKB); // we are not deleting this, 
 				// but just getting access to its services
-/*  this duplicates the above two calls, and leads to a crash due to variable hiding
+/*  this duplicates the above two calls, and leads to a crash due to variable hiding - remove later
 				if (bDeletingAdaptionKB)
 				{
 					m_pApp->m_pKbServerForDeleting = new KbServer(1, TRUE); // TRUE is bool bStateless,
