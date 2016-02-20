@@ -36,10 +36,9 @@ public:
 	KBSharingMgrTabbedDlg(wxWindow* parent); // constructor
 	virtual ~KBSharingMgrTabbedDlg(void); // destructor
 
-	// Setter for the stateless instance of KbServer created by KBSharingSetupDlg's creator
-	// (that KbServer instance will internally have it's m_bStateless member set to TRUE)
-	void      SetStatelessKbServerPtr(KbServer* pKbServer);
-	KbServer* GetKbServer();
+	KbServer* GetKbServer(); // gets whatever m_pKbServer is pointing at
+	KbServer* m_pKbServer;   // we'll assign the stateless one to this pointer
+
 
 protected:
 	wxNotebook*    m_pKBSharingMgrTabbedDlg;
@@ -198,7 +197,6 @@ private:
 	CodesList*		  m_pCustomCodesList; // initialize in InitDialog() as the KbServer instance has the list
 	CodesList*		  m_pOriginalCustomCodesList; // store copies of KbServerLanguage structs at entry,
 										// for comparison with final list after edits or additions are done
-	KbServer*         m_pKbServer; // we'll assign the stateless one to this pointer
 	KbServerUser*     m_pUserStruct; // scratch variable to get at returned values
 								     // for a user entry's fields
 	KbServerUser*     m_pOriginalUserStruct; // scratch variable to get at returned values

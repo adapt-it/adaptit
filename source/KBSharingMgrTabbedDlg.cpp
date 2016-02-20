@@ -230,10 +230,52 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pBtnRemoveListSelection = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_LIST_SELECTION2);
 	wxASSERT(m_pBtnRemoveListSelection != NULL);
 
-    // For an instantiated KbServer class instance to use, we use the stateless one created
-    // within KBSharingSetupDlg's creator function; and it has been assigned to
-    // KBSharingMgrTabbedDlg::m_pKbServer by the setter SetStatelessKbServerPtr() after
-    // KBSsharingMgrTabbedDlg was instantiated
+	// Set an appropriate 'stateless' KbServer instance which we'll need for the
+	// services it provides regarding access to the KBserver
+	// We need to use app's m_pKbServer_Occasional as the pointer, but it should be NULL
+	// when the Manager is created, and SetKbServer() should create the needed 'stateless'
+	// instance and assign it to our m_pKbServer in-class pointer. So check for the NULL;
+	// if there is an instance currently pointed out, we'll just use it - it should be safe
+	// to do that
+	wxASSERT(m_pApp->m_pKbServer_Occasional == NULL); // catch non-NULL in debug build
+	// Rather than have a SetKbServer() function which is not self documenting about what
+	// m_pKbServer is pointing at, make the app point explicit in this module
+	if (m_pApp->m_pKbServer_Occasional == NULL)
+	{
+		m_pApp->m_pKbServer_Occasional = new KbServer(1, TRUE); // TRUE is bStateless
+        // That created and set app's m_pKbServer_Occasional to a stateless KbServer
+        // instance and now we assign that to the Manager's m_pKbServer pointer
+        m_pKbServer = m_pApp->m_pKbServer_Occasional;
+        // (Re-vectoring m_pKbServer to the app's m_pKbServer_Persistent KbServer*
+        // instance should only be possible to do in the handler for deleting a remote
+        // kb. Everywhere else in this module, m_pKbServer_Occasional is used exclusively)
+        m_pKbServer->SetKB(m_pApp->m_pKB); // set ptr to target text CKB for local 
+										   // KB access as needed
+	}
+	else
+	{
+		// Kill the one that somehow escaped death earlier, and make a new one
+		delete m_pApp->m_pKbServer_Occasional; // We must kill it, because the user
+				// might have just switched to a different adaptation project and
+				// so the old source and non-source language codes may now be incorrect
+				// for the project which we are currently in
+		m_pApp->m_pKbServer_Occasional = new KbServer(1, TRUE); // TRUE is bStateless
+        m_pKbServer = m_pApp->m_pKbServer_Occasional;
+        m_pKbServer->SetKB(m_pApp->m_pKB); // set ptr to target text CKB for local 
+										   // KB access as needed
+	}
+	// Prior authentication in the app's handler for the user's choice to open the Manager
+	// has provided a URL, username, and password - so grab these from their storage on the
+	// app in the special "stateless" member strings, and put them in the current 
+	// m_pKbServer_Occasional instance
+	m_pApp->m_pKbServer_Occasional->SetKBServerPassword(m_pApp->m_strStatelessPassword);
+	m_pApp->m_pKbServer_Occasional->SetKBServerUsername(m_pApp->m_strStatelessUsername);
+	m_pApp->m_pKbServer_Occasional->SetKBServerURL(m_pApp->m_strStatelessURL);
+
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+	wxLogDebug(_T("KBSharingMgrTabbedDlg::InitDialog(): m_pKbServer = %p (a copy of app's m_pKbServer_Occasional; m_bStateless = %d"),
+		m_pKbServer, (int)m_pKbServer->m_bStateless ? 1 : 0);
+#endif
 
 	// Initialize the User page's checkboxes to OFF
 	m_pCheckUserAdmin->SetValue(FALSE);
@@ -297,16 +339,6 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	LoadDataForPage(m_nCurPage); // start off showing the Users page (for now)
 
 	m_pApp->GetView()->PositionDlgNearTop(this);
-}
-
-// Setter for the stateless instance of KbServer created by KBSharingSetupDlg's creator
-// (that KbServer instance will internally have it's m_bStateless member set to TRUE)
-void KBSharingMgrTabbedDlg::SetStatelessKbServerPtr(KbServer* pKbServer)
-{
-	m_pKbServer = pKbServer;
-#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-	//wxLogDebug(_T("KBSharingMgrTabbedDlg::SetStatelessKbServerPtr(): m_bStateless = %d"),pKbServer->m_bStateless ? 1 : 0);
-#endif
 }
 
 KbServer*KBSharingMgrTabbedDlg::GetKbServer()
@@ -1101,10 +1133,18 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 	// only requires clearing the m_languagesList
 	m_pKbServer->ClearLanguagesList(m_pLanguagesList);
 
-	// Delete the stateless KbServer instance we've been using
+	// Delete the stateless KbServer instance we've been using, (it will be the app's
+	// m_pKbServer_Occasional instance, a stateless one for authentications, and most
+	// of the Manager's functionalities) & then set the ptr to NULL
 	delete m_pKbServer;
-
+	m_pApp->m_pKbServer_Occasional = NULL; // we could use m_pKbServer = NULL, but
+				// this way it reminds the app maintainer what is happening here
 	event.Skip();
+	// Remember, the Manager is closing, but there may still be a running detached
+	// thread working to delete a kb definition from the kb table in KBserver (it first
+	// has to delete all entries for this definition from the entry table before the
+	// kb definition can itself be removed); and the KbServer instance supplying 
+	// resources for that deletion task is the app's m_pKbServer_Persistent instance
 }
 
 void KBSharingMgrTabbedDlg::OnCancel(wxCommandEvent& event)
@@ -1145,7 +1185,8 @@ void KBSharingMgrTabbedDlg::OnCancel(wxCommandEvent& event)
 
 	// Delete the stateless KbServer instance we've been using
 	delete m_pKbServer;
-
+	m_pApp->m_pKbServer_Occasional = NULL; // see OnOK() for additional 
+										   // explatory comments that apply here
 	event.Skip();
 }
 
@@ -1326,27 +1367,28 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 	wxString textCtrl_NonSrcLangCode = m_pEditNonSourceCode->GetValue(); // non-source lang code wxTextCtrl
 
 	// The first test is to make sure the administrator is not trying to re-create a
-	// shared kb which is currently in the process of being removed. The app variables,
-	// wxString m_srcLangCodeOfCurrentRemoval; wxString m_nonsrcLangCodeOfCurrentRemoval;
-	// and int m_kbTypeOfCurrentRemoval; record the srcCode, non-srcCode and kbType of
-	// a kb definition currently in the process (in a background thread) of being removed
-	// - kb entries first, and then the definition iteself. The flag: bool
-	// m_bKbSvrMgr_DeleteAllIsInProgress will be TRUE if such a removal is going on.
+	// shared kb which is currently in the process of being removed. The app's 
+	// m_pKbServer_Persistent (which supports the current deletion thread) stores
+	// values for src code, non-src code and kbType on it. Check something differs. 
+	// The flag: bool m_bKbSvrMgr_DeleteAllIsInProgress will be TRUE if such a removal
+	// is going on.
 	if (m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
 	{
 		// A removal is happening. Check the proposed new kb definition addition has at
 		// least one code different, or a different kbType, than what is being removed.
 		int kbTypeInManagerDlg = m_bKBisType1 ? 1 : 2;
-		if (m_pApp->m_kbTypeOfCurrentRemoval == kbTypeInManagerDlg)
+		wxASSERT(m_pApp->m_pKbServer_Persistent != NULL);
+		if (m_pApp->m_pKbServer_Persistent->GetKBServerType() == kbTypeInManagerDlg)
 		{
 			// The type to be added is of the same type as the one being removed, so check
-			// further
-			if (textCtrl_SrcLangCode == m_pApp->m_srcLangCodeOfCurrentRemoval)
+			// further - see if there is identity in the source, and non-source, language
+			// codes?
+			if (textCtrl_SrcLangCode == m_pApp->m_pKbServer_Persistent->GetSourceLanguageCode())
 			{
 				// source lang code of the pair chosen for removal is the same as the
 				// source lang code of the pair about to be added - so there's still the
 				// potential for a clash - so check further
-				if (textCtrl_NonSrcLangCode == m_pApp->m_nonsrcLangCodeOfCurrentRemoval)
+				if (textCtrl_NonSrcLangCode == m_pApp->m_pKbServer_Persistent->GetTargetLanguageCode())
 				{
 					// ALARM!! User of the Manager GUI is attempting to re-create the
 					// kb definition of a remote kb database currently in the process of
@@ -1526,8 +1568,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 			if (result == CURLE_OK)
 			{
 				// Add a KbServerKb struct to m_pKbsAddedInSession so that we can test for
-				// which ones have been added in the tabbed dialog's session (not all fields
-				// of the struct will be filled out) -- Remove Selected Definition button will
+				// which ones have been added in the table, OnKbsPageRemoveKb() handler will
 				// use this list
 				KbServerKb* pAddedKbDef = new KbServerKb;
 				pAddedKbDef->sourceLanguageCode = textCtrl_SrcLangCode;
@@ -1927,6 +1968,9 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 		return;
 	}
+	wxASSERT(m_pApp->m_pKbServer_Occasional != NULL);
+	KbServer* pOldKbServer = m_pApp->m_pKbServer_Occasional;
+
 	// Get the ID value, if we can't get it, return
 	if (m_pOriginalKbStruct != NULL)
 	{
@@ -1962,13 +2006,13 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 			// administrator to first remove that sharing setup ( using menu Advance menu,
 			// Setup Or Remove Knowledge Base Sharing) and then return to do the Removal
 			m_srcLangCodeOfDeletion = m_pOriginalKbStruct->sourceLanguageCode;
-			m_nonsrcLangCodeOfDeletion = m_pOriginalKbStruct->targetLanguageCode; // actually non-src
+			m_nonsrcLangCodeOfDeletion = m_pOriginalKbStruct->targetLanguageCode; // stores non-src code
 			m_kbTypeOfDeletion = m_pOriginalKbStruct->kbType;
 			bool bDeletingAdaptionKB = m_kbTypeOfDeletion == 1 ? TRUE : FALSE;
 			
-			// There has to be an active project (and it has to have a local KB of some type and
-			// language codes as we want to delete; but sharing must be off -- check for these
-			// conditions in the blocks which follow
+			// There has to be an active project (and it has to have a local KB of same type and
+			// language codes the same as we want to delete; but sharing must be off -- check for
+			// these conditions in the blocks which follow
 			if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady)
 			{
 				bool bTheCodesMatch = FALSE;
@@ -2018,7 +2062,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 
 				// Our next check is for whether or not the remote KB to be deleted is
 				// actually being shared presently, or not. If it is being shared, we won't go
-				// ahead immediataely. If not being shared, we can allow removal to go ahead.
+				// ahead immediately. If not being shared, we can allow removal to go ahead.
 				// See next comment for more detail
 				if ((m_pApp->m_bIsKBServerProject && bDeletingAdaptionKB) ||
 					(m_pApp->m_bIsGlossingKBServerProject && !bDeletingAdaptionKB))
@@ -2046,15 +2090,18 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 
 				// It's okay, we can go ahead with the removal request
 				m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = TRUE;
-				// Put the two codes in the app members, so we can check for and prevent new
-				// attempts on this machine to recreate the sharing with those old code values
-				// while the deletion of entry rows is happening; and put the kbtype there too
-				m_pApp->m_srcLangCodeOfCurrentRemoval = m_srcLangCodeOfDeletion;
-				m_pApp->m_nonsrcLangCodeOfCurrentRemoval = m_nonsrcLangCodeOfDeletion;
-				m_pApp->m_kbTypeOfCurrentRemoval = m_kbTypeOfDeletion;
 
-				// This definition can be deleted, but it owns database entries, & so may
-				// take a long time because a https transmission is done for each entry
+                // Put the two codes in the stateless Occasional KbServer , so we can check
+                // for and prevent new attempts on this machine to recreate the sharing
+                // with those old code values while the deletion of entry rows is
+                // happening; and put the kbtype there too
+				m_pKbServer->SetSourceLanguageCode(m_srcLangCodeOfDeletion);
+				m_pKbServer->SetTargetLanguageCode(m_nonsrcLangCodeOfDeletion);
+				m_pKbServer->SetKBServerType(m_kbTypeOfDeletion);
+
+
+				// The remote kb definition can be deleted, but it owns database entries, & so
+				// may take a long time because a https transmission is done for each entry
 				// deleted, and in a high latency environment this may turn a job that should
 				// only take minutes into one that may take a day or more -- but it is on a
 				// thread and the database won't break if the thread is trashed before
@@ -2062,73 +2109,63 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 				// just get the deletion going again in a later session and there will be
 				// fewer entries to delete each such successive attempt made
 				wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+							
+				// This module's m_pKbServer pointer is set currently to the the app's
+				// m_pKbServer_Occasional - created at end of InitDialog(); and the code
+				// above used the target CKB instance for the testing. The code below
+				// does not require CKB access, only access to the KBserver, and to 
+				// a persistent KbServer instance which remains after the Manager
+				// disappears if necessary
+				wxASSERT(m_pApp->m_pKbServer_Persistent == NULL); // required
 
-				// Create a new stateless KbServer instance that will persist on the heap for as
-				// long as the application is running (if this handler has not completed before
-				// Adapt It or the machine is closed) or until the this handler has completed its
-				// job - whichever comes first. (No permissions are checked for this new one, we
-				// have done that already above, we only need it's services so as to get the job done.)
-				m_pApp->m_pKbServerForDeleting = new KbServer(1, TRUE); // TRUE is bool bStateless,
-						// 1 means "adapting type", but we could use either type for this job;
-						// Removing this instance from the heap should be done as the last step
-						// after the KB database has been cleared and it's KB language pair,
-						// which constitutes the database definition, has been removed from the
-						// kb table of the KBserver (doing so in the thread's end) -- or, if the
-						// user shuts down the app or machine prematurely, at the end of the
-						// OnExit() function
-				m_pApp->m_pKbServerForDeleting->SetKB(m_pApp->m_pKB); // we are not deleting this, 
-				// but just getting access to its services
-/*  this duplicates the above two calls, and leads to a crash due to variable hiding - remove later
+				// From this point on, we need to create a stateless persistent KbServer instance
+				// to assign to app's m_pKbServer_Persistent pointer, which can persist
+				// after the Manager closes if necessary. It needs no ptr to either of the local
+				// CKB instances - so it's m_pKB member we set to NULL
+				m_pApp->m_pKbServer_Persistent = new KbServer(1, TRUE); // TRUE is bool bStateless
+				// From now to the end of this OnButtonKbsPageRemoveKb() function, we want
+				// our m_pKbServer member variable to point to this persistent KbServer instance
+				m_pKbServer = m_pApp->m_pKbServer_Persistent;
+                // Note: we instantiate the persistent one only when
+                // m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress has already been set to TRUE,
+                // which is the case here. 
+                // m_pKbServer now points at the tgt KbServer instance in app's
+                // m_pKbServer_Persistent member variable; we need no local CKB so pass NULL
+                // for it's m_pKB member variable
+				m_pKbServer->SetKB(NULL);
+
+				// Most of m_pKbServer_Persistent members are as yet undefined, so populate them
+				// from the KB Sharing Manager's stateless KbServer Occasional instance -
+				// as that was used for authenticating when logging in to the Manager, and from
+				// what the user did in the controls on the kbs page of the Manager
+				wxString aURL = pOldKbServer->GetKBServerURL();
+				m_pKbServer->SetKBServerURL(aURL);
+				wxString str = pOldKbServer->GetSourceLanguageCode();
+				m_pKbServer->SetSourceLanguageCode(str);
 				if (bDeletingAdaptionKB)
 				{
-					m_pApp->m_pKbServerForDeleting = new KbServer(1, TRUE); // TRUE is bool bStateless,
-					// 1 means "adapting type", but we could use either type for this job;
-					// Removing this instance from the heap should be done as the last step
-					// after the KB database has been cleared and it's KB language pair,
-					// which constitutes the database definition, has been removed from the
-					// kb table of the KBserver (doing so in the thread's end) -- or, if the
-					// user shuts down the app or machine prematurely, at the end of the
-					// OnExit() function
-					m_pApp->m_pKbServerForDeleting->SetKB(m_pApp->m_pKB); // we are not deleting this, 
-															// but just getting access to its services
-				}
-				else // shouldn't require we use KbServer(2) but there should be no harm in it either
-				{
-					m_pApp->m_pKbServerForDeleting = new KbServer(2, TRUE); // TRUE is bool bStateless,
-					// 2 means "glosses type", but we could use either type for this job;
-					// Removing this instance from the heap should be done as the last step
-					// after the KB database has been cleared and it's KB language pair,
-					// which constitutes the database definition, has been removed from the
-					// kb table of the KBserver (doing so in the thread's end) -- or, if the
-					// user shuts down the app or machine prematurely, at the end of the
-					// OnExit() function
-					m_pApp->m_pKbServerForDeleting->SetKB(m_pApp->m_pGlossingKB); // we are not deleting this, 
-															// but just getting access to its services
-				}
-*/
-				// Most of m_pKbServerForDeleting members are as yet undefined, so populate them
-				// from the KB Sharing Manager's stateless KbServer instance
-				wxString aURL = m_pKbServer->GetKBServerURL();
-				m_pApp->m_pKbServerForDeleting->SetKBServerURL(aURL);
-				m_pApp->m_pKbServerForDeleting->SetSourceLanguageCode(m_srcLangCodeOfDeletion);
-				if (bDeletingAdaptionKB)
-				{
-					m_pApp->m_pKbServerForDeleting->SetTargetLanguageCode(m_nonsrcLangCodeOfDeletion);
+					str = pOldKbServer->GetSourceLanguageCode();
+					m_pKbServer->SetTargetLanguageCode(str);
 				}
 				else
 				{
-					m_pApp->m_pKbServerForDeleting->SetGlossLanguageCode(m_nonsrcLangCodeOfDeletion);
+					str = pOldKbServer->GetGlossLanguageCode();
+					m_pKbServer->SetGlossLanguageCode(str);
 				}
-				m_pApp->m_pKbServerForDeleting->SetKBServerType(m_kbTypeOfDeletion);
+				m_pKbServer->SetKBServerType(m_kbTypeOfDeletion);
 
 #if defined (_DEBUG) && defined(_WANT_DEBUGLOG)
-				wxString strUrl = m_pApp->m_pKbServerForDeleting->GetKBServerURL();
-				wxString strSrcCode = m_pApp->m_srcLangCodeOfCurrentRemoval;
-				wxString strNonsrcCode = m_pApp->m_nonsrcLangCodeOfCurrentRemoval;
-				int myType = (int)m_pApp->m_kbTypeOfCurrentRemoval;
+				// log what we've set up
+				wxString strUrl = m_pKbServer->GetKBServerURL();
+				//wxString strSrcCode = m_pApp->m_srcLangCodeOfCurrentRemoval;
+				wxString strSrcCode = m_pKbServer->GetSourceLanguageCode();
+				//wxString strNonsrcCode = m_pApp->m_nonsrcLangCodeOfCurrentRemoval;
+				wxString strNonsrcCode = m_pKbServer->GetTargetLanguageCode(); // either tgt or gloss depending on type
+				//int myType = (int)m_pApp->m_kbTypeOfCurrentRemoval;
+				int myType = (int)m_pKbServer->GetKBServerType();
 				int nDeleting = (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress;
-				wxLogDebug(_T("1. OnButtonKbsPageRemoveKb: URL  %s , m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
-					strUrl.c_str(), m_pApp->m_pKbServerForDeleting, strSrcCode.c_str(), strNonsrcCode.c_str(), myType, nDeleting);
+				wxLogDebug(_T("1. OnButtonKbsPageRemoveKb: URL  %s , m_pKbServer_Persistent %p,GetSourceLanguageCode() %s, GetTargetLanguageCode()i.e. 'non-source' %s, kbType %d  DeleteAllIsInProgress %d"),
+					strUrl.c_str(), m_pApp->m_pKbServer_Persistent, strSrcCode.c_str(), strNonsrcCode.c_str(), myType, nDeleting);
 #endif
 				// Which do we want to delete?
 				long nID = (int)m_pOriginalKbStruct->id; // this is the one we selected in the listbox
@@ -2136,21 +2173,21 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 				// before the background deletion (thread) of the KB entries has completed,
 				// and we'll need to get the ID then for deleting that kb language code pair
 				m_pApp->kbID_OfDefinitionForDeletion = nID;
-				wxString theUsername = m_pKbServer->GetKBServerUsername();
-				m_pApp->m_pKbServerForDeleting->SetKBServerUsername(theUsername);
-				wxString thePassword = m_pKbServer->GetKBServerPassword();
-				m_pApp->m_pKbServerForDeleting->SetKBServerPassword(thePassword);
+				wxString theUsername = pOldKbServer->GetKBServerUsername();
+				m_pKbServer->SetKBServerUsername(theUsername);
+				wxString thePassword = pOldKbServer->GetKBServerPassword();
+				m_pKbServer->SetKBServerPassword(thePassword);
 				// The above are all that the ChangedSince_Queued() call needs, except for the
 				// timestamp, which we do next; and the DeleteSingleKbEntry() calls just need
-				// the above, and an ID for the entry - the ID we get from the data returned
+				// the above, and an ID for the entry - each ID we get from the data returned
 				// from the ChangedSince_Queued() call
 
 				// Get all the selected database's entries
 				int rv = 0; // rv is "return value", initialize it
 				wxString timestamp;
-				timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!
-				rv = m_pApp->m_pKbServerForDeleting->ChangedSince_Queued(timestamp, FALSE);
-						// in above call, FALSE is value of the 2nd param, bDoTimestampUpdate
+				timestamp = _T("1920-01-01 00:00:00"); // earlier than everything, so downloads the lot
+				rv = m_pKbServer->ChangedSince_Queued(timestamp, FALSE);
+				// in above call, FALSE is value of the 2nd param, bDoTimestampUpdate
 				// Check for error
 				if (rv != 0)
 				{
@@ -2161,7 +2198,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 					OnButtonKbsPageClearListSelection(dummy);
 					OnButtonKbsPageClearBoxes(dummy);
 					wxBell();
-					m_pApp->m_pKbServerForDeleting->GetDownloadsQueue()->clear();
+					m_pKbServer->GetDownloadsQueue()->clear();
 					wxString msg = _("The request to the remote server to download all the entries owned\nby the knowledge base selected for removal, failed unexpectedly.\nNothing has been changed, so you might try again later.");
 					wxString title = _("Error: downloading database failed");
 					m_pApp->LogUserAction(_T("OnButtonKbsPageRemoveKb() failed at the ChangedSince_Queued() download call"));
@@ -2172,9 +2209,12 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 				}
 				else
 				{
-					// All's well, continue processing...
+					// All's well, continue processing... remember m_pKbServer is
+					// now pointing at app's m_pKbServer_Persistent member which
+					// has the pointer to the persisting stateless KbServer instance
+					// used (only) for the kb deletion process
 					// How many entries have to be deleted?
-					m_pApp->m_nQueueSize = m_pApp->m_pKbServerForDeleting->GetDownloadsQueue()->size();
+					m_pApp->m_nQueueSize = m_pKbServer->GetDownloadsQueue()->size();
 
 					if (m_pApp->m_nQueueSize == 0)
 					{
@@ -2202,29 +2242,26 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 							title = _T("Error: could not remove the database");
 							m_pApp->LogUserAction(msg);
 							wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-
-							// Tidy up
-							goto tidyup;
 						}
-						//DeleteClonedKbServerKbStruct();
 
 						// If the new kb has not been used yet, but we are in a new session of the
 						// KB sharing manager, then control will go through here. Check for the
 						// deletion server being deleted already, and if not deleted & it's pointer
 						// set to NULL, delete it here and clear the app members for storing the type
 						// and language codes
-						// Tidy up
 						goto tidyup;
 					}
 
 					// Create the detached thread which will do our database entry deletion job
+					// (In next call, first param could alternatively be m_pKbserver, but using
+					// m_pApp->m_pKbServer_Persistent here better documents what's happening)
 					Thread_DoEntireKbDeletion* pThread = new Thread_DoEntireKbDeletion(
-									m_pApp->m_pKbServerForDeleting, nID, m_pApp->m_nQueueSize);
+									m_pApp->m_pKbServer_Persistent, nID, m_pApp->m_nQueueSize);
 					wxThreadError error =  pThread->Create(2048); // give it a stack size of 2kb
 					if (error != wxTHREAD_NO_ERROR)
 					{
 						// There was a very unexpected error, an English message will do
-						m_pApp->m_pKbServerForDeleting->GetDownloadsQueue()->clear();
+						m_pApp->m_pKbServer_Persistent->GetDownloadsQueue()->clear();
 						delete pThread;
 						wxCommandEvent dummy;
 						OnButtonKbsPageClearListSelection(dummy);
@@ -2244,13 +2281,19 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 						// removal of the kb definition at the end of the job, if it succeeds
 						// in running to completion before the machine or Adapt It is shut down
 						error = pThread->Run();
+						// Note, it's a detached thead and it is now running in another process,
+						// so we have to be careful that this code which is running in the main
+						// thread, and which continues on from here, does not clobber the
+						// m_pKbServer_Persistent while the thread is using it. That's why we
+						// maintain two pointers on the app for stateless KbServer instances,
+						// m_pKbServer_Occasional, and m_pKbServer_Persistent
 
 						// We don't expect an error, so an English message will do here - and
 						// just remove the list selection and clear the text boxes too, as
 						// well as delete the thread object and clear the entries in the queue
 						if(error != wxTHREAD_NO_ERROR)
 						{
-							m_pApp->m_pKbServerForDeleting->GetDownloadsQueue()->clear();
+							m_pApp->m_pKbServer_Persistent->GetDownloadsQueue()->clear(); // or m_pKbServer->...
 							delete pThread;
 							wxCommandEvent dummy;
 							OnButtonKbsPageClearListSelection(dummy);
@@ -2318,22 +2361,73 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 		return;
 	}
 
-	// Tidy up
-tidyup:	if (m_pApp->m_pKbServerForDeleting != NULL)
+	// Tidy up -- note, the thread could still be running and it has a member which points
+	// at the m_pKbServer_Persistent KbServer instance which has the embedded queue
+	// within it which holds the KbServerEntry struct pointers which define the entries
+	// to be deleted, and control will typically reach here well before all the entries
+	// have been removed, so... test for m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress being
+	// TRUE still, and if so, don't tidy up here. If the thread completes while the AI
+	// session is still running, the thread will do the tidy up. If the session completes
+	// we can not bother, since all the app's heap memory gets reclaimed at that time
+tidyup:	if (!m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
 	{
+		// Deletion is not in progess, so can clean up here
+		if (m_pApp->m_pKbServer_Persistent != NULL)
+		{
+			wxString url = m_pKbServer->GetKBServerURL(); // these 6 'just in case' we need to 
+														  // restore them to Occasional KbServer
+														  // instance in code below
+			wxString name = m_pKbServer->GetKBServerUsername();
+			wxString srccode = m_pKbServer->GetSourceLanguageCode();
+			wxString nonsrccode = m_pKbServer->GetTargetLanguageCode();
+			wxString password = m_pKbServer->GetKBServerPassword();
+			int type = m_pKbServer->GetKBServerType();
+
+			// The persistent KbServer instance hasn't been deleted and its pointer so
+			// to NULL yet, so do it here
 #if defined (_DEBUG) && defined(_WANT_DEBUGLOG)
-		wxLogDebug(_T("At tidyup OnButtonKbsPageRemoveKb: URL  %s , m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
-			m_pApp->m_pKbServerForDeleting->GetKBServerURL().c_str(), m_pApp->m_pKbServerForDeleting, m_pApp->m_srcLangCodeOfCurrentRemoval.c_str(),
-			m_pApp->m_nonsrcLangCodeOfCurrentRemoval.c_str(), (int)m_pApp->m_kbTypeOfCurrentRemoval, (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
+			wxLogDebug(_T("At tidyup OnButtonKbsPageRemoveKb: Deleting persistent KbServer instance having these values: URL  %s , m_pKbServer_Persistent %p, src LangCode %s non-src LangCode %s kbType %d  DeleteAllIsInProgress %d"),
+				m_pKbServer->GetKBServerURL().c_str(), m_pKbServer, m_pKbServer->GetSourceLanguageCode().c_str(), 
+				m_pKbServer->GetTargetLanguageCode().c_str(),
+				(int)m_pKbServer->GetKBServerType(), (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
 #endif
-		delete m_pApp->m_pKbServerForDeleting;
-		m_pApp->m_pKbServerForDeleting = NULL;
-		m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
-		m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
-		m_pApp->m_kbTypeOfCurrentRemoval = -1;
-		m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+			if (!m_pKbServer->IsQueueEmpty())
+			{
+				// Queue is not empty, so delete the KbServerEntry structs that are 
+				// on the heap still
+				m_pKbServer->DeleteDownloadsQueueEntries();
+			}
+			delete m_pKbServer; // this is the persistent one, on the app
+			m_pKbServer = NULL; // restore it to NULL
+
+			// The administrator or whoever is using the Manager may want to stay within
+			// it, so re-establish m_pKbServer to point at the Occasional one
+			if (m_pApp->m_pKbServer_Occasional != NULL)
+			{
+				// If non-NULL, it's already set up right, so we just have to point
+				// our Manager's m_pKbServer member at it
+				m_pKbServer = m_pApp->m_pKbServer_Occasional;
+			}
+			else
+			{
+				// We certainly don't expect it to be NULL, if it is, reestablish it
+				m_pApp->m_pKbServer_Occasional = new KbServer(1, TRUE); // TRUE is bStateless
+				m_pKbServer = m_pApp->m_pKbServer_Occasional;
+				m_pKbServer->SetKB(m_pApp->m_pKB); // set ptr to local CKB to be to the target text one
+				m_pKbServer->SetKBServerURL(url);
+				m_pKbServer->SetKBServerUsername(name);
+				m_pKbServer->SetSourceLanguageCode(srccode);
+				m_pKbServer->SetTargetLanguageCode(nonsrccode);
+				m_pKbServer->SetKBServerPassword(password);
+				m_pKbServer->SetKBServerType(type);
+			}
+
+			m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+		}
+		DeleteClonedKbServerKbStruct();
+		m_pApp->StatusBar_EndProgressOfKbDeletion();
+		m_pApp->RefreshStatusBarInfo();
 	}
-	DeleteClonedKbServerKbStruct();
 }
 
 // The box state will have already been changed by the time control enters the handler's body

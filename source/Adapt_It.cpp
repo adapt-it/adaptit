@@ -272,7 +272,7 @@
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
 #ifdef _DEBUG
-//#include "vld.h"
+#include "vld.h"
 #endif
 #endif
 
@@ -15941,6 +15941,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_pWaitDlg = NULL; // initialize; it's only non-NULL when a message is up. OnIdle() kills
 					   // the message & restores NULL, use NULL as a flag in OnIdle()
+	m_pKbServer_Persistent = NULL; // initialize
+	m_pKbServer_Occasional = NULL; // initialize
+	m_bUserAuthenticating = TRUE; // initialize (set TRUE or FALSE prior to calling
+								  // KBSharingStatelessSetupDlg, only FALSE when the
+								  // latter is used for authenticating to the KB
+								  // Sharing Manager tabbed dialog)
 #endif
 
 	// initialize these collaboration variables, which are relevant to conflict resolution
@@ -16020,10 +16026,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bKBSharingEnabled = TRUE; // default
 
 	m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
-	m_pKbServerForDeleting = NULL;
-	m_srcLangCodeOfCurrentRemoval.Empty();
-	m_nonsrcLangCodeOfCurrentRemoval.Empty();
-	m_kbTypeOfCurrentRemoval = -1; // undefined
+	//m_pKbServerForDeleting = NULL;
+	//m_srcLangCodeOfCurrentRemoval.Empty();
+	//m_nonsrcLangCodeOfCurrentRemoval.Empty();
+	//m_kbTypeOfCurrentRemoval = -1; // undefined
 	m_nIterationCounter = 0; // size_t
 	m_bKbPageIsCurrent = FALSE;
 	m_bAdaptingKbIsCurrent = TRUE;
@@ -16109,7 +16115,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // when a CheckForValidUsernameForKbServer() call is done. see helpers.cpp)
 	m_kbserver_kbadmin = FALSE;
 	m_kbserver_useradmin = FALSE;
-
 
 #endif
 
@@ -22322,6 +22327,7 @@ int ii = 1;
 	m_pServDisc = NULL;
 #endif // _KBSERVER
 
+	//int style = (int)wxFONTSTYLE_ITALIC; // it's decimal 93
 
 	return TRUE;
 }
@@ -22808,10 +22814,16 @@ int CAdapt_ItApp::OnExit(void)
 	// test for this and recover the heap memory now, the thread will then fail but
 	// that's okay - the user can re-establish the deletion (with fewer to delete) in the
 	// next session, or over several sessions, until the particular kb database is gone
-	if (m_pKbServerForDeleting != NULL)
+	if (m_pKbServer_Persistent != NULL)
 	{
-		delete m_pKbServerForDeleting;
-		m_pKbServerForDeleting = (KbServer*)NULL;
+		if (!m_pKbServer_Persistent->IsQueueEmpty())
+		{
+			// Queue is not empty, so delete the KbServerEntry structs that are 
+			// on the heap
+			m_pKbServer_Persistent->DeleteDownloadsQueueEntries();
+		}
+		delete m_pKbServer_Persistent;
+		m_pKbServer_Persistent = (KbServer*)NULL;
 	}
 #endif
 
@@ -28786,9 +28798,8 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
-
-	bool bUserAuthenticating = FALSE;
-
+	m_bUserAuthenticating = FALSE; // must be FALSE when the Manager is invoked 
+											  
 	// The one using the manager has to first be given the option for how to get the url for
 	// the KBserver which is being targetted for being setup for kb sharing or whatever other
 	// reason (such as adding or removing a user, a kb, or a custom code). Call the dialog
@@ -28880,10 +28891,24 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
         // the dialog - it doesn't know or care about the adapting/glossing mode, the
         // machine's owner, or either of the glossing or adapting local KBs. It only uses
         // the KbServer class for the services it provides for the KB Sharing Manager gui
-		KBSharingStatelessSetupDlg dlg(GetMainFrame(), bUserAuthenticating); // FALSE for 2nd param
+        // The instance is pointed at by an app member: m_pKbServer_Occasional, which is 
+        // created on demand in the heap, used, and then deleted, and its pointer returned
+        // to being NULL. We must always dispose and set the ptr to NULL after every use,
+        // in case the user or administrator changes which project is active (which changes
+        // the source and target and maybe gloss language codes, usually - but not necessarily
+        // so, and the Manager must be opened in the project which, for any Manager business
+        // that deals with a remotely stored knowledge base, the codes for that remote kb are
+		// identical for the local CKB instances. (The Manager checks internally for
+		// violations and takes appropriate action, with warning messages)
+		KBSharingStatelessSetupDlg dlg(GetMainFrame(), m_bUserAuthenticating);
 		dlg.Center();
 		if (dlg.ShowModal() == wxID_OK)
 		{
+			if (dlg.m_bError)
+			{
+				gpApp->LogUserAction(_T("Authentication error. Bad username or username lookup failure"));
+				return;
+			}
 			gpApp->LogUserAction(_T("Authenticated for opening the KB Sharing Manager dlg"));
 		}
 		else
@@ -28893,8 +28918,6 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		}
 
 		m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pApp->GetMainFrame());
-
-		m_pKBSharingMgrTabbedDlg->SetStatelessKbServerPtr(dlg.m_pStatelessKbServer); // sets up our m_pKbServer pointer
 
 		// BEW 14Sept. Push this object on to the event queue, so it can trap our custom events
 		// Oops, nope! It then receives command events when the object is instantiated it
@@ -28915,23 +28938,14 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		CopyFontBaseProperties(m_pSourceFont,m_pDlgSrcFont);
 		m_pDlgSrcFont->SetPointSize(12);
 
-#if defined(_DEBUG)
-		wxLogDebug(_T("OnKBSharingManagerTabbedDialog() before ShowModal(): KbServer's m_usersList's count = %d"),
-			pApp->m_pKBSharingMgrTabbedDlg->GetKbServer()->GetUsersList()->GetCount());
-#endif
-
-		// Get the "stateless" strings into the relevant storage in the stateless m_pKbServer
-		KbServer* pStatelessKbServer = pApp->m_pKBSharingMgrTabbedDlg->GetKbServer();
-		pStatelessKbServer->SetKBServerUsername(dlg.m_strStatelessUsername);
-		pStatelessKbServer->SetKBServerURL(dlg.m_strStatelessURL);
-		pStatelessKbServer->SetKBServerPassword(dlg.m_strStatelessPassword);
-
 		// show the property sheet
 		//if(kbSharingPropertySheet.ShowModal() == wxID_OK)
 		if(pApp->m_pKBSharingMgrTabbedDlg->ShowModal() == wxID_OK)
 		{
 		}
 		// When done, remove from the heap, and set the ptr to NULL
+		// (It's owned KbServer instance, the Persistent one, is deleted at the
+		// end of OnCancel() or OnOK() already)
 		delete pApp->m_pKBSharingMgrTabbedDlg;
 		pApp->m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
 
@@ -31616,12 +31630,16 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 		else if (name == szItalic)
 		{
 			num = wxAtoi(strValue);
-			if (!(num == 0 || num == 255)) // TRUE if italic, regular is FALSE
+			//if (!(num == 0 || num == 255)) // TRUE if italic, regular is FALSE
+			// BEW 18Feb16 removed the ! from the above test, it had the effect
+			// of turning 1 (ie. user wants italic) into 0 (so that he gets unwanted
+			// regular style)
+			if (num == 0 || num == 255) // TRUE if italic, regular is FALSE
 				num = 0; // regular
 			if (num == 0)
-				fi.fStyle = wxNORMAL;
+				fi.fStyle = wxNORMAL; // = 90 (decimal) ie. wxFONTSTYLE_NORMAL
 			else
-				fi.fStyle = wxITALIC;
+				fi.fStyle = wxITALIC; // = 93 (decimal) ie. wxFONTSTYLE_ITALIC
 			// set the style (normal or italic) of the actual font on the App
 			if (fi.fLangType.GetChar(0)  == _T('S'))
 				m_pSourceFont->SetStyle(fi.fStyle);
@@ -41366,7 +41384,7 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 /// OnBnClickedButtonSplitNow(), InitDialog(), CWhichBook's InitDialog(),
 /// OnSelchangeChooseBook(), OnCancel(), OnOK(), OnCustomWorkFolderLocation(),
 /// OnLockCustomLocation(), OnUnlockCustomLocation, OnRestoreDefaultWorkFolderLocation(),
-/// OnRadioReviewing() and OnRadioDrafting()
+/// OnRadioReviewing(),OnRadioDrafting() and Entry() of Thread_DoEntireKbDeletion
 /// Updates the status bar message to reflect the current activity.
 /// BEW 9Aug12, shortened messages to accomodate having "BookName: xxxx" at the end
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -41374,7 +41392,7 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 {
 	CAdapt_ItView* pView = gpApp->GetView();
 	CMainFrame* pFrame = gpApp->GetMainFrame();
-	wxString rscStr; // MFC Note: to get past a bug
+	wxString rscStr; 
 
 	// BEW 6Nov09, added "[Default Work Folder Location]" versus "[Custom Work Folder Location]"
 	// to distinguish between whether a custom work folder location is in effect versus the
@@ -41684,6 +41702,40 @@ void CAdapt_ItApp::StatusBar_ProgressOfKbDeletion()
 			pStatusBar->SetStatusText(strProgress, 2);
 		}
 	}
+	pStatusBar->Update();
+}
+
+/// \return      void
+/// \remarks
+/// Adjust the status bar to revert to just having the one field
+void CAdapt_ItApp::StatusBar_EndProgressOfKbDeletion()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CMainFrame *pFrame = pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
+ 	wxStatusBar* pStatusBar = pFrame->GetStatusBar();
+	int numberOfFields = pStatusBar->GetFieldsCount();
+	if (numberOfFields < 2)
+	{
+		// We must not have a deletion currently running, so we've
+		// nothing to do - so return
+		return;
+	}
+	// First, get the status text from field with index 0 (this is
+	// the leftmost field, where Adapt It puts its normal status messages -
+	// we've not tampered with that field's contents - so preserve it
+	int field = 0;
+	wxString fieldZeroText = pStatusBar->GetStatusText(field);
+	int i;
+	for (i=1; i<numberOfFields; i++)
+	{
+		pStatusBar->SetStatusText(_T(""), i); // clear each field
+	}
+	pStatusBar->Update();
+	// Now reset the fields count to 1 only, and put it's info back into it
+	int widths[] = {-1};
+	pStatusBar->SetFieldsCount(1, widths);
+	pStatusBar->SetStatusText(fieldZeroText, 0);
 	pStatusBar->Update();
 }
 

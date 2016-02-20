@@ -539,10 +539,14 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 
 // The following function encapsulates KBserver service discovery, authentication to a running
 // KBserver (error if one is not running of course), checks for valid language codes, username,
-// and calls to GetKBServer[0] and [1] as required, with error checking and error messages as
+// and calls to an appropriate KbServer instance, with error checking and error messages as
 // required, and failure to setup sharing if there was error - with user notification visually.
-// The bUserAuthenticating is usually TRUE, but must be input as FALSE when the function is
-// used for the "anybody with sufficient permission level" login to the KB Sharing Manager 
+// The app member, m_bUserAuthenticating is TRUE for all logins deemed to be "the
+// machine's user" - although the person logging in can successfully do so using someone else's
+// credentials (username and password) if necessary. 
+// This function is not used for login to the KB Sharing Manager - login to that is handled
+// from OnKBSharingManagerTabbedDialog() - a handler which is a member of the CAdapt_ItApp
+// class
 bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout, bool bServiceDiscoveryWanted);
 
 #endif // _KBSERVER

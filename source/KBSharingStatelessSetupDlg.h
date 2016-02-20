@@ -33,11 +33,11 @@
 /// any username so long as it is a username the KBserver recognises and which has sufficient
 /// privileges. KBSharingStatelessSetupDlg uses an instance of GetKbServer[0] (an 'adaptations'
 /// one) and throws that instance away when authentication etc is done. It's the m_bStateless
-/// being TRUE that causes this to happen. However, the creator requires bUserAuthenticating
+/// being TRUE that causes this to happen. However, the creator requires m_bUserAuthenticating
 /// be passed in, as TRUE or FALSE. FALSE is to be used when authenticating to the Manager.
-/// A further use of bUserAuthenticating = FALSE is to force saving of temporary values for
+/// A further use of m_bUserAuthenticating with value FALSE is to force saving of temporary values for
 /// certain parameters such as url, username, password and two other flags to be divorced from
-/// the same ones (on the app) for saving state for a user authentication, as described above.
+/// the similar parameters for saving state for a user authentication, as described above.
 /// \derivation		The KBSharingStatelessSetupDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -54,10 +54,18 @@
 class KBSharingStatelessSetupDlg : public AIModalDialog
 {
 public:
-    // constructor (this one defaults m_bStateless to TRUE unilaterally), and pass in FALSE
-    // for bUserAuthenticating if the computer user is assumed not to be whoever is
+    // Constructor (this one defaults m_bStateless to TRUE unilaterally), and pass in FALSE
+    // for m_bUserAuthenticating if the computer user is assumed NOT to be whoever is
     // authenticating (eg when using the KB Sharing Manager), otherwise pass in TRUE - in
     // which case the username, and password get remembered in the session, etc.
+    // The constructor sets up a new KbServer instance on the heap, to which
+    // app's m_pKbServer_Occasional points; it is used while the class exists,
+    // and deleted when the class is destroyed, and m_pKbServer_Occasional set back
+    // to NULL. This way, if the user changes project it won't matter (in authentication
+    // we always check that the local KB's language codes are in the KBserver, so there
+    // is a weak dependency present. We can't possibly authenticate for sharing if 
+    // sharing of the local KB is impossible because there is no complying kb definition
+    // in the MySql kb table of the KBserver
 	KBSharingStatelessSetupDlg(wxWindow* parent, bool bUserAuthenticating);
 
 	virtual ~KBSharingStatelessSetupDlg(void); // destructor
@@ -73,6 +81,7 @@ public:
 	// he's a listed user, without impinging on any other setup resulting from the similar
 	// class, KBSharingSetupDlg. 
 	bool m_bStateless;
+	bool m_bError;
 	wxString m_strStatelessUsername;
 	wxString m_strStatelessURL;
 	wxString m_strStatelessPassword;

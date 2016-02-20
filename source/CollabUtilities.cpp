@@ -2045,13 +2045,17 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 		if (!bUserCancelled) // if user did not cancel...
 		{
             // Do service discovery of KBserver, authentication, checking, and KB
-            // Sharing setup. Second param, bool bUserAuthenticating, is default TRUE.
+            // Sharing setup. Second param, bool m_bUserAuthenticating must be TRUE.
             // Note: the function could fail, in which case KB sharing will be turned
             // off - this does **not** mean that the HookUpToExistingAIProject()
             // function will, or should, also fail. KB sharing and PT or BE
             // collaboration are orthogonal to each other, any project can have one or
             // the other or both turned on. KB sharing not on does not prevent
             // collaboration from doing its job
+            pApp->m_bUserAuthenticating = TRUE; // this means that the real user is
+				// logging in, or else someone who knows some other person's credentials
+				// is doing so (and the KBserver has to know those credentials too of 
+				// course if the login is to succeed)
 			bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout,
 												pApp->m_bServiceDiscoveryWanted);
 			wxUnusedVar(bSuccess);

@@ -1339,7 +1339,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 				if (!bUserCancelled) // if user did not cancel...
 				{
 					// Do service discovery of KBserver, authentication, checking, and KB Sharing
-					// setup. Internally bool bUserAuthenticating, is default TRUE.
+					// setup. Internally app's bool m_bUserAuthenticating set to TRUE.
 					// The function will internally show either the connection message, or the OFF
 					// message, depending on the result of the call
 					bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout,

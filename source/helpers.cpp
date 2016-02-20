@@ -10669,22 +10669,9 @@ bool CheckUsername()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// Save current values, in case the user cancels
-	wxString saveUserID = pApp->m_strUsername;
+	wxString saveUserID = pApp->m_strUserID;
 	wxString saveInformalUsername = pApp->m_strUsername;
 
-/* don't need this bit any more, since the dialog handles it, and we mustn't empty m_strUserID.
-	// If the current setting is the default NOOWNER, (#defined as **** string), then
-	// convert **** to an empty string - we don't show **** to the user in any GUI widget
-	if ( pApp->m_strUserID == NOOWNER )
-	{
-		pApp->m_strUserID.Empty();
-	}
-	// Ditto for the informal username
-	if ( pApp->m_strUsername == NOOWNER )
-	{
-		pApp->m_strUsername.Empty();
-	}
-*/
 	// Don't permit control to return to the caller unless there is a value for each of
 	// these three, if the user exits with an OK button click
 	if (pApp->m_strUserID == NOOWNER || pApp->m_strUsername == NOOWNER )
@@ -10973,10 +10960,13 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 // Returns TRUE for success, FALSE if there was an error
 bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout, bool bServiceDiscoveryWanted)
 {
-	bool bUserAuthenticating = TRUE; // use this function only when the user is authenticating,
-						// do not use if for authentication to the KB Sharing Manager -- the
-						// latter authentication job is done from the app instance, in the 
-						// handler which creates and launches the KB Sharing Manager instance
+    // use this AuthenticateCheckAndSetupKBSharing() function only when the user is
+    // authenticating, do not use it for authentication to the KB Sharing Manager -- the
+    // latter authentication job is done from the app instance, in the handler which
+    // creates and launches the KB Sharing Manager instance
+ 
+	pApp->m_bUserAuthenticating = TRUE; // user authentications require this be TRUE
+
 	CMainFrame* pFrame = pApp->GetMainFrame();
 	// Make the bServiceDiscoveryWanted param accessible to KBSharingStatelessSetupDlg 
 	// (the "Authenticate" dialog)
@@ -11044,8 +11034,8 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout
 			// We also can't assume the password, which may be already stored in the frame
 			// member within this session, is going to be the one required for whatever URL
 			// gets typed in. We can only assume the username is correct, but it will be
-			// checked as part of the Authenticate dialog's OnOK() handler.
-			KBSharingStatelessSetupDlg dlg(pFrame, bUserAuthenticating);
+			// checked in the KBSharingStatelessSetupDlg dialog's OnOK() handler
+			KBSharingStatelessSetupDlg dlg(pFrame, pApp->m_bUserAuthenticating); // 2nd param TRUE
 			dlg.Center();
 			int dlgReturnCode;
 here2:		dlgReturnCode = dlg.ShowModal();
@@ -11341,16 +11331,21 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 				// message to the user that the KB sharing is OFF
 			if (bShowUrlAndUsernameDlg == TRUE)
 			{
+
 				// Authenticate to the server. Authentication also chooses, via the url provided or
 				// typed, which particular KBserver we connect to - there may be more than one available
-				KBSharingStatelessSetupDlg dlg(pFrame, bUserAuthenticating); // bUserAuthenticating
-							//  should be passed in FALSE only when someone who may not be the
-							// user is authenticating to the KB Sharing Manager tabbed dialog gui
+				
+				KBSharingStatelessSetupDlg dlg(pFrame, pApp->m_bUserAuthenticating);
 				dlg.Center();
 				int dlgReturnCode;
 here:			dlgReturnCode = dlg.ShowModal();
 				if (dlgReturnCode == wxID_OK)
 				{
+					if (dlg.m_bError)
+					{
+						gpApp->LogUserAction(_T("AuthenticationCheckAndSetupKBSharing() error. Bad username or username lookup failure"));
+						goto bad; // An error was seen, so just treat as a Cancel
+					}
 					// Since KBSharingSetup.cpp uses the above KBSharingstatelessSetupDlg, we
 					// have to ensure that MainFrms's m_kbserverPassword member is set. Also...
 					// Check that needed language codes are defined for source, target, and if
@@ -11470,7 +11465,7 @@ here:			dlgReturnCode = dlg.ShowModal();
 					// flag values. TRUE param is bJustRestore (the url, username and
 					// password). The function always sets m_bIsKBServerProject and
 					// m_bIsGlossingKBServerProject to FALSE
-					HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
+bad:				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
 						pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
 						pApp->m_saveSharingGlossesFlag, TRUE);
 					bSetupKBserverFailed = TRUE;

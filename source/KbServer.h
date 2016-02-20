@@ -419,6 +419,7 @@ public:
 	void			PushToQueueEnd(KbServerEntry* pEntryStruct); // protect with a mutex
 	KbServerEntry*	PopFromQueueFront(); // protect with a mutex
 	bool			IsQueueEmpty();
+	void			DeleteDownloadsQueueEntries();
 
 	//void			SetEntryStruct(KbServerEntry entryStruct);
 	KbServerEntry	GetEntryStruct();

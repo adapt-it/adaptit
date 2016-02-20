@@ -2909,6 +2909,20 @@ KbsList* KbServer::GetKbsList()
 	return &m_kbsList;
 }
 
+void KbServer::DeleteDownloadsQueueEntries()
+{
+	DownloadsQueue::iterator iter;
+	KbServerEntry* pStruct = NULL;
+	for (iter = m_queue.begin(); iter != m_queue.end(); ++iter)
+	{
+		pStruct = *iter;
+		// delete it
+		delete pStruct;
+	}
+	// now clear the list
+	m_queue.clear();
+}
+
 // deletes from the heap all KbServerUser struct ptrs within m_usersList
 void KbServer::ClearKbsList(KbsList* pKbsList)
 {

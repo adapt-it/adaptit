@@ -25,6 +25,8 @@ pile or other in the document during vertical editing
 mode. And if a fallback location is needed, the fallback
 will be the leftmost pile of the section of edited source
 text.
+* A user's choice of italics for any of the fonts was not
+getting saved to the configuration files. Now fixed.
 
 ----------------------------------------------
 Version 6.6.4 release 15 October 2015

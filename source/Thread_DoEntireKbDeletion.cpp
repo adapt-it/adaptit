@@ -45,7 +45,7 @@
 #include "wx/thread.h"
 
 // other includes
-//#include "Adapt_It.h"
+#include "Adapt_It.h"
 #include "KbServer.h"
 #include "MainFrm.h"
 #include "Thread_DoEntireKbDeletion.h"
@@ -90,7 +90,6 @@ void* Thread_DoEntireKbDeletion::Entry()
 	// str_CURLbuffer_for_deletekb, which is used by no other threads, so
 	// it will never have data in it from any user adaptation work done while
 	// KB deletion is taking place. No mutex is needed.
-	//wxASSERT(FALSE); // ensure I do the final tweaks
 	
 	// Note: if this thread is still running when the user shuts the machine down,
 	// the thread will terminate without having removed all the KB's row entries.
@@ -104,10 +103,11 @@ void* Thread_DoEntireKbDeletion::Entry()
 
 	// We'll do a for loop, since we know how many we need to delete
 	DownloadsQueue* pQueue = m_pKbSvr->GetDownloadsQueue(); // Note: this m_queue instance
-								// is embedded in the stateless KbServer instance pointed 
-								// at by m_pKbSvr. No other code will access this particular
-								// queue, and so it needs no mutex protection should the 
-								// user be doing adapting work while the KB is removed
+        // is embedded in the stateless KbServer instance pointed at by m_pKbSvr, which is
+        // the same one as CAdapt_ItApp::m_pKbServer_Persistent points at while this
+        // deletion is taking place. No other code will access this particular queue, and
+        // so it needs no mutex protection should the user be doing adapting work while the
+        // KB is removed
 	wxASSERT((pQueue != NULL) && (!pQueue->IsEmpty()) && (pQueue->GetCount() == m_TotalEntriesToDelete));
 	DownloadsQueue::iterator iter;
 	KbServerEntry* pKbSvrEntry = NULL;
@@ -161,6 +161,10 @@ void* Thread_DoEntireKbDeletion::Entry()
 		}
 	}
 
+	// Remove the KbServerEntry structs stored in the queue (otherwise we would
+	// leak memory)
+	m_pKbSvr->DeleteDownloadsQueueEntries();
+
 	// If control gets to here, we've either deleted all entries of the selected database,
 	// or most of them with some errors resulting in the leftover entries remaining owned by
 	// the selected kb definition. Only if all entries were deleted can we now attempt the
@@ -171,14 +175,12 @@ void* Thread_DoEntireKbDeletion::Entry()
 		// There were some failures... (and the Manager GUI may not be open -- see comment
 		// in the else block for details)
 #if defined(_DEBUG)
-			wxLogDebug(_T("Thread_DoEntireKbDeletion(): deletion errors (number of entries failing) = %d"),
-				nonsuccessCount);
+		wxLogDebug(_T("Thread_DoEntireKbDeletion(): deletion errors (number of entries failing) = %d"),
+			nonsuccessCount);
 #endif
-		
-// ********* TODO ***********  Return the status bar to being one-field only
-		// and any other things appropriate for this block
-
-
+		// We want to make the wxStatusBar (actually, our subclass CStatusBar), go back to 
+		// one unlimited field, and reset it and update the bar
+		m_pApp->StatusBar_EndProgressOfKbDeletion();
 	}
 	else
 	{
@@ -212,12 +214,10 @@ void* Thread_DoEntireKbDeletion::Entry()
 			// Housekeeping cleanup -- this stuff is needed whether the Manager
 			// GUI is open or not
 			pQueue->clear();
-			delete m_pApp->m_pKbServerForDeleting; // the KbServer instance supplying services 
+			delete m_pApp->m_pKbServer_Persistent; // the KbServer instance supplying services 
 												   // for our deletion attempt
-			m_pApp->m_pKbServerForDeleting = NULL;
-			m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
-			m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
-			m_pApp->m_kbTypeOfCurrentRemoval = -1;
+			m_pApp->m_pKbServer_Persistent = NULL;
+
 			m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
 
 			// No update of the KB Sharing Manager GUI is needed, whether running or not,
@@ -226,21 +226,23 @@ void* Thread_DoEntireKbDeletion::Entry()
 			// and someone runs it, it will be shown listed in the kb page - and the user
 			// could then try again to remove it.
 			 
-// ********* TODO ***********  Return the status bar to being one-field only
+			// We want to make the wxStatusBar (actually, our subclass CStatusBar), go back to 
+			// one unlimited field, and reset it and update the bar
+			m_pApp->StatusBar_EndProgressOfKbDeletion();
+			m_pApp->RefreshStatusBarInfo();
 
 			return (void*)NULL;
 		} // end of TRUE block for test: if (result != CURLE_OK)
 
 		// If control gets to here, then the kb definition was removed successfully from
 		// the kb table. It remains to get the KB Sharing Manager gui to update to show
-		// the correct result, if it is still running. If not running we have nothing to
-		// do and the thread can die.
+		// the correct result, if it is still running. If not running we have nothing mcu
+		// to do and the thread can die after a little housekeeping
 		KBSharingMgrTabbedDlg* pGUI = m_pApp->GetKBSharingMgrTabbedDlg();
 		if (pGUI != NULL)
 		{
             // The KB Sharing Manager gui is running, so we've some work to do here... We
-            // want the Mgr gui to update kb page; and secondly, we want to make the
-            // wxStatusBar go back to one unlimited field, and reset it and update the bar
+            // want the Mgr gui to update the kb page of the manager
 
             // Some explanation is warranted here. The GUI might have the user page active
             // currently, or the kbs page, (or, if we implement it) the languages page. Any
@@ -271,7 +273,7 @@ void* Thread_DoEntireKbDeletion::Entry()
 				// We may have to force the page update - it depends on whether the kb types
 				// match, so check for that
 				int guiCurrentlyShowsThisKbType = m_pApp->m_bAdaptingKbIsCurrent ? 1 : 2;
-				if (m_pApp->m_kbTypeOfCurrentRemoval == guiCurrentlyShowsThisKbType)
+				if (m_pKbSvr->GetKBServerType() == guiCurrentlyShowsThisKbType)
 				{
                     // We need to force the list to be updated. The radio button setting is
                     // already correct, and the page has index equal to 1, so the following
@@ -279,20 +281,25 @@ void* Thread_DoEntireKbDeletion::Entry()
 					pGUI->LoadDataForPage(1);
 				}
 			}
-			// ********* TODO ***********  Return the status bar to being one-field only (also do it
-			// above - twice)
-
 		} // end of TRUE block for test:  if (pGUI != NULL)
 	}
 	// Housekeeping cleanup -- this stuff is needed whether the Manager GUI is open or not
-	pQueue->clear();
-	delete m_pApp->m_pKbServerForDeleting; // the KbServer instance supplying services 
+	if (!m_pApp->m_pKbServer_Persistent->IsQueueEmpty())  // or, if (!m_pKbSvr->IsQueueEmpty())
+	{
+		// Queue is not empty, so delete the KbServerEntry structs that are 
+		// on the heap still
+		m_pApp->m_pKbServer_Persistent->DeleteDownloadsQueueEntries();
+	}
+	delete m_pApp->m_pKbServer_Persistent; // the KbServer instance supplying services 
 										   // for our deletion attempt
-	m_pApp->m_pKbServerForDeleting = NULL;
-	m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
-	m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
-	m_pApp->m_kbTypeOfCurrentRemoval = -1;
+	m_pApp->m_pKbServer_Persistent = NULL; // This is very important, must be NULL after success
+
 	m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+
+	// We want to make the wxStatusBar (actually, our subclass CStatusBar), go back to 
+	// one unlimited field, and reset it and update the bar
+	m_pApp->StatusBar_EndProgressOfKbDeletion();
+	m_pApp->RefreshStatusBarInfo();
 
 	return (void*)NULL;
 }

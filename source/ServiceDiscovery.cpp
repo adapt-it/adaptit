@@ -256,7 +256,9 @@ void CServiceDiscovery::GetResults()
 
 			bThrowAwayDuplicateIPaddr = FALSE; // initialize for every iteration
 			//timeout = 3000;
-			timeout = 5000; // try 5 seconds, it's safer for a slow network
+			timeout = 5000; // try 6 seconds, it's safer for a slow network
+					// I've had a few timeouts happen at 5 sec, in debug build
+					// with KBserver on my Ubuntu laptop in a VM
 			while (!namescan.getResultCount() && timeout > 0)
 			{
 				wxMilliSleep(25);
@@ -294,7 +296,7 @@ void CServiceDiscovery::GetResults()
 					wxServDisc addrscan(0, m_hostname, QTYPE_A);
 
 					//timeout = 3000;
-					timeout = 5000; // try 5 seconds
+					timeout = 5000; // try 5 seconds (so far seems to be enough, no, it timed out once)
 					while (!addrscan.getResultCount() && timeout > 0)
 					{
 						wxMilliSleep(25);

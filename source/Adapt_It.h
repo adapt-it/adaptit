@@ -2998,8 +2998,9 @@ public:
 	void	StatusBarMessage(wxString& message);
 
 #if defined(_KBSERVER)
-	// more support for Status bar
+	// support for Status bar showing "Deleting n of m" while deleting a kb from KBserver
 	void StatusBar_ProgressOfKbDeletion();
+	void StatusBar_EndProgressOfKbDeletion();
 
 #endif
 
@@ -3015,6 +3016,8 @@ public:
 	wxString	m_strStatelessUsername;
 	wxString	m_strStatelessURL;
 	wxString	m_strStatelessPassword;
+
+	bool		m_bUserAuthenticating;
 
 	// BEW 1Oct12
 	// Note: the choice to locate m_pKBServer[2] pointers here, rather than one in each of
@@ -3034,6 +3037,44 @@ public:
 private:
 	KbServer* m_pKbServer[2]; // [0] one for adapting, [1] one for glossing
 public:
+	KbServer* m_pKbServer_Persistent; // use this one from the
+			// KbSharingStatelessSetupDlg as it may need to be persistent (as  
+			// when the m_bKbSvrMgr_DeleteAllIsInProgress flag is TRUE) for the
+			// session, or much of the session; but when that flag is false, it
+			// would be deleted when the KB Sharing Manager gets deleted. So 
+			// we don't want either the Manger class,or the 
+			// KBSharingStatelessSetupDlg class owning this pointer. 
+			// (It needs to persist when a deletion of the entries in a remote
+			// kb is being done - deleting is done one by one, so it may take
+			// anything from minutes to hours or over a day - depending on
+			// how many hundreds, or thousands of entries are to be deleted.
+			// A KBserver on the LAN, deletes about 20 a second. One on the 
+			// web with a high latency (4 secs per entry deleted) can tie up
+			// a machine for over a day!! 
+			// I think the way to handle the problem is to create the instance
+			// in the correct active project (because a KbServer instance has a
+			// pointer to local CKB instance - but deletion doesn't use the
+			// local CKB, so we should be able to safely set that ptr to NULL)
+			// and then once the queue is populated with the entries to delete,
+			// we can have the persistent KbServer instance delete it on the
+			// detached thread, even if the user exits that project, and killing
+			// the persistent KbServer instance can then be done by (a) the
+			// deletion ending successfully and the kb deleted from the kb table;
+			// or app end.
+            // The basic sharing functionalities, however, will not use this persistent
+            // KbServer instance - but rather create their KbServer instances on demand
+            // (when entering a project for example, deleting when leaving the project
+            // etc).
+			// Our KB Sharing Manager code only permits one kb deletion at a
+			// time, and so we won't get two or more processes trying to access
+			// this KbServer instance, so we don't need a mutex protection.
+			// The KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(...event)
+			// is the ONLY place that points at this KbServer instance; the
+			// sharing Manager's other handlers will use m_pKbServer_Occasional
+	KbServer* m_pKbServer_Occasional; // As above, created in OnInit(), 
+			// destroyed in OnExit(), but used for short term KBserver accesses
+			// such as authentications. No mutex proection needed						
+
 	void	  SetKbServer(int whichType, KbServer* pKbSvr);
 	KbServer* GetKbServer(int whichType); // getter for whichever m_pKbServer is current, adapting or glossing
 	void	  DeleteKbServer(int whichType);
@@ -3107,7 +3148,7 @@ public:
                     // to be deleted will be done synchronously at the start of the job,
                     // and only after that will the background thread be fired to do the
                     // job of emptying of entries
-	KbServer*		m_pKbServerForDeleting; // create a stateless one on heap, using
+	//KbServer*		m_pKbServerForDeleting; // create a stateless one on heap, using
 						// this member - the creation is done in the button handler
 						// of the KB sharing manager's GUI, on Kbs page...
 	// Note: m_pKbServerForDeleting has its own DownloadsQueue m_queue, which will store
@@ -3119,9 +3160,10 @@ public:
 	size_t			m_nQueueSize; // set to entry count after download completes
 	size_t			m_nIterationCounter; // the N value of progress shown as "N:M" or N of M
 	long			kbID_OfDefinitionForDeletion; // store the kbID here, for when we need it
-	wxString		m_srcLangCodeOfCurrentRemoval;
-	wxString		m_nonsrcLangCodeOfCurrentRemoval;
-	int				m_kbTypeOfCurrentRemoval; // either undefined (-1) or 1 (adapting) or 2 (glossing)
+	// BEW deprecated next three, 18Feb16, use values from m_pKbServer_Persistent instead
+	//wxString		m_srcLangCodeOfCurrentRemoval;
+	//wxString		m_nonsrcLangCodeOfCurrentRemoval;
+	//int			m_kbTypeOfCurrentRemoval; // either undefined (-1) or 1 (adapting) or 2 (glossing)
 	// The next two store the state of the KB Sharing Manager gui when it is instantiated.
 	// These values only have meaning provided app's m_pKBSharingMgrTabbedDlg is not NULL
 	bool			m_bKbPageIsCurrent; // default is FALSE (these two are initialized in OnInit())

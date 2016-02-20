@@ -26,11 +26,11 @@
 /// any username so long as it is a username the KBserver recognises and which has sufficient
 /// privileges. KBSharingStatelessSetupDlg uses an instance of GetKbServer[0] (an 'adaptations'
 /// one) and throws that instance away when authentication etc is done. It's the m_bStateless
-/// being TRUE that causes this to happen. However, the creator requires bUserAuthenticating
+/// being TRUE that causes this to happen. However, the creator requires m_bUserAuthenticating
 /// be passed in, as TRUE or FALSE. FALSE is to be used when authenticating to the Manager.
-/// A further use of bUserAuthenticating = FALSE is to force saving of temporary values for
+/// A further use of m_bUserAuthenticating being FALSE is to force saving of temporary values for
 /// certain parameters such as url, username, password and two other flags to be divorced from
-/// the same ones (on the app) for saving state for a user authentication, as described above.
+/// the similar ones (on the app) for saving state for a user authentication, as described above.
 /// \derivation		The KBSharingStatelessSetupDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -101,23 +101,26 @@ KBSharingStatelessSetupDlg::KBSharingStatelessSetupDlg(wxWindow* parent, bool bU
 	// for an adapting type even though type is internally irrelevant for the stateless one),
 	// and bool bStateless, which must be TRUE -- since KbServer class has the bool
 	// m_bStateless member also
-	m_pStatelessKbServer = new KbServer(1, TRUE);
+	// Make sure we are starting afresh...
+	if (m_pApp->m_pKbServer_Occasional != NULL)
+	{
+		delete m_pApp->m_pKbServer_Occasional;
+	}
+	m_pApp->m_pKbServer_Occasional = new KbServer(1, TRUE);
+	m_pStatelessKbServer = m_pApp->m_pKbServer_Occasional;
 }
 
 KBSharingStatelessSetupDlg::~KBSharingStatelessSetupDlg() // destructor
 {
-	// The stateless KbServer instance that was being used has already been freed in
-	// either OnOK() or OnCancel() of the KBSharingMgrTabbedDlg instance, which was
-	// destroyed before this present destructor gets called
 }
 
 void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
 	// If service discovery succeeded, a valid URL should now be in the app member
 	// m_strKbServerURL. But other scenarios are possible -- see next comment...
-	
+	m_bError = FALSE;
     // In a new session, there may have been a URL stored in the app config file, and so it
-    // is now available, but the use may want to type a different URL. It's also possible,
+    // is now available, but the user may want to type a different URL. It's also possible,
     // eg. first session for running a KBserver, that no URL has yet been stored in the
     // config file.
     // Don't show the top message box if the user is wanting service discovery done, or if
@@ -171,13 +174,18 @@ void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// clobbered, so we store the Manager-related settings elsewhere
 	if (m_bUserIsAuthenticating)
 	{
-		m_saveOldUsernameStr = m_pApp->m_strUserID; // ditto
+		m_saveOldUsernameStr = m_pApp->m_strUserID; // a first guess, we can override later
 		m_savePassword = m_pApp->GetMainFrame()->GetKBSvrPassword(); // might be empty
 	}
 	else
 	{
 		m_saveOldUsernameStr.Empty();
-		m_savePassword.Empty();
+		if (!m_pApp->m_strStatelessUsername.IsEmpty())
+		{
+			// If there was something from before, take it as a first guess
+			m_strStatelessUsername = m_pApp->m_strStatelessUsername;
+		}
+		m_savePassword.Empty(); // force a password to be typed, if not a user authentication
 	}
 	// It's a project which has sharing turned on, if one or both of the adapting or
 	// glossing KBs has been designated as for sharing
@@ -197,7 +205,7 @@ void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	else
 	{
 		// Flag is FALSE, user is probably an administrator who is setting up on behalf of
-		// this computer's owner
+		// this computer's owner; so don't claim the username belongs to the project owner
 		m_pUsernameMsgLabel->Show(FALSE);
 	}
     // BEW added 14Jul13, When m_bStateless is TRUE, we want anybody (e.g. the user's
@@ -211,27 +219,27 @@ void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// the kb sharing was turned off it can be quickly re-enabled
 	// When running for authentication to the KB Sharing Manager, don't try initialize
 	// these boxes -- they start off empty. But for normal authentication, try to
-	// initialize them, and then set the username one to be read-only because a unique
-	// username should be set in 6.4.3 and later version for this and other features on
-	// launch, if it has not existed before - and then kept in the basic config file for
-	// reuse thereafter
+	// initialize them, but allow the username one to be editable because someone with
+	// valid credentials may be using the normal user's computer, and wants to log in
+	m_pURLCtrl->ChangeValue(m_saveOldURLStr);
 	if (m_bUserIsAuthenticating)
 	{
-		m_pURLCtrl->ChangeValue(m_saveOldURLStr);
 		m_pUsernameCtrl->ChangeValue(m_saveOldUsernameStr);
+		// Don't set it as selected, rather, we assume it is correct
 #if defined(_DEBUG) && defined(AUTHENTICATE_AS_BRUCE) // see top of Adapt_It.h
 		// Simplify my life during development
 		m_pURLCtrl->ChangeValue(m_strStatelessURL);
 		m_pUsernameCtrl->ChangeValue(m_strStatelessUsername);
 #endif
-		m_pUsernameCtrl->SetEditable(FALSE);
+		//m_pUsernameCtrl->SetEditable(FALSE); <- no, allow others to log in
 	}
 	else
 	{
 		wxString emptyStr = _T("");
-		m_pURLCtrl->ChangeValue(m_saveOldURLStr);
-		m_pUsernameCtrl->ChangeValue(emptyStr);
-
+		m_pUsernameCtrl->ChangeValue(m_strStatelessUsername);
+		m_pUsernameCtrl->SetSelection(0L,-1L); // select it all, as it may be
+			// incorrect so it's a good idea to make it instantly removable by
+			// typing a character into it
 #if defined(_DEBUG) && defined(AUTHENTICATE_AS_BRUCE) // see top of Adapt_It.h
 		// Simplify my life during development
 		m_pURLCtrl->ChangeValue(m_strStatelessURL);
@@ -242,8 +250,6 @@ void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 {
-	wxString msg_empty = _("The password was empty. Please try again.");
-	wxString title_empty = _("No password");
 	wxUnusedVar(myevent);
 
 	wxString strURL;
@@ -254,69 +260,41 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 		wxString title = _("Type URL");
 		wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 		this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
-		return;
+		return; // to the dialog window to have another try
 	}
 	// We now have something in the URL box -- it might not be a valid URL, but we'll try
-	// it; And since we are running stateless, then we don't store the URL in the app, but
-	// only in a public member m_strStatelessURL, of this class, where (at the end of this
-	// function) it is transferred to the stateless KbServer instance, and the KB Sharing
-	// Manager's GUI will then get it too by a further transfer to it. But for normal
-	// authenticating of the machine's user, we store in the app member variables which
-	// the Project config file access
-	if (m_bUserIsAuthenticating)
-	{
-		m_pApp->m_strKbServerURL = strURL; // put the url in the storage which is connected
-										   // to the project config file
-	}
-	else
-	{
-		m_strStatelessURL = strURL;
-	}
-#if defined(_DEBUG)
-		wxLogDebug(_T("KBSharingStatelessSetupDlg.cpp strURL = %s"), strURL.c_str());
-#endif
+	// it. We save values on the app, because the KbServer instance we are using is
+	// m_pApp->m_pKbServer_Occasional, and the latter we destroy immediately on exit
+	// from this Authentication dialog - so no use trying to store values in any of it's
+	// members. Store the url locally, don't commit to it until all checks succeed
+	m_strStatelessURL = strURL;
 
-    // If running for KB Sharing Mgr authentication, the username box is read-write
-    // enabled, and should start off empty; but if authenticating the machine's normal
-    // user, the username box should be read-only, and the url should be picked up from the
-    // project config file if it exists from an earlier sesssion
 	wxString strUsername;
-	strUsername = m_pUsernameCtrl->GetValue();
-	if (m_bUserIsAuthenticating)
+	strUsername = m_pUsernameCtrl->GetValue();	
+	if (strUsername.IsEmpty())
 	{
-		// In this case the username box is read-only. If the box is empty, user can't
-		// type into it - we have to tell him how to set the username in another place
-		if (strUsername.IsEmpty())
-		{
-			wxString msg = _("The username text box is empty, and it is read-only, so you cannot type into it.\nCancel now, then go to the Edit menu and click Change Username.\nAfter you have setup your unique username there, retry setting up knowledge base sharing.");
-			wxString title = _("Setup correct unique username");
-			wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-			this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
-			return; // return to the active dialog window, he can then type Cancel and
-					// follow the above instruction & retry after that
-		}
+		// No username, so tell him what to do and let him retry
+		wxString msg = _("The username text box is empty. Please type a valid username known to the KBserver.");
+		wxString title = _("Type username");
+		wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+		this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
+		return; // to the active dialog window
 	}
-	else
-	{
-		if (strUsername.IsEmpty())
-		{
-			wxString msg = _("The username text box is empty.\nType now a unique username known to this server, then click OK again.");
-			wxString title = _("Type correct unique username");
-			wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-			this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
-			return; // return to the active dialog window, he can then type it and try OK button again
-		}
-	}
-	// A username was present so set it - it's already set for normal authenticating, so
-	// we only need handle the username for when given in authenticating to the KB Sharing
-	// Manager gui; for that situation, we assume the person authenticating is a non-user
-	// but if it is the user that's fine, he'll just be treated as if he wasn't the user
-	if (!m_bUserIsAuthenticating)
-	{
-		m_strStatelessUsername = strUsername;
-	}
+	
+	// A username was present so set it. Whether or not m_bUserIsAuthenticating is TRUE,
+	// put the username that was typed only in the app member m_strStatelessUsername.
+	// We want to keep the app member m_strUserID locked to the AI project's user-defined
+	// unique username that he types in for document ownership, xhtml export, etc; so
+	// we must not override that member string. So when this function is called within
+	// the AuthenticateCheckAndSetupKBSharing() function, the user's choice of username
+	// on exist from KBSharingStatelessSetupDlg should be sought from m_strStatelessUsername.
+	// However, here we only store it in the local m_strStatelessUsername wxString member,
+	// not on the app. If later checks prove valid, we'll commit to it and store it then
+	// in the app member
+	m_strStatelessUsername = strUsername;
 #if defined(_DEBUG)
-		wxLogDebug(_T("KBSharingSetupDlg.cpp strUsername = %s"), strUsername.c_str());
+	wxLogDebug(_T("Authenticate Dlg (KBSharingSetupDlg.cpp) username: %s , stored locally so far in: m_strStatelessUsername"),
+		m_strStatelessUsername.c_str());
 #endif
 
 	// Get the server password. Returns an empty string if nothing is typed, or if the
@@ -334,16 +312,21 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 
 	this->Show(FALSE);
 
-	// Now get the password...
+	// Now get the password... we do this from the wxWidgets password utility dialog
 	wxString pwd = pFrame->GetKBSvrPasswordFromUser(); // show the password dialog
+
+	wxString msg_empty = _("The password was empty. Please try again.");
+	wxString title_empty = _("No password");
 
 	if (m_bUserIsAuthenticating)
 	{
 		if (!pwd.IsEmpty())
 		{
-			m_pApp->GetMainFrame()->SetKBSvrPassword(pwd); // KbServer instance(s) can now access it
+			m_strStatelessPassword = pwd; // store it temporarily in this class's instance
+
 #if defined(_DEBUG)
-			wxLogDebug(_T("KBSharingSetupDlg.cpp pwd = %s"), pwd.c_str());
+			wxLogDebug(_T("Authenticate (KBSharingSetupDlg.cpp) password typed in: %s  In User block."),
+					pwd.c_str());
 #endif
             // Since a password has now been typed, we can check if this username is listed
             // in the user table. If he isn't, he cannot authenticate and so is denied
@@ -353,18 +336,18 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
             // class instance in order to call it's LookupUser() member, to check that this
             // user has an entry in the entry table; and delete the temporary instance
             // before returning
-			bool bUserIsValid = CheckForValidUsernameForKbServer(strURL, m_saveOldUsernameStr, pwd);
+			bool bUserIsValid = CheckForValidUsernameForKbServer(m_strStatelessURL, m_strStatelessUsername, pwd);
 			if (!bUserIsValid)
 			{
 				// Username is unknown to the KBserver. Setup of sharing won't be turned
 				// on until a valid username is supplied
-				m_pApp->LogUserAction(_T("Trying to authenticate, but something is wrong; in OnOK() of KBSharingStatelessSetupDlg.cpp"));
-				wxString msg = _("Maybe the username ( %s ) is not in the list of users for this knowledge base server.\nOr the URL is not correct. Or your chosen KBserver is not yet running.\nYou are unable to turn on sharing until the problem is fixed.\nPerhaps ask your server administrator to help you. Click Cancel to continue working.\nYou can use the Edit menu item Change Username... to set a different username.");
-				msg = msg.Format(msg, m_saveOldUsernameStr.c_str());
-				wxMessageBox(msg, _("Something is preventing the setup"), wxICON_WARNING | wxOK);
+				m_pApp->LogUserAction(_T("In OnOK() of KBSharingStatelessSetupDlg.cpp, password not recognised by KBserver"));
+				wxString msg = _("Maybe the username ( %s ) is not in the list of users for this knowledge base server.\nOr the URL is not correct. Or your chosen KBserver is not yet running.\nPerhaps ask your server administrator to help you. Click Cancel to continue working.");
+				msg = msg.Format(msg, m_strStatelessUsername.c_str());
+				wxMessageBox(msg, _("Authentication: user check failed"), wxICON_WARNING | wxOK);
 				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
 				this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
-				return; // to the dialog
+				m_bError = TRUE;
 			}
 		}
 		else
@@ -376,19 +359,24 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			this->Show(TRUE); // make the dialog visible again
 			this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
 			return; // to the dialog
-		}
+		} // end of else block for test: if (!pwd.IsEmpty())
+
+		// Passed the credentials test, so commit to this typed password, and to the username
+		// Store it for KbServer[0] and / or KbServer[1] instance(s) to use
+		m_pApp->GetMainFrame()->SetKBSvrPassword(pwd);
+		m_pApp->m_strStatelessUsername; // we never override m_pApp->m_strUserID with
+									    // a username typed only for authentication
 	}
 	else
 	{
-		// Somebody is authenticating to the KB Sharing Manager tabbed dialog, since we are running stateless
+		// Somebody, probably an administrator, is authenticating to the KB Sharing 
+		// Manager tabbed dialog 
 		if (!pwd.IsEmpty())
 		{
-			m_strStatelessPassword = pwd; // store it publicly only in this class's instance
-										  // so that the stateless KbServer instance can access
-										  // it from the app's member of the same name
-										  // when it does KBserver transmissions
+			m_strStatelessPassword = pwd; // store it temporarily in this class's instance								  
 #if defined(_DEBUG)
-		wxLogDebug(_T("KBSharingSetupDlg.cpp pwd = %s"), pwd.c_str());
+			wxLogDebug(_T("Authenticate (KBSharingSetupDlg.cpp) password typed in: %s  In Non-User block."),
+						pwd.c_str());
 #endif
             // Since a password has now been typed, we can check if this username is listed
             // in the user table. If he isn't, he cannot authenticate and so is denied
@@ -397,34 +385,19 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			// The following call will set up a temporary instance of the adapting KbServer in
 			// order to call it's LookupUser() member, to check that this user has an entry in
 			// the entry table; and delete the temporary instance before returning
-			bool bUserIsValid = CheckForValidUsernameForKbServer(m_strStatelessURL,
-											m_strStatelessUsername, m_strStatelessPassword);
+			bool bUserIsValid = CheckForValidUsernameForKbServer(m_strStatelessURL, m_strStatelessUsername, pwd);
 			if (!bUserIsValid)
 			{
 				// Access to the Manager GUI is denied to this user
-				m_pApp->LogUserAction(_T("Stateless KBserver user is unknown; in OnOK() of KBSharingStatelessSetupDlg.cpp"));
-				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server. Or the URL is not correct.\nOr, perhaps you simply forgot to start the KBserver running.\nYou are not permitted to access the Knowledge Base Sharing Manager dialog.\nAsk your KBserver administrator to do it for you. Click Cancel to continue working.");
+				m_pApp->LogUserAction(_T("In OnOK() of KBSharingStatelessSetupDlg.cpp, password not recognised by KBserver"));
+				wxString msg = _("Maybe the username ( %s ) is not in the list of users for this knowledge base server.\nOr the URL is not correct. Or your chosen KBserver is not yet running.\nPerhaps ask your server administrator to help you. Click Cancel to continue working.");
 				msg = msg.Format(msg, m_strStatelessUsername.c_str());
-				wxMessageBox(msg, _("Unknown username"), wxICON_WARNING | wxOK);
+				wxMessageBox(msg, _("Authentication: user check failed"), wxICON_WARNING | wxOK);
 				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
 				this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
-				return;
+				m_bError = TRUE;
 			}
-			else
-			{
-				// Once control reaches here, we have a valid URL, we have accessed the
-				// server once to verify that the user specified by m_strStatelessUsername
-				// is listed in that particular kbserver, we have an instance of KbServer
-				// ready for use - and it knows it is stateless. So opening the manager
-				// can now be done -- but first, get the URL and password and username
-				// into the stateless KbServer instance we've created on the heap using
-				// the creator function for the present class's instance
-				wxASSERT(m_pStatelessKbServer->m_bStateless);
-				m_pStatelessKbServer->SetKBServerPassword(m_strStatelessPassword);
-				m_pStatelessKbServer->SetKBServerUsername(m_strStatelessUsername);
-				m_pStatelessKbServer->SetKBServerURL(m_strStatelessURL);
-			}
-		}
+		} // end of TRUE block for test: if (!pwd.IsEmpty())
 		else
 		{
 			// Password was empty. Tell user and return to the active dialog for a retry
@@ -433,8 +406,41 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
 			this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
 			return; // to the dialog
-		}
-	} // end of TRUE block for test: if (m_bStateless)
+		} // end of else block for test: if (!pwd.IsEmpty())
+
+		// Passed the credentials test, so commit to this typed password, and to the username
+		// Store them for potential use for Authentication later on
+		m_pApp->m_strStatelessPassword = m_strStatelessPassword; // not seen by config files
+		m_pApp->m_strStatelessUsername = m_strStatelessUsername; // we never override
+						// m_pApp->m_strUserID with a username typed only for authentication
+	} // end of else block for test: if (m_bUserIsAuthenticating)
+
+	// All's well, commit to the URL; I'll store the url to different app locations, but
+	// presumably it's always the same KBserver, so I'm being a bit silly here
+	if (m_bUserIsAuthenticating)
+	{
+		// This app member is where a url stored in the project config file gets stored
+		m_pApp->m_strKbServerURL = m_strStatelessURL; // put the url in the storage which
+										   // is associated with the project config file
+#if defined(_DEBUG)
+		wxLogDebug(_T("Authenticate Dlg (KBSharingStatelessSetupDlg.cpp) URL: %s , stored in m_pApp->m_strKbSErverURL"),
+			m_pApp->m_strStatelessURL.c_str());
+#endif
+	}
+	else
+	{
+		// This app member is for use when, say, we authenticate when opening the KB
+		// Sharing Manager - but it's the same KBserver so why am I doing this?!!!
+		m_pApp->m_strStatelessURL = m_strStatelessURL;
+#if defined(_DEBUG)
+wxLogDebug(_T("Authenticate Dlg (KBSharingStatelessSetupDlg.cpp) URL: %s , stored in m_pApp->m_strStatelessURL"),
+		   m_pApp->m_strStatelessURL.c_str());
+#endif
+	}
+
+	// Delete the temporary KbServer instance we've been using, set its pointer to NULL
+	delete m_pApp->m_pKbServer_Occasional; // makes our local copy, m_strStatelessKbServer, also invalid
+	m_pApp->m_pKbServer_Occasional = NULL;
 
     // BEW 19Aug15, in Code::Blocks in ubuntu laptop, OK button click is returning
     // wxID_CANCEL rather than wxID_OK, so I'll try setting wxID_OK explicitly here using
@@ -445,6 +451,8 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 
 void KBSharingStatelessSetupDlg::OnCancel(wxCommandEvent& myevent)
 {
+	delete m_pApp->m_pKbServer_Occasional; // makes our local copy, m_strStatelessKbServer, also invalid
+	m_pApp->m_pKbServer_Occasional = NULL;
 	myevent.Skip();
 }
 
