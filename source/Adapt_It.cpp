@@ -272,7 +272,7 @@
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
 #ifdef _DEBUG
-#include "vld.h"
+//#include "vld.h"
 #endif
 #endif
 
@@ -15930,7 +15930,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// want - in particular in the OnProjectPageChanging() handler.
 	m_bIsKBServerProject_FromConfigFile = FALSE;
 	m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
-	m_KBserverTimeout = 8000; // minimum value of 8.0 seconds - basic config file can 
+	m_KBserverTimeout = 10000; // minimum value of 8.0 seconds - basic config file can 
 							  // override with a larger value, by direct user edit only
 							  // (or a smaller value; values less than 5 sec are risky)
 	m_bServiceDiscoveryWanted = TRUE; // initialize
