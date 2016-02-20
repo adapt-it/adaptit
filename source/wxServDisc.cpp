@@ -235,7 +235,7 @@ wxThread::ExitCode wxServDisc::Entry()
 		// it's lookups are happening in wxServDisc, and use a condition with Signal()
 		// to awaken as each result comes back; otherwise a delay loop hogs the processor
 		// so if probably is better to use the mutext & Signal() approach to give
-		// the thread a bit more access to the CPU (at least that's what I'm thinking)
+		// the thread a bit more access to the CPU (at least that's what I'm thinking).
 	  {
 		break;  // clean up and shut down the module
 	  }
