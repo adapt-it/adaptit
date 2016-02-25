@@ -46,6 +46,7 @@ BEGIN_EVENT_TABLE(CServDisc_KBserversDlg, AIModalDialog)
 EVT_INIT_DIALOG(CServDisc_KBserversDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CServDisc_KBserversDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CServDisc_KBserversDlg::OnCancel)
+	EVT_BUTTON(ID_BUTTON_MORE_INFORMATION, CServDisc_KBserversDlg::OnButtonMoreInformation)
 	EVT_LISTBOX(ID_LISTBOX_URLS, CServDisc_KBserversDlg::OnSelchangeListboxUrls)
 	EVT_LISTBOX_DCLICK(ID_LISTBOX_URLS, CServDisc_KBserversDlg::OnDblclkListboxUrls)
 END_EVENT_TABLE()
@@ -123,6 +124,13 @@ void CServDisc_KBserversDlg::OnDblclkListboxUrls(wxCommandEvent& WXUNUSED(event)
 	nSel = m_pListBoxUrls->GetSelection();
 	m_urlSelected = m_pListBoxUrls->GetString(nSel);
     EndModal(wxID_OK); //EndDialog(IDOK);
+}
+
+void CServDisc_KBserversDlg::OnButtonMoreInformation(wxCommandEvent& WXUNUSED(event))
+{
+	wxString title = _("More Information");
+	wxString msg = _("You can connect to a KBserver using only one of these URLs. The KBserver at the chosen URL must contain the knowledge base defined by the source and target text language codes for your translation project.  If you try to connect using the wrong URL, the connection will not succeed and you will see an error mesage.  Nothing bad will happen if your attempt fails. Just try again, and choose a different URL.  Remember, each URL is the address of a different KBserver, and each KBserver will have its own password.  You will need to know the correct password associated with the URL you try to connect with.");
+	wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 }
 
 void CServDisc_KBserversDlg::OnCancel(wxCommandEvent& WXUNUSED(event))

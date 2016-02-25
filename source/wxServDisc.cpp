@@ -72,6 +72,9 @@
 #include "wxServDisc.h"
 #include "ServiceDiscovery.h"
 
+extern CServiceDiscovery* gpServiceDiscovery; // wxServDisc's creator needs the value we place here
+
+
 // Compatability defines
 #ifdef __APPLE__
 #ifndef IPV6_ADD_MEMBERSHIP
@@ -100,8 +103,17 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 {
   // save our caller
   parent = p;
+  if (p == NULL)
+  {
+	  parent = (void*)gpServiceDiscovery;
+  }
+  wxLogDebug(_T("wxServDisc CREATOR: (CServiceDiscovery*)parent = %p    <<<---- my parent"), (CServiceDiscovery*)parent);
 
   m_bGetResultsStarted = FALSE; // Only onSDNotify() sets it to TRUE
+
+  // Additional instances get spawned, but not by the parent, so those will have p = NULL.
+  // So we will have the parent CServiceDiscovery instance set a global pointer to itself,
+  // gpServiceDiscovery, and then we'll test here for p=NULL, and set it from that
 
   // save query
   query = what;
@@ -126,16 +138,54 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
       err.Printf(_("Could not start scan thread!"));
 }
 
+// BEW 25Feb16 created so that hostname lookup and ipaddress lookup can take place
+// in wxServDisc and do mutex protected reporting to the arrays in the parent
+// CServiceDiscovery instance - which in turn will report them to m_servDiscResults
+// array on the app instance
+void wxServDisc::DiscoverResults(CServiceDiscovery* pReportTo)
+{
+	// scratch variables
+	wxString hostname;
+	wxString addr;
+	wxString port;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
 void wxServDisc::post_notify()
 {	
 
 	// BEW Tell the running wxServDisc thread that GetResults() was invoked
-	m_bGetResultsStarted = TRUE;
-	wxLogDebug(_T("wxServDisc %p:  post_notify(). Doing non-event approach."), this);
 	// BEW - the nonEvent approach follows...
 	if (parent)
 	{
-		((CServiceDiscovery*)parent)->m_pSD = this;
+		((CServiceDiscovery*)parent)->m_pWxSD = this;
+
+		m_bGetResultsStarted = TRUE;
+		wxLogDebug(_T("In post_notify(): Resetting (CServiceDiscovery*)parent->m_pWxSD to this wxServDisc %p:   (CServiceDiscovery*)parent = %p"), this, (CServiceDiscovery*)parent);
 
 		//wxCommandEvent dummy;
 		//((CServiceDiscovery*)parent)->onSDNotify(dummy);
@@ -216,28 +266,30 @@ wxThread::ExitCode wxServDisc::Entry()
 	  // and so it's timeout loop runs for a minute and a half (maybe, but it times out
 	  // and does not enter the after-loop cleanup code where my HALTING event gets posted,
 	  // so here I'll do a hack. If msecs goes > 86000000, the break from the outer loop.
-	  if (msecs > 10000000) // it goes (when nothing discovered) to 86400000, but if I delay
-							// when debugging, or if takes a while, msecs > 860000000 may
-							// be false and then the break doesn't happen, another wxServDisc
-							// gets created and p passed in is NULL, and so the wxPostEvent
-							// below post to dest = NULL, which gives wxASSERT error. So,
-							// use a smaller limit which msecs when it goes large is likely
-							// to be much bigger than. Try 4,000,000 (4 secs)
-							// 4 secs was fairly consistently not enough ... go to larger comment
-		// I'm increasing it to 10 seconds, that keeps this loop running that long - we
-		// need it to run long enough so that main thread's CServiceDiscovery::GetResults()
-		// can get through its lookups and get the URL calculated & stored (it's taking
-		// about 8 seconds using XP laptop with KBserver on Ubuntu laptop) before the
-		// Entry() loop times out - because when it times out, post_notify() has no way
-		// to then get called, and the HALTING events happen and so failure is inevitable.
-		// I tried 7 secs, after 4 kept often failing, and 7 was 'just enough' I think.
-		// So I'll try 10. Also, I should probably make GetResults() go to sleep while
-		// it's lookups are happening in wxServDisc, and use a condition with Signal()
-		// to awaken as each result comes back; otherwise a delay loop hogs the processor
-		// so if probably is better to use the mutext & Signal() approach to give
-		// the thread a bit more access to the CPU (at least that's what I'm thinking).
+	  if (msecs > 4000000) // it goes (when nothing discovered) to 86400000, but if I delay
+		  // when debugging, or if takes a while, msecs > 860000000 may
+		  // be false and then the break doesn't happen, another wxServDisc
+		  // gets created and p passed in is NULL, and so the wxPostEvent
+		  // below post to dest = NULL, which gives wxASSERT error. So,
+		  // use a smaller limit which msecs when it goes large is likely
+		  // to be much bigger than. Try 4,000,000 (4 secs)
+		  // 4 secs was fairly consistently not enough ... go to larger comment
+		  // I'm increasing it to 10 seconds, that keeps this loop running that long - we
+		  // need it to run long enough so that main thread's CServiceDiscovery::GetResults()
+		  // can get through its lookups and get the URL calculated & stored (it's taking
+		  // about 8 seconds using XP laptop with KBserver on Ubuntu laptop) before the
+		  // Entry() loop times out - because when it times out, post_notify() has no way
+		  // to then get called, and the HALTING events happen and so failure is inevitable.
+		  // I tried 7 secs, after 4 kept often failing, and 7 was 'just enough' I think.
+		  // So I'll try 10. Also, I should probably make GetResults() go to sleep while
+		  // it's lookups are happening in wxServDisc, and use a condition with Signal()
+		  // to awaken as each result comes back; otherwise a delay loop hogs the processor
+		  // so if probably is better to use the mutext & Signal() approach to give
+		  // the thread a bit more access to the CPU (at least that's what I'm thinking).
+		  // Nah, 10 sec makes no diff, go back to 7
 	  {
-		break;  // clean up and shut down the module
+		  int nah = 1; wxUnusedVar(nah); // useful to determining when we break via here, values > 4 make no diff
+		  break;  // clean up and shut down the module
 	  }
 	  // end BEW addition
 	  

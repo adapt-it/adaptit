@@ -107,6 +107,11 @@ public:
   bool isOK() const { return err.length() == 0; };
 
   CServiceDiscovery* m_pSD; // BEW added
+
+  // BEW 25Feb16 moved the guts of the CServiceDiscovery::GetResults() function to here,
+  // and calling this new function DiscoverResults(), it needs to internally point back
+  // to the parent CServiceDiscovery instance
+  void DiscoverResults(CServiceDiscovery* pReportTo);
  
   // yeah well...
   std::vector<wxSDEntry> getResults() const;

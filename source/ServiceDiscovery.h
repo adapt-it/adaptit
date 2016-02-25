@@ -77,7 +77,7 @@ public:
 	wxString m_servicestring; // service to be scanned for
 	CAdapt_ItApp* m_pApp;
 
-	wxServDisc* m_pSD; // main service scanner (a child class of this one)
+	wxServDisc* m_pWxSD; // main service scanner (a child class of this one)
 	CAdapt_ItApp* m_pParent; // BEW 4Jan16
 	bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this set in onSDHalting
 								 // informing CServiceDiscovery instance that we are done
@@ -87,7 +87,7 @@ public:
             // CServiceDiscovery::GetResults() code - it appears that this can otherwise be
             // running after the CServiceDiscovery instance has been deleted which could
             // lead to a crash
-	// scratch variables, used in the loop in onSDNotify() handler
+	// scratch variables, used in the loop in GetResults() handler
 	wxString m_hostname;
 	wxString m_addr;
 	wxString m_port;
@@ -108,6 +108,7 @@ public:
 	// or :0:0:-1:-1
 	wxArrayString m_sd_lines;
 	wxArrayString m_urlsArr;
+	wxArrayString m_localDiscResultsArr;
 	// The mutex and condition were created within CAdapt_ItApp::DoServiceDiscovery()
 	// which is on the main thread
 	wxMutex*      m_pMutex;

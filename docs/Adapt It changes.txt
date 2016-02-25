@@ -1,14 +1,24 @@
 ----------------------------------------------
-Feature changes and new features in ?.?.? 
+Feature changes and new features in 7.?.? 
 ----------------------------------------------
 * The tooltip in the Choose Translation dialog, and also
 those in the two listboxes in the KB Editor's 10 panes, 
 were nuisances - obscuring the list contents. The effect
 was particularly bad in Ubuntu, with its solid black
 background to the tooltip. So I removed them.
+* The "Type Key To Be Found" text box in each page of
+the Knowledge Base editor did not work well - trying
+to edit in the box to get the word wanted for finding
+in the source text list was a nightmare. It's now
+fixed. An extra button for doing the search of the list
+is now at the right hand end of the text box, and
+normal editing is possible in the text box prior to
+clicking that extra button. The label to the left of
+the text box now says: "Find Source:" The layout was
+slightly improved also.
 
 ----------------------------------------------
-Bug fixes in ??? release ?? month ???
+Bug fixes in 7?? release ?? month ???
 ----------------------------------------------
 * The built-in source text parser misparsed:
 word.<space>"word (where a straight doublequote is supposed

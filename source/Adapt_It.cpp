@@ -15285,7 +15285,7 @@ void CAdapt_ItApp::ExtractServiceDiscoveryResult(wxString& result, wxString& url
 	else
 	{
 		url = MakeReverse(reversed);
-		wxASSERT(url.Len() >= 19);
+		//wxASSERT(url.Len() >= 19); not safe, if we only have https://:0:0:0:0 which is 16 characters
 	}
 }
 
@@ -15454,8 +15454,14 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	if (!m_servDiscResults.IsEmpty())
 	{
 		// Some data was returned. Process its contents
-		wxLogDebug(_T("m_servDiscResults[] first = %s"), m_servDiscResults.Item(0).c_str());
-
+#if defined (_DEBUG)
+		int aCount = m_servDiscResults.GetCount();
+		int indx;
+		for (indx = 0; indx < aCount; indx++)
+		{
+			wxLogDebug(_T("m_servDiscResults[] index = %d   Results string:    %s"), indx, m_servDiscResults.Item(indx).c_str());
+		}
+#endif
 		// Initialize local variables used for getting the results from the discovery module
 		// (The 0 values are 'good', that is, not not found, no fail in the 2 lookups, and
 		// not a duplicate of one found earlier in the present discovery process)
@@ -15617,7 +15623,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 									result = SD_UrlDiffers_UserRejectedIt;
 									wxString message;  message = message.Format(_(
 "Your attempt to connect to the only running KBserver has been abandoned, because you have rejected the changed URL which locates where it is.\nCheck the KBserver you want to connect to is actually running.\nYou can stop the current KBserver, and start a different one now if you wish.\nThen try to connect again, or ask your administrator to help you."));
-									wxMessageBox(message,_("Connection not tried"), wxICON_WARNING | wxID_OK);
+									wxMessageBox(message,_("Connection not tried"), wxICON_WARNING | wxOK);
 									SD_mutex.Unlock();
 									m_servDiscResults.Clear();
 									return FALSE;
@@ -15754,7 +15760,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 						result = SD_MultipleUrls_UserCancelled;
 						wxString message;  message = message.Format(_(
 "Your attempt to connect to a KBserver has been abandoned.\nCheck the KBserver you want to connect to is actually running.\nYou can stop unwanted KBservers from running. Do so, then try to connect again, or ask your administrator to help you."));
-						wxMessageBox(message,_("Connection attempt abandoned"), wxICON_WARNING | wxID_OK);
+						wxMessageBox(message,_("Connection attempt abandoned"), wxICON_WARNING | wxOK);
 						SD_mutex.Unlock();
 						m_servDiscResults.Clear();
 						return FALSE;
@@ -16858,20 +16864,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//CBString str = "12345678901234567890123456789012345678901234567890123456789012345678901234567890";
 	//CBString str = "message digest";
 	//CBString str = "a";
-	//CBString str = "";
+	////CBString str = "";
 	//CBString str = "bruce_waters@sil.org:kbserver:XXXXXXX"; <<-- password obfuscated
 	//wxString s = _T("message digest"); // <<-- when starting from a wxString, use these two lines
 	//CBString str(Convert16to8(s));
 	//CBString str = "message digest";
 	//CBString sum = pmd5->GetMD5(str);
 	wxString user = _T("bruce_waters@sil.org");
-	wxString password = _T("XXXXXXXXXXX"); // <<- password obfuscated
+	wxString password = _T("XXXXXX"); // <<- password obfuscated
 	CBString sum = MakeDigestPassword(user, password); // from helpers.cpp
 	wxLogDebug(_T("md5sum = %s"), sum.Convert8To16().c_str());
 	//delete pmd5;
 	int ii=1; // put a break point here to halt execution, & then examine Ouput window result
 
-	// 1st run: MakeDigestPassword() produced  b9b0c1de14f16080c72a5497f806b178  (it's correct)
+	// 1st run: MakeDigestPassword() produced  b9b0c1de14f16080c72a5497f806b178  (it's correct) NO: the correct one is 9969ec e68a14 32d346 b53fe6 058f40 ef
 
 	// Results of md5 tests, using md5_SB and CBString
 	// empty:   md5sum = d41d8cd98f00b204e9800998ecf8427e  ;correct

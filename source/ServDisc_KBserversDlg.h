@@ -38,6 +38,7 @@ protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& WXUNUSED(event));
+	void OnButtonMoreInformation(wxCommandEvent& WXUNUSED(event));
 	void OnSelchangeListboxUrls(wxCommandEvent& WXUNUSED(event));
 	void OnDblclkListboxUrls(wxCommandEvent& WXUNUSED(event));
 
