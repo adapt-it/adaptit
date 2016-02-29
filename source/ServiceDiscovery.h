@@ -63,7 +63,7 @@
 //class ServDisc;
 class wxServDisc;
 class wxThread;
-//class CAdapt_ItApp; // BEW 4Jan16
+//class CAdapt_ItApp; // BEW 4Jan16 commented out 19Feb16
 
 class CServiceDiscovery : public wxEvtHandler
 {

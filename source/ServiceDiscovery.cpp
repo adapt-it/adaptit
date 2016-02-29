@@ -554,7 +554,7 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 				m_pWxSD);
 
     // It's not necessary to clear the following, the destructor would do it,
-    // but no harm in it
+    // but no harm in it I think
 	/*
 	m_sd_servicenames.Clear();
 	m_uniqueIpAddresses.Clear();
