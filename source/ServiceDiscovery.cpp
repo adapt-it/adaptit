@@ -66,6 +66,8 @@
 #pragma hdrstop
 #endif
 
+#pragma once
+
 #if defined(_KBSERVER)
 
 // For compilers that support precompilation, includes "wx.h".
@@ -81,12 +83,17 @@
 
 #endif
 
+//#pragma comment (lib, "Mswsock.lib")
+
 #include <vector>
 #define _WINSOCKAPI_ // keeps winsock.h from being included in <Windows.h>, it's here just in case
+#define _WINSOCK2API_
+
 #define WIN32_LEAN_AND_MEAN // does the same job as above, likewise here just in case
-#include "helpers.h"
-#include "wxServDisc.h"
 #include "ServiceDiscovery.h"
+#include "wxServDisc.h"
+#include "helpers.h"
+
 
 #ifdef __WXMSW__
 // The following include prevents the #include of Adapt_It.h from generating Yield() macro
