@@ -63,7 +63,7 @@
 //class ServDisc;
 class wxServDisc;
 class wxThread;
-class CAdapt_ItApp; // BEW 4Jan16
+//class CAdapt_ItApp; // BEW 4Jan16
 
 class CServiceDiscovery : public wxEvtHandler
 {
@@ -78,7 +78,7 @@ public:
 	CAdapt_ItApp* m_pApp;
 
 	wxServDisc* m_pWxSD; // main service scanner (a child class of this one)
-	CAdapt_ItApp* m_pParent; // BEW 4Jan16
+	//CAdapt_ItApp* m_pParent; // BEW 4Jan16
 	bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this set in onSDHalting
 								 // informing CServiceDiscovery instance that we are done
 	int	m_postNotifyCount;  // count the number of Post_Notify() call attempts

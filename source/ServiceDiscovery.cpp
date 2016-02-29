@@ -97,9 +97,9 @@
 // errors disappeared from here
 #include <wx/msw/winundef.h>
 #endif
-#include "Adapt_It.h"
+//#include "Adapt_It.h"
 
-extern CAdapt_ItApp* gpApp;
+//extern CAdapt_ItApp* gpApp;
 CServiceDiscovery* gpServiceDiscovery; // wxServDisc's creator needs the value we place here
 
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)
