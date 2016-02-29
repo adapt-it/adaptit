@@ -116,7 +116,7 @@ protected:
 	void OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event));
 	void OnSelchangeListExistingTranslations(wxCommandEvent& WXUNUSED(event));
 	void OnDblclkListExistingTranslations(wxCommandEvent& event);
-	void OnUpdateEditSrcKey(wxCommandEvent& event);
+	void OnButtonSourceFindGo(wxCommandEvent& event);
 	void OnUpdateEditOrAdd(wxCommandEvent& WXUNUSED(event));
 	void OnButtonUpdate(wxCommandEvent& WXUNUSED(event));
 	void OnButtonAdd(wxCommandEvent& event);

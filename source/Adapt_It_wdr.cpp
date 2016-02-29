@@ -4116,6 +4116,8 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
+    item4->Add( 3, 120, 0, wxALIGN_CENTER, 5 );
+
     wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
@@ -4203,68 +4205,73 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item31 = new wxBoxSizer( wxHORIZONTAL );
 
-    item31->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxStaticText *item32 = new wxStaticText( parent, ID_TEXT, _("Type &Key To Be Found:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item32 = new wxStaticText( parent, ID_TEXT, _("F&ind Source:"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item31->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxTextCtrl *item33 = new wxTextCtrl( parent, IDC_EDIT_SRC_KEY, wxT(""), wxDefaultPosition, wxSize(160,40), 0 );
+    wxTextCtrl *item33 = new wxTextCtrl( parent, IDC_EDIT_SRC_KEY, wxT(""), wxDefaultPosition, wxSize(160,38), 0 );
     item33->SetToolTip( _("Type here the first few letters of a source phrase to be found in the list above") );
-    item31->Add( item33, 0, wxALIGN_CENTER|wxALL, 0 );
+    item31->Add( item33, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 0 );
 
-    item31->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item34 = new wxButton( parent, ID_BUTTON_SRC_FIND_GO, _(">"), wxDefaultPosition, wxSize(36,-1), 0 );
+    item34->SetFont( wxFont( 14, wxSWISS, wxNORMAL, wxBOLD ) );
+    item34->SetToolTip( _("Find the typed source text entry in the list") );
+    item31->Add( item34, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticText *item34 = new wxStaticText( parent, ID_TEXT, _("Number of references:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxTextCtrl *item35 = new wxTextCtrl( parent, IDC_EDIT_REF_COUNT, wxT(""), wxDefaultPosition, wxSize(50,-1), wxTE_READONLY );
-    item35->SetToolTip( _("Number of references in the knowledge base (approximate)") );
-    item31->Add( item35, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 0 );
+    wxStaticText *item35 = new wxStaticText( parent, ID_TEXT, _("Number of references:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item36 = new wxTextCtrl( parent, IDC_EDIT_REF_COUNT, wxT(""), wxDefaultPosition, wxSize(50,-1), wxTE_READONLY );
+    item36->SetToolTip( _("Number of references in the knowledge base (approximate)") );
+    item31->Add( item36, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 0 );
 
     item31->Add( 15, 20, 0, wxALIGN_CENTER, 5 );
 
-    wxButton *item36 = new wxButton( parent, ID_BUTTON_REMOVE_SOME, _("Remove Some Entries or Save List..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item36->SetToolTip( _("Shows contents with reference counts, allows deletions, or can save list to a file") );
-    item31->Add( item36, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item37 = new wxButton( parent, ID_BUTTON_REMOVE_SOME, _("Remove Some Entries or Save List..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->SetToolTip( _("Shows contents with reference counts, allows deletions, or can save list to a file") );
+    item31->Add( item37, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item37 = new wxBoxSizer( wxHORIZONTAL );
+    item2->Add( 560, 2, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
 
-    item37->Add( 5, 20, 0, wxALIGN_CENTER, 0 );
+    wxBoxSizer *item38 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item38 = new wxStaticText( parent, ID_TEXT, _("&Search for:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item37->Add( item38, 0, wxALIGN_CENTER|wxALL, 5 );
+    item38->Add( 5, 20, 0, wxALIGN_CENTER, 0 );
 
-    wxTextCtrl *item39 = new wxTextCtrl( parent, ID_TEXTCTRL_SEARCH, wxT(""), wxDefaultPosition, wxSize(240,60), wxTE_MULTILINE|wxVSCROLL );
-    item37->Add( item39, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item39 = new wxStaticText( parent, ID_TEXT, _("&Search for:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->Add( item39, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item40 = new wxBoxSizer( wxVERTICAL );
+    wxTextCtrl *item40 = new wxTextCtrl( parent, ID_TEXTCTRL_SEARCH, wxT(""), wxDefaultPosition, wxSize(240,60), wxTE_MULTILINE|wxVSCROLL );
+    item38->Add( item40, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item41 = new wxButton( parent, ID_BUTTON_GO, _("Go"), wxDefaultPosition, wxSize(50,-1), 0 );
-    item40->Add( item41, 0, wxALIGN_CENTER, 0 );
+    wxBoxSizer *item41 = new wxBoxSizer( wxVERTICAL );
 
-    wxButton *item42 = new wxButton( parent, ID_BUTTON_ERASE_ALL_LINES, _("Erase All Lines"), wxDefaultPosition, wxDefaultSize, 0 );
-    item40->Add( item42, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxButton *item42 = new wxButton( parent, ID_BUTTON_GO, _("Go"), wxDefaultPosition, wxSize(50,-1), 0 );
+    item41->Add( item42, 0, wxALIGN_CENTER, 0 );
 
-    item37->Add( item40, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item43 = new wxButton( parent, ID_BUTTON_ERASE_ALL_LINES, _("Erase All Lines"), wxDefaultPosition, wxDefaultSize, 0 );
+    item41->Add( item43, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item37->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item38->Add( item41, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item43 = new wxStaticText( parent, ID_TEXT, _("Old searches:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item37->Add( item43, 0, wxALIGN_CENTER|wxALL, 5 );
+    item38->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxString strs44[] = 
+    wxStaticText *item44 = new wxStaticText( parent, ID_TEXT, _("Old searches:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->Add( item44, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxString strs45[] = 
     {
         wxT("")
     };
-    wxComboBox *item44 = new wxComboBox( parent, ID_COMBO_OLD_SEARCHES, wxT(""), wxDefaultPosition, wxSize(160,-1), 1, strs44, wxCB_DROPDOWN|wxCB_READONLY );
-    item44->SetToolTip( _("Click to add the line to the search box") );
-    item37->Add( item44, 1, wxALIGN_CENTER|wxALL, 5 );
+    wxComboBox *item45 = new wxComboBox( parent, ID_COMBO_OLD_SEARCHES, wxT(""), wxDefaultPosition, wxSize(160,-1), 1, strs45, wxCB_DROPDOWN|wxCB_READONLY );
+    item45->SetToolTip( _("Click to add the line to the search box") );
+    item38->Add( item45, 1, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item37, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item2->Add( item38, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -4356,9 +4363,9 @@ wxWindow *item6 = item7;
 
     item18->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item2->Add( item18, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item2->Add( item18, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
 
-    item1->Add( item2, 1, wxGROW|wxALL, 5 );
+    item1->Add( item2, 1, wxGROW|wxLEFT|wxRIGHT, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -11139,36 +11146,45 @@ wxSizer *ServDisc_KBserversDlg( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_TOPMSG, _("The list box displays the URLs (Universal Resource Locators) of the currently running KBservers.  You can connect to a KBserver using only one of these URLs. The KBserver at the chosen URL must contain the knowledge base defined by the source and target text language codes for your translation project.  If you try to connect using the wrong URL, the connection will not succeed and you will see an error mesage.  Nothing bad will happen if your attempt fails. Just try again, and choose a different URL.  Remember, each URL is the address of a different KBserver, and each KBserver will have its own password.  You will need to know the correct password associated with the URL you try to connect with."), wxDefaultPosition, wxSize(80,120), wxTE_MULTILINE|wxTE_READONLY );
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_MAIN, _("Click the URL of the  KBserver you wish to connect to, then click OK"), wxDefaultPosition, wxSize(560,-1), wxTE_READONLY );
-    item3->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
-    item1->Add( item3, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_TOPMSG, _("Universal Resource Locators (URLs) of the currently running KBservers"), wxDefaultPosition, wxSize(450,-1), wxTE_READONLY );
+    item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxString *strs4 = (wxString*) NULL;
-    wxListBox *item4 = new wxListBox( parent, ID_LISTBOX_URLS, wxDefaultPosition, wxSize(600,108), 0, strs4, wxLB_SINGLE );
-    item1->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+    item2->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Click OK to cause the KBserver located at the selected URL be the one you connect to.    If you click Cancel, it cancels your whole attempt to connect to any KBserver. But you can then setup your project for KB sharing a second time, and again try to connect to the correct KBserver."), wxDefaultPosition, wxSize(80,70), wxTE_MULTILINE|wxTE_READONLY );
-    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item4 = new wxButton( parent, ID_BUTTON_MORE_INFORMATION, _("More Information"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item6->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_MAIN, _("Click the URL of the  KBserver you wish to connect to, then click OK"), wxDefaultPosition, wxSize(560,-1), wxTE_READONLY );
+    item5->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
+    item1->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxButton *item7 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->SetDefault();
-    item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxString *strs6 = (wxString*) NULL;
+    wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_URLS, wxDefaultPosition, wxSize(600,108), 0, strs6, wxLB_SINGLE );
+    item1->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item6->Add( 160, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Click OK to cause the KBserver located at the selected URL be the one you connect to.    If you click Cancel, it cancels your whole attempt to connect to any KBserver. But you can then setup your project for KB sharing a second time, and again try to connect to the correct KBserver."), wxDefaultPosition, wxSize(80,70), wxTE_MULTILINE|wxTE_READONLY );
+    item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxButton *item8 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
-    item6->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item8->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item9 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetDefault();
+    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item8->Add( 160, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item10 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item8->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item8, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

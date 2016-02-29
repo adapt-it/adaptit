@@ -107,6 +107,7 @@
 #include "Adapt_It.h"
 
 extern CAdapt_ItApp* gpApp;
+CServiceDiscovery* gpServiceDiscovery; // wxServDisc's creator needs the value we place here
 
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)
 	EVT_COMMAND (wxID_ANY, wxServDiscHALTING, CServiceDiscovery::onSDHalting)
@@ -161,9 +162,11 @@ CServiceDiscovery::CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
     // wxServDisc creator is: wxServDisc::wxServDisc(void* p, const wxString& what, int
     // type) where p is pointer to the parent class & what is the service to scan for, its
     // type is QTYPE_PTR
-	m_pSD = new wxServDisc(this, m_servicestring, QTYPE_PTR);
-	wxUnusedVar(m_pSD);
-	wxLogDebug(_T("wxServDisc %p: just now instantiated in CServiceDiscovery creator"), m_pSD);
+	m_pWxSD = new wxServDisc(this, m_servicestring, QTYPE_PTR);
+	wxUnusedVar(m_pWxSD);
+	wxLogDebug(_T("wxServDisc %p: just now instantiated in CServiceDiscovery creator"), m_pWxSD);
+
+	gpServiceDiscovery = this; // wxServDisc creator needs this
 }
 
 // This function in Beier's solution was an even handler called onSDNotify(), but in my
@@ -195,12 +198,17 @@ void CServiceDiscovery::GetResults()
 	}
 	// Allow only the first call of this
 	m_postNotifyCount++;  // set to 0 in the CServicDiscovery constructor
-	if (m_postNotifyCount > 1)
+	/* 
+	// BEW 24Feb16 at this point in time I'll not try to limit it (to say, 10 post_notify() calls, 
+	// but if issues arise, uncomment out this and put whatever limit is wanted - remember, that
+	// some calls may be refinding one already found, so don't assume each discovery is to a 
+	// different KBserver
+	if (m_postNotifyCount > 10)
 	{
 		return;
 	}
-
-	if (m_pSD != NULL)
+	*/
+	if (m_pWxSD != NULL)
 	{
 		m_hostname.Empty();
 		m_addr.Empty();
@@ -217,12 +225,12 @@ void CServiceDiscovery::GetResults()
         // CFrameInstance.
 
 		// length of query plus leading dot
-		size_t qlen = m_pSD->getQuery().Len() + 1;
+		size_t qlen = m_pWxSD->getQuery().Len() + 1;
 #if defined(_DEBUG)
-		wxString theQuery = m_pSD->getQuery(); // temp, to see what's in it
-		wxLogDebug(_T("wxServDisc %p:  BEW theQuery:  %s  Its Length plus 1: %d"), m_pSD, theQuery.c_str(), (int)qlen);
+		wxString theQuery = m_pWxSD->getQuery(); // temp, to see what's in it
+		wxLogDebug(_T("wxServDisc %p:  BEW theQuery:  %s  Its Length plus 1: %d"), m_pWxSD, theQuery.c_str(), (int)qlen);
 #endif
-		vector<wxSDEntry> entries = m_pSD->getResults();
+		vector<wxSDEntry> entries = m_pWxSD->getResults();
 		vector<wxSDEntry>::const_iterator it;
 		for (it = entries.begin(); it != entries.end(); it++)
 		{
@@ -234,14 +242,14 @@ void CServiceDiscovery::GetResults()
 			int port = it->port;
 			long time = it->time;
 			wxLogDebug(_T("wxServDisc %p: (BEW)  name: %s  Len(): %d  ip: %s  port: %d  time: %d"),
-							m_pSD, aName.c_str(), nameLen, ip.c_str(), port, time);
+							m_pWxSD, aName.c_str(), nameLen, ip.c_str(), port, time);
 #endif
 			// what's really wanted - just the bit before the first ._ sequence
 			entry_count++;
 #if defined(_DEBUG)
 			wxString astring = it->name.Mid(0, it->name.Len() - qlen);
 			wxLogDebug(_T("wxServDisc %p:  m_sd_servicenames receives servicename:  %s   for entry index = %d"), 
-							m_pSD, astring.c_str(), entry_count - 1);
+							m_pWxSD, astring.c_str(), entry_count - 1);
 #endif
 			m_sd_servicenames.Add(it->name.Mid(0, it->name.Len() - qlen));
 
@@ -259,7 +267,7 @@ void CServiceDiscovery::GetResults()
 		bool bThrowAwayDuplicateIPaddr = FALSE;
 		for (i = 0; i < entry_count; i++)
 		{
-			wxServDisc namescan(0, m_pSD->getResults().at(i).name, QTYPE_SRV);
+			wxServDisc namescan(0, m_pWxSD->getResults().at(i).name, QTYPE_SRV);
 
 			bThrowAwayDuplicateIPaddr = FALSE; // initialize for every iteration
 			//timeout = 3000;
@@ -273,14 +281,14 @@ void CServiceDiscovery::GetResults()
 			}
 			if(timeout <= 0)
 			{
-				wxLogError(_T("wxServDisc %p:  Timeout looking up hostname. Entry index: %d"), m_pSD, i);
+				wxLogError(_T("wxServDisc %p:  Timeout looking up hostname. Entry index: %d"), m_pWxSD, i);
 				m_hostname = m_addr = m_port = wxEmptyString;
 				m_bArr_HostnameLookupFailed.Add(1); // adding TRUE
 				m_bArr_IPaddrLookupFailed.Add(-1); // undefined, addrscan() for this index is not tried
 				m_bArr_DuplicateIPaddr.Add(-1); // undefined, whether a duplicate ipaddr is untried
 #if defined(_DEBUG)
 				wxLogDebug(_T("wxServDisc %p:  Found: [Service: %s ] but timed out:  m_hostname:  %s   m_port  %s   for entry index = %d"),
-				m_pSD, m_sd_servicenames.Item(i).c_str(), m_hostname.c_str(), m_port.c_str(), i);
+				m_pWxSD, m_sd_servicenames.Item(i).c_str(), m_hostname.c_str(), m_port.c_str(), i);
 #endif
 				//return;
 				continue; // don't return, we need to try every iteration
@@ -293,7 +301,7 @@ void CServiceDiscovery::GetResults()
 				m_bArr_HostnameLookupFailed.Add(0); // adding FALSE, the lookup succeeded
 #if defined(_DEBUG)
 				wxLogDebug(_T("wxServDisc %p:  Found: [Service: %s ] Looked up:  m_hostname:  %s   m_port  %s   for entry index = %d"),
-				m_pSD, m_sd_servicenames.Item(i).c_str(), m_hostname.c_str(), m_port.c_str(), i);
+				m_pWxSD, m_sd_servicenames.Item(i).c_str(), m_hostname.c_str(), m_port.c_str(), i);
 #endif
 				// For each successful namescan(), we must do an addrscan, so as to fill
 				// out the full info needed for constructing a URL; if the namescan was
@@ -317,7 +325,7 @@ void CServiceDiscovery::GetResults()
 						m_bArr_DuplicateIPaddr.Add(-1); // undefined, whether a duplicate ipaddr is untried
 #if defined(_DEBUG)
 						wxLogDebug(_T("wxServDisc %p: ip Not Found: [Service: %s ] Timed out:  ip addr:  %s  for entry index = %d"),
-						m_pSD, m_sd_servicenames.Item(i).c_str(), m_addr.c_str(), i);
+						m_pWxSD, m_sd_servicenames.Item(i).c_str(), m_addr.c_str(), i);
 #endif
 						//return;
 						continue; // do all iterations
@@ -338,7 +346,7 @@ void CServiceDiscovery::GetResults()
 							m_bArr_DuplicateIPaddr.Add(0); // it's not a duplicate
 #if defined(_DEBUG)
 							wxLogDebug(_T("wxServDisc %p: Found: [Service:  %s  ] Looked up:  ip addr:  %s   for entry index = %d"),
-							m_pSD, m_sd_servicenames.Item(i).c_str(), m_addr.c_str(), i);
+							m_pWxSD, m_sd_servicenames.Item(i).c_str(), m_addr.c_str(), i);
 #endif
 						}
 						else
@@ -372,7 +380,7 @@ void CServiceDiscovery::GetResults()
 				m_urlsArr.Add(protocol + m_addr);
 #if defined(_DEBUG)
 				wxLogDebug(_T("wxServDisc %p:  Found: [Service: %s ] Constructed URL:  %s  for entry index = %d"),
-				m_pSD, m_sd_servicenames.Item(i).c_str(), (protocol + m_addr).c_str(), i);
+				m_pWxSD, m_sd_servicenames.Item(i).c_str(), (protocol + m_addr).c_str(), i);
 #endif
 			}
 			else
@@ -407,26 +415,27 @@ void CServiceDiscovery::GetResults()
 			aLine += intStr + colon;
 			wxItoa(m_bArr_DuplicateIPaddr.Item((size_t)i), intStr);
 			aLine += intStr;
-			m_pApp->m_servDiscResults.Add(aLine); // BEW 4Jan16
+			m_localDiscResultsArr.Add(aLine); // BEW 25Feb16 changed so that they are stored in CServiceDiscovery
+											  // instance which will later send them to app's m_servDiscResults array
 		}
 #if defined(_DEBUG)
 		wxLogDebug(_T("wxServDisc %p:  Finished storing constructed URLs in m_pApp->m_pServDiscResults  ******"));
 #endif
 
-	} // end of TRUE block for test: if (m_pSD != NULL)
+	} // end of TRUE block for test: if (m_pWxSD != NULL)
 	else
 	{
 		// major error, but the program counter has never entered here, so
 		// just log it if it happens
-		gpApp->LogUserAction(_T("GetResults():unexpected error: ptr to wxServDisc instance, m_pSD, is NULL"));
-		wxLogDebug(_T("ServiceDiscovery::GetResults() (m_pSD != NULL) test:  was FALSE, m_pSD =  %p"), m_pSD);
+		gpApp->LogUserAction(_T("GetResults():unexpected error: ptr to wxServDisc instance, m_pWxSD, is NULL"));
+		wxLogDebug(_T("ServiceDiscovery::GetResults() (m_pWxSD != NULL) test:  was FALSE, m_pWxSD =  %p"), m_pWxSD);
 		return;
 	}
 
 	// App's DoServiceDiscovery() function can exit from WaitTimeout(), awakening main
 	// thread and it's event handling etc, so do Signal() to make this happen
 	wxLogDebug(_T("wxServDisc %p:  At end of CServiceDiscovery::GetResults() m_pMutex  =  %p"), 
-				m_pSD, m_pMutex);
+				m_pWxSD, m_pMutex);
 	if (gpApp->m_bResultsAccessedOnce == FALSE)
 	{
         // This is the first access by one of the possibly several post_notify() calls made
@@ -454,6 +463,10 @@ void CServiceDiscovery::GetResults()
 		wxMutexLocker locker(*m_pMutex); // make sure it is locked
 		bool bIsOK = locker.IsOk(); // check the locker object successfully acquired the lock
 		wxUnusedVar(bIsOK);
+
+		// BEW 23Feb16 commenting it out, so that more than one KBserver can be handled
+		// and the main thread will rely on WaitTimeout() to timeout instead, to awaken
+		/*
 		wxCondError condError = m_pCondition->Signal(); // tell main thread to awaken
 				// The WaitTimeout(value) will pass in the value (default 8000) from the
 				// basic config file, but the user can manually put a different value there,
@@ -487,8 +500,9 @@ void CServiceDiscovery::GetResults()
 			myError = cond3;
 		}
 		wxLogDebug(_T("wxServDisc %p: ServiceDiscovery::GetResults() error condition for Signal() call: %s   locker.IsOk() returns %s"), 
-			m_pSD, myError.c_str(), bIsOK ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
+			m_pWxSD, myError.c_str(), bIsOK ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
 #endif
+		*/
 	}
 	else
 	{
@@ -507,10 +521,10 @@ void CServiceDiscovery::GetResults()
 #else
     wxQueueEvent(this, event.Clone());
 #endif
-    wxLogDebug(_T("wxServDisc %p: BEW: GetResults(), block finished. Now have posted event wxServDiscHALTING."), m_pSD);
+    wxLogDebug(_T("wxServDisc %p: BEW: GetResults(), block finished. Now have posted event wxServDiscHALTING."), m_pWxSD);
 	}
 
-	wxLogDebug(wxT("wxServDisc %p: BEW: A KBserver was found. GetResults() is exiting, wxServDiscHALTING has been posted"), m_pSD);
+	wxLogDebug(wxT("wxServDisc %p: BEW: A KBserver was found. GetResults() is exiting, wxServDiscHALTING has been posted"), m_pWxSD);
 }
 
 // BEW Getting the module shut down in the two circumstances we need:
@@ -539,15 +553,16 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	// posted a wxServDiscNOTIFY event to get the lookup and reporting done for
 	// the discovered service(s) (there could be 2 or more KBserver instances running
 	// so more than one could be discovered)
-	wxLogDebug(_T("wxServDisc %p:  this [from CServiceDiscovery:onSDHalting()] = %p"), m_pSD, this);
-	wxLogDebug(_T("wxServDisc %p:  m_pParent [from CServiceDiscovery:onSDHalting()] = %p"), m_pSD, m_pParent);
+	wxLogDebug(_T("wxServDisc %p:  this [from CServiceDiscovery:onSDHalting()] = %p"), m_pWxSD, this);
+	wxLogDebug(_T("wxServDisc %p:  m_pParent [from CServiceDiscovery:onSDHalting()] = %p"), m_pWxSD, m_pParent);
 
 	m_bWxServDiscIsRunning = FALSE;
 	wxLogDebug(_T("wxServDisc %p:  Starting CServiceDiscovery:onSDHalting(): m_bWxServDiscIsRunning initialized to FALSE"),
-				m_pSD);
+				m_pWxSD);
 
     // It's not necessary to clear the following, the destructor would do it,
     // but no harm in it
+	/*
 	m_sd_servicenames.Clear();
 	m_uniqueIpAddresses.Clear();
 	m_urlsArr.Clear();
@@ -556,6 +571,7 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	m_bArr_HostnameLookupFailed.Clear();
 	m_bArr_IPaddrLookupFailed.Clear();
 	m_bArr_DuplicateIPaddr.Clear();
+	*/
 
     // BEW: Post the custom wxServDiscHALTING event here, for the parent class to
     // supply the handler needed for destroying this CServiceDiscovery instance
@@ -568,9 +584,9 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	wxQueueEvent((CAdapt_ItApp*)m_pParent, upevent.Clone());
 #endif
 	wxLogDebug(_T("wxServDisc %p:  [from CServiceDiscovery:onSDHalting()] AFTER posting wxServDiscHALTING event, this = %p, m_pParent (the app) = %p"), 
-			m_pSD, this, m_pParent);
+			m_pWxSD, this, m_pParent);
 
-	delete m_pSD; // must have this, it gets ~wxServDisc() destructor called
+	delete m_pWxSD; // must have this, it gets ~wxServDisc() destructor called
 }
 
 CServiceDiscovery::~CServiceDiscovery()

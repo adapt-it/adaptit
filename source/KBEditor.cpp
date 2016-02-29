@@ -117,7 +117,6 @@ BEGIN_EVENT_TABLE(CKBEditor, AIModalDialog)
 	EVT_LISTBOX(IDC_LIST_SRC_KEYS, CKBEditor::OnSelchangeListSrcKeys)
 	EVT_LISTBOX(IDC_LIST_EXISTING_TRANSLATIONS, CKBEditor::OnSelchangeListExistingTranslations)
 	EVT_LISTBOX_DCLICK(IDC_LIST_EXISTING_TRANSLATIONS, CKBEditor::OnDblclkListExistingTranslations)
-	EVT_TEXT(IDC_EDIT_SRC_KEY, CKBEditor::OnUpdateEditSrcKey)
 	EVT_TEXT(IDC_EDIT_EDITORADD, CKBEditor::OnUpdateEditOrAdd)
 	EVT_BUTTON(IDC_BUTTON_UPDATE, CKBEditor::OnButtonUpdate)
 	EVT_BUTTON(IDC_BUTTON_ADD, CKBEditor::OnButtonAdd)
@@ -130,6 +129,7 @@ BEGIN_EVENT_TABLE(CKBEditor, AIModalDialog)
 
 	EVT_BUTTON(ID_BUTTON_GO, CKBEditor::OnButtonGo)
 	EVT_BUTTON(ID_BUTTON_ERASE_ALL_LINES, CKBEditor::OnButtonEraseAllLines)
+	EVT_BUTTON(ID_BUTTON_SRC_FIND_GO, CKBEditor::OnButtonSourceFindGo)
 	EVT_COMBOBOX(ID_COMBO_OLD_SEARCHES, CKBEditor::OnComboItemSelected)
 END_EVENT_TABLE()
 
@@ -447,16 +447,14 @@ void CKBEditor::OnDblclkListExistingTranslations(wxCommandEvent& event)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxCommandEvent that is generated when the contents of the
-///                         KB Dialog Editor's "Type Key To Be Found" edit box changes
+/// \param      event   -> the wxCommandEvent that is generated when the button
+///						   ID_BUTTON_SRC_FIND_GO is clicked
 /// \remarks
-/// Called from: The wxCommandEvent mechanism when the contents of the KB Dialog Editor's
-/// "Type Key To Be Found" edit box changes. If the edit box is empty the handler returns
-/// immediately. If the string typed into the edit box is found the that found item is
-/// selected in the list and this handler calls OnSelchangeListSrcKeys(). If the string
-/// typed so far is not found as a substring of a list item, a beep is emitted.
+/// Called from: The wxCommandEvent mechanism. If the edit box is empty the handler returns
+/// immediately. If the string typed into the edit box is found then that found item is
+/// selected in the list and this handler calls OnSelchangeListSrcKeys().
 /////////////////////////////////////////////////////////////////////////////////////////
-void CKBEditor::OnUpdateEditSrcKey(wxCommandEvent& event)
+void CKBEditor::OnButtonSourceFindGo(wxCommandEvent& event)
 {
 	// assuming that another char was typed, find the nearest matching key in the list
 	m_srcKeyStr = m_pTypeSourceBox->GetValue(); // this is what user has typed into edit box
