@@ -104,9 +104,9 @@
 // errors disappeared from here
 #include <wx/msw/winundef.h>
 #endif
-#include "Adapt_It.h"
+//#include "Adapt_It.h"
 
-extern CAdapt_ItApp* gpApp;
+//extern CAdapt_ItApp* gpApp;
 CServiceDiscovery* gpServiceDiscovery; // wxServDisc's creator needs the value we place here
 
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)
@@ -561,7 +561,7 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 				m_pWxSD);
 
     // It's not necessary to clear the following, the destructor would do it,
-    // but no harm in it
+    // but no harm in it I think
 	/*
 	m_sd_servicenames.Clear();
 	m_uniqueIpAddresses.Clear();
