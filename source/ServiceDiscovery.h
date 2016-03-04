@@ -60,10 +60,9 @@
 
 #if defined(_KBSERVER)
 
-//class ServDisc;
 class wxServDisc;
 class wxThread;
-//class CAdapt_ItApp; // BEW 4Jan16 commented out 19Feb16
+class CAdapt_ItApp; // BEW 4Jan16 
 
 class CServiceDiscovery : public wxEvtHandler
 {
@@ -71,14 +70,14 @@ class CServiceDiscovery : public wxEvtHandler
 public:
 	CServiceDiscovery();
 	CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
-					wxString servicestring, CAdapt_ItApp* pParentClass); // <<- replacement solution (noservdisc branch)
+					wxString servicestring, CAdapt_ItApp* pParentClass);
 	virtual ~CServiceDiscovery();
 
 	wxString m_servicestring; // service to be scanned for
 	CAdapt_ItApp* m_pApp;
 
 	wxServDisc* m_pWxSD; // main service scanner (a child class of this one)
-	//CAdapt_ItApp* m_pParent; // BEW 4Jan16
+	CAdapt_ItApp* m_pParent; // BEW 4Jan16
 	bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this set in onSDHalting
 								 // informing CServiceDiscovery instance that we are done
 	int	m_postNotifyCount;  // count the number of Post_Notify() call attempts

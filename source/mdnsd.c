@@ -1,3 +1,5 @@
+#pragma once
+
 #include "mdnsd.h"
 #include <string.h>
 #include <stdlib.h>

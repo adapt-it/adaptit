@@ -83,15 +83,32 @@
 
 #endif
 
-//#pragma comment (lib, "Mswsock.lib")
+// The following are copied from 1035.h lines 26-28, as they are needed here (trying to avoid 
+// an #include "mdnsd.h line here, because that leads to winsock.h name collisions with winsock2.h")
+#define QTYPE_A 1
+#define QTYPE_PTR 12
+#define QTYPE_SRV 33
+// and a copy of the definition of mdnsa, from mdnsd.h, for the same reason
+typedef struct mdnsda_struct
+{
+	unsigned char *name;
+	unsigned short int type;
+	unsigned long int ttl;
+	unsigned short int rdlen;
+	unsigned char *rdata;
+	unsigned long int ip; // A
+	unsigned char *rdname; // NS/CNAME/PTR/SRV
+	struct { unsigned short int priority, weight, port; } srv; // SRV
+} *mdnsda;
 
 #include <vector>
-#define _WINSOCKAPI_ // keeps winsock.h from being included in <Windows.h>, it's here just in case
-#define _WINSOCK2API_
-
 #define WIN32_LEAN_AND_MEAN // does the same job as above, likewise here just in case
-#include "ServiceDiscovery.h"
+#define _WINSOCKAPI_ // keeps winsock.h from being included in <Windows.h>, it's here just in case
+//#include "winsock2.h"
+
+
 #include "wxServDisc.h"
+#include "ServiceDiscovery.h"
 #include "helpers.h"
 
 
@@ -104,9 +121,9 @@
 // errors disappeared from here
 #include <wx/msw/winundef.h>
 #endif
-//#include "Adapt_It.h"
+#include "Adapt_It.h"
 
-//extern CAdapt_ItApp* gpApp;
+extern CAdapt_ItApp* gpApp;
 CServiceDiscovery* gpServiceDiscovery; // wxServDisc's creator needs the value we place here
 
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)

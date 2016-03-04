@@ -6,12 +6,6 @@ extern "C"
 #ifndef mdnsd_h
 #define mdnsd_h
 #include "1035.h"
-#ifdef WIN32
-#include <time.h>
-#else
-#include <sys/time.h>
-#include <arpa/inet.h>
-#endif
 
 #ifdef WIN32
 #define _WINSOCK_DEPRECATED_NO_WARNINGS   /* allow the old inet_addr() call at lien 521 of mdnsd.c */
@@ -21,12 +15,19 @@ extern "C"
 // this is supposed to do the same job
 #define WIN32_LEAN_AND_MEAN
 
+#ifdef WIN32
+#include <time.h>
+#else
+#include <sys/time.h>
+#include <arpa/inet.h>
+#endif
+
 #include <winsock2.h> // this puts the timeval struct within scope, to avoid c4115 warning
-	struct timezone {
-		int tz_minuteswest;     /* minutes west of Greenwich */
-		int tz_dsttime;         /* type of DST correction */
-	}; // ditto, need a definition which is in scope - winsock2.h does not have it
-	//Do our own implementation, from code on the web
+struct timezone {
+	int tz_minuteswest;     /* minutes west of Greenwich */
+	int tz_dsttime;         /* type of DST correction */
+}; // ditto, need a definition which is in scope - winsock2.h does not have it
+//Do our own implementation, from code on the web
 int gettimeofday(struct timeval * tp, struct timezone * tzp);
 #endif
 

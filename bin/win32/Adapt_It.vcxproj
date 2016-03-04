@@ -387,7 +387,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswud;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;$(ProgramFiles)\Visual Leak Detector\include;C:\curl\include\curl;C:\adaptit-git\bin\win32\lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswud;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;$(ProgramFiles)\Visual Leak Detector\include;C:\adaptit-git\bin\win32\lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;_KBSERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader />
@@ -407,10 +407,10 @@ echo Building using wxWidgets version at: %25WXWIN%25
       <Command />
     </PreLinkEvent>
     <Link>
-      <AdditionalDependencies>wxmsw$(WXVER)ud_aui.lib;wxmsw$(WXVER)ud_adv.lib;wxmsw$(WXVER)ud_html.lib;wxmsw$(WXVER)ud_core.lib;wxbase$(WXVER)ud.lib;wxtiffd.lib;wxjpegd.lib;wxpngd.lib;wxzlibd.lib;wxregexud.lib;wxexpatd.lib;winmm.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;oleacc.lib;odbc32.lib;wldap32.lib;libcurl.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wxmsw$(WXVER)ud_aui.lib;wxmsw$(WXVER)ud_adv.lib;wxmsw$(WXVER)ud_html.lib;wxmsw$(WXVER)ud_core.lib;wxbase$(WXVER)ud.lib;wxtiffd.lib;wxjpegd.lib;wxpngd.lib;wxzlibd.lib;wxregexud.lib;wxexpatd.lib;winmm.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;oleacc.lib;odbc32.lib;wldap32.lib;libcurld.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)_Unicode.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;..\..\source\;$(LIBCURL)\lib\Debug;$(OPENSSL)\lib;$(ProgramFiles)\Visual Leak Detector\lib\Win32;C:\adaptit-git\bin\win32\lib\silconverters;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;..\..\source\;$(LIBCURL)\lib\Debug;$(OPENSSL)\lib;$(ProgramFiles)\Visual Leak Detector\lib\Win32;C:\adaptit-git\bin\win32\lib\silconverters;$(CURL_LIB)\Win32\VC14\LIB Debug - LIB OpenSSL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -517,7 +517,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswu;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;C:\adaptit-git\bin\win32\lib\silconverters;C:\curl\include\curl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CURL_LIB)\Win32\VC14;$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswu;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;C:\adaptit-git\bin\win32\lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;_KBSERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
@@ -538,7 +538,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
       <ShowProgress>NotSet</ShowProgress>
       <OutputFile>$(OutDir)$(ProjectName)_Unicode.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;$(LIBCURL)\lib\Release;$(OPENSSL)\lib;lib\silconverters;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;$(LIBCURL)\include;$(OPENSSL)\lib;lib\silconverters;$(CURL_LIB)\Win32\VC14\LIB Release - LIB OpenSSL;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>

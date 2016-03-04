@@ -35,8 +35,13 @@
 namespace std {}
 using namespace std;
 
-#include <vector>
+// the next is supposed to prevent winsock.h being included in <windows.h>
+#define _WINSOCKAPI_
+// this is supposed to do the same job
+#define WIN32_LEAN_AND_MEAN
 
+#include <vector>
+/*
 // all the nice socket includes in one place here (I changed _WIN32 to WIN32)
 #ifdef WIN32
 
@@ -45,7 +50,7 @@ using namespace std;
 // this is supposed to do the same job
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#define _WINSOCK_DEPRECATED_NO_WARNINGS   /* allow the old inet_addr() call in implementation file */
+#define _WINSOCK_DEPRECATED_NO_WARNINGS   // allow the old inet_addr() call in implementation file
 // mingw/ visual studio socket includes
 #define SHUT_RDWR SD_BOTH
 
@@ -67,9 +72,12 @@ typedef int SOCKET;       // under windows, SOCKET is unsigned
 #include <netdb.h>
 
 #endif // WIN32
-
+*/
+/*
 #include "1035.h"
 #include "mdnsd.h"
+*/
+//#include <wx\event.h>
 
 // Forward declaration
 class CServiceDiscovery;

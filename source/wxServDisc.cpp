@@ -69,6 +69,39 @@
 
 #endif
 
+#ifdef WIN32
+
+// the next is supposed to prevent winsock.h being included in <windows.h>
+#define WIN32_LEAN_AND_MEAN
+#define _WINSOCKAPI_
+
+#define NOMINMAX
+#define _WINSOCK_DEPRECATED_NO_WARNINGS   // allow the old inet_addr() call in implementation file
+// mingw/ visual studio socket includes
+#define SHUT_RDWR SD_BOTH
+
+#include <winsock2.h>
+#include <ws2tcpip.h>
+// BEW requires the next one
+#include <wx/dynarray.h>
+
+#else // proper UNIX
+
+typedef int SOCKET;       // under windows, SOCKET is unsigned
+#define INVALID_SOCKET -1 // so there also is no -1 return value
+#define closesocket(s) close(s) // under windows, it's called closesocket
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/un.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
+#endif // WIN32
+
+#include "1035.h"
+#include "mdnsd.h"
+
 #include "wxServDisc.h"
 #include "ServiceDiscovery.h"
 
