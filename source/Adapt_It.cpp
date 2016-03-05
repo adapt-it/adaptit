@@ -102,7 +102,7 @@
 #endif
 
 // libcurl
-#include <curl\curl.h>
+#include <curl/curl.h>
 
 // vectorized bitmaps
 #include "../res/vectorized/document_new_16.cpp"
