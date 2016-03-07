@@ -44,7 +44,7 @@
 // can delete the CServiceDiscovery instance- eventually, in OnIdle() - I've documented
 // why there in the code for CServiceDiscovery. Since we use a mutex and condition in our
 // solution, the Signal() call which ends the main thread's sleep must be given before the
-// cleanup event handling does its work, and *after* any results have been stored in the 
+// cleanup event handling does its work, and *after* any results have been stored in the
 // app's m_servDiscResults wxArrayString
 
 // For compilers that support precompilation, includes "wx.h".
@@ -87,7 +87,6 @@
 
 #else // proper UNIX
 
-typedef int SOCKET;       // under windows, SOCKET is unsigned
 #define INVALID_SOCKET -1 // so there also is no -1 return value
 #define closesocket(s) close(s) // under windows, it's called closesocket
 #include <sys/socket.h>
@@ -209,7 +208,7 @@ void wxServDisc::DiscoverResults(CServiceDiscovery* pReportTo)
 }
 
 void wxServDisc::post_notify()
-{	
+{
 
 	// BEW Tell the running wxServDisc thread that GetResults() was invoked
 	// BEW - the nonEvent approach follows...
@@ -222,7 +221,7 @@ void wxServDisc::post_notify()
 
 		//wxCommandEvent dummy;
 		//((CServiceDiscovery*)parent)->onSDNotify(dummy);
-			
+
 		((CServiceDiscovery*)parent)->GetResults();
 	}
 
@@ -231,7 +230,7 @@ void wxServDisc::post_notify()
   if(parent)
     {
  	  wxLogDebug(_T("wxServDisc %p:  post_notify():  posting event"), this); // BEW added this call
-		
+
 		// new NOTIFY event, we got no window id
       wxCommandEvent event(wxServDiscNOTIFY, wxID_ANY);
       event.SetEventObject(this); // set sender
@@ -293,7 +292,7 @@ wxThread::ExitCode wxServDisc::Entry()
 
       long msecs = tv->tv_sec == 0 ? 100 : tv->tv_sec*1000; // so that the while loop beneath gets executed once
       wxLogDebug(wxT("wxServDisc %p: scanthread waiting for data, timeout %i seconds"), this, (int)tv->tv_sec);
-	  
+
 	  // BEW addition. If there is no KBserver multicasting, this loop behaves poorly.
 	  // It does a few quick iterations, and then suddenly msecs jumps to 86221000 microsecs,
 	  // and so it's timeout loop runs for a minute and a half (maybe, but it times out
@@ -325,7 +324,7 @@ wxThread::ExitCode wxServDisc::Entry()
 		  break;  // clean up and shut down the module
 	  }
 	  // end BEW addition
-	  
+
 	  // we split the one select() call into several ones every 100ms
       // to be able to catch TestDestroy()...
       int datatoread = 0;
@@ -393,7 +392,7 @@ wxThread::ExitCode wxServDisc::Entry()
   // it will be done from the end of that function if it gets called; otherwise,
   // when m_bGetResultsStart is FALSE still here, then no running KBserver was
   // discovered and we then should do it here. But to get event handling to happen,
-  // the main thread needs to be awakened, so Signal() is to be called so that 
+  // the main thread needs to be awakened, so Signal() is to be called so that
   // waiting finishes - so we do that before we post the halting event
   wxLogDebug(_T("wxServDisc %p: wxServDisc::Entry(): m_bGetResultsStarted is %s "), this,
 	  m_bGetResultsStarted ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
@@ -529,7 +528,7 @@ int wxServDisc::ans(mdnsda a, void *arg)
   }
 
   moi->post_notify();
-  
+
   wxLogDebug(wxT("wxServDisc %p: got answer:"), moi);
   wxLogDebug(wxT("wxServDisc %p:    key:  %s"), moi, key.c_str());
   wxLogDebug(wxT("wxServDisc %p:    ttl:  %i"), moi, (int)a->ttl);

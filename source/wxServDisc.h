@@ -1,25 +1,25 @@
-// -*- C++ -*- 
-/* 
+// -*- C++ -*-
+/*
    wxServDisc.h: wxServDisc API definition
 
    This file is part of wxServDisc, a crossplatform wxWidgets
    Zeroconf service discovery module.
- 
+
    Copyright (C) 2008 Christian Beier <dontmind@freeshell.org>
- 
-   wxServDisc is free software; you can redistribute it and/or modify 
-   it under the terms of the GNU General Public License as published by 
-   the Free Software Foundation; either version 2 of the License, or 
-   (at your option) any later version. 
- 
-   wxServDisc is distributed in the hope that it will be useful, 
-   but WITHOUT ANY WARRANTY; without even the implied warranty of 
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-   GNU General Public License for more details. 
- 
-   You should have received a copy of the GNU General Public License 
-   along with this program; if not, write to the Free Software 
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. 
+
+   wxServDisc is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   wxServDisc is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 #ifndef WXSERVDISC_H
@@ -41,6 +41,14 @@ using namespace std;
 #define WIN32_LEAN_AND_MEAN
 
 #include <vector>
+
+// temporary to get it to compile (BEW 7Mar16)
+#ifdef WIN32
+typedef UINT_PTR SOCKET;
+#else
+typedef int SOCKET;
+#endif // WIN32
+
 /*
 // all the nice socket includes in one place here (I changed _WIN32 to WIN32)
 #ifdef WIN32
@@ -107,10 +115,10 @@ struct wxSDEntry
 class wxServDisc: public wxObject, public wxThreadHelper
 {
 public:
-  // type can be one of QTYPE_A, QTYPE_NS, QTYPE_CNAME, QTYPE_PTR or QTYPE_SRV 
+  // type can be one of QTYPE_A, QTYPE_NS, QTYPE_CNAME, QTYPE_PTR or QTYPE_SRV
   wxServDisc(void* p, const wxString& what, int type);
   ~wxServDisc();
- 
+
   /// Returns true if service discovery successfully started. If not, getErr() may contain a hint.
   bool isOK() const { return err.length() == 0; };
 
@@ -120,7 +128,7 @@ public:
   // and calling this new function DiscoverResults(), it needs to internally point back
   // to the parent CServiceDiscovery instance
   void DiscoverResults(CServiceDiscovery* pReportTo);
- 
+
   // yeah well...
   std::vector<wxSDEntry> getResults() const;
   size_t getResultCount() const;
@@ -133,8 +141,8 @@ public:
   // GetResults() takes longer to complete than the service discovery thread, so we can't
   // assume that initiating service discovery halting from the end of onSDNotify will
   // allow clean leak elimination - the latter crashes. So I'm using a mutex and condition
-  // approach to cause the main thread to sleep while the service discovery job is done 
-  
+  // approach to cause the main thread to sleep while the service discovery job is done
+
   // I've left this bool in the solution, but I think it no longer plays any useful function
   bool m_bGetResultsStarted;
 
@@ -143,16 +151,16 @@ private:
   wxString err;
   void *parent;
   wxString query;
-  int querytype; 
+  int querytype;
 WX_DECLARE_STRING_HASH_MAP(wxSDEntry, wxSDMap);
   wxSDMap results;
   wxStopWatch mWallClock;
-  
+
   // this runs as a separate thread
   virtual wxThread::ExitCode Entry();
 
   // create a multicast 224.0.0.251:5353 socket, windows or unix style
-  SOCKET msock(); 
+  SOCKET msock();
   // send/receive message m
   bool sendm(struct message *m, SOCKET s, unsigned long int ip, unsigned short int port);
   int  recvm(struct message *m, SOCKET s, unsigned long int *ip, unsigned short int *port);

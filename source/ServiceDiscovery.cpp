@@ -47,7 +47,7 @@
 /// conflicts with winsock.h and other Microsoft classes. To avoid this, the
 /// CServiceDiscovery serves to isolate the namespace for the service discovery
 /// code from clashes with the GUI support's namespace. So it must be retained.
-/// 
+///
 /// Also, DO NOT return GetResults() to be an event handler (formerly it was
 /// onSDNotify() for a wxServDiscNOTIFY event posted within Post_Notify())
 /// because our mutex & condition solution uses .WaitTimeout() in he app's
@@ -66,8 +66,6 @@
 #pragma hdrstop
 #endif
 
-#pragma once
-
 #if defined(_KBSERVER)
 
 // For compilers that support precompilation, includes "wx.h".
@@ -83,7 +81,7 @@
 
 #endif
 
-// The following are copied from 1035.h lines 26-28, as they are needed here (trying to avoid 
+// The following are copied from 1035.h lines 26-28, as they are needed here (trying to avoid
 // an #include "mdnsd.h line here, because that leads to winsock.h name collisions with winsock2.h")
 #define QTYPE_A 1
 #define QTYPE_PTR 12
@@ -215,10 +213,10 @@ void CServiceDiscovery::GetResults()
 	}
 	// Allow only the first call of this
 	m_postNotifyCount++;  // set to 0 in the CServicDiscovery constructor
-	/* 
-	// BEW 24Feb16 at this point in time I'll not try to limit it (to say, 10 post_notify() calls, 
+	/*
+	// BEW 24Feb16 at this point in time I'll not try to limit it (to say, 10 post_notify() calls,
 	// but if issues arise, uncomment out this and put whatever limit is wanted - remember, that
-	// some calls may be refinding one already found, so don't assume each discovery is to a 
+	// some calls may be refinding one already found, so don't assume each discovery is to a
 	// different KBserver
 	if (m_postNotifyCount > 10)
 	{
@@ -265,7 +263,7 @@ void CServiceDiscovery::GetResults()
 			entry_count++;
 #if defined(_DEBUG)
 			wxString astring = it->name.Mid(0, it->name.Len() - qlen);
-			wxLogDebug(_T("wxServDisc %p:  m_sd_servicenames receives servicename:  %s   for entry index = %d"), 
+			wxLogDebug(_T("wxServDisc %p:  m_sd_servicenames receives servicename:  %s   for entry index = %d"),
 							m_pWxSD, astring.c_str(), entry_count - 1);
 #endif
 			m_sd_servicenames.Add(it->name.Mid(0, it->name.Len() - qlen));
@@ -408,7 +406,7 @@ void CServiceDiscovery::GetResults()
 
 		} // end of loop: for (i = 0; i < entry_count; i++)
 
-		// Make the results accessible: store them as 1 or more strings in 
+		// Make the results accessible: store them as 1 or more strings in
 		// m_pApp->m_servDiscResults
 		// Generate the one (usually only one) or more lines, each corresponding to
 		// a discovery of a multicasting KBserver instance (not all lookups might
@@ -451,7 +449,7 @@ void CServiceDiscovery::GetResults()
 
 	// App's DoServiceDiscovery() function can exit from WaitTimeout(), awakening main
 	// thread and it's event handling etc, so do Signal() to make this happen
-	wxLogDebug(_T("wxServDisc %p:  At end of CServiceDiscovery::GetResults() m_pMutex  =  %p"), 
+	wxLogDebug(_T("wxServDisc %p:  At end of CServiceDiscovery::GetResults() m_pMutex  =  %p"),
 				m_pWxSD, m_pMutex);
 	if (gpApp->m_bResultsAccessedOnce == FALSE)
 	{
@@ -470,7 +468,7 @@ void CServiceDiscovery::GetResults()
         // BEW additional note: the system is lazy for class and window deletions, it
         // apparently waits for idle time to do so. An unwanted consequence is that the
         // wxServDisc instance which succeeded first in the discovery gets deleted after
-        // the parent CServiceDiscovery instance it depends on has been deleted - that 
+        // the parent CServiceDiscovery instance it depends on has been deleted - that
         // persistently led to a crash on every test. The solution was to use the halting
         // event for CServiceDiscovery to just set a boolean to TRUE, and in the OnIdle()
         // handler, check for this boolaean being TRUE, and if so, do the deletion of
@@ -516,7 +514,7 @@ void CServiceDiscovery::GetResults()
 		{
 			myError = cond3;
 		}
-		wxLogDebug(_T("wxServDisc %p: ServiceDiscovery::GetResults() error condition for Signal() call: %s   locker.IsOk() returns %s"), 
+		wxLogDebug(_T("wxServDisc %p: ServiceDiscovery::GetResults() error condition for Signal() call: %s   locker.IsOk() returns %s"),
 			m_pWxSD, myError.c_str(), bIsOK ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
 #endif
 		*/
@@ -600,7 +598,7 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 #else
 	wxQueueEvent((CAdapt_ItApp*)m_pParent, upevent.Clone());
 #endif
-	wxLogDebug(_T("wxServDisc %p:  [from CServiceDiscovery:onSDHalting()] AFTER posting wxServDiscHALTING event, this = %p, m_pParent (the app) = %p"), 
+	wxLogDebug(_T("wxServDisc %p:  [from CServiceDiscovery:onSDHalting()] AFTER posting wxServDiscHALTING event, this = %p, m_pParent (the app) = %p"),
 			m_pWxSD, this, m_pParent);
 
 	delete m_pWxSD; // must have this, it gets ~wxServDisc() destructor called
