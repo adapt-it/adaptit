@@ -106,7 +106,6 @@
 
 extern CServiceDiscovery* gpServiceDiscovery; // wxServDisc's creator needs the value we place here
 
-
 // Compatability defines
 #ifdef __APPLE__
 #ifndef IPV6_ADD_MEMBERSHIP

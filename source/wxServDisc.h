@@ -42,10 +42,14 @@ using namespace std;
 
 #include <vector>
 
+// temporary to get it to compile (BEW 7Mar16) -- it has the definition of SOCKET in it, which is needed below
+#if defined(WIN32)
+#include "WinSock2.h"
+#include <wx/msw/winundef.h>
+#endif
+
 // temporary to get it to compile (BEW 7Mar16)
-#ifdef WIN32
-typedef UINT_PTR SOCKET;
-#else
+#if !defined(WIN32)
 typedef int SOCKET;
 #endif // WIN32
 
