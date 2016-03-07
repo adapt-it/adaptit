@@ -11148,7 +11148,7 @@ wxSizer *ServDisc_KBserversDlg( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_TOPMSG, _("Universal Resource Locators (URLs) of the currently running KBservers"), wxDefaultPosition, wxSize(450,-1), wxTE_READONLY );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_TOPMSG, _("Universal Resource Locators (URLs) of the currently running KBservers"), wxDefaultPosition, wxSize(600,-1), wxTE_READONLY );
     item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -11158,12 +11158,12 @@ wxSizer *ServDisc_KBserversDlg( wxWindow *parent, bool call_fit, bool set_sizer 
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_MAIN, _("Click the URL of the  KBserver you wish to connect to, then click OK"), wxDefaultPosition, wxSize(560,-1), wxTE_READONLY );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_MAIN, _("Click the URL of the  KBserver you wish to connect to, then click OK"), wxDefaultPosition, wxSize(750,-1), wxTE_READONLY );
     item5->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
     item1->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     wxString *strs6 = (wxString*) NULL;
-    wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_URLS, wxDefaultPosition, wxSize(600,108), 0, strs6, wxLB_SINGLE );
+    wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_URLS, wxDefaultPosition, wxSize(750,108), 0, strs6, wxLB_SINGLE );
     item1->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Click OK to cause the KBserver located at the selected URL be the one you connect to.    If you click Cancel, it cancels your whole attempt to connect to any KBserver. But you can then setup your project for KB sharing a second time, and again try to connect to the correct KBserver."), wxDefaultPosition, wxSize(80,70), wxTE_MULTILINE|wxTE_READONLY );

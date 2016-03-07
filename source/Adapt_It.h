@@ -2069,19 +2069,6 @@ class CAdapt_ItApp : public wxApp
 	CServiceDiscovery*  m_pServDisc; // The top level class which manages the service 
 									 // discovery module
 	wxArrayString       m_servDiscResults; // Discovered URLS and error flags are sent here
-	bool				m_bResultsAccessedOnce; // In DoServiceDiscovery(), start of FALSE
-							// and set TRUE after Signal() is called for first time.
-							// In development, Beier's code permits the GetResults() function
-							// to be accessed simultaneously by more than one wxServDisc
-							// process, but I've changed this so that only the first
-							// instantiation of wxServDisc actually is permitted to traverse
-							// GetResults()'s  code - others I cause to exit immediately, as 
-							// they just waste time and potentially could be a nuisance.
-							// We use the TRUE value of m_bResultsAccessedOnce to have the
-							// Signal() call skipped by other wxServDisc processes - so that
-							// when CServiceDiscovery instance is deleted, which removes
-							// what Signal() tries to awaken, a still-running GetResults()
-							// function doesn't call Signal() but instead just exits and dies.
 	bool				m_bCServiceDiscoveryCanBeDeleted; // set FALSE in the creation of the
                             // CServiceDiscovery instance, set TRUE in the
                             // onServDiscHALTING event handler, and do the actual deletion

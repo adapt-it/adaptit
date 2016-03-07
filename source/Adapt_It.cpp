@@ -15377,16 +15377,6 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 {
 	wxString serviceStr = _T("_kbserver._tcp.local.");
 
-    // Start of FALSE and set TRUE after Signal() is called for first time (there can be
-    // more than one wxServDisc accessing the GetResults() function simultaneously), and
-    // use the TRUE value to have the Signal() call skipped by other processes - so that
-    // when CServiceDiscovery instance is deleted, which removes what Signal() tries to
-    // awaken, a still-running GetResults() function doesn't call Signal() but instead just
-    // exits and dies. (Subsequent to this comment, I've built a test for multiple accesses
-    // to the GetResults() function, and filtering all attempts but the first - that is,
-    // unwanted attempts are detected and the function exits immediately.)
-	m_bResultsAccessedOnce = FALSE;
-
     // GetResults() will return any discovery results in the app wxArrayString
     // m_servDiscResults as one or more lines, each of form url:int:int:int:int where url
     // potentially could be empty and the int values are 0, 1, -1 being false, true,
@@ -15448,6 +15438,18 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 
 	// When the Wait() is over, we can go on now to access the results, if any exist
 	serviceStr.Clear(); // so we don't leak its memory
+
+	if (!m_pServDisc->m_localDiscResultsArr.IsEmpty())
+	{
+		int count = m_pServDisc->m_localDiscResultsArr.GetCount();
+		int index;
+		for (index = 0; index < count; index++)
+		{
+			wxString aLine = m_pServDisc->m_localDiscResultsArr.Item(index);
+			wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() Results loop: aLine = %s"), aLine.c_str());
+			m_servDiscResults.Add(aLine);
+		}
+	}
 
 	wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() Now accessing the m_servDiscResults string array"));
 

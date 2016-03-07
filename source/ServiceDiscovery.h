@@ -86,11 +86,12 @@ public:
             // CServiceDiscovery::GetResults() code - it appears that this can otherwise be
             // running after the CServiceDiscovery instance has been deleted which could
             // lead to a crash
+	/*
 	// scratch variables, used in the loop in GetResults() handler
 	wxString m_hostname;
 	wxString m_addr;
 	wxString m_port;
-
+	*/
 	wxArrayString m_sd_servicenames;   // for servicenames, as discovered (always "kbserver")
 	wxArrayString m_uniqueIpAddresses; // for each 192.168.n.m  (we store unique ip addresses)
 
