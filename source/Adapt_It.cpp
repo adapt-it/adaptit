@@ -104,6 +104,8 @@
 // libcurl
 #include <curl\curl.h>
 
+wxMutex	kbsvr_arrays;
+
 // vectorized bitmaps
 #include "../res/vectorized/document_new_16.cpp"
 #include "../res/vectorized/document_open_16.cpp"
@@ -5972,7 +5974,7 @@ wxString szKbServerURL = _T("KbServerURL");
 /// in DoServiceDiscovery() in order to guarantee that a constructed URL for a KBserver
 /// discovered running on the LAN if stored in m_servDiscResults array before the timeout
 /// expires
-wxString szKBserverTimeout = _T("KBserverTimeout(minimum: 8000 thousandths of a second)");
+wxString szKBserverTimeout = _T("KBserverTimeout (thousandths of a second)");
 
 /// The label for the project configuration file's line which stores the assigned username
 /// for the last used server for knowledge base sharing within a project designated as one
@@ -15205,87 +15207,28 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// param       result          ->  a line of form "<url>:int:int:int:int  where each int
+/// param       result          ->  a line of form "<url>:int:int:int:int:hostname  where each int
 ///                                 may be 0 (false), 1 (true), -1 (undefined), and <url>
 ///                                 is either an empty string, or of form https://192.168.n.m
 ///             url             <-  reference to a url wxString of form https://192.168.n.m
-///             intNoKBserver   <-  0 if a kbserver multicast was discovered, 1 if none
-///                                 was discovered, -1 if a value was not set (this one will
-///                                 always be 0 or 1, never -1)
-///             intHostnameLookupFailed <-  0 for a successful lookup (hostname will
-///                                         be "kbserver", we ignore other services), 1 if
-///                                         the lookup failed, -1 if no value set
-///             intIpAddrLookupFailed   <-  0 for a successful lookup (a string of form
-///                                         192.168.n.m), 1 if the lookup failed, -1 if
-///                                         no value was set
-///             intDuplicateIpAddr      <-  0 if the discovered KBserver has not been
-///                                         discovered earlier in this attempt, 1 for 
-///                                         the same running KBserver identified a second
-///                                         time (timeouts should prevent this, but it has
-///                                         happened once in my testing), -1 if unset
+///				hostname		<-	reference to the hostname wxString associated with a KBserver
+///									url above
 /// \remarks
-/// The service discovery encapsulated in the DoServiceDiscovery() function, looks for a
-/// service with name _kbserver._tcp.local. and finds nothing if no KBserver is running
-/// on the LAN at the time the function is called. If one is discovered, lookups are done
-/// to determine the hostname, port and ip address. We don't bother to return the port (
-/// KBserver will use port 443), but just collect the error results if lookups failed, or
-/// if they did not fail, construct the url for connecting to the server. The results are
-/// reported to the app's m_servDiscResults wxArrayString, in one or more lines of form
-/// <url string>:flag:flag:flag:flag, where the flag values are integer, and may be 0 (false)
-/// 1 (true) or -1 (undefined). The meaning of each flag is as in the parameters in top to
-/// bottom order in the signature. If no KBserver is running on the LAN, then m_servDiscResults
-/// will be an empty array. Extraction of the discovered results is done in a loop using this
-/// ExtractServiceDiscoveryResult() function. It is possible for the one KBserver to be discovered
-/// more than once (but this is unlikely). This function returns the results in a form useful
-/// for determining what to do with them as far as subsequent actions in the GUI for KBserver
-/// support. It's also possible that no running KBserver exists, in which case url will be empty                              
-void CAdapt_ItApp::ExtractServiceDiscoveryResult(wxString& result, wxString& url, int& intNoKBserver,
-				int& intHostnameLookupFailed, int& intIpAddrLookupFailed, int& intDuplicateIpAddr)
+/// The results are within the app's m_servDiscResults wxArrayString, in one or more lines of form
+/// <url string>:flag:flag:flag:flag:hostname, where the flag values are integer, but we here
+/// make no use of them, in fact, we abandon them. All we want to return to the caller is the
+// url, and the hostname
+void CAdapt_ItApp::ExtractURLandHostname(wxString& result, wxString& url, wxString& hostname)
 {
-	wxString reversed = MakeReverse(result);
-	wxString colon = _T(":");
-	wxString numStr;
-	wxString left = wxEmptyString;
-	int offset = wxNOT_FOUND;
-
-	offset = reversed.Find(colon);
-	wxASSERT(offset != wxNOT_FOUND);
-	left = reversed.Left(offset);
-	left = MakeReverse(left); // it might have been  "1-"
-	intDuplicateIpAddr = wxAtoi(left);
-	reversed = reversed.Mid(offset + 1); // get past the colon just matched, intIpAddrLookupFailed is next
-
-	offset = reversed.Find(colon);
-	wxASSERT(offset != wxNOT_FOUND);
-	left = reversed.Left(offset);
-	left = MakeReverse(left); // it might have been  "1-"
-	intIpAddrLookupFailed = wxAtoi(left);
-	reversed = reversed.Mid(offset + 1); // get past the colon just matched, intHostnameLookupFailed is next
-
-	offset = reversed.Find(colon);
-	wxASSERT(offset != wxNOT_FOUND);
-	left = reversed.Left(offset);
-	left = MakeReverse(left); // it might have been  "1-"
-	intHostnameLookupFailed = wxAtoi(left);
-	reversed = reversed.Mid(offset + 1); // get past the colon just matched, intNoKBserver is next
-
-	offset = reversed.Find(colon);
-	wxASSERT(offset != wxNOT_FOUND);
-	left = reversed.Left(offset);
-	left = MakeReverse(left); // it might have been  "1-"
-	intNoKBserver = wxAtoi(left);
-	reversed = reversed.Mid(offset + 1); // get past the colon just matched, url is next
-
-	// At this point, only the reversed url is left; but it may have been an empty string,
-	// in which case reversed would now be empty
-	if (reversed.IsEmpty())
+	wxString flagsNoErrors = _T(":0:0:0:0");
+	int offset = wxNOT_FOUND; // initialize to -1
+	offset = result.Find(flagsNoErrors);
+	if (offset >= 0)
 	{
-		url = wxEmptyString;
-	}
-	else
-	{
-		url = MakeReverse(reversed);
-		//wxASSERT(url.Len() >= 19); not safe, if we only have https://:0:0:0:0 which is 16 characters
+		url = result.Left(offset);
+		result = result.Mid(offset + 8); // 8 is the size of flagsNoErrors string
+		if (result[0] == _T(':')) { result = result.Mid(1); } // done this way as I don't have hostnames in the returned discovery strings yet
+		hostname = result; // whatever's left; currently, nothing
 	}
 }
 
@@ -15373,14 +15316,14 @@ void CAdapt_ItApp::ExtractServiceDiscoveryResult(wxString& result, wxString& url
 ////////////////////////////////////////////////////////////////////////////////////////
 
 bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result,
-								int nKBserverTimeout)
+	int nKBserverTimeout)
 {
 	wxString serviceStr = _T("_kbserver._tcp.local.");
 
-    // GetResults() will return any discovery results in the app wxArrayString
-    // m_servDiscResults as one or more lines, each of form url:int:int:int:int where url
-    // potentially could be empty and the int values are 0, 1, -1 being false, true,
-    // undefined
+	// GetResults() will return any discovery results in the app wxArrayString
+	// m_servDiscResults as one or more lines, each of form url:int:int:int:int where url
+	// potentially could be empty and the int values are 0, 1, -1 being false, true,
+	// undefined
 
 	chosenURL = _T(""); // initialize, we return the chosen url using this parameter
 	result = SD_NoResultsYet; // initialize to a 'success' result
@@ -15400,12 +15343,22 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 
 	wxLogDebug(_T("DoServiceDiscovery(): addr of SD_mutex  =  %p"), &SD_mutex);
 
-    // ServDisc internally will acquire the lock, using wxMutexLocker to create a locker()
-    // object, and the main thread will wait (I'm using WaitTimeout(8000)) for the
-    // SD_condition to be Signal()-ed, which then allows DoServiceDiscovery() to awake, and
-    // be automatically given the lock, so it can then access the service discovery results
+	// ServDisc internally will acquire the lock, using wxMutexLocker to create a locker()
+	// object, and the main thread will wait (I'm using WaitTimeout(8000)) for the
+	// SD_condition to be Signal()-ed, which then allows DoServiceDiscovery() to awake, and
+	// be automatically given the lock, so it can then access the service discovery results
 
 	wxLogDebug(_T("DoServiceDiscovery(): WaitTimeout(nKBserverTimeout) when called has value:  %d  milliseconds"), nKBserverTimeout);
+
+	{ // begin WaitDlg scope
+
+		CWaitDlg waitDlg(GetMainFrame());
+		// indicate we want the 'discovery of KBserver' message
+		waitDlg.m_nWaitMsgNum = 26;	// message is "Discovery of running KBservers is happening..."
+		waitDlg.Centre();
+		waitDlg.Show(TRUE);
+		waitDlg.Update();
+
 
 	// BEW 4Jan16, 4th param is the parent class for CServiceDiscovery instance, the app class
 	m_pServDisc = new CServiceDiscovery(&SD_mutex, &SD_condition, serviceStr, this);
@@ -15420,356 +15373,220 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	// is grabbed in OnInit() when that config file is loaded, and use it here
 	SD_condition.WaitTimeout(nKBserverTimeout); // allows the ServiceDiscovery object on the 
 		// ServDisc thread to do its job, until Signal() get's called at its exit.
-		// Usually about 3 seconds of wait is necessary, but much more is less risky if
-		// there is particular sluggish network.
-		// When no KBserver is running, we rely in the WaitTimeout() to 
-		// return the lock to the DoServiceDiscovery() function, and awaken 
-		// the main thread (by calling Signal()); that is, when a KBserver is 
-		// running, CServiceDiscovery::GetResults(), at its end, calls Signal()
-		// to awaken the main thread and get the results from the
-		// m_servDiscResults wxString array - the results are typically
-		// ready within 2.5 to 4 seconds of entering the DoServiceDiscovery()function.
-		// The value is parameterized, because some AI configurations may require
-		// a longer wait timeout, and so we store in the basic configuration file
-		// a value which we read from there in OnInit() and pass in to here. No
-		// gui support for changing the config file value for this parameter is
-		// built in. However, the user can edit the config file directly to use a
-		// larger value.
+		// BEW 10Mar16 We no longer call Signal() from a wxServDisc instance, nor do
+		// we post an event to the CServiceDiscovery class in order to have the latter
+		// delete a wxServDisc instance (since we can only point to one, but many are
+		// created in the course of doing service discovery). So, we just let each
+		// wxServDisc instance die a natural death when its internal timeouts expire
+		// and / or its internal loop is completed and control moves to the cleanup
+		// functions - which appear to still be leaking - I will try again to rectify
+		// that, but if I can't then we can just live with the leaks!
+		// CServiceDiscovery does no internal processing (other than instantiating
+		// the first wxServDisc instance for doing a query scan), so CServiceDiscovery
+		// exists only as a single instance; it has two functionalities - first, to
+		// to instantiate a wxServDisc as mentioned above (that kicks off the discovery
+		// process), second, it contains a number of string arrays into which the various
+		// wxServDisc instances will .Add() strings as various things are discovered &
+		// looked up - namely hostname, port, and ip address, and error flags - the
+		// latter are stored in integer arrays.
+		// The consequence of this design is now that when the main thread wakes up,
+		// it does so at the above timeout after nKBserverTimeout thousandths of a second
+		// has expired, since no Signal() call is made. The parameter, nKBserverTimeout,
+		// is user-settable from the GUI, as a 'seconds' value in the range [8,30].
+		// Logging shows that a single KBserver will be found repeatedly, with all
+		// flags 0 (ie. no error), multiple times - and the larger the value of
+		// nKBserverTimeout, the more duplicates there will be. The additional implication
+		// is that the more KBservers there are running on the LAN, the more instances of
+		// wxServDisc there will be spawned (as detached threads), and they take up a LOT
+		// of processing time. So, while a single KBserver may be identified and its URL
+		// available within 12 seconds, adding more KBservers can spin discovery out by a
+		// a few more seconds per extra KBserver. We don't expect to have to deal with
+		// more than 4 on a LAN. If that were the case the administrator should provide
+		// a single one for everyone, for the time of the workshop. Creating and populating
+		// a KBserver is easy and fast, adding several kb definitions is also easy etc.
+
+		// In the code following, I will now (10Mar16) change the design of the processing
+		// to fit better with the data that comes in. First, I'll search for any reported
+		// error, and set a boolean if there is one or more in the arrays. Then I'll search
+		// for discovered URLs without accompanying error. If at least one of the latter
+		// exists, the error line(s) will be ignored, and the good URL(s) made available to
+		// the user. Users would not know what to do with an error report anyway, so if 
+		// there are no good URLs, then all we will report to the user is that there was
+		// an error, discovery failed, try again later, or manually determine the ipaddress
+		// (/sbin/ifconfig at the KBserver itself), or get help from the administrator.
 
 	// When the Wait() is over, we can go on now to access the results, if any exist
 	serviceStr.Clear(); // so we don't leak its memory
 
+	} // end scope for WaitDlg
+
+	SD_mutex.Unlock(); // only the one unlock is needed, from now on no references to any
+					   // wxServDisc instance is made; they just die lonely deaths
+	m_rawURLsPlusFlags.Clear();
+	int count;
+	int index;
 	if (!m_pServDisc->m_localDiscResultsArr.IsEmpty())
 	{
-		int count = m_pServDisc->m_localDiscResultsArr.GetCount();
-		int index;
+		count = m_pServDisc->m_localDiscResultsArr.GetCount();
 		for (index = 0; index < count; index++)
 		{
 			wxString aLine = m_pServDisc->m_localDiscResultsArr.Item(index);
-			wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() Results loop: aLine = %s"), aLine.c_str());
-			m_servDiscResults.Add(aLine);
+			wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() Results loop: aLine = %s   >>  m_rawURLsPlusFlags array"), aLine.c_str());
+			m_rawURLsPlusFlags.Add(aLine);
 		}
 	}
+	else
+	{
+		// Typically, this happening means that the user forgot to get a KBserver running on 
+		// the LAN before work in Adapt It was commenced; or the KBserver's host machine has
+		// lost power and shut down. Another reason could be that the LAN might be down. Or 
+		// possibly, the wait timeout in wxWaitTimeout() was set to too small a value, so
+		// that the code is now looking for results before any had been deposited in the
+		// CServiceDiscovery instances arrays.
+		wxLogDebug(_T("m_servDiscResults[] The service discovery results array is still empty at main thread awakening."));
+		chosenURL = wxEmptyString;
+		result = SD_NoKBserverFound;
+		m_rawURLsPlusFlags.Clear();
+		m_goodURLs.Clear();
+		m_servDiscResults.Clear();
 
-	wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() Now accessing the m_servDiscResults string array"));
+// TODO  -- an informative error message for the user - see comments above
+
+		return FALSE;
+	}
+
+	// The next loop determines if there was a line or lines added to the results, for which
+	// one or more of the 4 flags have the value of 1 (indicating error). 1st flag is 1 if
+	// no KBserver was discovered, 2nd is 1 if the hostname lookup failed, 3rd is 1 if the
+	// ipaddress lookup failed, 4th is 1 if that wxServDisc instance discovered a second
+	// instance of the same KBserver - this has happened, but is rare; usually another
+	// instance discovers that server, and that's why there can be duplicates without
+	// the duplicate flag being 1 in the arrays in CServiceDiscovery. If there is at least
+	// one error, we set a boolean  bErrorEncountered to TRUE. And the error-less lines
+	// we transfer into m_goodURLs array. If there is at least one successful discovery
+	// line, it will end up in m_goodURLs array - and if that array has content then we
+	// ignore any errors and use whatever goodURLs array contains for further processing
+	wxString flagsNoErrors = _T(":0:0:0:0");
+	int offset = wxNOT_FOUND; // initialize to -1
+	bool bErrorEncountered = FALSE; // initilize
+	m_goodURLs.Clear();
+	if (!m_rawURLsPlusFlags.IsEmpty())
+	{
+		// count value is unchanged, but to avoid a compiler warning we'll recalculate it
+		count = m_rawURLsPlusFlags.GetCount();
+		for (index = 0; index < count; index++)
+		{
+			wxString aLine = m_rawURLsPlusFlags.Item(index);
+			offset = aLine.Find(flagsNoErrors);
+			if (offset >= 0)
+			{
+				wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() m_rawURLsPlusFlags loop: aLine = %s   >>  m_goodURLs array (may be smaller)"), aLine.c_str());
+				m_goodURLs.Add(aLine);
+			}
+			else
+			{
+				bErrorEncountered = TRUE;
+			}
+		}
+	}
+	m_rawURLsPlusFlags.Clear(); // no longer needed
+
+	// We are now at a point where we can handle the following state:
+	// There was at least one KBserver, but an error prevented successful URL 
+	// generation for every such one
+	if (m_goodURLs.IsEmpty() || bErrorEncountered)
+	{
+		// Typically, this happening means there was a hotname lookup error, or an
+		// ipaddress lookup error, even though the query scan produced a result
+		wxLogDebug(_T("m_servDiscResults[] Query found something, but there were subsequent lookup failure(s), and no successes."));
+		chosenURL = wxEmptyString;
+		result = SD_LookupIPaddrFailed; // it could have been a hostname lookup error, but this will do, it's just as bad
+		m_goodURLs.Clear();
+		m_servDiscResults.Clear();
+
+		// TODO  -- an informative error message for the user - see comments above, but this one simpler (it's not often going to be seen)
+
+		return FALSE;
+	}
+
+	// Now we have only lines for successful discoveries, but typically there will be duplicates, 
+	// so remove those in this next block, leaving unique ones in m_servDiscResults array
+	m_servDiscResults.Clear();
+	if (!m_goodURLs.IsEmpty())
+	{
+		count = m_goodURLs.GetCount();
+		for (index = 0; index < count; index++)
+		{
+			wxString aLine = m_goodURLs.Item(index);
+			int pos;
+			if (index == 0)
+			{
+				// Always accept the first
+				m_servDiscResults.Add(aLine);
+				wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() m_goodURLs loop: aLine = %s   >>  m_servDiscResults array (probably smaller)"), aLine.c_str());
+			}
+			else
+			{
+				// Once we have one within m_goodUniqueURLs, we must test for duplicates and reject any which are such
+				pos = m_servDiscResults.Index(aLine);
+				if (pos == wxNOT_FOUND)
+				{
+					// It is not a duplicate, so Add it
+					wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() m_goodURLs loop: aLine = %s   >>  m_servDiscResults array (probably smaller)"), aLine.c_str());
+					m_servDiscResults.Add(aLine);
+				}
+			}
+		}
+	}
+	m_goodURLs.Clear(); // no longer needed
+
+	wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() Now accessing the m_servDiscResults string array. Number of unique KBserver URLs found = %d"),
+				m_servDiscResults.Count());
 
 	if (!m_servDiscResults.IsEmpty())
 	{
-		// Some data was returned. Process its contents
-#if defined (_DEBUG)
-		int aCount = m_servDiscResults.GetCount();
-		int indx;
-		for (indx = 0; indx < aCount; indx++)
-		{
-			wxLogDebug(_T("m_servDiscResults[] index = %d   Results string:    %s"), indx, m_servDiscResults.Item(indx).c_str());
-		}
-#endif
-		// Initialize local variables used for getting the results from the discovery module
-		// (The 0 values are 'good', that is, not not found, no fail in the 2 lookups, and
-		// not a duplicate of one found earlier in the present discovery process)
+		// Some data was returned. Process its contents. When control gets to here, 
+		// m_servDiscResults array holds data only for valid successful discoveries. Our
+		// remaining tasks are to separate the URLs from their associated hostname
+		// strings (keeping them in parallel string arrays), and if the count of the
+		// discovered KBservers is > 1, to display the choices to the user in a dialog
+
+		// Initialize local variables
 		wxString aResultLine = wxEmptyString;
-		// Use this set as local scratch variables for iterations with index >= 1
-		wxString aUrl = wxEmptyString;
-		int      intNoKBserver = 0;
-		int      intHostnameLookupFailed = 0;
-		int      intIpAddrLookupFailed = 0;
-		int      intDuplicateIpAddr = 0;
-
-		// Keep these, once we get them set, for iteration with index = 0
-		wxString aUrl_first = wxEmptyString;
-		int      intNoKBserver_first = 0;
-		int      intHostnameLookupFailed_first = 0;
-		int      intIpAddrLookupFailed_first = 0;
-		int      intDuplicateIpAddr_first = 0;
-        // Get the first line's result as a special case. This normally, if a single
-        // KBserver is running on the LAN, will be the only entry and it should have a
-        // non-empty url. If something went wrong, one or more of its integer flags should
-        // be 1. If m_servDiscResults array has more than one line, we can't have full
-        // confidence in error results in lines later than the first, since wxServDisc is
-        // reentrant for discovery, it can be awakened several times before timeouts kick
-        // in, and so non-first discoveries may not complete before the module is
-        // destroyed - in fact, we now suppress reentrancy
-#if defined(_DEBUG)
-		// Generate some extra (but bogus) URLs and add them to m_servDiscResults array
-		// in order to test the ServDisc_KBserversDlg which handles what to do if more
-		// than on KBserver is discovered running on the LAN
-/* disable for now, enable when further multi-url testing is desired
-		if (m_servDiscResults.GetCount() > 0)
-		{
-			aResultLine = m_servDiscResults.Item(0);
-			wxString rev = MakeReverse(aResultLine);
-			wxString theFlags = rev.Left(8);
-			theFlags = MakeReverse(theFlags);
-			int noSvr, noHost, noIPaddr, noDup;
-			wxString theUrl;
-			ExtractServiceDiscoveryResult(aResultLine, theUrl, noSvr, noHost, noIPaddr, noDup);
-			int len = theUrl.Len();
-			wxString newOne = theUrl.Left(len - 1);
-			newOne += _T('2');
-			newOne += theFlags;
-			m_servDiscResults.Add(newOne);
-
-			newOne = theUrl.Left(len - 1);
-			newOne += _T('3');
-			newOne += theFlags;
-			m_servDiscResults.Add(newOne);
-
-			newOne = theUrl.Left(len - 1);
-			newOne += _T('4');
-			newOne += theFlags;
-			m_servDiscResults.Add(newOne);
-		}
-*/
-#endif
-        // More than one KBserver running on the LAN is possible (but unwelcome), for
-        // example, different language groups in a workshop may be a scenario for this.
-        // Choosing the correct url from a list then becomes a guessing game. However,
-        // connecting to the wrong one should fail with a warning to the user - when the
-        // expected kb table entry for the user's language code pair is not found when
-        // checked for. So the issue is not as serious as one might suppose, provided the
-        // same kb table entry is not present in two or more of the running KBservers. They
-        // should retry (chosing a different url each time) until they succeed.
 		wxArrayString validUrls;  // Store the one or more valid urls here.
+		wxArrayString theirHostnames;  // Store their associated hostnames, in parallel
 		size_t count = m_servDiscResults.GetCount();
 		size_t index;
-		// Our first task is to get as many valid running KBservers as there are currently
-		// running, ignoring duplicates. We keep the flags for the first loop entry, in case
-		// it was a failure situation (we ignore flags for non-first entries, they probably
-		// don't signal the actual error situation that caused the lookup failure)
-		if (count > 0)
+		wxString aURL; wxString aHostname;
+
+		// More than one KBserver running on the LAN is possible. For example,
+        // different language groups in a workshop may be a scenario for this.
+        // Choosing the correct url from a list then would be a guessing game if 
+		// we only displayed urls of the form https://192.168.m.n; so we will
+		// also display the hostname (the creation of at KBserver asks the person
+		// doing that to supply a hostname string for this purpose)
+		for (index = 0; index < count; index++)
 		{
-			bool bFirstResult = TRUE;
-			for (index = 0; index < count; index++)
-			{
-				aResultLine = wxEmptyString;
-				aResultLine = m_servDiscResults.Item(index);
-				ExtractServiceDiscoveryResult(aResultLine, aUrl, intNoKBserver,
-					intHostnameLookupFailed, intIpAddrLookupFailed, intDuplicateIpAddr);
-				if (bFirstResult)
-				{
-					bFirstResult = FALSE; // ensure this block is entered only once
-					// Test for the first result being a valid running KBserver
-					if (
-						( !aUrl.IsEmpty() && (aUrl.Len() >= 19)) &&
-						intNoKBserver == 0 && intHostnameLookupFailed == 0 &&
-						intIpAddrLookupFailed == 0 && intDuplicateIpAddr == 0
-					   )
-					{
-						// This is a valid one, not a duplicate, and all flags false, so
-						// store it
-						validUrls.Add(aUrl);
+			aResultLine = wxEmptyString;
+			aResultLine = m_servDiscResults.Item(index);
+			aURL.Empty(); aHostname.Empty();
+			ExtractURLandHostname(aResultLine, aURL, aHostname);
+			validUrls.Add(aURL);
+			theirHostnames.Add(aHostname);
 
-						// If this first results line was the only one in the array,
-						// then handle the extra tests here and return to caller...
-						if (count == 1)
-						{
-                            // First test: is the passed in current URL (from the basic
-                            // config file) an empty string? If so, probably this is the
-                            // first setup of a KBserver
- 							if (curURL.IsEmpty())
-							{
-								chosenURL = aUrl;
-								result = SD_FirstTime;
-								SD_mutex.Unlock();
-								m_servDiscResults.Clear();
-								return TRUE;
-							}
-							else if (curURL == aUrl)
-							{
-                                // The discovered url is the same as what was last used, so
-                                // there may be a stored password in this session. We'll
-                                // check for that in the caller and branch accordingly
-                                // there
-								chosenURL = aUrl;
-								result = SD_SameUrl;
-								SD_mutex.Unlock();
-								m_servDiscResults.Clear();
-								return TRUE;
-							}
-							else
-							{
-                                // It's a different url from the one that was last stored
-                                // in the basic configuration file. User will need to be
-                                // asked if he wants to connect to it. It could be the same
-                                // KBserver but with a different url in this session, or it
-                                // may be a different KBserver (and maybe with different
-                                // password as well). The following are relevant flags:
-                                // SD_UrlDiffers_UserAcceptedIt or SD_UrlDiffers_UserRejectedIt
-								wxString message;  message = message.Format(_(
-"The URL previously used was:  %s\nThe KBserver running now has URL: %s\nThe URL of a KBserver can change. So it may be the same KBserver, or a different one.\nIf it is a different KBserver, usually its password is also different, and you will need to know what it is.\nIf it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.\n\nDo you wish to connect using this new URL?"),
-									curURL.c_str(), aUrl.c_str());
-								int value = wxMessageBox(message,_("The URL has changed"), 
-												wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
-								if ((value == wxYES))
-								{
-									chosenURL = aUrl;
-									result = SD_UrlDiffers_UserAcceptedIt;
-									SD_mutex.Unlock();
-									m_servDiscResults.Clear();
-									return TRUE;
-								}
-								else
-								{
-                                    // Since the only KBserver on offer has been rejected,
-                                    // the caller should probably not show an
-                                    // authentication dialog as that would be confusing. So
-                                    // the caller should detect the resulting enum value, and
-                                    // treat the situation as equivalent to a cancellation
-                                    // of the connection & authentication process. He can
-                                    // then either have another go, or take the opportunity
-                                    // to get the earlier-used KBserver instance back into
-                                    // use, or whatever. The message to the user must make
-                                    // it clear that a KBserver's URL can change, and so it
-                                    // could actually be the same KBserver as earlier on.
-									chosenURL = wxEmptyString;
-									result = SD_UrlDiffers_UserRejectedIt;
-									wxString message;  message = message.Format(_(
-"Your attempt to connect to the only running KBserver has been abandoned, because you have rejected the changed URL which locates where it is.\nCheck the KBserver you want to connect to is actually running.\nYou can stop the current KBserver, and start a different one now if you wish.\nThen try to connect again, or ask your administrator to help you."));
-									wxMessageBox(message,_("Connection not tried"), wxICON_WARNING | wxOK);
-									SD_mutex.Unlock();
-									m_servDiscResults.Clear();
-									return FALSE;
-								}
-							} // end of else block for test: else if (curURL == aUrl)
-						} // end of TRUE block for test: if (count == 1)
-
-					} // end of TRUE block for validity test:
-					  // if ((!aUrl.IsEmpty() && (aUrl.Len() >= 19)) &&
-					  // intNoKBserver == 0 && intHostnameLookupFailed == 0 &&
-					  // intIpAddrLookupFailed == 0 && intDuplicateIpAddr == 0 )
-					else
-					{
-						// We want to preserve the flags, since there was a problem
-						intNoKBserver_first = intNoKBserver;
-						intHostnameLookupFailed_first = intHostnameLookupFailed;
-						intIpAddrLookupFailed_first = intIpAddrLookupFailed;
-						intDuplicateIpAddr_first = intDuplicateIpAddr;
-
-						// Work out which error happened. If no KBserver was discovered,
-						// then m_servDiscResults array would be empty, so we can discount
-						// this particular reason immediately. Check the other flags &
-						// warn user and return the error flag to caller, and FALSE.
-						// We can also discount it being a duplication error, as we cannot
-						// get a duplicate before the one which isn't the duplicate has
-						// been successfully discovered. So that leaves 2 flags to check
-						if (intHostnameLookupFailed_first == 1)
-						{
-							wxString message;  message = message.Format(_(
-"The correct service was discovered, but looking up its hostname has failed, reason unknown.\nPerhaps shut down and start again, or ask your administrator to help you."));
-							wxMessageBox(message,_("Hostname lookup failed"), wxICON_WARNING | wxOK);
-							chosenURL = wxEmptyString;
-							result = SD_LookupHostnameFailed;
-						}
-						else if (intIpAddrLookupFailed_first == 1)
-						{
-							wxString message;  message = message.Format(_(
-"The correct service was discovered, but looking up its Internet Protocol address has failed, reason unknown.\nAn IP address is something like  192.168.n.m  where n and m are small numbers usually.\nPerhaps shut down and start again, or ask your administrator to help you."));
-							wxMessageBox(message,_("IP address lookup failed"), wxICON_WARNING | wxOK);
-							chosenURL = wxEmptyString;
-							result = SD_LookupIPaddrFailed;
-						}
-						SD_mutex.Unlock();
-						m_servDiscResults.Clear();
-						return FALSE;
-					}
-				} // end of TRUE block for test: if (bFirstResult)
-				else
-				{
-					// Non-first KBservers are checked for here, and if valid
-					// are added to the validUrls array
-					if (
-						( !aUrl.IsEmpty() && (aUrl.Len() >= 19)) &&
-						intNoKBserver == 0 && intHostnameLookupFailed == 0 &&
-						intIpAddrLookupFailed == 0 && intDuplicateIpAddr == 0
-					   )
-					{
-						// This is a valid one, not a duplicate, and all flags false, so
-						// store it
-						validUrls.Add(aUrl);
-					}
-                    // Nothing further to do here, we have to let the loop accumulate all the
-                    // valid running KBservers' URLs, so we process them after the loop ends
-				}
-			} // end of loop:  for (index = 0; index < count; index++)
-
-			// Process the situation of multiple valid URLs here...
-			CServDisc_KBserversDlg dlg((wxWindow*)GetMainFrame(), &validUrls);
+		}
+		// Now get the results back to user - either what was found, or
+		// if multiple KBservers found, via a dialog in which he can select
+		// the one he wants to connect to
+		if (count > 1)
+		{
+			// More than one, so setup the dialog etc
+			CServDisc_KBserversDlg dlg((wxWindow*)GetMainFrame(), &validUrls, &theirHostnames);
 			dlg.Center();
 			if (dlg.ShowModal() == wxID_OK)
 			{
 				chosenURL = dlg.m_urlSelected;
-				
-				// Having chosen a URL, do the checks for correct language codes, username
-				// in the MySql user table etc in the caller; what we need to do here are
-				// the checks for the passed in curURL being empty, or non-empty and matching
-				// the user's chosenURL value, or non-empty and the user's chosenURL is
-				// different - and send the appropriate enum value to the caller etc - see
-				// the count == 1 block above, from where the following code was copied & tweaked
-
-				// First test: is the passed in current URL (from the basic
-                // config file) an empty string? If so, probably this is the
-                // first setup of a KBserver
-				if (curURL.IsEmpty())
-				{
-					result = SD_FirstTime;
-					SD_mutex.Unlock();
-					m_servDiscResults.Clear();
-					return TRUE;
-				}
-				else if (curURL == chosenURL)
-				{
-                    // The discovered url is the same as what the user chose within the
-                    // dialog, so there may be a stored password in this session. We'll
-                    // check for that in the caller and branch accordingly there
-					result = SD_MultipleUrls_UserChoseEarlierOne;
-					SD_mutex.Unlock();
-					m_servDiscResults.Clear();
-					return TRUE;
-				}
-				else
-				{
-                    // The user chose a different url from the one that was stored
-                    // in the basic configuration file. User will need to be
-                    // asked if he wants to connect to it. It could be the same
-                    // KBserver but with a different url in this session, or it
-                    // may be a different KBserver (and maybe with different
-                    // password as well). The following is the relevant flag:
-                    // SD_MultipleUrls_UserChoseDifferentOne
-					wxString message;  message = message.Format(_(
-"More than one KBserver is running on the local area network.\nThe URL previously used was:  %s  The URL you chose to connect with is: %s\nThe URL of a KBserver can change. So your choice may locate the same KBserver as before, or a different one.\n(If it is a different KBserver, usually its password is also different, and you will need to know what it is.\nIf it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.)\n\nDo you wish to connect using this new URL?"),
-					curURL.c_str(), chosenURL.c_str());
-					int value = wxMessageBox(message,_("The chosen URL is different"), 
-									wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
-					if ((value == wxYES))
-					{
-						result = SD_MultipleUrls_UserChoseDifferentOne;
-						SD_mutex.Unlock();
-						m_servDiscResults.Clear();
-						return TRUE;
-					}
-					else
-					{
-						// Since the selected URL was explicitly rejected, the caller should
-						// probably not show an authentication dialog as that would be
-						// confusing. So the caller should detect the result enum value, and
-						// treat the situation as equivalent to a cancellation of the
-						// connection & authentication process. He can then either have another
-						// go, or alter the number of running KBserver instances, or whatever.
-						// The message to the user must make it clear that a KBserver's URL can
-						// change, and so the chosen URL could actually be the locator of the
-						// same KBserver as earlier on.
-						chosenURL = wxEmptyString;
-						result = SD_MultipleUrls_UserCancelled;
-						wxString message;  message = message.Format(_(
-"Your attempt to connect to a KBserver has been abandoned.\nCheck the KBserver you want to connect to is actually running.\nYou can stop unwanted KBservers from running. Do so, then try to connect again, or ask your administrator to help you."));
-						wxMessageBox(message,_("Connection attempt abandoned"), wxICON_WARNING | wxOK);
-						SD_mutex.Unlock();
-						m_servDiscResults.Clear();
-						return FALSE;
-					}
-				} // end of else block for test: else if (curURL == aUrl)
-
-			} // end of TRUE block for test: if (dlg.ShowModal() == wxID_OK)
+			}
 			else
 			{
 				// Cancelled
@@ -15780,31 +15597,78 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 
 					// Since the user has deliberately chosen to Cancel, and the dialog
 					// has explained what will happen, no further message is needed here
-					SD_mutex.Unlock();
 					return FALSE;
 				}
 			}
+		}
+		else
+		{
+			// Only one unique KBserver URL was discovered
+			chosenURL = validUrls[0];
+		}
 
-		} // end of TRUE block for test: if (count > 0)
+		// A number of tests are now required... because what should happen next depends
+		// on what may have transpired in an earlier session, or this may be the first
+		// session with a KB Sharing imposed on the project
+
+
+		// First test: is the passed in current URL (as obtained from the basic config file)
+		// an empty string? If so, probably this is the first setup of a KBserver
+		if (curURL.IsEmpty())
+		{
+			result = SD_FirstTime;
+			m_servDiscResults.Clear();
+			return TRUE;
+		}
+		else if (curURL == chosenURL)
+		{
+			// The discovered url is the same as what was last used, so there may be a stored 
+			// password in this session. We'll check for that in the caller and branch accordingly
+			// in the caller, based on the value passed back in the result param
+			result = SD_SameUrl;
+			m_servDiscResults.Clear();
+			return TRUE;
+		}
+		else
+		{
+			// It's a different url from the one that was last stored in the basic configuration 
+			// file. The user will need to be asked if he wants to connect to it. It could be the
+			// same KBserver but with a different url in this session, or it may be a different 
+			// KBserver (and maybe with different password as well). The following are relevant
+			// enum values: SD_UrlDiffers_UserAcceptedIt or SD_UrlDiffers_UserRejectedIt
+			wxString message;  message = message.Format(_(
+"The URL previously used was:  %s\nThe KBserver running now has URL: %s\nThe URL of a KBserver can change. So it may be the same KBserver, or a different one.\nIf it is a different KBserver, usually its password is also different, and you will need to know what it is.\nIf it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.\n\nDo you wish to connect using this new URL?"),
+				curURL.c_str(), chosenURL.c_str());
+			int value = wxMessageBox(message, _("The URL has changed"),
+				wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+			if ((value == wxYES))
+			{
+				result = SD_UrlDiffers_UserAcceptedIt;
+				m_servDiscResults.Clear();
+				return TRUE;
+			}
+			else
+			{
+				// Since the chosen or only available KBserver has now been rejected, the caller
+				// should probably not show an authentication dialog as that would be confusing. So
+				// the caller should detect the resulting enum value, and treat the situation as 
+				// equivalent to a cancellation of the connection & authentication process. He can
+				// then either have another go, or take the opportunity to get the earlier-used 
+				// KBserver back into use, or whatever. The message to the user must make it clear
+				// that a KBserver's URL can change, and so it could actually be the same KBserver
+				// as earlier on
+				chosenURL = wxEmptyString;
+				result = SD_UrlDiffers_UserRejectedIt;
+				wxString message;  message = message.Format(_(
+"You have rejected the changed URL, or rejected this particular KBserver.\nKnowledge base sharing will now be turned OFF.\nYou can take this opportunity to set a different KBserver running, if necessary.\nThen try to connect to it, or ask your administrator to help you."));
+				wxMessageBox(message, _("KBserver rejected by user"), wxICON_WARNING | wxOK);
+				m_servDiscResults.Clear();
+				return FALSE;
+			}
+		} // end of else block for test: else if (curURL == chosenURL)
 
 	} // end of TRUE block for test: if (!m_servDiscResults.IsEmpty())
-	else
-	{
-        // m_servDiscResults is an empty string. Typically, this happening means that the
-        // user forgot to get a KBserver running on the LAN before DoServiceDiscovery() was
-        // entered; or the KBserver's host machine has lost power and shut down. The LAN
-        // might be down. Or possibly, the wait timeout for accessing the computed URL was
-        // set too close to the bone, and a little extra delay has occurred - enough for
-        // the timeout to expire before the URL gets put into the m_servDiscResults array.
-		wxLogDebug(_("m_servDiscResults[] The service discovery results array is empty."));
-		chosenURL = wxEmptyString;
-		result = SD_NoKBserverFound;
-		SD_mutex.Unlock();
-		return FALSE;
 
-	} // end of ELSE block for test: if (!m_servDiscResults.IsEmpty())
-
-	SD_mutex.Unlock();
 	m_servDiscResults.Clear();
 
 	// If the unexpected happens, at least end safely...returning FALSE
@@ -31955,14 +31819,18 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			// There is no GUI support for changing the value stored for this param, but
 			// the user is welcome to experiment and directly edit the basic config file
-			// to give it a larger value if the minimum of 3500 leads to occasional bogus
+			// to give it a larger value if the minimum of 16000 leads to occasional bogus
 			// failures to get the url due to an unexpected delay
 			num = wxAtoi(strValue);
-			// Allow values as low as 3.5 secs - very risky, but sometimes it is enough.
-			// Recommended is 8 secs, and if the value is too low, that's what we set
-			if (num < 3500)
+			// Allow values as low as 8 secs - very risky, but sometimes it is enough.
+			// Recommended is 16 secs, max 30000 (30 secs should always be enough)
+			if (num < 8000)
 			{
 				num = 8000;
+			}
+			if (num > 30000)
+			{
+				num = 30000;
 			}
 			m_KBserverTimeout = num;
 		}

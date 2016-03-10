@@ -25,13 +25,14 @@
 class CServDisc_KBserversDlg : public AIModalDialog
 {
 public:
-	CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* pUrls); // constructor
+	CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* pUrls, wxArrayString* pHostnames); // constructor
 	virtual ~CServDisc_KBserversDlg(void); // destructor
 
 	wxSizer*	pServDisc_KBserversDlgSizer;
 	wxListBox*	m_pListBoxUrls;
 	wxString	m_urlSelected;
 	wxArrayString m_urlsArr;
+	wxArrayString m_hostnamesArr;
 	bool m_bUserCancelled;
 
 protected:

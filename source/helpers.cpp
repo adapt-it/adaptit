@@ -11419,6 +11419,7 @@ bad:				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsername
 				wxString theUrl = pApp->m_strKbServerURL;
 				wxString theUsername = pApp->m_strUserID;
 				wxString thePassword;
+				bool bUserCancelled = FALSE;
 				if (bPasswordExists && bAutoConnectKBSvr)
 				{
 					// The url, username and password are all in existence and known, so autoconnect
@@ -11428,14 +11429,14 @@ bad:				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsername
 				{
 					// The password is not stored, so we must ask for it - insist on something
 					// being typed in
-back:				thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show the password dialog
+					thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show the password dialog
 					if (thePassword.IsEmpty())
 					{
-						wxString title = _("No Password Typed");
+						wxString title = _("No password was typed, or you cancelled");
 						wxString msg = _(
-"No password was typed in. You must type something in the password dialog, even if it is a wrong password.\nTry again now...");
+"No password was typed in, or you chose to Cancel. This will cancel the attempt to Authenticate. You can try again later.");
 						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-						goto back;
+						bUserCancelled = TRUE;
 					}
 					else
 					{
@@ -11445,8 +11446,11 @@ back:				thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show
 						wxLogDebug(_T("AuthenticateCheckAndSetupKBSharing(): the typed password was stored in the CMainFrame instance"));
 					}
 				}
+				if (bUserCancelled)
+				{
+					bSimulateUserCancellation = TRUE;
+				}
 
-				bool bUserCancelled = FALSE;
 				// We want valid codes for source and target if sharing the adaptations
 				// KB, and for source and glosses languages if sharing the glossing KB.
 				// (CheckLanguageCodes is in helpers.h & .cpp) We'll start by testing

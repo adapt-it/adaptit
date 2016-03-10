@@ -32,6 +32,8 @@
 
 #if defined(_KBSERVER)
 
+class CAdapt_ItApp;
+
 class KbSvrHowGetUrl : public AIModalDialog
 {
 public:
@@ -48,11 +50,13 @@ protected:
 
 	CAdapt_ItApp* m_pApp;
 	wxButton*   m_pBtnOK; //wxID_OK
+	wxSpinCtrl* m_pTimeout;
 	bool        m_bServiceDiscWanted;  // store final value in the app's m_bServiceDiscoveryWanted,
 				// and herein initialize to TRUE, and then the button presses determine what 
 				// value is passed back to the app for this boolean
 	wxRadioBox*	m_pRadioBoxHow;
 	int			m_nRadioBoxSelection;
+	int			m_nTimeout;
 	DECLARE_EVENT_TABLE()
 };
 

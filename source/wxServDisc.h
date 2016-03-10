@@ -41,6 +41,19 @@ using namespace std;
 #define WIN32_LEAN_AND_MEAN
 
 #include <vector>
+
+// temporary to get it to compile (BEW 7Mar16) -- it has the definition of SOCKET in it, which is needed below
+#if defined(WIN32)
+#include "WinSock2.h"
+#include <wx/msw/winundef.h>
+#endif
+
+
+// temporary to get it to compile (BEW 7Mar16)
+#if !defined(WIN32)
+typedef int SOCKET;
+#endif // WIN32
+
 /*
 // all the nice socket includes in one place here (I changed _WIN32 to WIN32)
 #ifdef WIN32

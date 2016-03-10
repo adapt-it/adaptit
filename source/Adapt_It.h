@@ -2068,7 +2068,12 @@ class CAdapt_ItApp : public wxApp
 
 	CServiceDiscovery*  m_pServDisc; // The top level class which manages the service 
 									 // discovery module
-	wxArrayString       m_servDiscResults; // Discovered URLS and error flags are sent here
+	wxArrayString		m_rawURLsPlusFlags; // lines of form <url>:flag:flag:flag:flag:hostname
+											// as built from the arrays in the CServiceDisovery instance
+	wxArrayString		m_goodURLs;         // the good ones are moved into here, including duplicates
+	wxArrayString       m_servDiscResults;  // Unique discovered URLS to be shown (after further
+							// processing to get in the form <url> and <hostname> strings), for 
+							// showing to the user, go here
 	bool				m_bCServiceDiscoveryCanBeDeleted; // set FALSE in the creation of the
                             // CServiceDiscovery instance, set TRUE in the
                             // onServDiscHALTING event handler, and do the actual deletion
@@ -2082,7 +2087,7 @@ class CAdapt_ItApp : public wxApp
 	// commented and there are many wxLogDebug() calls. Timing annotations in the debugger
 	// window and those logging messages are VITAL for understanding how the module works,
 	// and when things go wrong, what might be causing the error. DO NOT DELETE THE
-	// wxLogDebug() CALLS!!
+	// wxLogDebug() CALLS from the code!!
 
 	void onServDiscHalting(wxCommandEvent& WXUNUSED(event)); // posted at the final cleanup,
 				// it just sets a flag, but the handler for doing the deletion is in OnIdle()
@@ -3073,30 +3078,13 @@ public:
 								 int nKBserverTimeout);
 	bool	  m_bServiceDiscoveryWanted; // TRUE if DoServiceDiscovery() is wanted, FALSE for manual URL entry
 										 // and don't ever store the value in any config file; default TRUE
-	void	  ExtractServiceDiscoveryResult(wxString& result, wxString& url, int& intNoKBserver,
-				int& intHostnameLookupFailed, int& intIpAddrLookupFailed, int& intDuplicateIpAddr);
+	void	  ExtractURLandHostname(wxString& result, wxString& url, wxString& hostname);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
 
 	// These next two are not part of the AI_UserProfiles feature, we want them for every profile
 	void	  OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event));
 	void      OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
-
-	// This gap
-	// keeps the line
-	// numbers matching
-	// those in the
-	// KB Sharing Support.odt document <- hmm, probably well out of date by now (Feb 2016)
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
 
 	// Next three are stored in the project configuration file
 	bool		m_bIsKBServerProject; // TRUE if the user wants an adapting kbserver for
