@@ -10088,7 +10088,7 @@ wxSizer *kb_share_setup_or_remove_func( wxWindow *parent, bool call_fit, bool se
 
     item18->Add( 6, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxSpinCtrl *item20 = new wxSpinCtrl( parent, ID_SPINCTRL_TIMEOUT, wxT("16"), wxDefaultPosition, wxSize(80,-1), 0, 8, 30, 16 );
+    wxSpinCtrl *item20 = new wxSpinCtrl( parent, ID_SPINCTRL_TIMEOUT, wxT("16"), wxDefaultPosition, wxSize(80,-1), 0, 8, 80, 16 );
     item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item18->Add( 6, 10, 0, wxALIGN_CENTER|wxALL, 5 );

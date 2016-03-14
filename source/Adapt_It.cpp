@@ -15220,18 +15220,46 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 // url, and the hostname
 void CAdapt_ItApp::ExtractURLandHostname(wxString& result, wxString& url, wxString& hostname)
 {
-	wxString flagsNoErrors = _T(":0:0:0:0");
+	url = ExtractURLpart(result);
+	hostname = wxEmptyString;
+	wxString reversed = MakeReverse(result);
 	int offset = wxNOT_FOUND; // initialize to -1
-	offset = result.Find(flagsNoErrors);
+	offset = result.Find(':');
 	if (offset >= 0)
 	{
-		url = result.Left(offset);
-		result = result.Mid(offset + 8); // 8 is the size of flagsNoErrors string
-		if (result[0] == _T(':')) { result = result.Mid(1); } // done this way as I don't have hostnames in the returned discovery strings yet
-		hostname = result; // whatever's left; currently, nothing
+		// The possibilities are "<reversed hostname>:0...."   or  "<reversed hostname>:1-:.....
+		// or if our code has no hostnames appended yet, then the reversed string end could be
+		// one of 0:....   or 1-:..... (1:... should not occur as that would mean a duplicate
+		// managed to sneak into the list) So do it in a safe way... (there will certainly be
+		// a colon to find, as we've not removed any of the 'flags' part of the line)
+		// We'll assume a hostname would be greater than two characters in length, so if the colon
+		// is found at an offset greater than 2, we'll assume it's skipped over a hostname which is
+		// a real hostname; otherwise, we've found the last colon in the flags substring
+		if (offset > 2)
+		{
+			hostname = reversed.Left(offset); // remember it's still reversed
+			hostname = MakeReverse(hostname);
+		}
 	}
 }
-
+// Get the https://192.168.n.m part of aLine, as far as the second colon
+wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
+{
+	wxString emptyStr = _T("");
+	wxString search = _T("https://192.168.");
+	int offset = aLine.Find(search);
+	if (offset == 0)
+	{
+		int length = search.Len();
+		wxString resultStr = aLine.Left(length);
+		wxString leftover = aLine.Mid(length);
+		offset = leftover.Find(_T(':'));
+		wxASSERT(offset >= 3); // there must be at least n.m with n minimally single digits, so 3 or more
+		resultStr += leftover.Left(offset);
+		return resultStr;
+	}
+	return wxGetEmptyString();
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if chosenURL contains a URL string to be used for authenticating to
@@ -15450,7 +15478,9 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 		m_goodURLs.Clear();
 		m_servDiscResults.Clear();
 
-// TODO  -- an informative error message for the user - see comments above
+		wxString message;  message = message.Format(_(
+"Knowledge base sharing will now be turned OFF. There are several possibilites.\nYou set too small a value for the number of seconds to wait - try again with a larger value.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to set at least one KBserver running - do so now and try again.\nThe computer running the KBserver may have lost power."));
+		wxMessageBox(message, _("KBserver discovery failed"), wxICON_WARNING | wxOK);
 
 		return FALSE;
 	}
@@ -15466,7 +15496,8 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	// we transfer into m_goodURLs array. If there is at least one successful discovery
 	// line, it will end up in m_goodURLs array - and if that array has content then we
 	// ignore any errors and use whatever goodURLs array contains for further processing
-	wxString flagsNoErrors = _T(":0:0:0:0");
+	wxString flagsNoErrors = _T(":0:0:0:0"); // 8 chars
+	wxString flagsErrorButOK = _T(":0:1:-1:-1"); // 10 chars
 	int offset = wxNOT_FOUND; // initialize to -1
 	bool bErrorEncountered = FALSE; // initilize
 	m_goodURLs.Clear();
@@ -15480,45 +15511,62 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 			offset = aLine.Find(flagsNoErrors);
 			if (offset >= 0)
 			{
-				wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() m_rawURLsPlusFlags loop: aLine = %s   >>  m_goodURLs array (may be smaller)"), aLine.c_str());
+				wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() m_rawURLsPlusFlags loop: aLine = %s   >>  m_goodURLs, flags = :0:0:0:0"), aLine.c_str());
 				m_goodURLs.Add(aLine);
 			}
 			else
 			{
-				bErrorEncountered = TRUE;
+				// We also accept :0:1:-1:-1, as the prior ipaddress will be a correct one
+				// provided we can find _T("192.168.") in the string
+				// so check for this too
+				offset = aLine.Find(flagsErrorButOK);
+				if (offset >= 0)
+				{
+					int offset2 = aLine.Find(_T("192.168."));
+					if (offset2 >= 0)
+					{
+						wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() m_rawURLsPlusFlags loop: ALSO aLine = %s   >>  m_goodURLs, flags = :0:1:-1:-1"), aLine.c_str());
+						m_goodURLs.Add(aLine);
+					}
+					else
+					{
+						bErrorEncountered = TRUE;
+					}
+				}
 			}
 		}
 	}
-	m_rawURLsPlusFlags.Clear(); // no longer needed
 
 	// We are now at a point where we can handle the following state:
 	// There was at least one KBserver, but an error prevented successful URL 
 	// generation for every such one
-	if (m_goodURLs.IsEmpty() || bErrorEncountered)
+	if (m_goodURLs.IsEmpty())
 	{
-		// Typically, this happening means there was a hotname lookup error, or an
+		// Typically, this happening means there was a hostname lookup error, or an
 		// ipaddress lookup error, even though the query scan produced a result
-		wxLogDebug(_T("m_servDiscResults[] Query found something, but there were subsequent lookup failure(s), and no successes."));
+		wxLogDebug(_T("m_servDiscResults[] Query found something, but there were lookup failure(s), no successes. bErrorEncountered = %d"),
+			(int)bErrorEncountered);
 		chosenURL = wxEmptyString;
 		result = SD_LookupIPaddrFailed; // it could have been a hostname lookup error, but this will do, it's just as bad
 		m_goodURLs.Clear();
 		m_servDiscResults.Clear();
 
-		// TODO  -- an informative error message for the user - see comments above, but this one simpler (it's not often going to be seen)
+		wxString message;  message = message.Format(_(
+"Knowledge base sharing will now be turned OFF. There are several possibilites.\nYou set too small a value for the number of seconds to wait - try again with a larger value.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to set at least one KBserver running - do so now and try again."));
+		wxMessageBox(message, _("KBserver discovery failed"), wxICON_WARNING | wxOK);
 
 		return FALSE;
 	}
 
-	// Now we have only lines for successful discoveries, but typically there will be duplicates, 
+	// Now we have only lines for valid urls, but typically there will be duplicates, 
 	// so remove those in this next block, leaving unique ones in m_servDiscResults array
-	m_servDiscResults.Clear();
+	//m_servDiscResults.Clear();
 	if (!m_goodURLs.IsEmpty())
 	{
 		count = m_goodURLs.GetCount();
 		for (index = 0; index < count; index++)
 		{
 			wxString aLine = m_goodURLs.Item(index);
-			int pos;
 			if (index == 0)
 			{
 				// Always accept the first
@@ -15527,18 +15575,35 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 			}
 			else
 			{
-				// Once we have one within m_goodUniqueURLs, we must test for duplicates and reject any which are such
-				pos = m_servDiscResults.Index(aLine);
-				if (pos == wxNOT_FOUND)
+				// Once we have one within m_goodUniqueURLs, we must test for duplicates and 
+				// reject any which are such - but we are accepting flags :0:0:0:0 and
+				// also :0:1:-1:-1, and these make lines different potentially for a common
+				// URL, so we must test with the url part only
+				wxString itsURL = ExtractURLpart(aLine);
+				wxLogDebug(_T("m_goodURLs non-first aLine's extracted URL part =  %s   To be compared with earlier ones"), itsURL.c_str());
+				int k;
+				int innerCount = (int)m_servDiscResults.GetCount();
+				bool bAlreadyPresent = FALSE;
+				for (k = 0; k < innerCount; k++)
 				{
-					// It is not a duplicate, so Add it
-					wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() m_goodURLs loop: aLine = %s   >>  m_servDiscResults array (probably smaller)"), aLine.c_str());
+					wxString earlierLine = m_servDiscResults.Item(k);
+					wxString earlierURL = ExtractURLpart(earlierLine);
+					wxLogDebug(_T("m_goodURLs innerLoop k = %d, of innerCount = %d, earlierLine = %s   earlierURL = %s  Compared To this URL: %s"), 
+						k, innerCount, earlierLine.c_str(), earlierURL.c_str(), itsURL.c_str());
+					if (earlierURL == itsURL)
+					{
+						bAlreadyPresent = TRUE;
+					}
+				}
+				if (!bAlreadyPresent)
+				{
 					m_servDiscResults.Add(aLine);
+					wxLogDebug(_T("m_goodURLs innerLoop k = %d, of innerCount = %d, Adding this URL: %s"),
+						k, innerCount, itsURL.c_str());
 				}
 			}
 		}
 	}
-	m_goodURLs.Clear(); // no longer needed
 
 	wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() Now accessing the m_servDiscResults string array. Number of unique KBserver URLs found = %d"),
 				m_servDiscResults.Count());
@@ -31823,14 +31888,14 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 			// failures to get the url due to an unexpected delay
 			num = wxAtoi(strValue);
 			// Allow values as low as 8 secs - very risky, but sometimes it is enough.
-			// Recommended is 16 secs, max 30000 (30 secs should always be enough)
+			// Recommended is 16 secs, max 80000 (80 secs should always be enough)
 			if (num < 8000)
 			{
 				num = 8000;
 			}
-			if (num > 30000)
+			if (num > 80000)
 			{
-				num = 30000;
+				num = 80000;
 			}
 			m_KBserverTimeout = num;
 		}
@@ -31988,7 +32053,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 											   //  we don't want to give an error if it comes in
 		{
 			num = wxAtoi(strValue);
-			if (num < 0 || num > 3000000)
+			if (num < 0 || num > 3100000)
 				num = 0; // safe default is start of doc
 			nLastActiveSequNum = num;
 		}

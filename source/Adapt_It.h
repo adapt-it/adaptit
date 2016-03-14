@@ -3079,6 +3079,7 @@ public:
 	bool	  m_bServiceDiscoveryWanted; // TRUE if DoServiceDiscovery() is wanted, FALSE for manual URL entry
 										 // and don't ever store the value in any config file; default TRUE
 	void	  ExtractURLandHostname(wxString& result, wxString& url, wxString& hostname);
+	wxString  ExtractURLpart(wxString& aLine);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
 
