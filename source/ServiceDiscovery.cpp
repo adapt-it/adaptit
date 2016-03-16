@@ -165,11 +165,14 @@ CServiceDiscovery::CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
 	m_sd_servicenames.Clear();
 	m_uniqueIpAddresses.Clear();
 	m_urlsArr.Clear();
+	m_theirHostnames.Clear();
+	/*
 	m_sd_lines.Clear(); //for finished  string:flag:flag:flag lines, string can be empty
 	m_bArr_ScanFoundNoKBserver.Clear();  // stores 0, 1 or -1 per item
 	m_bArr_HostnameLookupFailed.Clear(); // ditto
 	m_bArr_IPaddrLookupFailed.Clear();   // ditto
 	m_bArr_DuplicateIPaddr.Clear();      // ditto
+	*/
 
     // wxServDisc creator is: wxServDisc::wxServDisc(void* p, const wxString& what, int
     // type) where p is pointer to the parent class & what is the service to scan for, its
@@ -200,9 +203,9 @@ CServiceDiscovery::CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
 // This service discovery module will just be instantiated, scan for _kbserver._tcp.local.
 // lookup the ip addresses, deposit finished URL or URLs in the wxArrayString in the
 // CAdapt_ItApp::m_servDiscResults array, and then kill itself.
-void CServiceDiscovery::GetResults()
-{
-}
+//void CServiceDiscovery::GetResults()
+//{
+//}
 
 // BEW Getting the module shut down in the two circumstances we need:
 // (a) after one or more KBserver instances running have been discovered -- GetResults()
@@ -237,19 +240,6 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	wxLogDebug(_T("wxServDisc %p:  Starting CServiceDiscovery:onSDHalting(): m_bWxServDiscIsRunning initialized to FALSE"),
 				m_pWxSD);
 
-    // It's not necessary to clear the following, the destructor would do it,
-    // but no harm in it I think
-	/*
-	m_sd_servicenames.Clear();
-	m_uniqueIpAddresses.Clear();
-	m_urlsArr.Clear();
-	m_sd_lines.Clear();
-	m_bArr_ScanFoundNoKBserver.Clear();
-	m_bArr_HostnameLookupFailed.Clear();
-	m_bArr_IPaddrLookupFailed.Clear();
-	m_bArr_DuplicateIPaddr.Clear();
-	*/
-
     // BEW: Post the custom wxServDiscHALTING event here, for the parent class to
     // supply the handler needed for destroying this CServiceDiscovery instance
 	wxCommandEvent upevent(wxServDiscHALTING, wxID_ANY);
@@ -263,23 +253,12 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	wxLogDebug(_T("wxServDisc %p:  [from CServiceDiscovery:onSDHalting()] AFTER posting wxServDiscHALTING event, this = %p, m_pParent (the app) = %p"), 
 			m_pWxSD, this, m_pParent);
 
-	//delete m_pWxSD; // must have this, it gets ~wxServDisc() destructor called
+	delete m_pWxSD; // must have this, it gets ~wxServDisc() destructor called
 }
 
 CServiceDiscovery::~CServiceDiscovery()
 {
 	wxLogDebug(_T("Copying URLs to app::m_servDiscResults array, then Deleting the CServiceDiscovery instance = %p, in ~CServiceDiscovery()"), this);
-	/* doing it here is too late - need to do it when DoServiceDiscovery() is woken up
-	if (!m_urlsArr.IsEmpty())
-	{
-		int count = m_urlsArr.GetCount();
-		int index;
-		for (index = 0; index < count; index++)
-		{
-			m_pParent->m_servDiscResults.Add(m_urlsArr.Item(index));
-		}
-	}
-	*/
 }
 
 // Copied wxItoa from helpers.cpp, as including helpers.h leads to problems

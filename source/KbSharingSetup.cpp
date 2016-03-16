@@ -129,13 +129,13 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// Set the spin control to the current value (divide by 1000 since units are 
 	// thousandths of a sec for basic config file storage of the value)
 	int value = m_pApp->m_KBserverTimeout / 1000;
-	if (value < 8)
+	if (value < 4)
 	{
-		value = 8;
+		value = 4;
 	}
-	if (value > 80)
+	if (value > 240)
 	{
-		value = 80;
+		value = 240;
 	}
 	m_pTimeout->SetValue(value);
 

@@ -10088,7 +10088,7 @@ wxSizer *kb_share_setup_or_remove_func( wxWindow *parent, bool call_fit, bool se
 
     item18->Add( 6, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxSpinCtrl *item20 = new wxSpinCtrl( parent, ID_SPINCTRL_TIMEOUT, wxT("16"), wxDefaultPosition, wxSize(80,-1), 0, 8, 80, 16 );
+    wxSpinCtrl *item20 = new wxSpinCtrl( parent, ID_SPINCTRL_TIMEOUT, wxT("16"), wxDefaultPosition, wxSize(80,-1), 0, 4, 240, 16 );
     item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item18->Add( 6, 10, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -11238,7 +11238,7 @@ wxSizer *kb_ask_how_get_url_func( wxWindow *parent, bool call_fit, bool set_size
 
     item5->Add( 6, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxSpinCtrl *item7 = new wxSpinCtrl( parent, ID_SPINCTRL_TIMEOUT, wxT("16"), wxDefaultPosition, wxSize(80,-1), 0, 8, 30, 16 );
+    wxSpinCtrl *item7 = new wxSpinCtrl( parent, ID_SPINCTRL_TIMEOUT, wxT("16"), wxDefaultPosition, wxSize(80,-1), 0, 4, 240, 16 );
     item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item5->Add( 6, 10, 0, wxALIGN_CENTER|wxALL, 5 );

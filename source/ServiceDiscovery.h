@@ -92,9 +92,12 @@ public:
 	wxString m_addr;
 	wxString m_port;
 	*/
-	wxArrayString m_sd_servicenames;   // for servicenames, as discovered (always "kbserver")
+	wxArrayString m_sd_servicenames;   // for servicenames, as discovered from query (these are NOT hostnames)
 	wxArrayString m_uniqueIpAddresses; // for each 192.168.n.m  (we store unique ip addresses)
+	wxArrayString m_theirHostnames;    // from the namescan() lookup
+	wxArrayString m_urlsArr;
 
+	/*
 	// The follow int arrays are for storing booleans, 1 for TRUE, 0 for FALSE
 	// in parallel with the URLs (or empty strings) in m_urlsArr
 	wxArrayInt m_bArr_ScanFoundNoKBserver;
@@ -107,8 +110,8 @@ public:
 	// :1:-1:-1:-1, or a duplicate discovered, url:0:0:0:1, or if some other error, :0:1:-1:-1 
 	// or :0:0:-1:-1
 	wxArrayString m_sd_lines;
-	wxArrayString m_urlsArr;
 	wxArrayString m_localDiscResultsArr;
+	*/
 	// The mutex and condition were created within CAdapt_ItApp::DoServiceDiscovery()
 	// which is on the main thread
 	wxMutex*      m_pMutex;
@@ -125,7 +128,7 @@ public:
     // The function will make use of the data we send to the app's m_servDiscResults
     // wxArrayString member.
 public:
-	void GetResults(); // BEW replacement for Beier's onSDNotify(). Our replacement is
+	//void GetResults(); // BEW replacement for Beier's onSDNotify(). Our replacement is
 					   // called directly, not as a handler for an onSDNotify event
 	void onSDHalting(wxCommandEvent& event); // we do cleanup by handlers of this type
 					   // invoked by our posting of custom events at the right time

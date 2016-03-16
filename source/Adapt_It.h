@@ -2066,14 +2066,10 @@ class CAdapt_ItApp : public wxApp
 	bool	m_kbserver_kbadmin;   // initialize to default FALSE in OnInit()
 	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
 
-	CServiceDiscovery*  m_pServDisc; // The top level class which manages the service 
-									 // discovery module
-	wxArrayString		m_rawURLsPlusFlags; // lines of form <url>:flag:flag:flag:flag:hostname
-											// as built from the arrays in the CServiceDisovery instance
-	wxArrayString		m_goodURLs;         // the good ones are moved into here, including duplicates
-	wxArrayString       m_servDiscResults;  // Unique discovered URLS to be shown (after further
-							// processing to get in the form <url> and <hostname> strings), for 
-							// showing to the user, go here
+	CServiceDiscovery*  m_pServDisc;    // The top level class which manages the service 
+									    // discovery module
+	wxArrayString		m_theURLs;      // lines of form <url> from CServiceDiscovery::m_urlsArr
+	wxArrayString		m_theHostnames; // parallel array of hostnames for each url in m_urlsArr
 	bool				m_bCServiceDiscoveryCanBeDeleted; // set FALSE in the creation of the
                             // CServiceDiscovery instance, set TRUE in the
                             // onServDiscHALTING event handler, and do the actual deletion
@@ -3078,8 +3074,8 @@ public:
 								 int nKBserverTimeout);
 	bool	  m_bServiceDiscoveryWanted; // TRUE if DoServiceDiscovery() is wanted, FALSE for manual URL entry
 										 // and don't ever store the value in any config file; default TRUE
-	void	  ExtractURLandHostname(wxString& result, wxString& url, wxString& hostname);
-	wxString  ExtractURLpart(wxString& aLine);
+//	void	  ExtractURLandHostname(wxString& result, wxString& url, wxString& hostname);
+//	wxString  ExtractURLpart(wxString& aLine);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
 

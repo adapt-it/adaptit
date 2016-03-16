@@ -182,7 +182,7 @@ private:
   void post_notify();
 
   bool	  IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
-  void	  AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
+  bool	  AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
   void    wxItoa(int val, wxString& str); // copied from helpers.h & .cpp
 };
 
