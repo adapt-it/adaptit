@@ -216,6 +216,9 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		case 25: // feedback to the user that there is now no connection to a KBserver for KB sharing
 			WaitMsg = _("Knowledge base sharing is OFF");
 			break;
+		case 26: // a wait message so that the user knows KBserver discovery is taking place
+			WaitMsg = _("Discovery of running KBservers is happening...");
+			break;
 		default: // whm 28Aug11 Note: keep as a default message
 			WaitMsg = _("Please wait. This may take a while...");
 	}

@@ -57,6 +57,9 @@ protected:
 				// value is passed back to the app for this boolean
 	wxRadioBox*		m_pRadioBoxHow;
 	int			m_nRadioBoxSelection;
+	wxSpinCtrl* m_pTimeout;
+	int			m_nTimeout;
+
 	DECLARE_EVENT_TABLE()
 };
 

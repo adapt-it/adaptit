@@ -2066,22 +2066,10 @@ class CAdapt_ItApp : public wxApp
 	bool	m_kbserver_kbadmin;   // initialize to default FALSE in OnInit()
 	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
 
-	CServiceDiscovery*  m_pServDisc; // The top level class which manages the service 
-									 // discovery module
-	wxArrayString       m_servDiscResults; // Discovered URLS and error flags are sent here
-	bool				m_bResultsAccessedOnce; // In DoServiceDiscovery(), start of FALSE
-							// and set TRUE after Signal() is called for first time.
-							// In development, Beier's code permits the GetResults() function
-							// to be accessed simultaneously by more than one wxServDisc
-							// process, but I've changed this so that only the first
-							// instantiation of wxServDisc actually is permitted to traverse
-							// GetResults()'s  code - others I cause to exit immediately, as 
-							// they just waste time and potentially could be a nuisance.
-							// We use the TRUE value of m_bResultsAccessedOnce to have the
-							// Signal() call skipped by other wxServDisc processes - so that
-							// when CServiceDiscovery instance is deleted, which removes
-							// what Signal() tries to awaken, a still-running GetResults()
-							// function doesn't call Signal() but instead just exits and dies.
+	CServiceDiscovery*  m_pServDisc;    // The top level class which manages the service 
+									    // discovery module
+	wxArrayString		m_theURLs;      // lines of form <url> from CServiceDiscovery::m_urlsArr
+	wxArrayString		m_theHostnames; // parallel array of hostnames for each url in m_urlsArr
 	bool				m_bCServiceDiscoveryCanBeDeleted; // set FALSE in the creation of the
                             // CServiceDiscovery instance, set TRUE in the
                             // onServDiscHALTING event handler, and do the actual deletion
@@ -2095,7 +2083,7 @@ class CAdapt_ItApp : public wxApp
 	// commented and there are many wxLogDebug() calls. Timing annotations in the debugger
 	// window and those logging messages are VITAL for understanding how the module works,
 	// and when things go wrong, what might be causing the error. DO NOT DELETE THE
-	// wxLogDebug() CALLS!!
+	// wxLogDebug() CALLS from the code!!
 
 	void onServDiscHalting(wxCommandEvent& WXUNUSED(event)); // posted at the final cleanup,
 				// it just sets a flag, but the handler for doing the deletion is in OnIdle()
@@ -3086,30 +3074,14 @@ public:
 								 int nKBserverTimeout);
 	bool	  m_bServiceDiscoveryWanted; // TRUE if DoServiceDiscovery() is wanted, FALSE for manual URL entry
 										 // and don't ever store the value in any config file; default TRUE
-	void	  ExtractServiceDiscoveryResult(wxString& result, wxString& url, int& intNoKBserver,
-				int& intHostnameLookupFailed, int& intIpAddrLookupFailed, int& intDuplicateIpAddr);
+//	void	  ExtractURLandHostname(wxString& result, wxString& url, wxString& hostname);
+//	wxString  ExtractURLpart(wxString& aLine);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
 
 	// These next two are not part of the AI_UserProfiles feature, we want them for every profile
 	void	  OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event));
 	void      OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
-
-	// This gap
-	// keeps the line
-	// numbers matching
-	// those in the
-	// KB Sharing Support.odt document <- hmm, probably well out of date by now (Feb 2016)
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
-	// 
 
 	// Next three are stored in the project configuration file
 	bool		m_bIsKBServerProject; // TRUE if the user wants an adapting kbserver for

@@ -450,8 +450,6 @@ bool      HasParagraphMkr(wxString& str);
 // situations 
 void      AddUniqueInt(wxArrayInt* pArrayInt, int nInt);
 void      AddUniqueString(wxArrayString* pArrayStr, wxString& str); // BEW created 11Sep11
-void	  AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
-bool	  IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
 
 // input: pList = ptr to the SPList to be converted to a dynamic array
 // output: pArray = ptr to the SPArray which is passed in empty and populated within;

@@ -10,7 +10,10 @@
 /// The CServDisc_KBserversDlg class provides a dialog in which the user can choose 
 /// one of two or more URLs, each URL being the location on the LAN for a currently
 /// running KBserver instance, discovered by the service discovery module 
-/// encapulated in the CAdapt_ItApp::DoServiceDiscovery() function.
+/// encapulated in the CAdapt_ItApp::DoServiceDiscovery() function. Each has an
+/// associated hostname, which defaults to kbserver if the person who setup the 
+/// multicasting KBerver did not supply a hostname at the appropriate time when
+/// the setup script was running. Otherwise, the name he entered is used.
 /// \derivation		The CServDisc_KBserversDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -52,7 +55,7 @@ EVT_INIT_DIALOG(CServDisc_KBserversDlg::InitDialog)
 END_EVENT_TABLE()
 
 
-CServDisc_KBserversDlg::CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* pUrls) // dialog constructor
+CServDisc_KBserversDlg::CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* pUrls, wxArrayString* pHostnames) // dialog constructor
 	: AIModalDialog(parent, -1, _("Which KBserver?"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
@@ -63,7 +66,7 @@ CServDisc_KBserversDlg::CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* 
 	m_pListBoxUrls = (wxListBox*)FindWindowById(ID_LISTBOX_URLS);
     m_pListBoxUrls->SetFocus();
 	m_urlsArr = wxArrayString(*pUrls); // copy the urls from the array in DoServiceDiscovery()
-
+	m_hostnamesArr = wxArrayString(*pHostnames); // copy the associated hostnames
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	wxUnusedVar(bOK); // avoid warning
@@ -83,10 +86,17 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	size_t count = m_urlsArr.GetCount();
 	size_t index;
 	wxString url;
+	wxString hostname;
 	for (index = 0; index < count; index++)
 	{
 		url = m_urlsArr.Item(index);
+		hostname = m_hostnamesArr.Item(index);
+
 		m_pListBoxUrls->Append(url);
+
+		// TODO  --- add the hostname, once I start supporting them in the data sent to CServiceDiscovery - we'll need a wxListCtrl then
+
+		// ********************************************************************************************************************** TODO
 	}
 
 	// Select the first url string in the listbox by default

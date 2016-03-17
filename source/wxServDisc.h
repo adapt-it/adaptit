@@ -151,27 +151,40 @@ public:
   bool m_bGetResultsStarted;
 
 private:
-  SOCKET mSock;
-  wxString err;
-  void *parent;
-  wxString query;
-  int querytype;
-WX_DECLARE_STRING_HASH_MAP(wxSDEntry, wxSDMap);
-  wxSDMap results;
+
+  // These added by BEW
+  // scratch variables
+  wxString	m_hostname;
+  wxString	m_addr;
+  wxString	m_port;
+
+
+  SOCKET    mSock;
+  wxString  err;
+  void     *parent;
+  wxString  query;
+  int       querytype; 
+  WX_DECLARE_STRING_HASH_MAP(wxSDEntry, wxSDMap);
+  wxSDMap   results;
   wxStopWatch mWallClock;
 
   // this runs as a separate thread
-  virtual wxThread::ExitCode Entry();
+  virtual  wxThread::ExitCode Entry();
 
   // create a multicast 224.0.0.251:5353 socket, windows or unix style
-  SOCKET msock();
+  SOCKET   msock(); 
+
   // send/receive message m
-  bool sendm(struct message *m, SOCKET s, unsigned long int ip, unsigned short int port);
-  int  recvm(struct message *m, SOCKET s, unsigned long int *ip, unsigned short int *port);
+  bool     sendm(struct message *m, SOCKET s, unsigned long int ip, unsigned short int port);
+  int      recvm(struct message *m, SOCKET s, unsigned long int *ip, unsigned short int *port);
   // callback for the mdns resolver
   static int ans(mdnsda a, void *caller);
 
   void post_notify();
+
+  bool	  IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
+  bool	  AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
+  void    wxItoa(int val, wxString& str); // copied from helpers.h & .cpp
 };
 
 #endif // _KBSERVER // whm 2Dec2015 added otherwise Linux build breaks when _KBSERVER is not defined
