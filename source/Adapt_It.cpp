@@ -15473,7 +15473,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	m_theURLs.Clear();
 	m_theHostnames.Clear();
 	int count;
-	int i, index;
+	int i;
 	if (!m_pServDisc->m_urlsArr.empty())
 	{
 		// First, get the urls and their hostnames from CServiceDiscovery instance m_pServDisc
@@ -31750,7 +31750,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 			{
 				num = 4000;
 			}
-			if (num > 240000)
+			if (num > 120000)
 			{
 				num = 240000;
 			}

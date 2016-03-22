@@ -96,9 +96,9 @@ void KbSvrHowGetUrl::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		value = 4;
 	}
-	if (value > 240)
+	if (value > 120)
 	{
-		value = 240;
+		value = 120;
 	}
 	m_pTimeout->SetValue(value);
 
