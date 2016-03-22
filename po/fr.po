@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
 "POT-Creation-Date: 2015-10-19 20:27-0500\n"
-"PO-Revision-Date: 2015-10-19 20:27-0500\n"
+"PO-Revision-Date: 2016-03-22 11:29-0400\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: fr\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: ../source\n"
-"X-Generator: Poedit 1.8.4\n"
+"X-Generator: Poedit 1.8.7\n"
 "X-Poedit-KeywordsList: _\n"
 "X-Poedit-SearchPath-0: .\n"
 
@@ -149,16 +149,16 @@ msgstr "Imprime le document actif"
 
 #: Adapt_It.cpp:9013 ToolbarPage.cpp:193
 msgid "Guesser"
-msgstr ""
+msgstr "Devineur"
 
 # Priority 1
 #: Adapt_It.cpp:9013 Adapt_It_wdr.cpp:11295 Adapt_It_wdr.cpp:11350 MainFrm.cpp:1631 ToolbarPage.cpp:193
 msgid "Change Guesser Settings"
-msgstr ""
+msgstr "Modifie les paramètres devineur"
 
 #: Adapt_It.cpp:9013 Adapt_It_wdr.cpp:11295 Adapt_It_wdr.cpp:11350 MainFrm.cpp:1631 ToolbarPage.cpp:193
 msgid "Change settings for guessing the translation text"
-msgstr ""
+msgstr "Modifie les paramètres pour deviner le texte de la traduction"
 
 # Priority 1
 #: Adapt_It.cpp:9015 ToolbarPage.cpp:195
@@ -461,13 +461,12 @@ msgstr "Traduction libre"
 # Priority 1
 #: Adapt_It.cpp:9041 Adapt_It_wdr.cpp:11332 Adapt_It_wdr.cpp:11387 MainFrm.cpp:1659 ToolbarPage.cpp:221
 msgid "View Translation or Glosses Elsewhere in the Document"
-msgstr ""
+msgstr "Afficher les traductions ou les gloses ailleurs dans le document"
 
 # Priority 1
 #: Adapt_It.cpp:9042 ToolbarPage.cpp:222
-#, fuzzy
 msgid "View translation or glosses elsewhere in the document; locate them by chapter and verse"
-msgstr "Afficher les traductions ou les gloses ailleurs dans le document"
+msgstr "Afficher les traductions ou les gloses ailleurs dans le document; localiser par chapitre et verset"
 
 # Priority 1
 #: Adapt_It.cpp:9043 Adapt_ItView.cpp:20777 Adapt_ItView.cpp:20798
@@ -492,7 +491,7 @@ msgstr "&?"
 
 #: Adapt_It.cpp:9044 Adapt_It_wdr.cpp:11334 MainFrm.cpp:1661 ToolbarPage.cpp:224
 msgid "Display Adapt It program help topics"
-msgstr ""
+msgstr "Afficher Adapt It sujets d'aide"
 
 # Priority 1
 # Be sure to retain the angle braces < and > around the translation of the words New Project
@@ -569,7 +568,7 @@ msgstr "Rechercher et remplacer...\tCtrl-Shift-F"
 # Priority 1
 #: Adapt_It.cpp:9574 Adapt_ItView.cpp:20025 Adapt_ItView.cpp:20116
 msgid "Layout Window Right To Left\tCtrl-Shift-1"
-msgstr ""
+msgstr "Mise en page de fenêtre droit à gauche Ctrl-Shift-1"
 
 # Priority 1
 #: Adapt_It.cpp:9583
@@ -629,61 +628,61 @@ msgstr "Ad&ministrateur"
 #: Adapt_It.cpp:12683
 #, c-format
 msgid "Adapt It could not open the project configuration file (AI-ProjectConfiguration.aic) for the \"%s\" project. Please ask your administrator for help."
-msgstr ""
+msgstr "Adapt It ne pourrait pas ouvrir le fichier de configuration de projet (AI-ProjectConfiguration.aic) pour le projet « %s ». S'il vous plaît demandez à votre administrateur de l'aide."
 
 #: Adapt_It.cpp:12685
 msgid "This project's configuration settings could not be read"
-msgstr ""
+msgstr "Les paramètres de configuration de ce projet n'a pas peuvent être lu"
 
 #: Adapt_It.cpp:12759
 #, c-format
 msgid "The Adapt It project \"%s\" is missing its project configuration file (AI-ProjectConfiguration.aic)."
-msgstr ""
+msgstr "Le projet « %s » est manquant son fichier de configuration de projet (AI-ProjectConfiguration.aic)."
 
 #: Adapt_It.cpp:13039
 #, c-format
 msgid "The Adapt It project \"%s\" has been setup for collaboration, but neither Paratext nor Bibledit are installed on this computer. In order to continue to work on this project, Paratext or Bibledit need to be installed with the necessary projects for collaboration with Adapt It."
-msgstr ""
+msgstr "Le projet « %s » a été mis en place pour la collaboration, mais ni Paratext ni Bibledit sont installés sur cet ordinateur. Afin de continuer à travailler sur ce projet, Paratext ou Bibledit doivent être installés avec les projets nécessaires pour la collaboration avec Adapt It."
 
 #: Adapt_It.cpp:13408
 #, c-format
 msgid "The Adapt It project \"%s\" is missing its setting that designates its %s project for obtaining source texts."
-msgstr ""
+msgstr "Le projet « %s » est manquant le paramètre qui désigne son projet %s pour obtenir les textes sources."
 
 #: Adapt_It.cpp:13418
 #, c-format
 msgid "The Adapt It project \"%s\" is missing its setting that designates its %s project for storing translation texts."
-msgstr ""
+msgstr "Le projet « %s » est manquant le paramètre qui désigne son projet %s pour le stockage de textes de translation."
 
 #: Adapt_It.cpp:13447
 #, c-format
 msgid "The Adapt It project \"%s\" has a setting that designates its %s project for storing free translations, but the \"%s\" project does not have any books created in it."
-msgstr ""
+msgstr "Le projet « %s » a un paramètre qui désigne son projet %s pour le stockage des traductions libres, mais le projet de « %s » n'a pas tous les livres créés en elle."
 
 #: Adapt_It.cpp:13514 SetupEditorCollaboration.cpp:1326
 #, c-format
 msgid "The \"%s\" project cannot be found as a %s project for obtaining source texts."
-msgstr ""
+msgstr "Le projet « %s » est introuvable comme projet de %s pour obtenir les textes sources."
 
 #: Adapt_It.cpp:13540 SetupEditorCollaboration.cpp:1352
 #, c-format
 msgid "The \"%s\" project cannot be found as a %s project for storing translation texts."
-msgstr ""
+msgstr "Le projet « %s » est introuvable comme projet de %s pour stocker des textes de la traduction."
 
 #: Adapt_It.cpp:13577 SetupEditorCollaboration.cpp:1389
 #, c-format
 msgid "The \"%s\" project cannot be found as a %s project for storing free translation texts."
-msgstr ""
+msgstr "Le projet « %s » est introuvable comme projet de %s pour stocker des textes traduction libre."
 
 #: Adapt_It.cpp:13700
 #, c-format
 msgid "Adapt It could not open the project configuration file (AI-ProjectConfiguration.aic) for the \"%s\" project. Make sure the configuration file is not being used by another program (or reboot your computer) and try again."
-msgstr ""
+msgstr "Adapt It ne pourrait pas ouvrir le fichier de configuration de projet (AI-ProjectConfiguration.aic) pour le projet « %s ». Assurez-vous que le fichier de configuration n'est pas utilisé par un autre programme (ou redémarrez votre ordinateur), puis réessayez."
 
 # Priority 1
 #: Adapt_It.cpp:14859
 msgid "The user interface language change may not fully take effect until you restart Adapt It."
-msgstr ""
+msgstr "Le changement de langue d’interface utilisateur ne peut pas entièrement prendre effet jusqu’à ce que vous redémarriez Adapt It."
 
 #: Adapt_It.cpp:15131
 #, c-format
@@ -694,6 +693,10 @@ msgid ""
 "Until this is done, sharing this project's local adapting knowledge base will not be possible.\n"
 "(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"
 msgstr ""
+"Un KBserver d’adaptation pour les codes de la langue (%s, %s) n'existe pas sur le serveur %s. \n"
+"Quelqu'un ayant accès « administrateur de la base de connaissances » niveau devez d'abord créer un un KBserver d’adaptation avec ces codes de langue dans le serveur %s en utilisant le gestionnaire de partage de connaissances.\n"
+"Jusqu'à ce que cela soit fait, ce n'est pas possible de partager de base de connaissances locale de ce projet.\n"
+"(Le gestionnaire de partage de connaissances est disponible dans le menu administrateur protégé par mot de passe)."
 
 #: Adapt_It.cpp:15151
 #, c-format
@@ -704,6 +707,9 @@ msgid ""
 "Until this is done, sharing this project's local glossing knowledge base will not be possible.\n"
 "(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"
 msgstr ""
+"Un lustrage KBserver pour les codes de la langue (%s, %s) n'existe pas sur le serveur %s. une personne ayant le niveau d'accès « administrateur de la base de connaissances » doit d'abord créer un gloses KBserver avec ces codes de langue dans le serveur %s en utilisant le gestionnaire de partage de connaissances.\n"
+"Jusqu'à ce que cela soit fait, ce n'est pas possible de partager de base de connaissances locale de ce projet.\n"
+"(Le gestionnaire de partage de connaissances est disponible dans le menu administrateur protégé par mot de passe)."
 
 # This will be the name of the folder that contains all the adapted documents for a project.
 #: Adapt_It.cpp:15537
@@ -753,12 +759,12 @@ msgstr "gloses"
 
 #: Adapt_It.cpp:15550
 msgid "An adaptation exists. A knowledge base entry is expected, but is absent"
-msgstr ""
+msgstr "Il existe une adaptation. Une entrée de la base de connaissances est attendue, mais est absente."
 
 #: Adapt_It.cpp:15551
 #, c-format
 msgid "The knowledge base entry is %s, the document does not agree"
-msgstr ""
+msgstr "L'entrée de la base de connaissances est %s, le document n'est pas d'accord"
 
 # Do not translate.
 #: Adapt_It.cpp:15953
@@ -802,7 +808,7 @@ msgstr ""
 # Priority 1
 #: Adapt_It.cpp:16159
 msgid "New Testament books"
-msgstr ""
+msgstr "Le Nouveau Testament"
 
 #: Adapt_It.cpp:16160
 msgid "Other Texts"
@@ -810,25 +816,25 @@ msgstr "Autres textes"
 
 #: Adapt_It.cpp:17004
 msgid "Adapt It is already running. Aborting attempt to run a second instance of Adapt It..."
-msgstr ""
+msgstr "Adapt It est déjà en cours d'exécution. C'est nécessaire d'abandonner d'exécution d'une deuxième instance d'Adapt It..."
 
 #: Adapt_It.cpp:19487
 msgid "Locating the custom work folder location failed. Either recovery requires you to take action outside of Adapt It, or the recovery attempt failed, or you Cancelled in order to force the application to abort now."
-msgstr ""
+msgstr "La localisation de l’emplacement du dossier personnalisé de travail a échoué."
 
 #: Adapt_It.cpp:19489 Adapt_It.cpp:33303 Adapt_It.cpp:33314 Adapt_It.cpp:33439
 msgid "Error of file named CustomWorkFolderLocation"
-msgstr ""
+msgstr "Erreur de fichier nommé CustomWorkFolderLocation"
 
 #: Adapt_It.cpp:19898 Adapt_ItDoc.cpp:4520
 msgid "Untitled - Adapt It"
-msgstr ""
+msgstr "Sans titre - Adapt It"
 
 # Priority 1
 # Do not translate the file names books.xml and AI_USFM.xml.
 #: Adapt_It.cpp:19904
 msgid "Loading books.xml and AI_USFM.xml ..."
-msgstr ""
+msgstr "Chargement de books.xml et AI_USFM.xml..."
 
 # Do not translate
 #: Adapt_It.cpp:19916 Adapt_It.cpp:19920 Adapt_It.cpp:19932
@@ -842,16 +848,18 @@ msgid ""
 "You should exit the application and fix the books.xml file\n"
 "before trying to do more work."
 msgstr ""
+"AVERTISSEMENT : Mode Dossier Livre sera désactivé jusqu’à ce qu’un fichier books.xml soit stocké dans le dossier de travail et elle est lue et analysé correctement.\n"
+"Vous devez quitter l’application et allez vous en occuper du fichier books.xml avant d’essayer de faire plus de travail."
 
 #: Adapt_It.cpp:20429
 msgid "Warning: using default USFM styles until a AI_USFM.xml file is stored in the work folder and it is read in and parsed correctly. You should exit the application and fix the AI_USFM.xml file if you have previously told Adapt It to hide certain standard format markers."
-msgstr ""
+msgstr "ATTENTION : l'utilisation des styles USFM par défaut jusqu'à ce qu'un fichier AI_USFM.xml soit stocké dans le dossier de travail et il est lu et il est analysé correctement. Vous devez quitter l'application et corriger le fichier AI_USFM.xml si vous l’avez dit précédemment de masquer certaines balises de format standard."
 
 # Priority 1
 # Do not translate the file name AI_UserProfiles.xml
 #: Adapt_It.cpp:20461
 msgid "Loading AI_UserProfiles.xml ..."
-msgstr ""
+msgstr "Chargement de fichier AI_UserProfiles.xml..."
 
 #: Adapt_It.cpp:20639
 #, c-format
@@ -860,14 +868,16 @@ msgid ""
 "   %s\n"
 "Please ask your administrator to check your user workflow profiles."
 msgstr ""
+"Pouvait pas créer de sauvegarde du fichier AI_UserProfiles.xml: \n"
+" %s"
 
 #: Adapt_It.cpp:20671 Adapt_It.cpp:20844
 msgid "Unable to read the AI_UserProfiles.xml file in the work folder. Ask your administrator to recreate Adapt It's user workflow profiles."
-msgstr ""
+msgstr "Impossible de lire le fichier AI_UserProfiles.xml dans le dossier de travail."
 
 #: Adapt_It.cpp:20721
 msgid "Unable to update the AI_UserProfiles.xml file in the work folder. Ask your administrator to recreate Adapt It's user workflow profiles."
-msgstr ""
+msgstr "Impossible de mettre à jour le fichier AI_UserProfiles.xml dans le dossier de travail."
 
 #: Adapt_It.cpp:20757
 #, c-format
@@ -876,6 +886,8 @@ msgid ""
 "   %s\n"
 "Please ask your administrator to recreate your user workflow profiles."
 msgstr ""
+"Pouvait pas créer de sauvegarde du fichier AI_UserProfiles.xml mis à jour le : \n"
+"%s "
 
 #: Adapt_It.cpp:20764
 #, c-format
@@ -886,21 +898,23 @@ msgid ""
 " and a new AI_UserProfiles.xml was created in the work folder.\n"
 "Please ask your administrator to check and recreate your user workflow profiles if necessary."
 msgstr ""
+"Il y avait une version incompatible (%s) de AI_UserProfiles.xml dans le dossier de travail. Adapt It %s attendu qu'il soit %s. Le fichier AI_UserProfiles.xml existant a été sauvegardé comme: %s et un nouveau AI_UserProfiles.xml a été créé dans le dossier de travail. S'il vous plaît, demandez à votre administrateur de vérifier et de recréer vos "
+"profils de l'utilisateur si nécessaire."
 
 #: Adapt_It.cpp:20807
 msgid "Could not remove the AI_UserProfiles.xml file from the work folder."
-msgstr ""
+msgstr "Impossible de supprimer le fichier AI_UserProfiles.xml à partir du dossier de travail."
 
 # Priority 1
 #: Adapt_It.cpp:21008
 #, c-format
 msgid "Initializing help system file %s..."
-msgstr ""
+msgstr "L'initialisation du fichier d'aide système %s..."
 
 # Priority 1
 #: Adapt_It.cpp:21060
 msgid "Initialization complete. Call Start Working..."
-msgstr ""
+msgstr "Initialisation complète. Appeller de Commencer à travailler..."
 
 # Priority 1
 #: Adapt_It.cpp:21657
@@ -925,10 +939,18 @@ msgid ""
 "\n"
 "Select \"Yes\" to reset the basic configuration settings. Select \"No\" to continue using your old settings."
 msgstr ""
+"AVERTISSEMENT: Adapt It a détecté que vous appuyez la touche de majuscule pendant le démarrage du programme.\n"
+"\n"
+"En maintenant la touche Maj enfoncée ne devrait se faire lors du démarrage si vous pensez que le fichier de configuration de base a été endommagé, et que vous voulez remplacer ce fichier de configuration de base par une nouvelle qui utilise les paramètres par défaut. Les préférences de base que vous avez définies telles que l'écran de "
+"démarrage, la principale position de la fenêtre et la taille, barre d'outils et d'autres paramètres d'affichage, seront modifiées aux valeurs par défaut.\n"
+"\n"
+"Voulez-vous réinitialiser les paramètres de configuration de base?\n"
+"\n"
+"Sélectionnez \"Oui\" pour réinitialiser les paramètres de configuration de base. Sélectionnez \"Non\" pour continuer à utiliser vos anciens paramètres."
 
 #: Adapt_It.cpp:22894
 msgid "Detected Shift key down during startup"
-msgstr ""
+msgstr "La touche de majuscule était appuyée tout en ouvrant Adapt It"
 
 #: Adapt_It.cpp:22979
 msgid ""
@@ -941,16 +963,23 @@ msgid ""
 "\n"
 "Select \"Yes\" to reset the project configuration settings. Select \"No\" to continue using your old settings."
 msgstr ""
+"AVERTISSEMENT: Adapt It a détecté que vous appuyez la touche de majuscule en ouvrant le projet.\n"
+"\n"
+"En maintenant la touche de majuscule ne devrait être fait lors de l'ouverture d'un projet si vous pensez que le fichier de configuration du projet a été endommagé, et que vous voulez remplacer le fichier de configuration du projet par une nouvelle qui utilise les paramètres par défaut. Les préférences de projet que vous avez définies telles "
+"que les polices, les couleurs de police, la ponctuation, barre d'outils et d'autres paramètres, seront changés aux valeurs par défaut.\n"
+"Voulez-vous réinitialiser les paramètres de configuration de base?\n"
+"\n"
+"Sélectionnez \"Oui\" pour réinitialiser les paramètres de configuration de base. Sélectionnez \"Non\" pour continuer à utiliser vos anciens paramètres."
 
 #: Adapt_It.cpp:22980
 msgid "Detected Shift key down during project opening"
-msgstr ""
+msgstr "La touche de majuscule était appuyée tout en ouvrant un projet"
 
 # Do not translate the 'Adapt It %sWork' part of the sentence.
 #: Adapt_It.cpp:23108
 #, c-format
 msgid "Sorry, there is a file named 'Adapt It %sWork'. Please delete or rename this file because Adapt It needs to use this name instead for a folder."
-msgstr ""
+msgstr "Désolé, il n'y a un fichier nommé « Adapt It %sWork ». Supprimez ou renommez ce fichier car Adapt It a besoin d'utiliser ce nom à la place d'un dossier."
 
 #: Adapt_It.cpp:23128
 #, c-format
@@ -958,11 +987,13 @@ msgid ""
 "Sorry, there was an error creating the \"Adapt It %sWork\" folder in your <home user>/My Documents folder.\n"
 "Adapt It %s is not set up correctly and so must close down."
 msgstr ""
+"Désolé, il y avait une erreur de création du dossier « Adapt It %sWork » dans votre dossier <home user>/My Documents.\n"
+"Adapt It %s n'est pas configuré correctement et si doit fermer."
 
 #: Adapt_It.cpp:23196
 #, c-format
 msgid "Warning: a project with the name \"%s\" already exists. Adapt It will therefore use the existing project."
-msgstr ""
+msgstr "ATTENTION : un projet avec le nom « %s » existe déjà. Adapt It utilisera donc le projet existant."
 
 # Do not translate  \"%s to %s adaptations\"
 # Also do not translate  Adapt It %sWork
@@ -970,23 +1001,23 @@ msgstr ""
 #: Adapt_It.cpp:23214
 #, c-format
 msgid "Sorry, there is a file named \"%s to %s adaptations\" in your Adapt It %sWork folder. You must rename or delete this file because Adapt It needs to use this name for a folder."
-msgstr ""
+msgstr "Désolé, il n'y a un fichier nommé « adaptations de %s à %s » dans votre dossier de travail %s. Vous devez renommer ou supprimer ce fichier car Adapt It a besoin d'utiliser ce nom pour un dossier."
 
 # Do not translate the \"s% to %s adaptions\" part.
 #: Adapt_It.cpp:23238
 #, c-format
 msgid "Sorry, there was an error creating the \"%s to %s adaptations\" folder in your Adapt It %sWork folder. Adapt It is not set up correctly and so must close down."
-msgstr ""
+msgstr "Désolé, il y avait une erreur de création du dossier « adaptations de %s à %s » dans votre dossier de travail %s. Adapt It n'est pas configuré correctement et si doit fermer."
 
 #: Adapt_It.cpp:23277
 #, c-format
 msgid "Sorry, there is a file named \"Adaptations\" in your \"%s\" folder. Please delete or rename it because Adapt It needs to use that name for a directory instead."
-msgstr ""
+msgstr "Désolé, il n'y a un fichier nommé « Adaptations » dans votre dossier « %s ». S'il vous plaît le supprimer ou le renommer car Adapt It a besoin d'utiliser ce nom pour un dossier à la place."
 
 # Do not translate the \"Adaptations\" part of the sentence.
 #: Adapt_It.cpp:23295
 msgid "Sorry, there was an error creating the \"Adaptations\" folder in your project folder. Adapt It is not set up properly and so must close down."
-msgstr ""
+msgstr "Désolé, il y avait une erreur de création du dossier « Adaptations » dans votre dossier de projet. Adapt It n'est pas configuré correctement et si doit fermer."
 
 # Do not translate the \"s% to %s adaptions\" part.
 #: Adapt_It.cpp:23312
@@ -996,74 +1027,77 @@ msgid ""
 "%s\n"
 "Adapt It is not set up correctly and so must close down."
 msgstr ""
+"Désolé, il y avait une erreur de création des dossiers suivants dans votre dossier %sWork.\n"
+"%s\n"
+" Adapt It n'est pas configuré correctement et par conséquent doit fermer."
 
 #: Adapt_It.cpp:24621 Adapt_It.cpp:24748 XML.cpp:1016
 #, c-format
 msgid "Reading File %s - part %d of %d"
-msgstr ""
+msgstr "Lisant fichier %s - partie %d de %d"
 
 # Priority 1
 #: Adapt_It.cpp:24624 Adapt_It.cpp:24652 Adapt_It.cpp:24680 Adapt_It.cpp:24687 Adapt_It.cpp:24704
 msgid "Loading the Glossing Knowledge Base"
-msgstr ""
+msgstr "Chargement de la Base de connaissances glosant"
 
 #: Adapt_It.cpp:24664
 msgid "Warning: a knowledge base for storing glosses was not found. An empty one has been created for your use instead."
-msgstr ""
+msgstr "AVERTISSEMENT : une base de connaissances pour le stockage des gloses n’a pas été trouvée. Un vide aucune a été créée pour votre utilisation à la place."
 
 # Priority 1
 #: Adapt_It.cpp:24751 Adapt_It.cpp:24779 Adapt_It.cpp:24832 Adapt_It.cpp:24836 Adapt_It.cpp:24871
 msgid "Loading the Knowledge Base"
-msgstr ""
+msgstr "Chargement de la Base de connaissances"
 
 #: Adapt_It.cpp:24791
 msgid "Warning: a knowledge base for storing adaptations was not found. An empty one has been created for your use instead. "
-msgstr ""
+msgstr "AVERTISSEMENT : une base de connaissances pour le stockage des adaptations n'a pas été trouvée. Un vide aucune a été créée pour votre utilisation à la place."
 
 #: Adapt_It.cpp:24974
 msgid "Loading the knowledge base failed. You should now try the Restore Knowledge Base command in the File menu. If that fails, you should restore your knowledge base from backups. You need a valid knowledge base before doing any more work."
-msgstr ""
+msgstr "Chargement de la base de connaissances a échoué. Vous devriez maintenant essayer la commande restaurer la Base de connaissances dans le menu fichier. Si cela échoue, vous devez restaurer votre base de connaissances des sauvegardes. Vous avez besoin d'une base de connaissances valide avant de faire plus de travail."
 
 #: Adapt_It.cpp:25011
 msgid "Creating the knowledge base failed. Ensure that no other program is using the KB files, then try again. If continue to get failures you can try the Restore Knowledge Base... command from the File menu, or restore your knowledge base files from backups. You need a valid knowledge base before doing any more work."
-msgstr ""
+msgstr "Échec de création de la base de connaissances. S'assurer qu'aucun autre programme n'utilise les fichiers KB, puis réessayer. Si les échecs continuent, vous pouvez essayer la commande « Restaurer la Base de connaissances » dans le menu fichier. Vous avez besoin d'une base de connaissances valide avant de faire plus de travail."
 
 #: Adapt_It.cpp:25056 Adapt_It.cpp:27546
 msgid "Error: loading the glossing knowledge base failed. The application will now close."
-msgstr ""
+msgstr "Erreur : chargement de la base de connaissances glosant a échoué. L'application va être fermé."
 
 #: Adapt_It.cpp:25091
 msgid "Creating the glossing knowledge base failed. Ensure that no other program is using the KB files, then try again. If continue to get failures you can try the Restore Knowledge Base... command from the File menu, or restore your knowledge base files from backups. You need a valid knowledge base before doing any more work."
-msgstr ""
+msgstr "Échec de création de la base de connaissances glosant. S'assurer qu'aucun autre programme n'utilise les fichiers KB, puis réessayer. Si les échecs continuent, vous pouvez essayer la commande « Restaurer la Base de connaissances » dans le menu fichier. Vous avez besoin d'une base de connaissances valide avant de faire plus de travail."
 
 #: Adapt_It.cpp:25474
 msgid "Loading Prefixes"
-msgstr ""
+msgstr "Chargement des préfixes"
 
 #: Adapt_It.cpp:25478
 msgid "Warning: a prefix file was found, but it was not readable."
-msgstr ""
+msgstr "ATTENTION : un fichier préfixe a été trouvé, mais il n'était pas lisible."
 
 #: Adapt_It.cpp:25508
 msgid "Loading Suffixes"
-msgstr ""
+msgstr "Chargement des Suffixes"
 
 #: Adapt_It.cpp:25512
 msgid "Warning: a suffix file was found, but it was not readable."
-msgstr ""
+msgstr "ATTENTION : un fichier de suffixe a été trouvé, mais il n'était pas lisible."
 
 #: Adapt_It.cpp:25836
 msgid "Failed to set the current directory when getting existing adaptation documents"
-msgstr ""
+msgstr "Impossible de définir le dossier en cours lors de l'obtention des documents existants d'adaptation"
 
 #: Adapt_It.cpp:25932
 #, c-format
 msgid "Creating folder: \"%s\" failed. This folder will be skipped, processing will continue."
-msgstr ""
+msgstr "Création du dossier: « %s » a échoué. Ce dossier est sauté, traitement continuera."
 
 #: Adapt_It.cpp:26144
 msgid "Error opening glossing KB file for writing with path:\n"
-msgstr ""
+msgstr "Erreur d'ouverture de fichier KB glosant pour l'écriture avec chemin d'accès :\n"
 
 #: Adapt_It.cpp:26146
 msgid ""
@@ -1071,16 +1105,19 @@ msgid ""
 "The glossing knowledge base was not saved.\n"
 "Is your drive's free space low, or is the file open in another application?"
 msgstr ""
+"\n"
+"La base de connaissances glosant n'était pas sauvegardée.\n"
+"Est-ce que l'espace libre de votre disque manque, ou est le fichier ouvert dans une autre application ?"
 
 # Priority 1
 #: Adapt_It.cpp:26161 Adapt_It.cpp:26260 KB.cpp:6229
 #, c-format
 msgid "Saving KB %s - %d of %d Total entries and senses"
-msgstr ""
+msgstr "Sauvegarder de KB %s - %d of %d entrées et sens totales"
 
 #: Adapt_It.cpp:26167 Adapt_It.cpp:26168 Adapt_It.cpp:26192 Adapt_It.cpp:26210
 msgid "Saving the Glossing KB"
-msgstr ""
+msgstr "Sauvegarder de KB glosant"
 
 #: Adapt_It.cpp:26189 Adapt_It.cpp:26380
 msgid "Removing backup glossing kb file failed."
@@ -1088,7 +1125,7 @@ msgstr ""
 
 #: Adapt_It.cpp:26243
 msgid "Error opening KB file for writing with path:\n"
-msgstr ""
+msgstr "Impossible d'ouvrir fichier KB avec chemin d'accès:\n"
 
 #: Adapt_It.cpp:26245
 msgid ""
@@ -1096,10 +1133,13 @@ msgid ""
 "The knowledge base was not saved.\n"
 "Is your drive's free space low, or is the file open in another application?"
 msgstr ""
+"\n"
+"La base de connaissances glosant n'était pas sauvegardée.\n"
+"Est-ce que l'espace libre de votre disque manque, ou est le fichier ouvert dans une autre application ?"
 
 #: Adapt_It.cpp:26265 Adapt_It.cpp:26268 Adapt_It.cpp:26288 Adapt_It.cpp:26304
 msgid "Saving the KB"
-msgstr ""
+msgstr "Sauvegarder de KB"
 
 #: Adapt_It.cpp:26285 Adapt_It.cpp:26337
 msgid "Removing backup kb file failed."
@@ -1110,6 +1150,8 @@ msgid ""
 "You cancelled the dialog - You may turn collaboration off if you want to access a different project from the Start Working Wizard.\n"
 "Do you want to turn collaboration off?"
 msgstr ""
+"Vous avez annulé la boîte de dialogue. Vous pouvez désactiver collaboration si vous souhaitez accéder à un autre projet de l'Assistant de Commencer à travailler.\n"
+"Vous voulez désactiver la collaboration ? "
 
 #: Adapt_It.cpp:26638
 #, c-format
@@ -1117,10 +1159,12 @@ msgid ""
 "Adapt It cannot collaborate with this project (%s). There is a problem with the project's settings.\n"
 "Please ask your administrator for help."
 msgstr ""
+"Adapt It ne peut pas collaborer avec ce projet (%s). Il y a un problème avec les paramètres du projet.\n"
+"S'il vous plaît, demandez à votre administrateur de l'aide."
 
 #: Adapt_It.cpp:26675
 msgid "No project folder defined yet. "
-msgstr ""
+msgstr "Aucun dossier de projet encore définie."
 
 # Priority 1
 #: Adapt_It.cpp:26678
@@ -1129,16 +1173,19 @@ msgid ""
 "If you want to continue, you must choose a project or create a new project.\n"
 "Do you want to continue? "
 msgstr ""
+"\n"
+"Si vous souhaitez continuer, vous devez choisir un projet ou créer un nouveau projet.\n"
+"Voulez-vous continuer ?"
 
 #: Adapt_It.cpp:26679
 msgid "Basic Configuration File Not Read"
-msgstr ""
+msgstr "Fichier de Configuration de base pas lu"
 
 # Priority 1
 #: Adapt_It.cpp:26702
 #, c-format
 msgid "Failed to find the %s folder."
-msgstr ""
+msgstr "Impossible de trouver le dossier %s."
 
 # Priority 1
 #: Adapt_It.cpp:26705
@@ -1147,6 +1194,9 @@ msgid ""
 "If you want to continue, you must choose a different project or create a new project.\n"
 "Do you want to continue? "
 msgstr ""
+"\n"
+"Si vous souhaitez continuer, vous devez choisir un projet différent ou créez un nouveau projet.\n"
+"Voulez-vous continuer ?"
 
 #: Adapt_It.cpp:26706
 msgid "Bad path in config file"
@@ -1155,7 +1205,7 @@ msgstr "Chemin d'accès incorrect dans le fichier de configuration."
 # Priority 1
 #: Adapt_It.cpp:27158
 msgid "Adapt It cannot create its work folder: "
-msgstr ""
+msgstr "Adapter ne peut créer son dossier de travail :"
 
 # Priority 1
 #: Adapt_It.cpp:27159
@@ -1163,6 +1213,8 @@ msgid ""
 "\n"
 "Adapt It cannot continue and will now abort."
 msgstr ""
+"\n"
+"Adapt It ne peut pas continuer et il va abondonner."
 
 # Priority 1
 #: Adapt_It.cpp:27160
@@ -1172,7 +1224,7 @@ msgstr "Erreur critique"
 #: Adapt_It.cpp:27417 Adapt_It.cpp:27429
 #, c-format
 msgid "Warning: Did not remove bad knowledge base file %s."
-msgstr ""
+msgstr "AVERTISSEMENT : On ne peut pas supprimer le mauvais fichier de la base de connaissances %s."
 
 #: Adapt_It.cpp:27448
 #, c-format
@@ -1181,7 +1233,7 @@ msgstr ""
 
 #: Adapt_It.cpp:27471 Adapt_It.cpp:27515
 msgid "Error: saving the knowledge base failed. The application will now close."
-msgstr ""
+msgstr "Erreur : enregistrement de la base de connaissances a échoué. L'application va être fermé."
 
 #: Adapt_It.cpp:27488
 #, c-format
@@ -1190,15 +1242,15 @@ msgstr ""
 
 #: Adapt_It.cpp:27557
 msgid "Glossing KB file not found immediately after it was renamed!\n"
-msgstr ""
+msgstr "Fichier KB glosant introuvable immédiatement après que qu'il a été renommé !\n"
 
 #: Adapt_It.cpp:27584
 msgid "Error: loading a knowledge base failed. The application will now close."
-msgstr ""
+msgstr "Erreur : chargement de la base de connaissances glosant a échoué. L'application va être fermé."
 
 #: Adapt_It.cpp:27595
 msgid "KB file not found immediately after it was renamed!\n"
-msgstr ""
+msgstr "Fichier de  la base de connaissances introuvable immédiatement après que qu'il a été renommé !\n"
 
 # Priority 1
 #: Adapt_It.cpp:27774
@@ -1208,21 +1260,20 @@ msgstr "Coupe la sélection et la place dans le presse-papier"
 
 #: Adapt_It.cpp:27847 Adapt_It.cpp:27862
 msgid "The clipboard was empty; there is nothing to do."
-msgstr ""
+msgstr "Le presse-papiers est vide ; Il n'y a rien à faire."
 
 # Priority 1
 #: Adapt_It.cpp:27848 Adapt_It.cpp:27863
-#, fuzzy
 msgid "No Source Text"
-msgstr "Texte source :"
+msgstr "Texte source non trouvé"
 
 #: Adapt_It.cpp:28008 Adapt_It.cpp:28062
 msgid "The clipboard could not be opened for writing."
-msgstr ""
+msgstr "Le presse-papiers n'a pas pu être ouvert pour écriture."
 
 #: Adapt_It.cpp:28009 Adapt_It.cpp:28063
 msgid "Clipboard Unavailable"
-msgstr ""
+msgstr "Presse-papiers indisponible"
 
 #: Adapt_It.cpp:28385
 #, c-format
@@ -1237,6 +1288,11 @@ msgid ""
 "\n"
 "Do you wish to go ahead?"
 msgstr ""
+"Utilisez cette commande si la base de connaissances a été corrompue.\n"
+"(Pour restaurer une base de connaissances glosant, tournez le glosage ON et puis choisissez cette commande à nouveau.)\n"
+"Il va jeter votre base de connaissances actuelle et ensuite à l'aide de vos fichiers de document enregistré il va construire une nouvelle.\n"
+"\n"
+"Vous souhaitez aller de l'avant ?"
 
 # Priority 1
 #: Adapt_It.cpp:28619 Adapt_ItDoc.cpp:1507 Adapt_ItDoc.cpp:3257 Adapt_ItDoc.cpp:3683
@@ -1254,6 +1310,8 @@ msgid ""
 "Could not save the current document. Restore Knowledge Base command aborted.\n"
 "You can try to continue working, but it would be safer to shut down and relaunch, even if you loose your unsaved edits."
 msgstr ""
+"Ne peut pas enregistrer le document actif. Restauration de Base de connaissances abandonnée.\n"
+"Vous pouvez essayer de continuer à travailler, mais il serait plus sûr de fermer Adapt It et puis le relancer, même si vous perdez vos modifications non enregistrées."
 
 #: Adapt_It.cpp:28668
 msgid ""
@@ -1266,22 +1324,22 @@ msgstr ""
 #: Adapt_It.cpp:28704
 #, c-format
 msgid "Restoring the KB - Step %d of %d"
-msgstr ""
+msgstr "Restaurer le KB - étape %d de %d"
 
 # Priority 1
 #: Adapt_It.cpp:28706 Adapt_It.cpp:28710 Adapt_It.cpp:28731 Adapt_It.cpp:28772 Adapt_It.cpp:28823 Adapt_It.cpp:28829 Adapt_It.cpp:28883 Adapt_It.cpp:28923 Adapt_It.cpp:28930 Adapt_It.cpp:29070 Adapt_It.cpp:29089 Adapt_It.cpp:29147
 msgid "Restoring Knowledge Base..."
-msgstr ""
+msgstr "Restaurer la Base de connaissances..."
 
 #: Adapt_It.cpp:28804 Adapt_It.cpp:38307 Retranslation.cpp:4377
 msgid "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."
-msgstr ""
+msgstr "Désolé, il n'y a aucun fichier de document enregistré encore pour ce projet. Au moins un document est requis pour l'opération que vous avez choisi d'être réussie. La commande sera ignorée."
 
 # Priority 1
 #: Adapt_It.cpp:29096
 #, c-format
 msgid "Your rebuilt knowledge base is now in operation. It was built from %d source words and phrases taken from %d documents."
-msgstr ""
+msgstr "Votre base de connaissances reconstruit est maintenant en opération. Il a été construit de %d source mots et phrases tirées de  %d documents."
 
 #: Adapt_It.cpp:29590
 msgid ""
@@ -1292,7 +1350,7 @@ msgstr ""
 # Priority 1
 #: Adapt_It.cpp:29591
 msgid "No source text files for document creation"
-msgstr ""
+msgstr "Aucun fichier de texte source pour la création de documents"
 
 #: Adapt_It.cpp:29631
 #, c-format
@@ -1329,6 +1387,9 @@ msgid ""
 "Your data should first be converted to Unicode using TecKit\n"
 "and then you should use the Unicode version of Adapt It."
 msgstr ""
+"\n"
+"Il ne faut pas utiliser cette version non-Unicode d'Adapt It.\n"
+"Vos données doivent d'abord être converties au format Unicode via TecKit et puis vous devez utiliser la version actuelle (Unicode) d'Adapt It."
 
 #: Adapt_It.cpp:31500
 msgid ""
@@ -1338,7 +1399,7 @@ msgstr ""
 
 #: Adapt_It.cpp:31502 Adapt_It.cpp:34640 Adapt_ItDoc.cpp:15859 XML.cpp:561
 msgid "Warning: Invalid Characters Detected"
-msgstr ""
+msgstr "ATTENTION : Les caractères non valides détectés"
 
 # Priority 1
 #: Adapt_It.cpp:32541
@@ -1353,6 +1414,8 @@ msgid ""
 "The settings were inconsistent or broken for collaboration with %s.\n"
 "Adapt It will remove those setting now. If you want to collaborate with %s, you or your administrator will need to manually set up the collaboration again."
 msgstr ""
+"ADAPT It ne pouvait pas mettre à niveau les paramètres de collaboration pour l’utilisation dans cette version (%s) d’Adapt It.\n"
+"Les réglages étaient incohérentes ou cassé pour collaboration avec %s. Adapt It les enlèvera maintenant. Si vous souhaitez collaborer avec %s, vous ou votre administrateur devra configurer manuellement la collaboration encore une fois."
 
 # Priority 1
 #: Adapt_It.cpp:33375
@@ -1366,11 +1429,17 @@ msgid ""
 "3. another application currently has the CustomWorkFolderLocation file open. \n"
 "You will have a chance to recover now."
 msgstr ""
+"Adapt It ne trouvait pas votre dossier de travail à\n"
+" %s Cette erreur se produira égal à \n"
+"1. parce que votre dossier de travail est situé sur un disque externe qui n'est pas actuellement connecté, ou \n"
+"2. parce qu'il y a une faute sur le nom de chemin de dossier de travail stocké dans le fichier nommé CustomWorkFolderLocation, ou \n"
+"3. Le fichier CustomWorkFolderLocation est ouvert dans une autre application. \n"
+"Vous aurez une chance de récupérer maintenant."
 
 # Priority 1
 #: Adapt_It.cpp:33377
 msgid "Failed to find the custom work folder"
-msgstr ""
+msgstr "Impossible de trouver le dossier de travail personnalisé"
 
 # Priority 1
 #: Adapt_It.cpp:33386
@@ -1395,7 +1464,7 @@ msgstr "4. Forget the custom work folder location. The command Custom Work Folde
 # Priority 1
 #: Adapt_It.cpp:33390
 msgid "Choose Recovery Action or Cancel (to abort)"
-msgstr ""
+msgstr "Choisissez l'Action en recouvrement ou Cancel (pour annuler)"
 
 # Priority 1
 #: Adapt_It.cpp:33391
@@ -1411,16 +1480,17 @@ msgstr ""
 #: Adapt_It.cpp:33405
 msgid "The path to the custom work folder did not find a directory with the required name. Did you plug in the external drive containing the work folder before clicking OK in the dialog? Aborting now. Make the custom work folder's location accessible on your machine before you re-launch Adapt It."
 msgstr ""
+"Le chemin vers le dossier de travail personnalisé n'a pas trouvé un dossier avec le nom requis. Est-ce que vous connectez le disque dur externe contenant le dossier de travail avant de cliquer sur OK dans la boîte de dialogue ? Abandon de maintenant. Faire l’emplacement du dossier accessible sur votre machine avant à vous relancer Adapt It."
 
 # Priority 1
 #: Adapt_It.cpp:33406
 msgid "Recovery By Plugging In The Missing External Drive Failed"
-msgstr ""
+msgstr "Échec de récupération en branchant le disque externe manquant"
 
 # Priority 1
 #: Adapt_It.cpp:33438
 msgid "Failed to open the CustomWorkFolderLocation file at default work folder location. Is the CustomWorkFolderLocation file still open in another application? Is the path within it an incorrect path to the custom work folder on your machine? Check and fix such errors before you re-launch Adapt It. Aborting now."
-msgstr ""
+msgstr "Impossible d'ouvrir le fichier CustomWorkFolderLocation dans le dossier de travail par défaut. Le fichier CustomWorkFolderLocation, est-il  ouvert dans une autre application ? Le chemin d'accès, est-il incorrect ? Vérifier et corriger ces erreurs avant de vous relancer Adapt It. Abandon maintenant."
 
 # Priority 1
 #: Adapt_It.cpp:33449
@@ -1437,7 +1507,7 @@ msgstr ""
 # Priority 1
 #: Adapt_It.cpp:33525
 msgid "You did not succeed in locating the work folder location. Aborting now. Next time you launch, you or your administrator will need to use the Administrator menu to locate the required work folder."
-msgstr ""
+msgstr "Vous n'avez pas réussi à localiser l'emplacement du dossier de travail. Abandon de maintenant. Prochaine fois que vous lancez, vous ou votre administrateur devrez utiliser le menu administrateur pour localiser le dossier de travail requis."
 
 # Priority 1
 #: Adapt_It.cpp:33526
@@ -1453,15 +1523,15 @@ msgstr ""
 # Note: leave a space after the colon.
 #: Adapt_It.cpp:35271
 msgid "Warning: Unrecognized project settings field; unmatched name is: "
-msgstr ""
+msgstr "Alerte : Champ de paramètres de projet non reconnue ; champ inégalé est :"
 
 #: Adapt_It.cpp:35653
 msgid "Sorry, Adapt It will not permit the < character to be used as a word-building character. It must be included with the punctuation characters, and it will be placed there now."
-msgstr ""
+msgstr "Désolé, Adapt It ne permet pas l'utilisation du caractère « < » comme un caractère de mot-bâtiment. Il doit être inclus avec les caractères de ponctuation, et il sera placé là maintenant."
 
 #: Adapt_It.cpp:35667
 msgid "Sorry, Adapt It will not permit the > character to be used as a word-building character. It must be included with the punctuation characters, and it will be placed there now."
-msgstr ""
+msgstr "Désolé, Adapt It ne permet pas l'utilisation du caractère « > » comme un caractère de mot-bâtiment. Il doit être inclus avec les caractères de ponctuation, et il sera placé là maintenant."
 
 # Refers to the type of configuration file.
 #: Adapt_It.cpp:36354
@@ -1476,14 +1546,14 @@ msgstr "projet"
 #: Adapt_It.cpp:36390
 #, c-format
 msgid "The %s configuration file exists but it is empty (has no content). Default values will be used instead. You may need to reset some preferences by selecting Preferences... from the Edit menu."
-msgstr ""
+msgstr "Le fichier de configuration « %s » existe, mais il est vide (n'a aucun contenu). Valeurs par défaut seront utilisés à la place. Vous devrez peut-être réinitialiser certaines préférences en sélectionnant « Préférences... »  dans le menu Edition (Edit)."
 
 # Priority 1
 # The %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
 #: Adapt_It.cpp:36406
 #, c-format
 msgid "Unable to open the %s configuration file for reading. Default values will be used instead. (Ignore this message if you have just launched Adapt It for the first time, or have just created a new project, because no configuration file exists yet.)"
-msgstr ""
+msgstr "Impossible d'ouvrir le fichier de configuration ( %s ) pour la lecture. Valeurs par défaut seront utilisés à la place. (Ignorez ce message si vous lanciez Adapt It pour la première fois, ou veniez de créer un nouveau projet, parce qu'aucun fichier de configuration n'existe encore.)"
 
 # The first %s placeholder will receive the translation of "source" or "target" or "navigation" (see below).
 # The second %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
@@ -1513,43 +1583,43 @@ msgstr "de navigation"
 #: Adapt_It.cpp:38098 Adapt_ItDoc.cpp:4260 Adapt_ItDoc.cpp:6079 KB.cpp:2304
 #, c-format
 msgid "Reading file %s - part %d of %d"
-msgstr ""
+msgstr "Lisant fichier %s - partie %d de %d"
 
 # Priority 1
 #: Adapt_It.cpp:38101 Adapt_It.cpp:38108 Adapt_It.cpp:38126 Adapt_It.cpp:38297 Adapt_It.cpp:38319 Adapt_It.cpp:38367 Adapt_It.cpp:38437 Adapt_It.cpp:38487
 msgid "Loading the Other Project's Knowledge Base"
-msgstr ""
+msgstr "Chargement de la Base de connaissances de l'autre projet"
 
 #: Adapt_It.cpp:38114
 msgid "Error: the application could not find the other project's knowledge base, or failed to open and load it. The command has therefore been ignored."
-msgstr ""
+msgstr "Erreur : l'application n'a pas trouvé la base de connaissances de l'autre projet, ou n'a pas pu ouvrir et chargez-le. La commande a donc été ignorée."
 
 # Priority 1
 #: Adapt_It.cpp:38637
 #, c-format
 msgid "Transforming File %s  - %d of %d Total words and phrases"
-msgstr ""
+msgstr "Transformer fichier %s - %d de %d totales de mots et de phrases"
 
 # Priority 1
 #: Adapt_It.cpp:38640 Adapt_It.cpp:38675 Adapt_It.cpp:38687
 msgid "Transformations To Glosses"
-msgstr ""
+msgstr "Transformations à gloses"
 
 # Priority 1
 #: Adapt_It.cpp:38695
 #, c-format
 msgid "The document with pathname: %s, was not opened and therefore not processed."
-msgstr ""
+msgstr "Le document avec le chemin d'accès: %s, n'était pas ouvert et donc pas traitées."
 
 #: Adapt_It.cpp:38719
 #, c-format
 msgid "The documents you chose from the other project have been transformed and copied to the current project. A total of %d source words and phrases were transformed, and these occur in %d  documents.  Also, the knowledge base information from both projects has been preserved in the current project."
-msgstr ""
+msgstr "Les documents que vous avez choisi dans l'autre projet ont été transformées et copiés dans le projet actuel. Un total de %d source mots et expressions ont été transformées, et elles apparaissent dans %d documents.  En outre, les informations de la base de connaissances de ces deux projets ont été conservées dans le projet actuel."
 
 # Priority 1
 #: Adapt_It.cpp:38919
 msgid "Automatic capitalization support will work only provided the source language distinguishes between upper case and lower case letters. A \"No\" response will prohibit auto-capitalization from being turned on. Does your source language have both upper and lower case letters?"
-msgstr ""
+msgstr "La mise en majuscule automatique fonctionnera seulement si la langue source fait la distinction entre majuscules et minuscules. Une réponse « Non » empêchera l’auto-capitalisation. Votre langue source a-t-elle les lettres majuscules et minuscules ?"
 
 # Priority 1
 #: Adapt_It.cpp:38951 Adapt_It.cpp:38972
@@ -1557,11 +1627,13 @@ msgid ""
 "The source language upper and lower case correspondences do not yet exist. Until they do, automatic captialization cannot be turned on.\n"
 "You can set them up in the Edit Preferences menu selection on the \"Case\" tab."
 msgstr ""
+"La langue source supérieure et minuscules correspondances encore absents. Jusqu'à ce qu'ils font, captialization automatique ne peut pas être allumée.\n"
+"Vous pouvez mettre en place dans la sélection du menu « Edition, Préférences » dans l'onglet « Case »."
 
 # Priority 1
 #: Adapt_It.cpp:39061 Adapt_It.cpp:39220
 msgid "The Startup Wizard failed to open. Use the File menu's Open command to open a document."
-msgstr ""
+msgstr "L'Assistant de démarrage a manqué de s'ouvrir. Utilisez la commande Ouvrir du menu Fichier pour ouvrir un document."
 
 # Priority 1
 #: Adapt_It.cpp:40630
@@ -1627,12 +1699,12 @@ msgstr " Indéfini"
 
 #: Adapt_It.cpp:40791
 msgid "!! TRANSLITERATING !!"
-msgstr ""
+msgstr "!! TRANSLITTÉRATION !!"
 
 #: Adapt_It.cpp:40857
 #, c-format
 msgid "Deleting %d of %d"
-msgstr ""
+msgstr "Suppression de %d sur %d"
 
 #: Adapt_It.cpp:43481
 msgid "Setup of the chapter and verse range failed. This printing operation has been aborted. Perhaps the document does not contain chapter or verse numbers within the range you specified."
