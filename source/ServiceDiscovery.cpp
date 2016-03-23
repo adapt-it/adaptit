@@ -86,6 +86,7 @@
 #define QTYPE_A 1
 #define QTYPE_PTR 12
 #define QTYPE_SRV 33
+/*
 // and a copy of the definition of mdnsa, from mdnsd.h, for the same reason
 typedef struct mdnsda_struct
 {
@@ -98,7 +99,7 @@ typedef struct mdnsda_struct
 	unsigned char *rdname; // NS/CNAME/PTR/SRV
 	struct { unsigned short int priority, weight, port; } srv; // SRV
 } *mdnsda;
-
+*/
 #include <vector>
 #define WIN32_LEAN_AND_MEAN // does the same job as above, likewise here just in case
 #define _WINSOCKAPI_ // keeps winsock.h from being included in <Windows.h>, it's here just in case

@@ -62,7 +62,7 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp)
 // size of cache hash
 #define LPRIME 1009
 // brute force garbage cleanup frequency, rarely needed (daily default)
-#define GC 86400 // #define GC 120   // seconds. Beier's original value is :  #define GC 86400
+#define GC 120   // seconds. Beier's original value is :  #define GC 86400
 
 /* messy, but it's the best/simplest balance I can find at the moment
 Some internal data types, and a few hashes: querys, answers, cached, and records (published, unique and shared)

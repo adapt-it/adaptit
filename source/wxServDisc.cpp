@@ -99,8 +99,10 @@ extern wxMutex	kbsvr_arrays;
 
 #endif // WIN32
 
-#include "1035.h"
-#include "mdnsd.h"
+// BEW 23Mar16 I moved these two back to be in wxServDisc.h, see the 
+// comments there for the reason
+//#include "1035.h"
+//#include "mdnsd.h"
 
 #include "wxServDisc.h"
 #include "ServiceDiscovery.h"
@@ -135,20 +137,13 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 {
   // save our caller
   parent = p;
-  m_pSD = NULL; // initialize, the pointer to the parent class instance, CServiceDiscovery
-  // Additional instances get spawned, but not by the parent, so those will have p = NULL.
-  // So we will have the parent CServiceDiscovery instance set a global pointer to itself,
-  // gpServiceDiscovery, and then we'll test here for p=NULL, and set it from that
-  // BEW 14Mar16, if we are to have just the first wxServDisc instance and its two lookup
-  // instances then these next 4 lines must be commented out, so that Entry() can detect
-  // when NULL was passed in for p
-  //if (p == NULL)
-  //{
-  //  parent = (void*)gpServiceDiscovery;
-  //}
+  // The global gpServiceDiscovery is the pointer to the parent class instance, CServiceDiscovery
+  // Additional instances of wxServDisc get spawned, but not by the CServiceDiscovery parent, so 
+  // those will have p = NULL, unless I explicitly provide a p ptr (which I'll do only for the two 
+  // child scans done in DiscoverResults() -- and of course those p pointers will be to instances
+  // of wxServDisc run from stack frames, for the hostname scan, and the ipaddr scan
+ 
   wxLogDebug(_T("wxServDisc CREATOR: I am %p , and parent passed in =  %p"), this, parent);
-
-  m_pSD = (CServiceDiscovery*)parent;
 
   m_bGetResultsStarted = FALSE; // Only DiscoverResults() sets it to TRUE
 
@@ -186,11 +181,6 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 // array on the app instance
 void wxServDisc::DiscoverResults(CServiceDiscovery* pReportTo)
 {
-
-	// BEW 14Mar16 m_pSD where my code limits wxServDisc instances cannot be now trusted, so
-	// change uses of m_pSD to gpServiceDiscovery wherever access to the one CServiceDiscovery
-	// instance must be had
-	//if (m_pSD != NULL)
 	if (pReportTo != NULL)
 	{
 		m_hostname.Empty(); // a namescan() call will determine what goes in this one
@@ -377,7 +367,7 @@ void wxServDisc::DiscoverResults(CServiceDiscovery* pReportTo)
 
 						gpServiceDiscovery->m_uniqueIpAddresses.Add(m_addr);
 						gpServiceDiscovery->m_theirHostnames.Add(m_hostname);
-						wxLogDebug(_T("DiscoverResults (381) wxServDisc %p: Store m_addr ( %s ) in array m_uniqueIpAddresses. Store m_hostname ( %s ) in array m_theirHostnames."),
+						wxLogDebug(_T("DiscoverResults (380) wxServDisc %p: Store m_addr ( %s ) in array m_uniqueIpAddresses. Store m_hostname ( %s ) in array m_theirHostnames."),
 							this, m_addr.c_str(), m_hostname.c_str());
 						// NOTE: we don't here use m_uniqueIpAddresses array, but we can't eliminate it as we
 						// used it above in the AddUniqueStrCase() call, as first param
@@ -398,7 +388,7 @@ void wxServDisc::DiscoverResults(CServiceDiscovery* pReportTo)
 						wxString theURL = protocol + m_addr;
 						gpServiceDiscovery->m_urlsArr.Add(theURL);
 #if defined(_DEBUG)
-						wxLogDebug(_T("DiscoverResults (412) wxServDisc %p: for hostname: %s   Constructed URL for m_urlsArr:  %s   for iteration = %d of %d, m_urlsArr count is now: %d"),
+						wxLogDebug(_T("DiscoverResults (401) wxServDisc %p: for hostname: %s   Constructed URL for m_urlsArr:  %s   for iteration = %d of %d, m_urlsArr count is now: %d"),
 								this, m_hostname.c_str(),theURL.c_str(), i, entry_count, gpServiceDiscovery->m_urlsArr.GetCount());
 #endif
 						kbsvr_arrays.Unlock();
@@ -706,18 +696,22 @@ wxThread::ExitCode wxServDisc::Entry()
 			wxLogDebug(_T("wxServDisc %p:   BEW  end of outer loop iteration:  %d"), this, BEWcount);
 		} // end of outer loop
 
-	  // BEW 2Dec15 added cache freeing (d's shutdown is not yet 1, but it doesn't test for it
-	  // so do this first, as shutdown will be set to 1 in mdnsd_shutdown(d) immediately after
-		my_gc(d); // is based on Beier's _gd(d), but removing every instance of the
-				  // cached struct regardless in the cache array (it's a sparse array
-				  // because he puts structs in it by a hashed index)
-
-		// Beier's two cleanup functions (they ignore cached structs)
-		mdnsd_shutdown(d);
-		mdnsd_free(d);
-
-		if (mSock != INVALID_SOCKET)
-			closesocket(mSock);
+		if ((void*)gpServiceDiscovery == (void*)this)
+		{
+			// The program counter is within the wxServDisc instance which is owned by the
+			// CServiceDiscovery instance, which the latter's m_pWxSD points at
+			wxLogDebug(_T("wxServDisc %p:  CleanUpMyMess() is about to be called within the wxServDisc owned by CServiceDiscovery"), this);
+		}
+		else
+		{
+			// The program counter is within some other wxServDisc instance, one which is NOT owned by the
+			// CServiceDiscovery instance: either one which we'll kill before it does anything, or one 
+			// which is either namescan() or addrscan() - the latter two are called from within the
+			// DiscoverResults() function called from the wxServDisc instance owned by CServiceDiscovery
+			wxLogDebug(_T("wxServDisc %p:  CleanUpMyMess() is about to be called from a wxServDisc NOT owned by CServiceDiscovery"), this);
+		}
+		// free the heap memory associated with this instance, to avoid memory leaks
+		CleanUpMyMess(d, mSock);
 
 		// Skip the posting of the halting event if GetResults() has been called, because
 		// it will be done from the end of that function if it gets called; otherwise,
@@ -759,14 +753,30 @@ wxThread::ExitCode wxServDisc::Entry()
 	}
 	if (parent == 0)
 	{
-		wxLogDebug(wxT("wxServDisc %p: Entry() query loop skipped, KILLING NOW, returning NULL"), this);
+		wxLogDebug(wxT("wxServDisc %p: Entry() query loop & CleanUpMyMess() skipped, KILLING NOW, returning NULL"), this);
 	}
 	else
 	{
-		wxLogDebug(wxT("wxServDisc %p: scanthread exiting, after querying loop has ended, now at end of Entry(), returning NULL"), this);
+		wxLogDebug(wxT("wxServDisc %p: scanthread exiting, after querying loop ended, and CleanUpMyMess() was called. At end of Entry(), returning NULL"), this);
 	}
 
   return NULL;
+}
+
+void wxServDisc::CleanUpMyMess(mdnsd& d, SOCKET& mSock)
+{
+	// BEW 2Dec15 added cache freeing (d's shutdown is not yet 1, but it doesn't test for it
+	// so do this first, as shutdown will be set to 1 in mdnsd_shutdown(d) immediately after
+	my_gc(d); // is based on Beier's _gd(d), but removing every instance of the
+			  // cached struct regardless in the cache array (it's a sparse array
+			  // because he puts structs in it by a hashed index)
+
+			  // Beier's two cleanup functions (they ignore cached structs)
+	mdnsd_shutdown(d);
+	mdnsd_free(d);
+
+	if (mSock != INVALID_SOCKET)
+		closesocket(mSock);
 }
 
 bool wxServDisc::sendm(struct message* m, SOCKET s, unsigned long int ip, unsigned short int port)

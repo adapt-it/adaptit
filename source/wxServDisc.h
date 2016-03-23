@@ -85,11 +85,12 @@ typedef int SOCKET;       // under windows, SOCKET is unsigned
 
 #endif // WIN32
 */
-/*
+
+// Need these to be here instead of in wxServDisc.cpp only, as our declaration
+// of CleanUpMyMess() needs the mdnsd struct definition, and CServiceDiscovery.cpp
+// needs the mdnsda_struct definition
 #include "1035.h"
 #include "mdnsd.h"
-*/
-//#include <wx\event.h>
 
 // Forward declaration
 class CServiceDiscovery;
@@ -114,7 +115,6 @@ struct wxSDEntry
   wxSDEntry() { port=0; time=0; }
 };
 
-
 // our main class
 class wxServDisc: public wxObject, public wxThreadHelper
 {
@@ -126,7 +126,7 @@ public:
   /// Returns true if service discovery successfully started. If not, getErr() may contain a hint.
   bool isOK() const { return err.length() == 0; };
 
-  CServiceDiscovery* m_pSD; // BEW added
+  //CServiceDiscovery* m_pSD; // BEW added
 
   // BEW 25Feb16 moved the guts of the CServiceDiscovery::GetResults() function to here,
   // and calling this new function DiscoverResults(), it needs to internally point back
@@ -150,6 +150,10 @@ public:
   // I've left this bool in the solution, but I think it no longer plays any useful function
   bool m_bGetResultsStarted;
 
+  // BEW added 23Mar16, to encapsulate the cleanup functions within one
+  void CleanUpMyMess(mdnsd& d, SOCKET& mSock);
+
+  SOCKET    mSock; // BEW 23Mar16 made public, so it can be passed as a param to CleanUpMyMess()
 private:
 
   // These added by BEW
@@ -159,8 +163,7 @@ private:
   wxString	m_port;
 
 
-  SOCKET    mSock;
-  wxString  err;
+   wxString  err;
   void     *parent;
   wxString  query;
   int       querytype; 
