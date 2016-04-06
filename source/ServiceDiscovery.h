@@ -69,8 +69,7 @@ class CServiceDiscovery : public wxEvtHandler
 
 public:
 	CServiceDiscovery();
-	CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
-					wxString servicestring, CAdapt_ItApp* pParentClass);
+	CServiceDiscovery(wxString servicestring, CAdapt_ItApp* pParentClass);
 	virtual ~CServiceDiscovery();
 
 	wxString m_servicestring; // service to be scanned for
@@ -86,57 +85,79 @@ public:
             // CServiceDiscovery::GetResults() code - it appears that this can otherwise be
             // running after the CServiceDiscovery instance has been deleted which could
             // lead to a crash
-	/*
-	// scratch variables, used in the loop in GetResults() handler
+
+	// scratch variables, used in the loop in onSDNotify() handler
 	wxString m_hostname;
 	wxString m_addr;
 	wxString m_port;
-	*/
+
+	// onSDNotify() takes longer to complete than the service discovery thread, so we can't
+	// assume that initiating service discovery halting from the end of onSDNotify will
+	// allow clean leak elimination - the latter crashes. So I'm creating two booleans,
+	// each defaults to FALSE, and if onSDNotify() is called, both will be TRUE by the time
+	// onSDNotify finishes. Then, in the shutdown code in Entry(), we have a waiting loop which
+	// waits for a short interval and checks for the 2nd boolean TRUE, then it will know that
+	// module completion and leak elimination can happen, safely we hope... let's see...
+	// 
+	// Beier, in ~wxServDisc() destructor, has GetThread()->Delete(). But his thread is not
+	// a joinable one, it's detached, and as far as I can determine, and despite the wx
+	// documentation saying otherwise, Delete() doesn't stop the wxServDisc's thread from
+	// running and so it goes on until timeout happens and then cleanup. Because of this,
+	// it can be running long after everything else has done their job and been cleaned up,
+	// so it must not rely on classes above it being in existence when it nears its end.
+	// The following flag is defaulted to FALSE, and if a KBserver is found, it is handled
+	// by the calling CServiceDiscovery::onSDNotify() handler, and at the end of the latter
+	// a wxServDiscHALTING event is posted to shut everything down; but wxServDisc::Entry()
+	// has it's own code for posting that event to CServiceDiscovery instance. If the latter
+	// has already been destroyed because onSDNotify has completed, and wxServDisc's thread
+	// runs on for a while, when it gets to its wxPostEvent() call, the CServiceDiscovery
+	// instances pointer has become null, and so there is an app crash(accessing null ptr).
+	// To prevent this, we have onSDNotify(), when it starts to run, set to TRUE the
+	// following boolean, and in wxServDisc::Entry() we use that TRUE value to cause the
+	// posting of the wxServDiscHALTING event to be skipped; we just let cleanup happen and
+	// the thread then destroys itself. wxServDisc::Entry() needs to retain the event posting
+	// code, because when no KBserver is running on the LAN, then the only place the event
+	// posting that gets the calling classes cleaned up is at the end of wxServDisc::Entry()
+	bool m_bOnSDNotifyEnded;
+	bool m_bOnSDNotifyStarted;
+
+	bool IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
+	bool AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
+	int nPostedEventCount;
+
+
+	// BEW 23Mar16, To govern the service discovery shutdown mechanism, we need a boolean
+	// here, m_bServiceDiscoveryCanFinish which will be set FALSE in the CServiceDiscovery's
+	// creator, and set TRUE only after a predetermined service discovery run (whether
+	// a foreground call of DoServiceDiscovery(), or a background thread call of the
+	// backgrounded equivalent of the latter) is to be halted, and the heap freed.
+	// In the case of a foreground run, the main thread re-awakening after the
+	// wxWaitTimeout() has expired will generate the TRUE value which then permits
+	// the owned wxServDisc instance to poll for this boolean being true, and when so,
+	// the halting mechanism gets invoked; or in the case of a background thread, a
+	// timer will fire and likewise set this boolean TRUE, and so initiate the halting
+	// mechanism in that scenario.
+	bool m_bServiceDiscoveryCanFinish;
+	int nCleanupCount; // count and log number of entries into CleanUpSD()
+
+
+	// These arrays receive results, which will get passed back to app's DoServiceDiscovery() etc.
 	wxArrayString m_sd_servicenames;   // for servicenames, as discovered from query (these are NOT hostnames)
 	wxArrayString m_uniqueIpAddresses; // for each 192.168.n.m  (we store unique ip addresses)
 	wxArrayString m_theirHostnames;    // from the namescan() lookup
 	wxArrayString m_urlsArr;
 
-	/*
-	// The follow int arrays are for storing booleans, 1 for TRUE, 0 for FALSE
-	// in parallel with the URLs (or empty strings) in m_urlsArr
-	wxArrayInt m_bArr_ScanFoundNoKBserver;
-	wxArrayInt m_bArr_HostnameLookupFailed;
-	wxArrayInt m_bArr_IPaddrLookupFailed;
-	wxArrayInt m_bArr_DuplicateIPaddr;
-	// Flags are 1 (true), 0 (false), -1 (undefined)
-	// Put our constructed lines in m_sd_lines: each is  url:0:0:0:0 (the failure flags are
-	// each zero if a url is constructed and it is unique), or if no KBserver was discovered:
-	// :1:-1:-1:-1, or a duplicate discovered, url:0:0:0:1, or if some other error, :0:1:-1:-1 
-	// or :0:0:-1:-1
-	wxArrayString m_sd_lines;
-	wxArrayString m_localDiscResultsArr;
-	*/
-	// The mutex and condition were created within CAdapt_ItApp::DoServiceDiscovery()
-	// which is on the main thread
-	wxMutex*      m_pMutex;
-	wxCondition*  m_pCondition;
-
 	void wxItoa(int val, wxString& str); // copied from helpers.h & .cpp, it creates 
 										 // name conflict problems to #include "helpers.h"
-    // bools (as int 0 or 1, in int arrays) for error conditions are on the CAdapt_ItApp
-    // instance and the array of URLs for the one or more _kbserver._tcp.local. services
-    // that are discovered is there also. It is NAUGHTY to have two or more KBservers
-    // running on the LAN at once, but we can't prevent someone from doing so - when that
-    // happens, we'll need to let them choose which URL to connect to. The logic for all
-    // that will be in a function called DoServiceDiscovery() - an app member function.
-    // The function will make use of the data we send to the app's m_servDiscResults
-    // wxArrayString member.
-public:
-	//void GetResults(); // BEW replacement for Beier's onSDNotify(). Our replacement is
-					   // called directly, not as a handler for an onSDNotify event
-	void onSDHalting(wxCommandEvent& event); // we do cleanup by handlers of this type
+protected:
+	  void onSDNotify(wxCommandEvent& event);
+	  void onSDHalting(wxCommandEvent& event); // we do cleanup by handlers of this type
 					   // invoked by our posting of custom events at the right time
 private:
 	DECLARE_EVENT_TABLE();
 };
 
-#endif // SERVICEDISCOVERY_h
-
 #endif // _KBSERVER
+
+#endif // SERVICEDISCOVERY_h
 

@@ -368,8 +368,10 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 // for doing so, we'll also make it possible to do this from the view menu
 bool CheckUsername(); // returns TRUE if all's well, FALSE if user hit 
 					  // Cancel button in the internal dialog
+#if defined(_KBSERVER)
 void ShortWait();           // set the wait delay in AdaptitConstants.h MSG_SECONDS and MSG_MILLISECONDS
 void ShortWaitSharingOff(); // ditto
+#endif
 
 // A helper for the wxList class (legacy class, using Node*) - to replace the pointed at original
 // CSourcePhrase instance (param 2) at whatever Node it is stored on, with the pointed at

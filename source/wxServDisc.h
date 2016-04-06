@@ -35,15 +35,17 @@
 namespace std {}
 using namespace std;
 
+#include <vector>
+
+#if defined(WIN32)
+
 // the next is supposed to prevent winsock.h being included in <windows.h>
 #define _WINSOCKAPI_
 // this is supposed to do the same job
 #define WIN32_LEAN_AND_MEAN
 
-#include <vector>
+// to get it to compile (BEW 7Mar16) -- it has the definition of SOCKET in it, which is needed below
 
-// temporary to get it to compile (BEW 7Mar16) -- it has the definition of SOCKET in it, which is needed below
-#if defined(WIN32)
 #include "WinSock2.h"
 #include <wx/msw/winundef.h>
 #endif
@@ -128,42 +130,24 @@ public:
 
   //CServiceDiscovery* m_pSD; // BEW added
 
-  // BEW 25Feb16 moved the guts of the CServiceDiscovery::GetResults() function to here,
-  // and calling this new function DiscoverResults(), it needs to internally point back
-  // to the parent CServiceDiscovery instance
-  void DiscoverResults(CServiceDiscovery* pReportTo);
+  void CleanUpSD(void* pSDInstance, mdnsd& d); // don't worry about msock cleanup unless we need to
 
   // yeah well...
   std::vector<wxSDEntry> getResults() const;
   size_t getResultCount() const;
+
+  mdnsd d;	// pulled out of Entry() where it was a local var, to be a public member of wxServDisc
+			// in order to later be able to access it from outside the class (for cleanup of heap)
 
   // get query name
   const wxString& getQuery() const { const wxString& ref = query; return ref; };
   // get error string
   const wxString& getErr() const { const wxString& ref = err; return ref; };
 
-  // GetResults() takes longer to complete than the service discovery thread, so we can't
-  // assume that initiating service discovery halting from the end of onSDNotify will
-  // allow clean leak elimination - the latter crashes. So I'm using a mutex and condition
-  // approach to cause the main thread to sleep while the service discovery job is done
+ private:
 
-  // I've left this bool in the solution, but I think it no longer plays any useful function
-  bool m_bGetResultsStarted;
-
-  // BEW added 23Mar16, to encapsulate the cleanup functions within one
-  void CleanUpMyMess(mdnsd& d, SOCKET& mSock);
-
-  SOCKET    mSock; // BEW 23Mar16 made public, so it can be passed as a param to CleanUpMyMess()
-private:
-
-  // These added by BEW
-  // scratch variables
-  wxString	m_hostname;
-  wxString	m_addr;
-  wxString	m_port;
-
-
-   wxString  err;
+  SOCKET    mSock;
+  wxString  err;
   void     *parent;
   wxString  query;
   int       querytype; 
@@ -185,9 +169,6 @@ private:
 
   void post_notify();
 
-  bool	  IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
-  bool	  AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
-  void    wxItoa(int val, wxString& str); // copied from helpers.h & .cpp
 };
 
 #endif // _KBSERVER // whm 2Dec2015 added otherwise Linux build breaks when _KBSERVER is not defined

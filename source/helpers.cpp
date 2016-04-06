@@ -11187,7 +11187,8 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 				// Something is wrong, or no KBserver has yet been set running; or what's running
 				// is not the one the user wants to connect to (treat this as same as a
 				// cancellation), or user cancelled, etc
-				wxASSERT(returnedValue == SD_NoKBserverFound ||
+				wxASSERT(returnedValue == SD_NoResultsYet ||
+						 returnedValue == SD_NoKBserverFound ||
 						 returnedValue == SD_UrlDiffers_UserRejectedIt ||
 						 returnedValue == SD_LookupHostnameFailed ||
 						 returnedValue == SD_LookupIPaddrFailed ||
@@ -11715,7 +11716,7 @@ wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase)
 		return wxString(_T(" "));
 	}
 }
-
+#if defined(_KBSERVER)
 void ShortWait()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -11739,4 +11740,4 @@ void ShortWaitSharingOff()
 	pApp->m_msgShownTime = wxDateTime::Now();
 	pApp->m_pWaitDlg->Raise(); // send to top of z-order
 }
-
+#endif // _KBSERVER
