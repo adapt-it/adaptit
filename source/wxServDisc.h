@@ -136,6 +136,10 @@ public:
   std::vector<wxSDEntry> getResults() const;
   size_t getResultCount() const;
 
+  //* Nope, useless, still 44 leaks
+  // BEW 6Apr16 next one in the hope that it will clear up a lot of leaks
+  void wxServDisc::clearResults();
+ // */
   mdnsd d;	// pulled out of Entry() where it was a local var, to be a public member of wxServDisc
 			// in order to later be able to access it from outside the class (for cleanup of heap)
 

@@ -62,7 +62,12 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp)
 // size of cache hash
 #define LPRIME 1009
 // brute force garbage cleanup frequency, rarely needed (daily default)
-#define GC 10   // seconds. Beier's original value is :  #define GC 86400
+#define GC 4   // seconds. Beier's original value is :  #define GC 86400 = 24 hours // my 10 seconds value produced 
+				// 7 discoveries of 2 running with one KBserver running, and GC = 6, I got 6 discoveries of .2.11;
+				// so for debugging use GC = 4 and the number of leaks varies with the number of KBservers to be 
+				// found: 2 running -> 77.5 leaks, 1 running -> 45.5 leaks, so do my heap cleanup with just one
+				// KBserver running. 7 Apr, GC=4, limiting to one posting of wxServDiscNOTIFY even, got leakless
+				// successes in about 5 sec all up.
 
 /* messy, but it's the best/simplest balance I can find at the moment
 Some internal data types, and a few hashes: querys, answers, cached, and records (published, unique and shared)

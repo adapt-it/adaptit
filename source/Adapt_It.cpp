@@ -274,7 +274,7 @@ wxMutex	kbsvr_arrays;
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
 #ifdef _DEBUG
-//#include "vld.h"
+#include "vld.h"
 #endif
 #endif
 
@@ -302,6 +302,7 @@ wxMutex	kbsvr_arrays;
 #include "StatusBar.h"
 #include "WaitDlg.h"
 #include "GuesserAffixesListsDlg.h" //klb 9/2014
+
 
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -15205,44 +15206,27 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	return TRUE;
 }
 
-/*
+
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// param       result          ->  a line of form "<url>:int:int:int:int:hostname  where each int
-///                                 may be 0 (false), 1 (true), -1 (undefined), and <url>
-///                                 is either an empty string, or of form https://192.168.n.m
-///             url             <-  reference to a url wxString of form https://192.168.n.m
-///				hostname		<-	reference to the hostname wxString associated with a KBserver
-///									url above
+/// param       result          ->  a line of form "<ipaddr>@@@<hostname> 
+///             ipaddr          <-  reference to a ipaddress wxString of form 192.168.n.m
+///				hostname		<-	reference to the hostname wxString associated with the
+///									above ipaddr
 /// \remarks
-/// The results are within the app's m_servDiscResults wxArrayString, in one or more lines of form
-/// <url string>:flag:flag:flag:flag:hostname, where the flag values are integer, but we here
-/// make no use of them, in fact, we abandon them. All we want to return to the caller is the
-// url, and the hostname
-void CAdapt_ItApp::ExtractURLandHostname(wxString& result, wxString& url, wxString& hostname)
+/// Extract the two string parts, and the caller can then make the first part into a URL
+void CAdapt_ItApp::ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname)
 {
-	url = ExtractURLpart(result);
-	hostname = wxEmptyString;
-	wxString reversed = MakeReverse(result);
 	int offset = wxNOT_FOUND; // initialize to -1
-	offset = result.Find(':');
-	if (offset >= 0)
+	offset = result.Find(_T("@@@"));
+	if (offset > 0)
 	{
-		// The possibilities are "<reversed hostname>:0...."   or  "<reversed hostname>:1-:.....
-		// or if our code has no hostnames appended yet, then the reversed string end could be
-		// one of 0:....   or 1-:..... (1:... should not occur as that would mean a duplicate
-		// managed to sneak into the list) So do it in a safe way... (there will certainly be
-		// a colon to find, as we've not removed any of the 'flags' part of the line)
-		// We'll assume a hostname would be greater than two characters in length, so if the colon
-		// is found at an offset greater than 2, we'll assume it's skipped over a hostname which is
-		// a real hostname; otherwise, we've found the last colon in the flags substring
-		if (offset > 2)
-		{
-			hostname = reversed.Left(offset); // remember it's still reversed
-			hostname = MakeReverse(hostname);
-		}
+		ipaddr = result.Left(offset);
+		hostname = result.Mid(offset + 3);
 	}
 }
+
+/*
 // Get the https://192.168.n.m part of aLine, as far as the second colon
 wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
 {
@@ -15262,6 +15246,13 @@ wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
 	return wxGetEmptyString();
 }
 */
+
+void CAdapt_ItApp::ServDiscBackground()
+{
+	// BEW 4Jan16, 2nd param is the parent class for CServiceDiscovery instance, the app class
+	m_pServDisc = new CServiceDiscovery(this);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if chosenURL contains a URL string to be used for authenticating to
@@ -15350,7 +15341,8 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 {
 	chosenURL = _T(""); // initialize, we return the chosen url using this parameter
 	result = SD_NoResultsYet; // initialize to a 'success' result
-//*
+
+/*
 	wxLogDebug(_T("\n\nDoServiceDiscovery(): WaitTimeout(nKBserverTimeout) when called has value:  %d  milliseconds"), nKBserverTimeout);
 
 	wxString serviceStr = _T("_kbserver._tcp.local.");
@@ -15373,52 +15365,74 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 
 	m_pServDisc->m_pApp = this; // set CServiceDiscovery's m_pApp pointer
 
-/* remove the timeout and although I won't get a discovery show in the GUI, I want to see if the logs show the timegap gone, GC set to 15 secs
-
-	// Use a user-settable (setable timeout span) wxMilliSleep() loop, to protect
-	// this main thread from trying to access results before they have been obtained and
-	// stored in arrays ready for DoServiceDiscovery() to access them
-	int timeout = nKBserverTimeout; // milliseconds
-	while (timeout > 0)
-	{
-		wxMilliSleep(25);
-		timeout -= 25;
-	}
-*/
 	} // end scope for WaitDlg
 
 	// When the Wait() is over, we can go on now to access the results, if any exist
 	serviceStr.Clear(); // so we don't leak its memory
-	m_theURLs.Clear();
+*/
+
+	// Add any not already in the aggregated storage on the app, used for display to the user;
+
+	// Setup the urls (in m_theURLs) and hostnames (in m_theHostnames)
+	m_theURLs.Clear();        
 	m_theHostnames.Clear();
-//*/
-	// Get whatever urls (from m_urlsArr) and hostnames (from m_theirHostnames) were deposited
-	// in the CServiceDiscovery instance - there is one hostname for each url stored, so one count
-	// is all we need
+	wxString aComposite;
 	int count;
 	int i;
-	if (!m_pServDisc->m_urlsArr.empty())
+	// In our final implementation, m_pServDisc should be set to point to the single CServiceDiscovery
+	// instance which will live for the life of the session. wxServDisc instances are temporary. But
+	// to be safe we better check here for m_pServDisc not being NULL
+	if (m_pServDisc != NULL && !m_pServDisc->m_ipAddrs_Hostnames.empty())
 	{
-		// First, get the urls and their hostnames from CServiceDiscovery instance m_pServDisc
-		count = (int)m_pServDisc->m_urlsArr.GetCount();
-
-		wxLogDebug(_T("\nCAdapt_ItApp::DoServiceDiscovery() Now accessing the CServiceDiscovery m_urlsArr and m_theirHostnames arrays. Number of unique KBserver URLs found = %d"),
-			count);
-
+		// Get each composite string of an ipaddress and its hostname from the 
+		// CServiceDiscovery instance m_pServDisc, and add it to the permanent
+		// array of such strings stored on the app, if the incoming one is not
+		// already present in the app's set of such strings.
+		// Those already aggregated are in CAdapt_ItApp::m_ipAddrs_Hostnames.
+		// (Note, CServiceDiscovery has an identically named array from which 
+		// this one receives new data, if there is new data available.)
+		bool bItIsUnique;
+		count = (int)m_pServDisc->m_ipAddrs_Hostnames.GetCount();
 		for (i = 0; i < count; i++)
 		{
-			m_theURLs.Add(m_pServDisc->m_urlsArr.Item(i));
-			m_theHostnames.Add(m_pServDisc->m_theirHostnames.Item(i));
+			aComposite = m_pServDisc->m_ipAddrs_Hostnames.Item(i);
+			// The next call does .Add(aComposite) on the first parameter if aComposite is unique
+			// TRUE is bool bCase, when true a case-sensitive equality test is done
+			bItIsUnique = m_pServDisc->AddUniqueStrCase(&m_ipAddrs_Hostnames, aComposite, TRUE); 
 		}
+	} // end of TRUE block for test: if (m_pServDisc != NULL && !m_pServDisc->m_ipAddrs_Hostnames.empty())
 
-		// At this point we can set CServiceDiscovery::m_bServiceDiscoveryCanFinish
-		// to TRUE, so that the polling in the post_notify() function or elsewhere
-		// can check for felicitous conditions to initiate the service discovery
-		// shutdown mechanism
-		m_pServDisc->m_bServiceDiscoveryCanFinish = TRUE;
+	// We now have a (potentially) updated aggregate list. Decompose each string into the
+	// ipaddress and hostname parts, add https:// to the ipaddress to make the URL, and store
+	// the parts in parallel in arrays m_theURLs, and m_theHostnames -
+	wxString anIpAddress;
+	wxString aHostname;
+	wxString aURL;
+	m_theURLs.clear();
+	m_theHostnames.clear();
+	count = (int)m_ipAddrs_Hostnames.GetCount(); // this array is the app's one
+	for (i = 0; i < count; i++)
+	{
+		anIpAddress = wxEmptyString;
+		aHostname = wxEmptyString;
+		aComposite = m_ipAddrs_Hostnames.Item(i);
 
-		// Now get the results back to user - either what was found, or
-		// if multiple KBservers found, via a dialog in which he can select
+		ExtractIpAddrAndHostname(aComposite, anIpAddress, aHostname);
+
+		aURL = _T("https://") + anIpAddress;
+		m_theURLs.Add(aURL);
+		m_theHostnames.Add(aHostname);
+	}
+
+	wxLogDebug(_T("\nCAdapt_ItApp::DoServiceDiscovery() Updated URLs and Hostnames. Unique KBserver URLs aggregated so far = %d"),
+		count);
+	m_pServDisc->m_bServiceDiscoveryCanFinish = TRUE; // <<-- deprecate later on
+
+	// No url & hostname may be available yet, in which case the user needs to be told
+	if (!m_ipAddrs_Hostnames.IsEmpty())
+	{
+		// Something(s) is available, so get the results back to user - either what was
+		// found, or if multiple KBservers found, via a dialog in which he can select
 		// the one he wants to connect to
 		if (count > 1)
 		{
@@ -15513,12 +15527,12 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 			}
 		} // end of else block for test: else if (curURL == chosenURL)
 
-	} // end of TRUE block for test: if (!m_pServDisc->m_urlsArr.empty())
+	}
 	else
 	{
 		// Nothing available, inform the user of what might be the problem or problems
 		wxString message;  message = message.Format(_(
-			"Knowledge base sharing will now be turned OFF. There are several possibilites.\nYou set too small a value for the number of seconds to wait - try again with a larger value.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to set at least one KBserver running - do so now and try again.\nThe computer running the KBserver may have lost power."));
+			"Knowledge base sharing will now be turned OFF. There are several possibilites.\nThe program needs longer to build up a list of running KBservers - if you just launched, try waiting a while.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to set at least one KBserver running - do so now and try again.\nThe computer running the KBserver may have lost power."));
 		wxMessageBox(message, _("KBserver discovery failed"), wxICON_WARNING | wxOK);
 		m_theURLs.Clear();
 		m_theHostnames.Clear();
@@ -15672,6 +15686,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 								  // KBSharingStatelessSetupDlg, only FALSE when the
 								  // latter is used for authenticating to the KB
 								  // Sharing Manager tabbed dialog)
+
 #endif
 
 	// initialize these collaboration variables, which are relevant to conflict resolution
@@ -22046,10 +22061,43 @@ int ii = 1;
 
 	*/
 
-	// Run Service Discovery... (a testing location only)
+	// Run Service Discovery
 #if defined(_KBSERVER)
 	// Leave the following initialization line here...
 	m_pServDisc = NULL;
+
+	// BEW 6Apr16 Call ServDiscBackground which (ultimately will run in the background in a
+	// thread under timer controll, but for the present, it's run once only here so that I can
+	// concentrate on eliminating memory leaks. ServeDiscBackground internally instantiates the
+	// CServiceDiscovery class, one instance only, and assigns it to the m_pServDisc pointer.
+	// The CServiceDiscovery constructor, when it runs, instantiates the first wxServDisc
+	// instance, which kicks off the service discovery which runs on detached threads.
+	// Unique results are sent back to CServiceDiscovery with the help of a global ptr,
+	// gpServiceDiscovery which points at the CServiceDiscovery instance. When later under
+	// timer control, timer notifications will then send the set of unique results aggregated
+	// in CServiceDiscovery back to the m_ipAddrs_Hostnames wxArrayString, where the GUI for
+	// service discovery, DoServiceDiscovery(), can access them to display to the user as
+	// a URL and its associated hostname
+	// Two things are necessary for a maintainer to know: CServiceDiscovery is mandatory,
+	// it is app-facing, and so it can #include Adapt_It.h, but wxServDisc must never see
+	// Adapt_It.h, because then hundreds of name conflicts arise with the Microsoft socket
+	// implementations. wxServDisc, for Windows build, uses winsock2.h.
+	// Second, wxServDisc uses events posted to the CServiceDiscovery instance, to get
+	// hostname and ipaddress lookups done - these are done from the stackframe of an
+	// onSDNotify() event handler within CServiceDisovery. This is Beier's original design,
+	// and it is efficient, because wxServDisc will spawn multiple new instances of itself,
+	// and some of those will post notifications to CServiceDiscovery to get onSDNotify()
+	// called, so more than once. It doesn't appear to need mutext protection, so I've not
+	// provided it (except where necessary, for array .Add() calls). The in parallel set
+	// of running wxServDisc instances can quickly swamp the CPUs, even on 4 core or higher
+	// machines, so the trick is to run the discovery for only a few seconds - I'm setting
+	// the limit to be about 7 to 10 seconds, and then it needs to shut itself down. To facilitate
+	// the multiple intermittent timed service discovery instantiations, their self-destruction
+	// *must* be leakless. Unfortunately, Beier's original Zeroconf solution leaks like a
+	// sieve, and so extra work has been done to plug the leaks.
+
+	ServDiscBackground(); // m_serviceStr is set at top of OnInit() to _T("_kbserver._tcp.local.")
+
 #endif // _KBSERVER
 
 	//int style = (int)wxFONTSTYLE_ITALIC; // it's decimal 93
@@ -22116,6 +22164,20 @@ int CAdapt_ItApp::OnExit(void)
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
 
+#if defined (_KBSERVER)
+	// Cleanups for service discovery, any which are as yet undone; m_pServDisc is a
+	// CServiceDiscovery instance which is to persist for the life of the app, until here
+	if (m_pServDisc != NULL)
+	{
+		// delete m_pServDisc->m_pWxSD; <<-- can't do this, AI.cpp would need the wxServDisc.h 
+		// include, but it produces enormous name conflicts; so that will need to be done by
+		// posting a shutdown even from within wxServDisc when halting is ready to be done
+		m_pServDisc->m_ipAddrs_Hostnames.clear();
+		m_pServDisc->m_sd_servicenames.clear();
+		delete m_pServDisc;
+		m_pServDisc = NULL;
+	}
+#endif
 	// Remove any files lurking there, they don't need to persist
 	EmptyCollaborationTempFolder(); // see CollabUtilities.h (at bottom)
 

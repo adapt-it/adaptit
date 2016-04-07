@@ -2052,7 +2052,7 @@ class CAdapt_ItApp : public wxApp
     // change the value. However, the user can edit the value in the basic configuration
     // file directly. The base value as written to the config file is is not
     // programmatically changed. What's read in, gets written out again.
-	int		m_KBserverTimeout;
+	int		m_KBserverTimeout; // <<-- deprecate
 
 	// Storage of username's value for the boolean flags, kbadmin, and useradmin; we store
 	// them here rather than in the KbServer class itself, because the value of these
@@ -2070,7 +2070,9 @@ class CAdapt_ItApp : public wxApp
 									    // discovery module
 	wxArrayString		m_theURLs;      // lines of form <url> from CServiceDiscovery::m_urlsArr
 	wxArrayString		m_theHostnames; // parallel array of hostnames for each url in m_urlsArr
-	bool				m_bCServiceDiscoveryCanBeDeleted; // set FALSE in the creation of the
+	wxArrayString		m_ipAddrs_Hostnames; // for storage of each string <ipaddress>@@@<hostname>
+
+	bool				m_bCServiceDiscoveryCanBeDeleted; // set FALSE in the creation of the <<-- deprecate later
                             // CServiceDiscovery instance, set TRUE in the
                             // onServDiscHALTING event handler, and do the actual deletion
                             // of the CServiceDiscovery instance in the OnIdle() handler - it
@@ -2085,7 +2087,7 @@ class CAdapt_ItApp : public wxApp
 	// and when things go wrong, what might be causing the error. DO NOT DELETE THE
 	// wxLogDebug() CALLS from the code!!
 
-	void onServDiscHalting(wxCommandEvent& WXUNUSED(event)); // posted at the final cleanup,
+	void onServDiscHalting(wxCommandEvent& WXUNUSED(event)); // posted at the final cleanup, <<-- deprecate later
 				// it just sets a flag, but the handler for doing the deletion is in OnIdle()
 				// so that CServiceDiscovery gets deleted AFTER the last wxServDisc instance
 				// has been deleted
@@ -3074,7 +3076,9 @@ public:
 								 int nKBserverTimeout);
 	bool	  m_bServiceDiscoveryWanted; // TRUE if DoServiceDiscovery() is wanted, FALSE for manual URL entry
 										 // and don't ever store the value in any config file; default TRUE
-//	void	  ExtractURLandHostname(wxString& result, wxString& url, wxString& hostname);
+	void	  ServDiscBackground();
+
+	void	  ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname);
 //	wxString  ExtractURLpart(wxString& aLine);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2

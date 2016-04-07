@@ -148,174 +148,274 @@ wxThread::ExitCode wxServDisc::Entry()
 	struct timeval *tv;
 	fd_set fds;
 	bool exit = false;
-	bool bKillImmediately = FALSE; // BEW added 4Apr16
-
-	// BEW 14Mar16, code added to kill immediately if it's not an instance we want;
-	// my wanted instances will have wxServDisc's first param, parent, non-zero;
-	// unwanted ones spawned in the course of discovery will have param parent passed
-	// in as 0 (NULL), and we test for this, and if NULL we do nothing except cause
-	// immediate death to the thread
 	
-	if (parent == 0)
+	mWallClock.Start();
+
+	d = mdnsd_new(1, 1000); // classSD is 1, frame is 1000
+
+							// register query(w,t) at mdnsd d, submit our address for callback ans()
+	mdnsd_query(d, query.char_str(), querytype, ans, this);
+
+	#ifdef __WXGTK__
+	// this signal is generated when we pop up a file dialog wwith wxGTK
+	// we need to block it here cause it interrupts the select() call
+	sigset_t            newsigs;
+	sigset_t            oldsigs;
+	sigemptyset(&newsigs);
+	sigemptyset(&oldsigs);
+	sigaddset(&newsigs, SIGRTMIN - 1);
+	#endif
+
+	// BEW I want to count the outer loop iterations, for debug logging purposes - very helpful
+	unsigned long BEWcount = 0;
+
+	while (!GetThread()->TestDestroy() && !exit)
 	{
-	//	exit = true;
-	//	wxLogDebug(wxT("wxServDisc %p: Entry() started, but parent == 0, so KILLING wanted"), this);
-		bKillImmediately = TRUE;
-	}
-	
-//	if (exit == false)
-//	{
-		mWallClock.Start();
+		tv = mdnsd_sleep(d);
 
-		d = mdnsd_new(1, 1000); // classSD is 1, frame is 1000
+		long msecs = tv->tv_sec == 0 ? 100 : tv->tv_sec * 1000; // so that the while loop beneath gets executed once
+		wxLogDebug(wxT("wxServDisc %p: scanthread waiting for data, timeout %i seconds"), this, (int)tv->tv_sec);
 
-								// register query(w,t) at mdnsd d, submit our address for callback ans()
-		mdnsd_query(d, query.char_str(), querytype, ans, this);
-
-		#ifdef __WXGTK__
-		// this signal is generated when we pop up a file dialog wwith wxGTK
-		// we need to block it here cause it interrupts the select() call
-		sigset_t            newsigs;
-		sigset_t            oldsigs;
-		sigemptyset(&newsigs);
-		sigemptyset(&oldsigs);
-		sigaddset(&newsigs, SIGRTMIN - 1);
-		#endif
-
-		// BEW I want to count the outer loop iterations
-		unsigned long BEWcount = 0;
-
-		while (!GetThread()->TestDestroy() && !exit)
+		if (gpServiceDiscovery->nDestructorCallCount >= 2
+			&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
+			//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+			)
 		{
-			tv = mdnsd_sleep(d);
+			// Once the ~wxServDisc() destructor has been called at least twice, and provided
+			// that there has been at least one string stored in m_ipAddrs_Hostnames, force
+			// shutdown of this instance - provided it is the original wxServDisc instance
+			exit = true;
+			break;
+		}
 
-			long msecs = tv->tv_sec == 0 ? 100 : tv->tv_sec * 1000; // so that the while loop beneath gets executed once
-			wxLogDebug(wxT("wxServDisc %p: scanthread waiting for data, timeout %i seconds"), this, (int)tv->tv_sec);
+		// we split the one select() call into several ones every 100ms
+		// to be able to catch TestDestroy()...
+		int datatoread = 0;
+		while (msecs > 0 && !GetThread()->TestDestroy() && !datatoread)
+		{
+			// the select call leaves tv undefined, so re-set
+			tv->tv_sec = 0;
+			tv->tv_usec = 100000; // 100 ms
 
-			/*
-			// BEW addition. If there is no KBserver multicasting, this loop behaves poorly.
-			// It does a few quick iterations, and then suddenly msecs jumps to 86221000 microsecs,
-			// and so it's timeout loop runs for a minute and a half (maybe, but it times out
-			// and does not enter the after-loop cleanup code where my HALTING event gets posted,
-			// so here I'll do a hack. If msecs goes > 86000000, the break from the outer loop.
-			if (msecs > 4000000) // it goes (when nothing discovered) to 86400000, but if I delay
-								 // when debugging, or if takes a while, msecs > 860000000 may
-								 // be false and then the break doesn't happen, another wxServDisc
-								 // gets created and p passed in is NULL, and so the wxPostEvent
-								 // below post to dest = NULL, which gives wxASSERT error. So,
-								 // use a smaller limit which msecs when it goes large is likely
-								 // to be much bigger than. Try 4,000,000 (4 secs)
+			if (gpServiceDiscovery->nDestructorCallCount >= 2
+				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
+				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+				)
 			{
-				break;  // clean up and shut down the module
-			}
-			// end BEW addition
-			*/
+				// Once the ~wxServDisc() destructor has been called at least twice, and provided
+				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
+				// shutdown of this instance - provided it is the original wxServDisc instance
+				exit = true;
+				break;
+		}
+			FD_ZERO(&fds);
 
-			// we split the one select() call into several ones every 100ms
-			// to be able to catch TestDestroy()...
-			int datatoread = 0;
-			while (msecs > 0 && !GetThread()->TestDestroy() && !datatoread)
+			if (gpServiceDiscovery->nDestructorCallCount >= 2
+				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
+				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+				)
 			{
-				// the select call leaves tv undefined, so re-set
-				tv->tv_sec = 0;
-				tv->tv_usec = 100000; // 100 ms
-
-				FD_ZERO(&fds);
-				FD_SET(mSock, &fds);
-
-
-				#ifdef __WXGTK__
-				sigprocmask(SIG_BLOCK, &newsigs, &oldsigs);
-				#endif
-				datatoread = select(mSock + 1, &fds, 0, 0, tv); // returns 0 if timeout expired
-
-				#ifdef __WXGTK__
-				sigprocmask(SIG_SETMASK, &oldsigs, NULL);
-				#endif
-
-				if (!datatoread) // this is a timeout
-					msecs -= 100;
-				if (datatoread == -1)
-					break;
+				// Once the ~wxServDisc() destructor has been called at least twice, and provided
+				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
+				// shutdown of this instance - provided it is the original wxServDisc instance
+				exit = true;
+				break;
 			}
 
-			wxLogDebug(wxT("wxServDisc %p: scanthread woke up, reason: incoming data(%i), timeout(%i), error(%i), deletion(%i)"),
-				this, datatoread>0, msecs <= 0, datatoread == -1, GetThread()->TestDestroy());
+			FD_SET(mSock, &fds);
 
-			// receive
-			if (FD_ISSET(mSock, &fds))
+			if (gpServiceDiscovery->nDestructorCallCount >= 2
+				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
+				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+				)
 			{
-				while (recvm(&m, mSock, &ip, &port) > 0)
-					mdnsd_in(d, &m, ip, port);
+				// Once the ~wxServDisc() destructor has been called at least twice, and provided
+				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
+				// shutdown of this instance - provided it is the original wxServDisc instance
+				exit = true;
+				break;
 			}
 
-			// send
-			while (mdnsd_out(d, &m, &ip, &port))
-				if (!sendm(&m, mSock, ip, port))
+			#ifdef __WXGTK__
+			sigprocmask(SIG_BLOCK, &newsigs, &oldsigs);
+			#endif
+			datatoread = select(mSock + 1, &fds, 0, 0, tv); // returns 0 if timeout expired
+
+			if (gpServiceDiscovery->nDestructorCallCount >= 2
+				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
+				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+				)
+			{
+				// Once the ~wxServDisc() destructor has been called at least twice, and provided
+				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
+				// shutdown of this instance - provided it is the original wxServDisc instance
+				exit = true;
+				break;
+			}
+
+			#ifdef __WXGTK__
+			sigprocmask(SIG_SETMASK, &oldsigs, NULL);
+			#endif
+
+			if (!datatoread) // this is a timeout
+				msecs -= 100;
+
+			if (gpServiceDiscovery->nDestructorCallCount >= 2
+				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
+				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+				)
+			{
+				// Once the ~wxServDisc() destructor has been called at least twice, and provided
+				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
+				// shutdown of this instance - provided it is the original wxServDisc instance
+				exit = true;
+				break;
+			}
+
+			if (datatoread == -1)
+				break;
+		}
+
+		wxLogDebug(wxT("wxServDisc %p: scanthread woke up, reason: incoming data(%i), timeout(%i), error(%i), deletion(%i)"),
+			this, datatoread>0, msecs <= 0, datatoread == -1, GetThread()->TestDestroy());
+
+		// receive
+		if (FD_ISSET(mSock, &fds))
+		{
+			if (gpServiceDiscovery->nDestructorCallCount >= 2
+				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
+				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+				)
+			{
+				// Once the ~wxServDisc() destructor has been called at least twice, and provided
+				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
+				// shutdown of this instance - provided it is the original wxServDisc instance
+				exit = true;
+				break;
+			}
+
+			while (recvm(&m, mSock, &ip, &port) > 0)
+			{
+				if (gpServiceDiscovery->nDestructorCallCount >= 2
+					&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
+					//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+					)
 				{
+					// Once the ~wxServDisc() destructor has been called at least twice, and provided
+					// that there has been at least one string stored in m_ipAddrs_Hostnames, force
+					// shutdown of this instance - provided it is the original wxServDisc instance
 					exit = true;
 					break;
 				}
-			// BEW log what iteration this is:
-			BEWcount++;
-			wxLogDebug(_T("BEW wxServDisc: %p   Entry()'s outer loop iteration:  %d"), this, BEWcount);
-		} // end of outer loop
 
-	//} // end of TRUE block for test: if (exit == false)
-	if (bKillImmediately)
-	{
-		wxLogDebug(_T("wxServDisc::Entry(): this = %p  skipping cleanup"), this);
-	}
-	else
-	{
+				mdnsd_in(d, &m, ip, port);
 
-		wxLogDebug(_T("wxServDisc::Entry(): this = %p  ,  my_gc(d) & friends, about to be called "), this);
-
-		// BEW 2Dec15 added cache freeing (d's shutdown is not yet 1, but it doesn't test for it
-		// so do this first, as shutdown will be set to 1 in mdnsd_shutdown(d) immediately after
-		gpServiceDiscovery->nCleanupCount++;
-
-		my_gc(d); // is based on Beier's _gd(d), but removing every instance 
-				  // of the cached struct regardless in the cache array (it's a sparse array
-				  // because he puts structs in it by a hashed index)
-
-		// Beier's two cleanup functions (they ignore cached structs)
-		mdnsd_shutdown(d);
-		mdnsd_free(d);
-
-		if (mSock != INVALID_SOCKET)
-			closesocket(mSock);
-
-		wxLogDebug(_T("wxServDisc::Entry(): this is %p  , executed the Cleanup functions for this instance; m_bOnSDNotifyStarted = %s "),
-			gpServiceDiscovery->m_bOnSDNotifyStarted ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str());
-	}
-
-
-	if (!bKillImmediately)
-	{
-		wxLogDebug(_T("I am %p  wxServDisc::Entry(): m_bOnSDNotifyStarted is %s  "),
-			gpServiceDiscovery->m_bOnSDNotifyStarted ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), this);
-
-		if (!gpServiceDiscovery->m_bOnSDNotifyStarted && ((void*)this == (void*)gpServiceDiscovery->m_pWxSD))
-		{
-			// No KBserver was discovered, so onSDNotify() will not have been called, so
-			// we need to initiate the cleanup of the owning classes from here -- but only
-			// do this when it is the initial owned wxServDisc instance we are in
-
-			// BEW: Post a custom serviceDiscoveryHALTING event here, for the parent class to
-			// supply the handler needed for destroying this CServiceDiscovery instance
-			wxCommandEvent upevent(wxServDiscHALTING, wxID_ANY);
-			upevent.SetEventObject(this); // set sender
-
-#if wxVERSION_NUMBER < 2900
-			wxPostEvent((CServiceDiscovery*)parent, upevent);
-#else
-			wxQueueEvent((CServiceDiscovery*)parent, upevent.Clone());
-#endif
-			wxLogDebug(_T("wxServDisc:  %p  after timeout of Entry()'s loop, no KBserver running, so posting wxServDiscHALTING event"),
-					this);
+				if (gpServiceDiscovery->nDestructorCallCount >= 2
+					&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
+					//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+					)
+				{
+					// Once the ~wxServDisc() destructor has been called at least twice, and provided
+					// that there has been at least one string stored in m_ipAddrs_Hostnames, force
+					// shutdown of this instance - provided it is the original wxServDisc instance
+					exit = true;
+					break;
+				}
+			}
 		}
+
+		// send
+		while (mdnsd_out(d, &m, &ip, &port))
+		{
+			if (gpServiceDiscovery->nDestructorCallCount >= 2
+				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
+				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+				)
+			{
+				// Once the ~wxServDisc() destructor has been called at least twice, and provided
+				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
+				// shutdown of this instance - provided it is the original wxServDisc instance
+				exit = true;
+				break;
+			}
+
+			if (!sendm(&m, mSock, ip, port))
+			{
+				exit = true;
+				break;
+			}
+
+			if (gpServiceDiscovery->nDestructorCallCount >= 2
+				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
+				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+				)
+			{
+				// Once the ~wxServDisc() destructor has been called at least twice, and provided
+				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
+				// shutdown of this instance - provided it is the original wxServDisc instance
+				exit = true;
+				break;
+			}
+		}
+		// BEW log what iteration this is:
+		BEWcount++;
+		wxLogDebug(_T("BEW wxServDisc: %p   Entry()'s outer loop iteration:  %d"), this, BEWcount);
+	} // end of outer loop
+
+	// Beier's cleanup functions, which I augmented with my own my_gc() which handles _cache struct
+	// deletions - something he forgot or didn't bother to do
+
+	wxLogDebug(_T("wxServDisc::Entry(): this = %p  ,  my_gc(d) & friends, about to be called "), this);
+
+	// BEW 2Dec15 added cache freeing (d's shutdown is not yet 1, but it doesn't test for it
+	// so do this first, as shutdown will be set to 1 in mdnsd_shutdown(d) immediately after
+	gpServiceDiscovery->nCleanupCount++;
+
+	clearResults();
+
+	/* This was useless, count was huge, = 1013357445, so indicative that results has been cleared - but the leaks don't agree
+	// BEW 6Apr16, Delete the content of any entries, wxSDEntry vectors, that have something in them
+	size_t count = getResultCount();
+	if (count > 0)
+	{
+		wxLogDebug(wxT("wxServDisc %p: In end of Entry(): clearResults() found something to delete, count = %d"), count);
+		clearResults();
 	}
+	*/
+
+	my_gc(d); // is based on Beier's _gd(d), but removing every instance 
+				// of the cached struct regardless in the cache array (it's a sparse array
+				// because he puts structs in it by a hashed index)
+
+	// Beier's two cleanup functions (they ignore cached structs)
+	mdnsd_shutdown(d);
+	mdnsd_free(d);
+
+	if (mSock != INVALID_SOCKET)
+		closesocket(mSock);
+
+	wxLogDebug(_T("wxServDisc::Entry() (397)  this is %p  , executed the cleanup functions for this instance "), this);
+
+
+	// Post a custom wxServDiscHALTING event to CServiceDiscovery instance to get the
+	// original (owned) wxServeDisc instance deleted; we can't do it from within itself, 
+	// so we post this event to ask CServiceDiscovey to oblige instead, in the 
+	// onServDiscHalting() handler - but we only do so from the wxServDisc instance
+	// that is the one we can't delete from
+	if ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+	{
+		wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
+		event.SetEventObject(this); // set sender
+		#if wxVERSION_NUMBER < 2900
+		wxPostEvent(gpServiceDiscovery, event);
+		wxLogDebug(_T("\nIn Entry (411) wxServDisc %p  &  parent %p: About to post wxServDiscHALTING event,  d->shutdown was earlier set to 1"),
+			this, (void*)parent);
+		#else
+		wxQueueEvent(gpServiceDiscovery, event.Clone());
+		#endif
+		wxLogDebug(_T("InEntry (416) wxServDisc %p  Just posted event wxServDiscHALTING to CServiceDiscovery instance"), this);
+	}
+
 	wxLogDebug(wxT("wxServDisc %p: scanthread exiting, after loop has ended, now at end of Entry(), returning NULL"), this);
 
 	return NULL;
@@ -405,6 +505,10 @@ int wxServDisc::ans(mdnsda a, void *arg)
 
 	struct in_addr ip;
 	ip.s_addr = ntohl(a->ip);
+	//if (!result.ip.IsEmpty()) // BEW added this, in case it was a leak preventer, but it didn't help
+	//{
+	//	result.ip.clear();
+	//}
 	result.ip = wxString(inet_ntoa(ip), wxConvUTF8);
 
 	result.port = a->srv.port;
@@ -630,9 +734,6 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 	// their internal code in Entry() skipped, and just proceed to thread death.
 	wxLogDebug(_T("\n\nwxServDisc CREATOR: I am %p , and parent passed in =  %p"), this, parent);
 
-
-	gpServiceDiscovery->m_bOnSDNotifyStarted = FALSE; // Only onSDNotify() sets it to TRUE
-
 	// save query & type
 	query = what;
 	querytype = type;
@@ -660,10 +761,27 @@ wxServDisc::~wxServDisc()
 {
 	wxLogDebug(wxT("wxServDisc %p: In destructor: before delete of the wxServDisc instance"), this);
 	if (GetThread() && GetThread()->IsRunning())
+	{
+		gpServiceDiscovery->nDestructorCallCount++;
 		GetThread()->Delete(); // blocks, this makes TestDestroy() return true and cleans up the thread
-
+	}
 	wxLogDebug(wxT("wxServDisc %p: scanthread deleted, wxServDisc destroyed, hostname was '%s', lifetime was %ld"), this, query.c_str(), mWallClock.Time());
 	wxLogDebug(wxT("Finished call of ~wxServDisc()"));
+}
+
+// BEW added 6Apr16 in the hope that this will clear up some leaks - it does,
+// the ones from data coming into onSDNotify from the ans() function, but
+// the wxSDMap hashtable itself persists. Not sure yet how to be rid of that.
+void wxServDisc::clearResults()
+{
+	wxSDMap::const_iterator it;
+	for (it = results.begin(); it != results.end(); it++)
+	{
+		wxSDEntry anEntry = it->second;
+		anEntry.ip.clear();
+		anEntry.name.clear();
+	}
+	results.clear();
 }
 
 std::vector<wxSDEntry> wxServDisc::getResults() const
@@ -684,15 +802,16 @@ size_t wxServDisc::getResultCount() const
 
 void wxServDisc::post_notify()
 {
+	gpServiceDiscovery->m_postNotifyCount++;
+
 	// Beier's code follows, but tests added by BEW in order to do minimal processing etc
 	if (parent)
-	{	
-		if ( (void*)gpServiceDiscovery->m_pWxSD == (void*)this
-			/* || (void*)(this->parent) == (void*)gpServiceDiscovery->m_pWxSD */ )
+	{
+		// Only allow one call of onSDNotify(), this may help prevent memory leaks (it did, 
+		// it reduced the count by 1, 44 -> 43) - I'll take every bit of help I can get!!
+		if (gpServiceDiscovery->m_postNotifyCount == 1) // <<-- works, leakless, to get 1 running KBserver
+		//if (gpServiceDiscovery->m_postNotifyCount <= 4) // Do  this with GC = 7 sec and see what happens
 		{
-			// Only let the original (owned) wxServDisc (and neither of it's two local child instances
-			// (the latter have non-NULL first param passed in by pVoidPtr, others have the latter
-			// passed in as NULL and those we want ignored)
 			wxCommandEvent event(wxServDiscNOTIFY, wxID_ANY);
 			event.SetEventObject(this); // set sender
 
@@ -703,7 +822,7 @@ void wxServDisc::post_notify()
 			#else
 			wxQueueEvent((CServiceDiscovery*)parent, event.Clone());
 			#endif
-			gpServiceDiscovery->nPostedEventCount++;
+			gpServiceDiscovery->nPostedEventCount++; // <<-- BEW 7Apr16 deprecate later, we now make no use of it
 
 			wxLogDebug(_T("wxServDisc: %p        gpServiceDiscovery->nPostedEventCount =  %d"), 
 						(void*)this, gpServiceDiscovery->nPostedEventCount);
@@ -712,6 +831,7 @@ void wxServDisc::post_notify()
 	}
 }
 
+//* might not need this
 void wxServDisc::CleanUpSD(void* pSDInstance, mdnsd& d) // don't worry about msock cleanup unless we need to
 {
 	gpServiceDiscovery->nCleanupCount++; // count each entry into this function
@@ -726,7 +846,7 @@ void wxServDisc::CleanUpSD(void* pSDInstance, mdnsd& d) // don't worry about mso
 	// here the code for deleting it
 	wxLogDebug(_T("CleanUpSD: pSDInstance  %p   Called: my_gc(d), mdnsd_shutdown(d), and mdnsd_free(d)"), pSDInstance);
 }
-
+//*/
 
 #endif // _KBSERVER // whm 2Dec2015 added otherwise Linux build breaks when _KBSERVER is not defined
 
