@@ -371,6 +371,7 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	//m_pWxSD->CleanUpSD(m_pWxSD, m_pWxSD->d); //  <<-- don't think I need this, leave here for the moment
 	//wxLogDebug(_T("In CServiceDiscovery:onSDHalting(): nCleanupCount = %d"), nCleanupCount);
 
+	m_pWxSD->clearResults();
 
 	delete m_pWxSD; // must have this, it gets ~wxServDisc() destructor called
 

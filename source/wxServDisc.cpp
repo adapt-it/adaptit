@@ -371,14 +371,16 @@ wxThread::ExitCode wxServDisc::Entry()
 	// so do this first, as shutdown will be set to 1 in mdnsd_shutdown(d) immediately after
 	gpServiceDiscovery->nCleanupCount++;
 
-	clearResults();
-
-	/* This was useless, count was huge, = 1013357445, so indicative that results has been cleared - but the leaks don't agree
-	// BEW 6Apr16, Delete the content of any entries, wxSDEntry vectors, that have something in them
-	size_t count = getResultCount();
-	if (count > 0)
+	//  BEW 7Apr16, trying to discover two KBservers - post notify has:
+	// if (gpServiceDiscovery->m_postNotifyCount <= 4)
+	// and we don't want a halting event posted until at the 4th iteration;
+	// we also must prevent my clearResults() function from being called until
+	// at the end of the fourth iteration - that's above
+	/* 
+	//This works, with or without a test for equality wrapping it, but I think the clearResults()
+	// call may logically sit better in CServiceDiscovery::onServDiscHalting() -- Try it
+	if ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
 	{
-		wxLogDebug(wxT("wxServDisc %p: In end of Entry(): clearResults() found something to delete, count = %d"), count);
 		clearResults();
 	}
 	*/
@@ -397,11 +399,16 @@ wxThread::ExitCode wxServDisc::Entry()
 	wxLogDebug(_T("wxServDisc::Entry() (397)  this is %p  , executed the cleanup functions for this instance "), this);
 
 
-	// Post a custom wxServDiscHALTING event to CServiceDiscovery instance to get the
-	// original (owned) wxServeDisc instance deleted; we can't do it from within itself, 
+	// BEW 7Apr16, Post a custom wxServDiscHALTING event to CServiceDiscovery instance to get
+	// the original (owned) wxServeDisc instance deleted; we can't do it from within itself, 
 	// so we post this event to ask CServiceDiscovey to oblige instead, in the 
 	// onServDiscHalting() handler - but we only do so from the wxServDisc instance
-	// that is the one we can't delete from
+	// that is the one we can't delete from.
+	//  BEW 7Apr16, trying to discover two KBservers - post notify has:
+	// if (gpServiceDiscovery->m_postNotifyCount <= 4)
+	// and we don't want a halting event posted until at the 4th iteration;
+	// we also must prevent my clearResults() function from being called until
+	// at the end of the fourth iteration - that's above
 	if ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
 	{
 		wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
@@ -807,11 +814,13 @@ void wxServDisc::post_notify()
 	// Beier's code follows, but tests added by BEW in order to do minimal processing etc
 	if (parent)
 	{
-		// Only allow one call of onSDNotify(), this may help prevent memory leaks (it did, 
-		// it reduced the count by 1, 44 -> 43) - I'll take every bit of help I can get!!
+		//if (gpServiceDiscovery->m_postNotifyCount == 1) 
+		//if (gpServiceDiscovery->m_postNotifyCount <= 4) // Do  this with GC = 7 sec, and also with no restriction here 
+														  // - see what happens -- Nah, no restriction found same one over & over
+
+		// Only allow one call of onSDNotify() - it did prevent one leak
 		if (gpServiceDiscovery->m_postNotifyCount == 1) // <<-- works, leakless, to get 1 running KBserver
-		//if (gpServiceDiscovery->m_postNotifyCount <= 4) // Do  this with GC = 7 sec and see what happens
-		{
+		{ 
 			wxCommandEvent event(wxServDiscNOTIFY, wxID_ANY);
 			event.SetEventObject(this); // set sender
 
@@ -831,7 +840,7 @@ void wxServDisc::post_notify()
 	}
 }
 
-//* might not need this
+/* might not need this
 void wxServDisc::CleanUpSD(void* pSDInstance, mdnsd& d) // don't worry about msock cleanup unless we need to
 {
 	gpServiceDiscovery->nCleanupCount++; // count each entry into this function
@@ -846,7 +855,7 @@ void wxServDisc::CleanUpSD(void* pSDInstance, mdnsd& d) // don't worry about mso
 	// here the code for deleting it
 	wxLogDebug(_T("CleanUpSD: pSDInstance  %p   Called: my_gc(d), mdnsd_shutdown(d), and mdnsd_free(d)"), pSDInstance);
 }
-//*/
+*/
 
 #endif // _KBSERVER // whm 2Dec2015 added otherwise Linux build breaks when _KBSERVER is not defined
 

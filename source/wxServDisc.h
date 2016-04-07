@@ -130,7 +130,9 @@ public:
 
   //CServiceDiscovery* m_pSD; // BEW added
 
+  /* deprecated so far, not needed
   void CleanUpSD(void* pSDInstance, mdnsd& d); // don't worry about msock cleanup unless we need to
+  */
 
   // yeah well...
   std::vector<wxSDEntry> getResults() const;
