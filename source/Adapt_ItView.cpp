@@ -16826,6 +16826,8 @@ void CAdapt_ItView::PositionDlgNearTop(wxDialog* pDlg)
 		wxSIZE_USE_EXISTING);
 }
 
+// BEW 7Aapr16, the function is now a little misleading in its name. I've brought it up
+// further and further to the left - now it's a little to the right of centre
 void CAdapt_ItView::PositionDlgNearBottomRight(wxDialog* pDlg)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -16846,10 +16848,11 @@ void CAdapt_ItView::PositionDlgNearBottomRight(wxDialog* pDlg)
 	int myTopCoord = frameTop + frameHeight; // near bottom of frame
 	myTopCoord -= dlgHeight; // go back up a bit, allow for height of the dialog
 	// And now raise it higher a tad more
-	myTopCoord = myTopCoord - 30;
+	myTopCoord = myTopCoord - (frameHeight/4 +10);
 
 	int myLeftCoord;
-	myLeftCoord = frameLeft + frameWidth - (dlgWidth + 30); // right is 30 pixels in from left of frame
+	//myLeftCoord = frameLeft + frameWidth - (dlgWidth + 30); // right is 30 pixels in from left of frame
+	myLeftCoord = frameLeft + frameWidth/2 - (dlgWidth/2 + 40);
 
 	pDlg->SetSize( // set size in device/screen pixels
 		myLeftCoord, // position of left of dlg

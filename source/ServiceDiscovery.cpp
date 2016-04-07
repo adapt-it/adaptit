@@ -144,6 +144,7 @@ CServiceDiscovery::CServiceDiscovery(CAdapt_ItApp* pParentClass)
 	gpServiceDiscovery = this; // wxServDisc creator needs this; set it early, so that it has
 							   // it's correct value before wxServDisc is instantiated below
 	m_serviceStr = _T("_kbserver._tcp.local.");
+	m_pApp = pParentClass;
 
 	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, for servicestring: %s, ptr to instance: %p"),
 		m_serviceStr.c_str(), this);
@@ -268,7 +269,8 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 		}
 		if (timeout <= 0)
 		{
-			wxLogError(_T("Timeout looking up hostname. Entry index: %d"), i);
+			// Beier's next message is a nuisance, it puts up a warning even in Release mode - so comment it out
+			//wxLogError(_T("Timeout looking up hostname. Entry index: %d"), i);
 			m_hostname = m_addr = m_port = wxEmptyString;
 			#if defined(_DEBUG)
 			wxLogDebug(_T("onSDNotify() (271) wxServDisc  %p  &  parent %p:  namescan() Timed out:  m_hostname:  %s   m_port  %s"),
@@ -311,8 +313,8 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 			{
 				// Didn't time out...
 				m_addr = addrscan.getResults().at(0).ip; // Beier's original
-				m_port = wxString() << addrscan.getResults().at(0).port; // Beier's original, leaks both LHS and RHS,
-							// Anonymous wxStrings are *BAD*, they can't be freed when the module is exited
+				m_port = wxString() << addrscan.getResults().at(0).port; // Beier's original, leaks (I fixed with clearResults())
+							
 
 				// BEW 6Apr16, make composite:  <ipaddr>@@@<hostname> to pass back to CServiceDiscovery instance
 				wxString composite = m_addr;
@@ -327,6 +329,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 				// Only add this ip address to m_uniqueIpAddresses array if it is not already in the array
 				bool bItIsUnique = AddUniqueStrCase(&m_ipAddrs_Hostnames, composite, TRUE); // does .Add() if it is unique
 				kbsvr_arrays.Unlock();
+				wxUnusedVar(bItIsUnique);
 
 				#if defined(_DEBUG)
 				if (bItIsUnique) // tell me so
@@ -367,10 +370,6 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	// so more than one could be discovered)
 	wxLogDebug(_T("In CServiceDiscovery:onSDHalting() m_pWxSD =  %p  will be deleted now"), m_pWxSD);
 
-
-	//m_pWxSD->CleanUpSD(m_pWxSD, m_pWxSD->d); //  <<-- don't think I need this, leave here for the moment
-	//wxLogDebug(_T("In CServiceDiscovery:onSDHalting(): nCleanupCount = %d"), nCleanupCount);
-
 	m_pWxSD->clearResults();
 
 	delete m_pWxSD; // must have this, it gets ~wxServDisc() destructor called
@@ -378,20 +377,35 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 	wxLogDebug(_T("wxServDisc %p:  [from CServiceDiscovery:onSDHalting()] AFTER posting wxServDiscHALTING event, this = %p, m_pParent (the app) = %p"),
 		m_pWxSD, this, m_pParent);
 
-	/* Don't need this one any more, CServiceDiscovery is now to persist for the whole app session
-    // BEW: Post the custom wxServDiscHALTING event here, for the parent class to
-    // supply the handler needed for destroying this CServiceDiscovery instance
-	wxCommandEvent upevent(wxServDiscHALTING, wxID_ANY);
-	upevent.SetEventObject(this); // set sender
-
-	#if wxVERSION_NUMBER < 2900
-	wxPostEvent((CAdapt_ItApp*)m_pParent, upevent);
-	#else
-	wxQueueEvent((CAdapt_ItApp*)m_pParent, upevent.Clone());
-	#endif
-	wxLogDebug(_T("In CServiceDiscovery:onSDHalting()] posted wxServDiscHALTING event, CServiceDiscoverythis = %p,  m_pParent (the app) = %p"),
-			this, m_pParent);
-	*/
+	if (!m_ipAddrs_Hostnames.empty())
+	{
+		size_t count = m_ipAddrs_Hostnames.size();
+		size_t index;
+		for (index = 0; index < count; index++)
+		{
+			wxString composite = m_ipAddrs_Hostnames.Item(index);
+			// Only transfer ones not already in the app's array of same name
+			int result = m_pApp->m_ipAddrs_Hostnames.Index(composite);
+			if (result == wxNOT_FOUND)
+			{
+				// Do the transfer, the app's array does not have this one yet
+				m_pApp->m_ipAddrs_Hostnames.Add(composite);
+				// Log what got sent, in Unicode Debug build, to check that it doesn't keep getting just the same one
+				wxLogDebug(_T("In onSDHalting(), TRANSFERRING a composite ipaddr/hostname string to app array: %s"),
+					composite.c_str());
+			}
+			else
+			{
+				// This one is already present, so bin it
+				wxLogDebug(_T("In onSDHalting(), WITHHOLDING duplicate ipaddr/hostname string from app array: %s"),
+					composite.c_str());
+				wxNO_OP; // for release build
+			}
+			// The arrays here are no longer needed until the next timer Notify(), so clear them
+			m_ipAddrs_Hostnames.clear();
+			m_sd_servicenames.clear();
+		}
+	}
 }
 
 

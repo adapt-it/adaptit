@@ -274,7 +274,7 @@ wxMutex	kbsvr_arrays;
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
 #ifdef _DEBUG
-#include "vld.h"
+//#include "vld.h"
 #endif
 #endif
 

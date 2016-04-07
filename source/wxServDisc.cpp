@@ -176,14 +176,11 @@ wxThread::ExitCode wxServDisc::Entry()
 		long msecs = tv->tv_sec == 0 ? 100 : tv->tv_sec * 1000; // so that the while loop beneath gets executed once
 		wxLogDebug(wxT("wxServDisc %p: scanthread waiting for data, timeout %i seconds"), this, (int)tv->tv_sec);
 
-		if (gpServiceDiscovery->nDestructorCallCount >= 2
-			&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
-			//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
-			)
+		if (gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 		{
 			// Once the ~wxServDisc() destructor has been called at least twice, and provided
 			// that there has been at least one string stored in m_ipAddrs_Hostnames, force
-			// shutdown of this instance - provided it is the original wxServDisc instance
+			// shutdown of this instance
 			exit = true;
 			break;
 		}
@@ -197,41 +194,23 @@ wxThread::ExitCode wxServDisc::Entry()
 			tv->tv_sec = 0;
 			tv->tv_usec = 100000; // 100 ms
 
-			if (gpServiceDiscovery->nDestructorCallCount >= 2
-				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
-				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
-				)
+			if (gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 			{
-				// Once the ~wxServDisc() destructor has been called at least twice, and provided
-				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
-				// shutdown of this instance - provided it is the original wxServDisc instance
 				exit = true;
 				break;
 		}
 			FD_ZERO(&fds);
 
-			if (gpServiceDiscovery->nDestructorCallCount >= 2
-				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
-				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
-				)
+			if (gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 			{
-				// Once the ~wxServDisc() destructor has been called at least twice, and provided
-				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
-				// shutdown of this instance - provided it is the original wxServDisc instance
 				exit = true;
 				break;
 			}
 
 			FD_SET(mSock, &fds);
 
-			if (gpServiceDiscovery->nDestructorCallCount >= 2
-				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
-				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
-				)
+			if (gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 			{
-				// Once the ~wxServDisc() destructor has been called at least twice, and provided
-				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
-				// shutdown of this instance - provided it is the original wxServDisc instance
 				exit = true;
 				break;
 			}
@@ -241,14 +220,8 @@ wxThread::ExitCode wxServDisc::Entry()
 			#endif
 			datatoread = select(mSock + 1, &fds, 0, 0, tv); // returns 0 if timeout expired
 
-			if (gpServiceDiscovery->nDestructorCallCount >= 2
-				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
-				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
-				)
+			if (gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 			{
-				// Once the ~wxServDisc() destructor has been called at least twice, and provided
-				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
-				// shutdown of this instance - provided it is the original wxServDisc instance
 				exit = true;
 				break;
 			}
@@ -260,14 +233,8 @@ wxThread::ExitCode wxServDisc::Entry()
 			if (!datatoread) // this is a timeout
 				msecs -= 100;
 
-			if (gpServiceDiscovery->nDestructorCallCount >= 2
-				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
-				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
-				)
+			if (gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 			{
-				// Once the ~wxServDisc() destructor has been called at least twice, and provided
-				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
-				// shutdown of this instance - provided it is the original wxServDisc instance
 				exit = true;
 				break;
 			}
@@ -282,42 +249,24 @@ wxThread::ExitCode wxServDisc::Entry()
 		// receive
 		if (FD_ISSET(mSock, &fds))
 		{
-			if (gpServiceDiscovery->nDestructorCallCount >= 2
-				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
-				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
-				)
+			if (gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 			{
-				// Once the ~wxServDisc() destructor has been called at least twice, and provided
-				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
-				// shutdown of this instance - provided it is the original wxServDisc instance
 				exit = true;
 				break;
 			}
 
 			while (recvm(&m, mSock, &ip, &port) > 0)
 			{
-				if (gpServiceDiscovery->nDestructorCallCount >= 2
-					&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
-					//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
-					)
+				if (gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 				{
-					// Once the ~wxServDisc() destructor has been called at least twice, and provided
-					// that there has been at least one string stored in m_ipAddrs_Hostnames, force
-					// shutdown of this instance - provided it is the original wxServDisc instance
 					exit = true;
 					break;
 				}
 
 				mdnsd_in(d, &m, ip, port);
 
-				if (gpServiceDiscovery->nDestructorCallCount >= 2
-					&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
-					//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
-					)
+				if (gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 				{
-					// Once the ~wxServDisc() destructor has been called at least twice, and provided
-					// that there has been at least one string stored in m_ipAddrs_Hostnames, force
-					// shutdown of this instance - provided it is the original wxServDisc instance
 					exit = true;
 					break;
 				}
@@ -327,14 +276,8 @@ wxThread::ExitCode wxServDisc::Entry()
 		// send
 		while (mdnsd_out(d, &m, &ip, &port))
 		{
-			if (gpServiceDiscovery->nDestructorCallCount >= 2
-				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
-				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
-				)
+			if (gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 			{
-				// Once the ~wxServDisc() destructor has been called at least twice, and provided
-				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
-				// shutdown of this instance - provided it is the original wxServDisc instance
 				exit = true;
 				break;
 			}
@@ -345,14 +288,8 @@ wxThread::ExitCode wxServDisc::Entry()
 				break;
 			}
 
-			if (gpServiceDiscovery->nDestructorCallCount >= 2
-				&& !gpServiceDiscovery->m_ipAddrs_Hostnames.empty()
-				//&& ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
-				)
+			if (gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 			{
-				// Once the ~wxServDisc() destructor has been called at least twice, and provided
-				// that there has been at least one string stored in m_ipAddrs_Hostnames, force
-				// shutdown of this instance - provided it is the original wxServDisc instance
 				exit = true;
 				break;
 			}
