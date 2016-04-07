@@ -77,6 +77,7 @@ extern int	gnToVerse;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbPrintFooter;
+extern bool gbPrintOnlyPgNumInFooter;
 
 extern bool gbSuppressPrecedingHeadingInRange;
 extern bool gbIncludeFollowingHeadingInRange;
@@ -105,6 +106,7 @@ BEGIN_EVENT_TABLE(CPrintOptionsDlg, AIModalDialog)
 	EVT_BUTTON(wxID_OK, CPrintOptionsDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CPrintOptionsDlg::OnCancel)
 	EVT_CHECKBOX(IDC_CHECK_SUPPRESS_FOOTER, CPrintOptionsDlg::OnCheckSuppressFooter)
+    EVT_CHECKBOX(ID_CHECKBOX_FOOTER_ONLY_HAS_PAGE_NUM, CPrintOptionsDlg::OnCheckFooterOnlyHasPageNum)
 	EVT_CHECKBOX(IDC_CHECK_SUPPRESS_PREC_HEADING, CPrintOptionsDlg::OnCheckSuppressPrecedingHeading)
 	EVT_CHECKBOX(IDC_CHECK_INCLUDE_FOLL_HEADING, CPrintOptionsDlg::OnCheckIncludeFollowingHeading)
 END_EVENT_TABLE()
@@ -138,7 +140,9 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 	m_bPrintingRange = FALSE;
 	gpApp->m_bPrintingRange = FALSE;
 	m_bSuppressFooter = FALSE;
+    m_bPrintOnlyPageNumber = FALSE;
 	gbPrintFooter = TRUE;
+    gbPrintOnlyPgNumInFooter = FALSE;
 
 	// whm 30Aug11 added the next two for the "Additional text to include
 	// in Printouts" section of the "Special Print Options" dialog.
@@ -191,6 +195,9 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 
 	pCheckSuppressPrintingFooter = (wxCheckBox*)FindWindowById(IDC_CHECK_SUPPRESS_FOOTER);
 	wxASSERT(pCheckSuppressPrintingFooter != NULL);
+
+    pCheckPrintPageNumberOnlyInFooter = (wxCheckBox*)FindWindowById(ID_CHECKBOX_FOOTER_ONLY_HAS_PAGE_NUM);
+    wxASSERT(pCheckPrintPageNumberOnlyInFooter != NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -598,7 +605,11 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	if (pEditVsTo->IsEnabled())
 		pEditVsTo->Enable(FALSE);
 
-	// turn off gbIsPrinting before the Print Options Dlg shows, otherwise, when OnPaint()
+	// if suppressing printing of footer disable Print page number only in footer checkbox
+    if (pCheckSuppressPrintingFooter->GetValue() == TRUE)
+        pCheckPrintPageNumberOnlyInFooter->Enable(FALSE);
+    
+    // turn off gbIsPrinting before the Print Options Dlg shows, otherwise, when OnPaint()
 	// has CLayout::Draw() called, tests for gbIsPringing TRUE will give crashes; we want
 	// the flag to be FALSE while the dialog is up
 	pApp->m_bIsPrinting = FALSE;
@@ -664,6 +675,7 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 
 	gpApp->m_bPrintingRange = pRadioChVs->GetValue();
 	gbPrintFooter = !m_bSuppressFooter; // reverse the boolean value here
+    gbPrintOnlyPgNumInFooter = m_bPrintOnlyPageNumber; // whm added 6Apr2016
 	gbSuppressPrecedingHeadingInRange = pCheckSuppressPrecSectHeading->GetValue();
 	gbIncludeFollowingHeadingInRange = pCheckIncludeFollSectHeading->GetValue();
 
@@ -987,6 +999,24 @@ void CPrintOptionsDlg::OnRadioChapterVerseRange(wxCommandEvent& WXUNUSED(event))
 void CPrintOptionsDlg::OnCheckSuppressFooter(wxCommandEvent& WXUNUSED(event))
 {
 	m_bSuppressFooter = pCheckSuppressPrintingFooter->GetValue();
+    // if suppressing printing of footer disable Print page number only in footer checkbox
+    if (pCheckSuppressPrintingFooter->GetValue() == TRUE)
+        pCheckPrintPageNumberOnlyInFooter->Enable(FALSE);
+    else
+        pCheckPrintPageNumberOnlyInFooter->Enable(TRUE);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      event   -> (unused)
+/// \remarks
+/// Called when the user clicks on the Footer includes only the page number check box. It 
+/// ensures that the m_bPrintOnlyPageNumber variable is assigned accordingly.
+////////////////////////////////////////////////////////////////////////////////////////////
+void CPrintOptionsDlg::OnCheckFooterOnlyHasPageNum(wxCommandEvent& WXUNUSED(event))
+{
+    // whm added 6Apr2016 handler for printing only page number in footer
+    m_bPrintOnlyPageNumber = pCheckPrintPageNumberOnlyInFooter->GetValue();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

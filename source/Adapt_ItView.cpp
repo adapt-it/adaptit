@@ -876,6 +876,8 @@ bool	gbCheckInclGlossesText = FALSE; // klb 9/9/2011-indicates whether to includ
 /// If TRUE print the footer, otherwise skip printing of footer
 bool	gbPrintFooter = TRUE;
 
+bool    gbPrintOnlyPgNumInFooter = FALSE;
+
 int		gnTopGap = 100; // units of thousandths of an inch for this and next two
 int		gnFooterTextHeight = 150; // for the text of the footer, units of thousandths of an inch
 int		gnBottomGap = 0; // assume we can print right to the rtMinMargin.bottom limit on the page
@@ -5546,63 +5548,81 @@ void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFac
 															// above top margin
 	*/
 
-    // Calculate the position for the footer. The incoming parameter fitRect represents the
-    // rectangular printing area within the margins in logical units. The bottom of fitRect
-    // is the effective bottom margin, so we'll place the footer 12.7mm (a half inch) in
-    // logical units below the bottom of fitRect. Since the logical origin is at 0,0 of the
-    // page, we need to add the fitRect.x position (fitRect.GetLeft()) to xPosFtr. In
-    // calculating the position of yPosFtr, however, fitRect.GetBottom() returns
-    // coordinates in reference to 0,0. See AIPrintout::OnPrintPage() for how
-    // logicalUnitsFactor is calculated.
-	// BEW added 21Jul09 because '2' is not two spaces of width, but 2 pixels, so need
-	// something bigger - otherwise for a range, end of range is too close to page number
-	int wXExt; int wYExt;
-	pDC->GetTextExtent(_T("W"),&wXExt,&wYExt);
-	// Bill's legacy code
-	int footerXExt,footerYExt;
-	pDC->GetTextExtent(strLeft,&footerXExt,&footerYExt);
-	float yPosFtr = (float)(fitRect.GetBottom() + 12.7*logicalUnitsFactor); // y pos is same
-														// for all segments of the footer
-	float xPosFtrLeft = (float)fitRect.GetLeft();
-	int timeXExt,timeYExt;
-	pDC->GetTextExtent(timeStr,&timeXExt,&timeYExt);
-	if (footerXExt+2*wXExt >= fitRect.GetWidth()/2)
-	{
-		pDC->GetTextExtent(strLeftPlusPageNum,&footerXExt,&footerYExt);
-        // The strLeft (language names and file name) extends past the middle point of the
-        // footer, so we will not try to draw the page number centered in the footer, but
-        // will just add a couple spaces and the page number to the end of strLeft.
-        // The timeStr should fit in the right-hand side of the footer, unless the language
-        // names and/or file name are extremently long. Check to see if the time string
-        // will fit.
-		if (footerXExt + timeXExt + 2*wXExt > fitRect.GetWidth()) // allow 2 W widths
-														// between footerXExt and timeXExt
-		{
-            // There is not enough space for the timeStr to fit on the footer between
-            // margins, so we'll position the left part a little higher and draw the time
-            // part one line height lower than the left part.
-			pDC->DrawText(strLeftPlusPageNum, (long)xPosFtrLeft, (long)yPosFtr - timeYExt/2);
-			int xPosTimeStr = fitRect.GetRight() - timeXExt;
-			pDC->DrawText(timeStr, (long)xPosTimeStr, (long)yPosFtr + timeYExt/2);
-		}
-		else
-		{
-			// There is enough space for the timeStr to fit
-			pDC->DrawText(strLeftPlusPageNum, (long)xPosFtrLeft, (long)yPosFtr);
-			int xPosTimeStr = fitRect.GetRight() - timeXExt;
-			pDC->DrawText(timeStr, (long)xPosTimeStr, (long)yPosFtr);
-		}
-	}
-	else
-	{
-		// There is enough room to draw the page number in the middle of the footer
-		pDC->DrawText(strLeft, (long)xPosFtrLeft, (long)yPosFtr);
-		int xPosPageNum = fitRect.GetLeft() + fitRect.GetWidth()/2; // don't worry
-							// about adjusting for x extent of the page number
-		pDC->DrawText(strPageNum, (long)xPosPageNum, (long)yPosFtr);
-		int xPosTimeStr = fitRect.GetRight() - timeXExt;
-		pDC->DrawText(timeStr, (long)xPosTimeStr, (long)yPosFtr);
-	}
+    // whm 6Apr2016 added the following first block for when the "Footer includes only the 
+    // page number" option in the PrintOptionsDlg 
+    if (gbPrintOnlyPgNumInFooter == TRUE)
+    {
+        wxString pageNumStr = _T("");
+        pageNumStr = pageNumStr.Format(_T("%d"), page);
+        int headerXExt, headerYExt;
+        pDC->GetTextExtent(pageNumStr, &headerXExt, &headerYExt);
+        // Position the footer 12.7mm (a half inch) below the bottom margin.
+        float yPosFtr = (float)(fitRect.GetBottom() + 12.7*logicalUnitsFactor); // y pos is same
+        int xPosPageNum = fitRect.GetLeft() + fitRect.GetWidth() / 2; // don't worry
+                                                                      // about adjusting for x extent of the page number
+        pDC->DrawText(pageNumStr, (long)xPosPageNum, (long)yPosFtr);
+    }
+    else
+    {
+
+        // Calculate the position for the footer. The incoming parameter fitRect represents the
+        // rectangular printing area within the margins in logical units. The bottom of fitRect
+        // is the effective bottom margin, so we'll place the footer 12.7mm (a half inch) in
+        // logical units below the bottom of fitRect. Since the logical origin is at 0,0 of the
+        // page, we need to add the fitRect.x position (fitRect.GetLeft()) to xPosFtr. In
+        // calculating the position of yPosFtr, however, fitRect.GetBottom() returns
+        // coordinates in reference to 0,0. See AIPrintout::OnPrintPage() for how
+        // logicalUnitsFactor is calculated.
+        // BEW added 21Jul09 because '2' is not two spaces of width, but 2 pixels, so need
+        // something bigger - otherwise for a range, end of range is too close to page number
+        int wXExt; int wYExt;
+        pDC->GetTextExtent(_T("W"), &wXExt, &wYExt);
+        // Bill's legacy code
+        int footerXExt, footerYExt;
+        pDC->GetTextExtent(strLeft, &footerXExt, &footerYExt);
+        float yPosFtr = (float)(fitRect.GetBottom() + 12.7*logicalUnitsFactor); // y pos is same
+                                                            // for all segments of the footer
+        float xPosFtrLeft = (float)fitRect.GetLeft();
+        int timeXExt, timeYExt;
+        pDC->GetTextExtent(timeStr, &timeXExt, &timeYExt);
+        if (footerXExt + 2 * wXExt >= fitRect.GetWidth() / 2)
+        {
+            pDC->GetTextExtent(strLeftPlusPageNum, &footerXExt, &footerYExt);
+            // The strLeft (language names and file name) extends past the middle point of the
+            // footer, so we will not try to draw the page number centered in the footer, but
+            // will just add a couple spaces and the page number to the end of strLeft.
+            // The timeStr should fit in the right-hand side of the footer, unless the language
+            // names and/or file name are extremently long. Check to see if the time string
+            // will fit.
+            if (footerXExt + timeXExt + 2 * wXExt > fitRect.GetWidth()) // allow 2 W widths
+                                                            // between footerXExt and timeXExt
+            {
+                // There is not enough space for the timeStr to fit on the footer between
+                // margins, so we'll position the left part a little higher and draw the time
+                // part one line height lower than the left part.
+                pDC->DrawText(strLeftPlusPageNum, (long)xPosFtrLeft, (long)yPosFtr - timeYExt / 2);
+                int xPosTimeStr = fitRect.GetRight() - timeXExt;
+                pDC->DrawText(timeStr, (long)xPosTimeStr, (long)yPosFtr + timeYExt / 2);
+            }
+            else
+            {
+                // There is enough space for the timeStr to fit
+                pDC->DrawText(strLeftPlusPageNum, (long)xPosFtrLeft, (long)yPosFtr);
+                int xPosTimeStr = fitRect.GetRight() - timeXExt;
+                pDC->DrawText(timeStr, (long)xPosTimeStr, (long)yPosFtr);
+            }
+        }
+        else
+        {
+            // There is enough room to draw the page number in the middle of the footer
+            pDC->DrawText(strLeft, (long)xPosFtrLeft, (long)yPosFtr);
+            int xPosPageNum = fitRect.GetLeft() + fitRect.GetWidth() / 2; // don't worry
+                                // about adjusting for x extent of the page number
+            pDC->DrawText(strPageNum, (long)xPosPageNum, (long)yPosFtr);
+            int xPosTimeStr = fitRect.GetRight() - timeXExt;
+            pDC->DrawText(timeStr, (long)xPosTimeStr, (long)yPosFtr);
+        }
+    }
 
 	// delete pFont for no memory leaks
 	if (pFont != NULL) // whm 11Jun12 added NULL test

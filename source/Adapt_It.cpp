@@ -701,6 +701,9 @@ extern int gnSelectionEndSequNum;
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbPrintFooter;
 
+/// This global is defined in Adapt_ItView.cpp.
+extern bool gbPrintOnlyPgNumInFooter;
+
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
 /// This global is defined in Adapt_ItView.cpp.
@@ -16995,6 +16998,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gnSelectionStartSequNum = -1;
 	gnSelectionEndSequNum = -1;
 	gbPrintFooter = TRUE;
+    gbPrintOnlyPgNumInFooter = FALSE;
 
 	gbIgnoreScriptureReference_Receive = TRUE;
 	gbIgnoreScriptureReference_Send = TRUE;
