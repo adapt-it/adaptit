@@ -547,7 +547,7 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 // This function is not used for login to the KB Sharing Manager - login to that is handled
 // from OnKBSharingManagerTabbedDialog() - a handler which is a member of the CAdapt_ItApp
 // class
-bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout, bool bServiceDiscoveryWanted);
+bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscoveryWanted);
 
 #endif // _KBSERVER
 

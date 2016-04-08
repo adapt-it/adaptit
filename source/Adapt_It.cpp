@@ -274,7 +274,7 @@ wxMutex	kbsvr_arrays;
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
 #ifdef _DEBUG
-//#include "vld.h"
+#include "vld.h"
 #endif
 #endif
 
@@ -5692,7 +5692,6 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 #if defined(_KBSERVER)
 	EVT_MENU(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnKBSharingManagerTabbedDlg) // always potentially needed
 	EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
-	EVT_COMMAND(wxID_ANY, wxServDiscHALTING, CAdapt_ItApp::onServDiscHalting)
 
 #endif
 	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
@@ -15266,34 +15265,21 @@ void CAdapt_ItApp::ServDiscBackground()
 ///                               may not be the same as the curURL)
 /// \param      workFolderPath -> the path to the Adapt It Unicode Work folder (where the
 ///                               ServDiscResults.txt file resides)
-/// \param      nKBserverTimeout -> the 'wait timeout' value, in thousandths of a second, for
-///                               the awakening of the DoServiceDiscovery() function in order
-///                               to read what URL or URLs have been put in m_servDiscResults
-///                               wxArrayString - an app member (if the value is too low,
-///                               service discover won't find a URL ready for use and think
-///                               that there was no running KBserver on the LAN, when in fact
-///                               there may well be one there; a 8000 value is good for safety
-///                               but values as low as 3500 to 4000 usually work okay, but
-///                               there is risk of occasional failure - so 8000 is wiser)
 /// \remarks
 /// Our implementation of service discovery, cross platform, is based on the sdwrap/wxServDisc
 /// resources provided by Christian Beier, 2008. (See the wxServDisc.h header for more detail.)
 /// Our use of those resources is GUI-less, since the service we listen for is fixed.
 /// Beier's code works, but leaks a few kilobytes of memory when it is shut down - the leaks
-/// are of his making, due to incomplete cleanup code. We have spent time utilizing a function
-/// he provided but failed to provide body code within it, to get the leaks reduced to zero.
+/// are of his making, due to incomplete cleanup code. I have managed to reduce the leak count
+/// to zero but at the cost of limiting one discovery run to finding just one KBserver.
 ///
 /// DoServiceDiscovery is called prior to an authentication attempt to a running KBserver.
 /// The service:  "_kbserver._tcp.local." is scanned for (note, there MUST be a period
-/// following the word local & the wrapping " " are not part of the string), and if one or
-/// more KBservers are running and discovered, their ip addresses are looked up and a URL for
-/// each constructed. Normally, only one KBserver should be running; if that is not the
-/// case, user confusion may result, or users may connect to differing KBservers which
-/// would waste the benefits of this KB syncing capacity. If two or more are running, a
-/// dialog will open to allow the user to select one for connecting to. (A better option
-/// would be to Cancel, and turn off all KBserver instances except the one to which
-/// everyone is to connect, then retry setting up the KB sharing - then connection will be
-/// automatic and invisible and nobody will get confused.)
+/// following the word local & the wrapping " " are not part of the string), and if a
+/// KBserver is running. Normally, only one KBserver should be running; if that is not the
+/// case, raw ips are not enough, so hostnames are displayed as well. If two or more are
+/// running, a dialog will open to allow the user to select one for connecting to. Multiples
+/// (if running) are detected by doing discovery in a background thread governed by a timer.
 ///
 /// Of course, a lot of things may go wrong. Everybody may forget to turn on a KBserver -
 /// if so, they'll need to be warned that no sharing can happen till they run one. Or the thread
@@ -15303,17 +15289,13 @@ void CAdapt_ItApp::ServDiscBackground()
 /// be the one used previously - in which case the function needs to compare the old url with
 /// the current running server's url, and if they differ, ask the user if he wants a connection
 /// to the different url. In a workshop, there could be several KBservers running, one for each
-/// of several workgroups from different language projects - so we have to discover them all,
-/// but there will be ambiguity/guesswork in connecting to the right one - we can't prevent that,
-/// but at least an attempt to connect to the wrong one will fail with a 'cannot connect' type 
-/// of warning message, because chances are the needed KB is not defined on the wrong KBserver.
+/// of several workgroups from different language projects - so we have to discover them all.
 /// The service discovery thread will only run for a few seconds, and that is enough time to 
-/// detect one or more KBserver instances multicasting on the LAN. It will report the URLs
-/// for the KBserver or Kbservers it detects in CAdapt_ItApp::m_servDiscResults which is a
-/// wxArrayString array. DoServiceDiscovery will, after the data is stored there, access that
-/// data and use it for implementing the protocols described above. Every DoServiceDiscovery()
-/// call will overwrite the earlier contents of that array, but of course only one call is made
-/// per login attempt.
+/// detect one instance multicasting on the LAN. It will report the ip address and hostname
+/// for the KBserver it detects in  CAdapt_ItApp::m_theURLs and CAdapt_ItApp::m_theHostnames
+/// wxArrayString arrays. DoServiceDiscovery will, after the data is stored there, access that
+/// data and use it for implementing the protocols described above. Background discovery lasts
+/// for as long as the app session is active.
 /// Because of the variety of possible states, the following enum will be used internally
 /// to help with implementing suitable protocols: The enum is defined in Adapt_It.h at
 /// about line 765
@@ -15336,40 +15318,10 @@ void CAdapt_ItApp::ServDiscBackground()
 /// };
 ////////////////////////////////////////////////////////////////////////////////////////
 
-bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result,
-	int nKBserverTimeout)
+bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result)
 {
 	chosenURL = _T(""); // initialize, we return the chosen url using this parameter
 	result = SD_NoResultsYet; // initialize to a 'success' result
-
-/*
-	wxLogDebug(_T("\n\nDoServiceDiscovery(): WaitTimeout(nKBserverTimeout) when called has value:  %d  milliseconds"), nKBserverTimeout);
-
-	wxString serviceStr = _T("_kbserver._tcp.local.");
-
-	{ // begin WaitDlg scope
-
-		CWaitDlg waitDlg(GetMainFrame());
-		// indicate we want the 'discovery of KBserver' message
-		waitDlg.m_nWaitMsgNum = 26;	// message is "Discovery of running KBservers is happening..."
-		waitDlg.Centre();
-		waitDlg.Show(TRUE);
-		waitDlg.Update();
-
-
-	// BEW 4Jan16, 2nd param is the parent class for CServiceDiscovery instance, the app class
-	m_pServDisc = new CServiceDiscovery(serviceStr, this);
-
-	// Set the input variables
-	m_pServDisc->m_servicestring = serviceStr; // service to be scanned for
-
-	m_pServDisc->m_pApp = this; // set CServiceDiscovery's m_pApp pointer
-
-	} // end scope for WaitDlg
-
-	// When the Wait() is over, we can go on now to access the results, if any exist
-	serviceStr.Clear(); // so we don't leak its memory
-*/
 
 	// Add any not already in the aggregated storage on the app, used for display to the user;
 
@@ -15426,7 +15378,6 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 
 	wxLogDebug(_T("\nCAdapt_ItApp::DoServiceDiscovery() Updated URLs and Hostnames. Unique KBserver URLs aggregated so far = %d"),
 		count);
-	m_pServDisc->m_bServiceDiscoveryCanFinish = TRUE; // <<-- deprecate later on
 
 	// No url & hostname may be available yet, in which case the user needs to be told
 	if (!m_ipAddrs_Hostnames.IsEmpty())
@@ -15543,21 +15494,6 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 		}
 		return FALSE;
 	}
-}
-
-void CAdapt_ItApp::onServDiscHalting(wxCommandEvent& WXUNUSED(event))
-{
-	m_bCServiceDiscoveryCanBeDeleted = TRUE; //Set TRUE here, the handler of the
-				// wxServDiscHALTING custom event, and now the next OnIdle()
-				// can attempt the CServiceDiscovery* m_pServDisc deletion (if
-				// done late enough, there'll be no app crash; OnIdle() makes
-				// it late enough, fortunately)
-	// CServiceDiscovery deleted before its wxServDisc gets deleted gives crash;
-	// the deletion order has to be reversed; class and window deletions are
-	// lazy and don't happen till idle time. Deleting CServiceDiscovery in OnIdle()
-	// accomplishes the needed deletion re-ordering
-	wxLogDebug(_T("CAdapt_ItApp::onServDiscHalting() called; sets m_bCServiceDiscoveryCanBeDeleted to TRUE, app's m_pServDisc = %p  still"),
-				m_pServDisc);
 }
 
 // Checks m_pKbServer[0] or [1] for non-NULL or NULL
@@ -28634,7 +28570,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		if (m_bServiceDiscoveryWanted)
 		{
 			enum ServDiscDetail returnedValue = SD_NoResultsYet;
-			bool bOK = DoServiceDiscovery(currentURL, chosenURL, returnedValue, m_KBserverTimeout);
+			bool bOK = DoServiceDiscovery(currentURL, chosenURL, returnedValue);
 			if (bOK)
 			{
 				// Got a URL to connect to

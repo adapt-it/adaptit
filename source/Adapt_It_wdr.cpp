@@ -10083,49 +10083,32 @@ wxSizer *kb_share_setup_or_remove_func( wxWindow *parent, bool call_fit, bool se
 
     wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("KBserver discovery time needed (increase if none is found)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item19, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxGridSizer *item19 = new wxGridSizer( 2, 2, 4 );
 
-    item18->Add( 6, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxSpinCtrl *item20 = new wxSpinCtrl( parent, ID_SPINCTRL_TIMEOUT, wxT("5"), wxDefaultPosition, wxSize(80,-1), 0, 4, 120, 5 );
-    item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item18->Add( 6, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, _("seconds"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item14->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxGridSizer *item23 = new wxGridSizer( 2, 2, 4 );
-
-    wxString strs24[] = 
+    wxString strs20[] = 
     {
-        _("Automatic discovery - but it takes several seconds"), 
+        _("Automatic discovery (local network only)"), 
         _("I know the URL and I will type it")
     };
-    wxRadioBox *item24 = new wxRadioBox( parent, ID_RADIOBOX_HOW, _("How do you want to get the URL?"), wxDefaultPosition, wxDefaultSize, 2, strs24, 2, wxRA_SPECIFY_ROWS );
-    item23->Add( item24, 0, wxALIGN_CENTER, 5 );
+    wxRadioBox *item20 = new wxRadioBox( parent, ID_RADIOBOX_HOW, _("How do you want to get the URL?"), wxDefaultPosition, wxDefaultSize, 2, strs20, 2, wxRA_SPECIFY_ROWS );
+    item19->Add( item20, 0, wxALIGN_CENTER, 5 );
 
-    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item26 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->SetDefault();
-    item25->Add( item26, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxButton *item22 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->SetDefault();
+    item21->Add( item22, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item25->Add( 14, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+    item21->Add( 14, 8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item27 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->Add( item27, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxButton *item23 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item23, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item23->Add( item25, 0, wxALIGN_CENTER, 5 );
+    item19->Add( item21, 0, wxALIGN_CENTER, 5 );
 
-    item22->Add( item23, 0, wxALIGN_CENTER, 5 );
+    item18->Add( item19, 0, wxALIGN_CENTER, 5 );
 
-    item14->Add( item22, 0, wxALIGN_CENTER, 5 );
+    item14->Add( item18, 0, wxALIGN_CENTER, 5 );
 
     item3->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

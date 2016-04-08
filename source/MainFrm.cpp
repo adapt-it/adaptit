@@ -2725,8 +2725,7 @@ void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event
 	// dialog from within its OnOK() handler leaves the child dialog lower in
 	// the z-order, and it then is hidden if control is sent back to it - which
 	// locks up the app and the user can't do anything
-    bool bSuccess = AuthenticateCheckAndSetupKBSharing(gpApp, gpApp->m_KBserverTimeout,
-												gpApp->m_bServiceDiscoveryWanted);
+    bool bSuccess = AuthenticateCheckAndSetupKBSharing(gpApp, gpApp->m_bServiceDiscoveryWanted);
 	// pass the final value back to the app,
 	gpApp->m_bServiceDiscoveryWanted = TRUE; // Restore default value
 	wxUnusedVar(bSuccess);
@@ -4457,7 +4456,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 #if defined(_KBSERVER)
 
-	// TODO -- code for cached new KBserver entries to be sent to remote server
 	KbServer* pKbSvr = NULL;
 	CKB* pKB = NULL;
 	if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
@@ -4552,16 +4550,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
-
-	if ( gpApp->m_bCServiceDiscoveryCanBeDeleted )
-	{
-		wxLogDebug(_T("OnIdle(): m_bCServiceDiscoveryCanBeDeleted is TRUE, so deleting CServiceDiscovery instance %p, & setting m_pServDisc to NULL"),
-			gpApp->m_pServDisc);
-		delete gpApp->m_pServDisc; // BEW 4Dec16
-		gpApp->m_pServDisc = NULL;
-
-		gpApp->m_bCServiceDiscoveryCanBeDeleted = FALSE; // reinitialize
-	}
 
 	if (pApp->m_pWaitDlg != NULL)
 	{

@@ -50,47 +50,11 @@ using namespace std;
 #include <wx/msw/winundef.h>
 #endif
 
-// temporary to get it to compile (BEW 7Mar16)
+// to get it to compile (BEW 7Mar16)
 #if !defined(WIN32)
 typedef int SOCKET;
 #endif // WIN32
 
-/*
-// all the nice socket includes in one place here (I changed _WIN32 to WIN32)
-#ifdef WIN32
-
-// the next is supposed to prevent winsock.h being included in <windows.h>
-#define _WINSOCKAPI_
-// this is supposed to do the same job
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#define _WINSOCK_DEPRECATED_NO_WARNINGS   // allow the old inet_addr() call in implementation file
-// mingw/ visual studio socket includes
-#define SHUT_RDWR SD_BOTH
-
-#include <winsock2.h>
-#include <ws2tcpip.h>
-// BEW requires the next one
-#include <wx/dynarray.h>
-
-#else // proper UNIX
-
-typedef int SOCKET;       // under windows, SOCKET is unsigned
-#define INVALID_SOCKET -1 // so there also is no -1 return value
-#define closesocket(s) close(s) // under windows, it's called closesocket
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/un.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-
-#endif // WIN32
-*/
-
-// Need these to be here instead of in wxServDisc.cpp only, as our declaration
-// of CleanUpMyMess() needs the mdnsd struct definition, and CServiceDiscovery.cpp
-// needs the mdnsda_struct definition
 #include "1035.h"
 #include "mdnsd.h"
 
@@ -128,22 +92,14 @@ public:
   /// Returns true if service discovery successfully started. If not, getErr() may contain a hint.
   bool isOK() const { return err.length() == 0; };
 
-  //CServiceDiscovery* m_pSD; // BEW added
-
-  /* deprecated so far, not needed
-  void CleanUpSD(void* pSDInstance, mdnsd& d); // don't worry about msock cleanup unless we need to
-  */
-
   // yeah well...
   std::vector<wxSDEntry> getResults() const;
   size_t getResultCount() const;
 
-  //* Nope, useless, still 44 leaks
-  // BEW 6Apr16 next one in the hope that it will clear up a lot of leaks
+  // BEW 6Apr16 made next one in the hope that it will clear up a lot of leaks - it did
   void wxServDisc::clearResults();
- // */
-  mdnsd d;	// pulled out of Entry() where it was a local var, to be a public member of wxServDisc
-			// in order to later be able to access it from outside the class (for cleanup of heap)
+ 
+  mdnsd d;	// I pulled it out of Entry() where it was a local var. Not necessary, but harmless
 
   // get query name
   const wxString& getQuery() const { const wxString& ref = query; return ref; };

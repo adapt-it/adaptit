@@ -10879,7 +10879,7 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 // to let discovery happen, KBSharingStatelessSetupDlg will hide the top multiline message in
 // the Authenticate dialog as it applies only when the user is doing a manual type in of the URL
 // Returns TRUE for success, FALSE if there was an error
-bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, int nKBserverTimeout, bool bServiceDiscoveryWanted)
+bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscoveryWanted)
 {
     // use this AuthenticateCheckAndSetupKBSharing() function only when the user is
     // authenticating, do not use it for authentication to the KB Sharing Manager -- the
@@ -11142,7 +11142,7 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 			wxString curURL = pApp->m_strKbServerURL;
 			wxString chosenURL = _T("");
 			enum ServDiscDetail returnedValue = SD_NoResultsYet;
-			bool bOK = pApp->DoServiceDiscovery(curURL, chosenURL, returnedValue, nKBserverTimeout);
+			bool bOK = pApp->DoServiceDiscovery(curURL, chosenURL, returnedValue);
 			if (bOK)
 			{
 				// Got a URL to connect to

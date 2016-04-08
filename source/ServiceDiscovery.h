@@ -39,15 +39,6 @@
 /// conflicts with winsock.h and other Microsoft classes. To avoid this, the
 /// CServiceDiscovery serves to isolate the namespace for the service discovery
 /// code from clashes with the GUI support's namespace. So it must be retained.
-/// 
-/// Also, DO NOT return GetResults() to be an event handler (formerly it was
-/// onSDNotify() for a wxServDiscNOTIFY event posted within Post_Notify())
-/// because our mutex & condition solution uses .WaitTimeout() in the app's
-/// DoServiceDiscovery() function, and when waiting, main thread event handling
-/// is asleep - so if you tried to do things Beier's way, the essential
-/// address lookup etc would not get called until the main thread's sleep ended -
-/// which would be too late because DoServiceDiscovery() would have been exited
-/// before the service discovery results could be computed.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef SERVICEDISCOVERY_h
@@ -77,14 +68,10 @@ public:
 
 	wxServDisc* m_pWxSD; // main service scanner (a child class of this one)
 	CAdapt_ItApp* m_pParent; // BEW 4Jan16
-	//bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this set in onSDHalting <<-- BEW 6Apr16 deprecated
-								 // informing CServiceDiscovery instance that we are done
 
-	int	m_postNotifyCount;  // count the number of Post_Notify() call attempts - a debug logging aid or more
-
-	// Try providing named wxStrings to be used instead of Beier's anonymous ones (the latter can't be freed
-	// at heap cleanup time; but if named we can do so)
-	//wxString m_addrscan_ipStr;
+	int	m_postNotifyCount;  // count the number of Post_Notify() calls, we use it to 
+							// limit one discovery run to finding one running KBserver
+							// at random from however many are currently running
 
 	// scratch variables, used in the loop in onSDNotify() handler
 	wxString m_hostname;
@@ -93,7 +80,7 @@ public:
 
 	bool IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
 	bool AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
-	int nPostedEventCount; // <<-- deprecate later, but check first, I think this is no longer of any value, I use m_postNotifyCount instead now
+
 	int nDestructorCallCount; // how many times the ~wxServDisc() destructor gets called -
 			// once it gets to 2 (ie. both namescan() and addrscan() have worked and died, we
 			// can cause the original (owned) wxServDisc to shut down - the logging shows that
@@ -101,21 +88,6 @@ public:
 			// for why there are unexpected results. My idea is to provide tests in Entry()'s
 			// while loop, which when true, will break from the loop with exit set to true -
 			// and that should get the cleanup code done for the original wxServDisc
-
-	// BEW 23Mar16, To govern the service discovery shutdown mechanism, we need a boolean
-	// here, m_bServiceDiscoveryCanFinish which will be set FALSE in the CServiceDiscovery's
-	// creator, and set TRUE only after a predetermined service discovery run (whether
-	// a foreground call of DoServiceDiscovery(), or a background thread call of the
-	// backgrounded equivalent of the latter) is to be halted, and the heap freed.
-	// In the case of a foreground run, the main thread re-awakening after the
-	// wxWaitTimeout() has expired will generate the TRUE value which then permits
-	// the owned wxServDisc instance to poll for this boolean being true, and when so,
-	// the halting mechanism gets invoked; or in the case of a background thread, a
-	// timer will fire and likewise set this boolean TRUE, and so initiate the halting
-	// mechanism in that scenario.
-	bool m_bServiceDiscoveryCanFinish; // BEW 6Apr16  <<-- deprecate later
-
-	int nCleanupCount; // count and log number of entries into CleanUpSD()
 
 
 	// These arrays receive results, which will get passed back to app's DoServiceDiscovery() etc.

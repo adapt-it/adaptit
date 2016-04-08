@@ -2085,12 +2085,9 @@ class CAdapt_ItApp : public wxApp
 	// commented and there are many wxLogDebug() calls. Timing annotations in the debugger
 	// window and those logging messages are VITAL for understanding how the module works,
 	// and when things go wrong, what might be causing the error. DO NOT DELETE THE
-	// wxLogDebug() CALLS from the code!!
+	// wxLogDebug() calls from the code in the class wxServDisc !! They can be turned off
+	// by commenting out a #define near the top of the .cpp file
 
-	void onServDiscHalting(wxCommandEvent& WXUNUSED(event)); // posted at the final cleanup, <<-- deprecate later
-				// it just sets a flag, but the handler for doing the deletion is in OnIdle()
-				// so that CServiceDiscovery gets deleted AFTER the last wxServDisc instance
-				// has been deleted
 
 	// for support of service discovery
 	wxString		m_saveOldURLStr;
@@ -3072,8 +3069,7 @@ public:
 	bool	  ReleaseKBServer(int whichType);
 	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
 	// BEW added next, 26Nov15
-	bool	  DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result,
-								 int nKBserverTimeout);
+	bool	  DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result);
 	bool	  m_bServiceDiscoveryWanted; // TRUE if DoServiceDiscovery() is wanted, FALSE for manual URL entry
 										 // and don't ever store the value in any config file; default TRUE
 	void	  ServDiscBackground();

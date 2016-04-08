@@ -2056,8 +2056,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 				// logging in, or else someone who knows some other person's credentials
 				// is doing so (and the KBserver has to know those credentials too of 
 				// course if the login is to succeed)
-			bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_KBserverTimeout,
-												pApp->m_bServiceDiscoveryWanted);
+			bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_bServiceDiscoveryWanted);
 			wxUnusedVar(bSuccess);
 		}
 		else
