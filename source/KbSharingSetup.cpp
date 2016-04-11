@@ -124,21 +124,6 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		m_bSharingGlosses = FALSE; // initialize
 	}
 
-	m_pTimeout = (wxSpinCtrl*)FindWindowById(ID_SPINCTRL_TIMEOUT);
-
-	// Set the spin control to the current value (divide by 1000 since units are 
-	// thousandths of a sec for basic config file storage of the value)
-	int value = m_pApp->m_KBserverTimeout / 1000;
-	if (value < 4)
-	{
-		value = 4;
-	}
-	if (value > 120)
-	{
-		value = 120;
-	}
-	m_pTimeout->SetValue(value);
-
 	m_bServiceDiscWanted = m_pApp->m_bServiceDiscoveryWanted;
 }
 
@@ -186,15 +171,6 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 {
 	int nRadioBoxSelection = m_pRadioBoxHow->GetSelection();
 	m_bServiceDiscWanted = nRadioBoxSelection == 0 ? TRUE : FALSE;
-
-	// Whether the user wants service discovery or not, if he changes the timeout value, the
-	// honour the change. The spin control limits are already (in wxDesigner) set to [8,30] 
-	// range with 16 recommended. Small values, eg less than 10, are unlikely to work.
-	int value = m_pTimeout->GetValue() * 1000;
-	if (m_pApp->m_KBserverTimeout != value)
-	{
-		m_pApp->m_KBserverTimeout = value;
-	}
 
 	m_pApp->m_bServiceDiscoveryWanted = m_bServiceDiscWanted; // Set app member, OnIdle's call
 			// of AuthenticateCheckAndSetupKBSharing() will use it, and reset to TRUE afterwards

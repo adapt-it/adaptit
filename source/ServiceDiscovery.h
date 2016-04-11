@@ -95,8 +95,6 @@ public:
 
 	wxArrayString m_ipAddrs_Hostnames; // stores unique set of <ipaddress>@@@<hostname> composite strings
 
-	void wxItoa(int val, wxString& str); // copied from helpers.h & .cpp, it creates  <<-- deprecate ?? check later, BEW 6Apr16
-										 // name conflict problems to #include "helpers.h"
 protected:
 	  void onSDNotify(wxCommandEvent& WXUNUSED(event));
 	  void onSDHalting(wxCommandEvent& event); // needed to get the last wxServDisc deleted from here

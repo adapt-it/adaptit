@@ -743,6 +743,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\Thread_KbEditorUpdateButton.cpp" />
     <ClCompile Include="..\..\source\Thread_PseudoDelete.cpp" />
     <ClCompile Include="..\..\source\Thread_PseudoUndelete.cpp" />
+    <ClCompile Include="..\..\source\Thread_ServiceDiscovery.cpp" />
     <ClCompile Include="..\..\source\Timer_KbServerChangedSince.cpp" />
     <ClCompile Include="..\..\source\ToolbarPage.cpp" />
     <ClCompile Include="..\..\source\TransformToGlossesDlg.cpp" />
@@ -837,6 +838,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\ServiceDiscovery.h" />
     <ClInclude Include="..\..\source\Thread_BulkPseudoDelete.h" />
     <ClInclude Include="..\..\source\Thread_DoEntireKbDeletion.h" />
+    <ClInclude Include="..\..\source\Thread_ServiceDiscovery.h" />
     <ClInclude Include="..\..\source\UsernameInput.h" />
     <ClInclude Include="..\..\source\wxServDisc.h" />
     <ClInclude Include="Equivalents_for_reference.h" />

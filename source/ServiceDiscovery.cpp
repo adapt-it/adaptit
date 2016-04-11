@@ -106,7 +106,7 @@
 
 extern wxMutex	kbsvr_arrays;
 
-extern CAdapt_ItApp* gpApp;
+//extern CAdapt_ItApp* gpApp;
 CServiceDiscovery* gpServiceDiscovery; // a global for communicating with CServiceDiscovery instance
 
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)
@@ -125,6 +125,7 @@ CServiceDiscovery::CServiceDiscovery(CAdapt_ItApp* pParentClass)
 	gpServiceDiscovery = this; // wxServDisc creator needs this; set it early, so that it has
 							   // it's correct value before wxServDisc is instantiated below
 	m_serviceStr = _T("_kbserver._tcp.local.");
+	wxASSERT((void*)&wxGetApp() == (void*)pParentClass);
 	m_pApp = pParentClass;
 #if defined(_zerocsd_)
 	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, for servicestring: %s, ptr to instance: %p"),
@@ -376,30 +377,30 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 #endif
 				wxNO_OP; // for release build
 			}
-			// The arrays here are no longer needed until the next timer Notify(), so clear them
+			// The arrays here are no longer needed until the next timer notification, so clear them
 			m_ipAddrs_Hostnames.clear();
 			m_sd_servicenames.clear();
+			m_serviceStr.clear(); // clear this string too
 		}
 	}
-}
+	m_pApp->m_bServiceDiscoveryThreadCanDie = TRUE; // signal that the thread can now safely die
 
+#if defined(_zerocsd_)
+	wxLogDebug(_T("CServiceDiscovery:onSDHalting() %p  m_bServiceDiscoveryThreadCanDie set TRUE. The onSDHalting handler is now exiting"), this);
+#endif
+
+}
 
 CServiceDiscovery::~CServiceDiscovery()
 {
+	/* don't need these here
 	m_sd_servicenames.clear();
 	m_ipAddrs_Hostnames.clear();
 	m_serviceStr.clear();
+	*/
 #if defined(_zerocsd_)
-	wxLogDebug(_T("CServiceDiscovery* = %p  Deleting the CServiceDiscovery instance = %p, in ~CServiceDiscovery() and clearing its member arrays"), this);
+	wxLogDebug(_T("CServiceDiscovery* = %p  Exiting from  ~CServiceDiscovery() destructor"), this);
 #endif
-}
-
-// Copied wxItoa from helpers.cpp, as including helpers.h leads to problems   BEW 6Apr16, is it still needed here?  - check later
-void CServiceDiscovery::wxItoa(int val, wxString& str)
-{
-	wxString valStr;
-	valStr << val;
-	str = valStr;
 }
 
 // BEW created 5Jan16, needed for GetResults() in CServiceDiscovery instance

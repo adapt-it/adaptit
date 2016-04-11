@@ -150,8 +150,7 @@ wxDEFINE_EVENT(wxServDiscHALTING, wxCommandEvent);
 
 wxThread::ExitCode wxServDisc::Entry()
 {
-	// mdnsd d; <<-- BEW moved to wxServDisc.h to make it a public member variable 
-	// (for access from outside if necssary) but it turned out not to be necessary
+	mdnsd d;
 	struct message m;
 	unsigned long int ip;
 	unsigned short int port;
@@ -166,6 +165,8 @@ wxThread::ExitCode wxServDisc::Entry()
 	// register query(w,t) at mdnsd d, submit our address for callback ans() <<-- this
 	// callback was a memory leak source, which I plugged with a clearResults() function
 	mdnsd_query(d, query.char_str(), querytype, ans, this);
+
+	wxLogDebug(_T("\n\n*** d->shutdown = %d  at 170  ***"), d->shutdown);
 
 	#ifdef __WXGTK__
 	// this signal is generated when we pop up a file dialog wwith wxGTK
@@ -216,7 +217,7 @@ wxThread::ExitCode wxServDisc::Entry()
 				exit = true;
 				break;
 			}
-
+			
 			FD_ZERO(&fds);
 
 			if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
@@ -225,7 +226,7 @@ wxThread::ExitCode wxServDisc::Entry()
 				exit = true;
 				break;
 			}
-
+			
 			FD_SET(mSock, &fds);
 
 			if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
@@ -234,12 +235,12 @@ wxThread::ExitCode wxServDisc::Entry()
 				exit = true;
 				break;
 			}
-
+			
 			#ifdef __WXGTK__
 			sigprocmask(SIG_BLOCK, &newsigs, &oldsigs);
 			#endif
 			datatoread = select(mSock + 1, &fds, 0, 0, tv); // returns 0 if timeout expired
-
+			
 			if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 				|| (BEWcount > 11 && gpServiceDiscovery->nDestructorCallCount == 0))
 			{
@@ -253,7 +254,7 @@ wxThread::ExitCode wxServDisc::Entry()
 
 			if (!datatoread) // this is a timeout
 				msecs -= 100;
-
+			
 			if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 				|| (BEWcount > 11 && gpServiceDiscovery->nDestructorCallCount == 0))
 			{
@@ -288,7 +289,6 @@ wxThread::ExitCode wxServDisc::Entry()
 				}
 
 				mdnsd_in(d, &m, ip, port);
-
 				if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
 					|| (BEWcount > 11 && gpServiceDiscovery->nDestructorCallCount == 0))
 				{
@@ -761,6 +761,11 @@ size_t wxServDisc::getResultCount() const
 void wxServDisc::post_notify()
 {
 	gpServiceDiscovery->m_postNotifyCount++; // BEW added
+
+#if defined(_zero_) && defined(_DEBUG)
+	wxLogDebug(_T("wxServDisc:  %p  (766) post_notify() Entered:  parent = %p , gpServiceDiscovery->m_postNotifyCount = %d"), 
+		this, (void*)parent, gpServiceDiscovery->m_postNotifyCount); // BEW added
+#endif
 
 	// Beier's code follows, but tests added by BEW in order to do minimal processing etc
 	if (parent)

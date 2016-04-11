@@ -105,6 +105,8 @@
 #include <curl/curl.h>
 
 wxMutex	kbsvr_arrays;
+// Comment out to prevent DoServiceDiscovery() from logging with wxLogDebug()
+#define _DOSERVDISC
 
 // vectorized bitmaps
 #include "../res/vectorized/document_new_16.cpp"
@@ -365,6 +367,7 @@ wxMutex	kbsvr_arrays;
 #include "ServiceDiscovery.h" // BEW 4Jan16
 #include "ServDisc_KBserversDlg.h" // BEW 12Jan16
 #include "KbSvrHowGetUrl.h"
+#include "Thread_ServiceDiscovery.h"
 extern std::string str_CURLbuffer;
 extern std::string str_CURLheaders;
 
@@ -5692,6 +5695,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 #if defined(_KBSERVER)
 	EVT_MENU(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnKBSharingManagerTabbedDlg) // always potentially needed
 	EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
+	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnServiceDiscoveryTimer)
 
 #endif
 	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
@@ -5970,11 +5974,10 @@ wxString szIsGlossingKBServerProject = _T("IsGlossingKBServerProject");
 /// used server for knowledge base sharing within a project designated as one for sharing
 wxString szKbServerURL = _T("KbServerURL");
 
-/// The label for the value of the WaitTimeout(value, in thousandths of a second) used
-/// in DoServiceDiscovery() in order to guarantee that a constructed URL for a KBserver
-/// discovered running on the LAN if stored in m_servDiscResults array before the timeout
-/// expires
-wxString szKBserverTimeout = _T("KBserverTimeout (thousandths of a second)");
+/// The label for the value of the timer interval(use all digits, no fraction of 1) used
+/// to give high chance that eventually a discovery will be done between two 'close'
+/// multicasts from a couple of KBservers. Otherwise second one may never be heard.
+wxString szKBserverTimer = _T("KBserverTimerInterval (thousandths of a second)");
 
 /// The label for the project configuration file's line which stores the assigned username
 /// for the last used server for knowledge base sharing within a project designated as one
@@ -15248,6 +15251,8 @@ wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
 
 void CAdapt_ItApp::ServDiscBackground()
 {
+	m_bServiceDiscoveryThreadCanDie = FALSE; // TestDestroy() keeps the thread alive until all work is done, then
+											 // when this app variable goes TRUE, TestDestroy() returns TRUE and thread dies
 	// BEW 4Jan16, 2nd param is the parent class for CServiceDiscovery instance, the app class
 	m_pServDisc = new CServiceDiscovery(this);
 }
@@ -15331,6 +15336,9 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	wxString aComposite;
 	int count;
 	int i;
+
+	/* BEW 11Apr16  No. It's better to create and destroy CServiceDiscovery in the thread - otherwise it's functions will block the main thread when they run
+
 	// In our final implementation, m_pServDisc should be set to point to the single CServiceDiscovery
 	// instance which will live for the life of the session. wxServDisc instances are temporary. But
 	// to be safe we better check here for m_pServDisc not being NULL
@@ -15353,9 +15361,10 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 			bItIsUnique = m_pServDisc->AddUniqueStrCase(&m_ipAddrs_Hostnames, aComposite, TRUE); 
 		}
 	} // end of TRUE block for test: if (m_pServDisc != NULL && !m_pServDisc->m_ipAddrs_Hostnames.empty())
+	*/
 
-	// We now have a (potentially) updated aggregate list. Decompose each string into the
-	// ipaddress and hostname parts, add https:// to the ipaddress to make the URL, and store
+	// We have anupdated aggregate list. Decompose each string into the i[ address and
+	// hostname parts, add https:// to the ipaddress to make the URL, and store
 	// the parts in parallel in arrays m_theURLs, and m_theHostnames -
 	wxString anIpAddress;
 	wxString aHostname;
@@ -15363,12 +15372,18 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 	m_theURLs.clear();
 	m_theHostnames.clear();
 	count = (int)m_ipAddrs_Hostnames.GetCount(); // this array is the app's one
+#if defined(_DOSERVDISC)
+	wxLogDebug(_T("\n CAdapt_ItApp::DoServiceDiscovery() Updated URLs and Hostnames. Unique KBserver URLs aggregated so far = %d"),
+		count);
+#endif
 	for (i = 0; i < count; i++)
 	{
 		anIpAddress = wxEmptyString;
 		aHostname = wxEmptyString;
 		aComposite = m_ipAddrs_Hostnames.Item(i);
-
+#if defined(_DOSERVDISC)
+		wxLogDebug(_T(" CAdapt_ItApp::DoServiceDiscovery() In LOOP: aComposite (url/hostname):  %s   Parts being extracted"), aComposite.c_str());
+#endif
 		ExtractIpAddrAndHostname(aComposite, anIpAddress, aHostname);
 
 		aURL = _T("https://") + anIpAddress;
@@ -15376,8 +15391,6 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 		m_theHostnames.Add(aHostname);
 	}
 
-	wxLogDebug(_T("\nCAdapt_ItApp::DoServiceDiscovery() Updated URLs and Hostnames. Unique KBserver URLs aggregated so far = %d"),
-		count);
 
 	// No url & hostname may be available yet, in which case the user needs to be told
 	if (!m_ipAddrs_Hostnames.IsEmpty())
@@ -15605,9 +15618,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// want - in particular in the OnProjectPageChanging() handler.
 	m_bIsKBServerProject_FromConfigFile = FALSE;
 	m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
-	m_KBserverTimeout = 10000; // minimum value of 8.0 seconds - basic config file can 
+	m_KBserverTimer = 16371; // default value of 16.371 seconds - basic config file can 
 							  // override with a larger value, by direct user edit only
-							  // (or a smaller value; values less than 5 sec are risky)
+							  // (or a smaller value; minimum 8000)
 	m_bServiceDiscoveryWanted = TRUE; // initialize
 	m_bCServiceDiscoveryCanBeDeleted = FALSE; // initialize, it gets set TRUE in the
 				// handler of the wxServDiscHALTING custom event, and then OnIdle()
@@ -22027,12 +22040,24 @@ int ii = 1;
 	// provided it (except where necessary, for array .Add() calls). The in parallel set
 	// of running wxServDisc instances can quickly swamp the CPUs, even on 4 core or higher
 	// machines, so the trick is to run the discovery for only a few seconds - I'm setting
-	// the limit to be about 7 to 10 seconds, and then it needs to shut itself down. To facilitate
-	// the multiple intermittent timed service discovery instantiations, their self-destruction
-	// *must* be leakless. Unfortunately, Beier's original Zeroconf solution leaks like a
-	// sieve, and so extra work has been done to plug the leaks.
+	// the limit to be 5 seconds (4 would probably be OK), and then it needs to shut itself down.
+	// To facilitate the multiple intermittent timed service discovery instantiations, their 
+	// self-destruction *must* be leakless. Unfortunately, Beier's original Zeroconf solution
+	// leaks like a sieve, and so extra work had to be done to plug the leaks.
 
-	ServDiscBackground(); // m_serviceStr is set at top of OnInit() to _T("_kbserver._tcp.local.")
+
+
+	ServDiscBackground(); // internally it scans for: _kbserver._tcp.local.
+
+	// ** No, use a thread and run ServDiscBackground() in to at each Notify()
+
+	//m_pServDisc = new CServiceDiscovery(this); // CAdapt_ItApp* is the parent to pass in
+
+
+	// use SetOwner() to bind the sevice discovery timer to the app instance, the latter will 
+	// handle its notification event
+	m_servDiscTimer.SetOwner(this);
+	//m_servDiscTimer.Start(m_KBserverTimer, wxTIMER_ONE_SHOT); // value defaulted to 16731 millisecs currently
 
 #endif // _KBSERVER
 
@@ -22105,12 +22130,11 @@ int CAdapt_ItApp::OnExit(void)
 	// CServiceDiscovery instance which is to persist for the life of the app, until here
 	if (m_pServDisc != NULL)
 	{
-		// delete m_pServDisc->m_pWxSD; <<-- can't do this, AI.cpp would need the wxServDisc.h 
-		// include, but it produces enormous name conflicts; so that will need to be done by
-		// posting a shutdown even from within wxServDisc when halting is ready to be done
-		m_pServDisc->m_ipAddrs_Hostnames.clear();
-		m_pServDisc->m_sd_servicenames.clear();
-		delete m_pServDisc;
+		if ( m_servDiscTimer.IsRunning() )
+		{
+			m_servDiscTimer.Stop();
+
+		}
 		m_pServDisc = NULL;
 	}
 #endif
@@ -30439,7 +30463,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szKBserverTimeout << tab << m_KBserverTimeout;
+	data << szKBserverTimer << tab << m_KBserverTimer;
 	pf->AddLine(data);
 
 #endif
@@ -31666,24 +31690,20 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			m_strKbServerURL = strValue;
 		}
-		else if (name == szKBserverTimeout)
+		else if (name == szKBserverTimer)
 		{
 			// There is no GUI support for changing the value stored for this param, but
 			// the user is welcome to experiment and directly edit the basic config file
-			// to give it a larger value if the minimum of 16000 leads to occasional bogus
-			// failures to get the url due to an unexpected delay
+			// to give it a differernt value. Value must never be less that 8000 millisec.
 			num = wxAtoi(strValue);
-			// Allow values as low as 8 secs - very risky, but sometimes it is enough.
-			// Recommended is 16 secs, max 80000 (80 secs should always be enough)
-			if (num < 4000)
+			// Allow values as low as 8 secs - completion of one discovery run should
+			// take no more than than about 6 seconds; we must allow the run to complete
+			// before the timer can kick off a new run
+			if (num < 8000)
 			{
-				num = 4000;
+				num = 8000;
 			}
-			if (num > 120000)
-			{
-				num = 240000;
-			}
-			m_KBserverTimeout = num;
+			m_KBserverTimer = num;
 		}
 		else
 #endif
@@ -45564,7 +45584,7 @@ void CAdapt_ItApp::OnUnlockCustomLocation(wxCommandEvent& event)
 /// of Adapt It owns a project folder on a remote computer. It does not get called in other
 /// circumstances. Its purpose is to enable automatic switching of the current instance to
 /// read-only mode in the event that an Instance of Adapt It local to that remote computer
-/// acquires write acces to its project folder.
+/// acquires write access to its project folder.
 ///////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnTimer(wxTimerEvent& WXUNUSED(event))
 {
@@ -49483,4 +49503,34 @@ void CAdapt_ItApp::ClobberGuesser()
 	m_numLastEntriesAggregate = 0;
 	m_numLastGlossingEntriesAggregate = 0;
 }
+#if defined(_KBSERVER)
 
+void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
+{
+	wxLogDebug(_T("Hello, I'm being timed!"));
+
+	Thread_ServiceDiscovery* pThread_ServiceDiscovery = new Thread_ServiceDiscovery;
+
+	wxThreadError error = pThread_ServiceDiscovery->Create(12240);
+	if (error != wxTHREAD_NO_ERROR)
+	{
+		wxString msg;
+		msg = msg.Format(_T("Thread_ServiceDiscovery error number: %d"), (int)error);
+		wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
+
+	}
+	else
+	{
+		// no error, so now run the thread (it will destroy itself when done)
+		error = pThread_ServiceDiscovery->Run();
+		if (error != wxTHREAD_NO_ERROR)
+		{
+			wxString msg;
+			msg = msg.Format(_T("Thread_ServiceDiscovery  error number: %d"), (int)error);
+			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
+			
+		}
+	}
+
+}
+#endif

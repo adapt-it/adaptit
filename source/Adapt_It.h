@@ -2045,14 +2045,12 @@ class CAdapt_ItApp : public wxApp
 	// timer, multiply by 1000*60 since the timer's units are milliseconds)
 	int		m_nKbServerIncrementalDownloadInterval;
 
-    // Base value for the WaitTimeout(thousandths of a second) in DoServiceDiscovery()
-    // which ensures m_servDiscResults array is not accessed before service discovery has
-    // time to get the _kbserver._tcp.local. service discovered, the URL built, and stored
-    // in that array. (Base value of 8000 set in OnInit(), and there is no GUI way to
+    // Value for the WaitTimeout(thousandths of a second) in intermittent service
+    // discovery. Defaulted to 16731 milliseconds, for the m_pServDiscTimer
+    // time to get the _kbserver._tcp.local. service discovered. There is no GUI way to
     // change the value. However, the user can edit the value in the basic configuration
-    // file directly. The base value as written to the config file is is not
-    // programmatically changed. What's read in, gets written out again.
-	int		m_KBserverTimeout; // <<-- deprecate
+    // file directly.
+	int		m_KBserverTimer; 
 
 	// Storage of username's value for the boolean flags, kbadmin, and useradmin; we store
 	// them here rather than in the KbServer class itself, because the value of these
@@ -3073,6 +3071,9 @@ public:
 	bool	  m_bServiceDiscoveryWanted; // TRUE if DoServiceDiscovery() is wanted, FALSE for manual URL entry
 										 // and don't ever store the value in any config file; default TRUE
 	void	  ServDiscBackground();
+	wxTimer   m_servDiscTimer;
+	void	  OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event));
+	bool	  m_bServiceDiscoveryThreadCanDie; // set TRUE when all the work of one discovery has been done, use in TestDestroy()
 
 	void	  ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname);
 //	wxString  ExtractURLpart(wxString& aLine);

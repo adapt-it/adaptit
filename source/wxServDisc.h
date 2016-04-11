@@ -58,6 +58,25 @@ typedef int SOCKET;
 #include "1035.h"
 #include "mdnsd.h"
 
+// BEW 11Apr16, need this here, because mdnsd_struct is unfortunately defined in mdnsd.c, which cannot
+// be seen from here...
+// size of query/publish hashes - need these here too
+#define SPRIME 108
+// size of cache hash
+#define LPRIME 1009
+struct mdnsd_struct
+{
+	char shutdown;
+	unsigned long int expireall, checkqlist;
+	struct timeval now, sleep, pause, probe, publish;
+	int classSD, frame;
+	struct cached *cache[LPRIME];
+	struct mdnsdr_struct *published[SPRIME], *probing, *a_now, *a_pause, *a_publish;
+	struct unicast *uanswers;
+	struct query *queries[SPRIME], *qlist;
+};
+
+
 // Forward declaration
 class CServiceDiscovery;
 
@@ -99,7 +118,7 @@ public:
   // BEW 6Apr16 made next one in the hope that it will clear up a lot of leaks - it did
   void wxServDisc::clearResults();
  
-  mdnsd d;	// I pulled it out of Entry() where it was a local var. Not necessary, but harmless
+  //mdnsd d;	// I pulled it out of Entry() where it was a local var. Not necessary, but harmless
 
   // get query name
   const wxString& getQuery() const { const wxString& ref = query; return ref; };
