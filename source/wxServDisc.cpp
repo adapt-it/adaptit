@@ -63,7 +63,7 @@
 
 // For logging support, uncomment-out the following #define. Tracking the Zeroconf-based
 // behaviours is difficult without the (extensive) logging provided
-#define _zero_
+//#define _zero_
 
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
@@ -160,13 +160,11 @@ wxThread::ExitCode wxServDisc::Entry()
 	
 	mWallClock.Start();
 
-	d = mdnsd_new(1, 1000); // classSD is 1, frame is 1000
+	d = mdnsd_new(1, 1000); // class is 1, frame is 1000
 
 	// register query(w,t) at mdnsd d, submit our address for callback ans() <<-- this
 	// callback was a memory leak source, which I plugged with a clearResults() function
 	mdnsd_query(d, query.char_str(), querytype, ans, this);
-
-	wxLogDebug(_T("\n\n*** d->shutdown = %d  at 170  ***"), d->shutdown);
 
 	#ifdef __WXGTK__
 	// this signal is generated when we pop up a file dialog wwith wxGTK

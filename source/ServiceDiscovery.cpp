@@ -87,7 +87,7 @@
 #include "helpers.h"
 
 // to enable or suppress logging, comment out to suppress
-#define _zerocsd_
+//#define _zerocsd_
 // this one, if defined, displays each <url>@@@<hostname> string sent to the app, but a 
 // WITHHOLDING message if it is a duplicate. Comment out to suppress displaying that info
 #define _tracking_transfers_

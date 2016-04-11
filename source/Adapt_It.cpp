@@ -276,7 +276,7 @@ wxMutex	kbsvr_arrays;
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
 #ifdef _DEBUG
-#include "vld.h"
+//#include "vld.h"
 #endif
 #endif
 
@@ -22047,7 +22047,7 @@ int ii = 1;
 
 
 
-	ServDiscBackground(); // internally it scans for: _kbserver._tcp.local.
+	//ServDiscBackground(); // internally it scans for: _kbserver._tcp.local.
 
 	// ** No, use a thread and run ServDiscBackground() in to at each Notify()
 
@@ -22057,7 +22057,10 @@ int ii = 1;
 	// use SetOwner() to bind the sevice discovery timer to the app instance, the latter will 
 	// handle its notification event
 	m_servDiscTimer.SetOwner(this);
+	// If debugging is wanted, doing it with a single call is easiest - uncomment out 
+	// next line, and comment out the lower one
 	//m_servDiscTimer.Start(m_KBserverTimer, wxTIMER_ONE_SHOT); // value defaulted to 16731 millisecs currently
+	m_servDiscTimer.Start(m_KBserverTimer); // value defaulted to 16731 millisecs currently
 
 #endif // _KBSERVER
 
