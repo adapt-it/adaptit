@@ -15622,10 +15622,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 							  // override with a larger value, by direct user edit only
 							  // (or a smaller value; minimum 8000)
 	m_bServiceDiscoveryWanted = TRUE; // initialize
-	m_bCServiceDiscoveryCanBeDeleted = FALSE; // initialize, it gets set TRUE in the
-				// handler of the wxServDiscHALTING custom event, and then OnIdle()
-				// will attempt the CServiceDiscovery* m_pServDisc deletion (that reorders
-				// class instance deletions, so that the parent gets deleted last)
+	m_pServDiscThread = NULL;
 
 	m_pWaitDlg = NULL; // initialize; it's only non-NULL when a message is up. OnIdle() kills
 					   // the message & restores NULL, use NULL as a flag in OnIdle()
@@ -49510,11 +49507,13 @@ void CAdapt_ItApp::ClobberGuesser()
 
 void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 {
-	wxLogDebug(_T("Hello, I'm being timed!"));
+	wxLogDebug(_T("\n\nI think someone is timing me!"));
 
-	Thread_ServiceDiscovery* pThread_ServiceDiscovery = new Thread_ServiceDiscovery;
+	//Thread_ServiceDiscovery* pThread_ServiceDiscovery = new Thread_ServiceDiscovery;
+	m_pServDiscThread = new Thread_ServiceDiscovery;
 
-	wxThreadError error = pThread_ServiceDiscovery->Create(12240);
+	//wxThreadError error = pThread_ServiceDiscovery->Create(12240);
+	wxThreadError error = m_pServDiscThread->Create(12240);
 	if (error != wxTHREAD_NO_ERROR)
 	{
 		wxString msg;
@@ -49525,7 +49524,8 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 	else
 	{
 		// no error, so now run the thread (it will destroy itself when done)
-		error = pThread_ServiceDiscovery->Run();
+		//error = pThread_ServiceDiscovery->Run();
+		error = m_pServDiscThread->Run();
 		if (error != wxTHREAD_NO_ERROR)
 		{
 			wxString msg;
@@ -49535,5 +49535,11 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 		}
 	}
 
+}
+
+void CAdapt_ItApp::DeleteServDiscThread()
+{
+	m_pServDiscThread->Delete();
+	m_pServDiscThread = NULL;
 }
 #endif

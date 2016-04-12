@@ -193,7 +193,14 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 	wxString theQuery = m_pWxSD->getQuery(); // BEW, to see what's in it
 	wxLogDebug(_T("theQuery:  %s  Its Length plus 1: %d"), theQuery.c_str(), (int)qlen);
 #endif
-	vector<wxSDEntry> entries = m_pWxSD->getResults();
+	// BEW 12Apr16 I get size() values for entries of over 100 million, which suggests
+	// some rubbish value is defining capacity. So I'll request a capacity of 99 - I
+	// doubt more would be needed. I've tried 120 and 9999 and neither made any improvement
+	// so 99 ought to be okay. Discovery rare successes must be for some other reason.
+	// Try a larger GC value than 
+	vector<wxSDEntry> entries;
+	entries.reserve(99);
+	entries = m_pWxSD->getResults();
 	vector<wxSDEntry>::const_iterator it;
 	for (it = entries.begin(); it != entries.end(); it++)
 	{

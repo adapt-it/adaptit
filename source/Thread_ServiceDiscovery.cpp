@@ -61,6 +61,12 @@ Thread_ServiceDiscovery::Thread_ServiceDiscovery() :wxThread()
 Thread_ServiceDiscovery::~Thread_ServiceDiscovery()
 {
 	wxLogDebug(_T(" Thread_ServiceDiscovery::~Thread_ServiceDiscovery() destructor is finishing now "));
+	/* this works most of the time, but it still can result in an ptr access violation error, in critical section
+	m_pApp->m_pServDiscThread = NULL;
+	this->Kill();
+	*/
+	m_pApp->DeleteServDiscThread(); // internally calls Delete() on m_pServDiscThread,
+									// and sets m_pServDiscThread to NULL
 }
 
 void Thread_ServiceDiscovery::OnExit()
@@ -70,7 +76,7 @@ void Thread_ServiceDiscovery::OnExit()
 
 void* Thread_ServiceDiscovery::Entry()
 {
-	wxLogDebug(_T("Hello again, I'm on a thread now - life is quieter here..."));
+	//wxLogDebug(_T("G'day, I'm on a thread now - life is quieter here..."));
 
 	m_pApp->ServDiscBackground(); // internally it scans for: _kbserver._tcp.local.
 
@@ -84,8 +90,8 @@ void* Thread_ServiceDiscovery::Entry()
 
 	wxLogDebug(_T("Thread_ServiceDiscovery::Entry() is finishing now, returning NULL"));
 
-	delete m_pApp->m_pServDisc;
-	m_pApp->m_pServDisc = NULL;
+	//delete m_pApp->m_pServDisc;
+	//m_pApp->m_pServDisc = NULL;
 
 	return (void*)NULL;
 }

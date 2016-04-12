@@ -83,6 +83,7 @@ class TranslationsList; // the CTargetUnit's list of CRefString instances
 class CServiceDiscovery; // BEW 4Jan16
 class CServDisc_KBserversDlg; // BEW 12Jan16
 class CWaitDlg; // BEW 8Feb16
+class Thread_ServiceDiscovery; // BEW 11Apr16
 
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
@@ -2064,21 +2065,16 @@ class CAdapt_ItApp : public wxApp
 	bool	m_kbserver_kbadmin;   // initialize to default FALSE in OnInit()
 	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
 
+	Thread_ServiceDiscovery* m_pServDiscThread; 
+
 	CServiceDiscovery*  m_pServDisc;    // The top level class which manages the service 
 									    // discovery module
 	wxArrayString		m_theURLs;      // lines of form <url> from CServiceDiscovery::m_urlsArr
 	wxArrayString		m_theHostnames; // parallel array of hostnames for each url in m_urlsArr
 	wxArrayString		m_ipAddrs_Hostnames; // for storage of each string <ipaddress>@@@<hostname>
 
-	bool				m_bCServiceDiscoveryCanBeDeleted; // set FALSE in the creation of the <<-- deprecate later
-                            // CServiceDiscovery instance, set TRUE in the
-                            // onServDiscHALTING event handler, and do the actual deletion
-                            // of the CServiceDiscovery instance in the OnIdle() handler - it
-                            // then is done after the lazy class deletions are done, and that
-                            // prevents an app crash because m_buffer in thread.cpp is 
-                            // garbage in CriticalSection::Entry() after service discovery 
-                            // completes
-                            
+	void DeleteServDiscThread(); // use to Delete() the thread
+
 	// NOTE - IMPORTANT. The service discovery code, at the top levels, is copiously
 	// commented and there are many wxLogDebug() calls. Timing annotations in the debugger
 	// window and those logging messages are VITAL for understanding how the module works,
