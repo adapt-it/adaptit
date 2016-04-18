@@ -11216,49 +11216,32 @@ wxSizer *kb_ask_how_get_url_func( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("KBserver discovery time needed (increase if none is found)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxGridSizer *item6 = new wxGridSizer( 2, 2, 4 );
 
-    item5->Add( 6, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxSpinCtrl *item7 = new wxSpinCtrl( parent, ID_SPINCTRL_TIMEOUT, wxT("5"), wxDefaultPosition, wxSize(80,-1), 0, 4, 120, 5 );
-    item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item5->Add( 6, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("seconds"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item1->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxGridSizer *item10 = new wxGridSizer( 2, 2, 4 );
-
-    wxString strs11[] = 
+    wxString strs7[] = 
     {
-        _("Automatic discovery - but it takes several seconds "), 
+        _("Automatic discovery (local network only) "), 
         _("I know the URL and I will type it")
     };
-    wxRadioBox *item11 = new wxRadioBox( parent, ID_RADIOBOX_HOW, _("How do you want to get the URL?"), wxDefaultPosition, wxDefaultSize, 2, strs11, 2, wxRA_SPECIFY_ROWS );
-    item10->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxRadioBox *item7 = new wxRadioBox( parent, ID_RADIOBOX_HOW, _("How do you want to get the URL?"), wxDefaultPosition, wxDefaultSize, 2, strs7, 2, wxRA_SPECIFY_ROWS );
+    item6->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item13 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->SetDefault();
-    item12->Add( item13, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxButton *item9 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetDefault();
+    item8->Add( item9, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item12->Add( 14, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+    item8->Add( 14, 8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item14 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->Add( item14, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxButton *item10 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item10->Add( item12, 0, wxALIGN_CENTER, 5 );
+    item6->Add( item8, 0, wxALIGN_CENTER, 5 );
 
-    item9->Add( item10, 0, wxALIGN_CENTER, 5 );
+    item5->Add( item6, 0, wxALIGN_CENTER, 5 );
 
-    item1->Add( item9, 0, wxALIGN_CENTER, 5 );
+    item1->Add( item5, 0, wxALIGN_CENTER, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -11285,7 +11268,7 @@ wxSizer *PasswordDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Without the correct password, sharing your knowledge base data"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("with others cannot happen, nor can they share theirs with you."), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
@@ -11293,22 +11276,34 @@ wxSizer *PasswordDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL, wxT(""), wxDefaultPosition, wxSize(300,-1), wxTE_PASSWORD );
     item1->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticLine *item7 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_URL_CHOSEN, wxT(""), wxDefaultPosition, wxSize(220,-1), wxTE_READONLY );
+    item7->Add( item8, 1, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item9 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+    item7->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item8->Add( 28, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_HOSTNAME_CHOSEN, wxT(""), wxDefaultPosition, wxSize(220,-1), wxTE_READONLY );
+    item7->Add( item9, 1, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item10 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item8, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticLine *item10 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(570,-1), wxLI_HORIZONTAL );
+    item0->Add( item10, 0, wxALIGN_CENTER, 5 );
+
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item12 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item11->Add( 60, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item13 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item11, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {

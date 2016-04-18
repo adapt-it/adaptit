@@ -63,7 +63,6 @@ public:
 	CServiceDiscovery(CAdapt_ItApp* pParentClass);
 	virtual ~CServiceDiscovery();
 
-	wxString m_servicestring; // service to be scanned for
 	CAdapt_ItApp* m_pApp;
 
 	wxServDisc* m_pWxSD; // main service scanner (a child class of this one)
@@ -72,16 +71,20 @@ public:
 	int	m_postNotifyCount;  // count the number of Post_Notify() calls, we use it to 
 							// limit one discovery run to finding one running KBserver
 							// at random from however many are currently running
+	unsigned long processID;
 
 	// scratch variables, used in the loop in onSDNotify() handler
 	wxString m_hostname;
 	wxString m_addr;
 	wxString m_port;
 
+	wxString m_serviceStr;
+
 	bool IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
 	bool AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
 
-	int nDestructorCallCount; // how many times the ~wxServDisc() destructor gets called -
+	// BEW 18Apr16 removed, because gpServiceDiscovery has to be used to get the value and it may become NULL before that access occurs
+	//int nDestructorCallCount; // how many times the ~wxServDisc() destructor gets called -
 			// once it gets to 2 (ie. both namescan() and addrscan() have worked and died, we
 			// can cause the original (owned) wxServDisc to shut down - the logging shows that
 			// using GC value to cause 'expire all', bypasses my_gc(d) call - which may account
@@ -99,7 +102,6 @@ protected:
 	  void onSDNotify(wxCommandEvent& WXUNUSED(event));
 	  void onSDHalting(wxCommandEvent& event); // needed to get the last wxServDisc deleted from here
 private:
-	wxString m_serviceStr;
 
 	DECLARE_EVENT_TABLE();
 };

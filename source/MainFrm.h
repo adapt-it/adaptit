@@ -79,6 +79,7 @@ DECLARE_EVENT_TYPE(wxEVT_Delayed_GetChapter, -1)
 
 DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
 DECLARE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg, -1)
+DECLARE_EVENT_TYPE(wxEVT_End_ServiceDiscovery, -1)
 
 #endif
 
@@ -240,7 +241,7 @@ public:
 	void OnKBSharingSetupDlg(wxCommandEvent& event);
 	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
 	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
-
+	int nEntriesToEndServiceDiscovery;
 private:
 	wxString m_kbserverPassword;
 public:
@@ -249,7 +250,7 @@ public:
 	void	 SetKBSvrPassword(wxString pwd);
 	// Next is the function for getting the KBserver password typed in by the
 	// user via a dialog
-	wxString GetKBSvrPasswordFromUser();
+	wxString GetKBSvrPasswordFromUser(wxString& url, wxString& hostname);
 
 #endif // _KBSERVER
 
@@ -279,6 +280,7 @@ public:
 #if defined(_KBSERVER)
 	void OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventEndServiceDiscovery(wxCommandEvent& WXUNUSED(event));
 #endif
 
     void OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event));

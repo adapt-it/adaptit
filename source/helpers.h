@@ -530,12 +530,13 @@ bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString passwo
 					wxString srcLangCode, wxString tgtLangCode, int kbType);
 CBString MakeDigestPassword(const wxString& user, const wxString& password);
 
-void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
-		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag,
-		bool bJustRestore = FALSE);
+void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldHostnameStr, 
+		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag, 
+		bool& saveSharingGlossesFlag, bool bJustRestore = FALSE);
 
-void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
-		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag);
+void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldHostnameStr, 
+		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag,
+		bool& saveSharingGlossesFlag);
 
 // The following function encapsulates KBserver service discovery, authentication to a running
 // KBserver (error if one is not running of course), checks for valid language codes, username,

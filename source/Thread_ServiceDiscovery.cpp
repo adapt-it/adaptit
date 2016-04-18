@@ -32,6 +32,8 @@
 
 #if defined(_KBSERVER)
 
+#define _shutdown_   // comment out to disable wxLogDebug() calls related to shutting down service discovery
+
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
 
@@ -45,38 +47,52 @@
 #endif
 
 #include "wx/thread.h"
+#include "wx/utils.h"
 
 // other includes
 #include "Adapt_It.h"
 #include "ServiceDiscovery.h"
+#include "MainFrm.h"
 #include "Thread_ServiceDiscovery.h"
 
 extern wxMutex	kbsvr_arrays;
 
-Thread_ServiceDiscovery::Thread_ServiceDiscovery() :wxThread()
+Thread_ServiceDiscovery::Thread_ServiceDiscovery() :wxThread(wxTHREAD_JOINABLE)
 {
 	m_pApp = &wxGetApp();
+	m_pApp->GetMainFrame()->nEntriesToEndServiceDiscovery = 0;
+#if defined (_shutdown_)
+	wxLogDebug(_T("\nThread_ServiceDiscovery() CREATOR: I am %p"), this);
+#endif
 }
 
 Thread_ServiceDiscovery::~Thread_ServiceDiscovery()
 {
-	wxLogDebug(_T(" Thread_ServiceDiscovery::~Thread_ServiceDiscovery() destructor is finishing now "));
-	/* this works most of the time, but it still can result in an ptr access violation error, in critical section
-	m_pApp->m_pServDiscThread = NULL;
-	this->Kill();
-	*/
-	m_pApp->DeleteServDiscThread(); // internally calls Delete() on m_pServDiscThread,
-									// and sets m_pServDiscThread to NULL
+	processID = wxGetProcessId();
+#if defined (_shutdown_)
+	wxLogDebug(_T(" Thread_ServiceDiscovery::~Thread_ServiceDiscovery() destructor is finishing now. Process ID = %lx "), processID);
+#endif
 }
 
 void Thread_ServiceDiscovery::OnExit()
 {
-	wxLogDebug(_T(" Thread_ServiceDiscovery::OnExit() is finishing now "));
+	// Don't do any cleanups here, do them much later. This function assumes the
+	// system assets are intact. But posting an event for cleanup is quite acceptable.
+	wxCommandEvent sd_eventCustom(wxEVT_End_ServiceDiscovery);
+	wxPostEvent(m_pApp->GetMainFrame(), sd_eventCustom); // custom event handlers are in CMainFrame
+#if defined (_shutdown_)
+	wxLogDebug(_T(" Thread_ServiceDiscovery::OnExit() is finishing now, just posted event wxEVT_End_ServiceDiscovery to MainFrame "));
+#endif
 }
 
 void* Thread_ServiceDiscovery::Entry()
 {
 	//wxLogDebug(_T("G'day, I'm on a thread now - life is quieter here..."));
+
+	processID = wxGetProcessId();
+#if defined (_shutdown_)
+	wxLogDebug(_T("\nThread_ServiceDiscovery() Entry: I am process ID = %lx"), processID);
+#endif
 
 	m_pApp->ServDiscBackground(); // internally it scans for: _kbserver._tcp.local.
 
@@ -85,14 +101,11 @@ void* Thread_ServiceDiscovery::Entry()
 	// and TestDestroy() polls the app for that value going true
 	while (!TestDestroy())
 	{
-		wxMilliSleep(500); // sleep thread for a half second
+		wxMilliSleep(500); // sleep this joinable thread for a half second
 	}
-
+#if defined (_shutdown_)
 	wxLogDebug(_T("Thread_ServiceDiscovery::Entry() is finishing now, returning NULL"));
-
-	//delete m_pApp->m_pServDisc;
-	//m_pApp->m_pServDisc = NULL;
-
+#endif
 	return (void*)NULL;
 }
 

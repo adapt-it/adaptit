@@ -10814,9 +10814,9 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 	return FALSE;
 }
 
-void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
-		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag,
-		bool bJustRestore)
+void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldHostnameStr, 
+		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag,
+		bool& saveSharingGlossesFlag, bool bJustRestore)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (!bJustRestore)
@@ -10840,14 +10840,16 @@ void HandleBadLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernam
 
 	// Restore the earlier settings for url, username & password
 	pApp->m_strKbServerURL = saveOldURLStr;
+	pApp->m_strKbServerHostname = saveOldHostnameStr;
 	pApp->m_strUserID = saveOldUsernameStr;
 	pApp->GetMainFrame()->SetKBSvrPassword(savePassword);
 	pApp->m_bIsKBServerProject = saveSharingAdaptationsFlag;
 	pApp->m_bIsGlossingKBServerProject = saveSharingGlossesFlag;
 }
 
-void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldUsernameStr,
-		wxString& savePassword, bool& saveSharingAdaptationsFlag, bool& saveSharingGlossesFlag)
+void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOldHostnameStr, 
+		wxString& saveOldUsernameStr, wxString& savePassword, bool& saveSharingAdaptationsFlag,
+		bool& saveSharingGlossesFlag)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	pApp->LogUserAction(_T("Wrong src/glossing codes, or user cancelled in CheckLanguageCodes() when authenticating"));
@@ -10861,6 +10863,7 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 
 	// Restore the earlier settings for url, username & password
 	pApp->m_strKbServerURL = saveOldURLStr;
+	pApp->m_strKbServerHostname = saveOldHostnameStr;
 	pApp->m_strUserID = saveOldUsernameStr;
 	pApp->GetMainFrame()->SetKBSvrPassword(savePassword);
 	pApp->m_bIsKBServerProject = saveSharingAdaptationsFlag;
@@ -10981,9 +10984,9 @@ here2:		dlgReturnCode = dlg.ShowModal();
 					{ // 4
 						// We must assume the src/tgt codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
-						HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
-							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
-							pApp->m_saveSharingGlossesFlag);
+						HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnameStr, 
+							pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
+							pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 
 						bSimulateUserCancellation = TRUE;
 					}  // 3
@@ -10997,9 +11000,10 @@ here2:		dlgReturnCode = dlg.ShowModal();
 					{ // 4
 						// We must assume the src/gloss codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
-						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr,
-							pApp->m_saveOldUsernameStr,  pApp->m_savePassword,
-							pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
+						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr, 
+							pApp->m_saveOldHostnameStr, pApp->m_saveOldUsernameStr,  
+							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+							pApp->m_saveSharingGlossesFlag);
 
 						bSimulateUserCancellation = TRUE;
 					} // 3
@@ -11078,9 +11082,9 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 				// flag values. TRUE param is bJustRestore (the url, username and
 				// password). The function always sets m_bIsKBServerProject and
 				// m_bIsGlossingKBServerProject to FALSE
-				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
-					pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
-					pApp->m_saveSharingGlossesFlag, TRUE);
+				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnameStr, 
+					pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
+					pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag, TRUE);
 				bSetupKBserverFailed = TRUE;
 			} // 1
 			else
@@ -11141,8 +11145,9 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 			// runs, but when it is shut down, that pointer needs to again be set to NULL
 			wxString curURL = pApp->m_strKbServerURL;
 			wxString chosenURL = _T("");
+			wxString chosenHostname = _T("");
 			enum ServDiscDetail returnedValue = SD_NoResultsYet;
-			bool bOK = pApp->DoServiceDiscovery(curURL, chosenURL, returnedValue);
+			bool bOK = pApp->DoServiceDiscovery(curURL, chosenURL, chosenHostname, returnedValue);
 			if (bOK)
 			{
 				// Got a URL to connect to
@@ -11156,6 +11161,7 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 				// Make the chosen URL accessible to authentication (this is the hookup location
 				// of the service discovery's url to the earlier KBserver GUI code) for this situation
 				pApp->m_strKbServerURL = chosenURL;
+				pApp->m_strKbServerHostname = chosenHostname;
 
 				if (returnedValue == SD_FirstTime || returnedValue == SD_UrlDiffers_UserAcceptedIt
 					|| returnedValue == SD_MultipleUrls_UserChoseDifferentOne)
@@ -11231,6 +11237,8 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 
 				// Restore the earlier settings for url, username & password
 				pApp->m_strKbServerURL = pApp->m_saveOldURLStr;
+				pApp->m_strKbServerHostname = pApp->m_saveOldHostnameStr;
+				pApp->m_strKbServerHostname = pApp->m_saveOldHostnameStr;
 				pApp->m_strUserID = pApp->m_saveOldUsernameStr;
 				pApp->GetMainFrame()->SetKBSvrPassword(pApp->m_savePassword);
 
@@ -11290,9 +11298,9 @@ here:			dlgReturnCode = dlg.ShowModal();
 						{
 							// We must assume the src/tgt codes are wrong or incomplete, or that the
 							// user has changed his mind about KB Sharing being on - so turn it off
-							HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
-								pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
-								pApp->m_saveSharingGlossesFlag);
+							HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnameStr,
+								pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
+								pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 
 							bSimulateUserCancellation = TRUE;
 						}
@@ -11307,8 +11315,9 @@ here:			dlgReturnCode = dlg.ShowModal();
 							// We must assume the src/gloss codes are wrong or incomplete, or that the
 							// user has changed his mind about KB Sharing being on - so turn it off
 							HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr,
-								pApp->m_saveOldUsernameStr,  pApp->m_savePassword,
-								pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
+								pApp->m_saveOldHostnameStr, pApp->m_saveOldUsernameStr,  
+								pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag, 
+								pApp->m_saveSharingGlossesFlag);
 
 							bSimulateUserCancellation = TRUE;
 						}
@@ -11387,9 +11396,9 @@ here:			dlgReturnCode = dlg.ShowModal();
 					// flag values. TRUE param is bJustRestore (the url, username and
 					// password). The function always sets m_bIsKBServerProject and
 					// m_bIsGlossingKBServerProject to FALSE
-bad:				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
-						pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
-						pApp->m_saveSharingGlossesFlag, TRUE);
+bad:				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnameStr,
+						pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
+						pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag, TRUE);
 					bSetupKBserverFailed = TRUE;
 				}
 				else
@@ -11418,7 +11427,9 @@ bad:				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsername
 				// is clicked a second time, to change the settings (eg. turn on sharing of glossing
 				// KB, or some change - such as turning off sharing to one of the KB types)
 				wxString theUrl = pApp->m_strKbServerURL;
+				wxString theHostname = pApp->m_strKbServerHostname;
 				wxString theUsername = pApp->m_strUserID;
+
 				wxString thePassword;
 				bool bUserCancelled = FALSE;
 				if (bPasswordExists && bAutoConnectKBSvr)
@@ -11430,7 +11441,7 @@ bad:				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsername
 				{
 					// The password is not stored, so we must ask for it - insist on something
 					// being typed in
-					thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(); // show the password dialog
+					thePassword = pApp->GetMainFrame()->GetKBSvrPasswordFromUser(theUrl, theHostname); // show the password dialog
 					if (thePassword.IsEmpty())
 					{
 						wxString title = _("No password was typed, or you cancelled");
@@ -11468,9 +11479,9 @@ bad:				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsername
 						// that the user has changed his mind about KB Sharing being on
 						// - so turn it off. The function clears m_bIsKBServerProject
 						// and m_bIsGlossingKBServerProject to FALSE
-						HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
-							pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
-							pApp->m_saveSharingGlossesFlag);
+						HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnameStr,
+							pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
+							pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 
 						bSimulateUserCancellation = TRUE;
 					}
@@ -11484,9 +11495,9 @@ bad:				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsername
 					{
 						// We must assume the src/gloss codes are wrong or incomplete, or that the
 						// user has changed his mind about KB Sharing being on - so turn it off
-						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldUsernameStr,
-								pApp->m_savePassword, pApp->m_saveSharingAdaptationsFlag,
-								pApp->m_saveSharingGlossesFlag);
+						HandleBadGlossingLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostnameStr,
+								pApp->m_saveOldUsernameStr, pApp->m_savePassword, 
+								pApp->m_saveSharingAdaptationsFlag, pApp->m_saveSharingGlossesFlag);
 
 						bSimulateUserCancellation = TRUE;
 					}

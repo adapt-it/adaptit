@@ -43,13 +43,19 @@ class CAdapt_ItApp;
 class Thread_ServiceDiscovery : public wxThread
 {
 public:
-	Thread_ServiceDiscovery(); // creator
 	virtual ~Thread_ServiceDiscovery(void); // destructor
+	Thread_ServiceDiscovery();
+
+	unsigned long processID;
+	
 
 	// keep it simple, forget accessors, just make variables public
 	CAdapt_ItApp*		m_pApp; // to access ptr to KB, and ptr to KbServer
 
-								// other methods...
+	CServiceDiscovery*  m_pServDisc; // create here with new, so that onSDNotify() does
+										// not degrade responsiveness of main thread
+
+	// other methods...
 
 	// wxThread::OnExit() is called when the thread exits at termination - for self
 	// destruction termination or by Delete(), but not if Kill() is used - the latter
@@ -69,9 +75,10 @@ public:
 
 	bool TestDestroy();
 
-protected:
+	protected:
 
-private:
+	private:
+	
 
 };
 

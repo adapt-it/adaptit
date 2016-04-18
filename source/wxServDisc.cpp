@@ -61,9 +61,12 @@
 // If they do you will get hundreds of name conflicts with the socket resources code.
 // **********************************  BEWARE  ********************************************
 
-// For logging support, uncomment-out the following #define. Tracking the Zeroconf-based
-// behaviours is difficult without the (extensive) logging provided
+// For logging support, uncomment-out the following #defines. Tracking the Zeroconf-based
+// behaviours is difficult without the (extensive) logging provided; most are turned on with
+// _zero_, a minimal few additional ones are turned on with _minimal_
 //#define _zero_
+//#define _minimal_
+#define _shutdown_
 
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
@@ -74,6 +77,7 @@
 #include "wx/thread.h"
 #include "wx/intl.h"
 #include "wx/log.h"
+#include "wx/utils.h"
 
 #include <fcntl.h>
 #include <cerrno>
@@ -150,6 +154,10 @@ wxDEFINE_EVENT(wxServDiscHALTING, wxCommandEvent);
 
 wxThread::ExitCode wxServDisc::Entry()
 {
+	processID = wxGetProcessId();
+	wxLogDebug(_T("\nwxServDisc() Entry: I am process ID = %lx"), processID);
+
+
 	mdnsd d;
 	struct message m;
 	unsigned long int ip;
@@ -178,6 +186,11 @@ wxThread::ExitCode wxServDisc::Entry()
 
 	// BEW I want to count the outer loop iterations, for debug logging purposes - very helpful
 	unsigned long BEWcount = 0;
+	// If shutdown is wanted from within an inner loop, we need to break from that loop and the
+	// outer loop too without doing any more mdnsd etc accesses, so these booleans enable that to happen
+	bool bBrokeFromInnerLoop = FALSE;
+	bool bBrokeFromInnerLoop2 = FALSE;
+	bool bBrokeFromInnerLoop3 = FALSE;
 
 	while (!GetThread()->TestDestroy() && !exit)
 	{
@@ -187,15 +200,31 @@ wxThread::ExitCode wxServDisc::Entry()
 #if defined(_zero_)
 		wxLogDebug(wxT("wxServDisc %p: scanthread waiting for data, timeout %i seconds"), this, (int)tv->tv_sec);
 #endif
-		if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty() )
-			|| (BEWcount > 11  && gpServiceDiscovery->nDestructorCallCount ==0 ) )
+		if ((m_bDestroyChildren == TRUE) || (BEWcount > 11))
+		{
+			// Force shutdown once the owning wxServDisc instance sets this instance's
+			// m_bDestroyChildren flag to TRUE, or if no discovery has been made by the
+			// time 9 iterations of the loop have been done - 9 is enough to determine
+			// that there are no KBservers running on the LAN currently. Note, these
+			// two tests are first, because they do not rely on gpServiceDiscovery
+			// being non-NULL. The latter can go NULL before forced shutdown succeeded, so
+			// I had to alter the code to have this order of the tests
+#if defined (_shutdown_)
+			wxLogDebug(wxT("line 213 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx"), 
+				this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
+			exit = true;
+			break;
+		}
+		else if ((gpServiceDiscovery != NULL) && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty() )
 		{
 			// Once the ~wxServDisc() destructor has been called at least twice, and provided
 			// that there has been at least one string stored in m_ipAddrs_Hostnames, force
-			// shutdown of this instance; or if no KBserver is running, force shutdown after
-			// 11 iterations provided no ~wxServDisc() destructors have been called (if there
-			// had been some such, onSDNotify() would have been entered & that can't happen
-			// if there are no KBservers to discover)
+			// shutdown of this instance
+#if defined (_shutdown_)
+			wxLogDebug(wxT("line 225 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx"),
+				this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
 			exit = true;
 			break;
 		}
@@ -209,39 +238,95 @@ wxThread::ExitCode wxServDisc::Entry()
 			tv->tv_sec = 0;
 			tv->tv_usec = 100000; // 100 ms
 
-			if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
-				|| (BEWcount > 11 && gpServiceDiscovery->nDestructorCallCount == 0))
+			if ((m_bDestroyChildren == TRUE) || (BEWcount > 11))
 			{
+				bBrokeFromInnerLoop = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 245 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
 				exit = true;
 				break;
 			}
-			
+			else if ((gpServiceDiscovery != NULL) && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
+			{
+				bBrokeFromInnerLoop = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 255 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
+				exit = true;
+				break;
+			}
+
 			FD_ZERO(&fds);
 
-			if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
-				|| (BEWcount > 11 && gpServiceDiscovery->nDestructorCallCount == 0))
+			if ((m_bDestroyChildren == TRUE) || (BEWcount > 11))
 			{
+				bBrokeFromInnerLoop = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 268 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
 				exit = true;
 				break;
 			}
-			
+			else if ((gpServiceDiscovery != NULL) && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
+			{
+				bBrokeFromInnerLoop = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 278 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
+				exit = true;
+				break;
+			}
+
 			FD_SET(mSock, &fds);
 
-			if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
-				|| (BEWcount > 11 && gpServiceDiscovery->nDestructorCallCount == 0))
+			if ((m_bDestroyChildren == TRUE) || (BEWcount > 11))
 			{
+				bBrokeFromInnerLoop = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 291 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
 				exit = true;
 				break;
 			}
-			
+			else if ((gpServiceDiscovery != NULL) && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
+			{
+				bBrokeFromInnerLoop = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 301 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
+				exit = true;
+				break;
+			}
+
 			#ifdef __WXGTK__
 			sigprocmask(SIG_BLOCK, &newsigs, &oldsigs);
 			#endif
 			datatoread = select(mSock + 1, &fds, 0, 0, tv); // returns 0 if timeout expired
 			
-			if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
-				|| (BEWcount > 11 && gpServiceDiscovery->nDestructorCallCount == 0))
+			if ((m_bDestroyChildren == TRUE) || (BEWcount > 11))
 			{
+				bBrokeFromInnerLoop = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 317 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
+				exit = true;
+				break;
+			}
+			else if ((gpServiceDiscovery != NULL) && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
+			{
+				bBrokeFromInnerLoop = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 327 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
 				exit = true;
 				break;
 			}
@@ -253,122 +338,251 @@ wxThread::ExitCode wxServDisc::Entry()
 			if (!datatoread) // this is a timeout
 				msecs -= 100;
 			
-			if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
-				|| (BEWcount > 11 && gpServiceDiscovery->nDestructorCallCount == 0))
+			if ((m_bDestroyChildren == TRUE) || (BEWcount > 11))
 			{
+				bBrokeFromInnerLoop = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 345 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
+				exit = true;
+				break;
+			}
+			else if ((gpServiceDiscovery != NULL) && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
+			{
+				bBrokeFromInnerLoop = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 355 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
 				exit = true;
 				break;
 			}
 
 			if (datatoread == -1)
+			{
+				bBrokeFromInnerLoop = TRUE;
 				break;
-		}
-#if defined(_zero_)
+			}
+		} // end of first inner loop
+#if defined(_minimal_)
 		wxLogDebug(wxT("wxServDisc %p: scanthread woke up, reason: incoming data(%i), timeout(%i), error(%i), deletion(%i)"),
 			this, datatoread>0, msecs <= 0, datatoread == -1, GetThread()->TestDestroy());
 #endif
+		// If shutting down, and bBrokeFromInnerLoop is TRUE, no more calls to mdnsd code can be made, because gpServiceDiscovery
+		// can at this point be NULL, and the owned wxServDisc instance may have been destroyed, so use the boolean to force
+		// an immediate outer loop break
+		if (bBrokeFromInnerLoop)
+		{
+			break; // from outer loop too
+		}
 		// receive
 		if (FD_ISSET(mSock, &fds))
 		{
-			if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
-				|| (BEWcount > 11 && gpServiceDiscovery->nDestructorCallCount == 0))
+			if ((m_bDestroyChildren == TRUE) || (BEWcount > 11))
 			{
+				bBrokeFromInnerLoop = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 386 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
+				exit = true;
+				break;
+			}
+			else if ((gpServiceDiscovery != NULL) && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
+			{
+				bBrokeFromInnerLoop = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 396 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
 				exit = true;
 				break;
 			}
 
 			while (recvm(&m, mSock, &ip, &port) > 0)
 			{
-				if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
-					|| (BEWcount > 11 && gpServiceDiscovery->nDestructorCallCount == 0))
+				if ((m_bDestroyChildren == TRUE) || (BEWcount > 11))
 				{
+					bBrokeFromInnerLoop2 = TRUE;
+#if defined (_shutdown_)
+					wxLogDebug(wxT("line 409 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx"),
+						this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
+					exit = true;
+					break;
+				}
+				else if ((gpServiceDiscovery != NULL) && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
+				{
+					bBrokeFromInnerLoop2 = TRUE;
+#if defined (_shutdown_)
+					wxLogDebug(wxT("line 419 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx ,gpServiceDiscovery = %lx"),
+						this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
 					exit = true;
 					break;
 				}
 
 				mdnsd_in(d, &m, ip, port);
-				if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
-					|| (BEWcount > 11 && gpServiceDiscovery->nDestructorCallCount == 0))
+
+				if ((m_bDestroyChildren == TRUE) || (BEWcount > 11))
 				{
+					bBrokeFromInnerLoop2 = TRUE;
+#if defined (_shutdown_)
+					wxLogDebug(wxT("line 432 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx"),
+						this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
 					exit = true;
 					break;
 				}
-			}
+				else if ((gpServiceDiscovery != NULL) && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
+				{
+					bBrokeFromInnerLoop2 = TRUE;
+#if defined (_shutdown_)
+					wxLogDebug(wxT("line 442 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx , gpServiceDiscovery = %lx"),
+						this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
+					exit = true;
+					break;
+				}
+			} // end of second inner loop: while (recvm(&m, mSock, &ip, &port) > 0)
+		}
+		// break from outer loop immediately if either bBrokeFromInnerLoop or bBrokeFromInnerLoop2 is TRUE
+		if (bBrokeFromInnerLoop || bBrokeFromInnerLoop2)
+		{
+			break;
 		}
 
 		// send
 		while (mdnsd_out(d, &m, &ip, &port))
 		{
-			if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
-				|| (BEWcount > 11 && gpServiceDiscovery->nDestructorCallCount == 0))
+			if ((m_bDestroyChildren == TRUE) || (BEWcount > 11))
 			{
+				bBrokeFromInnerLoop3 = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 463 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
+				exit = true;
+				break;
+			}
+			else if ((gpServiceDiscovery != NULL) && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
+			{
+				bBrokeFromInnerLoop3 = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 473 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
 				exit = true;
 				break;
 			}
 
 			if (!sendm(&m, mSock, ip, port))
 			{
+				bBrokeFromInnerLoop3 = TRUE;
 				exit = true;
 				break;
 			}
 
-			if ((gpServiceDiscovery->nDestructorCallCount >= 2 && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
-				|| (BEWcount > 11 && gpServiceDiscovery->nDestructorCallCount == 0))
+			if ((m_bDestroyChildren == TRUE) || (BEWcount > 11))
 			{
+				bBrokeFromInnerLoop3 = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 491 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
 				exit = true;
 				break;
 			}
-		}
+			else if ((gpServiceDiscovery != NULL) && !gpServiceDiscovery->m_ipAddrs_Hostnames.empty())
+			{
+				bBrokeFromInnerLoop3 = TRUE;
+#if defined (_shutdown_)
+				wxLogDebug(wxT("line 501 wxServDisc %p:FORCING SHUTDOWN: m_bDestroyChildren %s , BEWcount %ld , Query type %d , gpServiceDiscovery = %lx , gpServiceDiscovery = %lx"),
+					this, m_bDestroyChildren ? wxString(_T("TRUE")).c_str() : wxString(_T("FALSE")).c_str(), BEWcount, querytype, gpServiceDiscovery);
+#endif
+				exit = true;
+				break;
+			}
+		} // end of third inner loop: while (mdnsd_out(d, &m, &ip, &port))
 		BEWcount++; // BEW log what iteration this is: this is NOT cosmetic, it's used for shutdown when no KBserver is running
-#if defined(_zero_)
+
+		// If control broke from the third inner loop, break immediately from the outer loop too
+		if (bBrokeFromInnerLoop3)
+		{
+			break;
+		}
+		
+#if defined(_minimal_)
 		wxLogDebug(_T("BEW wxServDisc: %p   Entry()'s outer loop iteration:  %d"), this, BEWcount);
 #endif
 	} // end of outer loop
 
 	// Beier's cleanup functions, which I augmented with my own my_gc() which handles
 	// _cache struct deletions - something he forgot or didn't bother to do
+	// Note, gpServiceDiscovery can go NULL, and the owned wxServDisc instance be destroyed, before
+	// control gets here in a child instance, so only do the following cleanups if gpServiceDiscovery
+	// is not null
+	if (gpServiceDiscovery != NULL)
+	{
 #if defined(_zero_)
-	wxLogDebug(_T("wxServDisc::Entry(): this = %p  ,  my_gc(d) & friends, about to be called "), this);
+		wxLogDebug(_T("wxServDisc::Entry(): this = %p  ,  my_gc(d) & friends, about to be called "), this);
 #endif
-	my_gc(d); // Is based on Beier's _gd(d), but removing every instance of the
-			  // cached struct by brute force in the cache array (it's a
-			  // sparse array because he puts structs in it by a hashed index)
-	// Beier's two cleanup functions (they ignore cached structs, & therefore leaked memory,  which my_gc() fixes)
-	mdnsd_shutdown(d);
-	mdnsd_free(d);
+		my_gc(d); // Is based on Beier's _gd(d), but removing every instance of the
+				  // cached struct by brute force in the cache array (it's a
+				  // sparse array because he puts structs in it by a hashed index)
+		// Beier's two cleanup functions (they ignore cached structs, & therefore leaked memory,  which my_gc() fixes)
+		mdnsd_shutdown(d);
+		mdnsd_free(d);
 
-	if (mSock != INVALID_SOCKET)
-		closesocket(mSock);
+		if (mSock != INVALID_SOCKET)
+			closesocket(mSock);
 #if defined(_zero_)
-	wxLogDebug(_T("wxServDisc::Entry() (345)  this is %p  , executed the cleanup functions for this instance "), this);
+		wxLogDebug(_T("wxServDisc::Entry() (541)  this is %p  , executed the cleanup functions for this instance "), this);
 #endif
-
+	}
 	// BEW 7Apr16, Post a custom wxServDiscHALTING event to CServiceDiscovery instance to get
 	// the original (owned) wxServeDisc instance deleted; we can't do it from within itself, 
 	// so we post this event to ask CServiceDiscovey to oblige instead, in the 
 	// onSDHalting() handler - but we only do so from the wxServDisc instance that is the one
 	// we can't delete from - the one that CServiceDiscovery created to kick discovery off.
-	if ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+	// BEW 18Apr16, control can get here (due to the joinable thread having been deleted) with
+	// gpServiceDiscovery set to NULL, so we cannot have any access to it from here on...
+	//if ((void*)gpServiceDiscovery->m_pWxSD == (void*)this)
+	if (parent) // a non-null parent means this wxServDisc instance is the one owned by CServiceDiscovery, which is what we want
 	{
-		wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
-		event.SetEventObject(this); // set sender
-		#if wxVERSION_NUMBER < 2900
-		wxPostEvent(gpServiceDiscovery, event); // first param indicates which object is to receive the event
+		if (gpServiceDiscovery != NULL) // don't post if the destination class has been deleted
+		{
+			wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
+			event.SetEventObject(this); // set sender
+#if wxVERSION_NUMBER < 2900
+			wxPostEvent(gpServiceDiscovery, event); // first param indicates which object is to receive the event
 #if defined(_zero_)
-		wxLogDebug(_T("\nIn Entry (360) wxServDisc %p  &  parent %p: About to post wxServDiscHALTING event,  d->shutdown was earlier set to 1"),
-			this, (void*)parent);
+			wxLogDebug(_T("\nIn Entry (561) wxServDisc %p  &  parent %p: About to post wxServDiscHALTING event,  d->shutdown was earlier set to 1"),
+				this, (void*)parent);
 #endif
-		#else
-		wxQueueEvent(gpServiceDiscovery, event.Clone());
+#else
+			wxQueueEvent(gpServiceDiscovery, event.Clone());
 #if defined(_zero_)
-		wxLogDebug(_T("\nIn Entry (366) wxServDisc %p  &  parent %p: About to post wxServDiscHALTING event,  d->shutdown was earlier set to 1"),
-			this, (void*)parent);
+			wxLogDebug(_T("\nIn Entry (567) wxServDisc %p  &  parent %p: About to post wxServDiscHALTING event,  d->shutdown was earlier set to 1"),
+				this, (void*)parent);
 #endif
-		#endif
-		wxLogDebug(_T("InEntry (370) wxServDisc %p  Just posted event wxServDiscHALTING to CServiceDiscovery instance"), this);
+#endif
+#if defined (_shutdown_)
+			wxLogDebug(_T("InEntry (572) wxServDisc %p  Just posted event wxServDiscHALTING to CServiceDiscovery instance"), this);
+#endif
+		} // end of TRUE block for test: if (gpServiceDiscovery != NULL)
+		else
+		{
+			wxNO_OP;
+#if defined (_shutdown_)
+			wxLogDebug(_T("InEntry (579) wxServDisc %p  gpServiceDiscovery now NULL, so no post of wxServDiscHALTING before Entry() returns"), this);
+#endif
+		}
 	}
-#if defined(_zero_)
-	wxLogDebug(wxT("wxServDisc %p: (373) scanthread exiting, after loop has ended, now at end of Entry(), returning NULL"), this);
+#if defined(_shutdown_)
+	wxLogDebug(wxT("wxServDisc %p: (584) scanthread exiting, after loop has ended, now at end of Entry(), returning NULL; gpServiceDiscovery = %lx"), 
+				this, gpServiceDiscovery);
 #endif
 	return NULL;
 }
@@ -669,6 +883,8 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 {
 	// save our caller
 	parent = p;
+	m_bDestroyChildren = FALSE; // a caller setting this to TRUE causes break from loop, 
+								// so instance will then die
 
 	// The global gpServiceDiscovery is the pointer to the parent class instance, CServiceDiscovery
 	// Additional instances of wxServDisc get spawned, but not by the CServiceDiscovery parent, so 
@@ -684,9 +900,6 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 	// ensure that onSDNotify() cannot be asked for from a running child instance. If we can, unwanted
 	// wxServDisc instances (spawned but needlessly for getting a single discovery done) should have
 	// their internal code in Entry() skipped, and just proceed to thread death.
-#if defined(_zero_)
-	wxLogDebug(_T("\n\nwxServDisc CREATOR: I am %p , and parent passed in =  %p"), this, parent);
-#endif
 	// save query & type
 	query = what;
 	querytype = type;
@@ -707,27 +920,38 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 	else
 		if (GetThread()->Run() != wxTHREAD_NO_ERROR)
 			err.Printf(_("Could not start scan thread!"));
+
+#if defined (_shutdown_)
+	wxLogDebug(_T("\n\nwxServDisc CREATOR: I am %p , and parent passed in =  %p"), this, parent);
+#endif
+
 }
 
 wxServDisc::~wxServDisc()
 {
-#if defined(_zero_)
-	wxLogDebug(wxT("wxServDisc %p: In destructor: before delete of the wxServDisc instance"), this);
+#if defined(_shutdown_)
+	wxLogDebug(wxT("wxServDisc %p: (933)In destructor: before delete of the wxServDisc instance"), this);
 #endif
+	processID = wxGetProcessId();
+
 	if (GetThread() && GetThread()->IsRunning())
 	{
-		gpServiceDiscovery->nDestructorCallCount++;
+//#if defined(_zero_)
+//		// This one may be dangerous, mdnsd d may be destroyed before this ~wxServDisc instance gets called - leading to an access violation crash
+//		wxLogDebug(wxT("wxServDisc %p: scanthread deleted, wxServDisc destroyed, query was '%s', lifetime was %ld"), this, query.c_str(), mWallClock.Time());
+//#endif
+#if defined (_shutdown_)
+		wxLogDebug(wxT("wxServDisc %p: Finished destructor ~wxServDisc().  processID = %lx  decimal = %ld  querytype = %d"), 
+				this, processID, processID, querytype);
+#endif
+
 		GetThread()->Delete(); // blocks, this makes TestDestroy() return true and cleans up the thread
 	}
-#if defined(_zero_)
-	wxLogDebug(wxT("wxServDisc %p: scanthread deleted, wxServDisc destroyed, query was '%s', lifetime was %ld"), this, query.c_str(), mWallClock.Time());
-	wxLogDebug(wxT("Finished call of ~wxServDisc()"));
-#endif
 }
 
 // BEW added 6Apr16 in the hope that this will clear up some leaks - it does,
-// the ones from data coming into onSDNotify from the ans() function, but
-// the wxSDMap hashtable itself persists. Not sure yet how to be rid of that.
+// the ones from data coming into onSDNotify from the ans() function, but the wxSDMap
+// hashtable itself persists. The latter is destroyed when its wxServDisc is destroyed
 void wxServDisc::clearResults()
 {
 	wxSDMap::const_iterator it;
@@ -761,7 +985,7 @@ void wxServDisc::post_notify()
 	gpServiceDiscovery->m_postNotifyCount++; // BEW added
 
 #if defined(_zero_) && defined(_DEBUG)
-	wxLogDebug(_T("wxServDisc:  %p  (766) post_notify() Entered:  parent = %p , gpServiceDiscovery->m_postNotifyCount = %d"), 
+	wxLogDebug(_T("wxServDisc:  %p  (988) post_notify() Entered:  parent = %p , gpServiceDiscovery->m_postNotifyCount = %d"), 
 		this, (void*)parent, gpServiceDiscovery->m_postNotifyCount); // BEW added
 #endif
 

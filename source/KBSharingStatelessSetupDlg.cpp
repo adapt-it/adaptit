@@ -94,7 +94,7 @@ KBSharingStatelessSetupDlg::KBSharingStatelessSetupDlg(wxWindow* parent, bool bU
 	//m_strStatelessUsername = _T("bruce_waters@sil.org");
 	//m_strStatelessURL = _T("https://kbserver.jmarsden.org");
 	// m_strStatelessPassword <- similarly set to my personal password in Mainfrm.cpp
-	// line 2630, within GetKBSvrPasswordFromUser()
+	// line 2630, within GetKBSvrPasswordFromUser(wxString& url, wxString& hostname)
 #endif
 	// This contructor doesn't make any attempt to link to any CKB instance, or to support
 	// only the hardware's current user; params are in the signature: whichType (we use 1, 
@@ -305,15 +305,15 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 
 	// Authentication has got the url and username, so hide the dialog before showing
 	// the child dialog for typing in the password -- then, if control reenters the
-	// dialog, it will reappear on the screen (otherwise, the user would be puzzled about
-	// when it just stays on the screen for a while - it may take 30 seconds to check for
-	// valid login to the KBserver, so we'll have to rely on the user getting a beep if
-	// he tries to do work before the GUI is ready for him
+	// dialog, it will reappear on the screen
 
 	this->Show(FALSE);
+	wxString hostname = _("<unknown>"); // hostname is advisory only, but may not be known
+										// add code here to make it something other than <unknown> 
+										// if it proves possible to get a valid hostname here
 
 	// Now get the password... we do this from the wxWidgets password utility dialog
-	wxString pwd = pFrame->GetKBSvrPasswordFromUser(); // show the password dialog
+	wxString pwd = pFrame->GetKBSvrPasswordFromUser(m_strStatelessURL, hostname); // show the password dialog
 
 	wxString msg_empty = _("The password was empty. Please try again.");
 	wxString title_empty = _("No password");

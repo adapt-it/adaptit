@@ -88,6 +88,7 @@
 #include "CollabUtilities.h" // BEW added 15Sep14
 
 #if defined(_KBSERVER)
+
 #include "KBSharing.h" // BEW added 14Jan13
 //#include "KBSharingSetupDlg.h" // BEW added 15Jan13
 #include "KbSharingSetup.h" // BEW added 10Oct13
@@ -96,7 +97,11 @@
 #include "Timer_KbServerChangedSince.h"
 #include "ServiceDiscovery.h"
 #include "WaitDlg.h"
-#endif
+#include "Thread_ServiceDiscovery.h"
+
+extern CServiceDiscovery* gpServiceDiscovery;
+
+#endif // _KBSERVER
 
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -365,6 +370,7 @@ IMPLEMENT_CLASS(CMainFrame, wxDocParentFrame)
 //DECLARE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit, -1)
 //DECLARE_EVENT_TYPE(wxEVT_Glosses_Edit, -1)
 //DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
+//DECLARE_EVENT_TYPE(wxEVT_End_ServiceDiscovery, -1)
 
 
 DEFINE_EVENT_TYPE(wxEVT_Adaptations_Edit)
@@ -384,6 +390,7 @@ DEFINE_EVENT_TYPE(wxEVT_Delayed_GetChapter)
 #if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
 DEFINE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg)
+DEFINE_EVENT_TYPE(wxEVT_End_ServiceDiscovery)
 #endif
 
 //BEW 10Dec12, new custom event for the kludge for working around the scrollPos bug in GTK build
@@ -495,6 +502,14 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
         (wxObject *) NULL \
     ),
 
+#define EVT_END_SERVICEDISCOVERY(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_End_ServiceDiscovery, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+
+
 #endif
 
 
@@ -573,6 +588,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 #if defined(_KBSERVER)
 	EVT_KBDELETE_UPDATE_PROGRESS(-1, CMainFrame::OnCustomEventKbDeleteUpdateProgress)
 	EVT_CALL_AUTHENTICATE_DLG(-1, CMainFrame::OnCustomEventCallAuthenticateDlg)
+	EVT_END_SERVICEDISCOVERY(-1, CMainFrame::OnCustomEventEndServiceDiscovery)
 #endif
 
 	//BEW added 10Dec12
@@ -2731,6 +2747,35 @@ void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event
 	wxUnusedVar(bSuccess);
 }
 
+void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& WXUNUSED(event))
+{
+	nEntriesToEndServiceDiscovery++;
+	wxLogDebug(_T("\n frame:: OnCustomEventEndServiceDiscovery() just entered, nEntriesToEndServiceDiscovery = %d"), 
+		nEntriesToEndServiceDiscovery);
+
+	gpApp->m_pServDiscThread->m_pServDisc->m_serviceStr.Clear();
+
+	delete gpApp->m_pServDiscThread->m_pServDisc; // delete the manager class for the wxServDisc instance
+
+	// Even with a joinable thread, I'm getting the access violation after a few runs - the logging indicated
+	// 3 clean runs with thread deletion logged and no error, and then a fourth thread (without logging)
+	// is deleted and the critical section error then immediately happens. This fouth thread is unidentified.
+	// Adding the next lines didn't help - in fact, I get a warning that the thread couldn't be deleted.
+	// Logging indicates the thread destructor is called last aftre Entry(), OnExit() have run., and
+	// after custom event's handler has run.  Maybe I have to use critical section? But how?
+	//gpApp->m_pServDiscThread->Delete();
+	//bool bvalue = gpApp->m_pServDiscThread->TestDestroy();
+
+	gpApp->m_pServDiscThread->Wait(); // this gets system resources shut down, AND deletes the thread, no Destroy() required
+
+	delete gpApp->m_pServDiscThread; // necessary, otherwise it and a hash value get leaked (2 leaks)
+	gpApp->m_pServDiscThread = NULL;
+	gpServiceDiscovery = NULL;
+
+	//wxLogDebug(_T("\n frame:: OnCustomEventEndServiceDiscovery() just finished delete of CServiceDiscovery, thread, thread ptr NULL etc"));
+
+}
+
 // public accessor
 wxString CMainFrame::GetKBSvrPassword()
 {
@@ -2745,9 +2790,11 @@ void CMainFrame::SetKBSvrPassword(wxString pwd)
 // The public function for getting a KBserver's password. We have it here because we want
 // to get it typed in only once - not twice (ie. not for the adapting KB's KbServer
 // instance and then again for the glossing KB's KbServer instance)
-wxString CMainFrame::GetKBSvrPasswordFromUser()
+wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& url, wxString& hostname)
 {
-	wxString msg = _("Type the knowledge base server's password.\nYou should have received it from your administrator.\nWithout the correct password, sharing your knowledge base data\nwith others cannot happen, nor can they share theirs with you.");
+	wxString msg = _("Type the knowledge base server's password.\nYou should have received it from your administrator.\nWithout the correct password, sharing your knowledge base data\nwith others cannot happen, nor can they share theirs with you.\n%s    %s\n The server name field is advisory, if <unknown> then ignore it.");
+	msg = msg.Format(msg, url.c_str(), hostname.c_str());
+	
 	wxString caption = _("Type the server's password");
 	wxString default_value = _T("");
 #if defined(_DEBUG) && defined(AUTHENTICATE_AS_BRUCE) // see top of Adapt_It.h
@@ -6785,7 +6832,11 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 	// Get from the app the various phrasebox and sequ num location params
 	// needed for restoring the original state
 	int nLastActiveSequNum = gpApp->m_vertEdit_LastActiveSequNum;
-	wxASSERT(nLastActiveSequNum >= 0 && nLastActiveSequNum <= gpApp->GetMaxIndex());
+	//BEW 14Apr16 removed this assert because it is violated by the legitimate user
+	// action of doing an edit source text with selection of the last word of the document
+	// and adding some more source text words. Causes this to trip and there is nothing
+	// wrong with the user action.
+	//wxASSERT(nLastActiveSequNum >= 0 && nLastActiveSequNum <= gpApp->GetMaxIndex());
 	wxString strLastBoxContents;
 
 #if defined(_DEBUG)

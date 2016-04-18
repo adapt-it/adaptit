@@ -1249,6 +1249,12 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 			return;
 		}
 
+		// BEW 14Apr16, If a merger is currently happening, don't allow it to cause loss of data
+		if (m_pApp->m_bMergerIsCurrent)
+		{
+			return;
+		}
+
         // this reference string is only referenced once, so remove it entirely from KB or
         // from the glossing KB, depending on m_bGlossingKB flag's value
 		CTargetUnit* pTU = pRefString->m_pTgtUnit; // point to the owning targetUnit
@@ -4950,7 +4956,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	return TRUE;
 }
 
-// like StoreAdaption, but with different assumptions since we need to be able to move back
+// like StoreText(), but with different assumptions since we need to be able to move back
 // when either there is nothing in the current phraseBox (in which case no store need be
 // done), or when the user has finished typing the current srcPhrase's adaption (since it
 // will be saved to the KB when focus moves back.) TRUE if okay to go back, FALSE

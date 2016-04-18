@@ -83,14 +83,22 @@
 #define _WINSOCKAPI_ // keeps winsock.h from being included in <Windows.h>, it's here just in case
 
 #include "wxServDisc.h"
+#include "Adapt_It.h"
+#include "MainFrm.h"
 #include "ServiceDiscovery.h"
 #include "helpers.h"
 
 // to enable or suppress logging, comment out to suppress
 //#define _zerocsd_
+// a few of the ones _zerocsd_ turned on, a minimal number, are not turned on with _minimalsd_
+//#define _minimalsd_
 // this one, if defined, displays each <url>@@@<hostname> string sent to the app, but a 
 // WITHHOLDING message if it is a duplicate. Comment out to suppress displaying that info
 #define _tracking_transfers_
+
+// Comment out the next line to disable wxLogDebug() logging related to shutdown of the 
+// service discovery run - same define is in Thread_ServiceDiscovery.cpp and wxServDisc.cpp
+#define _shutdown_
 
 
 #ifdef __WXMSW__
@@ -116,26 +124,27 @@ END_EVENT_TABLE()
 
 CServiceDiscovery::CServiceDiscovery()
 {
-	m_servicestring.clear();
-	wxUnusedVar(m_servicestring);
 }
 
 CServiceDiscovery::CServiceDiscovery(CAdapt_ItApp* pParentClass)
 {
 	gpServiceDiscovery = this; // wxServDisc creator needs this; set it early, so that it has
 							   // it's correct value before wxServDisc is instantiated below
+	//m_pServiceStr = new wxString(_T("_kbserver._tcp.local."));
 	m_serviceStr = _T("_kbserver._tcp.local.");
+
 	wxASSERT((void*)&wxGetApp() == (void*)pParentClass);
 	m_pApp = pParentClass;
 #if defined(_zerocsd_)
+	//wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, for servicestring: %s, ptr to instance: %p"),
+	//	(*m_pServiceStr).c_str(), this);
 	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, for servicestring: %s, ptr to instance: %p"),
 		m_serviceStr.c_str(), this);
 #endif
-	m_servicestring = m_serviceStr; // service to be scanned for
 	m_pParent = pParentClass; 
 
 	m_postNotifyCount = 0; // use this int as a filter to allow only one onSDNotify() call
-	nDestructorCallCount = 0; // bump by one in each ~wxServDisc() when called, use in Entry() to test for >= 2
+	//nDestructorCallCount = 0; // bump by one in each ~wxServDisc() when called, use in Entry() to test for >= 2
 
 	// initialize scratch variables...
 	m_hostname = _T("");
@@ -152,7 +161,8 @@ CServiceDiscovery::CServiceDiscovery(CAdapt_ItApp* pParentClass)
     // wxServDisc creator is: wxServDisc::wxServDisc(void* p, const wxString& what, int
     // type) where p is pointer to the parent class & what is the service to scan for, its
     // type is QTYPE_PTR (value = 12), and for the record, QTYPE_SVR is 33, and QTYPE_A is 1
-	m_pWxSD = new wxServDisc(this, m_servicestring, QTYPE_PTR);
+	//m_pWxSD = new wxServDisc(this, *m_pServiceStr, QTYPE_PTR);
+	m_pWxSD = new wxServDisc(this, m_serviceStr, QTYPE_PTR);
 	wxUnusedVar(m_pWxSD);
 #if defined(_zerocsd_)
 	wxLogDebug(_T("wxServDisc %p: just now instantiated in CServiceDiscovery creator"), m_pWxSD);
@@ -229,15 +239,18 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 
 	// BEW: Next, lookup hostname and port -  the for loop is Beier's (I think)
 #if defined(_zerocsd_)
-	wxLogDebug(_T("onSDNotify() (224) wxServDisc  %p  &  entry_count =  %d"), m_pWxSD, entry_count);
+	wxLogDebug(_T("onSDNotify() (242) wxServDisc  %p  &  entry_count =  %d"), m_pWxSD, entry_count);
 #endif
 	for (i = 0; i < entry_count; i++)
 	{
 		wxServDisc namescan(0, m_pWxSD->getResults().at(i).name, QTYPE_SRV); // Beier's original
 					// 3rd param = 33, note namescan() is local, so runs as a detached thread 
 					// from onSDNotify()'s stackframe
+		wxServDisc* pNamescan = &namescan; // BEW added 16Apr16 to get access to namescan, as it runs on after 
+										   // everything else is deleted, so I'll add code internally to get it
+										   // deleted when we are done with it here
 #if defined(_zerocsd_)
-		wxLogDebug(_T("onSDNotify() (232) wxServDisc %p  &  passing into namescan's first param: %p :  for loop starts"), m_pWxSD, 0L);
+		wxLogDebug(_T("onSDNotify() (253) wxServDisc %p  &  passing into namescan's first param: %p :  for loop starts"), m_pWxSD, 0L);
 #endif
 		timeout = 3000;
 		while (!namescan.getResultCount() && timeout > 0)
@@ -251,7 +264,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 			//wxLogError(_T("Timeout looking up hostname. Entry index: %d"), i);
 			m_hostname = m_addr = m_port = wxEmptyString;
 #if defined(_zerocsd_)
-			wxLogDebug(_T("onSDNotify() (246) wxServDisc  %p  &  parent %p:  namescan() Timed out:  m_hostname:  %s   m_port  %s"),
+			wxLogDebug(_T("onSDNotify() (267) wxServDisc  %p  &  parent %p:  namescan() Timed out:  m_hostname:  %s   m_port  %s"),
 					m_pWxSD, this, m_hostname.c_str(), m_port.c_str());
 #endif
 			return;
@@ -261,16 +274,19 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 			// The namescan found something...
 			m_hostname = namescan.getResults().at(0).name;
 			m_port = wxString() << namescan.getResults().at(0).port;
-#if defined(_zerocsd_)
-			wxLogDebug(_T("wxServDisc %p (257)  onSDNotify:  Found Something"), m_pWxSD);
+#if defined(_minimalsd_)
+			wxLogDebug(_T("wxServDisc %p (278)  onSDNotify:  Found Something"), m_pWxSD);
 #endif
 			// BEW For each successful namescan(), we must do an addrscan, so as to fill
 			// out the full info needed for constructing a URL later on
 			wxServDisc addrscan(0, m_hostname, QTYPE_A); // Beier's original
 					// QTYPE_A is 1, note addrscan() is local, so runs as a detached thread 
 					// from onSDNotify()'s stackframe
+			wxServDisc* pAddrscan = &addrscan; // BEW added 16Apr16 to get access to addrscan, as it runs on after 
+											   // everything else is deleted, so I'll add code internally to get it
+											   // deleted when we are done with it here
 #if defined(_zerocsd_)
-			wxLogDebug(_T("wxServDisc %p (265) onSDNotify() Passing into addrscan's first param: %p"), m_pWxSD, 0L);
+			wxLogDebug(_T("wxServDisc %p (289) onSDNotify() Passing into addrscan's first param: %p"), m_pWxSD, 0L);
 #endif
 			timeout = 3000;
 			while (!addrscan.getResultCount() && timeout > 0)
@@ -281,11 +297,11 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 			if (timeout <= 0)
 			{
 #if defined(_zerocsd_)
-				wxLogError(_T("wxServDisc %p (276) onSDNotify()  Timeout looking up IP address."), m_pWxSD);
+				wxLogError(_T("wxServDisc %p (300) onSDNotify()  Timeout looking up IP address."), m_pWxSD);
 #endif
 				m_hostname = m_addr = m_port = wxEmptyString;
 #if defined(_zerocsd_)
-				wxLogDebug(_T("wxServDisc %p  (280) ip Not Found: Timed out:  ip addr:  %s"), m_pWxSD, m_addr.c_str());
+				wxLogDebug(_T("wxServDisc %p  (304) ip Not Found: Timed out:  ip addr:  %s"), m_pWxSD, m_addr.c_str());
 #endif
 				return;
 			}
@@ -299,8 +315,8 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 				wxString composite = m_addr;
 				wxString ats = _T("@@@");
 				composite += ats + m_hostname;
-#if defined(_zerocsd_)
-				wxLogDebug(_T("wxServDisc %p  (295) Made composite:  %s  FROM PARTS:  %s    %s    %s"), 
+#if defined(_minimalsd_)
+				wxLogDebug(_T("wxServDisc %p  (319) Made composite:  %s  FROM PARTS:  %s    %s    %s"), 
 					m_pWxSD, composite.c_str(), m_addr.c_str(), ats.c_str(), m_hostname.c_str());
 #endif
 
@@ -310,15 +326,25 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 				kbsvr_arrays.Unlock();
 				wxUnusedVar(bItIsUnique);
 
-#if defined(_zerocsd_)
+#if defined(_minimalsd_)
 				if (bItIsUnique) // tell me so
 				{
 					kbsvr_arrays.Lock();
-					wxLogDebug(_T("wxServDisc %p  (309)  onSDNotify()  SUCCESS, composite  %s  was stored in CServiceDiscovery"),
+					wxLogDebug(_T("wxServDisc %p  (333)  onSDNotify()  SUCCESS, composite  %s  was stored in CServiceDiscovery"),
 						m_pWxSD, composite.c_str());
 					kbsvr_arrays.Unlock();
 				} // end of TRUE block for test: if (bItIsUnique)
+				else
+				{
+					wxLogDebug(_T("wxServDisc %p  (339)  onSDNotify()  SUCCESS, but NOT UNIQUE so not stored"));
+				}
 #endif
+				// BEW added 18Apr16 Cause the namescan and addrscan child instances to stop running
+				// (Needed because addrscan() was still running after Thread_ServiceDiscovery() was destroyed,
+				// and maybe namescan() was also running. gpServiceDiscovery set to NULL in the destruction
+				// of Thread_ServiceDiscovery() exposed the error - since namescan() and addrscan() reference it)
+				pNamescan->m_bDestroyChildren = TRUE;
+				pAddrscan->m_bDestroyChildren = TRUE;
 
 				// Try cleanup here for m_addr and m_port, these get leaked in Beier's solution
 				m_addr.clear();
@@ -330,7 +356,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 
 	} // end of loop: for (i = 0; i < entry_count; i++)
 #if defined(_zerocsd_)
-	wxLogDebug(wxT("wxServDisc %p (325) onSDNotify(), One KBserver was found. onSDNotify() is exiting now"), m_pWxSD);
+	wxLogDebug(wxT("wxServDisc %p (359) onSDNotify(), One KBserver was found. onSDNotify() is exiting now"), m_pWxSD);
 #endif
 }
 
@@ -348,9 +374,10 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 #if defined(_zerocsd_)
 	wxLogDebug(_T("In CServiceDiscovery:onSDHalting() m_pWxSD =  %p  will be deleted now"), m_pWxSD);
 #endif
-	m_pWxSD->clearResults();
-
-	delete m_pWxSD; // must have this, it gets ~wxServDisc() destructor called
+	m_pWxSD->clearResults();  
+	// might be better to use Delete() rather than delete
+	m_pWxSD->GetThread()->Delete();
+	delete m_pWxSD; // needed?, it gets ~wxServDisc() destructor called
 
 #if defined(_zerocsd_)
 	wxLogDebug(_T("wxServDisc %p:  [from CServiceDiscovery:onSDHalting()] AFTER posting wxServDiscHALTING event, this = %p, m_pParent (the app) = %p"),
@@ -387,7 +414,6 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 			// The arrays here are no longer needed until the next timer notification, so clear them
 			m_ipAddrs_Hostnames.clear();
 			m_sd_servicenames.clear();
-			m_serviceStr.clear(); // clear this string too
 		}
 	}
 	m_pApp->m_bServiceDiscoveryThreadCanDie = TRUE; // signal that the thread can now safely die
@@ -400,13 +426,13 @@ void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
 
 CServiceDiscovery::~CServiceDiscovery()
 {
-	/* don't need these here
+	// don't need these here (but I'll keep them as insurance)
 	m_sd_servicenames.clear();
 	m_ipAddrs_Hostnames.clear();
-	m_serviceStr.clear();
-	*/
-#if defined(_zerocsd_)
-	wxLogDebug(_T("CServiceDiscovery* = %p  Exiting from  ~CServiceDiscovery() destructor"), this);
+
+#if defined (_shutdown_)
+	processID = wxGetProcessId();
+	wxLogDebug(_T("CServiceDiscovery* = %p  Exiting from  ~CServiceDiscovery() destructor.  Process ID = %lx"), this, processID);
 #endif
 }
 
