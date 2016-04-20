@@ -17659,7 +17659,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString dataDir, localDataDir, documentsDir;
 	wxString userConfigDir, userDataDir, userLocalDataDir;
 	wxString executablePath;
-#ifdef __WXGTK__
+#ifdef __WXGTKzzz__
 	wxString installPrefix;
 	wxStandardPaths stdPaths;
 #else
@@ -17695,7 +17695,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxLogDebug(_T("The wxStandardPaths::GetUserLocalDataDir() = %s"),userLocalDataDir.c_str());
 	executablePath = stdPaths.GetExecutablePath();
 	wxLogDebug(_T("The wxStandardPaths::GetExecutablePath() = %s"),executablePath.c_str());
-#ifdef __WXGTK__
+#ifdef __WXGTKzzz__
 	// Only available on Linux
 	installPrefix = stdPaths.GetInstallPrefix();
 	wxLogDebug(_T("The wxStandardPaths::GetInstallPrefix() = %s"),installPrefix.c_str());
