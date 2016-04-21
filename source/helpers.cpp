@@ -11591,8 +11591,8 @@ bad:				HandleBadLangCodeOrCancel(pApp->m_saveOldURLStr, pApp->m_saveOldHostname
 		// using KB sharing, he does not need to be informed that it is off
 		return FALSE;
 	} // end of else block for test: if (pApp->m_bIsKBServerProject ||
-	  //                                 pApp->m_bIsGlossingKBServerProject)
-	return TRUE;
+	  //                                 pApp->m_bIsGlossingKBServerProject)	  
+	  return TRUE;
 }
 
 #endif

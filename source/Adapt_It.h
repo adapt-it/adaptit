@@ -2067,8 +2067,10 @@ class CAdapt_ItApp : public wxApp
 
 	Thread_ServiceDiscovery* m_pServDiscThread; 
 
-	CServiceDiscovery*  m_pServDisc;    // The top level class which manages the service 
-									    // discovery module
+	// BEW 118Apr16 the following has been moved to be a member of Thread_ServiceDiscovery class
+	//CServiceDiscovery*  m_pServDisc;    // The top level class which manages the service discovery module
+
+
 	wxArrayString		m_theURLs;      // lines of form <url> from CServiceDiscovery::m_urlsArr
 	wxArrayString		m_theHostnames; // parallel array of hostnames for each url in m_urlsArr
 	wxArrayString		m_ipAddrs_Hostnames; // for storage of each string <ipaddress>@@@<hostname>

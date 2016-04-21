@@ -99,7 +99,7 @@
 #include "WaitDlg.h"
 #include "Thread_ServiceDiscovery.h"
 
-extern CServiceDiscovery* gpServiceDiscovery;
+#define _shutdown_
 
 #endif // _KBSERVER
 
@@ -370,7 +370,7 @@ IMPLEMENT_CLASS(CMainFrame, wxDocParentFrame)
 //DECLARE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit, -1)
 //DECLARE_EVENT_TYPE(wxEVT_Glosses_Edit, -1)
 //DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
-//DECLARE_EVENT_TYPE(wxEVT_End_ServiceDiscovery, -1)
+//DECLARE_EVENT_TYPE(wxEVT_End_ServiceDiscovery, -1) <<-- moved to Thread_ServiceDiscovery.h
 
 
 DEFINE_EVENT_TYPE(wxEVT_Adaptations_Edit)
@@ -508,7 +508,6 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
         (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
         (wxObject *) NULL \
     ),
-
 
 #endif
 
@@ -2749,32 +2748,11 @@ void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event
 
 void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& WXUNUSED(event))
 {
-	nEntriesToEndServiceDiscovery++;
-	wxLogDebug(_T("\n frame:: OnCustomEventEndServiceDiscovery() just entered, nEntriesToEndServiceDiscovery = %d"), 
-		nEntriesToEndServiceDiscovery);
-
-	gpApp->m_pServDiscThread->m_pServDisc->m_serviceStr.Clear();
-
-	delete gpApp->m_pServDiscThread->m_pServDisc; // delete the manager class for the wxServDisc instance
-
-	// Even with a joinable thread, I'm getting the access violation after a few runs - the logging indicated
-	// 3 clean runs with thread deletion logged and no error, and then a fourth thread (without logging)
-	// is deleted and the critical section error then immediately happens. This fouth thread is unidentified.
-	// Adding the next lines didn't help - in fact, I get a warning that the thread couldn't be deleted.
-	// Logging indicates the thread destructor is called last aftre Entry(), OnExit() have run., and
-	// after custom event's handler has run.  Maybe I have to use critical section? But how?
-	//gpApp->m_pServDiscThread->Delete();
-	//bool bvalue = gpApp->m_pServDiscThread->TestDestroy();
-
-	gpApp->m_pServDiscThread->Wait(); // this gets system resources shut down, AND deletes the thread, no Destroy() required
-
-	delete gpApp->m_pServDiscThread; // necessary, otherwise it and a hash value get leaked (2 leaks)
+	gpApp->m_pServDiscThread->Wait();
+	delete gpApp->m_pServDiscThread;
 	gpApp->m_pServDiscThread = NULL;
-	gpServiceDiscovery = NULL;
-
-	//wxLogDebug(_T("\n frame:: OnCustomEventEndServiceDiscovery() just finished delete of CServiceDiscovery, thread, thread ptr NULL etc"));
-
 }
+
 
 // public accessor
 wxString CMainFrame::GetKBSvrPassword()

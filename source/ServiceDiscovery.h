@@ -55,6 +55,9 @@ class wxServDisc;
 class wxThread;
 class CAdapt_ItApp; // BEW 4Jan16 
 
+DECLARE_EVENT_TYPE(wxEVT_End_Namescan, -1)
+DECLARE_EVENT_TYPE(wxEVT_End_Addrscan, -1)
+
 class CServiceDiscovery : public wxEvtHandler
 {
 
@@ -80,18 +83,26 @@ public:
 
 	wxString m_serviceStr;
 
+	void	 ShutdownWxServDisc(wxServDisc* pOwnedWxServDisc); // call this when shutting down 
+															   // the service discovery module
+
+	// The next two booleans are defaulted to FALSE when CServiceDiscovery is instantiated,
+	// and to avoid access violations, we have to shut down namescan() and addrscan() 
+	// local instances of wxServDisc owned by the instance CServiceDiscovery instance,
+	// before we try delete CServiceDiscovery and the Thread_ServiceDiscovery(). These
+	// two booleans must become TRUE before the Thread_ServiceDiscovery::TestDestroy()
+	// function can return a TRUE value to shut down the thread. Designing this way was
+	// necessitated by the fact that the (child) namescan() and addrscan() instances
+	// continued processing after the Thread_ServiceDiscovery() and CServiceDiscovery
+	// instance and its owned wxServDisc instance were all deleted - resulting in an
+	// eventual access violation after what appeared to be successful service discovery
+	// timed runs over a few minutes without any problem. The solution is to kill the
+	// kids before destroying their parent. Harsh, but necessary.
+	bool     m_bNamescanIsEnded;
+	bool	 m_bAddrscanIsEnded;
+
 	bool IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
 	bool AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
-
-	// BEW 18Apr16 removed, because gpServiceDiscovery has to be used to get the value and it may become NULL before that access occurs
-	//int nDestructorCallCount; // how many times the ~wxServDisc() destructor gets called -
-			// once it gets to 2 (ie. both namescan() and addrscan() have worked and died, we
-			// can cause the original (owned) wxServDisc to shut down - the logging shows that
-			// using GC value to cause 'expire all', bypasses my_gc(d) call - which may account
-			// for why there are unexpected results. My idea is to provide tests in Entry()'s
-			// while loop, which when true, will break from the loop with exit set to true -
-			// and that should get the cleanup code done for the original wxServDisc
-
 
 	// These arrays receive results, which will get passed back to app's DoServiceDiscovery() etc.
 	wxArrayString m_sd_servicenames;   // for servicenames, as discovered from query (these are NOT hostnames)
@@ -101,6 +112,8 @@ public:
 protected:
 	  void onSDNotify(wxCommandEvent& WXUNUSED(event));
 	  void onSDHalting(wxCommandEvent& event); // needed to get the last wxServDisc deleted from here
+	  void onEndNamescan(wxCommandEvent& WXUNUSED(event));
+	  void onEndAddrscan(wxCommandEvent& WXUNUSED(event));
 private:
 
 	DECLARE_EVENT_TABLE();

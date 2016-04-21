@@ -43,8 +43,8 @@ class CAdapt_ItApp;
 class Thread_ServiceDiscovery : public wxThread
 {
 public:
-	virtual ~Thread_ServiceDiscovery(void); // destructor
 	Thread_ServiceDiscovery();
+	virtual ~Thread_ServiceDiscovery(void); // destructor
 
 	unsigned long processID;
 	
@@ -71,15 +71,16 @@ public:
 	// the wxServDisc instances, and pass results to the app, and then give the task
 	//of cleaning up and destroying the CServiceDiscovery instance to this thread's
 	// OnExit() function.
-	virtual void*		Entry();
+	virtual void*	Entry();
 
 	bool TestDestroy();
 
 	protected:
 
+	void EndServiceDiscovery();
+
 	private:
 	
-
 };
 
 #endif // for _KBSERVER

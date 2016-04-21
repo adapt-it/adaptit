@@ -93,6 +93,7 @@ public:
   bool m_bDestroyChildren; // Each child instance will have NULL passed in as parent. Use this
 						   // boolean, set TRUE, to cause exit from the wxServDisc's loop in
 						   // Entry(), thereby causing these detached threads to die immediately
+  bool m_bKillZombie; // quickly destroy unwanted wxServDisc instances that hang around too long
 
   /// Returns true if service discovery successfully started. If not, getErr() may contain a hint.
   bool isOK() const { return err.length() == 0; };

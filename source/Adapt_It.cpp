@@ -105,6 +105,7 @@
 #include <curl/curl.h>
 
 wxMutex	kbsvr_arrays;
+
 // Comment out to prevent DoServiceDiscovery() from logging with wxLogDebug()
 #define _DOSERVDISC
 
@@ -15610,9 +15611,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 							  // override with a larger value, by direct user edit only
 							  // (or a smaller value; minimum 8000)
 	// BEW 12Apr16, try 14.123 so as to get 4 tries a minute
-	m_KBserverTimer = 12111;  // 12.111 sec as of 16Apr16,  with GC back at 7 secs; old was 14123 with GC = 9 secs
-	m_KBserverTimer = 15111;  // 15.111 sec as of 18Apr16,  with GC at 7 secs; 12.111 as causing overlap now and 
-							  // then by .1 to .2 secs, which presumably prematurely altered vital pointer values
+	m_KBserverTimer = 12111;   // 12.111 sec as of 19Apr16,  with GC back at 5 secs; old was 14123 with GC = 9 secs
+	//m_KBserverTimer = 15111; // 15.111 sec as of 18Apr16,  with GC at 7 secs; 12.111 was causing overlap now and 
+							   // then by .1 to .2 secs, which presumably prematurely altered vital pointer values
 
 	m_bServiceDiscoveryWanted = TRUE; // initialize
 	m_pServDiscThread = NULL;
@@ -15648,7 +15649,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_nInsertCount = 0;
 
 #if defined(_KBSERVER)
-	m_pServDisc = NULL; // initialize to 0
+	//m_pServDisc = NULL; // initialize to 0  <- deprecated 18Apr16, & moved to Thread_ServiceDiscovery
 	m_strKbServerURL.Empty(); // assume none ever set, Basic config file may restore a value
 							  // to this variable further down in OnInit()
 #endif
@@ -22003,7 +22004,7 @@ int ii = 1;
 	// Run Service Discovery
 #if defined(_KBSERVER)
 	// Leave the following initialization line here...
-	m_pServDisc = NULL;
+	//m_pServDisc = NULL;
 
 	// BEW 6Apr16 Call ServDiscBackground() which runs in the background in a thread
 	// under timer control. For debugging, comment out below and uncomment out the 
@@ -22140,9 +22141,14 @@ int CAdapt_ItApp::OnExit(void)
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
 
+	/*
 #if defined (_KBSERVER)
-	// Cleanups for service discovery, any which are as yet undone; m_pServDisc is a
-	// CServiceDiscovery instance which is to persist for the life of the app, until here
+	// Cleanups for service discovery...
+
+
+// TODO later on sometime
+
+	// BEW 19Apr16 for the moment, let service discovery thread, if running, die a leaky death
 	if (m_pServDisc != NULL)
 	{
 		if ( m_servDiscTimer.IsRunning() )
@@ -22152,7 +22158,9 @@ int CAdapt_ItApp::OnExit(void)
 		}
 		m_pServDisc = NULL;
 	}
+
 #endif
+*/
 	// Remove any files lurking there, they don't need to persist
 	EmptyCollaborationTempFolder(); // see CollabUtilities.h (at bottom)
 
@@ -49552,7 +49560,6 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 			
 		}
 	}
-
 }
 
 #endif
