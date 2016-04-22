@@ -55,9 +55,6 @@ class wxServDisc;
 class wxThread;
 class CAdapt_ItApp; // BEW 4Jan16 
 
-DECLARE_EVENT_TYPE(wxEVT_End_Namescan, -1)
-DECLARE_EVENT_TYPE(wxEVT_End_Addrscan, -1)
-
 class CServiceDiscovery : public wxEvtHandler
 {
 
@@ -74,6 +71,13 @@ public:
 	int	m_postNotifyCount;  // count the number of Post_Notify() calls, we use it to 
 							// limit one discovery run to finding one running KBserver
 							// at random from however many are currently running
+	bool m_bDestroyChildren; // When true, this CServiceDiscovery and its owning thread are eligible for shutdown
+
+	// The next two give us access to the child wxServDisc instances local to onSDNotify(), 
+	// namescan() (the latter scans for QTYPE_SRV) and addrscan() (the latter scans for QTYPE_A)
+	wxServDisc* m_pNamescan = NULL;
+	wxServDisc* m_pAddrscan = NULL;
+
 	unsigned long processID;
 
 	// scratch variables, used in the loop in onSDNotify() handler
@@ -83,37 +87,16 @@ public:
 
 	wxString m_serviceStr;
 
-	void	 ShutdownWxServDisc(wxServDisc* pOwnedWxServDisc); // call this when shutting down 
-															   // the service discovery module
-
-	// The next two booleans are defaulted to FALSE when CServiceDiscovery is instantiated,
-	// and to avoid access violations, we have to shut down namescan() and addrscan() 
-	// local instances of wxServDisc owned by the instance CServiceDiscovery instance,
-	// before we try delete CServiceDiscovery and the Thread_ServiceDiscovery(). These
-	// two booleans must become TRUE before the Thread_ServiceDiscovery::TestDestroy()
-	// function can return a TRUE value to shut down the thread. Designing this way was
-	// necessitated by the fact that the (child) namescan() and addrscan() instances
-	// continued processing after the Thread_ServiceDiscovery() and CServiceDiscovery
-	// instance and its owned wxServDisc instance were all deleted - resulting in an
-	// eventual access violation after what appeared to be successful service discovery
-	// timed runs over a few minutes without any problem. The solution is to kill the
-	// kids before destroying their parent. Harsh, but necessary.
-	bool     m_bNamescanIsEnded;
-	bool	 m_bAddrscanIsEnded;
-
+	// Two helper functions so that we don't transfer to the app data we already have there
 	bool IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
 	bool AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
 
 	// These arrays receive results, which will get passed back to app's DoServiceDiscovery() etc.
 	wxArrayString m_sd_servicenames;   // for servicenames, as discovered from query (these are NOT hostnames)
-
 	wxArrayString m_ipAddrs_Hostnames; // stores unique set of <ipaddress>@@@<hostname> composite strings
 
 protected:
 	  void onSDNotify(wxCommandEvent& WXUNUSED(event));
-	  void onSDHalting(wxCommandEvent& event); // needed to get the last wxServDisc deleted from here
-	  void onEndNamescan(wxCommandEvent& WXUNUSED(event));
-	  void onEndAddrscan(wxCommandEvent& WXUNUSED(event));
 private:
 
 	DECLARE_EVENT_TABLE();

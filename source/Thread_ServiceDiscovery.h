@@ -10,17 +10,20 @@
 /// The Thread_ServiceDiscovery is a thread class for KB Sharing/Syncing support, specifically,
 /// a Zeroconf-based service discovery module that listens for _kbserver._tcp.local. multicasts
 /// from one or more KBserver servers running on the LAN. The service discovery is on, governed
-/// by a timer, for the life of the application's session, but a GUI choice (in Preferences) 
-/// allows the user to turn it off if unneeded. This thread is instantiated at each notify from
-/// the m_servDiscTimer wxTimer, and when it runs, it creates a CServiceDiscovery instance which
+/// by a timer, and works in a burst of 9 consecutive discovery runs. Enough to find several
+/// running KBservers. The burst is initiated when the app is first launched. A menu choice
+/// will allow the user to request another burst whenever he wants. Each burst occupies about
+/// 1.5 minutes. 
+/// This Thread_ServiceDiscovery thread is instantiated at each notify from the
+/// m_servDiscTimer wxTimer, and when it runs, it creates a CServiceDiscovery instance which
 /// acts as the parent of the initial wxServDisc instance it creates (in its creator). wxServDisc
 /// runs as a detached thread, it it spawns several instances of itself. It runs only a short
-/// time (5 plus 1 second for overheads), finds one KBserver's hostname, ip address (and port)
+/// time (3 plus 1 second for overheads, approx), finds one KBserver's hostname, ip address (and port)
 /// if there is at least one running on the LAN. Then it destroys itself after notifying the
 /// parent class, CServiceDiscovery, to send any results to an array on the application, for the
 /// DoServiceDiscovery() function there to display results to the user, for making a connection.
-/// The thread is a "detached" type (the wx default for thread objects); that is, it will
-/// destroy itself once it completes.
+/// The Thread_ServiceDiscovery thread, however, is "joinable" type;  which is easier for controlling
+/// shutdown behaviour.
 /// \derivation		The Thread_ServiceDiscovery class is derived from wxThread.
 /////////////////////////////////////////////////////////////////////////////
 

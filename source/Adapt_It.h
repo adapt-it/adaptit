@@ -3071,7 +3071,6 @@ public:
 	void	  ServDiscBackground();
 	wxTimer   m_servDiscTimer;
 	void	  OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event));
-	bool	  m_bServiceDiscoveryThreadCanDie; // set TRUE when all the work of one discovery has been done, use in TestDestroy()
 
 	void	  ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname);
 //	wxString  ExtractURLpart(wxString& aLine);

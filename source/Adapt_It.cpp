@@ -15252,8 +15252,6 @@ wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
 
 void CAdapt_ItApp::ServDiscBackground()
 {
-	m_bServiceDiscoveryThreadCanDie = FALSE; // TestDestroy() keeps the thread alive until all work is done, then
-											 // when this app variable goes TRUE, TestDestroy() returns TRUE and thread dies
 	// BEW 4Jan16, 2nd param is the parent class for CServiceDiscovery instance, the app class
 	//m_pServDisc = new CServiceDiscovery(this); <<-- bit slow, onSDNotify() works on main thread, so app is less responsive
 
@@ -15611,9 +15609,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 							  // override with a larger value, by direct user edit only
 							  // (or a smaller value; minimum 8000)
 	// BEW 12Apr16, try 14.123 so as to get 4 tries a minute
-	m_KBserverTimer = 12111;   // 12.111 sec as of 19Apr16,  with GC back at 5 secs; old was 14123 with GC = 9 secs
+	//m_KBserverTimer = 12111;   // 12.111 sec as of 19Apr16,  with GC back at 5 secs; old was 14123 with GC = 9 secs
 	//m_KBserverTimer = 15111; // 15.111 sec as of 18Apr16,  with GC at 7 secs; 12.111 was causing overlap now and 
 							   // then by .1 to .2 secs, which presumably prematurely altered vital pointer values
+	m_KBserverTimer = 9111;   // 9.111 sec as of 22Apr16,  with GC back at 5 secs; old was 12111 with GC = 5 secs
+	// (The burst of 10 runs, at timer ticks of 12.111 took 126 seconds, or 12.6 per run. Each run was approx
+	// 5 seconds, with a 7 second delay after until the next timer tick. So using 9111 should be quite okay; making
+	// a burst of 9 take about 1.5 minutes - I think I'll settle for that
 
 	m_bServiceDiscoveryWanted = TRUE; // initialize
 	m_pServDiscThread = NULL;

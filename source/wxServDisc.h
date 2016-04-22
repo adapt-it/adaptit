@@ -65,10 +65,8 @@ class CServiceDiscovery;
 
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscNOTIFY, -1);
-DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
 #else
 wxDECLARE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
-wxDECLARE_EVENT(wxServDiscHALTING, wxCommandEvent);
 #endif
 
 // resource name with ip addr and port number
@@ -90,13 +88,17 @@ public:
   ~wxServDisc();
 
   unsigned long processID;
-  bool m_bDestroyChildren; // Each child instance will have NULL passed in as parent. Use this
-						   // boolean, set TRUE, to cause exit from the wxServDisc's loop in
-						   // Entry(), thereby causing these detached threads to die immediately
   bool m_bKillZombie; // quickly destroy unwanted wxServDisc instances that hang around too long
+					  // (this is precautionary, there don't appear to be any created in the
+					  // present solution)
 
-  /// Returns true if service discovery successfully started. If not, getErr() may contain a hint.
+  // Returns true if service discovery successfully started. If not, getErr() may contain a hint.
   bool isOK() const { return err.length() == 0; };
+
+  // CheckDeathNeeded checks the CServiceDiscovery instance for its m_bDestroyChildren boolean
+  // going TRUE, once that happens the wxServDisc instance exits from the scanning loops and 
+  // proceeds to die
+  bool CheckDeathNeeded(CServiceDiscovery* pSDParent, int BEWcount, int querytype, bool& exit, bool& bBrokeFromLoop);
 
   // yeah well...
   std::vector<wxSDEntry> getResults() const;

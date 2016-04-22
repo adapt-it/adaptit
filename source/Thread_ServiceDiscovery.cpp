@@ -10,17 +10,20 @@
 /// The Thread_ServiceDiscovery is a thread class for KB Sharing/Syncing support, specifically,
 /// a Zeroconf-based service discovery module that listens for _kbserver._tcp.local. multicasts
 /// from one or more KBserver servers running on the LAN. The service discovery is on, governed
-/// by a timer, for the life of the application's session, but a GUI choice (in Preferences) 
-/// allows the user to turn it off if unneeded. This thread is instantiated at each notify from
-/// the m_servDiscTimer wxTimer, and when it runs, it creates a CServiceDiscovery instance which
+/// by a timer, and works in a burst of 9 consecutive discovery runs. Enough to find several
+/// running KBservers. The burst is initiated when the app is first launched. A menu choice
+/// will allow the user to request another burst whenever he wants. Each burst occupies about
+/// 1.5 minutes. 
+/// This Thread_ServiceDiscovery thread is instantiated at each notify from the
+/// m_servDiscTimer wxTimer, and when it runs, it creates a CServiceDiscovery instance which
 /// acts as the parent of the initial wxServDisc instance it creates (in its creator). wxServDisc
 /// runs as a detached thread, it it spawns several instances of itself. It runs only a short
-/// time (5 plus 1 second for overheads), finds one KBserver's hostname, ip address (and port)
+/// time (3 plus 1 second for overheads, approx), finds one KBserver's hostname, ip address (and port)
 /// if there is at least one running on the LAN. Then it destroys itself after notifying the
 /// parent class, CServiceDiscovery, to send any results to an array on the application, for the
 /// DoServiceDiscovery() function there to display results to the user, for making a connection.
-/// The thread is a "detached" type (the wx default for thread objects); that is, it will
-/// destroy itself once it completes.
+/// The Thread_ServiceDiscovery thread, however, is "joinable" type;  which is easier for controlling
+/// shutdown behaviour.
 /// \derivation		The Thread_ServiceDiscovery class is derived from wxThread.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -59,7 +62,9 @@ extern CServiceDiscovery* gpServiceDiscovery;
 
 extern wxMutex	kbsvr_arrays;
 
-Thread_ServiceDiscovery::Thread_ServiceDiscovery() :wxThread(wxTHREAD_JOINABLE)
+//Thread_ServiceDiscovery::Thread_ServiceDiscovery() :wxThread(wxTHREAD_JOINABLE) <<-- Wait() failed, m_thread was released, 
+// so wx treated it as detached, so I'll do so explicitly
+Thread_ServiceDiscovery::Thread_ServiceDiscovery() : wxThread()
 {
 	m_pApp = &wxGetApp();
 	m_pApp->GetMainFrame()->nEntriesToEndServiceDiscovery = 0;
@@ -101,16 +106,19 @@ void* Thread_ServiceDiscovery::Entry()
 
 	m_pApp->ServDiscBackground(); // internally it scans for: _kbserver._tcp.local.
 
-	// Keep the thread alive until all the work gets done. The app member boolean
-	// m_bServiceDiscoveryThreadCanDie will be set TRUE at the end of onSDHalting()
-	// and TestDestroy() polls the app for that value going true. TestDestroy() also
-	// requires that the CServicDiscovery booleans m_bNamescanIsEnded and
-	// m_bAddrscanIsEnded are BOTH TRUE as a condition for returning TRUE. So, control
-	// is delayed here until all three of the above booleans have gone TRUE. After they
-	// do, Entry() then finishes and OnExit()  is called. In the start of OnExit() is
-	// a .2 second time delay, which guarantees that both namescan() and addrscan() are
-	// well and truly dead and gone, before the rest of the class instances are destroyed
-	while (!TestDestroy()){	}
+	// Keep the thread alive until all the work gets done, control will not pass the
+	// next line until TestDestroy() returns TRUE
+	while (!TestDestroy())
+	{
+		// It can sleep a bit beween checks
+		wxMilliSleep(100); // .1 seconds between each test
+	}
+	// Give the child threads ample time to get themselves shut down; they need 
+	// gpServDisc global pointer to the CServiceDiscovery instance to remain
+	// valid for .7 seconds plus however much time the heap cleanups require.
+	// So give them ample time - 1.5sec should be enough. No not enough sometimes
+	// so make it 3 secs
+	wxMilliSleep(3000); 
 
 	EndServiceDiscovery(); // does everything except delete this thread itself
 
@@ -123,18 +131,9 @@ void* Thread_ServiceDiscovery::Entry()
 // TestDestroy is virtual, so my override will be called
 bool Thread_ServiceDiscovery::TestDestroy()
 {
-	if (m_pApp->m_bServiceDiscoveryThreadCanDie)
+	if (m_pServDisc->m_bDestroyChildren)
 	{
-		// The two booleans in the next test must be TRUE before TestDestroy() can return
-		// a TRUE value, because the child wxServDisc instances, namescan and addrscan must
-		// have died before we can delete the wxServDisc instance which is their parent,
-		// and the higher level classes too - the CServiceDiscovery instance, and this
-		// thread which runs it/them.
-		if (m_pServDisc->m_bNamescanIsEnded && m_pServDisc->m_bAddrscanIsEnded)
-		{
-			wxMilliSleep(200); //  .2 sec sleep before getting the final shutdown moving
-			return TRUE;
-		}
+		return TRUE;
 	}
 	return FALSE;
 }
@@ -160,12 +159,10 @@ void  Thread_ServiceDiscovery::EndServiceDiscovery()
 
 	m_pServDisc->m_serviceStr.Clear();
 
-	m_pServDisc->ShutdownWxServDisc(this->m_pServDisc->m_pWxSD);
-
 	delete m_pServDisc; // delete the manager class for the wxServDisc instance
 
-	gpServiceDiscovery = NULL;
-
+	gpServiceDiscovery = NULL; // all the wxServDisc instances must be dead before this
+							   // call is made, or an access violation will happen
 #if defined(_shutdown_)
 	wxLogDebug(_T(" thread:: EndServiceDiscovery() finished: CServiceDiscovery & owned wxServDisc are gone, gpServiceDiscovery NULL"));
 #endif
