@@ -117,7 +117,7 @@ public:
   size_t getResultCount() const;
 
   // BEW 6Apr16 made next one in the hope that it will clear up a lot of leaks - it did
-  void wxServDisc::clearResults();
+  void clearResults();
  
   // get query name
   const wxString& getQuery() const { const wxString& ref = query; return ref; };
