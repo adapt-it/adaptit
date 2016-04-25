@@ -15621,6 +15621,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 							   // temporary paralysis, so don't do that. Keep a timer gap between notifications.)
 							   // One run takes about 4.1 secs
 	m_numServiceDiscoveryRuns = 9; // the basic config file's value will override this default
+	m_bServDiscBurstIsCurrent = FALSE;
 
 	m_bServiceDiscoveryWanted = TRUE; // initialize
 	int ii;
@@ -49609,6 +49610,7 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 					m_pServDiscThread[index] = NULL;
 				}
 			}
+			m_bServDiscBurstIsCurrent = FALSE;
 			return;
 		}
 	}
@@ -49677,6 +49679,7 @@ void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 	// Note, the timer interval should be some odd value (no zeros) greater than 2.111 seconds,
 	// to avoid timer notifies persistently happening just before the same KBserver's
 	// multicasts. Shutting down a burst is done from OnServiceDiscoveryThread()
+	m_bServDiscBurstIsCurrent = TRUE;
 	m_servDiscTimer.Start(m_KBserverTimer);
 #if defined(_shutdown_)
 	wxLogDebug(_T("CAdapt_ItApp:: DoKBserverDiscoveryRuns():  m_KBserverTime value = %d , actual value in use = %d  (AI.cpp line 49628)"),

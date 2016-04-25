@@ -2853,9 +2853,16 @@ void CMainFrame::OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event)
 	// It should be possible for the user to request another set of service discovery runs
 	// in order to try get hold of a running KBserver not grabbed in earlier runs, so long
 	// as he is in a project that has document open and the document has data. Sharing of
-	// a KB is pointless in any other circumstance
+	// a KB is pointless in any other circumstance. However, disable the menu item if a
+	// burst of discovery scans is currently in progress - one or more of m_pServDiscThread[]
+	// non-NULL tests positive for scanning to be currently in progress
 	if (gpApp->m_pKB != NULL && gpApp->m_pSourcePhrases->GetCount() > 0)
-		event.Enable(TRUE);
+	{
+		if (gpApp->m_bServDiscBurstIsCurrent)
+			event.Enable(FALSE);
+		else
+			event.Enable(TRUE);
+	}
 	else
 		event.Enable(FALSE);
 }
