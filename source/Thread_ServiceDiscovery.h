@@ -57,6 +57,7 @@ public:
 
 	CServiceDiscovery*  m_pServDisc; // create here with new, so that onSDNotify() does
 										// not degrade responsiveness of main thread
+	int	m_indexOfRun; // each run will have it's own m_pServDiscThread[indexOfRun] in app .h
 
 	// other methods...
 

@@ -278,7 +278,7 @@ public:
 #if defined(_KBSERVER)
 	void OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event));
-	void OnCustomEventEndServiceDiscovery(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventEndServiceDiscovery(wxCommandEvent& event);
 #endif
 
     void OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event));

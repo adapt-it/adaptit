@@ -102,7 +102,7 @@
 // service discovery run - same define is in Thread_ServiceDiscovery.cpp and wxServDisc.cpp
 // This is the one I used to give me logging helpful for tracking down the cause of access
 // violations - the final hurdle for successful service discovery multiple runs.
-#define _shutdown_
+//#define _shutdown_
 
 #ifdef __WXMSW__
 // The following include prevents the #include of Adapt_It.h from generating Yield() macro

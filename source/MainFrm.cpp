@@ -2746,11 +2746,12 @@ void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event
 	wxUnusedVar(bSuccess);
 }
 
-void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& WXUNUSED(event))
+void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 {
-	//gpApp->m_pServDiscThread->Wait();
-	//delete gpApp->m_pServDiscThread;
-	gpApp->m_pServDiscThread = NULL; // it's detached type now, so will delete itself
+	int nWhichOne = (int)event.GetExtraLong();
+	// It's a detached thread type, so will delete itself; we'll just set its ptr to NULL
+	// (it's never a good idea to leave pointers hanging)
+	gpApp->m_pServDiscThread[nWhichOne] = NULL; 
 }
 
 // public accessor

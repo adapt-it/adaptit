@@ -372,7 +372,7 @@ wxMutex	kbsvr_arrays;
 extern std::string str_CURLbuffer;
 extern std::string str_CURLheaders;
 
-#define _shutdown_
+//#define _shutdown_
 
 #endif // _KBSERVER
 
@@ -15254,7 +15254,7 @@ wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
 }
 */
 
-void CAdapt_ItApp::ServDiscBackground()
+void CAdapt_ItApp::ServDiscBackground(int nThreadIndex)
 {
 	// BEW 4Jan16, 2nd param is the parent class for CServiceDiscovery instance, the app class
 	//m_pServDisc = new CServiceDiscovery(this); <<-- bit slow, onSDNotify() works on main thread, so app is less responsive
@@ -15262,7 +15262,7 @@ void CAdapt_ItApp::ServDiscBackground()
 	// BEW 12Apr16, changed so that CServiceDiscovery instance is created in the thread,
 	// but keeping the app as the parent. Thread's Entry() function calls it, so we can
 	// be sure the thread exists
-	m_pServDiscThread->m_pServDisc = new CServiceDiscovery(this);
+	m_pServDiscThread[nThreadIndex]->m_pServDisc = new CServiceDiscovery(this);
 }
 
 
@@ -15609,21 +15609,22 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// want - in particular in the OnProjectPageChanging() handler.
 	m_bIsKBServerProject_FromConfigFile = FALSE;
 	m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
-	//m_KBserverTimer = 16371; // default value of 16.371 seconds - basic config file can 
-							  // override with a larger value, by direct user edit only
-							  // (or a smaller value; minimum 8000)
-	// BEW 12Apr16, try 14.123 so as to get 4 tries a minute
-	//m_KBserverTimer = 12111;   // 12.111 sec as of 19Apr16,  with GC back at 5 secs; old was 14123 with GC = 9 secs
-	//m_KBserverTimer = 15111; // 15.111 sec as of 18Apr16,  with GC at 7 secs; 12.111 was causing overlap now and 
-							   // then by .1 to .2 secs, which presumably prematurely altered vital pointer values
-	m_KBserverTimer = 8367;   // maybe temporary (to prevent thread overlap) -  9.111 sec as of 22Apr16,  with GC back at 5 secs; old was 12111 with GC = 5 secs
-	// (The burst of 10 runs, at timer ticks of 12.111 took 126 seconds, or 12.6 per run. Each run was approx
-	// 5 seconds, with a 7 second delay after until the next timer tick. So using 9111 should be quite okay; making
-	// a burst of 9 take about 1.5 minutes - I think I'll settle for that
-	m_numServiceDiscoveryRuns = 9;
+	// BEW 12Apr16, try 14.123 so as to get 4 tries a minute (overlapping was taboo at this early stage)
+	//m_KBserverTimer = 12111; // 12.111 sec as of 19Apr16,  with GC back at 5 secs; old was 14123 with GC = 9 secs
+							   // 9.111 sec as of 22Apr16,  with GC back at 5 secs; old was 12111 with GC = 5 secs
+	m_KBserverTimer = 7247;    // An interval of 4.113 milliseconds works, but main thread is  unresposive for a 
+							   // So go to 7.113 secs, to allow main thread time to respond to user clicks.
+							   // half minute. (We can now overlap runs without failure, at the expense of GUI
+							   // temporary paralysis, so don't do that. Keep a timer gap between notifications.)
+							   // One run takes about 4.1 secs
+	m_numServiceDiscoveryRuns = 9; // the basic config file's value will override this default
 
 	m_bServiceDiscoveryWanted = TRUE; // initialize
-	m_pServDiscThread = NULL;
+	int ii;
+	for (ii = 0; ii < (int)MAX_SERV_DISC_RUNS; ii++)
+	{
+		m_pServDiscThread[ii] = NULL;
+	}
 
 	m_pWaitDlg = NULL; // initialize; it's only non-NULL when a message is up. OnIdle() kills
 					   // the message & restores NULL, use NULL as a flag in OnIdle()
@@ -31731,14 +31732,18 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			// There is no GUI support for changing the value stored for this param, but
 			// the user is welcome to experiment and directly edit the basic config file
-			// to give it a differernt value. Value must never be less that 8000 millisec.
+			// to give it a different value. Value must never be less that 2111 millisec.
 			num = wxAtoi(strValue);
-			// Allow values as low as 8 secs - completion of one discovery run should
-			// take no more than than about 6 seconds; we must allow the run to complete
-			// before the timer can kick off a new run
-			if (num < 8000)
+			// Allow values as low as 2.111 secs - completion of one discovery run should
+			// take no more than than about 3.4 seconds; we now can permit overlap of
+			// successive runs, but overlap of more than two at once is likely to have
+			// too much negative affect on main thread responsiveness, so keep the minimum 
+			// at 2111 milliseconds, no smaller. And the potential for overlap means
+			// that m_pServDiscThread now becomes an array of MAX_SERV_DISC_RUNS pointers,
+			// the value for that #define (in AdaptItConstants.h) is 20
+			if (num < 2111)
 			{
-				num = 8000;
+				num = 2111;
 			}
 			m_KBserverTimer = num;
 		}
@@ -31746,11 +31751,9 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			// There is no GUI support for changing the value stored for this param, but
 			// the user is welcome to experiment and directly edit the basic config file
-			// to give it a differernt value. Value must never be less that 8000 millisec.
+			// to give it a differernt value. Value must never be less than 1
 			num = wxAtoi(strValue);
-			// Allow values as low as 8 secs - completion of one discovery run should
-			// take no more than than about 6 seconds; we must allow the run to complete
-			// before the timer can kick off a new run
+			// Allow values as betwen 1 and 20 inclusive
 			if (num < 1)
 			{
 				num = 1;
@@ -49564,44 +49567,69 @@ void CAdapt_ItApp::ClobberGuesser()
 // Handler for the timer's notification
 void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 {
-	m_nSDRunCounter++; // we do a burst of 9 (default) per call of DoKBserverDiscoveryRuns()
+	// We do a burst of 9 (default) per call of DoKBserverDiscoveryRuns(), max 20 which
+	// is #defined as 20 in AdaptItconstants.h Minimum 1. User may set a different
+	// default by direct edit of the basic config file
+
+	// m_nSDRunCounter starts with value 0, so pass in the current value as the correct
+	// index, before augmenting it
 
 #if defined(_shutdown_)
-	wxLogDebug(_T("CAdapt_ItApp:: OnServiceDiscoveryTimer():  m_nSDRunCounter = %d , Timer interval = %d  (AI.cpp line 49570)"),
+	wxLogDebug(_T("CAdapt_ItApp:: OnServiceDiscoveryTimer():  m_nSDRunCounter (before augment) = %d , Timer interval = %d  (AI.cpp line 49577)"),
 			m_nSDRunCounter, m_servDiscTimer.GetInterval());
 #endif
 
 	if (m_servDiscTimer.IsRunning())
 	{
-		if (m_nSDRunCounter > m_numServiceDiscoveryRuns)
+		if (m_nSDRunCounter >= m_numServiceDiscoveryRuns)
 		{
 			m_servDiscTimer.Stop();
 			m_nSDRunCounter = 0;
+			// Ensure all ptrs are NULL - they already should be, and it
+			// doesn't really matter if some aren't, as they will be reset
+			// to null before a new burst begins, and are never used otherwise
+			int index;
+			for (index = 0; index < (int)MAX_SERV_DISC_RUNS; index++)
+			{
+				if (m_pServDiscThread[index] != NULL)
+				{
+					m_pServDiscThread[index] = NULL;
+				}
+			}
 			return;
 		}
 	}
 
-	m_pServDiscThread = new Thread_ServiceDiscovery;
+	m_pServDiscThread[m_nSDRunCounter] = new Thread_ServiceDiscovery;
 
-	wxThreadError error = m_pServDiscThread->Create(12240);
+	// Control does not reenter OnServiceDiscoveryTimer() so the
+	// job of augmenting m_nSDRunCounter is done at the start of Entry()
+	// and the new value passed back to the app member from there
+
+	wxThreadError error = m_pServDiscThread[m_nSDRunCounter]->Create(12240);
 	if (error != wxTHREAD_NO_ERROR)
 	{
 		wxString msg;
 		msg = msg.Format(_T("Thread_ServiceDiscovery error number: %d"), (int)error);
 		wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
+
+		// One may fail but others succeed. Handle this failure
+		m_pServDiscThread[m_nSDRunCounter] = NULL;
 	}
 	else
 	{
-		// no error, so now run the thread (I've made it joinable, as system resources
-		// were still in use (critical section in pending events) and they led to
-		// acess violation errors. Going wxTHREAD_JOINABLE removed that problem)
-		error = m_pServDiscThread->Run();
+		// no error, so now run the thread - it's of detached type
+		error = m_pServDiscThread[m_nSDRunCounter]->Run();
 		if (error != wxTHREAD_NO_ERROR)
 		{
 			wxString msg;
 			msg = msg.Format(_T("Thread_ServiceDiscovery  error number: %d"), (int)error);
 			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-			
+		
+			// We got it as far as instantiation, but couldn't run it. Handle this one only.
+			// Others in the burst may succeed
+			m_pServDiscThread[m_nSDRunCounter]->Delete();
+			m_pServDiscThread[m_nSDRunCounter] = NULL;
 		}
 	}
 }
@@ -49611,6 +49639,12 @@ void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 	// Use SetOwner() to bind the sevice discovery timer to the app instance, the latter will 
 	// handle its notification event, and call OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 	m_servDiscTimer.SetOwner(this);
+	int i;
+	int limit = (int)MAX_SERV_DISC_RUNS;
+	for (i = 0; i < limit; i++)
+	{
+		m_pServDiscThread[i] = NULL;
+	}
 	// If debugging is wanted, doing it with a single timer notify event is easiest - 
 	// uncomment out next line, and comment out the lower stuff
 	//m_servDiscTimer.Start(m_KBserverTimer, wxTIMER_ONE_SHOT);
@@ -49625,10 +49659,11 @@ void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 		m_nSDRunCounter = 0;
 	}
 
-	// m_KBserverTimer is defaulted to 9111 millisecs and GC = 5sec
-	// Note, the timer should be some odd value (no zeros) greater than about 11 seconds,
+	// m_KBserverTimer is defaulted to 4113 millisecs and GC = 5sec currently, see near
+	// top of OnInit() for where the default is set
+	// Note, the timer interval should be some odd value (no zeros) greater than 2.111 seconds,
 	// to avoid timer notifies persistently happening just before the same KBserver's
-	// multicasts.
+	// multicasts. Shutting down a burst is done from OnServiceDiscoveryThread()
 	m_servDiscTimer.Start(m_KBserverTimer);
 #if defined(_shutdown_)
 	wxLogDebug(_T("CAdapt_ItApp:: DoKBserverDiscoveryRuns():  m_KBserverTime value = %d , actual value in use = %d  (AI.cpp line 49628)"),

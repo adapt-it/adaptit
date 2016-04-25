@@ -35,7 +35,7 @@
 
 #if defined(_KBSERVER)
 
-#define _shutdown_   // comment out to disable wxLogDebug() calls related to shutting down service discovery
+//#define _shutdown_   // comment out to disable wxLogDebug() calls related to shutting down service discovery
 
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
@@ -65,7 +65,10 @@ extern wxMutex	kbsvr_arrays;
 Thread_ServiceDiscovery::Thread_ServiceDiscovery() : wxThread()
 {
 	m_pApp = &wxGetApp();
-	m_pApp->GetMainFrame()->nEntriesToEndServiceDiscovery = 0;
+	m_pApp->GetMainFrame()->nEntriesToEndServiceDiscovery = 0; // used just for logging support
+
+	m_indexOfRun = m_pApp->m_nSDRunCounter; // on the app, it is not yet augmented, so is a correct index value
+											// and we augment it to count this instance at the start of Entry()
 #if defined (_shutdown_)
 	wxLogDebug(_T("\nThread_ServiceDiscovery() CREATOR: I am %p"), this);
 #endif
@@ -86,6 +89,7 @@ void Thread_ServiceDiscovery::OnExit()
 	wxMilliSleep(200);
 
 	wxCommandEvent sd_eventCustom(wxEVT_End_ServiceDiscovery);
+	sd_eventCustom.SetExtraLong((long)m_indexOfRun); // So CMainFrame's handler knows which ptr in m_pServDiscThread[] to set to NULL
 	wxPostEvent(m_pApp->GetMainFrame(), sd_eventCustom); // the CMainFrame hanndler does Wait()
 						// then delete of thread, and sets member ptr m_pServDiscThread to NULL
 #if defined (_shutdown_)
@@ -96,14 +100,17 @@ void Thread_ServiceDiscovery::OnExit()
 
 void* Thread_ServiceDiscovery::Entry()
 {
-	//wxLogDebug(_T("G'day, I'm on a thread now - life is quieter here..."));
+	// Count this run, and pass the value back to the app's m_nSDRunCounter to be used
+	// by the next run as its index
+	m_pApp->m_nSDRunCounter = m_indexOfRun + 1;
 
 	processID = wxGetProcessId();
 #if defined (_shutdown_)
-	wxLogDebug(_T("\nThread_ServiceDiscovery() %p  (103)  Entry(): I am process ID = %lx"), this, processID);
+	wxLogDebug(_T("\nThread_ServiceDiscovery() %p  (103)  Entry(): I am process ID = %lx , and run with index = %d"), 
+		this, processID, m_indexOfRun);
 #endif
 
-	m_pApp->ServDiscBackground(); // internally it scans for: _kbserver._tcp.local.
+	m_pApp->ServDiscBackground(m_indexOfRun); // internally it scans for: _kbserver._tcp.local.
 
 	// Keep the thread alive until all the work gets done, control will not pass the
 	// next line until TestDestroy() returns TRUE
@@ -117,7 +124,6 @@ void* Thread_ServiceDiscovery::Entry()
 	// valid for .3 seconds plus however much time the heap cleanups require.
 	// So give them ample time - .5 sec should be enough, since CServiceDiscovery's
 	// destructor has the job of Delete()ing the owned wxServDisc instance
-	//wxMilliSleep(3000); // much too long
 	wxMilliSleep(500); // .5 sec
 
 	m_pServDisc->m_serviceStr.Clear();

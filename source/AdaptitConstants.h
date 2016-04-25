@@ -134,5 +134,7 @@
 #if defined(_KBSERVER)
 #define MSG_SECONDS 1
 #define MSG_MILLISECONDS 300
+
+#define MAX_SERV_DISC_RUNS 20
 #endif
 

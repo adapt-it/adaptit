@@ -2065,8 +2065,6 @@ class CAdapt_ItApp : public wxApp
 	bool	m_kbserver_kbadmin;   // initialize to default FALSE in OnInit()
 	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
 
-	Thread_ServiceDiscovery* m_pServDiscThread; 
-
 	// BEW 118Apr16 the following has been moved to be a member of Thread_ServiceDiscovery class
 	//CServiceDiscovery*  m_pServDisc;    // The top level class which manages the service discovery module
 
@@ -3068,12 +3066,16 @@ public:
 								 wxString& chosenHostname, enum ServDiscDetail &result);
 	bool	  m_bServiceDiscoveryWanted; // TRUE if DoServiceDiscovery() is wanted, FALSE for manual URL entry
 										 // and don't ever store the value in any config file; default TRUE
-	void	  ServDiscBackground();
+	void	  ServDiscBackground(int nThreadIndex);
+	Thread_ServiceDiscovery* m_pServDiscThread[20]; // one for each run of ServDiscBackground, because now
+				// we allow each run to overlap the last a little, the only app member is this one and if
+				// we allowed a successive run to destroy the previous run's pointer, we would get access 
+				// violations -- so each run has its own pointer
 	wxTimer   m_servDiscTimer;
 	void	  OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event));
 	int		  m_numServiceDiscoveryRuns; // I'll default it to 9 in OnInit(), but let a manual edit 
 										 // of basic config file change it ( range: 1 to 20)
-	int		  m_nSDRunCounter; // counts the number of times ServDiscBackground() is called
+	int		  m_nSDRunCounter; // counts the number of times ServDiscBackground() is called 
 	void	  DoKBserverDiscoveryRuns();
 
 	void	  ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname);
