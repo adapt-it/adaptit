@@ -100,7 +100,19 @@ public:
   // proceeds to die
   bool CheckDeathNeeded(CServiceDiscovery* pSDParent, int BEWcount, int querytype, bool& exit, bool& bBrokeFromLoop);
 
-  // yeah well...
+  // For communication back to the parent CServiceDiscovery unit, a global (which was gpServiceDiscovery)
+  // is unhelpful, because if too Thread_ServiceDiscovery instances overlap temporally, then the shutting
+  // down of the first destroys' gpServiceDiscovery, leading to access violation in the second running thread.
+  // A better solution is to have a pointer to the particular CServiceDiscovery instance which created the
+  // owned wxServDisc instance - then Thread_ServiceDiscovery instances can robustly overlap temporally. This
+  // design then means that instead of running the threads from a timer, we can instead run them in a burst
+  // of partially overlapping instances - getting what would take 1.5 minutes with a timer approach done in
+  // about 20 seconds. The following pointer allows the needed communication with CServiceDiscovery. Of course,
+  // the Thread which runs the pointed at CServiceDiscovery instance must exist until no more communications
+  // are required. We handle that with event passing, booleans, and wait loops, as required.
+  CServiceDiscovery* m_pCSD;
+
+  // yeah well...  <<-- Beier's comment. Not exactly helpful!
   std::vector<wxSDEntry> getResults() const;
   size_t getResultCount() const;
 

@@ -58,8 +58,6 @@
 #include "MainFrm.h"
 #include "Thread_ServiceDiscovery.h"
 
-extern CServiceDiscovery* gpServiceDiscovery;
-
 extern wxMutex	kbsvr_arrays;
 
 //Thread_ServiceDiscovery::Thread_ServiceDiscovery() :wxThread(wxTHREAD_JOINABLE) <<-- Wait() failed, m_thread was released, 
@@ -91,7 +89,8 @@ void Thread_ServiceDiscovery::OnExit()
 	wxPostEvent(m_pApp->GetMainFrame(), sd_eventCustom); // the CMainFrame hanndler does Wait()
 						// then delete of thread, and sets member ptr m_pServDiscThread to NULL
 #if defined (_shutdown_)
-	wxLogDebug(_T(" Thread_ServiceDiscovery::OnExit() is ending. Delayed .2 sec & then posted event wxEVT_End_ServiceDiscovery to MainFrame "));
+	wxLogDebug(_T(" Thread_ServiceDiscovery  %p  (92) OnExit() is ending. Delayed .2 sec & posted event wxEVT_End_ServiceDiscovery to MainFrame "),
+				this );
 #endif
 }
 
@@ -101,7 +100,7 @@ void* Thread_ServiceDiscovery::Entry()
 
 	processID = wxGetProcessId();
 #if defined (_shutdown_)
-	wxLogDebug(_T("\nThread_ServiceDiscovery() Entry: I am process ID = %lx"), processID);
+	wxLogDebug(_T("\nThread_ServiceDiscovery() %p  (103)  Entry(): I am process ID = %lx"), this, processID);
 #endif
 
 	m_pApp->ServDiscBackground(); // internally it scans for: _kbserver._tcp.local.
@@ -115,15 +114,20 @@ void* Thread_ServiceDiscovery::Entry()
 	}
 	// Give the child threads ample time to get themselves shut down; they need 
 	// gpServDisc global pointer to the CServiceDiscovery instance to remain
-	// valid for .7 seconds plus however much time the heap cleanups require.
-	// So give them ample time - 1.5sec should be enough. No not enough sometimes
-	// so make it 3 secs
-	wxMilliSleep(3000); 
+	// valid for .3 seconds plus however much time the heap cleanups require.
+	// So give them ample time - .5 sec should be enough, since CServiceDiscovery's
+	// destructor has the job of Delete()ing the owned wxServDisc instance
+	//wxMilliSleep(3000); // much too long
+	wxMilliSleep(500); // .5 sec
 
-	EndServiceDiscovery(); // does everything except delete this thread itself
+	m_pServDisc->m_serviceStr.Clear();
+#if defined(_shutdown_)
+	wxLogDebug(_T(" thread  %p   End of Entry() m_serviceStr cleared"), this);
+#endif
 
-#if defined (_shutdown_)
-	wxLogDebug(_T("Thread_ServiceDiscovery::Entry() is finishing now & returning NULL, EndServiceDiscovery() was just called"));
+	delete m_pServDisc; // delete the manager class for the wxServDisc instance
+#if defined(_shutdown_)
+	wxLogDebug(_T(" thread  %p  End of Entry()  m_pServDisc deleted (ie. no CServiceDiscovery)"), this);
 #endif
 	return (void*)NULL;
 }
@@ -136,36 +140,6 @@ bool Thread_ServiceDiscovery::TestDestroy()
 		return TRUE;
 	}
 	return FALSE;
-}
-
-//void  Thread_ServiceDiscovery::OnCustomEventEndServiceDiscovery(wxCommandEvent& WXUNUSED(event))
-void  Thread_ServiceDiscovery::EndServiceDiscovery()
-{
-	m_pApp->GetMainFrame()->nEntriesToEndServiceDiscovery++;
-#if defined(_shutdown_)
-	wxLogDebug(_T("\n thread:: EndServiceDiscovery() just entered, nEntriesToEndServiceDiscovery = %d"),
-		m_pApp->GetMainFrame()->nEntriesToEndServiceDiscovery);
-#endif
-	// BEW 20Apr16, When I had multiple timed service discovery runs working, I connected to one of the
-	// three KBservers that I had running, and after doing so, I again clicked the Setup Or Remove KB Sharing
-	// dialog, and immediately got a thread.cpp access violation -- logging showed that control had been in
-	// this function (the above log message was in the Output window) and after that was the access violation.
-	// The violation happens because the following calls removed the code that a running instance of wxServDisc,
-	// either namescan() or addrscan(), needed in order to destroy itself. So... what to do? I tried a short
-	// timeout here - didn't help, I could do several Setup... dialog accesses, but eventually one of them
-	// gives the access violation crash. As it is potentially a timings issue, and currently this function is
-	// on the main thread and therefore would be impinged by user activity, I'll try moving this shutdown stuff
-	// to Thread_ServiceDiscovery()
-
-	m_pServDisc->m_serviceStr.Clear();
-
-	delete m_pServDisc; // delete the manager class for the wxServDisc instance
-
-	gpServiceDiscovery = NULL; // all the wxServDisc instances must be dead before this
-							   // call is made, or an access violation will happen
-#if defined(_shutdown_)
-	wxLogDebug(_T(" thread:: EndServiceDiscovery() finished: CServiceDiscovery & owned wxServDisc are gone, gpServiceDiscovery NULL"));
-#endif
 }
 
 #endif // for _KBSERVER

@@ -372,6 +372,8 @@ wxMutex	kbsvr_arrays;
 extern std::string str_CURLbuffer;
 extern std::string str_CURLheaders;
 
+#define _shutdown_
+
 #endif // _KBSERVER
 
 // whm added 8Oct12
@@ -5963,6 +5965,8 @@ wxString szFreeTransLanguageCode = _T("FreeTranslationLanguageCode");
 /// configuration file. Adapt It stores this string in the App's m_bIsKBServerProject
 /// member variable. Default is FALSE.
 wxString szIsKBServerProject = _T("IsKBServerProject");
+
+wxString szNumberOfDiscoveryRuns = _T("NumberOfDiscoveryRuns");
 
 /// The label that identifies the whether or not the project is associated with sharing a
 /// glosses language KB. This value is written in the "ProjectSettings" part of the project
@@ -15612,10 +15616,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//m_KBserverTimer = 12111;   // 12.111 sec as of 19Apr16,  with GC back at 5 secs; old was 14123 with GC = 9 secs
 	//m_KBserverTimer = 15111; // 15.111 sec as of 18Apr16,  with GC at 7 secs; 12.111 was causing overlap now and 
 							   // then by .1 to .2 secs, which presumably prematurely altered vital pointer values
-	m_KBserverTimer = 9111;   // 9.111 sec as of 22Apr16,  with GC back at 5 secs; old was 12111 with GC = 5 secs
+	m_KBserverTimer = 8367;   // maybe temporary (to prevent thread overlap) -  9.111 sec as of 22Apr16,  with GC back at 5 secs; old was 12111 with GC = 5 secs
 	// (The burst of 10 runs, at timer ticks of 12.111 took 126 seconds, or 12.6 per run. Each run was approx
 	// 5 seconds, with a 7 second delay after until the next timer tick. So using 9111 should be quite okay; making
 	// a burst of 9 take about 1.5 minutes - I think I'll settle for that
+	m_numServiceDiscoveryRuns = 9;
 
 	m_bServiceDiscoveryWanted = TRUE; // initialize
 	m_pServDiscThread = NULL;
@@ -22063,19 +22068,18 @@ int ii = 1;
 	// and visual leak detection, done over 18 months of frustrating testing and tweaking.
 	// Ignore this and fiddle with it yourself at your own peril. You've been warned!
 	// VisLeakDetector can be turned on or off at line 279 of Adapt_It.cpp
+	DoKBserverDiscoveryRuns();
 
-
-	// Use SetOwner() to bind the sevice discovery timer to the app instance, the latter will 
-	// handle its notification event
-	m_servDiscTimer.SetOwner(this);
-	// If debugging is wanted, doing it with a single timer notify event is easiest - 
-	// uncomment out next line, and comment out the lower one
-	//m_servDiscTimer.Start(m_KBserverTimer, wxTIMER_ONE_SHOT); 
-	// m_KBserverTimer is defaulted to 14123 millisecs; on 16Apr16 I changed to 9.111 secs and GC = 5sec. (AI.cpp line 15613)
-	// Note, the timer should be some odd value (no zeros) greater than about 11 seconds,
-	// to avoid timer notifies persistently happening just before the same KBserver's
-	// multicasts.
-	m_servDiscTimer.Start(m_KBserverTimer);
+	// I lost debugging output, so try 9 manual calls in sequence
+	/*
+	wxTimerEvent eventdummy;
+	OnServiceDiscoveryTimer(eventdummy);
+	wxSleep(7);
+	OnServiceDiscoveryTimer(eventdummy);
+	wxSleep(7);
+	OnServiceDiscoveryTimer(eventdummy);
+	wxSleep(7);
+	*/
 
 #endif // _KBSERVER
 
@@ -30494,7 +30498,11 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szKBserverTimer << tab << m_KBserverTimer;
 	pf->AddLine(data);
-
+	// BEW added next one on 22Apr16, default is 9, range 1 to 20, but no gui support - alter in config file manually
+	data.Empty();
+	data << szNumberOfDiscoveryRuns << tab << m_numServiceDiscoveryRuns;
+	pf->AddLine(data);
+	
 #endif
 
 	data.Empty();
@@ -31733,6 +31741,25 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 				num = 8000;
 			}
 			m_KBserverTimer = num;
+		}
+		else if (name == szNumberOfDiscoveryRuns)
+		{
+			// There is no GUI support for changing the value stored for this param, but
+			// the user is welcome to experiment and directly edit the basic config file
+			// to give it a differernt value. Value must never be less that 8000 millisec.
+			num = wxAtoi(strValue);
+			// Allow values as low as 8 secs - completion of one discovery run should
+			// take no more than than about 6 seconds; we must allow the run to complete
+			// before the timer can kick off a new run
+			if (num < 1)
+			{
+				num = 1;
+			}
+			if (num > 20)
+			{
+				num = 20;
+			}
+			m_numServiceDiscoveryRuns = num;
 		}
 		else
 #endif
@@ -49537,7 +49564,22 @@ void CAdapt_ItApp::ClobberGuesser()
 // Handler for the timer's notification
 void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 {
-	//wxLogDebug(_T("\n\nI think someone is timing me!"));
+	m_nSDRunCounter++; // we do a burst of 9 (default) per call of DoKBserverDiscoveryRuns()
+
+#if defined(_shutdown_)
+	wxLogDebug(_T("CAdapt_ItApp:: OnServiceDiscoveryTimer():  m_nSDRunCounter = %d , Timer interval = %d  (AI.cpp line 49570)"),
+			m_nSDRunCounter, m_servDiscTimer.GetInterval());
+#endif
+
+	if (m_servDiscTimer.IsRunning())
+	{
+		if (m_nSDRunCounter > m_numServiceDiscoveryRuns)
+		{
+			m_servDiscTimer.Stop();
+			m_nSDRunCounter = 0;
+			return;
+		}
+	}
 
 	m_pServDiscThread = new Thread_ServiceDiscovery;
 
@@ -49562,6 +49604,36 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 			
 		}
 	}
+}
+
+void CAdapt_ItApp::DoKBserverDiscoveryRuns()
+{
+	// Use SetOwner() to bind the sevice discovery timer to the app instance, the latter will 
+	// handle its notification event, and call OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
+	m_servDiscTimer.SetOwner(this);
+	// If debugging is wanted, doing it with a single timer notify event is easiest - 
+	// uncomment out next line, and comment out the lower stuff
+	//m_servDiscTimer.Start(m_KBserverTimer, wxTIMER_ONE_SHOT);
+
+	if (m_servDiscTimer.IsRunning())
+	{
+		m_servDiscTimer.Stop();
+		m_nSDRunCounter = 0;
+	}
+	else
+	{
+		m_nSDRunCounter = 0;
+	}
+
+	// m_KBserverTimer is defaulted to 9111 millisecs and GC = 5sec
+	// Note, the timer should be some odd value (no zeros) greater than about 11 seconds,
+	// to avoid timer notifies persistently happening just before the same KBserver's
+	// multicasts.
+	m_servDiscTimer.Start(m_KBserverTimer);
+#if defined(_shutdown_)
+	wxLogDebug(_T("CAdapt_ItApp:: DoKBserverDiscoveryRuns():  m_KBserverTime value = %d , actual value in use = %d  (AI.cpp line 49628)"),
+		m_KBserverTimer, m_servDiscTimer.GetInterval());
+#endif
 }
 
 #endif

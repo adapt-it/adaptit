@@ -3071,6 +3071,10 @@ public:
 	void	  ServDiscBackground();
 	wxTimer   m_servDiscTimer;
 	void	  OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event));
+	int		  m_numServiceDiscoveryRuns; // I'll default it to 9 in OnInit(), but let a manual edit 
+										 // of basic config file change it ( range: 1 to 20)
+	int		  m_nSDRunCounter; // counts the number of times ServDiscBackground() is called
+	void	  DoKBserverDiscoveryRuns();
 
 	void	  ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname);
 //	wxString  ExtractURLpart(wxString& aLine);

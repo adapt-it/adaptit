@@ -80,8 +80,6 @@ public:
 
 	protected:
 
-	void EndServiceDiscovery();
-
 	private:
 	
 };

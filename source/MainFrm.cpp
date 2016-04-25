@@ -2750,9 +2750,8 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& WXUNUSED(event
 {
 	//gpApp->m_pServDiscThread->Wait();
 	//delete gpApp->m_pServDiscThread;
-	gpApp->m_pServDiscThread = NULL;
+	gpApp->m_pServDiscThread = NULL; // it's detached type now, so will delete itself
 }
-
 
 // public accessor
 wxString CMainFrame::GetKBSvrPassword()
