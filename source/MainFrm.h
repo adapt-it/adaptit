@@ -239,6 +239,9 @@ public:
 	void OnKBSharingSetupDlg(wxCommandEvent& event);
 	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
 	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
+	void OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event);
+
 	int nEntriesToEndServiceDiscovery;
 private:
 	wxString m_kbserverPassword;

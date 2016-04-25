@@ -22017,22 +22017,26 @@ int ii = 1;
 	// BEW 6Apr16 Call ServDiscBackground() which runs in the background in a thread
 	// under timer control. For debugging, comment out below and uncomment out the 
 	// wxTIMER_ONE_SHOT Start() call instead. The biggest problem is memory leaks, the
-	// ultimate solution required the thread to be wxTHREAD_JOINABLE, which uses Wait()
-	// for shutdown, and avoids maddening access violations. ServeDiscBackground internally
-	// instantiates the CServiceDiscovery class, one instance only, and assigns it to the 
-	// m_pServDisc pointer which I located in the Thread_ServiceDiscovery instance. I
-	// used a custom event (wxEVT_End_ServiceDiscovery -- see MainFrm.h & .cpp) to get
-	// the top level thread shut down, by posting the event from the thread's OnExit()
-	// function, and providing a handler in MainFrm.cpp to do the job.
+	// ultimate solution required forcing the detachable wxServDisc instances to die
+	// before the parent CServiceDiscovery class does, and put the latter in a thread.
+	// (The thread was necessary to avoid blocking the main thread where the GUI is.)
+	// ServeDiscBackground internally instantiates the CServiceDiscovery class, one 
+	// only per thread, instance only, m_pServDisc[index] pointer. There can be up to
+	// MAX_SERV_DISC_RUNS (20) of such pointers. Default 9. We use a custom event
+	// (wxEVT_End_ServiceDiscovery -- see MainFrm.h & .cpp) to get
+	// the top level threads shut down, by posting the event from the thread's OnExit()
+	// function, and providing a handler in MainFrm.cpp to do the job of setting
+	// m_pServDiscThread[index] to NULL; we don't have to actually delete it as it is
+	// detachable and so destroys itself - which we cause at the appropriate time.
 	//
 	// The CServiceDiscovery constructor, when it runs, instantiates the first wxServDisc
-	// instance, which kicks off the service discovery which runs on detached threads.
-	// Unique results are sent back to CServiceDiscovery with the help of a global ptr,
-	// gpServiceDiscovery which points at the CServiceDiscovery instance. Under timer
-	// control, timer notifications send the set of unique results aggregated within
-	// CServiceDiscovery back to the m_ipAddrs_Hostnames wxArrayString, where the GUI for
-	// service discovery, DoServiceDiscovery(), can access them to display to the user as
-	// a URL and its associated hostname.
+	// instance, which kicks off the service discovery which runs on further detached threads.
+	// Unique results are sent back to CServiceDiscovery with the help of a ptr, m_pCSD,
+	// within each wxServDisc, which points at the CServiceDiscovery instance that created
+	// the first in each such set. Under timer control, timer notifications send the set
+	// of unique results aggregated within CServiceDiscovery back to the m_ipAddrs_Hostnames
+	// wxArrayString, where the GUI for service discovery, DoServiceDiscovery(), can access
+	// them to display to the user as a URL and its associated hostname.
 	//
 	// Two things are necessary for a maintainer to know: (1) CServiceDiscovery is mandatory,
 	// it is app-facing, and so it can #include Adapt_It.h, but wxServDisc must never see
@@ -22042,25 +22046,30 @@ int ii = 1;
 	// (2) wxServDisc uses events posted to the CServiceDiscovery instance, to get
 	// hostname and ipaddress lookups done - these are done from the stackframe of an
 	// onSDNotify() event handler within CServiceDiscovery. This is Beier's original design,
-	// and it is efficient, because wxServDisc will spawn multiple new instances of itself,
+	// and it is efficient, because wxServDisc may spawn multiple new instances of itself,
 	// and some of those will post notifications to CServiceDiscovery to get onSDNotify()
-	// called, doing so more than once. It doesn't appear to need mutext protection, so I've
+	// called, doing so more than once - so we take steps to avoid multiple entries to
+	// onSDNotify(). It doesn't appear to need mutext protection, so I've
 	// not provided it (except where necessary, for array .Add() calls). The in-parallel set
 	// of running wxServDisc instances can quickly swamp the CPUs, even on 4 core or higher
 	// machines, so the trick is to run the discovery for only a few seconds - I'm setting
-	// the limit to be 9 seconds (4 would often be OK), and then it needs to shut itself 
-	// down. Extra code is needed to explicitly limit the spawned wxServDisc instances to
-	// just 4. OnSDNotify() will spawn two locally - one for hostname lookup, the other for
-	// ip address lookup. The ZeroConf code also spawns two others which basically we need
-	// to ignore. The first paramater of the wxServDisc() signature is very important. It is
+	// the limit to be 5 seconds (Beier's GC value, his was num of seconds in a day!) and
+	// then it needs to shut itself down. In practice, we force shutdown before the 5 second
+	// limit is reached. Out solution finds one and shuts down in a fraction over 4 secs.
+	// The first paramater of the wxServDisc() signature is very important. It is
 	// a (void*) for the parent class. Beier's solution makes use of the fact that if null
 	// is passed in, the new wxServDisc instance is unable to call post_notify() which
 	// otherwise would result in an embedded calling of the onSDNotify() handler - leading
-	// to chaos. Our solution deliberately is designed to find only one KBserver per run.
+	// to chaos. We, instead, pass in the pointer to the owning CServiceDiscovery instance.
+	// If an instance is spawned with null as the first param value, we regard it as a
+	// unwelcome nuisance (a zombie) and we shut it down immediately. I was getting two of
+	// these early on, but the final solution does not generate any for an unknown reason.
+	// Our solution deliberately is designed to find only one KBserver per run.
 	// To try find more leads to many difficult problems to solve, and CPU-binding problems.
-	// Finding one is quick, usually less than 3 seconds. The best solution is to run this
-	// simpler solution often, in the background, and accumulate a list of discovered
-	// running KBservers - their urls and hostnames.
+	// Finding one is quick, usually less than 3 seconds, and a bit more time for cleanup
+	// and staged shutdowns. The best solution is to run this simpler solution in a burst
+	// of instantiations, in the background, and accumulate a list of discovered running 
+	// KBservers - their urls and hostnames.
 	// To facilitate the multiple intermittent timed service discovery instantiations, their 
 	// self-destruction *must* be leakless. Unfortunately, Beier's original Zeroconf solution
 	// leaks like a sieve, and so extra work had to be done to plug the leaks.
@@ -22068,19 +22077,19 @@ int ii = 1;
 	// The above comments are a distillation of the knowledge gained from debug logging,
 	// and visual leak detection, done over 18 months of frustrating testing and tweaking.
 	// Ignore this and fiddle with it yourself at your own peril. You've been warned!
-	// VisLeakDetector can be turned on or off at line 279 of Adapt_It.cpp
+	// VisLeakDetector can be turned on or off at line 279 of Adapt_It.cpp.
+	// At the top of the Adapt_It.cpp, Thread_ServiceDiscovery.cpp, CServiceDiscovery.cpp
+	// and wxServDisc.cpp files are some commented out #defines. Uncomment the ones you want
+	// to get very useful wxLogDebug output sent to the Output window. I could not have
+	// tamed this zeroconf solution of Beier's without them. DO NOT REMOVE THEM PLEASE.
+	//
+	// The timer interval (in milliseconds), and the number of (single) service discovery
+	// runs in a burst, are parameters in the AI-BasicConfiguration.aic file - and at this
+	// point in time we provide no GUI support for changing them. It is possible to safely
+	// change them by manually editing the config file and resaving it. The range of values
+	// allows are: timer interval - greater or equal to 7.111 seconds (7111 millisecs),
+	// and number of runs per burst, 1 or more, 20 or less. The config files enforce these.
 	DoKBserverDiscoveryRuns();
-
-	// I lost debugging output, so try 9 manual calls in sequence
-	/*
-	wxTimerEvent eventdummy;
-	OnServiceDiscoveryTimer(eventdummy);
-	wxSleep(7);
-	OnServiceDiscoveryTimer(eventdummy);
-	wxSleep(7);
-	OnServiceDiscoveryTimer(eventdummy);
-	wxSleep(7);
-	*/
 
 #endif // _KBSERVER
 
@@ -31734,16 +31743,16 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 			// the user is welcome to experiment and directly edit the basic config file
 			// to give it a different value. Value must never be less that 2111 millisec.
 			num = wxAtoi(strValue);
-			// Allow values as low as 2.111 secs - completion of one discovery run should
-			// take no more than than about 3.4 seconds; we now can permit overlap of
-			// successive runs, but overlap of more than two at once is likely to have
-			// too much negative affect on main thread responsiveness, so keep the minimum 
-			// at 2111 milliseconds, no smaller. And the potential for overlap means
-			// that m_pServDiscThread now becomes an array of MAX_SERV_DISC_RUNS pointers,
-			// the value for that #define (in AdaptItConstants.h) is 20
-			if (num < 2111)
+			// Allow values as low as 7.111 secs. Values less than about 4.2 sec result
+			// in the main thread being unresponsive until the burst of discovery scans
+			// completes, so we add a few seconds to let the user's GUI actions not be
+			// deleted a long time. Overlap of runs does not break anything, but the
+			// GUI unresponsiveness is disconcerting. Hence 7.1 gives about 3 seconds
+			// of gui responsiveness in each 7 seconds, until the burst completes after
+			// about a minute (for 9 runs in the burst); then the GUI acts normal.
+			if (num < 7111)
 			{
-				num = 2111;
+				num = 7111;
 			}
 			m_KBserverTimer = num;
 		}

@@ -544,6 +544,8 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU (ID_MENU_SHOW_KBSERVER_SETUP_DLG,	CMainFrame::OnKBSharingSetupDlg)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_DLG, CMainFrame::OnUpdateKBSharingDlg)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
+	EVT_MENU(ID_MENU_SCAN_AGAIN_KBSERVERS,CMainFrame::OnScanForRunningKBservers)
+	EVT_UPDATE_UI(ID_MENU_SCAN_AGAIN_KBSERVERS, CMainFrame::OnUpdateScanForRunningKBservers)
 
 #endif
 
@@ -2833,6 +2835,30 @@ wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& url, wxString& hostname)
 
 #endif
 
+void CMainFrame::OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event))
+{
+	// Do a burst of KBserver discovery runs. Each run is limited to discoverying one.
+	// Which get discovered is a matter of accidents of timing between the multicast
+	// frequency and when those happen, and when each discovery run begins its 1 second
+	// of scanning. KBservers which multicast hard on the heels of an earlier one are
+	// hard to detect, and more than one burst may be required to find such ones
+	gpApp->DoKBserverDiscoveryRuns();
+
+	// There is always a single burst done automatically when the app starts up, at
+	// the end of the OnInit() function. Further bursts are a matter of user choice.
+}
+
+void CMainFrame::OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event)
+{
+	// It should be possible for the user to request another set of service discovery runs
+	// in order to try get hold of a running KBserver not grabbed in earlier runs, so long
+	// as he is in a project that has document open and the document has data. Sharing of
+	// a KB is pointless in any other circumstance
+	if (gpApp->m_pKB != NULL && gpApp->m_pSourcePhrases->GetCount() > 0)
+		event.Enable(TRUE);
+	else
+		event.Enable(FALSE);
+}
 
 // TODO: uncomment EVT_MENU event handler for this function after figure out
 // why SetDelay() disables tooltips
