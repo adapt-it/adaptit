@@ -79,6 +79,7 @@ DECLARE_EVENT_TYPE(wxEVT_Delayed_GetChapter, -1)
 
 DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
 DECLARE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg, -1)
+DECLARE_EVENT_TYPE(wxEVT_End_ServiceDiscovery, -1)
 
 #endif
 
@@ -104,8 +105,6 @@ wxString MakeChapVerseStrForSynchronizedScroll(wxString& chapVerseStr);
 int FindChapterVerseLocation(SPList* pDocList, int nChap, int nVerse, const wxString& strChapVerse);
 void Code2BookFolderName(wxArrayPtrVoid* pBooksArray, const wxString& strBookCode, wxString& strFolderName,
 						 int& nBookIndex);
-//void DeleteSourcePhrases_ForSyncScrollReceive(CAdapt_ItDoc* pDoc, SPList* pList); // whm 27May11 removed
-																					//no longer needed
 
 /// The CMainFrame class defines Adapt It's basic interface, including its menu bar,
 /// tool bar, control bar, compose bar, and status bar.
@@ -240,7 +239,10 @@ public:
 	void OnKBSharingSetupDlg(wxCommandEvent& event);
 	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
 	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
+	void OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event);
 
+	int nEntriesToEndServiceDiscovery;
 private:
 	wxString m_kbserverPassword;
 public:
@@ -249,7 +251,7 @@ public:
 	void	 SetKBSvrPassword(wxString pwd);
 	// Next is the function for getting the KBserver password typed in by the
 	// user via a dialog
-	wxString GetKBSvrPasswordFromUser();
+	wxString GetKBSvrPasswordFromUser(wxString& url, wxString& hostname);
 
 #endif // _KBSERVER
 
@@ -279,6 +281,7 @@ public:
 #if defined(_KBSERVER)
 	void OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventEndServiceDiscovery(wxCommandEvent& event);
 #endif
 
     void OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event));

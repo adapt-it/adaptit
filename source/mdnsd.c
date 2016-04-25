@@ -62,9 +62,28 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp)
 // size of cache hash
 #define LPRIME 1009
 // brute force garbage cleanup frequency, rarely needed (daily default)
-#define GC 120   // seconds. Beier's original value is :  #define GC 86400
+#define GC 5   // seconds. Beier's original value is :  #define GC 86400 = 24 hours // my 10 seconds value produced 
+				// 7 discoveries of 2 running with one KBserver running, and GC = 6, I got 6 discoveries of .2.11;
+				// so for debugging use GC = 4 and the number of leaks varies with the number of KBservers to be 
+				// found: 2 running -> 77.5 leaks, 1 running -> 45.5 leaks, so do my heap cleanup with just one
+				// KBserver running. 7 Apr, GC=4, limiting to one posting of wxServDiscNOTIFY even, got leakless
+				// successes in about 5 sec all up.
+				// Try GC = 5, maybe a bit more generous for a wireless network may help
+				// At KG, wired connections, 4 KBservers running, GC 5 gave one discovery in a blue moon, so
+				// I'm increasing to 9 to see if that gives more frequent successes -- yes, much much better.
+				// Keep this value, as when it is discovering, they take < 3secs each anyway; whereas 5
+				// misses heaps of them - I'm at KG, on 12April 2016, first day of successful timed discoveries
+				// with no leaks and no crashes. Yay! The access violation errors after the thread destructor
+				// was called were eliminated by calling Delete() from a function DeleteServDiscThread() on
+				// the app, where Entry() calls it when shutdown is wanted, and that did the trick. 
+				// Nope -
+				// one discovery run seems to get thru okay, multiples on a timer, crash after a few runs -
+				// access violations in wxThread's critical section buffer for pending event processing.
+				// I went to a joinable thread on the timer, but still got access violations. I have to
+				// destroy namescan and addrscan before the parent wxServDisc is destroyed. GC 5 should be enough.
 
-/* messy, but it's the best/simplest balance I can find at the moment
+
+/* (Beier's comment) messy, but it's the best/simplest balance I can find at the moment
 Some internal data types, and a few hashes: querys, answers, cached, and records (published, unique and shared)
 Each type has different semantics for processing, both for timeouts, incoming, and outgoing I/O
 They inter-relate too, like records affect the querys they are relevant to

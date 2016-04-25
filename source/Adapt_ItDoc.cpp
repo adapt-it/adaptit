@@ -1390,7 +1390,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 		if (!bOK)
 		{
 			pApp->LogUserAction(_T("In OnNewDocument WriteConfigurationFile() failed"));
-			wxMessageBox(_T("Adapt_ItDoc.cpp, WriteConfigurationFile() failed, for project config file or admin project config file, in OnNewDocument() at lines 1271-77"));
+			wxMessageBox(_T("Adapt_ItDoc.cpp, WriteConfigurationFile() failed, for project config file or admin project config file, in OnNewDocument() at lines 1393+"));
 		}
 	}
 
@@ -5740,7 +5740,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 		// fails, and keep on processing
 		if (!bOK)
 		{
-			wxMessageBox(_T("Adapt_ItDoc.cpp, WriteConfigurationFile() failed, for project config file or admin project config file, in OnSaveModified() at lines 4064-70"));
+			wxMessageBox(_T("Adapt_ItDoc.cpp, WriteConfigurationFile() failed, for project config file or admin project config file, in OnSaveModified() at lines 5743+"));
 		}
 	}
 
@@ -6389,7 +6389,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		// fails, and keep on processing
 		if (!bOK)
 		{
-			wxMessageBox(_T("Adapt_ItDoc.cpp, WriteConfigurationFile() failed, for project config file or admin project config file, in OnOpenDocument() at lines 4673-79"));
+			wxMessageBox(_T("Adapt_ItDoc.cpp, WriteConfigurationFile() failed, for project config file or admin project config file, in OnOpenDocument() at lines 6392+"));
 		}
 	}
 

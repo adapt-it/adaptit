@@ -92,9 +92,14 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 		url = m_urlsArr.Item(index);
 		hostname = m_hostnamesArr.Item(index);
 
-		m_pListBoxUrls->Append(url);
 
-		// TODO  --- add the hostname, once I start supporting them in the data sent to CServiceDiscovery - we'll need a wxListCtrl then
+//TODO  For now, make a composite of url, 4 spaces, and hostname -- later, use wxListCtrl
+		strComposite = url + _T("    ");
+		strComposite += hostname;
+		//m_pListBoxUrls->Append(url);
+		m_pListBoxUrls->Append(strComposite);
+
+// TODO  --- add the hostname, once I start supporting them in the data sent to CServiceDiscovery - we'll need a wxListCtrl then
 
 		// ********************************************************************************************************************** TODO
 	}
@@ -103,7 +108,7 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	if (!m_pListBoxUrls->IsEmpty())
 	{
         m_pListBoxUrls->SetSelection(0);
-        m_urlSelected = m_pListBoxUrls->GetStringSelection();
+        strComposite = m_pListBoxUrls->GetStringSelection();
 	}
 	m_pListBoxUrls->SetFocus();
 }
@@ -114,7 +119,15 @@ void CServDisc_KBserversDlg::OnSelchangeListboxUrls(wxCommandEvent& WXUNUSED(eve
 		return;
 
 	nSel = m_pListBoxUrls->GetSelection();
-	m_urlSelected = m_pListBoxUrls->GetString(nSel);
+
+// TODO  temporary code....
+	strComposite = m_pListBoxUrls->GetString(nSel);
+	int offset = wxNOT_FOUND;
+	offset = strComposite.Find(_T("  ")); // find two spaces - start of the 4
+	m_urlSelected = strComposite.Left(offset);
+	m_hostnameSelected = strComposite.Mid(offset + 4);
+
+	//m_urlSelected = m_pListBoxUrls->GetString(nSel);
 }
 
 void CServDisc_KBserversDlg::OnDblclkListboxUrls(wxCommandEvent& WXUNUSED(event))
@@ -132,7 +145,16 @@ void CServDisc_KBserversDlg::OnDblclkListboxUrls(wxCommandEvent& WXUNUSED(event)
 		return;
 	}
 	nSel = m_pListBoxUrls->GetSelection();
-	m_urlSelected = m_pListBoxUrls->GetString(nSel);
+
+// TODO  temporary code....
+	strComposite = m_pListBoxUrls->GetString(nSel);
+	int offset = wxNOT_FOUND;
+	offset = strComposite.Find(_T("  ")); // find two spaces - start of the 4
+	m_urlSelected = strComposite.Left(offset);
+	m_hostnameSelected = strComposite.Mid(offset + 4);
+
+
+	//m_urlSelected = m_pListBoxUrls->GetString(nSel);
     EndModal(wxID_OK); //EndDialog(IDOK);
 }
 

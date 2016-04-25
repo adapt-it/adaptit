@@ -31,6 +31,7 @@ public:
 	wxSizer*	pServDisc_KBserversDlgSizer;
 	wxListBox*	m_pListBoxUrls;
 	wxString	m_urlSelected;
+	wxString	m_hostnameSelected;
 	wxArrayString m_urlsArr;
 	wxArrayString m_hostnamesArr;
 	bool m_bUserCancelled;
@@ -44,6 +45,7 @@ protected:
 	void OnDblclkListboxUrls(wxCommandEvent& WXUNUSED(event));
 
 private:
+	wxString strComposite; // url, spaces, hostname <--- temporary
 	int nSel; // index of selected URL
 	DECLARE_EVENT_TABLE()
 };

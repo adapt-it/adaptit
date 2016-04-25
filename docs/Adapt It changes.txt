@@ -27,7 +27,7 @@ three characters .<space>" as final punctuation on the
 first word.
 * Vertical Edit mode could produce differing final
 document states, depending on how the editing was done
-while verticall mode was operational. This has been 
+while vertical mode was operational. This has been 
 fixed, so that the return to normal mode gives
 predictable results. The phrasebox will be left
 at the same location as it was in when last at some
@@ -37,6 +37,21 @@ will be the leftmost pile of the section of edited source
 text.
 * A user's choice of italics for any of the fonts was not
 getting saved to the configuration files. Now fixed.
+* It was possible to lose the adaptation, from the KB, of
+a single source word, word1 say, if the document had two 
+source words following word1, and those two needed to be
+merged, and the first of the two words to be merged was
+also word1, and SHIFT+TAB was used to move the phrase
+box back to the second word1, and then ALT+RightArrow
+was used to select both words for merging. Then when
+the first character of the adaptation was typed, the
+merger happened and within that word1 had its reference
+count reduced to 0, which caused it to be marked as
+deleted in the knowledge base. It is now not possible
+for this sequence of actions to cause deletion from the
+KB for word1.
+* Fixed some crashes at document end when adding extra
+words there in the "Edit Source Text..." feature.
 
 ----------------------------------------------
 Version 6.6.4 release 15 October 2015

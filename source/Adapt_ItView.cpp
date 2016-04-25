@@ -9977,6 +9977,10 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	CLayout* pLayout = GetLayout();
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
+	// Indicate that a merger is in progress (see Adapt_It.h for an explanation of
+	// why we need this flag)
+	pApp->m_bMergerIsCurrent = TRUE;
+
     // In glossing mode (ie. actually glossing) I think I've managed to silently prevent
     // any merge from happening before OnButtonMerge( ) can get invoked. However, it the
     // user were to explicitly click the button, there is no recourse except to tell him
@@ -9987,6 +9991,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(_(
 		"This particular operation is not available when you are glossing."),
 		_T(""), wxICON_INFORMATION | wxOK);
+		pApp->m_bMergerIsCurrent = FALSE;
 		return;
 	}
 
@@ -10108,6 +10113,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			gbMergeSucceeded = FALSE;
 			Invalidate(); // get a redraw done, and the phrase box reshown
 			GetLayout()->PlaceBox();
+			pApp->m_bMergerIsCurrent = FALSE;
 			return;
 		}
 
@@ -10289,6 +10295,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
+		pApp->m_bMergerIsCurrent = FALSE;
 		return;
 	}
 
@@ -10318,6 +10325,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
+		pApp->m_bMergerIsCurrent = FALSE;
 		return;
 	}
 
@@ -10344,6 +10352,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		GetLayout()->PlaceBox();
 		RemoveSelection();
 		GetLayout()->Redraw();
+		pApp->m_bMergerIsCurrent = FALSE;
 		return;
 	}
 
@@ -10372,6 +10381,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
+		pApp->m_bMergerIsCurrent = FALSE;
 		return;
 	}
 
@@ -10397,6 +10407,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
+		pApp->m_bMergerIsCurrent = FALSE;
 		return;
 	}
 
@@ -10422,6 +10433,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	{
 		pApp->GetRetranslation()->DoRetranslation();
 		gbMergeSucceeded = FALSE;
+		pApp->m_bMergerIsCurrent = FALSE;
 		return;
 	}
 
@@ -10550,28 +10562,6 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 							pFirstSrcPhrase->m_nSrcWords == 0); // no phrases allowed
 	wxASSERT(nodeSPTemp != NULL);
 
-	// BEW removed strAdapt 13Nov10
-	// we will try accumulating a default "adaptation" string, if strOldAdaptation is empty,
-	// otherwise use the latter
-	//wxString strAdapt;
-	//strAdapt.Empty();
-	//if (strOldAdaptation.IsEmpty())
-	//{
-	//	if (pFirstSrcPhrase->m_targetStr.IsEmpty())
-	//	{
-	//		pApp->m_pTargetBox->m_bAbandonable = TRUE;
-	//		if (pApp->m_bCopySource)
-	//			strAdapt = CopySourceKey(pFirstSrcPhrase, pApp->m_bUseConsistentChanges);
-	//		else
-	//			; // leave it empty
-	//	}
-	//	else
-	//	{
-	//		strAdapt = pFirstSrcPhrase->m_targetStr;
-	//		pApp->m_pTargetBox->m_bAbandonable = FALSE;
-	//	}
-	//}
-
 	// ensure a correct active sequ num when done
 	pApp->m_nActiveSequNum = nSaveSequNum;
 
@@ -10607,28 +10597,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		// compose a default adaptation string, as best we can
 		if (strOldAdaptation.IsEmpty())
 		{
-			// BEW 13Nov10 removed strAdapt support
-			//if (pSrcPhrase->m_adaption.IsEmpty())
-			//{
-				pApp->m_pTargetBox->m_bAbandonable = TRUE;
-
-				//if (pApp->m_bCopySource)
-				//{
-					// don't add these ones which are additional to the first if
-					// the flag wants suppression
-				//	if (!bSuppressCopyingExtraSourceWords)
-				//		strAdapt += _T(" ") + CopySourceKey(pSrcPhrase,
-				//									pApp->m_bUseConsistentChanges);
-				//}
-				//else
-				//	; // leave it empty
-			//}
-			//else
-			//{
-			//	strAdapt += _T(" ") + pSrcPhrase->m_adaption;
-			//	pApp->m_pTargetBox->m_bAbandonable = FALSE;
-			//	bNoninitialSelectionsHaveTranslation = TRUE;
-			//}
+			pApp->m_pTargetBox->m_bAbandonable = TRUE;
 		}
 	} // end of for loop which merges all the non-first to the first in the selection
 
@@ -10842,6 +10811,8 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	Invalidate();
 	GetLayout()->PlaceBox();
 	gbMergeSucceeded = TRUE;
+	pApp->m_bMergerIsCurrent = FALSE;
+
 //#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15, on pFirstSrcPhrase change both src and both tgt strings to have no /
 	// but ZWSP instead, if m_bFwdSlashDelimiter is TRUE and / is in the merged strings
@@ -16865,6 +16836,8 @@ void CAdapt_ItView::PositionDlgNearTop(wxDialog* pDlg)
 		wxSIZE_USE_EXISTING);
 }
 
+// BEW 7Aapr16, the function is now a little misleading in its name. I've brought it up
+// further and further to the left - now it's a little to the right of centre
 void CAdapt_ItView::PositionDlgNearBottomRight(wxDialog* pDlg)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -16885,10 +16858,11 @@ void CAdapt_ItView::PositionDlgNearBottomRight(wxDialog* pDlg)
 	int myTopCoord = frameTop + frameHeight; // near bottom of frame
 	myTopCoord -= dlgHeight; // go back up a bit, allow for height of the dialog
 	// And now raise it higher a tad more
-	myTopCoord = myTopCoord - 30;
+	myTopCoord = myTopCoord - (frameHeight/4 +10);
 
 	int myLeftCoord;
-	myLeftCoord = frameLeft + frameWidth - (dlgWidth + 30); // right is 30 pixels in from left of frame
+	//myLeftCoord = frameLeft + frameWidth - (dlgWidth + 30); // right is 30 pixels in from left of frame
+	myLeftCoord = frameLeft + frameWidth/2 - (dlgWidth/2 + 40);
 
 	pDlg->SetSize( // set size in device/screen pixels
 		myLeftCoord, // position of left of dlg
@@ -25583,6 +25557,12 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 	}
 	CAdapt_ItDoc* pDoc = GetDocument();
 	EditRecord* pRec = &gEditRecord; // local pointer to the global EditRecord
+
+	// BEW added next line 14Apr16, because the LHS value was not set when I
+	// was adding some source text at document end, and after doing so, the LHS
+	// was a huge -ve number, and an assert tripped. Checking, it appears to have
+	// been set in most places except here - the most important place!
+	pApp->m_vertEdit_LastActiveSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 
 	pApp->LogUserAction(_T("Initiated OnEditSourceText()"));
 

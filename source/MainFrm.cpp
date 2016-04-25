@@ -88,6 +88,7 @@
 #include "CollabUtilities.h" // BEW added 15Sep14
 
 #if defined(_KBSERVER)
+
 #include "KBSharing.h" // BEW added 14Jan13
 //#include "KBSharingSetupDlg.h" // BEW added 15Jan13
 #include "KbSharingSetup.h" // BEW added 10Oct13
@@ -96,7 +97,11 @@
 #include "Timer_KbServerChangedSince.h"
 #include "ServiceDiscovery.h"
 #include "WaitDlg.h"
-#endif
+#include "Thread_ServiceDiscovery.h"
+
+#define _shutdown_
+
+#endif // _KBSERVER
 
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -365,6 +370,7 @@ IMPLEMENT_CLASS(CMainFrame, wxDocParentFrame)
 //DECLARE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit, -1)
 //DECLARE_EVENT_TYPE(wxEVT_Glosses_Edit, -1)
 //DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
+//DECLARE_EVENT_TYPE(wxEVT_End_ServiceDiscovery, -1) <<-- moved to Thread_ServiceDiscovery.h
 
 
 DEFINE_EVENT_TYPE(wxEVT_Adaptations_Edit)
@@ -384,6 +390,7 @@ DEFINE_EVENT_TYPE(wxEVT_Delayed_GetChapter)
 #if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
 DEFINE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg)
+DEFINE_EVENT_TYPE(wxEVT_End_ServiceDiscovery)
 #endif
 
 //BEW 10Dec12, new custom event for the kludge for working around the scrollPos bug in GTK build
@@ -495,6 +502,13 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
         (wxObject *) NULL \
     ),
 
+#define EVT_END_SERVICEDISCOVERY(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_End_ServiceDiscovery, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+
 #endif
 
 
@@ -530,6 +544,8 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU (ID_MENU_SHOW_KBSERVER_SETUP_DLG,	CMainFrame::OnKBSharingSetupDlg)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_DLG, CMainFrame::OnUpdateKBSharingDlg)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
+	EVT_MENU(ID_MENU_SCAN_AGAIN_KBSERVERS,CMainFrame::OnScanForRunningKBservers)
+	EVT_UPDATE_UI(ID_MENU_SCAN_AGAIN_KBSERVERS, CMainFrame::OnUpdateScanForRunningKBservers)
 
 #endif
 
@@ -573,6 +589,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 #if defined(_KBSERVER)
 	EVT_KBDELETE_UPDATE_PROGRESS(-1, CMainFrame::OnCustomEventKbDeleteUpdateProgress)
 	EVT_CALL_AUTHENTICATE_DLG(-1, CMainFrame::OnCustomEventCallAuthenticateDlg)
+	EVT_END_SERVICEDISCOVERY(-1, CMainFrame::OnCustomEventEndServiceDiscovery)
 #endif
 
 	//BEW added 10Dec12
@@ -2725,11 +2742,18 @@ void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event
 	// dialog from within its OnOK() handler leaves the child dialog lower in
 	// the z-order, and it then is hidden if control is sent back to it - which
 	// locks up the app and the user can't do anything
-    bool bSuccess = AuthenticateCheckAndSetupKBSharing(gpApp, gpApp->m_KBserverTimeout,
-												gpApp->m_bServiceDiscoveryWanted);
+    bool bSuccess = AuthenticateCheckAndSetupKBSharing(gpApp, gpApp->m_bServiceDiscoveryWanted);
 	// pass the final value back to the app,
 	gpApp->m_bServiceDiscoveryWanted = TRUE; // Restore default value
 	wxUnusedVar(bSuccess);
+}
+
+void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
+{
+	int nWhichOne = (int)event.GetExtraLong();
+	// It's a detached thread type, so will delete itself; we'll just set its ptr to NULL
+	// (it's never a good idea to leave pointers hanging)
+	gpApp->m_pServDiscThread[nWhichOne] = NULL; 
 }
 
 // public accessor
@@ -2746,9 +2770,11 @@ void CMainFrame::SetKBSvrPassword(wxString pwd)
 // The public function for getting a KBserver's password. We have it here because we want
 // to get it typed in only once - not twice (ie. not for the adapting KB's KbServer
 // instance and then again for the glossing KB's KbServer instance)
-wxString CMainFrame::GetKBSvrPasswordFromUser()
+wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& url, wxString& hostname)
 {
-	wxString msg = _("Type the knowledge base server's password.\nYou should have received it from your administrator.\nWithout the correct password, sharing your knowledge base data\nwith others cannot happen, nor can they share theirs with you.");
+	wxString msg = _("Type the knowledge base server's password.\nYou should have received it from your administrator.\nWithout the correct password, sharing your knowledge base data\nwith others cannot happen, nor can they share theirs with you.\n%s    %s\n The server name field is advisory, if <unknown> then ignore it.");
+	msg = msg.Format(msg, url.c_str(), hostname.c_str());
+	
 	wxString caption = _("Type the server's password");
 	wxString default_value = _T("");
 #if defined(_DEBUG) && defined(AUTHENTICATE_AS_BRUCE) // see top of Adapt_It.h
@@ -2809,6 +2835,30 @@ wxString CMainFrame::GetKBSvrPasswordFromUser()
 
 #endif
 
+void CMainFrame::OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event))
+{
+	// Do a burst of KBserver discovery runs. Each run is limited to discoverying one.
+	// Which get discovered is a matter of accidents of timing between the multicast
+	// frequency and when those happen, and when each discovery run begins its 1 second
+	// of scanning. KBservers which multicast hard on the heels of an earlier one are
+	// hard to detect, and more than one burst may be required to find such ones
+	gpApp->DoKBserverDiscoveryRuns();
+
+	// There is always a single burst done automatically when the app starts up, at
+	// the end of the OnInit() function. Further bursts are a matter of user choice.
+}
+
+void CMainFrame::OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event)
+{
+	// It should be possible for the user to request another set of service discovery runs
+	// in order to try get hold of a running KBserver not grabbed in earlier runs, so long
+	// as he is in a project that has document open and the document has data. Sharing of
+	// a KB is pointless in any other circumstance
+	if (gpApp->m_pKB != NULL && gpApp->m_pSourcePhrases->GetCount() > 0)
+		event.Enable(TRUE);
+	else
+		event.Enable(FALSE);
+}
 
 // TODO: uncomment EVT_MENU event handler for this function after figure out
 // why SetDelay() disables tooltips
@@ -4457,7 +4507,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 #if defined(_KBSERVER)
 
-	// TODO -- code for cached new KBserver entries to be sent to remote server
 	KbServer* pKbSvr = NULL;
 	CKB* pKB = NULL;
 	if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
@@ -4552,16 +4601,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
-
-	if ( gpApp->m_bCServiceDiscoveryCanBeDeleted )
-	{
-		wxLogDebug(_T("OnIdle(): m_bCServiceDiscoveryCanBeDeleted is TRUE, so deleting CServiceDiscovery instance %p, & setting m_pServDisc to NULL"),
-			gpApp->m_pServDisc);
-		delete gpApp->m_pServDisc; // BEW 4Dec16
-		gpApp->m_pServDisc = NULL;
-
-		gpApp->m_bCServiceDiscoveryCanBeDeleted = FALSE; // reinitialize
-	}
 
 	if (pApp->m_pWaitDlg != NULL)
 	{
@@ -6797,7 +6836,11 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 	// Get from the app the various phrasebox and sequ num location params
 	// needed for restoring the original state
 	int nLastActiveSequNum = gpApp->m_vertEdit_LastActiveSequNum;
-	wxASSERT(nLastActiveSequNum >= 0 && nLastActiveSequNum <= gpApp->GetMaxIndex());
+	//BEW 14Apr16 removed this assert because it is violated by the legitimate user
+	// action of doing an edit source text with selection of the last word of the document
+	// and adding some more source text words. Causes this to trip and there is nothing
+	// wrong with the user action.
+	//wxASSERT(nLastActiveSequNum >= 0 && nLastActiveSequNum <= gpApp->GetMaxIndex());
 	wxString strLastBoxContents;
 
 #if defined(_DEBUG)

@@ -39,15 +39,6 @@
 /// conflicts with winsock.h and other Microsoft classes. To avoid this, the
 /// CServiceDiscovery serves to isolate the namespace for the service discovery
 /// code from clashes with the GUI support's namespace. So it must be retained.
-/// 
-/// Also, DO NOT return GetResults() to be an event handler (formerly it was
-/// onSDNotify() for a wxServDiscNOTIFY event posted within Post_Notify())
-/// because our mutex & condition solution uses .WaitTimeout() in the app's
-/// DoServiceDiscovery() function, and when waiting, main thread event handling
-/// is asleep - so if you tried to do things Beier's way, the essential
-/// address lookup etc would not get called until the main thread's sleep ended -
-/// which would be too late because DoServiceDiscovery() would have been exited
-/// before the service discovery results could be computed.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef SERVICEDISCOVERY_h
@@ -69,74 +60,49 @@ class CServiceDiscovery : public wxEvtHandler
 
 public:
 	CServiceDiscovery();
-	CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
-					wxString servicestring, CAdapt_ItApp* pParentClass);
+	CServiceDiscovery(CAdapt_ItApp* pParentClass);
 	virtual ~CServiceDiscovery();
 
-	wxString m_servicestring; // service to be scanned for
 	CAdapt_ItApp* m_pApp;
 
 	wxServDisc* m_pWxSD; // main service scanner (a child class of this one)
 	CAdapt_ItApp* m_pParent; // BEW 4Jan16
-	bool m_bWxServDiscIsRunning; // I'll use a FALSE value of this set in onSDHalting
-								 // informing CServiceDiscovery instance that we are done
-	int	m_postNotifyCount;  // count the number of Post_Notify() call attempts
-            // and only allow the function to be actually called when the count value is
-            // zero -- this is to prevent multiple accesses to the
-            // CServiceDiscovery::GetResults() code - it appears that this can otherwise be
-            // running after the CServiceDiscovery instance has been deleted which could
-            // lead to a crash
-	/*
-	// scratch variables, used in the loop in GetResults() handler
+
+	int	m_postNotifyCount;  // count the number of Post_Notify() calls, we use it to 
+							// limit one discovery run to finding one running KBserver
+							// at random from however many are currently running
+	bool m_bDestroyChildren; // When true, this CServiceDiscovery and its owning thread are eligible for shutdown
+
+	// The next two give us access to the child wxServDisc instances local to onSDNotify(), 
+	// namescan() (the latter scans for QTYPE_SRV) and addrscan() (the latter scans for QTYPE_A)
+	wxServDisc* m_pNamescan = NULL;
+	wxServDisc* m_pAddrscan = NULL;
+
+	unsigned long processID;
+
+	// scratch variables, used in the loop in onSDNotify() handler
 	wxString m_hostname;
 	wxString m_addr;
 	wxString m_port;
-	*/
+
+	wxString m_serviceStr;
+
+	// Two helper functions so that we don't transfer to the app data we already have there
+	bool IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
+	bool AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
+
+	// These arrays receive results, which will get passed back to app's DoServiceDiscovery() etc.
 	wxArrayString m_sd_servicenames;   // for servicenames, as discovered from query (these are NOT hostnames)
-	wxArrayString m_uniqueIpAddresses; // for each 192.168.n.m  (we store unique ip addresses)
-	wxArrayString m_theirHostnames;    // from the namescan() lookup
-	wxArrayString m_urlsArr;
+	wxArrayString m_ipAddrs_Hostnames; // stores unique set of <ipaddress>@@@<hostname> composite strings
 
-	/*
-	// The follow int arrays are for storing booleans, 1 for TRUE, 0 for FALSE
-	// in parallel with the URLs (or empty strings) in m_urlsArr
-	wxArrayInt m_bArr_ScanFoundNoKBserver;
-	wxArrayInt m_bArr_HostnameLookupFailed;
-	wxArrayInt m_bArr_IPaddrLookupFailed;
-	wxArrayInt m_bArr_DuplicateIPaddr;
-	// Flags are 1 (true), 0 (false), -1 (undefined)
-	// Put our constructed lines in m_sd_lines: each is  url:0:0:0:0 (the failure flags are
-	// each zero if a url is constructed and it is unique), or if no KBserver was discovered:
-	// :1:-1:-1:-1, or a duplicate discovered, url:0:0:0:1, or if some other error, :0:1:-1:-1 
-	// or :0:0:-1:-1
-	wxArrayString m_sd_lines;
-	wxArrayString m_localDiscResultsArr;
-	*/
-	// The mutex and condition were created within CAdapt_ItApp::DoServiceDiscovery()
-	// which is on the main thread
-	wxMutex*      m_pMutex;
-	wxCondition*  m_pCondition;
-
-	void wxItoa(int val, wxString& str); // copied from helpers.h & .cpp, it creates 
-										 // name conflict problems to #include "helpers.h"
-    // bools (as int 0 or 1, in int arrays) for error conditions are on the CAdapt_ItApp
-    // instance and the array of URLs for the one or more _kbserver._tcp.local. services
-    // that are discovered is there also. It is NAUGHTY to have two or more KBservers
-    // running on the LAN at once, but we can't prevent someone from doing so - when that
-    // happens, we'll need to let them choose which URL to connect to. The logic for all
-    // that will be in a function called DoServiceDiscovery() - an app member function.
-    // The function will make use of the data we send to the app's m_servDiscResults
-    // wxArrayString member.
-public:
-	//void GetResults(); // BEW replacement for Beier's onSDNotify(). Our replacement is
-					   // called directly, not as a handler for an onSDNotify event
-	void onSDHalting(wxCommandEvent& event); // we do cleanup by handlers of this type
-					   // invoked by our posting of custom events at the right time
+protected:
+	  void onSDNotify(wxCommandEvent& WXUNUSED(event));
 private:
+
 	DECLARE_EVENT_TABLE();
 };
 
-#endif // SERVICEDISCOVERY_h
-
 #endif // _KBSERVER
+
+#endif // SERVICEDISCOVERY_h
 

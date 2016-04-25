@@ -106,6 +106,9 @@
 
 wxMutex	kbsvr_arrays;
 
+// Comment out to prevent DoServiceDiscovery() from logging with wxLogDebug()
+#define _DOSERVDISC
+
 // vectorized bitmaps
 #include "../res/vectorized/document_new_16.cpp"
 #include "../res/vectorized/document_open_16.cpp"
@@ -303,6 +306,7 @@ wxMutex	kbsvr_arrays;
 #include "WaitDlg.h"
 #include "GuesserAffixesListsDlg.h" //klb 9/2014
 
+
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
 #else
@@ -364,8 +368,11 @@ wxMutex	kbsvr_arrays;
 #include "ServiceDiscovery.h" // BEW 4Jan16
 #include "ServDisc_KBserversDlg.h" // BEW 12Jan16
 #include "KbSvrHowGetUrl.h"
+#include "Thread_ServiceDiscovery.h"
 extern std::string str_CURLbuffer;
 extern std::string str_CURLheaders;
+
+//#define _shutdown_
 
 #endif // _KBSERVER
 
@@ -5694,7 +5701,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 #if defined(_KBSERVER)
 	EVT_MENU(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnKBSharingManagerTabbedDlg) // always potentially needed
 	EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
-	EVT_COMMAND(wxID_ANY, wxServDiscHALTING, CAdapt_ItApp::onServDiscHalting)
+	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnServiceDiscoveryTimer)
 
 #endif
 	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
@@ -5962,6 +5969,8 @@ wxString szFreeTransLanguageCode = _T("FreeTranslationLanguageCode");
 /// member variable. Default is FALSE.
 wxString szIsKBServerProject = _T("IsKBServerProject");
 
+wxString szNumberOfDiscoveryRuns = _T("NumberOfDiscoveryRuns");
+
 /// The label that identifies the whether or not the project is associated with sharing a
 /// glosses language KB. This value is written in the "ProjectSettings" part of the project
 /// configuration file. Adapt It stores this string in the App's m_bIsGlossingKBServerProject
@@ -5973,11 +5982,10 @@ wxString szIsGlossingKBServerProject = _T("IsGlossingKBServerProject");
 /// used server for knowledge base sharing within a project designated as one for sharing
 wxString szKbServerURL = _T("KbServerURL");
 
-/// The label for the value of the WaitTimeout(value, in thousandths of a second) used
-/// in DoServiceDiscovery() in order to guarantee that a constructed URL for a KBserver
-/// discovered running on the LAN if stored in m_servDiscResults array before the timeout
-/// expires
-wxString szKBserverTimeout = _T("KBserverTimeout (thousandths of a second)");
+/// The label for the value of the timer interval(use all digits, no fraction of 1) used
+/// to give high chance that eventually a discovery will be done between two 'close'
+/// multicasts from a couple of KBservers. Otherwise second one may never be heard.
+wxString szKBserverTimer = _T("KBserverTimerInterval (thousandths of a second)");
 
 /// The label for the project configuration file's line which stores the assigned username
 /// for the last used server for knowledge base sharing within a project designated as one
@@ -15208,44 +15216,27 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	return TRUE;
 }
 
-/*
+
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// param       result          ->  a line of form "<url>:int:int:int:int:hostname  where each int
-///                                 may be 0 (false), 1 (true), -1 (undefined), and <url>
-///                                 is either an empty string, or of form https://192.168.n.m
-///             url             <-  reference to a url wxString of form https://192.168.n.m
-///				hostname		<-	reference to the hostname wxString associated with a KBserver
-///									url above
+/// param       result          ->  a line of form "<ipaddr>@@@<hostname> 
+///             ipaddr          <-  reference to a ipaddress wxString of form 192.168.n.m
+///				hostname		<-	reference to the hostname wxString associated with the
+///									above ipaddr
 /// \remarks
-/// The results are within the app's m_servDiscResults wxArrayString, in one or more lines of form
-/// <url string>:flag:flag:flag:flag:hostname, where the flag values are integer, but we here
-/// make no use of them, in fact, we abandon them. All we want to return to the caller is the
-// url, and the hostname
-void CAdapt_ItApp::ExtractURLandHostname(wxString& result, wxString& url, wxString& hostname)
+/// Extract the two string parts, and the caller can then make the first part into a URL
+void CAdapt_ItApp::ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname)
 {
-	url = ExtractURLpart(result);
-	hostname = wxEmptyString;
-	wxString reversed = MakeReverse(result);
 	int offset = wxNOT_FOUND; // initialize to -1
-	offset = result.Find(':');
-	if (offset >= 0)
+	offset = result.Find(_T("@@@"));
+	if (offset > 0)
 	{
-		// The possibilities are "<reversed hostname>:0...."   or  "<reversed hostname>:1-:.....
-		// or if our code has no hostnames appended yet, then the reversed string end could be
-		// one of 0:....   or 1-:..... (1:... should not occur as that would mean a duplicate
-		// managed to sneak into the list) So do it in a safe way... (there will certainly be
-		// a colon to find, as we've not removed any of the 'flags' part of the line)
-		// We'll assume a hostname would be greater than two characters in length, so if the colon
-		// is found at an offset greater than 2, we'll assume it's skipped over a hostname which is
-		// a real hostname; otherwise, we've found the last colon in the flags substring
-		if (offset > 2)
-		{
-			hostname = reversed.Left(offset); // remember it's still reversed
-			hostname = MakeReverse(hostname);
-		}
+		ipaddr = result.Left(offset);
+		hostname = result.Mid(offset + 3);
 	}
 }
+
+/*
 // Get the https://192.168.n.m part of aLine, as far as the second colon
 wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
 {
@@ -15266,6 +15257,18 @@ wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
 }
 */
 
+void CAdapt_ItApp::ServDiscBackground(int nThreadIndex)
+{
+	// BEW 4Jan16, 2nd param is the parent class for CServiceDiscovery instance, the app class
+	//m_pServDisc = new CServiceDiscovery(this); <<-- bit slow, onSDNotify() works on main thread, so app is less responsive
+
+	// BEW 12Apr16, changed so that CServiceDiscovery instance is created in the thread,
+	// but keeping the app as the parent. Thread's Entry() function calls it, so we can
+	// be sure the thread exists
+	m_pServDiscThread[nThreadIndex]->m_pServDisc = new CServiceDiscovery(this);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if chosenURL contains a URL string to be used for authenticating to
 ///             a discovered running KBserver on the LAN; FALSE if there was a problem or
@@ -15278,34 +15281,21 @@ wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
 ///                               may not be the same as the curURL)
 /// \param      workFolderPath -> the path to the Adapt It Unicode Work folder (where the
 ///                               ServDiscResults.txt file resides)
-/// \param      nKBserverTimeout -> the 'wait timeout' value, in thousandths of a second, for
-///                               the awakening of the DoServiceDiscovery() function in order
-///                               to read what URL or URLs have been put in m_servDiscResults
-///                               wxArrayString - an app member (if the value is too low,
-///                               service discover won't find a URL ready for use and think
-///                               that there was no running KBserver on the LAN, when in fact
-///                               there may well be one there; a 8000 value is good for safety
-///                               but values as low as 3500 to 4000 usually work okay, but
-///                               there is risk of occasional failure - so 8000 is wiser)
 /// \remarks
 /// Our implementation of service discovery, cross platform, is based on the sdwrap/wxServDisc
 /// resources provided by Christian Beier, 2008. (See the wxServDisc.h header for more detail.)
 /// Our use of those resources is GUI-less, since the service we listen for is fixed.
 /// Beier's code works, but leaks a few kilobytes of memory when it is shut down - the leaks
-/// are of his making, due to incomplete cleanup code. We have spent time utilizing a function
-/// he provided but failed to provide body code within it, to get the leaks reduced to zero.
+/// are of his making, due to incomplete cleanup code. I have managed to reduce the leak count
+/// to zero but at the cost of limiting one discovery run to finding just one KBserver.
 ///
 /// DoServiceDiscovery is called prior to an authentication attempt to a running KBserver.
 /// The service:  "_kbserver._tcp.local." is scanned for (note, there MUST be a period
-/// following the word local & the wrapping " " are not part of the string), and if one or
-/// more KBservers are running and discovered, their ip addresses are looked up and a URL for
-/// each constructed. Normally, only one KBserver should be running; if that is not the
-/// case, user confusion may result, or users may connect to differing KBservers which
-/// would waste the benefits of this KB syncing capacity. If two or more are running, a
-/// dialog will open to allow the user to select one for connecting to. (A better option
-/// would be to Cancel, and turn off all KBserver instances except the one to which
-/// everyone is to connect, then retry setting up the KB sharing - then connection will be
-/// automatic and invisible and nobody will get confused.)
+/// following the word local & the wrapping " " are not part of the string), and if a
+/// KBserver is running. Normally, only one KBserver should be running; if that is not the
+/// case, raw ips are not enough, so hostnames are displayed as well. If two or more are
+/// running, a dialog will open to allow the user to select one for connecting to. Multiples
+/// (if running) are detected by doing discovery in a background thread governed by a timer.
 ///
 /// Of course, a lot of things may go wrong. Everybody may forget to turn on a KBserver -
 /// if so, they'll need to be warned that no sharing can happen till they run one. Or the thread
@@ -15315,17 +15305,13 @@ wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
 /// be the one used previously - in which case the function needs to compare the old url with
 /// the current running server's url, and if they differ, ask the user if he wants a connection
 /// to the different url. In a workshop, there could be several KBservers running, one for each
-/// of several workgroups from different language projects - so we have to discover them all,
-/// but there will be ambiguity/guesswork in connecting to the right one - we can't prevent that,
-/// but at least an attempt to connect to the wrong one will fail with a 'cannot connect' type 
-/// of warning message, because chances are the needed KB is not defined on the wrong KBserver.
+/// of several workgroups from different language projects - so we have to discover them all.
 /// The service discovery thread will only run for a few seconds, and that is enough time to 
-/// detect one or more KBserver instances multicasting on the LAN. It will report the URLs
-/// for the KBserver or Kbservers it detects in CAdapt_ItApp::m_servDiscResults which is a
-/// wxArrayString array. DoServiceDiscovery will, after the data is stored there, access that
-/// data and use it for implementing the protocols described above. Every DoServiceDiscovery()
-/// call will overwrite the earlier contents of that array, but of course only one call is made
-/// per login attempt.
+/// detect one instance multicasting on the LAN. It will report the ip address and hostname
+/// for the KBserver it detects in  CAdapt_ItApp::m_theURLs and CAdapt_ItApp::m_theHostnames
+/// wxArrayString arrays. DoServiceDiscovery will, after the data is stored there, access that
+/// data and use it for implementing the protocols described above. Background discovery lasts
+/// for as long as the app session is active.
 /// Because of the variety of possible states, the following enum will be used internally
 /// to help with implementing suitable protocols: The enum is defined in Adapt_It.h at
 /// about line 765
@@ -15348,151 +15334,58 @@ wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
 /// };
 ////////////////////////////////////////////////////////////////////////////////////////
 
-bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result,
-	int nKBserverTimeout)
+bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, 
+									  wxString& chosenHostname, enum ServDiscDetail &result)
 {
-	wxString serviceStr = _T("_kbserver._tcp.local.");
-
-	// GetResults() will return any discovery results in the app wxArrayString
-	// m_servDiscResults as one or more lines, each of form url:int:int:int:int where url
-	// potentially could be empty and the int values are 0, 1, -1 being false, true,
-	// undefined
-
 	chosenURL = _T(""); // initialize, we return the chosen url using this parameter
 	result = SD_NoResultsYet; // initialize to a 'success' result
 
-	// Assign to the app's member pointer, m_pServDisc; we can then pass this pointer in
-	// to the solution's classes, to access any of the classes to perform actions such as
-	// deletions, thread destruction, etc
+	// Add any not already in the aggregated storage on the app, used for display to the user;
 
-	// The wxMutext to use in conjunction with SD_condition
-	wxMutex       SD_mutex;
-	// wxCondition is needed so that within DoServiceDiscovery() we can Wait()
-	// for the results to be ready
-	wxCondition   SD_condition(SD_mutex);
-
-	// The SD_mutex must start of locked (ie. owned)
-	SD_mutex.Lock();
-
-	wxLogDebug(_T("DoServiceDiscovery(): addr of SD_mutex  =  %p"), &SD_mutex);
-
-	// ServDisc internally will acquire the lock, using wxMutexLocker to create a locker()
-	// object, and the main thread will wait (I'm using WaitTimeout(8000)) for the
-	// SD_condition to be Signal()-ed, which then allows DoServiceDiscovery() to awake, and
-	// be automatically given the lock, so it can then access the service discovery results
-
-	wxLogDebug(_T("DoServiceDiscovery(): WaitTimeout(nKBserverTimeout) when called has value:  %d  milliseconds"), nKBserverTimeout);
-
-	{ // begin WaitDlg scope
-
-		CWaitDlg waitDlg(GetMainFrame());
-		// indicate we want the 'discovery of KBserver' message
-		waitDlg.m_nWaitMsgNum = 26;	// message is "Discovery of running KBservers is happening..."
-		waitDlg.Centre();
-		waitDlg.Show(TRUE);
-		waitDlg.Update();
-
-
-	// BEW 4Jan16, 4th param is the parent class for CServiceDiscovery instance, the app class
-	m_pServDisc = new CServiceDiscovery(&SD_mutex, &SD_condition, serviceStr, this);
-
-	// Set the input variables
-	m_pServDisc->m_servicestring = serviceStr; // service to be scanned for
-
-	m_pServDisc->m_pApp = this; // set CServiceDiscovery's m_pApp pointer
-
-
-	// Made the wait timeout value (in seconds) be a basic config file value that
-	// is grabbed in OnInit() when that config file is loaded, and use it here
-	SD_condition.WaitTimeout(nKBserverTimeout); // allows the ServiceDiscovery object on the 
-		// ServDisc thread to do its job, until Signal() get's called at its exit.
-		// BEW 10Mar16 We no longer call Signal() from a wxServDisc instance, nor do
-		// we post an event to the CServiceDiscovery class in order to have the latter
-		// delete a wxServDisc instance (since we can only point to one, but many are
-		// created in the course of doing service discovery). So, we just let each
-		// wxServDisc instance die a natural death when its internal timeouts expire
-		// and / or its internal loop is completed and control moves to the cleanup
-		// functions - which appear to still be leaking - I will try again to rectify
-		// that, but if I can't then we can just live with the leaks!
-		// CServiceDiscovery does no internal processing (other than instantiating
-		// the first wxServDisc instance for doing a query scan), so CServiceDiscovery
-		// exists only as a single instance; it has two functionalities - first, to
-		// to instantiate a wxServDisc as mentioned above (that kicks off the discovery
-		// process), second, it contains a number of string arrays into which the various
-		// wxServDisc instances will .Add() strings as various things are discovered &
-		// looked up - namely hostname, port, and ip address, and error flags - the
-		// latter are stored in integer arrays.
-		// The consequence of this design is now that when the main thread wakes up,
-		// it does so at the above timeout after nKBserverTimeout thousandths of a second
-		// has expired, since no Signal() call is made. The parameter, nKBserverTimeout,
-		// is user-settable from the GUI, as a 'seconds' value in the range [8,30].
-		// Logging shows that a single KBserver will be found repeatedly, with all
-		// flags 0 (ie. no error), multiple times - and the larger the value of
-		// nKBserverTimeout, the more duplicates there will be. The additional implication
-		// is that the more KBservers there are running on the LAN, the more instances of
-		// wxServDisc there will be spawned (as detached threads), and they take up a LOT
-		// of processing time. So, while a single KBserver may be identified and its URL
-		// available within 12 seconds, adding more KBservers can spin discovery out by a
-		// a few more seconds per extra KBserver. We don't expect to have to deal with
-		// more than 4 on a LAN. If that were the case the administrator should provide
-		// a single one for everyone, for the time of the workshop. Creating and populating
-		// a KBserver is easy and fast, adding several kb definitions is also easy etc.
-
-		// In the code following, I will now (10Mar16) change the design of the processing
-		// to fit better with the data that comes in. First, I'll search for any reported
-		// error, and set a boolean if there is one or more in the arrays. Then I'll search
-		// for discovered URLs without accompanying error. If at least one of the latter
-		// exists, the error line(s) will be ignored, and the good URL(s) made available to
-		// the user. Users would not know what to do with an error report anyway, so if 
-		// there are no good URLs, then all we will report to the user is that there was
-		// an error, discovery failed, try again later, or manually determine the ipaddress
-		// (/sbin/ifconfig at the KBserver itself), or get help from the administrator.
-
-		// When the Wait() is over, we can go on now to access the results, if any exist
-		serviceStr.Clear(); // so we don't leak its memory
-
-	} // end scope for WaitDlg
-
-	SD_mutex.Unlock(); // only the one unlock is needed, from now on no references to any
-					   // wxServDisc instance is made; they just die lonely deaths
-
-
-
-
-
-// ****** TODO  **********
-	// Add code here to get the cleanup functions called - their deaths without that happening result in memory leaks
-	// put the cleanup functions into a CleanupMyMess function that takes ptr to the instance being cleaned up, and call it
-	// from an array of pts to the instances, making any killed one's ptr null, and any non-null will need cleanup and then deletion
-
-
-
-
-
-
-	// Get whatever urls (from m_urlsArr) and hostnames (from m_theirHostnames) were deposited
-	// in the CServiceDiscovery instance - there is one hostname for each url stored, so one count
-	// is all we need
-	m_theURLs.Clear();
+	// Setup the urls (in m_theURLs) and hostnames (in m_theHostnames)
+	m_theURLs.Clear();        
 	m_theHostnames.Clear();
+	wxString aComposite;
 	int count;
 	int i;
-	if (!m_pServDisc->m_urlsArr.empty())
+
+	// Default the chosenHostname to <unknown>
+	chosenHostname = _("<unknown>");
+
+	// We have an updated aggregate list. Decompose each string into the i[ address and
+	// hostname parts, add https:// to the ipaddress to make the URL, and store
+	// the parts in parallel in arrays m_theURLs, and m_theHostnames -
+	wxString anIpAddress;
+	wxString aHostname;
+	wxString aURL;
+	m_theURLs.clear();
+	m_theHostnames.clear();
+	count = (int)m_ipAddrs_Hostnames.GetCount(); // this array is the app's one
+#if defined(_DOSERVDISC)
+	wxLogDebug(_T("\n CAdapt_ItApp::DoServiceDiscovery() Updated URLs and Hostnames. Unique KBserver URLs aggregated so far = %d"),
+		count);
+#endif
+	for (i = 0; i < count; i++)
 	{
-		// First, get the urls and their hostnames from CServiceDiscovery instance m_pServDisc
-		count = (int)m_pServDisc->m_urlsArr.GetCount();
+		anIpAddress = wxEmptyString;
+		aHostname = wxEmptyString;
+		aComposite = m_ipAddrs_Hostnames.Item(i);
+#if defined(_DOSERVDISC)
+		wxLogDebug(_T(" CAdapt_ItApp::DoServiceDiscovery() In LOOP: aComposite (url/hostname):  %s   Parts being extracted"), aComposite.c_str());
+#endif
+		ExtractIpAddrAndHostname(aComposite, anIpAddress, aHostname);
 
-		wxLogDebug(_T("CAdapt_ItApp::DoServiceDiscovery() Now accessing the CServiceDiscovery m_urlsArr and m_theirHostnames arrays. Number of unique KBserver URLs found = %d"),
-			count);
+		aURL = _T("https://") + anIpAddress;
+		m_theURLs.Add(aURL);
+		m_theHostnames.Add(aHostname);
+	}
 
-		for (i = 0; i < count; i++)
-		{
-			m_theURLs.Add(m_pServDisc->m_urlsArr.Item(i));
-			m_theHostnames.Add(m_pServDisc->m_theirHostnames.Item(i));
-		}
 
-		// Now get the results back to user - either what was found, or
-		// if multiple KBservers found, via a dialog in which he can select
+	// No url & hostname may be available yet, in which case the user needs to be told
+	if (!m_ipAddrs_Hostnames.IsEmpty())
+	{
+		// Something(s) is available, so get the results back to user - either what was
+		// found, or if multiple KBservers found, via a dialog in which he can select
 		// the one he wants to connect to
 		if (count > 1)
 		{
@@ -15502,6 +15395,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 			if (dlg.ShowModal() == wxID_OK)
 			{
 				chosenURL = dlg.m_urlSelected;
+				chosenHostname = dlg.m_hostnameSelected;
 			}
 			else
 			{
@@ -15509,6 +15403,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 				if (dlg.m_bUserCancelled)
 				{
 					chosenURL.Empty();
+					chosenHostname.Empty();
 					result = SD_MultipleUrls_UserCancelled;
 
 					// Since the user has deliberately chosen to Cancel, and the dialog
@@ -15521,6 +15416,7 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 		{
 			// Only one unique KBserver URL was discovered
 			chosenURL = m_theURLs[0];
+			chosenHostname = m_theHostnames[0];
 		}
 
 		// A number of tests are now required... because what should happen next depends
@@ -15587,12 +15483,12 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 			}
 		} // end of else block for test: else if (curURL == chosenURL)
 
-	} // end of TRUE block for test: if (!m_pServDisc->m_urlsArr.empty())
+	}
 	else
 	{
 		// Nothing available, inform the user of what might be the problem or problems
 		wxString message;  message = message.Format(_(
-			"Knowledge base sharing will now be turned OFF. There are several possibilites.\nYou set too small a value for the number of seconds to wait - try again with a larger value.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to set at least one KBserver running - do so now and try again.\nThe computer running the KBserver may have lost power."));
+			"Knowledge base sharing will now be turned OFF. There are several possibilites.\nThe program needs longer to build up a list of running KBservers - if you just launched, try waiting a while.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to set at least one KBserver running - do so now and try again.\nThe computer running the KBserver may have lost power."));
 		wxMessageBox(message, _("KBserver discovery failed"), wxICON_WARNING | wxOK);
 		m_theURLs.Clear();
 		m_theHostnames.Clear();
@@ -15603,19 +15499,6 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum
 		}
 		return FALSE;
 	}
-}
-
-void CAdapt_ItApp::onServDiscHalting(wxCommandEvent& WXUNUSED(event))
-{
-	m_bCServiceDiscoveryCanBeDeleted = TRUE; //Set TRUE here, the handler of the
-				// wxServDiscHALTING custom event, and now the next OnIdle()
-				// can attempt the CServiceDiscovery* m_pServDisc deletion (if
-				// done late enough, there'll be no app crash; OnIdle() makes
-				// it late enough, fortunately)
-	// CServiceDiscovery deleted before its wxServDisc gets deleted gives crash;
-	// the deletion order has to be reversed; class and window deletions are
-	// lazy and don't happen till idle time. Deleting CServiceDiscovery in OnIdle()
-	// accomplishes the needed deletion re-ordering
 }
 
 // Checks m_pKbServer[0] or [1] for non-NULL or NULL
@@ -15716,6 +15599,8 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bMergerIsCurrent = FALSE; // BEW 14Apr16
+
 #if defined(_KBSERVER)
 	// Next two booleans are set to FALSE unilaterally (as initialization)only here. They
 	// get set to whatever the project config file has for the IsKBServerProject and
@@ -15727,14 +15612,22 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// want - in particular in the OnProjectPageChanging() handler.
 	m_bIsKBServerProject_FromConfigFile = FALSE;
 	m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
-	m_KBserverTimeout = 10000; // minimum value of 8.0 seconds - basic config file can 
-							  // override with a larger value, by direct user edit only
-							  // (or a smaller value; values less than 5 sec are risky)
+	// BEW 12Apr16, try 14.123 so as to get 4 tries a minute (overlapping was taboo at this early stage)
+	//m_KBserverTimer = 12111; // 12.111 sec as of 19Apr16,  with GC back at 5 secs; old was 14123 with GC = 9 secs
+							   // 9.111 sec as of 22Apr16,  with GC back at 5 secs; old was 12111 with GC = 5 secs
+	m_KBserverTimer = 7247;    // An interval of 4.113 milliseconds works, but main thread is  unresposive for a 
+							   // So go to 7.113 secs, to allow main thread time to respond to user clicks.
+							   // half minute. (We can now overlap runs without failure, at the expense of GUI
+							   // temporary paralysis, so don't do that. Keep a timer gap between notifications.)
+							   // One run takes about 4.1 secs
+	m_numServiceDiscoveryRuns = 9; // the basic config file's value will override this default
+
 	m_bServiceDiscoveryWanted = TRUE; // initialize
-	m_bCServiceDiscoveryCanBeDeleted = FALSE; // initialize, it gets set TRUE in the
-				// handler of the wxServDiscHALTING custom event, and then OnIdle()
-				// will attempt the CServiceDiscovery* m_pServDisc deletion (that reorders
-				// class instance deletions, so that the parent gets deleted last)
+	int ii;
+	for (ii = 0; ii < (int)MAX_SERV_DISC_RUNS; ii++)
+	{
+		m_pServDiscThread[ii] = NULL;
+	}
 
 	m_pWaitDlg = NULL; // initialize; it's only non-NULL when a message is up. OnIdle() kills
 					   // the message & restores NULL, use NULL as a flag in OnIdle()
@@ -15744,6 +15637,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 								  // KBSharingStatelessSetupDlg, only FALSE when the
 								  // latter is used for authenticating to the KB
 								  // Sharing Manager tabbed dialog)
+
 #endif
 
 	// initialize these collaboration variables, which are relevant to conflict resolution
@@ -15766,7 +15660,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_nInsertCount = 0;
 
 #if defined(_KBSERVER)
-	m_pServDisc = NULL; // initialize to 0
+	//m_pServDisc = NULL; // initialize to 0  <- deprecated 18Apr16, & moved to Thread_ServiceDiscovery
 	m_strKbServerURL.Empty(); // assume none ever set, Basic config file may restore a value
 							  // to this variable further down in OnInit()
 #endif
@@ -22119,10 +22013,88 @@ int ii = 1;
 
 	*/
 
-	// Run Service Discovery... (a testing location only)
+	// Run Service Discovery
 #if defined(_KBSERVER)
 	// Leave the following initialization line here...
-	m_pServDisc = NULL;
+	//m_pServDisc = NULL;
+
+	// BEW 6Apr16 Call ServDiscBackground() which runs in the background in a thread
+	// under timer control. For debugging, comment out below and uncomment out the 
+	// wxTIMER_ONE_SHOT Start() call instead. The biggest problem is memory leaks, the
+	// ultimate solution required forcing the detachable wxServDisc instances to die
+	// before the parent CServiceDiscovery class does, and put the latter in a thread.
+	// (The thread was necessary to avoid blocking the main thread where the GUI is.)
+	// ServeDiscBackground internally instantiates the CServiceDiscovery class, one 
+	// only per thread, instance only, m_pServDisc[index] pointer. There can be up to
+	// MAX_SERV_DISC_RUNS (20) of such pointers. Default 9. We use a custom event
+	// (wxEVT_End_ServiceDiscovery -- see MainFrm.h & .cpp) to get
+	// the top level threads shut down, by posting the event from the thread's OnExit()
+	// function, and providing a handler in MainFrm.cpp to do the job of setting
+	// m_pServDiscThread[index] to NULL; we don't have to actually delete it as it is
+	// detachable and so destroys itself - which we cause at the appropriate time.
+	//
+	// The CServiceDiscovery constructor, when it runs, instantiates the first wxServDisc
+	// instance, which kicks off the service discovery which runs on further detached threads.
+	// Unique results are sent back to CServiceDiscovery with the help of a ptr, m_pCSD,
+	// within each wxServDisc, which points at the CServiceDiscovery instance that created
+	// the first in each such set. Under timer control, timer notifications send the set
+	// of unique results aggregated within CServiceDiscovery back to the m_ipAddrs_Hostnames
+	// wxArrayString, where the GUI for service discovery, DoServiceDiscovery(), can access
+	// them to display to the user as a URL and its associated hostname.
+	//
+	// Two things are necessary for a maintainer to know: (1) CServiceDiscovery is mandatory,
+	// it is app-facing, and so it can #include Adapt_It.h, but wxServDisc must never see
+	// Adapt_It.h, because then hundreds of name conflicts arise with the Microsoft socket
+	// implementations. wxServDisc, for Windows build, uses winsock2.h which clashes
+	// horribly with the older winsock.h resources.
+	// (2) wxServDisc uses events posted to the CServiceDiscovery instance, to get
+	// hostname and ipaddress lookups done - these are done from the stackframe of an
+	// onSDNotify() event handler within CServiceDiscovery. This is Beier's original design,
+	// and it is efficient, because wxServDisc may spawn multiple new instances of itself,
+	// and some of those will post notifications to CServiceDiscovery to get onSDNotify()
+	// called, doing so more than once - so we take steps to avoid multiple entries to
+	// onSDNotify(). It doesn't appear to need mutext protection, so I've
+	// not provided it (except where necessary, for array .Add() calls). The in-parallel set
+	// of running wxServDisc instances can quickly swamp the CPUs, even on 4 core or higher
+	// machines, so the trick is to run the discovery for only a few seconds - I'm setting
+	// the limit to be 5 seconds (Beier's GC value, his was num of seconds in a day!) and
+	// then it needs to shut itself down. In practice, we force shutdown before the 5 second
+	// limit is reached. Out solution finds one and shuts down in a fraction over 4 secs.
+	// The first paramater of the wxServDisc() signature is very important. It is
+	// a (void*) for the parent class. Beier's solution makes use of the fact that if null
+	// is passed in, the new wxServDisc instance is unable to call post_notify() which
+	// otherwise would result in an embedded calling of the onSDNotify() handler - leading
+	// to chaos. We, instead, pass in the pointer to the owning CServiceDiscovery instance.
+	// If an instance is spawned with null as the first param value, we regard it as a
+	// unwelcome nuisance (a zombie) and we shut it down immediately. I was getting two of
+	// these early on, but the final solution does not generate any for an unknown reason.
+	// Our solution deliberately is designed to find only one KBserver per run.
+	// To try find more leads to many difficult problems to solve, and CPU-binding problems.
+	// Finding one is quick, usually less than 3 seconds, and a bit more time for cleanup
+	// and staged shutdowns. The best solution is to run this simpler solution in a burst
+	// of instantiations, in the background, and accumulate a list of discovered running 
+	// KBservers - their urls and hostnames.
+	// To facilitate the multiple intermittent timed service discovery instantiations, their 
+	// self-destruction *must* be leakless. Unfortunately, Beier's original Zeroconf solution
+	// leaks like a sieve, and so extra work had to be done to plug the leaks.
+	// 
+	// The above comments are a distillation of the knowledge gained from debug logging,
+	// and visual leak detection, done over 18 months of frustrating testing and tweaking.
+	// Ignore this and fiddle with it yourself at your own peril. You've been warned!
+	// VisLeakDetector can be turned on or off at line 279 of Adapt_It.cpp.
+	// At the top of the Adapt_It.cpp, Thread_ServiceDiscovery.cpp, CServiceDiscovery.cpp
+	// and wxServDisc.cpp files are some commented out #defines. Uncomment the ones you want
+	// to get very useful wxLogDebug output sent to the Output window. I could not have
+	// tamed this zeroconf solution of Beier's without them. DO NOT REMOVE THEM PLEASE.
+	//
+	// The timer interval (in milliseconds), and the number of (single) service discovery
+	// runs in a burst, are parameters in the AI-BasicConfiguration.aic file - and at this
+	// point in time we provide no GUI support for changing them. It is possible to safely
+	// change them by manually editing the config file and resaving it. The range of values
+	// allows are: timer interval - greater or equal to 7.111 seconds (7111 millisecs),
+	// and number of runs per burst, 1 or more, 20 or less. The config files enforce these.
+	DoKBserverDiscoveryRuns();
+
 #endif // _KBSERVER
 
 	//int style = (int)wxFONTSTYLE_ITALIC; // it's decimal 93
@@ -22189,6 +22161,26 @@ int CAdapt_ItApp::OnExit(void)
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
 
+	/*
+#if defined (_KBSERVER)
+	// Cleanups for service discovery...
+
+
+// TODO later on sometime
+
+	// BEW 19Apr16 for the moment, let service discovery thread, if running, die a leaky death
+	if (m_pServDisc != NULL)
+	{
+		if ( m_servDiscTimer.IsRunning() )
+		{
+			m_servDiscTimer.Stop();
+
+		}
+		m_pServDisc = NULL;
+	}
+
+#endif
+*/
 	// Remove any files lurking there, they don't need to persist
 	EmptyCollaborationTempFolder(); // see CollabUtilities.h (at bottom)
 
@@ -28642,10 +28634,11 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		// Service discovery, if wanted, goes here
 		wxString currentURL = m_strKbServerURL; // m_bServiceDiscoveryWanted == FALSE will use this
 		wxString chosenURL = wxEmptyString;
+		wxString chosenHostname = wxEmptyString;
 		if (m_bServiceDiscoveryWanted)
 		{
 			enum ServDiscDetail returnedValue = SD_NoResultsYet;
-			bool bOK = DoServiceDiscovery(currentURL, chosenURL, returnedValue, m_KBserverTimeout);
+			bool bOK = DoServiceDiscovery(currentURL, chosenURL, chosenHostname, returnedValue);
 			if (bOK)
 			{
 				// Got a URL to connect to
@@ -28658,6 +28651,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 
 				// Make the chosen URL accessible to authentication
 				m_strKbServerURL = chosenURL;
+				m_strKbServerHostname = chosenHostname;
 
 				// test I got the logic right - if I have, I'll see this bogus url
 				// shown in the Authenticate dialog
@@ -28676,6 +28670,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 				// The login person should have seen an error message, so just
 				// restore the user settings and return without opening the Manager
 				m_strKbServerURL = m_saveOldURLStr;
+				m_strKbServerHostname = m_saveOldHostnameStr;
 				m_strUserID = m_saveOldUsernameStr;
 				pFrame->SetKBSvrPassword(m_savePassword);
 				m_bIsKBServerProject = m_saveSharingAdaptationsFlag;
@@ -28749,6 +28744,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 
 		// Restore the user's KBserver-related settings
 		m_strKbServerURL = m_saveOldURLStr;
+		m_strKbServerHostname = m_saveOldHostnameStr;
 		m_strUserID = m_saveOldUsernameStr;
 		pFrame->SetKBSvrPassword(m_savePassword);
 		m_bIsKBServerProject = m_saveSharingAdaptationsFlag;
@@ -30514,9 +30510,13 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szKBserverTimeout << tab << m_KBserverTimeout;
+	data << szKBserverTimer << tab << m_KBserverTimer;
 	pf->AddLine(data);
-
+	// BEW added next one on 22Apr16, default is 9, range 1 to 20, but no gui support - alter in config file manually
+	data.Empty();
+	data << szNumberOfDiscoveryRuns << tab << m_numServiceDiscoveryRuns;
+	pf->AddLine(data);
+	
 #endif
 
 	data.Empty();
@@ -31741,27 +31741,45 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			m_strKbServerURL = strValue;
 		}
-		else if (name == szKBserverTimeout)
+		else if (name == szKBserverTimer)
 		{
 			// There is no GUI support for changing the value stored for this param, but
 			// the user is welcome to experiment and directly edit the basic config file
-			// to give it a larger value if the minimum of 16000 leads to occasional bogus
-			// failures to get the url due to an unexpected delay
+			// to give it a different value. Value must never be less that 2111 millisec.
 			num = wxAtoi(strValue);
-			// Allow values as low as 8 secs - very risky, but sometimes it is enough.
-			// Recommended is 16 secs, max 80000 (80 secs should always be enough)
-			if (num < 4000)
+			// Allow values as low as 7.111 secs. Values less than about 4.2 sec result
+			// in the main thread being unresponsive until the burst of discovery scans
+			// completes, so we add a few seconds to let the user's GUI actions not be
+			// deleted a long time. Overlap of runs does not break anything, but the
+			// GUI unresponsiveness is disconcerting. Hence 7.1 gives about 3 seconds
+			// of gui responsiveness in each 7 seconds, until the burst completes after
+			// about a minute (for 9 runs in the burst); then the GUI acts normal.
+			if (num < 7111)
 			{
-				num = 4000;
+				num = 7111;
 			}
-			if (num > 120000)
-			{
-				num = 240000;
-			}
-			m_KBserverTimeout = num;
+			m_KBserverTimer = num;
 		}
+		else if (name == szNumberOfDiscoveryRuns)
+		{
+			// There is no GUI support for changing the value stored for this param, but
+			// the user is welcome to experiment and directly edit the basic config file
+			// to give it a differernt value. Value must never be less than 1
+			num = wxAtoi(strValue);
+			// Allow values as betwen 1 and 20 inclusive
+			if (num < 1)
+			{
+				num = 1;
+			}
+			if (num > 20)
+			{
+				num = 20;
+			}
+			m_numServiceDiscoveryRuns = num;
+		}
+		else
 #endif
-		else if (name == szAdaptitPath)
+		if (name == szAdaptitPath)
 		{
             // BEW changed 12Oct09, we come here when reading either the
             // AI-BasicConfiguration.aic file or the AI-AdminBasicConfiguration.aic file.
@@ -45638,7 +45656,7 @@ void CAdapt_ItApp::OnUnlockCustomLocation(wxCommandEvent& event)
 /// of Adapt It owns a project folder on a remote computer. It does not get called in other
 /// circumstances. Its purpose is to enable automatic switching of the current instance to
 /// read-only mode in the event that an Instance of Adapt It local to that remote computer
-/// acquires write acces to its project folder.
+/// acquires write access to its project folder.
 ///////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnTimer(wxTimerEvent& WXUNUSED(event))
 {
@@ -49557,4 +49575,113 @@ void CAdapt_ItApp::ClobberGuesser()
 	m_numLastEntriesAggregate = 0;
 	m_numLastGlossingEntriesAggregate = 0;
 }
+#if defined(_KBSERVER)
 
+// Handler for the timer's notification
+void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
+{
+	// We do a burst of 9 (default) per call of DoKBserverDiscoveryRuns(), max 20 which
+	// is #defined as 20 in AdaptItconstants.h Minimum 1. User may set a different
+	// default by direct edit of the basic config file
+
+	// m_nSDRunCounter starts with value 0, so pass in the current value as the correct
+	// index, before augmenting it
+
+#if defined(_shutdown_)
+	wxLogDebug(_T("CAdapt_ItApp:: OnServiceDiscoveryTimer():  m_nSDRunCounter (before augment) = %d , Timer interval = %d  (AI.cpp line 49577)"),
+			m_nSDRunCounter, m_servDiscTimer.GetInterval());
+#endif
+
+	if (m_servDiscTimer.IsRunning())
+	{
+		if (m_nSDRunCounter >= m_numServiceDiscoveryRuns)
+		{
+			m_servDiscTimer.Stop();
+			m_nSDRunCounter = 0;
+			// Ensure all ptrs are NULL - they already should be, and it
+			// doesn't really matter if some aren't, as they will be reset
+			// to null before a new burst begins, and are never used otherwise
+			int index;
+			for (index = 0; index < (int)MAX_SERV_DISC_RUNS; index++)
+			{
+				if (m_pServDiscThread[index] != NULL)
+				{
+					m_pServDiscThread[index] = NULL;
+				}
+			}
+			return;
+		}
+	}
+
+	m_pServDiscThread[m_nSDRunCounter] = new Thread_ServiceDiscovery;
+
+	// Control does not reenter OnServiceDiscoveryTimer() so the
+	// job of augmenting m_nSDRunCounter is done at the start of Entry()
+	// and the new value passed back to the app member from there
+
+	wxThreadError error = m_pServDiscThread[m_nSDRunCounter]->Create(12240);
+	if (error != wxTHREAD_NO_ERROR)
+	{
+		wxString msg;
+		msg = msg.Format(_T("Thread_ServiceDiscovery error number: %d"), (int)error);
+		wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
+
+		// One may fail but others succeed. Handle this failure
+		m_pServDiscThread[m_nSDRunCounter] = NULL;
+	}
+	else
+	{
+		// no error, so now run the thread - it's of detached type
+		error = m_pServDiscThread[m_nSDRunCounter]->Run();
+		if (error != wxTHREAD_NO_ERROR)
+		{
+			wxString msg;
+			msg = msg.Format(_T("Thread_ServiceDiscovery  error number: %d"), (int)error);
+			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
+		
+			// We got it as far as instantiation, but couldn't run it. Handle this one only.
+			// Others in the burst may succeed
+			m_pServDiscThread[m_nSDRunCounter]->Delete();
+			m_pServDiscThread[m_nSDRunCounter] = NULL;
+		}
+	}
+}
+
+void CAdapt_ItApp::DoKBserverDiscoveryRuns()
+{
+	// Use SetOwner() to bind the sevice discovery timer to the app instance, the latter will 
+	// handle its notification event, and call OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
+	m_servDiscTimer.SetOwner(this);
+	int i;
+	int limit = (int)MAX_SERV_DISC_RUNS;
+	for (i = 0; i < limit; i++)
+	{
+		m_pServDiscThread[i] = NULL;
+	}
+	// If debugging is wanted, doing it with a single timer notify event is easiest - 
+	// uncomment out next line, and comment out the lower stuff
+	//m_servDiscTimer.Start(m_KBserverTimer, wxTIMER_ONE_SHOT);
+
+	if (m_servDiscTimer.IsRunning())
+	{
+		m_servDiscTimer.Stop();
+		m_nSDRunCounter = 0;
+	}
+	else
+	{
+		m_nSDRunCounter = 0;
+	}
+
+	// m_KBserverTimer is defaulted to 4113 millisecs and GC = 5sec currently, see near
+	// top of OnInit() for where the default is set
+	// Note, the timer interval should be some odd value (no zeros) greater than 2.111 seconds,
+	// to avoid timer notifies persistently happening just before the same KBserver's
+	// multicasts. Shutting down a burst is done from OnServiceDiscoveryThread()
+	m_servDiscTimer.Start(m_KBserverTimer);
+#if defined(_shutdown_)
+	wxLogDebug(_T("CAdapt_ItApp:: DoKBserverDiscoveryRuns():  m_KBserverTime value = %d , actual value in use = %d  (AI.cpp line 49628)"),
+		m_KBserverTimer, m_servDiscTimer.GetInterval());
+#endif
+}
+
+#endif

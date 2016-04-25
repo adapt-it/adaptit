@@ -65,7 +65,6 @@ Thread_PseudoDelete::~Thread_PseudoDelete()
 
 void Thread_PseudoDelete::OnExit()
 {
-
 }
 
 void* Thread_PseudoDelete::Entry()

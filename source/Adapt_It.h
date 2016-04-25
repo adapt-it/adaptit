@@ -83,6 +83,7 @@ class TranslationsList; // the CTargetUnit's list of CRefString instances
 class CServiceDiscovery; // BEW 4Jan16
 class CServDisc_KBserversDlg; // BEW 12Jan16
 class CWaitDlg; // BEW 8Feb16
+class Thread_ServiceDiscovery; // BEW 11Apr16
 
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
@@ -2045,14 +2046,12 @@ class CAdapt_ItApp : public wxApp
 	// timer, multiply by 1000*60 since the timer's units are milliseconds)
 	int		m_nKbServerIncrementalDownloadInterval;
 
-    // Base value for the WaitTimeout(thousandths of a second) in DoServiceDiscovery()
-    // which ensures m_servDiscResults array is not accessed before service discovery has
-    // time to get the _kbserver._tcp.local. service discovered, the URL built, and stored
-    // in that array. (Base value of 8000 set in OnInit(), and there is no GUI way to
+    // Value for the WaitTimeout(thousandths of a second) in intermittent service
+    // discovery. Defaulted to 16731 milliseconds, for the m_pServDiscTimer
+    // time to get the _kbserver._tcp.local. service discovered. There is no GUI way to
     // change the value. However, the user can edit the value in the basic configuration
-    // file directly. The base value as written to the config file is is not
-    // programmatically changed. What's read in, gets written out again.
-	int		m_KBserverTimeout;
+    // file directly.
+	int		m_KBserverTimer; 
 
 	// Storage of username's value for the boolean flags, kbadmin, and useradmin; we store
 	// them here rather than in the KbServer class itself, because the value of these
@@ -2066,32 +2065,25 @@ class CAdapt_ItApp : public wxApp
 	bool	m_kbserver_kbadmin;   // initialize to default FALSE in OnInit()
 	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
 
-	CServiceDiscovery*  m_pServDisc;    // The top level class which manages the service 
-									    // discovery module
+	// BEW 118Apr16 the following has been moved to be a member of Thread_ServiceDiscovery class
+	//CServiceDiscovery*  m_pServDisc;    // The top level class which manages the service discovery module
+
+
 	wxArrayString		m_theURLs;      // lines of form <url> from CServiceDiscovery::m_urlsArr
 	wxArrayString		m_theHostnames; // parallel array of hostnames for each url in m_urlsArr
-	bool				m_bCServiceDiscoveryCanBeDeleted; // set FALSE in the creation of the
-                            // CServiceDiscovery instance, set TRUE in the
-                            // onServDiscHALTING event handler, and do the actual deletion
-                            // of the CServiceDiscovery instance in the OnIdle() handler - it
-                            // then is done after the lazy class deletions are done, and that
-                            // prevents an app crash because m_buffer in thread.cpp is 
-                            // garbage in CriticalSection::Entry() after service discovery 
-                            // completes
-                            
+	wxArrayString		m_ipAddrs_Hostnames; // for storage of each string <ipaddress>@@@<hostname>
+
 	// NOTE - IMPORTANT. The service discovery code, at the top levels, is copiously
 	// commented and there are many wxLogDebug() calls. Timing annotations in the debugger
 	// window and those logging messages are VITAL for understanding how the module works,
 	// and when things go wrong, what might be causing the error. DO NOT DELETE THE
-	// wxLogDebug() CALLS from the code!!
+	// wxLogDebug() calls from the code in the class wxServDisc !! They can be turned off
+	// by commenting out a #define near the top of the .cpp file
 
-	void onServDiscHalting(wxCommandEvent& WXUNUSED(event)); // posted at the final cleanup,
-				// it just sets a flag, but the handler for doing the deletion is in OnIdle()
-				// so that CServiceDiscovery gets deleted AFTER the last wxServDisc instance
-				// has been deleted
 
 	// for support of service discovery
 	wxString		m_saveOldURLStr;
+	wxString		m_saveOldHostnameStr;
 	wxString		m_saveOldUsernameStr;
 	wxString		m_savePassword;
 	bool			m_saveSharingAdaptationsFlag;
@@ -3070,11 +3062,23 @@ public:
 	bool	  ReleaseKBServer(int whichType);
 	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
 	// BEW added next, 26Nov15
-	bool	  DoServiceDiscovery(wxString curURL, wxString& chosenURL, enum ServDiscDetail &result,
-								 int nKBserverTimeout);
+	bool	  DoServiceDiscovery(wxString curURL, wxString& chosenURL, 
+								 wxString& chosenHostname, enum ServDiscDetail &result);
 	bool	  m_bServiceDiscoveryWanted; // TRUE if DoServiceDiscovery() is wanted, FALSE for manual URL entry
 										 // and don't ever store the value in any config file; default TRUE
-//	void	  ExtractURLandHostname(wxString& result, wxString& url, wxString& hostname);
+	void	  ServDiscBackground(int nThreadIndex);
+	Thread_ServiceDiscovery* m_pServDiscThread[20]; // one for each run of ServDiscBackground, because now
+				// we allow each run to overlap the last a little, the only app member is this one and if
+				// we allowed a successive run to destroy the previous run's pointer, we would get access 
+				// violations -- so each run has its own pointer
+	wxTimer   m_servDiscTimer;
+	void	  OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event));
+	int		  m_numServiceDiscoveryRuns; // I'll default it to 9 in OnInit(), but let a manual edit 
+										 // of basic config file change it ( range: 1 to 20)
+	int		  m_nSDRunCounter; // counts the number of times ServDiscBackground() is called 
+	void	  DoKBserverDiscoveryRuns();
+
+	void	  ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname);
 //	wxString  ExtractURLpart(wxString& aLine);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
@@ -3090,6 +3094,7 @@ public:
 									  // in the same AI project as for previous member
 	wxString	m_strKbServerURL; // for the server's url, e.g. https://kbserver.jmarsden.org
 								  // or something like https://192.168.2.8 on a LAN
+	wxString	m_strKbServerHostname; // we support naming of the KBserver installations, BEEW added 13Apr16
 	// BEW added next, 7Sep15, to store whether or not sharing is temporarily disabled
 	bool		m_bKBSharingEnabled; // the setting applies to the one, or both kbserver types
 									 // simultaneously if sharing both was requested
@@ -3143,6 +3148,26 @@ public:
 
 
 #endif // for _KBSERVER
+
+	bool	m_bMergerIsCurrent; // BEW created 14Apr16 due to bug report on 13thApril by Stefan Kasarik
+		// His problems was this. If a four word source text:  cao cao building end
+		// was adapted, (cao is Vietnamese for 'tall'), as follows: first instance adapt
+		// with any meaning (I chose 'tall'), then press Enter key. Next cao is auto-adapted
+		// and box halts at 'building'. SHIFT+TAB to take the box back to the second cao.
+		// Doing that reduces m_refCount from 2 back to 1. Then do ALT+RightArrow to select
+		// 'cao buildin' in order to make a phrase. Start typing an adaptation - I chose to
+		// type 'skyscraper'. As soon as I typed the 's', the merge is done and in doing so
+		// it internally again calls RemoveRefString(), and the built in filters don't apply
+		// and so control gets to the bit of code in the m_refCount == 1 section where the
+		// ref count is to be decremented - which would take it to 0. The current active
+		// location is the second cao instance, at m_nSequNumber = 1. m_refCount going to 0
+		// means that the word is not adapted anywhere - which is a bogus conclusion, and
+		// then pRefString->m_bDeleted is set TRUE. This has the nasty consequence of
+		// removing the cao/tall entry from the KB. This loss of data by doing a merger
+		// is NOT what we want AI to do. Solution: use this new boolean in
+		// OnButtonMerge() - set it TRUE when entered, and FALSE when leaving. Then in
+		// CReferenceString object, put a filtering test to check for TRUE, and when
+		// so, skip the code which sets m_refCount to 0 and pRefString->m_bDeleted to TRUE.
 
 	// BEW added 2Dec2011 for supporting LIFT multilanguage glosses or definitions
 	// (these are used for getting a target text entry, if the import is redone in

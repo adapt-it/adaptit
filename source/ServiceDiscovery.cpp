@@ -47,15 +47,6 @@
 /// conflicts with winsock.h and other Microsoft classes. To avoid this, the
 /// CServiceDiscovery serves to isolate the namespace for the service discovery
 /// code from clashes with the GUI support's namespace. So it must be retained.
-///
-/// Also, DO NOT return GetResults() to be an event handler (formerly it was
-/// onSDNotify() for a wxServDiscNOTIFY event posted within Post_Notify())
-/// because our mutex & condition solution uses .WaitTimeout() in he app's
-/// DoServiceDiscovery() function, and when waiting, main thread event handling
-/// is asleep - so if you tried to do things Beier's way, the essential
-/// address lookup etc would not get called until the main thread's sleep ended -
-/// which would be too late because DoServiceDiscovery() would have been exited
-/// before the service discovery results could be computed.
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -86,30 +77,32 @@
 #define QTYPE_A 1
 #define QTYPE_PTR 12
 #define QTYPE_SRV 33
-/*
-// and a copy of the definition of mdnsa, from mdnsd.h, for the same reason
-typedef struct mdnsda_struct
-{
-	unsigned char *name;
-	unsigned short int type;
-	unsigned long int ttl;
-	unsigned short int rdlen;
-	unsigned char *rdata;
-	unsigned long int ip; // A
-	unsigned char *rdname; // NS/CNAME/PTR/SRV
-	struct { unsigned short int priority, weight, port; } srv; // SRV
-} *mdnsda;
-*/
-#include <vector>
-#define WIN32_LEAN_AND_MEAN // does the same job as above, likewise here just in case
-#define _WINSOCKAPI_ // keeps winsock.h from being included in <Windows.h>, it's here just in case
-//#include "winsock2.h"
 
+#include <vector>
+#define WIN32_LEAN_AND_MEAN
+#define _WINSOCKAPI_ // keeps winsock.h from being included in <Windows.h>, it's here just in case
 
 #include "wxServDisc.h"
+#include "Adapt_It.h"
+#include "MainFrm.h"
 #include "ServiceDiscovery.h"
 #include "helpers.h"
 
+// to enable or suppress logging, comment out to suppress
+//#define _zerocsd_
+
+// a few of the ones _zerocsd_ turned on, a minimal number, are not turned on with _minimalsd_
+//#define _minimalsd_
+
+// this one, if defined, displays each <url>@@@<hostname> string sent to the app, but a 
+// WITHHOLDING message if it is a duplicate. Comment out to suppress displaying that info
+#define _tracking_transfers_
+
+// Comment out the next line to disable wxLogDebug() logging related to shutdown of the 
+// service discovery run - same define is in Thread_ServiceDiscovery.cpp and wxServDisc.cpp
+// This is the one I used to give me logging helpful for tracking down the cause of access
+// violations - the final hurdle for successful service discovery multiple runs.
+//#define _shutdown_
 
 #ifdef __WXMSW__
 // The following include prevents the #include of Adapt_It.h from generating Yield() macro
@@ -122,151 +115,401 @@ typedef struct mdnsda_struct
 #endif
 #include "Adapt_It.h"
 
-extern CAdapt_ItApp* gpApp;
-CServiceDiscovery* gpServiceDiscovery; // wxServDisc's creator needs the value we place here
+extern wxMutex	kbsvr_arrays;
 
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)
-	EVT_COMMAND (wxID_ANY, wxServDiscHALTING, CServiceDiscovery::onSDHalting)
+
+EVT_COMMAND(wxID_ANY, wxServDiscNOTIFY, CServiceDiscovery::onSDNotify)
+
 END_EVENT_TABLE()
 
 CServiceDiscovery::CServiceDiscovery()
 {
-	m_servicestring = _T("");
-	m_bWxServDiscIsRunning = TRUE;
-	wxUnusedVar(m_servicestring);
 }
 
-CServiceDiscovery::CServiceDiscovery(wxMutex* mutex, wxCondition* condition,
-							wxString servicestring, CAdapt_ItApp* pParentClass)
+CServiceDiscovery::CServiceDiscovery(CAdapt_ItApp* pParentClass)
 {
-	wxLogDebug(_T("\nInstantiating a CServiceDiscovery class, passing in servicestring: %s, ptr to instance: %p"),
-		servicestring.c_str(), this);
+	m_serviceStr = _T("_kbserver._tcp.local.");
+	m_bDestroyChildren = FALSE;
 
-	m_pMutex = mutex;
-	m_pCondition = condition;
+	m_pNamescan = NULL; // initialize
+	m_pAddrscan = NULL; // initialize
 
-	m_servicestring = servicestring; // service to be scanned for
-	m_pParent = pParentClass; // so we can delete this class from a handler in the parent class
-	m_bWxServDiscIsRunning = TRUE; // Gets set FALSE only in my added onServDiscHalting() handler
-		// and the OnIdle() hander will use the FALSE to get CServiceDiscovery and ServDisc
-		// class instances deleted, and app's m_pServDisc pointer reset to NULL afterwards
-	m_postNotifyCount = 0; // use this int as a filter to allow only one GetResults() call
-	m_pParent->m_bCServiceDiscoveryCanBeDeleted = FALSE; // initialize, it gets set TRUE in the
-				// handler of the wxServDiscHALTING custom event, and then OnIdle()
-				// will attempt the CServiceDiscovery* m_pServDisc deletion (if done
-				// there, deletions are reordered so that the parent is deleted last -
-				// which avoids a crash) Reinitialize it there afterwards, to NULL
+	wxASSERT((void*)&wxGetApp() == (void*)pParentClass);
+	m_pApp = pParentClass;
+
+#if defined(_shutdown_)
+	wxLogDebug(_T("\nCServiceDiscovery  %p  Instantiating class. The m_serviceStr = %s"),
+		this, m_serviceStr.c_str());
+#endif
+	m_pParent = pParentClass; 
+
+	m_postNotifyCount = 0; // use this int as a filter to allow only one onSDNotify() call
+
+	// initialize scratch variables...
+	m_hostname = _T("");
+	m_addr = _T("");
+	m_port = _T("");
 
 	// Initialize my reporting context (Use .Clear() rather than
 	// .Empty() because from one run to another we don't know if the
 	// number of items discovered will be the same as discovered previously
 	// Note: if no KBserver service is discovered, these will remain cleared.
 	m_sd_servicenames.Clear();
-	m_uniqueIpAddresses.Clear();
-	m_urlsArr.Clear();
-	m_theirHostnames.Clear();
-	/*
-	m_sd_lines.Clear(); //for finished  string:flag:flag:flag lines, string can be empty
-	m_bArr_ScanFoundNoKBserver.Clear();  // stores 0, 1 or -1 per item
-	m_bArr_HostnameLookupFailed.Clear(); // ditto
-	m_bArr_IPaddrLookupFailed.Clear();   // ditto
-	m_bArr_DuplicateIPaddr.Clear();      // ditto
-	*/
+	m_ipAddrs_Hostnames.Clear(); //stores <ipaddr>@@@<hostname>
 
     // wxServDisc creator is: wxServDisc::wxServDisc(void* p, const wxString& what, int
     // type) where p is pointer to the parent class & what is the service to scan for, its
-    // type is QTYPE_PTR
-	m_pWxSD = new wxServDisc(this, m_servicestring, QTYPE_PTR);
+    // type is QTYPE_PTR (value = 12), and for the record, QTYPE_SVR is 33, and QTYPE_A is 1
+	//m_pWxSD = new wxServDisc(this, *m_pServiceStr, QTYPE_PTR);
+	m_pWxSD = new wxServDisc(this, m_serviceStr, QTYPE_PTR);
 	wxUnusedVar(m_pWxSD);
-	wxLogDebug(_T("wxServDisc %p: just now instantiated in CServiceDiscovery creator"), m_pWxSD);
 
-	gpServiceDiscovery = this; // wxServDisc creator needs this
+#if defined(_zerocsd_)
+	wxLogDebug(_T("wxServDisc %p: just now instantiated in CServiceDiscovery creator"), m_pWxSD);
+#endif
 }
 
-// This function in Beier's solution was an even handler called onSDNotify(), but in my
-// solution it is called directly and I've renamed it GetResults(). When wxServDisc
-// discovers a service (one or more of them) that it is scanning for, it reports its
-// success here. Adapt It needs just the ip address(s), but not the port. We present URL(s)
-// to the AI code which it can use for automatic connection to the running KBserver.
+// This function in Beier's solution is an event handler called onSDNotify(). When wxServDisc
+// discovers a service that it is scanning for, it reports its success here. Adapt It needs 
+// just the ip address(s), but not the port. We present URL(s) and their hostnames to the AI 
+// code which it can then use, by user choosing one, for connection to the running KBserver.
 // Ideally, only one KBserver runs at any given time, but we have to allow for users being
 // perverse and running more than one, or for a workshop in which different groups each
 // have a running KBserver on the LAN. If they do, we'll have to let them make a choice of
-// which URL to connect to. GetResults is an amalgamation of a few separate functions from
-// the original sdwrap code. We don't have a gui, so all we need do is the minimal task of
-// looking up the ip address and port of each discovered _kbserver service, and turning
-// each such into an ip address from which we can construct the appropriate URL (one or
-// more) which we'll make available to the rest of Adapt It via a wxArrayString plus some
-// booleans for error states, on the CAdapt_ItApp instance. The logic for using the one or
-// more URLs will be constructed externally to this service
-// discovery module - see DoServiceDiscovery().
+// which URL to connect to. Our service discovery module, however, only can find a single
+// one of them quickly (less than 4 secs), so we'll limit it to that. Our support for
+// multiple KBservers running will be by using a timer to call the discovery code running
+// on a background thread periodically, and to aggregate a list of the unique URLs found
+// in a burst of 9 discovery attempts spread over about 1.5 minutes. We let the user,
+// by a menu choice, initiate one or more bursts - for example, if a new KBserver is 
+// set running on the LAN during an AI session. We also need to remove (programmatically) 
+// any that users turn off during the life of the app - but that is independent of this 
+// discovery module - and I've not yet tried to code for doing so.
 // This service discovery module will just be instantiated, scan for _kbserver._tcp.local.
 // lookup the ip addresses, deposit finished URL or URLs in the wxArrayString in the
-// CAdapt_ItApp::m_servDiscResults array, and then kill itself.
-
-//void CServiceDiscovery::GetResults()
-//{
-//}
-
-// BEW Getting the module shut down in the two circumstances we need:
-// (a) after one or more KBserver instances running have been discovered -- GetResults()
-// is called, and we can put shut-down code in the end of that handler - we post an
-// event to say we are halting service discovery -- event is wxServDiscHALTING
-// (b) when no KBserver instance is runnning (I let a WaitTimeout() do it's job and
-// the main thread wakes up, tests and finds no results, etc).
-//
-// Beier's SDWrap embedded the wxServDisc instance in the app, and so when the app got shut
-// down, the lack of well-designed shutdown code didn't matter, as the memory leaks got blown
-// away. But for me, ServDisc needs to exist only for a single try at finding a KBserver
-// instance, and then die forever - or until explicitly instantiated again, and die without
-// leaking memory. So I've beefed up the code for returning blocks to the heap, and
-// encapsulated it all within a DoServiceDiscovery() function, an app member function
-void CServiceDiscovery::onSDHalting(wxCommandEvent& event)
+// CAdapt_ItApp::m_servDiscResults array, and then kill itself; but periodically for the
+// life of the app session. 
+void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 {
-	wxUnusedVar(event);
+	size_t i; m_hostname.Empty(); m_addr.Empty(); m_port.Empty();
+	size_t entry_count = 0;
+	int timeout;
+	m_pNamescan = NULL; // initialize
+	m_pAddrscan = NULL; // initialize
 
-	// If wxServDisc at process end has posted this wxServDiscHALTING event, then
-	// it's almost certain that the GetResults() function has not yet finished its
-	// work (it's on the main thread, while wxServDisc is a detached thread)
 
-	// BEW made this handler, for shutting down the module when no KBserver
-	// service was discovered, and for when one was discovered and post_notify()
-	// posted a wxServDiscNOTIFY event to get the lookup and reporting done for
-	// the discovered service(s) (there could be 2 or more KBserver instances running
-	// so more than one could be discovered)
-	wxLogDebug(_T("wxServDisc %p:  this [from CServiceDiscovery:onSDHalting()] = %p"), m_pWxSD, this);
-	wxLogDebug(_T("wxServDisc %p:  m_pParent [from CServiceDiscovery:onSDHalting()] = %p"), m_pWxSD, m_pParent);
+	// length of query plus leading dot
+	size_t qlen = m_pWxSD->getQuery().Len() + 1;
 
-	m_bWxServDiscIsRunning = FALSE;
-	wxLogDebug(_T("wxServDisc %p:  Starting CServiceDiscovery:onSDHalting(): m_bWxServDiscIsRunning initialized to FALSE"),
-				m_pWxSD);
-
-    // BEW: Post the custom wxServDiscHALTING event here, for the parent class to
-    // supply the handler needed for destroying this CServiceDiscovery instance
-	wxCommandEvent upevent(wxServDiscHALTING, wxID_ANY);
-	upevent.SetEventObject(this); // set sender
-
-#if wxVERSION_NUMBER < 2900
-	wxPostEvent((CAdapt_ItApp*)m_pParent, upevent);
-#else
-	wxQueueEvent((CAdapt_ItApp*)m_pParent, upevent.Clone());
+#if defined(_shutdown_)
+	wxLogDebug(_T("CServiceDiscovery = %p (216), onSDNotify() Begins... for the OWNED wxServDisc  %p"), this, m_pWxSD);
 #endif
-	wxLogDebug(_T("wxServDisc %p:  [from CServiceDiscovery:onSDHalting()] AFTER posting wxServDiscHALTING event, this = %p, m_pParent (the app) = %p"),
-			m_pWxSD, this, m_pParent);
+	// BEW 12Apr16 I get size() values for entries of over 100 million, which suggests
+	// some rubbish value is defining capacity. So I'll request a capacity of 99.
+	// entry_count can got to a value greater than 1, but I want only one traverse
+	// of the second for loop below
+	vector<wxSDEntry> entries;
+	entries.reserve(99);
+	entries = m_pWxSD->getResults();
+	vector<wxSDEntry>::const_iterator it;
+	for (it = entries.begin(); it != entries.end(); it++)
+	{
+		// what's wanted - just the bit before the first ._ sequence
+		entry_count++;
+#if defined(_zerocsd_)
+		// BEW added: let's have a look at what is returned
+		wxString aName = it->name;
+		int nameLen = aName.Len();
+		wxString ip = it->ip;
+		int port = it->port;
+		long time = it->time;
+		wxLogDebug(_T("name: %s  Len(): %d  ip: %s  port: %d  time: %d"),
+			aName.c_str(), nameLen, ip.c_str(), port, time);
+#endif
+#if defined(_zerocsd_)
+		wxString astring = it->name.Mid(0, it->name.Len() - qlen);
+		wxLogDebug(_T("m_sd_servicenames receives servicename:  %s   for entry index = %d"),
+			astring.c_str(), entry_count - 1);
+#endif
+		kbsvr_arrays.Lock();
+		m_sd_servicenames.Add(it->name.Mid(0, it->name.Len() - qlen));
+		kbsvr_arrays.Unlock();
 
-	delete m_pWxSD; // must have this, it gets ~wxServDisc() destructor called
+	} // end of loop: for (it = entries.begin(); it != entries.end(); it++)
+	if (entry_count > 1) entry_count = 1; // BEW 21Apr16, do one traverse only
+
+	// BEW: Next, lookup hostname and port -  the for loop is Beier's (I think)
+#if defined(_zerocsd_)
+	wxLogDebug(_T("onSDNotify() (244) wxServDisc  %p  &  entry_count =  %d"), m_pWxSD, entry_count);
+#endif
+	bool bSuccessful = FALSE; // BEW added 21Apr16
+	for (i = 0; i < entry_count; i++)
+	{
+		//wxServDisc namescan(0, m_pWxSD->getResults().at(i).name, QTYPE_SRV); // Beier's original
+					// 3rd param = 33, note namescan() is local, so runs as a detached thread 
+					// from onSDNotify()'s stackframe
+		// BEW 21Apr16 pass in the CServiceDiscovery instance, we'll keep null for any zombies that get created
+		wxServDisc namescan(this, m_pWxSD->getResults().at(i).name, QTYPE_SRV);
+		m_pNamescan = &namescan; // BEW added 16Apr16 to get access to namescan, as it runs on after 
+							   // everything else is deleted, so I'll add code internally to get it
+							   // deleted when we are done with it here
+#if defined(_zerocsd_)
+		wxLogDebug(_T("onSDNotify() (258) wxServDisc %p  &  passing into namescan's first param: %p :  for loop starts"), m_pWxSD, m_pWxSD);
+#endif
+		timeout = 3000;
+		while (!namescan.getResultCount() && timeout > 0)
+		{
+			wxMilliSleep(25);
+			timeout -= 25;
+		}
+		if (timeout <= 0)
+		{
+			// Beier's next message is a nuisance, it puts up a warning even in Release mode - so comment it out
+			//wxLogError(_T("Timeout looking up hostname. Entry index: %d"), i);
+			m_hostname = m_addr = m_port = wxEmptyString;
+#if defined(_zerocsd_)
+			wxLogDebug(_T("onSDNotify() (272) wxServDisc  %p  &  parent %p:  namescan() Timed out:  m_hostname:  %s   m_port  %s"),
+				m_pWxSD, this, m_hostname.c_str(), m_port.c_str());
+#endif
+			return;
+		}
+		else
+		{
+			// The namescan found something...
+			m_hostname = namescan.getResults().at(0).name;
+			m_port = wxString() << namescan.getResults().at(0).port;
+#if defined(_minimalsd_)
+			wxLogDebug(_T("wxServDisc %p (283)  onSDNotify:  Found Something"), m_pWxSD);
+#endif
+			// BEW For each successful namescan(), we must do an addrscan, so as to fill
+			// out the full info needed for constructing a URL later on
+			//wxServDisc addrscan(0, m_hostname, QTYPE_A); // <<-- Beier's original
+			// QTYPE_A is 1, note addrscan() is local, so runs as a detached thread 
+			// from onSDNotify()'s stackframe
+			// BEW 21Apr16 pass in the CServiceDiscovery instance, we'll keep null for any zombies that get created
+			wxServDisc addrscan(this, m_hostname, QTYPE_A);
+			m_pAddrscan = &addrscan; // BEW added 16Apr16 to get access to addrscan, as it runs on after 
+								   // everything else is deleted, so I'll add code internally to get it
+								   // deleted when we are done with it here
+#if defined(_zerocsd_)
+			wxLogDebug(_T("wxServDisc %p (296) onSDNotify() Passing into addrscan's first param: %p"), m_pWxSD, m_pWxSD);
+#endif
+			timeout = 3000;
+			while (!addrscan.getResultCount() && timeout > 0)
+			{
+				wxMilliSleep(25);
+				timeout -= 25;
+			}
+			if (timeout <= 0)
+			{
+#if defined(_zerocsd_)
+				wxLogError(_T("wxServDisc %p (307) onSDNotify()  Timeout looking up IP address."), m_pWxSD);
+#endif
+				m_hostname = m_addr = m_port = wxEmptyString;
+#if defined(_zerocsd_)
+				wxLogDebug(_T("wxServDisc %p  (311) ip Not Found: Timed out:  ip addr:  %s"), m_pWxSD, m_addr.c_str());
+#endif
+				return;
+			}
+			else  // We have SUCCESS! -- Now access addrscan()'s getResults to get the ip address
+			{
+				bSuccessful = TRUE; // BEW added 21Apr16
+				m_addr = addrscan.getResults().at(0).ip; // Beier's original
+				m_port = wxString() << addrscan.getResults().at(0).port; // Beier's original, it leaks (I fixed with clearResults())					
+
+				// BEW 6Apr16, make composite:  <ipaddr>@@@<hostname> to pass back to CServiceDiscovery instance
+				wxString composite = m_addr;
+				wxString ats = _T("@@@");
+				composite += ats + m_hostname;
+#if defined(_minimalsd_)
+				wxLogDebug(_T("wxServDisc %p  (326) Made composite:  %s  FROM PARTS:  %s    %s    %s"),
+					m_pWxSD, composite.c_str(), m_addr.c_str(), ats.c_str(), m_hostname.c_str());
+#endif
+
+				kbsvr_arrays.Lock();
+				// Only add this ip address to m_uniqueIpAddresses array if it is not already in the array
+				bool bItIsUnique = AddUniqueStrCase(&m_ipAddrs_Hostnames, composite, TRUE); // does .Add() if it is unique
+				kbsvr_arrays.Unlock();
+				wxUnusedVar(bItIsUnique);
+
+#if defined(_minimalsd_)
+				if (bItIsUnique) // tell me so
+				{
+					kbsvr_arrays.Lock();
+					wxLogDebug(_T("wxServDisc %p  (340)  onSDNotify()  SUCCESS, composite  %s  was stored in CServiceDiscovery"),
+						m_pWxSD, composite.c_str());
+					kbsvr_arrays.Unlock();
+				} // end of TRUE block for test: if (bItIsUnique)
+				else
+				{
+					wxLogDebug(_T("wxServDisc %p  (346)  onSDNotify()  SUCCESS, but NOT UNIQUE so not stored"));
+				}
+#endif
+				// Try cleanup here for m_addr and m_port, these get leaked in Beier's solution
+				m_addr.clear();
+				m_port.clear();
+
+				// Transfer the data to the app's array m_ipAddrs_Hostnames
+				if (!m_ipAddrs_Hostnames.empty())
+				{
+					size_t count = m_ipAddrs_Hostnames.size();
+					size_t index;
+					for (index = 0; index < count; index++)
+					{
+						wxString composite = m_ipAddrs_Hostnames.Item(index);
+						// Only transfer ones not already in the app's array of same name
+						int result = m_pApp->m_ipAddrs_Hostnames.Index(composite);
+						if (result == wxNOT_FOUND)
+						{
+							// Do the transfer, the app's array does not have this one yet
+							m_pApp->m_ipAddrs_Hostnames.Add(composite);
+							// Log what got sent, in Unicode Debug build, to check that it doesn't keep getting just the same one
+#if defined(_tracking_transfers_)
+							wxLogDebug(_T("In onSDNotify(), TRANSFERRING a composite ipaddr/hostname string to app array: %s"),
+								composite.c_str());
+#endif
+						}
+						else
+						{
+#if defined(_tracking_transfers_)
+							// This one is already present, so bin it
+							wxLogDebug(_T("In onSDNotify(), WITHHOLDING duplicate ipaddr/hostname string from app array: %s"),
+								composite.c_str());
+#endif
+							wxNO_OP; // for release build
+						}
+						// The local arrays here are no longer needed until the next timer 
+						// notification, so clear them
+						m_ipAddrs_Hostnames.clear();
+						m_sd_servicenames.clear();
+					}
+				}
+#if defined(_zerocsd_)
+				wxLogDebug(wxT("wxServDisc %p (390) onSDNotify(), Success block ending. onSDNotify() exits soon"), m_pWxSD);
+#endif
+			} // end of SUCCESS block (else block) for test: if (timeout <= 0) for addrscan attempt
+
+		} // end of else block for test: if(timeout <= 0) for namescan() attempt
+
+	} // end of loop: for (i = 0; i < entry_count; i++)
+
+	if (bSuccessful)
+	{
+#if defined(_zerocsd_)
+		wxLogDebug(_T("CServiceDiscovery:onSDNotify() %p  (400)  m_bDestroyChildren set TRUE"), this);
+#endif
+		// BEW 22Apr16 signal that the all can be shutdown; the wxServDisc instances can die, and this & 
+		// it's owning thread must be destroyed (after suitable small delays possibly, and the wxServDisc
+		// instances undergo staged deaths, first namescan, then addrscan, and finally the owned instance
+		// - a short delay between each of these will ensure we avoid access violations, the last is most
+		// critical)
+		m_bDestroyChildren = TRUE;
+#if defined(_shutdown_)
+		wxLogDebug(_T("CServiceDiscovery = %p  (409)  onSDNotify()  m_bDestroyChildren now set to TRUE"), this);
+#endif
+	}
 }
 
 CServiceDiscovery::~CServiceDiscovery()
 {
-	wxLogDebug(_T("Copying URLs to app::m_servDiscResults array, then Deleting the CServiceDiscovery instance = %p, in ~CServiceDiscovery()"), this);
+	// Logging shows that ~wxServDisc() for the owned instance does not get called, so
+	// destroy it from here now (its results hashmap has already been cleared, & its 
+	// cache structs etc). Note, can't do this from Thread_ServiceDiscovery::Entry()
+	// because the latter sees the #include of Adapt_It.h, and Destorying from
+	// Entry() would require #include "wxServDisc" which would reopen the can of worms
+	// of hundreds of winsock etc name clashes
+	m_pWxSD->GetThread()->Delete();
+	delete m_pWxSD;
+
+	// don't need these here (but I'll keep them as insurance)
+	m_sd_servicenames.clear();
+	m_ipAddrs_Hostnames.clear();
+
+#if defined (_shutdown_)
+	processID = wxGetProcessId();
+	wxLogDebug(_T("CServiceDiscovery* = %p  (431)  Exiting from  ~CServiceDiscovery() destructor.  Process ID = %lx"), this, processID);
+#endif
 }
 
-// Copied wxItoa from helpers.cpp, as including helpers.h leads to problems
-void CServiceDiscovery::wxItoa(int val, wxString& str)
+// BEW created 5Jan16, needed for GetResults() in CServiceDiscovery instance
+bool CServiceDiscovery::IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase)
 {
-	wxString valStr;
-	valStr << val;
-	str = valStr;
+	int count = pArrayStr->GetCount();
+	if (count == 0)
+	{
+		return FALSE;
+	}
+	else
+	{
+		int index;
+		if (!bCase)
+		{
+			// case insensitive compare
+			index = pArrayStr->Index(str, FALSE); // bCase is FALSE, so A and a
+												  // are the same character (wxWidgets comparison used)
+		}
+		else
+		{
+			//case sensitive (ie. case differentiates)
+			index = pArrayStr->Index(str); // bCase is default TRUE, so A and a
+										   // are different characters (wxWidgets comparison used)
+		}
+		if (index == wxNOT_FOUND)
+		{
+			// it's not in there yet, so add it
+			return FALSE;
+		}
+		else
+		{
+			// it's in the array already, so ignore it
+			return TRUE;
+		}
+	}
 }
 
+// BEW created 5Jan16
+// This is similar to AddUniqueString() above, but AddUniqueString() does
+// case or caseless compare using the global gbAutoCaps; but for
+// AddUniqueStrCase() I want to control whether the comparison is cased or
+// caseless from the signature. What prompted me to make this version is
+// for comparison of ipaddr strings in the KBserver's service discovery
+// module
+// Return TRUE if the passed in str gets Add()ed to pArrayStr, FALSE if it doesn't
+bool CServiceDiscovery::AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase)
+{
+	int count = pArrayStr->GetCount();
+	if (count == 0)
+	{
+		pArrayStr->Add(str);
+		return TRUE;
+	}
+	else
+	{
+		int index;
+		if (!bCase)
+		{
+			// case insensitive compare
+			index = pArrayStr->Index(str, FALSE); // bCase is FALSE, so A and a
+												  // are the same character (wxWidgets comparison used)
+		}
+		else
+		{
+			//case sensitive (ie. case differentiates)
+			index = pArrayStr->Index(str); // bCase is default TRUE, so A and a
+										   // are different characters (wxWidgets comparison used)
+		}
+		if (index == wxNOT_FOUND)
+		{
+			// it's not in there yet, so add it
+			pArrayStr->Add(str);
+			return TRUE;
+		}
+		else
+		{
+			// it's in the array already, so ignore it
+			return FALSE;
+		}
+	}
+}
 #endif // _KBSERVER

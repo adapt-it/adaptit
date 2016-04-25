@@ -35,60 +35,26 @@
 namespace std {}
 using namespace std;
 
+#include <vector>
+
+#if defined(WIN32)
+
 // the next is supposed to prevent winsock.h being included in <windows.h>
 #define _WINSOCKAPI_
 // this is supposed to do the same job
 #define WIN32_LEAN_AND_MEAN
 
-#include <vector>
+// to get it to compile (BEW 7Mar16) -- it has the definition of SOCKET in it, which is needed below
 
-// temporary to get it to compile (BEW 7Mar16) -- it has the definition of SOCKET in it, which is needed below
-#if defined(WIN32)
 #include "WinSock2.h"
 #include <wx/msw/winundef.h>
 #endif
 
-// temporary to get it to compile (BEW 7Mar16)
+// to get it to compile (BEW 7Mar16)
 #if !defined(WIN32)
 typedef int SOCKET;
 #endif // WIN32
 
-/*
-// all the nice socket includes in one place here (I changed _WIN32 to WIN32)
-#ifdef WIN32
-
-// the next is supposed to prevent winsock.h being included in <windows.h>
-#define _WINSOCKAPI_
-// this is supposed to do the same job
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#define _WINSOCK_DEPRECATED_NO_WARNINGS   // allow the old inet_addr() call in implementation file
-// mingw/ visual studio socket includes
-#define SHUT_RDWR SD_BOTH
-
-#include <winsock2.h>
-#include <ws2tcpip.h>
-// BEW requires the next one
-#include <wx/dynarray.h>
-
-#else // proper UNIX
-
-typedef int SOCKET;       // under windows, SOCKET is unsigned
-#define INVALID_SOCKET -1 // so there also is no -1 return value
-#define closesocket(s) close(s) // under windows, it's called closesocket
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/un.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-
-#endif // WIN32
-*/
-
-// Need these to be here instead of in wxServDisc.cpp only, as our declaration
-// of CleanUpMyMess() needs the mdnsd struct definition, and CServiceDiscovery.cpp
-// needs the mdnsda_struct definition
 #include "1035.h"
 #include "mdnsd.h"
 
@@ -99,10 +65,8 @@ class CServiceDiscovery;
 
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscNOTIFY, -1);
-DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
 #else
 wxDECLARE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
-wxDECLARE_EVENT(wxServDiscHALTING, wxCommandEvent);
 #endif
 
 // resource name with ip addr and port number
@@ -123,47 +87,47 @@ public:
   wxServDisc(void* p, const wxString& what, int type);
   ~wxServDisc();
 
-  /// Returns true if service discovery successfully started. If not, getErr() may contain a hint.
+  unsigned long processID;
+  bool m_bKillZombie; // quickly destroy unwanted wxServDisc instances that hang around too long
+					  // (this is precautionary, there don't appear to be any created in the
+					  // present solution)
+
+  // Returns true if service discovery successfully started. If not, getErr() may contain a hint.
   bool isOK() const { return err.length() == 0; };
 
-  //CServiceDiscovery* m_pSD; // BEW added
+  // CheckDeathNeeded checks the CServiceDiscovery instance for its m_bDestroyChildren boolean
+  // going TRUE, once that happens the wxServDisc instance exits from the scanning loops and 
+  // proceeds to die
+  bool CheckDeathNeeded(CServiceDiscovery* pSDParent, int BEWcount, int querytype, bool& exit, bool& bBrokeFromLoop);
 
-  // BEW 25Feb16 moved the guts of the CServiceDiscovery::GetResults() function to here,
-  // and calling this new function DiscoverResults(), it needs to internally point back
-  // to the parent CServiceDiscovery instance
-  void DiscoverResults(CServiceDiscovery* pReportTo);
+  // For communication back to the parent CServiceDiscovery unit, a global (which was gpServiceDiscovery)
+  // is unhelpful, because if too Thread_ServiceDiscovery instances overlap temporally, then the shutting
+  // down of the first destroys' gpServiceDiscovery, leading to access violation in the second running thread.
+  // A better solution is to have a pointer to the particular CServiceDiscovery instance which created the
+  // owned wxServDisc instance - then Thread_ServiceDiscovery instances can robustly overlap temporally. This
+  // design then means that instead of running the threads from a timer, we can instead run them in a burst
+  // of partially overlapping instances - getting what would take 1.5 minutes with a timer approach done in
+  // about 20 seconds. The following pointer allows the needed communication with CServiceDiscovery. Of course,
+  // the Thread which runs the pointed at CServiceDiscovery instance must exist until no more communications
+  // are required. We handle that with event passing, booleans, and wait loops, as required.
+  CServiceDiscovery* m_pCSD;
 
-  // yeah well...
+  // yeah well...  <<-- Beier's comment. Not exactly helpful!
   std::vector<wxSDEntry> getResults() const;
   size_t getResultCount() const;
 
+  // BEW 6Apr16 made next one in the hope that it will clear up a lot of leaks - it did
+  void wxServDisc::clearResults();
+ 
   // get query name
   const wxString& getQuery() const { const wxString& ref = query; return ref; };
   // get error string
   const wxString& getErr() const { const wxString& ref = err; return ref; };
 
-  // GetResults() takes longer to complete than the service discovery thread, so we can't
-  // assume that initiating service discovery halting from the end of onSDNotify will
-  // allow clean leak elimination - the latter crashes. So I'm using a mutex and condition
-  // approach to cause the main thread to sleep while the service discovery job is done
+ private:
 
-  // I've left this bool in the solution, but I think it no longer plays any useful function
-  bool m_bGetResultsStarted;
-
-  // BEW added 23Mar16, to encapsulate the cleanup functions within one
-  void CleanUpMyMess(mdnsd& d, SOCKET& mSock);
-
-  SOCKET    mSock; // BEW 23Mar16 made public, so it can be passed as a param to CleanUpMyMess()
-private:
-
-  // These added by BEW
-  // scratch variables
-  wxString	m_hostname;
-  wxString	m_addr;
-  wxString	m_port;
-
-
-   wxString  err;
+  SOCKET    mSock;
+  wxString  err;
   void     *parent;
   wxString  query;
   int       querytype; 
@@ -185,9 +149,6 @@ private:
 
   void post_notify();
 
-  bool	  IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
-  bool	  AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
-  void    wxItoa(int val, wxString& str); // copied from helpers.h & .cpp
 };
 
 #endif // _KBSERVER // whm 2Dec2015 added otherwise Linux build breaks when _KBSERVER is not defined
