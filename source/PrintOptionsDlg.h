@@ -42,6 +42,7 @@ public:
 	CAdapt_ItView* m_pView;
 	bool m_bPrintingRange;
 	bool m_bSuppressFooter;
+    bool m_bPrintOnlyPageNumber;
 
 	//wxPrintout* m_pPrintout;
 
@@ -59,6 +60,7 @@ public:
 	wxCheckBox* pCheckSuppressPrecSectHeading;
 	wxCheckBox* pCheckIncludeFollSectHeading;
 	wxCheckBox* pCheckSuppressPrintingFooter;
+    wxCheckBox* pCheckPrintPageNumberOnlyInFooter;
 	wxCheckBox* pCheckInclFreeTransText;
 	wxCheckBox* pCheckInclGlossesText;
 
@@ -74,6 +76,7 @@ protected:
 	void OnPagesBtn(wxCommandEvent& WXUNUSED(event));
 	void OnRadioChapterVerseRange(wxCommandEvent& WXUNUSED(event));
 	void OnCheckSuppressFooter(wxCommandEvent& WXUNUSED(event));
+    void OnCheckFooterOnlyHasPageNum(wxCommandEvent& WXUNUSED(event));
 	void OnCheckSuppressPrecedingHeading(wxCommandEvent& WXUNUSED(event));
 	void OnCheckIncludeFollowingHeading(wxCommandEvent& WXUNUSED(event));
 	void OnEditPagesFrom(wxCommandEvent& WXUNUSED(event));

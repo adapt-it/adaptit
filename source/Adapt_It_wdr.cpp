@@ -5509,30 +5509,33 @@ wxSizer *PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxCheckBox *item45 = new wxCheckBox( parent, IDC_CHECK_SUPPRESS_FOOTER, _("Suppress printing of the footer"), wxDefaultPosition, wxDefaultSize, 0 );
     item45->SetToolTip( _("Check this box if you do not want Adapt It to include a footer on the page(s) of the printed selection") );
-    item43->Add( item45, 0, wxALIGN_CENTER|wxALL, 5 );
+    item43->Add( item45, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxCheckBox *item46 = new wxCheckBox( parent, ID_CHECKBOX_FOOTER_ONLY_HAS_PAGE_NUM, _("Footer includes only the page number"), wxDefaultPosition, wxDefaultSize, 0 );
+    item43->Add( item46, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item37->Add( item43, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item36->Add( item37, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item46 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item47 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item47 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item48 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item48 = new wxButton( parent, wxID_OK, _("Print >>"), wxDefaultPosition, wxDefaultSize, 0 );
-    item48->SetDefault();
-    item48->SetToolTip( _("Press this button to proceed to the standard print dialog (where you can set margins and do the actual printing)") );
-    item47->Add( item48, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item49 = new wxButton( parent, wxID_OK, _("Print >>"), wxDefaultPosition, wxDefaultSize, 0 );
+    item49->SetDefault();
+    item49->SetToolTip( _("Press this button to proceed to the standard print dialog (where you can set margins and do the actual printing)") );
+    item48->Add( item49, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item47->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item48->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item49 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item49->SetToolTip( _("Press this button to Cancel the printing and close this dialog") );
-    item47->Add( item49, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item50 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item50->SetToolTip( _("Press this button to Cancel the printing and close this dialog") );
+    item48->Add( item50, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item46->Add( item47, 0, wxALIGN_CENTER|wxALL, 0 );
+    item47->Add( item48, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item36->Add( item46, 0, wxALIGN_CENTER|wxALL, 0 );
+    item36->Add( item47, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item11->Add( item36, 2, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 

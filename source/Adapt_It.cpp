@@ -701,6 +701,9 @@ extern int gnSelectionEndSequNum;
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbPrintFooter;
 
+/// This global is defined in Adapt_ItView.cpp.
+extern bool gbPrintOnlyPgNumInFooter;
+
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
 /// This global is defined in Adapt_ItView.cpp.
@@ -16995,6 +16998,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gnSelectionStartSequNum = -1;
 	gnSelectionEndSequNum = -1;
 	gbPrintFooter = TRUE;
+    gbPrintOnlyPgNumInFooter = FALSE;
 
 	gbIgnoreScriptureReference_Receive = TRUE;
 	gbIgnoreScriptureReference_Send = TRUE;
@@ -17655,7 +17659,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString dataDir, localDataDir, documentsDir;
 	wxString userConfigDir, userDataDir, userLocalDataDir;
 	wxString executablePath;
-#ifdef __WXGTK__
+#ifdef __WXGTKzzz__
 	wxString installPrefix;
 	wxStandardPaths stdPaths;
 #else
@@ -17691,7 +17695,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxLogDebug(_T("The wxStandardPaths::GetUserLocalDataDir() = %s"),userLocalDataDir.c_str());
 	executablePath = stdPaths.GetExecutablePath();
 	wxLogDebug(_T("The wxStandardPaths::GetExecutablePath() = %s"),executablePath.c_str());
-#ifdef __WXGTK__
+#ifdef __WXGTKzzz__
 	// Only available on Linux
 	installPrefix = stdPaths.GetInstallPrefix();
 	wxLogDebug(_T("The wxStandardPaths::GetInstallPrefix() = %s"),installPrefix.c_str());

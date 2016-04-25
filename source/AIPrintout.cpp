@@ -60,6 +60,9 @@
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbPrintFooter;
 
+/// This global is defined in Adapt_ItView.cpp.
+extern bool gbPrintOnlyPgNumInFooter;
+
 extern int gnFromChapter;
 extern int gnFromVerse;
 extern int gnToChapter;
