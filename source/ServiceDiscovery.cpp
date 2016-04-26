@@ -132,9 +132,6 @@ CServiceDiscovery::CServiceDiscovery(CAdapt_ItApp* pParentClass)
 	m_serviceStr = _T("_kbserver._tcp.local.");
 	m_bDestroyChildren = FALSE;
 
-	m_pNamescan = NULL; // initialize
-	m_pAddrscan = NULL; // initialize
-
 	wxASSERT((void*)&wxGetApp() == (void*)pParentClass);
 	m_pApp = pParentClass;
 
@@ -195,15 +192,12 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 	size_t i; m_hostname.Empty(); m_addr.Empty(); m_port.Empty();
 	size_t entry_count = 0;
 	int timeout;
-	m_pNamescan = NULL; // initialize
-	m_pAddrscan = NULL; // initialize
-
 
 	// length of query plus leading dot
 	size_t qlen = m_pWxSD->getQuery().Len() + 1;
 
 #if defined(_shutdown_)
-	wxLogDebug(_T("CServiceDiscovery = %p (216), onSDNotify() Begins... for the OWNED wxServDisc  %p"), this, m_pWxSD);
+	wxLogDebug(_T("CServiceDiscovery = %p (200), onSDNotify() Begins... for the OWNED wxServDisc  %p"), this, m_pWxSD);
 #endif
 	// BEW 12Apr16 I get size() values for entries of over 100 million, which suggests
 	// some rubbish value is defining capacity. So I'll request a capacity of 99.
@@ -241,21 +235,19 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 
 	// BEW: Next, lookup hostname and port -  the for loop is Beier's (I think)
 #if defined(_zerocsd_)
-	wxLogDebug(_T("onSDNotify() (244) wxServDisc  %p  &  entry_count =  %d"), m_pWxSD, entry_count);
+	wxLogDebug(_T("onSDNotify() (238) wxServDisc  %p  &  entry_count =  %d"), m_pWxSD, entry_count);
 #endif
 	bool bSuccessful = FALSE; // BEW added 21Apr16
 	for (i = 0; i < entry_count; i++)
 	{
 		//wxServDisc namescan(0, m_pWxSD->getResults().at(i).name, QTYPE_SRV); // Beier's original
-					// 3rd param = 33, note namescan() is local, so runs as a detached thread 
-					// from onSDNotify()'s stackframe
+		// 3rd param = 33, note namescan() is local, so runs as a detached thread 
+		// from onSDNotify()'s stackframe
 		// BEW 21Apr16 pass in the CServiceDiscovery instance, we'll keep null for any zombies that get created
 		wxServDisc namescan(this, m_pWxSD->getResults().at(i).name, QTYPE_SRV);
-		m_pNamescan = &namescan; // BEW added 16Apr16 to get access to namescan, as it runs on after 
-							   // everything else is deleted, so I'll add code internally to get it
-							   // deleted when we are done with it here
+
 #if defined(_zerocsd_)
-		wxLogDebug(_T("onSDNotify() (258) wxServDisc %p  &  passing into namescan's first param: %p :  for loop starts"), m_pWxSD, m_pWxSD);
+		wxLogDebug(_T("onSDNotify() (250) wxServDisc %p  &  passing into namescan's first param: %p :  for loop starts"), m_pWxSD, m_pWxSD);
 #endif
 		timeout = 3000;
 		while (!namescan.getResultCount() && timeout > 0)
@@ -269,7 +261,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 			//wxLogError(_T("Timeout looking up hostname. Entry index: %d"), i);
 			m_hostname = m_addr = m_port = wxEmptyString;
 #if defined(_zerocsd_)
-			wxLogDebug(_T("onSDNotify() (272) wxServDisc  %p  &  parent %p:  namescan() Timed out:  m_hostname:  %s   m_port  %s"),
+			wxLogDebug(_T("onSDNotify() (264) wxServDisc  %p  &  parent %p:  namescan() Timed out:  m_hostname:  %s   m_port  %s"),
 				m_pWxSD, this, m_hostname.c_str(), m_port.c_str());
 #endif
 			return;
@@ -280,7 +272,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 			m_hostname = namescan.getResults().at(0).name;
 			m_port = wxString() << namescan.getResults().at(0).port;
 #if defined(_minimalsd_)
-			wxLogDebug(_T("wxServDisc %p (283)  onSDNotify:  Found Something"), m_pWxSD);
+			wxLogDebug(_T("wxServDisc %p (275)  onSDNotify:  Found Something"), m_pWxSD);
 #endif
 			// BEW For each successful namescan(), we must do an addrscan, so as to fill
 			// out the full info needed for constructing a URL later on
@@ -289,11 +281,9 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 			// from onSDNotify()'s stackframe
 			// BEW 21Apr16 pass in the CServiceDiscovery instance, we'll keep null for any zombies that get created
 			wxServDisc addrscan(this, m_hostname, QTYPE_A);
-			m_pAddrscan = &addrscan; // BEW added 16Apr16 to get access to addrscan, as it runs on after 
-								   // everything else is deleted, so I'll add code internally to get it
-								   // deleted when we are done with it here
+
 #if defined(_zerocsd_)
-			wxLogDebug(_T("wxServDisc %p (296) onSDNotify() Passing into addrscan's first param: %p"), m_pWxSD, m_pWxSD);
+			wxLogDebug(_T("wxServDisc %p (286) onSDNotify() Passing into addrscan's first param: %p"), m_pWxSD, m_pWxSD);
 #endif
 			timeout = 3000;
 			while (!addrscan.getResultCount() && timeout > 0)
@@ -304,11 +294,11 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 			if (timeout <= 0)
 			{
 #if defined(_zerocsd_)
-				wxLogError(_T("wxServDisc %p (307) onSDNotify()  Timeout looking up IP address."), m_pWxSD);
+				wxLogError(_T("wxServDisc %p (297) onSDNotify()  Timeout looking up IP address."), m_pWxSD);
 #endif
 				m_hostname = m_addr = m_port = wxEmptyString;
 #if defined(_zerocsd_)
-				wxLogDebug(_T("wxServDisc %p  (311) ip Not Found: Timed out:  ip addr:  %s"), m_pWxSD, m_addr.c_str());
+				wxLogDebug(_T("wxServDisc %p  (301) ip Not Found: Timed out:  ip addr:  %s"), m_pWxSD, m_addr.c_str());
 #endif
 				return;
 			}
@@ -323,7 +313,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 				wxString ats = _T("@@@");
 				composite += ats + m_hostname;
 #if defined(_minimalsd_)
-				wxLogDebug(_T("wxServDisc %p  (326) Made composite:  %s  FROM PARTS:  %s    %s    %s"),
+				wxLogDebug(_T("wxServDisc %p  (316) Made composite:  %s  FROM PARTS:  %s    %s    %s"),
 					m_pWxSD, composite.c_str(), m_addr.c_str(), ats.c_str(), m_hostname.c_str());
 #endif
 
@@ -337,13 +327,13 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 				if (bItIsUnique) // tell me so
 				{
 					kbsvr_arrays.Lock();
-					wxLogDebug(_T("wxServDisc %p  (340)  onSDNotify()  SUCCESS, composite  %s  was stored in CServiceDiscovery"),
+					wxLogDebug(_T("wxServDisc %p  (330)  onSDNotify()  SUCCESS, composite  %s  was stored in CServiceDiscovery"),
 						m_pWxSD, composite.c_str());
 					kbsvr_arrays.Unlock();
 				} // end of TRUE block for test: if (bItIsUnique)
 				else
 				{
-					wxLogDebug(_T("wxServDisc %p  (346)  onSDNotify()  SUCCESS, but NOT UNIQUE so not stored"));
+					wxLogDebug(_T("wxServDisc %p  (336)  onSDNotify()  SUCCESS, but NOT UNIQUE so not stored"));
 				}
 #endif
 				// Try cleanup here for m_addr and m_port, these get leaked in Beier's solution
@@ -386,7 +376,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 					}
 				}
 #if defined(_zerocsd_)
-				wxLogDebug(wxT("wxServDisc %p (390) onSDNotify(), Success block ending. onSDNotify() exits soon"), m_pWxSD);
+				wxLogDebug(wxT("wxServDisc %p (379) onSDNotify(), Success block ending. onSDNotify() exits soon"), m_pWxSD);
 #endif
 			} // end of SUCCESS block (else block) for test: if (timeout <= 0) for addrscan attempt
 
@@ -397,7 +387,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 	if (bSuccessful)
 	{
 #if defined(_zerocsd_)
-		wxLogDebug(_T("CServiceDiscovery:onSDNotify() %p  (400)  m_bDestroyChildren set TRUE"), this);
+		wxLogDebug(_T("CServiceDiscovery:onSDNotify() %p  (390)  m_bDestroyChildren set TRUE"), this);
 #endif
 		// BEW 22Apr16 signal that the all can be shutdown; the wxServDisc instances can die, and this & 
 		// it's owning thread must be destroyed (after suitable small delays possibly, and the wxServDisc
@@ -406,7 +396,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 		// critical)
 		m_bDestroyChildren = TRUE;
 #if defined(_shutdown_)
-		wxLogDebug(_T("CServiceDiscovery = %p  (409)  onSDNotify()  m_bDestroyChildren now set to TRUE"), this);
+		wxLogDebug(_T("CServiceDiscovery = %p  (399)  onSDNotify()  m_bDestroyChildren now set to TRUE"), this);
 #endif
 	}
 }
@@ -428,7 +418,7 @@ CServiceDiscovery::~CServiceDiscovery()
 
 #if defined (_shutdown_)
 	processID = wxGetProcessId();
-	wxLogDebug(_T("CServiceDiscovery* = %p  (431)  Exiting from  ~CServiceDiscovery() destructor.  Process ID = %lx"), this, processID);
+	wxLogDebug(_T("CServiceDiscovery* = %p  (421)  Exiting from  ~CServiceDiscovery() destructor.  Process ID = %lx"), this, processID);
 #endif
 }
 

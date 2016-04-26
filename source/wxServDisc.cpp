@@ -193,7 +193,7 @@ wxThread::ExitCode wxServDisc::Entry()
 
 			long msecs = tv->tv_sec == 0 ? 100 : tv->tv_sec * 1000; // so that the while loop beneath gets executed once
 #if defined(_zero_) // comment out next one if it generates too much pointless logging; owned one and children use it concurrently
-//			wxLogDebug(wxT("wxServDisc %p: (198) scanthread waiting for data, timeout %i seconds"), this, (int)tv->tv_sec);
+//			wxLogDebug(wxT("wxServDisc %p: (196) scanthread waiting for data, timeout %i seconds"), this, (int)tv->tv_sec);
 #endif
 			if (CheckDeathNeeded(m_pCSD, BEWcount, querytype, exit, bDontCare))
 			{
@@ -263,9 +263,7 @@ wxThread::ExitCode wxServDisc::Entry()
 			wxLogDebug(wxT("wxServDisc %p: (263) scanthread woke up, reason: incoming data(%i), timeout(%i), error(%i), deletion(%i)"),
 				this, datatoread > 0, msecs <= 0, datatoread == -1, GetThread()->TestDestroy());
 #endif
-			// If shutting down, and bBrokeFromInnerLoop is TRUE, no more calls to mdnsd code can be made, because gpServiceDiscovery
-			// can at this point be NULL, and the owned wxServDisc instance may have been destroyed, so use the boolean to force
-			// an immediate outer loop break
+			// If shutting down, force an immediate outer loop break
 			if (bBrokeFromInnerLoop)
 			{
 				break; // from outer loop too
@@ -319,7 +317,8 @@ wxThread::ExitCode wxServDisc::Entry()
 					break;
 				}
 			} // end of third inner loop: while (mdnsd_out(d, &m, &ip, &port))
-			BEWcount++; // BEW log what iteration this is: this is NOT cosmetic, it's used for shutdown when no KBserver is running
+			BEWcount++; // BEW log what iteration this is: this is NOT cosmetic, 
+						// it's used for shutdown when no KBserver is running
 
 			// If control broke from the third inner loop, break immediately from the outer loop too
 			if (bBrokeFromInnerLoop3)
@@ -328,7 +327,7 @@ wxThread::ExitCode wxServDisc::Entry()
 			}
 
 #if defined(_minimal_)
-			wxLogDebug(_T("BEW wxServDisc: %p  (331) Entry()'s outer loop iteration:  %d"), this, BEWcount);
+			wxLogDebug(_T("BEW wxServDisc: %p  (330) Entry()'s outer loop iteration:  %d"), this, BEWcount);
 #endif
 		} // end of outer loop
 
@@ -344,24 +343,21 @@ wxThread::ExitCode wxServDisc::Entry()
 		}
 		if ((m_pCSD != NULL) && (this->querytype == QTYPE_SRV)) // namescan()
 		{
-			// If there are no KBservers running, namescan() and addrscan() do not get created, and
-			// so m_pNamescan rememains NULL (as does m_pAddrscan in that circumstance); but if
-			// non-NULL then a discovery was made and onSDNotify() has run and both will be non-NULL.
-			// We ignore m_pAddrscan here because we want no delay for it in the shutdown process,
-			// but for m_Namescan() we need a delay. Testing shows that namescan() deleted after
-			// addrscan() has been deleted, is safest
+			// If there are no KBservers running, namescan() and addrscan() do not get created. But
+			// if there was a discovery it means that onSDNotify() has run so both namescan() and
+			// addrscan() wxServDisc instances will have been created and are running.
+			// We ignore addrscan here because we want no delay for it in the shutdown process,
+			// but for namescan() we need a delay. Testing shows that namescan(), if deleted after
+			// addrscan() has been deleted, works best
 			wxMilliSleep(150); // .15 seconds
 		}
 
 		// Beier's cleanup functions, which I augmented with my own my_gc() which handles
 		// _cache struct deletions - something he forgot or didn't bother to do
-		// Note, gpServiceDiscovery can go NULL, and the owned wxServDisc instance be destroyed, before
-		// control gets here in a child instance, so only do the following cleanups if gpServiceDiscovery
-		// is not null
 		if (m_pCSD != NULL)
 		{
 #if defined(_zero_)
-			wxLogDebug(_T("wxServDisc: %p  (364) Entry(): my_gc(d) & friends, about to be called "), this);
+			wxLogDebug(_T("wxServDisc: %p  (360) Entry(): my_gc(d) & friends, about to be called "), this);
 #endif
 			my_gc(d); // Is based on Beier's _gd(d), but removing every instance of the
 					  // cached struct by brute force in the cache array (it's a
@@ -380,18 +376,18 @@ wxThread::ExitCode wxServDisc::Entry()
 				clearResults();
 			}
 #if defined(_zero_)
-			wxLogDebug(_T("wxServDisc: %p  (383) Entry():  Executed the cleanup functions, including clearResults() "), this);
+			wxLogDebug(_T("wxServDisc: %p  (379) Entry():  Executed the cleanup functions, including clearResults() "), this);
 #endif
 		}
 
 #if defined(_shutdown_)
-		wxLogDebug(wxT("wxServDisc %p: (388) Entry() exiting, returning NULL; m_pCSD = %lx"), this, m_pCSD);
+		wxLogDebug(wxT("wxServDisc %p: (384) Entry() exiting, returning NULL; m_pCSD = %lx"), this, m_pCSD);
 #endif
 	} // end of TRUE block for test: if (!m_bKillZombie)
 	else
 	{
 #if defined(_shutdown_)
-		wxLogDebug(wxT("wxServDisc %p: (398) End of Entry(): NULL passed in for parent. This ZOMBIE is returning NULL"), this);
+		wxLogDebug(wxT("wxServDisc %p: (390) End of Entry(): NULL passed in for parent. This ZOMBIE is returning NULL"), this);
 #endif
 		exit = TRUE;
 		return NULL;
@@ -700,7 +696,7 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 	m_bKillZombie = FALSE; // initialize
 
 #if defined (_shutdown_)
-	wxLogDebug(_T("\nwxServDisc CREATOR: (707) I am %p , and parent passed in =  %p"), this, parent);
+	wxLogDebug(_T("\nwxServDisc CREATOR: (699) I am %p , and parent passed in =  %p"), this, parent);
 #endif
 
 	// If p is passed in as NULL, consider it a zombie needing speedy destruction - which
@@ -709,7 +705,7 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 	{
 		m_bKillZombie = TRUE;
 #if defined(_shutdown_)
-		wxLogDebug(wxT("wxServDisc %p: (716) In creator: NULL passed in. This instance is a ZOMBIE"), this);
+		wxLogDebug(wxT("wxServDisc %p: (708) In creator: NULL passed in. This instance is a ZOMBIE"), this);
 #endif
 	}
 
@@ -749,7 +745,7 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 wxServDisc::~wxServDisc()
 {
 #if defined(_shutdown_)
-	wxLogDebug(wxT("~wxServDisc %p: (752) In destructor: before delete of the wxServDisc instance"), this);
+	wxLogDebug(wxT("~wxServDisc %p: (748) In destructor: before delete of the wxServDisc instance"), this);
 #endif
 	processID = wxGetProcessId();
 
@@ -760,7 +756,7 @@ wxServDisc::~wxServDisc()
 			GetThread()->Delete(); // blocks, this makes TestDestroy() return true and cleans up the thread
 		}
 #if defined (_shutdown_)
-		wxLogDebug(wxT("~wxServDisc %p: (763) Finished ZOMBIE's destructor.  processID = %lx  decimal = %ld"),
+		wxLogDebug(wxT("~wxServDisc %p: (759) Finished ZOMBIE's destructor.  processID = %lx  decimal = %ld"),
 			this, processID, processID);
 #endif
 	}
@@ -770,11 +766,11 @@ wxServDisc::~wxServDisc()
 		{
 #if defined(_shutdown_)
 
-			wxLogDebug(wxT("~wxServDisc %p: (773) scanthread deleted, wxServDisc destroyed, query was '%s', lifetime was %ld"), 
+			wxLogDebug(wxT("~wxServDisc %p: (769) scanthread deleted, wxServDisc destroyed, query was '%s', lifetime was %ld"), 
 						this, query.c_str(), mWallClock.Time());
 #endif
 #if defined (_shutdown_)
-			wxLogDebug(wxT("~wxServDisc %p: (777) Finished destructor ~wxServDisc().  processID = %lx  decimal = %ld  querytype = %d"),
+			wxLogDebug(wxT("~wxServDisc %p: (773) Finished destructor ~wxServDisc().  processID = %lx  decimal = %ld  querytype = %d"),
 				this, processID, processID, querytype);
 #endif
 			GetThread()->Delete(); // blocks, this makes TestDestroy() return true and cleans up the thread
@@ -788,7 +784,7 @@ wxServDisc::~wxServDisc()
 void wxServDisc::clearResults()
 {
 #if defined (_shutdown_)
-	wxLogDebug(wxT("wxServDisc %p: (791) In clearResults() -- About to clearResults(), .size() = %d"),
+	wxLogDebug(wxT("wxServDisc %p: (787) In clearResults() -- About to clearResults(), .size() = %d"),
 		this, (int)getResultCount());
 #endif
 	wxSDMap::const_iterator it;
@@ -824,7 +820,7 @@ void wxServDisc::post_notify()
 		return; // BEW 21Apr16, exit if the count goes over 1
 
 #if defined(_zero_) && defined(_DEBUG)
-	wxLogDebug(_T("wxServDisc:  %p  (827) post_notify() Entered:  parent = %p , m_pCSD->m_postNotifyCount = %d"), 
+	wxLogDebug(_T("wxServDisc:  %p  (823) post_notify() Entered:  parent = %p , m_pCSD->m_postNotifyCount = %d"), 
 				this, (void*)parent, m_pCSD->m_postNotifyCount); // BEW added
 #endif
 	// Beier's code follows, but tests added by BEW in order to do minimal processing etc
@@ -845,7 +841,7 @@ void wxServDisc::post_notify()
 
 		// Send it
 #if defined(_zero_)
-		wxLogDebug(_T("wxServDisc:  %p (854) post_notify():  posting the wxServDiscNOTIFY event, once only"), this);
+		wxLogDebug(_T("wxServDisc:  %p (844) post_notify():  posting the wxServDiscNOTIFY event, once only"), this);
 #endif
 		#if wxVERSION_NUMBER < 2900
 		wxPostEvent((CServiceDiscovery*)parent, event);
@@ -881,16 +877,14 @@ bool wxServDisc::CheckDeathNeeded(CServiceDiscovery* pSDParent, int BEWcount, in
 		// _kbserver._tcp.local. multicast, and stored the required data in the 
 		// app's array ready for the user to access it from the GUI
 #if defined (_shutdown_)
-		wxLogDebug(wxT("FORCING SHUTDOWN of wxServDisc %p (884) CServiceDiscovery::m_bDestroyChildren is TRUE , BEWcount %ld , Query type %d"),
+		wxLogDebug(wxT("FORCING SHUTDOWN of wxServDisc %p (880) CServiceDiscovery::m_bDestroyChildren is TRUE , BEWcount %ld , Query type %d"),
 			this, BEWcount, querytype);
 #endif
 		bBrokeFromLoop = TRUE;
 		exit = TRUE;
 		return TRUE;
 	}
-	else if ((BEWcount > 11) &&
-		(pSDParent->m_postNotifyCount == 0) &&
-		pSDParent->m_ipAddrs_Hostnames.empty())
+	else if ((BEWcount > 11) && (pSDParent->m_postNotifyCount == 0) && pSDParent->m_ipAddrs_Hostnames.empty())
 	{
 		// The above test detects when shutdown is needed in the context where there
 		// are no KBservers running on the LAN. We allow 11 successive scans, and if
@@ -899,7 +893,7 @@ bool wxServDisc::CheckDeathNeeded(CServiceDiscovery* pSDParent, int BEWcount, in
 		// m_ipAddrs_Hostnames is still empty, then there is no reason to keep trying
 		// to discover what obviously is not there
 #if defined (_shutdown_)
-		wxLogDebug(wxT("FORCING SHUTDOWN of wxServDisc %p (902) No KBservers running. Sent TRUE to CServiceDiscovery::m_bDestroyChildren, BEWcount %ld , Query type %d"),
+		wxLogDebug(wxT("FORCING SHUTDOWN of wxServDisc %p (896) No KBservers running. Sent TRUE to CServiceDiscovery::m_bDestroyChildren, BEWcount %ld , Query type %d"),
 			this, BEWcount, querytype);
 #endif
 		pSDParent->m_bDestroyChildren = TRUE; // notify the CServiceDiscovery instance

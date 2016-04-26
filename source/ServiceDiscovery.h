@@ -73,11 +73,6 @@ public:
 							// at random from however many are currently running
 	bool m_bDestroyChildren; // When true, this CServiceDiscovery and its owning thread are eligible for shutdown
 
-	// The next two give us access to the child wxServDisc instances local to onSDNotify(), 
-	// namescan() (the latter scans for QTYPE_SRV) and addrscan() (the latter scans for QTYPE_A)
-	wxServDisc* m_pNamescan = NULL;
-	wxServDisc* m_pAddrscan = NULL;
-
 	unsigned long processID;
 
 	// scratch variables, used in the loop in onSDNotify() handler
