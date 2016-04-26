@@ -56,6 +56,7 @@
 #include "Adapt_It.h"
 #include "ServiceDiscovery.h"
 #include "MainFrm.h"
+#include "StatusBar.h"
 #include "Thread_ServiceDiscovery.h"
 
 extern wxMutex	kbsvr_arrays;
@@ -69,6 +70,15 @@ Thread_ServiceDiscovery::Thread_ServiceDiscovery() : wxThread()
 
 	m_indexOfRun = m_pApp->m_nSDRunCounter; // on the app, it is not yet augmented, so is a correct index value
 											// and we augment it to count this instance at the start of Entry()
+
+	wxString progTitle = _("KBservers Discovery");
+	wxString msgDisplayed;
+	int nTotal = m_pApp->m_numServiceDiscoveryRuns;
+	wxString progMsg = _("KBservers? Search number %d of %d");
+	msgDisplayed = progMsg.Format(progMsg, m_indexOfRun + 1, nTotal);
+	CStatusBar *pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->UpdateProgress(progTitle, m_indexOfRun + 1, msgDisplayed);
+
 #if defined (_shutdown_)
 	wxLogDebug(_T("\nThread_ServiceDiscovery() CREATOR: I am %p"), this);
 #endif
@@ -93,7 +103,7 @@ void Thread_ServiceDiscovery::OnExit()
 	wxPostEvent(m_pApp->GetMainFrame(), sd_eventCustom); // the CMainFrame hanndler does Wait()
 						// then delete of thread, and sets member ptr m_pServDiscThread to NULL
 #if defined (_shutdown_)
-	wxLogDebug(_T(" Thread_ServiceDiscovery  %p  (92) OnExit() is ending. Delayed .2 sec & posted event wxEVT_End_ServiceDiscovery to MainFrame "),
+	wxLogDebug(_T(" Thread_ServiceDiscovery  %p  (106) OnExit() is ending. Delayed .2 sec & posted event wxEVT_End_ServiceDiscovery to MainFrame "),
 				this );
 #endif
 }
@@ -106,7 +116,7 @@ void* Thread_ServiceDiscovery::Entry()
 
 	processID = wxGetProcessId();
 #if defined (_shutdown_)
-	wxLogDebug(_T("\nThread_ServiceDiscovery() %p  (103)  Entry(): I am process ID = %lx , and run with index = %d"), 
+	wxLogDebug(_T("\nThread_ServiceDiscovery() %p  (119)  Entry(): I am process ID = %lx , and run with index = %d"), 
 		this, processID, m_indexOfRun);
 #endif
 

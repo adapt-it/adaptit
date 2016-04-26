@@ -49611,6 +49611,10 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 				}
 			}
 			m_bServDiscBurstIsCurrent = FALSE;
+
+			// Finish up the progress dialog's tracking in the status bar
+			wxString progTitle = _("KBservers Discovery");
+			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
 			return;
 		}
 	}
@@ -49672,6 +49676,25 @@ void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 	else
 	{
 		m_nSDRunCounter = 0;
+	}
+
+	// Track progress with the wxProgressDialog that Erik built into the StatusBar()
+	// Starting will be done here, finishing in OnServiceDiscoveryTimer(), and Updates
+	// in the creator of each Thread_ServiceDiscovery() instance. The values we track
+	// are stored on the app: m_numServiceDiscoveryRuns (max 20, min 1) gives us a
+	// nTotal value within that range; and m_nSDRunCounter gives us the number of the
+	// particular discovery run which is currently in operation.
+	wxString progTitle;
+	wxString msgDisplayed;
+	wxString progMsg;
+	const int nTotal = m_numServiceDiscoveryRuns;
+	wxASSERT(nTotal >= 1);
+	if (nTotal > 0)
+	{
+		progMsg = _("KBservers? Search number %d of %d");
+		msgDisplayed = progMsg.Format(progMsg, 1, nTotal);
+		progTitle = _("KBservers Discovery");
+		((CStatusBar*)GetMainFrame()->m_pStatusBar)->StartProgress(progTitle, msgDisplayed, nTotal);
 	}
 
 	// m_KBserverTimer is defaulted to 4113 millisecs and GC = 5sec currently, see near

@@ -112,14 +112,11 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
         m_pListBoxUrls->SetSelection(nSel);
         strComposite = m_pListBoxUrls->GetStringSelection();
 
-        // Linux needs the following, Windows doesn't
-#if defined(__WXGTK__)
         // TODO  temporary code....
         int offset = wxNOT_FOUND;
         offset = strComposite.Find(_T("  ")); // find two spaces - start of the 4
         m_urlSelected = strComposite.Left(offset);
         m_hostnameSelected = strComposite.Mid(offset + 4);
-#endif
 	}
 	m_pListBoxUrls->SetFocus();
 }
