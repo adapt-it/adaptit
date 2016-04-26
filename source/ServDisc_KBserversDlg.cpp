@@ -6,12 +6,12 @@
 /// \rcs_id $Id$
 /// \copyright		2016 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CServDisc_KBserversDlg class. 
-/// The CServDisc_KBserversDlg class provides a dialog in which the user can choose 
+/// \description	This is the implementation file for the CServDisc_KBserversDlg class.
+/// The CServDisc_KBserversDlg class provides a dialog in which the user can choose
 /// one of two or more URLs, each URL being the location on the LAN for a currently
-/// running KBserver instance, discovered by the service discovery module 
+/// running KBserver instance, discovered by the service discovery module
 /// encapulated in the CAdapt_ItApp::DoServiceDiscovery() function. Each has an
-/// associated hostname, which defaults to kbserver if the person who setup the 
+/// associated hostname, which defaults to kbserver if the person who setup the
 /// multicasting KBerver did not supply a hostname at the appropriate time when
 /// the setup script was running. Otherwise, the name he entered is used.
 /// \derivation		The CServDisc_KBserversDlg class is derived from AIModalDialog.
@@ -105,10 +105,21 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	}
 
 	// Select the first url string in the listbox by default
+	nSel = wxNOT_FOUND;
 	if (!m_pListBoxUrls->IsEmpty())
 	{
-        m_pListBoxUrls->SetSelection(0);
+        nSel = 0;
+        m_pListBoxUrls->SetSelection(nSel);
         strComposite = m_pListBoxUrls->GetStringSelection();
+
+        // Linux needs the following, Windows doesn't
+#if defined(__WXGTK__)
+        // TODO  temporary code....
+        int offset = wxNOT_FOUND;
+        offset = strComposite.Find(_T("  ")); // find two spaces - start of the 4
+        m_urlSelected = strComposite.Left(offset);
+        m_hostnameSelected = strComposite.Mid(offset + 4);
+#endif
 	}
 	m_pListBoxUrls->SetFocus();
 }
