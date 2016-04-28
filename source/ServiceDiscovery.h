@@ -85,8 +85,9 @@ public:
 	// Two helper functions so that we don't transfer to the app data we already have there
 	bool IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
 	bool AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
+	bool UpdateExistingAppCompositeStr(wxString& ipaddr, wxString& hostname, wxString& composite);
 
-	// These arrays receive results, which will get passed back to app's DoServiceDiscovery() etc.
+	// These arrays receive results, which will get passed back to app's ConnectUsingDiscoveryResults() etc.
 	wxArrayString m_sd_servicenames;   // for servicenames, as discovered from query (these are NOT hostnames)
 	wxArrayString m_ipAddrs_Hostnames; // stores unique set of <ipaddress>@@@<hostname> composite strings
 

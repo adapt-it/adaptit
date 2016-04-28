@@ -532,7 +532,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp);
-	//int nSel;
+#if defined(_KBSERVER)
+	pApp->m_bEnteringKBserverProject = FALSE; // default to FALSE
+#endif
 
 	bool bMovingForward = event.GetDirection();
 	wxASSERT(bMovingForward == TRUE); // we can only move forward from the projectPage
@@ -1307,10 +1309,17 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					_T(""), wxICON_INFORMATION | wxOK);
 				}
 			}
-
+/*
 #if defined(_KBSERVER)
 			if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 			{
+				// BEW 28Apr16 cause OnIdle() to get authentication done, after wizard completes
+				pApp->m_bEnteringKBserverProject = TRUE;
+
+/* 
+// BEW 28Apr16 don't do this here, it interferes with the visual smoothness of progress thru the wizard; 
+// also we don't want a delaying service discovery done while the wizard works - instead we want saved
+// config file url and hostname to provide the data for a connection attempt delayed to happen after wiz finishes
 				// We need to try re-establish a connection to the KBserver if one is running
 				// Show the dialog which allows the user to set the boolean:
 				// m_bServiceDiscoveryWanted, for the following 
@@ -1352,8 +1361,11 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
 				}
 				pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
+
 			}
+
 #endif
+*/
 			// The pDocPage's InitDialog need to be called here just before going to it
 			// make sure the pDocPage is initialized to show the documents for the selected project
 			wxInitDialogEvent idevent;

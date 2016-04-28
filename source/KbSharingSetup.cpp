@@ -76,8 +76,6 @@ KbSharingSetup::KbSharingSetup(wxWindow* parent) // dialog constructor
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 	wxUnusedVar(bOK);
-
-	m_bServiceDiscWanted = TRUE; // initialize
  }
 
 KbSharingSetup::~KbSharingSetup() // destructor
@@ -90,7 +88,7 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pGlossingCheckBox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHARE_MY_GLOSS_KB);
 	m_pSetupBtn = (wxButton*)FindWindowById(wxID_OK);
 	m_pRadioBoxHow = (wxRadioBox*)FindWindowById(ID_RADIOBOX_HOW);
-	m_nRadioBoxSelection = 0; // top button selected
+	m_nRadioBoxSelection = 0; // top button selected (ie. single KBserver only)
 	m_pRadioBoxHow->SetSelection(m_nRadioBoxSelection);
 
     // If the project is currently a KB sharing project, then initialise to the current
@@ -123,8 +121,6 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		m_pGlossingCheckBox->SetValue(FALSE); // unticked
 		m_bSharingGlosses = FALSE; // initialize
 	}
-
-	m_bServiceDiscWanted = m_pApp->m_bServiceDiscoveryWanted;
 }
 
 void KbSharingSetup::OnCheckBoxShareAdaptations(wxCommandEvent& WXUNUSED(event))
@@ -170,10 +166,22 @@ void KbSharingSetup::OnCheckBoxShareGlosses(wxCommandEvent& WXUNUSED(event))
 void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 {
 	int nRadioBoxSelection = m_pRadioBoxHow->GetSelection();
-	m_bServiceDiscWanted = nRadioBoxSelection == 0 ? TRUE : FALSE;
+	if (nRadioBoxSelection == 0)
+	{
+		m_pApp->m_bServiceDiscoveryWanted = TRUE;
+		m_pApp->m_bServDiscGetOneOnly = TRUE;
+	}
+	else if (nRadioBoxSelection == 1)
+	{
+		m_pApp->m_bServiceDiscoveryWanted = TRUE;
+		m_pApp->m_bServDiscGetOneOnly = FALSE;
+	}
+	else
+	{
+		m_pApp->m_bServiceDiscoveryWanted = FALSE;
+		m_pApp->m_bServDiscGetOneOnly = TRUE;
+	}
 
-	m_pApp->m_bServiceDiscoveryWanted = m_bServiceDiscWanted; // Set app member, OnIdle's call
-			// of AuthenticateCheckAndSetupKBSharing() will use it, and reset to TRUE afterwards
 	// We don't call AuthenticateCheckAndSetupKBSharing() directly here, if we did, 
 	// the Authenticate dialog is ends up lower in the z-order and the parent
 	// KbSharingSetup dialog hides it - and as both are modal, the user cannot

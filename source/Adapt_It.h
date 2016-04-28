@@ -3062,10 +3062,13 @@ public:
 	bool	  ReleaseKBServer(int whichType);
 	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
 	// BEW added next, 26Nov15
-	bool	  DoServiceDiscovery(wxString curURL, wxString& chosenURL, 
+	bool	  ConnectUsingDiscoveryResults(wxString curURL, wxString& chosenURL, 
 								 wxString& chosenHostname, enum ServDiscDetail &result);
-	bool	  m_bServiceDiscoveryWanted; // TRUE if DoServiceDiscovery() is wanted, FALSE for manual URL entry
+	bool	  m_bServiceDiscoveryWanted; // TRUE if ConnectUsingDiscoveryResults is wanted, FALSE for manual URL entry
 										 // and don't ever store the value in any config file; default TRUE
+	bool	  m_bServDiscGetOneOnly; // TRUE if service discovery - but a single run only, is wanted; FALSe
+									 // that a burst of runs should be attempted. I think bursts should be 3 runs each
+	bool	  m_bEnteringKBserverProject; // used in OnIdle() to delay connection attempt until doc is displayed
 	void	  ServDiscBackground(int nThreadIndex);
 	Thread_ServiceDiscovery* m_pServDiscThread[20]; // one for each run of ServDiscBackground, because now
 				// we allow each run to overlap the last a little, the only app member is this one and if
@@ -3073,10 +3076,13 @@ public:
 				// violations -- so each run has its own pointer
 	wxTimer   m_servDiscTimer;
 	void	  OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event));
-	int		  m_numServiceDiscoveryRuns; // I'll default it to 9 in OnInit(), but let a manual edit 
+	void	  DoServiceDiscoverySingleRun(); // like OnServiceDiscoveryTimer() but without the timer stuff
+	void	  ServDiscSingleOnly();
+	int		  m_numServiceDiscoveryRuns; // I'll default it to 3 in OnInit(), but let a manual edit 
 										 // of basic config file change it ( range: 1 to 20)
 	int		  m_nSDRunCounter; // counts the number of times ServDiscBackground() is called 
 	bool	  m_bServDiscBurstIsCurrent;
+	bool	  m_bServDiscSingleRunIsCurrent;
 	void	  DoKBserverDiscoveryRuns();
 
 	void	  ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname);

@@ -6522,7 +6522,14 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// update status bar with project name
 	pApp->RefreshStatusBarInfo();
 
-	return TRUE;
+#if defined(_KBSERVER)
+	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
+	{
+		// BEW 28Apr16 cause OnIdle() to get authentication done, after wizard completes
+		pApp->m_bEnteringKBserverProject = TRUE;
+	}
+#endif
+		return TRUE;
 }
 
 CLayout* CAdapt_ItDoc::GetLayout()

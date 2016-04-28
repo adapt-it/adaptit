@@ -10870,6 +10870,70 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 	pApp->m_bIsGlossingKBServerProject = saveSharingGlossesFlag;
 }
 
+bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
+{
+	// Prepare an error message in case it is needed
+	wxString title = _("Unsuccessful connection attempt");
+	wxString msg = _("Tried to connect to the KBserver with URL: %s\nand name: %s but failed.\n Use the command \"Discover All KBservers\" or \"Discover One KBserver\" and then try\nto connect using the command \"Setup Or Remove Knowledge Base Sharing\"");
+	msg = msg.Format(msg, pApp->m_strKbServerURL.c_str(), pApp->m_strKbServerHostname.c_str());
+
+
+	// In next call, FALSE is: bool bServiceDiscoveryWanted
+	// When we enter the project via the wizard (as we must) and it is one which
+	// the project config file says is a KB Sharing project, then that config file
+	// should have the url and hostname for the KBserver last logged in to. We
+	// will try to log in with the old credentials, since service discovery will
+	// not at this point have had a change to be run and to discover any running
+	// KBservers. We assume must users will run the one KBserver before the session,
+	// and that it will have the same url each time. If the url is wrong, we let
+	// the connection attempt fail (returning FALSE) and indicate that sharing has
+	// been turned off. If instead we succeed in connecting, then that proves the
+	// last used url is still valid and its KBserver is running - so we add the
+	// relevant data (a 'compositeStr' of form <ipaddress>@@@<hostname>)
+	// to app::m_ipAddrs_Hostnames array, as if a service discovery run had been
+	// made and succeeded in discovering that running KBserver.
+	// We run this AuthenticateEtcWithoutServiceDiscovery() function, not from
+	// ProjectPage::OnWizardPageChanging() as that would display the authentication
+	// dialog in the middle of the process of going in the wizard from project to
+	// and open document; but rather we just there set a boolean,
+	// CAdapt_ItApp::m_bEnteringKBserverProject to TRUE, and use that to call this 
+	// function from CMainFrame's OnIdle() handler - providing it's an adaptations
+	// or glosses sharing project. Hopefully its dialog will appear just after the
+	// doc is laid out
+	// In next call, FALSE is: bool bServiceDiscoveryWanted
+	bool bSucceeded = AuthenticateCheckAndSetupKBSharing(pApp, FALSE);
+	wxString ipaddress = wxEmptyString;
+	if (bSucceeded)
+	{
+		if (!pApp->m_strKbServerURL.IsEmpty())
+		{
+			wxString url = pApp->m_strKbServerURL;
+			wxString protocol = _T("https://");
+			int len = protocol.Len();
+			int offset = url.Find(protocol);
+			if (offset == 0)
+			{
+				ipaddress = url.Mid(len);
+			}
+			wxASSERT(!ipaddress.IsEmpty());
+			wxString compositeStr = ipaddress + _T("@@@");
+			compositeStr += pApp->m_strKbServerHostname;
+			pApp->m_ipAddrs_Hostnames.Add(compositeStr);
+			return TRUE;
+		}
+		else
+		{
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			return FALSE;
+		}
+	}
+	else
+	{
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+	}
+	return FALSE;
+}
+
 // The following function encapsulates KBserver service discovery, authentication to a running
 // KBserver (error if one is not running of course), checks for valid language codes, username,
 // and calls to GetKBServer[0] and [1] as required, with error checking and error messages as
@@ -10898,6 +10962,7 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
 
 	// BEW 11Jan16, save these five, so we can restore them if some kind of failure happens
 	pApp->m_saveOldURLStr = pApp->m_strKbServerURL;
+	pApp->m_saveOldHostnameStr = pApp->m_strKbServerHostname;
 	pApp->m_saveOldUsernameStr = pApp->m_strUserID;
 	pApp->m_savePassword = pFrame->GetKBSvrPassword();
 	pApp->m_saveSharingAdaptationsFlag = pApp->m_bIsKBServerProject;
@@ -11117,7 +11182,7 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 		else // service discovery is wanted
 		{
 			// BEW 11Jan16. This is the appropriate place for having
-			// DoServiceDiscovery() and its subsequent code. Prior to this, the flag or
+			// ConnectUsingDiscoveryResults() and its subsequent code. Prior to this, the flag or
 			// flags being TRUE meant that a URL was stored on the basic config file
 			// (all other KBserver related config params are in the project config
 			// file) - so all we needed to do here was give the correct password in the
@@ -11138,7 +11203,7 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 			bool bSimulateUserCancellation = FALSE; // initialize
 			bool bSetupKBserverFailed = FALSE; // initialize
 
-			// DoServiceDiscovery() internally creates an instantiation of the ServiceDiscovery
+			// ConnectUsingDiscoveryResults() internally creates an instantiation of the ServiceDiscovery
 			// class. Internally it uses the wxServDisc class to get the work done. That in
 			// turn uses lower level C functions. The pointer CAdapt_ItApp::m_pServDisc points
 			// to the ServiceDiscovery instance and is non-NULL while the service discovery
@@ -11147,16 +11212,27 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 			wxString chosenURL = _T("");
 			wxString chosenHostname = _T("");
 			enum ServDiscDetail returnedValue = SD_NoResultsYet;
-			bool bOK = pApp->DoServiceDiscovery(curURL, chosenURL, chosenHostname, returnedValue);
+			bool bOK = pApp->ConnectUsingDiscoveryResults(curURL, chosenURL, chosenHostname, returnedValue);
 			if (bOK)
 			{
 				// Got a URL to connect to
-				wxASSERT(returnedValue != SD_NoKBserverFound && (
+				wxASSERT((returnedValue != SD_NoKBserverFound && (
 					returnedValue == SD_FirstTime ||
 					returnedValue == SD_SameUrl ||
 					returnedValue == SD_UrlDiffers_UserAcceptedIt ||
 					returnedValue == SD_MultipleUrls_UserChoseEarlierOne ||
-					returnedValue == SD_MultipleUrls_UserChoseDifferentOne ) );
+					returnedValue == SD_MultipleUrls_UserChoseDifferentOne ))
+					||
+					(returnedValue == SD_NoResultsYet) );
+
+				// If the user chose the "multiple KBservers discovery" option, he'll be baled
+				// out of the calling AuthenticateCheck...Sharing() option, with SD_NoResultsYet
+				// returned. If that is the case, don't go further
+				if (returnedValue == SD_NoResultsYet)
+				{
+					ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
+					return FALSE;
+				}
 
 				// Make the chosen URL accessible to authentication (this is the hookup location
 				// of the service discovery's url to the earlier KBserver GUI code) for this situation

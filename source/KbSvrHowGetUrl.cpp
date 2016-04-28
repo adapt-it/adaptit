@@ -72,8 +72,6 @@ KbSvrHowGetUrl::KbSvrHowGetUrl(wxWindow* parent) // dialog constructor
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 	wxUnusedVar(bOK);
-
-	m_bServiceDiscWanted = TRUE; // initialize
  }
 
 KbSvrHowGetUrl::~KbSvrHowGetUrl() // destructor
@@ -85,19 +83,31 @@ void KbSvrHowGetUrl::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pBtnOK = (wxButton*)FindWindowById(wxID_OK); // we don't actually use this
 	wxUnusedVar(m_pBtnOK);
 	m_pRadioBoxHow = (wxRadioBox*)FindWindowById(ID_RADIOBOX_HOW);
-	m_nRadioBoxSelection = 0; // top button selected
+	m_nRadioBoxSelection = 0; // initialize, top button selected (i.e. discover 
+							  // single KBserver only)
 	m_pRadioBoxHow->SetSelection(m_nRadioBoxSelection);
 
-	m_bServiceDiscWanted = m_pApp->m_bServiceDiscoveryWanted;
 	m_bUserClickedCancel = FALSE;
 }
 
 void KbSvrHowGetUrl::OnOK(wxCommandEvent& myevent)
 {
 	int nRadioBoxSelection = m_pRadioBoxHow->GetSelection();
-	m_bServiceDiscWanted = nRadioBoxSelection == 0 ? TRUE : FALSE;
-	m_pApp->m_bServiceDiscoveryWanted = m_bServiceDiscWanted; // Set app member, OnIdle's call
-			// of AuthenticateCheckAndSetupKBSharing() will use it, and reset to TRUE afterwards
+	if (nRadioBoxSelection == 0)
+	{
+		m_pApp->m_bServiceDiscoveryWanted = TRUE;
+		m_pApp->m_bServDiscGetOneOnly = TRUE;
+	}
+	else if (nRadioBoxSelection == 1)
+	{
+		m_pApp->m_bServiceDiscoveryWanted = TRUE;
+		m_pApp->m_bServDiscGetOneOnly = FALSE;
+	}
+	else
+	{
+		m_pApp->m_bServiceDiscoveryWanted = FALSE;
+		m_pApp->m_bServDiscGetOneOnly = TRUE;
+	}
 
 	m_bUserClickedCancel = FALSE;
 	myevent.Skip(); // close the KbSharingSetup dialog
@@ -117,6 +127,9 @@ void KbSvrHowGetUrl::OnCancel(wxCommandEvent& myevent)
 	m_pApp->m_bIsGlossingKBServerProject = FALSE;
 	m_pApp->ReleaseKBServer(1); // the adaptations one
 	m_pApp->ReleaseKBServer(2); // the glossings one
+
+	m_pApp->m_bServDiscGetOneOnly = TRUE; // re-initialize
+	m_pApp->m_bServiceDiscoveryWanted = TRUE; // re-initialize
 
 	myevent.Skip();  // close dialog
 }

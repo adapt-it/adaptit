@@ -311,6 +311,10 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 	wxString hostname = _("<unknown>"); // hostname is advisory only, but may not be known
 										// add code here to make it something other than <unknown> 
 										// if it proves possible to get a valid hostname here
+	if (!m_pApp->m_strKbServerHostname.IsEmpty())
+	{
+		hostname = m_pApp->m_strKbServerHostname;
+	}
 
 	// Now get the password... we do this from the wxWidgets password utility dialog
 	wxString pwd = pFrame->GetKBSvrPasswordFromUser(m_strStatelessURL, hostname); // show the password dialog

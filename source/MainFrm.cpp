@@ -546,6 +546,8 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
 	EVT_MENU(ID_MENU_SCAN_AGAIN_KBSERVERS,CMainFrame::OnScanForRunningKBservers)
 	EVT_UPDATE_UI(ID_MENU_SCAN_AGAIN_KBSERVERS, CMainFrame::OnUpdateScanForRunningKBservers)
+	EVT_MENU(ID_MENU_DISCOVER_ONE_KBSERVER, CMainFrame::OnDiscoverOneKBserver)
+	EVT_UPDATE_UI(ID_MENU_DISCOVER_ONE_KBSERVER, CMainFrame::OnUpdateDiscoverOneKBserver)
 
 #endif
 
@@ -2745,15 +2747,123 @@ void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event
     bool bSuccess = AuthenticateCheckAndSetupKBSharing(gpApp, gpApp->m_bServiceDiscoveryWanted);
 	// pass the final value back to the app,
 	gpApp->m_bServiceDiscoveryWanted = TRUE; // Restore default value
+	gpApp->m_bServDiscGetOneOnly = TRUE; // restore default
 	wxUnusedVar(bSuccess);
 }
 
 void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 {
 	int nWhichOne = (int)event.GetExtraLong();
+	// If it is from a call of OnDiscoverOneKBserver(), which uses m_bServDiscSingleRunIsCurrent
+	// in update handler to prevent both types of discovery working at once, then clear the
+	// bool here
+	if (nWhichOne == 0 && gpApp->m_bServDiscSingleRunIsCurrent)
+	{
+		// Inform the user what the discovered inventory currently is
+		wxString title = _("KBservers discovered so far");
+		wxString msg = BuildUrlsAndNamesMessageString();
+		wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+
+		gpApp->m_bServDiscSingleRunIsCurrent = FALSE; // allow the menu command to again be enabled
+	}
 	// It's a detached thread type, so will delete itself; we'll just set its ptr to NULL
 	// (it's never a good idea to leave pointers hanging)
 	gpApp->m_pServDiscThread[nWhichOne] = NULL; 
+}
+
+// BEW 28Apr16
+// compositesArray is an input, the other two are outputs which will be used in
+// a wxMessageBox() to display to the user what the current inventory of discovered
+// KBserver urls are, along with their (host)names
+// Returns the number of url/name pairs available at the time of the call
+int CMainFrame::GetUrlAndHostnameInventory(wxArrayString& compositesArray,
+					wxArrayString& urlsArray, wxArrayString& namesArray)
+{
+
+	wxString anIpAddress;
+	wxString aHostname;
+	wxString aComposite;
+	wxString aURL;
+	urlsArray.clear();
+	namesArray.clear();
+	int count = (int)compositesArray.GetCount(); // the array passed in is the app's m_ipAddrs_Hostnames one
+	int i;
+	if (count > 0)
+	{
+		for (i = 0; i < count; i++)
+		{
+			anIpAddress = wxEmptyString;
+			aHostname = wxEmptyString;
+			aComposite = compositesArray.Item(i);
+			gpApp->ExtractIpAddrAndHostname(aComposite, anIpAddress, aHostname);
+			aURL = _T("https://") + anIpAddress;
+			urlsArray.Add(aURL);
+			namesArray.Add(aHostname);
+		}
+	}
+	return count;
+}
+
+wxString CMainFrame::BuildUrlsAndNamesMessageString()
+{
+	wxArrayString urlsArray;
+	wxArrayString namesArray;
+	wxString columnLabels = _("           URL                                     Name\n");
+	wxString noServersYet = _("No running KBservers have been discovered yet");
+	wxString oneExtra = _T(' ');
+	wxString twoExtra = _T("  ");
+	int length = 0;
+	wxString spaces = _T("     ");
+
+	int  counter = GetUrlAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, urlsArray, namesArray);
+	if (counter == 0)
+	{
+		return noServersYet;
+	}
+	wxString msgStr = wxEmptyString;
+	if (counter == 0)
+		return msgStr;
+	int i;
+	msgStr += columnLabels;
+	// BEW 28Apr16 There are a couple of things to note. (a) the hostnames can be nicely lined
+	// up if we add an extra space or two when the last digit field of a url is two or one digits
+	// long, respectively. (b) A given url, even if unchanged from previous session, can have
+	// a different hostname at a later time. If string identity on the compositeStr is done, 
+	// this results in 2 lines with the same url but different hostnames (this probably only
+	// applies while we don't specify unique server names yet) - anyway, check for this and if
+	// so then replace the hostname with the "discovered" one - the m_strKbServerHostname is
+	// the config file's value --  but the check (and fix) needs to be done at the part of
+	// CServiceDiscovery::onSDNotify() which is about to do the TRANSFERRING... of what
+	// appears to be a new value (the entry to the project may have already put last session's
+	// url and hostname into m_ipAddrs_Hostnames array, so we need to check - and if two urls
+	// are the same, then the one already in the latter array should be deleted and replaced
+	// by the composite string about to be transferred
+	for (i = 0; i < counter; i++)
+	{
+		wxString aLine = urlsArray.Item(i);
+		wxString reversed = MakeReverse(aLine);
+		int offset = reversed.Find(_T('.'));
+		if (offset != wxNOT_FOUND)
+		{
+			wxString field = reversed.Left(offset);
+			length = field.Length();
+		}
+		wxString modifiedspaces = spaces;
+		if (length == 1)
+		{
+			modifiedspaces += twoExtra;
+		}
+		else if (length == 2)
+		{
+			modifiedspaces += oneExtra;
+		}
+		aLine += modifiedspaces;
+		aLine += modifiedspaces;
+		aLine += namesArray.Item(i);
+		aLine += _T('\n');
+		msgStr += aLine;
+	}
+	return msgStr;
 }
 
 // public accessor
@@ -2843,9 +2953,14 @@ void CMainFrame::OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event))
 	// of scanning. KBservers which multicast hard on the heels of an earlier one are
 	// hard to detect, and more than one burst may be required to find such ones
 	gpApp->DoKBserverDiscoveryRuns();
+}
 
-	// There is always a single burst done automatically when the app starts up, at
-	// the end of the OnInit() function. Further bursts are a matter of user choice.
+void CMainFrame::OnDiscoverOneKBserver(wxCommandEvent& WXUNUSED(event))
+{
+	// Do a single discovery run. If more than one is running, which one it will latch
+	// on to cannot be controlled - it's an accident of timing
+	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; /// update handler uses this
+	gpApp->DoServiceDiscoverySingleRun();
 }
 
 void CMainFrame::OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event)
@@ -2858,7 +2973,26 @@ void CMainFrame::OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event)
 	// non-NULL tests positive for scanning to be currently in progress
 	if (gpApp->m_pKB != NULL && gpApp->m_pSourcePhrases->GetCount() > 0)
 	{
-		if (gpApp->m_bServDiscBurstIsCurrent)
+		if (gpApp->m_bServDiscBurstIsCurrent || gpApp->m_bServDiscSingleRunIsCurrent)
+			event.Enable(FALSE);
+		else
+			event.Enable(TRUE);
+	}
+	else
+		event.Enable(FALSE);
+}
+
+void CMainFrame::OnUpdateDiscoverOneKBserver(wxUpdateUIEvent& event)
+{
+	// It should be possible for the user to request another set of service discovery runs
+	// in order to try get hold of a running KBserver not grabbed in earlier runs, so long
+	// as he is in a project that has document open and the document has data. Sharing of
+	// a KB is pointless in any other circumstance. However, disable the menu item if a
+	// burst of discovery scans is currently in progress - one or more of m_pServDiscThread[]
+	// non-NULL tests positive for scanning to be currently in progress
+	if (gpApp->m_pKB != NULL && gpApp->m_pSourcePhrases->GetCount() > 0)
+	{
+		if (gpApp->m_bServDiscBurstIsCurrent || gpApp->m_bServDiscSingleRunIsCurrent)
 			event.Enable(FALSE);
 		else
 			event.Enable(TRUE);
@@ -4518,6 +4652,22 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	CKB* pKB = NULL;
 	if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 	{
+		// Get the delayed connection done, from url & hostname in basic config file,
+		// if ProjectPage.cpp OnPageChanging() has asked for project entry, we
+		// delay the attempt until the doc is opened and an idle event occurs
+		if (gpApp->m_bEnteringKBserverProject)
+		{
+			bool bAllsOK = AuthenticateEtcWithoutServiceDiscovery(gpApp);
+			wxUnusedVar(bAllsOK);
+			// If bAllsOK, an error/advisory message will have been shown to the user
+			// from within. It advises what commands to use in order to get an inventory
+			// of running KBserver urls and hostnames, and what command to use to then
+			// try a manual authentication attempt:
+			// the Setup Or Remove Knowledge Base Sharing command
+			gpApp->m_bEnteringKBserverProject = FALSE; // skip this block on next OnIdle() call
+			return;
+		}
+
 		if (gbIsGlossing)
 		{
 			pKbSvr = gpApp->GetKbServer(2); // glossing

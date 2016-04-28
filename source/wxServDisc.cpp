@@ -336,10 +336,10 @@ wxThread::ExitCode wxServDisc::Entry()
 		  // Finally, the original (owned) wxServDisc instance that CServiceDiscovery() instance
 		  // created to kick things off. It holds the scan results, caching, results map, etc, so
 		  // clearing these must not be attempted until namescan and addrscan are dead - so add
-		  // a .3 sec delay for that.
+		  // a .3 sec delay for that. (try .4)
 		if ((m_pCSD != NULL) && (this->querytype == QTYPE_PTR)) // original wxServDisc instance
 		{
-			wxMilliSleep(300); // .3 seconds
+			wxMilliSleep(400); // .3 seconds, now trying .4
 		}
 		if ((m_pCSD != NULL) && (this->querytype == QTYPE_SRV)) // namescan()
 		{

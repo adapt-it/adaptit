@@ -21,7 +21,7 @@
 /// time (3 plus 1 second for overheads, approx), finds one KBserver's hostname, ip address (and port)
 /// if there is at least one running on the LAN. Then it destroys itself after notifying the
 /// parent class, CServiceDiscovery, to send any results to an array on the application, for the
-/// DoServiceDiscovery() function there to display results to the user, for making a connection.
+/// ConnectUsingDiscoveryResults() function there to display results to the user, for making a connection.
 /// The Thread_ServiceDiscovery thread, however, is "joinable" type;  which is easier for controlling
 /// shutdown behaviour.
 /// \derivation		The Thread_ServiceDiscovery class is derived from wxThread.

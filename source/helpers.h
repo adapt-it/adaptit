@@ -549,7 +549,7 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 // from OnKBSharingManagerTabbedDialog() - a handler which is a member of the CAdapt_ItApp
 // class
 bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscoveryWanted);
-
+bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp);
 #endif // _KBSERVER
 
 // Support for ZWSP insertion in any AI wxTextCtrl (e.g. see OnKeyUp() in ComposeBarEditBox.cpp)

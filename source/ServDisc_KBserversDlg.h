@@ -10,7 +10,7 @@
 /// The ServDisc_KBserversDlg class provides a dialog in which the user can choose 
 /// one of two or more URLs, each URL being the location on the LAN for a currently
 /// running KBserver instance, discovered by the service discovery module 
-/// encapulated in the CAdapt_ItApp::DoServiceDiscovery() function.
+/// encapulated in the CAdapt_ItApp::ConnectUsingDiscoveryResults() function.
 /// \derivation		The ServDisc_KBserversDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 

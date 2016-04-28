@@ -10073,48 +10073,20 @@ wxSizer *kb_share_setup_or_remove_func( wxWindow *parent, bool call_fit, bool se
 
     item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
+    item14->Add( 240, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT_1, _("Automatic discovery of the URL for a KBserver only works when that KBserver is running on the local area network."), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->Add( item16, 0, wxALIGN_CENTER_VERTICAL, 5 );
+    wxButton *item15 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->SetDefault();
+    item14->Add( item15, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT_2, _("To connect to a KBserver running on the web, or having a known URL, click  the bottom radio button."), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->Add( item17, 0, wxALIGN_CENTER_VERTICAL, 5 );
+    item14->Add( 100, 8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item14->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item16 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item16, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxGridSizer *item19 = new wxGridSizer( 2, 2, 4 );
-
-    wxString strs20[] = 
-    {
-        _("Automatic discovery (local network only)"), 
-        _("I know the URL and I will type it")
-    };
-    wxRadioBox *item20 = new wxRadioBox( parent, ID_RADIOBOX_HOW, _("How do you want to get the URL?"), wxDefaultPosition, wxDefaultSize, 2, strs20, 2, wxRA_SPECIFY_ROWS );
-    item19->Add( item20, 0, wxALIGN_CENTER, 5 );
-
-    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item22 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->SetDefault();
-    item21->Add( item22, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
-
-    item21->Add( 14, 8, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item23 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->Add( item23, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
-
-    item19->Add( item21, 0, wxALIGN_CENTER, 5 );
-
-    item18->Add( item19, 0, wxALIGN_CENTER, 5 );
-
-    item14->Add( item18, 0, wxALIGN_CENTER, 5 );
-
-    item3->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item3->Add( item14, 0, wxALIGN_CENTER, 5 );
 
     item2->Add( item3, 0, wxALIGN_CENTER, 5 );
 
@@ -11210,7 +11182,7 @@ wxSizer *kb_ask_how_get_url_func( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_1, _("Automatic discovery of the URL for a KBserver only works when that KBserver is running on the local area network."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_1, _("Discovery of the URL for a KBserver only works when that KBserver is running on the local area network."), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_2, _("To connect to a KBserver running on the web, or having a known URL, click  the bottom radio button."), wxDefaultPosition, wxDefaultSize, 0 );
@@ -11224,11 +11196,11 @@ wxSizer *kb_ask_how_get_url_func( wxWindow *parent, bool call_fit, bool set_size
 
     wxString strs7[] = 
     {
-        _("Automatic discovery (local network only) "), 
+        _("Select a KBserver from discovery results"), 
         _("I know the URL and I will type it")
     };
     wxRadioBox *item7 = new wxRadioBox( parent, ID_RADIOBOX_HOW, _("How do you want to get the URL?"), wxDefaultPosition, wxDefaultSize, 2, strs7, 2, wxRA_SPECIFY_ROWS );
-    item6->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item6->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -11453,7 +11425,8 @@ wxMenuBar *AIMenuBarFunc()
     item6->AppendSeparator();
     item6->Append( ID_MENU_SHOW_KBSERVER_SETUP_DLG, _("Setup Or Remove &Knowledge Base Sharing..."), _("Turn ON, or OFF, the use of KBserver for KB synchronizing") );
     item6->Append( ID_MENU_SHOW_KBSERVER_DLG, _("&Controls For Knowledge Base Sharing..."), _("Controls for: Set sync interval. Bulk send/receive. Disable/Enable.") );
-    item6->Append( ID_MENU_SCAN_AGAIN_KBSERVERS, _("Scan For Running Servers Again"), _("Do another series of service discovery runs to find running KBservers") );
+    item6->Append( ID_MENU_DISCOVER_ONE_KBSERVER, _("Discover One KBserver"), _("Scan to discover just one KBserver") );
+    item6->Append( ID_MENU_SCAN_AGAIN_KBSERVERS, _("Discover All KBservers"), _("Do a series of service discovery runs to find running KBservers") );
     item0->Append( item6, _("&Advanced") );
     
     wxMenu* item7 = new wxMenu;
