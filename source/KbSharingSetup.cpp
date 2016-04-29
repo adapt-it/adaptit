@@ -46,6 +46,7 @@
 #include "MainFrm.h"
 #include "helpers.h"
 #include "KbServer.h"
+#include "KbSvrHowGetUrl.h"
 #include "KBSharingStatelessSetupDlg.h" //  misnamed, it's actually just an authentication class
 #include "KbSharingSetup.h"
 
@@ -87,9 +88,6 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pAdaptingCheckBox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHARE_MY_TGT_KB);
 	m_pGlossingCheckBox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHARE_MY_GLOSS_KB);
 	m_pSetupBtn = (wxButton*)FindWindowById(wxID_OK);
-	m_pRadioBoxHow = (wxRadioBox*)FindWindowById(ID_RADIOBOX_HOW);
-	m_nRadioBoxSelection = 0; // top button selected (ie. single KBserver only)
-	m_pRadioBoxHow->SetSelection(m_nRadioBoxSelection);
 
     // If the project is currently a KB sharing project, then initialise to the current
     // values for which of the two KBs (or both) is being shared; otherwise, set the member
@@ -101,24 +99,20 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		// It's an existing shared kb project - so initialize to what the current settings
 		// are, and make the checkbox comply
-		m_pAdaptingCheckBox->SetValue(TRUE); // "Share adaptations" checkbox is to be shown ticked
 		m_bSharingAdaptations = TRUE; // initialize
 	}
 	else
 	{
-		m_pAdaptingCheckBox->SetValue(FALSE); // unticked
 		m_bSharingAdaptations = FALSE; // initialize
 	}
 	if (m_pApp->m_bIsGlossingKBServerProject) // glosses KBserver
 	{
 		// It's an existing shared glossing kb project - so initialize to what the current
 		// settings are, and make the checkbox comply
-		m_pGlossingCheckBox->SetValue(TRUE);
 		m_bSharingGlosses = TRUE; // initialize
 	}
 	else
 	{
-		m_pGlossingCheckBox->SetValue(FALSE); // unticked
 		m_bSharingGlosses = FALSE; // initialize
 	}
 }
@@ -165,34 +159,58 @@ void KbSharingSetup::OnCheckBoxShareGlosses(wxCommandEvent& WXUNUSED(event))
 
 void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 {
-	int nRadioBoxSelection = m_pRadioBoxHow->GetSelection();
-	if (nRadioBoxSelection == 0)
+	if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
 	{
-		m_pApp->m_bServiceDiscoveryWanted = TRUE;
-		m_pApp->m_bServDiscGetOneOnly = TRUE;
-	}
-	else if (nRadioBoxSelection == 1)
-	{
-		m_pApp->m_bServiceDiscoveryWanted = TRUE;
-		m_pApp->m_bServDiscGetOneOnly = FALSE;
-	}
-	else
-	{
-		m_pApp->m_bServiceDiscoveryWanted = FALSE;
-		m_pApp->m_bServDiscGetOneOnly = TRUE;
-	}
+		// Show the dialog which allows the user to set the boolean: m_bServiceDiscoveryWanted, 
+		// for the later AuthenticateCheckAndSetupKBSharing() call to use
+		bool bUserCancelled = FALSE; // initialize
+		KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(m_pApp->GetMainFrame());
+		pHowGetUrl->Center();
+		int dlgReturnCode;
 
-	// We don't call AuthenticateCheckAndSetupKBSharing() directly here, if we did, 
-	// the Authenticate dialog is ends up lower in the z-order and the parent
-	// KbSharingSetup dialog hides it - and as both are modal, the user cannot
-	// get to the Authenticate dialog if control is sent back there (e.g. when the
-	// password is empty, or there is a curl error, or the URL is wrong or the wanted
-	// KBserver is not running). So, we post a custom event here, and the event's
-	// handler will run the Authenticate dialog at idle time, when KbSharingSetup will
-	// have been closed
-	wxCommandEvent eventCustom(wxEVT_Call_Authenticate_Dlg);
-	wxPostEvent(m_pApp->GetMainFrame(), eventCustom); // custom event handlers are in CMainFrame
+		// Hide parent window
+		this->Hide();
 
+		dlgReturnCode = pHowGetUrl->ShowModal();
+		// The dialog's OnOK() handler will have set m_bServiceDiscoveryWanted to the
+		// user's chosen value
+		if (dlgReturnCode == wxID_OK)
+		{
+			// m_bServiceDiscoveryWanted will have been set or cleared in
+			// the OnOK() handler of the above dialog
+			bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
+			wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
+		}
+		else
+		{
+			// User cancelled. This clobbers the sharing setup - that clobbering is
+			// already done in the OnCancel() handler
+			bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
+			wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
+		}
+		delete pHowGetUrl; // We don't want the dlg showing any longer
+
+		// If the user didn't cancel, then call Authenticate....()
+		if (!bUserCancelled) // if user did not cancel...
+		{
+			// We don't call AuthenticateCheckAndSetupKBSharing() directly here, if we did, 
+			// the Authenticate dialog is ends up lower in the z-order and the parent
+			// KbSharingSetup dialog hides it - and as both are modal, the user cannot
+			// get to the Authenticate dialog if control is sent back there (e.g. when the
+			// password is empty, or there is a curl error, or the URL is wrong or the wanted
+			// KBserver is not running). So, we post a custom event here, and the event's
+			// handler will run the Authenticate dialog at idle time, when KbSharingSetup will
+			// have been closed
+			wxCommandEvent eventCustom(wxEVT_Call_Authenticate_Dlg);
+			wxPostEvent(m_pApp->GetMainFrame(), eventCustom); // custom event handlers are in CMainFrame
+		}
+		else
+		{
+			// User canceled before Authentication could be attempted - so tell him
+			// that sharing is OFF
+			ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
+		}
+	}
 	myevent.Skip(); // close the KbSharingSetup dialog
 }
 

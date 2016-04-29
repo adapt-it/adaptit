@@ -3083,6 +3083,10 @@ public:
 	int		  m_nSDRunCounter; // counts the number of times ServDiscBackground() is called 
 	bool	  m_bServDiscBurstIsCurrent;
 	bool	  m_bServDiscSingleRunIsCurrent;
+	bool	  m_bAuthenticationCancellation;
+	bool	  m_bUserLoggedIn; // TRUE when the user (not an administrator) logs in successfully
+	bool	  m_bLoginFailureErrorSeen; // an aid to prevent too many error messages
+	bool	  m_bServDiscRunFoundNothing; // used for premature halting a burst of scans when no KBservers are running
 	void	  DoKBserverDiscoveryRuns();
 
 	void	  ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname);

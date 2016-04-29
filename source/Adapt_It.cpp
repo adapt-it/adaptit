@@ -277,7 +277,7 @@ wxMutex	kbsvr_arrays;
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
 #ifdef _DEBUG
-//#include "vld.h"
+#include "vld.h"
 #endif
 #endif
 
@@ -28529,6 +28529,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pApp != NULL);
 	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
 	m_bUserAuthenticating = FALSE; // must be FALSE when the Manager is invoked 
+	pApp->m_bUserLoggedIn = FALSE;
 											  
 	// The one using the manager has to first be given the option for how to get the url for
 	// the KBserver which is being targetted for being setup for kb sharing or whatever other
@@ -28639,7 +28640,9 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		{
 			if (dlg.m_bError)
 			{
-				gpApp->LogUserAction(_T("Authentication error. Bad username or username lookup failure"));
+				wxString msg = _("Authentication error when logging in to the KB Sharing Manager. Bad username, url or password; or maybe no KBserver running, or a network error");
+				wxLogDebug(msg, _("Error when logging in"), wxICON_ERROR | wxOK);
+				gpApp->LogUserAction(_T("Authentication error. Bad username or username lookup failure; or maybe no KBserver running"));
 				return;
 			}
 			gpApp->LogUserAction(_T("Authenticated for opening the KB Sharing Manager dlg"));

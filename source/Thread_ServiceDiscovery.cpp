@@ -113,6 +113,8 @@ void* Thread_ServiceDiscovery::Entry()
 	// Count this run, and pass the value back to the app's m_nSDRunCounter to be used
 	// by the next run as its index
 	m_pApp->m_nSDRunCounter = m_indexOfRun + 1;
+	m_pApp->m_bServDiscRunFoundNothing = FALSE; // a wxServDiscHALTING event will be posted,
+			// with its handler setting this to TRUE, if the first run discovers no KBserver running
 
 	processID = wxGetProcessId();
 #if defined (_shutdown_)

@@ -346,9 +346,9 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 				// Username is unknown to the KBserver. Setup of sharing won't be turned
 				// on until a valid username is supplied
 				m_pApp->LogUserAction(_T("In OnOK() of KBSharingStatelessSetupDlg.cpp, password not recognised by KBserver"));
-				wxString msg = _("Maybe the username ( %s ) is not in the list of users for this knowledge base server.\nOr the URL is not correct. Or your chosen KBserver is not yet running.\nPerhaps ask your server administrator to help you. Click Cancel to continue working.");
+				wxString msg = _("Most likely your chosen KBserver is not yet running. Check.\nOr maybe the username ( %s ) is not in the list of users for this knowledge base server.\nOr the URL, or password, is not correct.\nPerhaps ask your server administrator to help you.\nIn the next dialog, click Cancel to continue working.");
 				msg = msg.Format(msg, m_strStatelessUsername.c_str());
-				wxMessageBox(msg, _("Authentication: user check failed"), wxICON_WARNING | wxOK);
+				wxMessageBox(msg, _("Authentication: a check failed"), wxICON_WARNING | wxOK);
 				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
 				this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
 				m_bError = TRUE;
@@ -368,7 +368,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 		// Passed the credentials test, so commit to this typed password, and to the username
 		// Store it for KbServer[0] and / or KbServer[1] instance(s) to use
 		m_pApp->GetMainFrame()->SetKBSvrPassword(pwd);
-		m_pApp->m_strStatelessUsername; // we never override m_pApp->m_strUserID with
+		//m_pApp->m_strStatelessUsername; // we never override m_pApp->m_strUserID with
 									    // a username typed only for authentication
 	}
 	else
@@ -393,10 +393,10 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			if (!bUserIsValid)
 			{
 				// Access to the Manager GUI is denied to this user
-				m_pApp->LogUserAction(_T("In OnOK() of KBSharingStatelessSetupDlg.cpp, password not recognised by KBserver"));
-				wxString msg = _("Maybe the username ( %s ) is not in the list of users for this knowledge base server.\nOr the URL is not correct. Or your chosen KBserver is not yet running.\nPerhaps ask your server administrator to help you. Click Cancel to continue working.");
+				m_pApp->LogUserAction(_T("In OnOK() of KBSharingStatelessSetupDlg.cpp, username or password not recognised by KBserver"));
+				wxString msg = _("Most likely your chosen KBserver is not yet running. Check.\nOr maybe the username ( %s ) is not in the list of users for this knowledge base server.\nOr the URL, or password, is not correct.\nPerhaps ask your server administrator to help you.\nIn the next dialog, click Cancel to continue working.");
 				msg = msg.Format(msg, m_strStatelessUsername.c_str());
-				wxMessageBox(msg, _("Authentication: user check failed"), wxICON_WARNING | wxOK);
+				wxMessageBox(msg, _("Authentication: a check failed"), wxICON_WARNING | wxOK);
 				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
 				this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
 				m_bError = TRUE;
@@ -420,7 +420,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 	} // end of else block for test: if (m_bUserIsAuthenticating)
 
 	// All's well, commit to the URL; I'll store the url to different app locations, but
-	// presumably it's always the same KBserver, so I'm being a bit silly here
+	// presumably it's usually the same KBserver, so I'm playing safe here
 	if (m_bUserIsAuthenticating)
 	{
 		// This app member is where a url stored in the project config file gets stored
@@ -434,7 +434,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 	else
 	{
 		// This app member is for use when, say, we authenticate when opening the KB
-		// Sharing Manager - but it's the same KBserver so why am I doing this?!!!
+		// Sharing Manager 
 		m_pApp->m_strStatelessURL = m_strStatelessURL;
 #if defined(_DEBUG)
 wxLogDebug(_T("Authenticate Dlg (KBSharingStatelessSetupDlg.cpp) URL: %s , stored in m_pApp->m_strStatelessURL"),

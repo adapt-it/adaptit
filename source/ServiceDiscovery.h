@@ -92,7 +92,8 @@ public:
 	wxArrayString m_ipAddrs_Hostnames; // stores unique set of <ipaddress>@@@<hostname> composite strings
 
 protected:
-	  void onSDNotify(wxCommandEvent& WXUNUSED(event));
+	void onSDNotify(wxCommandEvent& WXUNUSED(event));
+	void onSDHalting(wxCommandEvent& WXUNUSED(event));
 private:
 
 	DECLARE_EVENT_TABLE();

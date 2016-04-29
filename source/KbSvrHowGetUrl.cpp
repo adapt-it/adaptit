@@ -96,17 +96,10 @@ void KbSvrHowGetUrl::OnOK(wxCommandEvent& myevent)
 	if (nRadioBoxSelection == 0)
 	{
 		m_pApp->m_bServiceDiscoveryWanted = TRUE;
-		m_pApp->m_bServDiscGetOneOnly = TRUE;
-	}
-	else if (nRadioBoxSelection == 1)
-	{
-		m_pApp->m_bServiceDiscoveryWanted = TRUE;
-		m_pApp->m_bServDiscGetOneOnly = FALSE;
 	}
 	else
 	{
 		m_pApp->m_bServiceDiscoveryWanted = FALSE;
-		m_pApp->m_bServDiscGetOneOnly = TRUE;
 	}
 
 	m_bUserClickedCancel = FALSE;
@@ -128,7 +121,6 @@ void KbSvrHowGetUrl::OnCancel(wxCommandEvent& myevent)
 	m_pApp->ReleaseKBServer(1); // the adaptations one
 	m_pApp->ReleaseKBServer(2); // the glossings one
 
-	m_pApp->m_bServDiscGetOneOnly = TRUE; // re-initialize
 	m_pApp->m_bServiceDiscoveryWanted = TRUE; // re-initialize
 
 	myevent.Skip();  // close dialog

@@ -196,6 +196,7 @@ extern wxMutex	kbsvr_arrays;
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)
 
 EVT_COMMAND(wxID_ANY, wxServDiscNOTIFY, CServiceDiscovery::onSDNotify)
+EVT_COMMAND(wxID_ANY, wxServDiscHALTING, CServiceDiscovery::onSDHalting)
 
 END_EVENT_TABLE()
 
@@ -452,7 +453,7 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 								wxLogDebug(_T("In onSDNotify(), WITHHOLDING duplicate ipaddr/hostname string from app array: %s"),
 									composite.c_str());
 #endif
-								wxNO_OP; // for release build
+								index = index; // a do-nothing statement to avoid any compiler warning
 							}
 							// The local arrays here are no longer needed until the next timer 
 							// notification, so clear them
@@ -496,6 +497,20 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 		wxLogDebug(_T("CServiceDiscovery = %p  (399)  onSDNotify()  m_bDestroyChildren now set to TRUE"), this);
 #endif
 	}
+}
+
+// The following handler is only called when no running KBservers were discovered on the LAN
+void CServiceDiscovery::onSDHalting(wxCommandEvent& WXUNUSED(event))
+{
+	// The following line gets OnCustomEventEndServiceDiscovery() in CMainFrame to prematurely
+	// shut down a burst of service discovery runs after the first yielded no discoveries
+	m_pApp->m_bServDiscRunFoundNothing = TRUE;
+
+	// The following, even though a run with no discoveries does not call post_notify() and
+	// hence no child wxServDisc instances (namescan() and addrscan()) are created, setting
+	// this boolean to true causes the thread's TestDestroy() function to return TRUE. That
+	// in turn gets CServiceDiscovery and the thread shut down (and the serviceStr cleared)
+	m_bDestroyChildren = TRUE;
 }
 
 CServiceDiscovery::~CServiceDiscovery()

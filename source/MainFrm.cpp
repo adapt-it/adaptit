@@ -2713,6 +2713,19 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	// Disable if there are no stored KBserver urls (and their hostnames too,
+	// but it is the urls which are important for login etc)
+	if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	// If there is no user logged in, it must be disabled
+	if (gpApp->m_bUserLoggedIn == FALSE)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// The controls in the dialog can't be used if KB sharing is not turned on for the
 	// currently active project - either to share adaptations, or glosses
 	if (!gpApp->m_bIsKBServerProject && !gpApp->m_bIsGlossingKBServerProject)
@@ -2728,6 +2741,13 @@ void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 {
 	// Disable when in read-only mode.
 	if (gpApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	// Disable if there are no stored KBserver urls (and their hostnames too,
+	// but it is the urls which are important for login etc)
+	if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
 	{
 		event.Enable(FALSE);
 		return;
@@ -2754,6 +2774,39 @@ void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event
 void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 {
 	int nWhichOne = (int)event.GetExtraLong();
+	// If doing a burst, and the first run cannot find any running KBservers, then there is
+	// no point in doing any further runs in a burst. So shut the burst down and give feedback
+	// to the user
+	if (nWhichOne == 0 && gpApp->m_bServDiscBurstIsCurrent && gpApp->m_bServDiscRunFoundNothing)
+	{
+		// First, get the scan burst shut down prematurely
+		if (gpApp->m_servDiscTimer.IsRunning())
+		{
+			gpApp->m_servDiscTimer.Stop();
+			gpApp->m_nSDRunCounter = 0;
+			// Ensure all ptrs are NULL
+			int index;
+			for (index = 0; index < (int)MAX_SERV_DISC_RUNS; index++)
+			{
+				if (gpApp->m_pServDiscThread[index] != NULL)
+				{
+					gpApp->m_pServDiscThread[index] = NULL;
+				}
+			}
+			gpApp->m_bServDiscBurstIsCurrent = FALSE;
+
+			// Finish up the progress dialog's tracking in the status bar
+			wxString progTitle = _("KBservers Discovery");
+			((CStatusBar*)m_pStatusBar)->FinishProgress(progTitle);
+
+			// Inform the user what the discovered inventory currently is
+			wxString title = _("KBservers discovered so far");
+			wxString msg = BuildUrlsAndNamesMessageString();
+			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+		}
+
+		gpApp->m_bServDiscRunFoundNothing = FALSE; // restore default value
+	}
 	// If it is from a call of OnDiscoverOneKBserver(), which uses m_bServDiscSingleRunIsCurrent
 	// in update handler to prevent both types of discovery working at once, then clear the
 	// bool here
@@ -2765,6 +2818,7 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 		wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 
 		gpApp->m_bServDiscSingleRunIsCurrent = FALSE; // allow the menu command to again be enabled
+		gpApp->m_bServDiscRunFoundNothing = FALSE; // restore default value
 	}
 	// It's a detached thread type, so will delete itself; we'll just set its ptr to NULL
 	// (it's never a good idea to leave pointers hanging)
@@ -2809,7 +2863,7 @@ wxString CMainFrame::BuildUrlsAndNamesMessageString()
 	wxArrayString urlsArray;
 	wxArrayString namesArray;
 	wxString columnLabels = _("           URL                                     Name\n");
-	wxString noServersYet = _("No running KBservers have been discovered yet");
+	wxString noServersYet = _("No running KBservers have been discovered yet.\nAre you sure there is a KBserver running on the local network? Check.");
 	wxString oneExtra = _T(' ');
 	wxString twoExtra = _T("  ");
 	int length = 0;
@@ -4652,6 +4706,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	CKB* pKB = NULL;
 	if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 	{
+		gpApp->m_bAuthenticationCancellation = FALSE; // make sure it is re-initialized
+
 		// Get the delayed connection done, from url & hostname in basic config file,
 		// if ProjectPage.cpp OnPageChanging() has asked for project entry, we
 		// delay the attempt until the doc is opened and an idle event occurs

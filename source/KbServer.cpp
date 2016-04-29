@@ -1932,7 +1932,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 			wxString error(ToUtf16(cbstr));
 			msg = msg.Format(_T("LookupUser() result code: %d cURL Error: %s"),
 				result, error.c_str());
-			wxMessageBox(msg, _T("Error when looking up a username, using LookupUser()"), wxICON_EXCLAMATION | wxOK);
+			wxMessageBox(msg, _("Error when looking up a username"), wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(msg);
 			curl_easy_cleanup(curl);
 			//curl_free(encodeduser);
