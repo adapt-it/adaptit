@@ -64,6 +64,16 @@ public:
 
 	// other methods...
 
+	// Booleans to ensure we don't die before the curl functions have completed their
+	// tasks and their cached data has been cleanedup (if the the thread dies before
+	// cleanup completes, heap memory is leaked)
+	bool m_bCreateEntryCanDie;
+	bool m_bLookupEntryFieldsCanDie;
+	bool m_bLookupEntryFieldsCanDie2;
+	bool m_bPseudoDeleteUndeleteEntryCanDie;
+	bool m_bPseudoDeleteUndeleteEntryCanDie2;
+
+
 	// wxThread::OnExit() is called when the thread exits at termination - for self
 	// destruction termination or by Delete(), but not if Kill() is used - the latter
 	// should never be used, it can leave resources in an indeterminate state
@@ -76,6 +86,9 @@ public:
 	// as a way to pass signals back to the calling (main) thread -- but for this class we
 	// won't need to
 	virtual void*		Entry();
+
+	virtual bool		TestDestroy();
+
 
 protected:
 

@@ -65,6 +65,13 @@ public:
 	wxString			m_translation;
 	CAdapt_ItApp*		m_pApp; // to access ptr to KB, and ptr to KbServer
 
+	// Booleans to ensure we don't die before the curl functions have completed their
+	// tasks and their cached data has been cleanedup (if the the thread dies before
+	// cleanup completes, heap memory is leaked)
+	bool m_bCreateEntryCanDie;
+	bool m_bLookupEntryFieldsCanDie;
+	bool m_bPseudoDeleteUndeleteEntryCanDie;
+
 	// other methods...
 
 	// wxThread::OnExit() is called when the thread exits at termination - for self
@@ -79,8 +86,8 @@ public:
 	// as a way to pass signals back to the calling (main) thread -- but for this class we
 	// won't need to
 	virtual void*		Entry();
-
-	virtual bool    TestDestroy();
+		
+	virtual bool		TestDestroy();
 
 protected:
 

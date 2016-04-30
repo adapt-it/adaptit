@@ -90,7 +90,7 @@ void* Thread_BulkPseudoDelete::Entry()
 
 		s_BulkDeleteMutex.Lock();
 
-		rv = m_pKbSvr->LookupEntryFields(srcPhrase, nonsrcPhrase);
+		rv = m_pKbSvr->LookupEntryFields(srcPhrase, nonsrcPhrase, m_bLookupEntryFieldsCanDie);
 		if (rv == CURLE_HTTP_RETURNED_ERROR)
 		{
 			// If the lookup failed, we must assume it was because there was no matching entry
@@ -113,7 +113,7 @@ void* Thread_BulkPseudoDelete::Entry()
 			if (e.deleted == 0)
 			{
 				// do a pseudo-delete here, use the entryID value above (reuse rv)
-				rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete);
+				rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete, m_bPseudoDeleteUndeleteEntryCanDie);
 			}
 		}
 
@@ -122,6 +122,16 @@ void* Thread_BulkPseudoDelete::Entry()
 	}
 	return (void*)NULL;
 }
+
+bool Thread_BulkPseudoDelete::TestDestroy()
+{
+	if (m_bLookupEntryFieldsCanDie & m_bPseudoDeleteUndeleteEntryCanDie)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
 
 #endif // for _KBSERVER
 

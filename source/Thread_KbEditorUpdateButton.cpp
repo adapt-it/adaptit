@@ -91,7 +91,7 @@ void* Thread_KbEditorUpdateButton::Entry()
 
 	s_BulkDeleteMutex.Lock();
 
-	rv = m_pKbSvr->LookupEntryFields(m_source, m_oldTranslation);
+	rv = m_pKbSvr->LookupEntryFields(m_source, m_oldTranslation, m_bLookupEntryFieldsCanDie);
 	if (rv == CURLE_HTTP_RETURNED_ERROR)
 	{
         // If the lookup failed, we must assume it was because there was no matching entry
@@ -116,19 +116,19 @@ void* Thread_KbEditorUpdateButton::Entry()
 		if (e.deleted == 0)
 		{
 			// do a pseudo-delete here, use the entryID value from above
-			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete);
+			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete, m_bPseudoDeleteUndeleteEntryCanDie);
 		}
 	}
 	//                          ***** part 2 *****
 	// That takes care of the m_oldTranslation that was updated; now deal with the 
 	// scr-m_newTranslation pair -- another lookup is needed...
-	rv = m_pKbSvr->LookupEntryFields(m_source, m_newTranslation);
+	rv = m_pKbSvr->LookupEntryFields(m_source, m_newTranslation, m_bLookupEntryFieldsCanDie2);
 	if (rv == CURLE_HTTP_RETURNED_ERROR)
 	{
         // If the lookup failed, we must assume it was because there was no matching entry
         // (ie. HTTP 404 was returned) - in which case none of the collaborating clients
         // has seen this entry yet, and so we should now create it in the remote DB now
-		rv = m_pKbSvr->CreateEntry(m_source, m_newTranslation);
+		rv = m_pKbSvr->CreateEntry(m_source, m_newTranslation, m_bCreateEntryCanDie);
 		// Ignore errors, if it didn't succeed, no big deal - someone else will sooner or
 		// later succeed in adding this one to the remote DB.
 	}
@@ -148,14 +148,33 @@ void* Thread_KbEditorUpdateButton::Entry()
 		if (e.deleted == 1)
 		{
 			// do an undelete of the pseudo-deletion, use the entryID value from above
-			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doUndelete);
+			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doUndelete, m_bPseudoDeleteUndeleteEntryCanDie2);
 		}
 		// Ignore errors, for the same reason as above (i.e. it's no big deal)
 	}
 
 	s_BulkDeleteMutex.Unlock();
 
+	// Block until libcurl has done all cleanups
+	while (!TestDestroy())
+	{
+		// It can sleep a bit beween checks
+		wxMilliSleep(5); // .005 seconds between each test
+	}
+	// Hang around a bit longer to ensure all the curl/openssl stuff has fully gone
+	wxMilliSleep(10); // .01 secs
+
 	return (void*)NULL;
+}
+
+bool Thread_KbEditorUpdateButton::TestDestroy()
+{
+	if (m_bCreateEntryCanDie & m_bLookupEntryFieldsCanDie & m_bPseudoDeleteUndeleteEntryCanDie
+		&& m_bLookupEntryFieldsCanDie2 && m_bPseudoDeleteUndeleteEntryCanDie2)
+	{
+		return TRUE;
+	}
+	return FALSE;
 }
 
 #endif // for _KBSERVER

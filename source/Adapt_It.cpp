@@ -21401,7 +21401,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// curl needs to be initialized just once per run of the application
 	// Note: curl leaks this small heap block; and openssl also leaks a small heap block.
-	// Can't prevent those. One is 16 bytes, the other about 20 or 22 - something like that
+	// BEW 29Apr16 curl_global_cleanup() cleans up - see OnExit()
 #if defined (_KBSERVER)
 #if defined(__WXMSW__)
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -22555,6 +22555,10 @@ int CAdapt_ItApp::OnExit(void)
 		delete m_pKbServer_Persistent;
 		m_pKbServer_Persistent = (KbServer*)NULL;
 	}
+
+	curl_global_cleanup();
+
+
 #endif
 
 	// Clear up Guesser Prefix/Suffix Arrays - klb

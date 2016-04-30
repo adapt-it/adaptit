@@ -185,7 +185,7 @@ public:
 					wxString url, wxString username, wxString password, CBString jsonUtf8Str);
 	int		 ChangedSince(wxString timeStamp);
 	int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
-	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
+	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool& bReadyToDie);
 	int		 CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description);
 	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, 
 						bool bKbadmin, bool bUseradmin, bool bLanguageadmin);
@@ -194,11 +194,11 @@ public:
 	int		 ListKbs(wxString username, wxString password);
 	int		 ListUsers(wxString username, wxString password);
 	int		 ListLanguages(wxString username, wxString password);
-	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
+	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase, bool bReadyToDie);
 	int		 LookupSingleKb(wxString url, wxString username, wxString password, wxString srcLangCode,
 							wxString tgtLangCode, int kbType, bool& bMatchedKB);
 	int		 LookupUser(wxString url, wxString username, wxString password, wxString whichusername);
-	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
+	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op, bool& bReadyToDie);
 	int		 DeleteSingleKbEntry(int entryID);
 	int		 RemoveUser(int userID);
 	int		 RemoveKb(int kbID);

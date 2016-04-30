@@ -2288,8 +2288,9 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 // HTTP error - such as no matching entry, or a badly formed request
 // BEW 3Oct13, modified to use a url-encoded url string (to lookup phrases properly,
 // otherwise it looks up only the first word of the phrase)
-int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
+int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase, bool bReadyToDie)
 {
+	bReadyToDie = FALSE;
 	CURL *curl;
 	CURLcode result;
 	wxString aUrl; // convert to utf8 when constructed
@@ -2395,6 +2396,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 			curl_free(encodedsource);
 			curl_free(encodedtarget);
 			curl_easy_cleanup(curl);
+			bReadyToDie = TRUE;
 			return (int)result;
 		}
 	}
@@ -2411,6 +2413,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		curl_free(encodedtarget);
 		str_CURLbuffer.clear();
 		str_CURLheaders.clear();
+		bReadyToDie = TRUE;
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
 
@@ -2463,6 +2466,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 			curl_free(encodedtarget);
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
+			bReadyToDie = TRUE;
 			return CURLE_HTTP_RETURNED_ERROR;
 		}
 		// we extract id, source phrase, target phrase, deleted flag value & username
@@ -2488,6 +2492,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
 	}
+	bReadyToDie = TRUE;
 	return 0;
 }
 
@@ -2945,8 +2950,10 @@ void KbServer::ClearKbsList(KbsList* pKbsList)
 	pKbsList->clear();
 }
 
-int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
+int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool& bReadyToDie)
 {
+	bReadyToDie = FALSE;
+
 	// entries are always created as "normal" entries, that is, not pseudo-deleted
 	CURL *curl;
 	CURLcode result = CURLE_OK; // initialize result code
@@ -3050,6 +3057,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 			wxMessageBox(msg, _T("Error when trying to create an entry"), wxICON_EXCLAMATION | wxOK);
 
 			curl_easy_cleanup(curl);
+			bReadyToDie = TRUE;
 			return result;
 		}
 	}
@@ -3072,8 +3080,10 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
         // pseudo deleted entry, then we can call the function for restoring it to be a
         // normal entry - 3 calls, and heaps of latency delay, but it would be a rare
         // scenario.
+		bReadyToDie = TRUE;
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
+	bReadyToDie = TRUE;
 	return 0;
 }
 
@@ -4043,8 +4053,9 @@ int KbServer::RemoveCustomLanguage(wxString langID)
 
 
 // Return 0 (CURLE_OK) if no error, a CURLcode error code if there was an error
-int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op)
+int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op, bool& bReadyToDie)
 {
+	bReadyToDie = FALSE;
 	wxString entryIDStr;
 	wxItoa(entryID, entryIDStr);
 	CURL *curl;
@@ -4141,6 +4152,7 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 			}
 			curl_easy_cleanup(curl);
 			str_CURLbuffer.clear();
+			bReadyToDie = TRUE;
 			return result;
 		}
 	}
@@ -4154,8 +4166,10 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
 		// status codes which are returned, to determine what to do, and then manually
 		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
+		bReadyToDie = TRUE;
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
+	bReadyToDie = TRUE;
 	return 0;
 }
 
