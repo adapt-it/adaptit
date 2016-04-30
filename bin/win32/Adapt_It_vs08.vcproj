@@ -985,6 +985,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Thread_ServiceDiscovery.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Timer_KbServerChangedSince.cpp"
 				>
 			</File>
@@ -1623,6 +1627,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Thread_PseudoUndelete.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Thread_ServiceDiscovery.h"
 				>
 			</File>
 			<File
