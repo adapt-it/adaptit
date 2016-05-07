@@ -22555,10 +22555,6 @@ int CAdapt_ItApp::OnExit(void)
 		delete m_pKbServer_Persistent;
 		m_pKbServer_Persistent = (KbServer*)NULL;
 	}
-
-	curl_global_cleanup();
-
-
 #endif
 
 	// Clear up Guesser Prefix/Suffix Arrays - klb
@@ -43068,6 +43064,10 @@ wxString CAdapt_ItApp::CleanupFilterMarkerOrphansInString(wxString strFilterMark
 /// items. Since the find operation is a simple brute force search through each item, the
 /// time taken can be considerable for list boxes that may contain very large numbers of
 /// items.
+/// BEW 4May16, to make the search more useful, changed the exact matches to be substring
+/// matches at any part of the string; and since people often use auto-capitalization, which
+/// stores lower case strings in the KB, the case insensitive option should convert not to
+/// .UpperCase(), but to .LowerCase()
 ////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 		enum SearchCaseType searchCaseType, enum SearchStrLengthType searchStrLenType)
@@ -43082,22 +43082,22 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 	//bool bFound = FALSE;
 	wxString caseKeyStr = searchStr;
 	if (searchCaseType == caseInsensitive)
-		caseKeyStr.UpperCase();
+		caseKeyStr.LowerCase();
 	wxString srcStr;
 	for (ct = 0; ct < (int)pListBox->GetCount(); ct++)
 	{
 		srcStr = pListBox->GetString(ct);
 		if (searchCaseType == caseInsensitive)
-			srcStr.UpperCase();
+			srcStr.LowerCase();
 		if (searchStrLenType == subString)
 		{
             // If needed we could here further modify FindListBoxItem to allow for a
             // substring at any location in the string, not just initially It would require
             // an additional enum parameter SubStrType {initialOnly, anywhere}
-			if (srcStr.Find(caseKeyStr) == 0)
+			// BEW 5May16, match anywhere, so use >= in the test on next line, not ==
+			if (srcStr.Find(caseKeyStr) >= 0)
 			{
-				// we found an item whose beginning chars match
-				//bFound = TRUE;
+				// we found an item that matches the search string somewhere in the item
 				return ct;
 			}
 		}
@@ -43107,7 +43107,6 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 			if (srcStr == caseKeyStr)
 			{
 				// we found an item whose chars match exactly
-				//bFound = TRUE;
 				return ct;
 			}
 		}
@@ -43150,6 +43149,7 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 /// FindListBoxItem on list boxes that may contain hundreds or thousands of items. Since
 /// the find operation is a simple brute force search through each item, the time taken can
 /// be considerable for list boxes that may contain very large numbers of items.
+/// BEW changed == to >=  5May16, also .UpperCase() is now .LowerCase()
 ////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 		enum SearchCaseType searchCaseType, enum SearchStrLengthType searchStrLenType,
@@ -43170,7 +43170,7 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 	nCurrSel = pListBox->GetSelection();
 	nTotLBItems = (int)pListBox->GetCount();
 	if (searchCaseType == caseInsensitive)
-		caseKeyStr.UpperCase();
+		caseKeyStr.LowerCase();
 	nStartIndex = 0; // the default starting point case which is fromFirstListPos
 	nEndIndex = nTotLBItems - 1; // the default ending point is index of
 								 // last item in list
@@ -43196,15 +43196,23 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 	{
 		srcStr = pListBox->GetString(ct);
 		if (searchCaseType == caseInsensitive)
-			srcStr.UpperCase();
+			srcStr.LowerCase();
 		if (searchStrLenType == subString)
 		{
             // If needed we could here further modify FindListBoxItem to allow for a
             // substring at any location in the string, not just initially It would require
             // an additional enum parameter SubStrType {initialOnly, anywhere}
-			if (srcStr.Find(caseKeyStr) == 0)
+			//
+			// BEW changed 4May16 Mike Hore wants a substring search which succeeds anywhere
+			// there is a match in the string. I won't implement Bill's suggestion of an
+			// additional enum param, as I don't think it is needed. Prefixing languages will
+			// benefit from matches of the stem, which won't be in word-initial location.
+			// Other languages will generally work fine, if enough characters are searched for
+			// so I will take this 'easy' way until somone hollers
+			// All that is needed for this change is == 0  becomes >= 0 in the next line
+			if (srcStr.Find(caseKeyStr) >= 0)
 			{
-				// we found an item whose beginning chars match
+				// we found an item which contains the search substring
 				bFound = TRUE;
 				return ct;
 			}
@@ -43231,13 +43239,15 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 		{
 			srcStr = pListBox->GetString(ct);
 			if (searchCaseType == caseInsensitive)
-				srcStr.UpperCase();
+				srcStr.LowerCase();
 			if (searchStrLenType == subString)
 			{
                 // If needed we could here further modify FindListBoxItem to allow for a
                 // substring at any location in the string, not just initially It would
                 // require an additional enum parameter SubStrType {initialOnly, anywhere}
-				if (srcStr.Find(caseKeyStr) == 0)
+				//
+				// BEW 4May16 see comment earlier for why == now is >= in next test
+				if (srcStr.Find(caseKeyStr) >= 0)
 				{
 					// we found an item whose beginning chars match
 					bFound = TRUE;

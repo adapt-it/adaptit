@@ -11016,6 +11016,43 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
 	// Get the project config file values for the adapting & glossing sharing flags
 	m_bSharingAdaptations = pApp->m_bIsKBServerProject_FromConfigFile;
 	m_bSharingGlosses = pApp->m_bIsGlossingKBServerProject_FromConfigFile;
+	// In the case of a new project, the config file values will both be false, and
+	// if that is the case and we do no more here, then use of the Setup Or Remove
+	// Knowledge Base Sharing dialog will get ignored. Or if the config files have
+	// one or both set true, but the latter dialog has the checkboxes off, then
+	// the latter's settings must prevail. That dialog sets the variables the config
+	// file would use for storage, so check now and override any of the above settings
+	// which differ
+	if (pApp->m_bIsKBServerProject == TRUE)
+	{
+		if (!m_bSharingAdaptations)
+		{
+			m_bSharingAdaptations = TRUE;
+		}
+	}
+	else
+	{
+		// User wants adaptations sharing to be OFF
+		if (m_bSharingAdaptations)
+		{
+			m_bSharingAdaptations = FALSE;
+		}
+	}
+	if (pApp->m_bIsGlossingKBServerProject == TRUE)
+	{
+		if (!m_bSharingGlosses)
+		{
+			m_bSharingGlosses = TRUE;
+		}
+	}
+	else
+	{
+		// User wants glosses sharing to be OFF
+		if (m_bSharingGlosses)
+		{
+			m_bSharingGlosses = FALSE;
+		}
+	}
 
 	// The user may want to turn of sharing by setting both checkboxes to be unticked
 	// in the Setup Or Remove Knowledge Base Sharing, and if so, then the above two

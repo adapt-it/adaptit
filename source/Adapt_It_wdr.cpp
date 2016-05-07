@@ -319,7 +319,7 @@ wxSizer *ComposeBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
-    CComposeBarEditBox *item2 = new CComposeBarEditBox( parent, IDC_EDIT_COMPOSE, wxT(""), wxDefaultPosition, wxSize(200,56), wxTE_MULTILINE );
+    CComposeBarEditBox *item2 = new CComposeBarEditBox( parent, IDC_EDIT_COMPOSE, wxT(""), wxDefaultPosition, wxSize(-1,90), wxTE_MULTILINE );
     item2->SetToolTip( _("Type text here") );
     item1->Add( item2, 1, wxALIGN_CENTER|wxALL, 5 );
 
@@ -445,7 +445,7 @@ wxSizer *ComposeBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item1->Add( item25, 0, wxALIGN_CENTER, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
     if (set_sizer)
     {
@@ -1632,11 +1632,11 @@ wxSizer *RetranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item11 = new wxTextCtrl( parent, IDC_EDIT_RETRANSLATION, wxT(""), wxDefaultPosition, wxSize(400,80), wxTE_MULTILINE );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, IDC_EDIT_RETRANSLATION, wxT(""), wxDefaultPosition, wxSize(-1,80), wxTE_MULTILINE );
     item11->SetToolTip( _("Type the retranslation here (including appropriate punctuation)") );
     item10->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item9->Add( item10, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+    item9->Add( item10, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
     wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
 

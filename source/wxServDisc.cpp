@@ -147,9 +147,9 @@ wxDEFINE_EVENT(wxServDiscHALTING, wxCommandEvent);
 /*   private member functions    */
 wxThread::ExitCode wxServDisc::Entry()
 {
-	processID = wxGetProcessId();
+	threadID = (unsigned long)GetThread()->GetId();
 #if defined(_shutdown_)
-	wxLogDebug(_T("wxServDisc(): %p   Entry(): I am process ID = %lx"), this, processID);
+	wxLogDebug(_T("wxServDisc(): %p   Entry(): I am thread ID = %lx"), this, threadID);
 #endif
 	mdnsd d;
 	struct message m;
@@ -769,7 +769,7 @@ wxServDisc::~wxServDisc()
 #if defined(_shutdown_)
 	wxLogDebug(wxT("~wxServDisc %p: (770) In destructor: before delete of the wxServDisc instance"), this);
 #endif
-	processID = wxGetProcessId();
+	threadID = (unsigned long)GetThread()->GetId();
 
 	if (m_bKillZombie)
 	{
@@ -778,8 +778,8 @@ wxServDisc::~wxServDisc()
 			GetThread()->Delete(); // blocks, this makes TestDestroy() return true and cleans up the thread
 		}
 #if defined (_shutdown_)
-		wxLogDebug(wxT("~wxServDisc %p: (781) Finished ZOMBIE's destructor.  processID = %lx  decimal = %ld"),
-			this, processID, processID);
+		wxLogDebug(wxT("~wxServDisc %p: (781) Finished ZOMBIE's destructor.  threadID = %lx  decimal = %ld"),
+			this, threadID, threadID);
 #endif
 	}
 	else
@@ -792,8 +792,8 @@ wxServDisc::~wxServDisc()
 						this, query.c_str(), mWallClock.Time());
 #endif
 #if defined (_shutdown_)
-			wxLogDebug(wxT("~wxServDisc %p: (795) Finished destructor ~wxServDisc().  processID = %lx  decimal = %ld  querytype = %d"),
-				this, processID, processID, querytype);
+			wxLogDebug(wxT("~wxServDisc %p: (795) Finished destructor ~wxServDisc().  threadID = %lx  decimal = %ld  querytype = %d"),
+				this, threadID, threadID, querytype);
 #endif
 			GetThread()->Delete(); // blocks, this makes TestDestroy() return true and cleans up the thread
 		}

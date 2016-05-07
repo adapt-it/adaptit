@@ -2764,6 +2764,9 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		GetLayout()->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
 		GetLayout()->m_docEditOperationType = no_edit_op;
+
+		// BEW 02May2016, thePhrase gets leaked, so clear it here
+		thePhrase.clear();
 	}
 }
 

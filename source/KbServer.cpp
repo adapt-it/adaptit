@@ -33,6 +33,7 @@
 
 #if defined(_KBSERVER)
 
+#include <curl/curl.h>
 
 static wxMutex s_QueueMutex; // only need one, because we cannot have
 							 // glossing & adapting modes on concurrently
@@ -2288,9 +2289,8 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 // HTTP error - such as no matching entry, or a badly formed request
 // BEW 3Oct13, modified to use a url-encoded url string (to lookup phrases properly,
 // otherwise it looks up only the first word of the phrase)
-int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase, bool bReadyToDie)
+int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 {
-	bReadyToDie = FALSE;
 	CURL *curl;
 	CURLcode result;
 	wxString aUrl; // convert to utf8 when constructed
@@ -2366,6 +2366,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase, bo
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
 		// We want separate storage for headers to be returned, to get the HTTP status code
 		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curl_headers_callback);
+		//curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when collecting
 													  //headers separately
 		result = curl_easy_perform(curl);
@@ -2396,7 +2397,6 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase, bo
 			curl_free(encodedsource);
 			curl_free(encodedtarget);
 			curl_easy_cleanup(curl);
-			bReadyToDie = TRUE;
 			return (int)result;
 		}
 	}
@@ -2413,7 +2413,6 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase, bo
 		curl_free(encodedtarget);
 		str_CURLbuffer.clear();
 		str_CURLheaders.clear();
-		bReadyToDie = TRUE;
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
 
@@ -2466,7 +2465,6 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase, bo
 			curl_free(encodedtarget);
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
-			bReadyToDie = TRUE;
 			return CURLE_HTTP_RETURNED_ERROR;
 		}
 		// we extract id, source phrase, target phrase, deleted flag value & username
@@ -2492,7 +2490,6 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase, bo
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
 	}
-	bReadyToDie = TRUE;
 	return 0;
 }
 
@@ -2950,10 +2947,61 @@ void KbServer::ClearKbsList(KbsList* pKbsList)
 	pKbsList->clear();
 }
 
-int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool& bReadyToDie)
+// BEW 7May16, we are forced to synchronous calls that use openssl, because the latter
+// (if put on a detached thread) leak about a kilobyte per KBserver access, but if not
+// on a thread there is no leak. Joinable threads are no solution because even if they
+// didn't incur openssl leaks, the calling thread has to .Wait() for the joinable thread
+// to finish. So that's no different than a synchronous call such as this one.
+int KbServer::Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt)
 {
-	bReadyToDie = FALSE;
+	int rv;
+	long entryID = 0;
 
+	s_BulkDeleteMutex.Lock();
+
+	rv = pKbSvr->CreateEntry(src, tgt); // kbType is supplied internally from pKbSvr
+
+	if (rv == CURLE_HTTP_RETURNED_ERROR)
+	{
+		// we've more work to do - may need to un-pseudodelete a pseudodeleted entry
+		int rv2 = pKbSvr->LookupEntryFields(src, tgt);
+		KbServerEntry e = pKbSvr->GetEntryStruct();
+		entryID = e.id; // an undelete of a pseudo-delete will need this value
+#if defined(_DEBUG)
+		wxLogDebug(_T("LookupEntryFields in Synchronous_CreateEntry: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
+			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
+#endif
+		if (rv2 == CURLE_HTTP_RETURNED_ERROR)
+		{
+#if defined(_DEBUG)
+			wxBell(); // we don't expect any error
+#endif
+			wxLogDebug(_T("LookupEntryFields in Synchronous_CreateEntry: there was an error: %d"), rv2);
+		}
+		else
+		{
+			if (e.deleted == 1)
+			{
+				// do an un-pseudodelete here, use the entryID value above
+				// (reuse rv2, because if it fails we'll attempt nothing additional
+				//  here, not even to tell the user anything)
+				rv2 = pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doUndelete);
+
+				wxLogDebug(_T("PseudoDeleteOrUndeleteEntry, was called with doUndelete enum; in Synchronous_CreateEntry: for entryID: %d"), entryID);
+			}
+		}
+	}
+	s_BulkDeleteMutex.Unlock();
+
+	wxUnusedVar(rv);
+	wxLogDebug(_T("Synchronous_CreateEntry(): On return from CreateEntry(): rv = %d  for source:  %s   &   target:  %s"), rv, src.c_str(), tgt.c_str());
+
+	return rv;
+}
+
+
+int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
+{
 	// entries are always created as "normal" entries, that is, not pseudo-deleted
 	CURL *curl;
 	CURLcode result = CURLE_OK; // initialize result code
@@ -3025,6 +3073,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool& bReadyTo
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_POST, 1L);
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
+		//curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 		// ask for the headers to be prepended to the body - this is a good choice here
 		// because no json data is to be returned
 		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
@@ -3057,7 +3106,6 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool& bReadyTo
 			wxMessageBox(msg, _T("Error when trying to create an entry"), wxICON_EXCLAMATION | wxOK);
 
 			curl_easy_cleanup(curl);
-			bReadyToDie = TRUE;
 			return result;
 		}
 	}
@@ -3080,10 +3128,8 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool& bReadyTo
         // pseudo deleted entry, then we can call the function for restoring it to be a
         // normal entry - 3 calls, and heaps of latency delay, but it would be a rare
         // scenario.
-		bReadyToDie = TRUE;
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
-	bReadyToDie = TRUE;
 	return 0;
 }
 
@@ -4052,10 +4098,58 @@ int KbServer::RemoveCustomLanguage(wxString langID)
 }
 
 
-// Return 0 (CURLE_OK) if no error, a CURLcode error code if there was an error
-int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op, bool& bReadyToDie)
+// BEW 7May16, we are forced to synchronous calls that use openssl, because the latter
+// (if put on a detached thread) leak about a kilobyte per KBserver access, but if not
+// on a thread there is no leak. Joinable threads are no solution because even if they
+// didn't incur openssl leaks, the calling thread has to .Wait() for the joinable thread
+// to finish. So that's no different than a synchronous call such as this one.
+int KbServer::Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt)
 {
-	bReadyToDie = FALSE;
+	int rv;
+	long entryID = 0;
+
+	wxASSERT(!src.IsEmpty()); // the key must never be an empty string
+	rv = pKbSvr->LookupEntryFields(src, tgt);
+
+	s_BulkDeleteMutex.Lock();
+
+	if (rv == CURLE_HTTP_RETURNED_ERROR)
+	{
+		// we've more work to do - if the lookup failed, we must assume it was because
+		// there was no matching entry (ie. HTTP 404 was returned) - in which case we
+		// should attempt to create it (so as to be in sync with the change just done in
+		// the local KB due to the undeletion); if the creation fails, just give up
+		rv = pKbSvr->CreateEntry(src, tgt); // kbType is supplied internally from m_pKbSvr
+	}
+	else
+	{
+		// no error from the lookup, so get the entry ID, and the value of the deleted flag
+		KbServerEntry e = pKbSvr->GetEntryStruct(); // accesses m_entryStruct
+		entryID = e.id; // an undelete of a pseudo-delete will need this value
+#if defined(_DEBUG)
+		wxLogDebug(_T("LookupEntryFields in Synchronous_PseudoUndelete(): id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
+			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
+#endif
+		// If the remote entry has 1 for the deleted flag's value, then go ahead and
+		// undelete it; but if it has 0 already, there is nothing to do
+		if (e.deleted == 1)
+		{
+			// do an un-pseudodelete here, use the entryID value above (reuse rv)
+			rv = pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doUndelete);
+		}
+	}
+	s_BulkDeleteMutex.Unlock();
+
+	wxUnusedVar(rv);
+	wxLogDebug(_T("Synchronous_PseudoUndelete(): returning: rv = %d  for source:  %s   &   target:  %s"), rv, src.c_str(), tgt.c_str());
+
+	return rv;
+}
+
+
+// Return 0 (CURLE_OK) if no error, a CURLcode error code if there was an error
+int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op)
+{
 	wxString entryIDStr;
 	wxItoa(entryID, entryIDStr);
 	CURL *curl;
@@ -4119,6 +4213,7 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
 		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		//curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 		// get the headers stuff this way when no json is expected back...
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
 
@@ -4152,7 +4247,6 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 			}
 			curl_easy_cleanup(curl);
 			str_CURLbuffer.clear();
-			bReadyToDie = TRUE;
 			return result;
 		}
 	}
@@ -4166,10 +4260,8 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
 		// status codes which are returned, to determine what to do, and then manually
 		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
-		bReadyToDie = TRUE;
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
-	bReadyToDie = TRUE;
 	return 0;
 }
 

@@ -48,6 +48,7 @@ there is: in the #pragma interface... above, I had "MyListBox.h" instead of "Thr
 *******  LEAVE THIS COMMENT AND THE ABOVE ERRORS HERE, IN CASE THIS ERROR OCCURS ANOTHER TIME SOMEWHERE ********
 */
 
+
 // forward declarations
 class wxThread;
 class KbServer;
@@ -64,13 +65,6 @@ public:
 	wxString			m_source;
 	wxString			m_translation;
 	CAdapt_ItApp*		m_pApp; // to access ptr to KB, and ptr to KbServer
-
-	// Booleans to ensure we don't die before the curl functions have completed their
-	// tasks and their cached data has been cleanedup (if the the thread dies before
-	// cleanup completes, heap memory is leaked)
-	bool m_bCreateEntryCanDie;
-	bool m_bLookupEntryFieldsCanDie;
-	bool m_bPseudoDeleteUndeleteEntryCanDie;
 
 	// other methods...
 

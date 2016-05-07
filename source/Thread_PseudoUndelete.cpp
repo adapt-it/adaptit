@@ -55,7 +55,6 @@ Thread_PseudoUndelete::Thread_PseudoUndelete():wxThread()
 	// m_source and m_translation after creating the thread object and 
 	// before calling Run()
 	m_translation.Empty(); // default, caller should set it after creation
-	m_pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 }
 
 Thread_PseudoUndelete::~Thread_PseudoUndelete()
@@ -73,7 +72,7 @@ void* Thread_PseudoUndelete::Entry()
 	long entryID = 0; // initialize (it might not be used)
 	wxASSERT(!m_source.IsEmpty()); // the key must never be an empty string
 	int rv;
-	rv = m_pKbSvr->LookupEntryFields(m_source, m_translation, m_bLookupEntryFieldsCanDie);
+	rv = m_pKbSvr->LookupEntryFields(m_source, m_translation);
 
 	s_BulkDeleteMutex.Lock();
 
@@ -84,7 +83,7 @@ void* Thread_PseudoUndelete::Entry()
 		// should attempt to create it (so as to be in sync with the change just done in
 		// the local KB due to the undeletion); if the creation fails, just give up and
 		// let the thread die
-		rv = m_pKbSvr->CreateEntry(m_source, m_translation, m_bCreateEntryCanDie); // kbType is supplied internally from m_pKbSvr
+		rv = m_pKbSvr->CreateEntry(m_source, m_translation); // kbType is supplied internally from m_pKbSvr
 	}
 	else
 	{
@@ -101,31 +100,18 @@ void* Thread_PseudoUndelete::Entry()
 		if (e.deleted == 1)
 		{
 			// do an un-pseudodelete here, use the entryID value above (reuse rv)
-			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doUndelete, m_bPseudoDeleteUndeleteEntryCanDie);
+			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doUndelete);
 		}
 	}
 
 	s_BulkDeleteMutex.Unlock();
 
-	// Block until libcurl has done all cleanups
-	while (!TestDestroy())
-	{
-		// It can sleep a bit beween checks
-		wxMilliSleep(5); // .005 seconds between each test
-	}
-	// Hang around a bit longer to ensure all the curl/openssl stuff has fully gone
-	wxMilliSleep(10); // .01 secs
-
 	return (void*)NULL;
 }
 
-bool Thread_PseudoUndelete::TestDestroy()
+bool Thread_PseudoUndelete::TestDestroy() // we don't call this
 {
-	if (m_bCreateEntryCanDie, m_bLookupEntryFieldsCanDie & m_bPseudoDeleteUndeleteEntryCanDie)
-	{
-		return TRUE;
-	}
-	return FALSE;
+	return TRUE;
 }
 #endif // for _KBSERVER
 

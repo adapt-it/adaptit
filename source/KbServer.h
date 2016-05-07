@@ -185,7 +185,7 @@ public:
 					wxString url, wxString username, wxString password, CBString jsonUtf8Str);
 	int		 ChangedSince(wxString timeStamp);
 	int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
-	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool& bReadyToDie);
+	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description);
 	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, 
 						bool bKbadmin, bool bUseradmin, bool bLanguageadmin);
@@ -194,11 +194,11 @@ public:
 	int		 ListKbs(wxString username, wxString password);
 	int		 ListUsers(wxString username, wxString password);
 	int		 ListLanguages(wxString username, wxString password);
-	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase, bool bReadyToDie);
+	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
 	int		 LookupSingleKb(wxString url, wxString username, wxString password, wxString srcLangCode,
 							wxString tgtLangCode, int kbType, bool& bMatchedKB);
 	int		 LookupUser(wxString url, wxString username, wxString password, wxString whichusername);
-	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op, bool& bReadyToDie);
+	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 	int		 DeleteSingleKbEntry(int entryID);
 	int		 RemoveUser(int userID);
 	int		 RemoveKb(int kbID);
@@ -213,15 +213,21 @@ public:
 	
 	// Functions we'll want to be able to call programmatically... (button handlers
 	// for these will be in KBSharing.cpp)
-	void		DoChangedSince();
-	void		DoGetAll(bool bUpdateTimestampOnSuccess = TRUE);
-	void		ClearReturnedCurlCodes(); // sets all 50 of the array of int to CURLE_OK
-	bool		AllEntriesGotEnteredInDB(); // returns TRUE if all entries in m_returnedCurlCodes
+	void	DoChangedSince();
+	void	DoGetAll(bool bUpdateTimestampOnSuccess = TRUE);
+	void	ClearReturnedCurlCodes(); // sets all 50 of the array of int to CURLE_OK
+	bool	AllEntriesGotEnteredInDB(); // returns TRUE if all entries in m_returnedCurlCodes
 						// array are CURLE_OK; FALSE if at least one is some other value
 						// (the current implementation permits only CURLE_HTTP_RETURNED_ERROR
 						// to be the 'other value', if a BulkUpload() call failed - we assume
 						// it was because it tried to upload an already entered db entry)
 	void	 DeleteUploadEntries();
+
+	// Functions for synchronous access to the remote server - to check if they leak memory too
+	// They don't leak, hooray. We have to use these instead of detached threads, because the
+	// latter incurs openssl leaks of about 1KB per KBserver access
+	int		Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt);
+	int		Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt);
 
 	// public setters
 	void     SetKB(CKB* pKB); // sets m_pKB to point at either the local adaptations KB or local glosses KB

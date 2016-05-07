@@ -159,7 +159,11 @@ void KbSharingSetup::OnCheckBoxShareGlosses(wxCommandEvent& WXUNUSED(event))
 
 void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 {
-	if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
+	// Get the checkbox values - & set app flags accordingly
+	bool bAdaptationsTicked = m_pAdaptingCheckBox->GetValue();
+	bool bGlossesTicked = m_pGlossingCheckBox->GetValue();
+
+	if (bAdaptationsTicked || bGlossesTicked)
 	{
 		// Show the dialog which allows the user to set the boolean: m_bServiceDiscoveryWanted, 
 		// for the later AuthenticateCheckAndSetupKBSharing() call to use
@@ -176,6 +180,14 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 		// user's chosen value
 		if (dlgReturnCode == wxID_OK)
 		{
+			if (bAdaptationsTicked)
+			{
+				m_pApp->m_bIsKBServerProject = TRUE;
+			}
+			if (bGlossesTicked)
+			{
+				m_pApp->m_bIsGlossingKBServerProject = TRUE;
+			}
 			// m_bServiceDiscoveryWanted will have been set or cleared in
 			// the OnOK() handler of the above dialog
 			bUserCancelled = pHowGetUrl->m_bUserClickedCancel;

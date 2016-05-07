@@ -16,10 +16,28 @@ normal editing is possible in the text box prior to
 clicking that extra button. The label to the left of
 the text box now says: "Find Source:" The layout was
 slightly improved also.
+* The Edit Knowledge Base dialog's "Source Find:" text
+box now does not have found text programmatically  put in
+it. It retains the user's typed text. The search is 
+improved - it finds the next substring in the list for
+each click of the > button, and the search cycles back
+to the top of the list and continues down once the end
+of the list is reached. The search options are changed
+in order to work better with the auto-capitalization
+feature. The seach is now caseSensitive, and it matches
+within words and phrases, not just at the start of a word.
+Also, when displaying the selected or matched text, it
+is no longer displayed at the top of the list, but as
+the fourth list item so that the user can see some
+previous source text words as well.
 
 ----------------------------------------------
 Bug fixes in 7?? release ?? month ???
 ----------------------------------------------
+* On computers with very high resolution screens, the
+dialog for the "Remove Some Entries Or Save List" button
+of the Knowledge Base editor did not display the controls
+at the bottom of the list. It now does.
 * The built-in source text parser misparsed:
 word.<space>"word (where a straight doublequote is supposed
 to be the opening quote of the second word, to have the

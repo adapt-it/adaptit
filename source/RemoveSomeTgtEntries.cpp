@@ -320,13 +320,14 @@ void RemoveSomeTgtEntries::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pRemoveSomeSizer->ComputeFittingClientSize(this);
 	screenHeight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y);
 
-	this->SetSize(0,1,570,screenHeight - 61); // sets the dialog about 62 pixels
-											  // less long as the screen is high
+	this->SetSize(0,1,570,screenHeight - (screenHeight / 5));
+	// BEW 03May16, on a high res screen, where the comfortable viewing resolution may require
+	// a 1.5 or 2.0 zoom in, 62 pixels was too small. I've made it's height to be 2/3 of the
+	// screenheight so the user can see the controls at the bottom, and if wanted, lengthen it manually
 	wxSize mySize = m_LIST_CTRL_SIZER->GetSize();
-	m_LIST_CTRL_SIZER->SetItemMinSize(m_pCheckList,mySize.x,screenHeight - 215); // sets
-				// the height of the wxListCtrl in the dialog to about 150 pixels less
-				// than its window's height - to allow for the buttons & message at the
-				// dialog's bottom
+	m_LIST_CTRL_SIZER->SetItemMinSize(m_pCheckList,mySize.x,screenHeight - (screenHeight / 5)
+			- 160); // sets the height of the wxListCtrl in the dialog to about 160 pixels less
+				// than its window's height - to allow for the buttons & message at the dialog's bottom
 	this->CentreOnParent();
 }
 
