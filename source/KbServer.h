@@ -228,6 +228,7 @@ public:
 	// latter incurs openssl leaks of about 1KB per KBserver access
 	int		Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt);
 	int		Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt);
+	int		Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt);
 
 	// public setters
 	void     SetKB(CKB* pKB); // sets m_pKB to point at either the local adaptations KB or local glosses KB

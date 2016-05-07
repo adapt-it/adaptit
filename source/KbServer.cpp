@@ -4146,6 +4146,52 @@ int KbServer::Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxStrin
 	return rv;
 }
 
+int KbServer::Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt)
+{
+	long entryID = 0; // initialize (it might not be used)
+	wxASSERT(!src.IsEmpty()); // the key must never be an empty string
+	int rv;
+
+	s_BulkDeleteMutex.Lock();
+
+	rv = pKbSvr->LookupEntryFields(src, tgt);
+	if (rv == CURLE_HTTP_RETURNED_ERROR)
+	{
+		// If the lookup failed, we must assume it was because there was no matching entry
+		// (ie. HTTP 404 was returned) - in which case we will do no more
+		// The alternative would be the following, which is much too much to be
+		// worth the bother....
+		// 1. create a normal entry using Synchronous_CreateEntry()
+		// 2. look it up using LookupEntryFields() to get the entry's ID
+		// 3. pseudo-delete the new entry using PseudoDeleteOrUndeleteEntry(), passing in 
+		// doDelete enum value -- a total of 4 latency-laden calls. No way! (The chance of
+		// the initial lookup failing is rather unlikely, because pseudo-deleting is only
+		// done via the KB Editor dialog, and that should have put the remote database
+		// into the correct state previously, making an error here unlikely.)
+		return 1; // 1 would mean 'an error of some kind' - our callers ignore them anyway
+	}
+	else
+	{
+		// No error from the lookup, so get the entry ID, and the value of the deleted flag
+		KbServerEntry e = pKbSvr->GetEntryStruct(); // accesses m_entryStruct
+		entryID = e.id; // an delete of a normal entry will need this value
+#if defined(_DEBUG)
+		wxLogDebug(_T("LookupEntryFields in Synchronous_PseudoDelete: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
+			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
+#endif
+		// If the remote entry has 0 for the deleted flag's value, then go ahead and
+		// delete it; but if it has 1 already, there is nothing to do except let the
+		// thread die
+		if (e.deleted == 0)
+		{
+			// do a pseudo-delete here, use the entryID value above (reuse rv)
+			rv = pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete);
+		}
+	}
+
+	s_BulkDeleteMutex.Unlock();
+	return rv;
+}
 
 // Return 0 (CURLE_OK) if no error, a CURLcode error code if there was an error
 int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op)

@@ -69,6 +69,7 @@ void Thread_PseudoDelete::OnExit()
 
 void* Thread_PseudoDelete::Entry()
 {
+	/*
 	long entryID = 0; // initialize (it might not be used)
 	wxASSERT(!m_source.IsEmpty()); // the key must never be an empty string
 	int rv;
@@ -116,7 +117,7 @@ void* Thread_PseudoDelete::Entry()
 	while (!TestDestroy())
 	{
 	}
-
+*/
 	return (void*)NULL;
 }
 

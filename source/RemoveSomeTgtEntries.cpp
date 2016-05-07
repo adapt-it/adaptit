@@ -511,7 +511,7 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 			if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
 			{
 			KbServer* pKbSvr = m_pApp->GetKbServer(kbServerType);
-
+			/*
 			// create the thread and fire it off
 			if (!pTU->IsItNotInKB()) // must not be a <Not In KB> entry
 			{
@@ -548,6 +548,13 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 					}
 				}
 			}
+			*/
+			if (!pTU->IsItNotInKB()) // must not be a <Not In KB> entry
+			{
+				int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, src, nonsrc);
+				wxUnusedVar(rv);
+			}
+
 			}
 #endif
 			// pTU points the CTargetUnit instance we want, so next we get the

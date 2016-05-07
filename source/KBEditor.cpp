@@ -1743,7 +1743,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
-
+		/*
 		// create the thread and fire it off
 		if (!pCurTgtUnit->IsItNotInKB())
 		{
@@ -1776,6 +1776,13 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 				}
 			}
 		}
+		*/
+		if (!pCurTgtUnit->IsItNotInKB())
+		{
+			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, m_curKey, pRefString->m_translation);
+			wxUnusedVar(rv);
+		}
+
 	}
 #endif
 	// Remove the corresponding CRefString instance from the knowledge base... BEW 22Jun10,

@@ -900,7 +900,7 @@ void CKB::FireOffCreateEntryThread(wxString srcStr, CRefString* pRefString)
 		(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-
+		/*
 		Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
 		// populate it's public members (it only has public ones anyway)
 		pCreateEntryThread->m_pKbSvr = pKbSvr;
@@ -929,6 +929,9 @@ void CKB::FireOffCreateEntryThread(wxString srcStr, CRefString* pRefString)
 			  //m_pApp->LogUserAction(msg);
 			}
 		}
+		*/
+		int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, srcStr, pRefString->m_translation);
+		wxUnusedVar(rv);
 	}
 }
 
@@ -942,7 +945,7 @@ void CKB::FireOffPseudoUndeleteThread(wxString srcStr, CRefString* pRefString)
 		(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-
+		/*
 		Thread_PseudoUndelete* pPseudoUndeleteThread = new Thread_PseudoUndelete;
 		// populate it's public members (it only has public ones anyway)
 		pPseudoUndeleteThread->m_pKbSvr = pKbSvr;
@@ -971,6 +974,9 @@ void CKB::FireOffPseudoUndeleteThread(wxString srcStr, CRefString* pRefString)
 			//m_pApp->LogUserAction(msg);
 			}
 		}
+		*/
+		int rv = pKbSvr->Synchronous_PseudoUndelete(pKbSvr, srcStr, pRefString->m_translation);
+		wxUnusedVar(rv);
 	}
 }
 
@@ -984,7 +990,7 @@ void CKB::FireOffPseudoDeleteThread(wxString srcStr, CRefString* pRefString)
 		(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-
+		/*
 		Thread_PseudoDelete* pPseudoDeleteThread = new Thread_PseudoDelete;
 		// populate it's public members (it only has public ones anyway)
 		pPseudoDeleteThread->m_pKbSvr = pKbSvr;
@@ -1013,6 +1019,9 @@ void CKB::FireOffPseudoDeleteThread(wxString srcStr, CRefString* pRefString)
 			//m_pApp->LogUserAction(msg);
 			}
 		}
+		*/
+		int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, srcStr, pRefString->m_translation);
+		wxUnusedVar(rv);
 	}
 }
 
@@ -4384,10 +4393,14 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				}
 			}
 			*/
-			int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
-			wxUnusedVar(rv);
-			wxLogDebug(_T("StoreText() (4389) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"), 
-						rv, key.c_str(), pRefString->m_translation.c_str());
+			// don't send to KBserver if it's a <Not In KB> entry
+			if (!bStoringNotInKB)
+			{
+				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
+				wxUnusedVar(rv);
+				wxLogDebug(_T("StoreText() (4392) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
+					rv, key.c_str(), pRefString->m_translation.c_str());
+			}
 		}
 
 #endif
@@ -4575,10 +4588,14 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					}
 				}
 				*/
-				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
-				wxUnusedVar(rv);
-				wxLogDebug(_T("StoreText() (4580) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-					rv, key.c_str(), pRefString->m_translation.c_str());
+				// don't send to KBserver if it's a <Not In KB> entry
+				if (!bStoringNotInKB)
+				{
+					int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
+					wxUnusedVar(rv);
+					wxLogDebug(_T("StoreText() (4593) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
+						rv, key.c_str(), pRefString->m_translation.c_str());
+				}
 			}
 #endif
 			// continue with the store to the local KB
@@ -4755,10 +4772,13 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								}
 							}
 							*/
-							int rv = pKbSvr->Synchronous_PseudoUndelete(pKbSvr, key, pRefString->m_translation);
-							wxUnusedVar(rv);
-							wxLogDebug(_T("StoreText() (4760) Synchronous_PseudoUndelete returned  %d for src = %s  &  tgt = %s"),
-								rv, key.c_str(), pRefString->m_translation.c_str());
+							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
+							{
+								int rv = pKbSvr->Synchronous_PseudoUndelete(pKbSvr, key, pRefString->m_translation);
+								wxUnusedVar(rv);
+								wxLogDebug(_T("StoreText() (4776) Synchronous_PseudoUndelete returned  %d for src = %s  &  tgt = %s"),
+									rv, key.c_str(), pRefString->m_translation.c_str());
+							}
 						}
 #endif
 					}
@@ -4934,10 +4954,14 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							}
 						}
 						*/
-						int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
-						wxUnusedVar(rv);
-						wxLogDebug(_T("StoreText() (4939) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-							rv, key.c_str(), pRefString->m_translation.c_str());
+						// don't send a <Not In KB> entry to KBserver
+						if (!bStoringNotInKB)
+						{
+							int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
+							wxUnusedVar(rv);
+							wxLogDebug(_T("StoreText() (4959) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
+								rv, key.c_str(), pRefString->m_translation.c_str());
+						}
 					}
 #endif
 					// continue with the store to the local KB
@@ -5216,7 +5240,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = GetMyKbServer();
-
+			/*
 			// don't send to KBserver if it's a <Not In KB> entry
 			if (!bStoringNotInKB)
 			{
@@ -5248,6 +5272,14 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						//m_pApp->LogUserAction(msg);
 					}
 				}
+			}
+			*/
+			if (!bStoringNotInKB)
+			{
+				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
+				wxUnusedVar(rv);
+				wxLogDebug(_T("StoreTextGoingBack() (5272) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
+					rv, key.c_str(), pRefString->m_translation.c_str());
 			}
 		}
 #endif
@@ -5316,7 +5348,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 			{
 				KbServer* pKbSvr = GetMyKbServer();
-
+				/*
 				// don't send to KBserver if it's a <Not In KB> entry
 				if (!bStoringNotInKB)
 				{
@@ -5348,6 +5380,14 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 							//m_pApp->LogUserAction(msg);
 						}
 					}
+				}
+				*/
+				if (!bStoringNotInKB)
+				{
+					int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
+					wxUnusedVar(rv);
+					wxLogDebug(_T("StoreTextGoingBack() (5380) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
+						rv, key.c_str(), pRefString->m_translation.c_str());
 				}
 			}
 #endif
@@ -5452,7 +5492,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 							(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 						{
 							KbServer* pKbSvr = GetMyKbServer();
-
+							/*
 							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
 							{
 								Thread_PseudoUndelete* pPseudoUndeleteThread = new Thread_PseudoUndelete;
@@ -5483,6 +5523,14 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 										//m_pApp->LogUserAction(msg);
 									}
 								}
+							}
+							*/
+							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
+							{
+								int rv = pKbSvr->Synchronous_PseudoUndelete(pKbSvr, key, pRefString->m_translation);
+								wxUnusedVar(rv);
+								wxLogDebug(_T("StoreTextGoingBack() (5522) Synchronous_PseudoUndelete returned  %d for src = %s  &  tgt = %s"),
+									rv, key.c_str(), pRefString->m_translation.c_str());
 							}
 						}
 #endif
@@ -5586,7 +5634,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 					{
 						KbServer* pKbSvr = GetMyKbServer();
-
+						/*
 						if (!bStoringNotInKB)
 						{
 							Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
@@ -5618,6 +5666,16 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 								}
 							}
 						}
+						*/
+						// don't send a <Not In KB> entry to KBserver
+						if (!bStoringNotInKB)
+						{
+							int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
+							wxUnusedVar(rv);
+							wxLogDebug(_T("StoreText() (5665) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
+								rv, key.c_str(), pRefString->m_translation.c_str());
+						}
+
 					}
 #endif
 					// continue with the store to the local KB
