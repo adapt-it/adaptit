@@ -46,7 +46,7 @@
 #include "helpers.h"
 #include "Adapt_ItView.h"
 #include "KbServer.h"
-#include "Thread_PseudoDelete.h"
+//#include "Thread_PseudoDelete.h"
 
 // event handler table
 BEGIN_EVENT_TABLE(CChooseTranslation, AIModalDialog)

@@ -63,9 +63,9 @@
 #include <wx/textfile.h>
 #include "MainFrm.h"
 #include "StatusBar.h"
-#include "Thread_CreateEntry.h"
-#include "Thread_PseudoUndelete.h"
-#include "Thread_PseudoDelete.h"
+//#include "Thread_CreateEntry.h"
+//#include "Thread_PseudoUndelete.h"
+//#include "Thread_PseudoDelete.h"
 #include "CorGuess.h"
 
 // Define type safe pointer lists
@@ -99,6 +99,8 @@ extern bool gbInhibitMakeTargetStringCall;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
+
+extern bool gbVerticalEditInProgress; // Needed. If TRUE, don't call EnsureProperCapitalization()
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -3976,6 +3978,14 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // BEW 23Apr15 additions to support / as a whitespace word-break char
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
+	// Unilaterally do the capitalization of the sentence initial word, if 
+	// the relevant conditions comply
+	if (!gbNoTargetCaseEquivalents && m_pApp->m_bSentFinalPunctsTriggerCaps &&
+		!gbVerticalEditInProgress && !m_pApp->m_bFreeTranslationMode)
+	{
+		m_pApp->EnsureProperCapitalization(m_pApp->m_nActiveSequNum, tgtPhrase);
+	}
+
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
 	wxString strNot = m_pApp->m_strNotInKB;

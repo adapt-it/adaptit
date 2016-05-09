@@ -631,7 +631,7 @@ bool gbSaveHilightingSetting = FALSE; // *** NOTE *** in version 6 & higher, thi
 /// possible mix of xml or binary kb files and document files; in fact, the same
 /// considerations about file type and book folders mode are relevant to any operation
 /// involving the enumerated set of documents - so also relevant to restoring the knowledge
-/// base from the existing documents and reporting retranslations). TRUE if the current
+/// base from the existing documents and reporting retranslatiszons). TRUE if the current
 /// project's Adaptations folder contains Bible book folders (whether or not book mode is
 /// currently on) (for XML or binary, a local Boolean will suffice).
 bool gbHasBookFolders = FALSE; //
@@ -5629,86 +5629,86 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_BUTTON(ID_BUTTON_COPY_FREETRANS_TO_CLIPBOARD, CAdapt_ItApp::OnButtonCopyFreeTransToClipboard)
 	EVT_BUTTON(ID_BUTTON_CLIPBOARD_ADAPT_CLOSE, CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg)
 
-	EVT_MENU(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnToolsDefineCC)
-	EVT_UPDATE_UI(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnUpdateLoadCcTables)
-	EVT_MENU(ID_UNLOAD_CC_TABLES, CAdapt_ItApp::OnToolsUnloadCcTables)
-	EVT_UPDATE_UI(ID_UNLOAD_CC_TABLES, CAdapt_ItApp::OnUpdateUnloadCcTables)
-	//OnUseConsistentChanges is in the View
-	//OnUpdateUseConsistentChanges is in the View
-	//OnAcceptChanges is in the View
-	//OnUpdateAcceptChanges is in the View
-	//OnToolsKbEditor is in the View
-	//OnUpdateToolsKbEditor is in the View
+EVT_MENU(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnToolsDefineCC)
+EVT_UPDATE_UI(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnUpdateLoadCcTables)
+EVT_MENU(ID_UNLOAD_CC_TABLES, CAdapt_ItApp::OnToolsUnloadCcTables)
+EVT_UPDATE_UI(ID_UNLOAD_CC_TABLES, CAdapt_ItApp::OnUpdateUnloadCcTables)
+//OnUseConsistentChanges is in the View
+//OnUpdateUseConsistentChanges is in the View
+//OnAcceptChanges is in the View
+//OnUpdateAcceptChanges is in the View
+//OnToolsKbEditor is in the View
+//OnUpdateToolsKbEditor is in the View
 
-	// Note: Automatic capitalization is no longer a separate menu item
-	// now that there is a tab in Edit / Preferences for Capitalization
-	EVT_MENU(ID_TOOLS_AUTO_CAPITALIZATION, CAdapt_ItApp::OnToolsAutoCapitalization)
-	EVT_UPDATE_UI(ID_TOOLS_AUTO_CAPITALIZATION, CAdapt_ItApp::OnUpdateToolsAutoCapitalization)
-	// BEW added 30Jul13, took the radio button choice out of Misc tab of preferences, to
-	// make it a choosable menu item for anytime the user wants to ensure his KB lookups
-	// can access as much data as possible. This isn't a setting. It's an operation that
-	// is done on the KB each time it is called. (Calling it a second time after having
-	// called it once will do nothing but waste some time if the user has not, since last
-	// calling it, had Auto Caps turned off and produced some new upper-case-keyed
-	// CTargetUnit instances (which would no be accessed in an Auto Caps lookup without
-	// this feature being available
-	EVT_MENU(ID_MENU_UPPER_AVAIL, CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable)
-	EVT_UPDATE_UI(ID_MENU_UPPER_AVAIL, CAdapt_ItApp::OnUpdateMakeAllKnowledgeBaseEntriesAvailable)
+// Note: Automatic capitalization is no longer a separate menu item
+// now that there is a tab in Edit / Preferences for Capitalization
+EVT_MENU(ID_TOOLS_AUTO_CAPITALIZATION, CAdapt_ItApp::OnToolsAutoCapitalization)
+EVT_UPDATE_UI(ID_TOOLS_AUTO_CAPITALIZATION, CAdapt_ItApp::OnUpdateToolsAutoCapitalization)
+// BEW added 30Jul13, took the radio button choice out of Misc tab of preferences, to
+// make it a choosable menu item for anytime the user wants to ensure his KB lookups
+// can access as much data as possible. This isn't a setting. It's an operation that
+// is done on the KB each time it is called. (Calling it a second time after having
+// called it once will do nothing but waste some time if the user has not, since last
+// calling it, had Auto Caps turned off and produced some new upper-case-keyed
+// CTargetUnit instances (which would no be accessed in an Auto Caps lookup without
+// this feature being available
+EVT_MENU(ID_MENU_UPPER_AVAIL, CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable)
+EVT_UPDATE_UI(ID_MENU_UPPER_AVAIL, CAdapt_ItApp::OnUpdateMakeAllKnowledgeBaseEntriesAvailable)
 
-	//OnRetransReport is in the View
-	//OnUpdateRetransReport is in the View
+//OnRetransReport is in the View
+//OnUpdateRetransReport is in the View
 
-	// Advanced Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//OnAdvancedSeeGlosses is in the View
-	//OnUpdateAdvancedEnableglossing  is in the View
-	//OnAdvancedGlossingUsesNavFont  is in the View
-	//OnUpdateAdvancedGlossingUsesNavFont  is in the View
-	EVT_MENU(ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses)
-	EVT_UPDATE_UI(ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses)
-	EVT_MENU(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnAdvancedBookMode)
-	EVT_UPDATE_UI(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnUpdateAdvancedBookMode)
-	//OnAdvancedDelay  is in the View
-	//OnUpdateAdvancedDelay  is in the View
+// Advanced Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//OnAdvancedSeeGlosses is in the View
+//OnUpdateAdvancedEnableglossing  is in the View
+//OnAdvancedGlossingUsesNavFont  is in the View
+//OnUpdateAdvancedGlossingUsesNavFont  is in the View
+EVT_MENU(ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses)
+EVT_UPDATE_UI(ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses)
+EVT_MENU(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnAdvancedBookMode)
+EVT_UPDATE_UI(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnUpdateAdvancedBookMode)
+//OnAdvancedDelay  is in the View
+//OnUpdateAdvancedDelay  is in the View
 
-	// Help menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//OnAppAbout is in CMainFrame in wxWidgets version
+// Help menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//OnAppAbout is in CMainFrame in wxWidgets version
 
-	// Administrator menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	EVT_MENU(ID_CUSTOM_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnCustomWorkFolderLocation)
-	EVT_UPDATE_UI(ID_CUSTOM_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnUpdateCustomWorkFolderLocation)
-	EVT_MENU(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnSetPassword)
-	EVT_UPDATE_UI(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnUpdateSetPassword)
-	EVT_MENU(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation)
-	EVT_UPDATE_UI(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation)
-	EVT_MENU(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnLockCustomLocation)
-	EVT_UPDATE_UI(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateLockCustomLocation)
-	EVT_MENU(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUnlockCustomLocation)
-	EVT_UPDATE_UI(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateUnlockCustomLocation)
-	EVT_MENU(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles)
-	EVT_UPDATE_UI(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles)
-	EVT_MENU(ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, CAdapt_ItApp::OnAssignLocationsForInputsAndOutputs)
-	EVT_UPDATE_UI(ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, CAdapt_ItApp::OnUpdateAssignLocationsForInputsAndOutputs)
-	EVT_MENU(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnSetupEditorCollaboration)
-	EVT_UPDATE_UI(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnUpdateSetupEditorCollaboration)
-	//EVT_MENU(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnPasswordProtectCollaborationSwitching)
-	//EVT_UPDATE_UI(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnUpdatePasswordProtectCollaborationSwitching)
-	EVT_MENU(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnTempRestoreUserProfiles) // whm added 14Feb12
-	EVT_UPDATE_UI(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnUpdateTempRestoreUserProfiles) // whm added 14Feb12
-	EVT_MENU(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnEditUserMenuSettingsProfiles)
-	EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
-	EVT_MENU(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnHelpForAdministrators)
-	EVT_UPDATE_UI(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnUpdateHelpForAdministrators)
+// Administrator menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+EVT_MENU(ID_CUSTOM_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnCustomWorkFolderLocation)
+EVT_UPDATE_UI(ID_CUSTOM_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnUpdateCustomWorkFolderLocation)
+EVT_MENU(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnSetPassword)
+EVT_UPDATE_UI(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnUpdateSetPassword)
+EVT_MENU(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation)
+EVT_UPDATE_UI(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation)
+EVT_MENU(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnLockCustomLocation)
+EVT_UPDATE_UI(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateLockCustomLocation)
+EVT_MENU(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUnlockCustomLocation)
+EVT_UPDATE_UI(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateUnlockCustomLocation)
+EVT_MENU(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles)
+EVT_UPDATE_UI(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles)
+EVT_MENU(ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, CAdapt_ItApp::OnAssignLocationsForInputsAndOutputs)
+EVT_UPDATE_UI(ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, CAdapt_ItApp::OnUpdateAssignLocationsForInputsAndOutputs)
+EVT_MENU(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnSetupEditorCollaboration)
+EVT_UPDATE_UI(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnUpdateSetupEditorCollaboration)
+//EVT_MENU(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnPasswordProtectCollaborationSwitching)
+//EVT_UPDATE_UI(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnUpdatePasswordProtectCollaborationSwitching)
+EVT_MENU(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnTempRestoreUserProfiles) // whm added 14Feb12
+EVT_UPDATE_UI(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnUpdateTempRestoreUserProfiles) // whm added 14Feb12
+EVT_MENU(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnEditUserMenuSettingsProfiles)
+EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
+EVT_MENU(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnHelpForAdministrators)
+EVT_UPDATE_UI(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnUpdateHelpForAdministrators)
 #if defined(_KBSERVER)
-	EVT_MENU(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnKBSharingManagerTabbedDlg) // always potentially needed
-	EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
-	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnServiceDiscoveryTimer)
+EVT_MENU(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnKBSharingManagerTabbedDlg) // always potentially needed
+EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
+EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnServiceDiscoveryTimer)
 
 #endif
-	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
+EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
 
-	//EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
-	//EVT_WIZARD_FINISHED(-1,CAdapt_ItApp::OnWizardFinish) // not needed, can handle directly
-	// by checking the return bool value of RunWizard.
+//EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
+//EVT_WIZARD_FINISHED(-1,CAdapt_ItApp::OnWizardFinish) // not needed, can handle directly
+// by checking the return bool value of RunWizard.
 END_EVENT_TABLE()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -5970,6 +5970,8 @@ wxString szFreeTransLanguageCode = _T("FreeTranslationLanguageCode");
 wxString szIsKBServerProject = _T("IsKBServerProject");
 
 wxString szNumberOfDiscoveryRuns = _T("NumberOfDiscoveryRuns");
+
+wxString szSentFinalPunctsTriggerCaps = _T("SentenceFinalPunctuationTriggeringCapitalization"); // BEW added 9May16
 
 /// The label that identifies the whether or not the project is associated with sharing a
 /// glosses language KB. This value is written in the "ProjectSettings" part of the project
@@ -15607,6 +15609,8 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
 	m_bMergerIsCurrent = FALSE; // BEW 14Apr16
+	m_bSentFinalPunctsTriggerCaps = FALSE; // if m_strSentFinalPunctsTriggerCaps has content, 
+										   // will be TRUE (see project config file)
 
 #if defined(_KBSERVER)
 	// Next two booleans are set to FALSE unilaterally (as initialization)only here. They
@@ -31732,25 +31736,25 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 #endif
 		if (name == szAdaptitPath)
 		{
-            // BEW changed 12Oct09, we come here when reading either the
-            // AI-BasicConfiguration.aic file or the AI-AdminBasicConfiguration.aic file.
-            // Regardless of whichever is the case, the m_workFolderPath **ALWAYS** points
-            // to the folder which is the default work folder location as defined for
-            // legacy versions of Adapt It; that is, it will have the name "Adapt It
-            // Unicode Work" or "Adapt It Work" (the latter for the ANSI version only), and
-            // be located at the default data folder for the underlying OS -- eg. Documents
-            // folder for Windows Vista, /username/home for Linux, etc. The basic config
-            // file stores both the m_workFolderPath and m_customWorkFolderPath (the latter
-            // will be empty string if a persistent custom folder was not earlier set up),
-            // but when reading values from the basic config file, we **NEVER** read in and
-            // use the stored line which stores the m_customWorkFolderPath value, because
-            // at the time we need to do so, we can't be sure the location of the custom
-            // work folder which stores the relevant path is known. Instead, we get that
-            // path from the path stored within a file called CustomWorkFolderLocation
-            // which is always stored in the legacy default work folder location (even
-            // though typically when we do so, nothing else is stored in that default work
-            // folder but that particular file containing the path to the custom work
-            // folder)
+			// BEW changed 12Oct09, we come here when reading either the
+			// AI-BasicConfiguration.aic file or the AI-AdminBasicConfiguration.aic file.
+			// Regardless of whichever is the case, the m_workFolderPath **ALWAYS** points
+			// to the folder which is the default work folder location as defined for
+			// legacy versions of Adapt It; that is, it will have the name "Adapt It
+			// Unicode Work" or "Adapt It Work" (the latter for the ANSI version only), and
+			// be located at the default data folder for the underlying OS -- eg. Documents
+			// folder for Windows Vista, /username/home for Linux, etc. The basic config
+			// file stores both the m_workFolderPath and m_customWorkFolderPath (the latter
+			// will be empty string if a persistent custom folder was not earlier set up),
+			// but when reading values from the basic config file, we **NEVER** read in and
+			// use the stored line which stores the m_customWorkFolderPath value, because
+			// at the time we need to do so, we can't be sure the location of the custom
+			// work folder which stores the relevant path is known. Instead, we get that
+			// path from the path stored within a file called CustomWorkFolderLocation
+			// which is always stored in the legacy default work folder location (even
+			// though typically when we do so, nothing else is stored in that default work
+			// folder but that particular file containing the path to the custom work
+			// folder)
 			m_workFolderPath = strValue;
 			if (m_workFolderPath.IsEmpty())
 			{
@@ -34235,6 +34239,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szIsGlossingKBServerProject << tab << (int)m_bIsGlossingKBServerProject;
 	pf->AddLine(data);
 
+	data.Empty();
+	data << szSentFinalPunctsTriggerCaps << tab << m_strSentFinalPunctsTriggerCaps;
+	pf->AddLine(data);
+
 	// whm 30Oct13 moved the KbServerURL value handling to the basic config file, as
 	// it makes more sense to be there
 	//data.Empty();
@@ -34859,6 +34867,18 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			{
 				m_bIsGlossingKBServerProject = FALSE;
 				m_bIsGlossingKBServerProject_FromConfigFile = FALSE; // this variable retains the value set
+			}
+		}
+		else if (name == szSentFinalPunctsTriggerCaps)
+		{
+			m_strSentFinalPunctsTriggerCaps = strValue;
+			if (m_strSentFinalPunctsTriggerCaps.IsEmpty())
+			{
+				m_bSentFinalPunctsTriggerCaps = FALSE;
+			}
+			else
+			{
+				m_bSentFinalPunctsTriggerCaps = TRUE;
 			}
 		}
 		// whm 30Oct13 moved the KbServerURL value handling to the basic config file
@@ -43184,10 +43204,17 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 		nStartIndex = nCurrSel + 1; // start searching with next item below
 									// current selection
 		// But first do some sanity checks.
-		if (nCurrSel == -1 || nStartIndex >= nTotLBItems)
+		//if (nCurrSel == -1 || nStartIndex >= nTotLBItems)
+		if (nCurrSel == -1)
 		{
 			// no valid selection is current so cannot search
 			return -1;
+		}
+		if (nCurrSel >= nTotLBItems)
+		{
+			// At or past the list end, so cycle back
+			nStartIndex = 0;
+			nEndIndex = nCurrSel; // the default ending point is index of last item in list
 		}
 	}
 	// Search from starting index through end of list
@@ -49828,4 +49855,106 @@ void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 #endif
 }
 
-#endif
+#endif // _KBSERVER
+
+// EnsureProperCapitalization() checks the "following punctutation" of the CSourcePhrase
+// instance at nCurrSequNum - 1, providing the active location is not at sn = 0.
+// If the nCurrSequNum CSourcePhrase instance has no initial capital letter, and the
+// previous one has punctuation that should be followed by a capital, then the
+// capitalization is done -  whether or not auto-caps is currently on or off, provided
+// the app flag, m_bSentFinalPunctsTriggerCaps boolean is TRUE - and it is TRUE only
+// when the project config file has one or more punctuation characters (at least they
+// are assumed to be punctuation characters) within the field with label:
+// SentenceFinalPunctuationTriggeringCapitalization
+// Call this function, if felicity conditions comply, from the start of StoreText() 
+// (but NOT from StoreTextGoingBack())
+void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtText)
+{
+	if (nCurrSequNum <= 0)
+	{
+		// Either no valid active location currently, or the phrasebox is at the 
+		// document's start - in either case, there is no "previous CSourcePhrase"
+		// to assess for what its ending punctuation may be
+		return;
+	}
+	wxASSERT(!m_strSentFinalPunctsTriggerCaps.IsEmpty());
+	const wxString endPunctsForTesting = m_strSentFinalPunctsTriggerCaps;
+	CSourcePhrase* pPrevSrcPhrase = NULL;
+	CPile* pPile = m_pLayout->GetPile(nCurrSequNum - 1);
+	if (pPile != NULL)
+	{
+		// There is a previous pile, so there will be a previous CSourcePhrase it points at
+		pPrevSrcPhrase = pPile->GetSrcPhrase();
+		wxASSERT(pPrevSrcPhrase != NULL);
+		if (pPrevSrcPhrase != NULL)
+		{
+			wxString sentenceFinalPuncts = pPrevSrcPhrase->m_follPunct;
+			sentenceFinalPuncts += pPrevSrcPhrase->GetFollowingOuterPunct();
+			if (sentenceFinalPuncts.IsEmpty())
+			{
+				return; // There is no punctuation at the end of the CSourcePhrase's target text &
+						// so there is nothing to trigger any capitalization on the following one
+			}
+			// There's some sentence final punctuation, test for any triggers in it. We only need one
+			bool bCapitalizationTriggerExists = FALSE;
+			int count = endPunctsForTesting.Length();
+			int offset = wxNOT_FOUND;
+			int i;
+			for (i = 0; i < count; i++)
+			{
+				wxChar aTestPunct = endPunctsForTesting.GetChar(i);
+				offset = sentenceFinalPuncts.Find(aTestPunct);
+				if (offset >= 0)
+				{
+					// We've found a triggering one within the punctuation at the end of the last sentence
+					bCapitalizationTriggerExists = TRUE;
+					break;
+				}
+			}
+			if (!bCapitalizationTriggerExists)
+			{
+				// Found nothing that indicates capitalization is needed, so return
+				return;
+			}
+			else
+			{
+				// We found a trigger, which potentially could indicate we need to capitalize
+				// the CSourcePhrase at the nCurrSequNum location passed in. Now we need to
+				// determine if that location actually has an upper-case initial word or not.
+				// If it doesn't have one, we should do the capitalizing. If it does, just
+				// return without making any change. We can't test what the source text may
+				// have as its first character, because the source text may well be an exotic
+				// language which does't have a case distinction
+				bool bNoError = GetDocument()->SetCaseParameters(tgtText, FALSE); // FALSE is bIsSrcText
+				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+				{
+					// change it to upper case; tgtText is passed in by reference, so the
+					// caller's value is changed too
+					tgtText.SetChar(0, gcharNonSrcUC);
+
+					// That's the KB storage part of it done, now update the CSourcePhrase
+					// instance that is at CurrSequNum
+					CPile* pPile = m_pLayout->GetPile(nCurrSequNum);
+					if (pPile != NULL)
+					{
+						CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+						if (pSrcPhrase != NULL)
+						{
+							pSrcPhrase->m_adaption = tgtText;
+							pSrcPhrase->m_targetStr = tgtText; // no puncts on it yet, but case is now upper case
+
+							// Now put the punctuation back, on the now-upper-case tgt string
+							GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtText);
+						}
+						return;
+					}
+				}
+				else
+				{
+					// It's already upper case, so just return
+					return;
+				}
+			}
+		}
+	}
+}

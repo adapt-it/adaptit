@@ -72,8 +72,8 @@
 #include "helpers.h"
 #include "KBEditSearch.h"
 #include "Thread_KbEditorUpdateButton.h"
-#include "Thread_PseudoDelete.h"
-#include "Thread_CreateEntry.h"
+//#include "Thread_PseudoDelete.h"
+//#include "Thread_CreateEntry.h"
 #include "RemoveSomeTgtEntries.h"
 
 // for support of auto-capitalization
@@ -265,9 +265,10 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	// ahead for the next occurrence of the substring, and to cycle from top as well
 	//m_pTypeSourceBox->ChangeValue(str);
 	//int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, str, caseSensitive, subString);
+	int nNewSel = nSel;
 	// BEW 5May16 changed to use this variant, as it will search on from the current match position
 	// and cycle to list top once end of list is reached
-	int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, str, caseSensitive, subString, fromCurrentSelPosCyclingBack);
+	//int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, str, caseSensitive, subString, fromCurrentSelPosCyclingBack);
 	wxASSERT(nNewSel != -1);
 	pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
 	wxASSERT(pCurTgtUnit != NULL);
@@ -477,6 +478,11 @@ void CKBEditor::OnDblclkListExistingTranslations(wxCommandEvent& event)
 /// Called from: The wxCommandEvent mechanism. If the edit box is empty the handler returns
 /// immediately. If the string typed into the edit box is found then that found item is
 /// selected in the list and this handler calls OnSelchangeListSrcKeys().
+/// BEW 9May16, if the selected item was the last in the list, OnSelchangeListSrcKeys(),
+/// when it internally added 1 to nSel value of current selection, that made the selection
+/// index go out-og-bounds, and so no search was done. So I have to here detect this end
+/// of list position and manually move the selection to the top of the list, so the search
+/// can kick off from there
 /////////////////////////////////////////////////////////////////////////////////////////
 void CKBEditor::OnButtonSourceFindGo(wxCommandEvent& event)
 {
@@ -499,8 +505,17 @@ void CKBEditor::OnButtonSourceFindGo(wxCommandEvent& event)
     // index of a substring at any position in the word or phrase. A case sensitive search
 	// gives the user the best manual options for finding what he wants
 	// BEW 4May16 changed it to use caseSensitive search
-	int nSel = gpApp->FindListBoxItem(m_pListBoxKeys, m_srcKeyStr, caseSensitive, subString, fromCurrentSelPosCyclingBack);
-
+	int nSel = wxNOT_FOUND;
+	int myCurrentSel = m_pListBoxKeys->GetSelection();
+	if (myCurrentSel != wxNOT_FOUND)
+	{
+		if (myCurrentSel >= m_pListBoxKeys->GetCount() - 1)
+		{
+			// The selection is at the last item in the list, so put it at list start
+			myCurrentSel = 0;
+		}
+		nSel = gpApp->FindListBoxItem(m_pListBoxKeys, m_srcKeyStr, caseSensitive, subString, fromCurrentSelPosCyclingBack);
+	}
 	if (nSel == -1) // LB_ERR
 	{
 		::wxBell();
@@ -1046,7 +1061,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
-
+			/*
 			// create the thread and fire it off
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
@@ -1078,6 +1093,14 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 					//m_pApp->LogUserAction(msg);
 					}
 				}
+			}
+			*/
+			if (!pCurTgtUnit->IsItNotInKB())
+			{
+				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, m_srcKeyStr, newText);
+				wxUnusedVar(rv);
+				wxLogDebug(_T("KBEditor.cpp (1087) OnAddNoAdaptation(): Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
+					rv, m_srcKeyStr.c_str(), newText.c_str());
 			}
 		}
 #endif
@@ -1221,7 +1244,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
-
+			/*
 			// create the thread and fire it off
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
@@ -1253,6 +1276,14 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 					//m_pApp->LogUserAction(msg);
 					}
 				}
+			}
+			*/
+			if (!pCurTgtUnit->IsItNotInKB())
+			{
+				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, m_srcKeyStr, newText);
+				wxUnusedVar(rv);
+				wxLogDebug(_T("KBEditor.cpp (1087) OnButtonAdd(): Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
+					rv, m_srcKeyStr.c_str(), newText.c_str());
 			}
 		}
 #endif

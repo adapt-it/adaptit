@@ -3160,7 +3160,14 @@ public:
 
 #endif // for _KBSERVER
 
-	bool	m_bMergerIsCurrent; // BEW created 14Apr16 due to bug report on 13thApril by Stefan Kasarik
+	wxString m_strSentFinalPunctsTriggerCaps; // list of sentence final punctuation characters
+				// that cause capitalization at the start of next sentence (no GUI, just a project
+				// configuration line - having content is the flag for the feature being activated
+	void	 EnsureProperCapitalization(int nCurrSequNum, wxString& tgtText); // call it, if conditions 
+																// comply, from start of StoreText()
+	bool	 m_bSentFinalPunctsTriggerCaps; // TRUE if above string is non-empty, FALSE otherwise
+
+	bool	 m_bMergerIsCurrent; // BEW created 14Apr16 due to bug report on 13thApril by Stefan Kasarik
 		// His problems was this. If a four word source text:  cao cao building end
 		// was adapted, (cao is Vietnamese for 'tall'), as follows: first instance adapt
 		// with any meaning (I chose 'tall'), then press Enter key. Next cao is auto-adapted

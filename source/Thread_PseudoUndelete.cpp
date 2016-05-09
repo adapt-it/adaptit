@@ -69,6 +69,7 @@ void Thread_PseudoUndelete::OnExit()
 
 void* Thread_PseudoUndelete::Entry()
 {
+	/*
 	long entryID = 0; // initialize (it might not be used)
 	wxASSERT(!m_source.IsEmpty()); // the key must never be an empty string
 	int rv;
@@ -105,7 +106,7 @@ void* Thread_PseudoUndelete::Entry()
 	}
 
 	s_BulkDeleteMutex.Unlock();
-
+*/
 	return (void*)NULL;
 }
 

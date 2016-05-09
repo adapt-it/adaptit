@@ -59,7 +59,7 @@
 #include "BString.h"
 #include "KbServer.h"
 #include <wx/imaglist.h> // for wxImageList
-#include "Thread_PseudoDelete.h"
+//#include "Thread_PseudoDelete.h"
 #include "RemoveSomeTgtEntries.h"
 
 extern bool gbIsGlossing;

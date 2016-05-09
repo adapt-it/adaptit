@@ -67,6 +67,7 @@ void Thread_CreateEntry::OnExit()
 
 void* Thread_CreateEntry::Entry()
 {
+	/*
 	wxLogDebug(_T("Thread_CreateEntry() Entry() (73) just entered:  for source:  %s   &   target:  %s"), m_source.c_str(), m_translation.c_str());
 
 
@@ -108,7 +109,7 @@ void* Thread_CreateEntry::Entry()
 	}
 
 	s_BulkDeleteMutex.Unlock();
-
+*/
 	return (void*)NULL;
 }
 
