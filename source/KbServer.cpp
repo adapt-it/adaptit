@@ -50,6 +50,8 @@ wxMutex s_BulkDeleteMutex; // Because PseudoDeleteOrUndeleteEntry() is used some
 			// sequentiality on the use of the storage infrastructure; likewise for
 			// LookupEntryFields()
 
+wxCriticalSection g_jsonCritSect; 
+
 #include <wx/listimpl.cpp>
 
 
@@ -2493,6 +2495,12 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	return 0;
 }
 
+// public accessor
+DownloadsQueue* KbServer::GetQueue()
+{
+	return &m_queue;
+}
+
 // Return the CURLcode value, downloaded JSON data is extracted and copied, entry by
 // entry, into a series of KbServerEntry structs, each created on the heap, and stored at
 // the end of the m_queue member (derived from wxList<T>). This ChangedSince_Queued() is
@@ -2515,6 +2523,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 // storage. (Of course, the next successful ChangedSince_Queued() call will update what is
 // stored in persistent storage; and the timeStamp value used for that call is whatever is
 // currently within the variable m_kbServerLastSync).
+// BEW 10May16 - using a queue is too slow for normal changedsince downloads, but when we
+// want to delete a whole KB from the remote KBserver, the queue is useful, so retain this
 int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 {
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
@@ -2699,15 +2709,19 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
                 pEntryStruct = new KbServerEntry;
 				pEntryStruct->id = jsonval[index][_T("id")].AsLong();
 				pEntryStruct->source = jsonval[index][_T("source")].AsString();
+					(jsonval[index][_T("source")].AsString()).Clear(); // BEW 10May16, don't leak it
 				// BEW 11Jun15 restore <noform> to an empty string
 				s = jsonval[index][_T("target")].AsString();
+					(jsonval[index][_T("target")].AsString()).Clear(); // BEW 10May16, don't leak it
 				if (s == noform)
 				{
 					s.Empty();
 				}
 				pEntryStruct->translation = s;
+					s.Clear(); // BEW 10May16, don't leak it
 				pEntryStruct->deleted = jsonval[index][_T("deleted")].AsInt();
 				pEntryStruct->username = jsonval[index][_T("user")].AsString();
+					(jsonval[index][_T("user")].AsString()).Clear(); // BEW 10May16, don't leak it
 
                 // Append to the end of the queue (if the main thread is removing the first
                 // struct in the queue currently, this will block until the s_QueueMutex is
@@ -2780,6 +2794,321 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 
     str_CURLbuffer.clear(); // always clear it before returning
     str_CURLheaders.clear(); // BEW added 9Feb13
+	return (int)CURLE_OK;
+}
+
+
+// Return the CURLcode value, downloaded JSON data is parsed, and merged entry by entry
+// directly into the local KB, using a function: StoreOneEntryFromKBserver() run from
+// within the JSON parsing loop. (We do this for speed. An earlier version read the 
+// data into structs and stored in a queue (wxList), and OnIdle() then consumed the 
+// queue, doing the mergers to the local KB. This was abysmally slow. And interrupted by
+// next call of ChangedSince_XXXX() if the timer interval was less than 5 mins.) So,
+// we will go for speed in this version of the changedsince protocol support.
+// If the data download succeeds, the 'last sync' timestamp is extracted from the headers
+// information and stored in the private member variable: m_kbServerLastTimestampReceived
+// If there is a subsequent error - such as the JSON data extraction failing, then -1 is
+// returned and the timestamp value in m_kbServerLastTimestampReceived should be
+// disregarded -- because we only transfer the timestamp from there to the private member
+// variable: m_kbServerLastSync, if there was no error (ie. returned code was 0). If 0 is
+// returned then in the caller we should merge the data into the local KB, and use the
+// public member function UpdateLastSyncTimestamp() to move the timestamp from
+// m_kbServerLastTimestampReceived into m_kbServerLastSync; and then use the public member
+// function ExportLastSyncTimestamp() to export that m_kbServerLastSync value to persistent
+// storage. (Of course, the next successful ChangedSince_Queued() call will update what is
+// stored in persistent storage; and the timeStamp value used for that call is whatever is
+// currently within the variable m_kbServerLastSync). The timestamp is not stored in a
+// configuration file at present, but in a small file in the project folder.
+int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
+{
+	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
+	str_CURLheaders.clear(); // BEW added 9Feb13
+
+	CURL *curl;
+	CURLcode result = CURLE_OK; // initialize to a harmless value
+	wxString aUrl; // convert to utf8 when constructed
+	wxString aPwd; // ditto
+
+	CBString charUrl;
+	CBString charUserpwd;
+
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxString kbType;
+	int type = GetKBServerType();
+	wxItoa(type, kbType);
+	wxString langcode;
+	if (type == 1)
+	{
+		langcode = GetTargetLanguageCode();
+	}
+	else
+	{
+		langcode = GetGlossLanguageCode();
+	}
+	wxString container = _T("entry");
+	wxString changedSince = _T("/?changedsince=");
+
+	aUrl = GetKBServerURL() + slash + container + slash + GetSourceLanguageCode() + slash +
+		langcode + slash + kbType + changedSince + timeStamp;
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+	wxLogDebug(_T("ChangedSince_Timed(): wxString aUrl = %s"), aUrl.c_str());
+#endif
+	charUrl = ToUtf8(aUrl);
+	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
+	charUserpwd = ToUtf8(aPwd);
+
+	curl = curl_easy_init();
+
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+
+		// We want the download's timestamp, so we must ask for the headers to be added
+		// and sent to a callback function dedicated for collecting the headers
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curl_headers_callback);
+
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG) // && defined (__WXGTK__)
+		// BEW added 9Feb13, check what, if anything, got added to str_CURLheaders_callback
+		CBString s2(str_CURLheaders.c_str());
+		wxString showit2 = ToUtf16(s2);
+		wxLogDebug(_T("ChangedSince_Timed: Returned headers: %s"), showit2.c_str());
+
+		CBString s(str_CURLbuffer.c_str());
+		wxString showit = ToUtf16(s);
+		wxLogDebug(_T("ChangedSince_Timed: Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+#endif
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("ChangedSince_Timed() result code: %d Error: %s"),
+				result, error.c_str());
+			wxMessageBox(msg, _T("ChangedSince_Timed: Error when downloading entries"), wxICON_EXCLAMATION | wxOK);
+
+			curl_easy_cleanup(curl);
+
+			str_CURLbuffer.clear(); // always clear it before returning
+			str_CURLheaders.clear(); // BEW added 9Feb13
+			return (int)result;
+		}
+	}
+	// no CURL error, so continue...
+	curl_easy_cleanup(curl);
+
+	// Extract from the headers callback, the HTTP code, and the X-MySQL-Date value,
+	// and the HTTP status information
+	ExtractTimestamp(str_CURLheaders, m_kbServerLastTimestampReceived);
+	ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText);
+
+#if defined (_DEBUG) // && defined (__WXGTK__)
+	// show what ExtractHttpStatusEtc() returned
+	CBString s2(str_CURLheaders.c_str());
+	wxString showit2 = ToUtf16(s2);
+	wxLogDebug(_T("ChangedSince_Timed: From headers: Timestamp = %s , HTTP code = %d , HTTP msg = %s"),
+		m_kbServerLastTimestampReceived.c_str(), m_httpStatusCode,
+		m_httpStatusText.c_str());
+#endif
+
+	//  Make the json data accessible (result is CURLE_OK if control gets to here)
+	//
+	//  BEW 29Jan13, beware, if no new entries have been added since last time, then
+	//  the payload will not have a json string, and will have an 'error' string
+	//  "No matching entry found". This isn't actually an error, and ChangedSince(), in
+	//  this circumstance should just benignly exit without doing or saying anything, and
+	//  return 0 (CURLE_OK)
+	if (!str_CURLbuffer.empty())
+	{
+		wxCriticalSectionLocker locker(g_jsonCritSect); // protects the JSON work done in this block
+
+		// json data beginswith "[{", so test for the payload starting this way, if it
+		// doesn't, then there is only an error string to grab -- quite possibly
+		// "No matching entry found", in which case, don't do any of the json stuff, and
+		// the value in m_kbServerLastTimestampReceived will be correct and can be used
+		// to update the persistent storage file for the time of the lastsync
+		std::string srch = "[{";
+		size_t offset = str_CURLbuffer.find(srch);
+
+		// not npos means JSON data starts somewhere; a JSON parse ignores all before [ or {
+		if (offset != string::npos)
+		{
+			CBString jsonArray(str_CURLbuffer.c_str()); // JSON expects byte data, convert after Parse()
+
+			wxJSONValue jsonval;
+			wxJSONReader reader;
+			int numErrors = reader.Parse(ToUtf16(jsonArray), &jsonval);
+			if (numErrors > 0)
+			{
+				// Write to a file, in the _LOGS_EMAIL_REPORTS folder, whatever was sent,
+				// the developers would love to have this info. The latest copy only is
+				// retained, the "w" mode clears the earlier file if there is one, and
+				// writes new content to it
+				wxString aFilename = _T("ChangedSince_Timed_bad_data_sent_to ") + m_pApp->m_curProjectName + _T(".txt");
+				wxString workOrCustomFolderPath;
+				if (::wxDirExists(m_pApp->m_logsEmailReportsFolderPath))
+				{
+					wxASSERT(!m_pApp->m_curProjectName.IsEmpty());
+					if (!m_pApp->m_bUseCustomWorkFolderPath)
+					{
+						workOrCustomFolderPath = m_pApp->m_workFolderPath;
+					}
+					else
+					{
+						workOrCustomFolderPath = m_pApp->m_customWorkFolderPath;
+					}
+					wxString path2BadData = workOrCustomFolderPath + m_pApp->PathSeparator +
+						m_pApp->m_logsEmailReportsFolderName + m_pApp->PathSeparator + aFilename;
+					wxString mode = _T('w');
+					size_t mySize = str_CURLbuffer.size();
+					wxFFile ff(path2BadData.GetData(), mode.GetData());
+					wxASSERT(ff.IsOpened());
+					ff.Write(str_CURLbuffer.c_str(), mySize);
+					ff.Close();
+				}
+				// a non-localizable message will do, it's unlikely to ever be seen
+				// once correct utf-8 consistently comes from the remote server
+				wxString msg;
+				msg = msg.Format(_T("ChangedSince_Timed(): json reader.Parse() failed. Server sent bad data.\nThe bad data is stored in the file with name: \n%s \nLocated at the folder: %s \nSend this file to the developers please."),
+					aFilename.c_str(), m_pApp->m_logsEmailReportsFolderPath.c_str());
+				wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
+
+				str_CURLbuffer.clear(); // always clear it before returning
+				str_CURLheaders.clear(); // always clear it before returning
+				return -1;
+			}
+			unsigned int listSize = jsonval.Size();
+#if defined (_DEBUG)
+			// get feedback about now many entries we got, in debug mode
+			if (listSize > 0)
+			{
+				wxLogDebug(_T("ChangedSince_Timed() returned %d entries, for data added to KBserver since %s"),
+					listSize, timeStamp.c_str());
+			}
+#endif
+			CKB* pKB = NULL;
+			if (gbIsGlossing)
+			{
+				pKB = m_pApp->m_pGlossingKB; // glossing
+			}
+			else
+			{
+				pKB = m_pApp->m_pKB; // adapting
+			}
+
+			unsigned int index;
+			wxString noform = _T("<noform>");
+			wxString s;
+			KbServerEntry* pEntryStruct = NULL;
+			for (index = 0; index < listSize; index++)
+			{
+				// We can extract id, source phrase, target phrase, deleted flag value,
+				// username, and timestamp string; but for supporting the sync of a local
+				// KB we need only to extract source phrase, target phrase, the value of
+				// the deleted flag, and the username be included in the KbServerEntry
+				// structs
+				pEntryStruct = new KbServerEntry;
+				pEntryStruct->id = jsonval[index][_T("id")].AsLong();
+				pEntryStruct->source = jsonval[index][_T("source")].AsString();
+				(jsonval[index][_T("source")].AsString()).Clear(); // BEW 10May16, don't leak it
+																   // BEW 11Jun15 restore <noform> to an empty string
+				s = jsonval[index][_T("target")].AsString();
+				(jsonval[index][_T("target")].AsString()).Clear(); // BEW 10May16, don't leak it
+				if (s == noform)
+				{
+					s.Empty();
+				}
+				pEntryStruct->translation = s;
+				s.Clear(); // BEW 10May16, don't leak it
+				pEntryStruct->deleted = jsonval[index][_T("deleted")].AsInt();
+				pEntryStruct->username = jsonval[index][_T("user")].AsString();
+				(jsonval[index][_T("user")].AsString()).Clear(); // BEW 10May16, don't leak it
+
+				KBAccessMutex.Lock();
+
+				bool bDeletedFlag = pEntryStruct->deleted == 1 ? TRUE : FALSE;
+
+				pKB->StoreOneEntryFromKbServer(pEntryStruct->source, pEntryStruct->translation,
+					pEntryStruct->username, bDeletedFlag);
+
+				KBAccessMutex.Unlock();
+
+#if defined (_DEBUG)
+				// list what fields we extracted for each line of the entry table matched
+				wxLogDebug(_T("ChangedSince_Timed: Downloaded, and storing:  %s  ,  %s  ,  deleted = %d  ,  username = %s"),
+					pEntryStruct->source.c_str(), pEntryStruct->translation.c_str(),
+					pEntryStruct->deleted, pEntryStruct->username.c_str());
+#endif
+				pEntryStruct->source.Clear();
+				pEntryStruct->translation.Clear();
+				pEntryStruct->username.Clear();
+				delete pEntryStruct;
+			}
+
+			str_CURLbuffer.clear(); // always clear it before returning
+			str_CURLheaders.clear(); // BEW added 9Feb13
+
+									 // since all went successfully, update the lastsync timestamp, if requested
+									 // (when using ChangedSince_Queued() to download entries for deleting an entire
+									 // KB, we don't want any timestamp update done)
+			if (bDoTimestampUpdate)
+			{
+				UpdateLastSyncTimestamp();
+			}
+#if defined(_DEBUG)
+			//wxRemoveFile(tempjsonfile); // <<-- uncomment out, if we don't want to keep the latest one
+#endif
+		} // end of TRUE block for test: if (offset == 0)
+		else
+		{
+			// buffer contains an error message, such as "No matching entry found",
+			// but we will ignore it, the HTTP status codes are enough
+			if (m_httpStatusCode == 404)
+			{
+				// A "Not Found" error. No new entries were sent, because there were none
+				// more recent than the last saved timestamp value, so do nothing here
+				// except update the lastsync timestamp, there's no point in keeping the
+				// earlier value unchanged
+				if (bDoTimestampUpdate)
+				{
+					UpdateLastSyncTimestamp();
+				}
+			}
+			else
+			{
+				// Some other "error", so don't update the lastsync timestamp. The most
+				// likely thing that happened is that there have been no new entries to
+				// the entry table since the last 'changed since' sync - in which case no
+				// JSON is produced. No JSON means that the test above for "[{" will not
+				// find those two metacharacters for a JSON array - which means that the
+				// else branch sends control to the else block above but with
+				// m_httpStatusCode value of 200 (ie. success), so we don't actually have
+				// an error situation at all; and testing for a possible http error fails
+				// to find any error, and so the present else block is entered. So we are
+				// here almost certainly because there was no data to send in the
+				// transmission. This should be treated as a successful transmission, and
+				// not show a 'failure' message - even if just in the debug build. It's
+				// okay as well to not update the lastsync timestamp in this circumstance
+#if defined (_DEBUG)
+				wxString msg;
+				msg = msg.Format(_T("ChangedSince_Timed():  HTTP status: %d   No JSON data was returned. (This is an advisory message shown only in the Debug build.)"),
+					m_httpStatusCode);
+				wxMessageBox(msg, _T("No data returned"), wxICON_EXCLAMATION | wxOK);
+#endif
+				str_CURLbuffer.clear();
+				str_CURLheaders.clear();
+				return (int)CURLE_OK;
+			}
+		}
+	} // end of TRUE block for test: if (!str_CURLbuffer.empty())
+
+	str_CURLbuffer.clear(); // always clear it before returning
+	str_CURLheaders.clear(); // BEW added 9Feb13
 	return (int)CURLE_OK;
 }
 
@@ -4190,6 +4519,40 @@ int KbServer::Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString 
 	}
 
 	s_BulkDeleteMutex.Unlock();
+	return rv;
+}
+
+/*
+int KbServer::Synchronous_ChangedSince_Queued(KbServer* pKbSvr) // <<-- deprecate, it's too slow
+{
+	// Note: the static s_QueueMutex is used within ChangedSince_Queued() at the point
+	// where an entry (in the form of a pointer to struct) is being added to the end of
+	// the queue m_queue in the m_pKbSvr instance
+	wxString timeStamp = pKbSvr->GetKBServerLastSync();
+
+	s_BulkDeleteMutex.Lock();
+
+	int rv = pKbSvr->ChangedSince_Queued(timeStamp); // 2nd param is default TRUE
+	s_BulkDeleteMutex.Unlock();
+
+	// Error handling is at a lower level, so caller ignores the returned rv value
+	return rv;
+}
+*/
+int KbServer::Synchronous_ChangedSince_Timed(KbServer* pKbSvr)
+{
+	// Note: the static s_QueueMutex is used within ChangedSince_Queued() at the point
+	// where an entry (in the form of a pointer to struct) is being added to the end of
+	// the queue m_queue in the m_pKbSvr instance
+	wxString timeStamp = pKbSvr->GetKBServerLastSync();
+
+	s_BulkDeleteMutex.Lock();
+
+	int rv = pKbSvr->ChangedSince_Timed(timeStamp); // 2nd param is default TRUE
+
+	s_BulkDeleteMutex.Unlock();
+
+	// Error handling is at a lower level, so caller ignores the returned rv value
 	return rv;
 }
 

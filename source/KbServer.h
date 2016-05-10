@@ -184,7 +184,8 @@ public:
 	int		 BulkUpload(int chunkIndex, // use for choosing which buffer to return results in
 					wxString url, wxString username, wxString password, CBString jsonUtf8Str);
 	int		 ChangedSince(wxString timeStamp);
-	int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
+	int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE); // needed for KB Sharing Mgr delete whole kb button
+	int		 ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description);
 	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, 
@@ -229,6 +230,8 @@ public:
 	int		Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt);
 	int		Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt);
 	int		Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt);
+	//int		Synchronous_ChangedSince_Queued(KbServer* pKbSvr); // <<-- deprecate, much too slow
+	int		Synchronous_ChangedSince_Timed(KbServer* pKbSvr);
 
 	// public setters
 	void     SetKB(CKB* pKB); // sets m_pKB to point at either the local adaptations KB or local glosses KB
@@ -427,6 +430,7 @@ public:
 	KbServerEntry*	PopFromQueueFront(); // protect with a mutex
 	bool			IsQueueEmpty();
 	void			DeleteDownloadsQueueEntries();
+	DownloadsQueue* GetQueue();
 
 	//void			SetEntryStruct(KbServerEntry entryStruct);
 	KbServerEntry	GetEntryStruct();

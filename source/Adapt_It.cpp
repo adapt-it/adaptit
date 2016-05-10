@@ -106,6 +106,8 @@
 
 wxMutex	kbsvr_arrays;
 
+extern wxCriticalSection g_jsonCritSect;
+
 // Comment out to prevent DoServiceDiscovery() from logging with wxLogDebug()
 #define _DOSERVDISC
 
@@ -22105,26 +22107,13 @@ int CAdapt_ItApp::OnExit(void)
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
 
-	/*
+
 #if defined (_KBSERVER)
-	// Cleanups for service discovery...
+	// Cleanups
 
-
-// TODO later on sometime
-
-	// BEW 19Apr16 for the moment, let service discovery thread, if running, die a leaky death
-	if (m_pServDisc != NULL)
-	{
-		if ( m_servDiscTimer.IsRunning() )
-		{
-			m_servDiscTimer.Stop();
-
-		}
-		m_pServDisc = NULL;
-	}
 
 #endif
-*/
+
 	// Remove any files lurking there, they don't need to persist
 	EmptyCollaborationTempFolder(); // see CollabUtilities.h (at bottom)
 
@@ -49925,6 +49914,10 @@ void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtTex
 				// return without making any change. We can't test what the source text may
 				// have as its first character, because the source text may well be an exotic
 				// language which does't have a case distinction
+
+				// First, make sure there is no punctuation on the passed in tgtText
+				GetView()->RemovePunctuation(GetDocument(), &tgtText, from_target_text);
+
 				bool bNoError = GetDocument()->SetCaseParameters(tgtText, FALSE); // FALSE is bIsSrcText
 				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 				{
@@ -49933,7 +49926,7 @@ void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtTex
 					tgtText.SetChar(0, gcharNonSrcUC);
 
 					// That's the KB storage part of it done, now update the CSourcePhrase
-					// instance that is at CurrSequNum
+					// instance that is at nCurrSequNum
 					CPile* pPile = m_pLayout->GetPile(nCurrSequNum);
 					if (pPile != NULL)
 					{
@@ -49944,6 +49937,10 @@ void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtTex
 							pSrcPhrase->m_targetStr = tgtText; // no puncts on it yet, but case is now upper case
 
 							// Now put the punctuation back, on the now-upper-case tgt string
+							// (Note: the tgtText is not grabbed from the phrasebox, and so if the
+							// user has typed overriding punctuation, that will be lost - source
+							// text punctuation will be used - converted to target text equivalents
+							// of course)
 							GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtText);
 						}
 						return;

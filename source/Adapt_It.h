@@ -2038,6 +2038,7 @@ class CAdapt_ItApp : public wxApp
 	// and the minutes value will be stored in the project config file
 	Timer_KbServerChangedSince* m_pKbServerDownloadTimer; // for periodic incremental
 											// download of entries from the KBserver
+
 	// OnIdle() will be used for initiating a download of the incremental type.
 	// It will happen only after a boolean flag goes TRUE; the flag is the following
 	bool	m_bKbServerIncrementalDownloadPending;

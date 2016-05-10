@@ -2186,6 +2186,10 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 				int rv = 0; // rv is "return value", initialize it
 				wxString timestamp;
 				timestamp = _T("1920-01-01 00:00:00"); // earlier than everything, so downloads the lot
+
+
+
+				wxASSERT(FALSE); // ensure failure, until I refactor this
 				rv = m_pKbServer->ChangedSince_Queued(timestamp, FALSE);
 				// in above call, FALSE is value of the 2nd param, bDoTimestampUpdate
 				// Check for error

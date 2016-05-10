@@ -509,7 +509,7 @@ void CKBEditor::OnButtonSourceFindGo(wxCommandEvent& event)
 	int myCurrentSel = m_pListBoxKeys->GetSelection();
 	if (myCurrentSel != wxNOT_FOUND)
 	{
-		if (myCurrentSel >= m_pListBoxKeys->GetCount() - 1)
+		if (myCurrentSel >= (int)(m_pListBoxKeys->GetCount() - 1))
 		{
 			// The selection is at the last item in the list, so put it at list start
 			myCurrentSel = 0;

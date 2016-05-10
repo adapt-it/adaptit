@@ -33,6 +33,11 @@
 
 //#define _debugLayout
 
+// Comment out next line when wxLogDebug output is no longer wanted, from ChangedSince queue accesses
+#define _MemLeaks_
+static unsigned int nDestroyed;
+static unsigned int nTotalToDestroy;
+
 //// the next three are for wxHtmlHelpController
 //#include <wx/filesys.h>
 //#include <wx/fs_zip.h>
@@ -93,7 +98,8 @@
 //#include "KBSharingSetupDlg.h" // BEW added 15Jan13
 #include "KbSharingSetup.h" // BEW added 10Oct13
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
-#include "Thread_ChangedSince.h" // BEW added 13Feb13
+//#include "Thread_ChangedSince.h" // BEW added 13Feb13, removed 10May16 because we
+								   // must use synchronous calls due to openssl memory leaks
 #include "Timer_KbServerChangedSince.h"
 #include "ServiceDiscovery.h"
 #include "WaitDlg.h"
@@ -4745,7 +4751,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			if (bIsEnabled && bIsPending && bTimerIsRunning)
 			{
 				gpApp->m_bKbServerIncrementalDownloadPending = FALSE; // disable tries until next timer shot
-
+				/*
 				Thread_ChangedSince* pThread = new Thread_ChangedSince;
 				wxThreadError error =  pThread->Create(1024); // was wxThreadError error =  pThread->Create(10240);
 
@@ -4775,6 +4781,14 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 						return;
 					}
 				}
+				*/
+				// My timing tests indicate this should run, for a KBserver on the local LAN,
+				// a 10-entry download and merge to local KB, in about .5 of a second (which
+				// is the JSON preparation time, download time, merge time, totaled). Ten entries
+				// or fewer is about what we'd expect for a timer interval of 5 minutes per shot
+				int rv = pKbSvr->Synchronous_ChangedSince_Timed(pKbSvr);
+				wxUnusedVar(rv);
+
 				return; // only do this thread on one OnIdle() call, subsequent OnIdle() calls
 						// can attempt the additional KBserver actions in the code below
 			}
@@ -4787,7 +4801,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				// not to do that)
 				gpApp->m_bKbServerIncrementalDownloadPending = FALSE;
 			}
-
+/* deprecated BEW 10May16 -- refactored, to not use a queue, use Synchronous_ChangedSince_Timed()
 			// Do the removing from queue of the first KbServerEntry struct pointer, and
 			// merge it's contents into the local KB storage, here in main thread. (The
 			// access to the queue is mutex protected, with s_QueueMutex.)  We remove and
@@ -4808,10 +4822,20 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 												pEntryStruct->username, bDeletedFlag);
 				KBAccessMutex.Unlock();
 
-				delete pEntryStruct; // don't leak memory
+				// Clean up, don't leak memory
+#if defined (_MemLeaks_)
+				nDestroyed++;
+				wxLogDebug(_T("OnIdle() ChangedSince Queue: Handled:  %s / %s  : nDestroyed = %d  nTotalToDestroy = %d"),
+					pEntryStruct->source, pEntryStruct->translation, nDestroyed, nTotalToDestroy);
+#endif
+				pEntryStruct->source.Clear();
+				pEntryStruct->translation.Clear();
+				pEntryStruct->username.Clear();
+				delete pEntryStruct;
+
 				return; // if there are any more available, do them on subsequent idle events
 			}
-
+*/
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 
