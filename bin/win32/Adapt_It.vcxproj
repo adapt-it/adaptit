@@ -1,14 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Unicode Debug|Win32">
       <Configuration>Unicode Debug</Configuration>
       <Platform>Win32</Platform>
@@ -33,18 +25,6 @@
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
-    <UseOfMfc>false</UseOfMfc>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
-    <UseOfMfc>false</UseOfMfc>
-    <UseOfAtl>false</UseOfAtl>
-    <CLRSupport>false</CLRSupport>
-  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -56,27 +36,8 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
-  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>.\Debug\</OutDir>
-    <IntDir>.\Debug\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>.\Release\</OutDir>
-    <IntDir>.\Release\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'">
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
@@ -91,258 +52,6 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>$(ProjectName)_Unicode</TargetName>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <PreBuildEvent>
-      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
-
-If NOT DEFINED WXWIN goto buildEventFailed
-If NOT DEFINED WXVER goto buildEventFailed
-If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
-goto buildEventOK
-:buildEventFailed
-If NOT DEFINED WXWIN (Set val_WXWIN="[NOT DEFINED]") Else Set val_WXWIN="%25WXWIN%25"
-If NOT DEFINED WXVER (Set val_WXVER="[NOT DEFINED]") Else Set val_WXVER="%25WXVER%25"
-echo *** Pre-Build event for $(ProjectName) FAILED
-echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
-echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
-echo *** For example:
-echo ***    If WXWIN is set to "c:\wxWidgets-3.0.0" then WXVER should be set to 30
-echo ***    If WXWIN is set to "c:\wxWidgets-2.9.5" then WXVER should be set to 29
-echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28
-echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!
-exit 1
-:configFailed
-echo *** Pre-Build event for $(ProjectName) FAILED
-echo ***    The Debug and Release build configurations cannot be used with %25WXWIN%25.
-echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.
-exit 1
-:buildEventOK
-echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
-echo Building against build of WxWidgets found in %25WXWIN%25.
-
-</Command>
-    </PreBuildEvent>
-    <Midl>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Debug/Adapt_It.tlb</TypeLibraryName>
-    </Midl>
-    <ClCompile>
-      <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswd;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;$(ProgramFiles)\Visual Leak Detector\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;CURL_STATICLIB;_UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader />
-      <PrecompiledHeaderOutputFile>.\Debug/Adapt_It.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
-      <ObjectFileName>.\Debug/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
-      <WarningLevel>Level4</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <CompileAs>Default</CompileAs>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>$(WXWIN)/include;$(WXWIN)/contrib/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <Link>
-      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>wxmsw$(WXVER)ud_aui.lib;wxmsw$(WXVER)ud_adv.lib;wxmsw$(WXVER)ud_html.lib;wxmsw$(WXVER)ud_core.lib;wxbase$(WXVER)ud.lib;wxtiffd.lib;wxjpegd.lib;wxpngd.lib;wxzlibd.lib;wxexpatd.lib;winmm.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;oleacc.lib;odbc32.lib;wldap32.lib;libcurl.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ShowProgress>NotSet</ShowProgress>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;$(ProgramFiles)\Visual Leak Detector\lib\Win32;$(LIBCURL)\lib\Debug;$(OPENSSL)\lib;lib\silconverters;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AssemblyDebug>true</AssemblyDebug>
-      <ProgramDatabaseFile>.\Debug/Adapt_It.pdb</ProgramDatabaseFile>
-      <SubSystem>Windows</SubSystem>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention />
-      <Version>6.5</Version>
-    </Link>
-    <PostBuildEvent>
-      <Command>copy "..\..\xml\AI_UserProfiles.xml" "Debug\AI_UserProfiles.xml"
-copy "..\..\xml\AI_USFM.xml" "Debug\AI_USFM.xml"
-copy "..\..\xml\aiDefault.css" "Debug\aiDefault.css"
-copy "..\..\docs\curl-ca-bundle.crt" "Debug\curl-ca-bundle.crt"
-copy "..\..\docs\iso639-3codes.txt" "Debug\iso639-3codes.txt"
-copy "..\..\docs\Help_for_Administrators.htm" "Debug\Help_for_Administrators.htm"
-copy "..\..\docs\RFC5646message.htm" "Debug\RFC5646message.htm"
-copy "..\..\docs\GuesserExplanation.htm" "Debug\GuesserExplanation.htm"
-mkdir "..\..\docs\Images\Admin_help\"
-xcopy "..\..\docs\Images\Admin_help\*.*" "Debug\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
-copy "..\..\docs\Adapt_It_Quick_Start.htm" "Debug\Adapt_It_Quick_Start.htm"
-mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
-xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Debug\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
-mkdir "Debug\Languages\es"
-mkdir "Debug\Languages\fr"
-mkdir "Debug\Languages\id"
-mkdir "Debug\Languages\pt"
-mkdir "Debug\Languages\ru"
-mkdir "Debug\Languages\tpi"
-copy "..\..\po\es.mo" "Debug\Languages\es\Adapt_It.mo"
-copy "..\..\po\es.po" "Debug\Languages\es\es.po"
-copy "..\..\po\wxstd-es.mo" "Debug\Languages\es\wxstd.mo"
-copy "..\..\po\fr.mo" "Debug\Languages\fr\Adapt_It.mo"
-copy "..\..\po\fr.po" "Debug\Languages\fr\fr.po"
-copy "..\..\po\wxstd-fr.mo" "Debug\Languages\fr\wxstd.mo"
-copy "..\..\po\id.mo" "Debug\Languages\id\Adapt_It.mo"
-copy "..\..\po\id.po" "Debug\Languages\id\id.po"
-copy "..\..\po\pt.mo" "Debug\Languages\pt\Adapt_It.mo"
-copy "..\..\po\pt.po" "Debug\Languages\pt\pt.po"
-copy "..\..\po\wxstd-pt.mo" "Debug\Languages\pt\wxstd.mo"
-copy "..\..\po\ru.mo" "Debug\Languages\ru\Adapt_It.mo"
-copy "..\..\po\ru.po" "Debug\Languages\ru\ru.po"
-copy "..\..\po\wxstd-ru.mo" "Debug\Languages\ru\wxstd.mo"
-copy "..\..\po\tpi.mo" "Debug\Languages\tpi\Adapt_It.mo"
-copy "..\..\po\tpi.po" "Debug\Languages\tpi\tpi.po"
-copy "..\..\po\tpi_readme.txt" "Debug\Languages\tpi\tpi_readme.txt"
-copy "..\..\po\books_tpi.xml" "Debug\Languages\tpi\books_tpi.xml"
-copy "..\..\po\wxstd-tpi.mo" "Debug\Languages\tpi\wxstd.mo"
-copy "..\..\po\default.mo" "Debug\Languages\default.mo"
-copy "..\..\po\default.po" "Debug\Languages\default.po"
-</Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <PreBuildEvent>
-      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
-
-If NOT DEFINED WXWIN goto buildEventFailed
-If NOT DEFINED WXVER goto buildEventFailed
-If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
-goto buildEventOK
-:buildEventFailed
-If NOT DEFINED WXWIN (Set val_WXWIN="[NOT DEFINED]") Else Set val_WXWIN="%25WXWIN%25"
-If NOT DEFINED WXVER (Set val_WXVER="[NOT DEFINED]") Else Set val_WXVER="%25WXVER%25"
-echo *** Pre-Build event for $(ProjectName) FAILED
-echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
-echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
-echo *** For example:
-echo ***    If WXWIN is set to "c:\wxWidgets-3.0.0" then WXVER should be set to 30
-echo ***    If WXWIN is set to "c:\wxWidgets-2.9.5" then WXVER should be set to 29
-echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28
-echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!
-exit 1
-:configFailed
-echo *** Pre-Build event for $(ProjectName) FAILED
-echo ***    The Debug and Release build configurations cannot be used with %25WXWIN%25.
-echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.
-exit 1
-:buildEventOK
-echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
-echo Building against build of WxWidgets found in %25WXWIN%25.
-
-</Command>
-    </PreBuildEvent>
-    <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Release/Adapt_It.tlb</TypeLibraryName>
-    </Midl>
-    <ClCompile>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(WXWIN)/include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\msw;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS;__WINDOWS__;__WXMSW__;__WIN95__;__WIN32__;WINVER=0x0400;STRICT;CURL_STATICLIB;_UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>false</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader />
-      <PrecompiledHeaderOutputFile>.\Release/Adapt_It.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
-      <ObjectFileName>.\Release/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
-      <WarningLevel>Level4</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <CompileAs>Default</CompileAs>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-      <AdditionalIncludeDirectories>$(WXWIN)/include;$(WXWIN)\contrib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <Link>
-      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>wxmsw$(WXVER)u_aui.lib;wxmsw$(WXVER)u_adv.lib;wxmsw$(WXVER)u_html.lib;wxmsw$(WXVER)u_core.lib;wxbase$(WXVER)u.lib;wxtiff.lib;wxjpeg.lib;wxpng.lib;wxzlib.lib;wxregexu.lib;wxexpat.lib;winmm.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;oleacc.lib;odbc32.lib;wldap32u.lib;libcurlu.lib;libeay32u.lib;ssleay32u.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;$(LIBCURL)\lib\Release;$(OPENSSL)\lib;lib\silconverters;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>.\Release/Adapt_It.pdb</ProgramDatabaseFile>
-      <SubSystem>Windows</SubSystem>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention />
-      <Version>6.5</Version>
-      <ShowProgress>NotSet</ShowProgress>
-      <LinkStatus>false</LinkStatus>
-    </Link>
-    <PostBuildEvent>
-      <Command>mkdir "..\..\setup Regular\"
-copy "Release\Adapt_It.exe" "..\..\setup Regular\Adapt_It.exe"
-mkdir "..\..\setup Regular - Minimal\"
-copy "Release\Adapt_It.exe" "..\..\setup Regular - Minimal\Adapt_It.exe"
-mkdir "..\..\setup Regular - No Html Help\"
-copy "Release\Adapt_It.exe" "..\..\setup Regular - No Html Help\Adapt_It.exe"
-copy "..\..\xml\AI_UserProfiles.xml" "Release\AI_UserProfiles.xml"
-copy "..\..\xml\AI_USFM.xml" "Release\AI_USFM.xml"
-copy "..\..\xml\aiDefault.css" "Release\aiDefault.css"
-copy "..\..\docs\curl-ca-bundle.crt" "Release\curl-ca-bundle.crt"
-copy "..\..\docs\iso639-3codes.txt" "Release\iso639-3codes.txt"
-copy "..\..\docs\Help_for_Administrators.htm" "Release\Help_for_Administrators.htm"
-copy "..\..\docs\RFC5646message.htm" "Release\RFC5646message.htm"
-copy "..\..\docs\GuesserExplanation.htm" "Release\GuesserExplanation.htm"
-mkdir "..\..\docs\Images\Admin_help\"
-xcopy "..\..\docs\Images\Admin_help\*.*" "Release\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
-copy "..\..\docs\Adapt_It_Quick_Start.htm" "Release\Adapt_It_Quick_Start.htm"
-mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
-xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Release\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
-mkdir "Release\Languages\es"
-mkdir "Release\Languages\fr"
-mkdir "Release\Languages\id"
-mkdir "Release\Languages\pt"
-mkdir "Release\Languages\ru"
-mkdir "Release\Languages\tpi"
-copy "..\..\po\es.mo" "Release\Languages\es\Adapt_It.mo"
-copy "..\..\po\es.po" "Release\Languages\es\es.po"
-copy "..\..\po\wxstd-es.mo" "Release\Languages\es\wxstd.mo"
-copy "..\..\po\fr.mo" "Release\Languages\fr\Adapt_It.mo"
-copy "..\..\po\fr.po" "Release\Languages\fr\fr.po"
-copy "..\..\po\wxstd-fr.mo" "Release\Languages\fr\wxstd.mo"
-copy "..\..\po\id.mo" "Release\Languages\id\Adapt_It.mo"
-copy "..\..\po\id.po" "Release\Languages\id\id.po"
-copy "..\..\po\pt.mo" "Release\Languages\pt\Adapt_It.mo"
-copy "..\..\po\pt.po" "Release\Languages\pt\pt.po"
-copy "..\..\po\wxstd-pt.mo" "Release\Languages\pt\wxstd.mo"
-copy "..\..\po\ru.mo" "Release\Languages\ru\Adapt_It.mo"
-copy "..\..\po\ru.po" "Release\Languages\ru\ru.po"
-copy "..\..\po\wxstd-ru.mo" "Release\Languages\ru\wxstd.mo"
-copy "..\..\po\tpi.mo" "Release\Languages\tpi\Adapt_It.mo"
-copy "..\..\po\tpi.po" "Release\Languages\tpi\tpi.po"
-copy "..\..\po\tpi_readme.txt" "Release\Languages\tpi\tpi_readme.txt"
-copy "..\..\po\books_tpi.xml" "Release\Languages\tpi\books_tpi.xml"
-copy "..\..\po\wxstd-tpi.mo" "Release\Languages\tpi\wxstd.mo"
-copy "..\..\po\default.mo" "Release\Languages\default.mo"
-copy "..\..\po\default.po" "Release\Languages\default.po"
-</Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'">
     <PreBuildEvent>
       <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
@@ -353,6 +62,8 @@ If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( g
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.2  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.2  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 
 If NOT DEFINED WXWIN goto buildEventFailed
 If NOT DEFINED WXVER goto buildEventFailed
@@ -360,6 +71,7 @@ If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If NOT %25WXVER%25 == 29 ( goto build
 If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.2  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
 goto buildEventOK
 :buildEventFailed
@@ -482,6 +194,8 @@ If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( g
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.2  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.2  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 
 If NOT DEFINED WXWIN goto buildEventFailed
 If NOT DEFINED WXVER goto buildEventFailed
@@ -489,6 +203,7 @@ If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If NOT %25WXVER%25 == 29 ( goto build
 If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.2  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
 goto buildEventOK
 :buildEventFailed
@@ -933,9 +648,6 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\Xhtml.h" />
     <ClInclude Include="..\..\source\XML.h" />
     <ClInclude Include="..\..\source\XMLErrorDlg.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\source\NewClassHeaderTemplate.txt" />
