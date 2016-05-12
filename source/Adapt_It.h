@@ -2054,6 +2054,14 @@ class CAdapt_ItApp : public wxApp
     // file directly.
 	int		m_KBserverTimer; 
 
+	// BEW 12May16 We need a way to prevent OnIdle() events from asking the user for a KBserver
+	// login choice while the wizard is running. OnIdle() will, without this, check only for
+	// the flag m_bEnteringKBserverProject being true, and it is defaulted to true in OnInit()
+	// so the ask happens at the Next> click at the wizard's Projects page - which is *not* what
+	// we want to happen at that time. So we'll add this second boolean to the test, so that
+	// the first idle event AFTER the wizard has closed, will trigger the connection request dlg
+	bool    m_bWizardIsRunning;
+
 	// Storage of username's value for the boolean flags, kbadmin, and useradmin; we store
 	// them here rather than in the KbServer class itself, because the value of these
 	// flags need to be known before either of the adapting or glossing KbServer classes

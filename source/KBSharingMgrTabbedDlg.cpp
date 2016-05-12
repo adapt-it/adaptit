@@ -333,6 +333,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_sourceLangCode.Empty();
 	m_targetLangCode.Empty();
 	m_glossLangCode.Empty();
+	m_pBtnRemoveSelectedKBDefinition->Enable(FALSE); // Enable it by selecting a kb definition
 
 	// Start by showing Users page
 	m_nCurPage = 0;
@@ -1208,6 +1209,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageClearListSelection(wxCommandEvent& WX
 	// also clear the "Original Creator:" read-only text box
 	wxString emptyStr = _T("");
 	m_pKbDefinitionCreator->ChangeValue(emptyStr);
+	m_pBtnRemoveSelectedKBDefinition->Enable(FALSE); // Enable it by selecting a kb definition
 }
 
 void KBSharingMgrTabbedDlg::OnButtonLanguagesPageClearListSelection(wxCommandEvent& WXUNUSED(event))
@@ -2082,7 +2084,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 					OnButtonKbsPageClearListSelection(dummy);
 					OnButtonKbsPageClearBoxes(dummy);
 					wxString msg3 = _(
-"The knowledge base you selected for removal is a shared knowledge base within the current adaptation project.\nIt makes no sense to remove the contents of a knowledge base that is still able to accept new entries.\nClose this Knowledge Base Sharing Manager now, then use the Setup Or Remove Knowledge Base Sharing command\nin the Advanced menu to make the knowledge base no longer shared.\nThen reopen the Knowledge Base Sharing Manager and retry the removal. It should then succeed.\nBut first make sure no users anywhere are sharing to the remote knowledge base you want to remove from the KBserver.\n(Removing a remote knowledge base from a KBserver does not affect the contents of the local knowledge base.)");
+"The knowledge base you selected for removal is a shared knowledge base within the current adaptation project.\nIt makes no sense to remove the contents of a knowledge base that is still able to accept new entries.\nClose this Knowledge Base Sharing Manager now, then use the Setup Or Remove Knowledge Base Sharing command in the Advanced menu to make the knowledge base no longer shared.\nThen reopen the Knowledge Base Sharing Manager and retry the removal. It should then succeed.\nBut first make sure no users anywhere are sharing to the remote knowledge base you want to remove from the KBserver.\n(Removing a remote knowledge base from a KBserver does not affect the contents of the local knowledge base.)");
 					wxString title3 = _("Illegal Removal Attempt");
 					wxMessageBox(msg3, title3, wxICON_INFORMATION | wxOK);
 					return;
@@ -2186,10 +2188,6 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 				int rv = 0; // rv is "return value", initialize it
 				wxString timestamp;
 				timestamp = _T("1920-01-01 00:00:00"); // earlier than everything, so downloads the lot
-
-
-
-				wxASSERT(FALSE); // ensure failure, until I refactor this
 				rv = m_pKbServer->ChangedSince_Queued(timestamp, FALSE);
 				// in above call, FALSE is value of the 2nd param, bDoTimestampUpdate
 				// Check for error
@@ -2220,6 +2218,9 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 					// How many entries have to be deleted?
 					m_pApp->m_nQueueSize = m_pKbServer->GetDownloadsQueue()->size();
 
+#if defined (_DEBUG) && defined(_WANT_DEBUGLOG)
+					wxLogDebug(_T("OnButtonKbsPageRemoveKb: m_nQueueSize  %d"), m_pApp->m_nQueueSize);
+#endif
 					if (m_pApp->m_nQueueSize == 0)
 					{
 						// We don't expect this, but if we get nothing back, we don't need to
@@ -2255,6 +2256,13 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 						// and language codes
 						goto tidyup;
 					}
+
+					// Do the deletions synchronously
+					int rv = m_pApp->m_pKbServer_Persistent->Synchronous_DoEntireKbDeletion(
+																m_pApp->m_pKbServer_Persistent, nID);
+					wxUnusedVar(rv);
+
+					/* deprecated - threads leak if openssl is used
 
 					// Create the detached thread which will do our database entry deletion job
 					// (In next call, first param could alternatively be m_pKbserver, but using
@@ -2311,6 +2319,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 							goto tidyup;
 						}
 					} // end of else block for test: if (error != wxTHREAD_NO_ERROR)
+					*/
 				} // end of else block for test: if (rv != 0)
 
 			} // end of TRUE block for test: if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady)
@@ -2386,7 +2395,8 @@ tidyup:	if (!m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
 			wxString nonsrccode = m_pKbServer->GetTargetLanguageCode();
 			wxString password = m_pKbServer->GetKBServerPassword();
 			int type = m_pKbServer->GetKBServerType();
-
+			wxUnusedVar(type);
+/* For synchronous calls we want the Manager to say open, so this below is no longer wanted I think - we want the kbs page updated instead
 			// The persistent KbServer instance hasn't been deleted and its pointer so
 			// to NULL yet, so do it here
 #if defined (_DEBUG) && defined(_WANT_DEBUGLOG)
@@ -2425,9 +2435,10 @@ tidyup:	if (!m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
 				m_pKbServer->SetKBServerPassword(password);
 				m_pKbServer->SetKBServerType(type);
 			}
-
+			*/
 			m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
 		}
+		
 		DeleteClonedKbServerKbStruct();
 		m_pApp->StatusBar_EndProgressOfKbDeletion();
 		m_pApp->RefreshStatusBarInfo();
@@ -2742,11 +2753,13 @@ void KBSharingMgrTabbedDlg::OnSelchangeKBsList(wxCommandEvent& WXUNUSED(event))
     if (m_pKbsListBox == NULL)
 	{
 		m_nSel = wxNOT_FOUND; // -1
+		m_pBtnRemoveSelectedKBDefinition->Enable(FALSE); // Enable it by selecting a kb definition
 		return;
 	}
 	if (m_pKbsListBox->IsEmpty())
 	{
 		m_nSel = wxNOT_FOUND; // -1
+		m_pBtnRemoveSelectedKBDefinition->Enable(FALSE); // Enable it by selecting a kb definition
 		return;
 	}
     // The GetSelection() call returns -1 if there is no selection current. The CreateKb()
@@ -2794,6 +2807,8 @@ void KBSharingMgrTabbedDlg::OnSelchangeKBsList(wxCommandEvent& WXUNUSED(event))
 	// logged in user can then edit the parameters
 	m_pEditSourceCode->ChangeValue(theSrcLangCode);
 	m_pEditNonSourceCode->ChangeValue(nonSrcLangCode);
+
+	m_pBtnRemoveSelectedKBDefinition->Enable(); // Enable it - since there is a KB definition selected
 }
 
 // When the administrator clicks on a custom code line in the listbox of the Languages page of

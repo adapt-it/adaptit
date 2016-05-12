@@ -24,12 +24,25 @@ each click of the > button, and the search cycles back
 to the top of the list and continues down once the end
 of the list is reached. The search options are changed
 in order to work better with the auto-capitalization
-feature. The seach is now caseSensitive, and it matches
+feature. The search is now caseSensitive, and it matches
 within words and phrases, not just at the start of a word.
-Also, when displaying the selected or matched text, it
+Also, when displaying some selected or matched text, it
 is no longer displayed at the top of the list, but as
 the fourth list item so that the user can see some
 previous source text words as well.
+* The application can now capitalize automatically the
+first word of a new sentence, whether auto-caps is 
+turned ON, or is OFF. There is no user interface way
+to make it work. Instead, it only works by the user
+or administrator copying, or typing in, a list of target
+language word-final punctuation characters to a line in
+the project configuration file, AI-ProjectConfiguration.aic
+The line to do this on has the label:
+SentenceFinalPunctuationTriggeringCapitalization
+which is followed by a tab, then your punctuation
+characters should follow the tab. For example:  ”’.>!?
+(This capability is useful when the source text language
+does not have a lower/upper case distinction.)
 
 ----------------------------------------------
 Bug fixes in 7?? release ?? month ???

@@ -2021,6 +2021,15 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 	{
 		// We need to try re-establish a connection to the KBserver if one is running
+		// BEW 28Apr16 cause OnIdle() to get authentication done without any prior service
+		// discovery being done, the assumption is a KBserver used in a previous session
+		// is on the LAN and running, and we attempt to connect to that using the config
+		// files url value. If it fails, do a service lookup etc. Failure to connect will
+		// NOT prevent the collaboration from being hooked up.
+		pApp->m_bEnteringKBserverProject = TRUE;
+
+	
+		/* The old code -- remove shortly
 		bool bUserCancelled = FALSE; // initialize
 		KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame());
 		pHowGetUrl->Center();
@@ -2066,6 +2075,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 			ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
 		}
 		pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
+		*/
 	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 
 #endif // _KBSERVER
@@ -9690,6 +9700,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
         //    will instead get the target and/or free trans text from the external editor
         //    at the start of the handler for a File / Save request by the user, and that's
         //    when we'll do our GUI-less comparisons and updating.
+		//	  BEW 2015 we do indeed need a conflict resolution dialog, and it has been done.
         //
         //    The appropriate time that we should grab the PT or BE target project's
         //    chapter should be as late as possible, so we do it at File / Save. We check

@@ -279,7 +279,7 @@ extern wxCriticalSection g_jsonCritSect;
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
 #ifdef _DEBUG
-#include "vld.h"
+//#include "vld.h"
 #endif
 #endif
 
@@ -15824,6 +15824,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_kbserver_kbadmin = FALSE;
 	m_kbserver_useradmin = FALSE;
 
+	m_bWizardIsRunning = FALSE;
+
 #endif
 
 #if defined(_DEBUG) && defined(__WXGTK__)
@@ -26855,6 +26857,10 @@ MapSfmToUSFMAnalysisStruct* CAdapt_ItApp::GetCurSfmMap(enum SfmSet sfmSet)
 /////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 {
+	m_bWizardIsRunning = TRUE; // OnIdle() uses TRUE to suppress an idle event, while the
+							   // wizard is running, from causing the KBserver connection
+							   // request dialog from being shown to the user
+
 	// Note: This version of DoStartWorkingWizard() is
 	// structured quite differently from the MFC version.
 	// WX Notes:
@@ -26937,6 +26943,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
             {
                 wxMessageBox(_T("The document was corrupt, but we have restored the latest version saved in the document history.  You can start from the Start Working Wizard and the document should open successfully."));
                 m_recovery_pending = FALSE;
+				m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
                 return TRUE;
             }
             else
@@ -26983,6 +26990,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
                 {
                     m_bJustLaunched = FALSE;
                 }
+				m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
                 return TRUE;
             }
 		}
@@ -26996,6 +27004,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			m_bStartWorkUsingCollaboration = FALSE;
 			m_bJustLaunched = TRUE; // cause the wizard to open in MainFrame's OnIdle() handler
+			m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
 			return TRUE;
 		}
 
@@ -27005,6 +27014,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 		// Hence, we return below without executing the remining code below.
 
 		// Note: we should return TRUE for PT or BE collaboration.
+		m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
 		return TRUE;
 	}
 
@@ -27038,6 +27048,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 				wxASSERT(FALSE);
 				// whm modified to use wxKill() instead of wxExit() which is the same as a crash
 				wxKill(::wxGetProcessId(),wxSIGKILL); // wxExit();
+				m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
 				return FALSE;
 			}
 		}
@@ -27065,6 +27076,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 				this->LogUserAction(message2);
 				// whm modified to use wxKill() instead of wxExit() which is the same as a crash
 				wxKill(::wxGetProcessId(),wxSIGKILL); // wxExit();
+				m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
 				return FALSE;
 			}
 			// whm added 26Jan13. Remove the bad path
@@ -27177,7 +27189,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
     // is not. So we have the status bar updated here too.
 	if (gbReachedDocPage)
 		RefreshStatusBarInfo();
-
+	m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
 	return TRUE;
 }
 
@@ -28594,7 +28606,8 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 			else
 			{
 				// Something is wrong, or no KBserver has yet been set running, etc
-				wxASSERT(returnedValue == SD_NoKBserverFound || 
+				wxASSERT(returnedValue == SD_NoResultsYet ||
+						 returnedValue == SD_NoKBserverFound || 
 						 returnedValue == SD_UrlDiffers_UserRejectedIt ||
 						 returnedValue == SD_LookupHostnameFailed ||
 						 returnedValue == SD_LookupIPaddrFailed ||
@@ -49831,7 +49844,7 @@ void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 		((CStatusBar*)GetMainFrame()->m_pStatusBar)->StartProgress(progTitle, msgDisplayed, nTotal);
 	}
 
-	// m_KBserverTimer is defaulted to 4113 millisecs and GC = 5sec currently, see near
+	// m_KBserverTimer is defaulted to 7247 millisecs and GC = 5sec currently, see near
 	// top of OnInit() for where the default is set
 	// Note, the timer interval should be some odd value (no zeros) greater than 2.111 seconds,
 	// to avoid timer notifies persistently happening just before the same KBserver's

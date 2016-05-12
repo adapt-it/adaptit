@@ -4717,7 +4717,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// Get the delayed connection done, from url & hostname in basic config file,
 		// if ProjectPage.cpp OnPageChanging() has asked for project entry, we
 		// delay the attempt until the doc is opened and an idle event occurs
-		if (gpApp->m_bEnteringKBserverProject)
+		// but it has to be an idle event after the wizard has ended
+		if (gpApp->m_bEnteringKBserverProject && !gpApp->m_bWizardIsRunning)
 		{
 			bool bAllsOK = AuthenticateEtcWithoutServiceDiscovery(gpApp);
 			wxUnusedVar(bAllsOK);
