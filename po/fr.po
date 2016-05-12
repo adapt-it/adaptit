@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
 "POT-Creation-Date: 2016-05-09 11:01-0400\n"
-"PO-Revision-Date: 2016-05-09 11:01-0400\n"
+"PO-Revision-Date: 2016-05-12 10:06-0400\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: fr\n"
@@ -2549,12 +2549,14 @@ msgstr ""
 # Priority 1
 #: Adapt_It.cpp:47659
 msgid "Filename For KB Export"
-msgstr ""
+msgstr "Nom de fichier pour l'exportation de l'KB"
 
 # Priority 1
 #: Adapt_It.cpp:47711
 msgid "Unable to open knowledge base export file."
 msgstr ""
+"Impossible d'ouvrir le fichier d'exportation de la base de connaissances "
+"(KB)."
 
 #: Adapt_It.cpp:47759 ExportFunctions.cpp:869 ExportFunctions.cpp:1870
 #: ExportFunctions.cpp:2031 ExportFunctions.cpp:8730 Retranslation.cpp:4636
@@ -2568,29 +2570,36 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
+"Le fichier exporté est nommé :\n"
+"\n"
+" %s\n"
+"\n"
+" il a été enregistré à l'emplacement suivant : \n"
+"\n"
+"%s"
 
 #: Adapt_It.cpp:47760 ExportFunctions.cpp:1871 ExportFunctions.cpp:2033
 #: ExportFunctions.cpp:8732 Retranslation.cpp:4637
 msgid "Export operation successful"
-msgstr ""
+msgstr "Opération d'exportation a réussi "
 
 #: Adapt_It.cpp:49661 Adapt_It.cpp:49726 Adapt_It.cpp:49804 MainFrm.cpp:2799
 #: Thread_ServiceDiscovery.cpp:74
 msgid "KBservers Discovery"
-msgstr ""
+msgstr "Découverte de serveur"
 
 #: Adapt_It.cpp:49665 MainFrm.cpp:2803 MainFrm.cpp:2816
 msgid "KBservers discovered so far"
-msgstr ""
+msgstr "Serveurs découverts jusqu'à présent"
 
 #: Adapt_It.cpp:49723
 msgid "KBservers? Searching for one only"
-msgstr ""
+msgstr "KBservers ? La recherche d'un seul"
 
 #: Adapt_It.cpp:49802 Thread_ServiceDiscovery.cpp:77
 #, c-format
 msgid "KBservers? Search number %d of %d"
-msgstr ""
+msgstr "KBservers ? Recherche numéro %d de %d"
 
 # Priority 1
 #: Adapt_ItCanvas.cpp:1122 Adapt_ItCanvas.cpp:1145 Adapt_ItCanvas.cpp:1169
@@ -2600,6 +2609,9 @@ msgid ""
 "updating information in Vertical Edit mode is illegal. The attempt has been "
 "ignored."
 msgstr ""
+"Tenter de mettre l'emplacement actif dans la zone de texte gris tout en "
+"mettant à jour des informations en mode d'édition vertical est illégale. La "
+"tentative a été ignorée."
 
 # Priority 1
 #: Adapt_ItCanvas.cpp:1292
@@ -2638,6 +2650,10 @@ msgid ""
 "and verse text, or some other illegal combination. Combining verse text with "
 "poetry is acceptable, other combinations are not."
 msgstr ""
+"Désolé, vous essayez de sélectionner le texte de différents types, comme un "
+"titre et le verset du texte, ou une autre combinaison illégale. La "
+"combinaison de texte en vers de la poésie est acceptable, d'autres "
+"combinaisons ne sont pas."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:698 Adapt_ItDoc.cpp:772
@@ -2645,6 +2661,8 @@ msgid ""
 "Adapt It cannot do any useful work unless you select a source file to adapt. "
 "Please try again."
 msgstr ""
+"Adapt It ne peut pas faire le travail utile, sauf si vous sélectionnez un "
+"fichier source pour l'adaptation. Veuillez réessayer."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:757 NavProtectNewDoc.cpp:75
@@ -2653,7 +2671,7 @@ msgstr "Saisir un fichier texte pour l'adapter"
 
 #: Adapt_ItDoc.cpp:803
 msgid "Adapt It requires plain text files for input"
-msgstr ""
+msgstr "Adapt It nécessite de simples fichiers texte pour l'entrée"
 
 #: Adapt_ItDoc.cpp:804
 #, c-format
@@ -2667,6 +2685,15 @@ msgid ""
 "\n"
 "Please try again or click Cancel at the file selection dialog."
 msgstr ""
+"Le fichier suivant :\n"
+"\n"
+"%s\n"
+"\n"
+" a une extension %s qui indique qu'il n'est pas chargeable comme fichier "
+"d'entrée pour Adapt It.\n"
+"\n"
+"S'il vous plaît, essayez à nouveau ou cliquez sur Annuler dans la boîte de "
+"dialogue pour la sélection de fichiers."
 
 #: Adapt_ItDoc.cpp:891
 msgid "Invalid Data For Current Book Folder"
@@ -2701,6 +2728,9 @@ msgid ""
 "Sorry, Adapt It needs an output document name. (An .xml extension will be "
 "automatically added.) Please try the New... command again."
 msgstr ""
+"Désolé, Adapt It a besoin d'un nom de fichier de document de sortie. "
+"(L’extension .xml sera automatiquement ajouté.) S'il vous plaît, essayez la "
+"commande Nouveau ... à nouveau."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:1018
@@ -2708,29 +2738,38 @@ msgid ""
 "Sorry, Adapt It will not work correctly unless you specify an output "
 "document name. Please try again."
 msgstr ""
+"Désolé, Adapt It a besoin d'un nom de fichier de document de sortie. S'il "
+"vous plaît, essayez à nouveau."
 
 #: Adapt_ItDoc.cpp:1164
 msgid ""
 "Sorry, but there was no source language data in the file you input, so there "
 "is nothing to be displayed. Try a different file."
 msgstr ""
+"Désolé, mais il n'y avait pas de données de la langue source dans le fichier "
+"que vous avez entrée, donc il n'y a rien à afficher. Essayez un autre "
+"fichier."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:1277 Adapt_ItDoc.cpp:1305 Adapt_ItDoc.cpp:1343
 #: Adapt_ItView.cpp:22086 Adapt_ItView.cpp:22099 Adapt_ItView.cpp:22136
 #, c-format
 msgid "Error opening file %s."
-msgstr ""
+msgstr "Erreur d'ouverture du fichier %s."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:1289 Adapt_ItView.cpp:22097
 msgid "The file you selected for input appears to be a binary file."
 msgstr ""
+"Le fichier que vous avez sélectionné pour l'entrée semble être un fichier "
+"binaire."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:1294
 msgid "Adapt It cannot use Microsoft Word Document (doc) files as input files."
 msgstr ""
+"Adapt It ne peut pas utiliser fichiers Microsoft Word Document (doc) en tant "
+"que fichiers d'entrée."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:1300
@@ -2738,16 +2777,19 @@ msgid ""
 "Adapt It cannot use OpenOffice's Open Document Text (odt) files as input "
 "files."
 msgstr ""
+"Adapt It ne peut pas utiliser fichiers ODT (OpenOffice) en tant que fichiers "
+"d'entrée."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:1303
 msgid "Adapt It input files must be plain text files."
 msgstr ""
+"Les fichiers d'entrée d’Adapt It doivent être les fichiers de texte brut."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:1327 Adapt_ItView.cpp:22120
 msgid "File read error: no data was read in"
-msgstr ""
+msgstr "Erreur de lecture de fichier : aucune donnée n'a été lue"
 
 # Priority 1
 #: Adapt_ItDoc.cpp:1336 Adapt_ItView.cpp:22129
