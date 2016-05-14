@@ -18,7 +18,8 @@ extern "C"
 #include <stdlib.h>
 
 //  GDLC 9MAY16
-#ifdef __WXMAC__
+// whm 14May2016 added __WXGTK__
+#if defined (__WXMAC__) || defined (__WXGTK__)
 #include <sys/time.h>
 #include <arpa/inet.h>
 #endif  // __WXMAC__
