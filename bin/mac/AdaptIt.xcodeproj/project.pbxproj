@@ -93,6 +93,13 @@
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
 		C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */ = {isa = PBXBuildFile; fileRef = C853F9991222543700334B95 /* iso639-3codes.txt */; };
 		C85CE18314103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */; };
+		C88174261CE4A0E30017FCC6 /* 1035.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C88174251CE4A0E30017FCC6 /* 1035.cpp */; };
+		C88174291CE4A3AB0017FCC6 /* mdnsd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C88174281CE4A3AB0017FCC6 /* mdnsd.cpp */; };
+		C881742C1CE4A4F00017FCC6 /* KbSvrHowGetUrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C881742A1CE4A4F00017FCC6 /* KbSvrHowGetUrl.cpp */; };
+		C881742F1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C881742D1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.cpp */; };
+		C88174321CE4A5D20017FCC6 /* ServiceDiscovery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C88174301CE4A5D20017FCC6 /* ServiceDiscovery.cpp */; };
+		C88174351CE4A6A70017FCC6 /* wxServDisc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C88174331CE4A6A70017FCC6 /* wxServDisc.cpp */; };
+		C88174381CE4A7220017FCC6 /* Thread_ServiceDiscovery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C88174361CE4A7220017FCC6 /* Thread_ServiceDiscovery.cpp */; };
 		C8A144BC1429F5D20022E0F1 /* convauto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A144BA1429F5D20022E0F1 /* convauto.cpp */; };
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
 		C8C3970C15D3D2670093A3CE /* BookNameDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */; };
@@ -339,6 +346,20 @@
 		C853F9991222543700334B95 /* iso639-3codes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "iso639-3codes.txt"; path = "../../docs/iso639-3codes.txt"; sourceTree = SOURCE_ROOT; };
 		C85CE18114103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConsChk_Empty_noTU_Dlg.h; path = ../../source/ConsChk_Empty_noTU_Dlg.h; sourceTree = SOURCE_ROOT; };
 		C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConsChk_Empty_noTU_Dlg.cpp; path = ../../source/ConsChk_Empty_noTU_Dlg.cpp; sourceTree = SOURCE_ROOT; };
+		C88174231CE49FA40017FCC6 /* 1035.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = 1035.h; path = ../../source/1035.h; sourceTree = "<group>"; };
+		C88174251CE4A0E30017FCC6 /* 1035.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = 1035.cpp; path = ../../source/1035.cpp; sourceTree = "<group>"; };
+		C88174271CE4A2DA0017FCC6 /* mdnsd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mdnsd.h; path = ../../source/mdnsd.h; sourceTree = "<group>"; };
+		C88174281CE4A3AB0017FCC6 /* mdnsd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = mdnsd.cpp; path = ../../source/mdnsd.cpp; sourceTree = "<group>"; };
+		C881742A1CE4A4F00017FCC6 /* KbSvrHowGetUrl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KbSvrHowGetUrl.cpp; path = ../../source/KbSvrHowGetUrl.cpp; sourceTree = "<group>"; };
+		C881742B1CE4A4F00017FCC6 /* KbSvrHowGetUrl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KbSvrHowGetUrl.h; path = ../../source/KbSvrHowGetUrl.h; sourceTree = "<group>"; };
+		C881742D1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ServDisc_KBserversDlg.cpp; path = ../../source/ServDisc_KBserversDlg.cpp; sourceTree = "<group>"; };
+		C881742E1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ServDisc_KBserversDlg.h; path = ../../source/ServDisc_KBserversDlg.h; sourceTree = "<group>"; };
+		C88174301CE4A5D20017FCC6 /* ServiceDiscovery.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ServiceDiscovery.cpp; path = ../../source/ServiceDiscovery.cpp; sourceTree = "<group>"; };
+		C88174311CE4A5D20017FCC6 /* ServiceDiscovery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ServiceDiscovery.h; path = ../../source/ServiceDiscovery.h; sourceTree = "<group>"; };
+		C88174331CE4A6A70017FCC6 /* wxServDisc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wxServDisc.cpp; path = ../../source/wxServDisc.cpp; sourceTree = "<group>"; };
+		C88174341CE4A6A70017FCC6 /* wxServDisc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wxServDisc.h; path = ../../source/wxServDisc.h; sourceTree = "<group>"; };
+		C88174361CE4A7220017FCC6 /* Thread_ServiceDiscovery.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_ServiceDiscovery.cpp; path = ../../source/Thread_ServiceDiscovery.cpp; sourceTree = "<group>"; };
+		C88174371CE4A7220017FCC6 /* Thread_ServiceDiscovery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_ServiceDiscovery.h; path = ../../source/Thread_ServiceDiscovery.h; sourceTree = "<group>"; };
 		C8A144BA1429F5D20022E0F1 /* convauto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = convauto.cpp; path = ../../source/convauto.cpp; sourceTree = SOURCE_ROOT; };
 		C8A144BB1429F5D20022E0F1 /* convauto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = convauto.h; path = ../../source/convauto.h; sourceTree = SOURCE_ROOT; };
 		C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ReadOnlyProtection.cpp; path = ../../source/ReadOnlyProtection.cpp; sourceTree = SOURCE_ROOT; };
@@ -861,6 +882,20 @@
 				C8F82E580F3F9CAB007579B8 /* XML.h */,
 				C8F82E590F3F9CAB007579B8 /* XMLErrorDlg.cpp */,
 				C8F82E5A0F3F9CAB007579B8 /* XMLErrorDlg.h */,
+				C88174251CE4A0E30017FCC6 /* 1035.cpp */,
+				C88174231CE49FA40017FCC6 /* 1035.h */,
+				C88174281CE4A3AB0017FCC6 /* mdnsd.cpp */,
+				C88174271CE4A2DA0017FCC6 /* mdnsd.h */,
+				C881742A1CE4A4F00017FCC6 /* KbSvrHowGetUrl.cpp */,
+				C881742B1CE4A4F00017FCC6 /* KbSvrHowGetUrl.h */,
+				C881742D1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.cpp */,
+				C881742E1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.h */,
+				C88174301CE4A5D20017FCC6 /* ServiceDiscovery.cpp */,
+				C88174311CE4A5D20017FCC6 /* ServiceDiscovery.h */,
+				C88174331CE4A6A70017FCC6 /* wxServDisc.cpp */,
+				C88174341CE4A6A70017FCC6 /* wxServDisc.h */,
+				C88174361CE4A7220017FCC6 /* Thread_ServiceDiscovery.cpp */,
+				C88174371CE4A7220017FCC6 /* Thread_ServiceDiscovery.h */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -974,7 +1009,7 @@
 				ORGANIZATIONNAME = "SIL Australia";
 				TargetAttributes = {
 					8D0C4E890486CD37000505A6 = {
-						DevelopmentTeam = C5GMB572MV;
+						DevelopmentTeam = YMY6HM7S6S;
 					};
 				};
 			};
@@ -1126,6 +1161,7 @@
 				C8F82EAB0F3F9CAB007579B8 /* WhichFilesDlg.cpp in Sources */,
 				C8F82EAC0F3F9CAB007579B8 /* XML.cpp in Sources */,
 				C8F82EAD0F3F9CAB007579B8 /* XMLErrorDlg.cpp in Sources */,
+				C88174321CE4A5D20017FCC6 /* ServiceDiscovery.cpp in Sources */,
 				7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */,
 				C823A0A91008817D00BCDA62 /* tellenc.cpp in Sources */,
 				C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */,
@@ -1143,9 +1179,12 @@
 				0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */,
 				03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */,
 				C80E02BB1222481000ECCA6A /* AdminEditMenuProfile.cpp in Sources */,
+				C88174351CE4A6A70017FCC6 /* wxServDisc.cpp in Sources */,
+				C88174291CE4A3AB0017FCC6 /* mdnsd.cpp in Sources */,
 				C80E02BC1222481000ECCA6A /* NavProtectNewDoc.cpp in Sources */,
 				7D4C1A2F125D7EAA005DF3C6 /* UsfmFilterPage.cpp in Sources */,
 				7DCCD18A127FA19000A42526 /* CorGuess.cpp in Sources */,
+				C88174261CE4A0E30017FCC6 /* 1035.cpp in Sources */,
 				7DCCD18B127FA19000A42526 /* GuesserSettingsDlg.cpp in Sources */,
 				7DCCD1A0128CF1CF00A42526 /* EmailReportDlg.cpp in Sources */,
 				C8DE45671323679C0030EC9B /* base64.cpp in Sources */,
@@ -1169,6 +1208,7 @@
 				7DEAF5EA14FF24A000D6E871 /* ChooseCollabOptionsDlg.cpp in Sources */,
 				7DEAF5EB14FF24A100D6E871 /* CreateNewAIProjForCollab.cpp in Sources */,
 				27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */,
+				C881742F1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.cpp in Sources */,
 				C8C3970C15D3D2670093A3CE /* BookNameDlg.cpp in Sources */,
 				03C7004A15D4351800FAB605 /* Pathway.cpp in Sources */,
 				2791678616195D4D00744DF8 /* KBServer.cpp in Sources */,
@@ -1189,8 +1229,10 @@
 				27462BDC17474EBE005605DA /* jsonwriter.cpp in Sources */,
 				27B3963F1754B69A0034E461 /* UsernameInput.cpp in Sources */,
 				27501E2E176FD106000AC145 /* md5_SB.cpp in Sources */,
+				C88174381CE4A7220017FCC6 /* Thread_ServiceDiscovery.cpp in Sources */,
 				C8C8E0CA17883B6F00ABDFBC /* KBSharingMgrTabbedDlg.cpp in Sources */,
 				278D48BE1839859900562C6F /* FreeTransAdjustDlg.cpp in Sources */,
+				C881742C1CE4A4F00017FCC6 /* KbSvrHowGetUrl.cpp in Sources */,
 				C8F65CFE183DA5D10008546C /* RemoveSomeTgtEntries.cpp in Sources */,
 				C8D7E60B183DAF090099C11A /* KBSharingStatelessSetupDlg.cpp in Sources */,
 				C8D7E60C183DAF090099C11A /* Thread_BulkPseudoDelete.cpp in Sources */,
@@ -1704,6 +1746,7 @@
 					"__WXMAC_XCODE__=1",
 					"WX_PRECOMP=1",
 					"wxUSE_UNICODE=1",
+					_KBSERVER,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
