@@ -321,7 +321,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\1035.c" />
+    <ClCompile Include="..\..\source\1035.cpp" />
     <ClCompile Include="..\..\source\Adapt_It.cpp" />
     <ClCompile Include="..\..\source\Adapt_It_wdr.cpp" />
     <ClCompile Include="..\..\source\Adapt_ItCanvas.cpp" />
@@ -408,7 +408,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\MainFrm.cpp" />
     <ClCompile Include="..\..\source\md5.cpp" />
     <ClCompile Include="..\..\source\md5_SB.cpp" />
-    <ClCompile Include="..\..\source\mdnsd.c" />
+    <ClCompile Include="..\..\source\mdnsd.cpp" />
     <ClCompile Include="..\..\source\MergeUpdatedSrc.cpp" />
     <ClCompile Include="..\..\source\MoveDialog.cpp" />
     <ClCompile Include="..\..\source\Mover.cpp" />
