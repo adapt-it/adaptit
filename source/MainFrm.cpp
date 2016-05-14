@@ -556,6 +556,13 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_UPDATE_UI(ID_MENU_DISCOVER_ONE_KBSERVER, CMainFrame::OnUpdateDiscoverOneKBserver)
 
 #endif
+// The following ones disable KB Sharing related menu commands, when the build is not a KBserver one
+#if !defined(_KBSERVER)
+	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
+	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_DLG, CMainFrame::OnUpdateKBSharingDlg)
+	EVT_UPDATE_UI(ID_MENU_DISCOVER_ONE_KBSERVER, CMainFrame::OnUpdateDiscoverOneKBserver)
+	EVT_UPDATE_UI(ID_MENU_SCAN_AGAIN_KBSERVERS, CMainFrame::OnUpdateScanForRunningKBservers)
+#endif
 
 	// TODO: uncomment two event handlers below when figure out why setting tooltip time
 	// disables tooltips
@@ -2743,6 +2750,39 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
 }
 
+#endif
+
+// The following variants are defined for when the build is not a _KBSERVER one
+#if !defined(_KBSERVER)
+
+void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
+{
+	// Disable the "Setup Or Remove Knowledge Base Sharing" command, on Tools menu
+	// when the build is not a _KBSERVER one
+	event.Enable(FALSE);
+}
+void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
+{
+	// Disable the "Controls For Knowledge Base Sharing" command, on Tools menu
+	// when the build is not a _KBSERVER one
+	event.Enable(FALSE);
+}
+void CMainFrame::OnUpdateDiscoverOneKBserver(wxUpdateUIEvent& event)
+{
+	// Disable the "Discover One KBserver" command, on Tools menu
+	// when the build is not a _KBSERVER one
+	event.Enable(FALSE);
+}
+void CMainFrame::OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event)
+{
+	// Disable the "Discover One KBserver" command, on Tools menu
+	// when the build is not a _KBSERVER one
+	event.Enable(FALSE);
+}
+#endif // end block for when this is not a _KBSERVER build
+
+#if defined(_KBSERVER)
+
 void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 {
 	// Disable when in read-only mode.
@@ -2751,15 +2791,30 @@ void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	// Disable if there are no stored KBserver urls (and their hostnames too,
-	// but it is the urls which are important for login etc)
-	if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
+	// Allow the possibility that the project has never been a KB Sharing one
+	// and that a KBserver is running for which the user knows its URL (for example
+	// it might be on the web) and wants to setup using that URL; or maybe the
+	// project has been a KB sharing one, but the project configuration file does
+	// not currently store any ipaddress, but the user knows one that will work.
+	if ((gpApp->m_bKBReady && gpApp->m_bGlossingKBReady) &&
+		(!gpApp->m_bIsKBServerProject || 
+		(gpApp->m_bIsKBServerProject && gpApp->m_strKbServerURL.IsEmpty())))
 	{
-		event.Enable(FALSE);
+		event.Enable(TRUE);
 		return;
 	}
+
+	if ((gpApp->m_bKBReady && gpApp->m_bGlossingKBReady) &&
+		(gpApp->m_bIsKBServerProject && !gpApp->m_ipAddrs_Hostnames.IsEmpty()) ||
+		!gpApp->m_strKbServerURL.IsEmpty())
+	{
+		event.Enable(TRUE);
+		return;
+	}
+
+	event.Enable(FALSE);
 	// Enable if both KBs of the project are ready for work
-	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
+	//event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
 }
 
 void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event))
@@ -2868,7 +2923,7 @@ wxString CMainFrame::BuildUrlsAndNamesMessageString()
 {
 	wxArrayString urlsArray;
 	wxArrayString namesArray;
-	wxString columnLabels = _("           URL                                     Name\n");
+	wxString columnLabels = _("           URL                                         Name\n");
 	wxString noServersYet = _("No running KBservers have been discovered yet.\nAre you sure there is a KBserver running on the local network? Check.");
 	wxString oneExtra = _T(' ');
 	wxString twoExtra = _T("  ");
@@ -3005,6 +3060,8 @@ wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& url, wxString& hostname)
 
 #endif
 
+#if defined(_KBSERVER)
+
 void CMainFrame::OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event))
 {
 	// Do a burst of KBserver discovery runs. Each run is limited to discoverying one.
@@ -3060,6 +3117,8 @@ void CMainFrame::OnUpdateDiscoverOneKBserver(wxUpdateUIEvent& event)
 	else
 		event.Enable(FALSE);
 }
+
+#endif
 
 // TODO: uncomment EVT_MENU event handler for this function after figure out
 // why SetDelay() disables tooltips

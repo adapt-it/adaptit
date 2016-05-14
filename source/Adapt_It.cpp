@@ -5706,6 +5706,9 @@ EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbed
 EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnServiceDiscoveryTimer)
 
 #endif
+#if !defined(_KBSERVER)
+EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
+#endif
 EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
 
 //EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
@@ -28749,6 +28752,12 @@ void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
 }
 
 #endif // for _KBSERVER
+#if !defined(_KBSERVER)
+void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
+{
+	event.Enable(FALSE);
+}
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -34240,11 +34249,13 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szIsGlossingKBServerProject << tab << (int)m_bIsGlossingKBServerProject;
 	pf->AddLine(data);
+#endif
 
 	data.Empty();
 	data << szSentFinalPunctsTriggerCaps << tab << m_strSentFinalPunctsTriggerCaps;
 	pf->AddLine(data);
 
+#if defined (_KBSERVER)
 	// whm 30Oct13 moved the KbServerURL value handling to the basic config file, as
 	// it makes more sense to be there
 	//data.Empty();
@@ -34871,6 +34882,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_bIsGlossingKBServerProject_FromConfigFile = FALSE; // this variable retains the value set
 			}
 		}
+#endif
 		else if (name == szSentFinalPunctsTriggerCaps)
 		{
 			m_strSentFinalPunctsTriggerCaps = strValue;
@@ -34883,6 +34895,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_bSentFinalPunctsTriggerCaps = TRUE;
 			}
 		}
+#if defined (_KBSERVER)
 		// whm 30Oct13 moved the KbServerURL value handling to the basic config file
 		//else if (name == szKbServerURL)
 		//{
