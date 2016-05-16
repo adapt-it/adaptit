@@ -20,11 +20,14 @@
 /bin/linux/build_release/
 /bin/linux/adaptit.depend
 /bin/linux/bin/
+/bin/linux/compile
 /bin/linux/obj/
 /bin/mac/build/
 /bin/mac/DerivedData/
 /bin/source/
 /bin/linux/adaptit.layout
+/debian/control.bak
+/debian/control.save
 /hlp_temp/
 /setup Unicode/
 /setup Unicode - Minimal/
