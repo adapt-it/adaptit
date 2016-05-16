@@ -3031,7 +3031,7 @@ public:
 			// when the m_bKbSvrMgr_DeleteAllIsInProgress flag is TRUE) for the
 			// session, or much of the session; but when that flag is false, it
 			// would be deleted when the KB Sharing Manager gets deleted. So 
-			// we don't want either the Manger class,or the 
+			// we don't want either the Manager class, or the 
 			// KBSharingStatelessSetupDlg class owning this pointer. 
 			// (It needs to persist when a deletion of the entries in a remote
 			// kb is being done - deleting is done one by one, so it may take
@@ -3045,11 +3045,9 @@ public:
 			// pointer to local CKB instance - but deletion doesn't use the
 			// local CKB, so we should be able to safely set that ptr to NULL)
 			// and then once the queue is populated with the entries to delete,
-			// we can have the persistent KbServer instance delete it on the
-			// detached thread, even if the user exits that project, and killing
-			// the persistent KbServer instance can then be done by (a) the
-			// deletion ending successfully and the kb deleted from the kb table;
-			// or app end.
+			// we can have the persistent KbServer instance delete it. (But openssl 
+			// leaks memory from a thread, so we must do it synchronously now.)
+			// 
             // The basic sharing functionalities, however, will not use this persistent
             // KbServer instance - but rather create their KbServer instances on demand
             // (when entering a project for example, deleting when leaving the project

@@ -1140,6 +1140,8 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 	delete m_pKbServer;
 	m_pApp->m_pKbServer_Occasional = NULL; // we could use m_pKbServer = NULL, but
 				// this way it reminds the app maintainer what is happening here
+	m_pApp->m_pKbServer_Persistent = NULL; 
+
 	event.Skip();
 	// Remember, the Manager is closing, but there may still be a running detached
 	// thread working to delete a kb definition from the kb table in KBserver (it first
@@ -2146,7 +2148,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 				m_pKbServer->SetSourceLanguageCode(str);
 				if (bDeletingAdaptionKB)
 				{
-					str = pOldKbServer->GetSourceLanguageCode();
+					str = pOldKbServer->GetTargetLanguageCode();
 					m_pKbServer->SetTargetLanguageCode(str);
 				}
 				else
@@ -2188,6 +2190,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 				int rv = 0; // rv is "return value", initialize it
 				wxString timestamp;
 				timestamp = _T("1920-01-01 00:00:00"); // earlier than everything, so downloads the lot
+				m_pKbServer->GetDownloadsQueue()->Clear();
 				rv = m_pKbServer->ChangedSince_Queued(timestamp, FALSE);
 				// in above call, FALSE is value of the 2nd param, bDoTimestampUpdate
 				// Check for error

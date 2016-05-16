@@ -3269,14 +3269,17 @@ void KbServer::DeleteDownloadsQueueEntries()
 {
 	DownloadsQueue::iterator iter;
 	KbServerEntry* pStruct = NULL;
-	for (iter = m_queue.begin(); iter != m_queue.end(); ++iter)
+	if (!m_queue.IsEmpty())
 	{
-		pStruct = *iter;
-		// delete it
-		delete pStruct;
+		for (iter = m_queue.begin(); iter != m_queue.end(); ++iter)
+		{
+			pStruct = *iter;
+			// delete it
+			delete pStruct;
+		}
+		// now clear the list
+		m_queue.clear();
 	}
-	// now clear the list
-	m_queue.clear();
 }
 
 // deletes from the heap all KbServerUser struct ptrs within m_usersList
@@ -4638,8 +4641,8 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 		int id = (int)pKbSvrEntry->id;
 		rv = (CURLcode)pKbSvr->DeleteSingleKbEntry(id);
 #if defined (_DEBUG) && defined(_WANT_DEBUGLOG)
-		wxLogDebug(_T("Synchronous_DoEntireKbDeletion: Deleting entry with ID = %d  of total = %d"),
-						id, m_TotalEntriesToDelete);
+//		wxLogDebug(_T("Synchronous_DoEntireKbDeletion: Deleting entry with ID = %d  of total = %d"),
+//						id, m_TotalEntriesToDelete);
 #endif
 
 		// We don't expect any failures, but just in case there are some, count how many;
@@ -4661,8 +4664,8 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 			successCount++;
 #if defined(_DEBUG)
 			// track what we delete and it's ID
-			wxLogDebug(_T("Thread_DoEntireKbDeletion(): id = %d, src = %s , non-src = %s"),
-				pKbSvrEntry->id, pKbSvrEntry->source.c_str(), pKbSvrEntry->translation.c_str());
+//			wxLogDebug(_T("Thread_DoEntireKbDeletion(): id = %d, src = %s , non-src = %s"),
+//				pKbSvrEntry->id, pKbSvrEntry->source.c_str(), pKbSvrEntry->translation.c_str());
 #endif
 			// Copy it to the app member ready for display in main window at bottom
 			m_pApp->m_nIterationCounter = successCount;
@@ -4679,6 +4682,7 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 	// Remove the KbServerEntry structs stored in the queue (otherwise we would
 	// leak memory)
 	pKbSvr->DeleteDownloadsQueueEntries();
+	(pKbSvr->GetDownloadsQueue())->Clear(); 
 
 	// If control gets to here, we've either deleted all entries of the selected database,
 	// or most of them with some errors resulting in the leftover entries remaining owned by

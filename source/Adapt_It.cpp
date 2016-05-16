@@ -22535,7 +22535,8 @@ int CAdapt_ItApp::OnExit(void)
 
 #if defined(_KBSERVER)
 	// If a kb database of entries in kbserver's entry table is being deleted one by one
-	// in a currently running thread, then pApp->m_pKbServerForDeleting  will be non-NULL;
+	// in a currently running whole KB deletion, then pApp->m_pKbServerForDeleting  <<-- do I still use that?
+	// will be non-NULL;
 	// test for this and recover the heap memory now, the thread will then fail but
 	// that's okay - the user can re-establish the deletion (with fewer to delete) in the
 	// next session, or over several sessions, until the particular kb database is gone
