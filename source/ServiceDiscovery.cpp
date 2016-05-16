@@ -172,7 +172,7 @@
 
 // this one, if defined, displays each <url>@@@<hostname> string sent to the app, but a 
 // WITHHOLDING message if it is a duplicate. Comment out to suppress displaying that info
-#define _tracking_transfers_
+//#define _tracking_transfers_
 
 // Comment out the next line to disable wxLogDebug() logging related to shutdown of the 
 // service discovery run - same define is in Thread_ServiceDiscovery.cpp and wxServDisc.cpp
@@ -397,6 +397,13 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 				// BEW 28Apr16 Handle the possibility that this session has found an ipaddr which
 				// has a different hostname than what the m_ipAddrs_Hostnames wxArrayString has
 				// in one of its entries (typically one put there from the project config file)
+
+				// Need to remove spurious duplicate that can magically appear in app's m_ipAddrs_Hostnames
+				// array, after I connected to kbserver.jmarsden.org and then did a Discover One KBserver
+				// menu choice. It appears there before UpdateExistingAppCompositeStr() is called so I can't
+				// rely on that to remove it - so do it here next
+				RemoveSpuriousDuplicates(m_pApp->m_ipAddrs_Hostnames);
+				// Now check for any other non-spurious duplication & adjust
 				kbsvr_arrays.Lock();
 				bool bReplacedOne = UpdateExistingAppCompositeStr(m_addr, m_hostname, composite);
 				kbsvr_arrays.Unlock();
@@ -556,7 +563,12 @@ CServiceDiscovery::~CServiceDiscovery()
 // Somehow, a spurious repeat of the top entry got "found" (it didn't appear to be as the result of a lookup,
 // but only appears when I already had an existing connection to https://kbserver.jmarsden.org that was active.
 // So my second loop has to detect such a spurious entry and remove it. It would appear that I just need to match
-// the ipaddr part exactly, and remove the spurious entry before a spurious extra url can be produced
+// the ipaddr part exactly, and remove the spurious entry before a spurious extra url can be produced.
+// BEW later, same day. Crazily, the extra spurious line https://kbserver.jmarsden.org somehow got into the
+// app's m_ipAddrs_Hostnames array as a second line, **BEFORE** UpdateExistingAppCompositeStr() gets called. I
+// have no idea how. But I'll have to build a little function that checks for this happening before
+// UpdateExistingAppCompositeStr() gets called - and remove the partiallyl duplicated bogus second line - or any
+// like that which are identical in the url, but may differ in the KBserver name.
 bool CServiceDiscovery::UpdateExistingAppCompositeStr(wxString& ipaddr, wxString& hostname, wxString& composite)
 {
 	int count = (int)m_pApp->m_ipAddrs_Hostnames.GetCount();
@@ -621,6 +633,45 @@ bool CServiceDiscovery::UpdateExistingAppCompositeStr(wxString& ipaddr, wxString
 					 // some passed in values needed not to be used
 	}
 	return FALSE; // no replacement done to any of them
+}
+
+// This is an ugly hack, which assumes that if the first is duplicated on the next
+// or later line, the first is what we'll keep. We only look at the url.
+void CServiceDiscovery::RemoveSpuriousDuplicates(wxArrayString& arr)
+{
+	if (!arr.IsEmpty())
+	{
+		size_t count = arr.GetCount();
+		if (count > 1)
+		{
+			size_t index;
+			wxString topComposite = arr.Item(0);
+			wxString topIpaddr;
+			wxString topName;
+			int offset = topComposite.Find(_T("@@@"));
+			wxASSERT(offset != wxNOT_FOUND);
+			topIpaddr = topComposite.Left(offset);
+
+			for (index = 1; index < count; index++)
+			{
+				wxString aComposite = arr.Item(index);
+				// Check if it has the same ip address as topIpaddr, if so we will remove it
+				int offset = aComposite.Find(_T("@@@"));
+				if (offset != wxNOT_FOUND)
+				{
+					// Remove the @@@ and anything following, leaving its ipaddr
+					wxString anIpaddr = aComposite.Left(offset);
+					if (topIpaddr == anIpaddr)
+					{
+						// This one is spurious, so remove it,and assume there are no more like
+						// it, so return
+						arr.RemoveAt(index);
+						return;
+					}
+				}
+			}
+		}
+	}
 }
 
 // BEW created 5Jan16, needed for GetResults() in CServiceDiscovery instance

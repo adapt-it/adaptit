@@ -2926,8 +2926,6 @@ wxString CMainFrame::BuildUrlsAndNamesMessageString()
 	wxString columnLabels = _("           URL                                         Name\n");
 	wxString noServersYet = _("No running KBservers have been discovered yet.\nAre you sure there is a KBserver running on the local network? Check.");
 	wxString oneExtra = _T(' ');
-	wxString twoExtra = _T("  ");
-	int length = 0;
 	wxString spaces = _T("     ");
 
 	int  counter = GetUrlAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, urlsArray, namesArray);
@@ -2952,30 +2950,45 @@ wxString CMainFrame::BuildUrlsAndNamesMessageString()
 	// appears to be a new value (the entry to the project may have already put last session's
 	// url and hostname into m_ipAddrs_Hostnames array, so we need to check - and if two urls
 	// are the same, then the one already in the latter array should be deleted and replaced
-	// by the composite string about to be transferred
+	// by the composite string about to be transferred.
+	// BEW 16May16 urls like https://kbserver.jmarsden.org are longer, so I'm changing the algorithm
+	// for getting the hostnames lined up nicely. I'll get the longest url, and for shorter ones add
+	// following spaces up to the same length. Then I'll add an additional 4 spaces to them all.
+	int aLength;
+	wxString fourspaces = _T("    ");
+	wxString aURL = urlsArray.Item(0);
+	int maxLength = aURL.Length(); // the length of the first url
+	wxString aLine;
+	for (i = 1; i < counter; i++)
+	{
+		aURL = urlsArray.Item(i);
+		aLength = aURL.Length();
+		if (aLength > maxLength)
+		{
+			maxLength = aLength;
+		}
+	}
+#if defined(_DEBUG)
+	wxLogDebug(_T("BuildUrlAndNamesMessageString(): maxLength = %d  and number of entries = %d"), maxLength, counter);
+#endif
+	int j;
+	int nPadding;
 	for (i = 0; i < counter; i++)
 	{
-		wxString aLine = urlsArray.Item(i);
-		wxString reversed = MakeReverse(aLine);
-		int offset = reversed.Find(_T('.'));
-		if (offset != wxNOT_FOUND)
+		aURL = urlsArray.Item(i);
+		aLength = aURL.Length();
+		if (aLength < maxLength)
 		{
-			wxString field = reversed.Left(offset);
-			length = field.Length();
+			// Pad its end with spaces, then add four more
+			nPadding = maxLength - aLength;
+			for (j = 0; j < nPadding; j++)
+			{
+				aURL += oneExtra;
+			}
 		}
-		wxString modifiedspaces = spaces;
-		if (length == 1)
-		{
-			modifiedspaces += twoExtra;
-		}
-		else if (length == 2)
-		{
-			modifiedspaces += oneExtra;
-		}
-		aLine += modifiedspaces;
-		aLine += modifiedspaces;
-		aLine += namesArray.Item(i);
-		aLine += _T('\n');
+		aLine = aURL + fourspaces;
+		aLine += namesArray.Item(i); // add the KBserver name
+		aLine += _T('\n'); // start a new line
 		msgStr += aLine;
 	}
 	return msgStr;
