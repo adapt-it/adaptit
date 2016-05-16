@@ -540,9 +540,27 @@ CServiceDiscovery::~CServiceDiscovery()
 // in onSDNotify() neither TRANSFER nor WITHHOLD, as we are in effect just updating. (The one in the app
 // storage typically has come from an earlier session, via the project config file, when entering the
 // project to do more work in the current session.)
+//
+// BEW 16May16, a further loop needs to be added, to cope with the following scenario. I had used the login
+// from the KB Sharing Manager ( it would have also have worked the same if I'd logging in using the Setup Or
+// Remove K B Sharing dlg) to connect to https://kbserver.jmarsden.org (in California, I'm in Melbourne Australia)
+// and having got a connection, my code puts the url I manually typed into the app's m_ipAddrs_Hostnames array
+// as https://kbserver.jmarsden.org with hostname "unknown" following after a number of spaces. All good. Then
+// I had a KBserver also running on a laptop on my LAN, so I did a service discovery for that, it was found and
+// had the url https://192.168.2.9 with hostname kbserver.local. -- again, all good. Wireless connections. But
+// when, at the end of service discovery the wxMessageBox showed the results, there were three rather than two
+// lines of entry. They were as follows:
+// https://kbserver.jmarsden.org      unknown
+// https://kbserver.jmarsden.org
+// https://192.168.2.9           kbserver.local.
+// Somehow, a spurious repeat of the top entry got "found" (it didn't appear to be as the result of a lookup,
+// but only appears when I already had an existing connection to https://kbserver.jmarsden.org that was active.
+// So my second loop has to detect such a spurious entry and remove it. It would appear that I just need to match
+// the ipaddr part exactly, and remove the spurious entry before a spurious extra url can be produced
 bool CServiceDiscovery::UpdateExistingAppCompositeStr(wxString& ipaddr, wxString& hostname, wxString& composite)
 {
 	int count = (int)m_pApp->m_ipAddrs_Hostnames.GetCount();
+	bool bMadeAChange = FALSE;
 	if (count == 0)
 	{
 		// There is no issue - no strings in the app storage yet, so return FALSE
@@ -563,10 +581,10 @@ bool CServiceDiscovery::UpdateExistingAppCompositeStr(wxString& ipaddr, wxString
 			{
 				// There is a match for the ip address, so check further
 				offset = aFarComposite.Find(hostname);
-				if (offset == wxNOT_FOUND)
+				if (offset == wxNOT_FOUND && !hostname.IsEmpty())
 				{
-					// The one in the app storage has a different hostname then
-					// what was passed in here, so update the app storage to have
+					// The one in the app storage has a different and non-empty hostname
+					// than what was passed in here, so update the app storage to have
 					// the more uptodate hostname
 					m_pApp->m_ipAddrs_Hostnames.RemoveAt(i);
 					m_pApp->m_ipAddrs_Hostnames.Add(composite);
@@ -577,13 +595,32 @@ bool CServiceDiscovery::UpdateExistingAppCompositeStr(wxString& ipaddr, wxString
 					// This hostname problem, because the composite strings in the app
 					// storage are unique, can only occur in one such string. If we've
 					// just fixed one, we've fixed the only possible one with this issue,
-					// so we don't need to check further - just return TRUE
-					return TRUE;
+					// so return TRUE
+					bMadeAChange = TRUE;
+				}
+				else
+				{
+					// The hostname passed in is also in the app's existing entry, so
+					// we've got the same ipaddr and same hostname, so don't change
+					// anything - don't do any replacement, but return TRUE as if we
+					// had done so (so no change gets done to the app's entry)
+					// OR
+					// The hostname passed in was empty, so nothing is to be gained
+					// by any replacement.
+					// In either case, return TRUE because then the present values
+					// passed in here will produce no change in the entry the app
+					// already is storing
+					bMadeAChange = TRUE;
 				}
 			}
 		}
 	}
-	return FALSE; // no replacemet done to any of them
+	if (bMadeAChange)
+	{
+		return TRUE; // one or more replacements done, or, 
+					 // some passed in values needed not to be used
+	}
+	return FALSE; // no replacement done to any of them
 }
 
 // BEW created 5Jan16, needed for GetResults() in CServiceDiscovery instance

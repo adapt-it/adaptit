@@ -5,19 +5,31 @@
 # Date: 2015-06-23
 # Author: Bill Martin <bill_martin@sil.org>
 # Revision: 29August2015 whm added support for Linux Mint Rafaela
+# Revision: 13May2016 whm added support for Rosa, Sarah, Xenial.
+#   Split AID_DEV_TOOLS into two groups Added newer 3.x packages 
+#   to AID_DEV_TOOLS_NEW and 2.0 and 2.8 packages to AID_DEV_TOOLS_OLD.
+# The 3.x packages are installed on systems starting with Xenial; the
+# 2.0 and 2.8 packages are installed on all systems prior to Xenial.
+#
 # Setup AID development tools
 echo "Seting up AID Tools..."
 
 PROJECT_DIR=${1:-~/projects}	# AIM development file location, default ~/projects/
 WAIT=60
 AID_GITURL=https://github.com/adapt-it/adaptit.git
-AID_DEV_TOOLS="codeblocks gnome-common libgtk2.0-0-dbg libgtk2.0-dev \
+AID_DEV_TOOLS_OLD="codeblocks gnome-common libgtk2.0-0-dbg libgtk2.0-dev \
   gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
   libwxbase2.8-0 libwxbase2.8-dbg libwxbase2.8-dev libwxgtk2.8-0 libwxgtk2.8-dbg \
-  libwxgtk2.8-dev wx-common wx2.8-headers wx2.8-i18n subversion"
-# Removed libgnomeprintui2.2-dev from AID_DEV_TOOLS list above (it's not in 14.04)
+  libwxgtk2.8-dev wx-common wx2.8-headers wx2.8-i18n"
+AID_DEV_TOOLS_NEW="codeblocks gnome-common libgtk-3-0-dbg libgtk-3-dev \
+  gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
+  libwxbase3.0-0v5 libwxbase3.0-0v5-dbg libwxbase3.0-dev libwxgtk3.0-0v5 libwxgtk3.0-0v5-dbg \
+  libwxgtk3.0-dev wx-common wx3.0-headers wx3.0-i18n"
+# Note: the wx2.8-i18n and wx2.8-i18n packages cannot be installed at the same time, 
+# otherwise you get: apt-get error: wx2.8-i18n : Conflicts: wx-i18n
+# Removed libgnomeprintui2.2-dev from AID_DEV_TOOLS... list above (it's not in 14.04 and not really needed)
 supportedDistIDs="LinuxMint Ubuntu"
-supportedCodenames="maya qiana rebecca rafaela precise trusty utopic vivid wily"
+supportedCodenames="maya qiana rebecca rafaela rosa sarah precise trusty utopic vivid wily xenial"
 SILKEYURL="http://packages.sil.org/sil.gpg"
 echo -e "\nDetermine if system is LinuxMint or Ubuntu and its Codename"
 # Determine whether we are setting up a LinuxMint/Wasta system or a straight Ubuntu system
@@ -25,8 +37,8 @@ echo -e "\nDetermine if system is LinuxMint or Ubuntu and its Codename"
 distID=`lsb_release -is`
 echo "  This system is: $distID"
 # Determine what the Codename is of the system
-# The 'lsb_release -cs' command returns "maya", "qiana", "rebecca", or "rafaela" on Mint LTS systems, 
-#   and "precise", "trusty", "utopic", "vivid", or "wily" on Ubuntu systems"
+# The 'lsb_release -cs' command returns "maya", "qiana", "rebecca", "rafaela", "rosa", "sarah" on Mint LTS systems, 
+#   and "precise", "trusty", "utopic", "vivid", "wily", "xenial" on Ubuntu systems"
 distCodename=`lsb_release -cs`
 echo "  The Codename is: $distCodename"
 if echo "$supportedDistIDs" | grep -q "$distID"; then
@@ -59,15 +71,22 @@ case $distCodename in
   "rafaela")
   distCodename="trusty"
   ;;
+  "rosa")
+  distCodename="trusty"
+  ;;
+  "sarah")
+  distCodename="xenial"
+  ;;
 esac
+echo "  The Modified Codename for Deveopment is: $distCodename"
 PSO_URL="deb http://packages.sil.org/ubuntu $distCodename main"
 echo -e "\nAdding '$PSO_URL' to software sources"
 # whm Note: the add-apt-repository command below is resulting in duplicates being added to
 # the software sources list(s) on trusty. The sudo bash grep command below should do the job 
 # without resulting in duplicates.
-#sudo add-apt-repository "deb http://packages.sil.org/ubuntu $distCodename main"
-grep -q "$PSO_URL" /etc/apt/sources.list \
-  || echo "$PSO_URL" | sudo tee -a /etc/apt/sources.list
+sudo add-apt-repository "deb http://packages.sil.org/ubuntu $distCodename main"
+#grep -q "$PSO_URL" /etc/apt/sources.list \
+#  || echo "$PSO_URL" | sudo tee -a /etc/apt/sources.list
 
 echo -e "\nEnsuring the sil.gpg key is installed for the packages.sil.org repository..."
 # Ensure sil.gpg key is installed
@@ -101,7 +120,11 @@ sudo apt-get -q update
 
 # Install tools for development work focusing on Adapt It Desktop (AID)
 echo -e "\nInstalling AIM development tools..."
-sudo apt-get install $AID_DEV_TOOLS -y
+if [ "$distCodename" = "xenial" ]; then
+  sudo apt-get install $AID_DEV_TOOLS_NEW -y
+else
+  sudo apt-get install $AID_DEV_TOOLS_OLD -y
+fi
 
 # Ask user if we should get the Adapt It sources from Github
 # Provide a 60 second countdown for response. If no response assume "yes" response
@@ -200,19 +223,77 @@ case $response1 in
     case $response2 in
       [yY][eE][sS]|[yY]) 
         echo -e "\nBuilding the Adapt It Desktop (AID) project..."
-      # Build adaptit
+
+      # Build ideas taken from build-ai.sh that is used to build AID by Travis CI
+      # remove files from previous builds
+      rm -rf $PROJECT_DIR/adaptit/bin/linux/build_debug
+      if [ $? -ne 0 ]
+      then
+        echo "Unable to remove build_debug directory: $?"
+        exit 1
+      fi
+
+      rm -rf $PROJECT_DIR/adaptit/bin/linux/build_release
+      if [ $? -ne 0 ]
+      then
+        echo "Unable to remove build_release directory: $?"
+        exit 1
+      fi
+
+      # Build adaptit and return the results
       cd $PROJECT_DIR/adaptit/bin/linux/
-      mkdir -p build_debug build_release
-      echo -e "\n************************************"
-      echo      "**  Building the debug version... **"
-      echo      "************************************"
+      # make sure the old configure and friends are gone
+      rm -f Makefile.in configure config.sub config.guess aclocal.m4 ltmain.sh
+      # call autogen to generate configure and friends
+      ./autogen.sh
+      if [ $? -ne 0 ]
+      then
+        echo "Error in autogen.sh script: $?"
+        exit 1
+      fi
+
+      mkdir -p build_debug
+      echo -e "\n********************************************"
+      echo      "**  Building the Unicode Debug version... **"
+      echo      "********************************************"
       sleep 1
-      (cd build_debug && ../configure --prefix=/usr --enable-debug && make)
-      echo -e "\n**************************************"
-      echo      "**  Building the release version... **"
-      echo      "**************************************"
+      (cd build_debug && ../configure --prefix=/usr --enable-debug)
+      if [ $? -ne 0 ]
+      then
+        echo "Error configuring for Unicode Debug build: $?"
+        exit 1
+      fi
+      (cd build_debug && make clean && make)
+      if [ $? -ne 0 ]
+      then
+        echo "Error building Adapt It Unicode Debug: $?"
+        exit 1
+      fi
+
+      cd $PROJECT_DIR/adaptit/bin/linux/
+      mkdir -p build_release
+      echo -e "\n**********************************************"
+      echo      "**  Building the Unicode Release version... **"
+      echo      "**********************************************"
       sleep 1
-      (cd build_release && ../configure --prefix=/usr && make)
+      (cd build_release && ../configure --prefix=/usr)
+      if [ $? -ne 0 ]
+      then
+        echo "Error configuring for Unicode Release build: $?"
+        exit 1
+      fi
+      (cd build_release && make clean && make)
+      if [ $? -ne 0 ]
+      then
+        echo "Error building Adapt It Unicode Release: $?"
+        exit 1
+      fi
+
+      echo " "
+      echo "-------------------------------------------------"
+      echo "-- Adapt It Debug and Release builds succeeded --"
+      echo "-------------------------------------------------"
+      echo " "
 
       # Explain how to run it
       echo -e "\n**Adapt It Desktop Developer Information**"

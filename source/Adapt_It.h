@@ -176,7 +176,7 @@ class KBSharingMgrTabbedDlg;
 //
 // whm 6Jan12 Note: When changing these version numbers we also need to change the version number
 // in the following:
-// 1. The appVerStr const defined below (about line 202).
+// 1. The appVerStr const defined below (about line 217).
 // 2. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the xml folder.
 // 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
 //    NOTE: Use an editor such as Notepad to edit Adapt_It.rc. DO NOT USE
@@ -211,9 +211,9 @@ class KBSharingMgrTabbedDlg;
 #define VERSION_BUILD_PART 4 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 15
-#define VERSION_DATE_MONTH 10
-#define VERSION_DATE_YEAR 2015
+#define VERSION_DATE_DAY 14
+#define VERSION_DATE_MONTH 05
+#define VERSION_DATE_YEAR 2016
 const wxString appVerStr(_T("6.6.4"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
@@ -2031,6 +2031,15 @@ class CAdapt_ItApp : public wxApp
 
 	wxTimer m_timer;
 
+	// BEW 12May16 We need a way to prevent OnIdle() events from asking the user for a KBserver
+	// login choice while the wizard is running. OnIdle() will, without this, check only for
+	// the flag m_bEnteringKBserverProject being true, and it is defaulted to true in OnInit()
+	// so the ask happens at the Next> click at the wizard's Projects page - which is *not* what
+	// we want to happen at that time. So we'll add this second boolean to the test, so that
+	// the first idle event AFTER the wizard has closed, will trigger the connection request dlg
+	bool    m_bWizardIsRunning; // it's easier for a non _KBSERVER build to just leave it out of the _KBSERVER wrapper
+
+
 #if defined(_KBSERVER)
 
 	// The following is the timer for incremental downloads; defaulted to
@@ -2053,14 +2062,6 @@ class CAdapt_ItApp : public wxApp
     // change the value. However, the user can edit the value in the basic configuration
     // file directly.
 	int		m_KBserverTimer; 
-
-	// BEW 12May16 We need a way to prevent OnIdle() events from asking the user for a KBserver
-	// login choice while the wizard is running. OnIdle() will, without this, check only for
-	// the flag m_bEnteringKBserverProject being true, and it is defaulted to true in OnInit()
-	// so the ask happens at the Next> click at the wizard's Projects page - which is *not* what
-	// we want to happen at that time. So we'll add this second boolean to the test, so that
-	// the first idle event AFTER the wizard has closed, will trigger the connection request dlg
-	bool    m_bWizardIsRunning;
 
 	// Storage of username's value for the boolean flags, kbadmin, and useradmin; we store
 	// them here rather than in the KbServer class itself, because the value of these
@@ -3104,7 +3105,11 @@ public:
 	// These next two are not part of the AI_UserProfiles feature, we want them for every profile
 	void	  OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event));
 	void      OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
-
+#endif
+#if !defined(_KBSERVER)
+	void	  OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
+#endif
+#if defined(_KBSERVER)
 	// Next three are stored in the project configuration file
 	bool		m_bIsKBServerProject; // TRUE if the user wants an adapting kbserver for
 								// sharing kb data between clients in the same AI project

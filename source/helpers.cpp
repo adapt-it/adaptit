@@ -11205,11 +11205,42 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 					// Success if control gets to this line
 					pApp->GetKbServer(1)->EnableKBSharing(TRUE);
 					pApp->m_bUserLoggedIn = TRUE;
+
+					// Since the URL is okay, construct the composite string and .Add() it to the
+					// app's m_ipAddrs_Hostnames array
+					// BEW 6Apr16, make composite:  <ipaddr>@@@<hostname> to pass back to CServiceDiscovery instance
+					wxString composite = pApp->m_strKbServerURL;
+					int offset = composite.Find(_T("://"));
+					if (offset > 0)
+					{
+						composite = composite.Mid(offset + 3); // retain what follows //
+						wxString defaultHostname = _("unknown");
+						wxString ats = _T("@@@");
+						composite += ats + defaultHostname;
+						pApp->m_ipAddrs_Hostnames.Add(composite);
+					}
+
 				} // 3
 				if (pApp->GetKbServer(2) != NULL && !bSetupKBserverFailed)
 				{ // 4
 					pApp->GetKbServer(2)->EnableKBSharing(TRUE);
 					pApp->m_bUserLoggedIn = TRUE;
+
+					// Since the URL is okay, construct the composite string and .Add() it to the
+					// app's m_ipAddrs_Hostnames array
+					// BEW 6Apr16, make composite:  <ipaddr>@@@<hostname> to pass back to CServiceDiscovery instance
+					wxString composite = pApp->m_strKbServerURL;
+					int offset = composite.Find(_T("://"));
+					if (offset > 0)
+					{
+						composite = composite.Mid(offset + 3); // retain what follows //
+						wxString defaultHostname = _("unknown");
+						wxString ats = _T("@@@");
+						composite += ats + defaultHostname;
+						pApp->m_ipAddrs_Hostnames.Add(composite);
+
+					}
+
 				} // 3
 
 				} // 2 // end of TRUE block for test: if (!bSimulateUserCancellation)
