@@ -1809,8 +1809,8 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent
 		// There is at least one shared kb definition which uses the code
 		// which is to be deleted, so we cannot permit deletion (until all
 		// such shared kb definitions, and their kb entries also, are
-		// deleted; because MySQL will not allow the custom code to be
-		// removed while something depending on it exists. We have to tell
+		// deleted; because MySQL will not allow the code (custom or not) to
+		// be removed while something depending on it exists. We have to tell
 		// this to the user, and clear the text boxes and the selection. 
 		// Also, tell the user which shared definition(s) are the offending
 		// ones.
@@ -1840,6 +1840,13 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent
 		}
 		wxString title = _("Warning: Unable to delete");
 		wxMessageBox(myMsg, title, wxICON_WARNING | wxOK);
+
+		// We must clear the array of constructed defs, otherwise memory will leak
+		for (i = 0; i < mySize; i++)
+		{
+			(kbDefsArray.Item(i)).Clear();
+		}
+		kbDefsArray.Clear();
 		return;
 	}
 	else
@@ -2118,8 +2125,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 				// m_pKbServer_Occasional - created at end of InitDialog(); and the code
 				// above used the target CKB instance for the testing. The code below
 				// does not require CKB access, only access to the KBserver, and to 
-				// a persistent KbServer instance which remains after the Manager
-				// disappears if necessary
+				// a persistent KbServer instance which remains no longer needed
 				wxASSERT(m_pApp->m_pKbServer_Persistent == NULL); // required
 
 				// From this point on, we need to create a stateless persistent KbServer instance
@@ -2390,6 +2396,20 @@ tidyup:	if (!m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
 		// Deletion is not in progess, so can clean up here
 		if (m_pApp->m_pKbServer_Persistent != NULL)
 		{
+			if (!m_pApp->m_pKbServer_Persistent->IsQueueEmpty())
+			{
+				// Queue is not empty, so delete the KbServerEntry structs that are 
+				// on the heap
+				m_pApp->m_pKbServer_Persistent->DeleteDownloadsQueueEntries();
+			}
+			delete m_pApp->m_pKbServer_Persistent;
+			m_pApp->m_pKbServer_Persistent = (KbServer*)NULL;
+
+			// Restore the correct KbServer pointer
+			m_pKbServer = pOldKbServer; // this makes m_pKbServer point back 
+										// again at m_pApp->m_pKbServer_Occasional;
+
+			/* remove, we don't use them and if left here, they would leak memory
 			wxString url = m_pKbServer->GetKBServerURL(); // these 6 'just in case' we need to 
 														  // restore them to Occasional KbServer
 														  // instance in code below
@@ -2399,6 +2419,7 @@ tidyup:	if (!m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
 			wxString password = m_pKbServer->GetKBServerPassword();
 			int type = m_pKbServer->GetKBServerType();
 			wxUnusedVar(type);
+			*/
 /* For synchronous calls we want the Manager to say open, so this below is no longer wanted I think - we want the kbs page updated instead
 			// The persistent KbServer instance hasn't been deleted and its pointer so
 			// to NULL yet, so do it here

@@ -1,5 +1,5 @@
 #!/bin/bash
-# aid-dev-setup.sh -- Set up environment for developing Adapt It Desktop (AID) on Ubuntu/Wasta 12.04, 14.04 or higher
+# aid-dev-setup.sh -- Set up environment for developing Adapt It Desktop (AID) on Ubuntu/Wasta 12.04, 14.04 or 16.04.
 # Note: This scipt may be called from the setup-work-dev-tools.sh script (option 1), or it 
 #       can be called independently as a stand-alone script.
 # Date: 2015-06-23
@@ -10,6 +10,8 @@
 #   to AID_DEV_TOOLS_NEW and 2.0 and 2.8 packages to AID_DEV_TOOLS_OLD.
 # The 3.x packages are installed on systems starting with Xenial; the
 # 2.0 and 2.8 packages are installed on all systems prior to Xenial.
+# Revision: 15May2016 whm added CodeBlocks PPA and GPG key to software 
+#   sources so the newest version of CodeBlocks can be installed.
 #
 # Setup AID development tools
 echo "Seting up AID Tools..."
@@ -17,11 +19,11 @@ echo "Seting up AID Tools..."
 PROJECT_DIR=${1:-~/projects}	# AIM development file location, default ~/projects/
 WAIT=60
 AID_GITURL=https://github.com/adapt-it/adaptit.git
-AID_DEV_TOOLS_OLD="codeblocks gnome-common libgtk2.0-0-dbg libgtk2.0-dev \
+AID_DEV_TOOLS_OLD="codeblocks poedit git gnome-common libgtk2.0-0-dbg libgtk2.0-dev \
   gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
   libwxbase2.8-0 libwxbase2.8-dbg libwxbase2.8-dev libwxgtk2.8-0 libwxgtk2.8-dbg \
   libwxgtk2.8-dev wx-common wx2.8-headers wx2.8-i18n"
-AID_DEV_TOOLS_NEW="codeblocks gnome-common libgtk-3-0-dbg libgtk-3-dev \
+AID_DEV_TOOLS_NEW="codeblocks poedit git gnome-common libgtk-3-0-dbg libgtk-3-dev \
   gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
   libwxbase3.0-0v5 libwxbase3.0-0v5-dbg libwxbase3.0-dev libwxgtk3.0-0v5 libwxgtk3.0-0v5-dbg \
   libwxgtk3.0-dev wx-common wx3.0-headers wx3.0-i18n"
@@ -30,7 +32,6 @@ AID_DEV_TOOLS_NEW="codeblocks gnome-common libgtk-3-0-dbg libgtk-3-dev \
 # Removed libgnomeprintui2.2-dev from AID_DEV_TOOLS... list above (it's not in 14.04 and not really needed)
 supportedDistIDs="LinuxMint Ubuntu"
 supportedCodenames="maya qiana rebecca rafaela rosa sarah precise trusty utopic vivid wily xenial"
-SILKEYURL="http://packages.sil.org/sil.gpg"
 echo -e "\nDetermine if system is LinuxMint or Ubuntu and its Codename"
 # Determine whether we are setting up a LinuxMint/Wasta system or a straight Ubuntu system
 # The 'lsb_release -is' command returns "LinuxMint" on Mint systems and "Ubuntu" on Ubuntu systems.
@@ -79,17 +80,98 @@ case $distCodename in
   ;;
 esac
 echo "  The Modified Codename for Deveopment is: $distCodename"
-PSO_URL="deb http://packages.sil.org/ubuntu $distCodename main"
-echo -e "\nAdding '$PSO_URL' to software sources"
-# whm Note: the add-apt-repository command below is resulting in duplicates being added to
-# the software sources list(s) on trusty. The sudo bash grep command below should do the job 
-# without resulting in duplicates.
-sudo add-apt-repository "deb http://packages.sil.org/ubuntu $distCodename main"
+
+# whm Note: the add-apt-repository command seems to have differing behaviors on
+# different Ubuntu distributions - storing software sources list(s) always in
+# sources.list in precise, but in separate *.list in sources.list.d on trusty
+# and xenial - at least unders Wasta-Linux. Using a bash grep command, as commented
+# out below, should do the job on trusty without resulting in duplicates, but
+# seemingly not on the Wasta-Linux distributions - which results in "duplicates".
+# Other possibly ways to add the repo
+#PSO_URL="deb http://packages.sil.org/ubuntu $distCodename main"
+# This one seems to result in duplicates
+#sudo add-apt-repository "$PSO_URL"
+# This one only works on precise and non-Wasta trusty and xenial distributions
 #grep -q "$PSO_URL" /etc/apt/sources.list \
 #  || echo "$PSO_URL" | sudo tee -a /etc/apt/sources.list
 
-echo -e "\nEnsuring the sil.gpg key is installed for the packages.sil.org repository..."
+# Code below borrowed and adapted from the wasta-base-postinst.sh script
+APT_SOURCES=/etc/apt/sources.list
+APT_SOURCES_D=/etc/apt/sources.list.d
+if ! [ -e $APT_SOURCES.wasta ];
+then
+    APT_SOURCES_D=/etc/apt/sources.list.d
+else
+    # wasta-offline active: adjust apt file locations
+    echo
+    echo "*** wasta-offline active, applying repository adjustments to /etc/apt/sources.list.wasta"
+    echo
+    APT_SOURCES=/etc/apt/sources.list.wasta
+    if [ "$(ls -A /etc/apt/sources.list.d)" ];
+    then
+        echo
+        echo "*** wasta-offline 'offline and internet' mode detected"
+        echo
+        # files inside /etc/apt/sources.list.d so it is active
+        # wasta-offline "offline and internet mode": no change to sources.list.d
+        APT_SOURCES_D=/etc/apt/sources.list.d
+    else
+        echo
+        echo "*** wasta-offline 'offline only' mode detected"
+        echo
+        # no files inside /etc/apt/sources.list.d
+        # wasta-offline "offline only mode": change to sources.list.d.wasta
+        APT_SOURCES_D=/etc/apt/sources.list.d.wasta
+    fi
+fi
+# Add SIL repository
+echo -e "\nAdding SIL repository to software sources"
+case $distCodename in
+  "precise")
+    sudo sed -i -e '$a deb http://packages.sil.org/ubuntu precise main' \
+        -i -e '\@deb http://packages.sil.org/ubuntu precise main@d' \
+        $APT_SOURCES
+  ;;
+  "trusty")
+    sudo sed -i -e '$a deb http://packages.sil.org/ubuntu trusty main' \
+        -i -e '\@deb http://packages.sil.org/ubuntu trusty main@d' \
+        $APT_SOURCES
+    # add inactive SIL experimental repository (if not found)
+    PSO_EXP_FOUND=$(grep 'deb http://packages.sil.org/ubuntu trusty-experimental main' $APT_SOURCES)
+    if [ ! "$PSO_EXP_FOUND" ]; then
+      echo
+      echo "*** Adding (inactive) SIL Experimental Repository"
+      echo
+      sed -i -e '$a #deb http://packages.sil.org/ubuntu trusty-experimental main' \
+          $APT_SOURCES
+    fi
+  ;;
+  "xenial")
+    # TODO: Check/Modify if xenial differs from trusty above in handling sources lists.
+    # It appears that for Xenial-based Wasta has designed it to put the xenial main packages.sil.org
+    # repository within the sources.list.d directory in a separate file called packages-sil-org-xenial.list
+    # and the xenial-experimental main packages.sil.org repository in packages-sil-org-xenial-experimental.list.
+    # However, standard xenial (not Wasta) appears to put the PSO repository within the sources.list
+    # file when the command: sudo apt-add-repository "deb http://packages.sil.org/ubuntu xenial main" is invoked.
+    # For the purposes of this script then, it seems that $APT_SOURCES should point to the sources.list.d dir.
+    sudo sed -i -e '$a deb http://packages.sil.org/ubuntu xenial main' \
+        -i -e '\@deb http://packages.sil.org/ubuntu xenial main@d' \
+        $APT_SOURCES
+    # add inactive SIL experimental repository (if not found)
+    PSO_EXP_FOUND=$(grep 'deb http://packages.sil.org/ubuntu xenial-experimental main' $APT_SOURCES)
+    if [ ! "$PSO_EXP_FOUND" ]; then
+      echo
+      echo "*** Adding (inactive) SIL Experimental Repository"
+      echo
+      sudo sed -i -e '$a #deb http://packages.sil.org/ubuntu xenial-experimental main' \
+          $APT_SOURCES
+    fi
+  ;;
+esac
+
 # Ensure sil.gpg key is installed
+echo -e "\nEnsuring the sil.gpg key is installed for the packages.sil.org repository..."
+SILKEYURL="http://packages.sil.org/sil.gpg"
 SILKey=`apt-key list | grep archive@packages.sil.org`
 if [ -z "$SILKey" ]; then
   echo "The SIL key is NOT installed."
@@ -115,11 +197,78 @@ else
   echo "The SIL key is already installed."
 fi
 
+# Add CodeBlocks repository
+echo -e "\nAdding CodeBlocks PPA repository to software sources"
+case $distCodename in
+  "precise")
+    # 
+    sudo sed -i -e '$a deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu precise main' \
+        -i -e '\@deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu precise main@d' \
+        $APT_SOURCES
+  ;;
+  "trusty")
+    # 
+    sudo sed -i -e '$a deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu trusty main' \
+        -i -e '\@deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu trusty main@d' \
+        $APT_SOURCES
+  ;;
+  "xenial")
+    # TODO: Check/Modify if xenial differs from trusty above
+    # 
+    sudo sed -i -e '$a deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu xenial main' \
+        -i -e '\@deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu xenial main@d' \
+        $APT_SOURCES
+  ;;
+esac
+
+# Ensure CodeBlocks key is installed
+# Note: The CodeBlocks key seems difficult to retrieve from its ppa.launchpad.net location,
+# so we'll generate it from a heredoc and not bother with getting the key from the Internet.
+echo -e "\nEnsuring the CodeBlocks key is installed for ppa.launchpad.net repository..."
+CBSIGNKEY="C99E40E1"
+CBKey=`apt-key list | grep $CBSIGNKEY`
+if [ -z "$CBKey" ]; then
+  echo "The CodeBlocks key is NOT installed."
+  # Made a temporary directory to generate a cb.gpg file with the public key's data
+  TEMPDIR=$(mktemp -dt "$(basename $0).XXXXXXXXXX")
+  TEMPFILE=$TEMPDIR/cb.gpg
+cat <<EOF >$TEMPFILE
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: SKS 1.1.5
+Comment: Hostname: keyserver.ubuntu.com
+
+mI0ESveZFQEEAKThHGzw+SstcL3VGb77mygRPQHUmw99SHUWU+rNxeAfZh8Nrk6XLaIqHFxV
+5eBUuFCVlafPElLIqzYnRc+/fcnp1ULEXcBYrCOnroHWR0zcdgbSAIhQaRYe8hXTuGKp/zXa
+SsgXqeX4Q8QaYLx7oJYX2MTLLrtbo+p6M+AnNgItABEBAAG0GExhdW5jaHBhZCBQUEEgZm9y
+IHNwaWxseoi2BBMBAgAgBQJK95kVAhsDBgsJCAcDAgQVAggDBBYCAwECHgECF4AACgkQh7sH
+tMmeQOFZywQAorsav42L8CCfEtdsMIHsGZxkYLfY2FRkEzyXAneIWIFwTeibxbjIcxYg4NzA
+oEoDJ1//6+YRAoqooBRGQSdrTYMfkokl4Rr+/98hV1LPCO8TSVTmvmeCIBsENB32Pn1zEbYC
+vqNpsgdbrHxLhtNf+bZIO1sfpslepi6o8B9u0jU=
+=DYMr
+-----END PGP PUBLIC KEY BLOCK-----
+EOF
+
+  if [ -f $TEMPFILE ]; then
+    echo "Found a cb.gpg key so will use it"
+    echo "Installing the cb.gpg key..."
+    sudo apt-key add $TEMPFILE
+    # Clean up - delete the temporary dir and contents
+    sudo rm -rf $TEMPDIR
+  else
+    # Key not in ~/tmp/ so retrieve the sil.gpg key from the SIL external web site
+    echo "Could not process a CodeBlocks key from a scripted PGP public key!"
+    echo "You will need to download and install the CodeBlocks key later with:"
+    echo "  sudo apt-key add <path>/<keyname>.gpg"
+  fi
+else
+  echo "The CodeBlocks key is already installed."
+fi
+
 echo -e "\nRefresh apt lists via apt-get update"
 sudo apt-get -q update
 
 # Install tools for development work focusing on Adapt It Desktop (AID)
-echo -e "\nInstalling AIM development tools..."
+echo -e "\nInstalling AIM development tools for $distCodename..."
 if [ "$distCodename" = "xenial" ]; then
   sudo apt-get install $AID_DEV_TOOLS_NEW -y
 else

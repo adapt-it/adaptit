@@ -22536,26 +22536,6 @@ int CAdapt_ItApp::OnExit(void)
 		m_pDVCS = (DVCS*)NULL;
 	}
 
-#if defined(_KBSERVER)
-	// If a kb database of entries in kbserver's entry table is being deleted one by one
-	// in a currently running whole KB deletion, then pApp->m_pKbServerForDeleting  <<-- do I still use that?
-	// will be non-NULL;
-	// test for this and recover the heap memory now, the thread will then fail but
-	// that's okay - the user can re-establish the deletion (with fewer to delete) in the
-	// next session, or over several sessions, until the particular kb database is gone
-	if (m_pKbServer_Persistent != NULL)
-	{
-		if (!m_pKbServer_Persistent->IsQueueEmpty())
-		{
-			// Queue is not empty, so delete the KbServerEntry structs that are 
-			// on the heap
-			m_pKbServer_Persistent->DeleteDownloadsQueueEntries();
-		}
-		delete m_pKbServer_Persistent;
-		m_pKbServer_Persistent = (KbServer*)NULL;
-	}
-#endif
-
 	// Clear up Guesser Prefix/Suffix Arrays - klb
 	if (!m_GuesserPrefixArray.IsEmpty())
 	{
