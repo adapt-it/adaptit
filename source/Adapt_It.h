@@ -183,7 +183,7 @@ class KBSharingMgrTabbedDlg;
 //    Visual Studio to edit this file, since Visual Studio will remove the
 //    #include "wx/msw/wx.rc" statement and add a lot of other
 //    Windows-specific stuff to the file - resulting in a build failure.
-// 4. The Visual Studio 2008 Adapt_It > Properties > Linker > Version (do for All Configurations).
+// 4. The Visual Studio 2015 Adapt_It > Properties > Linker > Version (do for All Configurations).
 //    For this version, just use the first two version digits, i.e., 6.6 to
 //    keep things compatible with newer versions of Visual Studio.
 // 5. The Mac's Info.plist file in adaptit/bin/mac/.
@@ -208,13 +208,13 @@ class KBSharingMgrTabbedDlg;
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 4 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
-#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 14
+#define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 17
 #define VERSION_DATE_MONTH 05
 #define VERSION_DATE_YEAR 2016
-const wxString appVerStr(_T("6.6.4"));
+const wxString appVerStr(_T("6.6.5"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
