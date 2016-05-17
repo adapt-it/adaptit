@@ -51,6 +51,7 @@ wxMutex s_BulkDeleteMutex; // Because PseudoDeleteOrUndeleteEntry() is used some
 			// LookupEntryFields()
 
 #define _WANT_DEBUGLOG //  comment out to suppress entry id logging when deleting a whole KB from KBserver
+#define _BULK_UPLOAD   // comment out to suppress logging for the <= 50 groups of bulk upload
 
 wxCriticalSection g_jsonCritSect; 
 
@@ -1766,6 +1767,7 @@ int KbServer::ListKbs(wxString username, wxString password)
 				result, error.c_str());
 			wxMessageBox(msg, _T("Error looking up a shared KB definition"), wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(msg);
+			m_httpStatusText.Clear(); // otherwise, a memory leak
 			curl_easy_cleanup(curl);
 			return (int)result;
 		}
@@ -1781,6 +1783,7 @@ int KbServer::ListKbs(wxString username, wxString password)
 		ClearKbStruct();
 		str_CURLbuffer.clear();
 		str_CURLheaders.clear();
+		m_httpStatusText.Clear(); // otherwise, a memory leak
 		return CURLE_HTTP_RETURNED_ERROR; // 22
 	}
 
@@ -1831,6 +1834,7 @@ int KbServer::ListKbs(wxString username, wxString password)
 
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
+			m_httpStatusText.Clear(); // otherwise, a memory leak
 			return -1;
 		}
         // We extract everything: id, sourcelanguage, targetlanguage, type, username,
@@ -1847,13 +1851,16 @@ int KbServer::ListKbs(wxString username, wxString password)
 			// Extract the field values, store them in pKbStruct
 			pKbStruct->id = jsonval[index][_T("id")].AsLong();
 			pKbStruct->sourceLanguageCode = jsonval[index][_T("sourcelanguage")].AsString();
+				(jsonval[index][_T("sourcelanguage")].AsString()).Clear(); // don't leak it
 			pKbStruct->targetLanguageCode = jsonval[index][_T("targetlanguage")].AsString();
+				(jsonval[index][_T("targetlanguage")].AsString()).Clear(); // don't leak it
 			pKbStruct->kbType = jsonval[index][_T("type")].AsLong();
 			pKbStruct->username = jsonval[index][_T("user")].AsString();
+				(jsonval[index][_T("user")].AsString()).Clear(); // don't leak it
 			unsigned long val = jsonval[index][_T("deleted")].AsLong();
 			pKbStruct->deleted = val == 1L ? TRUE : FALSE;
 			pKbStruct->timestamp = jsonval[index][_T("timestamp")].AsString();
-
+				(jsonval[index][_T("timestamp")].AsString()).Clear(); // don't leak it
 			// Add the pKbStruct to the m_kbsList stored in the KbServer instance
 			// which is this (Caller should only use the adaptations instance of KbServer)
 			m_kbsList.Append(pKbStruct); // Caller must later use ClearKbsList() to get
@@ -1868,6 +1875,7 @@ int KbServer::ListKbs(wxString username, wxString password)
 
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
+		m_httpStatusText.Clear(); // otherwise, a memory leak
 	}
 	return 0;
 }
@@ -5124,14 +5132,7 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 							// accept only the ones which aren't already in the
 							// remote DB
 							tgtPhrase = pRefString->m_translation; // might be empty
-#if defined(_DEBUG)
-							//if (tgtPhrase == _T("will not") || tgtPhrase == _T("might not") || tgtPhrase == _T("ross"))
-/*							if (tgtPhrase == _T("could not") || tgtPhrase == _T("can not"))
-							{
-								int break_here = 1;
-							}
-*/
-#endif
+
 							if (tgtPhrase.IsEmpty())
 							{
 								// use this instead for the search
@@ -5213,7 +5214,11 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 							// at the server end, and we don't want to generate a conflict with
 							// "i" if the latter gets put in the remote db
 							if (pRefString->m_translation == _T("I"))
+							{
+								srcPhrase.Clear();
+								delete reference; // don't leak it
 								continue; // skip this iteration
+							}
 							reference->translation = pRefString->m_translation;
 							// store the new struct
 							m_uploadsList.Append(reference);
@@ -5385,6 +5390,13 @@ void KbServer::UploadToKbServer()
 		||
 		(m_pApp->m_bIsGlossingKBServerProject && (this->m_kbServerType == 2) && this->IsKBSharingEnabled()))
 	{
+		CStatusBar* pStatusBar = NULL;
+		pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
+		pStatusBar->StartProgress(_("Bulk Upload"), _("Downloading Entries"), 70);
+
+		pStatusBar->UpdateProgress(_("Bulk Upload"), 10, _("Downloading Entries"));
+
+
 		s_DoGetAllMutex.Lock();
 
 		ClearAllPrivateStorageArrays();
@@ -5402,6 +5414,9 @@ void KbServer::UploadToKbServer()
 
  		ClearUploadsMap();
 
+		pStatusBar->UpdateProgress(_("Bulk Upload"), 20, _("Comparing Entries"));
+
+
         // The remote DB has content, so our upload will need to be smart - it must
         // upload only entries which are not yet in the remote DB, and be mutex
         // protected (the access we are protecting is that within
@@ -5409,6 +5424,7 @@ void KbServer::UploadToKbServer()
 		// the mutex wraps the call: pKB->StoreOneEntryFromKbServer())
 		KBAccessMutex.Lock();
 
+		// Scan the KB and populate the uploads list with KbServerEntry structs filled out
 		PopulateUploadList(this, bRemoteDBContentDownloaded);
 
 		KBAccessMutex.Unlock();
@@ -5428,10 +5444,10 @@ void KbServer::UploadToKbServer()
 		s_DoGetAllMutex.Unlock();
 
 		iTotalEntries = (int)m_uploadsList.GetCount(); // we use this below
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_BULK_UPLOAD)
 		wxLogDebug(_T("UploadToKbServer(), number of KbServerEntry structs =  %d"), iTotalEntries);
 #endif
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_BULK_UPLOAD)
 		{
 			UploadsList::iterator it;
 			UploadsList::compatibility_iterator iter2;
@@ -5441,10 +5457,8 @@ void KbServer::UploadToKbServer()
 				anIndex++;
 				iter2 = m_uploadsList.Item((size_t)anIndex);
 				KbServerEntry* pEntry = iter2->GetData();
-				wxString srcPhr = pEntry->source;
-				wxString transPhr = pEntry->translation;
 				wxLogDebug(_T("UploadToKbServer() %d. uploadable pair =  %s / %s"),
-					anIndex + 1, srcPhr.c_str(), transPhr.c_str());
+					anIndex + 1, pEntry->source.c_str(), pEntry->translation.c_str());
 			}
 		}
 #endif
@@ -5528,7 +5542,10 @@ void KbServer::UploadToKbServer()
 		for (listIter = m_uploadsList.begin(); listIter != m_uploadsList.end(); ++listIter)
 		{
 			++entryIndex;
-
+			if (entryIndex / 5 * 5 == entryIndex) // update at every 5th group sent
+			{
+				pStatusBar->UpdateProgress(_("Bulk Upload"), 20 + entryIndex, _("Uploading New Entries"));
+			}
 			// Prepare to build a JSON object
 			if (entryCount == 0)
 			{
@@ -5568,12 +5585,13 @@ void KbServer::UploadToKbServer()
 				// UTF8, ready for passing in to BulkUpload()
 				wxJSONWriter writer;
 				writer.Write((*jsonvalPtr), jsonStr);
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_BULK_UPLOAD)
 				wxLogDebug(_T("Data to BulkUpload() synchronously, for chunk number %d of total chunks %d\n Data follows....\n%s\n"),
 					chunkIndex + 1, numChunksNeeded, jsonStr.c_str());
 #endif
 				// convert it to utf-8 stored in CBString
 				jsonUtf8Str = ToUtf8(jsonStr);
+				jsonStr.Clear();
 
 				// Call BulkUpdate() to get the data entered to the remote KBserver
 				//pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
@@ -5585,7 +5603,7 @@ void KbServer::UploadToKbServer()
 					// only need to be inserted at the correct places, so this next line only needs
 					// to be here in this block
 					m_returnedCurlCodes[chunkIndex] = rv;
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_BULK_UPLOAD)
 					wxLogDebug(_T("***  UploadToKBServer() chunk error for chunk with index %d  ***"), chunkIndex);
 #endif
 				}
@@ -5602,16 +5620,17 @@ void KbServer::UploadToKbServer()
 		jsonvalPtr = new wxJSONValue;
 		wxJSONWriter writer;
 		writer.Write((*jsonvalPtr), jsonStr);
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_BULK_UPLOAD)
 		wxLogDebug(_T("Data to BulkUpload() synchronously, for chunk number %d of total chunks %d\n Data follows....\n%s\n"),
 			chunkIndex + 1, numChunksNeeded, jsonStr.c_str());
 #endif
 		jsonUtf8Str = ToUtf8(jsonStr);
+		jsonStr.Clear();
 		rv = (int)pKbSvr->BulkUpload(chunkIndex, url, username, password, jsonUtf8Str);
 		if (rv != (int)CURLE_OK)
 		{
 			m_returnedCurlCodes[chunkIndex] = rv;
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_BULK_UPLOAD)
 			wxLogDebug(_T("***  UploadToKBServer() chunk error for chunk with index %d  ***"), chunkIndex);
 #endif
 		}
@@ -5620,12 +5639,15 @@ void KbServer::UploadToKbServer()
 
 		DeleteUploadEntries();
 		ClearAllStrCURLbuffers2(); // clears all 50 of the str_CURLbuff[] buffers
+
+		pStatusBar->FinishProgress(_("Bulk Upload"));
+
 	} // end of TRUE block for test:
 	  //  if ((m_pApp->m_bIsKBServerProject && (this->m_kbServerType == 1) && this->IsKBSharingEnabled())
 	  //	||
 	  //	(m_pApp->m_bIsGlossingKBServerProject && (this->m_kbServerType == 2) && this->IsKBSharingEnabled()))
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_BULK_UPLOAD)
 	now = wxDateTime::Now();
 	wxLogDebug(_T("UploadToKBServer() end time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
 #endif
@@ -5755,12 +5777,13 @@ int KbServer::BulkUpload(int chunkIndex, // use for choosing which buffer to ret
 			msg = msg.Format(_T("UploadToKbServer() result code: %d Error: %s"),
 				result, error.c_str());
 			wxMessageBox(msg, _T("Error when bulk-uploading part of the entries"), wxICON_EXCLAMATION | wxOK);
-
+			m_httpStatusText.Clear();
 			curl_easy_cleanup(curl);
 			return result;
 		}
 	}
 	curl_easy_cleanup(curl);
+	m_httpStatusText.Clear();
 
 #if defined(_DEBUG)
 	now = wxDateTime::Now();
