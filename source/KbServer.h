@@ -336,7 +336,7 @@ public:
 	// Getting the kb server password is done in CMainFrame::GetKBSvrPasswordFromUser(),
 	// and stored there for the session (it only changes if the project changes and even
 	// then only if a different kb server was used for the other project, which would be
-	// unlikely)
+	// unlikely); or from the "Authenticate" dialog (KBSharingStatelessSetupDlg.cpp & .h).
 	// Note, when setting a stateless KbServer instance (eg. as when using the Manager), if the
 	// bStateless flag is TRUE, then 'stateless' temporary storage strings are used for the url,
 	// password and username - and those will get stored in the relevant places in the ptr to the
