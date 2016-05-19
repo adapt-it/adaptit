@@ -394,6 +394,8 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 	{
 		// Somebody, probably an administrator, is authenticating to the KB Sharing 
 		// Manager tabbed dialog 
+		m_pApp->m_bIsKBServerProject = FALSE; // Turn it back off, the Manager doesn't want
+											  // to assume the user's settings are this or that
 		if (!pwd.IsEmpty())
 		{
 			m_strStatelessPassword = pwd; // store it temporarily in this class's instance								  
@@ -476,6 +478,10 @@ void KBSharingStatelessSetupDlg::OnCancel(wxCommandEvent& myevent)
 {
 	delete m_pApp->m_pKbServer_Occasional; // makes our local copy, m_strStatelessKbServer, also invalid
 	m_pApp->m_pKbServer_Occasional = NULL;
+
+	// Cancelling from here should turn off sharing...
+	m_pApp->m_bIsKBServerProject = FALSE;
+	m_pApp->m_bIsGlossingKBServerProject = FALSE;
 	myevent.Skip();
 }
 

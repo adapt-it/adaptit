@@ -52,6 +52,8 @@
 #include "KBSharingMgrTabbedDlg.h"
 #include "HtmlFileViewer.h"
 #include "Thread_DoEntireKbDeletion.h"
+#include "MainFrm.h"
+#include "StatusBar.h"
 
 extern bool gbIsGlossing;
 
@@ -2266,10 +2268,16 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 						goto tidyup;
 					}
 
+					CStatusBar* pStatusBar = NULL;
+					pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
+					pStatusBar->StartProgress(_("Delete KB"), _("Deleting..."), m_pApp->m_nQueueSize);
+
 					// Do the deletions synchronously
 					int rv = m_pApp->m_pKbServer_Persistent->Synchronous_DoEntireKbDeletion(
 																m_pApp->m_pKbServer_Persistent, nID);
 					wxUnusedVar(rv);
+
+					pStatusBar->FinishProgress(_("Delete KB"));
 
 					/* deprecated - threads leak if openssl is used
 

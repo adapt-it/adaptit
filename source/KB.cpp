@@ -1225,7 +1225,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
         // automatic re-storing of it. So now, we will just not remove the last one. This
         // will possibly skew the ref counts a bit for empty adaptations, if the user hits
         // the <no adaptation> button more than once for an entry (making them too large)
-        // or landing on an empty one several times (makes count to small), would not
+        // or landing on an empty one several times (makes count too small), would not
         // matter anyway. To manually remove empty adaptations from the KB the user still
         // has the option of doing it in the KB Editor, or in the ChooseTranslation dialog.
 
@@ -1295,11 +1295,36 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 			pRefString->m_bDeleted = TRUE;
 		}
 
+#if defined(_KBSERVER)
+		// BEW added 5Oct12, here is a suitable place for KBserver support
+		if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady && (GetMyKbServer() != NULL))
+		{
+			if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+				||
+				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+			{
+				KbServer* pKbSvr = GetMyKbServer(); // This gets either the adapting one, or glossing one, 
+													// depending on the mode currently in effect
+				// Assume we need to delete the lower case entry, key = s1, it's most likely
+				// to be correct rather than key = s (That is, to save time, we are deciding
+				// that if auto-capitalization is not currently turned on, and the removal of
+				// a CRefString for an upper-case-initial word or phrase is being done, we will
+				// not bother to set the corresponding KBserver entry's deleted flag to 1. But
+				// we *will* bother to set it to 1, provided the entry is present and 
+				// lower-case-initial, whether auto-caps is on or off.)
+				int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, s1, pRefString->m_translation);
+				wxUnusedVar(rv);
+				wxLogDebug(_T("RemoveRefString() (1309, KB.cpp) Synchronous_PseudoDelete() returned  %d for src = %s  &  tgt = %s"),
+					rv, s1.c_str(), pRefString->m_translation.c_str());
+			}
+		}
+#endif
 		// inform the srcPhrase that it no longer has a KB entry (or a glossing KB entry)
 		if (m_bGlossingKB)
 			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 		else
 			pSrcPhrase->m_bHasKBEntry = FALSE;
+
 	}
 }
 

@@ -94,7 +94,7 @@ public:
 protected:
 	void onSDNotify(wxCommandEvent& WXUNUSED(event));
 	void onSDHalting(wxCommandEvent& WXUNUSED(event));
-	void RemoveSpuriousDuplicates(wxArrayString& arr);
+	//void RemoveSpuriousDuplicates(wxArrayString& arr);
 private:
 
 	DECLARE_EVENT_TABLE();

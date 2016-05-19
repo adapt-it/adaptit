@@ -4637,6 +4637,7 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 	KbServerEntry* pKbSvrEntry = NULL;
 	int nonsuccessCount = 0;
 	size_t successCount = 0;
+	size_t counter = 0;
 	// Iterate over all entry structs, and for each, do a https DELETE request to have it
 	// deleted from the database. Each DeleteSingleKbEntry() call is run synchronously, 
 	// and the next iteration doesn't begin until the present call has returned its error 
@@ -4647,6 +4648,7 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 	{
 		pKbSvrEntry = *iter;
 		int id = (int)pKbSvrEntry->id;
+		counter++;
 		rv = (CURLcode)pKbSvr->DeleteSingleKbEntry(id);
 #if defined (_DEBUG) && defined(_WANT_DEBUGLOG)
 //		wxLogDebug(_T("Synchronous_DoEntireKbDeletion: Deleting entry with ID = %d  of total = %d"),
@@ -4685,6 +4687,10 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 				wxPostEvent(m_pApp->GetMainFrame(), eventCustom); // custom event handlers are in CMainFrame
 			}
 		}
+
+		CStatusBar* pStatusBar = NULL;
+		pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
+		pStatusBar->UpdateProgress(_("Delete KB"), counter, _("Deleting a whole remote KB: entries deleted so far..."));
 	}
 
 	// Remove the KbServerEntry structs stored in the queue (otherwise we would
@@ -5392,9 +5398,9 @@ void KbServer::UploadToKbServer()
 	{
 		CStatusBar* pStatusBar = NULL;
 		pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
-		pStatusBar->StartProgress(_("Bulk Upload"), _("Downloading Entries"), 70);
+		pStatusBar->StartProgress(_("Bulk Upload"), _("Downloading entries..."), 70);
 
-		pStatusBar->UpdateProgress(_("Bulk Upload"), 10, _("Downloading Entries"));
+		pStatusBar->UpdateProgress(_("Bulk Upload"), 10, _("Downloading entries..."));
 
 
 		s_DoGetAllMutex.Lock();
@@ -5414,7 +5420,7 @@ void KbServer::UploadToKbServer()
 
  		ClearUploadsMap();
 
-		pStatusBar->UpdateProgress(_("Bulk Upload"), 20, _("Comparing Entries"));
+		pStatusBar->UpdateProgress(_("Bulk Upload"), 20, _("Comparing downloaded entries with local entries..."));
 
 
         // The remote DB has content, so our upload will need to be smart - it must
@@ -5542,10 +5548,11 @@ void KbServer::UploadToKbServer()
 		for (listIter = m_uploadsList.begin(); listIter != m_uploadsList.end(); ++listIter)
 		{
 			++entryIndex;
-			if (entryIndex / 5 * 5 == entryIndex) // update at every 5th group sent
-			{
-				pStatusBar->UpdateProgress(_("Bulk Upload"), 20 + entryIndex, _("Uploading New Entries"));
-			}
+
+			pStatusBar->UpdateProgress(_("Bulk Upload"), entryIndex + 20, _("Uploading new remote KB entries..."));
+			wxLogDebug(_T("UploadToKbServer(), line 5553, progress dialog, 20 + entryIndex = %d"), (entryIndex + 20));
+			//pStatusBar->Refresh();
+
 			// Prepare to build a JSON object
 			if (entryCount == 0)
 			{

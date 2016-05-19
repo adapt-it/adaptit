@@ -399,10 +399,12 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 				// in one of its entries (typically one put there from the project config file)
 
 				// Need to remove spurious duplicate that can magically appear in app's m_ipAddrs_Hostnames
-				// array, after I connected to kbserver.jmarsden.org and then did a Discover One KBserver
-				// menu choice. It appears there before UpdateExistingAppCompositeStr() is called so I can't
-				// rely on that to remove it - so do it here next
-				RemoveSpuriousDuplicates(m_pApp->m_ipAddrs_Hostnames);
+				// array. Testing... revealed that I unilaterally add within AuthenticateEtcWithoutServiceDiscovery()
+				// and likewise in AuthenticateCheckAndSetupKnowledgeBaseSharing() - that's why the duplication
+				// happens. Solution? In the latter two functions, test for duplication and don't add if it
+				// would produce a duplicate url in the m_ipAddrs_Hostnames array. When fixed, RemoveSpuriousDuplications()
+				// will no longer be needed
+				//RemoveSpuriousDuplicates(m_pApp->m_ipAddrs_Hostnames);
 				// Now check for any other non-spurious duplication & adjust
 				kbsvr_arrays.Lock();
 				bool bReplacedOne = UpdateExistingAppCompositeStr(m_addr, m_hostname, composite);
@@ -634,7 +636,7 @@ bool CServiceDiscovery::UpdateExistingAppCompositeStr(wxString& ipaddr, wxString
 	}
 	return FALSE; // no replacement done to any of them
 }
-
+/* no longer needed, cause of the duplication is now fixed
 // This is an ugly hack, which assumes that if the first is duplicated on the next
 // or later line, the first is what we'll keep. We only look at the url.
 void CServiceDiscovery::RemoveSpuriousDuplicates(wxArrayString& arr)
@@ -673,7 +675,7 @@ void CServiceDiscovery::RemoveSpuriousDuplicates(wxArrayString& arr)
 		}
 	}
 }
-
+*/
 // BEW created 5Jan16, needed for GetResults() in CServiceDiscovery instance
 bool CServiceDiscovery::IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase)
 {
