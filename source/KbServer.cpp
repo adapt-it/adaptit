@@ -5549,10 +5549,6 @@ void KbServer::UploadToKbServer()
 		{
 			++entryIndex;
 
-			pStatusBar->UpdateProgress(_("Bulk Upload"), entryIndex + 20, _("Uploading new remote KB entries..."));
-			wxLogDebug(_T("UploadToKbServer(), line 5553, progress dialog, 20 + entryIndex = %d"), (entryIndex + 20));
-			//pStatusBar->Refresh();
-
 			// Prepare to build a JSON object
 			if (entryCount == 0)
 			{
@@ -5603,7 +5599,10 @@ void KbServer::UploadToKbServer()
 				// Call BulkUpdate() to get the data entered to the remote KBserver
 				//pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 				rv = (int)pKbSvr->BulkUpload(chunkIndex, url, username, password, jsonUtf8Str);
-
+#if defined(_DEBUG) && defined(_BULK_UPLOAD)
+				pStatusBar->UpdateProgress(_("Bulk Upload"), chunkIndex, _("Uploading new remote KB entries..."));
+				wxLogDebug(_T("UploadToKbServer(), line 5604, progress dialog, 20 + chunkIndex = %d"), (chunkIndex + 20));
+#endif
 				if (rv != (int)CURLE_OK)
 				{
 					// m_returnedCurlCodes is 0 for every array item by default, so non-zero values
