@@ -300,6 +300,7 @@ CPhraseBox::CPhraseBox(void)
 	m_textColor = wxColour(0,0,0); // default to black
 	m_bMergeWasDone = FALSE;
 	m_bCancelAndSelectButtonPressed = FALSE;
+	m_bCurrentCopySrcPunctuationFlag = TRUE; // default
 }
 
 CPhraseBox::~CPhraseBox(void)
@@ -6001,6 +6002,9 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 	bool bOK = TRUE;
 	CRefString* pRefStr = NULL;
 	KB_Entry rsEntry;
+	// Restore user's choice for the command bar button ID_BUTTON_NO_PUNCT_COPY
+	pApp->m_bCopySourcePunctuation = pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag;
+
 	if (gbIsGlossing)
 	{
 		if (targetPhrase.IsEmpty())
@@ -6022,25 +6026,46 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 	else // is adapting
 	{
 		if (targetPhrase.IsEmpty())
-			pApp->m_pActivePile->GetSrcPhrase()->m_adaption = targetPhrase;
-		// re-express the punctuation
-		pApp->GetView()->MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
-		pApp->GetView()->RemovePunctuation(pDoc, &targetPhrase, from_target_text);
-
-		// the store will fail if the user edited the entry out of the KB, as the latter
-		// cannot know which srcPhrases will be affected, so these will still have their
-		// m_bHasKBEntry set true. We have to test for this, ie. a null pRefString but
-		// the above flag TRUE is a sufficient test, and if so, set the flag to FALSE
-		rsEntry = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-								pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase, pRefStr);
-		if ((pRefStr == NULL || rsEntry == present_but_deleted) &&
-			pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 		{
-			pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
+			pApp->m_pActivePile->GetSrcPhrase()->m_adaption = targetPhrase; 
+			pApp->m_pActivePile->GetSrcPhrase()->m_targetStr = targetPhrase;
+			gbInhibitMakeTargetStringCall = TRUE;
+			bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
+			gbInhibitMakeTargetStringCall = FALSE;
 		}
-		gbInhibitMakeTargetStringCall = TRUE;
-		bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
-		gbInhibitMakeTargetStringCall = FALSE;
+		else
+		{
+			// re-express the punctuation
+			wxString copiedTargetPhrase = targetPhrase; // copy, with any punctuation user typed as well
+			// targetPhrase now lacks punctuation - so it can be used for storing in the KB
+			pApp->GetView()->RemovePunctuation(pDoc, &targetPhrase, from_target_text);
+
+			// The store would fail if the user edited the entry out of the KB, as the latter
+			// cannot know which srcPhrases will be affected, so these would still have their
+			// m_bHasKBEntry set true. We have to test for this, and the m_HasKBEntry flag TRUE 
+			// is a sufficient test, and if so, set the flag to FALSE, to enable the store op
+			rsEntry = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+				pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase, pRefStr);
+			if ((pRefStr == NULL || rsEntry == present_but_deleted) &&
+				pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+			{
+				pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
+			}
+
+			pApp->m_pActivePile->GetSrcPhrase()->m_targetStr = wxEmptyString; // start off empty
+
+			gbInhibitMakeTargetStringCall = TRUE;
+			bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
+			gbInhibitMakeTargetStringCall = FALSE;
+
+			pApp->m_bCopySourcePunctuation = pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag;
+			// Now use the user's actual phrasebox contents, with any puncts he may have typed
+			pApp->GetView()->MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(), copiedTargetPhrase);
+
+			// Now restore the flag to its default value
+			pApp->m_bCopySourcePunctuation = TRUE;
+			pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag = TRUE;
+		}
 	}
 	return bOK;
 }

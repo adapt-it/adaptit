@@ -5596,7 +5596,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	// OnUpdateEditPunctCorresp is in the View  // incorporated into Edit|Preferences
 	// OnEditSourceText is in the View
 	// OnUpdateEditSourceText is in the View
-	// OnEditConsistencyCheck is in the View
+	// OnEditConsistencyCheck is in the View -- no it's not
 	// OnUpdateEditConsistencyCheck is in the View
 	// Lower to Upper Case Equivalences... removed as a separate menu item from Edit
 	// menu (now handled by Edit Preferences)

@@ -43,6 +43,22 @@ which is followed by a tab, then your punctuation
 characters should follow the tab. For example:  ”’.>!?
 (This capability is useful when the source text language
 does not have a lower/upper case distinction.)
+* Recent versions of Adapt It partially lost the capacity
+for the user to type overriding manual punctuation, and
+to suppress temporarily the automatic copying of punctuation
+(usually in order to type different punctuation, or have
+no punctuation on a word or phrase). These functionalities
+have been fully restored, and improved with respect to
+the interplay between manually typed punctuation and the
+command bar button which suppresses punctuation copying
+for the next move of the phrasebox.
+* If the KB contained a number of upper-case-initial source
+text words or phrases, stored while auto-capitalizing was
+off, and then the user changed to auto-capitalizing on and
+did a Consistency Check, the upper-case entries would
+every time encounted in the document, cause an unwanted
+halt as an inconsistency. This is now fixed. They are now
+just ignored.
 
 ----------------------------------------------
 Bug fixes in 7?? release ?? month ???
