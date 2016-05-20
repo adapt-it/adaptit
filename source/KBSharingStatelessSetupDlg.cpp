@@ -480,6 +480,18 @@ void KBSharingStatelessSetupDlg::OnCancel(wxCommandEvent& myevent)
 	m_pApp->m_pKbServer_Occasional = NULL;
 
 	// Cancelling from here should turn off sharing...
+	// ReleaseKBServer(int) int = 1 or 2, does several things. It stops the download timer, deletes it
+	// and sets its pointer to NULL; it also saves the last timestamp value to its on-disk file; it
+	// then deletes the KbServer instance that was in use for supplying resources to the sharing code
+	if (m_pApp->KbServerRunning(1))
+	{
+		m_pApp->ReleaseKBServer(1); // the adaptations one
+	}
+	if (m_pApp->KbServerRunning(2))
+	{
+		m_pApp->ReleaseKBServer(2); // the glossings one
+	}
+
 	m_pApp->m_bIsKBServerProject = FALSE;
 	m_pApp->m_bIsGlossingKBServerProject = FALSE;
 	myevent.Skip();

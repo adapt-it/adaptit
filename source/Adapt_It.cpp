@@ -15618,6 +15618,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 										   // will be TRUE (see project config file)
 
 #if defined(_KBSERVER)
+	// Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
+	// for a gui action by the user causes a TRUE value to be set for one of them, so that
+	// the OnIdle() handler will then call one of the 3 Synchronous functions,
+	// Synchronous_CreateEntry(), Synchronous_PseudoDelete(), or Synchronous_PseudoUndelete()
+	// to hide the server access to the maximum possible extent, to keep the GUI responsive
+	m_bPseudoDelete_For_KBserver = FALSE;
+	m_bPseudoUndelete_For_KBserver = FALSE;
+	m_bCreateEntry_For_KBserver = FALSE;
+	m_pKbServer_For_OnIdle = NULL; // The calls suppored by the above 3 booleans will use
+								   // this KbServer pointer to get their work done; it
+								   // is used nowhere except in OnIdle()
 	// Next two booleans are set to FALSE unilaterally (as initialization)only here. They
 	// get set to whatever the project config file has for the IsKBServerProject and
 	// IsGlossingKBServerProject config file lines (which are used to set m_bIsKBServerProject

@@ -1312,10 +1312,18 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 				// not bother to set the corresponding KBserver entry's deleted flag to 1. But
 				// we *will* bother to set it to 1, provided the entry is present and 
 				// lower-case-initial, whether auto-caps is on or off.)
+				//
+				// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+				// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+				// effect on GUI responsiveness
+				m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+				m_pApp->m_strSrc_For_KBserver = s1;
+				m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+				m_pApp->m_bPseudoDelete_For_KBserver = TRUE;
+				/*
 				int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, s1, pRefString->m_translation);
 				wxUnusedVar(rv);
-				wxLogDebug(_T("RemoveRefString() (1309, KB.cpp) Synchronous_PseudoDelete() returned  %d for src = %s  &  tgt = %s"),
-					rv, s1.c_str(), pRefString->m_translation.c_str());
+				*/
 			}
 		}
 #endif
@@ -4431,10 +4439,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// don't send to KBserver if it's a <Not In KB> entry
 			if (!bStoringNotInKB)
 			{
+				// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+				// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+				// effect on GUI responsiveness
+				m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+				m_pApp->m_strSrc_For_KBserver = key;
+				m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+				m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+				/*
 				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
 				wxUnusedVar(rv);
-				wxLogDebug(_T("StoreText() (4392) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-					rv, key.c_str(), pRefString->m_translation.c_str());
+				*/
 			}
 		}
 
@@ -4626,10 +4641,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				// don't send to KBserver if it's a <Not In KB> entry
 				if (!bStoringNotInKB)
 				{
+					// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+					// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+					// effect on GUI responsiveness
+					m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+					m_pApp->m_strSrc_For_KBserver = key;
+					m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+					m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+					/*
 					int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
 					wxUnusedVar(rv);
-					wxLogDebug(_T("StoreText() (4593) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-						rv, key.c_str(), pRefString->m_translation.c_str());
+					*/
 				}
 			}
 #endif
@@ -4809,10 +4831,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							*/
 							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
 							{
+								// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+								// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+								// effect on GUI responsiveness
+								m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+								m_pApp->m_strSrc_For_KBserver = key;
+								m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+								m_pApp->m_bPseudoUndelete_For_KBserver = TRUE;
+								/*
 								int rv = pKbSvr->Synchronous_PseudoUndelete(pKbSvr, key, pRefString->m_translation);
 								wxUnusedVar(rv);
-								wxLogDebug(_T("StoreText() (4776) Synchronous_PseudoUndelete returned  %d for src = %s  &  tgt = %s"),
-									rv, key.c_str(), pRefString->m_translation.c_str());
+								*/
 							}
 						}
 #endif
@@ -4992,10 +5021,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// don't send a <Not In KB> entry to KBserver
 						if (!bStoringNotInKB)
 						{
+							// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+							// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+							// effect on GUI responsiveness
+							m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+							m_pApp->m_strSrc_For_KBserver = key;
+							m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+							m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+							/*
 							int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
 							wxUnusedVar(rv);
-							wxLogDebug(_T("StoreText() (4959) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-								rv, key.c_str(), pRefString->m_translation.c_str());
+							*/
 						}
 					}
 #endif
@@ -5311,10 +5347,17 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			*/
 			if (!bStoringNotInKB)
 			{
+				// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+				// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+				// effect on GUI responsiveness
+				m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+				m_pApp->m_strSrc_For_KBserver = key;
+				m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+				m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+				/*
 				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
 				wxUnusedVar(rv);
-				wxLogDebug(_T("StoreTextGoingBack() (5272) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-					rv, key.c_str(), pRefString->m_translation.c_str());
+				*/
 			}
 		}
 #endif
@@ -5419,10 +5462,17 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				*/
 				if (!bStoringNotInKB)
 				{
+					// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+					// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+					// effect on GUI responsiveness
+					m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+					m_pApp->m_strSrc_For_KBserver = key;
+					m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+					m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+					/*
 					int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
 					wxUnusedVar(rv);
-					wxLogDebug(_T("StoreTextGoingBack() (5380) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-						rv, key.c_str(), pRefString->m_translation.c_str());
+					*/
 				}
 			}
 #endif
@@ -5562,10 +5612,17 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 							*/
 							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
 							{
+								// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+								// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+								// effect on GUI responsiveness
+								m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+								m_pApp->m_strSrc_For_KBserver = key;
+								m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+								m_pApp->m_bPseudoUndelete_For_KBserver = TRUE;
+								/*
 								int rv = pKbSvr->Synchronous_PseudoUndelete(pKbSvr, key, pRefString->m_translation);
 								wxUnusedVar(rv);
-								wxLogDebug(_T("StoreTextGoingBack() (5522) Synchronous_PseudoUndelete returned  %d for src = %s  &  tgt = %s"),
-									rv, key.c_str(), pRefString->m_translation.c_str());
+								*/
 							}
 						}
 #endif
@@ -5705,10 +5762,17 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						// don't send a <Not In KB> entry to KBserver
 						if (!bStoringNotInKB)
 						{
+							// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+							// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+							// effect on GUI responsiveness
+							m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+							m_pApp->m_strSrc_For_KBserver = key;
+							m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+							m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+							/*
 							int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
 							wxUnusedVar(rv);
-							wxLogDebug(_T("StoreText() (5665) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-								rv, key.c_str(), pRefString->m_translation.c_str());
+							*/
 						}
 
 					}

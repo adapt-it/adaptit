@@ -94,6 +94,8 @@ static unsigned int nTotalToDestroy;
 
 #if defined(_KBSERVER)
 
+#define SHOWSYNC // comment out to prevent logging for the synchronous curl calls to KBserver from OnIdle()
+
 #include "KBSharing.h" // BEW added 14Jan13
 //#include "KBSharingSetupDlg.h" // BEW added 15Jan13
 #include "KbSharingSetup.h" // BEW added 10Oct13
@@ -4403,86 +4405,54 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE;
 	}
 
-    // wx version: Display some scrolling data on the statusbar. m_bShowScrollData is only
-    // true when _DEBUG is defined, so it will not appear in release versions.
-	if (m_bShowScrollData && this->m_pStatusBar->IsShown())
+#if defined (_KBSERVER)
+	// Speed critical GUI support, when a KBserver doing sharing is operational
+
+	if (pApp->m_bCreateEntry_For_KBserver)
 	{
-		static size_t pgSize, scrPos, scrMax;
-		static int pixPU, vStartx, vStarty;
-		static wxSize csz, frsz, vsz, cz;
-		bool dataChanged = FALSE;
-
-		int vtempx, vtempy;
-		canvas->GetViewStart(&vtempx,&vtempy);
-		if (vtempx != vStartx || vtempy != vStarty)
-		{
-			dataChanged = TRUE;
-			vStartx = vtempx;
-			vStarty = vtempy;
-		}
-		if (canvas->GetScrollThumb(wxVERTICAL) != (int)pgSize)
-		{
-			dataChanged = TRUE;
-			pgSize = canvas->GetScrollThumb(wxVERTICAL);
-		}
-		if (canvas->GetScrollPos(wxVERTICAL) != (int)scrPos)
-		{
-			dataChanged = TRUE;
-			scrPos = canvas->GetScrollPos(wxVERTICAL);
-		}
-		if (canvas->GetScrollRange(wxVERTICAL) != (int)scrMax)
-		{
-			dataChanged = TRUE;
-			scrMax = canvas->GetScrollRange(wxVERTICAL);
-		}
-		int tpixPU;
-		canvas->GetScrollPixelsPerUnit(0,&tpixPU);
-		if (tpixPU != pixPU)
-		{
-			dataChanged = TRUE;
-			canvas->GetScrollPixelsPerUnit(0,&pixPU);
-		}
-		if (canvas->GetSize() != cz)
-		{
-			dataChanged = TRUE;
-			cz = canvas->GetSize();
-		}
-		if (GetCanvasClientSize() != csz) // use our own calcs for canvas' "client" size
-		{
-			dataChanged = TRUE;
-			csz = GetCanvasClientSize(); // use our own calcs for canvas' "client" size
-		}
-		if (this->GetClientSize() != frsz)
-		{
-			dataChanged = TRUE;
-			frsz = GetClientSize();
-		}
-		if (canvas->GetVirtualSize() != vsz)
-		{
-			dataChanged = TRUE;
-			vsz = canvas->GetVirtualSize();
-		}
-
-		if (dataChanged)
-		{
-			SetStatusText(wxString::Format(_T("vStart = %dy, pgsz = %d, scrpos = %d, scrmax = %d,")
-				_T("pixpu = %d, clSzcan: %d,%d, clSzfr %d,%d virtSz:%dw%dh"),
-										//vStartx,
-										(int)vStarty,
-										(int)pgSize,
-										(int)scrPos,
-										(int)scrMax,
-										(int)pixPU,
-										//cz.x,
-										//cz.y,
-										(int)csz.x,
-										(int)csz.y,
-										(int)frsz.x,
-										(int)frsz.y,
-										(int)vsz.x,
-										(int)vsz.y),1);
-		}
+		pApp->m_bCreateEntry_For_KBserver = FALSE;
+		int rv = pApp->m_pKbServer_For_OnIdle->Synchronous_CreateEntry(
+			pApp->m_pKbServer_For_OnIdle,
+			pApp->m_strSrc_For_KBserver,
+			pApp->m_strNonsrc_For_KBserver);
+		wxUnusedVar(rv);
+		event.RequestMore();
+#if defined (SHOWSYNC)
+		wxLogDebug(_T("OnIdle(), from StoreText() etc: Synchronous_CreateEntry() returned  %d for src = %s  &  tgt = %s"),
+			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
+#endif
 	}
+
+	if (pApp->m_bPseudoUndelete_For_KBserver)
+	{
+		pApp->m_bPseudoUndelete_For_KBserver = FALSE;
+		int rv = pApp->m_pKbServer_For_OnIdle->Synchronous_PseudoUndelete(
+			pApp->m_pKbServer_For_OnIdle,
+			pApp->m_strSrc_For_KBserver,
+			pApp->m_strNonsrc_For_KBserver);
+		wxUnusedVar(rv);
+		event.RequestMore();
+#if defined (SHOWSYNC)
+		wxLogDebug(_T("OnIdle(), from StoreText() etc  Synchronous_PseudoUndelete() returned  %d for src = %s  &  tgt = %s"),
+			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
+#endif
+	}
+
+	if (pApp->m_bPseudoDelete_For_KBserver)
+	{
+		pApp->m_bPseudoDelete_For_KBserver = FALSE;
+		int rv = pApp->m_pKbServer_For_OnIdle->Synchronous_PseudoDelete(
+			pApp->m_pKbServer_For_OnIdle, 
+			pApp->m_strSrc_For_KBserver, 
+			pApp->m_strNonsrc_For_KBserver);
+		wxUnusedVar(rv);
+		event.RequestMore();
+#if defined (SHOWSYNC)
+		wxLogDebug(_T("OnIdle(), from RemoveRefString() Synchronous_PseudoDelete() returned  %d for src = %s  &  tgt = %s"),
+			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
+#endif
+	}
+#endif // _KBSERVER
 
 	if (pApp->m_bSingleStep)
 	{
@@ -4940,6 +4910,89 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	// mrh - if doc recovery is pending, we must skip all the following, since the doc won't be valid:
     if (pApp->m_recovery_pending)
         return;
+
+	// This no longer important block is moved here to the end, BEW 20May16
+	// wx version: Display some scrolling data on the statusbar. m_bShowScrollData is only
+	// true when _DEBUG is defined, so it will not appear in release versions.
+	if (m_bShowScrollData && this->m_pStatusBar->IsShown())
+	{
+		static size_t pgSize, scrPos, scrMax;
+		static int pixPU, vStartx, vStarty;
+		static wxSize csz, frsz, vsz, cz;
+		bool dataChanged = FALSE;
+
+		int vtempx, vtempy;
+		canvas->GetViewStart(&vtempx, &vtempy);
+		if (vtempx != vStartx || vtempy != vStarty)
+		{
+			dataChanged = TRUE;
+			vStartx = vtempx;
+			vStarty = vtempy;
+		}
+		if (canvas->GetScrollThumb(wxVERTICAL) != (int)pgSize)
+		{
+			dataChanged = TRUE;
+			pgSize = canvas->GetScrollThumb(wxVERTICAL);
+		}
+		if (canvas->GetScrollPos(wxVERTICAL) != (int)scrPos)
+		{
+			dataChanged = TRUE;
+			scrPos = canvas->GetScrollPos(wxVERTICAL);
+		}
+		if (canvas->GetScrollRange(wxVERTICAL) != (int)scrMax)
+		{
+			dataChanged = TRUE;
+			scrMax = canvas->GetScrollRange(wxVERTICAL);
+		}
+		int tpixPU;
+		canvas->GetScrollPixelsPerUnit(0, &tpixPU);
+		if (tpixPU != pixPU)
+		{
+			dataChanged = TRUE;
+			canvas->GetScrollPixelsPerUnit(0, &pixPU);
+		}
+		if (canvas->GetSize() != cz)
+		{
+			dataChanged = TRUE;
+			cz = canvas->GetSize();
+		}
+		if (GetCanvasClientSize() != csz) // use our own calcs for canvas' "client" size
+		{
+			dataChanged = TRUE;
+			csz = GetCanvasClientSize(); // use our own calcs for canvas' "client" size
+		}
+		if (this->GetClientSize() != frsz)
+		{
+			dataChanged = TRUE;
+			frsz = GetClientSize();
+		}
+		if (canvas->GetVirtualSize() != vsz)
+		{
+			dataChanged = TRUE;
+			vsz = canvas->GetVirtualSize();
+		}
+
+		if (dataChanged)
+		{
+			SetStatusText(wxString::Format(_T("vStart = %dy, pgsz = %d, scrpos = %d, scrmax = %d,")
+				_T("pixpu = %d, clSzcan: %d,%d, clSzfr %d,%d virtSz:%dw%dh"),
+				//vStartx,
+				(int)vStarty,
+				(int)pgSize,
+				(int)scrPos,
+				(int)scrMax,
+				(int)pixPU,
+				//cz.x,
+				//cz.y,
+				(int)csz.x,
+				(int)csz.y,
+				(int)frsz.x,
+				(int)frsz.y,
+				(int)vsz.x,
+				(int)vsz.y), 1);
+		}
+	}
+
 }
 
 // BEW added 10Dec12, to workaround the GTK scrollPos bug (it gets bogusly reset to old position)

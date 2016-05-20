@@ -159,12 +159,13 @@ void KbSharingSetup::OnCheckBoxShareGlosses(wxCommandEvent& WXUNUSED(event))
 
 void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 {
-	// Get the checkbox values - & set app flags accordingly
+	// Get the latest setting of the checkbox values - & set app flags accordingly
 	bool bAdaptationsTicked = m_pAdaptingCheckBox->GetValue();
 	bool bGlossesTicked = m_pGlossingCheckBox->GetValue();
 
 	if (bAdaptationsTicked || bGlossesTicked)
 	{
+		// Sharing is wanted for one or both of the adapting & glossing KBs...
 		// Show the dialog which allows the user to set the boolean: m_bServiceDiscoveryWanted, 
 		// for the later AuthenticateCheckAndSetupKBSharing() call to use
 		bool bUserCancelled = FALSE; // initialize
@@ -222,6 +223,26 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 			// that sharing is OFF
 			ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
 		}
+	}
+	else
+	{
+		// Neither box is ticked, so turn off sharing...
+		// ReleaseKBServer(int) int = 1 or 2, does several things. It stops the download timer, deletes it
+		// and sets its pointer to NULL; it also saves the last timestamp value to its on-disk file; it
+		// then deletes the KbServer instance that was in use for supplying resources to the sharing code
+		if (m_pApp->KbServerRunning(1))
+		{
+			m_pApp->ReleaseKBServer(1); // the adaptations one
+		}
+		if (m_pApp->KbServerRunning(2))
+		{
+			m_pApp->ReleaseKBServer(2); // the glossings one
+		}
+
+		m_pApp->m_bIsKBServerProject = FALSE;
+		m_pApp->m_bIsGlossingKBServerProject = FALSE;
+
+		ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
 	}
 	myevent.Skip(); // close the KbSharingSetup dialog
 }

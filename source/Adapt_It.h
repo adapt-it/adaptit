@@ -3135,6 +3135,24 @@ public:
 	bool		m_bIsKBServerProject_FromConfigFile;
 	bool		m_bIsGlossingKBServerProject_FromConfigFile;
 
+	// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+	// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+	// effect on GUI responsiveness. Each different call is assigned a boolean, which is
+	// FALSE until a handler for a GUI action sets it TRUE, then the TRUE value is tested
+	// for in OnIdle() and the relevant synchronous call is done from there in idle time.
+	// The following two wxString members are used for transferring the src and nonsrc (i.e.
+	// target or gloss) strings, and the KbServer pointer, the ptr to the instance being
+	// used for the call.
+	wxString m_strSrc_For_KBserver;
+	wxString m_strNonsrc_For_KBserver;
+	KbServer*   m_pKbServer_For_OnIdle;
+	bool m_bPseudoDelete_For_KBserver;
+	bool m_bPseudoUndelete_For_KBserver;
+	bool m_bCreateEntry_For_KBserver;
+	// There isn't one for LookupEntryFields() because that is used only internally in
+	// the Synchronous_XXXX() functions, never by itself
+
+
 	// Deleting an entire KB's entries in the entry table of kbserver will be done as a
 	// background task - so we need storage capability that persists after the KB Sharing
 	// Manager GUI has been closed (the button for getting the job started is in the GUI)
