@@ -58,6 +58,7 @@ Thread_BulkPseudoDelete::Thread_BulkPseudoDelete():wxThread()
 	// The location which creates and fires off the thread should set
 	// the arrays, etc, after creating the thread object and 
 	// before calling Run()
+	m_bReadyToDie = FALSE;
 }
 
 Thread_BulkPseudoDelete::~Thread_BulkPseudoDelete()
@@ -90,7 +91,7 @@ void* Thread_BulkPseudoDelete::Entry()
 
 		s_BulkDeleteMutex.Lock();
 
-		rv = m_pKbSvr->LookupEntryFields(srcPhrase, nonsrcPhrase, m_bLookupEntryFieldsCanDie);
+		rv = m_pKbSvr->LookupEntryFields(srcPhrase, nonsrcPhrase);
 		if (rv == CURLE_HTTP_RETURNED_ERROR)
 		{
 			// If the lookup failed, we must assume it was because there was no matching entry
@@ -113,19 +114,24 @@ void* Thread_BulkPseudoDelete::Entry()
 			if (e.deleted == 0)
 			{
 				// do a pseudo-delete here, use the entryID value above (reuse rv)
-				rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete, m_bPseudoDeleteUndeleteEntryCanDie);
+				rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete);
 			}
 		}
 
 		s_BulkDeleteMutex.Unlock();
 
 	}
+	// Block until libcurl has done all cleanups
+	while (!TestDestroy())
+	{
+	}
+
 	return (void*)NULL;
 }
 
 bool Thread_BulkPseudoDelete::TestDestroy()
 {
-	if (m_bLookupEntryFieldsCanDie & m_bPseudoDeleteUndeleteEntryCanDie)
+	if (m_bReadyToDie)
 	{
 		return TRUE;
 	}

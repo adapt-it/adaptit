@@ -46,7 +46,7 @@
 #include "helpers.h"
 #include "Adapt_ItView.h"
 #include "KbServer.h"
-#include "Thread_PseudoDelete.h"
+//#include "Thread_PseudoDelete.h"
 
 // event handler table
 BEGIN_EVENT_TABLE(CChooseTranslation, AIModalDialog)
@@ -771,7 +771,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		(gpApp->m_bIsGlossingKBServerProject && gbIsGlossing && gpApp->GetKbServer(2)->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = gpApp->GetKbServer(gpApp->GetKBTypeForServer());
-
+		/*
 		// create the thread and fire it off
 		if (!pCurTargetUnit->IsItNotInKB())
 		{
@@ -803,6 +803,12 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 				//m_pApp->LogUserAction(msg);
 				}
 			}
+		}
+		*/
+		if (!pCurTargetUnit->IsItNotInKB())
+		{
+			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, curKey, pRefString->m_translation);
+			wxUnusedVar(rv);
 		}
 	}
 #endif

@@ -71,6 +71,7 @@ Thread_KbEditorUpdateButton::Thread_KbEditorUpdateButton():wxThread()
 	m_oldTranslation.Empty(); // default, caller should set it after creation
 	m_newTranslation.Empty(); // default, caller should set it after creation
 	m_pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+	m_bReadyToDie = FALSE;
 }
 
 Thread_KbEditorUpdateButton::~Thread_KbEditorUpdateButton()
@@ -91,7 +92,7 @@ void* Thread_KbEditorUpdateButton::Entry()
 
 	s_BulkDeleteMutex.Lock();
 
-	rv = m_pKbSvr->LookupEntryFields(m_source, m_oldTranslation, m_bLookupEntryFieldsCanDie);
+	rv = m_pKbSvr->LookupEntryFields(m_source, m_oldTranslation);
 	if (rv == CURLE_HTTP_RETURNED_ERROR)
 	{
         // If the lookup failed, we must assume it was because there was no matching entry
@@ -116,19 +117,19 @@ void* Thread_KbEditorUpdateButton::Entry()
 		if (e.deleted == 0)
 		{
 			// do a pseudo-delete here, use the entryID value from above
-			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete, m_bPseudoDeleteUndeleteEntryCanDie);
+			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete);
 		}
 	}
 	//                          ***** part 2 *****
 	// That takes care of the m_oldTranslation that was updated; now deal with the 
 	// scr-m_newTranslation pair -- another lookup is needed...
-	rv = m_pKbSvr->LookupEntryFields(m_source, m_newTranslation, m_bLookupEntryFieldsCanDie2);
+	rv = m_pKbSvr->LookupEntryFields(m_source, m_newTranslation);
 	if (rv == CURLE_HTTP_RETURNED_ERROR)
 	{
         // If the lookup failed, we must assume it was because there was no matching entry
         // (ie. HTTP 404 was returned) - in which case none of the collaborating clients
         // has seen this entry yet, and so we should now create it in the remote DB now
-		rv = m_pKbSvr->CreateEntry(m_source, m_newTranslation, m_bCreateEntryCanDie);
+		rv = m_pKbSvr->CreateEntry(m_source, m_newTranslation);
 		// Ignore errors, if it didn't succeed, no big deal - someone else will sooner or
 		// later succeed in adding this one to the remote DB.
 	}
@@ -148,7 +149,7 @@ void* Thread_KbEditorUpdateButton::Entry()
 		if (e.deleted == 1)
 		{
 			// do an undelete of the pseudo-deletion, use the entryID value from above
-			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doUndelete, m_bPseudoDeleteUndeleteEntryCanDie2);
+			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doUndelete);
 		}
 		// Ignore errors, for the same reason as above (i.e. it's no big deal)
 	}
@@ -158,19 +159,14 @@ void* Thread_KbEditorUpdateButton::Entry()
 	// Block until libcurl has done all cleanups
 	while (!TestDestroy())
 	{
-		// It can sleep a bit beween checks
-		wxMilliSleep(5); // .005 seconds between each test
 	}
-	// Hang around a bit longer to ensure all the curl/openssl stuff has fully gone
-	wxMilliSleep(10); // .01 secs
 
 	return (void*)NULL;
 }
 
 bool Thread_KbEditorUpdateButton::TestDestroy()
 {
-	if (m_bCreateEntryCanDie & m_bLookupEntryFieldsCanDie & m_bPseudoDeleteUndeleteEntryCanDie
-		&& m_bLookupEntryFieldsCanDie2 && m_bPseudoDeleteUndeleteEntryCanDie2)
+	if (m_bReadyToDie)
 	{
 		return TRUE;
 	}

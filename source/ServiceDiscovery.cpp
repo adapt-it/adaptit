@@ -172,7 +172,7 @@
 
 // this one, if defined, displays each <url>@@@<hostname> string sent to the app, but a 
 // WITHHOLDING message if it is a duplicate. Comment out to suppress displaying that info
-#define _tracking_transfers_
+//#define _tracking_transfers_
 
 // Comment out the next line to disable wxLogDebug() logging related to shutdown of the 
 // service discovery run - same define is in Thread_ServiceDiscovery.cpp and wxServDisc.cpp
@@ -397,6 +397,15 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 				// BEW 28Apr16 Handle the possibility that this session has found an ipaddr which
 				// has a different hostname than what the m_ipAddrs_Hostnames wxArrayString has
 				// in one of its entries (typically one put there from the project config file)
+
+				// Need to remove spurious duplicate that can magically appear in app's m_ipAddrs_Hostnames
+				// array. Testing... revealed that I unilaterally add within AuthenticateEtcWithoutServiceDiscovery()
+				// and likewise in AuthenticateCheckAndSetupKnowledgeBaseSharing() - that's why the duplication
+				// happens. Solution? In the latter two functions, test for duplication and don't add if it
+				// would produce a duplicate url in the m_ipAddrs_Hostnames array. When fixed, RemoveSpuriousDuplications()
+				// will no longer be needed
+				//RemoveSpuriousDuplicates(m_pApp->m_ipAddrs_Hostnames);
+				// Now check for any other non-spurious duplication & adjust
 				kbsvr_arrays.Lock();
 				bool bReplacedOne = UpdateExistingAppCompositeStr(m_addr, m_hostname, composite);
 				kbsvr_arrays.Unlock();
@@ -540,9 +549,32 @@ CServiceDiscovery::~CServiceDiscovery()
 // in onSDNotify() neither TRANSFER nor WITHHOLD, as we are in effect just updating. (The one in the app
 // storage typically has come from an earlier session, via the project config file, when entering the
 // project to do more work in the current session.)
+//
+// BEW 16May16, a further loop needs to be added, to cope with the following scenario. I had used the login
+// from the KB Sharing Manager ( it would have also have worked the same if I'd logging in using the Setup Or
+// Remove K B Sharing dlg) to connect to https://kbserver.jmarsden.org (in California, I'm in Melbourne Australia)
+// and having got a connection, my code puts the url I manually typed into the app's m_ipAddrs_Hostnames array
+// as https://kbserver.jmarsden.org with hostname "unknown" following after a number of spaces. All good. Then
+// I had a KBserver also running on a laptop on my LAN, so I did a service discovery for that, it was found and
+// had the url https://192.168.2.9 with hostname kbserver.local. -- again, all good. Wireless connections. But
+// when, at the end of service discovery the wxMessageBox showed the results, there were three rather than two
+// lines of entry. They were as follows:
+// https://kbserver.jmarsden.org      unknown
+// https://kbserver.jmarsden.org
+// https://192.168.2.9           kbserver.local.
+// Somehow, a spurious repeat of the top entry got "found" (it didn't appear to be as the result of a lookup,
+// but only appears when I already had an existing connection to https://kbserver.jmarsden.org that was active.
+// So my second loop has to detect such a spurious entry and remove it. It would appear that I just need to match
+// the ipaddr part exactly, and remove the spurious entry before a spurious extra url can be produced.
+// BEW later, same day. Crazily, the extra spurious line https://kbserver.jmarsden.org somehow got into the
+// app's m_ipAddrs_Hostnames array as a second line, **BEFORE** UpdateExistingAppCompositeStr() gets called. I
+// have no idea how. But I'll have to build a little function that checks for this happening before
+// UpdateExistingAppCompositeStr() gets called - and remove the partiallyl duplicated bogus second line - or any
+// like that which are identical in the url, but may differ in the KBserver name.
 bool CServiceDiscovery::UpdateExistingAppCompositeStr(wxString& ipaddr, wxString& hostname, wxString& composite)
 {
 	int count = (int)m_pApp->m_ipAddrs_Hostnames.GetCount();
+	bool bMadeAChange = FALSE;
 	if (count == 0)
 	{
 		// There is no issue - no strings in the app storage yet, so return FALSE
@@ -563,10 +595,10 @@ bool CServiceDiscovery::UpdateExistingAppCompositeStr(wxString& ipaddr, wxString
 			{
 				// There is a match for the ip address, so check further
 				offset = aFarComposite.Find(hostname);
-				if (offset == wxNOT_FOUND)
+				if (offset == wxNOT_FOUND && !hostname.IsEmpty())
 				{
-					// The one in the app storage has a different hostname then
-					// what was passed in here, so update the app storage to have
+					// The one in the app storage has a different and non-empty hostname
+					// than what was passed in here, so update the app storage to have
 					// the more uptodate hostname
 					m_pApp->m_ipAddrs_Hostnames.RemoveAt(i);
 					m_pApp->m_ipAddrs_Hostnames.Add(composite);
@@ -577,15 +609,73 @@ bool CServiceDiscovery::UpdateExistingAppCompositeStr(wxString& ipaddr, wxString
 					// This hostname problem, because the composite strings in the app
 					// storage are unique, can only occur in one such string. If we've
 					// just fixed one, we've fixed the only possible one with this issue,
-					// so we don't need to check further - just return TRUE
-					return TRUE;
+					// so return TRUE
+					bMadeAChange = TRUE;
+				}
+				else
+				{
+					// The hostname passed in is also in the app's existing entry, so
+					// we've got the same ipaddr and same hostname, so don't change
+					// anything - don't do any replacement, but return TRUE as if we
+					// had done so (so no change gets done to the app's entry)
+					// OR
+					// The hostname passed in was empty, so nothing is to be gained
+					// by any replacement.
+					// In either case, return TRUE because then the present values
+					// passed in here will produce no change in the entry the app
+					// already is storing
+					bMadeAChange = TRUE;
 				}
 			}
 		}
 	}
-	return FALSE; // no replacemet done to any of them
+	if (bMadeAChange)
+	{
+		return TRUE; // one or more replacements done, or, 
+					 // some passed in values needed not to be used
+	}
+	return FALSE; // no replacement done to any of them
 }
+/* no longer needed, cause of the duplication is now fixed
+// This is an ugly hack, which assumes that if the first is duplicated on the next
+// or later line, the first is what we'll keep. We only look at the url.
+void CServiceDiscovery::RemoveSpuriousDuplicates(wxArrayString& arr)
+{
+	if (!arr.IsEmpty())
+	{
+		size_t count = arr.GetCount();
+		if (count > 1)
+		{
+			size_t index;
+			wxString topComposite = arr.Item(0);
+			wxString topIpaddr;
+			wxString topName;
+			int offset = topComposite.Find(_T("@@@"));
+			wxASSERT(offset != wxNOT_FOUND);
+			topIpaddr = topComposite.Left(offset);
 
+			for (index = 1; index < count; index++)
+			{
+				wxString aComposite = arr.Item(index);
+				// Check if it has the same ip address as topIpaddr, if so we will remove it
+				int offset = aComposite.Find(_T("@@@"));
+				if (offset != wxNOT_FOUND)
+				{
+					// Remove the @@@ and anything following, leaving its ipaddr
+					wxString anIpaddr = aComposite.Left(offset);
+					if (topIpaddr == anIpaddr)
+					{
+						// This one is spurious, so remove it,and assume there are no more like
+						// it, so return
+						arr.RemoveAt(index);
+						return;
+					}
+				}
+			}
+		}
+	}
+}
+*/
 // BEW created 5Jan16, needed for GetResults() in CServiceDiscovery instance
 bool CServiceDiscovery::IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase)
 {

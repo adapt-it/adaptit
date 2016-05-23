@@ -83,8 +83,7 @@ void KbSvrHowGetUrl::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pBtnOK = (wxButton*)FindWindowById(wxID_OK); // we don't actually use this
 	wxUnusedVar(m_pBtnOK);
 	m_pRadioBoxHow = (wxRadioBox*)FindWindowById(ID_RADIOBOX_HOW);
-	m_nRadioBoxSelection = 0; // initialize, top button selected (i.e. discover 
-							  // single KBserver only)
+	m_nRadioBoxSelection = 0; // initialize, top button  - use service discovery results
 	m_pRadioBoxHow->SetSelection(m_nRadioBoxSelection);
 
 	m_bUserClickedCancel = FALSE;

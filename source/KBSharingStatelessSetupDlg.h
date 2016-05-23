@@ -109,8 +109,9 @@ protected:
 
 	CAdapt_ItApp* m_pApp;
 
-	wxTextCtrl*	m_pURLCtrl;
-	wxTextCtrl*	m_pUsernameCtrl;
+	wxTextCtrl*	  m_pURLCtrl;
+	wxTextCtrl*	  m_pUsernameCtrl;
+	wxTextCtrl*	  m_pPasswordCtrl;
 	wxStaticText* m_pUsernameLabel;
 	wxStaticText* m_pUsernameMsgLabel;
 

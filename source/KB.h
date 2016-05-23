@@ -122,6 +122,7 @@ public:
 	// Public implementation functions
 	bool			AutoCapsLookup(MapKeyStringToTgtUnit* pMap,CTargetUnit*& pTU,wxString keyStr);
 	wxString		AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE);
+	bool			IgnoreLegacyUpperCaseEntry(CKB* pKB, int numWords, wxString srcKey);
 	void			DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType);
 	void			DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfType);
 	void			DoKBSaveAsXML(wxFile& f, const wxString& progressTitle, int nTotal);

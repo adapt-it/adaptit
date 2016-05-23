@@ -125,7 +125,11 @@ void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
     // config file.
     // Don't show the top message box if the user is wanting service discovery done, or if
     // not wanting service discovery but there is no URL yet to show in the box
-	m_saveOldURLStr = m_pApp->m_strKbServerURL; // save value (could be empty)
+	m_saveOldURLStr = m_pApp->m_strKbServerURL; // save value locally in this class (value could be 
+												// empty) Note, app has a member identically named
+	/* deprecated, 18May16
+	// BEW 18May16, I think the top message should always be there; and service discovery
+	// has changed, so it shouldn't be a criterion for any logic here
 	m_pMessageAtTop = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_URLMSG);
 	m_pSizer = m_pTopSizer;
 	if (m_pApp->m_bServiceDiscoveryWanted) 
@@ -167,6 +171,9 @@ void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			}
 		}
 	}
+	*/
+
+	m_pPasswordCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_KBSERVER_PWD);
 
 	// This "Authenticate" dialog is used for both normal logins, but also when an
 	// administrator grabs the machine to do some setup using the KB Sharing Manager. In
@@ -196,17 +203,27 @@ void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pUsernameLabel = (wxStaticText*)FindWindowById(ID_TEXT_USERNAME_LABEL_STATELESS);
 	m_pUsernameMsgLabel = (wxStaticText*)FindWindowById(ID_TEXT_USERNAME_MSG_LABEL_STATELESS);
 
-	wxString otherLabel = _("This is your unique username");
+	wxString otherLabel = _("This is your current unique username");
+	wxString managerLabel = _("For the Sharing Manager dialog, this username is temporary");
 	if (m_bUserIsAuthenticating)
 	{
 		// Flag is TRUE, so user is authenticating and user is an owner of this KBserver
-		m_pUsernameLabel->SetLabel(otherLabel);
+		// If a username string is available, claim it as the current unique one; if not,
+		// hide this message line
+		if (m_saveOldUsernameStr.IsEmpty())
+		{
+			m_pUsernameMsgLabel->Show(FALSE);
+		}
+		else
+		{
+			m_pUsernameMsgLabel->SetLabel(otherLabel);
+		}
 	}
 	else
 	{
 		// Flag is FALSE, user is probably an administrator who is setting up on behalf of
 		// this computer's owner; so don't claim the username belongs to the project owner
-		m_pUsernameMsgLabel->Show(FALSE);
+		m_pUsernameMsgLabel->SetLabel(managerLabel);
 	}
     // BEW added 14Jul13, When m_bStateless is TRUE, we want anybody (e.g. the user's
 	// administrator or project supervisor) to be able to grab his machine, open the
@@ -287,7 +304,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 	// unique username that he types in for document ownership, xhtml export, etc; so
 	// we must not override that member string. So when this function is called within
 	// the AuthenticateCheckAndSetupKBSharing() function, the user's choice of username
-	// on exist from KBSharingStatelessSetupDlg should be sought from m_strStatelessUsername.
+	// as got from KBSharingStatelessSetupDlg should be sought from m_strStatelessUsername.
 	// However, here we only store it in the local m_strStatelessUsername wxString member,
 	// not on the app. If later checks prove valid, we'll commit to it and store it then
 	// in the app member
@@ -307,7 +324,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 	// the child dialog for typing in the password -- then, if control reenters the
 	// dialog, it will reappear on the screen
 
-	this->Show(FALSE);
+	//this->Show(FALSE); <<-- with pwd field in the dialog, we don't need to hide it now
 	wxString hostname = _("<unknown>"); // hostname is advisory only, but may not be known
 										// add code here to make it something other than <unknown> 
 										// if it proves possible to get a valid hostname here
@@ -316,8 +333,10 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 		hostname = m_pApp->m_strKbServerHostname;
 	}
 
-	// Now get the password... we do this from the wxWidgets password utility dialog
-	wxString pwd = pFrame->GetKBSvrPasswordFromUser(m_strStatelessURL, hostname); // show the password dialog
+	// Now get the password...
+	// we do this from the wxWidgets password utility dialog <<-- deprecated 18May16, get from dlg itself now
+	//wxString pwd = pFrame->GetKBSvrPasswordFromUser(m_strStatelessURL, hostname); // show the password dialog
+	wxString pwd = m_pPasswordCtrl->GetValue();
 
 	wxString msg_empty = _("The password was empty. Please try again.");
 	wxString title_empty = _("No password");
@@ -349,7 +368,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 				wxString msg = _("Most likely your chosen KBserver is not yet running. Check.\nOr maybe the username ( %s ) is not in the list of users for this knowledge base server.\nOr the URL, or password, is not correct.\nPerhaps ask your server administrator to help you.\nIn the next dialog, click Cancel to continue working.");
 				msg = msg.Format(msg, m_strStatelessUsername.c_str());
 				wxMessageBox(msg, _("Authentication: a check failed"), wxICON_WARNING | wxOK);
-				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
+				//this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
 				this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
 				m_bError = TRUE;
 			}
@@ -360,14 +379,14 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			// of OnOK()
 			wxMessageBox(msg_empty, title_empty, wxICON_WARNING | wxOK); // warn about the empty password (the
 											// dialog has a Cancel button to allow bailing out from there)
-			this->Show(TRUE); // make the dialog visible again
+			//this->Show(TRUE); // make the dialog visible again
 			this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
 			return; // to the dialog
 		} // end of else block for test: if (!pwd.IsEmpty())
 
 		// Passed the credentials test, so commit to this typed password, and to the username
 		// Store it for KbServer[0] and / or KbServer[1] instance(s) to use
-		m_pApp->GetMainFrame()->SetKBSvrPassword(pwd);
+		pFrame->SetKBSvrPassword(pwd);
 		//m_pApp->m_strStatelessUsername; // we never override m_pApp->m_strUserID with
 									    // a username typed only for authentication
 	}
@@ -375,6 +394,8 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 	{
 		// Somebody, probably an administrator, is authenticating to the KB Sharing 
 		// Manager tabbed dialog 
+		m_pApp->m_bIsKBServerProject = FALSE; // Turn it back off, the Manager doesn't want
+											  // to assume the user's settings are this or that
 		if (!pwd.IsEmpty())
 		{
 			m_strStatelessPassword = pwd; // store it temporarily in this class's instance								  
@@ -397,7 +418,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 				wxString msg = _("Most likely your chosen KBserver is not yet running. Check.\nOr maybe the username ( %s ) is not in the list of users for this knowledge base server.\nOr the URL, or password, is not correct.\nPerhaps ask your server administrator to help you.\nIn the next dialog, click Cancel to continue working.");
 				msg = msg.Format(msg, m_strStatelessUsername.c_str());
 				wxMessageBox(msg, _("Authentication: a check failed"), wxICON_WARNING | wxOK);
-				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
+				//this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
 				this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
 				m_bError = TRUE;
 			}
@@ -407,7 +428,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			// Password was empty. Tell user and return to the active dialog for a retry
 			// of OnOK()
 			wxMessageBox(msg_empty, title_empty, wxICON_WARNING | wxOK);
-			this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
+			//this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
 			this->Raise(); // make sure the Authenticate dialog will be at the top of the z-order
 			return; // to the dialog
 		} // end of else block for test: if (!pwd.IsEmpty())
@@ -449,14 +470,30 @@ wxLogDebug(_T("Authenticate Dlg (KBSharingStatelessSetupDlg.cpp) URL: %s , store
     // BEW 19Aug15, in Code::Blocks in ubuntu laptop, OK button click is returning
     // wxID_CANCEL rather than wxID_OK, so I'll try setting wxID_OK explicitly here using
     // the SetReturnCode() function
-    SetReturnCode(wxID_OK);
-	//myevent.Skip(); // the dialog will be exited now
+    //SetReturnCode(wxID_OK);
+	myevent.Skip(); // the dialog will be exited now
 }
 
 void KBSharingStatelessSetupDlg::OnCancel(wxCommandEvent& myevent)
 {
 	delete m_pApp->m_pKbServer_Occasional; // makes our local copy, m_strStatelessKbServer, also invalid
 	m_pApp->m_pKbServer_Occasional = NULL;
+
+	// Cancelling from here should turn off sharing...
+	// ReleaseKBServer(int) int = 1 or 2, does several things. It stops the download timer, deletes it
+	// and sets its pointer to NULL; it also saves the last timestamp value to its on-disk file; it
+	// then deletes the KbServer instance that was in use for supplying resources to the sharing code
+	if (m_pApp->KbServerRunning(1))
+	{
+		m_pApp->ReleaseKBServer(1); // the adaptations one
+	}
+	if (m_pApp->KbServerRunning(2))
+	{
+		m_pApp->ReleaseKBServer(2); // the glossings one
+	}
+
+	m_pApp->m_bIsKBServerProject = FALSE;
+	m_pApp->m_bIsGlossingKBServerProject = FALSE;
 	myevent.Skip();
 }
 

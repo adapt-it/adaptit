@@ -1309,7 +1309,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					_T(""), wxICON_INFORMATION | wxOK);
 				}
 			}
-/*
+
 #if defined(_KBSERVER)
 			if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 			{
@@ -1342,7 +1342,8 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
 				}
 				bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
-				delete pHowGetUrl; // We don't want the dlg showing any longer
+				pHowGetUrl->Destroy();
+				//delete pHowGetUrl; // We don't want the dlg showing any longer
 
 				// If the user didn't cancel, then call Authenticate....()
 				if (!bUserCancelled) // if user did not cancel...
@@ -1361,11 +1362,10 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
 				}
 				pApp->m_bServiceDiscoveryWanted = TRUE; // restore default value
-
+				*/
 			}
-
 #endif
-*/
+
 			// The pDocPage's InitDialog need to be called here just before going to it
 			// make sure the pDocPage is initialized to show the documents for the selected project
 			wxInitDialogEvent idevent;

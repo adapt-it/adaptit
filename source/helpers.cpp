@@ -70,7 +70,7 @@
 #include "helpers.h"
 #include "tellenc.h"
 #include "RefStringMetadata.h"
-#include "Thread_PseudoDelete.h"
+//#include "Thread_PseudoDelete.h"
 #include "LanguageCodesDlg.h"
 #include "UsernameInput.h"
 #include "KbServer.h"
@@ -10749,7 +10749,7 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 	wxString title = _T("KbServer error");
 	CAdapt_ItApp* pApp = &wxGetApp();
 
-    // Instantiate an adaptation KbServer instance -- doesn't matter which type we use, but
+	// Instantiate an adaptation KbServer instance -- doesn't matter which type we use, but
     // we'll use the 'adaptations' one, however we use a stateless constructor which omits
     // trying to find currently loaded adapting and glossing local KBs, because we can do
 	// the username validation when no project is open (and so no local KB is loaded yet) -
@@ -10899,8 +10899,8 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 	// and open document; but rather we just there set a boolean,
 	// CAdapt_ItApp::m_bEnteringKBserverProject to TRUE, and use that to call this 
 	// function from CMainFrame's OnIdle() handler - providing it's an adaptations
-	// or glosses sharing project. Hopefully its dialog will appear just after the
-	// doc is laid out
+	// or glosses sharing project. Its dialog will appear just after the document
+	// is laid out
 	if (pApp->m_strKbServerURL.IsEmpty())
 	{
 		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
@@ -10912,22 +10912,33 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 	wxString ipaddress = wxEmptyString;
 	if (bSucceeded)
 	{
+		pApp->m_bUserLoggedIn = TRUE; // if we don't set this, there are circumstances
+				// where the Controls For K B Sharing command will be disabled
 		if (!pApp->m_strKbServerURL.IsEmpty())
 		{
 			wxString url = pApp->m_strKbServerURL;
-			wxString protocol = _T("https://");
-			int len = protocol.Len();
-			int offset = url.Find(protocol);
-			if (offset == 0)
+
+			wxLogDebug(_T("helpers.cpp 10,921: app's m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+
+			// Don't proceed to store it if the same url is already stored within the array
+			if (IsURLStoreable(&pApp->m_ipAddrs_Hostnames, pApp->m_strKbServerURL))
 			{
-				ipaddress = url.Mid(len);
+				wxLogDebug(_T("helpers.cpp 10,926: app's m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+				wxString protocol = _T("https://");
+				int len = protocol.Len();
+				int offset = url.Find(protocol);
+				if (offset == 0)
+				{
+					ipaddress = url.Mid(len);
+				}
+				wxASSERT(!ipaddress.IsEmpty());
+				wxString compositeStr = ipaddress + _T("@@@");
+				compositeStr += pApp->m_strKbServerHostname;
+				pApp->m_ipAddrs_Hostnames.Add(compositeStr);
 			}
-			wxASSERT(!ipaddress.IsEmpty());
-			wxString compositeStr = ipaddress + _T("@@@");
-			compositeStr += pApp->m_strKbServerHostname;
-			pApp->m_ipAddrs_Hostnames.Add(compositeStr);
 			pApp->m_bLoginFailureErrorSeen = FALSE;
 			pApp->m_bUserLoggedIn = TRUE;
+			wxLogDebug(_T("helpers.cpp 10,941: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
 			return TRUE;
 		}
 		else
@@ -10959,6 +10970,42 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 		pApp->m_bAuthenticationCancellation = FALSE; // re-initialize
 		pApp->m_bUserLoggedIn = FALSE;
 	}
+	return FALSE;
+}
+
+bool IsURLStoreable(wxArrayString* pArr, wxString& url)
+{
+	if (pArr->IsEmpty())
+	{
+		// If the array is empty, storing it cannot produce a duplicate,
+		// so return TRUE
+		return TRUE;
+	}
+	wxString strNoProtocol = url; // the url will, of course, have an initial https://
+						   // that we will need to strip off before doing a Find()
+	size_t count = pArr->GetCount();
+	size_t index;
+	int offset = wxNOT_FOUND;
+	offset = strNoProtocol.Find(_T("//"));
+	if (offset == 0)
+	{
+		strNoProtocol = strNoProtocol.Mid(offset + 2);
+		// strNoProtocol should now have just the ipaddress part
+		for (index = 0; index < count; index++)
+		{
+			wxString aURL = pArr->Item(index);
+			offset = aURL.Find(strNoProtocol);
+			if (offset >= 0)
+			{
+				// We have matched the passed in url, so it is not storeable
+				return FALSE;
+			}
+		}
+		// If control gets to here, there were no matches, so it is storable
+		return TRUE;
+	}
+	// If control gets to here, the passed in string's structure is not correct
+	// for a url, and so declare the string 'not storable'
 	return FALSE;
 }
 
@@ -11016,6 +11063,43 @@ bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscove
 	// Get the project config file values for the adapting & glossing sharing flags
 	m_bSharingAdaptations = pApp->m_bIsKBServerProject_FromConfigFile;
 	m_bSharingGlosses = pApp->m_bIsGlossingKBServerProject_FromConfigFile;
+	// In the case of a new project, the config file values will both be false, and
+	// if that is the case and we do no more here, then use of the Setup Or Remove
+	// Knowledge Base Sharing dialog will get ignored. Or if the config files have
+	// one or both set true, but the latter dialog has the checkboxes off, then
+	// the latter's settings must prevail. That dialog sets the variables the config
+	// file would use for storage, so check now and override any of the above settings
+	// which differ
+	if (pApp->m_bIsKBServerProject == TRUE)
+	{
+		if (!m_bSharingAdaptations)
+		{
+			m_bSharingAdaptations = TRUE;
+		}
+	}
+	else
+	{
+		// User wants adaptations sharing to be OFF
+		if (m_bSharingAdaptations)
+		{
+			m_bSharingAdaptations = FALSE;
+		}
+	}
+	if (pApp->m_bIsGlossingKBServerProject == TRUE)
+	{
+		if (!m_bSharingGlosses)
+		{
+			m_bSharingGlosses = TRUE;
+		}
+	}
+	else
+	{
+		// User wants glosses sharing to be OFF
+		if (m_bSharingGlosses)
+		{
+			m_bSharingGlosses = FALSE;
+		}
+	}
 
 	// The user may want to turn of sharing by setting both checkboxes to be unticked
 	// in the Setup Or Remove Knowledge Base Sharing, and if so, then the above two
@@ -11168,11 +11252,54 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 					// Success if control gets to this line
 					pApp->GetKbServer(1)->EnableKBSharing(TRUE);
 					pApp->m_bUserLoggedIn = TRUE;
+
+					wxLogDebug(_T("helpers.cpp 11,245: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+
+					// Don't proceed to store it if the same url is already stored within the array
+					if (IsURLStoreable(&pApp->m_ipAddrs_Hostnames, pApp->m_strKbServerURL))
+					{
+						wxLogDebug(_T("helpers.cpp 11,250: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+						// Since the URL is okay, construct the composite string and .Add() it to the
+						// app's m_ipAddrs_Hostnames array
+						// BEW 6Apr16, make composite:  <ipaddr>@@@<hostname> to pass back to 
+						// the CServiceDiscovery instance
+						wxString composite = pApp->m_strKbServerURL;
+						int offset = composite.Find(_T("://"));
+						if (offset > 0)
+						{
+							composite = composite.Mid(offset + 3); // retain what follows //
+							wxString defaultHostname = _("unknown");
+							wxString ats = _T("@@@");
+							composite += ats + defaultHostname;
+							pApp->m_ipAddrs_Hostnames.Add(composite);
+						}
+						wxLogDebug(_T("helpers.cpp 11,266: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+					}
 				} // 3
 				if (pApp->GetKbServer(2) != NULL && !bSetupKBserverFailed)
 				{ // 4
 					pApp->GetKbServer(2)->EnableKBSharing(TRUE);
 					pApp->m_bUserLoggedIn = TRUE;
+
+					// Don't proceed to store it if the same url is already stored within the array
+					if (IsURLStoreable(&pApp->m_ipAddrs_Hostnames, pApp->m_strKbServerURL))
+					{
+						// Since the URL is okay, construct the composite string and .Add() it to the
+						// app's m_ipAddrs_Hostnames array
+						// BEW 6Apr16, make composite:  <ipaddr>@@@<hostname> to pass back to
+						// the CServiceDiscovery instance
+						wxString composite = pApp->m_strKbServerURL;
+						int offset = composite.Find(_T("://"));
+						if (offset > 0)
+						{
+							composite = composite.Mid(offset + 3); // retain what follows //
+							wxString defaultHostname = _("unknown");
+							wxString ats = _T("@@@");
+							composite += ats + defaultHostname;
+							pApp->m_ipAddrs_Hostnames.Add(composite);
+
+						}
+					}
 				} // 3
 
 				} // 2 // end of TRUE block for test: if (!bSimulateUserCancellation)

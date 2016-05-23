@@ -524,6 +524,8 @@ int CountSpaceDelimitedWords(wxString& str);
 
 #if defined (_KBSERVER)
 
+bool IsURLStoreable(wxArrayString* pArr, wxString& url);
+
 bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password); // BEW 6Jun13
 
 bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString password,

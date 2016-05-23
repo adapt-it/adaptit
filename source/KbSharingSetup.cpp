@@ -159,8 +159,13 @@ void KbSharingSetup::OnCheckBoxShareGlosses(wxCommandEvent& WXUNUSED(event))
 
 void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 {
-	if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
+	// Get the latest setting of the checkbox values - & set app flags accordingly
+	bool bAdaptationsTicked = m_pAdaptingCheckBox->GetValue();
+	bool bGlossesTicked = m_pGlossingCheckBox->GetValue();
+
+	if (bAdaptationsTicked || bGlossesTicked)
 	{
+		// Sharing is wanted for one or both of the adapting & glossing KBs...
 		// Show the dialog which allows the user to set the boolean: m_bServiceDiscoveryWanted, 
 		// for the later AuthenticateCheckAndSetupKBSharing() call to use
 		bool bUserCancelled = FALSE; // initialize
@@ -176,10 +181,19 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 		// user's chosen value
 		if (dlgReturnCode == wxID_OK)
 		{
+			if (bAdaptationsTicked)
+			{
+				m_pApp->m_bIsKBServerProject = TRUE;
+			}
+			if (bGlossesTicked)
+			{
+				m_pApp->m_bIsGlossingKBServerProject = TRUE;
+			}
 			// m_bServiceDiscoveryWanted will have been set or cleared in
 			// the OnOK() handler of the above dialog
 			bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
 			wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
+			//pHowGetUrl->EndModal(wxID_OK); <<-- wx complains that it is a modal dialog!! Eh? Look at line 179
 		}
 		else
 		{
@@ -187,8 +201,10 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 			// already done in the OnCancel() handler
 			bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
 			wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
+			//pHowGetUrl->EndModal(wxID_CANCEL);
 		}
-		delete pHowGetUrl; // We don't want the dlg showing any longer
+		pHowGetUrl->Destroy();
+		//delete pHowGetUrl; // We don't want the dlg showing any longer
 
 		// If the user didn't cancel, then call Authenticate....()
 		if (!bUserCancelled) // if user did not cancel...
@@ -210,6 +226,26 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 			// that sharing is OFF
 			ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
 		}
+	}
+	else
+	{
+		// Neither box is ticked, so turn off sharing...
+		// ReleaseKBServer(int) int = 1 or 2, does several things. It stops the download timer, deletes it
+		// and sets its pointer to NULL; it also saves the last timestamp value to its on-disk file; it
+		// then deletes the KbServer instance that was in use for supplying resources to the sharing code
+		if (m_pApp->KbServerRunning(1))
+		{
+			m_pApp->ReleaseKBServer(1); // the adaptations one
+		}
+		if (m_pApp->KbServerRunning(2))
+		{
+			m_pApp->ReleaseKBServer(2); // the glossings one
+		}
+
+		m_pApp->m_bIsKBServerProject = FALSE;
+		m_pApp->m_bIsGlossingKBServerProject = FALSE;
+
+		ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
 	}
 	myevent.Skip(); // close the KbSharingSetup dialog
 }

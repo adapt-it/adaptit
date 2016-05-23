@@ -67,14 +67,12 @@ void Thread_ChangedSince::OnExit()
 
 void* Thread_ChangedSince::Entry()
 {
-	// Note: the static s_QueueMutex is used within ChangedSince_Queued() at the point
-	// where an entry (in the form of a pointer to struct) is being added to the end of
-	// the queue m_queue in the m_pKbSvr instance
+
 	wxString timeStamp = m_pKbSvr->GetKBServerLastSync();
 
 	s_BulkDeleteMutex.Lock();
 
-	int rv = m_pKbSvr->ChangedSince_Queued(timeStamp); // 2nd param, bDoTimestampUpdate is default TRUE
+	int rv = m_pKbSvr->ChangedSince_Timed(timeStamp); // 2nd param, bDoTimestampUpdate is default TRUE
 
 	s_BulkDeleteMutex.Unlock();
 

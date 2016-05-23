@@ -63,9 +63,9 @@
 #include <wx/textfile.h>
 #include "MainFrm.h"
 #include "StatusBar.h"
-#include "Thread_CreateEntry.h"
-#include "Thread_PseudoUndelete.h"
-#include "Thread_PseudoDelete.h"
+//#include "Thread_CreateEntry.h"
+//#include "Thread_PseudoUndelete.h"
+//#include "Thread_PseudoDelete.h"
 #include "CorGuess.h"
 
 // Define type safe pointer lists
@@ -99,6 +99,8 @@ extern bool gbInhibitMakeTargetStringCall;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
+
+extern bool gbVerticalEditInProgress; // Needed. If TRUE, don't call EnsureProperCapitalization()
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -703,6 +705,59 @@ wxString CKB::TransformToLowerCaseInitial(wxString& str, bool bIsSrcStr)
 	return lower;
 }
 
+bool CKB::IgnoreLegacyUpperCaseEntry(CKB* pKB, int numWords, wxString srcKey)
+{
+	if (gbNoSourceCaseEquivalents)
+		return FALSE;
+	wxString keyStr = srcKey;
+//#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the source text
+	// to support lookups because we will have ZWSP rather than / in the KB
+	// No changes are made if app->m_bFwdSlashDelimiter is FALSE
+	keyStr = FwdSlashtoZWSP(keyStr);
+//#endif
+
+	MapKeyStringToTgtUnit* pMap = NULL;
+	CTargetUnit* pTU = NULL;
+	MapKeyStringToTgtUnit::iterator iter;
+	if (gbIsGlossing)
+	{
+		pKB = m_pApp->m_pGlossingKB;
+	}
+	else
+	{
+		pKB = m_pApp->m_pKB;
+	}
+	pMap = pKB->m_pMap[numWords - 1];
+
+	bool bNoError = m_pApp->GetDocument()->SetCaseParameters(keyStr); // extra param
+																	  // is TRUE since it is source text
+	if (bNoError && gbSourceIsUpperCase)
+	{
+		// Check now for a CTargetUnit instance which matches the upper-case-initial keyStr,
+		// if there is one, we want to ignore it - just return TRUE, if one does not exist
+		// then return FALSE so the normal consistency check is done
+		// do the lookup (with keyStr having upper-case-initial text)
+		iter = pMap->find(keyStr);
+		if (iter != pMap->end())
+		{
+			pTU = iter->second; // we have a match, pTU now points
+								// to a CTargetUnit instance
+			wxASSERT(pTU != NULL);
+			return TRUE; // This CKB entry should be ignored in the consistency check
+		}
+	}
+	else
+	{
+		// Either an error, or the source text key is lower case; in either
+		// situation return FALSE so that the caller does the consistency check
+		return FALSE;
+	}
+	// If control gets to here, there was no stored CTargetUnit instance, and
+	// so the consistency check is wanted
+	return FALSE;
+}
+
 // in this function, the keyStr parameter will always be a source string; the caller must
 // determine which particular map is to be looked up and provide it's pointer as the first
 // parameter; and if the lookup succeeds, pTU is the associated CTargetUnit instance's
@@ -900,7 +955,7 @@ void CKB::FireOffCreateEntryThread(wxString srcStr, CRefString* pRefString)
 		(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-
+		/*
 		Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
 		// populate it's public members (it only has public ones anyway)
 		pCreateEntryThread->m_pKbSvr = pKbSvr;
@@ -929,6 +984,9 @@ void CKB::FireOffCreateEntryThread(wxString srcStr, CRefString* pRefString)
 			  //m_pApp->LogUserAction(msg);
 			}
 		}
+		*/
+		int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, srcStr, pRefString->m_translation);
+		wxUnusedVar(rv);
 	}
 }
 
@@ -942,7 +1000,7 @@ void CKB::FireOffPseudoUndeleteThread(wxString srcStr, CRefString* pRefString)
 		(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-
+		/*
 		Thread_PseudoUndelete* pPseudoUndeleteThread = new Thread_PseudoUndelete;
 		// populate it's public members (it only has public ones anyway)
 		pPseudoUndeleteThread->m_pKbSvr = pKbSvr;
@@ -971,6 +1029,9 @@ void CKB::FireOffPseudoUndeleteThread(wxString srcStr, CRefString* pRefString)
 			//m_pApp->LogUserAction(msg);
 			}
 		}
+		*/
+		int rv = pKbSvr->Synchronous_PseudoUndelete(pKbSvr, srcStr, pRefString->m_translation);
+		wxUnusedVar(rv);
 	}
 }
 
@@ -984,7 +1045,7 @@ void CKB::FireOffPseudoDeleteThread(wxString srcStr, CRefString* pRefString)
 		(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-
+		/*
 		Thread_PseudoDelete* pPseudoDeleteThread = new Thread_PseudoDelete;
 		// populate it's public members (it only has public ones anyway)
 		pPseudoDeleteThread->m_pKbSvr = pKbSvr;
@@ -1013,6 +1074,9 @@ void CKB::FireOffPseudoDeleteThread(wxString srcStr, CRefString* pRefString)
 			//m_pApp->LogUserAction(msg);
 			}
 		}
+		*/
+		int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, srcStr, pRefString->m_translation);
+		wxUnusedVar(rv);
 	}
 }
 
@@ -1214,7 +1278,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
         // automatic re-storing of it. So now, we will just not remove the last one. This
         // will possibly skew the ref counts a bit for empty adaptations, if the user hits
         // the <no adaptation> button more than once for an entry (making them too large)
-        // or landing on an empty one several times (makes count to small), would not
+        // or landing on an empty one several times (makes count too small), would not
         // matter anyway. To manually remove empty adaptations from the KB the user still
         // has the option of doing it in the KB Editor, or in the ChooseTranslation dialog.
 
@@ -1284,11 +1348,44 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 			pRefString->m_bDeleted = TRUE;
 		}
 
+#if defined(_KBSERVER)
+		// BEW added 5Oct12, here is a suitable place for KBserver support
+		if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady && (GetMyKbServer() != NULL))
+		{
+			if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+				||
+				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+			{
+				KbServer* pKbSvr = GetMyKbServer(); // This gets either the adapting one, or glossing one, 
+													// depending on the mode currently in effect
+				// Assume we need to delete the lower case entry, key = s1, it's most likely
+				// to be correct rather than key = s (That is, to save time, we are deciding
+				// that if auto-capitalization is not currently turned on, and the removal of
+				// a CRefString for an upper-case-initial word or phrase is being done, we will
+				// not bother to set the corresponding KBserver entry's deleted flag to 1. But
+				// we *will* bother to set it to 1, provided the entry is present and 
+				// lower-case-initial, whether auto-caps is on or off.)
+				//
+				// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+				// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+				// effect on GUI responsiveness
+				m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+				m_pApp->m_strSrc_For_KBserver = s1;
+				m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+				m_pApp->m_bPseudoDelete_For_KBserver = TRUE;
+				/*
+				int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, s1, pRefString->m_translation);
+				wxUnusedVar(rv);
+				*/
+			}
+		}
+#endif
 		// inform the srcPhrase that it no longer has a KB entry (or a glossing KB entry)
 		if (m_bGlossingKB)
 			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 		else
 			pSrcPhrase->m_bHasKBEntry = FALSE;
+
 	}
 }
 
@@ -2142,7 +2239,7 @@ bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation)
 // function returns FALSE)
 bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 						CTargetUnit*& pTgtUnit, CRefString*& pRefStr, bool& bDeleted)
-{
+ {
 	pTgtUnit = NULL;
 	bDeleted = FALSE;
 
@@ -3967,6 +4064,14 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // BEW 23Apr15 additions to support / as a whitespace word-break char
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
+	// Unilaterally do the capitalization of the sentence initial word, if 
+	// the relevant conditions comply
+	if (!gbNoTargetCaseEquivalents && m_pApp->m_bSentFinalPunctsTriggerCaps &&
+		!gbVerticalEditInProgress && !m_pApp->m_bFreeTranslationMode)
+	{
+		m_pApp->EnsureProperCapitalization(m_pApp->m_nActiveSequNum, tgtPhrase);
+	}
+
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
 	wxString strNot = m_pApp->m_strNotInKB;
@@ -4350,7 +4455,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = GetMyKbServer();
-
+			/*
 			// don't send to KBserver if it's a <Not In KB> entry
 			if (!bStoringNotInKB)
 			{
@@ -4383,7 +4488,24 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					}
 				}
 			}
+			*/
+			// don't send to KBserver if it's a <Not In KB> entry
+			if (!bStoringNotInKB)
+			{
+				// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+				// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+				// effect on GUI responsiveness
+				m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+				m_pApp->m_strSrc_For_KBserver = key;
+				m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+				m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+				/*
+				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
+				wxUnusedVar(rv);
+				*/
+			}
 		}
+
 #endif
 		// continue with the store to the local KB
 		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
@@ -4535,7 +4657,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 			{
 				KbServer* pKbSvr = GetMyKbServer();
-
+				/*
 				// don't send to KBserver if it's a <Not In KB> entry
 				if(!bStoringNotInKB)
 				{
@@ -4567,6 +4689,22 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						//m_pApp->LogUserAction(msg);
 						}
 					}
+				}
+				*/
+				// don't send to KBserver if it's a <Not In KB> entry
+				if (!bStoringNotInKB)
+				{
+					// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+					// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+					// effect on GUI responsiveness
+					m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+					m_pApp->m_strSrc_For_KBserver = key;
+					m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+					m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+					/*
+					int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
+					wxUnusedVar(rv);
+					*/
 				}
 			}
 #endif
@@ -4711,7 +4849,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 						{
 							KbServer* pKbSvr = GetMyKbServer();
-
+							/*
 							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
 							{
 								Thread_PseudoUndelete* pPseudoUndeleteThread = new Thread_PseudoUndelete;
@@ -4742,6 +4880,21 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 									//m_pApp->LogUserAction(msg);
 									}
 								}
+							}
+							*/
+							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
+							{
+								// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+								// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+								// effect on GUI responsiveness
+								m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+								m_pApp->m_strSrc_For_KBserver = key;
+								m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+								m_pApp->m_bPseudoUndelete_For_KBserver = TRUE;
+								/*
+								int rv = pKbSvr->Synchronous_PseudoUndelete(pKbSvr, key, pRefString->m_translation);
+								wxUnusedVar(rv);
+								*/
 							}
 						}
 #endif
@@ -4884,7 +5037,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 					{
 						KbServer* pKbSvr = GetMyKbServer();
-
+						/*
 						// don't send a <Not In KB> entry to KBserver
 						if (!bStoringNotInKB)
 						{
@@ -4916,6 +5069,22 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								  //m_pApp->LogUserAction(msg);
 								}
 							}
+						}
+						*/
+						// don't send a <Not In KB> entry to KBserver
+						if (!bStoringNotInKB)
+						{
+							// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+							// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+							// effect on GUI responsiveness
+							m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+							m_pApp->m_strSrc_For_KBserver = key;
+							m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+							m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+							/*
+							int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
+							wxUnusedVar(rv);
+							*/
 						}
 					}
 #endif
@@ -5195,7 +5364,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = GetMyKbServer();
-
+			/*
 			// don't send to KBserver if it's a <Not In KB> entry
 			if (!bStoringNotInKB)
 			{
@@ -5227,6 +5396,21 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						//m_pApp->LogUserAction(msg);
 					}
 				}
+			}
+			*/
+			if (!bStoringNotInKB)
+			{
+				// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+				// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+				// effect on GUI responsiveness
+				m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+				m_pApp->m_strSrc_For_KBserver = key;
+				m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+				m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+				/*
+				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
+				wxUnusedVar(rv);
+				*/
 			}
 		}
 #endif
@@ -5295,7 +5479,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 			{
 				KbServer* pKbSvr = GetMyKbServer();
-
+				/*
 				// don't send to KBserver if it's a <Not In KB> entry
 				if (!bStoringNotInKB)
 				{
@@ -5327,6 +5511,21 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 							//m_pApp->LogUserAction(msg);
 						}
 					}
+				}
+				*/
+				if (!bStoringNotInKB)
+				{
+					// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+					// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+					// effect on GUI responsiveness
+					m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+					m_pApp->m_strSrc_For_KBserver = key;
+					m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+					m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+					/*
+					int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
+					wxUnusedVar(rv);
+					*/
 				}
 			}
 #endif
@@ -5431,7 +5630,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 							(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 						{
 							KbServer* pKbSvr = GetMyKbServer();
-
+							/*
 							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
 							{
 								Thread_PseudoUndelete* pPseudoUndeleteThread = new Thread_PseudoUndelete;
@@ -5462,6 +5661,21 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 										//m_pApp->LogUserAction(msg);
 									}
 								}
+							}
+							*/
+							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
+							{
+								// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+								// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+								// effect on GUI responsiveness
+								m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+								m_pApp->m_strSrc_For_KBserver = key;
+								m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+								m_pApp->m_bPseudoUndelete_For_KBserver = TRUE;
+								/*
+								int rv = pKbSvr->Synchronous_PseudoUndelete(pKbSvr, key, pRefString->m_translation);
+								wxUnusedVar(rv);
+								*/
 							}
 						}
 #endif
@@ -5565,7 +5779,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 					{
 						KbServer* pKbSvr = GetMyKbServer();
-
+						/*
 						if (!bStoringNotInKB)
 						{
 							Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
@@ -5597,6 +5811,23 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 								}
 							}
 						}
+						*/
+						// don't send a <Not In KB> entry to KBserver
+						if (!bStoringNotInKB)
+						{
+							// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+							// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+							// effect on GUI responsiveness
+							m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+							m_pApp->m_strSrc_For_KBserver = key;
+							m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+							m_pApp->m_bCreateEntry_For_KBserver = TRUE;
+							/*
+							int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
+							wxUnusedVar(rv);
+							*/
+						}
+
 					}
 #endif
 					// continue with the store to the local KB

@@ -69,13 +69,14 @@ void Thread_PseudoDelete::OnExit()
 
 void* Thread_PseudoDelete::Entry()
 {
+	/*
 	long entryID = 0; // initialize (it might not be used)
 	wxASSERT(!m_source.IsEmpty()); // the key must never be an empty string
 	int rv;
 
 	s_BulkDeleteMutex.Lock();
 
-	rv = m_pKbSvr->LookupEntryFields(m_source, m_translation, m_bLookupEntryFieldsCanDie);
+	rv = m_pKbSvr->LookupEntryFields(m_source, m_translation);
 	if (rv == CURLE_HTTP_RETURNED_ERROR)
 	{
         // If the lookup failed, we must assume it was because there was no matching entry
@@ -106,7 +107,7 @@ void* Thread_PseudoDelete::Entry()
 		if (e.deleted == 0)
 		{
 			// do a pseudo-delete here, use the entryID value above (reuse rv)
-			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete, m_bPseudoDeleteUndeleteEntryCanDie);
+			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete);
 		}
 	}
 
@@ -115,22 +116,14 @@ void* Thread_PseudoDelete::Entry()
 	// Block until libcurl has done all cleanups
 	while (!TestDestroy())
 	{
-		// It can sleep a bit beween checks
-		wxMilliSleep(5); // .005 seconds between each test
 	}
-	// Hang around a bit longer to ensure all the curl/openssl stuff has fully gone
-	wxMilliSleep(10); // .01 secs
-
+*/
 	return (void*)NULL;
 }
 
-bool Thread_PseudoDelete::TestDestroy()
+bool Thread_PseudoDelete::TestDestroy() // we don't call this
 {
-	if (m_bLookupEntryFieldsCanDie & m_bPseudoDeleteUndeleteEntryCanDie)
-	{
-		return TRUE;
-	}
-	return FALSE;
+	return TRUE;
 }
 
 

@@ -233,6 +233,16 @@ public:
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 
+#if !defined(_KBSERVER)
+
+	// When not a KBserver build, 5 menu commands pertain to KB sharing, and 4
+	// of these are not disabled (but do nothing), so better if I disable them
+	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
+	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
+	void OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event);
+	void OnUpdateDiscoverOneKBserver(wxUpdateUIEvent& event);
+#endif
+
 #if defined(_KBSERVER)
 
 	void OnKBSharingDlg(wxCommandEvent& event);

@@ -53,11 +53,10 @@ public:
 
 	// other methods...
 
-	// Booleans to ensure we don't die before the curl functions have completed their
+	// Boolean to ensure we don't die before the curl functions have completed their
 	// tasks and their cached data has been cleanedup (if the the thread dies before
 	// cleanup completes, heap memory is leaked)
-	bool m_bLookupEntryFieldsCanDie;
-	bool m_bPseudoDeleteUndeleteEntryCanDie;
+	bool m_bReadyToDie;
 
 
 	// wxThread::OnExit() is called when the thread exits at termination - for self
