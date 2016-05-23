@@ -193,6 +193,7 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 			// the OnOK() handler of the above dialog
 			bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
 			wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
+			//pHowGetUrl->EndModal(wxID_OK); <<-- wx complains that it is a modal dialog!! Eh? Look at line 179
 		}
 		else
 		{
@@ -200,8 +201,10 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 			// already done in the OnCancel() handler
 			bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
 			wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
+			//pHowGetUrl->EndModal(wxID_CANCEL);
 		}
-		delete pHowGetUrl; // We don't want the dlg showing any longer
+		pHowGetUrl->Destroy();
+		//delete pHowGetUrl; // We don't want the dlg showing any longer
 
 		// If the user didn't cancel, then call Authenticate....()
 		if (!bUserCancelled) // if user did not cancel...

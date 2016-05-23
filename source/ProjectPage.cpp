@@ -1342,7 +1342,8 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
 				}
 				bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
-				delete pHowGetUrl; // We don't want the dlg showing any longer
+				pHowGetUrl->Destroy();
+				//delete pHowGetUrl; // We don't want the dlg showing any longer
 
 				// If the user didn't cancel, then call Authenticate....()
 				if (!bUserCancelled) // if user did not cancel...

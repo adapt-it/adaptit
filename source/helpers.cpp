@@ -10917,9 +10917,13 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 		if (!pApp->m_strKbServerURL.IsEmpty())
 		{
 			wxString url = pApp->m_strKbServerURL;
+
+			wxLogDebug(_T("helpers.cpp 10,921: app's m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+
 			// Don't proceed to store it if the same url is already stored within the array
 			if (IsURLStoreable(&pApp->m_ipAddrs_Hostnames, pApp->m_strKbServerURL))
 			{
+				wxLogDebug(_T("helpers.cpp 10,926: app's m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
 				wxString protocol = _T("https://");
 				int len = protocol.Len();
 				int offset = url.Find(protocol);
@@ -10934,6 +10938,7 @@ bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp)
 			}
 			pApp->m_bLoginFailureErrorSeen = FALSE;
 			pApp->m_bUserLoggedIn = TRUE;
+			wxLogDebug(_T("helpers.cpp 10,941: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
 			return TRUE;
 		}
 		else
@@ -10976,22 +10981,32 @@ bool IsURLStoreable(wxArrayString* pArr, wxString& url)
 		// so return TRUE
 		return TRUE;
 	}
+	wxString strNoProtocol = url; // the url will, of course, have an initial https://
+						   // that we will need to strip off before doing a Find()
 	size_t count = pArr->GetCount();
 	size_t index;
 	int offset = wxNOT_FOUND;
-	for (index = 0; index < count; index++)
+	offset = strNoProtocol.Find(_T("//"));
+	if (offset == 0)
 	{
-		wxString aURL = pArr->Item(index);
-		offset = aURL.Find(url);
-		if (offset >= 0)
+		strNoProtocol = strNoProtocol.Mid(offset + 2);
+		// strNoProtocol should now have just the ipaddress part
+		for (index = 0; index < count; index++)
 		{
-			// We have matched the passed in url, so it is not storeable
-			return FALSE;
+			wxString aURL = pArr->Item(index);
+			offset = aURL.Find(strNoProtocol);
+			if (offset >= 0)
+			{
+				// We have matched the passed in url, so it is not storeable
+				return FALSE;
+			}
 		}
-
+		// If control gets to here, there were no matches, so it is storable
+		return TRUE;
 	}
-	// If control gets to here, there were no matches, so it is storable
-	return TRUE;
+	// If control gets to here, the passed in string's structure is not correct
+	// for a url, and so declare the string 'not storable'
+	return FALSE;
 }
 
 // The following function encapsulates KBserver service discovery, authentication to a running
@@ -11238,9 +11253,12 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 					pApp->GetKbServer(1)->EnableKBSharing(TRUE);
 					pApp->m_bUserLoggedIn = TRUE;
 
+					wxLogDebug(_T("helpers.cpp 11,245: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+
 					// Don't proceed to store it if the same url is already stored within the array
 					if (IsURLStoreable(&pApp->m_ipAddrs_Hostnames, pApp->m_strKbServerURL))
 					{
+						wxLogDebug(_T("helpers.cpp 11,250: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
 						// Since the URL is okay, construct the composite string and .Add() it to the
 						// app's m_ipAddrs_Hostnames array
 						// BEW 6Apr16, make composite:  <ipaddr>@@@<hostname> to pass back to 
@@ -11255,6 +11273,7 @@ _("The attempt to share the glossing knowledge base failed.\nYou can continue wo
 							composite += ats + defaultHostname;
 							pApp->m_ipAddrs_Hostnames.Add(composite);
 						}
+						wxLogDebug(_T("helpers.cpp 11,266: AuthenticateCheckAndSetupKB Sharing, m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
 					}
 				} // 3
 				if (pApp->GetKbServer(2) != NULL && !bSetupKBserverFailed)

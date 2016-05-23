@@ -110,6 +110,7 @@ extern wxCriticalSection g_jsonCritSect;
 
 // Comment out to prevent DoServiceDiscovery() from logging with wxLogDebug()
 #define _DOSERVDISC
+#define ERR_DUPLICATE
 
 // vectorized bitmaps
 #include "../res/vectorized/document_new_16.cpp"
@@ -28530,7 +28531,9 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
 	m_bUserAuthenticating = FALSE; // must be FALSE when the Manager is invoked 
 	pApp->m_bUserLoggedIn = FALSE;
-											  
+#if defined (ERR_DUPLICATE)
+	wxLogDebug(_T("OnKBSharingManagerTabbedDlg creator: 28,535 in AI.cpp, app's m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+#endif
 	// The one using the manager has to first be given the option for how to get the url for
 	// the KBserver which is being targetted for being setup for kb sharing or whatever other
 	// reason (such as adding or removing a user, a kb, or a custom code). Call the dialog
@@ -28542,6 +28545,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	pHowGetUrl->Center();
 	int dlgReturnCode;
 	dlgReturnCode = pHowGetUrl->ShowModal();
+
 	if (dlgReturnCode == wxID_OK)
 	{ 
 		// m_bServiceDiscoveryWanted will have been set or cleared in
@@ -28556,7 +28560,8 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	bLoginPersonCancelled = pHowGetUrl->m_bUserClickedCancel;
 	// The app's value for m_bServiceDiscoveryWanted will have been set within
 	// the OnOK() handler of the above dialog
-	delete pHowGetUrl; // We don't want the dlg showing any longer
+	pHowGetUrl->Destroy();
+	//delete pHowGetUrl; // We don't want the dlg showing any longer
 
 	// If the user didn't cancel, then call Authenticate....()
 	if (!bLoginPersonCancelled) // if the person doing the login did not cancel...
@@ -28579,7 +28584,8 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		if (m_bServiceDiscoveryWanted)
 		{
 			enum ServDiscDetail returnedValue = SD_NoResultsYet;
-			bool bOK = ConnectUsingDiscoveryResults(currentURL, chosenURL, chosenHostname, returnedValue);
+
+				bool bOK = ConnectUsingDiscoveryResults(currentURL, chosenURL, chosenHostname, returnedValue);
 			if (bOK)
 			{
 				// Got a URL to connect to
