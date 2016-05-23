@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
 "POT-Creation-Date: 2016-05-09 11:01-0400\n"
-"PO-Revision-Date: 2016-05-12 10:06-0400\n"
+"PO-Revision-Date: 2016-05-23 10:01-0400\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: fr\n"
@@ -2540,6 +2540,8 @@ msgid ""
 "SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*."
 "*)|*.*||"
 msgstr ""
+"Exportation de texte brut de SFM (comportant des champs \\lx & \\ge) (*.txt) "
+"| *. txt| Tous les fichiers (*. *) | *. * ||"
 
 # Priority 1
 #: Adapt_It.cpp:47655
@@ -2794,7 +2796,7 @@ msgstr "Erreur de lecture de fichier : aucune donnée n'a été lue"
 # Priority 1
 #: Adapt_ItDoc.cpp:1336 Adapt_ItView.cpp:22129
 msgid "The file you selected for input is a Unicode file."
-msgstr ""
+msgstr "Le fichier sélectionné est un fichier Unicode."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:1338 Adapt_ItView.cpp:22131
@@ -2810,7 +2812,7 @@ msgstr ""
 
 #: Adapt_ItDoc.cpp:1570
 msgid "No username entered -- owner not changed."
-msgstr ""
+msgstr "Aucun nom d’utilisateur entré--propriétaire n’a ne pas changé."
 
 #: Adapt_ItDoc.cpp:1729
 #, c-format
@@ -2828,58 +2830,65 @@ msgstr ""
 
 #: Adapt_ItDoc.cpp:1756
 msgid "No username entered -- document not saved."
-msgstr ""
+msgstr "Aucun nom d’utilisateur entré--document non enregistré."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:1766
-#, fuzzy
 msgid "Sorry, it appears the owner of this document is "
-msgstr "Ce document ne contient qu'un seul chapitre."
+msgstr "Désolé, il semble que le propriétaire de ce document est"
 
 #: Adapt_ItDoc.cpp:1767
 msgid " but the currently logged in user is "
-msgstr ""
+msgstr "Mais l’utilisateur connecté est"
 
 #: Adapt_ItDoc.cpp:1768
 msgid ".  Only the document's owner can save in the document history."
 msgstr ""
+"Seulement le propriétaire du document peut enregistrer dans l’histoire du "
+"document."
 
 #: Adapt_ItDoc.cpp:1798
 msgid ""
 "Before saving in the document history, you must either ACCEPT the revision "
 "or RETURN to the latest one."
 msgstr ""
+"Avant d’enregistrer dans l’histoire du document, vous devez soit ACCEPTER la "
+"révision ou le RETOURNER à la dernière."
 
 #: Adapt_ItDoc.cpp:1929
 msgid "There are no more recent versions in the history!"
-msgstr ""
+msgstr "Il n’y a pas des versions plus récentes dans l’histoire !"
 
 #: Adapt_ItDoc.cpp:1935 Adapt_ItDoc.cpp:2005
 msgid "We're already back at the earliest version saved!"
-msgstr ""
+msgstr "On est déjà retournés à la première version enregistrée !"
 
 #: Adapt_ItDoc.cpp:1999
 msgid "There are no earlier versions saved!"
-msgstr ""
+msgstr "Il n’y a pas les versions antérieures enregistrées !"
 
 #: Adapt_ItDoc.cpp:2102
 msgid "We're not looking at earlier revisions!"
-msgstr ""
+msgstr "Nous ne regardons pas d’antérieures révisions !"
 
 #: Adapt_ItDoc.cpp:2201
 msgid ""
 "This document was corrupt, but we have restored the latest version saved in "
 "the document history."
 msgstr ""
+"Ce document était corrompu, mais nous avons restauré la dernière version "
+"enregistrée dans l'histoire du document."
 
 #: Adapt_ItDoc.cpp:2291 Adapt_ItDoc.cpp:2299
 msgid "There are no previous versions in the history!"
-msgstr ""
+msgstr "Il n’y a pas de versions antérieures de l’histoire !"
 
 # Priority 1
 #: Adapt_ItDoc.cpp:2518 Adapt_ItDoc.cpp:5817
 msgid "Warning: document save failed for some reason.\n"
 msgstr ""
+"Attention : l’enregistrement du document a échoué pour une raison "
+"quelconque.\n"
 
 # Priority 1
 #: Adapt_ItDoc.cpp:2552
@@ -2888,11 +2897,14 @@ msgid ""
 "destroyed. If the document is still visible, please click the Save command "
 "on the File menu immediately."
 msgstr ""
+"Il y avait un problème. Le dossier du document d'adaptation sur le disque a "
+"été perdu ou détruit. Si le document est toujours visible, s'il vous plaît "
+"cliquez sur la commande Enregistrer dans le menu Fichier immédiatement."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:2553 Adapt_ItDoc.cpp:2571
 msgid "Immediate Save Is Recommended"
-msgstr ""
+msgstr "S'il vous plaît, enregistrez immédiatement"
 
 # Priority 1
 #: Adapt_ItDoc.cpp:2569
@@ -2903,16 +2915,24 @@ msgid ""
 "are out of luck and the open document will not be saved, so shut down and "
 "start again."
 msgstr ""
+"Il y avait un problème. Le document d'adaptation n'a pas été enregistré sur "
+"le disque. S'il vous plaît, cliquez sur la commande « Enregistrer » dans le "
+"menu Fichier immédiatement, et si l'erreur persiste, essayez la commande « "
+"Enregistrer sous... » au lieu - si cela ne fonctionne pas, vous êtes hors de "
+"la chance et le document ouvert ne sera pas sauvé, donc fermer et "
+"recommencer."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:2647
 msgid "Please wait while the translation is sent to Paratext..."
 msgstr ""
+"Attendez s’il vous plaît pendant que la traduction est envoyée à Paratexte..."
 
 # Priority 1
 #: Adapt_ItDoc.cpp:2651
 msgid "Please wait while the translation is sent to Bibledit..."
 msgstr ""
+"Attendez s’il vous plaît pendant que la traduction est envoyée à BibleEdit..."
 
 #: Adapt_ItDoc.cpp:2711 Adapt_ItDoc.cpp:2811
 msgid "Elevate Permission Level?"
@@ -16905,11 +16925,11 @@ msgstr ""
 
 #: helpers.cpp:11351
 msgid "A local KBserver was not discovered"
-msgstr ""
+msgstr "Un KBserver local n’a pas été découverte."
 
 #: helpers.cpp:11578
 msgid "No password was typed, or you cancelled"
-msgstr ""
+msgstr "Aucun mot de passe a été entré, ou vous avez annulé"
 
 #: helpers.cpp:11580
 msgid ""
