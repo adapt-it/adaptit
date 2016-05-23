@@ -705,6 +705,59 @@ wxString CKB::TransformToLowerCaseInitial(wxString& str, bool bIsSrcStr)
 	return lower;
 }
 
+bool CKB::IgnoreLegacyUpperCaseEntry(CKB* pKB, int numWords, wxString srcKey)
+{
+	if (gbNoSourceCaseEquivalents)
+		return FALSE;
+	wxString keyStr = srcKey;
+//#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the source text
+	// to support lookups because we will have ZWSP rather than / in the KB
+	// No changes are made if app->m_bFwdSlashDelimiter is FALSE
+	keyStr = FwdSlashtoZWSP(keyStr);
+//#endif
+
+	MapKeyStringToTgtUnit* pMap = NULL;
+	CTargetUnit* pTU = NULL;
+	MapKeyStringToTgtUnit::iterator iter;
+	if (gbIsGlossing)
+	{
+		pKB = m_pApp->m_pGlossingKB;
+	}
+	else
+	{
+		pKB = m_pApp->m_pKB;
+	}
+	pMap = pKB->m_pMap[numWords - 1];
+
+	bool bNoError = m_pApp->GetDocument()->SetCaseParameters(keyStr); // extra param
+																	  // is TRUE since it is source text
+	if (bNoError && gbSourceIsUpperCase)
+	{
+		// Check now for a CTargetUnit instance which matches the upper-case-initial keyStr,
+		// if there is one, we want to ignore it - just return TRUE, if one does not exist
+		// then return FALSE so the normal consistency check is done
+		// do the lookup (with keyStr having upper-case-initial text)
+		iter = pMap->find(keyStr);
+		if (iter != pMap->end())
+		{
+			pTU = iter->second; // we have a match, pTU now points
+								// to a CTargetUnit instance
+			wxASSERT(pTU != NULL);
+			return TRUE; // This CKB entry should be ignored in the consistency check
+		}
+	}
+	else
+	{
+		// Either an error, or the source text key is lower case; in either
+		// situation return FALSE so that the caller does the consistency check
+		return FALSE;
+	}
+	// If control gets to here, there was no stored CTargetUnit instance, and
+	// so the consistency check is wanted
+	return FALSE;
+}
+
 // in this function, the keyStr parameter will always be a source string; the caller must
 // determine which particular map is to be looked up and provide it's pointer as the first
 // parameter; and if the lookup succeeds, pTU is the associated CTargetUnit instance's
@@ -2186,7 +2239,7 @@ bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation)
 // function returns FALSE)
 bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 						CTargetUnit*& pTgtUnit, CRefString*& pRefStr, bool& bDeleted)
-{
+ {
 	pTgtUnit = NULL;
 	bDeleted = FALSE;
 

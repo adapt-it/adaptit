@@ -73,13 +73,13 @@
 #include "KB.h"
 #include "AdaptitConstants.h"
 #include "TargetUnit.h"
+#include "Adapt_ItDoc.h"
 #include "Adapt_ItView.h"
 #include "Strip.h"
 #include "Pile.h" // must precede the include for the document
 #include "Cell.h"
 #include "Layout.h"
 #include "BookNameDlg.h" // BEW added 7Aug12
-#include "Adapt_ItDoc.h"
 #include "RefString.h"
 #include "RefStringMetadata.h"
 //#include "ProgressDlg.h" // removed in svn revision #562
@@ -24643,6 +24643,19 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			pos1 = pos1->GetNext();
 			counter++;
 
+			// BEW added 23May16, to fix Mike's problem of lots of legacy upper-case-initial
+			// source text words & phrases in the KB causing lots of bogus inconsistencies
+			// when auto-capitalizing is ON. We want those just to be ignored
+			int numSrcTextWords = pSrcPhrase->m_nSrcWords;
+			bool bIgnoreLegacyOne = FALSE;
+			if (gbAutoCaps)
+			{
+				// pass in key 'as is', with no case adjustment
+				bIgnoreLegacyOne = pKBCopy->IgnoreLegacyUpperCaseEntry(pKBCopy, numSrcTextWords, key);
+				if (bIgnoreLegacyOne)
+					continue;
+			}
+
 			bFoundTgtUnit = FALSE;
 
 			// ignore placeholders and retranslations
@@ -26466,6 +26479,19 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 			gloss = pSrcPhrase->m_gloss; // could be an empty string
 			pos1 = pos1->GetNext();
 			counter++;
+
+			// BEW added 23May16, to fix Mike's problem of lots of legacy upper-case-initial
+			// source text words & phrases in the KB causing lots of bogus inconsistencies
+			// when auto-capitalizing is ON. We want those just to be ignored
+			int numSrcTextWords = pSrcPhrase->m_nSrcWords;
+			bool bIgnoreLegacyOne = FALSE;
+			if (gbAutoCaps)
+			{
+				// pass in key 'as is', with no case adjustment
+				bIgnoreLegacyOne = pKBCopy->IgnoreLegacyUpperCaseEntry(pKBCopy, numSrcTextWords, gloss);
+				if (bIgnoreLegacyOne)
+					continue;
+			}
 
 			bFoundTgtUnit = FALSE;
 
