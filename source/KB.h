@@ -42,18 +42,6 @@ enum KB_Entry {
 	really_present
 };
 
-//#if defined (_KBSERVER)
-//enum SharedKbEntries {
-//	forOneCTargetUnit,
-//	mixedEntries
-//};
-//#endif
-
-// BEW removed 29May10, as TUList is redundant * now removed
-// wxList declaration and partial implementation of the TUList class being
-// a list of pointers to CTargetUnit objects
-//WX_DECLARE_LIST(CTargetUnit, TUList); // see WX_DEFINE_LIST macro in the .cpp file
-
 // wxHashMap uses this macro for its declaration
 WX_DECLARE_HASH_MAP( wxString,		// the map key is the source text word or phrase string
                     CTargetUnit*,	// the map value is the pointer to the class instance
@@ -88,7 +76,7 @@ public:
 	// [including embedded objects] are inititalized in the order in which they appear in the class
 	// definition...Embedded objects are destroyed in the reverse order of their creation." Hence
 	// the compiler will initialize the MapKeyStringToTgtUnit, before TUList.
-	// TODO: Implement the commented out copy constructor, change the ordering of the class members
+	// TODO - maybe someday: Implement the commented out copy constructor, change the ordering of the class members
 	// in the declaration below, putting TUList* m_pTargetUnits before the MapKeyStringToTgtUnit* m_pMap[10]
 	// line to ensure that it gets initialized first. See if it works properly in the wxWidgets
 	// version and avoids the same problem Bruce encountered in the MFC version. cf similar notes
@@ -133,11 +121,8 @@ public:
 								wxString& targetPhrase, enum UseForLookup useThis); // BEW created 11May10
 	void			GetForceAskList(KPlusCList* pKeys);
 
-	//CRefString*	    GetRefString(int nSrcWords, wxString keyStr, wxString valueStr);
 	enum KB_Entry	GetRefString(int nSrcWords, wxString keyStr, wxString valueStr, CRefString*& pRefStr);
 
-	//CRefString*		GetRefString(CTargetUnit* pTU, wxString valueStr);
-					// an overload useful for LIFT imports
 	enum KB_Entry	GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRefStr);
 
 	CTargetUnit*	GetTargetUnit(int nSrcWords, wxString keyStr);
@@ -205,10 +190,7 @@ public:
 	void		MakeAndStoreNewRefString(CTargetUnit* pTU, wxString& tgtPhrase,
 									wxString& username, bool bDeletedFlag);
 	CRefString*	GetMatchingRefString(CTargetUnit* pTU, wxString& tgtPhrase, bool& bIsDeleted);
-/*  I don't think I need this next one (it's only a stub so far)
-	bool		IsMatchForKbSharing(CTargetUnit* pTU, wxString& translation,
-					int deletedFlag, CRefString*& pRefString, bool& bMatchedTranslation);
-*/
+
 	// Does nothing if the project is not a KB sharing one, or if it is but sharing is
 	// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
 	// encapsulated, and advisory only, so errors don't stop the app
@@ -236,9 +218,7 @@ public:
 	bool			m_bGlossingKB; // TRUE for a glossing KB, FALSE for an adapting KB
     int				m_kbVersionCurrent; // BEW added 3May10 for Save As... support
 
-	//CRefString*		AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);
 	enum KB_Entry	AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation, CRefString*& pRefStr);
-	//int			CountSourceWords(wxString& rStr); // use helpers.cpp TrimAndCountWordsInString() instead
 	bool			IsMember(wxString& rLine, wxString& rMarker, int& rOffset);
 
     DECLARE_DYNAMIC_CLASS(CKB)

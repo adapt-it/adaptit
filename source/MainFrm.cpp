@@ -4794,37 +4794,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			if (bIsEnabled && bIsPending && bTimerIsRunning)
 			{
 				gpApp->m_bKbServerIncrementalDownloadPending = FALSE; // disable tries until next timer shot
-				/*
-				Thread_ChangedSince* pThread = new Thread_ChangedSince;
-				wxThreadError error =  pThread->Create(1024); // was wxThreadError error =  pThread->Create(10240);
 
-				// we don't expect Create() will fail, but let the user see an English message
-				// We'll not put anything in LogUserAction() in case there are multiple
-				// failures - which would bloat the log file
-				if(error != wxTHREAD_NO_ERROR)
-				{
-					delete pThread;
-					wxString msg = _T("Thread_ChangedSince::Create() failed, so thread was not Run()");
-					wxString title = _T("Unexpected thread creation error");
-					wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-					return;
-				}
-				else
-				{
-					// run the thread, and we can then forget it if there was no error
-					wxThreadError mythreaderror = pThread->Run();
-					if(mythreaderror != wxTHREAD_NO_ERROR)
-					{
-						delete pThread;
-						wxString msg;
-						msg = msg.Format( _T("Thread_ChangedSince::Run() failed, error: %d  So thread was deleted."),
-										(int)mythreaderror);
-						wxString title = _T("Unexpected thread run error");
-						wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-						return;
-					}
-				}
-				*/
 				// My timing tests indicate this should run, for a KBserver on the local LAN,
 				// a 10-entry download and merge to local KB, in about .5 of a second (which
 				// is the JSON preparation time, download time, merge time, totaled). Ten entries
@@ -4832,7 +4802,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				int rv = pKbSvr->Synchronous_ChangedSince_Timed(pKbSvr);
 				wxUnusedVar(rv);
 
-				return; // only do this thread on one OnIdle() call, subsequent OnIdle() calls
+				return; // only do this call on one OnIdle() call, subsequent OnIdle() calls
 						// can attempt the additional KBserver actions in the code below
 			}
 			else
@@ -4844,41 +4814,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				// not to do that)
 				gpApp->m_bKbServerIncrementalDownloadPending = FALSE;
 			}
-/* deprecated BEW 10May16 -- refactored, to not use a queue, use Synchronous_ChangedSince_Timed()
-			// Do the removing from queue of the first KbServerEntry struct pointer, and
-			// merge it's contents into the local KB storage, here in main thread. (The
-			// access to the queue is mutex protected, with s_QueueMutex.)  We remove and
-			// merge just one struct per idle event.
-			if (pKbSvr->IsKBSharingEnabled() && !pKbSvr->IsQueueEmpty())
-			{
-				// the next line is protected internally by the s_QueueMutex
-				KbServerEntry* pEntryStruct = pKbSvr->PopFromQueueFront();
-
-				// the mutex is now released, so merge the data into the local KB; however,
-				// UploadToKbServer() may be scanning the local KB to find entries not in
-				// the remote DB, so this KB access here needs a mutext protection
-				KBAccessMutex.Lock();
-
-				bool bDeletedFlag = pEntryStruct->deleted == 1 ? TRUE: FALSE;
-
-				pKB->StoreOneEntryFromKbServer(pEntryStruct->source, pEntryStruct->translation,
-												pEntryStruct->username, bDeletedFlag);
-				KBAccessMutex.Unlock();
-
-				// Clean up, don't leak memory
-#if defined (_MemLeaks_)
-				nDestroyed++;
-				wxLogDebug(_T("OnIdle() ChangedSince Queue: Handled:  %s / %s  : nDestroyed = %d  nTotalToDestroy = %d"),
-					pEntryStruct->source, pEntryStruct->translation, nDestroyed, nTotalToDestroy);
-#endif
-				pEntryStruct->source.Clear();
-				pEntryStruct->translation.Clear();
-				pEntryStruct->username.Clear();
-				delete pEntryStruct;
-
-				return; // if there are any more available, do them on subsequent idle events
-			}
-*/
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 
