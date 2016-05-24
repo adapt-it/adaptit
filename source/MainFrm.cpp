@@ -97,7 +97,7 @@ static unsigned int nTotalToDestroy;
 #define SHOWSYNC // comment out to prevent logging for the synchronous curl calls to KBserver from OnIdle()
 
 #include "KBSharing.h" // BEW added 14Jan13
-//#include "KBSharingSetupDlg.h" // BEW added 15Jan13
+#include "KbSvrHowGetUrl.h" // BEW moved it to here, 24May16
 #include "KbSharingSetup.h" // BEW added 10Oct13
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
 //#include "Thread_ChangedSince.h" // BEW added 13Feb13, removed 10May16 because we
@@ -2051,6 +2051,10 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 	m_auiMgr.Update();
     m_pPerspective = m_auiMgr.SavePerspective();
+#if defined(_KBSERVER)
+	m_bKbSvrAdaptationsTicked = FALSE;
+	m_bKbSvrGlossesTicked = FALSE;
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -4452,6 +4456,99 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
 #endif
 	}
+
+	// Get the KbSvrHowGetUrl dialog open when requested. One of these two
+	// booleans, or both, will have been set TRUE in the OnOK() function of
+	// the KbSharingSetup.cpp dlg handler, and it the user cancelled from the
+	// latter, the OnCancel() function will have already been called. We do,
+	// however, support cancelling here from the KbSvrHowGetUrl dialog - we
+	// treat it as a request to forgo any sharing at the present time
+	if (m_bKbSvrAdaptationsTicked || m_bKbSvrGlossesTicked)
+	{
+		KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(this);
+		pHowGetUrl->Center();
+		int dlgReturnCode;
+		bool bUserCancelled;
+
+		// The purpose of this dialog is to present the user with two radiobuttons,
+		// whereby he can declare "I want to get the URL by means of using service
+		// discovery results -- if necessary, service discovery should have been done
+		// earlier, or at least a login to a KBserver which gets a URL stored without
+		// actually doing a service discovery - using a config file URL value and there
+		// happens to be the correct KBserver running on the LAN); or, " I don't want
+		//  service discovery - I'll type a URL myself (because, presumably, the URL
+		// is to a KBserver running somewhere in the world and accessible over the web)
+		// If service discovery is wanted, the dialog sets m_bServiceDiscoveryWanted
+		// to TRUE (it's a boolean member of the CAdapt_ItApp class)
+		dlgReturnCode = pHowGetUrl->ShowModal();
+		// The dialog's OnOK() handler will have set m_bServiceDiscoveryWanted to the
+		// user's chosen value; Cancelling, however, cancels from setting up sharing
+		// at all, for the present
+		if (dlgReturnCode == wxID_OK)
+		{
+			if (m_bKbSvrAdaptationsTicked)
+			{
+				pApp->m_bIsKBServerProject = TRUE;
+			}
+			else
+			{
+				pApp->m_bIsKBServerProject = FALSE;
+			}
+			if (m_bKbSvrGlossesTicked)
+			{
+				pApp->m_bIsGlossingKBServerProject = TRUE;
+			}
+			else
+			{
+				pApp->m_bIsGlossingKBServerProject = FALSE;
+			}
+
+			// We post a custom event here, and the event's handler will run the Authenticate
+			// dialog at idle time, when KbSharingSetup will have been closed
+			wxCommandEvent eventCustom(wxEVT_Call_Authenticate_Dlg);
+			wxPostEvent(pApp->GetMainFrame(), eventCustom); // custom event handlers are in CMainFrame
+
+			bUserCancelled = FALSE;
+		}
+		else
+		{
+			// The user cancelled...
+			bUserCancelled = TRUE;
+
+			// ReleaseKBServer(int) int = 1 or 2, does several things. It stops the download timer,
+			// deletes it and sets its pointer to NULL; it also saves the last timestamp value to 
+			// its on-disk file; it then deletes the KbServer instance that was in use for supplying
+			// resources to the sharing code
+			if (pApp->KbServerRunning(1))
+			{
+				pApp->ReleaseKBServer(1); // the adaptations one
+			}
+			if (pApp->KbServerRunning(2))
+			{
+				pApp->ReleaseKBServer(2); // the glossings one
+			}
+
+			pApp->m_bIsKBServerProject = FALSE;
+			pApp->m_bIsGlossingKBServerProject = FALSE;
+
+			pApp->m_bServiceDiscoveryWanted = TRUE; // restore the default value
+		}
+
+		// The dialog window is no longer needed, get rid of it
+		if (pHowGetUrl != NULL)
+		{
+			pHowGetUrl->Destroy();
+		}
+		// We must turn off the booleans, to prevent bogus reentry
+		m_bKbSvrAdaptationsTicked = FALSE;
+		m_bKbSvrGlossesTicked = FALSE;
+
+		if (bUserCancelled)
+		{
+			ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
+		}
+	}
+
 #endif // _KBSERVER
 
 	if (pApp->m_bSingleStep)

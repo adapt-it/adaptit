@@ -46,7 +46,6 @@
 #include "MainFrm.h"
 #include "helpers.h"
 #include "KbServer.h"
-#include "KbSvrHowGetUrl.h"
 #include "KBSharingStatelessSetupDlg.h" //  misnamed, it's actually just an authentication class
 #include "KbSharingSetup.h"
 
@@ -162,70 +161,19 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 	// Get the latest setting of the checkbox values - & set app flags accordingly
 	bool bAdaptationsTicked = m_pAdaptingCheckBox->GetValue();
 	bool bGlossesTicked = m_pGlossingCheckBox->GetValue();
+	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
+	bool bDoNotShare = FALSE;
 
 	if (bAdaptationsTicked || bGlossesTicked)
 	{
 		// Sharing is wanted for one or both of the adapting & glossing KBs...
 		// Show the dialog which allows the user to set the boolean: m_bServiceDiscoveryWanted, 
-		// for the later AuthenticateCheckAndSetupKBSharing() call to use
-		bool bUserCancelled = FALSE; // initialize
-		KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(m_pApp->GetMainFrame());
-		pHowGetUrl->Center();
-		int dlgReturnCode;
-
-		// Hide parent window
-		this->Hide();
-
-		dlgReturnCode = pHowGetUrl->ShowModal();
-		// The dialog's OnOK() handler will have set m_bServiceDiscoveryWanted to the
-		// user's chosen value
-		if (dlgReturnCode == wxID_OK)
-		{
-			if (bAdaptationsTicked)
-			{
-				m_pApp->m_bIsKBServerProject = TRUE;
-			}
-			if (bGlossesTicked)
-			{
-				m_pApp->m_bIsGlossingKBServerProject = TRUE;
-			}
-			// m_bServiceDiscoveryWanted will have been set or cleared in
-			// the OnOK() handler of the above dialog
-			bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
-			wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
-			//pHowGetUrl->EndModal(wxID_OK); <<-- wx complains that it is a modal dialog!! Eh? Look at line 179
-		}
-		else
-		{
-			// User cancelled. This clobbers the sharing setup - that clobbering is
-			// already done in the OnCancel() handler
-			bUserCancelled = pHowGetUrl->m_bUserClickedCancel;
-			wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
-			//pHowGetUrl->EndModal(wxID_CANCEL);
-		}
-		pHowGetUrl->Destroy();
-		//delete pHowGetUrl; // We don't want the dlg showing any longer
-
-		// If the user didn't cancel, then call Authenticate....()
-		if (!bUserCancelled) // if user did not cancel...
-		{
-			// We don't call AuthenticateCheckAndSetupKBSharing() directly here, if we did, 
-			// the Authenticate dialog is ends up lower in the z-order and the parent
-			// KbSharingSetup dialog hides it - and as both are modal, the user cannot
-			// get to the Authenticate dialog if control is sent back there (e.g. when the
-			// password is empty, or there is a curl error, or the URL is wrong or the wanted
-			// KBserver is not running). So, we post a custom event here, and the event's
-			// handler will run the Authenticate dialog at idle time, when KbSharingSetup will
-			// have been closed
-			wxCommandEvent eventCustom(wxEVT_Call_Authenticate_Dlg);
-			wxPostEvent(m_pApp->GetMainFrame(), eventCustom); // custom event handlers are in CMainFrame
-		}
-		else
-		{
-			// User canceled before Authentication could be attempted - so tell him
-			// that sharing is OFF
-			ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
-		}
+		// for the later AuthenticateCheckAndSetupKBSharing() call to use. Formerly the dialog
+		// was opened here - but OSX would not accept the nesting, and froze the GUI, so now
+		// it is opened from CMainFrame::OnIdle() when one or both of the booleans are TRUE
+		pFrame->m_bKbSvrAdaptationsTicked = bAdaptationsTicked;
+		pFrame->m_bKbSvrGlossesTicked = bGlossesTicked;
 	}
 	else
 	{
