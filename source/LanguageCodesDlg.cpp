@@ -1,3 +1,4 @@
+
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
 /// \file			LanguageCodesDlg.cpp
@@ -677,8 +678,11 @@ wxString CLanguageCodesDlg::Get3LetterCodeFromLBItem()
 	m_associatedLanguageName = strName.Mid(offset + fiveSpaces.Len());
 	m_associatedLanguageName.Trim(); // remove any whitespace from end
 	m_associatedLanguageName.Trim(FALSE); // & from the start, just to be sure
+    
 	// return the language code
-	return tempStr.Mid(0,3);
+    // GDLC 25MAY16 Avoid returning 3 chars for a 2 char code (trim the trailing space)
+    wxString code = tempStr.Mid(0,3);
+	return code.Trim();
 }
 
 // other class methods

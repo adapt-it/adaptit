@@ -471,6 +471,7 @@ wxLogDebug(_T("Authenticate Dlg (KBSharingStatelessSetupDlg.cpp) URL: %s , store
     // wxID_CANCEL rather than wxID_OK, so I'll try setting wxID_OK explicitly here using
     // the SetReturnCode() function
     //SetReturnCode(wxID_OK);
+
 	myevent.Skip(); // the dialog will be exited now
 }
 
