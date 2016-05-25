@@ -163,7 +163,6 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 	bool bGlossesTicked = m_pGlossingCheckBox->GetValue();
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
-	bool bDoNotShare = FALSE;
 
 	if (bAdaptationsTicked || bGlossesTicked)
 	{

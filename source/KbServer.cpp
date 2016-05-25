@@ -4592,6 +4592,15 @@ int KbServer::Synchronous_ChangedSince_Timed(KbServer* pKbSvr)
 	return rv;
 }
 
+int KbServer::Synchronous_KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldText, wxString newText)
+{
+	CURLcode rv = (CURLcode)0;
+
+
+
+	return rv;
+}
+
 int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable)
 {
 	CURLcode rv = (CURLcode)0;
@@ -4674,7 +4683,7 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 			successCount++;
 #if defined(_DEBUG)
 			// track what we delete and it's ID
-//			wxLogDebug(_T("Thread_DoEntireKbDeletion(): id = %d, src = %s , non-src = %s"),
+//			wxLogDebug(_T("TSynchronous_DoEntireKbDeletion(): id = %d, src = %s , non-src = %s"),
 //				pKbSvrEntry->id, pKbSvrEntry->source.c_str(), pKbSvrEntry->translation.c_str());
 #endif
 			// Copy it to the app member ready for display in main window at bottom
@@ -4708,7 +4717,7 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 		// There were some failures... (and the Manager GUI may not be open -- see comment
 		// in the else block for details)
 #if defined(_DEBUG)
-		wxLogDebug(_T("Thread_DoEntireKbDeletion(): deletion errors (number of entries failing) = %d"),
+		wxLogDebug(_T("Synchronous_DoEntireKbDeletion(): deletion errors (number of entries failing) = %d"),
 			nonsuccessCount);
 #endif
 		// We want to make the wxStatusBar (actually, our subclass CStatusBar), go back to 
@@ -4823,11 +4832,6 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 		// on the heap still
 		m_pApp->m_pKbServer_Persistent->DeleteDownloadsQueueEntries();
 	}
-	/* Next stuff was okay when using a thread, but not now - we are operating synchronously
-	delete m_pApp->m_pKbServer_Persistent; // the KbServer instance supplying services 
-										   // for our deletion attempt
-	m_pApp->m_pKbServer_Persistent = NULL; // This is very important, must be NULL after success
-	*/
 
 	m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
 

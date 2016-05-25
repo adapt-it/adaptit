@@ -100,8 +100,6 @@ static unsigned int nTotalToDestroy;
 #include "KbSvrHowGetUrl.h" // BEW moved it to here, 24May16
 #include "KbSharingSetup.h" // BEW added 10Oct13
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
-//#include "Thread_ChangedSince.h" // BEW added 13Feb13, removed 10May16 because we
-								   // must use synchronous calls due to openssl memory leaks
 #include "Timer_KbServerChangedSince.h"
 #include "ServiceDiscovery.h"
 #include "WaitDlg.h"

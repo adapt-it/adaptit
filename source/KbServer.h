@@ -230,9 +230,9 @@ public:
 	int		Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt);
 	int		Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt);
 	int		Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt);
-	//int		Synchronous_ChangedSince_Queued(KbServer* pKbSvr); // <<-- deprecate, much too slow
 	int		Synchronous_ChangedSince_Timed(KbServer* pKbSvr);
 	int		Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable);
+	int		Synchronous_KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldText, wxString newText);
 
 	// public setters
 	void     SetKB(CKB* pKB); // sets m_pKB to point at either the local adaptations KB or local glosses KB

@@ -69,55 +69,8 @@ void Thread_PseudoDelete::OnExit()
 
 void* Thread_PseudoDelete::Entry()
 {
-	/*
-	long entryID = 0; // initialize (it might not be used)
-	wxASSERT(!m_source.IsEmpty()); // the key must never be an empty string
-	int rv;
 
-	s_BulkDeleteMutex.Lock();
 
-	rv = m_pKbSvr->LookupEntryFields(m_source, m_translation);
-	if (rv == CURLE_HTTP_RETURNED_ERROR)
-	{
-        // If the lookup failed, we must assume it was because there was no matching entry
-        // (ie. HTTP 404 was returned) - in which case we will do no more and let the
-        // thread die. The alternative would be the following, which is much to much to be
-        // worth the bother....
-		// 1. create a normal entry using Thread_CreateEntry()
-		// 2. look it up using LookupEntryFields() to get the entrie's ID
-		// 3. pseudo-delete the new entry using PseudoDeleteOrUndeleteEntry(), passing in 
-		// doDelete enum value -- a total of 4 latency-laden calls. No way! (The chance of
-		// the initial lookup failing is rather unlikely, because pseudo-deleting is only
-		// done via the KB Editor dialog, and that should have put the remote database
-		// into the correct state previously, making an error here unlikely.)
-		return (void*)NULL;
-	}
-	else
-	{
-		// No error from the lookup, so get the entry ID, and the value of the deleted flag
-		KbServerEntry e = m_pKbSvr->GetEntryStruct(); // accesses m_entryStruct
-		entryID = e.id; // an delete of a normal entry will need this value
-#if defined(_DEBUG)
-		wxLogDebug(_T("LookupEntryFields in Thread_PseudoDelete: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
-			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
-#endif
-		// If the remote entry has 0 for the deleted flag's value, then go ahead and
-		// delete it; but if it has 1 already, there is nothing to do except let the
-		// thread die
-		if (e.deleted == 0)
-		{
-			// do a pseudo-delete here, use the entryID value above (reuse rv)
-			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete);
-		}
-	}
-
-	s_BulkDeleteMutex.Unlock();
-
-	// Block until libcurl has done all cleanups
-	while (!TestDestroy())
-	{
-	}
-*/
 	return (void*)NULL;
 }
 

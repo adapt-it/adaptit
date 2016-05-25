@@ -41223,7 +41223,7 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 /// OnBnClickedButtonSplitNow(), InitDialog(), CWhichBook's InitDialog(),
 /// OnSelchangeChooseBook(), OnCancel(), OnOK(), OnCustomWorkFolderLocation(),
 /// OnLockCustomLocation(), OnUnlockCustomLocation, OnRestoreDefaultWorkFolderLocation(),
-/// OnRadioReviewing(),OnRadioDrafting() and Entry() of Thread_DoEntireKbDeletion
+/// OnRadioReviewing(),OnRadioDrafting(), Synchronous_DoEntireKbDeletion, UploadToKbServer()
 /// Updates the status bar message to reflect the current activity.
 /// BEW 9Aug12, shortened messages to accomodate having "BookName: xxxx" at the end
 ////////////////////////////////////////////////////////////////////////////////////////
