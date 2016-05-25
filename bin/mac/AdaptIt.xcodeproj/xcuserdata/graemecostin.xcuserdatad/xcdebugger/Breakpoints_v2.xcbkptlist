@@ -41,22 +41,6 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "../../source/KBSharingStatelessSetupDlg.cpp"
-            timestampString = "485226310.939958"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "446"
-            endingLineNumber = "446"
-            landmarkName = "KBSharingStatelessSetupDlg::OnOK(wxCommandEvent&amp; myevent)"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
             filePath = "../../source/KbSharingSetup.cpp"
             timestampString = "485069661.845047"
             startingColumnNumber = "9223372036854775807"
@@ -64,38 +48,6 @@
             startingLineNumber = "75"
             endingLineNumber = "75"
             landmarkName = "AIModalDialog(parent, -1, _(&quot;Setup Or Remove Knowledge Base Sharing&quot;), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../source/helpers.cpp"
-            timestampString = "485070002.176819"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "10984"
-            endingLineNumber = "10984"
-            landmarkName = "IsURLStoreable(wxArrayString* pArr, wxString&amp; url)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../source/helpers.cpp"
-            timestampString = "485070082.115625"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "11061"
-            endingLineNumber = "11061"
-            landmarkName = "AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscoveryWanted)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -168,20 +120,6 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../../source/Adapt_It.cpp"
-            timestampString = "485824737.017938"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "15096"
-            endingLineNumber = "15096">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../source/Adapt_It.cpp"
             timestampString = "485824966.577589"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
@@ -203,22 +141,6 @@
             endingLineNumber = "28574"
             landmarkName = "CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent&amp; WXUNUSED(event))"
             landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../source/helpers.cpp"
-            timestampString = "485825721.94671"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "11031"
-            endingLineNumber = "11031"
-            landmarkName = "AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscoveryWanted)"
-            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -307,13 +229,93 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "../../source/KBServer.cpp"
-            timestampString = "485865787.874382"
+            filePath = "../../source/LanguagesPage.cpp"
+            timestampString = "485868215.275245"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2072"
-            endingLineNumber = "2072"
-            landmarkName = "KbServer::LookupSingleKb(wxString url, wxString username, wxString password, wxString srcLangCode, wxString tgtLangCode, int kbType, bool&amp; bMatchedKB)"
+            startingLineNumber = "227"
+            endingLineNumber = "227"
+            landmarkName = "CLanguagesPage::OnBtnLookupCodes(wxCommandEvent&amp; WXUNUSED(event))"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../source/LanguagesPage.cpp"
+            timestampString = "485868289.093617"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "333"
+            endingLineNumber = "333"
+            landmarkName = "CLanguagesPage::OnWizardPageChanging(wxWizardEvent&amp; event)"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../source/ProjectPage.cpp"
+            timestampString = "485868531.40585"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "263"
+            endingLineNumber = "263"
+            landmarkName = "CProjectPage::OnCallWizardNext(wxCommandEvent&amp; WXUNUSED(event))"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../source/LanguageCodesDlg.cpp"
+            timestampString = "485870464.621111"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "386"
+            endingLineNumber = "386"
+            landmarkName = "CLanguageCodesDlg::OnFindCode(wxCommandEvent&amp; WXUNUSED(event))"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../source/LanguageCodesDlg.cpp"
+            timestampString = "485870464.621111"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "463"
+            endingLineNumber = "463"
+            landmarkName = "CLanguageCodesDlg::OnFindLanguage(wxCommandEvent&amp; WXUNUSED(event))"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../source/LanguageCodesDlg.cpp"
+            timestampString = "485870464.621111"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "615"
+            endingLineNumber = "615"
+            landmarkName = "CLanguageCodesDlg::OnUseSelectedCodeForTgtLanguage(wxCommandEvent&amp; WXUNUSED(event))"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
