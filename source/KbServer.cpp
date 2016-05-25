@@ -2067,6 +2067,13 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 	wxString colon(_T(':'));
 	wxString container = _T("kb");
 
+    // GDLC 25MAY16 Trim leading and trailing spaces (if any) from srcLangCode and tgtLangCode
+    // Leaving them there can result in failure to find the matching KB in the KB Server
+    srcLangCode.Trim();         // from right
+    srcLangCode.Trim(false);    // from left
+    tgtLangCode.Trim();
+    tgtLangCode.Trim(false);
+
 	aUrl = url + slash + container + slash + srcLangCode;
 	charUrl = ToUtf8(aUrl);
 	aPwd = username + colon + password;
