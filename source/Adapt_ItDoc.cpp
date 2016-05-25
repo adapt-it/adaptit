@@ -263,8 +263,7 @@ extern wxString szAdminProjectConfiguration;
 /// This global is defined in Adapt_It.cpp.
 extern bool gbHackedDataCharWarningGiven;
 
-// globals needed due to moving functions here from mainly the view class
-// next group for auto-capitalization support
+// next group for auto-capitalization support; defined in Adapt_It.cpp around line 660+/-
 extern bool	gbAutoCaps;
 extern bool	gbSourceIsUpperCase;
 extern bool	gbNonSourceIsUpperCase;
@@ -276,6 +275,10 @@ extern wxChar gcharNonSrcLC;
 extern wxChar gcharNonSrcUC;
 extern wxChar gcharSrcLC;
 extern wxChar gcharSrcUC;
+extern bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+							   // is enabled, FALSE is legacy initial position only
+extern int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
+							// character was found to be located, wxNOT_FOUND if not located
 
 //bool	gbIgnoreIt = FALSE; // used when "Ignore it (do nothing)" button was hit
 							// in consistency check dlg
@@ -9463,7 +9466,7 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 		// Penny said (13Mar12) in an email that those two are used as word-forming
 		// characters in many Indian languages
 		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
-		//if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200B))
+		// Better to do the check with a range, rather than the commented out stuff below
 		if (*pChar == WJ || (*pChar >= (wxChar)0x2000 && *pChar <= (wxChar)0x200B))
 		{
 			return TRUE;
@@ -27810,12 +27813,18 @@ wxChar CAdapt_ItDoc::GetOtherCaseChar(wxString& charSet, int nOffset)
 	return charSet.GetChar(nOffset);
 }
 
-//return TRUE if all was well, FALSE if there was an error; strText is the language word or
-//phrase the first character of which this function tests to determine its case, and from
-//that to set up storage for the lower or upper case equivalent character, and the relevant
-//flags. strText can be source text, target text, or gloss text; for the latter two
-//possibilities bIsSrcText needs to be explicitly set to FALSE, otherwise it is TRUE by
-//default. This is a diagnostic function used for Auto-Capitalization support.
+// return TRUE if all was well, FALSE if there was an error; strText is the language word or
+// phrase the first character of which this function tests to determine its case, and from
+// that to set up storage for the lower or upper case equivalent character, and the relevant
+// flags. strText can be source text, target text, or gloss text; for the latter two
+// possibilities bIsSrcText needs to be explicitly set to FALSE, otherwise it is TRUE by
+// default. This is a diagnostic function used for Auto-Capitalization support.
+// BEW 25May16, refactored where chFirst, in just the source text check, may be found. The
+// legacy code assumed only at the first character of strText. The refactor, provided the
+// boolean (global) gbUCSrcCapitalAnywhere is TRUE (set from project config file only) allows
+// the upper case chacter in the source to be anywhere within the first word of strText
+// (Requested by Mike Hore, since his source has nominal prefixes, but target does not prefix
+// proper nouns, and he wants things like na-Paul to be autocapitalized to Bawula)
 bool CAdapt_ItDoc::SetCaseParameters(wxString& strText, bool bIsSrcText)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -27824,8 +27833,38 @@ bool CAdapt_ItDoc::SetCaseParameters(wxString& strText, bool bIsSrcText)
 		return FALSE;
 	}
 	int nOffset = -1;
-	wxChar chFirst = GetFirstChar(strText);
-
+	wxChar chFirst;
+	if (gbUCSrcCapitalAnywhere && bIsSrcText && !gbNoSourceCaseEquivalents)
+	{
+		wxChar aCapitalLetter;
+		int itsOffset = wxNOT_FOUND;
+		// In the next call, TRUE is bIsSrcText
+		bool bFoundCapital = IsUpperCaseCharInFirstWord(strText, itsOffset, aCapitalLetter, TRUE);
+		if (bFoundCapital)
+		{
+			// We store the offset to the uppercase character globally, as the storage to KB
+			// will need to know where to make the change to lower case
+			gnOffsetToUCcharSrc = itsOffset;
+			chFirst = aCapitalLetter;
+			// Set other globals we know the value of
+			gbSourceIsUpperCase = TRUE;
+			gcharSrcUC = aCapitalLetter;
+		}
+		else
+		{
+			// No upper case capital letter was found in the first word. So we have lower case,
+			// and we assume the lower case letter is the first in strText
+			gnOffsetToUCcharSrc = wxNOT_FOUND;
+			chFirst = GetFirstChar(strText);
+			gcharSrcLC = chFirst;
+			gbSourceIsUpperCase = FALSE;
+		}
+	}
+	else
+	{
+		// Legacy situation, only first character of strText is used for the check
+		chFirst = GetFirstChar(strText);
+	}
 	bool bIsLower;
 	bool bIsUpper;
 	if (bIsSrcText)
@@ -27963,6 +28002,82 @@ bool CAdapt_ItDoc::SetCaseParameters(wxString& strText, bool bIsSrcText)
 	}
 	return TRUE;
 }
+
+///////////////////////////////////////
+/// returns				TRUE if an upper case character is found within the first word of src, FALSE if not
+/// params
+/// str				->	ref to the source text string being checked for a capitalization location
+/// offset			<-	0-based offset to the upper case character, if source text. We won't use this
+///						function for target text - we capitalize only the initial char of tgt text.
+///						If there is no such character in the first word, then return wxNOT_FOUND
+///	theChar			<-	The character at offset, provided offset is != to wxNOT_FOUND, else unset								
+/// bIsSrcText		->	TRUE (default) if str is source text - and that's all we support at present
+/// comments
+/// This is a helper function for capitalizing a source text word of a phrase, or the only word, when
+/// the location for the capitalizing is non-initial in the word. TThis enabling of non-initial upper
+/// case discovered location is provided by the global boolean, gbUCSrcCapitalAnywhere being TRUE,
+/// and there is no GUI for setting it true or false, it has to be done manually in the project config
+/// file. The first word is determined by one of the following: end of string, or the first latin space
+/// encountered, or failing that, a zero-width space or similar character, as in IsWhiteSpace() function
+///////////////////////////////////////
+bool CAdapt_ItDoc::IsUpperCaseCharInFirstWord(wxString &str, int& offset, wxChar& theChar, bool bIsSrcText)
+{
+	// exit prematurely if the user has not defined any source case equivalents
+	if (gbNoSourceCaseEquivalents)
+	{
+		gbSourceIsUpperCase = FALSE; // ensures an old style lookup or store
+		return FALSE;
+	}
+	// Exit returning FALSE if str is empty, or the feature is not turned ON )
+	if (str.IsEmpty() || !gbUCSrcCapitalAnywhere)
+	{
+		offset = wxNOT_FOUND;
+		theChar = _T('\0'); // a null
+		return FALSE;
+	}
+	CAdapt_ItApp* pApp = &wxGetApp();
+	// We only are allowing source text checks currently
+	if (bIsSrcText)
+	{
+		int length = str.Length();
+		wxChar aChar;
+		int i;
+		bool bIsUpper = FALSE;
+		offset = wxNOT_FOUND;
+		for (i = 0; i < length; i++)
+		{
+			aChar = str.GetChar(i);
+			if (IsWhiteSpace(&aChar))
+			{
+				theChar = _T('\0'); // a null
+				offset = wxNOT_FOUND;
+				return FALSE;
+			}
+			int nOffset; // offset in the string of upper case characters
+			bIsUpper = IsInCaseCharSet(aChar, pApp->m_srcUpperCaseChars, nOffset);
+			if (bIsUpper)
+			{
+				offset = i;
+				theChar = aChar;
+				return TRUE;
+			}
+		}
+	}
+	// No success at finding the required upper case character, or not a source text check
+	theChar = _T('\0'); // a null
+	offset = wxNOT_FOUND;
+	return FALSE;
+}
+
+
+
+
+/////////////////////////////////////////////////
+///
+/// End of functions for support of Auto-Capitalization
+///
+////////////////////////////////////////////////
+
 
 // this is public
 void CAdapt_ItDoc::DoBookName()

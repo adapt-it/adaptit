@@ -685,6 +685,11 @@ wxChar gcharSrcLC;
 /// Store first upr case char of source text word or phrase (after punct stripped).
 wxChar	gcharSrcUC;
 
+bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+							   // is enabled, FALSE is legacy initial position only
+int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
+							// character was found to be located, wxNOT_FOUND if not located
+
 /// Use to suppress the message box asking if the src language has upper/lower case
 /// distinction, when the flag is being restored to TRUE from reading the project's config
 /// file.
@@ -5978,6 +5983,7 @@ wxString szIsKBServerProject = _T("IsKBServerProject");
 wxString szNumberOfDiscoveryRuns = _T("NumberOfDiscoveryRuns");
 
 wxString szSentFinalPunctsTriggerCaps = _T("SentenceFinalPunctuationTriggeringCapitalization"); // BEW added 9May16
+wxString szUpperCaseAnywhereInFirstWord = _T("UpperCaseAnywhereInFirstWordOfSource"); // BEW added 24May16, for things like src: na-John -> tgt: Johan
 
 /// The label that identifies the whether or not the project is associated with sharing a
 /// glosses language KB. This value is written in the "ProjectSettings" part of the project
@@ -15617,6 +15623,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bMergerIsCurrent = FALSE; // BEW 14Apr16
 	m_bSentFinalPunctsTriggerCaps = FALSE; // if m_strSentFinalPunctsTriggerCaps has content, 
 										   // will be TRUE (see project config file)
+	gnOffsetToUCcharSrc = wxNOT_FOUND;     // initialize
+	gbUCSrcCapitalAnywhere = FALSE; // initialize to legacy 'only word-initial capital checked for'
+
 
 #if defined(_KBSERVER)
 	// Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
@@ -34239,6 +34248,21 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szFreeTransLanguageCode << tab << m_freeTransLanguageCode;
 	pf->AddLine(data);
 
+	data.Empty();
+	data << szSentFinalPunctsTriggerCaps << tab << m_strSentFinalPunctsTriggerCaps;
+	pf->AddLine(data);
+
+	data.Empty();
+	if (gbUCSrcCapitalAnywhere)
+	{
+		data << szUpperCaseAnywhereInFirstWord << tab << 1;
+	}
+	else
+	{
+		data << szUpperCaseAnywhereInFirstWord << tab << 0;
+	}
+	pf->AddLine(data);
+
 #if defined (_KBSERVER)
 	data.Empty();
 	data << szIsKBServerProject << tab << (int)m_bIsKBServerProject;
@@ -34248,10 +34272,6 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szIsGlossingKBServerProject << tab << (int)m_bIsGlossingKBServerProject;
 	pf->AddLine(data);
 #endif
-
-	data.Empty();
-	data << szSentFinalPunctsTriggerCaps << tab << m_strSentFinalPunctsTriggerCaps;
-	pf->AddLine(data);
 
 #if defined (_KBSERVER)
 	// whm 30Oct13 moved the KbServerURL value handling to the basic config file, as
@@ -34853,6 +34873,33 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			m_freeTransLanguageCode = strValue;
 		}
+		else if (name == szSentFinalPunctsTriggerCaps)
+		{
+			m_strSentFinalPunctsTriggerCaps = strValue;
+			if (m_strSentFinalPunctsTriggerCaps.IsEmpty())
+			{
+				m_bSentFinalPunctsTriggerCaps = FALSE;
+			}
+			else
+			{
+				m_bSentFinalPunctsTriggerCaps = TRUE;
+			}
+		}
+		else if (name == szUpperCaseAnywhereInFirstWord)
+		{
+			if (strValue.IsEmpty())
+			{
+				gbUCSrcCapitalAnywhere = FALSE;
+			}
+			else if (strValue == _T("0"))
+			{
+				gbUCSrcCapitalAnywhere = FALSE;
+			}
+			else
+			{
+				gbUCSrcCapitalAnywhere = TRUE;
+			}
+		}
 #if defined (_KBSERVER)
 		else if (name == szIsKBServerProject)
 		{
@@ -34881,18 +34928,6 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			}
 		}
 #endif
-		else if (name == szSentFinalPunctsTriggerCaps)
-		{
-			m_strSentFinalPunctsTriggerCaps = strValue;
-			if (m_strSentFinalPunctsTriggerCaps.IsEmpty())
-			{
-				m_bSentFinalPunctsTriggerCaps = FALSE;
-			}
-			else
-			{
-				m_bSentFinalPunctsTriggerCaps = TRUE;
-			}
-		}
 #if defined (_KBSERVER)
 		// whm 30Oct13 moved the KbServerURL value handling to the basic config file
 		//else if (name == szKbServerURL)
@@ -49870,7 +49905,7 @@ void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 
 #endif // _KBSERVER
 
-// EnsureProperCapitalization() checks the "following punctutation" of the CSourcePhrase
+// EnsureProperCapitalization() checks the "following punctuatation" of the CSourcePhrase
 // instance at nCurrSequNum - 1, providing the active location is not at sn = 0.
 // If the nCurrSequNum CSourcePhrase instance has no initial capital letter, and the
 // previous one has punctuation that should be followed by a capital, then the

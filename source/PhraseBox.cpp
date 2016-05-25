@@ -152,6 +152,12 @@ extern wxChar gcharSrcLC;
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gcharSrcUC;
 
+extern bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+							   // is enabled, FALSE is legacy initial position only
+extern int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
+							// character was found to be located, wxNOT_FOUND if not located
+
+
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
 /// This global is defined in Adapt_ItView.cpp.

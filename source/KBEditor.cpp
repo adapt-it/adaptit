@@ -92,6 +92,10 @@ extern wxChar gcharNonSrcLC;
 extern wxChar gcharNonSrcUC;
 extern wxChar gcharSrcLC;
 extern wxChar gcharSrcUC;
+extern bool gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+									// is enabled, FALSE is legacy initial position only
+extern int  gnOffsetToUCcharSrc; // offset to source text location where the upper case
+								 // character was found to be located, wxNOT_FOUND if not located
 
 extern bool	gbCallerIsRemoveButton;
 
@@ -665,8 +669,27 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	}
 	if (gbAutoCaps && bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 	{
-		// change it to lower case
-		activeKey.SetChar(0, gcharSrcLC);
+		// BEW 25May16, the refactored auto-caps feature needs adjustment if we are allowing
+		// for upper case character to be non-first in first word of source text
+		if (gbUCSrcCapitalAnywhere)
+		{
+			// make the character at gnOffsetToUCcharSrc of the source string be the 
+			// appropriate lower case one; provided the offset is not wxNOT_FOUND, but if it
+			// is, do the legacy replacement instead
+			if (gnOffsetToUCcharSrc != wxNOT_FOUND)
+			{
+				activeKey.SetChar(gnOffsetToUCcharSrc, gcharSrcLC);
+			}
+			else
+			{
+				activeKey.SetChar(0, gcharSrcLC);
+			}
+		}
+		else // Legacy protocol, initial char only
+		{
+			// make the first character of the src string be the appropriate lower case one
+			activeKey.SetChar(0, gcharSrcLC); // gcharSrcLC is set within the SetCaseParameters() call
+		}
 	}
 	if (gbAutoCaps && bNoError2 && gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
 	{

@@ -542,6 +542,8 @@ private:
 	bool	MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord* rpRec);
 			// this next one is a variant used for matching AutoFixRecordG for glosses
 	bool	MatchAutoFixGItem(AFGList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecordG* rpRec);
+
+	bool	IsUpperCaseCharInFirstWord(wxString &str, int& offset, wxChar& theChar, bool bIsSrcText = TRUE); // BEW 24May16
 	wxChar	GetFirstChar(wxString& strText);
 	bool	IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index);
 	wxChar	GetOtherCaseChar(wxString& charSet, int nOffset);

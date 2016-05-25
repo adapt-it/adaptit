@@ -83,6 +83,10 @@ extern wxChar gcharNonSrcLC;
 extern wxChar gcharNonSrcUC;
 extern wxChar gcharSrcLC;
 extern wxChar gcharSrcUC;
+extern bool gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+									// is enabled, FALSE is legacy initial position only
+extern int  gnOffsetToUCcharSrc; // offset to source text location where the upper case
+								 // character was found to be located, wxNOT_FOUND if not located
 
 // next, miscellaneous needed ones
 extern bool gbNoAdaptationRemovalRequested;
@@ -232,7 +236,6 @@ void CKB::Copy(const CKB& kb)
 // regarded as a failure to find an instance, and NULL is returned
 // BEW changed 17Jul11, pass the pRefStr value back via signature, and return one of
 // three enum values: absent, or present_but_deleted, or really_present
-//CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptation)
 enum KB_Entry CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptation, CRefString*& pRefStr)
 {
 	TranslationsList* pList = pTgtUnit->m_pTranslations;
@@ -726,9 +729,29 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 			// a lower case lookup; if it fails, what we do next depends on flag values above
 			saveKey = keyStr; // save for an upper case lookup if the first lookup fails
 							  // (BEW reinstated the above line, 13Mar13)
-			// make the first character of keyStr be the appropriate lower case one
-			keyStr.SetChar(0,gcharSrcLC); // gcharSrcLC is set within the
-										  // SetCaseParameters() call
+
+			// BEW 25May16, the refactored auto-caps feature needs adjustment if we are allowing
+			// for upper case character to be non-first in first word of source text
+			if (gbUCSrcCapitalAnywhere)
+			{
+				// make the character at gnOffsetToUCcharSrc of keyStr be the appropriate lower 
+				// case one; provided the offset is not wxNOT_FOUND, but if it is, do the
+				// legacy replacement instead
+				if (gnOffsetToUCcharSrc != wxNOT_FOUND)
+				{
+					keyStr.SetChar(gnOffsetToUCcharSrc, gcharSrcLC);
+				}
+				else
+				{
+					keyStr.SetChar(0, gcharSrcLC);
+				}
+			}
+			else // Legacy protocol, initial char only
+			{
+				// make the first character of keyStr be the appropriate lower case one
+				keyStr.SetChar(0, gcharSrcLC); // gcharSrcLC is set within the
+											  // SetCaseParameters() call
+			}
 			// do the lower case lookup
 			iter = pMap->find(keyStr);
 			if (iter != pMap->end())
@@ -1042,8 +1065,28 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 		bNoError = m_pApp->GetDocument()->SetCaseParameters(s1);
 		if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 		{
-			// make it start with lower case letter
-			s1.SetChar(0,gcharSrcLC);
+			// BEW 25May16, the refactored auto-caps feature needs adjustment if we are allowing
+			// for upper case character to be non-first in first word of source text
+			if (gbUCSrcCapitalAnywhere)
+			{
+				// make the character at gnOffsetToUCcharSrc of the source string be the 
+				// appropriate lower case one; provided the offset is not wxNOT_FOUND, but if it
+				// is, do the legacy replacement instead
+				if (gnOffsetToUCcharSrc != wxNOT_FOUND)
+				{
+					s1.SetChar(gnOffsetToUCcharSrc, gcharSrcLC);
+				}
+				else
+				{
+					s1.SetChar(0, gcharSrcLC);
+				}
+			}
+			else // Legacy protocol, initial char only
+			{
+				// make the first character of keyStr be the appropriate lower case one
+				s1.SetChar(0, gcharSrcLC); // gcharSrcLC is set within the
+											   // SetCaseParameters() call
+			}
 		}
 	}
 	int nRefCount = pRefString->m_refCount;
@@ -1199,6 +1242,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 // BEW 12Apr10, no changes needed for support of docVersion 5
 // BEW 18Jun10, no changes needed for support of kbVersion 2
 // BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
+// BEW 25May16, refactored for support of upper case char in src text not in initial position
 wxString CKB::AutoCapsMakeStorageString(wxString str, bool bIsSrc)
 {
 	bool bNoError = TRUE;
@@ -1214,7 +1258,28 @@ wxString CKB::AutoCapsMakeStorageString(wxString str, bool bIsSrc)
 		// so convert if required to do so
 		if (gbAutoCaps && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 		{
-			str.SetChar(0,gcharSrcLC);
+			// BEW 25May16, the refactored auto-caps feature needs adjustment if we are allowing
+			// for upper case character to be non-first in first word of source text
+			if (gbUCSrcCapitalAnywhere)
+			{
+				// make the character at gnOffsetToUCcharSrc of the source string be the 
+				// appropriate lower case one; provided the offset is not wxNOT_FOUND, but if it
+				// is, do the legacy replacement instead
+				if (gnOffsetToUCcharSrc != wxNOT_FOUND)
+				{
+					str.SetChar(gnOffsetToUCcharSrc, gcharSrcLC);
+				}
+				else
+				{
+					str.SetChar(0, gcharSrcLC);
+				}
+			}
+			else // Legacy protocol, initial char only
+			{
+				// make the first character of keyStr be the appropriate lower case one
+				str.SetChar(0, gcharSrcLC); // gcharSrcLC is set within the
+											   // SetCaseParameters() call
+			}
 		}
 	}
 	else
@@ -1979,8 +2044,27 @@ bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation)
 	}
 	if (gbAutoCaps && bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 	{
-		// change it to lower case
-		adjustedKey.SetChar(0, gcharSrcLC);
+		// BEW 25May16, the refactored auto-caps feature needs adjustment if we are allowing
+		// for upper case character to be non-first in first word of source text
+		if (gbUCSrcCapitalAnywhere)
+		{
+			// make the character at gnOffsetToUCcharSrc of the source string be the 
+			// appropriate lower case one; provided the offset is not wxNOT_FOUND, but if it
+			// is, do the legacy replacement instead
+			if (gnOffsetToUCcharSrc != wxNOT_FOUND)
+			{
+				adjustedKey.SetChar(gnOffsetToUCcharSrc, gcharSrcLC);
+			}
+			else
+			{
+				adjustedKey.SetChar(0, gcharSrcLC);
+			}
+		}
+		else // Legacy protocol, initial char only
+		{
+			// make the first character of adjustedKey be the appropriate lower case one
+			adjustedKey.SetChar(0, gcharSrcLC);
+		}
 	}
 
 	// Check if there is a matching adaptation (or gloss if we are calling on a glossing KB)
@@ -2086,7 +2170,7 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 	bool bNoError = TRUE;
 	gbByCopyOnly = FALSE; // restore default value (should have been done in caller,
 						  // but this will make sure)
-	wxString adjusted = adaptation; // could have upper case initial character
+	wxString adjusted = adaptation; // could have upper case initial character or non-initial location
 	if (gbAutoCaps)
 	{
 		// FALSE here means 'we are dealing with target text, or gloss text'
@@ -3849,7 +3933,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
     // a KB entry. When the phrase box lands there, on the other hand, the relevant flag
     // may be TRUE. It then gets its KB entry removed (or ref count decremented) before a
     // store is done, and so the relevant flag is made false when the former happens.
-    // However, for safety first, we'll test the flag below and turn it all if it is on, so
+    // However, for safety first, we'll test the flag below and turn it off if it is on, so
     // that the store may go ahead
 	// BEW 1Jun10: Okay, despite the above comments, I still want some safety first
 	// protection here. Why? Because the code which calls RemoveRefString() and/or

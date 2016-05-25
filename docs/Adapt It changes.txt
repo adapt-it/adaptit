@@ -59,6 +59,27 @@ did a Consistency Check, the upper-case entries would
 every time encounted in the document, cause an unwanted
 halt as an inconsistency. This is now fixed. They are now
 just ignored.
+* The automatic capitalization feature has been slightly
+extended. The extra capability is switchable, on or off.
+The project configuration file is the only place to do
+the switching, by a manual edit in a word processor. The
+line has the label: UpperCaseAnywhereInFirstWordOfSource
+If the value which follows is 0, the legacy automatic
+capitalization operates - that is, the source text capital
+letter is word-initial, in other locations a capitalized word
+was not recognised as capitalized. But now if the configuration
+file's line has value 1, the location of the source text capital
+letter can be anywhere within the first word of the source text,
+and it will be recognised as a capitalized word. 
+The target text automatic capitalization, however, still only
+happens at the start of the target text. 
+Turning on this extension is useful when the source text is 
+a prefixing language in which proper names occur with a prefix, 
+but the target text language does not prefix proper names. So 
+source: na-Paul  if the user typed target: bawul  then the 
+document would have Bawul in the phrasebox; but in the knowledge
+base, the entry would be: na-paul (for source text) paired
+with bawul (for its target text).
 
 ----------------------------------------------
 Bug fixes in 7?? release ?? month ???

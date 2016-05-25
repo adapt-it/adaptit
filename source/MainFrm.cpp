@@ -329,6 +329,11 @@ extern bool		gbMatchedKB_UCentry;
 /// This global is defined in Adapt_It.cpp.
 extern wxChar	gcharNonSrcUC;
 
+extern bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+							   // is enabled, FALSE is legacy initial position only
+extern int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
+							// character was found to be located, wxNOT_FOUND if not located
+
 /// This global is defined in PhraseBox.cpp.
 extern bool		gbCameToEnd; // see PhraseBox.cpp
 

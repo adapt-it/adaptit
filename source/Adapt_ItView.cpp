@@ -297,6 +297,12 @@ extern wxChar gcharNonSrcUC;
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gcharSrcLC;
 
+extern bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+							   // is enabled, FALSE is legacy initial position only
+extern int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
+							// character was found to be located, wxNOT_FOUND if not located
+
+
 /// This global is defined in Adapt_It.cpp.
 extern wxString szProjectConfiguration;
 
@@ -3068,15 +3074,6 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					if (!pApp->m_pTargetBox->m_bAbandonable || !gbByCopyOnly)
 					{
 						bOK = pApp->m_pTargetBox->DoStore_ForPlacePhraseBox(pApp, pApp->m_targetPhrase);
-
-
-
-// BEW 20May16,  TODO -- MakeTargetStringIncludingPunctuation() has to be called here!
-
-
-
-
-
 					}
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),4,pApp->m_nActiveSequNum);
