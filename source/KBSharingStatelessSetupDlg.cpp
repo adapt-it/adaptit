@@ -365,7 +365,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 				// Username is unknown to the KBserver. Setup of sharing won't be turned
 				// on until a valid username is supplied
 				m_pApp->LogUserAction(_T("In OnOK() of KBSharingStatelessSetupDlg.cpp, password not recognised by KBserver"));
-				wxString msg = _("Most likely your chosen KBserver is not yet running. Check.\nOr maybe the username ( %s ) is not in the list of users for this knowledge base server.\nOr the URL, or password, is not correct.\nPerhaps ask your server administrator to help you.\nIn the next dialog, click Cancel to continue working.");
+				wxString msg = _("Most likely your chosen KBserver is not yet running. Check.\nOr maybe the username ( %s ) is not in the list of users for this knowledge base server.\nOr the URL, or password, is not correct.\nPerhaps ask your server administrator to help you.\nYou can continue working, but KB sharing will be OFF.");
 				msg = msg.Format(msg, m_strStatelessUsername.c_str());
 				wxMessageBox(msg, _("Authentication: a check failed"), wxICON_WARNING | wxOK);
 				//this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
@@ -415,7 +415,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			{
 				// Access to the Manager GUI is denied to this user
 				m_pApp->LogUserAction(_T("In OnOK() of KBSharingStatelessSetupDlg.cpp, username or password not recognised by KBserver"));
-				wxString msg = _("Most likely your chosen KBserver is not yet running. Check.\nOr maybe the username ( %s ) is not in the list of users for this knowledge base server.\nOr the URL, or password, is not correct.\nPerhaps ask your server administrator to help you.\nIn the next dialog, click Cancel to continue working.");
+				wxString msg = _("Most likely your chosen KBserver is not yet running. Check.\nOr maybe the username ( %s ) is not in the list of users for this knowledge base server.\nOr the URL, or password, is not correct.\nPerhaps ask your server administrator to help you.\nYou can continue working, but KB sharing will be OFF");
 				msg = msg.Format(msg, m_strStatelessUsername.c_str());
 				wxMessageBox(msg, _("Authentication: a check failed"), wxICON_WARNING | wxOK);
 				//this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
