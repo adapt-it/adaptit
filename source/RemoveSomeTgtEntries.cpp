@@ -59,7 +59,6 @@
 #include "BString.h"
 #include "KbServer.h"
 #include <wx/imaglist.h> // for wxImageList
-//#include "Thread_PseudoDelete.h"
 #include "RemoveSomeTgtEntries.h"
 
 extern bool gbIsGlossing;
@@ -511,44 +510,7 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 			if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
 			{
 			KbServer* pKbSvr = m_pApp->GetKbServer(kbServerType);
-			/*
-			// create the thread and fire it off
-			if (!pTU->IsItNotInKB()) // must not be a <Not In KB> entry
-			{
-				Thread_PseudoDelete* pPseudoDeleteThread = new Thread_PseudoDelete;
-				// populate it's public members (it only has public ones anyway)
-				pPseudoDeleteThread->m_pKbSvr = pKbSvr;
-				pPseudoDeleteThread->m_source = src;
-				pPseudoDeleteThread->m_translation = nonsrc;
-				// now create the runnable thread with explicit stack size of 1KB
-				wxThreadError error =  pPseudoDeleteThread->Create(1024); // was wxThreadError error =  pPseudoDeleteThread->Create(10240);
-				if (error != wxTHREAD_NO_ERROR)
-				{
-					// We don't expect an error, so use English mesage, and put it also in
-					// the log
-					wxString msg;
-					msg = msg.Format(_T("Thread_PseudoDelete in RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool): thread creation failed, error number: %d  For src = %s , non_src = %s"),
-						(int)error, src.c_str(), nonsrc.c_str());
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-					m_pApp->LogUserAction(msg);
-				}
-				else
-				{
-					// no error, so now run the thread (it will destroy itself when done)
-					error = pPseudoDeleteThread->Run();
-					if (error != wxTHREAD_NO_ERROR)
-					{
-					// We don't expect an error, so use English mesage, and put it also in
-					// the log
-					wxString msg;
-					msg = msg.Format(_T("Thread_PseudoDelete in RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool), Thread_Run(): cannot make the thread run, error number: %d  For src = %s , non_src = %s"),
-					  (int)error, src.c_str(), nonsrc.c_str());
-					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-					m_pApp->LogUserAction(msg);
-					}
-				}
-			}
-			*/
+
 			if (!pTU->IsItNotInKB()) // must not be a <Not In KB> entry
 			{
 				int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, src, nonsrc);

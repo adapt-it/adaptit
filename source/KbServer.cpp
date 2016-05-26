@@ -52,6 +52,9 @@ wxMutex s_BulkDeleteMutex; // Because PseudoDeleteOrUndeleteEntry() is used some
 
 #define _WANT_DEBUGLOG //  comment out to suppress entry id logging when deleting a whole KB from KBserver
 #define _BULK_UPLOAD   // comment out to suppress logging for the <= 50 groups of bulk upload
+// Comment out the SYNC_LOGS #define to suppress the debug logging from the Synchronous_XXXX functions
+#define SYNC_LOGS
+
 
 wxCriticalSection g_jsonCritSect; 
 
@@ -532,7 +535,7 @@ void KbServer::ExtractTimestamp(std::string s, wxString& timestamp)
 	timestamp.Empty(); // initialize
 	CBString cbstr(s.c_str());
 	wxString buffer(ToUtf16(cbstr));
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
     wxLogDebug(_T("buffer:\n%s"), buffer.c_str());
 #endif
 	wxString srchStr = _T("X-MySQL-Date");
@@ -758,9 +761,11 @@ wxArrayString* KbServer::GetTargetArray()
 size_t curl_read_data_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
 	userdata = userdata; // avoid "unreferenced formal parameter" warning
+#if defined(SYNC_LOGS)
 	//wxString msg;
 	//msg = msg.Format(_T("In curl_read_data_callback: sending %d bytes."),(size*nmemb));
 	//wxLogDebug(msg);
+#endif
 	str_CURLbuffer.append((char*)ptr, size*nmemb);
 	return size*nmemb;
 }
@@ -769,7 +774,7 @@ size_t curl_read_data_callback2(void *ptr, size_t size, size_t nmemb, void *user
 {
 	int threadIndex = *(int*)userdata;
 	str_CURLbuff[threadIndex].append((char*)ptr, size*nmemb);
-//#if defined(_DEBUG)
+//#if defined(SYNC_LOGS)
 //	wxString msg;
 //	msg = msg.Format(_T("In curl_read_data_callback2: sending %d bytes, threadIndex = %d"),
 //						(size*nmemb), threadIndex);
@@ -864,7 +869,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 													  //not needed in the download (and below)
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
         CBString s(str_CURLbuffer.c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
@@ -984,7 +989,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 
 	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() + slash +
 			langcode + slash + kbType + changedSince + timeStamp;
-#if defined (_DEBUG) //&& defined (__WXGTK__)
+#if defined (SYNC_LOGS) //&& defined (__WXGTK__)
 	wxLogDebug(_T("ChangedSince(): wxString aUrl = %s"), aUrl.c_str());
 #endif
 	charUrl = ToUtf8(aUrl);
@@ -1007,7 +1012,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 		pStatusBar->UpdateProgress(_("Receiving..."), 2);
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
         // BEW added 9Feb13, check what, if anything, got added to str_CURLheaders_callback
         CBString s2(str_CURLheaders.c_str());
         wxString showit2 = ToUtf16(s2);
@@ -1043,7 +1048,7 @@ int KbServer::ChangedSince(wxString timeStamp)
     ExtractTimestamp(str_CURLheaders, m_kbServerLastTimestampReceived);
     ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
         // show what ExtractHttpStatusEtc() returned
         CBString s2(str_CURLheaders.c_str());
         wxString showit2 = ToUtf16(s2);
@@ -1129,7 +1134,7 @@ int KbServer::ChangedSince(wxString timeStamp)
             } // end of TRUE block for test: if (numErrors > 0)
 			// There were no errors
             size_t arraySize = jsonval.Size();
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
             // get feedback about now many entries we got
             if (arraySize > 0)
             {
@@ -1158,7 +1163,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 				m_arrTarget.Add(s);
                 m_arrDeleted.Add(jsonval[index][_T("deleted")].AsInt());
 				m_arrUsername.Add(jsonval[index][_T("user")].AsString());
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
                 // list what entries were returned
                 wxLogDebug(_T("Downloaded:  %s  ,  %s  ,  deleted = %d"),
                     (m_arrSource[index]).c_str(), (m_arrTarget[index]).c_str(), (m_arrDeleted[index]));
@@ -1186,7 +1191,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 				// Some other situation, report it in debug mode, and don't update the
 				// lastsync timestamp. Most likely, there was no JSON data to send. This
 				// isn't actually an error...
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
 				wxString msg;
 				msg  = msg.Format(_T("ChangedSince(): HTTP status: %d   Probably no JSON data was returned."),
                                   m_httpStatusCode);
@@ -1267,7 +1272,7 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	case changedSince:
 		// get the last sync timestamp value
 		timestamp = GetKBServerLastSync();
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 		wxLogDebug(_T("Doing ChangedSince() with lastsync timestamp value = %s"), timestamp.c_str());
 #endif
 		rv = ChangedSince(timestamp);
@@ -1362,7 +1367,7 @@ int KbServer::ListLanguages(wxString username, wxString password)
 		//headers separately
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) //&& defined (__WXGTK__)
+#if defined (SYNC_LOGS) //&& defined (__WXGTK__)
 		/* commented out to speed things up
 		CBString s2(str_CURLheaders.c_str());
 		wxString showit2 = ToUtf16(s2);
@@ -1494,7 +1499,7 @@ int KbServer::ListLanguages(wxString username, wxString password)
 					// which is this (Caller should only use the adaptations instance of KbServer)
 					m_languagesList.Append(pLanguageStruct); // Caller must later use ClearLanguagesList()
 					// to get rid of these pointers once their job is done, if not, memory will be leaked
-					#if defined (_DEBUG)
+					#if defined (SYNC_LOGS)
 					// commented out, though it works, because it slows down the processing required to put the custom codes into the list box
 					wxLogDebug(_T("ListLanguages(): code = %s , description = %s , username = %s , timestamp = %s"),
 					pLanguageStruct->code.c_str(), pLanguageStruct->description.c_str(), pLanguageStruct->username.c_str(),
@@ -1571,7 +1576,7 @@ int KbServer::ListUsers(wxString username, wxString password)
 													  //headers separately
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) //&& defined (__WXGTK__)
+#if defined (SYNC_LOGS) //&& defined (__WXGTK__)
         CBString s2(str_CURLheaders.c_str());
         wxString showit2 = ToUtf16(s2);
 		wxLogDebug(_T("ListUsers(): Returned headers: %s"), showit2.c_str());
@@ -1688,7 +1693,7 @@ int KbServer::ListUsers(wxString username, wxString password)
 			m_usersList.Append(pUserStruct); // Caller must later use ClearUsersList() to get
 									// rid of these pointers once their job is done, if not,
 									// memory will be leaked
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
 			wxLogDebug(_T("ListUsers(): id = %d username = %s , fullname = %s useradmin = %d , kbadmin = %d  timestamp = %s"),
 				pUserStruct->id, pUserStruct->username.c_str(), pUserStruct->fullname.c_str(),
 				pUserStruct->useradmin ? 1 : 0, pUserStruct->kbadmin ? 1 : 0, pUserStruct->timestamp.c_str());
@@ -1744,7 +1749,7 @@ int KbServer::ListKbs(wxString username, wxString password)
 													  //headers separately
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) //&& defined (__WXGTK__)
+#if defined (SYNC_LOGS) //&& defined (__WXGTK__)
         CBString s2(str_CURLheaders.c_str());
         wxString showit2 = ToUtf16(s2);
 		wxLogDebug(_T("ListKbs(): Returned headers: %s"), showit2.c_str());
@@ -1866,7 +1871,7 @@ int KbServer::ListKbs(wxString username, wxString password)
 			m_kbsList.Append(pKbStruct); // Caller must later use ClearKbsList() to get
 									// rid of these pointers once their job is done, if not,
 									// memory will be leaked
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
 			wxLogDebug(_T("ListKbs(): id = %d , sourcelanguage = %s targetlanguage = %s , type = %d , user = %s , timestamp = %s"),
 				pKbStruct->id , pKbStruct->sourceLanguageCode.c_str(), pKbStruct->targetLanguageCode.c_str(),
 				pKbStruct->kbType , pKbStruct->username.c_str(), pKbStruct->timestamp.c_str());
@@ -1926,7 +1931,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 													//headers separately
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) //&& defined (__WXGTK__)
+#if defined (SYNC_LOGS) //&& defined (__WXGTK__)
         CBString s2(str_CURLheaders.c_str());
         wxString showit2 = ToUtf16(s2);
 		wxLogDebug(_T("LookupUser(): Returned headers: %s"), showit2.c_str());
@@ -2095,7 +2100,7 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 													//headers separately
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) //&& defined (__WXGTK__)
+#if defined (SYNC_LOGS) //&& defined (__WXGTK__)
         CBString s2(str_CURLheaders.c_str());
         wxString showit2 = ToUtf16(s2);
 		wxLogDebug(_T("LookupSingleKb(): Returned headers: %s"), showit2.c_str());
@@ -2207,7 +2212,7 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 			}
 			// No errors...
 			unsigned int listSize = (unsigned int)jsonval.Size();
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
 			// get feedback about now many table lines we got, in debug mode - we expect
 			// multiples of 2, from which we later must match the one with same type as was
 			// passed in, and same targetlanguage code as was passed in
@@ -2236,7 +2241,7 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 				pKbStruct->timestamp = jsonval[index][_T("timestamp")].AsString();
 				pKbStruct->deleted = jsonval[index][_T("deleted")].AsInt();
 
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
 				// list what fields we extracted for each line of the kb table matched
 				wxLogDebug(_T("LookupSingleKb matched: id: %d , src: %s , transln: %s , type: %d, deleted: %d , username & timestamp: (not interested)"),
 					pKbStruct->id, pKbStruct->sourceLanguageCode.c_str(), pKbStruct->targetLanguageCode.c_str(),
@@ -2275,7 +2280,7 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
             // caller is bMatchedKB = FALSE when control enters this block. (It's that
             // already.) We return a curlcode of 0 so that no error message is triggered in
             // the caller.
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
             // But in debug mode we might was well log the error to check all is
 			// working as expected
 			wxString msg;
@@ -2357,7 +2362,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	// The URL has to be url-encoded -- do it later below with curl_easy_escape()
 	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() +
 			slash + langcode + slash + kbType + slash; // url-encode the new 2 fields
-#if defined (_DEBUG) //&& defined (__WXGTK__)
+#if defined (SYNC_LOGS) //&& defined (__WXGTK__)
 	wxLogDebug(_T("LookupEntryFields(): wxString aUrl = %s"), aUrl.c_str());
 #endif
 	charUrl = ToUtf8(aUrl);
@@ -2375,7 +2380,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		charUrl += encodedSrc;
 		charUrl += "/";
 		charUrl += encodedTgt;
-#if defined (_DEBUG) //&& defined (__WXGTK__)
+#if defined (SYNC_LOGS) //&& defined (__WXGTK__)
 		wxString wxencodedUrl = ToUtf16(charUrl);
 		wxLogDebug(_T("LookupEntryFields(): encoded Url = %s"), wxencodedUrl.c_str());
 #endif
@@ -2392,7 +2397,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 													  //headers separately
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) //&& defined (__WXGTK__)
+#if defined (SYNC_LOGS) //&& defined (__WXGTK__)
         CBString s2(str_CURLheaders.c_str());
         wxString showit2 = ToUtf16(s2);
 		wxLogDebug(_T("LookupEntryFields(): Returned headers: %s"), showit2.c_str());
@@ -2576,7 +2581,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 
 	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() + slash +
 			langcode + slash + kbType + changedSince + timeStamp;
-#if defined (_DEBUG) //&& defined (__WXGTK__)
+#if defined (SYNC_LOGS) //&& defined (__WXGTK__)
 	wxLogDebug(_T("ChangedSince_Queued(): wxString aUrl = %s"), aUrl.c_str());
 #endif
 	charUrl = ToUtf8(aUrl);
@@ -2599,7 +2604,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
         // BEW added 9Feb13, check what, if anything, got added to str_CURLheaders_callback
         CBString s2(str_CURLheaders.c_str());
         wxString showit2 = ToUtf16(s2);
@@ -2632,7 +2637,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
     ExtractTimestamp(str_CURLheaders, m_kbServerLastTimestampReceived);
     ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
         // show what ExtractHttpStatusEtc() returned
         CBString s2(str_CURLheaders.c_str());
         wxString showit2 = ToUtf16(s2);
@@ -2706,7 +2711,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
                return -1;
             }
             unsigned int listSize = jsonval.Size();
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
             // get feedback about now many entries we got, in debug mode
             if (listSize > 0)
             {
@@ -2746,7 +2751,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
                 // struct in the queue currently, this will block until the s_QueueMutex is
                 // released)
 				PushToQueueEnd(pEntryStruct);
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
                 // list what fields we extracted for each line of the entry table matched
 				wxLogDebug(_T("Queued: Downloaded:  %s  ,  %s  ,  deleted = %d  ,  username = %s"),
                     pEntryStruct->source.c_str(), pEntryStruct->translation.c_str(),
@@ -2764,7 +2769,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 			{
 				UpdateLastSyncTimestamp();
 			}
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 			//wxRemoveFile(tempjsonfile); // <<-- uncomment out, if we don't want to keep the latest one
 #endif
 		} // end of TRUE block for test: if (offset == 0)
@@ -2798,7 +2803,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
                 // transmission. This should be treated as a successful transmission, and
 				// not show a 'failure' message - even if just in the debug build. It's
 				// okay as well to not update the lastsync timestamp in this circumstance
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
 				wxString msg;
 				msg  = msg.Format(_T("ChangedSince_Queued():  HTTP status: %d   No JSON data was returned. (This is an advisory message shown only in the Debug build.)"),
                                   m_httpStatusCode);
@@ -2870,7 +2875,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 
 	aUrl = GetKBServerURL() + slash + container + slash + GetSourceLanguageCode() + slash +
 		langcode + slash + kbType + changedSince + timeStamp;
-#if defined (_DEBUG) //&& defined (__WXGTK__)
+#if defined (SYNC_LOGS) //&& defined (__WXGTK__)
 	wxLogDebug(_T("ChangedSince_Timed(): wxString aUrl = %s"), aUrl.c_str());
 #endif
 	charUrl = ToUtf8(aUrl);
@@ -2893,7 +2898,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
 		// BEW added 9Feb13, check what, if anything, got added to str_CURLheaders_callback
 		CBString s2(str_CURLheaders.c_str());
 		wxString showit2 = ToUtf16(s2);
@@ -2926,7 +2931,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 	ExtractTimestamp(str_CURLheaders, m_kbServerLastTimestampReceived);
 	ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
 	// show what ExtractHttpStatusEtc() returned
 	CBString s2(str_CURLheaders.c_str());
 	wxString showit2 = ToUtf16(s2);
@@ -3002,7 +3007,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 				return -1;
 			}
 			unsigned int listSize = jsonval.Size();
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
 			// get feedback about now many entries we got, in debug mode
 			if (listSize > 0)
 			{
@@ -3075,7 +3080,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 
 				KBAccessMutex.Unlock();
 
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
 				// list what fields we extracted for each line of the entry table matched
 				wxLogDebug(_T("ChangedSince_Timed: Downloaded, and storing:  %s  ,  %s  ,  deleted = %d  ,  username = %s"),
 					pEntryStruct->source.c_str(), pEntryStruct->translation.c_str(),
@@ -3097,7 +3102,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 			{
 				UpdateLastSyncTimestamp();
 			}
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 			//wxRemoveFile(tempjsonfile); // <<-- uncomment out, if we don't want to keep the latest one
 #endif
 			// Finish progress guage
@@ -3134,7 +3139,7 @@ int KbServer::ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate)
 				// transmission. This should be treated as a successful transmission, and
 				// not show a 'failure' message - even if just in the debug build. It's
 				// okay as well to not update the lastsync timestamp in this circumstance
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
 				wxString msg;
 				msg = msg.Format(_T("ChangedSince_Timed():  HTTP status: %d   No JSON data was returned. (This is an advisory message shown only in the Debug build.)"),
 					m_httpStatusCode);
@@ -3339,13 +3344,13 @@ int KbServer::Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString t
 		int rv2 = pKbSvr->LookupEntryFields(src, tgt);
 		KbServerEntry e = pKbSvr->GetEntryStruct();
 		entryID = e.id; // an undelete of a pseudo-delete will need this value
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 		wxLogDebug(_T("LookupEntryFields in Synchronous_CreateEntry: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
 			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
 #endif
 		if (rv2 == CURLE_HTTP_RETURNED_ERROR)
 		{
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 			wxBell(); // we don't expect any error
 #endif
 			wxLogDebug(_T("LookupEntryFields in Synchronous_CreateEntry: there was an error: %d"), rv2);
@@ -3454,7 +3459,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
         CBString s(str_CURLbuffer.c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("CreateEntry() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
@@ -3568,7 +3573,7 @@ int	KbServer::CreateLanguage(wxString url, wxString username, wxString password,
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
 		CBString s(str_CURLbuffer.c_str());
 		wxString showit = ToUtf16(s);
 		wxLogDebug(_T("\n\n *** CreateLanguage() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
@@ -3697,7 +3702,7 @@ int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassw
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
         CBString s(str_CURLbuffer.c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("\n\n *** CreateUser() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
@@ -3785,7 +3790,7 @@ int KbServer::ReadLanguage(wxString url, wxString username, wxString password, w
 		//headers separately
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) //&& defined (__WXGTK__)
+#if defined (SYNC_LOGS) //&& defined (__WXGTK__)
 		CBString s2(str_CURLheaders.c_str());
 		wxString showit2 = ToUtf16(s2);
 		wxLogDebug(_T("ReadLanguage(): Returned headers: %s"), showit2.c_str());
@@ -3958,7 +3963,7 @@ int KbServer::CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTy
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
         CBString s(str_CURLbuffer.c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("CreateKb() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
@@ -4097,7 +4102,7 @@ int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
         CBString s(str_CURLbuffer.c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("\n\n *** UpdateUser() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
@@ -4183,7 +4188,7 @@ int KbServer::DeleteSingleKbEntry(int entryID)
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
         CBString s(str_CURLbuffer_for_deletekb.c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("\n\n DeleteSingleEntry() Returned: %s    CURLcode %d  for entryID = %d"),
@@ -4267,7 +4272,7 @@ int KbServer::RemoveUser(int userID)
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
         CBString s(str_CURLbuffer.c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("\n\n *** RemoveUser() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
@@ -4350,7 +4355,7 @@ int KbServer::RemoveKb(int kbID)
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
         CBString s(str_CURLbuffer_for_deletekb.c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("\n\n *** RemoveKb() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
@@ -4432,7 +4437,7 @@ int KbServer::RemoveCustomLanguage(wxString langID)
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG)
+#if defined (SYNC_LOGS)
 		CBString s(str_CURLbuffer.c_str());
 		wxString showit = ToUtf16(s);
 		wxLogDebug(_T("\n\n *** RemoveCustomLanguage() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
@@ -4498,7 +4503,7 @@ int KbServer::Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxStrin
 		// no error from the lookup, so get the entry ID, and the value of the deleted flag
 		KbServerEntry e = pKbSvr->GetEntryStruct(); // accesses m_entryStruct
 		entryID = e.id; // an undelete of a pseudo-delete will need this value
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 		wxLogDebug(_T("LookupEntryFields in Synchronous_PseudoUndelete(): id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
 			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
 #endif
@@ -4513,8 +4518,9 @@ int KbServer::Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxStrin
 	s_BulkDeleteMutex.Unlock();
 
 	wxUnusedVar(rv);
+#if defined(SYNC_LOGS)
 	wxLogDebug(_T("Synchronous_PseudoUndelete(): returning: rv = %d  for source:  %s   &   target:  %s"), rv, src.c_str(), tgt.c_str());
-
+#endif
 	return rv;
 }
 
@@ -4547,7 +4553,7 @@ int KbServer::Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString 
 		// No error from the lookup, so get the entry ID, and the value of the deleted flag
 		KbServerEntry e = pKbSvr->GetEntryStruct(); // accesses m_entryStruct
 		entryID = e.id; // an delete of a normal entry will need this value
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 		wxLogDebug(_T("LookupEntryFields in Synchronous_PseudoDelete: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
 			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
 #endif
@@ -4601,10 +4607,74 @@ int KbServer::Synchronous_ChangedSince_Timed(KbServer* pKbSvr)
 
 int KbServer::Synchronous_KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldText, wxString newText)
 {
-	CURLcode rv = (CURLcode)0;
+	int rv = 0;
+	long entryID = 0; // initialize (it might not be used)
+	wxASSERT(!src.IsEmpty()); // the key must never be an empty string
 
+	s_BulkDeleteMutex.Lock();
 
-
+	rv = pKbSvr->LookupEntryFields(src, oldText);
+	if (rv == CURLE_HTTP_RETURNED_ERROR)
+	{
+		// If the lookup failed, we must assume it was because there was no matching entry
+		// (ie. HTTP 404 was returned) - in which case none of the collaborating clients
+		// has seen this entry yet, and so the simplest thing is just not to bother
+		// creating it here and then immediately pseudo-deleting it. That won't mess with
+		// any of the other client's KBs needlessly.
+		;
+	}
+	else
+	{
+		// No error from the lookup, so get the entry ID, and the value of the deleted flag
+		KbServerEntry e = pKbSvr->GetEntryStruct(); // accesses m_entryStruct
+		entryID = e.id; // a pseudo-delete will need this value
+#if defined(SYNC_LOGS)
+		wxLogDebug(_T("LookupEntryFields in Synchronous_KbEditorUpdateButton(): id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
+			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
+#endif
+		// If the remote entry has 0 for the deleted flag's value (which is what we expect),
+		// then go ahead and pseudo-delete it; but if it has 1 already, there is nothing to 
+		// do with this src-oldTgt pair, the pseudo-deletion is already in the remote DB
+		if (e.deleted == 0)
+		{
+			// do a pseudo-delete here, use the entryID value from above
+			rv = pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete);
+		}
+	}
+	//                          ***** part 2 *****
+	// That takes care of the m_oldTranslation that was updated; now deal with the 
+	// scr-m_newTranslation pair -- another lookup is needed...
+	rv = pKbSvr->LookupEntryFields(src, newText);
+	if (rv == CURLE_HTTP_RETURNED_ERROR)
+	{
+		// If the lookup failed, we must assume it was because there was no matching entry
+		// (ie. HTTP 404 was returned) - in which case none of the collaborating clients
+		// has seen this entry yet, and so we should now create it in the remote DB now
+		rv = pKbSvr->CreateEntry(src, newText);
+		// Ignore errors, if it didn't succeed, no big deal - someone else will sooner or
+		// later succeed in adding this one to the remote DB.
+	}
+	else
+	{
+		// No error from the lookup, so get the entry ID, and the value of the deleted flag
+		KbServerEntry e = pKbSvr->GetEntryStruct(); // accesses m_entryStruct
+		entryID = e.id; // a pseudo-delete will need this value
+#if defined(SYNC_LOGS)
+		wxLogDebug(_T("LookupEntryFields in Synchronous_KbEditorUpdateButton: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
+			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
+#endif
+		// If the remote entry has 0 for the deleted flag's value - then the remote DB
+		// already has this as a normal entry, so we've nothing to do here. On the other
+		// hand, if the flag's value is 1 (it's currently pseudo-deleted in the remote DB)
+		// then go ahead and undo the pseudo-deletion, making a normal entry
+		if (e.deleted == 1)
+		{
+			// do an undelete of the pseudo-deletion, use the entryID value from above
+			rv = pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doUndelete);
+		}
+		// Ignore errors, for the same reason as above (i.e. it's no big deal)
+	}
+	s_BulkDeleteMutex.Unlock();
 	return rv;
 }
 
@@ -4688,7 +4758,7 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 		else
 		{
 			successCount++;
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 			// track what we delete and it's ID
 //			wxLogDebug(_T("TSynchronous_DoEntireKbDeletion(): id = %d, src = %s , non-src = %s"),
 //				pKbSvrEntry->id, pKbSvrEntry->source.c_str(), pKbSvrEntry->translation.c_str());
@@ -4723,7 +4793,7 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 	{
 		// There were some failures... (and the Manager GUI may not be open -- see comment
 		// in the else block for details)
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 		wxLogDebug(_T("Synchronous_DoEntireKbDeletion(): deletion errors (number of entries failing) = %d"),
 			nonsuccessCount);
 #endif
@@ -4922,7 +4992,7 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
         CBString s(str_CURLbuffer.c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("PseudoDeleteOrUndeleteEntry() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
@@ -4974,7 +5044,7 @@ void KbServer::DoChangedSince()
 	wxString timestamp;
 	// get the last sync timestamp value
 	timestamp = GetKBServerLastSync();
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 	wxLogDebug(_T("DoChangedSince() with lastsync timestamp value = %s"), timestamp.c_str());
 #endif
 	rv = ChangedSince(timestamp);
@@ -5003,7 +5073,7 @@ void KbServer::DoGetAll(bool bUpdateTimestampOnSuccess)
 	int rv = 0; // rv is "return value", initialize it
 	// get the last sync timestamp value
 	wxString timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!;
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 	wxLogDebug(_T("DoGetAll() with lastsync timestamp value = %s"), timestamp.c_str());
 #endif
 	rv = ChangedSince(timestamp);
@@ -5116,7 +5186,7 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 			{
 				srcPhrase = iter->first;
 				/*
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 				// the three which are repeated in the 9, have srcPhrase "bikpela", or "i
 				// laikim", or "long ai bilong mipela", so break at these & step it
 				if (srcPhrase == _T("bikpela") ||
@@ -5193,7 +5263,7 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 									// the remote DB as yet, so upload (beware, check
 									// for the empty string designator and restore the
 									// empty string if found)
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 									// currently, "mi" <-> "I" is treated as an error as the
 									// php does a caseless compare, and it conflicts with
 									// existing "mi" <-> "i", so exclude it)
@@ -5262,7 +5332,7 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 	wxString tgt;
 	wxString empty = _T("<empty>");
 	size_t count = pKbSvr->m_arrSource.GetCount(); // the source array of the 7 accepting downloaded fields
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 	wxLogDebug(_T("\nPopulateUploadsMap() commences ..... m_arrSource.GetCount() value = %d  (all 7 arrays have this count value)"),
 		count);
 	int counter = 0;
@@ -5282,7 +5352,7 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 		// If we don't change empty translation strings to something non-empty, we may
 		// end up excluding those unwittingly, so use _T("<empty>") for them and change
 		// the latter back to an empty string when necessary
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 		counter++;
 		wxLogDebug(_T("\nPopulateUploadsMap() loop: counter = %d  src: %s  tgt: %s       <<-- key & value for map"),
 			counter, src.c_str(), tgt.c_str());
@@ -5303,7 +5373,7 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 			pMyTranslations = new wxArrayString;
 			m_uploadsMap[src] = pMyTranslations;
 			pMyTranslations->Add(tgt);
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 			int numInArray = pMyTranslations->GetCount();
 			wxLogDebug(_T("\nPopulateUploadsMap() loop: counter = %d  key is NOT IN MAP, so adding tgt: %s  entry #: %d Values: %s"),
 				counter, tgt.c_str(), numInArray, (ReturnStrings(pMyTranslations)).c_str());
@@ -5315,7 +5385,7 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 			// associate with it - add it to the array
 			pMyTranslations = iter->second;
 			pMyTranslations->Add(tgt);
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 			int numInArray = pMyTranslations->GetCount();
 			wxLogDebug(_T("\nPopulateUploadsMap() loop: counter = %d  key IS IN MAP, so adding tgt: %s  entry #: %d  Values: %s"),
 				counter, tgt.c_str(), numInArray, (ReturnStrings(pMyTranslations)).c_str());
@@ -5325,12 +5395,12 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 	// The only reason we populate this map is because once the local KB gets large, say
 	// over a thousand entries, it will be much quicker to determine a give src-tgt pair
 	// from the local KB is not in the map, than to do the same check with an array or list
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 	wxLogDebug(_T("\nPopulateUploadsMap() loop has ended\n"));
 #endif
 }
 
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 wxString KbServer::ReturnStrings(wxArrayString* pArr)
 {
 	int count = (int)pArr->GetCount();
@@ -5356,7 +5426,7 @@ void KbServer::ClearReturnedCurlCodes()
 	}
 }
 
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 wxString KbServer::ShowReturnedCurlCodes()
 {
 	wxString str; str.Empty();
@@ -5399,7 +5469,7 @@ bool KbServer::AllEntriesGotEnteredInDB()
 // (we don't upload any pseudo-deleted ones).
 void KbServer::UploadToKbServer()
 {
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 	wxDateTime now = wxDateTime::Now();
 	wxLogDebug(_T("UploadToKBServer() start time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
 #endif
@@ -5461,7 +5531,7 @@ void KbServer::UploadToKbServer()
 		s_DoGetAllMutex.Unlock();
 
 		iTotalEntries = (int)m_uploadsList.GetCount(); // we use this below
-#if defined(_DEBUG) && defined(_BULK_UPLOAD)
+#if defined(SYNC_LOGS) && defined(_BULK_UPLOAD)
 		wxLogDebug(_T("UploadToKbServer(), number of KbServerEntry structs =  %d"), iTotalEntries);
 #endif
 #if defined(_DEBUG) && defined(_BULK_UPLOAD)
@@ -5734,7 +5804,7 @@ int KbServer::BulkUpload(int chunkIndex, // use for choosing which buffer to ret
 	aPwd = username + colon + password;
 	charUserpwd = ToUtf8(aPwd);
 
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 	// try do this without a mutex - it's temporary and I may get away with it, if not
 	// delete it; same for the one at the end below
 	wxDateTime now = wxDateTime::Now();
@@ -5770,7 +5840,7 @@ int KbServer::BulkUpload(int chunkIndex, // use for choosing which buffer to ret
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) // && defined (__WXGTK__)
+#if defined (SYNC_LOGS) // && defined (__WXGTK__)
         CBString s(str_CURLbuff[chunkIndex].c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("BulkUpload() chunk %d , Returned: %s    CURLcode %d"),
@@ -5802,7 +5872,7 @@ int KbServer::BulkUpload(int chunkIndex, // use for choosing which buffer to ret
 	curl_easy_cleanup(curl);
 	m_httpStatusText.Clear();
 
-#if defined(_DEBUG)
+#if defined(SYNC_LOGS)
 	now = wxDateTime::Now();
 	wxLogDebug(_T("BulkUpload() 1-based chunk %d , finish time: %s\n"),
 		chunkIndex + 1, now.Format(_T("%c"), wxDateTime::WET).c_str());

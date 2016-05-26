@@ -816,39 +816,6 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 			{
 				int rv = pKbSvr->Synchronous_KbEditorUpdateButton(pKbSvr, m_curKey, oldText, newText);
 				wxUnusedVar(rv);
-
-				/*
-				Thread_KbEditorUpdateButton* pKbEditorUpdateBtnThread = new Thread_KbEditorUpdateButton;
-				// populate it's public members (it only has public ones anyway)
-				pKbEditorUpdateBtnThread->m_pKbSvr = pKbSvr;
-				pKbEditorUpdateBtnThread->m_source = m_curKey;
-				pKbEditorUpdateBtnThread->m_oldTranslation = oldText;
-				pKbEditorUpdateBtnThread->m_newTranslation = newText;
-				// now create the runnable thread with explicit stack size of 1KB
-				wxThreadError error =  pKbEditorUpdateBtnThread->Create(1024); // was wxThreadError error =  pKbEditorUpdateBtnThread->Create(10240);
-				if (error != wxTHREAD_NO_ERROR)
-				{
-					wxString msg;
-					msg = msg.Format(_T("Thread_KbEditorUpdateButton: thread creation failed, error number: %d"),
-						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-					//m_pApp->LogUserAction(msg);
-				}
-				else
-				{
-					// no error, so now run the thread (it will destroy itself when done)
-					error = pKbEditorUpdateBtnThread->Run();
-					if (error != wxTHREAD_NO_ERROR)
-					{
-					wxString msg;
-					msg = msg.Format(_T("Thread_KbEditorUpdateButton, Thread_Run(): cannot make the thread run, error number: %d"),
-					  (int)error);
-					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-					//m_pApp->LogUserAction(msg);
-					}
-				}
-				*/
-
 			}
 		}
 #endif
@@ -952,7 +919,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	pCurRefString->SetDeletedFlag(TRUE);
 
 	// BEW added 26Oct12 for KBserver support
-//*
+
 #if defined(_KBSERVER)
 		if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
 				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
@@ -965,39 +932,12 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		// create the thread and fire it off
 		if (!pCurTgtUnit->IsItNotInKB())
 		{
-			Thread_KbEditorUpdateButton* pKbEditorUpdateBtnThread = new Thread_KbEditorUpdateButton;
-			// populate it's public members (it only has public ones anyway)
-			pKbEditorUpdateBtnThread->m_pKbSvr = pKbSvr;
-			pKbEditorUpdateBtnThread->m_source = m_curKey;
-			pKbEditorUpdateBtnThread->m_oldTranslation = oldText; // has no auto-caps modification to first letter
-			pKbEditorUpdateBtnThread->m_newTranslation = newText; // may have an auto-caps modification to first letter
-			// now create the runnable thread with explicit stack size of 1KB
-			wxThreadError error =  pKbEditorUpdateBtnThread->Create(10240); // was wxThreadError error =  pKbEditorUpdateBtnThread->Create(10240);
-			if (error != wxTHREAD_NO_ERROR)
-			{
-				wxString msg;
-				msg = msg.Format(_T("Thread_KbEditorUpdateButton: thread creation failed, error number: %d"),
-					(int)error);
-				wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
-				//m_pApp->LogUserAction(msg);
-			}
-			else
-			{
-				// no error, so now run the thread (it will destroy itself when done)
-				error = pKbEditorUpdateBtnThread->Run();
-				if (error != wxTHREAD_NO_ERROR)
-				{
-				wxString msg;
-				msg = msg.Format(_T("Thread_KbEditorUpdateButton, Thread_Run(): cannot make the thread run, error number: %d"),
-				  (int)error);
-				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-				//m_pApp->LogUserAction(msg);
-				}
-			}
+			int rv = pKbSvr->Synchronous_KbEditorUpdateButton(pKbSvr, m_curKey, oldText, newText);
+			wxUnusedVar(rv);
 		}
 	}
 #endif
-//*/
+
 	// That completes what's needed for updating the CTargetUnit instance. The stuff below
 	// is to get the page's translations (or glosses) list to comply with the edit done
 
@@ -1733,40 +1673,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
-		/*
-		// create the thread and fire it off
-		if (!pCurTgtUnit->IsItNotInKB())
-		{
-			Thread_PseudoDelete* pPseudoDeleteThread = new Thread_PseudoDelete;
-			// populate it's public members (it only has public ones anyway)
-			pPseudoDeleteThread->m_pKbSvr = pKbSvr;
-			pPseudoDeleteThread->m_source = m_curKey;
-			pPseudoDeleteThread->m_translation = pRefString->m_translation;
-			// now create the runnable thread with explicit stack size of 1KB
-			wxThreadError error =  pPseudoDeleteThread->Create(1024); // was wxThreadError error =  pPseudoDeleteThread->Create(10240);
-			if (error != wxTHREAD_NO_ERROR)
-			{
-				wxString msg;
-				msg = msg.Format(_T("Thread_PseudoDelete in KBEditor::OnButtonRemove(): thread creation failed, error number: %d"),
-					(int)error);
-				wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-				//m_pApp->LogUserAction(msg);
-			}
-			else
-			{
-				// no error, so now run the thread (it will destroy itself when done)
-				error = pPseudoDeleteThread->Run();
-				if (error != wxTHREAD_NO_ERROR)
-				{
-				wxString msg;
-				msg = msg.Format(_T("Thread_PseudoDelete in KBEditor::OnButtonRemove(), Thread_Run(): cannot make the thread run, error number: %d"),
-				  (int)error);
-				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-				//m_pApp->LogUserAction(msg);
-				}
-			}
-		}
-		*/
+	
 		if (!pCurTgtUnit->IsItNotInKB())
 		{
 			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, m_curKey, pRefString->m_translation);
