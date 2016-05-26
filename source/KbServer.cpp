@@ -5373,7 +5373,7 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 			pMyTranslations = new wxArrayString;
 			m_uploadsMap[src] = pMyTranslations;
 			pMyTranslations->Add(tgt);
-#if defined(SYNC_LOGS)
+#if defined(_DEBUG) && defined(SYNC_LOGS)
 			int numInArray = pMyTranslations->GetCount();
 			wxLogDebug(_T("\nPopulateUploadsMap() loop: counter = %d  key is NOT IN MAP, so adding tgt: %s  entry #: %d Values: %s"),
 				counter, tgt.c_str(), numInArray, (ReturnStrings(pMyTranslations)).c_str());
@@ -5385,7 +5385,7 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 			// associate with it - add it to the array
 			pMyTranslations = iter->second;
 			pMyTranslations->Add(tgt);
-#if defined(SYNC_LOGS)
+#if defined(_DEBUG) && defined(SYNC_LOGS)
 			int numInArray = pMyTranslations->GetCount();
 			wxLogDebug(_T("\nPopulateUploadsMap() loop: counter = %d  key IS IN MAP, so adding tgt: %s  entry #: %d  Values: %s"),
 				counter, tgt.c_str(), numInArray, (ReturnStrings(pMyTranslations)).c_str());
@@ -5400,7 +5400,7 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 #endif
 }
 
-#if defined(SYNC_LOGS)
+#if defined(_DEBUG) && defined(SYNC_LOGS)
 wxString KbServer::ReturnStrings(wxArrayString* pArr)
 {
 	int count = (int)pArr->GetCount();
@@ -5426,7 +5426,7 @@ void KbServer::ClearReturnedCurlCodes()
 	}
 }
 
-#if defined(SYNC_LOGS)
+#if defined(_DEBUG) && defined(SYNC_LOGS)
 wxString KbServer::ShowReturnedCurlCodes()
 {
 	wxString str; str.Empty();

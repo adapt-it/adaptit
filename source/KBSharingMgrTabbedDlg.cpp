@@ -51,7 +51,6 @@
 #include "Adapt_ItView.h"
 #include "KBSharingMgrTabbedDlg.h"
 #include "HtmlFileViewer.h"
-#include "Thread_DoEntireKbDeletion.h"
 #include "MainFrm.h"
 #include "StatusBar.h"
 

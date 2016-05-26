@@ -451,13 +451,6 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\Strip.cpp" />
     <ClCompile Include="..\..\source\TargetUnit.cpp" />
     <ClCompile Include="..\..\source\tellenc.cpp" />
-    <ClCompile Include="..\..\source\Thread_BulkPseudoDelete.cpp" />
-    <ClCompile Include="..\..\source\Thread_ChangedSince.cpp" />
-    <ClCompile Include="..\..\source\Thread_CreateEntry.cpp" />
-    <ClCompile Include="..\..\source\Thread_DoEntireKbDeletion.cpp" />
-    <ClCompile Include="..\..\source\Thread_KbEditorUpdateButton.cpp" />
-    <ClCompile Include="..\..\source\Thread_PseudoDelete.cpp" />
-    <ClCompile Include="..\..\source\Thread_PseudoUndelete.cpp" />
     <ClCompile Include="..\..\source\Thread_ServiceDiscovery.cpp" />
     <ClCompile Include="..\..\source\Timer_KbServerChangedSince.cpp" />
     <ClCompile Include="..\..\source\ToolbarPage.cpp" />
@@ -551,8 +544,6 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\RemoveSomeTgtEntries.h" />
     <ClInclude Include="..\..\source\ServDisc_KBserversDlg.h" />
     <ClInclude Include="..\..\source\ServiceDiscovery.h" />
-    <ClInclude Include="..\..\source\Thread_BulkPseudoDelete.h" />
-    <ClInclude Include="..\..\source\Thread_DoEntireKbDeletion.h" />
     <ClInclude Include="..\..\source\Thread_ServiceDiscovery.h" />
     <ClInclude Include="..\..\source\UsernameInput.h" />
     <ClInclude Include="..\..\source\wxServDisc.h" />
@@ -626,11 +617,6 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\Strip.h" />
     <ClInclude Include="..\..\source\TargetUnit.h" />
     <ClInclude Include="..\..\source\tellenc.h" />
-    <ClInclude Include="..\..\source\Thread_ChangedSince.h" />
-    <ClInclude Include="..\..\source\Thread_CreateEntry.h" />
-    <ClInclude Include="..\..\source\Thread_KbEditorUpdateButton.h" />
-    <ClInclude Include="..\..\source\Thread_PseudoDelete.h" />
-    <ClInclude Include="..\..\source\Thread_PseudoUndelete.h" />
     <ClInclude Include="..\..\source\Timer_KbServerChangedSince.h" />
     <ClInclude Include="..\..\source\ToolbarPage.h" />
     <ClInclude Include="..\..\source\TransformToGlossesDlg.h" />

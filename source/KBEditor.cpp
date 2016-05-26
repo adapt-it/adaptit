@@ -71,7 +71,6 @@
 #include "Adapt_ItDoc.h"
 #include "helpers.h"
 #include "KBEditSearch.h"
-#include "Thread_KbEditorUpdateButton.h"
 #include "RemoveSomeTgtEntries.h"
 
 // for support of auto-capitalization
