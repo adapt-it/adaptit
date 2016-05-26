@@ -297,6 +297,12 @@ extern wxChar gcharNonSrcUC;
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gcharSrcLC;
 
+extern bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+							   // is enabled, FALSE is legacy initial position only
+extern int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
+							// character was found to be located, wxNOT_FOUND if not located
+
+
 /// This global is defined in Adapt_It.cpp.
 extern wxString szProjectConfiguration;
 
@@ -15087,7 +15093,25 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			}
 			else
 			{
-				bEmptyTarget = TRUE;
+				bEmptyTarget = TRUE; // BEW 20May16, the test being false is a rather excuse
+						// for setting this boolean TRUE, since there's no test of the
+						// phrasebox contents - so make such a test next, as that's what matters
+			}
+
+			// BEW 20May16 added this block. We need to support scenarios where the user 
+			// may want to override by not having any copy done, but explicitly type his 
+			// different puntuation (which may be preceding or following the word, or both), 
+			// or omit some or all of the punctuation, and have only that/those punctuation
+			// characters, or lack thereof, handled automatically when the box moves
+			if (pSrcPhrase->m_nSequNumber <= pApp->GetMaxIndex() && !pApp->m_bReadOnlyAccess)
+			{
+				// A phrase box should be visible at the active location
+				if (!pApp->m_pTargetBox->GetValue().IsEmpty())
+				{
+					// The phrasebox has content, so we must conform so the protocol for the
+					// user overriding the otherwise-copied src punctuation can operate...
+					bEmptyTarget = FALSE;
+				}
 			}
 
             // BEW addition 23March05, to allow detached punctuation to be reconstructed in
@@ -15096,13 +15120,6 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
             // is empty
 			bool bWantPrevCopy;
 			int punctLen;
-			// BEW 31Mar12, commented the switching of the value out, because we don't
-			// want an empty string to have punctuation prefixed or suffixed to it; so if
-			// bEmptyTarget is TRUE, let that value continue for the code which follows
-			//if (bEmptyTarget)
-			//{
-			//	bEmptyTarget = FALSE;
-			//}
 
             // BEW added 20 April 2005 to support the use of the new No Punctuation Copy
             // button. Don't restore the TRUE value for this flag at the end of this
@@ -15144,6 +15161,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						str = strInitialPunct + punctlessStr; //
 					}
 				}
+			
 				pSrcPhrase->m_targetStr = str;
 /* #if defined(_DEBUG)
 				// In case the RossJones m_targetStr not sticking bug comes from here

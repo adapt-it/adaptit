@@ -176,14 +176,14 @@ class KBSharingMgrTabbedDlg;
 //
 // whm 6Jan12 Note: When changing these version numbers we also need to change the version number
 // in the following:
-// 1. The appVerStr const defined below (about line 202).
+// 1. The appVerStr const defined below (about line 217).
 // 2. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the xml folder.
 // 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
 //    NOTE: Use an editor such as Notepad to edit Adapt_It.rc. DO NOT USE
 //    Visual Studio to edit this file, since Visual Studio will remove the
 //    #include "wx/msw/wx.rc" statement and add a lot of other
 //    Windows-specific stuff to the file - resulting in a build failure.
-// 4. The Visual Studio 2008 Adapt_It > Properties > Linker > Version (do for All Configurations).
+// 4. The Visual Studio 2015 Adapt_It > Properties > Linker > Version (do for All Configurations).
 //    For this version, just use the first two version digits, i.e., 6.6 to
 //    keep things compatible with newer versions of Visual Studio.
 // 5. The Mac's Info.plist file in adaptit/bin/mac/.
@@ -208,13 +208,13 @@ class KBSharingMgrTabbedDlg;
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 4 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
-#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 15
-#define VERSION_DATE_MONTH 10
-#define VERSION_DATE_YEAR 2015
-const wxString appVerStr(_T("6.6.4"));
+#define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 17
+#define VERSION_DATE_MONTH 05
+#define VERSION_DATE_YEAR 2016
+const wxString appVerStr(_T("6.6.5"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -2031,6 +2031,15 @@ class CAdapt_ItApp : public wxApp
 
 	wxTimer m_timer;
 
+	// BEW 12May16 We need a way to prevent OnIdle() events from asking the user for a KBserver
+	// login choice while the wizard is running. OnIdle() will, without this, check only for
+	// the flag m_bEnteringKBserverProject being true, and it is defaulted to true in OnInit()
+	// so the ask happens at the Next> click at the wizard's Projects page - which is *not* what
+	// we want to happen at that time. So we'll add this second boolean to the test, so that
+	// the first idle event AFTER the wizard has closed, will trigger the connection request dlg
+	bool    m_bWizardIsRunning; // it's easier for a non _KBSERVER build to just leave it out of the _KBSERVER wrapper
+
+
 #if defined(_KBSERVER)
 
 	// The following is the timer for incremental downloads; defaulted to
@@ -2038,6 +2047,7 @@ class CAdapt_ItApp : public wxApp
 	// and the minutes value will be stored in the project config file
 	Timer_KbServerChangedSince* m_pKbServerDownloadTimer; // for periodic incremental
 											// download of entries from the KBserver
+
 	// OnIdle() will be used for initiating a download of the incremental type.
 	// It will happen only after a boolean flag goes TRUE; the flag is the following
 	bool	m_bKbServerIncrementalDownloadPending;
@@ -3022,7 +3032,7 @@ public:
 			// when the m_bKbSvrMgr_DeleteAllIsInProgress flag is TRUE) for the
 			// session, or much of the session; but when that flag is false, it
 			// would be deleted when the KB Sharing Manager gets deleted. So 
-			// we don't want either the Manger class,or the 
+			// we don't want either the Manager class, or the 
 			// KBSharingStatelessSetupDlg class owning this pointer. 
 			// (It needs to persist when a deletion of the entries in a remote
 			// kb is being done - deleting is done one by one, so it may take
@@ -3036,11 +3046,9 @@ public:
 			// pointer to local CKB instance - but deletion doesn't use the
 			// local CKB, so we should be able to safely set that ptr to NULL)
 			// and then once the queue is populated with the entries to delete,
-			// we can have the persistent KbServer instance delete it on the
-			// detached thread, even if the user exits that project, and killing
-			// the persistent KbServer instance can then be done by (a) the
-			// deletion ending successfully and the kb deleted from the kb table;
-			// or app end.
+			// we can have the persistent KbServer instance delete it. (But openssl 
+			// leaks memory from a thread, so we must do it synchronously now.)
+			// 
             // The basic sharing functionalities, however, will not use this persistent
             // KbServer instance - but rather create their KbServer instances on demand
             // (when entering a project for example, deleting when leaving the project
@@ -3062,10 +3070,13 @@ public:
 	bool	  ReleaseKBServer(int whichType);
 	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
 	// BEW added next, 26Nov15
-	bool	  DoServiceDiscovery(wxString curURL, wxString& chosenURL, 
+	bool	  ConnectUsingDiscoveryResults(wxString curURL, wxString& chosenURL, 
 								 wxString& chosenHostname, enum ServDiscDetail &result);
-	bool	  m_bServiceDiscoveryWanted; // TRUE if DoServiceDiscovery() is wanted, FALSE for manual URL entry
+	bool	  m_bServiceDiscoveryWanted; // TRUE if ConnectUsingDiscoveryResults is wanted, FALSE for manual URL entry
 										 // and don't ever store the value in any config file; default TRUE
+	bool	  m_bServDiscGetOneOnly; // TRUE if service discovery - but a single run only, is wanted; FALSe
+									 // that a burst of runs should be attempted. I think bursts should be 3 runs each
+	bool	  m_bEnteringKBserverProject; // used in OnIdle() to delay connection attempt until doc is displayed
 	void	  ServDiscBackground(int nThreadIndex);
 	Thread_ServiceDiscovery* m_pServDiscThread[20]; // one for each run of ServDiscBackground, because now
 				// we allow each run to overlap the last a little, the only app member is this one and if
@@ -3073,10 +3084,17 @@ public:
 				// violations -- so each run has its own pointer
 	wxTimer   m_servDiscTimer;
 	void	  OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event));
-	int		  m_numServiceDiscoveryRuns; // I'll default it to 9 in OnInit(), but let a manual edit 
+	void	  DoServiceDiscoverySingleRun(); // like OnServiceDiscoveryTimer() but without the timer stuff
+	void	  ServDiscSingleOnly();
+	int		  m_numServiceDiscoveryRuns; // I'll default it to 3 in OnInit(), but let a manual edit 
 										 // of basic config file change it ( range: 1 to 20)
 	int		  m_nSDRunCounter; // counts the number of times ServDiscBackground() is called 
 	bool	  m_bServDiscBurstIsCurrent;
+	bool	  m_bServDiscSingleRunIsCurrent;
+	bool	  m_bAuthenticationCancellation;
+	bool	  m_bUserLoggedIn; // TRUE when the user (not an administrator) logs in successfully
+	bool	  m_bLoginFailureErrorSeen; // an aid to prevent too many error messages
+	bool	  m_bServDiscRunFoundNothing; // used for premature halting a burst of scans when no KBservers are running
 	void	  DoKBserverDiscoveryRuns();
 
 	void	  ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname);
@@ -3087,7 +3105,11 @@ public:
 	// These next two are not part of the AI_UserProfiles feature, we want them for every profile
 	void	  OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event));
 	void      OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
-
+#endif
+#if !defined(_KBSERVER)
+	void	  OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
+#endif
+#if defined(_KBSERVER)
 	// Next three are stored in the project configuration file
 	bool		m_bIsKBServerProject; // TRUE if the user wants an adapting kbserver for
 								// sharing kb data between clients in the same AI project
@@ -3112,6 +3134,24 @@ public:
 	// KbSharingSetup instance as mentioned just above.
 	bool		m_bIsKBServerProject_FromConfigFile;
 	bool		m_bIsGlossingKBServerProject_FromConfigFile;
+
+	// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+	// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+	// effect on GUI responsiveness. Each different call is assigned a boolean, which is
+	// FALSE until a handler for a GUI action sets it TRUE, then the TRUE value is tested
+	// for in OnIdle() and the relevant synchronous call is done from there in idle time.
+	// The following two wxString members are used for transferring the src and nonsrc (i.e.
+	// target or gloss) strings, and the KbServer pointer, the ptr to the instance being
+	// used for the call.
+	wxString m_strSrc_For_KBserver;
+	wxString m_strNonsrc_For_KBserver;
+	KbServer*   m_pKbServer_For_OnIdle;
+	bool m_bPseudoDelete_For_KBserver;
+	bool m_bPseudoUndelete_For_KBserver;
+	bool m_bCreateEntry_For_KBserver;
+	// There isn't one for LookupEntryFields() because that is used only internally in
+	// the Synchronous_XXXX() functions, never by itself
+
 
 	// Deleting an entire KB's entries in the entry table of kbserver will be done as a
 	// background task - so we need storage capability that persists after the KB Sharing
@@ -3150,7 +3190,14 @@ public:
 
 #endif // for _KBSERVER
 
-	bool	m_bMergerIsCurrent; // BEW created 14Apr16 due to bug report on 13thApril by Stefan Kasarik
+	wxString m_strSentFinalPunctsTriggerCaps; // list of sentence final punctuation characters
+				// that cause capitalization at the start of next sentence (no GUI, just a project
+				// configuration line - having content is the flag for the feature being activated
+	void	 EnsureProperCapitalization(int nCurrSequNum, wxString& tgtText); // call it, if conditions 
+																// comply, from start of StoreText()
+	bool	 m_bSentFinalPunctsTriggerCaps; // TRUE if above string is non-empty, FALSE otherwise
+
+	bool	 m_bMergerIsCurrent; // BEW created 14Apr16 due to bug report on 13thApril by Stefan Kasarik
 		// His problems was this. If a four word source text:  cao cao building end
 		// was adapted, (cao is Vietnamese for 'tall'), as follows: first instance adapt
 		// with any meaning (I chose 'tall'), then press Enter key. Next cao is auto-adapted

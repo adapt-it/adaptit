@@ -71,9 +71,6 @@
 #include "Adapt_ItDoc.h"
 #include "helpers.h"
 #include "KBEditSearch.h"
-#include "Thread_KbEditorUpdateButton.h"
-#include "Thread_PseudoDelete.h"
-#include "Thread_CreateEntry.h"
 #include "RemoveSomeTgtEntries.h"
 
 // for support of auto-capitalization
@@ -92,6 +89,10 @@ extern wxChar gcharNonSrcLC;
 extern wxChar gcharNonSrcUC;
 extern wxChar gcharSrcLC;
 extern wxChar gcharSrcUC;
+extern bool gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+									// is enabled, FALSE is legacy initial position only
+extern int  gnOffsetToUCcharSrc; // offset to source text location where the upper case
+								 // character was found to be located, wxNOT_FOUND if not located
 
 extern bool	gbCallerIsRemoveButton;
 
@@ -261,12 +262,37 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	// BEW 9Jun15, if the user clicked an entry in the list, the m_pTypeSourceBox
 	// below the list should reflect the choice; but before now it didn't. This
 	// next line fixes it.
-	m_pTypeSourceBox->ChangeValue(str);
-	int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,exactString);
+	// BEW 5May16 removed it, we want the user to be able to repeatedly search
+	// ahead for the next occurrence of the substring, and to cycle from top as well
+	//m_pTypeSourceBox->ChangeValue(str);
+	//int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, str, caseSensitive, subString);
+	int nNewSel = nSel;
+	// BEW 5May16 changed to use this variant, as it will search on from the current match position
+	// and cycle to list top once end of list is reached
+	//int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, str, caseSensitive, subString, fromCurrentSelPosCyclingBack);
 	wxASSERT(nNewSel != -1);
 	pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
 	wxASSERT(pCurTgtUnit != NULL);
 	m_curKey = str;
+
+	int nTopOfListItem = 0; // initialize (Mike wants some lines above the selection
+		// to be visible; I'll give him 3 above, so selection will be 4th line
+		// BEW 4May16, make 3 lines above selection visible, or less if close to the top
+	nTopOfListItem = nNewSel - 3;
+	// Check we are not out of bounds, adjust as necessary
+	if (nTopOfListItem < 0)
+	{
+		nTopOfListItem++;
+		if (nTopOfListItem < 0)
+		{
+			nTopOfListItem++;
+			if (nTopOfListItem < 0)
+			{
+				nTopOfListItem++;
+			}
+		}
+	}
+	m_pListBoxKeys->SetFirstItem(nTopOfListItem);
 
 #if defined(_DEBUG) && defined(DUALS_BUG)
 	bool bDoAbaotem = FALSE;
@@ -453,6 +479,11 @@ void CKBEditor::OnDblclkListExistingTranslations(wxCommandEvent& event)
 /// Called from: The wxCommandEvent mechanism. If the edit box is empty the handler returns
 /// immediately. If the string typed into the edit box is found then that found item is
 /// selected in the list and this handler calls OnSelchangeListSrcKeys().
+/// BEW 9May16, if the selected item was the last in the list, OnSelchangeListSrcKeys(),
+/// when it internally added 1 to nSel value of current selection, that made the selection
+/// index go out-og-bounds, and so no search was done. So I have to here detect this end
+/// of list position and manually move the selection to the top of the list, so the search
+/// can kick off from there
 /////////////////////////////////////////////////////////////////////////////////////////
 void CKBEditor::OnButtonSourceFindGo(wxCommandEvent& event)
 {
@@ -467,14 +498,25 @@ void CKBEditor::OnButtonSourceFindGo(wxCommandEvent& event)
 	// for the lookup we need to convert them to ZWSP
 	m_srcKeyStr = FwdSlashtoZWSP(m_srcKeyStr);
 //#endif
-    //m_flagSetting, m_entryCountStr and m_refCountStr don't need to come from window to
-    //the variables wx version note: wxListBox::FindString doesn't have a second parameter
-    //to find from a certain position in the list. We'll do it differently and use our own
-    //function which finds the first item having case insensitive chars the same as what
-    //user has typed into the "key to be found" edit box. For this search, we can return an
-    //index of a substring at the beginning of the list item.
-	int nSel = gpApp->FindListBoxItem(m_pListBoxKeys, m_srcKeyStr, caseInsensitive, subString);
-
+    // m_flagSetting, m_entryCountStr and m_refCountStr don't need to come from window to
+    // the variables wx version note: wxListBox::FindString doesn't have a second parameter
+    // to find from a certain position in the list. We'll do it differently and use our own
+    // function which finds the first item having case insensitive chars the same as what
+    // user has typed into the "key to be found" edit box. For this search, we can return an
+    // index of a substring at any position in the word or phrase. A case sensitive search
+	// gives the user the best manual options for finding what he wants
+	// BEW 4May16 changed it to use caseSensitive search
+	int nSel = wxNOT_FOUND;
+	int myCurrentSel = m_pListBoxKeys->GetSelection();
+	if (myCurrentSel != wxNOT_FOUND)
+	{
+		if (myCurrentSel >= (int)(m_pListBoxKeys->GetCount() - 1))
+		{
+			// The selection is at the last item in the list, so put it at list start
+			myCurrentSel = 0;
+		}
+		nSel = gpApp->FindListBoxItem(m_pListBoxKeys, m_srcKeyStr, caseSensitive, subString, fromCurrentSelPosCyclingBack);
+	}
 	if (nSel == -1) // LB_ERR
 	{
 		::wxBell();
@@ -624,8 +666,27 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	}
 	if (gbAutoCaps && bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 	{
-		// change it to lower case
-		activeKey.SetChar(0, gcharSrcLC);
+		// BEW 25May16, the refactored auto-caps feature needs adjustment if we are allowing
+		// for upper case character to be non-first in first word of source text
+		if (gbUCSrcCapitalAnywhere)
+		{
+			// make the character at gnOffsetToUCcharSrc of the source string be the 
+			// appropriate lower case one; provided the offset is not wxNOT_FOUND, but if it
+			// is, do the legacy replacement instead
+			if (gnOffsetToUCcharSrc != wxNOT_FOUND)
+			{
+				activeKey.SetChar(gnOffsetToUCcharSrc, gcharSrcLC);
+			}
+			else
+			{
+				activeKey.SetChar(0, gcharSrcLC);
+			}
+		}
+		else // Legacy protocol, initial char only
+		{
+			// make the first character of the src string be the appropriate lower case one
+			activeKey.SetChar(0, gcharSrcLC); // gcharSrcLC is set within the SetCaseParameters() call
+		}
 	}
 	if (gbAutoCaps && bNoError2 && gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
 	{
@@ -752,35 +813,8 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 			// create the thread and fire it off
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
-				Thread_KbEditorUpdateButton* pKbEditorUpdateBtnThread = new Thread_KbEditorUpdateButton;
-				// populate it's public members (it only has public ones anyway)
-				pKbEditorUpdateBtnThread->m_pKbSvr = pKbSvr;
-				pKbEditorUpdateBtnThread->m_source = m_curKey;
-				pKbEditorUpdateBtnThread->m_oldTranslation = oldText;
-				pKbEditorUpdateBtnThread->m_newTranslation = newText;
-				// now create the runnable thread with explicit stack size of 1KB
-				wxThreadError error =  pKbEditorUpdateBtnThread->Create(1024); // was wxThreadError error =  pKbEditorUpdateBtnThread->Create(10240);
-				if (error != wxTHREAD_NO_ERROR)
-				{
-					wxString msg;
-					msg = msg.Format(_T("Thread_KbEditorUpdateButton: thread creation failed, error number: %d"),
-						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-					//m_pApp->LogUserAction(msg);
-				}
-				else
-				{
-					// no error, so now run the thread (it will destroy itself when done)
-					error = pKbEditorUpdateBtnThread->Run();
-					if (error != wxTHREAD_NO_ERROR)
-					{
-					wxString msg;
-					msg = msg.Format(_T("Thread_KbEditorUpdateButton, Thread_Run(): cannot make the thread run, error number: %d"),
-					  (int)error);
-					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-					//m_pApp->LogUserAction(msg);
-					}
-				}
+				int rv = pKbSvr->Synchronous_KbEditorUpdateButton(pKbSvr, m_curKey, oldText, newText);
+				wxUnusedVar(rv);
 			}
 		}
 #endif
@@ -884,7 +918,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	pCurRefString->SetDeletedFlag(TRUE);
 
 	// BEW added 26Oct12 for KBserver support
-//*
+
 #if defined(_KBSERVER)
 		if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
 				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
@@ -897,39 +931,12 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		// create the thread and fire it off
 		if (!pCurTgtUnit->IsItNotInKB())
 		{
-			Thread_KbEditorUpdateButton* pKbEditorUpdateBtnThread = new Thread_KbEditorUpdateButton;
-			// populate it's public members (it only has public ones anyway)
-			pKbEditorUpdateBtnThread->m_pKbSvr = pKbSvr;
-			pKbEditorUpdateBtnThread->m_source = m_curKey;
-			pKbEditorUpdateBtnThread->m_oldTranslation = oldText; // has no auto-caps modification to first letter
-			pKbEditorUpdateBtnThread->m_newTranslation = newText; // may have an auto-caps modification to first letter
-			// now create the runnable thread with explicit stack size of 1KB
-			wxThreadError error =  pKbEditorUpdateBtnThread->Create(10240); // was wxThreadError error =  pKbEditorUpdateBtnThread->Create(10240);
-			if (error != wxTHREAD_NO_ERROR)
-			{
-				wxString msg;
-				msg = msg.Format(_T("Thread_KbEditorUpdateButton: thread creation failed, error number: %d"),
-					(int)error);
-				wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
-				//m_pApp->LogUserAction(msg);
-			}
-			else
-			{
-				// no error, so now run the thread (it will destroy itself when done)
-				error = pKbEditorUpdateBtnThread->Run();
-				if (error != wxTHREAD_NO_ERROR)
-				{
-				wxString msg;
-				msg = msg.Format(_T("Thread_KbEditorUpdateButton, Thread_Run(): cannot make the thread run, error number: %d"),
-				  (int)error);
-				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-				//m_pApp->LogUserAction(msg);
-				}
-			}
+			int rv = pKbSvr->Synchronous_KbEditorUpdateButton(pKbSvr, m_curKey, oldText, newText);
+			wxUnusedVar(rv);
 		}
 	}
 #endif
-//*/
+
 	// That completes what's needed for updating the CTargetUnit instance. The stuff below
 	// is to get the page's translations (or glosses) list to comply with the edit done
 
@@ -1020,38 +1027,12 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
-
-			// create the thread and fire it off
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
-				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
-				// populate it's public members (it only has public ones anyway)
-				pCreateEntryThread->m_pKbSvr = pKbSvr;
-				pCreateEntryThread->m_source = m_srcKeyStr;
-				pCreateEntryThread->m_translation = newText;
-				// now create the runnable thread with explicit stack size of 1KB
-				wxThreadError error =  pCreateEntryThread->Create(10240); // was wxThreadError error =  pCreateEntryThread->Create(10240);
-				if (error != wxTHREAD_NO_ERROR)
-				{
-					wxString msg;
-					msg = msg.Format(_T("Thread_CreateEntry in KBEditor::OnButtonAdd() for empty string: thread creation failed, error number: %d"),
-						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-					//m_pApp->LogUserAction(msg);
-				}
-				else
-				{
-					// no error, so now run the thread (it will destroy itself when done)
-					error = pCreateEntryThread->Run();
-					if (error != wxTHREAD_NO_ERROR)
-					{
-					wxString msg;
-					msg = msg.Format(_T("Thread_CreateEntry in KBEditor::OnButtonAdd() for empty string, Thread_Run(): cannot make the thread run, error number: %d"),
-					  (int)error);
-					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-					//m_pApp->LogUserAction(msg);
-					}
-				}
+				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, m_srcKeyStr, newText);
+				wxUnusedVar(rv);
+				wxLogDebug(_T("KBEditor.cpp (1087) OnAddNoAdaptation(): Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
+					rv, m_srcKeyStr.c_str(), newText.c_str());
 			}
 		}
 #endif
@@ -1195,38 +1176,12 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
-
-			// create the thread and fire it off
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
-				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
-				// populate it's public members (it only has public ones anyway)
-				pCreateEntryThread->m_pKbSvr = pKbSvr;
-				pCreateEntryThread->m_source = m_srcKeyStr;
-				pCreateEntryThread->m_translation = newText;
-				// now create the runnable thread with explicit stack size of 1KB
-				wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
-				if (error != wxTHREAD_NO_ERROR)
-				{
-					wxString msg;
-					msg = msg.Format(_T("Thread_CreateEntry in KBEditor::OnButtonAdd(): thread creation failed, error number: %d"),
-						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-					//m_pApp->LogUserAction(msg);
-				}
-				else
-				{
-					// no error, so now run the thread (it will destroy itself when done)
-					error = pCreateEntryThread->Run();
-					if (error != wxTHREAD_NO_ERROR)
-					{
-					wxString msg;
-					msg = msg.Format(_T("Thread_CreateEntry in KBEditor::OnButtonAdd(), Thread_Run(): cannot make the thread run, error number: %d"),
-					  (int)error);
-					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-					//m_pApp->LogUserAction(msg);
-					}
-				}
+				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, m_srcKeyStr, newText);
+				wxUnusedVar(rv);
+				wxLogDebug(_T("KBEditor.cpp (1087) OnButtonAdd(): Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
+					rv, m_srcKeyStr.c_str(), newText.c_str());
 			}
 		}
 #endif
@@ -1717,39 +1672,13 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
-
-		// create the thread and fire it off
+	
 		if (!pCurTgtUnit->IsItNotInKB())
 		{
-			Thread_PseudoDelete* pPseudoDeleteThread = new Thread_PseudoDelete;
-			// populate it's public members (it only has public ones anyway)
-			pPseudoDeleteThread->m_pKbSvr = pKbSvr;
-			pPseudoDeleteThread->m_source = m_curKey;
-			pPseudoDeleteThread->m_translation = pRefString->m_translation;
-			// now create the runnable thread with explicit stack size of 1KB
-			wxThreadError error =  pPseudoDeleteThread->Create(1024); // was wxThreadError error =  pPseudoDeleteThread->Create(10240);
-			if (error != wxTHREAD_NO_ERROR)
-			{
-				wxString msg;
-				msg = msg.Format(_T("Thread_PseudoDelete in KBEditor::OnButtonRemove(): thread creation failed, error number: %d"),
-					(int)error);
-				wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-				//m_pApp->LogUserAction(msg);
-			}
-			else
-			{
-				// no error, so now run the thread (it will destroy itself when done)
-				error = pPseudoDeleteThread->Run();
-				if (error != wxTHREAD_NO_ERROR)
-				{
-				wxString msg;
-				msg = msg.Format(_T("Thread_PseudoDelete in KBEditor::OnButtonRemove(), Thread_Run(): cannot make the thread run, error number: %d"),
-				  (int)error);
-				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-				//m_pApp->LogUserAction(msg);
-				}
-			}
+			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, m_curKey, pRefString->m_translation);
+			wxUnusedVar(rv);
 		}
+
 	}
 #endif
 	// Remove the corresponding CRefString instance from the knowledge base... BEW 22Jun10,
@@ -2209,17 +2138,13 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 
     // Determine which tab page needs to be pre-selected.
     //
-    // When Glossing mode is active, all notebook tabs except the first need to be removed,
-    // the first tab needs to be renamed to "All Gloss Words Or Phrases", and the
-    // m_nCurPage must be set to an index value of 0.
-	//
-    // When Glossing mode is not active, the m_nCurPage is set as follows depending on what
-    // the circumstances are when the KB Editor is invoked:
+    // The m_nCurPage is set as follows depending on what the circumstances are when the 
+	// KB Editor is invoked:
     // 1. When there was a source phrase selection, the m_nCurPage should be one less than
     // the number of words in the source phrase selection.
     // 2. When there was no source phrase selection, the m_nCurPage should be one less than
     // the number of words in the phrase box at the active location.
-    // 3. , or if m_nWordsSelected is -1, if user selected a source phrase before calling
+    // 3. Or if m_nWordsSelected is -1, if user selected a source phrase before calling
     // the KBEditor, start by initializing the tab page having the correct number of words.
 
 	if (gbIsGlossing)
@@ -2228,38 +2153,7 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 		// Knowledge Base" (Localizable)
 		wxString glossesKBLabel = _("Glosses Knowledge Base");
 		m_pStaticWhichKB->SetLabel(glossesKBLabel);
-
-	// BEW 13Nov10, removed to support Bob Eaton's request for glosssing KB to use all maps
-        // First, configure the wxNoteBook for Glossing: Remove all but the first tab page
-        // and rename that first tab page to "All Gloss Words Or Phrases".
-		//
-		// wx version note: All pages are added to the wxNotebook in wxDesigner
-		// so we'll simply remove all but first one.
-	//	int ct;
-	//	bool removedOK;
-	//	int totNumPages;
-	//	totNumPages = (int)m_pKBEditorNotebook->GetPageCount();
-		// remove page 9 through page 1, leaving page 0 as the only page in the wxNoteBook
-	//	for (ct = totNumPages-1; ct > 0; ct--)
-	//	{
-	//		removedOK = m_pKBEditorNotebook->RemovePage(ct); // ct counts down from 9 through 1
-	//	}
-	//	m_pKBEditorNotebook->Layout();
-	//	int pgCt;
-	//	pgCt = m_pKBEditorNotebook->GetPageCount();
-	//	wxASSERT(pgCt == 1);
-
-		// fix the titles to be what we want (ANSI strings)
-	//	m_pKBEditorNotebook->SetPageText(0, _("All Gloss Words Or Phrases"));
-        // Hide the static text "Number of Words: Select a Tab according to the number of
-        // words in the Source Phrase" while glossing.
-	//	m_pStaticSelectATab->Hide();
-
-		// Now, that the wxNoteBook is configured, set m_nCurPage.
-		// When Glossing is active there is always only one tab and its index number is 0.
-	//	m_nCurPage = 0;
 	}
-	//else
 
 	if (m_nWordsSelected != -1)
 	{
@@ -2638,10 +2532,10 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			int numNotDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
 			if (numNotDeleted > 0)
 			{
-				// there is at least one non-deleted element, so put this one in the list
-				// box
+				// there is at least one non-deleted element, so put this CTargetUnit
+				// instance in the list box
 				index = m_pListBoxKeys->Append(srcKeyStr,(void*)pCurTgtUnit);
-                                wxUnusedVar(index); // whm added 25Jun2015 to avoid gcc "not used" warning
+                wxUnusedVar(index); // whm added 25Jun2015 to avoid gcc "not used" warning
 			}
 		}
 		// BEW 27May13, the loop has finished; remove any bad entries that were skipped over
@@ -2689,6 +2583,8 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	// to m_TheSelectedKey instead, for rapid access to the desired entry.
 	m_curKey = _T("");
 	int nCount = m_pListBoxKeys->GetCount();
+	int nTopOfListItem = 0; // initialize (Mike wants some lines above the selection
+			// to be visible; I'll give him 3 above, so selection will be 4th line
 	if (nCount > 0)
 	{
 		// check out if we have a desired key to be accessed first
@@ -2722,9 +2618,24 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			}
 			m_pListBoxKeys->SetSelection(nNewSel);
 			wxString str = m_pListBoxKeys->GetString(nNewSel);
-			nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,exactString);
+			nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,subString);
 			wxASSERT(nNewSel != -1);
 			pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
+			// BEW 4May16, make 3 lines above selection visible, or less if close to the top
+			nTopOfListItem = nNewSel - 3;
+			// Check we are not out of bounds
+			if (nTopOfListItem < 0)
+			{
+				nTopOfListItem++;
+				if (nTopOfListItem < 0)
+				{
+					nTopOfListItem++;
+					if (nTopOfListItem < 0)
+					{
+						nTopOfListItem++;
+					}
+				}
+			}
 		}
 		else if (gpApp->m_pActivePile != NULL && nStartingSelection == 0)
 		{
@@ -2746,14 +2657,14 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				}
 			}
 			m_srcKeyStr = srcKey;
-			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, srcKey, caseSensitive, subString);
+			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, srcKey, caseSensitive, exactString);
 			if (nNewSel == -1) // LB_ERR
 			{
 				nNewSel = 0; // if not found, default to the first in the list
 			}
 			m_pListBoxKeys->SetSelection(nNewSel);
 			wxString str = m_pListBoxKeys->GetString(nNewSel);
-			nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,exactString);
+			nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,subString);
 			wxASSERT(nNewSel != -1);
 			pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
 		}
@@ -2773,11 +2684,27 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				}
 			}
 			m_srcKeyStr = str;
-			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, str, caseSensitive, exactString);
+			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, str, caseSensitive, subString);
 			wxASSERT(nNewSel != -1);
 			pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
+			// BEW 4May16, make 3 lines above selection visible, or less if close to the top
+			nTopOfListItem = nNewSel - 3;
+			// Check we are not out of bounds
+			if (nTopOfListItem < 0)
+			{
+				nTopOfListItem++;
+				if (nTopOfListItem < 0)
+				{
+					nTopOfListItem++;
+					if (nTopOfListItem < 0)
+					{
+						nTopOfListItem++;
+					}
+				}
+			}
 		}
 		m_curKey = m_pListBoxKeys->GetStringSelection(); // set m_curKey
+		m_pListBoxKeys->SetFirstItem(nTopOfListItem);
 
 #if defined(_DEBUG) && defined(DUALS_BUG)
 		if (m_curKey == _T("abaotem"))
@@ -2797,9 +2724,11 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		// is different from the current contents (avoids a spurious system beep)
 		// Also, instead of calling SetValue() we use ChangeValue() here to avoid spurious calling
 		// of OnSelChangeListSrcKeys
-		if (m_pTypeSourceBox->GetValue() != m_srcKeyStr)
-			m_pTypeSourceBox->ChangeValue(m_srcKeyStr);
-
+		// BEW 5May16 don't programmatically put text in this box, it's for user-defined searching
+		//if (m_pTypeSourceBox->GetValue() != m_srcKeyStr)
+		//{
+		//	m_pTypeSourceBox->ChangeValue(m_srcKeyStr);
+		//}
 		// set members to default state, ready for reuse
 		m_nWordsSelected = -1;
 		m_TheSelectedKey.Empty();
@@ -2962,7 +2891,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		}
 	}
 
-	m_pTypeSourceBox->SetSelection(-1,-1); // select all
+	//m_pTypeSourceBox->SetSelection(-1,-1); // select all, BEW 5May16 commented it out
 	m_pTypeSourceBox->SetFocus();
 
 	m_pEditRefCount->ChangeValue(m_refCountStr);

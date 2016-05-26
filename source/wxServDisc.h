@@ -65,8 +65,10 @@ class CServiceDiscovery;
 
 #if wxVERSION_NUMBER < 2900
 DECLARE_EVENT_TYPE(wxServDiscNOTIFY, -1);
+DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
 #else
 wxDECLARE_EVENT(wxServDiscNOTIFY, wxCommandEvent);
+wxDECLARE_EVENT(wxServDiscHALTING, wxCommandEvent);
 #endif
 
 // resource name with ip addr and port number
@@ -87,7 +89,7 @@ public:
   wxServDisc(void* p, const wxString& what, int type);
   ~wxServDisc();
 
-  unsigned long processID;
+  unsigned long threadID;
   bool m_bKillZombie; // quickly destroy unwanted wxServDisc instances that hang around too long
 					  // (this is precautionary, there don't appear to be any created in the
 					  // present solution)

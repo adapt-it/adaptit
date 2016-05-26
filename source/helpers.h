@@ -524,6 +524,8 @@ int CountSpaceDelimitedWords(wxString& str);
 
 #if defined (_KBSERVER)
 
+bool IsURLStoreable(wxArrayString* pArr, wxString& url);
+
 bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password); // BEW 6Jun13
 
 bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString password,
@@ -549,7 +551,7 @@ void HandleBadGlossingLangCodeOrCancel(wxString& saveOldURLStr, wxString& saveOl
 // from OnKBSharingManagerTabbedDialog() - a handler which is a member of the CAdapt_ItApp
 // class
 bool AuthenticateCheckAndSetupKBSharing(CAdapt_ItApp* pApp, bool bServiceDiscoveryWanted);
-
+bool AuthenticateEtcWithoutServiceDiscovery(CAdapt_ItApp* pApp);
 #endif // _KBSERVER
 
 // Support for ZWSP insertion in any AI wxTextCtrl (e.g. see OnKeyUp() in ComposeBarEditBox.cpp)

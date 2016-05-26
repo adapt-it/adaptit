@@ -49,6 +49,82 @@
 /// code from clashes with the GUI support's namespace. So it must be retained.
 /////////////////////////////////////////////////////////////////////////////
 
+
+// BEW 6Apr16 Call ServDiscBackground() which runs in the background in a thread
+// under timer control. The biggest problem is memory leaks, the ultimate
+// solution required forcing the detachable wxServDisc instances to die
+// before the parent CServiceDiscovery class does, and put the latter in a thread.
+// (The thread was necessary to avoid blocking the main thread where the GUI is.)
+// ServeDiscBackground internally instantiates the CServiceDiscovery class, one 
+// only per thread, instance only, m_pServDisc[index] pointer. There can be up to
+// MAX_SERV_DISC_RUNS (20) of such pointers. Default 1 (most users will never
+// encounter more than one running at a time). We use a custom event
+// (wxEVT_End_ServiceDiscovery -- see MainFrm.h & .cpp) to get
+// the top level threads shut down, by posting the event from the thread's OnExit()
+// function, and providing a handler in MainFrm.cpp to do the job of setting
+// m_pServDiscThread[index] to NULL; we don't have to actually delete it as it is
+// detachable and so destroys itself - which we cause at the appropriate time.
+//
+// The CServiceDiscovery constructor, when it runs, instantiates the first wxServDisc
+// instance, which kicks off the service discovery which runs on further detached threads.
+// Unique results are sent back to CServiceDiscovery with the help of a ptr, m_pCSD,
+// within each wxServDisc, which points at the CServiceDiscovery instance that created
+// the first in each such set. Under timer control, timer notifications send the set
+// of unique results aggregated within CServiceDiscovery back to the m_ipAddrs_Hostnames
+// wxArrayString, where the GUI for service discovery, ConnectUsingDiscoveryResults(),
+// can access them to display to the user as a URL and its associated hostname.
+//
+// A few things are necessary for a maintainer to know: (1) CServiceDiscovery is mandatory,
+// it is app-facing, and so it can #include Adapt_It.h, but wxServDisc must never see
+// Adapt_It.h, because then hundreds of name conflicts arise with the Microsoft socket
+// implementations. wxServDisc, for Windows build, uses winsock2.h which clashes
+// horribly with the older winsock.h resources.
+// (2) wxServDisc uses events posted to the CServiceDiscovery instance, to get
+// hostname and ipaddress lookups done - these are done from the stackframe of an
+// onSDNotify() event handler within CServiceDiscovery. This is Beier's original design,
+// and it is efficient, because wxServDisc may spawn multiple new instances of itself,
+// and some of those will post notifications to CServiceDiscovery to get onSDNotify()
+// called, doing so more than once - so we take steps to avoid multiple entries to
+// onSDNotify(). It doesn't appear to need mutext protection, so I've
+// not provided it (except where necessary, for array .Add() calls). The in-parallel set
+// of running wxServDisc instances can quickly swamp the CPUs, even on 4 core or higher
+// machines, so the trick is to run the discovery for only a few seconds - I'm setting
+// the limit to be 5 seconds (Beier's GC value, his was num of seconds in a day!) and
+// then it needs to shut itself down. In practice, we force shutdown before the 5 second
+// limit is reached. Out solution finds one and shuts down in a fraction over 4 secs.
+// The first paramater of the wxServDisc() signature is very important. It is
+// a (void*) for the parent class. Beier's solution makes use of the fact that if null
+// is passed in, the new wxServDisc instance is unable to call post_notify() which
+// otherwise would result in an embedded calling of the onSDNotify() handler - leading
+// to chaos. We, instead, pass in the pointer to the owning CServiceDiscovery instance.
+// If an instance is spawned with null as the first param value, we regard it as a
+// unwelcome nuisance (a zombie) and we shut it down immediately. I was getting two of
+// these early on, but the final solution does not generate any for an unknown reason.
+// Our solution deliberately is designed to find only one KBserver per run.
+// To try find more leads to many difficult problems to solve, and CPU-binding problems.
+// Finding one is quick, usually less than 3 seconds, and a bit more time for cleanup
+// and staged shutdowns. The best solution is to run this simpler solution in a burst
+// of instantiations, in the background, and accumulate a list of discovered running 
+// KBservers - their urls and hostnames.
+// To facilitate the multiple intermittent timed service discovery instantiations, their 
+// self-destruction *must* be leakless. Unfortunately, Beier's original Zeroconf solution
+// leaks like a sieve, and so extra work had to be done to plug the leaks.
+// 
+// The above comments are a distillation of the knowledge gained from debug logging,
+// and visual leak detection, done over 18 months of frustrating testing and tweaking.
+// Ignore this and fiddle with it yourself at your own peril. You've been warned!
+// VisLeakDetector can be turned on or off at line 279 of Adapt_It.cpp.
+// At the top of the Adapt_It.cpp, Thread_ServiceDiscovery.cpp, CServiceDiscovery.cpp
+// and wxServDisc.cpp files are some commented out #defines. Uncomment the ones you want
+// to get very useful wxLogDebug output sent to the Output window. I could not have
+// tamed this zeroconf solution of Beier's without them. DO NOT REMOVE THEM PLEASE.
+//
+// The timer interval (in milliseconds), and the number of (single) service discovery
+// runs in a burst, are parameters in the AI-BasicConfiguration.aic file - and at this
+// point in time we provide no GUI support for changing them. It is possible to safely
+// change them by manually editing the config file and resaving it. The range of values
+// allows are: timer interval - greater or equal to 7.111 seconds (7111 millisecs),
+// and number of runs per burst, 1 or more, 20 or less. The config files enforce these.
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "ServiceDiscovery.h"
 #endif
@@ -96,7 +172,7 @@
 
 // this one, if defined, displays each <url>@@@<hostname> string sent to the app, but a 
 // WITHHOLDING message if it is a duplicate. Comment out to suppress displaying that info
-#define _tracking_transfers_
+//#define _tracking_transfers_
 
 // Comment out the next line to disable wxLogDebug() logging related to shutdown of the 
 // service discovery run - same define is in Thread_ServiceDiscovery.cpp and wxServDisc.cpp
@@ -120,6 +196,7 @@ extern wxMutex	kbsvr_arrays;
 BEGIN_EVENT_TABLE(CServiceDiscovery, wxEvtHandler)
 
 EVT_COMMAND(wxID_ANY, wxServDiscNOTIFY, CServiceDiscovery::onSDNotify)
+EVT_COMMAND(wxID_ANY, wxServDiscHALTING, CServiceDiscovery::onSDHalting)
 
 END_EVENT_TABLE()
 
@@ -312,72 +389,102 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 				wxString composite = m_addr;
 				wxString ats = _T("@@@");
 				composite += ats + m_hostname;
+
 #if defined(_minimalsd_)
 				wxLogDebug(_T("wxServDisc %p  (316) Made composite:  %s  FROM PARTS:  %s    %s    %s"),
 					m_pWxSD, composite.c_str(), m_addr.c_str(), ats.c_str(), m_hostname.c_str());
 #endif
+				// BEW 28Apr16 Handle the possibility that this session has found an ipaddr which
+				// has a different hostname than what the m_ipAddrs_Hostnames wxArrayString has
+				// in one of its entries (typically one put there from the project config file)
 
+				// Need to remove spurious duplicate that can magically appear in app's m_ipAddrs_Hostnames
+				// array. Testing... revealed that I unilaterally add within AuthenticateEtcWithoutServiceDiscovery()
+				// and likewise in AuthenticateCheckAndSetupKnowledgeBaseSharing() - that's why the duplication
+				// happens. Solution? In the latter two functions, test for duplication and don't add if it
+				// would produce a duplicate url in the m_ipAddrs_Hostnames array. When fixed, RemoveSpuriousDuplications()
+				// will no longer be needed
+				//RemoveSpuriousDuplicates(m_pApp->m_ipAddrs_Hostnames);
+				// Now check for any other non-spurious duplication & adjust
 				kbsvr_arrays.Lock();
-				// Only add this ip address to m_uniqueIpAddresses array if it is not already in the array
-				bool bItIsUnique = AddUniqueStrCase(&m_ipAddrs_Hostnames, composite, TRUE); // does .Add() if it is unique
+				bool bReplacedOne = UpdateExistingAppCompositeStr(m_addr, m_hostname, composite);
 				kbsvr_arrays.Unlock();
-				wxUnusedVar(bItIsUnique);
-
-#if defined(_minimalsd_)
-				if (bItIsUnique) // tell me so
+				
+				if (!bReplacedOne)
 				{
 					kbsvr_arrays.Lock();
-					wxLogDebug(_T("wxServDisc %p  (330)  onSDNotify()  SUCCESS, composite  %s  was stored in CServiceDiscovery"),
-						m_pWxSD, composite.c_str());
+					// Only add this ip address to m_uniqueIpAddresses array if it is not already in the array
+					bool bItIsUnique = AddUniqueStrCase(&m_ipAddrs_Hostnames, composite, TRUE); // does .Add() if it is unique
 					kbsvr_arrays.Unlock();
-				} // end of TRUE block for test: if (bItIsUnique)
+					wxUnusedVar(bItIsUnique);
+
+#if defined(_minimalsd_)
+					if (bItIsUnique) // tell me so
+					{
+						kbsvr_arrays.Lock();
+						wxLogDebug(_T("wxServDisc %p  (330)  onSDNotify()  SUCCESS, composite  %s  was stored in CServiceDiscovery"),
+							m_pWxSD, composite.c_str());
+						kbsvr_arrays.Unlock();
+					} // end of TRUE block for test: if (bItIsUnique)
+					else
+					{
+						wxLogDebug(_T("wxServDisc %p  (336)  onSDNotify()  SUCCESS, but NOT UNIQUE so not stored"));
+					}
+#endif
+					// Try cleanup here for m_addr and m_port, these get leaked in Beier's solution
+					m_addr.clear();
+					m_port.clear();
+
+					// Transfer the data to the app's array m_ipAddrs_Hostnames
+					if (!m_ipAddrs_Hostnames.empty())
+					{
+						size_t count = m_ipAddrs_Hostnames.size();
+						size_t index;
+						for (index = 0; index < count; index++)
+						{
+							wxString composite = m_ipAddrs_Hostnames.Item(index);
+							// Only transfer ones not already in the app's array of same name
+							int result = m_pApp->m_ipAddrs_Hostnames.Index(composite);
+							if (result == wxNOT_FOUND)
+							{
+								// Do the transfer, the app's array does not have this one yet
+								m_pApp->m_ipAddrs_Hostnames.Add(composite);
+								// Log what got sent, in Unicode Debug build, to check that it doesn't keep getting just the same one
+#if defined(_tracking_transfers_)
+								wxLogDebug(_T("In onSDNotify(), TRANSFERRING a composite ipaddr/hostname string to app array: %s"),
+									composite.c_str());
+#endif
+							}
+							else
+							{
+#if defined(_tracking_transfers_)
+								// This one is already present, so bin it
+								wxLogDebug(_T("In onSDNotify(), WITHHOLDING duplicate ipaddr/hostname string from app array: %s"),
+									composite.c_str());
+#endif
+								index = index; // a do-nothing statement to avoid any compiler warning
+							}
+							// The local arrays here are no longer needed until the next timer 
+							// notification, so clear them
+							m_ipAddrs_Hostnames.clear();
+							m_sd_servicenames.clear();
+						}
+					}
+#if defined(_zerocsd_)
+					wxLogDebug(wxT("wxServDisc %p (379) onSDNotify(), Success block ending. onSDNotify() exits soon"), m_pWxSD);
+#endif
+				} // end of TRUE block: if (!bReplacedOne)
 				else
 				{
-					wxLogDebug(_T("wxServDisc %p  (336)  onSDNotify()  SUCCESS, but NOT UNIQUE so not stored"));
-				}
-#endif
-				// Try cleanup here for m_addr and m_port, these get leaked in Beier's solution
-				m_addr.clear();
-				m_port.clear();
-
-				// Transfer the data to the app's array m_ipAddrs_Hostnames
-				if (!m_ipAddrs_Hostnames.empty())
-				{
-					size_t count = m_ipAddrs_Hostnames.size();
-					size_t index;
-					for (index = 0; index < count; index++)
-					{
-						wxString composite = m_ipAddrs_Hostnames.Item(index);
-						// Only transfer ones not already in the app's array of same name
-						int result = m_pApp->m_ipAddrs_Hostnames.Index(composite);
-						if (result == wxNOT_FOUND)
-						{
-							// Do the transfer, the app's array does not have this one yet
-							m_pApp->m_ipAddrs_Hostnames.Add(composite);
-							// Log what got sent, in Unicode Debug build, to check that it doesn't keep getting just the same one
 #if defined(_tracking_transfers_)
-							wxLogDebug(_T("In onSDNotify(), TRANSFERRING a composite ipaddr/hostname string to app array: %s"),
-								composite.c_str());
+					wxLogDebug(_T("In onSDNotify(), REPLACING a composite ipaddr/hostname string in app's array, with this one: %s"),
+						composite.c_str());
 #endif
-						}
-						else
-						{
-#if defined(_tracking_transfers_)
-							// This one is already present, so bin it
-							wxLogDebug(_T("In onSDNotify(), WITHHOLDING duplicate ipaddr/hostname string from app array: %s"),
-								composite.c_str());
-#endif
-							wxNO_OP; // for release build
-						}
-						// The local arrays here are no longer needed until the next timer 
-						// notification, so clear them
-						m_ipAddrs_Hostnames.clear();
-						m_sd_servicenames.clear();
-					}
+					m_addr.clear();
+					m_hostname.clear();
+					m_ipAddrs_Hostnames.clear();
+					m_sd_servicenames.clear();
 				}
-#if defined(_zerocsd_)
-				wxLogDebug(wxT("wxServDisc %p (379) onSDNotify(), Success block ending. onSDNotify() exits soon"), m_pWxSD);
-#endif
 			} // end of SUCCESS block (else block) for test: if (timeout <= 0) for addrscan attempt
 
 		} // end of else block for test: if(timeout <= 0) for namescan() attempt
@@ -401,6 +508,20 @@ void CServiceDiscovery::onSDNotify(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
+// The following handler is only called when no running KBservers were discovered on the LAN
+void CServiceDiscovery::onSDHalting(wxCommandEvent& WXUNUSED(event))
+{
+	// The following line gets OnCustomEventEndServiceDiscovery() in CMainFrame to prematurely
+	// shut down a burst of service discovery runs after the first yielded no discoveries
+	m_pApp->m_bServDiscRunFoundNothing = TRUE;
+
+	// The following, even though a run with no discoveries does not call post_notify() and
+	// hence no child wxServDisc instances (namescan() and addrscan()) are created, setting
+	// this boolean to true causes the thread's TestDestroy() function to return TRUE. That
+	// in turn gets CServiceDiscovery and the thread shut down (and the serviceStr cleared)
+	m_bDestroyChildren = TRUE;
+}
+
 CServiceDiscovery::~CServiceDiscovery()
 {
 	// Logging shows that ~wxServDisc() for the owned instance does not get called, so
@@ -422,6 +543,139 @@ CServiceDiscovery::~CServiceDiscovery()
 #endif
 }
 
+// The next function is necessary because the app storage for the composite string may have a different
+// hostname than the one just discovered, but the same ipaddress. If this is the case, we want to detect
+// the fact, and remove the one from the app storage, and replace with the one we pass in here - and then
+// in onSDNotify() neither TRANSFER nor WITHHOLD, as we are in effect just updating. (The one in the app
+// storage typically has come from an earlier session, via the project config file, when entering the
+// project to do more work in the current session.)
+//
+// BEW 16May16, a further loop needs to be added, to cope with the following scenario. I had used the login
+// from the KB Sharing Manager ( it would have also have worked the same if I'd logging in using the Setup Or
+// Remove K B Sharing dlg) to connect to https://kbserver.jmarsden.org (in California, I'm in Melbourne Australia)
+// and having got a connection, my code puts the url I manually typed into the app's m_ipAddrs_Hostnames array
+// as https://kbserver.jmarsden.org with hostname "unknown" following after a number of spaces. All good. Then
+// I had a KBserver also running on a laptop on my LAN, so I did a service discovery for that, it was found and
+// had the url https://192.168.2.9 with hostname kbserver.local. -- again, all good. Wireless connections. But
+// when, at the end of service discovery the wxMessageBox showed the results, there were three rather than two
+// lines of entry. They were as follows:
+// https://kbserver.jmarsden.org      unknown
+// https://kbserver.jmarsden.org
+// https://192.168.2.9           kbserver.local.
+// Somehow, a spurious repeat of the top entry got "found" (it didn't appear to be as the result of a lookup,
+// but only appears when I already had an existing connection to https://kbserver.jmarsden.org that was active.
+// So my second loop has to detect such a spurious entry and remove it. It would appear that I just need to match
+// the ipaddr part exactly, and remove the spurious entry before a spurious extra url can be produced.
+// BEW later, same day. Crazily, the extra spurious line https://kbserver.jmarsden.org somehow got into the
+// app's m_ipAddrs_Hostnames array as a second line, **BEFORE** UpdateExistingAppCompositeStr() gets called. I
+// have no idea how. But I'll have to build a little function that checks for this happening before
+// UpdateExistingAppCompositeStr() gets called - and remove the partiallyl duplicated bogus second line - or any
+// like that which are identical in the url, but may differ in the KBserver name.
+bool CServiceDiscovery::UpdateExistingAppCompositeStr(wxString& ipaddr, wxString& hostname, wxString& composite)
+{
+	int count = (int)m_pApp->m_ipAddrs_Hostnames.GetCount();
+	bool bMadeAChange = FALSE;
+	if (count == 0)
+	{
+		// There is no issue - no strings in the app storage yet, so return FALSE
+		return FALSE;
+	}
+	else
+	{
+		int i;
+		for (i = 0; i < count; i++)
+		{
+			wxString aFarComposite = m_pApp->m_ipAddrs_Hostnames.Item(i);
+			// Check if it has the same ip address as was just discovered, if so we want
+			// to update by removing aFarComposite and adding composite (order change in
+			// the array does not matter) providing the passed in hostname cannot be
+			// found in aFarComposite
+			int offset = aFarComposite.Find(ipaddr);
+			if (offset != wxNOT_FOUND)
+			{
+				// There is a match for the ip address, so check further
+				offset = aFarComposite.Find(hostname);
+				if (offset == wxNOT_FOUND && !hostname.IsEmpty())
+				{
+					// The one in the app storage has a different and non-empty hostname
+					// than what was passed in here, so update the app storage to have
+					// the more uptodate hostname
+					m_pApp->m_ipAddrs_Hostnames.RemoveAt(i);
+					m_pApp->m_ipAddrs_Hostnames.Add(composite);
+					// We need to fix the m_strKbServerHostname member's value too,
+					// otherwise the problem will persist due to the wrong value
+					// being retained in the project config file
+					m_pApp->m_strKbServerHostname = hostname; // job done
+					// This hostname problem, because the composite strings in the app
+					// storage are unique, can only occur in one such string. If we've
+					// just fixed one, we've fixed the only possible one with this issue,
+					// so return TRUE
+					bMadeAChange = TRUE;
+				}
+				else
+				{
+					// The hostname passed in is also in the app's existing entry, so
+					// we've got the same ipaddr and same hostname, so don't change
+					// anything - don't do any replacement, but return TRUE as if we
+					// had done so (so no change gets done to the app's entry)
+					// OR
+					// The hostname passed in was empty, so nothing is to be gained
+					// by any replacement.
+					// In either case, return TRUE because then the present values
+					// passed in here will produce no change in the entry the app
+					// already is storing
+					bMadeAChange = TRUE;
+				}
+			}
+		}
+	}
+	if (bMadeAChange)
+	{
+		return TRUE; // one or more replacements done, or, 
+					 // some passed in values needed not to be used
+	}
+	return FALSE; // no replacement done to any of them
+}
+/* no longer needed, cause of the duplication is now fixed
+// This is an ugly hack, which assumes that if the first is duplicated on the next
+// or later line, the first is what we'll keep. We only look at the url.
+void CServiceDiscovery::RemoveSpuriousDuplicates(wxArrayString& arr)
+{
+	if (!arr.IsEmpty())
+	{
+		size_t count = arr.GetCount();
+		if (count > 1)
+		{
+			size_t index;
+			wxString topComposite = arr.Item(0);
+			wxString topIpaddr;
+			wxString topName;
+			int offset = topComposite.Find(_T("@@@"));
+			wxASSERT(offset != wxNOT_FOUND);
+			topIpaddr = topComposite.Left(offset);
+
+			for (index = 1; index < count; index++)
+			{
+				wxString aComposite = arr.Item(index);
+				// Check if it has the same ip address as topIpaddr, if so we will remove it
+				int offset = aComposite.Find(_T("@@@"));
+				if (offset != wxNOT_FOUND)
+				{
+					// Remove the @@@ and anything following, leaving its ipaddr
+					wxString anIpaddr = aComposite.Left(offset);
+					if (topIpaddr == anIpaddr)
+					{
+						// This one is spurious, so remove it,and assume there are no more like
+						// it, so return
+						arr.RemoveAt(index);
+						return;
+					}
+				}
+			}
+		}
+	}
+}
+*/
 // BEW created 5Jan16, needed for GetResults() in CServiceDiscovery instance
 bool CServiceDiscovery::IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase)
 {

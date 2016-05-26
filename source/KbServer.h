@@ -184,7 +184,8 @@ public:
 	int		 BulkUpload(int chunkIndex, // use for choosing which buffer to return results in
 					wxString url, wxString username, wxString password, CBString jsonUtf8Str);
 	int		 ChangedSince(wxString timeStamp);
-	int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
+	int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE); // needed for KB Sharing Mgr delete whole kb button
+	int		 ChangedSince_Timed(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description);
 	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, 
@@ -213,15 +214,25 @@ public:
 	
 	// Functions we'll want to be able to call programmatically... (button handlers
 	// for these will be in KBSharing.cpp)
-	void		DoChangedSince();
-	void		DoGetAll(bool bUpdateTimestampOnSuccess = TRUE);
-	void		ClearReturnedCurlCodes(); // sets all 50 of the array of int to CURLE_OK
-	bool		AllEntriesGotEnteredInDB(); // returns TRUE if all entries in m_returnedCurlCodes
+	void	DoChangedSince();
+	void	DoGetAll(bool bUpdateTimestampOnSuccess = TRUE);
+	void	ClearReturnedCurlCodes(); // sets all 50 of the array of int to CURLE_OK
+	bool	AllEntriesGotEnteredInDB(); // returns TRUE if all entries in m_returnedCurlCodes
 						// array are CURLE_OK; FALSE if at least one is some other value
 						// (the current implementation permits only CURLE_HTTP_RETURNED_ERROR
 						// to be the 'other value', if a BulkUpload() call failed - we assume
 						// it was because it tried to upload an already entered db entry)
 	void	 DeleteUploadEntries();
+
+	// Functions for synchronous access to the remote server - to check if they leak memory too
+	// They don't leak, hooray. We have to use these instead of detached threads, because the
+	// latter incurs openssl leaks of about 1KB per KBserver access
+	int		Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt);
+	int		Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt);
+	int		Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt);
+	int		Synchronous_ChangedSince_Timed(KbServer* pKbSvr);
+	int		Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable);
+	int		Synchronous_KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldText, wxString newText);
 
 	// public setters
 	void     SetKB(CKB* pKB); // sets m_pKB to point at either the local adaptations KB or local glosses KB
@@ -325,7 +336,7 @@ public:
 	// Getting the kb server password is done in CMainFrame::GetKBSvrPasswordFromUser(),
 	// and stored there for the session (it only changes if the project changes and even
 	// then only if a different kb server was used for the other project, which would be
-	// unlikely)
+	// unlikely); or from the "Authenticate" dialog (KBSharingStatelessSetupDlg.cpp & .h).
 	// Note, when setting a stateless KbServer instance (eg. as when using the Manager), if the
 	// bStateless flag is TRUE, then 'stateless' temporary storage strings are used for the url,
 	// password and username - and those will get stored in the relevant places in the ptr to the
@@ -420,6 +431,7 @@ public:
 	KbServerEntry*	PopFromQueueFront(); // protect with a mutex
 	bool			IsQueueEmpty();
 	void			DeleteDownloadsQueueEntries();
+	DownloadsQueue* GetQueue();
 
 	//void			SetEntryStruct(KbServerEntry entryStruct);
 	KbServerEntry	GetEntryStruct();

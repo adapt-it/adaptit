@@ -6,6 +6,10 @@ extern "C"
 #ifndef _1035_h
 #define _1035_h
 
+#ifdef __WXMSW__
+#pragma warning(disable:4214)
+#pragma warning(disable:4706)
+#endif
 
 
 // be familiar with rfc1035 if you want to know what all the variable names mean, but this hides most of the dirty work

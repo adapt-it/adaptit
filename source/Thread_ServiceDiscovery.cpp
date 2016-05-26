@@ -21,7 +21,7 @@
 /// time (3 plus 1 second for overheads, approx), finds one KBserver's hostname, ip address (and port)
 /// if there is at least one running on the LAN. Then it destroys itself after notifying the
 /// parent class, CServiceDiscovery, to send any results to an array on the application, for the
-/// DoServiceDiscovery() function there to display results to the user, for making a connection.
+/// ConnectUsingDiscoveryResults() function there to display results to the user, for making a connection.
 /// The Thread_ServiceDiscovery thread, however, is "joinable" type;  which is easier for controlling
 /// shutdown behaviour.
 /// \derivation		The Thread_ServiceDiscovery class is derived from wxThread.
@@ -113,6 +113,8 @@ void* Thread_ServiceDiscovery::Entry()
 	// Count this run, and pass the value back to the app's m_nSDRunCounter to be used
 	// by the next run as its index
 	m_pApp->m_nSDRunCounter = m_indexOfRun + 1;
+	m_pApp->m_bServDiscRunFoundNothing = FALSE; // a wxServDiscHALTING event will be posted,
+			// with its handler setting this to TRUE, if the first run discovers no KBserver running
 
 	processID = wxGetProcessId();
 #if defined (_shutdown_)

@@ -52,9 +52,6 @@ protected:
 	wxCheckBox* m_pAdaptingCheckBox;
 	wxCheckBox* m_pGlossingCheckBox;
 	wxButton*   m_pSetupBtn; //wxID_OK
-	bool        m_bServiceDiscWanted;  // store final value in the app's m_bServiceDiscoveryWanted,
-				// and herein initialize to TRUE, and then the button presses determine what 
-				// value is passed back to the app for this boolean
 	wxRadioBox*		m_pRadioBoxHow;
 	int			m_nRadioBoxSelection;
 

@@ -76,8 +76,6 @@ KbSharingSetup::KbSharingSetup(wxWindow* parent) // dialog constructor
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 	wxUnusedVar(bOK);
-
-	m_bServiceDiscWanted = TRUE; // initialize
  }
 
 KbSharingSetup::~KbSharingSetup() // destructor
@@ -89,9 +87,6 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pAdaptingCheckBox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHARE_MY_TGT_KB);
 	m_pGlossingCheckBox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHARE_MY_GLOSS_KB);
 	m_pSetupBtn = (wxButton*)FindWindowById(wxID_OK);
-	m_pRadioBoxHow = (wxRadioBox*)FindWindowById(ID_RADIOBOX_HOW);
-	m_nRadioBoxSelection = 0; // top button selected
-	m_pRadioBoxHow->SetSelection(m_nRadioBoxSelection);
 
     // If the project is currently a KB sharing project, then initialise to the current
     // values for which of the two KBs (or both) is being shared; otherwise, set the member
@@ -103,28 +98,22 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		// It's an existing shared kb project - so initialize to what the current settings
 		// are, and make the checkbox comply
-		m_pAdaptingCheckBox->SetValue(TRUE); // "Share adaptations" checkbox is to be shown ticked
 		m_bSharingAdaptations = TRUE; // initialize
 	}
 	else
 	{
-		m_pAdaptingCheckBox->SetValue(FALSE); // unticked
 		m_bSharingAdaptations = FALSE; // initialize
 	}
 	if (m_pApp->m_bIsGlossingKBServerProject) // glosses KBserver
 	{
 		// It's an existing shared glossing kb project - so initialize to what the current
 		// settings are, and make the checkbox comply
-		m_pGlossingCheckBox->SetValue(TRUE);
 		m_bSharingGlosses = TRUE; // initialize
 	}
 	else
 	{
-		m_pGlossingCheckBox->SetValue(FALSE); // unticked
 		m_bSharingGlosses = FALSE; // initialize
 	}
-
-	m_bServiceDiscWanted = m_pApp->m_bServiceDiscoveryWanted;
 }
 
 void KbSharingSetup::OnCheckBoxShareAdaptations(wxCommandEvent& WXUNUSED(event))
@@ -169,22 +158,42 @@ void KbSharingSetup::OnCheckBoxShareGlosses(wxCommandEvent& WXUNUSED(event))
 
 void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 {
-	int nRadioBoxSelection = m_pRadioBoxHow->GetSelection();
-	m_bServiceDiscWanted = nRadioBoxSelection == 0 ? TRUE : FALSE;
+	// Get the latest setting of the checkbox values - & set app flags accordingly
+	bool bAdaptationsTicked = m_pAdaptingCheckBox->GetValue();
+	bool bGlossesTicked = m_pGlossingCheckBox->GetValue();
+	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
 
-	m_pApp->m_bServiceDiscoveryWanted = m_bServiceDiscWanted; // Set app member, OnIdle's call
-			// of AuthenticateCheckAndSetupKBSharing() will use it, and reset to TRUE afterwards
-	// We don't call AuthenticateCheckAndSetupKBSharing() directly here, if we did, 
-	// the Authenticate dialog is ends up lower in the z-order and the parent
-	// KbSharingSetup dialog hides it - and as both are modal, the user cannot
-	// get to the Authenticate dialog if control is sent back there (e.g. when the
-	// password is empty, or there is a curl error, or the URL is wrong or the wanted
-	// KBserver is not running). So, we post a custom event here, and the event's
-	// handler will run the Authenticate dialog at idle time, when KbSharingSetup will
-	// have been closed
-	wxCommandEvent eventCustom(wxEVT_Call_Authenticate_Dlg);
-	wxPostEvent(m_pApp->GetMainFrame(), eventCustom); // custom event handlers are in CMainFrame
+	if (bAdaptationsTicked || bGlossesTicked)
+	{
+		// Sharing is wanted for one or both of the adapting & glossing KBs...
+		// Show the dialog which allows the user to set the boolean: m_bServiceDiscoveryWanted, 
+		// for the later AuthenticateCheckAndSetupKBSharing() call to use. Formerly the dialog
+		// was opened here - but OSX would not accept the nesting, and froze the GUI, so now
+		// it is opened from CMainFrame::OnIdle() when one or both of the booleans are TRUE
+		pFrame->m_bKbSvrAdaptationsTicked = bAdaptationsTicked;
+		pFrame->m_bKbSvrGlossesTicked = bGlossesTicked;
+	}
+	else
+	{
+		// Neither box is ticked, so turn off sharing...
+		// ReleaseKBServer(int) int = 1 or 2, does several things. It stops the download timer, deletes it
+		// and sets its pointer to NULL; it also saves the last timestamp value to its on-disk file; it
+		// then deletes the KbServer instance that was in use for supplying resources to the sharing code
+		if (m_pApp->KbServerRunning(1))
+		{
+			m_pApp->ReleaseKBServer(1); // the adaptations one
+		}
+		if (m_pApp->KbServerRunning(2))
+		{
+			m_pApp->ReleaseKBServer(2); // the glossings one
+		}
 
+		m_pApp->m_bIsKBServerProject = FALSE;
+		m_pApp->m_bIsGlossingKBServerProject = FALSE;
+
+		ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
+	}
 	myevent.Skip(); // close the KbSharingSetup dialog
 }
 

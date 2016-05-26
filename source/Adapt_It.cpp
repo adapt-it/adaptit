@@ -106,8 +106,11 @@
 
 wxMutex	kbsvr_arrays;
 
+extern wxCriticalSection g_jsonCritSect;
+
 // Comment out to prevent DoServiceDiscovery() from logging with wxLogDebug()
 #define _DOSERVDISC
+#define ERR_DUPLICATE
 
 // vectorized bitmaps
 #include "../res/vectorized/document_new_16.cpp"
@@ -631,7 +634,7 @@ bool gbSaveHilightingSetting = FALSE; // *** NOTE *** in version 6 & higher, thi
 /// possible mix of xml or binary kb files and document files; in fact, the same
 /// considerations about file type and book folders mode are relevant to any operation
 /// involving the enumerated set of documents - so also relevant to restoring the knowledge
-/// base from the existing documents and reporting retranslations). TRUE if the current
+/// base from the existing documents and reporting retranslatiszons). TRUE if the current
 /// project's Adaptations folder contains Bible book folders (whether or not book mode is
 /// currently on) (for XML or binary, a local Boolean will suffice).
 bool gbHasBookFolders = FALSE; //
@@ -681,6 +684,11 @@ wxChar gcharSrcLC;
 
 /// Store first upr case char of source text word or phrase (after punct stripped).
 wxChar	gcharSrcUC;
+
+bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+							   // is enabled, FALSE is legacy initial position only
+int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
+							// character was found to be located, wxNOT_FOUND if not located
 
 /// Use to suppress the message box asking if the src language has upper/lower case
 /// distinction, when the flag is being restored to TRUE from reading the project's config
@@ -5594,7 +5602,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	// OnUpdateEditPunctCorresp is in the View  // incorporated into Edit|Preferences
 	// OnEditSourceText is in the View
 	// OnUpdateEditSourceText is in the View
-	// OnEditConsistencyCheck is in the View
+	// OnEditConsistencyCheck is in the View -- no it's not
 	// OnUpdateEditConsistencyCheck is in the View
 	// Lower to Upper Case Equivalences... removed as a separate menu item from Edit
 	// menu (now handled by Edit Preferences)
@@ -5629,86 +5637,89 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_BUTTON(ID_BUTTON_COPY_FREETRANS_TO_CLIPBOARD, CAdapt_ItApp::OnButtonCopyFreeTransToClipboard)
 	EVT_BUTTON(ID_BUTTON_CLIPBOARD_ADAPT_CLOSE, CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg)
 
-	EVT_MENU(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnToolsDefineCC)
-	EVT_UPDATE_UI(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnUpdateLoadCcTables)
-	EVT_MENU(ID_UNLOAD_CC_TABLES, CAdapt_ItApp::OnToolsUnloadCcTables)
-	EVT_UPDATE_UI(ID_UNLOAD_CC_TABLES, CAdapt_ItApp::OnUpdateUnloadCcTables)
-	//OnUseConsistentChanges is in the View
-	//OnUpdateUseConsistentChanges is in the View
-	//OnAcceptChanges is in the View
-	//OnUpdateAcceptChanges is in the View
-	//OnToolsKbEditor is in the View
-	//OnUpdateToolsKbEditor is in the View
+EVT_MENU(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnToolsDefineCC)
+EVT_UPDATE_UI(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnUpdateLoadCcTables)
+EVT_MENU(ID_UNLOAD_CC_TABLES, CAdapt_ItApp::OnToolsUnloadCcTables)
+EVT_UPDATE_UI(ID_UNLOAD_CC_TABLES, CAdapt_ItApp::OnUpdateUnloadCcTables)
+//OnUseConsistentChanges is in the View
+//OnUpdateUseConsistentChanges is in the View
+//OnAcceptChanges is in the View
+//OnUpdateAcceptChanges is in the View
+//OnToolsKbEditor is in the View
+//OnUpdateToolsKbEditor is in the View
 
-	// Note: Automatic capitalization is no longer a separate menu item
-	// now that there is a tab in Edit / Preferences for Capitalization
-	EVT_MENU(ID_TOOLS_AUTO_CAPITALIZATION, CAdapt_ItApp::OnToolsAutoCapitalization)
-	EVT_UPDATE_UI(ID_TOOLS_AUTO_CAPITALIZATION, CAdapt_ItApp::OnUpdateToolsAutoCapitalization)
-	// BEW added 30Jul13, took the radio button choice out of Misc tab of preferences, to
-	// make it a choosable menu item for anytime the user wants to ensure his KB lookups
-	// can access as much data as possible. This isn't a setting. It's an operation that
-	// is done on the KB each time it is called. (Calling it a second time after having
-	// called it once will do nothing but waste some time if the user has not, since last
-	// calling it, had Auto Caps turned off and produced some new upper-case-keyed
-	// CTargetUnit instances (which would no be accessed in an Auto Caps lookup without
-	// this feature being available
-	EVT_MENU(ID_MENU_UPPER_AVAIL, CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable)
-	EVT_UPDATE_UI(ID_MENU_UPPER_AVAIL, CAdapt_ItApp::OnUpdateMakeAllKnowledgeBaseEntriesAvailable)
+// Note: Automatic capitalization is no longer a separate menu item
+// now that there is a tab in Edit / Preferences for Capitalization
+EVT_MENU(ID_TOOLS_AUTO_CAPITALIZATION, CAdapt_ItApp::OnToolsAutoCapitalization)
+EVT_UPDATE_UI(ID_TOOLS_AUTO_CAPITALIZATION, CAdapt_ItApp::OnUpdateToolsAutoCapitalization)
+// BEW added 30Jul13, took the radio button choice out of Misc tab of preferences, to
+// make it a choosable menu item for anytime the user wants to ensure his KB lookups
+// can access as much data as possible. This isn't a setting. It's an operation that
+// is done on the KB each time it is called. (Calling it a second time after having
+// called it once will do nothing but waste some time if the user has not, since last
+// calling it, had Auto Caps turned off and produced some new upper-case-keyed
+// CTargetUnit instances (which would no be accessed in an Auto Caps lookup without
+// this feature being available
+EVT_MENU(ID_MENU_UPPER_AVAIL, CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable)
+EVT_UPDATE_UI(ID_MENU_UPPER_AVAIL, CAdapt_ItApp::OnUpdateMakeAllKnowledgeBaseEntriesAvailable)
 
-	//OnRetransReport is in the View
-	//OnUpdateRetransReport is in the View
+//OnRetransReport is in the View
+//OnUpdateRetransReport is in the View
 
-	// Advanced Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//OnAdvancedSeeGlosses is in the View
-	//OnUpdateAdvancedEnableglossing  is in the View
-	//OnAdvancedGlossingUsesNavFont  is in the View
-	//OnUpdateAdvancedGlossingUsesNavFont  is in the View
-	EVT_MENU(ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses)
-	EVT_UPDATE_UI(ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses)
-	EVT_MENU(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnAdvancedBookMode)
-	EVT_UPDATE_UI(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnUpdateAdvancedBookMode)
-	//OnAdvancedDelay  is in the View
-	//OnUpdateAdvancedDelay  is in the View
+// Advanced Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//OnAdvancedSeeGlosses is in the View
+//OnUpdateAdvancedEnableglossing  is in the View
+//OnAdvancedGlossingUsesNavFont  is in the View
+//OnUpdateAdvancedGlossingUsesNavFont  is in the View
+EVT_MENU(ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses)
+EVT_UPDATE_UI(ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses)
+EVT_MENU(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnAdvancedBookMode)
+EVT_UPDATE_UI(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnUpdateAdvancedBookMode)
+//OnAdvancedDelay  is in the View
+//OnUpdateAdvancedDelay  is in the View
 
-	// Help menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//OnAppAbout is in CMainFrame in wxWidgets version
+// Help menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//OnAppAbout is in CMainFrame in wxWidgets version
 
-	// Administrator menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	EVT_MENU(ID_CUSTOM_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnCustomWorkFolderLocation)
-	EVT_UPDATE_UI(ID_CUSTOM_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnUpdateCustomWorkFolderLocation)
-	EVT_MENU(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnSetPassword)
-	EVT_UPDATE_UI(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnUpdateSetPassword)
-	EVT_MENU(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation)
-	EVT_UPDATE_UI(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation)
-	EVT_MENU(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnLockCustomLocation)
-	EVT_UPDATE_UI(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateLockCustomLocation)
-	EVT_MENU(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUnlockCustomLocation)
-	EVT_UPDATE_UI(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateUnlockCustomLocation)
-	EVT_MENU(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles)
-	EVT_UPDATE_UI(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles)
-	EVT_MENU(ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, CAdapt_ItApp::OnAssignLocationsForInputsAndOutputs)
-	EVT_UPDATE_UI(ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, CAdapt_ItApp::OnUpdateAssignLocationsForInputsAndOutputs)
-	EVT_MENU(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnSetupEditorCollaboration)
-	EVT_UPDATE_UI(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnUpdateSetupEditorCollaboration)
-	//EVT_MENU(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnPasswordProtectCollaborationSwitching)
-	//EVT_UPDATE_UI(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnUpdatePasswordProtectCollaborationSwitching)
-	EVT_MENU(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnTempRestoreUserProfiles) // whm added 14Feb12
-	EVT_UPDATE_UI(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnUpdateTempRestoreUserProfiles) // whm added 14Feb12
-	EVT_MENU(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnEditUserMenuSettingsProfiles)
-	EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
-	EVT_MENU(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnHelpForAdministrators)
-	EVT_UPDATE_UI(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnUpdateHelpForAdministrators)
+// Administrator menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+EVT_MENU(ID_CUSTOM_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnCustomWorkFolderLocation)
+EVT_UPDATE_UI(ID_CUSTOM_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnUpdateCustomWorkFolderLocation)
+EVT_MENU(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnSetPassword)
+EVT_UPDATE_UI(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnUpdateSetPassword)
+EVT_MENU(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation)
+EVT_UPDATE_UI(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation)
+EVT_MENU(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnLockCustomLocation)
+EVT_UPDATE_UI(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateLockCustomLocation)
+EVT_MENU(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUnlockCustomLocation)
+EVT_UPDATE_UI(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateUnlockCustomLocation)
+EVT_MENU(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles)
+EVT_UPDATE_UI(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles)
+EVT_MENU(ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, CAdapt_ItApp::OnAssignLocationsForInputsAndOutputs)
+EVT_UPDATE_UI(ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, CAdapt_ItApp::OnUpdateAssignLocationsForInputsAndOutputs)
+EVT_MENU(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnSetupEditorCollaboration)
+EVT_UPDATE_UI(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnUpdateSetupEditorCollaboration)
+//EVT_MENU(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnPasswordProtectCollaborationSwitching)
+//EVT_UPDATE_UI(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnUpdatePasswordProtectCollaborationSwitching)
+EVT_MENU(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnTempRestoreUserProfiles) // whm added 14Feb12
+EVT_UPDATE_UI(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnUpdateTempRestoreUserProfiles) // whm added 14Feb12
+EVT_MENU(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnEditUserMenuSettingsProfiles)
+EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
+EVT_MENU(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnHelpForAdministrators)
+EVT_UPDATE_UI(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnUpdateHelpForAdministrators)
 #if defined(_KBSERVER)
-	EVT_MENU(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnKBSharingManagerTabbedDlg) // always potentially needed
-	EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
-	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnServiceDiscoveryTimer)
+EVT_MENU(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnKBSharingManagerTabbedDlg) // always potentially needed
+EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
+EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnServiceDiscoveryTimer)
 
 #endif
-	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
+#if !defined(_KBSERVER)
+EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
+#endif
+EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
 
-	//EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
-	//EVT_WIZARD_FINISHED(-1,CAdapt_ItApp::OnWizardFinish) // not needed, can handle directly
-	// by checking the return bool value of RunWizard.
+//EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
+//EVT_WIZARD_FINISHED(-1,CAdapt_ItApp::OnWizardFinish) // not needed, can handle directly
+// by checking the return bool value of RunWizard.
 END_EVENT_TABLE()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -5971,6 +5982,9 @@ wxString szIsKBServerProject = _T("IsKBServerProject");
 
 wxString szNumberOfDiscoveryRuns = _T("NumberOfDiscoveryRuns");
 
+wxString szSentFinalPunctsTriggerCaps = _T("SentenceFinalPunctuationTriggeringCapitalization"); // BEW added 9May16
+wxString szUpperCaseAnywhereInFirstWord = _T("UpperCaseAnywhereInFirstWordOfSource"); // BEW added 24May16, for things like src: na-John -> tgt: Johan
+
 /// The label that identifies the whether or not the project is associated with sharing a
 /// glosses language KB. This value is written in the "ProjectSettings" part of the project
 /// configuration file. Adapt It stores this string in the App's m_bIsGlossingKBServerProject
@@ -5986,6 +6000,10 @@ wxString szKbServerURL = _T("KbServerURL");
 /// to give high chance that eventually a discovery will be done between two 'close'
 /// multicasts from a couple of KBservers. Otherwise second one may never be heard.
 wxString szKBserverTimer = _T("KBserverTimerInterval (thousandths of a second)");
+
+// Next added 27Apr16
+/// The label for the hostname associated with szKbServerURL
+wxString szKbServerHostname = _T("KbServerHostname");
 
 /// The label for the project configuration file's line which stores the assigned username
 /// for the last used server for knowledge base sharing within a project designated as one
@@ -15260,7 +15278,6 @@ wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
 void CAdapt_ItApp::ServDiscBackground(int nThreadIndex)
 {
 	// BEW 4Jan16, 2nd param is the parent class for CServiceDiscovery instance, the app class
-	//m_pServDisc = new CServiceDiscovery(this); <<-- bit slow, onSDNotify() works on main thread, so app is less responsive
 
 	// BEW 12Apr16, changed so that CServiceDiscovery instance is created in the thread,
 	// but keeping the app as the parent. Thread's Entry() function calls it, so we can
@@ -15289,7 +15306,7 @@ void CAdapt_ItApp::ServDiscBackground(int nThreadIndex)
 /// are of his making, due to incomplete cleanup code. I have managed to reduce the leak count
 /// to zero but at the cost of limiting one discovery run to finding just one KBserver.
 ///
-/// DoServiceDiscovery is called prior to an authentication attempt to a running KBserver.
+/// ConnectUsingDiscoveryResults is called prior to an authentication attempt to a running KBserver.
 /// The service:  "_kbserver._tcp.local." is scanned for (note, there MUST be a period
 /// following the word local & the wrapping " " are not part of the string), and if a
 /// KBserver is running. Normally, only one KBserver should be running; if that is not the
@@ -15334,9 +15351,13 @@ void CAdapt_ItApp::ServDiscBackground(int nThreadIndex)
 /// };
 ////////////////////////////////////////////////////////////////////////////////////////
 
-bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL, 
+bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chosenURL,
 									  wxString& chosenHostname, enum ServDiscDetail &result)
 {
+	// In my early code, I called this function DoServiceDiscovery. Now it doesn't do discovery,
+	// but just uses the results of service discovery. Discovery is CPU intensive, and needs
+	// to be divorced from connection-related code for the user's sake
+
 	chosenURL = _T(""); // initialize, we return the chosen url using this parameter
 	result = SD_NoResultsYet; // initialize to a 'success' result
 
@@ -15362,16 +15383,17 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL,
 	m_theHostnames.clear();
 	count = (int)m_ipAddrs_Hostnames.GetCount(); // this array is the app's one
 #if defined(_DOSERVDISC)
-	wxLogDebug(_T("\n CAdapt_ItApp::DoServiceDiscovery() Updated URLs and Hostnames. Unique KBserver URLs aggregated so far = %d"),
+	wxLogDebug(_T("\n CAdapt_ItApp::ConnectUsingDiscoveryResults() Updated URLs and Hostnames. Unique KBserver URLs aggregated so far = %d"),
 		count);
 #endif
+
 	for (i = 0; i < count; i++)
 	{
 		anIpAddress = wxEmptyString;
 		aHostname = wxEmptyString;
 		aComposite = m_ipAddrs_Hostnames.Item(i);
 #if defined(_DOSERVDISC)
-		wxLogDebug(_T(" CAdapt_ItApp::DoServiceDiscovery() In LOOP: aComposite (url/hostname):  %s   Parts being extracted"), aComposite.c_str());
+		wxLogDebug(_T(" CAdapt_ItApp::ConnectUsingDiscoveryResults() In LOOP: aComposite (url/hostname):  %s   Parts being extracted"), aComposite.c_str());
 #endif
 		ExtractIpAddrAndHostname(aComposite, anIpAddress, aHostname);
 
@@ -15379,7 +15401,6 @@ bool CAdapt_ItApp::DoServiceDiscovery(wxString curURL, wxString& chosenURL,
 		m_theURLs.Add(aURL);
 		m_theHostnames.Add(aHostname);
 	}
-
 
 	// No url & hostname may be available yet, in which case the user needs to be told
 	if (!m_ipAddrs_Hostnames.IsEmpty())
@@ -15600,8 +15621,24 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
 	m_bMergerIsCurrent = FALSE; // BEW 14Apr16
+	m_bSentFinalPunctsTriggerCaps = FALSE; // if m_strSentFinalPunctsTriggerCaps has content, 
+										   // will be TRUE (see project config file)
+	gnOffsetToUCcharSrc = wxNOT_FOUND;     // initialize
+	gbUCSrcCapitalAnywhere = FALSE; // initialize to legacy 'only word-initial capital checked for'
+
 
 #if defined(_KBSERVER)
+	// Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
+	// for a gui action by the user causes a TRUE value to be set for one of them, so that
+	// the OnIdle() handler will then call one of the 3 Synchronous functions,
+	// Synchronous_CreateEntry(), Synchronous_PseudoDelete(), or Synchronous_PseudoUndelete()
+	// to hide the server access to the maximum possible extent, to keep the GUI responsive
+	m_bPseudoDelete_For_KBserver = FALSE;
+	m_bPseudoUndelete_For_KBserver = FALSE;
+	m_bCreateEntry_For_KBserver = FALSE;
+	m_pKbServer_For_OnIdle = NULL; // The calls suppored by the above 3 booleans will use
+								   // this KbServer pointer to get their work done; it
+								   // is used nowhere except in OnIdle()
 	// Next two booleans are set to FALSE unilaterally (as initialization)only here. They
 	// get set to whatever the project config file has for the IsKBServerProject and
 	// IsGlossingKBServerProject config file lines (which are used to set m_bIsKBServerProject
@@ -15620,10 +15657,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 							   // half minute. (We can now overlap runs without failure, at the expense of GUI
 							   // temporary paralysis, so don't do that. Keep a timer gap between notifications.)
 							   // One run takes about 4.1 secs
-	m_numServiceDiscoveryRuns = 9; // the basic config file's value will override this default
-	m_bServDiscBurstIsCurrent = FALSE;
+	m_numServiceDiscoveryRuns = 6; // the basic config file's value will override this default if manually changed
+	m_bServDiscBurstIsCurrent = FALSE; // initialize
+	m_bServDiscSingleRunIsCurrent = FALSE; // initialize
+	m_bServDiscGetOneOnly = TRUE; // initialize
 
 	m_bServiceDiscoveryWanted = TRUE; // initialize
+	m_bEnteringKBserverProject = TRUE;
 	int ii;
 	for (ii = 0; ii < (int)MAX_SERV_DISC_RUNS; ii++)
 	{
@@ -15807,6 +15847,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // when a CheckForValidUsernameForKbServer() call is done. see helpers.cpp)
 	m_kbserver_kbadmin = FALSE;
 	m_kbserver_useradmin = FALSE;
+
+	m_bWizardIsRunning = FALSE;
 
 #endif
 
@@ -21391,7 +21433,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// curl needs to be initialized just once per run of the application
 	// Note: curl leaks this small heap block; and openssl also leaks a small heap block.
-	// Can't prevent those. One is 16 bytes, the other about 20 or 22 - something like that
+	// BEW 29Apr16 curl_global_cleanup() cleans up - see OnExit()
 #if defined (_KBSERVER)
 #if defined(__WXMSW__)
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -22016,85 +22058,14 @@ int ii = 1;
 
 	// Run Service Discovery
 #if defined(_KBSERVER)
-	// Leave the following initialization line here...
-	//m_pServDisc = NULL;
 
-	// BEW 6Apr16 Call ServDiscBackground() which runs in the background in a thread
-	// under timer control. For debugging, comment out below and uncomment out the 
-	// wxTIMER_ONE_SHOT Start() call instead. The biggest problem is memory leaks, the
-	// ultimate solution required forcing the detachable wxServDisc instances to die
-	// before the parent CServiceDiscovery class does, and put the latter in a thread.
-	// (The thread was necessary to avoid blocking the main thread where the GUI is.)
-	// ServeDiscBackground internally instantiates the CServiceDiscovery class, one 
-	// only per thread, instance only, m_pServDisc[index] pointer. There can be up to
-	// MAX_SERV_DISC_RUNS (20) of such pointers. Default 9. We use a custom event
-	// (wxEVT_End_ServiceDiscovery -- see MainFrm.h & .cpp) to get
-	// the top level threads shut down, by posting the event from the thread's OnExit()
-	// function, and providing a handler in MainFrm.cpp to do the job of setting
-	// m_pServDiscThread[index] to NULL; we don't have to actually delete it as it is
-	// detachable and so destroys itself - which we cause at the appropriate time.
-	//
-	// The CServiceDiscovery constructor, when it runs, instantiates the first wxServDisc
-	// instance, which kicks off the service discovery which runs on further detached threads.
-	// Unique results are sent back to CServiceDiscovery with the help of a ptr, m_pCSD,
-	// within each wxServDisc, which points at the CServiceDiscovery instance that created
-	// the first in each such set. Under timer control, timer notifications send the set
-	// of unique results aggregated within CServiceDiscovery back to the m_ipAddrs_Hostnames
-	// wxArrayString, where the GUI for service discovery, DoServiceDiscovery(), can access
-	// them to display to the user as a URL and its associated hostname.
-	//
-	// Two things are necessary for a maintainer to know: (1) CServiceDiscovery is mandatory,
-	// it is app-facing, and so it can #include Adapt_It.h, but wxServDisc must never see
-	// Adapt_It.h, because then hundreds of name conflicts arise with the Microsoft socket
-	// implementations. wxServDisc, for Windows build, uses winsock2.h which clashes
-	// horribly with the older winsock.h resources.
-	// (2) wxServDisc uses events posted to the CServiceDiscovery instance, to get
-	// hostname and ipaddress lookups done - these are done from the stackframe of an
-	// onSDNotify() event handler within CServiceDiscovery. This is Beier's original design,
-	// and it is efficient, because wxServDisc may spawn multiple new instances of itself,
-	// and some of those will post notifications to CServiceDiscovery to get onSDNotify()
-	// called, doing so more than once - so we take steps to avoid multiple entries to
-	// onSDNotify(). It doesn't appear to need mutext protection, so I've
-	// not provided it (except where necessary, for array .Add() calls). The in-parallel set
-	// of running wxServDisc instances can quickly swamp the CPUs, even on 4 core or higher
-	// machines, so the trick is to run the discovery for only a few seconds - I'm setting
-	// the limit to be 5 seconds (Beier's GC value, his was num of seconds in a day!) and
-	// then it needs to shut itself down. In practice, we force shutdown before the 5 second
-	// limit is reached. Out solution finds one and shuts down in a fraction over 4 secs.
-	// The first paramater of the wxServDisc() signature is very important. It is
-	// a (void*) for the parent class. Beier's solution makes use of the fact that if null
-	// is passed in, the new wxServDisc instance is unable to call post_notify() which
-	// otherwise would result in an embedded calling of the onSDNotify() handler - leading
-	// to chaos. We, instead, pass in the pointer to the owning CServiceDiscovery instance.
-	// If an instance is spawned with null as the first param value, we regard it as a
-	// unwelcome nuisance (a zombie) and we shut it down immediately. I was getting two of
-	// these early on, but the final solution does not generate any for an unknown reason.
-	// Our solution deliberately is designed to find only one KBserver per run.
-	// To try find more leads to many difficult problems to solve, and CPU-binding problems.
-	// Finding one is quick, usually less than 3 seconds, and a bit more time for cleanup
-	// and staged shutdowns. The best solution is to run this simpler solution in a burst
-	// of instantiations, in the background, and accumulate a list of discovered running 
-	// KBservers - their urls and hostnames.
-	// To facilitate the multiple intermittent timed service discovery instantiations, their 
-	// self-destruction *must* be leakless. Unfortunately, Beier's original Zeroconf solution
-	// leaks like a sieve, and so extra work had to be done to plug the leaks.
-	// 
-	// The above comments are a distillation of the knowledge gained from debug logging,
-	// and visual leak detection, done over 18 months of frustrating testing and tweaking.
-	// Ignore this and fiddle with it yourself at your own peril. You've been warned!
-	// VisLeakDetector can be turned on or off at line 279 of Adapt_It.cpp.
-	// At the top of the Adapt_It.cpp, Thread_ServiceDiscovery.cpp, CServiceDiscovery.cpp
-	// and wxServDisc.cpp files are some commented out #defines. Uncomment the ones you want
-	// to get very useful wxLogDebug output sent to the Output window. I could not have
-	// tamed this zeroconf solution of Beier's without them. DO NOT REMOVE THEM PLEASE.
-	//
-	// The timer interval (in milliseconds), and the number of (single) service discovery
-	// runs in a burst, are parameters in the AI-BasicConfiguration.aic file - and at this
-	// point in time we provide no GUI support for changing them. It is possible to safely
-	// change them by manually editing the config file and resaving it. The range of values
-	// allows are: timer interval - greater or equal to 7.111 seconds (7111 millisecs),
-	// and number of runs per burst, 1 or more, 20 or less. The config files enforce these.
-	DoKBserverDiscoveryRuns();
+	// BEW changed 26Apr16, I think I'll confine the 'burst' of runs to
+	// user choice made explicitly: (1) the Scan For Running KBservers
+	// menu choice, and (2) the "Discover more KBservers than one" radio button
+	// in the Setup Or Remove KB Sharing dialog, or the How To Get dialog
+	// which displays just the lower part of that dialog. So comment out the
+	// call here, I want a more slick GUI than this
+	//DoKBserverDiscoveryRuns();
 
 #endif // _KBSERVER
 
@@ -22162,26 +22133,13 @@ int CAdapt_ItApp::OnExit(void)
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
 
-	/*
+
 #if defined (_KBSERVER)
-	// Cleanups for service discovery...
+	// Cleanups
 
-
-// TODO later on sometime
-
-	// BEW 19Apr16 for the moment, let service discovery thread, if running, die a leaky death
-	if (m_pServDisc != NULL)
-	{
-		if ( m_servDiscTimer.IsRunning() )
-		{
-			m_servDiscTimer.Stop();
-
-		}
-		m_pServDisc = NULL;
-	}
 
 #endif
-*/
+
 	// Remove any files lurking there, they don't need to persist
 	EmptyCollaborationTempFolder(); // see CollabUtilities.h (at bottom)
 
@@ -22598,25 +22556,6 @@ int CAdapt_ItApp::OnExit(void)
 		delete m_pDVCS;
 		m_pDVCS = (DVCS*)NULL;
 	}
-
-#if defined(_KBSERVER)
-	// If a kb database of entries in kbserver's entry table is being deleted one by one
-	// in a currently running thread, then pApp->m_pKbServerForDeleting  will be non-NULL;
-	// test for this and recover the heap memory now, the thread will then fail but
-	// that's okay - the user can re-establish the deletion (with fewer to delete) in the
-	// next session, or over several sessions, until the particular kb database is gone
-	if (m_pKbServer_Persistent != NULL)
-	{
-		if (!m_pKbServer_Persistent->IsQueueEmpty())
-		{
-			// Queue is not empty, so delete the KbServerEntry structs that are 
-			// on the heap
-			m_pKbServer_Persistent->DeleteDownloadsQueueEntries();
-		}
-		delete m_pKbServer_Persistent;
-		m_pKbServer_Persistent = (KbServer*)NULL;
-	}
-#endif
 
 	// Clear up Guesser Prefix/Suffix Arrays - klb
 	if (!m_GuesserPrefixArray.IsEmpty())
@@ -26923,6 +26862,10 @@ MapSfmToUSFMAnalysisStruct* CAdapt_ItApp::GetCurSfmMap(enum SfmSet sfmSet)
 /////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 {
+	m_bWizardIsRunning = TRUE; // OnIdle() uses TRUE to suppress an idle event, while the
+							   // wizard is running, from causing the KBserver connection
+							   // request dialog from being shown to the user
+
 	// Note: This version of DoStartWorkingWizard() is
 	// structured quite differently from the MFC version.
 	// WX Notes:
@@ -27005,6 +26948,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
             {
                 wxMessageBox(_T("The document was corrupt, but we have restored the latest version saved in the document history.  You can start from the Start Working Wizard and the document should open successfully."));
                 m_recovery_pending = FALSE;
+				m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
                 return TRUE;
             }
             else
@@ -27051,6 +26995,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
                 {
                     m_bJustLaunched = FALSE;
                 }
+				m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
                 return TRUE;
             }
 		}
@@ -27064,6 +27009,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			m_bStartWorkUsingCollaboration = FALSE;
 			m_bJustLaunched = TRUE; // cause the wizard to open in MainFrame's OnIdle() handler
+			m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
 			return TRUE;
 		}
 
@@ -27073,6 +27019,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 		// Hence, we return below without executing the remining code below.
 
 		// Note: we should return TRUE for PT or BE collaboration.
+		m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
 		return TRUE;
 	}
 
@@ -27106,6 +27053,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 				wxASSERT(FALSE);
 				// whm modified to use wxKill() instead of wxExit() which is the same as a crash
 				wxKill(::wxGetProcessId(),wxSIGKILL); // wxExit();
+				m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
 				return FALSE;
 			}
 		}
@@ -27133,6 +27081,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 				this->LogUserAction(message2);
 				// whm modified to use wxKill() instead of wxExit() which is the same as a crash
 				wxKill(::wxGetProcessId(),wxSIGKILL); // wxExit();
+				m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
 				return FALSE;
 			}
 			// whm added 26Jan13. Remove the bad path
@@ -27245,7 +27194,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
     // is not. So we have the status bar updated here too.
 	if (gbReachedDocPage)
 		RefreshStatusBarInfo();
-
+	m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
 	return TRUE;
 }
 
@@ -28590,11 +28539,14 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pApp != NULL);
 	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
 	m_bUserAuthenticating = FALSE; // must be FALSE when the Manager is invoked 
-											  
+	pApp->m_bUserLoggedIn = FALSE;
+#if defined (ERR_DUPLICATE)
+	wxLogDebug(_T("OnKBSharingManagerTabbedDlg creator: 28,535 in AI.cpp, app's m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+#endif
 	// The one using the manager has to first be given the option for how to get the url for
 	// the KBserver which is being targetted for being setup for kb sharing or whatever other
 	// reason (such as adding or removing a user, a kb, or a custom code). Call the dialog
-	// for this step - on exist from it, app's m_bServiceDiscoveryWanted will have been set
+	// for this step - on exit from it, app's m_bServiceDiscoveryWanted will have been set
 	// to TRUE if discovery is to be done on the LAN, FALSE if the user is going to type a
 	// url he knows (which could be on the LAN, that posibility is not precluded)
 	bool bLoginPersonCancelled = FALSE; // initialize
@@ -28602,6 +28554,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	pHowGetUrl->Center();
 	int dlgReturnCode;
 	dlgReturnCode = pHowGetUrl->ShowModal();
+
 	if (dlgReturnCode == wxID_OK)
 	{ 
 		// m_bServiceDiscoveryWanted will have been set or cleared in
@@ -28616,7 +28569,8 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	bLoginPersonCancelled = pHowGetUrl->m_bUserClickedCancel;
 	// The app's value for m_bServiceDiscoveryWanted will have been set within
 	// the OnOK() handler of the above dialog
-	delete pHowGetUrl; // We don't want the dlg showing any longer
+	pHowGetUrl->Destroy();
+	//delete pHowGetUrl; // We don't want the dlg showing any longer
 
 	// If the user didn't cancel, then call Authenticate....()
 	if (!bLoginPersonCancelled) // if the person doing the login did not cancel...
@@ -28639,7 +28593,8 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		if (m_bServiceDiscoveryWanted)
 		{
 			enum ServDiscDetail returnedValue = SD_NoResultsYet;
-			bool bOK = DoServiceDiscovery(currentURL, chosenURL, chosenHostname, returnedValue);
+
+				bool bOK = ConnectUsingDiscoveryResults(currentURL, chosenURL, chosenHostname, returnedValue);
 			if (bOK)
 			{
 				// Got a URL to connect to
@@ -28661,7 +28616,8 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 			else
 			{
 				// Something is wrong, or no KBserver has yet been set running, etc
-				wxASSERT(returnedValue == SD_NoKBserverFound || 
+				wxASSERT(returnedValue == SD_NoResultsYet ||
+						 returnedValue == SD_NoKBserverFound || 
 						 returnedValue == SD_UrlDiffers_UserRejectedIt ||
 						 returnedValue == SD_LookupHostnameFailed ||
 						 returnedValue == SD_LookupIPaddrFailed ||
@@ -28700,7 +28656,9 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		{
 			if (dlg.m_bError)
 			{
-				gpApp->LogUserAction(_T("Authentication error. Bad username or username lookup failure"));
+				wxString msg = _("Authentication error when logging in to the KB Sharing Manager. Bad username, url or password; or maybe no KBserver running, or a network error");
+				wxLogDebug(msg, _("Error when logging in"), wxICON_ERROR | wxOK);
+				gpApp->LogUserAction(_T("Authentication error. Bad username or username lookup failure; or maybe no KBserver running"));
 				return;
 			}
 			gpApp->LogUserAction(_T("Authenticated for opening the KB Sharing Manager dlg"));
@@ -28801,6 +28759,12 @@ void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
 }
 
 #endif // for _KBSERVER
+#if !defined(_KBSERVER)
+void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
+{
+	event.Enable(FALSE);
+}
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -30511,6 +30475,10 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szKbServerHostname << tab << m_strKbServerHostname;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szKBserverTimer << tab << m_KBserverTimer;
 	pf->AddLine(data);
 	// BEW added next one on 22Apr16, default is 9, range 1 to 20, but no gui support - alter in config file manually
@@ -31742,6 +31710,10 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			m_strKbServerURL = strValue;
 		}
+		else if (name == szKbServerHostname)
+		{
+			m_strKbServerHostname = strValue;
+		}
 		else if (name == szKBserverTimer)
 		{
 			// There is no GUI support for changing the value stored for this param, but
@@ -31782,25 +31754,25 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 #endif
 		if (name == szAdaptitPath)
 		{
-            // BEW changed 12Oct09, we come here when reading either the
-            // AI-BasicConfiguration.aic file or the AI-AdminBasicConfiguration.aic file.
-            // Regardless of whichever is the case, the m_workFolderPath **ALWAYS** points
-            // to the folder which is the default work folder location as defined for
-            // legacy versions of Adapt It; that is, it will have the name "Adapt It
-            // Unicode Work" or "Adapt It Work" (the latter for the ANSI version only), and
-            // be located at the default data folder for the underlying OS -- eg. Documents
-            // folder for Windows Vista, /username/home for Linux, etc. The basic config
-            // file stores both the m_workFolderPath and m_customWorkFolderPath (the latter
-            // will be empty string if a persistent custom folder was not earlier set up),
-            // but when reading values from the basic config file, we **NEVER** read in and
-            // use the stored line which stores the m_customWorkFolderPath value, because
-            // at the time we need to do so, we can't be sure the location of the custom
-            // work folder which stores the relevant path is known. Instead, we get that
-            // path from the path stored within a file called CustomWorkFolderLocation
-            // which is always stored in the legacy default work folder location (even
-            // though typically when we do so, nothing else is stored in that default work
-            // folder but that particular file containing the path to the custom work
-            // folder)
+			// BEW changed 12Oct09, we come here when reading either the
+			// AI-BasicConfiguration.aic file or the AI-AdminBasicConfiguration.aic file.
+			// Regardless of whichever is the case, the m_workFolderPath **ALWAYS** points
+			// to the folder which is the default work folder location as defined for
+			// legacy versions of Adapt It; that is, it will have the name "Adapt It
+			// Unicode Work" or "Adapt It Work" (the latter for the ANSI version only), and
+			// be located at the default data folder for the underlying OS -- eg. Documents
+			// folder for Windows Vista, /username/home for Linux, etc. The basic config
+			// file stores both the m_workFolderPath and m_customWorkFolderPath (the latter
+			// will be empty string if a persistent custom folder was not earlier set up),
+			// but when reading values from the basic config file, we **NEVER** read in and
+			// use the stored line which stores the m_customWorkFolderPath value, because
+			// at the time we need to do so, we can't be sure the location of the custom
+			// work folder which stores the relevant path is known. Instead, we get that
+			// path from the path stored within a file called CustomWorkFolderLocation
+			// which is always stored in the legacy default work folder location (even
+			// though typically when we do so, nothing else is stored in that default work
+			// folder but that particular file containing the path to the custom work
+			// folder)
 			m_workFolderPath = strValue;
 			if (m_workFolderPath.IsEmpty())
 			{
@@ -34276,6 +34248,21 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szFreeTransLanguageCode << tab << m_freeTransLanguageCode;
 	pf->AddLine(data);
 
+	data.Empty();
+	data << szSentFinalPunctsTriggerCaps << tab << m_strSentFinalPunctsTriggerCaps;
+	pf->AddLine(data);
+
+	data.Empty();
+	if (gbUCSrcCapitalAnywhere)
+	{
+		data << szUpperCaseAnywhereInFirstWord << tab << 1;
+	}
+	else
+	{
+		data << szUpperCaseAnywhereInFirstWord << tab << 0;
+	}
+	pf->AddLine(data);
+
 #if defined (_KBSERVER)
 	data.Empty();
 	data << szIsKBServerProject << tab << (int)m_bIsKBServerProject;
@@ -34284,7 +34271,9 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szIsGlossingKBServerProject << tab << (int)m_bIsGlossingKBServerProject;
 	pf->AddLine(data);
+#endif
 
+#if defined (_KBSERVER)
 	// whm 30Oct13 moved the KbServerURL value handling to the basic config file, as
 	// it makes more sense to be there
 	//data.Empty();
@@ -34884,6 +34873,33 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			m_freeTransLanguageCode = strValue;
 		}
+		else if (name == szSentFinalPunctsTriggerCaps)
+		{
+			m_strSentFinalPunctsTriggerCaps = strValue;
+			if (m_strSentFinalPunctsTriggerCaps.IsEmpty())
+			{
+				m_bSentFinalPunctsTriggerCaps = FALSE;
+			}
+			else
+			{
+				m_bSentFinalPunctsTriggerCaps = TRUE;
+			}
+		}
+		else if (name == szUpperCaseAnywhereInFirstWord)
+		{
+			if (strValue.IsEmpty())
+			{
+				gbUCSrcCapitalAnywhere = FALSE;
+			}
+			else if (strValue == _T("0"))
+			{
+				gbUCSrcCapitalAnywhere = FALSE;
+			}
+			else
+			{
+				gbUCSrcCapitalAnywhere = TRUE;
+			}
+		}
 #if defined (_KBSERVER)
 		else if (name == szIsKBServerProject)
 		{
@@ -34911,6 +34927,8 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_bIsGlossingKBServerProject_FromConfigFile = FALSE; // this variable retains the value set
 			}
 		}
+#endif
+#if defined (_KBSERVER)
 		// whm 30Oct13 moved the KbServerURL value handling to the basic config file
 		//else if (name == szKbServerURL)
 		//{
@@ -41205,7 +41223,7 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 /// OnBnClickedButtonSplitNow(), InitDialog(), CWhichBook's InitDialog(),
 /// OnSelchangeChooseBook(), OnCancel(), OnOK(), OnCustomWorkFolderLocation(),
 /// OnLockCustomLocation(), OnUnlockCustomLocation, OnRestoreDefaultWorkFolderLocation(),
-/// OnRadioReviewing(),OnRadioDrafting() and Entry() of Thread_DoEntireKbDeletion
+/// OnRadioReviewing(),OnRadioDrafting(), Synchronous_DoEntireKbDeletion, UploadToKbServer()
 /// Updates the status bar message to reflect the current activity.
 /// BEW 9Aug12, shortened messages to accomodate having "BookName: xxxx" at the end
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -43114,6 +43132,10 @@ wxString CAdapt_ItApp::CleanupFilterMarkerOrphansInString(wxString strFilterMark
 /// items. Since the find operation is a simple brute force search through each item, the
 /// time taken can be considerable for list boxes that may contain very large numbers of
 /// items.
+/// BEW 4May16, to make the search more useful, changed the exact matches to be substring
+/// matches at any part of the string; and since people often use auto-capitalization, which
+/// stores lower case strings in the KB, the case insensitive option should convert not to
+/// .UpperCase(), but to .LowerCase()
 ////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 		enum SearchCaseType searchCaseType, enum SearchStrLengthType searchStrLenType)
@@ -43128,22 +43150,22 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 	//bool bFound = FALSE;
 	wxString caseKeyStr = searchStr;
 	if (searchCaseType == caseInsensitive)
-		caseKeyStr.UpperCase();
+		caseKeyStr.LowerCase();
 	wxString srcStr;
 	for (ct = 0; ct < (int)pListBox->GetCount(); ct++)
 	{
 		srcStr = pListBox->GetString(ct);
 		if (searchCaseType == caseInsensitive)
-			srcStr.UpperCase();
+			srcStr.LowerCase();
 		if (searchStrLenType == subString)
 		{
             // If needed we could here further modify FindListBoxItem to allow for a
             // substring at any location in the string, not just initially It would require
             // an additional enum parameter SubStrType {initialOnly, anywhere}
-			if (srcStr.Find(caseKeyStr) == 0)
+			// BEW 5May16, match anywhere, so use >= in the test on next line, not ==
+			if (srcStr.Find(caseKeyStr) >= 0)
 			{
-				// we found an item whose beginning chars match
-				//bFound = TRUE;
+				// we found an item that matches the search string somewhere in the item
 				return ct;
 			}
 		}
@@ -43153,7 +43175,6 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 			if (srcStr == caseKeyStr)
 			{
 				// we found an item whose chars match exactly
-				//bFound = TRUE;
 				return ct;
 			}
 		}
@@ -43196,6 +43217,7 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 /// FindListBoxItem on list boxes that may contain hundreds or thousands of items. Since
 /// the find operation is a simple brute force search through each item, the time taken can
 /// be considerable for list boxes that may contain very large numbers of items.
+/// BEW changed == to >=  5May16, also .UpperCase() is now .LowerCase()
 ////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 		enum SearchCaseType searchCaseType, enum SearchStrLengthType searchStrLenType,
@@ -43216,7 +43238,7 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 	nCurrSel = pListBox->GetSelection();
 	nTotLBItems = (int)pListBox->GetCount();
 	if (searchCaseType == caseInsensitive)
-		caseKeyStr.UpperCase();
+		caseKeyStr.LowerCase();
 	nStartIndex = 0; // the default starting point case which is fromFirstListPos
 	nEndIndex = nTotLBItems - 1; // the default ending point is index of
 								 // last item in list
@@ -43230,10 +43252,17 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 		nStartIndex = nCurrSel + 1; // start searching with next item below
 									// current selection
 		// But first do some sanity checks.
-		if (nCurrSel == -1 || nStartIndex >= nTotLBItems)
+		//if (nCurrSel == -1 || nStartIndex >= nTotLBItems)
+		if (nCurrSel == -1)
 		{
 			// no valid selection is current so cannot search
 			return -1;
+		}
+		if (nCurrSel >= nTotLBItems)
+		{
+			// At or past the list end, so cycle back
+			nStartIndex = 0;
+			nEndIndex = nCurrSel; // the default ending point is index of last item in list
 		}
 	}
 	// Search from starting index through end of list
@@ -43242,15 +43271,23 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 	{
 		srcStr = pListBox->GetString(ct);
 		if (searchCaseType == caseInsensitive)
-			srcStr.UpperCase();
+			srcStr.LowerCase();
 		if (searchStrLenType == subString)
 		{
             // If needed we could here further modify FindListBoxItem to allow for a
             // substring at any location in the string, not just initially It would require
             // an additional enum parameter SubStrType {initialOnly, anywhere}
-			if (srcStr.Find(caseKeyStr) == 0)
+			//
+			// BEW changed 4May16 Mike Hore wants a substring search which succeeds anywhere
+			// there is a match in the string. I won't implement Bill's suggestion of an
+			// additional enum param, as I don't think it is needed. Prefixing languages will
+			// benefit from matches of the stem, which won't be in word-initial location.
+			// Other languages will generally work fine, if enough characters are searched for
+			// so I will take this 'easy' way until somone hollers
+			// All that is needed for this change is == 0  becomes >= 0 in the next line
+			if (srcStr.Find(caseKeyStr) >= 0)
 			{
-				// we found an item whose beginning chars match
+				// we found an item which contains the search substring
 				bFound = TRUE;
 				return ct;
 			}
@@ -43277,13 +43314,15 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 		{
 			srcStr = pListBox->GetString(ct);
 			if (searchCaseType == caseInsensitive)
-				srcStr.UpperCase();
+				srcStr.LowerCase();
 			if (searchStrLenType == subString)
 			{
                 // If needed we could here further modify FindListBoxItem to allow for a
                 // substring at any location in the string, not just initially It would
                 // require an additional enum parameter SubStrType {initialOnly, anywhere}
-				if (srcStr.Find(caseKeyStr) == 0)
+				//
+				// BEW 4May16 see comment earlier for why == now is >= in next test
+				if (srcStr.Find(caseKeyStr) >= 0)
 				{
 					// we found an item whose beginning chars match
 					bFound = TRUE;
@@ -49578,10 +49617,101 @@ void CAdapt_ItApp::ClobberGuesser()
 }
 #if defined(_KBSERVER)
 
+void CAdapt_ItApp::ServDiscSingleOnly()
+{
+	// Don't do anything here if there is a burst of discovery scans in progress
+	if (m_bServDiscBurstIsCurrent)
+		return;
+
+	// The idea is to do a single (background thread) discovery run, get the
+	// discovered url & hostname, and if there's no other discovered, or if
+	// this one is same as the config file one, cause it to be presented it to the user
+	// for authentication etc. If more than oe KBserver is running, it is quite likely
+	// that it may find an unwanted KBserver - but at least that means two running
+	// ones are known - and in that case we show them in the Servdisc_KBserversDlg's
+	// list, and he can choose which he wants. The KBserver details in the basic
+	// config file cannot be relied on to exist (the server may have left and gone
+	// home with some other guy since the last session ended), so make no assumption
+	// that it is still available. Comparing the discovered one with it is of course
+	// meaningful - it means that it's still present and running. To do things right
+	// we can't assume that the m_ipAddrs_Hostnames array is empty. We'll assume it may
+	// have earlier discovered KBserver urls and hostnames there still. We have to
+	// preserve them, adding the new discovery if not already included with them
+
+	// First task: archive the contents (temporarily) of ipAddrs_Hostnames
+	wxArrayString archiveArr;
+	size_t count = m_ipAddrs_Hostnames.size();
+	size_t index;
+	for (index = 0; index < count; index++)
+	{
+		archiveArr.Add(m_ipAddrs_Hostnames.Item(index));
+	}
+	m_ipAddrs_Hostnames.Empty();
+
+	// Now get a single service discovery run done - it is almost guaranteed to find
+	// a KBserver currently running - however, there is no guarantee it is the one the
+	// user wants to connect to (unless it is the only one running and the right one
+	// for him to use). So we'll do some fiddles to try make his task as easy as possible
+	DoServiceDiscoverySingleRun();
+
+	// m_ipAddrs_Hostnames should now have the composite string, which resulted from the 
+	// discovery, within it. The basic config file may also have non-empty values for 
+	// m_strKbServerURL and m_strKbServerHostname, from an earlier session, or earlier
+	// in the current session
+	wxString strComposite = wxEmptyString;
+	bool bGotOne = FALSE;
+	if (!m_ipAddrs_Hostnames.IsEmpty())
+	{
+		strComposite = m_ipAddrs_Hostnames.Item(0);
+		bGotOne = TRUE;
+	}
+	/* don't need this bit
+	bool bConfigFileOneIsSameAsDiscoveredOne = FALSE;
+	if (!m_strKbServerURL.IsEmpty() && bGotOne) // test the contents of the config file's url entry
+	{
+		int len = (wxString(_T("https://"))).Len();
+		wxString ipaddress = m_strKbServerURL.Mid(len);
+		bConfigFileOneIsSameAsDiscoveredOne = (strComposite.Find(ipaddress) != wxNOT_FOUND);
+	}
+	*/
+	// The first issue is whether or not some running KBservers are already discovered,
+	// or not
+	if (count == 0)
+	{
+		// Nothing accumulated yet, this makes life easier... we are done here
+		// because subsequent code in ConnectUsingDiscoveryResults() can do the rest
+		return;
+	}
+	else
+	{
+		// One or more are known to be running because they have been discovered already.
+		// Is the discovered one a match for one already discovered? If not, add it to
+		// the inventory, if it is the same as one of them, we are done - except for
+		// restoring the inventory to the m_ipAddrs_Hostnames array
+		if (bGotOne)
+		{
+			bool bMatchedExistingOne = archiveArr.Index(strComposite) != wxNOT_FOUND;
+			if (!bMatchedExistingOne)
+			{
+				// It is not the same url as any of those already discovered, so we 
+				// need to add it to the inventory, and let the user choose from a list
+				// of them all in the appropriate dialog
+				archiveArr.Add(strComposite);
+			}
+		}
+	}
+	// Now, put them all back into the m_ipAddrs_Hostnames array
+	for (index = 0; index < count; index++)
+	{
+		m_ipAddrs_Hostnames.Add(archiveArr.Item(index));
+	}
+	archiveArr.clear();
+}
+
 // Handler for the timer's notification
 void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 {
-	// We do a burst of 9 (default) per call of DoKBserverDiscoveryRuns(), max 20 which
+	// We do a burst of 3 (default) per call of DoKBserverDiscoveryRuns(), max 20 which
 	// is #defined as 20 in AdaptItconstants.h Minimum 1. User may set a different
 	// default by direct edit of the basic config file
 
@@ -49615,6 +49745,12 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 			// Finish up the progress dialog's tracking in the status bar
 			wxString progTitle = _("KBservers Discovery");
 			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
+
+			// Inform the user what the discovered inventory currently is
+			wxString title = _("KBservers discovered so far");
+			wxString msg = GetMainFrame()->BuildUrlsAndNamesMessageString();
+			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+
 			return;
 		}
 	}
@@ -49651,6 +49787,63 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 			m_pServDiscThread[m_nSDRunCounter] = NULL;
 		}
 	}
+}
+
+void CAdapt_ItApp::DoServiceDiscoverySingleRun()
+{
+	if (m_bServDiscBurstIsCurrent)
+	{
+		wxBell();
+		return;
+	}
+#if defined(_shutdown_)
+	wxLogDebug(_T("CAdapt_ItApp:: DoServiceDiscoverySingleRun():  starting"),
+		m_nSDRunCounter, m_servDiscTimer.GetInterval());
+#endif
+
+	wxString progTitle;
+	wxString msgDisplayed;
+	wxString progMsg;
+	const int nTotal = 1;
+	progMsg = _("KBservers? Searching for one only");
+	msgDisplayed = progMsg.Format(progMsg, 1, nTotal);
+	CStatusBar *pStatusBar = (CStatusBar*)GetMainFrame()->m_pStatusBar;
+	progTitle = _("KBservers Discovery");
+	pStatusBar->StartProgress(progTitle, msgDisplayed, nTotal);
+	pStatusBar->UpdateProgress(progTitle, 1, msgDisplayed);
+
+	m_nSDRunCounter = 0; // the thread, and CServiceDiscovery() use this
+	m_pServDiscThread[m_nSDRunCounter] = new Thread_ServiceDiscovery;
+
+	wxThreadError error = m_pServDiscThread[m_nSDRunCounter]->Create(12240);
+	if (error != wxTHREAD_NO_ERROR)
+	{
+		wxString msg;
+		msg = msg.Format(_T("Thread_ServiceDiscovery error number: %d"), (int)error);
+		wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
+
+		// One may fail but others succeed. Handle this failure
+		m_pServDiscThread[m_nSDRunCounter] = NULL;
+	}
+	else
+	{
+		// no error, so now run the thread - it's of detached type
+		error = m_pServDiscThread[m_nSDRunCounter]->Run();
+		if (error != wxTHREAD_NO_ERROR)
+		{
+			wxString msg;
+			msg = msg.Format(_T("Thread_ServiceDiscovery  error number: %d"), (int)error);
+			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
+
+			// We got it as far as instantiation, but couldn't run it. Handle this one only.
+			// Others in the burst may succeed
+			m_pServDiscThread[m_nSDRunCounter]->Delete();
+			m_pServDiscThread[m_nSDRunCounter] = NULL;
+		}
+	}
+	// Finish up the progress dialog's tracking in the status bar
+	((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
+	m_nSDRunCounter = 0;
 }
 
 void CAdapt_ItApp::DoKBserverDiscoveryRuns()
@@ -49697,7 +49890,7 @@ void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 		((CStatusBar*)GetMainFrame()->m_pStatusBar)->StartProgress(progTitle, msgDisplayed, nTotal);
 	}
 
-	// m_KBserverTimer is defaulted to 4113 millisecs and GC = 5sec currently, see near
+	// m_KBserverTimer is defaulted to 7247 millisecs and GC = 5sec currently, see near
 	// top of OnInit() for where the default is set
 	// Note, the timer interval should be some odd value (no zeros) greater than 2.111 seconds,
 	// to avoid timer notifies persistently happening just before the same KBserver's
@@ -49710,4 +49903,114 @@ void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 #endif
 }
 
-#endif
+#endif // _KBSERVER
+
+// EnsureProperCapitalization() checks the "following punctuatation" of the CSourcePhrase
+// instance at nCurrSequNum - 1, providing the active location is not at sn = 0.
+// If the nCurrSequNum CSourcePhrase instance has no initial capital letter, and the
+// previous one has punctuation that should be followed by a capital, then the
+// capitalization is done -  whether or not auto-caps is currently on or off, provided
+// the app flag, m_bSentFinalPunctsTriggerCaps boolean is TRUE - and it is TRUE only
+// when the project config file has one or more punctuation characters (at least they
+// are assumed to be punctuation characters) within the field with label:
+// SentenceFinalPunctuationTriggeringCapitalization
+// Call this function, if felicity conditions comply, from the start of StoreText() 
+// (but NOT from StoreTextGoingBack())
+void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtText)
+{
+	if (nCurrSequNum <= 0)
+	{
+		// Either no valid active location currently, or the phrasebox is at the 
+		// document's start - in either case, there is no "previous CSourcePhrase"
+		// to assess for what its ending punctuation may be
+		return;
+	}
+	wxASSERT(!m_strSentFinalPunctsTriggerCaps.IsEmpty());
+	const wxString endPunctsForTesting = m_strSentFinalPunctsTriggerCaps;
+	CSourcePhrase* pPrevSrcPhrase = NULL;
+	CPile* pPile = m_pLayout->GetPile(nCurrSequNum - 1);
+	if (pPile != NULL)
+	{
+		// There is a previous pile, so there will be a previous CSourcePhrase it points at
+		pPrevSrcPhrase = pPile->GetSrcPhrase();
+		wxASSERT(pPrevSrcPhrase != NULL);
+		if (pPrevSrcPhrase != NULL)
+		{
+			wxString sentenceFinalPuncts = pPrevSrcPhrase->m_follPunct;
+			sentenceFinalPuncts += pPrevSrcPhrase->GetFollowingOuterPunct();
+			if (sentenceFinalPuncts.IsEmpty())
+			{
+				return; // There is no punctuation at the end of the CSourcePhrase's target text &
+						// so there is nothing to trigger any capitalization on the following one
+			}
+			// There's some sentence final punctuation, test for any triggers in it. We only need one
+			bool bCapitalizationTriggerExists = FALSE;
+			int count = endPunctsForTesting.Length();
+			int offset = wxNOT_FOUND;
+			int i;
+			for (i = 0; i < count; i++)
+			{
+				wxChar aTestPunct = endPunctsForTesting.GetChar(i);
+				offset = sentenceFinalPuncts.Find(aTestPunct);
+				if (offset >= 0)
+				{
+					// We've found a triggering one within the punctuation at the end of the last sentence
+					bCapitalizationTriggerExists = TRUE;
+					break;
+				}
+			}
+			if (!bCapitalizationTriggerExists)
+			{
+				// Found nothing that indicates capitalization is needed, so return
+				return;
+			}
+			else
+			{
+				// We found a trigger, which potentially could indicate we need to capitalize
+				// the CSourcePhrase at the nCurrSequNum location passed in. Now we need to
+				// determine if that location actually has an upper-case initial word or not.
+				// If it doesn't have one, we should do the capitalizing. If it does, just
+				// return without making any change. We can't test what the source text may
+				// have as its first character, because the source text may well be an exotic
+				// language which does't have a case distinction
+
+				// First, make sure there is no punctuation on the passed in tgtText
+				GetView()->RemovePunctuation(GetDocument(), &tgtText, from_target_text);
+
+				bool bNoError = GetDocument()->SetCaseParameters(tgtText, FALSE); // FALSE is bIsSrcText
+				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+				{
+					// change it to upper case; tgtText is passed in by reference, so the
+					// caller's value is changed too
+					tgtText.SetChar(0, gcharNonSrcUC);
+
+					// That's the KB storage part of it done, now update the CSourcePhrase
+					// instance that is at nCurrSequNum
+					CPile* pPile = m_pLayout->GetPile(nCurrSequNum);
+					if (pPile != NULL)
+					{
+						CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+						if (pSrcPhrase != NULL)
+						{
+							pSrcPhrase->m_adaption = tgtText;
+							pSrcPhrase->m_targetStr = tgtText; // no puncts on it yet, but case is now upper case
+
+							// Now put the punctuation back, on the now-upper-case tgt string
+							// (Note: the tgtText is not grabbed from the phrasebox, and so if the
+							// user has typed overriding punctuation, that will be lost - source
+							// text punctuation will be used - converted to target text equivalents
+							// of course)
+							GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtText);
+						}
+						return;
+					}
+				}
+				else
+				{
+					// It's already upper case, so just return
+					return;
+				}
+			}
+		}
+	}
+}

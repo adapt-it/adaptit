@@ -80,6 +80,7 @@ DECLARE_EVENT_TYPE(wxEVT_Delayed_GetChapter, -1)
 DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
 DECLARE_EVENT_TYPE(wxEVT_Call_Authenticate_Dlg, -1)
 DECLARE_EVENT_TYPE(wxEVT_End_ServiceDiscovery, -1)
+DECLARE_EVENT_TYPE(wxEVT_HowGetURL, -1)
 
 #endif
 
@@ -233,6 +234,16 @@ public:
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 
+#if !defined(_KBSERVER)
+
+	// When not a KBserver build, 5 menu commands pertain to KB sharing, and 4
+	// of these are not disabled (but do nothing), so better if I disable them
+	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
+	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
+	void OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event);
+	void OnUpdateDiscoverOneKBserver(wxUpdateUIEvent& event);
+#endif
+
 #if defined(_KBSERVER)
 
 	void OnKBSharingDlg(wxCommandEvent& event);
@@ -240,7 +251,12 @@ public:
 	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
 	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
 	void OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event));
+	void OnDiscoverOneKBserver(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event);
+	void OnUpdateDiscoverOneKBserver(wxUpdateUIEvent& event);
+	int  GetUrlAndHostnameInventory(wxArrayString& compositesArray, 
+			wxArrayString& urlsArray, wxArrayString& namesArray);
+	wxString BuildUrlsAndNamesMessageString();
 
 	int nEntriesToEndServiceDiscovery;
 private:
@@ -252,6 +268,14 @@ public:
 	// Next is the function for getting the KBserver password typed in by the
 	// user via a dialog
 	wxString GetKBSvrPasswordFromUser(wxString& url, wxString& hostname);
+	// BEW 24May16 The next two booleans are for getting the KbSvrHowGetUrl dialog open
+	// from the OnIdle() handler. Formerly it was opened from within the OnOK() handler
+	// of the KBSharingSetup handler class - which worked fine on Windows and Linux,
+	// but OSX refused to behave - it froze the GUI. So I've separated the two dialogs
+	// and open the child one, KbSvrHowGetUrl, from OnIdle when in adaptations mode
+	// m_bKbSvrAdaptationsTicked, or in glossing mode, m_bKbSvrGlossesTicked, is TRUE
+	bool m_bKbSvrAdaptationsTicked;
+	bool m_bKbSvrGlossesTicked;
 
 #endif // _KBSERVER
 

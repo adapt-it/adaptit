@@ -10,7 +10,7 @@
 /// The CServDisc_KBserversDlg class provides a dialog in which the user can choose
 /// one of two or more URLs, each URL being the location on the LAN for a currently
 /// running KBserver instance, discovered by the service discovery module
-/// encapulated in the CAdapt_ItApp::DoServiceDiscovery() function. Each has an
+/// encapulated in the CAdapt_ItApp::ConnectUsingDiscoveryResults() function. Each has an
 /// associated hostname, which defaults to kbserver if the person who setup the
 /// multicasting KBerver did not supply a hostname at the appropriate time when
 /// the setup script was running. Otherwise, the name he entered is used.
@@ -65,7 +65,7 @@ CServDisc_KBserversDlg::CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* 
 
 	m_pListBoxUrls = (wxListBox*)FindWindowById(ID_LISTBOX_URLS);
     m_pListBoxUrls->SetFocus();
-	m_urlsArr = wxArrayString(*pUrls); // copy the urls from the array in DoServiceDiscovery()
+	m_urlsArr = wxArrayString(*pUrls); // copy the urls from the array in ConnectUsingDiscoveryResults()
 	m_hostnamesArr = wxArrayString(*pHostnames); // copy the associated hostnames
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
