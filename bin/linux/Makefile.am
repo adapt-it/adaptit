@@ -131,7 +131,7 @@ adaptit_SOURCES = \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
 	../../source/StartWorkingWizard.cpp ../../source/StatusBar.cpp \
 	../../source/Strip.cpp ../../source/TargetUnit.cpp \
-	../../source/tellenc.cpp
+	../../source/tellenc.cpp \
 	../../source/Thread_ServiceDiscovery.cpp \
 	../../source/Timer_KbServerChangedSince.cpp \
 	../../source/ToolbarPage.cpp ../../source/TransformToGlossesDlg.cpp \
