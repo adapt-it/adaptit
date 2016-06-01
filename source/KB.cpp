@@ -430,7 +430,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 			if ((!bStoringNotInKB && m_pApp->m_bIsKBServerProject && !m_bGlossingKB) ||
 				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB))
 			{
-				FireOffCreateEntryThread(lowercaseKey, pRefString_forLower);
+				DoCreateEntrySynchronously(lowercaseKey, pRefString_forLower);
 			}
 #endif
 		}
@@ -480,7 +480,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 					if ((!bStoringNotInKB && m_pApp->m_bIsKBServerProject && !m_bGlossingKB) ||
 						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB))
 					{
-						FireOffPseudoUndeleteThread(lowercaseKey, pRefStrDeleted);
+						DoPseudoUndeleteSynchronously(lowercaseKey, pRefStrDeleted);
 					}
 #endif
 				}
@@ -505,7 +505,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 					if ((!bStoringNotInKB && m_pApp->m_bIsKBServerProject && !m_bGlossingKB) ||
 						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB))
 					{
-						FireOffCreateEntryThread(lowercaseKey, pRefString_forLower);
+						DoCreateEntrySynchronously(lowercaseKey, pRefString_forLower);
 					}
 #endif
 				}
@@ -882,10 +882,7 @@ int CKB::GetKBTypeForServer()
 	return m_bGlossingKB ? 2 : 1;
 }
 
-// Does nothing if the project is not a KB sharing one, or if it is but sharing is
-// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
-// encapsulated, and advisory only, so errors don't stop the app
-void CKB::FireOffCreateEntryThread(wxString srcStr, CRefString* pRefString)
+void CKB::DoCreateEntrySynchronously(wxString srcStr, CRefString* pRefString)
 {
 	if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 		||
@@ -897,10 +894,8 @@ void CKB::FireOffCreateEntryThread(wxString srcStr, CRefString* pRefString)
 	}
 }
 
-// Does nothing if the project is not a KB sharing one, or if it is but sharing is
-// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
-// encapsulated, and advisory only, so errors don't stop the app
-void CKB::FireOffPseudoUndeleteThread(wxString srcStr, CRefString* pRefString)
+
+void CKB::DoPseudoUndeleteSynchronously(wxString srcStr, CRefString* pRefString)
 {
 	if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 		||
@@ -912,10 +907,7 @@ void CKB::FireOffPseudoUndeleteThread(wxString srcStr, CRefString* pRefString)
 	}
 }
 
-// Does nothing if the project is not a KB sharing one, or if it is but sharing is
-// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
-// encapsulated, and advisory only, so errors don't stop the app
-void CKB::FireOffPseudoDeleteThread(wxString srcStr, CRefString* pRefString)
+void CKB::DoPseudoDeleteSynchronously(wxString srcStr, CRefString* pRefString)
 {
 	if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 		||

@@ -192,19 +192,19 @@ public:
 	CRefString*	GetMatchingRefString(CTargetUnit* pTU, wxString& tgtPhrase, bool& bIsDeleted);
 
 	// Does nothing if the project is not a KB sharing one, or if it is but sharing is
-	// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
-	// encapsulated, and advisory only, so errors don't stop the app
-	void		FireOffCreateEntryThread(wxString srcStr, CRefString* pRefString);
+	// currently disabled. Otherwise, it calls the create entry function synchronously. 
+	// Error handling is encapsulated, and advisory only, so errors don't stop the app
+	void		DoCreateEntrySynchronously(wxString srcStr, CRefString* pRefString);
 
 	// Does nothing if the project is not a KB sharing one, or if it is but sharing is
-	// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
-	// encapsulated, and advisory only, so errors don't stop the app
-	void		FireOffPseudoUndeleteThread(wxString srcStr, CRefString* pRefString);
+	// currently disabled. Otherwise, it call pseudo undelete function synchronously. 
+	// Error handling is encapsulated, and advisory only, so errors don't stop the app
+	void		DoPseudoUndeleteSynchronously(wxString srcStr, CRefString* pRefString);
 
 	// Does nothing if the project is not a KB sharing one, or if it is but sharing is
-	// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
-	// encapsulated, and advisory only, so errors don't stop the app
-	void		FireOffPseudoDeleteThread(wxString srcStr, CRefString* pRefString);
+	// currently disabled. Otherwise, it calls pseudo delete function synchronously.
+	// Error handling is encapsulated, and advisory only, so errors don't stop the app
+	void		DoPseudoDeleteSynchronously(wxString srcStr, CRefString* pRefString);
 
 
 #endif // for _KBSERVER
