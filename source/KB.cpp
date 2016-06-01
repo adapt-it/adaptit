@@ -4286,6 +4286,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// BEW added 5Oct12, here is a suitable place for KBserver support of
 		// CreateEntry(), since both the key and the translation (both possibly with a case
 		// adjustment for the first letter) are defined.
+		// BEW 26May16, added m_bAdaptationsKBserverReady so GetMyKbServer() won't crash the
+		// app if none is running
 		if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 			||
 			(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))

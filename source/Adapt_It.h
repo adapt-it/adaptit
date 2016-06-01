@@ -3127,6 +3127,7 @@ public:
 	// but if one is not yet connected, the app crashes. So we have to protect from such crashes.
 	bool m_bAdaptationsKBserverReady; // TRUE if a connection is current, to an adaptations KBserver
 	bool m_bGlossesKBserverReady; // TRUE if a connection is current, to a glosses KBserver
+	// The above didn't make it into the Linux code on git, so this will line force an update
 	
 	// m_bIsKBServerProject and m_bIsGlossingKBServerProject, while set from the project config
 	// file, can be cleared to FALSE at initialization of a setup, losing the values from the
