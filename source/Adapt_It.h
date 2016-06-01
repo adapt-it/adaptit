@@ -3121,6 +3121,13 @@ public:
 	// BEW added next, 7Sep15, to store whether or not sharing is temporarily disabled
 	bool		m_bKBSharingEnabled; // the setting applies to the one, or both kbserver types
 									 // simultaneously if sharing both was requested
+	// BEW 26May16, added next two, because any move of the phrasebox will call PlacePhraseBox()
+	// and that will internally try to do DoStore_ForPlacePhraseBox() and that in turn, if
+	// m_bIsKBServerProject (from config file) is TRUE, will try to access a connected KBserver -
+	// but if one is not yet connected, the app crashes. So we have to protect from such crashes.
+	bool m_bAdaptationsKBserverReady; // TRUE if a connection is current, to an adaptations KBserver
+	bool m_bGlossesKBserverReady; // TRUE if a connection is current, to a glosses KBserver
+	// The above didn't make it into the Linux code on git, so this will line force an update
 	
 	// m_bIsKBServerProject and m_bIsGlossingKBServerProject, while set from the project config
 	// file, can be cleared to FALSE at initialization of a setup, losing the values from the

@@ -165,20 +165,20 @@
 #include "helpers.h"
 
 // to enable or suppress logging, comment out to suppress
-//#define _zerocsd_
+#define _zerocsd_
 
 // a few of the ones _zerocsd_ turned on, a minimal number, are not turned on with _minimalsd_
-//#define _minimalsd_
+#define _minimalsd_
 
 // this one, if defined, displays each <url>@@@<hostname> string sent to the app, but a 
 // WITHHOLDING message if it is a duplicate. Comment out to suppress displaying that info
-//#define _tracking_transfers_
+#define _tracking_transfers_
 
 // Comment out the next line to disable wxLogDebug() logging related to shutdown of the 
 // service discovery run - same define is in Thread_ServiceDiscovery.cpp and wxServDisc.cpp
 // This is the one I used to give me logging helpful for tracking down the cause of access
 // violations - the final hurdle for successful service discovery multiple runs.
-//#define _shutdown_
+#define _shutdown_
 
 #ifdef __WXMSW__
 // The following include prevents the #include of Adapt_It.h from generating Yield() macro

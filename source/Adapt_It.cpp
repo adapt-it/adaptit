@@ -15111,6 +15111,14 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		msg = msg.Format(_T("Error: SetupForKBServer(), kbType = %d - could not instantiate KbServer class; setup aborted"),
 			whichType);
 		wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
+		if (whichType == 1)
+		{
+			m_bAdaptationsKBserverReady = FALSE;
+		}
+		else
+		{
+			m_bGlossesKBserverReady = FALSE;
+		}
 		return FALSE;
 	}
 	// Store it for the user's adapting or glossing session in this project
@@ -15204,6 +15212,14 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 			// Ensure the session's stored password is cleared, so this error will not
 			// reoccur if the user retries
 			GetMainFrame()->SetKBSvrPassword(_T(""));
+			if (whichType == 1)
+			{
+				m_bAdaptationsKBserverReady = FALSE;
+			}
+			else
+			{
+				m_bGlossesKBserverReady = FALSE;
+			}
 			return FALSE;
 		}
 	}
@@ -15227,10 +15243,26 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 			// Ensure the session's stored password is cleared, so this error will not
 			// reoccur if the user retries
 			GetMainFrame()->SetKBSvrPassword(_T(""));
+			if (whichType == 1)
+			{
+				m_bAdaptationsKBserverReady = FALSE;
+			}
+			else
+			{
+				m_bGlossesKBserverReady = FALSE;
+			}
 			return FALSE;
 		}
 	}
 	// all's well
+	if (whichType == 1)
+	{
+		m_bAdaptationsKBserverReady = TRUE;
+	}
+	else
+	{
+		m_bGlossesKBserverReady = TRUE;
+	}
 	return TRUE;
 }
 
@@ -15543,6 +15575,14 @@ bool CAdapt_ItApp::KbServerRunning(int whichType)
 // shut down.
 bool CAdapt_ItApp::ReleaseKBServer(int whichType)
 {
+	if (whichType == 1)
+	{
+		m_bAdaptationsKBserverReady = FALSE;
+	}
+	else
+	{
+		m_bGlossesKBserverReady = FALSE;
+	}
 	wxASSERT(whichType == 1 || whichType == 2);
 	KbServer* pKbSvr = GetKbServer(whichType); // beware, may return NULL
 	if (pKbSvr == NULL)
@@ -15661,6 +15701,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bServDiscBurstIsCurrent = FALSE; // initialize
 	m_bServDiscSingleRunIsCurrent = FALSE; // initialize
 	m_bServDiscGetOneOnly = TRUE; // initialize
+
+	// BEW 26May16
+	m_bAdaptationsKBserverReady = FALSE; // TRUE if a connection is current, to an adaptations KBserver
+	m_bGlossesKBserverReady= FALSE; // TRUE if a connection is current, to a glosses KBserver
+
 
 	m_bServiceDiscoveryWanted = TRUE; // initialize
 	m_bEnteringKBserverProject = TRUE;
