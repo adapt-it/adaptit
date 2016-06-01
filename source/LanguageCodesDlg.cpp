@@ -639,12 +639,20 @@ void CLanguageCodesDlg::OnUseSelectedCodeForFreeTransLanguage(wxCommandEvent& WX
 // if the dialog is modeless.
 void CLanguageCodesDlg::OnOK(wxCommandEvent& event)
 {
-	m_sourceLangCode = pEditSourceLangCode->GetValue();
-	m_targetLangCode = pEditTargetLangCode->GetValue();
-	m_glossLangCode = pEditGlossLangCode->GetValue();
+    // GDLC 26MAY16 Trim white space off the codes to avoid problems when comparing codes later
+    wxString srcLangCode = pEditSourceLangCode->GetValue();
+    m_sourceLangCode = (srcLangCode.Trim()).Trim(false);
+    
+    wxString tgtLangCode = pEditTargetLangCode->GetValue();
+    m_targetLangCode = (tgtLangCode.Trim()).Trim(false);
+    
+    wxString glsLangCode = pEditGlossLangCode->GetValue();
+	m_glossLangCode = (glsLangCode.Trim()).Trim(false);
 
 	// BEW 23Jul12, added next line and the two tests & assignments below
-	m_freeTransLangCode = pEditFreeTransLangCode->GetValue();
+    // GDLC 26MAY16 Trim white space off the codes to avoid problems when comparing codes later
+	wxString freLangCode = pEditFreeTransLangCode->GetValue();
+    m_freeTransLangCode = (freLangCode.Trim()).Trim(false);
 
 	// of the next two tests, only one of the booleans can be TRUE, or both will be FALSE
 	if (m_bGlossBtnChosen)

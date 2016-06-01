@@ -314,10 +314,20 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 	// get any final edits of lang codes from edit boxes
-	tempSrcLangCode = pSrcLangCodeBox->GetValue();
-	tempTgtLangCode = pTgtLangCodeBox->GetValue();
-	tempGlsLangCode = pGlsLangCodeBox->GetValue();
-	tempFreeTransLangCode = pFreeTransLangCodeBox->GetValue();
+    // GDLC 26MAY16 Trim white space off the codes to avoid problems when comparing codes later
+    wxString srcLangCode = pSrcLangCodeBox->GetValue();
+    tempSrcLangCode = (srcLangCode.Trim()).Trim(false);
+    wxString tgtLangCode = pTgtLangCodeBox->GetValue();
+    tempTgtLangCode = (tgtLangCode.Trim()).Trim(false);
+    wxString glsLangCode = pGlsLangCodeBox->GetValue();
+    tempGlsLangCode = (glsLangCode.Trim()).Trim(false);
+    wxString freLangCode = pFreeTransLangCodeBox->GetValue();
+    tempFreeTransLangCode = (freLangCode.Trim()).Trim(false);
+//	tempSrcLangCode = pSrcLangCodeBox->GetValue();
+//	tempTgtLangCode = pTgtLangCodeBox->GetValue();
+//	tempGlsLangCode = pGlsLangCodeBox->GetValue();
+//	tempFreeTransLangCode = pFreeTransLangCodeBox->GetValue();
+
 	// update the lang codes values held on the App
 	pApp->m_sourceLanguageCode = tempSrcLangCode;
 	pApp->m_targetLanguageCode = tempTgtLangCode;
