@@ -275,7 +275,7 @@ extern wxChar gcharNonSrcLC;
 extern wxChar gcharNonSrcUC;
 extern wxChar gcharSrcLC;
 extern wxChar gcharSrcUC;
-extern bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+extern bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position
 							   // is enabled, FALSE is legacy initial position only
 extern int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
 							// character was found to be located, wxNOT_FOUND if not located
@@ -1132,7 +1132,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					wxString bracketed = _T('[');
 					bracketed += pSP->GetSrcWordBreak();
 					bracketed += _T(']');
-					wxLogDebug(_T("SrcPhrase: %s  sequnum  %d   [m_srcWordBreak] =  %s"), 
+					wxLogDebug(_T("SrcPhrase: %s  sequnum  %d   [m_srcWordBreak] =  %s"),
 						pSP->m_srcPhrase.c_str(), pSP->m_nSequNumber, bracketed.c_str());
 					pos = pos->GetNext();
 				} while (pos != NULL);
@@ -1658,7 +1658,7 @@ void CAdapt_ItDoc::DocChangedExternally()
 	// typed) in the ComposeBar's editbox being left there - and of course it would be
 	// wrong, because the restored doc would still be in free translation mode and the
 	// new box location would, if in no former free trans section, become the new anchor
-	// location for a newly created section - and it would be a bogus meaning; but if 
+	// location for a newly created section - and it would be a bogus meaning; but if
 	// the phrasebox was within a free trans section, AI's code would move it automatically
 	// back to the section's anchor - which is fine, and that should have the bogus free
 	// translation replaced by that section's correct one. So this would be okay. It's when
@@ -1701,13 +1701,13 @@ bool  CAdapt_ItDoc::Git_installed()
 
 /*  mrh - 5Jun14.
     CollaborationAllowsSaving() checks if safe to Save with regard to collaboration.
- 
+
     If we're collaborating with Paratext or BibleEdit, and if the one we're collaborating with is currently running,
-    it would be unsafe to do a Save which would involve transferring data to the other application, as it might 
+    it would be unsafe to do a Save which would involve transferring data to the other application, as it might
     cause VCS conflicts when the user of that application next does a Save there.
     In this situation, we warn the user to close the other application now and then try again, and we return
     false from here which will block any Save or DVCS operation.
- 
+
     If we're not collaborating or the collaboration application isn't running, a Save is safe and we return true.
 */
 
@@ -1723,19 +1723,19 @@ bool  CAdapt_ItDoc::CollaborationAllowsSaving()
 {
 #ifndef __WXMAC__       // collaboration doesn't happen on the Mac, so we just return true.
     //wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
-    
+
     if ( (gpApp->m_bCollaboratingWithParatext && gpApp->ParatextIsRunning()) || (gpApp->m_bCollaboratingWithBibledit && gpApp->BibleditIsRunning()) )
     {
     // No, it's unsafe to Save.  Put up a message and return false.
-        
+
         wxString msg;
         msg = msg.Format(_("Adapt It cannot transfer your work to %s while %s is running.\nClick on OK to close this dialog. Leave Adapt It running, switch to %s and shut it down. Then switch back to Adapt It and do the save operation again."),
                          gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
-        
+
         wxMessageBox(msg, _T(""), wxOK);
         return false;
     }
-    
+
     // All OK.
 #endif
     return true;
@@ -1747,7 +1747,7 @@ bool  CAdapt_ItDoc::Commit_valid()
     wxCommandEvent	dummy;
 
     if (!CollaborationAllowsSaving())  return false;    // Bail out on an unsafe collaboration situation
-    
+
     if ( gpApp->m_strUserID == NOOWNER )
     {
 		wxMessageBox (_("Before saving in the document history, you must enter a username for yourself."));
@@ -1774,7 +1774,7 @@ bool  CAdapt_ItDoc::Commit_valid()
 					  + _T(".  Only the document's owner can save in the document history.") );
 		return false;
 	}
-	
+
     // All OK!
     return true;
 }
@@ -2437,7 +2437,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 	{
 		if (gpApp->m_pActivePile != NULL)
 		{
-			// No use trying if the active pile is NULL - we may be processing a doc 
+			// No use trying if the active pile is NULL - we may be processing a doc
 			// which has no visible phrasebox, or the normal GUI isn't being used
 			PutPhraseBoxAtDocEnd();
 #if defined(_DEBUG)
@@ -2600,10 +2600,10 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 	long resultFreeTrans = -1; // ditto
 	wxArrayString outputTgt, outputFreeTrans; // for feedback from ::wxExecute()
 	wxArrayString errorsTgt, errorsFreeTrans; // for feedback from ::wxExecute()
-    
+
 // mrh 5Jun14 -- we now put our check for the collaborative editor running right here at the start, and do absolutely
 //  nothing if it's unsafe.
-   
+
     if (!CollaborationAllowsSaving())  return false;    // Bail out on an unsafe collaboration situation
 
 	UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
@@ -3590,7 +3590,7 @@ bool CAdapt_ItDoc::DoAbsolutePathFileSave(wxString absPath)
 	{
 		pApp->LogUserAction(_T("Passed in empty path in signature. In doc::DoAbsolutePathFileSave(wxString absPath)"));
 	}
-	// Path was empty, or could not reset the current working volume to the 
+	// Path was empty, or could not reset the current working volume to the
 	// document's folder, or the attempt to do f.Open() for writing failed; so
 	// could not save the file - the old version of it will remain on disk
 	return FALSE;
@@ -4362,7 +4362,7 @@ void CAdapt_ItDoc::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
-	// BEW 21Aug15, Default the following flag to a TRUE value - just in case 
+	// BEW 21Aug15, Default the following flag to a TRUE value - just in case
 	// collaboration mode may be in effect
 	pApp->m_bConflictResolutionTurnedOn = TRUE;
 
@@ -8995,7 +8995,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				// as \f...\f*\x...\x* get filtered as \f...\f*\f...\f*\x...\x*. The reason is that
 				// RebuildSourceText() call, in this block, rebuilds from pSublist; but earlier,
 				// in the first filtering pass (which filtered \f...\f*) the filtered string got
-				// stored in the CSourcePhrase which is the first in the second filterable span, 
+				// stored in the CSourcePhrase which is the first in the second filterable span,
 				// in the instance's m_filteredInfo member; and the second iteration then produced
 				// the pSublist and the second iteration's call of RebuildSourceText then rebuilt
 				// using the source text but prepended with the stored m_filteredInfo contents,
@@ -9424,7 +9424,7 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 }
 */
 
-// BEW 23Apr15 added provisional support for Dennis Walters request for / as a 
+// BEW 23Apr15 added provisional support for Dennis Walters request for / as a
 // like-whitespace wordbreak; only in Unicode version
 bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 {
@@ -9596,7 +9596,7 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 				endMkrLength = wholeMkr.Length() + 1; // add 1 for *
 				return length + endMkrLength;
 			}
-			else if (IsInLineMarker(ptr, pEnd) && 
+			else if (IsInLineMarker(ptr, pEnd) &&
 				IsNestedMarkerOrMarkerTag(ptr, theTag, baseOfEndMkr, bIsWholeMkr))
 			{
 				// BEW 24Oct14 addition. Bleed the \+tag nested markers here, because
@@ -10246,7 +10246,7 @@ bool CAdapt_ItDoc::IsClosingQuote(wxChar* pChar)
 /// only when " is encountered as a word initial quote, ' is not so interpretted because we
 /// assume ' is more likely to be a glottal stop symbol, so we assume it is word-building,
 /// and so we keep m_bSingleQuoteAsPunct set to FALSE in Adapt It - been so since version 4
-/// and on. 
+/// and on.
 /// The function looks at what follows *ptr, and what precedes, since *ptr is " character.
 /// If what follows it not a whitespace, then " must be interpretted as belonging to the
 /// next word in the parse, and so we return TRUE. It can't be a closing quote. Looking
@@ -10854,9 +10854,9 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 /// BEW 24Oct14, no changes for support of USFM nested markers. (But bTokenizingTargetText
 /// needed to be added to signature because the call FindMarseHaltLocation() had a hard-
 /// coded tgt punctuation string within it, which needed to be set to be src or target
-/// depending on what was passed to TokenizeText() - this produced a small cascade of 
-/// signature changes in a few functions, since FindMarseHaltLocation() as used in 
-/// various places - but at least now TokenizeText() uses either src or tgt puncts 
+/// depending on what was passed to TokenizeText() - this produced a small cascade of
+/// signature changes in a few functions, since FindMarseHaltLocation() as used in
+/// various places - but at least now TokenizeText() uses either src or tgt puncts
 /// throughout, and consistently one or the other, depending on bTokenizingTargetText
 //////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxChar*& pWord2Start,
@@ -11644,7 +11644,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	// wxString member whatever the whitespace(s) char(s) is/are which precede each word.
 	// By storing them, we can use them to restore the whitespace types in the translation
 	// text at USFM marked up translation export time. So our approach below is to look for
-	// each place where len is returned, and prior to it, insert code which will backtrack 
+	// each place where len is returned, and prior to it, insert code which will backtrack
 	// the ptr till it points at the first character of any immediately preceding whitespace,
 	// and decrement the len value accordingly, and then return it.
 
@@ -11945,7 +11945,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		// ParseWord() is being called to rebuild a doc after user changed punctuation
 		// settings, this can produce exceptions (see below) to the expectation we are now
 		// at the start of the word to be parsed.
-		
+
 	} // end of TRUE block for test: if (IsMarker(ptr))
 	else
 	{
@@ -12241,7 +12241,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct;
 			}
 			pSrcPhrase->m_srcPhrase += theWord;
-			// BEW 14Jul14, decrement len until it points to start of any 
+			// BEW 14Jul14, decrement len until it points to start of any
 			// preceding whitespace, and then return
 			while (IsWhiteSpace(ptr-1L))
 			{
@@ -12327,7 +12327,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				}
 				pSrcPhrase->m_srcPhrase += theWord;
 				pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
-				// BEW 14Jul14, decrement len until it points to start of any 
+				// BEW 14Jul14, decrement len until it points to start of any
 				// preceding whitespace, and then return
 				while (IsWhiteSpace(ptr-1L))
 				{
@@ -12660,7 +12660,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// the above call, so just return len to the caller
 			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
-			// BEW 14Jul14, decrement len until it points to start of any 
+			// BEW 14Jul14, decrement len until it points to start of any
 			// preceding whitespace, and then return
 			while (IsWhiteSpace(ptr-1L))
 			{
@@ -12692,7 +12692,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		if (len > saveLen)
 		{
 			// These whites are to be considered "thrown away", but we may reverse that
-			// decision in code further down, if this whitespace turns out to be the word 
+			// decision in code further down, if this whitespace turns out to be the word
 			// delimitation whitespace
 			bThrewAwayWhiteSpaceAfterWord = TRUE; // if FALSE, code below knows we've
 							// started into parsing of following puncts & endmarkers
@@ -12705,7 +12705,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 	// endmarkers for the current word, check this out and return if so. Check for ] too.
 	if (*ptr == _T(']'))
 	{
-		// BEW 14Jul14, decrement len until it points to start of any 
+		// BEW 14Jul14, decrement len until it points to start of any
 		// preceding whitespace, and then return
 		while (IsWhiteSpace(ptr-1L))
 		{
@@ -12725,7 +12725,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// if it's opening quotes punctuation, then definitely return
 			if (IsOpeningQuote(ptr))
 			{
-				// BEW 14Jul14, decrement len until it points to start of any 
+				// BEW 14Jul14, decrement len until it points to start of any
 				// preceding whitespace, and then return
 				while (IsWhiteSpace(ptr-1L))
 				{
@@ -12770,7 +12770,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 						ptr += countThem;
 						if (*ptr == _T(']'))
 						{
-							// BEW 14Jul14, decrement len until it points to start of any 
+							// BEW 14Jul14, decrement len until it points to start of any
 							// preceding whitespace, and then return
 							while (IsWhiteSpace(ptr-1L))
 							{
@@ -12785,7 +12785,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 					{
 						// Nah, must belong to what follows on next ParseWord() call...
 
-						// BEW 14Jul14, decrement len until it points to start of any 
+						// BEW 14Jul14, decrement len until it points to start of any
 						// preceding whitespace, and then return
 						while (IsWhiteSpace(ptr-1L))
 						{
@@ -12821,7 +12821,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 						// get the marker stored
 						pSrcPhrase->AddEndMarker(theEndMarker);
 					}
-					// BEW 14Jul14, decrement len until it points to start of any 
+					// BEW 14Jul14, decrement len until it points to start of any
 					// preceding whitespace, and then return
 					while (IsWhiteSpace(ptr-1L))
 					{
@@ -12875,7 +12875,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// check for ] marker, if we are pointing at it, update len and return
 			if (*ptr == _T(']'))
 			{
-				// BEW 14Jul14, decrement len until it points to start of any 
+				// BEW 14Jul14, decrement len until it points to start of any
 				// preceding whitespace, and then return
 				while (IsWhiteSpace(ptr-1L))
 				{
@@ -12913,13 +12913,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				if (IsEndMarker(ptr2, pEnd))
 				{
 					// the legacy code ... using ptr; it's an endmarker, so we can
-					// abandon the whitespace preceding it 
+					// abandon the whitespace preceding it
 					len = ParseOverAndIgnoreWhiteSpace(ptr, pEnd, len); // updates len and ptr
 				}
 				else
 				{
 					// it's not an endmarker, so ...
-					// BEW 14Jul14, decrement len until it points to start of any 
+					// BEW 14Jul14, decrement len until it points to start of any
 					// preceding whitespace, and then return
 					while (IsWhiteSpace(ptr-1L))
 					{
@@ -12995,7 +12995,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		// then return with len reaching only to the start of the whitespace
 		if (*ptr == _T(']'))
 		{
-			// BEW 14Jul14, decrement len until it points to start of any 
+			// BEW 14Jul14, decrement len until it points to start of any
 			// preceding whitespace, and then return
 			while (IsWhiteSpace(ptr-1L))
 			{
@@ -13004,7 +13004,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			}
 			return len;
 		}
-		else // BEW 14Jul14 added this else block, so we don't need to do 
+		else // BEW 14Jul14 added this else block, so we don't need to do
 			 // this addition in blocks below
 		{
 			len += nWhiteSpaceSpan;
@@ -13042,7 +13042,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// oops, HALT! don't parse further, we've come to where the next word's stuff is
 			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
-			// BEW 14Jul14, decrement len until it points to start of any 
+			// BEW 14Jul14, decrement len until it points to start of any
 			// preceding whitespace, and then return
 			while (IsWhiteSpace(ptr-1L))
 			{
@@ -13081,7 +13081,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			//	len += nWhiteSpaceSpan;
 			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
-			// BEW 14Jul14, decrement len until it points to start of any 
+			// BEW 14Jul14, decrement len until it points to start of any
 			// preceding whitespace, and then return
 			while (IsWhiteSpace(ptr-1L))
 			{
@@ -13147,7 +13147,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				{
 					len += nMorePunctsSpan;
 				}
-				// BEW 14Jul14, decrement len until it points to start of any 
+				// BEW 14Jul14, decrement len until it points to start of any
 				// preceding whitespace, and then return
 				while (IsWhiteSpace(ptr-1L))
 				{
@@ -13251,7 +13251,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// we must return
 			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
-			// BEW 14Jul14, decrement len until it points to start of any 
+			// BEW 14Jul14, decrement len until it points to start of any
 			// preceding whitespace, and then return
 			while (IsWhiteSpace(ptr-1L))
 			{
@@ -13291,7 +13291,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// the above call, so just return len to the caller; ptr is updated too
 			m_bHasPrecedingStraightQuote = FALSE; // BEW 19Oct15 added to fix Seth's bug
 
-			// BEW 14Jul14, decrement len until it points to start of any 
+			// BEW 14Jul14, decrement len until it points to start of any
 			// preceding whitespace, and then return
 			while (IsWhiteSpace(ptr-1L))
 			{
@@ -13320,7 +13320,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		// IsEndMarker() knows to halt at ] so if that happened, ptr and len will be such
 		// that the caller's ptr will point at the ] bracket character
 
-		// BEW 14Jul14, decrement len until it points to start of any 
+		// BEW 14Jul14, decrement len until it points to start of any
 		// preceding whitespace, and then return
 		while (IsWhiteSpace(ptr-1L))
 		{
@@ -13400,7 +13400,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				// check for ptr pointing at ] bracket, return if it is
 				if (*ptr == _T(']'))
 				{
-					// BEW 14Jul14, decrement len until it points to start of any 
+					// BEW 14Jul14, decrement len until it points to start of any
 					// preceding whitespace, and then return
 					while (IsWhiteSpace(ptr-1L))
 					{
@@ -13435,7 +13435,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 						pSrcPhrase->m_srcPhrase += lastPuncts; // update m_srcPhrase for the view
 						len += nCountLastPuncts; // ptr is already at this location
 					}
-					// BEW 14Jul14, decrement len until it points to start of any 
+					// BEW 14Jul14, decrement len until it points to start of any
 					// preceding whitespace, and then return
 					while (IsWhiteSpace(ptr-1L))
 					{
@@ -13469,7 +13469,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 						pSrcPhrase->SetInlineNonbindingEndMarkers(enders);
 						len += length;
 						ptr += length;
-						// BEW 14Jul14, decrement len until it points to start of any 
+						// BEW 14Jul14, decrement len until it points to start of any
 						// preceding whitespace, and then return
 						while (IsWhiteSpace(ptr-1L))
 						{
@@ -13483,7 +13483,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 						// it' an endmarker, but not an inline non-binding one, this is probably
 						// a USFM markup error - so just return and let the caller deal
 						// with it
-						// BEW 14Jul14, decrement len until it points to start of any 
+						// BEW 14Jul14, decrement len until it points to start of any
 						// preceding whitespace, and then return
 						while (IsWhiteSpace(ptr-1L))
 						{
@@ -13495,7 +13495,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 					}
 				} // end of TRUE block for test: if (IsEndMarker(ptr, pEnd)
 
-				// BEW 14Jul14, decrement len until it points to start of any 
+				// BEW 14Jul14, decrement len until it points to start of any
 				// preceding whitespace, and then return
 				while (IsWhiteSpace(ptr-1L))
 				{
@@ -13529,7 +13529,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			len += nHowManyWhites;
 			len += nMorePunctsSpan;
 			ptr = pMorePunctsEnd;
-			// BEW 14Jul14, decrement len until it points to start of any 
+			// BEW 14Jul14, decrement len until it points to start of any
 			// preceding whitespace, and then return
 			while (IsWhiteSpace(ptr-1L))
 			{
@@ -13550,7 +13550,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				len += nHowManyWhites;
 				ptr = pMaybeWhitesEnd;
 			}
-			// BEW 14Jul14, decrement len until it points to start of any 
+			// BEW 14Jul14, decrement len until it points to start of any
 			// preceding whitespace, and then return
 			while (IsWhiteSpace(ptr-1L))
 			{
@@ -13561,7 +13561,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		}
 	} // end TRUE block for test: if (bNotEither)
 
-	// BEW 14Jul14, decrement len until it points to start of any 
+	// BEW 14Jul14, decrement len until it points to start of any
 	// preceding whitespace, and then return
 	while (IsWhiteSpace(ptr-1L))
 	{
@@ -14444,7 +14444,7 @@ void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString
 			// current accumStr.
 			// First save the marker we are at to check that any end marker
 			// that follows is indeed a corresponding end marker.
-			wxString currMkr = MarkerAtBufPtr(ptr,pEnd); // BEW 25Mar15, refactored this 
+			wxString currMkr = MarkerAtBufPtr(ptr,pEnd); // BEW 25Mar15, refactored this
 			int itemLen;
 			//while (ptr < pEnd && *(ptr + 1) != gSFescapechar) <<-- unsafe for a \p\v sequence
 			// Must accumulate the backslash being pointed at before entering the loop
@@ -14696,7 +14696,7 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar)
 /// \param      tagOnly       <- Whether \tag or \+tag or tag or +tag was passed in, it
 ///                              returns the tag string here (it may have * at its end)
 /// \param      baseOfEndMkr  <- If an endmarker was passed in, it is the tagOnly without the
-///                              final * character; if not an endmarker passed in, then 
+///                              final * character; if not an endmarker passed in, then
 ///                              empty string is returned (This can be used as a defacto
 ///                              test of whether what was passed in was an endmarker or
 ///                              from an endmarker.)
@@ -14710,7 +14710,7 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar)
 /// parsed from pChar, or if the marker could not be found in the hash map.
 /// BEW 24Oct14 variant useful for support of USFM nested markers, used in ParseWord()
 ///////////////////////////////////////////////////////////////////////////////
-USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar, wxString& tagOnly, 
+USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar, wxString& tagOnly,
 									  wxString& baseOfEndMkr, bool& bIsNestedMkr)
 {
 	// Looks up the sfm pointed at by pChar
@@ -14937,9 +14937,9 @@ bool CAdapt_ItDoc::MarkerExistsInArrayString(wxArrayString* pUnkMarkers,
 /// Determines if a standard format marker (whole marker including backslash) exists in a
 /// given string. If the whole marker exists, the function returns TRUE and the zero-based
 /// index into MarkerStr is returned in markerPos. If the marker doesn't exist in the
-/// string markerPos returns -1. 
+/// string markerPos returns -1.
 /// BEW 24Oct14, the SetupMarkerStrings() calling function builds rapid access wxString
-/// marker collections based on the marker definitions in the m_pUsfmAndPngStylesMap, and so 
+/// marker collections based on the marker definitions in the m_pUsfmAndPngStylesMap, and so
 /// knows nothing about USFM nested markers. So, to support USFM nested markers here, nothing
 /// needs to be done. We do have rapid access strings not constructed from m_pUsfmAndPngStylesMap,
 /// and for those, markes of form \+tag are included when appropriate (that is, only for
@@ -15171,7 +15171,7 @@ bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 /// in AI_USFM.xml with inLine="1" attribute. InLine markers are primarily "character
 /// style" markers and also include all the embedded content markers whose parent markers
 /// are footnote, endnotes and crossrefs.
-/// BEW 24Oct14, Such markers are typically the ones which potentially may be nested. 
+/// BEW 24Oct14, Such markers are typically the ones which potentially may be nested.
 /// Therefore, some additions are below to support determining when a nested marker
 /// is in-line; nested markers are not enumerated in the USFM standard, but are constructable
 /// on-demand from any unnested one by addition of + following the backspace. So our
@@ -15208,7 +15208,7 @@ bool CAdapt_ItDoc::IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd))
 		wholeMkr += baseOfEndMkr;
 	}
 	// note: no + is present now, if it in fact was a ptr to \+tag passed in
-	
+
 	// end of 24Oct14 addition, and next 3 lines no longer needed
 	//int aPos = wholeMkr.Find(_T('*'));
 	//if (aPos != -1)
@@ -16091,7 +16091,7 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 /// data on each call. TokenizeText also reworked to handle text colouring better.
 /// BEW 24Oct14, various changes (mostly to called functions within) for support
 /// of USFM nested markers
-/// 
+///
 /// TODO - currently, order information about what precedes a word and what follows it is
 /// lost. A useful change for more accurate exports, and reducing the user of Placement
 /// dialogs, would be to add order information (eg. enums in actual order in a couple of
@@ -16246,8 +16246,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 			itemLen = ParseWhiteSpace(ptr);
 			// BEW 10Jul14 added next 3 lines
-			// BEW 23Apr15, signature *ptr,itemLen results in the wxChar at ptr being repeated 
-			// itemLen times. That's not what I want. signature should be ptr,itemLen, which 
+			// BEW 23Apr15, signature *ptr,itemLen results in the wxChar at ptr being repeated
+			// itemLen times. That's not what I want. signature should be ptr,itemLen, which
 			// then copies as many wxChars as itemLen value, starting from ptr's wxChar
 			//wxString aDelimiter(*ptr, itemLen); <<-- wrong
 			wxString aDelimiter(ptr, itemLen); // right
@@ -16267,7 +16267,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// such things as \v 33 then the accumulated m_markers text has to be stored on
 		// an orphaned CSourcePhrase carrying the [ bracket.)
 		//
-		// BEW 2Mar15 Changed the protocol described in the above paragraph. [ and ] are 
+		// BEW 2Mar15 Changed the protocol described in the above paragraph. [ and ] are
 		// still stored on orphaned CSourcePhrase instances, but where in the instance they
 		// get stored is more helpfully determined by whether or not they are listed as
 		// punctuation characters. If they are so listed, then store them on m_precPunct
@@ -16570,7 +16570,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
                 // parser, that was not true).
                 // BEW 25Feb11, added code to use pUsfmAnalysis looked up to set
                 // m_curTextType and m_bSpecialText which were forgottten here
-                // BEW 24Oct14, the rapid access strings for binding markers- 
+                // BEW 24Oct14, the rapid access strings for binding markers-
                 // m_inlineBindingMarkers, now contains a \+tag variant for each \tag
                 // marker; similarly and the two strings m_inlineNonbindingMarkers and
 				// m_inlineNonbindingEndMarkers likewise contain marker and nested marker
@@ -16680,7 +16680,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
                 // never lists unknown markers. So the changes in the next few lines fix
                 // all this - the test after the || had to be added.
                 // BEW 24Oct14 add nested mkr support here -- have to construct an
-                // augmented reconstructed associated mkr; maybe we are looking at a 
+                // augmented reconstructed associated mkr; maybe we are looking at a
                 // nested one
 				bool bIsWholeMkr = TRUE;
 				bIsNestedMkr = IsNestedMarkerOrMarkerTag(&wholeMkr, tagOnly, baseOfEndMkr, bIsWholeMkr);
@@ -16690,7 +16690,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				augmentedWholeMkr = gSFescapechar;
 				augmentedWholeMkr += tagOnly;
 				augmentedWholeMkr += _T(' ');
-				
+
                 // Do the lookup - these rapid access strings never contain nested markers
 				if (IsAFilteringSFM(pUsfmAnalysis) ||
 					(gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1))
@@ -17040,7 +17040,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			if (pSrcPhrase->m_nSequNumber == 666)
 			{
 				int break_here = 1;
-			} 
+			}
 */
 #endif
 			itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessPuncts,
@@ -19611,7 +19611,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 		}
 	}
 
-// mrh Oct12 -- If OnCloseDocument() is called from DocChangedExternally(), we need to preserve 
+// mrh Oct12 -- If OnCloseDocument() is called from DocChangedExternally(), we need to preserve
 // the current KB, so we now have a private flag to indicate this.
 
 	if (!m_bReopeningAfterClosing)
@@ -20214,7 +20214,7 @@ void CAdapt_ItDoc::OnFileNew(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
-	// BEW 21Aug15, Default the following flag to a TRUE value - just in case 
+	// BEW 21Aug15, Default the following flag to a TRUE value - just in case
 	// collaboration mode may be in effect
 	pApp->m_bConflictResolutionTurnedOn = TRUE;
 
@@ -21318,9 +21318,9 @@ h:		gpApp->gCurrentSfmSet = newSet; // caller has done it already, or should hav
 /// Extracts each whole marker, removes the backslash, gets rid of any final * if an endmarkers somehow
 /// crept in unnoticed, and if unique, stores the bareMkr in the map; if the input string str is empty,
 /// it exits without doing anything.
-/// 
+///
 /// BEW 24Oct14, leave unchanged for USFM nested markers support - this would mean
-/// the map may contain the +tag of a marker like \+tag - but we'll assume that's 
+/// the map may contain the +tag of a marker like \+tag - but we'll assume that's
 /// what should happen until we find otherwise
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::GetMarkerMapFromString(MapWholeMkrToFilterStatus*& pMkrMap,
@@ -22177,7 +22177,7 @@ void CAdapt_ItDoc::OnSplitDocument(wxCommandEvent& WXUNUSED(event))
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnJoinDocuments(wxCommandEvent& WXUNUSED(event))
 {
-	// BEW 21Aug15, Default the following flag to a TRUE value - just in case 
+	// BEW 21Aug15, Default the following flag to a TRUE value - just in case
 	// collaboration mode may be in effect
 	gpApp->m_bConflictResolutionTurnedOn = TRUE;
 	gpApp->GetView()->RemoveSelection();
@@ -22449,7 +22449,7 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 	// first, get the file and load it into a CBString
 	wxString defaultDir;
 	wxString packedDocPath;
-	// BEW 21Aug15, Default the following flag to a TRUE value - just in case 
+	// BEW 21Aug15, Default the following flag to a TRUE value - just in case
 	// collaboration mode may be in effect
 	gpApp->m_bConflictResolutionTurnedOn = TRUE;
 
@@ -23813,7 +23813,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	if (ccDlg.ShowModal() == wxID_OK)
 	{
 		// BEW 1Sep15 Whatever the user's choice for whether current doc only, or all docs,
-		// the new checkbox, "Do blind fixes whenever possible" applies, or doesn't apply, 
+		// the new checkbox, "Do blind fixes whenever possible" applies, or doesn't apply,
 		// to either choice; it's value has been already set in app's m_bBlindFixesInConsCheck
 
 		// handle user's choice of consistency check type
@@ -23826,15 +23826,15 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
             // is called because the latter will append to whatever is in
             // m_pSourcePhrases, so the latter list must be cleared to avoid the data
             // doubling bug
-            
+
 			// If there is a document open when the command was invoked, clobber it so
-			// that it's data doesn't get mixed into the first doc to be checked 
-			bool bClobberedSuccessfully = ConsistencyCheck_ClobberDoc(pApp, bDocIsClosed, 
+			// that it's data doesn't get mixed into the first doc to be checked
+			bool bClobberedSuccessfully = ConsistencyCheck_ClobberDoc(pApp, bDocIsClosed,
 										bDocForcedToClose, pStatusBar, &afList, &afgList);
 			if (!bClobberedSuccessfully)
 			{
 				// If there was an error, afList or afgList (which depends on
-				// gbIsGlossing) is cleared internally, as is m_acceptedFilesList, 
+				// gbIsGlossing) is cleared internally, as is m_acceptedFilesList,
 				// and progress bar finished off; all that remains to do here is return
 				pApp->m_bBlindFixInConsCheck = FALSE; // restore default value (BEW 1Sep15)
 				return;
@@ -23906,13 +23906,13 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				// book mode is on, do the check over all books in all book folders
 
 				// If there is a document open when the command was invoked, clobber it so
-				// that it's data doesn't get mixed into the first doc to be checked 
-				bool bClobberedSuccessfully = ConsistencyCheck_ClobberDoc(pApp, bDocIsClosed, 
+				// that it's data doesn't get mixed into the first doc to be checked
+				bool bClobberedSuccessfully = ConsistencyCheck_ClobberDoc(pApp, bDocIsClosed,
 											bDocForcedToClose, pStatusBar, &afList, &afgList);
 				if (!bClobberedSuccessfully)
 				{
 					// If there was an error, afList or afgList (which depends on
-					// gbIsGlossing) is cleared internally, as is m_acceptedFilesList, 
+					// gbIsGlossing) is cleared internally, as is m_acceptedFilesList,
 					// and progress bar finished off; all that remains to do here is return
 					pApp->m_bBlindFixInConsCheck = FALSE; // restore default value (BEW 1Sep15)
 					return;
@@ -24045,13 +24045,13 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                 // doc, and saved as part of the appended doc (at its start)
 
 				// If there is a document open when the command was invoked, clobber it so
-				// that it's data doesn't get mixed into the first doc to be checked 
-				bool bClobberedSuccessfully = ConsistencyCheck_ClobberDoc(pApp, bDocIsClosed, 
+				// that it's data doesn't get mixed into the first doc to be checked
+				bool bClobberedSuccessfully = ConsistencyCheck_ClobberDoc(pApp, bDocIsClosed,
 											bDocForcedToClose, pStatusBar, &afList, &afgList);
 				if (!bClobberedSuccessfully)
 				{
 					// If there was an error, afList or afgList (which depends on
-					// gbIsGlossing) is cleared internally, as is m_acceptedFilesList, 
+					// gbIsGlossing) is cleared internally, as is m_acceptedFilesList,
 					// and progress bar finished off; all that remains to do here is return
 					pApp->m_bBlindFixInConsCheck = FALSE; // restore default value (BEW 1Sep15)
 					return;
@@ -24193,7 +24193,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 
 bool CAdapt_ItDoc::ConsistencyCheck_ClobberDoc(CAdapt_ItApp* pApp, bool& bDocIsClosed, bool& bDocForcedToClose,
 						CStatusBar* pStatusBar, AFList* afListPtr, AFGList* afgListPtr)
-{            
+{
 	// save and remove open doc, if a doc is open
 	if (!bDocIsClosed)
 	{
@@ -24505,7 +24505,7 @@ void CAdapt_ItDoc::ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& a
 // BEW 1Sep15 added support for a "blind fix" checkbox option that automatically, if chosen,
 // causes the location's adaptation where an inconsistency has been identified to get the
 // KB's CTargetUnit's CRefString instances translation, but only provided that translation
-// string (which may be an adaptation, or in DoConsistencyCheckG, a gloss) is the only 
+// string (which may be an adaptation, or in DoConsistencyCheckG, a gloss) is the only
 // valid entry for that CTargetUnit instance (i.e. there could be one or more pseudo-deleted
 // entries, but they won't be considered; but there can only be one non-deleted entry; otherwise
 // the dialog will show in the usual way)
@@ -25178,7 +25178,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                         // different or do an edit of something shown in the list of
                         // adaptations, or ignore the location entirely.
                         // BEW 1Sep15, the deletion could be because the user edited the KB
-                        // target text, which also then makes the unedited form become 
+                        // target text, which also then makes the unedited form become
 						// pseudo-deleted. Mike Hore wants these auto-fixed blindly if there
 						// is only a single (unique) form associated with the source text form
 						// - so we do that here, provided bBlindFix is TRUE
@@ -25248,6 +25248,11 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					// pTU, pRefStr, bDeleted);
 					else if (pTU == NULL)
 					{
+// MH - it seems if source is coming from Paratext, we can sometimes get a completely empty source phrase.  There'll be no adaptation and no KB entry.
+//  We can ignore this, and don't need to put up any dialog.  So in this case we simply continue the loop.
+                        if (pSrcPhrase->m_srcPhrase.IsEmpty() )
+                            continue;
+
 						bFoundTgtUnit = FALSE;
 
 						bInconsistency = TRUE;
@@ -25708,6 +25713,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					switch (pAutoFixRec->incType)
 					{
 					case member_empty_flag_on_noPTU:
+
+					wxMessageBox (_T("here we are!!!"));
+
 					case member_empty_flag_on_PTUexists_deleted_Refstr:
 						{
 						wxString titleStr = _("Inconsistency Found");
@@ -26364,14 +26372,14 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 // BEW 1Sep15 added support for a "blind fix" checkbox option that automatically, if chosen,
 // causes the location's adaptation where an inconsistency has been identified to get the
 // KB's CTargetUnit's CRefString instances translation, but only provided that translation
-// string (which is a gloss, or in DoConsistencyCheck, an adaptation) is the only 
+// string (which is a gloss, or in DoConsistencyCheck, an adaptation) is the only
 // valid entry for that CTargetUnit instance (i.e. there could be one or more pseudo-deleted
 // entries, but they won't be considered; but there can only be one non-deleted entry; otherwise
 // the dialog will show in the usual way)
 // BEW 1Sep15 added support for a "blind fix" checkbox option that automatically, if chosen,
 // causes the location's adaptation where an inconsistency has been identified to get the
 // KB's CTargetUnit's CRefString instances translation, but only provided that translation
-// string (which may be an adaptation, or in DoConsistencyCheckG, a gloss) is the only 
+// string (which may be an adaptation, or in DoConsistencyCheckG, a gloss) is the only
 // valid entry for that CTargetUnit instance (i.e. there could be one or more pseudo-deleted
 // entries, but they won't be considered; but there can only be one non-deleted entry; otherwise
 // the dialog will show in the usual way)
@@ -26687,7 +26695,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					// appropriate at the active location rather than the one shown in the
 					// phrase box)
 					// BEW 1Sep15, the deletion could be because the user edited the KB
-					// target text, which also then makes the unedited form become 
+					// target text, which also then makes the unedited form become
 					// pseudo-deleted. Mike Hore wants these auto-fixed blindly if there
 					// is only a single (unique) form associated with the source text form
 					// - so we do that here, provided bBlindFix is TRUE
@@ -27128,7 +27136,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 //#if defined(FWD_SLASH_DELIM)
 								// BEW added 23Apr15
 								tempStr = FwdSlashtoZWSP(tempStr);
-//#endif								
+//#endif
 								// glossing store can have punctuation in it
 								pKB->StoreText(pSrcPhrase, tempStr);
 									// StoreText() sets m_gloss for glossing KB
@@ -28010,7 +28018,7 @@ bool CAdapt_ItDoc::SetCaseParameters(wxString& strText, bool bIsSrcText)
 /// offset			<-	0-based offset to the upper case character, if source text. We won't use this
 ///						function for target text - we capitalize only the initial char of tgt text.
 ///						If there is no such character in the first word, then return wxNOT_FOUND
-///	theChar			<-	The character at offset, provided offset is != to wxNOT_FOUND, else unset								
+///	theChar			<-	The character at offset, provided offset is != to wxNOT_FOUND, else unset
 /// bIsSrcText		->	TRUE (default) if str is source text - and that's all we support at present
 /// comments
 /// This is a helper function for capitalizing a source text word of a phrase, or the only word, when
