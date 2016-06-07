@@ -230,9 +230,9 @@ public:
 	int		Synchronous_CreateEntry(KbServer* pKbSvr, wxString src, wxString tgt);
 	int		Synchronous_PseudoUndelete(KbServer* pKbSvr, wxString src, wxString tgt);
 	int		Synchronous_PseudoDelete(KbServer* pKbSvr, wxString src, wxString tgt);
-	//int		Synchronous_ChangedSince_Queued(KbServer* pKbSvr); // <<-- deprecate, much too slow
 	int		Synchronous_ChangedSince_Timed(KbServer* pKbSvr);
 	int		Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long kbIDinKBtable);
+	int		Synchronous_KbEditorUpdateButton(KbServer* pKbSvr, wxString src, wxString oldText, wxString newText);
 
 	// public setters
 	void     SetKB(CKB* pKB); // sets m_pKB to point at either the local adaptations KB or local glosses KB
@@ -336,7 +336,7 @@ public:
 	// Getting the kb server password is done in CMainFrame::GetKBSvrPasswordFromUser(),
 	// and stored there for the session (it only changes if the project changes and even
 	// then only if a different kb server was used for the other project, which would be
-	// unlikely)
+	// unlikely); or from the "Authenticate" dialog (KBSharingStatelessSetupDlg.cpp & .h).
 	// Note, when setting a stateless KbServer instance (eg. as when using the Manager), if the
 	// bStateless flag is TRUE, then 'stateless' temporary storage strings are used for the url,
 	// password and username - and those will get stored in the relevant places in the ptr to the

@@ -109,8 +109,8 @@ void KbSvrHowGetUrl::OnCancel(wxCommandEvent& myevent)
 {
 	// Cancelling from this dialog should, unlike the KbSharingSetup::OnCancel() handler,
 	// remove the sharing state, and clobber the classes KbServer[0] and KbServer[1],
-	// because the assumption is, where this is called, that earlier sharing is to be
-	// re-setup, and so Cancel has to remove the setup otherwise the app state would be
+	// because the assumption is, where this is called, that sharing is to be again
+	// setup, and so Cancel has to remove the setup otherwise the app state would be
 	// internally inconsistent
 	m_bUserClickedCancel = TRUE;
 

@@ -63,9 +63,6 @@
 #include <wx/textfile.h>
 #include "MainFrm.h"
 #include "StatusBar.h"
-//#include "Thread_CreateEntry.h"
-//#include "Thread_PseudoUndelete.h"
-//#include "Thread_PseudoDelete.h"
 #include "CorGuess.h"
 
 // Define type safe pointer lists
@@ -86,6 +83,10 @@ extern wxChar gcharNonSrcLC;
 extern wxChar gcharNonSrcUC;
 extern wxChar gcharSrcLC;
 extern wxChar gcharSrcUC;
+extern bool gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+									// is enabled, FALSE is legacy initial position only
+extern int  gnOffsetToUCcharSrc; // offset to source text location where the upper case
+								 // character was found to be located, wxNOT_FOUND if not located
 
 // next, miscellaneous needed ones
 extern bool gbNoAdaptationRemovalRequested;
@@ -95,7 +96,6 @@ extern bool bSupportNoAdaptationButton;
 extern bool gbSuppressStoreForAltBackspaceKeypress;
 extern bool gbByCopyOnly;
 extern bool gbInhibitMakeTargetStringCall;
-//extern bool gbRemovePunctuationFromGlosses; BEW removed 13Nov10
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
@@ -133,85 +133,6 @@ CKB::CKB(bool bGlossingKB)
 								   // FALSE for adapting KB
 	SetCurrentKBVersion(); // currently KB_VERSION2 which is defined as 2
 }
-
-// copy constructor - it doesn't work, see header file for explanation
-/*
-CKB::CKB(const CKB &kb)
-{
-	const CKB* pCopy = &kb;
-	POSITION pos;
-
-	m_bGlossingKB = pCopy->m_bGlossingKB; // BEW added 12May10
-	m_pApp = pCopy->m_pApp; // BEW added 12May10
-	m_kbVersionCurrent = pCopy->m_kbVersionCurrent; // BEW added 12May10
-	m_nMaxWords = pCopy->m_nMaxWords;
-	m_sourceLanguageName = pCopy->m_sourceLanguageName;
-	m_targetLanguageName = pCopy->m_targetLanguageName;
-
-	//CObList* pTUList = pCopy->m_pTargetUnits;
-*/
-/*
-	// make the new list by copying source list, using copy constructor for the target units
-	if (!pCopy->m_pTargetUnits->IsEmpty())
-	{
-		pos = pTUList->GetHeadPosition();
-		ASSERT(pos != NULL);
-		while (pos != NULL)
-		{
-			CTargetUnit* pTU = (CTargetUnit*)pTUList->GetNext(pos);
-			ASSERT(pTU != NULL);
-			try
-			{
-				CTargetUnit* pTUCopy = new CTargetUnit(); // can't use copy constructor due to C++ bug
-				pTUCopy->Copy(*pTU); // simulates the copy constructor (m_translations guaranteed
-									 // to be defined)
-fails here>>>>	m_pTargetUnits->AddTail(pTUCopy);
-			}
-			catch (CMemoryException e)
-			{
-AfxMessageBox("Memory Exception creating CTargetUnit copy, copying list in copy constructor for CKB.");
-				ASSERT(FALSE);
-				AfxAbort();
-			}
-		}
-	}
-*/
-/*
-	// now copy the maps
-	for (int i=0; i < 10; i++)
-	{
-		CMapStringToOb* pThisMap = m_pMap[i];
-		CMapStringToOb* pThatMap = pCopy->m_pMap[i];
-		POSITION p;
-		if (!pThatMap->IsEmpty())
-		{
-			p = pThatMap->GetStartPosition();
-			ASSERT(p != NULL);
-			while (p != NULL)
-			{
-				CTargetUnit* pTUCopy;
-				CString key;
-				pThatMap->GetNextAssoc(p,key,(CObject*&)pTUCopy);
-				ASSERT(!key.IsEmpty());
-				CTargetUnit* pNewTU = new CTargetUnit(); // can't use copy constructor
-														 // (see CTargetUnit code for explanation)
-				pNewTU->Copy(*pTUCopy); // get's round the problem of m_translations not being
-										// defined before use
-				try
-				{
-					pThisMap->SetAt(key,(CObject*)pNewTU);
-				}
-				catch (CMemoryException e)
-				{
-AfxMessageBox("Memory Exception creating CTargetUnit copy, copying map in copy constructor for CKB.");
-					ASSERT(FALSE);
-					AfxAbort();
-				}
-			}
-		}
-	}
-}
-*/
 
 CKB::~CKB()
 {
@@ -251,7 +172,6 @@ void CKB::Copy(const CKB& kb)
 	m_pApp = pCopy->m_pApp; // BEW added 12May10
 	m_kbVersionCurrent = pCopy->m_kbVersionCurrent; // BEW added 12May10
 
-// ***** TODO *****
 	// once we have a CRefStringMetadata class, pointed at, the copy will have to make copies
 	// of them and set up the mutual pointers in the copies -- so add that code later on
 
@@ -300,8 +220,6 @@ void CKB::Copy(const CKB& kb)
 					// The only difference is that if the given key is not present in the hash map,
 					// an element with the default value_type() is inserted in the table."
 				}
-				// BEW removed 29May10
-				//pTUList->Append(pNewTU);
 			}
 		}
 	}
@@ -318,7 +236,6 @@ void CKB::Copy(const CKB& kb)
 // regarded as a failure to find an instance, and NULL is returned
 // BEW changed 17Jul11, pass the pRefStr value back via signature, and return one of
 // three enum values: absent, or present_but_deleted, or really_present
-//CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptation)
 enum KB_Entry CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptation, CRefString*& pRefStr)
 {
 	TranslationsList* pList = pTgtUnit->m_pTranslations;
@@ -513,7 +430,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 			if ((!bStoringNotInKB && m_pApp->m_bIsKBServerProject && !m_bGlossingKB) ||
 				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB))
 			{
-				FireOffCreateEntryThread(lowercaseKey, pRefString_forLower);
+				DoCreateEntrySynchronously(lowercaseKey, pRefString_forLower);
 			}
 #endif
 		}
@@ -563,7 +480,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 					if ((!bStoringNotInKB && m_pApp->m_bIsKBServerProject && !m_bGlossingKB) ||
 						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB))
 					{
-						FireOffPseudoUndeleteThread(lowercaseKey, pRefStrDeleted);
+						DoPseudoUndeleteSynchronously(lowercaseKey, pRefStrDeleted);
 					}
 #endif
 				}
@@ -588,7 +505,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 					if ((!bStoringNotInKB && m_pApp->m_bIsKBServerProject && !m_bGlossingKB) ||
 						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB))
 					{
-						FireOffCreateEntryThread(lowercaseKey, pRefString_forLower);
+						DoCreateEntrySynchronously(lowercaseKey, pRefString_forLower);
 					}
 #endif
 				}
@@ -705,7 +622,60 @@ wxString CKB::TransformToLowerCaseInitial(wxString& str, bool bIsSrcStr)
 	return lower;
 }
 
-// in this function, the keyStr parameter will always be a source string; the caller must
+bool CKB::IgnoreLegacyUpperCaseEntry(CKB* pKB, int numWords, wxString srcKey)
+{
+	if (gbNoSourceCaseEquivalents)
+		return FALSE;
+	wxString keyStr = srcKey;
+//#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the source text
+	// to support lookups because we will have ZWSP rather than / in the KB
+	// No changes are made if app->m_bFwdSlashDelimiter is FALSE
+	keyStr = FwdSlashtoZWSP(keyStr);
+//#endif
+
+	MapKeyStringToTgtUnit* pMap = NULL;
+	CTargetUnit* pTU = NULL;
+	MapKeyStringToTgtUnit::iterator iter;
+	if (gbIsGlossing)
+	{
+		pKB = m_pApp->m_pGlossingKB;
+	}
+	else
+	{
+		pKB = m_pApp->m_pKB;
+	}
+	pMap = pKB->m_pMap[numWords - 1];
+
+	bool bNoError = m_pApp->GetDocument()->SetCaseParameters(keyStr); // extra param
+																	  // is TRUE since it is source text
+	if (bNoError && gbSourceIsUpperCase)
+	{
+		// Check now for a CTargetUnit instance which matches the upper-case-initial keyStr,
+		// if there is one, we want to ignore it - just return TRUE, if one does not exist
+		// then return FALSE so the normal consistency check is done
+		// do the lookup (with keyStr having upper-case-initial text)
+		iter = pMap->find(keyStr);
+		if (iter != pMap->end())
+		{
+			pTU = iter->second; // we have a match, pTU now points
+								// to a CTargetUnit instance
+			wxASSERT(pTU != NULL);
+			return TRUE; // This CKB entry should be ignored in the consistency check
+		}
+	}
+	else
+	{
+		// Either an error, or the source text key is lower case; in either
+		// situation return FALSE so that the caller does the consistency check
+		return FALSE;
+	}
+	// If control gets to here, there was no stored CTargetUnit instance, and
+	// so the consistency check is wanted
+	return FALSE;
+}
+
+// In this function, the keyStr parameter will always be a source string; the caller must
 // determine which particular map is to be looked up and provide it's pointer as the first
 // parameter; and if the lookup succeeds, pTU is the associated CTargetUnit instance's
 // pointer. This function, as the name suggests, has the smarts for AutoCapitalization being
@@ -759,9 +729,29 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 			// a lower case lookup; if it fails, what we do next depends on flag values above
 			saveKey = keyStr; // save for an upper case lookup if the first lookup fails
 							  // (BEW reinstated the above line, 13Mar13)
-			// make the first character of keyStr be the appropriate lower case one
-			keyStr.SetChar(0,gcharSrcLC); // gcharSrcLC is set within the
-										  // SetCaseParameters() call
+
+			// BEW 25May16, the refactored auto-caps feature needs adjustment if we are allowing
+			// for upper case character to be non-first in first word of source text
+			if (gbUCSrcCapitalAnywhere)
+			{
+				// make the character at gnOffsetToUCcharSrc of keyStr be the appropriate lower 
+				// case one; provided the offset is not wxNOT_FOUND, but if it is, do the
+				// legacy replacement instead
+				if (gnOffsetToUCcharSrc != wxNOT_FOUND)
+				{
+					keyStr.SetChar(gnOffsetToUCcharSrc, gcharSrcLC);
+				}
+				else
+				{
+					keyStr.SetChar(0, gcharSrcLC);
+				}
+			}
+			else // Legacy protocol, initial char only
+			{
+				// make the first character of keyStr be the appropriate lower case one
+				keyStr.SetChar(0, gcharSrcLC); // gcharSrcLC is set within the
+											  // SetCaseParameters() call
+			}
 			// do the lower case lookup
 			iter = pMap->find(keyStr);
 			if (iter != pMap->end())
@@ -892,136 +882,38 @@ int CKB::GetKBTypeForServer()
 	return m_bGlossingKB ? 2 : 1;
 }
 
-// Does nothing if the project is not a KB sharing one, or if it is but sharing is
-// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
-// encapsulated, and advisory only, so errors don't stop the app
-void CKB::FireOffCreateEntryThread(wxString srcStr, CRefString* pRefString)
+void CKB::DoCreateEntrySynchronously(wxString srcStr, CRefString* pRefString)
 {
-	if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+	if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 		||
-		(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+		(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-		/*
-		Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
-		// populate it's public members (it only has public ones anyway)
-		pCreateEntryThread->m_pKbSvr = pKbSvr;
-		pCreateEntryThread->m_source = srcStr;
-		pCreateEntryThread->m_translation = pRefString->m_translation;
-		// now create the runnable thread with explicit stack size of 10KB
-		wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
-		if (error != wxTHREAD_NO_ERROR)
-		{
-			wxString msg;
-			msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
-				(int)error);
-			wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-			//m_pApp->LogUserAction(msg);
-		}
-		else
-		{
-			// no error, so now run the thread (it will destroy itself when done)
-			error = pCreateEntryThread->Run();
-			if (error != wxTHREAD_NO_ERROR)
-			{
-			  wxString msg;
-			  msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-				(int)error);
-			  wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-			  //m_pApp->LogUserAction(msg);
-			}
-		}
-		*/
 		int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, srcStr, pRefString->m_translation);
 		wxUnusedVar(rv);
 	}
 }
 
-// Does nothing if the project is not a KB sharing one, or if it is but sharing is
-// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
-// encapsulated, and advisory only, so errors don't stop the app
-void CKB::FireOffPseudoUndeleteThread(wxString srcStr, CRefString* pRefString)
+
+void CKB::DoPseudoUndeleteSynchronously(wxString srcStr, CRefString* pRefString)
 {
-	if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+	if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 		||
-		(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+		(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-		/*
-		Thread_PseudoUndelete* pPseudoUndeleteThread = new Thread_PseudoUndelete;
-		// populate it's public members (it only has public ones anyway)
-		pPseudoUndeleteThread->m_pKbSvr = pKbSvr;
-		pPseudoUndeleteThread->m_source = srcStr;
-		pPseudoUndeleteThread->m_translation = pRefString->m_translation;
-		// now create the runnable thread with explicit stack size of 10KB
-		wxThreadError error =  pPseudoUndeleteThread->Create(1024); // was wxThreadError error =  pPseudoUndeleteThread->Create(10240);
-		if (error != wxTHREAD_NO_ERROR)
-		{
-			wxString msg;
-			msg = msg.Format(_T("Thread_PseudoUndelete(): thread creation failed, error number: %d"),
-				(int)error);
-			wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-			//m_pApp->LogUserAction(msg);
-		}
-		else
-		{
-			// no error, so now run the thread (it will destroy itself when done)
-			error = pPseudoUndeleteThread->Run();
-			if (error != wxTHREAD_NO_ERROR)
-			{
-			wxString msg;
-			msg = msg.Format(_T("PseudoUndelete, Thread_Run(): cannot make the thread run, error number: %d"),
-			  (int)error);
-			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-			//m_pApp->LogUserAction(msg);
-			}
-		}
-		*/
 		int rv = pKbSvr->Synchronous_PseudoUndelete(pKbSvr, srcStr, pRefString->m_translation);
 		wxUnusedVar(rv);
 	}
 }
 
-// Does nothing if the project is not a KB sharing one, or if it is but sharing is
-// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
-// encapsulated, and advisory only, so errors don't stop the app
-void CKB::FireOffPseudoDeleteThread(wxString srcStr, CRefString* pRefString)
+void CKB::DoPseudoDeleteSynchronously(wxString srcStr, CRefString* pRefString)
 {
-	if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+	if ((m_pApp->m_bAdaptationsKBserverReady && m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 		||
-		(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+		(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = GetMyKbServer();
-		/*
-		Thread_PseudoDelete* pPseudoDeleteThread = new Thread_PseudoDelete;
-		// populate it's public members (it only has public ones anyway)
-		pPseudoDeleteThread->m_pKbSvr = pKbSvr;
-		pPseudoDeleteThread->m_source = srcStr;
-		pPseudoDeleteThread->m_translation = pRefString->m_translation;
-		// now create the runnable thread with explicit stack size of 10KB
-		wxThreadError error =  pPseudoDeleteThread->Create(1024); // was wxThreadError error =  pPseudoDeleteThread->Create(10240);
-		if (error != wxTHREAD_NO_ERROR)
-		{
-			wxString msg;
-			msg = msg.Format(_T("Thread_PseudoDelete(): thread creation failed, error number: %d"),
-				(int)error);
-			wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-			//m_pApp->LogUserAction(msg);
-		}
-		else
-		{
-			// no error, so now run the thread (it will destroy itself when done)
-			error = pPseudoDeleteThread->Run();
-			if (error != wxTHREAD_NO_ERROR)
-			{
-			wxString msg;
-			msg = msg.Format(_T("PseudoDelete, Thread_Run(): cannot make the thread run, error number: %d"),
-			  (int)error);
-			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-			//m_pApp->LogUserAction(msg);
-			}
-		}
-		*/
 		int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, srcStr, pRefString->m_translation);
 		wxUnusedVar(rv);
 	}
@@ -1029,7 +921,7 @@ void CKB::FireOffPseudoDeleteThread(wxString srcStr, CRefString* pRefString)
 
 #endif // _KBSERVER
 
-// looks up the knowledge base to find if there is an entry in the map with index
+// Looks up the knowledge base to find if there is an entry in the map with index
 // nSrcWords-1, for the key keyStr and then searches the list in the CTargetUnit for the
 // CRefString with m_translation member identical to valueStr, and returns a pointer to
 // that CRefString instance. If it fails, it returns a null pointer.
@@ -1046,32 +938,25 @@ void CKB::FireOffPseudoDeleteThread(wxString srcStr, CRefString* pRefString)
 // BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
 // BEW changed 17Jul11, pass the pRefStr value back via signature, and return one of
 // three enum values: absent, or present_but_deleted, or really_present
-//CRefString* CKB::GetRefString(int nSrcWords, wxString keyStr, wxString valueStr)
 enum KB_Entry CKB::GetRefString(int nSrcWords, wxString keyStr, wxString valueStr, CRefString*& pRefStr)
 {
-	// ensure nSrcWords is 1 if this is a GlossingKB access << BEW removed 13Nov10
-	//if (m_bGlossingKB)
-	//	nSrcWords = 1;
 	MapKeyStringToTgtUnit* pMap = this->m_pMap[nSrcWords-1];
 	wxASSERT(pMap != NULL);
 	CTargetUnit* pTgtUnit;	// wx version changed 2nd param of AutoCapsLookup() below to
 							// directly use CTargetUnit* pTgtUnit
-	//CRefString* pRefStr;
 	bool bOK = AutoCapsLookup(pMap,pTgtUnit,keyStr);
 	if (bOK)
 	{
-		//return pRefStr = AutoCapsFindRefString(pTgtUnit,valueStr);
 		KB_Entry rsEntry = AutoCapsFindRefString(pTgtUnit, valueStr, pRefStr);
 		return rsEntry;
 	}
     // lookup failed, so the KB state is different than data in the document
     // suggests, a Consistency Check operation should be done on the file(s)
-	//return (CRefString*)NULL;
 	pRefStr = NULL;
 	return absent;
 }
 
-// this overload of GetRefString() is useful for LIFT imports BEW 21Jun10, no
+// This overload of GetRefString() is useful for LIFT imports BEW 21Jun10, no
 // changes needed for support of kbVersion 2, because internally the call of
 // AutoCapsFindRefString() returns NULL if the only match was of a CRefString
 // instance with m_bDeleted set to TRUE
@@ -1079,20 +964,10 @@ enum KB_Entry CKB::GetRefString(int nSrcWords, wxString keyStr, wxString valueSt
 // use all maps
 // BEW changed 17Jul11, pass the pRefStr value back via signature, and return
 // one of three enum values: absent, or present_but_deleted, or really_present
-//CRefString* CKB::GetRefString(CTargetUnit* pTU, wxString valueStr)
 KB_Entry CKB::GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRefStr)
 {
 	wxASSERT(pTU);
 	KB_Entry rsEntry = AutoCapsFindRefString(pTU, valueStr, pRefStr);
-	//if (pRefStr == NULL)
-	//{
-		// it's not in the m_translations list, so return NULL
-	//	return (CRefString*)NULL;
-	//
-	//else
-	//{
-	//	return pRefStr;
-	//}
 	return rsEntry;
 }
 
@@ -1137,7 +1012,6 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 	{
 		pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 		nWordsInPhrase = nWordsInPhrase; // to prevent compiler warning (BEW 13Nov10)
-		//nWordsInPhrase = 1; // ensure correct value for a glossing KB << BEW removed 13Nov10
 	}
 	else
 	{
@@ -1183,8 +1057,28 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 		bNoError = m_pApp->GetDocument()->SetCaseParameters(s1);
 		if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 		{
-			// make it start with lower case letter
-			s1.SetChar(0,gcharSrcLC);
+			// BEW 25May16, the refactored auto-caps feature needs adjustment if we are allowing
+			// for upper case character to be non-first in first word of source text
+			if (gbUCSrcCapitalAnywhere)
+			{
+				// make the character at gnOffsetToUCcharSrc of the source string be the 
+				// appropriate lower case one; provided the offset is not wxNOT_FOUND, but if it
+				// is, do the legacy replacement instead
+				if (gnOffsetToUCcharSrc != wxNOT_FOUND)
+				{
+					s1.SetChar(gnOffsetToUCcharSrc, gcharSrcLC);
+				}
+				else
+				{
+					s1.SetChar(0, gcharSrcLC);
+				}
+			}
+			else // Legacy protocol, initial char only
+			{
+				// make the first character of keyStr be the appropriate lower case one
+				s1.SetChar(0, gcharSrcLC); // gcharSrcLC is set within the
+											   // SetCaseParameters() call
+			}
 		}
 	}
 	int nRefCount = pRefString->m_refCount;
@@ -1225,7 +1119,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
         // automatic re-storing of it. So now, we will just not remove the last one. This
         // will possibly skew the ref counts a bit for empty adaptations, if the user hits
         // the <no adaptation> button more than once for an entry (making them too large)
-        // or landing on an empty one several times (makes count to small), would not
+        // or landing on an empty one several times (makes count too small), would not
         // matter anyway. To manually remove empty adaptations from the KB the user still
         // has the option of doing it in the KB Editor, or in the ChooseTranslation dialog.
 
@@ -1295,11 +1189,40 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 			pRefString->m_bDeleted = TRUE;
 		}
 
+#if defined(_KBSERVER)
+		// BEW added 5Oct12, here is a suitable place for KBserver support
+		if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady && (GetMyKbServer() != NULL))
+		{
+			if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+				||
+				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+			{
+				KbServer* pKbSvr = GetMyKbServer(); // This gets either the adapting one, or glossing one, 
+													// depending on the mode currently in effect
+				// Assume we need to delete the lower case entry, key = s1, it's most likely
+				// to be correct rather than key = s (That is, to save time, we are deciding
+				// that if auto-capitalization is not currently turned on, and the removal of
+				// a CRefString for an upper-case-initial word or phrase is being done, we will
+				// not bother to set the corresponding KBserver entry's deleted flag to 1. But
+				// we *will* bother to set it to 1, provided the entry is present and 
+				// lower-case-initial, whether auto-caps is on or off.)
+				//
+				// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+				// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+				// effect on GUI responsiveness
+				m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+				m_pApp->m_strSrc_For_KBserver = s1;
+				m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+				m_pApp->m_bPseudoDelete_For_KBserver = TRUE; // Set this boolean rather than do a synchronous call here
+			}
+		}
+#endif
 		// inform the srcPhrase that it no longer has a KB entry (or a glossing KB entry)
 		if (m_bGlossingKB)
 			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 		else
 			pSrcPhrase->m_bHasKBEntry = FALSE;
+
 	}
 }
 
@@ -1311,6 +1234,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 // BEW 12Apr10, no changes needed for support of docVersion 5
 // BEW 18Jun10, no changes needed for support of kbVersion 2
 // BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
+// BEW 25May16, refactored for support of upper case char in src text not in initial position
 wxString CKB::AutoCapsMakeStorageString(wxString str, bool bIsSrc)
 {
 	bool bNoError = TRUE;
@@ -1326,7 +1250,28 @@ wxString CKB::AutoCapsMakeStorageString(wxString str, bool bIsSrc)
 		// so convert if required to do so
 		if (gbAutoCaps && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 		{
-			str.SetChar(0,gcharSrcLC);
+			// BEW 25May16, the refactored auto-caps feature needs adjustment if we are allowing
+			// for upper case character to be non-first in first word of source text
+			if (gbUCSrcCapitalAnywhere)
+			{
+				// make the character at gnOffsetToUCcharSrc of the source string be the 
+				// appropriate lower case one; provided the offset is not wxNOT_FOUND, but if it
+				// is, do the legacy replacement instead
+				if (gnOffsetToUCcharSrc != wxNOT_FOUND)
+				{
+					str.SetChar(gnOffsetToUCcharSrc, gcharSrcLC);
+				}
+				else
+				{
+					str.SetChar(0, gcharSrcLC);
+				}
+			}
+			else // Legacy protocol, initial char only
+			{
+				// make the first character of keyStr be the appropriate lower case one
+				str.SetChar(0, gcharSrcLC); // gcharSrcLC is set within the
+											   // SetCaseParameters() call
+			}
 		}
 	}
 	else
@@ -2091,8 +2036,27 @@ bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation)
 	}
 	if (gbAutoCaps && bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 	{
-		// change it to lower case
-		adjustedKey.SetChar(0, gcharSrcLC);
+		// BEW 25May16, the refactored auto-caps feature needs adjustment if we are allowing
+		// for upper case character to be non-first in first word of source text
+		if (gbUCSrcCapitalAnywhere)
+		{
+			// make the character at gnOffsetToUCcharSrc of the source string be the 
+			// appropriate lower case one; provided the offset is not wxNOT_FOUND, but if it
+			// is, do the legacy replacement instead
+			if (gnOffsetToUCcharSrc != wxNOT_FOUND)
+			{
+				adjustedKey.SetChar(gnOffsetToUCcharSrc, gcharSrcLC);
+			}
+			else
+			{
+				adjustedKey.SetChar(0, gcharSrcLC);
+			}
+		}
+		else // Legacy protocol, initial char only
+		{
+			// make the first character of adjustedKey be the appropriate lower case one
+			adjustedKey.SetChar(0, gcharSrcLC);
+		}
 	}
 
 	// Check if there is a matching adaptation (or gloss if we are calling on a glossing KB)
@@ -2153,7 +2117,7 @@ bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation)
 // function returns FALSE)
 bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 						CTargetUnit*& pTgtUnit, CRefString*& pRefStr, bool& bDeleted)
-{
+ {
 	pTgtUnit = NULL;
 	bDeleted = FALSE;
 
@@ -2198,7 +2162,7 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 	bool bNoError = TRUE;
 	gbByCopyOnly = FALSE; // restore default value (should have been done in caller,
 						  // but this will make sure)
-	wxString adjusted = adaptation; // could have upper case initial character
+	wxString adjusted = adaptation; // could have upper case initial character or non-initial location
 	if (gbAutoCaps)
 	{
 		// FALSE here means 'we are dealing with target text, or gloss text'
@@ -3674,56 +3638,6 @@ CTargetUnit* CKB::GetTargetUnitForKbSharing(wxString keyStr)
 	return (CTargetUnit*)NULL;
 }
 
-/*
-/////////////////////////////////////////////////////////////////////////////////////////
-/// \return         TRUE if translation param && deletedFlag params' values are
-///                 identical to those in a single CRefString within pTU, FALSE
-///                 if one or both do not match.
-/// \param pTU  ->  pointer to a CTargetUnit looked up in the caller by a successful
-///                 call to LookupForKbSharing() - it may contain one or more CRefString
-///                 instances
-/// \param translation -> ref to a string (it may have multiple words, space delimited, or
-///                 even might be an empty string - for a <no adaptation> entry) which is
-///                 paired to the source text key that the caller used for the lookup; the
-///                 translation string could be target text, or glossing text (if the latter
-///                 then it may have punctuation in it - we allow punctuation only in the
-///                 glossing KB) - the origin of the translation string most likely is
-///                 from a KBserver on the LAN or the web and some kind of GET has just
-///                 been done
-/// \param deletedFlag -> the value (0 is FALSE, 1 is TRUE) of the deleted flag for the
-///                 pair being considered for a match (pair being the key and the
-///                 translation string, but we also want to check for a match or non-match
-///                 of the deleted flag as well - the latter info is needed so we can
-///                 determine what the appropriate action is to be in the local KB
-/// \param pRefString <- Set to pointer to the matched CRefString instance in pTU, or NULL
-///                 if no match could be made to any CRefString in pTU.
-/// \param bMatchedTranslation <- Set TRUE if the passed in translation string matches
-///                 the m_translation member's contents within a matched CRefString within
-///                 the passed in pTU; FALSE if the two strings did not match.
-/// \remarks        If TRUE is returned, then both translation and deletedFlag values
-///                 are matched - so we've then matched either a normal entry, or a deleted
-///                 entry. If FALSE is returned, we must test further, and check the value
-///                 of bMatchedTranslation. If the latter is TRUE, then we have matched a
-///                 CRefString in which the m_bDeleted flag has the opposite value to
-///                 whatever value the deletedFlag param had on entry; otherwise, if
-///                 bMatchedTranslation is FALSE, we've not matched any CRefString, and
-///                 the value of bMatchedTranslation should be ignored. (In the latter
-///                 case, the caller should use the translation value to create a new
-///                 CRefString instance and Append() it to the list in pTU, and give the
-///                 new CRefString instance's m_bDeleted flag the value within deletedFlag
-///                 after casting the latter to bool.)
-/////////////////////////////////////////////////////////////////////////////////////////
-bool CKB::IsMatchForKbSharing(CTargetUnit* pTU, wxString& translation,
-					int deletedFlag, CRefString*& pRefString, bool& bMatchedTranslation)
-{
-
-
-// so far, I don't need this. Use CTargetUnit::FindRefStringForKbSharing() and
-// FindDeletedRefStringForKbSharing() instead
-	return TRUE;
-}
-*/
-
 #endif // for _KBSERVER #defined
 
 // Make all the CRefString instances in the CTargetUnit, provided they are
@@ -4011,7 +3925,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
     // a KB entry. When the phrase box lands there, on the other hand, the relevant flag
     // may be TRUE. It then gets its KB entry removed (or ref count decremented) before a
     // store is done, and so the relevant flag is made false when the former happens.
-    // However, for safety first, we'll test the flag below and turn it all if it is on, so
+    // However, for safety first, we'll test the flag below and turn it off if it is on, so
     // that the store may go ahead
 	// BEW 1Jun10: Okay, despite the above comments, I still want some safety first
 	// protection here. Why? Because the code which calls RemoveRefString() and/or
@@ -4364,52 +4278,23 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// BEW added 5Oct12, here is a suitable place for KBserver support of
 		// CreateEntry(), since both the key and the translation (both possibly with a case
 		// adjustment for the first letter) are defined.
-		if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+		// BEW 26May16, added m_bAdaptationsKBserverReady so GetMyKbServer() won't crash the
+		// app if none is running
+		if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 			||
-			(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+			(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = GetMyKbServer();
-			/*
 			// don't send to KBserver if it's a <Not In KB> entry
 			if (!bStoringNotInKB)
 			{
-				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
-				// populate it's public members (it only has public ones anyway)
-				pCreateEntryThread->m_pKbSvr = pKbSvr;
-				pCreateEntryThread->m_source = key;
-				pCreateEntryThread->m_translation = pRefString->m_translation;
-				// now create the runnable thread with explicit stack size of 10KB
-				wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
-				if (error != wxTHREAD_NO_ERROR)
-				{
-					wxString msg;
-					msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
-						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-					//m_pApp->LogUserAction(msg);
-				}
-				else
-				{
-					// no error, so now run the thread (it will destroy itself when done)
-					error = pCreateEntryThread->Run();
-					if (error != wxTHREAD_NO_ERROR)
-					{
-						wxString msg;
-						msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-						  (int)error);
-						wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-						//m_pApp->LogUserAction(msg);
-					}
-				}
-			}
-			*/
-			// don't send to KBserver if it's a <Not In KB> entry
-			if (!bStoringNotInKB)
-			{
-				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
-				wxUnusedVar(rv);
-				wxLogDebug(_T("StoreText() (4392) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-					rv, key.c_str(), pRefString->m_translation.c_str());
+				// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+				// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+				// effect on GUI responsiveness
+				m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+				m_pApp->m_strSrc_For_KBserver = key;
+				m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+				m_pApp->m_bCreateEntry_For_KBserver = TRUE; // set this true, rather than a synchronous call here
 			}
 		}
 
@@ -4559,52 +4444,21 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// BEW added 5Oct12, here is a suitable place for KBserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined.
-			if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+			if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 				||
-				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+				(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 			{
 				KbServer* pKbSvr = GetMyKbServer();
-				/*
-				// don't send to KBserver if it's a <Not In KB> entry
-				if(!bStoringNotInKB)
-				{
-					Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
-					// populate it's public members (it only has public ones anyway)
-					pCreateEntryThread->m_pKbSvr = pKbSvr;
-					pCreateEntryThread->m_source = key;
-					pCreateEntryThread->m_translation = pRefString->m_translation;
-					// now create the runnable thread with explicit stack size of 10KB
-					wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
-					if (error != wxTHREAD_NO_ERROR)
-					{
-						wxString msg;
-						msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
-							(int)error);
-						wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-						//m_pApp->LogUserAction(msg);
-					}
-					else
-					{
-						// no error, so now run the thread (it will destroy itself when done)
-						error = pCreateEntryThread->Run();
-						if (error != wxTHREAD_NO_ERROR)
-						{
-						wxString msg;
-						msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-						  (int)error);
-						wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-						//m_pApp->LogUserAction(msg);
-						}
-					}
-				}
-				*/
 				// don't send to KBserver if it's a <Not In KB> entry
 				if (!bStoringNotInKB)
 				{
-					int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
-					wxUnusedVar(rv);
-					wxLogDebug(_T("StoreText() (4593) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-						rv, key.c_str(), pRefString->m_translation.c_str());
+					// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+					// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+					// effect on GUI responsiveness
+					m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+					m_pApp->m_strSrc_For_KBserver = key;
+					m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+					m_pApp->m_bCreateEntry_For_KBserver = TRUE;
 				}
 			}
 #endif
@@ -4744,50 +4598,20 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// keep use of <Not In KB> restricted to the particular user who
 						// wants to do that, and not propagate it and deletions /
 						// undeletions that may happen as part of it, to the KBserver.
-						if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+						if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 							||
-							(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+							(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 						{
 							KbServer* pKbSvr = GetMyKbServer();
-							/*
 							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
 							{
-								Thread_PseudoUndelete* pPseudoUndeleteThread = new Thread_PseudoUndelete;
-								// populate it's public members (it only has public ones anyway)
-								pPseudoUndeleteThread->m_pKbSvr = pKbSvr;
-								pPseudoUndeleteThread->m_source = key;
-								pPseudoUndeleteThread->m_translation = pRefString->m_translation;
-								// now create the runnable thread with explicit stack size of 10KB
-								wxThreadError error =  pPseudoUndeleteThread->Create(1024); // was wxThreadError error =  pPseudoUndeleteThread->Create(10240);
-								if (error != wxTHREAD_NO_ERROR)
-								{
-									wxString msg;
-									msg = msg.Format(_T("Thread_PseudoUndelete(): thread creation failed, error number: %d"),
-										(int)error);
-									wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-									//m_pApp->LogUserAction(msg);
-								}
-								else
-								{
-									// no error, so now run the thread (it will destroy itself when done)
-									error = pPseudoUndeleteThread->Run();
-									if (error != wxTHREAD_NO_ERROR)
-									{
-									wxString msg;
-									msg = msg.Format(_T("PseudoUndelete, Thread_Run(): cannot make the thread run, error number: %d"),
-									  (int)error);
-									wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-									//m_pApp->LogUserAction(msg);
-									}
-								}
-							}
-							*/
-							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
-							{
-								int rv = pKbSvr->Synchronous_PseudoUndelete(pKbSvr, key, pRefString->m_translation);
-								wxUnusedVar(rv);
-								wxLogDebug(_T("StoreText() (4776) Synchronous_PseudoUndelete returned  %d for src = %s  &  tgt = %s"),
-									rv, key.c_str(), pRefString->m_translation.c_str());
+								// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+								// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+								// effect on GUI responsiveness
+								m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+								m_pApp->m_strSrc_For_KBserver = key;
+								m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+								m_pApp->m_bPseudoUndelete_For_KBserver = TRUE;
 							}
 						}
 #endif
@@ -4925,52 +4749,21 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					// BEW added 5Oct12, here is a suitable place for KBserver support of
 					// CreateEntry(), since both the key and the translation (both possibly
 					// with a case adjustment for the first letter) are defined.
-					if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+					if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 						||
-						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+						(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 					{
 						KbServer* pKbSvr = GetMyKbServer();
-						/*
 						// don't send a <Not In KB> entry to KBserver
 						if (!bStoringNotInKB)
 						{
-							Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
-							// populate it's public members (it only has public ones anyway)
-							pCreateEntryThread->m_pKbSvr = pKbSvr;
-							pCreateEntryThread->m_source = key;
-							pCreateEntryThread->m_translation = pRefString->m_translation;
-							// now create the runnable thread with explicit stack size of 10KB
-							wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
-							if (error != wxTHREAD_NO_ERROR)
-							{
-								wxString msg;
-								msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
-									(int)error);
-								wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-								//m_pApp->LogUserAction(msg);
-							}
-							else
-							{
-								// no error, so now run the thread (it will destroy itself when done)
-								error = pCreateEntryThread->Run();
-								if (error != wxTHREAD_NO_ERROR)
-								{
-								  wxString msg;
-								  msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-									(int)error);
-								  wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-								  //m_pApp->LogUserAction(msg);
-								}
-							}
-						}
-						*/
-						// don't send a <Not In KB> entry to KBserver
-						if (!bStoringNotInKB)
-						{
-							int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
-							wxUnusedVar(rv);
-							wxLogDebug(_T("StoreText() (4959) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-								rv, key.c_str(), pRefString->m_translation.c_str());
+							// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+							// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+							// effect on GUI responsiveness
+							m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+							m_pApp->m_strSrc_For_KBserver = key;
+							m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+							m_pApp->m_bCreateEntry_For_KBserver = TRUE;
 						}
 					}
 #endif
@@ -5011,7 +4804,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	return TRUE;
 }
 
-// like StoreText(), but with different assumptions since we need to be able to move back
+//Llike StoreText(), but with different assumptions since we need to be able to move back
 // when either there is nothing in the current phraseBox (in which case no store need be
 // done), or when the user has finished typing the current srcPhrase's adaption (since it
 // will be saved to the KB when focus moves back.) TRUE if okay to go back, FALSE
@@ -5245,51 +5038,20 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		// subsequently deleted by him before the present; therefore we must test for the
 		// absence of this src/tgt pair and only upload if the entry really is going to be
 		// a new one.
-		if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+		if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 			||
-			(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+			(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = GetMyKbServer();
-			/*
-			// don't send to KBserver if it's a <Not In KB> entry
 			if (!bStoringNotInKB)
 			{
-				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
-				// populate it's public members (it only has public ones anyway)
-				pCreateEntryThread->m_pKbSvr = pKbSvr;
-				pCreateEntryThread->m_source = key;
-				pCreateEntryThread->m_translation = pRefString->m_translation;
-				// now create the runnable thread with explicit stack size of 10KB
-				wxThreadError error = pCreateEntryThread->Create(1024);
-				if (error != wxTHREAD_NO_ERROR)
-				{
-					wxString msg;
-					msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
-						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-					//m_pApp->LogUserAction(msg);
-				}
-				else
-				{
-					// no error, so now run the thread (it will destroy itself when done)
-					error = pCreateEntryThread->Run();
-					if (error != wxTHREAD_NO_ERROR)
-					{
-						wxString msg;
-						msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-							(int)error);
-						wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-						//m_pApp->LogUserAction(msg);
-					}
-				}
-			}
-			*/
-			if (!bStoringNotInKB)
-			{
-				int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
-				wxUnusedVar(rv);
-				wxLogDebug(_T("StoreTextGoingBack() (5272) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-					rv, key.c_str(), pRefString->m_translation.c_str());
+				// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+				// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+				// effect on GUI responsiveness
+				m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+				m_pApp->m_strSrc_For_KBserver = key;
+				m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+				m_pApp->m_bCreateEntry_For_KBserver = TRUE;
 			}
 		}
 #endif
@@ -5353,51 +5115,20 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			// BEW added 5Oct12, here is a suitable place for KBserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined.
-			if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+			if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 				||
-				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+				(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 			{
 				KbServer* pKbSvr = GetMyKbServer();
-				/*
-				// don't send to KBserver if it's a <Not In KB> entry
 				if (!bStoringNotInKB)
 				{
-					Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
-					// populate it's public members (it only has public ones anyway)
-					pCreateEntryThread->m_pKbSvr = pKbSvr;
-					pCreateEntryThread->m_source = key;
-					pCreateEntryThread->m_translation = pRefString->m_translation;
-					// now create the runnable thread with explicit stack size of 10KB
-					wxThreadError error = pCreateEntryThread->Create(1024);
-					if (error != wxTHREAD_NO_ERROR)
-					{
-						wxString msg;
-						msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
-							(int)error);
-						wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-						//m_pApp->LogUserAction(msg);
-					}
-					else
-					{
-						// no error, so now run the thread (it will destroy itself when done)
-						error = pCreateEntryThread->Run();
-						if (error != wxTHREAD_NO_ERROR)
-						{
-							wxString msg;
-							msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-								(int)error);
-							wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-							//m_pApp->LogUserAction(msg);
-						}
-					}
-				}
-				*/
-				if (!bStoringNotInKB)
-				{
-					int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
-					wxUnusedVar(rv);
-					wxLogDebug(_T("StoreTextGoingBack() (5380) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-						rv, key.c_str(), pRefString->m_translation.c_str());
+					// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+					// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+					// effect on GUI responsiveness
+					m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+					m_pApp->m_strSrc_For_KBserver = key;
+					m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+					m_pApp->m_bCreateEntry_For_KBserver = TRUE;
 				}
 			}
 #endif
@@ -5497,50 +5228,20 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						// keep use of <Not In KB> restricted to the particular user who
 						// wants to do that, and not propagate it and deletions /
 						// undeletions that may happen as part of it, to the KBserver.
-						if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+						if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 							||
-							(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+							(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 						{
 							KbServer* pKbSvr = GetMyKbServer();
-							/*
 							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
 							{
-								Thread_PseudoUndelete* pPseudoUndeleteThread = new Thread_PseudoUndelete;
-								// populate it's public members (it only has public ones anyway)
-								pPseudoUndeleteThread->m_pKbSvr = pKbSvr;
-								pPseudoUndeleteThread->m_source = key;
-								pPseudoUndeleteThread->m_translation = pRefString->m_translation;
-								// now create the runnable thread with explicit stack size of 10KB
-								wxThreadError error = pPseudoUndeleteThread->Create(1024);
-								if (error != wxTHREAD_NO_ERROR)
-								{
-									wxString msg;
-									msg = msg.Format(_T("Thread_PseudoUndelete(): thread creation failed, error number: %d"),
-										(int)error);
-									wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-									//m_pApp->LogUserAction(msg);
-								}
-								else
-								{
-									// no error, so now run the thread (it will destroy itself when done)
-									error = pPseudoUndeleteThread->Run();
-									if (error != wxTHREAD_NO_ERROR)
-									{
-										wxString msg;
-										msg = msg.Format(_T("PseudoUndelete, Thread_Run(): cannot make the thread run, error number: %d"),
-											(int)error);
-										wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-										//m_pApp->LogUserAction(msg);
-									}
-								}
-							}
-							*/
-							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
-							{
-								int rv = pKbSvr->Synchronous_PseudoUndelete(pKbSvr, key, pRefString->m_translation);
-								wxUnusedVar(rv);
-								wxLogDebug(_T("StoreTextGoingBack() (5522) Synchronous_PseudoUndelete returned  %d for src = %s  &  tgt = %s"),
-									rv, key.c_str(), pRefString->m_translation.c_str());
+								// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+								// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+								// effect on GUI responsiveness
+								m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+								m_pApp->m_strSrc_For_KBserver = key;
+								m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+								m_pApp->m_bPseudoUndelete_For_KBserver = TRUE;
 							}
 						}
 #endif
@@ -5639,51 +5340,21 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					// BEW added 5Oct12, here is a suitable place for KBserver support of
 					// CreateEntry(), since both the key and the translation (both possibly
 					// with a case adjustment for the first letter) are defined.
-					if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+					if (m_pApp->m_bAdaptationsKBserverReady && (m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 						||
-						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+						(m_pApp->m_bGlossesKBserverReady && m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 					{
 						KbServer* pKbSvr = GetMyKbServer();
-						/*
-						if (!bStoringNotInKB)
-						{
-							Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
-							// populate it's public members (it only has public ones anyway)
-							pCreateEntryThread->m_pKbSvr = pKbSvr;
-							pCreateEntryThread->m_source = key;
-							pCreateEntryThread->m_translation = pRefString->m_translation;
-							// now create the runnable thread with explicit stack size of 10KB
-							wxThreadError error = pCreateEntryThread->Create(1024);
-							if (error != wxTHREAD_NO_ERROR)
-							{
-								wxString msg;
-								msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
-									(int)error);
-								wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-								//m_pApp->LogUserAction(msg);
-							}
-							else
-							{
-								// no error, so now run the thread (it will destroy itself when done)
-								error = pCreateEntryThread->Run();
-								if (error != wxTHREAD_NO_ERROR)
-								{
-									wxString msg;
-									msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-										(int)error);
-									wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-									//m_pApp->LogUserAction(msg);
-								}
-							}
-						}
-						*/
 						// don't send a <Not In KB> entry to KBserver
 						if (!bStoringNotInKB)
 						{
-							int rv = pKbSvr->Synchronous_CreateEntry(pKbSvr, key, pRefString->m_translation);
-							wxUnusedVar(rv);
-							wxLogDebug(_T("StoreText() (5665) Synchronous_CreateEntry returned  %d for src = %s  &  tgt = %s"),
-								rv, key.c_str(), pRefString->m_translation.c_str());
+							// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
+							// background threads due to openssl leaks, to the OnIdle() handler to minimize their
+							// effect on GUI responsiveness
+							m_pApp->m_pKbServer_For_OnIdle = pKbSvr;
+							m_pApp->m_strSrc_For_KBserver = key;
+							m_pApp->m_strNonsrc_For_KBserver = pRefString->m_translation;
+							m_pApp->m_bCreateEntry_For_KBserver = TRUE;
 						}
 
 					}
@@ -5713,7 +5384,6 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 	gbMatchedKB_UCentry = FALSE;
 	return TRUE;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing

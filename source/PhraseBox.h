@@ -59,6 +59,9 @@ public:
 	bool		m_bAbandonable;
 	wxString	m_backspaceUndoStr;
 	bool		m_bMergeWasDone; // whm moved here from within OnChar()
+	bool		m_bCurrentCopySrcPunctuationFlag; // BEW added 20May16 (preserve m_bCopySourcePunctuation
+					// value so it can be restored within DoStore_ForPlacePhraseBox() )
+
 
 protected:
 	bool CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, CPile* pNextEmptyPile,

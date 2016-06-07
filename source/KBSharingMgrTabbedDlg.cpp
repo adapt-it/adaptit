@@ -51,7 +51,8 @@
 #include "Adapt_ItView.h"
 #include "KBSharingMgrTabbedDlg.h"
 #include "HtmlFileViewer.h"
-#include "Thread_DoEntireKbDeletion.h"
+#include "MainFrm.h"
+#include "StatusBar.h"
 
 extern bool gbIsGlossing;
 
@@ -445,7 +446,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		wxString password = m_pKbServer->GetKBServerPassword();
 		CURLcode result = CURLE_OK;
 
-		// Tell the app's status variables what page we are on -- Thread_DoEntireKbDeletion
+		// Tell the app's status variables what page we are on -- Synchronous_DoEntireKbDeletion
 		// may need this, if a KB deletion is later asked for
 		m_pApp->m_bKbPageIsCurrent = FALSE;
 
@@ -544,7 +545,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		wxString password = m_pKbServer->GetKBServerPassword(); // for authentication
 		CURLcode result = CURLE_OK;
 
-		// Tell the app's status variables what page we are on -- Thread_DoEntireKbDeletion
+		// Tell the app's status variables what page we are on -- Synchronous_DoEntireKbDeletion
 		// may need this, if a KB deletion is later asked for; and track what kb type we
 		// are currently listing - tell the app that too, for same reason
 		m_pApp->m_bKbPageIsCurrent = TRUE;
@@ -2266,69 +2267,16 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 						goto tidyup;
 					}
 
+					CStatusBar* pStatusBar = NULL;
+					pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
+					pStatusBar->StartProgress(_("Delete KB"), _("Deleting..."), m_pApp->m_nQueueSize);
+
 					// Do the deletions synchronously
 					int rv = m_pApp->m_pKbServer_Persistent->Synchronous_DoEntireKbDeletion(
 																m_pApp->m_pKbServer_Persistent, nID);
 					wxUnusedVar(rv);
 
-					/* deprecated - threads leak if openssl is used
-
-					// Create the detached thread which will do our database entry deletion job
-					// (In next call, first param could alternatively be m_pKbserver, but using
-					// m_pApp->m_pKbServer_Persistent here better documents what's happening)
-					Thread_DoEntireKbDeletion* pThread = new Thread_DoEntireKbDeletion(
-									m_pApp->m_pKbServer_Persistent, nID, m_pApp->m_nQueueSize);
-					wxThreadError error =  pThread->Create(2048); // give it a stack size of 2kb
-					if (error != wxTHREAD_NO_ERROR)
-					{
-						// There was a very unexpected error, an English message will do
-						m_pApp->m_pKbServer_Persistent->GetDownloadsQueue()->clear();
-						delete pThread;
-						wxCommandEvent dummy;
-						OnButtonKbsPageClearListSelection(dummy);
-						OnButtonKbsPageClearBoxes(dummy);
-						wxString msg = _T("pThread->Create(2048) failed unexpectedly in OnButtonKbsPageRemoveKb() call.");
-						wxString title = _T("Thread error: setting stack size failed");
-						m_pApp->LogUserAction(msg);
-						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-
-						// Tidy up
-						goto tidyup;
-					}
-					else
-					{
-						// No error so run the thread, and we can then forget it if the
-						// running of it produces no error -- it will do it's own cleanup and
-						// removal of the kb definition at the end of the job, if it succeeds
-						// in running to completion before the machine or Adapt It is shut down
-						error = pThread->Run();
-						// Note, it's a detached thead and it is now running in another process,
-						// so we have to be careful that this code which is running in the main
-						// thread, and which continues on from here, does not clobber the
-						// m_pKbServer_Persistent while the thread is using it. That's why we
-						// maintain two pointers on the app for stateless KbServer instances,
-						// m_pKbServer_Occasional, and m_pKbServer_Persistent
-
-						// We don't expect an error, so an English message will do here - and
-						// just remove the list selection and clear the text boxes too, as
-						// well as delete the thread object and clear the entries in the queue
-						if(error != wxTHREAD_NO_ERROR)
-						{
-							m_pApp->m_pKbServer_Persistent->GetDownloadsQueue()->clear(); // or m_pKbServer->...
-							delete pThread;
-							wxCommandEvent dummy;
-							OnButtonKbsPageClearListSelection(dummy);
-							OnButtonKbsPageClearBoxes(dummy);
-							wxString msg = _T("pThread->Run(): failure when starting the thread to remove the selected KB definition, in OnButtonKbsPageRemoveKb() call.");
-							wxString title = _T("Thread start error");
-							m_pApp->LogUserAction(msg);
-							wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-
-							// Tidy up
-							goto tidyup;
-						}
-					} // end of else block for test: if (error != wxTHREAD_NO_ERROR)
-					*/
+					pStatusBar->FinishProgress(_("Delete KB"));
 				} // end of else block for test: if (rv != 0)
 
 			} // end of TRUE block for test: if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady)

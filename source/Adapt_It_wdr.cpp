@@ -9949,11 +9949,11 @@ wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool 
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_URLMSG, _("If this dialog opens showing a URL, it is the URL that was used for the last connection. You can remove it and type a different URL if necessary."), wxDefaultPosition, wxSize(400,-1), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_URLMSG, _("If this dialog opens showing a URL, it is the URL that was used for the last connection. You can type a different URL if necessary."), wxDefaultPosition, wxSize(460,-1), wxTE_MULTILINE|wxTE_READONLY );
     item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item6 = new wxStaticText( parent, ID_SERVER_URL_LABEL_STATELESS, _("Type the URL for the knowledge base server:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
@@ -9963,9 +9963,9 @@ wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool 
     item7->SetToolTip( _("The URL may be something like https://kbserver.domain, where domain may be something like name.org") );
     item4->Add( item7, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item3->Add( item4, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    item2->Add( item3, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
 
@@ -9976,7 +9976,7 @@ wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool 
     wxStaticText *item11 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL_STATELESS, _("Type your username:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
     item10->Add( item11, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT_USERNAME_MSG_LABEL_STATELESS, _("(If empty, Cancel then click the Edit menu item Change Username...)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT_USERNAME_MSG_LABEL_STATELESS, _("This is your current unique username"), wxDefaultPosition, wxDefaultSize, 0 );
     item10->Add( item12, 0, wxALIGN_CENTER, 5 );
 
     wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_STATELESS, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
@@ -9987,33 +9987,36 @@ wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool 
 
     item8->Add( item9, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT_ASKED_STATELESS, _("You will be asked for the server's password when you click the OK button."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT_ASKED_STATELESS, _("Type your password:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
     item14->Add( item15, 0, wxALIGN_CENTER, 5 );
+
+    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXTCTRL_KBSERVER_PWD, wxT(""), wxDefaultPosition, wxSize(360,-1), wxTE_PASSWORD );
+    item14->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item8->Add( item14, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item2->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
 
-    item16->Add( 100, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item17->Add( 100, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item17 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->SetDefault();
-    item16->Add( item17, 0, wxALIGN_CENTER, 5 );
+    wxButton *item18 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->SetDefault();
+    item17->Add( item18, 0, wxALIGN_CENTER, 5 );
 
-    item16->Add( 60, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item17->Add( 60, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item18 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add( item18, 0, wxALIGN_CENTER, 5 );
+    wxButton *item19 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item19, 0, wxALIGN_CENTER, 5 );
 
-    item2->Add( item16, 0, wxALIGN_CENTER, 5 );
+    item2->Add( item17, 0, wxALIGN_CENTER, 5 );
 
-    item1->Add( item2, 0, wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxRIGHT|wxTOP, 10 );
+    item1->Add( item2, 0, wxGROW|wxLEFT|wxRIGHT|wxTOP, 10 );
 
-    item0->Add( item1, 0, wxFIXED_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item0->Add( item1, 0, wxFIXED_MINSIZE|wxGROW|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     if (set_sizer)
     {

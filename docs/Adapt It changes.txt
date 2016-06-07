@@ -43,6 +43,44 @@ which is followed by a tab, then your punctuation
 characters should follow the tab. For example:  ”’.>!?
 (This capability is useful when the source text language
 does not have a lower/upper case distinction.)
+* Recent versions of Adapt It partially lost the capacity
+for the user to type overriding manual punctuation, and
+to suppress temporarily the automatic copying of punctuation
+(usually in order to type different punctuation, or have
+no punctuation on a word or phrase). These functionalities
+have been fully restored, and improved with respect to
+the interplay between manually typed punctuation and the
+command bar button which suppresses punctuation copying
+for the next move of the phrasebox.
+* If the KB contained a number of upper-case-initial source
+text words or phrases, stored while auto-capitalizing was
+off, and then the user changed to auto-capitalizing on and
+did a Consistency Check, the upper-case entries would
+every time encounted in the document, cause an unwanted
+halt as an inconsistency. This is now fixed. They are now
+just ignored.
+* The automatic capitalization feature has been slightly
+extended, to optionally allow the source text capital letter
+to be in any position within the source text's first word.
+The extra capability is switchable, on or off.
+The project configuration file is the only place to do
+the switching, by a manual edit in a word processor. The
+line has the label: UpperCaseAnywhereInFirstWordOfSource
+If the value which follows is 0, the legacy automatic
+capitalization operates - that is, the capital is recognised
+only if word-initial. But now if the configuration file's
+line has value 1, the location of the source text capital
+letter can be anywhere within the first word of the source
+text, and it will be recognised as a capitalized word. 
+The target text automatic capitalization, however, still 
+only happens at the start of the target text. 
+Turning on this extended capability is useful when the source 
+text is a prefixing language in which proper names occur with 
+a prefix, but the target text language does not prefix proper 
+names. So source: na-Paul  if the user typed target: bawul   
+then the document would have Bawul in the phrasebox; but in 
+the knowledge base, the entry would be: na-paul (for source 
+text) paired with bawul (for its target text).
 
 ----------------------------------------------
 Bug fixes in 7?? release ?? month ???

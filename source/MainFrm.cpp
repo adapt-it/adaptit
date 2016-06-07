@@ -94,12 +94,12 @@ static unsigned int nTotalToDestroy;
 
 #if defined(_KBSERVER)
 
+#define SHOWSYNC // comment out to prevent logging for the synchronous curl calls to KBserver from OnIdle()
+
 #include "KBSharing.h" // BEW added 14Jan13
-//#include "KBSharingSetupDlg.h" // BEW added 15Jan13
+#include "KbSvrHowGetUrl.h" // BEW moved it to here, 24May16
 #include "KbSharingSetup.h" // BEW added 10Oct13
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
-//#include "Thread_ChangedSince.h" // BEW added 13Feb13, removed 10May16 because we
-								   // must use synchronous calls due to openssl memory leaks
 #include "Timer_KbServerChangedSince.h"
 #include "ServiceDiscovery.h"
 #include "WaitDlg.h"
@@ -326,6 +326,11 @@ extern bool		gbMatchedKB_UCentry;
 
 /// This global is defined in Adapt_It.cpp.
 extern wxChar	gcharNonSrcUC;
+
+extern bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+							   // is enabled, FALSE is legacy initial position only
+extern int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
+							// character was found to be located, wxNOT_FOUND if not located
 
 /// This global is defined in PhraseBox.cpp.
 extern bool		gbCameToEnd; // see PhraseBox.cpp
@@ -2049,6 +2054,10 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 	m_auiMgr.Update();
     m_pPerspective = m_auiMgr.SavePerspective();
+#if defined(_KBSERVER)
+	m_bKbSvrAdaptationsTicked = FALSE;
+	m_bKbSvrGlossesTicked = FALSE;
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -4403,86 +4412,147 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE;
 	}
 
-    // wx version: Display some scrolling data on the statusbar. m_bShowScrollData is only
-    // true when _DEBUG is defined, so it will not appear in release versions.
-	if (m_bShowScrollData && this->m_pStatusBar->IsShown())
+#if defined (_KBSERVER)
+	// Speed critical GUI support, when a KBserver doing sharing is operational
+
+	if (pApp->m_bCreateEntry_For_KBserver)
 	{
-		static size_t pgSize, scrPos, scrMax;
-		static int pixPU, vStartx, vStarty;
-		static wxSize csz, frsz, vsz, cz;
-		bool dataChanged = FALSE;
+		pApp->m_bCreateEntry_For_KBserver = FALSE;
+		int rv = pApp->m_pKbServer_For_OnIdle->Synchronous_CreateEntry(
+			pApp->m_pKbServer_For_OnIdle,
+			pApp->m_strSrc_For_KBserver,
+			pApp->m_strNonsrc_For_KBserver);
+		wxUnusedVar(rv);
+		event.RequestMore();
+#if defined (SHOWSYNC)
+		wxLogDebug(_T("OnIdle(), from StoreText() etc: Synchronous_CreateEntry() returned  %d for src = %s  &  tgt = %s"),
+			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
+#endif
+	}
 
-		int vtempx, vtempy;
-		canvas->GetViewStart(&vtempx,&vtempy);
-		if (vtempx != vStartx || vtempy != vStarty)
+	if (pApp->m_bPseudoUndelete_For_KBserver)
+	{
+		pApp->m_bPseudoUndelete_For_KBserver = FALSE;
+		int rv = pApp->m_pKbServer_For_OnIdle->Synchronous_PseudoUndelete(
+			pApp->m_pKbServer_For_OnIdle,
+			pApp->m_strSrc_For_KBserver,
+			pApp->m_strNonsrc_For_KBserver);
+		wxUnusedVar(rv);
+		event.RequestMore();
+#if defined (SHOWSYNC)
+		wxLogDebug(_T("OnIdle(), from StoreText() etc  Synchronous_PseudoUndelete() returned  %d for src = %s  &  tgt = %s"),
+			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
+#endif
+	}
+
+	if (pApp->m_bPseudoDelete_For_KBserver)
+	{
+		pApp->m_bPseudoDelete_For_KBserver = FALSE;
+		int rv = pApp->m_pKbServer_For_OnIdle->Synchronous_PseudoDelete(
+			pApp->m_pKbServer_For_OnIdle, 
+			pApp->m_strSrc_For_KBserver, 
+			pApp->m_strNonsrc_For_KBserver);
+		wxUnusedVar(rv);
+		event.RequestMore();
+#if defined (SHOWSYNC)
+		wxLogDebug(_T("OnIdle(), from RemoveRefString() Synchronous_PseudoDelete() returned  %d for src = %s  &  tgt = %s"),
+			rv, pApp->m_strSrc_For_KBserver.c_str(), pApp->m_strNonsrc_For_KBserver.c_str());
+#endif
+	}
+
+	// Get the KbSvrHowGetUrl dialog open when requested. One of these two
+	// booleans, or both, will have been set TRUE in the OnOK() function of
+	// the KbSharingSetup.cpp dlg handler, and it the user cancelled from the
+	// latter, the OnCancel() function will have already been called. We do,
+	// however, support cancelling here from the KbSvrHowGetUrl dialog - we
+	// treat it as a request to forgo any sharing at the present time
+	if (m_bKbSvrAdaptationsTicked || m_bKbSvrGlossesTicked)
+	{
+		KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(this);
+		pHowGetUrl->Center();
+		int dlgReturnCode;
+		bool bUserCancelled;
+
+		// The purpose of this dialog is to present the user with two radiobuttons,
+		// whereby he can declare "I want to get the URL by means of using service
+		// discovery results -- if necessary, service discovery should have been done
+		// earlier, or at least a login to a KBserver which gets a URL stored without
+		// actually doing a service discovery - using a config file URL value and there
+		// happens to be the correct KBserver running on the LAN); or, " I don't want
+		//  service discovery - I'll type a URL myself (because, presumably, the URL
+		// is to a KBserver running somewhere in the world and accessible over the web)
+		// If service discovery is wanted, the dialog sets m_bServiceDiscoveryWanted
+		// to TRUE (it's a boolean member of the CAdapt_ItApp class)
+		dlgReturnCode = pHowGetUrl->ShowModal();
+		// The dialog's OnOK() handler will have set m_bServiceDiscoveryWanted to the
+		// user's chosen value; Cancelling, however, cancels from setting up sharing
+		// at all, for the present
+		if (dlgReturnCode == wxID_OK)
 		{
-			dataChanged = TRUE;
-			vStartx = vtempx;
-			vStarty = vtempy;
+			if (m_bKbSvrAdaptationsTicked)
+			{
+				pApp->m_bIsKBServerProject = TRUE;
+			}
+			else
+			{
+				pApp->m_bIsKBServerProject = FALSE;
+			}
+			if (m_bKbSvrGlossesTicked)
+			{
+				pApp->m_bIsGlossingKBServerProject = TRUE;
+			}
+			else
+			{
+				pApp->m_bIsGlossingKBServerProject = FALSE;
+			}
+
+			// We post a custom event here, and the event's handler will run the Authenticate
+			// dialog at idle time, when KbSharingSetup will have been closed
+			wxCommandEvent eventCustom(wxEVT_Call_Authenticate_Dlg);
+			wxPostEvent(pApp->GetMainFrame(), eventCustom); // custom event handlers are in CMainFrame
+
+			bUserCancelled = FALSE;
 		}
-		if (canvas->GetScrollThumb(wxVERTICAL) != (int)pgSize)
+		else
 		{
-			dataChanged = TRUE;
-			pgSize = canvas->GetScrollThumb(wxVERTICAL);
-		}
-		if (canvas->GetScrollPos(wxVERTICAL) != (int)scrPos)
-		{
-			dataChanged = TRUE;
-			scrPos = canvas->GetScrollPos(wxVERTICAL);
-		}
-		if (canvas->GetScrollRange(wxVERTICAL) != (int)scrMax)
-		{
-			dataChanged = TRUE;
-			scrMax = canvas->GetScrollRange(wxVERTICAL);
-		}
-		int tpixPU;
-		canvas->GetScrollPixelsPerUnit(0,&tpixPU);
-		if (tpixPU != pixPU)
-		{
-			dataChanged = TRUE;
-			canvas->GetScrollPixelsPerUnit(0,&pixPU);
-		}
-		if (canvas->GetSize() != cz)
-		{
-			dataChanged = TRUE;
-			cz = canvas->GetSize();
-		}
-		if (GetCanvasClientSize() != csz) // use our own calcs for canvas' "client" size
-		{
-			dataChanged = TRUE;
-			csz = GetCanvasClientSize(); // use our own calcs for canvas' "client" size
-		}
-		if (this->GetClientSize() != frsz)
-		{
-			dataChanged = TRUE;
-			frsz = GetClientSize();
-		}
-		if (canvas->GetVirtualSize() != vsz)
-		{
-			dataChanged = TRUE;
-			vsz = canvas->GetVirtualSize();
+			// The user cancelled...
+			bUserCancelled = TRUE;
+
+			// ReleaseKBServer(int) int = 1 or 2, does several things. It stops the download timer,
+			// deletes it and sets its pointer to NULL; it also saves the last timestamp value to 
+			// its on-disk file; it then deletes the KbServer instance that was in use for supplying
+			// resources to the sharing code
+			if (pApp->KbServerRunning(1))
+			{
+				pApp->ReleaseKBServer(1); // the adaptations one
+			}
+			if (pApp->KbServerRunning(2))
+			{
+				pApp->ReleaseKBServer(2); // the glossings one
+			}
+
+			pApp->m_bIsKBServerProject = FALSE;
+			pApp->m_bIsGlossingKBServerProject = FALSE;
+
+			pApp->m_bServiceDiscoveryWanted = TRUE; // restore the default value
 		}
 
-		if (dataChanged)
+		// The dialog window is no longer needed, get rid of it
+		if (pHowGetUrl != NULL)
 		{
-			SetStatusText(wxString::Format(_T("vStart = %dy, pgsz = %d, scrpos = %d, scrmax = %d,")
-				_T("pixpu = %d, clSzcan: %d,%d, clSzfr %d,%d virtSz:%dw%dh"),
-										//vStartx,
-										(int)vStarty,
-										(int)pgSize,
-										(int)scrPos,
-										(int)scrMax,
-										(int)pixPU,
-										//cz.x,
-										//cz.y,
-										(int)csz.x,
-										(int)csz.y,
-										(int)frsz.x,
-										(int)frsz.y,
-										(int)vsz.x,
-										(int)vsz.y),1);
+			pHowGetUrl->Destroy();
+		}
+		// We must turn off the booleans, to prevent bogus reentry
+		m_bKbSvrAdaptationsTicked = FALSE;
+		m_bKbSvrGlossesTicked = FALSE;
+
+		if (bUserCancelled)
+		{
+			ShortWaitSharingOff(); //displays "Knowledge base sharing is OFF" for 1.3 seconds
 		}
 	}
+
+#endif // _KBSERVER
 
 	if (pApp->m_bSingleStep)
 	{
@@ -4824,37 +4894,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			if (bIsEnabled && bIsPending && bTimerIsRunning)
 			{
 				gpApp->m_bKbServerIncrementalDownloadPending = FALSE; // disable tries until next timer shot
-				/*
-				Thread_ChangedSince* pThread = new Thread_ChangedSince;
-				wxThreadError error =  pThread->Create(1024); // was wxThreadError error =  pThread->Create(10240);
 
-				// we don't expect Create() will fail, but let the user see an English message
-				// We'll not put anything in LogUserAction() in case there are multiple
-				// failures - which would bloat the log file
-				if(error != wxTHREAD_NO_ERROR)
-				{
-					delete pThread;
-					wxString msg = _T("Thread_ChangedSince::Create() failed, so thread was not Run()");
-					wxString title = _T("Unexpected thread creation error");
-					wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-					return;
-				}
-				else
-				{
-					// run the thread, and we can then forget it if there was no error
-					wxThreadError mythreaderror = pThread->Run();
-					if(mythreaderror != wxTHREAD_NO_ERROR)
-					{
-						delete pThread;
-						wxString msg;
-						msg = msg.Format( _T("Thread_ChangedSince::Run() failed, error: %d  So thread was deleted."),
-										(int)mythreaderror);
-						wxString title = _T("Unexpected thread run error");
-						wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-						return;
-					}
-				}
-				*/
 				// My timing tests indicate this should run, for a KBserver on the local LAN,
 				// a 10-entry download and merge to local KB, in about .5 of a second (which
 				// is the JSON preparation time, download time, merge time, totaled). Ten entries
@@ -4862,7 +4902,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				int rv = pKbSvr->Synchronous_ChangedSince_Timed(pKbSvr);
 				wxUnusedVar(rv);
 
-				return; // only do this thread on one OnIdle() call, subsequent OnIdle() calls
+				return; // only do this call on one OnIdle() call, subsequent OnIdle() calls
 						// can attempt the additional KBserver actions in the code below
 			}
 			else
@@ -4874,41 +4914,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				// not to do that)
 				gpApp->m_bKbServerIncrementalDownloadPending = FALSE;
 			}
-/* deprecated BEW 10May16 -- refactored, to not use a queue, use Synchronous_ChangedSince_Timed()
-			// Do the removing from queue of the first KbServerEntry struct pointer, and
-			// merge it's contents into the local KB storage, here in main thread. (The
-			// access to the queue is mutex protected, with s_QueueMutex.)  We remove and
-			// merge just one struct per idle event.
-			if (pKbSvr->IsKBSharingEnabled() && !pKbSvr->IsQueueEmpty())
-			{
-				// the next line is protected internally by the s_QueueMutex
-				KbServerEntry* pEntryStruct = pKbSvr->PopFromQueueFront();
-
-				// the mutex is now released, so merge the data into the local KB; however,
-				// UploadToKbServer() may be scanning the local KB to find entries not in
-				// the remote DB, so this KB access here needs a mutext protection
-				KBAccessMutex.Lock();
-
-				bool bDeletedFlag = pEntryStruct->deleted == 1 ? TRUE: FALSE;
-
-				pKB->StoreOneEntryFromKbServer(pEntryStruct->source, pEntryStruct->translation,
-												pEntryStruct->username, bDeletedFlag);
-				KBAccessMutex.Unlock();
-
-				// Clean up, don't leak memory
-#if defined (_MemLeaks_)
-				nDestroyed++;
-				wxLogDebug(_T("OnIdle() ChangedSince Queue: Handled:  %s / %s  : nDestroyed = %d  nTotalToDestroy = %d"),
-					pEntryStruct->source, pEntryStruct->translation, nDestroyed, nTotalToDestroy);
-#endif
-				pEntryStruct->source.Clear();
-				pEntryStruct->translation.Clear();
-				pEntryStruct->username.Clear();
-				delete pEntryStruct;
-
-				return; // if there are any more available, do them on subsequent idle events
-			}
-*/
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 
@@ -4940,6 +4945,89 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	// mrh - if doc recovery is pending, we must skip all the following, since the doc won't be valid:
     if (pApp->m_recovery_pending)
         return;
+
+	// This no longer important block is moved here to the end, BEW 20May16
+	// wx version: Display some scrolling data on the statusbar. m_bShowScrollData is only
+	// true when _DEBUG is defined, so it will not appear in release versions.
+	if (m_bShowScrollData && this->m_pStatusBar->IsShown())
+	{
+		static size_t pgSize, scrPos, scrMax;
+		static int pixPU, vStartx, vStarty;
+		static wxSize csz, frsz, vsz, cz;
+		bool dataChanged = FALSE;
+
+		int vtempx, vtempy;
+		canvas->GetViewStart(&vtempx, &vtempy);
+		if (vtempx != vStartx || vtempy != vStarty)
+		{
+			dataChanged = TRUE;
+			vStartx = vtempx;
+			vStarty = vtempy;
+		}
+		if (canvas->GetScrollThumb(wxVERTICAL) != (int)pgSize)
+		{
+			dataChanged = TRUE;
+			pgSize = canvas->GetScrollThumb(wxVERTICAL);
+		}
+		if (canvas->GetScrollPos(wxVERTICAL) != (int)scrPos)
+		{
+			dataChanged = TRUE;
+			scrPos = canvas->GetScrollPos(wxVERTICAL);
+		}
+		if (canvas->GetScrollRange(wxVERTICAL) != (int)scrMax)
+		{
+			dataChanged = TRUE;
+			scrMax = canvas->GetScrollRange(wxVERTICAL);
+		}
+		int tpixPU;
+		canvas->GetScrollPixelsPerUnit(0, &tpixPU);
+		if (tpixPU != pixPU)
+		{
+			dataChanged = TRUE;
+			canvas->GetScrollPixelsPerUnit(0, &pixPU);
+		}
+		if (canvas->GetSize() != cz)
+		{
+			dataChanged = TRUE;
+			cz = canvas->GetSize();
+		}
+		if (GetCanvasClientSize() != csz) // use our own calcs for canvas' "client" size
+		{
+			dataChanged = TRUE;
+			csz = GetCanvasClientSize(); // use our own calcs for canvas' "client" size
+		}
+		if (this->GetClientSize() != frsz)
+		{
+			dataChanged = TRUE;
+			frsz = GetClientSize();
+		}
+		if (canvas->GetVirtualSize() != vsz)
+		{
+			dataChanged = TRUE;
+			vsz = canvas->GetVirtualSize();
+		}
+
+		if (dataChanged)
+		{
+			SetStatusText(wxString::Format(_T("vStart = %dy, pgsz = %d, scrpos = %d, scrmax = %d,")
+				_T("pixpu = %d, clSzcan: %d,%d, clSzfr %d,%d virtSz:%dw%dh"),
+				//vStartx,
+				(int)vStarty,
+				(int)pgSize,
+				(int)scrPos,
+				(int)scrMax,
+				(int)pixPU,
+				//cz.x,
+				//cz.y,
+				(int)csz.x,
+				(int)csz.y,
+				(int)frsz.x,
+				(int)frsz.y,
+				(int)vsz.x,
+				(int)vsz.y), 1);
+		}
+	}
+
 }
 
 // BEW added 10Dec12, to workaround the GTK scrollPos bug (it gets bogusly reset to old position)

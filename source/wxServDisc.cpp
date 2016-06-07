@@ -65,9 +65,9 @@
 // behaviours is difficult without the (extensive) logging provided; most are turned on with
 // _zero_, a minimal few additional ones are turned on with _minimal_; _shutdown_ was the 
 // most helpful when I was tracking down the cause of occasional access violations
-//#define _zero_
-//#define _minimal_
-//#define _shutdown_
+#define _zero_
+#define _minimal_
+#define _shutdown_
 
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>

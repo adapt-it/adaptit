@@ -110,6 +110,7 @@ extern wxCriticalSection g_jsonCritSect;
 
 // Comment out to prevent DoServiceDiscovery() from logging with wxLogDebug()
 #define _DOSERVDISC
+#define ERR_DUPLICATE
 
 // vectorized bitmaps
 #include "../res/vectorized/document_new_16.cpp"
@@ -683,6 +684,11 @@ wxChar gcharSrcLC;
 
 /// Store first upr case char of source text word or phrase (after punct stripped).
 wxChar	gcharSrcUC;
+
+bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+							   // is enabled, FALSE is legacy initial position only
+int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
+							// character was found to be located, wxNOT_FOUND if not located
 
 /// Use to suppress the message box asking if the src language has upper/lower case
 /// distinction, when the flag is being restored to TRUE from reading the project's config
@@ -5596,7 +5602,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	// OnUpdateEditPunctCorresp is in the View  // incorporated into Edit|Preferences
 	// OnEditSourceText is in the View
 	// OnUpdateEditSourceText is in the View
-	// OnEditConsistencyCheck is in the View
+	// OnEditConsistencyCheck is in the View -- no it's not
 	// OnUpdateEditConsistencyCheck is in the View
 	// Lower to Upper Case Equivalences... removed as a separate menu item from Edit
 	// menu (now handled by Edit Preferences)
@@ -5977,6 +5983,7 @@ wxString szIsKBServerProject = _T("IsKBServerProject");
 wxString szNumberOfDiscoveryRuns = _T("NumberOfDiscoveryRuns");
 
 wxString szSentFinalPunctsTriggerCaps = _T("SentenceFinalPunctuationTriggeringCapitalization"); // BEW added 9May16
+wxString szUpperCaseAnywhereInFirstWord = _T("UpperCaseAnywhereInFirstWordOfSource"); // BEW added 24May16, for things like src: na-John -> tgt: Johan
 
 /// The label that identifies the whether or not the project is associated with sharing a
 /// glosses language KB. This value is written in the "ProjectSettings" part of the project
@@ -15104,6 +15111,14 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		msg = msg.Format(_T("Error: SetupForKBServer(), kbType = %d - could not instantiate KbServer class; setup aborted"),
 			whichType);
 		wxMessageBox(msg, _T("KBserver error"), wxICON_ERROR | wxOK);
+		if (whichType == 1)
+		{
+			m_bAdaptationsKBserverReady = FALSE;
+		}
+		else
+		{
+			m_bGlossesKBserverReady = FALSE;
+		}
 		return FALSE;
 	}
 	// Store it for the user's adapting or glossing session in this project
@@ -15197,6 +15212,14 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 			// Ensure the session's stored password is cleared, so this error will not
 			// reoccur if the user retries
 			GetMainFrame()->SetKBSvrPassword(_T(""));
+			if (whichType == 1)
+			{
+				m_bAdaptationsKBserverReady = FALSE;
+			}
+			else
+			{
+				m_bGlossesKBserverReady = FALSE;
+			}
 			return FALSE;
 		}
 	}
@@ -15220,10 +15243,26 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 			// Ensure the session's stored password is cleared, so this error will not
 			// reoccur if the user retries
 			GetMainFrame()->SetKBSvrPassword(_T(""));
+			if (whichType == 1)
+			{
+				m_bAdaptationsKBserverReady = FALSE;
+			}
+			else
+			{
+				m_bGlossesKBserverReady = FALSE;
+			}
 			return FALSE;
 		}
 	}
 	// all's well
+	if (whichType == 1)
+	{
+		m_bAdaptationsKBserverReady = TRUE;
+	}
+	else
+	{
+		m_bGlossesKBserverReady = TRUE;
+	}
 	return TRUE;
 }
 
@@ -15536,6 +15575,14 @@ bool CAdapt_ItApp::KbServerRunning(int whichType)
 // shut down.
 bool CAdapt_ItApp::ReleaseKBServer(int whichType)
 {
+	if (whichType == 1)
+	{
+		m_bAdaptationsKBserverReady = FALSE;
+	}
+	else
+	{
+		m_bGlossesKBserverReady = FALSE;
+	}
 	wxASSERT(whichType == 1 || whichType == 2);
 	KbServer* pKbSvr = GetKbServer(whichType); // beware, may return NULL
 	if (pKbSvr == NULL)
@@ -15616,8 +15663,22 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bMergerIsCurrent = FALSE; // BEW 14Apr16
 	m_bSentFinalPunctsTriggerCaps = FALSE; // if m_strSentFinalPunctsTriggerCaps has content, 
 										   // will be TRUE (see project config file)
+	gnOffsetToUCcharSrc = wxNOT_FOUND;     // initialize
+	gbUCSrcCapitalAnywhere = FALSE; // initialize to legacy 'only word-initial capital checked for'
+
 
 #if defined(_KBSERVER)
+	// Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
+	// for a gui action by the user causes a TRUE value to be set for one of them, so that
+	// the OnIdle() handler will then call one of the 3 Synchronous functions,
+	// Synchronous_CreateEntry(), Synchronous_PseudoDelete(), or Synchronous_PseudoUndelete()
+	// to hide the server access to the maximum possible extent, to keep the GUI responsive
+	m_bPseudoDelete_For_KBserver = FALSE;
+	m_bPseudoUndelete_For_KBserver = FALSE;
+	m_bCreateEntry_For_KBserver = FALSE;
+	m_pKbServer_For_OnIdle = NULL; // The calls suppored by the above 3 booleans will use
+								   // this KbServer pointer to get their work done; it
+								   // is used nowhere except in OnIdle()
 	// Next two booleans are set to FALSE unilaterally (as initialization)only here. They
 	// get set to whatever the project config file has for the IsKBServerProject and
 	// IsGlossingKBServerProject config file lines (which are used to set m_bIsKBServerProject
@@ -15640,6 +15701,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bServDiscBurstIsCurrent = FALSE; // initialize
 	m_bServDiscSingleRunIsCurrent = FALSE; // initialize
 	m_bServDiscGetOneOnly = TRUE; // initialize
+
+	// BEW 26May16
+	m_bAdaptationsKBserverReady = FALSE; // TRUE if a connection is current, to an adaptations KBserver
+	m_bGlossesKBserverReady= FALSE; // TRUE if a connection is current, to a glosses KBserver
+
 
 	m_bServiceDiscoveryWanted = TRUE; // initialize
 	m_bEnteringKBserverProject = TRUE;
@@ -28519,7 +28585,9 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
 	m_bUserAuthenticating = FALSE; // must be FALSE when the Manager is invoked 
 	pApp->m_bUserLoggedIn = FALSE;
-											  
+#if defined (ERR_DUPLICATE)
+	wxLogDebug(_T("OnKBSharingManagerTabbedDlg creator: 28,535 in AI.cpp, app's m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
+#endif
 	// The one using the manager has to first be given the option for how to get the url for
 	// the KBserver which is being targetted for being setup for kb sharing or whatever other
 	// reason (such as adding or removing a user, a kb, or a custom code). Call the dialog
@@ -28531,6 +28599,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	pHowGetUrl->Center();
 	int dlgReturnCode;
 	dlgReturnCode = pHowGetUrl->ShowModal();
+
 	if (dlgReturnCode == wxID_OK)
 	{ 
 		// m_bServiceDiscoveryWanted will have been set or cleared in
@@ -28545,7 +28614,8 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	bLoginPersonCancelled = pHowGetUrl->m_bUserClickedCancel;
 	// The app's value for m_bServiceDiscoveryWanted will have been set within
 	// the OnOK() handler of the above dialog
-	delete pHowGetUrl; // We don't want the dlg showing any longer
+	pHowGetUrl->Destroy();
+	//delete pHowGetUrl; // We don't want the dlg showing any longer
 
 	// If the user didn't cancel, then call Authenticate....()
 	if (!bLoginPersonCancelled) // if the person doing the login did not cancel...
@@ -28568,7 +28638,8 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		if (m_bServiceDiscoveryWanted)
 		{
 			enum ServDiscDetail returnedValue = SD_NoResultsYet;
-			bool bOK = ConnectUsingDiscoveryResults(currentURL, chosenURL, chosenHostname, returnedValue);
+
+				bool bOK = ConnectUsingDiscoveryResults(currentURL, chosenURL, chosenHostname, returnedValue);
 			if (bOK)
 			{
 				// Got a URL to connect to
@@ -34222,6 +34293,21 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szFreeTransLanguageCode << tab << m_freeTransLanguageCode;
 	pf->AddLine(data);
 
+	data.Empty();
+	data << szSentFinalPunctsTriggerCaps << tab << m_strSentFinalPunctsTriggerCaps;
+	pf->AddLine(data);
+
+	data.Empty();
+	if (gbUCSrcCapitalAnywhere)
+	{
+		data << szUpperCaseAnywhereInFirstWord << tab << 1;
+	}
+	else
+	{
+		data << szUpperCaseAnywhereInFirstWord << tab << 0;
+	}
+	pf->AddLine(data);
+
 #if defined (_KBSERVER)
 	data.Empty();
 	data << szIsKBServerProject << tab << (int)m_bIsKBServerProject;
@@ -34231,10 +34317,6 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szIsGlossingKBServerProject << tab << (int)m_bIsGlossingKBServerProject;
 	pf->AddLine(data);
 #endif
-
-	data.Empty();
-	data << szSentFinalPunctsTriggerCaps << tab << m_strSentFinalPunctsTriggerCaps;
-	pf->AddLine(data);
 
 #if defined (_KBSERVER)
 	// whm 30Oct13 moved the KbServerURL value handling to the basic config file, as
@@ -34836,6 +34918,33 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			m_freeTransLanguageCode = strValue;
 		}
+		else if (name == szSentFinalPunctsTriggerCaps)
+		{
+			m_strSentFinalPunctsTriggerCaps = strValue;
+			if (m_strSentFinalPunctsTriggerCaps.IsEmpty())
+			{
+				m_bSentFinalPunctsTriggerCaps = FALSE;
+			}
+			else
+			{
+				m_bSentFinalPunctsTriggerCaps = TRUE;
+			}
+		}
+		else if (name == szUpperCaseAnywhereInFirstWord)
+		{
+			if (strValue.IsEmpty())
+			{
+				gbUCSrcCapitalAnywhere = FALSE;
+			}
+			else if (strValue == _T("0"))
+			{
+				gbUCSrcCapitalAnywhere = FALSE;
+			}
+			else
+			{
+				gbUCSrcCapitalAnywhere = TRUE;
+			}
+		}
 #if defined (_KBSERVER)
 		else if (name == szIsKBServerProject)
 		{
@@ -34864,18 +34973,6 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			}
 		}
 #endif
-		else if (name == szSentFinalPunctsTriggerCaps)
-		{
-			m_strSentFinalPunctsTriggerCaps = strValue;
-			if (m_strSentFinalPunctsTriggerCaps.IsEmpty())
-			{
-				m_bSentFinalPunctsTriggerCaps = FALSE;
-			}
-			else
-			{
-				m_bSentFinalPunctsTriggerCaps = TRUE;
-			}
-		}
 #if defined (_KBSERVER)
 		// whm 30Oct13 moved the KbServerURL value handling to the basic config file
 		//else if (name == szKbServerURL)
@@ -41171,7 +41268,7 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 /// OnBnClickedButtonSplitNow(), InitDialog(), CWhichBook's InitDialog(),
 /// OnSelchangeChooseBook(), OnCancel(), OnOK(), OnCustomWorkFolderLocation(),
 /// OnLockCustomLocation(), OnUnlockCustomLocation, OnRestoreDefaultWorkFolderLocation(),
-/// OnRadioReviewing(),OnRadioDrafting() and Entry() of Thread_DoEntireKbDeletion
+/// OnRadioReviewing(),OnRadioDrafting(), Synchronous_DoEntireKbDeletion, UploadToKbServer()
 /// Updates the status bar message to reflect the current activity.
 /// BEW 9Aug12, shortened messages to accomodate having "BookName: xxxx" at the end
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -49853,7 +49950,7 @@ void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 
 #endif // _KBSERVER
 
-// EnsureProperCapitalization() checks the "following punctutation" of the CSourcePhrase
+// EnsureProperCapitalization() checks the "following punctuatation" of the CSourcePhrase
 // instance at nCurrSequNum - 1, providing the active location is not at sn = 0.
 // If the nCurrSequNum CSourcePhrase instance has no initial capital letter, and the
 // previous one has punctuation that should be followed by a capital, then the

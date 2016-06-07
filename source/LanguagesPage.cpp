@@ -366,9 +366,15 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 		// App's values
 		pApp->m_sourceName = pSrcBox->GetValue();
 		pApp->m_targetName = pTgtBox->GetValue();
+        
 		// get any final edits of lang codes from edit boxes
-		pApp->m_sourceLanguageCode = pSrcLangCodeBox->GetValue();
-		pApp->m_targetLanguageCode = pTgtLangCodeBox->GetValue();
+        // GDLC 26MAY16 Trim white space off the codes to avoid problems when comparing codes later
+        wxString srcLangCode = pSrcLangCodeBox->GetValue();
+        pApp->m_sourceLanguageCode = (srcLangCode.Trim()).Trim(false);
+        
+        wxString tgtLangCode = pTgtLangCodeBox->GetValue();
+		pApp->m_targetLanguageCode= (tgtLangCode.Trim()).Trim(false);
+        
 		//gSFescapechar = pSfmBox->GetValue().GetChar(0);
 		// BEW 8Jun10, removed support for checkbox "Recognise standard format
 		// markers only following newlines"

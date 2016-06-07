@@ -1,3 +1,4 @@
+
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
 /// \file			LanguageCodesDlg.cpp
@@ -638,12 +639,20 @@ void CLanguageCodesDlg::OnUseSelectedCodeForFreeTransLanguage(wxCommandEvent& WX
 // if the dialog is modeless.
 void CLanguageCodesDlg::OnOK(wxCommandEvent& event)
 {
-	m_sourceLangCode = pEditSourceLangCode->GetValue();
-	m_targetLangCode = pEditTargetLangCode->GetValue();
-	m_glossLangCode = pEditGlossLangCode->GetValue();
+    // GDLC 26MAY16 Trim white space off the codes to avoid problems when comparing codes later
+    wxString srcLangCode = pEditSourceLangCode->GetValue();
+    m_sourceLangCode = (srcLangCode.Trim()).Trim(false);
+    
+    wxString tgtLangCode = pEditTargetLangCode->GetValue();
+    m_targetLangCode = (tgtLangCode.Trim()).Trim(false);
+    
+    wxString glsLangCode = pEditGlossLangCode->GetValue();
+	m_glossLangCode = (glsLangCode.Trim()).Trim(false);
 
 	// BEW 23Jul12, added next line and the two tests & assignments below
-	m_freeTransLangCode = pEditFreeTransLangCode->GetValue();
+    // GDLC 26MAY16 Trim white space off the codes to avoid problems when comparing codes later
+	wxString freLangCode = pEditFreeTransLangCode->GetValue();
+    m_freeTransLangCode = (freLangCode.Trim()).Trim(false);
 
 	// of the next two tests, only one of the booleans can be TRUE, or both will be FALSE
 	if (m_bGlossBtnChosen)
@@ -677,8 +686,11 @@ wxString CLanguageCodesDlg::Get3LetterCodeFromLBItem()
 	m_associatedLanguageName = strName.Mid(offset + fiveSpaces.Len());
 	m_associatedLanguageName.Trim(); // remove any whitespace from end
 	m_associatedLanguageName.Trim(FALSE); // & from the start, just to be sure
+    
 	// return the language code
-	return tempStr.Mid(0,3);
+    // GDLC 25MAY16 Avoid returning 3 chars for a 2 char code (trim the trailing space)
+    wxString code = tempStr.Mid(0,3);
+	return code.Trim();
 }
 
 // other class methods

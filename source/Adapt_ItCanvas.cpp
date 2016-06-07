@@ -518,6 +518,14 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	// the canvas are clicked on, and allows other clicks to act normally (such as
 	// the opening/closing of the ViewFilteredMaterial dialog and the Notes dialog).
 
+	// Store a copy of the current value of the m_bCopySourcePunctuation flag,
+	// so that if the latter is FALSE (due to user's gui choice to suppress the
+	// copy in order to override with his own punctuation, or have none, the
+	// flag can be restored to its FALSE value within DoStore_ForPlacePhraseBox()
+	// BEW added this line at 20May16
+	pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag = pApp->m_bCopySourcePunctuation;
+
+
 	bool bClickWasProductive = FALSE;
 
 	// GDLC 2010-02-16 Pointer to the CFreeTrans class because it is needed in OnLButtonDown().
@@ -1781,7 +1789,12 @@ x:					CCell* pCell = 0;
 						// below, but generically enough to apply to more than just [ and ]
 						// when they are punctuation and there is no word-building chars.
 						// The old location's sequ number is preserved in gnOldSequNum
-						if (gnOldSequNum != -1 && !pApp->m_bCopySourcePunctuation)
+						// BEW 20May16 added 3rd subtest to next line, otherwise it bleeds out
+						// user's choice of manual typing of punctuation in the block further
+						// down
+						if (gnOldSequNum != -1 && !pApp->m_bCopySourcePunctuation &&
+							(pView->GetPile(gnOldSequNum)->GetSrcPhrase()->m_precPunct == _T("[") ||
+							pView->GetPile(gnOldSequNum)->GetSrcPhrase()->m_follPunct == _T("]")) )
 						{
 							CSourcePhrase* sp = pView->GetPile(gnOldSequNum)->GetSrcPhrase();
 							// In this circumstance, m_targetStr should be set to m_adaption,
@@ -1816,6 +1829,7 @@ x:					CCell* pCell = 0;
 							}
 							else
 							{
+								// Now get the phrasebox placed
 								pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
 									// KB access is done at both leaving and landing locations)
 							}

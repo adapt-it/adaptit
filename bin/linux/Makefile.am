@@ -131,11 +131,8 @@ adaptit_SOURCES = \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
 	../../source/StartWorkingWizard.cpp ../../source/StatusBar.cpp \
 	../../source/Strip.cpp ../../source/TargetUnit.cpp \
-	../../source/tellenc.cpp ../../source/Thread_BulkPseudoDelete.cpp \
-	../../source/Thread_ChangedSince.cpp ../../source/Thread_CreateEntry.cpp \
-	../../source/Thread_DoEntireKbDeletion.cpp \
-	../../source/Thread_KbEditorUpdateButton.cpp ../../source/Thread_PseudoDelete.cpp \
-	../../source/Thread_PseudoUndelete.cpp ../../source/Thread_ServiceDiscovery.cpp \
+	../../source/tellenc.cpp \
+	../../source/Thread_ServiceDiscovery.cpp \
 	../../source/Timer_KbServerChangedSince.cpp \
 	../../source/ToolbarPage.cpp ../../source/TransformToGlossesDlg.cpp \
 	../../source/UsernameInput.cpp ../../source/UsfmFilterPage.cpp \

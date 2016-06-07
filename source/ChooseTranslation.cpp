@@ -46,7 +46,6 @@
 #include "helpers.h"
 #include "Adapt_ItView.h"
 #include "KbServer.h"
-//#include "Thread_PseudoDelete.h"
 
 // event handler table
 BEGIN_EVENT_TABLE(CChooseTranslation, AIModalDialog)
@@ -771,40 +770,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		(gpApp->m_bIsGlossingKBServerProject && gbIsGlossing && gpApp->GetKbServer(2)->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = gpApp->GetKbServer(gpApp->GetKBTypeForServer());
-		/*
-		// create the thread and fire it off
-		if (!pCurTargetUnit->IsItNotInKB())
-		{
-			Thread_PseudoDelete* pPseudoDeleteThread = new Thread_PseudoDelete;
-			// populate it's public members (it only has public ones anyway)
-			pPseudoDeleteThread->m_pKbSvr = pKbSvr;
-			pPseudoDeleteThread->m_source = curKey; // curKey is a global wxString
-			pPseudoDeleteThread->m_translation = pRefString->m_translation;
-			// now create the runnable thread with explicit stack size of 10KB
-			wxThreadError error =  pPseudoDeleteThread->Create(10240);
-			if (error != wxTHREAD_NO_ERROR)
-			{
-				wxString msg;
-				msg = msg.Format(_T("Thread_PseudoDelete in ChooseTranslation::OnButtonRemove(): thread creation failed, error number: %d"),
-					(int)error);
-				wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-				//m_pApp->LogUserAction(msg);
-			}
-			else
-			{
-				// no error, so now run the thread (it will destroy itself when done)
-				error = pPseudoDeleteThread->Run();
-				if (error != wxTHREAD_NO_ERROR)
-				{
-				wxString msg;
-				msg = msg.Format(_T("Thread_PseudoDelete in ChooseTranslation::OnButtonRemove(), Thread_Run(): cannot make the thread run, error number: %d"),
-				  (int)error);
-				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-				//m_pApp->LogUserAction(msg);
-				}
-			}
-		}
-		*/
+
 		if (!pCurTargetUnit->IsItNotInKB())
 		{
 			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, curKey, pRefString->m_translation);
