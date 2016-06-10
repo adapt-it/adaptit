@@ -172,11 +172,6 @@ am_adaptit_OBJECTS = 1035.$(OBJEXT) AIPrintout.$(OBJEXT) \
 	SplitDialog.$(OBJEXT) Stack.$(OBJEXT) \
 	StartWorkingWizard.$(OBJEXT) StatusBar.$(OBJEXT) \
 	Strip.$(OBJEXT) TargetUnit.$(OBJEXT) tellenc.$(OBJEXT) \
-	Thread_BulkPseudoDelete.$(OBJEXT) \
-	Thread_ChangedSince.$(OBJEXT) Thread_CreateEntry.$(OBJEXT) \
-	Thread_DoEntireKbDeletion.$(OBJEXT) \
-	Thread_KbEditorUpdateButton.$(OBJEXT) \
-	Thread_PseudoDelete.$(OBJEXT) Thread_PseudoUndelete.$(OBJEXT) \
 	Thread_ServiceDiscovery.$(OBJEXT) \
 	Timer_KbServerChangedSince.$(OBJEXT) ToolbarPage.$(OBJEXT) \
 	TransformToGlossesDlg.$(OBJEXT) UsernameInput.$(OBJEXT) \
