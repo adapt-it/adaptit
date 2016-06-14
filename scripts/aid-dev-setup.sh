@@ -84,90 +84,23 @@ echo "  The Modified Codename for Deveopment is: $distCodename"
 # whm Note: the add-apt-repository command seems to have differing behaviors on
 # different Ubuntu distributions - storing software sources list(s) always in
 # sources.list in precise, but in separate *.list in sources.list.d on trusty
-# and xenial - at least unders Wasta-Linux. Using a bash grep command, as commented
-# out below, should do the job on trusty without resulting in duplicates, but
-# seemingly not on the Wasta-Linux distributions - which results in "duplicates".
-# Other possibly ways to add the repo
-#PSO_URL="deb http://packages.sil.org/ubuntu $distCodename main"
-# This one seems to result in duplicates
+# and xenial - at least under Wasta-Linux. Using a bash grep command, as done
+# below, should do the job without resulting in duplicates, since it won't change
+# anything on Wasta-Linux distributions.
+PSO_URL="deb http://packages.sil.org/ubuntu $distCodename main"
+echo "PSO_URL is: $PSO_URL"
+PSO_EXP_URL="deb http://packages.sil.org/ubuntu $distCodename-experimental main"
+echo "PSO_EXP_URL is: $PSO_EXP_URL"
+# The add-apt-repository command seems to result in duplicates
 #sudo add-apt-repository "$PSO_URL"
 # This one only works on precise and non-Wasta trusty and xenial distributions
-#grep -q "$PSO_URL" /etc/apt/sources.list \
-#  || echo "$PSO_URL" | sudo tee -a /etc/apt/sources.list
-
-# Code below borrowed and adapted from the wasta-base-postinst.sh script
-APT_SOURCES=/etc/apt/sources.list
-APT_SOURCES_D=/etc/apt/sources.list.d
-if ! [ -e $APT_SOURCES.wasta ];
-then
-    APT_SOURCES_D=/etc/apt/sources.list.d
-else
-    # wasta-offline active: adjust apt file locations
-    echo
-    echo "*** wasta-offline active, applying repository adjustments to /etc/apt/sources.list.wasta"
-    echo
-    APT_SOURCES=/etc/apt/sources.list.wasta
-    if [ "$(ls -A /etc/apt/sources.list.d)" ];
-    then
-        echo
-        echo "*** wasta-offline 'offline and internet' mode detected"
-        echo
-        # files inside /etc/apt/sources.list.d so it is active
-        # wasta-offline "offline and internet mode": no change to sources.list.d
-        APT_SOURCES_D=/etc/apt/sources.list.d
-    else
-        echo
-        echo "*** wasta-offline 'offline only' mode detected"
-        echo
-        # no files inside /etc/apt/sources.list.d
-        # wasta-offline "offline only mode": change to sources.list.d.wasta
-        APT_SOURCES_D=/etc/apt/sources.list.d.wasta
-    fi
-fi
-# Add SIL repository
-echo -e "\nAdding SIL repository to software sources"
-case $distCodename in
-  "precise")
-    sudo sed -i -e '$a deb http://packages.sil.org/ubuntu precise main' \
-        -i -e '\@deb http://packages.sil.org/ubuntu precise main@d' \
-        $APT_SOURCES
-  ;;
-  "trusty")
-    sudo sed -i -e '$a deb http://packages.sil.org/ubuntu trusty main' \
-        -i -e '\@deb http://packages.sil.org/ubuntu trusty main@d' \
-        $APT_SOURCES
-    # add inactive SIL experimental repository (if not found)
-    PSO_EXP_FOUND=$(grep 'deb http://packages.sil.org/ubuntu trusty-experimental main' $APT_SOURCES)
-    if [ ! "$PSO_EXP_FOUND" ]; then
-      echo
-      echo "*** Adding (inactive) SIL Experimental Repository"
-      echo
-      sed -i -e '$a #deb http://packages.sil.org/ubuntu trusty-experimental main' \
-          $APT_SOURCES
-    fi
-  ;;
-  "xenial")
-    # TODO: Check/Modify if xenial differs from trusty above in handling sources lists.
-    # It appears that for Xenial-based Wasta has designed it to put the xenial main packages.sil.org
-    # repository within the sources.list.d directory in a separate file called packages-sil-org-xenial.list
-    # and the xenial-experimental main packages.sil.org repository in packages-sil-org-xenial-experimental.list.
-    # However, standard xenial (not Wasta) appears to put the PSO repository within the sources.list
-    # file when the command: sudo apt-add-repository "deb http://packages.sil.org/ubuntu xenial main" is invoked.
-    # For the purposes of this script then, it seems that $APT_SOURCES should point to the sources.list.d dir.
-    sudo sed -i -e '$a deb http://packages.sil.org/ubuntu xenial main' \
-        -i -e '\@deb http://packages.sil.org/ubuntu xenial main@d' \
-        $APT_SOURCES
-    # add inactive SIL experimental repository (if not found)
-    PSO_EXP_FOUND=$(grep 'deb http://packages.sil.org/ubuntu xenial-experimental main' $APT_SOURCES)
-    if [ ! "$PSO_EXP_FOUND" ]; then
-      echo
-      echo "*** Adding (inactive) SIL Experimental Repository"
-      echo
-      sudo sed -i -e '$a #deb http://packages.sil.org/ubuntu xenial-experimental main' \
-          $APT_SOURCES
-    fi
-  ;;
-esac
+# A Wasta installation will already have the PSO added so only add if PSO isn't already there
+# Note: Grep returns 0 if selected lines are found, 1 if selected lines are not found.
+# command1 || command2 - Command2 is executed if, and only if, command1 returns a non-zero exit status.
+grep -qR "$PSO_URL" /etc/apt/sources.list* \
+  || echo "$PSO_URL" | sudo tee -a /etc/apt/sources.list
+grep -qR "$PSO_EXP_URL" /etc/apt/sources.list* \
+  || echo "$PSO_EXP_URL" | sudo tee -a /etc/apt/sources.list
 
 # Ensure sil.gpg key is installed
 echo -e "\nEnsuring the sil.gpg key is installed for the packages.sil.org repository..."
