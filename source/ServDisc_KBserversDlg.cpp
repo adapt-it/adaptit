@@ -14,6 +14,8 @@
 /// associated hostname, which defaults to kbserver if the person who setup the
 /// multicasting KBerver did not supply a hostname at the appropriate time when
 /// the setup script was running. Otherwise, the name he entered is used.
+/// The dialog shows what's available, and optionally allows selecting one for
+/// a connection to be attempted by a different handler.
 /// \derivation		The CServDisc_KBserversDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -34,6 +36,8 @@
 #include <wx/wx.h>
 #endif
 
+#if defined(_KBSERVER)
+
 // other includes
 #include "Adapt_It.h"
 //#include "MainFrm.h"
@@ -50,21 +54,23 @@ EVT_INIT_DIALOG(CServDisc_KBserversDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CServDisc_KBserversDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CServDisc_KBserversDlg::OnCancel)
 	EVT_BUTTON(ID_BUTTON_MORE_INFORMATION, CServDisc_KBserversDlg::OnButtonMoreInformation)
-	EVT_LISTBOX(ID_LISTBOX_URLS, CServDisc_KBserversDlg::OnSelchangeListboxUrls)
-	EVT_LISTBOX_DCLICK(ID_LISTBOX_URLS, CServDisc_KBserversDlg::OnDblclkListboxUrls)
-END_EVENT_TABLE()
+	EVT_BUTTON(ID_BUTTON_REMOVE_KBSERVER_SELECTION, CServDisc_KBserversDlg::OnRemoveSelection)
+	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_URLS, CServDisc_KBserversDlg::OnURLSelection)
+	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_URLS, CServDisc_KBserversDlg::OnURLDeselection)
+	END_EVENT_TABLE()
 
-
-CServDisc_KBserversDlg::CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* pUrls, wxArrayString* pHostnames) // dialog constructor
+// Dialog constructor
+CServDisc_KBserversDlg::CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* pUrls, wxArrayString* pHostnames) 
 	: AIModalDialog(parent, -1, _("Which KBserver?"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	pServDisc_KBserversDlgSizer = ServDisc_KBserversDlg(this, TRUE, TRUE);
     // The declaration is: ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool
     // set_sizer );
-
-	m_pListBoxUrls = (wxListBox*)FindWindowById(ID_LISTBOX_URLS);
-    m_pListBoxUrls->SetFocus();
+	m_pListCtrlUrls = (wxListView*)FindWindowById(ID_LISTCTRL_URLS);
+	m_pBtnRemoveSelection = (wxButton*)FindWindowById(ID_BUTTON_REMOVE_KBSERVER_SELECTION);
+	
+	m_pListCtrlUrls->SetFocus(); // input focus should start off in the list control
 	m_urlsArr = wxArrayString(*pUrls); // copy the urls from the array in ConnectUsingDiscoveryResults()
 	m_hostnamesArr = wxArrayString(*pHostnames); // copy the associated hostnames
 	bool bOK;
@@ -72,6 +78,9 @@ CServDisc_KBserversDlg::CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* 
 	wxUnusedVar(bOK); // avoid warning
 
 	m_bUserCancelled = FALSE; // Set TRUE if user clicks Cancel button
+	count = pUrls->GetCount();
+	m_urlSelected.Empty();
+	m_hostnameSelected.Empty();
 }
 
 CServDisc_KBserversDlg::~CServDisc_KBserversDlg() // destructor
@@ -81,89 +90,109 @@ CServDisc_KBserversDlg::~CServDisc_KBserversDlg() // destructor
 
 void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
-
-	// Set the list box contents to discovered urls
-	size_t count = m_urlsArr.GetCount();
+	CAdapt_ItApp* pApp = &wxGetApp();
+	// Set the list control contents to discovered and or typed urls, 
 	size_t index;
 	wxString url;
 	wxString hostname;
+	m_compositeArr.Clear();
+	wxString at3 = _T("@@@");
+
+	wxLogDebug(_T("CServDisc_KBserversDlg::InitDialog() list urls and their hostnames"));
+	// Make and store the composite strings
 	for (index = 0; index < count; index++)
 	{
 		url = m_urlsArr.Item(index);
 		hostname = m_hostnamesArr.Item(index);
-
-
-//TODO  For now, make a composite of url, 4 spaces, and hostname -- later, use wxListCtrl
-		strComposite = url + _T("    ");
-		strComposite += hostname;
-		//m_pListBoxUrls->Append(url);
-		m_pListBoxUrls->Append(strComposite);
-
-// TODO  --- add the hostname, once I start supporting them in the data sent to CServiceDiscovery - we'll need a wxListCtrl then
-
-		// ********************************************************************************************************************** TODO
+#if defined(_DEBUG)
+		wxLogDebug(_T("m_urlsArr, at index %d,  url = %s  hostname = %s"), index, url, hostname);
+#endif
+		wxString s = url + at3 + hostname;
+		m_compositeArr.Add(s);
 	}
 
-	// Select the first url string in the listbox by default
-	nSel = wxNOT_FOUND;
-	if (!m_pListBoxUrls->IsEmpty())
+	// Setup columns
+	size_t lineCount = count; // count was set in ctor
+	m_pListCtrlUrls->ClearAll();
+	wxListItem column[2]; // first is the url, second is its user-defined name
+	// Column 0
+	column[0].SetId(0L);
+	column[0].SetText(_("URL"));
+	column[0].SetWidth(320);
+	m_pListCtrlUrls->InsertColumn(0, column[0]);
+	// Column 1
+	column[1].SetId(1L);
+	column[1].SetText(_("Name"));
+	column[1].SetWidth(280);
+	m_pListCtrlUrls->InsertColumn(1, column[1]);
+	// can recover each columns string from the user's selected line
+	for (index = 0; index < lineCount; index++)
 	{
-        nSel = 0;
-        m_pListBoxUrls->SetSelection(nSel);
-        strComposite = m_pListBoxUrls->GetStringSelection();
-
-        // TODO  temporary code....
-        int offset = wxNOT_FOUND;
-        offset = strComposite.Find(_T("  ")); // find two spaces - start of the 4
-        m_urlSelected = strComposite.Left(offset);
-        m_hostnameSelected = strComposite.Mid(offset + 4);
+		wxListItem item;
+		item.SetId(index);
+		m_pListCtrlUrls->InsertItem(item); // put this line item (still empty) into the list
+		url = m_urlsArr.Item(index);
+		m_pListCtrlUrls->SetItem(index, 0, url); // set first column string to the url
+		hostname = m_hostnamesArr.Item(index);
+		m_pListCtrlUrls->SetItem(index, 1, hostname); // set second column string to the user's typed-in name
+		m_pListCtrlUrls->SetItemFont(index, *pApp->m_pDlgTgtFont); // use target text, 12 pt size, for each line
 	}
-	m_pListBoxUrls->SetFocus();
 }
 
-void CServDisc_KBserversDlg::OnSelchangeListboxUrls(wxCommandEvent& WXUNUSED(event))
+void CServDisc_KBserversDlg::OnURLSelection(wxListEvent& event)
 {
-	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxUrls))
-		return;
+	event.Skip();
 
-	nSel = m_pListBoxUrls->GetSelection();
+	long anIndex = event.GetIndex();
+	wxString at3 = _T("@@@");
 
-// TODO  temporary code....
-	strComposite = m_pListBoxUrls->GetString(nSel);
-	int offset = wxNOT_FOUND;
-	offset = strComposite.Find(_T("  ")); // find two spaces - start of the 4
-	m_urlSelected = strComposite.Left(offset);
-	m_hostnameSelected = strComposite.Mid(offset + 4);
+	// The composite string, of URL and Name, is stored in parallel with the list lines
+	// so anIndex also indexes into the m_compositeArr, so I can recover the url and
+	// (host)name directly from that array
+	size_t i = (size_t)anIndex; // loss of precision is no issue here, the max index
+								// value is unlikely to ever exceed about a dozen
+	wxString aComposite = m_compositeArr.Item(i);
+	nSel = i;
 
-	//m_urlSelected = m_pListBoxUrls->GetString(nSel);
+	int offset = aComposite.Find(at3);
+	if (offset != wxNOT_FOUND)
+	{
+		// Get the user's choice of KBserver URL and its Name
+		m_urlSelected = aComposite.Left(offset);
+		m_hostnameSelected = aComposite.Mid(offset + 3);
+#if defined(_DEBUG)
+		wxLogDebug(_T("OnURLSelection() chosen url = %s   chosen hostname = %s"), m_urlSelected, m_hostnameSelected);
+#endif
+	}
+	else
+	{
+		m_urlSelected.Empty();
+		m_hostnameSelected.Empty();
+	}
 }
 
-void CServDisc_KBserversDlg::OnDblclkListboxUrls(wxCommandEvent& WXUNUSED(event))
+void CServDisc_KBserversDlg::OnRemoveSelection(wxCommandEvent& WXUNUSED(event))
 {
-    // whm Note: Sinced this is a "double-click" handler we want the behavior to be
-    // essentially equivalent to calling both the OnSelchangeListBoxTranslations(),
-    // followed by whatever OnOK() does. Testing shows that when making a double-click on a
-    // list box the OnSelchangeListBoxTranslations() is called first, then this
-    // OnDblclkListboxTranslations() handler is called.
-
-	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxUrls))
+	if (nSel != (size_t)-1)
 	{
-		wxMessageBox(_("List box error when double-clicking. Instead, try this: Click once to select a url, then click OK."),
-		_T(""), wxICON_EXCLAMATION | wxOK);
-		return;
+		// A selection is current - so unselect it
+		long selectionLineIndex = (long)nSel;
+		m_pListCtrlUrls->SetItemState(selectionLineIndex, 0, wxLIST_STATE_SELECTED);
+		m_pListCtrlUrls->Refresh();
+		m_urlSelected.Empty();
+		m_hostnameSelected.Empty();
 	}
-	nSel = m_pListBoxUrls->GetSelection();
+}
 
-// TODO  temporary code....
-	strComposite = m_pListBoxUrls->GetString(nSel);
-	int offset = wxNOT_FOUND;
-	offset = strComposite.Find(_T("  ")); // find two spaces - start of the 4
-	m_urlSelected = strComposite.Left(offset);
-	m_hostnameSelected = strComposite.Mid(offset + 4);
+void CServDisc_KBserversDlg::OnURLDeselection(wxListEvent& event)
+{
+	event.Skip();
 
-
-	//m_urlSelected = m_pListBoxUrls->GetString(nSel);
-    EndModal(wxID_OK); //EndDialog(IDOK);
+	long anIndex = event.GetIndex();
+	wxUnusedVar(anIndex);
+	m_urlSelected.Empty();
+	m_hostnameSelected.Empty();
+	nSel = (size_t)-1;
 }
 
 void CServDisc_KBserversDlg::OnButtonMoreInformation(wxCommandEvent& WXUNUSED(event))
@@ -175,6 +204,11 @@ void CServDisc_KBserversDlg::OnButtonMoreInformation(wxCommandEvent& WXUNUSED(ev
 
 void CServDisc_KBserversDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	// Turn the following two flags off - otherwise the Discover One KBserver and
+	// Discover All KBservers menu commands remain disabled
+	pApp->m_bServDiscSingleRunIsCurrent = FALSE;
+	pApp->m_bServDiscBurstIsCurrent = FALSE;
 	// don't need to do anything except
 	m_bUserCancelled = TRUE;
 	EndModal(wxID_CANCEL);
@@ -182,8 +216,15 @@ void CServDisc_KBserversDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 
 void CServDisc_KBserversDlg::OnOK(wxCommandEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
 	m_bUserCancelled = FALSE;
+	// Turn the following two flags off - otherwise the Discover One KBserver and
+	// Discover All KBservers menu commands remain disabled
+	pApp->m_bServDiscSingleRunIsCurrent = FALSE;
+	pApp->m_bServDiscBurstIsCurrent = FALSE;
 	// The caller will read the m_urlSelected value after the dialog is dismissed,
 	// but before it's class instance is destroyed
 	event.Skip(); // dismiss the dialog
 }
+
+#endif // _KBSERVER

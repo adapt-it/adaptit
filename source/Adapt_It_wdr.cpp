@@ -76,7 +76,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.6.5"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("May 17, 2016"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("June 17, 2016"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->SetToolTip( wxT("This date should be the same as the executable file") );
     item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -11141,25 +11141,30 @@ wxSizer *ServDisc_KBserversDlg( wxWindow *parent, bool call_fit, bool set_sizer 
     item5->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
     item1->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxString *strs6 = (wxString*) NULL;
-    wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_URLS, wxDefaultPosition, wxSize(500,108), 0, strs6, wxLB_SINGLE );
+    wxListCtrl *item6 = new wxListCtrl( parent, ID_LISTCTRL_URLS, wxDefaultPosition, wxSize(600,132), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
     item1->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Click OK to cause the KBserver located at the selected URL be the one you connect to.    If you click Cancel, it cancels your whole attempt to connect to any KBserver. But you can then setup your project for KB sharing a second time, and again try to connect to the correct KBserver."), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL, _("If a URL is selected, clicking OK will attempt a connection to that KBserver.   If no URL is selected, a connection is not tried.  The listed URLs and their names are remembered in this session.  Clicking Remove Selection ensures nothing is selected.  If you click Cancel, it turns off sharing - at least until you try again."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
     item8->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item9 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->SetDefault();
+    wxButton *item9 = new wxButton( parent, ID_BUTTON_REMOVE_KBSERVER_SELECTION, _("Remove Selection"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetToolTip( _("Clear any selection which is current. Do nothing if there is no line selected.") );
     item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item8->Add( 160, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item8->Add( 100, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item10 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item10 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetDefault();
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item8->Add( 100, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item11 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item8->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 

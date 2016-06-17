@@ -15391,7 +15391,7 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
 	// to be divorced from connection-related code for the user's sake
 
 	chosenURL = _T(""); // initialize, we return the chosen url using this parameter
-	result = SD_NoResultsYet; // initialize to a 'success' result
+	result = SD_NoResultsYet; // initialize to a 'non-success' result
 
 	// Add any not already in the aggregated storage on the app, used for display to the user;
 
@@ -49857,39 +49857,85 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
 	pStatusBar->StartProgress(progTitle, msgDisplayed, nTotal);
 	pStatusBar->UpdateProgress(progTitle, 1, msgDisplayed);
 
-	m_nSDRunCounter = 0; // the thread, and CServiceDiscovery() use this
-	m_pServDiscThread[m_nSDRunCounter] = new Thread_ServiceDiscovery;
 
-	wxThreadError error = m_pServDiscThread[m_nSDRunCounter]->Create(12240);
-	if (error != wxTHREAD_NO_ERROR)
+#if defined(_DEBUG)
+	// Create some dummy data for display
+	m_theURLs.Clear();
+	m_theHostnames.Clear();
+	m_theURLs.Add(_T("https://kbserver.jmarsden.org"));
+	m_theHostnames.Add(_T("Jonathans_kbserver"));
+	m_theURLs.Add(_T("https://adapt-it.org/KBserver"));
+	m_theHostnames.Add(_T("AI-Team-KBserver"));
+	m_theURLs.Add(_T("192.168.3.171"));
+	m_theHostnames.Add(_T("UbuntuLaptop-kbserver"));
+	m_theURLs.Add(_T("192.168.3.234"));
+	m_theHostnames.Add(_T("Dell-Mini9"));
+	m_theURLs.Add(_T("192.168.3.94"));
+	m_theHostnames.Add(_T("kbserver-X1-Carbon"));
+#endif
+
+	wxString chosenURL;
+	wxString chosenHostname;
+	ServDiscDetail result = SD_NoResultsYet;
+	CServDisc_KBserversDlg dlg((wxWindow*)GetMainFrame(), &m_theURLs, &m_theHostnames);
+	dlg.Center();
+	if (dlg.ShowModal() == wxID_OK)
 	{
-		wxString msg;
-		msg = msg.Format(_T("Thread_ServiceDiscovery error number: %d"), (int)error);
-		wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
+		chosenURL = dlg.m_urlSelected;
+		chosenHostname = dlg.m_hostnameSelected;
 
-		// One may fail but others succeed. Handle this failure
-		m_pServDiscThread[m_nSDRunCounter] = NULL;
+
+
+		result = SD_FirstTime; //     <<-- TODO   probably need to work out what the value here should be *************************** TODO
+
+							   // Finish up the progress dialog's tracking in the status bar
+		((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
+
+
+
+
+
 	}
 	else
 	{
-		// no error, so now run the thread - it's of detached type
-		error = m_pServDiscThread[m_nSDRunCounter]->Run();
-		if (error != wxTHREAD_NO_ERROR)
+		// Cancelled
+		if (dlg.m_bUserCancelled)
 		{
-			wxString msg;
-			msg = msg.Format(_T("Thread_ServiceDiscovery  error number: %d"), (int)error);
-			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
+			chosenURL.Empty();
+			chosenHostname.Empty();
+			result = SD_NoResultsYet;
 
-			// We got it as far as instantiation, but couldn't run it. Handle this one only.
-			// Others in the burst may succeed
-			m_pServDiscThread[m_nSDRunCounter]->Delete();
-			m_pServDiscThread[m_nSDRunCounter] = NULL;
+			// Since the user has deliberately chosen to Cancel, and the dialog
+			// has explained what will happen, no further message is needed here
+
+			// Finish up the progress dialog's tracking in the status bar
+			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
 		}
 	}
-	// Finish up the progress dialog's tracking in the status bar
-	((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
-	m_nSDRunCounter = 0;
 }
+
+/*  Note the new values.....
+enum ServDiscInitialDetail
+{
+SDInit_NoStoredUrl,
+SDInit_StoredUrl
+};
+
+enum ServDiscDetail
+{
+SD_NoResultsYet,
+SD_NoKBserverFound,
+SD_NoResultsAndUserCancelled,
+SD_SameUrlAsInConfigFile,
+SD_UrlDiffers_UserRejectedIt,
+SD_SingleUrl_UserAcceptedIt,
+SD_SingleUrl_UserCancelled,
+SD_SingleUrl_ButNotChosen,
+SD_MultipleUrls_UserCancelled,
+SD_MultipleUrls_UserChoseOne,
+SD_MultipleUrls_UserChoseNone
+};
+*/
 
 void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 {

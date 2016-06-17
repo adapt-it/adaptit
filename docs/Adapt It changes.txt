@@ -17,8 +17,8 @@ clicking that extra button. The label to the left of
 the text box now says: "Find Source:" The layout was
 slightly improved also.
 * The Edit Knowledge Base dialog's "Source Find:" text
-box now does not have found text programmatically  put in
-it. It retains the user's typed text. The search is 
+box now does not have text that was found programmatically
+put in it. It retains the user's typed text. The search is 
 improved - it finds the next substring in the list for
 each click of the > button, and the search cycles back
 to the top of the list and continues down once the end
@@ -55,10 +55,10 @@ for the next move of the phrasebox.
 * If the KB contained a number of upper-case-initial source
 text words or phrases, stored while auto-capitalizing was
 off, and then the user changed to auto-capitalizing on and
-did a Consistency Check, the upper-case entries would
+did a Consistency Check, the upper-case entries would, at
 every time encounted in the document, cause an unwanted
-halt as an inconsistency. This is now fixed. They are now
-just ignored.
+halt as if it was an inconsistency. This is now fixed. 
+They are now just ignored.
 * The automatic capitalization feature has been slightly
 extended, to optionally allow the source text capital letter
 to be in any position within the source text's first word.
