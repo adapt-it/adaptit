@@ -2,9 +2,11 @@ adaptit (6.6.5-1) unstable; urgency=low
 
   * debian/control
   -  Changed Build-Depends to use libwxgtk2.8-dev | libwxgtk3.0-dev
-  -  and Depends to use libwxgtk2.8-0 | libwxgtk3.0-0v5 in for xenial
+  -  and Depends to use libwxgtk2.8-0 | libwxgtk3.0-0v5. This retains
+  -  a preference for the 2.8 library except for xenial and later 
+  -  distros which only have the 3.x library.
 
- -- Bill Martin <bill_martin@sil.org>  Thu, 17 May 2016 16:00:00 -0600
+ -- Bill Martin <bill_martin@sil.org>  Thu, 17 Jun 2016 16:00:00 -0600
 
 adaptit (6.6.4-1) unstable; urgency=low
 
