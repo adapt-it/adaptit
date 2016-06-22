@@ -52,6 +52,7 @@ protected:
 
 private:
 	wxButton*   m_pBtnRemoveSelection;
+	wxTextCtrl* m_pBottomMessageBox;
 	wxListView* m_pListCtrlUrls;
 	wxString    strComposite; // url, spaces, hostname <--- temporary
 	size_t      nSel; // index of selected URL line

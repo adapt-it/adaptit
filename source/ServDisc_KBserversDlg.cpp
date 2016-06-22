@@ -98,6 +98,16 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	m_compositeArr.Clear();
 	wxString at3 = _T("@@@");
 
+	m_pBottomMessageBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_MSG_BOTTOM);
+	if (pApp->m_bShownFromServiceDiscoveryAttempt)
+	{
+		m_pBottomMessageBox->ChangeValue(pApp->m_SD_Message_For_Discovery);
+	}
+	else
+	{
+		m_pBottomMessageBox->ChangeValue(pApp->m_SD_Message_For_Connect);
+	}
+
 	wxLogDebug(_T("CServDisc_KBserversDlg::InitDialog() list urls and their hostnames"));
 	// Make and store the composite strings
 	for (index = 0; index < count; index++)
@@ -134,6 +144,13 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 		url = m_urlsArr.Item(index);
 		m_pListCtrlUrls->SetItem(index, 0, url); // set first column string to the url
 		hostname = m_hostnamesArr.Item(index);
+		// Remove any final  .local. or .local because the user does not need to see it
+		int offset = wxNOT_FOUND;
+		offset = hostname.Find(_T(".local"));
+		if (offset != wxNOT_FOUND)
+		{
+			hostname = hostname.Left(offset);
+		}
 		m_pListCtrlUrls->SetItem(index, 1, hostname); // set second column string to the user's typed-in name
 		m_pListCtrlUrls->SetItemFont(index, *pApp->m_pDlgTgtFont); // use target text, 12 pt size, for each line
 	}

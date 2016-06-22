@@ -9953,7 +9953,7 @@ wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool 
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_URLMSG, _("If this dialog opens showing a URL, it is the URL that was used for the last connection. You can type a different URL if necessary."), wxDefaultPosition, wxSize(460,-1), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_URLMSG, _("If this dialog opens showing a URL, it is the URL that was used for the last connection. You can type a different URL if necessary.  (Never change your username unnecessarily. You might prevent access to your KBserver.)"), wxDefaultPosition, wxSize(460,62), wxTE_MULTILINE|wxTE_READONLY );
     item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item6 = new wxStaticText( parent, ID_SERVER_URL_LABEL_STATELESS, _("Type the URL for the knowledge base server:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
@@ -9973,10 +9973,10 @@ wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool 
 
     wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL_STATELESS, _("Type your username:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL_STATELESS, _("If the box is empty, type your username:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
     item10->Add( item11, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT_USERNAME_MSG_LABEL_STATELESS, _("This is your current unique username"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT_USERNAME_MSG_LABEL_STATELESS, _("This is your current unique username (copied from Edit menu > Change Username...)"), wxDefaultPosition, wxDefaultSize, 0 );
     item10->Add( item12, 0, wxALIGN_CENTER, 5 );
 
     wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_STATELESS, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
@@ -11144,7 +11144,7 @@ wxSizer *ServDisc_KBserversDlg( wxWindow *parent, bool call_fit, bool set_sizer 
     wxListCtrl *item6 = new wxListCtrl( parent, ID_LISTCTRL_URLS, wxDefaultPosition, wxSize(600,132), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
     item1->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL, _("If a URL is selected, clicking OK will attempt a connection to that KBserver.   If no URL is selected, a connection is not tried.  The listed URLs and their names are remembered in this session.  Clicking Remove Selection ensures nothing is selected.  If you click Cancel, it turns off sharing - at least until you try again."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG_BOTTOM, wxT(""), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );

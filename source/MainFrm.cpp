@@ -2868,11 +2868,12 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 			// Finish up the progress dialog's tracking in the status bar
 			wxString progTitle = _("KBservers Discovery");
 			((CStatusBar*)m_pStatusBar)->FinishProgress(progTitle);
-
+			
 			// Inform the user what the discovered inventory currently is
 			wxString title = _("KBservers discovered so far");
 			wxString msg = BuildUrlsAndNamesMessageString();
 			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+			
 		}
 
 		gpApp->m_bServDiscRunFoundNothing = FALSE; // restore default value
@@ -2882,11 +2883,12 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 	// bool here
 	if (nWhichOne == 0 && gpApp->m_bServDiscSingleRunIsCurrent)
 	{
+		/*
 		// Inform the user what the discovered inventory currently is
 		wxString title = _("KBservers discovered so far");
 		wxString msg = BuildUrlsAndNamesMessageString();
 		wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
-
+		*/
 		gpApp->m_bServDiscSingleRunIsCurrent = FALSE; // allow the menu command to again be enabled
 		gpApp->m_bServDiscRunFoundNothing = FALSE; // restore default value
 	}

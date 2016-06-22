@@ -12,7 +12,7 @@
 #ifndef XML_h
 #define XML_h
 
-#include "Adapt_It.h"
+//#include "Adapt_It.h"
 
 //#define Output_Default_Style_Strings	// uncomment to output default Unix-style usfm strings
 										// to books.txt, AI_USFM_full.txt, and AI_UserProfiiles.txt.

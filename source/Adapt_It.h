@@ -759,28 +759,36 @@ enum SendBackTextType
 };
 
 #if defined(_KBSERVER)
+/// Initial possible state after basic config file has first been read in a new session
+enum ServDiscInitialDetail
+{
+	SDInit_NoStoredUrl,
+	SDInit_StoredUrl
+};
+
+/// states, various user action possibilities
 /// An enum for reporting errors, or user choice, or other service discovery details
 /// pertinent to subsequent processing after a service discovery attempt - such as
 /// whether one or more than one KBserver was discovered on the LAN, various error
-/// states, various user action possibilities
 enum ServDiscDetail
 {
 	SD_NoResultsYet,
-	SD_ThreadCreateFailed,
-	SD_ThreadRunFailed,
 	SD_NoKBserverFound,
-	SD_LookupHostnameFailed,
-	SD_LookupIPaddrFailed,
-	SD_UserCancelled,
-	SD_FirstTime,
-	SD_SameUrl,
+	SD_ServiceDiscoveryError,
+	SD_NoResultsAndUserCancelled,
+	SD_SameUrlAsInConfigFile,
 	SD_UrlDiffers_UserAcceptedIt,
-	SD_UrlDiffers_UserRejectedIt,
+	SD_SingleUrl_UserAcceptedIt,
+	SD_SingleUrl_UserCancelled,
+	SD_SingleUrl_ButNotChosen,
 	SD_MultipleUrls_UserCancelled,
-	SD_MultipleUrls_UserChoseEarlierOne,
-	SD_MultipleUrls_UserChoseDifferentOne
+	SD_MultipleUrls_UserChoseOne,
+	SD_MultipleUrls_UserChoseNone,
+	SD_ValueIsIrrelevant
 };
+
 #endif
+
 
 // whm NOTE 21Sep10: Moved this TopLevelMenu enum to become a private member of the
 // App because its enumerations should not be accessed directly, but only through
@@ -2083,6 +2091,23 @@ class CAdapt_ItApp : public wxApp
 	wxArrayString		m_theHostnames; // parallel array of hostnames for each url in m_urlsArr
 	wxArrayString		m_ipAddrs_Hostnames; // for storage of each string <ipaddress>@@@<hostname>
 
+	wxString				m_SD_Message_For_Connect; // set near start of OnInit()
+	wxString				m_SD_Message_For_Discovery; // ditto
+	bool					m_bShownFromServiceDiscoveryAttempt; // TRUE if dialog shown from 
+								// either Discover One KBserver or Discover All KBservers
+								// FALSE if shown from ConnectUsingServiceDiscoverResults()
+								// The boolean governs which message is displayed in the dialog
+								// and consequently what the Cancel button does
+	ServDiscDetail			m_sd_Detail;
+	ServDiscInitialDetail	m_sd_InitialDetail;
+	bool m_bUserDecisionMadeAtDiscovery; // TRUE if at the OK click there was a user
+										 // selection current, or if he clicked Cancel button. If no selection, 
+										 // then FALSE
+										 // The next two are used to store the url and (host)name of a discovered KBserver
+										 // from a call of either Discover One KBserver  or  Discover All KBservers
+	wxString m_chosenUrl;
+	wxString m_chosenHostname;
+
 	// NOTE - IMPORTANT. The service discovery code, at the top levels, is copiously
 	// commented and there are many wxLogDebug() calls. Timing annotations in the debugger
 	// window and those logging messages are VITAL for understanding how the module works,
@@ -3085,7 +3110,7 @@ public:
 	wxTimer   m_servDiscTimer;
 	void	  OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event));
 	void	  DoServiceDiscoverySingleRun(); // like OnServiceDiscoveryTimer() but without the timer stuff
-	void	  ServDiscSingleOnly();
+	//void	  ServDiscSingleOnly();
 	int		  m_numServiceDiscoveryRuns; // I'll default it to 3 in OnInit(), but let a manual edit 
 										 // of basic config file change it ( range: 1 to 20)
 	int		  m_nSDRunCounter; // counts the number of times ServDiscBackground() is called 
