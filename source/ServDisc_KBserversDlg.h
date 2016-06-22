@@ -46,7 +46,7 @@ protected:
 	void		OnOK(wxCommandEvent& event);
 	void		OnCancel(wxCommandEvent& WXUNUSED(event));
 	void		OnButtonMoreInformation(wxCommandEvent& WXUNUSED(event));
-	void        CServDisc_KBserversDlg::OnRemoveSelection(wxCommandEvent& WXUNUSED(event));
+	void        OnRemoveSelection(wxCommandEvent& WXUNUSED(event));
 	void		OnURLSelection(wxListEvent& event);
 	void		OnURLDeselection(wxListEvent& event);
 

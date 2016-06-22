@@ -115,7 +115,7 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 		url = m_urlsArr.Item(index);
 		hostname = m_hostnamesArr.Item(index);
 #if defined(_DEBUG)
-		wxLogDebug(_T("m_urlsArr, at index %d,  url = %s  hostname = %s"), index, url, hostname);
+		wxLogDebug(_T("m_urlsArr, at index %d,  url = %s  hostname = %s"), index, url.c_str(), hostname.c_str());
 #endif
 		wxString s = url + at3 + hostname;
 		m_compositeArr.Add(s);
@@ -178,7 +178,7 @@ void CServDisc_KBserversDlg::OnURLSelection(wxListEvent& event)
 		m_urlSelected = aComposite.Left(offset);
 		m_hostnameSelected = aComposite.Mid(offset + 3);
 #if defined(_DEBUG)
-		wxLogDebug(_T("OnURLSelection() chosen url = %s   chosen hostname = %s"), m_urlSelected, m_hostnameSelected);
+		wxLogDebug(_T("OnURLSelection() chosen url = %s   chosen hostname = %s"), m_urlSelected.c_str(), m_hostnameSelected.c_str());
 #endif
 	}
 	else
