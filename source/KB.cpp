@@ -83,7 +83,7 @@ extern wxChar gcharNonSrcLC;
 extern wxChar gcharNonSrcUC;
 extern wxChar gcharSrcLC;
 extern wxChar gcharSrcUC;
-extern bool gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+extern bool gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position
 									// is enabled, FALSE is legacy initial position only
 extern int  gnOffsetToUCcharSrc; // offset to source text location where the upper case
 								 // character was found to be located, wxNOT_FOUND if not located
@@ -734,7 +734,7 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 			// for upper case character to be non-first in first word of source text
 			if (gbUCSrcCapitalAnywhere)
 			{
-				// make the character at gnOffsetToUCcharSrc of keyStr be the appropriate lower 
+				// make the character at gnOffsetToUCcharSrc of keyStr be the appropriate lower
 				// case one; provided the offset is not wxNOT_FOUND, but if it is, do the
 				// legacy replacement instead
 				if (gnOffsetToUCcharSrc != wxNOT_FOUND)
@@ -1061,7 +1061,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 			// for upper case character to be non-first in first word of source text
 			if (gbUCSrcCapitalAnywhere)
 			{
-				// make the character at gnOffsetToUCcharSrc of the source string be the 
+				// make the character at gnOffsetToUCcharSrc of the source string be the
 				// appropriate lower case one; provided the offset is not wxNOT_FOUND, but if it
 				// is, do the legacy replacement instead
 				if (gnOffsetToUCcharSrc != wxNOT_FOUND)
@@ -1197,14 +1197,14 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 				||
 				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 			{
-				KbServer* pKbSvr = GetMyKbServer(); // This gets either the adapting one, or glossing one, 
+				KbServer* pKbSvr = GetMyKbServer(); // This gets either the adapting one, or glossing one,
 													// depending on the mode currently in effect
 				// Assume we need to delete the lower case entry, key = s1, it's most likely
 				// to be correct rather than key = s (That is, to save time, we are deciding
 				// that if auto-capitalization is not currently turned on, and the removal of
 				// a CRefString for an upper-case-initial word or phrase is being done, we will
 				// not bother to set the corresponding KBserver entry's deleted flag to 1. But
-				// we *will* bother to set it to 1, provided the entry is present and 
+				// we *will* bother to set it to 1, provided the entry is present and
 				// lower-case-initial, whether auto-caps is on or off.)
 				//
 				// BEW 20May16. Moved the often-used synchronizing calls, which had to be taken off of
@@ -1254,7 +1254,7 @@ wxString CKB::AutoCapsMakeStorageString(wxString str, bool bIsSrc)
 			// for upper case character to be non-first in first word of source text
 			if (gbUCSrcCapitalAnywhere)
 			{
-				// make the character at gnOffsetToUCcharSrc of the source string be the 
+				// make the character at gnOffsetToUCcharSrc of the source string be the
 				// appropriate lower case one; provided the offset is not wxNOT_FOUND, but if it
 				// is, do the legacy replacement instead
 				if (gnOffsetToUCcharSrc != wxNOT_FOUND)
@@ -1896,6 +1896,11 @@ KbServer* CKB::GetMyKbServer()
 			}
 		}
 	}
+	// for debugging
+	if (pMyKbSvr == NULL)
+	{
+        int break_here = 1;
+	}
 	return pMyKbSvr;
 }
 
@@ -1998,15 +2003,15 @@ CRefString*	CKB::GetMatchingRefString(CTargetUnit* pTU, wxString& tgtPhrase, boo
 // Consistency Check feature will use this, to support Mike Hore's equired for a
 // "blind fix" feature (ie. fix an inconsistency automatically without a dialog being
 // shown if the kb entry has a unique value available, and an inconsistency was
-// detected. (The KB's entry replace's the document's entry unilaterally in that 
+// detected. (The KB's entry replace's the document's entry unilaterally in that
 // case.)
 // This function was built by plagiarizing IsAlreadyInKB() below, and so it
-// will correctly handle differences due to the document's entry having upper or 
+// will correctly handle differences due to the document's entry having upper or
 // lower case initial letter; and if auto-caps is ON, the adaptation string
 // returned in the signature will have the appropriate case adjustment done so
 // that the caller can immediately insert the value into the document at the
 // appropriate location
-bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation) 
+bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation)
 {
 	CTargetUnit* pTgtUnit = NULL;
 	bool bDeleted = FALSE;
@@ -2040,7 +2045,7 @@ bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation)
 		// for upper case character to be non-first in first word of source text
 		if (gbUCSrcCapitalAnywhere)
 		{
-			// make the character at gnOffsetToUCcharSrc of the source string be the 
+			// make the character at gnOffsetToUCcharSrc of the source string be the
 			// appropriate lower case one; provided the offset is not wxNOT_FOUND, but if it
 			// is, do the legacy replacement instead
 			if (gnOffsetToUCcharSrc != wxNOT_FOUND)
@@ -2076,7 +2081,7 @@ bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation)
 		wxASSERT(pRefStr);
 		// Do we handle <no adaptation> as a valid value? Yes, we must
 		if (!pRefStr->m_bDeleted)
-		{ 
+		{
 			// It is not deleted, so it's a potential unique entry, so remember it
 			// provided count is not already >= 1
 			if (count >= 1)
@@ -2098,7 +2103,7 @@ bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation)
 	}
 	if (gbAutoCaps && bNoError && gbSourceIsUpperCase)
 	{
-		// If the source key was upper-case-initial, then make the translation be 
+		// If the source key was upper-case-initial, then make the translation be
 		// upper case too if possible
 		if (bNoError2 && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 		{
@@ -3892,7 +3897,7 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // BEW 23Apr15 additions to support / as a whitespace word-break char
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
-	// Unilaterally do the capitalization of the sentence initial word, if 
+	// Unilaterally do the capitalization of the sentence initial word, if
 	// the relevant conditions comply
 	if (!gbNoTargetCaseEquivalents && m_pApp->m_bSentFinalPunctsTriggerCaps &&
 		!gbVerticalEditInProgress && !m_pApp->m_bFreeTranslationMode)
