@@ -60,7 +60,7 @@ EVT_INIT_DIALOG(CServDisc_KBserversDlg::InitDialog)
 	END_EVENT_TABLE()
 
 // Dialog constructor
-CServDisc_KBserversDlg::CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* pUrls, wxArrayString* pHostnames) 
+CServDisc_KBserversDlg::CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* pUrls, wxArrayString* pHostnames)
 	: AIModalDialog(parent, -1, _("Which KBserver?"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
@@ -69,7 +69,7 @@ CServDisc_KBserversDlg::CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* 
     // set_sizer );
 	m_pListCtrlUrls = (wxListView*)FindWindowById(ID_LISTCTRL_URLS);
 	m_pBtnRemoveSelection = (wxButton*)FindWindowById(ID_BUTTON_REMOVE_KBSERVER_SELECTION);
-	
+
 	m_pListCtrlUrls->SetFocus(); // input focus should start off in the list control
 	m_urlsArr = wxArrayString(*pUrls); // copy the urls from the array in ConnectUsingDiscoveryResults()
 	m_hostnamesArr = wxArrayString(*pHostnames); // copy the associated hostnames
@@ -91,7 +91,7 @@ CServDisc_KBserversDlg::~CServDisc_KBserversDlg() // destructor
 void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	// Set the list control contents to discovered and or typed urls, 
+	// Set the list control contents to discovered and or typed urls,
 	size_t index;
 	wxString url;
 	wxString hostname;
@@ -115,7 +115,7 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 		url = m_urlsArr.Item(index);
 		hostname = m_hostnamesArr.Item(index);
 #if defined(_DEBUG)
-		wxLogDebug(_T("m_urlsArr, at index %d,  url = %s  hostname = %s"), index, url, hostname);
+		wxLogDebug(_T("m_urlsArr, at index %d,  url = %s  hostname = %s"), index, url.c_str(), hostname.c_str());
 #endif
 		wxString s = url + at3 + hostname;
 		m_compositeArr.Add(s);
@@ -178,7 +178,7 @@ void CServDisc_KBserversDlg::OnURLSelection(wxListEvent& event)
 		m_urlSelected = aComposite.Left(offset);
 		m_hostnameSelected = aComposite.Mid(offset + 3);
 #if defined(_DEBUG)
-		wxLogDebug(_T("OnURLSelection() chosen url = %s   chosen hostname = %s"), m_urlSelected, m_hostnameSelected);
+		wxLogDebug(_T("OnURLSelection() chosen url = %s   chosen hostname = %s"), m_urlSelected.c_str(), m_hostnameSelected.c_str());
 #endif
 	}
 	else

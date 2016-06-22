@@ -6,10 +6,10 @@
 /// \rcs_id $Id$
 /// \copyright		2016 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the ServDisc_KBserversDlg class. 
-/// The ServDisc_KBserversDlg class provides a dialog in which the user can choose 
+/// \description	This is the header file for the ServDisc_KBserversDlg class.
+/// The ServDisc_KBserversDlg class provides a dialog in which the user can choose
 /// one of one or more URLs, each URL being the location on the LAN for a currently
-/// running KBserver instance, discovered by the service discovery module 
+/// running KBserver instance, discovered by the service discovery module
 /// encapulated in the CAdapt_ItApp::ConnectUsingDiscoveryResults() function.
 /// The dialog shows what's available, and optionally allows selecting one for
 /// a connection to be attempted by a different handler.
@@ -29,7 +29,7 @@
 
 class CServDisc_KBserversDlg : public AIModalDialog
 {
-public:	
+public:
 	CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* pUrls, wxArrayString* pHostnames); // constructor
 	virtual ~CServDisc_KBserversDlg(void); // destructor
 
@@ -46,7 +46,7 @@ protected:
 	void		OnOK(wxCommandEvent& event);
 	void		OnCancel(wxCommandEvent& WXUNUSED(event));
 	void		OnButtonMoreInformation(wxCommandEvent& WXUNUSED(event));
-	void        CServDisc_KBserversDlg::OnRemoveSelection(wxCommandEvent& WXUNUSED(event));
+	void        OnRemoveSelection(wxCommandEvent& WXUNUSED(event));
 	void		OnURLSelection(wxListEvent& event);
 	void		OnURLDeselection(wxListEvent& event);
 

@@ -685,7 +685,7 @@ wxChar gcharSrcLC;
 /// Store first upr case char of source text word or phrase (after punct stripped).
 wxChar	gcharSrcUC;
 
-bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
+bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position
 							   // is enabled, FALSE is legacy initial position only
 int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
 							// character was found to be located, wxNOT_FOUND if not located
@@ -15269,7 +15269,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// param       result          ->  a line of form "<ipaddr>@@@<hostname> 
+/// param       result          ->  a line of form "<ipaddr>@@@<hostname>
 ///             ipaddr          <-  reference to a ipaddress wxString of form 192.168.n.m
 ///				hostname		<-	reference to the hostname wxString associated with the
 ///									above ipaddr
@@ -15321,7 +15321,7 @@ void CAdapt_ItApp::ServDiscBackground(int nThreadIndex)
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if chosenURL contains a URL string to be used for authenticating to
 ///             a discovered running KBserver on the LAN; FALSE if there was a problem or
-///             choice by the user to do otherwise than return a URL for auto-connection 
+///             choice by the user to do otherwise than return a URL for auto-connection
 ///             purposes, or if no kbserver is running on the LAN as yet
 /// \param      curURL         -> the current URL - as currently in force, or just provided
 ///                               by reading from the AI-BasicConfiguration.aic file (it
@@ -15355,7 +15355,7 @@ void CAdapt_ItApp::ServDiscBackground(int nThreadIndex)
 /// the current running server's url, and if they differ, ask the user if he wants a connection
 /// to the different url. In a workshop, there could be several KBservers running, one for each
 /// of several workgroups from different language projects - so we have to discover them all.
-/// The service discovery thread will only run for a few seconds, and that is enough time to 
+/// The service discovery thread will only run for a few seconds, and that is enough time to
 /// detect one instance multicasting on the LAN. It will report the ip address and hostname
 /// for the KBserver it detects in  CAdapt_ItApp::m_theURLs and CAdapt_ItApp::m_theHostnames
 /// wxArrayString arrays. DoServiceDiscovery will, after the data is stored there, access that
@@ -15369,7 +15369,7 @@ void CAdapt_ItApp::ServDiscBackground(int nThreadIndex)
 /// 	SDInit_NoStoredUrl,
 /// 	SDInit_StoredUrl
 /// };
-/// 
+///
 /// enum ServDiscDetail
 /// {
 /// 	SD_NoResultsYet,
@@ -15401,7 +15401,7 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
 	// Add any not already in the aggregated storage on the app, used for display to the user;
 
 	// Setup the urls (in m_theURLs) and hostnames (in m_theHostnames)
-	m_theURLs.Clear();        
+	m_theURLs.Clear();
 	m_theHostnames.Clear();
 	wxString aComposite;
 	int count;
@@ -15473,7 +15473,7 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
 			}
 			// caller can use m_bUserDecisionMadeAtDiscovery TRUE too, but the following
 			// will ensure that the Authenticate dialog is shown with whatever was chosen
-			result = SD_SingleUrl_UserAcceptedIt; 
+			result = SD_SingleUrl_UserAcceptedIt;
 			return TRUE;
 		}
 	}
@@ -15547,9 +15547,9 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
 			}
 			else
 			{
-				// It's a different url from the one that was last stored in the basic configuration 
+				// It's a different url from the one that was last stored in the basic configuration
 				// file. The user will need to be asked if he wants to connect to it. It could be the
-				// same KBserver but with a different url in this session, or it may be a different 
+				// same KBserver but with a different url in this session, or it may be a different
 				// KBserver (and maybe with different password as well). Alternatively, this might be
 				// the first attempt at a connection, so there was no stored url yet, but one discovered
 				wxString message;  message = message.Format(_(
@@ -15566,13 +15566,13 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
 				{
 					// Since the chosen or only available KBserver has now been rejected, the caller
 					// should probably not show an authentication dialog as that would be confusing. So
-					// the caller should detect the resulting enum value, and treat the situation as 
+					// the caller should detect the resulting enum value, and treat the situation as
 					// equivalent to a cancellation of the connection & authentication process. He can
-					// then either have another go, or take the opportunity to get the earlier-used 
+					// then either have another go, or take the opportunity to get the earlier-used
 					// KBserver back into use, or whatever.
-					wxString message;  message = message.Format(_(
-"You chose not to connect to the available KBserver at %s.\nKnowledge base sharing will now be turned OFF.\nYou can take this opportunity to get a different KBserver running, if necessary.\nThen try to connect to it, or ask your administrator to help you."),
-						chosenURL);
+					wxString message;
+                    message = message.Format(_("You chose not to connect to the available KBserver at %s.\nKnowledge base sharing will now be turned OFF.\nYou can take this opportunity to get a different KBserver running, if necessary.\nThen try to connect to it, or ask your administrator to help you."),
+                        chosenURL.c_str());
 					wxMessageBox(message, _("KBserver rejected by user"), wxICON_WARNING | wxOK);
 					chosenURL = wxEmptyString;
 					chosenHostname = wxEmptyString;
@@ -15709,7 +15709,7 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
 	m_bMergerIsCurrent = FALSE; // BEW 14Apr16
-	m_bSentFinalPunctsTriggerCaps = FALSE; // if m_strSentFinalPunctsTriggerCaps has content, 
+	m_bSentFinalPunctsTriggerCaps = FALSE; // if m_strSentFinalPunctsTriggerCaps has content,
 										   // will be TRUE (see project config file)
 	gnOffsetToUCcharSrc = wxNOT_FOUND;     // initialize
 	gbUCSrcCapitalAnywhere = FALSE; // initialize to legacy 'only word-initial capital checked for'
@@ -15746,7 +15746,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// BEW 12Apr16, try 14.123 so as to get 4 tries a minute (overlapping was taboo at this early stage)
 	//m_KBserverTimer = 12111; // 12.111 sec as of 19Apr16,  with GC back at 5 secs; old was 14123 with GC = 9 secs
 							   // 9.111 sec as of 22Apr16,  with GC back at 5 secs; old was 12111 with GC = 5 secs
-	m_KBserverTimer = 7247;    // An interval of 4.113 milliseconds works, but main thread is  unresposive for a 
+	m_KBserverTimer = 7247;    // An interval of 4.113 milliseconds works, but main thread is  unresposive for a
 							   // So go to 7.113 secs, to allow main thread time to respond to user clicks.
 							   // half minute. (We can now overlap runs without failure, at the expense of GUI
 							   // temporary paralysis, so don't do that. Keep a timer gap between notifications.)
@@ -28637,7 +28637,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
-	m_bUserAuthenticating = FALSE; // must be FALSE when the Manager is invoked 
+	m_bUserAuthenticating = FALSE; // must be FALSE when the Manager is invoked
 	pApp->m_bUserLoggedIn = FALSE;
 #if defined (ERR_DUPLICATE)
 	wxLogDebug(_T("OnKBSharingManagerTabbedDlg creator: 28,535 in AI.cpp, app's m_ipAdds_Hostnames entry count = %d"), pApp->m_ipAddrs_Hostnames.GetCount());
@@ -28655,7 +28655,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	dlgReturnCode = pHowGetUrl->ShowModal();
 
 	if (dlgReturnCode == wxID_OK)
-	{ 
+	{
 		// m_bServiceDiscoveryWanted will have been set or cleared in
 		// the OnOK() handler of the above dialog
 		wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
@@ -28741,7 +28741,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
         // the dialog - it doesn't know or care about the adapting/glossing mode, the
         // machine's owner, or either of the glossing or adapting local KBs. It only uses
         // the KbServer class for the services it provides for the KB Sharing Manager gui
-        // The instance is pointed at by an app member: m_pKbServer_Occasional, which is 
+        // The instance is pointed at by an app member: m_pKbServer_Occasional, which is
         // created on demand in the heap, used, and then deleted, and its pointer returned
         // to being NULL. We must always dispose and set the ptr to NULL after every use,
         // in case the user or administrator changes which project is active (which changes
@@ -30585,7 +30585,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szNumberOfDiscoveryRuns << tab << m_numServiceDiscoveryRuns;
 	pf->AddLine(data);
-	
+
 #endif
 
 	data.Empty();
@@ -41340,7 +41340,7 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 {
 	CAdapt_ItView* pView = gpApp->GetView();
 	CMainFrame* pFrame = gpApp->GetMainFrame();
-	wxString rscStr; 
+	wxString rscStr;
 
 	// BEW 6Nov09, added "[Default Work Folder Location]" versus "[Custom Work Folder Location]"
 	// to distinguish between whether a custom work folder location is in effect versus the
@@ -44968,7 +44968,7 @@ void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
 	int frameTop = frameRect.y;
 	int frameLeft = frameRect.x;
 
-	int myTopCoord; // do it a bit lower from the top of the frame than I did for 
+	int myTopCoord; // do it a bit lower from the top of the frame than I did for
 					// the KBserver password dialog
 	if (frameHeight < 650)
 	{
@@ -49796,8 +49796,8 @@ void CAdapt_ItApp::ServDiscSingleOnly()
 	// for him to use). So we'll do some fiddles to try make his task as easy as possible
 	DoServiceDiscoverySingleRun();
 
-	// m_ipAddrs_Hostnames should now have the composite string, which resulted from the 
-	// discovery, within it. The basic config file may also have non-empty values for 
+	// m_ipAddrs_Hostnames should now have the composite string, which resulted from the
+	// discovery, within it. The basic config file may also have non-empty values for
 	// m_strKbServerURL and m_strKbServerHostname, from an earlier session, or earlier
 	// in the current session
 	wxString strComposite = wxEmptyString;
@@ -49815,7 +49815,7 @@ void CAdapt_ItApp::ServDiscSingleOnly()
 	//	wxString ipaddress = m_strKbServerURL.Mid(len);
 	//	bConfigFileOneIsSameAsDiscoveredOne = (strComposite.Find(ipaddress) != wxNOT_FOUND);
 	//}
-	
+
 	// The first issue is whether or not some running KBservers are already discovered,
 	// or not
 	if (count == 0)
@@ -49835,7 +49835,7 @@ void CAdapt_ItApp::ServDiscSingleOnly()
 			bool bMatchedExistingOne = archiveArr.Index(strComposite) != wxNOT_FOUND;
 			if (!bMatchedExistingOne)
 			{
-				// It is not the same url as any of those already discovered, so we 
+				// It is not the same url as any of those already discovered, so we
 				// need to add it to the inventory, and let the user choose from a list
 				// of them all in the appropriate dialog
 				archiveArr.Add(strComposite);
@@ -49988,7 +49988,7 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 			wxString msg;
 			msg = msg.Format(_T("Thread_ServiceDiscovery  error number: %d"), (int)error);
 			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-		
+
 			// We got it as far as instantiation, but couldn't run it. Handle this one only.
 			// Others in the burst may succeed
 			m_pServDiscThread[m_nSDRunCounter]->Delete();
@@ -50066,8 +50066,8 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
 			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
 			return;
 		}
-	}	
-	
+	}
+
 	m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames accumulates composites from service disocvery
 	m_theHostnames.Clear(); // ditto
 	m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
@@ -50160,7 +50160,7 @@ SD_SD_ValueIsIrrelevant
 */
 void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 {
-	// Use SetOwner() to bind the sevice discovery timer to the app instance, the latter will 
+	// Use SetOwner() to bind the sevice discovery timer to the app instance, the latter will
 	// handle its notification event, and call OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 	m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
 	m_bShownFromServiceDiscoveryAttempt = TRUE;
@@ -50172,7 +50172,7 @@ void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 	{
 		m_pServDiscThread[i] = NULL;
 	}
-	// If debugging is wanted, doing it with a single timer notify event is easiest - 
+	// If debugging is wanted, doing it with a single timer notify event is easiest -
 	// uncomment out next line, and comment out the lower stuff
 	//m_servDiscTimer.Start(m_KBserverTimer, wxTIMER_ONE_SHOT);
 
@@ -50229,13 +50229,13 @@ void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 // when the project config file has one or more punctuation characters (at least they
 // are assumed to be punctuation characters) within the field with label:
 // SentenceFinalPunctuationTriggeringCapitalization
-// Call this function, if felicity conditions comply, from the start of StoreText() 
+// Call this function, if felicity conditions comply, from the start of StoreText()
 // (but NOT from StoreTextGoingBack())
 void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtText)
 {
 	if (nCurrSequNum <= 0)
 	{
-		// Either no valid active location currently, or the phrasebox is at the 
+		// Either no valid active location currently, or the phrasebox is at the
 		// document's start - in either case, there is no "previous CSourcePhrase"
 		// to assess for what its ending punctuation may be
 		return;
