@@ -15571,8 +15571,9 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
 					// then either have another go, or take the opportunity to get the earlier-used
 					// KBserver back into use, or whatever.
 					wxString message;
-                    message = message.Format(_("You chose not to connect to the available KBserver at %s.\nKnowledge base sharing will now be turned OFF.\nYou can take this opportunity to get a different KBserver running, if necessary.\nThen try to connect to it, or ask your administrator to help you."),
-                        chosenURL.c_str());
+                    			message = message.Format(_("You chose not to connect to the available KBserver at %s.\nKnowledge base sharing will now be turned OFF.\nYou can take this opportunity to get a different KBserver running, if necessary.\nThen try to connect to it, or ask your administrator to help you."),
+                        			chosenURL.c_str());
+
 					wxMessageBox(message, _("KBserver rejected by user"), wxICON_WARNING | wxOK);
 					chosenURL = wxEmptyString;
 					chosenHostname = wxEmptyString;
@@ -50004,10 +50005,6 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
 		wxBell();
 		return;
 	}
-	// Initializations
-	ServDiscDetail result = SD_NoResultsYet;
-	m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
-	m_bShownFromServiceDiscoveryAttempt = TRUE;
 
 #if defined(_shutdown_)
 	wxLogDebug(_T("CAdapt_ItApp:: DoServiceDiscoverySingleRun():  starting"),
@@ -50042,10 +50039,6 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
 
 		// One may fail but others succeed. Handle this failure
 		m_pServDiscThread[m_nSDRunCounter] = NULL;
-		m_nSDRunCounter = 0;
-		// Finish up the progress dialog's tracking in the status bar
-		((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
-		return;
 	}
 	else
 	{
@@ -50061,77 +50054,11 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
 			// Others in the burst may succeed
 			m_pServDiscThread[m_nSDRunCounter]->Delete();
 			m_pServDiscThread[m_nSDRunCounter] = NULL;
-			m_nSDRunCounter = 0;
-			// Finish up the progress dialog's tracking in the status bar
-			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
-			return;
 		}
-	}
-
-	m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames accumulates composites from service disocvery
-	m_theHostnames.Clear(); // ditto
-	m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
-	int counter = GetMainFrame()->GetUrlAndHostnameInventory(m_ipAddrs_Hostnames, m_theURLs, m_theHostnames);
-	wxUnusedVar(counter);
-
-/*
-#if defined(_DEBUG)
-	// Create some dummy data for display, for testing purposes
-	m_theURLs.Add(_T("https://kbserver.jmarsden.org"));
-	m_theHostnames.Add(_T("Jonathans_kbserver"));
-	m_theURLs.Add(_T("https://adapt-it.org/KBserver"));
-	m_theHostnames.Add(_T("AI-Team-KBserver"));
-	m_theURLs.Add(_T("192.168.3.171"));
-	m_theHostnames.Add(_T("UbuntuLaptop-kbserver"));
-	m_theURLs.Add(_T("192.168.3.234"));
-	m_theHostnames.Add(_T("Dell-Mini9"));
-	m_theURLs.Add(_T("192.168.3.94"));
-	m_theHostnames.Add(_T("kbserver-X1-Carbon"));
-#endif
-*/
-	// Set the app variables for chosen url and hostname, initializing
-	// to the empty string first
-	m_chosenUrl .Empty();
-	m_chosenHostname.Empty();
-	CServDisc_KBserversDlg dlg((wxWindow*)GetMainFrame(), &m_theURLs, &m_theHostnames);
-	dlg.Center();
-	if (dlg.ShowModal() == wxID_OK)
-	{
-		m_chosenUrl = dlg.m_urlSelected;
-		m_chosenHostname = dlg.m_hostnameSelected;
-
-		if (m_chosenUrl.IsEmpty())
-		{
-			// The user made no choice (whether there were one or many found)
-			result = SD_MultipleUrls_UserChoseNone;
-
-		}
-		else
-		{
-			// This is the user's choice (whether there were one or many found)
-			result = SD_MultipleUrls_UserChoseOne;
-		}
-
-		// Finish up the progress dialog's tracking in the status bar
-		((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
-	}
-	else
-	{
-		// Cancelled
-		if (dlg.m_bUserCancelled)
-		{
-			m_chosenUrl.Empty();
-			m_chosenHostname.Empty();
-			result = SD_MultipleUrls_UserCancelled;
-
-			// Since the user has deliberately chosen to Cancel, and the dialog
-			// has explained what will happen, no further message is needed here
-
-			// Finish up the progress dialog's tracking in the status bar
-			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
-		}
-	}
+	}		
 	m_nSDRunCounter = 0;
+	// Finish up the progress dialog's tracking in the status bar
+	((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
 }
 
 /*  Note the new values.....
