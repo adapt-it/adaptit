@@ -15364,34 +15364,39 @@ void CAdapt_ItApp::ServDiscBackground(int nThreadIndex)
 /// Because of the variety of possible states, the following enum will be used internally
 /// to help with implementing suitable protocols: The enum is defined in Adapt_It.h at
 /// about line 765
+/// enum ServDiscInitialDetail
+/// {
+/// 	SDInit_NoStoredUrl,
+/// 	SDInit_StoredUrl
+/// };
+/// 
 /// enum ServDiscDetail
 /// {
-///	SD_NoResultsYet,
-///	SD_ThreadCreateFailed,
-///	SD_ThreadRunFailed,
-///	SD_NoKBserverFound,
-///	SD_LookupHostnameFailed,
-///	SD_LookupIPaddrFailed,
-///	SD_UserCancelled,
-///	SD_FirstTime,
-///	SD_SameUrl,
-///	SD_UrlDiffers_UserAcceptedIt,
-///	SD_UrlDiffers_UserRejectedIt,
-///	SD_MultipleUrls_UserCancelled,
-///	SD_MultipleUrls_UserChoseEarlierOne,
-///	SD_MultipleUrls_UserChoseDifferentOne
+/// 	SD_NoResultsYet,
+/// 	SD_NoKBserverFound,
+/// 	SD_ServiceDiscoveryError,
+/// 	SD_NoResultsAndUserCancelled,
+/// 	SD_SameUrlAsInConfigFile,
+/// 	SD_UrlDiffers_UserAcceptedIt,
+/// 	SD_SingleUrl_UserAcceptedIt,
+/// 	SD_SingleUrl_UserCancelled,
+/// 	SD_SingleUrl_ButNotChosen,
+/// 	SD_MultipleUrls_UserCancelled,
+/// 	SD_MultipleUrls_UserChoseOne,
+/// 	SD_MultipleUrls_UserChoseNone,
+/// 	SD_SD_ValueIsIrrelevant
 /// };
 ////////////////////////////////////////////////////////////////////////////////////////
 
 bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chosenURL,
-									  wxString& chosenHostname, enum ServDiscDetail &result)
+								 wxString& chosenHostname, enum ServDiscDetail &result)
 {
 	// In my early code, I called this function DoServiceDiscovery. Now it doesn't do discovery,
 	// but just uses the results of service discovery. Discovery is CPU intensive, and needs
 	// to be divorced from connection-related code for the user's sake
 
 	chosenURL = _T(""); // initialize, we return the chosen url using this parameter
-	result = SD_NoResultsYet; // initialize to a 'success' result
+	result = SD_NoResultsYet; // initialize to a 'non-success' result
 
 	// Add any not already in the aggregated storage on the app, used for display to the user;
 
@@ -15434,21 +15439,80 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
 		m_theHostnames.Add(aHostname);
 	}
 
-	// No url & hostname may be available yet, in which case the user needs to be told
+	// Bleed out user-decisions which were made at a prior call of either
+	// Discover One KBserver, or Discover All KBservers
+	if (m_bUserDecisionMadeAtDiscovery == TRUE)
+	{
+		// The decision could have been to connect to a certain KBserver,
+		// or to Cancel from service-discovery - the latter we interpret
+		// as a decision to not attempt a connection at the current time
+		if ((m_sd_Detail == SD_NoResultsAndUserCancelled) ||
+			(m_sd_Detail == SD_SingleUrl_UserCancelled)   ||
+			(m_sd_Detail == SD_MultipleUrls_UserCancelled) ||
+			(m_sd_Detail == SD_ServiceDiscoveryError)     ||
+			(m_sd_Detail == SD_MultipleUrls_UserChoseNone)
+			)
+		{
+			// No message is appropriate here, just silently turn off sharing
+			// (but retain any url and hostname already stored , if any)
+			chosenURL.Empty();
+			chosenHostname.Empty();
+			result = SD_ValueIsIrrelevant;  // caller will use m_bUserDecisionMadeAtDiscovery TRUE instead
+			return FALSE;
+		}
+		else if ((m_sd_Detail == SD_SingleUrl_UserAcceptedIt)  ||
+				 (m_sd_Detail == SD_MultipleUrls_UserChoseOne)
+			    )
+		{
+			chosenURL = m_chosenUrl;
+			chosenHostname = m_chosenHostname;
+			if ((m_sd_InitialDetail == SDInit_StoredUrl) && chosenURL == curURL && !m_strUserID.IsEmpty())
+			{
+				result = SD_SameUrlAsInConfigFile;
+				return TRUE;
+			}
+			// caller can use m_bUserDecisionMadeAtDiscovery TRUE too, but the following
+			// will ensure that the Authenticate dialog is shown with whatever was chosen
+			result = SD_SingleUrl_UserAcceptedIt; 
+			return TRUE;
+		}
+	}
+	// If control gets to here, then no user decision yet, so proceed to squeeze one out of him/her
 	if (!m_ipAddrs_Hostnames.IsEmpty())
 	{
 		// Something(s) is available, so get the results back to user - either what was
-		// found, or if multiple KBservers found, via a dialog in which he can select
+		// found, or if multiple KBservers found, via the dialog in which he can select
 		// the one he wants to connect to
+		m_bShownFromServiceDiscoveryAttempt = FALSE;
 		if (count > 1)
 		{
-			// More than one, so setup the dialog etc
+			// More than one, so setup the dialog etc. m_ipAddrs_Hostnames is the wxArrayString in which
+			// the composite url@@@hostname string(s) are kept, and m_theURLs & m_theHostnames are
+			// dynamically filled each time the former is accessed for its discovery data
 			CServDisc_KBserversDlg dlg((wxWindow*)GetMainFrame(), &m_theURLs, &m_theHostnames);
 			dlg.Center();
 			if (dlg.ShowModal() == wxID_OK)
 			{
 				chosenURL = dlg.m_urlSelected;
 				chosenHostname = dlg.m_hostnameSelected;
+				if (chosenURL.IsEmpty())
+				{
+					// No choice at this point, his last chance to make one, dooms
+					// the connection attamept, so treat it as a cancellation
+					result = SD_MultipleUrls_UserCancelled;
+					wxString message;  message = message.Format(_(
+						"You did not choose a URL. This is the same as clicking Cancel.\nKnowledge base sharing will now be turned OFF.\nYou can try again later, or ask your administrator to help you."));
+					wxMessageBox(message, _("KBserver rejected by user"), wxICON_WARNING | wxOK);
+					m_theURLs.Clear();
+					m_theHostnames.Clear();
+					return FALSE;
+				}
+				else
+				{
+					result = SD_MultipleUrls_UserChoseOne;
+					// Go on to Authentication in the caller
+					return TRUE;
+				}
 			}
 			else
 			{
@@ -15461,87 +15525,71 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
 
 					// Since the user has deliberately chosen to Cancel, and the dialog
 					// has explained what will happen, no further message is needed here
+					m_theURLs.Clear();
+					m_theHostnames.Clear();
 					return FALSE;
 				}
 			}
 		}
 		else
 		{
-			// Only one unique KBserver URL was discovered
+			// Only one unique KBserver URL was discovered. Handle the options
 			chosenURL = m_theURLs[0];
 			chosenHostname = m_theHostnames[0];
-		}
-
-		// A number of tests are now required... because what should happen next depends
-		// on what may have transpired in an earlier session, or this may be the first
-		// session with a KB Sharing imposed on the project
-
-
-		// First test: is the passed in current URL (as obtained from the basic config file)
-		// an empty string? If so, probably this is the first setup of a KBserver
-		if (curURL.IsEmpty())
-		{
-			result = SD_FirstTime;
-			m_theURLs.Clear();
-			m_theHostnames.Clear();
-			return TRUE;
-		}
-		else if (curURL == chosenURL)
-		{
-			// The discovered url is the same as what was last used, so there may be a stored 
-			// password in this session. We'll check for that in the caller and branch accordingly
-			// in the caller, based on the value passed back in the result param
-			result = SD_SameUrl;
-			m_theURLs.Clear();
-			m_theHostnames.Clear();
-			return TRUE;
-		}
-		else
-		{
-			// It's a different url from the one that was last stored in the basic configuration 
-			// file. The user will need to be asked if he wants to connect to it. It could be the
-			// same KBserver but with a different url in this session, or it may be a different 
-			// KBserver (and maybe with different password as well). The following are relevant
-			// enum values: SD_UrlDiffers_UserAcceptedIt or SD_UrlDiffers_UserRejectedIt
-			wxString message;  message = message.Format(_(
-				"The URL previously used was:  %s\nThe KBserver running now has URL: %s\nThe URL of a KBserver can change. So it may be the same KBserver, or a different one.\nIf it is a different KBserver, usually its password is also different, and you will need to know what it is.\nIf it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.\n\nDo you wish to connect using this new URL?"),
-				curURL.c_str(), chosenURL.c_str());
-			int value = wxMessageBox(message, _("The URL has changed"),
-				wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
-			if ((value == wxYES))
+			// First, if it is the same as the one stored in the basic config file,
+			// then assume it is wanted (whether selected or not), and also assume
+			// this unique username has not changed - and auto-connect, only asking
+			// the user for the password (the latter actions are done in the caller)
+			if ((m_sd_InitialDetail == SDInit_StoredUrl) && (chosenURL == curURL) && !m_strUserID.IsEmpty())
 			{
-				result = SD_UrlDiffers_UserAcceptedIt;
-				m_theURLs.Clear();
-				m_theHostnames.Clear();
+				result = SD_SameUrlAsInConfigFile;
 				return TRUE;
 			}
 			else
 			{
-				// Since the chosen or only available KBserver has now been rejected, the caller
-				// should probably not show an authentication dialog as that would be confusing. So
-				// the caller should detect the resulting enum value, and treat the situation as 
-				// equivalent to a cancellation of the connection & authentication process. He can
-				// then either have another go, or take the opportunity to get the earlier-used 
-				// KBserver back into use, or whatever. The message to the user must make it clear
-				// that a KBserver's URL can change, and so it could actually be the same KBserver
-				// as earlier on
-				chosenURL = wxEmptyString;
-				result = SD_UrlDiffers_UserRejectedIt;
+				// It's a different url from the one that was last stored in the basic configuration 
+				// file. The user will need to be asked if he wants to connect to it. It could be the
+				// same KBserver but with a different url in this session, or it may be a different 
+				// KBserver (and maybe with different password as well). Alternatively, this might be
+				// the first attempt at a connection, so there was no stored url yet, but one discovered
 				wxString message;  message = message.Format(_(
-					"You have rejected the changed URL, or rejected this particular KBserver.\nKnowledge base sharing will now be turned OFF.\nYou can take this opportunity to set a different KBserver running, if necessary.\nThen try to connect to it, or ask your administrator to help you."));
-				wxMessageBox(message, _("KBserver rejected by user"), wxICON_WARNING | wxOK);
-				m_theURLs.Clear();
-				m_theHostnames.Clear();
-				return FALSE;
+					"The URL previously used was:  %s\nThe KBserver running now has URL: %s\nThe URL of a KBserver can change. So it may be the same KBserver, or a different one.\nIf it is a different KBserver, usually its password is also different, and you will need to know what it is.\nIf it is the same KBserver, the password has not changed. If you are unsure, click Yes and use the password you know.\n\nDo you wish to connect using this new URL?"),
+					curURL.c_str(), chosenURL.c_str());
+				int value = wxMessageBox(message, _("The URL has changed"),
+					wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+				if ((value == wxYES))
+				{
+					result = SD_UrlDiffers_UserAcceptedIt;
+					return TRUE;
+				}
+				else
+				{
+					// Since the chosen or only available KBserver has now been rejected, the caller
+					// should probably not show an authentication dialog as that would be confusing. So
+					// the caller should detect the resulting enum value, and treat the situation as 
+					// equivalent to a cancellation of the connection & authentication process. He can
+					// then either have another go, or take the opportunity to get the earlier-used 
+					// KBserver back into use, or whatever.
+					wxString message;  message = message.Format(_(
+"You chose not to connect to the available KBserver at %s.\nKnowledge base sharing will now be turned OFF.\nYou can take this opportunity to get a different KBserver running, if necessary.\nThen try to connect to it, or ask your administrator to help you."),
+						chosenURL);
+					wxMessageBox(message, _("KBserver rejected by user"), wxICON_WARNING | wxOK);
+					chosenURL = wxEmptyString;
+					chosenHostname = wxEmptyString;
+					m_theURLs.Clear();
+					m_theHostnames.Clear();
+					result = SD_SingleUrl_UserCancelled;
+				}
 			}
-		} // end of else block for test: else if (curURL == chosenURL)
+		} // end of else block for test: if (count > 1)
 
+		return FALSE;
 	}
 	else
 	{
 		// Nothing available, inform the user of what might be the problem or problems
 		wxString message;  message = message.Format(_(
-			"Knowledge base sharing will now be turned OFF. There are several possibilites.\nThe program needs longer to build up a list of running KBservers - if you just launched, try waiting a while.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to set at least one KBserver running - do so now and try again.\nThe computer running the KBserver may have lost power."));
+			"Knowledge base sharing will now be turned OFF. There are several possible reasons.\nThere may have been a network error - make sure the network is running then try again.\nSomeone forgot to set at least one KBserver running - do so now and try again.\nThe computer running the KBserver may have lost power.\nThe unique username for logging in may be different than what is expected. Check Edit > Change Username..."));
 		wxMessageBox(message, _("KBserver discovery failed"), wxICON_WARNING | wxOK);
 		m_theURLs.Clear();
 		m_theHostnames.Clear();
@@ -15673,6 +15721,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// the OnIdle() handler will then call one of the 3 Synchronous functions,
 	// Synchronous_CreateEntry(), Synchronous_PseudoDelete(), or Synchronous_PseudoUndelete()
 	// to hide the server access to the maximum possible extent, to keep the GUI responsive
+	m_bUserDecisionMadeAtDiscovery = FALSE;
 	m_bPseudoDelete_For_KBserver = FALSE;
 	m_bPseudoUndelete_For_KBserver = FALSE;
 	m_bCreateEntry_For_KBserver = FALSE;
@@ -15689,6 +15738,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// want - in particular in the OnProjectPageChanging() handler.
 	m_bIsKBServerProject_FromConfigFile = FALSE;
 	m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
+
+	m_bShownFromServiceDiscoveryAttempt = TRUE; // This boolean decides which of the next messages is shown
+	m_SD_Message_For_Connect = _("If a URL is selected, clicking OK will attempt a connection to that KBserver.  If no URL is selected, a connection is not tried.  The listed URLs and their names are remembered in this session.  Clicking Remove Selection ensures nothing is selected.  If you click Cancel, it turns off sharing - at least until you try again.");
+	m_SD_Message_For_Discovery = _("If a URL is selected, clicking OK will attempt a connection to that KBserver.  If no URL is selected, a connection is not tried.  The listed URLs and their names are remembered in this session.  Clicking Remove Selection ensures nothing is selected.  If you click Cancel, it will leave the current sharing settings unchanged.");
+
 	// BEW 12Apr16, try 14.123 so as to get 4 tries a minute (overlapping was taboo at this early stage)
 	//m_KBserverTimer = 12111; // 12.111 sec as of 19Apr16,  with GC back at 5 secs; old was 14123 with GC = 9 secs
 							   // 9.111 sec as of 22Apr16,  with GC back at 5 secs; old was 12111 with GC = 5 secs
@@ -28643,12 +28697,11 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 			if (bOK)
 			{
 				// Got a URL to connect to
-				wxASSERT(returnedValue != SD_NoKBserverFound && (
-					returnedValue == SD_FirstTime ||
-					returnedValue == SD_SameUrl ||
+				wxASSERT((returnedValue != SD_NoKBserverFound) && (returnedValue != SD_ServiceDiscoveryError) && (
+					returnedValue == SD_SameUrlAsInConfigFile ||
 					returnedValue == SD_UrlDiffers_UserAcceptedIt ||
-					returnedValue == SD_MultipleUrls_UserChoseEarlierOne ||
-					returnedValue == SD_MultipleUrls_UserChoseDifferentOne ) );
+					returnedValue == SD_SingleUrl_UserAcceptedIt ||
+					returnedValue == SD_MultipleUrls_UserChoseOne));
 
 				// Make the chosen URL accessible to authentication
 				m_strKbServerURL = chosenURL;
@@ -28662,13 +28715,15 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 			{
 				// Something is wrong, or no KBserver has yet been set running, etc
 				wxASSERT(returnedValue == SD_NoResultsYet ||
-						 returnedValue == SD_NoKBserverFound || 
-						 returnedValue == SD_UrlDiffers_UserRejectedIt ||
-						 returnedValue == SD_LookupHostnameFailed ||
-						 returnedValue == SD_LookupIPaddrFailed ||
-						 returnedValue == SD_MultipleUrls_UserCancelled ||
-						 returnedValue == SD_UserCancelled
-						 );
+					returnedValue == SD_NoKBserverFound ||
+					returnedValue == SD_SingleUrl_UserCancelled ||
+					returnedValue == SD_ServiceDiscoveryError ||
+					returnedValue == SD_NoResultsAndUserCancelled ||
+					returnedValue == SD_SingleUrl_ButNotChosen ||
+					returnedValue == SD_MultipleUrls_UserCancelled ||
+					returnedValue == SD_MultipleUrls_UserChoseNone ||
+					returnedValue == SD_ValueIsIrrelevant
+					);
 				// The login person should have seen an error message, so just
 				// restore the user settings and return without opening the Manager
 				m_strKbServerURL = m_saveOldURLStr;
@@ -28703,7 +28758,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 			{
 				wxString msg = _("Authentication error when logging in to the KB Sharing Manager. Bad username, url or password; or maybe no KBserver running, or a network error");
 				wxLogDebug(msg, _("Error when logging in"), wxICON_ERROR | wxOK);
-				gpApp->LogUserAction(_T("Authentication error. Bad username or username lookup failure; or maybe no KBserver running"));
+				gpApp->LogUserAction(_T("Authentication error. Bad username or username lookup failure; or maybe no KBserver running, logging in to the KB Sharing Manager"));
 				return;
 			}
 			gpApp->LogUserAction(_T("Authenticated for opening the KB Sharing Manager dlg"));
@@ -31754,6 +31809,15 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		if (name == szKbServerURL)
 		{
 			m_strKbServerURL = strValue;
+			if (m_strKbServerURL.IsEmpty())
+			{
+				m_sd_InitialDetail = SDInit_NoStoredUrl;
+			}
+			else
+			{
+				m_sd_InitialDetail = SDInit_StoredUrl;
+
+			}
 		}
 		else if (name == szKbServerHostname)
 		{
@@ -31767,14 +31831,14 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 			num = wxAtoi(strValue);
 			// Allow values as low as 7.111 secs. Values less than about 4.2 sec result
 			// in the main thread being unresponsive until the burst of discovery scans
-			// completes, so we add a few seconds to let the user's GUI actions not be
-			// deleted a long time. Overlap of runs does not break anything, but the
-			// GUI unresponsiveness is disconcerting. Hence 7.1 gives about 3 seconds
-			// of gui responsiveness in each 7 seconds, until the burst completes after
-			// about a minute (for 9 runs in the burst); then the GUI acts normal.
-			if (num < 7111)
+			// completes, so we can add a few seconds to let the user's GUI actions not be
+			// delayed a long time. Overlap of runs does not break anything, but the
+			// GUI unresponsiveness might be disconcerting. Each run of a discovery completes
+			// in about 3.5 seconds give or take about a quarter second.
+			if (num < 4011)
 			{
-				num = 7111;
+				// This minimum should guarantee sequentiality, which is safer
+				num = 4011;
 			}
 			m_KBserverTimer = num;
 		}
@@ -41367,8 +41431,18 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	wxString prefix;
 	if (gbIsGlossing)
 	{
-		// IDS_GLOSSING
+#if defined(_KBSERVER)
+		if (m_bKBSharingEnabled && m_bGlossesKBserverReady)
+		{
+			prefix = _("Glossing & Sharing Glosses KB");
+		}
+		else
+		{
+			prefix = _("Glossing");
+		}
+#else
 		prefix = _("Glossing");
+#endif
 	}
 	else
 	{
@@ -41376,17 +41450,39 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 		// versus reviewing (as adapting mode can be used for smart back translating
 		// and reviewing mode for dumb back translating, we use the primary labels
 		// adapting versus reviewing, which hopefully are the maximally meaningful ones)
+		// BEW 20Jun16 added support for indicating when KB sharing is currently on
 		if (m_bDrafting)
 		{
-			// IDS_ADAPTING
+#if defined(_KBSERVER)
+			if (m_bKBSharingEnabled && m_bAdaptationsKBserverReady)
+			{
+				prefix = _("Adapting & Sharing Adaptations KB");
+			}
+			else
+			{
+				prefix = _("Adapting");
+			}
+#else
 			prefix = _("Adapting");
+#endif
 		}
 		else
 		{
 			// review mode - which, for the use of the -frm switch, is also
 			// the "back translating 'dumb' mode made persistent for the
 			// session
+#if defined(_KBSERVER)
+			if (m_bKBSharingEnabled && m_bAdaptationsKBserverReady)
+			{
+				prefix = _("Reviewing & Sharing Adaptations KB");
+			}
+			else
+			{
+				prefix = _("Reviewing");
+			}
+#else
 			prefix = _("Reviewing");
+#endif
 		}
 	}
 	message = prefix + _T("  ") + message;
@@ -49662,6 +49758,7 @@ void CAdapt_ItApp::ClobberGuesser()
 }
 #if defined(_KBSERVER)
 
+/*
 void CAdapt_ItApp::ServDiscSingleOnly()
 {
 	// Don't do anything here if there is a burst of discovery scans in progress
@@ -49710,15 +49807,15 @@ void CAdapt_ItApp::ServDiscSingleOnly()
 		strComposite = m_ipAddrs_Hostnames.Item(0);
 		bGotOne = TRUE;
 	}
-	/* don't need this bit
-	bool bConfigFileOneIsSameAsDiscoveredOne = FALSE;
-	if (!m_strKbServerURL.IsEmpty() && bGotOne) // test the contents of the config file's url entry
-	{
-		int len = (wxString(_T("https://"))).Len();
-		wxString ipaddress = m_strKbServerURL.Mid(len);
-		bConfigFileOneIsSameAsDiscoveredOne = (strComposite.Find(ipaddress) != wxNOT_FOUND);
-	}
-	*/
+	// don't need this bit
+	//bool bConfigFileOneIsSameAsDiscoveredOne = FALSE;
+	//if (!m_strKbServerURL.IsEmpty() && bGotOne) // test the contents of the config file's url entry
+	//{
+	//	int len = (wxString(_T("https://"))).Len();
+	//	wxString ipaddress = m_strKbServerURL.Mid(len);
+	//	bConfigFileOneIsSameAsDiscoveredOne = (strComposite.Find(ipaddress) != wxNOT_FOUND);
+	//}
+	
 	// The first issue is whether or not some running KBservers are already discovered,
 	// or not
 	if (count == 0)
@@ -49752,7 +49849,7 @@ void CAdapt_ItApp::ServDiscSingleOnly()
 	}
 	archiveArr.clear();
 }
-
+*/
 // Handler for the timer's notification
 void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 {
@@ -49791,11 +49888,77 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 			wxString progTitle = _("KBservers Discovery");
 			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
 
+
+			// Deprecated - use the columned dialog, it looks better & allows a choice
+			/*
 			// Inform the user what the discovered inventory currently is
 			wxString title = _("KBservers discovered so far");
 			wxString msg = GetMainFrame()->BuildUrlsAndNamesMessageString();
 			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+			*/
+			// Create some dummy data for display
+			m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames accumulates composites from service disocvery
+			m_theHostnames.Clear(); // ditto
+			m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
+			int counter = GetMainFrame()->GetUrlAndHostnameInventory(m_ipAddrs_Hostnames, m_theURLs, m_theHostnames);
+			wxUnusedVar(counter);
 
+			/* dummy urls & hostnames for testing purposes
+			m_theURLs.Add(_T("https://kbserver.jmarsden.org"));
+			m_theHostnames.Add(_T("Jonathans_kbserver"));
+			m_theURLs.Add(_T("https://adapt-it.org/KBserver"));
+			m_theHostnames.Add(_T("AI-Team-KBserver"));
+			m_theURLs.Add(_T("192.168.3.171"));
+			m_theHostnames.Add(_T("UbuntuLaptop-kbserver"));
+			m_theURLs.Add(_T("192.168.3.234"));
+			m_theHostnames.Add(_T("Dell-Mini9"));
+			m_theURLs.Add(_T("192.168.3.94"));
+			m_theHostnames.Add(_T("kbserver-X1-Carbon"));
+			*/
+
+			// Set the app variables for chosen url and hostname, initializing
+			// to the empty string first
+			m_chosenUrl.Empty();
+			m_chosenHostname.Empty();
+			CServDisc_KBserversDlg dlg((wxWindow*)GetMainFrame(), &m_theURLs, &m_theHostnames);
+			dlg.Center();
+			if (dlg.ShowModal() == wxID_OK)
+			{
+				m_chosenUrl = dlg.m_urlSelected;
+				m_chosenHostname = dlg.m_hostnameSelected;
+
+				if (m_chosenUrl.IsEmpty())
+				{
+					// The user made no choice (whether there were one or many found)
+					m_sd_Detail = SD_MultipleUrls_UserChoseNone;
+					m_bUserDecisionMadeAtDiscovery = FALSE;
+				}
+				else
+				{
+					// This is the user's choice (whether there were one or many found)
+					m_sd_Detail = SD_MultipleUrls_UserChoseOne;
+					m_bUserDecisionMadeAtDiscovery = TRUE;
+				}
+
+				// Finish up the progress dialog's tracking in the status bar
+				((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
+			}
+			else
+			{
+				// Cancelled
+				if (dlg.m_bUserCancelled)
+				{
+					m_chosenUrl.Empty();
+					m_chosenHostname.Empty();
+					m_sd_Detail = SD_MultipleUrls_UserCancelled;
+					m_bUserDecisionMadeAtDiscovery = FALSE;
+					// Since the user has deliberately chosen to Cancel, and the dialog
+					// has explained what will happen, no further message is needed here
+
+					// Finish up the progress dialog's tracking in the status bar
+					((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
+				}
+			}
 			return;
 		}
 	}
@@ -49841,6 +50004,11 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
 		wxBell();
 		return;
 	}
+	// Initializations
+	ServDiscDetail result = SD_NoResultsYet;
+	m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
+	m_bShownFromServiceDiscoveryAttempt = TRUE;
+
 #if defined(_shutdown_)
 	wxLogDebug(_T("CAdapt_ItApp:: DoServiceDiscoverySingleRun():  starting"),
 		m_nSDRunCounter, m_servDiscTimer.GetInterval());
@@ -49857,6 +50025,11 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
 	pStatusBar->StartProgress(progTitle, msgDisplayed, nTotal);
 	pStatusBar->UpdateProgress(progTitle, 1, msgDisplayed);
 
+	#if defined(_shutdown_)
+	wxLogDebug(_T("CAdapt_ItApp:: DoServiceDiscoverySingleRun():  starting"),
+	m_nSDRunCounter, m_servDiscTimer.GetInterval());
+	#endif
+
 	m_nSDRunCounter = 0; // the thread, and CServiceDiscovery() use this
 	m_pServDiscThread[m_nSDRunCounter] = new Thread_ServiceDiscovery;
 
@@ -49869,6 +50042,10 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
 
 		// One may fail but others succeed. Handle this failure
 		m_pServDiscThread[m_nSDRunCounter] = NULL;
+		m_nSDRunCounter = 0;
+		// Finish up the progress dialog's tracking in the status bar
+		((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
+		return;
 	}
 	else
 	{
@@ -49884,17 +50061,110 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
 			// Others in the burst may succeed
 			m_pServDiscThread[m_nSDRunCounter]->Delete();
 			m_pServDiscThread[m_nSDRunCounter] = NULL;
+			m_nSDRunCounter = 0;
+			// Finish up the progress dialog's tracking in the status bar
+			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
+			return;
+		}
+	}	
+	
+	m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames accumulates composites from service disocvery
+	m_theHostnames.Clear(); // ditto
+	m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
+	int counter = GetMainFrame()->GetUrlAndHostnameInventory(m_ipAddrs_Hostnames, m_theURLs, m_theHostnames);
+	wxUnusedVar(counter);
+
+/*
+#if defined(_DEBUG)
+	// Create some dummy data for display, for testing purposes
+	m_theURLs.Add(_T("https://kbserver.jmarsden.org"));
+	m_theHostnames.Add(_T("Jonathans_kbserver"));
+	m_theURLs.Add(_T("https://adapt-it.org/KBserver"));
+	m_theHostnames.Add(_T("AI-Team-KBserver"));
+	m_theURLs.Add(_T("192.168.3.171"));
+	m_theHostnames.Add(_T("UbuntuLaptop-kbserver"));
+	m_theURLs.Add(_T("192.168.3.234"));
+	m_theHostnames.Add(_T("Dell-Mini9"));
+	m_theURLs.Add(_T("192.168.3.94"));
+	m_theHostnames.Add(_T("kbserver-X1-Carbon"));
+#endif
+*/
+	// Set the app variables for chosen url and hostname, initializing
+	// to the empty string first
+	m_chosenUrl .Empty();
+	m_chosenHostname.Empty();
+	CServDisc_KBserversDlg dlg((wxWindow*)GetMainFrame(), &m_theURLs, &m_theHostnames);
+	dlg.Center();
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		m_chosenUrl = dlg.m_urlSelected;
+		m_chosenHostname = dlg.m_hostnameSelected;
+
+		if (m_chosenUrl.IsEmpty())
+		{
+			// The user made no choice (whether there were one or many found)
+			result = SD_MultipleUrls_UserChoseNone;
+
+		}
+		else
+		{
+			// This is the user's choice (whether there were one or many found)
+			result = SD_MultipleUrls_UserChoseOne;
+		}
+
+		// Finish up the progress dialog's tracking in the status bar
+		((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
+	}
+	else
+	{
+		// Cancelled
+		if (dlg.m_bUserCancelled)
+		{
+			m_chosenUrl.Empty();
+			m_chosenHostname.Empty();
+			result = SD_MultipleUrls_UserCancelled;
+
+			// Since the user has deliberately chosen to Cancel, and the dialog
+			// has explained what will happen, no further message is needed here
+
+			// Finish up the progress dialog's tracking in the status bar
+			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
 		}
 	}
-	// Finish up the progress dialog's tracking in the status bar
-	((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
 	m_nSDRunCounter = 0;
 }
 
+/*  Note the new values.....
+enum ServDiscInitialDetail
+{
+SDInit_NoStoredUrl,
+SDInit_StoredUrl
+};
+
+enum ServDiscDetail
+{
+SD_NoResultsYet,
+SD_NoKBserverFound,
+SD_ServiceDiscoveryError,
+SD_NoResultsAndUserCancelled,
+SD_SameUrlAsInConfigFile,
+SD_UrlDiffers_UserAcceptedIt,
+SD_SingleUrl_UserAcceptedIt,
+SD_SingleUrl_UserCancelled,
+SD_SingleUrl_ButNotChosen,
+SD_MultipleUrls_UserCancelled,
+SD_MultipleUrls_UserChoseOne,
+SD_MultipleUrls_UserChoseNone,
+SD_SD_ValueIsIrrelevant
+};
+*/
 void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 {
 	// Use SetOwner() to bind the sevice discovery timer to the app instance, the latter will 
 	// handle its notification event, and call OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
+	m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
+	m_bShownFromServiceDiscoveryAttempt = TRUE;
+
 	m_servDiscTimer.SetOwner(this);
 	int i;
 	int limit = (int)MAX_SERV_DISC_RUNS;
@@ -49939,7 +50209,7 @@ void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 	// top of OnInit() for where the default is set
 	// Note, the timer interval should be some odd value (no zeros) greater than 2.111 seconds,
 	// to avoid timer notifies persistently happening just before the same KBserver's
-	// multicasts. Shutting down a burst is done from OnServiceDiscoveryThread()
+	// multicasts. Shutting down a burst is done from OnServiceDiscoveryTimer()
 	m_bServDiscBurstIsCurrent = TRUE;
 	m_servDiscTimer.Start(m_KBserverTimer);
 #if defined(_shutdown_)

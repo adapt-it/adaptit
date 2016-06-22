@@ -1390,7 +1390,7 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 void CKBEditor::MessageForConsistencyCheck()
 {
 	wxString msg;
-	msg = msg.Format(_("You have respelled some knowledge base entries. This has made the knowledge base inconsistent with the current documents. You should do an inconsistency check of all documents as soon as you dismiss this message. Do you want the inconsistency check to start automatically?"));
+	msg = msg.Format(_("You have respelled some knowledge base entries. This has made the knowledge base inconsistent with the current documents. You should do a consistency check of all documents as soon as you dismiss this message. Do you want the consistency check to start automatically?"));
 	wxString title = _("Do Consistency Check Now?");
 	long style = wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCENTRE;
 	int answer = ::wxMessageBox(msg.c_str(),title.c_str(),style);

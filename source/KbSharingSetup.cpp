@@ -94,25 +94,44 @@ void KbSharingSetup::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// wxDesigner initial values are, for adapting and glossing choices, respectively)
 	m_bSharingAdaptations = FALSE; // initialize (user's final choice on exit is stored here)
 	m_bSharingGlosses = FALSE; // initialize (user's final choice on exit is stored here)
+	// Get the checkboxes set to agree with the flag values
+	bool bAdaptingBoxTicked = m_pAdaptingCheckBox->GetValue();
+	bool bGlossingBoxTicked = m_pGlossingCheckBox->GetValue();
 	if (m_pApp->m_bIsKBServerProject) // adaptations KBserver 
 	{
 		// It's an existing shared kb project - so initialize to what the current settings
 		// are, and make the checkbox comply
 		m_bSharingAdaptations = TRUE; // initialize
+		if (!bAdaptingBoxTicked)
+		{
+			m_pAdaptingCheckBox->SetValue(TRUE);
+		}
 	}
 	else
 	{
 		m_bSharingAdaptations = FALSE; // initialize
+		if (bAdaptingBoxTicked)
+		{
+			m_pAdaptingCheckBox->SetValue(FALSE);
+		}
 	}
 	if (m_pApp->m_bIsGlossingKBServerProject) // glosses KBserver
 	{
 		// It's an existing shared glossing kb project - so initialize to what the current
 		// settings are, and make the checkbox comply
 		m_bSharingGlosses = TRUE; // initialize
+		if (!bGlossingBoxTicked)
+		{
+			m_pGlossingCheckBox->SetValue(TRUE);
+		}
 	}
 	else
 	{
 		m_bSharingGlosses = FALSE; // initialize
+		if (bGlossingBoxTicked)
+		{
+			m_pGlossingCheckBox->SetValue(FALSE);
+		}
 	}
 }
 
