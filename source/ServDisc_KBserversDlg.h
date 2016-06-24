@@ -46,12 +46,13 @@ protected:
 	void		OnOK(wxCommandEvent& event);
 	void		OnCancel(wxCommandEvent& WXUNUSED(event));
 	void		OnButtonMoreInformation(wxCommandEvent& WXUNUSED(event));
-	void        CServDisc_KBserversDlg::OnRemoveSelection(wxCommandEvent& WXUNUSED(event));
+	void        OnRemoveSelection(wxCommandEvent& WXUNUSED(event));
 	void		OnURLSelection(wxListEvent& event);
 	void		OnURLDeselection(wxListEvent& event);
 
 private:
 	wxButton*   m_pBtnRemoveSelection;
+	wxTextCtrl* m_pBottomMessageBox;
 	wxListView* m_pListCtrlUrls;
 	wxString    strComposite; // url, spaces, hostname <--- temporary
 	size_t      nSel; // index of selected URL line

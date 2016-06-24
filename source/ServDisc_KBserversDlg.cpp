@@ -98,6 +98,16 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	m_compositeArr.Clear();
 	wxString at3 = _T("@@@");
 
+	m_pBottomMessageBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_MSG_BOTTOM);
+	if (pApp->m_bShownFromServiceDiscoveryAttempt)
+	{
+		m_pBottomMessageBox->ChangeValue(pApp->m_SD_Message_For_Discovery);
+	}
+	else
+	{
+		m_pBottomMessageBox->ChangeValue(pApp->m_SD_Message_For_Connect);
+	}
+
 	wxLogDebug(_T("CServDisc_KBserversDlg::InitDialog() list urls and their hostnames"));
 	// Make and store the composite strings
 	for (index = 0; index < count; index++)
@@ -105,7 +115,7 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 		url = m_urlsArr.Item(index);
 		hostname = m_hostnamesArr.Item(index);
 #if defined(_DEBUG)
-		wxLogDebug(_T("m_urlsArr, at index %d,  url = %s  hostname = %s"), index, url, hostname);
+		wxLogDebug(_T("m_urlsArr, at index %d,  url = %s  hostname = %s"), index, url.c_str(), hostname.c_str());
 #endif
 		wxString s = url + at3 + hostname;
 		m_compositeArr.Add(s);
@@ -134,6 +144,13 @@ void CServDisc_KBserversDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 		url = m_urlsArr.Item(index);
 		m_pListCtrlUrls->SetItem(index, 0, url); // set first column string to the url
 		hostname = m_hostnamesArr.Item(index);
+		// Remove any final  .local. or .local because the user does not need to see it
+		int offset = wxNOT_FOUND;
+		offset = hostname.Find(_T(".local"));
+		if (offset != wxNOT_FOUND)
+		{
+			hostname = hostname.Left(offset);
+		}
 		m_pListCtrlUrls->SetItem(index, 1, hostname); // set second column string to the user's typed-in name
 		m_pListCtrlUrls->SetItemFont(index, *pApp->m_pDlgTgtFont); // use target text, 12 pt size, for each line
 	}
@@ -161,7 +178,7 @@ void CServDisc_KBserversDlg::OnURLSelection(wxListEvent& event)
 		m_urlSelected = aComposite.Left(offset);
 		m_hostnameSelected = aComposite.Mid(offset + 3);
 #if defined(_DEBUG)
-		wxLogDebug(_T("OnURLSelection() chosen url = %s   chosen hostname = %s"), m_urlSelected, m_hostnameSelected);
+		wxLogDebug(_T("OnURLSelection() chosen url = %s   chosen hostname = %s"), m_urlSelected.c_str(), m_hostnameSelected.c_str());
 #endif
 	}
 	else
