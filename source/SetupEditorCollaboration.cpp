@@ -218,11 +218,13 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	//   isn't installed on the computer (maybe transferring the settings from
     //    another computer, or the user uninstalled something).
     if (m_TempCollaborationEditor.IsEmpty() ||
-        (m_TempCollaborationEditor == _T("Paratext") && (m_pApp->ParatextIsInstalled() == false)) ||
+        (m_TempCollaborationEditor == _T("Paratext") && (m_pApp->ParatextIsInstalled() == PTNotInstalled)) ||
         (m_TempCollaborationEditor == _T("Bibledit") && (m_pApp->BibleditIsInstalled() == false)))
     {
         // The collaboration editor value is bad. Set it to a good initial value.
-        if (m_pApp->ParatextIsInstalled())
+        enum PTVersionsInstalled PTver;
+        PTver = m_pApp->ParatextIsInstalled();
+        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7or8)
         {
             m_TempCollaborationEditor = _T("Paratext");
         }
@@ -1074,8 +1076,10 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 				{
 					// At least one colon ':' character is present in string therefore it was previously
 					// using Paratext. Assign "Paratext" as editor (if it is installed).
-					if (m_pApp->ParatextIsInstalled())
-						m_TempCollaborationEditor = _T("Paratext");
+                    enum PTVersionsInstalled PTver;
+                    PTver = m_pApp->ParatextIsInstalled();
+                    if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7or8)
+                        m_TempCollaborationEditor = _T("Paratext");
 				}
 				else
 				{
@@ -1096,14 +1100,17 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 		{
 			// m_TempCollaborationEditor has a non-empty value after reading the project config file's
 			// collaboration settings. Here we can just ensure that the editor specified is installed
-			if (m_TempCollaborationEditor == _T("Paratext") && !m_pApp->ParatextIsInstalled())
+			if (m_TempCollaborationEditor == _T("Paratext") && m_pApp->ParatextIsInstalled() == PTNotInstalled)
 			{
 				if (m_pApp->BibleditIsInstalled())
 					m_TempCollaborationEditor = _T("Bibledit");
 			}
 			if (m_TempCollaborationEditor == _T("Bibledit") && !m_pApp->BibleditIsInstalled())
 			{
-				if (m_pApp->ParatextIsInstalled())
+
+                enum PTVersionsInstalled PTver;
+                PTver = m_pApp->ParatextIsInstalled();
+                if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7or8)
 					m_TempCollaborationEditor = _T("Paratext");
 			}
 		}
@@ -1133,7 +1140,9 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 		// here rather than using the App's m_bParatextIsInstalled or m_bBibleditIsInstalled
 		// variables (which are only set in OnInit(). The user may have installed one of the
 		// editors during this AI session.
-		if (m_pApp->ParatextIsInstalled())
+        enum PTVersionsInstalled PTver;
+        PTver = m_pApp->ParatextIsInstalled();
+        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7or8)
 		{
 		     m_TempCollaborationEditor = _T("Paratext"); // default editor
 		}
@@ -1173,6 +1182,8 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 	m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(selStr,
 		m_TempCollabSourceProjLangName,m_TempCollabTargetProjLangName);
 
+    enum PTVersionsInstalled PTver;
+    PTver = m_pApp->ParatextIsInstalled();
 	// If the m_TempCollaborationEditor string is empty, it indicates that there was no editor
 	// specified in the config file. In such cases initialize it to an installed editor
 	// if available, giving preference to Paratext
@@ -1186,7 +1197,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 		// The text controls will be updated with the empty values below
 
 		// Assign a default editor so the text substitutions for
-		if (m_pApp->ParatextIsInstalled())
+        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7or8)
 		{
 		     m_TempCollaborationEditor = _T("Paratext"); // default editor
 		}
@@ -1198,7 +1209,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
-		if (m_pApp->ParatextIsInstalled())
+        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7or8)
 		{
 			// set the "Paratext" radio box button
 			pRadioBoxScriptureEditor->SetSelection(0);
@@ -1215,7 +1226,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 			// set the "Bibledit" radio box button
 			pRadioBoxScriptureEditor->SetSelection(1);
 		}
-		else if (m_pApp->ParatextIsInstalled())
+		else if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7or8)
 		{
 			pRadioBoxScriptureEditor->SetSelection(0);
 		}

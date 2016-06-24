@@ -1,3 +1,151 @@
+﻿----------------------------------------------
+Version 6.8.0 release 8 July 2016
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.8.0 
+----------------------------------------------
+* Adapt It now supports collaboration with Paratext 8.
+Once Paratext 8 has been installed and Paratext project
+data has been migrated from the user's Paratext 7.x 
+"My Paratext Projects" to the Paratext 8's "My Paratext 8 
+Projects" folder, Adapt It will automatically detect that 
+Paratext 8 has been installed, and should continue 
+collaborating with Paratext 8 for all Adapt It projects 
+that were previously set up by an administrator to 
+collaborate with Paratext 7.x. WARNING: Adapt It versions
+before 6.8.0 that were collaborating with Paratext 7.x
+will not be able to continue collaborating with Paratext 
+after Paratext 8 has been installed and the user's Paratext 
+projects have been migrated to the new "My Paratext 8 
+Projects" directory. You must upgrade to Adapt It version
+6.8.0 to be able to collaborate with Paratext 8.
+* This new version of Adapt It will still work for users
+who have projects set up to collaborate with Paratext 7.x.
+Installing Paratext 8 is not necessary to use this 
+version (6.8.0) of Adapt It. This version will continue to
+collaborate with a user's Paratext 7.x data if Adapt It 
+was previously set up to collaborate with Paratext 7.x.
+* The tooltip in the Choose Translation dialog, and also
+those in the two listboxes in the KB Editor's 10 panes, 
+were nuisances - obscuring the list contents. The effect
+was particularly bad in Ubuntu, with its solid black
+background to the tooltip. So I removed them.
+* The "Type Key To Be Found" text box in each page of
+the Knowledge Base editor did not work well - trying
+to edit in the box to get the word wanted for finding
+in the source text list was a nightmare. It's now
+fixed. An extra button for doing the search of the list
+is now at the right hand end of the text box, and
+normal editing is possible in the text box prior to
+clicking that extra button. The label to the left of
+the text box now says: "Find Source:" The layout was
+slightly improved also.
+* The Edit Knowledge Base dialog's "Source Find:" text
+box now does not have text that was found programmatically
+put in it. It retains the user's typed text. The search is 
+improved - it finds the next substring in the list for
+each click of the > button, and the search cycles back
+to the top of the list and continues down once the end
+of the list is reached. The search options are changed
+in order to work better with the auto-capitalization
+feature. The search is now caseSensitive, and it matches
+within words and phrases, not just at the start of a word.
+Also, when displaying some selected or matched text, it
+is no longer displayed at the top of the list, but as
+the fourth list item so that the user can see some
+previous source text words as well.
+* The application can now capitalize automatically the
+first word of a new sentence, whether auto-caps is 
+turned ON, or is OFF. There is no user interface way
+to make it work. Instead, it only works by the user
+or administrator copying, or typing in, a list of target
+language word-final punctuation characters to a line in
+the project configuration file, AI-ProjectConfiguration.aic
+The line to do this on has the label:
+SentenceFinalPunctuationTriggeringCapitalization
+which is followed by a tab, then your punctuation
+characters should follow the tab. For example:  ”’.>!?
+(This capability is useful when the source text language
+does not have a lower/upper case distinction.)
+* Recent versions of Adapt It partially lost the capacity
+for the user to type overriding manual punctuation, and
+to suppress temporarily the automatic copying of punctuation
+(usually in order to type different punctuation, or have
+no punctuation on a word or phrase). These functionalities
+have been fully restored, and improved with respect to
+the interplay between manually typed punctuation and the
+command bar button which suppresses punctuation copying
+for the next move of the phrasebox.
+* If the KB contained a number of upper-case-initial source
+text words or phrases, stored while auto-capitalizing was
+off, and then the user changed to auto-capitalizing on and
+did a Consistency Check, the upper-case entries would, at
+every time encounted in the document, cause an unwanted
+halt as if it was an inconsistency. This is now fixed. 
+They are now just ignored.
+* The automatic capitalization feature has been slightly
+extended, to optionally allow the source text capital letter
+to be in any position within the source text's first word.
+The extra capability is switchable, on or off.
+The project configuration file is the only place to do
+the switching, by a manual edit in a word processor. The
+line has the label: UpperCaseAnywhereInFirstWordOfSource
+If the value which follows is 0, the legacy automatic
+capitalization operates - that is, the capital is recognised
+only if word-initial. But now if the configuration file's
+line has value 1, the location of the source text capital
+letter can be anywhere within the first word of the source
+text, and it will be recognised as a capitalized word. 
+The target text automatic capitalization, however, still 
+only happens at the start of the target text. 
+Turning on this extended capability is useful when the source 
+text is a prefixing language in which proper names occur with 
+a prefix, but the target text language does not prefix proper 
+names. So source: na-Paul  if the user typed target: bawul   
+then the document would have Bawul in the phrasebox; but in 
+the knowledge base, the entry would be: na-paul (for source 
+text) paired with bawul (for its target text).
+
+----------------------------------------------
+Bug fixes in 6.8.0 release 8 July 2016
+----------------------------------------------
+* On computers with very high resolution screens, the
+dialog for the "Remove Some Entries Or Save List" button
+of the Knowledge Base editor did not display the controls
+at the bottom of the list. It now does.
+* The built-in source text parser misparsed:
+word.<space>"word (where a straight doublequote is supposed
+to be the opening quote of the second word, to have the
+three characters .<space>" as final punctuation on the
+first word.
+* Vertical Edit mode could produce differing final
+document states, depending on how the editing was done
+while vertical mode was operational. This has been 
+fixed, so that the return to normal mode gives
+predictable results. The phrasebox will be left
+at the same location as it was in when last at some
+pile or other in the document during vertical editing
+mode. And if a fallback location is needed, the fallback
+will be the leftmost pile of the section of edited source
+text.
+* A user's choice of italics for any of the fonts was not
+getting saved to the configuration files. Now fixed.
+* It was possible to lose the adaptation, from the KB, of
+a single source word, word1 say, if the document had two 
+source words following word1, and those two needed to be
+merged, and the first of the two words to be merged was
+also word1, and SHIFT+TAB was used to move the phrase
+box back to the second word1, and then ALT+RightArrow
+was used to select both words for merging. Then when
+the first character of the adaptation was typed, the
+merger happened and within that word1 had its reference
+count reduced to 0, which caused it to be marked as
+deleted in the knowledge base. It is now not possible
+for this sequence of actions to cause deletion from the
+KB for word1.
+* Fixed some crashes at document end when adding extra
+words there in the "Edit Source Text..." feature.
+
 ----------------------------------------------
 Version 6.6.4 release 15 October 2015
 ----------------------------------------------

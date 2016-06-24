@@ -184,7 +184,7 @@ class KBSharingMgrTabbedDlg;
 //    #include "wx/msw/wx.rc" statement and add a lot of other
 //    Windows-specific stuff to the file - resulting in a build failure.
 // 4. The Visual Studio 2015 Adapt_It > Properties > Linker > Version (do for All Configurations).
-//    For this version, just use the first two version digits, i.e., 6.6 to
+//    For this version, just use the first two version digits, i.e., 6.8 to
 //    keep things compatible with newer versions of Visual Studio.
 // 5. The Mac's Info.plist file in adaptit/bin/mac/.
 // 6. The Linux's ChangeLog (done automatically by batch file if the version number in
@@ -207,14 +207,14 @@ class KBSharingMgrTabbedDlg;
 // ******** START ACCUMULATING COPIES OF THE AI_UserProfiles.xml *************************
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_MINOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_MINOR_PART 8 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 0 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 17
-#define VERSION_DATE_MONTH 06
+#define VERSION_DATE_DAY 8
+#define VERSION_DATE_MONTH 07
 #define VERSION_DATE_YEAR 2016
-const wxString appVerStr(_T("6.6.5"));
+const wxString appVerStr(_T("6.8.0"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -1147,6 +1147,15 @@ enum AiProjectCollabStatus
 	collabProjNotConfigured,
 };
 
+enum PTVersionsInstalled
+{
+    PTNotInstalled,
+    PTVer7,
+    PTVer8,
+    PTVer7and8,
+    PTLinuxVer7or8
+};
+
 /// a struct for use in collaboration with Paratext or Bibledit (BEW added 22Jun11)
 struct EthnologueCodePair {
 	wxString srcLangCode;
@@ -1400,13 +1409,13 @@ struct Collab_Project_Info_Struct // whm added 26Apr11 for AI-PT Collaboration s
 	bool bProjectIsEditable; // default is TRUE
 	wxString versification; // default is _T("");
 	wxString fullName; // default is _T("");
-	wxString shortName; // default is _T("");
+	wxString shortName; // default is _T(""); // same as projectDir below
 	wxString languageName; // default is _T("");
-	wxString ethnologueCode; // default is _T("");
-	wxString projectDir; // default is _T("");
+	wxString ethnologueCode; // default is _T(""); // PT 8 Settings.xml tag is <LanguageIsoCode> and maps to this ethnologueCode
+	wxString projectDir; // default is _T(""); // In PT 8 this is taken from the dir name that the Settings.xml file is located in
 	wxString booksPresentFlags; // default is _T("");
-	wxString chapterMarker; // default is _T("c");
-	wxString verseMarker; // default is _T("v");
+	wxString chapterMarker; // default is _T("c"); // no longer used in PT but doesn't hurt to have it
+	wxString verseMarker; // default is _T("v"); // no longer used in PT 8 but doesn't hurt to have it
 	wxString defaultFont; // default is _T("Arial")
 	wxString defaultFontSize; // default is _T("10");
 	wxString leftToRight; // default is _T("T");
@@ -4276,6 +4285,15 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	// wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string
 	// substitutions.
 	wxString m_collaborationEditor;
+
+    // whm 20June2016 Note:
+    // If Paratext is installed, we need to know which major version of Paratext is
+    // associated with a given AI project. If PT7 is the version associated with the
+    // project this string value will be "PT7". If PT8 is the version associated with
+    // the project this string value will be "PT8". If neither PT7 nor PT8 are installed
+    // the string value will be null _T("").
+    wxString m_ParatextVersionForProject;
+
 	// BEW 21May14, the following boolean is to support when only punctuation changes are made in PT or
 	// BE's source text project; without it, the changes made it back to the AI document,
 	// but preEdit and postEdit md5 sums were identical  - so the lack of different md5sum
@@ -4350,7 +4368,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	void	RemoveCollabSettingsFromFailSafeStorageFile(); // whm added 29Feb12
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
 	void	LogUserAction(wxString msg);
-	bool	ParatextIsInstalled(); // whm added 9Feb11
+    enum PTVersionsInstalled ParatextIsInstalled(); // whm modified 20Apr2016
 	bool	BibleditIsInstalled(); // whm added 13Jun11
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	bool	BibleditIsRunning(); // whm added 13Jun11
@@ -4359,7 +4377,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 #endif
 	wxString GetParatextProjectsDirPath(); // whm added 9Feb11
 	wxString GetBibleditProjectsDirPath();
-	wxString GetParatextInstallDirPath(); // whm added 9Feb11
+	wxString GetParatextInstallDirPath(); // whm modified 22June2016
 	wxString GetBibleditInstallDirPath(); // whm added 13Jun11
 	wxString GetAdaptit_Bibledit_rdwrtInstallDirPath(); // whm added 18Dec11
 	wxString GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode,

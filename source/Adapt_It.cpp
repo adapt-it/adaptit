@@ -6619,6 +6619,13 @@ wxString szCollabAIProjectName = _T("CollabAIProjectName");
 // m_collaborationEditor member variable.
 wxString szCollaborationEditor = _T("CollaborationEditor");
 
+// whm added 20June2016 for Paratext8 collaboration support.
+// The label that identifies the following string as the application's
+// "ParatextVersionForProject". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a wxString in the App's
+// m_ParatextVersionForProject member variable.
+wxString szParatextVersionForProject = _T("ParatextVersionForProject");
+
 // whm added 30Jun11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
 // "CollabExpectsFreeTrans". This value is written in the "ProjectSettings" part
@@ -12015,37 +12022,78 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if Paratext.exe is installed on the host computer, FALSE otherwise
+/// \return     an enum value one of following: PTNotInstalled, PTVer7, PTVer8, or PTVer7and8
 /// \remarks
+///
+/// Modified by whm 20Junel2016 for detecting if Paratext 8 or the older Paratext 7 is 
+/// installed, or both, or neither is installed - as indicated by enum return value.
+/// The revised function first checks for the existence of a Paratext 8 installation. 
+/// It then checks for the existence of a Paratext 7 installation.
+/// If neither installation is found, the function returns PTNotInstalled.
+/// If both installations are found, the function returns PTVer7and8.
+/// If only PT8 installation is found, the function returns PTVer8.
+/// If only PT7 installation is found, the function returns PTVer7.
+/// The calling code will determine what to do with the PT installation information returned
+/// by this function. The PT dev team recommends the following guideline: In general, if a PT8 
+/// installation is found, it can be assumed to be the currently active version and the user's 
+/// data has been migrated to it. If PT 8 is not found but a PT 7 installation is found, PT 7 
+/// is assumed to be the currently active version and has the current version of the user's PT 
+/// data.
+/// 
 /// Called from: the App's OnInit().
 /// Looks in the Windows registry to see if Paratext is installed. Returns TRUE if host
 /// machine has a Windows registry and this function finds the following conditions to
 /// be met:
 /// 1. The following key exists in the registry:
-///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
+///    For Paratext 7.X:
+///      HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
+///    For Paratext 8.X:
+///      HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Paratext\8\Program_Files_Directory_Ptw8
+///    when running on a 64-bit version of Windows
+///    or
+///      HKEY_LOCAL_MACHINE\SOFTWARE\Paratext\8\Program_Files_Directory_Ptw8
+///    when running on a 32-bit version of Windows
 /// 2. The string value associated with the above key represents a valid path where
-///    Paratext is installed, usually something like "C:\Program Files\Paratext7\".
-/// 3. The folder designated in 2 above contains the Paratext.exe executable file.
+///    Paratext is installed, default locations are "C:\Program Files\Paratext7\", in
+///      the case of Paratext 7; "C:\Program Files\Paratext 8\", in the case of
+///      Paratext 8 running on 32-bit Windows; or "C:\Program Files (x86)\Paratext 8\", 
+///      in the case of Paratext 8 running on 64-bit Windows installations.
+/// 3. The folder designated in 2 above contains the Paratext.exe executable file and the
+///    ParatextShared.dll file.
 /// If the above conditions are not all met, the function returns FALSE. This function
 /// only reads/queries the Windows registry; it does not make changes to it.
+/// NOTE: It is possible a user can have both Paratext 7 and Paratext 8 installed at the
+///    same time. The revised coding of this function assumes that if PT 8 is installed  
+///    that the user's data has been migrated to the PT 8's Settings_Directory.
+/// TODO: Verify this assumption will work in all cases. If not then we should determine
+///    a programmatic way of determining which PT installation - 7 or 8 - has the user's 
+///    current data. This determination is important to Adapt It's collaboration functions.
 //////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::ParatextIsInstalled()
+enum PTVersionsInstalled CAdapt_ItApp::ParatextIsInstalled()
 {
 	bool bPTInstalled = FALSE;
+    bool bPT7Installed = FALSE;
+    bool bPT8Installed = FALSE;
 #ifdef __WXMSW__ // Windows host -- use registry
 
 	wxLogNull logNo; // eliminate any spurious messages from the system
-	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
-	wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
-	if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
+	// determine if the Paratext Program_Files_Directory_Ptw8 key exists in the host Windows' registry;
+    // Check first for Paratext 8 installed on a 64-bit Windows OS
+    // if it points to a valid directory; and it that directory contains a Paratext.exe file
+    wxRegKey keyOS64PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
+    wxRegKey keyOS32PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
+    if (keyOS64PTInstallDir.Exists() && keyOS64PTInstallDir.HasValues())
 	{
 		wxString dirStrValue;
 		dirStrValue.Empty();
-		if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+		if (keyOS64PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
 		{
-			// get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
+            //wxString settingsDirStrValue;
+            // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext 8\)
+            keyOS64PTInstallDir.QueryValue(_T("Program_Files_Directory_Ptw8"), dirStrValue);
+            //keyOS64PTInstallDir.QueryValue(_T("Settings_Directory"), settingsDirStrValue);
 			// Note: the dirStrValue path ends with a backslash so we don't add one here.
-			dirStrValue = keyPTInstallDir.QueryDefaultValue();
+			//dirStrValue = keyOS64PTInstallDir.QueryDefaultValue();
 			if (::wxDirExists(dirStrValue))
 			{
 				// Note: There are two main Paratext components that we check for to determine
@@ -12057,12 +12105,76 @@ bool CAdapt_ItApp::ParatextIsInstalled()
 					&& ::wxFileExists(dirStrValue + _T("ParatextShared.dll")))
 				{
 					bPTInstalled = TRUE;
+                    bPT8Installed = TRUE;
 				}
 			}
 		}
 	}
+    // If above test failed check next for Paratext 8 installed on a 32-bit Windows OS
+    else if (keyOS32PTInstallDir.Exists() && keyOS32PTInstallDir.HasValues())
+    {
+        wxString dirStrValue;
+        dirStrValue.Empty();
+        if (keyOS32PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+        {
+            // get the folder path stored in the key, (i.e., C:\Program Files\Paratext 8\)
+            // Note: the dirStrValue path ends with a backslash so we don't add one here.
+            dirStrValue = keyOS32PTInstallDir.QueryDefaultValue();
+            if (::wxDirExists(dirStrValue))
+            {
+                // Note: There are two main Paratext components that we check for to determine
+                // if Paratext is installed, Paratext.exe and ParatextShared.dll. The former is
+                // the main program. The other is the shared dynamic library with which our
+                // collaboration with Paratext is achieved. We later interact with the
+                // ParatextShared.dll library.
+                if (::wxFileExists(dirStrValue + _T("Paratext.exe"))
+                    && ::wxFileExists(dirStrValue + _T("ParatextShared.dll")))
+                {
+                    bPTInstalled = TRUE;
+                    bPT8Installed = TRUE;
+                }
+            }
+        }
+    }
+
+    // Check next for a PT7 installation
+    // The PT 8's Program_Files_Directory_Ptw8 doen't exist, so determine if the PT 7's 
+    // Program_Files_Directory_Ptw7 key exists in the host Windows' registry; if so,
+    // does it point to a valid directory; and does that directory contain a Paratext.exe file
+    wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
+    if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
+    {
+        wxString dirStrValue;
+        dirStrValue.Empty();
+        if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+        {
+            // get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
+            // Note: the dirStrValue path ends with a backslash so we don't add one here.
+            dirStrValue = keyPTInstallDir.QueryDefaultValue();
+            if (::wxDirExists(dirStrValue))
+            {
+                // Note: There are two main Paratext components that we check for to determine
+                // if Paratext is installed, Paratext.exe and ParatextShared.dll. The former is
+                // the main program. The other is the shared dynamic library with which our
+                // collaboration with Paratext is achieved. We later interact with the
+                // ParatextShared.dll library.
+                if (::wxFileExists(dirStrValue + _T("Paratext.exe"))
+                    && ::wxFileExists(dirStrValue + _T("ParatextShared.dll")))
+                {
+                    bPTInstalled = TRUE;
+                    bPT7Installed = TRUE;
+                }
+            }
+        }
+    }
+
 #endif
 #ifdef __WXGTK__ // linux -- just look for the files in /usr/lib/Paratext/
+
+    // whm 21June2016 Note: Tom Hindle says that their current plans are that the
+    // PT version 8 for Linux will go in the same location that PT 7 did /usr/lib/Paratext
+    bPTInstalled = bPTInstalled; // avoid warnings from gcc
+
     wxString strPTInstallDir = _T("/usr/lib/Paratext");
 
     if (::wxDirExists(strPTInstallDir))
@@ -12072,11 +12184,21 @@ bool CAdapt_ItApp::ParatextIsInstalled()
             && ::wxFileExists(strPTInstallDir + _T("/ParatextShared.dll"))
             && (!GetParatextEnvVar(_T("MONO_REGISTRY_PATH")).IsEmpty()))
         {
-            bPTInstalled = TRUE;
+            return PTLinuxVer7or8;
         }
     }
+    return PTNotInstalled;
+
 #endif
-	return bPTInstalled;
+
+    if (bPT8Installed && bPT7Installed)
+        return PTVer7and8;
+    else if (bPT8Installed)
+        return PTVer8;
+    else if (bPT7Installed)
+        return PTVer7;
+    else
+	return PTNotInstalled;
 }
 
 bool CAdapt_ItApp::BibleditIsInstalled()
@@ -12181,11 +12303,22 @@ wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName)
 /// \remarks
 /// Called from: the App's OnInit().
 /// Looks in the Windows registry to get the path to the Paratext Projects directory.
-/// The following registry key is queried for the return value:
+/// Linux version returns /usr/lib/Paratext directory by default.
+/// This function assumes that a PT 8 Installation has priority over a PT 7 installation.
+/// For Windows we first look for a PT 8 installation and if found, returns its install path.
+/// If no PT 8 installation is found, we look for a PT 7 installation and if found, return
+/// its install path.
+/// For PT 8 the following PT 8 registry key is queried for the return value (depending on architecture):
+///    HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8   for a 64-bit system, or
+///    HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8     for a 32-bit system
+///    At the "8" registry node, in the above reg key, we query for its key value of 
+///    "Settings_Directory" to get the PT 8 projects dir path.
+/// For PT 7 the following PT 7 registry key is queried for the return value:
 ///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Settings_Directory
 /// If the key is not found, or is found but the value string does not exist on
 /// the system, the function returns an empty string. This function only reads/queries
 /// the Windows registry; it does not make changes to it.
+/// Revised 22June2016 by whm to handle collaboration with PT 8.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextProjectsDirPath()
 {
@@ -12194,26 +12327,70 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath()
 #ifdef __WXMSW__ // Windows host system - look in registry
 
 	wxLogNull logNo; // eliminate any spurious messages from the system
-	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
-	wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Settings_Directory"));
-	if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
-	{
-		wxString dirStrValue;
-		dirStrValue.Empty();
-		if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
-		{
-			// get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
-			dirStrValue = keyPTInstallDir.QueryDefaultValue();
-			// remove the final backslash, since our path values generally don't have a
-			// trailing path separator.
-			if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length()-1) == _T('\\'))
-				dirStrValue.RemoveLast(1);
-			if (::wxDirExists(dirStrValue))
-			{
-				path = dirStrValue;
-			}
-		}
-	}
+
+    // There are registry views where the PT 8 key might be depending on the host architecture
+    wxRegKey keyOS64PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
+    wxRegKey keyOS32PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
+    if (keyOS64PTInstallDir.Exists() && keyOS64PTInstallDir.HasValues())
+    {
+        wxString dirStrValue;
+        dirStrValue.Empty();
+        if (keyOS64PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+        {
+            // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext8\)
+            keyOS64PTInstallDir.QueryValue(_T("Settings_Directory"), dirStrValue);
+            // remove the final backslash, since our path values generally don't have a
+            // trailing path separator.
+            if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                dirStrValue.RemoveLast(1);
+            if (::wxDirExists(dirStrValue))
+            {
+                path = dirStrValue;
+            }
+        }
+    }
+    else if (keyOS32PTInstallDir.Exists() && keyOS32PTInstallDir.HasValues())
+    {
+        wxString dirStrValue;
+        dirStrValue.Empty();
+        if (keyOS32PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+        {
+            // get the folder path stored in the key, (i.e., C:\Program Files\Paratext8\)
+            keyOS32PTInstallDir.QueryValue(_T("Settings_Directory"), dirStrValue);
+            // remove the final backslash, since our path values generally don't have a
+            // trailing path separator.
+            if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                dirStrValue.RemoveLast(1);
+            if (::wxDirExists(dirStrValue))
+            {
+                path = dirStrValue;
+            }
+        }
+    }
+
+    // If the path string is still empty we didn't find a PT 8 projects dir path, so try to find a PT 7 projects dir path
+    if (path.IsEmpty())
+    {
+        wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Settings_Directory"));
+        if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
+        {
+            wxString dirStrValue;
+            dirStrValue.Empty();
+            if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
+                dirStrValue = keyPTInstallDir.QueryDefaultValue();
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                if (::wxDirExists(dirStrValue))
+                {
+                    path = dirStrValue;
+                }
+            }
+        }
+    }
 #endif
 #ifdef __WXGTK__ // linux -- check mono directory for values.xml file
     wxString strRegPath = GetParatextEnvVar(_T("MONO_REGISTRY_PATH"));
@@ -12302,11 +12479,22 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 /// \remarks
 /// Called from: the App's OnInit().
 /// Looks in the Windows registry to get the path to the Paratext Install directory.
-/// The following registry key is queried for the return value:
+/// Linux version returns /usr/lib/Paratext directory by default.
+/// This function assumes that a PT 8 Installation has priority over a PT 7 installation.
+/// For Windows we first look for a PT 8 installation and if found, returns its install path.
+/// If no PT 8 installation is found, we look for a PT 7 installation and if found, return
+/// its install path.
+/// For PT 8 the following PT 8 registry key is queried for the return value (depending on architecture):
+///    HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8   for a 64-bit system, or
+///    HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8     for a 32-bit system
+///    At the "8" registry node, in the above reg key, we query for its key value of 
+///    "Program_Files_Directory_Ptw8" to get the PT 8 install dir path.
+/// For PT 7 the following PT 7 registry key is queried for the return value:
 ///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
 /// If the key is not found, or is found but the value string does not exist on
 /// the system, the function returns an empty string. This function only reads/queries
 /// the Windows registry; it does not make changes to it.
+/// Revised 22June2016 by whm to handle collaboration with PT 8.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextInstallDirPath()
 {
@@ -12315,16 +12503,18 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath()
 #ifdef __WXMSW__ // Windows host system - check the registry
 
 	wxLogNull logNo; // eliminate any spurious messages from the system
-	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
-	wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
-	if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
-	{
+
+    // There are registry views where the PT 8 key might be depending on the host architecture
+    wxRegKey keyOS64PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
+    wxRegKey keyOS32PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
+    if (keyOS64PTInstallDir.Exists() && keyOS64PTInstallDir.HasValues())
+    {
 		wxString dirStrValue;
 		dirStrValue.Empty();
-		if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+		if (keyOS64PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
 		{
-			// get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
-			dirStrValue = keyPTInstallDir.QueryDefaultValue();
+            // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext8\)
+            keyOS64PTInstallDir.QueryValue(_T("Program_Files_Directory_Ptw8"), dirStrValue);
 			// remove the final backslash, since our path values generally don't have a
 			// trailing path separator.
 			if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length()-1) == _T('\\'))
@@ -12335,8 +12525,50 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath()
 			}
 		}
 	}
+    else if (keyOS32PTInstallDir.Exists() && keyOS32PTInstallDir.HasValues())
+    {
+        wxString dirStrValue;
+        dirStrValue.Empty();
+        if (keyOS32PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+        {
+            // get the folder path stored in the key, (i.e., C:\Program Files\Paratext8\)
+            keyOS32PTInstallDir.QueryValue(_T("Program_Files_Directory_Ptw8"), dirStrValue);
+            // remove the final backslash, since our path values generally don't have a
+            // trailing path separator.
+            if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                dirStrValue.RemoveLast(1);
+            if (::wxDirExists(dirStrValue))
+            {
+                path = dirStrValue;
+            }
+        }
+    }
+
+    // If the path string is still empty we didn't find a PT 8 install path, so try to find a PT 7 install path
+    if (path.IsEmpty())
+    {
+        wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
+        if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
+        {
+            wxString dirStrValue;
+            dirStrValue.Empty();
+            if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
+                // Note: the dirStrValue path ends with a backslash so we don't add one here.
+                dirStrValue = keyPTInstallDir.QueryDefaultValue();
+                if (::wxDirExists(dirStrValue))
+                {
+                    path = dirStrValue;
+                }
+            }
+        }
+    }
+
 #endif
 #ifdef __WXGTK__ // linux -- check /usr/lib/Paratext
+    // For Linux the passed in parameter will be PTLinuxVer7or8. Anything else would be program error
+
     wxString strDir = _T("/usr/lib/Paratext");
     if (::wxDirExists(strDir))
     {
@@ -12478,6 +12710,8 @@ wxString CAdapt_ItApp::GetCollabSettingsAsStringForLog()
 	settingsStr += m_CollabAIProjectName;
 	settingsStr += _T("]editor:[");
 	settingsStr += m_collaborationEditor;
+    settingsStr += _T("]pt_version:[");
+    settingsStr += m_ParatextVersionForProject;
 	settingsStr += _T("]src_lang:[");
 	settingsStr += m_CollabSourceLangName;
 	settingsStr += _T("]tgt_lang:[");
@@ -12879,6 +13113,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		bool bFoundCollabExpectsFreeTrans = FALSE;
 		bool bFoundCollabAiProj = FALSE;
 		bool bFoundCollabEditor = FALSE;
+        bool bFoundCollabPTVersion = FALSE; // whm added 20June2016
 		bool bFoundCollabSrcLangName = FALSE;
 		bool bFoundCollabTgtLangName = FALSE;
 		wxString CollabSrcProjStrFound = _T("");
@@ -12887,6 +13122,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		wxString CollabExpectsFreeTransFound = _T("");
 		wxString CollabAiProjStrFound = _T("");
 		wxString CollabEditorStrFound = _T("");
+        wxString collabPTVersionStrFound = _T(""); // whm added 20June2016
 		wxString CollabSrcLangNameStrFound = _T("");
 		wxString CollabTgtLangNameStrFound = _T("");
 		// Scan through the in-memory lines of the project config file setting the boolean flags
@@ -12963,7 +13199,19 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 					bFoundCollabEditor = TRUE;
 				continue;
 			}
-			chPos = lineStr.Find(szCollabSourceLangName);
+            // whm added 20June2016
+            chPos = lineStr.Find(szParatextVersionForProject);
+            if (chPos == 0)
+            {
+                // Check for a following non-empty string, storing any string found for sanity checks (below)
+                collabPTVersionStrFound = lineStr.Mid(szParatextVersionForProject.Length());
+                collabPTVersionStrFound.Trim(FALSE);
+                collabPTVersionStrFound.Trim(TRUE);
+                if (!collabPTVersionStrFound.IsEmpty())
+                    bFoundCollabPTVersion = TRUE;
+                continue;
+            }
+            chPos = lineStr.Find(szCollabSourceLangName);
 			if (chPos == 0)
 			{
 				// Check for a following non-empty string, storing any string found for sanity checks (below)
@@ -13110,7 +13358,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		// be able to get the app running - and then the collaboration can be clobbered from within
 		// the running Adapt It if that is what is wanted. So BEWARE!!!
 		if (!CollabAiProjStrFound.IsEmpty() && !CollabSrcLangNameStrFound.IsEmpty() && !CollabTgtLangNameStrFound.IsEmpty()
-			&& !ParatextIsInstalled() && !BibleditIsInstalled())
+			&& (ParatextIsInstalled() == PTNotInstalled) && !BibleditIsInstalled())
 		{
 			// Although there are collaboration values in the project config file, there is currently
 			// no installation of Paratext or Bibledit on the machine, so regardless of whether
@@ -13126,21 +13374,89 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		// If there is an external editor designated in the project config file, ensure that
 		// the designated editor is actually the one that is installed. If not assign
 		// m_collaborationEditor to point to the one that is installed.
-		if (bFoundCollabEditor)
-		{
-			// There is a string in the CollabEditorStrFound field of the project config file.
-			// Verify that the collaboration editor that has been specified in the config file is
-			// actually installed on the computer. If not, check to see if the other external
-			// editor is installed and if it is, use it instead.
-			bool bDesignatedEditorIsInstalled = FALSE;
-			if (m_collaborationEditor == _T("Paratext") && ParatextIsInstalled())
-			{
-				 bDesignatedEditorIsInstalled = TRUE;
+        //
+        // whm 20June2016 Note: With the release of Paratext version 8 verification of an 
+        // AI project's collaboration status has become more complicated. If this is the
+        // first running of AI after an administrator/user migrates their projects from PT7
+        // to PT8, then the bFoundCollabPTVersion would be FALSE. However, the OnInit() call of
+        // SetCollabSettingsToNewProjDefaults() will have stored a default value in the 
+        // m_ParatextVersionForProject string variable based on its call of the ParatextIsInstalled()
+        // function. We attempt to auto-determine which version of PT (7 or 8) this AI project should
+        // be associated with. If this session of AI is running after a project was successfully
+        // determined or overtly specified as a collaboration project with PT7 or PT8, then 
+        // the bFoundCollabPTVersion flag would be true and there should be a specification of
+        // "PT7" or "PT8" string value in the m_ParatextVersionForProject string variable, and
+        // we can just verify that the data store for that version of PT has valid PT projects
+        // for the specified source and target language projects.
+        if (bFoundCollabEditor)
+        {
+            // There is a string in the CollabEditorStrFound field of the project config file.
+            // Verify that the collaboration editor that has been specified in the config file is
+            // actually installed on the computer. If not, check to see if the other external
+            // editor is installed and if it is, use it instead.
+            bool bDesignatedEditorIsInstalled = FALSE;
+            enum PTVersionsInstalled PTver = ParatextIsInstalled();
+            if (m_collaborationEditor == _T("Paratext"))
+            {
+                if (bFoundCollabPTVersion)
+                {
+                    // Handle the 3 possible PT installed version situations:
+                    if (PTver == PTVer7 && collabPTVersionStrFound == _T("PTversion7"))
+                    {
+                        bDesignatedEditorIsInstalled = TRUE;
+                    }
+                    else if (PTver == PTVer8 && collabPTVersionStrFound == _T("PTversion8"))
+                    {
+                        bDesignatedEditorIsInstalled = TRUE;
+                    }
+                    else if (PTver == PTVer7and8 && (collabPTVersionStrFound == _T("PTversion7") || collabPTVersionStrFound == _T("PTversion8")))
+                    {
+                        bDesignatedEditorIsInstalled = TRUE;
+                    }
+                    else if (PTver == PTLinuxVer7or8 && collabPTVersionStrFound == _T("PTLinuxVersion7or8"))
+                    {
+                        bDesignatedEditorIsInstalled = TRUE;
+                    }
+                }
+                else // if (!bFoundCollabPTVersion)
+                {
+                    // The AI-ProjectConfiguration.aic file didn't have a ParatextVersionForProject
+                    // configuration entry, so this is probably the first time this project is being
+                    // opened after the installation of PT 8 (and hopefully migragion of data to PT 8).
+                    // We will assume that the PT version info in m_ParatextVersionForProject is the
+                    // proper PT version for this project.
+                    if (!m_ParatextVersionForProject.IsEmpty())
+                    {
+                        if (PTver == PTVer7 && m_ParatextVersionForProject == _T("PTversion7"))
+                        {
+                            bDesignatedEditorIsInstalled = TRUE;
+                        }
+                        else if (PTver == PTVer8 && m_ParatextVersionForProject == _T("PTversion8"))
+                        {
+                            bDesignatedEditorIsInstalled = TRUE;
+                        }
+                        else if (PTver == PTVer7and8 && (m_ParatextVersionForProject == _T("PTversion7") || m_ParatextVersionForProject == _T("PTversion8")))
+                        {
+                            bDesignatedEditorIsInstalled = TRUE;
+                        }
+                        else if (PTver == PTLinuxVer7or8 && m_ParatextVersionForProject == _T("PTLinuxVersion7or8"))
+                        {
+                            bDesignatedEditorIsInstalled = TRUE;
+                        }
+                    
+                        // Force save of project config file to record the value for ParatextVersionForProject
+                        bChangeMadeToCollabSettings = TRUE; // to force a save of project config file with new setting
+                        wxString msg = _T("In GetAIProjectCollabStatus() the AI-ProjectConfigure.aic file had no ParatextVersionForProject value. Adapt It assigned it to be '%s' for this project.");
+                        msg = msg.Format(msg, m_ParatextVersionForProject.c_str());
+                        this->LogUserAction(msg);
+                    }
+                }
 			}
 			else if (m_collaborationEditor == _T("Bibledit") && BibleditIsInstalled())
 			{
 				 bDesignatedEditorIsInstalled = TRUE;
 			}
+
 			if (!bDesignatedEditorIsInstalled)
 			{
 				// The collaboration editor designated in the project config file is not installed
@@ -13175,7 +13491,9 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 #ifdef __WXMSW__
 			editorStr = _T("Paratext");
 #else
-			if (ParatextIsInstalled())
+            enum PTVersionsInstalled PTver = ParatextIsInstalled();
+
+			if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8)
 				editorStr = _T("Paratext");
 			else
 				editorStr = _T("Bibledit");
@@ -16123,6 +16441,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// whm added 26Apr11 for AI-PT Collaboration support
 	m_pArrayOfCollabProjects = new wxArrayPtrVoid;
 
+    // testing the ParatextIsInstalled() function
+    //enum PTVersionsInstalled PTver;
+    //PTver = ParatextIsInstalled();
+    //if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7or8)
+    //{
+    //    int i;
+    //    i = 1; // do something, anything
+    //}
+
+
 	// testing of some util functions
 	//wxString sourcePTProj = _T("NYNT : Nyindrou NT : Nyindrou : lid");
 	//sourcePTProj = this->ReplaceColonsWithAtSymbol(sourcePTProj);
@@ -16258,6 +16586,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// end test of GetUniqueIncrementedFileName
 
 	m_collaborationEditor = _T("");
+
+    m_ParatextVersionForProject = _T(""); // whm added 20June2016 for PT7/PT8 support
 
 	m_nWorkflowProfile = 0; // default value is for "None" unless changed by the
 							// value stored in the basic and/or config files.
@@ -33543,34 +33873,116 @@ void CAdapt_ItApp::SetLanguageNamesAndCodesStringsToEmpty()
 	m_freeTransLanguageCode.Empty();	// AI-ProjectConfiguration.aic file label: FreeTranslationLanguageCode
 }
 
+// This function is called from the App's OnInit() to set defaults before a project is opened by the user.
+// It is also called in the ProjectPage's OnWizardPageChanging() function to set defaults for a <New Project>.
 void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
 {
 	m_bCollaboratingWithParatext = FALSE; // AI-ProjectConfiguration.aic file label: CollaboratingWithParatext
 	m_bCollaboratingWithBibledit = FALSE; // AI-ProjectConfiguration.aic file label: CollaboratingWithBibledit
 	m_bStartWorkUsingCollaboration = FALSE; // whm added 19Feb12
-	// whm 26Jan13 moved from OnInit() in order to consolidate the
-	// collaboration settings into SetCollabSettingsToNewProjDefaults() which
-	// is called in OnInit()
-	m_bParatextIsInstalled = FALSE;
-	m_bParatextIsInstalled = ParatextIsInstalled();
-	m_bBibleditIsInstalled = FALSE;
+    
+    m_bBibleditIsInstalled = FALSE;
 	m_bBibleditIsInstalled = BibleditIsInstalled();
 	m_bParatextIsRunning = FALSE;
 	// edb added 7Aug12 for Pathway export support
 	m_bPathwayIsInstalled = PathwayIsInstalled();
 	m_PathwayInstallDirPath = GetPathwayInstallDirPath();
 
-	// whm added 9Feb11 for Paratext and Bibledit Collaboration support
-	// GetParatextProjectsDirPath gets the absolute path to the Paratext Projects directory
-	// as stored in the Windows registry, i.e., "C:\My Paratext Projects\".
-	// m_ParatextProjectsDirPath will be null if Paratext is not installed or we are not on
-	// a Windows host system.
-	// Note: the GetParatextInstallDirPath() and GetParatextProjectsDirPath() function remove
-	// the Windows \ path separator from the end of the string
-	m_ParatextInstallDirPath = GetParatextInstallDirPath();
-	m_ParatextProjectsDirPath = GetParatextProjectsDirPath();
+	// whm modified 21June2016 for Paratext and Bibledit Collaboration support
+	// GetParatextInstallDirPath gets the absolute path to the Paratext Projects directory
+	// as stored in the Windows registry.
+    // Linux version returns /usr/lib/Paratext directory by default.
+    // The GetParatextInstallDirPath function assumes that a PT 8 Installation has priority over 
+    // a PT 7 installation.
+    // For Windows we first look for a PT 8 installation and if found, returns its install path.
+    // A PT 8 install path would normally be either "c:\Program Files (x86)\Paratext 8" on a 64-bit
+    // machine, or ""c:\Program Files\Paratext 8" on a 32-bit machine.
+    // If no PT 8 installation is found, we look for a PT 7 installation and if found, return
+    // its install path.
+    // A PT 7 install path would normally be either "c:\Program Files (x86)\Paratext 7" on a 64-bit
+    // machine, or ""c:\Program Files\Paratext 7" on a 32-bit machine.
+    // Note: the GetParatextInstallDirPath() function removes the Windows \ path separator 
+    // from the end of the string, which is what we want.
+    m_ParatextInstallDirPath = GetParatextInstallDirPath();
+    
+    // The GetParatextProjectsDirPath may return "C:\My Paratext Projects" for PT 7 on Windows
+    // "C:\My Paratext 8 Projects" for PT 8 on Windows; it gets "/home/[$USER]/ParatextProjects" 
+    // for PT 7 on Linux, or "/home/[$USER]/Paratext8Projects" for PT 8 on Linux.
+    // m_ParatextProjectsDirPath will be null if Paratext is not installed or we are not on
+    // a Windows host system.
+    // Note: the GetParatextProjectsDirPath() function removes the Windows \ path separator 
+    // from the end of the string, which is what we want.
+    // Note: We use the m_ParatextProjectsDirPath below for setting initial default value for the
+    // m_ParatextVersionForProject variable.
+    m_ParatextProjectsDirPath = GetParatextProjectsDirPath();
 
-	// GetBibleditInstallDirPath gets the absolute path to the Bibledit projects directory
+    // whm 22June2016 revised for handling the possibility that PT 7 or PT 8 or both could be installed
+    // on Windows systems.
+    m_bParatextIsInstalled = FALSE;
+    enum PTVersionsInstalled PTver;
+    PTver = ParatextIsInstalled();
+    if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7or8)
+        m_bParatextIsInstalled = TRUE;
+    switch (PTver)
+    {
+    case PTVer7:
+    {
+        m_ParatextVersionForProject = _T("PTversion7");
+        break;
+    }
+    case PTVer8:
+    {
+        m_ParatextVersionForProject = _T("PTversion8");
+        break;
+    }
+    case PTVer7and8:
+    {
+        // When both version 7 and 8 of PT are installed at the time defaults are set for a potential project, we can't
+        // be certain what PT version may be intended. However, once PT version 8 is installed we can assume that PT 
+        // version 8 is likely to be used for new projects. If a different version of PT is actually defined for a given 
+        // project that gets opened after OnInit() executes, that version value will get assigned to m_ParatextVersionForProject
+        // below when the AI-ProjectConfiguration.aic file is read in. For the case of this function being called early
+        // within the ProjectPage, again PTversion8 will be the initial default value if the m_ParatextProjectsDirPath points
+        // to a "My Paratext 8 Projects" dir, but of course, the user may not actually set up the <New Project> for 
+        // collaboration, or could choose to use PT 7 in a new collaboration setup.
+        if (m_ParatextProjectsDirPath.Find(_T("My Paratext 8 Projects")) != wxNOT_FOUND)
+        {
+            m_ParatextVersionForProject = _T("PTversion8");
+        }
+        else // the only other alternative default is PTversion7 here
+        {
+            m_ParatextVersionForProject = _T("PTversion7");
+        }
+        break;
+    }
+    case PTLinuxVer7or8:
+    {
+        // Although Windows has separate install directories for PT 7 and PT 8, apparently according to Tom, the PT
+        // team is planning to just use the same install directory of /usr/lib/Paratext for PT 8 as well as PT 7.
+        // For the purposes of this function, then I think we will simply check the Linux data store folders to see
+        // whether version 7 only is there (ParatextProjects) or if version 8 has been installed. Tom says that 
+        // eventually they will call the PT 8 data store "Paratext8Projects". So, if there exists a "Paratext8Projects"
+        // directory in the Home dir, then we will put a default here of "PTversion8", otherwise if there is a 
+        // "ParatextProjects" dir, we will assume here a default of PTversion7. Since PTLinuxVer7or8 was determined
+        // for this case block, it would have to be either PTversion7 or PTversion8, and not null "" - at least here
+        // for this function. As above, if a different version value is actually defined for a given project as defined
+        // in AI-ProjectConfiguration.aic that value will take the place of the value set here.
+        if (m_ParatextProjectsDirPath.Find(_T("Paratext8Projects")) != wxNOT_FOUND)
+        {
+            m_ParatextVersionForProject = _T("PTversion8");
+        }
+        else // the only other alternative default is PTversion7 here
+        {
+            m_ParatextVersionForProject = _T("PTversion7");
+        }
+        break;
+    }
+    default:
+    {
+        m_ParatextVersionForProject = _T("");
+    }
+    }
+    // GetBibleditInstallDirPath gets the absolute path to the Bibledit projects directory
 	// which on Linux systems is ~/.bibledit/projects.
 	// m_BibleditInstallDirPath will be null if Bibledit is not installed or we are not on
 	// a Linux host system.
@@ -34575,6 +34987,11 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szCollaborationEditor << tab << m_collaborationEditor;
 	pf->AddLine(data);
 
+    // whm added 21June2016
+    data.Empty();
+    data << szParatextVersionForProject << tab << m_ParatextVersionForProject;
+    pf->AddLine(data);
+
 	if (m_bCollaborationExpectsFreeTrans)
 		number = _T("1");
 	else
@@ -35528,6 +35945,10 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_collaborationEditor = strValue;
 			}
 		}
+        else if (name == szParatextVersionForProject) // whm added 21June2016
+        {
+            m_ParatextVersionForProject = strValue;
+        }
 		else if (name == szCollabExpectsFreeTrans)
 		{
 			num = wxAtoi(strValue);
@@ -47958,6 +48379,7 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 /// "Setup Paratext Collaboration... and "Get Source Text from Paratext Project".
 /// It is also used in the basic config file as string values for the
 /// PTProjectForSourceInputs and PTProjectForTargetExports entries.
+/// TOTO: whm 22June2016 modified to work with either PT 7 *.ssf file or PT 8's Settings.xml
 ///////////////////////////////////////////////////////////////////////////////
 wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 {
@@ -47977,7 +48399,8 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 		m_pArrayOfCollabProjects->Clear();
 	}
 	wxString PT_ProjectsDirPath;
-	PT_ProjectsDirPath = GetParatextProjectsDirPath();
+
+    PT_ProjectsDirPath = m_ParatextProjectsDirPath; // here use the app's variable rather than calling GetParatextProjectsDirPath() 
 	// Note: PT_ProjectsDirPath will end with a backslash
 	// Within the PT_ProjectsDirPath folder, the Paratext projects each have a file
 	// composed of the abbreviated PT project name with a .ssf extension.
@@ -47994,260 +48417,353 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 	// file into memory and read the information we need from it there.
 
 	wxDir finder;
-	bool bOK = (::wxSetWorkingDirectory(PT_ProjectsDirPath) &&
+    // Must call wxDir::Open() before calling GetFirst()
+    bool bOK = (::wxSetWorkingDirectory(PT_ProjectsDirPath) &&
 								finder.Open(PT_ProjectsDirPath));
 								// wxDir must call .Open() before enumerating files!
+    
+    bool bWorking;
+    bool bPT8 = FALSE;
+    wxString filespec;
+	wxString str = _T("");
+    // whm 22June2016 modified. For PT 8's projects dir, scan the project sub-directories 
+    // for those containing a Settings.xml file. For each Settings.xml file found open
+    // the xml file, and parse the information from there.
+    wxString PTver;
+    PTver = m_ParatextVersionForProject; // here use App's variable rather than calling ParatextIsInstalled();
+    if (PTver == _T("PTversion8"))
+    {
+        bPT8 = TRUE;
+    }
+
 	if (!bOK)
 	{
-		// TODO: error
+        wxString msg;
+        msg = _T("In App's GetListOfPTProjects() unable to set working dir or open the dir at %s");
+        msg = msg.Format(msg, PT_ProjectsDirPath.c_str());
+        LogUserAction(msg);
 	}
 
-	// Must call wxDir::Open() before calling GetFirst() - see above
-	wxString str = _T("");
-	// whm note: in GetFirst below, the wxDIR_FILES flag finds
-	// files only, not . nor .. nor hidden files
-	bool bWorking = finder.GetFirst(&str,_T("*.ssf"),wxDIR_FILES);
+    if (bPT8)
+    {
+        filespec = _T("");
+        bWorking = finder.GetFirst(&str, filespec, wxDIR_DIRS);
+        // str will be the name of the first dir, something like cms (which isn't a project dir)
+    }
+    else // for PT 7
+    {
+        // whm note: in GetFirst below, the wxDIR_FILES flag finds
+        // files only, not . nor .. nor hidden files
+        filespec = _T("*.ssf");
+        bWorking = finder.GetFirst(&str, filespec, wxDIR_FILES);
+        // str will be the name of the first ssf file, something like DTP.ssf
+    }
 	while (bWorking)
 	{
 		// the str variable contains the found .ssf file (case is ignored
 		// so it will find .ssf as well as .SSF files).
 		//wxLogDebug(_T("Found file: %s"),str.c_str());
 
-		// open the .ssf file and glean the necessary information to
-		// determine if the project is a potential collaboration project
+        bool bFileExists;
+        wxString destinationFile;
 		wxTextFile f;
-		bool bFileExists = wxFileExists(str);
+
+        // For PT 8 open the Settings.xml file within the dir found in str
+        // and glean the necessary information to determine if the project is
+        // a potential collaboration project. 
+        // Note: if a Settings.xml file is located within the str directory, the value
+        // of the str variable is the PT project's shortname.
+        if (bPT8)
+        {
+            // check for existence of a Settings.xml file within the str dir
+            destinationFile = str + PathSeparator + _T("Settings.xml");
+            bFileExists = wxFileExists(destinationFile);
+        }
+        else
+        {
+            // For PT 7 open the .ssf file and glean the necessary information to
+            // determine if the project is a potential collaboration project.
+            destinationFile = str;
+            bFileExists = wxFileExists(destinationFile);
+        }
 		if (bFileExists)
 		{
 			bool bOpenedOK;
-			bOpenedOK = f.Open(str);
+			bOpenedOK = f.Open(destinationFile);
 			if (bOpenedOK)
 			{
-				// The ssf file is now in memory and accessible line-by-line using wxTextFile
+				// The ssf / Settings.xml file is now in memory and accessible line-by-line using wxTextFile
 				// methods.
+                Collab_Project_Info_Struct* pPTInfo = new Collab_Project_Info_Struct;
+                pPTInfo->booksPresentFlags = _T("");
+                pPTInfo->ethnologueCode = _T(""); // PT 8 Settings.xml tag is <LanguageIsoCode> and maps to this ethnologueCode below
+                pPTInfo->fullName = _T("");
+                pPTInfo->languageName = _T("");
+                pPTInfo->projectDir = _T(""); // No longer used in PT 8 xml schema, so copy shortName over to projectDir
+                pPTInfo->shortName = _T(""); // same as projectDir above
+                pPTInfo->versification = _T("");
+                pPTInfo->chapterMarker = _T("c"); // default is c  // no longer used in PT but doesn't hurt to have it
+                pPTInfo->verseMarker = _T("v"); // default is v  // no longer used in PT but doesn't hurt to have it
+                pPTInfo->defaultFont = _T("Arial"); // default is Arial
+                pPTInfo->defaultFontSize = _T("10"); // default is 10
+                pPTInfo->leftToRight = _T("T"); // default is T
+                pPTInfo->encoding = _T("65001"); // default is 65001 (UTF8)
+                pPTInfo->bProjectIsNotResource = TRUE;
+                pPTInfo->bProjectIsEditable = TRUE;
 
-				Collab_Project_Info_Struct* pPTInfo = new Collab_Project_Info_Struct;
-				pPTInfo->booksPresentFlags = _T("");
-				pPTInfo->ethnologueCode = _T("");
-				pPTInfo->fullName = _T("");
-				pPTInfo->languageName = _T("");
-				pPTInfo->projectDir = _T("");
-				pPTInfo->shortName = _T("");
-				pPTInfo->versification = _T("");
-				pPTInfo->chapterMarker = _T("c"); // default is c
-				pPTInfo->verseMarker = _T("v"); // default is v
-				pPTInfo->defaultFont = _T("Arial"); // default is Arial
-				pPTInfo->defaultFontSize = _T("10"); // default is 10
-				pPTInfo->leftToRight = _T("T"); // default is T
-				pPTInfo->encoding = _T("65001"); // default is 65001 (UTF8)
-				pPTInfo->bProjectIsNotResource = TRUE;
-				pPTInfo->bProjectIsEditable = TRUE;
+                // Initialize some variables for fields we are interested in.
+                wxString booksPresentFlags = _T("");
+                wxString ethnologueCode = _T(""); // PT 8 Settings.xml tag is <LanguageIsoCode> and maps to this ethnologueCode below
+                wxString fullName = _T("");
+                wxString languageName = _T("");
+                wxString projectDir = _T(""); // In PT 8 this is taken from the dir name that the Settings.xml file is located in
+                wxString shortName = _T(""); // same as projectDir above
+                wxString versification = _T("");
+                wxString chapterMarker = _T("c"); // no longer used in PT but doesn't hurt to have it
+                wxString verseMarker = _T("v"); // no longer used in PT but doesn't hurt to have it
+                wxString defaultFont = _T("Arial");
+                wxString defaultFontSize = _T("10");
+                wxString leftToRight = _T("T");
+                wxString encoding = _T("65001");
+                bool bProjectIsNotResource = TRUE;
+                //bool bProjectIsEditable = TRUE;
+                wxString lineStr;
+                // scan through all lines of file setting field values as we go
+                for (lineStr = f.GetFirstLine(); !f.Eof(); lineStr = f.GetNextLine())
+                {
+                    //wxLogDebug(_T("%s"),lineStr.c_str());
+                    // collect data fields for filling in PTProject structs.
+                    lineStr.Trim(FALSE);
+                    lineStr.Trim(TRUE);
+                    wxString tagName;
+                    wxString endTagName;
 
-				// Initialize some variables for fields we are interested in.
-				wxString booksPresentFlags = _T("");
-				wxString ethnologueCode = _T("");
-				wxString fullName = _T("");
-				wxString languageName = _T("");
-				wxString projectDir = _T("");
-				wxString shortName = _T("");
-				wxString versification = _T("");
-				wxString chapterMarker = _T("c");
-				wxString verseMarker = _T("v");
-				wxString defaultFont = _T("Arial");
-				wxString defaultFontSize = _T("10");
-				wxString leftToRight = _T("T");
-				wxString encoding = _T("65001");
-				bool bProjectIsNotResource = TRUE;
-				//bool bProjectIsEditable = TRUE;
+                    tagName = _T("<BooksPresent>");
+                    endTagName = _T("</BooksPresent>");
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        booksPresentFlags = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        //#if defined(_DEBUG)
+                        //                      // BEW fixed 3July15, added else block in the above function
+                        //						// The failure of collaboration in 2014 &15 was due to structure
+                        //						// changes at end of .ssf files making <BooksPresent> tag not line
+                        //						// initial, resulting in GetStingBetweenXMLTags() returning empty
+                        //						// string - which then clobbered progressing in the collab setup dlg
+                        //						wxLogDebug(_T("GetListOfPTProjects(): File: %s  booksPresentFlags:  %s"),
+                        //							str.c_str(), booksPresentFlags.c_str());
+                        //#endif
+                        pPTInfo->booksPresentFlags = booksPresentFlags;
+                    }
+                    if (bPT8)
+                    {
+                        tagName = _T("<LanguageIsoCode>");
+                        endTagName = _T("</LanguageIsoCode>");
+                    }
+                    else
+                    {
+                        tagName = _T("<EthnologueCode>");
+                        endTagName = _T("</EthnologueCode>");
+                    }
 
-				wxString lineStr;
-				// scan through all lines of file setting field values as we go
-				for (lineStr = f.GetFirstLine(); !f.Eof(); lineStr = f.GetNextLine())
-				{
-					//wxLogDebug(_T("%s"),lineStr.c_str());
-					// collect data fields for filling in PTProject structs.
-					lineStr.Trim(FALSE);
-					lineStr.Trim(TRUE);
-					wxString tagName;
-					wxString endTagName;
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        ethnologueCode = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        // In PT 8 the LanguageIsoCode may have extra colon chars suffixed to the main code (perhaps to indicate empty code fields)
+                        // We don't want any extra colons at the right end of the code so we remove them here
+                        while (ethnologueCode.GetChar(ethnologueCode.Length() - 1) == _T(':'))
+                        {
+                            ethnologueCode.RemoveLast(); // remove the PathSeparator char
+                                                     // at the end of the path string, so next line won't give two contiguous
 
-					tagName = _T("<BooksPresent>");
-					endTagName = _T("</BooksPresent>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						booksPresentFlags = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-//#if defined(_DEBUG)
-//                      // BEW fixed 3July15, added else block in the above function
-//						// The failure of collaboration in 2014 &15 was due to structure
-//						// changes at end of .ssf files making <BooksPresent> tag not line
-//						// initial, resulting in GetStingBetweenXMLTags() returning empty
-//						// string - which then clobbered progressing in the collab setup dlg
-//						wxLogDebug(_T("GetListOfPTProjects(): File: %s  booksPresentFlags:  %s"),
-//							str.c_str(), booksPresentFlags.c_str());
-//#endif
-						pPTInfo->booksPresentFlags = booksPresentFlags;
-					}
+                        }
 
-					tagName = _T("<EthnologueCode>");
-					endTagName = _T("</EthnologueCode>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						ethnologueCode = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						pPTInfo->ethnologueCode = ethnologueCode;
-					}
+                        pPTInfo->ethnologueCode = ethnologueCode;
+                    }
 
-					tagName = _T("<FullName>");
-					endTagName = _T("</FullName>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						fullName = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						pPTInfo->fullName = fullName;
-					}
+                    tagName = _T("<FullName>");
+                    endTagName = _T("</FullName>");
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        fullName = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        pPTInfo->fullName = fullName;
+                    }
 
-					tagName = _T("<Language>");
-					endTagName = _T("</Language>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						languageName = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						pPTInfo->languageName = languageName;
-					}
+                    tagName = _T("<Language>");
+                    endTagName = _T("</Language>");
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        languageName = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        pPTInfo->languageName = languageName;
+                    }
 
-					tagName = _T("<Directory>");
-					endTagName = _T("</Directory>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						projectDir = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						pPTInfo->projectDir = projectDir;
-					}
+                    tagName = _T("<Directory>"); // The <Directory> tag is no longer used in PT 8, so projectDir and pPTInfo->projectDir are derived when <Name> is processed below
+                    endTagName = _T("</Directory>");
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        projectDir = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        pPTInfo->projectDir = projectDir;
+                    }
 
-					tagName = _T("<Name>");
-					endTagName = _T("</Name>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						shortName = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						pPTInfo->shortName = shortName;
-					}
+                    // whm Note when processing the <Name> xml tag
+                    // In PT 8 the <Name> tag is used for other purposes and doesn't seem to contain the
+                    // usual shortName as it did in PT 7.
+                    // To avoid problems in case the xml tag values for <Name> used in PT 8 get into a 
+                    // PT 7 ssf file, we make both In PT 7 determine the shortName programmatically from
+                    // the ssf filename (for PT 7) or the dir name (for PT 8). rather than processing 
+                    // the shortName from the <Name> tag as done previously.
+                    // In PT 8 the name of the project dir (str). In PT 7 we can use the name of the 
+                    // ssf file (without .ssf) for shortName. 
+                    if (bPT8)
+                    {
+                        tagName = _T("<Name>");
+                        endTagName = _T("</Name>");
+                        if (lineStr.Find(tagName) != wxNOT_FOUND)
+                        {
+                            shortName = str;
+                            pPTInfo->shortName = shortName;
+                            // In PT 8 we derive the shortName and projectDir from the projects dir contained in str
+                            projectDir = shortName;
+                            pPTInfo->projectDir = shortName;
+                        }
+                    }
+                    else // for PT 7
+                    {
+                        tagName = _T("<Name>");
+                        endTagName = _T("</Name>");
+                        if (lineStr.Find(tagName) != wxNOT_FOUND)
+                        {
+                            //shortName = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                            //pPTInfo->shortName = shortName;
+                            // The code above may be problematic if PT 8 Settings.xml ever get used back in PT 7
+                            // since in PT 8 the <Name> ... </Name> tag's value seems to no longer refer to the
+                            // project's short name. But in PT 7 we should get the same value by deriving the
+                            // shortName from the str value after removing the .ssf extension.
+                            wxFileName fn(str);
+                            shortName = fn.GetName(); // gets just the filename without extension
+                            pPTInfo->shortName = shortName;
+                        }
+                    }
 
-					tagName = _T("<Versification>");
-					endTagName = _T("</Versification>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						versification = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						pPTInfo->versification = versification;
-					}
+                    tagName = _T("<Versification>");
+                    endTagName = _T("</Versification>");
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        versification = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        pPTInfo->versification = versification;
+                    }
 
-					tagName = _T("<ChapterMarker>");
-					endTagName = _T("</ChapterMarker>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						chapterMarker = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						pPTInfo->chapterMarker = chapterMarker;
-					}
+                    tagName = _T("<ChapterMarker>");
+                    endTagName = _T("</ChapterMarker>");
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        chapterMarker = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        pPTInfo->chapterMarker = chapterMarker;
+                    }
 
-					tagName = _T("<VerseMarker>");
-					endTagName = _T("</VerseMarker>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						verseMarker = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						pPTInfo->verseMarker = verseMarker;
-					}
+                    tagName = _T("<VerseMarker>");
+                    endTagName = _T("</VerseMarker>");
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        verseMarker = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        pPTInfo->verseMarker = verseMarker;
+                    }
 
-					tagName = _T("<DefaultFont>");
-					endTagName = _T("</DefaultFont>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						defaultFont = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						pPTInfo->defaultFont  = defaultFont;
-					}
+                    tagName = _T("<DefaultFont>");
+                    endTagName = _T("</DefaultFont>");
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        defaultFont = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        pPTInfo->defaultFont = defaultFont;
+                    }
 
-					tagName = _T("<DefaultFontSize>");
-					endTagName = _T("</DefaultFontSize>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						defaultFontSize = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						pPTInfo->defaultFontSize = defaultFontSize;
-					}
+                    tagName = _T("<DefaultFontSize>");
+                    endTagName = _T("</DefaultFontSize>");
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        defaultFontSize = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        pPTInfo->defaultFontSize = defaultFontSize;
+                    }
 
-					tagName = _T("<LeftToRight>");
-					endTagName = _T("</LeftToRight>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						leftToRight = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						pPTInfo->leftToRight = leftToRight;
-					}
+                    tagName = _T("<LeftToRight>");
+                    endTagName = _T("</LeftToRight>");
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        leftToRight = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        pPTInfo->leftToRight = leftToRight;
+                    }
 
-					tagName = _T("<Encoding>");
-					endTagName = _T("</Encoding>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						encoding = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						pPTInfo->encoding = encoding;
-					}
+                    tagName = _T("<Encoding>");
+                    endTagName = _T("</Encoding>");
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        encoding = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        pPTInfo->encoding = encoding;
+                    }
 
-					tagName = _T("<ResourceText>");
-					endTagName = _T("</ResourceText>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						wxString temp;
-						temp = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						// Note: non-Resource projects often don't have the "<ResourceText>"
-						// tag at all, therefore we set bProjectIsNotResource to TRUE as its
-						// default, unless <ResourceText>T</ResourceText> is present.
-						if (temp == _T("T"))
-						{
-							bProjectIsNotResource = FALSE;
-							pPTInfo->bProjectIsNotResource = FALSE;
-						}
-					}
+                    tagName = _T("<ResourceText>");
+                    endTagName = _T("</ResourceText>");
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        wxString temp;
+                        temp = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        // Note: non-Resource projects often don't have the "<ResourceText>"
+                        // tag at all, therefore we set bProjectIsNotResource to TRUE as its
+                        // default, unless <ResourceText>T</ResourceText> is present.
+                        if (temp == _T("T"))
+                        {
+                            bProjectIsNotResource = FALSE;
+                            pPTInfo->bProjectIsNotResource = FALSE;
+                        }
+                    }
 
-					tagName = _T("<Editable>");
-					endTagName = _T("</Editable>");
-					if (lineStr.Find(tagName) != wxNOT_FOUND)
-					{
-						wxString temp;
-						temp = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-						if (temp == _T("T"))
-						{
-							//bProjectIsEditable = TRUE;
-							pPTInfo->bProjectIsEditable = TRUE;
-						}
-						else if (temp == _T("F"))
-						{
-							//bProjectIsEditable = FALSE;
-							pPTInfo->bProjectIsEditable = FALSE;
-						}
-					}
+                    tagName = _T("<Editable>");
+                    endTagName = _T("</Editable>");
+                    if (lineStr.Find(tagName) != wxNOT_FOUND)
+                    {
+                        wxString temp;
+                        temp = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                        if (temp == _T("T"))
+                        {
+                            //bProjectIsEditable = TRUE;
+                            pPTInfo->bProjectIsEditable = TRUE;
+                        }
+                        else if (temp == _T("F"))
+                        {
+                            //bProjectIsEditable = FALSE;
+                            pPTInfo->bProjectIsEditable = FALSE;
+                        }
+                    }
 
-				}
-				wxString storageStr;
-				// We do not allow collaboration with resource projects or
-				// projects that have no short name, since the short name is
-				// the basic PT name for the project (and the folder it is
-				// contained in).
-				if (bProjectIsNotResource && !shortName.IsEmpty())
-				{
-					storageStr = shortName;
-					if (!fullName.IsEmpty())
-					{
-						storageStr += _T(" : ") + fullName;
-					}
-					if (!languageName.IsEmpty())
-					{
-						storageStr += _T(" : ") + languageName;
-					}
-					if (!ethnologueCode.IsEmpty())
-					{
-						storageStr += _T(" : ") + ethnologueCode;
-					}
-					tempListOfPTProjects.Add(storageStr);
-					m_pArrayOfCollabProjects->Add(pPTInfo);
-				}
-				else
-				{
-					if (pPTInfo != NULL) // whm 11Jun12 added NULL test
-						delete pPTInfo; // it's not a valid PT project we can use
-				}
-				f.Close();
+                }
+                wxString storageStr;
+                // We do not allow collaboration with resource projects or
+                // projects that have no short name, since the short name is
+                // the basic PT name for the project (and the folder it is
+                // contained in).
+                if (bProjectIsNotResource && !shortName.IsEmpty())
+                {
+                    storageStr = shortName;
+                    if (!fullName.IsEmpty())
+                    {
+                        storageStr += _T(" : ") + fullName;
+                    }
+                    if (!languageName.IsEmpty())
+                    {
+                        storageStr += _T(" : ") + languageName;
+                    }
+                    if (!ethnologueCode.IsEmpty())
+                    {
+                        storageStr += _T(" : ") + ethnologueCode;
+                    }
+                    tempListOfPTProjects.Add(storageStr);
+                    m_pArrayOfCollabProjects->Add(pPTInfo);
+                }
+                else
+                {
+                    if (pPTInfo != NULL) // whm 11Jun12 added NULL test
+                        delete pPTInfo; // it's not a valid PT project we can use
+                }
+                f.Close();
 			}
 		}
 
@@ -48671,6 +49187,7 @@ wxString CAdapt_ItApp::GetBibleditBooksPresentFlagsStr(wxString projPath)
 /// Examines the App's m_pArrayOfCollabProjects and finds the item that points
 /// to the struct containing the given PT/BE project which is uniquely identified
 /// by projShortName.
+/// whm 23June2016 No changes needed for PT 8
 ///////////////////////////////////////////////////////////////////////////////
 Collab_Project_Info_Struct* CAdapt_ItApp::GetCollab_Project_Struct(wxString projShortName)
 {

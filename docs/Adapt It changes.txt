@@ -1,9 +1,30 @@
+﻿----------------------------------------------
+Version 6.8.0 release 8 July 2016
 ----------------------------------------------
-Version 6.6.5 release 17 June 2016
 ----------------------------------------------
+Feature changes and new features in 6.8.0 
 ----------------------------------------------
-Feature changes and new features in 6.6.5 
-----------------------------------------------
+* Adapt It now supports collaboration with Paratext 8.
+Once Paratext 8 has been installed and Paratext project
+data has been migrated from the user's Paratext 7.x 
+"My Paratext Projects" to the Paratext 8's "My Paratext 8 
+Projects" folder, Adapt It will automatically detect that 
+Paratext 8 has been installed, and should continue 
+collaborating with Paratext 8 for all Adapt It projects 
+that were previously set up by an administrator to 
+collaborate with Paratext 7.x. WARNING: Adapt It versions
+before 6.8.0 that were collaborating with Paratext 7.x
+will not be able to continue collaborating with Paratext 
+after Paratext 8 has been installed and the user's Paratext 
+projects have been migrated to the new "My Paratext 8 
+Projects" directory. You must upgrade to Adapt It version
+6.8.0 to be able to collaborate with Paratext 8.
+* This new version of Adapt It will still work for users
+who have projects set up to collaborate with Paratext 7.x.
+Installing Paratext 8 is not necessary to use this 
+version (6.8.0) of Adapt It. This version will continue to
+collaborate with a user's Paratext 7.x data if Adapt It 
+was previously set up to collaborate with Paratext 7.x.
 * The tooltip in the Choose Translation dialog, and also
 those in the two listboxes in the KB Editor's 10 panes, 
 were nuisances - obscuring the list contents. The effect
@@ -86,7 +107,7 @@ the knowledge base, the entry would be: na-paul (for source
 text) paired with bawul (for its target text).
 
 ----------------------------------------------
-Bug fixes in 6.6.5 release 17 June 2016
+Bug fixes in 6.8.0 release 8 July 2016
 ----------------------------------------------
 * On computers with very high resolution screens, the
 dialog for the "Remove Some Entries Or Save List" button
