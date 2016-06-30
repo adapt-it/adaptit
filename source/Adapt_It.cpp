@@ -13928,61 +13928,60 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                     // configuration entry, so this is probably the first time this project is being
                     // opened after the installation of PT 8 (and hopefully migration of data to PT 8).
                     // Determine the PT version info for m_ParatextVersionForProject for this project.
-                    if (!m_ParatextVersionForProject.IsEmpty())
+                    if (PTver == PTVer7)
                     {
-                        if (PTver == PTVer7)
-                        {
-                            m_ParatextVersionForProject == _T("PTVersion7");
-                        }
-                        else if (PTver == PTVer8)
-                        {
-                            m_ParatextVersionForProject == _T("PTVersion8");
-                        }
-                        else if (PTver == PTVer7and8)
-                        {
-                            // Both PT versions 7 and 8 are installed on the machine.
-                            // Assume that PT 8 will be the desired editor if it has a valid projects dir
-                            // and at least 2 valid/useable projects, otherwise PT 7 
-                            wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion8"));
-                            wxString pt7ProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion7"));
-                            wxArrayString pt8ListOfProj = GetListOfPTProjects(_T("PTVersion8"));
-                            wxArrayString pt7ListOfProj = GetListOfPTProjects(_T("PTVersion7"));
-                            int pt8Count = pt8ListOfProj.GetCount();
-                            int pt7Count = pt7ListOfProj.GetCount();
-                            if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
-                            {
-                                m_ParatextVersionForProject = _T("PTVersion8");
-                            }
-                            else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
-                            {
-                                m_ParatextVersionForProject = _T("PTVersion7");
-                            }
-                            else
-                            {
-                                // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
-                                wxString msg = _T("In CSetupEditorCollaboration::InitDialog both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
-                                LogUserAction(msg);
-                                // Assume the administrator will fix this situation. In the mean time, since both
-                                // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
-                                m_ParatextVersionForProject = _T("PTVersion8");
-                            }
-                        }
-                        else if (PTver == PTLinuxVer7)
-                        {
-                            m_ParatextVersionForProject == _T("PTLinuxVersion7");
-                        }
-                        else if (PTver == PTLinuxVer8)
-                        {
-                            m_ParatextVersionForProject == _T("PTLinuxVersion8");
-                        }
-
-                        // Force save of project config file to record the value for CollabParatextVersionForProject
-                        // from the m_ParatextVersionForProject value.
-                        bChangeMadeToCollabSettings = TRUE; // to force a save of project config file with new setting
-                        wxString msg = _T("In GetAIProjectCollabStatus() the AI-ProjectConfigure.aic file had no CollabParatextVersionForProject value. Adapt It assigned it to be '%s' for this project.");
-                        msg = msg.Format(msg, m_ParatextVersionForProject.c_str());
-                        this->LogUserAction(msg);
+                        m_ParatextVersionForProject = _T("PTVersion7");
                     }
+                    else if (PTver == PTVer8)
+                    {
+                        m_ParatextVersionForProject = _T("PTVersion8");
+                    }
+                    else if (PTver == PTVer7and8)
+                    {
+                        // Both PT versions 7 and 8 are installed on the machine.
+                        // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                        // and at least 2 valid/useable projects, otherwise PT 7 
+                        wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion8"));
+                        wxString pt7ProjectsDirPath = GetParatextProjectsDirPath(_T("PTVersion7"));
+                        wxArrayString pt8ListOfProj = GetListOfPTProjects(_T("PTVersion8"));
+                        wxArrayString pt7ListOfProj = GetListOfPTProjects(_T("PTVersion7"));
+                        int pt8Count = pt8ListOfProj.GetCount();
+                        int pt7Count = pt7ListOfProj.GetCount();
+                        if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                        {
+                            m_ParatextVersionForProject = _T("PTVersion8");
+                        }
+                        else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                        {
+                            m_ParatextVersionForProject = _T("PTVersion7");
+                        }
+                        else
+                        {
+                            // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                            wxString msg = _T("In CSetupEditorCollaboration::InitDialog both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                            LogUserAction(msg);
+                            // Assume the administrator will fix this situation. In the mean time, since both
+                            // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                            m_ParatextVersionForProject = _T("PTVersion8");
+                        }
+                    }
+                    else if (PTver == PTLinuxVer7)
+                    {
+                        m_ParatextVersionForProject = _T("PTLinuxVersion7");
+                    }
+                    else if (PTver == PTLinuxVer8)
+                    {
+                        m_ParatextVersionForProject = _T("PTLinuxVersion8");
+                    }
+
+                    bDesignatedEditorIsInstalled = TRUE;
+                    
+                    // Force save of project config file to record the value for CollabParatextVersionForProject
+                    // from the m_ParatextVersionForProject value.
+                    bChangeMadeToCollabSettings = TRUE; // to force a save of project config file with new setting
+                    wxString msg = _T("In GetAIProjectCollabStatus() the AI-ProjectConfigure.aic file had no CollabParatextVersionForProject value. Adapt It assigned it to be '%s' for this project.");
+                    msg = msg.Format(msg, m_ParatextVersionForProject.c_str());
+                    this->LogUserAction(msg);
                 }
             }
             else if (m_collaborationEditor == _T("Bibledit") && BibleditIsInstalled())
@@ -52060,3 +52059,4 @@ void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtTex
         }
     }
 }
+
