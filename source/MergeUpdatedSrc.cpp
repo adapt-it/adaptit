@@ -42,17 +42,21 @@
 WX_DEFINE_OBJARRAY(SPArray);
 
 // **** for debugging ****
-// To turn on wxLogDebug() calls, uncomment out one or more of next lines.
-// To see the old and new arrays of CSourcePhrase instances with wxLogDebug,
-// uncomment out the #define ShowConversionItems just preceding the helpers.cpp function
-// void ConvertSPList2SPArray(SPList* pList, SPArray* pArray), at about line 8772
 
-/* If you don't know what you need to look at for debugging, turn on the first six below...
+// To see the old and new arrays of CSourcePhrase instances with wxLogDebug,
+// uncomment out the #define ShowConversionItems just preceding the helpers.cpp
+// file called:  void ConvertSPList2SPArray(SPList* pList, SPArray* pArray)
+// The define is at about line 9540 in helpers.cpp  Don't turn it on unless you
+// want to see ALL the words - it's a lot of output
+
+// To turn on useful wxLogDebug() calls, uncomment out one or more of next lines.
+
+// If you don't know what you need to look at for debugging, turn on the first six below...
 #define myLogDebugCalls       // probably the most useful one overall, and for counting spans & their deletions
-#define myMilestoneDebugCalls // useful for outer loop and MergeRecursively() calls
-#define LOOPINDEX             // this one gives the loop indices at the start of each iteration
-#define MERGE_Recursively     // use this one and the next to look at the tuple processing
-#define _RECURSE_			  // gives useful information when recursion takes place in merging matched spans
+//#define myMilestoneDebugCalls // useful for outer loop and MergeRecursively() calls
+//#define LOOPINDEX             // this one gives the loop indices at the start of each iteration
+//#define MERGE_Recursively     // use this one and the next to look at the tuple processing
+//#define _RECURSE_			  // gives useful information when recursion takes place in merging matched spans
 #define _INCOMMON			  // this is for debugging GetMaxInCommonSubspan_ByWordGroupSampling() which
 							  // handles non-milestoned large chunks mergers -- avoids
 							  // excessive multiple small pairings by sampling from
@@ -60,7 +64,6 @@ WX_DEFINE_OBJARRAY(SPArray);
 							  // to quickly find in-common span pairings
 //#define LEFTRIGHT			  // displays results of extending in-common matches to left or right
 							  //(this one has limited usefulness, only use if extending issues are your focus)
-*/
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
 
@@ -793,7 +796,9 @@ void RemoveAll(SPArray* pSPArray)
 	pSPArray->Empty();
 }
 
-void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit)
+// BEW changed 30Jun16, changed return value from void to bool; TRUE if merging is possible,
+// FALSE if it was detected that it could not be done successfully
+bool MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit)
 {
 	// turn the lists into arrays of CSourcePhrase*; note, we are using arrays to manage
 	// the same pointers as the SPLists do, so don't in this function try to delete any of
@@ -803,23 +808,35 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 	ConvertSPList2SPArray(&oldList, &arrOld);
 	int oldSPCount = oldList.GetCount();
 	if (oldSPCount == 0)
-		return;
+		return FALSE;
 	ConvertSPList2SPArray(&newList, &arrNew);
 	int newSPCount = newList.GetCount();
 	if (newSPCount == 0)
-		return;
+		return FALSE;
 
-	// BEW 21May14, added to support detection of punctuation changes done in the external
-	// editor's source text project - so that if these are the only changes, the
-	// GetUpdatedText_USFMsChanged() function will be called (rather than
-	// GetUpdatedText_USFMsUnchanged() - which fails to get such punctuation changes
-	// returned to the external editor's adaptation text), so that the punctuation changes
-	// will, where they occur, trigger AI overwriting the external editor's verse with its
-	// own verse and so the punct changes end up being reflected back in the external editor
-	gpApp->m_bPunctChangesDetectedInSourceTextMerge = FALSE; // initialize
-	
-	// do the merger of the two arrays
-	MergeUpdatedSrcTextCore(arrOld, arrNew, pMergedList, limit);
+	// BEW added 30Jun16, do a validity/felicity test
+	bool bImportIsPossible = IsImportPossible(arrOld, arrNew); // each passed by reference
+	if (bImportIsPossible)
+	{
+		// BEW 21May14, added to support detection of punctuation changes done in the external
+		// editor's source text project - so that if these are the only changes, the
+		// GetUpdatedText_USFMsChanged() function will be called (rather than
+		// GetUpdatedText_USFMsUnchanged() - which fails to get such punctuation changes
+		// returned to the external editor's adaptation text), so that the punctuation changes
+		// will, where they occur, trigger AI overwriting the external editor's verse with its
+		// own verse and so the punct changes end up being reflected back in the external editor
+		gpApp->m_bPunctChangesDetectedInSourceTextMerge = FALSE; // initialize
+
+		// do the merger of the two arrays
+		MergeUpdatedSrcTextCore(arrOld, arrNew, pMergedList, limit);
+		return TRUE;
+	}
+	// If control gets to here, importing the new source text is not possible.
+	// So tell the user - and hint that he may be trying to import a different language!
+	wxString msg = _("Importing your chosen source text file is impossible.\nWords in the file did not match any words in the current open document.\nCheck the file really contains an edited version of the document's source text.\nThe import attempt will now be abandoned.");
+	wxString title = _("Warning: different kinds of text");
+	wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+	return FALSE;
 }
 
 // This is the guts of the recursive merging algorithm - it relies on the limit value
@@ -5315,6 +5332,80 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 	return NULL;
 }
 
+// returns				TRUE if there is at least one matchup of a source text word group
+//						with the same word group in the new source text; FALSE if not
+// params
+// arrOld			->	The array of old CSourcePhrase instances (ie. from current open doc)
+// arrNew			->	The array of new CSourcePhase instances (ie. possibly user-edited, 
+//						either manually edited for merging using Import Edited Source Text
+//						command, or what comes from PT or BE (which may or may not have been
+//						edited in the external editor)
+// comments
+// GetMaxInCommonSubspan_ByWordGroupSampling() will return NULL if no matchup of any chosen
+// source word group is found in the new source text. Returning NULL means merging the two
+// sets of CSourcePhrase instances is impossible. Earlier, I did not code a detection for
+// this possibility, and Bill ran bump into the problem when he merged english text into 
+// Lugungu thinking he was merging in edited Lugungu - since English and Lugungu cannot
+// possibly have arbitrary word sequences matching across the two languages, the Import
+// should never have been accepted for going ahead. So this IsImportPossible() function
+// is created in order to detect when importing is impossible, and when so, warn the user
+// and kill the import attempt. I've done it as a function which can be called prior to
+// attempting the import, otherwise if would be called from 
+// GetMaxInCommonSubspan_ByWordGroupSampling() itself, and it then becomes a problem to 
+// return the imperative for abandonment up through multiple layers of recursion.
+// BEW added 30Jun16. Called in MergeUpdatedSourceText()
+bool IsImportPossible(SPArray& arrOld, SPArray& arrNew)
+{
+	int limit = 80; // supply an arbitrary value, it is not used in the call below
+	/*
+	struct Subspan {
+	int			oldStartPos;		// index in oldSPArray where CSourcePhrase instances commence
+	int			oldEndPos;			// index in oldSPArray where CSourcePhrase instances end (inclusive)
+	int			newStartPos;		// index in newSPArray where CSourcePhrase instances commence
+	int			newEndPos;			// index in newSPArray where CSourcePhrase instances end (inclusive)
+	//Subspan*	childSubspans[3];	// a set of beforeSpan, commonSpan & afterSpan Subspan instances on the heap
+	SubspanType	spanType;			// an enum with values beforeSpan, commonSpan, afterSpan (this member
+	// is redundant, but useful for a sanity check when processing)
+	bool		bClosedEnd;			// default TRUE
+	};	
+	*/
+	bool bIsValidImport = FALSE;
+	Subspan* pParentSubspan = new Subspan;
+	pParentSubspan->oldStartPos = 0;
+	pParentSubspan->oldEndPos = arrOld.GetCount() - 1;
+	pParentSubspan->newStartPos = 0;
+	pParentSubspan->newEndPos = arrNew.GetCount() - 1;
+	pParentSubspan->spanType = afterSpan;
+	pParentSubspan->bClosedEnd = TRUE;
+	wxArrayPtrVoid* pSubspansArray = new wxArrayPtrVoid;
+	wxArrayInt* pWidthsArray = new wxArrayInt;
+	// In the next call, TRUE is bool bSanityTest
+	Subspan* pMaxSubspan = GetMaxInCommonSubspan_ByWordGroupSampling(arrOld, arrNew,
+								pParentSubspan, limit, pSubspansArray, pWidthsArray, TRUE);
+	if (pMaxSubspan != NULL)
+	{
+		bIsValidImport = TRUE;
+
+		// Delete the content of the arrays
+		int widthsCount = pWidthsArray->GetCount();
+		pWidthsArray->Clear();
+		int i;
+		for (i = 0; i < widthsCount; i++)
+		{
+			// delete all
+			if ((Subspan*)pSubspansArray->Item(i) != NULL)
+			{
+				delete (Subspan*)pSubspansArray->Item(i);
+			}
+		}
+		pSubspansArray->Clear();
+	}
+	delete pSubspansArray;
+	delete pWidthsArray;
+	delete pParentSubspan;
+	return bIsValidImport;
+}
+
 // BEW created 18Dec12 to handle efficiently finding largest in-common span when the passed
 // in arrOld and arrNew subspans are large; we do it by sampling at approximately equal
 // intervals in the "old" array, obtaining a word-group (stored in a wxArrayString on the
@@ -5338,10 +5429,14 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 // between arrOld and arrNew; the caller should interpret this as 'non success' and
 // processing should then fall through in the caller to the legacy single-word-based
 // matchups algorithm.
+// BEW  30Jun16 made this the main testing function for bool IsImportpossible(), and
+// internally matchup of text which starts at start of doc is ignored, because sometimes
+// people just give a copy translation for the \id line
 Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arrNew, 
-	Subspan* pParentSubspan, int limit, wxArrayPtrVoid* pSubspansArray, wxArrayInt* pWidthsArray)
+	Subspan* pParentSubspan, int limit, wxArrayPtrVoid* pSubspansArray, 
+	wxArrayInt* pWidthsArray, bool bSanityTest)
 {
-	limit = limit; // avoid compiler warning
+	wxUnusedVar(limit); // avoid compiler warning
 	// pSubspansArray should be empty, but just in case, clear it out
 	Subspan* pSubspanPair = NULL; // use this local var to add 
 								  // Subspan* instances to pSubspansArray
@@ -5403,7 +5498,7 @@ Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arr
 	int arrNewSrcPhrasesCount = (int)(pParentSubspan->newEndPos - pParentSubspan->newStartPos + 1);
 		wxLogDebug(_T("GetMaxInCommonSubspan(): arrOldSrcPhrasesCount = %d  , arrNewSrcPhrasesCount = %d"),arrOldSrcPhrasesCount,arrNewSrcPhrasesCount);
 	#endif
-	int nJumpDistance = 0; // initialize both to zero, they are see a couple of lines down
+	int nJumpDistance = 0; // initialize both to zero, they are set a couple of lines down
 	int numGroupWords = 0; // normally from 2 to 6 inclusive, but we allow more when
 						   // a merger takes the count over the intended maximum
 	
@@ -5666,6 +5761,33 @@ Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arr
 	// more than half the possible size, and so we have had to collect all possible
 	// pairings and now we must obtain the one which is the largest.
 	int widthsCount = pWidthsArray->GetCount();
+	if (bSanityTest && (widthsCount == 0))
+	{
+		// There were no matchups, so don't go on or there will be an access violation
+		pMaxSubspan = (Subspan*)NULL;
+		CleanUpForWordGroups(pMaxSubspan, pSubspansArray, pWidthsArray, &arrWordGroups,
+			&arrNew_WordGroupSets, &arrNew_LocationSets);
+		return pMaxSubspan;
+	}
+	else if (bSanityTest && (widthsCount == 1))
+	{
+		// Also reject the situation where the \id line has just had the src text copied
+		// unchanged to the tgt text, as this would result in a spurious single matchup.
+		// Since the book code is first, and that is not changed, such as spurious matchup
+		// would start with 0 being the start index for both old src word group and the
+		// new src word group - so use this fact; if that is the case, we have a bogus
+		// matchup and this is to be rejected also
+		Subspan* pSub = (Subspan*)pSubspansArray->Item(0); // the one and only matchup
+		if ((pSub->oldStartPos == 0) && (pSub->newStartPos == 0))
+		{
+			// It's bogus...
+			pMaxSubspan = (Subspan*)NULL;
+			CleanUpForWordGroups(pMaxSubspan, pSubspansArray, pWidthsArray, &arrWordGroups,
+				&arrNew_WordGroupSets, &arrNew_LocationSets);
+			return pMaxSubspan;
+		}
+	}
+	
 	#if defined(_DEBUG) && defined(_INCOMMON)
 		wxLogDebug(_T("*** Count of pWidthsArray = %d , Count of pSubspansArray = %d "),widthsCount,pSubspansArray->GetCount());
 	#endif
@@ -5697,9 +5819,9 @@ Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arr
 	#if defined(_INCOMMON) && defined(_DEBUG)
 		wxLogDebug(_T("GetMaxInCommonSubspan_ByWordGroupSampling(): max in-common span's WIDTH =  %d  for index = %d"),maxWidth,lastIndexForMax);
 	#endif
-    // Clean up before exiting the function; pMaxSubspan is passed in so that the clean up
-    // function can test for it an avoid deleting it from the heap, but the others all get
-    // deleted
+    // Clean up before exiting the function; pMaxSubspan is passed in to CleanUpForWordGroups()
+	// so that the clean up function can test for it and avoid deleting it from the heap, but 
+	// the others all get deleted
 	CleanUpForWordGroups(pMaxSubspan, pSubspansArray, pWidthsArray, &arrWordGroups, 
 						 &arrNew_WordGroupSets, &arrNew_LocationSets);
 	return pMaxSubspan;
@@ -5999,7 +6121,7 @@ void CalcWordGroupSizeAndJumpDistance(int arrOldSize, int* pNumGroupWords, int* 
 	//      5            unmeasured           1                           1
 	//      4            20 seconds           3                           5
     // These results suggest that an optimal word group size for a large data set is 6
-    // words. It's likely that isolating languages would take at an average of at least one
+    // words. It's likely that isolating languages would take an average of at least one
     // extra word to generate meaningful word groups, and so an optimal value for them may
     // be 7. However, Adapt It is not used much in areas where many isolating languages
     // exist, so probably 6 will suffice for them anyway - with a slight speed penalty due

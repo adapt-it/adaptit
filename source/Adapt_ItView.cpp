@@ -50,6 +50,8 @@
 #include <wx/wx.h>
 #endif
 
+extern size_t aSequNum; // use with TOKENIZE_BUG
+
 #if defined(__VISUALC__) && __VISUALC__ >= 1400
 #pragma warning(disable:4428)	// VC 8.0 wrongly issues warning C4428: universal-character-name
 								// encountered in source for a statement like
@@ -15789,6 +15791,9 @@ int CAdapt_ItView::TokenizeTextString(SPList* pNewList, wxString& str, int nInit
 	int	length = str.Length();
 	if (!str.IsEmpty())
 	{
+#if defined(_DEBUG) && defined(TOKENIZE_BUG)
+		aSequNum = 0;
+#endif
 		return pDoc->TokenizeText(nInitialSequNum,pNewList,str,length);
 	}
 	else
@@ -21886,7 +21891,12 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 #if defined(_DEBUG)
 		//wxLogDebug(_T("EditedSrc BEFORE: %s"), (*pBuffer).c_str());
 #endif
-		*pBuffer = RemoveAllCRandLF(pBuffer);
+		// BEW 29Jun16 Bev Erasmus (Madagascar) got a crash, it possibly is due to
+		// doing these removals so I'm commenting this out, and will test. Besides,
+		// now that we save the word delimiters, it is no longer appropriate to remove
+		// the CR & LF characters
+		//*pBuffer = RemoveAllCRandLF(pBuffer);
+
 		pApp->m_nInputFileLength = pBuffer->Len();
 #if defined(_DEBUG)
 		//wxLogDebug(_T("EditedSrc AFTER: %s"), (*pBuffer).c_str());
@@ -21930,8 +21940,13 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 		// compute the new list from the old one plus the tokenized newly updated list
 		if (nHowMany > 0)
 		{
-			MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, pMergedList, nSpanLimit);
-
+			bool bIsPossible = MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, 
+														pMergedList, nSpanLimit);
+			if (!bIsPossible)
+			{
+				return; // detected merger is impossible - perhaps a different language's 
+						// text was wrongly tried
+			}
             // take the pMergedList list, delete the app's m_pSourcePhrases list's
             // contents, & move to m_pSourcePhrases the pointers in pMergedList...
  			SPList::Node* posCur = pApp->m_pSourcePhrases->GetFirst();
