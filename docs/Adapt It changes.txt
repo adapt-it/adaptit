@@ -1,12 +1,12 @@
 ﻿----------------------------------------------
-Version 6.8.0 release 8 July 2016
+Version 6.8.0 release 1 July 2016
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.8.0 
 ----------------------------------------------
 * Adapt It now supports collaboration with Paratext 8.
 Once Paratext 8 has been installed and Paratext project
-data has been migrated from the user's Paratext 7.x 
+data has been migrated from the user's Paratext 7.x's 
 "My Paratext Projects" to the Paratext 8's "My Paratext 8 
 Projects" folder, Adapt It will automatically detect that 
 Paratext 8 has been installed, and should continue 
@@ -17,8 +17,9 @@ before 6.8.0 that were collaborating with Paratext 7.x
 will not be able to continue collaborating with Paratext 
 after Paratext 8 has been installed and the user's Paratext 
 projects have been migrated to the new "My Paratext 8 
-Projects" directory. You must upgrade to Adapt It version
-6.8.0 to be able to collaborate with Paratext 8.
+Projects" directory. After upgrading to Paratext 8, you 
+must alos upgrade to Adapt It version 6.8.0 to be able to 
+collaborate with Paratext 8.
 * This new version of Adapt It will still work for users
 who have projects set up to collaborate with Paratext 7.x.
 Installing Paratext 8 is not necessary to use this 

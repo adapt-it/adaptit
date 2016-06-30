@@ -76,7 +76,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.8.0"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("July 8, 2016"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("July 1, 2016"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->SetToolTip( wxT("This date should be the same as the executable file") );
     item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -8670,10 +8670,11 @@ wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_f
 
     wxString strs16[] = 
     {
-        _("Paratext"), 
+        _("Paratext 7"), 
+        _("Paratext 8"), 
         _("Bibledit")
     };
-    wxRadioBox *item16 = new wxRadioBox( parent, ID_RADIOBOX_EXTERNAL_SCRIPTURE_EDITOR, _("Scripture &Editor:"), wxDefaultPosition, wxDefaultSize, 2, strs16, 1, wxRA_SPECIFY_COLS );
+    wxRadioBox *item16 = new wxRadioBox( parent, ID_RADIOBOX_EXTERNAL_SCRIPTURE_EDITOR, _("Scripture &Editor:"), wxDefaultPosition, wxDefaultSize, 3, strs16, 1, wxRA_SPECIFY_COLS );
     item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );

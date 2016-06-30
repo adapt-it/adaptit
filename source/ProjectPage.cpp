@@ -908,10 +908,29 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					promptFreeTrans = promptFreeTrans.Format(promptFreeTrans,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
 					// Get a list of current projects from the appropriate external editor.
 					wxArrayString projList;
-					if (gpApp->m_collaborationEditor == _T("Paratext"))
-						projList = gpApp->GetListOfPTProjects();
-					else if (gpApp->m_collaborationEditor == _T("Bibledit"))
-						projList = gpApp->GetListOfBEProjects();
+                    if (gpApp->m_collaborationEditor == _T("Paratext"))
+                    {
+                        if (gpApp->m_ParatextVersionForProject == _T("PTVersion7"))
+                        {
+                            projList = gpApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+                        }
+                        else if (gpApp->m_ParatextVersionForProject == _T("PTVersion8"))
+                        {
+                            projList = gpApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+                        }
+                        else if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion7"))
+                        {
+                            projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+                        }
+                        else if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion8"))
+                        {
+                            projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+                        }
+                    }
+                    else if (gpApp->m_collaborationEditor == _T("Bibledit"))
+                    {
+                        projList = gpApp->GetListOfBEProjects();
+                    }
 
 					if (projList.GetCount() == 0)
 					{
@@ -988,7 +1007,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					wxString errStr = _T("");
 					wxString errProj = _T("");
 					if (!CollabProjectsAreValid(gpApp->m_CollabProjectForSourceInputs, gpApp->m_CollabProjectForTargetExports,
-											gpApp->m_CollabProjectForFreeTransExports, gpApp->m_collaborationEditor, errStr, errProj))
+						gpApp->m_CollabProjectForFreeTransExports, gpApp->m_collaborationEditor, gpApp->m_ParatextVersionForProject,
+                        errStr, errProj))
 					{
 						wxString msg = _("Sorry, the projects you selected have the following problem:\n%s\n\nCollaboration is not possible until the necessary %s projects have been set up. Please ask your administrator to set up %s with the projects necessary for collaboration with Adapt It.");
 						msg = msg.Format(msg,errStr.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());

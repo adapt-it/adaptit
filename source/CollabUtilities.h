@@ -135,7 +135,7 @@ class CSourcePhrase;
 /// to return to the external editor
 ///////////////////////////////////////////////////////////////////////////////////
 	enum			EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
-						wxString compositeProjName,wxString editor,
+						wxString compositeProjName,wxString editor,wxString ptVersion,
 						wxString& emptyBooks,wxString& booksWithContent,wxString& errorMsg);
 	wxArrayString	BreakStringBufIntoChapters(const wxString& bookString);
 	bool			DoVerseAnalysis(const wxString& verseNum, VerseAnalysis& rVerseAnal); // return TRUE if is complex
@@ -317,9 +317,9 @@ class CSourcePhrase;
 	///     to the external editor, when doing collaboration
 	/////////////////////////////////////////////////////////////////////////////////////
 	bool			BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName);
-	bool			CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEditor);
+	bool			CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEditor,wxString ptEditorVersion);
 	bool			CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName, 
-							wxString frtrCompositeProjName, wxString collabEditor,
+							wxString frtrCompositeProjName, wxString collabEditor, wxString ptEditorVersion,
 							wxString& errorStr, wxString& errorProjects);
 	wxString		GetPathToRdwrtp7(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetPathToBeRdwrt(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp

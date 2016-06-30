@@ -141,7 +141,22 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	projList.Clear();
 	if (m_pApp->m_collaborationEditor == _T("Paratext"))
 	{
-		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        if (m_pApp->m_ParatextVersionForProject == _T("PTVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_pApp->m_ParatextVersionForProject == _T("PTVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_pApp->m_ParatextVersionForProject == _T("PTLinuxVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_pApp->m_ParatextVersionForProject == _T("PTLinuxVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
 	}
 	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 	{
@@ -174,7 +189,8 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	wxString errorStr = _T("");
 	wxString errProj = _T("");
 	if (!CollabProjectsAreValid(m_pApp->m_CollabProjectForSourceInputs, m_pApp->m_CollabProjectForTargetExports,
-							m_pApp->m_CollabProjectForFreeTransExports, m_pApp->m_collaborationEditor, errorStr, errProj))
+		m_pApp->m_CollabProjectForFreeTransExports, m_pApp->m_collaborationEditor, m_pApp->m_ParatextVersionForProject,
+        errorStr, errProj))
 	{
 		pStaticAsTextCtrlNotInstalledErrorMsg->Show(TRUE); // make it visible
 		wxString msg;

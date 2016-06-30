@@ -39,6 +39,7 @@ public:
 	wxString m_TempCollabProjectForFreeTransExports;
 	wxString m_TempCollabAIProjectName;
 	wxString m_TempCollaborationEditor;
+    wxString m_TempCollabEditorVersion; // whm added 24June2016
 	wxString m_TempCollabSourceProjLangName;
 	wxString m_TempCollabTargetProjLangName;
 	bool m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
@@ -60,6 +61,7 @@ public:
 	wxString m_SaveCollabProjectForFreeTransExports;
 	wxString m_SaveCollabAIProjectName;
 	wxString m_SaveCollaborationEditor;
+    wxString m_SaveCollabEditorVersion; // whm added 24June2016
 	wxString m_SaveCollabSourceProjLangName;
 	wxString m_SaveCollabTargetProjLangName;
 	bool m_bSaveCollabByChapterOnly; // FALSE means the "whole book" option
