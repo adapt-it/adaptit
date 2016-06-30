@@ -682,7 +682,7 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 // process. This could be used to present a more complete picture of the book contents if we
 // decided to do so.
 enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
-				wxString compositeProjName,wxString editor,
+				wxString compositeProjName,wxString editor,wxString ptVersion,
 				wxString& emptyBooks,wxString& booksWithContent,wxString& errorMsg)
 {
 	// Get the names of books present in the compositeProjName project into bookNamesArray
@@ -722,7 +722,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		return projHasNoBooks;
 	}
 
-	if (!CollabProjectHasAtLeastOneBook(compositeProjName,editor))
+	if (!CollabProjectHasAtLeastOneBook(compositeProjName,editor, ptVersion))
 	{
 		// whm Note: The emptyBooks and booksWithContent strings will be
 		// meaningless to the caller in this situation
@@ -3353,6 +3353,8 @@ bool BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName
 ///                     is non-empty and has at least one book defined in it
 /// \param projCompositeName     ->  the PT/BE project's composite string
 /// \param collabEditor          -> the external editor, either "Paratext" or "Bibledit"
+/// \param ptEditorVersion       -> the Paratext version, "PTVersion7", "PTVersion8",
+///                                 "PTLinuxVersion7", "PTLinuxVersion8", or wxEmptyString
 /// \remarks
 /// Called from: CollabUtilities' CollabProjectsAreValid(),
 /// CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(),
@@ -3366,7 +3368,8 @@ bool BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName
 /// the current Collab_Project_Info_Struct object for that project on the heap
 /// (in m_pArrayOfCollabProjects). It then examines the struct's booksPresentFlags
 /// member for the existence of at least one book in that project.
-bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEditor)
+/// whm 25June2016 Revised for PT 8 Compatibility by adding ptEditorVersion value parameter.
+bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEditor, wxString ptEditorVersion)
 {
 // whm 5Jun12 added the define below for testing and debugging of Setup Collaboration dialog only
 #if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
@@ -3385,7 +3388,22 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEd
 	// The calls below to GetListOfPTProjects() and GetListOfBEProjects() populate the App's m_pArrayOfCollabProjects
 	if (collabEditor == _T("Paratext"))
 	{
-		projList = gpApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        if (ptEditorVersion == _T("PTVersion7"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (ptEditorVersion == _T("PTVersion8"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (ptEditorVersion == _T("PTLinuxVersion7"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (ptEditorVersion == _T("PTLinuxVersion8"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
 	}
 	else if (collabEditor == _T("Bibledit"))
 	{
@@ -3424,6 +3442,8 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEd
 /// \param tgtCompositeProjName     ->  the PT/BE's target project's composite string
 /// \param freeTransCompositeProjName  ->  the PT/BE's free trans project's composite string
 /// \param collabEditor             -> the collaboration editor, either "Paratext" or "Bibledit"
+/// \param ptEditorVersion          -> the Paratext version, "PTVersion7", "PTVersion8", 
+///                                   "PTLinuxVersion7", "PTLinuxVersion8", or wxEmptyString
 /// \param errorStr               <-  a wxString (multi-line) representing any error information
 ///                                     for when a FALSE value is returned from the function
 /// \param errorProjects          <-  a wxString representing "source", "target" "freetrans", or
@@ -3440,8 +3460,9 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEd
 /// one or more \n newline characters, that is, it will format as a multi-line string. The
 /// errorProjects string will also return to the caller a string indicating which type of project
 /// the errors apply to, i.e., "source" or "source:freetrans", etc.
+/// whm 25June2016 Revised for PT 8 Compatibility by adding ptEditorVersion value parameter.
 bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName,
-							wxString freeTransCompositeProjName, wxString collabEditor,
+							wxString freeTransCompositeProjName, wxString collabEditor, wxString ptEditorVersion,
 							wxString& errorStr, wxString& errorProjects)
 {
 	wxString errorMsg = _T("");
@@ -3449,7 +3470,7 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 	bool bSrcProjOK = TRUE;
 	if (!srcCompositeProjName.IsEmpty())
 	{
-		if (!CollabProjectHasAtLeastOneBook(srcCompositeProjName,collabEditor))
+		if (!CollabProjectHasAtLeastOneBook(srcCompositeProjName,collabEditor, ptEditorVersion))
 		{
 			bSrcProjOK = FALSE;
 
@@ -3470,7 +3491,7 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 	bool bTgtProjOK = TRUE;
 	if (!tgtCompositeProjName.IsEmpty())
 	{
-		if (!CollabProjectHasAtLeastOneBook(tgtCompositeProjName,collabEditor))
+		if (!CollabProjectHasAtLeastOneBook(tgtCompositeProjName,collabEditor, ptEditorVersion))
 		{
 			bTgtProjOK = FALSE;
 
@@ -3491,7 +3512,7 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 	// freeTransCompositeProjName is non-empty and fails the CollabProjectHasAtLeastOneBook test.
 	if (!freeTransCompositeProjName.IsEmpty())
 	{
-		if (!CollabProjectHasAtLeastOneBook(freeTransCompositeProjName,collabEditor))
+		if (!CollabProjectHasAtLeastOneBook(freeTransCompositeProjName,collabEditor, ptEditorVersion))
 		{
 			bFreeTrProjOK = FALSE;
 

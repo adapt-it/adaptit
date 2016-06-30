@@ -211,7 +211,7 @@ class KBSharingMgrTabbedDlg;
 #define VERSION_BUILD_PART 0 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 8
+#define VERSION_DATE_DAY 1
 #define VERSION_DATE_MONTH 07
 #define VERSION_DATE_YEAR 2016
 const wxString appVerStr(_T("6.8.0"));
@@ -1161,7 +1161,9 @@ enum PTVersionsInstalled
     PTVer7,
     PTVer8,
     PTVer7and8,
-    PTLinuxVer7or8
+    PTLinuxVer7,
+    PTLinuxVer8,
+    PTLinuxVer7and8
 };
 
 /// a struct for use in collaboration with Paratext or Bibledit (BEW added 22Jun11)
@@ -3541,7 +3543,7 @@ public:
 	/// m_ParatextProjectsDirPath stores the path to the Paratext user's
 	/// project directory. The default location where Paratext creates the
 	/// user's projects is at c:\My Paratext Projects".
-	/// This variable is determined by calling the GetParatextInstallDirPath()
+	/// This variable is determined by calling the GetParatextProjectsDirPath()
 	/// function.
 	wxString m_ParatextProjectsDirPath;
 
@@ -4347,30 +4349,9 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
 	//bool m_bEnableDelayedGetChapterHandler; // BEW added 15Sep14
 	bool m_bEnableDelayedGet_Handler; // BEW added 15Sep14
-	//bool m_bEnableDelayedGetWholeBookHandler; // ditto removed 7Oct14 (was not used)
 
-	// Support for clipboard-based adaptation (and free translation)
-	bool     m_bClipboardAdaptMode; // BEW added 9May14, a feature suggested by Bob Eaton (SAG)
-	bool	 m_bClipboardTextLoaded; // TRUE when the text is in the doc, need for update handler
-	bool	 m_bADocIsLoaded; // TRUE if there was a normal doc active when the feature was invoked
-	int      m_nSaveSequNumForDocRestore;
-	wxString m_savedTextBoxStr; // cache the phrasebox contents here
-	SPList*  m_pSavedDocForClipboardAdapt;
-	void     OnUpdateButtonCopyToClipboard(wxUpdateUIEvent& event);
-	void     OnButtonCopyToClipboard(wxCommandEvent& WXUNUSED(event));
-	void     OnUpdateButtonCopyFreeTransToClipboard(wxUpdateUIEvent& event);
-	void     OnButtonCopyFreeTransToClipboard(wxCommandEvent& WXUNUSED(event));
-	// don't need an update handler for the Close button, it's always enabled
-	void     OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event));
-	wxString m_savedDocTitle; // temporarily save Titlebar's title string here when doing clipboard adapt
-	// End of new variables for support of clipboard-based adaptation & free translation
-
-
-	// whm 17Oct11 removed
-	//wxArrayString m_ListOfPTProjects; // gets populated by GetListOfPTProjects()
-	//wxArrayString m_ListOfBEProjects; // gets populated by GetListOfBEProjects()
-
-	wxArrayString GetListOfPTProjects();
+	// whm 17Oct11 for collaboration support
+    wxArrayString GetListOfPTProjects(wxString PTVersion); // an override of the GetListOfPTProjects() function
 	wxArrayString GetListOfBEProjects();
 	wxString GetBibleditBooksPresentFlagsStr(wxString projPath);
 	Collab_Project_Info_Struct* GetCollab_Project_Struct(wxString projShortName);
@@ -4381,11 +4362,6 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	int GetNumberFromBookCodeForFileNaming(wxString bookStr);
 	wxString GetBookNumberAsStrFromName(wxString bookName);
 	wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
-	// whm 13Aug11 moved to CollabUtilities.h
-	//bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName,
-	//				int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
-	//bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName,
-	//				int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
 	wxString FindBookFileContainingThisReference(wxString folderPath, wxString reference, wxString extensionFilter);
 	bool BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr);
 
@@ -4393,27 +4369,21 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	void	RemoveCollabSettingsFromFailSafeStorageFile(); // whm added 29Feb12
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
 	void	LogUserAction(wxString msg);
-    enum PTVersionsInstalled ParatextIsInstalled(); // whm modified 20Apr2016
+    PTVersionsInstalled ParatextVersionInstalled(); // whm modified 20Apr2016
+    wxString GetLinuxPTVersionNumberFromPTVersionFile(wxString PTVersionFilePath);
 	bool	BibleditIsInstalled(); // whm added 13Jun11
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	bool	BibleditIsRunning(); // whm added 13Jun11
 #ifdef __WXGTK__
 	wxString GetParatextEnvVar(wxString strVariableName); // edb added 19Mar12
 #endif
-	wxString GetParatextProjectsDirPath(); // whm added 9Feb11
+	wxString GetParatextProjectsDirPath(wxString PTVersion); // whm added 9Feb11, modified 25June2016
 	wxString GetBibleditProjectsDirPath();
-	wxString GetParatextInstallDirPath(); // whm modified 22June2016
+	wxString GetParatextInstallDirPath(wxString PTVersion); // whm modified 25June2016
 	wxString GetBibleditInstallDirPath(); // whm added 13Jun11
 	wxString GetAdaptit_Bibledit_rdwrtInstallDirPath(); // whm added 18Dec11
 	wxString GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode,
 				wxString ptProjectShortName, wxString chapterNumStr, wxString extStr);
-
-	// edb 8Aug12 - Pathway support
-	bool m_bPathwayIsInstalled;
-	wxString m_PathwayInstallDirPath;
-	wxString GetPathwayInstallDirPath();
-	bool	PathwayIsInstalled();
-
 	void GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray,
 													   wxArrayString& collabSettingsArray);
 	wxString GetCollabSettingsAsStringForLog();
@@ -4424,10 +4394,27 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 		bool& bChangeMadeToCollabSettings, wxString& errorProjects);
     void SetFolderProtectionFlagsFromCombinedString(wxString combinedStr);
 
-	// members added by BEW 27July11, when moving collab code out of
-	// GetSourceTextFromEditor class into CollabUtilities.h & .cpp, since we need it at
-	// other times besides when the dialog is in existence
+	// edb 8Aug12 - Pathway support
+	bool m_bPathwayIsInstalled;
+	wxString m_PathwayInstallDirPath;
+	wxString GetPathwayInstallDirPath();
+	bool	PathwayIsInstalled();
 
+    // Support for clipboard-based adaptation (and free translation)
+    bool     m_bClipboardAdaptMode; // BEW added 9May14, a feature suggested by Bob Eaton (SAG)
+    bool	 m_bClipboardTextLoaded; // TRUE when the text is in the doc, need for update handler
+    bool	 m_bADocIsLoaded; // TRUE if there was a normal doc active when the feature was invoked
+    int      m_nSaveSequNumForDocRestore;
+    wxString m_savedTextBoxStr; // cache the phrasebox contents here
+    SPList*  m_pSavedDocForClipboardAdapt;
+    void     OnUpdateButtonCopyToClipboard(wxUpdateUIEvent& event);
+    void     OnButtonCopyToClipboard(wxCommandEvent& WXUNUSED(event));
+    void     OnUpdateButtonCopyFreeTransToClipboard(wxUpdateUIEvent& event);
+    void     OnButtonCopyFreeTransToClipboard(wxCommandEvent& WXUNUSED(event));
+    // don't need an update handler for the Close button, it's always enabled
+    void     OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event));
+    wxString m_savedDocTitle; // temporarily save Titlebar's title string here when doing clipboard adapt
+                              // End of new variables for support of clipboard-based adaptation & free translation
 
 	// BEW added next 6 lines 10July, for storing and retrieving the USFM text strings for
 	// the exported target text, and exported free translation text, when collaborating
