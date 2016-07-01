@@ -25,6 +25,12 @@
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
 
+// BEW 29Jun16, for debugging support
+//#define TOKENIZE_BUG
+size_t aSequNum; // use with TOKENIZE_BUG
+
+
+
 #ifdef __BORLANDC__
 #pragma hdrstop
 #endif
@@ -10353,6 +10359,13 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 	wordBuildersForPostWordLoc.Empty(); // potentially used when parsing the first or
 										// second word of a conjoined pair, or when
 										// parsing a non-conjoined word
+#if defined(_DEBUG) && defined(TOKENIZE_BUG)
+	if (aSequNum >= 1367)
+	{
+		int halt_here = 1;
+	}
+#endif
+										
 	// reverse the string
 	if (span.IsEmpty())
 	{
@@ -10656,6 +10669,15 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	punctBefore.Empty();
 	endMkr.Empty();
 	pWdStart = ptr;
+#if defined(_DEBUG) && defined(TOKENIZE_BUG)
+
+	if (aSequNum >= 1367)
+	{
+		int halt_here = 1;
+	}
+
+
+#endif
 	// Find where ~ is, if present; we can't just call .Find() in the string defined by
 	// ptr and pEnd, because it could contain thousands of words and a ~ may be many
 	// hundreds of words ahead. Instead, we must scan ahead, parsing over any ignorable
@@ -12378,6 +12400,14 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		// retains the meaning unchanged
 		pSrcPhrWord1 = new CSourcePhrase;
 		pSrcPhrWord2 = new CSourcePhrase;
+		//BEW 30Jun16 Set m_srcPhrase and m_key to null strings, dont leave the unset
+		// which could lead to an access violation if the user wrongly uses ~ and
+		// the first or second word ends up as empty
+		pSrcPhrWord1->m_srcPhrase = wxEmptyString;
+		pSrcPhrWord1->m_key = wxEmptyString;
+		pSrcPhrWord2->m_srcPhrase = wxEmptyString;
+		pSrcPhrWord2->m_key = wxEmptyString;
+		// end of 30Jun16 addition
 		pSrcPhrase->m_pSavedWords->Append(pSrcPhrWord1);
 		pSrcPhrase->m_pSavedWords->Append(pSrcPhrWord2);
 		pSrcPhrase->m_nSrcWords = 2;
@@ -17035,20 +17065,19 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			wxLogDebug(_T("TWELVE: (0) %s (1) %s (2) %s (3) %s (4) %s (5) %s (6) %s (7) %s (8) %s (9) %s (10) %s (11) %s"),
 				s0.c_str(),s1.c_str(),s2.c_str(),s3.c_str(),s4.c_str(),s5.c_str(),s6.c_str(),s7.c_str(),s8.c_str(),s9.c_str(),s10.c_str(),s11.c_str());
 #endif
-#if defined(_DEBUG)
-/*
-			if (pSrcPhrase->m_nSequNumber == 666)
-			{
-				int break_here = 1;
-			}
-*/
-#endif
 			itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessPuncts,
 								pApp->m_inlineNonbindingMarkers,
 								pApp->m_inlineNonbindingEndMarkers,
 								bIsInlineNonbindingMkr, bIsInlineBindingMkr,
 								bTokenizingTargetText);
 			ptr += itemLen; // advance ptr over what we parsed
+#if defined(_DEBUG) && defined(TOKENIZE_BUG)
+			wxString strParsed = pSrcPhrase->m_srcPhrase;
+			wxString strComingNext = wxString(ptr, (ptr + 56L));
+			wxLogDebug(_T("TokenizeText(), after ParseWord(), sn = %d , parsed: %s   What follows: %s"), 
+				aSequNum, strParsed.c_str(), strComingNext.c_str());
+			aSequNum++;
+#endif
 
 			// We do NormalizeToSpaces() only on the string of standard format markers which
 			// we store on sourcephrase instances in m_markers, it's not needed elsewhere in

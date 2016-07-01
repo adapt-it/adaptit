@@ -2848,9 +2848,17 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 		if (nHowMany > 0)
 		{
-			MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, pMergedList, nSpanLimit);
+			bool bIsPossible = MergeUpdatedSourceText(*pApp->m_pSourcePhrases, 
+										*pSourcePhrases, pMergedList, nSpanLimit);
             // take the pMergedList list, delete the app's m_pSourcePhrases list's
             // contents, & move to m_pSourcePhrases the pointers in pMergedList...
+			if (!bIsPossible)
+			{
+				// Note: must return TRUE otherwise doc/view is messed up
+				// but an error warning message from lower down will have been seen
+				pStatusBar->FinishProgress(_("Merging Documents..."));
+				return TRUE; // detected merger is impossible (no text matchups in old vs new)
+			}
 
 			// Update for step 6 loop of DeleteSingleSrcPhrase()
 			msgDisplayed = progMsg.Format(progMsg,6,nTotal);

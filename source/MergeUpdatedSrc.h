@@ -274,9 +274,10 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 
 // BEW added next on  18Dec12
 
-Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arrNew, 
-					   Subspan* pParentSubspan, int limit, wxArrayPtrVoid* pSubspansArray,
-					   wxArrayInt* pWidthsArray);
+bool	IsImportPossible(SPArray& arrOld, SPArray& arrNew); // BEW added 30Jun16
+Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arrNew,
+	Subspan* pParentSubspan, int limit, wxArrayPtrVoid* pSubspansArray,
+	wxArrayInt* pWidthsArray, bool bSanityTest = FALSE);
 void    CalcWordGroupSizeAndJumpDistance(int arrOldSize, int* pNumGroupWords, int* pJumpDistance);
 int     SetWordGroupArray(SPArray& arr, wxArrayString*& pWordGroupArray, int nStartIndex, int nGroupSize);
 bool	AreTheWordGroupArraysEqual(wxArrayString* pOldArray, wxArrayString* pNewArray);
@@ -324,7 +325,7 @@ void	MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 						wxArrayInt& arrPairingOld,
 						SPArray& arrOldFull, SPArray& arrNewFull,
 						int oldChunkIndexKickoff, int newChunkIndexKickoff);
-void	MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit);
+bool	MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit);
 void	MergeUpdatedSrcTextCore(SPArray& oldArray, SPArray& newArray, SPList* pMergedList, int limit);
 void	RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList,
 						int limit, Subspan* tuple[]); // the array size is always 3, so 

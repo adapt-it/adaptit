@@ -52059,3 +52059,4 @@ void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtTex
         }
     }
 }
+
