@@ -1007,9 +1007,13 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
         // of the document, displaying "Yes" and "No" buttons instead of just an "OK" button. A "No" response would
         // continue in read-only mode by a return TRUE. A "Yes" response would call the OnTakeOwnership() handler in
         // the Doc, and then continue to execute the code below.
+        // Put doc owner and user ID in dialog title.
+        wxString msgTitle = _("Document owner is: %s. Your user ID is: %s");
+        msgTitle = msgTitle.Format(msgTitle, m_pApp->m_owner.c_str(), m_pApp->m_strUserID.c_str());
         int value = wxMessageBox (
-                      _("This document is owned by someone else, so you have READ-ONLY access.  Do you want to take ownership of this document in order to change it?"), _("Another person owns write permission"),
-                      wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+                      _("This document is owned by someone else, so you have READ-ONLY access.  Do you want to take ownership of this document in order to change it?"),
+            msgTitle.c_str(),
+            wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
         if (value == wxNO)
         {
             return TRUE;	// return TRUE to retain Read Only Access
