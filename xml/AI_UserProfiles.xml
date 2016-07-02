@@ -3,7 +3,7 @@
 Filename:	AI_UserProfiles.xml
 Author: 	Bill Martin
 Date Created:	27 August 2010
-Last Updated:	8 July 2016, by Bill Martin
+Last Updated:	1 July 2016, by Bill Martin
 Description:	This file contains the user profile definitions and
 		attributes for Adapt It's interface menus and settings.
 		Adapt It reads and parses this AI_UserProfiles.xml file
