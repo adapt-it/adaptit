@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-30 20:02-0500\n"
+"POT-Creation-Date: 2016-07-02 15:33-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Adapt It Development <adaptitbill@gmail.com>\n"
@@ -2427,7 +2427,7 @@ msgstr ""
 "yu inap ritim ol samting tasol."
 
 # Priority 1
-#: Adapt_It.cpp:46872 ReadOnlyProtection.cpp:1070
+#: Adapt_It.cpp:46872 ReadOnlyProtection.cpp:1074
 msgid "Another process owns write permission"
 msgstr "Narapela proses i gat yesa bilong raitim dokumen fail"
 
@@ -7437,7 +7437,7 @@ msgstr ""
 
 #: Adapt_It_wdr.cpp:4208
 msgid "F&ind Source:"
-msgstr ""
+msgstr "Pa&inim Sos teks:"
 
 #: Adapt_It_wdr.cpp:4214
 msgid ""
@@ -7453,7 +7453,7 @@ msgstr ">"
 
 #: Adapt_It_wdr.cpp:4219
 msgid "Find the typed source text entry in the list"
-msgstr ""
+msgstr "Painim dispel sos teks insait long lista"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:4224 Adapt_It_wdr.cpp:6794
@@ -8251,13 +8251,14 @@ msgstr ""
 
 #: Adapt_It_wdr.cpp:5514
 msgid "Footer includes only the page number"
-msgstr ""
+msgstr "Futa i gat namba bilong pes tasol"
 
 #: Adapt_It_wdr.cpp:5515
 msgid ""
 "Check this box if the only information to be shown in the footer is the "
 "footnote"
 msgstr ""
+"Tikim dispel bokis sapos yu laikim futnot tasol I stap insait long futa"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:5526
@@ -9478,10 +9479,10 @@ msgid "Select a &book:"
 msgstr "Selektim wanpela &buk:"
 
 # Priority 1
-#: Adapt_It_wdr.cpp:7907 GetSourceTextFromEditor.cpp:817
-#: GetSourceTextFromEditor.cpp:988 GetSourceTextFromEditor.cpp:1013
-#: GetSourceTextFromEditor.cpp:1051 GetSourceTextFromEditor.cpp:1078
-#: GetSourceTextFromEditor.cpp:1171 GetSourceTextFromEditor.cpp:1210
+#: Adapt_It_wdr.cpp:7907 GetSourceTextFromEditor.cpp:828
+#: GetSourceTextFromEditor.cpp:999 GetSourceTextFromEditor.cpp:1024
+#: GetSourceTextFromEditor.cpp:1062 GetSourceTextFromEditor.cpp:1089
+#: GetSourceTextFromEditor.cpp:1182 GetSourceTextFromEditor.cpp:1221
 msgid "Select a &chapter:"
 msgstr "Selektim wanpela &sapta:"
 
@@ -13547,7 +13548,7 @@ msgstr "Skelim buk %s"
 
 # Use same number of \n
 # markers and three spaces before the %s
-#: CollabUtilities.cpp:905 GetSourceTextFromEditor.cpp:801
+#: CollabUtilities.cpp:905 GetSourceTextFromEditor.cpp:812
 #, c-format
 msgid ""
 "Could not read data from the Paratext projects.\n"
@@ -13563,7 +13564,7 @@ msgstr ""
 "\n"
 "Plis yu salim problem ripot i go long ol Adapt It developa (lukim Help menu)."
 
-#: CollabUtilities.cpp:909 GetSourceTextFromEditor.cpp:805
+#: CollabUtilities.cpp:909 GetSourceTextFromEditor.cpp:816
 #, c-format
 msgid ""
 "Could not read data from the Bibledit projects.\n"
@@ -15006,29 +15007,29 @@ msgid "Get Source Text from %s Project"
 msgstr "Kisim Sos Teks i kam long %s Projek"
 
 # Priority 1
-#: GetSourceTextFromEditor.cpp:239
+#: GetSourceTextFromEditor.cpp:250
 msgid "Chapter"
 msgstr "Sapta"
 
 # Priority 1
-#: GetSourceTextFromEditor.cpp:244
+#: GetSourceTextFromEditor.cpp:255
 msgid "Target Text Status"
 msgstr "Taget Teks Toksave"
 
-#: GetSourceTextFromEditor.cpp:328
+#: GetSourceTextFromEditor.cpp:339
 msgid "Please select a book from the list of books."
 msgstr "Plis, yu makim wanem buk i kam long lista bilong buk."
 
-#: GetSourceTextFromEditor.cpp:336
+#: GetSourceTextFromEditor.cpp:347
 msgid "Please select a chapter from the list of chapters."
 msgstr "Plis, yu selektim wanpela sapta i kam long lista bilong ol sapta."
 
-#: GetSourceTextFromEditor.cpp:489
+#: GetSourceTextFromEditor.cpp:500
 #, c-format
 msgid "Please wait while I query %s..."
 msgstr "Plis wet. Adapt It i wok long luksave long %s..."
 
-#: GetSourceTextFromEditor.cpp:972
+#: GetSourceTextFromEditor.cpp:983
 #, c-format
 msgid ""
 "The book %s in the Paratext project for obtaining source texts (%s) has no "
@@ -15037,8 +15038,8 @@ msgstr ""
 "Buk %s insait long Paratext projek bilong kisim sos teks (%s) i no gat ol "
 "sapta na ves namba insait."
 
-#: GetSourceTextFromEditor.cpp:973 GetSourceTextFromEditor.cpp:1036
-#: GetSourceTextFromEditor.cpp:1063 GetSourceTextFromEditor.cpp:1155
+#: GetSourceTextFromEditor.cpp:984 GetSourceTextFromEditor.cpp:1047
+#: GetSourceTextFromEditor.cpp:1074 GetSourceTextFromEditor.cpp:1166
 #, c-format
 msgid ""
 "Please run Paratext and select the %s project. Then select \"Create "
@@ -15051,7 +15052,7 @@ msgstr ""
 "Paratext i wokim, na selektim \"Create with all chapter and verse numbers\". "
 "Pinis, go bek long Adapt It na traim gen."
 
-#: GetSourceTextFromEditor.cpp:977
+#: GetSourceTextFromEditor.cpp:988
 #, c-format
 msgid ""
 "The book %s in the Bibledit project for obtaining source texts (%s) has no "
@@ -15060,8 +15061,8 @@ msgstr ""
 "Buk %s insait long Bibledit projek bilong kisim sos teks (%s) i no gat ol "
 "sapta na ves namba insait."
 
-#: GetSourceTextFromEditor.cpp:978 GetSourceTextFromEditor.cpp:1041
-#: GetSourceTextFromEditor.cpp:1068 GetSourceTextFromEditor.cpp:1160
+#: GetSourceTextFromEditor.cpp:989 GetSourceTextFromEditor.cpp:1052
+#: GetSourceTextFromEditor.cpp:1079 GetSourceTextFromEditor.cpp:1171
 #, c-format
 msgid ""
 "Please run Bibledit and select the %s project. Select File | Project | "
@@ -15074,13 +15075,13 @@ msgstr ""
 "Makim ol book yu laik Bibledit i wokim, na klikim OK. Pinis, go bek long "
 "Adapt It na traim gen."
 
-#: GetSourceTextFromEditor.cpp:981 GetSourceTextFromEditor.cpp:1044
-#: GetSourceTextFromEditor.cpp:1071 GetSourceTextFromEditor.cpp:1163
-#: GetSourceTextFromEditor.cpp:1164
+#: GetSourceTextFromEditor.cpp:992 GetSourceTextFromEditor.cpp:1055
+#: GetSourceTextFromEditor.cpp:1082 GetSourceTextFromEditor.cpp:1174
+#: GetSourceTextFromEditor.cpp:1175
 msgid "No chapters and verses found"
 msgstr "I no painim ol sapta na ves"
 
-#: GetSourceTextFromEditor.cpp:1019
+#: GetSourceTextFromEditor.cpp:1030
 #, c-format
 msgid ""
 "The %s book %s has no adaptable verse content, therefore it cannot be used "
@@ -15093,11 +15094,11 @@ msgstr ""
 "\n"
 "Adapt It i no inap yusim ol buk i no gat teks insait."
 
-#: GetSourceTextFromEditor.cpp:1021
+#: GetSourceTextFromEditor.cpp:1032
 msgid "No verse text usable as source texts in this book!"
 msgstr "Dispela buk i no gat teks insait bilong kamap olsem sos teks!"
 
-#: GetSourceTextFromEditor.cpp:1023
+#: GetSourceTextFromEditor.cpp:1034
 #, c-format
 msgid ""
 "Please select a different book, or use %s to import content into %s that is "
@@ -15106,7 +15107,7 @@ msgstr ""
 "Plis, yu selektim narapela buk, o yu mas yusim %s bilong impotim toktok i go "
 "insait long %s na i ken yusim olsem sos teks, pinis, traim gen."
 
-#: GetSourceTextFromEditor.cpp:1035 GetSourceTextFromEditor.cpp:1154
+#: GetSourceTextFromEditor.cpp:1046 GetSourceTextFromEditor.cpp:1165
 #, c-format
 msgid ""
 "The book %s in the Paratext project for storing translation drafts (%s) has "
@@ -15115,7 +15116,7 @@ msgstr ""
 "Buk %s insait long Paratext projek bilong holim ol trenslesen teks (%s) i no "
 "gat ol sapta na ves namba insait."
 
-#: GetSourceTextFromEditor.cpp:1040 GetSourceTextFromEditor.cpp:1159
+#: GetSourceTextFromEditor.cpp:1051 GetSourceTextFromEditor.cpp:1170
 #, c-format
 msgid ""
 "The book %s in the Bibledit project for storing translation drafts (%s) has "
@@ -15124,7 +15125,7 @@ msgstr ""
 "Buk %s insait long Bibledit projek bilong holim ol trenslesen teks (%s) i no "
 "gat ol sapta na ves namba insait."
 
-#: GetSourceTextFromEditor.cpp:1062
+#: GetSourceTextFromEditor.cpp:1073
 #, c-format
 msgid ""
 "The book %s in the Paratext project for storing free translations (%s) has "
@@ -15133,7 +15134,7 @@ msgstr ""
 "Buk %s insait long Paratext projek bilong holim fri trenslesen (%s) i no gat "
 "ol sapta na ves namba insait."
 
-#: GetSourceTextFromEditor.cpp:1067
+#: GetSourceTextFromEditor.cpp:1078
 #, c-format
 msgid ""
 "The book %s in the Bibledit project for storing free translations (%s) has "
@@ -15142,27 +15143,27 @@ msgstr ""
 "Buk %s insait long Bibledit projek bilong holim fri trenslesen (%s) i no gat "
 "ol sapta na ves namba insait."
 
-#: GetSourceTextFromEditor.cpp:1293
+#: GetSourceTextFromEditor.cpp:1304
 msgid "Chapter status of selected book:"
 msgstr "Toksave long ol sapta bilong buk yu selektim:"
 
-#: GetSourceTextFromEditor.cpp:1355
+#: GetSourceTextFromEditor.cpp:1366
 msgid "Please select a chapter in the list at right."
 msgstr "Plis, yu selektim sapta i kam long lista i stap long han sut."
 
-#: GetSourceTextFromEditor.cpp:1388
+#: GetSourceTextFromEditor.cpp:1399
 #, c-format
 msgid "Collaborating with %s: getting source text was Cancelled"
 msgstr "Wok wantaim %s: wok bilong kisim sos teks i Kensel pinis"
 
-#: GetSourceTextFromEditor.cpp:1560
+#: GetSourceTextFromEditor.cpp:1571
 #, c-format
 msgid ""
 "The Paratext project (%s) selected for obtaining source texts contains no "
 "books."
 msgstr "Paratext projek (%s) bilong kisim ol sos teks i no gat buk insait."
 
-#: GetSourceTextFromEditor.cpp:1561
+#: GetSourceTextFromEditor.cpp:1572
 msgid ""
 "Please select the Paratext Project that contains the source texts you will "
 "use for adaptation work."
@@ -15170,7 +15171,7 @@ msgstr ""
 "Plis yu selektim Paratext projek i gat ol sos teks yu bai yusim bilong mekim "
 "wok adaptesen."
 
-#: GetSourceTextFromEditor.cpp:1565
+#: GetSourceTextFromEditor.cpp:1576
 #, c-format
 msgid ""
 "The Bibledit project (%s) selected for obtaining source texts contains no "
@@ -15179,7 +15180,7 @@ msgstr ""
 "Bibledit projek (%s) yu selektim bilong kisim ol sos teks i no gat buk "
 "insait."
 
-#: GetSourceTextFromEditor.cpp:1566
+#: GetSourceTextFromEditor.cpp:1577
 msgid ""
 "Please select the Bibledit Project that contains the source texts you will "
 "use for adaptation work."
@@ -16598,10 +16599,13 @@ msgid ""
 "text.\n"
 "The import attempt will now be abandoned."
 msgstr ""
+"Adapt It I no inap impotim dispel sos teks\n"
+"Ol hap tok insait long fail I no stap klostu liklik long ol hap tok insait "
+"long dispel dokumen I op"
 
 #: MergeUpdatedSrc.cpp:837
 msgid "Warning: different kinds of text"
-msgstr ""
+msgstr "Toksave: teks i narakain olgeta"
 
 # Priority 1
 #: MoveDialog.cpp:69
@@ -17306,6 +17310,11 @@ msgstr ""
 "Yu laik kisim orait bilong raitim ol samting nau?"
 
 #: ReadOnlyProtection.cpp:1011
+#, c-format
+msgid "Document owner is: %s. Your user ID is: %s"
+msgstr "Papa bilong document em: %s. User ID bilong yu yet em: %s"
+
+#: ReadOnlyProtection.cpp:1014
 msgid ""
 "This document is owned by someone else, so you have READ-ONLY access.  Do "
 "you want to take ownership of this document in order to change it?"
@@ -17315,12 +17324,7 @@ msgstr ""
 "senisim o nogat?"
 
 # Priority 1
-#: ReadOnlyProtection.cpp:1011
-msgid "Another person owns write permission"
-msgstr "Narapela komputa tasol gat rait long mekim wok"
-
-# Priority 1
-#: ReadOnlyProtection.cpp:1070
+#: ReadOnlyProtection.cpp:1074
 msgid ""
 "Someone has your project folder open already, so you have READ-ONLY access."
 msgstr ""
@@ -19209,6 +19213,10 @@ msgstr "Progrem i trai statim 'scan thread', tasol em i pofaia!"
 #: AIPrintPreviewFrame.h:35
 msgid "Print Preview"
 msgstr "Print Luksave"
+
+# Priority 1
+#~ msgid "Another person owns write permission"
+#~ msgstr "Narapela komputa tasol gat rait long mekim wok"
 
 #~ msgid ""
 #~ "An adapting KBserver for language codes ( %s , %s ) does not exist on the "
