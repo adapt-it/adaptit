@@ -160,27 +160,38 @@ CGetSourceTextFromEditorDlg::~CGetSourceTextFromEditorDlg() // destructor
 
 void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
-	//InitDialog() is not virtual,  no call needed to a base class
+    //InitDialog() is not virtual,  no call needed to a base class
 
 // whm 5Jun12 added the define below for testing and debugging of Setup Collaboration dialog only
 #if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
-	wxCHECK_RET(FALSE,_T("!!! Programming Error !!!\n\nComment out the FORCE_BIBLEDIT_IS_INSTALLED_FLAG define in Adapt_It.h for normal debug builds - otherwise the GetSourceTextFromEditor dialog will not work properly!"));
+    wxCHECK_RET(FALSE, _T("!!! Programming Error !!!\n\nComment out the FORCE_BIBLEDIT_IS_INSTALLED_FLAG define in Adapt_It.h for normal debug builds - otherwise the GetSourceTextFromEditor dialog will not work properly!"));
 #endif
 
-	// Note: the wxListItem which is the column has to be on the heap, because if made a local
-	// variable then it will go out of scope and be lost from the wxListCtrl before the
-	// latter has a chance to display anything, and then nothing will display in the control
-	pTheFirstColumn = new wxListItem; // deleted in the destructor
-	pTheSecondColumn = new wxListItem; // deleted in the destructor
-	
-	wxString title = this->GetTitle();
-	title = title.Format(title,this->m_collabEditorName.c_str());
-	this->SetTitle(title);
+    // Note: the wxListItem which is the column has to be on the heap, because if made a local
+    // variable then it will go out of scope and be lost from the wxListCtrl before the
+    // latter has a chance to display anything, and then nothing will display in the control
+    pTheFirstColumn = new wxListItem; // deleted in the destructor
+    pTheSecondColumn = new wxListItem; // deleted in the destructor
 
-	// Substitute "Paratext" or "Bibledit" in "Using these %s projects:"
-	wxString usingTheseProj = pStaticBoxUsingTheseProjects->GetLabel();
-	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
-	usingTheseProj = usingTheseProj.Format(usingTheseProj,m_pApp->m_collaborationEditor.c_str());
+    wxString title = this->GetTitle();
+    title = title.Format(title, this->m_collabEditorName.c_str());
+    this->SetTitle(title);
+
+    // Substitute "Paratext" or "Bibledit" in "Using these %s projects:"
+    wxString usingTheseProj = pStaticBoxUsingTheseProjects->GetLabel();
+    wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
+    wxString PTvers = _T("");
+    if (m_pApp->m_ParatextVersionForProject == _T("PTVersion8") || m_pApp->m_ParatextVersionForProject == _T("PTLinuxVersion8"))
+    {
+        PTvers = _T("8");
+    }
+    else
+        PTvers = _T("7");
+    if (!PTvers.IsEmpty() && m_pApp->m_collaborationEditor == _T("Paratext"))
+        PTvers = m_pApp->m_collaborationEditor + _T(" ") + PTvers;
+    else
+        PTvers = m_pApp->m_collaborationEditor;
+	usingTheseProj = usingTheseProj.Format(usingTheseProj,PTvers.c_str());
 	pStaticBoxUsingTheseProjects->SetLabel(usingTheseProj);
 
 	// Assign the Temp values for use in this dialog until OnOK() executes
