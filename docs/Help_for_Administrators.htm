@@ -7,6 +7,10 @@
 </head>
 <body bgcolor="#ffffff">
 <h1 align="center"><a name="Top_of_doc"></a>Help for Adapt It Administrators</h1>
+<h2>
+If you used Adapt It to collaborate with Paratext 7, and have upgraded to Paratext 8, see
+important information <a href="#Paratext_Steps_Start" >below </a>.
+</h2>
 <p>Most of the settings of interest to an administrator are 
 on Adapt It's Administrator menu. This menu is normally hidden from view. It can 
 only be shown and accessed under password control. To make the Administrator 
@@ -205,23 +209,47 @@ loading and saving.</p>
 <p class="MsoNormal" align="right"><a href="#Top_of_doc" >Back to Top</a> </p>
 <h2><a name="Automatically"></a>Automatically exchange Scripture files with Paratext or 
 Bibledit</h2>
-<p>If you use Paratext 7 or Bibledit, you can now set up 
+<p>If you use Paratext 7, Paratext 8 or Bibledit, you can now set up 
 Adapt It to collaborate directly with <a href="#Paratext_Steps_Start" >Paratext</a> or <a href="#Bibledit_Steps_Start" >Bibledit</a> . Here are the steps:</p>
 <h2><a name="Paratext_Steps_Start"></a>Paratext</h2>
-<h3>
+<h3>Important Note to Paratext 7 Users Upgrading to Paratext 8: 
+</h3>
+<p><strong>
+If you have previously set up Adapt It
+to collaborate with Paratext 7, and have upgraded to Paratext 8, you should do the following before
+you attempt to continue collaboration work between Adapt It and Paratext:
+<ol>
+<li> First be sure that you have migrated all the Paratext projects used in collaboration 
+work from Paratext 7 to Paratext 8. You must use the procedures within Paratext 8 to migrate the 
+Paratext 7 projects that Adapt It was using
+previously during collaboration work - migrating those projects from the Paratext 7 installation 
+over to the new Paratext 8 installation. 
+These Paratext projects include the Paratext project that was being used for obtaining Adapt It's 
+"source texts", the Paratext project that was being used for receiving Adapt It's "target texts" 
+- as well as any Paratext project that was being used for receiving "free translations" generated 
+within Adapt It.
+<li> You should then make sure that you have upgraded Adapt It to version 6.8.0
+or newer. Versions of Adapt It earlier than 6.8.0 will NOT collaborate with Paratext 8.
+</ol>
+If you do these two things, Adapt It 6.8.0 or newer should be able to continue 
+collaborating with the same Paratext language projects that have been 
+migrated to Paratext 8 - without needing to change any collaboration settings within Adapt It.
+If you encounter any problems after upgrading from Paratext 7 to Paratext 8, and after migrating
+the user's Paratext language projects to Paratext 8, you may need to display the Administrator
+menu within Adapt It, choose "Setup or Remove Collaboration..." and follow the steps in that
+dialog to setup collaboration between Adapt It and the version of Paratext that is being actively used.
+</strong>
+</p>
+
 <h3>1. Ensure the needed versions of Adapt It 
-(6.6.4 or newer is best) and Paratext (7.4 or newer) are installed</h3></h3>
+(6.8.0 or newer is best) and either Paratext 7 (7.4 or newer), or Paratext 8 are installed</h3></h3>
 <p><strong>IMPORTANT</strong>: For 
-Adapt It to collaborate with Paratext, you need to <strong>install version 7.4 or newer of Paratext and version 6.6.4 
-or newer of Adapt It</strong>. (Adapt It from 6.2.1 and onwards support collaboration, but are slightly buggy; 6.5.9 (unreleased) and 6.6.4 and onwards are more robust.) Please use the most recent version of Adapt It&nbsp;available at&nbsp;<a href="http://adapt-it.org.">http://adapt-it.org.</a> If your version of Adapt It is not at least 6.6.4 or newer, you will need to download and install it. If you used 
-Adapt It version 6.0.x or 6.1.x previously, please note that as of version 
-6.2.1, collaboration with Paratext can now be setup for individual Adapt It 
-projects, and it is now the user's decision as to whether to turn collaboration 
-on or off for a given Adapt It project. Therefore, if you have previously used 
-version 6.0.x or 6.1.x of Adapt It for collaboration with Paratext, your 
-collaboration settings will be preserved in upgrading to 6.2.1 or a later version, but please 
-review the&nbsp;section below carefully for differences in how collaboration is 
-now setup and used.&nbsp;</p>
+Adapt It to collaborate with Paratext, you need to <strong>install version 7.4 or newer of Paratext and version 6.8.0 
+or newer of Adapt It</strong>. (Older versions of Adapt It from 6.2.1 and onwards supported collaboration to some extent, 
+but for best results please use the most recent version of Adapt It&nbsp;available at&nbsp;<a href="http://adapt-it.org.">http://adapt-it.org.</a> 
+If your version of Adapt It is not at least 6.6.4 or newer, you will need to download and install it. If you have
+upgraded to Paratext 8, you will need to upgrade to Adapt It version 6.8.0 or newer to continue collaboration work with
+Paratext 8 projects. </p>
 <h3>2. Prepare at least two&nbsp;Paratext projects for 
 collaboration with Adapt It</h3>
 <p><strong>BEFORE</strong> you set up 
@@ -302,11 +330,16 @@ numbered steps as shown on this dialog:</p>
   <li>
   <div>The choices for Scripture Editor will depend on 
   which programs are installed on your computer, and whether you previously had 
-  collaboration working on your computer. If your computer has both Paratext and 
-  Bibledit installed both the "Paratext" and "Bibledit" choices will be 
-  available, but usually only one choice will be available. <strong 
-  >Verify that the Paratext or Bibledit projects have 
-  already been created within Paratext</strong> <strong>or 
+  collaboration working on your computer. The three possible editors that Adapt It 
+  can collaborate with are Paratext 7, Paratext 8 and Bibledit. If you computer has
+  both Paratext 7 and Paratext 8 installed and both installations of Paratext have
+  valid language projects then both Paratext 7 and Paratext 8 will be enabled as
+  valid choices under Scripture Editor.
+  If your computer has Bibledit installed the "Bibledit" choice will be 
+  available, but in most cases only one editor is installed and so only one choice will 
+  be available. <strong 
+  >Verify that the Paratext or Bibledit projects that you want Adapt It to 
+  collaborate with have already been created within Paratext</strong> <strong>or 
   Bibledit</strong>. A minimum of <strong>at least two 
   projects</strong> are required: One project for obtaining source texts for 
   adaptation work in Adapt It; and a different project to receive the adapted 
@@ -325,27 +358,30 @@ numbered steps as shown on this dialog:</p>
   >with chapter and verse numbers</strong> (the 
 default).</p>
   <p style="MARGIN-RIGHT: 0px" dir="ltr">Each line in the 
-  list displays a single Paratext or Bibledit&nbsp;project.&nbsp;For Paratext, 
-  the list lines have up to four parts separated by colon characters (:). The 
+  list in step 2 displays a single Paratext or Bibledit&nbsp;project.&nbsp;For Paratext 7 
+  or Paratext 8, the list lines have up to four parts separated by colon characters (:). The 
   first part is the Paratext "Short Name". The second part is the Paratext "Full 
   Name" for that project. The third part is the "Language" name. The fourth 
   part&nbsp;(if it has been defined within Paratext) is the language code for 
   that project. Bibledit projects have a single part which is generally the same 
   name as the Bibledit project.&nbsp;Important: If you do not see the expected 
-  projects, you should STOP at this point in the Adapt It setup.&nbsp;Close 
+  projects for the editor button selected, you should STOP at this point in the Adapt It setup.&nbsp;Close 
   the&nbsp;Setup Collaboration dialog (without saving any changes),&nbsp;and go 
   back to Paratext or Bibledit to do the necessary setup. You will not be able 
-  to complete the Adapt It setup using this dialog until the necessary Paratext 
-  or Bibledit &nbsp;projects&nbsp;exist.</p>
+  to complete the Adapt It setup using this dialog until the necessary Paratext 7,
+  Paratext 8, or Bibledit &nbsp;projects&nbsp;exist.</p>
   <li>
   <p>
   <div>Once you have ensured that the necessary projects 
   have been created, you need to <strong>select at least 
   two of those projects using the "Select ... Project from List" buttons</strong> shown in 
   step 3. Click on the "Select Source Project from List" button and select the project 
-  from which source texts will be obtained during collaboration. Then click on 
+  from which source texts will be obtained during collaboration. Wait for Adapt It to analyze 
+  the books available in that project and report on what it finds. The status bar at the bottom of the 
+  Adapt It screen shows the progress as Adapt It analyzes the books. Then click on 
   the "Select Target Project from List" button and select&nbsp;a different&nbsp;project 
-  which is to receive translation drafts during collaboration. If you have set 
+  which is to receive translation drafts during collaboration. Again, wait for Adapt It to
+  analyze and report on the books available in that project. If you have set 
   up a third project to receive free translations, use the third button "Select Free Translation Project from List" to 
   select that project. The projects selected will appear in the dialog to the 
   left of the "Select ... Project from List" buttons. If you accidentally selected a project 
@@ -368,7 +404,7 @@ default).</p>
   some reason you want to remove the collaboration settings for the selected 
   Adapt It project, you can do so by clicking the "Remove this AI Project from 
   Collaboration" button.</div></li></ol>
-<p>When have finished configuring collaboration setups, 
+<p>When you have finished configuring collaboration setups, 
 click on the Close button to close the "Setup Collaboration" dialog. The Start 
 Working Wizard will appear. You&nbsp;can now test how the application will work 
 for the user. From the wizard's "Select a Project" page, select a project that 
@@ -412,7 +448,7 @@ but will be lost when the document is closed.</p>
 <p>When the user selects "Work with my Paratext Scripture 
 texts (Collaboration on)",&nbsp;after a short pause the following collaboration 
 dialog will appear:</p>
-<p align="center"><img border="0" hspace="0" src="Images/Admin_help/GetSourceTextFromEditorNoOptions.gif" width="500" height="295" > </p>
+<p align="center"><img border="0" hspace="0" src="Images/Admin_help/GetSourceTextFromEditorNoOptions2.gif" width="500" height="295" > </p>
 <p>This is the main dialog that the user will see when 
 collaboration is turned on&nbsp;for the given project. From this simple dialog 
 the user can select a Scripture book and chapter for collaboration. The dialog 
@@ -482,7 +518,7 @@ not already a line that contains a reference to <strong>http://packages.sil.org/
 click on the "Add..." button at the bottom. Then enter <strong>one</strong> of the following lines depending on which 
 distribution of Ubuntu Linux is installed on your machine:</p>
 <p><font face="Courier"><strong>deb http://packages.sil.org/ubuntu precise main<br>deb http://packages.sil.org/ubuntu trusty main<br>deb http://packages.sil.org/ubuntu&nbsp;utopic main<br>deb http://packages.sil.org/ubuntu vivid 
-main<br>deb http://packages.sil.org/ubuntu wily main</strong></font> </p>
+main<br>deb http://packages.sil.org/ubuntu wily main<br>deb http://packages.sil.org/ubuntu xenial main</strong></font> </p>
 <p><strong>c.</strong> Close the 
 Software Sources, and return to the Synaptic Package Manager, <strong>click on "Reload"</strong> to insure you have the latest 
 information from the repositories. If you get an error, check that you have 
@@ -1402,7 +1438,7 @@ switch you want the launcher to force Adapt It to use when it runs.</font> </p>
 <h3>Problems in Collaboration with Paratext</h3>
 <p>Note: Many fixes have been made to the Paratext/Bibledit collaboration feature 
 in recent versions of Adapt It. Hence, you should make sure that Adapt It version 
-6.6.4 or later is what you are using. You can check the version of Adapt It by selecting
+6.8.0 or later is what you are using. You can check the version of Adapt It by selecting
 "About Adapt It..." from Adapt It's Help menu.</p>
 <p>
 <strong>Important: We have found that collaboration problems sometimes result from wrong project 
@@ -1430,8 +1466,15 @@ It. (There is an as yet unverified possibility that Kaspersky antivirus prevents
 successful transfer of adaptations to Paratext. Try "killing" the running Kaspersky 
 process in your current work session and then check if collaboration then works correctly.)</p>
 <p>When the Paratext development team releases a new 
-version of Paratext, and you have upgraded to the newer version, you should 
-insure that Adapt It can still collaborate with the newer&nbsp;version of 
+version 8 of Paratext, and you have upgraded to the newer version 8, you should 
+make sure that all Paratext projects get migrated from the old Paratext 7 installation
+over to the new Paratext 8 installation. You also must upgrade your version of Adapt It
+to at least version 6.8.0. <strong>Older versions of Adapt It (before version 6.8.0) will NOT
+collaborate with version 8 of Paratext.</strong> After you (as administrator) have upgraded a
+user's Paratext from version 7 to version 8, you should also upgrade the user's 
+
+Adapt It version to at least version 6.8.0. Then you should also 
+ensure that Adapt It can still collaborate with the newer&nbsp;version of 
 Paratext. If you encounter a problem with Adapt It - Paratext collaboration 
 after updating your Paratext installation, please let us know so we can provide 
 an Adapt It update that will correct the problem. Such problems are not very 
