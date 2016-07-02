@@ -46,7 +46,6 @@ case $# in
       exit 1
         ;;
     1) 
-      COPYTODIR="$1"
       echo "The $TAGRETAGSCRIPT script was invoked with 1 parameter: $1"
         ;;
     *)
@@ -57,13 +56,19 @@ case $# in
         ;;
 esac
 
-#echo "Debug Breakpoint - next: verify git repository"
-#exit 0
+TAG=$1
+# A non-null input parameter was passed in. Check for a prefix of adaptit- on the parameter's tag name
+if [[ $TAG != "adaptit-"* ]]
+then
+  # Add the "adaptit-" prefix to the input parameter
+  TAG="adaptit-$1"
+  echo "Input parameter (tag name) changed to: $TAG"
+fi
 
 # First check that the current dir is a git repository
     echo -e "\nVerifying git repository...."
 if is_git_repo ; then
-    echo "`pwd` is a git repository."
+    echo "`pwd` is a git repository." 
 else
     echo "`pwd` is NOT a git repository."
     echo "Please cd to a valid git repository. Aborting..."
@@ -74,12 +79,12 @@ fi
 echo "Executing git pull..."
 git pull
 
-if verify_git_tag "$1" ; then
+if verify_git_tag "$TAG" ; then
     # The input tag name-version was found
-    echo "Git tag \"$1\" already exists..."
+    echo "Git tag \"$TAG\" already exists..."
 
     # Delete the existing tag
-    echo -e "\nDelete the existing tag: \"$1\"? [y/n]"
+    echo -e "\nDelete the existing tag: \"$TAG\"? [y/n]"
     for (( i=$WAIT; i>0; i--)); do
         printf "\rPlease press the y or n key, or hit any key to abort - countdown $i "
         read -s -n 1 -t 1 response1
@@ -95,11 +100,11 @@ if verify_git_tag "$1" ; then
     echo -e "\nYour choice was $response1"
     case $response1 in
       [yY][eE][sS]|[yY]) 
-          echo -e "\nDeleting the git repository tag: $1 ..."
-          git tag -d "$1" 
-          git push origin :refs/tags/"$1"
+          echo -e "\nDeleting the git repository tag: $TAG ..."
+          git tag -d "$TAG" 
+          git push origin :refs/tags/"$TAG"
 
-          echo -e "\nTag the git repository with the new tag: \"$1\"? [y/n]"
+          echo -e "\nTag the git repository with the new tag: \"$TAG\"? [y/n]"
           for (( i=$WAIT; i>0; i--)); do
               printf "\rPlease press the y or n key, or hit any key to abort - countdown $i "
               read -s -n 1 -t 1 response2
@@ -115,9 +120,9 @@ if verify_git_tag "$1" ; then
           echo -e "\nYour choice was $response2"
           case $response2 in
             [yY][eE][sS]|[yY]) 
-                echo -e "\nTagging the git repository with the tag: $1 ..."
-                git tag -a "$1" -m "Tagging $1"
-                git push origin "$1"
+                echo -e "\nTagging the git repository with the tag: $TAG ..."
+                git tag -a "$TAG" -m "Tagging $TAG"
+                git push origin "$TAG"
                 ;;
              *)
                 echo -e "\nNo action taken! Aborting..."
@@ -133,9 +138,9 @@ if verify_git_tag "$1" ; then
 
 else
     # The input tag name-version was not found
-    echo "The \"$1\" tag is not in the repository."
+    echo "The \"$TAG\" tag is not in the repository."
 
-    echo -e "\nTag the git repository with the new tag: \"$1\"? [y/n]"
+    echo -e "\nTag the git repository with the new tag: \"$TAG\"? [y/n]"
     for (( i=$WAIT; i>0; i--)); do
         printf "\rPlease press the y or n key, or hit any key to abort - countdown $i "
         read -s -n 1 -t 1 response2
@@ -151,9 +156,9 @@ else
     echo -e "\nYour choice was $response2"
     case $response2 in
       [yY][eE][sS]|[yY]) 
-          echo -e "\nTagging the git repository with the tag: $1 ..."
-          git tag -a "$1" -m "Tagging $1"
-          git push origin "$1"
+          echo -e "\nTagging the git repository with the tag: $TAG ..."
+          git tag -a "$TAG" -m "Tagging $TAG"
+          git push origin "$TAG"
           ;;
        *)
           echo -e "\nNo action taken! Aborting..."
