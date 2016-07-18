@@ -802,11 +802,12 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		(pCurRefString->GetRefStringMetadata())->SetDeletedDateTime(aTimestamp);
 
 #if defined(_KBSERVER)
-		if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
-				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+		if ((pApp->m_bIsKBServerProject && !gbIsGlossing && pApp->KbServerRunning(1))
+// GDLC 12JUL16
+//				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 			||
-			(pApp->m_bIsGlossingKBServerProject && gbIsGlossing &&
-				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
+			(pApp->m_bIsGlossingKBServerProject && gbIsGlossing && pApp->KbServerRunning(2)))
+//				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 
@@ -920,11 +921,12 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	// BEW added 26Oct12 for KBserver support
 
 #if defined(_KBSERVER)
-		if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
-				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+		if ((pApp->m_bIsKBServerProject && !gbIsGlossing && pApp->KbServerRunning(1))
+// GDLC 12JUL16
+//				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 			||
-			(pApp->m_bIsGlossingKBServerProject && gbIsGlossing &&
-				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
+			(pApp->m_bIsGlossingKBServerProject && gbIsGlossing && pApp->KbServerRunning(2)))
+//				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 
@@ -1020,11 +1022,12 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 	{
 		// BEW added 19Feb13 for KBserver support
 #if defined(_KBSERVER)
-		if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
-				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+		if ((pApp->m_bIsKBServerProject && !gbIsGlossing && pApp->KbServerRunning(1))
+// GDLC 12JUL16
+//          pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 			||
-			(pApp->m_bIsGlossingKBServerProject && gbIsGlossing &&
-				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
+			(pApp->m_bIsGlossingKBServerProject && gbIsGlossing && pApp->KbServerRunning(2)))
+//				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 			if (!pCurTgtUnit->IsItNotInKB())
@@ -1169,11 +1172,12 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	{
 		// BEW added 26Oct12 for KBserver support
 #if defined(_KBSERVER)
-		if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
-				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+		if ((pApp->m_bIsKBServerProject && !gbIsGlossing && pApp->KbServerRunning(1))
+// GDLC 12JUL16
+//			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 			||
-			(pApp->m_bIsGlossingKBServerProject && gbIsGlossing &&
-				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
+			(pApp->m_bIsGlossingKBServerProject && gbIsGlossing && pApp->KbServerRunning(2)))
+//			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 			if (!pCurTgtUnit->IsItNotInKB())
@@ -1437,28 +1441,31 @@ void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 	// protection of synchonicity of local and remote kb is much more important.)
 	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 	{
-		bool bTellUser = FALSE;
-		// This project is one for sharing entries to a remote KBserver
-		if (gbIsGlossing)
-		{
-			KbServer* pKbServer = pApp->GetKbServer(2);
-			wxASSERT(pKbServer);
-			if (!pKbServer->IsKBSharingEnabled())
-			{
-				// User has disabled sharing of the currently shared glossing KB
-				bTellUser = TRUE;
-			}
-		}
-		else
-		{
-			KbServer* pKbServer = pApp->GetKbServer(1);
-			wxASSERT(pKbServer);
-			if (!pKbServer->IsKBSharingEnabled())
-			{
-				// User has disabled sharing of the currently shared adaptations KB
-				bTellUser = TRUE;
-			}
-		}
+        bool bTellUser = !(pApp->KbServerRunning(1) || pApp->KbServerRunning(2));
+// GDLC 12JUL16 KbServerRunning() avoids a crash if the project was used with a KB server
+// but the KB server is currently not connected.
+//		bool bTellUser = FALSE;
+//		// This project is one for sharing entries to a remote KBserver
+//		if (gbIsGlossing)
+//		{
+//			KbServer* pKbServer = pApp->GetKbServer(2);
+//			wxASSERT(pKbServer);
+//			if (!pKbServer->IsKBSharingEnabled())
+//			{
+//				// User has disabled sharing of the currently shared glossing KB
+//				bTellUser = TRUE;
+//			}
+//		}
+//		else
+//		{
+//			KbServer* pKbServer = pApp->GetKbServer(1);
+//			wxASSERT(pKbServer);
+//			if (!pKbServer->IsKBSharingEnabled())
+//			{
+//				// User has disabled sharing of the currently shared adaptations KB
+//				bTellUser = TRUE;
+//			}
+//		}
 		if (bTellUser)
 		{
 			wxString msg;
@@ -1665,11 +1672,13 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 
 	// BEW added 22Oct12 for KBserver support
 #if defined(_KBSERVER)
-	if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
-			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
-		||
-		(pApp->m_bIsGlossingKBServerProject && gbIsGlossing &&
-			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
+	if ((pApp->m_bIsKBServerProject && !gbIsGlossing && pApp->KbServerRunning(1))
+// GDLC 12JUL16 KbServerRunning() avoids a crash if there is no KB server actually running. This can
+// occur if the project was used with a KB server but the KB server happens to be inaccessible now.
+//			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+        ||
+		(pApp->m_bIsGlossingKBServerProject && gbIsGlossing && pApp->KbServerRunning(2)))
+//			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 	

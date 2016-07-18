@@ -9552,7 +9552,7 @@ wxSizer *UsernameInputFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBox *item3 = new wxStaticBox( parent, -1, _("Unique Username (obligatory):") );
     wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
 
-    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_MSG, _("Type a username. A unique one is best, but whatever you type will be accepted. You only need do this once, but if you ever want to change it, you can change it only here. Your full email addess is a good choice. If you use an email address, it will NOT be used for sending any emails from within Adapt It."), wxDefaultPosition, wxSize(600,68), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_MSG, _("Type a username. A unique one is best, but whatever you type will be accepted. You only need do this once, but if you ever want to change it, you can change it only here. Your full email address is a good choice. If you use an email address, it will NOT be used for sending any emails from within Adapt It."), wxDefaultPosition, wxSize(600,68), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
     item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(-1,24), wxGROW );

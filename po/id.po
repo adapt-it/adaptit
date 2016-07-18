@@ -9362,7 +9362,7 @@ msgstr "&Lihat versi yang dipilih"
 msgid "Unique Username (obligatory):"
 msgstr "Unik nama pengguna (wajib):"
 
-#: Adapt_It_wdr.cpp:9555
+#: Adapt_It_wdr.cpp:9566
 msgid ""
 "Type a username. A unique one is best, but whatever you type will be "
 "accepted. You only need do this once, but if you ever want to change it, you "
@@ -10533,7 +10533,7 @@ msgstr "&Baru\tCtrl-N"
 # Priority 1
 #: Adapt_It_wdr.cpp:11313
 msgid "Save &As...\tCtrl-A"
-msgstr "Simpan Seb&agai..."
+msgstr "Simpan Seb&agai...\tCtrl-A"
 
 #: Adapt_It_wdr.cpp:11313
 msgid "Save the document with different xml format, or different filename"
@@ -12303,6 +12303,8 @@ msgstr ""
 #, c-format
 msgid "Target project (%s) does not have any books created in it."
 msgstr ""
+"Gabungkan dokumen-dokumen dengan menambahkan pada dokumen yang sedang "
+"dikerjakan"
 
 #: CollabUtilities.cpp:3529
 #, c-format
@@ -12613,7 +12615,7 @@ msgstr "Simpan Otomatis"
 #: EditPreferencesDlg.cpp:293 EditPreferencesDlg.cpp:303
 #: EditPreferencesDlg.cpp:461
 msgid "USFM and Filtering"
-msgstr "USFM dan penyaringan"
+msgstr "USFM dan Penyaringan"
 
 #: EditPreferencesDlg.cpp:489
 msgid ""
@@ -13513,7 +13515,7 @@ msgid "Get Source Text from %s Project"
 msgstr "Mendapatkan Teks Sumber dari Proyek %s"
 
 # Priority 1
-#: GetSourceTextFromEditor.cpp:239
+#: GetSourceTextFromEditor.cpp:250
 #, fuzzy
 msgid "Chapter"
 msgstr "Pasal:"
@@ -13524,24 +13526,24 @@ msgid "Target Text Status"
 msgstr "Status Teks Sasaran"
 
 # Priority 1
-#: GetSourceTextFromEditor.cpp:328
+#: GetSourceTextFromEditor.cpp:339
 #, fuzzy
 msgid "Please select a book from the list of books."
 msgstr "Harap pilih arsip yang Anda ingin pindahkan."
 
 # Priority 1
-#: GetSourceTextFromEditor.cpp:336
+#: GetSourceTextFromEditor.cpp:347
 #, fuzzy
 msgid "Please select a chapter from the list of chapters."
 msgstr "Harap pilih arsip yang akan diberi nama baru."
 
 # Priority 1
-#: GetSourceTextFromEditor.cpp:489
+#: GetSourceTextFromEditor.cpp:500
 #, fuzzy, c-format
 msgid "Please wait while I query %s..."
 msgstr "Mohon Tunggu, Adapt It sedang mengatur letak dokumen."
 
-#: GetSourceTextFromEditor.cpp:972
+#: GetSourceTextFromEditor.cpp:983
 #, c-format
 msgid ""
 "The book %s in the Paratext project for obtaining source texts (%s) has no "
@@ -13558,7 +13560,7 @@ msgid ""
 "selected. Then return to Adapt It and try again."
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:977
+#: GetSourceTextFromEditor.cpp:988
 #, c-format
 msgid ""
 "The book %s in the Bibledit project for obtaining source texts (%s) has no "
@@ -13582,7 +13584,7 @@ msgstr ""
 msgid "No chapters and verses found"
 msgstr "Pergi ke pasal dan ayat tertentu"
 
-#: GetSourceTextFromEditor.cpp:1019
+#: GetSourceTextFromEditor.cpp:1030
 #, c-format
 msgid ""
 "The %s book %s has no adaptable verse content, therefore it cannot be used "
@@ -13591,61 +13593,61 @@ msgid ""
 "Adapt It cannot use such \"empty\" books for obtaining source texts."
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:1021
+#: GetSourceTextFromEditor.cpp:1032
 msgid "No verse text usable as source texts in this book!"
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:1023
+#: GetSourceTextFromEditor.cpp:1034
 #, c-format
 msgid ""
 "Please select a different book, or use %s to import content into %s that is "
 "usable as source texts, then try again."
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:1035 GetSourceTextFromEditor.cpp:1154
+#: GetSourceTextFromEditor.cpp:1046 GetSourceTextFromEditor.cpp:1165
 #, c-format
 msgid ""
 "The book %s in the Paratext project for storing translation drafts (%s) has "
 "no chapter and verse numbers."
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:1040 GetSourceTextFromEditor.cpp:1159
+#: GetSourceTextFromEditor.cpp:1051 GetSourceTextFromEditor.cpp:1170
 #, c-format
 msgid ""
 "The book %s in the Bibledit project for storing translation drafts (%s) has "
 "no chapter and verse numbers."
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:1062
+#: GetSourceTextFromEditor.cpp:1073
 #, c-format
 msgid ""
 "The book %s in the Paratext project for storing free translations (%s) has "
 "no chapter and verse numbers."
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:1067
+#: GetSourceTextFromEditor.cpp:1078
 #, c-format
 msgid ""
 "The book %s in the Bibledit project for storing free translations (%s) has "
 "no chapter and verse numbers."
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:1293
+#: GetSourceTextFromEditor.cpp:1304
 msgid "Chapter status of selected book:"
 msgstr ""
 
 # Priority 1
-#: GetSourceTextFromEditor.cpp:1355
+#: GetSourceTextFromEditor.cpp:1366
 #, fuzzy
 msgid "Please select a chapter in the list at right."
 msgstr "Harap pilih arsip yang akan diberi nama baru."
 
-#: GetSourceTextFromEditor.cpp:1388
+#: GetSourceTextFromEditor.cpp:1399
 #, c-format
 msgid "Collaborating with %s: getting source text was Cancelled"
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:1560
+#: GetSourceTextFromEditor.cpp:1571
 #, c-format
 msgid ""
 "The Paratext project (%s) selected for obtaining source texts contains no "
@@ -13658,7 +13660,7 @@ msgid ""
 "use for adaptation work."
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:1565
+#: GetSourceTextFromEditor.cpp:1576
 #, c-format
 msgid ""
 "The Bibledit project (%s) selected for obtaining source texts contains no "
@@ -15482,7 +15484,7 @@ msgid "Error, invalid hex digit: %s\n"
 msgstr ""
 
 # Priority 1
-#: ReadOnlyProtection.cpp:404
+#: ReadOnlyProtection.cpp:405
 #, c-format
 msgid ""
 "The project folder being tested, %s, is really a file. Adapt It will "
@@ -15491,12 +15493,12 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: ReadOnlyProtection.cpp:406
+#: ReadOnlyProtection.cpp:407
 msgid "Warning: Not a folder!"
 msgstr ""
 
 # Priority 1
-#: ReadOnlyProtection.cpp:653
+#: ReadOnlyProtection.cpp:654
 msgid ""
 "Someone has your project folder open already, so you have READ-ONLY access.\n"
 "If you need to be able to save your work, you can gain write access now.\n"
@@ -15505,14 +15507,17 @@ msgid ""
 "Do you to want to have write access now?"
 msgstr ""
 
-#: ReadOnlyProtection.cpp:1006
-msgid "This document is owned by someone else, so you have READ-ONLY access."
+#: ReadOnlyProtection.cpp:1011
+#, c-format
+msgid "Document owner is: %s. Your user ID is: %s"
 msgstr ""
 "Dokumen ini dimiliki oleh orang lain, sehingga Anda memiliki akses HANYA-"
 "BACA. "
 
-#: ReadOnlyProtection.cpp:1006
-msgid "Another person owns write permission"
+#: ReadOnlyProtection.cpp:1014
+msgid ""
+"This document is owned by someone else, so you have READ-ONLY access.  Do "
+"you want to take ownership of this document in order to change it?"
 msgstr ""
 
 # Priority 1

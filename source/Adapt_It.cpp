@@ -13975,7 +13975,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                     }
 
                     bDesignatedEditorIsInstalled = TRUE;
-                    
+
                     // Force save of project config file to record the value for CollabParatextVersionForProject
                     // from the m_ParatextVersionForProject value.
                     bChangeMadeToCollabSettings = TRUE; // to force a save of project config file with new setting

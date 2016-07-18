@@ -44,6 +44,7 @@
 
 #include "Adapt_It.h"
 #include "helpers.h"
+#include "Adapt_ItDoc.h"
 #include "ReadOnlyProtection.h"
 
 // Define type safe pointer lists
@@ -996,16 +997,36 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
     // want the message about the owner mismatch to show during a trial.)
     // If this section doesn't return FALSE (making the doc read-only), we fall through and do all the other
     //  tests on whether we can write to the project folder, etc.
-    
-    if ( (m_pApp->m_owner != NOOWNER) && (m_pApp->m_owner != m_pApp->m_strUserID) && (m_pApp->m_trialVersionNum <= 0))
+
+    if ( (m_pApp->m_owner != NOOWNER) && (m_pApp->m_owner != m_pApp->m_strUserID) && (m_pApp->m_trialVersionNum <= 0)) // NOOWNER is _T("****")
     {
 #ifdef _DEBUG_ROP
         wxLogDebug(_T("SetReadOnlyProtection:  Its ME, but doc's owner mismatches, so returning TRUE"));
 #endif
-        wxMessageBox (
-                      _("This document is owned by someone else, so you have READ-ONLY access."), _("Another person owns write permission"),
-                      wxICON_INFORMATION | wxOK);
-        return TRUE;	// return TRUE to app member m_bReadOnlyAccess
+        // whm modified 30June2016 to change the wxMessageBox() call below have ask if they want to take ownership
+        // of the document, displaying "Yes" and "No" buttons instead of just an "OK" button. A "No" response would
+        // continue in read-only mode by a return TRUE. A "Yes" response would call the OnTakeOwnership() handler in
+        // the Doc, and then continue to execute the code below.
+        // Put doc owner and user ID in dialog title.
+        wxString msgTitle = _("Document owner is: %s. Your user ID is: %s");
+        msgTitle = msgTitle.Format(msgTitle, m_pApp->m_owner.c_str(), m_pApp->m_strUserID.c_str());
+        int value = wxMessageBox (
+                      _("This document is owned by someone else, so you have READ-ONLY access.  Do you want to take ownership of this document in order to change it?"),
+            msgTitle.c_str(),
+            wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+        if (value == wxNO)
+        {
+            return TRUE;	// return TRUE to retain Read Only Access
+        }
+        else
+        {
+            // User wants to take ownership, so call the Doc's OnTakeOwnership() handler
+            CAdapt_ItDoc* pDoc;
+            pDoc = m_pApp->GetDocument();
+            wxCommandEvent dummyevent;
+            pDoc->OnTakeOwnership(dummyevent);
+            // continue with the SetReadOnlyProtection() function's code below
+        }
     }
     
     if (m_pApp->m_trialVersionNum >= 0 || m_pApp->m_bBackedUpForTrial)
