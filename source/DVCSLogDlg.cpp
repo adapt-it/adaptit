@@ -47,7 +47,7 @@ END_EVENT_TABLE()
 
 
 DVCSLogDlg::DVCSLogDlg (wxWindow* parent)
-                : AIModalDialog (   parent, -1, wxString(_T("Document History")),
+                : AIModalDialog (   parent, -1, wxString(_("Document History")),
                                     wxDefaultPosition,
                                     wxDefaultSize,
                                     wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
