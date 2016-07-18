@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
-"POT-Creation-Date: 2016-07-18 11:31+1000\n"
-"PO-Revision-Date: 2016-07-18 12:00+1000\n"
+"POT-Creation-Date: 2016-07-18 13:35+1000\n"
+"PO-Revision-Date: 2016-07-18 15:49+1000\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: id\n"
@@ -69,8 +69,8 @@ msgstr ""
 #: ChooseTranslation.cpp:657 ChooseTranslation.cpp:834
 #: ChooseTranslation.cpp:967 ChooseTranslation.cpp:1053
 #: ConsistencyCheckDlg.cpp:197 ConsistencyCheckDlg.cpp:801 KBEditor.cpp:250
-#: KBEditor.cpp:426 KBEditor.cpp:575 KBEditor.cpp:1041 KBEditor.cpp:1164
-#: KBEditor.cpp:1526 KBEditor.cpp:2430 KBEditor.cpp:2970
+#: KBEditor.cpp:426 KBEditor.cpp:575 KBEditor.cpp:1044 KBEditor.cpp:1167
+#: KBEditor.cpp:1533 KBEditor.cpp:2439 KBEditor.cpp:2979
 #: RemoveSomeTgtEntries.cpp:175
 msgid "<no adaptation>"
 msgstr "<tidak ada adaptasi>"
@@ -1010,7 +1010,7 @@ msgstr ""
 
 #: Adapt_It.cpp:17522
 msgid "Other Texts"
-msgstr ""
+msgstr "Teks-teks lain"
 
 #: Adapt_It.cpp:18367
 msgid ""
@@ -1956,9 +1956,9 @@ msgstr ""
 
 # Priority 1
 #: Adapt_It.cpp:40367
-#, fuzzy, c-format
+#, c-format
 msgid "Transforming File %s  - %d of %d Total words and phrases"
-msgstr "Arsip:   %s  Jumlah  kata dan frasa: %d  dari  %d"
+msgstr "Arsip  %s:  %d dari  %d total kata dan frasa"
 
 # Priority 1
 #: Adapt_It.cpp:40370 Adapt_It.cpp:40405 Adapt_It.cpp:40417
@@ -2192,7 +2192,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:46872 ReadOnlyProtection.cpp:1053
+#: Adapt_It.cpp:46872 ReadOnlyProtection.cpp:1074
 msgid "Another process owns write permission"
 msgstr ""
 
@@ -2829,9 +2829,9 @@ msgstr ""
 
 # Priority 1
 #: Adapt_ItDoc.cpp:7654
-#, fuzzy, c-format
+#, c-format
 msgid "Pass 1 - %d of %d Total words and phrases"
-msgstr "Arsip:   %s  Jumlah  kata dan frasa: %d  dari  %d"
+msgstr "Pemindaian 1:   %d dari %s total kata dan frasa"
 
 # Priority 1
 #: Adapt_ItDoc.cpp:7658 Adapt_ItDoc.cpp:8427 Adapt_ItDoc.cpp:8471
@@ -2842,9 +2842,9 @@ msgstr ""
 
 # Priority 1
 #: Adapt_ItDoc.cpp:8476
-#, fuzzy, c-format
+#, c-format
 msgid "Pass 2 - %d of %d Total words and phrases"
-msgstr "Arsip:   %s  Jumlah  kata dan frasa: %d  dari  %d"
+msgstr "Pemindaian 2:   %d dari %d total kata dan frasa"
 
 # Priority 1
 #: Adapt_ItDoc.cpp:12027
@@ -2893,9 +2893,8 @@ msgstr "Arsip:   %s  Jumlah  kata dan frasa: %d  dari  %d"
 #: Adapt_ItDoc.cpp:18534 Adapt_ItDoc.cpp:18573 Adapt_ItDoc.cpp:18608
 #: Adapt_ItDoc.cpp:18626 Adapt_ItDoc.cpp:18649 Adapt_ItDoc.cpp:18662
 #: Adapt_ItDoc.cpp:18783 Adapt_ItDoc.cpp:18863
-#, fuzzy
 msgid "Packing Document"
-msgstr "Kumpulkan Dokumen..."
+msgstr "Padat Dokumen"
 
 # Priority 1
 # Do not translate the (*.aip)|*.aip|| part.
@@ -2906,7 +2905,7 @@ msgstr "Dokumen yang dipadatkan (*.aip)|*.aip||"
 # Priority 1
 #: Adapt_ItDoc.cpp:18769
 msgid "Filename For Packed Document"
-msgstr ""
+msgstr "Nama file untuk dokumen yang telah dibungkus"
 
 # Priority 1
 #: Adapt_ItDoc.cpp:18835 EmailReportDlg.cpp:513
@@ -2928,9 +2927,8 @@ msgstr ""
 
 # Priority 1
 #: Adapt_ItDoc.cpp:18859
-#, fuzzy
 msgid "Packing of document successful"
-msgstr "Pemindahan dokumen berhasil."
+msgstr "Dipadatkan dokumen berhasil"
 
 #: Adapt_ItDoc.cpp:19528
 msgid ""
@@ -3835,7 +3833,7 @@ msgstr ""
 # Priority 1
 #: Adapt_It_wdr.cpp:337
 msgid "< &Prev"
-msgstr "<Sebelumnya"
+msgstr "< Sebel&umnya"
 
 #: Adapt_It_wdr.cpp:338
 msgid "Jump to the previous free translation"
@@ -4291,9 +4289,8 @@ msgstr "Pindahkan Semuanya ke Kanan >>"
 # Priority 1
 # Refers to moving all the list items from a list on the right to a list on the left
 #: Adapt_It_wdr.cpp:1039
-#, fuzzy
 msgid "<< Move All Left"
-msgstr "<<Pindahkan semua ke Kiri"
+msgstr "<< Pindahkan Semua Ke Kiri"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:1048
@@ -5929,7 +5926,7 @@ msgstr ""
 
 #: Adapt_It_wdr.cpp:3220
 msgid "&Options..."
-msgstr ""
+msgstr "Pilihan"
 
 #: Adapt_It_wdr.cpp:3221 Adapt_It_wdr.cpp:3447
 msgid ""
@@ -6300,9 +6297,9 @@ msgid "This source word or phrase has an inconsistency in the knowledge base"
 msgstr ""
 
 #: Adapt_It_wdr.cpp:3723
-#, fuzzy, c-format
+#, c-format
 msgid "%s: "
-msgstr "&Simpan"
+msgstr "%s:"
 
 #: Adapt_It_wdr.cpp:3730
 msgid ""
@@ -6575,9 +6572,9 @@ msgstr "Frasa Teks Sumber:"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:4103
-#, fuzzy, c-format
+#, c-format
 msgid "(Number of Entries: %d)"
-msgstr "Kata pokok:  %d"
+msgstr "Jumlah entri:  %d"
 
 #: Adapt_It_wdr.cpp:4104
 msgid "The number of source word or phrases in the list below"
@@ -6701,9 +6698,8 @@ msgstr ""
 
 # Priority 1
 #: Adapt_It_wdr.cpp:4233
-#, fuzzy
 msgid "Remove Some Entries or Save List..."
-msgstr "Hapus Arsip-Arsip Yang Tidak Perlu dari Daftar"
+msgstr "Hapus beberapa entri atau menyimpan daftar…"
 
 #: Adapt_It_wdr.cpp:4234
 msgid ""
@@ -6713,9 +6709,8 @@ msgstr ""
 
 # Priority 1
 #: Adapt_It_wdr.cpp:4245
-#, fuzzy
 msgid "&Search for:"
-msgstr "Cari Di:"
+msgstr "Pencarian untuk:"
 
 # Priority 1
 # This is the label of a button to initiate a search in the KB editor.
@@ -6727,13 +6722,12 @@ msgstr "Pergi"
 # This is the label of a button that removes all text lines from a text box of search strings (in the KB Editor).
 #: Adapt_It_wdr.cpp:4256
 msgid "Erase All Lines"
-msgstr ""
+msgstr "Hapus semua baris"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:4263
-#, fuzzy
 msgid "Old searches:"
-msgstr "Cari Khusus:"
+msgstr "Pencarian lama:"
 
 # Priority 1
 # This is a tooltip for a drop down list of old searches. The user can click on the drop down list box to access a previously used search line.
@@ -6746,13 +6740,12 @@ msgstr ""
 msgid ""
 "Number of &Words: Select a Tab according to the number of words in the "
 "Source Phrase"
-msgstr ""
+msgstr "Jumlah kata: Pilih Tab menurut jumlah kata dalam kalimat sumber"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:4305
-#, fuzzy
 msgid "Adaptations Knowledge Base"
-msgstr "Buat Arsip Cadangan Kamus"
+msgstr "Kamus Penyesuaian"
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
@@ -6910,7 +6903,7 @@ msgstr ""
 # Priority 1
 #: Adapt_It_wdr.cpp:4515
 msgid "<< Move All &Left"
-msgstr "<< Pindahkan Semuanya ke Kiri"
+msgstr "<< Pindahkan Semuanya Ke Ki&ri"
 
 #: Adapt_It_wdr.cpp:4525
 msgid "Document files listed here will not be joined to the open document"
@@ -7348,9 +7341,8 @@ msgstr ""
 
 # Priority 1
 #: Adapt_It_wdr.cpp:5407
-#, fuzzy
 msgid "&Pages"
-msgstr "&Halaman"
+msgstr "Halaman"
 
 #: Adapt_It_wdr.cpp:5408
 msgid "Select this button to indicate the pages to be printed"
@@ -7499,7 +7491,7 @@ msgstr "Tabel 4"
 # Priority 1
 #: Adapt_It_wdr.cpp:5620
 msgid "List of Interface Language Localizations found for Adapt It:"
-msgstr ""
+msgstr "Daftar antarmuka bahasa ditemukan untuk Adapt It:"
 
 #: Adapt_It_wdr.cpp:5627
 msgid "This is a list of interface languages found at the path below"
@@ -7508,16 +7500,16 @@ msgstr ""
 # Priority 1
 #: Adapt_It_wdr.cpp:5636
 msgid "Short (Canonical) language name:"
-msgstr ""
+msgstr "Nama pendek (Standar) dari Bahasa:"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:5648
 msgid "Full (Descriptive) language name:"
-msgstr ""
+msgstr "Nama lengkap (Diuraikan) dari Bahasa:"
 
 #: Adapt_It_wdr.cpp:5660
 msgid "Path of Adapt It's Localization Files:"
-msgstr ""
+msgstr "Jalan dari File Antarmuka:"
 
 #: Adapt_It_wdr.cpp:5666
 msgid ""
@@ -7689,9 +7681,8 @@ msgstr "Ketik yang baru:"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:6500 Adapt_It_wdr.cpp:6551
-#, fuzzy
 msgid "Path to the opened folder:"
-msgstr "Dokumen-dokumen dalam map lainnya"
+msgstr "Jalan ke folder yang dibuka"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:6514
@@ -8587,10 +8578,10 @@ msgid "Select a &book:"
 msgstr "Pilih buku"
 
 # Priority 1
-#: Adapt_It_wdr.cpp:7907 GetSourceTextFromEditor.cpp:817
-#: GetSourceTextFromEditor.cpp:988 GetSourceTextFromEditor.cpp:1013
-#: GetSourceTextFromEditor.cpp:1051 GetSourceTextFromEditor.cpp:1078
-#: GetSourceTextFromEditor.cpp:1171 GetSourceTextFromEditor.cpp:1210
+#: Adapt_It_wdr.cpp:7907 GetSourceTextFromEditor.cpp:828
+#: GetSourceTextFromEditor.cpp:999 GetSourceTextFromEditor.cpp:1024
+#: GetSourceTextFromEditor.cpp:1062 GetSourceTextFromEditor.cpp:1089
+#: GetSourceTextFromEditor.cpp:1182 GetSourceTextFromEditor.cpp:1221
 msgid "Select a &chapter:"
 msgstr "Pilih pasal:"
 
@@ -8868,11 +8859,11 @@ msgstr ""
 
 #: Adapt_It_wdr.cpp:8673
 msgid "Paratext 7"
-msgstr ""
+msgstr "Paratext 7"
 
 #: Adapt_It_wdr.cpp:8674
 msgid "Paratext 8"
-msgstr ""
+msgstr "Paratext 8"
 
 #: Adapt_It_wdr.cpp:8675
 msgid "Bibledit"
@@ -8935,7 +8926,7 @@ msgstr ""
 
 #: Adapt_It_wdr.cpp:8756
 msgid "or"
-msgstr ""
+msgstr "atau"
 
 #: Adapt_It_wdr.cpp:8766
 msgid ""
@@ -9362,19 +9353,14 @@ msgstr "&Lihat versi yang dipilih"
 msgid "Unique Username (obligatory):"
 msgstr "Unik nama pengguna (wajib):"
 
-#: Adapt_It_wdr.cpp:9566
+#: Adapt_It_wdr.cpp:9555
 msgid ""
 "Type a username. A unique one is best, but whatever you type will be "
 "accepted. You only need do this once, but if you ever want to change it, you "
-"can change it only here. Your full email addess is a good choice. If you use "
-"an email address, it will NOT be used for sending any emails from within "
+"can change it only here. Your full email address is a good choice. If you "
+"use an email address, it will NOT be used for sending any emails from within "
 "Adapt It."
 msgstr ""
-"Ketikkan suatu nama pengguna. Yang unik yang terbaik, tetapi apa pun yang "
-"Anda ketik akan diterima. Anda hanya perlu melakukan ini sekali, tetapi jika "
-"Anda pernah ingin mengubahnya, Anda dapat mengubah hanya di sini. Alamat "
-"email lengkap Anda adalah pilihan yang baik. Jika Anda menggunakan alamat "
-"email, itu tidak akan digunakan untuk mengirim email dari dalam Adapt It."
 
 #: Adapt_It_wdr.cpp:9563
 msgid "Informal Username (obligatory):"
@@ -9388,11 +9374,11 @@ msgid ""
 "It will be sent, securely, in data going to a shared knowledge base server, "
 "or to a Git repository for document history."
 msgstr ""
-"Type a human-friendly username. It can be your real name, or a false one. "
-"Anda hanya perlu melakukan ini sekali, tetapi jika Anda pernah ingin "
-"mengubahnya, Anda dapat mengubah hanya di sini. Itu tidak akan dikirim di "
-"email dari dalam Adapt It. Itu akan dikirim, aman, dalam data akan server "
-"kamus, atau akan sebuah Git repositori dokumen sejarah."
+"Masukkan pilihan Anda untuk nama pengguna.  Boleh memakai nama Anda yang "
+"nyata atau yang lain. Anda hanya perlu melakukan ini sekali, tetapi jika "
+"Anda pernah ingin mengubahnya, Anda dapat mengubah hanya di sini. Itu tidak "
+"akan dikirim di email dari dalam Adapt It. Itu akan dikirim, aman, dalam "
+"data akan server kamus, atau akan sebuah Git repositori dokumen sejarah."
 
 #: Adapt_It_wdr.cpp:9602
 msgid "Users Of The Shared Databases On The Server"
@@ -9786,14 +9772,16 @@ msgid ""
 "Widen or narrow columns by dragging a heading divider. Resize the dialog by "
 "dragging the bottom right corner."
 msgstr ""
+"Memperluaskan atau mempersempitkan kolom dengan menyeret pembagi header. "
+"Mengubah ukuran dialog dengan menyeret sudut kanan bawah."
 
 #: Adapt_It_wdr.cpp:10134
 msgid "Choose how you want the list presented:"
-msgstr ""
+msgstr "Pilih bagaimana daftar yang disediakan:"
 
 #: Adapt_It_wdr.cpp:10139
 msgid "Organise by keeping source text groupings"
-msgstr ""
+msgstr "Atur dengan menjaga pengelompokan sumber teks "
 
 #: Adapt_It_wdr.cpp:10141
 msgid ""
@@ -9803,7 +9791,7 @@ msgstr ""
 
 #: Adapt_It_wdr.cpp:10146
 msgid "List in alphabetic order of the target text"
-msgstr ""
+msgstr "Daftar dalam urutan abjad teks sasaran"
 
 #: Adapt_It_wdr.cpp:10147
 msgid ""
@@ -9813,16 +9801,15 @@ msgstr ""
 
 #: Adapt_It_wdr.cpp:10156
 msgid "Save the list to a file... "
-msgstr ""
+msgstr "Simpan daftar ini ke sebuah file…"
 
 #: Adapt_It_wdr.cpp:10157
 msgid "Save the current form of the list to a text file"
 msgstr ""
 
 #: Adapt_It_wdr.cpp:10162
-#, fuzzy
 msgid "Remove the selected entries, and close"
-msgstr "Hapus seluruh terjemahan ulang"
+msgstr "Hapuskan entri yang dipilih, dan tutup"
 
 #: Adapt_It_wdr.cpp:10164
 msgid "Removes the entries which are ticked, and closes the dialog"
@@ -9837,6 +9824,8 @@ msgid ""
 "After removing entries do a Consistency Check... (Edit menu), and take the "
 "\"other documents\" option."
 msgstr ""
+"Setelah menghapus entri melakukan konsistensi cek … (Edit menu), dan "
+"mengambil \"Dokumen Lain\" pilihan."
 
 #: Adapt_It_wdr.cpp:10204
 msgid ""
@@ -10558,7 +10547,7 @@ msgstr "Kumpulkan Dokumen..."
 
 #: Adapt_It_wdr.cpp:11316
 msgid "Pack document for transfer to another computer"
-msgstr ""
+msgstr "Padat dokumen untuk transfer ke komputer lain"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:11317
@@ -10711,12 +10700,12 @@ msgstr "Salin"
 # Priority 1
 #: Adapt_It_wdr.cpp:11344
 msgid "&Paste\tCtrl-V"
-msgstr "Tempelkan"
+msgstr "Tem&pelkan\tCtrl-V"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:11346
 msgid "&Go To...\tCtrl-G"
-msgstr "Per&gi Ke...\rCtrl-G"
+msgstr "Per&gi Ke..."
 
 #: Adapt_It_wdr.cpp:11346
 msgid "Go to a specific chapter and verse"
@@ -11253,7 +11242,7 @@ msgstr ""
 
 #: Adapt_It_wdr.cpp:11437
 msgid "Discover One KBserver"
-msgstr "Pencarian satu KBserver"
+msgstr "Pencarian Satu KBserver"
 
 #: Adapt_It_wdr.cpp:11437
 msgid "Scan to discover just one KBserver"
@@ -11261,7 +11250,7 @@ msgstr ""
 
 #: Adapt_It_wdr.cpp:11438
 msgid "Discover All KBservers"
-msgstr "Pencarian semua KBserver"
+msgstr "Pencarian Semua KBserver"
 
 #: Adapt_It_wdr.cpp:11438
 msgid "Do a series of service discovery runs to find running KBservers"
@@ -12107,7 +12096,7 @@ msgstr "Bahasa Sumber"
 
 #: ChooseLanguageDlg.cpp:68
 msgid "Select your preferred language for Adapt It's menus and other messages"
-msgstr ""
+msgstr "Pilih Bahasa untuk daftar-daftar dan pesan-pesan dari Adapt It"
 
 #: ChooseLanguageDlg.cpp:456
 msgid "(Use system default language)"
@@ -12129,7 +12118,7 @@ msgid "List box error when getting the current selection"
 msgstr ""
 
 # Translation text must have the same number and kind of %s and %d placeholders. They also must be in the same order as the original text.
-#: ChooseTranslation.cpp:727 KBEditor.cpp:1608
+#: ChooseTranslation.cpp:727 KBEditor.cpp:1615
 #, c-format
 msgid ""
 "Removing: \"%s\", will make %d occurrences of it in the document files "
@@ -12193,9 +12182,9 @@ msgstr "Hapus seluruh terjemahan ulang"
 
 # Priority 1
 #: CollabUtilities.cpp:614
-#, fuzzy, c-format
+#, c-format
 msgid "Partly drafted (%d of a total of %d verses have translation text)"
-msgstr "&Ekspor Teks Terjemahan..."
+msgstr "Disusun sebagian (%d dari %d ayat memiliki teks terjemahan)"
 
 # Priority 1
 #: CollabUtilities.cpp:616
@@ -12237,7 +12226,7 @@ msgstr ""
 msgid "Analyzing book %s"
 msgstr ""
 
-#: CollabUtilities.cpp:905 GetSourceTextFromEditor.cpp:801
+#: CollabUtilities.cpp:905 GetSourceTextFromEditor.cpp:812
 #, c-format
 msgid ""
 "Could not read data from the Paratext projects.\n"
@@ -12248,7 +12237,7 @@ msgid ""
 "menu)."
 msgstr ""
 
-#: CollabUtilities.cpp:909 GetSourceTextFromEditor.cpp:805
+#: CollabUtilities.cpp:909 GetSourceTextFromEditor.cpp:816
 #, c-format
 msgid ""
 "Could not read data from the Bibledit projects.\n"
@@ -12260,9 +12249,8 @@ msgid ""
 msgstr ""
 
 #: CollabUtilities.cpp:1847
-#, fuzzy
 msgid "<Create a new project instead>"
-msgstr "Buat dokumen baru"
+msgstr "<Buat proyek baru sebaliknya>"
 
 #: CollabUtilities.cpp:2717
 #, fuzzy, c-format
@@ -12303,8 +12291,6 @@ msgstr ""
 #, c-format
 msgid "Target project (%s) does not have any books created in it."
 msgstr ""
-"Gabungkan dokumen-dokumen dengan menambahkan pada dokumen yang sedang "
-"dikerjakan"
 
 #: CollabUtilities.cpp:3529
 #, c-format
@@ -12343,9 +12329,8 @@ msgstr "Terjemahan Bebas"
 
 # Priority 1
 #: CollabUtilities.cpp:6133
-#, fuzzy
 msgid "translation"
-msgstr "Dengan Terjemahan:"
+msgstr "terjemahan"
 
 #: CollabUtilities.cpp:9422
 #, c-format
@@ -12462,7 +12447,7 @@ msgstr ""
 
 # Priority 1
 # Should be translated as a short string equivalend for ON referring to a mode being active as in "Book folder mode is %s"
-#: DocPage.cpp:506 KBEditor.cpp:2437
+#: DocPage.cpp:506 KBEditor.cpp:2446
 msgid "ON"
 msgstr "Hidupkan"
 
@@ -12479,7 +12464,7 @@ msgstr "Dokumen disimpan ke map  %s "
 
 # Priority 1
 # Here OFF is in the sense of a feature or mode that is currently deactivated or that is switched off.
-#: DocPage.cpp:516 KBEditor.cpp:2438
+#: DocPage.cpp:516 KBEditor.cpp:2447
 msgid "OFF"
 msgstr "Matikan"
 
@@ -13521,7 +13506,7 @@ msgid "Chapter"
 msgstr "Pasal:"
 
 # Priority 1
-#: GetSourceTextFromEditor.cpp:244
+#: GetSourceTextFromEditor.cpp:255
 msgid "Target Text Status"
 msgstr "Status Teks Sasaran"
 
@@ -13550,8 +13535,8 @@ msgid ""
 "chapter and verse numbers."
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:973 GetSourceTextFromEditor.cpp:1036
-#: GetSourceTextFromEditor.cpp:1063 GetSourceTextFromEditor.cpp:1155
+#: GetSourceTextFromEditor.cpp:984 GetSourceTextFromEditor.cpp:1047
+#: GetSourceTextFromEditor.cpp:1074 GetSourceTextFromEditor.cpp:1166
 #, c-format
 msgid ""
 "Please run Paratext and select the %s project. Then select \"Create "
@@ -13567,8 +13552,8 @@ msgid ""
 "chapter and verse numbers."
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:978 GetSourceTextFromEditor.cpp:1041
-#: GetSourceTextFromEditor.cpp:1068 GetSourceTextFromEditor.cpp:1160
+#: GetSourceTextFromEditor.cpp:989 GetSourceTextFromEditor.cpp:1052
+#: GetSourceTextFromEditor.cpp:1079 GetSourceTextFromEditor.cpp:1171
 #, c-format
 msgid ""
 "Please run Bibledit and select the %s project. Select File | Project | "
@@ -13577,9 +13562,9 @@ msgid ""
 "try again."
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:981 GetSourceTextFromEditor.cpp:1044
-#: GetSourceTextFromEditor.cpp:1071 GetSourceTextFromEditor.cpp:1163
-#: GetSourceTextFromEditor.cpp:1164
+#: GetSourceTextFromEditor.cpp:992 GetSourceTextFromEditor.cpp:1055
+#: GetSourceTextFromEditor.cpp:1082 GetSourceTextFromEditor.cpp:1174
+#: GetSourceTextFromEditor.cpp:1175
 #, fuzzy
 msgid "No chapters and verses found"
 msgstr "Pergi ke pasal dan ayat tertentu"
@@ -13654,7 +13639,7 @@ msgid ""
 "books."
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:1561
+#: GetSourceTextFromEditor.cpp:1572
 msgid ""
 "Please select the Paratext Project that contains the source texts you will "
 "use for adaptation work."
@@ -13667,7 +13652,7 @@ msgid ""
 "books."
 msgstr ""
 
-#: GetSourceTextFromEditor.cpp:1566
+#: GetSourceTextFromEditor.cpp:1577
 msgid ""
 "Please select the Bibledit Project that contains the source texts you will "
 "use for adaptation work."
@@ -14047,11 +14032,11 @@ msgstr ""
 "Maaf, terjemahan yang Anda coba hubungkan dengan frasa bahasa sumber ini "
 "sudah ada."
 
-#: KBEditor.cpp:1051 KBEditor.cpp:1198
+#: KBEditor.cpp:1054 KBEditor.cpp:1202
 msgid "Error warning: Did not find the translation text just inserted!"
 msgstr ""
 
-#: KBEditor.cpp:1117
+#: KBEditor.cpp:1120
 #, fuzzy
 msgid ""
 "You are adding a translation which is nothing. That is okay, but is it what "
@@ -14061,23 +14046,23 @@ msgstr ""
 "inikah yang Anda mau?"
 
 # Priority 1
-#: KBEditor.cpp:1294
+#: KBEditor.cpp:1298
 msgid "You have not yet typed something to search for."
 msgstr ""
 
 # Priority 1
-#: KBEditor.cpp:1295
+#: KBEditor.cpp:1299
 msgid "No search strings defined"
 msgstr ""
 
-#: KBEditor.cpp:1361
+#: KBEditor.cpp:1365
 msgid ""
 "Saving the knowledge base failed. However, your respellings are still in the "
 "knowledge base in memory, so exit from the knowledge base editor with the OK "
 "button - doing that will try the save operation again and it might succeed."
 msgstr ""
 
-#: KBEditor.cpp:1393
+#: KBEditor.cpp:1397
 msgid ""
 "You have respelled some knowledge base entries. This has made the knowledge "
 "base inconsistent with the current documents. You should do a consistency "
@@ -14086,16 +14071,16 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: KBEditor.cpp:1394
+#: KBEditor.cpp:1398
 #, fuzzy
 msgid "Do Consistency Check Now?"
 msgstr "Cek Konsistensi "
 
-#: KBEditor.cpp:1466
+#: KBEditor.cpp:1473
 msgid "Knowledge base sharing is (temporarily) disabled"
 msgstr ""
 
-#: KBEditor.cpp:1467
+#: KBEditor.cpp:1474
 msgid ""
 "This is a shared knowledge base project, but you have disabled sharing.\n"
 "Sharing must be enabled, and with a working connection to the remote server, "
@@ -14104,7 +14089,7 @@ msgid ""
 "Advanced menu, and click the left radio button."
 msgstr ""
 
-#: KBEditor.cpp:1551
+#: KBEditor.cpp:1558
 msgid ""
 "Sorry, you can only remove this kind of entry by putting the phrase box at "
 "the relevant location in the document, and then click the  \"Save To "
@@ -14113,16 +14098,16 @@ msgstr ""
 "Maaf, Anda hanya dapat hapus bagian ini dengan menaruh kotak frasa di tempat "
 "yang sesuai dan klik kotak  \"\"Simpan ke Kamus\"\" menjadi HIDUPKAN."
 
-#: KBEditor.cpp:1761 KBEditor.cpp:1893
+#: KBEditor.cpp:1770 KBEditor.cpp:1902
 msgid "Translations list box error when getting the current selection"
 msgstr ""
 
 # Priority 1
-#: KBEditor.cpp:2154
+#: KBEditor.cpp:2163
 msgid "Glosses Knowledge Base"
 msgstr "Kamus Glosses"
 
-#: KBEditor.cpp:2253
+#: KBEditor.cpp:2262
 msgid ""
 "Sorry, the translation you are attempting to associate with the current "
 "source phrase already exists."
@@ -14643,7 +14628,7 @@ msgstr ""
 #: KbServer.cpp:3026
 #, c-format
 msgid "%d new entries"
-msgstr ""
+msgstr "%d entri baru"
 
 #: KbServer.cpp:3028
 msgid "ChangedSinceTimed"
@@ -15510,27 +15495,27 @@ msgstr ""
 #: ReadOnlyProtection.cpp:1011
 #, c-format
 msgid "Document owner is: %s. Your user ID is: %s"
-msgstr ""
-"Dokumen ini dimiliki oleh orang lain, sehingga Anda memiliki akses HANYA-"
-"BACA. "
+msgstr "Pemilik dokumen adalah: %s  User ID Anda adalah: %s"
 
 #: ReadOnlyProtection.cpp:1014
 msgid ""
 "This document is owned by someone else, so you have READ-ONLY access.  Do "
 "you want to take ownership of this document in order to change it?"
 msgstr ""
+"Dokumen ini dimiliki oleh orang lain, sehingga Anda memiliki akses HANYA-"
+"BACA. Apakah Anda ingin untuk mengambil kepemilikan dari dokumen ini untuk "
+"mengubahnya?"
 
 # Priority 1
-#: ReadOnlyProtection.cpp:1053
+#: ReadOnlyProtection.cpp:1074
 msgid ""
 "Someone has your project folder open already, so you have READ-ONLY access."
 msgstr ""
 
 # Priority 1
 #: RemoveSomeTgtEntries.cpp:89
-#, fuzzy
 msgid "Remove Some Target Text Entries"
-msgstr "Hanya Tunjukkan Teks Sasaran"
+msgstr "Hapuskan beberapa entri teks sasaran"
 
 #: RemoveSomeTgtEntries.cpp:239
 msgid "List in alphabetic order of the gloss text"
@@ -15603,13 +15588,12 @@ msgstr "Sumber:"
 
 # Priority 1
 #: RemoveSomeTgtEntries.cpp:1518 RemoveSomeTgtEntries.cpp:1592
-#, fuzzy
 msgid "Translation"
-msgstr "Dengan Terjemahan:"
+msgstr "Terjemahan"
 
 #: RemoveSomeTgtEntries.cpp:1524 RemoveSomeTgtEntries.cpp:1603
 msgid "Occurs"
-msgstr ""
+msgstr "Terjadi"
 
 # Priority 1
 #: Retranslation.cpp:268 Retranslation.cpp:281 Retranslation.cpp:409
@@ -17086,6 +17070,20 @@ msgstr ""
 #: AIPrintPreviewFrame.h:35
 msgid "Print Preview"
 msgstr "Lihat Hasil Cetak"
+
+#~ msgid ""
+#~ "Type a username. A unique one is best, but whatever you type will be "
+#~ "accepted. You only need do this once, but if you ever want to change it, "
+#~ "you can change it only here. Your full email addess is a good choice. If "
+#~ "you use an email address, it will NOT be used for sending any emails from "
+#~ "within Adapt It."
+#~ msgstr ""
+#~ "Ketikkan suatu nama pengguna. Yang unik yang terbaik, tetapi apa pun yang "
+#~ "Anda ketik akan diterima. Anda hanya perlu melakukan ini sekali, tetapi "
+#~ "jika Anda pernah ingin mengubahnya, Anda dapat mengubah hanya di sini. "
+#~ "Alamat email lengkap Anda adalah pilihan yang baik. Jika Anda menggunakan "
+#~ "alamat email, itu tidak akan digunakan untuk mengirim email dari dalam "
+#~ "Adapt It."
 
 # Priority 1
 #, fuzzy
