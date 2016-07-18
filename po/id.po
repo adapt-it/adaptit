@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
 "POT-Creation-Date: 2016-07-18 13:35+1000\n"
-"PO-Revision-Date: 2016-07-18 15:49+1000\n"
+"PO-Revision-Date: 2016-07-18 17:01+1000\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: id\n"
@@ -2831,7 +2831,7 @@ msgstr ""
 #: Adapt_ItDoc.cpp:7654
 #, c-format
 msgid "Pass 1 - %d of %d Total words and phrases"
-msgstr "Pemindaian 1:   %d dari %s total kata dan frasa"
+msgstr "Pemindaian 1:   %d dari %d total kata dan frasa"
 
 # Priority 1
 #: Adapt_ItDoc.cpp:7658 Adapt_ItDoc.cpp:8427 Adapt_ItDoc.cpp:8471
@@ -6574,7 +6574,7 @@ msgstr "Frasa Teks Sumber:"
 #: Adapt_It_wdr.cpp:4103
 #, c-format
 msgid "(Number of Entries: %d)"
-msgstr "Jumlah entri:  %d"
+msgstr "(Jumlah entri:  %d)"
 
 #: Adapt_It_wdr.cpp:4104
 msgid "The number of source word or phrases in the list below"
@@ -7547,7 +7547,7 @@ msgstr ""
 # Meaning: reverse the last copy that was made
 #: Adapt_It_wdr.cpp:5736
 msgid "Undo Last Copy"
-msgstr ""
+msgstr "Mambatalkan Salinan Terakhir"
 
 # Priority 1
 # Meaning: go back to the previous step (in vertical editing)
@@ -10543,7 +10543,7 @@ msgstr "Tutup dokumen ini"
 # Priority 1
 #: Adapt_It_wdr.cpp:11316
 msgid "Pack Document..."
-msgstr "Kumpulkan Dokumen..."
+msgstr "Padat Dokumen..."
 
 #: Adapt_It_wdr.cpp:11316
 msgid "Pack document for transfer to another computer"
@@ -10552,11 +10552,11 @@ msgstr "Padat dokumen untuk transfer ke komputer lain"
 # Priority 1
 #: Adapt_It_wdr.cpp:11317
 msgid "Unpack Document..."
-msgstr "Pisahkan Dokumen..."
+msgstr "Dekompresi Dokumen..."
 
 #: Adapt_It_wdr.cpp:11317
 msgid "Unpack a document that was packed on another computer"
-msgstr ""
+msgstr "Dekompresi dokumen yang dipadatkan di komputer lain"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:11319
@@ -14759,7 +14759,7 @@ msgstr ""
 # Priority 1
 #: MainFrm.cpp:2152
 msgid "Unknown"
-msgstr ""
+msgstr "Tidak diketahui"
 
 # Priority 1
 #: MainFrm.cpp:2526
@@ -16777,7 +16777,7 @@ msgstr "Ada data yang tidak tertangani, atau salah, di:\n"
 # Refers to unknown location in a file
 #: XML.cpp:816 helpers.cpp:11270 helpers.cpp:11295
 msgid "unknown"
-msgstr ""
+msgstr "tidak diketahui"
 
 #: XML.cpp:960
 msgid "Failed to allocate a buffer for parsing in the XML document's data"
