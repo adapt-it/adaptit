@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
 "POT-Creation-Date: 2016-07-18 13:35+1000\n"
-"PO-Revision-Date: 2016-07-18 17:01+1000\n"
+"PO-Revision-Date: 2016-07-18 18:13+1000\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: id\n"
@@ -9361,6 +9361,11 @@ msgid ""
 "use an email address, it will NOT be used for sending any emails from within "
 "Adapt It."
 msgstr ""
+"Ketikkan suatu nama pengguna. Yang unik yang terbaik, tetapi apa pun yang "
+"Anda ketik akan diterima. Anda hanya perlu melakukan ini sekali, tetapi jika "
+"Anda pernah ingin mengubahnya, Anda dapat mengubah hanya di sini. Alamat "
+"email lengkap Anda adalah pilihan yang baik. Jika Anda menggunakan alamat "
+"email, itu tidak akan digunakan untuk mengirim email dari dalam Adapt It."
 
 #: Adapt_It_wdr.cpp:9563
 msgid "Informal Username (obligatory):"
@@ -9633,9 +9638,8 @@ msgstr "Kode Bahasa sumber:"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:9895 Adapt_It_wdr.cpp:10668
-#, fuzzy
 msgid "Type a language code for the new source language"
-msgstr "Ketik nama bahasa sumber dan sasaran."
+msgstr "Ketik kode dari Bahasa sumber baru"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:9900 KBSharingMgrTabbedDlg.cpp:329
@@ -9644,9 +9648,8 @@ msgstr "Kode bahasa sasaran:"
 
 # Priority 1
 #: Adapt_It_wdr.cpp:9904
-#, fuzzy
 msgid "Type a language code for the adaptations language"
-msgstr "Ketik nama bahasa sumber dan sasaran."
+msgstr "Ketik kode dari bahasa sasaran"
 
 #: Adapt_It_wdr.cpp:9909
 msgid "Create Shared Database"
