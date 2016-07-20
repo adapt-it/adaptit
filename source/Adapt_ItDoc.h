@@ -352,6 +352,7 @@ public:
 	bool			IsMarker(wxChar* pChar);
 	bool			IsMarker(wxString& mkr); // overloaded version
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
+	bool			IsPunctuation(wxChar* ptr, bool bSource = TRUE);
 	bool			IsEndMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase);
 	bool			IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd));
@@ -526,6 +527,7 @@ private:
     int		m_docVersionCurrent; // BEW added 19Apr10 for Save As... support
 	bool	m_bLegacyDocVersionForSaveAs;
 	bool	m_bDocRenameRequestedForSaveAs;
+	wxChar*	HandlePostBracketPunctuation(wxChar* ptr, CSourcePhrase* pSrcPhrase, bool bParsingSrcText);
 	bool	IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr);
 	bool	IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxString* pWholeMkr);
 	void	SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 

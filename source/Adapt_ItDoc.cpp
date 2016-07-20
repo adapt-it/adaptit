@@ -140,6 +140,8 @@ extern enum TextType gPreviousTextType; // moved to global space in the App, mad
 /// in UTF-16 encoding.
 #define nU16BOMLen 2
 
+#define LOG_CREATES
+
 #define SETH_16OCT15
 
 #ifdef _UNICODE
@@ -10200,6 +10202,39 @@ bool CAdapt_ItDoc::IsClosingCurlyQuote(wxChar* pChar)
 	return FALSE;
 }
 
+bool CAdapt_ItDoc::IsPunctuation(wxChar* ptr, bool bSource) // bSource is default TRUE
+{
+	if (bSource)
+	{
+		if (gpApp->m_strSpacelessSourcePuncts.IsEmpty())
+		{
+			return FALSE;
+		}
+		int offset = wxNOT_FOUND;
+		offset = gpApp->m_strSpacelessSourcePuncts.Find(*ptr);
+		if (offset == wxNOT_FOUND)
+		{
+			return FALSE;
+		}
+		return TRUE;
+	}
+	else
+	{
+		if (gpApp->m_strSpacelessTargetPuncts.IsEmpty())
+		{
+			return FALSE;
+		}
+		int offset = wxNOT_FOUND;
+		offset = gpApp->m_strSpacelessTargetPuncts.Find(*ptr);
+		if (offset == wxNOT_FOUND)
+		{
+			return FALSE;
+		}
+		return TRUE;
+	}
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing to a closing quote mark
 /// \param		pChar		-> a pointer to the character to be examined
@@ -11642,6 +11677,10 @@ wxString CAdapt_ItDoc::SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, 
 /// protocol for handling ] works the same way regardless of whether or not the ]
 /// character is designated a punctuation character - we treat it as if it was, even if not.
 /// BEW 24Oct14 changes made for support of USFM nested markers (of form \+tag )
+/// BEW 19Jul16 see comments re ] above, ]"<newline>\s caused a parse crash (actually assert
+/// got tripped), so I need to have TokenizeText() handle puncts after the ] by parsing
+/// over them to whitespace or marker following, and store the puncts after the ] on its
+/// CSourcePhrase instance.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		wxChar* pEnd,
@@ -12785,7 +12824,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 					}
 					if (IsEndMarker(ptr2, pEnd) || *ptr2 == _T(']'))
 					{
-						// we'll treat is as following puncts for our current pSrcPhrase
+						// we'll treat this as following puncts for our current pSrcPhrase
 						// and return if we came to ], otherwise parse on...
 						wxString finalPuncts(ptr, countThem);
 						pSrcPhrase->m_follPunct += finalPuncts;
@@ -15854,6 +15893,7 @@ void CAdapt_ItDoc::OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr)
 	// this function as an example of how to set up a wxStringBuffer.
 	{ // begin special scoped block
 		wxStringBuffer pBuffer((*pstr), len + 1);
+
 		//wxChar* pBuffer = (*pstr).GetWriteBuf(len + 1);
 		wxChar* pBufStart = pBuffer;
 		wxChar* pEnd = pBufStart + len;
@@ -16094,6 +16134,57 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \return		pointer to the rest of the input text yet to be parsed
+/// \param		ptr			->  ptr to input text, pointing at the next character
+///							    after ]
+/// \param		pSrcPhrase	->  the CSourcePhrase instance which will store the ] and
+///								any punctuation immediately following it
+/// \remarks
+/// The character sequence, ]"<newline>\s caused a misparse leading to an assert tripping
+/// in ParseWord(). The former algorithm of putting only the ] on the pSrcPhrase is
+/// deficient. Instead, ] and any puncts after it are to be stored, stop parsing at
+/// next whitespace or marker - whichever is first.
+/// We assume that punctuation after a ] is only going to be word-final, that is, not
+/// belonging to an input word which follows the ] somewhere; and we also assume that
+/// a following word will not abutt the preceding ] character
+wxChar* CAdapt_ItDoc::HandlePostBracketPunctuation(wxChar* ptr, CSourcePhrase* pSrcPhrase, bool bParsingSrcText)
+{
+	wxASSERT(*(ptr - 1) == _T(']')); // check ptr is pointing to character after the ] character
+	wxChar* p = ptr;
+	bool bIsWhitespace = IsWhiteSpace(p);
+	bool bIsPunctuation = IsPunctuation(p, bParsingSrcText);
+	bool bIsMkr = IsMarker(p);
+	
+	while (!bIsWhitespace && !bIsMkr & bIsPunctuation)
+	{
+		pSrcPhrase->m_follPunct += *p; // store it
+		p++; // point at the next character
+
+		bIsWhitespace = IsWhiteSpace(p);
+		bIsPunctuation = IsPunctuation(p, bParsingSrcText);
+		bIsMkr = IsMarker(p);
+	}
+	// Provided p is not pointing at a marker, check the possibility that there
+	// maybe a further closing curly quote or doublequote (with an intervening
+	// space) also following the punctuation characters currently scanned over 
+	// and saved. If there is, add them to m_follPunct too
+	if (!bIsMkr)
+	{
+		if (!IsEnd(p) && (*p == _T(' ')))
+		{
+			if (!IsEnd(p + 1L) && IsClosingCurlyQuote(p + 1L))
+			{
+				// We've a detached closing single or doublequote, so add it in
+				// along with the preceding space
+				pSrcPhrase->m_follPunct += *p; // the space
+				pSrcPhrase->m_follPunct += *(p + 1L); // the curly endquote
+				p = p + 2L;
+			}
+		}
+	}
+	return p;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of elements/tokens in the list of source phrases (pList)
@@ -16121,9 +16212,14 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 /// data on each call. TokenizeText also reworked to handle text colouring better.
 /// BEW 24Oct14, various changes (mostly to called functions within) for support
 /// of USFM nested markers
+/// BEW 24Oct14 changes made for support of USFM nested markers (of form \+tag )
+/// BEW 19Jul16 The character sequence ]"<newline>\s caused a parse crash (actually assert
+/// got tripped), so I need to have TokenizeText() handle puncts after the ] by parsing
+/// over them to whitespace or marker following, and store the puncts after the ] on its
+/// CSourcePhrase instance.
 ///
 /// TODO - currently, order information about what precedes a word and what follows it is
-/// lost. A useful change for more accurate exports, and reducing the user of Placement
+/// lost. A useful change for more accurate exports, and reducing the use of Placement
 /// dialogs, would be to add order information (eg. enums in actual order in a couple of
 /// new CSourcePhrase string attributes) to the CSourcePhrase model. Do this someday!
 ///////////////////////////////////////////////////////////////////////////////
@@ -16350,6 +16446,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			else
 			{
 				// must be a closing bracket,  ]
+				// BEW 19Jul16 addition. The sequence:   ]"<newline>\s caused
+				// an assert to trip in ParseWord, because "<newline> before the
+				// \s marker caused \s to be considered as an inlinebinding marker 
+				// following, and it is not an inline binding mkr, which caused the
+				// assert to trip. My solution, if ] is detected, is to check for
+				// punctuation following - and parse it with the ], storing it in
+				// m_follPunct, stopping the parse when whitespace or marker is
+				// next encountered
 				if (!IsClosingBracketWordBuilding(spacelessPuncts))
 				{
 					// it's a punctuation character
@@ -16361,8 +16465,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						pSrcPhrase->m_follPunct = _T(" ") + pSrcPhrase->m_follPunct;
 					}
 					ptr++; // point past the ]
+					ptr = HandlePostBracketPunctuation(ptr, pSrcPhrase, !bTokenizingTargetText);
 					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_follPunct; // need this for the ]
-					// bracket (and its preceding space if we stored one) to be visible
+							// bracket (and its preceding space if we stored one) to be visible
+							// and any following puncts which we added within the above function
 				}
 				else
 				{
@@ -16370,6 +16476,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					pSrcPhrase->m_key = *ptr;
 					pSrcPhrase->m_srcPhrase = *ptr;
 					ptr++; // point past the ]
+					ptr = HandlePostBracketPunctuation(ptr, pSrcPhrase, !bTokenizingTargetText); // may put punct(s) into m_follPunct
+					if (!pSrcPhrase->m_follPunct.IsEmpty())
+					{
+						pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+					}
 				}
 				if (pSrcPhrase != NULL)
 				{
@@ -16378,6 +16489,20 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				}
 				// make this one become the 'last one' of the next iteration
 				pLastSrcPhrase = pSrcPhrase;
+
+#if defined(_DEBUG) && defined(LOG_CREATES)
+				if (pSrcPhrase->m_chapterVerse.IsEmpty())
+				{
+					wxLogDebug(_T("CSourcePhrase:  m_srcPhrase:  %s  m_nSequNumber: %d"),
+						pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber);
+				}
+				else
+				{
+					wxLogDebug(_T("CSourcePhrase:  m_srcPhrase:  %s  m_nSequNumber: %d  chapter:verse =  %s"),
+						pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_chapterVerse.c_str());
+
+				}
+#endif
 				continue; // iterate
 			}
 		}
@@ -17484,6 +17609,19 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			}
 		}
 
+#if defined(_DEBUG) && defined(LOG_CREATES)
+		if (pSrcPhrase->m_chapterVerse.IsEmpty())
+		{
+			wxLogDebug(_T("CSourcePhrase:  m_srcPhrase:  %s  m_nSequNumber: %d"),
+				pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber);
+		}
+		else
+		{
+			wxLogDebug(_T("CSourcePhrase:  m_srcPhrase:  %s  m_nSequNumber: %d  chapter:verse =  %s"),
+				pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_chapterVerse.c_str());
+
+		}
+#endif
 		// make this one be the "last" one for next time through
 		pLastSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
 

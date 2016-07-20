@@ -6179,6 +6179,10 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 	// BEW 21Jul14, ZWSP support: keep this as latin space
 	gSpacelessTgtPunctuation.Replace(_T(" "), _T(""));
 
+	// TokenizeText also needs m_strSpacelessSourcePuncts reset, & target ones
+	pApp->m_strSpacelessSourcePuncts = MakeSpacelessPunctsString(pApp, sourceLang);
+	pApp->m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(pApp, targetLang);
+
     // BEW 22May09 moved idle processing down to here so that idle events won't come before
     // the m_pActivePile has a chance to be reset to the valid active pile resulting from
     // the shenanigans that go on in RecalcLayout()! Failure to do so can result in system

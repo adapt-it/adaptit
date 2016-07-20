@@ -23067,6 +23067,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     //int style = (int)wxFONTSTYLE_ITALIC; // it's decimal 93
 
+	// take an initial shot at setting the set of source punctuation characters
+	// (with no spaces included); also do it when Preferences is exited in case
+	// the user changes the punctuation inventory in the Punctuation tab
+	m_strSpacelessSourcePuncts = MakeSpacelessPunctsString(this, sourceLang);
+	m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(this, targetLang);
     return TRUE;
 }
 
@@ -28191,6 +28196,11 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
     if (gbReachedDocPage)
         RefreshStatusBarInfo();
     m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
+
+	// BEW 20Jul16  update punctuation (spaceless sets) for TokenizeText()
+	m_strSpacelessSourcePuncts = MakeSpacelessPunctsString(this, sourceLang);
+	m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(this, targetLang);
+
     return TRUE;
 }
 

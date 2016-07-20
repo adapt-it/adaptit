@@ -3023,6 +3023,9 @@ public:
 	void	RefreshStatusBarInfo();
 	void	StatusBarMessage(wxString& message);
 
+	wxString m_strSpacelessSourcePuncts; // for use in TokenizeText()
+	wxString m_strSpacelessTargetPuncts; // ditto
+
 #if defined(_KBSERVER)
 	// support for Status bar showing "Deleting n of m" while deleting a kb from KBserver
 	void StatusBar_ProgressOfKbDeletion();
