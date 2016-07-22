@@ -509,6 +509,7 @@ public:
 	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);
 	void DoBookName(); // to access the Book Naming dialog from anywhere, calls OnBookNameDlg()
+	void UpdateDocCreationLog(CSourcePhrase* pSrcPhrase, wxString& chapter, wxString& verse);
 private:
 	void OnSplitDocument(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSplitDocument(wxUpdateUIEvent& event);

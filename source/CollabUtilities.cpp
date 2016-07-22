@@ -2838,8 +2838,22 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 		// parse the new source text data into a list of CSourcePhrase instances
 		int nHowMany;
+		wxString msg = _("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
+		wxString msgEnglish = _T("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
+
 		SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
 		nHowMany = pView->TokenizeTextString(pSourcePhrases, *pBuffer, 0); // 0 = initial sequ number value
+
+		// Check for a parse error, abort the parse if there was a parse error
+		if (nHowMany == -1)
+		{
+			// Abort the document creation, there has been a significant parsing error. 
+			// Do a diagnostic run (see View page of Preferences)
+			pApp->LogUserAction(msgEnglish);
+			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+			return FALSE;
+		}
+
 		SPList* pMergedList = new SPList; // store the results of the merging here
 
 		// Update for step 5 MergeUpdatedSourceText(), etc.
@@ -9903,7 +9917,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 					bOpenedOK = OpenDocWithMerger(pApp, docPath, m_collab_sourceWholeBookBuffer,
 												bDoMerger, bDoLayout, bCopySourceWanted);
 				}
-				bOpenedOK = bOpenedOK; // the function always returns TRUE (even if there was
+				//bOpenedOK = bOpenedOK; // the function always returns TRUE (even if there was
 									   // an error) because otherwise it messes with the doc/view
 									   // framework badly; so protect from the compiler warning
 									   // in the identity assignment way
@@ -9918,7 +9932,18 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 					wxString aMsg = _("The document was corrupt, but we have successfully restored the last version saved in the history.  Please re-attempt what you were doing.");
                     wxMessageBox (aMsg);
                     pApp->LogUserAction (aMsg);
+					pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
 					return 0L;
+				}
+				else
+				{
+					// BEW added 22Jul16,  return if there was a parsing error
+					if (!bOpenedOK)
+					{
+						pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
+						return 0L;
+					}
+
 				}
 
 				// whm 25Aug11 reset the App's maxProgDialogValue back to MAXINT

@@ -3020,11 +3020,18 @@ public:
 	wxString	m_freeTransLanguageCode;  // the 2- or 3-letter code for free translation language
 
 	// Status bar support
-	void	RefreshStatusBarInfo();
-	void	StatusBarMessage(wxString& message);
+	void	 RefreshStatusBarInfo();
+	void	 StatusBarMessage(wxString& message);
 
 	wxString m_strSpacelessSourcePuncts; // for use in TokenizeText()
 	wxString m_strSpacelessTargetPuncts; // ditto
+	bool     m_bParsingSource;
+	wxString m_chapterNumber_for_ParsingSource;
+	wxString m_verseNumber_for_ParsingSource; 
+	wxString m_filename_for_ParsingSource; // I think I'll call the file "Log_For_Document_Creation" (see OnInit())
+	bool     m_bSetupDocCreationLogSucceeded; // TRUE if we succeed in creating a log file ready for inserting data into
+	bool	 SetupDocCreationLog(wxString& filename);
+	bool	 m_bMakeDocCreationLogfile;
 
 #if defined(_KBSERVER)
 	// support for Status bar showing "Deleting n of m" while deleting a kb from KBserver

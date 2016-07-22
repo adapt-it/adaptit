@@ -58,6 +58,7 @@ size_t aSequNum; // use with TOKENIZE_BUG
 #include <wx/progdlg.h>
 #include <wx/busyinfo.h>
 #include <wx/dir.h> // for wxDir
+#include <wx/textfile.h>
 
 #if !defined(__APPLE__)
 #include <malloc.h>
@@ -917,7 +918,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 							pApp->m_bZWSPinDoc = FALSE; // BEW 6Oct14 restore default
 
-							return FALSE; // returns to OnWizardFinish() in DocPage.cpp (BEW 24Aug10, if
+							return TRUE; // returns to OnWizardFinish() in DocPage.cpp (BEW 24Aug10, if
 										// that claim always is true, then no harm will be done;
 										// but if it returns FALSE to the wxWidgets doc/view
 										// framework, it partially clobbers the latter -- this can be
@@ -927,7 +928,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 										// wxWidgets dialog, then the app is unstable and New and Open
 										// whether on the File menu or as toolbar buttons will not
 										// work right. In that case, we would need to return TRUE
-										// here, not FALSE. For now, I'll let the FALSE value remain.)
+										// here, not FALSE. BEW 22Jul16 made it TRUE)
 						}
 					}
 					else
@@ -1067,6 +1068,25 @@ bool CAdapt_ItDoc::OnNewDocument()
 													 // m_lastDocPath to config files
 			}
 
+			// Everything is now setup to normalize the input text and do the parse,
+			// so setup our logging file that will store the filename followed by
+			// the last 5 lines successfully parsed: each line contains the following
+			// information: m_srcPhrase, m_nSequNumber, the chapter number, the verse number
+			// So if there is a parse failure, it happened after the last m_srcPhrase in
+			// this file. It is stored in the folder _LOGS_EMAIL_REPORTS in work folder
+			if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+			{
+				gpApp->m_bSetupDocCreationLogSucceeded = gpApp->SetupDocCreationLog(pApp->m_curOutputFilename);
+				if (gpApp->m_bSetupDocCreationLogSucceeded)
+				{
+					gpApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
+				}
+				else
+				{
+					gpApp->m_bParsingSource = FALSE; // don't attempt to log if the file is not in existence
+				}
+			}
+
 			SetFilename(pApp->m_curOutputPath,TRUE);// TRUE notify all views
 			Modify(FALSE);
 
@@ -1123,12 +1143,58 @@ bool CAdapt_ItDoc::OnNewDocument()
 			*pApp->m_pBuffer = ZWSPtoFwdSlash(*pApp->m_pBuffer);
 			*pApp->m_pBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, *pApp->m_pBuffer);
 //#endif
-
 			// parse the input file
 			int nHowMany;
-			nHowMany = TokenizeText(0,pApp->m_pSourcePhrases,*pApp->m_pBuffer,
-									(int)pApp->m_nInputFileLength);
-			nHowMany = nHowMany; // avoid warning
+			wxString msg = _("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
+			wxString msgEnglish = _T("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
+
+			if (pApp->m_bMakeDocCreationLogfile)
+			{
+#if defined(__WXMSW__)
+				CWaitDlg waitDlg(pApp->GetMainFrame());
+				// indicate we want the closing the document wait message
+				waitDlg.m_nWaitMsgNum = 27;	// 27 has "Retrying & making a log file in folder _LOGS_EMAIL_REPORTS. It is slow..."
+				waitDlg.Centre();
+				waitDlg.Show(TRUE);
+				waitDlg.Update();
+				// the wait dialog is automatically destroyed when it goes out of scope below
+#endif
+				nHowMany = TokenizeText(0, pApp->m_pSourcePhrases, *pApp->m_pBuffer,
+					(int)pApp->m_nInputFileLength);
+				if (nHowMany == -1)
+				{
+					// Abort the document creation, there has been a significant parsing error. 
+					// Do a diagnostic run (see View page of Preferences)
+					pApp->LogUserAction(msgEnglish);
+					wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+					return TRUE;
+				}
+			}
+			else
+			{
+				// No logfile is to be created
+				nHowMany = TokenizeText(0, pApp->m_pSourcePhrases, *pApp->m_pBuffer,
+					(int)pApp->m_nInputFileLength);
+				if (nHowMany == -1)
+				{
+					// Abort the document creation, there has been a significant parsing error. 
+					// Do a diagnostic run (see View page of Preferences)
+					pApp->LogUserAction(msgEnglish);
+					pApp->m_bParsingSource = FALSE;
+					pApp->m_bMakeDocCreationLogfile = FALSE;
+					wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+					return TRUE;
+				}
+			}
+			//wxUnusedVar(nHowMany); // avoid warning
+
+			pApp->m_bParsingSource = FALSE; // make sure doc creation logging stays OFF 
+											 // until explicitly turned on at another time
+			pApp->m_bMakeDocCreationLogfile = FALSE; // turn this OFF to prevent user
+				// leaving it turned on, and wondering why doc creation takes minutes to complete
+			
+
+
 #if defined(_DEBUG) //&& defined(FWD_SLASH_DELIM)
 			if (pApp->m_bFwdSlashDelimiter)
 			{
@@ -1478,6 +1544,38 @@ bool CAdapt_ItDoc::OnNewDocument()
 	pApp->m_bZWSPinDoc = pApp->IsZWSPinDoc(pApp->m_pSourcePhrases);
 
 	return TRUE;
+}
+
+void CAdapt_ItDoc::UpdateDocCreationLog(CSourcePhrase* pSrcPhrase, wxString& chapter, wxString& verse)
+{
+	wxString myLine;
+	myLine = myLine.Format(_T("%s  %d  %s:%s"),
+		pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber, chapter.c_str(), verse.c_str());
+	size_t count = 0;
+	wxString  logsPath = gpApp->m_logsEmailReportsFolderPath;
+	wxString logFilename = gpApp->m_filename_for_ParsingSource; // OnInit() sets it to "Log_For_Document_Creation.txt"
+	wxString path = logsPath + gpApp->PathSeparator + logFilename;
+	wxTextFile f(path);
+	if (!f.IsOpened())
+	{
+		if (f.Open())
+		{
+			count = f.GetLineCount();
+			wxASSERT(count >= 1);
+			if (count < 6)
+			{
+				f.AddLine(myLine);
+				f.Write();
+			}
+			else
+			{
+				f.RemoveLine((size_t)1);
+				f.AddLine(myLine);
+				f.Write();
+			}
+			f.Close();
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -11758,6 +11856,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		// we are pointing at one of these five markers, handle this situation...
 		pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
 		wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
+		// In the release version, force a document creation error, and hence a halt with a warning
+		if (pUsfmAnalysis == NULL)
+		{
+			return -1;
+		}
 		bareMkr = emptyStr;
 		// BEW 24Oct14, use the two new params of LookupSFM to construct the marker which
 		// is to be stored
@@ -11782,6 +11885,12 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		wholeMkr = gSFescapechar + bareMkr;
 		wholeMkrPlusSpace = wholeMkr + aSpace;
 		wxASSERT(inlineNonbindingMrks.Find(wholeMkrPlusSpace) != wxNOT_FOUND);
+		// In the release version, force a document creation error, and hence a halt with a warning
+		if (inlineNonbindingMrks.Find(wholeMkrPlusSpace) == wxNOT_FOUND)
+		{
+			return -1;
+		}
+
 		wxUnusedVar(inlineNonbindingMrks); // avoid compiler warning
 		itemLen = wholeMkr.Len();
 
@@ -11796,6 +11905,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		ptr += itemLen;
 		len += itemLen;
 		wxASSERT(ptr < pEnd);
+		// In the release version, force a document creation error, and hence a halt with a warning
+		if (ptr > pEnd)
+		{
+			return -1;
+		}
 	}
 	else
 	{
@@ -11819,6 +11933,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	{
 		pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
 		wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
+		// In the release version, force a document creation error, and hence a halt with a warning
+		if (pUsfmAnalysis == NULL)
+		{
+			return -1;
+		}
 		bareMkr = emptyStr;
 		// BEW 24Oct14, use the two new params of LookupSFM to construct the marker which
 		// is to be stored
@@ -11843,6 +11962,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		wholeMkr = gSFescapechar + bareMkr; // it's reconstructed
 		wholeMkrPlusSpace = wholeMkr + aSpace;
 		wxASSERT(pUsfmAnalysis->inLine == TRUE);
+		// In the release version, force a document creation error, and hence a halt with a warning
+		if (pUsfmAnalysis->inLine == FALSE)
+		{
+			return -1;
+		}
 		itemLen = wholeMkr.Len();
 
 		// store the whole marker, and a following space
@@ -11857,6 +11981,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		ptr += itemLen;
 		len += itemLen;
 		wxASSERT(ptr < pEnd);
+		// In the release version, force a document creation error, and hence a halt with a warning
+		if (ptr > pEnd)
+		{
+			return -1;
+		}
 	}
 	bIsInlineBindingMkr = FALSE; // it's passed by ref, so clear the value
 								 // otherwise next entry will fail
@@ -11981,6 +12110,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				else
 				{
 					wxASSERT(pUsfmAnalysis->inLine == TRUE);
+					// In the release version, force a document creation error, and hence a halt with a warning
+					if (pUsfmAnalysis->inLine == FALSE)
+					{
+						return -1;
+					}
 					itemLen = wholeMkr.Len();
 
 					// store the whole marker, and a following space
@@ -11997,6 +12131,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			ptr += itemLen;
 			len += itemLen;
 			wxASSERT(ptr < pEnd);
+			if (ptr > pEnd)
+			{
+				return -1;
+			}
 		}
 		// Once control gets to here, ptr should be pointing at the first character of the
 		// actual word for saving in m_key of pSrcPhrase; we don't expect punctuation
@@ -12120,6 +12258,10 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				ptr += itemLen;
 				len += itemLen;
 				wxASSERT(ptr < pEnd);
+				if (ptr > pEnd)
+				{
+					return -1;
+				}
 			}
             // once control gets to here, ptr should be pointing at the first character of
             // the actual word for saving in m_key of pSrcPhrase ... well, usually.
@@ -16503,6 +16645,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 				}
 #endif
+				// If logging is wanted, update with this entry
+				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+				{
+					if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
+					{
+						UpdateDocCreationLog(pSrcPhrase, pApp->m_chapterNumber_for_ParsingSource,
+							pApp->m_verseNumber_for_ParsingSource);
+					}
+				}
 				continue; // iterate
 			}
 		}
@@ -16589,6 +16740,16 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add number (or range eg. 3-5) to buffer
 				pSrcPhrase->m_chapterVerse = pApp->m_curChapter; // set to n: form
 				pSrcPhrase->m_chapterVerse += temp; // append the verse number
+
+				// Track the verse number if logging is wanted
+				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+				{
+					if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
+					{
+						pApp->m_verseNumber_for_ParsingSource = temp;
+					}
+				}
+
 				pSrcPhrase->m_bVerse = TRUE; // set the flag to signal start of a new verse
 				ptr += itemLen; // point past verse number
 
@@ -16664,6 +16825,16 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				itemLen = ParseNumber(ptr);
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add chapter number to buffer
 				pApp->m_curChapter = temp;
+
+				// Track the chapter if logging is wanted
+				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+				{
+					if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
+					{
+						pApp->m_chapterNumber_for_ParsingSource = pApp->m_curChapter;
+					}
+				}
+
 				pApp->m_curChapter += _T(':'); // get it ready to append verse numbers
 				ptr += itemLen; // point past chapter number
 
@@ -17195,6 +17366,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								pApp->m_inlineNonbindingEndMarkers,
 								bIsInlineNonbindingMkr, bIsInlineBindingMkr,
 								bTokenizingTargetText);
+			if (itemLen == -1)
+			{
+				// There has been a significant parsing error, don't continue, but force
+				// TokenizeText() to abort by returning -1 here (the user will be warned
+				// at a higher level)
+				return itemLen;
+			}
 			ptr += itemLen; // advance ptr over what we parsed
 #if defined(_DEBUG) && defined(TOKENIZE_BUG)
 			wxString strParsed = pSrcPhrase->m_srcPhrase;
@@ -17624,6 +17802,16 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 #endif
 		// make this one be the "last" one for next time through
 		pLastSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
+
+		// If logging is wanted, update with this entry
+		if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+		{
+			if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
+			{
+				UpdateDocCreationLog(pSrcPhrase, pApp->m_chapterNumber_for_ParsingSource,
+					pApp->m_verseNumber_for_ParsingSource);
+			}
+		}
 
 	} // end of while (ptr < pEndText)
 
@@ -19667,7 +19855,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
         return FALSE;
     }
 
-	// put up a Wait dialog; but it's nonmodal and on Linux its contents are now shown
+	// put up a Wait dialog; but it's nonmodal and on Linux its contents are not shown
 	// so do it only for Windows
 #if defined(__WXMSW__)
 	CWaitDlg waitDlg(pApp->GetMainFrame());

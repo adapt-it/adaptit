@@ -16575,6 +16575,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     gnOffsetToUCcharSrc = wxNOT_FOUND;     // initialize
     gbUCSrcCapitalAnywhere = FALSE; // initialize to legacy 'only word-initial capital checked for'
 
+	m_bParsingSource = FALSE;
+	m_chapterNumber_for_ParsingSource = _T("0");
+	m_verseNumber_for_ParsingSource = _T("0");
+	// I'll call the file "Log_For_Document_Creation.txt", 
+	// and it will be stored in the _LOGS_EMAIL_REPORTS folder in the work folder
+	m_filename_for_ParsingSource = _T("Log_For_Document_Creation.txt"); 
+	m_bSetupDocCreationLogSucceeded = FALSE;
+	m_bMakeDocCreationLogfile = FALSE; // a checkbox in ViewPage.cpp turns it on
 
 #if defined(_KBSERVER)
                                     // Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
@@ -52070,3 +52078,60 @@ void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtTex
     }
 }
 
+// Return TRUE if the file is correctly setup in the _LOGS_EMAIL_REPORTS folder, with
+// the current document filename loaded in as the first line; FALSE if setup fails
+bool CAdapt_ItApp::SetupDocCreationLog(wxString& filename)
+{
+	wxString  logsPath = m_logsEmailReportsFolderPath;
+	if (::wxDirExists(logsPath))
+	{
+		wxASSERT(!filename.IsEmpty());
+		wxString logFilename = m_filename_for_ParsingSource; // OnInit() sets it to "Log_For_Document_Creation.txt"
+		wxString path = logsPath + PathSeparator + logFilename;
+		if (::wxFileExists(path))
+		{
+			::wxRemoveFile(path); // get rid of any preexisting one
+		}
+		wxTextFile f(path);
+		if (f.Create())
+		{
+			if (f.Open())
+			{
+				// We have a new empty log file open, put the filename as index = 0 line, and close it
+				f.AddLine(filename);
+				if (f.Write())
+				{
+					f.Close();
+				}
+				else
+				{
+					wxString msg;
+					msg = msg.Format(_T("Writing filename: %s  to created log file in SetupDocCreationLog() failed"), filename.c_str());
+					LogUserAction(msg);
+					f.Close();
+					return FALSE;
+				}
+			}
+			else
+			{
+				wxString msg;
+				msg = msg.Format(_T("Opening log file: %s  failed in SetupDocCreationLog()"), path.c_str());
+				LogUserAction(msg);
+				return FALSE;
+			}
+		}
+		else
+		{
+			wxString msg;
+			msg = msg.Format(_T("Creating log file: %s  failed in SetupDocCreationLog()"), path.c_str());
+			LogUserAction(msg);
+			return FALSE;
+		}
+	}
+	else
+	{
+		LogUserAction(_T("m_logsEmailReportsFolderPath does not exist, at SetupDocCreationLog()"));
+		return FALSE;
+	}
+	return TRUE;
+}
