@@ -2782,6 +2782,19 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 	if (bDoMerger)
 	{
+		if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+		{
+			pApp->m_bSetupDocCreationLogSucceeded = pApp->SetupDocCreationLog(pApp->m_curOutputFilename);
+			if (pApp->m_bSetupDocCreationLogSucceeded)
+			{
+				pApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
+			}
+			else
+			{
+				pApp->m_bParsingSource = FALSE; // don't attempt to log if the file is not in existence
+			}
+		}
+
 		// first task is to tokenize the (possibly edited) source text just obtained from
 		// PT or BE
 
