@@ -16478,6 +16478,28 @@ bool CAdapt_ItApp::KbServerRunning(int whichType)
         return m_pKbServer[1] != NULL;
     }
 }
+
+// GDLC 20JUL16 Added KbAdaptRunning() and KbGlossRunning() to simplify the many
+// instances of tests to find out whether a particular type of KB server is running.
+
+//  KbAdaptRunning(void)
+// Returns true if Adapt It is in adaptation mode and
+// an adaptations KB server is running.
+
+bool CAdapt_ItApp::KbAdaptRunning()
+{
+    return (!gbIsGlossing && KbServerRunning(1));
+}
+
+//  KbGlossRunning(void)
+// Returns true if Adapt It is in glossing mode and
+// a glossing KB server is running.
+
+bool CAdapt_ItApp::KbGlossRunning()
+{
+    return (gbIsGlossing && gpApp->KbServerRunning(2));
+}
+
 // Return TRUE if there was no error, FALSE otherwise. The function is used for doing
 // cleanup, and any needed making of data persistent between adapting sessions within a
 // project which is a KB sharing project, when the user exits the project or Adapt It is
