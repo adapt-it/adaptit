@@ -3123,6 +3123,9 @@ public:
 	bool	  SetupForKBServer(int whichType);
 	bool	  ReleaseKBServer(int whichType);
 	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
+    // GDLC 20JUL16
+    bool      KbAdaptRunning(void); // True if AI is in adaptations mode and an adaptations KB server is running
+    bool      KbGlossRunning(void); // True if AI is in glossing mode and a glossing KB server is running
 	// BEW added next, 26Nov15
 	bool	  ConnectUsingDiscoveryResults(wxString curURL, wxString& chosenURL, 
 								 wxString& chosenHostname, enum ServDiscDetail &result);

@@ -62,7 +62,9 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "2671"
-            endingLineNumber = "2671">
+            endingLineNumber = "2671"
+            landmarkName = "CMainFrame::OnKBSharingDlg(wxCommandEvent&amp; event)"
+            landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -76,7 +78,9 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "3019"
-            endingLineNumber = "3019">
+            endingLineNumber = "3019"
+            landmarkName = "CMainFrame::BuildUrlsAndNamesMessageString()"
+            landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -412,22 +416,6 @@
             startingLineNumber = "383"
             endingLineNumber = "383"
             landmarkName = "KbServer::IsKBSharingEnabled()"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../source/KBEditor.cpp"
-            timestampString = "489498540.935347"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "805"
-            endingLineNumber = "805"
-            landmarkName = "CKBEditor::OnButtonUpdate(wxCommandEvent&amp; WXUNUSED(event))"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

@@ -765,9 +765,11 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 
 	// BEW added 19Feb13 for kbserver support
 #if defined(_KBSERVER)
-	if ((gpApp->m_bIsKBServerProject && !gbIsGlossing && gpApp->GetKbServer(1)->IsKBSharingEnabled())
-		||
-		(gpApp->m_bIsGlossingKBServerProject && gbIsGlossing && gpApp->GetKbServer(2)->IsKBSharingEnabled()))
+    //  GDLC 20JUL16 Use KbAdaptRunning() and KbGlossRunning()to avoid crashes if a previously
+    //  used KB Server happens to be unavailable now
+    if ((gpApp->m_bIsKBServerProject && gpApp->KbAdaptRunning() )
+        ||
+        (gpApp->m_bIsGlossingKBServerProject && gpApp->KbGlossRunning() ) )
 	{
 		KbServer* pKbSvr = gpApp->GetKbServer(gpApp->GetKBTypeForServer());
 
