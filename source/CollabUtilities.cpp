@@ -148,7 +148,7 @@ extern bool gbDoingInitialSetup;
 // for both the target export, and the free translation export
 //#define LOG_EXPORT_VERSE_RANGE
 // comment out when seeing md5sum lines is not wanted
-//#define LISTMD5LINES
+#define LIST_MD5LINES
 
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
@@ -168,25 +168,37 @@ extern bool gbDoingInitialSetup;
 // specific to the target text and the free translation text. This function
 // works for all three text types - source, target and free trans via
 // specification in the textType parameter.
-void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
-								wxArrayString& usfmStructureAndExtentArray,
-								wxString collabCompositeProjectName,
-								wxString bookFullName,
-								wxArrayString& staticBoxDescriptionArray,
-								wxArrayString& chapterList,
-								wxArrayString& statusList,
-								bool& bBookIsEmpty)
-{
-	// Retrieves several wxArrayString lists of information about the chapters
-	// and verses (and their status) from the PT/BE project's Scripture book
-	// represented in bookFullName.
-	wxArrayString chapterArray;
-	wxArrayString statusArray;
-	chapterArray.Clear();
-	statusArray.Clear();
-	staticBoxDescriptionArray.Clear();
-	int ct,tot;
-	tot = usfmStructureAndExtentArray.GetCount();
+	void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
+		wxArrayString& usfmStructureAndExtentArray,
+		wxString collabCompositeProjectName,
+		wxString bookFullName,
+		wxArrayString& staticBoxDescriptionArray,
+		wxArrayString& chapterList,
+		wxArrayString& statusList,
+		bool& bBookIsEmpty)
+	{
+		// Retrieves several wxArrayString lists of information about the chapters
+		// and verses (and their status) from the PT/BE project's Scripture book
+		// represented in bookFullName.
+		wxArrayString chapterArray;
+		wxArrayString statusArray;
+		chapterArray.Clear();
+		statusArray.Clear();
+		staticBoxDescriptionArray.Clear();
+		int ct, tot;
+		tot = usfmStructureAndExtentArray.GetCount();
+
+#if defined(_DEBUG)
+		/* oops, this will crash the app with a bounds error if the file is small
+		int pos = 0;
+		wxString aTempStr;
+		for (pos = 308; pos < 320; pos++)
+		{
+			aTempStr = usfmStructureAndExtentArray.Item(pos);
+			wxLogDebug(_T("aTempStr:  %s  , pos = %d"), aTempStr.c_str(), pos);
+		}
+		*/
+#endif
 	wxString tempStr;
 	bool bChFound = FALSE;
 	bool bVsFound = FALSE;
@@ -932,6 +944,9 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		// the main call that stores the text in the .temp folder which the app
 		// would use if the whole book is used for collaboration, so we should
 		// do the check here too just to be safe.
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+		wxLogDebug(_T("\n\n DoProjectAnalysis():  logging structure & extents for book with bookCode = %s"), bookCode.c_str());
+#endif
 		wholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(tempFileName,bookCode);
 		usfmStructureAndExtentArray.Clear();
 		usfmStructureAndExtentArray = GetUsfmStructureAndExtent(wholeBookBuffer);
@@ -3830,6 +3845,13 @@ wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr)
 	wxASSERT(numStr.Find(_T('c')) == 1 || numStr.Find(_T('v')) == 1); // it should be a chapter or verse marker
 	int posSpace = numStr.Find(_T(' '));
 	wxASSERT(posSpace != wxNOT_FOUND);
+/* *** Apparent BUG manifests here:  postEditMd5Line has  "\\v:0:0" for an unknown reason - that is killing the production of the text
+// I have Kirsi's project -- it is the Mark document, with sn about 1:12, box at an upper case word like Besin  then try save in collab mode
+// It only happens in Kirsi's new laptop, it causes Mark 7:17 to be analysed wrong, the MD5 thingie gets \\v:0:0, instead of \\v 17:0:0 
+// and the <sp>17 ends up in the document as 'text'. Solution, is to edit the bad 7:17 line in PT and 'Save All', close PT, and then
+// AI will do a Save or History save, in collab mode, once without failing - but it re-makes the \v \v 18 error in Mark 7, each time,.
+// so the PT edit has to be done before every save. Other documents save normally. On my machine here data saves perfectly normally.
+*/
 	// get the number and any following part
 	numStr = numStr.Mid(posSpace);
 	int posColon = numStr.Find(_T(':'));
@@ -4157,23 +4179,8 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 
 		lastMarkerNumericAugment.Empty();
 	}
+
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
-	// This version shows the whole list, or just the bits we want if the gbShowFreeTransLogsOnly flag is not commented out
-/*	if (gbShowFreeTransLogsOnly)
-	{
-		// show range of indices from 22 to 25
-		int ct;
-		int aCount = (int)UsfmStructureAndExtentArray.GetCount();
-		aCount = wxMin(aCount,25);
-		for (ct = 22; ct < aCount ; ct++)
-		{
-			wxString str = UsfmStructureAndExtentArray.Item(ct);
-			wxLogDebug(str.c_str());
-		}
-	}
-*/
-#endif
-#if defined(_DEBUG) && defined(JUL15)
 		int ct;
 		int aCount = (int)UsfmStructureAndExtentArray.GetCount();
 		for (ct = 0; ct < aCount ; ct++)
@@ -6429,21 +6436,21 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// are including source text tracking, so that we can have a conflict resolution
 	// mechanism where the user can eyeball conflicting verse versions, and also see what
 	// the source text there is.
-#if defined(_DEBUG) && defined(JUL15)
-			wxLogDebug(_T("\nStructureAndExtent, for preEdit "));
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+			wxLogDebug(_T("\nStructureAndExtent, in MakeUpdatedTextForExternalEditor(), doing for preEdit "));
 #endif
 	wxArrayString preEditMd5Arr = GetUsfmStructureAndExtent(preEditText);
-#if defined(_DEBUG) && defined(JUL15)
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
 			wxLogDebug(_T("StructureAndExtent, for postEdit "));
 #endif
 	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);;
-#if defined(_DEBUG) && defined(JUL15)
-	wxLogDebug(_T("StructureAndExtent, for fromEditor "));
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	wxLogDebug(_T("StructureAndExtent, in MakeUpdatedTextForExternalEditor(), doing for fromEditor "));
 #endif
 	wxArrayString fromEditorMd5Arr = GetUsfmStructureAndExtent(fromEditorText);
 // BEW 10Jul15 add the sourceText which has been exported... need it for conflict resolution dlg
-#if defined(_DEBUG) && defined(JUL15)
-	wxLogDebug(_T("StructureAndExtent, for sourceText "));
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	wxLogDebug(_T("StructureAndExtent, in MakeUpdatedTextForExternalEditor(), doing for sourceText "));
 #endif
 	wxArrayString sourceTextMd5Arr = GetUsfmStructureAndExtent(sourceText);
 
@@ -6784,7 +6791,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr,
 	wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr)
 {
-#if defined(_DEBUG) && defined(JUL15)
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
 	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d");
 	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
@@ -7945,7 +7952,7 @@ wxString GetUpdatedText_UsfmsChanged(
 	wxArrayPtrVoid& sourceTextOffsetsArr)  // array of MD5Map structs which index the span of text in sourceText
 										  // which corresponds to a single line of info from sourceTextMd5Arr
 {
-#if defined(_DEBUG) && defined(JUL15)
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
 	wxString msg1 = _T("GetUpdatedText_UsfmsChanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d");
 	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
@@ -8067,14 +8074,19 @@ wxString GetUpdatedText_UsfmsChanged(
 
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
 	wxLogDebug(_T("\n\n >>>>>   GetUpdatedText_UsfmsChanged() LOOP ENTERED  <<<<<\n\n"));
-#endif
 
+	int debugCounter = 0;
+#endif
 	while (
 		(preEditStart < (int)preEditMd5Arr_Count) &&
 		(postEditStart < (int)postEditMd5Arr_Count) &&
 		(fromEditorStart < (int)fromEditorMd5Arr_Count) &&
 		(sourceTextStart < (int)sourceTextMd5Arr_Count))
 	{
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+		debugCounter++;
+		wxLogDebug(_T("GetUpdatedText_UsfmsChanged() LOOP debugCounter = %d, postEditStart = %d"), debugCounter, postEditStart);
+#endif
 		// Need a CollabAction struct ready for use
 		pAction = new CollabAction;
 		SetCollabActionDefaults(pAction); // 7 strings and 5 booleans
@@ -8144,7 +8156,7 @@ wxString GetUpdatedText_UsfmsChanged(
 				// verse or chapter line is.
 				// TRUE is the value of param bOrTestForChapterLine
 				preEditIndex = preEditStart + 1;
-				bFoundVerse = GetNextVerseLine(preEditMd5Arr, preEditIndex,TRUE);
+				bFoundVerse = GetNextVerseLine(preEditMd5Arr, preEditIndex, TRUE);
 				wxASSERT(preEditIndex != wxNOT_FOUND && bFoundVerse == TRUE);
 				preEditEnd = preEditIndex - 1;
 			}
@@ -8216,7 +8228,7 @@ wxString GetUpdatedText_UsfmsChanged(
 			MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
 			MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
 			substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
-						pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+				pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
 			pAction->bIsPreVerseOne = TRUE;
 			pAction->preVerseOneText = substring;
 
@@ -8229,7 +8241,7 @@ wxString GetUpdatedText_UsfmsChanged(
 			pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
 
 #if defined(_DEBUG) && defined(JUL15)
-//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+			//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 			wxLogDebug(_T("PRE-\\v 1 Material: postEdit start & end indices [%d,%d], mapped to [%d,%d], Substring: %s"),
 				postEditStart, postEditEnd, pPostEditArr_StartMap->startOffset,
 				pPostEditArr_LastMap->endOffset, substring.c_str());
@@ -8308,16 +8320,16 @@ wxString GetUpdatedText_UsfmsChanged(
 
 		// legacy LOOP's start was moved up from here... on 10Jul15
 
-        // At iteration of the loop, we expect the ...Start indices to be pointing at
-        // 'verse' md5 lines in their respective arrays, or a 'chapter' line. Make sure. We
-        // are treating a chapter line (one with \c ) also as a 'verse' md5 line so the
-        // following asserts have to handle \c too
+		// At iteration of the loop, we expect the ...Start indices to be pointing at
+		// 'verse' md5 lines in their respective arrays, or a 'chapter' line. Make sure. We
+		// are treating a chapter line (one with \c ) also as a 'verse' md5 line so the
+		// following asserts have to handle \c too
 		wxASSERT(IsVerseLine(preEditMd5Arr, preEditStart) ||
-					IsChapterLine(preEditMd5Arr, preEditStart, chapNumStr));
+			IsChapterLine(preEditMd5Arr, preEditStart, chapNumStr));
 		wxASSERT(IsVerseLine(postEditMd5Arr, postEditStart) ||
-					IsChapterLine(postEditMd5Arr, postEditStart, chapNumStr));
+			IsChapterLine(postEditMd5Arr, postEditStart, chapNumStr));
 		wxASSERT(IsVerseLine(fromEditorMd5Arr, fromEditorStart) ||
-					IsChapterLine(fromEditorMd5Arr, fromEditorStart, chapNumStr));
+			IsChapterLine(fromEditorMd5Arr, fromEditorStart, chapNumStr));
 
 		// To delimit the verse chunks that we need to inspect and transfer, or not
 		// transfer if there have been no structure or text changes, find the next md5
@@ -8345,7 +8357,16 @@ wxString GetUpdatedText_UsfmsChanged(
 		fromEditorMd5Line = fromEditorMd5Arr.Item(fromEditorStart);
 		preEditMd5Line = preEditMd5Arr.Item(preEditStart); // BEW added 22Jun15
 		sourceTextMd5Line = sourceTextMd5Arr.Item(sourceTextStart); // BEW added 10Jul15
+#if defined(_DEBUG)
+		{
+			if (postEditMd5Line == _T("\\v:0:0"))
+			{
 
+
+
+	}		
+		}
+#endif
 		postEditVerseNumStr = GetNumberFromChapterOrVerseStr(postEditMd5Line);
 		fromEditorVerseNumStr = GetNumberFromChapterOrVerseStr(fromEditorMd5Line);
 		preEditVerseNumStr = GetNumberFromChapterOrVerseStr(preEditMd5Line);

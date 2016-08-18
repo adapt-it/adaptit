@@ -623,6 +623,19 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 		}
 	}
 
+	// BEW 12Aug16, the SaveDocChanges() call below, internally calls DoFileSave() on each new
+	// chapter document - but the latter does a save of the contents of the phrasebox (the
+	// m_targetPhrase app member) as the m_adaption for the active sequ number's CSourcePhrase
+	// which, in a splitting operation, is defaulted to sn = 0 for each doc. But that is where
+	// the bookID gets inserted - so if we don't clear m_targetPhrase first, each split doc
+	// gets whatever the old active location's adaptation happened to be as a bogus adaptation
+	// for the bookCode. So fix this here
+	if (!gpApp->m_targetPhrase.IsEmpty())
+	{
+		gpApp->m_targetPhrase = wxEmptyString;
+		gpApp->m_pTargetBox->SetValue(wxEmptyString);
+	}
+
 	// Save the split bits.
 	p = Chapters->GetFirst();
 	while (p) 
@@ -630,8 +643,24 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 		c = (Chapter*)p->GetData();
 		p = p->GetNext();
 		gpApp->m_pSourcePhrases = c->SourcePhrases;
+/*
+#if defined(_DEBUG)
+		wxSPListNode* pSPNode = gpApp->m_pSourcePhrases->Item(0);
+		CSourcePhrase* pSP = pSPNode->GetData();
+		wxLogDebug(_T("SplitIntoChapters_Interactive(), first CSourcePhrase: m_key = %s   m_adaption = %s  after setting SPList"),
+			pSP->m_key.c_str(), pSP->m_adaption.c_str());
+#endif
+*/
 		gpApp->ChangeDocUnderlyingFileNameInPlace(c->FileName);
 		gpApp->CascadeSourcePhraseListChange(false); // sequence numbers renumbered here too
+/*
+#if defined(_DEBUG)
+		pSPNode = gpApp->m_pSourcePhrases->Item(0);
+		pSP = pSPNode->GetData();
+		wxLogDebug(_T("SplitIntoChapters_Interactive(), first CSourcePhrase: m_key = %s   m_adaption = %s  after setting CascadeSPListChange"),
+			pSP->m_key.c_str(), pSP->m_adaption.c_str());
+#endif
+*/
 		gpApp->SaveDocChanges();
 	}
 	pSplittingWait->Show(FALSE);

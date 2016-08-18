@@ -17943,8 +17943,10 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 	// As we traverse the list of CSourcePhrase instances, we do most but not all of what
 	// RebuildGlossesText() does, but there are significant differences, and this function
 	// will be simpler: the special things we must be careful of are:
-	// 1. null source phrase placeholders (we ignore these, but we don't ignore any
-	// m_markers, content which has been moved to them by the user's placeholder insertion
+	// 1. null source phrase placeholders BEW 30Jul16 we no longer ignore these, because
+	// a placeholder can legally be the anchor pile. But years ago I changed to having
+	// endmarkers stored on the CSourcePhrase relevant to the end, so no longer do it
+	// need to copy an endmarker before handling what's on the current CSourcePhrase.
 	// 2. retranslations (we can ignore the fact these instances may belong within a
 	// retranslation),
 	// 3. mergers - we'll just take what's on the merged CSourcePhrase instance, we won't
@@ -18018,6 +18020,38 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 								// relevant code blocks (BEW 11Oct10)
 		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
+			// BEW addition 30Jul16, support anchor being at a placeholder
+			bMarkersOnPlaceholder = FALSE;
+			if (pSrcPhrase->m_bStartFreeTrans || !pSrcPhrase->GetFreeTrans().IsEmpty())
+			{
+				if (!pSrcPhrase->m_markers.IsEmpty())
+				{
+					if (strPlaceholderMarkers.IsEmpty())
+					{
+						strPlaceholderMarkers = pSrcPhrase->m_markers;
+					}
+					else
+					{
+						strPlaceholderMarkers += aSpace + pSrcPhrase->m_markers;
+					}
+					bMarkersOnPlaceholder = TRUE;
+				}
+
+				tempStr = pSrcPhrase->GetFreeTrans();
+
+				if (bMarkersOnPlaceholder)
+				{
+					freeTrans += strPlaceholderMarkers;
+				}
+
+				if (!tempStr.IsEmpty())
+				{
+					freeTrans.Trim();
+					freeTrans += aSpace + tempStr;
+					tempStr.Empty();
+				}
+			}
+
 			// markers placement from a preceding placeholder may be pending but there may
 			// be a second or other placeholder following, which must delay their
 			// relocation until a non-placeholder CSourcePhrase is encountered. So if the

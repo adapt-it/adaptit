@@ -202,6 +202,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	m_SaveCollabSourceProjLangName = m_pApp->m_CollabSourceLangName;
 	m_SaveCollabTargetProjLangName = m_pApp->m_CollabTargetLangName;
 	m_bSaveCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly; // FALSE means the "whole book" option
+	m_bTempCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly; // use this for the radio buttons & user-set value
 	m_bSaveCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans;
 	m_SaveCollabBookSelected = m_pApp->m_CollabBookSelected;
 	m_SaveCollabChapterSelected = m_pApp->m_CollabChapterSelected;
@@ -1951,7 +1952,7 @@ void CSetupEditorCollaboration::OnClose(wxCommandEvent& event)
     m_pApp->m_ParatextVersionForProject = m_SaveCollabEditorVersion; // whm added 24June2014
 	m_pApp->m_CollabSourceLangName = m_SaveCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_SaveCollabTargetProjLangName;
-	m_pApp->m_bCollabByChapterOnly = m_bSaveCollabByChapterOnly; // FALSE means the "whole book" option
+	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bSaveCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabBookSelected = m_SaveCollabBookSelected;
 	m_pApp->m_CollabChapterSelected = m_SaveCollabChapterSelected;
@@ -1991,6 +1992,7 @@ void CSetupEditorCollaboration::OnCancel(wxCommandEvent& event)
     m_pApp->m_ParatextVersionForProject = m_SaveCollabEditorVersion; // whm added 24June2016
 	m_pApp->m_CollabSourceLangName = m_SaveCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_SaveCollabTargetProjLangName;
+	// On Cancel, restore the saved initial value, abandon any user-set value in m_bTempCollabByChapterOnly
 	m_pApp->m_bCollabByChapterOnly = m_bSaveCollabByChapterOnly; // FALSE means the "whole book" option
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bSaveCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabBookSelected = m_SaveCollabBookSelected;

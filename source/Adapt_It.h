@@ -2628,6 +2628,12 @@ public:
 	// BEW added 10Feb09 for refactored view layout support
 	CLayout* m_pLayout;
 
+	// BEW added 15Aug16 for suppressing option to have or not have collab mode restored
+	// in a Shift-Launch
+	bool m_bDoNormalProjectOpening; // default TRUE; it can be made FALSE in GetProjectConfiguration()
+						   // and the place to restore default would therefore be when
+						   // writing out the project configuration file
+
 	// GDLC 2010-02-12
 	// Pointer to the free translation display manager
 	// Set by the return value from CFreeTrans creator
@@ -3032,6 +3038,8 @@ public:
 	bool     m_bSetupDocCreationLogSucceeded; // TRUE if we succeed in creating a log file ready for inserting data into
 	bool	 SetupDocCreationLog(wxString& filename);
 	bool	 m_bMakeDocCreationLogfile;
+
+	bool	 m_bALT_KEY_DOWN; // BEW added 31Jul16 to track ALT key down (TRUE), and up (back to FALSE)
 
 #if defined(_KBSERVER)
 	// support for Status bar showing "Deleting n of m" while deleting a kb from KBserver
@@ -4354,11 +4362,12 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString m_CollabChapterSelected;
 	wxString m_CollabSourceLangName; // whm added 4Sep11
 	wxString m_CollabTargetLangName; // whm added 4Sep11
+	bool     m_bUserWantsNoCollabInShiftLaunch;
 
-	bool m_bStartWorkUsingCollaboration; // whm added 19Feb12
+	bool     m_bStartWorkUsingCollaboration; // whm added 19Feb12
 	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
 	//bool m_bEnableDelayedGetChapterHandler; // BEW added 15Sep14
-	bool m_bEnableDelayedGet_Handler; // BEW added 15Sep14
+	bool     m_bEnableDelayedGet_Handler; // BEW added 15Sep14
 
 	// whm 17Oct11 for collaboration support
     wxArrayString GetListOfPTProjects(wxString PTVersion); // an override of the GetListOfPTProjects() function
@@ -4384,6 +4393,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	bool	BibleditIsInstalled(); // whm added 13Jun11
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	bool	BibleditIsRunning(); // whm added 13Jun11
+
 #ifdef __WXGTK__
 	wxString GetParatextEnvVar(wxString strVariableName); // edb added 19Mar12
 #endif
