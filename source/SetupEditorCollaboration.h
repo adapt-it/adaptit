@@ -64,7 +64,7 @@ public:
     wxString m_SaveCollabEditorVersion; // whm added 24June2016
 	wxString m_SaveCollabSourceProjLangName;
 	wxString m_SaveCollabTargetProjLangName;
-	bool m_bSaveCollabByChapterOnly; // FALSE means the "whole book" option
+	bool m_bSaveCollabByChapterOnly; // keep input value, so we can test if user changes it in the dialog
 	bool m_bSaveCollaborationExpectsFreeTrans;
 	wxString m_SaveCollabBookSelected;
 	wxString m_SaveCollabChapterSelected;

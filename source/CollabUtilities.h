@@ -129,6 +129,7 @@ class CBString;
 class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPList); macro 
 				// and defined in SourcePhrase.cpp WX_DEFINE_LIST(SPList); macro
 class CSourcePhrase;
+class CSetupEditorCollaboration;
 
 ///////////////////////////////////////////////////////////////////////////////////
 /// This group of functions are used for analysis of texts in order to get an updated text
@@ -364,6 +365,11 @@ class CSourcePhrase;
 	wxString		SetWorkFolderPath_For_Collaboration();
 	wxString		ChangeFilenameExtension(wxString filenameOrPath, wxString extn);
 	wxString		RemoveIDMarkerAndCode(wxString textForSending);
+
+	// Function for splitting to chapter documents, or joining to whole book documents, if the
+	// user changes the value of the app's m_bCollabByChapterOnly flag
+	// BEW added 23Aug16 so users can change the value on the fly at any time
+	bool			AdjustForCollaborationTypeChange(bool bCurrentCollabByChapterOnly, CSetupEditorCollaboration* pSetupDlg);
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	///     Function for cleaning out the files aggregated in .temp folder in AI Unicode Work folder

@@ -2152,7 +2152,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	}
 
     // Note: Step 2 selection of Scripture Editor is initially set somewhat automatically according to
-    // what version of a Scripture editos has been installed on the user's computer. Setp 2 allows an
+    // what version of a Scripture editors has been installed on the user's computer. Step 2 allows an
     // administrator to optionally set a different Scripture editor if it is installed on the user's 
     // computer (selections are disabled for any editor that is not installed).
     // For the automatic selection of editor, (or if an editor choice is installed and manually selected 
@@ -2165,7 +2165,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	if (m_TempCollabProjectForSourceInputs.IsEmpty())
 	{
 		wxString msg, msg1;
-		msg = _("Please select a %s project for getting source texts. Use the \"Select from List\" button.");
+		msg = _("Please select a %s project for getting source texts. Use the \"Select Source Project from List\" button.");
 		wxASSERT(!m_TempCollaborationEditor.IsEmpty());
 		msg = msg.Format(msg,m_TempCollaborationEditor.c_str());
 		wxMessageBox(msg,_("No source language project selected for collaboration"),wxICON_INFORMATION | wxOK);
@@ -2177,7 +2177,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	if (m_TempCollabProjectForTargetExports.IsEmpty())
 	{
 		wxString msg, msg1;
-		msg = _("Please select a %s project for receiving translated drafts. Use the \"Select from List\" button.");
+		msg = _("Please select a %s project for receiving translated drafts. Use the \"Select Target Project from List\" button.");
 		wxASSERT(!m_TempCollaborationEditor.IsEmpty());
 		msg = msg.Format(msg,m_TempCollaborationEditor.c_str());
 		wxMessageBox(msg,_("No target language project selected for collaboration"),wxICON_INFORMATION | wxOK);
@@ -2280,20 +2280,32 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
     wxASSERT(!m_pApp->m_ParatextVersionForProject.IsEmpty());
 
-	// In order to write the collab settings to the selected project file we need to compose the
-	// path to the project for the second parameter of WriteConfigurationFile().
-	wxString newProjectPath;	// a local string to avoid unnecessarily changing the App's m_curProjectName
-								// and m_curProjectPath.
+	// In order to write the collab settings to the current Adapt It project we need to compose the
+	// path to the project folder for the second parameter of WriteConfigurationFile().
+	wxString newProjectPath;
 	if (!m_pApp->m_customWorkFolderPath.IsEmpty() && m_pApp->m_bUseCustomWorkFolderPath)
 	{
 		newProjectPath = m_pApp->m_customWorkFolderPath + m_pApp->PathSeparator
-								 + m_pApp->m_CollabAIProjectName;
+			+ m_pApp->m_CollabAIProjectName;
 	}
 	else
 	{
 		newProjectPath = m_pApp->m_workFolderPath + m_pApp->PathSeparator
-								 + m_pApp->m_CollabAIProjectName;
+			+ m_pApp->m_CollabAIProjectName;
 	}
+
+// TODO  -- call AdjustForCollaborationTypeChange( ) here - after testing here that it needs to be
+// called, so that it can use the changed collab values (if any other than the flag change) safely.
+// Note: we allow for other changes than the flag to be done concurrently, so long as the same AI
+// project is used - eg. the user could also flip to use bible edit...
+
+	bool bSuccess = TRUE;
+	if (m_bSaveCollabByChapterOnly != m_bTempCollabByChapterOnly)
+	{
+		// The user has changed the collaboration type - so splitting or joining is required
+		bSuccess = AdjustForCollaborationTypeChange(m_bTempCollabByChapterOnly, this);
+	}
+	
 
 	// Call WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile)
 	// to save the settings in the project config file.
