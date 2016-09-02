@@ -59,7 +59,17 @@ Bug fixes in 6.8.1 release ?? ?? 2016
 Export Free Translation was chosen, the free translation at that
 placeholder was lost from the export. It's now included, along
 with any markers which occur there.
-
+* When collaborating with Paratext, if the source text in Paratext
+had an endmarker, such as \x*, left in the text at a location where
+the matching preceding \x marker and the cross reference information
+had been manually removed, then it caused a major problem in
+the transfer of adaptation text to Paratext at File > Save. All target
+text content following the rogue \x* marker would not get
+transferred - even if the user had adapted well beyond that point.
+Code has now been added to skip such rogue markers, and the
+data transfer now does not get truncated. (However, it is always
+wise to check the source text for markup errors before setting up
+a collaboration with Paratext or Bibledit.)
 
 ----------------------------------------------
 Version 6.8.0 release 1 July 2016

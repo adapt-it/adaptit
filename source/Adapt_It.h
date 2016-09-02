@@ -4450,7 +4450,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 private:
 	wxString m_targetTextBuffer_PreEdit;
 	wxString m_freeTransTextBuffer_PreEdit;
-	wxString m_sourceTextBuffer_PostEdit; // export the source text, in collaboration, to here
+	wxString m_sourceTextBuffer_PostEdit; // export the source text, in collaboration, to here; now public as conflict res dialog needs it
 public:
 	void     StoreTargetText_PreEdit(wxString s);
 	void     StoreFreeTransText_PreEdit(wxString s);

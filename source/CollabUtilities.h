@@ -96,6 +96,15 @@ enum Complexity {
 	bothAreComplex
 };
 
+enum KosherForCollab
+{
+	ignoredoc,
+	nonkosher,
+	kosher_bychapter,
+	kosher_wholebook
+};
+
+
 /// a struct for use in collaboration conflict resolution dialog
 struct CollabAction  {
 	wxString	preVerseOneText;      // the \c and any other pre-verse-1 information
@@ -394,6 +403,9 @@ class CSetupEditorCollaboration;
 					wxArrayPtrVoid& conflictsArr);
 	void MeldConflictsUserCancelBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
 					wxArrayPtrVoid& conflictsArr);
+
+
+	KosherForCollab TriageDocFile(wxString& doc);
 
 #endif
 

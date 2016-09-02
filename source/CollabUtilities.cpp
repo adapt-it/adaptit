@@ -111,7 +111,7 @@ extern bool gbDoingInitialSetup;
 
 	// BEW 15Sep14, for 6.5.4, refactored the OnOK() and the whole-doc option of the
 	// GetSourceTextFromEditor.cpp class, so that the handlers that do most of the work
-	// can be deleted to the next OnIdle() call, giving time for the parent dialog to
+	// can be delegated to the next OnIdle() call, giving time for the parent dialog to
 	// disappear before source text is grabbed from the external editor and especially
 	// before a target text export is done to form the preEdit chapter text - since the
 	// latter could put up a Place Medial Markers dialog, and we don't want to see it
@@ -4183,6 +4183,7 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 	}
 
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
+	/* TEMPORARY COMMENT OUT
 		int ct;
 		int aCount = (int)UsfmStructureAndExtentArray.GetCount();
 		for (ct = 0; ct < aCount ; ct++)
@@ -4190,6 +4191,7 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 			wxString str = UsfmStructureAndExtentArray.Item(ct);
 			wxLogDebug(str.c_str());
 		}
+	*/
 #endif
 
 	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
@@ -5410,6 +5412,10 @@ bool GetMatchedChunksUsingVerseInfArrays(
 					--fromEditorEnd;
 					--preEditEnd;
 					--sourceTextEnd;
+					DeleteAllVerseInfStructs(postEditVerseArr); // don't leak memory
+					DeleteAllVerseInfStructs(fromEditorVerseArr); // don't leak memory
+					DeleteAllVerseInfStructs(preEditVerseArr); // don't leak memory
+					DeleteAllVerseInfStructs(sourceTextVerseArr); // don't leak memory
 					return TRUE;
 				}
 				// If no match, outer loop must iterate - see next comment
@@ -5953,9 +5959,9 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 /// the external editor, the merge of the source text to Adapt It will not force those new
 /// punctuations into the AI document with 100% reliability, though most do go in, but the
 /// adaptations need manual punctuation changes to ensure they are right. Also, the File >
-/// Save does not not transfer the punctuation changes to either the adaptation project
-/// nor the free translation project in the external editor. They can be manually changed
-/// there however.
+/// Save now tried to transfer the punctuation changes to either the adaptation project
+/// or the free translation project in the external editor. (They can be manually changed
+/// there if necessary).
 ///
 /// Note 2: in case you are wondering why we do things this way... the problem is we can't
 /// merge the user's edits of target text and/or free translation text back into the Adapt
@@ -6100,7 +6106,16 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// were to be shown, this will be needed (and more processing of the export
 	// will be done below). The store is done in app variable m_sourceTextBuffer_PostEdit
 	wxString cleansed_src = MakeSourceTextForCollabConflictResDlg();
+
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	// BEW 25Aug16 The JHN source text from Paratext is getting truncated after 10.16 and the following
+	// \p marker, for no apparent reason; so v 17 onwards to the end of the book is absent. Find why.
+	wxLogDebug(_T("cleansed_src: after MakeSourceTextForCollabConflictResDlg()\n%s\n"), cleansed_src.c_str());
+#endif
+
 	gpApp->StoreSourceText_PostEdit(cleansed_src); // put it in m_sourceTextBuffer_PostEdit
+
+
 
 	wxString bookCode;
 	bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
@@ -6445,7 +6460,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
 			wxLogDebug(_T("StructureAndExtent, for postEdit "));
 #endif
-	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);;
+	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
 	wxLogDebug(_T("StructureAndExtent, in MakeUpdatedTextForExternalEditor(), doing for fromEditor "));
 #endif
@@ -10264,58 +10279,20 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 // that extra stuff present. So grab the functions which filter that stuff out and put them
 // here. (See the code at top of MakeUpdatedTextForExternalEditor() for code blocks which
 // call them - copy to here.)
+// BEW 30Aug16 refactored to use ExportTargetText_For_Collab() which is well behaved if
+// an errant endmarker, such as \x* is in the external editor's source text. My earlier
+// version, if the errant marker is in the AI document, would fail to send content after 
+// such a marker was encountered - and I never was able to figure why - stepping *did not*
+// work.
 wxString MakeSourceTextForCollabConflictResDlg()
 {
 	wxString srcText = _T("");
-	int textLen = RebuildSourceText(srcText); // NULL for 2nd param, means m_pSourcePhrases SPList* is used
-	wxUnusedVar(textLen);
+	// BEW changed 30Aug16 because \x* lacking preceding \x causes target text loss from the
+	// call of ApplyOutputFilterToText() which is supposed to get rid of it (and does) but
+	// loses data inexplicably. So I'll not rebuild, but instead grab the process src text
+	// wxString from the external editor - it gets processed without dropping data.
+	srcText = ExportTargetText_For_Collab(gpApp->m_pSourcePhrases);
 
-	// Cause \note, \free, \bt etc (the custom ones to be removed)
-	ExcludeCustomMarkersFromExport();
-	// Also have \rem excluded
-	wxString rem = _T("rem"); // bareMkr for \rem
-	int index = FindMkrInMarkerInventory(rem);
-	if (index != wxNOT_FOUND)
-	{
-		m_exportFilterFlags[index] = 1;
-	}
-	// The ApplyOutputFilterToText() call gets the exclusions done
-	bool bRTFOutput = FALSE;
-	srcText = ApplyOutputFilterToText(srcText, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
-	// Remove footnote contents, leave markers, (the default option), but if
-	// m_bNoFootnotesInCollabToPTorBE is TRUE, then remove the markers too
-	wxString footnote = _T("\\f ");
-	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
-	bool bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
-	if (bIsFiltered)
-	{
-		// Check for existence of the marker within the document
-		int index = FindMkrInMarkerInventory(footnote); // signature accepts \mkr or mkr,
-		if (index != wxNOT_FOUND)
-		{
-			// Remove the content from all footnote markers; they all begin with "\f"
-			// But if the flag is TRUE, then also remove the footnote markers as well
-			if (gpApp->m_bNoFootnotesInCollabToPTorBE)
-			{
-				// 2nd param is boolean bAlsoRemoveTheMarkers; Ross Jones needs this option
-				// because he doesn't want footnote markers to be transferred in collab mode
-				RemoveContentFromFootnotes(&srcText, TRUE);
-			}
-			else
-			{
-				// This is the default in collab mode for \f stuff, the markers are left
-				// in the export, and any text content is removed
-				RemoveContentFromFootnotes(&srcText); // 2nd param is default FALSE
-			}
-		}
-	}
-	srcText = RemoveMultipleSpaces(srcText);
-
-	// Note: ZWSP restoration is automatically done, if flag TRUE, in RebuildSourceText(), similarly, if the
-	// flag for Forward Slash Delimitation alternating with ZWSP (Dennis Walters requested) is TRUE, then
-	// in RebuildSourceText() the calls DoFwdSlashConsistentChanges(removeAtPunctuation, target) and
-	// followed by FwdSlashtoZWSP(target) are made, so neither is need here
-	
 	// ensure no \id and book code is present for non-chapter-1 chapters when collaborating
 	// by chapter rather than by whole book
 	if (gpApp->m_bCollabByChapterOnly)
@@ -10335,8 +10312,9 @@ wxString MakeSourceTextForCollabConflictResDlg()
 	{
 		srcText = srcText.Mid(offset); // guarantees srcText starts with a marker
 	}
-#if defined(_DEBUG) && defined(JUL15)
-	wxLogDebug(_T("MakeSourceTextForCollabConflictResDlg(): Text Length:  %d\n%s"), textLen, srcText.c_str());
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	int length = srcText.Length();
+	wxLogDebug(_T("MakeSourceTextForCollabConflictResDlg(): Text Length just before returning:  %d\n"), length);
 #endif
 	return srcText;
 }
@@ -10451,4 +10429,20 @@ bool AdjustForCollaborationTypeChange(bool bCurrentCollabByChapterOnly, CSetupEd
 }
 
 
+KosherForCollab TriageDocFile(wxString& doc)
+{
+	if (doc == _T(".") || doc == _T("..") || doc.IsEmpty())
+	{
+		return ignoredoc;
+	}
+	wxString prefix = _T("_Collab_");
+	int prefixLen = 8;
+	wxString extn = _T(".xml");
+	bool bIsTwoDigitBookNum = TRUE;
+	bool bIsThreeDigitBookNum = FALSE;
+	wxString underscore = _T('_');
+
+
+	return nonkosher;
+}
 
