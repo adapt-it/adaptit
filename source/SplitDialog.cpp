@@ -671,7 +671,7 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 		::wxBell();
 	}
 
-	// Close the current document, discarding changes.
+	// Close the current document, discarding changes. (Calls ClobberDocument() )
 	gpApp->CloseDocDiscardingAnyUnsavedChanges();
 
 	// Free memory.
@@ -709,9 +709,8 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 
 bool CSplitDialog::CurrentDocSpansMoreThanOneChapter()
 {
-	
 	/*
-	  Algorythm :
+	  Algorithm :
 		Assume that the number of chapters equals the number of "\\c" markers.
 	*/
 

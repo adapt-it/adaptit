@@ -405,7 +405,14 @@ class CSetupEditorCollaboration;
 					wxArrayPtrVoid& conflictsArr);
 
 
+	/////////////////////////////////////////////////////////////////////////////////////
+	///     Functions for support of changing, on the fly, the collaboration type (ie. between 
+	///		whole-book versus by-chapter-only)
+	/////////////////////////////////////////////////////////////////////////////////////
+
 	KosherForCollab TriageDocFile(wxString& doc);
+	void SplitIntoChapters_ForCollaboration(wxString& docFolderPath, wxString& docFilenameBase, 
+					SPList* pTempSourcePhrasesList);
 
 #endif
 

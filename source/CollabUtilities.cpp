@@ -59,6 +59,7 @@
 #include "WaitDlg.h"
 #include "XML.h"
 #include "SplitDialog.h"
+#include "JoinDialog.h"
 #include "ExportFunctions.h"
 #include "PlaceInternalMarkers.h"
 #include "Uuid_AI.h" // for uuid support
@@ -10429,6 +10430,23 @@ bool AdjustForCollaborationTypeChange(bool bCurrentCollabByChapterOnly, CSetupEd
 }
 
 
+// Whole books would have a structure like this: _Collab_44_JHN.xml, or in the case of Psalms
+// it would be _Collab_19_PSA.xml, but book numbers can go over 100 so we must allow for
+// book numbers of two or three digits to be kosher, and if over 100, then the first digit must
+// not be greater than 1.
+// "by chapter only" mode just adds:  _CHnn preceding the .xml, where nn is >= 01 and <= 66, but
+// in the case of Psalms, it is _CHnnn where nnn is between 001 and 150 inclusive.
+// TriageDocFile will examine the input filename to check for compliance with these
+// constraints - if compliant, an enum value is returned, either: kosher_bychapter, or 
+// kosher_wholebook, depending on whether _CHnn or _CHnnn is present, or neither is present,
+// respectively. Anything added to an otherwise compliant filename is regarded as invalid,
+// and the value nonkosher is returned. The value ignoredoc is returned if the filename is
+// empty or either one or two dots. The caller will use the returned value to store the
+// compliant filenames in one of two arrays. One for "whole book" filenames, the other for
+// "by chapter only" filenames.
+// Actually, since only Psalms would have chapter numbers longer than two digits, I might
+// as well check explicitly for Psalms, and bleed that one out early. Then other books will
+// have two-digit book numbers, and a max chapter value of 66 - which makes for easier tests
 KosherForCollab TriageDocFile(wxString& doc)
 {
 	if (doc == _T(".") || doc == _T("..") || doc.IsEmpty())
@@ -10436,13 +10454,83 @@ KosherForCollab TriageDocFile(wxString& doc)
 		return ignoredoc;
 	}
 	wxString prefix = _T("_Collab_");
-	int prefixLen = 8;
+	int prefixLen = prefix.Length();
 	wxString extn = _T(".xml");
-	bool bIsTwoDigitBookNum = TRUE;
-	bool bIsThreeDigitBookNum = FALSE;
 	wxString underscore = _T('_');
+	wxString lcXml = _T(".xml");
+	wxString ucXml = _T(".XML");
+	int offset = wxNOT_FOUND;
 
+	// First test. Presence of _Collab_ prefix
+	offset = doc.Find(prefix);
+	if (offset == wxNOT_FOUND || offset != 0)
+	{
+		// non-compliant
+		return nonkosher;
+	}
+	// Handle Psalms
+	wxString psalmsBegin = _T("_Collab_19_PSA");
+	offset = doc.Find(psalmsBegin);
+	if (offset == 0)
+	{
+		// Compliant so far...keep checking
+		wxString strAfterBegin = doc.Mid(offset); // LHS should be either ".xml" or "_CHnnn.xml"
+		if ((strAfterBegin.Length() == 4) && (strAfterBegin == lcXml) || (strAfterBegin == ucXml))
+		{
+			// It's the whole book of Psalms
+			return kosher_wholebook;
+		}
+		else
+		{
+			// Test for single-chapter filename, for Psalms
+			offset = strAfterBegin.Find(_T("_CH"));
+			if (offset == 0)
+			{
+				// Compliant so far... keep checking
+				wxString NNNtoEnd = strAfterBegin.Mid(3); // should only be nnn.xml or nnn.XML left, if it's kosher
+				// use wxIsdigit(str.GetChar(index))
+				// We'll settle for there being 3 digits, followed by .xml or .XML
+				if (
+					wxIsdigit(NNNtoEnd.GetChar(0)) &&
+					wxIsdigit(NNNtoEnd.GetChar(1)) &&
+					wxIsdigit(NNNtoEnd.GetChar(2))
+					)
+				{
+					// Compliant so far...
+					wxString the_end = NNNtoEnd.Mid(3);
+					if (the_end == lcXml || the_end == ucXml)
+					{
+						// I'm convinced, it's a single chapter document from the book of Psalms
+						return kosher_bychapter;
+					}
+				}
+			}
+		}
+	}
+	// If the checks for Psalms didn't succeed, then only books with two digit numbers can be kosher
+	wxString strPrefixRemoved = doc.Mid(prefixLen);
+
+	// TODO ... the rest of it - but first get NN numbering working for chapter-books, as Split will
+	// produce N for books with chapters numbering less than 10, but collaboration requires 0N for such books
 
 	return nonkosher;
+}
+
+
+
+void SplitIntoChapters_ForCollaboration(wxString& docFolderPath, wxString& docFilenameBase,
+										SPList* pTempSourcePhrasesList)
+{
+	ChList *Chapters;
+	int cChapterDigits;
+	ChList::Node* pNode;
+	Chapter* pChapter;
+
+
+
+
+
+
+
 }
 
