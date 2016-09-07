@@ -2360,6 +2360,14 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		bSuccessfulTypeChange = AdjustForCollaborationTypeChange(m_bTempCollabByChapterOnly);
 
 		m_pApp->m_bCollaborationTypeChangeInProgress = FALSE; // restore default
+		if (!bSuccessfulTypeChange)
+		{
+			// An error message will have been shown already, so just return FALSE from here
+			wxString msg = _T("AdjustForCollaborationTypeChange(m_bTempCollabByChapterOnly) failed, for %s passed in");
+			msg = msg.Format(msg, wxString(m_bTempCollabByChapterOnly ? _T("TRUE") : _T("FALSE")).c_str());
+			m_pApp->LogUserAction(msg);
+			return FALSE;
+		}
 	}
 
 	// Call WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile)
@@ -2708,11 +2716,7 @@ bool CSetupEditorCollaboration::AdjustForCollaborationTypeChange(bool bCurrentCo
 	// In order to write the collab settings to the current Adapt It project we need to compose the
 	// path to the project folder for the second parameter of WriteConfigurationFile(). We also need
 	// it so we can get to the correct Adaptations folder, where the document files are that we need
-	// to split or join. We use m_CollabAIProjectName - so any change to that in the caller must have
-	// been effected before AdjustForCollaborationTypeChange() is called. If the AI project is
-	// concurrently changed, it's quite possible that the flag value passed in may be already correct,
-	// so we must take that possibility into account further below - if so, we'd not need to split
-	// or join
+	// to split or join.
 	wxString curProjectPath;
 	if (!pApp->m_customWorkFolderPath.IsEmpty() && pApp->m_bUseCustomWorkFolderPath)
 	{
@@ -2791,14 +2795,17 @@ bool CSetupEditorCollaboration::AdjustForCollaborationTypeChange(bool bCurrentCo
 // TriageDocFile will examine the input filename to check for compliance with these
 // constraints - if compliant, an enum value is returned, either: kosher_bychapter, or 
 // kosher_wholebook, depending on whether _CHnn or _CHnnn is present, or neither is present,
-// respectively. Anything added to an otherwise compliant filename is regarded as invalid,
-// and the value nonkosher is returned. The value ignoredoc is returned if the filename is
-// empty or either one or two dots. The caller will use the returned value to store the
-// compliant filenames in one of two arrays. One for "whole book" filenames, the other for
-// "by chapter only" filenames.
-// Actually, since only Psalms would have chapter numbers longer than two digits, I might
+// respectively. Anything added to an otherwise compliant filename is regarded as invalidating
+// that document as a participant in the collaboration, and the value nonkosher is returned. 
+// The value ignoredoc is returned if the filename is empty or either one or two dots. The 
+// caller will use the returned value to store the compliant filenames in one of two arrays.
+// One for "whole book" filenames, the other for "by chapter only" filenames.
+// (Actually, since only Psalms would have chapter numbers longer than two digits, I might
 // as well check explicitly for Psalms, and bleed that one out early. Then other books will
-// have two-digit book numbers, and a max chapter value of 66 - which makes for easier tests
+// have two-digit book numbers, and a max chapter value of 66 - which makes for easier tests)
+// If splitting or joining causes filename conflicts with pre-existing docs, the pre-existing
+// docs will be automatically renamed (prefix "Keep_" to the filename) to keep them from
+// interfering with the split or join. Such adjustments are done in the caller if required
 KosherForCollab CSetupEditorCollaboration::TriageDocFile(wxString& doc)
 {
 	if (doc == _T(".") || doc == _T("..") || doc.IsEmpty())
@@ -2808,12 +2815,13 @@ KosherForCollab CSetupEditorCollaboration::TriageDocFile(wxString& doc)
 	wxString prefix = _T("_Collab_");
 	int prefixLen = prefix.Length();
 	wxString extn = _T(".xml");
-	wxString underscore = _T('_');
+	wxChar underscore = _T('_');
 	wxString lcXml = _T(".xml");
 	wxString ucXml = _T(".XML");
 	int offset = wxNOT_FOUND;
 
-	// First test. Presence of _Collab_ prefix
+	// First test. Presence of _Collab_ prefix. The lack of this disqualifies the document
+	// file from being in the collaboration
 	offset = doc.Find(prefix);
 	if (offset == wxNOT_FOUND || offset != 0)
 	{
@@ -2859,14 +2867,98 @@ KosherForCollab CSetupEditorCollaboration::TriageDocFile(wxString& doc)
 			}
 		}
 	}
-	// If the checks for Psalms didn't succeed, then only books with 
-	// two digit numbers can be kosher
+	// If the check for Psalms didn't succeed, then only books with 
+	// two digit numbers are still in contention, so test for them...
+	// ( NN numbering working for chapter-books, is implemented in SplitDocument.cpp.
+	// Legacy Split will produce N for books with chapters numbering less than 10, but 
+	// collaboration requires 0N for such books, and this is now supported if splitting
+	// is done from collaboration's type change attempt )
 	wxString strPrefixRemoved = doc.Mid(prefixLen);
-
-	// TODO ... the rest of it - but first get NN numbering working for chapter-books, 
-	// as Split will produce N for books with chapters numbering less than 10, but 
-	// collaboration requires 0N for such books
-
+	// What follows should be a 2-digit number with value less than 67 (after Psalms
+	// the book with most chapters is Isaiah, having 66; apocraphal books we will assume
+	// will never have as many chapters as Isaiah, so they should conform to this test
+	// also)
+	if (
+		wxIsdigit(strPrefixRemoved.GetChar(0)) && wxIsdigit(strPrefixRemoved.GetChar(1))
+	   )
+	{
+		// Compliant so far...
+		wxString theNumber = strPrefixRemoved.Left(2);
+		int itsValue = wxAtoi(theNumber);
+		if (itsValue > 66)
+		{
+			// It's not scripture
+			return nonkosher;
+		}
+		else
+		{
+			wxString remainder = strPrefixRemoved.Mid(2);
+			// What follows should be an underscore, check
+			if (remainder.GetChar(0) != underscore)
+			{
+				// It's not a collaboration doc
+				return nonkosher;
+			}
+			wxString bookCodePart = remainder.Mid(1);
+			// What remains should be CCC.xml or CCC.XML, or (for a single chapter
+			// document) CCC_  and anything else invalidates this candidate from
+			// being a collaboration document; CCC being any 3 upper case ascii letters.
+			wxString strBkCode = bookCodePart.Left(3); // get next 3 characters
+			wxString allUpper = strBkCode.Upper(); // return upper case copy of the three
+			// If strBkCode is equal to allUpper, then strBkCode is in upper case, if not
+			// then the candidate is not a collaboration document
+			if (strBkCode != allUpper)
+			{
+				return nonkosher;
+			}
+			else
+			{
+				// Those 3 characters are uppercase. So get what follows and check further
+				wxString strLast = strBkCode.Mid(3);
+				// What strLast should be is either .xml or .XML (if a whole book document)
+				// or _CHnn.xml or _CHnn.XML (nn being two digits)
+				// Handle the whole book case first
+				if (strLast == lcXml || strLast == ucXml)
+				{
+					// It's a whole-book document, so valid for a collaboration
+					return kosher_wholebook;
+				}
+				else
+				{
+					// The only possibility for a valid collab document is that it be a
+					// single-chapter one. Check
+					wxString chapterBit = strLast.Left(3); // hopefully this will be _CH
+					wxString _CH = _T("_CH");
+					if (chapterBit != _CH)
+					{
+						return nonkosher;
+					}
+					wxString digitsBit = strLast.Mid(3);
+					if (
+						wxIsdigit(digitsBit.GetChar(0)) && wxIsdigit(digitsBit.GetChar(1))
+						)
+					{
+						// What's left should only be .xml or .XML, anything else or longer means
+						// that the document is not a collaboration one
+						wxString strFinal = digitsBit.Mid(2);
+						if ((strFinal == lcXml) || (strFinal == ucXml))
+						{
+							// It's a valid single-chapter collaboration document
+							return kosher_bychapter;
+						}
+						// If control gets to here, it's not a collaboration document
+						return nonkosher;
+					}
+					else
+					{
+						// Not a collaboration document
+						return nonkosher;
+					}
+				}
+			}
+		}
+	}
+	// If control gets to here, it's not a collaboration document
 	return nonkosher;
 }
 

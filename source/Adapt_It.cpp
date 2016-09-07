@@ -21521,6 +21521,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         AIpackedDocumentFolderPathOnly = m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
         AIccTableFolderPathOnly = m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
     }
+	// NOTE: log files are deleted in OnExit(), because if the app gets to there, it
+	// has not crashed, and so a usage log doesn't need to be retained. If the app crashes
+	// however, the log file is retained. So periodically, a manual cull of log files can be
+	// if the user is sure they are now irrelevant
 
     m_userProfileFileWorkFolderPath = AIuserProfilesWorkFolderPath;
 
