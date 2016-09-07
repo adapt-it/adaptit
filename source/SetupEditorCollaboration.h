@@ -22,6 +22,14 @@
     #pragma interface "SetupEditorCollaboration.h"
 #endif
 
+enum KosherForCollab
+{
+	ignoredoc,
+	nonkosher,
+	kosher_bychapter,
+	kosher_wholebook
+};
+
 class CSetupEditorCollaboration : public AIModalDialog
 {
 public:
@@ -72,6 +80,26 @@ public:
 	wxSizer* pSetupEditorCollabSizer;
 	wxSize m_computedDlgSize; // stores the computed size of the dialog's sizer - accounting for its current layout state
 
+	// BEW 7Sep16, for support of anytime change of collaboration type 
+	// (by chapter only <-> whole book), the following 5 booleans need
+	// to be TRUE at the click of the "Accept this setup and prepare for another" 
+	// button; and if the user tries to change the type when one of these has
+	// changed, immediately return FALSE so that nothing is change - but give
+	// him an information message to explain why his attempt was rejected
+	bool m_bSameCollaborationEditor;
+	bool m_bSameAIProjectName;
+	bool m_bSameCollabSourceProjectLangName;  // such as TPK
+	bool m_bSameCollabTargetProjectLangName;  // such as TPU
+	bool m_bSameCollabEditorVersion; // don't allow changing of the collab type at 
+					// the same time as the editor is being changed - eg. PT7 -> PT8
+
+	// BEW 7Sep16, the following boolean tracks whether or not the user or
+	// administrator requested a collaboration type change, such as 'whole book'
+	// becoming 'by chapter only', or vise versa. A TRUE value here will initiate
+	// the relevant splitting or joining of the collaborating document set; but only
+	// provided the five bSame... booleans just above are each TRUE!
+	bool m_bDifferentCollabType;
+
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void DoInit(bool bPrompt);
@@ -121,6 +149,21 @@ private:
 	wxButton* pBtnClose;
 	bool m_bCollabChangedThisDlgSession;
 	wxArrayString projList;
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	///     Functions for support of changing, on the fly, the collaboration type (ie. between 
+	///		whole-book versus by-chapter-only)
+	/////////////////////////////////////////////////////////////////////////////////////
+
+	KosherForCollab TriageDocFile(wxString& doc);
+	void SplitIntoChapters_ForCollaboration(wxString& docFolderPath, wxString& docFilenameBase,
+		SPList* pTempSourcePhrasesList);
+
+	// Function for splitting to chapter documents, or joining to whole book documents, if the
+	// user changes the value of the app's m_bCollabByChapterOnly flag
+	// BEW added 23Aug16 so users can change the value on the fly at any time
+	bool AdjustForCollaborationTypeChange(bool bCurrentCollabByChapterOnly);
+
 
 	// class attributes
 	// wxString m_stringVariable;

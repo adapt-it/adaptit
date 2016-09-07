@@ -44,6 +44,8 @@
 #include "Adapt_It.h"
 #include "MainFrm.h"
 #include "Adapt_ItView.h"
+#include "SplitDialog.h"
+#include "JoinDialog.h"
 #include "SetupEditorCollaboration.h"
 #include "CollabUtilities.h"
 #include "CreateNewAIProjForCollab.h"
@@ -208,6 +210,8 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	m_SaveCollabChapterSelected = m_pApp->m_CollabChapterSelected;
 
 	m_bCollabChangedThisDlgSession = FALSE;
+
+	m_pApp->m_bCollaborationTypeChangeInProgress = FALSE; // initialize
 
 	// For InitDialog() empty the m_TempCollabAIProjectName
 	m_TempCollabAIProjectName = _T("");
@@ -2261,6 +2265,55 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		return FALSE; // don't accept any changes - return FALSE to the caller
 	}
 
+	// BEW added 7Sep16 check for an attempt to dynamically alter the configuration
+	// type, to or from whole-book mode; we only allow it provided the editor is unchanged,
+	// the editor version is unchanged, the same PT project names are in effect, and the
+	// same AI project is current. An attempt to do such a dynamic change if one of those
+	// differs, must be rejected and control would need to return to the caller, returning 
+	// FALSE
+	m_bSameCollaborationEditor = m_SaveCollaborationEditor == m_TempCollaborationEditor;
+	m_bSameAIProjectName = m_SaveCollabAIProjectName == m_TempCollabAIProjectName;
+	m_bSameCollabSourceProjectLangName = m_SaveCollabSourceProjLangName == m_TempCollabSourceProjLangName;  // such as TPK
+	m_bSameCollabTargetProjectLangName = m_SaveCollabTargetProjLangName == m_TempCollabTargetProjLangName;  // such as TPU
+	m_bSameCollabEditorVersion = m_SaveCollabEditorVersion == m_TempCollabEditorVersion; // don't allow 
+				// changing of the collab type when the editor is to be changed also - eg. PT7 -> PT8
+
+									 // BEW 7Sep16, the following boolean tracks whether or not the user or
+									 // administrator requested a collaboration type change, such as 'whole book'
+									 // becoming 'by chapter only', or vise versa. A TRUE value here will initiate
+									 // the relevant splitting or joining of the collaborating document set; but only
+									 // provided the five bSame... booleans just above are each TRUE!
+	// Is the user or administrator wanting to change the collaboration type now?
+	bool m_bDifferentCollabType = m_bSaveCollabByChapterOnly != m_bTempCollabByChapterOnly;
+	// Check that a wish to change the type is kosher, if not, return FALSE here
+	bool bAllsWell = TRUE;
+	if (m_bDifferentCollabType)
+	{
+		if (!m_bSameCollaborationEditor)
+			bAllsWell = FALSE;
+		if (!m_bSameAIProjectName)
+			bAllsWell = FALSE;
+		if (!m_bSameCollabEditorVersion)
+			bAllsWell = FALSE;
+		if (!m_bSameCollabSourceProjectLangName)
+			bAllsWell = FALSE;
+		if (!m_bSameCollabTargetProjectLangName)
+			bAllsWell = FALSE;
+	}
+	if (!bAllsWell)
+	{
+		// Inform user and return FALSE, so that nothing gets changed at this attempt
+		wxString msg;
+		wxASSERT(m_bDifferentCollabType == TRUE);
+		wxString strFrom = m_bSaveCollabByChapterOnly ? _("Get by Chapter Only") : _("Get by Whole Book");
+		wxString strTo = m_bSaveCollabByChapterOnly ? _("Get by Whole Book") : _("Get by Chapter Only");
+		msg = msg.Format(_("You tried to change the collaboration type from [ %s ] to [ %s ].\nThis kind of change is allowed only under the following conditions:\nThe external editor, and its version, are unchanged; the Adapt It project is unchanged;\nand both the source language, and the target language, of the external editor are unchanged.\nAborting this present configuration change now. Try again, but do just one change at a time."),
+			strFrom.c_str(), strTo.c_str());
+		wxMessageBox(msg, _("Conflicting configuration changes"), wxICON_EXCLAMATION | wxOK);
+		m_pApp->LogUserAction(msg);
+		return FALSE;
+	}
+
 	// Store collab settings in the App's members
 	m_pApp->m_bCollaboratingWithParatext = FALSE; // Start with this project's newly set collaboration set to OFF
 	m_pApp->m_bCollaboratingWithBibledit = FALSE; // Start with this project's newly set collaboration set to OFF
@@ -2294,18 +2347,20 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 			+ m_pApp->m_CollabAIProjectName;
 	}
 
-// TODO  -- call AdjustForCollaborationTypeChange( ) here - after testing here that it needs to be
-// called, so that it can use the changed collab values (if any other than the flag change) safely.
-// Note: we allow for other changes than the flag to be done concurrently, so long as the same AI
-// project is used - eg. the user could also flip to use bible edit...
-
-	bool bSuccess = TRUE;
-	if (m_bSaveCollabByChapterOnly != m_bTempCollabByChapterOnly)
+	// BEW 7Sep16, Call AdjustForCollaborationTypeChange( ) here - after testing above that 
+	// it needs to be called
+	bool bSuccessfulTypeChange = TRUE;
+	if (m_bDifferentCollabType)
 	{
-		// The user has changed the collaboration type - so splitting or joining is required
-		bSuccess = AdjustForCollaborationTypeChange(m_bTempCollabByChapterOnly, this);
+		// The user has changed the collaboration type - so splitting or joining is required;
+		// so do it here so that the documents conform to the new setting for the collab type
+		m_pApp->m_bCollaborationTypeChangeInProgress = TRUE; // SplitDialog needs to know this
+
+		// Split or Join all the documents that take part in this collaboration
+		bSuccessfulTypeChange = AdjustForCollaborationTypeChange(m_bTempCollabByChapterOnly);
+
+		m_pApp->m_bCollaborationTypeChangeInProgress = FALSE; // restore default
 	}
-	
 
 	// Call WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile)
 	// to save the settings in the project config file.
@@ -2619,3 +2674,221 @@ void CSetupEditorCollaboration::OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(eve
     }
 	DoInit(TRUE); // TRUE = prompt reminder to use Select from List buttons
 }
+
+// Function for splitting to chapter documents, or joining to whole book documents, if the
+// user changes the value of the app's m_bCollabByChapterOnly flag
+// Return TRUE if the needed split or join was done successfully, return FALSE if not a
+// collaboration project or there was some other error. When called, the value of the
+// bCurrentCollabByChapterOnly boolean passed in will already have been changed to what
+// the user or administrator wanted the new value to be, and it will have been verified
+// that a new value is wanted (and the earlier value the 'other' one), and that the 
+// felicity conditions for making the change have been checked and all verified. So, if
+// 'by chapter only' is now wanted, we know for sure that the collaborating documents at
+// entry to the function are all 'whole book' ones; likewise if 'whole book' option is
+// wanted, the collaborating documents are all single-chapter ones. Remember, there could
+// be other non-collaborating documents lurking in the Adaptations folder, so those must
+// be weeded out, but retained - with a name change if necessary, but not deleted because
+// they may contribute useful data if the user were to do a Restore Knowledge Base command.
+// While this function is doing its work, the app variable: m_bCollaborationTypeChangeInProgress
+// will be TRUE, and when this function is exited, that variable is immediately restored to FALSE
+// (The only place affected by this boolean is chapter number construction in SplitDialog.cpp)
+// BEW added 7Sep16 so users can change the value on the fly at any time
+bool CSetupEditorCollaboration::AdjustForCollaborationTypeChange(bool bCurrentCollabByChapterOnly)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (!(m_bTempCollaboratingWithParatext || m_bTempCollaboratingWithBibledit))
+	{
+		// Return FALSE because this currently open project has not been setup to be a collaboration project
+		return FALSE;
+	}
+	wxASSERT(!pApp->m_collaborationEditor.IsEmpty()); // there must be a collaborating software 
+													  // editor (BibleEdit or ParaTExt)
+	wxArrayString allDocsArr; // collect all the document files in the Adaptations folder into here
+
+	// In order to write the collab settings to the current Adapt It project we need to compose the
+	// path to the project folder for the second parameter of WriteConfigurationFile(). We also need
+	// it so we can get to the correct Adaptations folder, where the document files are that we need
+	// to split or join. We use m_CollabAIProjectName - so any change to that in the caller must have
+	// been effected before AdjustForCollaborationTypeChange() is called. If the AI project is
+	// concurrently changed, it's quite possible that the flag value passed in may be already correct,
+	// so we must take that possibility into account further below - if so, we'd not need to split
+	// or join
+	wxString curProjectPath;
+	if (!pApp->m_customWorkFolderPath.IsEmpty() && pApp->m_bUseCustomWorkFolderPath)
+	{
+		curProjectPath = pApp->m_customWorkFolderPath + pApp->PathSeparator
+			+ pApp->m_CollabAIProjectName;
+	}
+	else
+	{
+		curProjectPath = pApp->m_workFolderPath + pApp->PathSeparator
+			+ pApp->m_CollabAIProjectName;
+	}
+	wxString adaptationsPath = curProjectPath + pApp->PathSeparator + _T("Adaptations");
+	wxASSERT(::wxDirExists(adaptationsPath));
+
+	// Fill allDocsArr with the contents of the adaptationsPath folder
+	bool bOK = pApp->EnumerateDocFiles_ParametizedStore(allDocsArr, adaptationsPath);
+	if (!bOK)
+	{
+		wxString msg = _T(
+"AdjustForCollaborationTypeChange(): the EnumerateDocFiles_ParametizedStore() function failed");
+		pApp->LogUserAction(msg);
+		return FALSE;
+	}
+#if defined(_DEBUG) && defined(TYPE_CHANGED)
+	{
+		size_t count = allDocsArr.GetCount();
+		size_t index;
+		for (index = 0; index < count; index++)
+		{
+			wxString name = allDocsArr.Item(index);
+			wxLogDebug(_T("AdjustForCollaborationTypeChange() allDocsArr: doc filename = %s"),
+				name.c_str());
+		}
+	}
+#endif
+
+	if (bCurrentCollabByChapterOnly)
+	{
+		// User wants to change from "whole-book" setting to "by chapter only" setting
+		wxASSERT(pApp->m_bCollabByChapterOnly == FALSE); // the app's setting, 
+				// which is not yet reflecting the user's in-dialog choice, should still
+				// be the "whole book" setting, as starting point
+
+
+
+
+
+	}
+	else
+	{
+		// User wants to change from "by chapter only" setting to "whole-book" setting
+		wxASSERT(pApp->m_bCollabByChapterOnly == TRUE); // the app's setting, which is 
+				// not yet reflecting the user's in-dialog choice, should still be the
+				// "by chapter only" setting, as starting point
+
+
+
+
+
+
+
+	}
+
+
+
+	return TRUE;
+}
+
+
+// Whole books would have a structure like this: _Collab_44_JHN.xml, or in the case of Psalms
+// it would be _Collab_19_PSA.xml, but book numbers can go over 100 so we must allow for
+// book numbers of two or three digits to be kosher, and if over 100, then the first digit must
+// not be greater than 1.
+// "by chapter only" mode just adds:  _CHnn preceding the .xml, where nn is >= 01 and <= 66, but
+// in the case of Psalms, it is _CHnnn where nnn is between 001 and 150 inclusive.
+// TriageDocFile will examine the input filename to check for compliance with these
+// constraints - if compliant, an enum value is returned, either: kosher_bychapter, or 
+// kosher_wholebook, depending on whether _CHnn or _CHnnn is present, or neither is present,
+// respectively. Anything added to an otherwise compliant filename is regarded as invalid,
+// and the value nonkosher is returned. The value ignoredoc is returned if the filename is
+// empty or either one or two dots. The caller will use the returned value to store the
+// compliant filenames in one of two arrays. One for "whole book" filenames, the other for
+// "by chapter only" filenames.
+// Actually, since only Psalms would have chapter numbers longer than two digits, I might
+// as well check explicitly for Psalms, and bleed that one out early. Then other books will
+// have two-digit book numbers, and a max chapter value of 66 - which makes for easier tests
+KosherForCollab CSetupEditorCollaboration::TriageDocFile(wxString& doc)
+{
+	if (doc == _T(".") || doc == _T("..") || doc.IsEmpty())
+	{
+		return ignoredoc;
+	}
+	wxString prefix = _T("_Collab_");
+	int prefixLen = prefix.Length();
+	wxString extn = _T(".xml");
+	wxString underscore = _T('_');
+	wxString lcXml = _T(".xml");
+	wxString ucXml = _T(".XML");
+	int offset = wxNOT_FOUND;
+
+	// First test. Presence of _Collab_ prefix
+	offset = doc.Find(prefix);
+	if (offset == wxNOT_FOUND || offset != 0)
+	{
+		// non-compliant
+		return nonkosher;
+	}
+	// Handle Psalms
+	wxString psalmsBegin = _T("_Collab_19_PSA");
+	offset = doc.Find(psalmsBegin);
+	if (offset == 0)
+	{
+		// Compliant so far...keep checking
+		wxString strAfterBegin = doc.Mid(offset); // LHS should be either ".xml" or "_CHnnn.xml"
+		if ((strAfterBegin.Length() == 4) && (strAfterBegin == lcXml) || (strAfterBegin == ucXml))
+		{
+			// It's the whole book of Psalms
+			return kosher_wholebook;
+		}
+		else
+		{
+			// Test for single-chapter filename, for Psalms
+			offset = strAfterBegin.Find(_T("_CH"));
+			if (offset == 0)
+			{
+				// Compliant so far... keep checking
+				wxString NNNtoEnd = strAfterBegin.Mid(3); // should only be nnn.xml or
+						// nnn.XML remaining, if it's kosher use wxIsdigit(str.GetChar(index))
+						// We'll settle for there being 3 digits, followed by .xml or .XML
+				if (
+					wxIsdigit(NNNtoEnd.GetChar(0)) &&
+					wxIsdigit(NNNtoEnd.GetChar(1)) &&
+					wxIsdigit(NNNtoEnd.GetChar(2))
+					)
+				{
+					// Compliant so far...
+					wxString the_end = NNNtoEnd.Mid(3);
+					if (the_end == lcXml || the_end == ucXml)
+					{
+						// can safely assume a single chapter document from the book of Psalms
+						return kosher_bychapter;
+					}
+				}
+			}
+		}
+	}
+	// If the checks for Psalms didn't succeed, then only books with 
+	// two digit numbers can be kosher
+	wxString strPrefixRemoved = doc.Mid(prefixLen);
+
+	// TODO ... the rest of it - but first get NN numbering working for chapter-books, 
+	// as Split will produce N for books with chapters numbering less than 10, but 
+	// collaboration requires 0N for such books
+
+	return nonkosher;
+}
+
+
+
+void CSetupEditorCollaboration::SplitIntoChapters_ForCollaboration(wxString& docFolderPath, wxString& docFilenameBase,
+	SPList* pTempSourcePhrasesList)
+{
+	/*
+	ChList *Chapters;
+	int cChapterDigits;
+	ChList::Node* pNode;
+	Chapter* pChapter;
+	*/
+
+
+
+
+
+
+}
+
+
+
+

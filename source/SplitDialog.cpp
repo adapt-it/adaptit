@@ -503,7 +503,8 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 	bool bCountedChapter = TRUE;
 	//SPList::Node* save_pos = NULL; // set but not used
 	p = SourcePhrases->GetFirst();
-	while (p) {
+	while (p) 
+	{
 		sp = (CSourcePhrase*)p->GetData();
 		//save_pos = p; // for use in the MoveFinalEndmarkersToEndOfLastChapter() call
 		p = p->GetNext();
@@ -555,6 +556,21 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 				}
 			}
 		}
+		// BEW 7Sep16, test and TRUE block added in support of using DoSplitIntoChapters() within
+		// collaboration with Paratext or Bibledit, which require 2-digit numbers for all books
+		// except Psalms - the latter requiring three digits
+		if (gpApp->m_bCollaborationTypeChangeInProgress)
+		{
+			// If *cChapterDigits gets to 9 or less, then we must (for collaboration)
+			// force a leading zero before 1 to 9, to comply with our filenaming
+			// conventions for collaboration. Psalms, being 3 digits max, will take
+			// care of itself without anything being needed here
+			if (*cChapterDigits <= 1)
+			{
+				(*cChapterDigits) = 2; // make it 2 in collaboration mode, if 1 or 0 was max
+			}
+		}
+
 		// put the chapter's CSourcePhrase instances into the sublist
 		c->SourcePhrases->Append(sp);
 

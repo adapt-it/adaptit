@@ -4324,6 +4324,9 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString m_Collab_BookCode; // the 3-letter book code for the currently open collaborating document
 	wxString m_Collab_LastChapterStr; // the chapter reference string (e.g.  "15", or for a chunk "3-5")
 									  // last encountered when populating CollabAction structs
+	// BEW added 7Sep16 for support of anytime changing the collaboration type
+	// to or from 'whole book' from or to 'by chapter only'
+	bool m_bCollaborationTypeChangeInProgress; 
 
 	// whm 27Mar12 Note:
 	// If Paratext is installed (either on Windows or Linux) we give priority to
