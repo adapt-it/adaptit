@@ -10331,5 +10331,3 @@ void OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event))
 }
 */
 
-
-

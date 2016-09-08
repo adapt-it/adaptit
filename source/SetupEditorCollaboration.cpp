@@ -2347,29 +2347,6 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 			+ m_pApp->m_CollabAIProjectName;
 	}
 
-	// BEW 7Sep16, Call AdjustForCollaborationTypeChange( ) here - after testing above that 
-	// it needs to be called
-	bool bSuccessfulTypeChange = TRUE;
-	if (m_bDifferentCollabType)
-	{
-		// The user has changed the collaboration type - so splitting or joining is required;
-		// so do it here so that the documents conform to the new setting for the collab type
-		m_pApp->m_bCollaborationTypeChangeInProgress = TRUE; // SplitDialog needs to know this
-
-		// Split or Join all the documents that take part in this collaboration
-		bSuccessfulTypeChange = AdjustForCollaborationTypeChange(m_bTempCollabByChapterOnly);
-
-		m_pApp->m_bCollaborationTypeChangeInProgress = FALSE; // restore default
-		if (!bSuccessfulTypeChange)
-		{
-			// An error message will have been shown already, so just return FALSE from here
-			wxString msg = _T("AdjustForCollaborationTypeChange(m_bTempCollabByChapterOnly) failed, for %s passed in");
-			msg = msg.Format(msg, wxString(m_bTempCollabByChapterOnly ? _T("TRUE") : _T("FALSE")).c_str());
-			m_pApp->LogUserAction(msg);
-			return FALSE;
-		}
-	}
-
 	// Call WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile)
 	// to save the settings in the project config file.
 	bool bOK;

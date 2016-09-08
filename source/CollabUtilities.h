@@ -366,7 +366,6 @@ class CSetupEditorCollaboration;
 	wxString		ChangeFilenameExtension(wxString filenameOrPath, wxString extn);
 	wxString		RemoveIDMarkerAndCode(wxString textForSending);
 
-
 	/////////////////////////////////////////////////////////////////////////////////////
 	///     Function for cleaning out the files aggregated in .temp folder in AI Unicode Work folder
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -377,7 +376,7 @@ class CSetupEditorCollaboration;
 	// at the next normal shutdown
 	void	EmptyCollaborationTempFolder();
 	long	OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp);
-	void	OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
+	//void	OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
 
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -390,7 +389,6 @@ class CSetupEditorCollaboration;
 					wxArrayPtrVoid& conflictsArr);
 	void MeldConflictsUserCancelBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
 					wxArrayPtrVoid& conflictsArr);
-
 
 
 #endif
