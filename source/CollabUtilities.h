@@ -96,15 +96,6 @@ enum Complexity {
 	bothAreComplex
 };
 
-enum KosherForCollab
-{
-	ignoredoc,
-	nonkosher,
-	kosher_bychapter,
-	kosher_wholebook
-};
-
-
 /// a struct for use in collaboration conflict resolution dialog
 struct CollabAction  {
 	wxString	preVerseOneText;      // the \c and any other pre-verse-1 information
@@ -375,11 +366,6 @@ class CSetupEditorCollaboration;
 	wxString		ChangeFilenameExtension(wxString filenameOrPath, wxString extn);
 	wxString		RemoveIDMarkerAndCode(wxString textForSending);
 
-	// Function for splitting to chapter documents, or joining to whole book documents, if the
-	// user changes the value of the app's m_bCollabByChapterOnly flag
-	// BEW added 23Aug16 so users can change the value on the fly at any time
-	bool			AdjustForCollaborationTypeChange(bool bCurrentCollabByChapterOnly, CSetupEditorCollaboration* pSetupDlg);
-
 	/////////////////////////////////////////////////////////////////////////////////////
 	///     Function for cleaning out the files aggregated in .temp folder in AI Unicode Work folder
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -390,7 +376,7 @@ class CSetupEditorCollaboration;
 	// at the next normal shutdown
 	void	EmptyCollaborationTempFolder();
 	long	OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp);
-	void	OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
+	//void	OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
 
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -403,9 +389,6 @@ class CSetupEditorCollaboration;
 					wxArrayPtrVoid& conflictsArr);
 	void MeldConflictsUserCancelBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
 					wxArrayPtrVoid& conflictsArr);
-
-
-	KosherForCollab TriageDocFile(wxString& doc);
 
 #endif
 

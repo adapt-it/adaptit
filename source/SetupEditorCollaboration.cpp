@@ -2294,19 +2294,6 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 			+ m_pApp->m_CollabAIProjectName;
 	}
 
-// TODO  -- call AdjustForCollaborationTypeChange( ) here - after testing here that it needs to be
-// called, so that it can use the changed collab values (if any other than the flag change) safely.
-// Note: we allow for other changes than the flag to be done concurrently, so long as the same AI
-// project is used - eg. the user could also flip to use bible edit...
-
-	bool bSuccess = TRUE;
-	if (m_bSaveCollabByChapterOnly != m_bTempCollabByChapterOnly)
-	{
-		// The user has changed the collaboration type - so splitting or joining is required
-		bSuccess = AdjustForCollaborationTypeChange(m_bTempCollabByChapterOnly, this);
-	}
-	
-
 	// Call WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile)
 	// to save the settings in the project config file.
 	bool bOK;
