@@ -16636,8 +16636,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                            // will be TRUE (see project config file)
     gnOffsetToUCcharSrc = wxNOT_FOUND;     // initialize
     gbUCSrcCapitalAnywhere = FALSE; // initialize to legacy 'only word-initial capital checked for'
-	m_bCollaborationTypeChangeInProgress = FALSE; // initialize
-
+	
 	m_bParsingSource = FALSE;
 	m_chapterNumber_for_ParsingSource = _T("0");
 	m_verseNumber_for_ParsingSource = _T("0");

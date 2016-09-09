@@ -556,6 +556,13 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 				}
 			}
 		}
+		/* 
+		// BEW removed 9Sep16, the dynamic change of collab type proved to be too risk-prone, 
+		// so I removed it. However, split and join should work equally well if we were to force
+		// two digit chapter numbers, so Galatians01 to Galatians07, for example. So I'll leave
+		// this block commented out, in case we ever want to do that. This bit of code would be
+		// all that is required to implement that (removing the no longer needed test of course)
+
 		// BEW 7Sep16, test and TRUE block added in support of using DoSplitIntoChapters() within
 		// collaboration with Paratext or Bibledit, which require 2-digit numbers for all books
 		// except Psalms - the latter requiring three digits
@@ -570,7 +577,7 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 				(*cChapterDigits) = 2; // make it 2 in collaboration mode, if 1 or 0 was max
 			}
 		}
-
+		*/
 		// put the chapter's CSourcePhrase instances into the sublist
 		c->SourcePhrases->Append(sp);
 
