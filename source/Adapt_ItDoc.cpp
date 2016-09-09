@@ -13788,6 +13788,45 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 	return len;
 }
 
+// TRUE if not punct, or ~, or a marker, or not [ nor ], & not whitespace etc
+// Note: the m_spacelessPuncts used here has already been set to source text 
+// punctuation characters, or target text punctuation characters, according to
+// what TokenizeText() currently, or at last call, used when parsing
+// BEW created 9Sep16, for use in a refactored & simplified ParseWord() function
+// that handles ~ (USFM fixed space) better
+bool CAdapt_ItDoc::IsInWordProper(wxChar* ptr)
+{
+	// First test, is it a punctuation character, or a ~ character
+	if (IsOneOf(ptr, m_spacelessPuncts))
+	{
+		return FALSE; // it's one of those, so not in the word proper
+	}
+	// Test for it being whitespace
+	if (IsWhiteSpace(ptr))
+	{
+		return FALSE;
+	}
+	// Test for it being the first character of an SFM or USFM marker
+	// Test for it being [ or ] or a solidus (forward slash)
+	if ((*ptr == _T('\\')))
+	{
+		return FALSE;
+	}
+	// Test for it being [ or ] or a solidus (forward slash)
+	if ((*ptr == _T('[')) || (*ptr == _T(']')) || (*ptr == _T('/')))
+	{
+		return FALSE;
+	}
+	return TRUE; // the only possibility left is that it is a word-building character
+}
+
+// TRUE if it is a ~ (tilde), the USFM fixed-space character
+bool CAdapt_ItDoc::IsFixedSpace(wxChar* ptr)
+{
+	return *ptr == _T('~');
+}
+
+
 /// returns     TRUE if the marker is \f* or \fe* or \x* for USFM set, or if PNG 1998 set
 ///             is current, if the marker is \F or \fe
 /// ptr        ->  the scanning pointer for the parse
@@ -16380,6 +16419,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	bool bIsNestedMkr = FALSE;
 	wxString tagOnly;
 	wxString baseOfEndMkr;
+	m_bTokenizingTargetText = bTokenizingTargetText; // set the member boolean, so 
+				// that IsInWordProper()  can get hold of the current value of the flag
+
 
 	// BEW added 10Jul14, store delimiter(s) which precede the being-parsed current word
 	wxString precWordDelim;
@@ -16408,6 +16450,21 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	else
 	{
 		spacelessPuncts = MakeSpacelessPunctsString(pApp, sourceLang);
+	}
+	// populate the member string, m_spacelessPuncts, so that the function
+	// IsInWordProper(), returning boolean, can use it when a parse is being done
+	// (and ensure that ~ the fixed-space USFM marker, is in the character set --
+	// because we treat it like a punctuation character because of where we store
+	// it and strip it off, etc, and only in word~word(~word) structures do we
+	// handle it as a non-punctuation character)
+	m_spacelessPuncts = spacelessPuncts;
+	int offsettotilde = wxNOT_FOUND;
+	wxString aTilde = _T('~');
+	offsettotilde = m_spacelessPuncts.Find(aTilde);
+	if (offsettotilde == wxNOT_FOUND)
+	{
+		m_spacelessPuncts += aTilde; // add it to the character set of punctuation 
+									 // characters if it is not already there
 	}
 	wxString boundarySet = spacelessPuncts;
 	while (boundarySet.Find(_T(',')) != -1)

@@ -227,6 +227,12 @@ protected:
 	//bool			IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers);
 	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
+	// BEW 9Seo16 added next four
+	bool			IsInWordProper(wxChar* ptr); // TRUE if not punct, ~, marker,  not [ or ], not whitespace etc
+	inline bool		IsFixedSpace(wxChar* ptr); // TRUE if it is a ~ (tilde), the USFM fixed-space character
+	wxString		m_spacelessPuncts; // populated by a TokenizeText() call (IsInWordProper() uses it)
+	bool			m_bTokenizingTargetText; // set by fourth parameter of a TokenizeText() call (IsInWordProper() uses it)
+
 	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, 
 							wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr, 
 							wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts,

@@ -2046,6 +2046,13 @@ wxString MakeSpacelessPunctsString(CAdapt_ItApp* pApp, enum WhichLang whichLang)
 	return spacelessPuncts;
 }
 
+// used in IsInWordProper() of doc class; return TRUE if *ptr is within str, else FALSE
+bool IsOneOf(wxChar* ptr, wxString& str)
+{
+	int offset = str.Find(*ptr);
+	return offset != wxNOT_FOUND;
+}
+
 // Return FALSE if no character within charSet (these should be a string of characters,
 // typically punctuation ones by design, and no space character in the inventory) is a
 // match for the wxChar pointed at by pStart. Return TRUE if it is a match, and in that

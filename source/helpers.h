@@ -173,6 +173,8 @@ bool	  IsAnsiLettersOrDigitsOnly(wxString s);
 
 bool      IsValidFileName(wxString s);
 
+bool	  IsOneOf(wxChar* ptr, wxString& str); // used in IsInWordProper() of doc class; 
+											   // return TRUE if *ptr is within str, else FALSE
 bool      IsUsfmDocument(SPList* pList, bool* pbIsEither); // if FALSE is returned, examine *pbIsEither
 	// value, if TRUE then the outcome was indeterminate (either set could be selected meaningfully),
 	// if FALSE, then PNG 1998 SFM set is indicated
