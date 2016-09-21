@@ -706,7 +706,8 @@ void GuesserAffixesListsDlg::OnListItemSelected(wxListEvent& event)
 void GuesserAffixesListsDlg::DeselectButtonsAfterClick()
 {
 	// m_pSrcAffix->ChangeValue(GetCellContentsString(GetSelectedItemIndex(), 0));  -- mh - these lines cause an assert to trigger on Linux, and I'm not sure they're necessary.
-	// m_pTgtAffix->ChangeValue(GetCellContentsString(GetSelectedItemIndex(), 1));
+	// m_pTgtAffix->ChangeValue(GetCellContentsString(GetSelectedItemIndex(), 1));7
+
 	m_pBtnInsert->Enable(FALSE);
 	m_pBtnUpdate->Enable(FALSE);
 	m_pBtnDelete->Enable(FALSE);
