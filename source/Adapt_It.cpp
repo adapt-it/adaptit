@@ -13423,7 +13423,10 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             + m_curProjectName;
     }
     projConfigPathAndName = curProjPathAndName + PathSeparator + szProjectConfiguration + _T(".aic");
-
+#if defined(_DEBUG)
+	wxLogDebug(_T("GetAIProjectCollabStatus(): app:m_bDoNormalSProjectOpening = %s"), 
+		wxString(m_bDoNormalProjectOpening ? _T("TRUE") : _T("FALSE")).c_str());
+#endif
     // whm added 11Mar12 if there is no project config file, it obviously is not a collab project
     // so return collabProjNotConfigured to caller to issue message to user there.
     if (!::wxFileExists(projConfigPathAndName))
@@ -13655,6 +13658,43 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 
         // At this point the collab settings have been examined, found flags set and strings stored.
         f.Close();
+
+		// BEW added 15Aug16, it should not be assumed that collaboration restoration is wanted
+		// every time a SHIFT_Launch to bypass the config files is done. Ask the user here...
+		if (!m_bDoNormalProjectOpening)
+		{
+			wxString aTitle = _("Restore collaboration also?");
+			wxString aMsg = _("If a collaboration was set up with Paratext or Bibledit, do you want it to be restored now, if possible?");
+			if (wxMessageBox(aMsg, aTitle, wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
+			{
+				; // continue processing
+			}
+			else
+			{
+				// Trick Adapt It into thinking essential collaboration recovery string values
+				// are empty, and their associated booleans are false (despite the .ini file
+				// having maybe valid values)
+				bFoundCollabSrcProj = FALSE;
+				bFoundCollabTgtProj = FALSE;
+				bFoundCollabAiProj = FALSE;
+				bFoundCollabSrcLangName = FALSE;
+				bFoundCollabTgtLangName = FALSE;
+				CollabSrcProjStrFound = wxEmptyString;
+				CollabTgtProjStrFound = wxEmptyString;
+				CollabSrcLangNameStrFound = wxEmptyString;
+				CollabTgtLangNameStrFound = wxEmptyString;
+				CollabAiProjStrFound = wxEmptyString;
+
+				// Next bool is tested for TRUE in DocPage.cpp to suppress collab filename
+				// removals in SHIFT-Launch when no collaboration restoration is wanted
+				m_bUserWantsNoCollabInShiftLaunch = TRUE; // the only place this gets set TRUE
+				return collabProjNotConfigured;
+			}
+		}
+		else
+		{
+			m_bDoNormalProjectOpening = TRUE;
+		}
 
         // Do some sanity checks to ensure that the crucial strings are consistent and
         // represent valid projects (guarding against corruption or erroneous editing of the
@@ -16478,6 +16518,28 @@ bool CAdapt_ItApp::KbServerRunning(int whichType)
         return m_pKbServer[1] != NULL;
     }
 }
+
+// GDLC 20JUL16 Added KbAdaptRunning() and KbGlossRunning() to simplify the many
+// instances of tests to find out whether a particular type of KB server is running.
+
+//  KbAdaptRunning(void)
+// Returns true if Adapt It is in adaptation mode and
+// an adaptations KB server is running.
+
+bool CAdapt_ItApp::KbAdaptRunning()
+{
+    return (!gbIsGlossing && KbServerRunning(1));
+}
+
+//  KbGlossRunning(void)
+// Returns true if Adapt It is in glossing mode and
+// a glossing KB server is running.
+
+bool CAdapt_ItApp::KbGlossRunning()
+{
+    return (gbIsGlossing && gpApp->KbServerRunning(2));
+}
+
 // Return TRUE if there was no error, FALSE otherwise. The function is used for doing
 // cleanup, and any needed making of data persistent between adapting sessions within a
 // project which is a KB sharing project, when the user exits the project or Adapt It is
@@ -16574,7 +16636,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                            // will be TRUE (see project config file)
     gnOffsetToUCcharSrc = wxNOT_FOUND;     // initialize
     gbUCSrcCapitalAnywhere = FALSE; // initialize to legacy 'only word-initial capital checked for'
-
+	
 	m_bParsingSource = FALSE;
 	m_chapterNumber_for_ParsingSource = _T("0");
 	m_verseNumber_for_ParsingSource = _T("0");
@@ -16583,6 +16645,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_filename_for_ParsingSource = _T("Log_For_Document_Creation.txt"); 
 	m_bSetupDocCreationLogSucceeded = FALSE;
 	m_bMakeDocCreationLogfile = FALSE; // a checkbox in ViewPage.cpp turns it on
+	m_bALT_KEY_DOWN = FALSE;
+
+	m_bDoNormalProjectOpening = TRUE; // default value
+	m_bUserWantsNoCollabInShiftLaunch = FALSE; // set TRUE in GetAIProjectCollabStatus() is
+				// called with the user's finger still holding down the SHIFT key in a 
+				// SHiFT-Launch; in order to carry his choice for "no collaboration restoration
+				// wanted" (the non-default option) to the DocPage.cpp OnSetActive() block which
+				// removes _Collab_*.xml documents, so as to not remove them and to have
+				// m_bCollaboratingWithParatext and m_bCollaboratingWithBibledit both cleared to FALSE
 
 #if defined(_KBSERVER)
                                     // Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
@@ -21449,6 +21520,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         AIpackedDocumentFolderPathOnly = m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
         AIccTableFolderPathOnly = m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
     }
+	// NOTE: log files are deleted in OnExit(), because if the app gets to there, it
+	// has not crashed, and so a usage log doesn't need to be retained. If the app crashes
+	// however, the log file is retained. So periodically, a manual cull of log files can be
+	// if the user is sure they are now irrelevant
 
     m_userProfileFileWorkFolderPath = AIuserProfilesWorkFolderPath;
 
@@ -24273,6 +24348,10 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
             bDoNormalStart = FALSE;
         }
     }
+#if defined(_DEBUG)
+	wxLogDebug(_T("GetBasicConfiguration(): local bDoNormalStart = %s"), wxString(bDoNormalStart ? _T("TRUE") : _T("FALSE")).c_str());
+#endif
+
 
     if (bDoNormalStart) // not a Shift-Down startup
     {
@@ -24353,14 +24432,21 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
         if (result == wxNO)
         {
             bDoNormalProjectOpening = TRUE;
-        }
+			m_bDoNormalProjectOpening = TRUE;
+		}
         else if (result == wxYES)
         {
-            bDoNormalProjectOpening = FALSE;
-        }
+			bDoNormalProjectOpening = FALSE;
+			m_bDoNormalProjectOpening = FALSE;
+		}
     }
 
-    if (bDoNormalProjectOpening) // not a Shift-Down startup
+#if defined(_DEBUG)
+	wxLogDebug(_T("GetProjectConfiguration(): app:m_bDoNormalProjectOpening = %s"), 
+		wxString(m_bDoNormalProjectOpening ? _T("TRUE") : _T("FALSE")).c_str());
+#endif
+
+	if (bDoNormalProjectOpening) // not a Shift-Down startup
     {
         // whm added 9Mar10 to ensure that a "foreign" project config file has been cloned,
         // renamed, and modified to have the appropriate (or compatible) fonts for the project.
@@ -35321,6 +35407,9 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 {
+	// Restore the default, which is Shift_Launch no longer on, if it was on
+	m_bDoNormalProjectOpening = TRUE; // BEW 16Aug16, support user choice for collaboration restoration
+
     // wx version combines ANSI and UNICODE parts in common to simplify this function
     wxString data = _T("");
     wxString tab = _T("\t");
@@ -43133,6 +43222,10 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
                 {
                     // matched book IDs, so delete the first source phrase in the
                     // doc to be appended's list
+					// BEW 17Aug16, need to delete the CSourcePhrase and its contents
+					// first, otherwise this leaks it all at aeach chapter Join
+					// TRUE in next call means 'delete partner pile also'
+					d->DeleteSingleSrcPhrase(pFirstSrcPhrase, TRUE);
                     ol->DeleteNode(ol->GetFirst()); //ol->RemoveHead();
                 }
             }
@@ -43183,6 +43276,12 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
     {
         // get all the sequence numbers into correct sequence
         d->UpdateSequNumbers(0);
+		/* 
+		// BEW 17Aug16, the safest and best place to jump to is the very first
+		// CSourcePhrase, because when joining - and especially when joining
+		// scripture, this would be the CSourcePhrase carrying the book code.
+		// That avoids a bogus m_adaption value being shown at the active location
+		// in the document after the join is done
         int anActiveSequNum = nOldCount; // the first CSourcePhrase of the just
                                          // joined doc part
         if (anActiveSequNum <= GetMaxIndex())
@@ -43194,9 +43293,12 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
         {
             m_nActiveSequNum = GetMaxIndex();
         }
+		*/
+		// BEW 17Aug16 next line replaces the commented out stuff just above
+		m_nActiveSequNum = 0;
+
         CSourcePhrase* pSrcPhrase = v->GetSrcPhrase(m_nActiveSequNum);
-        v->Jump(this, pSrcPhrase); // Jump to the last join point, if possible;
-                                   // else to a safe location
+        v->Jump(this, pSrcPhrase); // Jump to a safe location
     }
     return TRUE;
 }

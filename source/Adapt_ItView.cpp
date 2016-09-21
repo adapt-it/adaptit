@@ -8087,6 +8087,8 @@ bool CAdapt_ItView::IsMarkerWithSpaceInFilterMarkersString(wxString& mkrWithSpac
 // phrase - our copy copies the selection's target text, not the source text.
 // BEW 21Jul14, refactored for ZWSP support (& take into account whether its in a
 // retranslation or not, or overlapping one) 
+// BEW refactored 31Jul16 so that if called when ALT key is down, it instead copies
+// the selected m_srcPhrase instances to the clipboard
 void CAdapt_ItView::DoSrcPhraseSelCopy()
 {
 	// refactored 7Apr09
@@ -8098,6 +8100,13 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 	CCellList::Node* pos = pCellList->GetFirst();
 	if (pos == NULL)
 		return;
+
+	wxTheClipboard->Clear();
+
+	bool bAltDown = pApp->m_bALT_KEY_DOWN;
+	wxLogDebug(_T("DoSrcPhraseSelCopy(): app::m_bALT_KEY_DOWN = %s"), 
+		(wxString(pApp->m_bALT_KEY_DOWN ? _T("TRUE") : _T("FALSE"))).c_str());
+
 	if (pApp->m_selectionLine == 0)
 	{
 		while (pos != NULL)
@@ -8111,7 +8120,19 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 
 			if (pCell->GetPile() == pApp->m_pActivePile)
 			{
-				if (!pApp->m_targetPhrase.IsEmpty())
+				if (bAltDown)
+				{
+					if (!pSrcPhrase->m_srcPhrase.IsEmpty())
+					{
+						if (str.IsEmpty())
+							str = pSrcPhrase->m_srcPhrase;
+						else
+						{
+							str += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase;
+						}
+					}
+				}
+				else
 				{
 					if (!pApp->m_targetPhrase.IsEmpty())
 					{
@@ -8129,46 +8150,64 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 							}
 						}
 					}
-				}
-			}
+				} // end of else block for test: if (bAltDown)
+			} // end of TRUE block for test: if (pCell->GetPile() == pApp->m_pActivePile)
 			else
 			{
-				if (str.IsEmpty())
+				if (bAltDown)
 				{
-					if (gbIsGlossing)
+					if (str.IsEmpty())
 					{
-						if (!pSrcPhrase->m_gloss.IsEmpty())
-							str = pSrcPhrase->m_gloss;
+						if (!pSrcPhrase->m_srcPhrase.IsEmpty())
+							str = pSrcPhrase->m_srcPhrase;
 					}
 					else
 					{
-						if (!pSrcPhrase->m_targetStr.IsEmpty())
-							str = pSrcPhrase->m_targetStr;
+						if (!pSrcPhrase->m_srcPhrase.IsEmpty())
+						{
+							str += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase;
+						}
 					}
-				}
+				} // end of TRUE block for test: if (bAltDown)
 				else
 				{
-					if (gbIsGlossing)
+					if (str.IsEmpty())
 					{
-						if (!pSrcPhrase->m_gloss.IsEmpty())
-							str += _T(" ") + pSrcPhrase->m_gloss;
+						if (gbIsGlossing)
+						{
+							if (!pSrcPhrase->m_gloss.IsEmpty())
+								str = pSrcPhrase->m_gloss;
+						}
+						else
+						{
+							if (!pSrcPhrase->m_targetStr.IsEmpty())
+								str = pSrcPhrase->m_targetStr;
+						}
 					}
 					else
 					{
-						if (!pSrcPhrase->m_targetStr.IsEmpty())
+						if (gbIsGlossing)
 						{
-							if (pSrcPhrase->m_bRetranslation)
+							if (!pSrcPhrase->m_gloss.IsEmpty())
+								str += _T(" ") + pSrcPhrase->m_gloss;
+						}
+						else
+						{
+							if (!pSrcPhrase->m_targetStr.IsEmpty())
 							{
-								str += PutTgtWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;	
-							}
-							else
-							{
-								str += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;	
+								if (pSrcPhrase->m_bRetranslation)
+								{
+									str += PutTgtWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;
+								}
+								else
+								{
+									str += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;
+								}
 							}
 						}
 					}
-				}
-			}
+				} // end of else block for test: if (bAltDown)
+			} // end of else block for test: if (pCell->GetPile() == pApp->m_pActivePile)
 		}
 	}
 	else

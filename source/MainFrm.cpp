@@ -4956,7 +4956,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		{
 			// Do an incremental download; if the m_KbServerDownloadTimer has fired, the
 			// 'pending' flag will have been made TRUE so the next block can be entered
-			bool bIsEnabled = pKbSvr->IsKBSharingEnabled();
+// GDLC 20JUL16 Temporary comment out while investigating logic
+            bool bIsEnabled = 1; // pKbSvr->IsKBSharingEnabled();
 			bool bIsPending = gpApp->m_bKbServerIncrementalDownloadPending;
 			bool bTimerIsRunning = gpApp->m_pKbServerDownloadTimer->IsRunning();
 			if (bIsEnabled && bIsPending && bTimerIsRunning)

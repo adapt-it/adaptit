@@ -54,6 +54,7 @@ WX_DECLARE_LIST(AutoFixRecordG, AFGList); // see list definition macro in .cpp f
 
 // for debugging, uncomment out to turn on the debugging displays (they are very helpful)
 //#define CONSCHK
+#define CONSCHK2
 
 enum SaveType {
 	normal_save,

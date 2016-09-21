@@ -444,6 +444,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 	CAdapt_ItApp* pApp = GetApp();
 	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
 
+	// BEW 16Aug16, Restore the default, which is Shift_Launch no longer on, if it was on
+	pApp->m_bDoNormalProjectOpening = TRUE;
+
     pApp->m_owner = pApp->m_strUserID;  // this is our doc
     pApp->m_trialVersionNum = -1;		// negative means no trial going on - the normal case
 
@@ -6114,6 +6117,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 {
 	CAdapt_ItApp*	pApp = GetApp();
 	CAdapt_ItView*	pView = pApp->GetView();
+
+	// BEW 16Aug16, Restore the default, which is Shift_Launch no longer on, if it was on
+	pApp->m_bDoNormalProjectOpening = TRUE;
 
 	//wxLogDebug(_T("3538 at start of OnOpenDocument(), m_bCancelAndSelectButtonPressed = %d"),
 	//	gpApp->m_pTargetBox->GetCancelAndSelectFlag());
@@ -24942,15 +24948,28 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		bool bAttemptStoreToKB = TRUE;
 		bool bSuppressWarningOnStoreKBFailure = TRUE;
 
-        // BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
-        // returns TRUE to the caller if the attempted store fails for some reason, for all
-        // other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure
-        // is TRUE as we don't expect a failure and will ignore it if it does anyway;
+ 
+		// BEW 30Jul16 Move active location now to sn = 0, because if the active location happened to
+		// have been at an inconsistency, the following UpdateDoc....() call will put a single instance of
+		// the inconsistency into the KB, and it it had been deliberately removed in order to allow
+		// splitting the meaning, or correcting a typo occurring in many places, those inconsistencies
+		// would not be recognised for what they are. So safest place is to have the active location
+		// at the start - it's typically the Book Code's CSourcePhrase. ReOpenDocument() will eventually
+		// restore the original doc and its state, using the sequ number from the xml
+		CSourcePhrase* pSrcPhrase = NULL;
+		pApp->m_nActiveSequNum = 0;
+		pApp->m_pActivePile = pApp->GetView()->GetPile(0);
+		pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+
+		// BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
+		// returns TRUE to the caller if the attempted store fails for some reason, for all
+		// other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure
+		// is TRUE as we don't expect a failure and will ignore it if it does anyway;
 		UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
 
 		// prepare for the loop with various initializations
 		enum InconsistencyType inconsistencyType = member_exists_flag_on_PTUexists_deleted_Refstr;
-		CSourcePhrase* pSrcPhrase = NULL;
+		pSrcPhrase = NULL;
 		int nWords;
 		// for the IsAlreadyInKB() test, we pass in pSrcPhrase->adaption
 
@@ -25053,6 +25072,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			bIsInKB = pKBCopy->IsAlreadyInKB(nWords, key, adaption, pTU, pRefStr, bDeleted);
 			bIsInKB_OnOrig = pKB->IsAlreadyInKB(nWords, key, adaption, pTU_OnOrig, pRefStr_OnOrig, bDeleted_OnOrig);
 			bIsInKB_OnOrig = bIsInKB_OnOrig; // avoid warning
+#if defined(CONSCHK2)
+			wxLogDebug(_T("CONSCHK2: key = %s, adaption = %s, sn = %d, active sn = %d"),
+				key.c_str(), adaption.c_str(), pSrcPhrase->m_nSequNumber, gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber);
+#endif
 
 			// While <Not In KB> entries are expected to be rare or absent, if present
 			// they are dominant - that is, if a given source text word or phrase is

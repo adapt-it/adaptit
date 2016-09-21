@@ -44,6 +44,7 @@
 #include "Adapt_It.h"
 #include "MainFrm.h"
 #include "Adapt_ItView.h"
+#include "SplitDialog.h"
 #include "SetupEditorCollaboration.h"
 #include "CollabUtilities.h"
 #include "CreateNewAIProjForCollab.h"
@@ -202,6 +203,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	m_SaveCollabSourceProjLangName = m_pApp->m_CollabSourceLangName;
 	m_SaveCollabTargetProjLangName = m_pApp->m_CollabTargetLangName;
 	m_bSaveCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly; // FALSE means the "whole book" option
+	m_bTempCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly; // use this for the radio buttons & user-set value
 	m_bSaveCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans;
 	m_SaveCollabBookSelected = m_pApp->m_CollabBookSelected;
 	m_SaveCollabChapterSelected = m_pApp->m_CollabChapterSelected;
@@ -1951,7 +1953,7 @@ void CSetupEditorCollaboration::OnClose(wxCommandEvent& event)
     m_pApp->m_ParatextVersionForProject = m_SaveCollabEditorVersion; // whm added 24June2014
 	m_pApp->m_CollabSourceLangName = m_SaveCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_SaveCollabTargetProjLangName;
-	m_pApp->m_bCollabByChapterOnly = m_bSaveCollabByChapterOnly; // FALSE means the "whole book" option
+	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bSaveCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabBookSelected = m_SaveCollabBookSelected;
 	m_pApp->m_CollabChapterSelected = m_SaveCollabChapterSelected;
@@ -1991,6 +1993,7 @@ void CSetupEditorCollaboration::OnCancel(wxCommandEvent& event)
     m_pApp->m_ParatextVersionForProject = m_SaveCollabEditorVersion; // whm added 24June2016
 	m_pApp->m_CollabSourceLangName = m_SaveCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_SaveCollabTargetProjLangName;
+	// On Cancel, restore the saved initial value, abandon any user-set value in m_bTempCollabByChapterOnly
 	m_pApp->m_bCollabByChapterOnly = m_bSaveCollabByChapterOnly; // FALSE means the "whole book" option
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bSaveCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabBookSelected = m_SaveCollabBookSelected;
@@ -2150,7 +2153,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	}
 
     // Note: Step 2 selection of Scripture Editor is initially set somewhat automatically according to
-    // what version of a Scripture editos has been installed on the user's computer. Setp 2 allows an
+    // what version of a Scripture editors has been installed on the user's computer. Step 2 allows an
     // administrator to optionally set a different Scripture editor if it is installed on the user's 
     // computer (selections are disabled for any editor that is not installed).
     // For the automatic selection of editor, (or if an editor choice is installed and manually selected 
@@ -2163,7 +2166,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	if (m_TempCollabProjectForSourceInputs.IsEmpty())
 	{
 		wxString msg, msg1;
-		msg = _("Please select a %s project for getting source texts. Use the \"Select from List\" button.");
+		msg = _("Please select a %s project for getting source texts. Use the \"Select Source Project from List\" button.");
 		wxASSERT(!m_TempCollaborationEditor.IsEmpty());
 		msg = msg.Format(msg,m_TempCollaborationEditor.c_str());
 		wxMessageBox(msg,_("No source language project selected for collaboration"),wxICON_INFORMATION | wxOK);
@@ -2175,7 +2178,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	if (m_TempCollabProjectForTargetExports.IsEmpty())
 	{
 		wxString msg, msg1;
-		msg = _("Please select a %s project for receiving translated drafts. Use the \"Select from List\" button.");
+		msg = _("Please select a %s project for receiving translated drafts. Use the \"Select Target Project from List\" button.");
 		wxASSERT(!m_TempCollaborationEditor.IsEmpty());
 		msg = msg.Format(msg,m_TempCollaborationEditor.c_str());
 		wxMessageBox(msg,_("No target language project selected for collaboration"),wxICON_INFORMATION | wxOK);
@@ -2278,19 +2281,18 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
     wxASSERT(!m_pApp->m_ParatextVersionForProject.IsEmpty());
 
-	// In order to write the collab settings to the selected project file we need to compose the
-	// path to the project for the second parameter of WriteConfigurationFile().
-	wxString newProjectPath;	// a local string to avoid unnecessarily changing the App's m_curProjectName
-								// and m_curProjectPath.
+	// In order to write the collab settings to the current Adapt It project we need to compose the
+	// path to the project folder for the second parameter of WriteConfigurationFile().
+	wxString newProjectPath;
 	if (!m_pApp->m_customWorkFolderPath.IsEmpty() && m_pApp->m_bUseCustomWorkFolderPath)
 	{
 		newProjectPath = m_pApp->m_customWorkFolderPath + m_pApp->PathSeparator
-								 + m_pApp->m_CollabAIProjectName;
+			+ m_pApp->m_CollabAIProjectName;
 	}
 	else
 	{
 		newProjectPath = m_pApp->m_workFolderPath + m_pApp->PathSeparator
-								 + m_pApp->m_CollabAIProjectName;
+			+ m_pApp->m_CollabAIProjectName;
 	}
 
 	// Call WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile)
@@ -2605,3 +2607,7 @@ void CSetupEditorCollaboration::OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(eve
     }
 	DoInit(TRUE); // TRUE = prompt reminder to use Select from List buttons
 }
+
+
+
+

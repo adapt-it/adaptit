@@ -129,6 +129,7 @@ class CBString;
 class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPList); macro 
 				// and defined in SourcePhrase.cpp WX_DEFINE_LIST(SPList); macro
 class CSourcePhrase;
+class CSetupEditorCollaboration;
 
 ///////////////////////////////////////////////////////////////////////////////////
 /// This group of functions are used for analysis of texts in order to get an updated text
@@ -375,7 +376,7 @@ class CSourcePhrase;
 	// at the next normal shutdown
 	void	EmptyCollaborationTempFolder();
 	long	OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp);
-	void	OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
+	//void	OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
 
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -388,6 +389,7 @@ class CSourcePhrase;
 					wxArrayPtrVoid& conflictsArr);
 	void MeldConflictsUserCancelBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
 					wxArrayPtrVoid& conflictsArr);
+
 
 #endif
 

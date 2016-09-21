@@ -4806,6 +4806,13 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 	}
 #endif
 */
+	//*
+	if (event.GetKeyCode() == WXK_ALT)
+	{
+		pApp->m_bALT_KEY_DOWN = FALSE; // indicate ALT is not down, for use by DoSrcPhraseSelCopy()
+		// continue on
+	}
+	//*/
 	// Note: wxWidgets doesn't have a separate OnSysKeyUp() virtual method
 	// so we'll simply detect if the ALT key was down and call the
 	// OnSysKeyUp() method from here
@@ -5196,6 +5203,19 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 	//CLayout* pLayout = GetLayout();
 
+	// BEW 31Jul16 added, to track ALT key down or released
+	//*
+	if (!pApp->m_bReadOnlyAccess)
+	{
+		int keyCode = event.GetKeyCode();
+		if (keyCode == WXK_ALT)
+		{
+			pApp->m_bALT_KEY_DOWN = TRUE;
+		}
+		// continue on to do any further processing; for the above variable, FALSE
+		// is set when we catch the EVT_KEY_UP event for the WXK_ALT key(s)
+	}
+	//*/
 	// whm added 15Mar12. When in read-only mode don't register any key strokes
 	if (pApp->m_bReadOnlyAccess)
 	{
