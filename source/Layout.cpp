@@ -2100,17 +2100,29 @@ void CLayout::DoRecalcLayoutAfterPreferencesDlg()
 	if (m_bUSFMChanged || m_bFilteringChanged || m_bPunctuationChanged)
 	{
 		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
-		return;
+
+		// BEW added 29Sep16, the user may have added ' (straight vertical quote)
+		// to the punctuation list, in which case it's no longer to be treated as a 
+		// word-building glottal stop character), or changed to remove it, so that
+		// the value of the app boolean m_bSingleQuoteAsPunct may need changing; so
+		// check and set or clear it here
+		wxChar ch = _T('\''); // vertical single-quote
+		if (m_pApp->m_punctuation[0].Find(ch) == -1) // not found
+		{
+			m_pApp->m_bSingleQuoteAsPunct = FALSE;
+		}
+		else
+		{
+			m_pApp->m_bSingleQuoteAsPunct = TRUE;
+		}
 	}
-	else if (m_bFontInfoChanged || m_bCaseEquivalencesChanged)
+	if (m_bFontInfoChanged || m_bCaseEquivalencesChanged)
 	{
 		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_update_pile_widths);
-		return;
 	}
-	else if (m_bViewParamsChanged)
+	if (m_bViewParamsChanged)
 	{
 		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
-		return;
 	}
 	Redraw();
 	// the flags will be cleared at the end of the view's OnEditPreferences() handler, and

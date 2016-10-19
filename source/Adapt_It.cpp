@@ -24216,7 +24216,12 @@ void CAdapt_ItApp::InitializePunctuation()
     wxString strTwoPunctPairsSrcSet;
     wxString strTwoPunctPairsTgtSet;
 
-    strPunctPairsSrcSet = _T("?.,;:\"!()<>{}[]");
+	// BEW 14Sep16, added to the set to make " be always punctuation, 
+	// and add ~ too (USFM fixed space marker) which we'll handle like
+	// punctuation when it is between word and punctuation chars -
+	// supported in ParseWord2() refactored version of legacy ParseWord()
+	// in TokenizeText()
+	strPunctPairsSrcSet = _T("?.,;:\"!()<>{}[]"); // legacy
 
     ch.SetChar(0, L'\x201C'); // hex for left double quotation mark
     additions += ch;
@@ -24226,8 +24231,20 @@ void CAdapt_ItApp::InitializePunctuation()
     additions += ch;
     ch.SetChar(0, L'\x2019'); // hex for right single quotation mark
     additions += ch;
+	// BEW 14Sep16 The double-chevrons should be part of the defaults too
+	ch.SetChar(0, L'\x00AB'); // hex for left-pointing double angle quotation mark
+	additions += ch;
+	ch.SetChar(0, L'\x00BB'); // hex for right-pointing double angle quotation mark
+	additions += ch;
+
+	// BEW 14Sep16 add ~ too at the end
+	ch = _T('~');
+	additions += ch;
+
     strPunctPairsSrcSet += additions;
-    m_bSingleQuoteAsPunct = FALSE;
+    m_bSingleQuoteAsPunct = FALSE; // default since version4, since ' as glottal
+								   // is common so treat as word-building unless user
+								   // explicitly adds it to Preferences punts lists
 
     strPunctPairsTgtSet = strPunctPairsSrcSet;
     strTwoPunctPairsSrcSet.Empty();
@@ -36508,13 +36525,27 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 bAddedRightSingleQuote = TRUE;
                 additions += ch;
             }
+			// BEW 14Sep16 slightly altered legacy protocal; ' (vertical single quote)
+			// is assumed to be glottal stop character, not punctuation (as of version 4). 
+			// But if the user lists it in Prefs, & hence it gets to the config file,
+			// then we check for that and designate it as punctuation, and set
+			// m_bSingleQuoteAsPunct accordingly
+			m_bSingleQuoteAsPunct = FALSE;
             int found = strValue.Find(_T('\'')); // look for vertical ordinary quote (ie. apostrophe)
             if (found >= 0)
                 m_bSingleQuoteAsPunct = TRUE;
             else
                 m_bSingleQuoteAsPunct = FALSE;
-            strValue = additions + strValue;
+			
+			// BEW 14Sep16 Changed to the following two blocks for adding " and ' 
+			// if not there -- be sure to do identically in the target puncts below
+			ch = _T('\"'); // vertical double-quote - should always be a punct char
+			if (strValue.Find(ch) == -1) // not found
+			{
+				additions += ch;
+			}
 
+            strValue = additions + strValue;
             strPunctPairsSrcSet = strValue;
         }
         else if (name == szPunctPairsTgt)
@@ -36552,14 +36583,22 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 // add it if the source had it added
                 additions += ch;
             }
+
             int found = strValue.Find(_T('\'')); // look for vertical ordinary
                                                  // quote (ie. apostrophe)
             if (found >= 0)
                 m_bSingleQuoteAsPunct = TRUE;
             else
                 m_bSingleQuoteAsPunct = FALSE;
-            strValue = additions + strValue;
+			
+			// BEW 14Sep16 Changed to the following two blocks for adding " 
+			ch = _T('\"'); // vertical double-quote - should always be a punct char
+			if (strValue.Find(ch) == -1) // not found
+			{
+				additions += ch;
+			}
 
+            strValue = additions + strValue;
             strPunctPairsTgtSet = strValue;
         }
         else if (name == szTwoPunctPairsSrc)
