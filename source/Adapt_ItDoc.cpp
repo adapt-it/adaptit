@@ -31135,7 +31135,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 		return len;
 	}
 
-	// Get a loop going for the complex stuff....
+	// Get a loop going for the more complex stuff....
 	bool bParsedSomething = FALSE; // if control does an iteration without ptr advancing,
 								   // use that to break from the loop & return len value
 	int iterationCount = 0;        // this may be useful, update at loop end
