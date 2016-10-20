@@ -3852,6 +3852,10 @@ wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr)
 // and the <sp>17 ends up in the document as 'text'. Solution, is to edit the bad 7:17 line in PT and 'Save All', close PT, and then
 // AI will do a Save or History save, in collab mode, once without failing - but it re-makes the \v \v 18 error in Mark 7, each time,.
 // so the PT edit has to be done before every save. Other documents save normally. On my machine here data saves perfectly normally.
+// BEW 19Oct16 this is probably a data error. In TPK project, Paratext, Psalm 44:16 has a line:   \v 16\v*
+// which causes the md5sum array for Psalms to get a bad line:  \v*:0:0
+// which then causes an assert to trip in GetNumberFromChapterOrVerseString() when setting up a collaboration - the latter checks all
+// available books, and so this data error clobbers the analysys of source text books giving an app crash. 
 */
 	// get the number and any following part
 	numStr = numStr.Mid(posSpace);
@@ -10055,6 +10059,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 				int nHowMany;
 				SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
 				// in the next call, 0 = initial sequ number value
+				// nHowMany is the returned count of how many CSourcePhrase instances got created
 				if (pApp->m_bCollabByChapterOnly)
 				{
 					nHowMany = pView->TokenizeTextString(pSourcePhrases, m_collab_sourceChapterBuffer, 0);
@@ -10093,9 +10098,13 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 				{
 					// we can't go on, there is nothing in the document's m_pSourcePhrases
 					// list, so keep the dlg window open; tell user what to do - this
-					// should never happen, so an English message will suffice
+					// could happen due to source text structural or markup error, so the
+					// message needs to be localizable (BEW 20Oct16) word.' " was enough
+					// to do it - the legacy parser did not put the " as following punctuation
+					// on word, leading to a document creation failture at ParseWord(). My
+					// upcoming ParseWord2() should be smarter at hanling straight quotes.
 					wxString msg;
-					msg = _T("Unexpected (non-fatal) error when trying to load source text obtained from the external editor - there is no source text!\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or you could Cancel the dialog and then try to fix the problem.");
+					msg = _("Unexpected (non-fatal) error when trying to load source text obtained from the external editor.\nNo source text was available; or, source text was available but when parsing it to form a document, Adapt It's parser failed awhen it came to data it was unable to handle properly.\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or examine, in the external editor, the source text data and look for markup or punctuation errors. If your data uses straight quotes with a space between them, word.' \" for example, that space between the quotes may cause the document build to fail.\n Or you could Cancel the dialog and then try to fix the problem - it is most likely a problem in the structure of the source text.");
 					wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK, pApp->GetMainFrame()); // // BEW 15Sep14 made frame be the parent
 					pApp->LogUserAction(msg);
 					pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
