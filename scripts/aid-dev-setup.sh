@@ -27,7 +27,7 @@ AID_DEV_TOOLS_NEW="codeblocks poedit git gnome-common libgtk-3-0-dbg libgtk-3-de
   gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
   libwxbase3.0-0v5 libwxbase3.0-0v5-dbg libwxbase3.0-dev libwxgtk3.0-0v5 libwxgtk3.0-0v5-dbg \
   libwxgtk3.0-dev wx-common wx3.0-headers wx3.0-i18n"
-# Note: the wx2.8-i18n and wx2.8-i18n packages cannot be installed at the same time, 
+# Note: the wx2.8-i18n and wx3.0-i18n packages cannot be installed at the same time, 
 # otherwise you get: apt-get error: wx2.8-i18n : Conflicts: wx-i18n
 # Removed libgnomeprintui2.2-dev from AID_DEV_TOOLS... list above (it's not in 14.04 and not really needed)
 supportedDistIDs="LinuxMint Ubuntu"
