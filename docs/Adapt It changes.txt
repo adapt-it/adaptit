@@ -1,4 +1,77 @@
 ﻿----------------------------------------------
+Version 6.8.1 release day?? month?? 2016
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.8.1 
+----------------------------------------------
+* More localization to Indonesian has been done.
+* Copying selected source text to the clipboard. Formerly, there
+was no easy way. Copying selected source text copied the target
+text under the selected source text. This still happens, however,
+if the ALT key is held down while clicking the Copy command on
+the Edit menu, the selected source text will instead be copied to
+the clipboard. (Note: CTRL-C shortcut is not suported, by design,
+in Adapt It - except in the phrasebox, or the compose bar's text
+box. This has been the case for years, and will not be changed.)
+* The document creation code has more tests to detect faulty markup
+ that would lead to an application failure, or a corrupted document.
+ * The application now tests for certain markup errors, and if it finds
+ one it halts the creation, and gives a warning message to advise the
+ user to click a checkbox in the View page of Preferences to have a
+ diagnostic log file produced.
+ * Production of a diagnostic logfile is supported. It gets stored
+ in the _LOGS_EMAIL_REPORTS folder within the Adapt It Unicode
+ Work folder. The file is called: Log_For_Document_Creation.txt.
+ It is deliberately small, with just esssential information:
+ the filename (first line), and then five subsequent lines list
+ the last five words correctly parsed in from the input source
+ text before the failure happened. Each such line lists the 
+ chapter:verse information where the failure happened. The
+ bad markup will be located within that verse, after the last
+ word listed in this file. The user can then examine the source
+ test in a word processor, and possibly fix the error himself, then
+ resave the fixed source text, and retry the document creation again.
+ Note: producing the log file is slow: about 150 words a second
+ are scanned, so a book like Luke might take up to 3 minutes to 
+ get to the failure point. An information message is shown to the
+  user informing him or her that the log file is being produced, 
+ and to wait. But that only happens in the Windows build. OSX
+  and Linux builds don't show the information message, but
+  they still produce the log file.
+  If the log file is empty, then the error was probably a utf-8
+  encoding error - perhaps some non-utf-8 bytes are somewhere
+  in the source text. (To fix encoding errors, perhaps best to send
+  the source text file to one of the developers.)
+* The Shift-Launch feature (i.e. Launching Adapt It with SHIFT key
+held down, to bypass one or both configuration files) has been
+improved. Previously, if a project was a collaboration one, the
+Shift-Launch tried to restore the collaboration from data in the
+Adapt_It_WX.ini file in the ...\AppData\Roaming\ folder. But
+the user may not want collaboration restored. So now, a Yes/No
+message dialog will ask the user: "If a collaboration was set up 
+with Paratext or Bibledit, do you want it to be restored now,
+if possible?". Click the No button to have the collaboration
+turned off.
+  ----------------------------------------------
+Bug fixes in 6.8.1 release ?? ?? 2016
+----------------------------------------------
+* If the anchor for a free translation was on a placeholder, and 
+Export Free Translation was chosen, the free translation at that
+placeholder was lost from the export. It's now included, along
+with any markers which occur there.
+* When collaborating with Paratext, if the source text in Paratext
+had an endmarker, such as \x*, left in the text at a location where
+the matching preceding \x marker and the cross reference information
+had been manually removed, then it caused a major problem in
+the transfer of adaptation text to Paratext at File > Save. All target
+text content following the rogue \x* marker would not get
+transferred - even if the user had adapted well beyond that point.
+Code has now been added to skip such rogue markers, and the
+data transfer now does not get truncated. (However, it is always
+wise to check the source text for markup errors before setting up
+a collaboration with Paratext or Bibledit.)
+
+----------------------------------------------
 Version 6.8.0 release 1 July 2016
 ----------------------------------------------
 ----------------------------------------------

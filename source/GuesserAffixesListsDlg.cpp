@@ -6,7 +6,7 @@
 /// \rcs_id $Id: GuesserAffixesListDlg.cpp 3296 2013-06-12 04:56:31Z adaptit.bruce@gmail.com $
 /// \copyright		2014 Bruce Waters, Bill Martin, Kevin Bradford, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the GuesserAffixesListsDlg class. 
+/// \description	This is the implementation file for the GuesserAffixesListsDlg class.
 /// The GuesserAffixesListsDlg class provides a dialog in which the user can create a list of
 /// prefixes in two columns, each line being a src language prefix in column one, and a
 /// target language prefix in column two. Similarly, a separate list of suffix pairs can
@@ -64,14 +64,14 @@ GuesserAffixesListsDlg::GuesserAffixesListsDlg(wxWindow* parent) // dialog const
 	// size dialog.
 	GuesserAffixListDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
+
 	m_pApp = &wxGetApp();
 
 	m_pRadioSuffixesList = (wxRadioButton*)FindWindowById(ID_RADIO_SUFFIXES_LIST);
 	wxASSERT(m_pRadioSuffixesList != NULL);
 	m_pRadioPrefixesList = (wxRadioButton*)FindWindowById(ID_RADIO_PREFIXES_LIST);
 	wxASSERT(m_pRadioPrefixesList != NULL);
-	
+
 	m_pHyphenSrcSuffix = (wxStaticText*)FindWindowById(ID_STATICTEXT_SRC_SUFFIX); // to left of src affix text box
 	m_pHyphenSrcPrefix = (wxStaticText*)FindWindowById(ID_STATICTEXT_SRC_PREFIX); // to right of src affix text box
 	m_pHyphenTgtSuffix = (wxStaticText*)FindWindowById(ID_STATICTEXT_TGT_SUFFIX); // to left of tgt affix text box
@@ -164,7 +164,7 @@ void GuesserAffixesListsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 
 	m_pBtnInsert = (wxButton*)FindWindowById(ID_BUTTON_INSERT);
 	m_pBtnInsert->Enable(false); // Nothing Selected, so cannot insert
-	m_pBtnUpdate = (wxButton*)FindWindowById(ID_BUTTON_UPDATE);	
+	m_pBtnUpdate = (wxButton*)FindWindowById(ID_BUTTON_UPDATE);
 	m_pBtnUpdate->Enable(false);
 	m_pBtnDelete = (wxButton*)FindWindowById(ID_BUTTON_DELETE);
 	m_pBtnDelete->Enable(false);
@@ -224,11 +224,11 @@ void GuesserAffixesListsDlg::ClearAffixList( PairsListType type )
 	// Clear desired list and delete items
 	wxASSERT(type == prefixesListType || type == suffixesListType);
 	int ct;
-	
+
 	if (type == prefixesListType && !m_pPrefixesPairsArray->IsEmpty())
 	{
 		for (ct = 0; ct < (int)m_pPrefixesPairsArray->GetCount(); ct++)
-		{ 
+		{
 			AffixPair* pAffix = m_pPrefixesPairsArray->Item(ct);
 			delete pAffix;
 		}
@@ -237,13 +237,13 @@ void GuesserAffixesListsDlg::ClearAffixList( PairsListType type )
 	else if (type == suffixesListType && !m_pSuffixesPairsArray->IsEmpty())
 	{
 		for (ct = 0; ct < (int)m_pSuffixesPairsArray->GetCount(); ct++)
-		{ 
+		{
 			AffixPair* pAffix = m_pSuffixesPairsArray->Item(ct);
 			delete pAffix;
 		}
 		m_pSuffixesPairsArray->Clear();
 	}
-	
+
 }
 
 void GuesserAffixesListsDlg::OnRadioButtonPrefixesList(wxCommandEvent& WXUNUSED(event))
@@ -254,7 +254,7 @@ void GuesserAffixesListsDlg::OnRadioButtonPrefixesList(wxCommandEvent& WXUNUSED(
 
 	m_bSuffixListChosen = FALSE;
 	AdjustLabels(m_bSuffixListChosen);
-	
+
 	// No longer anything selected so disable buttons
 	m_pBtnUpdate->Disable();
 	m_pBtnInsert->Disable();
@@ -331,11 +331,11 @@ bool GuesserAffixesListsDlg::LoadDataForListType(PairsListType myType)
 	m_pAffixPairsList->SetColumnWidth(0,wxLIST_AUTOSIZE_USEHEADER);
 
 	m_pAffixPairsList->DeleteAllItems();
-	
+
 	if (myType == prefixesListType)
 	{
 		// We are displaying pairs for the Prefixes List
-		
+
 		// Hide the "hyphens" which suggest suffixes are being currently entered
 		m_pHyphenSrcSuffix->Hide();
 		m_pHyphenTgtSuffix->Hide();
@@ -365,7 +365,7 @@ bool GuesserAffixesListsDlg::LoadDataForListType(PairsListType myType)
 		}
 
 		return TRUE;
-	
+
 	}
 	else
 	{
@@ -414,7 +414,7 @@ void GuesserAffixesListsDlg::OnExplanationDlgWanted(wxCommandEvent& WXUNUSED(eve
 	bool bSuccess = TRUE;
 
 	wxLogNull nogNo;
-	bSuccess = wxLaunchDefaultBrowser(helpFilePath,wxBROWSER_NEW_WINDOW); // result of 
+	bSuccess = wxLaunchDefaultBrowser(helpFilePath,wxBROWSER_NEW_WINDOW); // result of
 				// using wxBROWSER_NEW_WINDOW depends on browser's settings for tabs, etc.
 
 	if (!bSuccess)
@@ -438,9 +438,9 @@ void GuesserAffixesListsDlg::OnExplanationDlgWanted(wxCommandEvent& WXUNUSED(eve
 	}
 }
 
-void GuesserAffixesListsDlg::OnOK(wxCommandEvent& event) 
+void GuesserAffixesListsDlg::OnOK(wxCommandEvent& event)
 {
-	
+
 	bool bPrefixesOK, bSuffixesOK;
 	if (m_bPrefixesUpdated == true)
 	{
@@ -473,7 +473,7 @@ void GuesserAffixesListsDlg::OnOK(wxCommandEvent& event)
 
 	event.Skip();
 }
-void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event) 
+void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event)
 {
 	wxLogNull logNo;
 	wxString sSrc = m_pSrcAffix->GetValue();
@@ -496,7 +496,7 @@ void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event)
 		msg = _("Affix \"%s\" already exists. Multiple identical affixes are not allowed.");
 		msg = msg.Format(msg, sSrc.c_str());
 		wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK, this);
-		//event.Skip(); 
+		//event.Skip();
 	}
 	else
 	{
@@ -531,7 +531,8 @@ void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event)
 	DeselectButtonsAfterClick();
 	event.Skip();
 }
-void GuesserAffixesListsDlg::OnUpdate(wxCommandEvent& event) 
+
+void GuesserAffixesListsDlg::OnUpdate(wxCommandEvent& event)
 {
 	wxLogNull logNo;
 	wxString sSrc = m_pSrcAffix->GetValue();
@@ -552,7 +553,7 @@ void GuesserAffixesListsDlg::OnUpdate(wxCommandEvent& event)
 		return;
 	}
 	else
-	{		
+	{
 		itemIndex = GetSelectedItemIndex(); // will return (long)-1 if there is no selection current
 		if (itemIndex == (long)wxNOT_FOUND)
 		{
@@ -586,7 +587,7 @@ void GuesserAffixesListsDlg::OnUpdate(wxCommandEvent& event)
 		event.Skip();
 	}
 }
-void GuesserAffixesListsDlg::OnInsert(wxCommandEvent& event) 
+void GuesserAffixesListsDlg::OnInsert(wxCommandEvent& event)
 {
 	wxLogNull logNo;
 	wxString sSrc = m_pSrcAffix->GetValue();
@@ -639,7 +640,7 @@ void GuesserAffixesListsDlg::OnInsert(wxCommandEvent& event)
 		event.Skip();
 	}
 }
-void GuesserAffixesListsDlg::OnDelete(wxCommandEvent& event) 
+void GuesserAffixesListsDlg::OnDelete(wxCommandEvent& event)
 {
 	wxLogNull logNo;
 	wxString sSrc = m_pSrcAffix->GetValue();
@@ -704,8 +705,9 @@ void GuesserAffixesListsDlg::OnListItemSelected(wxListEvent& event)
 
 void GuesserAffixesListsDlg::DeselectButtonsAfterClick()
 {
-	m_pSrcAffix->ChangeValue(GetCellContentsString(GetSelectedItemIndex(), 0));
-	m_pTgtAffix->ChangeValue(GetCellContentsString(GetSelectedItemIndex(), 1));
+	// m_pSrcAffix->ChangeValue(GetCellContentsString(GetSelectedItemIndex(), 0));  -- mh - these lines cause an assert to trigger on Linux, and I'm not sure they're necessary.
+	// m_pTgtAffix->ChangeValue(GetCellContentsString(GetSelectedItemIndex(), 1));7
+
 	m_pBtnInsert->Enable(FALSE);
 	m_pBtnUpdate->Enable(FALSE);
 	m_pBtnDelete->Enable(FALSE);
@@ -723,7 +725,7 @@ AffixPairsArray* GuesserAffixesListsDlg::GetSuffixes()
 }
 
 // Load/refresh prefixes from app
-bool GuesserAffixesListsDlg::LoadPrefixes() 
+bool GuesserAffixesListsDlg::LoadPrefixes()
 {
 	m_bPrefixesLoaded = true;
 
@@ -732,10 +734,10 @@ bool GuesserAffixesListsDlg::LoadPrefixes()
 
 	// Get and load prefixes (if any)
 	if (m_pApp->GetGuesserPrefixes() && !m_pApp->GetGuesserPrefixes()->IsEmpty())
-		{	
+		{
 			pArray = m_pApp->GetGuesserPrefixes();
 			for (int i = 0; i < (int)pArray->GetCount(); i++)
-			{				
+			{
 				CGuesserAffix m_currentGuesserAffix = pArray->Item(i);
 				AffixPair* m_ap = new AffixPair();
 				m_ap->pairType = prefixesListType;
@@ -744,7 +746,7 @@ bool GuesserAffixesListsDlg::LoadPrefixes()
 
 				// Add pair to control
 				m_pPrefixesPairsArray->Add(m_ap);
-				
+
 			}
 		}
 
@@ -752,19 +754,19 @@ bool GuesserAffixesListsDlg::LoadPrefixes()
 }
 
 // Load/refresh suffixes from app
-bool GuesserAffixesListsDlg::LoadSuffixes() 
+bool GuesserAffixesListsDlg::LoadSuffixes()
 {
 	m_bSuffixesLoaded = true;
-	
+
 	CGuesserAffixArray* pArray = NULL; // Pointer to current list
 	ClearAffixList( suffixesListType );
 
 	// Get and load suffixes (if any)
-	if (m_pApp->GetGuesserSuffixes() && !m_pApp->GetGuesserSuffixes()->IsEmpty())
-		{	
+	if (m_pApp->GetGuesserSuffixes() && ! m_pApp->GetGuesserSuffixes()->IsEmpty())
+		{
 			pArray = m_pApp->GetGuesserSuffixes();
 			for (int i = 0; i < (int)pArray->GetCount(); i++)
-			{				
+			{
 				CGuesserAffix m_currentGuesserAffix = pArray->Item(i);
 				AffixPair* m_ap = new AffixPair();
 				m_ap->pairType = suffixesListType;
@@ -780,7 +782,7 @@ bool GuesserAffixesListsDlg::LoadSuffixes()
 }
 
 // Helper function to Get index of selected item from control
-long GuesserAffixesListsDlg::GetSelectedItemIndex() 
+long GuesserAffixesListsDlg::GetSelectedItemIndex()
 {
 	//
 	long itemIndex = -1;
@@ -799,58 +801,58 @@ long GuesserAffixesListsDlg::GetSelectedItemIndex()
 	// otherwise return from the caller without doing anything. The message should telll the user to
 	// first make a selection and then try the button click.
 	return itemIndex;
- 
+
 }
 bool GuesserAffixesListsDlg::PrefixExistsAlready(wxString sSrc)
 {
 	wxASSERT(m_pPrefixesPairsArray != NULL);
-	
+
 	// CHeck to see if Prefix Exists, return true if so
 	if(GetPrefixes() != NULL && GetPrefixes()->GetCount() > 0)
 		for (int i = 0; i < (int)GetPrefixes()->GetCount(); i++)
-		{				
+		{
 			if (m_pPrefixesPairsArray->Item(i)->srcLangAffix.CmpNoCase( sSrc ) == 0 )
 			{
 				return true;
 			}
-			
+
 		}
 	return false;
 }
 bool GuesserAffixesListsDlg::SuffixExistsAlready(wxString sSrc)
 {
 	wxASSERT(m_pSuffixesPairsArray != NULL);
-	
+
 	// Check to see if Suffix Exists, return true if so
 	if(GetSuffixes() != NULL && GetSuffixes()->GetCount() > 0)
 		for (int i = 0; i < (int)GetSuffixes()->GetCount(); i++)
-		{				
+		{
 			if (m_pSuffixesPairsArray->Item(i)->srcLangAffix.CmpNoCase( sSrc ) == 0 )
 			{
 				return true;
 			}
-			
+
 		}
 	return false;
 }
 // Column 0 = source, 1 = target
-wxString GuesserAffixesListsDlg::GetCellContentsString( long row_number, int column ) 
+wxString GuesserAffixesListsDlg::GetCellContentsString( long row_number, int column )
 {
-   wxListItem     row_info;  
+   wxListItem     row_info;
    wxString       cell_contents_string;
- 
+
    // Set what row it is (m_itemId is a member of the regular wxListCtrl class)
    row_info.m_itemId = row_number;
    // Set what column of that row we want to query for information.
    row_info.m_col = column;
    // Set text mask
    row_info.m_mask = wxLIST_MASK_TEXT;
- 
-   // Get the info and store it in row_info variable.   
+
+   // Get the info and store it in row_info variable.
    m_pAffixPairsList->GetItem( row_info );
- 
+
    // Extract the text out that cell
-   cell_contents_string = row_info.m_text; 
- 
+   cell_contents_string = row_info.m_text;
+
    return cell_contents_string;
 }

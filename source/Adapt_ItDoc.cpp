@@ -58,6 +58,7 @@ size_t aSequNum; // use with TOKENIZE_BUG
 #include <wx/progdlg.h>
 #include <wx/busyinfo.h>
 #include <wx/dir.h> // for wxDir
+#include <wx/textfile.h>
 
 #if !defined(__APPLE__)
 #include <malloc.h>
@@ -139,6 +140,8 @@ extern enum TextType gPreviousTextType; // moved to global space in the App, mad
 /// Length of the byte-order-mark (BOM) which consists of the two bytes 0xFF and 0xFE in
 /// in UTF-16 encoding.
 #define nU16BOMLen 2
+
+#define LOG_CREATES
 
 #define SETH_16OCT15
 
@@ -440,6 +443,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 	// refactored 10Mar09
 	CAdapt_ItApp* pApp = GetApp();
 	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
+
+	// BEW 16Aug16, Restore the default, which is Shift_Launch no longer on, if it was on
+	pApp->m_bDoNormalProjectOpening = TRUE;
 
     pApp->m_owner = pApp->m_strUserID;  // this is our doc
     pApp->m_trialVersionNum = -1;		// negative means no trial going on - the normal case
@@ -915,7 +921,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 							pApp->m_bZWSPinDoc = FALSE; // BEW 6Oct14 restore default
 
-							return FALSE; // returns to OnWizardFinish() in DocPage.cpp (BEW 24Aug10, if
+							return TRUE; // returns to OnWizardFinish() in DocPage.cpp (BEW 24Aug10, if
 										// that claim always is true, then no harm will be done;
 										// but if it returns FALSE to the wxWidgets doc/view
 										// framework, it partially clobbers the latter -- this can be
@@ -925,7 +931,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 										// wxWidgets dialog, then the app is unstable and New and Open
 										// whether on the File menu or as toolbar buttons will not
 										// work right. In that case, we would need to return TRUE
-										// here, not FALSE. For now, I'll let the FALSE value remain.)
+										// here, not FALSE. BEW 22Jul16 made it TRUE)
 						}
 					}
 					else
@@ -1065,6 +1071,25 @@ bool CAdapt_ItDoc::OnNewDocument()
 													 // m_lastDocPath to config files
 			}
 
+			// Everything is now setup to normalize the input text and do the parse,
+			// so setup our logging file that will store the filename followed by
+			// the last 5 lines successfully parsed: each line contains the following
+			// information: m_srcPhrase, m_nSequNumber, the chapter number, the verse number
+			// So if there is a parse failure, it happened after the last m_srcPhrase in
+			// this file. It is stored in the folder _LOGS_EMAIL_REPORTS in work folder
+			if (gpApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+			{
+				gpApp->m_bSetupDocCreationLogSucceeded = gpApp->SetupDocCreationLog(pApp->m_curOutputFilename);
+				if (gpApp->m_bSetupDocCreationLogSucceeded)
+				{
+					gpApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
+				}
+				else
+				{
+					gpApp->m_bParsingSource = FALSE; // don't attempt to log if the file is not in existence
+				}
+			}
+
 			SetFilename(pApp->m_curOutputPath,TRUE);// TRUE notify all views
 			Modify(FALSE);
 
@@ -1121,12 +1146,58 @@ bool CAdapt_ItDoc::OnNewDocument()
 			*pApp->m_pBuffer = ZWSPtoFwdSlash(*pApp->m_pBuffer);
 			*pApp->m_pBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, *pApp->m_pBuffer);
 //#endif
-
 			// parse the input file
 			int nHowMany;
-			nHowMany = TokenizeText(0,pApp->m_pSourcePhrases,*pApp->m_pBuffer,
-									(int)pApp->m_nInputFileLength);
-			nHowMany = nHowMany; // avoid warning
+			wxString msg = _("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
+			wxString msgEnglish = _T("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
+
+			if (pApp->m_bMakeDocCreationLogfile)
+			{
+#if defined(__WXMSW__)
+				CWaitDlg waitDlg(pApp->GetMainFrame());
+				// indicate we want the closing the document wait message
+				waitDlg.m_nWaitMsgNum = 27;	// 27 has "Retrying & making a log file in folder _LOGS_EMAIL_REPORTS. It is slow..."
+				waitDlg.Centre();
+				waitDlg.Show(TRUE);
+				waitDlg.Update();
+				// the wait dialog is automatically destroyed when it goes out of scope below
+#endif
+				nHowMany = TokenizeText(0, pApp->m_pSourcePhrases, *pApp->m_pBuffer,
+					(int)pApp->m_nInputFileLength);
+				if (nHowMany == -1)
+				{
+					// Abort the document creation, there has been a significant parsing error. 
+					// Do a diagnostic run (see View page of Preferences)
+					pApp->LogUserAction(msgEnglish);
+					wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+					return TRUE;
+				}
+			}
+			else
+			{
+				// No logfile is to be created
+				nHowMany = TokenizeText(0, pApp->m_pSourcePhrases, *pApp->m_pBuffer,
+					(int)pApp->m_nInputFileLength);
+				if (nHowMany == -1)
+				{
+					// Abort the document creation, there has been a significant parsing error. 
+					// Do a diagnostic run (see View page of Preferences)
+					pApp->LogUserAction(msgEnglish);
+					pApp->m_bParsingSource = FALSE;
+					pApp->m_bMakeDocCreationLogfile = FALSE;
+					wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+					return TRUE;
+				}
+			}
+			//wxUnusedVar(nHowMany); // avoid warning
+
+			pApp->m_bParsingSource = FALSE; // make sure doc creation logging stays OFF 
+											 // until explicitly turned on at another time
+			pApp->m_bMakeDocCreationLogfile = FALSE; // turn this OFF to prevent user
+				// leaving it turned on, and wondering why doc creation takes minutes to complete
+			
+
+
 #if defined(_DEBUG) //&& defined(FWD_SLASH_DELIM)
 			if (pApp->m_bFwdSlashDelimiter)
 			{
@@ -1476,6 +1547,38 @@ bool CAdapt_ItDoc::OnNewDocument()
 	pApp->m_bZWSPinDoc = pApp->IsZWSPinDoc(pApp->m_pSourcePhrases);
 
 	return TRUE;
+}
+
+void CAdapt_ItDoc::UpdateDocCreationLog(CSourcePhrase* pSrcPhrase, wxString& chapter, wxString& verse)
+{
+	wxString myLine;
+	myLine = myLine.Format(_T("%s  %d  %s:%s"),
+		pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber, chapter.c_str(), verse.c_str());
+	size_t count = 0;
+	wxString  logsPath = gpApp->m_logsEmailReportsFolderPath;
+	wxString logFilename = gpApp->m_filename_for_ParsingSource; // OnInit() sets it to "Log_For_Document_Creation.txt"
+	wxString path = logsPath + gpApp->PathSeparator + logFilename;
+	wxTextFile f(path);
+	if (!f.IsOpened())
+	{
+		if (f.Open())
+		{
+			count = f.GetLineCount();
+			wxASSERT(count >= 1);
+			if (count < 6)
+			{
+				f.AddLine(myLine);
+				f.Write();
+			}
+			else
+			{
+				f.RemoveLine((size_t)1);
+				f.AddLine(myLine);
+				f.Write();
+			}
+			f.Close();
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -6015,6 +6118,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	CAdapt_ItApp*	pApp = GetApp();
 	CAdapt_ItView*	pView = pApp->GetView();
 
+	// BEW 16Aug16, Restore the default, which is Shift_Launch no longer on, if it was on
+	pApp->m_bDoNormalProjectOpening = TRUE;
+
 	//wxLogDebug(_T("3538 at start of OnOpenDocument(), m_bCancelAndSelectButtonPressed = %d"),
 	//	gpApp->m_pTargetBox->GetCancelAndSelectFlag());
 
@@ -10200,6 +10306,39 @@ bool CAdapt_ItDoc::IsClosingCurlyQuote(wxChar* pChar)
 	return FALSE;
 }
 
+bool CAdapt_ItDoc::IsPunctuation(wxChar* ptr, bool bSource) // bSource is default TRUE
+{
+	if (bSource)
+	{
+		if (gpApp->m_strSpacelessSourcePuncts.IsEmpty())
+		{
+			return FALSE;
+		}
+		int offset = wxNOT_FOUND;
+		offset = gpApp->m_strSpacelessSourcePuncts.Find(*ptr);
+		if (offset == wxNOT_FOUND)
+		{
+			return FALSE;
+		}
+		return TRUE;
+	}
+	else
+	{
+		if (gpApp->m_strSpacelessTargetPuncts.IsEmpty())
+		{
+			return FALSE;
+		}
+		int offset = wxNOT_FOUND;
+		offset = gpApp->m_strSpacelessTargetPuncts.Find(*ptr);
+		if (offset == wxNOT_FOUND)
+		{
+			return FALSE;
+		}
+		return TRUE;
+	}
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if pChar is pointing to a closing quote mark
 /// \param		pChar		-> a pointer to the character to be examined
@@ -11642,6 +11781,10 @@ wxString CAdapt_ItDoc::SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, 
 /// protocol for handling ] works the same way regardless of whether or not the ]
 /// character is designated a punctuation character - we treat it as if it was, even if not.
 /// BEW 24Oct14 changes made for support of USFM nested markers (of form \+tag )
+/// BEW 19Jul16 see comments re ] above, ]"<newline>\s caused a parse crash (actually assert
+/// got tripped), so I need to have TokenizeText() handle puncts after the ] by parsing
+/// over them to whitespace or marker following, and store the puncts after the ] on its
+/// CSourcePhrase instance.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		wxChar* pEnd,
@@ -11719,6 +11862,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		// we are pointing at one of these five markers, handle this situation...
 		pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
 		wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
+		// In the release version, force a document creation error, and hence a halt with a warning
+		if (pUsfmAnalysis == NULL)
+		{
+			return -1;
+		}
 		bareMkr = emptyStr;
 		// BEW 24Oct14, use the two new params of LookupSFM to construct the marker which
 		// is to be stored
@@ -11743,6 +11891,12 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		wholeMkr = gSFescapechar + bareMkr;
 		wholeMkrPlusSpace = wholeMkr + aSpace;
 		wxASSERT(inlineNonbindingMrks.Find(wholeMkrPlusSpace) != wxNOT_FOUND);
+		// In the release version, force a document creation error, and hence a halt with a warning
+		if (inlineNonbindingMrks.Find(wholeMkrPlusSpace) == wxNOT_FOUND)
+		{
+			return -1;
+		}
+
 		wxUnusedVar(inlineNonbindingMrks); // avoid compiler warning
 		itemLen = wholeMkr.Len();
 
@@ -11757,6 +11911,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		ptr += itemLen;
 		len += itemLen;
 		wxASSERT(ptr < pEnd);
+		// In the release version, force a document creation error, and hence a halt with a warning
+		if (ptr > pEnd)
+		{
+			return -1;
+		}
 	}
 	else
 	{
@@ -11780,6 +11939,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	{
 		pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
 		wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
+		// In the release version, force a document creation error, and hence a halt with a warning
+		if (pUsfmAnalysis == NULL)
+		{
+			return -1;
+		}
 		bareMkr = emptyStr;
 		// BEW 24Oct14, use the two new params of LookupSFM to construct the marker which
 		// is to be stored
@@ -11804,6 +11968,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		wholeMkr = gSFescapechar + bareMkr; // it's reconstructed
 		wholeMkrPlusSpace = wholeMkr + aSpace;
 		wxASSERT(pUsfmAnalysis->inLine == TRUE);
+		// In the release version, force a document creation error, and hence a halt with a warning
+		if (pUsfmAnalysis->inLine == FALSE)
+		{
+			return -1;
+		}
 		itemLen = wholeMkr.Len();
 
 		// store the whole marker, and a following space
@@ -11818,6 +11987,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		ptr += itemLen;
 		len += itemLen;
 		wxASSERT(ptr < pEnd);
+		// In the release version, force a document creation error, and hence a halt with a warning
+		if (ptr > pEnd)
+		{
+			return -1;
+		}
 	}
 	bIsInlineBindingMkr = FALSE; // it's passed by ref, so clear the value
 								 // otherwise next entry will fail
@@ -11942,6 +12116,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				else
 				{
 					wxASSERT(pUsfmAnalysis->inLine == TRUE);
+					// In the release version, force a document creation error, and hence a halt with a warning
+					if (pUsfmAnalysis->inLine == FALSE)
+					{
+						return -1;
+					}
 					itemLen = wholeMkr.Len();
 
 					// store the whole marker, and a following space
@@ -11958,6 +12137,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			ptr += itemLen;
 			len += itemLen;
 			wxASSERT(ptr < pEnd);
+			if (ptr > pEnd)
+			{
+				return -1;
+			}
 		}
 		// Once control gets to here, ptr should be pointing at the first character of the
 		// actual word for saving in m_key of pSrcPhrase; we don't expect punctuation
@@ -12081,6 +12264,10 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				ptr += itemLen;
 				len += itemLen;
 				wxASSERT(ptr < pEnd);
+				if (ptr > pEnd)
+				{
+					return -1;
+				}
 			}
             // once control gets to here, ptr should be pointing at the first character of
             // the actual word for saving in m_key of pSrcPhrase ... well, usually.
@@ -12785,7 +12972,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 					}
 					if (IsEndMarker(ptr2, pEnd) || *ptr2 == _T(']'))
 					{
-						// we'll treat is as following puncts for our current pSrcPhrase
+						// we'll treat this as following puncts for our current pSrcPhrase
 						// and return if we came to ], otherwise parse on...
 						wxString finalPuncts(ptr, countThem);
 						pSrcPhrase->m_follPunct += finalPuncts;
@@ -15854,6 +16041,7 @@ void CAdapt_ItDoc::OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr)
 	// this function as an example of how to set up a wxStringBuffer.
 	{ // begin special scoped block
 		wxStringBuffer pBuffer((*pstr), len + 1);
+
 		//wxChar* pBuffer = (*pstr).GetWriteBuf(len + 1);
 		wxChar* pBufStart = pBuffer;
 		wxChar* pEnd = pBufStart + len;
@@ -16094,6 +16282,57 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \return		pointer to the rest of the input text yet to be parsed
+/// \param		ptr			->  ptr to input text, pointing at the next character
+///							    after ]
+/// \param		pSrcPhrase	->  the CSourcePhrase instance which will store the ] and
+///								any punctuation immediately following it
+/// \remarks
+/// The character sequence, ]"<newline>\s caused a misparse leading to an assert tripping
+/// in ParseWord(). The former algorithm of putting only the ] on the pSrcPhrase is
+/// deficient. Instead, ] and any puncts after it are to be stored, stop parsing at
+/// next whitespace or marker - whichever is first.
+/// We assume that punctuation after a ] is only going to be word-final, that is, not
+/// belonging to an input word which follows the ] somewhere; and we also assume that
+/// a following word will not abutt the preceding ] character
+wxChar* CAdapt_ItDoc::HandlePostBracketPunctuation(wxChar* ptr, CSourcePhrase* pSrcPhrase, bool bParsingSrcText)
+{
+	wxASSERT(*(ptr - 1) == _T(']')); // check ptr is pointing to character after the ] character
+	wxChar* p = ptr;
+	bool bIsWhitespace = IsWhiteSpace(p);
+	bool bIsPunctuation = IsPunctuation(p, bParsingSrcText);
+	bool bIsMkr = IsMarker(p);
+	
+	while (!bIsWhitespace && !bIsMkr & bIsPunctuation)
+	{
+		pSrcPhrase->m_follPunct += *p; // store it
+		p++; // point at the next character
+
+		bIsWhitespace = IsWhiteSpace(p);
+		bIsPunctuation = IsPunctuation(p, bParsingSrcText);
+		bIsMkr = IsMarker(p);
+	}
+	// Provided p is not pointing at a marker, check the possibility that there
+	// maybe a further closing curly quote or doublequote (with an intervening
+	// space) also following the punctuation characters currently scanned over 
+	// and saved. If there is, add them to m_follPunct too
+	if (!bIsMkr)
+	{
+		if (!IsEnd(p) && (*p == _T(' ')))
+		{
+			if (!IsEnd(p + 1L) && IsClosingCurlyQuote(p + 1L))
+			{
+				// We've a detached closing single or doublequote, so add it in
+				// along with the preceding space
+				pSrcPhrase->m_follPunct += *p; // the space
+				pSrcPhrase->m_follPunct += *(p + 1L); // the curly endquote
+				p = p + 2L;
+			}
+		}
+	}
+	return p;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of elements/tokens in the list of source phrases (pList)
@@ -16121,9 +16360,14 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 /// data on each call. TokenizeText also reworked to handle text colouring better.
 /// BEW 24Oct14, various changes (mostly to called functions within) for support
 /// of USFM nested markers
+/// BEW 24Oct14 changes made for support of USFM nested markers (of form \+tag )
+/// BEW 19Jul16 The character sequence ]"<newline>\s caused a parse crash (actually assert
+/// got tripped), so I need to have TokenizeText() handle puncts after the ] by parsing
+/// over them to whitespace or marker following, and store the puncts after the ] on its
+/// CSourcePhrase instance.
 ///
 /// TODO - currently, order information about what precedes a word and what follows it is
-/// lost. A useful change for more accurate exports, and reducing the user of Placement
+/// lost. A useful change for more accurate exports, and reducing the use of Placement
 /// dialogs, would be to add order information (eg. enums in actual order in a couple of
 /// new CSourcePhrase string attributes) to the CSourcePhrase model. Do this someday!
 ///////////////////////////////////////////////////////////////////////////////
@@ -16350,6 +16594,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			else
 			{
 				// must be a closing bracket,  ]
+				// BEW 19Jul16 addition. The sequence:   ]"<newline>\s caused
+				// an assert to trip in ParseWord, because "<newline> before the
+				// \s marker caused \s to be considered as an inlinebinding marker 
+				// following, and it is not an inline binding mkr, which caused the
+				// assert to trip. My solution, if ] is detected, is to check for
+				// punctuation following - and parse it with the ], storing it in
+				// m_follPunct, stopping the parse when whitespace or marker is
+				// next encountered
 				if (!IsClosingBracketWordBuilding(spacelessPuncts))
 				{
 					// it's a punctuation character
@@ -16361,8 +16613,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						pSrcPhrase->m_follPunct = _T(" ") + pSrcPhrase->m_follPunct;
 					}
 					ptr++; // point past the ]
+					ptr = HandlePostBracketPunctuation(ptr, pSrcPhrase, !bTokenizingTargetText);
 					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_follPunct; // need this for the ]
-					// bracket (and its preceding space if we stored one) to be visible
+							// bracket (and its preceding space if we stored one) to be visible
+							// and any following puncts which we added within the above function
 				}
 				else
 				{
@@ -16370,6 +16624,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					pSrcPhrase->m_key = *ptr;
 					pSrcPhrase->m_srcPhrase = *ptr;
 					ptr++; // point past the ]
+					ptr = HandlePostBracketPunctuation(ptr, pSrcPhrase, !bTokenizingTargetText); // may put punct(s) into m_follPunct
+					if (!pSrcPhrase->m_follPunct.IsEmpty())
+					{
+						pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+					}
 				}
 				if (pSrcPhrase != NULL)
 				{
@@ -16378,6 +16637,29 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				}
 				// make this one become the 'last one' of the next iteration
 				pLastSrcPhrase = pSrcPhrase;
+
+#if defined(_DEBUG) && defined(LOG_CREATES)
+				if (pSrcPhrase->m_chapterVerse.IsEmpty())
+				{
+					wxLogDebug(_T("CSourcePhrase:  m_srcPhrase:  %s  m_nSequNumber: %d"),
+						pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber);
+				}
+				else
+				{
+					wxLogDebug(_T("CSourcePhrase:  m_srcPhrase:  %s  m_nSequNumber: %d  chapter:verse =  %s"),
+						pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_chapterVerse.c_str());
+
+				}
+#endif
+				// If logging is wanted, update with this entry
+				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+				{
+					if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
+					{
+						UpdateDocCreationLog(pSrcPhrase, pApp->m_chapterNumber_for_ParsingSource,
+							pApp->m_verseNumber_for_ParsingSource);
+					}
+				}
 				continue; // iterate
 			}
 		}
@@ -16464,6 +16746,16 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add number (or range eg. 3-5) to buffer
 				pSrcPhrase->m_chapterVerse = pApp->m_curChapter; // set to n: form
 				pSrcPhrase->m_chapterVerse += temp; // append the verse number
+
+				// Track the verse number if logging is wanted
+				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+				{
+					if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
+					{
+						pApp->m_verseNumber_for_ParsingSource = temp;
+					}
+				}
+
 				pSrcPhrase->m_bVerse = TRUE; // set the flag to signal start of a new verse
 				ptr += itemLen; // point past verse number
 
@@ -16539,6 +16831,16 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				itemLen = ParseNumber(ptr);
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add chapter number to buffer
 				pApp->m_curChapter = temp;
+
+				// Track the chapter if logging is wanted
+				if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+				{
+					if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
+					{
+						pApp->m_chapterNumber_for_ParsingSource = pApp->m_curChapter;
+					}
+				}
+
 				pApp->m_curChapter += _T(':'); // get it ready to append verse numbers
 				ptr += itemLen; // point past chapter number
 
@@ -17070,6 +17372,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 								pApp->m_inlineNonbindingEndMarkers,
 								bIsInlineNonbindingMkr, bIsInlineBindingMkr,
 								bTokenizingTargetText);
+			if (itemLen == -1)
+			{
+				// There has been a significant parsing error, don't continue, but force
+				// TokenizeText() to abort by returning -1 here (the user will be warned
+				// at a higher level)
+				return itemLen;
+			}
 			ptr += itemLen; // advance ptr over what we parsed
 #if defined(_DEBUG) && defined(TOKENIZE_BUG)
 			wxString strParsed = pSrcPhrase->m_srcPhrase;
@@ -17484,8 +17793,31 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			}
 		}
 
+#if defined(_DEBUG) && defined(LOG_CREATES)
+		if (pSrcPhrase->m_chapterVerse.IsEmpty())
+		{
+			wxLogDebug(_T("CSourcePhrase:  m_srcPhrase:  %s  m_nSequNumber: %d"),
+				pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber);
+		}
+		else
+		{
+			wxLogDebug(_T("CSourcePhrase:  m_srcPhrase:  %s  m_nSequNumber: %d  chapter:verse =  %s"),
+				pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_chapterVerse.c_str());
+
+		}
+#endif
 		// make this one be the "last" one for next time through
 		pLastSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
+
+		// If logging is wanted, update with this entry
+		if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+		{
+			if (pApp->m_bSetupDocCreationLogSucceeded && pApp->m_bParsingSource)
+			{
+				UpdateDocCreationLog(pSrcPhrase, pApp->m_chapterNumber_for_ParsingSource,
+					pApp->m_verseNumber_for_ParsingSource);
+			}
+		}
 
 	} // end of while (ptr < pEndText)
 
@@ -19529,7 +19861,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
         return FALSE;
     }
 
-	// put up a Wait dialog; but it's nonmodal and on Linux its contents are now shown
+	// put up a Wait dialog; but it's nonmodal and on Linux its contents are not shown
 	// so do it only for Windows
 #if defined(__WXMSW__)
 	CWaitDlg waitDlg(pApp->GetMainFrame());
@@ -24616,15 +24948,28 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		bool bAttemptStoreToKB = TRUE;
 		bool bSuppressWarningOnStoreKBFailure = TRUE;
 
-        // BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
-        // returns TRUE to the caller if the attempted store fails for some reason, for all
-        // other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure
-        // is TRUE as we don't expect a failure and will ignore it if it does anyway;
+ 
+		// BEW 30Jul16 Move active location now to sn = 0, because if the active location happened to
+		// have been at an inconsistency, the following UpdateDoc....() call will put a single instance of
+		// the inconsistency into the KB, and it it had been deliberately removed in order to allow
+		// splitting the meaning, or correcting a typo occurring in many places, those inconsistencies
+		// would not be recognised for what they are. So safest place is to have the active location
+		// at the start - it's typically the Book Code's CSourcePhrase. ReOpenDocument() will eventually
+		// restore the original doc and its state, using the sequ number from the xml
+		CSourcePhrase* pSrcPhrase = NULL;
+		pApp->m_nActiveSequNum = 0;
+		pApp->m_pActivePile = pApp->GetView()->GetPile(0);
+		pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+
+		// BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
+		// returns TRUE to the caller if the attempted store fails for some reason, for all
+		// other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure
+		// is TRUE as we don't expect a failure and will ignore it if it does anyway;
 		UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
 
 		// prepare for the loop with various initializations
 		enum InconsistencyType inconsistencyType = member_exists_flag_on_PTUexists_deleted_Refstr;
-		CSourcePhrase* pSrcPhrase = NULL;
+		pSrcPhrase = NULL;
 		int nWords;
 		// for the IsAlreadyInKB() test, we pass in pSrcPhrase->adaption
 
@@ -24727,6 +25072,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			bIsInKB = pKBCopy->IsAlreadyInKB(nWords, key, adaption, pTU, pRefStr, bDeleted);
 			bIsInKB_OnOrig = pKB->IsAlreadyInKB(nWords, key, adaption, pTU_OnOrig, pRefStr_OnOrig, bDeleted_OnOrig);
 			bIsInKB_OnOrig = bIsInKB_OnOrig; // avoid warning
+#if defined(CONSCHK2)
+			wxLogDebug(_T("CONSCHK2: key = %s, adaption = %s, sn = %d, active sn = %d"),
+				key.c_str(), adaption.c_str(), pSrcPhrase->m_nSequNumber, gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber);
+#endif
 
 			// While <Not In KB> entries are expected to be rare or absent, if present
 			// they are dominant - that is, if a given source text word or phrase is

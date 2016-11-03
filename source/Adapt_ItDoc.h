@@ -54,6 +54,7 @@ WX_DECLARE_LIST(AutoFixRecordG, AFGList); // see list definition macro in .cpp f
 
 // for debugging, uncomment out to turn on the debugging displays (they are very helpful)
 //#define CONSCHK
+#define CONSCHK2
 
 enum SaveType {
 	normal_save,
@@ -352,6 +353,7 @@ public:
 	bool			IsMarker(wxChar* pChar);
 	bool			IsMarker(wxString& mkr); // overloaded version
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
+	bool			IsPunctuation(wxChar* ptr, bool bSource = TRUE);
 	bool			IsEndMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase);
 	bool			IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd));
@@ -508,6 +510,7 @@ public:
 	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);
 	void DoBookName(); // to access the Book Naming dialog from anywhere, calls OnBookNameDlg()
+	void UpdateDocCreationLog(CSourcePhrase* pSrcPhrase, wxString& chapter, wxString& verse);
 private:
 	void OnSplitDocument(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSplitDocument(wxUpdateUIEvent& event);
@@ -526,6 +529,7 @@ private:
     int		m_docVersionCurrent; // BEW added 19Apr10 for Save As... support
 	bool	m_bLegacyDocVersionForSaveAs;
 	bool	m_bDocRenameRequestedForSaveAs;
+	wxChar*	HandlePostBracketPunctuation(wxChar* ptr, CSourcePhrase* pSrcPhrase, bool bParsingSrcText);
 	bool	IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr);
 	bool	IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxString* pWholeMkr);
 	void	SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 

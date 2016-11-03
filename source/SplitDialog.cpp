@@ -503,7 +503,8 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 	bool bCountedChapter = TRUE;
 	//SPList::Node* save_pos = NULL; // set but not used
 	p = SourcePhrases->GetFirst();
-	while (p) {
+	while (p) 
+	{
 		sp = (CSourcePhrase*)p->GetData();
 		//save_pos = p; // for use in the MoveFinalEndmarkersToEndOfLastChapter() call
 		p = p->GetNext();
@@ -555,6 +556,28 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 				}
 			}
 		}
+		/* 
+		// BEW removed 9Sep16, the dynamic change of collab type proved to be too risk-prone, 
+		// so I removed it. However, split and join should work equally well if we were to force
+		// two digit chapter numbers, so Galatians01 to Galatians07, for example. So I'll leave
+		// this block commented out, in case we ever want to do that. This bit of code would be
+		// all that is required to implement that (removing the no longer needed test of course)
+
+		// BEW 7Sep16, test and TRUE block added in support of using DoSplitIntoChapters() within
+		// collaboration with Paratext or Bibledit, which require 2-digit numbers for all books
+		// except Psalms - the latter requiring three digits
+		if (gpApp->m_bCollaborationTypeChangeInProgress)
+		{
+			// If *cChapterDigits gets to 9 or less, then we must (for collaboration)
+			// force a leading zero before 1 to 9, to comply with our filenaming
+			// conventions for collaboration. Psalms, being 3 digits max, will take
+			// care of itself without anything being needed here
+			if (*cChapterDigits <= 1)
+			{
+				(*cChapterDigits) = 2; // make it 2 in collaboration mode, if 1 or 0 was max
+			}
+		}
+		*/
 		// put the chapter's CSourcePhrase instances into the sublist
 		c->SourcePhrases->Append(sp);
 
@@ -623,6 +646,19 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 		}
 	}
 
+	// BEW 12Aug16, the SaveDocChanges() call below, internally calls DoFileSave() on each new
+	// chapter document - but the latter does a save of the contents of the phrasebox (the
+	// m_targetPhrase app member) as the m_adaption for the active sequ number's CSourcePhrase
+	// which, in a splitting operation, is defaulted to sn = 0 for each doc. But that is where
+	// the bookID gets inserted - so if we don't clear m_targetPhrase first, each split doc
+	// gets whatever the old active location's adaptation happened to be as a bogus adaptation
+	// for the bookCode. So fix this here
+	if (!gpApp->m_targetPhrase.IsEmpty())
+	{
+		gpApp->m_targetPhrase = wxEmptyString;
+		gpApp->m_pTargetBox->SetValue(wxEmptyString);
+	}
+
 	// Save the split bits.
 	p = Chapters->GetFirst();
 	while (p) 
@@ -630,8 +666,24 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 		c = (Chapter*)p->GetData();
 		p = p->GetNext();
 		gpApp->m_pSourcePhrases = c->SourcePhrases;
+/*
+#if defined(_DEBUG)
+		wxSPListNode* pSPNode = gpApp->m_pSourcePhrases->Item(0);
+		CSourcePhrase* pSP = pSPNode->GetData();
+		wxLogDebug(_T("SplitIntoChapters_Interactive(), first CSourcePhrase: m_key = %s   m_adaption = %s  after setting SPList"),
+			pSP->m_key.c_str(), pSP->m_adaption.c_str());
+#endif
+*/
 		gpApp->ChangeDocUnderlyingFileNameInPlace(c->FileName);
 		gpApp->CascadeSourcePhraseListChange(false); // sequence numbers renumbered here too
+/*
+#if defined(_DEBUG)
+		pSPNode = gpApp->m_pSourcePhrases->Item(0);
+		pSP = pSPNode->GetData();
+		wxLogDebug(_T("SplitIntoChapters_Interactive(), first CSourcePhrase: m_key = %s   m_adaption = %s  after setting CascadeSPListChange"),
+			pSP->m_key.c_str(), pSP->m_adaption.c_str());
+#endif
+*/
 		gpApp->SaveDocChanges();
 	}
 	pSplittingWait->Show(FALSE);
@@ -642,7 +694,7 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 		::wxBell();
 	}
 
-	// Close the current document, discarding changes.
+	// Close the current document, discarding changes. (Calls ClobberDocument() )
 	gpApp->CloseDocDiscardingAnyUnsavedChanges();
 
 	// Free memory.
@@ -680,9 +732,8 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 
 bool CSplitDialog::CurrentDocSpansMoreThanOneChapter()
 {
-	
 	/*
-	  Algorythm :
+	  Algorithm :
 		Assume that the number of chapters equals the number of "\\c" markers.
 	*/
 

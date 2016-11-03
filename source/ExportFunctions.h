@@ -146,6 +146,7 @@ wxString	GetANSIorUnicodeRTFCharsFromString(wxString inStr);
 bool		WriteOutputString(wxFile& f, wxFontEncoding Encoding, const wxString& OutStr);
 int			ParseMarkerRTF(wxChar* pChar, wxChar* pEndChar); // whm added 22Nov05
 bool		IsMarkerRTF(wxChar *pChar, wxChar* pBuffStart); // whm added 22Nov05
+bool		IsEndMarkerRTF(wxChar *pChar, wxChar* pBuffEnd); // BEW added 25Aug16
 int			ParseMarkerAndAnyAssociatedText(wxChar* pChar, wxChar* pBuffStart, 
 							wxChar* pEndChar, wxString bareMarkerForLookup, wxString wholeMarker,
 							bool parsingRTFText, bool InclCharFormatMkrs); // whm added 11Nov05

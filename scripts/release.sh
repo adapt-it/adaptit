@@ -122,6 +122,9 @@ case "$DIST" in
     "rafaela")
         DIST="trusty"
         ;;
+    "sarah")
+        DIST="xenial"
+        ;;
 esac
 echo -e "\nDistribution DIST Codename is: $DIST"
 
@@ -215,6 +218,9 @@ case "$DIST" in
         ;;
     "rafaela")
         DIST="trusty"
+        ;;
+    "sarah")
+        DIST="xenial"
         ;;
 esac
 USER=$(id -un)

@@ -64,7 +64,7 @@ public:
     wxString m_SaveCollabEditorVersion; // whm added 24June2016
 	wxString m_SaveCollabSourceProjLangName;
 	wxString m_SaveCollabTargetProjLangName;
-	bool m_bSaveCollabByChapterOnly; // FALSE means the "whole book" option
+	bool m_bSaveCollabByChapterOnly; // keep input value, so we can test if user changes it in the dialog
 	bool m_bSaveCollaborationExpectsFreeTrans;
 	wxString m_SaveCollabBookSelected;
 	wxString m_SaveCollabChapterSelected;
@@ -121,12 +121,6 @@ private:
 	wxButton* pBtnClose;
 	bool m_bCollabChangedThisDlgSession;
 	wxArrayString projList;
-
-	// class attributes
-	// wxString m_stringVariable;
-	// bool m_bVariable;
-	
-	// other class attributes
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

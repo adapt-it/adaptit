@@ -12,6 +12,8 @@
 # 2.0 and 2.8 packages are installed on all systems prior to Xenial.
 # Revision: 15May2016 whm added CodeBlocks PPA and GPG key to software 
 #   sources so the newest version of CodeBlocks can be installed.
+#   06Oct2016 - added the build-essential package to AID_DEV_TOOLS_OLD and AID_DEV_TOOLS_NEW
+#     to correct failure to build AI on systems without the g++ compiler.
 #
 # Setup AID development tools
 echo "Seting up AID Tools..."
@@ -20,11 +22,11 @@ PROJECT_DIR=${1:-~/projects}	# AIM development file location, default ~/projects
 WAIT=60
 AID_GITURL=https://github.com/adapt-it/adaptit.git
 AID_DEV_TOOLS_OLD="codeblocks poedit git gnome-common libgtk2.0-0-dbg libgtk2.0-dev \
-  gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
+  build-essential gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
   libwxbase2.8-0 libwxbase2.8-dbg libwxbase2.8-dev libwxgtk2.8-0 libwxgtk2.8-dbg \
   libwxgtk2.8-dev wx-common wx2.8-headers wx2.8-i18n"
 AID_DEV_TOOLS_NEW="codeblocks poedit git gnome-common libgtk-3-0-dbg libgtk-3-dev \
-  gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
+  build-essential gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
   libwxbase3.0-0v5 libwxbase3.0-0v5-dbg libwxbase3.0-dev libwxgtk3.0-0v5 libwxgtk3.0-0v5-dbg \
   libwxgtk3.0-dev wx-common wx3.0-headers wx3.0-i18n"
 # Note: the wx2.8-i18n and wx3.0-i18n packages cannot be installed at the same time, 

@@ -58,7 +58,6 @@
 #include "MainFrm.h"
 #include "WaitDlg.h"
 #include "XML.h"
-#include "SplitDialog.h"
 #include "ExportFunctions.h"
 #include "PlaceInternalMarkers.h"
 #include "Uuid_AI.h" // for uuid support
@@ -73,6 +72,7 @@
 #include "helpers.h"
 #include "tellenc.h"	// needed for check_ucs_bom() in MoveTextToFolderAndSave()
 #include "md5.h"
+#include "SetupEditorCollaboration.h"
 #include "CollabUtilities.h"
 #include "StatusBar.h"
 #include "ConflictResActionDlg.h"
@@ -110,7 +110,7 @@ extern bool gbDoingInitialSetup;
 
 	// BEW 15Sep14, for 6.5.4, refactored the OnOK() and the whole-doc option of the
 	// GetSourceTextFromEditor.cpp class, so that the handlers that do most of the work
-	// can be deleted to the next OnIdle() call, giving time for the parent dialog to
+	// can be delegated to the next OnIdle() call, giving time for the parent dialog to
 	// disappear before source text is grabbed from the external editor and especially
 	// before a target text export is done to form the preEdit chapter text - since the
 	// latter could put up a Place Medial Markers dialog, and we don't want to see it
@@ -148,7 +148,8 @@ extern bool gbDoingInitialSetup;
 // for both the target export, and the free translation export
 //#define LOG_EXPORT_VERSE_RANGE
 // comment out when seeing md5sum lines is not wanted
-//#define LISTMD5LINES
+#define LIST_MD5LINES
+#define TYPE_CHANGED
 
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
@@ -168,25 +169,37 @@ extern bool gbDoingInitialSetup;
 // specific to the target text and the free translation text. This function
 // works for all three text types - source, target and free trans via
 // specification in the textType parameter.
-void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
-								wxArrayString& usfmStructureAndExtentArray,
-								wxString collabCompositeProjectName,
-								wxString bookFullName,
-								wxArrayString& staticBoxDescriptionArray,
-								wxArrayString& chapterList,
-								wxArrayString& statusList,
-								bool& bBookIsEmpty)
-{
-	// Retrieves several wxArrayString lists of information about the chapters
-	// and verses (and their status) from the PT/BE project's Scripture book
-	// represented in bookFullName.
-	wxArrayString chapterArray;
-	wxArrayString statusArray;
-	chapterArray.Clear();
-	statusArray.Clear();
-	staticBoxDescriptionArray.Clear();
-	int ct,tot;
-	tot = usfmStructureAndExtentArray.GetCount();
+	void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
+		wxArrayString& usfmStructureAndExtentArray,
+		wxString collabCompositeProjectName,
+		wxString bookFullName,
+		wxArrayString& staticBoxDescriptionArray,
+		wxArrayString& chapterList,
+		wxArrayString& statusList,
+		bool& bBookIsEmpty)
+	{
+		// Retrieves several wxArrayString lists of information about the chapters
+		// and verses (and their status) from the PT/BE project's Scripture book
+		// represented in bookFullName.
+		wxArrayString chapterArray;
+		wxArrayString statusArray;
+		chapterArray.Clear();
+		statusArray.Clear();
+		staticBoxDescriptionArray.Clear();
+		int ct, tot;
+		tot = usfmStructureAndExtentArray.GetCount();
+
+#if defined(_DEBUG)
+		/* oops, this will crash the app with a bounds error if the file is small
+		int pos = 0;
+		wxString aTempStr;
+		for (pos = 308; pos < 320; pos++)
+		{
+			aTempStr = usfmStructureAndExtentArray.Item(pos);
+			wxLogDebug(_T("aTempStr:  %s  , pos = %d"), aTempStr.c_str(), pos);
+		}
+		*/
+#endif
 	wxString tempStr;
 	bool bChFound = FALSE;
 	bool bVsFound = FALSE;
@@ -932,6 +945,9 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		// the main call that stores the text in the .temp folder which the app
 		// would use if the whole book is used for collaboration, so we should
 		// do the check here too just to be safe.
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+		wxLogDebug(_T("\n\n DoProjectAnalysis():  logging structure & extents for book with bookCode = %s"), bookCode.c_str());
+#endif
 		wholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(tempFileName,bookCode);
 		usfmStructureAndExtentArray.Clear();
 		usfmStructureAndExtentArray = GetUsfmStructureAndExtent(wholeBookBuffer);
@@ -2782,6 +2798,19 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 	if (bDoMerger)
 	{
+		if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+		{
+			pApp->m_bSetupDocCreationLogSucceeded = pApp->SetupDocCreationLog(pApp->m_curOutputFilename);
+			if (pApp->m_bSetupDocCreationLogSucceeded)
+			{
+				pApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
+			}
+			else
+			{
+				pApp->m_bParsingSource = FALSE; // don't attempt to log if the file is not in existence
+			}
+		}
+
 		// first task is to tokenize the (possibly edited) source text just obtained from
 		// PT or BE
 
@@ -2838,8 +2867,22 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 		// parse the new source text data into a list of CSourcePhrase instances
 		int nHowMany;
+		wxString msg = _("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
+		wxString msgEnglish = _T("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
+
 		SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
 		nHowMany = pView->TokenizeTextString(pSourcePhrases, *pBuffer, 0); // 0 = initial sequ number value
+
+		// Check for a parse error, abort the parse if there was a parse error
+		if (nHowMany == -1)
+		{
+			// Abort the document creation, there has been a significant parsing error. 
+			// Do a diagnostic run (see View page of Preferences)
+			pApp->LogUserAction(msgEnglish);
+			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+			return FALSE;
+		}
+
 		SPList* pMergedList = new SPList; // store the results of the merging here
 
 		// Update for step 5 MergeUpdatedSourceText(), etc.
@@ -3803,6 +3846,17 @@ wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr)
 	wxASSERT(numStr.Find(_T('c')) == 1 || numStr.Find(_T('v')) == 1); // it should be a chapter or verse marker
 	int posSpace = numStr.Find(_T(' '));
 	wxASSERT(posSpace != wxNOT_FOUND);
+/* *** Apparent BUG manifests here:  postEditMd5Line has  "\\v:0:0" for an unknown reason - that is killing the production of the text
+// I have Kirsi's project -- it is the Mark document, with sn about 1:12, box at an upper case word like Besin  then try save in collab mode
+// It only happens in Kirsi's new laptop, it causes Mark 7:17 to be analysed wrong, the MD5 thingie gets \\v:0:0, instead of \\v 17:0:0 
+// and the <sp>17 ends up in the document as 'text'. Solution, is to edit the bad 7:17 line in PT and 'Save All', close PT, and then
+// AI will do a Save or History save, in collab mode, once without failing - but it re-makes the \v \v 18 error in Mark 7, each time,.
+// so the PT edit has to be done before every save. Other documents save normally. On my machine here data saves perfectly normally.
+// BEW 19Oct16 this is probably a data error. In TPK project, Paratext, Psalm 44:16 has a line:   \v 16\v*
+// which causes the md5sum array for Psalms to get a bad line:  \v*:0:0
+// which then causes an assert to trip in GetNumberFromChapterOrVerseString() when setting up a collaboration - the latter checks all
+// available books, and so this data error clobbers the analysys of source text books giving an app crash. 
+*/
 	// get the number and any following part
 	numStr = numStr.Mid(posSpace);
 	int posColon = numStr.Find(_T(':'));
@@ -4130,23 +4184,9 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 
 		lastMarkerNumericAugment.Empty();
 	}
+
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
-	// This version shows the whole list, or just the bits we want if the gbShowFreeTransLogsOnly flag is not commented out
-/*	if (gbShowFreeTransLogsOnly)
-	{
-		// show range of indices from 22 to 25
-		int ct;
-		int aCount = (int)UsfmStructureAndExtentArray.GetCount();
-		aCount = wxMin(aCount,25);
-		for (ct = 22; ct < aCount ; ct++)
-		{
-			wxString str = UsfmStructureAndExtentArray.Item(ct);
-			wxLogDebug(str.c_str());
-		}
-	}
-*/
-#endif
-#if defined(_DEBUG) && defined(JUL15)
+	/* TEMPORARY COMMENT OUT
 		int ct;
 		int aCount = (int)UsfmStructureAndExtentArray.GetCount();
 		for (ct = 0; ct < aCount ; ct++)
@@ -4154,6 +4194,7 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 			wxString str = UsfmStructureAndExtentArray.Item(ct);
 			wxLogDebug(str.c_str());
 		}
+	*/
 #endif
 
 	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
@@ -5374,6 +5415,10 @@ bool GetMatchedChunksUsingVerseInfArrays(
 					--fromEditorEnd;
 					--preEditEnd;
 					--sourceTextEnd;
+					DeleteAllVerseInfStructs(postEditVerseArr); // don't leak memory
+					DeleteAllVerseInfStructs(fromEditorVerseArr); // don't leak memory
+					DeleteAllVerseInfStructs(preEditVerseArr); // don't leak memory
+					DeleteAllVerseInfStructs(sourceTextVerseArr); // don't leak memory
 					return TRUE;
 				}
 				// If no match, outer loop must iterate - see next comment
@@ -5917,9 +5962,9 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 /// the external editor, the merge of the source text to Adapt It will not force those new
 /// punctuations into the AI document with 100% reliability, though most do go in, but the
 /// adaptations need manual punctuation changes to ensure they are right. Also, the File >
-/// Save does not not transfer the punctuation changes to either the adaptation project
-/// nor the free translation project in the external editor. They can be manually changed
-/// there however.
+/// Save now tried to transfer the punctuation changes to either the adaptation project
+/// or the free translation project in the external editor. (They can be manually changed
+/// there if necessary).
 ///
 /// Note 2: in case you are wondering why we do things this way... the problem is we can't
 /// merge the user's edits of target text and/or free translation text back into the Adapt
@@ -6064,7 +6109,16 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// were to be shown, this will be needed (and more processing of the export
 	// will be done below). The store is done in app variable m_sourceTextBuffer_PostEdit
 	wxString cleansed_src = MakeSourceTextForCollabConflictResDlg();
+
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	// BEW 25Aug16 The JHN source text from Paratext is getting truncated after 10.16 and the following
+	// \p marker, for no apparent reason; so v 17 onwards to the end of the book is absent. Find why.
+	wxLogDebug(_T("cleansed_src: after MakeSourceTextForCollabConflictResDlg()\n%s\n"), cleansed_src.c_str());
+#endif
+
 	gpApp->StoreSourceText_PostEdit(cleansed_src); // put it in m_sourceTextBuffer_PostEdit
+
+
 
 	wxString bookCode;
 	bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
@@ -6402,21 +6456,21 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// are including source text tracking, so that we can have a conflict resolution
 	// mechanism where the user can eyeball conflicting verse versions, and also see what
 	// the source text there is.
-#if defined(_DEBUG) && defined(JUL15)
-			wxLogDebug(_T("\nStructureAndExtent, for preEdit "));
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+			wxLogDebug(_T("\nStructureAndExtent, in MakeUpdatedTextForExternalEditor(), doing for preEdit "));
 #endif
 	wxArrayString preEditMd5Arr = GetUsfmStructureAndExtent(preEditText);
-#if defined(_DEBUG) && defined(JUL15)
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
 			wxLogDebug(_T("StructureAndExtent, for postEdit "));
 #endif
-	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);;
-#if defined(_DEBUG) && defined(JUL15)
-	wxLogDebug(_T("StructureAndExtent, for fromEditor "));
+	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	wxLogDebug(_T("StructureAndExtent, in MakeUpdatedTextForExternalEditor(), doing for fromEditor "));
 #endif
 	wxArrayString fromEditorMd5Arr = GetUsfmStructureAndExtent(fromEditorText);
 // BEW 10Jul15 add the sourceText which has been exported... need it for conflict resolution dlg
-#if defined(_DEBUG) && defined(JUL15)
-	wxLogDebug(_T("StructureAndExtent, for sourceText "));
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	wxLogDebug(_T("StructureAndExtent, in MakeUpdatedTextForExternalEditor(), doing for sourceText "));
 #endif
 	wxArrayString sourceTextMd5Arr = GetUsfmStructureAndExtent(sourceText);
 
@@ -6757,7 +6811,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr,
 	wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr)
 {
-#if defined(_DEBUG) && defined(JUL15)
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
 	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d");
 	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
@@ -7918,8 +7972,8 @@ wxString GetUpdatedText_UsfmsChanged(
 	wxArrayPtrVoid& sourceTextOffsetsArr)  // array of MD5Map structs which index the span of text in sourceText
 										  // which corresponds to a single line of info from sourceTextMd5Arr
 {
-#if defined(_DEBUG) && defined(JUL15)
-	wxString msg1 = _T("GetUpdatedText_UsfmsChanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d");
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	wxString msg1 = _T("GetUpdatedText_UsfmsChanged() called: post count: %u  pre count: %u  from count: %u  sourceText count: %u");
 	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
 #endif
@@ -8040,14 +8094,19 @@ wxString GetUpdatedText_UsfmsChanged(
 
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
 	wxLogDebug(_T("\n\n >>>>>   GetUpdatedText_UsfmsChanged() LOOP ENTERED  <<<<<\n\n"));
-#endif
 
+	int debugCounter = 0;
+#endif
 	while (
 		(preEditStart < (int)preEditMd5Arr_Count) &&
 		(postEditStart < (int)postEditMd5Arr_Count) &&
 		(fromEditorStart < (int)fromEditorMd5Arr_Count) &&
 		(sourceTextStart < (int)sourceTextMd5Arr_Count))
 	{
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+		debugCounter++;
+		wxLogDebug(_T("GetUpdatedText_UsfmsChanged() LOOP debugCounter = %d, postEditStart = %d"), debugCounter, postEditStart);
+#endif
 		// Need a CollabAction struct ready for use
 		pAction = new CollabAction;
 		SetCollabActionDefaults(pAction); // 7 strings and 5 booleans
@@ -8117,7 +8176,7 @@ wxString GetUpdatedText_UsfmsChanged(
 				// verse or chapter line is.
 				// TRUE is the value of param bOrTestForChapterLine
 				preEditIndex = preEditStart + 1;
-				bFoundVerse = GetNextVerseLine(preEditMd5Arr, preEditIndex,TRUE);
+				bFoundVerse = GetNextVerseLine(preEditMd5Arr, preEditIndex, TRUE);
 				wxASSERT(preEditIndex != wxNOT_FOUND && bFoundVerse == TRUE);
 				preEditEnd = preEditIndex - 1;
 			}
@@ -8189,7 +8248,7 @@ wxString GetUpdatedText_UsfmsChanged(
 			MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
 			MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
 			substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
-						pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+				pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
 			pAction->bIsPreVerseOne = TRUE;
 			pAction->preVerseOneText = substring;
 
@@ -8202,7 +8261,7 @@ wxString GetUpdatedText_UsfmsChanged(
 			pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
 
 #if defined(_DEBUG) && defined(JUL15)
-//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+			//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 			wxLogDebug(_T("PRE-\\v 1 Material: postEdit start & end indices [%d,%d], mapped to [%d,%d], Substring: %s"),
 				postEditStart, postEditEnd, pPostEditArr_StartMap->startOffset,
 				pPostEditArr_LastMap->endOffset, substring.c_str());
@@ -8281,16 +8340,16 @@ wxString GetUpdatedText_UsfmsChanged(
 
 		// legacy LOOP's start was moved up from here... on 10Jul15
 
-        // At iteration of the loop, we expect the ...Start indices to be pointing at
-        // 'verse' md5 lines in their respective arrays, or a 'chapter' line. Make sure. We
-        // are treating a chapter line (one with \c ) also as a 'verse' md5 line so the
-        // following asserts have to handle \c too
+		// At iteration of the loop, we expect the ...Start indices to be pointing at
+		// 'verse' md5 lines in their respective arrays, or a 'chapter' line. Make sure. We
+		// are treating a chapter line (one with \c ) also as a 'verse' md5 line so the
+		// following asserts have to handle \c too
 		wxASSERT(IsVerseLine(preEditMd5Arr, preEditStart) ||
-					IsChapterLine(preEditMd5Arr, preEditStart, chapNumStr));
+			IsChapterLine(preEditMd5Arr, preEditStart, chapNumStr));
 		wxASSERT(IsVerseLine(postEditMd5Arr, postEditStart) ||
-					IsChapterLine(postEditMd5Arr, postEditStart, chapNumStr));
+			IsChapterLine(postEditMd5Arr, postEditStart, chapNumStr));
 		wxASSERT(IsVerseLine(fromEditorMd5Arr, fromEditorStart) ||
-					IsChapterLine(fromEditorMd5Arr, fromEditorStart, chapNumStr));
+			IsChapterLine(fromEditorMd5Arr, fromEditorStart, chapNumStr));
 
 		// To delimit the verse chunks that we need to inspect and transfer, or not
 		// transfer if there have been no structure or text changes, find the next md5
@@ -8318,7 +8377,16 @@ wxString GetUpdatedText_UsfmsChanged(
 		fromEditorMd5Line = fromEditorMd5Arr.Item(fromEditorStart);
 		preEditMd5Line = preEditMd5Arr.Item(preEditStart); // BEW added 22Jun15
 		sourceTextMd5Line = sourceTextMd5Arr.Item(sourceTextStart); // BEW added 10Jul15
+#if defined(_DEBUG)
+		{
+			if (postEditMd5Line == _T("\\v:0:0"))
+			{
 
+
+
+	}		
+		}
+#endif
 		postEditVerseNumStr = GetNumberFromChapterOrVerseStr(postEditMd5Line);
 		fromEditorVerseNumStr = GetNumberFromChapterOrVerseStr(fromEditorMd5Line);
 		preEditVerseNumStr = GetNumberFromChapterOrVerseStr(preEditMd5Line);
@@ -9903,7 +9971,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 					bOpenedOK = OpenDocWithMerger(pApp, docPath, m_collab_sourceWholeBookBuffer,
 												bDoMerger, bDoLayout, bCopySourceWanted);
 				}
-				bOpenedOK = bOpenedOK; // the function always returns TRUE (even if there was
+				//bOpenedOK = bOpenedOK; // the function always returns TRUE (even if there was
 									   // an error) because otherwise it messes with the doc/view
 									   // framework badly; so protect from the compiler warning
 									   // in the identity assignment way
@@ -9918,7 +9986,18 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 					wxString aMsg = _("The document was corrupt, but we have successfully restored the last version saved in the history.  Please re-attempt what you were doing.");
                     wxMessageBox (aMsg);
                     pApp->LogUserAction (aMsg);
+					pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
 					return 0L;
+				}
+				else
+				{
+					// BEW added 22Jul16,  return if there was a parsing error
+					if (!bOpenedOK)
+					{
+						pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
+						return 0L;
+					}
+
 				}
 
 				// whm 25Aug11 reset the App's maxProgDialogValue back to MAXINT
@@ -9980,6 +10059,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 				int nHowMany;
 				SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
 				// in the next call, 0 = initial sequ number value
+				// nHowMany is the returned count of how many CSourcePhrase instances got created
 				if (pApp->m_bCollabByChapterOnly)
 				{
 					nHowMany = pView->TokenizeTextString(pSourcePhrases, m_collab_sourceChapterBuffer, 0);
@@ -10018,9 +10098,13 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 				{
 					// we can't go on, there is nothing in the document's m_pSourcePhrases
 					// list, so keep the dlg window open; tell user what to do - this
-					// should never happen, so an English message will suffice
+					// could happen due to source text structural or markup error, so the
+					// message needs to be localizable (BEW 20Oct16) word.' " was enough
+					// to do it - the legacy parser did not put the " as following punctuation
+					// on word, leading to a document creation failture at ParseWord(). My
+					// upcoming ParseWord2() should be smarter at hanling straight quotes.
 					wxString msg;
-					msg = _T("Unexpected (non-fatal) error when trying to load source text obtained from the external editor - there is no source text!\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or you could Cancel the dialog and then try to fix the problem.");
+					msg = _("Unexpected (non-fatal) error when trying to load source text obtained from the external editor.\nNo source text was available; or, source text was available but when parsing it to form a document, Adapt It's parser failed awhen it came to data it was unable to handle properly.\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or examine, in the external editor, the source text data and look for markup or punctuation errors. If your data uses straight quotes with a space between them, word.' \" for example, that space between the quotes may cause the document build to fail.\n Or you could Cancel the dialog and then try to fix the problem - it is most likely a problem in the structure of the source text.");
 					wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK, pApp->GetMainFrame()); // // BEW 15Sep14 made frame be the parent
 					pApp->LogUserAction(msg);
 					pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
@@ -10203,58 +10287,20 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 // that extra stuff present. So grab the functions which filter that stuff out and put them
 // here. (See the code at top of MakeUpdatedTextForExternalEditor() for code blocks which
 // call them - copy to here.)
+// BEW 30Aug16 refactored to use ExportTargetText_For_Collab() which is well behaved if
+// an errant endmarker, such as \x* is in the external editor's source text. My earlier
+// version, if the errant marker is in the AI document, would fail to send content after 
+// such a marker was encountered - and I never was able to figure why - stepping *did not*
+// work.
 wxString MakeSourceTextForCollabConflictResDlg()
 {
 	wxString srcText = _T("");
-	int textLen = RebuildSourceText(srcText); // NULL for 2nd param, means m_pSourcePhrases SPList* is used
-	wxUnusedVar(textLen);
+	// BEW changed 30Aug16 because \x* lacking preceding \x causes target text loss from the
+	// call of ApplyOutputFilterToText() which is supposed to get rid of it (and does) but
+	// loses data inexplicably. So I'll not rebuild, but instead grab the process src text
+	// wxString from the external editor - it gets processed without dropping data.
+	srcText = ExportTargetText_For_Collab(gpApp->m_pSourcePhrases);
 
-	// Cause \note, \free, \bt etc (the custom ones to be removed)
-	ExcludeCustomMarkersFromExport();
-	// Also have \rem excluded
-	wxString rem = _T("rem"); // bareMkr for \rem
-	int index = FindMkrInMarkerInventory(rem);
-	if (index != wxNOT_FOUND)
-	{
-		m_exportFilterFlags[index] = 1;
-	}
-	// The ApplyOutputFilterToText() call gets the exclusions done
-	bool bRTFOutput = FALSE;
-	srcText = ApplyOutputFilterToText(srcText, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
-	// Remove footnote contents, leave markers, (the default option), but if
-	// m_bNoFootnotesInCollabToPTorBE is TRUE, then remove the markers too
-	wxString footnote = _T("\\f ");
-	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
-	bool bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
-	if (bIsFiltered)
-	{
-		// Check for existence of the marker within the document
-		int index = FindMkrInMarkerInventory(footnote); // signature accepts \mkr or mkr,
-		if (index != wxNOT_FOUND)
-		{
-			// Remove the content from all footnote markers; they all begin with "\f"
-			// But if the flag is TRUE, then also remove the footnote markers as well
-			if (gpApp->m_bNoFootnotesInCollabToPTorBE)
-			{
-				// 2nd param is boolean bAlsoRemoveTheMarkers; Ross Jones needs this option
-				// because he doesn't want footnote markers to be transferred in collab mode
-				RemoveContentFromFootnotes(&srcText, TRUE);
-			}
-			else
-			{
-				// This is the default in collab mode for \f stuff, the markers are left
-				// in the export, and any text content is removed
-				RemoveContentFromFootnotes(&srcText); // 2nd param is default FALSE
-			}
-		}
-	}
-	srcText = RemoveMultipleSpaces(srcText);
-
-	// Note: ZWSP restoration is automatically done, if flag TRUE, in RebuildSourceText(), similarly, if the
-	// flag for Forward Slash Delimitation alternating with ZWSP (Dennis Walters requested) is TRUE, then
-	// in RebuildSourceText() the calls DoFwdSlashConsistentChanges(removeAtPunctuation, target) and
-	// followed by FwdSlashtoZWSP(target) are made, so neither is need here
-	
 	// ensure no \id and book code is present for non-chapter-1 chapters when collaborating
 	// by chapter rather than by whole book
 	if (gpApp->m_bCollabByChapterOnly)
@@ -10274,8 +10320,9 @@ wxString MakeSourceTextForCollabConflictResDlg()
 	{
 		srcText = srcText.Mid(offset); // guarantees srcText starts with a marker
 	}
-#if defined(_DEBUG) && defined(JUL15)
-	wxLogDebug(_T("MakeSourceTextForCollabConflictResDlg(): Text Length:  %d\n%s"), textLen, srcText.c_str());
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	int length = srcText.Length();
+	wxLogDebug(_T("MakeSourceTextForCollabConflictResDlg(): Text Length just before returning:  %d\n"), length);
 #endif
 	return srcText;
 }
@@ -10292,3 +10339,4 @@ void OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event))
 	cvcdlg.ShowModal();
 }
 */
+

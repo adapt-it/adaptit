@@ -2159,6 +2159,14 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item4->Add( item55, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
+    wxBoxSizer *item56 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxCheckBox *item57 = new wxCheckBox( parent, ID_CHECKBOX_DIAGNOSTIC_LOG, _("Document creation failed. Make logfile on next try. (Warning: time consuming)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item57->SetToolTip( _("Creates logfile: Log_For_Document_Creation.txt in _LOGS_EMAIL_REPORTS folder ") );
+    item56->Add( item57, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item4->Add( item56, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
     item3->Add( item4, 0, wxGROW|wxALL, 5 );
 
     item1->Add( item3, 0, wxALIGN_CENTER, 5 );
