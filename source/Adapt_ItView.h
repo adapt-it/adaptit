@@ -107,11 +107,9 @@ public:
 	void UpdateAppearance (void);
 	bool PaginateDoc(const int nTotalStripCount, const int nPagePrintingLength); // whm moved to public for wx
 
-#if !defined(__WXGTK__)
     // Windows and Mac
 	void PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFactor, int page);
-#endif
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
     // Linux
 	void PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint marginBottomRight, wxPoint paperDimensions,
                     float logicalUnitsFactor, int page);
@@ -244,14 +242,9 @@ public:
 						SPList* pSrcPhrases,int& nSaveActiveSequNum,int& nActiveSequNum,int nFinish);
     bool        DoRangePrintOp(const int nBeginSequNum, const int nEndSequNum,
                                wxPrintData* WXUNUSED(pPrintData)); // BEW created 14Nov11
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
     bool        SetupPageRangePrintOp(const int nFromPage, int nToPage, wxPrintData* pPrintData);
 #endif
-    // BEW 14Nov11, don't know why Bill has WXUNUSED() here, his code uses these params, so I've removed the WXUNUSED()
-	//bool		SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
-	//				const int nToV,wxPrintData* pPrintData,
-	//				bool bSuppressPrecedingHeadingInRange=FALSE,
-	//				bool bIncludeFollowingHeadingInRange=FALSE);
 	bool		SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
 					const int nToV,wxPrintData* pPrintData,
 					bool WXUNUSED(bSuppressPrecedingHeadingInRange=FALSE),
@@ -540,3 +533,4 @@ inline CAdapt_ItDoc* CAdapt_ItView::GetDocument()
    { return (CAdapt_ItDoc*)m_viewDocument; }
 
 #endif /* Adapt_ItView_h */
+

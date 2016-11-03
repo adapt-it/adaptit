@@ -2050,7 +2050,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	// the extra protection being added
 #if defined(_DEBUG) && defined(Print_failure)
 {
-    wxLogDebug(_T("RecalcLayout() line 2024, flags at free trans block at end ************\nm_bFreeTranslationMode %d , m_bIsPrinting %d , gbCheckInclFreeTransText"),
+    wxLogDebug(_T("RecalcLayout() line 2024, flags at free trans block at end ************\nm_bFreeTranslationMode %d , m_bIsPrinting %d , gbCheckInclFreeTransText %u"),
                m_pApp->m_bFreeTranslationMode, m_pApp->m_bIsPrinting, gbCheckInclFreeTransText);
 
 }
@@ -3939,3 +3939,4 @@ void CLayout::DebugIndexMismatch(int nPileIndex_InList, int locator)
 		wxLogDebug(_T("Locator %d  m_arrPiles position [%d] m_nPile index %d"),locator,nWhereAt,nWhereItThinksItsAt);
 }
 */
+

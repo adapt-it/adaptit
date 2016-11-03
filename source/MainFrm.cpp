@@ -35,8 +35,8 @@
 
 // Comment out next line when wxLogDebug output is no longer wanted, from ChangedSince queue accesses
 #define _MemLeaks_
-static unsigned int nDestroyed;
-static unsigned int nTotalToDestroy;
+//static unsigned int nDestroyed;
+//static unsigned int nTotalToDestroy;
 
 //// the next three are for wxHtmlHelpController
 //#include <wx/filesys.h>
@@ -8600,5 +8600,6 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 }
 
 void CMainFrame::DoNoOp(){}
+
 
 

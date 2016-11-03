@@ -4085,8 +4085,9 @@ public:
 	bool	m_bPrintingRange; // TRUE when the user wants to print a chapter/verse range
 	bool	m_bPrintingSelection;
 	int		m_nCurPage; // to make current page being printed accessible to CStrip;s Draw()
-#if defined(__WXGTK__)
+
     // BEW added 15Nov11
+#if defined(__WXGTK__) // print-related
     bool    m_bPrintingPageRange;
     int     m_userPageRangePrintStart;
     int     m_userPageRangePrintEnd;
@@ -4396,7 +4397,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	bool	BibleditIsRunning(); // whm added 13Jun11
 
-#ifdef __WXGTK__
+#if defined(__WXGTK__)
 	wxString GetParatextEnvVar(wxString strVariableName); // edb added 19Mar12
 #endif
 	wxString GetParatextProjectsDirPath(wxString PTVersion); // whm added 9Feb11, modified 25June2016
@@ -4934,3 +4935,4 @@ DECLARE_APP(CAdapt_ItApp);
 // creates the declaration className& wxGetApp(void). It is implemented by IMPLEMENT_APP.
 
 #endif /* Adapt_It_h */
+
