@@ -2628,6 +2628,12 @@ public:
 	// BEW added 10Feb09 for refactored view layout support
 	CLayout* m_pLayout;
 
+	// BEW added 15Aug16 for suppressing option to have or not have collab mode restored
+	// in a Shift-Launch
+	bool m_bDoNormalProjectOpening; // default TRUE; it can be made FALSE in GetProjectConfiguration()
+						   // and the place to restore default would therefore be when
+						   // writing out the project configuration file
+
 	// GDLC 2010-02-12
 	// Pointer to the free translation display manager
 	// Set by the return value from CFreeTrans creator
@@ -3020,8 +3026,20 @@ public:
 	wxString	m_freeTransLanguageCode;  // the 2- or 3-letter code for free translation language
 
 	// Status bar support
-	void	RefreshStatusBarInfo();
-	void	StatusBarMessage(wxString& message);
+	void	 RefreshStatusBarInfo();
+	void	 StatusBarMessage(wxString& message);
+
+	wxString m_strSpacelessSourcePuncts; // for use in TokenizeText()
+	wxString m_strSpacelessTargetPuncts; // ditto
+	bool     m_bParsingSource;
+	wxString m_chapterNumber_for_ParsingSource;
+	wxString m_verseNumber_for_ParsingSource; 
+	wxString m_filename_for_ParsingSource; // I think I'll call the file "Log_For_Document_Creation" (see OnInit())
+	bool     m_bSetupDocCreationLogSucceeded; // TRUE if we succeed in creating a log file ready for inserting data into
+	bool	 SetupDocCreationLog(wxString& filename);
+	bool	 m_bMakeDocCreationLogfile;
+
+	bool	 m_bALT_KEY_DOWN; // BEW added 31Jul16 to track ALT key down (TRUE), and up (back to FALSE)
 
 #if defined(_KBSERVER)
 	// support for Status bar showing "Deleting n of m" while deleting a kb from KBserver
@@ -3105,6 +3123,9 @@ public:
 	bool	  SetupForKBServer(int whichType);
 	bool	  ReleaseKBServer(int whichType);
 	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
+    // GDLC 20JUL16
+    bool      KbAdaptRunning(void); // True if AI is in adaptations mode and an adaptations KB server is running
+    bool      KbGlossRunning(void); // True if AI is in glossing mode and a glossing KB server is running
 	// BEW added next, 26Nov15
 	bool	  ConnectUsingDiscoveryResults(wxString curURL, wxString& chosenURL, 
 								 wxString& chosenHostname, enum ServDiscDetail &result);
@@ -4064,8 +4085,9 @@ public:
 	bool	m_bPrintingRange; // TRUE when the user wants to print a chapter/verse range
 	bool	m_bPrintingSelection;
 	int		m_nCurPage; // to make current page being printed accessible to CStrip;s Draw()
-#if defined(__WXGTK__)
+
     // BEW added 15Nov11
+#if defined(__WXGTK__) // print-related
     bool    m_bPrintingPageRange;
     int     m_userPageRangePrintStart;
     int     m_userPageRangePrintEnd;
@@ -4303,7 +4325,6 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString m_Collab_BookCode; // the 3-letter book code for the currently open collaborating document
 	wxString m_Collab_LastChapterStr; // the chapter reference string (e.g.  "15", or for a chunk "3-5")
 									  // last encountered when populating CollabAction structs
-
 	// whm 27Mar12 Note:
 	// If Paratext is installed (either on Windows or Linux) we give priority to
 	// it as the installed external Scripture editor for collaboration. If neither
@@ -4344,11 +4365,12 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString m_CollabChapterSelected;
 	wxString m_CollabSourceLangName; // whm added 4Sep11
 	wxString m_CollabTargetLangName; // whm added 4Sep11
+	bool     m_bUserWantsNoCollabInShiftLaunch;
 
-	bool m_bStartWorkUsingCollaboration; // whm added 19Feb12
+	bool     m_bStartWorkUsingCollaboration; // whm added 19Feb12
 	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
 	//bool m_bEnableDelayedGetChapterHandler; // BEW added 15Sep14
-	bool m_bEnableDelayedGet_Handler; // BEW added 15Sep14
+	bool     m_bEnableDelayedGet_Handler; // BEW added 15Sep14
 
 	// whm 17Oct11 for collaboration support
     wxArrayString GetListOfPTProjects(wxString PTVersion); // an override of the GetListOfPTProjects() function
@@ -4374,7 +4396,8 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	bool	BibleditIsInstalled(); // whm added 13Jun11
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	bool	BibleditIsRunning(); // whm added 13Jun11
-#ifdef __WXGTK__
+
+#if defined(__WXGTK__)
 	wxString GetParatextEnvVar(wxString strVariableName); // edb added 19Mar12
 #endif
 	wxString GetParatextProjectsDirPath(wxString PTVersion); // whm added 9Feb11, modified 25June2016
@@ -4427,7 +4450,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 private:
 	wxString m_targetTextBuffer_PreEdit;
 	wxString m_freeTransTextBuffer_PreEdit;
-	wxString m_sourceTextBuffer_PostEdit; // export the source text, in collaboration, to here
+	wxString m_sourceTextBuffer_PostEdit; // export the source text, in collaboration, to here; now public as conflict res dialog needs it
 public:
 	void     StoreTargetText_PreEdit(wxString s);
 	void     StoreFreeTransText_PreEdit(wxString s);
@@ -4912,3 +4935,4 @@ DECLARE_APP(CAdapt_ItApp);
 // creates the declaration className& wxGetApp(void). It is implemented by IMPLEMENT_APP.
 
 #endif /* Adapt_It_h */
+

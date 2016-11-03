@@ -42,11 +42,6 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
 //#include <wx/valtext.h> // for wxTextValidator
-#ifdef __WXGTK__
-#include <wx/dcps.h> // for wxPostScriptDC
-#else
-#include <wx/dcprint.h> // for wxPrinterDC
-#endif
 
 #include "Adapt_It.h"
 #include "Cell.h"
@@ -1246,3 +1241,4 @@ void CPrintOptionsDlg::OnEditVerseTo(wxCommandEvent& WXUNUSED(event))
 	if (pEditPagesTo->IsEnabled())
 		pEditPagesTo->Enable(FALSE);
 }
+

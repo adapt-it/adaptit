@@ -36,6 +36,33 @@
 #include <wx/wx.h>
 #endif
 
+// whm refactored printing 10Oct2016
+// ------------------------------------------------------------
+#if !wxUSE_PRINTING_ARCHITECTURE
+#error "You must set wxUSE_PRINTING_ARCHITECTURE to 1 in setup.h, and recompile the library."
+#endif
+
+#include <ctype.h>
+#include <wx/metafile.h>
+#include <wx/print.h>
+#include <wx/printdlg.h>
+#include <wx/image.h>
+#include <wx/accel.h>
+
+#if wxUSE_POSTSCRIPT
+#include <wx/generic/printps.h>
+#include <wx/generic/prntdlgg.h>
+#endif
+
+#if wxUSE_GRAPHICS_CONTEXT
+#include <wx/graphics.h>
+#endif
+
+#ifdef __WXMAC__
+#include <wx/osx/printdlg.h>
+#endif
+// ------------------------------------------------------------
+
 // wxWidgets library includes
 #include <wx/docview.h>	// includes wxWidgets doc/view framework
 #include "Adapt_ItCanvas.h"
@@ -55,7 +82,6 @@
 #endif
 
 #include <wx/fontmap.h> // for wxFontMapper
-#include <wx/printdlg.h> // for print data and page setup data
 #include <wx/dir.h> // for wxDir
 #include <wx/hashmap.h> // for equivalent to MFC's CMapStringToOb* pMap in DoKBIntegrityCheck()
 #include <wx/datstrm.h> // for wxDataOutputStream() and wxDataInputStream()
@@ -93,12 +119,6 @@
 #include <wx/stockitem.h> // for ::wxGetStockLabel()
 #if defined(_KBSERVER)
 #include <wx/thread.h>
-#endif
-
-#ifdef __WXGTK__
-#include <wx/dcps.h> // for wxPostScriptDC
-#else
-#include <wx/dcprint.h> // for wxPrinterDC
 #endif
 
 // libcurl
@@ -7393,7 +7413,7 @@ wxString CAdapt_ItApp::GetBasePathForLocalizationSubDirectories()
     pathToLocalizationFolders = localizationFilePath;
 #endif
 
-#ifdef __WXGTK__
+#if defined(__WXGTK__)
     // On Linux appName is "adaptit"
     // Set a suitable default localizationFilePath for Linux.
     // There does not appear to be a wxStandardPaths method which gives us the path for locating the
@@ -7460,7 +7480,7 @@ wxString CAdapt_ItApp::GetLocalizationMoFilePath(wxString langCode)
     moFileAbsolutePath = basePath + PathSeparator + langCode + PathSeparator + _T("LC_MESSAGES") + PathSeparator + appName + _T(".mo");
 #endif
 
-#ifdef __WXGTK__
+#if defined(__WXGTK__)
     moFileAbsolutePath = basePath + PathSeparator + langCode + PathSeparator + _T("LC_MESSAGES") + PathSeparator + appName + _T(".mo");
 #endif
 
@@ -7509,7 +7529,7 @@ wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
     pathToXMLFolders += _T("/../Resources"); // the path separator is added by the caller
 #endif
 
-#ifdef __WXGTK__
+#if defined(__WXGTK__)
                                              // On Linux appName is "adaptit"
                                              // Set a suitable default path for the xml files on Ubuntu Linux.
     pathToXMLFolders = m_PathPrefix + _T("/share/adaptit");
@@ -7587,7 +7607,7 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
                                                                           //pathToHtmlHelpFiles = fn.Normalize();
 #endif
 
-#ifdef __WXGTK__
+#if defined(__WXGTK__)
                                                                           // On Linux appName is "adaptit"
                                                                           // Set a suitable default path for the Html Help files on Ubuntu Linux.
     if (!m_PathPrefix.IsEmpty())
@@ -9563,7 +9583,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
     // MAKE MENU ACCELERATOR KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
     // See also the CMainFrame::CMainFrame constructor where accelerator key assignments
     // are made to coordinate with these menu hot key adjustments.
-#if defined (__WXMAC__) || defined (__WXGTK__)
+#if defined (__WXMAC__) || defined(__WXGTK__)
     // whm Added 11Feb09: We have to adjust the menu access keys for the wxMac port to keep
     // them from conflicting with the customary Mac access keys and accelerator keys. The
     // accelerator keys are created during the creation of the CMainFrame above, so we can
@@ -12032,7 +12052,7 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 /// This function is important to Adapt It's collaboration functionality.
 /// Modified by whm 25Junel2016 for detecting which Paratext version (7 or 8) is 
 /// installed, or both, or neither is installed - as indicated by enum return value.
-/// The function works for Paratext installations on Windows or Linux ( __WXGTK__).
+/// The function works for Paratext installations on Windows or Linux (__WXGTK__).
 /// The revised function first checks for the existence of a Paratext 8 installation. 
 /// It then checks for the existence of a Paratext 7 installation.
 /// If neither installation is found, the function returns PTNotInstalled.
@@ -12244,7 +12264,7 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
         return PTVer7;
     return PTNotInstalled;
 #endif
-#ifdef __WXGTK__ // linux -- just look for the files in /usr/lib/Paratext/
+#if defined(__WXGTK__) // linux -- just look for the files in /usr/lib/Paratext/
 
     // whm 21June2016 Note: Tom Hindle says that their current plans are that the
     // PT version 8 for Linux's installation files will go in the same location 
@@ -12467,7 +12487,7 @@ bool CAdapt_ItApp::BibleditIsInstalled()
     bBEInstalled = FALSE;
     wxString pathToExecutable;
     pathToExecutable.Empty();
-#ifdef __WXGTK__
+#if defined(__WXGTK__)
     pathToExecutable = GetBibleditInstallDirPath() + PathSeparator + _T("bibledit-rdwrt");
     if (::wxFileExists(pathToExecutable))
         bBEInstalled = TRUE;
@@ -12499,7 +12519,7 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 #endif // of #if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
 }
 
-#ifdef __WXGTK__ // only used for mono / linux
+#if defined(__WXGTK__) // only used for mono / linux
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the Paratext environment variable
 /// \remarks
@@ -12653,7 +12673,7 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
     }
 
 #endif
-#ifdef __WXGTK__ // linux -- check mono directory for values.xml file
+#if defined(__WXGTK__) // linux -- check mono directory for values.xml file
 
     wxString strRegPath = GetParatextEnvVar(_T("MONO_REGISTRY_PATH"));
     if (strRegPath.IsEmpty())
@@ -12887,7 +12907,7 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
         }
     }
 #endif
-#ifdef __WXGTK__ // linux -- check /usr/lib/Paratext
+#if defined(__WXGTK__) // linux -- check /usr/lib/Paratext
 
     // For Linux the passed in parameter will be "PTLinuxVersion" "or "PTLinuxVersion8".
     if (PTVersion == _T("PTLinuxVersion7") || PTVersion == _T("PTLinuxVersion8"))
@@ -13423,7 +13443,10 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             + m_curProjectName;
     }
     projConfigPathAndName = curProjPathAndName + PathSeparator + szProjectConfiguration + _T(".aic");
-
+#if defined(_DEBUG)
+	wxLogDebug(_T("GetAIProjectCollabStatus(): app:m_bDoNormalSProjectOpening = %s"), 
+		wxString(m_bDoNormalProjectOpening ? _T("TRUE") : _T("FALSE")).c_str());
+#endif
     // whm added 11Mar12 if there is no project config file, it obviously is not a collab project
     // so return collabProjNotConfigured to caller to issue message to user there.
     if (!::wxFileExists(projConfigPathAndName))
@@ -13655,6 +13678,43 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 
         // At this point the collab settings have been examined, found flags set and strings stored.
         f.Close();
+
+		// BEW added 15Aug16, it should not be assumed that collaboration restoration is wanted
+		// every time a SHIFT_Launch to bypass the config files is done. Ask the user here...
+		if (!m_bDoNormalProjectOpening)
+		{
+			wxString aTitle = _("Restore collaboration also?");
+			wxString aMsg = _("If a collaboration was set up with Paratext or Bibledit, do you want it to be restored now, if possible?");
+			if (wxMessageBox(aMsg, aTitle, wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
+			{
+				; // continue processing
+			}
+			else
+			{
+				// Trick Adapt It into thinking essential collaboration recovery string values
+				// are empty, and their associated booleans are false (despite the .ini file
+				// having maybe valid values)
+				bFoundCollabSrcProj = FALSE;
+				bFoundCollabTgtProj = FALSE;
+				bFoundCollabAiProj = FALSE;
+				bFoundCollabSrcLangName = FALSE;
+				bFoundCollabTgtLangName = FALSE;
+				CollabSrcProjStrFound = wxEmptyString;
+				CollabTgtProjStrFound = wxEmptyString;
+				CollabSrcLangNameStrFound = wxEmptyString;
+				CollabTgtLangNameStrFound = wxEmptyString;
+				CollabAiProjStrFound = wxEmptyString;
+
+				// Next bool is tested for TRUE in DocPage.cpp to suppress collab filename
+				// removals in SHIFT-Launch when no collaboration restoration is wanted
+				m_bUserWantsNoCollabInShiftLaunch = TRUE; // the only place this gets set TRUE
+				return collabProjNotConfigured;
+			}
+		}
+		else
+		{
+			m_bDoNormalProjectOpening = TRUE;
+		}
 
         // Do some sanity checks to ensure that the crucial strings are consistent and
         // represent valid projects (guarding against corruption or erroneous editing of the
@@ -14800,7 +14860,7 @@ bool CAdapt_ItApp::ParatextIsRunning()
     }
     catch (...) {} // Just ignore - app continues, function should return FALSE as default
 #endif
-#ifdef __WXGTK__ // linux -- similar to Bibledit functionality
+#if defined(__WXGTK__) // linux -- similar to Bibledit functionality
                    // The name of the Bibledit application in the Linux system is bibledit-gtk
     long result = -1;
     wxString commandLine;
@@ -16478,6 +16538,28 @@ bool CAdapt_ItApp::KbServerRunning(int whichType)
         return m_pKbServer[1] != NULL;
     }
 }
+
+// GDLC 20JUL16 Added KbAdaptRunning() and KbGlossRunning() to simplify the many
+// instances of tests to find out whether a particular type of KB server is running.
+
+//  KbAdaptRunning(void)
+// Returns true if Adapt It is in adaptation mode and
+// an adaptations KB server is running.
+
+bool CAdapt_ItApp::KbAdaptRunning()
+{
+    return (!gbIsGlossing && KbServerRunning(1));
+}
+
+//  KbGlossRunning(void)
+// Returns true if Adapt It is in glossing mode and
+// a glossing KB server is running.
+
+bool CAdapt_ItApp::KbGlossRunning()
+{
+    return (gbIsGlossing && gpApp->KbServerRunning(2));
+}
+
 // Return TRUE if there was no error, FALSE otherwise. The function is used for doing
 // cleanup, and any needed making of data persistent between adapting sessions within a
 // project which is a KB sharing project, when the user exits the project or Adapt It is
@@ -16574,7 +16656,24 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                            // will be TRUE (see project config file)
     gnOffsetToUCcharSrc = wxNOT_FOUND;     // initialize
     gbUCSrcCapitalAnywhere = FALSE; // initialize to legacy 'only word-initial capital checked for'
+	
+	m_bParsingSource = FALSE;
+	m_chapterNumber_for_ParsingSource = _T("0");
+	m_verseNumber_for_ParsingSource = _T("0");
+	// I'll call the file "Log_For_Document_Creation.txt", 
+	// and it will be stored in the _LOGS_EMAIL_REPORTS folder in the work folder
+	m_filename_for_ParsingSource = _T("Log_For_Document_Creation.txt"); 
+	m_bSetupDocCreationLogSucceeded = FALSE;
+	m_bMakeDocCreationLogfile = FALSE; // a checkbox in ViewPage.cpp turns it on
+	m_bALT_KEY_DOWN = FALSE;
 
+	m_bDoNormalProjectOpening = TRUE; // default value
+	m_bUserWantsNoCollabInShiftLaunch = FALSE; // set TRUE in GetAIProjectCollabStatus() is
+				// called with the user's finger still holding down the SHIFT key in a 
+				// SHiFT-Launch; in order to carry his choice for "no collaboration restoration
+				// wanted" (the non-default option) to the DocPage.cpp OnSetActive() block which
+				// removes _Collab_*.xml documents, so as to not remove them and to have
+				// m_bCollaboratingWithParatext and m_bCollaboratingWithBibledit both cleared to FALSE
 
 #if defined(_KBSERVER)
                                     // Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
@@ -16847,7 +16946,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                                                      // assume only two, comma and semicolon
     m_LIFT_subfield_delimiters = _T(",;");
 
-#if defined(__WXGTK__)
+    // whm added 10Oct2016
+#if wxUSE_GRAPHICS_CONTEXT
+    wxLogDebug(_T("wxUSE_GRAPHICS_CONTEXT is defined = %d!"), wxUSE_GRAPHICS_CONTEXT);
+    // Note: wxUSE_GRAPHICS_CONTEXT is defined when building the Linux __WXGTK__ version 
+    // against both WX 2.8 and WX 3.0.
+#endif
+#if !wxUSE_PRINTING_ARCHITECTURE
+#error "You must set wxUSE_PRINTING_ARCHITECTURE to 1 in setup.h, and recompile the library."
+#endif
+
+#if defined(__WXGTK__) // print-related
     // BEW added 15Nov11
     m_bPrintingPageRange = FALSE;
     m_userPageRangePrintStart = 1;
@@ -18678,7 +18787,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // and currently running on Linux.
 
     m_setupFolder = FindAppPath(argv[0], wxGetCwd(), _T(""));
-#ifdef __WXGTK__
+#if defined(__WXGTK__)
     // on Linux, first try getting the m_appInstallPathOnly from the actual system PATH
     m_appInstallPathOnly = GetProgramLocationFromSystemPATH(GetAppName());
     // if it is not on the system PATH, then get the path of the running executable
@@ -20948,6 +21057,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // create the global Print Data
     pPrintData = new wxPrintData; // must delete in OnExit()
     wxASSERT(pPrintData != NULL);
+    
+    // copy over initial paper size from print record
+    (*pPgSetupDlgData) = (*pPrintData); // whm Note: Don't do this after setting defaults below - resets the default pPgSetupDlgData!
+
     // Set some defaults for the page setup dialog so they will show as defaults if the
     // user accesses the page setup dialog.
     // Margin MM values determined using the less precise
@@ -20969,23 +21082,23 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     (*pPrintData) = pPgSetupDlgData->GetPrintData();
     pPrintData->SetPaperSize(wxSize(210, 297)); // BEW added 21Oct because the m_paperSize was remaining (-1,-1)
 
-                                                //////////////////////////////////////////////////////////////////////////////////
-                                                // Since we are about to read the config files, any data structures containing data
-                                                // that might be changed from the reading of config files need to be created by this
-                                                // point in OnInit().
-                                                //////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////
+    // Since we are about to read the config files, any data structures containing data
+    // that might be changed from the reading of config files need to be created by this
+    // point in OnInit().
+    //////////////////////////////////////////////////////////////////////////////////
 
-                                                // If the user holds the SHIFT-DOWN key here at program startup she can bypass the
-                                                // normal reading of Adapt It's config file settings, forcing the program to load a set
-                                                // of default settings instead.
-                                                // The following routines can be forced to defaults by the user holding down the SHIFT-KEY:
-                                                // 1. Basic Program-wide Adapt It Settings. See GetBasicConfiguration() which is only
-                                                //    called from this OnInit() method (see below), and from
-                                                //    app class's CustomWorkFolderLocation() command (available to administrator only)
-                                                // 2. Project Settings. See GetProjectConfiguration() which is called from OnOpenDocument(),
-                                                //    from DoUnpackDocument(), from the Project Page's OnWizardPageChanging (when an existing
-                                                //    document was selected), and the Open Existing Project Dialog that gets called from
-                                                //    AccessOtherAdaptionProject() while doing a transform glosses into adaptations operation.
+    // If the user holds the SHIFT-DOWN key here at program startup she can bypass the
+    // normal reading of Adapt It's config file settings, forcing the program to load a set
+    // of default settings instead.
+    // The following routines can be forced to defaults by the user holding down the SHIFT-KEY:
+    // 1. Basic Program-wide Adapt It Settings. See GetBasicConfiguration() which is only
+    //    called from this OnInit() method (see below), and from
+    //    app class's CustomWorkFolderLocation() command (available to administrator only)
+    // 2. Project Settings. See GetProjectConfiguration() which is called from OnOpenDocument(),
+    //    from DoUnpackDocument(), from the Project Page's OnWizardPageChanging (when an existing
+    //    document was selected), and the Open Existing Project Dialog that gets called from
+    //    AccessOtherAdaptionProject() while doing a transform glosses into adaptations operation.
     bool bConfigFilesRead = FALSE;
 
     // set the following before calling basic config files, otherwise these defaults wipe
@@ -21441,6 +21554,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         AIpackedDocumentFolderPathOnly = m_workFolderPath + PathSeparator + m_packedInputsAndOutputsFolderName;
         AIccTableFolderPathOnly = m_workFolderPath + PathSeparator + m_ccTableInputsAndOutputsFolderName;
     }
+	// NOTE: log files are deleted in OnExit(), because if the app gets to there, it
+	// has not crashed, and so a usage log doesn't need to be retained. If the app crashes
+	// however, the log file is retained. So periodically, a manual cull of log files can be
+	// if the user is sure they are now irrelevant
 
     m_userProfileFileWorkFolderPath = AIuserProfilesWorkFolderPath;
 
@@ -22359,7 +22476,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // .hhp when using wxHtmlHelpController
     helpFileName = m_htbHelpFileName;
 
-#ifdef __WXGTK__
+#if defined(__WXGTK__)
     // The call to m_pHelpController->Initialize() below will fail on wxGTK unless wxUSE-LIBMSPACK is 1
 #ifndef wxUSE_LIBMSPACK
     wxLogDebug(_T("wxUSE_LIBMSPACK is NOT DEFINED! The MS Windows Adapt_It_Help.chm help file will not display properly."));
@@ -23067,6 +23184,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     //int style = (int)wxFONTSTYLE_ITALIC; // it's decimal 93
 
+	// take an initial shot at setting the set of source punctuation characters
+	// (with no spaces included); also do it when Preferences is exited in case
+	// the user changes the punctuation inventory in the Punctuation tab
+	m_strSpacelessSourcePuncts = MakeSpacelessPunctsString(this, sourceLang);
+	m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(this, targetLang);
     return TRUE;
 }
 
@@ -24260,6 +24382,10 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
             bDoNormalStart = FALSE;
         }
     }
+#if defined(_DEBUG)
+	wxLogDebug(_T("GetBasicConfiguration(): local bDoNormalStart = %s"), wxString(bDoNormalStart ? _T("TRUE") : _T("FALSE")).c_str());
+#endif
+
 
     if (bDoNormalStart) // not a Shift-Down startup
     {
@@ -24340,14 +24466,21 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
         if (result == wxNO)
         {
             bDoNormalProjectOpening = TRUE;
-        }
+			m_bDoNormalProjectOpening = TRUE;
+		}
         else if (result == wxYES)
         {
-            bDoNormalProjectOpening = FALSE;
-        }
+			bDoNormalProjectOpening = FALSE;
+			m_bDoNormalProjectOpening = FALSE;
+		}
     }
 
-    if (bDoNormalProjectOpening) // not a Shift-Down startup
+#if defined(_DEBUG)
+	wxLogDebug(_T("GetProjectConfiguration(): app:m_bDoNormalProjectOpening = %s"), 
+		wxString(m_bDoNormalProjectOpening ? _T("TRUE") : _T("FALSE")).c_str());
+#endif
+
+	if (bDoNormalProjectOpening) // not a Shift-Down startup
     {
         // whm added 9Mar10 to ensure that a "foreign" project config file has been cloned,
         // renamed, and modified to have the appropriate (or compatible) fonts for the project.
@@ -28191,6 +28324,11 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
     if (gbReachedDocPage)
         RefreshStatusBarInfo();
     m_bWizardIsRunning = FALSE; // allow KBserver connection dialog to be shown
+
+	// BEW 20Jul16  update punctuation (spaceless sets) for TokenizeText()
+	m_strSpacelessSourcePuncts = MakeSpacelessPunctsString(this, sourceLang);
+	m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(this, targetLang);
+
     return TRUE;
 }
 
@@ -35303,6 +35441,9 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 {
+	// Restore the default, which is Shift_Launch no longer on, if it was on
+	m_bDoNormalProjectOpening = TRUE; // BEW 16Aug16, support user choice for collaboration restoration
+
     // wx version combines ANSI and UNICODE parts in common to simplify this function
     wxString data = _T("");
     wxString tab = _T("\t");
@@ -43115,6 +43256,10 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
                 {
                     // matched book IDs, so delete the first source phrase in the
                     // doc to be appended's list
+					// BEW 17Aug16, need to delete the CSourcePhrase and its contents
+					// first, otherwise this leaks it all at aeach chapter Join
+					// TRUE in next call means 'delete partner pile also'
+					d->DeleteSingleSrcPhrase(pFirstSrcPhrase, TRUE);
                     ol->DeleteNode(ol->GetFirst()); //ol->RemoveHead();
                 }
             }
@@ -43165,6 +43310,12 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
     {
         // get all the sequence numbers into correct sequence
         d->UpdateSequNumbers(0);
+		/* 
+		// BEW 17Aug16, the safest and best place to jump to is the very first
+		// CSourcePhrase, because when joining - and especially when joining
+		// scripture, this would be the CSourcePhrase carrying the book code.
+		// That avoids a bogus m_adaption value being shown at the active location
+		// in the document after the join is done
         int anActiveSequNum = nOldCount; // the first CSourcePhrase of the just
                                          // joined doc part
         if (anActiveSequNum <= GetMaxIndex())
@@ -43176,9 +43327,12 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
         {
             m_nActiveSequNum = GetMaxIndex();
         }
+		*/
+		// BEW 17Aug16 next line replaces the commented out stuff just above
+		m_nActiveSequNum = 0;
+
         CSourcePhrase* pSrcPhrase = v->GetSrcPhrase(m_nActiveSequNum);
-        v->Jump(this, pSrcPhrase); // Jump to the last join point, if possible;
-                                   // else to a safe location
+        v->Jump(this, pSrcPhrase); // Jump to a safe location
     }
     return TRUE;
 }
@@ -44677,7 +44831,7 @@ void CAdapt_ItApp::DoPrintCleanup()
                                       // restore the selection), then do tidy up of everything else & get a new layout
                                       // calculated; likewise if we were printing a chapter & verse range
         bool bSaveListHasContent = !m_pSaveList->IsEmpty();
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
         if (m_bPrintingSelection || m_bPrintingRange || m_bPrintingPageRange || (gbIsBeingPreviewed && bSaveListHasContent))
 #else
         if (m_bPrintingSelection || m_bPrintingRange || (gbIsBeingPreviewed && bSaveListHasContent))
@@ -44696,7 +44850,7 @@ void CAdapt_ItApp::DoPrintCleanup()
             m_bPrintingSelection = FALSE;
             m_bPrintingRange = FALSE;
 
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
             // BEW added 15Nov11 - restore defaults
             m_bPrintingPageRange = FALSE;
             m_userPageRangePrintStart = 1;
@@ -45133,7 +45287,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
             // printer and screen.
             wxASSERT(pPrintData->IsOk());
 
-#ifdef __WXGTK__
+#if defined(__WXGTK__) // print-related
             // Linux requires we use wxPostScriptDC rather than wxPrinterDC
             // Note: If the Print Preview display is drawn with text displaced up and off
             // the display on wxGTK, the wxWidgets libraries probably were not configured
@@ -45219,7 +45373,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
         // printer and screen.
         wxASSERT(pPrintData->IsOk());
 
-#ifdef __WXGTK__
+#if defined(__WXGTK__) // print-related
         // Linux requires we use wxPostScriptDC rather than wxPrinterDC
         // Note: If the Print Preview display is drawn with text displaced up and off the
         // display on wxGTK, the wxWidgets libraries probably were not configured properly.
@@ -45310,7 +45464,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
         m_pActivePile = NULL;
         m_nActiveSequNum = -1;
     }
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
     else if (m_bPrintingPageRange)
     {
         // printing a user-chosen page range (we have to handle it explicitly
@@ -49548,7 +49702,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
 #ifdef __WXMSW__ // Windows host system - look in registry
         path = GetParatextProjectsDirPath(_T("PTVersion7"));
 #endif
-#ifdef __WXGTK__ // linux -- check mono directory for values.xml file
+#if defined(__WXGTK__) // linux -- check mono directory for values.xml file
         path = GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
 #endif
         if (!path.IsEmpty())
@@ -49848,7 +50002,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
 #ifdef __WXMSW__ // Windows host system - look in registry
         path = GetParatextProjectsDirPath(_T("PTVersion8"));
 #endif
-#ifdef __WXGTK__ // linux -- check mono directory for values.xml file
+#if defined(__WXGTK__) // linux -- check mono directory for values.xml file
         path = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
 #endif
         if (!path.IsEmpty())
@@ -52058,5 +52212,63 @@ void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtTex
             }
         }
     }
+}
+
+// Return TRUE if the file is correctly setup in the _LOGS_EMAIL_REPORTS folder, with
+// the current document filename loaded in as the first line; FALSE if setup fails
+bool CAdapt_ItApp::SetupDocCreationLog(wxString& filename)
+{
+	wxString  logsPath = m_logsEmailReportsFolderPath;
+	if (::wxDirExists(logsPath))
+	{
+		wxASSERT(!filename.IsEmpty());
+		wxString logFilename = m_filename_for_ParsingSource; // OnInit() sets it to "Log_For_Document_Creation.txt"
+		wxString path = logsPath + PathSeparator + logFilename;
+		if (::wxFileExists(path))
+		{
+			::wxRemoveFile(path); // get rid of any preexisting one
+		}
+		wxTextFile f(path);
+		if (f.Create())
+		{
+			if (f.Open())
+			{
+				// We have a new empty log file open, put the filename as index = 0 line, and close it
+				f.AddLine(filename);
+				if (f.Write())
+				{
+					f.Close();
+				}
+				else
+				{
+					wxString msg;
+					msg = msg.Format(_T("Writing filename: %s  to created log file in SetupDocCreationLog() failed"), filename.c_str());
+					LogUserAction(msg);
+					f.Close();
+					return FALSE;
+				}
+			}
+			else
+			{
+				wxString msg;
+				msg = msg.Format(_T("Opening log file: %s  failed in SetupDocCreationLog()"), path.c_str());
+				LogUserAction(msg);
+				return FALSE;
+			}
+		}
+		else
+		{
+			wxString msg;
+			msg = msg.Format(_T("Creating log file: %s  failed in SetupDocCreationLog()"), path.c_str());
+			LogUserAction(msg);
+			return FALSE;
+		}
+	}
+	else
+	{
+		LogUserAction(_T("m_logsEmailReportsFolderPath does not exist, at SetupDocCreationLog()"));
+		return FALSE;
+	}
+	return TRUE;
 }
 
