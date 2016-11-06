@@ -21082,6 +21082,29 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     (*pPrintData) = pPgSetupDlgData->GetPrintData();
     pPrintData->SetPaperSize(wxSize(210, 297)); // BEW added 21Oct because the m_paperSize was remaining (-1,-1)
 
+#if wxUSE_POSTSCRIPT
+    wxPrintNativeDataBase * const nativeData = pPrintData->GetNativeData();
+    wxPostScriptPrintNativeData * const psPrintNativeData = static_cast<wxPostScriptPrintNativeData *>(nativeData);
+
+    // Set the afm path for postscript afm file location - AI installed as default font metrics
+    // We'll use a subdirectory named gs_afm off the m_xmlInstallPath on Linux installations
+    // The m_xmlInstallPath is /usr/share/adaptit or /usr/local/share/adaptit so the path to the gs_afm
+    // subdirectory will be /usr/share/adaptit/gs_afm or /usr/local/share/adaptit/gs_afm depending on the
+    // value of m_PathPrefix.
+
+    // TODO: Make sure debian packaging creates and copies the afm files to the afmPath
+    wxString afmPath = m_xmlInstallPath + PathSeparator + _T("gs_afm");
+    if (::wxDirExists(afmPath))
+    {
+        psPrintNativeData->SetFontMetricPath(afmPath);
+        wxLogDebug(_T("The PostScript Printing afmPath = %s"), afmPath.c_str());
+    }
+    else
+    {
+        wxLogDebug(_T("Unable to find the PostScript Printing afmPath at: %s"), afmPath.c_str());
+    }
+#endif // wxUSE_POSTSCRIPT
+
     //////////////////////////////////////////////////////////////////////////////////
     // Since we are about to read the config files, any data structures containing data
     // that might be changed from the reading of config files need to be created by this
