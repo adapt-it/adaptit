@@ -753,6 +753,7 @@ void CCell::Draw(wxDC* pDC)
 	// when evaluated to TRUE, skips the src cell Draw() call
 	if ((m_nCell == 0) && m_bSelected && gbShowTargetOnly)
 	{
+	    wxLogDebug(_T("Skipped DrawCell() call for srcPhrase [%s]"), m_pOwningPile->m_pSrcPhrase->m_srcPhrase.c_str());
 		; // Skip the Draw() call
 	} else
    	if (m_nCell != 1 ||
@@ -991,6 +992,39 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 		{
 			// ********* Draw LTR Cell Text  **********
 			pDC->DrawText(*pPhrase,enclosingRect.GetLeft(), enclosingRect.GetTop());
+// whm 5Nov16 testing the failure to print Kuni source text where font has special chars
+#if defined(__WXGTK__) && defined(_DEBUG)
+			if (m_pLayout->m_pApp->m_bIsPrinting && !m_pLayout->m_pApp->m_bIsPrintPreviewing)
+            {
+                CPile* pPile = GetPile();
+                int nPileIndex = pPile->GetPileIndex();
+                CStrip* pStrip = pPile->GetStrip();
+                int stripIndex = pStrip->GetStripIndex();
+                // effect a debugging break to examine sourcephrase of 1st pile in 3rd strip
+                // in the Kuni to English project document: KVG-611PE-Kuni-NoNotes - Original.xml
+                // The source text is:  No Pitá  and the Linux version built against WX2.8 is not
+                // rendering it correctly to a printer; the Linux version built against WX3.x does
+                // not render it at all when sent to a printer.
+                if (stripIndex == 3 && nPileIndex == 0 && m_nCell == 0)
+                {
+                   int dummy;
+                   dummy = 0;
+                   dummy = dummy;
+                }
+                if (stripIndex == 3 && nPileIndex == 0)
+                {
+                   // The following should log debug output for the Pile's cell[0], cell[1] and cell[2]
+                   // Curiously, only cell[1] and cell[2] are output/printed even though cell[0] has the
+                   // valid Kuni text  No Pitá
+                   // and even the wxLogDebug() call below doesn't output anything to the output terminal.
+                   wxString st;
+                   st = *pPhrase;
+                   wxLogDebug(_T("DrawCell: SrcPhrase[%s] rect: TOP %d LEFT %d strip %d pile %d cell %d"), 
+                      st.c_str(), enclosingRect.GetTop(), enclosingRect.GetLeft(), stripIndex, nPileIndex, m_nCell);
+                }
+        }
+#endif
+
 //#if defined(__WXGTK__) && defined(Print_failure)
 /* I couldn't get the line-squeezing for no doc opened, when Adapt Clipboard Text used, compared to when doc is present
 #if defined(_DEBUG)
