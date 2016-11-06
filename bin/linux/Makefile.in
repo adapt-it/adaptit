@@ -103,10 +103,11 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(docAdmindir)" \
-	"$(DESTDIR)$(docFiledir)" "$(DESTDIR)$(docStartdir)" \
-	"$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(htmlmaindir)" \
-	"$(DESTDIR)$(miscdir)" "$(DESTDIR)$(xmldir)"
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(afmdir)" \
+	"$(DESTDIR)$(docAdmindir)" "$(DESTDIR)$(docFiledir)" \
+	"$(DESTDIR)$(docStartdir)" "$(DESTDIR)$(htmlhelpdir)" \
+	"$(DESTDIR)$(htmlmaindir)" "$(DESTDIR)$(miscdir)" \
+	"$(DESTDIR)$(xmldir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_adaptit_OBJECTS = 1035.$(OBJEXT) AIPrintout.$(OBJEXT) \
 	AIPrintPreviewFrame.$(OBJEXT) Adapt_It.$(OBJEXT) \
@@ -285,7 +286,7 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-DATA = $(docAdmin_DATA) $(docFile_DATA) $(docStart_DATA) \
+DATA = $(afm_DATA) $(docAdmin_DATA) $(docFile_DATA) $(docStart_DATA) \
 	$(htmlhelp_DATA) $(htmlmain_DATA) $(misc_DATA) $(xml_DATA)
 HEADERS = $(noinst_HEADERS)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
@@ -523,6 +524,10 @@ miscdir = $(pkgdatadir)
 misc_DATA = ../../docs/iso639-3codes.txt \
         ../../docs/curl-ca-bundle.crt
 
+
+# AFM font data
+afmdir = $(pkgdatadir)/gs_afm
+afm_DATA = $(wildcard $(srcdir)/../../gs_afm/*)
 
 # HTML help data
 htmlmaindir = $(pkgdatadir)/help
@@ -3001,6 +3006,27 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool config.lt
+install-afmDATA: $(afm_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(afm_DATA)'; test -n "$(afmdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(afmdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(afmdir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(afmdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(afmdir)" || exit $$?; \
+	done
+
+uninstall-afmDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(afm_DATA)'; test -n "$(afmdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(afmdir)'; $(am__uninstall_files_from_dir)
 install-docAdminDATA: $(docAdmin_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(docAdmin_DATA)'; test -n "$(docAdmindir)" || list=; \
@@ -3448,7 +3474,7 @@ check: check-recursive
 all-am: Makefile $(PROGRAMS) $(DATA) $(HEADERS)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(docAdmindir)" "$(DESTDIR)$(docFiledir)" "$(DESTDIR)$(docStartdir)" "$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(htmlmaindir)" "$(DESTDIR)$(miscdir)" "$(DESTDIR)$(xmldir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(afmdir)" "$(DESTDIR)$(docAdmindir)" "$(DESTDIR)$(docFiledir)" "$(DESTDIR)$(docStartdir)" "$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(htmlmaindir)" "$(DESTDIR)$(miscdir)" "$(DESTDIR)$(xmldir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -3504,9 +3530,9 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-docAdminDATA install-docFileDATA \
-	install-docStartDATA install-htmlhelpDATA install-htmlmainDATA \
-	install-miscDATA install-xmlDATA
+install-data-am: install-afmDATA install-docAdminDATA \
+	install-docFileDATA install-docStartDATA install-htmlhelpDATA \
+	install-htmlmainDATA install-miscDATA install-xmlDATA
 
 install-dvi: install-dvi-recursive
 
@@ -3554,10 +3580,10 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-docAdminDATA \
-	uninstall-docFileDATA uninstall-docStartDATA \
-	uninstall-htmlhelpDATA uninstall-htmlmainDATA \
-	uninstall-miscDATA uninstall-xmlDATA
+uninstall-am: uninstall-afmDATA uninstall-binPROGRAMS \
+	uninstall-docAdminDATA uninstall-docFileDATA \
+	uninstall-docStartDATA uninstall-htmlhelpDATA \
+	uninstall-htmlmainDATA uninstall-miscDATA uninstall-xmlDATA
 
 .MAKE: $(am__recursive_targets) install-am install-strip
 
@@ -3568,8 +3594,8 @@ uninstall-am: uninstall-binPROGRAMS uninstall-docAdminDATA \
 	dist-shar dist-tarZ dist-xz dist-zip distcheck distclean \
 	distclean-compile distclean-generic distclean-libtool \
 	distclean-tags distcleancheck distdir distuninstallcheck dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-binPROGRAMS install-data install-data-am \
+	dvi-am html html-am info info-am install install-afmDATA \
+	install-am install-binPROGRAMS install-data install-data-am \
 	install-docAdminDATA install-docFileDATA install-docStartDATA \
 	install-dvi install-dvi-am install-exec install-exec-am \
 	install-html install-html-am install-htmlhelpDATA \
@@ -3579,10 +3605,11 @@ uninstall-am: uninstall-binPROGRAMS uninstall-docAdminDATA \
 	installcheck-am installdirs installdirs-am maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags tags-am uninstall uninstall-am uninstall-binPROGRAMS \
-	uninstall-docAdminDATA uninstall-docFileDATA \
-	uninstall-docStartDATA uninstall-htmlhelpDATA \
-	uninstall-htmlmainDATA uninstall-miscDATA uninstall-xmlDATA
+	tags tags-am uninstall uninstall-afmDATA uninstall-am \
+	uninstall-binPROGRAMS uninstall-docAdminDATA \
+	uninstall-docFileDATA uninstall-docStartDATA \
+	uninstall-htmlhelpDATA uninstall-htmlmainDATA \
+	uninstall-miscDATA uninstall-xmlDATA
 
 
 #

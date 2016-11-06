@@ -41,6 +41,10 @@ miscdir = $(pkgdatadir)
 misc_DATA = ../../docs/iso639-3codes.txt \
         ../../docs/curl-ca-bundle.crt
 
+# AFM font data
+afmdir = $(pkgdatadir)/gs_afm
+afm_DATA = $(wildcard $(srcdir)/../../gs_afm/*)
+
 # HTML help data
 htmlmaindir = $(pkgdatadir)/help
 htmlmain_DATA = ../../docs/Help_for_Administrators.htm \
