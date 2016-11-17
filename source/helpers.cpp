@@ -2024,9 +2024,144 @@ wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 	return span;
 }
 
+// BEW created 17Nov16 for 
+// use in CAdapt_ItApp::EnsureProperCapitalization()
+wxString GetTargetPunctuation(wxString wordOrPhrase, bool bFromWordEnd)
+{
+	wxString puncts = wxEmptyString;
+	if (wordOrPhrase.IsEmpty())
+		return puncts;
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxString punctSet = pApp->m_punctuation[1];
+	int offset = wxNOT_FOUND;
+	// Ensure latin space is included in the puncts set, in this function
+	wxChar space = _T(' ');
+	offset = punctSet.Find(space);
+	if (offset == wxNOT_FOUND)
+	{
+		// Add space to the set, because there may be nested quotes and
+		// in that circumstance we want to treat space as punctuation
+		punctSet += space;
+	}
+	size_t index;
+	if (bFromWordEnd)
+	{
+		// We are getting punctuation which is word- or phrase-final
+		wxString strReversed = MakeReverse(wordOrPhrase);
+		size_t len = strReversed.Length();
+		for (index = 0; index < len; index++)
+		{
+			// Get next character
+			wxChar ch = strReversed.GetChar(index);
+			// Is it in the punctuation set?
+			offset = punctSet.Find(ch);
+			// Break out if we've come to a character not in the punctuation set
+			if (offset == wxNOT_FOUND)
+			{
+				break;
+			}
+			// We found a punct char, so accumulate it (we are in reverse order still)
+			puncts += ch;
+		}
+		// Restore natural order, if the string is 2 or more chars long
+		if (puncts.Length() > 1)
+		{
+			puncts = MakeReverse(puncts);
+		}
+	}
+	else
+	{
+		// We are getting punctuation which is word- or phrase-initial
+		size_t len = wordOrPhrase.Length();
+		for (index = 0; index < len; index++)
+		{
+			// Get next character
+			wxChar ch = wordOrPhrase.GetChar(index);
+			// Is it in the punctuation set?
+			offset = punctSet.Find(ch);
+			// Break out if we've come to a character not in the punctuation set
+			if (offset == wxNOT_FOUND)
+			{
+				break;
+			}
+			// We found a punct char, so accumulate it
+			puncts += ch;
+		}
+	}
+	return puncts;
+}
+
+
 wxString MakeSpacelessPunctsString(CAdapt_ItApp* pApp, enum WhichLang whichLang)
 {
 	wxString spacelessPuncts;
+	// BEW 7Nov16 make sure the opening and closing double-chevrons are also in
+	// the punctuation set
+	wxString ch = _T(' ');	// initialize to a space, so that SetChar() will
+							// not assert with a bounds error below
+	int offset = wxNOT_FOUND;
+	// use syntax  ch.SetChar(0, L'\x201C');
+	ch.SetChar(0, L'\x00AB'); // hex for left-pointing double angle quotation mark
+	offset = (pApp->m_punctuation[0]).Find(ch);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[0] += ch;
+	}
+	ch.SetChar(0, L'\x00BB'); // hex for right-pointing double angle quotation mark
+	offset = (pApp->m_punctuation[0]).Find(ch);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[0] += ch;
+	}
+	// Now do same for m_punctuation[1] the target puncts set
+	ch.SetChar(0, L'\x00AB'); // hex for left-pointing double angle quotation mark
+	offset = (pApp->m_punctuation[1]).Find(ch);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[1] += ch;
+	}
+	ch.SetChar(0, L'\x00BB'); // hex for right-pointing double angle quotation mark
+	offset = (pApp->m_punctuation[1]).Find(ch);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[1] += ch;
+	}
+	// Since this function is called for each of srcLang and tgtLang after
+	// Preferences... dialog has been dismissed, we allow for the user to
+	// have removed ' as a punctuation character. If not there, and the flag
+	// is still defaulted to TRUE, then insert the ' in src and tgt punct sets
+	// The status of ' is checked at lines 697 to 715 of PunctCorrespPage.cpp
+	// and the m_bSingleQuoteAsPunct flag value updated according to what is
+	// found, TRUE if in the punct set, FALSE if not
+	wxString str = _T("'");
+	if (pApp->m_bSingleQuoteAsPunct == TRUE) // BEW 7Nov16 TRUE is the new default, 
+											 // but user can remove ' in Prefs to override
+	// BEW 7Nov16, make sure ' and ~ are at the end of the src and tgt m_punctuation strings
+	{
+		offset = (pApp->m_punctuation[0]).Find(str);
+		if (offset == wxNOT_FOUND)
+		{
+			pApp->m_punctuation[0] += str;
+		}
+		offset = (pApp->m_punctuation[1]).Find(str);
+		if (offset == wxNOT_FOUND)
+		{
+			pApp->m_punctuation[1] += str;
+		}
+	}
+	// Do the same for the USFM fixed space marker (~)
+	str = _T("~");
+	offset = (pApp->m_punctuation[0]).Find(str);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[0] += str;
+	}
+	offset = (pApp->m_punctuation[1]).Find(str);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[1] += str;
+	}
+
 	// BEW 11Jan11, added test here so that the function can be used on target text as
 	// well as on source text
 	if (whichLang == targetLang)

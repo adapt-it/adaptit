@@ -237,7 +237,7 @@ protected:
 	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
 	// BEW 9Sep16 added next four
-	bool			IsInWordProper(wxChar* ptr); // TRUE if not punct, ~, marker,  not [ or ], not whitespace etc
+	bool			IsInWordProper(wxChar* ptr, wxString& spacelessPuncts); // TRUE if not punct, ~, marker,  not [ or ], not whitespace etc
 	inline bool		IsFixedSpace(wxChar* ptr); // TRUE if it is a ~ (tilde), the USFM fixed-space character
 	wxString		m_spacelessPuncts; // populated by a TokenizeText() call (IsInWordProper() uses it)
 	wxString		m_spacelessPuncts_NoTilde; // same as m_spacelessPuncts, but lacking a ~ character
@@ -255,8 +255,8 @@ protected:
 	bool			IsUnstructuredPlainText(wxString& rText);
 	void			MakeOutputBackupFilenames(wxString& curOutputFilename);
 	bool			NotAtEnd(wxString& rText, const int nTextLength, int nFound);
-	bool			ParseWordMedialSandwichedPunct(wxChar* pText, wxChar* pEnd); // BEW added 11Sep16
-	bool			ParseWordMedialSandwichedUSFMFixedSpace(wxChar* pText, wxChar* pEnd); // BEW added 11Sep16
+	bool			ParseWordMedialSandwichedPunct(wxChar* pText, wxChar* pEnd, wxString& spacelessPuncts); // BEW added 11Sep16
+	bool			ParseWordMedialSandwichedUSFMFixedSpace(wxChar* pText, wxChar* pEnd, wxString& spacelessPuncts); // BEW added 11Sep16
 	int				ParsePostWordStuff(
 							wxChar* pChar,
 							wxChar*		pEnd,
@@ -383,7 +383,9 @@ public:
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
 	bool			IsPunctuation(wxChar* ptr, bool bSource = TRUE);
 	bool			IsEndMarker(wxChar *pChar, wxChar* pEnd);
+	bool			IsEndMarker2(wxChar* pChar); // BEW 7Nov16 This version of IsEndEndMarker() has the end-of-buffer test internal
 	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase);
+	bool			IsInlineNonbindingEndMarker(wxString& mkr);
 	bool			IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd));
 	bool			IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* pEnd); // whm added 10Feb05
 	bool			IsLegacyDocVersionForFileSaveAs();

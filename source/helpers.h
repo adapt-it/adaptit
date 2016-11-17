@@ -310,7 +310,9 @@ void      EmptyMarkersAndFilteredStrings(
 								  wxString& filteredInfoStr); 
 bool      GetSFMarkersAsArray(wxString& strToParse, wxArrayString& arr);
 wxString  GetLastMarker(wxString markers);
-bool      IsOneOfAndIfSoGetSpan(wxString inputStr, wxString& charSet, int& span); // BEW added 22May14
+wxString  GetTargetPunctuation(wxString wordOrPhrase, bool bFromWordEnd); // BEW created 17Nov16 for 
+								// use in CAdapt_ItApp::EnsureProperCapitalization()
+//bool      IsOneOfAndIfSoGetSpan(wxString inputStr, wxString& charSet, int& span); // BEW added 22May14
 bool      IsNotOneOfNorSpaceAndIfSoGetSpan(wxChar* pStart, wxChar* pEnd, wxString& charSet, int& span); // BEW added 22May14
 //wxString  ReduceStringToStructuredPuncts(wxString& inputStr); // BEW added 22May14 Deprecated 10Jul15
 bool      IsWhiteSpace(const wxChar *pChar);

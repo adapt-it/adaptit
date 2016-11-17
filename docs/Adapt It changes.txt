@@ -52,6 +52,20 @@ message dialog will ask the user: "If a collaboration was set up
 with Paratext or Bibledit, do you want it to be restored now,
 if possible?". Click the No button to have the collaboration
 turned off.
+* Left and right double angle quotation marks are now automatically
+added to the source and target punctuation character sets, if not
+already present.
+* The straight single quote, ' is now treated as a punctuation
+character by default. Earlier, it defaulted to being a word-building
+character.
+* USFM fixed space marker ( ~ ) is handled better. It still is a
+fixed space, but when occurring between a word and punctuation
+it is stripped off and restored later like punctuation characters, and
+it now automatically appears as an entry in the punctuation
+character set in Preferences - which allows it to be stripped off and
+restored to the adaptation as one would expect. When occurring
+between words, it is not stripped off, but behaves as expected in
+keeping the words together.
   ----------------------------------------------
 Bug fixes in 6.8.1 release ?? ?? 2016
 ----------------------------------------------
@@ -70,6 +84,11 @@ Code has now been added to skip such rogue markers, and the
 data transfer now does not get truncated. (However, it is always
 wise to check the source text for markup errors before setting up
 a collaboration with Paratext or Bibledit.)
+* The feature introduced in 6.8.0 where certain word-final or
+phrase-final punctuation characters could automatically trigger
+auto-capitalizing the next word (or phrase), did not work when
+the source text was a language without a case distinction. Now
+it works correctly.
 
 ----------------------------------------------
 Version 6.8.0 release 1 July 2016
