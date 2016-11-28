@@ -235,7 +235,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
         (m_TempCollaborationEditor == _T("Bibledit") && (m_pApp->BibleditIsInstalled() == false)))
     {
         // The collaboration editor value is missing or bad. Set it to a good initial value.
-        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTLinuxVer8)
+        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
         {
             m_TempCollaborationEditor = _T("Paratext");
             // Also ensure PT version for m_TempCollabEditorVersion is set appropriately.
@@ -285,6 +285,35 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
             else if (PTver == PTLinuxVer7)
             {
                 m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+            }
+            else if (PTver == PTLinuxVer7and8)
+            {
+                // Both PT versions 7 and 8 for Linux are installed on the machine.
+                // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                // and at least 2 valid/useable projects, otherwise PT 7 
+                wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+                wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+                wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8"));
+                wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7"));
+                int pt8Count = pt8ListOfProj.GetCount();
+                int pt7Count = pt7ListOfProj.GetCount();
+                if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                {
+                    m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                }
+                else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                {
+                    m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+                }
+                else
+                {
+                    // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                    wxString msg = _T("In CSetupEditorCollaboration::InitDialog both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                    m_pApp->LogUserAction(msg);
+                    // Assume the administrator will fix this situation. In the mean time, since both
+                    // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                    m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                }
             }
         }
         else if (PTver == PTNotInstalled && m_pApp->BibleditIsInstalled())
@@ -415,6 +444,12 @@ void CSetupEditorCollaboration::DoInit(bool bPrompt)
     {
         // PT 8 is installed, disable the "Paratext 7" radio button, and enable the "Paratext 8" button
         pRadioBoxScriptureEditor->Enable(0, FALSE); // radiobox index 0 is "Paratext 7"
+        pRadioBoxScriptureEditor->Enable(1, TRUE); // radiobox index 1 is "Paratext 8"
+    }
+    if (PTver == PTLinuxVer7and8)
+    {
+        // Both PT versions 7 and 8 for Linux are installed on the machine so enable both "Paratext 7" and "Paratext 8"
+        pRadioBoxScriptureEditor->Enable(0, TRUE); // radiobox index 0 is "Paratext 7"
         pRadioBoxScriptureEditor->Enable(1, TRUE); // radiobox index 1 is "Paratext 8"
     }
 
@@ -1275,7 +1310,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 					// using Paratext. Assign "Paratext" as editor (if it is installed).
                     PTVersionsInstalled PTver;
                     PTver = m_pApp->ParatextVersionInstalled();
-                    if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8)
+                    if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
                         m_TempCollaborationEditor = _T("Paratext");
 				}
 				else
@@ -1310,7 +1345,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
                 // so if Paratext is installed, assign it instead.
                 PTVersionsInstalled PTver;
                 PTver = m_pApp->ParatextVersionInstalled();
-                if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8)
+                if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
 					m_TempCollaborationEditor = _T("Paratext");
 			}
 		}
@@ -1357,7 +1392,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
                 else
                 {
                     // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
-                    wxString msg = _T("In CSetupEditorCollaboration::InitDialog both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                    wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
                     m_pApp->LogUserAction(msg);
                     // Assume the administrator will fix this situation. In the mean time, since both
                     // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
@@ -1371,6 +1406,35 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
             else if (PTver == PTLinuxVer7)
             {
                 m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+            }
+            else if (PTver == PTLinuxVer7and8)
+            {
+                // Both PT versions 7 and 8 for Linux are installed on the machine.
+                // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                // and at least 2 valid/useable projects, otherwise PT 7 
+                wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+                wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+                wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8"));
+                wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7"));
+                int pt8Count = pt8ListOfProj.GetCount();
+                int pt7Count = pt7ListOfProj.GetCount();
+                if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                {
+                    m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                }
+                else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                {
+                    m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+                }
+                else
+                {
+                    // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                    wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                    m_pApp->LogUserAction(msg);
+                    // Assume the administrator will fix this situation. In the mean time, since both
+                    // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                    m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                }
             }
         }
         
@@ -1401,7 +1465,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 		// editors during this AI session.
         PTVersionsInstalled PTver;
         PTver = m_pApp->ParatextVersionInstalled();
-        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8)
+        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
 		{
 		     m_TempCollaborationEditor = _T("Paratext"); // default editor
              if (PTver == PTVer7)
@@ -1436,7 +1500,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
                  else
                  {
                      // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
-                     wxString msg = _T("In CSetupEditorCollaboration::InitDialog both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                     wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
                      m_pApp->LogUserAction(msg);
                      // Assume the administrator will fix this situation. In the mean time, since both
                      // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
@@ -1450,6 +1514,35 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
              else if (PTver == PTLinuxVer7)
              {
                  m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+             }
+             else if (PTver == PTLinuxVer7and8)
+             {
+                 // Both PT versions 7 and 8 for Linux are installed on the machine.
+                 // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                 // and at least 2 valid/useable projects, otherwise PT 7 
+                 wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+                 wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+                 wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8"));
+                 wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7"));
+                 int pt8Count = pt8ListOfProj.GetCount();
+                 int pt7Count = pt7ListOfProj.GetCount();
+                 if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                 {
+                     m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                 }
+                 else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                 {
+                     m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+                 }
+                 else
+                 {
+                     // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                     wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                     m_pApp->LogUserAction(msg);
+                     // Assume the administrator will fix this situation. In the mean time, since both
+                     // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                     m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                 }
              }
         }
 		else if (m_pApp->BibleditIsInstalled())
@@ -1521,7 +1614,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 		// The text controls will be updated with the empty values below
 
 		// Assign a default editor so the text substitutions for
-        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8)
+        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
 		{
 		     m_TempCollaborationEditor = _T("Paratext"); // default editor
              if (PTver == PTVer7)
@@ -1556,7 +1649,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
                  else
                  {
                      // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
-                     wxString msg = _T("In CSetupEditorCollaboration::InitDialog both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                     wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
                      m_pApp->LogUserAction(msg);
                      // Assume the administrator will fix this situation. In the mean time, since both
                      // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
@@ -1571,6 +1664,35 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
              {
                  m_TempCollabEditorVersion = _T("PTLinuxVersion8");
              }
+             else if (PTver == PTLinuxVer7and8)
+             {
+                 // Both PT versions 7 and 8 for Linux are installed on the machine.
+                 // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                 // and at least 2 valid/useable projects, otherwise PT 7 
+                 wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+                 wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+                 wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8"));
+                 wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7"));
+                 int pt8Count = pt8ListOfProj.GetCount();
+                 int pt7Count = pt7ListOfProj.GetCount();
+                 if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                 {
+                     m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                 }
+                 else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                 {
+                     m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+                 }
+                 else
+                 {
+                     // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                     wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                     m_pApp->LogUserAction(msg);
+                     // Assume the administrator will fix this situation. In the mean time, since both
+                     // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                     m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                 }
+             }
         }
 		else if (m_pApp->BibleditIsInstalled())
 		{
@@ -1580,7 +1702,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
-        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8)
+        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
 		{
 			// set the "Paratext 7" and "Paratext 8" radio box buttons appropriately
             if (PTver == PTVer7)
@@ -2607,6 +2729,7 @@ void CSetupEditorCollaboration::OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(eve
     }
 	DoInit(TRUE); // TRUE = prompt reminder to use Select from List buttons
 }
+
 
 
 
