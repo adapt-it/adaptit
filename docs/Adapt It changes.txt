@@ -4,6 +4,16 @@ Version 6.8.1 release day?? month?? 2016
 ----------------------------------------------
 Feature changes and new features in 6.8.1 
 ----------------------------------------------
+* Adapt It 6.8.1 is able to collaborate with the latest version of 
+Paratext 8 for Linux. The collaboration with Paratext feature of 
+Adapt It was broken when the most recent version of Paratext 8 for 
+Linux changed its program location in the Linux file system. The
+change was made by the Paratext developers in order to allow
+Paratext 8 and Paratext 7 to be installed at the same time. When
+the Paratext 8 installation files were moved in the Linux file system,
+Adapt It could no longer locate them. This has now been fixed. 
+If you have installed or upgraded your Linux version of Paratext 8, 
+you should use Adapt It version 6.8.1 to collaborate with Paratext 8.
 * More localization to Indonesian has been done.
 * Copying selected source text to the clipboard. Formerly, there
 was no easy way. Copying selected source text copied the target
