@@ -109,7 +109,7 @@ public:
 
 	void	DebugPileArray(wxString& msg, wxArrayPtrVoid* pPileArray);
 
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
     void        AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLayout, CPile* pCurPile,
                     wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays,
                     int nStripsOffset, wxArrayPtrVoid& arrPileSet, wxArrayPtrVoid& arrRectsForOneFreeTrans);
@@ -268,7 +268,7 @@ private:
 						wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings);
 	wxString	TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent);
 
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
     // BEW added 21Nov11, part of workaround for DrawFreeTranslationsForPrinting() not working in __WXGTK__ build
     void        AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
                             wxArrayPtrVoid& arrRectsForOneFreeTrans, wxString& ftStr, int nStripsOffset,
@@ -308,3 +308,4 @@ private:
 };
 
 #endif /* FreeTrans_h */
+

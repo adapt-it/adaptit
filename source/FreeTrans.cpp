@@ -975,7 +975,8 @@ int CFreeTrans::FindEndOfRuinedSection(SPArray* pSPArray, int startFrom, bool& b
 	return count - 1;
 }
 
-#if defined(__WXGTK__)
+
+#if defined(__WXGTK__) // print-related
 // BEW added 21Nov11, part of workaround for DrawFreeTranslationsForPrinting() not working in __WXGTK__ build
 /////////////////////////////////////////////////////////////////////////////////
 /// \return                         nothing
@@ -1066,6 +1067,7 @@ void CFreeTrans::GetFreeTransPileSetForOneFreeTrans(CLayout* pLayout, wxArrayPtr
 #endif
 }
 #endif // for #if defined(__WXGTK__)
+
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return                         nothing
@@ -1349,7 +1351,7 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 	} while(laterStripIndex <= nIndexOfLastStrip);
 }
 
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
 // BEW added 21Nov11, part of workaround for DrawFreeTranslationsForPrinting() not working in __WXGTK__ build
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return                             nothing
@@ -1981,7 +1983,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 	} // end of loop: for (frSectionsIndex = 0; ftSectionsIndex < ftSectionsCount; ftSectionsIndex++)
 }
 
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
 // BEW added 26Nov11, for drawing glosses to 'real' pages in the Linux build, and its
 // also needed for Print Preview in the Linux build
 void CFreeTrans::DrawOneGloss(wxDC* pDC, CPile* aPilePtr, bool bRTLLayout)
@@ -2167,7 +2169,7 @@ void CFreeTrans::DrawFreeTransForOneStrip(wxDC* pDC, int currentStrip, int nStri
 }
 #endif
 
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
 // BEW added 21Nov11, part of workaround for DrawFreeTranslationsForPrinting() not working in __WXGTK__ build
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return                         nothing
@@ -2911,7 +2913,8 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 	} // end of loop: for (ftIndex = 0; ftIndex < ftCount; ftIndex++)
 }
 
-#if defined(__WXGTK__)
+
+#if defined(__WXGTK__) // print-related
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return                 nothing
 /// \param pDC          ->  a device context, for drawing and measuring text extents
@@ -10590,3 +10593,4 @@ void CFreeTrans::DebugPileArray(wxString& msg, wxArrayPtrVoid* pPileArray)
 	}
 #endif
 }
+

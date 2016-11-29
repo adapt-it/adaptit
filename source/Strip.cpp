@@ -141,7 +141,7 @@ void CStrip::Draw(wxDC* pDC)
 #if defined(_DEBUG) && defined(Print_failure)
 	if (m_pLayout->m_pApp->m_bIsPrinting && m_pLayout->m_pApp->m_bPagePrintInProgress)
 	{
-		wxLogDebug(_T("CStrip::Draw() strip index %d , its rectangle (logical coords) x %d  y %d , width %d  height %d BUT THIS DRAW DOES NOTHING IN LINUX (by design)"),
+		wxLogDebug(_T("CStrip::Draw() strip %d, rect (logical coords) x %d  y %d, width %d height %d NOT FROM LINUX"),
 			this->m_nStrip, Left(), Top(), Width(), Height());
 	}
 #endif
@@ -832,4 +832,5 @@ int CStrip::GetStripIndex()
 {
 	return m_nStrip;
 }
+
 
