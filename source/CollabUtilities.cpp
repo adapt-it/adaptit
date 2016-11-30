@@ -3641,11 +3641,20 @@ wxString GetPathToRdwrtp7()
 	}
 #endif
 #ifdef __WXGTK__
-    // For mono, we call a the paratext startup script (usr/bin/paratext, no extension)
-    // that sets the Paratext and mono environment variables and then calls the "real"
-    // rdwrtp7.exe in the Paratext installation directory. The script is needed
-    // to avoid a security exception in ParatextShared.dll.
-	rdwrtp7PathAndFileName = _T("/usr/bin/paratext");
+    // whm revised 27Nov2016:
+    // For mono, we call a the paratext startup script (/usr/bin/paratext for PT7, or 
+    // /usr/bin/paratext8 for PT8, no extension). These startup scripts set the Paratext 
+    // and mono environment variables and then calls the "real" rdwrtp7.exe in the 
+    // Paratext installation directory. The script is needed to avoid a security exception 
+    // in ParatextShared.dll.
+    // By the time this GetPathToRdwrtp7 is called, the App's m_ParatextVersionForProject 
+    // variable will have been read/determined definitively for the PT Linux version being 
+    // used.
+
+    if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion7"))
+	    rdwrtp7PathAndFileName = _T("/usr/bin/paratext");
+    else if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion8"))
+        rdwrtp7PathAndFileName = _T("/usr/bin/paratext8");
     wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
 
 	wxString fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("ParatextShared.dll");
@@ -3659,7 +3668,7 @@ wxString GetPathToRdwrtp7()
 	fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("Utilities.dll");
 	wxASSERT(::wxFileExists(fileName));
 #endif
-	/*
+	/* // obsolete code
 	if (::wxFileExists(gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
 	{
 		// rdwrtp7.exe exists in the Paratext installation so use it
@@ -10339,4 +10348,5 @@ void OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event))
 	cvcdlg.ShowModal();
 }
 */
+
 

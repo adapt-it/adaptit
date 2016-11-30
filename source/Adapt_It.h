@@ -1163,7 +1163,7 @@ enum PTVersionsInstalled
     PTVer7and8,
     PTLinuxVer7,
     PTLinuxVer8,
-    PTLinuxVer7and8
+    PTLinuxVer7and8 // whm 27Nov2016 note: This enum existed but was not utilized in AI version 6.8.0, but is utilized as of AI 6.8.1
 };
 
 /// a struct for use in collaboration with Paratext or Bibledit (BEW added 22Jun11)
@@ -4398,7 +4398,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	bool	BibleditIsRunning(); // whm added 13Jun11
 
 #if defined(__WXGTK__)
-	wxString GetParatextEnvVar(wxString strVariableName); // edb added 19Mar12
+	wxString GetParatextEnvVar(wxString strVariableName, wxString PTverStr); // edb added 19Mar12
 #endif
 	wxString GetParatextProjectsDirPath(wxString PTVersion); // whm added 9Feb11, modified 25June2016
 	wxString GetBibleditProjectsDirPath();
@@ -4935,4 +4935,5 @@ DECLARE_APP(CAdapt_ItApp);
 // creates the declaration className& wxGetApp(void). It is implemented by IMPLEMENT_APP.
 
 #endif /* Adapt_It_h */
+
 

@@ -12047,23 +12047,24 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     One of enum type: PTVersionsInstalled: PTNotInstalled, PTVer7, PTVer8, PTVer7and8
-///             or (for Linux): PTNotInstalled, PTLinuxVer7, PTLinuxVer8 
+///             or (for Linux): PTNotInstalled, PTLinuxVer7, PTLinuxVer8, PTLinuxVer7and8 
 /// \remarks
 /// This function is important to Adapt It's collaboration functionality.
-/// Modified by whm 25Junel2016 for detecting which Paratext version (7 or 8) is 
-/// installed, or both, or neither is installed - as indicated by enum return value.
+/// Modified by whm 25Junel2016 and 27Nov2016 for detecting which Paratext version (7 or 8)  
+/// is installed, or both, or neither is installed - as indicated by enum return value.
 /// The function works for Paratext installations on Windows or Linux (__WXGTK__).
 /// The revised function first checks for the existence of a Paratext 8 installation. 
 /// It then checks for the existence of a Paratext 7 installation.
 /// If neither installation is found, the function returns PTNotInstalled.
-/// If only PT8 installation is found, the function returns PTVer8.
-/// If only PT7 installation is found, the function returns PTVer7.
-/// If both installations are found, the function returns PTVer7and8 - but only for Windows.
-/// There is no PTLinuxVer7and8 enum value because the PT Team has determined that PT 7 and PT 8
-/// cannot be installed at the same time. Hence, PT installs on Linux as proposed, won't 
-/// have separate install dir for the install files and binaries - just /usr/lib/Paratext. 
-/// There will, however, be separate projects dir paths (to facilitate data migration from PT 7 
-/// to PT 8 on Linux).
+/// If only PT8 installation is found, the function returns PTVer8 on Windows or PTLinuxVer8 on Linux
+/// If only PT7 installation is found, the function returns PTVer7 on Windows or PTLinuxVer7 on Linux
+/// If both installations are found, the function returns PTVer7and8 on Windows or PTinuxVer7and8 for LInux.
+/// Note: The initial Beta version of PT8 for Linux installed only PT7 or PT8, but subsequently the PT 
+/// devs decided to allow both PT7 and PT8 to be installed on Linux simultaneously - just as in Wndows. 
+/// Hence, for early Beta version of PT 8 the install was the same as for PT7, namely /usr/lib/Paratext
+/// but later PT 8 versions install at /usr/lib/Paratext8 and only PT installs at /usr/lib/Paratext.
+/// Like on Windows, there are separate projects dir paths - to facilitate data migration from PT 7 
+/// to PT 8 on Linux.
 /// The default PT projects dir on Linux will be ~/ParatextProjects for PTLinuxVer7 and 
 /// ~/Paratext8Projects for PTLinuxVer8).
 /// This function does not determine if an administrator has migrated a user's data from a
@@ -12128,10 +12129,11 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 //////////////////////////////////////////////////////////////////////////////////////////
 PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
 {
-#ifdef __WXMSW__ // Windows host -- use registry
-
     bool bPT7Installed = FALSE;
     bool bPT8Installed = FALSE;
+
+#ifdef __WXMSW__ // Windows host -- use registry
+
     wxLogNull logNo; // eliminate any spurious messages from the system
                      // determine if the Paratext Program_Files_Directory_Ptw8 key exists in the host Windows' registry;
                      // Check first for Paratext 8 installed on a 64-bit Windows OS
@@ -12264,117 +12266,124 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
         return PTVer7;
     return PTNotInstalled;
 #endif
-#if defined(__WXGTK__) // linux -- just look for the files in /usr/lib/Paratext/
+#if defined(__WXGTK__) // linux -- look for the files in /usr/lib/Paratext/ and/or /usr/lib/Paratext8
 
-    // whm 21June2016 Note: Tom Hindle says that their current plans are that the
-    // PT version 8 for Linux's installation files will go in the same location 
-    // that PT 7 did, that is: /usr/lib/Paratext. He indicates that there won't be
-    // a separate installation location - the installation of PT 8 will just 
-    // overwrite any existing PT 7 installation at /usr/lib/Paratext.
-    // However, PT 8's projects dir will be a separate dir from PT 7's projects dir.
+    // whm 21June2016 Note: Tom Hindle said that their then-current plans were that the
+    // PT version 8 for Linux's installation files would go in the same location 
+    // that PT 7 did, that is: /usr/lib/Paratext. As of November 2016, however, the
+    // PT team has decided that PT 8 would be installed in a separate location 
+    // at: /usr/lib/Paratext8 to enable users to have both PT7 and PT8 installed at the
+    // same time.
+    // In an email dated 22Nov2016 Tom indicates that there will now be a separate 
+    // installation location for PT 8 which will be: /usr/lib/Paratext8.
+    // The PT 8's projects dir will continue to be a separate dir from PT 7's projects 
+    // dir - as it was previously for the early Beta of PT8.
     // So, the upgrade to PT 8 on Linux will establish a new projects dir called 
     // "Paratext8Projects". Hence, A linux user who was previously collaborating 
-    // with PT 7, and upgrades to PT 8 will likely have both "ParatextProjects" 
-    // and "Paratext8Projects" dirs in their Home directory.
+    // with PT 7, and upgrades to or installs PT 8 will likely have both "ParatextProjects" 
+    // and "Paratext8Projects" dirs in their Home directory. A Linux user, like Windows
+    // will be able to install and run PT 7 or PT 8 on the same machine, and will be
+    // able to migrate some or all their PT 7 projects to PT 8, and hence may work with
+    // some PT projects in PT 7 and others in PT 8 - just as was possible on Windows.
 
-    wxString strPTInstallDir = _T("/usr/lib/Paratext");
+    // TODO: Use the same strategy now for Linux as we did for Windows above. 
+    // That is, we First look for a PT installation in /usr/lib/Paratext8. If it exists, 
+    // and we can determine the PT 8 major version number, we know that a PT 8 installation exists.
+    // Next, we look for a PT installation in /usr/lib/Paratext. If it exists, we determine
+    // the major version number. The number could be 8 if the earlier PT 8 was installed, but
+    // we expect to find the numnber 7 there. If we find number 8 at both locations, we'll
+    // assume that PT 7 is not installed and we'll assume that PT 8 is the active and only
+    // PT installation. If we find the number 7 at /usr/lib/Paratext and the number 8 at
+    // /usr/lib/Paratext8, then we know that both PT 7 and the newer PT 8 are installed, so
+    // we then use the same method as the Windows code above uses - checking for valid
+    // PT projects in the respective projects directory.
 
+    // Look for a PT8 installation
+    wxString strPTInstallDir = _T("/usr/lib/Paratext8");
     if (::wxDirExists(strPTInstallDir))
     {
         // path exists -- see if the software is in there AND MONO_REGISTRY_PATH is defined
         if (::wxFileExists(strPTInstallDir + _T("/Paratext.exe"))
             && ::wxFileExists(strPTInstallDir + _T("/ParatextShared.dll"))
-            && (!GetParatextEnvVar(_T("MONO_REGISTRY_PATH")).IsEmpty()))
+            && (!GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT8")).IsEmpty()))
         {
-            // A PT for Linux appears to have been installed, but we don't know what version it is.
-            // Linux versions have a "PTVersion" text file that is located at /usr/lib/Paratext/PTVersion. 
-            // The last line in that file has something like: [assembly:AssemblyFileVersion("7.5.100.312")]
-            // which contains the version number of the Linux installation. We parse out the major version
-            // number by using the function: GetLinuxPTVersionNumberFromPTVersionFile(wxString PTVersionFilePath).
+            // Note: The /usr/lib/Paratext8 directory exists, and the PT component executable files exist
+            // so we can assume that it is certainly a PT8 installation and we don't have to look into 
+            // the PTVersion file in that location to be sure. We have to make an extra check for the PT 7
+            // situation - see the next if blocks below.
+            bPT8Installed = TRUE;
+        }
+    }
 
-            // As a further check for the Linux version, we get the MONO_REGISTRY_PATH's value
-            // which would normally be either "~/ParatextProjects" or "~/Paratext8Projects".
-            // The Linux installer also copies the PTVersion file from its install dir to the
-            // user's projects dir, so we can verify that the copy of PTVersion there agrees
-            // as to the installation's version number. I've created a separate function called
-            // GetLinuxPTVersionNumberFromPTVersionFile(wxString PTVersionFilePath) which will 
-            // return the major version as a single digit string value of either "7" or "8", or 
-            // wxEmptyString if it can't determine the version number.
+    // Now, look for a PT 7 installation
+    strPTInstallDir = _T("/usr/lib/Paratext"); 
+    if (::wxDirExists(strPTInstallDir))
+    {
+        // path exists -- see if the software is in there AND MONO_REGISTRY_PATH is defined
+        if (::wxFileExists(strPTInstallDir + _T("/Paratext.exe"))
+            && ::wxFileExists(strPTInstallDir + _T("/ParatextShared.dll"))
+            && (!GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT7")).IsEmpty()))
+        {
+            // Note: The /usr/lib/Paratext directory exists and the PT component executable files exist
+            // but we don't know for sure whether that represents a PT7 or an early Beta of PT8, so we
+            // need to look further by examining the contents of the PTVersion file in that same directory
             wxString PTLinuxMajorVersionNumStr;
             PTLinuxMajorVersionNumStr = GetLinuxPTVersionNumberFromPTVersionFile(strPTInstallDir + PathSeparator + _T("PTVersion"));
             wxLogDebug(_T("Linux PT Version found was version \"%s\" as found by GetLinuxPTVersionNumberFromPTVersionFile()"), PTLinuxMajorVersionNumStr.c_str());
-
-            if (!PTLinuxMajorVersionNumStr.IsEmpty())
-            {
-                if (PTLinuxMajorVersionNumStr == _T("7"))
-                {
-                    return PTLinuxVer7;
-                }
-                else if (PTLinuxMajorVersionNumStr == _T("8"))
-                {
-                    return PTLinuxVer8;
-                }
-            }
-            else
-            {
-                // GetLinuxPTVersionNumberFromPTVersionFile() couldn't determine a Linux version
-                // so try the next best thing of checking for "Paratext8Projects" and failing that
-                // check for "ParatextProjects" dir
-                // Note: The GetParatextProjectsDirPath() function queries the MONO_REGISTRY_PATH value
-                // stored in the Linux shell script at: /usr/bin/paratext to get the prefix part of the
-                // project directory path, which defaults to ~/.config/paratext/registry
-                // That prefix is then used with a specific key value to point to a .../settings_directory/values.xml
-                // file which stores the absolute path to the user's current PT project dir, which would be
-                // for example: /home/bill/ParatextProjects  or /home/bill/Paratext8Projects.
-                // We know that the Linux version is installed, but what version?
-                // We should be able to determine the version by calling the GetParatextProjectsDirPath()
-                // function. It will give us the absolute path to the current Linux projects dir, that is either 
-                // "~/ParatextProjects" or "~/Paratext8Projects".
-                // We'll get that absolute path, reduce it to just the last directory part, and then determine
-                // from the dir name what version of PT for Linux we are working with.
-                wxString ptProjDirPath;
-                // whm TODO: Make sure this GetParatextProjectsDirPath() function called below queries an updated 
-                // mono registry key for a PT 8 installation:
-                // "...LocalMachine/software/.../settings_directory/values.xml"
-                // for a PT 8 installation in Linux !!!
-                ptProjDirPath = GetParatextProjectsDirPath(wxEmptyString); // removes any final path separator if it exists
-                wxLogDebug(_T("In ParatextVersionInstalled ptProjDirPath from GetParatextProjectsDirPath is: %s"), ptProjDirPath.c_str());
-
-                // Get the last directory node from the path
-                while (ptProjDirPath.Find(PathSeparator) != wxNOT_FOUND)
-                {
-                    ptProjDirPath = ptProjDirPath.Mid(ptProjDirPath.Find(PathSeparator) + 1);
-                }
-                wxLogDebug(_T("In ParatextVersionInstalled last path node is: %s"), ptProjDirPath.c_str());
-                if (ptProjDirPath == _T("ParatextProjects"))
-                {
-                    return PTLinuxVer7;
-                }
-                else if (ptProjDirPath == _T("Paratext8Projects"))
-                {
-                    return PTLinuxVer8;
-                }
-                else
-                {
-                    // Project dir non default values enoountered, log the non-default value and return assumed default of PTLinuxVer8
-                    wxString msg = _T("In ParatextVersionInstalled() function, GetParatextProjectsDirPath() returned %s a non-default projects dir.");
-                    msg = msg.Format(msg, ptProjDirPath.c_str());
-                    this->LogUserAction(msg);
-                    return PTLinuxVer8;
-                }
-            }
-        }
-        else
-        {
-            // A /usr/lib/Paratext dir exists but it doesn't have a Paratext.exe, or ParatextShared.dll,
-            // or a MONO_REGISTRY_PATH value. Surely this cannot be a valid PT installation. We'll assert
-            // log the error, and return PTNotInstalled.
-            wxString msg = _T("In ParatextVersionInstalled() function, /usr/lib/Paratext found but Paratext executables or MONO_REGISTRY_PATH not found. Returned PTNotInstalled.");
-            this->LogUserAction(msg);
-            wxASSERT_MSG(FALSE, msg);
-            return PTNotInstalled;
+            // If the major version number is 8, the user still has an early PT8 installation at /usr/lib/Paratext 
+            // and we know that PT7 is not installed.
+            // Otherwise, if the major version number is indeed 7, then we know that PT 7 is installed
+            if (PTLinuxMajorVersionNumStr == _T("7"))
+                bPT7Installed = TRUE;
+           // If the major version is not "7" we just leave the value of bPT7Installed as FALSE
         }
     }
+
+    // Now we deal with the situation in which both PT7 and PT8 are installed. Same as Windows code above,
+    // except we return enum values that are specific to the Linux versions:
+    //    PTNotInstalled, PTLinuxVer7, PTLinuxVer8, PTLinuxVer7and8
+    // If both PT 7 and PT 8 are installed, attempt to determine which installation is useable for
+    // collaboration by examining the projects dir for each installation, and determine if only one
+    // project dir has valid/useable projects for collaboration. If only PT 7 has valid/usable 
+    // projects within its "My Paratext Projects" projects dir, we can assume that PTVer7 should be 
+    // returned here. Similarly, if only PT 8 has valid/usable projects within its "My Paratext 8 
+    // Projects" projects dir, we can assume that PTVer8 should be returned. However, if the 
+    // projects dir for both the PT 7 and PT 8 installations have valid/usable projects, we can only 
+    // return an ambiguous enum value of PTVer7and8. 
+    if (bPT8Installed && bPT7Installed)
+    {
+        wxArrayString pt7ProjList;
+        wxArrayString pt8ProjList;
+        pt7ProjList = this->GetListOfPTProjects(_T("PTLinuxVersion7"));
+        pt8ProjList = this->GetListOfPTProjects(_T("PTLinuxVersion8"));
+        if (pt7ProjList.GetCount() > 0 && pt8ProjList.GetCount() == 0)
+        {
+            // Only PT 7 has useable project(s) - data migration to PT 8 not done
+            return PTLinuxVer7;
+        }
+        else if (pt8ProjList.GetCount() > 0 && pt7ProjList.GetCount() == 0)
+        {
+            // Only PT 8 has useable project(s) - data migration likely completed
+            return PTLinuxVer8;
+        }
+        else if (pt8ProjList.GetCount() > 0 && pt7ProjList.GetCount() > 0)
+        {
+            // Both PT 7 and PT 8 have useable projects - data migration only partial? Some projects using PT 7, others PT 8?
+            return PTLinuxVer7and8;
+        }
+        else if (pt8ProjList.GetCount() == 0 && pt7ProjList.GetCount() == 0)
+        {
+            // This is the 4th logical possibility - neither PT 7 nor PT 8 have useable project(s)
+            // In this case it is still ambiguous, return PTVer7and8
+            return PTLinuxVer7and8;
+        }
+        else // not a logical possibility
+            return PTLinuxVer7and8;
+    }
+    else if (bPT8Installed)
+        return PTLinuxVer8;
+    else if (bPT7Installed)
+        return PTLinuxVer7;
     return PTNotInstalled;
 
 #endif
@@ -12382,9 +12391,11 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the Paratext for Linux's major version number
+/// \param      PTVersionFilePath a wxString path to the dir of the PTVersion file on Linux
 /// \remarks
 /// Called from ParatextVersionInstalled() - on Linux systems only
-/// This method opens up the "PTVersion" text file that is located at /usr/lib/Paratext/PTVersion
+/// This method opens up the "PTVersion" text file that is located at the PTVersionFilePath
+/// which will be either /usr/lib/Paratext/PTVersion or /usr/lib/Paratext8/PTVersion,
 /// and parses out the last line that has an embedded reference to the PT version within
 /// parentheses and double quote marks similar to this: ("7.5.100.312")
 /// We parse out the string value that represents the first digit of that version number,
@@ -12529,10 +12540,18 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 /// this method returns the string value of that variable; if not found (or if there is
 /// some other issue opening / parsing the file), an empty string is returned.
 /// Note that this method is not called under the Windows environment.
+/// whm 27Nov2016 revised to add a wxString parameter to specify the version of
+/// Paratext is being queried.
 //////////////////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName)
+wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName, wxString PTverStr)
 {
-    wxString strScriptFilename = _T("/usr/bin/paratext");
+    wxString strScriptFilename; 
+    if (PTverStr == _T("PT7"))
+        strScriptFilename = _T("/usr/bin/paratext");
+    else if (PTverStr == _T("PT8"))
+        strScriptFilename = _T("/usr/bin/paratext8");
+    else
+        wxASSERT_MSG(FALSE, _T("Programmer Error in GetParatextEnvVar() function - Unknown parameter to function."));
     wxString value;
     value.Empty();
     // sanity check -- make sure the paratext script exists
@@ -12590,8 +12609,7 @@ wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName)
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
 {
-    // whm TODO: Revise to take a parameter for the PTversion us use in getting the projects dir path
-    // where parameter can be: "PTVersion7", "PTVersion8", "PTLinuxVersion7", or "PTLinuxVersion8"
+    // The PTVersion parameter can be: "PTVersion7", "PTVersion8", "PTLinuxVersion7", or "PTLinuxVersion8"
 
     wxString path;
     path.Empty();
@@ -12675,7 +12693,11 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
 #endif
 #if defined(__WXGTK__) // linux -- check mono directory for values.xml file
 
-    wxString strRegPath = GetParatextEnvVar(_T("MONO_REGISTRY_PATH"));
+    wxString strRegPath; 
+    if (PTVersion == _T("PTLinuxVersion8"))
+        strRegPath = GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT8"));
+    else if (PTVersion == _T("PTLinuxVersion7"))
+        strRegPath = GetParatextEnvVar(_T("MONO_REGISTRY_PATH"), _T("PT7"));
     if (strRegPath.IsEmpty())
     {
         // problem getting shell script value -- try the default location
@@ -12693,7 +12715,7 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
     {
         // MONO_REGISTRY_PATH exists -- see if we can get the projects dir our of the values.xml
         // file located in strRegPath
-        wxString pt8ValuesFilePathSuffix = _T("/LocalMachine/software/paratext/8/values.xml"); // TODO: Check this with Tom H's pre-release version.
+        wxString pt8ValuesFilePathSuffix = _T("/LocalMachine/software/paratext/8/values.xml");
         wxString pt7ValuesFilePathSuffix = _T("/LocalMachine/software/scrchecks/1.0/settings_directory/values.xml");
 
         // If the input PTVersion parameter is "PTLinuxVersion8", or is an empty string _T(""), 
@@ -12720,7 +12742,7 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
                             int nStart = (strBuf.Find(_T("\">"))) + 2;
                             int nEnd = strBuf.Find(_T("</value>"));
                             strPath = strBuf.Mid(nStart, (nEnd - nStart));
-                            wxLogDebug(strPath);
+                            //wxLogDebug(strPath);
                             break; // exit the while loop -- we've found our match
                         }
                         strBuf = tfile.GetNextLine();
@@ -12763,7 +12785,7 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
                                 int nStart = (strBuf.Find(_T("\">"))) + 2;
                                 int nEnd = strBuf.Find(_T("</value>"));
                                 strPath = strBuf.Mid(nStart, (nEnd - nStart));
-                                wxLogDebug(strPath);
+                                //wxLogDebug(strPath);
                                 break; // exit the while loop -- we've found our match
                             }
                             strBuf = tfile.GetNextLine();
@@ -12827,10 +12849,15 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 ///    "Program_Files_Directory_Ptw8" to get the PT 8 install dir path.
 /// For PT 7 the following PT 7 registry key is queried for the return value:
 ///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
-/// Linux version returns /usr/lib/Paratext directory by default for PT 7 and also PT 8 for Linux.
+/// Linux version returns /usr/lib/Paratext directory by default for PT 7 
+/// Linux version returns /usr/lib/Paratext8 directory by default for PT 8, unless there is
+/// no /usr/lib/Paratext8 directory, and /usr/lib/Paratext is being used for the early beta
+/// version of PT8 (as verified by its PTVersion file's major version number being 8), in which
+/// case the /usr/lib/Paratext directory is returned for use by that early beta version of PT8.
 /// If no PT installation is found for the specified version, return an empty string for the path.
 /// This function only reads/queries the Windows registry/system; it does not make changes to it.
 /// Revised 25June2016 by whm to handle collaboration with PT 8.
+/// Revised 27Nov2016 by whm to handle collaboration with the newer PT 8 that can co-exist with PT 7
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
 {
@@ -12907,15 +12934,47 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
         }
     }
 #endif
-#if defined(__WXGTK__) // linux -- check /usr/lib/Paratext
+#if defined(__WXGTK__) // linux
 
     // For Linux the passed in parameter will be "PTLinuxVersion" "or "PTLinuxVersion8".
-    if (PTVersion == _T("PTLinuxVersion7") || PTVersion == _T("PTLinuxVersion8"))
+    // Linux version returns /usr/lib/Paratext directory by default for PT 7 
+    if (PTVersion == _T("PTLinuxVersion7"))
     {
         wxString strDir = _T("/usr/lib/Paratext");
         if (::wxDirExists(strDir))
         {
             path = strDir;
+        }
+    }
+
+    // Linux version returns /usr/lib/Paratext8 directory by default for PT 8, unless there is
+    // no /usr/lib/Paratext8 directory, and /usr/lib/Paratext is being used for the early beta
+    // version of PT8 (as verified by its PTVersion file's major version number being 8), in which
+    // case the /usr/lib/Paratext directory is returned for use by that early beta version of PT8.
+    if (PTVersion == _T("PTLinuxVersion8"))
+    {
+        wxString strDir = _T("/usr/lib/Paratext8");
+        if (::wxDirExists(strDir))
+        {
+            path = strDir;
+        }
+        else
+        {
+            // there was no /usr/lib/Paratext8 directory, so check for an installation of the
+            // early PT8 beta that used the /usr/lib/Paratext directory - as verified by finding
+            // a major version number of 8 in its PTVersion file.
+            strDir = _T("/usr/lib/Paratext");
+            if (::wxDirExists(strDir))
+            {
+                // The normal PT7 install directory exists, check if it has a PT8 early beta installation in it
+                wxString PTLinuxMajorVersionNumStr;
+                PTLinuxMajorVersionNumStr = GetLinuxPTVersionNumberFromPTVersionFile(strDir + PathSeparator + _T("PTVersion"));
+                wxLogDebug(_T("Linux PT Version found was version \"%s\" as found by GetLinuxPTVersionNumberFromPTVersionFile()"), PTLinuxMajorVersionNumStr.c_str());
+                if (PTLinuxMajorVersionNumStr == _T("8"))
+                    path = strDir;
+                // if the major version is indeed 7, then we found no "PTLinuxVersion8" installation, 
+                // in which case do not assign path a value - just leave it an empty string
+            }
         }
     }
 
@@ -13405,6 +13464,8 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 /// \param      errorStr <- a wxString that contains an information when an error occurs
 /// \param      bChangeMadeToCollabSettings <- a bool the indicates if a change was made
 ///                                             to the collab settings during validation
+/// \param      errorProjects <- a wxString representing the kinds of projects listed in 
+///                              the errorProjects string, i.e. "source [target] [freetrans]"
 /// \remarks
 /// Called from CProjectPage::OnWizardPageChanging().
 /// Opens the AI-ProjectConfiguration.aic file associated with the m_projectName in a
@@ -13947,6 +14008,43 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                         m_ParatextVersionForProject = _T("PTLinuxVersion8");
                         bChangedPTVer = TRUE;
                     }
+                    // whm 27Nov2016 added the following "else if" block for dealing with Linux PT7 and PT8 being possibly installed simultaneously
+                    else if (PTver == PTLinuxVer7and8 && (collabPTVersionStrFound != _T("PTLinuxVersion7") && collabPTVersionStrFound != _T("PTLinuxVersion8")))
+                    {
+                        // We detected that both PT 7 and PT 8 for Linux are installed, but the collabPTVersionStrFound 
+                        // doesn't have either "PTLinuxVersion7" or "PTLinuxVersion8". Maybe the project was moved from a
+                        // Windows machine to this Linux machine where PT7 and PT8 are both installed.
+                        // We should check to see that indicated version has a valid projects dir and that it 
+                        // contains at least two useable/valid projects.
+                        wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+                        wxString pt7ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+                        wxArrayString pt8ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion8"));
+                        wxArrayString pt7ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion7"));
+                        int pt8Count = pt8ListOfProj.GetCount();
+                        int pt7Count = pt7ListOfProj.GetCount();
+                        if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                        {
+                            // The PT 8 project dir is valid and has enough useable/valid projects. 
+                            m_ParatextVersionForProject = _T("PTLinuxVersion8");
+                            bChangedPTVer = TRUE;
+                        }
+                        else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                        {
+                            // The PT 8 project dir wasn't valid or else the PT project didn't have enough 
+                            // usable/valid projects, so opt for the PT 7 version since it has a valid projects
+                            // dir and enough useable/valid projects.
+                            m_ParatextVersionForProject = _T("PTLinuxVersion7");
+                            bChangedPTVer = TRUE;
+                        }
+                        else
+                        {
+                            // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects.
+                            // Assume the administrator will fix this situation. In the mean time, since both
+                            // PT 8 and PT 7 are installed, default here to PT 8. Problem will get logged below.
+                            m_ParatextVersionForProject = _T("PTLinuxVersion8");
+                            bChangedPTVer = TRUE;
+                        }
+                    }
 
                     if (bChangedPTVer)
                     {
@@ -13978,6 +14076,10 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                         bDesignatedEditorIsInstalled = TRUE;
                     }
                     else if (PTver == PTLinuxVer8 && collabPTVersionStrFound == _T("PTLinuxVersion8"))
+                    {
+                        bDesignatedEditorIsInstalled = TRUE;
+                    }
+                    else if (PTver == PTLinuxVer7and8 && (collabPTVersionStrFound == _T("PTLinuxVersion7") || collabPTVersionStrFound == _T("PTLinuxVersion8")))
                     {
                         bDesignatedEditorIsInstalled = TRUE;
                     }
@@ -14018,7 +14120,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                         else
                         {
                             // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
-                            wxString msg = _T("In CSetupEditorCollaboration::InitDialog both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                            wxString msg = _T("In GetAIProjectCollabStatus() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
                             LogUserAction(msg);
                             // Assume the administrator will fix this situation. In the mean time, since both
                             // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
@@ -14032,6 +14134,35 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                     else if (PTver == PTLinuxVer8)
                     {
                         m_ParatextVersionForProject = _T("PTLinuxVersion8");
+                    }
+                    else if (PTver == PTLinuxVer7and8)
+                    {
+                        // Both PT versions 7 and 8 for Linux are installed on the machine.
+                        // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                        // and at least 2 valid/useable projects, otherwise PT 7 
+                        wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+                        wxString pt7ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+                        wxArrayString pt8ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion8"));
+                        wxArrayString pt7ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion7"));
+                        int pt8Count = pt8ListOfProj.GetCount();
+                        int pt7Count = pt7ListOfProj.GetCount();
+                        if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                        {
+                            m_ParatextVersionForProject = _T("PTLinuxVersion8");
+                        }
+                        else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                        {
+                            m_ParatextVersionForProject = _T("PTLinuxVersion7");
+                        }
+                        else
+                        {
+                            // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                            wxString msg = _T("In GetAIProjectCollabStatus() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                            LogUserAction(msg);
+                            // Assume the administrator will fix this situation. In the mean time, since both
+                            // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                            m_ParatextVersionForProject = _T("PTLinuxVersion8");
+                        }
                     }
 
                     bDesignatedEditorIsInstalled = TRUE;
@@ -14082,7 +14213,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             wxString editorStr;
             PTVersionsInstalled PTver = ParatextVersionInstalled();
 
-            if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8)
+            if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
                 editorStr = _T("Paratext");
             else
                 editorStr = _T("Bibledit");
@@ -17165,7 +17296,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // testing the ParatextVersionInstalled() function
     //PTVersionsInstalled PTver;
     //PTver = ParatextVersionInstalled();
-    //if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8)
+    //if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
     //{
     //    int i;
     //    i = 1; // do something, anything
@@ -21082,6 +21213,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     (*pPrintData) = pPgSetupDlgData->GetPrintData();
     pPrintData->SetPaperSize(wxSize(210, 297)); // BEW added 21Oct because the m_paperSize was remaining (-1,-1)
 
+/*
 #if wxUSE_POSTSCRIPT
     wxPrintNativeDataBase * const nativeData = pPrintData->GetNativeData();
     wxPostScriptPrintNativeData * const psPrintNativeData = static_cast<wxPostScriptPrintNativeData *>(nativeData);
@@ -21104,6 +21236,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         wxLogDebug(_T("Unable to find the PostScript Printing afmPath at: %s"), afmPath.c_str());
     }
 #endif // wxUSE_POSTSCRIPT
+*/
 
     //////////////////////////////////////////////////////////////////////////////////
     // Since we are about to read the config files, any data structures containing data
@@ -34680,6 +34813,7 @@ void CAdapt_ItApp::SetLanguageNamesAndCodesStringsToEmpty()
 /// config file is loaded, and also sets the collab settings for a new projects in the
 /// ProjectPage's OnWizardPageChanging() function.
 /// Revised 25June2016 by whm to handle collaboration with PT 8.
+/// Revised 27Nov2016 by whm to handle collaboration with the newer PT 8 for Linux that can co-exist with PT7
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
 {
@@ -34711,7 +34845,7 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
     m_bParatextIsInstalled = FALSE;
     PTVersionsInstalled PTver;
     PTver = ParatextVersionInstalled();
-    if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTLinuxVer8)
+    if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
     {
         m_bParatextIsInstalled = TRUE;
         m_collaborationEditor = _T("Paratext"); // AI-ProjectConfiguration.aic file label: CollaborationEditor
@@ -34790,6 +34924,43 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
         m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTLinuxVersion8")); // /usr/lib/Paratext by default
         break;
     }
+    case PTLinuxVer7and8:
+    {
+        // Both PT versions 7 and 8 for Linux are installed on the machine.
+        // Assume that PT 8 will be the desired editor if it has a valid projects dir
+        // and at least 2 valid/useable projects, otherwise PT 7 
+        wxString pt8ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+        wxString pt7ProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+        wxArrayString pt8ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion8"));
+        wxArrayString pt7ListOfProj = GetListOfPTProjects(_T("PTLinuxVersion7"));
+        int pt8Count = pt8ListOfProj.GetCount();
+        int pt7Count = pt7ListOfProj.GetCount();
+        if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+        {
+            m_ParatextVersionForProject = _T("PTLinuxVersion8");
+            m_ParatextProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+            m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTLinuxVersion8")); // "/usr/lib/Paratext8"
+        }
+        else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+        {
+            m_ParatextVersionForProject = _T("PTLinuxVersion7");
+            m_ParatextProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+            m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTLinuxVersion7")); // /usr/lib/Paratext"
+        }
+        else
+        {
+            // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+            wxString msg = _T("In App's SetCollabSettingsToNewProjDefaults both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+            LogUserAction(msg);
+            // Assume the administrator will fix this situation. In the mean time, since both
+            // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+            m_ParatextVersionForProject = _T("PTLinuxVersion8");
+            m_ParatextProjectsDirPath = GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+            m_ParatextInstallDirPath = GetParatextInstallDirPath(_T("PTLinuxVersion8")); // "c:\Program Files (x86)\Paratext 8" or "c:\Program Files\Paratext 8"
+        }
+        break;
+    }
+
     default:
     {
         m_ParatextVersionForProject = _T("");
@@ -52294,4 +52465,5 @@ bool CAdapt_ItApp::SetupDocCreationLog(wxString& filename)
 	}
 	return TRUE;
 }
+
 

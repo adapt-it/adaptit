@@ -160,7 +160,7 @@ wxString CAdapt_ItApp::GetPathwayInstallDirPath()
                         int nStart = (strBuf.Find(_T("\">"))) + 2;
                         int nEnd = strBuf.Find(_T("</value>"));
                         strPath = strBuf.Mid(nStart, (nEnd - nStart));
-                        wxLogDebug(strPath);
+                        //wxLogDebug(strPath);
                         break; // exit the while loop -- we've found our match
                     }
                     strBuf = tfile.GetNextLine();
@@ -180,3 +180,4 @@ wxString CAdapt_ItApp::GetPathwayInstallDirPath()
 
 	return path;
 }
+
