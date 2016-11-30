@@ -15721,6 +15721,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			//if (pSrcPhrase->m_markers.GetChar(0) == _T(' '))
 			pSrcPhrase->m_markers.Trim(FALSE);
 #if defined(Use_Legacy_Parser)
+			// BEW Nov 2016  ParseWord2() now does it internally - a more natural place
 			// BEW 11Oct10, Handle setting of the m_bBoundary flag here, rather than in
 			// ParseWord() itself
 			if (!pSrcPhrase->m_follPunct.IsEmpty() ||
@@ -29241,41 +29242,69 @@ int CAdapt_ItDoc::ParseWord2(
 	}
 #endif 
 	//*/
-	while (IsOpeningQuote(ptr) || IsWhiteSpace(ptr))
+	// No provision is made for an asci AID version, i.e. we don't here support '\xAB'
+	wxString leftPointingDoubleAngleQuote = _T(' ');	// initialize to a space, 
+			// then set it to instead be the left-pointing double chevron
+	leftPointingDoubleAngleQuote.SetChar(0, L'\x00AB'); // hex for left-pointing double angle quotation mark
+	// BEW 21Nov16  added 3rd subtest to the following line
+	while (IsOpeningQuote(ptr) || IsWhiteSpace(ptr) || (*(ptr) == _T('~')))
 	{
-		// check if a straight quote is in the preceding punctuation - setting the boolean
-		// true will help us decide if a straight quote following the word belongs to the
-		// word as final punctuation, or to the next word as opening punctuation.
-		bool bStraightQuote = IsStraightQuote(ptr);
-		if (bStraightQuote)
-			m_bHasPrecedingStraightQuote = TRUE; // a public boolean of CAdapt_ItDoc class
-				// which gets cleared to default FALSE at the start of each new verse, and
-				// also after having been used to help decide who owns a straight quote
-				// which was detected following the word being parsed
+		// BEW 21Nov16, added next block to handle space & ~ together (in either order) after
+		// a left-pointing double angle quotation mark: since ~ will end up as whitespace,
+		// the latin space is redundant. We'll keep the ~ but drop the latin space. The
+		// same kind of check will be done in ParsePostWordStuff() in the block for handling
+		// right-pointing double angle quotation; and likewise we will keep the ~ but drop
+		// the space there
 
-		// this block gets us over all detached preceding quotes and the spaces which
-		// detach them; we exit this block either when the word proper has been reached, or
-		// with ptr pointing at some non-quote punctuation attached to the start of the
-		// word, or with ptr pointing at an inline bound marker. In the event we exit
-		// pointing at non-quote punctuation, the next block will parse across any such
-		// punctuation until the word proper has been reached, or until an inline bound mkr
-		// is reached.
-		if (IsWhiteSpace(ptr))
+		if (((*(ptr - 1) == leftPointingDoubleAngleQuote[0]) && (*(ptr) == _T('~')) && 
+				(ptr + 1 < pEnd) && IsWhiteSpace(ptr + 1))
+			||
+			((*(ptr - 1) == leftPointingDoubleAngleQuote[0]) && IsWhiteSpace(ptr)  && 
+				(ptr + 1 < pEnd) && (*(ptr + 1) == _T('~')))
+			)
 		{
-			pSrcPhrase->m_precPunct += _T(' '); // normalize while we are at it
-			ptr++;
+			// Throw away the redundant space, store the ~, update len, update ptr,
+			// break from the loop
+			pSrcPhrase->m_precPunct += _T('~');
+			len += 2;
+			ptr = ptr + 2; // point past the space & tilde or tilde & space
+			break;
 		}
-		else
+		else // the legacy ParseWord() parser only had the block below
 		{
-			// bHasOpeningQuote = TRUE; // FALSE is used later to stop regular opening
-			// quote (when initial in a following word) from being interpretted as
-			// belonging to the current sourcephrase in the circumstance where there is
-			// detached non-quote punctuation being spanned in this current block. That
-			// is, we want "... word1 ! "word2" word3 ..." to be handled that way,
-			// instead of being parsed as "... word1 ! " word2" word3 ..." for example
-			pSrcPhrase->m_precPunct += *ptr++;
+			// This block gets us over all detached preceding quotes and the spaces which
+			// detach them; we exit this block either when the word proper has been reached, or
+			// with ptr pointing at some non-quote punctuation attached to the start of the
+			// word, or with ptr pointing at an inline bound marker. In the event we exit
+			// pointing at non-quote punctuation, the next block will parse across any such
+			// punctuation until the word proper has been reached, or until an inline bound mkr
+			// is reached.
+			// check if a straight quote is in the preceding punctuation - setting the boolean
+			// true will help us decide if a straight quote following the word belongs to the
+			// word as final punctuation, or to the next word as opening punctuation.
+			bool bStraightQuote = IsStraightQuote(ptr);
+			if (bStraightQuote)
+				m_bHasPrecedingStraightQuote = TRUE; // a public boolean of CAdapt_ItDoc class
+					// which gets cleared to default FALSE at the start of each new verse, and
+					// also after having been used to help decide who owns a straight quote
+					// which was detected following the word being parsed
+			if (IsWhiteSpace(ptr))
+			{
+				pSrcPhrase->m_precPunct += _T(' '); // normalize while we are at it
+				ptr++;
+			}
+			else
+			{
+				// bHasOpeningQuote = TRUE; // FALSE is used later to stop regular opening
+				// quote (when initial in a following word) from being interpretted as
+				// belonging to the current sourcephrase in the circumstance where there is
+				// detached non-quote punctuation being spanned in this current block. That
+				// is, we want "... word1 ! "word2" word3 ..." to be handled that way,
+				// instead of being parsed as "... word1 ! " word2" word3 ..." for example
+				pSrcPhrase->m_precPunct += *ptr++;
+			}
+			len++;
 		}
-		len++;
 	}
 	// when control reaches here, we may be pointing at further punctuation having
 	// iterated across some data in the above loop, or be pointing at the first character
@@ -29736,11 +29765,11 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 	int len = 0; // the total length of the parsed over material to the halting point
 	//int itemLen = 0; // length (in chars) of a subpart, as returned from a function
 	// which computes the span of the subpart, from ptr's location
-	wxString fixedSpaceStr = _T("~"); // USFM fixedspace symbol
+	wxString tilde = _T("~"); // USFM fixedspace symbol
 	wxChar 	 fixedSpaceChar = _T('~');
 	int      itemLen = 0;
 #if defined(_DEBUG)
-	if (pSrcPhrase->m_nSequNumber == 7)
+	if (pSrcPhrase->m_nSequNumber == 1)
 	{
 		int break_here = 1;
 	}
@@ -29916,7 +29945,55 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 		// occurring before them.
 		if ((ptr + 1) < pEnd)
 		{
-			if ((endCondition == whitespace) && IsEndMarker((ptr + 1), pEnd))
+			// Handling right pointing double angle chevron - first we test for a redundant
+			// space before or after a tilde character followed by one punctuation character
+			// and then a closing the chevron; we'll drop the space, but count it and update 
+			// ptr & len & endCondition, and then let
+			// iteration handle what follows
+			if (
+				((ptr + 3 < pEnd) && (IsWhiteSpace(ptr) && *(ptr + 1) == _T('~')) &&
+					IsPunctuation(ptr + 2, !bTokenizingTargetText) && IsClosingDoubleChevron(ptr + 3))
+				||
+				((ptr + 3 < pEnd) && (*(ptr) == _T('~')) && IsWhiteSpace(ptr + 1) &&
+					IsPunctuation(ptr + 2, !bTokenizingTargetText) && IsClosingDoubleChevron(ptr + 3))
+				)
+			{
+				// advance only  past the <space> & ~ or ~ and <space>, set endCondition,
+				// the the switch or iteration can handle what follows; store only the tilde,
+				// abandon the redundant <space>
+				len += 2;
+				ptr += 2;
+				if (bXref_Footnote_orEndnoteStored)
+				{
+					pSrcPhrase->AddFollOuterPuncts(tilde);
+				}
+				else
+				{
+					pSrcPhrase->m_follPunct += tilde;
+				}
+				endCondition = punctuationchar; // we know it will be so because of the test
+				bParsedSomething = TRUE;
+			}
+			else
+			// Like the block immediately above, handling right pointing double angle chevron
+			// - this time there is not tilde present. We test for a redundant space before 
+			// or after a punctuation character followed by the chevron; we'll drop the space, 
+			// but count it and update ptr & len & endCondition, and then let
+			// iteration handle what follows
+			if (
+				(ptr + 2 < pEnd) && (IsWhiteSpace(ptr) && 
+				IsPunctuation(ptr + 1, !bTokenizingTargetText) && IsClosingDoubleChevron(ptr + 2))
+				)
+			{
+				// advance past the <space>, set endCondition, & the switch or iteration can 
+				// handle what follows;  abandon the redundant <space>
+				len += 1;
+				ptr += 1;
+				endCondition = punctuationchar; // we know it will be so because of the test
+				bParsedSomething = TRUE;
+			}
+			else
+				if ((endCondition == whitespace) && IsEndMarker((ptr + 1), pEnd))
 			{
 				// Normalize: count the space, but it's not needed, so don't store it, just jump it - and
 				// change the enum input value to backslashofmkr
@@ -30304,7 +30381,6 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 		if ((endCondition == whitespace) && IsWhiteSpace(ptr) && IsClosingCurlyQuote(ptr + 1))
 		{
 			wxString str = wxString(ptr, 2);
-			pSrcPhrase->m_follPunct += str;
 			if (bXref_Footnote_orEndnoteStored)
 			{
 				pSrcPhrase->AddFollOuterPuncts(str);
@@ -30317,7 +30393,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 			ptr += 2;
 			// If followed by other than whitespace , then return immediately, otherwise
 			// check if ptr + 1	is within buffer bounds, and if so determine endCondition
-			// and proceed to the switch below, as there may be another pair like this
+			// and proceed to the switch below, as there may be another pair like this.
 			if ((ptr + 1) < pEnd && !IsWhiteSpace(ptr + 1))
 			{
 				// There's no whitespace character following, so we must assume the
@@ -30328,7 +30404,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 			endCondition = FindOutWhatIsAtPtr(ptr, pEnd, bTokenizingTargetText);
 		}
 
-		// Now go to the switch. The switch is primaraily for parsing over small
+		// Now go to the switch. The switch is primarily for parsing over small
 		// spans of information - such as a series of punctuation characters, or
 		// an endmarker. There can be more than one endmarker, and there can be
 		// punctuation both before and after an endmarker - when these are the case
