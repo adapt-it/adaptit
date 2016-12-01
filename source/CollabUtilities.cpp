@@ -6821,7 +6821,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr)
 {
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
-	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d");
+	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %u  pre count: %u  from count: %u  sourceText count: %u");
 	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
 #endif

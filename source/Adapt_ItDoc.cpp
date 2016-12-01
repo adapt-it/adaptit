@@ -2579,13 +2579,13 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 				return TRUE;
 			}
 		}
-#if defined(_DEBUG)
-		CPile* myPilePtr = gpApp->m_pActivePile;
-		CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
-		wxLogDebug(_T("DoFileSave_Protected() before returns TRUE: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
-			mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(),
-			mySrcPhrasePtr->m_targetStr.c_str(), gpApp->m_targetPhrase.c_str());
-#endif
+//#if defined(_DEBUG)
+//		CPile* myPilePtr = gpApp->m_pActivePile;
+//		CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
+//		wxLogDebug(_T("DoFileSave_Protected() before returns TRUE: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
+//			mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(),
+//			mySrcPhrasePtr->m_targetStr.c_str(), gpApp->m_targetPhrase.c_str());
+//#endif
 		return TRUE;
 	}
 	else // handle failure
