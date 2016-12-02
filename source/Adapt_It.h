@@ -208,13 +208,13 @@ class KBSharingMgrTabbedDlg;
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 8 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 0 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 1 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 1
-#define VERSION_DATE_MONTH 07
+#define VERSION_DATE_DAY 20
+#define VERSION_DATE_MONTH 12
 #define VERSION_DATE_YEAR 2016
-const wxString appVerStr(_T("6.8.0"));
+const wxString appVerStr(_T("6.8.1"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -1421,6 +1421,9 @@ struct Collab_Project_Info_Struct // whm added 26Apr11 for AI-PT Collaboration s
 	wxString fullName; // default is _T("");
 	wxString shortName; // default is _T(""); // same as projectDir below
 	wxString languageName; // default is _T("");
+    wxString fileNamePrePart; // whm added 30Nov2016
+    wxString fileNamePostPart; //  whm added 30Nov2016
+    wxString fileNameBookNameForm; // whm added 30Nov2016
 	wxString ethnologueCode; // default is _T(""); // PT 8 Settings.xml tag is <LanguageIsoCode> and maps to this ethnologueCode
 	wxString projectDir; // default is _T(""); // In PT 8 this is taken from the dir name that the Settings.xml file is located in
 	wxString booksPresentFlags; // default is _T("");

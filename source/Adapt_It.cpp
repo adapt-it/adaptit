@@ -2265,7 +2265,7 @@ const wxString defaultProfileItems[] =
     _T("/UserProfilesSupport:")
 };
 
-// whm 26Apr11added wxString arrays below for AI-PT collaboration
+// whm 26Apr11 added wxString arrays below for AI-PT collaboration
 // Array of all book ids. (from Paratext's canon.cs source file)
 wxString AllBookIds[] = {
     _T("GEN"),
@@ -2404,6 +2404,152 @@ wxString AllBookIds[] = {
     _T("4BA"),
     _T("LAO"),
 };
+
+// Note: In the AllBookNumStr[] array below, the string numbers do not correlate with array indices!
+// This array is parallel to the array above called AllBookIds[] containing 3-letter book IDs/abbreviations,
+// therefore, upon locating a book ID in AllBookIds, its array index can be used into the AllBookNumStr[]
+// array to determine its book number string - useful mainly for determining the <FileNameBookNameForm> 
+// that Paratext assigns/uses (in Settings.xml) to that Scripture book in the project's naming scheme.
+// The book numbers in AllBookNumStr[] are not zero based and skip number 40 between OT and NT; decimal counts end at 87
+// Book numbers are arbitrarily assigned "$$" for books not numbered in Published USFM Reference v2.4
+wxString AllBookNumStr[] = {
+    _T("01"), // GEN 
+    _T("02"), // EXO
+    _T("03"), // LEV
+    _T("04"), // NUM
+    _T("05"), // DEU
+    _T("06"), // JOS
+    _T("07"), // JDG
+    _T("08"), // RUT
+    _T("09"), // 1SA
+    _T("10"), // 2SA
+
+    _T("11"), // 1KI
+    _T("12"), // 2KI
+    _T("13"), // 1CH
+    _T("14"), // 2CH
+    _T("15"), // EZR
+    _T("16"), // NEH
+    _T("17"), // EST
+    _T("18"), // JOB
+    _T("19"), // PSA
+    _T("20"), // PRO
+
+    _T("21"), // ECC
+    _T("22"), // SNG
+    _T("23"), // ISA
+    _T("24"), // JER
+    _T("25"), // LAM
+    _T("26"), // EZK
+    _T("27"), // DAN
+    _T("28"), // HOS
+    _T("29"), // JOL
+    _T("30"), // AMO
+
+    _T("31"), // OBA
+    _T("32"), // JON
+    _T("33"), // MIC
+    _T("34"), // NAM
+    _T("35"), // HAB
+    _T("36"), // ZEP
+    _T("37"), // HAG
+    _T("38"), // ZEC
+    _T("39"), // MAL
+    _T("41"), // MAT // Note: MAT starts with 41 instead of 40
+
+    _T("42"), // MRK
+    _T("43"), // LUK
+    _T("44"), // JHN
+    _T("45"), // ACT
+    _T("46"), // ROM
+    _T("47"), // 1CO
+    _T("48"), // 2CO
+    _T("49"), // GAL
+    _T("50"), // EPH
+    _T("51"), // PHP
+
+    _T("52"), // COL
+    _T("53"), // 1TH
+    _T("54"), // 2TH
+    _T("55"), // 1TI
+    _T("56"), // 2TI
+    _T("57"), // TIT
+    _T("58"), // PHM
+    _T("59"), // HEB
+    _T("60"), // JAS
+    _T("61"), // 1PE
+
+    _T("62"), // 2PE
+    _T("63"), // 1JN
+    _T("64"), // 2JN
+    _T("65"), // 3JN
+    _T("66"), // JUD
+    _T("67"), // REV
+    _T("68"), // TOB
+    _T("69"), // JDT
+    _T("70"), // ESG
+    _T("71"), // WIS
+
+    _T("72"), // SIR
+    _T("73"), // BAR
+    _T("74"), // LJE
+    _T("75"), // S3Y
+    _T("76"), // SUS
+    _T("77"), // BEL
+    _T("78"), // 1MA
+    _T("79"), // 2MA
+    _T("80"), // 3MA
+    _T("81"), // 4MA
+
+    _T("82"), // 1ES
+    _T("83"), // 2ES
+    _T("84"), // MAN
+    _T("85"), // PS2
+    _T("86"), // ODA
+    _T("87"), // PSS
+    _T("$$"), // JSA - Not numbered in Published USFM Reference v2.4  // actual variant text for JOS, now in LXA text
+    _T("$$"), // JDB - Not numbered in Published USFM Reference v2.4  // actual variant text for JDG, now in LXA text
+    _T("$$"), // TBS - Not numbered in Published USFM Reference v2.4  // actual variant text for TOB, now in LXA text
+    _T("$$"), // SST - Not numbered in Published USFM Reference v2.4  // actual variant text for SUS, now in LXA text // 90
+
+    _T("$$"), // DNT - Not numbered in Published USFM Reference v2.4  // actual variant text for DAN, now in LXA text
+    _T("$$"), // BLT - Not numbered in Published USFM Reference v2.4  // actual variant text for BEL, now in LXA text
+    _T("$$"), // XXA - Not numbered in Published USFM Reference v2.4
+    _T("$$"), // XXB - Not numbered in Published USFM Reference v2.4
+    _T("$$"), // XXC - Not numbered in Published USFM Reference v2.4
+    _T("$$"), // XXD - Not numbered in Published USFM Reference v2.4
+    _T("$$"), // XXE - Not numbered in Published USFM Reference v2.4
+    _T("$$"), // XXF - Not numbered in Published USFM Reference v2.4
+    _T("$$"), // XXG - Not numbered in Published USFM Reference v2.4
+    _T("$$"), // FRT - Not numbered in Published USFM Reference v2.4
+
+    _T("$$"), // BAK - Not numbered in Published USFM Reference v2.4
+    _T("$$"), // OTH - Not numbered in Published USFM Reference v2.4
+    _T("$$"), // 3ES - Not numbered in Published USFM Reference v2.4  // Used previously but really should be 2ES
+    _T("A4"), // EZA  // Used to be called 4ES, but not actually in any known project
+    _T("A5"), // 5EZ  // Used to be called 5ES, but not actually in any known project
+    _T("A6"), // 6EZ  // Used to be called 6ES, but not actually in any known project
+    _T("$$"), // INT - Not numbered in Published USFM Reference v2.4
+    _T("$$"), // CNC - Not numbered in Published USFM Reference v2.4
+    _T("$$"), // GLO - Not numbered in Published USFM Reference v2.4
+    _T("$$"), // TDX - Not numbered in Published USFM Reference v2.4
+
+    _T("$$"), // NDX - Not numbered in Published USFM Reference v2.4
+    _T("B2"), // DAG
+    _T("B3"), // PS3
+    _T("B4"), // 2BA
+    _T("B5"), // LBA
+    _T("B6"), // JUB
+    _T("B7"), // ENO
+    _T("B8"), // 1MQ
+    _T("B9"), // 2MQ
+    _T("C0"), // 3MQ
+
+    _T("C1"), // REP
+    _T("C2"), // 4BA
+    _T("C3"), // LAO
+};
+
 
 
 // Array of the English names of all books - from Paratext source canon.cs
@@ -17278,6 +17424,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm added 26Apr11 for AI-PT Collaboration support
     m_pArrayOfCollabProjects = new wxArrayPtrVoid;
 
+    // testing the GetListOfPTProjects() function
+    //wxArrayString pt8List = GetListOfPTProjects(_T("PTVersion8"));
     // testing the GetLinuxPTVersionNumberFromPTVersionFile(wxString PTVersionFilePath) function
     //wxString testStr;
     //testStr = GetLinuxPTVersionNumberFromPTVersionFile(PathSeparator + _T("usr") + PathSeparator + _T("lib") + PathSeparator + _T("Paratext") + PathSeparator + _T("PTVersion"));
@@ -49949,6 +50097,9 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                         pPTInfo->ethnologueCode = _T(""); // PT 8 Settings.xml tag is <LanguageIsoCode> and maps to this ethnologueCode below
                         pPTInfo->fullName = _T("");
                         pPTInfo->languageName = _T("");
+                        pPTInfo->fileNamePrePart = _T(""); // whm added 30Nov2016
+                        pPTInfo->fileNamePostPart = _T(""); //  whm added 30Nov2016
+                        pPTInfo->fileNameBookNameForm = _T(""); // whm added 30Nov2016
                         pPTInfo->projectDir = _T(""); // No longer used in PT 8 xml schema, so copy shortName over to projectDir
                         pPTInfo->shortName = _T(""); // same as projectDir above
                         pPTInfo->versification = _T("");
@@ -49966,6 +50117,9 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                         wxString ethnologueCode = _T(""); // PT 8 Settings.xml tag is <LanguageIsoCode> and maps to this ethnologueCode below
                         wxString fullName = _T("");
                         wxString languageName = _T("");
+                        wxString fileNamePrePart = _T(""); // whm added 30Nov2016
+                        wxString fileNamePostPart = _T(""); //  whm added 30Nov2016
+                        wxString fileNameBookNameForm = _T(""); // whm added 30Nov2016
                         wxString projectDir = _T(""); // In PT 8 this is taken from the dir name that the Settings.xml file is located in
                         wxString shortName = _T(""); // same as projectDir above
                         wxString versification = _T("");
@@ -50036,6 +50190,30 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                             {
                                 languageName = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
                                 pPTInfo->languageName = languageName;
+                            }
+
+                            tagName = _T("<FileNamePrePart>");
+                            endTagName = _T("</FileNamePrePart>");
+                            if (lineStr.Find(tagName) != wxNOT_FOUND)
+                            {
+                                fileNamePrePart = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                                pPTInfo->fileNamePrePart = fileNamePrePart;
+                            }
+
+                            tagName = _T("<FileNamePostPart>");
+                            endTagName = _T("</FileNamePostPart>");
+                            if (lineStr.Find(tagName) != wxNOT_FOUND)
+                            {
+                                fileNamePostPart = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                                pPTInfo->fileNamePostPart = fileNamePostPart;
+                            }
+
+                            tagName = _T("<FileNameBookNameForm>");
+                            endTagName = _T("</FileNameBookNameForm>");
+                            if (lineStr.Find(tagName) != wxNOT_FOUND)
+                            {
+                                fileNameBookNameForm = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                                pPTInfo->fileNameBookNameForm = fileNameBookNameForm;
                             }
 
                             tagName = _T("<Directory>"); // The <Directory> tag is no longer used in PT 8, so projectDir and pPTInfo->projectDir are derived when <Name> is processed below
@@ -50251,6 +50429,9 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                         pPTInfo->ethnologueCode = _T(""); // PT 8 Settings.xml tag is <LanguageIsoCode> and maps to this ethnologueCode below
                         pPTInfo->fullName = _T("");
                         pPTInfo->languageName = _T("");
+                        pPTInfo->fileNamePrePart = _T(""); // whm added 30Nov2016
+                        pPTInfo->fileNamePostPart = _T(""); //  whm added 30Nov2016
+                        pPTInfo->fileNameBookNameForm = _T(""); // whm added 30Nov2016
                         pPTInfo->projectDir = _T(""); // No longer used in PT 8 xml schema, so copy shortName over to projectDir
                         pPTInfo->shortName = _T(""); // same as projectDir above
                         pPTInfo->versification = _T("");
@@ -50268,6 +50449,9 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                         wxString ethnologueCode = _T(""); // PT 8 Settings.xml tag is <LanguageIsoCode> and maps to this ethnologueCode below
                         wxString fullName = _T("");
                         wxString languageName = _T("");
+                        wxString fileNamePrePart = _T(""); // whm added 30Nov2016
+                        wxString fileNamePostPart = _T(""); //  whm added 30Nov2016
+                        wxString fileNameBookNameForm = _T(""); // whm added 30Nov2016
                         wxString projectDir = _T(""); // In PT 8 this is taken from the dir name that the Settings.xml file is located in
                         wxString shortName = _T(""); // same as projectDir above
                         wxString versification = _T("");
@@ -50338,6 +50522,30 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                             {
                                 languageName = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
                                 pPTInfo->languageName = languageName;
+                            }
+
+                            tagName = _T("<FileNamePrePart>");
+                            endTagName = _T("</FileNamePrePart>");
+                            if (lineStr.Find(tagName) != wxNOT_FOUND)
+                            {
+                                fileNamePrePart = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                                pPTInfo->fileNamePrePart = fileNamePrePart;
+                            }
+
+                            tagName = _T("<FileNamePostPart>");
+                            endTagName = _T("</FileNamePostPart>");
+                            if (lineStr.Find(tagName) != wxNOT_FOUND)
+                            {
+                                fileNamePostPart = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                                pPTInfo->fileNamePostPart = fileNamePostPart;
+                            }
+
+                            tagName = _T("<FileNameBookNameForm>");
+                            endTagName = _T("</FileNameBookNameForm>");
+                            if (lineStr.Find(tagName) != wxNOT_FOUND)
+                            {
+                                fileNameBookNameForm = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                                pPTInfo->fileNameBookNameForm = fileNameBookNameForm;
                             }
 
                             tagName = _T("<Directory>"); // The <Directory> tag is no longer used in PT 8, so projectDir and pPTInfo->projectDir are derived when <Name> is processed below
@@ -50964,6 +51172,10 @@ wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, 
     lineStr.Trim(TRUE);
     lineStr.Trim(FALSE);
     nTagPos = lineStr.Find(beginTag);
+    // whm 30Nov2016 note: Some empty tags may be of the form <FileNamePrePart /> with
+    // a space before the /> end mark. Since the incoming beginTag is of the form <FileNamePrePart>,
+    // such empty tags won't be recognized by this function and it will return an empty string to the
+    // caller (GetListOfPTProjects).
     if (nTagPos == 0)
     {
         // the tag begins the line
@@ -51693,10 +51905,21 @@ int CAdapt_ItApp::GetNumberFromBookCodeForFileNaming(wxString bookStr)
 ///             file names of Scripture books within Paratext.
 /// \param      bookName -> the full name of the Scripture book
 /// \remarks
-/// Called from: CGetSourceTextFromEditorDlg::OnLBBookSelected().
+/// Called from: CollabUtilities.cpp's DoProjectAnalysis(). It is also called
+/// in CGetSourceTextFromEditorDlg::OnLBBookSelected() where the returned string
+/// is not actually used.
 /// Used to get the book's typical number for building unique Paratext style
 /// file names, i.e., 41MATNYNT.PTX where 41 is the book number for the book
 /// of Matthew.
+/// whm 30Nov2016 modified. This function was previously called in two places but
+/// the returned wxString was not used which was a good thing because it did not
+/// take into account the Paratext naming scheme which doesn't have continuous
+/// numbering that would equate to an array index. Instead I've created an
+/// array on the App called AllBookNumStr[] that is a 123 element array that is
+/// parallel to the AllBookIds[] array, and this function will now get the 
+/// correct book number for the Paratext naming scheme for the given book ID,
+/// and the function is now suitable for real work in the DoProjectAnalysis()
+/// function.
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetBookNumberAsStrFromName(wxString bookName)
 {
@@ -51707,15 +51930,19 @@ wxString CAdapt_ItApp::GetBookNumberAsStrFromName(wxString bookName)
     bookNumAsStr.Empty();
     wxArrayString bookIDArray(123, AllBookIds);
     wxArrayString bookNameArray(123, AllBookNames);
+    wxArrayString bookNumArray(123, AllBookNumStr);
+    // The above three arrays should always be the same size
     wxASSERT(bookIDArray.GetCount() == bookNameArray.GetCount());
+    wxASSERT(bookNameArray.GetCount() == bookNumArray.GetCount());
     int i, arrayCt;
     arrayCt = (int)bookIDArray.GetCount();
     for (i = 0; i < arrayCt; i++)
     {
         if (bookName == bookNameArray.Item(i))
         {
-            // PT books are numbered from index starting at 1 rather than 0
-            bookNumAsStr << i + 1;
+            // PT books numbers cannot be numbered from index values but the index
+            // value can determine the number string stored in the parrallel bookNumArray.
+            bookNumAsStr = bookNumArray.Item(i);
             break;
         }
     }

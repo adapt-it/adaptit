@@ -735,7 +735,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		return projHasNoBooks;
 	}
 
-	if (!CollabProjectHasAtLeastOneBook(compositeProjName,editor, ptVersion))
+	if (!CollabProjectHasAtLeastOneBook(compositeProjName,editor, ptVersion)) // Calls GetListOfPTProjects()
 	{
 		// whm Note: The emptyBooks and booksWithContent strings will be
 		// meaningless to the caller in this situation
@@ -763,7 +763,67 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		pStatusBar->StartProgress(progressTitle, msgDisplayed, nTotal);
 	}
 
-	// Loop through all existing books existing in the project
+    // whm added 30Nov2016 for Paratext projects get path to the Paratext projects dir and
+    // the directory containing the actual paratext books we want to analyze. We can speed
+    // up the analysis by reading the book contents into a buffer and analyzing it within
+    // the buffer. This speeds up the analysis since block reading the file contents into a
+    // buffer will be much faster than getting the book contents via the rdwrtp7 utility 
+    // which is quite slow - especially when processing several dozen files as would be the
+    // case for a whole NT or whole Bible.
+    wxString filePathTemplate;
+    filePathTemplate.Empty();
+    bool bFileNameNumPartPreceeds = FALSE;
+
+    if (editor == _T("Paratext"))
+    {
+        // The real book names can be worked out from the Collab_Project_Info_Struct that is
+        // already in memory for this project by synthesizing the book file names from the 
+        // file name structure information in the PT project settings: 
+        // use these:  <FileNamePrePart /> 
+        //             <FileNamePostPart>NYNT.SFM</FileNamePostPart>
+        //             <FileNameBookNameForm>41MAT</FileNameBookNameForm>
+        // The FileNameBookNameForm tag part of a PT project's Scripture book file name can
+        // be determined from examining two parallel wxArrayString arrays on the App: 
+        //    AllBookIds[]    - which contains the USFM book abbreviation/ID
+        //    AllBookNumStr[] - which contains the USFM book number associated with the book ID
+        // Could create a function on the App's wxString GetFilenameForUSFMBookID(wxString bookID) which 
+        // returns a wxString in the form <FileNamePrePart><FileNameBookNameForm><FileNamePostPart>, 
+        // or for the values shown above would give 41MATNYNT.SFM, but better here would be to just
+        // use a template string with %s%s substitutions for the number and ID substring parts of the
+        // file name.
+        
+        // Get a file path template for a book file that can be used for all book files in this project.
+        wxString pathToProjectDir;
+        pathToProjectDir = gpApp->m_ParatextProjectsDirPath + gpApp->PathSeparator + collabProjShortName;
+        // Get the file name parts used for Paratext book file naming for this project.
+        // collabProjShortName is the name of the subdirectory the project's files are located in.
+        Collab_Project_Info_Struct* pCollabInfo;
+        pCollabInfo = gpApp->GetCollab_Project_Struct(collabProjShortName); // gets pointer to the struct from the App's m_pArrayOfCollabProjects
+        wxASSERT(pCollabInfo != NULL);
+        wxString fileNamePrePart = pCollabInfo->fileNamePrePart;
+        wxString fileNameBookNameForm = pCollabInfo->fileNameBookNameForm;
+        
+        wxString fileNamePostPart = pCollabInfo->fileNamePostPart;
+        if (!fileNameBookNameForm.IsEmpty() && fileNameBookNameForm.Length() >= 2)
+        {
+            // Check first two 
+            if (fileNameBookNameForm.Mid(0, 2).IsNumber())
+                bFileNameNumPartPreceeds = TRUE;
+        }
+        // In the filePathTemplate below the order of the elements of %s%s substrings depend on the value of the boolean bFileNameNumPartPreceeds.
+        // If bFileNameNumPartPreceeds is TRUE the first %s will be the book number and second %s substring will be the book's ID/abbreviation,
+        // otherwise the ID/abbreviation will be the first %s substring and the book number will be the second %s substring when formatted
+        // within the loop below. The %s%s substrings will always represent a total of 5 characters of the file name.
+        filePathTemplate = pathToProjectDir + gpApp->PathSeparator + fileNamePrePart + _T("%s%s") + fileNamePostPart;
+
+        // The booksPresentArray has the full names of the Scripture books we need to analyze.
+        // In the loop below we get the individual file name for the book being analyzed from booksPresentArray.
+        // We use GetBookCodeFromBookName(wxString bookName) function in the App in the loop below to get the 
+        // book code/ID from its full file name.
+
+    }
+
+
 	wxString m_rdwrtp7PathAndFileName;
 	wxString m_bibledit_rdwrtPathAndFileName;
 	if (editor == _T("Paratext"))
@@ -779,6 +839,8 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 	wxString wholeBookBuffer;
 	wxArrayString usfmStructureAndExtentArray;
 	wxArrayString staticBoxDescriptionOfBook;
+
+	// Loop through all existing books existing in the project
 	int nBookCount;
 	for (nBookCount = 0; nBookCount < nTotal; nBookCount++)
 	{
@@ -791,145 +853,158 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		bookCode = gpApp->GetBookCodeFromBookName(fullBookName);
 		wxASSERT(!bookCode.IsEmpty());
 
-		// ensure that a .temp folder exists in the m_workFolderPath
-		wxString tempFolder;
-		tempFolder = gpApp->m_workFolderPath + gpApp->PathSeparator + _T(".temp");
-		if (!::wxDirExists(tempFolder))
-		{
-			::wxMkdir(tempFolder);
-		}
+        wxString bookNumber;
+        bookNumber = gpApp->GetBookNumberAsStrFromName(fullBookName);
 
-		wxString projShortName;
-		wxASSERT(!compositeProjName.IsEmpty());
-		projShortName = GetShortNameFromProjectName(compositeProjName);
-		wxString bookNumAsStr = gpApp->GetBookNumberAsStrFromName(fullBookName);
+        wxString tempFileName;
+        tempFileName = filePathTemplate;
+        if (bFileNameNumPartPreceeds)
+            tempFileName = tempFileName.Format(tempFileName, bookNumber.c_str(), bookCode.c_str());
+        else
+            tempFileName = tempFileName.Format(tempFileName, bookCode.c_str(), bookNumber.c_str());
+        
+        if (editor == _T("Bibledit"))
+        {
+            // TODO: The Paratext specific code can be removed from this else block
 
-		wxString tempFileName;
-		tempFileName = tempFolder + gpApp->PathSeparator;
-		tempFileName += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, projShortName, wxEmptyString, _T(".tmp"));
+            // ensure that a .temp folder exists in the m_workFolderPath
+            wxString tempFolder;
+            tempFolder = gpApp->m_workFolderPath + gpApp->PathSeparator + _T(".temp");
+            if (!::wxDirExists(tempFolder))
+            {
+                ::wxMkdir(tempFolder);
+            }
 
-		// Build the command lines for reading the PT projects using rdwrtp7.exe
-		// and BE projects using bibledit-rdwrt (or adaptit-bibledit-rdwrt).
+            wxString projShortName;
+            wxASSERT(!compositeProjName.IsEmpty());
+            projShortName = GetShortNameFromProjectName(compositeProjName);
+            wxString bookNumAsStr = gpApp->GetBookNumberAsStrFromName(fullBookName);
 
-		// whm 23Aug11 Note: We are not using Bruce's BuildCommandLineFor() here to build the
-		// commandline, because within GetSourceTextFromEditor() we are using temp variables
-		// for passing to the GetShortNameFromProjectName() function above, whereas
-		// BuildCommandLineFor() uses the App's values for m_CollabProjectForSourceInputs,
-		// m_CollabProjectForTargetExports, and m_CollabProjectForFreeTransExports. Those App
-		// values are not assigned until GetSourceTextFromEditor()::OnOK() is executed and the
-		// dialog is about to be closed.
+            tempFileName = tempFolder + gpApp->PathSeparator;
+            tempFileName += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, projShortName, wxEmptyString, _T(".tmp"));
 
-		// whm 17Oct11 modified the commandline strings below to quote the source and target
-		// short project names (projShortName and targetProjShortName). This is especially
-		// important for the Bibledit projects, since we use the language name for the project
-		// name and it can contain spaces, whereas in the Paratext command line strings the
-		// short project name is used which doesn't generally contain spaces.
-		wxString commandLine,commandLineTgt,commandLineFT;
-		if (editor == _T("Paratext"))
-		{
-			// whm 17Jul12 modified. The .Contains() method is deprecated; use Find instead
-			//if (m_rdwrtp7PathAndFileName.Contains(_T("paratext")))
-			if (m_rdwrtp7PathAndFileName.Find(_T("paratext")) != wxNOT_FOUND) // whm Note: lower case "paratext" appears only on Linux where it is script name
-			{
-				// PT on linux -- need to add --rdwrtp7 as the first param to the command line
-				commandLine = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + projShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + tempFileName + _T("\"");
-			}
-			else
-			{
-				// PT on Windows
-				commandLine = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + projShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + tempFileName + _T("\"");
-			}
-		}
-		else if (editor == _T("Bibledit"))
-		{
-			commandLine = _T("\"") + m_bibledit_rdwrtPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + projShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + tempFileName + _T("\"");
-		}
-		//wxLogDebug(commandLine);
+            // Build the command lines for reading the PT projects using rdwrtp7.exe
+            // and BE projects using bibledit-rdwrt (or adaptit-bibledit-rdwrt).
 
-		// Note: Looking at the wxExecute() source code in the 2.8.11 library, it is clear that
-		// when the overloaded version of wxExecute() is used, it uses the redirection of the
-		// stdio to the arrays, and with that redirection, it doesn't show the console process
-		// window by default. It is distracting to have the DOS console window flashing even
-		// momentarily, so we will use that overloaded version of rdwrtp7.exe.
+            // whm 23Aug11 Note: We are not using Bruce's BuildCommandLineFor() here to build the
+            // commandline, because within GetSourceTextFromEditor() we are using temp variables
+            // for passing to the GetShortNameFromProjectName() function above, whereas
+            // BuildCommandLineFor() uses the App's values for m_CollabProjectForSourceInputs,
+            // m_CollabProjectForTargetExports, and m_CollabProjectForFreeTransExports. Those App
+            // values are not assigned until GetSourceTextFromEditor()::OnOK() is executed and the
+            // dialog is about to be closed.
 
-		long resultExec = -1;
-		wxArrayString outputArray, errorsArray;
-		// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
-		// Defined to 0 to use Bibledit's command-line interface to fetch text and write text
-		// from/to its project data files. Defined as 0 is the normal setting.
-		// Defined to 1 to fetch text and write text directly from/to Bibledit's project data
-		// files (not using command-line interface). Defined to 1 was for testing purposes
-		// only before Teus provided the command-line utility bibledit-rdwrt.
-		if (gpApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
-		{
-			// Use the wxExecute() override that takes the two wxStringArray parameters. This
-			// also redirects the output and suppresses the dos console window during execution.
-			resultExec = ::wxExecute(commandLine,outputArray,errorsArray);
-		}
-		else if (gpApp->m_bCollaboratingWithBibledit)
-		{
-			// Collaborating with Bibledit and _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 1
-			// Note: This code block will not be used in production. It was only for testing
-			// purposes.
-			wxString beProjPath = gpApp->GetBibleditProjectsDirPath();
-			wxString beProjPathSrc;
-			beProjPathSrc = beProjPath + gpApp->PathSeparator + projShortName;
-			int chNumForBEDirect = -1; // for Bibledit to get whole book
-			bool bWriteOK;
-			bWriteOK = CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNumForBEDirect, tempFileName, errorsArray);
-			if (bWriteOK)
-				resultExec = 0; // 0 means same as wxExecute() success
-			else // bWriteOK was FALSE
-				resultExec = 1; // 1 means same as wxExecute() ERROR, errorsArray will contain error message(s)
-		}
+            // whm 17Oct11 modified the commandline strings below to quote the source and target
+            // short project names (projShortName and targetProjShortName). This is especially
+            // important for the Bibledit projects, since we use the language name for the project
+            // name and it can contain spaces, whereas in the Paratext command line strings the
+            // short project name is used which doesn't generally contain spaces.
+            wxString commandLine, commandLineTgt, commandLineFT;
+            if (editor == _T("Paratext"))
+            {
+                // whm 17Jul12 modified. The .Contains() method is deprecated; use Find instead
+                //if (m_rdwrtp7PathAndFileName.Contains(_T("paratext")))
+                if (m_rdwrtp7PathAndFileName.Find(_T("paratext")) != wxNOT_FOUND) // whm Note: lower case "paratext" appears only on Linux where it is script name
+                {
+                    // PT on linux -- need to add --rdwrtp7 as the first param to the command line
+                    commandLine = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + projShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + tempFileName + _T("\"");
+                }
+                else
+                {
+                    // PT on Windows
+                    commandLine = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + projShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + tempFileName + _T("\"");
+                }
+            }
+            else if (editor == _T("Bibledit"))
+            {
+                commandLine = _T("\"") + m_bibledit_rdwrtPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + projShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + tempFileName + _T("\"");
+            }
+            //wxLogDebug(commandLine);
 
-		if (resultExec != 0)
-		{
-			// get the console output and error output, format into a string and
-			// include it with the message to user
-			wxString outputStr,errorsStr;
-			outputStr.Empty();
-			errorsStr.Empty();
-			int ct;
-			if (resultExec != 0)
-			{
-				for (ct = 0; ct < (int)outputArray.GetCount(); ct++)
-				{
-					if (!outputStr.IsEmpty())
-						outputStr += _T(' ');
-					outputStr += outputArray.Item(ct);
-				}
-				for (ct = 0; ct < (int)errorsArray.GetCount(); ct++)
-				{
-					if (!errorsStr.IsEmpty())
-						errorsStr += _T(' ');
-					errorsStr += errorsArray.Item(ct);
-				}
-			}
+            // Note: Looking at the wxExecute() source code in the 2.8.11 library, it is clear that
+            // when the overloaded version of wxExecute() is used, it uses the redirection of the
+            // stdio to the arrays, and with that redirection, it doesn't show the console process
+            // window by default. It is distracting to have the DOS console window flashing even
+            // momentarily, so we will use that overloaded version of rdwrtp7.exe.
 
-			wxString msg;
-			wxString concatMsgs;
-			if (!outputStr.IsEmpty())
-				concatMsgs = outputStr;
-			if (!errorsStr.IsEmpty())
-				concatMsgs += errorsStr;
-			if (editor == _T("Paratext"))
-			{
-				msg = _("Could not read data from the Paratext projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
-			}
-			else if (editor == _T("Bibledit"))
-			{
-				msg = _("Could not read data from the Bibledit projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
-			}
-			msg = msg.Format(msg,concatMsgs.c_str());
-			errorMsg = msg; // return the error message to the caller
-			if (nTotal > 0)
-			{
-				pStatusBar->FinishProgress(progressTitle);
-			}
-			return processingError;
-		}
+            long resultExec = -1;
+            wxArrayString outputArray, errorsArray;
+            // Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
+            // Defined to 0 to use Bibledit's command-line interface to fetch text and write text
+            // from/to its project data files. Defined as 0 is the normal setting.
+            // Defined to 1 to fetch text and write text directly from/to Bibledit's project data
+            // files (not using command-line interface). Defined to 1 was for testing purposes
+            // only before Teus provided the command-line utility bibledit-rdwrt.
+            if (gpApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
+            {
+                // Use the wxExecute() override that takes the two wxStringArray parameters. This
+                // also redirects the output and suppresses the dos console window during execution.
+                resultExec = ::wxExecute(commandLine, outputArray, errorsArray);
+            }
+            else if (gpApp->m_bCollaboratingWithBibledit)
+            {
+                // Collaborating with Bibledit and _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 1
+                // Note: This code block will not be used in production. It was only for testing
+                // purposes.
+                wxString beProjPath = gpApp->GetBibleditProjectsDirPath();
+                wxString beProjPathSrc;
+                beProjPathSrc = beProjPath + gpApp->PathSeparator + projShortName;
+                int chNumForBEDirect = -1; // for Bibledit to get whole book
+                bool bWriteOK;
+                bWriteOK = CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNumForBEDirect, tempFileName, errorsArray);
+                if (bWriteOK)
+                    resultExec = 0; // 0 means same as wxExecute() success
+                else // bWriteOK was FALSE
+                    resultExec = 1; // 1 means same as wxExecute() ERROR, errorsArray will contain error message(s)
+            }
 
+            if (resultExec != 0)
+            {
+                // get the console output and error output, format into a string and
+                // include it with the message to user
+                wxString outputStr, errorsStr;
+                outputStr.Empty();
+                errorsStr.Empty();
+                int ct;
+                if (resultExec != 0)
+                {
+                    for (ct = 0; ct < (int)outputArray.GetCount(); ct++)
+                    {
+                        if (!outputStr.IsEmpty())
+                            outputStr += _T(' ');
+                        outputStr += outputArray.Item(ct);
+                    }
+                    for (ct = 0; ct < (int)errorsArray.GetCount(); ct++)
+                    {
+                        if (!errorsStr.IsEmpty())
+                            errorsStr += _T(' ');
+                        errorsStr += errorsArray.Item(ct);
+                    }
+                }
+
+                wxString msg;
+                wxString concatMsgs;
+                if (!outputStr.IsEmpty())
+                    concatMsgs = outputStr;
+                if (!errorsStr.IsEmpty())
+                    concatMsgs += errorsStr;
+                if (editor == _T("Paratext"))
+                {
+                    msg = _("Could not read data from the Paratext projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
+                }
+                else if (editor == _T("Bibledit"))
+                {
+                    msg = _("Could not read data from the Bibledit projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
+                }
+                msg = msg.Format(msg, concatMsgs.c_str());
+                errorMsg = msg; // return the error message to the caller
+                if (nTotal > 0)
+                {
+                    pStatusBar->FinishProgress(progressTitle);
+                }
+                return processingError;
+            }
+        }
 		// now read the tmp files into buffers in preparation for analyzing their chapter and
 		// verse status info (1:1:nnnn).
 		// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a
@@ -946,7 +1021,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		// would use if the whole book is used for collaboration, so we should
 		// do the check here too just to be safe.
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
-		wxLogDebug(_T("\n\n DoProjectAnalysis():  logging structure & extents for book with bookCode = %s"), bookCode.c_str());
+		//wxLogDebug(_T("\n\n DoProjectAnalysis():  logging structure & extents for book with bookCode = %s"), bookCode.c_str());
 #endif
 		wholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(tempFileName,bookCode);
 		usfmStructureAndExtentArray.Clear();
@@ -1024,6 +1099,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 
 		msgDisplayed = progMsg.Format(progMsg,booksPresentArray.Item(nBookCount).c_str());
 		pStatusBar->UpdateProgress(progressTitle, nBookCount, msgDisplayed);
+        wxMilliSleep(20); // books are now analyzed so quickly, add 50ms of sleep for each update to enable status line progress to be observed
 	} // end of for (nBookCount = 0; nBookCount < nTotal; nBookCount++)
 
 	if (booksWithContent.IsEmpty())
@@ -1050,8 +1126,9 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 
 	if (nTotal > 0)
 	{
+        wxMilliSleep(200); //
 		pStatusBar->FinishProgress(progressTitle);
-	}
+    }
 
 	// For Testing only!!!
 	// Return the empty books (as a string list) to the caller via the emptyBooks reference parameter
