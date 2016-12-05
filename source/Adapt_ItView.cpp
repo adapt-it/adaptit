@@ -3507,7 +3507,23 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 {
-	// whm note: The code below is adapted from wxWidgets printing sample
+
+// TODO: Remove the following conditional block after fixing the printing issues 
+// on Linux Xenial using WX3.x.
+#if defined(__WXGTK__) && wxCHECK_VERSION(3,0,0)
+    // On Linux Xenial and newer distros which only have wx3.X notify the user of
+    // potential print preview and print to printer problems on Linux due to issues
+    // in the WX3.x library. Suggest that the user not print from within AI, but
+    // do Export-Import > Export Interlinear Text... and print from LibreOffice or
+    // MS Word for better, more stable results.
+    wxString msg = _T("Warning: The Print Preview and Print (to paper) functions in this version of Linux have some issues that may cause Adapt It to crash, so those Print functions have been disabled.\nYou can get a better view and/or print out of the document by doing the following:\n   On the Export-Import menu select Export Interlinear Text... and export the document to an RTF file.\n   Then open the document file in LibreOffice or Word, where you will be able to view or print the document.\n");
+    wxString title = _T("Print Preview Disabled");
+    wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+    pApp->LogUserAction(msg);
+    return;
+#endif
+    
+    // whm note: The code below is adapted from wxWidgets printing sample
 	// See file:.\AIPrintout.cpp#print_flow for the order of calling of OnPrint().
 
 	gbIsBeingPreviewed = FALSE; // from MFC's OnPreparePrinting
@@ -3653,7 +3669,23 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 {
-	// whm note: The code below is adapted from wxWidgets printing sample
+    
+// TODO: Remove the following conditional block after fixing the printing issues 
+// on Linux Xenial using WX3.x.
+#if defined(__WXGTK__) && wxCHECK_VERSION(3,0,0)
+    // On Linux Xenial and newer distros which only have wx3.X notify the user of
+    // potential print preview and print to printer problems on Linux due to issues
+    // in the WX3.x library. Suggest that the user not print from within AI, but
+    // do Export-Import > Export Interlinear Text... and print from LibreOffice or
+    // MS Word for better, more stable results.
+    wxString msg = _T("Warning: The Print Preview and Print (to paper) functions in this version of Linux have some issues that may cause Adapt It to crash, so those Print functions have been disabled.\nYou can get a better view and/or print out of the document by doing the following:\n   On the Export-Import menu select Export Interlinear Text... and export the document to an RTF file.\n   Then open the document file in LibreOffice or Word, where you will be able to view or print the document.\n");
+    wxString title = _T("Print Preview Disabled");
+    wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+    pApp->LogUserAction(msg);
+    return;
+#endif
+    
+    // whm note: The code below is adapted from wxWidgets printing sample
 	// See file:.\AIPrintout.cpp#print_flow for the order of calling of OnPrint().
     // Pass two printout objects: for preview, and possible printing.
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -3663,6 +3695,7 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
     wxPreviewFrameModalityKind m_previewModality;
     m_previewModality = wxPreviewFrame_AppModal;
 #endif
+
 
     // whm 25Sep11 modified. As I did in the PrintOptionsDlg::InitDialog() function,
 	// we should initialize the values of gbCheckInclGlossesText and gbCheckInclFreeTransText
