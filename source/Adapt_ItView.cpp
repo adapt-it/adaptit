@@ -3519,7 +3519,7 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
     // do Export-Import > Export Interlinear Text... and print from LibreOffice or
     // MS Word for better, more stable results.
     wxString msg = _T("Warning: The Print Preview and Print (to paper) functions in this version of Linux have some issues that may cause Adapt It to crash, so those Print functions have been disabled.\nYou can get a better view and/or print out of the document by doing the following:\n   On the Export-Import menu select Export Interlinear Text... and export the document to an RTF file.\n   Then open the document file in LibreOffice or Word, where you will be able to view or print the document.\n");
-    wxString title = _T("Print Preview Disabled");
+    wxString title = _T("Printing Disabled");
     wxMessageBox(msg, title, wxICON_WARNING | wxOK);
     pApp->LogUserAction(msg);
     return;
