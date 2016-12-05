@@ -3508,6 +3508,8 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 {
 
+	CAdapt_ItApp* pApp = &wxGetApp();
+
 // TODO: Remove the following conditional block after fixing the printing issues 
 // on Linux Xenial using WX3.x.
 #if defined(__WXGTK__) && wxCHECK_VERSION(3,0,0)
@@ -3528,7 +3530,6 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 
 	gbIsBeingPreviewed = FALSE; // from MFC's OnPreparePrinting
 
-	CAdapt_ItApp* pApp = &wxGetApp();
 #if defined(__WXGTK__) // print-related
     // BEW added 15Nov11  -- set up defaults for page range choice, 'no choice', PageOffsets the initial page only
     pApp->m_bPrintingPageRange = FALSE;
@@ -3670,6 +3671,8 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 {
     
+	CAdapt_ItApp* pApp = &wxGetApp();
+
 // TODO: Remove the following conditional block after fixing the printing issues 
 // on Linux Xenial using WX3.x.
 #if defined(__WXGTK__) && wxCHECK_VERSION(3,0,0)
@@ -3688,7 +3691,6 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
     // whm note: The code below is adapted from wxWidgets printing sample
 	// See file:.\AIPrintout.cpp#print_flow for the order of calling of OnPrint().
     // Pass two printout objects: for preview, and possible printing.
-	CAdapt_ItApp* pApp = &wxGetApp();
 
 #if wxCHECK_VERSION(3, 0, 0) // whm added 10Oct2016
     // WX3.0 print sample uses a preview modality
