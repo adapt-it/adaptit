@@ -69,6 +69,15 @@ enum PunctChangeType {
 	exists_unchanged
 };
 
+enum WordParseEndsAt {
+	unknownCharType,
+	endoftextbuffer,
+	whitespace,
+	closingbracket,
+	punctuationchar,
+	backslashofmkr
+};
+
 // GDLC Putting this enum definition here creates 40 compile errors on MacOS
 // Moving it to helpers.h eliminates the 40 errors.
 //enum WhichLang {
@@ -227,6 +236,13 @@ protected:
 	//bool			IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers);
 	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
+	// BEW 9Sep16 added next four
+	bool			IsInWordProper(wxChar* ptr, wxString& spacelessPuncts); // TRUE if not punct, ~, marker,  not [ or ], not whitespace etc
+	inline bool		IsFixedSpace(wxChar* ptr); // TRUE if it is a ~ (tilde), the USFM fixed-space character
+	wxString		m_spacelessPuncts; // populated by a TokenizeText() call (IsInWordProper() uses it)
+	wxString		m_spacelessPuncts_NoTilde; // same as m_spacelessPuncts, but lacking a ~ character
+	bool			m_bTokenizingTargetText; // set by fourth parameter of a TokenizeText() call (IsInWordProper() uses it)
+
 	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, 
 							wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr, 
 							wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts,
@@ -239,20 +255,30 @@ protected:
 	bool			IsUnstructuredPlainText(wxString& rText);
 	void			MakeOutputBackupFilenames(wxString& curOutputFilename);
 	bool			NotAtEnd(wxString& rText, const int nTextLength, int nFound);
+	bool			ParseWordMedialSandwichedPunct(wxChar* pText, wxChar* pEnd, wxString& spacelessPuncts); // BEW added 11Sep16
+	bool			ParseWordMedialSandwichedUSFMFixedSpace(wxChar* pText, wxChar* pEnd, wxString& spacelessPuncts); // BEW added 11Sep16
+	int				ParsePostWordStuff(
+							wxChar* pChar,
+							wxChar*		pEnd,
+							CSourcePhrase* pSrcPhrase,
+							wxString&	spacelessPuncts,
+							WordParseEndsAt& endCondition,
+							bool		bTokenizingTargetText);
+
 public:
 	void			OverwriteUSFMFixedSpaces(wxString*& pstr);
 	void			OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr);
 	void			PutPhraseBoxAtDocEnd();
 	bool			ReOpenDocument(	CAdapt_ItApp* pApp,	
-									wxString savedWorkFolderPath,			// for setting current working directory
-									wxString curOutputPath,					// includes filename
-									wxString curOutputFilename,				// to help get window Title remade
-        //                          int		 curSequNum,		// for resetting the box location - mrh: now not needed since the seq num is saved in the xml.
-									bool	 savedBookmodeFlag,				// for ensuring correct mode
-									bool	 savedDisableBookmodeFlag,		// ditto
-									BookNamePair*	pSavedCurBookNamePair,  // for restoring the pointed at struct
-									int		 savedBookIndex,				// for restoring the book folder's index in array
-									bool	 bMarkAsDirty);					// might want it instantly saveable
+						wxString savedWorkFolderPath,			// for setting current working directory
+						wxString curOutputPath,					// includes filename
+						wxString curOutputFilename,				// to help get window Title remade
+                //      int		 curSequNum, // for resetting the box location - mrh: now not needed since the seq num is saved in the xml.
+						bool	 savedBookmodeFlag,				// for ensuring correct mode
+						bool	 savedDisableBookmodeFlag,		// ditto
+						BookNamePair*	pSavedCurBookNamePair,  // for restoring the pointed at struct
+						int		 savedBookIndex,				// for restoring the book folder's index in array
+						bool	 bMarkAsDirty);					// might want it instantly saveable
 
 protected:
 #ifndef __WXMSW__
@@ -304,6 +330,7 @@ public:
 	void			EraseKB(CKB* pKB);
 	bool			FilenameClash(wxString& typedName); // BEW added 22July08 to 
 														// prevent 2nd creation destroying work
+	WordParseEndsAt	FindOutWhatIsAtPtr(wxChar* ptr, wxChar* pEnd, bool bTokenizingTargetText); // BEW added 12Oct16
 	CAdapt_ItApp*	GetApp();
 	wxString		GetCurrentDirectory();	// BEW added 4Jan07 for saving & restoring the full path
 											// to the current doc's directory across the writing of
@@ -346,6 +373,7 @@ public:
 	bool			IsStraightQuote(wxChar* pChar);
 	bool			IsClosingQuote(wxChar* pChar);
 	bool			IsClosingCurlyQuote(wxChar* pChar);
+	bool			IsClosingDoubleChevron(wxChar* pChar); // BEW 6Oct16 added, but no IsOpeningDoubleChevron() done yet
 	bool			CannotBeClosingQuote(wxChar* pChar, wxChar* pPunctStart); // BEW added 19Oct15, for Seth's bug
 	bool			IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis);
 	bool			IsAFilteringUnknownSFM(wxString unkMkr);
@@ -355,7 +383,9 @@ public:
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
 	bool			IsPunctuation(wxChar* ptr, bool bSource = TRUE);
 	bool			IsEndMarker(wxChar *pChar, wxChar* pEnd);
+	bool			IsEndMarker2(wxChar* pChar); // BEW 7Nov16 This version of IsEndEndMarker() has the end-of-buffer test internal
 	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase);
+	bool			IsInlineNonbindingEndMarker(wxString& mkr);
 	bool			IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd));
 	bool			IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* pEnd); // whm added 10Feb05
 	bool			IsLegacyDocVersionForFileSaveAs();
@@ -416,6 +446,28 @@ public:
 							bool bTokenizingTargetText);
 							// from the remaining inline marker set (but excluding \f* and
 							// \x* and any others beginning with \f or \x)
+	int CAdapt_ItDoc::ParseWord2(
+			wxChar *pChar,
+			wxChar* pEnd,
+			CSourcePhrase* pSrcPhrase,
+			wxString& spacelessPuncts, // caller determines whether it's src set or tgt set
+			wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
+			wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
+			bool& bIsInlineNonbindingMkr,
+			bool& bIsInlineBindingMkr,
+			bool bTokenizingTargetText);
+
+	int	ParseWordProper(
+			wxChar*		pChar,
+			wxChar*		pEnd,
+			CSourcePhrase* pSrcPhrase,
+			wxString&	spacelessPuncts,
+			wxString&	spacelessPuncts_NoTilde,
+			bool&		bWordJoiningFixedSpaceEncountered,
+			WordParseEndsAt& endCondition,
+			bool        bTokenizingTargetText);
+	wxArrayInt		m_arrParsedWords_StartAndEnd; // store the start and end offsets for each word parsed
+
 	wxString		RedoNavigationText(CSourcePhrase* pSrcPhrase);
 	bool			RemoveMarkerFromBoth(wxString& mkr, wxString& str1, wxString& str2);
 	wxString		RemoveAnyFilterBracketsFromString(wxString str);
@@ -460,7 +512,7 @@ protected:
 	bool			ForceAnEmptyUSFMBreakHere(wxString tokBuffer, CSourcePhrase* pSrcPhrase, 
 									wxChar* ptr); // BEW added 15Aug12
     
-    void            Enable_DVCS_item (wxUpdateUIEvent& event);
+    //void            Enable_DVCS_item (wxUpdateUIEvent& event);
     bool            Commit_valid();
     bool            Git_installed();
 

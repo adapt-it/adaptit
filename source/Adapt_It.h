@@ -3349,8 +3349,8 @@ public:
     // need four more booleans for those and they'd have to be set/reset in
     // OnEditPunctCorresp() and used in IsOpeningQuote(), IsClosingQuote() in the same way
     // as those below are used there)
-	bool		m_bSingleQuoteAsPunct; // default FALSE set in creator's code block
-	bool		m_bDoubleQuoteAsPunct; // default TRUE set in creator's code block
+	bool		m_bSingleQuoteAsPunct; // default TRUE set in OnInit() & InitializePunctuation() as of 2Nov16, BEW
+	bool		m_bDoubleQuoteAsPunct; // default TRUE set in OnInit() & InitializePunctuation()
 
 	// file i/o and directory structures & support for custom work folder locations
 	wxString	m_workFolderPath;	// default path to the "Adapt It Work" or "Adapt It

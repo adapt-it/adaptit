@@ -18103,8 +18103,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                         // USFM and Filtering tab or the Start Working... wizard
                                         // USFM and Filtering page when creating a new project.
 
-    m_bSingleQuoteAsPunct = FALSE; // BEW added March 17, 2005
-    m_bDoubleQuoteAsPunct = TRUE; // BEW added April 28, 2005
+	//m_bSingleQuoteAsPunct = FALSE; // BEW added March 17, 2005
+	m_bSingleQuoteAsPunct = TRUE; // BEW changed November 2, 2016 because a sequence like '\it word
+								  // causes ' to be made a word on its own CSourcePhrase. Yuck.
+								  // Some Pacific languages which mark a word initial strong vowel
+								  // with preceding ', eg. 'I 'A etc, will just have to lump it
+								  // when the ' gets stripped off for the KB store of the word
+	m_bDoubleQuoteAsPunct = TRUE; // BEW added April 28, 2005
     m_bCopySourcePunctuation = TRUE;// BEW added April 20, 2005
 
     m_bFreeTranslationMode = FALSE; // BEW added 21Jun05, free translation mode is
@@ -24530,7 +24535,7 @@ void CAdapt_ItApp::InitializePunctuation()
     //{
     // leave this block here, but we no longer set up the defaults here, but rather in
     // the code following this block
-    m_punctuation[0] = _T(" . , < > ; ? ! : ( ) \" { } [ ] "); // defaults for narrow or
+    m_punctuation[0] = _T(" . , < > ; ? ! : ( ) \" { } [ ] \' "); // defaults for narrow or
                                                                // wide characters
     m_punctWordBuilding[0] = _T(""); // leave this in the code, just don't use them --
                                      // since reading an old config file would require them
@@ -24554,7 +24559,13 @@ void CAdapt_ItApp::InitializePunctuation()
     wxString strTwoPunctPairsSrcSet;
     wxString strTwoPunctPairsTgtSet;
 
-    strPunctPairsSrcSet = _T("?.,;:\"!()<>{}[]");
+	// BEW 14Sep16, added to the set to make " be always punctuation, 
+	// and add ~ too (USFM fixed space marker) which we'll handle like
+	// punctuation when it is between word and punctuation chars -
+	// supported in ParseWord2() refactored version of legacy ParseWord()
+	// in TokenizeText()
+	// BEW 2Nov16 changed to include staight single quote as default punctuation character
+	strPunctPairsSrcSet = _T("?.,;:\"!()<>{}[]'"); // legacy
 
     ch.SetChar(0, L'\x201C'); // hex for left double quotation mark
     additions += ch;
@@ -24564,16 +24575,44 @@ void CAdapt_ItApp::InitializePunctuation()
     additions += ch;
     ch.SetChar(0, L'\x2019'); // hex for right single quotation mark
     additions += ch;
+	// BEW 14Sep16 The double-chevrons should be part of the defaults too
+	ch.SetChar(0, L'\x00AB'); // hex for left-pointing double angle quotation mark
+	additions += ch;
+	ch.SetChar(0, L'\x00BB'); // hex for right-pointing double angle quotation mark
+	additions += ch;
+
+	// BEW 14Sep16 add ~ too at the end
+	ch = _T('~');
+	additions += ch;
+
     strPunctPairsSrcSet += additions;
-    m_bSingleQuoteAsPunct = FALSE;
+    //m_bSingleQuoteAsPunct = FALSE; // default since version4, since ' as glottal
+								   // is common so treat as word-building unless user
+								   // explicitly adds it to Preferences punts lists
+	m_bSingleQuoteAsPunct = TRUE;  // ' before \it gets treated as a word. Can't
+								   // allow that. Now we default to it being a
+								   // punctuation char  BEW 2Nov16
 
     strPunctPairsTgtSet = strPunctPairsSrcSet;
+
+	// Update m_punctuation[] array with the new defaults which include ~
+	// which is the USFM fixed space marker. It is best handled as punctuation
+	// (because when it occurs between a word and its punctuation, which is
+	// what some languages like French do, it should be stripped off and
+	// saved - which is what happens to puncutation in such contexts) except 
+	// where code explicitly treats it as the USFM fixed space marker, such
+	// as between words which must stay together. So it is included in the
+	// punctuation default set
+	m_punctuation[0] = strPunctPairsSrcSet;
+	m_punctuation[1] = strPunctPairsTgtSet;
+
     strTwoPunctPairsSrcSet.Empty();
     strTwoPunctPairsTgtSet = strTwoPunctPairsSrcSet;
     TwoStringsToPunctPairs(m_punctPairs, strPunctPairsSrcSet, strPunctPairsTgtSet);
     TwoStringsToTwoPunctPairs(m_twopunctPairs, strTwoPunctPairsSrcSet, strTwoPunctPairsTgtSet);
+	
 #else // ANSI version
-    wxString strValue = _T("??..,,;;::\"\"!!(())<<>>[[]]{{}}");
+    wxString strValue = _T("??..,,;;::\"\"!!(())<<>>[[]]{{}}''");
 
     // For Windows, we can support curly quotes like MFC does in the ANSI version. When
     // first converted to wxWidgets, GTK's text control was failing when use SetValue()
@@ -24612,12 +24651,11 @@ void CAdapt_ItApp::InitializePunctuation()
     //			// The following converts strValue to
     //			wxConvUTF8.cWC2MB(wxConvCurrent->cMB2WC(strValue));
     //#endif
-    //int found = strValue.Find(_T('\''),0); // look for vertical ordinary quote (ie. apostrophe)
-    //if (found >= 0)
-    //	m_bSingleQuoteAsPunct = TRUE;
-    //else
-    m_bSingleQuoteAsPunct = FALSE; // default setup can only can be this
-
+    int found = strValue.Find(_T('\''),0); // look for vertical ordinary quote (ie. apostrophe)
+    if (found >= 0)
+    	m_bSingleQuoteAsPunct = TRUE;
+    else
+		m_bSingleQuoteAsPunct = FALSE;
     StringToPunctPairs(m_punctPairs, strValue);
     strValue.Empty();
     StringToTwoPunctPairs(m_twopunctPairs, strValue);
@@ -36884,15 +36922,56 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 bAddedRightSingleQuote = TRUE;
                 additions += ch;
             }
+			// BEW 14Sep16 slightly altered legacy protocal; ' (vertical single quote)
+			// is assumed to be glottal stop character, not punctuation (as of version 4). 
+			// But if the user lists it in Prefs, & hence it gets to the config file,
+			// then we check for that and designate it as punctuation, and set
+			// m_bSingleQuoteAsPunct accordingly
+			// BEW 2Nov16 changed the default to be TRUE, because of the '\it word parse problem
+			m_bSingleQuoteAsPunct = TRUE;
             int found = strValue.Find(_T('\'')); // look for vertical ordinary quote (ie. apostrophe)
             if (found >= 0)
                 m_bSingleQuoteAsPunct = TRUE;
             else
                 m_bSingleQuoteAsPunct = FALSE;
-            strValue = additions + strValue;
+			
+			// BEW 14Sep16 Changed to the following two blocks for adding " and ' 
+			// if not there -- be sure to do identically in the target puncts below
+			ch = _T('\"'); // vertical double-quote - should always be a punct char
+			if (strValue.Find(ch) == -1) // not found
+			{
+				additions += ch;
+			}
 
+            strValue = additions + strValue;
             strPunctPairsSrcSet = strValue;
-        }
+
+			// BEW 5Nov16, ~ (USFM fixed space marker) must also be present
+			ch = _T('~');
+			int offset2 = strPunctPairsSrcSet.Find(ch);
+			if (offset2 == wxNOT_FOUND)
+			{
+				strPunctPairsSrcSet += ch;
+			}
+			// BEW 7Nov16 make sure the left and right pointing double angle quotation 
+			// marks are also in the punctuation set (ie. left and right chevrons)
+			ch = _T(' ');	// initialize to a space, so that SetChar() will
+									// not assert with a bounds error below
+			offset2 = wxNOT_FOUND;
+			ch.SetChar(0, L'\x00AB'); // hex for left-pointing double angle quotation mark
+			offset2 = strPunctPairsSrcSet.Find(ch);
+			if (offset2 == wxNOT_FOUND)
+			{
+				strPunctPairsSrcSet += ch;
+			}
+			ch.SetChar(0, L'\x00BB'); // hex for right-pointing double angle quotation mark
+			offset2 = strPunctPairsSrcSet.Find(ch);
+			if (offset2 == wxNOT_FOUND)
+			{
+				strPunctPairsSrcSet += ch;
+			}
+
+		}
         else if (name == szPunctPairsTgt)
         {
             // THIS BLOCK WORKS RIGHT ONLY WHEN THE
@@ -36928,16 +37007,48 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 // add it if the source had it added
                 additions += ch;
             }
+
             int found = strValue.Find(_T('\'')); // look for vertical ordinary
                                                  // quote (ie. apostrophe)
             if (found >= 0)
                 m_bSingleQuoteAsPunct = TRUE;
             else
                 m_bSingleQuoteAsPunct = FALSE;
-            strValue = additions + strValue;
+			
+			// BEW 14Sep16 Changed to the following two blocks for adding " 
+			ch = _T('\"'); // vertical double-quote - should always be a punct char
+			if (strValue.Find(ch) == -1) // not found
+			{
+				additions += ch;
+			}
 
+            strValue = additions + strValue;
             strPunctPairsTgtSet = strValue;
-        }
+
+			// BEW 5Nov16, ~ (USFM fixed space marker) must also be present
+			ch = _T('~');
+			int offset2 = strPunctPairsTgtSet.Find(ch);
+			if (offset2 == wxNOT_FOUND)
+			{
+				strPunctPairsTgtSet += ch;
+			}
+			// Make sure left and right pointing double angle quotation marks
+			// are in the target puncts set (ie. left and right chevrons)
+			ch = _T(' ');
+			offset2 = wxNOT_FOUND;
+			ch.SetChar(0, L'\x00AB'); // hex for left-pointing double angle quotation mark
+			offset2 = strPunctPairsTgtSet.Find(ch);
+			if (offset2 == wxNOT_FOUND)
+			{
+				strPunctPairsTgtSet += ch;
+			}
+			ch.SetChar(0, L'\x00BB'); // hex for right-pointing double angle quotation mark
+			offset2 = strPunctPairsTgtSet.Find(ch);
+			if (offset2 == wxNOT_FOUND)
+			{
+				strPunctPairsTgtSet += ch;
+			}
+		}
         else if (name == szTwoPunctPairsSrc)
         {
             strTwoPunctPairsSrcSet = strValue;
@@ -52546,8 +52657,19 @@ void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtTex
         return;
     }
     wxASSERT(!m_strSentFinalPunctsTriggerCaps.IsEmpty());
+	wxString sentenceFinalPuncts = wxEmptyString;
+	wxString sentenceInitialPuncts = wxEmptyString;
     const wxString endPunctsForTesting = m_strSentFinalPunctsTriggerCaps;
     CSourcePhrase* pPrevSrcPhrase = NULL;
+
+	// First we need to get initial and final punctuation, for the current pSrcPhrase
+	// m_targetStr member, and store it, so we can later rebuild pSrcPhrase->m_targetStr
+	// correctly
+	CPile* pCurPile = m_pLayout->GetPile(nCurrSequNum);
+	CSourcePhrase* pCurSrcPhrase = pCurPile->GetSrcPhrase();
+	wxString strSavedInitialPunctuation = GetTargetPunctuation(pCurSrcPhrase->m_targetStr, FALSE);
+	wxString strSavedFinalPunctuation = GetTargetPunctuation(pCurSrcPhrase->m_targetStr, TRUE);
+
     CPile* pPile = m_pLayout->GetPile(nCurrSequNum - 1);
     if (pPile != NULL)
     {
@@ -52556,8 +52678,8 @@ void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtTex
         wxASSERT(pPrevSrcPhrase != NULL);
         if (pPrevSrcPhrase != NULL)
         {
-            wxString sentenceFinalPuncts = pPrevSrcPhrase->m_follPunct;
-            sentenceFinalPuncts += pPrevSrcPhrase->GetFollowingOuterPunct();
+			// in the next call, TRUE is bFromWordEnd
+            wxString sentenceFinalPuncts = GetTargetPunctuation(pPrevSrcPhrase->m_targetStr, TRUE);
             if (sentenceFinalPuncts.IsEmpty())
             {
                 return; // There is no punctuation at the end of the CSourcePhrase's target text &
@@ -52613,14 +52735,18 @@ void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtTex
                         if (pSrcPhrase != NULL)
                         {
                             pSrcPhrase->m_adaption = tgtText;
-                            pSrcPhrase->m_targetStr = tgtText; // no puncts on it yet, but case is now upper case
+ 							// Restore and initial and/or final punctuation
+							wxString s = strSavedInitialPunctuation;
+							s += tgtText;
+							s += strSavedFinalPunctuation;
+							pSrcPhrase->m_targetStr = s; // case is now upper case
 
-                                                               // Now put the punctuation back, on the now-upper-case tgt string
-                                                               // (Note: the tgtText is not grabbed from the phrasebox, and so if the
-                                                               // user has typed overriding punctuation, that will be lost - source
-                                                               // text punctuation will be used - converted to target text equivalents
-                                                               // of course)
-                            GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtText);
+							// Now put the punctuation back, on the now-upper-case tgt string
+							// (Note: the tgtText is not grabbed from the phrasebox, and so if the
+							// user has typed overriding punctuation, that will be lost - source
+							// text punctuation will be used - converted to target text equivalents
+							// of course)
+                            //GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtText);
                         }
                         return;
                     }
