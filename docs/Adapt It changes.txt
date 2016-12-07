@@ -29,7 +29,7 @@ box. This has been the case for years, and will not be changed.)
  chapter:verse information where the failure happened. The
  bad markup will be located within that verse, after the last
  word listed in this file. The user can then examine the source
- test in a word processor, and possibly fix the error himself, then
+ text in a word processor, and possibly fix the error himself, then
  resave the fixed source text, and retry the document creation again.
  Note: producing the log file is slow: about 150 words a second
  are scanned, so a book like Luke might take up to 3 minutes to 

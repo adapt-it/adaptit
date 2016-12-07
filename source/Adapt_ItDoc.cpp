@@ -73,7 +73,7 @@ size_t aSequNum; // use with TOKENIZE_BUG
 // Comment out Use_Legacy_Parser to cause the simpler and better refactored (Nov-Dec,2016)
 // ParseWord2() to be used, and the m_bBoundary setting code done in ParseWord2() rather
 // than in the legacy place, after the propagation code in TokenizeText()
-//#define Use_Legacy_Parser
+#define Use_Legacy_Parser
 
 // Other includes uncomment as implemented
 #include "Adapt_It.h"
@@ -29769,7 +29769,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 	wxChar 	 fixedSpaceChar = _T('~');
 	int      itemLen = 0;
 #if defined(_DEBUG)
-	if (pSrcPhrase->m_nSequNumber == 1)
+	if (pSrcPhrase->m_nSequNumber == 0)
 	{
 		int break_here = 1;
 	}
@@ -30438,7 +30438,8 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 				(*ptr2 != _T(']')) &&
 				!IsMarker(ptr2) &&
 				!IsInWordProper(ptr2, spacelessPuncts) &&
-				!IsWhiteSpace(ptr2)
+				!IsWhiteSpace(ptr2) &&
+				!IsOpeningQuote(ptr2)
 				)
 			{
 				ptr2++;
@@ -30455,7 +30456,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 			}
 			else
 			{
-				pSrcPhrase->m_follPunct = follPunctuation;
+				pSrcPhrase->m_follPunct += follPunctuation;
 			}
 			len += len2;
 			ptr = ptr2;
@@ -30544,6 +30545,14 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 						// These belong in m_endMarkers  (there might be more than one, such
 						// as the obsolete markup  \ft*\f*, so we need add rather than set)
 						pSrcPhrase->AddEndMarker(anEndMkr);
+						if (bXref_Footnote_orEndnoteStored != TRUE)
+						{
+							// There may be punctuation after the endmarker, and so we
+							// must ensure this endmarker having been stored the boolean
+							// must be set, so that an iteration of the loop finding a
+							// punct will store it in m_follOuterPunct, not m_follPunct
+							bXref_Footnote_orEndnoteStored = TRUE;
+						}
 						len2 += itemLen;
 						ptr2 += (size_t)itemLen;
 						itemLen = 0;
