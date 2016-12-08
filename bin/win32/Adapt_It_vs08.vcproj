@@ -957,34 +957,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Thread_BulkPseudoDelete.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_ChangedSince.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_CreateEntry.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_DoEntireKbDeletion.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_KbEditorUpdateButton.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_PseudoDelete.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_PseudoUndelete.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Thread_ServiceDiscovery.cpp"
 				>
 			</File>
@@ -1599,34 +1571,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\tellenc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_BulkPseudoDelete.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_ChangedSince.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_CreateEntry.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_DoEntireKbDeletion.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_KbEditorUpdateButton.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_PseudoDelete.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_PseudoUndelete.h"
 				>
 			</File>
 			<File
