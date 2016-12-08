@@ -30708,7 +30708,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 			// get to 20 then break out as we are in an infinite loop -- which
 			// indicates I need to make a programming change
 			wxLogDebug(_T("ParsePostWordStuff(): iterationCount at break: %d  sequ num  %d , m_key  %s"),
-				iterationCount, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key);
+				iterationCount, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str());
 			break; 
 		}
 	} while (ptr < pEnd && bParsedSomething); // end of do loop, for complex stuff parsing
