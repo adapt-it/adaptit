@@ -29,13 +29,18 @@
 #     clarity to the naming of the amd64 result folders.
 #   - Added test at beginning for 64 bit machine. Building 64-bit packages requires a
 #     64 bit machine.
+# Revised 2016-12-08 by Bill Martin
+#   - Add xenial and yakkety to OSRELEASES and UBUNTU_SUITES
+#   - Added build-essential to the DEVTOOLS list
+#   - Add "serena" to LinuxMint DIST aliases
+
 
 AID_GITURL="https://github.com/adapt-it/adaptit.git"
 PBUILDFOLDER=${PBUILDFOLDER:-$HOME/pbuilder}
 PROJECTS_DIR="$HOME/projects"	# AID development default file location for the adaptit repo
 PACKAGING_DIR="$HOME/packaging"      # default location for the packaging copy of the adaptit repo
-OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty utopic vivid wily sid"}
-DEVTOOLS="ubuntu-dev-tools debhelper pbuilder libtool quilt git subversion"
+OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty utopic vivid wily xenial yakkety sid"}
+DEVTOOLS="build-essential ubuntu-dev-tools debhelper pbuilder libtool quilt git subversion"
 BUILDDEPS="libwxgtk2.8-dev zip uuid-dev libcurl3-gnutls-dev"
 
 # The building of 64 bit packages requires that we are using a 64-bit architecture machine
@@ -55,7 +60,7 @@ then
   echo -e "\nScript was called without parameters."
   echo "Script Usage:"
   echo "  ./release.sh <tagged-release-number> \"<distro-names>\""
-  echo "for example:  ./release.sh 6.5.9 \"precise trusty vivid wily\""
+  echo "for example:  ./release.sh 6.8.1 \"precise trusty xenial\""
   echo "Notes: The tagged release number must be a valid up-to-date git tag in the repo"
   echo "       You can use the tagretag.sh script to create a current git tag if needed"
   echo "       Use quotes on distro names string if more than one distro is given"
@@ -78,7 +83,7 @@ DEBIAN_SUITES=($UNSTABLE_CODENAME $TESTING_CODENAME $STABLE_CODENAME \
     "experimental" "unstable" "testing" "stable")
 
 # List of Ubuntu suites. Update these when needed.
-UBUNTU_SUITES=("wily" "vivid" "utopic" "trusty" "saucy" "raring" "quantal" \
+UBUNTU_SUITES=("yakkety" "xenial" "wily" "vivid" "utopic" "trusty" "saucy" "raring" "quantal" \
     "precise" "oneiric" "natty" "maverick" "lucid" "karmic" "jaunty" \
     "intrepid" "hardy" "gutsy")
 
@@ -123,6 +128,9 @@ case "$DIST" in
         DIST="trusty"
         ;;
     "sarah")
+        DIST="xenial"
+        ;;
+    "serena")
         DIST="xenial"
         ;;
 esac
@@ -220,6 +228,9 @@ case "$DIST" in
         DIST="trusty"
         ;;
     "sarah")
+        DIST="xenial"
+        ;;
+    "serena")
         DIST="xenial"
         ;;
 esac
