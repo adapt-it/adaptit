@@ -446,7 +446,7 @@ public:
 							bool bTokenizingTargetText);
 							// from the remaining inline marker set (but excluding \f* and
 							// \x* and any others beginning with \f or \x)
-	int CAdapt_ItDoc::ParseWord2(
+	int ParseWord2(
 			wxChar *pChar,
 			wxChar* pEnd,
 			CSourcePhrase* pSrcPhrase,

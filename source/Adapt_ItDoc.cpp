@@ -14614,7 +14614,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		wxASSERT(pSrcPhrase != NULL);
 		sequNumber++;
 		pSrcPhrase->m_nSequNumber = sequNumber; // number it in sequential order
-		/*										//*
+		/*
 #ifdef _DEBUG
 		{
 			if (pSrcPhrase->m_nSequNumber == 2)
@@ -26752,6 +26752,7 @@ int	CAdapt_ItDoc::ParseWordProper(
 	if (pSrcPhrase->m_nSequNumber == 25)
 	{
 		int break_here = 1;
+        break_here = break_here; // avoid gcc warning
 	}
 #endif
 
@@ -29039,7 +29040,9 @@ int CAdapt_ItDoc::ParseWord2(
 	wxString wholeMkrPlusSpace;	//bool bExitParseWordOnReturn = FALSE;
 	int nFound = wxNOT_FOUND;
 	bool bHasPrecPunct = FALSE;
-	bool bParsedInlineBindingMkr = FALSE;
+    bHasPrecPunct = bHasPrecPunct; // avoid gcc warning
+	bool bParsedInlineBindingMkr = FALSE; // avoid gcc warning
+    bParsedInlineBindingMkr = bParsedInlineBindingMkr;
 	// BEW 24Oct14 added next two lines for USFM nested marker support when parsing
 	wxString tagOnly;
 	bool bIsNestedMkr = FALSE;
@@ -29238,7 +29241,8 @@ int CAdapt_ItDoc::ParseWord2(
 		if (pSrcPhrase->m_nSequNumber == 0)
 		{
 			int break_here = 1;
-		}
+            break_here = break_here; // avoid gcc warning
+        }
 	}
 #endif 
 	//*/
@@ -29536,7 +29540,8 @@ int CAdapt_ItDoc::ParseWord2(
 	if (pSrcPhrase->m_nSequNumber == 0)
 	{
 		int break_here = 1;
-	}
+        break_here = break_here; // avoid gcc warning
+    }
 #endif
 
 	if (bWordJoiningFixedSpaceEncountered)
@@ -29772,6 +29777,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 	if (pSrcPhrase->m_nSequNumber == 0)
 	{
 		int break_here = 1;
+        break_here = break_here; // avoid gcc warning
 	}
 #endif
 
@@ -29874,7 +29880,8 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 		if (iterationCount >= 3)
 		{
 			int break_here = 1;
-		}
+            break_here = break_here; // avoid gcc warning
+        }
 #endif
 
 		// Now we handle the less common, or common but complex, post-word stuff. 
@@ -30418,7 +30425,8 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 			if (pSrcPhrase->m_nSequNumber == 1)
 			{
 				int break_here = 1;
-			}
+                break_here = break_here; // avoid gcc warning
+            }
 #endif
 			// Parse across punctuation. This stuff will be stored in m_follPuncts, 
 			// but if \x*, \f*, or \fe* has already been stored in m_endMarkers, then
