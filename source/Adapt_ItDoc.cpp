@@ -28978,6 +28978,25 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	return len;
 }
 
+// Return TRUE if a \x .... \x* section, or a \f ...... \f* section gets filtered 
+// within the scope of this function call; such filtering will alter the pChar 
+// value passed back to the caller. Call it from within the loop within 
+// ParsePostWordStuff(). Return FALSE if pChar is at \x or \f or \fe and the
+// one it is at is not currently designated for filtering.
+// (We also support \fe ... \fe*  endnotes, though not mentioned in the function
+// name.)
+bool CAdapt_ItDoc::DoPostwordXrefOrFootnoteFiltering(CSourcePhrase* pSrcPhrase, 
+			wxChar* pChar, wxChar* pEnd, bool& bXref_Footnote_orEndnoteStored)
+{
+
+
+
+
+
+	return TRUE;
+}
+
+
 
 int CAdapt_ItDoc::ParseWord2(
 	wxChar *pChar,

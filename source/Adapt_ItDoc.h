@@ -326,6 +326,8 @@ public:
 	void			DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired);
 	bool			DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDialog = TRUE);
+	bool			DoPostwordXrefOrFootnoteFiltering(CSourcePhrase* pSrcPhrase, wxChar* pChar, 
+							wxChar* pEnd, bool& bXref_Footnote_orEndnoteStored);
 	bool			DoTransformedDocFileSave(wxString path);
 	void			EraseKB(CKB* pKB);
 	bool			FilenameClash(wxString& typedName); // BEW added 22July08 to 
