@@ -43,7 +43,6 @@ VersionInfoDescription=Adapt It WX Unicode
 UsePreviousGroup=false
 UsePreviousAppDir=false
 DisableWelcomePage=true
-WizardImageBackColor=clWhite
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
