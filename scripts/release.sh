@@ -179,7 +179,7 @@ APTCACHEHARDLINK=no
 #DEPDIR=~/pbuilder/deps
 #OTHERMIRROR="deb file://"$DEPDIR" ./"
 #BINDMOUNTS=$DEPDIR
-HOOKDIR=~/pbuilder/hooks
+HOOKSDIR=/hooks
 #EXTRAPACKAGES="apt-utils"
 
 if [ x"$DIST" = x"lucid" ];then
@@ -189,16 +189,18 @@ fi
 EOF
 
 # Install pbuilder hook to add a distro suffix to package versions
-mkdir -p ${PBUILDFOLDER}/hooks
-if [ ! -f ${PBUILDFOLDER}/hooks/A05suffix ]; then
-echo -e "\nCreating A05suffix hook file at: $PBUILDFOLDER/hooks/"
-  cat >${PBUILDFOLDER}/hooks/A05suffix <<"EOF"
+mkdir -p ${PBUILDFOLDER}$HOOKSDIR
+if [ ! -f ${PBUILDFOLDER}$HOOKSDIR/A05suffix ]; then
+echo -e "\nCreating A05suffix hook file at: $PBUILDFOLDER$HOOKSDIR/"
+  cat >${PBUILDFOLDER}$HOOKSDIR/A05suffix <<"EOF"
 #!/bin/bash
 # pbuilder hook for adding distro name to package version
 #
 # Neil Mayhew - 2010-12-08
 # Jonathan Marsden - 2012-09-23 Added sed and changed build location
 # whm - 2015-06-24 Tweaked to recognize LinuxMint DIST aliases
+# whm - 2016-04-20 Added rosa => trusty and sarah => xenial DISTs
+# whm - 2016-12-09 Added serena => xenial DIST
 
 TYPE=$(lsb_release -si)
 if [ x"$TYPE" = x"LinuxMint" ]; then
@@ -257,10 +259,10 @@ EOF
   read -p "What is your DEBFULLNAME for authentication in debian packaging? " DebFullName
   read -p "What is your DEBEMAIL for authentication in debian packaging? " DebEmail
   # Replace current value of DEBFULLNAME with user-specified $DebFillName value
-  sed -i "s/\(DEBFULLNAME *= *\).*/\1\"$DebFullName\"/" ${PBUILDFOLDER}/hooks/A05suffix
-  # Replace current value of DEBFULLNAME with user-specified $DebFillName value
-  sed -i "s/\(DEBEMAIL *= *\).*/\1\"$DebEmail\"/" ${PBUILDFOLDER}/hooks/A05suffix
-  chmod 0755 ${PBUILDFOLDER}/hooks/A05suffix
+  sed -i "s/\(DEBFULLNAME *= *\).*/\1\"$DebFullName\"/" ${PBUILDFOLDER}$HOOKSDIR/A05suffix
+  # Replace current value of DEBEMAIL with user-specified $DebEmail value
+  sed -i "s/\(DEBEMAIL *= *\).*/\1\"$DebEmail\"/" ${PBUILDFOLDER}$HOOKSDIR/A05suffix
+  chmod 0755 ${PBUILDFOLDER}$HOOKSDIR/A05suffix
   export DEBFULLNAME="$DebFullName"
   export DEBEMAIL="$DebEmail"
 fi

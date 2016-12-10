@@ -14,6 +14,7 @@
 #   sources so the newest version of CodeBlocks can be installed.
 #   06Oct2016 - added the build-essential package to AID_DEV_TOOLS_OLD and AID_DEV_TOOLS_NEW
 #     to correct failure to build AI on systems without the g++ compiler.
+# Revision: 10December2016 whm added support for Linux Mint up to Serena.
 #
 # Setup AID development tools
 echo "Seting up AID Tools..."
@@ -33,15 +34,15 @@ AID_DEV_TOOLS_NEW="codeblocks poedit git gnome-common libgtk-3-0-dbg libgtk-3-de
 # otherwise you get: apt-get error: wx2.8-i18n : Conflicts: wx-i18n
 # Removed libgnomeprintui2.2-dev from AID_DEV_TOOLS... list above (it's not in 14.04 and not really needed)
 supportedDistIDs="LinuxMint Ubuntu"
-supportedCodenames="maya qiana rebecca rafaela rosa sarah precise trusty utopic vivid wily xenial"
+supportedCodenames="maya qiana rebecca rafaela rosa sarah precise trusty utopic vivid wily xenial yakkety"
 echo -e "\nDetermine if system is LinuxMint or Ubuntu and its Codename"
 # Determine whether we are setting up a LinuxMint/Wasta system or a straight Ubuntu system
 # The 'lsb_release -is' command returns "LinuxMint" on Mint systems and "Ubuntu" on Ubuntu systems.
 distID=`lsb_release -is`
 echo "  This system is: $distID"
 # Determine what the Codename is of the system
-# The 'lsb_release -cs' command returns "maya", "qiana", "rebecca", "rafaela", "rosa", "sarah" on Mint LTS systems, 
-#   and "precise", "trusty", "utopic", "vivid", "wily", "xenial" on Ubuntu systems"
+# The 'lsb_release -cs' command returns "maya", "rafaela", "rosa", "sarah", "serena" on Mint LTS systems, 
+#   and "precise", "trusty", "utopic", "vivid", "wily", "xenial", "yakkety" on Ubuntu systems"
 distCodename=`lsb_release -cs`
 echo "  The Codename is: $distCodename"
 if echo "$supportedDistIDs" | grep -q "$distID"; then
@@ -60,7 +61,7 @@ fi
 
 # Ensure the apt repository is setup for the SIL repository using the proper Codename.
 # On LinuxMint/Wasta systems, the Codename for the SIL repo must use the Ubuntu equivalent 
-#   LTS Codename, i.e., "precise" for maya, or "trusty" for qiana, rebecca, or rafaela.
+# LTS Codename, i.e., "precise" for maya, or "trusty" for qiana, rebecca, rafaela, rosa, "xenial" for sarah, serena.
 case $distCodename in
   "maya")
   distCodename="precise"
@@ -78,6 +79,9 @@ case $distCodename in
   distCodename="trusty"
   ;;
   "sarah")
+  distCodename="xenial"
+  ;;
+  "serena")
   distCodename="xenial"
   ;;
 esac
@@ -148,7 +152,6 @@ case $distCodename in
         $APT_SOURCES
   ;;
   "xenial")
-    # TODO: Check/Modify if xenial differs from trusty above
     # 
     sudo sed -i -e '$a deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu xenial main' \
         -i -e '\@deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu xenial main@d' \
@@ -204,6 +207,7 @@ sudo apt-get -q update
 
 # Install tools for development work focusing on Adapt It Desktop (AID)
 echo -e "\nInstalling AIM development tools for $distCodename..."
+# When next LTS after xenial arrives we need to include it in test below
 if [ "$distCodename" = "xenial" ]; then
   sudo apt-get install $AID_DEV_TOOLS_NEW -y
 else
