@@ -47919,9 +47919,9 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
     bool bFoundFaceName = FALSE;
 
     int srcPointSize = m_pSourceFont->GetPointSize();
-    wxFontFamily srcFamily = m_pSourceFont->GetFamily();
-    wxFontStyle srcStyle = m_pSourceFont->GetStyle();
-    wxFontWeight srcWeight = m_pSourceFont->GetWeight();
+    wxFontFamily srcFamily = (wxFontFamily)m_pSourceFont->GetFamily();
+    wxFontStyle srcStyle = (wxFontStyle)m_pSourceFont->GetStyle();
+    wxFontWeight srcWeight = (wxFontWeight)m_pSourceFont->GetWeight();
     bool srcUnderlined = m_pSourceFont->GetUnderlined();
 
     bFoundFaceName = m_pSourceFont->SetFaceName(Facename[0]);
@@ -48004,9 +48004,9 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
     }
 
     int tgtPointSize = m_pTargetFont->GetPointSize();
-    wxFontFamily tgtFamily = m_pTargetFont->GetFamily();
-    wxFontStyle tgtStyle = m_pTargetFont->GetStyle();
-    wxFontWeight tgtWeight = m_pTargetFont->GetWeight();
+    wxFontFamily tgtFamily = (wxFontFamily)m_pTargetFont->GetFamily();
+    wxFontStyle tgtStyle = (wxFontStyle)m_pTargetFont->GetStyle();
+    wxFontWeight tgtWeight = (wxFontWeight)m_pTargetFont->GetWeight();
     bool tgtUnderlined = m_pTargetFont->GetUnderlined();
 
     bFoundFaceName = m_pTargetFont->SetFaceName(Facename[1]);
@@ -48089,9 +48089,9 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
     }
 
     int navPointSize = m_pNavTextFont->GetPointSize();
-    wxFontFamily navFamily = m_pNavTextFont->GetFamily();
-    wxFontStyle navStyle = m_pNavTextFont->GetStyle();
-    wxFontWeight navWeight = m_pNavTextFont->GetWeight();
+    wxFontFamily navFamily = (wxFontFamily)m_pNavTextFont->GetFamily();
+    wxFontStyle navStyle = (wxFontStyle)m_pNavTextFont->GetStyle();
+    wxFontWeight navWeight = (wxFontWeight)m_pNavTextFont->GetWeight();
     bool navUnderlined = m_pNavTextFont->GetUnderlined();
 
     bFoundFaceName = m_pNavTextFont->SetFaceName(Facename[2]);

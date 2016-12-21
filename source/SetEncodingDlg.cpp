@@ -625,7 +625,11 @@ void FontDisplayCanvas::OnPaint( wxPaintEvent &WXUNUSED(event) )
     PrepareDC(dc);
 
     // set background
+#if wxCHECK_VERSION(2,9,0)					
     dc.SetBackground(wxBrush(wxT("white"), wxBRUSHSTYLE_SOLID)); // white background
+#else
+    dc.SetBackground(wxBrush(wxT("white"), wxSOLID)); // white background
+#endif
 	//dc.SetBackground(wxBrush(wxColour(255,255,125), wxBRUSHSTYLE_SOLID)); // yellow background
     dc.Clear();
 
@@ -667,9 +671,17 @@ void FontDisplayCanvas::OnPaint( wxPaintEvent &WXUNUSED(event) )
 				//dc.SetTextBackground(wxColour(255,255,0)); // yellow background
 				//dc.Clear();
 				//dc.SetBackground(wxBrush(wxColour(255,255,125), wxBRUSHSTYLE_SOLID)); // yellow brush for the rectangle's fill color
+#if wxCHECK_VERSION(2,9,0)					
 				dc.SetPen(wxPen(wxColour(*wxRED), 3, wxPENSTYLE_SOLID)); // red outline 3 pixels thick for the rectangle
+#else
+				dc.SetPen(wxPen(wxColour(*wxRED), 3, wxSOLID)); // red outline 3 pixels thick for the rectangle
+#endif
 				wxColour clr(255, 255, 128);
+#if wxCHECK_VERSION(2,9,0)					
 				wxBrush yellowBrush(clr, wxBRUSHSTYLE_SOLID);
+#else
+				wxBrush yellowBrush(clr, wxSOLID);
+#endif
 				dc.SetBrush(yellowBrush);
 				dc.DrawRectangle(startCoordx + cellWidth*columnCount-3,startCoordy + cellHeight*rowCount-3,
 					cellWidth+3,cellHeight+3);
@@ -720,7 +732,11 @@ void FontDisplayCanvas::OnPaint( wxPaintEvent &WXUNUSED(event) )
     }
 
     // draw the lines between them in blue
+#if wxCHECK_VERSION(2,9,0)					
     dc.SetPen(wxPen(wxColour(*wxLIGHT_GREY), 1, wxPENSTYLE_SOLID)); // light grey lines
+#else
+    dc.SetPen(wxPen(wxColour(*wxLIGHT_GREY), 1, wxSOLID)); // light grey lines
+#endif
     int lineCount;
 
     // horizontal

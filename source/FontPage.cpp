@@ -208,9 +208,9 @@ void CFontPageCommon::DoInit()
 	strTemp.Printf(_T("%d"),tempNavTextSize);
 	pNavFontSizeBox->SetValue(strTemp);
 
-	tempSourceFontStyle = gpApp->m_pSourceFont->GetStyle();
-	tempTargetFontStyle = gpApp->m_pTargetFont->GetStyle();
-	tempNavTextFontStyle = gpApp->m_pNavTextFont->GetStyle();
+	tempSourceFontStyle = (wxFontStyle)gpApp->m_pSourceFont->GetStyle();
+	tempTargetFontStyle = (wxFontStyle)gpApp->m_pTargetFont->GetStyle();
+	tempNavTextFontStyle = (wxFontStyle)gpApp->m_pNavTextFont->GetStyle();
 
 	tempSourceFontWeight = (wxFontWeight)gpApp->m_pSourceFont->GetWeight();
 	tempTargetFontWeight = (wxFontWeight)gpApp->m_pTargetFont->GetWeight();
@@ -412,7 +412,7 @@ void CFontPageCommon::DoSourceFontChangeBtn(wxWindow* parent)
 		pSrcFontSizeBox->SetValue(strTemp);
 
 		// get the style and weight too
-		tempSourceFontStyle = tempSrcFont.GetStyle();
+		tempSourceFontStyle = (wxFontStyle)tempSrcFont.GetStyle();
 		tempSourceFontWeight = (wxFontWeight)tempSrcFont.GetWeight();
 	}
 }
@@ -447,7 +447,7 @@ void CFontPageCommon::DoTargetFontChangeBtn(wxWindow* parent)
 		pTgtFontSizeBox->SetValue(strTemp);
 
 		// get the style and weight too
-		tempTargetFontStyle = tempTgtFont.GetStyle();
+		tempTargetFontStyle = (wxFontStyle)tempTgtFont.GetStyle();
 		tempTargetFontWeight = (wxFontWeight)tempTgtFont.GetWeight();
 	}
 }
@@ -482,7 +482,7 @@ void CFontPageCommon::DoNavTextFontChangeBtn(wxWindow* parent)
 		pNavFontSizeBox->SetValue(strTemp);
 
 		// get the style and weight too
-		tempNavTextFontStyle = tempNavFont.GetStyle();
+		tempNavTextFontStyle = (wxFontStyle)tempNavFont.GetStyle();
 		tempNavTextFontWeight = (wxFontWeight)tempNavFont.GetWeight();
 	}
 }
