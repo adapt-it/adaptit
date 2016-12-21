@@ -24407,7 +24407,7 @@ void CAdapt_ItApp::InitializeFonts()
     // We don't specify the face name nor the family here as we want to use whatever
     // the GetFont() call above gave us as a system font for the current platform.
     m_pSourceFont->SetPointSize(12); // 12 point
-    m_pSourceFont->SetWeight(wxBOLD);
+    m_pSourceFont->SetWeight(wxFONTWEIGHT_BOLD);
     m_sourceColor = wxColour(0, 0, 255); // bright blue "16711680"
                                          // It is necessary to call the font data's SetColour() function to effect color change
     m_pSrcFontData->SetColour(m_sourceColor);
@@ -24417,7 +24417,7 @@ void CAdapt_ItApp::InitializeFonts()
     // We don't specify the face name nor the family here as we want to use whatever
     // the GetFont() call above gave us as a system font for the current platform.
     m_pTargetFont->SetPointSize(12); // 12 point
-    m_pTargetFont->SetWeight(wxBOLD);
+    m_pTargetFont->SetWeight(wxFONTWEIGHT_BOLD);
     m_targetColor = wxColour(0, 0, 0); // black
                                        // It is necessary to call the font data's SetColour() function to effect color change
     m_pTgtFontData->SetColour(m_targetColor); //
@@ -24427,7 +24427,7 @@ void CAdapt_ItApp::InitializeFonts()
                                               // We don't specify the face name nor the family here as we want to use whatever
                                               // the GetFont() call above gave us as a system font for the current platform.
     m_pNavTextFont->SetPointSize(11); // make it 11 pt - a little smaller
-    m_pNavTextFont->SetWeight(wxBOLD);
+    m_pNavTextFont->SetWeight(wxFONTWEIGHT_BOLD);
     m_navTextColor = wxColour(0, 255, 0); //bright green "65280"
                                           // It is necessary to call the font data's SetColour() function to effect color change
     m_pNavFontData->SetColour(m_navTextColor); //
@@ -32835,19 +32835,20 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
                            // save it out to config file again
             fi.fWeightConfSave = num;
             // wxWidgets needs the predefined const value for Weight
+            wxFontWeight fw = wxFONTWEIGHT_NORMAL;
             if (num >= 400 && num < 500)
-                fi.fWeight = wxLIGHT;
+                fw = wxFONTWEIGHT_LIGHT;
             else if (num >= 500 && num < 700)
-                fi.fWeight = wxNORMAL;
+                fw = wxFONTWEIGHT_NORMAL;
             else if (num >= 700)
-                fi.fWeight = wxBOLD;
+                fw = wxFONTWEIGHT_BOLD;
             // set the weight of the actual font on the App
             if (fi.fLangType.GetChar(0) == _T('S'))
-                m_pSourceFont->SetWeight(fi.fWeight);
+                m_pSourceFont->SetWeight(fw);
             else if (fi.fLangType.GetChar(0) == _T('T'))
-                m_pTargetFont->SetWeight(fi.fWeight);
+                m_pTargetFont->SetWeight(fw);
             else if (fi.fLangType.GetChar(0) == _T('N'))
-                this->m_pNavTextFont->SetWeight(fi.fWeight);
+                this->m_pNavTextFont->SetWeight(fw);
         }
         else if (name == szWidth)
         {
@@ -32873,6 +32874,7 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
         }
         else if (name == szItalic)
         {
+        	wxFontStyle fs = wxFONTSTYLE_NORMAL;
             num = wxAtoi(strValue);
             //if (!(num == 0 || num == 255)) // TRUE if italic, regular is FALSE
             // BEW 18Feb16 removed the ! from the above test, it had the effect
@@ -32881,16 +32883,16 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
             if (num == 0 || num == 255) // TRUE if italic, regular is FALSE
                 num = 0; // regular
             if (num == 0)
-                fi.fStyle = wxNORMAL; // = 90 (decimal) ie. wxFONTSTYLE_NORMAL
+                fs = wxFONTSTYLE_NORMAL; // = 90 (decimal) ie. wxFONTSTYLE_NORMAL
             else
-                fi.fStyle = wxITALIC; // = 93 (decimal) ie. wxFONTSTYLE_ITALIC
+                fs = wxFONTSTYLE_ITALIC; // = 93 (decimal) ie. wxFONTSTYLE_ITALIC
                                       // set the style (normal or italic) of the actual font on the App
             if (fi.fLangType.GetChar(0) == _T('S'))
-                m_pSourceFont->SetStyle(fi.fStyle);
+                m_pSourceFont->SetStyle(fs);
             else if (fi.fLangType.GetChar(0) == _T('T'))
-                m_pTargetFont->SetStyle(fi.fStyle);
+                m_pTargetFont->SetStyle(fs);
             else if (fi.fLangType.GetChar(0) == _T('N'))
-                this->m_pNavTextFont->SetStyle(fi.fStyle);
+                this->m_pNavTextFont->SetStyle(fs);
         }
         else if (name == szStrikeOut)
         {
@@ -32948,25 +32950,26 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
                 num = 2; // all bytes can be used, usual value is 2
             fi.fPitchAndFamily = num; // this one saved in conf file; fFamily used within program
                                       // wxWidgets is only interested in the family which is encoded in bits 4-7
+            wxFontFamily ff = wxFONTFAMILY_DEFAULT;
             wxUint32 FF;
             FF = num & 0xF0; // mask out the 4 low order bits
             switch (FF)
             {
-            case 1: fi.fFamily = wxROMAN; break;			//1 = FF_ROMAN
-            case 2: fi.fFamily = wxSWISS; break;			//2 = FF_SWISS
-            case 3: fi.fFamily = wxMODERN; break;		//3 = FF_MODERN
-            case 4: fi.fFamily = wxSCRIPT; break;		//4 = FF_SCRIPT
-            case 5: fi.fFamily = wxDECORATIVE; break;	//5 = FF_DECORATIVE
-            case 0: fi.fFamily = wxDEFAULT; break;		//0 = FF_DONTCARE
-            default: fi.fFamily = wxDEFAULT;
+            case 1: ff = wxFONTFAMILY_ROMAN; break;			//1 = FF_ROMAN
+            case 2: ff = wxFONTFAMILY_SWISS; break;			//2 = FF_SWISS
+            case 3: ff = wxFONTFAMILY_MODERN; break;		//3 = FF_MODERN
+            case 4: ff = wxFONTFAMILY_SCRIPT; break;		//4 = FF_SCRIPT
+            case 5: ff = wxFONTFAMILY_DECORATIVE; break;	//5 = FF_DECORATIVE
+            case 0: ff = wxFONTFAMILY_DEFAULT; break;		//0 = FF_DONTCARE
+            default: ff = wxFONTFAMILY_DEFAULT;
             }
             // set the family of the actual font on the App
             if (fi.fLangType.GetChar(0) == _T('S'))
-                m_pSourceFont->SetFamily(fi.fFamily);
+                m_pSourceFont->SetFamily(ff);
             else if (fi.fLangType.GetChar(0) == _T('T'))
-                m_pTargetFont->SetFamily(fi.fFamily);
+                m_pTargetFont->SetFamily(ff);
             else if (fi.fLangType.GetChar(0) == _T('N'))
-                this->m_pNavTextFont->SetFamily(fi.fFamily);
+                this->m_pNavTextFont->SetFamily(ff);
         }
         else if (name == szFontEncoding) // if present in config file,
                                          // this should preceed szCharset
@@ -44284,15 +44287,15 @@ void CAdapt_ItApp::UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo)
     //fInfo.fOrientation = 0; // orientation ignored in wxWidgets, so leave current value
     switch (font->GetWeight())
     {
-    case wxLIGHT:
+    case wxFONTWEIGHT_LIGHT:
         fInfo.fWeight = 400;
         fInfo.fWeightConfSave = 400;
         break; // same as normal
-    case wxNORMAL:
+    case wxFONTWEIGHT_NORMAL:
         fInfo.fWeight = 400;
         fInfo.fWeightConfSave = 400;
         break;
-    case wxBOLD:
+    case wxFONTWEIGHT_BOLD:
         fInfo.fWeight = 700;
         fInfo.fWeightConfSave = 700;
         break;
@@ -44300,9 +44303,9 @@ void CAdapt_ItApp::UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo)
         fInfo.fWeight = 700;
         fInfo.fWeightConfSave = 700;
     }
-    if (font->GetStyle() == wxNORMAL)
+    if (font->GetStyle() == wxFONTSTYLE_NORMAL)
         fInfo.fItalic = 0;
-    else if (font->GetStyle() == wxITALIC || font->GetStyle() == wxSLANT)
+    else if (font->GetStyle() == wxFONTSTYLE_ITALIC || font->GetStyle() == wxFONTSTYLE_SLANT)
         fInfo.fItalic = 1;
     if (font->GetUnderlined())
         fInfo.fUnderline = 1;
@@ -47916,9 +47919,9 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
     bool bFoundFaceName = FALSE;
 
     int srcPointSize = m_pSourceFont->GetPointSize();
-    int srcFamily = m_pSourceFont->GetFamily();
-    int srcStyle = m_pSourceFont->GetStyle();
-    int srcWeight = m_pSourceFont->GetWeight();
+    wxFontFamily srcFamily = m_pSourceFont->GetFamily();
+    wxFontStyle srcStyle = m_pSourceFont->GetStyle();
+    wxFontWeight srcWeight = m_pSourceFont->GetWeight();
     bool srcUnderlined = m_pSourceFont->GetUnderlined();
 
     bFoundFaceName = m_pSourceFont->SetFaceName(Facename[0]);
@@ -48001,9 +48004,9 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
     }
 
     int tgtPointSize = m_pTargetFont->GetPointSize();
-    int tgtFamily = m_pTargetFont->GetFamily();
-    int tgtStyle = m_pTargetFont->GetStyle();
-    int tgtWeight = m_pTargetFont->GetWeight();
+    wxFontFamily tgtFamily = m_pTargetFont->GetFamily();
+    wxFontStyle tgtStyle = m_pTargetFont->GetStyle();
+    wxFontWeight tgtWeight = m_pTargetFont->GetWeight();
     bool tgtUnderlined = m_pTargetFont->GetUnderlined();
 
     bFoundFaceName = m_pTargetFont->SetFaceName(Facename[1]);
@@ -48086,9 +48089,9 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
     }
 
     int navPointSize = m_pNavTextFont->GetPointSize();
-    int navFamily = m_pNavTextFont->GetFamily();
-    int navStyle = m_pNavTextFont->GetStyle();
-    int navWeight = m_pNavTextFont->GetWeight();
+    wxFontFamily navFamily = m_pNavTextFont->GetFamily();
+    wxFontStyle navStyle = m_pNavTextFont->GetStyle();
+    wxFontWeight navWeight = m_pNavTextFont->GetWeight();
     bool navUnderlined = m_pNavTextFont->GetUnderlined();
 
     bFoundFaceName = m_pNavTextFont->SetFaceName(Facename[2]);

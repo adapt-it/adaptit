@@ -743,7 +743,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				{
 					// BEW 27Mar10, a new use for pastel blue, filtered info which
 					// includes collected back translation information
-					pDC->SetPen(wxPen(wxColour(145,145,255), 1, wxSOLID));
+					pDC->SetPen(wxPen(wxColour(145,145,255), 1, wxPENSTYLE_SOLID));
 				}
 				else if (bFreeHasNoContent && bBackHasNoContent && m_pSrcPhrase->m_bHasNote)
 				{
@@ -756,7 +756,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 					if (bFreeHasNoContent)
 					{
 						// colour it khaki
-						pDC->SetPen(wxPen(wxColour(160,160,0), 1, wxSOLID));
+						pDC->SetPen(wxPen(wxColour(160,160,0), 1, wxPENSTYLE_SOLID));
 					}
 				}
 				else if (bFreeHasNoContent && bBackHasNoContent && !m_pSrcPhrase->m_bHasNote)
@@ -982,7 +982,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
             // the colour is really black on monochrome displays, i.e., the OLPC screen in
             // Black & White mode. In contrast, wxWidgets shows all non-white pens as black
             // on monochrome displays.
-			pDC->SetBrush(wxBrush(wxColour(254,218,100),wxSOLID));
+			pDC->SetBrush(wxBrush(wxColour(254,218,100),wxBRUSHSTYLE_SOLID));
 			pDC->SetPen(*wxBLACK_PEN); // black - whm added 20Nov06
 			wxRect insides(ptNote.x,ptNote.y,ptNote.x + 9,ptNote.y + 9);
 			// MFC CDC::Rectangle() draws a rectangle using the current pen and fills the
