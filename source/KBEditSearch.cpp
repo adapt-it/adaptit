@@ -948,6 +948,14 @@ void KBEditSearch::OnChangeLocalSearchText(wxCommandEvent& WXUNUSED(event))
 
 void KBEditSearch::OnMatchListSelectItem(wxCommandEvent& event)
 {
+    // whm 23Dec2016 added the following test as precaution to avoid same problem as encountered in OnUpdateListSelectItem() method below.
+    // This OnMatchListSelectItem() method doesn't seem to get executed before InitDialog() is executed (running against WX3.x, but just t
+    // o be safe we'll do the test here too.
+    if (!bInitDialogCalled)
+    {
+        return; // abort if InitDialog() hasn't been called (avoid crash on Linux with wx3.x)
+    }
+
 	// get the index to the KBMatchRecord pointer stored in m_pKBMatchRecordArray
 	m_nCurMatchListIndex = event.GetSelection();
 	SetMatchListSelection(m_nCurMatchListIndex);
