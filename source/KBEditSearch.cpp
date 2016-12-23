@@ -106,6 +106,9 @@ KBEditSearch::KBEditSearch(wxWindow* parent) // dialog constructor
 	bOK = bOK; // avoid warning (keep this line as is)
 	pKBEditorDlg = (CKBEditor*)parent;
 	m_pKB = NULL;
+
+    bInitDialogCalled = FALSE; // whm 23Dec2016 added to prevent wx3.x on Linux from making spurious call to OnUpdateListSelectItem before InitDialog is called
+
 	//m_pTUList = NULL; // removed BEW 28May10
 
 	// the comparison functions, CompareMatchRecords() and CompareUpdateRecords(), each
@@ -285,6 +288,8 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_bMatchesExist = PopulateMatchLabelsArray(m_pMatchRecordArray, m_pMatchStrArray);
 	PopulateMatchedList(m_pMatchStrArray, m_pMatchRecordArray, m_pMatchListBox);
 	} // waitDlg goes out of scope here
+
+    bInitDialogCalled = TRUE; //// whm 23Dec2016 added to prevent wx3.x on Linux from making spurious call to OnUpdateListSelectItem before InitDialog is called 
 }
 
 bool KBEditSearch::PopulateMatchLabelsArray(KBMatchRecordArray* pMatchRecordArray, 
@@ -1046,6 +1051,12 @@ void KBEditSearch::OnBnClickedUpdate(wxCommandEvent& WXUNUSED(event))
 
 void KBEditSearch::OnUpdateListSelectItem(wxCommandEvent& event)
 {
+    // whm 23Dec2016 added following test to prevent wx3.x on Linux from making spurious call to OnUpdateListSelectItem before InitDialog is called 
+    if (!bInitDialogCalled)
+    {
+        return; // abort if InitDialog() hasn't been called (avoid crash on Linux with wx3.x)
+    }
+
 	// get the index of the selection
 	m_nCurUpdateListIndex = event.GetSelection();
 
@@ -1133,4 +1144,5 @@ void KBEditSearch::OnEnterInEditBox(wxCommandEvent& WXUNUSED(event))
 	wxCommandEvent dummyEvent;
 	OnBnClickedUpdate(dummyEvent);
 }
+
 

@@ -149,6 +149,7 @@ protected:
 	void OnUpdateListDoubleclickItem(wxCommandEvent& event);
 
 private:
+    bool bInitDialogCalled;
 	bool m_bMatchesExist;
 	unsigned int GetUpdateListIndexFromDataPtr(KBUpdateRecord* pCurRecord);
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
@@ -165,3 +166,4 @@ private:
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
 #endif /* KBEditSearch_h */
+
