@@ -34586,9 +34586,13 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
                 if (!data.IsEmpty())
                 {
                     wxString error;
-                    error = error.Format(_(
-                        "Warning: Unrecognized Basic settings field; unmatched name is: %s\n"), name.c_str());
-                    wxMessageBox(error, _T(""), wxICON_INFORMATION | wxOK);
+                    error = error.Format(_T(
+                        "Unrecognized Basic settings field; unmatched name is: %s\n"), name.c_str());
+// whm modified 23Dec2016 Notify the developer in Debug build, but Don't bother the user in release version
+#ifdef _DEBUG
+                    wxMessageBox(error, _T("Developer Debug Message"), wxICON_INFORMATION | wxOK);
+#endif
+                    this->LogUserAction(error); // always log the warning
                 }
             }
     } while (!pf->Eof());
