@@ -14049,9 +14049,12 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
             // no installation of Paratext or Bibledit on the machine, so regardless of whether
             // the bFoundCollabEditor is TRUE or FALSE, the user's computer is not set up to
             // do collaboration. Return that status with collabProjExistsButEditorNotInstalled.
-            wxString msg = _("The Adapt It project \"%s\" has been setup for collaboration, but neither Paratext nor Bibledit are installed on this computer. In order to continue to work on this project, Paratext or Bibledit need to be installed with the necessary projects for collaboration with Adapt It.");
-            msg = msg.Format(msg, m_projectName.c_str());
-            errorStr = msg;
+            // whm 30Dec2016 modified. Return a null errorStr here. Instead compose a more informative
+            // message back in the caller of AiProjectCollabStatus, the CProjectPage:OnWizardPageChanging().
+            //wxString msg = _("The Adapt It project \"%s\" has been setup for collaboration, but neither Paratext nor Bibledit are installed on this computer. In order to continue to work on this project, Paratext or Bibledit need to be installed with the necessary projects for collaboration with Adapt It.");
+            //msg = msg.Format(msg, m_projectName.c_str());
+            //errorStr = msg;
+            errorStr = _T("");;
             return collabProjExistsButEditorNotInstalled;
         }
 
@@ -46251,6 +46254,15 @@ void CAdapt_ItApp::OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event)
         return;
     }
 
+    // whm removed 30Dec2016. Administrator should retain access to a project's collaboration setup 
+    // even if neither editor is installed, which may happen in contexts where a project is copied
+    // from one computer to another. The administrator should at least be able to access the 
+    // Setup or Remove Collaboration dialog to be able to remove collaboration from a project in any
+    // case whether PT or BE installations are present. Therefore always enable if the above
+    // conditions don't return.
+    event.Enable(TRUE);
+
+    /*
     if (m_bParatextIsInstalled || m_bBibleditIsInstalled)
     {
         event.Enable(TRUE);
@@ -46260,6 +46272,7 @@ void CAdapt_ItApp::OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event)
         // Neither PT nor BE are installed so disable the menu
         event.Enable(FALSE);
     }
+    */
 }
 
 
