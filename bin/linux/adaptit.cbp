@@ -119,22 +119,23 @@
 				<Option object_output="obj/ReleaseWX3.0/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="`wx-config  --version=3.0 --unicode=yes --debug=no --cppflags`" />
-					<Add option="-D_UNICODE" />
+					<Add option="`/wx30/buildgtku/wx-config  --version=3.0 --unicode=yes --debug=no --cppflags`" />
+					<Add directory="/wx30/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="`wx-config  --version=3.0 --unicode=yes --with-aui --debug=no --libs`" />
+					<Add option="`/wx30/buildgtku/wx-config  --version=3.0 --unicode=yes --debug=no --libs`" />
 					<Add option="-lcurl -luuid" />
+					<Add library="/wx30/buildgtku/lib/*.*" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-g" />
 			<Add option="-Wno-unused-local-typedefs" />
-			<Add option="-D_KBSERVER" />
 		</Compiler>
 		<ExtraCommands>
 			<Add before="#define __WXGTK__" />
