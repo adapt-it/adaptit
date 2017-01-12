@@ -2,11 +2,11 @@
 # makewx.sh 
 # -- Downloads, configures and builds the Debug and Release versions of the wxWidgets library
 #    The wxWidgets builds are for static linking, monolithic, and without GTK+ Print support.
-# -- Uses checkinstall to build a debian package for our customized wxWidgets 
+# -- Can test the use of checkinstall to build a debian package for our customized wxWidgets 
 # library that was built using the --without-gtkprint flag to force the library to use 
 # Adobe PostScript 2.0 instead of PostScript 3.0 for printing to PostScript printers.
 # Author: Bill Martin <bill_martin@sil.org>
-# Date: 2017-01-09
+# Date: 2017-01-11
 
 WXVER="3.0.2"
 WXDIR="$HOME/wxWidgets-$WXVER"
@@ -17,7 +17,9 @@ SCRIPTNAME="makewx.sh"
 WX302URL="https://sourceforge.net/projects/wxwindows/files/$WXVER/wxWidgets-$WXVER.tar.bz2"
 DEBUGCONFIGOPTIONS="--enable-static --disable-shared --enable-monolithic --without-gtkprint --enable-debug"
 RELEASECONFIGOPTIONS="--enable-static --disable-shared --enable-monolithic --without-gtkprint"
+BUILDS=""
 
+# The following variable definitions are unused except when testing checkinstall
 MAINTAINER="bill_martin@sil.org"
 SUMMARY="wxWidgets library configured --without-gtkprint"
 NAME="wx"
@@ -32,7 +34,6 @@ REQUIRES=""
 PROVIDES="buildgtku"
 CONFLICTS="libwxgtk2.8-0,libwxgtk3.0-0"
 REPLACES="libwxgtk2.8-0,libwxgtk3.0-0"
-BUILDS=""
 
 case $# in
     0) 
@@ -84,6 +85,7 @@ case $distCodename in
 esac
 echo -e "\nThe Modified Codename for Deveopment is: $distCodename"
 
+# Un-Comment the echo calls below when testing checkinstall
 #echo "0 -  Maintainer: [ $MAINTAINER ]"
 #echo "1 -  Summary: [ $SUMMARY ]"
 #echo "2 -  Name:    [ $NAME ]"
@@ -102,7 +104,7 @@ echo -e "\nThe Modified Codename for Deveopment is: $distCodename"
 cd
 
 if [ -f $HOME/$WXGZARCHIVE ]; then
-  echo -e "\nFound wxWidgets-3.0.2.tar.bz2 already in $HOME so will use it"
+  echo -e "\nFound wxWidgets-$WXVER.tar.bz2 already in $HOME so will use it"
   echo -e "\nExpanding the $WXGZARCHIVE archive"
   sleep 2
 else
@@ -166,6 +168,7 @@ for i in $BUILDS; do
   fi
 done
 
+# Comment out the Debug break and exit 0 calls below to test checkinstall
 echo "Debug break"
 exit 0
 
