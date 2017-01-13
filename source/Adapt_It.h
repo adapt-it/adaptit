@@ -302,6 +302,14 @@ inline int GetAISvnVersion()
 #endif
 
 #if wxCHECK_VERSION(2,9,0)
+// whm 13Jan2017 added
+// The wx2.9 and wx3.x libraries enable asserts even in release builds. Use the following
+// macro to disable asserts in release builds.
+#include <wx/debug.h>
+wxDISABLE_ASSERTS_IN_RELEASE_BUILD();
+#endif
+
+#if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling dialog features available in wxWidgets  2.9.x
 #else
 	// The wxWidgets library being used is pre-2.9.x, so use our own modified
