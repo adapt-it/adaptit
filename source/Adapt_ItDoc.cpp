@@ -4932,7 +4932,7 @@ void CAdapt_ItDoc::SetDocVersion(int index)
 	{
 	default: // default to the current doc version number
 	case 0:
-		m_docVersionCurrent = (int)VERSION_NUMBER; // currently #defined as 7 in AdaptitConstant.h
+		m_docVersionCurrent = (int)VERSION_NUMBER; // currently #defined as 9 in AdaptitConstant.h
 		break;
 	case 1:
 		m_docVersionCurrent = (int)DOCVERSION4;  // #defined as 4 in AdaptitConstants.h
@@ -9656,10 +9656,10 @@ int CAdapt_ItDoc::ParseWhiteSpace(wxChar *pChar)
 /// Called from: the Doc's TokenizeText().
 /// Parses through the filtering marker beginning at pChar (the initial backslash).
 /// Upon entry pChar must point to a filtering marker determined by a prior call to
-/// IsAFilteringSFM(). Parsing will include any embedded (inline) markers belonging to the
-/// parent marker.
-/// BEW 9Sep10 removed need for param pBufStart, since only IsMarker() used to use it as
-/// its second param and with docVersion 5 changes that become unnecessary
+/// IsAFilteringSFM(). Parsing will include any embedded (inline) markers belonging
+/// to the parent marker.
+/// BEW 9Sep10 removed need for param pBufStart, since only IsMarker() used to use
+/// it as its second param and with docVersion 5 changes that became unnecessary
 /// BEW additions 24Oct14 for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
@@ -15045,7 +15045,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// these was what bareMkr is (only if the user unfilters them should their
 				// number be seeable and adaptable)
 				if (pUsfmAnalysis != NULL && pUsfmAnalysis->inLine &&
-					bareMkr.Find('f') != 0 && bareMkr.Find('x') != 0 &&
+					bareMkr.Find('f') != 0 && bareMkr.Find('x') != 0 &&  
 					bareMkr.Find(_T("va")) != 0 && bareMkr.Find(_T("vp")) != 0)
 				{
                     // inline markers are known to USFM, so pUsfmAnalysis will not be
@@ -16178,7 +16178,7 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
                     // m_unknownMarkers if it doesn't already exist there
 					int newArrayIndex = -1;
 					if (!MarkerExistsInArrayString(pUnkMarkers, wholeMarker,
-											newArrayIndex)) // 2nd param not used here
+											newArrayIndex)) 
 					{
 						bool bFound = FALSE;
 						// set the filter flag to unfiltered for all unknown markers
@@ -28985,13 +28985,14 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 // one it is at is not currently designated for filtering.
 // (We also support \fe ... \fe*  endnotes, though not mentioned in the function
 // name.)
-bool CAdapt_ItDoc::DoPostwordXrefOrFootnoteFiltering(CSourcePhrase* pSrcPhrase, 
+bool CAdapt_ItDoc::PostwordXrefOrFootnoteFiltering(CSourcePhrase* pSrcPhrase, 
 			wxChar* pChar, wxChar* pEnd, bool& bXref_Footnote_orEndnoteStored)
 {
+	wxASSERT(pSrcPhrase != NULL);
+	wxASSERT(pChar <= pEnd);
+	bXref_Footnote_orEndnoteStored = FALSE;
 
-
-
-
+// TODO  the rest
 
 	return TRUE;
 }
@@ -29864,8 +29865,21 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 	if ((endCondition == backslashofmkr) && IsMarker(ptr) && !IsEndMarker(ptr, pEnd))
 	{
 		// It's a marker which is not an endmarker, so return len value immediately,
-		// because the marker belongs on the next CSourcePhrase instance
-		return len;
+		// because the marker belongs on the next CSourcePhrase instance - except when
+		// we have a word-trailing (and possibly embedded in punctuation \x or \f or
+		// \fe -- we may have to filter one or more of these, so do that in the loop)
+		wxString wholeMkr = GetWholeMarker(ptr);
+		wxString strXRef = _T("\\x");
+		wxString strFNote = _T("\\f");
+		wxString strENote = _T("\\fe");
+		if (!(wholeMkr == strXRef || wholeMkr == strFNote || wholeMkr == strENote))
+		{
+			// Other markers than these are unlikely to be filtered post-word to the
+			// currently being build pSrcPhrase, and are most likely best stored on
+			// the  next CSourcePhrase. But if it's xref or footnote or endnote
+			// then continue to code below for more testing for embeddedness
+			return len;
+		}
 	}
 	if ((endCondition == whitespace) && IsWhiteSpace(ptr) && ((ptr + 1) < pEnd)
 		&& (*(ptr + 1)) == _T(']'))
@@ -30726,6 +30740,104 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 
 	return len;
 }
+
+/// returns				TRUE if marker material is embedded in word final punctuation, but
+///						also we will consider word-final markers which follow the word proper
+///						as 'embedded' and so for them also return TRUE: returning TRUE means
+///						the caller should store to the current CSourcePhrase any of such
+///						marker content which is to be filtered. Otherwise return FALSE,
+///						which means the caller should consider the marker(s) as belonging
+///						to the next CSourcePhrase.
+/// params
+///	pChar		->		pointer to the next bit of text to be parsed - which should be the begin-marker
+///						of the marker content being considerred
+/// pEnd		->		pointer to null following last character in the buffer
+/// numMkrContentSpans  <-  the number of consecutive marker spans parsed over - e.g. \x ...\x*\f ....\f*
+///							would result in 2 being returned here (whitespace, punctuation, ] or buffer end
+///							ends the parse)
+/// bTokenizingTargetText -> True if source text is not what pChar points at, False if it is (some
+///						functions used internally may required knowing which text type we are dealing with)
+bool CAdapt_ItDoc::IsPostWordEmbeddedMarkerMaterial(wxChar *pChar, wxChar* pEnd, int& numMkrContentSpans, 
+													wxChar* endPoint, bool bTokenizingTargetText)
+{
+	numMkrContentSpans = 0; // initialize
+	endPoint = NULL; // initialize
+	wxChar* ptr = pChar; // create an iterator
+	wxASSERT(*pChar == gSFescapechar);
+	wxASSERT(pChar < pEnd);
+	int offsetToMatchedEndmarker = wxNOT_FOUND; // initialize to -1
+	int endMarkerLen = 0; // initialize to 0
+	wxString wholeMkr = GetWholeMarker(ptr);
+	wxASSERT(!wholeMkr.IsEmpty());
+	wxString matchingEndMkr = wxEmptyString;
+	if (IsEndMarker(ptr, pEnd))
+	{
+		// Bad markup so reflect it in the result of the parse
+		return FALSE;
+	}
+	// There could be more than one embedded content marker span, so we'll need a loop.
+	// Filtering of one or more such spans may be required, but that is immaterial to
+	// this function. What we want to know is how many filterable marker spans there are,
+	// and whether or not we should regard them as belonging to the currently being
+	// constructed CSourcePhrase, and where they end. A higher level function wil
+	bool bMatchedEndmarkerExists = FALSE; // initialize
+	do {
+		bMatchedEndmarkerExists = FindMatchingEndMarker(ptr, pEnd, offsetToMatchedEndmarker, endMarkerLen);
+
+
+
+
+
+
+// TODO the innards
+
+
+
+
+
+
+	} while (ptr < pEnd);
+
+
+	return TRUE;
+}
+
+// Return TRUE if a matching endmarker for the beginmarker at pChar was found; return the offset from pChar
+// to the backslash of the endmarker, and the length of that endmarker
+bool CAdapt_ItDoc::FindMatchingEndMarker(wxChar* pChar, wxChar* pEnd, int& offsetToMatchedEndmarker, int& endMarkerLen)
+{
+	wxChar* ptr = pChar; // create an iterator
+	wxASSERT(*pChar == gSFescapechar);
+	wxASSERT(pChar < pEnd);
+	offsetToMatchedEndmarker = wxNOT_FOUND; // initialize to -1
+	endMarkerLen = 0; // initialize to 0
+	wxString wholeMkr = GetWholeMarker(ptr);
+	wxASSERT(!wholeMkr.IsEmpty());
+	wxString matchingEndMkr = wxEmptyString;
+	if (IsEndMarker(ptr, pEnd))
+	{
+		// Bad markup so reflect it in the result of the parse
+		return FALSE;
+	}
+	matchingEndMkr += _T("*");
+	endMarkerLen = (int)matchingEndMkr.Length();
+	int offset = wxNOT_FOUND; // initialize
+	wxString baseStr(ptr, pEnd);
+	offset = baseStr.Find(matchingEndMkr);
+	if (offset == wxNOT_FOUND)
+	{
+		// There is no matching endmarker in the text following ptr. Note, if
+		// the user forgot to end a \x or \f or \fe section, this could collect
+		// a heap of source text and treat it as the marker content! So to
+		// avoid this, return FALSE
+		offsetToMatchedEndmarker = offset;
+		return FALSE;
+	}
+	// We found the matched endmarker, so return TRUE and the num of chars to it etc
+	offsetToMatchedEndmarker = offset;
+	return TRUE;
+}
+
 
 /// returns				one of the enum values as follows:
 /// enum WordParseEndsAt {

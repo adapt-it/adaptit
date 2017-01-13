@@ -257,6 +257,8 @@ protected:
 	bool			NotAtEnd(wxString& rText, const int nTextLength, int nFound);
 	bool			ParseWordMedialSandwichedPunct(wxChar* pText, wxChar* pEnd, wxString& spacelessPuncts); // BEW added 11Sep16
 	bool			ParseWordMedialSandwichedUSFMFixedSpace(wxChar* pText, wxChar* pEnd, wxString& spacelessPuncts); // BEW added 11Sep16
+	bool			PostwordXrefOrFootnoteFiltering(CSourcePhrase* pSrcPhrase, wxChar* pChar,
+										wxChar* pEnd, bool& bXref_Footnote_orEndnoteStored);
 	int				ParsePostWordStuff(
 							wxChar* pChar,
 							wxChar*		pEnd,
@@ -326,13 +328,12 @@ public:
 	void			DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired);
 	bool			DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDialog = TRUE);
-	bool			DoPostwordXrefOrFootnoteFiltering(CSourcePhrase* pSrcPhrase, wxChar* pChar, 
-							wxChar* pEnd, bool& bXref_Footnote_orEndnoteStored);
 	bool			DoTransformedDocFileSave(wxString path);
 	void			EraseKB(CKB* pKB);
 	bool			FilenameClash(wxString& typedName); // BEW added 22July08 to 
 														// prevent 2nd creation destroying work
 	WordParseEndsAt	FindOutWhatIsAtPtr(wxChar* ptr, wxChar* pEnd, bool bTokenizingTargetText); // BEW added 12Oct16
+	bool			FindMatchingEndMarker(wxChar* ptr, wxChar* pEnd, int& offsetToMatchedEndmarker, int& endMarkerLen);
 	CAdapt_ItApp*	GetApp();
 	wxString		GetCurrentDirectory();	// BEW added 4Jan07 for saving & restoring the full path
 											// to the current doc's directory across the writing of
@@ -384,6 +385,8 @@ public:
 	bool			IsMarker(wxString& mkr); // overloaded version
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
 	bool			IsPunctuation(wxChar* ptr, bool bSource = TRUE);
+	bool			IsPostWordEmbeddedMarkerMaterial(wxChar *pChar, wxChar* pEnd, int& numMkrContentSpans, 
+								wxChar* endPoint, bool bTokenizingTargetText);
 	bool			IsEndMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsEndMarker2(wxChar* pChar); // BEW 7Nov16 This version of IsEndEndMarker() has the end-of-buffer test internal
 	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase);

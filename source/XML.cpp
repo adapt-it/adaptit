@@ -4562,6 +4562,9 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 			// use calls for an export - in which case it needs to be put into the export
 			// at the appropriate places, but until then we just squirrel it away and
 			// forget about it
+			// BEW Dec 2016 - changed the export functions a few years ago so that they no
+			// longer automatically unfilter to the export. Now, they are stored and are
+			// unused until an explicit choice by the user to unfilter something
 			wxString filteredInfo = ExtractWrappedFilteredInfo(strModifiers, strFreeTrans,
 				strNote, strCollectedBackTrans, strRemainder);
 			if (!strFreeTrans.IsEmpty())

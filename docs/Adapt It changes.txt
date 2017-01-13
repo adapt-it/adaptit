@@ -1,4 +1,16 @@
 ﻿----------------------------------------------
+Bug fixes in 6.8.? release dd Month? 2017
+----------------------------------------------
+* If CC table changes are in operation, and the user makes
+a merger, the change table was not applied to the non-first
+source text words. Now it is applied.
+* If CC changes were made to a word or phrase and the
+user caused the phrasebox to move ahead without clicking
+in the phrasebox or editing in it, the changes were lost and
+not entered into the knowledge base. Now they are not
+lost and the knowledge base stores a correct entry.
+
+----------------------------------------------
 Version 6.8.1 release 20 December 2016
 ----------------------------------------------
 ----------------------------------------------

@@ -10255,7 +10255,19 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
             // translation, because very seldom will that be useful - mostly the user has
             // to delete such additions, so from now on we will suppress the copy operation
             // using a local flag set here.
-			bSuppressCopyingExtraSourceWords = TRUE;
+			// BEW 12Jan17 RickNivens found CC didn't work with a merger. Testing reveals
+			// it is because this next flag was unilaterally set TRUE. It needs to be FALSE
+			// if one or more CC tables is in operation, so that strOldAdaptation will
+			// accumulate CC-processed substrings from the m_key members of the pSrcPhrase
+			// instances. So add the needed test
+			if (pApp->m_bUseConsistentChanges)
+			{
+				bSuppressCopyingExtraSourceWords = FALSE;
+			}
+			else
+			{
+				bSuppressCopyingExtraSourceWords = TRUE;
+			}
 		}
 		else
 		{
@@ -10291,12 +10303,23 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 				bOK = bOK; // avoid warning
 				gbInhibitMakeTargetStringCall = FALSE;
 			}
+			// BEW 12Jan17 added this test - copied from block above, see comments in block above for why
+			if (pApp->m_bUseConsistentChanges)
+			{
+				bSuppressCopyingExtraSourceWords = FALSE;
+			}
+			else
+			{
+				bSuppressCopyingExtraSourceWords = TRUE;
+			}
 
 			// get the first translation string, or something possibly useful, into the list
 			if (pSrcPhrase->m_targetStr.IsEmpty())
 			{
 				if (pApp->m_bCopySource)
+				{
 					strOldAdaptation = CopySourceKey(pSrcPhrase, pApp->m_bUseConsistentChanges);
+				}
 			}
 			else
 			{
@@ -13679,8 +13702,14 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 	gbByCopyOnly = TRUE;
 
 	wxString str2 = _T("");
+	// BEW 13Jan17 Need to make CTargetBox's m_pAbandonable boolean be FALSE if
+	// DoConsistentChanges() causes a change which makes the word differ from
+	// m_key. Otherwise, the change is not saved to the KB if the user does no
+	// editing or a click in the phasebox. A CC change should be equivalent to
+	// a user edit, in terms of how the KB works and GUI displays.
 	if (bUseConsistentChanges)
 	{
+		wxString saveWord = str;
 		// these added spaces are automatically stripped before storage takes place, after cc
 		// has had its chance to apply, so no harm is done by these additions
 		str = _T(" ") + str;
@@ -13688,6 +13717,20 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 
 		// apply to the merged string (ie. merged with whatever is returned here)
 		str2 = DoConsistentChanges(str);
+
+		if (gbLegacySourceTextCopy)
+		{
+			// str2 may have temporary initial & final spaces still present
+			// so get rid of them
+			wxString str3 = str2; 
+			str3.Trim(FALSE);
+			str3.Trim(TRUE);
+			if (str3 != saveWord)
+			{
+				// Prevent the result from being abandonable
+				pApp->m_pTargetBox->m_bAbandonable = FALSE;
+			}
+		}
 
 		if (str2 != str)
 		{
