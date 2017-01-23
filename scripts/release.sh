@@ -556,8 +556,10 @@ for i in $OSRELEASES; do
   pbuilder-$i clean
   pbuilder-$i-i386 clean
   
-  # TODO: Instead of working with the A06makewx hook script:
-  # Try calling pbuilder --execute <relative-path-to>/adaptit/scripts/makewx.sh "release"
+  # TODO: Pass an option on Xenial that will change build configuration of AID to use 
+  # static and the custom wx library?
+  # Or, instead of working with the A06makewx hook script:
+  # Try calling pbuilder --execute <relative-path-to>/adaptit/scripts/makewx.sh "release" 
   # for xenial and higher dists. Pbuilder doc says about its --execute command:
   # "Execute a script or command inside the chroot, in a similar manner to --login 
   # The file specified in the command-line argument will be copied into the chroot, and invoked.
