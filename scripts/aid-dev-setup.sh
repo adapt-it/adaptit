@@ -15,6 +15,8 @@
 #   06Oct2016 - added the build-essential package to AID_DEV_TOOLS_OLD and AID_DEV_TOOLS_NEW
 #     to correct failure to build AI on systems without the g++ compiler.
 # Revision: 10December2016 whm added support for Linux Mint up to Serena.
+# Revision: 23January2017 Provided missing APT_SOURCES_LIST_DIR value to be
+#   able to update user's /etc/apt/sources.list to include the CodeBlocks PPA
 #
 # Setup AID development tools
 echo "Seting up AID Tools..."
@@ -22,6 +24,7 @@ echo "Seting up AID Tools..."
 PROJECT_DIR=${1:-~/projects}	# AIM development file location, default ~/projects/
 WAIT=60
 AID_GITURL=https://github.com/adapt-it/adaptit.git
+CODEBLOCKS_LAUNCHPAD_URL="http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu"
 AID_DEV_TOOLS_OLD="codeblocks poedit git gnome-common libgtk2.0-0-dbg libgtk2.0-dev \
   build-essential gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
   libwxbase2.8-0 libwxbase2.8-dbg libwxbase2.8-dev libwxgtk2.8-0 libwxgtk2.8-dbg \
@@ -30,6 +33,7 @@ AID_DEV_TOOLS_NEW="codeblocks poedit git gnome-common libgtk-3-0-dbg libgtk-3-de
   build-essential gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
   libwxbase3.0-0v5 libwxbase3.0-0v5-dbg libwxbase3.0-dev libwxgtk3.0-0v5 libwxgtk3.0-0v5-dbg \
   libwxgtk3.0-dev wx-common wx3.0-headers wx3.0-i18n"
+APT_SOURCES_LIST_DIR="/etc/apt/sources.list"
 # Note: the wx2.8-i18n and wx3.0-i18n packages cannot be installed at the same time, 
 # otherwise you get: apt-get error: wx2.8-i18n : Conflicts: wx-i18n
 # Removed libgnomeprintui2.2-dev from AID_DEV_TOOLS... list above (it's not in 14.04 and not really needed)
@@ -143,19 +147,19 @@ case $distCodename in
     # 
     sudo sed -i -e '$a deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu precise main' \
         -i -e '\@deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu precise main@d' \
-        $APT_SOURCES
+        $APT_SOURCES_LIST_DIR
   ;;
   "trusty")
     # 
     sudo sed -i -e '$a deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu trusty main' \
         -i -e '\@deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu trusty main@d' \
-        $APT_SOURCES
+        $APT_SOURCES_LIST_DIR
   ;;
   "xenial")
     # 
     sudo sed -i -e '$a deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu xenial main' \
         -i -e '\@deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu xenial main@d' \
-        $APT_SOURCES
+        $APT_SOURCES_LIST_DIR
   ;;
 esac
 
