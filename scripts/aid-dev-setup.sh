@@ -18,6 +18,11 @@
 # Revision: 23January2017 Provided missing APT_SOURCES_LIST_DIR value to be
 #   able to update user's /etc/apt/sources.list to include the CodeBlocks PPA
 #
+
+# ***************************************************************************
+# Define Variables and Collect System Information
+# ***************************************************************************
+
 # Setup AID development tools
 echo "Seting up AID Tools..."
 
@@ -91,6 +96,10 @@ case $distCodename in
 esac
 echo "  The Modified Codename for Deveopment is: $distCodename"
 
+# ***************************************************************************
+# Install SIL Repository and Authorization Key
+# ***************************************************************************
+
 # whm Note: the add-apt-repository command seems to have differing behaviors on
 # different Ubuntu distributions - storing software sources list(s) always in
 # sources.list in precise, but in separate *.list in sources.list.d on trusty
@@ -139,6 +148,10 @@ if [ -z "$SILKey" ]; then
 else
   echo "The SIL key is already installed."
 fi
+
+# ***************************************************************************
+# Install CodeBlocks PPA Repository and Authorization Key
+# ***************************************************************************
 
 # Add CodeBlocks repository
 echo -e "\nAdding CodeBlocks PPA repository to software sources"
@@ -206,6 +219,10 @@ else
   echo "The CodeBlocks key is already installed."
 fi
 
+# ***************************************************************************
+# Install the AIM Development Tools
+# ***************************************************************************
+
 echo -e "\nRefresh apt lists via apt-get update"
 sudo apt-get -q update
 
@@ -217,6 +234,10 @@ if [ "$distCodename" = "xenial" ]; then
 else
   sudo apt-get install $AID_DEV_TOOLS_OLD -y
 fi
+
+# ***************************************************************************
+# Retrieve Adapt It sources from GitHub if user wants
+# ***************************************************************************
 
 # Ask user if we should get the Adapt It sources from Github
 # Provide a 60 second countdown for response. If no response assume "yes" response
@@ -255,6 +276,10 @@ case $response1 in
       cd ${PROJECT_DIR}
       [ -d adaptit ] || git clone $AID_GITURL
     fi
+
+    # ***************************************************************************
+    # Verify/Configure user's Git Credentials
+    # ***************************************************************************
 
     # Check for an existing git user.name and user.email
     echo -e "\nTo help with AID development you should have a GitHub user.name and user.email."
@@ -297,6 +322,10 @@ case $response1 in
     echo -e "\nThe git configuration settings for the adaptit repository are:"
     git config --list
     sleep 2
+
+    # ***************************************************************************
+    # Build the Adapt It Desktop Project if user wants
+    # ***************************************************************************
 
     echo -e "\nDo you want to Build the Adapt It Desktop project now? [y/n]"
     for (( i=$WAIT; i>0; i--)); do
