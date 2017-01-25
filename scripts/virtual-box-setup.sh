@@ -1,10 +1,10 @@
 #!/bin/bash
 # Usage: virtual-box-setup.sh 
-# InstallVirtualBox.sh -- adds the VirtualBox repo to the sources.list, 
+# virtual-box-setup.sh -- adds the VirtualBox repo to the sources.list, 
 # downloads and adds the VirtualBox public key, installs VirtualBox-5.1 
 # and ensures the host is member of the vboxusers and vboxsf groups.
 # Author: Bill Martin <bill_martin@sil.org>
-# Date: 2017-01-23
+# Date: 2017-01-25
 
 # Setup VirtualBox
 echo "Seting up VirtualBox..."
