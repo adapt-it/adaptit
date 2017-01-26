@@ -6,10 +6,24 @@
 # Author: Bill Martin <bill_martin@sil.org>
 # Date: 2017-01-25
 
+# Test if 'VirtualBox' itself and/or a 'VirtualBox' VM is currently a running 
+# process. If the main VirtualBox program or a VM is currently running there 
+# will be both a 'VBoxSVC' process and a 'VirtualBox' process running in the 
+# system. If either of those processes are running, tell user to close VirtualBox
+# and any running VMs down, and run this script again.
+if [ -z "$(pgrep VirtualBox)" ]; then
+  echo "VirtualBox is not currently running. Ok to proceed..."
+else
+  echo "VirtualBox is currently running. Please close down Virtual Box and any"
+  echo "VirtualBox guest VMs, then run this script again. Aborting..."
+  exit 1
+fi
+
 # Setup VirtualBox
 echo "Seting up VirtualBox..."
 
 VBOX_PKG_NAME="virtualbox-5.1"
+DKMS_PKG_NAME="dkms"
 supportedDistIDs="LinuxMint Ubuntu"
 supportedCodenames="maya qiana rebecca rafaela rosa sarah precise trusty utopic vivid wily xenial yakkety"
 echo -e "\nDetermine if system is LinuxMint or Ubuntu and its Codename"
@@ -69,7 +83,6 @@ echo "  The Modified Codename for Deveopment is: $distCodename"
 # below, should do the job without resulting in duplicates, since it won't change
 # anything on Wasta-Linux distributions.
 APT_DEB_VB_REPO_URL="deb http://download.virtualbox.org/virtualbox/debian xenial contrib"
-echo "APT_DEB_VB_REPO_URL: $APT_DEB_VB_REPO_URL"
 # The add-apt-repository command seems to result in duplicates
 #sudo add-apt-repository "$APT_DEB_VB_REPO_URL"
 # Note: Grep returns 0 if selected lines are found, 1 if selected lines are not found.
@@ -123,18 +136,18 @@ sudo apt-get update
 
 # When next LTS after xenial arrives we need to include it in test below
 if [ "$distCodename" = "xenial" ]; then
-  echo -e "\nInstalling VirtualBox $VBOX_PKG_NAME for $distCodename..."
-  sudo apt-get install $VBOX_PKG_NAME -y
+  echo -e "\nInstalling VirtualBox $VBOX_PKG_NAME and $DKMS_PKG_NAME for $distCodename..."
+  sudo apt-get install $VBOX_PKG_NAME $DKMS_PKG_NAME -y
   LASTERRORLEVEL=$?
   if [ $LASTERRORLEVEL != 0 ]; then
-     echo -e "\nCould not install VirtualBox $VBOX_PKG_NAME."
+     echo -e "\nCould not install VirtualBox $VBOX_PKG_NAME and $DKMS_PKG_NAME."
      echo "Make sure that no other package manager is running and try again."
      return $LASTERRORLEVEL
   else
-     echo -e "\nInstallation of $VBOX_PKG_NAME completed."
+     echo -e "\nInstallation of $VBOX_PKG_NAME and $DKMS_PKG_NAME completed."
   fi
 else
-  echo -e "\nThis script currently only supports istalling VirtualBox to xenial systems..."
+  echo -e "\nThis script currently only supports istalling VirtualBox 5.x to xenial systems..."
   echo "Aborting..."
   exit 1
 fi
@@ -174,11 +187,51 @@ if [ $LASTERRORLEVEL != 0 ]; then
   echo -e "\nWARNING: Could not add user: $USER to the vboxsf group."
   exit $LASTERRORLEVEL
 fi
-echo -e "\nThe virtual-box-setup.sh script completed successfully."
-echo "User $USER successfully added to the vboxsf group on this host machine."
-echo -e "\nREMINDER: If you want to share folders from within a VM guest you will"
-echo "   need to add the VM's user to the vboxsf group. You can do so from"
-echo "   within the VM by running in a Terminal: sudo usermod -a -G vboxsf \$USER"
+echo -e "\nUser $USER successfully added to the vboxsf group on this host machine."
+
+# Note: We can't really add the Guest Additions module as it must be done
+# from within an existing virtual machine (VM). This script doesn't create any
+# virtual machine guest(s) - a job left to the user/developer.
+
+# Install the virtualbox extension pack which is needed for multiple monitor support.
+# Once VirtualBox is installed, calling VBoxManage --version returns the 
+# version and revision number of the installed virtualbox in the
+# form: 5.1.14r112924
+# We can parse out the version number (5.1.14) with sed and compose the name of the
+# extensionpack that we need to download from download.virtualbox.org/virtualbox/
+# The name of the extension pack filename is in the form:
+# Oracle_VM_VirtualBox_Extension_Pack-5.1.14.vbox-extpack
+# which the download site stores in a .../5.1.14/... folder so that the
+# download URL using wget would be:
+# http://download.virtualbox.org/virtualbox/5.1.14/Oracle_VM_VirtualBox_Extension_Pack-5.1.14.vbox-extpack
+# The command to install the extension pack using VBoxManage from command line is:
+# VBoxManage extpack install --replace <name of extension pack file>
+VBOXVER=`VBoxManage --version | sed -r 's/([0-9])\.([0-9])\.([0-9]{1,2}).*/\1.\2.\3/'`
+echo "The installed VirtualBox version is: $VBOXVER"
+# Save current working dir
+CURDIR=$(pwd)
+# Check if the extpack already exists in ~/Downloads
+cd ~/Downloads
+if [ -f "Oracle_VM_VirtualBox_Extension_Pack-$VBOXVER.vbox-extpack" ]; then
+  echo "The extension pack for version $VBOXVER already exists in Downloads, using it..."
+else
+  echo -e "\nDownloading the VirtualBox Extension Pack..."
+  wget -N "http://download.virtualbox.org/virtualbox/$VBOXVER/Oracle_VM_VirtualBox_Extension_Pack-$VBOXVER.vbox-extpack"
+fi
+echo "Installing the VirtualBox Extension Pack..."
+VBoxManage extpack install --replace Oracle_VM_VirtualBox_Extension_Pack-$VBOXVER.vbox-extpack
+
+cd $pwd
+
+echo -e "\nThe virtual-box-setup.sh script completed successfully if no errors"
+echo "   were reported above."
+echo -e "\nREMINDERS: "
+echo "   1. You should add the Guest Additions from within each VM guest you create"
+echo "      by selecting the VM's Devices menu and selecting the menu item:"
+echo "      'Insert Guest Additions CD image...'"
+echo "   2. You should add the VM's user to the vboxsf group from within each VM."
+echo "      You can do so from within the VM by running this command in a Terminal:"
+echo "      sudo usermod -a -G vboxsf \$USER"
 
 
 
