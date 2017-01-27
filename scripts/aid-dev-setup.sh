@@ -17,7 +17,18 @@
 # Revision: 10December2016 whm added support for Linux Mint up to Serena.
 # Revision: 23January2017 Provided missing APT_SOURCES_LIST_DIR value to be
 #   able to update user's /etc/apt/sources.list to include the CodeBlocks PPA
-#
+# Revision: 26January2017 Added test for Internet connection and wget error check.
+# Requires an Internet connection to retrieve keys and use apt-get install
+
+# Test for Internet connection
+echo -e "GET http://google.com HTTP/1.0\n\n" | nc google.com 80 > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo "Internet connection detected."
+else
+    echo "No Internet connection detected. You must have an Internet connection"
+    echo "to use this script. Aborting..."
+    exit 1
+fi
 
 # ***************************************************************************
 # Define Variables and Collect System Information
@@ -136,6 +147,11 @@ if [ -z "$SILKey" ]; then
     # Key not in ~/tmp/ so retrieve the sil.gpg key from the SIL external web site
     echo "Retrieving the sil.gpg key from $SILKEYURL to ~/tmp/"
     wget --no-clobber --no-directories $SILKEYURL
+    if [ $? -ne 0 ]
+    then
+      echo "Unable to download the SIL key: wget error: $?"
+      exit 1
+    fi
   fi
   if [ -f ~/tmp/sil.gpg ]; then
     echo "Installing the sil.gpg key..."

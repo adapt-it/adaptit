@@ -3,8 +3,20 @@
 # codeblocks-setup.sh -- adds the CodeBlocks repo to the sources.list, 
 # downloads and adds the CodeBlocks public key, installs CodeBlocks 16.01. 
 # Author: Bill Martin <bill_martin@sil.org>
-# Date: 2017-01-25
+# Date: 2017-01-26
+# Requires an Internet connection to use apt-get install
 
+# Test for Internet connection
+echo -e "GET http://google.com HTTP/1.0\n\n" | nc google.com 80 > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo "Internet connection detected."
+else
+    echo "No Internet connection detected. You must have an Internet connection"
+    echo "to use this script. Aborting..."
+    exit 1
+fi
+
+#
 APT_SOURCES_LIST_DIR="/etc/apt/sources.list"
 supportedDistIDs="LinuxMint Ubuntu"
 supportedCodenames="maya qiana rebecca rafaela rosa sarah precise trusty utopic vivid wily xenial yakkety"

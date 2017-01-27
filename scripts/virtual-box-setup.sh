@@ -3,8 +3,20 @@
 # virtual-box-setup.sh -- adds the VirtualBox repo to the sources.list, 
 # downloads and adds the VirtualBox public key, installs VirtualBox-5.1 
 # and ensures the host is member of the vboxusers and vboxsf groups.
+# Installs the appropriate version of the virtualbox extension pack.
 # Author: Bill Martin <bill_martin@sil.org>
 # Date: 2017-01-25
+# Requires an Internet connection to retrieve VirtualBox keys and use apt-get
+
+# Test for Internet connection
+echo -e "GET http://google.com HTTP/1.0\n\n" | nc google.com 80 > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo "Internet connection detected."
+else
+    echo "No Internet connection detected. You must have an Internet connection"
+    echo "to use this script. Aborting..."
+    exit 1
+fi
 
 # Test if 'VirtualBox' itself and/or a 'VirtualBox' VM is currently a running 
 # process. If the main VirtualBox program or a VM is currently running there 
@@ -109,7 +121,17 @@ if [ -z "$VBKey" ]; then
     # Retrieve the old Oracle key and the new key and install both.
     echo "Retrieving the oracle_vbox_2016 key(s) from $VBKEYURL1 to ~/tmp/"
     wget --no-clobber --no-directories $VBKEYURL1
+    if [ $? -ne 0 ]
+    then
+      echo "Unable to download oracle_vbox_2016.asc: wget error: $?"
+      exit 1
+    fi
     wget --no-clobber --no-directories $VBKEYURL2
+    if [ $? -ne 0 ]
+    then
+      echo "Unable to download oracle_vbox.asc: wget error: $?"
+      exit 1
+    fi
   fi
   if [ -f ~/tmp/oracle_vbox_2016.asc ]; then
     echo "Installing the oracle_vbox_2016.asc key..."
