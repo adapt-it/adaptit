@@ -3,20 +3,20 @@
 # Usage: makewx.sh 
 # -- Checks for current static release and debug builds of a library at $2 or ~/wxWidgets-3.0.2/
 # -- If builds a found the script reports and finishes. If builds are not found the script
-#    downloads, configures and builds the $1 specified "debug" or "release" versions of the 
-#    wxWidgets library.
+#    downloads, configures and builds the $1 specified "debug" or "release" or "debug release" 
+#    or "release debug" versions of the wxWidgets library.
 #    The builds are configured for static linking, monolithic, and without GTK+ Print support.
 # -- Can test the use of checkinstall to build a debian package for our customized wxWidgets 
 # -- Builds are configured using the --without-gtkprint flag to force the library to use 
 #    Adobe PostScript 2.0 instead of PostScript 3.0 for printing to PostScript printers.
 # Author: Bill Martin <bill_martin@sil.org>
-# Date: 2017-01-27
+# Date: 2017-01-28
 # A sudo call should be avoided since this script is designed to be called from within CodeBlocks 
 # as a Pre-build script where user interaction is not feasible.
 # Requires an Internet connection to use wget if the wxWidgets archive is needed but doesn't 
 # already exist, otherwise doesn't require Internet connection.
 
-
+# The WXVER variable can be updated to a different version of wxWidgets
 WXVER="3.0.2"
 WXDIRNAME="wxWidgets-$WXVER"
 RELEASEBUILDDIR="/buildgtku"
@@ -79,6 +79,9 @@ case $# in
         # The following 2 lines remove any final / on the WXBASEDIR path
         result_string=${WXBASEDIR%/}
         WXBASEDIR=$result_string
+        # The following 2 lines remove any final /wxWidgets-3.0.2 on the WXBASEDIR path
+        result_string=${WXBASEDIR%/$WXDIRNAME}
+        WXBASEDIR=$result_string
         echo "  wxWidgets location base path is: $WXBASEDIR"
         #echo "WXBASEDIR is: $WXBASEDIR"
         mkdir -p $WXBASEDIR
@@ -105,8 +108,8 @@ if [ x"$ABORT" = x"TRUE" ]; then
       echo "First parameter (required) can be \"debug\" \"release\" or \"debug release\""
       echo "Second parameter (optional) should be path to install wxWidgets source tree"
       echo "  which may be path to a host machine location via a VirtualBox shared folder."
-      echo "  The path should not include the wxWidgets top-level folder which will"
-      echo "  be $WXDIRNAME"
+      echo "  The path need not include the wxWidgets top-level folder which will"
+      echo "  be $WXDIRNAME (but including it is a \$(#wxwin) global variable is OK)"
       echo "Example: bash makewx.sh \"debug\" \"/media/sf_bill\""
       echo "  will place source tree at: /media/sf_bill/$WXDIRNAME"
     exit 1
@@ -177,12 +180,13 @@ WXARCHIVEFOUND="FALSE"
 # $WXBASEDIR/$WXDIRNAME$RELEASEBUILDDIR/lib/libwx_gtk3u-3.0.a
 if [ -f $WXBASEDIR/$WXDIRNAME$RELEASEBUILDDIR/lib/libwx_gtk3u-3.0.a ]; then
   SKIPRELEASEBUILD="TRUE"
-  if [ x"$1" = x"release" ]; then
+  if [ x"$1" = x"release" ] || [ x"$1" = x"debug release" ] || [ x"$1" = x"release debug" ]; then
     echo "  A release static build of the wx library already exists at the specified path"
     echo "    Nothing to be done for the release configuration!"
   fi
 else
-  if [ x"$1" = x"release" ]; then
+  SKIPRELEASEBUILD="FALSE"
+  if [ x"$1" = x"release" ] || [ x"$1" = x"debug release" ] || [ x"$1" = x"release debug" ]; then
     echo "   ***A release static build of the wx library was not found there"
   fi
 fi
@@ -190,13 +194,14 @@ fi
 # $WXBASEDIR/$WXDIRNAME$DEBUGBUILDDIR/lib/libwx_gtk3u-3.0.a
 if [ -f $WXBASEDIR/$WXDIRNAME$DEBUGBUILDDIR/lib/libwx_gtk3u-3.0.a ]; then
   SKIPDEBUGBUILD="TRUE"
-  if [ x"$1" = x"debug" ]; then
+  if [ x"$1" = x"debug" ] || [ x"$1" = x"debug release" ] || [ x"$1" = x"release debug" ]; then
     echo "  A debug static build of the wx library already exists at the specified path"
     echo "    Nothing to be done for the debug configuration!"
   fi
 else
-  if [ x"$1" = x"debug" ]; then
-    echo -e "\n***A debug static build of the wx library was not found there"
+  SKIPDEBUGBUILD="FALSE"
+  if [ x"$1" = x"debug" ] || [ x"$1" = x"debug release" ] || [ x"$1" = x"release debug" ]; then
+    echo "   ***A debug static build of the wx library was not found there"
   fi
 fi
 
@@ -260,7 +265,7 @@ else
     echo    "   $WX302URL..."
     echo    "Downloading $WXGZARCHIVE to $WXBASEDIR"
     cd $WXBASEDIR
-    wget --no-clobber --no-directories $WX302URL
+    wget --no-clobber --no-directories --quiet --show-progress $WX302URL
     if [ $? -ne 0 ]
     then
       echo "***Unable to download $WXGZARCHIVE: wget error: $?"
@@ -274,7 +279,7 @@ else
 fi
 
 for i in $BUILDS; do
-  if [ x"$1" = x"debug" ]; then
+  if [ x"$i" = x"debug" ]; then
     if [ x"$SKIPDEBUGBUILD" = x"FALSE" ]; then
       echo -e "\n***************************************"
       echo      "**  Configuring the Debug version... **"
@@ -283,9 +288,8 @@ for i in $BUILDS; do
       if [ -d $WXBASEDIR/$WXDIRNAME$DEBUGBUILDDIR ]; then
         echo "   Removing stale $WXBASEDIR/$WXDIRNAME$DEBUGBUILDDIR dir"
         rm -rf $WXBASEDIR/$WXDIRNAME$DEBUGBUILDDIR
-      else
-        mkdir -p $WXBASEDIR/$WXDIRNAME$DEBUGBUILDDIR
       fi
+      mkdir -p $WXBASEDIR/$WXDIRNAME$DEBUGBUILDDIR
       cd $WXBASEDIR/$WXDIRNAME$DEBUGBUILDDIR
       echo -e "\nConfiguring the $WXBASEDIR/$WXDIRNAME$DEBUGBUILDDIR with options: "
       echo "   $DEBUGCONFIGOPTIONS"
@@ -304,7 +308,7 @@ for i in $BUILDS; do
     fi
   fi
   
-  if [ x"$1" = x"release" ]; then
+  if [ x"$i" = x"release" ]; then
     if [ x"$SKIPRELEASEBUILD" = x"FALSE" ]; then
       echo -e "\n*****************************************"
       echo      "**  Configuring the Release version... **"
@@ -313,9 +317,8 @@ for i in $BUILDS; do
       if [ -d $WXBASEDIR/$WXDIRNAME$RELEASEBUILDDIR ]; then
         echo "   Removing stale $WXBASEDIR/$WXDIRNAME$RELEASEBUILDDIR dir"
         rm -rf $WXBASEDIR/$WXDIRNAME$RELEASEBUILDDIR
-      else
-        mkdir -p $WXBASEDIR/$WXDIRNAME$RELEASEBUILDDIR
       fi
+      mkdir -p $WXBASEDIR/$WXDIRNAME$RELEASEBUILDDIR
       cd $WXBASEDIR/$WXDIRNAME$RELEASEBUILDDIR
       echo -e "\nConfiguring the $WXBASEDIR/$WXDIRNAME$RELEASEBUILDDIR with options: "
       echo "   $RELEASECONFIGOPTIONS"
