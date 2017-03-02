@@ -2694,6 +2694,8 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 
 bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDisplayed) // whm added 17Jan12
 {
+    // This is a test change only.
+
     // For testing purposes, assume it's target text, and a single-chapter
     // document...actually, there's nothing in the MakeUpdatedTextForExternalEditor()
     // internals that predisposes towards a single chapter doc or a whole book doc - it
