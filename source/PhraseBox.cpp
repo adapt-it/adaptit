@@ -1852,8 +1852,8 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 
 	// build the as many as 10 phrases based on first word at the new pile and the following
 	// nine piles, or as many as are valid for phrase building (there are 7 conditions which
-	// will stop the builds). When adapting, all 10 can be used; when glossing, only can use
-	// the first of the ten and in that case numPhrases = 1 will be returned.
+	// will stop the builds). When adapting, all 10 can be used; when glossing, and when
+	// glossing, it now also supports more than one for KB insertions (but disallows merger)
 	// For auto capitalization support, the 10 phrases strings are built from the document's
 	// CSourcePhrase instances as before, no case changes made; and any case changes, and secondary
 	// lookups if the primary (lower case) lookup fails when the source is upper case, are done

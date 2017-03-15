@@ -859,7 +859,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 			// project that is designed for obtaining source texts rather than one for
 			// receiving exported translation/target texts from Adapt It. Warn the administrator
 			// of this situation.
-			wxString msg = _("All books in the \"%s\" project already have verse content, so Adapt It thinks that this project may not be the one you intended for storing Adapt It's translated texts. All of the verses in the following book(s) already have text content:\n\n%s");
+			wxString msg = _("All books in the \"%s\" project already have verse content.\nThis is expected and normal if you are deliberately establishing collaboration for a finished translation that needs further work (for example, a revision).\nIt possibly is an error if you are setting up the collaboration for the first time - because you may be wrongly configuring a source text project as the destination for sending new target text translations.\nAll of the verses in the following book(s) already have text content:\n\n%s");
 			msg = msg.Format(msg,m_TempCollabProjectForTargetExports.c_str(),booksWithContent.c_str());
 			wxString msgTitle = _("No books in this project have untranslated texts!");
 			wxString msg2 = _T("\n\n");

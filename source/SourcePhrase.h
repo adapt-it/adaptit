@@ -221,6 +221,25 @@ private:
 	wxString		m_tgtWordBreak; // this one is only needed for retranslations, because they may
 									// distribute spaces & ZWSP differently than in the selected source text
 				// where entity is of the form  &#hhhh;  hhhh is uppercase hex digits for the unicode codepoint
+public:
+	//==== Functions etc added by BEW March 2017 for support of storing post-word filtered markers on current CSourcePhase ====
+	wxArrayString tempSavedMetadata; // needed because ViewFilteredMaterialDlg stores free trans, notes, collected back trans first
+	wxArrayString tempSavedBeginMkr; // need for same reason as above
+	wxArrayString arrSavedFilteredItemsPostwordMetadata; // store empty string if none, else whatever is the [[after .... ]] metadata string
+	wxArrayString arrSavedFilteredItemsPostwordBeginMkrs; // store the filtered whole marker of the filtered content
+	bool IsFilterItemWithPostWordMetadata(wxString& filteredItem, wxString& itemMetadata, wxString& itemBeginMkr);
+	wxString RemovePostWordMetadata(wxString& filteredItem);
+	wxString filteredItem;
+	wxString itemMetadata;
+	wxString itemBeginMkr;
+	bool bHasPostWordMetadata; // TRUE when it has a metadata string for post-word filtering,
+							   // FALSE when not (Beware: it says nothing about any pre-word metadata, if any exists)
+							   // That is, if there is pre-word metadata, but no post word metadata, this flag is FALSE
+
+//==== End of BEW added stuff for post-word filtered marker storage ======
+
+
+
 
 // Operations
 public:

@@ -2267,6 +2267,12 @@ wxString CSourcePhrase::GetFilteredInfo()
 // pFilteredEndMarkers array as a single space character, rather than as the empty string.
 // Default is to leave the empty string for an endmarker as an empty string (ie. the
 // default bUseSpaceForEmpty value is FALSE)
+// BEW 14Mar17, added the further string array, arrSavedFilteredItemsPostwordMetadata,
+// to store any metadata string, eg. [[find_punct^.^]] stored immediately preceding a
+// wrapped filtered \marker + content + (optional) \endmarker from m_filteredIndo member;
+// we have to pull off any such metadata string so the calling function doesn't see it
+// (eg. in ViewFilteredMaterialDlg), but rather it sees the beginmarker as initial - so
+// that the legacy code doesn't break and so that users can't edit the metadata
 bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers, 
 											wxArrayString* pFilteredEndMarkers,
 											wxArrayString* pFilteredContent,
@@ -2278,6 +2284,11 @@ bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers,
 	pFilteredMarkers->Empty();
 	pFilteredContent->Empty();
 	pFilteredEndMarkers->Empty();
+	arrSavedFilteredItemsPostwordMetadata.Clear();
+	arrSavedFilteredItemsPostwordBeginMkrs.Clear();
+	tempSavedMetadata.Clear();
+	tempSavedBeginMkr.Clear();
+
 	int offsetToStart = 0;
 	int offsetToEnd = 0;
 	if (m_filteredInfo.IsEmpty())
@@ -2304,17 +2315,52 @@ bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers,
         // \somemarker some textual content \somemarker* (endmarker may be absent, or \F,
         // or \fe, or a USFM marker of the type \xxx* and the space before the endmarker
         // is not likely to be present, but could be)
-        
+		// BEW 13Mar17 Or there could be a metadata string like [[after_endMkr^\x*^]]  immediately
+		// preceding \somemarker, and if this is the case we have to separate the metadata
+		// from the beginmarker and store the metadata separately. If no metadata, store
+		// an empty string
+		
         // Before extracting the markers and content from markersAndContent, shorten the
         // original string's copy (i.e. info) to prepare for the next extraction
 		info = info.Mid(offsetToEnd + filterMkrEndLen);
+
+		// Separate any metadata & store it separately, in sync index-wise
+		filteredItem = markersAndContent;
+		// Does markers and content string have a preceding metadata string?
+		bHasPostWordMetadata = IsFilterItemWithPostWordMetadata(filteredItem, itemMetadata, itemBeginMkr);
+		// We delay adding to the arrays arrSavedFilteredItemsPostwordMetadata and 
+		// arrSavedFilteredItemsPostwordBeginMkrs, saving instead to two temporary
+		// arrays, because the caller may add the contents of the tempSavedMetadata
+		// and tempSavedBeginMkr arrays after other things to be shown to the user
+		// are added first - for example, ViewFilteredMaterialDlg's listBox shows
+		// material from m_filteredInfo after any free translation, note, and/or
+		// collected back translation are listed; so we'll transfer any stuff from
+		// tempSavedMetadata and tempSavedBeginMkr in the filter dialog's InitDialog()
+		// after any free trans, note and/or collected back trans additions have first
+		// been done
+		if (bHasPostWordMetadata)
+		{
+			// It's a filtered marker & content from parsing after the word proper
+			tempSavedMetadata.Add(itemMetadata);
+			tempSavedBeginMkr.Add(itemBeginMkr); // use in a match test later on
+			// Now  remove the metadata, leaving the legacy data string,
+			// and return that assigning it back to markersAndContent
+			markersAndContent = RemovePostWordMetadata(filteredItem);
+		}
+		else
+		{
+			wxString myemptystr = wxEmptyString;
+			tempSavedMetadata.Add(myemptystr);
+			tempSavedBeginMkr.Add(myemptystr);
+			// markersAndContent is already correct and safe so nothing more to do here
+		}
 
 		// BEW added 8Dec10, a markup "?error?" (it's not really an error, but it is sure
 		// incompatible with filtering of things like footnotes when punctuation follows
 		// the final \f* marker - which is a legal USFM markup scenario) is that we can
 		// come here with having had \~FILTER \f <footnote text content here, etc>
 		// \f*<punct>\~FILTER*, so that after removal of the filter brackets and trimming
-		// of the ends, we have content which ends with .... \f*<punct> where <punct> is
+		// of the ends, we have content which ends with \f*<punct> where <punct> is
 		// one or more characters of punctuation. This defeats the internal algorithm
 		// within the ParseMarkersAndContent() call below -- it will do a reversal and
 		// look for an endmarker which it expects, if present, to be at the reversed
@@ -2326,8 +2372,15 @@ bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers,
         // preceding the \f*. That is a reasonable temporary solution - it makes the
         // ParseMarkersAndContent() call below robust. It should happen seldom though -
         // only when filtering out something where punctuation is both sides of \f* or \fe*
-        // or \x*, and how often will that happen?!) So, the next bit of code is a kludge
+        // or \x*, and how often will that happen? Hmmm, actually, quite often, see the
+		// gospels at recorded dialogs of Jesus.) So, the next bit of code is a kludge
         // to make the data safe for the call lower down.
+		// BEW 14Mar17 I'll leave the above comment untouched. But for ParseWord2(), the 
+		// 2017 refactored text parser, it should never include following punctuation to
+		// a \f* or \x* or \fe* marker in the filtered info; and if that is true, the
+		// hacks below will do not harm as they won't ever need to relocate punctuation
+		// forward of the endmarker.
+
 		//bool bCheckFurther = FALSE; // set but not used
 		int fullLen = 0;
 		int lastMkrLen = 0;
@@ -2570,9 +2623,13 @@ void CSourcePhrase::AddToFilteredInfo(wxString filteredInfo)
 // BEW changed 7Dec10, to rectify a logic error which resulted in endmarker and \~FILTER*
 // not being added to the end of the content string
 // BEw 23Apr15, added support for / used as a word-breaking character
-void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers, 
-					wxArrayString* pFilteredEndMarkers, wxArrayString* pFilteredContent,
-					bool bChangeSpaceToEmpty)
+// BEW 14Mar17 added support for post-word filtered info, restoring metadata immediately
+// preceding the beginmarker within each wrapped string, if earlier it was removed from
+// that location and stored in pSrcPhrase->arrSavedFilteredItemsPostwordMetadata for that
+// particular filtered item
+void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers,
+	wxArrayString* pFilteredEndMarkers, wxArrayString* pFilteredContent,
+	bool bChangeSpaceToEmpty)
 {
 	m_filteredInfo.Empty(); // clear out old contents
 	size_t index;
@@ -2589,27 +2646,27 @@ void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers,
 	for (index = 0; index < count; index++)
 	{
 		wxString strContent = pFilteredContent->Item(index);
-//#if defined(FWD_SLASH_DELIM)
-		// BEW added 23Apr15
+		//#if defined(FWD_SLASH_DELIM)
+				// BEW added 23Apr15
 		strContent = FwdSlashtoZWSP(strContent);
-//#endif
+		//#endif
 		markersAndContent << filterMkr << aSpace << pFilteredMarkers->Item(index) \
 			<< aSpace << strContent;
-        // if there is an endmarker, insert it, but with no space before it - a space is
-        // allowed, but in some publication scenarios punctuation might be wanted hard up
-        // against the end of a preceding word and followed after the endmarker with a
-        // textual note callout character -- so it's safer to not have any space before the
-        // endmarker, since parsers recognise a marker when the backslash is encountered,
-        // and LSDev, Paratext and Adapt It all accept the * of an endmarker as closing off
-        // an endmarker. What we won't support is a callout character positioned
-        // immediately after \fe or \F footnote end markers used in the old PNG SFM marker
-        // set - for these callout character or punctuation would be treated as part of the
-        // marker definition - leading to an "unknown marker" for Adapt It to handle. If
-        // that happened, the user would have to edit the source text (in Adapt It, using
-        // the Edit / Edit Source Text... command) and add the need post-endmarker space
-        // manually. However, we are a decade or more from the last use of the old 1998 PNG
-        // SFM marker set, everyone uses USFM these days, so we won't bother to do anything
-        // smart here to handle such a contingency within our code.
+		// if there is an endmarker, insert it, but with no space before it - a space is
+		// allowed, but in some publication scenarios punctuation might be wanted hard up
+		// against the end of a preceding word and followed after the endmarker with a
+		// textual note callout character -- so it's safer to not have any space before the
+		// endmarker, since parsers recognise a marker when the backslash is encountered,
+		// and LSDev, Paratext and Adapt It all accept the * of an endmarker as closing off
+		// an endmarker. What we won't support is a callout character positioned
+		// immediately after \fe or \F footnote end markers used in the old PNG SFM marker
+		// set - for these callout character or punctuation would be treated as part of the
+		// marker definition - leading to an "unknown marker" for Adapt It to handle. If
+		// that happened, the user would have to edit the source text (in Adapt It, using
+		// the Edit / Edit Source Text... command) and add the need post-endmarker space
+		// manually. However, we are a decade or more from the last use of the old 1998 PNG
+		// SFM marker set, everyone uses USFM these days, so we won't bother to do anything
+		// smart here to handle such a contingency within our code.
 		if (pFilteredEndMarkers->Item(index).IsEmpty())
 		{
 			// this content string takes no endMarker (add a delimiting space though)
@@ -2639,6 +2696,28 @@ void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers,
 			}
 		}
 		markersAndContent += theRest;
+
+		// BEW 14Mar17 add support for restoring any metadata here, since the wrapped
+		// legacy filtered info string has been reconstructed (as markersAndContent)
+		wxString theBeginMkr;
+		wxString theMetadata;
+		theMetadata = arrSavedFilteredItemsPostwordMetadata.Item(index);
+		if (theMetadata.IsEmpty())
+		{
+			// None was stored, so nothing to do here
+			;
+		}
+		else
+		{
+			// Metadata exists for this item, so restore it to it's pre-marker position
+			theBeginMkr = arrSavedFilteredItemsPostwordBeginMkrs.Item(index);
+			int offset = wxNOT_FOUND;
+			offset = markersAndContent.Find(theBeginMkr);
+			wxASSERT(offset != wxNOT_FOUND);
+			markersAndContent.insert((size_t)offset, theMetadata);
+		}
+
+		// Legacy code continues...
 		AddToFilteredInfo(markersAndContent);
 		markersAndContent.Empty();
 		theRest.Empty();
@@ -2770,4 +2849,66 @@ wxString CSourcePhrase::GetTgtWordBreak()
 }
 
 
+// check for postword filtered metadata string in the unwrapped filtered string; 
+// if present, extract a copy of the metadata string, and a copy of the beginmarker
+// which immediately follows it; and return TRUE;
+// else return FALSE and those two return strings set to the empty string;
+// this needs to be a CSourcePhrase member function
+bool CSourcePhrase::IsFilterItemWithPostWordMetadata(wxString& filteredItem,
+						wxString& itemMetadata, wxString& itemBeginMkr)
+{
+	wxString srchMetaEnd = _T("^]]"); // search for the end of any metadata string of form [[after:^ .... ^]]
+	int offset = wxNOT_FOUND; // initialize
+	itemMetadata = wxEmptyString;
+	itemBeginMkr = wxEmptyString;
+	if (filteredItem.IsEmpty())
+	{
+		return FALSE;
+	}
+	offset = filteredItem.Find(srchMetaEnd);
+	if (offset == wxNOT_FOUND)
+	{
+		return FALSE;
+	}
+	else
+	{
+		// Found end of metadata substring within postword filtered marker + content
+		wxString srchMetaStart = _T("[[after");
+		int offset2 = filteredItem.Find(srchMetaStart);
+		wxASSERT(offset2 >= 0);
+		wxString therest = filteredItem.Mid(offset2); // therest starts with "[[after" now
+		size_t len = (size_t)(offset - offset2 + 3); // +3 for the length of _T("^]]")
+		wxString metaStr = therest.Left(len);
+		itemMetadata = metaStr;
+		// now get the immediately following begin marker
+		therest = filteredItem.Mid(offset + 3); // +3 for the length of _T("^]]"))
+		itemBeginMkr = gpApp->GetDocument()->GetWholeMarker(therest);
+	}
+	return TRUE;
+}
+
+// check for postword filtered metadata string in the unwrapped filtered string; 
+// if present, remove it, and return the shortened string to the caller - 
+// legacy functions will then use the shorter string which lacks the metadata - so no
+// change to there code is required - e.g. ViewFilteredMaterialDlg.cpp InitDialog() etc
+// this needs to be a CSourcePhrase member function
+wxString CSourcePhrase::RemovePostWordMetadata(wxString& filteredItem)
+{
+	wxString srchMetaEnd = _T("^]]"); // search for the end of any metadata string of form [[after:^ .... ^]]
+	int offset = wxNOT_FOUND; // initialize
+	itemMetadata = wxEmptyString;
+	if (filteredItem.IsEmpty())
+	{
+		return filteredItem;
+	}
+	offset = filteredItem.Find(srchMetaEnd);
+	if (offset == wxNOT_FOUND)
+	{
+		return filteredItem;
+	}
+	// Found end of metadata substring within postword filtered marker + content
+	size_t len = (size_t)(offset + 3); // +3 for the length of _T("^]]")
+	wxString legacyStr = filteredItem.Mid(len);
+	return legacyStr;
+}
 

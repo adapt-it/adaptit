@@ -198,6 +198,9 @@ void CViewFilteredMaterialDlg::OnButtonSwitchEncoding(wxCommandEvent& WXUNUSED(e
 #endif
 
 // BEW 3Mar10, updated for support of doc version 5 (changes needed)
+// BEW 14Mar17 added support for post-word filtered markers & content, which are in
+// the m_filtered member of the current CSourcePhrase - involves removal and restoration
+// of metatdata strings such as [[after_punct^.^]] or [[after_endMkr^\f*^]] etc.
 void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -330,6 +333,14 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	AllWholeMkrsArray.Clear(); // array of all bare markers encountered in m_markers
 	AllEndMkrsArray.Clear(); // array of all end markers encountered in m_markers (contains a space if no end marker)
 
+	// BEW added 14Mar17
+	pSrcPhrase->arrSavedFilteredItemsPostwordMetadata.Clear();
+	pSrcPhrase->filteredItem.Empty();
+	pSrcPhrase->itemMetadata.Empty();
+	pSrcPhrase->itemBeginMkr.Empty();
+	pSrcPhrase->bHasPostWordMetadata = FALSE; // initialize
+
+
 	// first, 3 wxArrayString arrays for extracting from m_filteredInfo any marker &
 	// endmarker pairs and intervening text content (endmarker might be absent for some
 	// marker types) - use them to do the extractions, if there is stuff there
@@ -341,6 +352,11 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	{
 		// there is filtered info in m_filteredInfo - so get it all (TRUE means
 		// "use space for any endmarker which is the empty string"
+		// BEW 14Mar17 a new member string array of CSourcePhrase classs, 
+		// arrSavedFilteredItemsPostwordMetadata, will store any metadata strings
+		// arising from post-word parsing and filtering of marker content belonging
+		// to the current pSrcPhrase (such as post word \x ... \x* etc) and the
+		// items in that array will be in sync index-wise with arrMkrs, etc
 		bHasFilteredInfo = pSrcPhrase->GetFilteredInfoAsArrays(&arrMkrs, 
 							&arrEndMkrs, &arrTextContent, TRUE);
 	}
@@ -359,6 +375,16 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		// BEW added 23Apr15
 		strContent = ZWSPtoFwdSlash(strContent);
 //#endif
+		// BEW comment 14Mar17 It should not be possible for the new metadata strings to 
+		// be added to free translations, notes, or collected backtranslations - so there 
+		// is no need to check for post-word filted content's metadata string for those
+		// data types. Just add an empty string to the CSourcePhrase array
+		// arrSavedFilteredItemsPostwordMetadata in order to preserve syncing by index,
+		// & add strMkr to the same class's arrSavedFilteredItemsPostwordBeginMkrs array
+		pSrcPhrase->arrSavedFilteredItemsPostwordMetadata.Add(wxEmptyString);
+		pSrcPhrase->arrSavedFilteredItemsPostwordBeginMkrs.Add(strMkr);
+
+		// Legacy code continues...
 		AllWholeMkrsArray.Add(strMkr);
 		AllEndMkrsArray.Add(strEndMkr);
 		assocTextArrayBeforeEdit.Add(strContent);
@@ -385,6 +411,16 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		// BEW added 23Apr15
 		strContent = ZWSPtoFwdSlash(strContent);
 //#endif
+		// BEW comment 14Mar17 It should not be possible for the new metadata strings to 
+		// be added to free translations, notes, or collected backtranslations - so there 
+		// is no need to check for post-word filted content's metadata string for those
+		// data types. Just add an empty string to the CSourcePhrase array
+		// arrSavedFilteredItemsPostwordMetadata in order to preserve syncing by index,
+		// & add strMkr to the same class's arrSavedFilteredItemsPostwordBeginMkrs array
+		pSrcPhrase->arrSavedFilteredItemsPostwordMetadata.Add(wxEmptyString);
+		pSrcPhrase->arrSavedFilteredItemsPostwordBeginMkrs.Add(strMkr);
+
+		// Legacy code continues...
 		AllWholeMkrsArray.Add(strMkr);
 		AllEndMkrsArray.Add(strEndMkr);
 		assocTextArrayBeforeEdit.Add(strContent);
@@ -409,6 +445,16 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		// BEW added 23Apr15
 		strContent = ZWSPtoFwdSlash(strContent);
 //#endif
+		// BEW comment 14Mar17 It should not be possible for the new metadata strings to 
+		// be added to free translations, notes, or collected backtranslations - so there 
+		// is no need to check for post-word filted content's metadata string for those
+		// data types. Just add an empty string to the CSourcePhrase array
+		// arrSavedFilteredItemsPostwordMetadata in order to preserve syncing by index,
+		// & add strMkr to the same class's arrSavedFilteredItemsPostwordBeginMkrs array
+		pSrcPhrase->arrSavedFilteredItemsPostwordMetadata.Add(wxEmptyString);
+		pSrcPhrase->arrSavedFilteredItemsPostwordBeginMkrs.Add(strMkr);
+
+		// Legacy code continues...
 		AllWholeMkrsArray.Add(strMkr);
 		AllEndMkrsArray.Add(strEndMkr);
 		assocTextArrayBeforeEdit.Add(strContent);
@@ -440,9 +486,21 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 				// BEW added 23Apr15
 				strContent = ZWSPtoFwdSlash(strContent);
 //#endif
+				// BEW 14Mar17, also add either the empty string, or saved metadata for
+				// a post-word filtered marker+content+endmarker, from CString:tempSavedMetadata
+				// and CString::tempSavedBeginMkr - storing here to pSrcPhrase's arrays:
+				// arrSavedFilteredItemsPostwordMetadata & arrSavedFilteredItemsPostwordBeginMkrs
+				// - this has been delayed till now because any free trans, note, or back trans
+				// got saved (in the present function) first, and we must preserve syncing order
+				// index-wise between what the user sees here, and the underlying data storage arrays
+				pSrcPhrase->arrSavedFilteredItemsPostwordMetadata.Add(pSrcPhrase->tempSavedMetadata.Item(index));
+				pSrcPhrase->arrSavedFilteredItemsPostwordBeginMkrs.Add(pSrcPhrase->tempSavedBeginMkr.Item(index));
+
+				// Legacy code continues...
 				assocTextArrayBeforeEdit.Add(strContent);
 
-				// add marker to left list box, then make it a bare marker for lookup & add to list
+				// add marker to left list box, then make it a bare marker
+				// for lookup & add to list
 				pMarkers->Append(strMkr);
 				tempMkr = strMkr;
 				bareMkrStr = tempMkr.Remove(0,1); // delete the backslash
@@ -459,8 +517,8 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	indexIntoMarkersLB = 0; // current selection index for Markers list box
 	prevMkrSelection = indexIntoMarkersLB;
 
-    // Change the text in the CEdit to correspond to the marker clicked on in the Marker
-    // list box 
+    // Change the text in the wxTextCtrl to correspond to the marker clicked
+    // on in the Marker list box 
     tempStr = assocTextArrayBeforeEdit.Item(indexIntoMarkersLB);
 	pMkrTextEdit->ChangeValue(tempStr);
 
@@ -747,6 +805,11 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 			assocTextArrayBeforeEdit.Clear();
 			AllWholeMkrsArray.Clear();
 			AllEndMkrsArray.Clear();
+			// BEW 14Mar17 added clearing of the four new arrays in support of stored metadata
+			pSrcPhrase->arrSavedFilteredItemsPostwordBeginMkrs.Clear();
+			pSrcPhrase->arrSavedFilteredItemsPostwordBeginMkrs.Clear();
+			pSrcPhrase->tempSavedMetadata.Clear();
+			pSrcPhrase->tempSavedBeginMkr.Clear();
 		}
 	}
 	gpApp->m_nSequNumBeingViewed = -1;	// -1 can be used in the view to indicate if the 
@@ -868,6 +931,17 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 	pMkrTextEdit->ChangeValue(_T(""));
 	pEndMarkers->Delete(currentMkrSelection);
 
+	// BEW added 14Mar17 pSrcPhrase for the selected line will have an empty string 
+	// stored in the new member: arrSavedFilteredItemsPostwordMetadata; and its
+	// begin marker in: arrSavedFilteredItemsPostwordBeginMkrs. Remove the relevant
+	// items from these two lines, to keep the various arrays in sync index-wise
+	CAdapt_ItView* pView = gpApp->GetView();
+	CSourcePhrase* pSrcPhraseCurr;
+	pSrcPhraseCurr = pView->GetSrcPhrase(gpApp->m_nSequNumBeingViewed);
+	pSrcPhraseCurr->arrSavedFilteredItemsPostwordMetadata.RemoveAt(currentMkrSelection, 1);
+	pSrcPhraseCurr->arrSavedFilteredItemsPostwordBeginMkrs.RemoveAt(currentMkrSelection, 1);
+
+	//Legacy code continues...
 	// now do the needed deletions in the various arrays, so that the class's
 	// storage reflects the deletion just made in the dialog...
 
@@ -1038,3 +1112,6 @@ void CViewFilteredMaterialDlg::GetAndShowMarkerDescription(int indexIntoMarkersL
 	this->SetSize(dlgSize);
 	this->CenterOnParent();
 }
+
+// BEW 13Mar17 functions for support of storage of post-word filtered info on current CSourcePhrase
+

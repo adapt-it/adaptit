@@ -7771,7 +7771,7 @@ wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strF
 		// we have to discern between \bt and a \bt-derived marker, the former's content
 		// goes in m_collectedBackTrans member, the latter into m_filteredInfo; we can do
 		// this by searching for "\\bt " - the space will be present if collected back
-		// translation informion is in this unwrapped string
+		// translation information is in this unwrapped string
 		bool bIsOurBTMkr = FALSE;
 		if (innerStr.Find(_T("\\bt ")) != wxNOT_FOUND)
 		{

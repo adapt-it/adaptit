@@ -13720,8 +13720,8 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 
 		if (gbLegacySourceTextCopy)
 		{
-			// str2 may have temporary initial & final spaces still present
-			// so get rid of them
+			//BEW 13Jan17  str2 may have temporary initial & final spaces
+			// still present so get rid of them before testing for inequality
 			wxString str3 = str2; 
 			str3.Trim(FALSE);
 			str3.Trim(TRUE);

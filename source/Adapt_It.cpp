@@ -16952,6 +16952,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				// removes _Collab_*.xml documents, so as to not remove them and to have
 				// m_bCollaboratingWithParatext and m_bCollaboratingWithBibledit both cleared to FALSE
 
+	// BEW added, 19Jan17, the following 4 public strings in support of ParseWord2()'s
+	// post-word filtering of filterable markers and their content (eg. \x,  \f, \fe ...)
+	// These are used in ParsePostWordStuff() - a CAdaptItDoc member function; their
+	// values are defined here. When used, content will be inserted between the ^^ and ]]
+	strAfterWord = _T("[[after_word^^]]");
+	strAfterEndMkr = _T("[[after_endMkr^^]]");
+	strAfterPunct = _T("[[after_punct^^]]");
+	strSearchForAfter = _T("[[after_"); // the search string when checking for post-word 
+										// placement when unfiltering
+
 #if defined(_KBSERVER)
                                     // Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
                                     // for a gui action by the user causes a TRUE value to be set for one of them, so that
@@ -36318,6 +36328,11 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data.Empty();
     data << szUseFilterMarkers << tab << gProjectFilterMarkersForConfig;
     pf->AddLine(data);
+#ifdef _DEBUG
+	wxString reverse;
+	reverse = MakeReverse(gProjectFilterMarkersForConfig); // Bill must have logging suppressed as next line gives no output and I want to see end of string
+	wxLogDebug(_T("gProjectFilterMarkersForConfig() at 36,329 of AI.cpp, WriteProjectSettingsConfiguration()\n%s"), gProjectFilterMarkersForConfig.c_str());
+#endif
 
     if (m_bChangeFixedSpaceToRegularSpace)
         number = _T("1");

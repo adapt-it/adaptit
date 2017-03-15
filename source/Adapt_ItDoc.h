@@ -260,12 +260,13 @@ protected:
 	bool			PostwordXrefOrFootnoteFiltering(CSourcePhrase* pSrcPhrase, wxChar* pChar,
 										wxChar* pEnd, bool& bXref_Footnote_orEndnoteStored);
 	int				ParsePostWordStuff(
-							wxChar* pChar,
-							wxChar*		pEnd,
+							wxChar*        pChar,
+							wxChar*		   pEnd,
 							CSourcePhrase* pSrcPhrase,
-							wxString&	spacelessPuncts,
+							wxString&	   spacelessPuncts,
 							WordParseEndsAt& endCondition,
-							bool		bTokenizingTargetText);
+							bool		   bTokenizingTargetText,
+							wxChar*		   pBufStart);
 
 public:
 	void			OverwriteUSFMFixedSpaces(wxString*& pstr);
@@ -385,14 +386,24 @@ public:
 	bool			IsMarker(wxString& mkr); // overloaded version
 	bool			IsPrevCharANewline(wxChar* ptr, wxChar* pBuffStart);
 	bool			IsPunctuation(wxChar* ptr, bool bSource = TRUE);
-	bool			IsPostWordEmbeddedMarkerMaterial(wxChar *pChar, wxChar* pEnd, int& numMkrContentSpans, 
-								wxChar* endPoint, bool bTokenizingTargetText);
+	bool			IsPostwordFilteringRequired(wxChar* pChar, bool& bXref_Fn_orEn,
+								bool& bIsFilterStuff, wxString& wholeMkr); // BEW added 2Mar17
+	//bool			IsPostWordEmbeddedMarkerMaterial(wxChar *pChar, wxChar* pEnd, int& numMkrContentSpans, 
+	//							wxChar* endPoint, bool bTokenizingTargetText); <<-- not needed in changed design
 	bool			IsEndMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsEndMarker2(wxChar* pChar); // BEW 7Nov16 This version of IsEndEndMarker() has the end-of-buffer test internal
 	bool			IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase);
 	bool			IsInlineNonbindingEndMarker(wxString& mkr);
 	bool			IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd));
 	bool			IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* pEnd); // whm added 10Feb05
+	// Next three are tests made for what precedes pChar when parsing what follows the
+	// word in ParseWord2() and a begin-marker is encountered with no preceding whitespace
+	// (it may be stuff like \f ...\f*, or \x ....\x* etc, which are filterable - so we 
+	// need to give ParseWord2() the capability to do filtering when parsing input text)
+	bool			EndmarkerPrecedes( wxChar* pChar, wxString& precedingEndmarker);
+	bool			PunctuationPrecedes( wxChar* pChar, wxChar& precedingPunct, bool bTokenizingTargetText);
+	bool			WordPrecedes( wxChar* pChar, wxString& theWord, 
+								CSourcePhrase*  pSrcPhrase, wxString& spacelessPuncts);
 	bool			IsLegacyDocVersionForFileSaveAs();
 	static SPList   *LoadSourcePhraseListFromFile(wxString FilePath);
 	USFMAnalysis*	LookupSFM(wxChar *pChar);
@@ -460,7 +471,8 @@ public:
 			wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
 			bool& bIsInlineNonbindingMkr,
 			bool& bIsInlineBindingMkr,
-			bool bTokenizingTargetText);
+			bool bTokenizingTargetText,
+			wxChar* pBufStart);
 
 	int	ParseWordProper(
 			wxChar*		pChar,

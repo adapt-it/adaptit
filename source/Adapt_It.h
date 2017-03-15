@@ -4068,6 +4068,18 @@ public:
 
 public:
 
+	// BEW added, 19Jan17, the following 4 strings in support of ParseWord2()'s
+	// post-word filtering of filterable markers and their content (eg. \x,  \f, \fe ...)
+	// These are used in ParsePostWordStuff() - a CAdaptItDoc member function; their
+	// values are initialized to empty strings in the app method OnInit(). ParsePostWordStuff()
+	// will use them to store the m_key value, the end marker, following punctuation.
+	// respectively. strSearchForAfter is a scratch string for doing a post-word search.
+	wxString	strAfterWord;
+	wxString	strAfterEndMkr;
+	wxString	strAfterPunct;
+	wxString	strSearchForAfter;
+
+
 	// arrays for storing (size_t)wxChar for when the user uses the Punctuation tab of
 	// Preferences to change the project's punctuation settings, either source or
 	// target or both
