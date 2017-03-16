@@ -3809,7 +3809,7 @@ bool IsCollabDocProtectedFromSavingToEditor(wxString bookCode, bool bCollabByCha
             {
                 // The project config file string has an unknown book id. Just log the error
                 wxString msg = _T("IsCollabDocProtectedFromSavingToEditor encountered unknown book ID: %s");
-                msg = msg.Format(msg, tokenStr);
+                msg = msg.Format(msg, tokenStr.c_str());
                 gpApp->LogUserAction(msg);
             }
         }
@@ -3842,7 +3842,7 @@ bool IsCollabDocProtectedFromSavingToEditor(wxString bookCode, bool bCollabByCha
             {
                 // The project config file string has an unknown book id. Just log the error
                 wxString msg = _T("IsCollabDocProtectedFromSavingToEditor encountered unknown book ID: %s");
-                msg = msg.Format(msg, tokenStr);
+                msg = msg.Format(msg, tokenStr.c_str());
                 gpApp->LogUserAction(msg);
             }
 
