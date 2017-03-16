@@ -2694,7 +2694,34 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 
 bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDisplayed) // whm added 17Jan12
 {
-    // This is a test change only.
+
+    // ********************** Protection from Saving Changes to PT/BE Code below ***********************
+    // whm added 2March2017 code to allow collab books/chapters to be protected from
+    // writing changes to PT/BE during collaboration saves. These books/chapters would
+    // still be saved normally as AI documents in the Adaptations folder - just not to PT/BE.
+    // Here is where we should interrupt the transfer of information to PT/BE when the
+    // current document is marked as "protected from making changes to PT/BE".
+    // We call a new function named IsCollabDocProtectedFromSaving(). If it returns TRUE, 
+    // DoCollabFileSave() return's FALSE immediately. If IsCollabDocProtectedFromSaving() 
+    // returns FALSE the book/chapter currently open in collaboration is not marked
+    // as protected in the AI-ProjectConfiguration.aic's CollabBooksProtectedFromSavingToEditor
+    // field.
+    bool bProtectedFromSavingChangesToExternalEditor = FALSE;
+    wxString bookCode = gpApp->m_Collab_BookCode;
+    bool bCollabByChapterOnly = gpApp->m_bCollabByChapterOnly;
+    wxString collabChapterSelected = gpApp->m_CollabChapterSelected; // a wxString represengin a chapter number if collabByChapterOnly is "1"
+    wxASSERT(!bookCode.IsEmpty());
+    bProtectedFromSavingChangesToExternalEditor = IsCollabDocProtectedFromSavingToEditor(bookCode, bCollabByChapterOnly, collabChapterSelected);
+    if (bProtectedFromSavingChangesToExternalEditor)
+    {
+        // TODO: Bruce, is it necessary to call UpdateDocWithPhraseBoxContents() here before
+        // calling DoFileSave_Protected()??
+
+        // Do a local normal protected save to AI's native storage
+        DoFileSave_Protected(TRUE, progressItem); // // TRUE means - show wait/progress dialog
+        return TRUE;
+    }
+    // ********************** Protection from Saving Changes to PT/BE Code above ***********************
 
     // For testing purposes, assume it's target text, and a single-chapter
     // document...actually, there's nothing in the MakeUpdatedTextForExternalEditor()

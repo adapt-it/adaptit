@@ -208,13 +208,13 @@ class KBSharingMgrTabbedDlg;
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 8 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 1 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 2 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
-#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 9
-#define VERSION_DATE_MONTH 12
-#define VERSION_DATE_YEAR 2016
-const wxString appVerStr(_T("6.8.1"));
+#define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 16
+#define VERSION_DATE_MONTH 3
+#define VERSION_DATE_YEAR 2017
+const wxString appVerStr(_T("6.8.2"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -4376,6 +4376,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString m_CollabChapterSelected;
 	wxString m_CollabSourceLangName; // whm added 4Sep11
 	wxString m_CollabTargetLangName; // whm added 4Sep11
+    wxString m_CollabBooksProtectedFromSavingToEditor; // whm added 2February2017
 	bool     m_bUserWantsNoCollabInShiftLaunch;
 
 	bool     m_bStartWorkUsingCollaboration; // whm added 19Feb12
@@ -4393,8 +4394,9 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString GetBookNameFromBookCode(wxString bookCode);
 	int GetBookFlagIndexFromFullBookName(wxString fullBookName);
 	int GetNumberFromBookCodeForFileNaming(wxString bookStr);
-	wxString GetBookNumberAsStrFromName(wxString bookName);
-	wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
+    wxString GetBookNumberAsStrFromName(wxString bookName);
+    wxString GetBookNumberAsStrFromBookCode(wxString bookCode);
+    wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
 	wxString FindBookFileContainingThisReference(wxString folderPath, wxString reference, wxString extensionFilter);
 	bool BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr);
 

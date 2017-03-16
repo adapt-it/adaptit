@@ -6839,6 +6839,13 @@ wxString szCollabSourceLangName = _T("CollabSourceLangName");
 // m_CollabTargetLangName member variable.
 wxString szCollabTargetLangName = _T("CollabTargetLangName");
 
+/// The label that identifies the following string as a composed list of book(s), or book:chapter
+/// documents who have been marked to prevent saving changes to Paratext/Bibledit. The label is
+/// CollabBooksProtectedFromSavingToEditor and is written to the "ProjectSettings" part
+/// of the project configuration file. Adapt It stores this value as a wxString in the App's
+/// m_CollabBooksProtectedFromSavingToEditor member variable.
+wxString szCollabBooksProtectedFromSavingToEditor = _T("CollabBooksProtectedFromSavingToEditor");
+
 /// The label that identifies the following string as an int, either 0 or 1 storing the flag
 /// value which indicates whether the "Change Paratext/Bibledit Projects" button is password
 /// protected in the "Setup Paratext/Bibledit Collaboration" dialog.
@@ -12730,16 +12737,25 @@ wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName, wxString PTve
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the path to the Paratext projects directory
 /// \param      wxString PTVersion - a wxString designating the PT version to use: "PTVersion7", 
-///             "PTVersion8", "PTLinuxVersion7", "PTLinuxVersion8", or _T("")
-///             An empty input parameter _T("") is only meaningful for Linux version __WXGTK__ block 
+///             "PTVersion8", "PTLinuxVersion7", or "PTLinuxVersion8".
+///             An empty input parameter _T("") does not currently happen 
 /// \remarks
-/// Called from: the App's OnInit().
+/// Called from: the App's GetListOfPTProjects(), AiProjectCollabStatus(), 
+/// SetCollabSettingsToNewProjDefaults(), GetListOfPTProjects(), CSetupEditorCollaboration::InitDialog(),
+/// and CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData().
 /// Looks in the Windows registry to get the path to the Paratext Projects directory.
-/// This function assumes that a PT 8 Installation has priority over a PT 7 installation.
-/// Linux version returns $HOME/Paratext8Projects for PT8 or $HOME/ParatextProjects for PT 7.
-/// For Windows we first look for a PT 8 installation and if found, returns its Projects Dir path
-/// by inspecting the Settings_Directory key value.
-/// If no PT 8 installation is found, we look for a PT 7 installation and if found, return
+/// whm revised 16March2017. User Jenni B reported an error from the system that said, "can't
+/// open file 'C:\Users\User\Documents\My Paratext 8 Projects\... (error 3: the system cannot find the
+/// path specified.)" after selecting the "Paratext 7" radio button in the "Setup Or Remove Collaboration"
+/// dialog. That shouldn't happen when a user specifically asks for projects listed for Paratext 7.
+/// So, I've revised this function to not give preference to Paratext 8 when both PT 7 and PT 8 are
+/// installed on the same user's machine. Now the function only returns a path for the version of
+/// Paratext specified in the function's wxString PTVersion parameter.
+/// Windows version generally returns C:\My Paratext Projects for PT7 or C:\My Paratext 8 Projects for PT 8.
+/// Linux version generally returns $HOME/ParatextProjects for PT7 or $HOME/Paratext8Projects for PT 8.
+/// For Windows we first look for the specified PT installation and if found, returns its Projects Dir path
+/// by inspecting the Settings_Directory key value. If the incoming parameter is empty string we look first
+/// for PT 8. If no PT 8 installation is found, we look for a PT 7 installation and if found, return
 /// its Projects Dir path by inspecting its ...Settings_Directory key.
 /// For PT 8 the following PT 8 registry key is queried for the return value (depending on architecture):
 ///    HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8   for a 64-bit system, or
@@ -12763,7 +12779,7 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
 
     wxLogNull logNo; // eliminate any spurious messages from the system
 
-    if (PTVersion == _T("PTVersion8") || PTVersion == _T(""))
+    if (PTVersion == _T("PTVersion8")) //if (PTVersion == _T("PTVersion8") || PTVersion == _T(""))
     {
         // There are two registry views where the PT 8 key might be depending on the host architecture
         wxRegKey keyOS64PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
@@ -12805,32 +12821,24 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
             }
         }
     }
-
-    // Here we won't do else if, but continue looking if PTVersion is "PTVersion7" 
-    // or if the test for PT 8 above failed to find a path.
-    if (PTVersion == _T("PTVersion7") || path.IsEmpty())
+    else if (PTVersion == _T("PTVersion7")) //if (PTVersion == _T("PTVersion7") || path.IsEmpty())
     {
-
-        // If the path string is still empty we didn't find a PT 8 projects dir path, so try to find a PT 7 projects dir path
-        if (path.IsEmpty())
+        wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Settings_Directory"));
+        if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
         {
-            wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Settings_Directory"));
-            if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
+            wxString dirStrValue;
+            dirStrValue.Empty();
+            if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
             {
-                wxString dirStrValue;
-                dirStrValue.Empty();
-                if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+                // get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
+                dirStrValue = keyPTInstallDir.QueryDefaultValue();
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                if (::wxDirExists(dirStrValue))
                 {
-                    // get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
-                    dirStrValue = keyPTInstallDir.QueryDefaultValue();
-                    // remove the final backslash, since our path values generally don't have a
-                    // trailing path separator.
-                    if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
-                        dirStrValue.RemoveLast(1);
-                    if (::wxDirExists(dirStrValue))
-                    {
-                        path = dirStrValue;
-                    }
+                    path = dirStrValue;
                 }
             }
         }
@@ -12864,9 +12872,8 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
         wxString pt8ValuesFilePathSuffix = _T("/LocalMachine/software/paratext/8/values.xml");
         wxString pt7ValuesFilePathSuffix = _T("/LocalMachine/software/scrchecks/1.0/settings_directory/values.xml");
 
-        // If the input PTVersion parameter is "PTLinuxVersion8", or is an empty string _T(""), 
-        // we'll start by checking for a PT 8 Dir Path.
-        if (PTVersion == _T("PTLinuxVersion8") || PTVersion == _T(""))
+        // Start by checking for a PT 8 Dir Path.
+        if (PTVersion == _T("PTLinuxVersion8")) // if (PTVersion == _T("PTLinuxVersion8") || PTVersion == _T(""))
         {
             // First Look for a PT 8 values file path
             wxString strValuesFile = strRegPath + pt8ValuesFilePathSuffix;
@@ -12903,51 +12910,44 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
             {
                 path = strPath;
             }
-        } // end of if (PTVersion == _T("PTLinuxVersion8") || PTVersion == _T(""))
-
-          // Here we won't do else if, but continue looking if PTVersion is "PTLinuxVersion7" 
-          // or if the test for PT 8 above failed to find a path.
-        if (PTVersion == _T("PTLinuxVersion7") || path.IsEmpty())
+        } // end of if (PTVersion == _T("PTLinuxVersion8"))
+        else if (PTVersion == _T("PTLinuxVersion7")) //if (PTVersion == _T("PTLinuxVersion7") || path.IsEmpty())
         {
-            // If above clock failed to determine a PT 8 values file path, look for a PT 7 values file path
-            if (path.IsEmpty())
+            wxString strValuesFile = strRegPath + pt7ValuesFilePathSuffix;
+            wxString strBuf;
+            strBuf.Empty();
+            wxString strPath;
+            strPath.Empty();
+            if (wxFileExists(strValuesFile))
             {
-                wxString strValuesFile = strRegPath + pt7ValuesFilePathSuffix;
-                wxString strBuf;
-                strBuf.Empty();
-                wxString strPath;
-                strPath.Empty();
-                if (wxFileExists(strValuesFile))
+                wxTextFile tfile;
+                if (tfile.Open(strValuesFile))
                 {
-                    wxTextFile tfile;
-                    if (tfile.Open(strValuesFile))
+                    strBuf = tfile.GetFirstLine();
+                    while (!tfile.Eof())
                     {
-                        strBuf = tfile.GetFirstLine();
-                        while (!tfile.Eof())
+                        if (strBuf.Contains(_T("type=\"string\">")))
                         {
-                            if (strBuf.Contains(_T("type=\"string\">")))
-                            {
-                                // extract the path from this string value
-                                int nStart = (strBuf.Find(_T("\">"))) + 2;
-                                int nEnd = strBuf.Find(_T("</value>"));
-                                strPath = strBuf.Mid(nStart, (nEnd - nStart));
-                                //wxLogDebug(strPath);
-                                break; // exit the while loop -- we've found our match
-                            }
-                            strBuf = tfile.GetNextLine();
+                            // extract the path from this string value
+                            int nStart = (strBuf.Find(_T("\">"))) + 2;
+                            int nEnd = strBuf.Find(_T("</value>"));
+                            strPath = strBuf.Mid(nStart, (nEnd - nStart));
+                            //wxLogDebug(strPath);
+                            break; // exit the while loop -- we've found our match
                         }
-                        tfile.Close();
+                        strBuf = tfile.GetNextLine();
                     }
-                }
-
-                if (!strPath.IsEmpty() && strPath.GetChar(strPath.Length() - 1) == _T('\\'))
-                    strPath.RemoveLast(1);
-                if (::wxDirExists(strPath))
-                {
-                    path = strPath;
+                    tfile.Close();
                 }
             }
-        } // end of if (PTVersion == _T("PTLinuxVersion7") || path.IsEmpty())
+
+            if (!strPath.IsEmpty() && strPath.GetChar(strPath.Length() - 1) == _T('\\'))
+                strPath.RemoveLast(1);
+            if (::wxDirExists(strPath))
+            {
+                path = strPath;
+            }
+        } // end of if (PTVersion == _T("PTLinuxVersion7"))
     }
 #endif
 
@@ -13092,12 +13092,11 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
             path = strDir;
         }
     }
-
     // Linux version returns /usr/lib/Paratext8 directory by default for PT 8, unless there is
     // no /usr/lib/Paratext8 directory, and /usr/lib/Paratext is being used for the early beta
     // version of PT8 (as verified by its PTVersion file's major version number being 8), in which
     // case the /usr/lib/Paratext directory is returned for use by that early beta version of PT8.
-    if (PTVersion == _T("PTLinuxVersion8"))
+    else if (PTVersion == _T("PTLinuxVersion8"))
     {
         wxString strDir = _T("/usr/lib/Paratext8");
         if (::wxDirExists(strDir))
@@ -13274,6 +13273,8 @@ wxString CAdapt_ItApp::GetCollabSettingsAsStringForLog()
     settingsStr += m_CollabBookSelected;
     settingsStr += _T("]chapter:[");
     settingsStr += m_CollabChapterSelected;
+    settingsStr += _T("]books_protected_from_saving_to_editor:[");
+    settingsStr += m_CollabBooksProtectedFromSavingToEditor;
     settingsStr += _T("]");
 
     return settingsStr;
@@ -13285,6 +13286,7 @@ wxString CAdapt_ItApp::GetCollabSettingsAsStringForLog()
 // whm 25June2016 modified for PT 8 support, including a work-around for having used "ParatextVersionForProject"
 // as a project config file label in a pre-release version instead of "CollabParatextVersionForProject" that is
 // used for this label in all subsequent versions.
+// whm 2Februaty2017 - no changes needed for new m_TempCollabBooksProtectedFromSavingToEditor config label
 void CAdapt_ItApp::GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray,
     wxArrayString& collabSettingsArray)
 {
@@ -17426,6 +17428,55 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm added 26Apr11 for AI-PT Collaboration support
     m_pArrayOfCollabProjects = new wxArrayPtrVoid;
+
+    /*
+    // testing the AddCollabBooksAndOrChaptersToCollabString() function
+    {
+        // the following are for testing, comment out after debugging
+        wxString testStr;
+        //testStr = _T("");
+        //testStr = _T("MAT MRK LUK:1:2:3:4:20:21:22 ROM:1:2:3 1TI 2TI TIT:1:2 REV"); // mixed whole book and chapter-only examples
+        //testStr = _T("MAT:15:16:17 MRK:1:2:14:15:16 LUK:1:2:3:4:20:21:22 ROM:1:2:3 TIT:1:2 REV:2"); // chapter-only examples
+        //testStr = _T("MAT MRK LUK ROM REV REV:1:3"); // whole book mode examples
+        //testStr = _T("MAT MRK MRK:1:2:16 LUK ROM 1CO:4:6"); // whole book mode examples
+        testStr = _T("GEN GEN:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48:49:50 EXO EXO:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40 LEV LEV:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27 NUM NUM:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36 DEU DEU:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34 JOS JOS:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24 JDG JDG:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21 RUT RUT:1:2:3:4 1SA 1SA:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31 2SA 2SA:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24 1KI 1KI:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22 2KI 2KI:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25 1CH 1CH:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29 2CH 2CH:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36 EZR EZR:1:2:3:4:5:6:7:8:9:10 NEH NEH:1:2:3:4:5:6:7:8:9:10:11:12:13 EST EST:1:2:3:4:5:6:7:8:9:10 JOB JOB:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42 PSA PSA:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48:49:50:51:52:53:54:55:56:57:58:59:60:61:62:63:64:65:66:67:68:69:70:71:72:73:74:75:76:77:78:79:80:81:82:83:84:85:86:87:88:89:90:91:92:93:94:95:96:97:98:99:100:101:102:103:104:105:106:107:108:109:110:111:112:113:114:115:116:117:118:119:120:121:122:123:124:125:126:127:128:129:130:131:132:133:134:135:136:137:138:139:140:141:142:143:144:145:146:147:148:149:150 PRO PRO:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31 ECC ECC:1:2:3:4:5:6:7:8:9:10:11:12 SNG SNG:1:2:3:4:5:6:7:8 ISA ISA:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48:49:50:51:52:53:54:55:56:57:58:59:60:61:62:63:64:65:66 JER JER:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48:49:50:51:52 LAM LAM:1:2:3:4:5 EZK EZK:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48 DAN DAN:1:2:3:4:5:6:7:8:9:10:11:12 HOS HOS:1:2:3:4:5:6:7:8:9:10:11:12:13:14 JOL JOL:1:2:3 AMO AMO:1:2:3:4:5:6:7:8:9 OBA OBA:1 JON JON:1:2:3:4 MIC MIC:1:2:3:4:5:6:7 NAM NAM:1:2:3 HAB HAB:1:2:3 ZEP ZEP:1:2:3 HAG HAG:1:2 ZEC ZEC:1:2:3:4:5:6:7:8:9:10:11:12:13:14 MAL MAL:1:2:3:4 MAT MAT:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28 MRK MRK:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16 LUK LUK:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24 JHN JHN:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21 ACT ACT:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28 ROM ROM:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16 1CO 1CO:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16 2CO 2CO:1:2:3:4:5:6:7:8:9:10:11:12:13 GAL GAL:1:2:3:4:5:6 EPH EPH:1:2:3:4:5:6 PHP PHP:1:2:3:4 COL COL:1:2:3:4 1TH 1TH:1:2:3:4:5 2TH 2TH:1:2:3 1TI 1TI:1:2:3:4:5:6 2TI 2TI:1:2:3:4 TIT TIT:1:2:3 PHM PHM:1 HEB HEB:1:2:3:4:5:6:7:8:9:10:11:12:13 JAS JAS:1:2:3:4:5 1PE 1PE:1:2:3:4:5 2PE 2PE:1:2:3 1JN 1JN:1:2:3:4:5 2JN 2JN:1 3JN 3JN:1 JUD JUD:1");
+        wxString newStr;
+        //newStr = AddCollabBooksAndOrChaptersToCollabString(testStr, _T(""));
+        //newStr = AddCollabBooksAndOrChaptersToCollabString(testStr, _T("MAT:1:2 MRK:2:3:4 LUK 1CO:1")); // 4 different books (with 6 total chapters) to merge
+        wxString addString = _T("REV REV:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22");
+        int lenAddStr = addString.Length();
+        newStr = AddCollabBooksAndOrChaptersToCollabString(testStr, addString); // 4 different books (with 6 total chapters) to merge
+        int lenNewStr = newStr.Length();
+        int testInt = 1;
+        testInt = testInt;
+    }
+    */
+    
+    /*
+    // testing the RemoveCollabBooksOrChaptersFromCollabString() function
+    {
+        // the following are for testing, comment out after debugging
+        wxString testStr;
+        //testStr = _T(""); // empty protection string
+        //testStr = _T("MAT MRK LUK:1:2:3:4:20:21:22 ROM:1:2:3 1TI 2TI TIT:1:2 REV"); // mixed whole book and chapter-only examples
+        //testStr = _T("MAT:15:16:17 MRK:1:2:14:15:16 LUK:1:2:3:4:20:21:22 ROM:1:2:3 TIT:1:2 REV:2"); // chapter-only examples
+        //testStr = _T("MAT MRK LUK ROM REV REV:1:3"); // whole book mode only examples
+        //testStr = _T("MAT MRK MRK:1:2:16 LUK ROM 1CO:4:6"); // whole book mode mixed with book:chapter examples
+        testStr = _T("GEN GEN:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48:49:50 EXO EXO:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40 LEV LEV:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27 NUM NUM:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36 DEU DEU:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34 JOS JOS:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24 JDG JDG:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21 RUT RUT:1:2:3:4 1SA 1SA:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31 2SA 2SA:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24 1KI 1KI:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22 2KI 2KI:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25 1CH 1CH:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29 2CH 2CH:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36 EZR EZR:1:2:3:4:5:6:7:8:9:10 NEH NEH:1:2:3:4:5:6:7:8:9:10:11:12:13 EST EST:1:2:3:4:5:6:7:8:9:10 JOB JOB:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42 PSA PSA:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48:49:50:51:52:53:54:55:56:57:58:59:60:61:62:63:64:65:66:67:68:69:70:71:72:73:74:75:76:77:78:79:80:81:82:83:84:85:86:87:88:89:90:91:92:93:94:95:96:97:98:99:100:101:102:103:104:105:106:107:108:109:110:111:112:113:114:115:116:117:118:119:120:121:122:123:124:125:126:127:128:129:130:131:132:133:134:135:136:137:138:139:140:141:142:143:144:145:146:147:148:149:150 PRO PRO:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31 ECC ECC:1:2:3:4:5:6:7:8:9:10:11:12 SNG SNG:1:2:3:4:5:6:7:8 ISA ISA:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48:49:50:51:52:53:54:55:56:57:58:59:60:61:62:63:64:65:66 JER JER:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48:49:50:51:52 LAM LAM:1:2:3:4:5 EZK EZK:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48 DAN DAN:1:2:3:4:5:6:7:8:9:10:11:12 HOS HOS:1:2:3:4:5:6:7:8:9:10:11:12:13:14 JOL JOL:1:2:3 AMO AMO:1:2:3:4:5:6:7:8:9 OBA OBA:1 JON JON:1:2:3:4 MIC MIC:1:2:3:4:5:6:7 NAM NAM:1:2:3 HAB HAB:1:2:3 ZEP ZEP:1:2:3 HAG HAG:1:2 ZEC ZEC:1:2:3:4:5:6:7:8:9:10:11:12:13:14 MAL MAL:1:2:3:4 MAT MAT:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28 MRK MRK:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16 LUK LUK:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24 JHN JHN:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21 ACT ACT:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28 ROM ROM:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16 1CO 1CO:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16 2CO 2CO:1:2:3:4:5:6:7:8:9:10:11:12:13 GAL GAL:1:2:3:4:5:6 EPH EPH:1:2:3:4:5:6 PHP PHP:1:2:3:4 COL COL:1:2:3:4 1TH 1TH:1:2:3:4:5 2TH 2TH:1:2:3 1TI 1TI:1:2:3:4:5:6 2TI 2TI:1:2:3:4 TIT TIT:1:2:3 PHM PHM:1 HEB HEB:1:2:3:4:5:6:7:8:9:10:11:12:13 JAS JAS:1:2:3:4:5 1PE 1PE:1:2:3:4:5 2PE 2PE:1:2:3 1JN 1JN:1:2:3:4:5 2JN 2JN:1 3JN 3JN:1 JUD JUD:1 REV REV:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22");
+        int lenTestStr = testStr.Length();
+        wxString newStr;
+        // In the next test the string to be removed is empty, so the original protected string should be returned unchanged.
+        //newStr = RemoveCollabBooksOrChaptersFromCollabString(testStr, _T("")); // removal string empty
+        // In the next test the string to be removed has some references that aren't within the protected string. They should be ignored and only the common parts removed
+        //newStr = RemoveCollabBooksOrChaptersFromCollabString(testStr, _T("MAT:1:2 MRK:2:3:4 LUK 1CO:1")); // 4 different books (with 6 total chapters) to remove
+        // In the next test the string to be removed is identical to the protected string so it should result in an empty string being returned
+        //newStr = RemoveCollabBooksOrChaptersFromCollabString(testStr, _T("MAT MRK MRK:1:2:16 LUK ROM 1CO:4:6")); // Mixed 4 different books (with 6 total chapters) to remove
+        newStr = RemoveCollabBooksOrChaptersFromCollabString(testStr, _T("REV REV:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22"));
+        int lenNewStr = newStr.Length();
+        int testInt = 1;
+        testInt = testInt;
+    }
+    */
 
     // testing the GetListOfPTProjects() function
     //wxArrayString pt8List = GetListOfPTProjects(_T("PTVersion8"));
@@ -34931,6 +34982,10 @@ void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
             {
                 m_ParatextVersionForProject = tokenStr;
             }
+            else if (fieldNum == 15) // whm added 2February2017
+            {
+                m_CollabBooksProtectedFromSavingToEditor = ReplaceAtSymbolWithColons(tokenStr);// Convert any @ characters back to colons
+            }
             else
             {
                 wxASSERT_MSG(FALSE, _T("Composite string"));
@@ -35192,6 +35247,7 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
     m_CollabChapterSelected = _T(""); // AI-ProjectConfiguration.aic file label: CollabChapterSelected
     m_CollabSourceLangName = _T(""); // AI-ProjectConfiguration.aic file label: CollabSourceLangName
     m_CollabTargetLangName = _T(""); // AI-ProjectConfiguration.aic file label: CollabTargetLangName
+    m_CollabBooksProtectedFromSavingToEditor = _T(""); // AI-ProjectConfiguration.aic file label: CollabBooksProtectedFromSavingToEditor
                                      // whm 26Jan13 moved the following from Bruce's original location in
                                      // OnInit(), so that these settings will be together with other
                                      // collaboration settings and their values will be set when
@@ -36190,6 +36246,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 
     data.Empty();
     data << szCollabChapterSelected << tab << m_CollabChapterSelected;
+    pf->AddLine(data);
+
+    data.Empty();
+    data << szCollabBooksProtectedFromSavingToEditor << tab << m_CollabBooksProtectedFromSavingToEditor;
     pf->AddLine(data);
     // !!!!!!!!!!!!!! END OF COLLABORATION SETTINGS !!!!!!!!!!!!!!!!!!!!!!!
 
@@ -37239,6 +37299,10 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
         {
             m_CollabChapterSelected = strValue;
         }
+        else if (name == szCollabBooksProtectedFromSavingToEditor) // whm added 2February2017
+        {
+            m_CollabBooksProtectedFromSavingToEditor = strValue;
+        }
         // !!!!!!!!!!!!!! END OF COLLABORATION SETTINGS !!!!!!!!!!!!!!!!!!!!!!!
 
         else if (name == szUseAdaptationsGuesser)
@@ -38236,6 +38300,7 @@ void CAdapt_ItApp::SaveAppCollabSettingsToINIFile(wxString projectPathAndName)
     // m_bCollabByChapterOnly (bool value as wxString "0" or "1")
     // m_CollabChapterSelected
     // m_ParatextVersionForProject // whm added 28June2016 - added to end of composite string for simpler parsing/processing
+    // m_CollabBooksProtectedFromSavingToEditor // whm added 2February2017
     //
     // Note: Any embedded colons ':' that can appear in the Source, Target and
     // FreeTrans project names (in PT) are stored as @ characters, and converted
@@ -38298,6 +38363,9 @@ void CAdapt_ItApp::SaveAppCollabSettingsToINIFile(wxString projectPathAndName)
     newCompositeStr += colon; // whm added 28June2016
                               // FIELD 14 CollabParatextVersionForProject
     newCompositeStr += m_ParatextVersionForProject; // whm added 28June2016
+    newCompositeStr += colon; // whm added 2February 2017
+                              // FIELD 15 CollabBooksProtectedFromSavingToEditor
+    newCompositeStr += ReplaceColonsWithAtSymbol(m_CollabBooksProtectedFromSavingToEditor);
     newCompositeStr += colon; // end composite string with a colon
 
                               // a sample composite string might look like the following:
@@ -52070,6 +52138,31 @@ wxString CAdapt_ItApp::GetBookNumberAsStrFromName(wxString bookName)
     for (i = 0; i < arrayCt; i++)
     {
         if (bookName == bookNameArray.Item(i))
+        {
+            // PT books numbers cannot be numbered from index values but the index
+            // value can determine the number string stored in the parrallel bookNumArray.
+            bookNumAsStr = bookNumArray.Item(i);
+            break;
+        }
+    }
+    return bookNumAsStr;
+}
+
+wxString CAdapt_ItApp::GetBookNumberAsStrFromBookCode(wxString bookCode)
+{
+    // The Paratext list of book codes (3-letter Ids) is located in the App's array of
+    // wxStrings called AllBookIds. The Paratext list of string-format book numbers
+    // is located in the App's parallel array of wxStrings called AllBookNumStr.
+    wxString bookNumAsStr;
+    bookNumAsStr.Empty();
+    wxArrayString bookIDArray(123, AllBookIds);
+    wxArrayString bookNumArray(123, AllBookNumStr);
+    wxASSERT(bookIDArray.GetCount() == bookNumArray.GetCount());
+    int i, arrayCt;
+    arrayCt = (int)bookIDArray.GetCount();
+    for (i = 0; i < arrayCt; i++)
+    {
+        if (bookCode == bookIDArray.Item(i))
         {
             // PT books numbers cannot be numbered from index values but the index
             // value can determine the number string stored in the parrallel bookNumArray.

@@ -896,6 +896,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
                         pApp->m_CollabBookSelected = _T("");
                         pApp->m_CollabSourceLangName = _T("");
                         pApp->m_CollabTargetLangName = _T("");
+                        pApp->m_CollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
                         pApp->m_bCollabByChapterOnly = TRUE;
                         pApp->m_CollabChapterSelected = _T("");
 

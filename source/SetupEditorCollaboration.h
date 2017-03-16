@@ -46,6 +46,7 @@ public:
 	bool m_bTempCollaborationExpectsFreeTrans;
 	wxString m_TempCollabBookSelected;
 	wxString m_TempCollabChapterSelected;
+    wxString m_TempCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
 	
 	// These are temporary m_Save... values for holding the App's original
 	// collaboration settings upon entry to the SetupEditorCollaboration dialog. 
@@ -68,6 +69,7 @@ public:
 	bool m_bSaveCollaborationExpectsFreeTrans;
 	wxString m_SaveCollabBookSelected;
 	wxString m_SaveCollabChapterSelected;
+    wxString m_SaveCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
 	
 	wxSizer* pSetupEditorCollabSizer;
 	wxSize m_computedDlgSize; // stores the computed size of the dialog's sizer - accounting for its current layout state

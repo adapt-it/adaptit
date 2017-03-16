@@ -62,6 +62,7 @@ extern wxString szCollabByChapterOnly;
 extern wxString szCollabChapterSelected;
 extern wxString szCollabSourceLangName;
 extern wxString szCollabTargetLangName;
+extern wxString szCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
 extern wxString szProjectConfiguration;
 
 // event handler table
@@ -210,6 +211,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	m_bSaveCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans;
 	m_SaveCollabBookSelected = m_pApp->m_CollabBookSelected;
 	m_SaveCollabChapterSelected = m_pApp->m_CollabChapterSelected;
+    m_SaveCollabBooksProtectedFromSavingToEditor = m_pApp->m_CollabBooksProtectedFromSavingToEditor; // whm added 2February2017
 
 	m_bCollabChangedThisDlgSession = FALSE;
 
@@ -369,6 +371,7 @@ void CSetupEditorCollaboration::DoInit(bool bPrompt)
 	m_TempCollabTargetProjLangName = _T("");
 	m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
 	m_TempCollabChapterSelected = _T("");
+    m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
 
 	SetStateOfRemovalButton(); // disables the Remov... button when m_TempCollabAIProjectName is empty
     SetStateOfAcceptSetupButton(); // disables the "Accept this setup and prepare for another" button if
@@ -1268,6 +1271,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 			//      m_TempCollabChapterSelected
 			//      m_TempCollabSourceProjLangName
 			//      m_TempCollabTargetProjLangName
+            //      m_TempCollabBooksProtectedFromSavingToEditor // whm added 2February2017
 			collabLabelStr = collabLabelsArray.Item(ct);
 			collabItemStr = collabSettingsArray.Item(ct);
 			if (collabLabelStr == szCollabProjectForSourceInputs)
@@ -1312,6 +1316,8 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 				this->m_TempCollabSourceProjLangName = collabItemStr;
 			else if (collabLabelStr == szCollabTargetLangName)
 				this->m_TempCollabTargetProjLangName = collabItemStr;
+			else if (collabLabelStr == szCollabBooksProtectedFromSavingToEditor)
+				this->m_TempCollabBooksProtectedFromSavingToEditor = collabItemStr;
 		}
 
 		// whm Note: InitDialog() initializes m_TempCollaborationEditor to be "Paratext"
@@ -1455,6 +1461,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
                     m_pApp->m_CollabTargetLangName = _T("");
                     m_pApp->m_bCollabByChapterOnly = TRUE;
                     m_pApp->m_CollabChapterSelected = _T("");
+                    m_pApp->m_CollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
 
                     // Re-save now removed settings to the AI-ProjectConfiguration.aic file
                     // In order to write the collab settings to the selected project file we need to compose the
@@ -1519,6 +1526,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
                     m_TempCollabTargetProjLangName = _T("");
                     m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
                     m_TempCollabChapterSelected = _T("");
+                    m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
 
                     // Zero out all fields so the dialog is ready for another setup if desired
                     wxString strSelection = pComboAiProjects->GetStringSelection();
@@ -1583,6 +1591,7 @@ Reminder: The user will not be able to open this project until you install Parat
                     m_TempCollabTargetProjLangName = _T("");
                     m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
                     m_TempCollabChapterSelected = _T("");
+                    m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
 
                     return;
 
@@ -2330,6 +2339,7 @@ void CSetupEditorCollaboration::OnClose(wxCommandEvent& event)
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bSaveCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabBookSelected = m_SaveCollabBookSelected;
 	m_pApp->m_CollabChapterSelected = m_SaveCollabChapterSelected;
+    m_pApp->m_CollabBooksProtectedFromSavingToEditor = m_SaveCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
 
     // whm modified 30Dec2016 The App's m_collaborationEditor and m_ParatextVersionForProject
     // could be empty strings. 
@@ -2373,6 +2383,7 @@ void CSetupEditorCollaboration::OnCancel(wxCommandEvent& event)
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bSaveCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabBookSelected = m_SaveCollabBookSelected;
 	m_pApp->m_CollabChapterSelected = m_SaveCollabChapterSelected;
+    m_pApp->m_CollabBooksProtectedFromSavingToEditor = m_SaveCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
 
 	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
     wxASSERT(!m_pApp->m_ParatextVersionForProject.IsEmpty()); // whm added 24June2016
@@ -2420,6 +2431,7 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 		m_pApp->m_bCollaborationExpectsFreeTrans = FALSE;
 		m_pApp->m_CollabBookSelected = _T("");
 		m_pApp->m_CollabChapterSelected = _T("");
+        m_pApp->m_CollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
 
 		bool bDisableBookMode = TRUE;
 		wxString srcLangName = newProjDlg.pTextCtrlSrcLangName->GetValue();
@@ -2654,6 +2666,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	m_pApp->m_CollabTargetLangName = m_TempCollabTargetProjLangName;
 	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly;
 	m_pApp->m_CollabChapterSelected = m_TempCollabChapterSelected;
+    m_pApp->m_CollabBooksProtectedFromSavingToEditor = m_TempCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
 
 	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
     wxASSERT(!m_pApp->m_ParatextVersionForProject.IsEmpty());
@@ -2714,6 +2727,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	m_TempCollabTargetProjLangName = _T("");
 	m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
 	m_TempCollabChapterSelected = _T("");
+    m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
 
 	// Zero out all fields so the dialog is ready for another setup if desired
 	wxString strSelection = pComboAiProjects->GetStringSelection();
@@ -2761,6 +2775,7 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	m_pApp->m_CollabTargetLangName = _T("");
 	m_pApp->m_bCollabByChapterOnly = TRUE;
 	m_pApp->m_CollabChapterSelected = _T("");
+    m_pApp->m_CollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
 
 	// In order to write the collab settings to the selected project file we need to compose the
 	// path to the project for the second parameter of WriteConfigurationFile().
@@ -2821,6 +2836,7 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	m_TempCollabTargetProjLangName = _T("");
 	m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
 	m_TempCollabChapterSelected = _T("");
+    m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
 
 	// Zero out all fields so the dialog is ready for another setup if desired
 	wxString strSelection = pComboAiProjects->GetStringSelection();

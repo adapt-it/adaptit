@@ -205,6 +205,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_bTempCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly;
 	m_TempCollabChapterSelected = m_pApp->m_CollabChapterSelected;
 	m_bTempCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans;
+    // m_CollabBooksProtectedFromSavingToEditor is not needed for use in CGetSourceTextFromEditorDlg
 
 	m_SaveCollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
 	m_SaveCollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
