@@ -3292,7 +3292,7 @@ wxString AddCollabBooksAndOrChaptersToCollabString(wxString currentString, wxStr
                 }
             }
         }
-
+        indexIntotempTokenArrayOfBookType = indexIntotempTokenArrayOfBookType; // avoid gcc warning
         // bIsChapterFormat tells us whether we are adding a chapter-only reference to
         // the string. 
         if (bRequiresChapterFormat)
