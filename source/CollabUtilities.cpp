@@ -696,6 +696,8 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 // Note: Much more data is actually skimmed from the content of the books during the scanning
 // process. This could be used to present a more complete picture of the book contents if we
 // decided to do so.
+// whm modified 17March2017. The function needed to specify more accurately the path
+// to the Paratext projects DIR - which is different for PT8 than it is for PT7.
 enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 				wxString compositeProjName,wxString editor,wxString ptVersion,
 				wxString& emptyBooks,wxString& booksWithContent,wxString& errorMsg)
@@ -796,7 +798,8 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
         
         // Get a file path template for a book file that can be used for all book files in this project.
         wxString pathToProjectDir;
-        pathToProjectDir = gpApp->m_ParatextProjectsDirPath + gpApp->PathSeparator + collabProjShortName;
+        wxString ptProjectsDirPath = gpApp->GetParatextProjectsDirPath(ptVersion);
+        pathToProjectDir = ptProjectsDirPath + gpApp->PathSeparator + collabProjShortName;
         // Get the file name parts used for Paratext book file naming for this project.
         // collabProjShortName is the name of the subdirectory the project's files are located in.
         Collab_Project_Info_Struct* pCollabInfo;
@@ -3758,7 +3761,7 @@ bool IsCollabDocProtectedFromSavingToEditor(wxString bookCode, bool bCollabByCha
     // the following are for testing, comment out after debugging
     //bkchCompositeStr = _T("MAT MRK LUK ROM REV"); // whole book mode examples
     //bkchCompositeStr = _T("MAT:15:16:17 MRK:1:2:14:15:16 LUK:1:2:3:4:20:21:22 ROM:1:2:3 TIT:1:2 REV:2"); // chapter-only examples
-    bkchCompositeStr = _T("MAT MRK LUK:1:2:3:4:20:21:22 ROM:1:2:3 1TI 2TI TIT:1:2 REV"); // mixed whole book and chapter-only examples
+    //bkchCompositeStr = _T("MAT MRK LUK:1:2:3:4:20:21:22 ROM:1:2:3 1TI 2TI TIT:1:2 REV"); // mixed whole book and chapter-only examples
 
     // make some local copies of the value parameters
     wxString collabBookToCheck = bookCode;

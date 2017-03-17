@@ -2712,15 +2712,16 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
     wxString collabChapterSelected = gpApp->m_CollabChapterSelected; // a wxString represengin a chapter number if collabByChapterOnly is "1"
     wxASSERT(!bookCode.IsEmpty());
     bProtectedFromSavingChangesToExternalEditor = IsCollabDocProtectedFromSavingToEditor(bookCode, bCollabByChapterOnly, collabChapterSelected);
-    if (bProtectedFromSavingChangesToExternalEditor)
-    {
-        // TODO: Bruce, is it necessary to call UpdateDocWithPhraseBoxContents() here before
-        // calling DoFileSave_Protected()??
+    // TODO: Uncomment code below to activate protection code
+    //if (bProtectedFromSavingChangesToExternalEditor)
+    //{
+    //    // TODO: Bruce, is it necessary to call UpdateDocWithPhraseBoxContents() here before
+    //    // calling DoFileSave_Protected()??
 
-        // Do a local normal protected save to AI's native storage
-        DoFileSave_Protected(TRUE, progressItem); // // TRUE means - show wait/progress dialog
-        return TRUE;
-    }
+    //    // Do a local normal protected save to AI's native storage
+    //    DoFileSave_Protected(TRUE, progressItem); // // TRUE means - show wait/progress dialog
+    //    return TRUE;
+    //}
     // ********************** Protection from Saving Changes to PT/BE Code above ***********************
 
     // For testing purposes, assume it's target text, and a single-chapter
