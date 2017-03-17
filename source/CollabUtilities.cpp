@@ -1169,7 +1169,10 @@ wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
 
 	if (gpApp->m_bCollaboratingWithParatext)
 	{
-		cmdLineAppPath = GetPathToRdwrtp7();
+        // whm added 17March2017. To avoid possible error, we need to be absolutely sure of the path to the 
+        // rdwrtp7.exe file which is different for PT7 and PT8, so I'm adding a parameter to GetPathToRdwrtp7()
+        // to indicate the specific version of PT we want the path for.
+        cmdLineAppPath = GetPathToRdwrtp7(gpApp->m_ParatextVersionForProject);
 	}
 	else
 	{
@@ -4302,7 +4305,9 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 // Gets the whole path including filename of the location of the rdwrtp7.exe utility program
 // for collabotation with Paratext. It also checks to insure that the 5 Paratext dll files that
 // the utility depends on are also present in the same folder with rdwrtp7.exe.
-wxString GetPathToRdwrtp7()
+// whm added 17March2017 a wxString ptVersion parameter to the function to accurately specify
+// the version of Paratext for which we are finding the path to the rdwrtp7.exe utility.
+wxString GetPathToRdwrtp7(wxString ptVersion)
 {
 	// determine the path and name to rdwrtp7.exe
 	wxString rdwrtp7PathAndFileName;
@@ -4326,10 +4331,11 @@ wxString GetPathToRdwrtp7()
 	// Adapt It installation.
 
 #ifdef __WXMSW__
-	if (::wxFileExists(gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
+    wxString ptInstallDirPath = gpApp->GetParatextInstallDirPath(ptVersion);
+	if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
 	{
 		// rdwrtp7.exe exists in the Paratext installation so use it
-		rdwrtp7PathAndFileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
+		rdwrtp7PathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
 	}
 	else
 	{
