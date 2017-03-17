@@ -2720,7 +2720,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	m_TempCollabProjectForTargetExports = _T("");
 	m_TempCollabProjectForFreeTransExports = _T("");
 	m_TempCollabAIProjectName = _T("");
-   // m_TempCollaborationEditor can stay set to its current value
+    // m_TempCollaborationEditor can stay set to its current value
     // m_TempCollabEditorVersion can stay set to its current value
 	m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
 	m_TempCollabBookSelected = _T("");

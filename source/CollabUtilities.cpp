@@ -3264,7 +3264,6 @@ wxString AddCollabBooksAndOrChaptersToCollabString(wxString currentString, wxStr
         bool wholeBookTokenFound = FALSE;
         bool chapterTypeTokenFound = FALSE;
         wxString chFoundParts = _T("");
-        int indexIntotempTokenArrayOfBookType = -1;
         int indexIntotempTokenArrayOfChapterType = -1;
         int ct;
         int tot = (int)tempTokenArray.GetCount();
@@ -3280,7 +3279,6 @@ wxString AddCollabBooksAndOrChaptersToCollabString(wxString currentString, wxStr
                 if (pos == wxNOT_FOUND)
                 {
                     wholeBookTokenFound = TRUE;
-                    indexIntotempTokenArrayOfBookType = ct;
                 }
                 else
                 {
@@ -3292,7 +3290,6 @@ wxString AddCollabBooksAndOrChaptersToCollabString(wxString currentString, wxStr
                 }
             }
         }
-        indexIntotempTokenArrayOfBookType = indexIntotempTokenArrayOfBookType; // avoid gcc warning
         // bIsChapterFormat tells us whether we are adding a chapter-only reference to
         // the string. 
         if (bRequiresChapterFormat)
@@ -3558,7 +3555,6 @@ wxString RemoveCollabBooksOrChaptersFromCollabString(wxString currentString, wxS
         bool wholeBookTokenFound = FALSE;
         bool chapterTypeTokenFound = FALSE;
         wxString chFoundParts = _T("");
-        int indexIntotempTokenArrayOfBookType = -1;
         int indexIntotempTokenArrayOfChapterType = -1;
         int ct;
         int tot = (int)tempTokenArray.GetCount();
@@ -3574,7 +3570,6 @@ wxString RemoveCollabBooksOrChaptersFromCollabString(wxString currentString, wxS
                 if (pos == wxNOT_FOUND)
                 {
                     wholeBookTokenFound = TRUE;
-                    indexIntotempTokenArrayOfBookType = ct;
                 }
                 else
                 {
