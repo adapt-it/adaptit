@@ -764,6 +764,12 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	// If the value changed mark it dirty.
 	if (saveCollabProjectForSourceInputs != m_TempCollabProjectForSourceInputs)
 		m_bCollabChangedThisDlgSession = TRUE;
+
+    // After selecting source project, the dialog may be ready to "Accept this setup..."
+    SetStateOfRemovalButton();
+    SetStateOfAcceptSetupButton(); // enables the "Accept this setup and prepare for another" button if
+                                   // all of: project name, editor, source text, or target text project names
+                                   // have non-empty strings
 }
 
 void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event))
@@ -978,6 +984,12 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	// If the value changed mark it dirty.
 	if (saveCollabProjectForTargetExports != m_TempCollabProjectForTargetExports)
 		m_bCollabChangedThisDlgSession = TRUE;
+
+    // After selecting source project, the dialog may be ready to "Accept this setup..."
+    SetStateOfRemovalButton();
+    SetStateOfAcceptSetupButton(); // enables the "Accept this setup and prepare for another" button if
+                                   // all of: project name, editor, source text, or target text project names
+                                   // have non-empty strings
 }
 
 void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent& WXUNUSED(event))
@@ -1194,6 +1206,12 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	// If we get here the administrator made a selection. If the value changed mark it dirty.
 	if (saveCollabProjectForFreeTransExports != m_TempCollabProjectForFreeTransExports)
 		m_bCollabChangedThisDlgSession = TRUE;
+
+    // After selecting source project, the dialog may be ready to "Accept this setup..."
+    SetStateOfRemovalButton();
+    SetStateOfAcceptSetupButton(); // enables the "Accept this setup and prepare for another" button if
+                                   // all of: project name, editor, source text, or target text project names
+                                   // have non-empty strings
 }
 
 void CSetupEditorCollaboration::OnNoFreeTrans(wxCommandEvent& WXUNUSED(event))
@@ -1599,7 +1617,7 @@ Reminder: The user will not be able to open this project until you install Parat
                 }
 // ---------------------------------------------------------------------------------------------------------------
             }
-		}
+		} // end of else // m_TempCollaborationEditor is not an empty string
 
         // whm 25June2016 added: We now deal with the possibility that the collaboration
         // settings read in from the project config file may specify a different PT editor 
@@ -1624,30 +1642,39 @@ Reminder: The user will not be able to open this project until you install Parat
             else if (PTver == PTVer7and8)
             {
                 // Both PT versions 7 and 8 are installed on the machine.
-                // Assume that PT 8 will be the desired editor if it has a valid projects dir
-                // and at least 2 valid/useable projects, otherwise PT 7 
-                wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion8"));
-                wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion7"));
-                wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTVersion8"));
-                wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTVersion7"));
-                int pt8Count = pt8ListOfProj.GetCount();
-                int pt7Count = pt7ListOfProj.GetCount();
-                if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+
+                // whm modified 18March2017. We are here setting controls for the dialog so just set the PT 
+                // version according to what is specified in the project config file unless it is the case that
+                // m_TempCollabEditorVersion is an empty string. If it is an empty string then we will have
+                // to guess which PT version the user might want. 
+
+                if (m_TempCollabEditorVersion.IsEmpty()) // whm added this test 18March2017
                 {
-                    m_TempCollabEditorVersion = _T("PTVersion8");
-                }
-                else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
-                {
-                    m_TempCollabEditorVersion = _T("PTVersion7");
-                }
-                else
-                {
-                    // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
-                    wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
-                    m_pApp->LogUserAction(msg);
-                    // Assume the administrator will fix this situation. In the mean time, since both
-                    // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
-                    m_TempCollabEditorVersion = _T("PTVersion8");
+                    // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                    // and at least 2 valid/useable projects, otherwise PT 7 
+                    wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion8"));
+                    wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion7"));
+                    wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTVersion8"));
+                    wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTVersion7"));
+                    int pt8Count = pt8ListOfProj.GetCount();
+                    int pt7Count = pt7ListOfProj.GetCount();
+                    if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                    {
+                        m_TempCollabEditorVersion = _T("PTVersion8");
+                    }
+                    else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                    {
+                        m_TempCollabEditorVersion = _T("PTVersion7");
+                    }
+                    else
+                    {
+                        // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                        wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                        m_pApp->LogUserAction(msg);
+                        // Assume the administrator will fix this situation. In the mean time, since both
+                        // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                        m_TempCollabEditorVersion = _T("PTVersion8");
+                    }
                 }
             }
             else if (PTver == PTLinuxVer8)
@@ -1661,30 +1688,39 @@ Reminder: The user will not be able to open this project until you install Parat
             else if (PTver == PTLinuxVer7and8)
             {
                 // Both PT versions 7 and 8 for Linux are installed on the machine.
-                // Assume that PT 8 will be the desired editor if it has a valid projects dir
-                // and at least 2 valid/useable projects, otherwise PT 7 
-                wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
-                wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
-                wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8"));
-                wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7"));
-                int pt8Count = pt8ListOfProj.GetCount();
-                int pt7Count = pt7ListOfProj.GetCount();
-                if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+
+                // whm modified 18March2017. We are here setting controls for the dialog so just set the PT 
+                // version according to what is specified in the project config file unless it is the case that
+                // m_TempCollabEditorVersion is an empty string. If it is an empty string then we will have
+                // to guess which PT version the user might want. 
+
+                if (m_TempCollabEditorVersion.IsEmpty()) // whm added this test 18March2017
                 {
-                    m_TempCollabEditorVersion = _T("PTLinuxVersion8");
-                }
-                else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
-                {
-                    m_TempCollabEditorVersion = _T("PTLinuxVersion7");
-                }
-                else
-                {
-                    // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
-                    wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
-                    m_pApp->LogUserAction(msg);
-                    // Assume the administrator will fix this situation. In the mean time, since both
-                    // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
-                    m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                    // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                    // and at least 2 valid/useable projects, otherwise PT 7 
+                    wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+                    wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+                    wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8"));
+                    wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7"));
+                    int pt8Count = pt8ListOfProj.GetCount();
+                    int pt7Count = pt7ListOfProj.GetCount();
+                    if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                    {
+                        m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                    }
+                    else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                    {
+                        m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+                    }
+                    else
+                    {
+                        // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                        wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                        m_pApp->LogUserAction(msg);
+                        // Assume the administrator will fix this situation. In the mean time, since both
+                        // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                        m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                    }
                 }
             }
         }
@@ -1698,13 +1734,16 @@ Reminder: The user will not be able to open this project until you install Parat
 			// the project are empty, so parse them from the language name. The function assigns values to the 2nd and 3rd parmeters.
 			GetAILangNamesFromAIProjectNames(m_TempCollabAIProjectName, m_TempCollabSourceProjLangName, m_TempCollabTargetProjLangName);
 		}
-	}
-	else
+	} // end of if (collabSettingsArray.GetCount() > 0)
+	else 
 	{
-		// The AI project has no collaboration settings, so parse the
-		// selStr and fill in values for m_TempCollabAIProjectName,
-		// m_TempCollabSourceProjLangName, and m_TempCollabTargetProjLangName.
-		m_TempCollabProjectForSourceInputs = _T("");
+        // The collabSettingsArray.GetCount() == 0, indicating that the currently selected AI project 
+        // has no collaboration settings present within its AI-ProjectConfiguration.aic file.
+        // Initialize the m_TempCollab... variables that we can including m_TempCollabEditorVersion.
+        // We can parse the drop down AI project selection string (setStr) and use 
+		// the values we parse out for m_TempCollabAIProjectName, m_TempCollabSourceProjLangName, 
+        // and m_TempCollabTargetProjLangName
+        m_TempCollabProjectForSourceInputs = _T("");
 		m_TempCollabProjectForTargetExports = _T("");
 		m_TempCollabProjectForFreeTransExports = _T("");
 
@@ -1731,7 +1770,9 @@ Reminder: The user will not be able to open this project until you install Parat
              }
              else if (PTver == PTVer7and8)
              {
-                 // Both PT versions 7 and 8 are installed on the machine.
+                 // This block was entered only when no project config collab settings were detected,
+                 // so there won't be a PT version already in m_TempCollabEditorVersion to utilize, even
+                 // though both PT versions 7 and 8 are installed on the machine.
                  // Assume that PT 8 will be the desired editor if it has a valid projects dir
                  // and at least 2 valid/useable projects, otherwise PT 7 
                  wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion8"));
@@ -1750,7 +1791,7 @@ Reminder: The user will not be able to open this project until you install Parat
                  }
                  else
                  {
-                     // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                     // neither PT 8 or PT 7 had valid projects dir path nor at least 2 useable projects, log the problem
                      wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
                      m_pApp->LogUserAction(msg);
                      // Assume the administrator will fix this situation. In the mean time, since both
@@ -1768,7 +1809,9 @@ Reminder: The user will not be able to open this project until you install Parat
              }
              else if (PTver == PTLinuxVer7and8)
              {
-                 // Both PT versions 7 and 8 for Linux are installed on the machine.
+                 // This block was entered only when no project config collab settings were detected,
+                 // so there won't be a PT version already in m_TempCollabEditorVersion to utilize, even
+                 // though both PT versions 7 and 8 are installed on the machine.
                  // Assume that PT 8 will be the desired editor if it has a valid projects dir
                  // and at least 2 valid/useable projects, otherwise PT 7 
                  wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
@@ -1787,7 +1830,7 @@ Reminder: The user will not be able to open this project until you install Parat
                  }
                  else
                  {
-                     // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                     // neither PT 8 or PT 7 had valid projects dir path nor at least 2 useable projects, log the problem
                      wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
                      m_pApp->LogUserAction(msg);
                      // Assume the administrator will fix this situation. In the mean time, since both
@@ -1799,18 +1842,20 @@ Reminder: The user will not be able to open this project until you install Parat
 		else if (m_pApp->BibleditIsInstalled())
 		{
 		     m_TempCollaborationEditor = _T("Bibledit"); // don't localize
+            // Bibledit is the only installed external editor, so it doesn't make
+            // sense to set m_TempCollabEditorVersion
 		}
 
 		m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
 		m_TempCollabBookSelected = _T("");
 
-		// parse the language names from the m_TempCollabAIProjectName
+		// Finally, parse the language names from the m_TempCollabAIProjectName
 		m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(selStr,
 			m_TempCollabSourceProjLangName,m_TempCollabTargetProjLangName);
 
 		m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
 		m_TempCollabChapterSelected = _T("");
-	}
+	} // end of else collabSettingsArray.GetCount() == 0 [no collab settings in proj config file]
 
 	// Since the m_TempCollaborationEditor may have changed above we need to get a fresh
 	// list of editor projects
@@ -1962,8 +2007,21 @@ Reminder: The user will not be able to open this project until you install Parat
                 pRadioBoxScriptureEditor->SetSelection(1);
             else if (PTver == PTVer7and8)
             {
-                // Both PT 7 and PT 8 are installed, assume PT 8
-                pRadioBoxScriptureEditor->SetSelection(1);
+                // Both PT 7 and PT 8 are installed, set the selection according to the version stored in 
+                // m_TempCollabEditorVersion, unless it is empty then select Paratext 8
+                if (m_TempCollabEditorVersion == _T("PTVersion7"))
+                {
+                    pRadioBoxScriptureEditor->SetSelection(0);
+                }
+                else if (m_TempCollabEditorVersion == _T("PTVersion8"))
+                {
+                    pRadioBoxScriptureEditor->SetSelection(1);
+                }
+                else
+                {
+                    // m_TempCollabEditorVersion was empty so assume Paratext 8
+                    pRadioBoxScriptureEditor->SetSelection(1);
+                }
             }
             else if (PTver == PTLinuxVer7)
             {
@@ -1974,6 +2032,24 @@ Reminder: The user will not be able to open this project until you install Parat
             {
                 // PT 8 is installed, select the "Paratext 8" button
                 pRadioBoxScriptureEditor->SetSelection(1);
+            }
+            else if (PTver == PTLinuxVer7and8)
+            {
+                // Both PT 7 for Linux and PT 8 for Linux are installed, set the selection according 
+                // to the version stored in m_TempCollabEditorVersion, unless it is empty then select Paratext 8
+                if (m_TempCollabEditorVersion == _T("PTLinuxVersion7"))
+                {
+                    pRadioBoxScriptureEditor->SetSelection(0);
+                }
+                else if (m_TempCollabEditorVersion == _T("PTLinuxVersion8"))
+                {
+                    pRadioBoxScriptureEditor->SetSelection(1);
+                }
+                else
+                {
+                    // m_TempCollabEditorVersion was empty so assume Paratext 8
+                    pRadioBoxScriptureEditor->SetSelection(1);
+                }
             }
         }
 		else if (m_pApp->BibleditIsInstalled())
@@ -1990,11 +2066,6 @@ Reminder: The user will not be able to open this project until you install Parat
 		}
 	}
 
-	SetStateOfRemovalButton(); // enables the Remove... button because m_TempCollabAIProjectName now has content
-    SetStateOfAcceptSetupButton(); // disables the "Accept this setup and prepare for another" button if
-                                   // any of project name, editor, source text, or target text project names
-                                   // are empty
-
 	// Fill dialog controls with collab settings
 	// Note: The combo box selection in step 1 was selected by the administrator so something should be selected!
 	wxASSERT(pComboAiProjects->GetSelection() != -1);
@@ -2003,6 +2074,11 @@ Reminder: The user will not be able to open this project until you install Parat
 	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(m_TempCollabProjectForFreeTransExports);
 	pRadioBtnByChapterOnly->SetValue(m_bTempCollabByChapterOnly);
 	pRadioBtnByWholeBook->SetValue(!m_bTempCollabByChapterOnly);
+
+	SetStateOfRemovalButton(); // enables the Remove... button because m_TempCollabAIProjectName now has content
+    SetStateOfAcceptSetupButton(); // disables the "Accept this setup and prepare for another" button if
+                                   // any of project name, editor, source text, or target text project names
+                                   // are empty
 
 	// Don't set m_bCollabChangedThisDlgSession to TRUE in this handler for merely selecting an existing project
 
@@ -2871,10 +2947,10 @@ void CSetupEditorCollaboration::SetStateOfAcceptSetupButton()
     // Disable "Accept this setup and prepare for another" button unless minimum settings are established.
     // We enable the "Accept this setup and prepare for another" button only if/when these
     // settings are established within the dialog's controls: project name, editor, source text name, and target text project name.
+    // whm modified 18March2017 removed disabling if FreeTrans edit box is empty. It is only an optional proj for collaboration!
     if (pComboAiProjects->GetSelection() == -1
         || pTextCtrlAsStaticSelectedSourceProj->GetValue().IsEmpty()
-        || pTextCtrlAsStaticSelectedTargetProj->GetValue().IsEmpty()
-        || pTextCtrlAsStaticSelectedFreeTransProj->GetValue().IsEmpty())
+        || pTextCtrlAsStaticSelectedTargetProj->GetValue().IsEmpty())
         pBtnSaveSetupForThisProjNow->Disable();
     else
         pBtnSaveSetupForThisProjNow->Enable();
