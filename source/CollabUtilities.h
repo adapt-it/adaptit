@@ -277,6 +277,9 @@ class CSetupEditorCollaboration;
 	///   Functions for connecting  the externally obtained data into a new or existing
 	///   Adapt It project, and getting data out of the Adapt It document
 	/////////////////////////////////////////////////////////////////////////////////////
+    wxString        AddCollabBooksAndOrChaptersToCollabString(wxString currentString, wxString bookIDsorChapters);
+    wxString        RemoveCollabBooksOrChaptersFromCollabString(wxString currentString, wxString bookIDsorChapters);
+    bool            IsCollabDocProtectedFromSavingToEditor(wxString bookCode, bool bCollabByChapterOnly, wxString collabChapterSelected); // whm added 2February2017
 	bool			CollabProjectIsEditable(wxString projShortName);
 	bool			CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, 
 							wxString& tgtLangName, wxString& srcEthnologueCode, 
@@ -322,7 +325,7 @@ class CSetupEditorCollaboration;
 	bool			CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName, 
 							wxString frtrCompositeProjName, wxString collabEditor, wxString ptEditorVersion,
 							wxString& errorStr, wxString& errorProjects);
-	wxString		GetPathToRdwrtp7(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
+	wxString		GetPathToRdwrtp7(wxString ptVersion); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp // whm added parameter 17March2017
 	wxString		GetPathToBeRdwrt(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetBibleditInstallPath();  // used in GetSourceTextFromEditor::OnInit()
 	wxString		GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath, wxString bookCodeForID);

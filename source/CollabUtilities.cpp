@@ -696,6 +696,8 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 // Note: Much more data is actually skimmed from the content of the books during the scanning
 // process. This could be used to present a more complete picture of the book contents if we
 // decided to do so.
+// whm modified 17March2017. The function needed to specify more accurately the path
+// to the Paratext projects DIR - which is different for PT8 than it is for PT7.
 enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 				wxString compositeProjName,wxString editor,wxString ptVersion,
 				wxString& emptyBooks,wxString& booksWithContent,wxString& errorMsg)
@@ -796,7 +798,8 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
         
         // Get a file path template for a book file that can be used for all book files in this project.
         wxString pathToProjectDir;
-        pathToProjectDir = gpApp->m_ParatextProjectsDirPath + gpApp->PathSeparator + collabProjShortName;
+        wxString ptProjectsDirPath = gpApp->GetParatextProjectsDirPath(ptVersion);
+        pathToProjectDir = ptProjectsDirPath + gpApp->PathSeparator + collabProjShortName;
         // Get the file name parts used for Paratext book file naming for this project.
         // collabProjShortName is the name of the subdirectory the project's files are located in.
         Collab_Project_Info_Struct* pCollabInfo;
@@ -1166,7 +1169,10 @@ wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
 
 	if (gpApp->m_bCollaboratingWithParatext)
 	{
-		cmdLineAppPath = GetPathToRdwrtp7();
+        // whm added 17March2017. To avoid possible error, we need to be absolutely sure of the path to the 
+        // rdwrtp7.exe file which is different for PT7 and PT8, so I'm adding a parameter to GetPathToRdwrtp7()
+        // to indicate the specific version of PT we want the path for.
+        cmdLineAppPath = GetPathToRdwrtp7(gpApp->m_ParatextVersionForProject);
 	}
 	else
 	{
@@ -3138,6 +3144,715 @@ void UnloadKBs(CAdapt_ItApp* pApp)
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+/// \return                      a wxString representing the new collab protection string with 
+///                              the bookIDsorChapters added to/merged into it
+/// \param currentString     ->  a wxString representing the current collab protection 
+///                              status string, for example: "MAT MRK MRK:1:2:16 LUK ROM 1CO:4:6..."
+///                              where book(s) are delimited by spaces in the string.
+/// \param bookIDsorChapters ->  a wxString representing the book(s) and/or book:chapter(s)
+///                              to be added to/merged into the collab protection status string,
+///                              for example: "MAT:1:2 MRK:2:3:4 LUK 1CO:1" when merged into the string
+///                              above would return: "MAT MAT:1:2 MRK MRK:1:2:3:4:16 LUK ROM 1CO:1:4:6"
+///                              again where books are delimited by spaces
+/// \remarks
+/// Called From: TODO:
+/// This function takes in the current string from the project config file's 
+/// CollabBooksProtectedFromSavingToEditor field and adds/merges the book(s)/chapter(s) specified
+/// by the bookIDsorChapters value into that string, then returns the resulting string. 
+/// The addition won't result in duplications since merge process is designed so that it will 
+/// not make a change for a specific book or book:chapter if the current string already has 
+/// the specific book or book:chapter value within it.
+/// Since it is possible (but not recommended) for a collaboration project to swtich between 
+/// whole-book mode and single-chapter-only mode midway through a project, this function works 
+/// whether the incoming string contains book(s) and/or book(s):chapter(s) that match the  
+/// current whole-book-mode or chapter-only mode. 
+/// For example, if a chapter-only mode was previously set and it was marked as protected, 
+/// and then later, the project switched to whole-book-only mode, the protection that was set 
+/// for the chapter-only document would not apply to that chapter within the whole-document mode 
+/// collaboration. Note: The string associated with the CollabBooksProtectedFromSavingToEditor
+/// label may have a whole-book entry such as LUK, and also have a separate chapter-only entry
+/// that is indicated in the same string by a LUK:1. This allows the CollabBooksProtectedFromSavingToEditor
+/// value to keep the protection status independently for whole-book files and chapter-only files.
+/// Hence, the function operates equally well regardless of the current collab mode: whole book or 
+/// chapter-only mode.
+/// The ordering of book and/or book:chapter references within the returned string will be
+/// tailored to mimic the book ordering of the App's AllBookNumStr[] array.
+/// 
+/// whm added 9March2017
+////////////////////////////////////////////////////////////////////////////////
+wxString AddCollabBooksAndOrChaptersToCollabString(wxString currentString, wxString bookIDsorChapters)
+{
+    // We use a tempTokenArray to store the original, replaced, and/or added book and/or book:chapter 
+    // tokens.
+    wxString originalString = currentString;
+    wxArrayString tempTokenArray;
+    // Since the bookIDsorChapters string may have more than one bookID and/or bookID:chapter(s),
+    // the book(s) and book:chapter(s) all being delimited by spaces, we'll tokenize the incoming 
+    // bookIDsorChapters parameter storing its tokens in a mergeTokenArray. 
+    // Then we'll process each of the tokens to be merged individually (one at a time) into the 
+    // new collab protection string below. 
+    wxString originalBookIDsOrChapters = bookIDsorChapters;
+    wxArrayString mergeTokenArray;
+
+    // If there is nothing to add/merge just return the original string
+    if (originalBookIDsOrChapters.IsEmpty())
+    {
+        return originalString;
+    }
+
+    wxString tokenStr;
+    wxStringTokenizer tkz(originalBookIDsOrChapters, _T(" ")); // books are delimited by spaces
+    while (tkz.HasMoreTokens())
+    {
+        tokenStr = tkz.GetNextToken();
+        // do comparisons with forced uppercase in this function
+        tokenStr.MakeUpper();
+        tokenStr.Trim(TRUE);
+        tokenStr.Trim(FALSE);
+        mergeTokenArray.Add(tokenStr);
+    }
+    wxString newString;
+    int tokenCt;
+    int tokenTot = (int)mergeTokenArray.GetCount();
+    for (tokenCt = 0; tokenCt < tokenTot; tokenCt++)
+    {
+        // Need to clear out the tempTokenArray for each pass through the loop
+        tempTokenArray.Clear();
+        newString.Empty(); // build a new string to return at end of processing
+
+        wxString bookIDorCh = mergeTokenArray.Item(tokenCt);
+        int posCol = bookIDorCh.Find(_T(":"));
+        wxString bkIDtoFind = bookIDorCh.Mid(0, posCol);
+        bkIDtoFind.MakeUpper();
+        wxString chaptersToFind = _T("");
+        bool bRequiresChapterFormat = FALSE;
+        if (posCol != wxNOT_FOUND)
+        {
+            chaptersToFind = bookIDorCh.AfterFirst(_T(':'));
+            // the incoming bookIDsorChapters parameter has a colon, so it is in the book:chapter form
+            bRequiresChapterFormat = TRUE;
+        }
+
+        // Tokenize the current incoming string currentString into "book" tokens.
+        // We use space as the delimiter between books/tokens. Each token represents
+        // either a whole book ID or a book ID followd by chapter(s) delimited by colons.
+        // We'll store the tokens in an array since we may need to make multiple passes 
+        // over the array content.
+        // Note: For the second and any succesive iterations through the for loop the 
+        // newString that was created in the previous iteration is used for the originalString
+        // that gets tokenized in the next line.
+        wxStringTokenizer tkz(originalString, _T(" ")); // books are delimited by spaces
+        while (tkz.HasMoreTokens())
+        {
+            tokenStr = tkz.GetNextToken();
+            // do comparisons with forced uppercase in this function
+            tokenStr.MakeUpper();
+            tokenStr.Trim(TRUE);
+            tokenStr.Trim(FALSE);
+            tempTokenArray.Add(tokenStr);
+        }
+
+        // The tempTokenArray will usually have no more than one reference to a book by its ID.
+        // In rare cases where a project has had some work done in whole-book collaboration
+        // and some work done in chapter-only collaboration, there should be no more than two 
+        // references to a book by its ID; one reference to it as just a 3-letter code, and
+        // the other reference as a 3-letter code plus :chapter parts - using colon delimiters. 
+        // We attempt to keep the book and book:chapter IDs in scripture book order within
+        // the string as determined by the order established by the AllBookNumStr[] array 
+        // which assigns books a quasi-numeric order, which we'll do by sorting a modified
+        // array below.
+
+        // Scan through the tempTokenArray and process the one or two lines that match our bookID
+        bool wholeBookTokenFound = FALSE;
+        bool chapterTypeTokenFound = FALSE;
+        wxString chFoundParts = _T("");
+        int indexIntotempTokenArrayOfChapterType = -1;
+        int ct;
+        int tot = (int)tempTokenArray.GetCount();
+        for (ct = 0; ct < tot; ct++)
+        {
+            wxString token = tempTokenArray.Item(ct);
+            int posBookID = token.Find(bkIDtoFind);
+            if (posBookID != wxNOT_FOUND)
+            {
+                // The book ID was found in this token.
+                // Is this token a chapter containing type?
+                int pos = token.Find(_T(":"));
+                if (pos == wxNOT_FOUND)
+                {
+                    wholeBookTokenFound = TRUE;
+                }
+                else
+                {
+                    chapterTypeTokenFound = TRUE;
+                    indexIntotempTokenArrayOfChapterType = ct;
+                    chFoundParts = token.Mid(pos);
+                    chFoundParts.Trim(TRUE);
+                    chFoundParts.Trim(FALSE);
+                }
+            }
+        }
+        // bIsChapterFormat tells us whether we are adding a chapter-only reference to
+        // the string. 
+        if (bRequiresChapterFormat)
+        {
+            if (!chapterTypeTokenFound)
+            {
+                // we need to add a book:chapter token to the array. Just add the
+                // token to the array at this point - we sort it later.
+                tempTokenArray.Add(bkIDtoFind + _T(":") + chaptersToFind);
+            }
+            else
+            {
+                // There is an existing book:chapter token, so we need to add the
+                // :chapter part, being careful to not add a duplicate :chapter segment
+                // if one already exists there. The addition should be added in a numerical
+                // sort order of the chapters that currently exist.
+                wxArrayString chNumArray;
+                wxString tokStr;
+                // chFoundParts will have an initial ':' so must remove that initial : so
+                // wxStringTokenizer below doesn't produce an empty initial string token
+                wxASSERT(chFoundParts.GetChar(0) == _T(':'));
+                chFoundParts = chFoundParts.Mid(1);
+                wxStringTokenizer tkz(chFoundParts, _T(":")); // chapters are delimited by colons
+                while (tkz.HasMoreTokens())
+                {
+                    tokStr = tkz.GetNextToken();
+                    tokStr.MakeUpper();
+                    tokStr.Trim(FALSE);
+                    // Need to pad the string-formatted number with initial zeros to make a 3 char string, i.e., "001"
+                    // so the string sort operation below will sort numbers like 002, 020, 200, correctly
+                    // do comparisons with forced uppercase in this function
+                    tokStr.Pad(3 - tokStr.Length(), _T('0'), FALSE); // FALSE pads with leading '0' char(s)
+                    chNumArray.Add(tokStr);
+                }
+                // Add the new chapter number(s) - also padded with prefixed '0' char(s).
+                // Note: The chaptersToFind may also have multiple chapters for this book,
+                // so they need to be tokenized and unique chapters added to chNumArray.
+                wxStringTokenizer tkz2(chaptersToFind, _T(":")); // chapters are delimited by colons
+                while (tkz2.HasMoreTokens())
+                {
+                    tokStr = tkz2.GetNextToken();
+                    tokStr.MakeUpper();
+                    tokStr.Trim(FALSE);
+                    // Need to pad the string-formatted number with initial zeros to make a 3 char string, i.e., "001"
+                    // so the string sort operation below will sort numbers like 002, 020, 200, correctly
+                    // do comparisons with forced uppercase in this function
+                    tokStr.Pad(3 - tokStr.Length(), _T('0'), FALSE); // FALSE pads with leading '0' char(s)
+                    // Total number of chapters per single book are limited (150), so just do a brute search 
+                    // to see if the tokStr is in chNumArray already or not. If it is there don't duplicate it. 
+                    // If it is not already there add it.
+                    bool bChFound = FALSE;
+                    int tempCt;
+                    int tempTot = (int)chNumArray.GetCount();
+                    for (tempCt = 0; tempCt < tempTot; tempCt++)
+                    {
+                        if (chNumArray.Item(tempCt) == tokStr)
+                        {
+                            bChFound = TRUE;
+                            break;
+                        }
+                    }
+                    if (!bChFound)
+                    {
+                        chNumArray.Add(tokStr);
+                    }
+                }
+                // Sort the chapter number array.
+                chNumArray.Sort();
+                wxString newBkChToken = _T("");
+                wxString accumChString = _T("");
+                int ct;
+                int tot = (int)chNumArray.GetCount();
+                for (ct = 0; ct < tot; ct++)
+                {
+                    newBkChToken = chNumArray.Item(ct);
+                    // We can remove the '0' padding chars here before combining with bkIDtoFind and storing in tempTokenArray
+                    while (newBkChToken.Length() > 0 && newBkChToken.GetChar(0) == _T('0'))
+                    {
+                        newBkChToken = newBkChToken.Mid(1);
+                    }
+                    accumChString += _T(":") + newBkChToken;
+                }
+                // Remove the existing book:chapter array item, then Add the new one to the end of the array
+                wxASSERT(indexIntotempTokenArrayOfChapterType < (int)tempTokenArray.GetCount());
+                tempTokenArray.RemoveAt(indexIntotempTokenArrayOfChapterType);
+                // Suffix the new newBkChToken to its bookID, and  add the new book:chapter to the original tempTokenArray
+                tempTokenArray.Add(bkIDtoFind + accumChString);
+                // We sort the tempTokenArray below
+            }
+        }
+        else // bRequiresChapterFormat is FALSE
+        {
+            // we only need to add a BookID if it is not present
+            if (!wholeBookTokenFound)
+            {
+                // we need to add a bookID token to the array. Just add the
+                // token to the array at this point - we sort it later.
+                tempTokenArray.Add(bkIDtoFind);
+            }
+        }
+
+        // To sort our tokens we can first give them with a numeric-string sorting prefix 
+        // while scanning through the now complete tempTokenArray, and copying each of the 
+        // composed string tokens to a newarray. In the newArray each token is prefixed 
+        // with a string number from the App's AllBookNumStr[] array that is retrieved from 
+        // a look up of the bookID in the parallel AllBookIds[] bookID array. 
+        // The newArray can then be sorted by calling the newArray.Sort() command, and the
+        // numeric string prefix removed.
+        wxArrayString newArray;
+
+        tot = (int)tempTokenArray.GetCount();
+        //newArray.SetCount(tempTokenArray.GetCount());
+        wxString tmpStr;
+        wxString bkCode;
+        for (ct = 0; ct < tot; ct++)
+        {
+            tmpStr = tempTokenArray.Item(ct);
+            bkCode = tmpStr.Mid(0, 3);
+            tmpStr = gpApp->GetBookNumberAsStrFromBookCode(bkCode) + _T("_") + tmpStr;
+            newArray.Add(tmpStr);
+        }
+
+        newArray.Sort();
+        // Go through the newArray in its new sorted order and remove the numeric sorting
+        // prefix, and any chapter "0" numeric prefixes for each array element, then using the result to make 
+        // up a newString to return to the caller for saving as the new value for the CollabBooksProtectedFromSavingToEditor
+        // label in the AI-ProjectConfiguration.aic file.
+
+        tot = (int)newArray.GetCount();
+        for (ct = 0; ct < tot; ct++)
+        {
+            tmpStr = newArray.Item(ct);
+            tmpStr = tmpStr.Mid(3); // remove the sorting prefix (it is a 3-char string of the form "XX_")
+            newString += tmpStr + _T(" ");
+        }
+        newString.Trim(TRUE); // trim off last space
+
+        // For the next iteration of the for loop use the newString as originalString
+        originalString = newString;
+    } // end of for (tokenCt = 0; tokenCt < tokenTot; tokenCt++)
+    
+    // Return the final form of the newString to the caller
+    return newString;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// \return                      a wxString representing the new collab protection string with 
+///                              the bookIDsorChapters removed from it
+/// \param currentString     ->  a wxString representing the current collab protection 
+///                              status string, for example: "MAT MRK MRK:1:2:16 LUK ROM 1CO:4:6..."
+///                              where book(s) are delimited by spaces in the string.
+/// \param bookIDsorChapters ->  a wxString representing the book(s) and/or book:chapter(s)
+///                              to be removed from the collab protection status string,
+///                              for example: "MAT:1:2 MRK:2:3:4 LUK 1CO:1" when removed the string
+///                              above would return: "MAT MRK MRK:1:16 ROM 1CO:4:6" (some removals
+///                              ignored that don't exist in currentString)
+/// \remarks
+/// Called From: TODO:
+/// This function takes in the current string from the project config file's 
+/// CollabBooksProtectedFromSavingToEditor field and removes the book(s)/chapter(s) specified
+/// by the bookIDsorChapters value from that string, then returns the resulting string. 
+/// Any specified removals that don't actually exist in currentString, are ignored. 
+/// Since it is possible (but not recommended) for a collaboration project to swtich between 
+/// whole-book mode and single-chapter-only mode midway through a project, this function works 
+/// whether the incoming string contains book(s) and/or book(s):chapter(s) that match the  
+/// current whole-book-mode or chapter-only mode. 
+/// For example, if a chapter-only mode was previously set and it was marked as protected, 
+/// and then later, the project switched to whole-book-only mode, the protection that was set 
+/// for the chapter-only document would not apply to that chapter within the whole-document mode 
+/// collaboration. Note: The string associated with the CollabBooksProtectedFromSavingToEditor
+/// label may have a whole-book entry such as LUK, and also have a separate chapter only entry
+/// that is indicated in the same string by a LUK:1. This allows the CollabBooksProtectedFromSavingToEditor
+/// value to keep the protection status independently for whole-book files and chapter-only files.
+/// Hence, the function operates equally well regardless of the current collab mode: whole book or 
+/// chapter-only mode.
+/// The ordering of book and/or book:chapter references within the returned string will be
+/// tailored to mimic the book ordering of the App's AllBookNumStr[] array.
+/// 
+/// whm added 9March2017
+wxString RemoveCollabBooksOrChaptersFromCollabString(wxString currentString, wxString bookIDsorChapters)
+{
+    // We use a tempTokenArray to store the original, replaced, and/or added book and/or book:chapter 
+    // tokens.
+    wxString originalString = currentString;
+    wxArrayString tempTokenArray;
+    // Since the bookIDsorChapters string may have more than one bookID and/or bookID:chapter(s),
+    // the book(s) and book:chapter(s) all being delimited by spaces, we'll tokenize the incoming 
+    // bookIDsorChapters parameter storing its tokens in a removeTokenArray. 
+    // Then we'll process each of the tokens to be removed individually (one at a time) removing them
+    // from the new collab protection string below. 
+    wxString originalBookIDsOrChapters = bookIDsorChapters;
+    wxArrayString removeTokenArray;
+
+    // If there is nothing to remove just return the original string
+    if (originalBookIDsOrChapters.IsEmpty())
+    {
+        return originalString;
+    }
+
+    wxString tokenStr;
+    wxStringTokenizer tkz(originalBookIDsOrChapters, _T(" ")); // books are delimited by spaces
+    while (tkz.HasMoreTokens())
+    {
+        tokenStr = tkz.GetNextToken();
+        // do comparisons with forced uppercase in this function
+        tokenStr.MakeUpper();
+        tokenStr.Trim(TRUE);
+        tokenStr.Trim(FALSE);
+        removeTokenArray.Add(tokenStr);
+    }
+    wxString newString;
+    int tokenCt;
+    int tokenTot = (int)removeTokenArray.GetCount();
+    for (tokenCt = 0; tokenCt < tokenTot; tokenCt++)
+    {
+        // Need to clear out the tempTokenArray for each pass through the loop
+        tempTokenArray.Clear();
+        newString.Empty(); // build a new string to return at end of processing
+
+        wxString bookIDorCh = removeTokenArray.Item(tokenCt);
+        int posCol = bookIDorCh.Find(_T(":"));
+        wxString bkIDtoFind = bookIDorCh.Mid(0, posCol);
+        bkIDtoFind.MakeUpper();
+        wxString chaptersToFind = _T("");
+        bool bRequiresChapterFormat = FALSE;
+        if (posCol != wxNOT_FOUND)
+        {
+            chaptersToFind = bookIDorCh.AfterFirst(_T(':'));
+            // the incoming bookIDsorChapters parameter has a colon, so it is in the book:chapter form
+            bRequiresChapterFormat = TRUE;
+        }
+
+        // Tokenize the current incoming string currentString into "book" tokens.
+        // We use space as the delimiter between books/tokens. Each token represents
+        // either a whole book ID or a book ID followd by chapter(s) delimited by colons.
+        // We'll store the tokens in an array since we may need to make multiple passes 
+        // over the array content.
+        // Note: For the second and any succesive iterations through the for loop the 
+        // newString that was created in the previous iteration is used for the originalString
+        // that gets tokenized in the next line.
+        wxStringTokenizer tkz(originalString, _T(" ")); // books are delimited by spaces
+        while (tkz.HasMoreTokens())
+        {
+            tokenStr = tkz.GetNextToken();
+            // do comparisons with forced uppercase in this function
+            tokenStr.MakeUpper();
+            tokenStr.Trim(TRUE);
+            tokenStr.Trim(FALSE);
+            tempTokenArray.Add(tokenStr);
+        }
+
+        // The tempTokenArray will usually have no more than one reference to a book by its ID.
+        // In rare cases where a project has had some work done in whole-book collaboration
+        // and some work done in chapter-only collaboration, there should be no more than two 
+        // references to a book by its ID; one reference to it as just a 3-letter code, and
+        // the other reference as a 3-letter code plus :chapter parts - using colon delimiters. 
+        // We attempt to keep the book and book:chapter IDs in scripture book order within
+        // the string as determined by the order established by the AllBookNumStr[] array 
+        // which assigns books a quasi-numeric order, which we'll do by sorting a modified
+        // array below.
+
+        // Scan through the tempTokenArray and process the one or two lines that match our bookID
+        bool wholeBookTokenFound = FALSE;
+        bool chapterTypeTokenFound = FALSE;
+        wxString chFoundParts = _T("");
+        int indexIntotempTokenArrayOfChapterType = -1;
+        int ct;
+        int tot = (int)tempTokenArray.GetCount();
+        for (ct = 0; ct < tot; ct++)
+        {
+            wxString token = tempTokenArray.Item(ct);
+            int posBookID = token.Find(bkIDtoFind);
+            if (posBookID != wxNOT_FOUND)
+            {
+                // The book ID was found in this token.
+                // Is this token a chapter containing type?
+                int pos = token.Find(_T(":"));
+                if (pos == wxNOT_FOUND)
+                {
+                    wholeBookTokenFound = TRUE;
+                }
+                else
+                {
+                    chapterTypeTokenFound = TRUE;
+                    indexIntotempTokenArrayOfChapterType = ct;
+                    chFoundParts = token.Mid(pos);
+                    chFoundParts.Trim(TRUE);
+                    chFoundParts.Trim(FALSE);
+                }
+            }
+        }
+
+        // bIsChapterFormat tells us whether we are removing a chapter-only reference from
+        // the string. 
+        if (bRequiresChapterFormat)
+        {
+            if (!chapterTypeTokenFound)
+            {
+                // There is nothing to remove so do nothing here
+                ;
+            }
+            else
+            {
+                // There is an existing book:chapter token, so we need to remove the
+                // :chapter part.
+                wxArrayString chNumArray;
+                wxString tokStr;
+                // chFoundParts will have an initial ':' so must remove that initial : so
+                // wxStringTokenizer below doesn't produce an empty initial string token
+                wxASSERT(chFoundParts.GetChar(0) == _T(':'));
+                chFoundParts = chFoundParts.Mid(1);
+                wxStringTokenizer tkz(chFoundParts, _T(":")); // chapters are delimited by colons
+                while (tkz.HasMoreTokens())
+                {
+                    tokStr = tkz.GetNextToken();
+                    tokStr.MakeUpper();
+                    tokStr.Trim(FALSE);
+                    // Need to pad the string-formatted number with initial zeros to make a 3 char string, i.e., "001"
+                    // so the string sort operation below will sort numbers like 002, 020, 200, correctly
+                    // do comparisons with forced uppercase in this function
+                    tokStr.Pad(3 - tokStr.Length(), _T('0'), FALSE); // FALSE pads with leading '0' char(s)
+                    chNumArray.Add(tokStr);
+                }
+                // Remove the new chapter number(s) - also padded with prefixed '0' char(s).
+                // Note: The chaptersToFind may also have multiple chapters for this book,
+                // so they need to be tokenized and unique chapters added to chNumArray.
+                wxStringTokenizer tkz2(chaptersToFind, _T(":")); // chapters are delimited by colons
+                while (tkz2.HasMoreTokens())
+                {
+                    tokStr = tkz2.GetNextToken();
+                    tokStr.MakeUpper();
+                    tokStr.Trim(FALSE);
+                    // Need to pad the string-formatted number with initial zeros to make a 3 char string, i.e., "001"
+                    // so the string sort operation below will sort numbers like 002, 020, 200, correctly
+                    // do comparisons with forced uppercase in this function
+                    tokStr.Pad(3 - tokStr.Length(), _T('0'), FALSE); // FALSE pads with leading '0' char(s)
+                                                                     // Total number of chapters per single book are limited (150), so just do a brute search 
+                                                                     // to see if the tokStr is in chNumArray already or not. If it is there remove it.
+                    bool bChFound = FALSE;
+                    int tempCt;
+                    int tempTot = (int)chNumArray.GetCount();
+                    for (tempCt = 0; tempCt < tempTot; tempCt++)
+                    {
+                        if (chNumArray.Item(tempCt) == tokStr)
+                        {
+                            bChFound = TRUE;
+                            break;
+                        }
+                    }
+                    if (bChFound)
+                    {
+                        chNumArray.RemoveAt(tempCt);
+                    }
+                }
+                // Sort the chapter number array.
+                chNumArray.Sort();
+                wxString newBkChToken = _T("");
+                wxString accumChString = _T("");
+                int ct;
+                int tot = (int)chNumArray.GetCount();
+                for (ct = 0; ct < tot; ct++)
+                {
+                    newBkChToken = chNumArray.Item(ct);
+                    // We can remove the '0' padding chars here before combining with bkIDtoFind and storing in tempTokenArray
+                    while (newBkChToken.Length() > 0 && newBkChToken.GetChar(0) == _T('0'))
+                    {
+                        newBkChToken = newBkChToken.Mid(1);
+                    }
+                    accumChString += _T(":") + newBkChToken;
+                }
+                // Remove the existing book:chapter array item, then Add the modified one to the end of the array
+                wxASSERT(indexIntotempTokenArrayOfChapterType < (int)tempTokenArray.GetCount());
+                tempTokenArray.RemoveAt(indexIntotempTokenArrayOfChapterType);
+                // if accumChString is not empty add the book:chapter to the original tempTokenArray,
+                // but if accumChString is empty, don't just add the bkIDtoFind - which without any :chapter
+                // part would indicate a whole book reference
+                if (!accumChString.IsEmpty())
+                {
+                    // Suffix the new newBkChToken to its bookID, and add the modified book:chapter to the original tempTokenArray
+                    tempTokenArray.Add(bkIDtoFind + accumChString);
+                    // We sort the tempTokenArray below
+                }
+            }
+        }
+        else // bRequiresChapterFormat is FALSE
+        {
+            // we only need to remove a BookID if it is present
+            if (wholeBookTokenFound)
+            {
+                // we need to remove a bookID token from the array. 
+                tempTokenArray.Remove(bkIDtoFind);
+            }
+        }
+
+        // To sort our tokens we can first give them with a numeric-string sorting prefix 
+        // while scanning through the now complete tempTokenArray, and copying each of the 
+        // composed string tokens to a newarray. In the newArray each token is prefixed 
+        // with a string number from the App's AllBookNumStr[] array that is retrieved from 
+        // a look up of the bookID in the parallel AllBookIds[] bookID array. 
+        // The newArray can then be sorted by calling the newArray.Sort() command, and the
+        // numeric string prefix removed.
+        wxArrayString newArray;
+
+        tot = (int)tempTokenArray.GetCount();
+        wxString tmpStr;
+        wxString bkCode;
+        for (ct = 0; ct < tot; ct++)
+        {
+            tmpStr = tempTokenArray.Item(ct);
+            bkCode = tmpStr.Mid(0, 3);
+            tmpStr = gpApp->GetBookNumberAsStrFromBookCode(bkCode) + _T("_") + tmpStr;
+            newArray.Add(tmpStr);
+        }
+
+        newArray.Sort();
+        // Go through the newArray in its new sorted order and remove the numeric sorting
+        // prefix, and any chapter "0" numeric prefixes for each array element, then using the result to make 
+        // up a newString to return to the caller for saving as the new value for the CollabBooksProtectedFromSavingToEditor
+        // label in the AI-ProjectConfiguration.aic file.
+
+        tot = (int)newArray.GetCount();
+        for (ct = 0; ct < tot; ct++)
+        {
+            tmpStr = newArray.Item(ct);
+            tmpStr = tmpStr.Mid(3); // remove the sorting prefix (it is a 3-char string of the form "XX_")
+            newString += tmpStr + _T(" ");
+        }
+        newString.Trim(TRUE); // trim off last space
+
+        // For the next iteration of the for loop use the newString as originalString
+        originalString = newString;
+    } // end of for (tokenCt = 0; tokenCt < tokenTot; tokenCt++)
+    return newString;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// \return           TRUE if bookCode represents a collab book/chapter that is
+///                   listed as protected from saving changes to Paratext/Bibledit,
+///                   FALSE otherwise.
+/// \param bookCode               ->  a wxString representing the book 3-letter code
+/// \param bCollabByChapterOnly   ->  a bool value, TRUE if collab by chapter only, FALSE otherwise
+/// \param collabChapterSelected  ->  a wxString value representing a chapter number
+///                                   when CollabByChapterOnly value is "1"
+/// \remarks
+/// Called From: CAdapt_ItDoc::DoCollabFileSave().
+/// This function parses the App's m_CollabBooksProtectedFromSavingToEditor wxString variable
+/// which was read in from the AI-ProjectConfiguration.aic file's string associated with the 
+/// CollabBooksProtectedFromSavingToEditor label, to determine if the book/chapter 
+/// specified in the parameters is protected from saving changes to PT/BE or not.
+/// Since it is possible (but not recommended) for a collaboration project to swtich between 
+/// whole-book mode and single-chapter-only mode midway through a project, this function will 
+/// only make changes to documents that match the current whole-book-mode or chapter-only mode. 
+/// For example, if a chapter-only mode was previously set and it was marked as protected, 
+/// and then later, the project switched to whole-book-only mode, the protection that was set 
+/// for the chapter-only document would not apply to that chapter within the whole-document mode 
+/// collaboration.
+/// whm added 2February2017
+////////////////////////////////////////////////////////////////////////////////
+bool IsCollabDocProtectedFromSavingToEditor(wxString bookCode, bool bCollabByChapterOnly, wxString collabChapterSelected)
+{
+    // The App's m_CollabBooksProtectedFromSavingToEditor wxString variable contains the string
+    // we need to parse. 
+    wxString bkchCompositeStr = gpApp->m_CollabBooksProtectedFromSavingToEditor;
+    // the following are for testing, comment out after debugging
+    //bkchCompositeStr = _T("MAT MRK LUK ROM REV"); // whole book mode examples
+    //bkchCompositeStr = _T("MAT:15:16:17 MRK:1:2:14:15:16 LUK:1:2:3:4:20:21:22 ROM:1:2:3 TIT:1:2 REV:2"); // chapter-only examples
+    //bkchCompositeStr = _T("MAT MRK LUK:1:2:3:4:20:21:22 ROM:1:2:3 1TI 2TI TIT:1:2 REV"); // mixed whole book and chapter-only examples
+
+    // make some local copies of the value parameters
+    wxString collabBookToCheck = bookCode;
+    bool bCheckForChapter = bCollabByChapterOnly;
+    wxString collabChapter = collabChapterSelected;
+    wxString bkchTargetStr;
+    // Get the form of the book/chapter string we are looking for
+    if (bCheckForChapter)
+    {
+        wxASSERT(collabChapter != wxEmptyString);
+        // bkchTargetStr is of the form BookID:Chapter, the 3-letter book ID, a colon, and the chapter number
+        bkchTargetStr = collabBookToCheck + _T(":") +collabChapter;
+    }
+    else
+    {
+        bkchTargetStr = collabBookToCheck;
+    }
+    // do comparisons with forced uppercase in this function
+    bkchTargetStr.MakeUpper();
+
+    // Note: Books are delimited by a space. Chapter documents are delimited by colons:chapternumber following the book code.
+    wxString workStr;
+    wxString tokenStr;
+    // books are delimited by spaces, so each token below represents either a single 3-letter book ID 
+    // or a 3-letter book ID suffixed with :chapter suffixes for each chapter of that book that is 
+    // protected.
+    wxStringTokenizer tkz(bkchCompositeStr, _T(" ")); // books are delimited by spaces
+    workStr.Empty();
+    while (tkz.HasMoreTokens())
+    {
+        tokenStr = tkz.GetNextToken();
+        // do comparisons with forced uppercase in this function
+        tokenStr.MakeUpper();
+        int posColon = tokenStr.Find(_T(":"));
+        if (posColon == wxNOT_FOUND)
+        {
+            // The tokenStr doesn't have embedded colon so, it must represent a single 3-letter book code
+            // Verify that it is a code we recognize
+            if (gpApp->IsValidBookID(tokenStr))
+            {
+                if (tokenStr == bkchTargetStr)
+                {
+                    // We've found a match, no need to look further
+                    return TRUE;
+                }
+            }
+            else
+            {
+                // The project config file string has an unknown book id. Just log the error
+                wxString msg = _T("IsCollabDocProtectedFromSavingToEditor encountered unknown book ID: %s");
+                msg = msg.Format(msg, tokenStr.c_str());
+                gpApp->LogUserAction(msg);
+            }
+        }
+        else
+        {
+            // posColon is a positive value, so tokenStr should have embedded :<chapter> content after the book code
+            // First, get the book ID off tokenStr, then check for the :<chapter> content match in the remainder.
+            wxString bkID = tokenStr.Mid(0, posColon);
+            wxString chParts = tokenStr.Mid(posColon);
+            // By putting a final : on chParts we can do a simple Find of :2: which would uniquely find chapter 2 and not
+            // give a false positive for chapter 20, since a Find of :2: would not be found in :20:, whereas a Find
+            // of :2 would also give a false positive for :20.
+            chParts += _T(":");
+            collabBookToCheck.MakeUpper();
+            bkID.MakeUpper();
+            if (gpApp->IsValidBookID(bkID))
+            {
+                if (bkID == collabBookToCheck && chParts.Find(_T(":")+collabChapter + _T(":")) != wxNOT_FOUND)
+                {
+                   // We've found a match, no need to look further
+                    return TRUE;
+                }
+                else
+                {
+                    // no match found
+                    return FALSE;
+                }
+            }
+            else
+            {
+                // The project config file string has an unknown book id. Just log the error
+                wxString msg = _T("IsCollabDocProtectedFromSavingToEditor encountered unknown book ID: %s");
+                msg = msg.Format(msg, tokenStr.c_str());
+                gpApp->LogUserAction(msg);
+            }
+
+        }
+    }
+
+    return FALSE;
+}
+
 bool CollabProjectIsEditable(wxString projShortName)
 {
 // whm 5Jun12 added the define below for testing and debugging of Setup Collaboration dialog only
@@ -3590,7 +4305,9 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 // Gets the whole path including filename of the location of the rdwrtp7.exe utility program
 // for collabotation with Paratext. It also checks to insure that the 5 Paratext dll files that
 // the utility depends on are also present in the same folder with rdwrtp7.exe.
-wxString GetPathToRdwrtp7()
+// whm added 17March2017 a wxString ptVersion parameter to the function to accurately specify
+// the version of Paratext for which we are finding the path to the rdwrtp7.exe utility.
+wxString GetPathToRdwrtp7(wxString ptVersion)
 {
 	// determine the path and name to rdwrtp7.exe
 	wxString rdwrtp7PathAndFileName;
@@ -3614,10 +4331,11 @@ wxString GetPathToRdwrtp7()
 	// Adapt It installation.
 
 #ifdef __WXMSW__
-	if (::wxFileExists(gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
+    wxString ptInstallDirPath = gpApp->GetParatextInstallDirPath(ptVersion);
+	if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
 	{
 		// rdwrtp7.exe exists in the Paratext installation so use it
-		rdwrtp7PathAndFileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
+		rdwrtp7PathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
 	}
 	else
 	{

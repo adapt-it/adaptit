@@ -205,6 +205,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_bTempCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly;
 	m_TempCollabChapterSelected = m_pApp->m_CollabChapterSelected;
 	m_bTempCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans;
+    // m_CollabBooksProtectedFromSavingToEditor is not needed for use in CGetSourceTextFromEditorDlg
 
 	m_SaveCollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
 	m_SaveCollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
@@ -219,7 +220,11 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	if (!m_pApp->m_bCollaboratingWithBibledit)
 	{
-		m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(); // see CollabUtilities.cpp
+        // whm added 17March2017. To avoid possible error, we need to be absolutely sure of the path to the 
+        // rdwrtp7.exe file which is different for PT7 and PT8, so I'm adding a parameter to GetPathToRdwrtp7()
+        // to indicate the specific version of PT we want the path for.
+		//m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(); // see CollabUtilities.cpp
+		m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(m_pApp->m_ParatextVersionForProject); // see CollabUtilities.cpp
 	}
 	else
 	{

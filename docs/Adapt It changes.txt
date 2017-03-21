@@ -1,6 +1,15 @@
-﻿----------------------------------------------
-Bug fixes in 6.8.? release dd Month? 2017
+﻿Version 6.8.2 release 16 March 2017
 ----------------------------------------------
+----------------------------------------------
+Bug fixes in 6.8.2 release 16 March 2017
+----------------------------------------------
+* Fixed a bug that would cause an error message when trying to
+select Paratext 7 within the Setup Or Remove Collaboration dialog,
+preventing a successful collaboration setup for Paratext 7.
+The error message indicated that Adapt It was trying to use a path
+to the Paratext 8 projects folder, even though the Paratext 7 selection
+in the dialog was made. This error was possible if the user had both 
+Paratext 7 and Paratext 8 installed on the computer.
 * If CC table changes are in operation, and the user makes
 a merger, the change table was not applied to the non-first
 source text words. Now it is applied.
@@ -11,7 +20,6 @@ not entered into the knowledge base. Now they are not
 lost and the knowledge base stores a correct entry.
 
 Version 6.8.1 release 9 December 2016
-
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.8.1 
@@ -77,9 +85,17 @@ the user may not want collaboration restored. So now, a Yes/No
 message dialog will ask the user: "If a collaboration was set up 
 with Paratext or Bibledit, do you want it to be restored now,
 if possible?". Click the No button to have the collaboration
+<<<<<<< HEAD
 turned off.
 ----------------------------------------------
 Bug fixes in 6.8.1 release 20 December 2016
+=======
+turned off.
+
+----------------------------------------------
+Bug fixes in 6.8.1 release 20 December 2016
+
+>>>>>>> 3c2c2a1ed6711ae1d130010d4df8529492213ff9
 ----------------------------------------------
 * Left and right double angle quotation marks are now automatically
 added to the source and target punctuation character sets, if not

@@ -604,6 +604,7 @@ void CDocPage::OnSetActive()
 		gpApp->m_CollabChapterSelected = wxEmptyString;
 		gpApp->m_CollabSourceLangName = wxEmptyString;
 		gpApp->m_CollabTargetLangName = wxEmptyString;
+        gpApp->m_CollabBooksProtectedFromSavingToEditor = wxEmptyString;
 		gpApp->m_bUserWantsNoCollabInShiftLaunch = TRUE; // restore default value
 		bool bOK;
 		bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath, projectConfigFile);
