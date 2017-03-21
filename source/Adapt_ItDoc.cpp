@@ -73,7 +73,7 @@ size_t aSequNum; // use with TOKENIZE_BUG
 // Comment out Use_Legacy_Parser to cause the simpler and better refactored (Nov-Dec,2016)
 // ParseWord2() to be used, and the m_bBoundary setting code done in ParseWord2() rather
 // than in the legacy place, after the propagation code in TokenizeText()
-//#define Use_Legacy_Parser
+#define Use_Legacy_Parser
 
 // Other includes uncomment as implemented
 #include "Adapt_It.h"
