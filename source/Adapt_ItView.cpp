@@ -3522,7 +3522,7 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
     wxString title = _T("Printing Disabled");
     wxMessageBox(msg, title, wxICON_WARNING | wxOK);
     pApp->LogUserAction(msg);
-    return;
+    //return;
 #endif
     
     // whm note: The code below is adapted from wxWidgets printing sample
@@ -3685,7 +3685,7 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
     wxString title = _T("Print Preview Disabled");
     wxMessageBox(msg, title, wxICON_WARNING | wxOK);
     pApp->LogUserAction(msg);
-    return;
+    //return;
 #endif
     
     // whm note: The code below is adapted from wxWidgets printing sample
@@ -3725,8 +3725,10 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 
     // BEW 5Oct11, we'll unilaterally Freeze(), and unlaterally later Thaw(), whether or
     // not we subsequently turn on glossing or free translation modality
-	pApp->GetMainFrame()->Freeze();
-	pApp->m_bFrozenForPrinting = TRUE;
+    // whm removed Freeze() below for Print Preview. It seems to relate to a crash in
+    // the frame->InitializeWithModality(m_previewModality) call below.
+	//pApp->GetMainFrame()->Freeze();
+	//pApp->m_bFrozenForPrinting = TRUE;
 
 	// klb 9/2011 : If glosses are not visible, we need to make them visible in the
 	// underlying document temporarily to have them show in the print preview frame
@@ -5575,7 +5577,7 @@ void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFac
 	wxFont* pFont;
 	pFont = new wxFont(*wxNORMAL_FONT);
 	pFont->SetPointSize(10);
-	pFont->SetWeight(wxBOLD);
+	pFont->SetWeight(wxFONTWEIGHT_BOLD);
 	pDC->SetTextForeground(*wxBLACK);
 	pDC->SetFont(*pFont);
 
@@ -5776,7 +5778,7 @@ void  CAdapt_ItView::PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint margi
 	wxFont* pFont;
 	pFont = new wxFont(*wxNORMAL_FONT);
 	pFont->SetPointSize(10);
-	pFont->SetWeight(wxBOLD);
+	pFont->SetWeight(wxFONTWEIGHT_BOLD);
 	pDC->SetTextForeground(*wxBLACK);
 	pDC->SetFont(*pFont);
 

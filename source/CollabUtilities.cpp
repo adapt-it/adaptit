@@ -6817,8 +6817,8 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr)
 {
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
-	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %u  pre count: %u  from count: %u  sourceText count: %u");
-    msg1 = msg1.Format(msg1, (int)postEditMd5Arr.GetCount(), (int)preEditMd5Arr.GetCount(), (int)fromEditorMd5Arr.GetCount(), (int)sourceTextMd5Arr.GetCount());
+	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %zu  pre count: %zu  from count: %zu  sourceText count: %zu"); // %zu is the format specifier for size_t type
+    msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(), preEditMd5Arr.GetCount(), fromEditorMd5Arr.GetCount(), sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
 #endif
 
@@ -7978,7 +7978,7 @@ wxString GetUpdatedText_UsfmsChanged(
 										  // which corresponds to a single line of info from sourceTextMd5Arr
 {
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
-	wxString msg1 = _T("GetUpdatedText_UsfmsChanged() called: post count: %u  pre count: %u  from count: %u  sourceText count: %u");
+	wxString msg1 = _T("GetUpdatedText_UsfmsChanged() called: post count: %zu  pre count: %zu  from count: %zu  sourceText count: %zu"); // %zu is the format specifier for size_t type
 	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
 #endif
@@ -10331,6 +10331,51 @@ wxString MakeSourceTextForCollabConflictResDlg()
 #endif
 	return srcText;
 }
+
+int AskIfCollabSettingsBeRemovedFromProjConfig(
+    wxString aiProjName,
+    wxString editorNamedInConfig,
+    wxString collabProjForSrc,
+    wxString collabProjForTgt,
+    wxString collabProjForFreeTrans
+)
+{
+    if (collabProjForFreeTrans.IsEmpty())
+        collabProjForFreeTrans = _("[none assigned]");
+    wxString errMessageCommon = _("When opening the %s project Adapt It detected the following error(s):\n\n");
+    errMessageCommon = errMessageCommon.Format(errMessageCommon, aiProjName.c_str());
+    wxString msg;
+    msg =
+        _("The Adapt It project \"%s\" was previously setup for collaboration with %s, but %s is not installed on this computer. That project was set to collaborate with these projects:\n      \
+%s source language project: %s\n      \
+%s target language project: %s\n      \
+%s free translation project: %s\n\
+Answer \"No\" to the question below - if you plan to install Paratext or Bibledit so that Adapt It can continue working in collaboration with this project. Then you should  \
+install Paratext or Bibledit before trying to open this project within Adapt It.\n\
+Answer \"Yes\" to the question below - if you want to go ahead and view or edit documents in this project now. However, if you do answer \"Yes\", you should know that this \
+project's collaboration settings will be removed from its project configuration file. If you later want this AI project to resume collaboration, you (or your administrator) will \
+need to first install Paratext or Bibledit on this computer, and make sure that Paratext or Bibledit have the required source language and target language projects (within Paratext \
+or Bibledit). Then you will need to make Adapt It's Administrator menu visible and select its \"Setup or Remove Collaboration...\" menu item, \
+and setup collaboration again for this project using that dialog.\n\n\
+Do you want to remove collaboration settings from this \"%s\" project?");
+    msg = msg.Format(msg,
+        aiProjName.c_str(),
+        editorNamedInConfig.c_str(),
+        editorNamedInConfig.c_str(),
+        editorNamedInConfig.c_str(),
+        collabProjForSrc.c_str(),
+        editorNamedInConfig.c_str(),
+        collabProjForTgt.c_str(),
+        editorNamedInConfig.c_str(),
+        collabProjForFreeTrans.c_str(),
+        aiProjName.c_str());
+    msg = errMessageCommon + msg;
+    wxString title = _("This project's collaboration settings are invalid");
+    int result;
+    result = wxMessageBox(msg, title, wxICON_EXCLAMATION | wxYES_NO | wxNO_DEFAULT);
+    return result;
+}
+
 
 // whm added 10Jul2015 for temporary testing of the CCollabVerseConflictDlg dialog
 // BEW moved to here from doc.cpp, on 23Jul15

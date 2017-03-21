@@ -35,6 +35,9 @@
 /// function prototypes for all the resources used by Adapt It specified and
 /// managed by wxDesigner. 
 /////////////////////////////////////////////////////////////////////////////
+#if defined(__GNUC__)
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 #include "ComposeBarEditBox.h"
 #include <wx/fontenum.h> // needed for SetEncodingDlg.h below
 #include "Adapt_It.h" // needed for SetEncodingDlg.h below
@@ -76,7 +79,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.8.1"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("December 20, 2016"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("December 9, 2016"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->SetToolTip( wxT("This date should be the same as the executable file") );
     item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 

@@ -89,8 +89,9 @@ protected:
 	void OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUSED(event)); // whm added 23Feb12
 	bool DoSaveSetupForThisProject();
 	void OnRemoveThisAIProjectFromCollab(wxCommandEvent& WXUNUSED(event)); // whm added 23Feb12
-	void SetStateOfRemovalButton();
-	void SetPTorBEsubStringsInControls();
+    void SetStateOfRemovalButton();
+    void SetStateOfAcceptSetupButton();
+    void SetPTorBEsubStringsInControls();
 	void OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(event)); // whm added 4Apr12
 
 private:
@@ -118,6 +119,7 @@ private:
 	wxRadioButton* pRadioBtnByChapterOnly;
 	wxRadioButton* pRadioBtnByWholeBook;
 	wxButton* pBtnRemoveProjFromCollab;
+	wxButton* pBtnSaveSetupForThisProjNow;
 	wxButton* pBtnClose;
 	bool m_bCollabChangedThisDlgSession;
 	wxArrayString projList;

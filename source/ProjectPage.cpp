@@ -861,9 +861,118 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				}
 			case collabProjExistsButEditorNotInstalled:
 				{
-					wxString msg = errMessageCommon.Format(errMessageCommon,errString.c_str());
-					wxMessageBox(msg,titleMessageCommon,wxICON_EXCLAMATION | wxOK);
-					pApp->LogUserAction(msg);
+                    // whm modified 30Dec2016 to give user more flexibility to be able to choose to unilaterally
+                    // remove collaboration settings from the project, open the project, and access its documents 
+                    // normally from the DocPage, or abort the opening of the project (to possibly install Paratext
+                    // or Bibledit) before attempting to later open the project under collaboration.
+                    int result;
+                    result = AskIfCollabSettingsBeRemovedFromProjConfig(
+                        pApp->m_CollabAIProjectName,
+                        pApp->m_collaborationEditor,
+                        pApp->m_CollabProjectForSourceInputs,
+                        pApp->m_CollabProjectForTargetExports,
+                        pApp->m_CollabProjectForFreeTransExports
+                    );
+
+                    wxString msg;
+                    switch (result)
+                    {
+                    case wxYES:
+                    {
+                        // Administrator/User wants to remove collaboration settings from the project's AI-ProjectConfiguration.aic file.
+                        // We could call the OnRemoveThisAIProjectFromCollab() handler but is does things that aren't necessary for our
+                        // present purpose, so we'll just borrow the code from there and make it general enough so that it can be used here 
+                        // and also within the ProjectPage's OnWizardPageChanging() handler.
+                        // Save blank values for the collab settings into the project config file.
+                        pApp->m_bCollaboratingWithParatext = FALSE;
+                        pApp->m_bCollaboratingWithBibledit = FALSE;
+                        pApp->m_CollabProjectForSourceInputs = _T("");
+                        pApp->m_CollabProjectForTargetExports = _T("");
+                        pApp->m_CollabProjectForFreeTransExports = _T("");
+                        pApp->m_CollabAIProjectName = _T("");
+                        // pApp->m_collaborationEditor can stay set to its current value
+                        //pApp->m_ParatextVersionForProject can stay set to its current value - whm added 25June2016
+                        pApp->m_bCollaborationExpectsFreeTrans = FALSE;
+                        pApp->m_CollabBookSelected = _T("");
+                        pApp->m_CollabSourceLangName = _T("");
+                        pApp->m_CollabTargetLangName = _T("");
+                        pApp->m_bCollabByChapterOnly = TRUE;
+                        pApp->m_CollabChapterSelected = _T("");
+
+                        // Re-save now removed settings to the AI-ProjectConfiguration.aic file
+                        // In order to write the collab settings to the selected project file we need to compose the
+                        // path to the project for the second parameter of WriteConfigurationFile().
+                        wxString newProjectPath;	// a local string to avoid unnecessarily changing the App's m_curProjectName
+                                                    // and m_curProjectPath.
+                        if (!pApp->m_customWorkFolderPath.IsEmpty() && pApp->m_bUseCustomWorkFolderPath)
+                        {
+                            newProjectPath = pApp->m_customWorkFolderPath + pApp->PathSeparator
+                                + m_projectName;
+                        }
+                        else
+                        {
+                            newProjectPath = pApp->m_workFolderPath + pApp->PathSeparator
+                                + m_projectName;
+                        }
+                        // Call WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile)
+                        // to save the settings in the project config file.
+                        bool bOK;
+                        bOK = pApp->WriteConfigurationFile(szProjectConfiguration, newProjectPath, projectConfigFile);
+                        if (bOK)
+                        {
+                            wxString newAIconfigFilePath = newProjectPath + pApp->PathSeparator + szProjectConfiguration + _T(".aic");
+                            // Tell administrator that the setup has been saved.
+                            msg = 
+_("The collaboration settings for the AI \"%s\" project were successfully removed from the project's configuration file at:\n\n\
+%s\n\n\
+Reminder: You may now open any adaptation documents that exist in this project. If you later decide to resume collaboration, \
+you or your administrator will have to install Paratext or Bibledit and then set up collaboration from scratch.");
+                            msg = msg.Format(msg, m_projectName.c_str(), newAIconfigFilePath.c_str());
+                            wxMessageBox(msg, _("Removal of collaboration settings successful"), wxICON_INFORMATION | wxOK);
+                            pApp->LogUserAction(msg);
+                            // whm 25Oct13 added. This SaveAppCollabSettingsToINIFile() needs to be called
+                            // at every point that significant collaboration settings change to keep the
+                            // Adapt_It_WX.ini file up to date. This does not remove the settings
+                            // entirely from the ini file, it clears the existing settings to
+                            // remove active collaboration.
+                            pApp->SaveAppCollabSettingsToINIFile(newProjectPath);
+                        }
+                        else
+                        {
+                            // Writing of the project config file failed for some reason. This would be unusual, so
+                            // just do an English notification
+                            wxCHECK_RET(bOK, _T("OnRemoveThisAIProjectFromCollab(): WriteConfigurationFile() failed, line 1189 in SetupEditorCollaboration.cpp"));
+                        }
+
+                        break;
+                    }
+
+                    case wxCANCEL: // fall through to wxNO below
+
+                    case wxNO:
+                    {
+                        // Administrator/User decided not to remove the settings
+                        // Tell user what happened and why the project cannot be accessed.
+                        wxString projects;
+                        projects = pApp->m_CollabProjectForSourceInputs + _T("\n") + pApp->m_CollabProjectForTargetExports, +_T("\n") + pApp->m_CollabProjectForFreeTransExports;
+
+                        msg = 
+_("The collaboration settings for the \"%s\" AI project were not changed.\n\n\
+Reminder: You cannot open this project until your administrator installs Paratext or Bibledit along with these projects:\n\n\
+%s\n\n");
+                        msg = msg.Format(msg, m_projectName.c_str(), projects.c_str());
+                        wxMessageBox(msg, _("Collaboration settings remain unchanged for this project"), wxICON_INFORMATION | wxOK);
+                        pApp->LogUserAction(msg);
+                        event.Veto();
+                        return;
+                        break;
+                    }
+
+                    default:
+                        wxASSERT(FALSE); // this would be a programming error
+                        break;
+                    } // end of inner switch
+
 					event.Veto();
 					return;
 				}

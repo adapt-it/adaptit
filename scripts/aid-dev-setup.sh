@@ -14,13 +14,33 @@
 #   sources so the newest version of CodeBlocks can be installed.
 #   06Oct2016 - added the build-essential package to AID_DEV_TOOLS_OLD and AID_DEV_TOOLS_NEW
 #     to correct failure to build AI on systems without the g++ compiler.
-#
+# Revision: 10December2016 whm added support for Linux Mint up to Serena.
+# Revision: 23January2017 Provided missing APT_SOURCES_LIST_DIR value to be
+#   able to update user's /etc/apt/sources.list to include the CodeBlocks PPA
+# Revision: 26January2017 Added test for Internet connection and wget error check.
+# Requires an Internet connection to retrieve keys and use apt-get install
+
+# Test for Internet connection
+echo -e "GET http://google.com HTTP/1.0\n\n" | nc google.com 80 > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo "Internet connection detected."
+else
+    echo "No Internet connection detected. You must have an Internet connection"
+    echo "to use this script. Aborting..."
+    exit 1
+fi
+
+# ***************************************************************************
+# Define Variables and Collect System Information
+# ***************************************************************************
+
 # Setup AID development tools
 echo "Seting up AID Tools..."
 
 PROJECT_DIR=${1:-~/projects}	# AIM development file location, default ~/projects/
 WAIT=60
 AID_GITURL=https://github.com/adapt-it/adaptit.git
+CODEBLOCKS_LAUNCHPAD_URL="http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu"
 AID_DEV_TOOLS_OLD="codeblocks poedit git gnome-common libgtk2.0-0-dbg libgtk2.0-dev \
   build-essential gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
   libwxbase2.8-0 libwxbase2.8-dbg libwxbase2.8-dev libwxgtk2.8-0 libwxgtk2.8-dbg \
@@ -29,19 +49,20 @@ AID_DEV_TOOLS_NEW="codeblocks poedit git gnome-common libgtk-3-0-dbg libgtk-3-de
   build-essential gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
   libwxbase3.0-0v5 libwxbase3.0-0v5-dbg libwxbase3.0-dev libwxgtk3.0-0v5 libwxgtk3.0-0v5-dbg \
   libwxgtk3.0-dev wx-common wx3.0-headers wx3.0-i18n"
+APT_SOURCES_LIST_DIR="/etc/apt/sources.list"
 # Note: the wx2.8-i18n and wx3.0-i18n packages cannot be installed at the same time, 
 # otherwise you get: apt-get error: wx2.8-i18n : Conflicts: wx-i18n
 # Removed libgnomeprintui2.2-dev from AID_DEV_TOOLS... list above (it's not in 14.04 and not really needed)
 supportedDistIDs="LinuxMint Ubuntu"
-supportedCodenames="maya qiana rebecca rafaela rosa sarah precise trusty utopic vivid wily xenial"
+supportedCodenames="maya qiana rebecca rafaela rosa sarah precise trusty utopic vivid wily xenial yakkety"
 echo -e "\nDetermine if system is LinuxMint or Ubuntu and its Codename"
 # Determine whether we are setting up a LinuxMint/Wasta system or a straight Ubuntu system
 # The 'lsb_release -is' command returns "LinuxMint" on Mint systems and "Ubuntu" on Ubuntu systems.
 distID=`lsb_release -is`
 echo "  This system is: $distID"
 # Determine what the Codename is of the system
-# The 'lsb_release -cs' command returns "maya", "qiana", "rebecca", "rafaela", "rosa", "sarah" on Mint LTS systems, 
-#   and "precise", "trusty", "utopic", "vivid", "wily", "xenial" on Ubuntu systems"
+# The 'lsb_release -cs' command returns "maya", "rafaela", "rosa", "sarah", "serena" on Mint LTS systems, 
+#   and "precise", "trusty", "utopic", "vivid", "wily", "xenial", "yakkety" on Ubuntu systems"
 distCodename=`lsb_release -cs`
 echo "  The Codename is: $distCodename"
 if echo "$supportedDistIDs" | grep -q "$distID"; then
@@ -60,7 +81,7 @@ fi
 
 # Ensure the apt repository is setup for the SIL repository using the proper Codename.
 # On LinuxMint/Wasta systems, the Codename for the SIL repo must use the Ubuntu equivalent 
-#   LTS Codename, i.e., "precise" for maya, or "trusty" for qiana, rebecca, or rafaela.
+# LTS Codename, i.e., "precise" for maya, or "trusty" for qiana, rebecca, rafaela, rosa, "xenial" for sarah, serena.
 case $distCodename in
   "maya")
   distCodename="precise"
@@ -80,8 +101,15 @@ case $distCodename in
   "sarah")
   distCodename="xenial"
   ;;
+  "serena")
+  distCodename="xenial"
+  ;;
 esac
 echo "  The Modified Codename for Deveopment is: $distCodename"
+
+# ***************************************************************************
+# Install SIL Repository and Authorization Key
+# ***************************************************************************
 
 # whm Note: the add-apt-repository command seems to have differing behaviors on
 # different Ubuntu distributions - storing software sources list(s) always in
@@ -119,6 +147,11 @@ if [ -z "$SILKey" ]; then
     # Key not in ~/tmp/ so retrieve the sil.gpg key from the SIL external web site
     echo "Retrieving the sil.gpg key from $SILKEYURL to ~/tmp/"
     wget --no-clobber --no-directories $SILKEYURL
+    if [ $? -ne 0 ]
+    then
+      echo "Unable to download the SIL key: wget error: $?"
+      exit 1
+    fi
   fi
   if [ -f ~/tmp/sil.gpg ]; then
     echo "Installing the sil.gpg key..."
@@ -132,6 +165,10 @@ else
   echo "The SIL key is already installed."
 fi
 
+# ***************************************************************************
+# Install CodeBlocks PPA Repository and Authorization Key
+# ***************************************************************************
+
 # Add CodeBlocks repository
 echo -e "\nAdding CodeBlocks PPA repository to software sources"
 case $distCodename in
@@ -139,20 +176,19 @@ case $distCodename in
     # 
     sudo sed -i -e '$a deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu precise main' \
         -i -e '\@deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu precise main@d' \
-        $APT_SOURCES
+        $APT_SOURCES_LIST_DIR
   ;;
   "trusty")
     # 
     sudo sed -i -e '$a deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu trusty main' \
         -i -e '\@deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu trusty main@d' \
-        $APT_SOURCES
+        $APT_SOURCES_LIST_DIR
   ;;
   "xenial")
-    # TODO: Check/Modify if xenial differs from trusty above
     # 
     sudo sed -i -e '$a deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu xenial main' \
         -i -e '\@deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu xenial main@d' \
-        $APT_SOURCES
+        $APT_SOURCES_LIST_DIR
   ;;
 esac
 
@@ -199,16 +235,25 @@ else
   echo "The CodeBlocks key is already installed."
 fi
 
+# ***************************************************************************
+# Install the AIM Development Tools
+# ***************************************************************************
+
 echo -e "\nRefresh apt lists via apt-get update"
 sudo apt-get -q update
 
 # Install tools for development work focusing on Adapt It Desktop (AID)
 echo -e "\nInstalling AIM development tools for $distCodename..."
+# When next LTS after xenial arrives we need to include it in test below
 if [ "$distCodename" = "xenial" ]; then
   sudo apt-get install $AID_DEV_TOOLS_NEW -y
 else
   sudo apt-get install $AID_DEV_TOOLS_OLD -y
 fi
+
+# ***************************************************************************
+# Retrieve Adapt It sources from GitHub if user wants
+# ***************************************************************************
 
 # Ask user if we should get the Adapt It sources from Github
 # Provide a 60 second countdown for response. If no response assume "yes" response
@@ -247,6 +292,10 @@ case $response1 in
       cd ${PROJECT_DIR}
       [ -d adaptit ] || git clone $AID_GITURL
     fi
+
+    # ***************************************************************************
+    # Verify/Configure user's Git Credentials
+    # ***************************************************************************
 
     # Check for an existing git user.name and user.email
     echo -e "\nTo help with AID development you should have a GitHub user.name and user.email."
@@ -289,6 +338,10 @@ case $response1 in
     echo -e "\nThe git configuration settings for the adaptit repository are:"
     git config --list
     sleep 2
+
+    # ***************************************************************************
+    # Build the Adapt It Desktop Project if user wants
+    # ***************************************************************************
 
     echo -e "\nDo you want to Build the Adapt It Desktop project now? [y/n]"
     for (( i=$WAIT; i>0; i--)); do

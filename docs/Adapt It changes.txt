@@ -10,8 +10,8 @@ in the phrasebox or editing in it, the changes were lost and
 not entered into the knowledge base. Now they are not
 lost and the knowledge base stores a correct entry.
 
-----------------------------------------------
-Version 6.8.1 release 20 December 2016
+Version 6.8.1 release 9 December 2016
+
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.8.1 

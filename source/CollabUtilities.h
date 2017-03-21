@@ -390,6 +390,16 @@ class CSetupEditorCollaboration;
 	void MeldConflictsUserCancelBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
 					wxArrayPtrVoid& conflictsArr);
 
+    /////////////////////////////////////////////////////////////////////////////////////
+    ///     Function for asking user to resolve inconsistent collab settings in project configuration
+    /////////////////////////////////////////////////////////////////////////////////////
+    int AskIfCollabSettingsBeRemovedFromProjConfig(
+        wxString aiProjName,
+        wxString editorNamedInConfig,
+        wxString collabProjForSrc,
+        wxString collabProjForTgt,
+        wxString collabProjForFreeTrans
+    );
 
 #endif
 
