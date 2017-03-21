@@ -27075,6 +27075,11 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	bool bIsNestedMkr = FALSE;
 	wxString baseOfEndMkr;
 
+	// BEW added test 21Mar17
+	if (len == 0 && ptr == pEnd)
+	{
+		return len;
+	}
 	// The first possibility to deal with is that we may be pointing at an inline
 	// non-binding marker, there are 5 such, \wj \qt \sls \tl \fig, and the caller will
 	// have provided a boolean telling us we are pointing at one
