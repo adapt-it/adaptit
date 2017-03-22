@@ -114,8 +114,17 @@ begin
     itd_downloadafter(wpReady);
 
     // Test for Git by looking for its uninstaller in the registry
+    // whm modified 22March2017 Registry keys are not supposed to be case sensitive, but in testing
+    // if the key has ...\Wow6432Node\ instead of ...\WOW6432Node\... the test below fails. Probably
+    // the failure is due to the RegKeyExists() function making a case-sensitive comparison. This used
+    // to work, so perhaps an earlier version of Inno Setup had a non-case-sensitive comparison? Maybe
+    // some versions of Windows store the key as Wow6432Node and other versions as WOW6432Node. In any case
+    // to prevent problems for the Adapt It installer, we'll test key strings containing both Wow6432Node 
+    // and WOW6432Node.
     // check for 64-bit Windows
     if (RegKeyExists(HKLM, 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1')) then
+        GitInstalled := True;
+    if (RegKeyExists(HKLM, 'SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1')) then
         GitInstalled := True;
     // check for 32-bit Windows
     if (RegKeyExists(HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1')) then
