@@ -211,7 +211,7 @@ class KBSharingMgrTabbedDlg;
 #define VERSION_BUILD_PART 2 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 22
+#define VERSION_DATE_DAY 24
 #define VERSION_DATE_MONTH 3
 #define VERSION_DATE_YEAR 2017
 const wxString appVerStr(_T("6.8.2"));
