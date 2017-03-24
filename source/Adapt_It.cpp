@@ -2411,7 +2411,7 @@ wxString AllBookIds[] = {
 // array to determine its book number string - useful mainly for determining the <FileNameBookNameForm> 
 // that Paratext assigns/uses (in Settings.xml) to that Scripture book in the project's naming scheme.
 // The book numbers in AllBookNumStr[] are not zero based and skip number 40 between OT and NT; decimal counts end at 87
-// Book numbers are arbitrarily assigned "$$" for books not numbered in Published USFM Reference v2.4
+// Book numbers are arbitrarily assigned "$$" for books 
 wxString AllBookNumStr[] = {
     _T("01"), // GEN 
     _T("02"), // EXO
@@ -2507,34 +2507,36 @@ wxString AllBookNumStr[] = {
     _T("85"), // PS2
     _T("86"), // ODA
     _T("87"), // PSS
-    _T("$$"), // JSA - Not numbered in Published USFM Reference v2.4  // actual variant text for JOS, now in LXA text
-    _T("$$"), // JDB - Not numbered in Published USFM Reference v2.4  // actual variant text for JDG, now in LXA text
-    _T("$$"), // TBS - Not numbered in Published USFM Reference v2.4  // actual variant text for TOB, now in LXA text
-    _T("$$"), // SST - Not numbered in Published USFM Reference v2.4  // actual variant text for SUS, now in LXA text // 90
+    // whm modified 23March2017 to update/correct the following book filename digits to conform to
+    // what Tom H said it their current practice. Previously some elements below had "$$" as the "number"
+    _T("88"), // JSA // actual variant text for JOS, now in LXA text
+    _T("89"), // JDB // actual variant text for JDG, now in LXA text
+    _T("90"), // TBS // actual variant text for TOB, now in LXA text
+    _T("91"), // SST // actual variant text for SUS, now in LXA text // 90
 
-    _T("$$"), // DNT - Not numbered in Published USFM Reference v2.4  // actual variant text for DAN, now in LXA text
-    _T("$$"), // BLT - Not numbered in Published USFM Reference v2.4  // actual variant text for BEL, now in LXA text
-    _T("$$"), // XXA - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // XXB - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // XXC - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // XXD - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // XXE - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // XXF - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // XXG - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // FRT - Not numbered in Published USFM Reference v2.4
+    _T("92"), // DNT // actual variant text for DAN, now in LXA text
+    _T("93"), // BLT // actual variant text for BEL, now in LXA text
+    _T("94"), // XXA
+    _T("95"), // XXB
+    _T("96"), // XXC
+    _T("97"), // XXD
+    _T("98"), // XXE
+    _T("99"), // XXF
+    _T("100"), // XXG
+    _T("A0"), // FRT
 
-    _T("$$"), // BAK - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // OTH - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // 3ES - Not numbered in Published USFM Reference v2.4  // Used previously but really should be 2ES
+    _T("A1"), // BAK
+    _T("A2"), // OTH
+    _T("A3"), // 3ES  // Used previously but really should be 2ES
     _T("A4"), // EZA  // Used to be called 4ES, but not actually in any known project
     _T("A5"), // 5EZ  // Used to be called 5ES, but not actually in any known project
     _T("A6"), // 6EZ  // Used to be called 6ES, but not actually in any known project
-    _T("$$"), // INT - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // CNC - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // GLO - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // TDX - Not numbered in Published USFM Reference v2.4
+    _T("A7"), // INT
+    _T("A8"), // CNC
+    _T("A9"), // GLO
+    _T("B0"), // TDX
 
-    _T("$$"), // NDX - Not numbered in Published USFM Reference v2.4
+    _T("B1"), // NDX
     _T("B2"), // DAG
     _T("B3"), // PS3
     _T("B4"), // 2BA
