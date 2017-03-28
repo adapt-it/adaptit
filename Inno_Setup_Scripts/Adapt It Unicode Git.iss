@@ -21,7 +21,7 @@
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppID={DB254DB1-ECD3-4583-A392-DC64CB84999F}
+AppID={{DB254DB1-ECD3-4583-A392-DC64CB84999F}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
@@ -30,13 +30,13 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\Adapt It WX Unicode
 DefaultGroupName=
-LicenseFile
+LicenseFile=
 InfoBeforeFile=
 OutputBaseFilename=Git_2_12_1_4AI
 SetupIconFile={#SvnBase}\res\ai_32.ico
 Compression=lzma/Max
 SolidCompression=true
-OutputDir={#SvnBase}\AIWX Installers
+OutputDir={#SvnBase}\setup Git
 VersionInfoCopyright=2017 by Bruce Waters, Bill Martin, SIL International
 VersionInfoProductName=Git installer for Adapt It
 VersionInfoProductVersion=2.12.1
@@ -53,6 +53,8 @@ UsePreviousGroup=false
 UsePreviousAppDir=false
 DisableWelcomePage=true
 DisableDirPage=true
+DisableReadyPage=yes
+ShowLanguageDialog=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -63,11 +65,168 @@ Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Files]
-Source: "{#SvnBase}\setup Git\Git-2.12.1-32-bit.exe"; DestDir: "{app}"; Flags: ignoreversion; 
 
 [Registry]
 Root: HKCU; Subkey: "Environment"; ValueName: "Path"; ValueType: "string"; ValueData: "{pf}\Git\bin;\{pf}\Git\cmd;{olddata}"; Check: NotOnPathAlready(); Flags: preservestringtype;
 ;Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{pf}\Git\bin;{pf}\Git\cmd;{olddata}"; Check: NotOnPathAlready(); Flags: preservestringtype;
+
+; whm 23 Mar 2017: Code changes to download / install Git
+[Code]
+// whm 23Mar2017 updated the 32-bit Git download URL from adapt-it.org to to use an updated Git version 2.12.1.
+const 
+  GitInstallerFileName = 'Git-2.12.1-32-bit.exe';
+  GitSetupURL = 'http://www.adapt-it.org/' + GitInstallerFileName;
+  BN_CLICKED = 0;
+  WM_COMMAND = $0111;
+  CN_BASE = $BC00;
+  CN_COMMAND = CN_BASE + WM_COMMAND;
+
+var GitInstalled: Boolean;  // Is Git installed?
+    ShouldInstallGit: Boolean; // should the installer download and run the Git installer?
+    tmpResult: Integer;     
+    //GitName: string;
+    GitInstallerPathAndName: string;
+    GitInstallerExistsLocally: Boolean;
+    msg: string;
+    Param: Longint;
+
+procedure InitializeWizard();
+begin
+    GitInstalled := False;
+    ShouldInstallGit := False;
+    //GitName := expandconstant('{tmp}\GitInstaller.exe');
+    ITD_Init; // initialize the InnoTools Downloader
+    itd_downloadafter(wpReady);
+
+    // Test for Git by looking for its uninstaller in the registry
+    // whm modified 22March2017 Registry keys are not supposed to be case sensitive, but in testing
+    // if the key has ...\Wow6432Node\ instead of ...\WOW6432Node\... the test below fails. Probably
+    // the failure is due to the RegKeyExists() function making a case-sensitive comparison. This used
+    // to work, so perhaps an earlier version of Inno Setup had a non-case-sensitive comparison? Maybe
+    // some versions of Windows store the key as Wow6432Node and other versions as WOW6432Node. In any case
+    // to prevent problems for the Adapt It installer, we'll test key strings containing both Wow6432Node 
+    // and WOW6432Node.
+    // check for 64-bit Windows
+    if (RegKeyExists(HKLM, 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1')) then
+        GitInstalled := True;
+    if (RegKeyExists(HKLM, 'SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1')) then
+        GitInstalled := True;
+    // check for 32-bit Windows
+    if (RegKeyExists(HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1')) then
+        GitInstalled := True;
+end;
+
+procedure CurPageChanged(CurPageID: Integer);
+begin
+  if CurPageID=wpReady then 
+  begin //Lets install those files that were downloaded for us
+    // We don't really care to bother the user with having to interact with the wizard's
+    // Ready to Install page, so with the const assignments above and the next two lines of
+    // code below we can simulare a click on its "Install" button.
+    // Note: Setting a breakpoint in this block will cause the wpReady page of the wizard to
+    // show even with the PostMessage() call below. With no breakpoing it doesn't show as
+    // the code intends.
+
+    // Idea to self-close the wpReady page borrowed from: 
+    // http://stackoverflow.com/questions/22183811/how-to-skip-all-the-wizard-pages-and-go-directly-to-the-installation-process
+    // the result of this is 0, just to be precise...
+    Param := 0 or BN_CLICKED shl 16;
+    // post the click notification message to the next button
+    PostMessage(WizardForm.NextButton.Handle, CN_COMMAND, Param, 0);
+    
+    GitInstallerPathAndName := expandconstant('{app}\' + GitInstallerFileName);
+    GitInstallerExistsLocally := FileExists(GitInstallerPathAndName);
+    if (GitInstalled = False) then
+    begin
+        // download the Git installer after the "ready to install" screen is shown
+        ShouldInstallGit := True;
+        ITD_AddFile(GitSetupURL, GitInstallerPathAndName);
+    end;
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep=ssInstall then
+  begin
+    if GitInstalled then
+    begin
+      // Git is already installed and we are about to install it again. Verify with user is that is desired.
+      if (MsgBox('The Git program is already installed. If Git is not working properly, you can download a fresh copy (36MB) and reinstall it. Would you like to download and reinstall Git?', mbConfirmation, MB_YESNO) = IDYES) then
+        // user clicked YES -- install Git from the internet.
+        begin
+          // download the Git installer after the "ready to install" screen is shown
+          ShouldInstallGit := True;
+          ITD_AddFile(GitSetupURL, GitInstallerPathAndName);
+        end
+      else 
+      begin
+        msg := 'The installer will now quit without trying to reinstall Git. The recommended way to install Git for use by Adapt It is by using this installer. If you prefer, the Git installer can be downloaded separately (from: http://git-scm.com/downloads) and installed at a later time after this installer has finished.';
+        MsgBox(msg, mbInformation, MB_OK);
+        WizardForm.Close;
+      end
+    end;
+  end;
+  if CurStep=ssPostInstall then
+    // Silently run the Git installer as a post-install step
+    if (ShouldInstallGit = True) then begin
+      // run the git installer silently, with the options loaded from the file
+      // ai_git.inf. The git installer for Windows is made in Inno as well;
+      // more info on the command line options for Inno installers can be
+      // found here: http://www.jrsoftware.org/ishelp/index.php?topic=setupcmdline
+      Exec(GitInstallerPathAndName, '/SILENT', '', SW_SHOW, ewWaitUntilTerminated, tmpResult);
+    end;
+end;
+
+function NotOnPathAlready(): Boolean;
+var
+  BinDir, Path: String;
+begin
+  if RegQueryStringValue(HKEY_CURRENT_USER, 'Environment', 'Path', Path) then
+  begin // Successfully read the value
+    Log('HKCU\Environment\PATH = ' + Path);
+    BinDir := ExpandConstant('{pf}\Git\bin');
+    Log('Looking for Git\bin dir in %PATH%: ' + BinDir + ' in ' + Path);
+    if Pos(LowerCase(BinDir), Lowercase(Path)) = 0 then
+    begin
+      Log('Did not find Git\bin dir in %PATH% so will add it');
+      Result := True;
+    end
+    else
+    begin
+      Log('Found Git\bin dir in %PATH% so will not add it again');
+      Result := False;
+    end
+  end
+  else // The key probably doesn't exist
+  begin
+    Log('Could not access HKCU\Environment\PATH so assume it is ok to add it');
+    Result := True;
+  end;
+end;
+
+function NeedRestart(): Boolean;
+begin
+  // If Git was installed, prompt the user to reboot after everything's done
+  // A Restart message would be OK after a normal full Adapt It/Git installer has 
+  // run since Adapt It itself would not be running. In the case of this special
+  // small Git installer, it most likely gets called when Adapt It is running after
+  // the administrator/user selects Tools > Install the Git program... and selects
+  // the middle or bottom button in the Git install options dialog - to either 
+  // download Git from the Internet using this installer, or browse to the local 
+  // copy of the actual full Git installer - to install it. We should suppress
+  // the "Needs Restart" in both cases and inform the user to first close Adapt It
+  // and then restart the computer for the Git document history functions to be
+  // activated. Returning False from this function will suppress the "Needs Restart"
+  // message from this installer. The full installer needs to be run with the /NORESTART
+  // switch to suppress it there.
+  msg := 'The computer will need to restart before Git will be activated and the document histories can be managed. After closing this dialog, quit Adapt It, and then restart your computer. The next time you run Adapt It the document history items will work on the Adapt It File menu.';
+  MsgBox(msg, mbInformation, MB_OK);
+
+  Result := False; //Result := ShouldInstallGit;
+end;
+
+
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, "&", "&&")}}"; Flags: nowait postinstall skipifsilent
