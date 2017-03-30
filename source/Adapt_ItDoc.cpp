@@ -1804,8 +1804,9 @@ bool  CAdapt_ItDoc::Git_installed()
 {
     if (!gpApp->m_DVCS_installed)
     {
-        wxMessageBox(_T("Adapt It cannot maintain a history of its documents because your administrator has not yet installed the Git program on this computer. Please talk to your administrator."));
-        gpApp->LogUserAction (_T("Adapt It cannot maintain a history of its documents because your administrator has not yet installed the Git program on this computer. Please talk to your administrator."));
+        wxString msg = _("Adapt It cannot maintain a history of its documents because the Git program is not installed on this computer. Git can be installed by selecting the 'Install the Git program...' item on the Tools menu. If you just installed Git using the Tools menu item, you need to quit Adapt It and restart the computer for Git to work.");
+        wxMessageBox(msg, _("Git program is not available for use by Adapt It"), wxICON_EXCLAMATION | wxOK);
+        gpApp->LogUserAction (msg);
 
         return FALSE;
     }
@@ -2712,6 +2713,7 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
     wxString collabChapterSelected = gpApp->m_CollabChapterSelected; // a wxString represengin a chapter number if collabByChapterOnly is "1"
     wxASSERT(!bookCode.IsEmpty());
     bProtectedFromSavingChangesToExternalEditor = IsCollabDocProtectedFromSavingToEditor(bookCode, bCollabByChapterOnly, collabChapterSelected);
+    bProtectedFromSavingChangesToExternalEditor = bProtectedFromSavingChangesToExternalEditor; // avoid gcc warning
     // TODO: Uncomment code below to activate protection code
     //if (bProtectedFromSavingChangesToExternalEditor)
     //{

@@ -328,7 +328,7 @@ extern wxCriticalSection g_jsonCritSect;
 #include "StatusBar.h"
 #include "WaitDlg.h"
 #include "GuesserAffixesListsDlg.h" //klb 9/2014
-
+#include "InstallGitOptionsDlg.h" // whm 26March2017
 
 #if wxCHECK_VERSION(2,9,0)
 // Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -1802,6 +1802,16 @@ const wxString defaultProfileItems[] =
     _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
     _T("/PROFILE:"),
     _T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("/MENU:"),
+    _T("MENU:itemID=\"ID_TOOLS_INSTALL_GIT\":itemType=\"subMenu\":itemText=\"Install the Git program...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+    _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
     _T("/PROFILE:"),
     _T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
     _T("/PROFILE:"),
@@ -5809,6 +5819,12 @@ EVT_MENU(ID_MENU_CHANGE_USERNAME, CAdapt_ItApp::OnEditChangeUsername) // is alwa
     EVT_UPDATE_UI(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnUpdateLoadCcTables)
     EVT_MENU(ID_UNLOAD_CC_TABLES, CAdapt_ItApp::OnToolsUnloadCcTables)
     EVT_UPDATE_UI(ID_UNLOAD_CC_TABLES, CAdapt_ItApp::OnUpdateUnloadCcTables)
+    
+    // whm added 24March2017 the next two for the "Install the Git program..." Tools menu item 
+    EVT_MENU(ID_TOOLS_INSTALL_GIT, CAdapt_ItApp::OnToolsInstallGit)
+    EVT_UPDATE_UI(ID_TOOLS_INSTALL_GIT, CAdapt_ItApp::OnUpdateInstallGit)
+
+
     //OnUseConsistentChanges is in the View
     //OnUpdateUseConsistentChanges is in the View
     //OnAcceptChanges is in the View
@@ -9669,6 +9685,10 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
         pFileMenu->SetLabel(wxID_SAVE, label);
     }
 
+    // Initialize the pToolsMenu pointer here - it is referenced in different blocks below
+    wxMenu* pToolsMenu;
+    pToolsMenu = GetTopLevelMenuFromAIMenuBar(toolsMenu);
+
     // remove the Administrator menu until asked for
     if (!m_bShowAdministratorMenu)
     {
@@ -9753,6 +9773,19 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
         pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD, _("Start Working...\tCtrl-Shift-O")); // Windows
                                                                                           // & Linux have the default Ctrl-W
     }
+
+    // whm Added 29March2017 - remove the "Install the Git program..." menu item for Mac and Linux
+    // since Git should be installed on those platforms easily enough when Adapt It is installed
+    if (pToolsMenu != NULL)
+    {
+        // The "Install the Git program..." menu item on the Tools menu
+        // should be hidden/removed for platforms other than Windows
+        if (pToolsMenu->FindItem(ID_TOOLS_INSTALL_GIT) != NULL)
+        {
+            pToolsMenu->Remove(ID_TOOLS_INSTALL_GIT);
+        }
+    }
+
 #endif
 
 #ifdef __WXMAC__
@@ -9816,7 +9849,8 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
         }
     }
 
-    wxMenu* pToolsMenu = GetTopLevelMenuFromAIMenuBar(toolsMenu);
+    // The pToolsMenu pointer is established above
+    //wxMenu* pToolsMenu = GetTopLevelMenuFromAIMenuBar(toolsMenu);
     if (pToolsMenu != NULL)
     {
         // Tools | Find and Replace
@@ -10125,17 +10159,17 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
     if (pTempUserProfiles->definedProfileNames.GetCount() != m_pUserProfiles->definedProfileNames.GetCount())
     {
         wxLogDebug(_T("The internal and external definedProfileNames arrays have different count %d and %d PLEASE FIX ME!"),
-            pTempUserProfiles->definedProfileNames.GetCount(), m_pUserProfiles->definedProfileNames.GetCount());
+            (int)pTempUserProfiles->definedProfileNames.GetCount(), (int)m_pUserProfiles->definedProfileNames.GetCount());
     }
     if (pTempUserProfiles->descriptionProfileTexts.GetCount() != m_pUserProfiles->descriptionProfileTexts.GetCount())
     {
         wxLogDebug(_T("The internal and external descriptionProfileTexts arrays have different count %d and %d PLEASE FIX ME!"),
-            pTempUserProfiles->descriptionProfileTexts.GetCount(), m_pUserProfiles->descriptionProfileTexts.GetCount());
+            (int)pTempUserProfiles->descriptionProfileTexts.GetCount(), (int)m_pUserProfiles->descriptionProfileTexts.GetCount());
     }
     if (pTempUserProfiles->profileItemList.GetCount() != m_pUserProfiles->profileItemList.GetCount())
     {
         wxLogDebug(_T("The internal and external profileItemLists have different count %d and %d PLEASE FIX ME!"),
-            pTempUserProfiles->profileItemList.GetCount(), m_pUserProfiles->profileItemList.GetCount());
+            (int)pTempUserProfiles->profileItemList.GetCount(), (int)m_pUserProfiles->profileItemList.GetCount());
     }
 
     // Check for changes in their text and usedVisibilityValues arrays, but only assuming they have the same
@@ -10204,9 +10238,12 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
                 // the same order.
                 wxString tempStr = pTempItem->itemID;
                 wxString appStr = pAppItem->itemID;
-                wxLogDebug(_T("The itemID strings differ for %s: internal (%s) and external (%s)\n   - Are they spelled the same and in the same order?\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
-                    pAppItem->itemText.c_str(), tempStr.c_str(), appStr.c_str());
-                wxASSERT_MSG(FALSE, _T("AI_UserProfile.xml and internal itemID strings in defaultProfileItems[] don't match. Are they spelled the same and in the same order? PLEASE FIX ME!"));
+                wxString msg = _T("AI_UserProfile.xml and internal itemID strings in defaultProfileItems[] don't match for the menu item: %s: internal (%s) and external (%s)\n   - Are they spelled the same and in the same order?\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function");
+                msg = msg.Format(msg, pAppItem->itemText.c_str(), tempStr.c_str(), appStr.c_str());
+                wxLogDebug(msg);
+#if defined(_DEBUG)
+                wxASSERT_MSG(FALSE, msg + _T(" Programmer: PLEASE FIX ME!"));
+#endif
                 return; // no point in continuing the check
             }
 
@@ -10214,9 +10251,12 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
             {
                 // The itemIDint is also a crucial/unique identifier so ensure they match and are in
                 // the same order.
-                wxLogDebug(_T("The itemID strings differ for %s: internal (%d) and external (%d)\n   -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
-                    pAppItem->itemText.c_str(), pTempItem->itemIDint, pAppItem->itemIDint);
-                wxASSERT_MSG(FALSE, _T("AI_UserProfile.xml and internal itemIDint values don't match. PLEASE FIX ME!"));
+                wxString msg = _T("AI_UserProfile.xml and internal itemIDint values don't match for the menu item: %s: internal (%d) and external (%d)\n   -   aborting the ReportMenuAndUserProfilesInconsistencies() function");
+                msg = msg.Format(msg, pAppItem->itemText.c_str(), pTempItem->itemIDint, pAppItem->itemIDint);
+                wxLogDebug(msg);
+#if defined(_DEBUG)
+                wxASSERT_MSG(FALSE, msg + _T(" Programmer: PLEASE FIX ME!"));
+#endif
                 return; // no point in continuing the check
             }
 
@@ -27947,6 +27987,54 @@ bool CAdapt_ItApp::IsDirectoryWithin(wxString& dir, wxArrayPtrVoid*& pBooks)
     return FALSE;
 }
 
+bool CAdapt_ItApp::IsGitInstalled()
+{
+    bool bGInstalled;
+    bGInstalled = FALSE;
+    wxString pathToExecutable;
+    pathToExecutable.Empty();
+#ifdef __WXMSW__
+    wxLogNull logNo; // avoid spurious messages from the system if reg key is unreadable
+    wxRegKey keyWow_1(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1"));
+    if (keyWow_1.Exists())
+    {
+        bGInstalled = TRUE;
+    }
+    wxRegKey keyWOW_2(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1"));
+    if (keyWOW_2.Exists())
+    {
+        bGInstalled = TRUE;
+    }
+    wxRegKey key32(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1"));
+    if (key32.Exists())
+    {
+        bGInstalled = TRUE;
+    }
+    return bGInstalled;
+#endif
+
+#if defined(__WXGTK__)
+    pathToExecutable = GetProgramLocationFromSystemPATH(_T("git")) + PathSeparator + _T("git");
+    if (::wxFileExists(pathToExecutable))
+        bGInstalled = TRUE;
+
+    return bGInstalled;
+#endif
+#ifdef __WXMAC__
+    pathToExecutable = GetBibleditInstallDirPath() + gpApp->PathSeparator + _T("bibledit-rdwrt");
+
+    // If the above call doesn't find it then try /opt/local/bin/
+    if (::wxFileExists(pathToExecutable))
+        bGInstalled = TRUE;
+    else if (::wxFileExists(_T("/opt/local/bin/git")))
+        bGInstalled = TRUE;
+
+    return bGInstalled;
+#endif
+
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      pList   <- an array string list that gets filled with project names.
@@ -30525,6 +30613,49 @@ void CAdapt_ItApp::OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event))
 
     // ensure the "Accept changes without stopping" flag is FALSE
     m_bAcceptDefaults = FALSE;
+}
+
+// whm created 24March2017
+void CAdapt_ItApp::OnToolsInstallGit(wxCommandEvent & WXUNUSED(event))
+{
+    
+    CAdapt_ItApp* pApp = &wxGetApp();
+    wxASSERT(pApp != NULL);
+    pApp->LogUserAction(_T("Initiated OnToolsInstallGit()"));
+    wxString msg;
+    if (IsGitInstalled())
+    {
+        msg = _("Git appears to be installed on this computer already! If you think Git is not installed or needs to be reinstalled you can try installing it again using one of options on the next dialog. Do you want to continue?");
+        int result;
+        result = wxMessageBox(msg, _("Git Installation Information"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT | wxCANCEL);
+        switch (result)
+        {
+            case wxYES:
+            {
+                CInstallGitOptionsDlg gitInsDlg(pApp->GetMainFrame());
+                gitInsDlg.Centre();
+                if (gitInsDlg.ShowModal() == wxID_OK)
+                {
+                    ;
+                }
+                break;
+            }
+            case wxCANCEL: // fall through to wxNO below
+            case wxNO:
+            {
+                // Don't show the dialog
+                ;
+            }
+        }
+    }
+}
+
+// whm created 24March2017
+void CAdapt_ItApp::OnUpdateInstallGit(wxUpdateUIEvent & event)
+{
+    // The menu item to "Install the Git program..." should be enabled at all times so the
+    // Git Install Options dialog can be accessed at any time 
+    event.Enable(TRUE);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

@@ -211,7 +211,7 @@ class KBSharingMgrTabbedDlg;
 #define VERSION_BUILD_PART 2 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 24
+#define VERSION_DATE_DAY 30
 #define VERSION_DATE_MONTH 3
 #define VERSION_DATE_YEAR 2017
 const wxString appVerStr(_T("6.8.2"));
@@ -4160,6 +4160,11 @@ public:
 	void OnToolsDefineCC(wxCommandEvent& WXUNUSED(event));
 	void OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event));
 
+    // whm added the following two 24March2017
+    void OnToolsInstallGit(wxCommandEvent& WXUNUSED(event));
+    void OnUpdateInstallGit(wxUpdateUIEvent& event);
+
+
 	void OnFileChangeFolder(wxCommandEvent& event);
 	void OnUpdateAdvancedBookMode(wxUpdateUIEvent& event);
 	void OnAdvancedBookMode(wxCommandEvent& event);
@@ -4596,6 +4601,8 @@ public:
 	bool	InitializeLanguageLocale(wxString shortLangName, wxString longLangName,
 				wxString pathPrefix);
 	bool	IsDirectoryWithin(wxString& dir, wxArrayPtrVoid*& pBooks);
+    bool    IsGitInstalled();
+
 
     // the following ones were added by BEW to complete JF's implementation of Split, Join
     // and Move functionalities

@@ -3559,6 +3559,7 @@ wxString RemoveCollabBooksOrChaptersFromCollabString(wxString currentString, wxS
         bool chapterTypeTokenFound = FALSE;
         wxString chFoundParts = _T("");
         int indexIntotempTokenArrayOfChapterType = -1;
+        indexIntotempTokenArrayOfChapterType = indexIntotempTokenArrayOfChapterType; // avoid gcc warning
         int ct;
         int tot = (int)tempTokenArray.GetCount();
         for (ct = 0; ct < tot; ct++)

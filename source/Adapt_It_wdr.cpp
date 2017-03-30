@@ -79,7 +79,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.8.2"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("March 24, 2017"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("March 30, 2017"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->SetToolTip( wxT("This date should be the same as the executable file") );
     item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -11311,6 +11311,93 @@ wxSizer *PasswordDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+wxSizer *GitInstallOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT_PREAMBLE, 
+        _("Adapt It cannot maintain a history of its documents because the Git program \n"
+          "has not yet been installed on this computer. "),
+        wxDefaultPosition, wxDefaultSize, 0 );
+    item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticBox *item3 = new wxStaticBox( parent, -1, _("You have the following Git install options:") );
+    wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxRadioButton *item5 = new wxRadioButton( parent, ID_RADIOBUTTON_DO_NOT_INSTALL_GIT, _("Do not try to install Git at this time"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item5->SetValue( TRUE );
+    item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+
+    item6->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_TOP_BTN_DESC, _("Only install Adapt It. I'll use Adapt It without Git, or I will install Git later."), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item7, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item4->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIOBUTTON_INSTALL_GIT_FROM_INTERNET, _("Download and install Git from the Internet"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+
+    item9->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, 
+        _("This option requires access to the Internet and will download about 36MB of data.\n"
+          "A copy of the Git installer is saved to the Adapt It installation directory."),
+        wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item4->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 0 );
+
+    wxRadioButton *item11 = new wxRadioButton( parent, ID_RADIOBUTTON_BROWSE_FOR_GIT_INSTALLER, _("Browse this computer to find a Git installer"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+
+    item12->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, 
+        _("This option installs Git using a previously downloaded Git installer.\n"
+          "Git can be installed this way without accesing the Internet."),
+        wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item13, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
+
+    item4->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Please select the optioin you want above then click OK."), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item2->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item16 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item15->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item17 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
@@ -11406,6 +11493,8 @@ wxMenuBar *AIMenuBarFunc()
     item4->Append( ID_TOOLS_SPLIT_DOC, _("Split Document..."), _("Split the document into two or more documents") );
     item4->Append( ID_TOOLS_JOIN_DOCS, _("Join Documents..."), _("Join two or more documents into a single document") );
     item4->Append( ID_TOOLS_MOVE_DOC, _("Move Document..."), _("Move documents between the Adaptations folder and a book folder location") );
+    item4->AppendSeparator();
+    item4->Append( ID_TOOLS_INSTALL_GIT, _("Install the Git program..."), _("Install or update the Git program for maintaining document histories") );
     item0->Append( item4, _("&Tools") );
     
     wxMenu* item5 = new wxMenu;

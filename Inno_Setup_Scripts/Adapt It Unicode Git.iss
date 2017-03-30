@@ -58,7 +58,6 @@ UsePreviousAppDir=false
 DisableWelcomePage=true
 DisableDirPage=true
 DisableReadyPage=yes
-DisableFinishedPage=yes
 ShowLanguageDialog=no
 
 [Languages]
@@ -121,10 +120,14 @@ begin
         GitInstalled := True;
 end;
 
+// The CurPageChanged() procedure is called after a new wizard page (specified by CurPageID) 
+// is shown - before the user has a chance to interact with the page. It is therefore one
+// place we can set some initial defaults for the controls on the page - possibly as the
+// result of previous wizard page settings.
 procedure CurPageChanged(CurPageID: Integer);
 begin
   if CurPageID=wpReady then 
-  begin //Lets install those files that were downloaded for us
+  begin
     // We don't really care to bother the user with having to interact with the wizard's
     // Ready to Install page, so with the const assignments above and the next two lines of
     // code below we can simulare a click on its "Install" button.
@@ -150,12 +153,21 @@ begin
   end;
 end;
 
+// The CurStepChanged() procedure can be used to perform your own pre-install and 
+// post-install tasks. If it is alled with CurStep=ssInstall just before the actual 
+// installation starts, with CurStep=ssPostInstall just after the actual installation 
+// finishes, and with CurStep=ssDone just before Setup terminates after a successful 
+// install. We use it only as CurStep=ssPostInstall.
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep=ssInstall then
   begin
     if GitInstalled then
     begin
+      // Since this small installer can be used as a stand alone Git downloader/installer
+      // the MsgBox pompts below should remain here, and not be called from within AI's 
+      // CInstallGitOptionsDlg class methods.
+
       // Git is already installed and we are about to install it again. Verify with user is that is desired.
       if (MsgBox('The Git program is already installed. If Git is not working properly, you can download a fresh copy (36MB) and reinstall it. Would you like to download and reinstall Git?', mbConfirmation, MB_YESNO) = IDYES) then
         // user clicked YES -- install Git from the internet.
@@ -181,22 +193,40 @@ begin
       // found here: http://www.jrsoftware.org/ishelp/index.php?topic=setupcmdline
       // The full installer also needs to be run with the /NORESTART switch to suppress the restart message.
       Exec(GitInstallerPathAndName, '/SILENT /NORESTART', '', SW_SHOW, ewWaitUntilTerminated, tmpResult);
-      
-      // If Git was installed, prompt the user to reboot after everything's done
-      // A Restart message would be OK after a normal full Adapt It/Git installer has 
-      // run since Adapt It itself would not be running. In the case of this special
-      // small Git installer, it most likely gets called when Adapt It is running after
-      // the administrator/user selects Tools > Install the Git program... and selects
-      // the middle or bottom button in the Git install options dialog - to either 
-      // download Git from the Internet using this installer, or browse to the local 
-      // copy of the actual full Git installer - to install it. We should suppress
-      // the "Needs Restart" in both cases and inform the user to first close Adapt It
-      // and then restart the computer for the Git document history functions to be
-      // activated. 
-      msg := 'The computer will need to restart before Git will be activated and the document histories can be managed. After closing this dialog, quit Adapt It, and then restart your computer. The next time you run Adapt It the document history items will work on the Adapt It File menu.';
-      MsgBox(msg, mbInformation, MB_OK);
+      // Note: The "Needs Restart" message is provided in the AI CInstallGitOptionsDlg class handlers.
     end;
 end;
+
+// The NextButtonClick() function is called when the user clicks the Next button.
+// The CurPage's controls can be read at this point and variables assigned from
+// the controls' values.
+// If the function is set to a True Result, the wizard will move to the next page.
+// If the function is set to a False Result, it will remain on the current page.
+//function NextButtonClick(CurPage: Integer): Boolean;
+//begin
+	//case CurPage of
+  //  // other case pages could go here
+	//	wpFinished :
+  //    if (ShouldInstallGit = True) then begin
+        // If Git was installed, prompt the user to reboot after everything's done
+        // A Restart message would be OK after a normal full Adapt It/Git installer has 
+        // run since Adapt It itself would not be running. In the case of this special
+        // small Git installer, it most likely gets called when Adapt It is running after
+        // the administrator/user selects Tools > Install the Git program... and selects
+        // the middle or bottom button in the Git install options dialog - to either 
+        // download Git from the Internet using this installer, or browse to the local 
+        // copy of the actual full Git installer - to install it. We should suppress
+        // the "Needs Restart" in both cases and inform the user to first close Adapt It
+        // and then restart the computer for the Git document history functions to be
+        // activated. 
+  //      msg := 'The computer will need to restart before Git will be activated and the document histories can be managed. After closing this dialog, quit Adapt It, and then restart your computer. The next time you run Adapt It the document history items will work on the Adapt It File menu.';
+  //      MsgBox(msg, mbInformation, MB_OK);
+  //    end;
+	//else
+	//	;
+  //end;
+//  Result := True;
+//end;
 
 function NotOnPathAlready(): Boolean;
 var
@@ -227,7 +257,8 @@ end;
 
 function NeedRestart(): Boolean;
 begin
-  // Returning False from this function helps to suppress the "Needs Restart" message. 
+  // Returning False from this function helps to suppress the "Needs Restart" message.
+  // The "Needs Restart" message is provided in the AI CInstallGitOptionsDlg class handlers. 
   Result := False; //Result := ShouldInstallGit;
 end;
 
