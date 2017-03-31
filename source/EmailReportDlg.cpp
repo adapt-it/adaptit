@@ -1327,7 +1327,12 @@ bool CEmailReportDlg::BuildEmailReportXMLFile(wxString filePathAndName, bool bRe
 				textFile.AddLine(composeXmlStr);
 				composeXmlStr.Empty();
 				
-				wxString str = pTextDescriptionBody->GetValue();
+                // We should include system info here at the beginning of the email body so that it
+                // will be available to us from the xml report in the event that the user sends us the 
+                // xml report only (that has happened when the email reporting was broke or not 
+                // possible from user's location).
+                wxString sysInfoStr = FormatSysInfoIntoString();
+				wxString str = sysInfoStr + _T("\n") + _T("- - - - - - - - - - - - - - - - - - - -") + _T("\n") + pTextDescriptionBody->GetValue();
 				// Note: wxTextFile takes care of the conversion of UTF16 to UTF8 when it writes the file.
 				// Call the App's InsertEntities() which takes wxString and returns wxString
 				composeXmlStr = pApp->InsertEntities(str);

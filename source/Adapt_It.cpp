@@ -13843,7 +13843,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                 collabPTVersionStrFound.Trim(TRUE);
                 if (!collabPTVersionStrFound.IsEmpty())
                 {
-                    // A hack to compensate for bad spelling of the m_ParatextEditorVersion that may have gotten out in a pre-release version
+                    // A hack to compensate for bad (case) spelling of the m_ParatextEditorVersion that may have gotten out in a pre-release version
                     if (collabPTVersionStrFound == _T("PTversion8"))
                     {
                         collabPTVersionStrFound = _T("PTVersion8");
@@ -22181,7 +22181,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // which is safer than hard coding the path to a predetermined setup location.
     wxString usfmStyleInstallFolderFileCopyPath = m_xmlInstallPath + PathSeparator + _T("AI_USFM.xml");
     bool bSetupStyleFileExists = wxFileExists(usfmStyleInstallFolderFileCopyPath);
-    LogUserAction(_T("AppStartUp"));
+    wxString appVerForLog = GetAppVersionOfRunningAppAsString();
+    LogUserAction(_T("AppStartUp - AI Version: ") + appVerForLog);
 
     wxString userProfileInstallFolderFilecopyPath = m_xmlInstallPath + PathSeparator + _T("AI_UserProfiles.xml");
     // Does AI_UserProfiles.xml exist in the work folder
