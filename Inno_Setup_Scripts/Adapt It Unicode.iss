@@ -16,6 +16,7 @@
 ; time Adapt It itself was installed (or removed after Adapt It was installed).
 ; IMPORTANT: RUN THE Adapt It Unicode Git.iss SCRIPT TO CREATE Git_Downloader2_12_1_4AI.exe
 ; BEFORE COMPILING THIS SCRIPT
+; whm 4 April 2017: Removed rdwrtp7.exe and related Windows dlls from the Adapt It installers.
 #include "it_download.iss"
 
 #define MyAppName "Adapt It WX Unicode"
@@ -98,12 +99,12 @@ Source: "{#SvnBase}\setup Unicode\License_CPLv05.txt"; DestDir: "{app}"; Flags: 
 Source: "{#SvnBase}\setup Unicode\License_GPLv2.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode\License_LGPLv21.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode\Localization_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SvnBase}\setup Unicode\rdwrtp7.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SvnBase}\setup Unicode\ParatextShared.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "{#SvnBase}\setup Unicode\ICSharpCode.SharpZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "{#SvnBase}\setup Unicode\Interop.XceedZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "{#SvnBase}\setup Unicode\NetLoc.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "{#SvnBase}\setup Unicode\Utilities.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode\rdwrtp7.exe"; DestDir: "{app}"; Flags: ignoreversion
+; Source: "{#SvnBase}\setup Unicode\ParatextShared.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode\ICSharpCode.SharpZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode\Interop.XceedZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode\NetLoc.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode\Utilities.dll"; DestDir: "{app}"; Flags: IgnoreVersion
 Source: "{#SvnBase}\setup Unicode\Readme_Unicode_Version.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "{#SvnBase}\setup Unicode\SILConverters in AdaptIt.doc"; DestDir: "{app}"; Flags: ignoreversion

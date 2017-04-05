@@ -6,6 +6,15 @@
 ; the following:
 ; - itdownload.dll    // DLL that allows us to download 3rd party apps
 ; - it_download.iss   // ITD script to connect the DLL
+; whm 25 Mar 2017: Code changes to enhance the installer and provide more flexible and 
+; economic Git installation options. See also the Adapt It Unicode Git.iss script
+; which creates a special Git_Downloader2_12_1_4AI.exe installer that is now included in the [Files]
+; section below. The Git_Downloader2_12_1_4AI.exe installer is used by the main Adapt It program
+; when it is desired to install a missing Git program that didn't get installed at the
+; time Adapt It itself was installed (or removed after Adapt It was installed).
+; IMPORTANT: RUN THE Adapt It Unicode Git.iss SCRIPT TO CREATE Git_Downloader2_12_1_4AI.exe
+; BEFORE COMPILING THIS SCRIPT
+; whm 4 April 2017: Removed rdwrtp7.exe and related Windows dlls from the Adapt It installers.
 #include "it_download.iss"
 
 #define MyAppName "Adapt It WX Unicode"
@@ -85,12 +94,12 @@ Source: "{#SvnBase}\setup Unicode - No Html Help\License_CPLv05.txt"; DestDir: "
 Source: "{#SvnBase}\setup Unicode - No Html Help\License_GPLv2.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode - No Html Help\License_LGPLv21.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode - No Html Help\Localization_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SvnBase}\setup Unicode - No Html Help\rdwrtp7.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SvnBase}\setup Unicode - No Html Help\ParatextShared.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "{#SvnBase}\setup Unicode - No Html Help\ICSharpCode.SharpZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "{#SvnBase}\setup Unicode - No Html Help\Interop.XceedZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "{#SvnBase}\setup Unicode - No Html Help\NetLoc.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "{#SvnBase}\setup Unicode - No Html Help\Utilities.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode - No Html Help\rdwrtp7.exe"; DestDir: "{app}"; Flags: ignoreversion
+; Source: "{#SvnBase}\setup Unicode - No Html Help\ParatextShared.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode - No Html Help\ICSharpCode.SharpZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode - No Html Help\Interop.XceedZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode - No Html Help\NetLoc.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode - No Html Help\Utilities.dll"; DestDir: "{app}"; Flags: IgnoreVersion
 Source: "{#SvnBase}\setup Unicode - No Html Help\Readme_Unicode_Version.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "{#SvnBase}\setup Unicode - No Html Help\SILConverters in AdaptIt.doc"; DestDir: "{app}"; Flags: ignoreversion

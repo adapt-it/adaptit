@@ -1210,8 +1210,11 @@ wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
 		if (cmdLineAppPath.Contains(_T("paratext")))
 		{
 		    // PT on linux -- command line is /usr/bin/paratext --rdwrtp7
-		    // (calls a mono script to set up the environment, then calls rdwrtp7.exe
+		    // (calls a mono script to set up the environment, then the mono script calls rdwrtp7.exe
             // with the rest of the params)
+            // TODO: Once PT8 for Linux moves from experimental to the normal PSO release, and we
+            // verify that PT8 for Linux can take a --rdwrtp8 command-line option, change the cmdLine
+            // below to use --rdwrtp8 instead of --rdwrtp7.
             cmdLine = _T("\"") + cmdLineAppPath + _T("\"") + _T(" --rdwrtp7 ") +
                 readwriteChoiceStr + _T(" ") +	_T("\"") + shortProjName + _T("\"") +
                 _T(" ") + bookCode + _T(" ") + chStrForCommandLine +
@@ -4330,29 +4333,38 @@ wxString GetPathToRdwrtp7(wxString ptVersion)
 	// modified the code below to not bother with checking for rdwrtp7.exe and its dlls
 	// in the Paratext installation, but only check to make sure they are available in the
 	// Adapt It installation.
+    //
+    // whm modified 4 April 2017 Tom H says that in the future the PT team will rename the
+    // rdwrtp7.exe utility to rdwrtp8.exe to bring its naming scheme up to date. This 
+    // means we need to be able to recognize when a user gets a PT update the implements
+    // that change. We can do that by first testing to see if rdwrtp8.exe exists and if
+    // so return the path that includes rdwrtp8.exe as the utility name, otherwise test
+    // for the presence of rdwrtp7.exe and return that one. 
+    // With this modification I am also removing the code that attempted to maintain 
+    // substitute a version of rdwrtp7.exe if it were missing from the PT installation.
+    // The possibility of a missing rdwrtp7.exe was only a temporary possibility at the
+    // beginning of Nathan's inclusion of the utility years ago. Also we have no need to
+    // try to provide any of the related Windows dlls that would go with our version of
+    // rdwrtp7.exe, so I am removing them from our repository, as well as from our install
+    // staging batch file _CopyXML2InstallFolders.bat, and from the Inno Setup Windows
+    // installers.
 
 #ifdef __WXMSW__
     wxString ptInstallDirPath = gpApp->GetParatextInstallDirPath(ptVersion);
-	if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
-	{
-		// rdwrtp7.exe exists in the Paratext installation so use it
-		rdwrtp7PathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
-	}
-	else
-	{
-		// windows dependency checks
-		rdwrtp7PathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("rdwrtp7.exe");
-		wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
-		wxString fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ParatextShared.dll");
-		wxASSERT(::wxFileExists(fileName));
-		fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ICSharpCode.SharpZipLib.dll");
-		wxASSERT(::wxFileExists(fileName));
-		fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Interop.XceedZipLib.dll");
-		wxASSERT(::wxFileExists(fileName));
-		fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("NetLoc.dll");
-		wxASSERT(::wxFileExists(fileName));
-		fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Utilities.dll");
-		wxASSERT(::wxFileExists(fileName));
+    // whm 4 April 2017 revised for PTVersion8, look first for rdwrtp8.exe, but if
+    // rdwrtp8.exe is not found, then look for rdwrtp7.exe
+    if (ptVersion == _T("PTVersion8"))
+    {
+        if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp8.exe")))
+        {
+            // rdwrtp8.exe exists in the Paratext installation so use it
+            rdwrtp7PathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp8.exe");
+        }
+        else if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
+        {
+            // rdwrtp7.exe exists in the Paratext installation so use it
+            rdwrtp7PathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
+        }
 	}
 #endif
 #ifdef __WXGTK__
@@ -4372,111 +4384,7 @@ wxString GetPathToRdwrtp7(wxString ptVersion)
         rdwrtp7PathAndFileName = _T("/usr/bin/paratext8");
     wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
 
-	wxString fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("ParatextShared.dll");
-	wxASSERT(::wxFileExists(fileName));
-	// for mono, PT appears to be using Ionic.Zip.dll instead of SharpZipLib.dll for
-	// compression.
-	fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("Ionic.Zip.dll");
-	wxASSERT(::wxFileExists(fileName));
-	fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("NetLoc.dll");
-	wxASSERT(::wxFileExists(fileName));
-	fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("Utilities.dll");
-	wxASSERT(::wxFileExists(fileName));
 #endif
-	/* // obsolete code
-	if (::wxFileExists(gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
-	{
-		// rdwrtp7.exe exists in the Paratext installation so use it
-		rdwrtp7PathAndFileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
-	}
-	else
-	{
-		// rdwrtp7.exe does not exist in the Paratext installation, so use our copy in AI's install folder
-		rdwrtp7PathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("rdwrtp7.exe");
-		wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
-		// Note: The rdwrtp7.exe console app has the following dependencies located in the Paratext install
-		// folder (C:\Program Files\Paratext\):
-		//    a. ParatextShared.dll
-		//    b. ICSharpCode.SharpZipLib.dll
-		//    c. Interop.XceedZipLib.dll
-		//    d. NetLoc.dll
-		//    e. Utilities.dll
-		// I've not been able to get the build of rdwrtp7.exe to reference these by setting
-		// either using: References > Add References... in Solution Explorer or the rdwrtp7
-		// > Properties > Reference Paths to the "c:\Program Files\Paratext\" folder.
-		// Until Nathan can show me how (if possible to do it in the actual build), I will
-		// here check to see if these dependencies exist in the Adapt It install folder in
-		// Program Files, and if not copy them there from the Paratext install folder in
-		// Program Files (if the system will let me do it programmatically).
-		wxString AI_appPath = gpApp->m_appInstallPathOnly;
-		wxString PT_appPath = gpApp->m_ParatextInstallDirPath;
-		// Check for any newer versions of the dlls (comparing to previously copied ones)
-		// and copy the newer ones if older ones were previously copied
-		wxString fileName = _T("ParatextShared.dll");
-		wxString ai_Path;
-		wxString pt_Path;
-		ai_Path = AI_appPath + gpApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + gpApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
-		}
-		fileName = _T("ICSharpCode.SharpZipLib.dll");
-		ai_Path = AI_appPath + gpApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + gpApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
-		}
-		fileName = _T("Interop.XceedZipLib.dll");
-		ai_Path = AI_appPath + gpApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + gpApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
-		}
-		fileName = _T("NetLoc.dll");
-		ai_Path = AI_appPath + gpApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + gpApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
-		}
-		fileName = _T("Utilities.dll");
-		ai_Path = AI_appPath + gpApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + gpApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
-		}
-	}
-	*/
-
 	return rdwrtp7PathAndFileName;
 }
 
