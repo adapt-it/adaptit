@@ -4306,6 +4306,123 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 	}
 }
 
+// This function should mainly be called for collab projects that are known to exist and be valid (have at least one book) in both PT7 and PT8
+bool CollabProjectsMigrated(wxString CollabSrcProjStr, wxString CollabTgtProjStr, wxString CollabFreeTransProjStr, wxString CollabEditor, wxString PT7Version, wxString PT8Version)
+{
+    bool bProjectsMigrated = FALSE; // Assume FALSE unless found to be TRUE below
+    wxString guidCollabSrcProjPT7 = _T("");
+    wxString guidCollabSrcProjPT8 = _T("");
+    wxString guidCollabTgtProjPT7 = _T("");
+    wxString guidCollabTgtProjPT8 = _T("");
+    wxString guidCollabFreeTransProjPT7 = _T("");
+    wxString guidCollabFreeTransProjPT8 = _T("");
+    // Get the GUID of the CollabSrcProjStr in the PT7 project.
+    guidCollabSrcProjPT7 = GetCollabProjectGUID(CollabSrcProjStr, CollabEditor, PT7Version);
+    guidCollabSrcProjPT7.LowerCase();
+    // Get the GUID of the CollabSrcProjStr in the PT8 project.
+    guidCollabSrcProjPT8 = GetCollabProjectGUID(CollabSrcProjStr, CollabEditor, PT8Version);
+    guidCollabSrcProjPT8.LowerCase();
+    if (!guidCollabSrcProjPT8.IsEmpty() && !guidCollabSrcProjPT7.IsEmpty() && (guidCollabSrcProjPT8 == guidCollabSrcProjPT7))
+    {
+        bProjectsMigrated = TRUE;
+    }
+    // Get the GUID of the CollabTgtProjStr in the PT7 project.
+    guidCollabTgtProjPT7 = GetCollabProjectGUID(CollabTgtProjStr, CollabEditor, PT7Version);
+    guidCollabTgtProjPT7.LowerCase();
+    // Get the GUID of the CollabTgtProjStr in the PT8 project.
+    guidCollabTgtProjPT8 = GetCollabProjectGUID(CollabTgtProjStr, CollabEditor, PT8Version);
+    guidCollabTgtProjPT8.LowerCase();
+    if (!guidCollabTgtProjPT8.IsEmpty() && !guidCollabTgtProjPT7.IsEmpty() && (guidCollabTgtProjPT8 == guidCollabTgtProjPT7))
+    {
+        bProjectsMigrated = TRUE;
+    }
+    if (!CollabFreeTransProjStr.IsEmpty())
+    {
+        // Get the GUID of the CollabFreeTransProjStr in the PT7 project.
+        guidCollabFreeTransProjPT7 = GetCollabProjectGUID(CollabFreeTransProjStr, CollabEditor, PT7Version);
+        guidCollabFreeTransProjPT7.LowerCase();
+        // Get the GUID of the CollabFreeTransProjStr in the PT8 project.
+        guidCollabFreeTransProjPT8 = GetCollabProjectGUID(CollabFreeTransProjStr, CollabEditor, PT8Version);
+        guidCollabFreeTransProjPT8.LowerCase();
+        if (!guidCollabFreeTransProjPT8.IsEmpty() && !guidCollabFreeTransProjPT7.IsEmpty() && (guidCollabFreeTransProjPT8 == guidCollabFreeTransProjPT7))
+        {
+            bProjectsMigrated = TRUE;
+        }
+    }
+    return bProjectsMigrated;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// \return            wxString value representing the GUID of the PT collab project
+///                    An empty string is returned if GUID not found or is a BE project
+/// \param projCompositeName     ->  the PT/BE project's composite string
+/// \param collabEditor          -> the external editor, either "Paratext" or "Bibledit"
+/// \param ptEditorVersion       -> the Paratext version, "PTVersion7", "PTVersion8",
+///                                 "PTLinuxVersion7", "PTLinuxVersion8", or wxEmptyString
+/// \remarks
+/// Called from: CProjectPage::OnWizardPageChanging().
+/// Fetches the GUID value of a PT project.
+/// Uses the short name part of the incoming project's composite name to find the
+/// project in the m_pArrayOfCollabProjects on the heap.
+/// If the incoming composite name is empty or the project could not be found,
+/// the funciton returns an empty string. If found, the function populates, then examines
+/// the current Collab_Project_Info_Struct object for that project on the heap
+/// (in m_pArrayOfCollabProjects). It then examines the struct's collabProjectGUID
+/// member for the project's GUID and returns it.
+/// whm added 5April2017 to help determine if a PT project has been migrated by comparing
+/// the PT7 project's GUID with the PT8 project's GUID
+wxString GetCollabProjectGUID(wxString projCompositeName, wxString collabEditor, wxString ptEditorVersion)
+{
+    wxString collabProjShortName;
+    collabProjShortName = GetShortNameFromProjectName(projCompositeName);
+    if (collabProjShortName.IsEmpty())
+        return wxEmptyString;
+    int ct, tot;
+    // get list of PT/BE projects
+    wxASSERT(!collabEditor.IsEmpty());
+    wxArrayString projList;
+    projList.Clear();
+    // The calls below to GetListOfPTProjects() and GetListOfBEProjects() populate the App's m_pArrayOfCollabProjects
+    if (collabEditor == _T("Paratext"))
+    {
+        if (ptEditorVersion == _T("PTVersion7"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (ptEditorVersion == _T("PTVersion8"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (ptEditorVersion == _T("PTLinuxVersion7"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (ptEditorVersion == _T("PTLinuxVersion8"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+    }
+    else if (collabEditor == _T("Bibledit"))
+    {
+        projList = gpApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+    }
+    tot = (int)gpApp->m_pArrayOfCollabProjects->GetCount();
+    wxString collabProjectGUID = _T("");
+    Collab_Project_Info_Struct* pArrayItem;
+    pArrayItem = (Collab_Project_Info_Struct*)NULL;
+    for (ct = 0; ct < tot; ct++)
+    {
+        pArrayItem = (Collab_Project_Info_Struct*)(*gpApp->m_pArrayOfCollabProjects)[ct];
+        wxASSERT(pArrayItem != NULL);
+        if (pArrayItem != NULL && pArrayItem->shortName == collabProjShortName)
+        {
+            collabProjectGUID = pArrayItem->collabProjectGUID;
+            break;
+        }
+    }
+    return collabProjectGUID;
+}
+
 // Gets the whole path including filename of the location of the rdwrtp7.exe utility program
 // for collabotation with Paratext. It also checks to insure that the 5 Paratext dll files that
 // the utility depends on are also present in the same folder with rdwrtp7.exe.
@@ -4351,10 +4468,18 @@ wxString GetPathToRdwrtp7(wxString ptVersion)
 
 #ifdef __WXMSW__
     wxString ptInstallDirPath = gpApp->GetParatextInstallDirPath(ptVersion);
-    // whm 4 April 2017 revised for PTVersion8, look first for rdwrtp8.exe, but if
-    // rdwrtp8.exe is not found, then look for rdwrtp7.exe
-    if (ptVersion == _T("PTVersion8"))
+    if (ptVersion == _T("PTVersion7"))
     {
+        if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
+        {
+            // rdwrtp7.exe exists in the Paratext installation so use it
+            rdwrtp7PathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
+        }
+    }
+    else if (ptVersion == _T("PTVersion8"))
+    {
+        // whm 4 April 2017 revised for PTVersion8, look first for rdwrtp8.exe, but if
+        // rdwrtp8.exe is not found, then look for rdwrtp7.exe
         if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp8.exe")))
         {
             // rdwrtp8.exe exists in the Paratext installation so use it

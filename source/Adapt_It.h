@@ -211,8 +211,8 @@ class KBSharingMgrTabbedDlg;
 #define VERSION_BUILD_PART 2 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 30
-#define VERSION_DATE_MONTH 3
+#define VERSION_DATE_DAY 11
+#define VERSION_DATE_MONTH 4
 #define VERSION_DATE_YEAR 2017
 const wxString appVerStr(_T("6.8.2"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
@@ -1441,6 +1441,7 @@ struct Collab_Project_Info_Struct // whm added 26Apr11 for AI-PT Collaboration s
 	wxString defaultFontSize; // default is _T("10");
 	wxString leftToRight; // default is _T("T");
 	wxString encoding; // default is _T("65001"); // 65001 is UTF8
+    wxString collabProjectGUID;
 };
 
 /// wxList declaration and partial implementation of the ProfileItemList class being
@@ -4394,6 +4395,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString m_CollabSourceLangName; // whm added 4Sep11
 	wxString m_CollabTargetLangName; // whm added 4Sep11
     wxString m_CollabBooksProtectedFromSavingToEditor; // whm added 2February2017
+    bool     m_bCollabDoNotShowMigrationDialogForPT7toPT8; // whm added 6April2017
 	bool     m_bUserWantsNoCollabInShiftLaunch;
 
 	bool     m_bStartWorkUsingCollaboration; // whm added 19Feb12
@@ -4444,7 +4446,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	bool AIProjectHasCollabDocs(wxString m_projectName);
 	bool AIProjectIsACollabProject(wxString m_projectName);
 	enum AiProjectCollabStatus GetAIProjectCollabStatus(wxString m_projectName, wxString& errorStr,
-		bool& bChangeMadeToCollabSettings, wxString& errorProjects);
+		bool& bChangeMadeToCollabSettings, wxString& errorProjects, bool& bBothPT7AndPT8InstalledPT8ProjectsWereMigrated);
     void SetFolderProtectionFlagsFromCombinedString(wxString combinedStr);
 
 	// edb 8Aug12 - Pathway support

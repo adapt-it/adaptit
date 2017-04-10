@@ -731,7 +731,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			// was created by the developer by invoking a perl script called mk-ca-bundle.pl located 
 			// at c:\curl-7.21.2\lib\ca-bundle.crt on the developer's machine. Linux and Mac systems
 			// know how to find their own ca-bundle.crt files.
-			wxString ca_bundle_path;
+			wxString ca_bundle_path; 
 #ifdef __WXMSW__
 			ca_bundle_path = pApp->m_setupFolder + pApp->PathSeparator + _T("curl-ca-bundle.crt"); // path to ca bundle in setup folder on user's machine
 #else
@@ -797,7 +797,8 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 	if (!bEmailSendSuccessful)
 	{
 		wxString msg1,msg2;
-		msg1 = _("Your email could not be sent at this time.\nAdapt It will save a copy of your report in your work folder (for sending at a later time).");
+		msg1 = _("Your email could not be sent at this time.\nAdapt It will save a copy of your report in the %s folder (for sending at a later time).");
+        msg1 = msg1.Format(msg1, pApp->m_logsEmailReportsFolderName.c_str());
 		msg2 = msg2.Format(_("Error %d: %s"),curl_result,errorStr.c_str());
 		msg2 = _T("\n\n") + msg2;
 		msg1 = msg1 + msg2;
@@ -860,11 +861,11 @@ bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString 
 		return TRUE;
 
 	// whm 12Jul11 Note. For email Problem and Feedback reports we always save 
-	// those in the special _REPORTS_LOGS folder regardless of whether navigation
+	// those in the special _LOGS_EMAIL_REPORTS folder regardless of whether navigation
 	// protection is in effect. The nav protection for _REPORTS_LOGS only really
 	// applies to Retranslation Reports. Other types of reports/logs including
 	// this dialog's email reports go to the special folder regardless of the 
-	// protection setting for _REPORTS_LOGS in AssignLocationsForInputsAndOutputs.
+	// protection setting for _LOGS_EMAIL_REPORTS in AssignLocationsForInputsAndOutputs.
 
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxString reportPathAndName;

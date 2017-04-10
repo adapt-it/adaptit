@@ -351,6 +351,7 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" xcopy "..\..\setup Git\
     <ClCompile Include="..\..\source\ChooseLanguageDlg.cpp" />
     <ClCompile Include="..\..\source\ChooseTranslation.cpp" />
     <ClCompile Include="..\..\source\ClientServerConnection.cpp" />
+    <ClCompile Include="..\..\source\CollabProjectMigrationDlg.cpp" />
     <ClCompile Include="..\..\source\CollabUtilities.cpp" />
     <ClCompile Include="..\..\source\CollabVerseConflictDlg.cpp" />
     <ClCompile Include="..\..\source\CollectBacktranslations.cpp" />
@@ -513,6 +514,7 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" xcopy "..\..\setup Git\
     <ClInclude Include="..\..\source\ChooseLanguageDlg.h" />
     <ClInclude Include="..\..\source\ChooseTranslation.h" />
     <ClInclude Include="..\..\source\ClientServerConnection.h" />
+    <ClInclude Include="..\..\source\CollabProjectMigrationDlg.h" />
     <ClInclude Include="..\..\source\CollabUtilities.h" />
     <ClInclude Include="..\..\source\CollabVerseConflictDlg.h" />
     <ClInclude Include="..\..\source\CollectBacktranslations.h" />

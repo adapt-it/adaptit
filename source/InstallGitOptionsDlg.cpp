@@ -89,7 +89,7 @@ void CInstallGitOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
     //InitDialog() is not virtual, no call needed to a base class
     GitInstallerFileName = _T("Git-2.12.1-32-bit.exe");
     GitDownloadInstallerFileName = _T("Git_Downloader_2_12_1_4AI.exe");
-    needsRestartMsg = _("The computer will need to restart before Git will be activated and the document histories can be managed. After closing this dialog, quit Adapt It, and then restart your computer. The next time you run Adapt It the document history items will work on the Adapt It File menu.'");
+    needsRestartMsg = _("The computer will need to restart before Git will be activated and the document histories can be managed. After closing this dialog, quit Adapt It, and then restart your computer. The next time you run Adapt It the document history items will work on the Adapt It File menu.");
     bGitInstalled = FALSE;
     GitSetupURL = _T("http://www.adapt-it.org/") + GitInstallerFileName;
     PathToAIInstallation = m_pApp->m_appInstallPathOnly;
