@@ -1,21 +1,42 @@
-﻿Version 6.8.2 release 30 March 2017
+﻿----------------------------------------------
+Version 6.8.2 release 11 April 2017
 ----------------------------------------------
 Feature changes and new features in 6.8.2 
 ----------------------------------------------
-* Adapt It can use the Git program to save snapshots of its adaptation
-documents, and to manage the document history. Normally Git is installed
-at the time Adapt It is first installed by downloading Git from the
-Internet. Downloading Git, however, requires at least 36MB of download
-data in addition to the Adapt It installer, so it may be desirable to 
-download the Git installer just once (keeping a copy on a thumb drive),
-and be able to easily install it from the local copy of the installer 
-rather than always downloading Git afresh for each new Adapt It 
-installation. Also manual installation of Git has been a source of 
-confusion due to the Git installer's myriad of options. Adapt It's installer
-and the installed program itself now have some new features that make it 
-easier to install Git according to the needs of a particular situation. Now 
-three options are offered that will make Git installation more flexible and 
-make less use of Internet connection time/data:
+* If you previously set up an Adapt It project to collaborate with Paratext 7, 
+AND have upgraded from Paratext 7 to Paratext 8, AND you have migrated the 
+projects used in collaboration from Paratext 7 to Paratext 8, AND you 
+uninstalled Paratext 7 after migrating the projects to Paratext 8, Adapt It 
+will automatically transition your collaboration settings for the project to 
+use Paratext 8 without further setup.
+* If both Paratext 7 and Paratext 8 are still installed on the computer, 
+Adapt It won't know for sure when you intend to actually collaborate with the 
+same projects in Paratext 8 even after you have migrated those projects to 
+Paratext 8. In such cases. Adapt It now has an easier (1-click) way for users 
+to continue collaborating with Paratext after migrating their Paratext 
+collaboration projects from Paratext 7 to Paratext 8. When Adapt It opens a 
+collaboration project, Adapt It now detects whether the Paratext projects 
+involved in collaboration have been successfully migrated to Paratext 8, and 
+if both Paratext 7 and 8 are still installed, presents the user with a dialog 
+that allows the user to confirm the suggested switch from using the old 
+Paratext 7 projects, to using the newly migrated Paratext 8 projects - without 
+the administrator having to redo the collaboration setup within Adapt It. 
+The dialog also allows the user to override the switch to collaborating with 
+Paratext 8 and remain collaborating with the old Paratext 7 data if, for some 
+reason, that is the preferred (but not recommended) choice. 
+* Adapt It uses the Git program to save snapshots of its adaptation documents, 
+and to manage the document history. For Windows and Linux, normally Git is 
+installed at the time Adapt It is first installed by downloading Git from the 
+Internet. Downloading Git, however, requires at least 36MB of download data in 
+addition to the Adapt It installer, so it may be desirable to download the Git 
+installer just once (keeping a copy on a thumb drive), and be able to easily 
+install it from the local copy of the installer rather than always downloading 
+Git afresh for each new Adapt It installation. Also a manual installation of 
+Git has been a source of confusion due to the Git installer's myriad of options. 
+Adapt It's installer and the installed program itself now have some new features 
+that make it easier to install Git according to the needs of a particular 
+situation. Now three options are offered that will make Git installation more 
+flexible and make less use of Internet connection time/data:
 1) Do not try to install Git at this time.
    I'll use Adapt It without Git, or I will install Git later.
 2) Download and install Git from the Internet.
@@ -24,29 +45,62 @@ make less use of Internet connection time/data:
 3) Browse this computer to find a Git installer
    This option installs Git using a previously downloaded Git installer. Git
    can be installed this way without accessing the Internet
-The above 3 options are now offered from within Adapt It's installer and
-by menu selection from within the Adapt It program. 
-When the second option is selected from within Adapt It's installer, Git 
-will first be downloaded and then both Git and Adapt It will be installed 
-during the running of the Adapt It installer - similar to what has been
-the only option in the past. When the third option is selected from within
-Adapt It's installer, the administrator/user can browse from a file 
-dialog to an existing Git installer on the local machine or a thumb drive.
-The installer will automatically install and configure Git without further
-user interaction until both Git and Adapt It are installed with the appropriate
-options.
-Within the Adapt It program the above three options are accessible from a new 
-Tools menu item called "Install the Git program for maintaining document histories". 
-This new menu item makes it possible to install and have Adapt It auto-configure 
-the Git program all from within Adapt It without having to wade through all 
-of the Git installer's wizard pages and wonder whether all the default Git 
-options are set properly. 
-Additionally, the same 3 options are presented to the user if Git was not
-installed, and the user tries to execute one of the document history 
-menu items located on Adapt It's File menu.
+The above 3 options are now offered from within Adapt It's installer and by 
+menu selection from within the Adapt It program. 
+When the second option is selected from within Adapt It's installer, Git will 
+first be downloaded and then both Git and Adapt It will be installed during the 
+running of the Adapt It installer - similar to what has been the only option in 
+the past. When the third option is selected from within Adapt It's installer, 
+the administrator/user can browse from a file dialog to an existing Git 
+installer on the local machine or a thumb drive. The installer will 
+automatically install and configure Git without further user interaction until 
+both Git and Adapt It are installed with the appropriate options.
+* Within the Adapt It program the above three Git installation options are 
+accessible from a new Tools menu item called "Install the Git program...". This 
+new menu item makes it possible to download, install, and have Adapt It 
+auto-configure the Git program all from within Adapt It, without having to wade 
+through all of the Git installer's wizard pages and wonder whether all the default 
+Git options are set properly. Additionally, the same 3 options are presented to 
+the user if Git was not installed, and the user tries to execute one of the 
+document history menu items located on Adapt It's File menu.
+* When the Adapt It installer needs to install Git, it makes a copy of the 
+downloaded Git installer and saves it within the Adapt It installation folder
+(c:\Program Files (x86)\Adapt It WX Unicode\). It is the standard Git installer
+which is called: Git-2.12.1-32-bit.exe. Adapt It's installer can internally 
+execute this installer with the options needed for Adapt It, and it can also be 
+used to manually install Git, but for manually installations of Git, it is 
+recommended that you use the new Git downloader described in the next point 
+below instead.
+* Every Windows Adapt It installation now provides a small (748kb) installation 
+program called Git_Downloader_2_12_1_4AI.exe that is also placed in the Adapt 
+It installation folder. This installer can be used to download the Git program 
+from the Internet on demand and install Git on any Windows computer. If an
+administrator or user opts to install Git apart from running the normal Adapt It 
+installer, this stand-alone installer is recommended (and is what Adapt It will
+use of installing Git from the Tools menu).
+* The version of Git that Adapt It now downloads is Git version 2.12.1.
 ---------------------------------------------
-Bug fixes in 6.8.2 release 30 March 2017
+Bug fixes in 6.8.2 release
 ----------------------------------------------
+* If you have switched to using Paratext 8, make sure you have upgraded
+Paratext 8 to the latest version and have applied all updates. Some earlier
+versions of Paratext 8 did not have a rdwrtp7.exe.config file or a 
+rdwrtp8.exe.config file which resulted in collaboration failure and an error 
+message that said, "rdwrtp7 has stopped working". If you see that error 
+message when trying to collaborate with Paratext 8, your Paratext 8 
+installation is lacking a Paratext 8 update that installs that small xml
+rdwrtp7.exe.config or rdwrtp8.exe.config file. The preferred way to get the
+appropriate xml config file is via Paratext update. In a bind, either file
+can be downloaded from the Adapt It website at: 
+http://adapt-it.org/rdwrtp7.exe.config or
+http://adapt-it.org/rdwrtp8.exe.config
+* Fixed the Help menu's "Report a Problem" and "Give Feedback" secure email
+function. That function was rendered inoperative due to a change of the 
+certification authority on the adapt-it.org server. The certificate had to
+be changed after the adapt-it.org website got hacked. The website was restored 
+and it now uses a different certificate of authority that is now also updated 
+in Adapt It's installer so that Adapt It can again use it to send secure email 
+reports from inside Adapt It.
 * Fixed a collaboration setup bug that required the administrator to 
 select a (possibly unwanted) free translation project from Paratext
 or Bibledit before the Setup Or Remove Collaboration dialog would 
@@ -55,7 +109,12 @@ projects are required to save a collaboration setup within Adapt It:
 1) a Paratext/Bibledit project that Adapt It can use to fetch its 
 source texts, and 
 2) a second Paratext/Bibledit project that Adapt It can use to store 
-translations/adaptations as they generated from within Adapt It.
+target text (translations/adaptations) as they generated from within Adapt It.
+The source text project would normally be a good quality translation that
+Adpat It uses in a collaboration project to fetch its source text from.
+The target text project would normally start as an empty Paratext/Bibledit
+project (containing empty chapter and verse markers) that is used to store the 
+translations/adaptations produced by Adapt It in the collaboration project.
 * Fixed a bug that would cause an error message when trying to
 select Paratext 7 within the Setup Or Remove Collaboration dialog,
 preventing a successful collaboration setup for Paratext 7.
@@ -71,15 +130,16 @@ with Adapt It in its Setup Or Remove Collaboration dialog.
 * Fixed a bug that would prevent the Adapt It installer from detecting
 if an administrator had previously installed the Git program on the 
 computer.
-* If CC table changes are in operation, and the user makes
-a merger, the change table was not applied to the non-first
-source text words. Now it is applied.
-* If CC changes were made to a word or phrase and the
-user caused the phrasebox to move ahead without clicking
-in the phrasebox or editing in it, the changes were lost and
-not entered into the knowledge base. Now they are not
-lost and the knowledge base stores a correct entry.
+* If CC table changes are in operation, and the user makes a merger, the 
+change table was not applied to the non-first source text words. Now it 
+is applied.
+* If CC changes were made to a word or phrase and the user caused the 
+phrasebox to move ahead without clicking in the phrasebox or editing in it, 
+the changes were lost and not entered into the knowledge base. Now they are 
+not lost and the knowledge base stores a correct entry.
 
+
+----------------------------------------------
 Version 6.8.1 release 9 December 2016
 ----------------------------------------------
 ----------------------------------------------
