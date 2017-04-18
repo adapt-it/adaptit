@@ -222,7 +222,6 @@ protected:
 									wxChar* pChar, int len, USFMAnalysis* pUsfmAnalysis);
 	bool			BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenamedFilename = NULL);
 	int				ClearBuffer();
-	//void			ConditionallyDeleteSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList); BEW deprecated 8Mar11
 	CBString		ConstructSettingsInfoAsXML(int nTabLevel); // BEW added 05Aug05 for XML doc output support
 	int				ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString markers, wxString filterList,
 						wxString& wholeMkr, wxString& wholeShortMkr, wxString& endMkr, bool& bHasEndmarker,
@@ -231,9 +230,12 @@ protected:
 	void			DeleteListContentsOnly(SPList*& pList);
 	bool			DoUnpackDocument(wxFile* pFile);
 	bool			IsPreviousTextTypeWanted(wxChar* pChar,USFMAnalysis* pAnalysis);
+	bool			IsPunctuationOnlyFollowedByEndmarker(wxChar* pChar, wxChar* pEnd, 
+							wxString& spacelessPuncts, bool bTokenizingTargetText,
+							bool& bHasPunctsOnly, bool& bEndmarkerFollows,
+							int& punctsCount); // BEW added 4Apr2017 for TokenizeText()
 	void			GetMarkerMapFromString(MapWholeMkrToFilterStatus*& pMkrMap, wxString str); // used in SetupForSFMSetChange
 	wxString		GetNextFilteredMarker(wxString& markers, int offset, int& nStart, int& nEnd);
-	//bool			IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers);
 	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
 	// BEW 9Sep16 added next four

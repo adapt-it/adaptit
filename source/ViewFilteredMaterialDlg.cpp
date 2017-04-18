@@ -807,7 +807,7 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 			AllEndMkrsArray.Clear();
 			// BEW 14Mar17 added clearing of the four new arrays in support of stored metadata
 			pSrcPhrase->arrSavedFilteredItemsPostwordBeginMkrs.Clear();
-			pSrcPhrase->arrSavedFilteredItemsPostwordBeginMkrs.Clear();
+			pSrcPhrase->arrSavedFilteredItemsPostwordMetadata.Clear();
 			pSrcPhrase->tempSavedMetadata.Clear();
 			pSrcPhrase->tempSavedBeginMkr.Clear();
 		}

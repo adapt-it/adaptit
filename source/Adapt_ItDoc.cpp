@@ -73,7 +73,7 @@ size_t aSequNum; // use with TOKENIZE_BUG
 // Comment out Use_Legacy_Parser to cause the simpler and better refactored (Nov-Dec,2016)
 // ParseWord2() to be used, and the m_bBoundary setting code done in ParseWord2() rather
 // than in the legacy place, after the propagation code in TokenizeText()
-#define Use_Legacy_Parser
+//#define Use_Legacy_Parser
 
 // Other includes uncomment as implemented
 #include "Adapt_It.h"
@@ -7914,8 +7914,8 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 
 			// acts on ONE instance of pSrcPhrase only each time it loops, but in so doing
 			// it may add many by removing FILTERED status for a series of sourcephrase instances
-			// (all such will be in m_filteredInfo, notes, free trans, and collected back
-			// trans are not unfilterable)
+			// (all such will be sourced from within m_filteredInfo; but notes, free trans, and
+			// collected free translations are not unfilterable)
 			if (!pSrcPhrase->GetFilteredInfo().IsEmpty()) // do nothing when m_filteredInfo is empty
 			{
 				// m_markers often has an initial space, which is a nuisance, so check and remove
@@ -7935,7 +7935,17 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 					// will contain the offset to \~FILTER and end will contain the offset to the
 					// character immediately following the space following the matching \~FILTER*
 					wxString theFilteredInfo = pSrcPhrase->GetFilteredInfo();
+
+					// BEW 30Mar17 added support for metadata for unfiltering marker placement(s)
+					// Will be empty string if there is no contained metadata; the metadata, if
+					// present has a form like  [[after_punct^^]] where there will be a punctuation
+					// character between the ^^, or [[after_endMkr^^]] where there will be an
+					// endmarker between the ^^, or [[after_word^^]] where the parsed word will
+					// be between the ^^
+					wxString unfilter_metadata = wxEmptyString;
+
 					mkr = GetNextFilteredMarker(theFilteredInfo,offset,start,end);
+
 					if (mkr.IsEmpty())
 					{
 						// there was an error here... post a reference to its location
@@ -15010,7 +15020,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// as well. However, we should only be encountering legacy content
 				// begin-markers here in TokenizeText()
 				pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
-
+#ifdef _DEBUG
+				if (pSrcPhrase->m_nSequNumber == 3)
+				{
+					int break_here = 1;
+				}
+#endif
                 // whm revised this block 11Feb05 to support USFM and SFM Filtering. When
                 // TokenizeText enounters previously filtered text (enclosed within
                 // \~FILTER ... \~FILTER* brackets), it strips off those brackets so that
@@ -19611,8 +19626,8 @@ wxString CAdapt_ItDoc::RemoveAnyFilterBracketsFromString(wxString str) // whm ad
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a wxString which is a copy of the filtered SFM or USFM next found  composed of
 ///				\~FILTER ... \~FILTER* plus the marker and associated string content in between,
-///				or an empty string if one is not found
-/// \param		markers	-> references the content of a CSourcePhrase instance's m_markers member
+///				or an empty string if one is not found. It's just the marker which we return.
+/// \param		markers	-> references the content of a CSourcePhrase instance's m_filteredInfo member
 /// \param		offset	-> character offset to where to commence the Find operation for the
 ///						   \~FILTER marker
 /// \param		nStart	<- offset (from beginning of markers) to the next \~FILTER instance found,
@@ -19635,13 +19650,13 @@ wxString CAdapt_ItDoc::RemoveAnyFilterBracketsFromString(wxString str) // whm ad
 /// Mid(), can be used by the caller to extract the remainder (if any) - which could be
 /// useful in the caller when unfiltering in order to update m_markers after unfiltering
 /// has ceased for the current CSourcePhrase instance. (To interpret the nStart and nEnd
-/// values correctly in the caller upon return, the returned CString should be checked to
+/// values correctly in the caller upon return, the returned wxString should be checked to
 /// determine if it is empty or not.) The caller also can use the nEnd value to compute an
 /// updated offset value for iterating the function call to find the next filtered marker.
-/// BEw 20Sep10, updated for docVersion 5
+/// BEW 20Sep10, updated for docVersion 5
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
-											 int& nStart, int& nEnd)
+									 int& nStart, int& nEnd)
 {
 	wxString mkrStr;
 	mkrStr.Empty();
@@ -19667,7 +19682,8 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 							   // (this may be localized later)
 		int len = f.Length() + 1; // + 1 because \~FILTER is always
 								  // followed by a space
-		theRest = theRest.Mid(len); // \marker followed by its content etc.
+		theRest = theRest.Mid(len); // \marker followed by its content etc, maybe with metadata 
+									// preceding it - which we need to remove further down
 		int len2 = theRest.Length();
         // wx version note: Since we require a read-only buffer we use GetData which just
         // returns a const wxChar* to the data in the string.
@@ -19676,7 +19692,7 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 		pEnd = (wxChar*)ptr + len2; // whm added 19Jun06
 		wxChar* pBufStart = (wxChar*)ptr;
 		wxASSERT(*pEnd == _T('\0'));// whm added 19Jun06
-		pEnd = pEnd; // avoid warning
+		wxUnusedVar(pEnd); // avoid compiler warning
 		int len3 = ParseMarker(pBufStart);
 		mkrStr = theRest.Left(len3);
 		wxASSERT(mkrStr[0] == gSFescapechar); // make sure we got a valid marker
@@ -27470,7 +27486,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					// it's not an inline marker, so abort
 					wxString msgStr;
 					msgStr = msgStr.Format(
-						_("This marker: %s  follows punctuation but is not an inline marker.\nIt is not one of the USFM Special Text and Character Styles markers.\nEdit the input file in a word processor, save, and then retry creating the document.\nAdapt It will now abort."),
+						_("This marker: %s  is not an inline marker.\nThe ParseWord() function should not try to parse such a marker.\nTokenizeText() should parse and store this type of marker. Contact the developers - this is a bug.\nAdapt It will now abort."),
 						wholeMkr.c_str());
 					wxMessageBox(msgStr, _T(""), wxICON_ERROR | wxOK);
 					gpApp->LogUserAction(msgStr);
@@ -29467,16 +29483,63 @@ int CAdapt_ItDoc::ParseWord2(
 	} // end of TRUE block for test: if (IsMarker(ptr))
 	else
 	{
-		// the legacy parser's code still applies here - to finish parsing over any
-		// non-quote punctuation which precedes the word
-		while (!IsEnd(ptr) && (nFound = spacelessPuncts.Find(*ptr)) >= 0)
+		// The legacy parser's code still applies here - to finish parsing over any
+		// non-quote punctuation which precedes the word. 
+		// BEW 4Apr17 add a wrapping test to make sure defacto 'placeholder' text which
+		// is just a lot of punctuation characters followed by an endmarker, is not parsed
+		// in the normal way - that causes an app crash. Instead, detect the problem
+		// and change the punctuation string by an equal number of x characters, to act
+		// as a word-like placeholder. Such as \ft ..... \f* being changed to be:
+		// \ft xxxxx \f* -- the latter gets parsed normally, the former gives the error.
+		// If there is no content between the markers, parsing is well behaved, so we
+		// don't have to use this hack to protect that as well, in fact we'll make use 
+		// of it.
+		// This hack is needed in TokenizeText() to prevent ....... type of content
+		// (i.e. all punctuation characters, no word) as content between, say, \fr and
+		// a \f* which is following the punctuation, from producing a crash of the app.
+		// Data was from Kari Valkama (Psalms)
+		bool bHasPunctsOnly = FALSE;
+		bool bEndmarkerFollows = FALSE;
+		int nCountOfPuncts = 0;
+		if (IsPunctuationOnlyFollowedByEndmarker(ptr, pEnd,
+			m_spacelessPuncts, bTokenizingTargetText, bHasPunctsOnly,
+			bEndmarkerFollows, nCountOfPuncts))
 		{
-			// the test checks to see if the character at the location of ptr belongs to
-			// the set of source language punctuation characters (with space excluded from
-			// the latter) - as long as the nFound value is positive we are parsing over
-			// punctuation characters
-			pSrcPhrase->m_precPunct += *ptr++;
-			len++;
+			// The adjusting hack is required, so do it......
+			// Replace each of the punctuation characters with something that looks like
+			// a word but obviously isn't - I'll use 'x', & keep the length of the parent
+			// string constant (so pEnd doesn't move)
+			if (bHasPunctsOnly && bEndmarkerFollows)
+			{
+				int i;
+				wxChar* substringPtr = ptr;
+				for (i = 0; i < nCountOfPuncts; i++)
+				{
+					*substringPtr = _T('x');
+					substringPtr++;
+				}
+			}
+			else
+			{
+				// Control should never need to enter this block, if the test function,
+				// IsPunctuationOnlyFollowedByEndmarker(), returned TRUE. But just in case,
+				// the safest thing to do is to jump ptr over the punctuation substring -
+				// because no content between the marker and endmarker parses successfully
+				ptr = ptr + (size_t)nCountOfPuncts;
+			}
+		}
+		else
+		{
+			// The legacy code is in this block
+			while (!IsEnd(ptr) && (nFound = spacelessPuncts.Find(*ptr)) >= 0)
+			{
+				// The test checks to see if the character at the location of ptr belongs to
+				// the set of source language punctuation characters (with space excluded from
+				// the latter) - as long as the nFound value is positive we are parsing over
+				// punctuation characters
+				pSrcPhrase->m_precPunct += *ptr++;
+				len++;
+			}
 		}
 
 		// When the above loop exits, ptr may be pointing at the word, or at a preceding 
@@ -29540,7 +29603,7 @@ int CAdapt_ItDoc::ParseWord2(
 					// it's not an inline marker, so abort
 					wxString msgStr;
 					msgStr = msgStr.Format(
-						_("This marker: %s  follows punctuation but is not an inline marker.\nIt is not one of the USFM Special Text and Character Styles markers.\nEdit the input file in a word processor, save, and then retry creating the document.\nAdapt It will now abort."),
+						_("This marker: %s  is not an inline marker.\nThe ParseWord() function should not try to parse such a marker.\nTokenizeText() should parse and store this type of marker. Contact the developers - this is a bug.\nAdapt It will now abort."),
 						wholeMkr.c_str());
 					wxMessageBox(msgStr, _T(""), wxICON_ERROR | wxOK);
 					gpApp->LogUserAction(msgStr);
@@ -30587,7 +30650,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 		{
 			// This is where we should check for filtering of the found marker
 			// and its contents (and end marker), and if not for filtering, the
-			// in the else block is done
+			// code in the else block is done
 			wxString temp = wxEmptyString;  // we'll build any filtered marker & content 
 											// and metadata for restoration, in here
 			int itemLen = 0; // for length of marker and content and endmarker, from scan
@@ -30609,14 +30672,14 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 				// precedes ptr - it may be the word proper, or a punctuation char,
 				// or an endmarker; we must determine which is the case, and store
 				// it temporarily because we will put it as metadata within the 
-				// filtered span - it will help located where to place the span in
+				// filtered span - it will help to locate where to place the span in
 				// the event of possible later unfiltering. 
 				// Then we delineate the to-be-filtered string, construct and store
-				// it (with the metadata within) in m_filteredInfo member of the current
-				// CSourcePhrase. Then remove the to-be-filtered string, and find out
-				// what follows at the new ptr location (there might be a further 
-				// filtering to be done in the next loop iteration), then ensure there
-				// is a further iteration because we've parsed over something here
+				// it (with the metadata within) in m_filteredInfo_After member of the
+				// current CSourcePhrase. Then remove the to-be-filtered string, and
+				// find out what follows at the new ptr location (there might be a 
+				// further filtering to be done in the next loop iteration), then ensure
+				// there is a further iteration because we've parsed over something here
 				wxString precedingWord = wxEmptyString; // initialize
 				wxChar precedingPunct = _T('\0');       // initialize
 				wxString precedingEndmarker = wxEmptyString; // initialize
@@ -30695,14 +30758,14 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 						// If none of the above three, then don't filter, return instead
 						// but make a non-localizable log entry, and beep as well
 						wxBell();
-						wxString myErrorStr(_T("Filtering a filterable marker occuring at the end of a word did not succeed. In Doc, ParsePostWordStuff(), none of bPunctuationPrecedes, bEndmarkerPrecedes, bWordPrecedes are TRUE. Marker and content are not filtered."));
+						wxString myErrorStr(_T("Filtering a filterable marker occurring at the end of a word did not succeed. In Doc, ParsePostWordStuff(), none of bPunctuationPrecedes, bEndmarkerPrecedes, bWordPrecedes are TRUE. Marker and content are not filtered."));
 						gpApp->LogUserAction(myErrorStr);
 						return len;
 					}
 
 					// Store the constructed metadata + markers + content in the temp
-					//  string, appending to m_filteredInfo member of CSourcePhrase
-					pSrcPhrase->AddToFilteredInfo(temp);
+					//  string, appending to m_filteredInfo_After member of CSourcePhrase
+					pSrcPhrase->AddToFilteredInfo_After(temp);
 
 					// Skip itemLen's characters from the text being parsed, from the
 					// span of characters for filtering starting at ptr; count them in
@@ -30717,17 +30780,9 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 					bParsedSomething = TRUE;
 					endCondition = FindOutWhatIsAtPtr(ptr, pEnd, bTokenizingTargetText);
 					// Do at least one more iteration of the loop
-
 					wholeMkr = wxEmptyString;
 					temp = wxEmptyString;
 					bFilteringRequired = FALSE; // re-initialize
-					/* needs to be at top of this block, not here
-					if ((endCondition == backslashofmkr) && IsMarker(ptr) && !IsEndMarker(ptr, pEnd))
-					{
-						bFilteringRequired = IsPostwordFilteringRequired(ptr, bXref_Footnote_orEndnoteStored,
-							bPostwordMaterialFiltered, wholeMkr);
-					
-					*/
 					// loop iteration will now happen
 
 				} // end of TRUE block for test: if (bPunctuationPrecedes || bEndmarkerPrecedes || bWordPrecedes)
@@ -31241,3 +31296,101 @@ bool CAdapt_ItDoc::IsPostwordFilteringRequired(wxChar* pChar, bool& bXref_Fn_orE
 	// Not filterable, so return FALSE
 	return FALSE;
 }
+
+// BEW added 4Apr2017 for TokenizeText()
+// TokenizeText fails within ParseWord() or ParseWord2() if there are only punctuation characters
+// (as defacto text) in a context such as:  \ft ....... \f* at the end of an unfiltered footnote
+// or similar markup. Without the present function, the puncts get put in m_prevPunct, ParseWord2()
+// is called (or legacy ParseWord())and the footnote end marker wrongly in m_inlineBindingMarkers, 
+// and then any normal marker following which really should be in the next pSrcPhrase is parsed and
+// protection code in ParseWord or ParseWord trips and aborts the app, because normal markers should
+// not be handled in ParseWord() or ParseWor2(). 
+// So we use this function to detect this circumstance, and replace the punctuation string with the
+// same number of x characters, so that parsing works as expected (ie. without error).
+// When this function is called, TokenizeText() should have identified a begin marker (such as \f )
+// that is unfiltered, and parsed over it and its following space (or spaces), and the ptr to the text being
+// parsed should then be at the start of what follows - whether it is a word, or punctuation.
+bool CAdapt_ItDoc::IsPunctuationOnlyFollowedByEndmarker(wxChar* pChar, wxChar* pEnd,
+	wxString& spacelessPuncts, bool bTokenizingTargetText, bool& bHasPunctsOnly,  bool& bEndmarkerFollows,
+	int& punctsCount)
+	//int& offsetToPunctsStart, int& offsetToPunctsEnd)
+{
+	//offsetToPunctsStart = 0; // initialize
+	//offsetToPunctsEnd = 0; // initialize
+	bHasPunctsOnly = FALSE; // initialize
+	bEndmarkerFollows = FALSE; // initialize
+
+	wxChar* ptr = pChar;
+	int nDataLength = (int)(pEnd - pChar);
+	if (!(nDataLength > 0))
+	{
+		return FALSE;
+	}
+
+	/* In the loop use a switch for WordParseEndsAt 
+	enum WordParseEndsAt {
+	unknownCharType,
+	endoftextbuffer,
+	whitespace,
+	closingbracket,
+	punctuationchar,
+	backslashofmkr};
+	*/
+	int punctsCounter = 0;
+	bool bPunctsSubstringFinished = FALSE;
+	bool bMarkerIsEndmarker = FALSE;
+
+	while (!IsInWordProper(ptr, spacelessPuncts))
+	{
+		// The character at ptr is not part of a word, so check out punctuation, whitespace & a marker;
+		// anything else should cause a return of FALSE
+		WordParseEndsAt myresult = FindOutWhatIsAtPtr(ptr, pEnd, bTokenizingTargetText);
+		switch (myresult) {
+			case unknownCharType:
+				return FALSE;
+				break;
+			case endoftextbuffer:
+				return FALSE; // all the conditions were not satisfied before end reached
+				break;
+			case whitespace:
+				bPunctsSubstringFinished = TRUE;
+				ptr = ptr + 1; // point at next character
+				break; // iterate
+			case closingbracket:
+				return FALSE;
+				break;
+			case punctuationchar:
+				punctsCounter++;
+				ptr = ptr + 1; // point at next character
+				break; // iterate
+			case backslashofmkr:
+				if (punctsCounter > 0)
+				{
+					bPunctsSubstringFinished = TRUE;
+				}
+				if (IsEndMarker(ptr, pEnd))
+				{
+					bHasPunctsOnly = TRUE;
+					bEndmarkerFollows = TRUE;
+					bMarkerIsEndmarker = TRUE;
+				}
+				else
+				{
+					return FALSE;
+				}
+				break;
+		}
+		if ((punctsCounter > 0) && bPunctsSubstringFinished && bHasPunctsOnly && bMarkerIsEndmarker)
+		{
+			// The hack is needed
+			bEndmarkerFollows = TRUE;
+			punctsCount = punctsCounter;
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+
+

@@ -534,6 +534,8 @@ const char xml_bt[] = "bt"; // m_collectedBackTrans
 /// Attribute name used in Adapt It XML documents
 const char xml_fi[] = "fi"; // m_filteredInfo
 /// Attribute name used in Adapt It XML documents
+const char xml_fiA[] = "fiA"; // m_filteredInfo_After
+/// Attribute name used in Adapt It XML documents
 const char xml_fop[] = "fop"; // m_follOuterPunct
 /// Attribute name used in Adapt It XML documents
 const char xml_iBM[] = "iBM"; // m_inlineBindingMarkers

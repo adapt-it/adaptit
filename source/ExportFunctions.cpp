@@ -17035,7 +17035,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	// that way. So we have to build up the word not from m_srcPhrase, but from m_key,
 	// using the ordering protocols for doc version 5's document model. This enables us to
 	// avoid using a placement dialog for the problem of endmarker insertion before outer
-	// punctuation. The ramification, however, is that we have to both checking for, store
+	// punctuation. The ramification, however, is that we have to both check for, store
 	// and 'delay' placement of preceding puncts and final puncts on a placeholder, as well
 	// as the new storage strings for inline markers, as well as m_markers and m_endMarkers
 	// content as before -- so a lot more local storage strings for holding over data will
@@ -17238,7 +17238,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// helpers.cpp function FromMergerMakeSstr(), but first deal with any stored
 			// filtered information, and m_markers content (which is never filtered),
 			// before handling the accumulation of material from the merged CSourcePhrase;
-			// because we don't gather those info tyhpes in the above function
+			// because we don't gather those info types in the above function
 			wxString xrefStr;
 			wxString otherFiltered;
 			if (bHasFilteredMaterial)

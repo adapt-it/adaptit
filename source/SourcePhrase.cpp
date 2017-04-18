@@ -142,6 +142,7 @@ CSourcePhrase::CSourcePhrase()
 	m_note = _T("");
 	m_collectedBackTrans = _T("");
 	m_filteredInfo = _T("");
+	m_filteredInfo_After = _T(""); // BEW added 14Apr17
 
 	m_inlineBindingMarkers = _T("");
 	m_inlineBindingEndMarkers = _T("");
@@ -246,6 +247,7 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_note = sp.m_note;
 	m_collectedBackTrans = sp.m_collectedBackTrans;
 	m_filteredInfo = sp.m_filteredInfo;
+	m_filteredInfo_After = sp.m_filteredInfo_After; // BEW added 14Apr17
 
 	m_inlineBindingMarkers = sp.m_inlineBindingMarkers;
 	m_inlineBindingEndMarkers = sp.m_inlineBindingEndMarkers;
@@ -370,6 +372,8 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_note = sp.m_note;
 	m_collectedBackTrans = sp.m_collectedBackTrans;
 	m_filteredInfo = sp.m_filteredInfo;
+	m_filteredInfo_After = sp.m_filteredInfo_After;
+
 
 	m_inlineBindingMarkers = sp.m_inlineBindingMarkers;
 	m_inlineBindingEndMarkers = sp.m_inlineBindingEndMarkers;
@@ -777,7 +781,9 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	if (!pSrcPhrase->m_collectedBackTrans.IsEmpty())
 		m_collectedBackTrans = m_collectedBackTrans + _T(" ") + pSrcPhrase->m_collectedBackTrans;
 	if (!pSrcPhrase->m_filteredInfo.IsEmpty())
-		m_filteredInfo = m_filteredInfo + _T(" ") + pSrcPhrase->m_filteredInfo;
+		m_filteredInfo = m_filteredInfo + _T(" ") + pSrcPhrase->m_filteredInfo; // Probably the space here should not be present
+	if (!pSrcPhrase->m_filteredInfo_After.IsEmpty())
+		m_filteredInfo_After = m_filteredInfo_After + pSrcPhrase->m_filteredInfo_After;
 
 
 	// increment the number of words in the phrase
@@ -1095,9 +1101,9 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			}
 		}
 
-		// fifth, sixth, seventh and eighth lines -- 1 attribute each, each is possibly absent
+		// fifth, sixth, seventh and eighth & ninth lines -- 1 attribute each, each is possibly absent
 		if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty()
-			|| !m_filteredInfo.IsEmpty())
+			|| !m_filteredInfo.IsEmpty() || !m_filteredInfo_After.IsEmpty())
 		{
 			// there is something in this group, so form the needed lines
 			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
@@ -1172,11 +1178,31 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 				InsertEntities(btemp);
 				bstr += btemp; // add m_filteredInfo string
 				bstr += "\"";
+				bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+			// ninth
+			if (!m_filteredInfo_After.IsEmpty())
+			{
+				if (bStarted)
+				{
+					// we need to start a new line (the eigth or seventh or sixth)
+					bstr += "\r\n";
+					for (i = 0; i < nTabLevel; i++)
+					{
+						bstr += tabUnit; // tab the start of the line
+					}
+					bStarted = FALSE; // reset, so logic will work for any next lines
+				}
+				bstr += "fiA=\"";
+				btemp = gpApp->Convert16to8(m_filteredInfo_After);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_filteredInfo string
+				bstr += "\"";
 				//bStarted = TRUE; // uncomment out if we add more attributes to this block
 			}
 		}
 
-		// ninth line -- 4 attributes each is possibly absent
+		// tenth line -- 4 attributes each is possibly absent
 		// Supporting new docVersion6 storage strings (skip this block if docVersion is 5):
 		// 	m_lastAdaptionsPattern, m_tgtMkrPattern, m_glossMkrPattern, m_punctsPattern
 		if ( ( docVersion >= 6) && 
@@ -1242,7 +1268,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			}
 		}
 
-		// tenth line -- 2 attributes each is possibly absent
+		// eleventh line -- 2 attributes each is possibly absent
 		// Supporting new docVersion9 storage strings (skip this block if docVersion is < 9):
 		// 	m_srcWordBreak, a wxString, and m_tgtWordBreak, a wxString
 		if ( ( docVersion >= 9) && 
@@ -2259,6 +2285,27 @@ wxString CSourcePhrase::GetFilteredInfo()
 {
 	return m_filteredInfo;
 }
+
+wxString CSourcePhrase::GetFilteredInfo_After()
+{
+	return m_filteredInfo_After;
+}
+
+void CSourcePhrase::AddToFilteredInfo_After(wxString filteredInfo_After)
+{
+	// Use this for appending \~FILTER ... \~FILTER* wrapped filtered information into the
+	// private m_filteredInfo_After member string; no delimiting space is to be used between
+	// each such substring. The TokenizeText() parser will use this setter function, as
+	// will the other setter, SetFilteredInfoFromArrays_After()
+	m_filteredInfo_After += filteredInfo_After;
+}
+
+void CSourcePhrase::SetFilteredInfo_After(wxString filteredInfo_After)
+{
+	m_filteredInfo_After = filteredInfo_After;
+}
+
+
 // return TRUE if there is something filtered, FALSE if nothing is there; the three arrays
 // work in parallel - for a given index, the returned marker in the first and second are
 // the wrapping markers for the content; some filtered info may have no endmarker, in which
@@ -2268,7 +2315,7 @@ wxString CSourcePhrase::GetFilteredInfo()
 // Default is to leave the empty string for an endmarker as an empty string (ie. the
 // default bUseSpaceForEmpty value is FALSE)
 // BEW 14Mar17, added the further string array, arrSavedFilteredItemsPostwordMetadata,
-// to store any metadata string, eg. [[find_punct^.^]] stored immediately preceding a
+// to store any metadata string, eg. [[after_punct^.^]] stored immediately preceding a
 // wrapped filtered \marker + content + (optional) \endmarker from m_filteredIndo member;
 // we have to pull off any such metadata string so the calling function doesn't see it
 // (eg. in ViewFilteredMaterialDlg), but rather it sees the beginmarker as initial - so
@@ -2857,7 +2904,7 @@ wxString CSourcePhrase::GetTgtWordBreak()
 bool CSourcePhrase::IsFilterItemWithPostWordMetadata(wxString& filteredItem,
 						wxString& itemMetadata, wxString& itemBeginMkr)
 {
-	wxString srchMetaEnd = _T("^]]"); // search for the end of any metadata string of form [[after:^ .... ^]]
+	wxString srchMetaEnd = _T("^]]"); // search for the end of any metadata string of form [[after_word^ .... ^]]
 	int offset = wxNOT_FOUND; // initialize
 	itemMetadata = wxEmptyString;
 	itemBeginMkr = wxEmptyString;
@@ -2876,7 +2923,7 @@ bool CSourcePhrase::IsFilterItemWithPostWordMetadata(wxString& filteredItem,
 		wxString srchMetaStart = _T("[[after");
 		int offset2 = filteredItem.Find(srchMetaStart);
 		wxASSERT(offset2 >= 0);
-		wxString therest = filteredItem.Mid(offset2); // therest starts with "[[after" now
+		wxString therest = filteredItem.Mid(offset2); // the rest starts with "[[after" now
 		size_t len = (size_t)(offset - offset2 + 3); // +3 for the length of _T("^]]")
 		wxString metaStr = therest.Left(len);
 		itemMetadata = metaStr;
@@ -2890,11 +2937,11 @@ bool CSourcePhrase::IsFilterItemWithPostWordMetadata(wxString& filteredItem,
 // check for postword filtered metadata string in the unwrapped filtered string; 
 // if present, remove it, and return the shortened string to the caller - 
 // legacy functions will then use the shorter string which lacks the metadata - so no
-// change to there code is required - e.g. ViewFilteredMaterialDlg.cpp InitDialog() etc
+// change to their code is required - e.g. ViewFilteredMaterialDlg.cpp InitDialog() etc
 // this needs to be a CSourcePhrase member function
 wxString CSourcePhrase::RemovePostWordMetadata(wxString& filteredItem)
 {
-	wxString srchMetaEnd = _T("^]]"); // search for the end of any metadata string of form [[after:^ .... ^]]
+	wxString srchMetaEnd = _T("^]]"); // search for the end of any metadata string of form [[after_XXX^ .... ^]]
 	int offset = wxNOT_FOUND; // initialize
 	itemMetadata = wxEmptyString;
 	if (filteredItem.IsEmpty())

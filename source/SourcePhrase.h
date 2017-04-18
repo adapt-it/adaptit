@@ -235,6 +235,15 @@ public:
 	bool bHasPostWordMetadata; // TRUE when it has a metadata string for post-word filtering,
 							   // FALSE when not (Beware: it says nothing about any pre-word metadata, if any exists)
 							   // That is, if there is pre-word metadata, but no post word metadata, this flag is FALSE
+private:
+	// BEW added 14Apr17
+	wxString m_filteredInfo_After; // Store post-word originating filtered markers (plus content and endmarker) here
+								   // This is the postword equivalent of the preword filtered info storage, m_filteredInfo
+
+public:
+	wxString GetFilteredInfo_After();
+	void AddToFilteredInfo_After(wxString filteredInfo_After);
+	void SetFilteredInfo_After(wxString filteredInfo_After);
 
 //==== End of BEW added stuff for post-word filtered marker storage ======
 
