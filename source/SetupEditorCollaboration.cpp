@@ -64,6 +64,7 @@ extern wxString szCollabSourceLangName;
 extern wxString szCollabTargetLangName;
 extern wxString szCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
 extern wxString szProjectConfiguration;
+extern wxString szCollabDoNotShowMigrationDialogForPT7toPT8;
 
 // event handler table
 BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
@@ -212,6 +213,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	m_SaveCollabBookSelected = m_pApp->m_CollabBookSelected;
 	m_SaveCollabChapterSelected = m_pApp->m_CollabChapterSelected;
     m_SaveCollabBooksProtectedFromSavingToEditor = m_pApp->m_CollabBooksProtectedFromSavingToEditor; // whm added 2February2017
+    m_SaveCollabDoNotShowMigrationDialogForPT7toPT8 = m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8; // whm added 6April2017
 
 	m_bCollabChangedThisDlgSession = FALSE;
 
@@ -371,6 +373,7 @@ void CSetupEditorCollaboration::DoInit(bool bPrompt)
 	m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
 	m_TempCollabChapterSelected = _T("");
     m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+    m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 
 	SetStateOfRemovalButton(); // disables the Remov... button when m_TempCollabAIProjectName is empty
     SetStateOfAcceptSetupButton(); // disables the "Accept this setup and prepare for another" button if
@@ -1292,20 +1295,21 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 			//      m_TempCollabSourceProjLangName
 			//      m_TempCollabTargetProjLangName
             //      m_TempCollabBooksProtectedFromSavingToEditor // whm added 2February2017
+            //      m_TempCollabDoNotShowMigrationDialogForPT7toPT8 // whm added 6April2017
 			collabLabelStr = collabLabelsArray.Item(ct);
 			collabItemStr = collabSettingsArray.Item(ct);
-			if (collabLabelStr == szCollabProjectForSourceInputs)
-				this->m_TempCollabProjectForSourceInputs = collabItemStr;
-			else if (collabLabelStr == szCollabProjectForTargetExports)
-				this->m_TempCollabProjectForTargetExports = collabItemStr;
-			else if (collabLabelStr == szCollabProjectForFreeTransExports)
-				this->m_TempCollabProjectForFreeTransExports = collabItemStr;
-			else if (collabLabelStr == szCollabAIProjectName)
-				this->m_TempCollabAIProjectName = collabItemStr;
-			else if (collabLabelStr == szCollaborationEditor)
-			{
-				this->m_TempCollaborationEditor = collabItemStr;
-			}
+            if (collabLabelStr == szCollabProjectForSourceInputs)
+                this->m_TempCollabProjectForSourceInputs = collabItemStr;
+            else if (collabLabelStr == szCollabProjectForTargetExports)
+                this->m_TempCollabProjectForTargetExports = collabItemStr;
+            else if (collabLabelStr == szCollabProjectForFreeTransExports)
+                this->m_TempCollabProjectForFreeTransExports = collabItemStr;
+            else if (collabLabelStr == szCollabAIProjectName)
+                this->m_TempCollabAIProjectName = collabItemStr;
+            else if (collabLabelStr == szCollaborationEditor)
+            {
+                this->m_TempCollaborationEditor = collabItemStr;
+            }
             else if (collabLabelStr == szParatextVersionForProject) // the old proj config file label in case it exists (only used in a pre-release version to developers)
             {
                 this->m_TempCollabEditorVersion = collabItemStr; // whm added 24June2016
@@ -1315,29 +1319,36 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
                 this->m_TempCollabEditorVersion = collabItemStr; // whm added 24June2016
             }
             else if (collabLabelStr == szCollabExpectsFreeTrans)
-			{
-				if (collabItemStr == _T("1"))
-					this->m_bTempCollaborationExpectsFreeTrans = TRUE;
-				else
-					this->m_bTempCollaborationExpectsFreeTrans = FALSE;
-			}
-			else if (collabLabelStr == szCollabBookSelected)
-				this->m_TempCollabBookSelected = collabItemStr;
-			else if (collabLabelStr == szCollabByChapterOnly)
-			{
-				if (collabItemStr == _T("0"))
-					this->m_bTempCollabByChapterOnly = FALSE;
-				else
-					this->m_bTempCollabByChapterOnly = TRUE;
-			}
-			else if (collabLabelStr == szCollabChapterSelected)
-				this->m_TempCollabChapterSelected = collabItemStr;
-			else if (collabLabelStr == szCollabSourceLangName)
-				this->m_TempCollabSourceProjLangName = collabItemStr;
-			else if (collabLabelStr == szCollabTargetLangName)
-				this->m_TempCollabTargetProjLangName = collabItemStr;
-			else if (collabLabelStr == szCollabBooksProtectedFromSavingToEditor)
-				this->m_TempCollabBooksProtectedFromSavingToEditor = collabItemStr;
+            {
+                if (collabItemStr == _T("1"))
+                    this->m_bTempCollaborationExpectsFreeTrans = TRUE;
+                else
+                    this->m_bTempCollaborationExpectsFreeTrans = FALSE;
+            }
+            else if (collabLabelStr == szCollabBookSelected)
+                this->m_TempCollabBookSelected = collabItemStr;
+            else if (collabLabelStr == szCollabByChapterOnly)
+            {
+                if (collabItemStr == _T("0"))
+                    this->m_bTempCollabByChapterOnly = FALSE;
+                else
+                    this->m_bTempCollabByChapterOnly = TRUE;
+            }
+            else if (collabLabelStr == szCollabChapterSelected)
+                this->m_TempCollabChapterSelected = collabItemStr;
+            else if (collabLabelStr == szCollabSourceLangName)
+                this->m_TempCollabSourceProjLangName = collabItemStr;
+            else if (collabLabelStr == szCollabTargetLangName)
+                this->m_TempCollabTargetProjLangName = collabItemStr;
+            else if (collabLabelStr == szCollabBooksProtectedFromSavingToEditor)
+                this->m_TempCollabBooksProtectedFromSavingToEditor = collabItemStr;
+            else if (collabLabelStr == szCollabDoNotShowMigrationDialogForPT7toPT8)
+            {
+                if (collabItemStr == _T("0"))
+                    this->m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE;
+                else
+                    this->m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = TRUE;
+            }
 		}
 
 		// whm Note: InitDialog() initializes m_TempCollaborationEditor to be "Paratext"
@@ -1482,6 +1493,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
                     m_pApp->m_bCollabByChapterOnly = TRUE;
                     m_pApp->m_CollabChapterSelected = _T("");
                     m_pApp->m_CollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+                    m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 
                     // Re-save now removed settings to the AI-ProjectConfiguration.aic file
                     // In order to write the collab settings to the selected project file we need to compose the
@@ -1547,6 +1559,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
                     m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
                     m_TempCollabChapterSelected = _T("");
                     m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+                    m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 
                     // Zero out all fields so the dialog is ready for another setup if desired
                     wxString strSelection = pComboAiProjects->GetStringSelection();
@@ -1612,6 +1625,7 @@ Reminder: The user will not be able to open this project until you install Parat
                     m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
                     m_TempCollabChapterSelected = _T("");
                     m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+                    m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 
                     return;
 
@@ -2354,6 +2368,77 @@ Reminder: The user will not be able to open this project until you install Parat
 		wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 		m_pApp->LogUserAction(titleMsg);
 	}
+    else
+    {
+        // Check if the selected collab project should be migrated from pointing to PT7 to PT8
+        bool bBothPT7AndPT8InstalledPT8ProjectsWereMigrated = FALSE;
+        if (srcProjFoundInEditor && tgtProjFoundInEditor)
+        {
+            // Check the PT Windows situation
+            if (m_TempCollabEditorVersion == _T("PTVersion7"))
+            {
+                PTVersionsInstalled PTver;
+                PTver = m_pApp->ParatextVersionInstalled();
+                if (PTver == PTVer7and8)
+                {
+                    wxString errStr = _T("");
+                    wxString errProj = _T("");
+                    // We know that the PT7 projects are valid. Check if the PT8 projects are also valid.
+                    if (CollabProjectsAreValid(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports,
+                        m_TempCollabProjectForFreeTransExports, m_TempCollaborationEditor, _T("PTversion8"),
+                        errStr, errProj))
+                    {
+                        // Compare the GUID values of the PT7 and PT8 projects to determine if
+                        // the PT7 projects were migrated to PT8. According to Tom H. the PT8
+                        // project will have the same GUID as the PT7 project when the project
+                        // has successfully migrated to PT8.
+                        // Approach: Compare the GUIDs for the Src, Tgt (and any FreeTrans project)
+                        //   between PT7 and PT8. If the GUIDs match for all collab projects, then
+                        // we can return a TRUE value for bBothPT7AndPT8InstalledPT8ProjectsWereMigrated.
+                        //
+                        bBothPT7AndPT8InstalledPT8ProjectsWereMigrated = CollabProjectsMigrated(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports, m_TempCollabProjectForFreeTransExports,
+                            m_TempCollaborationEditor, _T("PTVersion7"), _T("PTVersion8"));
+                    }
+                }
+            }
+            else if (m_TempCollabEditorVersion == _T("PTLinuxVersion7"))
+            {
+                // Check the PT Linux situation
+                PTVersionsInstalled PTver;
+                PTver = m_pApp->ParatextVersionInstalled();
+                if (PTver == PTLinuxVer7and8)
+                {
+                    wxString errStr = _T("");
+                    wxString errProj = _T("");
+                    // We know that the PT7 projects are valid. Check if the PT8 projects are also valid.
+                    if (CollabProjectsAreValid(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports,
+                        m_TempCollabProjectForFreeTransExports, m_TempCollaborationEditor, _T("PTLinuxversion8"),
+                        errStr, errProj))
+                    {
+                        // Compare the GUID values of the PT7 and PT8 projects to determine if
+                        // the PT7 projects were migrated to PT8. According to Tom H. the PT8
+                        // project will have the same GUID as the PT7 project when the project
+                        // has successfully migrated to PT8.
+                        // Approach: Compare the GUIDs for the Src, Tgt (and any FreeTrans project)
+                        //   between PT7 and PT8. If the GUIDs match for all collab projects, then
+                        // we can return a TRUE value for bBothPT7AndPT8InstalledPT8ProjectsWereMigrated.
+                        //
+                        bBothPT7AndPT8InstalledPT8ProjectsWereMigrated = CollabProjectsMigrated(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports, m_TempCollabProjectForFreeTransExports,
+                            m_TempCollaborationEditor, _T("PTLinuxVersion7"), _T("PTLinuxversion8"));
+                    }
+
+                }
+            }
+        }
+        if (bBothPT7AndPT8InstalledPT8ProjectsWereMigrated)
+        {
+            wxString msg = _("This project is currently set up to collaborate with the selected Paratext 7 projects. Adapt It has determined that those Paratext 7 projects have been migrated to Paratext 8 on this computer. It is strongly recommended that you select Paratext 8 in Step 2 below, and the appropriate migrated projects in Step 3 below.\n\nReminder: If Paratext 7 continues to be the selected Scripture editor after collaboration project were migrated from Paratext 7 to Paratext 8, Adapt It collaboration work will appear only in the old Paratext 7 projects, and not in the Paratext 8 projects. ");
+            wxString title;
+            title = _("Important information about collaboration project: %s");
+            title = title.Format(title, m_TempCollabAIProjectName.c_str());
+            wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+        }
+    }
 }
 
 void CSetupEditorCollaboration::OnRadioBtnByChapterOnly(wxCommandEvent& WXUNUSED(event))
@@ -2418,6 +2503,7 @@ void CSetupEditorCollaboration::OnClose(wxCommandEvent& event)
 	m_pApp->m_CollabBookSelected = m_SaveCollabBookSelected;
 	m_pApp->m_CollabChapterSelected = m_SaveCollabChapterSelected;
     m_pApp->m_CollabBooksProtectedFromSavingToEditor = m_SaveCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
+    m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = m_SaveCollabDoNotShowMigrationDialogForPT7toPT8; // whm added 6April2017
 
     // whm modified 30Dec2016 The App's m_collaborationEditor and m_ParatextVersionForProject
     // could be empty strings. 
@@ -2462,6 +2548,7 @@ void CSetupEditorCollaboration::OnCancel(wxCommandEvent& event)
 	m_pApp->m_CollabBookSelected = m_SaveCollabBookSelected;
 	m_pApp->m_CollabChapterSelected = m_SaveCollabChapterSelected;
     m_pApp->m_CollabBooksProtectedFromSavingToEditor = m_SaveCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
+    m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = m_SaveCollabDoNotShowMigrationDialogForPT7toPT8; // whm added 6April2017
 
 	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
     wxASSERT(!m_pApp->m_ParatextVersionForProject.IsEmpty()); // whm added 24June2016
@@ -2510,6 +2597,7 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 		m_pApp->m_CollabBookSelected = _T("");
 		m_pApp->m_CollabChapterSelected = _T("");
         m_pApp->m_CollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+        m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 
 		bool bDisableBookMode = TRUE;
 		wxString srcLangName = newProjDlg.pTextCtrlSrcLangName->GetValue();
@@ -2745,6 +2833,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly;
 	m_pApp->m_CollabChapterSelected = m_TempCollabChapterSelected;
     m_pApp->m_CollabBooksProtectedFromSavingToEditor = m_TempCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
+    m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = m_TempCollabDoNotShowMigrationDialogForPT7toPT8; // whm added 6April2017
 
 	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
     wxASSERT(!m_pApp->m_ParatextVersionForProject.IsEmpty());
@@ -2806,6 +2895,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
 	m_TempCollabChapterSelected = _T("");
     m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+    m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 
 	// Zero out all fields so the dialog is ready for another setup if desired
 	wxString strSelection = pComboAiProjects->GetStringSelection();
@@ -2854,6 +2944,7 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	m_pApp->m_bCollabByChapterOnly = TRUE;
 	m_pApp->m_CollabChapterSelected = _T("");
     m_pApp->m_CollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+    m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 
 	// In order to write the collab settings to the selected project file we need to compose the
 	// path to the project for the second parameter of WriteConfigurationFile().
@@ -2915,6 +3006,7 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
 	m_TempCollabChapterSelected = _T("");
     m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+    m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 
 	// Zero out all fields so the dialog is ready for another setup if desired
 	wxString strSelection = pComboAiProjects->GetStringSelection();

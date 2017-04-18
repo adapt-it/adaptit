@@ -228,10 +228,11 @@ These Paratext projects include the Paratext project that was being used for obt
 "source texts", the Paratext project that was being used for receiving Adapt It's "target texts" 
 - as well as any Paratext project that was being used for receiving "free translations" generated 
 within Adapt It.
-<li> You should then make sure that you have upgraded Adapt It to version 6.8.0
-or newer. Versions of Adapt It earlier than 6.8.0 will NOT collaborate with Paratext 8.
+<li> You should then make sure that you have upgraded Adapt It to version 6.8.2
+or newer. Version 6.8.2 fixes a few potential collaboration problems since version 6.8.0. 
+Versions of Adapt It earlier than 6.8.0 will NOT collaborate with Paratext 8.
 </ol>
-If you do these two things, Adapt It 6.8.0 or newer should be able to continue 
+If you do these two things, Adapt It 6.8.2 or newer should be able to continue 
 collaborating with the same Paratext language projects that have been 
 migrated to Paratext 8 - without needing to change any collaboration settings within Adapt It.
 If you encounter any problems after upgrading from Paratext 7 to Paratext 8, and after migrating
@@ -242,13 +243,13 @@ dialog to setup collaboration between Adapt It and the version of Paratext that 
 </p>
 
 <h3>1. Ensure the needed versions of Adapt It 
-(6.8.0 or newer is best) and either Paratext 7 (7.4 or newer), or Paratext 8 are installed</h3></h3>
+(6.8.2 or newer is best) and either Paratext 7 (7.4 or newer), or Paratext 8 are installed</h3></h3>
 <p><strong>IMPORTANT</strong>: For 
-Adapt It to collaborate with Paratext, you need to <strong>install version 7.4 or newer of Paratext and version 6.8.0 
+Adapt It to collaborate with Paratext, you need to <strong>install version 7.4 or newer of Paratext and version 6.8.2 
 or newer of Adapt It</strong>. (Older versions of Adapt It from 6.2.1 and onwards supported collaboration to some extent, 
 but for best results please use the most recent version of Adapt It&nbsp;available at&nbsp;<a href="http://adapt-it.org.">http://adapt-it.org.</a> 
 If your version of Adapt It is not at least 6.6.4 or newer, you will need to download and install it. If you have
-upgraded to Paratext 8, you will need to upgrade to Adapt It version 6.8.0 or newer to continue collaboration work with
+upgraded to Paratext 8, you will need to upgrade to Adapt It version 6.8.2 or newer to continue collaboration work with
 Paratext 8 projects. </p>
 <h3>2. Prepare at least two&nbsp;Paratext projects for 
 collaboration with Adapt It</h3>
@@ -1438,7 +1439,7 @@ switch you want the launcher to force Adapt It to use when it runs.</font> </p>
 <h3>Problems in Collaboration with Paratext</h3>
 <p>Note: Many fixes have been made to the Paratext/Bibledit collaboration feature 
 in recent versions of Adapt It. Hence, you should make sure that Adapt It version 
-6.8.0 or later is what you are using. You can check the version of Adapt It by selecting
+6.8.2 or newer is what you are using. You can check the version of Adapt It by selecting
 "About Adapt It..." from Adapt It's Help menu.</p>
 <p>
 <strong>Important: We have found that collaboration problems sometimes result from wrong project 
@@ -1453,9 +1454,14 @@ the Target text that is being created during the adaptation process over to the
 Paratext file storage location.</strong>
 </p>
 <p>Adapt It relies on a separate utility program that it 
-uses to exchange data between Adapt It and Paratext. Adapt It installs a utility 
-program called <strong>rdwrtp7.exe</strong> that it 
-attempts to execute when collaborating with Paratext on Windows systems. 
+uses to exchange data between Adapt It and Paratext. Paratext installs a utility 
+program called <strong>rdwrtp7.exe</strong> or <strong>rdwrtp8.exe</strong> that Adapt It 
+attempts to execute when collaborating with Paratext. The newest version of Paratext 8 
+also installs configuration files called <strong>rdwrtp7.exe.config</strong> and/or 
+<strong>rdwrtp8.exe.config</string>. If after switching to Paratext 8, you receive
+an error message that says, "rdwrtp7 has stopped working" and that prevents Adapt It 
+from collaborating with Paratext 8, your Paratext 8 installation does not have the 
+most recent Paratext 8 updates that install the *.config files mentioned above.
 Ordinarily you need not worry about these utility programs. However, we have not 
 been able to test these utility programs on all possible computer system 
 configurations and architectures. So, if you get errors when attempting to setup 
@@ -1465,15 +1471,13 @@ computer system and the version of the utility program installed by Adapt
 It. (There is an as yet unverified possibility that Kaspersky antivirus prevents the 
 successful transfer of adaptations to Paratext. Try "killing" the running Kaspersky 
 process in your current work session and then check if collaboration then works correctly.)</p>
-<p>When the Paratext development team releases a new 
-version 8 of Paratext, and you have upgraded to the newer version 8, you should 
+<p>When you have upgraded to the newer version 8, you should 
 make sure that all Paratext projects get migrated from the old Paratext 7 installation
 over to the new Paratext 8 installation. You also must upgrade your version of Adapt It
-to at least version 6.8.0. <strong>Older versions of Adapt It (before version 6.8.0) will NOT
+to at least version 6.8.2. <strong>Older versions of Adapt It (especially those before version 6.8.0) will NOT
 collaborate with version 8 of Paratext.</strong> After you (as administrator) have upgraded a
 user's Paratext from version 7 to version 8, you should also upgrade the user's 
-
-Adapt It version to at least version 6.8.0. Then you should also 
+Adapt It version to at least version 6.8.2. Then you should also 
 ensure that Adapt It can still collaborate with the newer&nbsp;version of 
 Paratext. If you encounter a problem with Adapt It - Paratext collaboration 
 after updating your Paratext installation, please let us know so we can provide 

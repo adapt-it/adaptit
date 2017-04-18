@@ -181,6 +181,7 @@ copy "..\..\po\swh.mo" "Unicode Debug\Languages\swh\Adapt_It_Unicode.mo"
 copy "..\..\po\swh.po" "Unicode Debug\Languages\swh\swh.po"
 copy "..\..\po\default.mo" "Unicode Debug\Languages\default.mo"
 copy "..\..\po\default.po" "Unicode Debug\Languages\default.po"
+IF EXIST "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" xcopy "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" "Unicode Debug\" /Y
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -317,6 +318,8 @@ copy "..\..\po\swh.mo" "Unicode Release\Languages\swh\Adapt_It_Unicode.mo"
 copy "..\..\po\swh.po" "Unicode Release\Languages\swh\swh.po"
 copy "..\..\po\default.mo" "Unicode Release\Languages\default.mo"
 copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
+IF EXIST "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" xcopy "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" "Unicode Release\" /Y
+
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -348,6 +351,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\ChooseLanguageDlg.cpp" />
     <ClCompile Include="..\..\source\ChooseTranslation.cpp" />
     <ClCompile Include="..\..\source\ClientServerConnection.cpp" />
+    <ClCompile Include="..\..\source\CollabProjectMigrationDlg.cpp" />
     <ClCompile Include="..\..\source\CollabUtilities.cpp" />
     <ClCompile Include="..\..\source\CollabVerseConflictDlg.cpp" />
     <ClCompile Include="..\..\source\CollectBacktranslations.cpp" />
@@ -385,6 +389,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\GuesserSettingsDlg.cpp" />
     <ClCompile Include="..\..\source\helpers.cpp" />
     <ClCompile Include="..\..\source\HtmlFileViewer.cpp" />
+    <ClCompile Include="..\..\source\InstallGitOptionsDlg.cpp" />
     <ClCompile Include="..\..\source\JoinDialog.cpp" />
     <ClCompile Include="..\..\source\jsonreader.cpp" />
     <ClCompile Include="..\..\source\jsonval.cpp" />
@@ -509,6 +514,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\ChooseLanguageDlg.h" />
     <ClInclude Include="..\..\source\ChooseTranslation.h" />
     <ClInclude Include="..\..\source\ClientServerConnection.h" />
+    <ClInclude Include="..\..\source\CollabProjectMigrationDlg.h" />
     <ClInclude Include="..\..\source\CollabUtilities.h" />
     <ClInclude Include="..\..\source\CollabVerseConflictDlg.h" />
     <ClInclude Include="..\..\source\CollectBacktranslations.h" />
@@ -533,6 +539,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\FreeTransSplitterDlg.h" />
     <ClInclude Include="..\..\source\GuesserAffix.h" />
     <ClInclude Include="..\..\source\GuesserAffixesListsDlg.h" />
+    <ClInclude Include="..\..\source\InstallGitOptionsDlg.h" />
     <ClInclude Include="..\..\source\KBSharingMgrTabbedDlg.h" />
     <ClInclude Include="..\..\source\KbSharingSetup.h" />
     <ClInclude Include="..\..\source\KBSharingStatelessSetupDlg.h" />

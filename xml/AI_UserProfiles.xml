@@ -900,6 +900,33 @@ Description:	This file contains the user profile definitions and
 		>
 		</PROFILE>
 </MENU>
+<MENU itemID="ID_TOOLS_INSTALL_GIT"
+	itemType="subMenu"
+	itemText="Install the Git program..."
+	itemDescr="Tools menu"
+	adminCanChange="1"
+	>
+		<PROFILE userProfile="Novice"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Experienced"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Skilled"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+</MENU>
 <MENU itemID="ID_FILE_EXPORT_SOURCE"
 	itemType="subMenu"
 	itemText="Export &amp;Source Text..."

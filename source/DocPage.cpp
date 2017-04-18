@@ -605,6 +605,7 @@ void CDocPage::OnSetActive()
 		gpApp->m_CollabSourceLangName = wxEmptyString;
 		gpApp->m_CollabTargetLangName = wxEmptyString;
         gpApp->m_CollabBooksProtectedFromSavingToEditor = wxEmptyString;
+        gpApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 		gpApp->m_bUserWantsNoCollabInShiftLaunch = TRUE; // restore default value
 		bool bOK;
 		bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath, projectConfigFile);

@@ -6,6 +6,15 @@
 ; the following:
 ; - itdownload.dll    // DLL that allows us to download 3rd party apps
 ; - it_download.iss   // ITD script to connect the DLL
+; whm 25 Mar 2017: Code changes to enhance the installer and provide more flexible and 
+; economic Git installation options. See also the Adapt It Unicode Git.iss script
+; which creates a special Git_Downloader2_12_1_4AI.exe installer that is now included in the [Files]
+; section below. The Git_Downloader2_12_1_4AI.exe installer is used by the main Adapt It program
+; when it is desired to install a missing Git program that didn't get installed at the
+; time Adapt It itself was installed (or removed after Adapt It was installed).
+; IMPORTANT: RUN THE Adapt It Unicode Git.iss SCRIPT TO CREATE Git_Downloader2_12_1_4AI.exe
+; BEFORE COMPILING THIS SCRIPT
+; whm 4 April 2017: Removed rdwrtp7.exe and related Windows dlls from the Adapt It installers.
 #include "it_download.iss"
 
 #define MyAppName "Adapt It WX Unicode"
@@ -85,12 +94,12 @@ Source: "{#SvnBase}\setup Unicode - No Html Help\License_CPLv05.txt"; DestDir: "
 Source: "{#SvnBase}\setup Unicode - No Html Help\License_GPLv2.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode - No Html Help\License_LGPLv21.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode - No Html Help\Localization_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SvnBase}\setup Unicode - No Html Help\rdwrtp7.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SvnBase}\setup Unicode - No Html Help\ParatextShared.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "{#SvnBase}\setup Unicode - No Html Help\ICSharpCode.SharpZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "{#SvnBase}\setup Unicode - No Html Help\Interop.XceedZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "{#SvnBase}\setup Unicode - No Html Help\NetLoc.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "{#SvnBase}\setup Unicode - No Html Help\Utilities.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode - No Html Help\rdwrtp7.exe"; DestDir: "{app}"; Flags: ignoreversion
+; Source: "{#SvnBase}\setup Unicode - No Html Help\ParatextShared.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode - No Html Help\ICSharpCode.SharpZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode - No Html Help\Interop.XceedZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode - No Html Help\NetLoc.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+; Source: "{#SvnBase}\setup Unicode - No Html Help\Utilities.dll"; DestDir: "{app}"; Flags: IgnoreVersion
 Source: "{#SvnBase}\setup Unicode - No Html Help\Readme_Unicode_Version.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "{#SvnBase}\setup Unicode - No Html Help\SILConverters in AdaptIt.doc"; DestDir: "{app}"; Flags: ignoreversion
@@ -160,11 +169,13 @@ Name: "{group}\CC\CC Files Document"; Filename: {app}\CC\CCFiles.doc; WorkingDir
 Name: "{group}\CC\CC Debug Document"; Filename: {app}\CC\CCDebug.doc; WorkingDir: {app}\CC; 
 
 ; edb 11 Oct 2013: Code changes to download / install Git
+; whm 23 Mar 2017: Code changes to download / install Git
 [Code]
 //const GitSetupURL = 'https://github.com/msysgit/msysgit/releases/download/Git-1.9.5-preview20150319/Git-1.9.5-preview20150319.exe';
 //const GitSetupURL = 'https://github.com/git-for-windows/git/releases/download/v2.6.2.windows.1/Git-2.6.2-32-bit.exe';
-const GitSetupURL = 'http://www.adapt-it.org/Git-2.6.2-32-bit.exe';
-const GitSetupURL64 = 'https://github.com/git-for-windows/git/releases/download/v2.6.2.windows.1/Git-2.6.2-64-bit.exe';
+// whm 23Mar2017 updated the 32-bit Git download URL from adapt-it.org to Git version 2.12.1.
+const GitSetupURL = 'http://www.adapt-it.org/Git-2.12.1-32-bit.exe';
+//const GitSetupURL64 = 'https://github.com/git-for-windows/git/releases/download/v2.6.2.windows.1/Git-2.6.2-64-bit.exe';
 var GitInstalled: Boolean;  // Is Git installed?
 var ShouldInstallGit: Boolean; // should the installer download and run the Git installer?
 var tmpResult: Integer;     
@@ -180,8 +191,17 @@ begin
     itd_downloadafter(wpReady);
 
     // Test for Git by looking for its uninstaller in the registry
+    // whm modified 22March2017 Registry keys are not supposed to be case sensitive, but in testing
+    // if the key has ...\Wow6432Node\ instead of ...\WOW6432Node\... the test below fails. Probably
+    // the failure is due to the RegKeyExists() function making a case-sensitive comparison. This used
+    // to work, so perhaps an earlier version of Inno Setup had a non-case-sensitive comparison? Maybe
+    // some versions of Windows store the key as Wow6432Node and other versions as WOW6432Node. In any case
+    // to prevent problems for the Adapt It installer, we'll test key strings containing both Wow6432Node 
+    // and WOW6432Node.
     // check for 64-bit Windows
     if (RegKeyExists(HKLM, 'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1')) then
+        GitInstalled := True;
+    if (RegKeyExists(HKLM, 'SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1')) then
         GitInstalled := True;
     // check for 32-bit Windows
     if (RegKeyExists(HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1')) then

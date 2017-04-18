@@ -328,7 +328,7 @@ extern wxCriticalSection g_jsonCritSect;
 #include "StatusBar.h"
 #include "WaitDlg.h"
 #include "GuesserAffixesListsDlg.h" //klb 9/2014
-
+#include "InstallGitOptionsDlg.h" // whm 26March2017
 
 #if wxCHECK_VERSION(2,9,0)
 // Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -1808,6 +1808,16 @@ const wxString defaultProfileItems[] =
     _T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
     _T("/PROFILE:"),
     _T("/MENU:"),
+    _T("MENU:itemID=\"ID_TOOLS_INSTALL_GIT\":itemType=\"subMenu\":itemText=\"Install the Git program...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
+    _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("/MENU:"),
     _T("MENU:itemID=\"ID_FILE_EXPORT_SOURCE\":itemType=\"subMenu\":itemText=\"Export &Source Text...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
     _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
     _T("/PROFILE:"),
@@ -2411,7 +2421,7 @@ wxString AllBookIds[] = {
 // array to determine its book number string - useful mainly for determining the <FileNameBookNameForm> 
 // that Paratext assigns/uses (in Settings.xml) to that Scripture book in the project's naming scheme.
 // The book numbers in AllBookNumStr[] are not zero based and skip number 40 between OT and NT; decimal counts end at 87
-// Book numbers are arbitrarily assigned "$$" for books not numbered in Published USFM Reference v2.4
+// Book numbers are arbitrarily assigned "$$" for books 
 wxString AllBookNumStr[] = {
     _T("01"), // GEN 
     _T("02"), // EXO
@@ -2507,34 +2517,36 @@ wxString AllBookNumStr[] = {
     _T("85"), // PS2
     _T("86"), // ODA
     _T("87"), // PSS
-    _T("$$"), // JSA - Not numbered in Published USFM Reference v2.4  // actual variant text for JOS, now in LXA text
-    _T("$$"), // JDB - Not numbered in Published USFM Reference v2.4  // actual variant text for JDG, now in LXA text
-    _T("$$"), // TBS - Not numbered in Published USFM Reference v2.4  // actual variant text for TOB, now in LXA text
-    _T("$$"), // SST - Not numbered in Published USFM Reference v2.4  // actual variant text for SUS, now in LXA text // 90
+    // whm modified 23March2017 to update/correct the following book filename digits to conform to
+    // what Tom H said it their current practice. Previously some elements below had "$$" as the "number"
+    _T("88"), // JSA // actual variant text for JOS, now in LXA text
+    _T("89"), // JDB // actual variant text for JDG, now in LXA text
+    _T("90"), // TBS // actual variant text for TOB, now in LXA text
+    _T("91"), // SST // actual variant text for SUS, now in LXA text // 90
 
-    _T("$$"), // DNT - Not numbered in Published USFM Reference v2.4  // actual variant text for DAN, now in LXA text
-    _T("$$"), // BLT - Not numbered in Published USFM Reference v2.4  // actual variant text for BEL, now in LXA text
-    _T("$$"), // XXA - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // XXB - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // XXC - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // XXD - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // XXE - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // XXF - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // XXG - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // FRT - Not numbered in Published USFM Reference v2.4
+    _T("92"), // DNT // actual variant text for DAN, now in LXA text
+    _T("93"), // BLT // actual variant text for BEL, now in LXA text
+    _T("94"), // XXA
+    _T("95"), // XXB
+    _T("96"), // XXC
+    _T("97"), // XXD
+    _T("98"), // XXE
+    _T("99"), // XXF
+    _T("100"), // XXG
+    _T("A0"), // FRT
 
-    _T("$$"), // BAK - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // OTH - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // 3ES - Not numbered in Published USFM Reference v2.4  // Used previously but really should be 2ES
+    _T("A1"), // BAK
+    _T("A2"), // OTH
+    _T("A3"), // 3ES  // Used previously but really should be 2ES
     _T("A4"), // EZA  // Used to be called 4ES, but not actually in any known project
     _T("A5"), // 5EZ  // Used to be called 5ES, but not actually in any known project
     _T("A6"), // 6EZ  // Used to be called 6ES, but not actually in any known project
-    _T("$$"), // INT - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // CNC - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // GLO - Not numbered in Published USFM Reference v2.4
-    _T("$$"), // TDX - Not numbered in Published USFM Reference v2.4
+    _T("A7"), // INT
+    _T("A8"), // CNC
+    _T("A9"), // GLO
+    _T("B0"), // TDX
 
-    _T("$$"), // NDX - Not numbered in Published USFM Reference v2.4
+    _T("B1"), // NDX
     _T("B2"), // DAG
     _T("B3"), // PS3
     _T("B4"), // 2BA
@@ -5807,6 +5819,12 @@ EVT_MENU(ID_MENU_CHANGE_USERNAME, CAdapt_ItApp::OnEditChangeUsername) // is alwa
     EVT_UPDATE_UI(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnUpdateLoadCcTables)
     EVT_MENU(ID_UNLOAD_CC_TABLES, CAdapt_ItApp::OnToolsUnloadCcTables)
     EVT_UPDATE_UI(ID_UNLOAD_CC_TABLES, CAdapt_ItApp::OnUpdateUnloadCcTables)
+    
+    // whm added 24March2017 the next two for the "Install the Git program..." Tools menu item 
+    EVT_MENU(ID_TOOLS_INSTALL_GIT, CAdapt_ItApp::OnToolsInstallGit)
+    EVT_UPDATE_UI(ID_TOOLS_INSTALL_GIT, CAdapt_ItApp::OnUpdateInstallGit)
+
+
     //OnUseConsistentChanges is in the View
     //OnUpdateUseConsistentChanges is in the View
     //OnAcceptChanges is in the View
@@ -6738,41 +6756,41 @@ wxString szWorkflowProfile = _T("WorkflowProfile");
 
 // whm added 15Apr11 for Paratext collaboration support
 // The label that identifies the following string encoded number as the application's
-// "CollaboratingWithParatext". This value is written in the "ProjectSettings" part
+// "CollaboratingWithParatext". This value, "1" or "0", is written in the "ProjectSettings" part
 /// of the project configuration file.  Adapt It stores this value as a boolean in the App's
 // m_bCollaboratingWithParatext member variable.
 wxString szCollaboratingWithParatext = _T("CollaboratingWithParatext");
 
 // whm added 15Apr11 for Paratext collaboration support
 // The label that identifies the following string encoded number as the application's
-// "CollaboratingWithBibledit". This value is written in the "ProjectSettings" part
+// "CollaboratingWithBibledit". This value, "1" or "0", is written in the "ProjectSettings" part
 /// of the project configuration file.  Adapt It stores this value as a boolean in the App's
 // m_bCollaboratingWithBibledit member variable.
 wxString szCollaboratingWithBibledit = _T("CollaboratingWithBibledit");
 
 // whm added 15Apr11 for Paratext/Bibledit collaboration support.
-// The label that identifies the following string encoded number as the application's
+// The label that identifies the following string as the application's
 // "CollabProjectForSourceInputs". This value is written in the "ProjectSettings" part
 /// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabProjectForSourceInputs member variable.
 wxString szCollabProjectForSourceInputs = _T("CollabProjectForSourceInputs");
 
 // whm added 15Apr11 for Paratext/Bibledit collaboration support.
-// The label that identifies the following string encoded number as the application's
+// The label that identifies the following string as the application's
 // "CollabProjectForTargetExports". This value is written in the "ProjectSettings" part
 /// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabProjectForTargetExports member variable.
 wxString szCollabProjectForTargetExports = _T("CollabProjectForTargetExports");
 
 // whm added 30Jun11 for Paratext/Bibledit collaboration support.
-// The label that identifies the following string encoded number as the application's
+// The label that identifies the following string as the application's
 // "CollabProjectForFreeTransExports". This value is written in the "ProjectSettings" part
 /// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabProjectForFreeTransExports member variable.
 wxString szCollabProjectForFreeTransExports = _T("CollabProjectForFreeTransExports");
 
 // whm added 30Jun11 for Paratext/Bibledit collaboration support.
-// The label that identifies the following string encoded number as the application's
+// The label that identifies the following string as the application's
 // "CollabAIProjectName". This value is written in the "ProjectSettings" part
 /// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabAIProjectName member variable.
@@ -6791,6 +6809,7 @@ wxString szCollaborationEditor = _T("CollaborationEditor");
 /// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_ParatextVersionForProject member variable.
 wxString szCollabParatextVersionForProject = _T("CollabParatextVersionForProject");
+
 // whm Note: The following string named szParatextVersionForProject was used in a pre-release
 // version to developers. So, to avoid problems we should map any "ParatextVersionForProject"
 // project config item label to "ParatextVersionForProject" within the project config read/write
@@ -6799,13 +6818,13 @@ wxString szParatextVersionForProject = _T("ParatextVersionForProject");
 
 // whm added 30Jun11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "CollabExpectsFreeTrans". This value is written in the "ProjectSettings" part
+// "CollabExpectsFreeTrans". This value, "1" or "0", is written in the "ProjectSettings" part
 /// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_bCollaborationExpectsFreeTrans member variable.
 wxString szCollabExpectsFreeTrans = _T("CollabExpectsFreeTrans");
 
 // whm added 27Apr11 for Paratext/Bibledit collaboration support.
-// The label that identifies the following string encoded number as the application's
+// The label that identifies the following string as the application's
 // "CollabBookSelected". This value is written in the "ProjectSettings" part
 /// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabBookSelected member variable.
@@ -6813,7 +6832,7 @@ wxString szCollabBookSelected = _T("CollabBookSelected");
 
 // whm added 27Jul11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "CollabByChapterOnly". This value is written in the "ProjectSettings" part
+// "CollabByChapterOnly". This value, "1" or "0", is written in the "ProjectSettings" part
 /// of the project configuration file.  Adapt It stores this value as a boolean in the App's
 // m_bCollabByChapterOnly member variable.
 wxString szCollabByChapterOnly = _T("CollabByChapterOnly");
@@ -6826,14 +6845,14 @@ wxString szCollabByChapterOnly = _T("CollabByChapterOnly");
 wxString szCollabChapterSelected = _T("CollabChapterSelected");
 
 // whm added 4Sep11 for Paratext/Bibledit collaboration support.
-// The label that identifies the following string encoded number as the application's
+// The label that identifies the following string as the application's
 // "CollabSourceLangName". This value is written in the "ProjectSettings" part
 /// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabSourceLangName member variable.
 wxString szCollabSourceLangName = _T("CollabSourceLangName");
 
 // whm added 4Sep11 for Paratext/Bibledit collaboration support.
-// The label that identifies the following string encoded number as the application's
+// The label that identifies the following string as the application's
 // "CollabTargetLangName". This value is written in the "ProjectSettings" part
 /// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabTargetLangName member variable.
@@ -6845,6 +6864,12 @@ wxString szCollabTargetLangName = _T("CollabTargetLangName");
 /// of the project configuration file. Adapt It stores this value as a wxString in the App's
 /// m_CollabBooksProtectedFromSavingToEditor member variable.
 wxString szCollabBooksProtectedFromSavingToEditor = _T("CollabBooksProtectedFromSavingToEditor");
+
+/// The label that identifies the following string encoded number as the application's
+/// "CollabDoNotShowMigrationDialogForPT7toPT8". This value, "1" or "0", is written in the 
+/// "ProjectSettings" part of the project configuration file.  Adapt It stores this value as a 
+/// boolean in the App's m_bCollabDoNotShowMigrationDialogForPT7toPT8 member variable.
+wxString szCollabDoNotShowMigrationDialogForPT7toPT8 = _T("CollabDoNotShowMigrationDialogForPT7toPT8");
 
 /// The label that identifies the following string as an int, either 0 or 1 storing the flag
 /// value which indicates whether the "Change Paratext/Bibledit Projects" button is password
@@ -9667,6 +9692,10 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
         pFileMenu->SetLabel(wxID_SAVE, label);
     }
 
+    // Initialize the pToolsMenu pointer here - it is referenced in different blocks below
+    wxMenu* pToolsMenu;
+    pToolsMenu = GetTopLevelMenuFromAIMenuBar(toolsMenu);
+
     // remove the Administrator menu until asked for
     if (!m_bShowAdministratorMenu)
     {
@@ -9751,6 +9780,19 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
         pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD, _("Start Working...\tCtrl-Shift-O")); // Windows
                                                                                           // & Linux have the default Ctrl-W
     }
+
+    // whm Added 29March2017 - remove the "Install the Git program..." menu item for Mac and Linux
+    // since Git should be installed on those platforms easily enough when Adapt It is installed
+    if (pToolsMenu != NULL)
+    {
+        // The "Install the Git program..." menu item on the Tools menu
+        // should be hidden/removed for platforms other than Windows
+        if (pToolsMenu->FindItem(ID_TOOLS_INSTALL_GIT) != NULL)
+        {
+            pToolsMenu->Remove(ID_TOOLS_INSTALL_GIT);
+        }
+    }
+
 #endif
 
 #ifdef __WXMAC__
@@ -9814,7 +9856,8 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
         }
     }
 
-    wxMenu* pToolsMenu = GetTopLevelMenuFromAIMenuBar(toolsMenu);
+    // The pToolsMenu pointer is established above
+    //wxMenu* pToolsMenu = GetTopLevelMenuFromAIMenuBar(toolsMenu);
     if (pToolsMenu != NULL)
     {
         // Tools | Find and Replace
@@ -10123,17 +10166,17 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
     if (pTempUserProfiles->definedProfileNames.GetCount() != m_pUserProfiles->definedProfileNames.GetCount())
     {
         wxLogDebug(_T("The internal and external definedProfileNames arrays have different count %d and %d PLEASE FIX ME!"),
-            pTempUserProfiles->definedProfileNames.GetCount(), m_pUserProfiles->definedProfileNames.GetCount());
+            (int)pTempUserProfiles->definedProfileNames.GetCount(), (int)m_pUserProfiles->definedProfileNames.GetCount());
     }
     if (pTempUserProfiles->descriptionProfileTexts.GetCount() != m_pUserProfiles->descriptionProfileTexts.GetCount())
     {
         wxLogDebug(_T("The internal and external descriptionProfileTexts arrays have different count %d and %d PLEASE FIX ME!"),
-            pTempUserProfiles->descriptionProfileTexts.GetCount(), m_pUserProfiles->descriptionProfileTexts.GetCount());
+            (int)pTempUserProfiles->descriptionProfileTexts.GetCount(), (int)m_pUserProfiles->descriptionProfileTexts.GetCount());
     }
     if (pTempUserProfiles->profileItemList.GetCount() != m_pUserProfiles->profileItemList.GetCount())
     {
         wxLogDebug(_T("The internal and external profileItemLists have different count %d and %d PLEASE FIX ME!"),
-            pTempUserProfiles->profileItemList.GetCount(), m_pUserProfiles->profileItemList.GetCount());
+            (int)pTempUserProfiles->profileItemList.GetCount(), (int)m_pUserProfiles->profileItemList.GetCount());
     }
 
     // Check for changes in their text and usedVisibilityValues arrays, but only assuming they have the same
@@ -10202,9 +10245,12 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
                 // the same order.
                 wxString tempStr = pTempItem->itemID;
                 wxString appStr = pAppItem->itemID;
-                wxLogDebug(_T("The itemID strings differ for %s: internal (%s) and external (%s)\n   - Are they spelled the same and in the same order?\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
-                    pAppItem->itemText.c_str(), tempStr.c_str(), appStr.c_str());
-                wxASSERT_MSG(FALSE, _T("AI_UserProfile.xml and internal itemID strings in defaultProfileItems[] don't match. Are they spelled the same and in the same order? PLEASE FIX ME!"));
+                wxString msg = _T("AI_UserProfile.xml and internal itemID strings in defaultProfileItems[] don't match for the menu item: %s: internal (%s) and external (%s)\n   - Are they spelled the same and in the same order?\n -   aborting the ReportMenuAndUserProfilesInconsistencies() function");
+                msg = msg.Format(msg, pAppItem->itemText.c_str(), tempStr.c_str(), appStr.c_str());
+                wxLogDebug(msg);
+#if defined(_DEBUG)
+                wxASSERT_MSG(FALSE, msg + _T(" Programmer: PLEASE FIX ME!"));
+#endif
                 return; // no point in continuing the check
             }
 
@@ -10212,9 +10258,12 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
             {
                 // The itemIDint is also a crucial/unique identifier so ensure they match and are in
                 // the same order.
-                wxLogDebug(_T("The itemID strings differ for %s: internal (%d) and external (%d)\n   -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
-                    pAppItem->itemText.c_str(), pTempItem->itemIDint, pAppItem->itemIDint);
-                wxASSERT_MSG(FALSE, _T("AI_UserProfile.xml and internal itemIDint values don't match. PLEASE FIX ME!"));
+                wxString msg = _T("AI_UserProfile.xml and internal itemIDint values don't match for the menu item: %s: internal (%d) and external (%d)\n   -   aborting the ReportMenuAndUserProfilesInconsistencies() function");
+                msg = msg.Format(msg, pAppItem->itemText.c_str(), pTempItem->itemIDint, pAppItem->itemIDint);
+                wxLogDebug(msg);
+#if defined(_DEBUG)
+                wxASSERT_MSG(FALSE, msg + _T(" Programmer: PLEASE FIX ME!"));
+#endif
                 return; // no point in continuing the check
             }
 
@@ -13275,6 +13324,8 @@ wxString CAdapt_ItApp::GetCollabSettingsAsStringForLog()
     settingsStr += m_CollabChapterSelected;
     settingsStr += _T("]books_protected_from_saving_to_editor:[");
     settingsStr += m_CollabBooksProtectedFromSavingToEditor;
+    settingsStr += _T("]do_not_show_migration_dlg_pt7_to_pt8:[");
+    settingsStr << (int)m_bCollabDoNotShowMigrationDialogForPT7toPT8;
     settingsStr += _T("]");
 
     return settingsStr;
@@ -13614,6 +13665,10 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 ///                                             to the collab settings during validation
 /// \param      errorProjects <- a wxString representing the kinds of projects listed in 
 ///                              the errorProjects string, i.e. "source [target] [freetrans]"
+/// \param      bBothPT7AndPT8InstalledPT8ProjectsWereMigrated <- a bool to inform the caller if
+///                               both PT7 and PT8 are installed and have valid collab 
+///                               projects, and the projects appear to have been migrated 
+///                               to PT 8.
 /// \remarks
 /// Called from CProjectPage::OnWizardPageChanging().
 /// Opens the AI-ProjectConfiguration.aic file associated with the m_projectName in a
@@ -13630,7 +13685,7 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 /// effects.
 //////////////////////////////////////////////////////////////////////////////////////////
 enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_projectName, wxString& errorStr,
-    bool& bChangeMadeToCollabSettings, wxString& errorProjects)
+    bool& bChangeMadeToCollabSettings, wxString& errorProjects, bool& bBothPT7AndPT8InstalledPT8ProjectsWereMigrated)
 {
     // whm 20Apr12 created to return an enum of states and expanded sanity
     // checking of the collab values stored in the project config file.
@@ -13639,6 +13694,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
     // errors and any changes made to the collab settings (which can then be saved
     // by the caller to the project config file).
     bChangeMadeToCollabSettings = FALSE;
+    bBothPT7AndPT8InstalledPT8ProjectsWereMigrated = FALSE; // whm set default 31March2017
     wxString curProjPathAndName;
     wxString projConfigPathAndName;
     if (!m_customWorkFolderPath.IsEmpty() && m_bUseCustomWorkFolderPath)
@@ -13801,7 +13857,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                 collabPTVersionStrFound.Trim(TRUE);
                 if (!collabPTVersionStrFound.IsEmpty())
                 {
-                    // A hack to compensate for bad spelling of the m_ParatextEditorVersion that may have gotten out in a pre-release version
+                    // A hack to compensate for bad (case) spelling of the m_ParatextEditorVersion that may have gotten out in a pre-release version
                     if (collabPTVersionStrFound == _T("PTversion8"))
                     {
                         collabPTVersionStrFound = _T("PTVersion8");
@@ -13994,6 +14050,19 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
         // errorStr message to the caller and return the collab status as collabProjExistsButIsInvalid.
         // The caller (ProjectPage) will allow the user to select from available PT/BE projects which,
         // if the PT/BE projects prove valid, will allow the user to continue collab work.
+
+        // 15a. whm 31March2017 added a further check.
+        // If bFoundCollabSrcProj and bFoundCollabTgtProj are both TRUE,
+        // and, if the current collaboration editor is specified to be PT7,
+        // and, if PT7 and PT8 are both installed,
+        // and, if there are now PT8 projects existing that are the same named 
+        //      projects being used in collaboration between AI and PT7,
+        // and, if the GUID for the PT8 project is same as GUID of the PT7 projects
+        // then return via a new reference bool parameter called
+        // bBothPT7AndPT8InstalledPT8ProjectsWereMigrated
+        // so the caller can make a one-time query to the user to determine if collaboration 
+        // should now be continued with the same projects that are now in the PT8 data store.
+
         // 16. If the GetAIProjectCollabStatus() function has not returned a state value by
         // time control reaches this point, just return the collab status as
         // collabProjNotConfigured.
@@ -14945,7 +15014,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
         if (bFoundCollabSrcProj && bFoundCollabTgtProj)
         {
             // Check the validity of the PT/BE projects. They are valid if they are not
-            // empty and calls to CollabProjectHasAtLeastOneBook() indicate that the
+            // empty and calls to CollabProjectHasAtLeastOneBook() indicate that each of the
             // projects have at least one book defined.
             //
             // Note: This CollabProjectsAreValid() call is also done within the 3-button
@@ -14960,6 +15029,89 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
                 errorStr = errStr;
                 errorProjects = errProj;
                 return collabProjExistsButIsInvalid;
+            }
+            else
+            {
+                // the PT/BE projects of concern are valid, but before we return the collabProjExistsAndIsValid enum
+                // we'll determine if the project is a PT7 project which has been migrated to PT8 so that it has
+                // both valid PT7 and valid PT8 projects that are currently being used for collaboration. We'll return
+                // a bool parameter by reference to the caller via this GetAIProjectCollabStatus() function, so the caller
+                // can handle any interaction deemed necessary with the user. According to Tom H. we can tell if a PT8
+                // project has been migrated from PT7 if its settings GUID has the same value in PT8 as it had in PT7.
+                // It may be possible, however, for an administrator/user to remove PT7 and its project data store after
+                // having migrated the projects from PT7 to PT8 (and before attempting to open the collaboration project), 
+                // so our check and potential prompting of the user to possibly switch collaboration from PT7 to PT8 
+                // would only happen if/when both PT7 and PT8 are installed.
+
+                // whm 31March2017 added a further check:
+                // 15a. If bFoundCollabSrcProj and bFoundCollabTgtProj are both TRUE,
+                // and, if the current collaboration editor is specified to be PT7,
+                // and, if PT7 and PT8 are both installed,
+                // and, if there are now PT8 projects existing that are the same named 
+                //      projects being used in collaboration between AI and PT7,
+                // and, if the GUID for the PT8 project is same as GUID of the PT7 projects
+                // then return via a new reference bool parameter called
+                // bBothPT7AndPT8InstalledPT8ProjectsWereMigrated
+                // so the caller can make a one-time query to the user to determine if collaboration 
+                // should now be continued with the same projects that are now in the PT8 data store.
+                if (bFoundCollabSrcProj && bFoundCollabTgtProj)
+                {
+                    // Check the PT Windows situation
+                    if (collabPTVersionStrFound == _T("PTVersion7"))
+                    {
+                        PTVersionsInstalled PTver;
+                        PTver = ParatextVersionInstalled();
+                        if (PTver == PTVer7and8)
+                        {
+                            wxString errStr = _T("");
+                            wxString errProj = _T("");
+                            // We know that the PT7 projects are valid. Check if the PT8 projects are also valid.
+                            if (CollabProjectsAreValid(CollabSrcProjStrFound, CollabTgtProjStrFound,
+                                CollabFreeTransProjStrFound, m_collaborationEditor, _T("PTversion8"),
+                                errStr, errProj))
+                            {
+                                // Compare the GUID values of the PT7 and PT8 projects to determine if
+                                // the PT7 projects were migrated to PT8. According to Tom H. the PT8
+                                // project will have the same GUID as the PT7 project when the project
+                                // has successfully migrated to PT8.
+                                // Approach: Compare the GUIDs for the Src, Tgt (and any FreeTrans project)
+                                //   between PT7 and PT8. If the GUIDs match for all collab projects, then
+                                // we can return a TRUE value for bBothPT7AndPT8InstalledPT8ProjectsWereMigrated.
+                                //
+                                bBothPT7AndPT8InstalledPT8ProjectsWereMigrated = CollabProjectsMigrated(CollabSrcProjStrFound, CollabTgtProjStrFound, CollabFreeTransProjStrFound, 
+                                    m_collaborationEditor, _T("PTVersion7"), _T("PTVersion8"));
+                            }
+                        }
+                    }
+                    else if (collabPTVersionStrFound == _T("PTLinuxVersion7"))
+                    {
+                        // Check the PT Linux situation
+                        PTVersionsInstalled PTver;
+                        PTver = ParatextVersionInstalled();
+                        if (PTver == PTLinuxVer7and8)
+                        {
+                            wxString errStr = _T("");
+                            wxString errProj = _T("");
+                            // We know that the PT7 projects are valid. Check if the PT8 projects are also valid.
+                            if (CollabProjectsAreValid(CollabSrcProjStrFound, CollabTgtProjStrFound,
+                                CollabFreeTransProjStrFound, m_collaborationEditor, _T("PTLinuxversion8"),
+                                errStr, errProj))
+                            {
+                                // Compare the GUID values of the PT7 and PT8 projects to determine if
+                                // the PT7 projects were migrated to PT8. According to Tom H. the PT8
+                                // project will have the same GUID as the PT7 project when the project
+                                // has successfully migrated to PT8.
+                                // Approach: Compare the GUIDs for the Src, Tgt (and any FreeTrans project)
+                                //   between PT7 and PT8. If the GUIDs match for all collab projects, then
+                                // we can return a TRUE value for bBothPT7AndPT8InstalledPT8ProjectsWereMigrated.
+                                //
+                                bBothPT7AndPT8InstalledPT8ProjectsWereMigrated = CollabProjectsMigrated(CollabSrcProjStrFound, CollabTgtProjStrFound, CollabFreeTransProjStrFound,
+                                    m_collaborationEditor, _T("PTLinuxVersion7"), _T("PTLinuxversion8"));
+                            }
+
+                        }
+                    }
+                }
             }
             // If we get here the projects are valid according to CollabProjectsAreValid() above.
             return collabProjExistsAndIsValid;
@@ -22139,7 +22291,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // which is safer than hard coding the path to a predetermined setup location.
     wxString usfmStyleInstallFolderFileCopyPath = m_xmlInstallPath + PathSeparator + _T("AI_USFM.xml");
     bool bSetupStyleFileExists = wxFileExists(usfmStyleInstallFolderFileCopyPath);
-    LogUserAction(_T("AppStartUp"));
+    wxString appVerForLog = GetAppVersionOfRunningAppAsString();
+    LogUserAction(_T("AppStartUp - AI Version: ") + appVerForLog);
 
     wxString userProfileInstallFolderFilecopyPath = m_xmlInstallPath + PathSeparator + _T("AI_UserProfiles.xml");
     // Does AI_UserProfiles.xml exist in the work folder
@@ -27945,6 +28098,54 @@ bool CAdapt_ItApp::IsDirectoryWithin(wxString& dir, wxArrayPtrVoid*& pBooks)
     return FALSE;
 }
 
+bool CAdapt_ItApp::IsGitInstalled()
+{
+    bool bGInstalled;
+    bGInstalled = FALSE;
+    wxString pathToExecutable;
+    pathToExecutable.Empty();
+#ifdef __WXMSW__
+    wxLogNull logNo; // avoid spurious messages from the system if reg key is unreadable
+    wxRegKey keyWow_1(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1"));
+    if (keyWow_1.Exists())
+    {
+        bGInstalled = TRUE;
+    }
+    wxRegKey keyWOW_2(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1"));
+    if (keyWOW_2.Exists())
+    {
+        bGInstalled = TRUE;
+    }
+    wxRegKey key32(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1"));
+    if (key32.Exists())
+    {
+        bGInstalled = TRUE;
+    }
+    return bGInstalled;
+#endif
+
+#if defined(__WXGTK__)
+    pathToExecutable = GetProgramLocationFromSystemPATH(_T("git")) + PathSeparator + _T("git");
+    if (::wxFileExists(pathToExecutable))
+        bGInstalled = TRUE;
+
+    return bGInstalled;
+#endif
+#ifdef __WXMAC__
+    pathToExecutable = GetBibleditInstallDirPath() + gpApp->PathSeparator + _T("bibledit-rdwrt");
+
+    // If the above call doesn't find it then try /opt/local/bin/
+    if (::wxFileExists(pathToExecutable))
+        bGInstalled = TRUE;
+    else if (::wxFileExists(_T("/opt/local/bin/git")))
+        bGInstalled = TRUE;
+
+    return bGInstalled;
+#endif
+
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      pList   <- an array string list that gets filled with project names.
@@ -30523,6 +30724,49 @@ void CAdapt_ItApp::OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event))
 
     // ensure the "Accept changes without stopping" flag is FALSE
     m_bAcceptDefaults = FALSE;
+}
+
+// whm created 24March2017
+void CAdapt_ItApp::OnToolsInstallGit(wxCommandEvent & WXUNUSED(event))
+{
+    
+    CAdapt_ItApp* pApp = &wxGetApp();
+    wxASSERT(pApp != NULL);
+    pApp->LogUserAction(_T("Initiated OnToolsInstallGit()"));
+    wxString msg;
+    if (IsGitInstalled())
+    {
+        msg = _("Git appears to be installed on this computer already! If you think Git is not installed or needs to be reinstalled you can try installing it again using one of options on the next dialog. Do you want to continue?");
+        int result;
+        result = wxMessageBox(msg, _("Git Installation Information"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT | wxCANCEL);
+        switch (result)
+        {
+            case wxYES:
+            {
+                CInstallGitOptionsDlg gitInsDlg(pApp->GetMainFrame());
+                gitInsDlg.Centre();
+                if (gitInsDlg.ShowModal() == wxID_OK)
+                {
+                    ;
+                }
+                break;
+            }
+            case wxCANCEL: // fall through to wxNO below
+            case wxNO:
+            {
+                // Don't show the dialog
+                ;
+            }
+        }
+    }
+}
+
+// whm created 24March2017
+void CAdapt_ItApp::OnUpdateInstallGit(wxUpdateUIEvent & event)
+{
+    // The menu item to "Install the Git program..." should be enabled at all times so the
+    // Git Install Options dialog can be accessed at any time 
+    event.Enable(TRUE);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -34996,9 +35240,16 @@ void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
             {
                 m_CollabBooksProtectedFromSavingToEditor = ReplaceAtSymbolWithColons(tokenStr);// Convert any @ characters back to colons
             }
+            else if (fieldNum == 16) // whm added 6April2017
+            {
+                if (tokenStr == _T("1"))
+                    m_bCollabDoNotShowMigrationDialogForPT7toPT8 = TRUE;
+                else
+                    m_bCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE;
+            }
             else
             {
-                wxASSERT_MSG(FALSE, _T("Composite string"));
+                wxASSERT_MSG(FALSE, _T("Composite string error in SetProjectDefaults()"));
             }
             fieldNum++; // next field
         }
@@ -35258,15 +35509,16 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
     m_CollabSourceLangName = _T(""); // AI-ProjectConfiguration.aic file label: CollabSourceLangName
     m_CollabTargetLangName = _T(""); // AI-ProjectConfiguration.aic file label: CollabTargetLangName
     m_CollabBooksProtectedFromSavingToEditor = _T(""); // AI-ProjectConfiguration.aic file label: CollabBooksProtectedFromSavingToEditor
-                                     // whm 26Jan13 moved the following from Bruce's original location in
-                                     // OnInit(), so that these settings will be together with other
-                                     // collaboration settings and their values will be set when
-                                     // SetCollabSettingsToNewProjDefaults() is called even earlier in
-                                     // OnInit().
-                                     // BEW added 2Jul11, initialize the next two booleans. The first is set dynamically if
-                                     // a PT or BE collaboration project is set up with a project nominated for receiving
-                                     // free translations; the second is set if the Adapt It document in a collaboration
-                                     // session has one or more free translations within it
+    m_bCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017 // AI-ProjectConfiguration.aic file label: CollabDoNotShowMigrationDialogForPT7toPT8
+    // whm 26Jan13 moved the following from Bruce's original location in
+    // OnInit(), so that these settings will be together with other
+    // collaboration settings and their values will be set when
+    // SetCollabSettingsToNewProjDefaults() is called even earlier in
+    // OnInit().
+    // BEW added 2Jul11, initialize the next two booleans. The first is set dynamically if
+    // a PT or BE collaboration project is set up with a project nominated for receiving
+    // free translations; the second is set if the Adapt It document in a collaboration
+    // session has one or more free translations within it
     m_bCollaborationExpectsFreeTrans = FALSE; // this is not stored in AI-ProjectConfiguration.aic
     m_bCollaborationDocHasFreeTrans = FALSE; // this is not stored in AI-ProjectConfiguration.aic
     m_bSaveCopySourceFlag_For_Collaboration = FALSE; // this is not stored in AI-ProjectConfiguration.aic
@@ -36261,6 +36513,15 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data.Empty();
     data << szCollabBooksProtectedFromSavingToEditor << tab << m_CollabBooksProtectedFromSavingToEditor;
     pf->AddLine(data);
+
+    if (m_bCollabDoNotShowMigrationDialogForPT7toPT8)
+        number = _T("1");
+    else
+        number = _T("0");
+    data.Empty();
+    data << szCollabDoNotShowMigrationDialogForPT7toPT8 << tab << number;
+    pf->AddLine(data);
+
     // !!!!!!!!!!!!!! END OF COLLABORATION SETTINGS !!!!!!!!!!!!!!!!!!!!!!!
 
     // whm added next three for Guesser support
@@ -37318,6 +37579,17 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
         {
             m_CollabBooksProtectedFromSavingToEditor = strValue;
         }
+        else if (name == szCollabDoNotShowMigrationDialogForPT7toPT8)
+        {
+            num = wxAtoi(strValue);
+            if (!(num == 0 || num == 1))
+                num = 0; // make the value FALSE if num is out-of-range or missing
+            if (num == 1)
+                m_bCollabDoNotShowMigrationDialogForPT7toPT8 = TRUE;
+            else
+                m_bCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE;
+        }
+
         // !!!!!!!!!!!!!! END OF COLLABORATION SETTINGS !!!!!!!!!!!!!!!!!!!!!!!
 
         else if (name == szUseAdaptationsGuesser)
@@ -38316,6 +38588,7 @@ void CAdapt_ItApp::SaveAppCollabSettingsToINIFile(wxString projectPathAndName)
     // m_CollabChapterSelected
     // m_ParatextVersionForProject // whm added 28June2016 - added to end of composite string for simpler parsing/processing
     // m_CollabBooksProtectedFromSavingToEditor // whm added 2February2017
+    // m_bDoNotShowCollabMigrationPT7toPT8Dlg (bool value as wxString "0" or "1")
     //
     // Note: Any embedded colons ':' that can appear in the Source, Target and
     // FreeTrans project names (in PT) are stored as @ characters, and converted
@@ -38325,7 +38598,7 @@ void CAdapt_ItApp::SaveAppCollabSettingsToINIFile(wxString projectPathAndName)
     wxString colon = _T(":");
     wxString equals = _T("=");
     newCompositeStr.Empty();
-    // FIELD 1 CollabAIProjectNa
+    // FIELD 1 CollabAIProjectName
     newCompositeStr += m_CollabAIProjectName;
     newCompositeStr += colon;
     // FIELD 2 CollaboratingWithParatex
@@ -38376,31 +38649,37 @@ void CAdapt_ItApp::SaveAppCollabSettingsToINIFile(wxString projectPathAndName)
     // FIELD 13 CollabChapterSelected
     newCompositeStr += m_CollabChapterSelected;
     newCompositeStr += colon; // whm added 28June2016
-                              // FIELD 14 CollabParatextVersionForProject
+    // FIELD 14 CollabParatextVersionForProject Note: This CollabParatextVersionForProject is ordered after CollaborationEditor in the AI-ProjectConfiguration.aic file
     newCompositeStr += m_ParatextVersionForProject; // whm added 28June2016
     newCompositeStr += colon; // whm added 2February 2017
-                              // FIELD 15 CollabBooksProtectedFromSavingToEditor
+    // FIELD 15 CollabBooksProtectedFromSavingToEditor
     newCompositeStr += ReplaceColonsWithAtSymbol(m_CollabBooksProtectedFromSavingToEditor);
+    newCompositeStr += colon; // whm added 6April2017
+    // FIELD 16 CollabDoNotShowMigrationDialogForPT7toPT8
+    if (m_bCollabDoNotShowMigrationDialogForPT7toPT8 == TRUE)
+        newCompositeStr += _T("1"); // (bool value as wxString "0" or "1")
+    else
+        newCompositeStr += _T("0"); // (bool value as wxString "0" or "1")
     newCompositeStr += colon; // end composite string with a colon
 
-                              // a sample composite string might look like the following:
-                              // proj_collab_settings_0=X to Y adaptations:1:0:NYNT @ Nyindrou NT @ Nyindrou @ lid:DTP @ DTPNT @ Tok Pisin @ tpi::Paratext:0:X:Y:Acts:1:3PTVersion8:
+    // a sample composite string might look like the following:
+    // proj_collab_settings_0=X to Y adaptations:1:0:NYNT @ Nyindrou NT @ Nyindrou @ lid:DTP @ DTPNT @ Tok Pisin @ tpi::Paratext:0:X:Y:Acts:1:3PTVersion8:
 
-                              // Note: successive keys would have the form proj_collab_settings_1,
-                              // proj_collab_settings_2, proj_collab_settings_3 and so on. Each time a
-                              // composite string is changed or added to the ini file, all previous
-                              // and any new strings are rewritten to the ini file, keeping the
-                              // key-value pairs in sequence.
+    // Note: successive keys would have the form proj_collab_settings_1,
+    // proj_collab_settings_2, proj_collab_settings_3 and so on. Each time a
+    // composite string is changed or added to the ini file, all previous
+    // and any new strings are rewritten to the ini file, keeping the
+    // key-value pairs in sequence.
 
-                              // Update any existing collab project composite string in the ini
-                              // file. If no project composite string exists for the current project
-                              // add it to the ini file.
+    // Update any existing collab project composite string in the ini
+    // file. If no project composite string exists for the current project
+    // add it to the ini file.
 
-                              // To find out if the project exists we need to read all of the collab
-                              // project composite strings from the ini file into an array.
+    // To find out if the project exists we need to read all of the collab
+    // project composite strings from the ini file into an array.
 
-                              // Extract the AI project name from the projectFolderPath incoming
-                              // parameter.
+    // Extract the AI project name from the projectFolderPath incoming
+    // parameter.
     wxFileName fn(projectPathAndName);
     wxString projectName;
     projectName = fn.GetFullName();
@@ -49749,437 +50028,6 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 }
 #endif
 
-/*
-
-///////////////////////////////////////////////////////////////////////////////
-/// \return		a wxArrayString that contains usable Paratext projects on the
-///             host computer, formatted in string format with fields separated
-///             by ':' delimiters (see remarks)
-/// \remarks
-/// Called from: the CGetSourceTextFromEditorDlg::InitDialog and
-/// CSetupEditorCollaboration::InitDialog.
-/// This function (with no parameter arguments) gathers a list of "usable"
-/// Paratext projects from the dir path stored in the App's m_ParatextProjectsDirPath
-/// variable at the time the function is called.
-/// A "usable" PT project is one which is not a PT "resource" project.
-/// If the App's m_ParatextProjectsDirPath points to a PT 7 projects directory, this
-/// function parses the PT project's .ssf files located in the PT projects
-/// directory ("My Paratext Projects" on Windows, or "ParatextProjects" on Linux),
-/// extracting from the xml the various properties described from each usable project.
-/// If the App's m_ParatextProjectsDirPath points to a PT 8 projects directory, this
-/// function parses the PT project's Settings.xml files located in the project dirs of
-/// the PT projects directory ("My Paratext 8 Projects" on Windows, or
-/// "Paratext8Projects" on Linux), extracting from the Settings.xml file the various
-/// properties described from each usable project.
-/// WARNING: =======================================================================
-/// As a side effect, this function populates the App's m_pArrayOfCollabProjects
-/// array of pointers to Collab_Project_Info_Struct structs stored on the heap.
-/// Note: If previous Collab_Project_Info_Struct objects existed those are
-/// first deallocated, and replaced by those found by this function.
-/// WARNING: =======================================================================
-/// In the returned wxArrayString, each string element contains identifying
-/// fields structured as follows:
-/// "shortName : fullName : languageName : ethnologueCode"
-/// The ethnologueCode field is optional and won't appear unless the user has
-/// explicitly entered it in for LIFT file properites within PT.
-/// This string is used in various places such as the combo box controls the
-/// "Setup Paratext Collaboration... and "Get Source Text from Paratext Project".
-/// It is also used in the basic config file as string values for the
-/// PTProjectForSourceInputs and PTProjectForTargetExports entries.
-/// whm 22June2016 modified to work with either PT 7 *.ssf file or PT 8's Settings.xml
-///////////////////////////////////////////////////////////////////////////////
-wxArrayString CAdapt_ItApp::GetListOfPTProjects()
-{
-wxArrayString tempListOfPTProjects;
-tempListOfPTProjects.Clear();
-// deallocate any memory for items currently in list on heap
-int aTot = (int)m_pArrayOfCollabProjects->GetCount();
-if (aTot > 0)
-{
-int aIndex;
-for (aIndex = 0; aIndex < aTot; aIndex++)
-{
-Collab_Project_Info_Struct* pArrayItem = (Collab_Project_Info_Struct*)(*m_pArrayOfCollabProjects)[aIndex];
-if (pArrayItem != NULL) // whm 11Jun12 added NULL test
-delete pArrayItem;
-}
-m_pArrayOfCollabProjects->Clear();
-}
-wxString PT_ProjectsDirPath;
-
-PT_ProjectsDirPath = m_ParatextProjectsDirPath; // here use the app's variable rather than calling GetParatextProjectsDirPath()
-// Note: PT_ProjectsDirPath will end with a backslash
-// Within the PT_ProjectsDirPath folder, the Paratext projects each have a file
-// composed of the abbreviated PT project name with a .ssf extension.
-// Resource projects under Paratext cannot be used as collaboration projects
-// (technically they could be read from, but we cannot assume that is possible
-// without specific permission of UBS).
-// So, we read each <file>.ssf within the folder and determine if the project
-// represented is a candidate for Adapt It collaboration (either for reading
-// as source texts, or for transferring AI-produced translation drafts).
-
-// PT's ssf files are small xml formatted files. We only need some values from
-// the file, so rather than using our XML reading routines, I think it will be
-// more efficient to just use the xxTextFile class to read each xml formatted
-// file into memory and read the information we need from it there.
-
-wxDir finder;
-// Must call wxDir::Open() before calling GetFirst() and enumerating files!
-bool bOK = (::wxSetWorkingDirectory(PT_ProjectsDirPath) &&
-finder.Open(PT_ProjectsDirPath));
-
-bool bWorking;
-bool bPT8 = FALSE;
-wxString filespec;
-wxString str = _T("");
-// whm 22June2016 modified. For PT 8's projects dir, scan the project sub-directories
-// for those containing a Settings.xml file. For each Settings.xml file found open
-// the xml file, and parse the information from there.
-wxString PTver;
-PTver = m_ParatextVersionForProject; // here use App's variable rather than calling ParatextVersionInstalled();
-if (PTver == _T("PTVersion8"))
-{
-bPT8 = TRUE;
-}
-
-if (!bOK)
-{
-wxString msg;
-msg = _T("In App's GetListOfPTProjects() unable to set working dir or open the dir at %s");
-msg = msg.Format(msg, PT_ProjectsDirPath.c_str());
-LogUserAction(msg);
-}
-
-if (bPT8)
-{
-filespec = _T("");
-bWorking = finder.GetFirst(&str, filespec, wxDIR_DIRS);
-// str will be the name of the first dir, something like cms (which isn't a project dir)
-}
-else // for PT 7
-{
-// whm note: in GetFirst below, the wxDIR_FILES flag finds
-// files only, not . nor .. nor hidden files
-filespec = _T("*.ssf");
-bWorking = finder.GetFirst(&str, filespec, wxDIR_FILES);
-// str will be the name of the first ssf file, something like DTP.ssf
-}
-while (bWorking)
-{
-// the str variable contains the found .ssf file (case is ignored
-// so it will find .ssf as well as .SSF files).
-//wxLogDebug(_T("Found file: %s"),str.c_str());
-
-bool bFileExists;
-wxString destinationFile;
-wxTextFile f;
-
-// For PT 8 open the Settings.xml file within the dir found in str
-// and glean the necessary information to determine if the project is
-// a potential collaboration project.
-// Note: if a Settings.xml file is located within the str directory, the value
-// of the str variable is the PT project's shortname.
-if (bPT8)
-{
-// check for existence of a Settings.xml file within the str dir
-destinationFile = str + PathSeparator + _T("Settings.xml");
-bFileExists = wxFileExists(destinationFile);
-}
-else
-{
-// For PT 7 open the .ssf file and glean the necessary information to
-// determine if the project is a potential collaboration project.
-destinationFile = str;
-bFileExists = wxFileExists(destinationFile);
-}
-if (bFileExists)
-{
-bool bOpenedOK;
-bOpenedOK = f.Open(destinationFile);
-if (bOpenedOK)
-{
-// The ssf / Settings.xml file is now in memory and accessible line-by-line using wxTextFile
-// methods.
-Collab_Project_Info_Struct* pPTInfo = new Collab_Project_Info_Struct;
-pPTInfo->booksPresentFlags = _T("");
-pPTInfo->ethnologueCode = _T(""); // PT 8 Settings.xml tag is <LanguageIsoCode> and maps to this ethnologueCode below
-pPTInfo->fullName = _T("");
-pPTInfo->languageName = _T("");
-pPTInfo->projectDir = _T(""); // No longer used in PT 8 xml schema, so copy shortName over to projectDir
-pPTInfo->shortName = _T(""); // same as projectDir above
-pPTInfo->versification = _T("");
-pPTInfo->chapterMarker = _T("c"); // default is c  // no longer used in PT but doesn't hurt to have it
-pPTInfo->verseMarker = _T("v"); // default is v  // no longer used in PT but doesn't hurt to have it
-pPTInfo->defaultFont = _T("Arial"); // default is Arial
-pPTInfo->defaultFontSize = _T("10"); // default is 10
-pPTInfo->leftToRight = _T("T"); // default is T
-pPTInfo->encoding = _T("65001"); // default is 65001 (UTF8)
-pPTInfo->bProjectIsNotResource = TRUE;
-pPTInfo->bProjectIsEditable = TRUE;
-
-// Initialize some variables for fields we are interested in.
-wxString booksPresentFlags = _T("");
-wxString ethnologueCode = _T(""); // PT 8 Settings.xml tag is <LanguageIsoCode> and maps to this ethnologueCode below
-wxString fullName = _T("");
-wxString languageName = _T("");
-wxString projectDir = _T(""); // In PT 8 this is taken from the dir name that the Settings.xml file is located in
-wxString shortName = _T(""); // same as projectDir above
-wxString versification = _T("");
-wxString chapterMarker = _T("c"); // no longer used in PT but doesn't hurt to have it
-wxString verseMarker = _T("v"); // no longer used in PT but doesn't hurt to have it
-wxString defaultFont = _T("Arial");
-wxString defaultFontSize = _T("10");
-wxString leftToRight = _T("T");
-wxString encoding = _T("65001");
-bool bProjectIsNotResource = TRUE;
-//bool bProjectIsEditable = TRUE;
-wxString lineStr;
-// scan through all lines of file setting field values as we go
-for (lineStr = f.GetFirstLine(); !f.Eof(); lineStr = f.GetNextLine())
-{
-//wxLogDebug(_T("%s"),lineStr.c_str());
-// collect data fields for filling in PTProject structs.
-lineStr.Trim(FALSE);
-lineStr.Trim(TRUE);
-wxString tagName;
-wxString endTagName;
-
-tagName = _T("<BooksPresent>");
-endTagName = _T("</BooksPresent>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-booksPresentFlags = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-//#if defined(_DEBUG)
-//                      // BEW fixed 3July15, added else block in the above function
-//						// The failure of collaboration in 2014 &15 was due to structure
-//						// changes at end of .ssf files making <BooksPresent> tag not line
-//						// initial, resulting in GetStingBetweenXMLTags() returning empty
-//						// string - which then clobbered progressing in the collab setup dlg
-//						wxLogDebug(_T("GetListOfPTProjects(): File: %s  booksPresentFlags:  %s"),
-//							str.c_str(), booksPresentFlags.c_str());
-//#endif
-pPTInfo->booksPresentFlags = booksPresentFlags;
-}
-if (bPT8)
-{
-tagName = _T("<LanguageIsoCode>");
-endTagName = _T("</LanguageIsoCode>");
-}
-else
-{
-tagName = _T("<EthnologueCode>");
-endTagName = _T("</EthnologueCode>");
-}
-
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-ethnologueCode = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-// In PT 8 the LanguageIsoCode may have extra colon chars suffixed to the main code (perhaps to indicate empty code fields)
-// We don't want any extra colons at the right end of the code so we remove them here
-while (ethnologueCode.GetChar(ethnologueCode.Length() - 1) == _T(':'))
-{
-ethnologueCode.RemoveLast(); // remove the PathSeparator char
-// at the end of the path string, so next line won't give two contiguous
-
-}
-
-pPTInfo->ethnologueCode = ethnologueCode;
-}
-
-tagName = _T("<FullName>");
-endTagName = _T("</FullName>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-fullName = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-pPTInfo->fullName = fullName;
-}
-
-tagName = _T("<Language>");
-endTagName = _T("</Language>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-languageName = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-pPTInfo->languageName = languageName;
-}
-
-tagName = _T("<Directory>"); // The <Directory> tag is no longer used in PT 8, so projectDir and pPTInfo->projectDir are derived when <Name> is processed below
-endTagName = _T("</Directory>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-projectDir = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-pPTInfo->projectDir = projectDir;
-}
-
-// whm Note when processing the <Name> xml tag
-// In PT 8 the <Name> tag is used for other purposes and doesn't seem to contain the
-// usual shortName as it did in PT 7.
-// To avoid problems in case the xml tag values for <Name> used in PT 8 get into a
-// PT 7 ssf file, we make both In PT 7 determine the shortName programmatically from
-// the ssf filename (for PT 7) or the dir name (for PT 8). rather than processing
-// the shortName from the <Name> tag as done previously.
-// In PT 8 the name of the project dir (str). In PT 7 we can use the name of the
-// ssf file (without .ssf) for shortName.
-if (bPT8)
-{
-tagName = _T("<Name>");
-endTagName = _T("</Name>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-shortName = str;
-pPTInfo->shortName = shortName;
-// In PT 8 we derive the shortName and projectDir from the projects dir contained in str
-projectDir = shortName;
-pPTInfo->projectDir = shortName;
-}
-}
-else // for PT 7
-{
-tagName = _T("<Name>");
-endTagName = _T("</Name>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-//shortName = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-//pPTInfo->shortName = shortName;
-// The code above may be problematic if PT 8 Settings.xml ever get used back in PT 7
-// since in PT 8 the <Name> ... </Name> tag's value seems to no longer refer to the
-// project's short name. But in PT 7 we should get the same value by deriving the
-// shortName from the str value after removing the .ssf extension.
-wxFileName fn(str);
-shortName = fn.GetName(); // gets just the filename without extension
-pPTInfo->shortName = shortName;
-}
-}
-
-tagName = _T("<Versification>");
-endTagName = _T("</Versification>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-versification = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-pPTInfo->versification = versification;
-}
-
-tagName = _T("<ChapterMarker>");
-endTagName = _T("</ChapterMarker>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-chapterMarker = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-pPTInfo->chapterMarker = chapterMarker;
-}
-
-tagName = _T("<VerseMarker>");
-endTagName = _T("</VerseMarker>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-verseMarker = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-pPTInfo->verseMarker = verseMarker;
-}
-
-tagName = _T("<DefaultFont>");
-endTagName = _T("</DefaultFont>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-defaultFont = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-pPTInfo->defaultFont = defaultFont;
-}
-
-tagName = _T("<DefaultFontSize>");
-endTagName = _T("</DefaultFontSize>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-defaultFontSize = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-pPTInfo->defaultFontSize = defaultFontSize;
-}
-
-tagName = _T("<LeftToRight>");
-endTagName = _T("</LeftToRight>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-leftToRight = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-pPTInfo->leftToRight = leftToRight;
-}
-
-tagName = _T("<Encoding>");
-endTagName = _T("</Encoding>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-encoding = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-pPTInfo->encoding = encoding;
-}
-
-tagName = _T("<ResourceText>");
-endTagName = _T("</ResourceText>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-wxString temp;
-temp = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-// Note: non-Resource projects often don't have the "<ResourceText>"
-// tag at all, therefore we set bProjectIsNotResource to TRUE as its
-// default, unless <ResourceText>T</ResourceText> is present.
-if (temp == _T("T"))
-{
-bProjectIsNotResource = FALSE;
-pPTInfo->bProjectIsNotResource = FALSE;
-}
-}
-
-tagName = _T("<Editable>");
-endTagName = _T("</Editable>");
-if (lineStr.Find(tagName) != wxNOT_FOUND)
-{
-wxString temp;
-temp = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
-if (temp == _T("T"))
-{
-//bProjectIsEditable = TRUE;
-pPTInfo->bProjectIsEditable = TRUE;
-}
-else if (temp == _T("F"))
-{
-//bProjectIsEditable = FALSE;
-pPTInfo->bProjectIsEditable = FALSE;
-}
-}
-
-}
-wxString storageStr;
-// We do not allow collaboration with resource projects or
-// projects that have no short name, since the short name is
-// the basic PT name for the project (and the folder it is
-// contained in).
-if (bProjectIsNotResource && !shortName.IsEmpty())
-{
-storageStr = shortName;
-if (!fullName.IsEmpty())
-{
-storageStr += _T(" : ") + fullName;
-}
-if (!languageName.IsEmpty())
-{
-storageStr += _T(" : ") + languageName;
-}
-if (!ethnologueCode.IsEmpty())
-{
-storageStr += _T(" : ") + ethnologueCode;
-}
-tempListOfPTProjects.Add(storageStr);
-m_pArrayOfCollabProjects->Add(pPTInfo);
-}
-else
-{
-if (pPTInfo != NULL) // whm 11Jun12 added NULL test
-delete pPTInfo; // it's not a valid PT project we can use
-}
-f.Close();
-}
-}
-
-bWorking = finder.GetNext(&str);
-}
-
-return tempListOfPTProjects;
-}
-*/
-
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a wxArrayString that contains usable Paratext projects on the
 ///             host computer, formatted in string format with fields separated
@@ -50231,6 +50079,9 @@ return tempListOfPTProjects;
 /// as static string values for the CollabProjectForSourceInputs, 
 /// CollabProjectForTargetExports and CollabProjectForFreeTransExports labeled entries.
 /// whm 22June2016 modified to work with either PT 7 *.ssf file or PT 8's Settings.xml
+/// whm 5April2017 modified to include the PT collabProjectGUID value of project. The
+/// GUID value helps to identify when a PT project had been migrated from PT7 to PT8
+/// in circumstances where both PT7 and PT8 are installed and both have valid projects.
 ///////////////////////////////////////////////////////////////////////////////
 wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
 {
@@ -50325,6 +50176,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                         pPTInfo->encoding = _T("65001"); // default is 65001 (UTF8)
                         pPTInfo->bProjectIsNotResource = TRUE;
                         pPTInfo->bProjectIsEditable = TRUE;
+                        pPTInfo->collabProjectGUID = _T(""); // whm added 5April2017
 
                         // Initialize some variables for fields we are interested in.
                         wxString booksPresentFlags = _T("");
@@ -50343,6 +50195,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                         wxString defaultFontSize = _T("10");
                         wxString leftToRight = _T("T");
                         wxString encoding = _T("65001");
+                        wxString collabProjectGUID = _T(""); // whm added 5April2017
                         bool bProjectIsNotResource = TRUE;
                         //bool bProjectIsEditable = TRUE;
                         wxString lineStr;
@@ -50509,6 +50362,15 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                                 pPTInfo->encoding = encoding;
                             }
 
+                            // whm added 5April2017
+                            tagName = _T("<Guid>");
+                            endTagName = _T("</Guid>");
+                            if (lineStr.Find(tagName) != wxNOT_FOUND)
+                            {
+                                collabProjectGUID = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                                pPTInfo->collabProjectGUID = collabProjectGUID;
+                            }
+
                             tagName = _T("<ResourceText>");
                             endTagName = _T("</ResourceText>");
                             if (lineStr.Find(tagName) != wxNOT_FOUND)
@@ -50657,6 +50519,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                         pPTInfo->encoding = _T("65001"); // default is 65001 (UTF8)
                         pPTInfo->bProjectIsNotResource = TRUE;
                         pPTInfo->bProjectIsEditable = TRUE;
+                        pPTInfo->collabProjectGUID = _T(""); // whm added 5April2017
 
                         // Initialize some variables for fields we are interested in.
                         wxString booksPresentFlags = _T("");
@@ -50675,6 +50538,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                         wxString defaultFontSize = _T("10");
                         wxString leftToRight = _T("T");
                         wxString encoding = _T("65001");
+                        wxString collabProjectGUID = _T(""); // whm added 5April2017
                         bool bProjectIsNotResource = TRUE;
                         //bool bProjectIsEditable = TRUE;
                         wxString lineStr;
@@ -50844,6 +50708,15 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects(wxString PTVersion)
                             {
                                 encoding = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
                                 pPTInfo->encoding = encoding;
+                            }
+
+                            // whm added 5April2017
+                            tagName = _T("<Guid>");
+                            endTagName = _T("</Guid>");
+                            if (lineStr.Find(tagName) != wxNOT_FOUND)
+                            {
+                                collabProjectGUID = GetStringBetweenXMLTags(&f, lineStr, tagName, endTagName);
+                                pPTInfo->collabProjectGUID = collabProjectGUID;
                             }
 
                             tagName = _T("<ResourceText>");

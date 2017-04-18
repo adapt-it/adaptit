@@ -81,6 +81,7 @@
 #include "GetSourceTextFromEditor.h"
 #include "ReadOnlyProtection.h"
 #include "ProjectPage.h"
+#include "CollabProjectMigrationDlg.h"
 
 #if defined(_KBSERVER)
 #include "KbServer.h"
@@ -740,8 +741,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// We query via the ChooseCollabOptionsDlg dialog.
 			// whm modified 20Apr12 changed the sanity test function name to
 			// GetAIProjectCollabStatus() which now returns an enum of type
-			// AiProjectCollabStatus which can be one of collabProjExistsAndIsValid,
-			// collabProjExistsButIsInvalid, or collabProjNotConfigured.
+			// AiProjectCollabStatus which can be one of collabProjExistsAndIsValid, 
+            // collabProjExistsButIsInvalid, collabProjNotConfigured, projConfigFileMissing, 
+            // or projConfigFileUnableToOpen.
 			wxString errMessageCommon = _("When opening the %s project Adapt It detected the following error(s):\n\n");
 			errMessageCommon = errMessageCommon.Format(errMessageCommon,m_projectName.c_str());
 			errMessageCommon += _("%s\n\nPlease correct the problem, or ask your administrator for help, then try again."); // leaves one %s in the string
@@ -751,12 +753,107 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 											// GetAIProjectCollabStatus() call below
 			wxString errProjects = _T("");
 			bool bConfigFileChangesMade = FALSE;
+            bool bBothPT7AndPT8InstalledPT8ProjectsWereMigrated = FALSE;
 			// ========================= Collab Status of AI Project Determined Below ========================
-			aiProjCollabStatus = pApp->GetAIProjectCollabStatus(m_projectName,errString,bConfigFileChangesMade,errProjects);
+			aiProjCollabStatus = pApp->GetAIProjectCollabStatus(m_projectName,errString,bConfigFileChangesMade,errProjects, bBothPT7AndPT8InstalledPT8ProjectsWereMigrated);
 			// ========================= Collab Status of AI Project Determined Above ========================
 			// Check if the GetAIProjectCollabStatus() call above made changes to the collab settings
 			// during validation. If so, save the changes to the project config file here before
 			// proceeding.
+
+            // If administrator/user has not suppressed the m_bPromptToSwitchCollabFromPT7toPT8 already,
+            // offer to switch collaboration project from collaborating with the PT7 projects to
+            // collaborating with the equivalent, existing, and migrated PT8 projects. 
+            // Note: The bBothPT7AndPT8InstalledPT8ProjectsWereMigrated argument is set TRUE from the GetAIProjectCollabStatus()
+            // function above if and only if, the following are all TRUE:
+            // If the current collaboration editor is specified to be PT7,
+            // and, if collaboration Source project exists, and collaboration target project exists,
+            // and, if PT7 and PT8 are both installed,
+            // and, if there are currently PT8 projects existing that are the same named 
+            //      projects being used in collaboration between AI and PT7,
+            // and, if the GUID. for the PT8 projects are the same as the corresponding GUIDs of the PT7 projects
+
+            if (bBothPT7AndPT8InstalledPT8ProjectsWereMigrated && (pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 == FALSE))
+            {
+                wxString ftProjTempStr = pApp->m_CollabProjectForFreeTransExports;
+                if (ftProjTempStr.IsEmpty())
+                {
+                    ftProjTempStr = _("<None>");
+                }
+            
+                CCollabProjectMigrationDlg collabProjMigrDlg(pApp->GetMainFrame(), pApp->m_CollabAIProjectName, pApp->m_CollabProjectForSourceInputs,pApp->m_CollabProjectForTargetExports, ftProjTempStr);
+                collabProjMigrDlg.Centre();
+                wxString msg;
+                wxString title;
+                title = _("Important information about collaboration project: %s");
+                title = title.Format(title, pApp->m_CollabAIProjectName.c_str());
+                wxString reappearMsg = _("The \"Collaboration Project Migration\" dialog will appear again the next time you open this Adapt It collaboration project and you can switch collaboration to Paratext 8 at that time. Be aware, however, that any adaptation work you do while collaborating with the Paratext 7 projects will not appear in the Paratext 8 projects, until you tell Adapt It to collaborate with Paratext 8.");
+                pApp->LogUserAction(_T("Calling Collab Project Migration dialog"));
+                if (collabProjMigrDlg.ShowModal() == wxID_OK)
+                {
+                    if (collabProjMigrDlg.m_bPT8BtnSelected)
+                    {
+                        // Paratext 8 selected
+                        msg = _T("Collab Project Migration dialog : PT8 selection confirmed. Configuring the %s project's collaboration settings to use PT8");
+                        msg = msg.Format(msg, pApp->m_CollabAIProjectName.c_str());
+                        pApp->LogUserAction(msg);
+                        // Adjust the project configuration collab settings to point to projects in PT8 instead of PT7. The only
+                        // project configuration setting that needs to change is the CollabParatextVersionForProject whose value
+                        // is stored in the App's m_ParatextVersionForProject
+                        if (pApp->m_ParatextVersionForProject == _T("PTVersion7"))
+                            pApp->m_ParatextVersionForProject = _T("PTVersion8");
+                        else if (pApp->m_ParatextVersionForProject == _T("PTLinuxVersion7"))
+                            pApp->m_ParatextVersionForProject = _T("PTLinuxVersion8");
+                        // We programatically set value of App's m_bCollabDoNotShowMigrationDialogForPT7toPT8 to TRUE (although the dialog 
+                        // won't show again regardless of the value of m_bCollabDoNotShowMigrationDialogForPT7toPT8 as long as PT8 is selected)
+                        pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = TRUE;
+                        bConfigFileChangesMade = TRUE; // forces a write of changes to the project configuration file in the block below
+                    }
+                    else
+                    {
+                        // Paratext 7 selected. This selection was explicitly made by the user to keep collaborating
+                        // with Paratext 7 in spite of the PT7 projects having been migrated to PT8.
+                        // No adjustments to AI project configuration needed here, but log the choice and we warn/remind the 
+                        // user that any adaptation work in the collaboration project will be recorded in the old PT7 project
+                        // and won't be available for use in the migrated PT8 projects.
+                        msg = _T("Collab Project Migration dialog: User explicitly chose to keep project: %s, collaborating with PT7 even though the PT7 collab projects were migrated to PT8.");
+                        msg = msg.Format(msg, pApp->m_CollabAIProjectName.c_str());
+                        pApp->LogUserAction(msg);
+                        // Start first/common part of msg here
+                        msg = _("You have chosen to keep this Adapt It project collaborating with Paratext 7 even though the Paratext 7 collaboration projects were migrated to Paratext 8. Your Adapt It work will appear only in the old Paratext 7 projects, and not in the Paratext 8 projects. ");
+                        if (collabProjMigrDlg.m_bDoNotShowAgain)
+                        {
+                            // increment msg with additional info about the Collaboration Project Migration dialog not appearing anymore and needing to make future changes to collaboration in the Setup Or Remove Collaboration dialog
+                            msg = msg + _("\n\nYou also chose to not show the \"Collaboration Project Migration\" dialog again. If you later decide you want this Adapt It project to collaborate with projects in Paratext 8 you, or an administrator will need to manually set up this project using the \"Setup Or Remove Collaboration\" dialog from Adapt It's Administrator menu.");
+                            wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+                            pApp->LogUserAction(msg);
+                        }
+                        else
+                        {
+                            // increment msg with additional info about the Collaboration Project Migration dialog appearing again
+                            msg = msg + _T("\n\n") + reappearMsg;
+                            wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+                        }
+                    }
+
+                    if (collabProjMigrDlg.m_bDoNotShowAgain)
+                    {
+                        // Do Not Show Again checkbox was ticked
+                        pApp->LogUserAction(_T("Collab Project Migration dialog: User ticked Do Not Show Again checkbox"));
+                        // Set value of App's m_bCollabDoNotShowMigrationDialogForPT7toPT8 to TRUE
+                        pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = TRUE;
+                        bConfigFileChangesMade = TRUE; // forces a write of changes to the project configuration file in the block below
+                    }
+                }
+                else
+                {
+                    // User Cancelled the dialog, we assume collaboration setup will remain with PT7
+                    pApp->LogUserAction(_T("Collab Project Migration dialog: User Cancelled dialog. Collab with PT7 not changed."));
+                    msg =reappearMsg;
+                    wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+                }
+            }
+
 			if (bConfigFileChangesMade)
 			{
 				bool bOK;
@@ -897,6 +994,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
                         pApp->m_CollabSourceLangName = _T("");
                         pApp->m_CollabTargetLangName = _T("");
                         pApp->m_CollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+                        pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE;
                         pApp->m_bCollabByChapterOnly = TRUE;
                         pApp->m_CollabChapterSelected = _T("");
 
