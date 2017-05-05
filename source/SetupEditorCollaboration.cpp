@@ -122,8 +122,8 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	wxASSERT(pTextCtrlAsStaticSelectedFreeTransProj != NULL);
 	pTextCtrlAsStaticSelectedFreeTransProj->SetBackgroundColour(sysColorBtnFace);
 
-	pStaticTextUseThisDialog = (wxStaticText*)FindWindowById(ID_TEXT_USE_THIS_DIALOG);
-	wxASSERT(pStaticTextUseThisDialog != NULL);
+	pStaticTextDialogTopicLine = (wxStaticText*)FindWindowById(ID_TEXT_USE_THIS_DIALOG);
+	wxASSERT(pStaticTextDialogTopicLine != NULL);
 
 	pStaticTextSelectWhichProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SELECT_WHICH_PROJECTS);
 	wxASSERT(pStaticTextSelectWhichProj != NULL);
@@ -3055,7 +3055,7 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 	// the string value in m_collaborationEditor
 	// Substitute string in the "Use this dialog..." top static text
 	wxString text;
-	text = pStaticTextUseThisDialog->GetLabel();
+	text = pStaticTextDialogTopicLine->GetLabel();
 	// whm Note: The control's label text may have already been substituted in which
 	// case there would be no $s to use in the .Format() statement. If substitutions
 	// have already been done, just find and replace the "Paratext" or "Bibledit"
@@ -3065,8 +3065,8 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 	if (text.Find(_T("Bibledit")) != wxNOT_FOUND)
 		text.Replace(_T("Bibledit"),m_TempCollaborationEditor);
 	text = text.Format(text,m_TempCollaborationEditor.c_str());
-	pStaticTextUseThisDialog->SetLabel(text);
-	pStaticTextUseThisDialog->Refresh();
+	pStaticTextDialogTopicLine->SetLabel(text);
+	pStaticTextDialogTopicLine->Refresh();
 
 	// Substitute strings in the static text above the list box
 	text = pStaticTextListOfProjects->GetLabel();

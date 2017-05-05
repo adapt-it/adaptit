@@ -90,7 +90,7 @@ adaptit_SOURCES = \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
 	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp ../../source/ChooseLanguageCode.cpp \
 	../../source/ChooseCollabOptionsDlg.cpp \
-	../../source/ChooseTranslation.cpp ../../source/ClientServerConnection.cpp \
+	../../source/ChooseTranslation.cpp ../../source/ClientServerConnection.cpp ../../source/CollabProtectEditorBulkSettingsDlg.cpp \
 	../../source/CollabVerseConflictDlg.cpp ../../source/CollabProjectMigrationDlg.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConflictResActionDlg.cpp \

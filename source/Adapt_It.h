@@ -4172,6 +4172,12 @@ public:
 	//void OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event);
 	void OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& WXUNUSED(event));
 
+    // whm added next four 20April2017 
+    void OnAdvancedProtectEditorFmGettingChangesForThisDoc(wxCommandEvent& WXUNUSED(event));
+    void OnUpdateAdvancedProtectEditorFmGettingChangesForThisDoc(wxUpdateUIEvent& event);
+    void OnAdvancedAllowEditorToGetChangesForThisDoc(wxCommandEvent& WXUNUSED(event));
+    void OnUpdateAdvancedAllowEditorToGetChangesForThisDoc(wxUpdateUIEvent& event);
+
 	void OnFilePageSetup(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileChangeFolder(wxUpdateUIEvent& event);
 	void OnUpdateFileBackupKb(wxUpdateUIEvent& event);
@@ -4209,9 +4215,11 @@ public:
 	void OnMoveOrCopyFoldersOrFiles(wxCommandEvent& event);
 	void OnAssignLocationsForInputsAndOutputs(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAssignLocationsForInputsAndOutputs(wxUpdateUIEvent& event);
-	void OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event);
-	void OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event)); // whm added 14Feb12
+    void OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event));
+    void OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event);
+    void OnManageDataTransfersToEditor(wxCommandEvent& WXUNUSED(event));
+    void OnUpdateManageDataTransfersToEditor(wxUpdateUIEvent& event);
+    void OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event)); // whm added 14Feb12
 	void OnUpdateTempRestoreUserProfiles(wxUpdateUIEvent& event); // whm added 14Feb12
 	void OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event);
@@ -4410,8 +4418,9 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	Collab_Project_Info_Struct* GetCollab_Project_Struct(wxString projShortName);
 	wxString GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, wxString beginTag, wxString endTag);
 	wxString GetBookCodeFromBookName(wxString bookName);
-	wxString GetBookNameFromBookCode(wxString bookCode);
-	int GetBookFlagIndexFromFullBookName(wxString fullBookName);
+	wxString GetCanonTypeFromBookCode(wxString bookCode);
+	wxString GetBookNameFromBookCode(wxString bookCode, wxString collabEditor);
+    int GetBookFlagIndexFromFullBookName(wxString fullBookName);
 	int GetNumberFromBookCodeForFileNaming(wxString bookStr);
     wxString GetBookNumberAsStrFromName(wxString bookName);
     wxString GetBookNumberAsStrFromBookCode(wxString bookCode);
@@ -4441,6 +4450,8 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 				wxString ptProjectShortName, wxString chapterNumStr, wxString extStr);
 	void GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray,
 													   wxArrayString& collabSettingsArray);
+    wxString GetVersificationNameFromEnumVal(int vrsEnum);
+    wxString GetVersificationFileNameFromEnumVal(int vrsEnum);
 	wxString GetCollabSettingsAsStringForLog();
 	bool IsAIProjectOpen();
 	bool AIProjectHasCollabDocs(wxString m_projectName);
@@ -4595,6 +4606,7 @@ public:
 	int		GetPageOrientation();
 	void	GetPossibleAdaptionDocuments(wxArrayString* pList, wxString dirPath);
 	void	GetPossibleAdaptionProjects(wxArrayString* pList);
+	void	GetPossibleAdaptionCollabProjects(wxArrayString* aiCollabProjectNamesArray);
 	void	GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPunctuation);
 	int		GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView);
 	CAdapt_ItView* GetView();		// convenience function for accessing the View

@@ -2697,7 +2697,7 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 {
 
     // ********************** Protection from Saving Changes to PT/BE Code below ***********************
-    // whm added 2March2017 code to allow collab books/chapters to be protected from
+    // whm added 17April2017 code to allow collab books/chapters to be protected from
     // writing changes to PT/BE during collaboration saves. These books/chapters would
     // still be saved normally as AI documents in the Adaptations folder - just not to PT/BE.
     // Here is where we should interrupt the transfer of information to PT/BE when the
@@ -2714,16 +2714,18 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
     wxASSERT(!bookCode.IsEmpty());
     bProtectedFromSavingChangesToExternalEditor = IsCollabDocProtectedFromSavingToEditor(bookCode, bCollabByChapterOnly, collabChapterSelected);
     bProtectedFromSavingChangesToExternalEditor = bProtectedFromSavingChangesToExternalEditor; // avoid gcc warning
-    // TODO: Uncomment code below to activate protection code
-    //if (bProtectedFromSavingChangesToExternalEditor)
-    //{
-    //    // TODO: Bruce, is it necessary to call UpdateDocWithPhraseBoxContents() here before
-    //    // calling DoFileSave_Protected()??
+    // If this document is "protected" just save the changes locally by calling the
+    // DoFileSave_Protected() function, then return without executing the code below
+    // that prepares and saves changes to the external editor
+    if (bProtectedFromSavingChangesToExternalEditor)
+    {
+        // TODO: Bruce, is it necessary to call UpdateDocWithPhraseBoxContents() here before
+        // calling DoFileSave_Protected()??
 
-    //    // Do a local normal protected save to AI's native storage
-    //    DoFileSave_Protected(TRUE, progressItem); // // TRUE means - show wait/progress dialog
-    //    return TRUE;
-    //}
+        // Do a local normal protected save to AI's native storage
+        DoFileSave_Protected(TRUE, progressItem); // // TRUE means - show wait/progress dialog
+        return TRUE;
+    }
     // ********************** Protection from Saving Changes to PT/BE Code above ***********************
 
     // For testing purposes, assume it's target text, and a single-chapter

@@ -3181,10 +3181,12 @@ void UnloadKBs(CAdapt_ItApp* pApp)
 /// chapter-only mode.
 /// The ordering of book and/or book:chapter references within the returned string will be
 /// tailored to mimic the book ordering of the App's AllBookNumStr[] array.
+/// Note: This function does not validate the Book IDs or chapter numbers to ensure that they make
+/// sense, but it won't choke on a bad entry either.
 /// 
 /// whm added 9March2017
 ////////////////////////////////////////////////////////////////////////////////
-wxString AddCollabBooksAndOrChaptersToCollabString(wxString currentString, wxString bookIDsorChapters)
+wxString AddCollabBooksAndOrChaptersToProtectedCollabString(wxString currentString, wxString bookIDsorChapters)
 {
     // We use a tempTokenArray to store the original, replaced, and/or added book and/or book:chapter 
     // tokens.
@@ -3473,9 +3475,11 @@ wxString AddCollabBooksAndOrChaptersToCollabString(wxString currentString, wxStr
 /// chapter-only mode.
 /// The ordering of book and/or book:chapter references within the returned string will be
 /// tailored to mimic the book ordering of the App's AllBookNumStr[] array.
+/// Note: This function does not validate the Book IDs or chapter numbers to ensure that they make
+/// sense, but it won't choke on a bad entry either.
 /// 
 /// whm added 9March2017
-wxString RemoveCollabBooksOrChaptersFromCollabString(wxString currentString, wxString bookIDsorChapters)
+wxString RemoveCollabBooksOrChaptersFromProtectedCollabString(wxString currentString, wxString bookIDsorChapters)
 {
     // We use a tempTokenArray to store the original, replaced, and/or added book and/or book:chapter 
     // tokens.
@@ -3742,7 +3746,7 @@ wxString RemoveCollabBooksOrChaptersFromCollabString(wxString currentString, wxS
 ///                                   when CollabByChapterOnly value is "1"
 /// \remarks
 /// Called From: CAdapt_ItDoc::DoCollabFileSave().
-/// This function parses the App's m_CollabBooksProtectedFromSavingToEditor wxString variable
+/// This function parses the App's m_CollabBooksProtectedFromSavingToEditor wxString value
 /// which was read in from the AI-ProjectConfiguration.aic file's string associated with the 
 /// CollabBooksProtectedFromSavingToEditor label, to determine if the book/chapter 
 /// specified in the parameters is protected from saving changes to PT/BE or not.
@@ -4533,7 +4537,7 @@ wxString GetPathToBeRdwrt()
 	// function directly. Hence, the path stored in the App's m_BibleditInstallDirPath member
 	// already has the appropriate prefix (for bibledit-gtk), so we don't need to add a prefix
 	// here.
-	if (::wxFileExists(gpApp->m_BibleditInstallDirPath + gpApp->PathSeparator + _T("bibledit-rdwrt")))
+	if (::wxFileExists(gpApp->GetBibleditInstallDirPath() + gpApp->PathSeparator + _T("bibledit-rdwrt")))
 	{
 		// bibledit-rdwrt exists in the Bibledit installation so use it.
 		// First, determine if file is executable from the current process
@@ -4552,7 +4556,7 @@ wxString GetPathToBeRdwrt()
 		// executable.
 		//beRdwrtPathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("adaptit-bibledit-rdwrt");
 		beRdwrtPathAndFileName = gpApp->GetAdaptit_Bibledit_rdwrtInstallDirPath() + gpApp->PathSeparator + _T("adaptit-bibledit-rdwrt");
-		wxASSERT(::wxFileExists(beRdwrtPathAndFileName));
+		//wxASSERT(::wxFileExists(beRdwrtPathAndFileName));
 		// Note: The beRdwrtPathAndFileName console app does uses the same Linux dynamic libraries that
 		// the main bibledit-gtk program uses, but the version of Bibledit needs to be at least version
 		// 4.2.x for our version of adaptit-bibledit-rdwrt to work.

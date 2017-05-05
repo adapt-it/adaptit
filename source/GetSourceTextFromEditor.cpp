@@ -144,6 +144,15 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning
 	// other attribute initializations
+
+    pGetSourceTextFromEditorSizer->Layout(); // update the layout for $s substitutions
+                                             // Some control text may be truncated unless we resize the dialog to fit it. 
+                                             // Note: The constructor's call of GetSourceTextFromEditorDlgFunc(this, FALSE, TRUE)
+                                             // has its second parameter as FALSE to allow this resize here in InitDialog().
+    wxSize dlgSize;
+    dlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+    this->SetSize(dlgSize);
+    this->CenterOnParent();
 }
 
 CGetSourceTextFromEditorDlg::~CGetSourceTextFromEditorDlg() // destructor
@@ -1356,7 +1365,7 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(even
 			noteStrToDisplay += _T(' ');
 			noteStrToDisplay += m_staticBoxFreeTransDescriptionArray.Item(nSel); // TODO: check that arrays have same count???
 		}
-		wxLogDebug(noteStrToDisplay);
+		//wxLogDebug(noteStrToDisplay);
 		pStaticTextCtrlNote->ChangeValue(noteStrToDisplay);
 		// whm note 29Jul11 We can't set focus on the OK button whenever the 
 		// chapter selection changes, because working via keyboard, the up and

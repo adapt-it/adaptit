@@ -373,6 +373,7 @@ extern wxCriticalSection g_jsonCritSect;
 #include "CorGuess.h"
 #include "SetupEditorCollaboration.h"
 #include "GetSourceTextFromEditor.h"
+#include "CollabProtectEditorBulkSettingsDlg.h"
 #include "AssignLocationsForInputsAndOutputs.h"
 #include "HtmlFileViewer.h"
 #include "DVCS.h"
@@ -2052,6 +2053,26 @@ const wxString defaultProfileItems[] =
     _T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
     _T("/PROFILE:"),
     _T("/MENU:"),
+    _T("MENU:itemID=\"ID_ADVANCED_PROTECT_EDITOR_FM__GETTING_CHANGES_FOR_THIS_DOC\":itemType=\"subMenu\":itemText=\"&Prevent Paratext/Bibledit from getting changes to this document\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+    _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("/MENU:"),
+    _T("MENU:itemID=\"ID_ADVANCED_ALLOW_EDITOR_TO_GET_CHANGES_FOR_THIS_DOC\":itemType=\"subMenu\":itemText=\"Allo&w Paratext/Bibledit to get changes to this document\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+    _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("/MENU:"),
     _T("MENU:itemID=\"ID_MENU_SHOW_KBSERVER_SETUP_DLG\":itemType=\"subMenu\":itemText=\"Setup Or Remove &Knowledge Base Sharing...\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
     _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
     _T("/PROFILE:"),
@@ -2278,7 +2299,7 @@ const wxString defaultProfileItems[] =
 // whm 26Apr11 added wxString arrays below for AI-PT collaboration
 // Array of all book ids. (from Paratext's canon.cs source file)
 wxString AllBookIds[] = {
-    _T("GEN"),
+    _T("GEN"), // 1 (array index 0)
     _T("EXO"),
     _T("LEV"),
     _T("NUM"),
@@ -2287,7 +2308,7 @@ wxString AllBookIds[] = {
     _T("JDG"),
     _T("RUT"),
     _T("1SA"),
-    _T("2SA"), // 10
+    _T("2SA"), // 10 (array index 9)
 
     _T("1KI"),
     _T("2KI"),
@@ -2298,7 +2319,7 @@ wxString AllBookIds[] = {
     _T("EST"),
     _T("JOB"),
     _T("PSA"),
-    _T("PRO"), // 20
+    _T("PRO"), // 20 (array index 19)
 
     _T("ECC"),
     _T("SNG"),
@@ -2309,7 +2330,7 @@ wxString AllBookIds[] = {
     _T("DAN"),
     _T("HOS"),
     _T("JOL"),
-    _T("AMO"), // 30
+    _T("AMO"), // 30 (array index 29)
 
     _T("OBA"),
     _T("JON"),
@@ -2320,7 +2341,7 @@ wxString AllBookIds[] = {
     _T("HAG"),
     _T("ZEC"),
     _T("MAL"),
-    _T("MAT"), // 40
+    _T("MAT"), // 40 (array index 39)
 
     _T("MRK"),
     _T("LUK"),
@@ -2331,7 +2352,7 @@ wxString AllBookIds[] = {
     _T("2CO"),
     _T("GAL"),
     _T("EPH"),
-    _T("PHP"), // 50
+    _T("PHP"), // 50 (array index 49)
 
     _T("COL"),
     _T("1TH"),
@@ -2342,7 +2363,7 @@ wxString AllBookIds[] = {
     _T("PHM"),
     _T("HEB"),
     _T("JAS"),
-    _T("1PE"), // 60
+    _T("1PE"), // 60 (array index 59)
 
     _T("2PE"),
     _T("1JN"),
@@ -2353,7 +2374,7 @@ wxString AllBookIds[] = {
     _T("TOB"),
     _T("JDT"),
     _T("ESG"),
-    _T("WIS"), // 70
+    _T("WIS"), // 70 (array index 69)
 
     _T("SIR"),
     _T("BAR"),
@@ -2364,7 +2385,7 @@ wxString AllBookIds[] = {
     _T("1MA"),
     _T("2MA"),
     _T("3MA"),
-    _T("4MA"), // 80
+    _T("4MA"), // 80 (array index 79)
 
     _T("1ES"),
     _T("2ES"),
@@ -2375,7 +2396,7 @@ wxString AllBookIds[] = {
     _T("JSA"),  // actual variant text for JOS, now in LXA text
     _T("JDB"),  // actual variant text for JDG, now in LXA text
     _T("TBS"),  // actual variant text for TOB, now in LXA text
-    _T("SST"),  // actual variant text for SUS, now in LXA text // 90
+    _T("SST"),  // actual variant text for SUS, now in LXA text // 90 (array index 89)
 
     _T("DNT"),  // actual variant text for DAN, now in LXA text
     _T("BLT"),  // actual variant text for BEL, now in LXA text
@@ -2386,7 +2407,7 @@ wxString AllBookIds[] = {
     _T("XXE"),
     _T("XXF"),
     _T("XXG"),
-    _T("FRT"), // 100
+    _T("FRT"), // 100 (array index 99)
 
     _T("BAK"),
     _T("OTH"),
@@ -2397,7 +2418,7 @@ wxString AllBookIds[] = {
     _T("INT"),
     _T("CNC"),
     _T("GLO"),
-    _T("TDX"), // 110
+    _T("TDX"), // 110 (array index 109)
 
     _T("NDX"),
     _T("DAG"),
@@ -2408,11 +2429,11 @@ wxString AllBookIds[] = {
     _T("ENO"),
     _T("1MQ"),
     _T("2MQ"),
-    _T("3MQ"), // 120
+    _T("3MQ"), // 120 (array index 119)
 
     _T("REP"),
     _T("4BA"),
-    _T("LAO"),
+    _T("LAO"), // 123 (array index 122)
 };
 
 // Note: In the AllBookNumStr[] array below, the string numbers do not correlate with array indices!
@@ -2421,7 +2442,8 @@ wxString AllBookIds[] = {
 // array to determine its book number string - useful mainly for determining the <FileNameBookNameForm> 
 // that Paratext assigns/uses (in Settings.xml) to that Scripture book in the project's naming scheme.
 // The book numbers in AllBookNumStr[] are not zero based and skip number 40 between OT and NT; decimal counts end at 87
-// Book numbers are arbitrarily assigned "$$" for books 
+// whm modified 23March2017 to update/correct some misc book filename digits to conform to
+// what Tom H said it their current practice. Previously some elements below had "$$" as the "number"
 wxString AllBookNumStr[] = {
     _T("01"), // GEN 
     _T("02"), // EXO
@@ -2564,9 +2586,15 @@ wxString AllBookNumStr[] = {
 
 
 
-// Array of the English names of all books - from Paratext source canon.cs
+// Array of the English names of all books - from Paratext source 
+// Verified and modified from code snippets provided by Tom H. on 27April2017
+// Categories/Subsections:
+//    All Books: array index 0 ... 122
+//    OT Books: array index 0 ... 38
+//    NT Books: array index 39 ... 65
+//    DC Books: array index 66 ... 85, 103 ... 105, 111 ... 122;  Bibledit only recognizes: array index 66 ... 71, 76 ... 77
 wxString AllBookNames[] = {
-    _T("Genesis"),
+    _T("Genesis"), // array index 0
     _T("Exodus"),
     _T("Leviticus"),
     _T("Numbers"),
@@ -2575,7 +2603,7 @@ wxString AllBookNames[] = {
     _T("Judges"),
     _T("Ruth"),
     _T("1 Samuel"),
-    _T("2 Samuel"),
+    _T("2 Samuel"), // array index 9
 
     _T("1 Kings"),
     _T("2 Kings"),
@@ -2583,21 +2611,21 @@ wxString AllBookNames[] = {
     _T("2 Chronicles"),
     _T("Ezra"),
     _T("Nehemiah"),
-    _T("Esther (Hebrew)"),
+    _T("Esther (Hebrew)"), // Bibledit uses "Esther"
     _T("Job"),
     _T("Psalms"),
-    _T("Proverbs"),
+    _T("Proverbs"), // array index 19
 
     _T("Ecclesiastes"),
-    _T("Song of Songs"),
+    _T("Song of Songs"), // Bibledit uses "Song of Solomon"
     _T("Isaiah"),
     _T("Jeremiah"),
     _T("Lamentations"),
     _T("Ezekiel"),
-    _T("Daniel (Hebrew)"),
+    _T("Daniel (Hebrew)"), // Bibledit uses "Daniel"
     _T("Hosea"),
     _T("Joel"),
-    _T("Amos"),
+    _T("Amos"), // array index 29
 
     _T("Obadiah"),
     _T("Jonah"),
@@ -2608,7 +2636,7 @@ wxString AllBookNames[] = {
     _T("Haggai"),
     _T("Zechariah"),
     _T("Malachi"),
-    _T("Matthew"),
+    _T("Matthew"), // array index 39
 
     _T("Mark"),
     _T("Luke"),
@@ -2619,7 +2647,7 @@ wxString AllBookNames[] = {
     _T("2 Corinthians"),
     _T("Galatians"),
     _T("Ephesians"),
-    _T("Philippians"),
+    _T("Philippians"), // array index 49
 
     _T("Colossians"),
     _T("1 Thessalonians"),
@@ -2630,7 +2658,7 @@ wxString AllBookNames[] = {
     _T("Philemon"),
     _T("Hebrews"),
     _T("James"),
-    _T("1 Peter"),
+    _T("1 Peter"), // array index 59
 
     _T("2 Peter"),
     _T("1 John"),
@@ -2638,347 +2666,438 @@ wxString AllBookNames[] = {
     _T("3 John"),
     _T("Jude"),
     _T("Revelation"),
-    _T("Tobit"),
+    _T("Tobit"), // array index 66
     _T("Judith"),
-    _T("Esther Greek"),
-    _T("Wisdom of Solomon"),
+    _T("Esther Greek"), // Bibledit uses "Esther"
+    _T("Wisdom of Solomon"), // Bibledit uses "Wisdom" // array index 69
 
-    _T("Sirach (Ecclesiasticus)"),
+    _T("Sirach (Ecclesiasticus)"), // Bibledit uses "Sirach"
     _T("Baruch"),
-    _T("Letter of Jeremiah"),
-    _T("Song of 3 Young Men"),
-    _T("Susanna"),
-    _T("Bel and the Dragon"),
+    _T("Letter of Jeremiah"), // not used in Bibledit
+    _T("Song of 3 Young Men"), // not used in Bibledit
+    _T("Susanna"), // not used in Bibledit
+    _T("Bel and the Dragon"), // not used in Bibledit
     _T("1 Maccabees"),
     _T("2 Maccabees"),
-    _T("3 Maccabees"),
-    _T("4 Maccabees"),
+    _T("3 Maccabees"), // not used in Bibledit
+    _T("4 Maccabees"), // not used in Bibledit // array index 79
 
-    _T("1 Esdras (Greek)"),
-    _T("2 Esdras (Latin)"),
-    _T("Prayer of Manasseh"),
-    _T("Psalm 151"),
-    _T("Odes"),
-    _T("Psalms of Solomon"),
-    _T("Joshua A. *obsolete*"),
-    _T("Judges B. *obsolete*"),
-    _T("Tobit S. *obsolete*"),
-    _T("Susanna Th. *obsolete*"),
+    _T("1 Esdras (Greek)"), // not used in Bibledit
+    _T("2 Esdras (Latin)"), // not used in Bibledit
+    _T("Prayer of Manasseh"), // not used in Bibledit
+    _T("Psalm 151"), // not used in Bibledit
+    _T("Odes"), // not used in Bibledit
+    _T("Psalms of Solomon"), // not used in Bibledit // array index 85
+    _T("Joshua A. *obsolete*"), // not used in Bibledit
+    _T("Judges B. *obsolete*"), // not used in Bibledit
+    _T("Tobit S. *obsolete*"), // not used in Bibledit
+    _T("Susanna Th. *obsolete*"), // not used in Bibledit // array index 89
 
-    _T("Daniel Th. *obsolete*"),
-    _T("Bel Th. *obsolete*"),
-    _T("Extra A"),
-    _T("Extra B"),
-    _T("Extra C"),
-    _T("Extra D"),
-    _T("Extra E"),
-    _T("Extra F"),
-    _T("Extra G"),
-    _T("Front Matter"),
+    _T("Daniel Th. *obsolete*"), // not used in Bibledit
+    _T("Bel Th. *obsolete*"), // not used in Bibledit
+    _T("Extra A"), // not used in Bibledit
+    _T("Extra B"), // not used in Bibledit
+    _T("Extra C"), // not used in Bibledit
+    _T("Extra D"), // not used in Bibledit
+    _T("Extra E"), // not used in Bibledit
+    _T("Extra F"), // not used in Bibledit
+    _T("Extra G"), // not used in Bibledit
+    _T("Front Matter"), // not used in Bibledit // array index 99
 
-    _T("Back Matter"),
-    _T("Other Matter"),
-    _T("3 Ezra *obsolete*"),
-    _T("Apocalypse of Ezra"),
-    _T("5 Ezra"),
-    _T("6 Ezra"),
-    _T("Introduction"),
-    _T("Concordance "),
-    _T("Glossary "),
-    _T("Topical Index"),
+    _T("Back Matter"), // not used in Bibledit
+    _T("Other Matter"), // not used in Bibledit
+    _T("3 Ezra *obsolete*"), // not used in Bibledit
+    _T("Apocalypse of Ezra"), // not used in Bibledit // array index 103
+    _T("5 Ezra"), // not used in Bibledit
+    _T("6 Ezra"), // not used in Bibledit // array index 105
+    _T("Introduction"), // not used in Bibledit
+    _T("Concordance"), // not used in Bibledit
+    _T("Glossary"), // not used in Bibledit
+    _T("Topical Index"), // not used in Bibledit // array index 109
 
-    _T("Names Index"),
-    _T("Daniel Greek"),
-    _T("Psalms 152-155"),
-    _T("2 Baruch (Apocalypse)"),
-    _T("Letter of Baruch"),
-    _T("Jubilees"),
-    _T("Enoch"),
-    _T("1 Meqabyan"),
-    _T("2 Meqabyan"),
-    _T("3 Meqabyan"),
-    _T("Reproof"),
+    _T("Names Index"), // not used in Bibledit
+    _T("Daniel Greek"), // not used in Bibledit // array index 111
+    _T("Psalms 152-155"), // not used in Bibledit
+    _T("2 Baruch (Apocalypse)"), // not used in Bibledit
+    _T("Letter of Baruch"), // not used in Bibledit
+    _T("Jubilees"), // not used in Bibledit
+    _T("Enoch"), // not used in Bibledit
+    _T("1 Meqabyan"), // not used in Bibledit
+    _T("2 Meqabyan"), // not used in Bibledit
+    _T("3 Meqabyan"), // not used in Bibledit // array index 119
 
-    _T("4 Baruch"),
-    _T("Laodiceans")
+    _T("Reproof (Proverbs 25-31)"), // added parenthetical part 27April2017 // not used in Bibledit
+    _T("4 Baruch (Rest of Baruch)"), // added parenthetical part 27April2017 // not used in Bibledit
+    _T("Laodiceans") // not used in Bibledit // array index 122
 };
 
-/*
-// whm removed since the app now gets its default menu structure from a temporary
-// instance of the wxDesigner's AIMenuBarFunc().
-//
-// Note: An array of top level menu names is available from the App's GetToopLevelMenuName()
-// function.
+// Array of the English names of all books - from Bibledit's versification_<type>.xml files.
+// This array uses the same book names as Paratext, except for the cases where Bibledit
+// uses a different book name. Bibledit does not itself use some of the book names that
+// Paratext uses - in such cases, this array retains the Paratext book name. Hence, the
+// only differences between the AllBookNamesBibledit[] array and AllBookNames[] are for
+// the following array elements:
+// Paratext uses:                Bibledit uses:       Array index (zero based):
+// "Esther (Hebrew)"             "Esther"             16
+// "Song of Songs"               "Song of Solomon"    21
+// "Daniel (Hebrew)"             "Daniel"             26
+// "Esther Greek"                "Esther"             68
+// "Wisdom of Solomon"           "Wisdom"             69
+// "Sirach (Ecclesiasticus)"     "Sirach"             70
+// Note: Bibledit conflates "Esther (Hebrew)" with "Esther Greek" so in Bibledit most
+// mapping processes will only map Bibledit's "Esther" to "Esther (Hebrew)" or bookID EST
+// and not bookID ESG ("Ester Greek" in Paratext).
+// Categories/Subsections:
+//    All Books: array index 0 ... 122
+//    OT Books: array index 0 ... 38
+//    NT Books: array index 39 ... 65
+//    DC Books: array index 66 ... 85, 103 ... 105, 111 ... 122;  Bibledit only recognizes: array index 66 ... 71, 76 ... 77
+wxString AllBookNamesBibledit[] = {
+    _T("Genesis"), // index 0
+    _T("Exodus"),
+    _T("Leviticus"),
+    _T("Numbers"),
+    _T("Deuteronomy"),
+    _T("Joshua"),
+    _T("Judges"),
+    _T("Ruth"),
+    _T("1 Samuel"),
+    _T("2 Samuel"),
 
-// whm added 10Sep10
-/// An array of wxStrings which, when parsed by ParseMenuStructureStrings(), is used as
-/// default list of User Workflow Profile dialog item definitions. There definitions are
-/// used only if, for some reason, the program cannot find the AI_UserProfiles.xml control
-/// file. Note: This menu structure is complete - it also includes the "Administrator"
-/// menu items which are not included in the AI_UserProfiles.xml file.
-const wxString defaultMenuStructure[] =
-{
-// Note: In the strings below, the attribute fields should be identical to what the normal default
-// strings are that are used within the AIMenuBarFunc() produced by wxDesigner. Hence, the subMenuID
-// field should contain the exact menu item identifiers; the subMenuLabel should contain the exact
-// menu label strings - including any accelerators (i.e., "\tCtrl-A") and ampersands preceding the
-// short cut ALT+key letters; the subMenuHelp should be the same as what is in wxDesigner; and the
-// subMenuKind should accurately indicate whether the menu item is wxITEM_NORMAL, wxITEM_CHECK
-// or wxITEM_SEPARATOR. Cut and paste of strings from the AIMenuBarFunc() in Adapt_It_wdr.cpp helps
-// ensure exact copy - but Note: quote marks here need to be escaped with a backslash!
-//
-// The ReportMenuAndUserProfilesInconsistencies() function compares the data
-// stored in the m_pAI_MenuStructure struct on the heap with those that are used in the
-// defaultMenuStructure string array below. It uses wxLogDebug() calls to alert the
-// programmer of any significant differences/inconsistencies.
-_T("MENU_STRUCTURE:"),
-_T("MAIN_MENU:mainMenuID=\"ID_FILE_MENU\":mainMenuLabel=\"&File\":"),
-_T("SUB_MENU:subMenuID=\"wxID_NEW\":subMenuLabel=\"&New\\tCtrl-N\":subMenuHelp=\"Create a new document\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"wxID_OPEN\":subMenuLabel=\"&Open...\\tCtrl-O\":subMenuHelp=\"Open an existing document\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"wxID_SAVE\":subMenuLabel=\"&Save\\tCtrl-S\":subMenuHelp=\"Save the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_SAVE_AS\":subMenuLabel=\"Save &As...\\tCtrl-A\":subMenuHelp=\"Save the document with different xml format, or different filename\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"wxID_CLOSE\":subMenuLabel=\"&Close\":subMenuHelp=\"Close the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_FILE_PACK_DOC\":subMenuLabel=\"Pack Document...\":subMenuHelp=\"Pack document for transfer to another computer\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_FILE_UNPACK_DOC\":subMenuLabel=\"Unpack Document...\":subMenuHelp=\"Unpack a document that was packed on another computer\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"wxID_PRINT\":subMenuLabel=\"&Print...\\tCtrl-P\":subMenuHelp=\"Print the active document\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"wxID_PREVIEW\":subMenuLabel=\"Print Pre&view\":subMenuHelp=\"Show what printed pages will look like (without printing)\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"wxID_PAGE_SETUP\":subMenuLabel=\"P&age Setup...\":subMenuHelp=\"Change the printing options\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_FILE_STARTUP_WIZARD\":subMenuLabel=\"Start &Working...\\tCtrl-W\":subMenuHelp=\"Show the sequence of dialog windows used for accessing a project and working on documents\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_FILE_CLOSEKB\":subMenuLabel=\"Close Pro&ject\\tCtrl-J\":subMenuHelp=\"Save the knowledge base and document, then close this project\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_FILE_CHANGEFOLDER\":subMenuLabel=\"Change Folder...\":subMenuHelp=\"Change to a different book folder for document storage (book mode must be ON)\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_FILE_SAVEKB\":subMenuLabel=\"Save &Knowledge Base\":subMenuHelp=\"Update the knowledge base file for this project\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_FILE_BACKUP_KB\":subMenuLabel=\"&Backup Knowledge Base\":subMenuHelp=\"Make a new knowledge base backup immediately\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_FILE_RESTORE_KB\":subMenuLabel=\"&Restore Knowledge Base...\":subMenuHelp=\"Use all the saved documents to rebuild the knowledge base file\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"wxID_EXIT\":subMenuLabel=\"E&xit\":subMenuHelp=\"Quit the application; prompts to save documents\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("/MAIN_MENU:"),
-_T("MAIN_MENU:mainMenuID=\"ID_EDIT_MENU\":mainMenuLabel=\"&Edit\":"),
-_T("SUB_MENU:subMenuID=\"wxID_UNDO\":subMenuLabel=\"&Undo\\tCtrl-Z\":subMenuHelp=\"Undo the last action\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_EDIT_CUT\":subMenuLabel=\"Cu&t\\tCtrl-X\":subMenuHelp=\"Cut the selection and put it on the Clipboard\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_EDIT_COPY\":subMenuLabel=\"&Copy\\tCtrl-C\":subMenuHelp=\"Copy the selection and put it on the Clipboard\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_EDIT_PASTE\":subMenuLabel=\"&Paste\\tCtrl-V\":subMenuHelp=\"Insert Clipboard contents\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_GO_TO\":subMenuLabel=\"&Go To...\\tCtrl-G\":subMenuHelp=\"Go to a specific chapter and verse\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_EDIT_SOURCE_TEXT\":subMenuLabel=\"Edit &Source Text...\\tCtrl-Q\":subMenuHelp=\"Edit the selected source text\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_EDIT_CONSISTENCY_CHECK\":subMenuLabel=\"Consist&ency Check...\":subMenuHelp=\"Check all translations with those in the knowledge base for consistency\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_EDIT_MOVE_NOTE_FORWARD\":subMenuLabel=\"Move Note Forward\\tCtrl-3\":subMenuHelp=\"Move the note forward in the document to the next word or phrase\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_EDIT_MOVE_NOTE_BACKWARD\":subMenuLabel=\"Move Note Backward\\tCtrl-2\":subMenuHelp=\"Move the note backward in the document to the previous word or phrase\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"wxID_PREFERENCES\":subMenuLabel=\"Pre&ferences...\":subMenuHelp=\"Adapt It settings\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("/MAIN_MENU:"),
-_T("MAIN_MENU:mainMenuID=\"ID_VIEW_MENU\":mainMenuLabel=\"&View\":"),
-_T("SUB_MENU:subMenuID=\"ID_VIEW_TOOLBAR\":subMenuLabel=\"&Toolbar\":subMenuHelp=\"Show or hide the toolbar\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_VIEW_STATUS_BAR\":subMenuLabel=\"&Status Bar\":subMenuHelp=\"Show or hide the status bar\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_VIEW_COMPOSE_BAR\":subMenuLabel=\"&Compose Bar\":subMenuHelp=\"Show or hide the bar for composing text\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_COPY_SOURCE\":subMenuLabel=\"Copy Sourc&e\":subMenuHelp=\"Copy source text to phrase box as default translation\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_MARKER_WRAPS_STRIP\":subMenuLabel=\"&Wrap At Standard Format Markers\":subMenuHelp=\"Start a new strip whenever a standard format marker is encountered\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_UNITS\":subMenuLabel=\"&Units of Measurement...\":subMenuHelp=\"Units to be used when printing\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_CHANGE_INTERFACE_LANGUAGE\":subMenuLabel=\"Change Interface Language...\":subMenuHelp=\"Change the language of the program interface. You may need to restart Adapt It for the change to take effect\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("/MAIN_MENU:"),
-_T("MAIN_MENU:mainMenuID=\"ID_TOOLS_MENU\":mainMenuLabel=\"&Tools\":"),
-_T("SUB_MENU:subMenuID=\"wxID_FIND\":subMenuLabel=\"&Find...\\tCtrl-F\":subMenuHelp=\"Find text in source or target or both, or special search\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"wxID_REPLACE\":subMenuLabel=\"Find and &Replace...\\tCtrl-H\":subMenuHelp=\"Replace in target text\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_TOOLS_DEFINE_CC\":subMenuLabel=\"&Load Consistent Changes...\":subMenuHelp=\"Define and load one or more consistent changes tables\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_UNLOAD_CC_TABLES\":subMenuLabel=\"&Unload Consistent Changes\":subMenuHelp=\"Unload any loaded consistent changes tables\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_USE_CC\":subMenuLabel=\"Use &Consistent Changes\":subMenuHelp=\"Use the consistent changes when copying source text\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ACCEPT_CHANGES\":subMenuLabel=\"&Accept Changes Without Stopping\":subMenuHelp=\"Accept the changed source text as the translation and continue on\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_TOOLS_DEFINE_SILCONVERTER\":subMenuLabel=\"&SIL Converters...\":subMenuHelp=\"Load an SIL Converter\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_USE_SILCONVERTER\":subMenuLabel=\"Use S&IL Converter\":subMenuHelp=\"Use a loaded SIL Converter\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_TOOLS_KB_EDITOR\":subMenuLabel=\"&Knowledge Base Editor...\\tCtrl-K\":subMenuHelp=\"Display dialog for editing the knowledge base\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_TOOLS_AUTO_CAPITALIZATION\":subMenuLabel=\"Use Automatic Capitalization\":subMenuHelp=\"Use automatic capitalization when copying source text\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_RETRANS_REPORT\":subMenuLabel=\"Re&translation Report...\":subMenuHelp=\"Output a file listing all retranslations\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_TOOLS_SPLIT_DOC\":subMenuLabel=\"Split Document...\":subMenuHelp=\"Split the document into two or more documents\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_TOOLS_JOIN_DOCS\":subMenuLabel=\"Join Documents...\":subMenuHelp=\"Join two or more documents into a single document\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_TOOLS_MOVE_DOC\":subMenuLabel=\"Move Document...\":subMenuHelp=\"Move documents between the Adaptations folder and a book folder location\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("/MAIN_MENU:"),
-_T("MAIN_MENU:mainMenuID=\"ID_EXPORT_IMPORT_MENU\":mainMenuLabel=\"E&xport-Import\":"),
-_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT_SOURCE\":subMenuLabel=\"Export &Source Text...\":subMenuHelp=\"Export the source language text as a *.txt file type\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT\":subMenuLabel=\"&Export Translation Text...\":subMenuHelp=\"Export the target language translation as a *.txt file type\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT_TO_RTF\":subMenuLabel=\"Export Interlinear &Text...\":subMenuHelp=\"Export the Source and Target languages in interlinear form as an *.rtf file type\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_EXPORT_GLOSSES\":subMenuLabel=\"Export &Glosses As Text...\":subMenuHelp=\"Export the glossing lines' contents as text\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_EXPORT_FREE_TRANS\":subMenuLabel=\"Export Free Translation...\":subMenuHelp=\"Collect all the free translation sections' contents, adding standard format markers, and export\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT_KB\":subMenuLabel=\"Export Knowledge &Base...\":subMenuHelp=\"Export knowledge base in standard format or LIFT format\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_IMPORT_TO_KB\":subMenuLabel=\"&Import to Knowledge Base...\":subMenuHelp=\"Extend knowledge base by importing dictionary records\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("/MAIN_MENU:"),
-_T("MAIN_MENU:mainMenuID=\"ID_ADVANCED_MENU\":mainMenuLabel=\"&Advanced\":"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_SEE_GLOSSES\":subMenuLabel=\"See Glosses\":subMenuHelp=\"Make glossing line visible on screen\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_GLOSSING_USES_NAV_FONT\":subMenuLabel=\"Glossing Uses Navigation Text's Font\":subMenuHelp=\"Use the navigation text font for glossing text\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES\":subMenuLabel=\"Transform Adaptations Into Glosses...\":subMenuHelp=\"Transform adaptations from another project into the current project's glosses\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_DELAY\":subMenuLabel=\"Delay...\":subMenuHelp=\"Slow automatic insertions down to a speed suitable for reading along\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_BOOKMODE\":subMenuLabel=\"Storing Documents in Book Folders\":subMenuHelp=\"Turn on, or off, storage of documents to book folders\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_FREE_TRANSLATION_MODE\":subMenuLabel=\"Free Translation Mode\":subMenuHelp=\"Turn on, or off, typing of free translations in the Compose Bar and displaying them in the main window\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_TARGET_TEXT_IS_DEFAULT\":subMenuLabel=\"Use Target Text As Default Free Translation\":subMenuHelp=\"Turn on, or off, composition of a default free translation from the existing target text\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT\":subMenuLabel=\"Use Gloss Text As Default Free Translation\":subMenuHelp=\"Turn on, or off, composition of a default free translation from the existing gloss text\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS\":subMenuLabel=\"Remove Free Translations\":subMenuHelp=\"Removes all the filtered free translations in the document\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_COLLECT_BACKTRANSLATIONS\":subMenuLabel=\"Collect Back Translations...\":subMenuHelp=\"Collect adaptations, or glosses, and store them with a back translation marker as filtered material\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS\":subMenuLabel=\"Remove Back Translations\":subMenuHelp=\"Deletes all the filtered back translations in the document\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_USETRANSLITERATIONMODE\":subMenuLabel=\"Use Transliteration Mode\":subMenuHelp=\"Select this item to use SIL Converters in transliteration mode\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES\":subMenuLabel=\"Send Synchronized Scrolling Messages\":subMenuHelp=\"Select this item to cause applications such as Paratext and TW to automatically scroll to the same location\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES\":subMenuLabel=\"Receive Synchronized Scrolling Messages\":subMenuHelp=\"Select this item to cause Adapt It to scroll to the same location being displayed in other applications such as Paratext and TW\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("/MAIN_MENU:"),
-_T("MAIN_MENU:mainMenuID=\"ID_LAYOUT_MENU\":mainMenuLabel=\"&Layout\":"),
-_T("SUB_MENU:subMenuID=\"ID_ALIGNMENT\":subMenuLabel=\"Layout Window Right To Left\\tCtrl-1\":subMenuHelp=\"Layout text in window from right to left\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("/MAIN_MENU:"),
-_T("MAIN_MENU:mainMenuID=\"ID_HELP_MENU\":mainMenuLabel=\"&Help\":"),
-_T("SUB_MENU:subMenuID=\"wxID_HELP\":subMenuLabel=\"&Help Topics\\tShift-Ctrl-/\":subMenuHelp=\"List Help topics\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ONLINE_HELP\":subMenuLabel=\"Online Help (Requires Internet Access)\":subMenuHelp=\"Get Adapt It Help from the Internet in your browser\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_REPORT_A_PROBLEM\":subMenuLabel=\"Report a problem...\":subMenuHelp=\"Send a bug or problem report to the Adapt It developers\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_GIVE_FEEDBACK\":subMenuLabel=\"Give feedback...\":subMenuHelp=\"Give the developers feedback on your use of Adapt It\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_HELP_USE_TOOLTIPS\":subMenuLabel=\"Use Tooltips\":subMenuHelp=\"Select this item to turn on or turn off tooltip help messages\":subMenuKind=\"wxITEM_CHECK\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"wxID_ABOUT\":subMenuLabel=\"&About Adapt It...\":subMenuHelp=\"Display program information, version number and copyright\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("/MAIN_MENU:"),
-_T("MAIN_MENU:mainMenuID=\"ID_ADMINISTRATOR_MENU\":mainMenuLabel=\"Ad&ministrator\":"),
-_T("SUB_MENU:subMenuID=\"ID_CUSTOM_WORK_FOLDER_LOCATION\":subMenuLabel=\"&Custom Work Folder Location...\":subMenuHelp=\"Point Adapt It at a work folder in a non-standard location, and use that work folder until pointed elsewhere\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_LOCK_CUSTOM_LOCATION\":subMenuLabel=\"&Lock Custom Location\":subMenuHelp=\"Make the custom work folder location permanent until explicitly changed\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_UNLOCK_CUSTOM_LOCATION\":subMenuLabel=\"&Unlock Custom Location\":subMenuHelp=\"Make the custom work folder location persist only until the end of the session\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_LOCAL_WORK_FOLDER_MENU\":subMenuLabel=\"&Restore Default Work Folder Location\":subMenuHelp=\"Point at the local machine's default work folder\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_SET_PASSWORD_MENU\":subMenuLabel=\"Set &Password...\":subMenuHelp=\"Set a password, it will be stored in the clear in the basic configuration file\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_MOVE_OR_COPY_FOLDERS_OR_FILES\":subMenuLabel=\"&Move Or Copy Folders Or Files...\\tShift-Ctrl-M\":subMenuHelp=\"Dialog for moving folders or files, or copying them, into a destination folder\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS\":subMenuLabel=\"&Assign Locations For Inputs and Outputs...\":subMenuHelp=\"Opens a dialog in which folder locations for inputs and outputs can be assigned, protecting users from navigating the file system\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
-_T("/SUB_MENU:"),
-_T("SUB_MENU:subMenuID=\"ID_EDIT_USER_MENU_SETTINGS_PROFILE\":subMenuLabel=\"User &Workflow Profiles...\":subMenuHelp=\"Choose which menu items the user can access\":subMenuKind=\"wxITEM_NORMAL\":"),
-_T("/SUB_MENU:"),
-_T("/MAIN_MENU:"),
-_T("/MENU_STRUCTURE:")
+    _T("1 Kings"), // index 10
+    _T("2 Kings"),
+    _T("1 Chronicles"),
+    _T("2 Chronicles"),
+    _T("Ezra"),
+    _T("Nehemiah"),
+    _T("Esther"), // Paratext uses "Esther (Hebrew)" // index 16 duplicates index 68
+    _T("Job"),
+    _T("Psalms"),
+    _T("Proverbs"),
+
+    _T("Ecclesiastes"), // index 20
+    _T("Song of Solomon"), // Paratext uses "Song of Songs" // index 21
+    _T("Isaiah"),
+    _T("Jeremiah"),
+    _T("Lamentations"),
+    _T("Ezekiel"),
+    _T("Daniel"), // Paratext uses "Daniel (Hebrew)" // index 26
+    _T("Hosea"),
+    _T("Joel"),
+    _T("Amos"),
+
+    _T("Obadiah"), // index 30
+    _T("Jonah"),
+    _T("Micah"),
+    _T("Nahum"),
+    _T("Habakkuk"),
+    _T("Zephaniah"),
+    _T("Haggai"),
+    _T("Zechariah"),
+    _T("Malachi"),
+    _T("Matthew"),
+
+    _T("Mark"), // index 40
+    _T("Luke"),
+    _T("John"),
+    _T("Acts"),
+    _T("Romans"),
+    _T("1 Corinthians"),
+    _T("2 Corinthians"),
+    _T("Galatians"),
+    _T("Ephesians"),
+    _T("Philippians"),
+
+    _T("Colossians"), // index 50
+    _T("1 Thessalonians"),
+    _T("2 Thessalonians"),
+    _T("1 Timothy"),
+    _T("2 Timothy"),
+    _T("Titus"),
+    _T("Philemon"),
+    _T("Hebrews"),
+    _T("James"),
+    _T("1 Peter"),
+
+    _T("2 Peter"), // index 60
+    _T("1 John"),
+    _T("2 John"),
+    _T("3 John"),
+    _T("Jude"),
+    _T("Revelation"), // index 65
+    _T("Tobit"), // index 66
+    _T("Judith"),
+    _T("Esther"), // Paratext uses "Esther Greek" // index 68 duplicates index 16
+    _T("Wisdom"), // Paratext uses "Wisdom of Solomon" // index 69
+
+    _T("Sirach"), // Paratext uses "Sirach (Ecclesiasticus)" // index 70
+    _T("Baruch"), // index 71
+    _T("Letter of Jeremiah"), // not used in Bibledit
+    _T("Song of 3 Young Men"), // not used in Bibledit
+    _T("Susanna"), // not used in Bibledit
+    _T("Bel and the Dragon"), // not used in Bibledit
+    _T("1 Maccabees"), // index 76
+    _T("2 Maccabees"), // index 77
+    _T("3 Maccabees"), // not used in Bibledit
+    _T("4 Maccabees"), // not used in Bibledit
+
+    _T("1 Esdras (Greek)"), // not used in Bibledit // index 80
+    _T("2 Esdras (Latin)"), // not used in Bibledit
+    _T("Prayer of Manasseh"), // not used in Bibledit
+    _T("Psalm 151"), // not used in Bibledit
+    _T("Odes"), // not used in Bibledit
+    _T("Psalms of Solomon"), // not used in Bibledit
+    _T("Joshua A. *obsolete*"), // not used in Bibledit
+    _T("Judges B. *obsolete*"), // not used in Bibledit
+    _T("Tobit S. *obsolete*"), // not used in Bibledit
+    _T("Susanna Th. *obsolete*"), // not used in Bibledit
+
+    _T("Daniel Th. *obsolete*"), // not used in Bibledit // index 90
+    _T("Bel Th. *obsolete*"), // not used in Bibledit
+    _T("Extra A"), // not used in Bibledit
+    _T("Extra B"), // not used in Bibledit
+    _T("Extra C"), // not used in Bibledit
+    _T("Extra D"), // not used in Bibledit
+    _T("Extra E"), // not used in Bibledit
+    _T("Extra F"), // not used in Bibledit
+    _T("Extra G"), // not used in Bibledit
+    _T("Front Matter"), // not used in Bibledit
+
+    _T("Back Matter"), // not used in Bibledit // index 100
+    _T("Other Matter"), // not used in Bibledit
+    _T("3 Ezra *obsolete*"), // not used in Bibledit
+    _T("Apocalypse of Ezra"), // not used in Bibledit
+    _T("5 Ezra"), // not used in Bibledit
+    _T("6 Ezra"), // not used in Bibledit
+    _T("Introduction"), // not used in Bibledit
+    _T("Concordance"), // not used in Bibledit
+    _T("Glossary"), // not used in Bibledit
+    _T("Topical Index"), // not used in Bibledit
+
+    _T("Names Index"), // not used in Bibledit // index 110
+    _T("Daniel Greek"), // not used in Bibledit
+    _T("Psalms 152-155"), // not used in Bibledit
+    _T("2 Baruch (Apocalypse)"), // not used in Bibledit
+    _T("Letter of Baruch"), // not used in Bibledit
+    _T("Jubilees"), // not used in Bibledit
+    _T("Enoch"), // not used in Bibledit
+    _T("1 Meqabyan"), // not used in Bibledit
+    _T("2 Meqabyan"), // not used in Bibledit
+    _T("3 Meqabyan"), // not used in Bibledit
+
+    _T("Reproof (Proverbs 25-31)"), // added parenthetical part 27April2017 // not used in Bibledit // index 120
+    _T("4 Baruch (Rest of Baruch)"), // added parenthetical part 27April2017 // not used in Bibledit
+    _T("Laodiceans") // not used in Bibledit
 };
-*/
+
+// All books and matter classified by Canon types: OT, NT, DC, or empty string for other misc types
+wxString AllBooksCanonType[] = {
+    _T("OT"), // Genesis index 0
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+
+    _T("OT"), // index 10
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+
+    _T("OT"), // index 20
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+
+    _T("OT"), // index 30
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("OT"),
+    _T("NT"), // Matthew
+
+    _T("NT"), // index 40
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+
+    _T("NT"), // index 50
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+
+    _T("NT"), // index 60
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"),
+    _T("NT"), // Revelation index 65
+    _T("DC"), // Tobit index 66
+    _T("DC"),
+    _T("DC"), // index 68 duplicates index 16
+    _T("DC"), // index 69
+
+    _T("DC"), // index 70
+    _T("DC"), // index 71
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // index 76
+    _T("DC"), // index 77
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit
+
+    _T("DC"), // not used in Bibledit // index 80
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit // index 85
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+
+    _T(""), // not used in Bibledit // index 90
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+
+    _T(""), // not used in Bibledit // index 100
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+    _T("DC"), // not used in Bibledit // index 103
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit // index 105
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+    _T(""), // not used in Bibledit
+
+    _T(""), // not used in Bibledit // index 110
+    _T("DC"), // not used in Bibledit // index 111
+    _T("DC"), // not used in Bibledit
+    _T("DC)"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit
+    _T("DC"), // not used in Bibledit
+
+    _T("DC"), // not used in Bibledit // index 120
+    _T("DC"), // not used in Bibledit
+    _T("DC") // not used in Bibledit
+};
+
+// whm added 19April2017 Versification arrays, borrowed from code info gleaned from Paratext 
+// and modified for use in parallel arrays - compliments of Tom Hindle.
+wxString vrsFileNames[] = {
+    _T("unk.vrs"), // Unknown - not used in Paratext as far as I know - probably falls back to English 
+    _T("org.vrs"), // Original
+    _T("lxx.vrs"), // Septuagint
+    _T("vul.vrs"), // Vulgate
+    _T("eng.vrs"), // English
+    _T("rsc.vrs"), // RussianProtestant
+    _T("rso.vrs"), // RussianOrthodox
+    _T("oth.vrs"), // Other
+    _T("oth2.vrs"), // Other2
+    _T("oth3.vrs"), // Other3
+    _T("oth4.vrs"), // Other4
+    _T("oth5.vrs"), // Other5
+    _T("oth6.vrs"), // Other6
+    _T("oth7.vrs"), // Other7
+    _T("oth8.vrs"), // Other8
+    _T("oth9.vrs"), // Other9
+    _T("oth10.vrs"), // Other10
+    _T("oth11.vrs"), // Other11
+    _T("oth12.vrs"), // Other12
+    _T("oth13.vrs"), // Other13
+    _T("oth14.vrs"), // Other14
+    _T("oth15.vrs"), // Other15
+    _T("oth16.vrs"), // Other16
+    _T("oth17.vrs"), // Other17
+    _T("oth18.vrs"), // Other18
+    _T("oth19.vrs"), // Other19
+    _T("oth20.vrs"), // Other20
+    _T("oth21.vrs"), // Other21
+    _T("oth22.vrs"), // Other22
+    _T("oth23.vrs"), // Other23
+    _T("oth24.vrs") // Other24
+};
+
+wxString vrsNames[] = {
+    _T("Unknown"), // 0 not used in Paratext as far as I know
+    _T("Original"), // 1
+    _T("Septuagint"), // 2
+    _T("Vulgate"), // 3
+    _T("English"), // 4
+    _T("RussianProtestant"), // 5
+    _T("RussianOrthodox"), // 6
+    _T("Other"), // 7
+    _T("Other2"), // 8
+    _T("Other3"), // 9
+    _T("Other4"), // 10
+    _T("Other5"), // 11
+    _T("Other6"), // 12
+    _T("Other7"), // 13
+    _T("Other8"), // 14
+    _T("Other9"), // 15
+    _T("Other10"), // 16
+    _T("Other11"), // 17
+    _T("Other12"), // 18
+    _T("Other13"), // 19
+    _T("Other14"), // 20
+    _T("Other15"), // 21
+    _T("Other16"), // 22
+    _T("Other17"), // 23
+    _T("Other18"), // 24
+    _T("Other19"), // 25
+    _T("Other20"), // 26
+    _T("Other21"), // 27
+    _T("Other22"), // 28
+    _T("Other23"), // 29
+    _T("Other24") // 30
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to a BookNamePair struct whose members have been assigned
@@ -5859,6 +5978,10 @@ EVT_MENU(ID_MENU_CHANGE_USERNAME, CAdapt_ItApp::OnEditChangeUsername) // is alwa
     EVT_UPDATE_UI(ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses)
     EVT_MENU(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnAdvancedBookMode)
     EVT_UPDATE_UI(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnUpdateAdvancedBookMode)
+    EVT_MENU(ID_ADVANCED_PROTECT_EDITOR_FM__GETTING_CHANGES_FOR_THIS_DOC, CAdapt_ItApp::OnAdvancedProtectEditorFmGettingChangesForThisDoc)
+    EVT_UPDATE_UI(ID_ADVANCED_PROTECT_EDITOR_FM__GETTING_CHANGES_FOR_THIS_DOC, CAdapt_ItApp::OnUpdateAdvancedProtectEditorFmGettingChangesForThisDoc)
+    EVT_MENU(ID_ADVANCED_ALLOW_EDITOR_TO_GET_CHANGES_FOR_THIS_DOC, CAdapt_ItApp::OnAdvancedAllowEditorToGetChangesForThisDoc)
+    EVT_UPDATE_UI(ID_ADVANCED_ALLOW_EDITOR_TO_GET_CHANGES_FOR_THIS_DOC, CAdapt_ItApp::OnUpdateAdvancedAllowEditorToGetChangesForThisDoc)
     //OnAdvancedDelay  is in the View
     //OnUpdateAdvancedDelay  is in the View
 
@@ -5882,7 +6005,9 @@ EVT_MENU(ID_MENU_CHANGE_USERNAME, CAdapt_ItApp::OnEditChangeUsername) // is alwa
     EVT_UPDATE_UI(ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, CAdapt_ItApp::OnUpdateAssignLocationsForInputsAndOutputs)
     EVT_MENU(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnSetupEditorCollaboration)
     EVT_UPDATE_UI(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnUpdateSetupEditorCollaboration)
-    //EVT_MENU(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnPasswordProtectCollaborationSwitching)
+    EVT_MENU(ID_MENU_MANAGE_DATA_TRANSFER_PROTECTIONS_TO_EDITOR, CAdapt_ItApp::OnManageDataTransfersToEditor)
+    EVT_UPDATE_UI(ID_MENU_MANAGE_DATA_TRANSFER_PROTECTIONS_TO_EDITOR, CAdapt_ItApp::OnUpdateManageDataTransfersToEditor)
+        //EVT_MENU(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnPasswordProtectCollaborationSwitching)
     //EVT_UPDATE_UI(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnUpdatePasswordProtectCollaborationSwitching)
     EVT_MENU(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnTempRestoreUserProfiles) // whm added 14Feb12
     EVT_UPDATE_UI(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnUpdateTempRestoreUserProfiles) // whm added 14Feb12
@@ -6858,6 +6983,7 @@ wxString szCollabSourceLangName = _T("CollabSourceLangName");
 // m_CollabTargetLangName member variable.
 wxString szCollabTargetLangName = _T("CollabTargetLangName");
 
+// whm added 2Feb2017
 /// The label that identifies the following string as a composed list of book(s), or book:chapter
 /// documents who have been marked to prevent saving changes to Paratext/Bibledit. The label is
 /// CollabBooksProtectedFromSavingToEditor and is written to the "ProjectSettings" part
@@ -12531,7 +12657,7 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
             // need to look further by examining the contents of the PTVersion file in that same directory
             wxString PTLinuxMajorVersionNumStr;
             PTLinuxMajorVersionNumStr = GetLinuxPTVersionNumberFromPTVersionFile(strPTInstallDir + PathSeparator + _T("PTVersion"));
-            wxLogDebug(_T("Linux PT Version found was version \"%s\" as found by GetLinuxPTVersionNumberFromPTVersionFile()"), PTLinuxMajorVersionNumStr.c_str());
+            //wxLogDebug(_T("Linux PT Version found was version \"%s\" as found by GetLinuxPTVersionNumberFromPTVersionFile()"), PTLinuxMajorVersionNumStr.c_str());
             // If the major version number is 8, the user still has an early PT8 installation at /usr/lib/Paratext 
             // and we know that PT7 is not installed.
             // Otherwise, if the major version number is indeed 7, then we know that PT 7 is installed
@@ -12660,7 +12786,7 @@ wxString CAdapt_ItApp::GetLinuxPTVersionNumberFromPTVersionFile(wxString PTVersi
                     // found it -- extract the variable value from this line
                     int nStart = (strBuf.Find(_T("\""))) + 1; // nStart is next position past quote mark - the version number
                     verStr = strBuf.Mid(nStart, 1); // grab the digit
-                    wxLogDebug(_T("Found version \"%s\" in PTVersion File"), verStr.c_str());
+                    //wxLogDebug(_T("Found version \"%s\" in PTVersion File"), verStr.c_str());
                     break; // exit the while loop -- we've found our match
                 }
                 strBuf = tfile.GetNextLine();
@@ -12771,7 +12897,7 @@ wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName, wxString PTve
                 // found it -- extract the variable value from this line
                 int nStart = (strBuf.Find(_T("="))) + 1;
                 value = strBuf.Mid(nStart, (strBuf.Length() - nStart));
-                wxLogDebug(value);
+                //wxLogDebug(value);
                 break; // exit the while loop -- we've found our match
             }
             strBuf = tfile.GetNextLine();
@@ -13163,7 +13289,7 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
                 // The normal PT7 install directory exists, check if it has a PT8 early beta installation in it
                 wxString PTLinuxMajorVersionNumStr;
                 PTLinuxMajorVersionNumStr = GetLinuxPTVersionNumberFromPTVersionFile(strDir + PathSeparator + _T("PTVersion"));
-                wxLogDebug(_T("Linux PT Version found was version \"%s\" as found by GetLinuxPTVersionNumberFromPTVersionFile()"), PTLinuxMajorVersionNumStr.c_str());
+                //wxLogDebug(_T("Linux PT Version found was version \"%s\" as found by GetLinuxPTVersionNumberFromPTVersionFile()"), PTLinuxMajorVersionNumStr.c_str());
                 if (PTLinuxMajorVersionNumStr == _T("8"))
                     path = strDir;
                 // if the major version is indeed 7, then we found no "PTLinuxVersion8" installation, 
@@ -13356,6 +13482,14 @@ void CAdapt_ItApp::GetCollaborationSettingsOfAIProject(wxString projectName, wxA
     projConfigPathAndName = curProjPathAndName + PathSeparator + szProjectConfiguration + _T(".aic");
 
     // Get the project configuration file open in memory in a wxTextFile
+    // whm modified 18April2017 to check if the projConfigPathAndName exists. If not don't call
+    // f.Open() on the file because in wxWidgets 3.x it generates a visible error to the user
+    if (!::wxFileExists(projConfigPathAndName))
+    {
+        // The AI-ProjectConfiguration.aic file doesn't exist for this project so just return without
+        // adding anything to the returned arrays.
+        return;
+    }
     wxTextFile f;
     bool bOpenedOK = f.Open(projConfigPathAndName);
     // should open ok, if not, tell the developer & abort
@@ -13425,6 +13559,30 @@ void CAdapt_ItApp::GetCollaborationSettingsOfAIProject(wxString projectName, wxA
         ; // TODO: Report Error?
     }
     f.Close();
+}
+
+// whm added 18April2017
+wxString CAdapt_ItApp::GetVersificationNameFromEnumVal(int vrsEnum)
+{
+    // Do sanity check on vrsEnum value. If the value is 0 or negative, or greater than 30 default to 4 (English)
+    if (vrsEnum < 1 || vrsEnum > 30)
+        vrsEnum = 4; // fallback is English
+    wxString vNameStr;
+    wxArrayString versificationNames(31, vrsNames);
+    vNameStr = versificationNames.Item(vrsEnum);
+    return vNameStr;
+}
+
+// whm added 18April2017
+wxString CAdapt_ItApp::GetVersificationFileNameFromEnumVal(int vrsEnum)
+{
+    // Do sanity check on vrsEnum value. If the value is 0 or negative, or greater than 30 default to 4 (English)
+    if (vrsEnum < 1 || vrsEnum > 30)
+        vrsEnum = 4; // fallback is English
+    wxString vFileNameStr;
+    wxArrayString versificationFileNames(31, vrsFileNames);
+    vFileNameStr = versificationFileNames.Item(vrsEnum);
+    return vFileNameStr;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -13709,8 +13867,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
     }
     projConfigPathAndName = curProjPathAndName + PathSeparator + szProjectConfiguration + _T(".aic");
 #if defined(_DEBUG)
-	wxLogDebug(_T("GetAIProjectCollabStatus(): app:m_bDoNormalSProjectOpening = %s"), 
-		wxString(m_bDoNormalProjectOpening ? _T("TRUE") : _T("FALSE")).c_str());
+	//wxLogDebug(_T("GetAIProjectCollabStatus(): app:m_bDoNormalSProjectOpening = %s"), wxString(m_bDoNormalProjectOpening ? _T("TRUE") : _T("FALSE")).c_str());
 #endif
     // whm added 11Mar12 if there is no project config file, it obviously is not a collab project
     // so return collabProjNotConfigured to caller to issue message to user there.
@@ -17592,7 +17749,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pArrayOfCollabProjects = new wxArrayPtrVoid;
 
     /*
-    // testing the AddCollabBooksAndOrChaptersToCollabString() function
+    // testing the AddCollabBooksAndOrChaptersToProtectedCollabString() function
     {
         // the following are for testing, comment out after debugging
         wxString testStr;
@@ -17603,11 +17760,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         //testStr = _T("MAT MRK MRK:1:2:16 LUK ROM 1CO:4:6"); // whole book mode examples
         testStr = _T("GEN GEN:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48:49:50 EXO EXO:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40 LEV LEV:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27 NUM NUM:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36 DEU DEU:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34 JOS JOS:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24 JDG JDG:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21 RUT RUT:1:2:3:4 1SA 1SA:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31 2SA 2SA:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24 1KI 1KI:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22 2KI 2KI:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25 1CH 1CH:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29 2CH 2CH:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36 EZR EZR:1:2:3:4:5:6:7:8:9:10 NEH NEH:1:2:3:4:5:6:7:8:9:10:11:12:13 EST EST:1:2:3:4:5:6:7:8:9:10 JOB JOB:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42 PSA PSA:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48:49:50:51:52:53:54:55:56:57:58:59:60:61:62:63:64:65:66:67:68:69:70:71:72:73:74:75:76:77:78:79:80:81:82:83:84:85:86:87:88:89:90:91:92:93:94:95:96:97:98:99:100:101:102:103:104:105:106:107:108:109:110:111:112:113:114:115:116:117:118:119:120:121:122:123:124:125:126:127:128:129:130:131:132:133:134:135:136:137:138:139:140:141:142:143:144:145:146:147:148:149:150 PRO PRO:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31 ECC ECC:1:2:3:4:5:6:7:8:9:10:11:12 SNG SNG:1:2:3:4:5:6:7:8 ISA ISA:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48:49:50:51:52:53:54:55:56:57:58:59:60:61:62:63:64:65:66 JER JER:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48:49:50:51:52 LAM LAM:1:2:3:4:5 EZK EZK:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:31:32:33:34:35:36:37:38:39:40:41:42:43:44:45:46:47:48 DAN DAN:1:2:3:4:5:6:7:8:9:10:11:12 HOS HOS:1:2:3:4:5:6:7:8:9:10:11:12:13:14 JOL JOL:1:2:3 AMO AMO:1:2:3:4:5:6:7:8:9 OBA OBA:1 JON JON:1:2:3:4 MIC MIC:1:2:3:4:5:6:7 NAM NAM:1:2:3 HAB HAB:1:2:3 ZEP ZEP:1:2:3 HAG HAG:1:2 ZEC ZEC:1:2:3:4:5:6:7:8:9:10:11:12:13:14 MAL MAL:1:2:3:4 MAT MAT:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28 MRK MRK:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16 LUK LUK:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24 JHN JHN:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21 ACT ACT:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28 ROM ROM:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16 1CO 1CO:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16 2CO 2CO:1:2:3:4:5:6:7:8:9:10:11:12:13 GAL GAL:1:2:3:4:5:6 EPH EPH:1:2:3:4:5:6 PHP PHP:1:2:3:4 COL COL:1:2:3:4 1TH 1TH:1:2:3:4:5 2TH 2TH:1:2:3 1TI 1TI:1:2:3:4:5:6 2TI 2TI:1:2:3:4 TIT TIT:1:2:3 PHM PHM:1 HEB HEB:1:2:3:4:5:6:7:8:9:10:11:12:13 JAS JAS:1:2:3:4:5 1PE 1PE:1:2:3:4:5 2PE 2PE:1:2:3 1JN 1JN:1:2:3:4:5 2JN 2JN:1 3JN 3JN:1 JUD JUD:1");
         wxString newStr;
-        //newStr = AddCollabBooksAndOrChaptersToCollabString(testStr, _T(""));
-        //newStr = AddCollabBooksAndOrChaptersToCollabString(testStr, _T("MAT:1:2 MRK:2:3:4 LUK 1CO:1")); // 4 different books (with 6 total chapters) to merge
+        //newStr = AddCollabBooksAndOrChaptersToProtectedCollabString(testStr, _T(""));
+        //newStr = AddCollabBooksAndOrChaptersToProtectedCollabString(testStr, _T("MAT:1:2 MRK:2:3:4 LUK 1CO:1")); // 4 different books (with 6 total chapters) to merge
         wxString addString = _T("REV REV:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22");
         int lenAddStr = addString.Length();
-        newStr = AddCollabBooksAndOrChaptersToCollabString(testStr, addString); // 4 different books (with 6 total chapters) to merge
+        newStr = AddCollabBooksAndOrChaptersToProtectedCollabString(testStr, addString); // 4 different books (with 6 total chapters) to merge
         int lenNewStr = newStr.Length();
         int testInt = 1;
         testInt = testInt;
@@ -17615,7 +17772,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     */
     
     /*
-    // testing the RemoveCollabBooksOrChaptersFromCollabString() function
+    // testing the RemoveCollabBooksOrChaptersFromProtectedCollabString() function
     {
         // the following are for testing, comment out after debugging
         wxString testStr;
@@ -17628,12 +17785,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         int lenTestStr = testStr.Length();
         wxString newStr;
         // In the next test the string to be removed is empty, so the original protected string should be returned unchanged.
-        //newStr = RemoveCollabBooksOrChaptersFromCollabString(testStr, _T("")); // removal string empty
+        //newStr = RemoveCollabBooksOrChaptersFromProtectedCollabString(testStr, _T("")); // removal string empty
         // In the next test the string to be removed has some references that aren't within the protected string. They should be ignored and only the common parts removed
-        //newStr = RemoveCollabBooksOrChaptersFromCollabString(testStr, _T("MAT:1:2 MRK:2:3:4 LUK 1CO:1")); // 4 different books (with 6 total chapters) to remove
+        //newStr = RemoveCollabBooksOrChaptersFromProtectedCollabString(testStr, _T("MAT:1:2 MRK:2:3:4 LUK 1CO:1")); // 4 different books (with 6 total chapters) to remove
         // In the next test the string to be removed is identical to the protected string so it should result in an empty string being returned
-        //newStr = RemoveCollabBooksOrChaptersFromCollabString(testStr, _T("MAT MRK MRK:1:2:16 LUK ROM 1CO:4:6")); // Mixed 4 different books (with 6 total chapters) to remove
-        newStr = RemoveCollabBooksOrChaptersFromCollabString(testStr, _T("REV REV:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22"));
+        //newStr = RemoveCollabBooksOrChaptersFromProtectedCollabString(testStr, _T("MAT MRK MRK:1:2:16 LUK ROM 1CO:4:6")); // Mixed 4 different books (with 6 total chapters) to remove
+        newStr = RemoveCollabBooksOrChaptersFromProtectedCollabString(testStr, _T("REV REV:1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22"));
         int lenNewStr = newStr.Length();
         int testInt = 1;
         testInt = testInt;
@@ -25035,8 +25192,7 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
     }
 
 #if defined(_DEBUG)
-	wxLogDebug(_T("GetProjectConfiguration(): app:m_bDoNormalProjectOpening = %s"), 
-		wxString(m_bDoNormalProjectOpening ? _T("TRUE") : _T("FALSE")).c_str());
+	//wxLogDebug(_T("GetProjectConfiguration(): app:m_bDoNormalProjectOpening = %s"), wxString(m_bDoNormalProjectOpening ? _T("TRUE") : _T("FALSE")).c_str());
 #endif
 
 	if (bDoNormalProjectOpening) // not a Shift-Down startup
@@ -28201,6 +28357,177 @@ void CAdapt_ItApp::GetPossibleAdaptionProjects(wxArrayString *pList)
                 }
             }
             bWorking = finder.GetNext(&str);
+        }
+    }
+}
+
+void CAdapt_ItApp::GetPossibleAdaptionCollabProjects(wxArrayString * aiCollabProjectNamesArray)
+{
+    bool m_bTempCollaboratingWithParatext;
+    bool m_bTempCollaboratingWithBibledit;
+    wxString m_TempCollabProjectForSourceInputs;
+    wxString m_TempCollabProjectForTargetExports;
+    wxString m_TempCollabProjectForFreeTransExports;
+    wxString m_TempCollabAIProjectName;
+    wxString m_TempCollaborationEditor;
+    wxString m_TempCollabEditorVersion; // whm added 24June2016
+    wxString m_TempCollabSourceProjLangName;
+    wxString m_TempCollabTargetProjLangName;
+    bool m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
+    bool m_bTempCollaborationExpectsFreeTrans;
+    wxString m_TempCollabBookSelected;
+    wxString m_TempCollabChapterSelected;
+    wxString m_TempCollabBooksProtectedFromSavingToEditor;
+    bool m_TempCollabDoNotShowMigrationDialogForPT7toPT8;
+
+    wxArrayString aiProjectNamesArray;
+    GetPossibleAdaptionProjects(&aiProjectNamesArray);
+    // Look through the possible AI projects and fill the aiCollabProjectNamesArray with only those AI projects 
+    // that are collab projects.
+    int ct;
+    for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
+    {
+        wxString projName;
+        projName = aiProjectNamesArray.Item(ct);
+        // Get the AI project's collab settings if any. If the selected project already has
+        // collab settings put them into the m_Temp... variables and into the SetupEditorCollaboration
+        // dialog's controls, so the administrator can see what settings if any have already been made
+        // for that AI project. If the selected project has no collab settings yet, parse the three
+        // m_Temp... ones from the selected project's name (m_TempCollabAIProjectName,
+        // m_TempCollabSourceProjLangName, and m_TempCollabTargetProjLangName), and supply defaults
+        // for the others.
+        wxArrayString collabSettingsArray;
+        wxArrayString collabLabelsArray;
+
+        GetCollaborationSettingsOfAIProject(projName, collabLabelsArray, collabSettingsArray);
+        wxASSERT(collabLabelsArray.GetCount() == collabSettingsArray.GetCount());
+        // Assign the m_Temp... and m_bTemp... local variables for the selected project..
+        // If the existing project has collaboration settings use those, if not, assign
+        // default values
+        if (collabSettingsArray.GetCount() > 0)
+        {
+            // The AI project has collaboration settings
+            int ct;
+            int tot = (int)collabSettingsArray.GetCount();
+            wxString collabLabelStr;
+            wxString collabItemStr;
+            wxString saveCollabEditor = m_TempCollaborationEditor;
+            // Scan through the two arrays in parallel and assign values to the m_Temp... and m_bTemp... variables
+            for (ct = 0; ct < tot; ct++)
+            {
+                // Note: The main m_Temp... and m_bTemp values used by the SetupEditorCollaboration
+                // dialog are:
+                //    m_TempCollabProjectForSourceInputs
+                //    m_TempCollabProjectForTargetExports
+                //    m_TempCollabProjectForFreeTransExports
+                //    m_TempCollabAIProjectName
+                //    m_TempCollaborationEditor
+                //    m_TempCollabEditorVersion // whm added 25June2016
+                //    m_bTempCollabByChapterOnly
+                // These m_Temp... and m_bTemp... values are derived from others or are unused
+                //      m_bTempCollaborationExpectsFreeTrans
+                //      m_TempCollabBookSelected
+                //      m_TempCollabChapterSelected
+                //      m_TempCollabSourceProjLangName
+                //      m_TempCollabTargetProjLangName
+                //      m_TempCollabBooksProtectedFromSavingToEditor // whm added 2February2017
+                //      m_TempCollabDoNotShowMigrationDialogForPT7toPT8 // whm added 6April2017
+                collabLabelStr = collabLabelsArray.Item(ct);
+                collabItemStr = collabSettingsArray.Item(ct);
+                if (collabLabelStr == szCollaboratingWithParatext)
+                {
+                    if (collabItemStr == _T("1"))
+                        m_bTempCollaboratingWithParatext = TRUE;
+                    else
+                        m_bTempCollaboratingWithParatext = FALSE;
+                    m_bTempCollaboratingWithParatext = m_bTempCollaboratingWithParatext; // avoid gcc warning
+                }
+                else if (collabLabelStr == szCollaboratingWithBibledit)
+                {
+                    if (collabItemStr == _T("1"))
+                        m_bTempCollaboratingWithBibledit = TRUE;
+                    else
+                        m_bTempCollaboratingWithBibledit = FALSE;
+                    m_bTempCollaboratingWithBibledit = m_bTempCollaboratingWithBibledit; // avoid gcc warning
+                }
+                else if (collabLabelStr == szCollabProjectForSourceInputs)
+                    m_TempCollabProjectForSourceInputs = collabItemStr;
+                else if (collabLabelStr == szCollabProjectForTargetExports)
+                    m_TempCollabProjectForTargetExports = collabItemStr;
+                else if (collabLabelStr == szCollabProjectForFreeTransExports)
+                    m_TempCollabProjectForFreeTransExports = collabItemStr;
+                else if (collabLabelStr == szCollabAIProjectName)
+                    m_TempCollabAIProjectName = collabItemStr;
+                else if (collabLabelStr == szCollaborationEditor)
+                {
+                    m_TempCollaborationEditor = collabItemStr;
+                }
+                else if (collabLabelStr == szParatextVersionForProject) // the old proj config file label in case it exists (only used in a pre-release version to developers)
+                {
+                    m_TempCollabEditorVersion = collabItemStr; // whm added 24June2016
+                }
+                else if (collabLabelStr == szCollabParatextVersionForProject) // the new proj config file label for ongoing use
+                {
+                    m_TempCollabEditorVersion = collabItemStr; // whm added 24June2016
+                }
+                else if (collabLabelStr == szCollabExpectsFreeTrans)
+                {
+                    if (collabItemStr == _T("1"))
+                        m_bTempCollaborationExpectsFreeTrans = TRUE;
+                    else
+                        m_bTempCollaborationExpectsFreeTrans = FALSE;
+                    m_bTempCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans; // avoid gcc warning
+                }
+                else if (collabLabelStr == szCollabBookSelected)
+                    m_TempCollabBookSelected = collabItemStr;
+                else if (collabLabelStr == szCollabByChapterOnly)
+                {
+                    if (collabItemStr == _T("0"))
+                        m_bTempCollabByChapterOnly = FALSE;
+                    else
+                        m_bTempCollabByChapterOnly = TRUE;
+                    m_bTempCollabByChapterOnly = m_bTempCollabByChapterOnly; // avoid gcc warning
+                }
+                else if (collabLabelStr == szCollabChapterSelected)
+                    m_TempCollabChapterSelected = collabItemStr;
+                else if (collabLabelStr == szCollabSourceLangName)
+                    m_TempCollabSourceProjLangName = collabItemStr;
+                else if (collabLabelStr == szCollabTargetLangName)
+                    m_TempCollabTargetProjLangName = collabItemStr;
+                else if (collabLabelStr == szCollabBooksProtectedFromSavingToEditor)
+                    m_TempCollabBooksProtectedFromSavingToEditor = collabItemStr;
+                else if (collabLabelStr == szCollabDoNotShowMigrationDialogForPT7toPT8)
+                {
+                    if (collabItemStr == _T("0"))
+                        m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE;
+                    else
+                        m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = TRUE;
+                    m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = m_TempCollabDoNotShowMigrationDialogForPT7toPT8; // avoid gcc warning
+                }
+            }
+            // This project's collab settings are now all in the temp variables.
+            // Here we don't try to validate the collab project as vigorously as we do
+            // in the SetupEditorCollaboration class. Here we will allow the bulk settings
+            // to be set for any project that has any values at all in the following:
+            //    m_TempCollabAIProjectName
+            //    m_TempCollabSourceProjLangName
+            //    m_TempCollabTargetProjLangName
+            //    m_TempCollaborationEditor 
+            //    m_TempCollabEditorVersion (if m_TempCollaborationEditor == _T("Paratext"):
+            // Note: m_bTempCollabByChapterOnly is guaranteed to have a boolean value by the code above. It is set to TRUE if the
+            // config file dowsn't have a 0 or 1 value for it.
+            if (!m_TempCollabAIProjectName.IsEmpty() && !m_TempCollabSourceProjLangName.IsEmpty()
+                && !m_TempCollabTargetProjLangName.IsEmpty() && !m_TempCollaborationEditor.IsEmpty())
+            {
+                // The project has all the minimum collab values so include it in the 
+                // aiCollabProjectNamesArray for inserting in the drop down list selector
+                aiCollabProjectNamesArray->Add(projName);
+            }
+        }
+        else
+        {
+            // No collaboration settings detected, don't add this AI project to the aiCollabProjectNamesArray.
+            ;
         }
     }
 }
@@ -35483,6 +35810,11 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
 
     m_bBibleditIsInstalled = FALSE;
     m_bBibleditIsInstalled = BibleditIsInstalled();
+    if (m_bBibleditIsInstalled)
+    {
+        m_BibleditInstallDirPath = GetBibleditInstallDirPath();
+        m_BibleditProjectsDirPath = GetBibleditProjectsDirPath();
+    }
     if (PTver == PTNotInstalled)
     {
         if (m_bBibleditIsInstalled)
@@ -35492,8 +35824,6 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
                                                     // which on Linux systems is ~/.bibledit/projects.
                                                     // m_BibleditInstallDirPath will be null if Bibledit is not installed or we are not on
                                                     // a Linux host system.
-            m_BibleditInstallDirPath = GetBibleditInstallDirPath();
-            m_BibleditProjectsDirPath = GetBibleditProjectsDirPath();
         }
     }
 
@@ -46683,6 +47013,249 @@ void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
     }
 }
 
+void CAdapt_ItApp::OnManageDataTransfersToEditor(wxCommandEvent& WXUNUSED(event))
+{
+    wxArrayString aiCollabProjectNamesArray;
+    GetPossibleAdaptionCollabProjects(&aiCollabProjectNamesArray);
+
+    // If there are no collaboration projects, then advise administrator that he/she
+    // needs to use the "Setup Or Remove Collaboration" dialog from Administrator menu
+    // to create collaboration project(s) before those projects can have "protected"
+    // documents.
+    if (aiCollabProjectNamesArray.GetCount() == 0)
+    {
+        wxString msg = _("There are no collaboration projects set up yet for this user. Use the \"Setup Or Remove Collaboration\" menu item on the Administrator menu to set up collaboration projects.");
+        wxMessageBox(msg, _("No Adapt It collaboration projects found"), wxICON_EXCLAMATION | wxOK);
+        return;
+    }
+
+    CCollabProtectEditorBulkSettingsDlg collabBulkSettingsDlg(GetMainFrame());
+    collabBulkSettingsDlg.CenterOnParent();
+
+    //collabBulkSettingsDlg.m_collabEditorName = m_collaborationEditor; // _T("Paratext") or _T("Bibledit");
+    int dlgResult = collabBulkSettingsDlg.ShowModal();
+    if (dlgResult == wxID_OK)
+    {
+        // Saving any changes to the proj config file is handled back
+        // in the CCollabProtectEditorBulkSettingsDlg dialog class'es OnOK()
+        // handler, since it knows what project is being processed
+        ;
+    }
+}
+
+void CAdapt_ItApp::OnUpdateManageDataTransfersToEditor(wxUpdateUIEvent& event)
+{
+    // Always enable
+    event.Enable(TRUE);
+}
+
+// whm added 20April2017
+// This is the menu handler for the "&Prevent Paratext/Bibledit from getting changes to this document" menu item on the Advanced menu
+// It validates the book name and book ID, and calls IsCollabDocProtectedFromSavingToEditor() to see if the book/ID are already
+// protected or not. If so, it informs the user. If not, it calls AddCollabBooksAndOrChaptersToProtectedCollabString() to add the
+// book or book:ch to the m_CollabBooksProtectedFromSavingToEditor string and saves the revised string to the project config file.
+// Note: This handler just adds a single book and/or :ch to any existing string of book/ch values, so it should always execute
+// quickly with no need for a progress dialog.
+void CAdapt_ItApp::OnAdvancedProtectEditorFmGettingChangesForThisDoc(wxCommandEvent & WXUNUSED(event))
+{
+    // The information for protecting the current document should be stored in the App's collab settings.
+    // this->m_CollabBooksProtectedFromSavingToEditor has the current list from CollabBooksProtectedFromSavingToEditor
+    // this->m_collaborationEditor has the name of the collab editor
+    // this->m_CollabBookSelected has (English - not localizable) name of the book selected and open for collab - need to converto to bookID 
+    // this->m_CollabChapterSelected has the chapter number of the chpater that is open for collab - meaningless if collab by whole book
+    // this->m_bCollabByChapterOnly is 1 if collaborating by chapter only, 0 if collaborating by whole book
+    wxString bookID;
+    wxString tempCollabProtectedStr = this->m_CollabBooksProtectedFromSavingToEditor;
+    wxString msg;
+    bookID = GetBookCodeFromBookName(this->m_CollabBookSelected);
+    bool bValidBookID = IsValidBookID(bookID);
+    if (!bookID.IsEmpty() && bValidBookID)
+    {
+        bool bAlreadyProtected = FALSE;
+        wxString bookIdCh;
+        wxString fullBookIdCh;
+        wxString collabProtectedStr = tempCollabProtectedStr;
+        bAlreadyProtected = IsCollabDocProtectedFromSavingToEditor(bookID, this->m_bCollabByChapterOnly, this->m_CollabChapterSelected);
+        if (bAlreadyProtected)
+        {
+            if (this->m_bCollabByChapterOnly)
+            {
+                msg = _("Chapter %s of the book %s is already marked to prevent changes from being transferred to %s, so ignoring the command.");
+                msg = msg.Format(msg, this->m_CollabChapterSelected.c_str(), this->m_CollabBookSelected.c_str(), this->m_collaborationEditor.c_str());
+            }
+            else
+            {
+                msg = _("The whole book %s is already marked to prevent changes from being transferred to %s, so ignoring the command.");
+                msg = msg.Format(msg, this->m_CollabBookSelected.c_str(), this->m_collaborationEditor.c_str());
+            }
+            wxMessageBox(msg, _("Command ignored"), wxICON_EXCLAMATION | wxOK);
+            LogUserAction(msg);
+        }
+        else
+        {
+            // the book or book:ch is not yet listed as protected, so add it to that status
+            if (this->m_bCollabByChapterOnly)
+            {
+                bookIdCh = bookID + _T(":") + this->m_CollabChapterSelected;
+                fullBookIdCh = GetBookNameFromBookCode(bookID, this->m_collaborationEditor) + _T(" ") + _("Chapter") + _T(" ") + this->m_CollabChapterSelected;
+            }
+            else
+            {
+                bookIdCh = bookID;
+                fullBookIdCh = GetBookNameFromBookCode(bookID, this->m_collaborationEditor);
+            }
+            tempCollabProtectedStr = AddCollabBooksAndOrChaptersToProtectedCollabString(collabProtectedStr, bookIdCh);
+            // Update the App's value for saving in the project config file
+            this->m_CollabBooksProtectedFromSavingToEditor = tempCollabProtectedStr;
+            // Write change to collab settings immediately before exiting this handler. The m_curProjectPath should be
+            // valid since a project and document must be open for this handler to be enabled.
+            bool bOK;
+            bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath, projectConfigFile);
+            if (!bOK)
+            {
+                // Not likely to fail, so just log error
+                LogUserAction(_T("Failed to write proj config file changes in OnAdvancedProtectEditorFmGettingChangesForThisDoc() handler."));
+            }
+            else
+            {
+                // Inform/Remind user that changes to the document will no longer be transferred to Paratext/Bibledit.
+                msg = _("Changes to %s will no longer be transferred to %s.");
+                msg = msg.Format(msg, fullBookIdCh.c_str(), this->m_collaborationEditor.c_str());
+                wxMessageBox(msg, _("Collaboration settings changed"), wxICON_INFORMATION | wxOK);
+            }
+        }
+    }
+    else
+    {
+        // An empty bookID or invalid bookID is not likely to happen so just log the problem
+        if (!bValidBookID)
+        {
+            msg = _T("Invalid or empty book name [%s] and book ID [%s] in OnAdvancedProtectEditorFmGettingChangesForThisDoc()");
+            msg = msg.Format(msg, this->m_CollabBookSelected.c_str(), bookID.c_str());
+            LogUserAction(msg);
+        }
+    }
+}
+
+// whm added 20April2017 
+void CAdapt_ItApp::OnUpdateAdvancedProtectEditorFmGettingChangesForThisDoc(wxUpdateUIEvent & event)
+{
+    // The "&Prevent Paratext/Bibledit from getting changes to this document" menu item should only be enabled
+    // when a collaboration document is open in the main window.
+    if (m_bKBReady && m_bGlossingKBReady && this->GetDocument() != NULL && m_pSourcePhrases->GetCount() != 0 && (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit))
+    {
+        event.Enable(TRUE);
+    }
+    else
+    {
+        event.Enable(FALSE);
+    }
+}
+
+// whm added 20April2017 
+// This is the menu handler for the "Allow Paratext/Bibledit to get changes to this document" menu item on the Advanced menu
+// It validates the book name and book ID, and calls IsCollabDocProtectedFromSavingToEditor() to see if the book/ID are already
+// protected or not. If not, it informs the user. If so, it calls RemoveCollabBooksAndOrChaptersToProtectedCollabString() to
+// remove the book or book:ch from the m_CollabBooksProtectedFromSavingToEditor string and saves the revised string to the
+// project config file.
+// Note: This handler just removes a single book and/or :ch from any existing string of book/ch values, so it should always
+// execute quickly with no need for a progress dialog.
+void CAdapt_ItApp::OnAdvancedAllowEditorToGetChangesForThisDoc(wxCommandEvent & WXUNUSED(event))
+{
+    // The information for protecting the current document should be stored in the App's collab settings.
+    // this->m_CollabBooksProtectedFromSavingToEditor has the current list from CollabBooksProtectedFromSavingToEditor
+    // this->m_collaborationEditor has the name of the collab editor
+    // this->m_CollabBookSelected has (English - not localizable) name of the book selected and open for collab - need to converto to bookID 
+    // this->m_CollabChapterSelected has the chapter number of the chpater that is open for collab - meaningless if collab by whole book
+    // this->m_bCollabByChapterOnly is 1 if collaborating by chapter only, 0 if collaborating by whole book
+    wxString bookID;
+    wxString tempCollabProtectedStr = this->m_CollabBooksProtectedFromSavingToEditor;
+    wxString msg;
+    bookID = GetBookCodeFromBookName(this->m_CollabBookSelected);
+    bool bValidBookID = IsValidBookID(bookID);
+    if (!bookID.IsEmpty() && bValidBookID)
+    {
+        bool bAlreadyProtected = FALSE;
+        wxString bookIdCh;
+        wxString fullBookIdCh;
+        wxString collabProtectedStr = tempCollabProtectedStr;
+        bAlreadyProtected = IsCollabDocProtectedFromSavingToEditor(bookID, this->m_bCollabByChapterOnly, this->m_CollabChapterSelected);
+        if (!bAlreadyProtected)
+        {
+            if (this->m_bCollabByChapterOnly)
+            {
+                msg = _("Chapter %s of the book %s is not marked to prevent changes from being transferred to %s, so ignoring the command.");
+                msg = msg.Format(msg, this->m_CollabChapterSelected.c_str(), this->m_CollabBookSelected.c_str(), this->m_collaborationEditor.c_str());
+            }
+            else
+            {
+                msg = _("The whole book %s is not marked to prevent changes from being transferred to %s, so ignoring the command.");
+                msg = msg.Format(msg, this->m_CollabBookSelected.c_str(), this->m_collaborationEditor.c_str());
+            }
+            wxMessageBox(msg, _("Command ignored"), wxICON_EXCLAMATION | wxOK);
+            LogUserAction(msg);
+        }
+        else
+        {
+            // the book or book:ch is listed as protected, so remove it from that status
+            if (this->m_bCollabByChapterOnly)
+            {
+                bookIdCh = bookID + _T(":") + this->m_CollabChapterSelected;
+                fullBookIdCh = GetBookNameFromBookCode(bookID, this->m_collaborationEditor) + _T(" ") + _("Chapter") + _T(" ") + this->m_CollabChapterSelected;
+            }
+            else
+            {
+                bookIdCh = bookID;
+                fullBookIdCh = GetBookNameFromBookCode(bookID, this->m_collaborationEditor);
+            }
+            tempCollabProtectedStr = RemoveCollabBooksOrChaptersFromProtectedCollabString(collabProtectedStr, bookIdCh);
+            // Update the App's value for saving in the project config file
+            this->m_CollabBooksProtectedFromSavingToEditor = tempCollabProtectedStr;
+            // Write change to collab settings immediately before exiting this handler. The m_curProjectPath should be
+            // valid since a project and document must be open for this handler to be enabled.
+            bool bOK;
+            bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath, projectConfigFile);
+            if (!bOK)
+            {
+                // Not likely to fail, so just log error
+                LogUserAction(_T("Failed to write proj config file changes in OnAdvancedAllowEditorToGetChangesForThisDoc() handler."));
+            }
+            else
+            {
+                // Inform/Remind user that changes to the document will no longer be transferred to Paratext/Bibledit.
+                msg = _("Changes to %s will now be transferred to %s.");
+                msg = msg.Format(msg, fullBookIdCh.c_str(), this->m_collaborationEditor.c_str());
+                wxMessageBox(msg, _("Collaboration settings changed"), wxICON_INFORMATION | wxOK);
+            }
+        }
+    }
+    else
+    {
+        // An empty bookID or invalid bookID is not likely to happen so just log the problem
+        if (!bValidBookID)
+        {
+            msg = _T("Invalid or empty book name [%s] and book ID [%s] in OnAdvancedAllowEditorToGetChangesForThisDoc()");
+            msg = msg.Format(msg, this->m_CollabBookSelected.c_str(), bookID.c_str());
+            LogUserAction(msg);
+        }
+    }
+}
+
+// whm added 20April2017 
+void CAdapt_ItApp::OnUpdateAdvancedAllowEditorToGetChangesForThisDoc(wxUpdateUIEvent & event)
+{
+    // The "Allo&w Paratext/Bibledit to get changes to this document" menu item should only be enabled
+    // when a collaboration document is open in the main window.
+    if (m_bKBReady && m_bGlossingKBReady && this->GetDocument() != NULL && m_pSourcePhrases->GetCount() != 0 && (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit))
+    {
+        event.Enable(TRUE);
+    }
+    else
+    {
+        event.Enable(FALSE);
+    }
+}
+
 // whm added the next two handlers 14Feb12
 void CAdapt_ItApp::OnUpdateTempRestoreUserProfiles(wxUpdateUIEvent& event)
 {
@@ -51321,6 +51894,25 @@ wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, 
     return tempStr;
 }
 
+wxString CAdapt_ItApp::GetCanonTypeFromBookCode(wxString bookCode)
+{
+    if (bookCode.IsEmpty())
+        return wxEmptyString;
+    // The AllBooksCanonType[] is a 123-element array that is parallel to the AllBookIds[] array.
+    // We can look up the index of the bookCode in the AllBookIds[] array and use it to cross-reference
+    // the canon type at the same index in the AllBooksCanonType[] array.
+    int ct;
+    // Note: the AllBookIds[] array as used in Paratext has 123 elements
+    for (ct = 0; ct < 123; ct++)
+    {
+        if (bookCode == AllBookIds[ct])
+        {
+            return AllBooksCanonType[ct];
+        }
+    }
+    return wxEmptyString;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a wxString representing the 3-letter USFM book code for bookName
 /// \param      bookName -> the full Scripture book name (English)
@@ -51329,22 +51921,34 @@ wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, 
 /// Finds the bookName in the App's bookNameArray and uses the found index as an
 /// index into the parallel AllBookIds array, extracting the corresponding 3-letter
 /// book code.
+/// whm 27April2017 revised to account for the differences in book names between 
+/// Paratext and Bibledit.
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetBookCodeFromBookName(wxString bookName)
 {
     // The Paratext list of book codes (3-letter Ids) is located in the App's array of
     // wxStrings called AllBookIds. The Paratext list of full book names (English)
-    // is located in the App's array of wxStrings called AllBookNames.
+    // is located in the App's array of wxStrings called AllBookNames[].
+    // Note: Paratext and Bibledit book names differ in 6 places in the array.
+    // Paratext uses:                Bibledit uses:       Array index (zero based):
+    // "Esther (Hebrew)"             "Esther"             16
+    // "Song of Songs"               "Song of Solomon"    21
+    // "Daniel (Hebrew)"             "Daniel"             26
+    // "Esther Greek"                "Esther"             68
+    // "Wisdom of Solomon"           "Wisdom"             69
+    // "Sirach (Ecclesiasticus)"     "Sirach"             70
+    // This routine accept the book name used for either Paratext or Bibledit.
     wxString bookCode;
     bookCode.Empty();
     wxArrayString bookIDArray(123, AllBookIds);
     wxArrayString bookNameArray(123, AllBookNames);
+    wxArrayString bookNameArrayBibledit(123, AllBookNamesBibledit);
     wxASSERT(bookIDArray.GetCount() == bookNameArray.GetCount());
     int i, arrayCt;
     arrayCt = (int)bookIDArray.GetCount();
     for (i = 0; i < arrayCt; i++)
     {
-        if (bookName == bookNameArray.Item(i))
+        if (bookName == bookNameArray.Item(i) || bookName == bookNameArrayBibledit.Item(i))
         {
             bookCode = bookIDArray.Item(i);
             break;
@@ -51358,15 +51962,19 @@ wxString CAdapt_ItApp::GetBookCodeFromBookName(wxString bookName)
 ///                    if localized); or an empty string if no code matches the
 ///                    passed in code
 /// \param bookCode -> a wxString representing the 3-letter USFM book code for bookName
+/// \param collabEditor -> a wxString representing the potential collab editor _T("Paratext"),
+///                        _T("Bibledit"), or _T("")
 /// \remarks
 /// Called from:
 /// Finds the bookCode in the App's AllBookIds[] array and uses the found index as an
 /// index into the parallel AllBookNames[] array, extracting the corresponding full
 /// book name which it then returns.
 /// Created: BEW 7Aug12 to get, for the Paratext list of books and codes, return the full
-/// (English, or localized full name) corresponding to the 3-letter book code passed in
+/// (English name) corresponding to the 3-letter book code passed in.
+/// whm revised 27April2017 to account for differences between Paratext's book names and
+/// Bibledit's book names.
 ///////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItApp::GetBookNameFromBookCode(wxString bookCode)
+wxString CAdapt_ItApp::GetBookNameFromBookCode(wxString bookCode, wxString collabEditor)
 {
     // The Paratext list of book codes (3-letter Ids) is located in the App's array of
     // wxStrings called AllBookIds. The Paratext list of full book names, localizable
@@ -51377,15 +51985,33 @@ wxString CAdapt_ItApp::GetBookNameFromBookCode(wxString bookCode)
     theCode = theCode.MakeUpper(); // ensure it is upper case
     wxArrayString bookIDArray(123, AllBookIds);
     wxArrayString bookNameArray(123, AllBookNames);
+    wxArrayString bookNameArrayBibledit(123, AllBookNamesBibledit); // whm added 27April2017
     wxASSERT(bookIDArray.GetCount() == bookNameArray.GetCount());
     int i, arrayCt;
-    arrayCt = (int)bookIDArray.GetCount();
-    for (i = 0; i < arrayCt; i++)
+    if (collabEditor == _T("Paratext") || collabEditor == _T(""))
     {
-        if (theCode == bookIDArray.Item(i))
+        // Potential collaboration is with Paratext
+        arrayCt = (int)bookIDArray.GetCount();
+        for (i = 0; i < arrayCt; i++)
         {
-            bookName = bookNameArray.Item(i);
-            break;
+            if (theCode == bookIDArray.Item(i))
+            {
+                bookName = bookNameArray.Item(i);
+                break;
+            }
+        }
+    }
+    else
+    {
+        // Potential collaboration is with Bibledit
+        arrayCt = (int)bookNameArrayBibledit.GetCount();
+        for (i = 0; i < arrayCt; i++)
+        {
+            if (theCode == bookIDArray.Item(i))
+            {
+                bookName = bookNameArrayBibledit.Item(i);
+                break;
+            }
         }
     }
     return bookName;

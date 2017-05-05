@@ -11520,6 +11520,224 @@ wxSizer *CollabProjectMigrationDlgFunc( wxWindow *parent, bool call_fit, bool se
     return item0;
 }
 
+wxSizer *CollabProtectEditorBulkSettingsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT_DIALOG_TOPIC_LINE, _("To prevent changes in collaboration documents from transferring to Paratext"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("1. Select AI collaboration project:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+
+    item6->Add( 10, 10, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+
+    wxString *strs7 = (wxString*) NULL;
+    wxComboBox *item7 = new wxComboBox( parent, ID_COMBO_AI_PROJECTS, wxT(""), wxDefaultPosition, wxSize(300,-1), 0, strs7, wxCB_DROPDOWN|wxCB_SORT );
+    item7->SetToolTip( _("Click down arrow at right to open the list of Adapt It collaboration projects") );
+    item6->Add( item7, 1, wxALIGN_CENTER_VERTICAL, 0 );
+
+    item4->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+
+    item8->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("Collab Editor: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->Add( item11, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    item10->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT_COLLAB_EDITOR, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 0 );
+
+    item10->Add( 30, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Versification:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item10->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT_VERSIFICATION_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 0 );
+
+    item9->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxTOP, 5 );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+
+    item15->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Source Proj: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item16, 0, wxALIGN_CENTER_VERTICAL, 0 );
+
+    item15->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT_EDITOR_PROJ_SOURCE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 0 );
+
+    item9->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
+
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+
+    item18->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Target Proj:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item19, 0, wxALIGN_CENTER_VERTICAL, 0 );
+
+    item18->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT_EDITOR_PROJ_TARGET_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 0 );
+
+    item9->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
+
+    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("Work by: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item22, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    item21->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT_BY_WHOLE_BOOK_OR_CHAPTER, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 0 );
+
+    item9->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item4->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item3->Add( item4, 0, wxRIGHT|wxTOP|wxBOTTOM, 0 );
+
+    item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_STEP2, _("2. Select a book from the 'Books List' below. Its chapters will display in 'Chapters List'."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT_STEP3, _("3. Tick chapters in the 'Chapters List' to keep changes in those chapters from Paratext."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item26 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticBox *item29 = new wxStaticBox( parent, -1, _("Books List:") );
+    wxStaticBoxSizer *item28 = new wxStaticBoxSizer( item29, wxVERTICAL );
+
+    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxString *strs31 = (wxString*) NULL;
+    wxListBox *item31 = new wxListBox( parent, ID_LISTBOX_BOOKS, wxDefaultPosition, wxSize(180,150), 0, strs31, wxLB_SINGLE );
+    item30->Add( item31, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxString *strs32 = (wxString*) NULL;
+    wxCheckListBox *item32 = new wxCheckListBox( parent, ID_CHECKLISTBOX_BOOKS, wxDefaultPosition, wxSize(180,150), 0, strs32, 0 );
+    item30->Add( item32, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item28->Add( item30, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticBox *item34 = new wxStaticBox( parent, -1, _("Books (select range):") );
+    wxStaticBoxSizer *item33 = new wxStaticBoxSizer( item34, wxVERTICAL );
+
+    wxBoxSizer *item35 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item36 = new wxButton( parent, ID_BUTTON_BOOKS_SELECT_ALL, _("All Books"), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item36, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
+
+    wxButton *item37 = new wxButton( parent, ID_BUTTON_BOOKS_SELECT_OT, _("OT Books"), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item37, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
+
+    item33->Add( item35, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item38 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item39 = new wxButton( parent, ID_BUTTON_BOOKS_SELECT_NT, _("NT Books"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->Add( item39, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
+
+    wxButton *item40 = new wxButton( parent, ID_BUTTON_BOOKS_SELECT_DC, _("DC Books"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->Add( item40, 0, wxALIGN_CENTER|wxLEFT|wxBOTTOM, 5 );
+
+    item33->Add( item38, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item41 = new wxButton( parent, ID_BUTTON_BOOKS_DE_SELECT_ALL, _("Deselect All Books"), wxDefaultPosition, wxDefaultSize, 0 );
+    item33->Add( item41, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    item28->Add( item33, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item27->Add( item28, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxRIGHT, 5 );
+
+    wxStaticBox *item43 = new wxStaticBox( parent, -1, _("Chapters List (of selected book):") );
+    wxStaticBoxSizer *item42 = new wxStaticBoxSizer( item43, wxVERTICAL );
+
+    wxBoxSizer *item44 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxString *strs45 = (wxString*) NULL;
+    wxCheckListBox *item45 = new wxCheckListBox( parent, ID_CHECKLISTBOX_CHAPTERS, wxDefaultPosition, wxSize(150,150), 0, strs45, 0 );
+    item44->Add( item45, 1, wxGROW|wxALL, 5 );
+
+    item42->Add( item44, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticBox *item47 = new wxStaticBox( parent, -1, _("Chapters (select range):") );
+    wxStaticBoxSizer *item46 = new wxStaticBoxSizer( item47, wxVERTICAL );
+
+    wxBoxSizer *item48 = new wxBoxSizer( wxVERTICAL );
+
+    wxButton *item49 = new wxButton( parent, ID_BUTTON_CHAPTERS_SELECT_ALL, _("All Chapters of Book"), wxDefaultPosition, wxDefaultSize, 0 );
+    item49->SetToolTip( _("Click to tick all the chapters listed above for the book selected in the 'Books List'") );
+    item48->Add( item49, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+
+    wxButton *item50 = new wxButton( parent, ID_BUTTON_CHAPTERS_DE_SELECT_ALL, _("Deselect All Chapters of Book"), wxDefaultPosition, wxDefaultSize, 0 );
+    item50->SetToolTip( _("Click to untick all the chapters listed above for the book selected in the 'Books List'") );
+    item48->Add( item50, 0, wxALIGN_CENTER, 5 );
+
+    item46->Add( item48, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item42->Add( item46, 0, wxALIGN_CENTER_HORIZONTAL|wxBOTTOM, 5 );
+
+    item27->Add( item42, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxLEFT, 5 );
+
+    item26->Add( item27, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item26, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item51 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item52 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item52->SetToolTip( _("Click OK to save all changes made while dialog was open") );
+    item51->Add( item52, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item51->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item53 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item53->SetToolTip( _("Click Cancel to undo any changes made while dialog was open") );
+    item51->Add( item53, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item51, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
@@ -11654,6 +11872,9 @@ wxMenuBar *AIMenuBarFunc()
     item6->Append( ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, _("Send Synchronized Scrolling Messages"), _("Select this item to cause applications such as Paratext and TW to automatically scroll to the same location"), wxITEM_CHECK );
     item6->Append( ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, _("Receive Synchronized Scrolling Messages"), _("Select this item to cause Adapt It to scroll to the same location being displayed in other applications such as Paratext and TW"), wxITEM_CHECK );
     item6->AppendSeparator();
+    item6->Append( ID_ADVANCED_PROTECT_EDITOR_FM__GETTING_CHANGES_FOR_THIS_DOC, _("&Prevent Paratext/Bibledit from getting changes to this document"), _("Changes made in this document will not be sent to Paratext/Bibledit, but will only be saved in the local Adapt It document") );
+    item6->Append( ID_ADVANCED_ALLOW_EDITOR_TO_GET_CHANGES_FOR_THIS_DOC, _("Allo&w Paratext/Bibledit to get changes to this document"), _("Changes made in this document will be sent to Paratext/Bibledit, and will also be saved in the local Adapt It document") );
+    item6->AppendSeparator();
     item6->Append( ID_MENU_SHOW_KBSERVER_SETUP_DLG, _("Setup Or Remove &Knowledge Base Sharing..."), _("Turn ON, or OFF, the use of KBserver for KB synchronizing") );
     item6->Append( ID_MENU_SHOW_KBSERVER_DLG, _("&Controls For Knowledge Base Sharing..."), _("Controls for: Set sync interval. Bulk send/receive. Disable/Enable.") );
     item6->Append( ID_MENU_DISCOVER_ONE_KBSERVER, _("Discover One KBserver"), _("Scan to discover just one KBserver") );
@@ -11680,6 +11901,7 @@ wxMenuBar *AIMenuBarFunc()
     item9->Append( ID_MENU_HELP_FOR_ADMINISTRATORS, _("&Help for Administrators (HTML)"), _("Step-by-step procedures to help administrators set up Adapt It to use the features on this menu.") );
     item9->AppendSeparator();
     item9->Append( ID_SETUP_EDITOR_COLLABORATION, _("&Setup or Remove Collaboration..."), _("Configure Adapt It to use a Paratext or Bibledit project for its input (source) texts, and a different project for exporting its (target) texts") );
+    item9->Append( ID_MENU_MANAGE_DATA_TRANSFER_PROTECTIONS_TO_EDITOR, _("Manage &Data Transfer Protections to Paratext or Bibledit..."), _("Manage list of books and chapters that you allow or prevent changes from transferring to Paratext or Bibledit") );
     item9->AppendSeparator();
     item9->Append( ID_FORCE_VERSE_SECTIONING, _("Force Free Translation Sectioning By Verse"), _("Force free translation sectioning by verse or presence of major standard format markers"), wxITEM_CHECK );
     item9->AppendSeparator();

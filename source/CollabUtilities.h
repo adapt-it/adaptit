@@ -277,8 +277,8 @@ class CSetupEditorCollaboration;
 	///   Functions for connecting  the externally obtained data into a new or existing
 	///   Adapt It project, and getting data out of the Adapt It document
 	/////////////////////////////////////////////////////////////////////////////////////
-    wxString        AddCollabBooksAndOrChaptersToCollabString(wxString currentString, wxString bookIDsorChapters);
-    wxString        RemoveCollabBooksOrChaptersFromCollabString(wxString currentString, wxString bookIDsorChapters);
+    wxString        AddCollabBooksAndOrChaptersToProtectedCollabString(wxString currentString, wxString bookIDsorChapters);
+    wxString        RemoveCollabBooksOrChaptersFromProtectedCollabString(wxString currentString, wxString bookIDsorChapters);
     bool            IsCollabDocProtectedFromSavingToEditor(wxString bookCode, bool bCollabByChapterOnly, wxString collabChapterSelected); // whm added 2February2017
 	bool			CollabProjectIsEditable(wxString projShortName);
 	bool			CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, 
