@@ -1524,7 +1524,9 @@ void CCollabProtectEditorBulkSettingsDlg::LoadChaptersListBox(int nBookSel)
         chStr.Trim(TRUE);
         chStr.Trim(FALSE);
         // Add the "Chapter " prefix to the chapter number string for the list box
-        chStr = _("Chapter") + _T(" ") + chStr;
+        chStr = _("Chapter");
+        chStr += _T(" ");
+        chStr += chStr;
         lbChArray.Add(chStr);
     }
 
@@ -1548,7 +1550,9 @@ void CCollabProtectEditorBulkSettingsDlg::LoadChaptersListBox(int nBookSel)
         tokenStr.Trim(FALSE);
         // The listbox of chapters will have a localizable "Chapter " prefix, so we add that here to make it easier
         // to compare the lists
-        tokenStr = _("Chapter") + _T(" ") + tokenStr;
+        tokenStr = _("Chapter");
+        tokenStr += _T(" ");
+        tokenStr += tokenStr;
         // Now find this formatted string item in the 'Chapter List' items stored in pListOfChapters
         int itemIndex;
         itemIndex = pListOfChapters->FindString(tokenStr);
