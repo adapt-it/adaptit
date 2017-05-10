@@ -1518,15 +1518,15 @@ void CCollabProtectEditorBulkSettingsDlg::LoadChaptersListBox(int nBookSel)
     wxString chStr;
     wxArrayString lbChArray;
     wxStringTokenizer tkz(allChsStr, _T(":")); // chapters are delimited by colons
+    wxString chapterLocal = _("Chapter");
+    wxString space = _T(" ");
     while (tkz.HasMoreTokens())
     {
         chStr = tkz.GetNextToken();
         chStr.Trim(TRUE);
         chStr.Trim(FALSE);
         // Add the "Chapter " prefix to the chapter number string for the list box
-        chStr = _("Chapter");
-        chStr += _T(" ");
-        chStr += chStr;
+        chStr = chapterLocal + space + chStr;
         lbChArray.Add(chStr);
     }
 
@@ -1550,9 +1550,7 @@ void CCollabProtectEditorBulkSettingsDlg::LoadChaptersListBox(int nBookSel)
         tokenStr.Trim(FALSE);
         // The listbox of chapters will have a localizable "Chapter " prefix, so we add that here to make it easier
         // to compare the lists
-        tokenStr = _("Chapter");
-        tokenStr += _T(" ");
-        tokenStr += tokenStr;
+        tokenStr = chapterLocal + space + tokenStr;
         // Now find this formatted string item in the 'Chapter List' items stored in pListOfChapters
         int itemIndex;
         itemIndex = pListOfChapters->FindString(tokenStr);

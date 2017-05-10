@@ -2719,8 +2719,14 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
     // that prepares and saves changes to the external editor
     if (bProtectedFromSavingChangesToExternalEditor)
     {
-        // TODO: Bruce, is it necessary to call UpdateDocWithPhraseBoxContents() here before
-        // calling DoFileSave_Protected()??
+        // we want the phrase box's contents put into the document, so that the export of
+        // the pre-user-editing-happens adaptation text will have the box contents in it -
+        // so get it done here, but don't bother about the save to KB because the
+        // DoFileSave_Protected(TRUE) call later below will get that job done
+        bool bAttemptStoreToKB = FALSE;
+        bool bNoStore = FALSE; // default, it's initialized to FALSE internally anyway
+        bool bSuppressWarningOnStoreKBFailure = TRUE; // we don't want a warning (we won't try
+        UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
 
         // Do a local normal protected save to AI's native storage
         DoFileSave_Protected(TRUE, progressItem); // // TRUE means - show wait/progress dialog
