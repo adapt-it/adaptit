@@ -10,6 +10,8 @@ Below is a list of many of these "technical" terms with a brief comment about th
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 fail - English: file. Specifically, a computer file that is typically created and stored on a disk.
 
+fail brausa - English: file browser or file manager.
+
 dokumen - English: document. Within Adapt It a "document" is much more than just a source text and a correspopnding target text. It includes all of the filtered (hidden) information, standard format markers, and many other characteristics of the adaptation process. In fact Adapt It documents include all the information necessary to reconstruct the source text, target text, and even both knowledge bases. They include information about virtually everything that was done in the process of adaptation. Therefore, Adapt It "documents" cannot be edited with normal word processors as though they were simple text files. They are very complex files written in a special XML format.
 
 folda - English: folder, directory or subdirectory. A named storage location used in modern computer file systems. Folders or directories have their own names and become a place where one or more files can be stored. Computer folders can be, and often are, created inside of other folders. Therefore, folders are the main way to organize files and folders into groups on a computer.
@@ -58,11 +60,11 @@ pangsuesen, mak bilong pangsuesen - English: punctuation, punctuation mark. The 
 
 plesholda - English: placeholder. Refers to the location within a source text which has been opened and left empty - in order to have a location established where a target text word or phrase can be inserted. Placeholders in Adapt It's source text are indicated by an ellipsis ... at the location of the placeholder. Placeholders cannot be inserted into source text which is part of a "retranslation". Also a span of source text which contains a previously inserted placeholder ..., cannot be merged without first removing the placeholder.
 
-seleksen, selektim - English: selection, select. Refers to making a choice by clicking on an item in a list, or clicking on a menu item, or clicking on a button (usually beside an option) in the program. A selection can be made with a mouse click, or can sometimes also be made by moving a selection with arrow keys. An important skill to have when using Adapt It is to be able to select two or more source text words in order to merge them into a phrase to be adapted. Selecting two or more source text words can be accomplished by dragging the mouse over the source text words (with the left mouse button held down while moving the mouse cursor over the source words to be selected). Selecting source text words may also be done more efficiently by holding the ALT key down and using the RIGHT or LEFT arrow key, which makes a selection starting at the location of the phrase box
+seleksen, selektim - English: selection, select. (see oda, komand) Refers to making a choice by clicking on an item in a list, or clicking on a menu item, or clicking on a button (usually beside an option) in the program. A selection can be made with a mouse click, or can sometimes also be made by moving a selection with arrow keys. An important skill to have when using Adapt It is to be able to select two or more source text words in order to merge them into a phrase to be adapted. Selecting two or more source text words can be accomplished by dragging the mouse over the source text words (with the left mouse button held down while moving the mouse cursor over the source words to be selected). Selecting source text words may also be done more efficiently by holding the ALT key down and using the RIGHT or LEFT arrow key, which makes a selection starting at the location of the phrase box
 
-batan - English: button. Refers to a rectangular button (or sometimes a "radio" button) in a dialog or on the interface.
+baten - English: button. Refers to a rectangular button (or sometimes a "radio" button) in a dialog or on the interface.
 
-klikim, klikim batan - English: click on, click on. Refers to clicking on a button.
+klikim, klikim baten - English: click on, click on. Refers to clicking on a button.
 
 dabel klikim - English: double click on. Refers to double clicking on a list item.
 
@@ -78,7 +80,7 @@ Ekspot, Ekspotim - English: Export. Adapt It can export certain kinds of informa
 
 Impot, Impotim - English: Import. Adapt It can import dictionary records to quickly build up its knowledge base, if such records have been already prepared in another program. Words and their meaning(s) are added to Adapt It's knowledge base if they do not already exist. Such dictionary records must be formatted with certain backslash codes in order for Adapt It to distinguish the dictionary main entry (marked with \lx) from the translation(s) of that entry (marked with \ge). Such dictionary entries can be created by hand or can come from a Shoebox or Toolbox database. You can use the "Import To Knowledge Base..." command on the File menu to Import such dictionary records.
 
-kod - English: code, usually referring to a standard format marker, but sometimes also to a locale code.
+kod - English: code, usually referring to a standard format marker, but sometimes also to a locale code, or error code.
 
 stail - English: style, especially in reference to format style as governed by the use of standard format markers.
 
@@ -97,6 +99,8 @@ not - English: Note. Refers specifically to Adapt It Notes in particular, which 
 sistem - English: system, usually a reference to a computer operating system.
 
 mod - English: mode. Used in Adapt It to describe a state of the program in which certain actions are enabled, disabled or constrained in some way - such as "Book Folder Mode," "Glossing Mode", or "Free Translation Mode".
+
+ritim tasol mod - English: read-only mode. Used in Adapt It to describe the stat of a document that cannot be edited, only read or viewed.
 
 lokal - English: locale, a reference to a formal language region as recognized by computer systems.
 
@@ -117,3 +121,20 @@ Konsistensi Sek - English: Consistency Check. A process in which Adapt It compar
 Konsisten Senis - English: Consistent Changes. A process in which 1 to 4 consistent change tables can be loaded into Adapt It, and used to pre-process source text words before they are copied to the phrase box. This process is only done when there are no previous translations for the given source word. Consistent change tables can be loaded or unloaded (disabled) at any time. The use of consistent change tables can be especially helpful if a target language differs from the source text in regular (consistent) ways, such as predictable differences in sound/spelling or vocabulary.
 
 teb - English: tab. A manila folder-like tab in a dialog which contains another page of information or settings.
+
+wok wantaim - English: Collaborate. The mode of woking in which the source text is automatically read from a source language project in Paratext or Bibledit, and the target text that Adapt It produces is automatically transferred to a separate Paratext or Bibledit project. Collaboration mode requires setup within Adapt It via the "Setup Or Remove Collaboration" dialog from the Administrator menu.
+
+oda, komand - English: Command. (see seleksen)
+
+sev, sevim - English: Save, Saving.
+
+proteksen, protektim - English: Protection, Protect.
+
+instala, instalim, instal - English: Installer, Install, Installed.
+
+klipbod - English: Clipboard.
+
+daunlod, daunlodim - English: Download
+
+era - English: Error
+
