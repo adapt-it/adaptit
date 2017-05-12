@@ -520,7 +520,8 @@ public:
 	virtual ~CAdapt_ItDoc();
 
 public:
-    bool            CollaborationAllowsSaving();        // Checks if safe to Save with regard to collaboration.
+    bool            CollaborationEditorAcceptsDataTransfers();        // Checks if safe to Save with regard to collaboration.
+    bool            DocumentIsProtectedFromTransferringDataToEditor(); // whm added 11May2017
 
 protected:
 	void			ValidateNoteStorage(); // ensure no m_bHasNote flags are TRUE but lack

@@ -3843,8 +3843,8 @@ bool IsCollabDocProtectedFromSavingToEditor(wxString bookCode, bool bCollabByCha
                 }
                 else
                 {
-                    // no match found
-                    return FALSE;
+                    // no match found continue checking tokens
+                    continue;
                 }
             }
             else
@@ -4530,6 +4530,10 @@ wxString GetPathToBeRdwrt()
 	// bibledit-gtk, we check for its existence here and use it if it is located in the normal
 	// /usr/bin location. If not present, we use our own copy called adaptit-bibledit-rdwrt
 	// which is also installed into /usr/bin/.
+
+    // whm added 11May2017
+    if (!gpApp->BibleditIsInstalled())
+        return wxEmptyString;
 
 	// Note: whm revised 6Dec11 to search for bibledit-rdwrt and adaptit-bibledit-rdwrt on
 	// the PATH environment variable. The App's m_BibleditInstallDirPath member is determined
@@ -6797,7 +6801,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 {
 	wxString emptyStr = _T("");
 	//CAdapt_ItView* pView = gpApp->GetView();
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
 	wxString text; text.Empty(); // the final text for sending is built and stored in here
 	wxString preEditText; // the adaptation or free translation text prior to the editing session
@@ -6808,11 +6812,11 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
     // mrh 5Jun14 - this call replaces the commented-out block of code below.  It should actually be
     //  unnecessary now that we're doing the check at the start of CAdapt_ItDoc::DoCollabFileSave(), which
     //  is the only routine that calls us here.
-
-    if (!pDoc->CollaborationAllowsSaving())     // If unsafe to save because the collaboration editor is running, return
-                                                //  an empty string so the caller won't do anything.  A message has
-                                                //  already been shown.
-        return text;
+    // whm commented out 11May2017
+    //if (!pDoc->CollaborationEditorAcceptsDataTransfers())     // If unsafe to save because the collaboration editor is running, return
+    //                                            //  an empty string so the caller won't do anything.  A message has
+    //                                            //  already been shown.
+    //    return text;
 
 
 	/* app member variables
