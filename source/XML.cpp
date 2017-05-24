@@ -4072,9 +4072,11 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				{
 					gpEmbeddedSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
 				}
-				else if (attrName == xml_fiA)
+				else if (gnDocVersion >= 10 && attrName == xml_fiA)
 				{
+#if !defined(USE_LEGACY_PARSER)
 					gpEmbeddedSrcPhrase->SetFilteredInfo_After(gpApp->Convert8to16(attrValue));
+#endif
 				}
 				// next 4 for docVersion = 6 support
 				else if (gnDocVersion >= 6 && attrName == xml_lapat)
@@ -4223,9 +4225,11 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				{
 					gpSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
 				}
-				else if (attrName == xml_fiA)
+				else if (gnDocVersion >= 10 && attrName == xml_fiA)
 				{
+#if !defined(USE_LEGACY_PARSER)
 					gpSrcPhrase->SetFilteredInfo_After(gpApp->Convert8to16(attrValue));
+#endif
 				}
 				// next 4 for docVersion = 6 support
 				else if (gnDocVersion >= 6 && attrName == xml_lapat)

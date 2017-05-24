@@ -339,6 +339,7 @@ wxString  FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, boo
 wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFilteredInfo,
 							bool bAttach_m_markers, wxString& mMarkersStr, wxString& xrefStr,
 							wxString& filteredInfoStr, bool bDoCount, bool bCountInTargetText);
+wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs); // BEW added 8May17
 wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase);
 wxString  FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
 wxString  GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 

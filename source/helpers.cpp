@@ -6574,6 +6574,8 @@ void SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& others
 /// filteredInfoStr         <-  the contents of m_filteredInfo member, with any cross reference
 ///                             information (ie. \x ....\x*) removed; or an empty string if there
 ///                             is no filtered info. Unilaterally returned
+/// bDoCount				->  Whether or not to count the words in any free translation (now deprecated 22Jun15)
+/// bCountInTargetText      ->  Whether or do the count of words, in source text line or tgt text line (now deprecated 22Jun15)
 /// BEW created 11Oct10 for support of additions to doc version 5 for better USFM support
 /// BEW refactored 22Jun15, so that no filtered information is returned.
 /// Because of this refactoring, the bAttachFilteredInfo, even if passed in TRUE, will have
@@ -6804,6 +6806,80 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	return Sstr;
 }
 
+#if !defined(USE_LEGACY_PARSER)
+
+/// return      The recomposed end of the source text string, including punctuation and markers,
+///             starting with m_key value, and exclude contents of m_filteredInfo_After 
+/// pSingleSrcPhrase        ->  the non-merged sourcephrase, or a ~ conjoined pair
+/// BEW created 8May2017 to build the source text from a single CSourcePhrase (because
+/// merging across filtered information is prohibited, we only have to consider a 
+/// singleton), which is undergoing unfiltering. We only build the post-word string,
+/// which might be empty, or just punctuation, or just one or more inline endmarkers,
+/// or a mix of punctuation and inline endmarkers - while ignoring the CSourcePhrase's
+/// m_filteredInfo_After contents. The aim is to get everthing in place, except
+/// any unfiltered information, and then pass the returned string to the caller to 
+/// place the unfilted (one or more) information in the correct places, using the 
+/// metadata stored with the filtered info which is stored in m_filteredInfo_After.
+/// The only function which uses this is the document's ReconstituteAfterFilteringChange(),
+/// and it is based on code from within helpers.cpp FromSingleMakeSstr(), with some
+/// tweaking
+/// Created 18Apr17 When ParseWord2() is used, fixed space conjoining can be two or more
+/// words, and we do not allow internal punctuation within word1~word2~word3 etc. So
+/// we do not have to test for presence of ~, but just used m_key 'as is'
+wxString BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs)
+{
+	wxString Sstr;
+	CSourcePhrase* pSP = pSingleSrcPhrase; // RHS is too long to type all the time
+	wxString srcStr = pSP->m_key;   // start from this and append info to its end
+									// & later put result in Sstr for returning
+									// to the caller
+	wxString endMarkersStr = pSP->GetEndMarkers(); // might be empty
+	inlineNBMkrs.Empty();
+
+	// First, any inline binding endmarkers, such as \it* for italics and/or \k* for a glossary keyword etc
+	if (!pSP->GetInlineBindingEndMarkers().IsEmpty())
+	{
+		srcStr += pSP->GetInlineBindingEndMarkers();
+	}
+	// Punctuation comes next, from m_follPunct
+	if (!pSP->m_follPunct.IsEmpty())
+	{
+		srcStr += pSP->m_follPunct;
+	}
+	// Use Sstr now - for no special reason other than I'm simplifying & tweaking a
+	// legacy function (FromSingleMakeSstr()) for this special purpose
+	Sstr = srcStr;
+
+	// Any endmarkers (these are endmarkers for markers which are not in the
+	// small set of inline non-binding endmarkers, such as \wj* wordsOfJesus endmarker)
+	if (!endMarkersStr.IsEmpty())
+	{
+		Sstr << endMarkersStr;
+	}
+	// There might be content in m_follOuterPunct, append it next
+	if (!pSP->GetFollowingOuterPunct().IsEmpty())
+	{
+		Sstr += pSP->GetFollowingOuterPunct();
+	}
+	// Finally, there could be an inline non-binding endmarker, like \wj* (words of Jesus)
+	// Note: if unfiltering of material from a location which earlier was post-word, such
+	// as \x ... content ...\x* is to be done, the caller will need to search for any 
+	// inline non-binding endmarkers that get added here, and move them to the end of whatever
+	// unfiltered material is restored to visibility in the source text - otherwise, something 
+	// like \wj* might end up within the punctuation at the end of a word, rather than after it,
+	// therefore we return any non-binding inline markers separately in order to make it easy
+	// to move elsewhere if necessary
+	if (!pSP->GetInlineNonbindingEndMarkers().IsEmpty())
+	{
+		inlineNBMkrs = pSP->GetInlineNonbindingEndMarkers();
+	}
+
+	// Remove unneeded spaces at either end
+	Sstr.Trim(FALSE); // remove any initial whitespace - not likely to be any though
+	Sstr.Trim();      // and don't return it with a final space, leave that to the caller
+	return Sstr;
+}
+#endif
 
 // the next 3 functions are similar or identical to member functions of the document class
 // which are used in the parsing of text files to produce a document; one (ParseMarker())
@@ -7077,6 +7153,10 @@ bool AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossible
 // particular the free translation if there is one (using the other flag would give a TRUE
 // returned when a CSourcePhrase instance within the free translation was tested, even
 // though it had no filtered info stored on it)
+// BEW 18Apr17 added support for the new member m_filteredInfo_After. HasFilteredInfo()
+// is called in OnLButtonDown() (and maybe elsewhere) and without a test which checks
+// for content in m_filteredInfo_After, a click on a wedge icon to view the filtered info
+// does nothing if the only filtered info is in m_filteredInfo_After
 bool HasFilteredInfo(CSourcePhrase* pSrcPhrase)
 {
 	if (pSrcPhrase->m_bStartFreeTrans || !pSrcPhrase->GetFreeTrans().IsEmpty())
@@ -7095,6 +7175,12 @@ bool HasFilteredInfo(CSourcePhrase* pSrcPhrase)
 	{
 		return TRUE;
 	}
+#if !defined(USE_LEGACY_PARSER)
+	if (!pSrcPhrase->GetFilteredInfo_After().IsEmpty())
+	{
+		return TRUE;
+	}
+#endif
 	return FALSE;
 }
 

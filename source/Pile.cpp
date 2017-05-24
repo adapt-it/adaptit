@@ -225,10 +225,14 @@ int CPile::GetPileIndex()
 // dialog. However, we'll keep the old name unchanged; but if we do someday change it, we
 // should call it HasFilteredInfo())
 // BEW 22Feb10 changes done for support of doc version 5
+// BEW 18Apr17 add support for the new m_filteredInfo_After member
 bool CPile::HasFilterMarker()
 {
 	if (
 		!m_pSrcPhrase->GetFilteredInfo().IsEmpty() ||
+#if !defined(USE_LEGACY_PARSER)
+		!m_pSrcPhrase->GetFilteredInfo_After().IsEmpty() ||
+#endif
 		!m_pSrcPhrase->GetFreeTrans().IsEmpty() ||
 		!m_pSrcPhrase->GetNote().IsEmpty() ||
 		!m_pSrcPhrase->GetCollectedBackTrans().IsEmpty() ||
@@ -529,6 +533,7 @@ void CPile::SetPhraseBoxGapWidth(int nNewWidth)
 }
 
 // BEW 22Feb10 some changes done for support of doc version 5
+// BEW 18Apr17 now supports new member m_filteredInfo_After via change in HasFilterMarker() call
 void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 {
 	bool bRTLLayout;

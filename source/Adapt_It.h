@@ -22,6 +22,14 @@
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
+// Comment out Use_Legacy_Parser to cause the simpler and better refactored (Nov-Dec,2016)
+// ParseWord2() to be used, and the m_bBoundary setting code done in ParseWord2() rather
+// than in the legacy place, after the propagation code in TokenizeText()
+//
+// **** NOTE**** If commenting out, be sure to do the same to the same #define in
+// line 42 of AdaptItConstants.h
+#define Use_Legacy_Parser
+
 //#define AUTHENTICATE_AS_BRUCE
 
 // whm added 5Jun12 for debugging purposes. The FORCE_BIBLEDIT_IS_INSTALLED_FLAG

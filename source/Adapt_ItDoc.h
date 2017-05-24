@@ -236,6 +236,8 @@ protected:
 							int& punctsCount); // BEW added 4Apr2017 for TokenizeText()
 	void			GetMarkerMapFromString(MapWholeMkrToFilterStatus*& pMkrMap, wxString str); // used in SetupForSFMSetChange
 	wxString		GetNextFilteredMarker(wxString& markers, int offset, int& nStart, int& nEnd);
+	wxString		GetNextFilteredMarker_After(wxString& markers, wxString& filteredInfo_After, 
+						wxString& metadata, int& offset, int& nEnd);
 	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
 	// BEW 9Sep16 added next four
@@ -259,6 +261,8 @@ protected:
 	bool			NotAtEnd(wxString& rText, const int nTextLength, int nFound);
 	bool			ParseWordMedialSandwichedPunct(wxChar* pText, wxChar* pEnd, wxString& spacelessPuncts); // BEW added 11Sep16
 	bool			ParseWordMedialSandwichedUSFMFixedSpace(wxChar* pText, wxChar* pEnd, wxString& spacelessPuncts); // BEW added 11Sep16
+
+#if !defined(USE_LEGACY_PARSER)
 	bool			PostwordXrefOrFootnoteFiltering(CSourcePhrase* pSrcPhrase, wxChar* pChar,
 										wxChar* pEnd, bool& bXref_Footnote_orEndnoteStored);
 	int				ParsePostWordStuff(
@@ -269,6 +273,7 @@ protected:
 							WordParseEndsAt& endCondition,
 							bool		   bTokenizingTargetText,
 							wxChar*		   pBufStart);
+#endif
 
 public:
 	void			OverwriteUSFMFixedSpaces(wxString*& pstr);
@@ -403,9 +408,11 @@ public:
 	// (it may be stuff like \f ...\f*, or \x ....\x* etc, which are filterable - so we 
 	// need to give ParseWord2() the capability to do filtering when parsing input text)
 	bool			EndmarkerPrecedes( wxChar* pChar, wxString& precedingEndmarker);
-	bool			PunctuationPrecedes( wxChar* pChar, wxChar& precedingPunct, bool bTokenizingTargetText);
+	bool			PunctuationPrecedes( wxChar* pChar, wxString& precedingPunct, bool bTokenizingTargetText);
 	bool			WordPrecedes( wxChar* pChar, wxString& theWord, 
 								CSourcePhrase*  pSrcPhrase, wxString& spacelessPuncts);
+// more unfiltering stuff goes just above, if needed
+
 	bool			IsLegacyDocVersionForFileSaveAs();
 	static SPList   *LoadSourcePhraseListFromFile(wxString FilePath);
 	USFMAnalysis*	LookupSFM(wxChar *pChar);

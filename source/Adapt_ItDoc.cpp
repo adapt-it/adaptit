@@ -70,11 +70,6 @@ size_t aSequNum; // use with TOKENIZE_BUG
 //#include "csdetect.h" // used in GetNewFile().
 //#include "csmatch.h" // " "
 
-// Comment out Use_Legacy_Parser to cause the simpler and better refactored (Nov-Dec,2016)
-// ParseWord2() to be used, and the m_bBoundary setting code done in ParseWord2() rather
-// than in the legacy place, after the propagation code in TokenizeText()
-//#define Use_Legacy_Parser
-
 // Other includes uncomment as implemented
 #include "Adapt_It.h"
 #include "OutputFilenameDlg.h"
@@ -7863,6 +7858,9 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	int start = 0;
 	int end = 0;
 	int offset = 0;
+#if !defined(USE_LEGACY_PARSER)
+	int nEnd = 0;
+#endif
 	int offsetNextSection = 0;
 	wxString preStr;
 	wxString remainderStr;
@@ -7876,6 +7874,10 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	{
 		pos = pList->GetFirst();
 		bool bDidSomeUnfiltering;
+#if !defined(USE_LEGACY_PARSER)
+		bool bDidSomeUnfiltering_After;
+#endif	
+
 		while (pos != NULL)
 		{
 			SPList::Node* oldPos = pos;
@@ -7916,9 +7918,10 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 
 			// acts on ONE instance of pSrcPhrase only each time it loops, but in so doing
 			// it may add many by removing FILTERED status for a series of sourcephrase instances
-			// (all such will be sourced from within m_filteredInfo; but notes, free trans, and
-			// collected free translations are not unfilterable)
+			// (all such will be sourced from within m_filteredInfo and / or m_filteredInfo_After; 
+			// because notes, free trans, and collected free translations are not unfilterable)
 			if (!pSrcPhrase->GetFilteredInfo().IsEmpty()) // do nothing when m_filteredInfo is empty
+				// This is the legacy unfiltering block, before m_filteredInfo_After was added
 			{
 				// m_markers often has an initial space, which is a nuisance, so check and remove
 				// it if present (this can remain here, the change, if done, is benign)
@@ -7930,23 +7933,14 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 				//	pSrcPhrase->m_markers = pSrcPhrase->m_markers.Mid(1);
 				pSrcPhrase->m_markers.Trim(FALSE); // trim any space from left end
 
-				// loop across any filtered substrings in m_filteredInfo, until no more are found
-				while ((offset = FindFromPos(pSrcPhrase->GetFilteredInfo(),filterMkr,offset)) != -1)
+				// for pSrcPhrase, loop across any filtered substrings in m_filteredInfo, until no more are found
+				while ((offset = FindFromPos(pSrcPhrase->GetFilteredInfo(), filterMkr, offset)) != -1)
 				{
 					// get the next one, its prestring and remainderstring too; on return start
 					// will contain the offset to \~FILTER and end will contain the offset to the
 					// character immediately following the space following the matching \~FILTER*
 					wxString theFilteredInfo = pSrcPhrase->GetFilteredInfo();
-
-					// BEW 30Mar17 added support for metadata for unfiltering marker placement(s)
-					// Will be empty string if there is no contained metadata; the metadata, if
-					// present has a form like  [[after_punct^^]] where there will be a punctuation
-					// character between the ^^, or [[after_endMkr^^]] where there will be an
-					// endmarker between the ^^, or [[after_word^^]] where the parsed word will
-					// be between the ^^
-					wxString unfilter_metadata = wxEmptyString;
-
-					mkr = GetNextFilteredMarker(theFilteredInfo,offset,start,end);
+					mkr = GetNextFilteredMarker(theFilteredInfo,offset, start, end);
 
 					if (mkr.IsEmpty())
 					{
@@ -7961,9 +7955,15 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						}
 						bSuccessful = FALSE; // make sure the caller will show the error box
 						break; // exit this inner loop & iterate to the next CSourcePhrase instance
+							   // or to what is in m_filteredInfo_After
 					}
 
-					// get initial material into preStr, if any
+					// get initial material into preStr, if any (that is, in the old design when
+					// filtered info was at the end of m_markers, preStr was where we populated with
+					// things like \p \v 3 etc); but the doc version 5 changes no longer store 
+					// filtered info in m_markers so preStr stayed empty; and instead the code
+					// in the rest of this block looked in m_filteredInfo - strings there are
+					// wrapped by \~FILTER and \~FILTER*
 					if (offset > 0)
 					{
                         // get the marker information which is not to-be-unfiltered
@@ -8512,7 +8512,7 @@ h:						bool bIsInitial = TRUE;
                         // the saved originals of a merger! If the pSrcPhrase at oldPos is
                         // a merger, then the first of the stored original list of
                         // CSourcePhrase instances will also store in its m_filteredInfo
-                        // member the same filtered information - do we must check here,
+                        // member the same filtered information - so we must check here,
                         // and if filterMkr is within that instances m_filteredInfo, we
                         // must replace its m_filteredInfo content with remainderStr as set
                         // above
@@ -8554,17 +8554,196 @@ h:						bool bIsInitial = TRUE;
 						offsetNextSection = 0;
 						UpdateSequNumbers(0); // get all the sequence
 											  // numbers into correct order
-					}
+					} // end of TRUE block for test: if (bWeUnfilteredSomething)
 					else
 					{
 						// we didn't unfilter anything, so prepare for the next
 						// iteration of inner loop
 						offset = offsetNextSection;
 					}
-				} // end of while loop
-			}
+				} // end of while loop with test: (offset = FindFromPos(pSrcPhrase->GetFilteredInfo(),filterMkr,offset)) != -1
+			} // end of TRUE block for test: if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
 
+#ifndef Use_Legacy_Parser
+
+			bDidSomeUnfiltering_After = FALSE; // reinitialize, for working with m_filteredInfo_After
+			//bool bWeUnfilteredSomething = FALSE; // might be needed within a loop
+
+			// BEW 18Apr17 CSourcePhrase now has a new member m_filteredInfo_After, where post-word
+			// filtered information along with metadata for guiding replacement into m_pSourcePhrases
+			// gets stored. We now check for that member having content, and we unfilter those bits
+			// designated for unfiltering from there
+			offset = 0; // used for pointing to a \~FILTER
+			offsetNextSection = 0; // points to next char beyond a moved section or unfiltered section
+			preStr.Empty();
+			remainderStr.Empty();
+			bareMarker.Empty();
+			// BEW 18Apr17 added support for metadata for unfiltering marker placement(s)
+			// Will be empty string if there is no contained metadata; the metadata, if
+			// present has a form like  [[after_punct^^]] where there will be a punctuation
+			// character between the ^^, or [[after_endMkr^^]] where there will be an
+			// endmarker between the ^^, or [[after_word^^]] where the parsed word will
+			// be between the ^^
+			wxString unfilter_metadata = wxEmptyString;
+			wxString inlineNBEndMkrs = wxEmptyString;
+			// Unfiltering from m_filteredInfo_After will have to be done a bit differently. There
+			// will be a [[after_......^]] substring immediately preceding each filtered \mkr which
+			// we need to separate from the marker content; and we need to unfilter in a loop because
+			// there could be several markers to be unfiltered. Third, we have to build a post-word
+			// string (rather like helpers::FromSingleMakeSstr) initially (before unfiltering) with
+			// inline binding endmarkers, puncts from m_punct, inline non-binding endmarkers,
+			// puncts from m_follOuterPunct - doing this as a once off, then in a loop find where
+			// to insert each unfiltered string without the \~FILTER & \~FILTER* markers in their
+			// correct places. remainderStr will probably be not used because anything remaining
+			// in m_filteredInfo_After must stay on that same *pSrcPhrase, and not be moved to
+			// any other
+
+			// We need two wxArrayString local arrays, because we extract in stored string order
+			// within m_filteredInfo_After, and we have to get all unfilting bits 'n pieces from
+			// that member, removing the bits for unfiltering as we go, and storing them somewhere
+			// before we attempt restoration within the source text, then tokenizing, then melding
+			// into the m_pSourcePhrases list. The following two arrays are our temporary storage.
+			wxArrayString metaArr;
+			wxArrayString unfilterArr;
+			wxArrayString mkrsToMatchArr; // store each \mkr<space> here, repeats are possible
+			wxString wordPlusAfter; // this is where we build the pSrcPhrase m_key + ending puncts and 
+									// inline markers (except non-binding inline markers - we store
+									// those separately if any are found). Anything unfiltered can
+									// then be melded into the post-word part of this string
+			wxString finalInlineNonbindingEndmarker; // if a non-binding endmarker (like \wj* for 'words of Jesus')
+									// is encountered, there should be only one possible per pSrcPhrase,
+									// so store it here. It gets added at the end the CSourcePhrase at
+									// the end of the unfiltered info tokenization
+									
+			
+			if (!pSrcPhrase->GetFilteredInfo_After().IsEmpty()) // do nothing when m_filteredInfo_After is empty
+				// This is the added unfiltering block, when m_filteredInfo_After was added in 18Apr17
+			{
+				// First task is to get the post-word string, with puncts and inline markers in place,
+				// before we do the unfilterings and placements within it in the while loop below
+				wordPlusAfter = BuildPostWordStringWithoutUnfiltering(pSrcPhrase, inlineNBEndMkrs);
+				wxASSERT(!wordPlusAfter.IsEmpty());
+				wxString filteredInfo_After; // each filtered content with its preceding marker
+											 // and following endmarker is extracted to here
+				nEnd = 0; // initialize, use this with offset, to remove a being-unfiltered 
+						  // text span from m_filteredInfo_After
+				if (!inlineNBEndMkrs.IsEmpty())
+				{
+					finalInlineNonbindingEndmarker = inlineNBEndMkrs;
+				}
+
+				// For pSrcPhrase, loop across any filtered substrings in m_filteredInfo_After, until no
+				// more are found ( filterMkr is \~FILTER ); the loop iterates so long as offset points
+				// at a \~FILTER to be processed for its content and metadata and ending \~FILTER*; depending
+				// on the user's marker choices for unfiltering, we may here unfilter all content, or only 
+				// matched bits of it
+				while ((offset = FindFromPos(pSrcPhrase->GetFilteredInfo_After(), filterMkr, offset)) != -1)
+				{
+					// get the next one, its prestring and remainderstring too; on return start
+					// will contain the offset to \~FILTER and end will contain the offset to the
+					// character immediately following the space following the matching \~FILTER*
+					wxString theFilteredInfo_After = pSrcPhrase->GetFilteredInfo_After(); // gets the contents 
+									// of m_filteredInfo_After, which will shorten as to-be-unfiltered strings
+									// are extracted by successive iterations of the loop
+
+					// Here, instead of calling GetNextFilteredMarker(theFilteredInfo,offset, start, end);
+					// and returning the mkr (which was filtered), we need a similar function which does
+					// that job but also skips removes the metadata substring & returns it via the signature.
+					// This Reconstitute... function will need some local array variables (see above)
+					// to store the separated bits, and a wxArrayString for the to-be-unfiltered markers -
+					// since there may be more than one marker being unfiltered. These are for
+					// testing for presence in strMarkersToBeUnfiltered). Such a new function has been
+					// defined: GetNextFilteredMarker_After(). We use it below. We also must remove
+					// the filtered stuff we are unfiltering, from m_filteredInfo_After, as we iterate,
+					// after determining that the marker returned is a match for one of the marker
+					// strings within strMarkersToBeUnfiltered. We add a space to the marker to make
+					// sure the space is matched also, to prevent bogus matches
+
+					// Now we can safely call GetNextFilteredMarker_After()
+					unfilter_metadata = wxEmptyString;
+					filteredInfo_After.Empty();
+					mkr = GetNextFilteredMarker_After(theFilteredInfo_After, filteredInfo_After, 
+								unfilter_metadata, offset, nEnd);
+
+					if (mkr.IsEmpty() || (offset == nEnd))
+					{
+						// there was an error in the call above... post a reference to its location
+						// sequence numbers may not be uptodate, so do so first over whole list so that
+						// the attempt to find the chapter:verse reference string will not fail
+						pView->UpdateSequNumbers(0);
+						if (!gbIsUnstructuredData)
+						{
+							fixesStr += pView->GetChapterAndVerse(pSrcPhrase);
+							fixesStr += _T(" after word: pSrcPhrase->m_key  at sequ num wxItoa(pSrcPhrase->m_nSequNumber)   ");
+						}
+						bSuccessful = FALSE; // make sure the caller will show the error box
+						break; // exit this inner loop & iterate to the next CSourcePhrase instance
+					}
+					else
+					{
+						// We successfully extracted a copy of something from m_filteredInfo_After. However, 
+						// we don't yet know if what we extracted is information which should be unfiltered.
+						// So test for unfiltering it, and if so get the bits into the arrays above, and
+						// if not so, abandon the extraction. The offset value will be updated differently
+						// depending on what is the case: if we are going to unfilter the extracted info,
+						// then we remove it from m_filteredInfo_After wxString member, and so the stuff
+						// following it will slide down so that offset stays unchanged and possibly points
+						// at another \~FILTER marker for something which may or may not be filterable. But if
+						// the info is not for filtering then offset needs to be increased by the nEnd value
+						// to be ready for a possible subsequent iteration of the loop
+						wxString augmentedMkr = mkr + _T(' '); // add final space
+						// Test for unfiltering of mkr
+						int offset3 = strMarkersToBeUnfiltered.Find(augmentedMkr);
+						if (offset3 == wxNOT_FOUND)
+						{
+							// It's not one for being unfiltered
+							offset = nEnd; // point offset past it
+							nEnd = 0; // re-initialize
+						}
+						else
+						{
+							// It's one for being unfiltered, so get the relevant data stored
+							// and remove the relevant stuff from m_filteredInfo_After
+							if (bDidSomeUnfiltering_After == FALSE)
+							{
+								// Make sure RedoNavigationText() is called later
+								bDidSomeUnfiltering_After = TRUE;
+							}
+							metaArr.Add(unfilter_metadata);
+							unfilterArr.Add(filteredInfo_After);
+							mkrsToMatchArr.Add(mkr);
+
+							// Next, remove from m_filteredInfo_After the stuff extracted,
+							// do it with the help of offset and nEnd values
+							size_t spanToRemove = (size_t)(nEnd - offset);
+							wxString str = theFilteredInfo_After.Remove(offset, spanToRemove);
+							pSrcPhrase->SetFilteredInfo_After(str); // shortened, or perhaps now empty
+							nEnd = 0;
+						}
+
+					} // end of else block for test:  if (mkr.IsEmpty() || (offset == nEnd))
+
+				} //  end of while loop with test: (offset = FindFromPos(pSrcPhrase->GetFilteredInfo_After(), filterMkr, offset)) != -1
+
+				if (bDidSomeUnfiltering_After)
+				{
+
+
+
+
+
+// TODO -- the tokenizing etc
+
+				}
+
+			} // end of TRUE block for test: if (!pSrcPhrase->GetFilteredInfo_After().IsEmpty())
+
+#endif
+#if defined(USE_LEGACY_PARSER)
 			if (bDidSomeUnfiltering)
+#else
+			if (bDidSomeUnfiltering || bDidSomeUnfiltering_After)
+#endif
 			{
                 // the original pSrcPhrase still stores its original nav text in its
                 // m_inform member and this is now out of date because some of its content
@@ -9673,7 +9852,8 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 /// FormatUnstructuredTextBufferForOutput(), DoExportInterlinearRTF(), DoExportSrcOrTgtRTF(),
 /// DoesTheRestMatch(), ProcessAndWriteDestinationText(), ApplyOutputFilterToText(),
 /// ParseAnyFollowingChapterLabel(), NextMarkerIsFootnoteEndnoteCrossRef(),
-/// IsFixedSpaceAhead() and from Usfm2Oxes ParseMarker_Content_Endmarker()
+/// IsFixedSpaceAhead() and from Usfm2Oxes ParseMarker_Content_Endmarker(),
+/// and GetNextFilteredMarker_After()
 /// Parses through a buffer's whitespace beginning at pChar.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseWhiteSpace(wxChar *pChar)
@@ -15029,7 +15209,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				}
 #endif
                 // whm revised this block 11Feb05 to support USFM and SFM Filtering. When
-                // TokenizeText enounters previously filtered text (enclosed within
+                // TokenizeText encounters previously filtered text (enclosed within
                 // \~FILTER ... \~FILTER* brackets), it strips off those brackets so that
                 // TokenizeText can evaluate anew the filtering status of the marker(s)
                 // that had been embedded within the filtered text. If the markers and
@@ -19630,9 +19810,10 @@ wxString CAdapt_ItDoc::RemoveAnyFilterBracketsFromString(wxString str) // whm ad
 ///				\~FILTER ... \~FILTER* plus the marker and associated string content in between,
 ///				or an empty string if one is not found. It's just the marker which we return.
 /// \param		markers	-> references the content of a CSourcePhrase instance's m_filteredInfo member
+///				or the m_filteredInfo_After member
 /// \param		offset	-> character offset to where to commence the Find operation for the
 ///						   \~FILTER marker
-/// \param		nStart	<- offset (from beginning of markers) to the next \~FILTER instance found,
+/// \param		nStart	<- offset (from beginning of markers, ) to the next \~FILTER instance found,
 ///						   if none is found it is set to the offset value (so a Left() call can
 ///						   extract any preceding non-filtered text stored in markers)
 /// \param		nEnd	<- offset (ditto) to the first character past the matching \~FILTER*
@@ -19651,11 +19832,15 @@ wxString CAdapt_ItDoc::RemoveAnyFilterBracketsFromString(wxString str) // whm ad
 /// store it in another CSourcePhrase instance's m_markers member), and nEnd, along with
 /// Mid(), can be used by the caller to extract the remainder (if any) - which could be
 /// useful in the caller when unfiltering in order to update m_markers after unfiltering
-/// has ceased for the current CSourcePhrase instance. (To interpret the nStart and nEnd
+/// has ceased for the current CSourcePhrase instance, or to replace post-word unfiltered
+/// material from m_filteredInfo_After when unfiltering. (To interpret the nStart and nEnd
 /// values correctly in the caller upon return, the returned wxString should be checked to
 /// determine if it is empty or not.) The caller also can use the nEnd value to compute an
 /// updated offset value for iterating the function call to find the next filtered marker.
-/// BEW 20Sep10, updated for docVersion 5
+/// BEW 20Sep10, updated for docVersion 5 - we don't check m_markers, but m_filteredInfo
+/// BEW 18Aapr18 - can be used for m_filteredInfo contents or m_filteredInfo_After contents
+/// but just changing the contents of the first parameter to be from the one storage
+/// location or the other. Code needs no change internally
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 									 int& nStart, int& nEnd)
@@ -19684,8 +19869,7 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 							   // (this may be localized later)
 		int len = f.Length() + 1; // + 1 because \~FILTER is always
 								  // followed by a space
-		theRest = theRest.Mid(len); // \marker followed by its content etc, maybe with metadata 
-									// preceding it - which we need to remove further down
+		theRest = theRest.Mid(len); // \marker followed by its content etc
 		int len2 = theRest.Length();
         // wx version note: Since we require a read-only buffer we use GetData which just
         // returns a const wxChar* to the data in the string.
@@ -19732,6 +19916,164 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 			// to the original test.
 			if (!markers.IsEmpty() && markers.Len() > (size_t)nEnd && markers[nEnd] == _T(' ')) //if (markers[nEnd] == _T(' '))
 				nEnd++; // count the following space too
+		}
+	}
+	return mkrStr;
+}
+
+// Internal code is tweaked from GetNextFilteredMarker() and the signature is changed to return
+// the metadata string, and the filtered content with \mkr and any \mkr* following the content.
+// Note, the first param is still "markers" - this is just a carryover from the early days when 
+// all filtering was stored in the m_markers member of CSourcePhrase. That was changed some years
+// back to get the filtering done to the m_filteredInfo member instead - but I left the internal 
+// "markers" name unchanged at that time. Now we've created this new function for use with the 
+// additional CSourcePhrase member m_filteredInfo_After, which stores post-word filtered info
+// on the same (current) CSourcePhrase instance as for pre-word filtered info. This more
+// recent change is for supporting the new SFM/USFM parser for the 'word' and associated information,
+// as defined by the ParseWord2() function which is used in TokenizeText() to replace use of
+// ParseWord() there. At the time of writing this, ParseWord2() is not in any released version yet,
+// the most recent release being 6.8.2
+wxString CAdapt_ItDoc::GetNextFilteredMarker_After(wxString& markers, wxString& filteredInfo_After, 
+								wxString& metadata, int& offset, int& nEnd)
+{
+
+	wxString mkrStr;
+	mkrStr.Empty();
+	filteredInfo_After.Empty();
+	
+	// find the next \~FILTER marker starting from the offset (there may be no more)
+	int nStart = offset; // default 'not found' value
+	// nEnd = offset; // ditto
+	int nFound = FindFromPos(markers, filterMkr, offset);
+	if (nFound == -1)
+	{
+		// no \~FILTER marker was found at offset or beyond
+		return mkrStr;
+	}
+	else
+	{
+		// we found one, so get the metrics calculated and the marker parsed
+		offset = nFound;
+
+		// Get the offset to the matching \~FILTER* marker, include it in the span along
+		// with any following whitespace - and set the final value in nEnd so that when
+		// this function returns, offset and nEnd can be used to remove that filtered
+		// info (for unfiltering) provided that the caller determines it is to be
+		// unfiltered
+		int offset2 = FindFromPos(markers, filterMkrEnd, nFound + filterMkr.Length());
+		if (offset2 == wxNOT_FOUND)
+		{
+			// There is no matching \~FILTER* endmarker in m_filteredInfo_After, so
+			// leave any content in that location, and advance offset and nEnd to
+			// the end of m_filteredInfo_After, and return the empty mkrStr, and the
+			// caller should not again call this function for the current pSrcPhrase
+			offset = markers.Length();
+			nEnd = offset;
+			return mkrStr;
+		}
+		else
+		{
+			// We have found a matching \~FILTER* endmarker in m_filteredInfo_After
+			// at a location beyond the end of the begin marker \~FILTER; so set up
+			// the appropriate nEnd value - that's the sole task for this code block
+			nEnd = offset2 + filterMkrEnd.Length();
+
+			// There may be whitespace following it - such whitespace is unwanted, so
+			// so augment the nEnd value by as many characters of it are found after
+			// the \~FILTER* marker ends
+			wxString lastBit = markers.Mid(nEnd);
+			const wxChar* constPtr = lastBit.GetData();
+			wxChar* ptrBufStart = (wxChar*)constPtr;
+			int nWhitesCount = ParseWhiteSpace(ptrBufStart);
+			nEnd += nWhitesCount;
+		}
+
+		// Continue by copying the metadata & filtered material for return  by the signature
+		// and the filtered marker itself as the return value (so the caller can determine
+		// if unfiltering is required for it)
+		nStart = nFound;
+		wxString theRest = markers.Mid(nStart); // \~FILTER\marker followed
+												// by its content etc.
+		wxString f(filterMkr); // so I can get a length calculation done
+							   // (this may be localized later)
+		int len = f.Length() + 1; // + 1 because \~FILTER is always
+								  // followed by a space
+		theRest = theRest.Mid(len); // \marker followed by its content etc, with metadata 
+									// preceding it. We need to copy the metadata and return
+									// it via the signature (so the caller can remove it and
+									// use it for placement of the unfiltered stuff in the src text
+		int len2 = theRest.Length();
+
+		// BEW 18Apr17 delineate the [[after_... ^]] metadata substring, and put a
+		// copy in metadata param of signature; search in theRest; this is new code
+		int metadataLength = 0;
+		metadata.Empty(); // start if off empty, in case we don't find any
+		int offset_metaStart = theRest.Find(gpApp->strSearchForAfter);
+		if (offset_metaStart == wxNOT_FOUND)
+		{
+			// There's no metadata apparently, so use GetNextFilteredMarker() so caller
+			// can just plonk the unfiltered (if non-empty) content at the end of 
+			// whatever currently follows the word proper 
+			mkrStr = GetNextFilteredMarker(markers, offset, nStart, nEnd);
+			return mkrStr;
+		}
+		else
+		{
+			// We found the start of a metadata substring
+			wxString str = theRest.Mid(offset_metaStart); // str and theRest 
+										// should be identical, just playing safe
+			wxString metaEnd = _T("^]]"); // length = 3, used below
+			int offset_metaEnd = str.Find(metaEnd);
+			wxASSERT(offset_metaEnd != wxNOT_FOUND);
+			wxString md = wxString(str.GetData(), offset_metaEnd + 3 - offset_metaStart); // +3 for the ^]] at end
+			metadata = md; // return via signature
+			metadataLength = md.Length();
+
+			// Now skip over the metadata in theRest, so that the stuff below will work
+			theRest = theRest.Mid(metadataLength);
+		}
+		// This ends the new code, except for a couple of extra lines below
+
+		// wx version note: Since we require a read-only buffer we use GetData which just
+		// returns a const wxChar* to the data in the string.
+		const wxChar* ptr = theRest.GetData();
+		wxChar* pEnd;
+		pEnd = (wxChar*)ptr + len2 - metadataLength; // whm added 19Jun06 
+				// (adds len2 = length of \~FILTER), & BEW 18Mar17 subtracts metadataLength
+		wxChar* pBufStart = (wxChar*)ptr;
+		wxASSERT(*pEnd == _T('\0'));// whm added 19Jun06
+		wxUnusedVar(pEnd); // avoid compiler warning
+		int len3 = ParseMarker(pBufStart);
+		mkrStr = theRest.Left(len3);
+		wxASSERT(mkrStr[0] == gSFescapechar); // make sure we got a valid marker
+
+		// now find the end of the matching \~FILTER* endmarker - we must find this for the
+		// function to succeeed; if we don't, then we must throw away the mkrStr value (ie.
+		// empty it) and revert to the nStart and nEnd values for a failure
+		// BEW 18Apr17 added + metadataLength to next line
+		int nStartFrom = len3 ; // offset to the character
+											  // after the marker in mkrStr (a space)
+		nFound = FindFromPos(theRest, filterMkrEnd, nStartFrom);
+		if (nFound == wxNOT_FOUND)
+		{
+			// no matching \~FILTER* marker; this is an error condition, so bail out
+			nStart = nEnd = offset;
+			mkrStr.Empty();
+			return mkrStr;
+		}
+		else
+		{
+			// we found the matching filter marker which brackets the end, so the material
+			// we wish to return to the caller is from start of theRest as far as the 
+			// nFound value (thereby excluding the final \~FILTER* endmarker)
+			//
+			// BEW 20Sep10: in docVersion 5, not only do we store filtered stuff in
+			// m_filteredInfo, but we but filter markers up against each other, so we can get
+			// a sequence "\~FILTER*\~FILTER " and so we can't assume a space between these,
+			// and indeed, we no longer even try to put one there; so make sure it is not
+			// returned to the caller if it is present - so Trim() as below
+			filteredInfo_After = theRest.Mid(0, nFound);
+			filteredInfo_After.Trim(); // drop any whitespace that may lurk before the \~FILTER*
 		}
 	}
 	return mkrStr;
@@ -26743,9 +27085,11 @@ int	CAdapt_ItDoc::ParseWordProper(
 	bool		bTokenizingTargetText)
 {
 	wxUnusedVar(bTokenizingTargetText); // might be unused, so prevent warning
+	wxUnusedVar(pSrcPhrase); // we need this variable only in the debug build
 	wxASSERT(pChar < pEnd);
 	wxASSERT(pSrcPhrase != NULL);
-	wxASSERT(!spacelessPuncts.IsEmpty() && !spacelessPuncts_NoTilde.IsEmpty());
+	//wxASSERT(!spacelessPuncts.IsEmpty() && !spacelessPuncts_NoTilde.IsEmpty()); // BEW removed 18Apr17 because we want the app to still work if no puncts are defined
+	wxUnusedVar(spacelessPuncts_NoTilde);
 	endCondition = unknownCharType; // the best default for initialization 
 	wxChar* ptr = pChar; // don't change pChar within this function
 	int len = 0; // the total length of the parsed over material to the halting point
@@ -29034,6 +29378,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	return len;
 }
 
+#if !defined(USE_LEGACY_PARSER)
+
 // Return TRUE if a \x .... \x* section, or a \f ...... \f* section gets filtered 
 // within the scope of this function call; such filtering will alter the pChar 
 // value passed back to the caller. Call it from within the loop within 
@@ -29047,13 +29393,17 @@ bool CAdapt_ItDoc::PostwordXrefOrFootnoteFiltering(CSourcePhrase* pSrcPhrase,
 	wxASSERT(pSrcPhrase != NULL);
 	wxASSERT(pChar <= pEnd);
 	bXref_Footnote_orEndnoteStored = FALSE;
+	wxUnusedVar(pEnd); // possibly only needed for debug build - I added this before any further code was built here
 
-// TODO  the rest
+	// pChar and PSrcPhrase also currently unused, but will not be when I complete the function
+	// the function is not used anywhere yet (at 18Apr17)
+
+// TODO  the rest *******************function still unused at 23May17***************************
 
 	return TRUE;
 }
 
-
+#endif
 
 int CAdapt_ItDoc::ParseWord2(
 	wxChar *pChar,
@@ -29076,6 +29426,9 @@ int CAdapt_ItDoc::ParseWord2(
 	// not violate USFM markup, and the user should eyeball this somewhere later
 	// on, such as in Paratext, and fix it there)
 	wxUnusedVar(inlineNonbindingEndMrks);
+#if defined(USE_LEGACY_PARSER)
+	wxUnusedVar(pBufStart);
+#endif
 
 	// If pChar is already at pEnd, the TokenizeText() has found something which it has
 	// stored on the current pSrcPhrase -- perhaps it stored a \x ....\x* cross ref which
@@ -29737,10 +30090,11 @@ int CAdapt_ItDoc::ParseWord2(
 	// Now parse what follows the word proper, could be ] or punctuation or
 	// whitespace or an endmarker, or the latter combined with punctuation
 	// both before and after - and possibly also detached (due to nesting) quotes
+#if !defined(USE_LEGACY_PARSER)
 	itemLen = ParsePostWordStuff(ptr, pEnd, pSrcPhrase, spacelessPuncts, endCondition, bTokenizingTargetText, pBufStart);
 	len += itemLen;
 	ptr += itemLen;
-
+#endif
 	// Here we must build the non-endmarker material, if any, and add it to
 	// the end of m_srcPhrase of the current pSrcPhrase
 	if (!pSrcPhrase->m_follPunct.IsEmpty())
@@ -29820,6 +30174,8 @@ int CAdapt_ItDoc::ParseWord2(
 
 	return len;
 }
+
+#if !defined(USE_LEGACY_PARSER)
 
 /// Returns how many characters were parsed over to get to a whitespace which
 /// is most probably the one which delimits this current word and its following
@@ -30682,8 +31038,8 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 				// find out what follows at the new ptr location (there might be a 
 				// further filtering to be done in the next loop iteration), then ensure
 				// there is a further iteration because we've parsed over something here
-				wxString precedingWord = wxEmptyString; // initialize
-				wxChar precedingPunct = _T('\0');       // initialize
+				wxString precedingWord  = wxEmptyString;     // initialize
+				wxString precedingPunct = wxEmptyString;     // initialize
 				wxString precedingEndmarker = wxEmptyString; // initialize
 				wxASSERT((wholeMkr != wxEmptyString) && (wholeMkr.GetChar(0) == gSFescapechar));
 				bool bWordPrecedes = WordPrecedes(ptr, precedingWord, pSrcPhrase, spacelessPuncts);
@@ -31028,6 +31384,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 
 	return len;
 }
+#endif
 
 /// returns				TRUE if marker material is embedded in word final punctuation, but
 ///						also we will consider word-final markers which follow the word proper
@@ -31208,21 +31565,38 @@ bool CAdapt_ItDoc::EndmarkerPrecedes(wxChar* pChar, wxString& precedingEndmarker
 	return FALSE;
 }
 
-// The following function should only be called from within ParsePostWordStuff(). .
+// The following function should only be called from within ParsePostWordStuff(),
+// and ReconstituteAfterFilteringChange()
 // This function is part of the code for checking if the marker at pChar is a USFM
 // marker designated for filtering (we want to store the filtered marker and content
-// on this current pSrcPhrase).
-bool CAdapt_ItDoc::PunctuationPrecedes(wxChar* pChar, wxChar& precedingPunct, bool bTokenizingTargetText)
+// on this current pSrcPhrase), but we also need to know if the preceding text is
+// puntuation and store that punctuation so we can construct metadata for helping
+// unfiltering to properly reconstitute the original markup
+bool CAdapt_ItDoc::PunctuationPrecedes(wxChar* pChar, wxString& precedingPunct, bool bTokenizingTargetText)
 {
 	if (*pChar != gSFescapechar)
 	{
 		return FALSE; // This function should only be called when a pChar points
 					  // at a begin-marker, but we test for pointing at backslash
 	}
-	bool bPunctPrecedes = IsPunctuation(pChar - 1, !bTokenizingTargetText);
+	wxString aggregatePuncts; aggregatePuncts.Empty();
+	size_t number = 1;
+	bool bPunctPrecedes = IsPunctuation(pChar - number, !bTokenizingTargetText);
 	if (bPunctPrecedes)
 	{
-		precedingPunct = *(pChar - 1);
+		// There is at least one, store it and then collect any others using a loop
+		aggregatePuncts = *(pChar - number);
+		while (IsPunctuation(pChar - ++number, !bTokenizingTargetText))
+		{
+			// The following lines are equivalent to inserting each found punct char
+			// at the start of the currently constituted aggregate string; so that 
+			// puntuation order is maintained while aggregating backwards
+			wxString strCurrent = aggregatePuncts;
+			aggregatePuncts.Empty();
+			aggregatePuncts = *(pChar - number);
+			aggregatePuncts += strCurrent;
+		}
+		precedingPunct = aggregatePuncts;
 		return TRUE;
 	}
 	return FALSE;

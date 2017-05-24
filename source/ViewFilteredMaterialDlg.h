@@ -80,12 +80,12 @@ public:
 	// We also define a fixed order for display in the dialog: first, if present, is the
 	// free translation; second, if present, is the note; third, if present, is the
 	// collected back translation; after those follow any filtered information from
-	// m_filteredInfo. Having the filtered free translation first allows the user to have
-	// the free translation shown in the view filtered material dialog, and a note
-	// displayed in the note dialog, at the same time and with no clicking other than on
-	// the respective green wedge and note icons in the main window.
+	// m_filteredInfo & m_filteredInfo_After. Having the filtered free translation first 
+	// allows the user to have the free translation shown in the view filtered material 
+	// dialog, and a note displayed in the note dialog, at the same time and with no 
+	// clicking other than on the respective green wedge and note icons in the main window.
 	 
-	// the following are indexed in parallel and contain info from all filtered markers only
+	// The following are indexed in parallel and contain info from all filtered markers only
 	//wxArrayString AllMkrsList; // list of all markers in m_markers (filtered and non-filtered)
 	//wxArrayInt AllMkrsFilteredFlags; // array of ints that flag if marker in AllMkrsList is filtered (1) or not (0)
 	wxArrayString AllWholeMkrsArray; // array of all whole markers encountered in m_markers
@@ -123,6 +123,20 @@ protected:
 	void OnButtonSwitchEncoding(wxCommandEvent& WXUNUSED(event));
 #endif
 
+private:
+	int nCustomFilteredItemsCount; // initialize to 0
+	int nBeforeBaseIndex; // initialize index to -1 where first item of m_filteredInfo appears in list
+	int nAfterBaseIndex;  // initialize index to -1 where first item of m_filteredInfo_After appears in list
+	int nListTotalCount;
+	bool bHasFilteredInfoAfter; // initialize to FALSE
+	bool bHasFilteredInfo;      // ditto
+public:
+	wxArrayString arrMkrs;
+	wxArrayString arrEndMkrs;
+	wxArrayString arrTextContent;
+	wxArrayString arrMkrs_After;
+	wxArrayString arrEndMkrs_After;
+	wxArrayString arrTextContent_After;
 private:
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

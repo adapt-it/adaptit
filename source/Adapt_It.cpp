@@ -23563,41 +23563,41 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     wxASSERT(m_pRetranslation);
     m_pRetranslation->SetSuppressRemovalOfRefString(FALSE); // must start off FALSE, otherwise
-                                                            // it will suppress the mechanism for decrementing the m_refCount value, etc, if
-                                                            // the box is made to land on a non-hole
+        // it will suppress the mechanism for decrementing the m_refCount value, etc, if
+        // the box is made to land on a non-hole
 
-                                                            // BEW added 19Apr for Save As... support. The document version will henceforth be
-                                                            // parameterized. The doc class now has a private int member, m_docVersionCurrent which
-                                                            // is used for constructing the XML for doc and KB which has the docVersion parameter
-                                                            // value; and the Save As... dialog now lets the user choose to save in doc versions 5
-                                                            // (the default, the combo box has index 0 for this value), or 4 (the combobox has
-                                                            // index 1 for this value). 5 is the current value of VERSION_NUMBER which is #defined
-                                                            // in AdaptitConstants.h, and DOCVERSION4 is there #defined as 4. To set or restore the
-                                                            // current version number, call the public doc function:
-                                                            // RestoreCurrentDocVersion(), which restores m_docVersionCurrent to VERSION_NUMBER. To
-                                                            // set some other version number (currently, only version number 4 is supported), call
-                                                            // the doc public function SetDocVersion(int index), which returns void. The index
-                                                            // parameter is the value returned from the Save As... dialog's combobox for document
-                                                            // type (0 is always mapped to the current value of VERSION_NUMBER, and 1 is always
-                                                            // mapped to DOCVERSION4. (If later we have a docVersion 6, 5 would be assigned to a
-                                                            // DOCVERSION5 new #define, and VERSION_NUMBER would become 6, and the Save As...
-                                                            // dialog would then have 3 options for saving.) Use GetCurrentDocVersion() to return
-                                                            // whatever is the current value of m_docVersionCurrent. So set the current value:
+    // BEW added 19Apr for Save As... support. The document version will henceforth be
+    // parameterized. The doc class now has a private int member, m_docVersionCurrent which
+    // is used for constructing the XML for doc and KB which has the docVersion parameter
+    // value; and the Save As... dialog now lets the user choose to save in doc versions 5
+    // (the default, the combo box has index 0 for this value), or 4 (the combobox has
+    // index 1 for this value). 5 is the current value of VERSION_NUMBER which is #defined
+    // in AdaptitConstants.h, and DOCVERSION4 is there #defined as 4. To set or restore the
+    // current version number, call the public doc function:
+    // RestoreCurrentDocVersion(), which restores m_docVersionCurrent to VERSION_NUMBER. To
+    // set some other version number (currently, only version number 4 is supported), call
+    // the doc public function SetDocVersion(int index), which returns void. The index
+    // parameter is the value returned from the Save As... dialog's combobox for document
+    // type (0 is always mapped to the current value of VERSION_NUMBER, and 1 is always
+    // mapped to DOCVERSION4. (If later we have a docVersion 6, 5 would be assigned to a
+    // DOCVERSION5 new #define, and VERSION_NUMBER would become 6, and the Save As...
+    // dialog would then have 3 options for saving.) Use GetCurrentDocVersion() to return
+    // whatever is the current value of m_docVersionCurrent. So set the current value:
                                                             //
-    GetDocument()->RestoreCurrentDocVersion(); // currently, sets a value of 5
+    GetDocument()->RestoreCurrentDocVersion(); // sets to the value of VERSION_NUMBER
 
     m_pNavProtectDlg = NULL; // it's created on heap just before being shown, in OnNewDocument()
     m_sortedLoadableFiles.Clear(); // used to get the list of filenames into the above dialog
 
-                                   // add oxes support here, the creator will call an initializing function to have oxes
-                                   // export support ready for whenever it is needed; m_pUsfm2Oxes is destroyed in OnExit()
-                                   //
-                                   // BEW removed 15Jun11 until we support OXES
-                                   // BEW reinstated 19May12, for OXES v1 support
-                                   //m_pOxes = new Oxes(this);
+    // add oxes support here, the creator will call an initializing function to have oxes
+    // export support ready for whenever it is needed; m_pUsfm2Oxes is destroyed in OnExit()
+    //
+    // BEW removed 15Jun11 until we support OXES
+    // BEW reinstated 19May12, for OXES v1 support
+    //m_pOxes = new Oxes(this);
     m_pXhtml = new Xhtml(this); // BEW 9Jun12
 
-                                // Add Guesser support here. m_pAdaptationsGuesser and m_pGlossesGuesser are destroyed in OnExit()
+    // Add Guesser support here. m_pAdaptationsGuesser and m_pGlossesGuesser are destroyed in OnExit()
     m_pAdaptationsGuesser = new Guesser;
     m_pGlossesGuesser = new Guesser;
 
@@ -23609,55 +23609,55 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     CAdapt_ItView* pView = (CAdapt_ItView*)GetView();
     pView->m_pDoc = GetDocument(); // BEW added m_pDoc to CAdapt_ItView on 14Nov11
 
-                                   /* Nah, the "Debugger (debug)" log window collects all the wxLogDebug() returns in CodeBlocks IDE
-                                   // BEW Mar2012, only problem is, I can't find any way to get it to show! So I'll reinstitute this for my present debugging job
-                                   // ******* BEW 29Aug2012, In Code::Blocks, the Debugger (debug) log window is added to the Logs bar by choosing
-                                   // Settings > Compiler & Debugger > Debugger Settings > Display Debugger's Log *******
-                                   #if defined(_DEBUG) && defined(__WXGTK__)
-                                   // we need a Debug Log window created (put a forward declaration for class wxLogDebug in Adapt_It.h too)
-                                   wxFrame* pLogFrame;
-                                   wxLogWindow* m_pLogWindow = new wxLogWindow(GetMainFrame()->canvas,wxT("Debug Log"),true,true);
-                                   pLogFrame = m_pLogWindow->GetFrame();
-                                   pLogFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP);
-                                   //pLogFrame->SetSize( wxRect(0,900,1600,200));
-                                   pLogFrame->SetSize( wxRect(0,900,1000,240));
-                                   wxLog::SetActiveTarget(m_pLogWindow);
-                                   #endif
-                                   */
-                                   /*
-                                   #if defined(_KBSERVER)
-                                   // append a menu separator and then a "Setup Knowledge Base Sharing..." menu item to
-                                   // the Advanced menu in the _Debug build
-                                   size_t nAdvancedMenuIndex = 5;
-                                   wxMenuBar* pMenuBar = pFrame->GetMenuBar();
-                                   wxMenu* pAdvancedMenu = pMenuBar->GetMenu(nAdvancedMenuIndex);
-                                   pAdvancedMenu->AppendSeparator(); // ignore returned pointer
-                                   wxMenuItem* pKBSharingSetupMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_SETUP_DLG, _("Setup Or Remove Knowledge Base Sharing..."));
-                                   pKBSharingSetupMenuItem = pKBSharingSetupMenuItem; // avoid compiler warning
+    /* Nah, the "Debugger (debug)" log window collects all the wxLogDebug() returns in CodeBlocks IDE
+    // BEW Mar2012, only problem is, I can't find any way to get it to show! So I'll reinstitute this for my present debugging job
+    // ******* BEW 29Aug2012, In Code::Blocks, the Debugger (debug) log window is added to the Logs bar by choosing
+    // Settings > Compiler & Debugger > Debugger Settings > Display Debugger's Log *******
+    #if defined(_DEBUG) && defined(__WXGTK__)
+    // we need a Debug Log window created (put a forward declaration for class wxLogDebug in Adapt_It.h too)
+    wxFrame* pLogFrame;
+    wxLogWindow* m_pLogWindow = new wxLogWindow(GetMainFrame()->canvas,wxT("Debug Log"),true,true);
+    pLogFrame = m_pLogWindow->GetFrame();
+    pLogFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP);
+    //pLogFrame->SetSize( wxRect(0,900,1600,200));
+    pLogFrame->SetSize( wxRect(0,900,1000,240));
+    wxLog::SetActiveTarget(m_pLogWindow);
+    #endif
+    */
+    /*
+    #if defined(_KBSERVER)
+    // append a menu separator and then a "Setup Knowledge Base Sharing..." menu item to
+    // the Advanced menu in the _Debug build
+    size_t nAdvancedMenuIndex = 5;
+    wxMenuBar* pMenuBar = pFrame->GetMenuBar();
+    wxMenu* pAdvancedMenu = pMenuBar->GetMenu(nAdvancedMenuIndex);
+    pAdvancedMenu->AppendSeparator(); // ignore returned pointer
+    wxMenuItem* pKBSharingSetupMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_SETUP_DLG, _("Setup Or Remove Knowledge Base Sharing..."));
+    pKBSharingSetupMenuItem = pKBSharingSetupMenuItem; // avoid compiler warning
 
-                                   // append a "Controls For Knowledge Base Sharing..." menu item to the Advanced menu in
-                                   // the _Debug build
-                                   wxMenuItem* pKBSharingMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_DLG, _("Controls For Knowledge Base Sharing..."));
-                                   pKBSharingMenuItem = pKBSharingMenuItem; // avoid compiler warning
+    // append a "Controls For Knowledge Base Sharing..." menu item to the Advanced menu in
+    // the _Debug build
+    wxMenuItem* pKBSharingMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_DLG, _("Controls For Knowledge Base Sharing..."));
+    pKBSharingMenuItem = pKBSharingMenuItem; // avoid compiler warning
 
-                                   // DONT FORGET UPDATE HANDLERS!
-                                   #endif
-                                   */
+    // DONT FORGET UPDATE HANDLERS!
+    #endif
+    */
 
-                                   /* test that GetWholeMarker() and IsMarker() and ParseMarker() work right for \f* followed by a closing double quote (they do)
-                                   wxString sss;
-                                   sss = _T("\\f*");
-                                   bool bOKay;
-                                   const wxChar* pConstBuff = sss.GetData();
-                                   wxChar* ptr = (wxChar*)pConstBuff;
-                                   bOKay = GetDocument()->IsMarker(ptr);
-                                   wxString wholeMarker = GetDocument()->GetWholeMarker(ptr);
-                                   */
+    /* test that GetWholeMarker() and IsMarker() and ParseMarker() work right for \f* followed by a closing double quote (they do)
+    wxString sss;
+    sss = _T("\\f*");
+    bool bOKay;
+    const wxChar* pConstBuff = sss.GetData();
+    wxChar* ptr = (wxChar*)pConstBuff;
+    bOKay = GetDocument()->IsMarker(ptr);
+    wxString wholeMarker = GetDocument()->GetWholeMarker(ptr);
+    */
 
-                                   //wxLogDebug(_T("At end of app's member function OnInit(), m_bCancelAndSelectButtonPressed = %d"),
-                                   //	m_pTargetBox->GetCancelAndSelectFlag());
+    //wxLogDebug(_T("At end of app's member function OnInit(), m_bCancelAndSelectButtonPressed = %d"),
+    //	m_pTargetBox->GetCancelAndSelectFlag());
 
-                                   // Next call prevents old userprofiles files from accumulating on disk
+    // Next call prevents old userprofiles files from accumulating on disk
     RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13 (UserProfiles support is handled
                                           // in this OnInit() function at lines 19780 to 20,420 approximately)
 

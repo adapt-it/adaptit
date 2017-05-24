@@ -33,13 +33,19 @@
 // the doc type from the combobox choice - and the top choice, index = 0, will always be
 // the default (ie. current doc version number). We will use a private doc class member int
 // m_docVersionCurrent which will be used by saves of the doc and KB (the KB xml structure
-// for doc vresions 4 and 5 is the same), and we will use a new function
+// for doc versions 4 and 5 is the same), and we will use a new function
 // RestoreCurrentDocVersion() returning void, to reset m_docVersionCurrent back to the
 // VERSION_NUMBER value after the Save As... is done; and an access function
 // GetCurrentDocVersion() to get its value whenever needed.
 
+// The following is also defined at line 28 in Adapt_It.h; commment out both together or uncomment out both together
+#define USE_LEGACY_PARSER
 
-#define VERSION_NUMBER		9	// as of 9Jul14, for ZWSP support in exports for SE Asian languages
+#if !defined(USE_LEGACY_PARSER)
+#define VERSION_NUMBER      10  // as of 21 April17, for support of new member m_filteredInfo_After in CSourcePhrase
+#else
+#define VERSION_NUMBER	9	// as of 9Jul14, for ZWSP support in exports for SE Asian languages
+#endif
 //#define VERSION_NUMBER	8	// as of 29Oct12
 //#define VERSION_NUMBER	7	// as of 20Apr12
 //#define VERSION_NUMBER	6   // as of 13Feb12
