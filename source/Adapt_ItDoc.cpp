@@ -1810,7 +1810,7 @@ bool  CAdapt_ItDoc::Git_installed()
 
 
 /*  mrh - 5Jun14.
-    CollaborationAllowsSaving() checks if safe to Save with regard to collaboration.
+    CollaborationEditorAcceptsDataTransfers() checks if safe to Save with regard to collaboration.
 
     If we're collaborating with Paratext or BibleEdit, and if the one we're collaborating with is currently running,
     it would be unsafe to do a Save which would involve transferring data to the other application, as it might
@@ -1829,7 +1829,8 @@ bool  CAdapt_ItDoc::Git_installed()
  wxString m_collaborationEditor;
  */
 
-bool  CAdapt_ItDoc::CollaborationAllowsSaving()
+// whm 11May2017 changed name of function from CollaborationAllowsSaving() to CollaborationEditorAcceptsDataTransfers()
+bool  CAdapt_ItDoc::CollaborationEditorAcceptsDataTransfers()
 {
 #ifndef __WXMAC__       // collaboration doesn't happen on the Mac, so we just return true.
     //wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
@@ -1838,11 +1839,11 @@ bool  CAdapt_ItDoc::CollaborationAllowsSaving()
     {
     // No, it's unsafe to Save.  Put up a message and return false.
 
-        wxString msg;
-        msg = msg.Format(_("Adapt It cannot transfer your work to %s while %s is running.\nClick on OK to close this dialog. Leave Adapt It running, switch to %s and shut it down. Then switch back to Adapt It and do the save operation again."),
-                         gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
+        //wxString msg;
+        //msg = msg.Format(_("Adapt It cannot transfer your work to %s while %s is running.\nClick on OK to close this dialog. Leave Adapt It running, switch to %s and shut it down. Then switch back to Adapt It and do the save operation again."),
+        //                 gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
 
-        wxMessageBox(msg, _T(""), wxOK);
+        //wxMessageBox(msg, _("Collaboration editor is running"), wxOK);
         return false;
     }
 
@@ -1851,12 +1852,48 @@ bool  CAdapt_ItDoc::CollaborationAllowsSaving()
     return true;
 }
 
+// whm added 11May2017 a function that returns TRUE if the currently open collaboration
+// document is designated as 'protected' from transferring data to the external editor,
+// FALSE if the collaboration document is not designated as 'protected'.
+// Assumes that the caller will only call the function when the document is a collaboration
+// document and is open within Adapt It's main window, so that the App's collab values
+// are current for the open document.
+bool CAdapt_ItDoc::DocumentIsProtectedFromTransferringDataToEditor()
+{
+    // whm added 17April2017 code to allow collab books/chapters to be protected from
+    // writing changes to PT/BE during collaboration saves. These books/chapters would
+    // still be saved normally as AI documents in the Adaptations folder - just not to PT/BE.
+    // Here is where we should interrupt the transfer of information to PT/BE when the
+    // current document is marked as "protected from making changes to PT/BE".
+    // We call a new function named IsCollabDocProtectedFromSaving(). If it returns TRUE, 
+    // DoCollabFileSave() return's FALSE immediately. If IsCollabDocProtectedFromSaving() 
+    // returns FALSE the book/chapter currently open in collaboration is not marked
+    // as protected in the AI-ProjectConfiguration.aic's CollabBooksProtectedFromSavingToEditor
+    // field.
+    bool bProtectedFromSavingChangesToExternalEditor = FALSE;
+    wxString bookCode = gpApp->m_Collab_BookCode;
+    bool bCollabByChapterOnly = gpApp->m_bCollabByChapterOnly;
+    wxString collabChapterSelected = gpApp->m_CollabChapterSelected; // a wxString represengin a chapter number if collabByChapterOnly is "1"
+    wxASSERT(!bookCode.IsEmpty());
+    bProtectedFromSavingChangesToExternalEditor = IsCollabDocProtectedFromSavingToEditor(bookCode, bCollabByChapterOnly, collabChapterSelected);
+
+    return bProtectedFromSavingChangesToExternalEditor;
+}
+
 
 bool  CAdapt_ItDoc::Commit_valid()
 {
     wxCommandEvent	dummy;
 
-    if (!CollaborationAllowsSaving())  return false;    // Bail out on an unsafe collaboration situation
+    if (!CollaborationEditorAcceptsDataTransfers())
+    {
+        wxString msg;
+        msg = msg.Format(_("Adapt It cannot transfer your work to %s while %s is running.\nClick on OK to close this dialog. Leave Adapt It running, switch to %s and shut it down. Then switch back to Adapt It and do the save operation again."),
+            gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
+
+        wxMessageBox(msg, _("Collaboration editor is running"), wxOK);
+        return false;    // Bail out on an unsafe collaboration situation
+    }
 
     if ( gpApp->m_strUserID == NOOWNER )
     {
@@ -2688,64 +2725,42 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 	return FALSE;
 }
 
-bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDisplayed) // whm added 17Jan12
+bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem, wxString msgDisplayed) // whm added 17Jan12
 {
-
-    // ********************** Protection from Saving Changes to PT/BE Code below ***********************
-    // whm added 2March2017 code to allow collab books/chapters to be protected from
-    // writing changes to PT/BE during collaboration saves. These books/chapters would
-    // still be saved normally as AI documents in the Adaptations folder - just not to PT/BE.
-    // Here is where we should interrupt the transfer of information to PT/BE when the
-    // current document is marked as "protected from making changes to PT/BE".
-    // We call a new function named IsCollabDocProtectedFromSaving(). If it returns TRUE, 
-    // DoCollabFileSave() return's FALSE immediately. If IsCollabDocProtectedFromSaving() 
-    // returns FALSE the book/chapter currently open in collaboration is not marked
-    // as protected in the AI-ProjectConfiguration.aic's CollabBooksProtectedFromSavingToEditor
-    // field.
-    bool bProtectedFromSavingChangesToExternalEditor = FALSE;
-    wxString bookCode = gpApp->m_Collab_BookCode;
-    bool bCollabByChapterOnly = gpApp->m_bCollabByChapterOnly;
-    wxString collabChapterSelected = gpApp->m_CollabChapterSelected; // a wxString represengin a chapter number if collabByChapterOnly is "1"
-    wxASSERT(!bookCode.IsEmpty());
-    bProtectedFromSavingChangesToExternalEditor = IsCollabDocProtectedFromSavingToEditor(bookCode, bCollabByChapterOnly, collabChapterSelected);
-    bProtectedFromSavingChangesToExternalEditor = bProtectedFromSavingChangesToExternalEditor; // avoid gcc warning
-    // TODO: Uncomment code below to activate protection code
-    //if (bProtectedFromSavingChangesToExternalEditor)
-    //{
-    //    // TODO: Bruce, is it necessary to call UpdateDocWithPhraseBoxContents() here before
-    //    // calling DoFileSave_Protected()??
-
-    //    // Do a local normal protected save to AI's native storage
-    //    DoFileSave_Protected(TRUE, progressItem); // // TRUE means - show wait/progress dialog
-    //    return TRUE;
-    //}
-    // ********************** Protection from Saving Changes to PT/BE Code above ***********************
-
-    // For testing purposes, assume it's target text, and a single-chapter
-    // document...actually, there's nothing in the MakeUpdatedTextForExternalEditor()
-    // internals that predisposes towards a single chapter doc or a whole book doc - it
-    // is deliberately written so as to be agnostic about which is the case, it just
-    // knows there is a doc containing information to extract and send to PT or BE,
-    // with possibly some automated conflict resolution to be done when doing so.
-
     // we want the phrase box's contents put into the document, so that the export of
     // the pre-user-editing-happens adaptation text will have the box contents in it -
     // so get it done here, but don't bother about the save to KB because the
     // DoFileSave_Protected(TRUE) call later below will get that job done
-	bool bAttemptStoreToKB = FALSE;
-	bool bNoStore = FALSE; // default, it's initialized to FALSE internally anyway
-	bool bSuppressWarningOnStoreKBFailure = TRUE; // we don't want a warning (we won't try
-												  // the store operation anyway here)
-	bool bMovedTextOK = TRUE;
-	long resultTgt = -1; // reset to 0 if all goes well
-	long resultFreeTrans = -1; // ditto
-	wxArrayString outputTgt, outputFreeTrans; // for feedback from ::wxExecute()
-	wxArrayString errorsTgt, errorsFreeTrans; // for feedback from ::wxExecute()
+    bool bAttemptStoreToKB = FALSE;
+    bool bNoStore = FALSE; // default, it's initialized to FALSE internally anyway
+    bool bSuppressWarningOnStoreKBFailure = TRUE; // we don't want a warning (we won't try
 
-// mrh 5Jun14 -- we now put our check for the collaborative editor running right here at the start, and do absolutely
-//  nothing if it's unsafe.
+    // If this document is "protected" just save the changes locally by calling the
+    // DoFileSave_Protected() function, then return without executing the code below
+    // that prepares and saves changes to the external editor
+    bool bProtectedFromSavingChangesToExternalEditor = FALSE;
+    bProtectedFromSavingChangesToExternalEditor = DocumentIsProtectedFromTransferringDataToEditor();
+    if (bProtectedFromSavingChangesToExternalEditor)
+    {
+        UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
 
-    if (!CollaborationAllowsSaving())  return false;    // Bail out on an unsafe collaboration situation
+        // Do a local normal protected save to AI's native storage
+        DoFileSave_Protected(TRUE, progressItem); // // TRUE means - show wait/progress dialog
+        return TRUE;
+    }
+
+    // mrh 5Jun14 -- we now put our check for the collaborative editor running right here at the start, and do absolutely
+    //  nothing if it's unsafe.
+
+    if (!CollaborationEditorAcceptsDataTransfers())
+    {
+        wxString msg;
+        msg = msg.Format(_("Adapt It cannot transfer your work to %s while %s is running.\nClick on OK to close this dialog. Leave Adapt It running, switch to %s and shut it down. Then switch back to Adapt It and do the save operation again."),
+            gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
+
+        wxMessageBox(msg, _("Collaboration editor is running"), wxOK);
+        return false;    // Bail out on an unsafe collaboration situation
+    }
 
 	UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
 
@@ -2777,7 +2792,20 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 
 #endif
 #endif
-	if (!updatedText.IsEmpty())
+    // For testing purposes, assume it's target text, and a single-chapter
+    // document...actually, there's nothing in the MakeUpdatedTextForExternalEditor()
+    // internals that predisposes towards a single chapter doc or a whole book doc - it
+    // is deliberately written so as to be agnostic about which is the case, it just
+    // knows there is a doc containing information to extract and send to PT or BE,
+    // with possibly some automated conflict resolution to be done when doing so.
+
+    bool bMovedTextOK = TRUE;
+    long resultTgt = -1; // reset to 0 if all goes well
+    long resultFreeTrans = -1; // ditto
+    wxArrayString outputTgt, outputFreeTrans; // for feedback from ::wxExecute()
+    wxArrayString errorsTgt, errorsFreeTrans; // for feedback from ::wxExecute()
+
+    if (!updatedText.IsEmpty())
 	{
         // Get the updatedText to a file of the required name (overwriting the older
         // one already there) in the .temp folder; then make the command line for

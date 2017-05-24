@@ -1,4 +1,170 @@
 ﻿----------------------------------------------
+Version 6.8.3 release 11 May 2017
+----------------------------------------------
+Feature changes and new features in 6.8.3 
+----------------------------------------------
+* Adapt It now has a new collaboration document data transfer protection
+feature. Teams who use Adapt It to collaborate with Paratext or Bibledit to
+translate drafts of Scripture books eventually stop adapting/drafting those 
+books within Adapt It, and just continue the revision of those Scripture books
+(and chapters) in Paratext or Bibledit. However, once such books have reached 
+an advanced/polished state (and perhaps consultant checked), it can be very 
+beneficial to open the old drafts of those books again in Adapt It and update 
+the old drafts in the Adapt It project to include the revisions that were done 
+o those documents in Paratext/Bibledit. Doing so, those revisions and updates
+will be stored/updated in Adapt It's knowledge base for that project, making
+the knowledge base is more up-to-date for the drafting of new Scripture books. 
+When the Adapt It documents are updated within Adapt It for documents that 
+should not be getting any further changes within the Paratext or Bibledit 
+project, the team will want to save the changes in the Adapt It project only, 
+and avoid the transfer of those changes to Paratext or Bibledit - since such 
+transfers might inadvertently bring possible editing errors or old renderings 
+back into the polished documents residing in the Paratext/Bibledit project 
+files. Adapt It's new collaboration document data transfer protection 
+feature allows an administrator/user to block such data transfers to Paratext
+/Bibledit for specific books and chapters - effectively "protecting" them in
+their current state within the Paratext/Bibledit project. 
+A typical scenario for the use of this new feature in a collaboration project
+between Adapt It and Paratext might proceed as follows:
+1. The team administrator previously set up two Paratext projects: Language S,
+and Language T. Language S is a Paratext project that contains good quality
+Source texts for the books that will be adapted into Language T. The Language T
+project is also set up within Paratext and initially has all the books to be
+translated, but they are created within Paratext as empty books - containing 
+only chapter and verse numbers.
+2. The team administrator runs Adapt It and sets up a collaboration project
+within Adapt It using Adapt It's Administrator menu menu item "Setup Or Remove 
+Collaboration..." which provides a dialog that the administrator uses for 
+creating a new Adapt It collaboration project (i.e., Language S to Language T
+adaptations), and designating which Paratext project is to be used as Adapt It's 
+source text (in this case the Paratext 'Language S' project), and which 
+Paratext project is to be used to receive Adapt It's adaptations/translations
+/target text (in this case the 'Language T' Paratext project that was created 
+as "empty" - initially containing just chapter and verse numbers). The 
+administrator keeps the default (and recommended) setting to collaborate by 
+"Chapter Only".
+3. A team translator then runs Adapt It and opens its "Language S to Lanuage T 
+adaptations" collaboration project, and ensures that the "Work with my Paratext
+Scripture text (Collaboration on)" button is selected (if not pre-selected). 
+The team has decided this translators should start with the the book of Mark, 
+so the translator selects the book of Mark (if not already pre-selected) from
+the "Get Source Text from Paratext Project" dialog. The translators selects the
+Chapter to work on (if not pre-selected from previous work session). Adapt It 
+retrieves the chapter from the Paratext project's 'Langauge S' project, and
+displays it as source text within the Adapt It main window. The translator (who
+has learned to use Adapt It, being trained by the administrator), then adapts
+the source text into the target text benefiting from the increasing assistance 
+of Adapt It's knowledge base for the "Language S to Language T adaptations" 
+project. Each time the translators saves the document within Adapt It, Adapt It
+saves the adaptation document locally within the Adapt It collaboration project,
+AND transfers the newly created 'Language T' target text over to the Paratext
+'Language T' project. 
+4. The translator reviews and revises the draft of the chapter one or more 
+times from within Adapt It, and continues the drafting process opening another 
+chapter of Mark, and adapting it within Adapt It - until all chapters of Mark
+have been drafted within Adapt It. In this 'drafting stage' it is best for the
+translator to use Adapt It solely while drafting and doing the initial revision
+of the chapters, and refrain from doing any drafting from within Paratext until
+the initial drafting and early revision work has been done within Adapt It for 
+all chapters of the book. 
+5. At a certain point the translator and administrator decide that future 
+revision work for the book of Mark should all be done within Paratext to bring
+the draft on to a polished or publishable stage. It is at this point that Adapt 
+It's new data transfer protections feature can come into play. The administrator
+makes the Administrator menu visible within Adapt It and selects the "Manage Data
+Transfer Protections to Paratext or Bibledit..." item on the Administrator menu.
+In the dialog the administrator follows the 3 numbered steps: (1) Selects an AI 
+collaboration project from the drop-down list - in this case the 'Language S to 
+Language T adaptations' project. The possible books appear in the 'Books' List.
+(2) The administrator selects the the book of Mark from the 'Books List' - and 
+the dialog displays the 16 chapters of Mark in the 'Chapters List' with empty
+check boxes next to each chapter. (3) The administrator then clicks on the "All
+Chapters of Book" button to put ticks in the check boxes of all 16 chapters.
+Finally the administrator clicks on OK to save the 'protection' settings for all 
+chapters of the book of Mark. The draft that exists in Paratext is now 'protected' 
+in the sense that any changes that get made back in the chapter documents of Mark 
+within Adapt It will no longer be transferred to Paratext. 
+6. The team continues the revision process of the book of Mark within Paratext 
+until the book has gone through all the revisions to an advanced/polished state. 
+That polished state might include consultant checking and even publishing. Up to
+this point no further work has been done on the old drafts that still exist in
+the Adapt It project.
+7. With all the chapters of Mark 'protected', and after the book of Mark has been
+revised to an advanced state in Paratext, the administrator asks the translator
+to open the Adapt It 'Language S to Language T adaptations' project in one desktop
+window and Paratext in another windows with the Language T Paratext project 
+displaying within Paratext, so that the translator can compare the polished
+version in Paratext with the old drafts in the Adapt It project. The administrator
+asks the translator to open each chapter in Adapt It and compare the old chapter
+drafts with the more polished version in Paratext - and make changes in the Adapt It 
+drafts to make them read the same as the polished version. The purpose of this 
+updating of the draft in Adapt It is to update Adapt It's knowledge base for that 
+project so that it contains the updated translations/adaptations that were added 
+in Paratext after work ceased on the draft in Adapt It. Since the book of Mark
+has been marked as "protected from transferring changes to Paratext" the
+updating changes will only be saved in the local Adapt It project, and not
+transferred to Paratext - thus "protecting" the advanced Paratext draft from
+unintended changes as the translator saves the updates in the chapter documents 
+of Mark being saved within the Adapt It project. The advantage of this extra
+work on the part of the translator will pay off big-time since all the translation
+equivalents that were done (and updated) for the book of Mark will be available
+for the next book that is adapted/drafted in Adapt It. 
+8. Each collaboration book in turn can be drafted in Adapt It, the polishing work
+done exclusively in Paratext or Bibledit - the administrator having used this new
+feature to "protect" Paratext/Bibledit from any old drafts being transferred or 
+overwriting the advanced drafts. The translator, by going back to the old Adapt It
+drafts and updating those with the more polished renderings, adds the updates to 
+the Adapt It knowledge base, so that the knowledge base provides higher quality 
+translation equivalents when drafting each new book.
+   The new feature is available to administrators through a new menu item on 
+the Administrator menu, and in a more restricted form to users in the form of
+two new menu items on the Advanced menu. Administrators are able to make "bulk"
+settings using the "Manage Data Transfer Protections to Paratext or Bibledit..."
+item on the Administrator menu. Selecting this menu item brings up the new
+"Manage Data Transfer Protections for Collaboration Editor" dialog. This dialog
+allows the administrator to select any collaboration project, and set the data
+transfer projections for any selected book and/or book's chapters of that 
+collaboration project. If a collaboration project was set up to collaborate
+with Paratext/Bibledit in "Chapter Only" mode (the default mode), selecting a
+book in the 'Books List' displays all of the chapters of that book in the 
+'Chapters List (of selected book)' with check boxes beside each chapter. The 
+administrator can then select individual chapters or click on the "All Chapters 
+of Book" button to quickly select all chapters of the selected Scripture book. 
+Once as many books/chapters are selected as desired clicking on OK will save 
+those document transfer protections for that collaboration project. The document 
+transfer protections can later be changed (or more books 'protected') at any 
+time in the life of the collaboration project.
+   If a collaboration project was set up to collaborate with Paratext/Bibledit 
+in "Whole Book" mode, only the whole books are listed for the project with
+check boxes beside each book. The administrator can select All books or a subset
+of books (NT, OT, DC), or deselect all books, similar to what can be done when
+setting up the books of a Paratext project. This dialog however, bases the list
+of "potential" books based on the versification of the Paratext project that is
+used for obtaining source texts in collaboration with Adapt It, so the 
+administrator is not adding or removing books, but is designating which books
+(and/or chapters) will be protected in the event that the project includes the
+book within its Paratext/Bibledit project.
+   The new feature is available in limited form to non-administrator users via
+two new menu items in Adapt It' Advanced menu:
+   Prevent Paratext/Bibledit from getting changes to this document
+   Allow Paratext/Bibledit to get changes to this document
+The above two menu items are enabled in the Advanced menu only when a 
+collaboration project document is opened within Adapt It. With these menu items
+a user can tell Adapt It to "Prevent..." or "Allow...." changes made in the
+document transferring from/to Paratext/Bibledit when Adapt It saves the document.
+As with the bulk dialog (available from the Administraot menu), the protection
+status for the document is saved and remains in that state unless it is explicitly
+changed - either by using one of the two Advanced menu items or by the
+administrator in the bulk change dialog from the Administrator menu.
+---------------------------------------------
+Bug fixes in 6.8.3 release
+----------------------------------------------
+* Fixed a potential bug that could make it appear that Bibledit was the 
+collaboration editor along with Paratext, and generate an error message saying
+that Adapt It could not find a system file for Bibledit even though Bibledit
+was not installed.
+
+----------------------------------------------
 Version 6.8.2 release 11 April 2017
 ----------------------------------------------
 Feature changes and new features in 6.8.2 

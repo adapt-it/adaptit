@@ -9746,7 +9746,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 		if (counter % 500 == 0)	// the counter moves character by character through the buffer
 									// so pick a large number for updating the progress dialog
 		{
-			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),ptr - beginPtr,nTotal);
+			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),int(ptr - beginPtr),nTotal);
 			pStatusBar->UpdateProgress(_("Exporting To Rich Text Format"), ptr - beginPtr, msgDisplayed);
 		}
 

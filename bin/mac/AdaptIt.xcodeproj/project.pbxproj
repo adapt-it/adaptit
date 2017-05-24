@@ -17,6 +17,8 @@
 		03566C6E1BCD9AB8008365C8 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03566C6B1BCD9AB8008365C8 /* AppKit.framework */; };
 		03566C6F1BCD9AB8008365C8 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03566C6C1BCD9AB8008365C8 /* IOKit.framework */; };
 		0386CB751140CEB9000F9E2E /* Retranslation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0386CB741140CEB9000F9E2E /* Retranslation.cpp */; };
+		0392EF5C1EA166C900DCDE57 /* CollabProjectMigrationDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0392EF581EA166C900DCDE57 /* CollabProjectMigrationDlg.cpp */; };
+		0392EF5D1EA166C900DCDE57 /* InstallGitOptionsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0392EF5A1EA166C900DCDE57 /* InstallGitOptionsDlg.cpp */; };
 		0396BFCD11BEA67600100CC4 /* LanguageCodesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */; };
 		0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */; };
 		03C7004A15D4351800FAB605 /* Pathway.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03C7004915D4351800FAB605 /* Pathway.cpp */; };
@@ -200,6 +202,10 @@
 		03566C6C1BCD9AB8008365C8 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		0386CB731140CEB9000F9E2E /* Retranslation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Retranslation.h; path = ../../source/Retranslation.h; sourceTree = SOURCE_ROOT; };
 		0386CB741140CEB9000F9E2E /* Retranslation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Retranslation.cpp; path = ../../source/Retranslation.cpp; sourceTree = SOURCE_ROOT; };
+		0392EF581EA166C900DCDE57 /* CollabProjectMigrationDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CollabProjectMigrationDlg.cpp; path = ../../source/CollabProjectMigrationDlg.cpp; sourceTree = "<group>"; };
+		0392EF591EA166C900DCDE57 /* CollabProjectMigrationDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CollabProjectMigrationDlg.h; path = ../../source/CollabProjectMigrationDlg.h; sourceTree = "<group>"; };
+		0392EF5A1EA166C900DCDE57 /* InstallGitOptionsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = InstallGitOptionsDlg.cpp; path = ../../source/InstallGitOptionsDlg.cpp; sourceTree = "<group>"; };
+		0392EF5B1EA166C900DCDE57 /* InstallGitOptionsDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = InstallGitOptionsDlg.h; path = ../../source/InstallGitOptionsDlg.h; sourceTree = "<group>"; };
 		0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LanguageCodesDlg.cpp; path = ../../source/LanguageCodesDlg.cpp; sourceTree = SOURCE_ROOT; };
 		0396BFC611BEA67600100CC4 /* LanguageCodesDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LanguageCodesDlg.h; path = ../../source/LanguageCodesDlg.h; sourceTree = SOURCE_ROOT; };
 		0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RefStringMetadata.cpp; path = ../../source/RefStringMetadata.cpp; sourceTree = SOURCE_ROOT; };
@@ -560,11 +566,13 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
-				270E0AE1184BE287005FAB50 /* Adapt_It.h */,
+				C88174251CE4A0E30017FCC6 /* 1035.cpp */,
+				C88174231CE49FA40017FCC6 /* 1035.h */,
 				C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */,
 				C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */,
 				C8F82DB50F3F9CAB007579B8 /* Adapt_It_wdr.h */,
+				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
+				270E0AE1184BE287005FAB50 /* Adapt_It.h */,
 				C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */,
 				C8F82DBA0F3F9CAB007579B8 /* Adapt_ItCanvas.h */,
 				C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */,
@@ -613,6 +621,8 @@
 				C8F82DD80F3F9CAB007579B8 /* ChooseTranslation.h */,
 				7D66132714D87232007A2C30 /* ClientServerConnection.cpp */,
 				7D66132814D87232007A2C30 /* ClientServerConnection.h */,
+				0392EF581EA166C900DCDE57 /* CollabProjectMigrationDlg.cpp */,
+				0392EF591EA166C900DCDE57 /* CollabProjectMigrationDlg.h */,
 				C837D1BC13E265570008C2BF /* CollabUtilities.cpp */,
 				C837D1BB13E265570008C2BF /* CollabUtilities.h */,
 				03566C611BCD95C0008365C8 /* CollabVerseConflictDlg.cpp */,
@@ -687,6 +697,8 @@
 				C8F82DFA0F3F9CAB007579B8 /* helpers.h */,
 				7D7335161423F70B00316F83 /* HtmlFileViewer.cpp */,
 				7D7335171423F70B00316F83 /* HtmlFileViewer.h */,
+				0392EF5A1EA166C900DCDE57 /* InstallGitOptionsDlg.cpp */,
+				0392EF5B1EA166C900DCDE57 /* InstallGitOptionsDlg.h */,
 				C8F82DFB0F3F9CAB007579B8 /* JoinDialog.cpp */,
 				C8F82DFC0F3F9CAB007579B8 /* JoinDialog.h */,
 				27462BD317474EBE005605DA /* json_defs.h */,
@@ -716,10 +728,12 @@
 				C8D7E60F183DAF730099C11A /* KbSharingSetup.h */,
 				C8D7E606183DAF080099C11A /* KBSharingStatelessSetupDlg.cpp */,
 				C8D7E607183DAF080099C11A /* KBSharingStatelessSetupDlg.h */,
-				0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */,
-				0396BFC611BEA67600100CC4 /* LanguageCodesDlg.h */,
+				C881742A1CE4A4F00017FCC6 /* KbSvrHowGetUrl.cpp */,
+				C881742B1CE4A4F00017FCC6 /* KbSvrHowGetUrl.h */,
 				03566C651BCD95C0008365C8 /* LanguageCodesDlg_Single.cpp */,
 				03566C661BCD95C0008365C8 /* LanguageCodesDlg_Single.h */,
+				0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */,
+				0396BFC611BEA67600100CC4 /* LanguageCodesDlg.h */,
 				C8F82E030F3F9CAB007579B8 /* LanguagesPage.cpp */,
 				C8F82E040F3F9CAB007579B8 /* LanguagesPage.h */,
 				7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */,
@@ -728,10 +742,12 @@
 				C8F82E060F3F9CAB007579B8 /* ListDocumentsInOtherFolderDialog.h */,
 				C8F82E070F3F9CAB007579B8 /* MainFrm.cpp */,
 				C8F82E080F3F9CAB007579B8 /* MainFrm.h */,
-				7D98196A139C7002009F4E93 /* md5.cpp */,
-				7D98196B139C7002009F4E93 /* md5.h */,
 				27501E2C176FD106000AC145 /* md5_SB.cpp */,
 				27501E2D176FD106000AC145 /* md5_SB.h */,
+				7D98196A139C7002009F4E93 /* md5.cpp */,
+				7D98196B139C7002009F4E93 /* md5.h */,
+				C88174281CE4A3AB0017FCC6 /* mdnsd.cpp */,
+				C88174271CE4A2DA0017FCC6 /* mdnsd.h */,
 				C8442B85135FADD300981EB2 /* MergeUpdatedSrc.cpp */,
 				C8442B8D135FAF2A00981EB2 /* MergeUpdatedSrc.h */,
 				C8F82E090F3F9CAB007579B8 /* MoveDialog.cpp */,
@@ -787,6 +803,10 @@
 				7D4EEBBE1471932C003B4CC2 /* scrollingdialog.h */,
 				7D4EEBBF1471932C003B4CC2 /* scrollingwizard.cpp */,
 				7D4EEBC01471932C003B4CC2 /* scrollingwizard.h */,
+				C881742D1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.cpp */,
+				C881742E1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.h */,
+				C88174301CE4A5D20017FCC6 /* ServiceDiscovery.cpp */,
+				C88174311CE4A5D20017FCC6 /* ServiceDiscovery.h */,
 				C8F82E2B0F3F9CAB007579B8 /* SetDelay.cpp */,
 				C8F82E2C0F3F9CAB007579B8 /* SetDelay.h */,
 				C8F82E2D0F3F9CAB007579B8 /* SetEncodingDlg.cpp */,
@@ -811,6 +831,8 @@
 				C8F82E3E0F3F9CAB007579B8 /* TargetUnit.h */,
 				7D22945D0FE9C0EA00D49638 /* tellenc.cpp */,
 				03F468AE11F759A300B3CAEC /* tellenc.h */,
+				C88174361CE4A7220017FCC6 /* Thread_ServiceDiscovery.cpp */,
+				C88174371CE4A7220017FCC6 /* Thread_ServiceDiscovery.h */,
 				27BD963A16E0161700583C59 /* Timer_KbServerChangedSince.cpp */,
 				27BD963B16E0161700583C59 /* Timer_KbServerChangedSince.h */,
 				034B73FA16EFAC53009A6389 /* ToolbarPage.cpp */,
@@ -841,26 +863,14 @@
 				C8F82E540F3F9CAB007579B8 /* WhichBook.h */,
 				C8F82E550F3F9CAB007579B8 /* WhichFilesDlg.cpp */,
 				C8F82E560F3F9CAB007579B8 /* WhichFilesDlg.h */,
+				C88174331CE4A6A70017FCC6 /* wxServDisc.cpp */,
+				C88174341CE4A6A70017FCC6 /* wxServDisc.h */,
 				27AC52F61598029E009E7C07 /* Xhtml.cpp */,
 				27AC52F8159802C4009E7C07 /* Xhtml.h */,
 				C8F82E570F3F9CAB007579B8 /* XML.cpp */,
 				C8F82E580F3F9CAB007579B8 /* XML.h */,
 				C8F82E590F3F9CAB007579B8 /* XMLErrorDlg.cpp */,
 				C8F82E5A0F3F9CAB007579B8 /* XMLErrorDlg.h */,
-				C88174251CE4A0E30017FCC6 /* 1035.cpp */,
-				C88174231CE49FA40017FCC6 /* 1035.h */,
-				C88174281CE4A3AB0017FCC6 /* mdnsd.cpp */,
-				C88174271CE4A2DA0017FCC6 /* mdnsd.h */,
-				C881742A1CE4A4F00017FCC6 /* KbSvrHowGetUrl.cpp */,
-				C881742B1CE4A4F00017FCC6 /* KbSvrHowGetUrl.h */,
-				C881742D1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.cpp */,
-				C881742E1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.h */,
-				C88174301CE4A5D20017FCC6 /* ServiceDiscovery.cpp */,
-				C88174311CE4A5D20017FCC6 /* ServiceDiscovery.h */,
-				C88174331CE4A6A70017FCC6 /* wxServDisc.cpp */,
-				C88174341CE4A6A70017FCC6 /* wxServDisc.h */,
-				C88174361CE4A7220017FCC6 /* Thread_ServiceDiscovery.cpp */,
-				C88174371CE4A7220017FCC6 /* Thread_ServiceDiscovery.h */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -1081,6 +1091,7 @@
 				C8F82E7E0F3F9CAB007579B8 /* JoinDialog.cpp in Sources */,
 				C8F82E7F0F3F9CAB007579B8 /* KB.cpp in Sources */,
 				C8F82E800F3F9CAB007579B8 /* KBEditor.cpp in Sources */,
+				0392EF5C1EA166C900DCDE57 /* CollabProjectMigrationDlg.cpp in Sources */,
 				C8F82E810F3F9CAB007579B8 /* KBPage.cpp in Sources */,
 				C8F82E820F3F9CAB007579B8 /* LanguagesPage.cpp in Sources */,
 				C8F82E830F3F9CAB007579B8 /* ListDocumentsInOtherFolderDialog.cpp in Sources */,
@@ -1181,6 +1192,7 @@
 				272E3D2016BF647D00566D31 /* KBSharing.cpp in Sources */,
 				27BD963D16E0161700583C59 /* Timer_KbServerChangedSince.cpp in Sources */,
 				277D32EB18CD34700089CFC2 /* GuesserAffix.cpp in Sources */,
+				0392EF5D1EA166C900DCDE57 /* InstallGitOptionsDlg.cpp in Sources */,
 				034B73FC16EFAC53009A6389 /* ToolbarPage.cpp in Sources */,
 				271F29C216FFCD0000E107A6 /* DVCSNavDlg.cpp in Sources */,
 				27D067361713A27800A2607D /* DVCSLogDlg.cpp in Sources */,

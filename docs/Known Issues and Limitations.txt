@@ -1,4 +1,4 @@
-Limitations and known issues in the version 6.8.2 
+Limitations and known issues in the version 6.8.3 
 of Adapt It WX and Adapt It WX Unicode:
 
 Windows version:

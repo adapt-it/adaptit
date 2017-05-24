@@ -3,7 +3,7 @@
 Filename:	AI_UserProfiles.xml
 Author: 	Bill Martin
 Date Created:	27 August 2010
-Last Updated:	16 March 2017, by Bill Martin
+Last Updated:	11 May 2017, by Bill Martin
 Description:	This file contains the user profile definitions and
 		attributes for Adapt It's interface menus and settings.
 		Adapt It reads and parses this AI_UserProfiles.xml file
@@ -24,7 +24,7 @@ Description:	This file contains the user profile definitions and
   -->
 <UserProfilesSupport
 	profileVersion="1.0"
-	applicationCompatibility="6.8.2"
+	applicationCompatibility="6.8.3"
 	adminModified="No"
 	definedProfile1="Novice"
 	descriptionProfile1="The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator."
@@ -1503,6 +1503,60 @@ Description:	This file contains the user profile definitions and
 		<PROFILE userProfile="Novice"
 			itemVisibility="1"
 			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Experienced"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Skilled"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+</MENU>
+<MENU itemID="ID_ADVANCED_PROTECT_EDITOR_FM__GETTING_CHANGES_FOR_THIS_DOC"
+	itemType="subMenu"
+	itemText="&amp;Prevent Paratext/Bibledit from getting changes to this document"
+	itemDescr="Advanced menu"
+	adminCanChange="1"
+	>
+		<PROFILE userProfile="Novice"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Experienced"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Skilled"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+</MENU>
+<MENU itemID="ID_ADVANCED_ALLOW_EDITOR_TO_GET_CHANGES_FOR_THIS_DOC"
+	itemType="subMenu"
+	itemText="Allo&amp;w Paratext/Bibledit to get changes to this document"
+	itemDescr="Advanced menu"
+	adminCanChange="1"
+	>
+		<PROFILE userProfile="Novice"
+			itemVisibility="0"
+			factory="0"
 		>
 		</PROFILE>
 		<PROFILE userProfile="Experienced"

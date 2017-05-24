@@ -124,7 +124,7 @@ void CBookName::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 
 
 	// get a book name from the list of Paratext "full names" based on the passed in bookID
-	m_suggestedBookName = gpApp->GetBookNameFromBookCode(m_bookCode);
+	m_suggestedBookName = gpApp->GetBookNameFromBookCode(m_bookCode, gpApp->m_collaborationEditor);
 	// get the radio button label string
 	m_radioLabelStr = m_pRadioSuggestedName->GetLabel();
 	// insert the suggested book name into the label

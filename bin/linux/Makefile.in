@@ -133,6 +133,7 @@ am_adaptit_OBJECTS = 1035.$(OBJEXT) AIPrintout.$(OBJEXT) \
 	ConsChk_Empty_noTU_Dlg.$(OBJEXT) ChooseLanguageCode.$(OBJEXT) \
 	ChooseCollabOptionsDlg.$(OBJEXT) ChooseTranslation.$(OBJEXT) \
 	ClientServerConnection.$(OBJEXT) \
+	CollabProtectEditorBulkSettingsDlg.$(OBJEXT) \
 	CollabVerseConflictDlg.$(OBJEXT) \
 	CollabProjectMigrationDlg.$(OBJEXT) \
 	CollectBacktranslations.$(OBJEXT) ComposeBarEditBox.$(OBJEXT) \
@@ -583,7 +584,7 @@ adaptit_SOURCES = \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
 	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp ../../source/ChooseLanguageCode.cpp \
 	../../source/ChooseCollabOptionsDlg.cpp \
-	../../source/ChooseTranslation.cpp ../../source/ClientServerConnection.cpp \
+	../../source/ChooseTranslation.cpp ../../source/ClientServerConnection.cpp ../../source/CollabProtectEditorBulkSettingsDlg.cpp \
 	../../source/CollabVerseConflictDlg.cpp ../../source/CollabProjectMigrationDlg.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConflictResActionDlg.cpp \
@@ -765,6 +766,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseTranslation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClientServerConnection.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollabProjectMigrationDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollabProtectEditorBulkSettingsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollabUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollabVerseConflictDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollectBacktranslations.Po@am__quote@
@@ -1331,6 +1333,20 @@ ClientServerConnection.obj: ../../source/ClientServerConnection.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/ClientServerConnection.cpp' object='ClientServerConnection.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ClientServerConnection.obj `if test -f '../../source/ClientServerConnection.cpp'; then $(CYGPATH_W) '../../source/ClientServerConnection.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ClientServerConnection.cpp'; fi`
+
+CollabProtectEditorBulkSettingsDlg.o: ../../source/CollabProtectEditorBulkSettingsDlg.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CollabProtectEditorBulkSettingsDlg.o -MD -MP -MF $(DEPDIR)/CollabProtectEditorBulkSettingsDlg.Tpo -c -o CollabProtectEditorBulkSettingsDlg.o `test -f '../../source/CollabProtectEditorBulkSettingsDlg.cpp' || echo '$(srcdir)/'`../../source/CollabProtectEditorBulkSettingsDlg.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/CollabProtectEditorBulkSettingsDlg.Tpo $(DEPDIR)/CollabProtectEditorBulkSettingsDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/CollabProtectEditorBulkSettingsDlg.cpp' object='CollabProtectEditorBulkSettingsDlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CollabProtectEditorBulkSettingsDlg.o `test -f '../../source/CollabProtectEditorBulkSettingsDlg.cpp' || echo '$(srcdir)/'`../../source/CollabProtectEditorBulkSettingsDlg.cpp
+
+CollabProtectEditorBulkSettingsDlg.obj: ../../source/CollabProtectEditorBulkSettingsDlg.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CollabProtectEditorBulkSettingsDlg.obj -MD -MP -MF $(DEPDIR)/CollabProtectEditorBulkSettingsDlg.Tpo -c -o CollabProtectEditorBulkSettingsDlg.obj `if test -f '../../source/CollabProtectEditorBulkSettingsDlg.cpp'; then $(CYGPATH_W) '../../source/CollabProtectEditorBulkSettingsDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/CollabProtectEditorBulkSettingsDlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/CollabProtectEditorBulkSettingsDlg.Tpo $(DEPDIR)/CollabProtectEditorBulkSettingsDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/CollabProtectEditorBulkSettingsDlg.cpp' object='CollabProtectEditorBulkSettingsDlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CollabProtectEditorBulkSettingsDlg.obj `if test -f '../../source/CollabProtectEditorBulkSettingsDlg.cpp'; then $(CYGPATH_W) '../../source/CollabProtectEditorBulkSettingsDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/CollabProtectEditorBulkSettingsDlg.cpp'; fi`
 
 CollabVerseConflictDlg.o: ../../source/CollabVerseConflictDlg.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CollabVerseConflictDlg.o -MD -MP -MF $(DEPDIR)/CollabVerseConflictDlg.Tpo -c -o CollabVerseConflictDlg.o `test -f '../../source/CollabVerseConflictDlg.cpp' || echo '$(srcdir)/'`../../source/CollabVerseConflictDlg.cpp

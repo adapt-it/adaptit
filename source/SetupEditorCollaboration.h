@@ -105,7 +105,7 @@ private:
 	wxTextCtrl* pTextCtrlAsStaticSelectedSourceProj;
 	wxTextCtrl* pTextCtrlAsStaticSelectedTargetProj;
 	wxTextCtrl* pTextCtrlAsStaticSelectedFreeTransProj;
-	wxStaticText* pStaticTextUseThisDialog;
+	wxStaticText* pStaticTextDialogTopicLine;
 	wxStaticText* pStaticTextListOfProjects;
 	wxStaticText* pStaticTextSelectWhichProj;
 	wxStaticText* pStaticTextSrcTextFromThisProj;

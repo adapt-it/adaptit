@@ -144,6 +144,15 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning
 	// other attribute initializations
+
+    pGetSourceTextFromEditorSizer->Layout(); // update the layout for $s substitutions
+                                             // Some control text may be truncated unless we resize the dialog to fit it. 
+                                             // Note: The constructor's call of GetSourceTextFromEditorDlgFunc(this, FALSE, TRUE)
+                                             // has its second parameter as FALSE to allow this resize here in InitDialog().
+    wxSize dlgSize;
+    dlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+    this->SetSize(dlgSize);
+    this->CenterOnParent();
 }
 
 CGetSourceTextFromEditorDlg::~CGetSourceTextFromEditorDlg() // destructor
@@ -219,7 +228,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_SaveCollabChapterSelected = m_TempCollabChapterSelected;
 	m_bSaveCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
 
-	if (!m_pApp->m_bCollaboratingWithBibledit)
+	if (m_pApp->m_bCollaboratingWithParatext) // if (!m_pApp->m_bCollaboratingWithBibledit)
 	{
         // whm added 17March2017. To avoid possible error, we need to be absolutely sure of the path to the 
         // rdwrtp7.exe file which is different for PT7 and PT8, so I'm adding a parameter to GetPathToRdwrtp7()
@@ -227,13 +236,30 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		//m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(); // see CollabUtilities.cpp
 		m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(m_pApp->m_ParatextVersionForProject); // see CollabUtilities.cpp
 	}
-	else
-	{
-		m_bibledit_rdwrtPathAndFileName = GetPathToBeRdwrt(); // will return
-								// an empty string if BibleEdit is not installed;
-								// see CollabUtilities.cpp
-	}
 
+    if (m_pApp->m_bCollaboratingWithBibledit)
+    {
+        if (m_pApp->BibleditIsInstalled())
+        {
+            wxString BEInstallDirPath = GetBibleditInstallPath();
+
+            if (!BEInstallDirPath.IsEmpty())
+            {
+                m_bibledit_rdwrtPathAndFileName = GetPathToBeRdwrt(); // will return
+                                    // an empty string if BibleEdit is not installed;
+                                    // see CollabUtilities.cpp
+            }
+            else
+            {
+                m_bibledit_rdwrtPathAndFileName = wxEmptyString;
+            }
+        }
+        else
+        {
+            m_pApp->m_bCollaboratingWithBibledit = FALSE; // The App's value for m_pApp->m_bCollaboratingWithBibledit is wrong so correct it
+            m_bibledit_rdwrtPathAndFileName = wxEmptyString;
+        }
+    }
 	// Generally when the "Get Source Text from Paratext/Bibledit Project" dialog is called, we 
 	// can be sure that some checks have been done to ensure that Paratext/Bibledit is installed,
 	// that previously selected PT/BE projects are still valid/exist, etc. Those consistency and
@@ -1356,7 +1382,7 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(even
 			noteStrToDisplay += _T(' ');
 			noteStrToDisplay += m_staticBoxFreeTransDescriptionArray.Item(nSel); // TODO: check that arrays have same count???
 		}
-		wxLogDebug(noteStrToDisplay);
+		//wxLogDebug(noteStrToDisplay);
 		pStaticTextCtrlNote->ChangeValue(noteStrToDisplay);
 		// whm note 29Jul11 We can't set focus on the OK button whenever the 
 		// chapter selection changes, because working via keyboard, the up and
