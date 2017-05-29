@@ -16073,6 +16073,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 				}
 			}
+			// BEW 28May17 refactored the rest of the code in this block, because it was
+			// causing a crash due to pSrcPhrase being deleted herein at sequ number zero
+			//
 			// BEW added comment 11Oct10, the comment below was for the legacy parser, but it
 			// is still apt if the new ParseWord() returns leaving some punctuation at the end
 			// of the buffer - unlikely, but we can't rule it out. So keep this stuff.
@@ -16083,12 +16086,26 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// been reached, m_key in pSrcPhrase will be empty. So, providing m_precPunct is
 			// empty, pSrcPhrase is not a valid CSourcePhrase instance. We need to check and
 			// remove it.
+			bool bPrecedingPunctIsEmpty = pSrcPhrase->m_precPunct.IsEmpty();
+			bool bHasNonEndMarkers = !pSrcPhrase->m_markers.IsEmpty();
+			wxString someFilteredInfo = pSrcPhrase->GetFilteredInfo(); // could be empty
+			bool bHasFilteredInfo = !someFilteredInfo.IsEmpty();
+			if (pSrcPhrase->m_key.IsEmpty() && bPrecedingPunctIsEmpty)
+			{
+				if ((ptr >= pEnd))
+				{
+					DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // FALSE means 'don't try to
+															  // delete a partner pile'
+					pSrcPhrase = NULL;
+					break;
+				}
+			}
 			// But a complication is the possibility of filtered information at the end of the
 			// parse buffer - it would be in the m_filteredInfo member. Our solution for this
 			// complication is: don't remove the pSrcPhrase here - so if parsing a source text
 			// file, the widow CSourcePhrase will just remain at the document end but be
 			// unseen, while if we are parsing just-edited source text in OnEditSourceText(),
-			// we can leave the widow there after moving endmarkers of it, because
+			// we can leave the widow there after moving endmarkers off it, because
 			// OnEditSourceText() will later call
 			// TransportWidowedFilteredInfoToFollowingContext() and if there is a following
 			// context, the transfer can be done, but if not, we must just leave the source
@@ -16103,46 +16120,51 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// keep it - that's what to do whether we are at the document end when parsing in a
 			// new source text USFM text file, or when editing source text - the
 			// gbVerticalEditInProgress global boolean can help in testing for this.
-			wxString someFilteredInfo = pSrcPhrase->GetFilteredInfo(); // could be empty
-			bool bHasFilteredInfo = !someFilteredInfo.IsEmpty();
-			bool bHasNonEndMarkers = !pSrcPhrase->m_markers.IsEmpty();
-			if (pSrcPhrase->m_key.IsEmpty() && pSrcPhrase->m_precPunct.IsEmpty())
+			if (pSrcPhrase->m_key.IsEmpty() && bPrecedingPunctIsEmpty)
 			{
 				if ( (!bHasFilteredInfo && !bHasNonEndMarkers) ||
 					(!bHasFilteredInfo && bHasNonEndMarkers && !gbVerticalEditInProgress))
 				{
-					// remove it if it is not a carrier for filtered information in its
-					// m_filteredInfo member (see the more detailed explanation above) nor
-					// non-endmarkers information in its m_markers member; OR, it has no
-					// filtered information but it does have non-endmarkers in m_markers
-					// but vertical edit (ie. we aren't in OnEditSourceText()) is not
-					// current (ie. we are creating a document by parsing in a USFM plain
-					// text file). The other possibilities can be left for
-					// TransportWidowedFilteredInfoToFollowingContext() in
-					// OnEditSourceText() to work out, and do deletion of of the carrier if
-					// warranted.
-					DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // FALSE means 'don't try to
-															  // delete a partner pile'
-					pSrcPhrase = NULL;
-				}
-				if (bFreeTranslationIsCurrent)
-				{
-					// we default to always turning off a free translation section at the end
-					// of the document if it hasn't been done already
-					if (pLastSrcPhrase != NULL)
+					if (bFreeTranslationIsCurrent)
 					{
-						if (pLastSrcPhrase->m_bEndFreeTrans == FALSE)
+						// we default to always turning off a free translation section at the end
+						// of the document if it hasn't been done already
+						if (pLastSrcPhrase != NULL)
 						{
-							pLastSrcPhrase->m_bEndFreeTrans = TRUE;
-
-							// BEW 11Oct10, and for ~ fixedspace support, set the same flag in
-							// the last child instance
-							if (IsFixedSpaceSymbolWithin(pLastSrcPhrase))
+							if (pLastSrcPhrase->m_bEndFreeTrans == FALSE)
 							{
-								SPList::Node* pos = pLastSrcPhrase->m_pSavedWords->GetLast();
-								CSourcePhrase* pWord2 = pos->GetData();
-								pWord2->m_bEndFreeTrans = TRUE;
+								pLastSrcPhrase->m_bEndFreeTrans = TRUE;
+
+								// BEW 11Oct10, and for ~ fixedspace support, set the same flag in
+								// the last child instance
+								if (IsFixedSpaceSymbolWithin(pLastSrcPhrase))
+								{
+									SPList::Node* pos = pLastSrcPhrase->m_pSavedWords->GetLast();
+									CSourcePhrase* pWord2 = pos->GetData();
+									pWord2->m_bEndFreeTrans = TRUE;
+								}
+								break;
 							}
+						}
+					}
+					else
+					{
+						// remove it if it is not a carrier for filtered information in its
+						// m_filteredInfo member (see the more detailed explanation above) nor
+						// non-endmarkers information in its m_markers member; OR, it has no
+						// filtered information but it does have non-endmarkers in m_markers
+						// but vertical edit (ie. we aren't in OnEditSourceText()) is not
+						// current (ie. we are creating a document by parsing in a USFM plain
+						// text file). The other possibilities can be left for
+						// TransportWidowedFilteredInfoToFollowingContext() in
+						// OnEditSourceText() to work out, and do deletion of of the carrier if
+						// warranted.
+						if (ptr >= pEnd)
+						{
+							DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // FALSE means 'don't try to
+																	  // delete a partner pile'
+							pSrcPhrase = NULL;
+							break;
 						}
 					}
 				}
@@ -16199,9 +16221,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 		// BEW added 31Oct16  If ptr has reached pEnd, we don't want to iterate and try
 		// build another CSourcePhrase - so test and break out if so
-		if (ptr >= pEnd)
+if (ptr >= pEnd)
 		{
-			break;
+					break;
 		}
 
 	} // end of while (ptr < pEndText)
@@ -27398,6 +27420,10 @@ bool CAdapt_ItDoc::ParseWordMedialSandwichedUSFMFixedSpace(wxChar* pText, wxChar
 /// got tripped), so I need to have TokenizeText() handle puncts after the ] by parsing
 /// over them to whitespace or marker following, and store the puncts after the ] on its
 /// CSourcePhrase instance.
+/// BEW 29May17 minor refactoring to support \xt, \xot etc within \f ... \f* or other
+/// inline nonbinding marker spans (but x-ref inner markers in a footnote is the reason
+/// prompting the changes - these are allowed in USFM markup, though not illustrated
+/// within the ICAP USFM documentation) These changes backported from ParseWord2().
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	wxChar* pEnd,
@@ -27614,28 +27640,28 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	bIsInlineBindingMkr = FALSE; // it's passed by ref, so clear the value
 								 // otherwise next entry will fail
 
-								 // What might ptr be pointing at now? If the above block actually stored a marker,
-								 // then we'd expect to be pointing at the word proper's first character. But...
-								 // there may be incorrect markup, and punctuation could be next. And if we didn't
-								 // enter the above block, then punctuation could be next, and then an inline binding
-								 // marker could follow that, so the following 3 possibilities still apply:
-								 // 1. punctuation which needs to be stored in m_precPunct, or
-								 // 2. an inlineBindingMkr, such as \k or \w etc, or
-								 // 3. the first character of the word to be stored as m_key in pSrcPhrase
-								 // The first to check for is punctuation, then inlineBinbdingMkr
+	// What might ptr be pointing at now? If the above block actually stored a marker,
+	// then we'd expect to be pointing at the word proper's first character. But...
+	// there may be incorrect markup, and punctuation could be next. And if we didn't
+	// enter the above block, then punctuation could be next, and then an inline binding
+	// marker could follow that, so the following 3 possibilities still apply:
+	// 1. punctuation which needs to be stored in m_precPunct, or
+	// 2. an inlineBindingMkr, such as \k or \w etc, or
+	// 3. the first character of the word to be stored as m_key in pSrcPhrase
+	// The first to check for is punctuation, then inlineBinbdingMkr
 
-								 // First, parse over any 'detached' preceding punctuation, bearing in mind it may have
-								 // sequences of single and/or double opening quotation marks with one or more spaces
-								 // between each. We want to accumulate all such punctuation, and the spaces in-place,
-								 // into the precPunct CString. We assume only left quotations and left wedges can be
-								 // set off by spaces from the actual word and whatever preceding punctuation is on it.
-								 // We make the same assumption for punctuation following the word - but in that case
-								 // there should be right wedges or right quotation marks. We'll allow ordinary
-								 // (vertical) double quotation, and single quotation if the latter is being considered
-								 // to be punctuation, even though this weakens the integrity of out algorithm - but it
-								 // would only be compromised if there were sequences of vertical quotes with spaces
-								 // both at the end of a word and at the start of the next word in the source text data,
-								 // and this would be highly unlikely to ever occur in published source text.
+	// First, parse over any 'detached' preceding punctuation, bearing in mind it may have
+	// sequences of single and/or double opening quotation marks with one or more spaces
+	// between each. We want to accumulate all such punctuation, and the spaces in-place,
+	// into the precPunct CString. We assume only left quotations and left wedges can be
+	// set off by spaces from the actual word and whatever preceding punctuation is on it.
+	// We make the same assumption for punctuation following the word - but in that case
+	// there should be right wedges or right quotation marks. We'll allow ordinary
+	// (vertical) double quotation, and single quotation if the latter is being considered
+	// to be punctuation, even though this weakens the integrity of out algorithm - but it
+	// would only be compromised if there were sequences of vertical quotes with spaces
+	// both at the end of a word and at the start of the next word in the source text data,
+	// and this would be highly unlikely to ever occur in published source text.
 
 	while (IsOpeningQuote(ptr) || IsWhiteSpace(ptr))
 	{
@@ -27759,7 +27785,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			{
 				return -1;
 			}
-		}
+		}  // end of marker(s)-handling loop: while (IsMarker(ptr))
 		// Once control gets to here, ptr should be pointing at the first character of the
 		// actual word for saving in m_key of pSrcPhrase; we don't expect punctuation
 		// after a binding inline marker, but because of the possibility of user markup
@@ -27774,14 +27800,61 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	{
 		// the legacy parser's code still applies here - to finish parsing over any
 		// non-quote punctuation which precedes the word
-		while (!IsEnd(ptr) && (nFound = spacelessPuncts.Find(*ptr)) >= 0)
+
+		// BEW 4Apr17 add a wrapping test to make sure defacto 'placeholder' text which
+		// is just a lot of punctuation characters followed by an endmarker, is not parsed
+		// in the normal way - that causes an app crash. 
+		// If there is no content between the markers, parsing is well behaved, so we
+		// don't have to use this hack to protect that as well, in fact we'll make use 
+		// of it.
+		// This hack is needed in TokenizeText() to prevent ....... type of content
+		// (i.e. all punctuation characters, no word) as content between, say, \fr and
+		// a \f* which is following the punctuation, from producing a crash of the app.
+		// Data was from Kari Valkama (Psalms)
+		bool bHasPunctsOnly = FALSE;
+		bool bEndmarkerFollows = FALSE;
+		int nCountOfPuncts = 0;
+		if (IsPunctuationOnlyFollowedByEndmarker(ptr, pEnd,
+			m_spacelessPuncts, bTokenizingTargetText, bHasPunctsOnly,
+			bEndmarkerFollows, nCountOfPuncts))
 		{
-			// the test checks to see if the character at the location of ptr belongs to
-			// the set of source language punctuation characters (with space excluded from
-			// the latter) - as long as the nFound value is positive we are parsing over
-			// punctuation characters
-			pSrcPhrase->m_precPunct += *ptr++;
-			len++;
+			// The adjusting hack is required, so do it......
+			// Refactor. The puncts should go into m_follPunct, m_key stay 
+			// empty, and then \f* into m_endMarkers. 
+			// (Embedded \xt in non-filtered footnote should just not be filtered,
+			// so that is something further for me to fix after this local refactor)
+			if (bHasPunctsOnly && bEndmarkerFollows)
+			{
+				wxString punctsStr(ptr, nCountOfPuncts);
+				pSrcPhrase->m_follPunct += punctsStr;
+				ptr = ptr + (size_t)nCountOfPuncts;
+			}
+			else
+			{
+				// Control should never need to enter this block if the test function,
+				// IsPunctuationOnlyFollowedByEndmarker() returned TRUE. But just in case,
+				// the safest thing to do is to jump ptr over the punctuation substring -
+				// because no content between the marker and endmarker parses successfully
+				ptr = ptr + (size_t)nCountOfPuncts;
+			}
+			len += nCountOfPuncts;
+
+			// The parsing is able to go on, and it might end up unexpectedly trying to 
+			// deal with a \v or similar marker - which should not happen within
+			// ParseWord2(). We handle that after this block is exited, by an IsMarker() test
+		}
+		else
+		{
+			// The legacy code is in this block
+			while (!IsEnd(ptr) && (nFound = spacelessPuncts.Find(*ptr)) >= 0)
+			{
+				// The test checks to see if the character at the location of ptr belongs to
+				// the set of source language punctuation characters (with space excluded from
+				// the latter) - as long as the nFound value is positive we are parsing over
+				// punctuation characters
+				pSrcPhrase->m_precPunct += *ptr++;
+				len++;
+			}
 		}
 
 		// Handle the undoing of the above block's code when the user has changed his mind and
@@ -27798,6 +27871,62 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// and for when dealing with ~ fixedspaced conjoining, where wxString firstWord is
 			// defined
 		}
+
+		// BEW 25May17 It is possible for control within an unfiltered space to
+		// get to this point, and actually have ptr pointing at an endmarker, such
+		// as \f* followed by whitespace which in turn is followed by \v  or \li or
+		// \li1 etc. \v or \li etc are non-inLine markers, but code in this outer
+		// block thinks we've yet to come to the word-proper, so we have to
+		// detect this contradiction, and provide code here to parse and correctly
+		// store any endmarkers in m_endMarkers, and then exit ParseWord2() with
+		// ptr pointing at whitespace preceding the non-inline markers, and return 
+		// to TokenizeText() with correct len and ptr values because parsing for 
+		// the current pSrcPhrase is done
+		// BEW 25May17 Added this block, see above commment, to handle unexpected
+		// non-inline marker being encountered
+		if (IsMarker(ptr))
+		{
+			if (IsEndMarker2(ptr))
+			{
+				// Time to return from ParseWord2() correctly, deal with what remains
+				// for storage on the present pSrcPhrase before doing so
+				pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
+				if (pUsfmAnalysis->inLine == TRUE)
+				{
+					// It's an endmarker
+					if (bIsNestedMkr)
+						bareMkr = _T('+');
+					else
+						bareMkr.Empty();
+					bareMkr += baseOfEndMkr;
+					bareMkr += _T('*');
+
+					wholeMkr = gSFescapechar + bareMkr;
+					itemLen = wholeMkr.Length();
+					pSrcPhrase->AddEndMarker(wholeMkr);
+					pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+					if (!pSrcPhrase->m_follPunct.IsEmpty() && pSrcPhrase->m_follPunct != _T(","))
+					{
+						pSrcPhrase->m_bBoundary = TRUE;
+					}
+					//ptr = ptr + (size_t)itemLen;
+					len += itemLen;
+					return len;
+				}
+				// TODO eventually, restore a bool flag here to FALSE which says the control is within a footnote unfiltered
+			}
+			else
+			{
+				// other non-inline markers require immediate return
+				pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+				if (!pSrcPhrase->m_follPunct.IsEmpty() && pSrcPhrase->m_follPunct != _T(","))
+				{
+					pSrcPhrase->m_bBoundary = TRUE;
+				}
+				return len;
+			}
+		}
+
 		// When the above loop exits, and any squirreling required has been done, ptr may
 		// be pointing at the word, or at a preceding inline binding marker, like \k (for
 		// keyword) or \w (for a wordlist word) or various other markers - many of which
@@ -27857,6 +27986,25 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				wholeMkrPlusSpace = wholeMkr + aSpace;
 				if (pUsfmAnalysis->inLine == FALSE)
 				{
+					// It's not an inline marker, so ParseWord() must be exited here;
+					// we should also back up over whitespace if any precedes ptr,
+					// so that TokenizeText can store whatever is the whitespace
+					// preceding the next CSourcePhrase instance
+					int whitespaceCount = 0;
+					wxChar* aPtr = ptr;
+					bool bIsWhite = FALSE;
+					do {
+						aPtr = --aPtr; // point at previous wide character
+						bIsWhite = IsWhiteSpace(aPtr);
+						if (bIsWhite)
+						{
+							whitespaceCount++;
+						}
+					} while (bIsWhite);
+					len = len - whitespaceCount;
+					ptr = ptr - (size_t)whitespaceCount;
+					pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+					/*
 					// it's not an inline marker, so abort
 					wxString msgStr;
 					msgStr = msgStr.Format(
@@ -27867,6 +28015,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 					wxKill(::wxGetProcessId(), wxSIGKILL); // abort();
 					return 0;
+					*/
 				}
 				itemLen = wholeMkr.Len();
 
@@ -29433,6 +29582,10 @@ bool CAdapt_ItDoc::PostwordXrefOrFootnoteFiltering(CSourcePhrase* pSrcPhrase,
 
 #endif
 
+// This is a majorly refactored design of the ParseWord() USFM text parser. Main
+// changes are different handling of ~ (fixed space marker), and the use of a loop
+// and switch to move the internal ptr forward through the data; plus abandoning
+// ParseWord's each-end inwards parsing, in favour of parsing left to right.
 int CAdapt_ItDoc::ParseWord2(
 	wxChar *pChar,
 	wxChar* pEnd,
@@ -29505,6 +29658,11 @@ int CAdapt_ItDoc::ParseWord2(
 	bool bIsNestedMkr = FALSE;
 	wxString baseOfEndMkr;
 
+	// BEW added test 21Mar17
+	if (len == 0 && ptr == pEnd)
+	{
+		return len;
+	}
 
 	// The first possibility to deal with is that we may be pointing at an inline
 	// non-binding marker, there are 5 such, \wj \qt \sls \tl \fig, and the caller will
@@ -29692,17 +29850,7 @@ int CAdapt_ItDoc::ParseWord2(
 	// would only be compromised if there were sequences of vertical quotes with spaces
 	// both at the end of a word and at the start of the next word in the source text data,
 	// and this would be highly unlikely to ever occur in published source text.
-	//*
-#ifdef _DEBUG
-	{
-		if (pSrcPhrase->m_nSequNumber == 0)
-		{
-			int break_here = 1;
-            break_here = break_here; // avoid gcc warning
-        }
-	}
-#endif 
-	//*/
+
 	// No provision is made for an asci AID version, i.e. we don't here support '\xAB'
 	wxString leftPointingDoubleAngleQuote = _T(' ');	// initialize to a space, 
 			// then set it to instead be the left-pointing double chevron
@@ -29870,10 +30018,7 @@ int CAdapt_ItDoc::ParseWord2(
 		// non-quote punctuation which precedes the word. 
 		// BEW 4Apr17 add a wrapping test to make sure defacto 'placeholder' text which
 		// is just a lot of punctuation characters followed by an endmarker, is not parsed
-		// in the normal way - that causes an app crash. Instead, detect the problem
-		// and change the punctuation string by an equal number of x characters, to act
-		// as a word-like placeholder. Such as \ft ..... \f* being changed to be:
-		// \ft xxxxx \f* -- the latter gets parsed normally, the former gives the error.
+		// in the normal way - that causes an app crash. 
 		// If there is no content between the markers, parsing is well behaved, so we
 		// don't have to use this hack to protect that as well, in fact we'll make use 
 		// of it.
@@ -29889,27 +30034,29 @@ int CAdapt_ItDoc::ParseWord2(
 			bEndmarkerFollows, nCountOfPuncts))
 		{
 			// The adjusting hack is required, so do it......
-			// Replace each of the punctuation characters with something that looks like
-			// a word but obviously isn't - I'll use 'x', & keep the length of the parent
-			// string constant (so pEnd doesn't move)
+			// Refactor. The puncts should go into m_follPunct, m_key stay 
+			// empty, and then \f* into m_endMarkers. 
+			// (Embedded \xt in non-filtered footnote should just not be filtered,
+			// so that is something further for me to fix after this local refactor)
 			if (bHasPunctsOnly && bEndmarkerFollows)
 			{
-				int i;
-				wxChar* substringPtr = ptr;
-				for (i = 0; i < nCountOfPuncts; i++)
-				{
-					*substringPtr = _T('x');
-					substringPtr++;
-				}
+				wxString punctsStr(ptr, nCountOfPuncts);
+				pSrcPhrase->m_follPunct += punctsStr;
+				ptr = ptr + (size_t)nCountOfPuncts;
 			}
 			else
 			{
-				// Control should never need to enter this block, if the test function,
-				// IsPunctuationOnlyFollowedByEndmarker(), returned TRUE. But just in case,
+				// Control should never need to enter this block if the test function,
+				// IsPunctuationOnlyFollowedByEndmarker() returned TRUE. But just in case,
 				// the safest thing to do is to jump ptr over the punctuation substring -
 				// because no content between the marker and endmarker parses successfully
 				ptr = ptr + (size_t)nCountOfPuncts;
 			}
+			len += nCountOfPuncts;
+
+			// The parsing is able to go on, and it might end up unexpectedly trying to 
+			// deal with a \v or similar marker - which should not happen within
+			// ParseWord2(). We handle that after this block is exited, by an IsMarker() test
 		}
 		else
 		{
@@ -29922,6 +30069,61 @@ int CAdapt_ItDoc::ParseWord2(
 				// punctuation characters
 				pSrcPhrase->m_precPunct += *ptr++;
 				len++;
+			}
+		}
+
+		// BEW 25May17 It is possible for control within an unfiltered space to
+		// get to this point, and actually have ptr pointing at an endmarker, such
+		// as \f* followed by whitespace which in turn is followed by \v  or \li or
+		// \li1 etc. \v or \li etc are non-inLine markers, but code in this outer
+		// block thinks we've yet to come to the word-proper, so we have to
+		// detect this contradiction, and provide code here to parse and correctly
+		// store any endmarkers in m_endMarkers, and then exit ParseWord2() with
+		// ptr pointing at whitespace preceding the non-inline markers, and return 
+		// to TokenizeText() with correct len and ptr values because parsing for 
+		// the current pSrcPhrase is done
+		// BEW 25May17 Added this block, see above commment, to handle unexpected
+		// non-inline marker being encountered
+		if (IsMarker(ptr))
+		{
+			if (IsEndMarker2(ptr))
+			{
+				// Time to return from ParseWord2() correctly, deal with what remains
+				// for storage on the present pSrcPhrase before doing so
+				pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
+				if (pUsfmAnalysis->inLine == TRUE)
+				{
+					// It's an endmarker
+					if (bIsNestedMkr)
+						bareMkr = _T('+');
+					else
+						bareMkr.Empty();
+					bareMkr += baseOfEndMkr;
+					bareMkr += _T('*');
+
+					wholeMkr = gSFescapechar + bareMkr;
+					itemLen = wholeMkr.Length();
+					pSrcPhrase->AddEndMarker(wholeMkr);
+					pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+					if (!pSrcPhrase->m_follPunct.IsEmpty() && pSrcPhrase->m_follPunct != _T(","))
+					{
+						pSrcPhrase->m_bBoundary = TRUE;
+					}
+					//ptr = ptr + (size_t)itemLen;
+					len += itemLen;
+					return len;
+				}
+// TODO eventually, restore a bool flag here to FALSE which says the control is within a footnote unfiltered
+			}
+			else
+			{
+				// other non-inline markers require immediate return
+				pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+				if (!pSrcPhrase->m_follPunct.IsEmpty() && pSrcPhrase->m_follPunct != _T(","))
+				{
+					pSrcPhrase->m_bBoundary = TRUE;
+				}
+				return len;
 			}
 		}
 
@@ -29983,7 +30185,26 @@ int CAdapt_ItDoc::ParseWord2(
 				wholeMkrPlusSpace = wholeMkr + aSpace;
 				if (pUsfmAnalysis->inLine == FALSE)
 				{
-					// it's not an inline marker, so abort
+					// It's not an inline marker, so ParseWord2() must be exited here;
+					// we should also back up over whitespace if any precedes ptr,
+					// so that TokenizeText can store whatever is the whitespace
+					// preceding the next CSourcePhrase instance
+					int whitespaceCount = 0;
+					wxChar* aPtr = ptr;
+					bool bIsWhite = FALSE;
+					do {
+						aPtr = --aPtr; // point at previous wide character
+						bIsWhite = IsWhiteSpace(aPtr);
+						if (bIsWhite)
+						{
+							whitespaceCount++;
+						}
+					} while (bIsWhite);
+					len = len - whitespaceCount;
+					ptr = ptr - (size_t)whitespaceCount;
+					pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+					return len;
+					/* Legacy (and profoundly unhelpful) code - which is also in ParseWord() and so needs refactoring too
 					wxString msgStr;
 					msgStr = msgStr.Format(
 						_("This marker: %s  is not an inline marker.\nThe ParseWord() function should not try to parse such a marker.\nTokenizeText() should parse and store this type of marker. Contact the developers - this is a bug.\nAdapt It will now abort."),
@@ -29993,6 +30214,7 @@ int CAdapt_ItDoc::ParseWord2(
 					// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 					wxKill(::wxGetProcessId(), wxSIGKILL); // abort();
 					return 0;
+					*/
 				}
 				itemLen = wholeMkr.Len();
 

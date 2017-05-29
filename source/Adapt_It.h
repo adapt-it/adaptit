@@ -27,7 +27,7 @@
 // than in the legacy place, after the propagation code in TokenizeText()
 //
 // **** NOTE**** If commenting out, be sure to do the same to the same #define in
-// line 42 of AdaptItConstants.h
+// line 43 of AdaptItConstants.h
 #define Use_Legacy_Parser
 
 //#define AUTHENTICATE_AS_BRUCE
