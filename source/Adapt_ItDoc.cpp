@@ -384,11 +384,17 @@ CAdapt_ItDoc::CAdapt_ItDoc()
 	m_bLegacyDocVersionForSaveAs = FALSE;   // whm added 14Jan11
 	m_bReopeningAfterClosing = FALSE;       // mrh Oct12 - normal default
 
-	// WX Note: All Doc constructor initializations moved to the App
+	m_bIsWithinUnfilteredInlineSpan = FALSE; // initialization, for things like 
+											 // \xt embedded within unfiltered footnote
+	m_strUnfilteredInlineBeginMarker = wxEmptyString; // for temporary store of, say,
+							// \f awaiting ptr coming to \f* where the above bool 
+							// needs to be made FALSE if it was TRUE
+
+	// WX Note: Nearly all Doc constructor initializations moved to the App
 	// **** DO NOT PUT INITIALIZATIONS HERE IN THE DOCUMENT'S CONSTRUCTOR *****
-	// **** ONLY INITIALIZATIONS OF DOCUMENT'S PRIVATE MEMBERS SHOULD      ****
+	// **** ONLY INITIALIZATIONS OF DOCUMENT'S PRIVATE MEMBERS SHOULD     *****
 	// **** BE DONE HERE; DO OTHER INITIALIZATIONS IN THE APP'S           *****
-	// **** OnInit() METHOD                                               *****
+	// **** OnInit() METHOD  - but some exceptions are permitted          *****
 }
 
 
@@ -408,7 +414,7 @@ CAdapt_ItDoc::~CAdapt_ItDoc() // from MFC version
 /// 1. Making sure our working directory is set properly.
 /// 2. Calling parts of the virtual base class wxDocument::OnNewDocument() method
 /// 3. Create the buffer and list structures that will hold our data
-/// 4. Providing KB structures are ready, call GetNewFile() to get
+/// 4. Providing KB strm_bIsWithinUnfilteredInlineSpanuctures are ready, call GetNewFile() to get
 ///    the sfm file for import into our app.
 /// 5. Get an output file name from the user.
 /// 6. Tidy up the frame's window title.
@@ -440,6 +446,12 @@ CAdapt_ItDoc::~CAdapt_ItDoc() // from MFC version
 bool CAdapt_ItDoc::OnNewDocument()
 // amended for support of glossing or adapting
 {
+	// BEW 30May17 next two initializations, also in CAdapt_ItDoc creator
+	m_bIsWithinUnfilteredInlineSpan = FALSE; // initialization, for things like 
+											 // \xt embedded within unfiltered footnote
+	m_strUnfilteredInlineBeginMarker = wxEmptyString; // for temporary store of, say,
+													  // \f awaiting ptr coming to \f* where the above bool 
+													  // needs to be made FALSE if it was TRUE
 	// refactored 10Mar09
 	CAdapt_ItApp* pApp = GetApp();
 	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
@@ -15231,7 +15243,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// begin-markers here in TokenizeText()
 				pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
 #ifdef _DEBUG
-				if (pSrcPhrase->m_nSequNumber == 3)
+				if (pSrcPhrase->m_nSequNumber >= 3) // was 6 for the Irmi book preceded by \xt within \f ... \f* unfiltered
 				{
 					int break_here = 1;
 				}
@@ -15396,8 +15408,36 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				augmentedWholeMkr += _T(' ');
 
                 // Do the lookup - these rapid access strings never contain nested markers
-				if (IsAFilteringSFM(pUsfmAnalysis) ||
-					(gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1))
+				bool bIsToBeFiltered = gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1;
+
+				// Check should we turn on bool for control being in m_bIsWithinUnfilteredInlineSpan 
+				// now (for example, the \f marker for a footnote span not wanted for filtering)
+				if (IsMarker(ptr) && !IsEndMarker2(ptr) && pUsfmAnalysis->inLine && !bIsToBeFiltered
+					&& baseOfEndMkr.IsEmpty() && !m_bIsWithinUnfilteredInlineSpan)
+				{
+					m_bIsWithinUnfilteredInlineSpan = TRUE;
+					m_strUnfilteredInlineBeginMarker = gSFescapechar + tagOnly; // e.g. /f
+				}
+				else
+				{
+					// Is ptr now at an InLine marker which is in an unfiltered span's
+					// endmarker and now m_bIsWithinUnfilteredInlineSpan should be turned back
+					// off now (i.e. to FALSE) -- for example, when ptr is at \f*
+					if (IsMarker(ptr) && IsEndMarker2(ptr) && pUsfmAnalysis->inLine && !bIsToBeFiltered
+						&& !baseOfEndMkr.IsEmpty() && m_bIsWithinUnfilteredInlineSpan)
+					{
+						// Turn it back off provided the backslash and tag match what
+						// was stored in m_strUnfilteredInlineBeginMarker
+						wxString endMkrMinusAsterisk = gSFescapechar + baseOfEndMkr;
+						if (m_strUnfilteredInlineBeginMarker == endMkrMinusAsterisk)
+						{
+							// Clear, this span is done, so set up for a possible another later
+							m_bIsWithinUnfilteredInlineSpan = FALSE;
+							m_strUnfilteredInlineBeginMarker = wxEmptyString;
+						}
+					}
+				}
+				if ((IsAFilteringSFM(pUsfmAnalysis) || bIsToBeFiltered) && !m_bIsWithinUnfilteredInlineSpan)
 				{
 					//bDidSomeFiltering = TRUE;
 					itemLen = ParseFilteringSFM(wholeMkr,ptr,pBufStart,pEnd);

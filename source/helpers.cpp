@@ -5641,8 +5641,8 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 ///                             wordpair will need special treatment & use of the placement
 ///                             dialog at least once)
 /// \param  Tstr             -> the string into which there might need to be
-///                             placed m_markers and m_endmarkers material, and then
-///                             prefixed with any filtered information
+///                             placed m_markers and m_endmarkers material, (earlier versions also then
+///                             prefixed with any filtered information, but we do this no longer in version 6.x.x)
 /// \remarks
 /// This function is used for reconstituting markers and endmarkers, and preceding that,
 /// any filtered out information (which always comes first, if present), and the result is

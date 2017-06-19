@@ -240,6 +240,10 @@ protected:
 						wxString& metadata, int& offset, int& nEnd);
 	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhrase);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
+	// BEW 30May17 next two for supporting inLine markers within a inLine span, such as a
+	// \xt marker within an unfiltered \f ... \f* span
+	bool			m_bIsWithinUnfilteredInlineSpan;
+	wxString		m_strUnfilteredInlineBeginMarker;
 	// BEW 9Sep16 added next four
 	bool			IsInWordProper(wxChar* ptr, wxString& spacelessPuncts); // TRUE if not punct, ~, marker,  not [ or ], not whitespace etc
 	inline bool		IsFixedSpace(wxChar* ptr); // TRUE if it is a ~ (tilde), the USFM fixed-space character
