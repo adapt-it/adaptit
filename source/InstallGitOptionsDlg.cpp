@@ -65,9 +65,14 @@ CInstallGitOptionsDlg::CInstallGitOptionsDlg(wxWindow* parent) // dialog constru
     wxASSERT(pRadioBtnDownloadAndInstallGitFromInternet != NULL);
     pRadioBtnBrowseForGitInstaller = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_BROWSE_FOR_GIT_INSTALLER);
     wxASSERT(pRadioBtnBrowseForGitInstaller != NULL);
-    pStaticTextTop = (wxStaticText*)FindWindowById(ID_TEXT_PREAMBLE);
+	//pStaticTextTop = (wxStaticText*)FindWindowById(ID_TEXT_PREAMBLE); //BEW 20Jun17
+	//changed it to a read only multiline text control (and removed the newline in the
+	//string contents)
+    pStaticTextTop = (wxTextCtrl*)FindWindowById(ID_TEXT_PREAMBLE);
     wxASSERT(pStaticTextTop != NULL);
-    pStaticDescTopBtn = (wxStaticText*)FindWindowById(ID_TEXT_TOP_BTN_DESC);
+
+    // pStaticDescTopBtn = (wxStaticText*)FindWindowById(ID_TEXT_TOP_BTN_DESC); // ditto
+    pStaticDescTopBtn = (wxTextCtrl*)FindWindowById(ID_TEXT_TOP_BTN_DESC);
     wxASSERT(pStaticDescTopBtn != NULL);
 
     // Set radio button defaults 
@@ -115,13 +120,29 @@ void CInstallGitOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
     if (bGitInstalled)
     {
         // Remove the top dialog text which doesn't apply when Git is already installed
-        pStaticTextTop->SetLabel(_T(""));
-        pStaticDescTopBtn->SetLabel(_T(""));
+        //pStaticTextTop->SetLabel(_(""));
+        //pStaticDescTopBtn->SetLabel(_(""));
+        pStaticTextTop->ChangeValue(_(""));
+		pStaticDescTopBtn->ChangeValue(_(""));
+		// and replace the first two descriptions with suitable text
+		wxString descrTop = _("A working Git installation is on this computer, but you still have options.");
+		wxString descrNext = _("Adapt It will try to use the existing Git installation.");
+        pStaticTextTop->ChangeValue(descrTop);
+		pStaticDescTopBtn->ChangeValue(descrNext);
+		
         // Make the initial selection be 'Do not try to install Git at this time"
         pRadioBtnDoNotInstallGitNow->SetValue(TRUE);
         pRadioBtnDownloadAndInstallGitFromInternet->SetValue(FALSE);
         pRadioBtnBrowseForGitInstaller->SetValue(FALSE);
     }
+	else
+	{
+		// Git is not installed, so leave the default message descriptions unchanged and,
+        // make the initial selection be to install from the web
+        pRadioBtnDoNotInstallGitNow->SetValue(FALSE);
+        pRadioBtnDownloadAndInstallGitFromInternet->SetValue(TRUE);
+        pRadioBtnBrowseForGitInstaller->SetValue(FALSE);
+	}
 }
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.

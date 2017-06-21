@@ -11315,11 +11315,8 @@ wxSizer *GitInstallOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT_PREAMBLE, 
-        _("Adapt It cannot maintain a history of its documents because the Git program \n"
-          "has not yet been installed on this computer. "),
-        wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item1 = new wxTextCtrl( parent, ID_TEXT_PREAMBLE, _("Adapt It cannot maintain a history of its documents because the Git program has not yet been installed on this computer. "), wxDefaultPosition, wxSize(560,20), wxTE_MULTILINE|wxTE_READONLY );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticBox *item3 = new wxStaticBox( parent, -1, _("You have the following Git install options:") );
     wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
@@ -11334,8 +11331,8 @@ wxSizer *GitInstallOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     item6->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_TOP_BTN_DESC, _("Only install Adapt It. I'll use Adapt It without Git, or I will install Git later."), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item7, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXT_TOP_BTN_DESC, _("Only install Adapt It. I'll use Adapt It without Git, or I will install Git later."), wxDefaultPosition, wxSize(520,40), wxTE_MULTILINE|wxTE_READONLY );
+    item6->Add( item7, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
     item4->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -11346,11 +11343,8 @@ wxSizer *GitInstallOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     item9->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, 
-        _("This option requires access to the Internet and will download about 36MB of data.\n"
-          "A copy of the Git installer is saved to the Adapt It installation directory."),
-        wxDefaultPosition, wxDefaultSize, 0 );
-    item9->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL, _("This option requires access to the Internet and will download about 36MB of data. A copy of the Git installer is saved to the Adapt It installation directory."), wxDefaultPosition, wxSize(520,40), wxTE_MULTILINE|wxTE_READONLY );
+    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 0 );
 
@@ -11361,20 +11355,17 @@ wxSizer *GitInstallOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     item12->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, 
-        _("This option installs Git using a previously downloaded Git installer.\n"
-          "Git can be installed this way without accesing the Internet."),
-        wxDefaultPosition, wxDefaultSize, 0 );
-    item12->Add( item13, 0, wxALIGN_CENTER|wxRIGHT|wxBOTTOM, 5 );
+    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL, _("This option installs Git using a previously downloaded Git installer. Git can be installed this way without accesing the Internet."), wxDefaultPosition, wxSize(520,40), wxTE_MULTILINE|wxTE_READONLY );
+    item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Please select the optioin you want above then click OK."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Please select the option you want above then click OK."), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item2->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -11492,11 +11483,8 @@ wxSizer *CollabProjectMigrationDlgFunc( wxWindow *parent, bool call_fit, bool se
 
     item0->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT, 
-        _("Note: If collaboration with Paratext doesn't work as you expect, \n"
-          "ask your administrator to set up collaboration with Paratext."),
-        wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item24 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Note: If collaboration with Paratext doesn't work as you expect, ask your administrator to set up collaboration with Paratext."), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY );
+    item0->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 

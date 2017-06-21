@@ -39,8 +39,12 @@ protected:
     wxRadioButton* pRadioBtnDoNotInstallGitNow;
     wxRadioButton* pRadioBtnDownloadAndInstallGitFromInternet;
     wxRadioButton* pRadioBtnBrowseForGitInstaller;
-    wxStaticText* pStaticTextTop;
-    wxStaticText* pStaticDescTopBtn;
+	// BEW 20Jun17 changed to multiline readonly text ctrl, as wx 2.8.12 can't concatenate
+	// wide & narrow strings, (wxDesigner only wrapped first line of wxStaticText with _() macro)
+    //wxStaticText* pStaticTextTop;
+    //wxStaticText* pStaticDescTopBtn;
+    wxTextCtrl* pStaticTextTop;
+    wxTextCtrl* pStaticDescTopBtn;
 
     wxString PathToAIInstallation;
     wxString GitInstallerPathAndName;
