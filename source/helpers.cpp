@@ -2024,9 +2024,144 @@ wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 	return span;
 }
 
+// BEW created 17Nov16 for 
+// use in CAdapt_ItApp::EnsureProperCapitalization()
+wxString GetTargetPunctuation(wxString wordOrPhrase, bool bFromWordEnd)
+{
+	wxString puncts = wxEmptyString;
+	if (wordOrPhrase.IsEmpty())
+		return puncts;
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxString punctSet = pApp->m_punctuation[1];
+	int offset = wxNOT_FOUND;
+	// Ensure latin space is included in the puncts set, in this function
+	wxChar space = _T(' ');
+	offset = punctSet.Find(space);
+	if (offset == wxNOT_FOUND)
+	{
+		// Add space to the set, because there may be nested quotes and
+		// in that circumstance we want to treat space as punctuation
+		punctSet += space;
+	}
+	size_t index;
+	if (bFromWordEnd)
+	{
+		// We are getting punctuation which is word- or phrase-final
+		wxString strReversed = MakeReverse(wordOrPhrase);
+		size_t len = strReversed.Length();
+		for (index = 0; index < len; index++)
+		{
+			// Get next character
+			wxChar ch = strReversed.GetChar(index);
+			// Is it in the punctuation set?
+			offset = punctSet.Find(ch);
+			// Break out if we've come to a character not in the punctuation set
+			if (offset == wxNOT_FOUND)
+			{
+				break;
+			}
+			// We found a punct char, so accumulate it (we are in reverse order still)
+			puncts += ch;
+		}
+		// Restore natural order, if the string is 2 or more chars long
+		if (puncts.Length() > 1)
+		{
+			puncts = MakeReverse(puncts);
+		}
+	}
+	else
+	{
+		// We are getting punctuation which is word- or phrase-initial
+		size_t len = wordOrPhrase.Length();
+		for (index = 0; index < len; index++)
+		{
+			// Get next character
+			wxChar ch = wordOrPhrase.GetChar(index);
+			// Is it in the punctuation set?
+			offset = punctSet.Find(ch);
+			// Break out if we've come to a character not in the punctuation set
+			if (offset == wxNOT_FOUND)
+			{
+				break;
+			}
+			// We found a punct char, so accumulate it
+			puncts += ch;
+		}
+	}
+	return puncts;
+}
+
+
 wxString MakeSpacelessPunctsString(CAdapt_ItApp* pApp, enum WhichLang whichLang)
 {
 	wxString spacelessPuncts;
+	// BEW 7Nov16 make sure the opening and closing double-chevrons are also in
+	// the punctuation set
+	wxString ch = _T(' ');	// initialize to a space, so that SetChar() will
+							// not assert with a bounds error below
+	int offset = wxNOT_FOUND;
+	// use syntax  ch.SetChar(0, L'\x201C');
+	ch.SetChar(0, L'\x00AB'); // hex for left-pointing double angle quotation mark
+	offset = (pApp->m_punctuation[0]).Find(ch);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[0] += ch;
+	}
+	ch.SetChar(0, L'\x00BB'); // hex for right-pointing double angle quotation mark
+	offset = (pApp->m_punctuation[0]).Find(ch);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[0] += ch;
+	}
+	// Now do same for m_punctuation[1] the target puncts set
+	ch.SetChar(0, L'\x00AB'); // hex for left-pointing double angle quotation mark
+	offset = (pApp->m_punctuation[1]).Find(ch);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[1] += ch;
+	}
+	ch.SetChar(0, L'\x00BB'); // hex for right-pointing double angle quotation mark
+	offset = (pApp->m_punctuation[1]).Find(ch);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[1] += ch;
+	}
+	// Since this function is called for each of srcLang and tgtLang after
+	// Preferences... dialog has been dismissed, we allow for the user to
+	// have removed ' as a punctuation character. If not there, and the flag
+	// is still defaulted to TRUE, then insert the ' in src and tgt punct sets
+	// The status of ' is checked at lines 697 to 715 of PunctCorrespPage.cpp
+	// and the m_bSingleQuoteAsPunct flag value updated according to what is
+	// found, TRUE if in the punct set, FALSE if not
+	wxString str = _T("'");
+	if (pApp->m_bSingleQuoteAsPunct == TRUE) // BEW 7Nov16 TRUE is the new default, 
+											 // but user can remove ' in Prefs to override
+	// BEW 7Nov16, make sure ' and ~ are at the end of the src and tgt m_punctuation strings
+	{
+		offset = (pApp->m_punctuation[0]).Find(str);
+		if (offset == wxNOT_FOUND)
+		{
+			pApp->m_punctuation[0] += str;
+		}
+		offset = (pApp->m_punctuation[1]).Find(str);
+		if (offset == wxNOT_FOUND)
+		{
+			pApp->m_punctuation[1] += str;
+		}
+	}
+	// Do the same for the USFM fixed space marker (~)
+	str = _T("~");
+	offset = (pApp->m_punctuation[0]).Find(str);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[0] += str;
+	}
+	offset = (pApp->m_punctuation[1]).Find(str);
+	if (offset == wxNOT_FOUND)
+	{
+		pApp->m_punctuation[1] += str;
+	}
+
 	// BEW 11Jan11, added test here so that the function can be used on target text as
 	// well as on source text
 	if (whichLang == targetLang)
@@ -2044,6 +2179,13 @@ wxString MakeSpacelessPunctsString(CAdapt_ItApp* pApp, enum WhichLang whichLang)
 	}
 	wxASSERT(!spacelessPuncts.IsEmpty());
 	return spacelessPuncts;
+}
+
+// used in IsInWordProper() of doc class; return TRUE if *ptr is within str, else FALSE
+bool IsOneOf(wxChar* ptr, wxString& str)
+{
+	int offset = str.Find(*ptr);
+	return offset != wxNOT_FOUND;
 }
 
 // Return FALSE if no character within charSet (these should be a string of characters,
@@ -5499,8 +5641,8 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 ///                             wordpair will need special treatment & use of the placement
 ///                             dialog at least once)
 /// \param  Tstr             -> the string into which there might need to be
-///                             placed m_markers and m_endmarkers material, and then
-///                             prefixed with any filtered information
+///                             placed m_markers and m_endmarkers material, (earlier versions also then
+///                             prefixed with any filtered information, but we do this no longer in version 6.x.x)
 /// \remarks
 /// This function is used for reconstituting markers and endmarkers, and preceding that,
 /// any filtered out information (which always comes first, if present), and the result is
@@ -6432,6 +6574,8 @@ void SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& others
 /// filteredInfoStr         <-  the contents of m_filteredInfo member, with any cross reference
 ///                             information (ie. \x ....\x*) removed; or an empty string if there
 ///                             is no filtered info. Unilaterally returned
+/// bDoCount				->  Whether or not to count the words in any free translation (now deprecated 22Jun15)
+/// bCountInTargetText      ->  Whether or do the count of words, in source text line or tgt text line (now deprecated 22Jun15)
 /// BEW created 11Oct10 for support of additions to doc version 5 for better USFM support
 /// BEW refactored 22Jun15, so that no filtered information is returned.
 /// Because of this refactoring, the bAttachFilteredInfo, even if passed in TRUE, will have
@@ -6662,6 +6806,80 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 	return Sstr;
 }
 
+#if !defined(USE_LEGACY_PARSER)
+
+/// return      The recomposed end of the source text string, including punctuation and markers,
+///             starting with m_key value, and exclude contents of m_filteredInfo_After 
+/// pSingleSrcPhrase        ->  the non-merged sourcephrase, or a ~ conjoined pair
+/// BEW created 8May2017 to build the source text from a single CSourcePhrase (because
+/// merging across filtered information is prohibited, we only have to consider a 
+/// singleton), which is undergoing unfiltering. We only build the post-word string,
+/// which might be empty, or just punctuation, or just one or more inline endmarkers,
+/// or a mix of punctuation and inline endmarkers - while ignoring the CSourcePhrase's
+/// m_filteredInfo_After contents. The aim is to get everthing in place, except
+/// any unfiltered information, and then pass the returned string to the caller to 
+/// place the unfilted (one or more) information in the correct places, using the 
+/// metadata stored with the filtered info which is stored in m_filteredInfo_After.
+/// The only function which uses this is the document's ReconstituteAfterFilteringChange(),
+/// and it is based on code from within helpers.cpp FromSingleMakeSstr(), with some
+/// tweaking
+/// Created 18Apr17 When ParseWord2() is used, fixed space conjoining can be two or more
+/// words, and we do not allow internal punctuation within word1~word2~word3 etc. So
+/// we do not have to test for presence of ~, but just used m_key 'as is'
+wxString BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs)
+{
+	wxString Sstr;
+	CSourcePhrase* pSP = pSingleSrcPhrase; // RHS is too long to type all the time
+	wxString srcStr = pSP->m_key;   // start from this and append info to its end
+									// & later put result in Sstr for returning
+									// to the caller
+	wxString endMarkersStr = pSP->GetEndMarkers(); // might be empty
+	inlineNBMkrs.Empty();
+
+	// First, any inline binding endmarkers, such as \it* for italics and/or \k* for a glossary keyword etc
+	if (!pSP->GetInlineBindingEndMarkers().IsEmpty())
+	{
+		srcStr += pSP->GetInlineBindingEndMarkers();
+	}
+	// Punctuation comes next, from m_follPunct
+	if (!pSP->m_follPunct.IsEmpty())
+	{
+		srcStr += pSP->m_follPunct;
+	}
+	// Use Sstr now - for no special reason other than I'm simplifying & tweaking a
+	// legacy function (FromSingleMakeSstr()) for this special purpose
+	Sstr = srcStr;
+
+	// Any endmarkers (these are endmarkers for markers which are not in the
+	// small set of inline non-binding endmarkers, such as \wj* wordsOfJesus endmarker)
+	if (!endMarkersStr.IsEmpty())
+	{
+		Sstr << endMarkersStr;
+	}
+	// There might be content in m_follOuterPunct, append it next
+	if (!pSP->GetFollowingOuterPunct().IsEmpty())
+	{
+		Sstr += pSP->GetFollowingOuterPunct();
+	}
+	// Finally, there could be an inline non-binding endmarker, like \wj* (words of Jesus)
+	// Note: if unfiltering of material from a location which earlier was post-word, such
+	// as \x ... content ...\x* is to be done, the caller will need to search for any 
+	// inline non-binding endmarkers that get added here, and move them to the end of whatever
+	// unfiltered material is restored to visibility in the source text - otherwise, something 
+	// like \wj* might end up within the punctuation at the end of a word, rather than after it,
+	// therefore we return any non-binding inline markers separately in order to make it easy
+	// to move elsewhere if necessary
+	if (!pSP->GetInlineNonbindingEndMarkers().IsEmpty())
+	{
+		inlineNBMkrs = pSP->GetInlineNonbindingEndMarkers();
+	}
+
+	// Remove unneeded spaces at either end
+	Sstr.Trim(FALSE); // remove any initial whitespace - not likely to be any though
+	Sstr.Trim();      // and don't return it with a final space, leave that to the caller
+	return Sstr;
+}
+#endif
 
 // the next 3 functions are similar or identical to member functions of the document class
 // which are used in the parsing of text files to produce a document; one (ParseMarker())
@@ -6935,6 +7153,10 @@ bool AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossible
 // particular the free translation if there is one (using the other flag would give a TRUE
 // returned when a CSourcePhrase instance within the free translation was tested, even
 // though it had no filtered info stored on it)
+// BEW 18Apr17 added support for the new member m_filteredInfo_After. HasFilteredInfo()
+// is called in OnLButtonDown() (and maybe elsewhere) and without a test which checks
+// for content in m_filteredInfo_After, a click on a wedge icon to view the filtered info
+// does nothing if the only filtered info is in m_filteredInfo_After
 bool HasFilteredInfo(CSourcePhrase* pSrcPhrase)
 {
 	if (pSrcPhrase->m_bStartFreeTrans || !pSrcPhrase->GetFreeTrans().IsEmpty())
@@ -6953,6 +7175,12 @@ bool HasFilteredInfo(CSourcePhrase* pSrcPhrase)
 	{
 		return TRUE;
 	}
+#if !defined(USE_LEGACY_PARSER)
+	if (!pSrcPhrase->GetFilteredInfo_After().IsEmpty())
+	{
+		return TRUE;
+	}
+#endif
 	return FALSE;
 }
 

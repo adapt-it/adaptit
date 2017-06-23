@@ -38,9 +38,35 @@
 
 //#define Print_failure
 
+// whm refactored printing 10Oct2016
+// ------------------------------------------------------------
+#if !wxUSE_PRINTING_ARCHITECTURE
+#error "You must set wxUSE_PRINTING_ARCHITECTURE to 1 in setup.h, and recompile the library."
+#endif
+
+#include <ctype.h>
+#include <wx/metafile.h>
+#include <wx/print.h>
+#include <wx/printdlg.h>
+#include <wx/image.h>
+#include <wx/accel.h>
+
+#if wxUSE_POSTSCRIPT
+#include <wx/generic/printps.h>
+#include <wx/generic/prntdlgg.h>
+#endif
+
+#if wxUSE_GRAPHICS_CONTEXT
+#include <wx/graphics.h>
+#endif
+
+#ifdef __WXMAC__
+#include <wx/osx/printdlg.h>
+#endif
+// ------------------------------------------------------------
+
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
-#include <wx/print.h>
 
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
@@ -261,7 +287,7 @@ bool AIPrintout::OnPrintPage(int page)
 	CLayout* pLayout = pApp->m_pLayout;
     wxDC *pDC = GetDC();
 
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
     // Required, because the wxPostScriptDC is ill-behaved, or more likely, wxGnomeprinter
     // framework is broken - the device context won't handle drawing which is not top-down
     // and leftwards , or top-down and rightwards; violation of those constraints wipes
@@ -341,6 +367,11 @@ bool AIPrintout::OnPrintPage(int page)
         // fudged for the moment."
 		float scale = (float)((float)ppiPrinterX/(float)ppiScreenX);
 
+#if defined(_DEBUG) && defined(Print_failure)
+        wxLogDebug(_T("Linux: ppiScreenX = %d ppiScreenY = %d scale Printer-to-Screen = %f"), ppiScreenX, ppiScreenY, scale);
+        wxLogDebug(_T("Linux: ppiPrinterX = %d ppiPrinterY = %d scale Printer-to-Screen = %f"), ppiPrinterX, ppiPrinterY, scale);
+#endif
+
 		// Now we have to check in case our real page size is reduced (e.g. because
 		// we're drawing to a print preview memory DC)
 		int pageWidthInPixels, pageHeightInPixels;
@@ -349,19 +380,44 @@ bool AIPrintout::OnPrintPage(int page)
 		this->GetPageSizePixels(&pageWidthInPixels, &pageHeightInPixels);
         // If printer pageWidth == current DC width, then this doesn't change. But w might be the
         // preview bitmap width, so scale down.
-		float overallScaleX = scale * (float)(w/(float)pageWidthInPixels);
-		float overallScaleY = scale * (float)(h/(float)pageHeightInPixels);
-		pDC->SetUserScale(overallScaleX, overallScaleY);
+        // whm Note: printer sample uses only w and pageWidthInPixels to set overallScale
+        float overallScale = scale * (float)(w / (float)pageWidthInPixels);
+        //float overallScaleX = scale * (float)(w / (float)pageWidthInPixels);
+        //float overallScaleY = scale * (float)(h/(float)pageHeightInPixels);
+        pDC->SetUserScale(overallScale, overallScale);
 
-		// Calculate the scaling factor for passing to PrintFooter. This factor must be multiplied by
+#if defined(_DEBUG) && defined(Print_failure)
+        wxLogDebug(_T("Linux: pageWidthInPixels = %d pageHeightInPixels = %d DCGetSizeW = %d DCGetSizeH = %d"), pageWidthInPixels, pageHeightInPixels, w, h);
+#endif
+
+        // Calculate the scaling factor for passing to PrintFooter. This factor must be multiplied by
 		// any absolute displacement distance desired which is expressed in mm. For example, we want
 		// the footer to be placed 12.7mm (half inch) below the bottom printing margin. In logical
 		// units a 12.7mm displacement below the bottom printing margin is 12.7*logicalUnitsFactor
 		// added to the y axis coordinate.
 		float logicalUnitsFactor = (float)(ppiPrinterX/(scale*25.4));
 
-		POList* pList = &pApp->m_pagesList;
-		POList::Node* pos = pList->Item(pApp->m_nCurPage-1);
+#if defined(_DEBUG) && defined(Print_failure)
+        wxLogDebug(_T("Linux: logicalUnitsFactor = %f"), logicalUnitsFactor);
+#endif
+
+        POList* pList = &pApp->m_pagesList;
+        // check the m_nCurPage value has not become too big -- this can happen if the user
+        // wants to print to a certain page, but turns off free translation and or glosses
+        // printing (which shortens the number of pages needed to less than what he chose
+        // for the last page) So check and return if such a page isn't available
+        int how_many_pages;
+        how_many_pages = pList->GetCount();
+
+#if defined(_DEBUG) && defined(Print_failure)
+        wxLogDebug(_T("Linux: pApp->m_nCurPage = %d how_many_pages = %d"), pApp->m_nCurPage, how_many_pages);
+#endif
+
+        if (pApp->m_nCurPage > how_many_pages)
+        {
+            return FALSE;
+        }
+        POList::Node* pos = pList->Item(pApp->m_nCurPage-1);
 		// whm 27Oct11 added test to return FALSE if pos == NULL
 		// This test is needed to prevent crash on Linux because the Draw()
 		// function can get triggered by the Linux system on that platform
@@ -383,22 +439,29 @@ bool AIPrintout::OnPrintPage(int page)
 		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
 
         // BEW added 10Jul09; inform CLayout of the PageOffsets instance which is current
-        // for the page being printed
+        // for the page being printed - CStrip::Draw() needs this information in order to
+        // work out the strips to be drawn
 		pLayout->m_pOffsets = pOffsets; // still needed in the __WXGTK__ build to
                                         // communicate start and end strip indices
                                         // to various functions
 
 		this->SetLogicalOrigin(0,0);
-		wxRect fitRect = this->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
 
 #if defined(_DEBUG) && defined(Print_failure)
-		int internalDC_Y;
+        wxLogDebug(_T("Linux: *** this->SetLogicalOrigin(0,0) called at this point ***"));
+#endif
+
+        wxRect fitRect = this->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
+
+#if defined(_DEBUG) && defined(Print_failure)
+        wxLogDebug(_T("Linux: fitRect = this->GetLogicalPageMarginsRect() x %d  y %d , width %d  height %d"),
+            fitRect.x, fitRect.y, fitRect.width, fitRect.height);
+        int internalDC_Y;
 		internalDC_Y = pDC->DeviceToLogicalY(0);
-		//wxLogDebug(_T("*****  PAGE = %d   ********   DC offset: %d , pOffsets: nTop %d  nBottom %d , nFirstStrip %d  nLastStrip %d"),
-		//	pApp->m_nCurPage, internalDC_Y, pOffsets->nTop, pOffsets->nBottom, pOffsets->nFirstStrip, pOffsets->nLastStrip);
-		wxLogDebug(_T("\n\n          *****  PAGE = %d   ********   nFirstStrip %d  nLastStrip %d  ;  nTop %d  nBottom %d  (in logical units)"),
-			pApp->m_nCurPage, pOffsets->nFirstStrip, pOffsets->nLastStrip, pOffsets->nTop , pOffsets->nBottom);
-		//wxLogDebug(_T("overallScale  x %4.6f  y %4.6f "), overallScaleX, overallScaleY);
+		wxLogDebug(_T("\n\n  PAGE = %d internalDC_Y %d nFirstStrip %d nLastStrip %d nTop %d nBottom %d (in logical units)"),
+			pApp->m_nCurPage, internalDC_Y, pOffsets->nFirstStrip, pOffsets->nLastStrip, pOffsets->nTop , pOffsets->nBottom);
+        //wxLogDebug(_T("overallScale  x %4.6f  y %4.6f "), overallScaleX, overallScaleY);
+        wxLogDebug(_T("overallScale  x %4.6f  y %4.6f "), overallScale, overallScale);
 #endif
 
         // Set the upper left starting point of the drawn page to the point where the upper
@@ -454,16 +517,29 @@ bool AIPrintout::OnPrintPage(int page)
         // on a 'real' page, as far as where the strips are to be on the page; it doesn't fix the
         // footer - that requires a separate recalculation which we do at the end, when the pDC is
         // not needed for anything else on this page
+
+
         int Yoffset = 0;
         int leading = pLayout->GetCurLeading(); // in pixels -- subtract this from nTop to get logical Yoffset
+#if wxCHECK_VERSION(2, 9, 0)
+         // We are using the wx2.9, 3.x or newer library that utilizes gtkprint.
+         // whm added this test 22 October 2016. For the wxWidgets-3.x library. For the wxWidgets-3.x library
+         // built using the --without-gtkprint option, the Yoffset needs to be positive here.
+        Yoffset = pOffsets->nTop - leading; // don't negate the Yoffset as is done for the legacy WX2.8 code below
+#else
+        // We are using the wx2.8 or earlier legacy library
+        // whm - this is the legacy code. The following Yoffset tweak only works in Linux and only in the
+        // WX2.8 wxWidgets library.
         Yoffset = -(pOffsets->nTop - leading); // this puts the device's topleft of page printing area at the
-                                               // topleft of the page's first strip, plus the amount of
-                                               // leading required for the nav text area
-        pDC->SetLogicalOrigin(0,Yoffset); // doing it outside of the wxPrintout subclass presumably leaves
-                                          // the latter's left margin setting intact, and so the margin
-                                          // setting remains correct
+        // topleft of the page's first strip, plus the amount of
+        // leading required for the nav text area
+#endif
+        pDC->SetLogicalOrigin(0, Yoffset); // doing it outside of the wxPrintout subclass presumably leaves
+        // the latter's left margin setting intact, and so the margin
+        // setting remains correct
+
 #if defined(Print_failure) && defined(_DEBUG)
-        wxLogDebug(_T("Linux solution's Logical Origin corrected setting: pDC->SetLogicalOrigin(0,Yoffset)  x %d  y %d  for Page %d"),
+        wxLogDebug(_T("Linux Logical Origin corrected pDC->SetLogicalOrigin(0,Yoffset)  x %d  y %d  Page %d"),
 			0, Yoffset, page);
 #endif
     }
@@ -630,7 +706,7 @@ bool AIPrintout::OnPrintPage(int page)
             int numFTs = pAPV->GetCount();
             int numStrs = pAS->GetCount();
             wxString lastStr = pAS->Item(numStrs - 1);
-            wxLogDebug(_T("    OnPrintPage() strip index = %d  ,  num FreeTrElement structs = %d ,  num substrings = %d , last substring = %s"),
+            wxLogDebug(_T("OnPrintPage() strip %d, num FreeTrElement structs = %d, num substrings = %d, last substring = %s"),
                        i, numFTs, numStrs, lastStr.c_str());
         }
     }
@@ -662,8 +738,8 @@ bool AIPrintout::OnPrintPage(int page)
             pApp->GetFreeTrans()->DrawOneGloss(pDC, aPilePtr, bRTLLayout);
         }
 #if defined(Print_failure) && defined(_DEBUG)
-        wxLogDebug(_T("OnPrintPage(): just printed strip  %d  for page  %d  ; nFirstStrip = %d   nLastStrip = %d  "),
-                   index, page , nFirstStrip, nLastStrip);
+        wxLogDebug(_T("OnPrintPage(): strip %d, rect (logical coords) x %d y %d width %d height %d for page %d LINUX ONLY"),
+                   index, aPilePtr->Left(), aPilePtr->Top(), aPilePtr->Width(), aPilePtr->Height(), page);
 #endif
 
         // Test interleaving of the print of the free translations between
@@ -722,12 +798,17 @@ bool AIPrintout::OnPrintPage(int page)
         paperDimensions.x = paperRect.GetWidth();
         paperDimensions.y = paperRect.GetHeight();
         pDC->SetLogicalOrigin(0,0);
+#if defined(_DEBUG) && defined(Print_failure)
+        wxLogDebug(_T("Linux: *** Calls pView->PrintFooter override at this point ***"));
+        wxLogDebug(_T("PrintFooter wxPoints: TopLeft (%d,%d) BottomRight (%d,%d) paperDimensions (%d,%d), page %d"),
+            paperTopLeft.x,paperTopLeft.y,paperBottomRight.x,paperBottomRight.y,paperDimensions.x,paperDimensions.y,page);
+#endif
         pView->PrintFooter(pDC,paperTopLeft, paperBottomRight, paperDimensions, logicalUnitsFactor, page);
     }
 
 #if defined(_DEBUG) && defined(Print_failure)
-    wxLogDebug(_T("AIPrintout OnPrintPage() __WXGTK__ block, at its end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
-               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+    wxLogDebug(_T("AIPrintout OnPrintPage() __WXGTK__ block, at its end: gbCheckInclFreeTransText = %d"),
+               (int)gbCheckInclFreeTransText);
 #endif
 
         // Do here the cleanup of the temporary arrays for printing strips, and free
@@ -777,7 +858,6 @@ bool AIPrintout::OnPrintPage(int page)
     // end of code for the __WXGTK__ build
 
 #else
-
     // start of (legacy) code, which now is only for the Windows and Mac builds
     if (pDC)
     {
@@ -802,6 +882,11 @@ bool AIPrintout::OnPrintPage(int page)
         // fudged for the moment."
 		float scale = (float)((float)ppiPrinterX/(float)ppiScreenX);
 
+#if defined(_DEBUG) && defined(Print_failure)
+        wxLogDebug(_T("Windows: ppiScreenX = %d ppiScreenY = %d scale Printer-to-Screen = %f"), ppiScreenX, ppiScreenY, scale);
+        wxLogDebug(_T("Windows: ppiPrinterX = %d ppiPrinterY = %d scale Printer-to-Screen = %f"), ppiPrinterX, ppiPrinterY, scale);
+#endif
+
 		// Now we have to check in case our real page size is reduced (e.g. because
 		// we're drawing to a print preview memory DC)
 		int pageWidthInPixels, pageHeightInPixels;
@@ -810,9 +895,15 @@ bool AIPrintout::OnPrintPage(int page)
 		this->GetPageSizePixels(&pageWidthInPixels, &pageHeightInPixels);
         // If printer pageWidth == current DC width, then this doesn't change. But w might be the
         // preview bitmap width, so scale down.
-		float overallScaleX = scale * (float)(w/(float)pageWidthInPixels);
-		float overallScaleY = scale * (float)(h/(float)pageHeightInPixels);
-		pDC->SetUserScale(overallScaleX, overallScaleY);
+        // whm Note: printer sample uses only w and pageWidthInPixels to set overallScale
+        float overallScale = scale * (float)(w / (float)pageWidthInPixels);
+        //float overallScaleX = scale * (float)(w / (float)pageWidthInPixels);
+        //float overallScaleY = scale * (float)(h/(float)pageHeightInPixels);
+		pDC->SetUserScale(overallScale, overallScale);
+
+#if defined(_DEBUG) && defined(Print_failure)
+        wxLogDebug(_T("Windows: pageWidthInPixels = %d pageHeightInPixels = %d DCGetSizeW = %d DCGetSizeH = %d"), pageWidthInPixels, pageHeightInPixels, w, h);
+#endif
 
 		// Calculate the scaling factor for passing to PrintFooter. This factor must be multiplied by
 		// any absolute displacement distance desired which is expressed in mm. For example, we want
@@ -821,14 +912,23 @@ bool AIPrintout::OnPrintPage(int page)
 		// added to the y axis coordinate.
 		float logicalUnitsFactor = (float)(ppiPrinterX/(scale*25.4));
 
-		POList* pList = &pApp->m_pagesList;
+#if defined(_DEBUG) && defined(Print_failure)
+        wxLogDebug(_T("Windows: logicalUnitsFactor = %f"), logicalUnitsFactor);
+#endif
+
+        POList* pList = &pApp->m_pagesList;
 		// check the m_nCurPage value has not become too big -- this can happen if the user
 		// wants to print to a certain page, but turns off free translation and or glosses
 		// printing (which shortens the number of pages needed to less than what he chose
 		// for the last page) So check and return if such a page isn't available
 		int how_many_pages;
 		how_many_pages = pList->GetCount();
-		if (pApp->m_nCurPage > how_many_pages)
+
+#if defined(_DEBUG) && defined(Print_failure)
+        wxLogDebug(_T("Windows: pApp->m_nCurPage = %d how_many_pages = %d"), pApp->m_nCurPage, how_many_pages);
+#endif
+
+        if (pApp->m_nCurPage > how_many_pages)
 		{
 			return FALSE;
 		}
@@ -884,11 +984,22 @@ bool AIPrintout::OnPrintPage(int page)
 		// call to SetLogicalOrigin() with those coordinates. Then the printing comes out
 		// right for each page. Finally!
 		this->SetLogicalOrigin(0,0);
-		wxRect fitRect = this->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
 
 #if defined(_DEBUG) && defined(Print_failure)
-		wxLogDebug(_T("fitRect = this->GetLogicalPageMarginsRect() x %d  y %d , width %d  height %d"),
+        wxLogDebug(_T("Windows: *** this->SetLogicalOrigin(0,0) called at this point ***"));
+#endif
+
+        wxRect fitRect = this->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
+
+#if defined(_DEBUG) && defined(Print_failure)
+		wxLogDebug(_T("Windows: fitRect = this->GetLogicalPageMarginsRect() x %d  y %d , width %d  height %d"),
 			fitRect.x, fitRect.y, fitRect.width, fitRect.height);
+        int internalDC_Y;
+        internalDC_Y = pDC->DeviceToLogicalY(0);
+        wxLogDebug(_T("\n\n  PAGE = %d internalDC_Y %d nFirstStrip %d nLastStrip %d nTop %d nBottom %d (in logical units)"),
+            pApp->m_nCurPage, internalDC_Y, pOffsets->nFirstStrip, pOffsets->nLastStrip, pOffsets->nTop, pOffsets->nBottom);
+        //wxLogDebug(_T("overallScale  x %4.6f  y %4.6f "), overallScaleX, overallScaleY);
+        wxLogDebug(_T("overallScale  x %4.6f  y %4.6f "), overallScale, overallScale);
 #endif
 
 /* some rects I investigated to see what they x, y, width and height values are, but we don't need them
@@ -910,9 +1021,16 @@ bool AIPrintout::OnPrintPage(int page)
 			pageRectLogical.x, pageRectLogical.y, pageRectLogical.width, pageRectLogical.height);
 #endif
 */
-		// Now draw the footer for the page (logical origin for the printout page is at 0,0)
+
+        // Now draw the footer for the page (logical origin for the printout page is at 0,0)
 		if (gbPrintFooter)
 		{
+#if defined(_DEBUG) && defined(Print_failure)
+            wxLogDebug(_T("Windows: *** Calls pView->PrintFooter at this point ***"));
+            wxLogDebug(_T("PrintFooter wxRect x,y (%d,%d) w = %d h = %d logicalUnitsFactor = %f page = %d"),
+                fitRect.x, fitRect.y, fitRect.width, fitRect.height, logicalUnitsFactor, page);
+#endif
+
 			pView->PrintFooter(pDC,fitRect,logicalUnitsFactor,page);
 		}
         // Set the upper left starting point of the drawn page to the point where the upper
@@ -927,7 +1045,7 @@ bool AIPrintout::OnPrintPage(int page)
 		this->SetLogicalOrigin(fitRect.x, fitRect.y);
 
 #if defined(Print_failure) && defined(_DEBUG)
-		wxLogDebug(_T("this->SetLogicalOrigin(), this = AIPrintout:wxPrintout x %d , y %d"),
+		wxLogDebug(_T("Windows: this->SetLogicalOrigin(), this = AIPrintout:wxPrintout x %d , y %d"),
 			fitRect.x, fitRect.y );
 #endif
 
@@ -938,11 +1056,16 @@ bool AIPrintout::OnPrintPage(int page)
         // from the top of our printout/preview page.
 		pDC->SetLogicalOrigin(0,pOffsets->nTop);
 
+#if defined(Print_failure) && defined(_DEBUG)
+        wxLogDebug(_T("Windows: pDC->SetLogicalOrigin(), pDC x = 0, y %d just before pView->OnDraw(pDC) call"),
+            pOffsets->nTop);
+#endif
+
 		pView->OnDraw(pDC);
 
 		pApp->m_bPagePrintInProgress = FALSE; // BEW 28Oct11 added
 		return TRUE;
-    }
+    } // end of if (pDC)
     else
         return FALSE;
 
@@ -1214,6 +1337,7 @@ void AIPrintout::OnPreparePrinting()
 #endif
 #endif
 } // end of OnPreparePrinting()
+
 
 
 

@@ -144,6 +144,15 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning
 	// other attribute initializations
+
+    pGetSourceTextFromEditorSizer->Layout(); // update the layout for $s substitutions
+                                             // Some control text may be truncated unless we resize the dialog to fit it. 
+                                             // Note: The constructor's call of GetSourceTextFromEditorDlgFunc(this, FALSE, TRUE)
+                                             // has its second parameter as FALSE to allow this resize here in InitDialog().
+    wxSize dlgSize;
+    dlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+    this->SetSize(dlgSize);
+    this->CenterOnParent();
 }
 
 CGetSourceTextFromEditorDlg::~CGetSourceTextFromEditorDlg() // destructor
@@ -160,27 +169,38 @@ CGetSourceTextFromEditorDlg::~CGetSourceTextFromEditorDlg() // destructor
 
 void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
-	//InitDialog() is not virtual,  no call needed to a base class
+    //InitDialog() is not virtual,  no call needed to a base class
 
 // whm 5Jun12 added the define below for testing and debugging of Setup Collaboration dialog only
 #if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
-	wxCHECK_RET(FALSE,_T("!!! Programming Error !!!\n\nComment out the FORCE_BIBLEDIT_IS_INSTALLED_FLAG define in Adapt_It.h for normal debug builds - otherwise the GetSourceTextFromEditor dialog will not work properly!"));
+    wxCHECK_RET(FALSE, _T("!!! Programming Error !!!\n\nComment out the FORCE_BIBLEDIT_IS_INSTALLED_FLAG define in Adapt_It.h for normal debug builds - otherwise the GetSourceTextFromEditor dialog will not work properly!"));
 #endif
 
-	// Note: the wxListItem which is the column has to be on the heap, because if made a local
-	// variable then it will go out of scope and be lost from the wxListCtrl before the
-	// latter has a chance to display anything, and then nothing will display in the control
-	pTheFirstColumn = new wxListItem; // deleted in the destructor
-	pTheSecondColumn = new wxListItem; // deleted in the destructor
-	
-	wxString title = this->GetTitle();
-	title = title.Format(title,this->m_collabEditorName.c_str());
-	this->SetTitle(title);
+    // Note: the wxListItem which is the column has to be on the heap, because if made a local
+    // variable then it will go out of scope and be lost from the wxListCtrl before the
+    // latter has a chance to display anything, and then nothing will display in the control
+    pTheFirstColumn = new wxListItem; // deleted in the destructor
+    pTheSecondColumn = new wxListItem; // deleted in the destructor
 
-	// Substitute "Paratext" or "Bibledit" in "Using these %s projects:"
-	wxString usingTheseProj = pStaticBoxUsingTheseProjects->GetLabel();
-	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
-	usingTheseProj = usingTheseProj.Format(usingTheseProj,m_pApp->m_collaborationEditor.c_str());
+    wxString title = this->GetTitle();
+    title = title.Format(title, this->m_collabEditorName.c_str());
+    this->SetTitle(title);
+
+    // Substitute "Paratext" or "Bibledit" in "Using these %s projects:"
+    wxString usingTheseProj = pStaticBoxUsingTheseProjects->GetLabel();
+    wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
+    wxString PTvers = _T("");
+    if (m_pApp->m_ParatextVersionForProject == _T("PTVersion8") || m_pApp->m_ParatextVersionForProject == _T("PTLinuxVersion8"))
+    {
+        PTvers = _T("8");
+    }
+    else
+        PTvers = _T("7");
+    if (!PTvers.IsEmpty() && m_pApp->m_collaborationEditor == _T("Paratext"))
+        PTvers = m_pApp->m_collaborationEditor + _T(" ") + PTvers;
+    else
+        PTvers = m_pApp->m_collaborationEditor;
+	usingTheseProj = usingTheseProj.Format(usingTheseProj,PTvers.c_str());
 	pStaticBoxUsingTheseProjects->SetLabel(usingTheseProj);
 
 	// Assign the Temp values for use in this dialog until OnOK() executes
@@ -194,6 +214,8 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_bTempCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly;
 	m_TempCollabChapterSelected = m_pApp->m_CollabChapterSelected;
 	m_bTempCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans;
+    // m_CollabBooksProtectedFromSavingToEditor is not needed for use in CGetSourceTextFromEditorDlg
+    // m_bCollabDoNotShowMigrationDialogForPT7toPT8 is not needed for use in CGetSourceTextFromEditorDlg
 
 	m_SaveCollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
 	m_SaveCollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
@@ -206,17 +228,38 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_SaveCollabChapterSelected = m_TempCollabChapterSelected;
 	m_bSaveCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
 
-	if (!m_pApp->m_bCollaboratingWithBibledit)
+	if (m_pApp->m_bCollaboratingWithParatext) // if (!m_pApp->m_bCollaboratingWithBibledit)
 	{
-		m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(); // see CollabUtilities.cpp
-	}
-	else
-	{
-		m_bibledit_rdwrtPathAndFileName = GetPathToBeRdwrt(); // will return
-								// an empty string if BibleEdit is not installed;
-								// see CollabUtilities.cpp
+        // whm added 17March2017. To avoid possible error, we need to be absolutely sure of the path to the 
+        // rdwrtp7.exe file which is different for PT7 and PT8, so I'm adding a parameter to GetPathToRdwrtp7()
+        // to indicate the specific version of PT we want the path for.
+		//m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(); // see CollabUtilities.cpp
+		m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(m_pApp->m_ParatextVersionForProject); // see CollabUtilities.cpp
 	}
 
+    if (m_pApp->m_bCollaboratingWithBibledit)
+    {
+        if (m_pApp->BibleditIsInstalled())
+        {
+            wxString BEInstallDirPath = GetBibleditInstallPath();
+
+            if (!BEInstallDirPath.IsEmpty())
+            {
+                m_bibledit_rdwrtPathAndFileName = GetPathToBeRdwrt(); // will return
+                                    // an empty string if BibleEdit is not installed;
+                                    // see CollabUtilities.cpp
+            }
+            else
+            {
+                m_bibledit_rdwrtPathAndFileName = wxEmptyString;
+            }
+        }
+        else
+        {
+            m_pApp->m_bCollaboratingWithBibledit = FALSE; // The App's value for m_pApp->m_bCollaboratingWithBibledit is wrong so correct it
+            m_bibledit_rdwrtPathAndFileName = wxEmptyString;
+        }
+    }
 	// Generally when the "Get Source Text from Paratext/Bibledit Project" dialog is called, we 
 	// can be sure that some checks have been done to ensure that Paratext/Bibledit is installed,
 	// that previously selected PT/BE projects are still valid/exist, etc. Those consistency and
@@ -1339,7 +1382,7 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(even
 			noteStrToDisplay += _T(' ');
 			noteStrToDisplay += m_staticBoxFreeTransDescriptionArray.Item(nSel); // TODO: check that arrays have same count???
 		}
-		wxLogDebug(noteStrToDisplay);
+		//wxLogDebug(noteStrToDisplay);
 		pStaticTextCtrlNote->ChangeValue(noteStrToDisplay);
 		// whm note 29Jul11 We can't set focus on the OK button whenever the 
 		// chapter selection changes, because working via keyboard, the up and

@@ -39,12 +39,15 @@ public:
 	wxString m_TempCollabProjectForFreeTransExports;
 	wxString m_TempCollabAIProjectName;
 	wxString m_TempCollaborationEditor;
+    wxString m_TempCollabEditorVersion; // whm added 24June2016
 	wxString m_TempCollabSourceProjLangName;
 	wxString m_TempCollabTargetProjLangName;
 	bool m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
 	bool m_bTempCollaborationExpectsFreeTrans;
 	wxString m_TempCollabBookSelected;
 	wxString m_TempCollabChapterSelected;
+    wxString m_TempCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
+    bool m_TempCollabDoNotShowMigrationDialogForPT7toPT8; // whm added 6April2017
 	
 	// These are temporary m_Save... values for holding the App's original
 	// collaboration settings upon entry to the SetupEditorCollaboration dialog. 
@@ -60,12 +63,15 @@ public:
 	wxString m_SaveCollabProjectForFreeTransExports;
 	wxString m_SaveCollabAIProjectName;
 	wxString m_SaveCollaborationEditor;
+    wxString m_SaveCollabEditorVersion; // whm added 24June2016
 	wxString m_SaveCollabSourceProjLangName;
 	wxString m_SaveCollabTargetProjLangName;
-	bool m_bSaveCollabByChapterOnly; // FALSE means the "whole book" option
+	bool m_bSaveCollabByChapterOnly; // keep input value, so we can test if user changes it in the dialog
 	bool m_bSaveCollaborationExpectsFreeTrans;
 	wxString m_SaveCollabBookSelected;
 	wxString m_SaveCollabChapterSelected;
+    wxString m_SaveCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
+    bool m_SaveCollabDoNotShowMigrationDialogForPT7toPT8; // whm added 6April2017
 	
 	wxSizer* pSetupEditorCollabSizer;
 	wxSize m_computedDlgSize; // stores the computed size of the dialog's sizer - accounting for its current layout state
@@ -87,8 +93,9 @@ protected:
 	void OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUSED(event)); // whm added 23Feb12
 	bool DoSaveSetupForThisProject();
 	void OnRemoveThisAIProjectFromCollab(wxCommandEvent& WXUNUSED(event)); // whm added 23Feb12
-	void SetStateOfRemovalButton();
-	void SetPTorBEsubStringsInControls();
+    void SetStateOfRemovalButton();
+    void SetStateOfAcceptSetupButton();
+    void SetPTorBEsubStringsInControls();
 	void OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(event)); // whm added 4Apr12
 
 private:
@@ -98,7 +105,7 @@ private:
 	wxTextCtrl* pTextCtrlAsStaticSelectedSourceProj;
 	wxTextCtrl* pTextCtrlAsStaticSelectedTargetProj;
 	wxTextCtrl* pTextCtrlAsStaticSelectedFreeTransProj;
-	wxStaticText* pStaticTextUseThisDialog;
+	wxStaticText* pStaticTextDialogTopicLine;
 	wxStaticText* pStaticTextListOfProjects;
 	wxStaticText* pStaticTextSelectWhichProj;
 	wxStaticText* pStaticTextSrcTextFromThisProj;
@@ -116,15 +123,10 @@ private:
 	wxRadioButton* pRadioBtnByChapterOnly;
 	wxRadioButton* pRadioBtnByWholeBook;
 	wxButton* pBtnRemoveProjFromCollab;
+	wxButton* pBtnSaveSetupForThisProjNow;
 	wxButton* pBtnClose;
 	bool m_bCollabChangedThisDlgSession;
 	wxArrayString projList;
-
-	// class attributes
-	// wxString m_stringVariable;
-	// bool m_bVariable;
-	
-	// other class attributes
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

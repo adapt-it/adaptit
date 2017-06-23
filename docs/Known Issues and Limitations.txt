@@ -1,4 +1,4 @@
-Limitations and known issues in the version 6.6.5 
+Limitations and known issues in the version 6.8.3 
 of Adapt It WX and Adapt It WX Unicode:
 
 Windows version:
@@ -21,7 +21,19 @@ box.
 
 Linux version:
 
-1. In Ubuntu Precise, running the Unity Interface, the text control 
+1. In Ubuntu Xenial and newer distributions, a newer version (3.0.2)
+of the wxWidgets library is used. In that library Adapt It printing
+functions (the File -> Print and File -> Print Preview functions) 
+are not working as expected. We are working on a fix for these 
+printing problems on Xenial and Yakkety. In the mean time, you can 
+get good printouts of what is represented on the Adapt It screen by
+selecting the Export-Import menu and selecting "Export Interlinear
+Text..." to export the data to an external RTF file. The exported
+RTF file can then be loaded into LibreOffice Writer or Microsoft
+Word and printed from those application. These RTF exports actually
+give much more control over the printing and appearance of those
+documents.
+2. In Ubuntu Precise, running the Unity Interface, the text control 
 in the ComposeBar does not maintain the input focus, nor any 
 selection made, when the user mouses to the Unity menu bar (which
 was formerly Adapt It's menu bar) to choose from the Edit menu
@@ -32,7 +44,7 @@ A bug report has been sent to the Unity developers. In the meantime:
 CTRL+C, CTRL+X, and CTRL+V work correctly, and you'll have no
 problems if you use these shortcuts instead.
 
-2. For some who are using the Lucid version, the Report a Problem,
+3. For some who are using the Lucid version, the Report a Problem,
 and Give Feedback commands on the Help menu will not work due to
 a SSL certificate problem in the Lucid release. Other Ubuntu
 distributions do not have this problem.

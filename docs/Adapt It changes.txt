@@ -1,9 +1,445 @@
+﻿----------------------------------------------
+Version 6.8.3 release 11 May 2017
 ----------------------------------------------
-Version 6.6.5 release 17 June 2016
+Feature changes and new features in 6.8.3 
+----------------------------------------------
+* Adapt It now has a new collaboration document data transfer protection
+feature. Teams who use Adapt It to collaborate with Paratext or Bibledit to
+translate drafts of Scripture books eventually stop adapting/drafting those 
+books within Adapt It, and just continue the revision of those Scripture books
+(and chapters) in Paratext or Bibledit. However, once such books have reached 
+an advanced/polished state (and perhaps consultant checked), it can be very 
+beneficial to open the old drafts of those books again in Adapt It and update 
+the old drafts in the Adapt It project to include the revisions that were done 
+o those documents in Paratext/Bibledit. Doing so, those revisions and updates
+will be stored/updated in Adapt It's knowledge base for that project, making
+the knowledge base is more up-to-date for the drafting of new Scripture books. 
+When the Adapt It documents are updated within Adapt It for documents that 
+should not be getting any further changes within the Paratext or Bibledit 
+project, the team will want to save the changes in the Adapt It project only, 
+and avoid the transfer of those changes to Paratext or Bibledit - since such 
+transfers might inadvertently bring possible editing errors or old renderings 
+back into the polished documents residing in the Paratext/Bibledit project 
+files. Adapt It's new collaboration document data transfer protection 
+feature allows an administrator/user to block such data transfers to Paratext
+/Bibledit for specific books and chapters - effectively "protecting" them in
+their current state within the Paratext/Bibledit project. 
+A typical scenario for the use of this new feature in a collaboration project
+between Adapt It and Paratext might proceed as follows:
+1. The team administrator previously set up two Paratext projects: Language S,
+and Language T. Language S is a Paratext project that contains good quality
+Source texts for the books that will be adapted into Language T. The Language T
+project is also set up within Paratext and initially has all the books to be
+translated, but they are created within Paratext as empty books - containing 
+only chapter and verse numbers.
+2. The team administrator runs Adapt It and sets up a collaboration project
+within Adapt It using Adapt It's Administrator menu menu item "Setup Or Remove 
+Collaboration..." which provides a dialog that the administrator uses for 
+creating a new Adapt It collaboration project (i.e., Language S to Language T
+adaptations), and designating which Paratext project is to be used as Adapt It's 
+source text (in this case the Paratext 'Language S' project), and which 
+Paratext project is to be used to receive Adapt It's adaptations/translations
+/target text (in this case the 'Language T' Paratext project that was created 
+as "empty" - initially containing just chapter and verse numbers). The 
+administrator keeps the default (and recommended) setting to collaborate by 
+"Chapter Only".
+3. A team translator then runs Adapt It and opens its "Language S to Lanuage T 
+adaptations" collaboration project, and ensures that the "Work with my Paratext
+Scripture text (Collaboration on)" button is selected (if not pre-selected). 
+The team has decided this translators should start with the the book of Mark, 
+so the translator selects the book of Mark (if not already pre-selected) from
+the "Get Source Text from Paratext Project" dialog. The translators selects the
+Chapter to work on (if not pre-selected from previous work session). Adapt It 
+retrieves the chapter from the Paratext project's 'Langauge S' project, and
+displays it as source text within the Adapt It main window. The translator (who
+has learned to use Adapt It, being trained by the administrator), then adapts
+the source text into the target text benefiting from the increasing assistance 
+of Adapt It's knowledge base for the "Language S to Language T adaptations" 
+project. Each time the translators saves the document within Adapt It, Adapt It
+saves the adaptation document locally within the Adapt It collaboration project,
+AND transfers the newly created 'Language T' target text over to the Paratext
+'Language T' project. 
+4. The translator reviews and revises the draft of the chapter one or more 
+times from within Adapt It, and continues the drafting process opening another 
+chapter of Mark, and adapting it within Adapt It - until all chapters of Mark
+have been drafted within Adapt It. In this 'drafting stage' it is best for the
+translator to use Adapt It solely while drafting and doing the initial revision
+of the chapters, and refrain from doing any drafting from within Paratext until
+the initial drafting and early revision work has been done within Adapt It for 
+all chapters of the book. 
+5. At a certain point the translator and administrator decide that future 
+revision work for the book of Mark should all be done within Paratext to bring
+the draft on to a polished or publishable stage. It is at this point that Adapt 
+It's new data transfer protections feature can come into play. The administrator
+makes the Administrator menu visible within Adapt It and selects the "Manage Data
+Transfer Protections to Paratext or Bibledit..." item on the Administrator menu.
+In the dialog the administrator follows the 3 numbered steps: (1) Selects an AI 
+collaboration project from the drop-down list - in this case the 'Language S to 
+Language T adaptations' project. The possible books appear in the 'Books' List.
+(2) The administrator selects the the book of Mark from the 'Books List' - and 
+the dialog displays the 16 chapters of Mark in the 'Chapters List' with empty
+check boxes next to each chapter. (3) The administrator then clicks on the "All
+Chapters of Book" button to put ticks in the check boxes of all 16 chapters.
+Finally the administrator clicks on OK to save the 'protection' settings for all 
+chapters of the book of Mark. The draft that exists in Paratext is now 'protected' 
+in the sense that any changes that get made back in the chapter documents of Mark 
+within Adapt It will no longer be transferred to Paratext. 
+6. The team continues the revision process of the book of Mark within Paratext 
+until the book has gone through all the revisions to an advanced/polished state. 
+That polished state might include consultant checking and even publishing. Up to
+this point no further work has been done on the old drafts that still exist in
+the Adapt It project.
+7. With all the chapters of Mark 'protected', and after the book of Mark has been
+revised to an advanced state in Paratext, the administrator asks the translator
+to open the Adapt It 'Language S to Language T adaptations' project in one desktop
+window and Paratext in another windows with the Language T Paratext project 
+displaying within Paratext, so that the translator can compare the polished
+version in Paratext with the old drafts in the Adapt It project. The administrator
+asks the translator to open each chapter in Adapt It and compare the old chapter
+drafts with the more polished version in Paratext - and make changes in the Adapt It 
+drafts to make them read the same as the polished version. The purpose of this 
+updating of the draft in Adapt It is to update Adapt It's knowledge base for that 
+project so that it contains the updated translations/adaptations that were added 
+in Paratext after work ceased on the draft in Adapt It. Since the book of Mark
+has been marked as "protected from transferring changes to Paratext" the
+updating changes will only be saved in the local Adapt It project, and not
+transferred to Paratext - thus "protecting" the advanced Paratext draft from
+unintended changes as the translator saves the updates in the chapter documents 
+of Mark being saved within the Adapt It project. The advantage of this extra
+work on the part of the translator will pay off big-time since all the translation
+equivalents that were done (and updated) for the book of Mark will be available
+for the next book that is adapted/drafted in Adapt It. 
+8. Each collaboration book in turn can be drafted in Adapt It, the polishing work
+done exclusively in Paratext or Bibledit - the administrator having used this new
+feature to "protect" Paratext/Bibledit from any old drafts being transferred or 
+overwriting the advanced drafts. The translator, by going back to the old Adapt It
+drafts and updating those with the more polished renderings, adds the updates to 
+the Adapt It knowledge base, so that the knowledge base provides higher quality 
+translation equivalents when drafting each new book.
+   The new feature is available to administrators through a new menu item on 
+the Administrator menu, and in a more restricted form to users in the form of
+two new menu items on the Advanced menu. Administrators are able to make "bulk"
+settings using the "Manage Data Transfer Protections to Paratext or Bibledit..."
+item on the Administrator menu. Selecting this menu item brings up the new
+"Manage Data Transfer Protections for Collaboration Editor" dialog. This dialog
+allows the administrator to select any collaboration project, and set the data
+transfer projections for any selected book and/or book's chapters of that 
+collaboration project. If a collaboration project was set up to collaborate
+with Paratext/Bibledit in "Chapter Only" mode (the default mode), selecting a
+book in the 'Books List' displays all of the chapters of that book in the 
+'Chapters List (of selected book)' with check boxes beside each chapter. The 
+administrator can then select individual chapters or click on the "All Chapters 
+of Book" button to quickly select all chapters of the selected Scripture book. 
+Once as many books/chapters are selected as desired clicking on OK will save 
+those document transfer protections for that collaboration project. The document 
+transfer protections can later be changed (or more books 'protected') at any 
+time in the life of the collaboration project.
+   If a collaboration project was set up to collaborate with Paratext/Bibledit 
+in "Whole Book" mode, only the whole books are listed for the project with
+check boxes beside each book. The administrator can select All books or a subset
+of books (NT, OT, DC), or deselect all books, similar to what can be done when
+setting up the books of a Paratext project. This dialog however, bases the list
+of "potential" books based on the versification of the Paratext project that is
+used for obtaining source texts in collaboration with Adapt It, so the 
+administrator is not adding or removing books, but is designating which books
+(and/or chapters) will be protected in the event that the project includes the
+book within its Paratext/Bibledit project.
+   The new feature is available in limited form to non-administrator users via
+two new menu items in Adapt It' Advanced menu:
+   Prevent Paratext/Bibledit from getting changes to this document
+   Allow Paratext/Bibledit to get changes to this document
+The above two menu items are enabled in the Advanced menu only when a 
+collaboration project document is opened within Adapt It. With these menu items
+a user can tell Adapt It to "Prevent..." or "Allow...." changes made in the
+document transferring from/to Paratext/Bibledit when Adapt It saves the document.
+As with the bulk dialog (available from the Administraot menu), the protection
+status for the document is saved and remains in that state unless it is explicitly
+changed - either by using one of the two Advanced menu items or by the
+administrator in the bulk change dialog from the Administrator menu.
+---------------------------------------------
+Bug fixes in 6.8.3 release
+----------------------------------------------
+* Fixed a potential bug that could make it appear that Bibledit was the 
+collaboration editor along with Paratext, and generate an error message saying
+that Adapt It could not find a system file for Bibledit even though Bibledit
+was not installed.
+
+----------------------------------------------
+Version 6.8.2 release 11 April 2017
+----------------------------------------------
+Feature changes and new features in 6.8.2 
+----------------------------------------------
+* If you previously set up an Adapt It project to collaborate with Paratext 7, 
+AND have upgraded from Paratext 7 to Paratext 8, AND you have migrated the 
+projects used in collaboration from Paratext 7 to Paratext 8, AND you 
+uninstalled Paratext 7 after migrating the projects to Paratext 8, Adapt It 
+will automatically transition your collaboration settings for the project to 
+use Paratext 8 without further setup.
+* If both Paratext 7 and Paratext 8 are still installed on the computer, 
+Adapt It won't know for sure when you intend to actually collaborate with the 
+same projects in Paratext 8 even after you have migrated those projects to 
+Paratext 8. In such cases. Adapt It now has an easier (1-click) way for users 
+to continue collaborating with Paratext after migrating their Paratext 
+collaboration projects from Paratext 7 to Paratext 8. When Adapt It opens a 
+collaboration project, Adapt It now detects whether the Paratext projects 
+involved in collaboration have been successfully migrated to Paratext 8, and 
+if both Paratext 7 and 8 are still installed, presents the user with a dialog 
+that allows the user to confirm the suggested switch from using the old 
+Paratext 7 projects, to using the newly migrated Paratext 8 projects - without 
+the administrator having to redo the collaboration setup within Adapt It. 
+The dialog also allows the user to override the switch to collaborating with 
+Paratext 8 and remain collaborating with the old Paratext 7 data if, for some 
+reason, that is the preferred (but not recommended) choice. 
+* Adapt It uses the Git program to save snapshots of its adaptation documents, 
+and to manage the document history. For Windows and Linux, normally Git is 
+installed at the time Adapt It is first installed by downloading Git from the 
+Internet. Downloading Git, however, requires at least 36MB of download data in 
+addition to the Adapt It installer, so it may be desirable to download the Git 
+installer just once (keeping a copy on a thumb drive), and be able to easily 
+install it from the local copy of the installer rather than always downloading 
+Git afresh for each new Adapt It installation. Also a manual installation of 
+Git has been a source of confusion due to the Git installer's myriad of options. 
+Adapt It's installer and the installed program itself now have some new features 
+that make it easier to install Git according to the needs of a particular 
+situation. Now three options are offered that will make Git installation more 
+flexible and make less use of Internet connection time/data:
+1) Do not try to install Git at this time.
+   I'll use Adapt It without Git, or I will install Git later.
+2) Download and install Git from the Internet.
+   This option requires access to the Internet and will download about 36MG of data.
+   A copy of the Git installer is saved to the Adapt It installation directory.
+3) Browse this computer to find a Git installer
+   This option installs Git using a previously downloaded Git installer. Git
+   can be installed this way without accessing the Internet
+The above 3 options are now offered from within Adapt It's installer and by 
+menu selection from within the Adapt It program. 
+When the second option is selected from within Adapt It's installer, Git will 
+first be downloaded and then both Git and Adapt It will be installed during the 
+running of the Adapt It installer - similar to what has been the only option in 
+the past. When the third option is selected from within Adapt It's installer, 
+the administrator/user can browse from a file dialog to an existing Git 
+installer on the local machine or a thumb drive. The installer will 
+automatically install and configure Git without further user interaction until 
+both Git and Adapt It are installed with the appropriate options.
+* Within the Adapt It program the above three Git installation options are 
+accessible from a new Tools menu item called "Install the Git program...". This 
+new menu item makes it possible to download, install, and have Adapt It 
+auto-configure the Git program all from within Adapt It, without having to wade 
+through all of the Git installer's wizard pages and wonder whether all the default 
+Git options are set properly. Additionally, the same 3 options are presented to 
+the user if Git was not installed, and the user tries to execute one of the 
+document history menu items located on Adapt It's File menu.
+* When the Adapt It installer needs to install Git, it makes a copy of the 
+downloaded Git installer and saves it within the Adapt It installation folder
+(c:\Program Files (x86)\Adapt It WX Unicode\). It is the standard Git installer
+which is called: Git-2.12.1-32-bit.exe. Adapt It's installer can internally 
+execute this installer with the options needed for Adapt It, and it can also be 
+used to manually install Git, but for manually installations of Git, it is 
+recommended that you use the new Git downloader described in the next point 
+below instead.
+* Every Windows Adapt It installation now provides a small (748kb) installation 
+program called Git_Downloader_2_12_1_4AI.exe that is also placed in the Adapt 
+It installation folder. This installer can be used to download the Git program 
+from the Internet on demand and install Git on any Windows computer. If an
+administrator or user opts to install Git apart from running the normal Adapt It 
+installer, this stand-alone installer is recommended (and is what Adapt It will
+use of installing Git from the Tools menu).
+* The version of Git that Adapt It now downloads is Git version 2.12.1.
+---------------------------------------------
+Bug fixes in 6.8.2 release
+----------------------------------------------
+* If you have switched to using Paratext 8, make sure you have upgraded
+Paratext 8 to the latest version and have applied all updates. Some earlier
+versions of Paratext 8 did not have a rdwrtp7.exe.config file or a 
+rdwrtp8.exe.config file which resulted in collaboration failure and an error 
+message that said, "rdwrtp7 has stopped working". If you see that error 
+message when trying to collaborate with Paratext 8, your Paratext 8 
+installation is lacking a Paratext 8 update that installs that small xml
+rdwrtp7.exe.config or rdwrtp8.exe.config file. The preferred way to get the
+appropriate xml config file is via Paratext update. In a bind, either file
+can be downloaded from the Adapt It website at: 
+http://adapt-it.org/rdwrtp7.exe.config or
+http://adapt-it.org/rdwrtp8.exe.config
+* Fixed the Help menu's "Report a Problem" and "Give Feedback" secure email
+function. That function was rendered inoperative due to a change of the 
+certification authority on the adapt-it.org server. The certificate had to
+be changed after the adapt-it.org website got hacked. The website was restored 
+and it now uses a different certificate of authority that is now also updated 
+in Adapt It's installer so that Adapt It can again use it to send secure email 
+reports from inside Adapt It.
+* Fixed a collaboration setup bug that required the administrator to 
+select a (possibly unwanted) free translation project from Paratext
+or Bibledit before the Setup Or Remove Collaboration dialog would 
+accept/save the collaboration setup. Only two Paratext/Bibledit 
+projects are required to save a collaboration setup within Adapt It: 
+1) a Paratext/Bibledit project that Adapt It can use to fetch its 
+source texts, and 
+2) a second Paratext/Bibledit project that Adapt It can use to store 
+target text (translations/adaptations) as they generated from within Adapt It.
+The source text project would normally be a good quality translation that
+Adpat It uses in a collaboration project to fetch its source text from.
+The target text project would normally start as an empty Paratext/Bibledit
+project (containing empty chapter and verse markers) that is used to store the 
+translations/adaptations produced by Adapt It in the collaboration project.
+* Fixed a bug that would cause an error message when trying to
+select Paratext 7 within the Setup Or Remove Collaboration dialog,
+preventing a successful collaboration setup for Paratext 7.
+The error message indicated that Adapt It was trying to use a path
+to the Paratext 8 projects folder, even though 'Paratext 7' was 
+selected in the dialog. This error was possible if the user had both 
+Paratext 7 and Paratext 8 installed on the computer.
+* Fixed a bug that would cause Adapt It to prefix $$ characters to
+certain Paratext files that contain back matter, front matter, etc.
+The bug would manifest itself in an error message at the time the
+Paratext project was selected as a source text collaboration project 
+with Adapt It in its Setup Or Remove Collaboration dialog.
+* Fixed a bug that would prevent the Adapt It installer from detecting
+if an administrator had previously installed the Git program on the 
+computer.
+* If CC table changes are in operation, and the user makes a merger, the 
+change table was not applied to the non-first source text words. Now it 
+is applied.
+* If CC changes were made to a word or phrase and the user caused the 
+phrasebox to move ahead without clicking in the phrasebox or editing in it, 
+the changes were lost and not entered into the knowledge base. Now they are 
+not lost and the knowledge base stores a correct entry.
+
+
+----------------------------------------------
+Version 6.8.1 release 9 December 2016
 ----------------------------------------------
 ----------------------------------------------
-Feature changes and new features in 6.6.5 
+Feature changes and new features in 6.8.1 
 ----------------------------------------------
+* Adapt It 6.8.1 is able to collaborate with the latest version of 
+Paratext 8 for Linux. The collaboration with Paratext feature of 
+Adapt It was broken when the most recent version of Paratext 8 for 
+Linux changed its program location in the Linux file system. The
+change was made by the Paratext developers in order to allow
+Paratext 8 and Paratext 7 to be installed at the same time. When
+the Paratext 8 installation files were moved in the Linux file system,
+Adapt It could no longer locate them. This has now been fixed. 
+If you have installed or upgraded your Linux version of Paratext 8, 
+you should use Adapt It version 6.8.1 to collaborate with Paratext 8.
+* When setting up collaboration with Paratext using Adapt It's 
+Setup or Remove Collaboration dialog, the analyzing of the books 
+available in a selected Paratext project proceeds much more quickly 
+now - just a few seconds, compared to several minutes previously.
+* More localization to Indonesian has been done.
+* Copying selected source text to the clipboard. Formerly, there
+was no easy way. Copying selected source text copied the target
+text under the selected source text. This still happens, however,
+if the ALT key is held down while clicking the Copy command on
+the Edit menu, the selected source text will instead be copied to
+the clipboard. (Note: CTRL-C shortcut is not suported, by design,
+in Adapt It - except in the phrasebox, or the compose bar's text
+box. This has been the case for years, and will not be changed.)
+* The document creation code has more tests to detect faulty markup
+that would lead to an application failure, or a corrupted document.
+* The application now tests for certain markup errors, and if it finds
+one it halts the creation, and gives a warning message to advise the
+user to click a checkbox in the View page of Preferences to have a
+diagnostic log file produced.
+* Production of a diagnostic logfile is supported. It gets stored
+in the _LOGS_EMAIL_REPORTS folder within the Adapt It Unicode
+Work folder. The file is called: Log_For_Document_Creation.txt.
+It is deliberately small, with just esssential information:
+the filename (first line), and then five subsequent lines list
+the last five words correctly parsed in from the input source
+text before the failure happened. Each such line lists the 
+chapter:verse information where the failure happened. The
+bad markup will be located within that verse, after the last
+word listed in this file. The user can then examine the source
+test in a word processor, and possibly fix the error himself, then
+resave the fixed source text, and retry the document creation again.
+Note: producing the log file is slow: about 150 words a second
+are scanned, so a book like Luke might take up to 3 minutes to 
+get to the failure point. An information message is shown to the
+user informing him or her that the log file is being produced, 
+and to wait. But that only happens in the Windows build. OSX
+and Linux builds don't show the information message, but
+they still produce the log file.
+If the log file is empty, then the error was probably a utf-8
+encoding error - perhaps some non-utf-8 bytes are somewhere
+in the source text. (To fix encoding errors, perhaps best to send
+the source text file to one of the developers.)
+* The Shift-Launch feature (i.e. Launching Adapt It with SHIFT key
+held down, to bypass one or both configuration files) has been
+improved. Previously, if a project was a collaboration one, the
+Shift-Launch tried to restore the collaboration from data in the
+Adapt_It_WX.ini file in the ...\AppData\Roaming\ folder. But
+the user may not want collaboration restored. So now, a Yes/No
+message dialog will ask the user: "If a collaboration was set up 
+with Paratext or Bibledit, do you want it to be restored now,
+if possible?". Click the No button to have the collaboration
+
+----------------------------------------------
+Bug fixes in 6.8.1 release 20 December 2016
+
+----------------------------------------------
+* Left and right double angle quotation marks are now automatically
+added to the source and target punctuation character sets, if not
+already present.
+* The straight single quote, ' is now treated as a punctuation
+character by default. Earlier, it defaulted to being a word-building
+character.
+* USFM fixed space marker ( ~ ) is handled better. It still is a
+fixed space, but when occurring between a word and punctuation
+it is stripped off and restored later like punctuation characters, and
+it now automatically appears as an entry in the punctuation
+character set in Preferences - which allows it to be stripped off and
+restored to the adaptation as one would expect. When occurring
+between words, it is not stripped off, but behaves as expected in
+keeping the words together.
+* If the anchor for a free translation was on a placeholder, and 
+Export Free Translation was chosen, the free translation at that
+placeholder was lost from the export. It's now included, along
+with any markers which occur there.
+* When collaborating with Paratext, if the source text in Paratext
+had an endmarker, such as \x*, left in the text at a location where
+the matching preceding \x marker and the cross reference information
+had been manually removed, then it caused a major problem in
+the transfer of adaptation text to Paratext at File > Save. All target
+text content following the rogue \x* marker would not get
+transferred - even if the user had adapted well beyond that point.
+Code has now been added to skip such rogue markers, and the
+data transfer now does not get truncated. (However, it is always
+wise to check the source text for markup errors before setting up
+a collaboration with Paratext or Bibledit.)
+* The feature introduced in 6.8.0 where certain word-final or
+phrase-final punctuation characters could automatically trigger
+auto-capitalizing the next word (or phrase), did not work when
+the source text was a language without a case distinction. Now
+it works correctly.
+
+----------------------------------------------
+Version 6.8.0 release 1 July 2016
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.8.0 
+----------------------------------------------
+* Adapt It now supports collaboration with Paratext 8.
+Once Paratext 8 has been installed and Paratext project
+data has been migrated from the user's Paratext 7.x's 
+"My Paratext Projects" to the Paratext 8's "My Paratext 8 
+Projects" folder, Adapt It will automatically detect that 
+Paratext 8 has been installed, and should continue 
+collaborating with Paratext 8 for all Adapt It projects 
+that were previously set up by an administrator to 
+collaborate with Paratext 7.x. WARNING: Adapt It versions
+before 6.8.0 that were collaborating with Paratext 7.x
+will not be able to continue collaborating with Paratext 
+after Paratext 8 has been installed and the user's Paratext 
+projects have been migrated to the new "My Paratext 8 
+Projects" directory. After upgrading to Paratext 8, you 
+must alos upgrade to Adapt It version 6.8.0 to be able to 
+collaborate with Paratext 8.
+* This new version of Adapt It will still work for users
+who have projects set up to collaborate with Paratext 7.x.
+Installing Paratext 8 is not necessary to use this 
+version (6.8.0) of Adapt It. This version will continue to
+collaborate with a user's Paratext 7.x data if Adapt It 
+was previously set up to collaborate with Paratext 7.x.
 * The tooltip in the Choose Translation dialog, and also
 those in the two listboxes in the KB Editor's 10 panes, 
 were nuisances - obscuring the list contents. The effect
@@ -86,7 +522,7 @@ the knowledge base, the entry would be: na-paul (for source
 text) paired with bawul (for its target text).
 
 ----------------------------------------------
-Bug fixes in 6.6.5 release 17 June 2016
+Bug fixes in 6.8.0 release 8 July 2016
 ----------------------------------------------
 * On computers with very high resolution screens, the
 dialog for the "Remove Some Entries Or Save List" button

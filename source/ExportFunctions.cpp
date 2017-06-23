@@ -123,6 +123,7 @@ extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
 
+#define TRUNCATED
 
 // Moved here for Version 3.
 // We could use a CMap used as a dictionary associating the style "keys" with their "values."
@@ -1791,6 +1792,9 @@ void DoExportAsType(enum ExportType exportType)
 	case targetTextExport:
 		nTextLength = RebuildTargetText(target);
 
+#if defined(_DEBUG) && defined(TRUNCATED)
+		wxLogDebug(_T("DoExportAsType() after RebuildTargetText(): nTextLength = %d"), nTextLength);
+#endif
 		// BEW 5Sep15 added the next 24 lines so that manual exports will filter out from the 
 		// export, automatically, any marker and content which is filtered (not all such,
 		// but the main ones, like \x, \f, \fe, \r, \rp, etc) - extra to this, the user
@@ -1816,19 +1820,37 @@ void DoExportAsType(enum ExportType exportType)
 			}
 		}
 		// end of 5Sep14 addition
+#if defined(_DEBUG) && defined(TRUNCATED)
+		wxLogDebug(_T("DoExportAsType() before ApplyOutputFilterToText(): text length = %d"), target.Length());
+#endif
 
 		// Apply output filter to the target text
 		target =  ApplyOutputFilterToText(target, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
+#if defined(_DEBUG) && defined(TRUNCATED)
+		wxLogDebug(_T("DoExportAsType() after ApplyOutputFilterToText(): text length = %d"), target.Length());
+#endif
 
 		// format for text oriented output
 		FormatMarkerBufferForOutput(target, targetTextExport);
 
+#if defined(_DEBUG) && defined(TRUNCATED)
+		wxLogDebug(_T("DoExportAsType() after FormatMarkerBufferForOutput(): text length = %d"), target.Length());
+#endif
+
 		target = RemoveMultipleSpaces(target);
 
+#if defined(_DEBUG) && defined(TRUNCATED)
+		wxLogDebug(_T("DoExportAsType() after RemoveMultipleSpaces(): text length = %d"), target.Length());
+#endif
 		if (gbIsUnstructuredData)
-			FormatUnstructuredTextBufferForOutput(target,bRTFOutput);
+		{
+			FormatUnstructuredTextBufferForOutput(target, bRTFOutput);
 
+#if defined(_DEBUG) && defined(TRUNCATED)
+			wxLogDebug(_T("DoExportAsType() after FormatUnstructuredTextBufferForOutput(): text length = %d"), target.Length());
+#endif
+		}
 		// do the check for a document with only paragraph markers (not needed, I fixed
 		// FormatUnstructuredTextBufferForOutput() instead)
 		//if (IsDocWithParagraphMarkersOnly(gpApp->m_pSourcePhrases))
@@ -1848,6 +1870,9 @@ void DoExportAsType(enum ExportType exportType)
 		{
 			ChangeCustomMarkersToParatextPrivates(target); // change our custom markers to
 														   // \z... markers for Paratext
+#if defined(_DEBUG) && defined(TRUNCATED)
+			wxLogDebug(_T("DoExportAsType() after ChangeCustomMarkersToParatextPrivates(): text length = %d"), target.Length());
+#endif
 		}
 		break;
 	}
@@ -9721,7 +9746,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 		if (counter % 500 == 0)	// the counter moves character by character through the buffer
 									// so pick a large number for updating the progress dialog
 		{
-			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),ptr - beginPtr,nTotal);
+			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),int(ptr - beginPtr),nTotal);
 			pStatusBar->UpdateProgress(_("Exporting To Rich Text Format"), ptr - beginPtr, msgDisplayed);
 		}
 
@@ -13940,6 +13965,38 @@ bool IsMarkerRTF(wxChar *pChar, wxChar* pBuffStart)
 	*/
 }
 
+// BEW added 25Aug16 for use in the refactored ApplyOutputFilterToText() function
+bool IsEndMarkerRTF(wxChar *pChar, wxChar* pBuffEnd)
+{
+	// This is an RTF aware version of Bruce's IsMarker in the Doc.
+	// IsMarkerRTF is used in parsing text on its way to RTF output. RTF formatted text
+	// cannot have bare embedded curly brace characters because because they act as
+	// RTF controls rather than plain characters in the output stream. In order for them
+	// to be interpreted as plain characters they must be "escaped" by prefixing them with
+	// a backslash character. Adding these backslashes is done by our ApplyOutputFilterToText()
+	// function on text which is being processed for RTF output. This IsMarkerRTF() is
+	// designed to return FALSE if the character following a backslash character at pChar is
+	// either an opening curly brace { or a closing curly brace }.
+	// whm 8Nov07 modified to also return false if the character following a backslash
+	// character is another backslash character. This additional check insures that
+	// IsMarkerRTF does not return TRUE for a non-marker backslash entered as normal text
+	// by the user, since ApplyOutputFilterToText() now also escapes such non-marker
+	// backslash characters found in user entered text.
+	if (pChar + 1 < pBuffEnd)
+	{
+		if (*(pChar + 1) == _T('{') || *(pChar + 1) == _T('}') || *(pChar + 1) == _T('\\'))
+		{
+			return FALSE;
+		}
+	}
+	else
+	{
+		return FALSE;
+	}
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	return pDoc->IsEndMarker(pChar, pBuffEnd);
+}
+
 // BEW 12Apr10 no changes needed for doc version 5 (I think)
 int ParseMarkerAndAnyAssociatedText(wxChar* pChar, wxChar* pBuffStart,
 					wxChar* pEndChar, wxString bareMarkerForLookup, wxString wholeMarker,
@@ -16978,7 +17035,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	// that way. So we have to build up the word not from m_srcPhrase, but from m_key,
 	// using the ordering protocols for doc version 5's document model. This enables us to
 	// avoid using a placement dialog for the problem of endmarker insertion before outer
-	// punctuation. The ramification, however, is that we have to both checking for, store
+	// punctuation. The ramification, however, is that we have to both check for, store
 	// and 'delay' placement of preceding puncts and final puncts on a placeholder, as well
 	// as the new storage strings for inline markers, as well as m_markers and m_endMarkers
 	// content as before -- so a lot more local storage strings for holding over data will
@@ -17181,7 +17238,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// helpers.cpp function FromMergerMakeSstr(), but first deal with any stored
 			// filtered information, and m_markers content (which is never filtered),
 			// before handling the accumulation of material from the merged CSourcePhrase;
-			// because we don't gather those info tyhpes in the above function
+			// because we don't gather those info types in the above function
 			wxString xrefStr;
 			wxString otherFiltered;
 			if (bHasFilteredMaterial)
@@ -17943,8 +18000,10 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 	// As we traverse the list of CSourcePhrase instances, we do most but not all of what
 	// RebuildGlossesText() does, but there are significant differences, and this function
 	// will be simpler: the special things we must be careful of are:
-	// 1. null source phrase placeholders (we ignore these, but we don't ignore any
-	// m_markers, content which has been moved to them by the user's placeholder insertion
+	// 1. null source phrase placeholders BEW 30Jul16 we no longer ignore these, because
+	// a placeholder can legally be the anchor pile. But years ago I changed to having
+	// endmarkers stored on the CSourcePhrase relevant to the end, so no longer do it
+	// need to copy an endmarker before handling what's on the current CSourcePhrase.
 	// 2. retranslations (we can ignore the fact these instances may belong within a
 	// retranslation),
 	// 3. mergers - we'll just take what's on the merged CSourcePhrase instance, we won't
@@ -18018,6 +18077,38 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 								// relevant code blocks (BEW 11Oct10)
 		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
+			// BEW addition 30Jul16, support anchor being at a placeholder
+			bMarkersOnPlaceholder = FALSE;
+			if (pSrcPhrase->m_bStartFreeTrans || !pSrcPhrase->GetFreeTrans().IsEmpty())
+			{
+				if (!pSrcPhrase->m_markers.IsEmpty())
+				{
+					if (strPlaceholderMarkers.IsEmpty())
+					{
+						strPlaceholderMarkers = pSrcPhrase->m_markers;
+					}
+					else
+					{
+						strPlaceholderMarkers += aSpace + pSrcPhrase->m_markers;
+					}
+					bMarkersOnPlaceholder = TRUE;
+				}
+
+				tempStr = pSrcPhrase->GetFreeTrans();
+
+				if (bMarkersOnPlaceholder)
+				{
+					freeTrans += strPlaceholderMarkers;
+				}
+
+				if (!tempStr.IsEmpty())
+				{
+					freeTrans.Trim();
+					freeTrans += aSpace + tempStr;
+					tempStr.Empty();
+				}
+			}
+
 			// markers placement from a preceding placeholder may be pending but there may
 			// be a second or other placeholder following, which must delay their
 			// relocation until a non-placeholder CSourcePhrase is encountered. So if the
@@ -18435,7 +18526,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		pos = pos->GetNext();
 		wxASSERT(pSrcPhrase != 0);
 #if defined(_DEBUG)
-//		if (pSrcPhrase->m_nSequNumber == 243)
+//		if (pSrcPhrase->m_nSequNumber == 10488 || pSrcPhrase->m_nSequNumber == 10511) // in 10:43 John TPU tgt text, Sima; 10490 is last sent
 //		{
 //			int break_point = 1;
 //		}
@@ -18549,6 +18640,16 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				targetstr << str;
 			}
 		}
+#if defined(_DEBUG) && defined(TRUNCATED)
+/* This demonstrated that every CSourcePhrase to end of doc at sn=20300 was correctly dealt with, so error is after RebuildTargetText() call
+		if (pSrcPhrase->m_nSequNumber > 9980)
+		{
+			int targetstrLen = targetstr.Length();
+			wxString endStr = targetstr.Mid(targetstrLen - 50);
+			wxLogDebug(_T("RebuildTargetText() sn = %d   last 50 chars of targetStr:  %s"), pSrcPhrase->m_nSequNumber, endStr.c_str());
+		}
+*/
+#endif
 	}// end of while (pos != NULL)
 
 	int textLen = targetstr.Length();
@@ -18734,6 +18835,12 @@ void ChangeCustomMarkersToParatextPrivates(wxString& buffer)
 // and builds a new wxString minus the markers and associated text whose flags are set to
 // be filtered from output in bareMarkerArray and filterFlagsArray; then returns the new
 // string.
+// BEW 25Aug16 Refactored because bHitMkr is not FALSE when a \x* is present without an
+// antecedent \x, and so the rogue \x* did not get removed which in turn caused the
+// function to omit from the output the rest of the exported data following the \x*. I
+// will add code to improve the logic, and do brute force checks for errant \x* or \f*
+// to remove them robustly. (bHitMkr also removed, because once set it was never returned
+// to FALSE, so was useless as a a test for anything in later iterations)
 wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArray,
 								 wxArrayInt& filterFlagsArray, bool bRTFOutput)
 {
@@ -18744,15 +18851,28 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 	// of the string with embedded new line chars. It is used to set pEnd in the read-only
 	// buffer and used to determine the size (textLen*2 + 1) and pEnd2 for the writeable
 	// buffer below
-	int nTheLen = textStr.Length();
+ 	int nTheLen = textStr.Length();
 	// wx version: pBuffer is read-only so just get pointer to the string's read-only buffer
 	const wxChar* pBuffer = textStr.GetData();
 	wxChar* pBufStart = (wxChar*)pBuffer;		// save start address of Buffer
 	int itemLen = 0;
 	wxChar* pEnd = pBufStart + nTheLen;// bound past which we must not go
 	wxASSERT(*pEnd == _T('\0')); // ensure there is a null at end of Buffer
-	bool bHitMkr = FALSE;
+	/*
+#if defined(_DEBUG)
+	wxLogDebug(_T("ApplyOutputFilterToText(): Beginning... pEndSaved = %x "), pEndSaved);
+#endif
+	*/
+	//bool bHitMkr = FALSE; BEW 25Aug16 removed it, because once it is set TRUE it never got cleared to FALSE, making it uselesss as a testable value
 	bool bIsAMarker = FALSE;
+	// BEW 25Aug16 added next ones, it is only when embedded content markers (footnotes, 
+	// cross references or endnotes) are improperly removed (by a human), leaving their 
+	// endmarker in the text, that the old algorithm failed to do what we want - so I'll
+	// code explicitly for these three...
+	bool bSaw_backslash_x = FALSE; // for cross references \x ... \x*
+	bool bSaw_backslash_f = FALSE; // for footnotes  \f ... \f*
+	bool bSaw_backslash_fe = FALSE; // for endnotes  \fe ... \fe*
+	bool bIsEndMarker = FALSE;
 
 	// Setup copy-to buffer from textStr2.
 	// Since we also may add backslash escape characters to the textStr2 buffer
@@ -18779,6 +18899,8 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 		pEnd2 = pBuffer2 + nTheLen*buffSizeMultiplier;
 		if (buffSizeMultiplier == 1)
 			*pEnd2 = (wxChar)0;
+		wxChar* pNewBuffStart = (wxChar*)pBuffer2; // BEW added 30Aug16
+		wxUnusedVar(pNewBuffStart);
 		/*
 		if (bRTFOutput)
 		{
@@ -18817,14 +18939,13 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 		wxChar* pNew = pBuffer2; // destination
 		while (*pOld != (wxChar)0)
 		{
-			// Use the the View's IsMarkerRTF if bRTFOutput
+			// Use ExportFunction's IsMarkerRTF if bRTFOutput
 			if (bRTFOutput)
 			{
 				bIsAMarker = IsMarkerRTF(pOld,pBufStart);
 			}
 			else
 			{
-				//bIsAMarker = pDoc->IsMarker(pOld,pBufStart);
 				bIsAMarker = pDoc->IsMarker(pOld);
 			}
 
@@ -18833,11 +18954,34 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 				// We're pointing at a marker. Look it up and see if we should skip over it and
 				// its associated text
 				wholeMarker = pDoc->GetWholeMarker(pOld); // the whole marker including backslash and any ending *
+				if (!bRTFOutput)
+				{
+					bIsEndMarker = pDoc->IsEndMarker(pOld, pEnd);
+				}
+				else
+				{
+					bIsEndMarker = IsEndMarkerRTF(pOld, pEnd);
+				}
+				if (!bIsEndMarker && wholeMarker == _T("\\x"))
+				{
+					bSaw_backslash_x = TRUE; // leave it set TRUE until a matching \x* terminates the x-ref, 
+											 // and we clear this boolean to FALSE, and bHitMkr to FALSE also
+				}
+				if (!bIsEndMarker && wholeMarker == _T("\\f"))
+				{
+					bSaw_backslash_f = TRUE; // leave it set TRUE until a matching \f* terminates the x-ref, 
+											 // and we clear this boolean to FALSE, and bHitMkr to FALSE also
+				}
+				if (!bIsEndMarker && wholeMarker == _T("\\fe"))
+				{
+					bSaw_backslash_fe = TRUE; // leave it set TRUE until a matching \fe* terminates the x-ref, 
+											 // and we clear this boolean to FALSE, and bHitMkr to FALSE also
+				}
 
 				// whm added 7Nov07
-			// If wholeMarker is just a bare backslash it means that we have an embedded user entered
-			// back slash that is not part of a marker. In RTF outputs we need to escape it so that
-			// it does not look like some RTF control word to the RTF file reader, likely causing
+				// If wholeMarker is just a bare backslash it means that we have an embedded user entered
+				// back slash that is not part of a marker. In RTF outputs we need to escape it so that
+				// it does not look like some RTF control word to the RTF file reader, likely causing
 				// MS Word to choke on it.
 				if (wholeMarker == _T("\\"))
 				{
@@ -18853,26 +18997,62 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 
 					*pNew++ = *pOld++;
 
-				// The tests below don't make sense for an isolated non-marker backslash,
-				// and we shouldn't set bHitMarker to TRUE, so just continue processing at
-					// the top of the while loop
+					// The tests below don't make sense for an isolated non-marker backslash,
+					// and we shouldn't set bHitMarker to TRUE, so just continue processing at
+						// the top of the while loop
 					continue;
 				}
-
 				bareMarkerForLookup = pDoc->GetBareMarkerForLookup(pOld); // strips off backslash and any ending *
-				// if we encounter an end marker before its beginning form (as might happen if we
-				// are using ApplyOutputFilterToText on an m_endMarkers string, we want to check it
-				// for filtering in isolated fashion without parsing to find any associated text.
-				if (wholeMarker.Find(_T('*')) != -1 && !bHitMkr)
+
+				// BEW 25Aug16, If we encounter an endmarker, then if its corresponding boolean is TRUE
+				// (ie. its beginmarker was seen in an earlier loop iteration), then we let the code further
+				// down do any filtering, if filtering is needed, and we do nothing at the code blocks
+				// here. But if the corresponding boolean is FALSE, we know we have come to an endmarker
+				// which is a relic left over from bad human editing, and it must be removed here in
+				// the blocks immediately below, and not be allowed to persist into the filtering
+				// code blocks further down - if it did so, the filtering attempt would never end,
+				// and cause the rest of the text to be removed from output!
+				bool bRemoveIt = FALSE;
+				if (bIsEndMarker) 
 				{
-					// we hit this end marker before seeing a beginning marker in the input text
-					// if its non-end form it to be filtered we'll parse over it and omit it from
-					// the text, otherwise we'll leave it alone
-					if (MarkerIsToBeFilteredFromOutput(bareMarkerForLookup))
+					if (wholeMarker == _T("\\x*"))
+					{
+						if (!bSaw_backslash_x)
+						{
+							bRemoveIt = TRUE;
+						}
+						else
+						{
+							bSaw_backslash_x = FALSE; // restore default value for subsequent iterations
+						}
+					}
+					if (wholeMarker == _T("\\f*"))
+					{
+						if (!bSaw_backslash_f)
+						{
+							bRemoveIt = TRUE;
+						}
+						else
+						{
+							bSaw_backslash_f = FALSE; // restore default value for subsequent iterations
+						}
+					}
+					if (wholeMarker == _T("\\fe*"))
+					{
+						if (!bSaw_backslash_fe)
+						{
+							bRemoveIt = TRUE;
+						}
+						else
+						{
+							bSaw_backslash_fe = FALSE; // restore default value for subsequent iterations
+						}
+					}
+					if (bRemoveIt)
 					{
 						if (bRTFOutput)
 						{
-							itemLen = ParseMarkerRTF(pOld,pEnd);
+							itemLen = ParseMarkerRTF(pOld, pEnd);
 						}
 						else
 						{
@@ -18885,9 +19065,9 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 						// don't increment pNew here
 						continue; // BEW added 22June11, control needs to iterate if this block was entered
 					}
-				}
+				} // end of TRUE block for test: if (bIsEndMarker)
 
-				bHitMkr = TRUE;
+				//bHitMkr = TRUE; BEW removed 25Aug16
 				// for output filter purposes we treat all \bt... initial markers as simple \bt, so
 				// change any \bt... ones to just \bt
 				if (bareMarkerForLookup.Find(_T("bt")) == 0)
@@ -18918,10 +19098,19 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 						{
 							// just copy whatever we are pointing at and then advance
 							*pNew++ = *pOld++;
+							/*
+#if defined(_DEBUG)
+							if (((size_t)pNew - (size_t)pNewBuffStart) > (size_t)30)
+							{
+								wxString last30 = wxString(pNew - 30, 30);
+								wxLogDebug(_T("ApplyOutputFilterToText(): Getting corresponding end marker: pEnd = %x ,  Last 30 chars: %s"), pEnd, last30.c_str());
+							}
+#endif
+							*/
 						}
 						if (pOld < pEnd)
 						{
-							// we found a corresponding end marker to we need to parse it too
+							// we found a corresponding end marker so we need to parse it too
 							itemLen = pDoc->ParseMarker(pOld);
 							pOld += itemLen;
 							// don't increment pNew here
@@ -18967,8 +19156,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 						// That latin space then appears in the export, which is not wanted for ZWSP
 						// delimited text. So I've added code here to fix this. (The tweak is more
 						// complex than strictly necessary, because someone may un-#define 
-						// FWD_SLASH_DELIM, and without the #else block, that would break the app.
-//#if defined(FWD_SLASH_DELIM)
+						// FWD_SLASH_DELIM, and without the #else block, that would break the app.)
 						if (gpApp->m_bFwdSlashDelimiter)
 						{
 							while (*pOld == _T(' ')) { pOld += 1L; }
@@ -18980,6 +19168,15 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 							{
 								// just copy the new line or one space and then advance over it
 								*pNew++ = *pOld++;
+								/*
+#if defined(_DEBUG)
+								if (((size_t)pNew - (size_t)pNewBuffStart) > (size_t)30)
+								{
+									wxString last30 = wxString(pNew - 30, 30);
+									wxLogDebug(_T("ApplyOutputFilterToText(): Filtering: pEnd = %x ,  Last 30 chars: %s"), pEnd, last30.c_str());
+								}
+#endif
+								*/
 							}
 							//else
 							// remove any additional spaces
@@ -18990,24 +19187,9 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 								// don't increment pNew here
 							}
 						}
-//#else
-/*
-						if (*pOld == _T('\n') || *pOld == _T(' '))
-						{
-							// just copy the new line or one space and then advance over it
-							*pNew++ = *pOld++;
-						}
-						//else
-						// remove any additional spaces
-						if (*pOld == _T(' '))
-						{
-							itemLen = pDoc->ParseWhiteSpace(pOld);
-							pOld += itemLen;
-							// don't increment pNew here
-						}
-#endif */
+
 					}
-				}
+				} // end of TRUE block for test: if (MarkerIsToBeFilteredFromOutput(bareMarkerForLookup))
 				else
 				{
 					// not filtering
@@ -19022,6 +19204,15 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 						}
 					}
 					*pNew++ = *pOld++;
+					/*
+#if defined(_DEBUG)
+					if (((size_t)pNew - (size_t)pNewBuffStart) > (size_t)30)
+					{
+						wxString last30 = wxString(pNew - 30, 30);
+						wxLogDebug(_T("ApplyOutputFilterToText(): Not filtering the marker stuff: pEnd = %x ,  Last 30 chars: %s"), pEnd, last30.c_str());
+					}
+#endif
+					*/
 				}
 			}
 			else
@@ -19038,6 +19229,15 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 					}
 				}
 				*pNew++ = *pOld++;
+				/*
+#if defined(_DEBUG)
+				if (((size_t)pNew - (size_t)pNewBuffStart) > (size_t)30)
+				{
+					wxString last30 = wxString(pNew - 30, 30);
+					wxLogDebug(_T("ApplyOutputFilterToText(): Not a marker, just text: pEnd = %x , Last 30 chars: %s"), pEnd, last30.c_str());
+				}
+#endif
+				*/
 			}
 		}
 		*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
@@ -19059,6 +19259,12 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 // for filtering for RTF purposes, but only for (U)SFM output.
 // BEW 24Oct14, no changes needed for support of USFM nested markers (the markers involved
 // never are nested ones)
+// BEW 25Aug16 Refactored because bHitMkr is not FALSE when a \x* is present without an
+// antecedent \x, and so the rogue \x* did not get removed which in turn caused the
+// function to omit from the output the rest of the exported data following the \x*. I
+// will add code to improve the logic, and do brute force checks for errant \x* or \f*
+// to remove them robustly. (bHitMkr also removed, because once set it was never returned
+// to FALSE, so was useless as a a test for anything in later iterations)
 wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayString& bareMarkerArray)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -19071,12 +19277,19 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 	int itemLen = 0;
 	wxChar* pEnd = pBufStart + nTheLen;// bound past which we must not go
 	wxASSERT(*pEnd == _T('\0')); // ensure there is a null at end of Buffer
-	bool bHitMkr = FALSE;
+	//bool bHitMkr = FALSE; // BEW 25Aug16 removed, it plays no useful function
 	bool bIsAMarker = FALSE;
+	// BEW 25Aug16 added next ones, it is only when embedded content markers (footnotes, 
+	// cross references or endnotes) are improperly removed (by a human), leaving their 
+	// endmarker in the text, that the old algorithm failed to do what we want - so I'll
+	// code explicitly for these three...
+	bool bSaw_backslash_x = FALSE; // for cross references \x ... \x*
+	bool bSaw_backslash_f = FALSE; // for footnotes  \f ... \f*
+	bool bSaw_backslash_fe = FALSE; // for endnotes  \fe ... \fe*
+	bool bIsEndMarker = FALSE;
 
 	// Setup copy-to buffer from textStr2.
 	wxString textStr2;
-	//wxChar* pBuffer2;
 	wxChar* pEnd2;
 	// This buffer does not have, nor need a null char placed at the end of it. We assume
 	// being the same as pBuffer's size would be sufficient for all cases. Moreover, the
@@ -19098,15 +19311,63 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 		wxChar* pNew = pBuffer2; // destination
 		while (*pOld != (wxChar)0)
 		{
+			/*
+			// Found the error. an unmatchable \x*, isn't skipped over because bHitMkr is TRUE from an earlier iteration
+			// so that ParseMarkerAndAnyAssociatedText() tries to match a wholeMkr \x*, but a \x is a mismatch, and so
+			// is \x* because the latter function is trying to match \x** which of course never occurs, and so the characters
+			// skipped over are the whole rest of the document! To fix, I have to store begin markers, and set bHitMkr to FALSE
+			// when a matched \x* occurs, removing from the wxArrayString store all begin markers up to the matching \x and
+			// removing that \x as well. To make it work, if the removals don't remove all begin markers, then bHitMkr would
+			// be retained as TRUE, waiting for a matching endmarker. So a rogue \x* would fail to find a matching begin marker,
+			// and that should trigger setting bHitMkr to FALSE - so the rogue gets skipped over; if all markers removed, then
+			// bHitMkr should be set to FALSE as well, as there is nothing awaiting an endmarker matchup. Do it that way.
+			// This bug played havoc with the Jakarta workshop, due to someone leaving several \x* in the source text.
+			#if defined(_DEBUG) && defined(TRUNCATED)
+
+			if (
+			*pOld == _T('p') &&
+			*(pOld + 1) == _T('e') &&
+			*(pOld + 2) == _T('n') &&
+			*(pOld + 3) == _T('g') &&
+			*(pOld + 4) == _T('a') &&
+			*(pOld + 5) == _T('d') &&
+			*(pOld + 6) == _T('a') &&
+			*(pOld + 7) == _T('r') &&
+			*(pOld + 8) == _T('.') &&
+			*(pOld + 9) == _T('\\') &&
+			*(pOld + 10) == _T('x') &&
+			*(pOld + 11) == _T('*')
+			)
+			{
+			int break_here = 1;
+			}
+			#endif
+			*/
 			bIsAMarker = pDoc->IsMarker(pOld);
 			if (bIsAMarker)
 			{
 				// We're pointing at a marker. Look it up and see if we should skip over it and
 				// its associated text
 				wholeMarker = pDoc->GetWholeMarker(pOld); // the whole marker including backslash and any ending *
+				bIsEndMarker = pDoc->IsEndMarker(pOld, pEnd);
+				if (!bIsEndMarker && wholeMarker == _T("\\x"))
+				{
+					bSaw_backslash_x = TRUE; // leave it set TRUE until a matching \x* terminates the x-ref, 
+											 // and we clear this boolean to FALSE, and bHitMkr to FALSE also
+				}
+				if (!bIsEndMarker && wholeMarker == _T("\\f"))
+				{
+					bSaw_backslash_f = TRUE; // leave it set TRUE until a matching \f* terminates the x-ref, 
+											 // and we clear this boolean to FALSE, and bHitMkr to FALSE also
+				}
+				if (!bIsEndMarker && wholeMarker == _T("\\fe"))
+				{
+					bSaw_backslash_fe = TRUE; // leave it set TRUE until a matching \fe* terminates the x-ref, 
+											  // and we clear this boolean to FALSE, and bHitMkr to FALSE also
+				}
 
 				if (wholeMarker == _T("\\"))
-			{
+				{
 					*pNew++ = *pOld++;
 
 				// The tests below don't make sense for an isolated non-marker backslash,
@@ -19114,28 +19375,65 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 					// the top of the while loop
 					continue;
 				}
-
 				bareMarkerForLookup = pDoc->GetBareMarkerForLookup(pOld); // strips off backslash and any ending *
-				// if we encounter an end marker before its beginning form (as might happen if we
-				// are using the function on an m_endMarkers string , we want to check it
-				// for filtering in isolated fashion without parsing to find any associated text.
-				if (wholeMarker.Find(_T('*')) != wxNOT_FOUND && !bHitMkr)
+
+				// BEW 25Aug16, If we encounter an endmarker, then if its corresponding boolean is TRUE
+				// (ie. its beginmarker was seen in an earlier loop iteration), then we let the code further
+				// down do any filtering, if filtering is needed, and we do nothing at the code blocks
+				// here. But if the corresponding boolean is FALSE, we know we have come to an endmarker
+				// which is a relic left over from bad human editing, and it must be removed here in
+				// the blocks immediately below, and not be allowed to persist into the filtering
+				// code blocks further down - if it did so, the filtering attempt would never end,
+				// and cause the rest of the text to be removed from output!
+				bool bRemoveIt = FALSE;
+				if (bIsEndMarker)
 				{
-					// we hit this end marker before seeing a beginning marker in the input text
-					// if its non-end form is to be filtered we'll parse over it and omit it from
-					// the text, otherwise we'll leave it alone
-					if (IsBareMarkerInArray(bareMarkerForLookup, bareMarkerArray))
+					if (wholeMarker == _T("\\x*"))
+					{
+						if (!bSaw_backslash_x)
+						{
+							bRemoveIt = TRUE;
+						}
+						else
+						{
+							bSaw_backslash_x = FALSE; // restore default value for subsequent iterations
+						}
+					}
+					if (wholeMarker == _T("\\f*"))
+					{
+						if (!bSaw_backslash_f)
+						{
+							bRemoveIt = TRUE;
+						}
+						else
+						{
+							bSaw_backslash_f = FALSE; // restore default value for subsequent iterations
+						}
+					}
+					if (wholeMarker == _T("\\fe*"))
+					{
+						if (!bSaw_backslash_fe)
+						{
+							bRemoveIt = TRUE;
+						}
+						else
+						{
+							bSaw_backslash_fe = FALSE; // restore default value for subsequent iterations
+						}
+					}
+					if (bRemoveIt)
 					{
 						itemLen = pDoc->ParseMarker(pOld);
 						pOld += itemLen;
 						// don't increment pNew here
 						itemLen = pDoc->ParseWhiteSpace(pOld);
-						pOld += itemLen; // and don't increment pNew here
-						continue; // iterate
+						pOld += itemLen;
+						// don't increment pNew here
+						continue; // BEW added 22June11, control needs to iterate if this block was entered
 					}
-				}
+				} // end of TRUE block for test: if (bIsEndMarker)
 
-				bHitMkr = TRUE;
+				//bHitMkr = TRUE; BEW 25Aug16 removed
 				// for output filter purposes we treat all \bt... initial markers as simple \bt, so
 				// change any \bt... ones to just \bt
 				if (bareMarkerForLookup.Find(_T("bt")) == 0)
@@ -19207,19 +19505,36 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 						// removed, and if there was not a space before the begin marker, this
 						// makes a bogus coalescence of two words - so we need to retain at
 						// least one space
-						if (*pOld == _T('\n') || *pOld == _T(' '))
+						// BEW 23Apr15 added support for / being used as a word-break character.
+						// The problem here is that something being filtered out, doesn't get the
+						// latin space that was appended to markersPrefix string in the FromSingleMakeTstr()
+						// call in RebuildTargetText(), jumped over when m_bFwdSlashDelimiter is TRUE.
+						// That latin space then appears in the export, which is not wanted for ZWSP
+						// delimited text. So I've added code here to fix this. (The tweak is more
+						// complex than strictly necessary, because someone may un-#define 
+						// FWD_SLASH_DELIM, and without the #else block, that would break the app.)
+						if (gpApp->m_bFwdSlashDelimiter)
 						{
-							// just copy the new line or one space and then advance over it
-							*pNew++ = *pOld++;
+							while (*pOld == _T(' ')) { pOld += 1L; }
 						}
-						//else
-						// remove any additional spaces
-						if (*pOld == _T(' '))
+						else
 						{
-							itemLen = pDoc->ParseWhiteSpace(pOld);
-							pOld += itemLen;
-							// don't increment pNew here
+							// The legacy code, which leaves a single space or \n present in the output
+							if (*pOld == _T('\n') || *pOld == _T(' '))
+							{
+								// just copy the new line or one space and then advance over it
+								*pNew++ = *pOld++;
+							}
+							//else
+							// remove any additional spaces
+							if (*pOld == _T(' '))
+							{
+								itemLen = pDoc->ParseWhiteSpace(pOld);
+								pOld += itemLen;
+								// don't increment pNew here
+							}
 						}
+
 					}
 				}
 				else

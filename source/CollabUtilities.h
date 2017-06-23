@@ -129,13 +129,14 @@ class CBString;
 class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPList); macro 
 				// and defined in SourcePhrase.cpp WX_DEFINE_LIST(SPList); macro
 class CSourcePhrase;
+class CSetupEditorCollaboration;
 
 ///////////////////////////////////////////////////////////////////////////////////
 /// This group of functions are used for analysis of texts in order to get an updated text
 /// to return to the external editor
 ///////////////////////////////////////////////////////////////////////////////////
 	enum			EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
-						wxString compositeProjName,wxString editor,
+						wxString compositeProjName,wxString editor,wxString ptVersion,
 						wxString& emptyBooks,wxString& booksWithContent,wxString& errorMsg);
 	wxArrayString	BreakStringBufIntoChapters(const wxString& bookString);
 	bool			DoVerseAnalysis(const wxString& verseNum, VerseAnalysis& rVerseAnal); // return TRUE if is complex
@@ -276,6 +277,9 @@ class CSourcePhrase;
 	///   Functions for connecting  the externally obtained data into a new or existing
 	///   Adapt It project, and getting data out of the Adapt It document
 	/////////////////////////////////////////////////////////////////////////////////////
+    wxString        AddCollabBooksAndOrChaptersToProtectedCollabString(wxString currentString, wxString bookIDsorChapters);
+    wxString        RemoveCollabBooksOrChaptersFromProtectedCollabString(wxString currentString, wxString bookIDsorChapters);
+    bool            IsCollabDocProtectedFromSavingToEditor(wxString bookCode, bool bCollabByChapterOnly, wxString collabChapterSelected); // whm added 2February2017
 	bool			CollabProjectIsEditable(wxString projShortName);
 	bool			CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, 
 							wxString& tgtLangName, wxString& srcEthnologueCode, 
@@ -317,11 +321,14 @@ class CSourcePhrase;
 	///     to the external editor, when doing collaboration
 	/////////////////////////////////////////////////////////////////////////////////////
 	bool			BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName);
-	bool			CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEditor);
+	bool			CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEditor,wxString ptEditorVersion);
 	bool			CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName, 
-							wxString frtrCompositeProjName, wxString collabEditor,
+							wxString frtrCompositeProjName, wxString collabEditor, wxString ptEditorVersion,
 							wxString& errorStr, wxString& errorProjects);
-	wxString		GetPathToRdwrtp7(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
+    bool            CollabProjectsMigrated(wxString CollabSrcProjStr, wxString CollabTgtProjStr, wxString CollabFreeTransProjStr, 
+                            wxString CollabEditor, wxString PT7Version, wxString PT8Version);
+    wxString        GetCollabProjectGUID(wxString projCompositeName, wxString collabEditor, wxString ptEditorVersion);
+	wxString		GetPathToRdwrtp7(wxString ptVersion); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp // whm added parameter 17March2017
 	wxString		GetPathToBeRdwrt(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetBibleditInstallPath();  // used in GetSourceTextFromEditor::OnInit()
 	wxString		GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath, wxString bookCodeForID);
@@ -375,7 +382,7 @@ class CSourcePhrase;
 	// at the next normal shutdown
 	void	EmptyCollaborationTempFolder();
 	long	OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp);
-	void	OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
+	//void	OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
 
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -388,6 +395,17 @@ class CSourcePhrase;
 					wxArrayPtrVoid& conflictsArr);
 	void MeldConflictsUserCancelBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
 					wxArrayPtrVoid& conflictsArr);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    ///     Function for asking user to resolve inconsistent collab settings in project configuration
+    /////////////////////////////////////////////////////////////////////////////////////
+    int AskIfCollabSettingsBeRemovedFromProjConfig(
+        wxString aiProjName,
+        wxString editorNamedInConfig,
+        wxString collabProjForSrc,
+        wxString collabProjForTgt,
+        wxString collabProjForFreeTrans
+    );
 
 #endif
 

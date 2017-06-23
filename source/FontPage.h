@@ -70,9 +70,9 @@ public:
 	int			tempSourceSize;
 	int			tempTargetSize;
 	int			tempNavTextSize;
-	int			tempSourceFontStyle;
-	int			tempTargetFontStyle;
-	int			tempNavTextFontStyle;
+	wxFontStyle			tempSourceFontStyle;
+	wxFontStyle			tempTargetFontStyle;
+	wxFontStyle			tempNavTextFontStyle;
 	wxFontWeight	tempSourceFontWeight;
 	wxFontWeight	tempTargetFontWeight;
 	wxFontWeight	tempNavTextFontWeight;

@@ -254,13 +254,21 @@ void CToolbarPagePrefs::PopulateList()
  
         // Unchecked
         renderer_dc.SelectObject(unchecked_bmp);
+#if wxCHECK_VERSION(2,9,0)					
+        renderer_dc.SetBackground(*wxTheBrushList->FindOrCreateBrush(GetBackgroundColour(), wxBRUSHSTYLE_SOLID));
+#else
         renderer_dc.SetBackground(*wxTheBrushList->FindOrCreateBrush(GetBackgroundColour(), wxSOLID));
+#endif
         renderer_dc.Clear();
         wxRendererNative::Get().DrawCheckBox(this, renderer_dc, wxRect(0, 0, 16, 16), 0);
  
         // Checked
         renderer_dc.SelectObject(checked_bmp);
+#if wxCHECK_VERSION(2,9,0)					
+        renderer_dc.SetBackground(*wxTheBrushList->FindOrCreateBrush(GetBackgroundColour(), wxBRUSHSTYLE_SOLID));
+#else
         renderer_dc.SetBackground(*wxTheBrushList->FindOrCreateBrush(GetBackgroundColour(), wxSOLID));
+#endif
         renderer_dc.Clear();
         wxRendererNative::Get().DrawCheckBox(this, renderer_dc, wxRect(0, 0, 16, 16), wxCONTROL_CHECKED);
     }

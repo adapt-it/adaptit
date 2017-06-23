@@ -29,13 +29,23 @@
 #     clarity to the naming of the amd64 result folders.
 #   - Added test at beginning for 64 bit machine. Building 64-bit packages requires a
 #     64 bit machine.
+# Revised 2016-12-08 by Bill Martin
+#   - Add xenial and yakkety to OSRELEASES and UBUNTU_SUITES
+#   - Added build-essential to the DEVTOOLS list
+#   - Add "serena" to LinuxMint DIST aliases
+# Revised 2017-01-14 by Bill Martin
+#   - Always generates A05suffix hook and uses sed to update existing DEBFULLNAME and DEBEMAIL
+#   - Always generates A06makewx hook file to build static custom wx library within pbuilder chroot
+#   - Add echo comments to console output to more easily track progress 
+
 
 AID_GITURL="https://github.com/adapt-it/adaptit.git"
 PBUILDFOLDER=${PBUILDFOLDER:-$HOME/pbuilder}
+HOOKSDIR="/hooks"
 PROJECTS_DIR="$HOME/projects"	# AID development default file location for the adaptit repo
 PACKAGING_DIR="$HOME/packaging"      # default location for the packaging copy of the adaptit repo
-OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty utopic vivid wily sid"}
-DEVTOOLS="ubuntu-dev-tools debhelper pbuilder libtool quilt git subversion"
+OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty utopic vivid wily xenial yakkety sid"}
+DEVTOOLS="build-essential ubuntu-dev-tools debhelper pbuilder libtool quilt git subversion"
 BUILDDEPS="libwxgtk2.8-dev zip uuid-dev libcurl3-gnutls-dev"
 
 # The building of 64 bit packages requires that we are using a 64-bit architecture machine
@@ -55,19 +65,31 @@ then
   echo -e "\nScript was called without parameters."
   echo "Script Usage:"
   echo "  ./release.sh <tagged-release-number> \"<distro-names>\""
-  echo "for example:  ./release.sh 6.5.9 \"precise trusty vivid wily\""
+  echo "for example:  ./release.sh 6.8.1 \"precise trusty xenial\""
   echo "Notes: The tagged release number must be a valid up-to-date git tag in the repo"
   echo "       You can use the tagretag.sh script to create a current git tag if needed"
   echo "       Use quotes on distro names string if more than one distro is given"
   exit 1
 fi
 
+# Get any existing DEBFULLNAME and DEBEMAIL env values to put into the A05suffix hook file generated below
+SAVEDDEBFULLNAME=$DEBFULLNAME
+SAVEDDEBEMAIL=$DEBEMAIL
+
 # Install development tools as required
 sudo apt-get update && sudo apt-get upgrade -y
 sudo apt-get install $DEVTOOLS -y
 
-# Install ~/.pbuilderrc unless there already is one
-[ -f $HOME/.pbuilderrc ] || cat >$HOME/.pbuilderrc <<"EOF"
+# Always install/update the ~/.pbuilderrc pbuilder settings file
+# Note: Using << "EOF" to create HERE DOC parameter expansion is suppressed; 
+#       Using << EOF to create HERE DOC parameter expansion happens
+#[ -f $HOME/.pbuilderrc ] || cat >$HOME/.pbuilderrc <<"EOF"
+  cat >$HOME/.pbuilderrc <<"EOF"
+echo ""
+echo "******************************************************************************"
+echo " Begin executing the $HOME/.pbuilderrc pbuilder setup script "
+echo "******************************************************************************"
+
 # Codenames for Debian suites according to their alias.
 UNSTABLE_CODENAME="sid"
 TESTING_CODENAME="stretch"
@@ -78,7 +100,7 @@ DEBIAN_SUITES=($UNSTABLE_CODENAME $TESTING_CODENAME $STABLE_CODENAME \
     "experimental" "unstable" "testing" "stable")
 
 # List of Ubuntu suites. Update these when needed.
-UBUNTU_SUITES=("wily" "vivid" "utopic" "trusty" "saucy" "raring" "quantal" \
+UBUNTU_SUITES=("yakkety" "xenial" "wily" "vivid" "utopic" "trusty" "saucy" "raring" "quantal" \
     "precise" "oneiric" "natty" "maverick" "lucid" "karmic" "jaunty" \
     "intrepid" "hardy" "gutsy")
 
@@ -122,8 +144,14 @@ case "$DIST" in
     "rafaela")
         DIST="trusty"
         ;;
+    "sarah")
+        DIST="xenial"
+        ;;
+    "serena")
+        DIST="xenial"
+        ;;
 esac
-echo -e "\nDistribution DIST Codename is: $DIST"
+echo "Distribution DIST Codename is: $DIST"
 
 # Optionally set the architecture to the host architecture if none set. Note
 # that you can set your own default (i.e. ${ARCH:="i386"}).
@@ -169,25 +197,38 @@ APTCACHEHARDLINK=no
 #OTHERMIRROR="deb file://"$DEPDIR" ./"
 #BINDMOUNTS=$DEPDIR
 HOOKDIR=~/pbuilder/hooks
-#EXTRAPACKAGES="apt-utils"
+EXTRAPACKAGES="wget libgtk-3-dev libwxgtk3.0-dev" #"apt-utils"
 
 if [ x"$DIST" = x"lucid" ];then
     # Running a Ubuntu Lucid chroot.  Add lucid-updates mirror site too.
     OTHERMIRROR="deb http://us.archive.ubuntu.com/ubuntu/ ${DIST}-updates main restricted multiverse universe"
 fi
+echo "******************************************************************************"
+echo " Finished executing the $HOME/.pbuilderrc pbuilder setup script "
+echo "******************************************************************************"
 EOF
+# EOF of $HOME/.pbuilderrc
 
-# Install pbuilder hook to add a distro suffix to package versions
-mkdir -p ${PBUILDFOLDER}/hooks
-if [ ! -f ${PBUILDFOLDER}/hooks/A05suffix ]; then
-echo -e "\nCreating A05suffix hook file at: $PBUILDFOLDER/hooks/"
-  cat >${PBUILDFOLDER}/hooks/A05suffix <<"EOF"
+# Always install/update the pbuilder A05suffix hook to add a distro suffix to package versions
+mkdir -p ${PBUILDFOLDER}$HOOKSDIR
+# Note: Using << "EOF" to create HERE DOC parameter expansion is suppressed; 
+#       Using << EOF to create HERE DOC parameter expansion happens
+echo -e "\nCreating A05suffix hook file at: $PBUILDFOLDER$HOOKSDIR/"
+  cat >${PBUILDFOLDER}$HOOKSDIR/A05suffix <<"EOF"
 #!/bin/bash
 # pbuilder hook for adding distro name to package version
 #
 # Neil Mayhew - 2010-12-08
 # Jonathan Marsden - 2012-09-23 Added sed and changed build location
 # whm - 2015-06-24 Tweaked to recognize LinuxMint DIST aliases
+# whm - 2016-04-20 Added rosa => trusty and sarah => xenial DISTs
+# whm - 2016-12-09 Added serena => xenial DIST
+# whm - 2017-01-14 Always generates A05suffix hook and uses sed to update existing DEBFULLNAME and DEBEMAIL
+
+echo ""
+echo "******************************************************************************"
+echo " Begin executing the A05suffix pbuilder hook script "
+echo "******************************************************************************"
 
 TYPE=$(lsb_release -si)
 if [ x"$TYPE" = x"LinuxMint" ]; then
@@ -216,6 +257,12 @@ case "$DIST" in
     "rafaela")
         DIST="trusty"
         ;;
+    "sarah")
+        DIST="xenial"
+        ;;
+    "serena")
+        DIST="xenial"
+        ;;
 esac
 USER=$(id -un)
 HOST=$(uname -n)
@@ -224,29 +271,171 @@ export DEBEMAIL="$USER@$HOST"
 
 if [ "$TYPE" = Ubuntu ]
 then
+    echo ""
+    echo "******************************************************************************"
+    echo " Add $DIST to package version and remove trailing 1 from distribution suffix"
+    echo "******************************************************************************"
     cd ~/*/
     debchange --local=+$DIST "Build for $DIST"
-    # Removed unwanted trailing 1 from distribution suffix
+    # Remove unwanted trailing 1 from distribution suffix
     sed -i -e "1s/+${DIST}1/+${DIST}/" debian/changelog
 fi
+echo "******************************************************************************"
+echo " Finished A05suffix script and adding DIST name to package version"
+echo "******************************************************************************"
 EOF
-  # whm - 2015-06-24 Added. For initial setup and creation of the user's pbuilder/hooks/A05suffix
-  #       Just ask the user for their DEBFULLNAME and DEBEMAIL, which will get saved in their 
-  #       A05suffix hook file. Hard coded 'pbuilder' and '$USER@$HOST' values won't result in
-  #       usable packages for packages.sil.org/ubuntu. Now that the A05suffix file has been 
-  #       created we'll tweak it to substitute the user supplied DebFullName and DebEmail values
-  #       for DEBFULLNAME and DEBEMAIL.
+# end of EOF ${PBUILDFOLDER}$HOOKSDIR/A05suffix
+
+# whm - 2017-01-14 Added. For initial setup and creation of the user's pbuilder/hooks/A05suffix
+# file, we always generate the file using the HERE DOC, and substitute any DEBFULLNAME and DEBEMAIL
+# values that existed in the environment at the time this release.sh script is executed.
+# 
+# Test if SAVEDDEBFULLNAME contains anything other than null or "pbuilder"; if so use sed to 
+# substitute that existing value into the A05suffix hooks file; if not, query user for the 
+# correct value.
+if [ "x$SAVEDDEBFULLNAME" = "x" ] || [ x"$SAVEDDEBFULLNAME" = x"pbuilder" ]; then
   echo -e "\n"
   read -p "What is your DEBFULLNAME for authentication in debian packaging? " DebFullName
-  read -p "What is your DEBEMAIL for authentication in debian packaging? " DebEmail
   # Replace current value of DEBFULLNAME with user-specified $DebFillName value
-  sed -i "s/\(DEBFULLNAME *= *\).*/\1\"$DebFullName\"/" ${PBUILDFOLDER}/hooks/A05suffix
-  # Replace current value of DEBFULLNAME with user-specified $DebFillName value
-  sed -i "s/\(DEBEMAIL *= *\).*/\1\"$DebEmail\"/" ${PBUILDFOLDER}/hooks/A05suffix
-  chmod 0755 ${PBUILDFOLDER}/hooks/A05suffix
-  export DEBFULLNAME="$DebFullName"
-  export DEBEMAIL="$DebEmail"
+  DEBFULLNAME="$DebFullName"
 fi
+# Test if SAVEDDEBFULLNAME contains anything other than null or "pbuilder"; if so use sed to 
+# substitute that existing value into the A05suffix hooks file; if not, query user for the 
+# correct value.
+if [ "x$SAVEDDEBEMAIL" = "x" ] || [ x"$SAVEDDEBEMAIL" = x"$USER@$HOST" ]; then
+  echo -e "\n"
+  read -p "What is your DEBEMAIL for authentication in debian packaging? " DebEmail
+  # Replace current value of DEBEMAIL with user-specified $DebEmail value
+  DEBEMAIL="$DebEmail"
+fi
+sed -i "s/\(DEBFULLNAME *= *\).*/\1\"$DEBFULLNAME\"/" ${PBUILDFOLDER}$HOOKSDIR/A05suffix
+sed -i "s/\(DEBEMAIL *= *\).*/\1\"$DEBEMAIL\"/" ${PBUILDFOLDER}$HOOKSDIR/A05suffix
+chmod 0755 ${PBUILDFOLDER}$HOOKSDIR/A05suffix
+export DEBFULLNAME
+export DEBEMAIL
+
+echo -e "\nExisting value of DEBFULLNAME is: $SAVEDDEBFULLNAME"
+echo      "Existing value of DEBEMAIL is: $SAVEDDEBEMAIL"
+DebFullNameInA05suffix=`grep "DEBFULLNAME=" ${PBUILDFOLDER}$HOOKSDIR/A05suffix`
+DebEmailInA05suffix=`grep "DEBEMAIL=" ${PBUILDFOLDER}$HOOKSDIR/A05suffix`
+echo -e "\nValues of DEBFULLNAME and DEBEMAIL exported from ~/pbuilder/hooks/A05suffix:"
+echo "   $DebFullNameInA05suffix"
+echo "   $DebEmailInA05suffix"
+
+# Always install/update pbuilder hook to download, configure and build custom wxWidgets  
+# library for Xenial and later packages
+# Note: Using << "EOF" to create HERE DOC parameter expansion is suppressed; 
+#       Using << EOF to create HERE DOC parameter expansion happens
+echo -e "\nCreating A06makewx hook file at: $PBUILDFOLDER$HOOKSDIR/"
+  cat >${PBUILDFOLDER}$HOOKSDIR/A06makewx <<"EOF"
+#!/bin/bash
+# pbuilder hook to download, configure and build custom wxWidgets 3 
+# library for Xenial and later packages
+#
+# Bill Martin - 2017-01-14
+    
+echo ""
+echo "******************************************************************************"
+echo " Begin executing the A06makewx pbuilder hook script "
+echo "******************************************************************************"
+
+WXVER="3.0.2"
+WXDIR="$HOME/wxWidgets-$WXVER"
+RELEASEBUILDDIR="/buildgtku"
+DEBUGBUILDDIR="/buildgtkud"
+WXGZARCHIVE="wxWidgets-$WXVER.tar.bz2"
+SCRIPTNAME="makewx.sh"
+WX302URL="https://sourceforge.net/projects/wxwindows/files/$WXVER/wxWidgets-$WXVER.tar.bz2"
+DEBUGCONFIGOPTIONS="--enable-static --disable-shared --enable-monolithic --without-gtkprint --enable-debug"
+RELEASECONFIGOPTIONS="--enable-static --disable-shared --enable-monolithic --without-gtkprint"
+BUILDS="release" # Only do release build for packaging. The "debug" blocks of code below are skipped
+
+TYPE=$(lsb_release -si)
+if [ x"$TYPE" = x"LinuxMint" ]; then
+  TYPE="Ubuntu"
+fi
+DIST=$(lsb_release -sc)
+case "$DIST" in
+    $UNSTABLE_CODENAME)
+        DIST="sid"
+        ;;
+    $TESTING_CODENAME)
+        DIST="stretch"
+        ;;
+    $STABLE_CODENAME)
+        DIST="jessie"
+        ;;
+    "maya")
+        DIST="precise"
+        ;;
+    "qiana")
+        DIST="trusty"
+        ;;
+    "rebecca")
+        DIST="trusty"
+        ;;
+    "rafaela")
+        DIST="trusty"
+        ;;
+    "sarah")
+        DIST="xenial"
+        ;;
+    "serena")
+        DIST="xenial"
+        ;;
+esac
+echo -e "\nThe Modified Codename for Deveopment is: $DIST"
+
+if [ x"$DIST" = x"xenial" ]; then
+    cd
+    PWDDIR=`pwd`
+    echo "Current pwd Dir is: $PWDDIR"
+    echo ""
+    echo "******************************************************************************"
+    echo " Download, configure & build the wxWidgets $WXVER library for static linking "
+    echo "******************************************************************************"
+    echo ""
+    echo "******************************************************************************"
+    echo " Downloading and extracting source tree from $WXGZARCHIVE archive "
+    echo "******************************************************************************"
+    echo "Retrieving the $WXGZARCHIVE archive from $WX302URL..."
+    echo ""
+    wget --no-clobber --no-directories --no-check-certificate $WX302URL
+    echo "Expanding the $WXGZARCHIVE archive"
+    sleep 2
+    # can include v option to tar below for verbose output
+    tar xjf $WXGZARCHIVE
+
+    echo ""
+    echo "******************************************************************************"
+    echo " Configuring the wxWidgets $WXVER library"
+    echo "******************************************************************************"
+    mkdir -p $WXDIR$RELEASEBUILDDIR
+    cd $WXDIR$RELEASEBUILDDIR
+    echo "Configuring the $WXDIR$RELEASEBUILDDIR build using configure options: "
+    echo "   $RELEASECONFIGOPTIONS"
+    sleep 3
+    ../configure $RELEASECONFIGOPTIONS
+
+    echo ""
+    echo "******************************************************************************"
+    echo " Cleaning and Making the wxWidgets $WXVER library"
+    echo "******************************************************************************"
+    echo "Clean and Make the $WXDIR$RELEASEBUILDDIR library. Please wait..."
+    sleep 3
+    make clean
+    make
+    echo "******************************************************************************"
+    echo " Finished A06makewx script and building the wxWidgets $WXVER library"
+    echo "******************************************************************************"
+else
+    echo ""
+    echo "Skipping preparation of custom wxWidgets $WXVER library for $DIST"
+    echo ""
+fi
+EOF
+# end of EOF ${PBUILDFOLDER}$HOOKSDIR/A06makewx
+chmod 0755 ${PBUILDFOLDER}$HOOKSDIR/A06makewx
 
 # Install build dependencies
 echo -e "\nInstalling build dependencies"
@@ -260,70 +449,29 @@ echo -e "\nPreparing an adaptit repository at $PACKAGING_DIR/adaptit"
 mkdir -p $PACKAGING_DIR
 
 # whm - Modified 2015-06-30 Check for an existing adaptit git repo on the current machine
-# first at ~/packaging/adaptit from previous packaging efforts, and if not there, check 
-# at ~/projects/adaptit. If the repo is found at one of these locations, we can use it for
-# packaging the current release, giving preference to any repo at ~/projects/adaptit.
-# There should be a working copy of the repo at ~/projects/adaptit (particularly if the 
-# aid-dev-setup.sh script was used to set up the developer environment for AID on that machine). 
-# If the git repo exists there, that working adaptit repo will probably be more current than
-# a repo contained in ~/packaging/, and we should copy/sync that one over to ~/packaging/adaptit
-# totally replacing the one at ~/packaging/adaptit.
-# If no get repo exists at ~/projects/adaptit, we'll use any we find at ~/packaging/adaptit.
-# In either case we execute a 'git pull' on the repo now located at ~/packaging/adaptit before
-# continuing with the packaging process. Copying the repo from another location on the same 
-# machine and doing 'git pull' is always faster than starting from scratch doing a 'git clone'.
+# first at ~/packaging/adaptit from previous packaging efforts. If the repo is found there, 
+# we can use it for packaging the current release. We execute a 'git pull' on the repo 
+# at ~/packaging/adaptit before continuing with the packaging process. 
 # If no adaptit repo exits that we can reuse, we just do the git clone operation.
+# 
 cd $PACKAGING_DIR
-echo -e "\nChecking for a development git repo at: $PROJECTS_DIR/adaptit"
-if [ -f "$PROJECTS_DIR/adaptit/.git/config" ]; then
-  echo "Development git repo exists at: $PROJECTS_DIR/adaptit"
-  echo -e "\nChecking for existing repo at: $PACKAGING_DIR/adaptit ..."
-  if [ -f "$PACKAGING_DIR/adaptit/.git/config" ]; then
-    echo "A repo was found at: $PACKAGING_DIR/adaptit"
-    cd $PACKAGING_DIR/adaptit
-    echo "Doing 'git reset --hard' on the repo"
-    git reset --hard
-    echo "Doing 'git pull' on the repo"
-    git pull
-  else
-    echo "No repo found at: $PACKAGING_DIR/adaptit"
-    # The rsync options are:
-    #   -a archive mode (recurses thru dirs, preserves symlinks, permissions, times, group, owner)
-    #   -q quiet mode
-    #   --delete delete extraneous files from the destination dirs
-    #   --ignore-times (turns of quick check of file size and time stamp, causing all files to be 
-    #     updated. This is needed because it is possible for destination to have a newer time stamp
-    #     but out of date contents compared to the source location's files)
-    #   --checksum (compare a 128-bit checksum for each file that has a matching size)
-    #   --exclude="..." exclude these directories/files from the copy/sync process
-    echo -e "\nCopying/Syncing repo..."
-    echo      "  from $PROJECTS_DIR/adaptit/"
-    echo      "  to $PACKAGING_DIR/adaptit"
-    rsync -aq --delete --ignore-times --checksum --exclude="build_*" $PROJECTS_DIR/adaptit/ $PACKAGING_DIR/adaptit
 
-    cd $PACKAGING_DIR/adaptit
-    echo "Doing 'git reset --hard' on the repo"
-    git reset --hard
-    echo "Doing 'git pull' on the repo"
-    git pull
-  fi
+# Check for a git 'adaptit' repo in ~/packaging/ that we might be able to update and use.
+echo -e "\nChecking for a git repo at: $PACKAGING_DIR/adaptit"
+if [ -f "$PACKAGING_DIR/adaptit/.git/config" ]; then
+  echo "A repo was found at: $PACKAGING_DIR/adaptit"
+  cd $PACKAGING_DIR/adaptit
+  # The repo shouldn't have any code changes, but do a git reset --hard just in case
+  echo "Doing 'git reset --hard' on the repo"
+  git reset --hard
+  # Bring the local repo up to date
+  echo "Doing 'git pull' on the repo"
+  git pull
 else
-    echo "No repo found at: $PROJECTS_DIR/adaptit"
-  # Check for a git 'adaptit' repo in ~/packaging/ that we might be able to update and use.
-  echo -e "\nChecking for a git repo at: $PACKAGING_DIR/adaptit"
-  if [ -f "$PACKAGING_DIR/adaptit/.git/config" ]; then
-    echo "A repo was found at: $PACKAGING_DIR/adaptit"
-    cd $PACKAGING_DIR/adaptit
-    echo "Doing 'git reset --hard' on the repo"
-    git reset --hard
-    echo "Doing 'git pull' on the repo"
-    git pull
-  else
-    echo -e "\nCloning the Adapt It Desktop (AID) sources..."
-    echo      "  from: $AID_GITURL"
-    echo      "  to $PACKAGING_DIR/adaptit"
-    [ -d adaptit ] || git clone $AID_GITURL
-  fi
+  echo -e "\nCloning the Adapt It Desktop (AID) sources..."
+  echo      "  from: $AID_GITURL"
+  echo      "  to $PACKAGING_DIR/adaptit"
+  [ -d adaptit ] || git clone $AID_GITURL
 fi
 
 # Remove any existing adaptit-<tag> packaging repos if any already exist
@@ -407,6 +555,15 @@ for i in $OSRELEASES; do
   pbuilder-$i-i386 update --extrapackages "lsb-release devscripts"
   pbuilder-$i clean
   pbuilder-$i-i386 clean
+  
+  # TODO: Pass an option on Xenial that will change build configuration of AID to use 
+  # static and the custom wx library?
+  # Or, instead of working with the A06makewx hook script:
+  # Try calling pbuilder --execute <relative-path-to>/adaptit/scripts/makewx.sh "release" 
+  # for xenial and higher dists. Pbuilder doc says about its --execute command:
+  # "Execute a script or command inside the chroot, in a similar manner to --login 
+  # The file specified in the command-line argument will be copied into the chroot, and invoked.
+  # The remaining arguments are passed on to the script."
 
   # Build in each pbuilder
   echo -e "\nBuilding in each pbuilder with command:"

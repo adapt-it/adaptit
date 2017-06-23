@@ -50,6 +50,8 @@
 #include <wx/wx.h>
 #endif
 
+extern size_t aSequNum; // use with TOKENIZE_BUG
+
 #if defined(__VISUALC__) && __VISUALC__ >= 1400
 #pragma warning(disable:4428)	// VC 8.0 wrongly issues warning C4428: universal-character-name
 								// encountered in source for a statement like
@@ -72,14 +74,34 @@
 #include <wx/dir.h> // for wxDir
 #include <wx/propdlg.h>
 #include <wx/busyinfo.h>
-#include <wx/print.h>
 #include <wx/dynlib.h> // for wxDynamicLibrary
 
-#ifdef __WXGTK__
-#include <wx/dcps.h> // for wxPostScriptDC
-#else
-#include <wx/dcprint.h> // for wxPrinterDC
+// whm refactored printing 10Oct2016
+// ------------------------------------------------------------
+#if !wxUSE_PRINTING_ARCHITECTURE
+#error "You must set wxUSE_PRINTING_ARCHITECTURE to 1 in setup.h, and recompile the library."
 #endif
+
+#include <ctype.h>
+#include <wx/metafile.h>
+#include <wx/print.h>
+#include <wx/printdlg.h>
+#include <wx/image.h>
+#include <wx/accel.h>
+
+#if wxUSE_POSTSCRIPT
+#include <wx/generic/printps.h>
+#include <wx/generic/prntdlgg.h>
+#endif
+
+#if wxUSE_GRAPHICS_CONTEXT
+#include <wx/graphics.h>
+#endif
+
+#ifdef __WXMAC__
+#include <wx/osx/printdlg.h>
+#endif
+// ------------------------------------------------------------
 
 // includes below uncomment as implemented
 #include "Adapt_ItCanvas.h"
@@ -3485,13 +3507,30 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 {
-	// whm note: The code below is adapted from wxWidgets printing sample
+
+	CAdapt_ItApp* pApp = &wxGetApp();
+
+// TODO: Remove the following conditional block after fixing the printing issues 
+// on Linux Xenial using WX3.x.
+#if defined(__WXGTK__) && wxCHECK_VERSION(3,0,0)
+    // On Linux Xenial and newer distros which only have wx3.X notify the user of
+    // potential print preview and print to printer problems on Linux due to issues
+    // in the WX3.x library. Suggest that the user not print from within AI, but
+    // do Export-Import > Export Interlinear Text... and print from LibreOffice or
+    // MS Word for better, more stable results.
+    wxString msg = _T("Warning: The Print Preview and Print (to paper) functions in this version of Linux have some issues that may cause Adapt It to crash, so those Print functions have been disabled.\nYou can get a better view and/or print out of the document by doing the following:\n   On the Export-Import menu select Export Interlinear Text... and export the document to an RTF file.\n   Then open the document file in LibreOffice or Word, where you will be able to view or print the document.\n");
+    wxString title = _T("Printing Disabled");
+    wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+    pApp->LogUserAction(msg);
+    //return;
+#endif
+    
+    // whm note: The code below is adapted from wxWidgets printing sample
 	// See file:.\AIPrintout.cpp#print_flow for the order of calling of OnPrint().
 
 	gbIsBeingPreviewed = FALSE; // from MFC's OnPreparePrinting
 
-	CAdapt_ItApp* pApp = &wxGetApp();
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
     // BEW added 15Nov11  -- set up defaults for page range choice, 'no choice', PageOffsets the initial page only
     pApp->m_bPrintingPageRange = FALSE;
     pApp->m_userPageRangePrintStart = 1; // 1-base indexing
@@ -3538,7 +3577,7 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 			nTo = wxAtoi(strTo);
 			printDialogData.SetFromPage(nFrom);
 			printDialogData.SetToPage(nTo);
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
             // BEW added 15Nov11  -- a workaround because the Linux build loses the
             // nFrom and nTo values somewhere in the wxGnomeprinter framework
             pApp->m_bPrintingPageRange = TRUE;
@@ -3567,7 +3606,7 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 		pApp->m_nAIPrintout_Destructor_ReentrancyCount = 0;
 		pApp->m_bIsPrinting = FALSE;
 		pApp->LogUserAction(_T("Cancelled OnPrint()"));
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
         // BEW added 15Nov11  -- restore defaults for page range choice, 'no choice',
         // PageOffsets the initial page only
         pApp->m_bPrintingPageRange = FALSE;
@@ -3631,12 +3670,36 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 {
-	// whm note: The code below is adapted from wxWidgets printing sample
-	// See file:.\AIPrintout.cpp#print_flow for the order of calling of OnPrint().
-    // Pass two printout objects: for preview, and possible printing.
+    
 	CAdapt_ItApp* pApp = &wxGetApp();
 
-	// whm 25Sep11 modified. As I did in the PrintOptionsDlg::InitDialog() function,
+// TODO: Remove the following conditional block after fixing the printing issues 
+// on Linux Xenial using WX3.x.
+#if defined(__WXGTK__) && wxCHECK_VERSION(3,0,0)
+    // On Linux Xenial and newer distros which only have wx3.X notify the user of
+    // potential print preview and print to printer problems on Linux due to issues
+    // in the WX3.x library. Suggest that the user not print from within AI, but
+    // do Export-Import > Export Interlinear Text... and print from LibreOffice or
+    // MS Word for better, more stable results.
+    wxString msg = _T("Warning: The Print Preview and Print (to paper) functions in this version of Linux have some issues that may cause Adapt It to crash, so those Print functions have been disabled.\nYou can get a better view and/or print out of the document by doing the following:\n   On the Export-Import menu select Export Interlinear Text... and export the document to an RTF file.\n   Then open the document file in LibreOffice or Word, where you will be able to view or print the document.\n");
+    wxString title = _T("Print Preview Disabled");
+    wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+    pApp->LogUserAction(msg);
+    //return;
+#endif
+    
+    // whm note: The code below is adapted from wxWidgets printing sample
+	// See file:.\AIPrintout.cpp#print_flow for the order of calling of OnPrint().
+    // Pass two printout objects: for preview, and possible printing.
+
+#if wxCHECK_VERSION(3, 0, 0) // whm added 10Oct2016
+    // WX3.0 print sample uses a preview modality
+    wxPreviewFrameModalityKind m_previewModality;
+    m_previewModality = wxPreviewFrame_AppModal;
+#endif
+
+
+    // whm 25Sep11 modified. As I did in the PrintOptionsDlg::InitDialog() function,
 	// we should initialize the values of gbCheckInclGlossesText and gbCheckInclFreeTransText
 	// based on whether the document actually has such content or not. If the doc has
 	// free translations, we should include them in the Print Preview, otherwise we
@@ -3662,8 +3725,10 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 
     // BEW 5Oct11, we'll unilaterally Freeze(), and unlaterally later Thaw(), whether or
     // not we subsequently turn on glossing or free translation modality
-	pApp->GetMainFrame()->Freeze();
-	pApp->m_bFrozenForPrinting = TRUE;
+    // whm removed Freeze() below for Print Preview. It seems to relate to a crash in
+    // the frame->InitializeWithModality(m_previewModality) call below.
+	//pApp->GetMainFrame()->Freeze();
+	//pApp->m_bFrozenForPrinting = TRUE;
 
 	// klb 9/2011 : If glosses are not visible, we need to make them visible in the
 	// underlying document temporarily to have them show in the print preview frame
@@ -3691,7 +3756,8 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 										pApp->m_curOutputFilename.c_str());
 	printTitle = printTitle.Format(_T("Printing %s"),pApp->m_curOutputFilename.c_str());
 	// BEW 21Oct14 set high quality
-	pApp->pPrintData->SetQuality(wxPRINT_QUALITY_HIGH);
+    // whm 19Oct16 removed this SetQuality() call
+	//pApp->pPrintData->SetQuality(wxPRINT_QUALITY_HIGH);
     wxPrintDialogData printDialogData(*pApp->pPrintData);
 
 	// BEW fiddles, 20Oct14, trying to get PrintPreview to show other than fixed 25mm
@@ -3704,11 +3770,13 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	//pAIPrOut->MapScreenSizeToPageMargins(*pApp->pPgSetupDlgData); // produces no change
 	//pAIPrOut->MapScreenSizeToPaper(); // produces no change
 	//*
-	int w;
-	int h;
-	pAIPrOut->GetPageSizeMM(&w, &h);
-	wxSize imagesize(w,h);
-    pAIPrOut->FitThisSizeToPageMargins(wxSize(183,247), *pApp->pPgSetupDlgData);
+    // whm 19Oct16 commented out the FitThisSizePageMargings() call below
+	//int w;
+	//int h;
+	//pAIPrOut->GetPageSizeMM(&w, &h);
+	//wxSize imagesize(w,h);
+    //pAIPrOut->FitThisSizeToPageMargins(wxSize(183,247), *pApp->pPgSetupDlgData);
+
 	//wxRect fitRect = pAIPrOut->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData); // <<--DC still bad
 	//pAIPrOut->FitThisSizeToPaper(imagesize); // produces no change (still 25mm margins all round)
 	//*/
@@ -3766,7 +3834,12 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	//wxPreviewFrame *frame = new wxPreviewFrame(preview, pApp->GetMainFrame()
 	//							previewTitle, previewPosition, frameClientSize);
     // We positioned the preview frame explicitly, so don't call Centre() here
+#if wxCHECK_VERSION(3, 0, 0) // whm added 10Oct2016
+    // WX3.0 print sample uses a modality
+    frame->InitializeWithModality(m_previewModality);
+#else
     frame->Initialize();
+#endif
     frame->Show();
 	// klb 9/2011 : hide glosses if necessary
 	if (bHideGlosses == TRUE)
@@ -4625,7 +4698,7 @@ bool CAdapt_ItView::DoRangePrintOp(const int nRangeStartSequNum, const int nRang
     // Set up printer and screen DCs and determine the scaling factors between printer and screen.
 	wxASSERT(pApp->pPrintData->IsOk());
 
-#ifdef __WXGTK__
+#if defined(__WXGTK__) // print-related
 	// Linux requires we use wxPostScriptDC rather than wxPrinterDC
 	// Note: If the Print Preview display is drawn with text displaced up and off the display on wxGTK,
 	// the wxWidgets libraries probably were not configured properly. They should have included a
@@ -4682,7 +4755,7 @@ bool CAdapt_ItView::DoRangePrintOp(const int nRangeStartSequNum, const int nRang
    return TRUE;
 }
 
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
 bool CAdapt_ItView::SetupPageRangePrintOp(const int nFromPage, int nToPage, wxPrintData* pPrintData)
 {
     CAdapt_ItApp* pApp = &wxGetApp();
@@ -5248,7 +5321,7 @@ e:	;
     // Set up printer and screen DCs and determine the scaling factors between printer and screen.
 	wxASSERT(pApp->pPrintData->IsOk());
 
-#ifdef __WXGTK__
+#if defined(__WXGTK__)
 	// Linux requires we use wxPostScriptDC rather than wxPrinterDC
 	// Note: If the Print Preview display is drawn with text displaced up and off the display on wxGTK,
 	// the wxWidgets libraries probably were not configured properly. They should have included a
@@ -5454,7 +5527,6 @@ void CAdapt_ItView::OnUnits(wxCommandEvent& WXUNUSED(event))
 /// pixels, and from those we internally constuct a local fitRect based on the paper size - and then
 /// we calculate the footer location as a half inch higher than the bottom of the paper.
 /////////////////////////////////////////////////////////////////////////////////
-#if !defined(__WXGTK__)
 void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFactor, int page)
 {
     // whm Note: This function's signature has been revised for the wx version. The fitRect
@@ -5505,7 +5577,7 @@ void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFac
 	wxFont* pFont;
 	pFont = new wxFont(*wxNORMAL_FONT);
 	pFont->SetPointSize(10);
-	pFont->SetWeight(wxBOLD);
+	pFont->SetWeight(wxFONTWEIGHT_BOLD);
 	pDC->SetTextForeground(*wxBLACK);
 	pDC->SetFont(*pFont);
 
@@ -5634,9 +5706,8 @@ void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFac
 	if (pFont != NULL) // whm 11Jun12 added NULL test
 		delete pFont;
 }
-#endif
 
-#if defined(__WXGTK__)
+#if defined(__WXGTK__) // print-related
 void  CAdapt_ItView::PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint marginBottomRight, wxPoint paperDimensions,
                 float logicalUnitsFactor, int page)
 {
@@ -5707,7 +5778,7 @@ void  CAdapt_ItView::PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint margi
 	wxFont* pFont;
 	pFont = new wxFont(*wxNORMAL_FONT);
 	pFont->SetPointSize(10);
-	pFont->SetWeight(wxBOLD);
+	pFont->SetWeight(wxFONTWEIGHT_BOLD);
 	pDC->SetTextForeground(*wxBLACK);
 	pDC->SetFont(*pFont);
 
@@ -5815,7 +5886,6 @@ void  CAdapt_ItView::PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint margi
 		delete pFont;
 }
 #endif
-
 
 // wxWidgets Note: This function in the MFC version was called CreateBox, but I've combined
 // its functionality and that of ResizeBox into a single function now called ResizeBox in
@@ -6176,6 +6246,10 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 	// get rid of the spaces
 	// BEW 21Jul14, ZWSP support: keep this as latin space
 	gSpacelessTgtPunctuation.Replace(_T(" "), _T(""));
+
+	// TokenizeText also needs m_strSpacelessSourcePuncts reset, & target ones
+	pApp->m_strSpacelessSourcePuncts = MakeSpacelessPunctsString(pApp, sourceLang);
+	pApp->m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(pApp, targetLang);
 
     // BEW 22May09 moved idle processing down to here so that idle events won't come before
     // the m_pActivePile has a chance to be reset to the valid active pile resulting from
@@ -8081,6 +8155,8 @@ bool CAdapt_ItView::IsMarkerWithSpaceInFilterMarkersString(wxString& mkrWithSpac
 // phrase - our copy copies the selection's target text, not the source text.
 // BEW 21Jul14, refactored for ZWSP support (& take into account whether its in a
 // retranslation or not, or overlapping one) 
+// BEW refactored 31Jul16 so that if called when ALT key is down, it instead copies
+// the selected m_srcPhrase instances to the clipboard
 void CAdapt_ItView::DoSrcPhraseSelCopy()
 {
 	// refactored 7Apr09
@@ -8092,6 +8168,13 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 	CCellList::Node* pos = pCellList->GetFirst();
 	if (pos == NULL)
 		return;
+
+	wxTheClipboard->Clear();
+
+	bool bAltDown = pApp->m_bALT_KEY_DOWN;
+	wxLogDebug(_T("DoSrcPhraseSelCopy(): app::m_bALT_KEY_DOWN = %s"), 
+		(wxString(pApp->m_bALT_KEY_DOWN ? _T("TRUE") : _T("FALSE"))).c_str());
+
 	if (pApp->m_selectionLine == 0)
 	{
 		while (pos != NULL)
@@ -8105,7 +8188,19 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 
 			if (pCell->GetPile() == pApp->m_pActivePile)
 			{
-				if (!pApp->m_targetPhrase.IsEmpty())
+				if (bAltDown)
+				{
+					if (!pSrcPhrase->m_srcPhrase.IsEmpty())
+					{
+						if (str.IsEmpty())
+							str = pSrcPhrase->m_srcPhrase;
+						else
+						{
+							str += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase;
+						}
+					}
+				}
+				else
 				{
 					if (!pApp->m_targetPhrase.IsEmpty())
 					{
@@ -8123,46 +8218,64 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 							}
 						}
 					}
-				}
-			}
+				} // end of else block for test: if (bAltDown)
+			} // end of TRUE block for test: if (pCell->GetPile() == pApp->m_pActivePile)
 			else
 			{
-				if (str.IsEmpty())
+				if (bAltDown)
 				{
-					if (gbIsGlossing)
+					if (str.IsEmpty())
 					{
-						if (!pSrcPhrase->m_gloss.IsEmpty())
-							str = pSrcPhrase->m_gloss;
+						if (!pSrcPhrase->m_srcPhrase.IsEmpty())
+							str = pSrcPhrase->m_srcPhrase;
 					}
 					else
 					{
-						if (!pSrcPhrase->m_targetStr.IsEmpty())
-							str = pSrcPhrase->m_targetStr;
+						if (!pSrcPhrase->m_srcPhrase.IsEmpty())
+						{
+							str += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase;
+						}
 					}
-				}
+				} // end of TRUE block for test: if (bAltDown)
 				else
 				{
-					if (gbIsGlossing)
+					if (str.IsEmpty())
 					{
-						if (!pSrcPhrase->m_gloss.IsEmpty())
-							str += _T(" ") + pSrcPhrase->m_gloss;
+						if (gbIsGlossing)
+						{
+							if (!pSrcPhrase->m_gloss.IsEmpty())
+								str = pSrcPhrase->m_gloss;
+						}
+						else
+						{
+							if (!pSrcPhrase->m_targetStr.IsEmpty())
+								str = pSrcPhrase->m_targetStr;
+						}
 					}
 					else
 					{
-						if (!pSrcPhrase->m_targetStr.IsEmpty())
+						if (gbIsGlossing)
 						{
-							if (pSrcPhrase->m_bRetranslation)
+							if (!pSrcPhrase->m_gloss.IsEmpty())
+								str += _T(" ") + pSrcPhrase->m_gloss;
+						}
+						else
+						{
+							if (!pSrcPhrase->m_targetStr.IsEmpty())
 							{
-								str += PutTgtWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;	
-							}
-							else
-							{
-								str += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;	
+								if (pSrcPhrase->m_bRetranslation)
+								{
+									str += PutTgtWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;
+								}
+								else
+								{
+									str += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;
+								}
 							}
 						}
 					}
-				}
-			}
+				} // end of else block for test: if (bAltDown)
+			} // end of else block for test: if (pCell->GetPile() == pApp->m_pActivePile)
 		}
 	}
 	else
@@ -10144,7 +10257,19 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
             // translation, because very seldom will that be useful - mostly the user has
             // to delete such additions, so from now on we will suppress the copy operation
             // using a local flag set here.
-			bSuppressCopyingExtraSourceWords = TRUE;
+			// BEW 12Jan17 RickNivens found CC didn't work with a merger. Testing reveals
+			// it is because this next flag was unilaterally set TRUE. It needs to be FALSE
+			// if one or more CC tables is in operation, so that strOldAdaptation will
+			// accumulate CC-processed substrings from the m_key members of the pSrcPhrase
+			// instances. So add the needed test
+			if (pApp->m_bUseConsistentChanges)
+			{
+				bSuppressCopyingExtraSourceWords = FALSE;
+			}
+			else
+			{
+				bSuppressCopyingExtraSourceWords = TRUE;
+			}
 		}
 		else
 		{
@@ -10180,12 +10305,23 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 				bOK = bOK; // avoid warning
 				gbInhibitMakeTargetStringCall = FALSE;
 			}
+			// BEW 12Jan17 added this test - copied from block above, see comments in block above for why
+			if (pApp->m_bUseConsistentChanges)
+			{
+				bSuppressCopyingExtraSourceWords = FALSE;
+			}
+			else
+			{
+				bSuppressCopyingExtraSourceWords = TRUE;
+			}
 
 			// get the first translation string, or something possibly useful, into the list
 			if (pSrcPhrase->m_targetStr.IsEmpty())
 			{
 				if (pApp->m_bCopySource)
+				{
 					strOldAdaptation = CopySourceKey(pSrcPhrase, pApp->m_bUseConsistentChanges);
+				}
 			}
 			else
 			{
@@ -13568,8 +13704,14 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 	gbByCopyOnly = TRUE;
 
 	wxString str2 = _T("");
+	// BEW 13Jan17 Need to make CTargetBox's m_pAbandonable boolean be FALSE if
+	// DoConsistentChanges() causes a change which makes the word differ from
+	// m_key. Otherwise, the change is not saved to the KB if the user does no
+	// editing or a click in the phasebox. A CC change should be equivalent to
+	// a user edit, in terms of how the KB works and GUI displays.
 	if (bUseConsistentChanges)
 	{
+		wxString saveWord = str;
 		// these added spaces are automatically stripped before storage takes place, after cc
 		// has had its chance to apply, so no harm is done by these additions
 		str = _T(" ") + str;
@@ -13577,6 +13719,20 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 
 		// apply to the merged string (ie. merged with whatever is returned here)
 		str2 = DoConsistentChanges(str);
+
+		if (gbLegacySourceTextCopy)
+		{
+			//BEW 13Jan17  str2 may have temporary initial & final spaces
+			// still present so get rid of them before testing for inequality
+			wxString str3 = str2; 
+			str3.Trim(FALSE);
+			str3.Trim(TRUE);
+			if (str3 != saveWord)
+			{
+				// Prevent the result from being abandonable
+				pApp->m_pTargetBox->m_bAbandonable = FALSE;
+			}
+		}
 
 		if (str2 != str)
 		{
@@ -15789,6 +15945,9 @@ int CAdapt_ItView::TokenizeTextString(SPList* pNewList, wxString& str, int nInit
 	int	length = str.Length();
 	if (!str.IsEmpty())
 	{
+#if defined(_DEBUG) && defined(TOKENIZE_BUG)
+		aSequNum = 0;
+#endif
 		return pDoc->TokenizeText(nInitialSequNum,pNewList,str,length);
 	}
 	else
@@ -21886,7 +22045,12 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 #if defined(_DEBUG)
 		//wxLogDebug(_T("EditedSrc BEFORE: %s"), (*pBuffer).c_str());
 #endif
-		*pBuffer = RemoveAllCRandLF(pBuffer);
+		// BEW 29Jun16 Bev Erasmus (Madagascar) got a crash, it possibly is due to
+		// doing these removals so I'm commenting this out, and will test. Besides,
+		// now that we save the word delimiters, it is no longer appropriate to remove
+		// the CR & LF characters
+		//*pBuffer = RemoveAllCRandLF(pBuffer);
+
 		pApp->m_nInputFileLength = pBuffer->Len();
 #if defined(_DEBUG)
 		//wxLogDebug(_T("EditedSrc AFTER: %s"), (*pBuffer).c_str());
@@ -21930,8 +22094,13 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 		// compute the new list from the old one plus the tokenized newly updated list
 		if (nHowMany > 0)
 		{
-			MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, pMergedList, nSpanLimit);
-
+			bool bIsPossible = MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, 
+														pMergedList, nSpanLimit);
+			if (!bIsPossible)
+			{
+				return; // detected merger is impossible - perhaps a different language's 
+						// text was wrongly tried
+			}
             // take the pMergedList list, delete the app's m_pSourcePhrases list's
             // contents, & move to m_pSourcePhrases the pointers in pMergedList...
  			SPList::Node* posCur = pApp->m_pSourcePhrases->GetFirst();
@@ -30480,3 +30649,4 @@ void CAdapt_ItView::ShowGlosses()
 	Invalidate();
 	GetLayout()->PlaceBox();
 }
+

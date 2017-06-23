@@ -4072,6 +4072,12 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				{
 					gpEmbeddedSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
 				}
+				else if (gnDocVersion >= 10 && attrName == xml_fiA)
+				{
+#if !defined(USE_LEGACY_PARSER)
+					gpEmbeddedSrcPhrase->SetFilteredInfo_After(gpApp->Convert8to16(attrValue));
+#endif
+				}
 				// next 4 for docVersion = 6 support
 				else if (gnDocVersion >= 6 && attrName == xml_lapat)
 				{
@@ -4218,6 +4224,12 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				else if (attrName == xml_fi)
 				{
 					gpSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
+				}
+				else if (gnDocVersion >= 10 && attrName == xml_fiA)
+				{
+#if !defined(USE_LEGACY_PARSER)
+					gpSrcPhrase->SetFilteredInfo_After(gpApp->Convert8to16(attrValue));
+#endif
 				}
 				// next 4 for docVersion = 6 support
 				else if (gnDocVersion >= 6 && attrName == xml_lapat)
@@ -4562,6 +4574,9 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 			// use calls for an export - in which case it needs to be put into the export
 			// at the appropriate places, but until then we just squirrel it away and
 			// forget about it
+			// BEW Dec 2016 - changed the export functions a few years ago so that they no
+			// longer automatically unfilter to the export. Now, they are stored and are
+			// unused until an explicit choice by the user to unfilter something
 			wxString filteredInfo = ExtractWrappedFilteredInfo(strModifiers, strFreeTrans,
 				strNote, strCollectedBackTrans, strRemainder);
 			if (!strFreeTrans.IsEmpty())
@@ -7768,7 +7783,7 @@ wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strF
 		// we have to discern between \bt and a \bt-derived marker, the former's content
 		// goes in m_collectedBackTrans member, the latter into m_filteredInfo; we can do
 		// this by searching for "\\bt " - the space will be present if collected back
-		// translation informion is in this unwrapped string
+		// translation information is in this unwrapped string
 		bool bIsOurBTMkr = FALSE;
 		if (innerStr.Find(_T("\\bt ")) != wxNOT_FOUND)
 		{

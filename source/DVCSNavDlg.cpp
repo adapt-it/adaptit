@@ -55,7 +55,7 @@ END_EVENT_TABLE()
 
 
 DVCSNavDlg::DVCSNavDlg(wxWindow *parent)
-                : AIModalDialog (   parent, -1, wxString(_T("Earlier Document Version")),
+                : AIModalDialog (   parent, -1, wxString(_("Earlier Document Version")),
                                     wxDefaultPosition,
                                     wxDefaultSize,
                                     wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)

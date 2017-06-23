@@ -221,6 +221,35 @@ private:
 	wxString		m_tgtWordBreak; // this one is only needed for retranslations, because they may
 									// distribute spaces & ZWSP differently than in the selected source text
 				// where entity is of the form  &#hhhh;  hhhh is uppercase hex digits for the unicode codepoint
+#if !defined(USE_LEGACY_PARSER)
+public:
+	//==== Functions etc added by BEW March 2017 for support of storing post-word filtered markers on current CSourcePhase ====
+	wxArrayString tempSavedMetadata; // needed because ViewFilteredMaterialDlg stores free trans, notes, collected back trans first
+	wxArrayString tempSavedBeginMkr; // need for same reason as above
+	wxArrayString arrSavedFilteredItemsPostwordMetadata; // store empty string if none, else whatever is the [[after .... ]] metadata string
+	wxArrayString arrSavedFilteredItemsPostwordBeginMkrs; // store the filtered whole marker of the filtered content
+	bool IsFilterItemWithPostWordMetadata(wxString& filteredItem, wxString& itemMetadata, wxString& itemBeginMkr);
+	wxString RemovePostWordMetadata(wxString& filteredItem);
+	wxString filteredItem;
+	wxString itemMetadata;
+	wxString itemBeginMkr;
+	bool bHasPostWordMetadata; // TRUE when it has a metadata string for post-word filtering,
+							   // FALSE when not (Beware: it says nothing about any pre-word metadata, if any exists)
+							   // That is, if there is pre-word metadata, but no post word metadata, this flag is FALSE
+private:
+	// BEW added 14Apr17
+	wxString m_filteredInfo_After; // Store post-word originating filtered markers (plus content and endmarker) here
+								   // This is the postword equivalent of the preword filtered info storage, m_filteredInfo
+
+public:
+	wxString GetFilteredInfo_After();
+	void AddToFilteredInfo_After(wxString filteredInfo_After);
+	void SetFilteredInfo_After(wxString filteredInfo_After);
+
+//==== End of BEW added stuff for post-word filtered marker storage ======
+#endif
+
+
 
 // Operations
 public:
@@ -257,10 +286,18 @@ public:
 	wxString GetNote();
 	wxString GetCollectedBackTrans();
 	wxString GetFilteredInfo();
-	bool	 GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers, 
-									wxArrayString* pFilteredEndMarkers,
-									wxArrayString* pFilteredContent,
-									bool bUseSpaceForEmpty = FALSE);
+	bool	 GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers,
+		wxArrayString* pFilteredEndMarkers,
+		wxArrayString* pFilteredContent,
+		bool bUseSpaceForEmpty = FALSE);
+
+#if !defined(USE_LEGACY_PARSER)
+
+	bool	 GetFilteredInfo_AfterAsArrays(wxArrayString* pFilteredMarkers_After,
+		wxArrayString* pFilteredEndMarkers_After,
+		wxArrayString* pFilteredContent_After,
+		bool bUseSpaceForEmpty_After = FALSE); // BEW added 18Apr17
+#endif
 	wxString GetEndMarkers();
 	bool GetEndMarkersAsArray(wxArrayString* pEndmarkersArray); // return FALSE if empty, else TRUE
 	//bool GetAllEndMarkersAsArray(wxArrayString* pEndmarkersArray); // ditto, gets not just from
@@ -270,9 +307,21 @@ public:
 	void SetCollectedBackTrans(wxString collectedBackTrans);
 	void AddToFilteredInfo(wxString filteredInfo);
 	void SetFilteredInfo(wxString filteredInfo);
+	// BEW 18Apr17, added two ptrs to the following function, for the arrays for storing
+	// info from m_filteredInfo (the legacy member) and the new member m_filteredInfo_After
+	// for storage of filtered info filtered from after the word but belonging to its
+	// CSourcePhrase. The two extra arrays enable internal working out of which data goes
+	// to m_filteredInfo, and which to m_filteredInfo_After. The first three arrays of this
+	// function are the legacy ones, and are based on the list items - so are a mash of
+	// data from both m_filteredInfo and m_filteredInfo_After. The extra ones allow us
+	// to unmash when re-storing (in case there are edits done by the user)
 	void SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers, 
 									wxArrayString* pFilteredEndMarkers,
 									wxArrayString* pFilteredContent,
+									wxArrayString* pFilteredMkrs_Before,
+#if !defined(USE_LEGACY_PARSER)
+									wxArrayString* pFilteredMkrs_After,
+#endif
 									bool bChangeSpaceToEmpty = FALSE);
 	void SetEndMarkers(wxString endMarkers);
 	void AddEndMarker(wxString endMarker);

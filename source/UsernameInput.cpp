@@ -85,10 +85,10 @@ void UsernameInputDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	// and for the informal username text box
 	pInformalUsernameTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_INFORMAL);
 
-	usernameMsgTitle = _T("Warning: No Unique Username");
-	usernameMsg = _T("You must supply a username in the Unique Username text box.");
-	usernameInformalMsgTitle = _T("Warning: No Informal Username");
-	usernameInformalMsg = _T("You must supply an informal username in the Informal Username text box.\nWhat you type will not be made public.\nA false name is acceptable if your co-workers know it.");
+	usernameMsgTitle = _("Warning: No Unique Username");
+	usernameMsg = _("You must supply a username in the Unique Username text box.");
+	usernameInformalMsgTitle = _("Warning: No Informal Username");
+	usernameInformalMsg = _("You must supply an informal username in the Informal Username text box.\nWhat you type will not be made public.\nA false name is acceptable if your co-workers know it.");
 
     // Transfer the m_strUserID username string (loaded from basic config file before
     // InitDialog() is called) to the pUsernameTextCtrl textbox where the user can do

@@ -15,6 +15,7 @@
 					<Add option="-g" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
+					<Add option="-D_UNICODE" />
 				</Compiler>
 				<Linker>
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
@@ -43,10 +44,9 @@
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="1" />
-				<Option projectIncludeDirsRelation="1" />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
+					<Add option="`/wx28/buildgtkud/wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
 					<Add option="-D_KBSERVER" />
 					<Add directory="/wx28/include" />
@@ -57,23 +57,24 @@
 					<Add library="/wx28/buildgtkud/lib/*.*" />
 				</Linker>
 			</Target>
-			<Target title="DebugWX2.9">
-				<Option output="bin/DebugWX2.9/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/DebugWX2.9/" />
+			<Target title="ReleaseWX2.8">
+				<Option output="bin/ReleaseWX2.8/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/DebugWX2.8/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
-					<Add option="-g" />
-					<Add option="`/wx29/buildgtkud/wx-config  --version=2.9 --unicode=yes --debug=yes --cppflags`" />
+					<Add option="-O2" />
+					<Add option="`/wx28/buildgtku/wx-config  --version=2.8 --unicode=yes --debug=no --cppflags`" />
 					<Add option="-D_DEBUG" />
 					<Add option="-D_KBSERVER" />
-					<Add directory="/wx29/include" />
+					<Add directory="/wx28/include" />
 				</Compiler>
 				<Linker>
-					<Add option="`/wx29/buildgtkud/wx-config  --version=2.9 --unicode=yes --debug=yes --libs`" />
+					<Add option="-s" />
+					<Add option="`/wx28/buildgtkud/wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
 					<Add option="-lcurl -luuid" />
-					<Add library="/wx29/buildgtkud/lib/*.*" />
+					<Add library="/wx28/buildgtkud/lib/*.*" />
 				</Linker>
 			</Target>
 			<Target title="DebugWX3.0">
@@ -92,33 +93,82 @@
 				<Linker>
 					<Add option="`/wx30/buildgtkud/wx-config  --version=3.0 --unicode=yes --debug=yes --libs`" />
 					<Add option="-lcurl -luuid" />
-					<Add library="/wx30/buildgtkud/lib/*.*" />
 				</Linker>
 			</Target>
-			<Target title="DebugWX-svn">
-				<Option output="bin/DebugWX-svn/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/DebugWX-svn/" />
+			<Target title="ReleaseWX3.0">
+				<Option output="bin/ReleaseWX3.0/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseWX3.0/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="`/wx30/buildgtku/wx-config  --version=3.0 --unicode=yes --debug=no --cppflags`" />
+					<Add directory="/wx30/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="`/wx30/buildgtku/wx-config  --version=3.0 --unicode=yes --debug=no --libs`" />
+					<Add option="-lcurl -luuid" />
+				</Linker>
+			</Target>
+			<Target title="DebugWX3Static">
+				<Option output="bin/DebugWX3Static/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/DebugWX3Static/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="`/wx-svn/buildgtkud/wx-config  --version=2.9 --unicode=yes --debug=yes --cppflags`" />
+					<Add option="`$(GET_DOCUMENTS_DIR)/wxWidgets-3.0.2/buildgtkud/wx-config  --version=3.0 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
 					<Add option="-D_KBSERVER" />
-					<Add directory="/wx-svn/include" />
+					<Add directory="$(GET_DOCUMENTS_DIR)/wxWidgets-3.0.2/include" />
 				</Compiler>
 				<Linker>
-					<Add option="`/wx-svn/buildgtkud/wx-config  --version=2.9 --unicode=yes --debug=yes --libs`" />
+					<Add option="`$(GET_DOCUMENTS_DIR)/wxWidgets-3.0.2/buildgtkud/wx-config  --version=3.0 --unicode=yes --debug=yes --libs`" />
 					<Add option="-lcurl -luuid" />
-					<Add library="/wx-svn/buildgtkud/lib/*.*" />
 				</Linker>
+				<ExtraCommands>
+					<Add before='echo &quot;The  Home directory is $(GET_DOCUMENTS_DIR)&quot;' />
+					<Add before='echo -e &quot;\nCalling the makewx.sh script&quot;' />
+					<Add before="sleep 4" />
+					<Add before='bash ../../scripts/makewx.sh &quot;debug&quot;' />
+					<Add before='echo -e &quot;\nThe makewx.sh script completed&quot;' />
+					<Add before='echo -e &quot;\n\nNow building the Debug version of  Adapt It.&quot;' />
+					<Add before="sleep 4" />
+				</ExtraCommands>
+			</Target>
+			<Target title="ReleaseWX3Static">
+				<Option output="bin/ReleaseWX3Static/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseWX3Static/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="`$(GET_DOCUMENTS_DIR)/wxWidgets-3.0.2/buildgtku/wx-config  --version=3.0 --unicode=yes --debug=no --cppflags`" />
+					<Add directory="$(GET_DOCUMENTS_DIR)/wxWidgets-3.0.2/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="`$(GET_DOCUMENTS_DIR)/wxWidgets-3.0.2/buildgtku/wx-config  --version=3.0 --unicode=yes --debug=no --libs`" />
+					<Add option="-lcurl -luuid" />
+				</Linker>
+				<ExtraCommands>
+					<Add before='echo &quot;The  Home directory is $(GET_DOCUMENTS_DIR)&quot;' />
+					<Add before='echo -e &quot;\nCalling the makewx.sh script&quot;' />
+					<Add before="sleep 4" />
+					<Add before='bash ../../scripts/makewx.sh &quot;release&quot;' />
+					<Add before='echo -e &quot;\nThe makewx.sh script completed&quot;' />
+					<Add before='echo -e &quot;\n\nNow building the Release version of  Adapt It.&quot;' />
+					<Add before="sleep 4" />
+				</ExtraCommands>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-g" />
 			<Add option="-Wno-unused-local-typedefs" />
-			<Add option="-D_KBSERVER" />
 		</Compiler>
 		<ExtraCommands>
 			<Add before="#define __WXGTK__" />
@@ -126,7 +176,7 @@
 			<Add before="#define _UNICODE" />
 			<Add before="#endif" />
 			<Add before="#ifndef _RTL_FLAGS" />
-			<Add before="#ifdef _RTL_FLAGS" />
+			<Add before="#define _RTL_FLAGS" />
 			<Add before="#endif" />
 			<Add before="#define SCROLLPOS" />
 		</ExtraCommands>
@@ -331,6 +381,10 @@
 		<Unit filename="../../source/ChooseTranslation.h" />
 		<Unit filename="../../source/ClientServerConnection.cpp" />
 		<Unit filename="../../source/ClientServerConnection.h" />
+		<Unit filename="../../source/CollabProjectMigrationDlg.cpp" />
+		<Unit filename="../../source/CollabProjectMigrationDlg.h" />
+		<Unit filename="../../source/CollabProtectEditorBulkSettingsDlg.cpp" />
+		<Unit filename="../../source/CollabProtectEditorBulkSettingsDlg.h" />
 		<Unit filename="../../source/CollabUtilities.cpp" />
 		<Unit filename="../../source/CollabUtilities.h" />
 		<Unit filename="../../source/CollabVerseConflictDlg.cpp" />
@@ -399,6 +453,8 @@
 		<Unit filename="../../source/GuesserSettingsDlg.h" />
 		<Unit filename="../../source/HtmlFileViewer.cpp" />
 		<Unit filename="../../source/HtmlFileViewer.h" />
+		<Unit filename="../../source/InstallGitOptionsDlg.cpp" />
+		<Unit filename="../../source/InstallGitOptionsDlg.h" />
 		<Unit filename="../../source/JoinDialog.cpp" />
 		<Unit filename="../../source/JoinDialog.h" />
 		<Unit filename="../../source/KB.cpp" />

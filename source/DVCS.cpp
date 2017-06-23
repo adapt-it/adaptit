@@ -511,7 +511,7 @@ public:
 // Implementation of the DVCSDlg class
 
 DVCSDlg::DVCSDlg(wxWindow *parent)
-                : AIModalDialog (   parent, -1, wxString(_T("Save in History")),
+                : AIModalDialog (   parent, -1, wxString(_("Save in History")),
                                     wxDefaultPosition,
                                     wxDefaultSize,
                                     wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)

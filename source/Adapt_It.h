@@ -22,6 +22,14 @@
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
+// Comment out Use_Legacy_Parser to cause the simpler and better refactored (Nov-Dec,2016)
+// ParseWord2() to be used, and the m_bBoundary setting code done in ParseWord2() rather
+// than in the legacy place, after the propagation code in TokenizeText()
+//
+// **** NOTE**** If commenting out, be sure to do the same to the same #define in
+// line 43 of AdaptItConstants.h
+#define Use_Legacy_Parser
+
 //#define AUTHENTICATE_AS_BRUCE
 
 // whm added 5Jun12 for debugging purposes. The FORCE_BIBLEDIT_IS_INSTALLED_FLAG
@@ -184,7 +192,7 @@ class KBSharingMgrTabbedDlg;
 //    #include "wx/msw/wx.rc" statement and add a lot of other
 //    Windows-specific stuff to the file - resulting in a build failure.
 // 4. The Visual Studio 2015 Adapt_It > Properties > Linker > Version (do for All Configurations).
-//    For this version, just use the first two version digits, i.e., 6.6 to
+//    For this version, just use the first two version digits, i.e., 6.8 to
 //    keep things compatible with newer versions of Visual Studio.
 // 5. The Mac's Info.plist file in adaptit/bin/mac/.
 // 6. The Linux's ChangeLog (done automatically by batch file if the version number in
@@ -207,14 +215,14 @@ class KBSharingMgrTabbedDlg;
 // ******** START ACCUMULATING COPIES OF THE AI_UserProfiles.xml *************************
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_MINOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_MINOR_PART 8 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 3 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 17
-#define VERSION_DATE_MONTH 06
-#define VERSION_DATE_YEAR 2016
-const wxString appVerStr(_T("6.6.5"));
+#define VERSION_DATE_DAY 11
+#define VERSION_DATE_MONTH 5
+#define VERSION_DATE_YEAR 2017
+const wxString appVerStr(_T("6.8.3"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -299,6 +307,14 @@ inline int GetAISvnVersion()
 #define CF_CLIPBOARDFORMAT CF_UNICODETEXT
 #else
 #define CF_CLIPBOARDFORMAT CF_TEXT
+#endif
+
+#if wxCHECK_VERSION(2,9,0)
+// whm 13Jan2017 added
+// The wx2.9 and wx3.x libraries enable asserts even in release builds. Use the following
+// macro to disable asserts in release builds.
+#include <wx/debug.h>
+wxDISABLE_ASSERTS_IN_RELEASE_BUILD();
 #endif
 
 #if wxCHECK_VERSION(2,9,0)
@@ -525,6 +541,8 @@ const char xml_no[] = "no"; // m_note
 const char xml_bt[] = "bt"; // m_collectedBackTrans
 /// Attribute name used in Adapt It XML documents
 const char xml_fi[] = "fi"; // m_filteredInfo
+/// Attribute name used in Adapt It XML documents
+const char xml_fiA[] = "fiA"; // m_filteredInfo_After
 /// Attribute name used in Adapt It XML documents
 const char xml_fop[] = "fop"; // m_follOuterPunct
 /// Attribute name used in Adapt It XML documents
@@ -1155,6 +1173,17 @@ enum AiProjectCollabStatus
 	collabProjNotConfigured,
 };
 
+enum PTVersionsInstalled
+{
+    PTNotInstalled,
+    PTVer7,
+    PTVer8,
+    PTVer7and8,
+    PTLinuxVer7,
+    PTLinuxVer8,
+    PTLinuxVer7and8 // whm 27Nov2016 note: This enum existed but was not utilized in AI version 6.8.0, but is utilized as of AI 6.8.1
+};
+
 /// a struct for use in collaboration with Paratext or Bibledit (BEW added 22Jun11)
 struct EthnologueCodePair {
 	wxString srcLangCode;
@@ -1408,17 +1437,21 @@ struct Collab_Project_Info_Struct // whm added 26Apr11 for AI-PT Collaboration s
 	bool bProjectIsEditable; // default is TRUE
 	wxString versification; // default is _T("");
 	wxString fullName; // default is _T("");
-	wxString shortName; // default is _T("");
+	wxString shortName; // default is _T(""); // same as projectDir below
 	wxString languageName; // default is _T("");
-	wxString ethnologueCode; // default is _T("");
-	wxString projectDir; // default is _T("");
+    wxString fileNamePrePart; // whm added 30Nov2016
+    wxString fileNamePostPart; //  whm added 30Nov2016
+    wxString fileNameBookNameForm; // whm added 30Nov2016
+	wxString ethnologueCode; // default is _T(""); // PT 8 Settings.xml tag is <LanguageIsoCode> and maps to this ethnologueCode
+	wxString projectDir; // default is _T(""); // In PT 8 this is taken from the dir name that the Settings.xml file is located in
 	wxString booksPresentFlags; // default is _T("");
-	wxString chapterMarker; // default is _T("c");
-	wxString verseMarker; // default is _T("v");
+	wxString chapterMarker; // default is _T("c"); // no longer used in PT but doesn't hurt to have it
+	wxString verseMarker; // default is _T("v"); // no longer used in PT 8 but doesn't hurt to have it
 	wxString defaultFont; // default is _T("Arial")
 	wxString defaultFontSize; // default is _T("10");
 	wxString leftToRight; // default is _T("T");
 	wxString encoding; // default is _T("65001"); // 65001 is UTF8
+    wxString collabProjectGUID;
 };
 
 /// wxList declaration and partial implementation of the ProfileItemList class being
@@ -2617,6 +2650,12 @@ public:
 	// BEW added 10Feb09 for refactored view layout support
 	CLayout* m_pLayout;
 
+	// BEW added 15Aug16 for suppressing option to have or not have collab mode restored
+	// in a Shift-Launch
+	bool m_bDoNormalProjectOpening; // default TRUE; it can be made FALSE in GetProjectConfiguration()
+						   // and the place to restore default would therefore be when
+						   // writing out the project configuration file
+
 	// GDLC 2010-02-12
 	// Pointer to the free translation display manager
 	// Set by the return value from CFreeTrans creator
@@ -3009,8 +3048,20 @@ public:
 	wxString	m_freeTransLanguageCode;  // the 2- or 3-letter code for free translation language
 
 	// Status bar support
-	void	RefreshStatusBarInfo();
-	void	StatusBarMessage(wxString& message);
+	void	 RefreshStatusBarInfo();
+	void	 StatusBarMessage(wxString& message);
+
+	wxString m_strSpacelessSourcePuncts; // for use in TokenizeText()
+	wxString m_strSpacelessTargetPuncts; // ditto
+	bool     m_bParsingSource;
+	wxString m_chapterNumber_for_ParsingSource;
+	wxString m_verseNumber_for_ParsingSource; 
+	wxString m_filename_for_ParsingSource; // I think I'll call the file "Log_For_Document_Creation" (see OnInit())
+	bool     m_bSetupDocCreationLogSucceeded; // TRUE if we succeed in creating a log file ready for inserting data into
+	bool	 SetupDocCreationLog(wxString& filename);
+	bool	 m_bMakeDocCreationLogfile;
+
+	bool	 m_bALT_KEY_DOWN; // BEW added 31Jul16 to track ALT key down (TRUE), and up (back to FALSE)
 
 #if defined(_KBSERVER)
 	// support for Status bar showing "Deleting n of m" while deleting a kb from KBserver
@@ -3094,6 +3145,9 @@ public:
 	bool	  SetupForKBServer(int whichType);
 	bool	  ReleaseKBServer(int whichType);
 	bool	  KbServerRunning(int whichType); // Checks m_pKbServer[0] or [1] for non-NULL or NULL
+    // GDLC 20JUL16
+    bool      KbAdaptRunning(void); // True if AI is in adaptations mode and an adaptations KB server is running
+    bool      KbGlossRunning(void); // True if AI is in glossing mode and a glossing KB server is running
 	// BEW added next, 26Nov15
 	bool	  ConnectUsingDiscoveryResults(wxString curURL, wxString& chosenURL, 
 								 wxString& chosenHostname, enum ServDiscDetail &result);
@@ -3314,8 +3368,8 @@ public:
     // need four more booleans for those and they'd have to be set/reset in
     // OnEditPunctCorresp() and used in IsOpeningQuote(), IsClosingQuote() in the same way
     // as those below are used there)
-	bool		m_bSingleQuoteAsPunct; // default FALSE set in creator's code block
-	bool		m_bDoubleQuoteAsPunct; // default TRUE set in creator's code block
+	bool		m_bSingleQuoteAsPunct; // default TRUE set in OnInit() & InitializePunctuation() as of 2Nov16, BEW
+	bool		m_bDoubleQuoteAsPunct; // default TRUE set in OnInit() & InitializePunctuation()
 
 	// file i/o and directory structures & support for custom work folder locations
 	wxString	m_workFolderPath;	// default path to the "Adapt It Work" or "Adapt It
@@ -3532,7 +3586,7 @@ public:
 	/// m_ParatextProjectsDirPath stores the path to the Paratext user's
 	/// project directory. The default location where Paratext creates the
 	/// user's projects is at c:\My Paratext Projects".
-	/// This variable is determined by calling the GetParatextInstallDirPath()
+	/// This variable is determined by calling the GetParatextProjectsDirPath()
 	/// function.
 	wxString m_ParatextProjectsDirPath;
 
@@ -4033,6 +4087,18 @@ public:
 
 public:
 
+	// BEW added, 19Jan17, the following 4 strings in support of ParseWord2()'s
+	// post-word filtering of filterable markers and their content (eg. \x,  \f, \fe ...)
+	// These are used in ParsePostWordStuff() - a CAdaptItDoc member function; their
+	// values are initialized to empty strings in the app method OnInit(). ParsePostWordStuff()
+	// will use them to store the m_key value, the end marker, following punctuation.
+	// respectively. strSearchForAfter is a scratch string for doing a post-word search.
+	wxString	strAfterWord;
+	wxString	strAfterEndMkr;
+	wxString	strAfterPunct;
+	wxString	strSearchForAfter;
+
+
 	// arrays for storing (size_t)wxChar for when the user uses the Punctuation tab of
 	// Preferences to change the project's punctuation settings, either source or
 	// target or both
@@ -4053,8 +4119,9 @@ public:
 	bool	m_bPrintingRange; // TRUE when the user wants to print a chapter/verse range
 	bool	m_bPrintingSelection;
 	int		m_nCurPage; // to make current page being printed accessible to CStrip;s Draw()
-#if defined(__WXGTK__)
+
     // BEW added 15Nov11
+#if defined(__WXGTK__) // print-related
     bool    m_bPrintingPageRange;
     int     m_userPageRangePrintStart;
     int     m_userPageRangePrintEnd;
@@ -4104,11 +4171,22 @@ public:
 	void OnToolsDefineCC(wxCommandEvent& WXUNUSED(event));
 	void OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event));
 
+    // whm added the following two 24March2017
+    void OnToolsInstallGit(wxCommandEvent& WXUNUSED(event));
+    void OnUpdateInstallGit(wxUpdateUIEvent& event);
+
+
 	void OnFileChangeFolder(wxCommandEvent& event);
 	void OnUpdateAdvancedBookMode(wxUpdateUIEvent& event);
 	void OnAdvancedBookMode(wxCommandEvent& event);
 	//void OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event);
 	void OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& WXUNUSED(event));
+
+    // whm added next four 20April2017 
+    void OnAdvancedProtectEditorFmGettingChangesForThisDoc(wxCommandEvent& WXUNUSED(event));
+    void OnUpdateAdvancedProtectEditorFmGettingChangesForThisDoc(wxUpdateUIEvent& event);
+    void OnAdvancedAllowEditorToGetChangesForThisDoc(wxCommandEvent& WXUNUSED(event));
+    void OnUpdateAdvancedAllowEditorToGetChangesForThisDoc(wxUpdateUIEvent& event);
 
 	void OnFilePageSetup(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileChangeFolder(wxUpdateUIEvent& event);
@@ -4147,9 +4225,11 @@ public:
 	void OnMoveOrCopyFoldersOrFiles(wxCommandEvent& event);
 	void OnAssignLocationsForInputsAndOutputs(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAssignLocationsForInputsAndOutputs(wxUpdateUIEvent& event);
-	void OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event);
-	void OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event)); // whm added 14Feb12
+    void OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event));
+    void OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event);
+    void OnManageDataTransfersToEditor(wxCommandEvent& WXUNUSED(event));
+    void OnUpdateManageDataTransfersToEditor(wxUpdateUIEvent& event);
+    void OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event)); // whm added 14Feb12
 	void OnUpdateTempRestoreUserProfiles(wxUpdateUIEvent& event); // whm added 14Feb12
 	void OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event);
@@ -4292,7 +4372,6 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString m_Collab_BookCode; // the 3-letter book code for the currently open collaborating document
 	wxString m_Collab_LastChapterStr; // the chapter reference string (e.g.  "15", or for a chunk "3-5")
 									  // last encountered when populating CollabAction structs
-
 	// whm 27Mar12 Note:
 	// If Paratext is installed (either on Windows or Linux) we give priority to
 	// it as the installed external Scripture editor for collaboration. If neither
@@ -4301,6 +4380,15 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	// wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string
 	// substitutions.
 	wxString m_collaborationEditor;
+
+    // whm 20June2016 Note:
+    // If Paratext is installed, we need to know which major version of Paratext is
+    // associated with a given AI project. If PT7 is the version associated with the
+    // project this string value will be "PT7". If PT8 is the version associated with
+    // the project this string value will be "PT8". If neither PT7 nor PT8 are installed
+    // the string value will be null _T("").
+    wxString m_ParatextVersionForProject;
+
 	// BEW 21May14, the following boolean is to support when only punctuation changes are made in PT or
 	// BE's source text project; without it, the changes made it back to the AI document,
 	// but preEdit and postEdit md5 sums were identical  - so the lack of different md5sum
@@ -4324,50 +4412,29 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString m_CollabChapterSelected;
 	wxString m_CollabSourceLangName; // whm added 4Sep11
 	wxString m_CollabTargetLangName; // whm added 4Sep11
+    wxString m_CollabBooksProtectedFromSavingToEditor; // whm added 2February2017
+    bool     m_bCollabDoNotShowMigrationDialogForPT7toPT8; // whm added 6April2017
+	bool     m_bUserWantsNoCollabInShiftLaunch;
 
-	bool m_bStartWorkUsingCollaboration; // whm added 19Feb12
+	bool     m_bStartWorkUsingCollaboration; // whm added 19Feb12
 	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
 	//bool m_bEnableDelayedGetChapterHandler; // BEW added 15Sep14
-	bool m_bEnableDelayedGet_Handler; // BEW added 15Sep14
-	//bool m_bEnableDelayedGetWholeBookHandler; // ditto removed 7Oct14 (was not used)
+	bool     m_bEnableDelayedGet_Handler; // BEW added 15Sep14
 
-	// Support for clipboard-based adaptation (and free translation)
-	bool     m_bClipboardAdaptMode; // BEW added 9May14, a feature suggested by Bob Eaton (SAG)
-	bool	 m_bClipboardTextLoaded; // TRUE when the text is in the doc, need for update handler
-	bool	 m_bADocIsLoaded; // TRUE if there was a normal doc active when the feature was invoked
-	int      m_nSaveSequNumForDocRestore;
-	wxString m_savedTextBoxStr; // cache the phrasebox contents here
-	SPList*  m_pSavedDocForClipboardAdapt;
-	void     OnUpdateButtonCopyToClipboard(wxUpdateUIEvent& event);
-	void     OnButtonCopyToClipboard(wxCommandEvent& WXUNUSED(event));
-	void     OnUpdateButtonCopyFreeTransToClipboard(wxUpdateUIEvent& event);
-	void     OnButtonCopyFreeTransToClipboard(wxCommandEvent& WXUNUSED(event));
-	// don't need an update handler for the Close button, it's always enabled
-	void     OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event));
-	wxString m_savedDocTitle; // temporarily save Titlebar's title string here when doing clipboard adapt
-	// End of new variables for support of clipboard-based adaptation & free translation
-
-
-	// whm 17Oct11 removed
-	//wxArrayString m_ListOfPTProjects; // gets populated by GetListOfPTProjects()
-	//wxArrayString m_ListOfBEProjects; // gets populated by GetListOfBEProjects()
-
-	wxArrayString GetListOfPTProjects();
+	// whm 17Oct11 for collaboration support
+    wxArrayString GetListOfPTProjects(wxString PTVersion); // an override of the GetListOfPTProjects() function
 	wxArrayString GetListOfBEProjects();
 	wxString GetBibleditBooksPresentFlagsStr(wxString projPath);
 	Collab_Project_Info_Struct* GetCollab_Project_Struct(wxString projShortName);
 	wxString GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, wxString beginTag, wxString endTag);
 	wxString GetBookCodeFromBookName(wxString bookName);
-	wxString GetBookNameFromBookCode(wxString bookCode);
-	int GetBookFlagIndexFromFullBookName(wxString fullBookName);
+	wxString GetCanonTypeFromBookCode(wxString bookCode);
+	wxString GetBookNameFromBookCode(wxString bookCode, wxString collabEditor);
+    int GetBookFlagIndexFromFullBookName(wxString fullBookName);
 	int GetNumberFromBookCodeForFileNaming(wxString bookStr);
-	wxString GetBookNumberAsStrFromName(wxString bookName);
-	wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
-	// whm 13Aug11 moved to CollabUtilities.h
-	//bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName,
-	//				int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
-	//bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName,
-	//				int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
+    wxString GetBookNumberAsStrFromName(wxString bookName);
+    wxString GetBookNumberAsStrFromBookCode(wxString bookCode);
+    wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
 	wxString FindBookFileContainingThisReference(wxString folderPath, wxString reference, wxString extensionFilter);
 	bool BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr);
 
@@ -4375,20 +4442,33 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	void	RemoveCollabSettingsFromFailSafeStorageFile(); // whm added 29Feb12
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
 	void	LogUserAction(wxString msg);
-	bool	ParatextIsInstalled(); // whm added 9Feb11
+    PTVersionsInstalled ParatextVersionInstalled(); // whm modified 20Apr2016
+    wxString GetLinuxPTVersionNumberFromPTVersionFile(wxString PTVersionFilePath);
 	bool	BibleditIsInstalled(); // whm added 13Jun11
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	bool	BibleditIsRunning(); // whm added 13Jun11
-#ifdef __WXGTK__
-	wxString GetParatextEnvVar(wxString strVariableName); // edb added 19Mar12
+
+#if defined(__WXGTK__)
+	wxString GetParatextEnvVar(wxString strVariableName, wxString PTverStr); // edb added 19Mar12
 #endif
-	wxString GetParatextProjectsDirPath(); // whm added 9Feb11
+	wxString GetParatextProjectsDirPath(wxString PTVersion); // whm added 9Feb11, modified 25June2016
 	wxString GetBibleditProjectsDirPath();
-	wxString GetParatextInstallDirPath(); // whm added 9Feb11
+	wxString GetParatextInstallDirPath(wxString PTVersion); // whm modified 25June2016
 	wxString GetBibleditInstallDirPath(); // whm added 13Jun11
 	wxString GetAdaptit_Bibledit_rdwrtInstallDirPath(); // whm added 18Dec11
 	wxString GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode,
 				wxString ptProjectShortName, wxString chapterNumStr, wxString extStr);
+	void GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray,
+													   wxArrayString& collabSettingsArray);
+    wxString GetVersificationNameFromEnumVal(int vrsEnum);
+    wxString GetVersificationFileNameFromEnumVal(int vrsEnum);
+	wxString GetCollabSettingsAsStringForLog();
+	bool IsAIProjectOpen();
+	bool AIProjectHasCollabDocs(wxString m_projectName);
+	bool AIProjectIsACollabProject(wxString m_projectName);
+	enum AiProjectCollabStatus GetAIProjectCollabStatus(wxString m_projectName, wxString& errorStr,
+		bool& bChangeMadeToCollabSettings, wxString& errorProjects, bool& bBothPT7AndPT8InstalledPT8ProjectsWereMigrated);
+    void SetFolderProtectionFlagsFromCombinedString(wxString combinedStr);
 
 	// edb 8Aug12 - Pathway support
 	bool m_bPathwayIsInstalled;
@@ -4396,20 +4476,21 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString GetPathwayInstallDirPath();
 	bool	PathwayIsInstalled();
 
-	void GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray,
-													   wxArrayString& collabSettingsArray);
-	wxString GetCollabSettingsAsStringForLog();
-	bool IsAIProjectOpen();
-	bool AIProjectHasCollabDocs(wxString m_projectName);
-	bool AIProjectIsACollabProject(wxString m_projectName);
-	enum AiProjectCollabStatus GetAIProjectCollabStatus(wxString m_projectName, wxString& errorStr,
-		bool& bChangeMadeToCollabSettings, wxString& errorProjects);
-    void SetFolderProtectionFlagsFromCombinedString(wxString combinedStr);
-
-	// members added by BEW 27July11, when moving collab code out of
-	// GetSourceTextFromEditor class into CollabUtilities.h & .cpp, since we need it at
-	// other times besides when the dialog is in existence
-
+    // Support for clipboard-based adaptation (and free translation)
+    bool     m_bClipboardAdaptMode; // BEW added 9May14, a feature suggested by Bob Eaton (SAG)
+    bool	 m_bClipboardTextLoaded; // TRUE when the text is in the doc, need for update handler
+    bool	 m_bADocIsLoaded; // TRUE if there was a normal doc active when the feature was invoked
+    int      m_nSaveSequNumForDocRestore;
+    wxString m_savedTextBoxStr; // cache the phrasebox contents here
+    SPList*  m_pSavedDocForClipboardAdapt;
+    void     OnUpdateButtonCopyToClipboard(wxUpdateUIEvent& event);
+    void     OnButtonCopyToClipboard(wxCommandEvent& WXUNUSED(event));
+    void     OnUpdateButtonCopyFreeTransToClipboard(wxUpdateUIEvent& event);
+    void     OnButtonCopyFreeTransToClipboard(wxCommandEvent& WXUNUSED(event));
+    // don't need an update handler for the Close button, it's always enabled
+    void     OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event));
+    wxString m_savedDocTitle; // temporarily save Titlebar's title string here when doing clipboard adapt
+                              // End of new variables for support of clipboard-based adaptation & free translation
 
 	// BEW added next 6 lines 10July, for storing and retrieving the USFM text strings for
 	// the exported target text, and exported free translation text, when collaborating
@@ -4422,7 +4503,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 private:
 	wxString m_targetTextBuffer_PreEdit;
 	wxString m_freeTransTextBuffer_PreEdit;
-	wxString m_sourceTextBuffer_PostEdit; // export the source text, in collaboration, to here
+	wxString m_sourceTextBuffer_PostEdit; // export the source text, in collaboration, to here; now public as conflict res dialog needs it
 public:
 	void     StoreTargetText_PreEdit(wxString s);
 	void     StoreFreeTransText_PreEdit(wxString s);
@@ -4535,6 +4616,7 @@ public:
 	int		GetPageOrientation();
 	void	GetPossibleAdaptionDocuments(wxArrayString* pList, wxString dirPath);
 	void	GetPossibleAdaptionProjects(wxArrayString* pList);
+	void	GetPossibleAdaptionCollabProjects(wxArrayString* aiCollabProjectNamesArray);
 	void	GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPunctuation);
 	int		GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView);
 	CAdapt_ItView* GetView();		// convenience function for accessing the View
@@ -4543,6 +4625,8 @@ public:
 	bool	InitializeLanguageLocale(wxString shortLangName, wxString longLangName,
 				wxString pathPrefix);
 	bool	IsDirectoryWithin(wxString& dir, wxArrayPtrVoid*& pBooks);
+    bool    IsGitInstalled();
+
 
     // the following ones were added by BEW to complete JF's implementation of Split, Join
     // and Move functionalities
@@ -4907,3 +4991,5 @@ DECLARE_APP(CAdapt_ItApp);
 // creates the declaration className& wxGetApp(void). It is implemented by IMPLEMENT_APP.
 
 #endif /* Adapt_It_h */
+
+

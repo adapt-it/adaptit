@@ -41,6 +41,10 @@ miscdir = $(pkgdatadir)
 misc_DATA = ../../docs/iso639-3codes.txt \
         ../../docs/curl-ca-bundle.crt
 
+# AFM font data
+afmdir = $(pkgdatadir)/gs_afm
+afm_DATA = $(wildcard $(srcdir)/../../gs_afm/*)
+
 # HTML help data
 htmlmaindir = $(pkgdatadir)/help
 htmlmain_DATA = ../../docs/Help_for_Administrators.htm \
@@ -86,8 +90,8 @@ adaptit_SOURCES = \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
 	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp ../../source/ChooseLanguageCode.cpp \
 	../../source/ChooseCollabOptionsDlg.cpp \
-	../../source/ChooseTranslation.cpp ../../source/ClientServerConnection.cpp \
-	../../source/CollabVerseConflictDlg.cpp ../../source/CollectBacktranslations.cpp \
+	../../source/ChooseTranslation.cpp ../../source/ClientServerConnection.cpp ../../source/CollabProtectEditorBulkSettingsDlg.cpp \
+	../../source/CollabVerseConflictDlg.cpp ../../source/CollabProjectMigrationDlg.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConflictResActionDlg.cpp \
 	../../source/ConsistentChanger.cpp ../../source/convauto.cpp \
@@ -101,7 +105,7 @@ adaptit_SOURCES = \
 	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/FreeTransAdjustDlg.cpp ../../source/FreeTransSplitterDlg.cpp \
 	../../source/GetSourceTextFromEditor.cpp \
 	../../source/GoToDlg.cpp ../../source/GuesserAffix.cpp ../../source/GuesserSettingsDlg.cpp ../../source/GuesserAffixesListsDlg.cpp \
-	../../source/HtmlFileViewer.cpp \
+	../../source/HtmlFileViewer.cpp ../../source/InstallGitOptionsDlg.cpp \
 	../../source/json_defs.h ../../source/jsonreader.cpp ../../source/jsonreader.h \
 	../../source/jsonval.cpp ../../source/jsonval.h \
 	../../source/jsonwriter.cpp ../../source/jsonwriter.h \

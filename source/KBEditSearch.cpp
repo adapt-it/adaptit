@@ -106,6 +106,9 @@ KBEditSearch::KBEditSearch(wxWindow* parent) // dialog constructor
 	bOK = bOK; // avoid warning (keep this line as is)
 	pKBEditorDlg = (CKBEditor*)parent;
 	m_pKB = NULL;
+
+    bInitDialogCalled = FALSE; // whm 23Dec2016 added to prevent wx3.x on Linux from making spurious call to OnUpdateListSelectItem before InitDialog is called
+
 	//m_pTUList = NULL; // removed BEW 28May10
 
 	// the comparison functions, CompareMatchRecords() and CompareUpdateRecords(), each
@@ -285,6 +288,8 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_bMatchesExist = PopulateMatchLabelsArray(m_pMatchRecordArray, m_pMatchStrArray);
 	PopulateMatchedList(m_pMatchStrArray, m_pMatchRecordArray, m_pMatchListBox);
 	} // waitDlg goes out of scope here
+
+    bInitDialogCalled = TRUE; //// whm 23Dec2016 added to prevent wx3.x on Linux from making spurious call to OnUpdateListSelectItem before InitDialog is called 
 }
 
 bool KBEditSearch::PopulateMatchLabelsArray(KBMatchRecordArray* pMatchRecordArray, 
@@ -458,7 +463,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					{
 						// check this entry out for a match, it's not deleted nor empty
 						#ifdef _DEBUG
-						wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr.c_str());
+						wxLogDebug(_T("KB (map=%zu):  %s"),numWords,testStr.c_str()); // %zu is the format specifier for size_t type
 						anItemsCount++;
 						#endif //_DEBUG
 
@@ -509,7 +514,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 						{
 							// check this entry out for a match, it's not deleted nor empty
 							#ifdef _DEBUG
-							wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr.c_str());
+							wxLogDebug(_T("KB (map=%zu):  %s"),numWords,testStr.c_str()); // %zu is the format specifier for size_t type
 							anItemsCount++;
 							#endif //_DEBUG
 
@@ -943,6 +948,14 @@ void KBEditSearch::OnChangeLocalSearchText(wxCommandEvent& WXUNUSED(event))
 
 void KBEditSearch::OnMatchListSelectItem(wxCommandEvent& event)
 {
+    // whm 23Dec2016 added the following test as precaution to avoid same problem as encountered in OnUpdateListSelectItem() method below.
+    // This OnMatchListSelectItem() method doesn't seem to get executed before InitDialog() is executed (running against WX3.x, but just t
+    // o be safe we'll do the test here too.
+    if (!bInitDialogCalled)
+    {
+        return; // abort if InitDialog() hasn't been called (avoid crash on Linux with wx3.x)
+    }
+
 	// get the index to the KBMatchRecord pointer stored in m_pKBMatchRecordArray
 	m_nCurMatchListIndex = event.GetSelection();
 	SetMatchListSelection(m_nCurMatchListIndex);
@@ -1046,6 +1059,12 @@ void KBEditSearch::OnBnClickedUpdate(wxCommandEvent& WXUNUSED(event))
 
 void KBEditSearch::OnUpdateListSelectItem(wxCommandEvent& event)
 {
+    // whm 23Dec2016 added following test to prevent wx3.x on Linux from making spurious call to OnUpdateListSelectItem before InitDialog is called 
+    if (!bInitDialogCalled)
+    {
+        return; // abort if InitDialog() hasn't been called (avoid crash on Linux with wx3.x)
+    }
+
 	// get the index of the selection
 	m_nCurUpdateListIndex = event.GetSelection();
 
@@ -1133,4 +1152,5 @@ void KBEditSearch::OnEnterInEditBox(wxCommandEvent& WXUNUSED(event))
 	wxCommandEvent dummyEvent;
 	OnBnClickedUpdate(dummyEvent);
 }
+
 

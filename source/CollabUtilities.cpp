@@ -58,7 +58,6 @@
 #include "MainFrm.h"
 #include "WaitDlg.h"
 #include "XML.h"
-#include "SplitDialog.h"
 #include "ExportFunctions.h"
 #include "PlaceInternalMarkers.h"
 #include "Uuid_AI.h" // for uuid support
@@ -73,6 +72,7 @@
 #include "helpers.h"
 #include "tellenc.h"	// needed for check_ucs_bom() in MoveTextToFolderAndSave()
 #include "md5.h"
+#include "SetupEditorCollaboration.h"
 #include "CollabUtilities.h"
 #include "StatusBar.h"
 #include "ConflictResActionDlg.h"
@@ -110,7 +110,7 @@ extern bool gbDoingInitialSetup;
 
 	// BEW 15Sep14, for 6.5.4, refactored the OnOK() and the whole-doc option of the
 	// GetSourceTextFromEditor.cpp class, so that the handlers that do most of the work
-	// can be deleted to the next OnIdle() call, giving time for the parent dialog to
+	// can be delegated to the next OnIdle() call, giving time for the parent dialog to
 	// disappear before source text is grabbed from the external editor and especially
 	// before a target text export is done to form the preEdit chapter text - since the
 	// latter could put up a Place Medial Markers dialog, and we don't want to see it
@@ -148,7 +148,8 @@ extern bool gbDoingInitialSetup;
 // for both the target export, and the free translation export
 //#define LOG_EXPORT_VERSE_RANGE
 // comment out when seeing md5sum lines is not wanted
-//#define LISTMD5LINES
+#define LIST_MD5LINES
+#define TYPE_CHANGED
 
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
@@ -168,25 +169,37 @@ extern bool gbDoingInitialSetup;
 // specific to the target text and the free translation text. This function
 // works for all three text types - source, target and free trans via
 // specification in the textType parameter.
-void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
-								wxArrayString& usfmStructureAndExtentArray,
-								wxString collabCompositeProjectName,
-								wxString bookFullName,
-								wxArrayString& staticBoxDescriptionArray,
-								wxArrayString& chapterList,
-								wxArrayString& statusList,
-								bool& bBookIsEmpty)
-{
-	// Retrieves several wxArrayString lists of information about the chapters
-	// and verses (and their status) from the PT/BE project's Scripture book
-	// represented in bookFullName.
-	wxArrayString chapterArray;
-	wxArrayString statusArray;
-	chapterArray.Clear();
-	statusArray.Clear();
-	staticBoxDescriptionArray.Clear();
-	int ct,tot;
-	tot = usfmStructureAndExtentArray.GetCount();
+	void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
+		wxArrayString& usfmStructureAndExtentArray,
+		wxString collabCompositeProjectName,
+		wxString bookFullName,
+		wxArrayString& staticBoxDescriptionArray,
+		wxArrayString& chapterList,
+		wxArrayString& statusList,
+		bool& bBookIsEmpty)
+	{
+		// Retrieves several wxArrayString lists of information about the chapters
+		// and verses (and their status) from the PT/BE project's Scripture book
+		// represented in bookFullName.
+		wxArrayString chapterArray;
+		wxArrayString statusArray;
+		chapterArray.Clear();
+		statusArray.Clear();
+		staticBoxDescriptionArray.Clear();
+		int ct, tot;
+		tot = usfmStructureAndExtentArray.GetCount();
+
+#if defined(_DEBUG)
+		/* oops, this will crash the app with a bounds error if the file is small
+		int pos = 0;
+		wxString aTempStr;
+		for (pos = 308; pos < 320; pos++)
+		{
+			aTempStr = usfmStructureAndExtentArray.Item(pos);
+			wxLogDebug(_T("aTempStr:  %s  , pos = %d"), aTempStr.c_str(), pos);
+		}
+		*/
+#endif
 	wxString tempStr;
 	bool bChFound = FALSE;
 	bool bVsFound = FALSE;
@@ -643,11 +656,13 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 }
 
 // whm 18Jul12 added. DoProjectAnalysis gets a list of all existing books for the given
-// compositeProjName from the PT/BE editor. It uses the collab utility mechanism rdwrtp7.exe
-// or bibledit-rdwrt to read all the books of the project into a buffer and analyzes the
-// contents to determine which books are empty (no verse content) and which books have verse
-// text content, returning the respective lists in reference parameters emptyBooks and
-// booksWithContent.
+// compositeProjName from the PT/BE editor. Before version 6.8.1 it used the collab utility 
+// mechanism rdwrtp7.exe or bibledit-rdwrt to read all the books of the project into a buffer 
+// and analyze the contents to determine which books are empty (no verse content) and which 
+// books have verse text content, returning the respective lists in reference parameters 
+// emptyBooks and booksWithContent. From version 6.8.1 on, the data stores in PT/BE are read
+// directly into a buffer and processed from there. This speeds up the analysis time 
+// dramatically by an order of magnitude.
 // This function was prompted by a report from one user who was confused about which Paratext
 // project to use for obtaining source texts and which to use for receiving target texts - and
 // swapped them. The apparent result was overwriting the intended source texts and possible
@@ -658,9 +673,9 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 // struct representing this selected project and determining the first book in its
 // <BooksPresent> string (consisting of 0 and 1 chars in which 1 represents an existing
 // book in the project).
-// 2. Use wxExecute() function with appropriate command line arguments to fetch the
-// book determined in 1 into a disk file and read into a memory buffer (as is done in
-// the OnLBBookSelected() handler in GetSourceFromEditor.cpp).
+// 2. Determine the paths to the Scripture data for either PT/BE. Read the data for each 
+// Scripture file into a memory buffer by direct block reads for a fast analysis of 
+// potentially many books.
 // 3. Use the CollabUtilities' GetUsfmStructureAndExtent() function to get an idea of
 // the text content of the book storing the result in a TargetTextUsfmStructureAndExtentArray.
 // 4. Examine the TargetTextUsfmStructureAndExtentArray to determine whether it has
@@ -681,8 +696,10 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 // Note: Much more data is actually skimmed from the content of the books during the scanning
 // process. This could be used to present a more complete picture of the book contents if we
 // decided to do so.
+// whm modified 17March2017. The function needed to specify more accurately the path
+// to the Paratext projects DIR - which is different for PT8 than it is for PT7.
 enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
-				wxString compositeProjName,wxString editor,
+				wxString compositeProjName,wxString editor,wxString ptVersion,
 				wxString& emptyBooks,wxString& booksWithContent,wxString& errorMsg)
 {
 	// Get the names of books present in the compositeProjName project into bookNamesArray
@@ -722,7 +739,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		return projHasNoBooks;
 	}
 
-	if (!CollabProjectHasAtLeastOneBook(compositeProjName,editor))
+	if (!CollabProjectHasAtLeastOneBook(compositeProjName,editor, ptVersion)) // Calls GetListOfPTProjects()
 	{
 		// whm Note: The emptyBooks and booksWithContent strings will be
 		// meaningless to the caller in this situation
@@ -750,22 +767,73 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		pStatusBar->StartProgress(progressTitle, msgDisplayed, nTotal);
 	}
 
-	// Loop through all existing books existing in the project
-	wxString m_rdwrtp7PathAndFileName;
-	wxString m_bibledit_rdwrtPathAndFileName;
-	if (editor == _T("Paratext"))
-	{
-		m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(); // see CollabUtilities.cpp
-	}
-	else
-	{
-		m_bibledit_rdwrtPathAndFileName = GetPathToBeRdwrt(); // will return
-								// an empty string if BibleEdit is not installed;
-								// see CollabUtilities.cpp
-	}
+    // whm added 30Nov2016 for Paratext projects get path to the Paratext projects dir and
+    // the directory containing the actual paratext books we want to analyze. We can speed
+    // up the analysis by reading the book contents into a buffer and analyzing it within
+    // the buffer. This speeds up the analysis since block reading the file contents into a
+    // buffer will be much faster than getting the book contents via the rdwrtp7 utility 
+    // which is quite slow - especially when processing several dozen files as would be the
+    // case for a whole NT or whole Bible.
+    wxString filePathTemplate;
+    filePathTemplate.Empty();
+    bool bFileNameNumPartPreceeds = FALSE;
+
+    if (editor == _T("Paratext"))
+    {
+        // The real book names can be worked out from the Collab_Project_Info_Struct that is
+        // already in memory for this project by synthesizing the book file names from the 
+        // file name structure information in the PT project settings: 
+        // use these:  <FileNamePrePart /> 
+        //             <FileNamePostPart>NYNT.SFM</FileNamePostPart>
+        //             <FileNameBookNameForm>41MAT</FileNameBookNameForm>
+        // The FileNameBookNameForm tag part of a PT project's Scripture book file name can
+        // be determined from examining two parallel wxArrayString arrays on the App: 
+        //    AllBookIds[]    - which contains the USFM book abbreviation/ID
+        //    AllBookNumStr[] - which contains the USFM book number associated with the book ID
+        // Could create a function on the App's wxString GetFilenameForUSFMBookID(wxString bookID) which 
+        // returns a wxString in the form <FileNamePrePart><FileNameBookNameForm><FileNamePostPart>, 
+        // or for the values shown above would give 41MATNYNT.SFM, but better here would be to just
+        // use a template string with %s%s substitutions for the number and ID substring parts of the
+        // file name.
+        
+        // Get a file path template for a book file that can be used for all book files in this project.
+        wxString pathToProjectDir;
+        wxString ptProjectsDirPath = gpApp->GetParatextProjectsDirPath(ptVersion);
+        pathToProjectDir = ptProjectsDirPath + gpApp->PathSeparator + collabProjShortName;
+        // Get the file name parts used for Paratext book file naming for this project.
+        // collabProjShortName is the name of the subdirectory the project's files are located in.
+        Collab_Project_Info_Struct* pCollabInfo;
+        pCollabInfo = gpApp->GetCollab_Project_Struct(collabProjShortName); // gets pointer to the struct from the App's m_pArrayOfCollabProjects
+        wxASSERT(pCollabInfo != NULL);
+        wxString fileNamePrePart = pCollabInfo->fileNamePrePart;
+        wxString fileNameBookNameForm = pCollabInfo->fileNameBookNameForm;
+        
+        wxString fileNamePostPart = pCollabInfo->fileNamePostPart;
+        if (!fileNameBookNameForm.IsEmpty() && fileNameBookNameForm.Length() >= 2)
+        {
+            // Check first two 
+            if (fileNameBookNameForm.Mid(0, 2).IsNumber())
+                bFileNameNumPartPreceeds = TRUE;
+        }
+        // In the filePathTemplate below the order of the elements of %s%s substrings depend on the value of the boolean bFileNameNumPartPreceeds.
+        // If bFileNameNumPartPreceeds is TRUE the first %s will be the book number and second %s substring will be the book's ID/abbreviation,
+        // otherwise the ID/abbreviation will be the first %s substring and the book number will be the second %s substring when formatted
+        // within the loop below. The %s%s substrings will always represent a total of 5 characters of the file name.
+        filePathTemplate = pathToProjectDir + gpApp->PathSeparator + fileNamePrePart + _T("%s%s") + fileNamePostPart;
+
+        // The booksPresentArray has the full names of the Scripture books we need to analyze.
+        // In the loop below we get the individual file name for the book being analyzed from booksPresentArray.
+        // We use GetBookCodeFromBookName(wxString bookName) function in the App in the loop below to get the 
+        // book code/ID from its full file name.
+
+    }
+
 	wxString wholeBookBuffer;
 	wxArrayString usfmStructureAndExtentArray;
 	wxArrayString staticBoxDescriptionOfBook;
+        wxString tempFileName;
+
+	// Loop through all existing books existing in the project
 	int nBookCount;
 	for (nBookCount = 0; nBookCount < nTotal; nBookCount++)
 	{
@@ -778,149 +846,95 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		bookCode = gpApp->GetBookCodeFromBookName(fullBookName);
 		wxASSERT(!bookCode.IsEmpty());
 
-		// ensure that a .temp folder exists in the m_workFolderPath
-		wxString tempFolder;
-		tempFolder = gpApp->m_workFolderPath + gpApp->PathSeparator + _T(".temp");
-		if (!::wxDirExists(tempFolder))
-		{
-			::wxMkdir(tempFolder);
-		}
+        wxString bookNumber;
+        bookNumber = gpApp->GetBookNumberAsStrFromName(fullBookName);
 
-		wxString projShortName;
-		wxASSERT(!compositeProjName.IsEmpty());
-		projShortName = GetShortNameFromProjectName(compositeProjName);
-		wxString bookNumAsStr = gpApp->GetBookNumberAsStrFromName(fullBookName);
+        tempFileName.Empty();
+        if (editor == _T("Paratext"))
+        {
+            tempFileName = filePathTemplate;
+            if (bFileNameNumPartPreceeds)
+                tempFileName = tempFileName.Format(tempFileName, bookNumber.c_str(), bookCode.c_str());
+            else
+                tempFileName = tempFileName.Format(tempFileName, bookCode.c_str(), bookNumber.c_str());
+        }
+        else if (editor == _T("Bibledit"))
+        {
+            // Ensure that a .temp folder exists in the m_workFolderPath
+            // The tempFolder is needed for Bibledit because of the way Bibledit stores book
+            // data by chapters in separate data folders. The temp folder consolidates the data
+            // into books before the whole books are read from temp files into the buffer. 
+            wxString tempFolder;
+            tempFolder = gpApp->m_workFolderPath + gpApp->PathSeparator + _T(".temp");
+            if (!::wxDirExists(tempFolder))
+            {
+                ::wxMkdir(tempFolder);
+            }
 
-		wxString tempFileName;
-		tempFileName = tempFolder + gpApp->PathSeparator;
-		tempFileName += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, projShortName, wxEmptyString, _T(".tmp"));
+            wxString projShortName;
+            wxASSERT(!compositeProjName.IsEmpty());
+            projShortName = GetShortNameFromProjectName(compositeProjName);
+            wxString bookNumAsStr = gpApp->GetBookNumberAsStrFromName(fullBookName);
 
-		// Build the command lines for reading the PT projects using rdwrtp7.exe
-		// and BE projects using bibledit-rdwrt (or adaptit-bibledit-rdwrt).
+            tempFileName = tempFolder + gpApp->PathSeparator;
+            tempFileName += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, projShortName, wxEmptyString, _T(".tmp"));
 
-		// whm 23Aug11 Note: We are not using Bruce's BuildCommandLineFor() here to build the
-		// commandline, because within GetSourceTextFromEditor() we are using temp variables
-		// for passing to the GetShortNameFromProjectName() function above, whereas
-		// BuildCommandLineFor() uses the App's values for m_CollabProjectForSourceInputs,
-		// m_CollabProjectForTargetExports, and m_CollabProjectForFreeTransExports. Those App
-		// values are not assigned until GetSourceTextFromEditor()::OnOK() is executed and the
-		// dialog is about to be closed.
+            long resultExec = -1;
+            wxArrayString outputArray, errorsArray;
+            wxString beProjPath = gpApp->GetBibleditProjectsDirPath();
+            wxString beProjPathSrc;
+            beProjPathSrc = beProjPath + gpApp->PathSeparator + projShortName;
+            int chNumForBEDirect = -1; // for Bibledit to get whole book
+            bool bWriteOK;
+            bWriteOK = CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNumForBEDirect, tempFileName, errorsArray);
+            if (bWriteOK)
+                resultExec = 0; // 0 means same as wxExecute() success
+            else // bWriteOK was FALSE
+                resultExec = 1; // 1 means same as wxExecute() ERROR, errorsArray will contain error message(s)
 
-		// whm 17Oct11 modified the commandline strings below to quote the source and target
-		// short project names (projShortName and targetProjShortName). This is especially
-		// important for the Bibledit projects, since we use the language name for the project
-		// name and it can contain spaces, whereas in the Paratext command line strings the
-		// short project name is used which doesn't generally contain spaces.
-		wxString commandLine,commandLineTgt,commandLineFT;
-		if (editor == _T("Paratext"))
-		{
-			// whm 17Jul12 modified. The .Contains() method is deprecated; use Find instead
-			//if (m_rdwrtp7PathAndFileName.Contains(_T("paratext")))
-			if (m_rdwrtp7PathAndFileName.Find(_T("paratext")) != wxNOT_FOUND) // whm Note: lower case "paratext" appears only on Linux where it is script name
-			{
-				// PT on linux -- need to add --rdwrtp7 as the first param to the command line
-				commandLine = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + projShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + tempFileName + _T("\"");
-			}
-			else
-			{
-				// PT on Windows
-				commandLine = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + projShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + tempFileName + _T("\"");
-			}
-		}
-		else if (editor == _T("Bibledit"))
-		{
-			commandLine = _T("\"") + m_bibledit_rdwrtPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + projShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + tempFileName + _T("\"");
-		}
-		//wxLogDebug(commandLine);
+            if (resultExec != 0)
+            {
+                // get the console output and error output, format into a string and
+                // include it with the message to user
+                wxString outputStr, errorsStr;
+                outputStr.Empty();
+                errorsStr.Empty();
+                int ct;
+                if (resultExec != 0)
+                {
+                    for (ct = 0; ct < (int)outputArray.GetCount(); ct++)
+                    {
+                        if (!outputStr.IsEmpty())
+                            outputStr += _T(' ');
+                        outputStr += outputArray.Item(ct);
+                    }
+                    for (ct = 0; ct < (int)errorsArray.GetCount(); ct++)
+                    {
+                        if (!errorsStr.IsEmpty())
+                            errorsStr += _T(' ');
+                        errorsStr += errorsArray.Item(ct);
+                    }
+                }
 
-		// Note: Looking at the wxExecute() source code in the 2.8.11 library, it is clear that
-		// when the overloaded version of wxExecute() is used, it uses the redirection of the
-		// stdio to the arrays, and with that redirection, it doesn't show the console process
-		// window by default. It is distracting to have the DOS console window flashing even
-		// momentarily, so we will use that overloaded version of rdwrtp7.exe.
-
-		long resultExec = -1;
-		wxArrayString outputArray, errorsArray;
-		// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
-		// Defined to 0 to use Bibledit's command-line interface to fetch text and write text
-		// from/to its project data files. Defined as 0 is the normal setting.
-		// Defined to 1 to fetch text and write text directly from/to Bibledit's project data
-		// files (not using command-line interface). Defined to 1 was for testing purposes
-		// only before Teus provided the command-line utility bibledit-rdwrt.
-		if (gpApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
-		{
-			// Use the wxExecute() override that takes the two wxStringArray parameters. This
-			// also redirects the output and suppresses the dos console window during execution.
-			resultExec = ::wxExecute(commandLine,outputArray,errorsArray);
-		}
-		else if (gpApp->m_bCollaboratingWithBibledit)
-		{
-			// Collaborating with Bibledit and _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 1
-			// Note: This code block will not be used in production. It was only for testing
-			// purposes.
-			wxString beProjPath = gpApp->GetBibleditProjectsDirPath();
-			wxString beProjPathSrc;
-			beProjPathSrc = beProjPath + gpApp->PathSeparator + projShortName;
-			int chNumForBEDirect = -1; // for Bibledit to get whole book
-			bool bWriteOK;
-			bWriteOK = CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNumForBEDirect, tempFileName, errorsArray);
-			if (bWriteOK)
-				resultExec = 0; // 0 means same as wxExecute() success
-			else // bWriteOK was FALSE
-				resultExec = 1; // 1 means same as wxExecute() ERROR, errorsArray will contain error message(s)
-		}
-
-		if (resultExec != 0)
-		{
-			// get the console output and error output, format into a string and
-			// include it with the message to user
-			wxString outputStr,errorsStr;
-			outputStr.Empty();
-			errorsStr.Empty();
-			int ct;
-			if (resultExec != 0)
-			{
-				for (ct = 0; ct < (int)outputArray.GetCount(); ct++)
-				{
-					if (!outputStr.IsEmpty())
-						outputStr += _T(' ');
-					outputStr += outputArray.Item(ct);
-				}
-				for (ct = 0; ct < (int)errorsArray.GetCount(); ct++)
-				{
-					if (!errorsStr.IsEmpty())
-						errorsStr += _T(' ');
-					errorsStr += errorsArray.Item(ct);
-				}
-			}
-
-			wxString msg;
-			wxString concatMsgs;
-			if (!outputStr.IsEmpty())
-				concatMsgs = outputStr;
-			if (!errorsStr.IsEmpty())
-				concatMsgs += errorsStr;
-			if (editor == _T("Paratext"))
-			{
-				msg = _("Could not read data from the Paratext projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
-			}
-			else if (editor == _T("Bibledit"))
-			{
-				msg = _("Could not read data from the Bibledit projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
-			}
-			msg = msg.Format(msg,concatMsgs.c_str());
-			errorMsg = msg; // return the error message to the caller
-			if (nTotal > 0)
-			{
-				pStatusBar->FinishProgress(progressTitle);
-			}
-			return processingError;
-		}
+                wxString msg;
+                wxString concatMsgs;
+                if (!outputStr.IsEmpty())
+                    concatMsgs = outputStr;
+                if (!errorsStr.IsEmpty())
+                    concatMsgs += errorsStr;
+                msg = _("Could not read data from the Bibledit projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
+                msg = msg.Format(msg, concatMsgs.c_str());
+                errorMsg = msg; // return the error message to the caller
+                if (nTotal > 0)
+                {
+                    pStatusBar->FinishProgress(progressTitle);
+                }
+                return processingError;
+            }
+        }
 
 		// now read the tmp files into buffers in preparation for analyzing their chapter and
 		// verse status info (1:1:nnnn).
-		// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a
-		// UNICODE BOM of ef bb bf
 
 		// whm 21Sep11 Note: When grabbing the source text, we need to ensure that
 		// an \id XXX line is at the beginning of the text, therefore the second
@@ -932,16 +946,15 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		// the main call that stores the text in the .temp folder which the app
 		// would use if the whole book is used for collaboration, so we should
 		// do the check here too just to be safe.
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+		//wxLogDebug(_T("\n\n DoProjectAnalysis():  logging structure & extents for book with bookCode = %s"), bookCode.c_str());
+#endif
 		wholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(tempFileName,bookCode);
 		usfmStructureAndExtentArray.Clear();
 		usfmStructureAndExtentArray = GetUsfmStructureAndExtent(wholeBookBuffer);
 
-		// Note: The wholeBookBuffer will not be completely empty even
-		// if no Paratext book yet exists, because there will be a FEFF UTF-16 BOM char in it
-		// after rdwrtp7.exe tries to copy the file and the result is stored in the wxString
-		// buffer. So, we can tell better whether the book hasn't been created within Paratext
-		// by checking to see if there are any elements in the appropriate
-		// UsfmStructureAndExtentArrays.
+		// Note: We can tell if the book hasn't been created by checking to see if 
+        // there are any elements in the appropriate UsfmStructureAndExtentArrays.
 		if (usfmStructureAndExtentArray.GetCount() == 0)
 		{
 			if (nTotal > 0)
@@ -1008,6 +1021,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 
 		msgDisplayed = progMsg.Format(progMsg,booksPresentArray.Item(nBookCount).c_str());
 		pStatusBar->UpdateProgress(progressTitle, nBookCount, msgDisplayed);
+        wxMilliSleep(20); // books are now analyzed so quickly, add 50ms of sleep for each update to enable status line progress to be observed
 	} // end of for (nBookCount = 0; nBookCount < nTotal; nBookCount++)
 
 	if (booksWithContent.IsEmpty())
@@ -1034,8 +1048,9 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 
 	if (nTotal > 0)
 	{
+        wxMilliSleep(200); //
 		pStatusBar->FinishProgress(progressTitle);
-	}
+    }
 
 	// For Testing only!!!
 	// Return the empty books (as a string list) to the caller via the emptyBooks reference parameter
@@ -1154,7 +1169,10 @@ wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
 
 	if (gpApp->m_bCollaboratingWithParatext)
 	{
-		cmdLineAppPath = GetPathToRdwrtp7();
+        // whm added 17March2017. To avoid possible error, we need to be absolutely sure of the path to the 
+        // rdwrtp7.exe file which is different for PT7 and PT8, so I'm adding a parameter to GetPathToRdwrtp7()
+        // to indicate the specific version of PT we want the path for.
+        cmdLineAppPath = GetPathToRdwrtp7(gpApp->m_ParatextVersionForProject);
 	}
 	else
 	{
@@ -1192,8 +1210,11 @@ wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
 		if (cmdLineAppPath.Contains(_T("paratext")))
 		{
 		    // PT on linux -- command line is /usr/bin/paratext --rdwrtp7
-		    // (calls a mono script to set up the environment, then calls rdwrtp7.exe
+		    // (calls a mono script to set up the environment, then the mono script calls rdwrtp7.exe
             // with the rest of the params)
+            // TODO: Once PT8 for Linux moves from experimental to the normal PSO release, and we
+            // verify that PT8 for Linux can take a --rdwrtp8 command-line option, change the cmdLine
+            // below to use --rdwrtp8 instead of --rdwrtp7.
             cmdLine = _T("\"") + cmdLineAppPath + _T("\"") + _T(" --rdwrtp7 ") +
                 readwriteChoiceStr + _T(" ") +	_T("\"") + shortProjName + _T("\"") +
                 _T(" ") + bookCode + _T(" ") + chStrForCommandLine +
@@ -2782,6 +2803,19 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 	if (bDoMerger)
 	{
+		if (pApp->m_bMakeDocCreationLogfile) // turn this ON in ViewPage of the Wizard
+		{
+			pApp->m_bSetupDocCreationLogSucceeded = pApp->SetupDocCreationLog(pApp->m_curOutputFilename);
+			if (pApp->m_bSetupDocCreationLogSucceeded)
+			{
+				pApp->m_bParsingSource = TRUE; // this prevents TokenizeText() from doing unwanted logging
+			}
+			else
+			{
+				pApp->m_bParsingSource = FALSE; // don't attempt to log if the file is not in existence
+			}
+		}
+
 		// first task is to tokenize the (possibly edited) source text just obtained from
 		// PT or BE
 
@@ -2838,8 +2872,22 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 		// parse the new source text data into a list of CSourcePhrase instances
 		int nHowMany;
+		wxString msg = _("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
+		wxString msgEnglish = _T("Aborting document creation. A significant parsing error occurred. See View page of Preferences for how to produce a diagnostic log file on a retry.");
+
 		SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
 		nHowMany = pView->TokenizeTextString(pSourcePhrases, *pBuffer, 0); // 0 = initial sequ number value
+
+		// Check for a parse error, abort the parse if there was a parse error
+		if (nHowMany == -1)
+		{
+			// Abort the document creation, there has been a significant parsing error. 
+			// Do a diagnostic run (see View page of Preferences)
+			pApp->LogUserAction(msgEnglish);
+			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
+			return FALSE;
+		}
+
 		SPList* pMergedList = new SPList; // store the results of the merging here
 
 		// Update for step 5 MergeUpdatedSourceText(), etc.
@@ -2848,9 +2896,17 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 		if (nHowMany > 0)
 		{
-			MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, pMergedList, nSpanLimit);
+			bool bIsPossible = MergeUpdatedSourceText(*pApp->m_pSourcePhrases, 
+										*pSourcePhrases, pMergedList, nSpanLimit);
             // take the pMergedList list, delete the app's m_pSourcePhrases list's
             // contents, & move to m_pSourcePhrases the pointers in pMergedList...
+			if (!bIsPossible)
+			{
+				// Note: must return TRUE otherwise doc/view is messed up
+				// but an error warning message from lower down will have been seen
+				pStatusBar->FinishProgress(_("Merging Documents..."));
+				return TRUE; // detected merger is impossible (no text matchups in old vs new)
+			}
 
 			// Update for step 6 loop of DeleteSingleSrcPhrase()
 			msgDisplayed = progMsg.Format(progMsg,6,nTotal);
@@ -3089,6 +3145,720 @@ void UnloadKBs(CAdapt_ItApp* pApp)
 		pApp->m_bGlossingKBReady = FALSE;
 		pApp->m_pGlossingKB = (CKB*)NULL;
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// \return                      a wxString representing the new collab protection string with 
+///                              the bookIDsorChapters added to/merged into it
+/// \param currentString     ->  a wxString representing the current collab protection 
+///                              status string, for example: "MAT MRK MRK:1:2:16 LUK ROM 1CO:4:6..."
+///                              where book(s) are delimited by spaces in the string.
+/// \param bookIDsorChapters ->  a wxString representing the book(s) and/or book:chapter(s)
+///                              to be added to/merged into the collab protection status string,
+///                              for example: "MAT:1:2 MRK:2:3:4 LUK 1CO:1" when merged into the string
+///                              above would return: "MAT MAT:1:2 MRK MRK:1:2:3:4:16 LUK ROM 1CO:1:4:6"
+///                              again where books are delimited by spaces
+/// \remarks
+/// Called From: TODO:
+/// This function takes in the current string from the project config file's 
+/// CollabBooksProtectedFromSavingToEditor field and adds/merges the book(s)/chapter(s) specified
+/// by the bookIDsorChapters value into that string, then returns the resulting string. 
+/// The addition won't result in duplications since merge process is designed so that it will 
+/// not make a change for a specific book or book:chapter if the current string already has 
+/// the specific book or book:chapter value within it.
+/// Since it is possible (but not recommended) for a collaboration project to swtich between 
+/// whole-book mode and single-chapter-only mode midway through a project, this function works 
+/// whether the incoming string contains book(s) and/or book(s):chapter(s) that match the  
+/// current whole-book-mode or chapter-only mode. 
+/// For example, if a chapter-only mode was previously set and it was marked as protected, 
+/// and then later, the project switched to whole-book-only mode, the protection that was set 
+/// for the chapter-only document would not apply to that chapter within the whole-document mode 
+/// collaboration. Note: The string associated with the CollabBooksProtectedFromSavingToEditor
+/// label may have a whole-book entry such as LUK, and also have a separate chapter-only entry
+/// that is indicated in the same string by a LUK:1. This allows the CollabBooksProtectedFromSavingToEditor
+/// value to keep the protection status independently for whole-book files and chapter-only files.
+/// Hence, the function operates equally well regardless of the current collab mode: whole book or 
+/// chapter-only mode.
+/// The ordering of book and/or book:chapter references within the returned string will be
+/// tailored to mimic the book ordering of the App's AllBookNumStr[] array.
+/// Note: This function does not validate the Book IDs or chapter numbers to ensure that they make
+/// sense, but it won't choke on a bad entry either.
+/// 
+/// whm added 9March2017
+////////////////////////////////////////////////////////////////////////////////
+wxString AddCollabBooksAndOrChaptersToProtectedCollabString(wxString currentString, wxString bookIDsorChapters)
+{
+    // We use a tempTokenArray to store the original, replaced, and/or added book and/or book:chapter 
+    // tokens.
+    wxString originalString = currentString;
+    wxArrayString tempTokenArray;
+    // Since the bookIDsorChapters string may have more than one bookID and/or bookID:chapter(s),
+    // the book(s) and book:chapter(s) all being delimited by spaces, we'll tokenize the incoming 
+    // bookIDsorChapters parameter storing its tokens in a mergeTokenArray. 
+    // Then we'll process each of the tokens to be merged individually (one at a time) into the 
+    // new collab protection string below. 
+    wxString originalBookIDsOrChapters = bookIDsorChapters;
+    wxArrayString mergeTokenArray;
+
+    // If there is nothing to add/merge just return the original string
+    if (originalBookIDsOrChapters.IsEmpty())
+    {
+        return originalString;
+    }
+
+    wxString tokenStr;
+    wxStringTokenizer tkz(originalBookIDsOrChapters, _T(" ")); // books are delimited by spaces
+    while (tkz.HasMoreTokens())
+    {
+        tokenStr = tkz.GetNextToken();
+        // do comparisons with forced uppercase in this function
+        tokenStr.MakeUpper();
+        tokenStr.Trim(TRUE);
+        tokenStr.Trim(FALSE);
+        mergeTokenArray.Add(tokenStr);
+    }
+    wxString newString;
+    int tokenCt;
+    int tokenTot = (int)mergeTokenArray.GetCount();
+    for (tokenCt = 0; tokenCt < tokenTot; tokenCt++)
+    {
+        // Need to clear out the tempTokenArray for each pass through the loop
+        tempTokenArray.Clear();
+        newString.Empty(); // build a new string to return at end of processing
+
+        wxString bookIDorCh = mergeTokenArray.Item(tokenCt);
+        int posCol = bookIDorCh.Find(_T(":"));
+        wxString bkIDtoFind = bookIDorCh.Mid(0, posCol);
+        bkIDtoFind.MakeUpper();
+        wxString chaptersToFind = _T("");
+        bool bRequiresChapterFormat = FALSE;
+        if (posCol != wxNOT_FOUND)
+        {
+            chaptersToFind = bookIDorCh.AfterFirst(_T(':'));
+            // the incoming bookIDsorChapters parameter has a colon, so it is in the book:chapter form
+            bRequiresChapterFormat = TRUE;
+        }
+
+        // Tokenize the current incoming string currentString into "book" tokens.
+        // We use space as the delimiter between books/tokens. Each token represents
+        // either a whole book ID or a book ID followd by chapter(s) delimited by colons.
+        // We'll store the tokens in an array since we may need to make multiple passes 
+        // over the array content.
+        // Note: For the second and any succesive iterations through the for loop the 
+        // newString that was created in the previous iteration is used for the originalString
+        // that gets tokenized in the next line.
+        wxStringTokenizer tkz(originalString, _T(" ")); // books are delimited by spaces
+        while (tkz.HasMoreTokens())
+        {
+            tokenStr = tkz.GetNextToken();
+            // do comparisons with forced uppercase in this function
+            tokenStr.MakeUpper();
+            tokenStr.Trim(TRUE);
+            tokenStr.Trim(FALSE);
+            tempTokenArray.Add(tokenStr);
+        }
+
+        // The tempTokenArray will usually have no more than one reference to a book by its ID.
+        // In rare cases where a project has had some work done in whole-book collaboration
+        // and some work done in chapter-only collaboration, there should be no more than two 
+        // references to a book by its ID; one reference to it as just a 3-letter code, and
+        // the other reference as a 3-letter code plus :chapter parts - using colon delimiters. 
+        // We attempt to keep the book and book:chapter IDs in scripture book order within
+        // the string as determined by the order established by the AllBookNumStr[] array 
+        // which assigns books a quasi-numeric order, which we'll do by sorting a modified
+        // array below.
+
+        // Scan through the tempTokenArray and process the one or two lines that match our bookID
+        bool wholeBookTokenFound = FALSE;
+        bool chapterTypeTokenFound = FALSE;
+        wxString chFoundParts = _T("");
+        int indexIntotempTokenArrayOfChapterType = -1;
+        int ct;
+        int tot = (int)tempTokenArray.GetCount();
+        for (ct = 0; ct < tot; ct++)
+        {
+            wxString token = tempTokenArray.Item(ct);
+            int posBookID = token.Find(bkIDtoFind);
+            if (posBookID != wxNOT_FOUND)
+            {
+                // The book ID was found in this token.
+                // Is this token a chapter containing type?
+                int pos = token.Find(_T(":"));
+                if (pos == wxNOT_FOUND)
+                {
+                    wholeBookTokenFound = TRUE;
+                }
+                else
+                {
+                    chapterTypeTokenFound = TRUE;
+                    indexIntotempTokenArrayOfChapterType = ct;
+                    chFoundParts = token.Mid(pos);
+                    chFoundParts.Trim(TRUE);
+                    chFoundParts.Trim(FALSE);
+                }
+            }
+        }
+        // bIsChapterFormat tells us whether we are adding a chapter-only reference to
+        // the string. 
+        if (bRequiresChapterFormat)
+        {
+            if (!chapterTypeTokenFound)
+            {
+                // we need to add a book:chapter token to the array. Just add the
+                // token to the array at this point - we sort it later.
+                tempTokenArray.Add(bkIDtoFind + _T(":") + chaptersToFind);
+            }
+            else
+            {
+                // There is an existing book:chapter token, so we need to add the
+                // :chapter part, being careful to not add a duplicate :chapter segment
+                // if one already exists there. The addition should be added in a numerical
+                // sort order of the chapters that currently exist.
+                wxArrayString chNumArray;
+                wxString tokStr;
+                // chFoundParts will have an initial ':' so must remove that initial : so
+                // wxStringTokenizer below doesn't produce an empty initial string token
+                wxASSERT(chFoundParts.GetChar(0) == _T(':'));
+                chFoundParts = chFoundParts.Mid(1);
+                wxStringTokenizer tkz(chFoundParts, _T(":")); // chapters are delimited by colons
+                while (tkz.HasMoreTokens())
+                {
+                    tokStr = tkz.GetNextToken();
+                    tokStr.MakeUpper();
+                    tokStr.Trim(FALSE);
+                    // Need to pad the string-formatted number with initial zeros to make a 3 char string, i.e., "001"
+                    // so the string sort operation below will sort numbers like 002, 020, 200, correctly
+                    // do comparisons with forced uppercase in this function
+                    tokStr.Pad(3 - tokStr.Length(), _T('0'), FALSE); // FALSE pads with leading '0' char(s)
+                    chNumArray.Add(tokStr);
+                }
+                // Add the new chapter number(s) - also padded with prefixed '0' char(s).
+                // Note: The chaptersToFind may also have multiple chapters for this book,
+                // so they need to be tokenized and unique chapters added to chNumArray.
+                wxStringTokenizer tkz2(chaptersToFind, _T(":")); // chapters are delimited by colons
+                while (tkz2.HasMoreTokens())
+                {
+                    tokStr = tkz2.GetNextToken();
+                    tokStr.MakeUpper();
+                    tokStr.Trim(FALSE);
+                    // Need to pad the string-formatted number with initial zeros to make a 3 char string, i.e., "001"
+                    // so the string sort operation below will sort numbers like 002, 020, 200, correctly
+                    // do comparisons with forced uppercase in this function
+                    tokStr.Pad(3 - tokStr.Length(), _T('0'), FALSE); // FALSE pads with leading '0' char(s)
+                    // Total number of chapters per single book are limited (150), so just do a brute search 
+                    // to see if the tokStr is in chNumArray already or not. If it is there don't duplicate it. 
+                    // If it is not already there add it.
+                    bool bChFound = FALSE;
+                    int tempCt;
+                    int tempTot = (int)chNumArray.GetCount();
+                    for (tempCt = 0; tempCt < tempTot; tempCt++)
+                    {
+                        if (chNumArray.Item(tempCt) == tokStr)
+                        {
+                            bChFound = TRUE;
+                            break;
+                        }
+                    }
+                    if (!bChFound)
+                    {
+                        chNumArray.Add(tokStr);
+                    }
+                }
+                // Sort the chapter number array.
+                chNumArray.Sort();
+                wxString newBkChToken = _T("");
+                wxString accumChString = _T("");
+                int ct;
+                int tot = (int)chNumArray.GetCount();
+                for (ct = 0; ct < tot; ct++)
+                {
+                    newBkChToken = chNumArray.Item(ct);
+                    // We can remove the '0' padding chars here before combining with bkIDtoFind and storing in tempTokenArray
+                    while (newBkChToken.Length() > 0 && newBkChToken.GetChar(0) == _T('0'))
+                    {
+                        newBkChToken = newBkChToken.Mid(1);
+                    }
+                    accumChString += _T(":") + newBkChToken;
+                }
+                // Remove the existing book:chapter array item, then Add the new one to the end of the array
+                wxASSERT(indexIntotempTokenArrayOfChapterType < (int)tempTokenArray.GetCount());
+                tempTokenArray.RemoveAt(indexIntotempTokenArrayOfChapterType);
+                // Suffix the new newBkChToken to its bookID, and  add the new book:chapter to the original tempTokenArray
+                tempTokenArray.Add(bkIDtoFind + accumChString);
+                // We sort the tempTokenArray below
+            }
+        }
+        else // bRequiresChapterFormat is FALSE
+        {
+            // we only need to add a BookID if it is not present
+            if (!wholeBookTokenFound)
+            {
+                // we need to add a bookID token to the array. Just add the
+                // token to the array at this point - we sort it later.
+                tempTokenArray.Add(bkIDtoFind);
+            }
+        }
+
+        // To sort our tokens we can first give them with a numeric-string sorting prefix 
+        // while scanning through the now complete tempTokenArray, and copying each of the 
+        // composed string tokens to a newarray. In the newArray each token is prefixed 
+        // with a string number from the App's AllBookNumStr[] array that is retrieved from 
+        // a look up of the bookID in the parallel AllBookIds[] bookID array. 
+        // The newArray can then be sorted by calling the newArray.Sort() command, and the
+        // numeric string prefix removed.
+        wxArrayString newArray;
+
+        tot = (int)tempTokenArray.GetCount();
+        //newArray.SetCount(tempTokenArray.GetCount());
+        wxString tmpStr;
+        wxString bkCode;
+        for (ct = 0; ct < tot; ct++)
+        {
+            tmpStr = tempTokenArray.Item(ct);
+            bkCode = tmpStr.Mid(0, 3);
+            tmpStr = gpApp->GetBookNumberAsStrFromBookCode(bkCode) + _T("_") + tmpStr;
+            newArray.Add(tmpStr);
+        }
+
+        newArray.Sort();
+        // Go through the newArray in its new sorted order and remove the numeric sorting
+        // prefix, and any chapter "0" numeric prefixes for each array element, then using the result to make 
+        // up a newString to return to the caller for saving as the new value for the CollabBooksProtectedFromSavingToEditor
+        // label in the AI-ProjectConfiguration.aic file.
+
+        tot = (int)newArray.GetCount();
+        for (ct = 0; ct < tot; ct++)
+        {
+            tmpStr = newArray.Item(ct);
+            tmpStr = tmpStr.Mid(3); // remove the sorting prefix (it is a 3-char string of the form "XX_")
+            newString += tmpStr + _T(" ");
+        }
+        newString.Trim(TRUE); // trim off last space
+
+        // For the next iteration of the for loop use the newString as originalString
+        originalString = newString;
+    } // end of for (tokenCt = 0; tokenCt < tokenTot; tokenCt++)
+    
+    // Return the final form of the newString to the caller
+    return newString;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// \return                      a wxString representing the new collab protection string with 
+///                              the bookIDsorChapters removed from it
+/// \param currentString     ->  a wxString representing the current collab protection 
+///                              status string, for example: "MAT MRK MRK:1:2:16 LUK ROM 1CO:4:6..."
+///                              where book(s) are delimited by spaces in the string.
+/// \param bookIDsorChapters ->  a wxString representing the book(s) and/or book:chapter(s)
+///                              to be removed from the collab protection status string,
+///                              for example: "MAT:1:2 MRK:2:3:4 LUK 1CO:1" when removed the string
+///                              above would return: "MAT MRK MRK:1:16 ROM 1CO:4:6" (some removals
+///                              ignored that don't exist in currentString)
+/// \remarks
+/// Called From: TODO:
+/// This function takes in the current string from the project config file's 
+/// CollabBooksProtectedFromSavingToEditor field and removes the book(s)/chapter(s) specified
+/// by the bookIDsorChapters value from that string, then returns the resulting string. 
+/// Any specified removals that don't actually exist in currentString, are ignored. 
+/// Since it is possible (but not recommended) for a collaboration project to swtich between 
+/// whole-book mode and single-chapter-only mode midway through a project, this function works 
+/// whether the incoming string contains book(s) and/or book(s):chapter(s) that match the  
+/// current whole-book-mode or chapter-only mode. 
+/// For example, if a chapter-only mode was previously set and it was marked as protected, 
+/// and then later, the project switched to whole-book-only mode, the protection that was set 
+/// for the chapter-only document would not apply to that chapter within the whole-document mode 
+/// collaboration. Note: The string associated with the CollabBooksProtectedFromSavingToEditor
+/// label may have a whole-book entry such as LUK, and also have a separate chapter only entry
+/// that is indicated in the same string by a LUK:1. This allows the CollabBooksProtectedFromSavingToEditor
+/// value to keep the protection status independently for whole-book files and chapter-only files.
+/// Hence, the function operates equally well regardless of the current collab mode: whole book or 
+/// chapter-only mode.
+/// The ordering of book and/or book:chapter references within the returned string will be
+/// tailored to mimic the book ordering of the App's AllBookNumStr[] array.
+/// Note: This function does not validate the Book IDs or chapter numbers to ensure that they make
+/// sense, but it won't choke on a bad entry either.
+/// 
+/// whm added 9March2017
+wxString RemoveCollabBooksOrChaptersFromProtectedCollabString(wxString currentString, wxString bookIDsorChapters)
+{
+    // We use a tempTokenArray to store the original, replaced, and/or added book and/or book:chapter 
+    // tokens.
+    wxString originalString = currentString;
+    wxArrayString tempTokenArray;
+    // Since the bookIDsorChapters string may have more than one bookID and/or bookID:chapter(s),
+    // the book(s) and book:chapter(s) all being delimited by spaces, we'll tokenize the incoming 
+    // bookIDsorChapters parameter storing its tokens in a removeTokenArray. 
+    // Then we'll process each of the tokens to be removed individually (one at a time) removing them
+    // from the new collab protection string below. 
+    wxString originalBookIDsOrChapters = bookIDsorChapters;
+    wxArrayString removeTokenArray;
+
+    // If there is nothing to remove just return the original string
+    if (originalBookIDsOrChapters.IsEmpty())
+    {
+        return originalString;
+    }
+
+    wxString tokenStr;
+    wxStringTokenizer tkz(originalBookIDsOrChapters, _T(" ")); // books are delimited by spaces
+    while (tkz.HasMoreTokens())
+    {
+        tokenStr = tkz.GetNextToken();
+        // do comparisons with forced uppercase in this function
+        tokenStr.MakeUpper();
+        tokenStr.Trim(TRUE);
+        tokenStr.Trim(FALSE);
+        removeTokenArray.Add(tokenStr);
+    }
+    wxString newString;
+    int tokenCt;
+    int tokenTot = (int)removeTokenArray.GetCount();
+    for (tokenCt = 0; tokenCt < tokenTot; tokenCt++)
+    {
+        // Need to clear out the tempTokenArray for each pass through the loop
+        tempTokenArray.Clear();
+        newString.Empty(); // build a new string to return at end of processing
+
+        wxString bookIDorCh = removeTokenArray.Item(tokenCt);
+        int posCol = bookIDorCh.Find(_T(":"));
+        wxString bkIDtoFind = bookIDorCh.Mid(0, posCol);
+        bkIDtoFind.MakeUpper();
+        wxString chaptersToFind = _T("");
+        bool bRequiresChapterFormat = FALSE;
+        if (posCol != wxNOT_FOUND)
+        {
+            chaptersToFind = bookIDorCh.AfterFirst(_T(':'));
+            // the incoming bookIDsorChapters parameter has a colon, so it is in the book:chapter form
+            bRequiresChapterFormat = TRUE;
+        }
+
+        // Tokenize the current incoming string currentString into "book" tokens.
+        // We use space as the delimiter between books/tokens. Each token represents
+        // either a whole book ID or a book ID followd by chapter(s) delimited by colons.
+        // We'll store the tokens in an array since we may need to make multiple passes 
+        // over the array content.
+        // Note: For the second and any succesive iterations through the for loop the 
+        // newString that was created in the previous iteration is used for the originalString
+        // that gets tokenized in the next line.
+        wxStringTokenizer tkz(originalString, _T(" ")); // books are delimited by spaces
+        while (tkz.HasMoreTokens())
+        {
+            tokenStr = tkz.GetNextToken();
+            // do comparisons with forced uppercase in this function
+            tokenStr.MakeUpper();
+            tokenStr.Trim(TRUE);
+            tokenStr.Trim(FALSE);
+            tempTokenArray.Add(tokenStr);
+        }
+
+        // The tempTokenArray will usually have no more than one reference to a book by its ID.
+        // In rare cases where a project has had some work done in whole-book collaboration
+        // and some work done in chapter-only collaboration, there should be no more than two 
+        // references to a book by its ID; one reference to it as just a 3-letter code, and
+        // the other reference as a 3-letter code plus :chapter parts - using colon delimiters. 
+        // We attempt to keep the book and book:chapter IDs in scripture book order within
+        // the string as determined by the order established by the AllBookNumStr[] array 
+        // which assigns books a quasi-numeric order, which we'll do by sorting a modified
+        // array below.
+
+        // Scan through the tempTokenArray and process the one or two lines that match our bookID
+        bool wholeBookTokenFound = FALSE;
+        bool chapterTypeTokenFound = FALSE;
+        wxString chFoundParts = _T("");
+        int indexIntotempTokenArrayOfChapterType = -1;
+        indexIntotempTokenArrayOfChapterType = indexIntotempTokenArrayOfChapterType; // avoid gcc warning
+        int ct;
+        int tot = (int)tempTokenArray.GetCount();
+        for (ct = 0; ct < tot; ct++)
+        {
+            wxString token = tempTokenArray.Item(ct);
+            int posBookID = token.Find(bkIDtoFind);
+            if (posBookID != wxNOT_FOUND)
+            {
+                // The book ID was found in this token.
+                // Is this token a chapter containing type?
+                int pos = token.Find(_T(":"));
+                if (pos == wxNOT_FOUND)
+                {
+                    wholeBookTokenFound = TRUE;
+                }
+                else
+                {
+                    chapterTypeTokenFound = TRUE;
+                    indexIntotempTokenArrayOfChapterType = ct;
+                    chFoundParts = token.Mid(pos);
+                    chFoundParts.Trim(TRUE);
+                    chFoundParts.Trim(FALSE);
+                }
+            }
+        }
+
+        // bIsChapterFormat tells us whether we are removing a chapter-only reference from
+        // the string. 
+        if (bRequiresChapterFormat)
+        {
+            if (!chapterTypeTokenFound)
+            {
+                // There is nothing to remove so do nothing here
+                ;
+            }
+            else
+            {
+                // There is an existing book:chapter token, so we need to remove the
+                // :chapter part.
+                wxArrayString chNumArray;
+                wxString tokStr;
+                // chFoundParts will have an initial ':' so must remove that initial : so
+                // wxStringTokenizer below doesn't produce an empty initial string token
+                wxASSERT(chFoundParts.GetChar(0) == _T(':'));
+                chFoundParts = chFoundParts.Mid(1);
+                wxStringTokenizer tkz(chFoundParts, _T(":")); // chapters are delimited by colons
+                while (tkz.HasMoreTokens())
+                {
+                    tokStr = tkz.GetNextToken();
+                    tokStr.MakeUpper();
+                    tokStr.Trim(FALSE);
+                    // Need to pad the string-formatted number with initial zeros to make a 3 char string, i.e., "001"
+                    // so the string sort operation below will sort numbers like 002, 020, 200, correctly
+                    // do comparisons with forced uppercase in this function
+                    tokStr.Pad(3 - tokStr.Length(), _T('0'), FALSE); // FALSE pads with leading '0' char(s)
+                    chNumArray.Add(tokStr);
+                }
+                // Remove the new chapter number(s) - also padded with prefixed '0' char(s).
+                // Note: The chaptersToFind may also have multiple chapters for this book,
+                // so they need to be tokenized and unique chapters added to chNumArray.
+                wxStringTokenizer tkz2(chaptersToFind, _T(":")); // chapters are delimited by colons
+                while (tkz2.HasMoreTokens())
+                {
+                    tokStr = tkz2.GetNextToken();
+                    tokStr.MakeUpper();
+                    tokStr.Trim(FALSE);
+                    // Need to pad the string-formatted number with initial zeros to make a 3 char string, i.e., "001"
+                    // so the string sort operation below will sort numbers like 002, 020, 200, correctly
+                    // do comparisons with forced uppercase in this function
+                    tokStr.Pad(3 - tokStr.Length(), _T('0'), FALSE); // FALSE pads with leading '0' char(s)
+                                                                     // Total number of chapters per single book are limited (150), so just do a brute search 
+                                                                     // to see if the tokStr is in chNumArray already or not. If it is there remove it.
+                    bool bChFound = FALSE;
+                    int tempCt;
+                    int tempTot = (int)chNumArray.GetCount();
+                    for (tempCt = 0; tempCt < tempTot; tempCt++)
+                    {
+                        if (chNumArray.Item(tempCt) == tokStr)
+                        {
+                            bChFound = TRUE;
+                            break;
+                        }
+                    }
+                    if (bChFound)
+                    {
+                        chNumArray.RemoveAt(tempCt);
+                    }
+                }
+                // Sort the chapter number array.
+                chNumArray.Sort();
+                wxString newBkChToken = _T("");
+                wxString accumChString = _T("");
+                int ct;
+                int tot = (int)chNumArray.GetCount();
+                for (ct = 0; ct < tot; ct++)
+                {
+                    newBkChToken = chNumArray.Item(ct);
+                    // We can remove the '0' padding chars here before combining with bkIDtoFind and storing in tempTokenArray
+                    while (newBkChToken.Length() > 0 && newBkChToken.GetChar(0) == _T('0'))
+                    {
+                        newBkChToken = newBkChToken.Mid(1);
+                    }
+                    accumChString += _T(":") + newBkChToken;
+                }
+                // Remove the existing book:chapter array item, then Add the modified one to the end of the array
+                wxASSERT(indexIntotempTokenArrayOfChapterType < (int)tempTokenArray.GetCount());
+                tempTokenArray.RemoveAt(indexIntotempTokenArrayOfChapterType);
+                // if accumChString is not empty add the book:chapter to the original tempTokenArray,
+                // but if accumChString is empty, don't just add the bkIDtoFind - which without any :chapter
+                // part would indicate a whole book reference
+                if (!accumChString.IsEmpty())
+                {
+                    // Suffix the new newBkChToken to its bookID, and add the modified book:chapter to the original tempTokenArray
+                    tempTokenArray.Add(bkIDtoFind + accumChString);
+                    // We sort the tempTokenArray below
+                }
+            }
+        }
+        else // bRequiresChapterFormat is FALSE
+        {
+            // we only need to remove a BookID if it is present
+            if (wholeBookTokenFound)
+            {
+                // we need to remove a bookID token from the array. 
+                tempTokenArray.Remove(bkIDtoFind);
+            }
+        }
+
+        // To sort our tokens we can first give them with a numeric-string sorting prefix 
+        // while scanning through the now complete tempTokenArray, and copying each of the 
+        // composed string tokens to a newarray. In the newArray each token is prefixed 
+        // with a string number from the App's AllBookNumStr[] array that is retrieved from 
+        // a look up of the bookID in the parallel AllBookIds[] bookID array. 
+        // The newArray can then be sorted by calling the newArray.Sort() command, and the
+        // numeric string prefix removed.
+        wxArrayString newArray;
+
+        tot = (int)tempTokenArray.GetCount();
+        wxString tmpStr;
+        wxString bkCode;
+        for (ct = 0; ct < tot; ct++)
+        {
+            tmpStr = tempTokenArray.Item(ct);
+            bkCode = tmpStr.Mid(0, 3);
+            tmpStr = gpApp->GetBookNumberAsStrFromBookCode(bkCode) + _T("_") + tmpStr;
+            newArray.Add(tmpStr);
+        }
+
+        newArray.Sort();
+        // Go through the newArray in its new sorted order and remove the numeric sorting
+        // prefix, and any chapter "0" numeric prefixes for each array element, then using the result to make 
+        // up a newString to return to the caller for saving as the new value for the CollabBooksProtectedFromSavingToEditor
+        // label in the AI-ProjectConfiguration.aic file.
+
+        tot = (int)newArray.GetCount();
+        for (ct = 0; ct < tot; ct++)
+        {
+            tmpStr = newArray.Item(ct);
+            tmpStr = tmpStr.Mid(3); // remove the sorting prefix (it is a 3-char string of the form "XX_")
+            newString += tmpStr + _T(" ");
+        }
+        newString.Trim(TRUE); // trim off last space
+
+        // For the next iteration of the for loop use the newString as originalString
+        originalString = newString;
+    } // end of for (tokenCt = 0; tokenCt < tokenTot; tokenCt++)
+    return newString;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// \return           TRUE if bookCode represents a collab book/chapter that is
+///                   listed as protected from saving changes to Paratext/Bibledit,
+///                   FALSE otherwise.
+/// \param bookCode               ->  a wxString representing the book 3-letter code
+/// \param bCollabByChapterOnly   ->  a bool value, TRUE if collab by chapter only, FALSE otherwise
+/// \param collabChapterSelected  ->  a wxString value representing a chapter number
+///                                   when CollabByChapterOnly value is "1"
+/// \remarks
+/// Called From: CAdapt_ItDoc::DoCollabFileSave().
+/// This function parses the App's m_CollabBooksProtectedFromSavingToEditor wxString value
+/// which was read in from the AI-ProjectConfiguration.aic file's string associated with the 
+/// CollabBooksProtectedFromSavingToEditor label, to determine if the book/chapter 
+/// specified in the parameters is protected from saving changes to PT/BE or not.
+/// Since it is possible (but not recommended) for a collaboration project to swtich between 
+/// whole-book mode and single-chapter-only mode midway through a project, this function will 
+/// only make changes to documents that match the current whole-book-mode or chapter-only mode. 
+/// For example, if a chapter-only mode was previously set and it was marked as protected, 
+/// and then later, the project switched to whole-book-only mode, the protection that was set 
+/// for the chapter-only document would not apply to that chapter within the whole-document mode 
+/// collaboration.
+/// whm added 2February2017
+////////////////////////////////////////////////////////////////////////////////
+bool IsCollabDocProtectedFromSavingToEditor(wxString bookCode, bool bCollabByChapterOnly, wxString collabChapterSelected)
+{
+    // The App's m_CollabBooksProtectedFromSavingToEditor wxString variable contains the string
+    // we need to parse. 
+    wxString bkchCompositeStr = gpApp->m_CollabBooksProtectedFromSavingToEditor;
+    // the following are for testing, comment out after debugging
+    //bkchCompositeStr = _T("MAT MRK LUK ROM REV"); // whole book mode examples
+    //bkchCompositeStr = _T("MAT:15:16:17 MRK:1:2:14:15:16 LUK:1:2:3:4:20:21:22 ROM:1:2:3 TIT:1:2 REV:2"); // chapter-only examples
+    //bkchCompositeStr = _T("MAT MRK LUK:1:2:3:4:20:21:22 ROM:1:2:3 1TI 2TI TIT:1:2 REV"); // mixed whole book and chapter-only examples
+
+    // make some local copies of the value parameters
+    wxString collabBookToCheck = bookCode;
+    bool bCheckForChapter = bCollabByChapterOnly;
+    wxString collabChapter = collabChapterSelected;
+    wxString bkchTargetStr;
+    // Get the form of the book/chapter string we are looking for
+    if (bCheckForChapter)
+    {
+        wxASSERT(collabChapter != wxEmptyString);
+        // bkchTargetStr is of the form BookID:Chapter, the 3-letter book ID, a colon, and the chapter number
+        bkchTargetStr = collabBookToCheck + _T(":") +collabChapter;
+    }
+    else
+    {
+        bkchTargetStr = collabBookToCheck;
+    }
+    // do comparisons with forced uppercase in this function
+    bkchTargetStr.MakeUpper();
+
+    // Note: Books are delimited by a space. Chapter documents are delimited by colons:chapternumber following the book code.
+    wxString workStr;
+    wxString tokenStr;
+    // books are delimited by spaces, so each token below represents either a single 3-letter book ID 
+    // or a 3-letter book ID suffixed with :chapter suffixes for each chapter of that book that is 
+    // protected.
+    wxStringTokenizer tkz(bkchCompositeStr, _T(" ")); // books are delimited by spaces
+    workStr.Empty();
+    while (tkz.HasMoreTokens())
+    {
+        tokenStr = tkz.GetNextToken();
+        // do comparisons with forced uppercase in this function
+        tokenStr.MakeUpper();
+        int posColon = tokenStr.Find(_T(":"));
+        if (posColon == wxNOT_FOUND)
+        {
+            // The tokenStr doesn't have embedded colon so, it must represent a single 3-letter book code
+            // Verify that it is a code we recognize
+            if (gpApp->IsValidBookID(tokenStr))
+            {
+                if (tokenStr == bkchTargetStr)
+                {
+                    // We've found a match, no need to look further
+                    return TRUE;
+                }
+            }
+            else
+            {
+                // The project config file string has an unknown book id. Just log the error
+                wxString msg = _T("IsCollabDocProtectedFromSavingToEditor encountered unknown book ID: %s");
+                msg = msg.Format(msg, tokenStr.c_str());
+                gpApp->LogUserAction(msg);
+            }
+        }
+        else
+        {
+            // posColon is a positive value, so tokenStr should have embedded :<chapter> content after the book code
+            // First, get the book ID off tokenStr, then check for the :<chapter> content match in the remainder.
+            wxString bkID = tokenStr.Mid(0, posColon);
+            wxString chParts = tokenStr.Mid(posColon);
+            // By putting a final : on chParts we can do a simple Find of :2: which would uniquely find chapter 2 and not
+            // give a false positive for chapter 20, since a Find of :2: would not be found in :20:, whereas a Find
+            // of :2 would also give a false positive for :20.
+            chParts += _T(":");
+            collabBookToCheck.MakeUpper();
+            bkID.MakeUpper();
+            if (gpApp->IsValidBookID(bkID))
+            {
+                if (bkID == collabBookToCheck && chParts.Find(_T(":")+collabChapter + _T(":")) != wxNOT_FOUND)
+                {
+                   // We've found a match, no need to look further
+                    return TRUE;
+                }
+                else
+                {
+                    // no match found continue checking tokens
+                    continue;
+                }
+            }
+            else
+            {
+                // The project config file string has an unknown book id. Just log the error
+                wxString msg = _T("IsCollabDocProtectedFromSavingToEditor encountered unknown book ID: %s");
+                msg = msg.Format(msg, tokenStr.c_str());
+                gpApp->LogUserAction(msg);
+            }
+
+        }
+    }
+
+    return FALSE;
 }
 
 bool CollabProjectIsEditable(wxString projShortName)
@@ -3353,6 +4123,8 @@ bool BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName
 ///                     is non-empty and has at least one book defined in it
 /// \param projCompositeName     ->  the PT/BE project's composite string
 /// \param collabEditor          -> the external editor, either "Paratext" or "Bibledit"
+/// \param ptEditorVersion       -> the Paratext version, "PTVersion7", "PTVersion8",
+///                                 "PTLinuxVersion7", "PTLinuxVersion8", or wxEmptyString
 /// \remarks
 /// Called from: CollabUtilities' CollabProjectsAreValid(),
 /// CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(),
@@ -3366,7 +4138,8 @@ bool BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName
 /// the current Collab_Project_Info_Struct object for that project on the heap
 /// (in m_pArrayOfCollabProjects). It then examines the struct's booksPresentFlags
 /// member for the existence of at least one book in that project.
-bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEditor)
+/// whm 25June2016 Revised for PT 8 Compatibility by adding ptEditorVersion value parameter.
+bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEditor, wxString ptEditorVersion)
 {
 // whm 5Jun12 added the define below for testing and debugging of Setup Collaboration dialog only
 #if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
@@ -3385,7 +4158,22 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEd
 	// The calls below to GetListOfPTProjects() and GetListOfBEProjects() populate the App's m_pArrayOfCollabProjects
 	if (collabEditor == _T("Paratext"))
 	{
-		projList = gpApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        if (ptEditorVersion == _T("PTVersion7"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (ptEditorVersion == _T("PTVersion8"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (ptEditorVersion == _T("PTLinuxVersion7"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (ptEditorVersion == _T("PTLinuxVersion8"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
 	}
 	else if (collabEditor == _T("Bibledit"))
 	{
@@ -3424,6 +4212,8 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEd
 /// \param tgtCompositeProjName     ->  the PT/BE's target project's composite string
 /// \param freeTransCompositeProjName  ->  the PT/BE's free trans project's composite string
 /// \param collabEditor             -> the collaboration editor, either "Paratext" or "Bibledit"
+/// \param ptEditorVersion          -> the Paratext version, "PTVersion7", "PTVersion8", 
+///                                   "PTLinuxVersion7", "PTLinuxVersion8", or wxEmptyString
 /// \param errorStr               <-  a wxString (multi-line) representing any error information
 ///                                     for when a FALSE value is returned from the function
 /// \param errorProjects          <-  a wxString representing "source", "target" "freetrans", or
@@ -3440,8 +4230,9 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEd
 /// one or more \n newline characters, that is, it will format as a multi-line string. The
 /// errorProjects string will also return to the caller a string indicating which type of project
 /// the errors apply to, i.e., "source" or "source:freetrans", etc.
+/// whm 25June2016 Revised for PT 8 Compatibility by adding ptEditorVersion value parameter.
 bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName,
-							wxString freeTransCompositeProjName, wxString collabEditor,
+							wxString freeTransCompositeProjName, wxString collabEditor, wxString ptEditorVersion,
 							wxString& errorStr, wxString& errorProjects)
 {
 	wxString errorMsg = _T("");
@@ -3449,7 +4240,7 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 	bool bSrcProjOK = TRUE;
 	if (!srcCompositeProjName.IsEmpty())
 	{
-		if (!CollabProjectHasAtLeastOneBook(srcCompositeProjName,collabEditor))
+		if (!CollabProjectHasAtLeastOneBook(srcCompositeProjName,collabEditor, ptEditorVersion))
 		{
 			bSrcProjOK = FALSE;
 
@@ -3470,7 +4261,7 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 	bool bTgtProjOK = TRUE;
 	if (!tgtCompositeProjName.IsEmpty())
 	{
-		if (!CollabProjectHasAtLeastOneBook(tgtCompositeProjName,collabEditor))
+		if (!CollabProjectHasAtLeastOneBook(tgtCompositeProjName,collabEditor, ptEditorVersion))
 		{
 			bTgtProjOK = FALSE;
 
@@ -3491,7 +4282,7 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 	// freeTransCompositeProjName is non-empty and fails the CollabProjectHasAtLeastOneBook test.
 	if (!freeTransCompositeProjName.IsEmpty())
 	{
-		if (!CollabProjectHasAtLeastOneBook(freeTransCompositeProjName,collabEditor))
+		if (!CollabProjectHasAtLeastOneBook(freeTransCompositeProjName,collabEditor, ptEditorVersion))
 		{
 			bFreeTrProjOK = FALSE;
 
@@ -3519,10 +4310,129 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 	}
 }
 
+// This function should mainly be called for collab projects that are known to exist and be valid (have at least one book) in both PT7 and PT8
+bool CollabProjectsMigrated(wxString CollabSrcProjStr, wxString CollabTgtProjStr, wxString CollabFreeTransProjStr, wxString CollabEditor, wxString PT7Version, wxString PT8Version)
+{
+    bool bProjectsMigrated = FALSE; // Assume FALSE unless found to be TRUE below
+    wxString guidCollabSrcProjPT7 = _T("");
+    wxString guidCollabSrcProjPT8 = _T("");
+    wxString guidCollabTgtProjPT7 = _T("");
+    wxString guidCollabTgtProjPT8 = _T("");
+    wxString guidCollabFreeTransProjPT7 = _T("");
+    wxString guidCollabFreeTransProjPT8 = _T("");
+    // Get the GUID of the CollabSrcProjStr in the PT7 project.
+    guidCollabSrcProjPT7 = GetCollabProjectGUID(CollabSrcProjStr, CollabEditor, PT7Version);
+    guidCollabSrcProjPT7.LowerCase();
+    // Get the GUID of the CollabSrcProjStr in the PT8 project.
+    guidCollabSrcProjPT8 = GetCollabProjectGUID(CollabSrcProjStr, CollabEditor, PT8Version);
+    guidCollabSrcProjPT8.LowerCase();
+    if (!guidCollabSrcProjPT8.IsEmpty() && !guidCollabSrcProjPT7.IsEmpty() && (guidCollabSrcProjPT8 == guidCollabSrcProjPT7))
+    {
+        bProjectsMigrated = TRUE;
+    }
+    // Get the GUID of the CollabTgtProjStr in the PT7 project.
+    guidCollabTgtProjPT7 = GetCollabProjectGUID(CollabTgtProjStr, CollabEditor, PT7Version);
+    guidCollabTgtProjPT7.LowerCase();
+    // Get the GUID of the CollabTgtProjStr in the PT8 project.
+    guidCollabTgtProjPT8 = GetCollabProjectGUID(CollabTgtProjStr, CollabEditor, PT8Version);
+    guidCollabTgtProjPT8.LowerCase();
+    if (!guidCollabTgtProjPT8.IsEmpty() && !guidCollabTgtProjPT7.IsEmpty() && (guidCollabTgtProjPT8 == guidCollabTgtProjPT7))
+    {
+        bProjectsMigrated = TRUE;
+    }
+    if (!CollabFreeTransProjStr.IsEmpty())
+    {
+        // Get the GUID of the CollabFreeTransProjStr in the PT7 project.
+        guidCollabFreeTransProjPT7 = GetCollabProjectGUID(CollabFreeTransProjStr, CollabEditor, PT7Version);
+        guidCollabFreeTransProjPT7.LowerCase();
+        // Get the GUID of the CollabFreeTransProjStr in the PT8 project.
+        guidCollabFreeTransProjPT8 = GetCollabProjectGUID(CollabFreeTransProjStr, CollabEditor, PT8Version);
+        guidCollabFreeTransProjPT8.LowerCase();
+        if (!guidCollabFreeTransProjPT8.IsEmpty() && !guidCollabFreeTransProjPT7.IsEmpty() && (guidCollabFreeTransProjPT8 == guidCollabFreeTransProjPT7))
+        {
+            bProjectsMigrated = TRUE;
+        }
+    }
+    return bProjectsMigrated;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// \return            wxString value representing the GUID of the PT collab project
+///                    An empty string is returned if GUID not found or is a BE project
+/// \param projCompositeName     ->  the PT/BE project's composite string
+/// \param collabEditor          -> the external editor, either "Paratext" or "Bibledit"
+/// \param ptEditorVersion       -> the Paratext version, "PTVersion7", "PTVersion8",
+///                                 "PTLinuxVersion7", "PTLinuxVersion8", or wxEmptyString
+/// \remarks
+/// Called from: CProjectPage::OnWizardPageChanging().
+/// Fetches the GUID value of a PT project.
+/// Uses the short name part of the incoming project's composite name to find the
+/// project in the m_pArrayOfCollabProjects on the heap.
+/// If the incoming composite name is empty or the project could not be found,
+/// the funciton returns an empty string. If found, the function populates, then examines
+/// the current Collab_Project_Info_Struct object for that project on the heap
+/// (in m_pArrayOfCollabProjects). It then examines the struct's collabProjectGUID
+/// member for the project's GUID and returns it.
+/// whm added 5April2017 to help determine if a PT project has been migrated by comparing
+/// the PT7 project's GUID with the PT8 project's GUID
+wxString GetCollabProjectGUID(wxString projCompositeName, wxString collabEditor, wxString ptEditorVersion)
+{
+    wxString collabProjShortName;
+    collabProjShortName = GetShortNameFromProjectName(projCompositeName);
+    if (collabProjShortName.IsEmpty())
+        return wxEmptyString;
+    int ct, tot;
+    // get list of PT/BE projects
+    wxASSERT(!collabEditor.IsEmpty());
+    wxArrayString projList;
+    projList.Clear();
+    // The calls below to GetListOfPTProjects() and GetListOfBEProjects() populate the App's m_pArrayOfCollabProjects
+    if (collabEditor == _T("Paratext"))
+    {
+        if (ptEditorVersion == _T("PTVersion7"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (ptEditorVersion == _T("PTVersion8"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (ptEditorVersion == _T("PTLinuxVersion7"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (ptEditorVersion == _T("PTLinuxVersion8"))
+        {
+            projList = gpApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+    }
+    else if (collabEditor == _T("Bibledit"))
+    {
+        projList = gpApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+    }
+    tot = (int)gpApp->m_pArrayOfCollabProjects->GetCount();
+    wxString collabProjectGUID = _T("");
+    Collab_Project_Info_Struct* pArrayItem;
+    pArrayItem = (Collab_Project_Info_Struct*)NULL;
+    for (ct = 0; ct < tot; ct++)
+    {
+        pArrayItem = (Collab_Project_Info_Struct*)(*gpApp->m_pArrayOfCollabProjects)[ct];
+        wxASSERT(pArrayItem != NULL);
+        if (pArrayItem != NULL && pArrayItem->shortName == collabProjShortName)
+        {
+            collabProjectGUID = pArrayItem->collabProjectGUID;
+            break;
+        }
+    }
+    return collabProjectGUID;
+}
+
 // Gets the whole path including filename of the location of the rdwrtp7.exe utility program
 // for collabotation with Paratext. It also checks to insure that the 5 Paratext dll files that
 // the utility depends on are also present in the same folder with rdwrtp7.exe.
-wxString GetPathToRdwrtp7()
+// whm added 17March2017 a wxString ptVersion parameter to the function to accurately specify
+// the version of Paratext for which we are finding the path to the rdwrtp7.exe utility.
+wxString GetPathToRdwrtp7(wxString ptVersion)
 {
 	// determine the path and name to rdwrtp7.exe
 	wxString rdwrtp7PathAndFileName;
@@ -3544,143 +4454,66 @@ wxString GetPathToRdwrtp7()
 	// modified the code below to not bother with checking for rdwrtp7.exe and its dlls
 	// in the Paratext installation, but only check to make sure they are available in the
 	// Adapt It installation.
+    //
+    // whm modified 4 April 2017 Tom H says that in the future the PT team will rename the
+    // rdwrtp7.exe utility to rdwrtp8.exe to bring its naming scheme up to date. This 
+    // means we need to be able to recognize when a user gets a PT update the implements
+    // that change. We can do that by first testing to see if rdwrtp8.exe exists and if
+    // so return the path that includes rdwrtp8.exe as the utility name, otherwise test
+    // for the presence of rdwrtp7.exe and return that one. 
+    // With this modification I am also removing the code that attempted to maintain 
+    // substitute a version of rdwrtp7.exe if it were missing from the PT installation.
+    // The possibility of a missing rdwrtp7.exe was only a temporary possibility at the
+    // beginning of Nathan's inclusion of the utility years ago. Also we have no need to
+    // try to provide any of the related Windows dlls that would go with our version of
+    // rdwrtp7.exe, so I am removing them from our repository, as well as from our install
+    // staging batch file _CopyXML2InstallFolders.bat, and from the Inno Setup Windows
+    // installers.
 
 #ifdef __WXMSW__
-	if (::wxFileExists(gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
-	{
-		// rdwrtp7.exe exists in the Paratext installation so use it
-		rdwrtp7PathAndFileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
-	}
-	else
-	{
-		// windows dependency checks
-		rdwrtp7PathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("rdwrtp7.exe");
-		wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
-		wxString fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ParatextShared.dll");
-		wxASSERT(::wxFileExists(fileName));
-		fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ICSharpCode.SharpZipLib.dll");
-		wxASSERT(::wxFileExists(fileName));
-		fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Interop.XceedZipLib.dll");
-		wxASSERT(::wxFileExists(fileName));
-		fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("NetLoc.dll");
-		wxASSERT(::wxFileExists(fileName));
-		fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Utilities.dll");
-		wxASSERT(::wxFileExists(fileName));
+    wxString ptInstallDirPath = gpApp->GetParatextInstallDirPath(ptVersion);
+    if (ptVersion == _T("PTVersion7"))
+    {
+        if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
+        {
+            // rdwrtp7.exe exists in the Paratext installation so use it
+            rdwrtp7PathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
+        }
+    }
+    else if (ptVersion == _T("PTVersion8"))
+    {
+        // whm 4 April 2017 revised for PTVersion8, look first for rdwrtp8.exe, but if
+        // rdwrtp8.exe is not found, then look for rdwrtp7.exe
+        if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp8.exe")))
+        {
+            // rdwrtp8.exe exists in the Paratext installation so use it
+            rdwrtp7PathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp8.exe");
+        }
+        else if (::wxFileExists(ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
+        {
+            // rdwrtp7.exe exists in the Paratext installation so use it
+            rdwrtp7PathAndFileName = ptInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
+        }
 	}
 #endif
 #ifdef __WXGTK__
-    // For mono, we call a the paratext startup script (usr/bin/paratext, no extension)
-    // that sets the Paratext and mono environment variables and then calls the "real"
-    // rdwrtp7.exe in the Paratext installation directory. The script is needed
-    // to avoid a security exception in ParatextShared.dll.
-	rdwrtp7PathAndFileName = _T("/usr/bin/paratext");
+    // whm revised 27Nov2016:
+    // For mono, we call a the paratext startup script (/usr/bin/paratext for PT7, or 
+    // /usr/bin/paratext8 for PT8, no extension). These startup scripts set the Paratext 
+    // and mono environment variables and then calls the "real" rdwrtp7.exe in the 
+    // Paratext installation directory. The script is needed to avoid a security exception 
+    // in ParatextShared.dll.
+    // By the time this GetPathToRdwrtp7 is called, the App's m_ParatextVersionForProject 
+    // variable will have been read/determined definitively for the PT Linux version being 
+    // used.
+
+    if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion7"))
+	    rdwrtp7PathAndFileName = _T("/usr/bin/paratext");
+    else if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion8"))
+        rdwrtp7PathAndFileName = _T("/usr/bin/paratext8");
     wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
 
-	wxString fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("ParatextShared.dll");
-	wxASSERT(::wxFileExists(fileName));
-	// for mono, PT appears to be using Ionic.Zip.dll instead of SharpZipLib.dll for
-	// compression.
-	fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("Ionic.Zip.dll");
-	wxASSERT(::wxFileExists(fileName));
-	fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("NetLoc.dll");
-	wxASSERT(::wxFileExists(fileName));
-	fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("Utilities.dll");
-	wxASSERT(::wxFileExists(fileName));
 #endif
-	/*
-	if (::wxFileExists(gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
-	{
-		// rdwrtp7.exe exists in the Paratext installation so use it
-		rdwrtp7PathAndFileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
-	}
-	else
-	{
-		// rdwrtp7.exe does not exist in the Paratext installation, so use our copy in AI's install folder
-		rdwrtp7PathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("rdwrtp7.exe");
-		wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
-		// Note: The rdwrtp7.exe console app has the following dependencies located in the Paratext install
-		// folder (C:\Program Files\Paratext\):
-		//    a. ParatextShared.dll
-		//    b. ICSharpCode.SharpZipLib.dll
-		//    c. Interop.XceedZipLib.dll
-		//    d. NetLoc.dll
-		//    e. Utilities.dll
-		// I've not been able to get the build of rdwrtp7.exe to reference these by setting
-		// either using: References > Add References... in Solution Explorer or the rdwrtp7
-		// > Properties > Reference Paths to the "c:\Program Files\Paratext\" folder.
-		// Until Nathan can show me how (if possible to do it in the actual build), I will
-		// here check to see if these dependencies exist in the Adapt It install folder in
-		// Program Files, and if not copy them there from the Paratext install folder in
-		// Program Files (if the system will let me do it programmatically).
-		wxString AI_appPath = gpApp->m_appInstallPathOnly;
-		wxString PT_appPath = gpApp->m_ParatextInstallDirPath;
-		// Check for any newer versions of the dlls (comparing to previously copied ones)
-		// and copy the newer ones if older ones were previously copied
-		wxString fileName = _T("ParatextShared.dll");
-		wxString ai_Path;
-		wxString pt_Path;
-		ai_Path = AI_appPath + gpApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + gpApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
-		}
-		fileName = _T("ICSharpCode.SharpZipLib.dll");
-		ai_Path = AI_appPath + gpApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + gpApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
-		}
-		fileName = _T("Interop.XceedZipLib.dll");
-		ai_Path = AI_appPath + gpApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + gpApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
-		}
-		fileName = _T("NetLoc.dll");
-		ai_Path = AI_appPath + gpApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + gpApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
-		}
-		fileName = _T("Utilities.dll");
-		ai_Path = AI_appPath + gpApp->PathSeparator + fileName;
-		pt_Path = PT_appPath + gpApp->PathSeparator + fileName;
-		if (!::wxFileExists(ai_Path))
-		{
-			::wxCopyFile(pt_Path,ai_Path);
-		}
-		else
-		{
-			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(pt_Path,ai_Path);
-		}
-	}
-	*/
-
 	return rdwrtp7PathAndFileName;
 }
 
@@ -3698,13 +4531,17 @@ wxString GetPathToBeRdwrt()
 	// /usr/bin location. If not present, we use our own copy called adaptit-bibledit-rdwrt
 	// which is also installed into /usr/bin/.
 
+    // whm added 11May2017
+    if (!gpApp->BibleditIsInstalled())
+        return wxEmptyString;
+
 	// Note: whm revised 6Dec11 to search for bibledit-rdwrt and adaptit-bibledit-rdwrt on
 	// the PATH environment variable. The App's m_BibleditInstallDirPath member is determined
 	// by calling GetBibleditInstallDirPath() which uses the GetProgramLocationFromSystemPATH()
 	// function directly. Hence, the path stored in the App's m_BibleditInstallDirPath member
 	// already has the appropriate prefix (for bibledit-gtk), so we don't need to add a prefix
 	// here.
-	if (::wxFileExists(gpApp->m_BibleditInstallDirPath + gpApp->PathSeparator + _T("bibledit-rdwrt")))
+	if (::wxFileExists(gpApp->GetBibleditInstallDirPath() + gpApp->PathSeparator + _T("bibledit-rdwrt")))
 	{
 		// bibledit-rdwrt exists in the Bibledit installation so use it.
 		// First, determine if file is executable from the current process
@@ -3723,7 +4560,7 @@ wxString GetPathToBeRdwrt()
 		// executable.
 		//beRdwrtPathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("adaptit-bibledit-rdwrt");
 		beRdwrtPathAndFileName = gpApp->GetAdaptit_Bibledit_rdwrtInstallDirPath() + gpApp->PathSeparator + _T("adaptit-bibledit-rdwrt");
-		wxASSERT(::wxFileExists(beRdwrtPathAndFileName));
+		//wxASSERT(::wxFileExists(beRdwrtPathAndFileName));
 		// Note: The beRdwrtPathAndFileName console app does uses the same Linux dynamic libraries that
 		// the main bibledit-gtk program uses, but the version of Bibledit needs to be at least version
 		// 4.2.x for our version of adaptit-bibledit-rdwrt to work.
@@ -3774,6 +4611,17 @@ wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr)
 	wxASSERT(numStr.Find(_T('c')) == 1 || numStr.Find(_T('v')) == 1); // it should be a chapter or verse marker
 	int posSpace = numStr.Find(_T(' '));
 	wxASSERT(posSpace != wxNOT_FOUND);
+/* *** Apparent BUG manifests here:  postEditMd5Line has  "\\v:0:0" for an unknown reason - that is killing the production of the text
+// I have Kirsi's project -- it is the Mark document, with sn about 1:12, box at an upper case word like Besin  then try save in collab mode
+// It only happens in Kirsi's new laptop, it causes Mark 7:17 to be analysed wrong, the MD5 thingie gets \\v:0:0, instead of \\v 17:0:0 
+// and the <sp>17 ends up in the document as 'text'. Solution, is to edit the bad 7:17 line in PT and 'Save All', close PT, and then
+// AI will do a Save or History save, in collab mode, once without failing - but it re-makes the \v \v 18 error in Mark 7, each time,.
+// so the PT edit has to be done before every save. Other documents save normally. On my machine here data saves perfectly normally.
+// BEW 19Oct16 this is probably a data error. In TPK project, Paratext, Psalm 44:16 has a line:   \v 16\v*
+// which causes the md5sum array for Psalms to get a bad line:  \v*:0:0
+// which then causes an assert to trip in GetNumberFromChapterOrVerseString() when setting up a collaboration - the latter checks all
+// available books, and so this data error clobbers the analysys of source text books giving an app crash. 
+*/
 	// get the number and any following part
 	numStr = numStr.Mid(posSpace);
 	int posColon = numStr.Find(_T(':'));
@@ -4101,23 +4949,9 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 
 		lastMarkerNumericAugment.Empty();
 	}
+
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
-	// This version shows the whole list, or just the bits we want if the gbShowFreeTransLogsOnly flag is not commented out
-/*	if (gbShowFreeTransLogsOnly)
-	{
-		// show range of indices from 22 to 25
-		int ct;
-		int aCount = (int)UsfmStructureAndExtentArray.GetCount();
-		aCount = wxMin(aCount,25);
-		for (ct = 22; ct < aCount ; ct++)
-		{
-			wxString str = UsfmStructureAndExtentArray.Item(ct);
-			wxLogDebug(str.c_str());
-		}
-	}
-*/
-#endif
-#if defined(_DEBUG) && defined(JUL15)
+	/* TEMPORARY COMMENT OUT
 		int ct;
 		int aCount = (int)UsfmStructureAndExtentArray.GetCount();
 		for (ct = 0; ct < aCount ; ct++)
@@ -4125,6 +4959,7 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 			wxString str = UsfmStructureAndExtentArray.Item(ct);
 			wxLogDebug(str.c_str());
 		}
+	*/
 #endif
 
 	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
@@ -5345,6 +6180,10 @@ bool GetMatchedChunksUsingVerseInfArrays(
 					--fromEditorEnd;
 					--preEditEnd;
 					--sourceTextEnd;
+					DeleteAllVerseInfStructs(postEditVerseArr); // don't leak memory
+					DeleteAllVerseInfStructs(fromEditorVerseArr); // don't leak memory
+					DeleteAllVerseInfStructs(preEditVerseArr); // don't leak memory
+					DeleteAllVerseInfStructs(sourceTextVerseArr); // don't leak memory
 					return TRUE;
 				}
 				// If no match, outer loop must iterate - see next comment
@@ -5888,9 +6727,9 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 /// the external editor, the merge of the source text to Adapt It will not force those new
 /// punctuations into the AI document with 100% reliability, though most do go in, but the
 /// adaptations need manual punctuation changes to ensure they are right. Also, the File >
-/// Save does not not transfer the punctuation changes to either the adaptation project
-/// nor the free translation project in the external editor. They can be manually changed
-/// there however.
+/// Save now tried to transfer the punctuation changes to either the adaptation project
+/// or the free translation project in the external editor. (They can be manually changed
+/// there if necessary).
 ///
 /// Note 2: in case you are wondering why we do things this way... the problem is we can't
 /// merge the user's edits of target text and/or free translation text back into the Adapt
@@ -5962,7 +6801,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 {
 	wxString emptyStr = _T("");
 	//CAdapt_ItView* pView = gpApp->GetView();
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
 	wxString text; text.Empty(); // the final text for sending is built and stored in here
 	wxString preEditText; // the adaptation or free translation text prior to the editing session
@@ -5973,11 +6812,11 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
     // mrh 5Jun14 - this call replaces the commented-out block of code below.  It should actually be
     //  unnecessary now that we're doing the check at the start of CAdapt_ItDoc::DoCollabFileSave(), which
     //  is the only routine that calls us here.
-
-    if (!pDoc->CollaborationAllowsSaving())     // If unsafe to save because the collaboration editor is running, return
-                                                //  an empty string so the caller won't do anything.  A message has
-                                                //  already been shown.
-        return text;
+    // whm commented out 11May2017
+    //if (!pDoc->CollaborationEditorAcceptsDataTransfers())     // If unsafe to save because the collaboration editor is running, return
+    //                                            //  an empty string so the caller won't do anything.  A message has
+    //                                            //  already been shown.
+    //    return text;
 
 
 	/* app member variables
@@ -6035,7 +6874,16 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// were to be shown, this will be needed (and more processing of the export
 	// will be done below). The store is done in app variable m_sourceTextBuffer_PostEdit
 	wxString cleansed_src = MakeSourceTextForCollabConflictResDlg();
+
+//#if defined(_DEBUG) && defined(LIST_MD5LINES)
+//	// BEW 25Aug16 The JHN source text from Paratext is getting truncated after 10.16 and the following
+//	// \p marker, for no apparent reason; so v 17 onwards to the end of the book is absent. Find why.
+//	wxLogDebug(_T("cleansed_src: after MakeSourceTextForCollabConflictResDlg()\n%s\n"), cleansed_src.c_str());
+//#endif
+
 	gpApp->StoreSourceText_PostEdit(cleansed_src); // put it in m_sourceTextBuffer_PostEdit
+
+
 
 	wxString bookCode;
 	bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
@@ -6373,21 +7221,21 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// are including source text tracking, so that we can have a conflict resolution
 	// mechanism where the user can eyeball conflicting verse versions, and also see what
 	// the source text there is.
-#if defined(_DEBUG) && defined(JUL15)
-			wxLogDebug(_T("\nStructureAndExtent, for preEdit "));
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+			wxLogDebug(_T("\nStructureAndExtent, in MakeUpdatedTextForExternalEditor(), doing for preEdit "));
 #endif
 	wxArrayString preEditMd5Arr = GetUsfmStructureAndExtent(preEditText);
-#if defined(_DEBUG) && defined(JUL15)
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
 			wxLogDebug(_T("StructureAndExtent, for postEdit "));
 #endif
-	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);;
-#if defined(_DEBUG) && defined(JUL15)
-	wxLogDebug(_T("StructureAndExtent, for fromEditor "));
+	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	wxLogDebug(_T("StructureAndExtent, in MakeUpdatedTextForExternalEditor(), doing for fromEditor "));
 #endif
 	wxArrayString fromEditorMd5Arr = GetUsfmStructureAndExtent(fromEditorText);
 // BEW 10Jul15 add the sourceText which has been exported... need it for conflict resolution dlg
-#if defined(_DEBUG) && defined(JUL15)
-	wxLogDebug(_T("StructureAndExtent, for sourceText "));
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	wxLogDebug(_T("StructureAndExtent, in MakeUpdatedTextForExternalEditor(), doing for sourceText "));
 #endif
 	wxArrayString sourceTextMd5Arr = GetUsfmStructureAndExtent(sourceText);
 
@@ -6728,9 +7576,9 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr,
 	wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr)
 {
-#if defined(_DEBUG) && defined(JUL15)
-	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d");
-	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %zu  pre count: %zu  from count: %zu  sourceText count: %zu"); // %zu is the format specifier for size_t type
+    msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(), preEditMd5Arr.GetCount(), fromEditorMd5Arr.GetCount(), sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
 #endif
 
@@ -7889,8 +8737,8 @@ wxString GetUpdatedText_UsfmsChanged(
 	wxArrayPtrVoid& sourceTextOffsetsArr)  // array of MD5Map structs which index the span of text in sourceText
 										  // which corresponds to a single line of info from sourceTextMd5Arr
 {
-#if defined(_DEBUG) && defined(JUL15)
-	wxString msg1 = _T("GetUpdatedText_UsfmsChanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d");
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	wxString msg1 = _T("GetUpdatedText_UsfmsChanged() called: post count: %zu  pre count: %zu  from count: %zu  sourceText count: %zu"); // %zu is the format specifier for size_t type
 	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
 #endif
@@ -8011,14 +8859,19 @@ wxString GetUpdatedText_UsfmsChanged(
 
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
 	wxLogDebug(_T("\n\n >>>>>   GetUpdatedText_UsfmsChanged() LOOP ENTERED  <<<<<\n\n"));
-#endif
 
+	int debugCounter = 0;
+#endif
 	while (
 		(preEditStart < (int)preEditMd5Arr_Count) &&
 		(postEditStart < (int)postEditMd5Arr_Count) &&
 		(fromEditorStart < (int)fromEditorMd5Arr_Count) &&
 		(sourceTextStart < (int)sourceTextMd5Arr_Count))
 	{
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+		debugCounter++;
+		wxLogDebug(_T("GetUpdatedText_UsfmsChanged() LOOP debugCounter = %d, postEditStart = %d"), debugCounter, postEditStart);
+#endif
 		// Need a CollabAction struct ready for use
 		pAction = new CollabAction;
 		SetCollabActionDefaults(pAction); // 7 strings and 5 booleans
@@ -8088,7 +8941,7 @@ wxString GetUpdatedText_UsfmsChanged(
 				// verse or chapter line is.
 				// TRUE is the value of param bOrTestForChapterLine
 				preEditIndex = preEditStart + 1;
-				bFoundVerse = GetNextVerseLine(preEditMd5Arr, preEditIndex,TRUE);
+				bFoundVerse = GetNextVerseLine(preEditMd5Arr, preEditIndex, TRUE);
 				wxASSERT(preEditIndex != wxNOT_FOUND && bFoundVerse == TRUE);
 				preEditEnd = preEditIndex - 1;
 			}
@@ -8160,7 +9013,7 @@ wxString GetUpdatedText_UsfmsChanged(
 			MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
 			MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
 			substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
-						pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+				pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
 			pAction->bIsPreVerseOne = TRUE;
 			pAction->preVerseOneText = substring;
 
@@ -8173,7 +9026,7 @@ wxString GetUpdatedText_UsfmsChanged(
 			pAction->chapter_ref = gpApp->m_Collab_LastChapterStr;
 
 #if defined(_DEBUG) && defined(JUL15)
-//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+			//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 			wxLogDebug(_T("PRE-\\v 1 Material: postEdit start & end indices [%d,%d], mapped to [%d,%d], Substring: %s"),
 				postEditStart, postEditEnd, pPostEditArr_StartMap->startOffset,
 				pPostEditArr_LastMap->endOffset, substring.c_str());
@@ -8252,16 +9105,16 @@ wxString GetUpdatedText_UsfmsChanged(
 
 		// legacy LOOP's start was moved up from here... on 10Jul15
 
-        // At iteration of the loop, we expect the ...Start indices to be pointing at
-        // 'verse' md5 lines in their respective arrays, or a 'chapter' line. Make sure. We
-        // are treating a chapter line (one with \c ) also as a 'verse' md5 line so the
-        // following asserts have to handle \c too
+		// At iteration of the loop, we expect the ...Start indices to be pointing at
+		// 'verse' md5 lines in their respective arrays, or a 'chapter' line. Make sure. We
+		// are treating a chapter line (one with \c ) also as a 'verse' md5 line so the
+		// following asserts have to handle \c too
 		wxASSERT(IsVerseLine(preEditMd5Arr, preEditStart) ||
-					IsChapterLine(preEditMd5Arr, preEditStart, chapNumStr));
+			IsChapterLine(preEditMd5Arr, preEditStart, chapNumStr));
 		wxASSERT(IsVerseLine(postEditMd5Arr, postEditStart) ||
-					IsChapterLine(postEditMd5Arr, postEditStart, chapNumStr));
+			IsChapterLine(postEditMd5Arr, postEditStart, chapNumStr));
 		wxASSERT(IsVerseLine(fromEditorMd5Arr, fromEditorStart) ||
-					IsChapterLine(fromEditorMd5Arr, fromEditorStart, chapNumStr));
+			IsChapterLine(fromEditorMd5Arr, fromEditorStart, chapNumStr));
 
 		// To delimit the verse chunks that we need to inspect and transfer, or not
 		// transfer if there have been no structure or text changes, find the next md5
@@ -8289,7 +9142,16 @@ wxString GetUpdatedText_UsfmsChanged(
 		fromEditorMd5Line = fromEditorMd5Arr.Item(fromEditorStart);
 		preEditMd5Line = preEditMd5Arr.Item(preEditStart); // BEW added 22Jun15
 		sourceTextMd5Line = sourceTextMd5Arr.Item(sourceTextStart); // BEW added 10Jul15
+#if defined(_DEBUG)
+		{
+			if (postEditMd5Line == _T("\\v:0:0"))
+			{
 
+
+
+	}		
+		}
+#endif
 		postEditVerseNumStr = GetNumberFromChapterOrVerseStr(postEditMd5Line);
 		fromEditorVerseNumStr = GetNumberFromChapterOrVerseStr(fromEditorMd5Line);
 		preEditVerseNumStr = GetNumberFromChapterOrVerseStr(preEditMd5Line);
@@ -9874,7 +10736,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 					bOpenedOK = OpenDocWithMerger(pApp, docPath, m_collab_sourceWholeBookBuffer,
 												bDoMerger, bDoLayout, bCopySourceWanted);
 				}
-				bOpenedOK = bOpenedOK; // the function always returns TRUE (even if there was
+				//bOpenedOK = bOpenedOK; // the function always returns TRUE (even if there was
 									   // an error) because otherwise it messes with the doc/view
 									   // framework badly; so protect from the compiler warning
 									   // in the identity assignment way
@@ -9889,7 +10751,18 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 					wxString aMsg = _("The document was corrupt, but we have successfully restored the last version saved in the history.  Please re-attempt what you were doing.");
                     wxMessageBox (aMsg);
                     pApp->LogUserAction (aMsg);
+					pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
 					return 0L;
+				}
+				else
+				{
+					// BEW added 22Jul16,  return if there was a parsing error
+					if (!bOpenedOK)
+					{
+						pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
+						return 0L;
+					}
+
 				}
 
 				// whm 25Aug11 reset the App's maxProgDialogValue back to MAXINT
@@ -9951,6 +10824,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 				int nHowMany;
 				SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
 				// in the next call, 0 = initial sequ number value
+				// nHowMany is the returned count of how many CSourcePhrase instances got created
 				if (pApp->m_bCollabByChapterOnly)
 				{
 					nHowMany = pView->TokenizeTextString(pSourcePhrases, m_collab_sourceChapterBuffer, 0);
@@ -9989,9 +10863,13 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 				{
 					// we can't go on, there is nothing in the document's m_pSourcePhrases
 					// list, so keep the dlg window open; tell user what to do - this
-					// should never happen, so an English message will suffice
+					// could happen due to source text structural or markup error, so the
+					// message needs to be localizable (BEW 20Oct16) word.' " was enough
+					// to do it - the legacy parser did not put the " as following punctuation
+					// on word, leading to a document creation failture at ParseWord(). My
+					// upcoming ParseWord2() should be smarter at hanling straight quotes.
 					wxString msg;
-					msg = _T("Unexpected (non-fatal) error when trying to load source text obtained from the external editor - there is no source text!\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or you could Cancel the dialog and then try to fix the problem.");
+					msg = _("Unexpected (non-fatal) error when trying to load source text obtained from the external editor.\nNo source text was available; or, source text was available but when parsing it to form a document, Adapt It's parser failed awhen it came to data it was unable to handle properly.\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or examine, in the external editor, the source text data and look for markup or punctuation errors. If your data uses straight quotes with a space between them, word.' \" for example, that space between the quotes may cause the document build to fail.\n Or you could Cancel the dialog and then try to fix the problem - it is most likely a problem in the structure of the source text.");
 					wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK, pApp->GetMainFrame()); // // BEW 15Sep14 made frame be the parent
 					pApp->LogUserAction(msg);
 					pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
@@ -10174,58 +11052,20 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 // that extra stuff present. So grab the functions which filter that stuff out and put them
 // here. (See the code at top of MakeUpdatedTextForExternalEditor() for code blocks which
 // call them - copy to here.)
+// BEW 30Aug16 refactored to use ExportTargetText_For_Collab() which is well behaved if
+// an errant endmarker, such as \x* is in the external editor's source text. My earlier
+// version, if the errant marker is in the AI document, would fail to send content after 
+// such a marker was encountered - and I never was able to figure why - stepping *did not*
+// work.
 wxString MakeSourceTextForCollabConflictResDlg()
 {
 	wxString srcText = _T("");
-	int textLen = RebuildSourceText(srcText); // NULL for 2nd param, means m_pSourcePhrases SPList* is used
-	wxUnusedVar(textLen);
+	// BEW changed 30Aug16 because \x* lacking preceding \x causes target text loss from the
+	// call of ApplyOutputFilterToText() which is supposed to get rid of it (and does) but
+	// loses data inexplicably. So I'll not rebuild, but instead grab the process src text
+	// wxString from the external editor - it gets processed without dropping data.
+	srcText = ExportTargetText_For_Collab(gpApp->m_pSourcePhrases);
 
-	// Cause \note, \free, \bt etc (the custom ones to be removed)
-	ExcludeCustomMarkersFromExport();
-	// Also have \rem excluded
-	wxString rem = _T("rem"); // bareMkr for \rem
-	int index = FindMkrInMarkerInventory(rem);
-	if (index != wxNOT_FOUND)
-	{
-		m_exportFilterFlags[index] = 1;
-	}
-	// The ApplyOutputFilterToText() call gets the exclusions done
-	bool bRTFOutput = FALSE;
-	srcText = ApplyOutputFilterToText(srcText, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
-	// Remove footnote contents, leave markers, (the default option), but if
-	// m_bNoFootnotesInCollabToPTorBE is TRUE, then remove the markers too
-	wxString footnote = _T("\\f ");
-	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
-	bool bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
-	if (bIsFiltered)
-	{
-		// Check for existence of the marker within the document
-		int index = FindMkrInMarkerInventory(footnote); // signature accepts \mkr or mkr,
-		if (index != wxNOT_FOUND)
-		{
-			// Remove the content from all footnote markers; they all begin with "\f"
-			// But if the flag is TRUE, then also remove the footnote markers as well
-			if (gpApp->m_bNoFootnotesInCollabToPTorBE)
-			{
-				// 2nd param is boolean bAlsoRemoveTheMarkers; Ross Jones needs this option
-				// because he doesn't want footnote markers to be transferred in collab mode
-				RemoveContentFromFootnotes(&srcText, TRUE);
-			}
-			else
-			{
-				// This is the default in collab mode for \f stuff, the markers are left
-				// in the export, and any text content is removed
-				RemoveContentFromFootnotes(&srcText); // 2nd param is default FALSE
-			}
-		}
-	}
-	srcText = RemoveMultipleSpaces(srcText);
-
-	// Note: ZWSP restoration is automatically done, if flag TRUE, in RebuildSourceText(), similarly, if the
-	// flag for Forward Slash Delimitation alternating with ZWSP (Dennis Walters requested) is TRUE, then
-	// in RebuildSourceText() the calls DoFwdSlashConsistentChanges(removeAtPunctuation, target) and
-	// followed by FwdSlashtoZWSP(target) are made, so neither is need here
-	
 	// ensure no \id and book code is present for non-chapter-1 chapters when collaborating
 	// by chapter rather than by whole book
 	if (gpApp->m_bCollabByChapterOnly)
@@ -10245,11 +11085,57 @@ wxString MakeSourceTextForCollabConflictResDlg()
 	{
 		srcText = srcText.Mid(offset); // guarantees srcText starts with a marker
 	}
-#if defined(_DEBUG) && defined(JUL15)
-	wxLogDebug(_T("MakeSourceTextForCollabConflictResDlg(): Text Length:  %d\n%s"), textLen, srcText.c_str());
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	int length = srcText.Length();
+	wxLogDebug(_T("MakeSourceTextForCollabConflictResDlg(): Text Length just before returning:  %d\n"), length);
 #endif
 	return srcText;
 }
+
+int AskIfCollabSettingsBeRemovedFromProjConfig(
+    wxString aiProjName,
+    wxString editorNamedInConfig,
+    wxString collabProjForSrc,
+    wxString collabProjForTgt,
+    wxString collabProjForFreeTrans
+)
+{
+    if (collabProjForFreeTrans.IsEmpty())
+        collabProjForFreeTrans = _("[none assigned]");
+    wxString errMessageCommon = _("When opening the %s project Adapt It detected the following error(s):\n\n");
+    errMessageCommon = errMessageCommon.Format(errMessageCommon, aiProjName.c_str());
+    wxString msg;
+    msg =
+        _("The Adapt It project \"%s\" was previously setup for collaboration with %s, but %s is not installed on this computer. That project was set to collaborate with these projects:\n      \
+%s source language project: %s\n      \
+%s target language project: %s\n      \
+%s free translation project: %s\n\
+Answer \"No\" to the question below - if you plan to install Paratext or Bibledit so that Adapt It can continue working in collaboration with this project. Then you should  \
+install Paratext or Bibledit before trying to open this project within Adapt It.\n\
+Answer \"Yes\" to the question below - if you want to go ahead and view or edit documents in this project now. However, if you do answer \"Yes\", you should know that this \
+project's collaboration settings will be removed from its project configuration file. If you later want this AI project to resume collaboration, you (or your administrator) will \
+need to first install Paratext or Bibledit on this computer, and make sure that Paratext or Bibledit have the required source language and target language projects (within Paratext \
+or Bibledit). Then you will need to make Adapt It's Administrator menu visible and select its \"Setup or Remove Collaboration...\" menu item, \
+and setup collaboration again for this project using that dialog.\n\n\
+Do you want to remove collaboration settings from this \"%s\" project?");
+    msg = msg.Format(msg,
+        aiProjName.c_str(),
+        editorNamedInConfig.c_str(),
+        editorNamedInConfig.c_str(),
+        editorNamedInConfig.c_str(),
+        collabProjForSrc.c_str(),
+        editorNamedInConfig.c_str(),
+        collabProjForTgt.c_str(),
+        editorNamedInConfig.c_str(),
+        collabProjForFreeTrans.c_str(),
+        aiProjName.c_str());
+    msg = errMessageCommon + msg;
+    wxString title = _("This project's collaboration settings are invalid");
+    int result;
+    result = wxMessageBox(msg, title, wxICON_EXCLAMATION | wxYES_NO | wxNO_DEFAULT);
+    return result;
+}
+
 
 // whm added 10Jul2015 for temporary testing of the CCollabVerseConflictDlg dialog
 // BEW moved to here from doc.cpp, on 23Jul15
@@ -10263,3 +11149,5 @@ void OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event))
 	cvcdlg.ShowModal();
 }
 */
+
+

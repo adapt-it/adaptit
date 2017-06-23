@@ -135,6 +135,9 @@ extern bool gbDoingInitialSetup;
 extern bool gbLTRLayout; // defined in FontPage.cpp and initialized there to TRUE (unless changed by user)
 extern bool gbRTLLayout; // defined in FontPage.cpp and initialized there to FALSE (unless changed by user)
 
+/// This global is defined in Adapt_It.cpp
+extern wxString szProjectConfiguration;
+
 IMPLEMENT_DYNAMIC_CLASS( CDocPage, wxWizardPage )
 
 // event handler table
@@ -557,30 +560,56 @@ void CDocPage::OnSetActive()
 	gpApp->m_bCollaboratingWithParatext = FALSE;
 	gpApp->m_bCollaboratingWithParatext = FALSE;
 
-	if (gpApp->AIProjectIsACollabProject(gpApp->m_curProjectName))
+	// BEW 16Aug16 implement, in a SHIFT-DOWN Launch of AI, the user's decision to NOT
+	// have a preexisting collaboration restored - it also clears the two collab booleans
+	if (!gpApp->m_bUserWantsNoCollabInShiftLaunch)
 	{
-		// It is a potential collaboration project, so we filter out _Collab... docs
-		// only for these conditions:
-		// 1. Collaboration is not currently turned on by the user
-		// 2. Read-only mode is not currently turned on by an advisor/consultant/user
-		// If 1 and 2 above are both TRUE, the 2nd radio button (Collaboration is OFF) is
-		// in effect from the ChooseCollabOptionsDlg, and we do filter out the _Collab...
-		// docs in that case.
-		if (!(gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
-			&& !gpApp->m_bFictitiousReadOnlyAccess)
+		if (gpApp->AIProjectIsACollabProject(gpApp->m_curProjectName))
 		{
-			int ct;
-			int tot = possibleAdaptions.GetCount();
-			// remove any "_Collab..." items in reverse wxArrayString order
-			for (ct = tot-1; ct >= 0; ct--)
+			// It is a potential collaboration project, so we filter out _Collab... docs
+			// only for these conditions:
+			// 1. Collaboration is not currently turned on by the user
+			// 2. Read-only mode is not currently turned on by an advisor/consultant/user
+			// If 1 and 2 above are both TRUE, the 2nd radio button (Collaboration is OFF) is
+			// in effect from the ChooseCollabOptionsDlg, and we do filter out the _Collab...
+			// docs in that case.
+			if (!(gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+				&& !gpApp->m_bFictitiousReadOnlyAccess)
 			{
-				//if (possibleAdaptions.Item(ct).Find(_T("_Collab")) != wxNOT_FOUND)
-				if (possibleAdaptions.Item(ct).Find(_T("_Collab")) == 0)
+				int ct;
+				int tot = possibleAdaptions.GetCount();
+				// remove any "_Collab..." items in reverse wxArrayString order
+				for (ct = tot - 1; ct >= 0; ct--)
 				{
-					possibleAdaptions.RemoveAt(ct,1);
+					//if (possibleAdaptions.Item(ct).Find(_T("_Collab")) != wxNOT_FOUND)
+					if (possibleAdaptions.Item(ct).Find(_T("_Collab")) == 0)
+					{
+						possibleAdaptions.RemoveAt(ct, 1);
+					}
 				}
 			}
 		}
+	}
+	else
+	{
+		// Clobber any collab settings
+		gpApp->m_bCollaboratingWithParatext = FALSE;
+		gpApp->m_bCollaboratingWithBibledit = FALSE;
+		gpApp->m_CollabProjectForSourceInputs = wxEmptyString;
+		gpApp->m_CollabProjectForTargetExports = wxEmptyString;
+		gpApp->m_CollabProjectForFreeTransExports = wxEmptyString;
+		gpApp->m_CollabAIProjectName = wxEmptyString;
+		gpApp->m_CollabBookSelected = wxEmptyString;
+		gpApp->m_bCollabByChapterOnly = TRUE;
+		gpApp->m_CollabChapterSelected = wxEmptyString;
+		gpApp->m_CollabSourceLangName = wxEmptyString;
+		gpApp->m_CollabTargetLangName = wxEmptyString;
+        gpApp->m_CollabBooksProtectedFromSavingToEditor = wxEmptyString;
+        gpApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
+		gpApp->m_bUserWantsNoCollabInShiftLaunch = TRUE; // restore default value
+		bool bOK;
+		bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath, projectConfigFile);
+		wxUnusedVar(bOK);
 	}
 
 	// whm modified 20Oct11 to sort possibleAdaptations before adding the

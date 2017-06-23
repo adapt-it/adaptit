@@ -44,6 +44,7 @@
 #include "Adapt_It.h"
 #include "MainFrm.h"
 #include "Adapt_ItView.h"
+#include "SplitDialog.h"
 #include "SetupEditorCollaboration.h"
 #include "CollabUtilities.h"
 #include "CreateNewAIProjForCollab.h"
@@ -53,13 +54,17 @@ extern wxString szCollabProjectForTargetExports;
 extern wxString szCollabProjectForFreeTransExports;
 extern wxString szCollabAIProjectName;
 extern wxString szCollaborationEditor;
+extern wxString szParatextVersionForProject; // whm added 24June2016 - the old obsolete project config file label
+extern wxString szCollabParatextVersionForProject; // whm added 24June2016 the new project config file label
 extern wxString szCollabExpectsFreeTrans;
 extern wxString szCollabBookSelected;
 extern wxString szCollabByChapterOnly;
 extern wxString szCollabChapterSelected;
 extern wxString szCollabSourceLangName;
 extern wxString szCollabTargetLangName;
+extern wxString szCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
 extern wxString szProjectConfiguration;
+extern wxString szCollabDoNotShowMigrationDialogForPT7toPT8;
 
 // event handler table
 BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
@@ -117,8 +122,8 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	wxASSERT(pTextCtrlAsStaticSelectedFreeTransProj != NULL);
 	pTextCtrlAsStaticSelectedFreeTransProj->SetBackgroundColour(sysColorBtnFace);
 
-	pStaticTextUseThisDialog = (wxStaticText*)FindWindowById(ID_TEXT_USE_THIS_DIALOG);
-	wxASSERT(pStaticTextUseThisDialog != NULL);
+	pStaticTextDialogTopicLine = (wxStaticText*)FindWindowById(ID_TEXT_USE_THIS_DIALOG);
+	wxASSERT(pStaticTextDialogTopicLine != NULL);
 
 	pStaticTextSelectWhichProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SELECT_WHICH_PROJECTS);
 	wxASSERT(pStaticTextSelectWhichProj != NULL);
@@ -162,6 +167,9 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	pBtnRemoveProjFromCollab = (wxButton*)FindWindowById(ID_BUTTON_REMOVE_THIS_PROJ_FROM_COLLAB);
 	wxASSERT(pBtnRemoveProjFromCollab != NULL);
 
+    pBtnSaveSetupForThisProjNow = (wxButton*)FindWindowById(ID_BUTTON_SAVE_SETUP_FOR_THIS_PROJ_NOW);
+    wxASSERT(pBtnSaveSetupForThisProjNow != NULL);
+
 	pBtnClose = (wxButton*)FindWindowById(wxID_OK); // the Close button uses the wxID_OK event id
 	wxASSERT(pBtnClose != NULL);
 
@@ -196,37 +204,125 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	m_SaveCollabProjectForFreeTransExports = m_pApp->m_CollabProjectForFreeTransExports;
 	m_SaveCollabAIProjectName = m_pApp->m_CollabAIProjectName;
 	m_SaveCollaborationEditor = m_pApp->m_collaborationEditor;
+    m_SaveCollabEditorVersion = m_pApp->m_ParatextVersionForProject; // whm added 24June2016
 	m_SaveCollabSourceProjLangName = m_pApp->m_CollabSourceLangName;
 	m_SaveCollabTargetProjLangName = m_pApp->m_CollabTargetLangName;
 	m_bSaveCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly; // FALSE means the "whole book" option
+	m_bTempCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly; // use this for the radio buttons & user-set value
 	m_bSaveCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans;
 	m_SaveCollabBookSelected = m_pApp->m_CollabBookSelected;
 	m_SaveCollabChapterSelected = m_pApp->m_CollabChapterSelected;
+    m_SaveCollabBooksProtectedFromSavingToEditor = m_pApp->m_CollabBooksProtectedFromSavingToEditor; // whm added 2February2017
+    m_SaveCollabDoNotShowMigrationDialogForPT7toPT8 = m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8; // whm added 6April2017
 
 	m_bCollabChangedThisDlgSession = FALSE;
 
 	// For InitDialog() empty the m_TempCollabAIProjectName
 	m_TempCollabAIProjectName = _T("");
-
-	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
-	m_TempCollaborationEditor = m_pApp->m_collaborationEditor;
-
+    m_TempCollaborationEditor = m_pApp->m_collaborationEditor;
+    m_TempCollabEditorVersion = m_pApp->m_ParatextVersionForProject;
 	// edb 17May2012: set the initial value of the collaboration editor if needed.
 	// Reasons we'd need to:
 	// - If there is no collaboration editor specified yet
 	// - If there is a collaboration editor specified, but the editor
 	//   isn't installed on the computer (maybe transferring the settings from
     //    another computer, or the user uninstalled something).
-    if (m_TempCollaborationEditor.IsEmpty() ||
-        (m_TempCollaborationEditor == _T("Paratext") && (m_pApp->ParatextIsInstalled() == false)) ||
+    // whm revised 24June2016 for Paratext 8 support. 
+    // Note: the dialog's "Scripture Editor:" radio box now has these three options:
+    //   (.) Paratext 7
+    //   ( ) Paratext 8
+    //   ( ) Bibledit
+    // For either "Paratext 7" or "Paratext 8" options, the m_TempColllaborationEditor is still just "Paratext",
+    // but the m_TempCollabEditorVersion will be: "PTVersion7", "PTVersion8", "PTLinuxVersion7" or "PTLinuxVersion8".
+    PTVersionsInstalled PTver;
+    PTver = m_pApp->ParatextVersionInstalled();
+    if (m_TempCollaborationEditor.IsEmpty() || m_TempCollabEditorVersion.IsEmpty() ||
+        (m_TempCollaborationEditor == _T("Paratext") && (PTver == PTNotInstalled)) ||
         (m_TempCollaborationEditor == _T("Bibledit") && (m_pApp->BibleditIsInstalled() == false)))
     {
-        // The collaboration editor value is bad. Set it to a good initial value.
-        if (m_pApp->ParatextIsInstalled())
+        // The collaboration editor value is missing or bad. Set it to a good initial value.
+        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
         {
             m_TempCollaborationEditor = _T("Paratext");
+            // Also ensure PT version for m_TempCollabEditorVersion is set appropriately.
+            if (PTver == PTVer7)
+            {
+                // Only PT version 7 is installed, so ensure that m_TempCollabEditorVersion is set to "PTVersion7"
+                m_TempCollabEditorVersion = _T("PTVersion7");
+            }
+            else if (PTver == PTVer8)
+            {
+                // Only PT version 8 is installed, so ensure that m_TempCollabEditorVersion is set to "PTVersion8"
+                m_TempCollabEditorVersion = _T("PTVersion8");
+            }
+            else if (PTver == PTVer7and8)
+            {
+                // Both PT versions 7 and 8 are installed on the machine.
+                // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                // and at least 2 valid/useable projects, otherwise PT 7 
+                wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion8"));
+                wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion7"));
+                wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTVersion8"));
+                wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTVersion7"));
+                int pt8Count = pt8ListOfProj.GetCount();
+                int pt7Count = pt7ListOfProj.GetCount();
+                if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                {
+                    m_TempCollabEditorVersion = _T("PTVersion8");
+                }
+                else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                {
+                    m_TempCollabEditorVersion = _T("PTVersion7");
+                }
+                else
+                {
+                    // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                    wxString msg = _T("In CSetupEditorCollaboration::InitDialog both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                    m_pApp->LogUserAction(msg);
+                    // Assume the administrator will fix this situation. In the mean time, since both
+                    // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                    m_TempCollabEditorVersion = _T("PTVersion8");
+                }
+            }
+            else if (PTver == PTLinuxVer8)
+            {
+                m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+            }
+            else if (PTver == PTLinuxVer7)
+            {
+                m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+            }
+            else if (PTver == PTLinuxVer7and8)
+            {
+                // Both PT versions 7 and 8 for Linux are installed on the machine.
+                // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                // and at least 2 valid/useable projects, otherwise PT 7 
+                wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+                wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+                wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8"));
+                wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7"));
+                int pt8Count = pt8ListOfProj.GetCount();
+                int pt7Count = pt7ListOfProj.GetCount();
+                if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                {
+                    m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                }
+                else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                {
+                    m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+                }
+                else
+                {
+                    // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                    wxString msg = _T("In CSetupEditorCollaboration::InitDialog both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                    m_pApp->LogUserAction(msg);
+                    // Assume the administrator will fix this situation. In the mean time, since both
+                    // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                    m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                }
+            }
         }
-        else if (m_pApp->BibleditIsInstalled())
+        else if (PTver == PTNotInstalled && m_pApp->BibleditIsInstalled())
         {
             m_TempCollaborationEditor = _T("Bibledit");
         }
@@ -249,12 +345,16 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 
 void CSetupEditorCollaboration::DoInit(bool bPrompt)
 {
-	// DoInit() is called in the dialog's InitiDialog() handler and also in the OnRadioBoxSelectBtn()
+	// DoInit() is called at the end of the dialog's InitiDialog() handler and also in the OnRadioBoxSelectBtn()
 	// handler.
 
-	// whm revised 5Apr12. We now start the SetupEditorCollaboration dialog
+    // These were initialized in the InitDialog() function above:
+    //   m_TempCollaborationEditor
+    //   m_TempCollabEditorVersion
+
+	// whm revised 5Apr12. We now configure the SetupEditorCollaboration dialog
 	// with the following initial setup:
-	// 1. No Adapt It project selected in the step 1 combo box.
+	// 1. No Adapt It project selected in the step 1 combo box (which will be blank).
 	// 2. The possible PT/BE projects listed in step 2 (no change in this revision).
 	// 3. The "Get by Chapter Only" radio button in Step 3 is selected.
 	// 4. The edit boxes in step 3 are set blank/empty.
@@ -263,16 +363,22 @@ void CSetupEditorCollaboration::DoInit(bool bPrompt)
 	m_TempCollabProjectForSourceInputs = _T("");
 	m_TempCollabProjectForTargetExports = _T("");
 	m_TempCollabProjectForFreeTransExports = _T("");
-	// m_TempCollabAIProjectName // can stay set to its current value - user sets it in OnComboBoxSelectAiProject()
-	// m_TempCollaborationEditor // can stay set to its App value - user can set it in OnRadioBoxSelectBtn()
+	// m_TempCollabAIProjectName // can stay set to its current value - InitDialog set it to _T(""); user sets it in OnComboBoxSelectAiProject()
+    // m_TempCollaborationEditor // can stay set to its App value - user can set it in OnRadioBoxSelectBtn()
+    // m_TempCollabEditorVersion // can stay set to its App value - user can set it in OnRadioBoxSelectBtn() // whm added 24June2016
 	m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
 	m_TempCollabBookSelected = _T("");
 	m_TempCollabSourceProjLangName = _T("");
 	m_TempCollabTargetProjLangName = _T("");
 	m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
 	m_TempCollabChapterSelected = _T("");
+    m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+    m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 
 	SetStateOfRemovalButton(); // disables the Remov... button when m_TempCollabAIProjectName is empty
+    SetStateOfAcceptSetupButton(); // disables the "Accept this setup and prepare for another" button if
+                                    // any of project name, editor, source text, or target text project names
+                                    // are empty
 
 	SetPTorBEsubStringsInControls(); // whm added 4Apr12. Sets %s substitutions with m_TempCollaborationEditor
 
@@ -292,7 +398,7 @@ void CSetupEditorCollaboration::DoInit(bool bPrompt)
     // both editors were installed and the user chose BE as the translation editor
     // (this code was clobbering the selection).
 /*
-	if (m_pApp->ParatextIsInstalled())
+	if (m_pApp->ParatextVersionInstalled())
 	{
 		m_TempCollaborationEditor = _T("Paratext");
 	}
@@ -302,24 +408,82 @@ void CSetupEditorCollaboration::DoInit(bool bPrompt)
 	}
 */
 	// Disable editor selection radio box for any editor not installed
-	if (!m_pApp->m_bParatextIsInstalled)
-		pRadioBoxScriptureEditor->Enable(0,FALSE);
-	if (!m_pApp->m_bBibleditIsInstalled)
-		pRadioBoxScriptureEditor->Enable(1,FALSE);
+    // whm revised 24June2016 - we now distinguish between three possible editors:
+    // 1. Paratext 7 (radio box index value 0)
+    // 2. Paratext 8 (radio box index value 1), and 
+    // 3. Bibledit (radio box index value 2)
+    //
+    // Call ParatextVersionInstalled() to get which versions are currently installed
+    PTVersionsInstalled PTver;
+    PTver = m_pApp->ParatextVersionInstalled();
+    // Possible values of PTver are: PTNotInstalled, PTVer7, PTVer8, PTVer7and8, PTLinuxVer7, or PTLinuxVer8
+    // Here we are mainly disabling the radio buttons that shouldn't be choices because the editor
+    // is not currently installed. 
+    // See farther below in DoInit() where actual radio box selections are initialized.
+    // For the two popssible Paratext editors:
+    if (PTver == PTNotInstalled)
+    {
+        // Neither PT 7 or PT 8 are installed so disable both
+        pRadioBoxScriptureEditor->Enable(0, FALSE); // radiobox index 0 is "Paratext 7"
+        pRadioBoxScriptureEditor->Enable(1, FALSE); // radiobox index 1 is "Paratext 8"
+    }
+    if (PTver == PTVer7)
+    {
+        // Only PT 7 is installed, so enable "Paratext 7" but disable the "Paratext 8" radio button
+        pRadioBoxScriptureEditor->Enable(0, TRUE); // radiobox index 0 is "Paratext 7"
+        pRadioBoxScriptureEditor->Enable(1, FALSE); // radiobox index 1 is "Paratext 8"
+    }
+    if (PTver == PTVer8)
+    {
+        // Only PT 8 is installed, so disable the "Paratext 7" radio button and enable the "Paratext 8" button
+        pRadioBoxScriptureEditor->Enable(0, FALSE); // radiobox index 0 is "Paratext 7"
+        pRadioBoxScriptureEditor->Enable(1, TRUE); // radiobox index 1 is "Paratext 8"
+    }
+    if (PTver == PTVer7and8)
+    {
+        // Both PT versions 7 and 8 are installed on the machine so enable both "Paratext 7" and "Paratext 8"
+        pRadioBoxScriptureEditor->Enable(0, TRUE); // radiobox index 0 is "Paratext 7"
+        pRadioBoxScriptureEditor->Enable(1, TRUE); // radiobox index 1 is "Paratext 8"
+    }
+    if (PTver == PTLinuxVer7)
+    {
+        // PT 7 is installed, disable the "Paratext 8" radio button, and enable the "Paratext 7" button
+        pRadioBoxScriptureEditor->Enable(0, TRUE); // radiobox index 0 is "Paratext 7"
+        pRadioBoxScriptureEditor->Enable(1, FALSE); // radiobox index 1 is "Paratext 8"
+    }
+    if (PTver == PTLinuxVer8)
+    {
+        // PT 8 is installed, disable the "Paratext 7" radio button, and enable the "Paratext 8" button
+        pRadioBoxScriptureEditor->Enable(0, FALSE); // radiobox index 0 is "Paratext 7"
+        pRadioBoxScriptureEditor->Enable(1, TRUE); // radiobox index 1 is "Paratext 8"
+    }
+    if (PTver == PTLinuxVer7and8)
+    {
+        // Both PT versions 7 and 8 for Linux are installed on the machine so enable both "Paratext 7" and "Paratext 8"
+        pRadioBoxScriptureEditor->Enable(0, TRUE); // radiobox index 0 is "Paratext 7"
+        pRadioBoxScriptureEditor->Enable(1, TRUE); // radiobox index 1 is "Paratext 8"
+    }
 
-	// Set the appropriate editor selection radio button
+    if (!m_pApp->m_bBibleditIsInstalled)
+		pRadioBoxScriptureEditor->Enable(2,FALSE);
+
+	// Now, set a reasonable initial default for editor selection radio button
+    // Note: These initial selections should agree with the enabled/disabled state of the radio boxes set above!
+
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
-		pRadioBoxScriptureEditor->SetSelection(0);
+        if (m_TempCollabEditorVersion == _T("PTVersion7") || m_TempCollabEditorVersion == _T("PTLinuxVersion7"))
+        {
+            pRadioBoxScriptureEditor->SetSelection(0); // radiobox index 0 is "Paratext 7"
+        }
+        else if (m_TempCollabEditorVersion == _T("PTVersion8") || m_TempCollabEditorVersion == _T("PTLinuxVersion8"))
+        {
+            pRadioBoxScriptureEditor->SetSelection(1); // radiobox index 1 is "Paratext 8"
+        }
 	}
 	else if (m_TempCollaborationEditor == _T("Bibledit"))
 	{
-		pRadioBoxScriptureEditor->SetSelection(1);
-	}
-	else
-	{
-		// no editor has been selected yet, so make the default be Paratext
-		pRadioBoxScriptureEditor->SetSelection(0);
+		pRadioBoxScriptureEditor->SetSelection(2); // radiobox index 2 is "Bibledit"
 	}
 
 	int nProjectCount = 0;
@@ -327,8 +491,23 @@ void CSetupEditorCollaboration::DoInit(bool bPrompt)
 	projList.Clear();
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
-		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-	}
+        if (m_TempCollabEditorVersion == _T("PTVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+    }
 	else if (m_TempCollaborationEditor == _T("Bibledit"))
 	{
 		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
@@ -345,7 +524,7 @@ void CSetupEditorCollaboration::DoInit(bool bPrompt)
 	}
 	else
 	{
-		// repopulate the pListOfProjects
+		// repopulate list box with the pListOfProjects
 		pListOfProjects->Clear();
 		int i;
 		for (i = 0; i < nProjectCount; i++)
@@ -389,6 +568,14 @@ void CSetupEditorCollaboration::DoInit(bool bPrompt)
 
 void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WXUNUSED(event))
 {
+    PTVersionsInstalled PTver;
+    PTver = m_pApp->ParatextVersionInstalled();
+    if (PTver == PTNotInstalled && !m_pApp->BibleditIsInstalled())
+    {
+        wxMessageBox(_("Neither Paratext nor Bibledit are installed on this computer. Paratext or Bibledit must be installed before Adapt It can collaborate with it."),_("Cannot select any projects"),wxICON_EXCLAMATION | wxOK);
+        return;
+    }
+
 	// Note: For source project, the project can be readable or writeable (all in list)
 	// The OnOK() handler will check to ensure that the project selected for source
 	// text inputs is different from the project selected for target text exports.
@@ -399,12 +586,27 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	projList.Clear();
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
-		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-	}
+        if (m_TempCollabEditorVersion == _T("PTVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+    }
 	else if (m_TempCollaborationEditor == _T("Bibledit"))
 	{
 		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-	}
+    }
 	int ct,tot;
 	tot = (int)projList.GetCount();
 	for (ct = 0; ct < tot; ct++)
@@ -468,7 +670,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	// Note: The DoProjectAnalysis() function below sets up a progress dialog because the analysis
 	// process can be disk intensive and take a significant amount of time to complete since it will
 	// fetch each book in the PT/BE project via wxExecute() command-line access and analyze its contents. 
-	projVerseContent = DoProjectAnalysis(collabSrcText,m_TempCollabProjectForSourceInputs,m_TempCollaborationEditor,emptyBooks,booksWithContent,errorMsg);
+	projVerseContent = DoProjectAnalysis(collabSrcText,m_TempCollabProjectForSourceInputs,
+        m_TempCollaborationEditor,m_TempCollabEditorVersion,emptyBooks,booksWithContent,errorMsg);
 	switch (projVerseContent)
 	{
 	case projHasVerseTextInAllBooks:
@@ -564,19 +767,49 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	// If the value changed mark it dirty.
 	if (saveCollabProjectForSourceInputs != m_TempCollabProjectForSourceInputs)
 		m_bCollabChangedThisDlgSession = TRUE;
+
+    // After selecting source project, the dialog may be ready to "Accept this setup..."
+    SetStateOfRemovalButton();
+    SetStateOfAcceptSetupButton(); // enables the "Accept this setup and prepare for another" button if
+                                   // all of: project name, editor, source text, or target text project names
+                                   // have non-empty strings
 }
 
 void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event))
 {
+    PTVersionsInstalled PTver;
+    PTver = m_pApp->ParatextVersionInstalled();
+    if (PTver == PTNotInstalled && !m_pApp->BibleditIsInstalled())
+    {
+        wxMessageBox(_("Neither Paratext nor Bibledit are installed on this computer. Paratext or Bibledit must be installed before Adapt It can collaborate with it."), _("Cannot select any projects"), wxICON_EXCLAMATION | wxOK);
+        return;
+    }
+
 	// Note: For target project, we must ensure that the Paratext project is writeable
 	// use a temporary array list for the list of projects
-	wxString projShortName;
+	
+    wxString projShortName;
 	wxArrayString tempListOfProjects;
 	projList.Clear();
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
-		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-	}
+        if (m_TempCollabEditorVersion == _T("PTVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+    }
 	else if (m_TempCollaborationEditor == _T("Bibledit"))
 	{
 		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
@@ -649,7 +882,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	// Note: The DoProjectAnalysis() function below sets up a progress dialog because the analysis
 	// process can be disk intensive and take a significant amount of time to complete since it will
 	// fetch each book in the PT/BE project via wxExecute() command-line access and analyze its contents. 
-	projVerseContent = DoProjectAnalysis(collabTgtText,m_TempCollabProjectForTargetExports,m_TempCollaborationEditor,emptyBooks,booksWithContent,errorMsg);
+	projVerseContent = DoProjectAnalysis(collabTgtText,m_TempCollabProjectForTargetExports,
+        m_TempCollaborationEditor,m_TempCollabEditorVersion,emptyBooks,booksWithContent,errorMsg);
 	switch (projVerseContent)
 	{
 	case projHasVerseTextInAllBooks:
@@ -659,8 +893,11 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 			// project that is designed for obtaining source texts rather than one for
 			// receiving exported translation/target texts from Adapt It. Warn the administrator
 			// of this situation.
-			wxString msg = _("All books in the \"%s\" project already have verse content, so Adapt It thinks that this project may not be the one you intended for storing Adapt It's translated texts. All of the verses in the following book(s) already have text content:\n\n%s");
-			msg = msg.Format(msg,m_TempCollabProjectForTargetExports.c_str(),booksWithContent.c_str());
+			//wxString msg = _("All books in the \"%s\" project already have verse content, so Adapt It thinks that this project may not be the one you intended for storing Adapt It's translated texts. All of the verses in the following book(s) already have text content:\n\n%s");
+            // BEW 27Feb2017 and 8March2017 suggested the wording of the msg should be as follows:
+            wxString msg = _("All books in the \"%s\" project already have verse content.\nThis is expected and normal if you are deliberately establishing collaboration for a finished translation that needs further work (for example, a revision).\nIt possibly is an error if you are setting up the collaboration for the first time - because you may be wrongly configuring a source text project as the destination for sending new target text translations.\nAll of the verses in the following book(s) already have text content:\n\n%s");
+            msg = msg.Format(msg,m_TempCollabProjectForTargetExports.c_str(),booksWithContent.c_str());
+
 			wxString msgTitle = _("No books in this project have untranslated texts!");
 			wxString msg2 = _T("\n\n");
 			msg2 += _("Are you sure you want to use the \"%s\" project for storing Adapt It's translation texts?");
@@ -751,20 +988,50 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	// If the value changed mark it dirty.
 	if (saveCollabProjectForTargetExports != m_TempCollabProjectForTargetExports)
 		m_bCollabChangedThisDlgSession = TRUE;
+
+    // After selecting source project, the dialog may be ready to "Accept this setup..."
+    SetStateOfRemovalButton();
+    SetStateOfAcceptSetupButton(); // enables the "Accept this setup and prepare for another" button if
+                                   // all of: project name, editor, source text, or target text project names
+                                   // have non-empty strings
 }
 
 void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent& WXUNUSED(event))
 {
+    PTVersionsInstalled PTver;
+    PTver = m_pApp->ParatextVersionInstalled();
+    if (PTver == PTNotInstalled && !m_pApp->BibleditIsInstalled())
+    {
+        wxMessageBox(_("Neither Paratext nor Bibledit are installed on this computer. Paratext or Bibledit must be installed before Adapt It can collaborate with it."), _("Cannot select any projects"), wxICON_EXCLAMATION | wxOK);
+        return;
+    }
+
 	// Note: For free trans project, we must ensure that the Paratext project is writeable
 	// use a temporary array list for the list of projects
-	wxString projShortName;
+	
+    wxString projShortName;
 	wxArrayString tempListOfProjects;
 	pBtnNoFreeTrans->Enable(TRUE);
 	projList.Clear();
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
-		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-	}
+        if (m_TempCollabEditorVersion == _T("PTVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+    }
 	else if (m_TempCollaborationEditor == _T("Bibledit"))
 	{
 		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
@@ -838,7 +1105,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	// Note: The DoProjectAnalysis() function below sets up a progress dialog because the analysis
 	// process can be disk intensive and take a significant amount of time to complete since it will
 	// fetch each book in the PT/BE project via wxExecute() command-line access and analyze its contents. 
-	projVerseContent = DoProjectAnalysis(collabFreeTransText,m_TempCollabProjectForFreeTransExports,m_TempCollaborationEditor,emptyBooks,booksWithContent,errorMsg);
+	projVerseContent = DoProjectAnalysis(collabFreeTransText,m_TempCollabProjectForFreeTransExports,
+        m_TempCollaborationEditor,m_TempCollabEditorVersion,emptyBooks,booksWithContent,errorMsg);
 	switch (projVerseContent)
 	{
 	case projHasVerseTextInAllBooks:
@@ -942,6 +1210,12 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	// If we get here the administrator made a selection. If the value changed mark it dirty.
 	if (saveCollabProjectForFreeTransExports != m_TempCollabProjectForFreeTransExports)
 		m_bCollabChangedThisDlgSession = TRUE;
+
+    // After selecting source project, the dialog may be ready to "Accept this setup..."
+    SetStateOfRemovalButton();
+    SetStateOfAcceptSetupButton(); // enables the "Accept this setup and prepare for another" button if
+                                   // all of: project name, editor, source text, or target text project names
+                                   // have non-empty strings
 }
 
 void CSetupEditorCollaboration::OnNoFreeTrans(wxCommandEvent& WXUNUSED(event))
@@ -965,6 +1239,11 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 	DoSetControlsFromConfigFileCollabData(FALSE); // Sets all Temp collab values as read from proj config file FALSE = we're NOT creating a new project
 }
 
+// This function gets the Collab... settings and their values from the project by calling the
+// App's GetCollaborationSettingsOfAIProject() function. It stores the retrieved values in the
+// Dialog's m_Temp... and m_bTemp... local variables. It also checks the values for consistency
+// and validity and then sets the dialog's controls from the config file's collab data.
+// DoSetControlsFromConfigFileCollabData() is called from: OnComboBoxSelectAiProject() handler (above).
 void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCreatingNewProject)
 {
 	int nSel = pComboAiProjects->GetSelection();
@@ -997,6 +1276,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 		wxString collabLabelStr;
 		wxString collabItemStr;
 		wxString saveCollabEditor = m_TempCollaborationEditor;
+        // Scan through the two arrays in parallel and assign values to the m_Temp... and m_bTemp... variables
 		for (ct = 0; ct < tot; ct++)
 		{
 			// Note: The main m_Temp... and m_bTemp values used by the SetupEditorCollaboration
@@ -1006,6 +1286,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 			//    m_TempCollabProjectForFreeTransExports
 			//    m_TempCollabAIProjectName
 			//    m_TempCollaborationEditor
+            //    m_TempCollabEditorVersion // whm added 25June2016
 			//    m_bTempCollabByChapterOnly
 			// These m_Temp... and m_bTemp... values are derived from others or are unused
 			//      m_bTempCollaborationExpectsFreeTrans
@@ -1013,51 +1294,75 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 			//      m_TempCollabChapterSelected
 			//      m_TempCollabSourceProjLangName
 			//      m_TempCollabTargetProjLangName
+            //      m_TempCollabBooksProtectedFromSavingToEditor // whm added 2February2017
+            //      m_TempCollabDoNotShowMigrationDialogForPT7toPT8 // whm added 6April2017
 			collabLabelStr = collabLabelsArray.Item(ct);
 			collabItemStr = collabSettingsArray.Item(ct);
-			if (collabLabelStr == szCollabProjectForSourceInputs)
-				this->m_TempCollabProjectForSourceInputs = collabItemStr;
-			else if (collabLabelStr == szCollabProjectForTargetExports)
-				this->m_TempCollabProjectForTargetExports = collabItemStr;
-			else if (collabLabelStr == szCollabProjectForFreeTransExports)
-				this->m_TempCollabProjectForFreeTransExports = collabItemStr;
-			else if (collabLabelStr == szCollabAIProjectName)
-				this->m_TempCollabAIProjectName = collabItemStr;
-			else if (collabLabelStr == szCollaborationEditor)
-			{
-				this->m_TempCollaborationEditor = collabItemStr;
-			}
-			else if (collabLabelStr == szCollabExpectsFreeTrans)
-			{
-				if (collabItemStr == _T("1"))
-					this->m_bTempCollaborationExpectsFreeTrans = TRUE;
-				else
-					this->m_bTempCollaborationExpectsFreeTrans = FALSE;
-			}
-			else if (collabLabelStr == szCollabBookSelected)
-				this->m_TempCollabBookSelected = collabItemStr;
-			else if (collabLabelStr == szCollabByChapterOnly)
-			{
-				if (collabItemStr == _T("0"))
-					this->m_bTempCollabByChapterOnly = FALSE;
-				else
-					this->m_bTempCollabByChapterOnly = TRUE;
-			}
-			else if (collabLabelStr == szCollabChapterSelected)
-				this->m_TempCollabChapterSelected = collabItemStr;
-			else if (collabLabelStr == szCollabSourceLangName)
-				this->m_TempCollabSourceProjLangName = collabItemStr;
-			else if (collabLabelStr == szCollabTargetLangName)
-				this->m_TempCollabTargetProjLangName = collabItemStr;
+            if (collabLabelStr == szCollabProjectForSourceInputs)
+                this->m_TempCollabProjectForSourceInputs = collabItemStr;
+            else if (collabLabelStr == szCollabProjectForTargetExports)
+                this->m_TempCollabProjectForTargetExports = collabItemStr;
+            else if (collabLabelStr == szCollabProjectForFreeTransExports)
+                this->m_TempCollabProjectForFreeTransExports = collabItemStr;
+            else if (collabLabelStr == szCollabAIProjectName)
+                this->m_TempCollabAIProjectName = collabItemStr;
+            else if (collabLabelStr == szCollaborationEditor)
+            {
+                this->m_TempCollaborationEditor = collabItemStr;
+            }
+            else if (collabLabelStr == szParatextVersionForProject) // the old proj config file label in case it exists (only used in a pre-release version to developers)
+            {
+                this->m_TempCollabEditorVersion = collabItemStr; // whm added 24June2016
+            }
+            else if (collabLabelStr == szCollabParatextVersionForProject) // the new proj config file label for ongoing use
+            {
+                this->m_TempCollabEditorVersion = collabItemStr; // whm added 24June2016
+            }
+            else if (collabLabelStr == szCollabExpectsFreeTrans)
+            {
+                if (collabItemStr == _T("1"))
+                    this->m_bTempCollaborationExpectsFreeTrans = TRUE;
+                else
+                    this->m_bTempCollaborationExpectsFreeTrans = FALSE;
+            }
+            else if (collabLabelStr == szCollabBookSelected)
+                this->m_TempCollabBookSelected = collabItemStr;
+            else if (collabLabelStr == szCollabByChapterOnly)
+            {
+                if (collabItemStr == _T("0"))
+                    this->m_bTempCollabByChapterOnly = FALSE;
+                else
+                    this->m_bTempCollabByChapterOnly = TRUE;
+            }
+            else if (collabLabelStr == szCollabChapterSelected)
+                this->m_TempCollabChapterSelected = collabItemStr;
+            else if (collabLabelStr == szCollabSourceLangName)
+                this->m_TempCollabSourceProjLangName = collabItemStr;
+            else if (collabLabelStr == szCollabTargetLangName)
+                this->m_TempCollabTargetProjLangName = collabItemStr;
+            else if (collabLabelStr == szCollabBooksProtectedFromSavingToEditor)
+                this->m_TempCollabBooksProtectedFromSavingToEditor = collabItemStr;
+            else if (collabLabelStr == szCollabDoNotShowMigrationDialogForPT7toPT8)
+            {
+                if (collabItemStr == _T("0"))
+                    this->m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE;
+                else
+                    this->m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = TRUE;
+            }
 		}
 
 		// whm Note: InitDialog() initializes m_TempCollaborationEditor to be "Paratext"
 		// or "Bibledit" depending on which is installed, giving preference to "Paratext"
 		// if both editors are installed. That initial value is now saved in saveCollabEditor.
 		// Now we need to deal with the possibility that the collaboration settings read in
-		// from the project config file may specify a different editor or no editor.
+		// from the project config file may specify a different editor, or no editor at all.
+        //
+        // whm 25June2016 note: We also need to deal with the possibility that the collaboration
+        // settings read in from the project config file may specify a different PT editor 
+        // version, or no PT version at all.
 		//
-		// First, deal with the situation if m_TempCollaborationEditor is now empty. We can
+		// First, deal with the situation if m_TempCollaborationEditor is now empty after reading
+        // project configuration collab data into m_TempCollaborationEditor. We can
 		// examine m_TempCollabProjectForSourceInputs to see if it has ':' delimiters. If so the
 		// project was previously a Paratext project; if not the project was a Bibledit project.
 		// If the currently installed editor is compatible we can allow the assignment of
@@ -1068,14 +1373,16 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 			if (!m_TempCollabProjectForSourceInputs.IsEmpty())
 			{
 				// we can determine which external editor was used previously by inspecting the
-				// m_TempCollabProjectForSourceInputs string. If it has at least one color delimiter
+				// m_TempCollabProjectForSourceInputs string. If it has at least one colon delimiter
 				// in its string, it was using Paratext, otherwise it was using Bibledit
 				if (m_TempCollabProjectForSourceInputs.Find(_T(':')) != wxNOT_FOUND)
 				{
 					// At least one colon ':' character is present in string therefore it was previously
 					// using Paratext. Assign "Paratext" as editor (if it is installed).
-					if (m_pApp->ParatextIsInstalled())
-						m_TempCollaborationEditor = _T("Paratext");
+                    PTVersionsInstalled PTver;
+                    PTver = m_pApp->ParatextVersionInstalled();
+                    if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
+                        m_TempCollaborationEditor = _T("Paratext");
 				}
 				else
 				{
@@ -1092,90 +1399,522 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 				m_TempCollaborationEditor = saveCollabEditor;
 			}
 		}
-		else
+		else // m_TempCollaborationEditor is not an empty string
 		{
+            // m_TempCollaborationEditor should designate either "Paratext" or "Bibledit". We now conduct
+            // some sanity checks for consistency of the collab settings of this project configuration file
+            // with the state of the current computer.
+            //
+            // whm 30Dec2016 modified to Notify administrator that the AI project has collaboration settings
+            // for collaboration with PT or BE, but neither collab editor is detected as installed on this
+            // computer. Hence, the project selected cannot be set up and saved as a collaboration project
+            // until Paratext or Bibledit are installed and have appropriate source and target language
+            // projects available within the editor that Adapt It can utilize for collaboration.
+            // Present the administrator with a wxMessageDialog with wxICON_EXCLAMATION | wxYES_NO | wxNO_DEFAULT.
+            // 
+            // Note: The same basic prompt can be used both here and in the ProjectPage when a user attempts to
+            // open a project that was previously set up for collaboration but a collaboration editor (Paratext
+            // or Bibledit) are not installed on the current computer. I've relegated the prompt to a function 
+            // in CollabUtilities.cpp called: AskIfCollabSettingsBeRemovedFromProjConfig(). That function
+            // returns an int representing the possible responses of: wxYES, wxNO, or wxCANCEL. The wxCANCEL is 
+            // not possible within Win10 which doesn't have an X in title bar allowing closure of the 
+            // wxMessageBox, but wxCANCEL may be available as a valid response on other platforms. See the 
+            // AskIfCollabSettingsBeRemovedFromProjConfig() function in CollabUtilities.cpp for the exact 
+            // wording of the prompt.
+
+            // The following boolean is only set to TRUE when neither Paratext nor Bibledit are installed
+            bool bNoCollabEditorfIsInstalled = FALSE;
 			// m_TempCollaborationEditor has a non-empty value after reading the project config file's
 			// collaboration settings. Here we can just ensure that the editor specified is installed
-			if (m_TempCollaborationEditor == _T("Paratext") && !m_pApp->ParatextIsInstalled())
+			if (m_TempCollaborationEditor == _T("Paratext") && m_pApp->ParatextVersionInstalled() == PTNotInstalled)
 			{
-				if (m_pApp->BibleditIsInstalled())
-					m_TempCollaborationEditor = _T("Bibledit");
+                // Paratext is the editor according to the confi file, but Paratext is not installed,
+                // so if Bibledit is installed, assign it instead.
+                if (m_pApp->BibleditIsInstalled())
+                    m_TempCollaborationEditor = _T("Bibledit");
+                else
+                    bNoCollabEditorfIsInstalled = TRUE;
 			}
 			if (m_TempCollaborationEditor == _T("Bibledit") && !m_pApp->BibleditIsInstalled())
 			{
-				if (m_pApp->ParatextIsInstalled())
+                // Bibledit is the editor according to the config file, but Bibledit is not installed,
+                // so if Paratext is installed, assign it instead.
+                PTVersionsInstalled PTver;
+                PTver = m_pApp->ParatextVersionInstalled();
+                if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
 					m_TempCollaborationEditor = _T("Paratext");
-			}
-		}
+                else
+                    bNoCollabEditorfIsInstalled = TRUE;
+            }
+            if (bNoCollabEditorfIsInstalled)
+            {
+                // Neither Paratext nor Bibledit is installed, but this project specifies collaboration with one or the
+                // other editors.
+                // Ask the administrator how to handle the inconsistent setting within the project's configuration file.
+                // This message is also used in the ProjectPage's OnWizardPageChanging() handler, so we call a function
+                // defined in CollabUtilities.cpp called AskIfCollabSettingsBeRemovedFromProjConfig(). The heart of the 
+                // code for handling this situation is between the dashed comment lines below:
+// ---------------------------------------------------------------------------------------------------------------
+                int result;
+                result = AskIfCollabSettingsBeRemovedFromProjConfig(
+                    m_TempCollabAIProjectName,
+                    m_TempCollaborationEditor,
+                    m_TempCollabProjectForSourceInputs,
+                    m_TempCollabProjectForTargetExports,
+                    m_TempCollabProjectForFreeTransExports
+                );
 
-		// Check the AI project name values for consistency.
+                switch (result)
+                {
+                case wxCANCEL:
+                    // Tell user what happened and what should be done.
+                    // Don't put any project data into controls, just return (user can select a different AI project or close the dialog
+                    return; 
+
+                case wxYES:
+                {
+                    // Administrator/User wants to remove collaboration settings from the project's AI-ProjectConfiguration.aic file.
+                    // We could call the OnRemoveThisAIProjectFromCollab() handler but is does things that aren't necessary for our
+                    // present purpose, so we'll just borrow the code from there and make it general enough so that it can be used here 
+                    // and also within the ProjectPage's OnWizardPageChanging() handler.
+                    // Save blank values for the collab settings into the project config file.
+                    m_pApp->m_bCollaboratingWithParatext = FALSE;
+                    m_pApp->m_bCollaboratingWithBibledit = FALSE;
+                    m_pApp->m_CollabProjectForSourceInputs = _T("");
+                    m_pApp->m_CollabProjectForTargetExports = _T("");
+                    m_pApp->m_CollabProjectForFreeTransExports = _T("");
+                    m_pApp->m_CollabAIProjectName = _T("");
+                    m_pApp->m_collaborationEditor = _T(""); 
+                    m_pApp->m_ParatextVersionForProject = _T(""); // whm added 25June2016
+                    m_pApp->m_bCollaborationExpectsFreeTrans = FALSE;
+                    m_pApp->m_CollabBookSelected = _T("");
+                    m_pApp->m_CollabSourceLangName = _T("");
+                    m_pApp->m_CollabTargetLangName = _T("");
+                    m_pApp->m_bCollabByChapterOnly = TRUE;
+                    m_pApp->m_CollabChapterSelected = _T("");
+                    m_pApp->m_CollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+                    m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
+
+                    // Re-save now removed settings to the AI-ProjectConfiguration.aic file
+                    // In order to write the collab settings to the selected project file we need to compose the
+                    // path to the project for the second parameter of WriteConfigurationFile().
+                    wxString newProjectPath;	// a local string to avoid unnecessarily changing the App's m_curProjectName
+                                                // and m_curProjectPath.
+                    if (!m_pApp->m_customWorkFolderPath.IsEmpty() && m_pApp->m_bUseCustomWorkFolderPath)
+                    {
+                        newProjectPath = m_pApp->m_customWorkFolderPath + m_pApp->PathSeparator
+                            + m_TempCollabAIProjectName;
+                    }
+                    else
+                    {
+                        newProjectPath = m_pApp->m_workFolderPath + m_pApp->PathSeparator
+                            + m_TempCollabAIProjectName;
+                    }
+                    // Call WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile)
+                    // to save the settings in the project config file.
+                    bool bOK;
+                    bOK = m_pApp->WriteConfigurationFile(szProjectConfiguration, newProjectPath, projectConfigFile);
+                    if (bOK)
+                    {
+                        wxString newAIconfigFilePath = newProjectPath + m_pApp->PathSeparator + szProjectConfiguration + _T(".aic");
+                        // Tell administrator that the setup has been saved.
+                        wxString msg0 = _("The collaboration settings for the \"%s\" project were successfully removed from the project's configuration file at:\n\n%s\n\n");
+                        //wxString msg1 = _("You may now select or create another Adapt It project (step 1) and make collaboration settings for that Adapt It project (setps 2 - 4).\n\n");
+                        wxString msg2 = _("If you are finished, select \"Close\" to close the setup dialog and test your setup(s) using the Start Working Wizard.");
+                        wxString msg;
+                        msg = msg0 + msg2;
+                        msg = msg.Format(msg, m_TempCollabAIProjectName.c_str(), newAIconfigFilePath.c_str());
+                        wxMessageBox(msg, _("Removal of collaboration settings successful"), wxICON_INFORMATION | wxOK);
+                        m_pApp->LogUserAction(msg);
+                        m_bCollabChangedThisDlgSession = FALSE;
+
+                        // whm 25Oct13 added. This SaveAppCollabSettingsToINIFile() needs to be called
+                        // at every point that significant collaboration settings change to keep the
+                        // Adapt_It_WX.ini file up to date. This does not remove the settings
+                        // entirely from the ini file, it clears the existing settings to
+                        // remove active collaboration.
+                        m_pApp->SaveAppCollabSettingsToINIFile(newProjectPath);
+                    }
+                    else
+                    {
+                        // Writing of the project config file failed for some reason. This would be unusual, so
+                        // just do an English notification
+                        wxCHECK_RET(bOK, _T("OnRemoveThisAIProjectFromCollab(): WriteConfigurationFile() failed, line 1189 in SetupEditorCollaboration.cpp"));
+                    }
+
+                    // The following actions are only needed within the SetupEditorCollaboration dialog and not applicable in 
+                    // the ProjectPage's OnWizardPageChanging() handler.
+
+                    // zero out the local Temp... variables as we did in OnInit()
+                    m_TempCollabProjectForSourceInputs = _T("");
+                    m_TempCollabProjectForTargetExports = _T("");
+                    m_TempCollabProjectForFreeTransExports = _T("");
+                    m_TempCollabAIProjectName = _T("");
+                    m_TempCollaborationEditor = _T("");
+                    m_TempCollabEditorVersion = _T(""); // whm 25June2016 added
+                    m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
+                    m_TempCollabBookSelected = _T("");
+                    m_TempCollabSourceProjLangName = _T("");
+                    m_TempCollabTargetProjLangName = _T("");
+                    m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
+                    m_TempCollabChapterSelected = _T("");
+                    m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+                    m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
+
+                    // Zero out all fields so the dialog is ready for another setup if desired
+                    wxString strSelection = pComboAiProjects->GetStringSelection();
+                    if (!strSelection.IsEmpty())
+                    {
+                        pComboAiProjects->Remove(0, strSelection.Length());
+                    }
+                    pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
+                    pComboAiProjects->Refresh();
+                    pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
+                    pTextCtrlAsStaticSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
+                    pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(m_TempCollabProjectForFreeTransExports);
+                    pRadioBtnByChapterOnly->SetValue(m_bTempCollabByChapterOnly);
+                    pRadioBtnByWholeBook->SetValue(!m_bTempCollabByChapterOnly);
+                    SetStateOfRemovalButton();
+                    SetStateOfAcceptSetupButton(); // disables the "Accept this setup and prepare for another" button if
+                                                   // any of: project name, editor, source text, or target text project names
+                                                   // are empty
+
+                    // Just return from this DoSetControlsFromConfigFileCollabData() function to the dialog's
+                    // main event loop, to allow administrator to either select another AI project or to Close 
+                    // the dialog.
+                    return;
+                }
+
+                default:
+                    wxASSERT(FALSE); // this would be a programming error
+                   
+                case wxNO:
+                    // Administrator/User decided not to remove the settings
+                    // Tell user what happened and what should be done.
+                    wxString projects;
+                    projects = m_TempCollabProjectForSourceInputs + _T("\n") + m_TempCollabProjectForTargetExports, +_T("\n") + m_TempCollabProjectForFreeTransExports;
+
+                    wxString msg =
+                        _("The collaboration settings for the \"%s\" AI project were not changed.\n\n\
+Reminder: The user will not be able to open this project until you install Paratext or Bibledit along with these projects:\n\n\
+%s\n\n");
+                    msg = msg.Format(msg, m_TempCollabAIProjectName.c_str(), projects.c_str());
+                    wxMessageBox(msg, _("Collaboration settings remain unchanged for this project"), wxICON_INFORMATION | wxOK);
+                    m_pApp->LogUserAction(msg);
+                    // Disable and refresh the dialog AI Project selection controls
+                    pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
+                    pComboAiProjects->Refresh();
+                    SetStateOfRemovalButton();
+                    SetStateOfAcceptSetupButton(); // disables the "Accept this setup and prepare for another" button if
+                                                   // any of project name, editor, source text, or target text project names
+                                                   // are empty
+                    // The call to GetCollaborationSettingsOfAIProject() at the beginning of this function assigned
+                    // project config values to all of the m_TempCollab... variables. We should zero out those temp
+                    // variables here so that they don't influence something else in the dialog.
+                    // zero out the local Temp... variables as we did in OnInit()
+                    m_TempCollabProjectForSourceInputs = _T("");
+                    m_TempCollabProjectForTargetExports = _T("");
+                    m_TempCollabProjectForFreeTransExports = _T("");
+                    m_TempCollabAIProjectName = _T("");
+                    m_TempCollaborationEditor = _T("");
+                    m_TempCollabEditorVersion = _T(""); // whm 25June2016 added
+                    m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
+                    m_TempCollabBookSelected = _T("");
+                    m_TempCollabSourceProjLangName = _T("");
+                    m_TempCollabTargetProjLangName = _T("");
+                    m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
+                    m_TempCollabChapterSelected = _T("");
+                    m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+                    m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
+
+                    return;
+
+                }
+// ---------------------------------------------------------------------------------------------------------------
+            }
+		} // end of else // m_TempCollaborationEditor is not an empty string
+
+        // whm 25June2016 added: We now deal with the possibility that the collaboration
+        // settings read in from the project config file may specify a different PT editor 
+        // version, or no PT version at all. In the previous blocks we checked the validity
+        // of the editor itself and made adjustments to ensure that the editor specified is
+        // actually installed. Here we assume we have a valid editor, but we make some checks
+        // to verify that any specified PT version is actually installed.
+        if (m_TempCollaborationEditor == _T("Paratext"))
+        {
+            PTVersionsInstalled PTver;
+            PTver = m_pApp->ParatextVersionInstalled();
+            if (PTver == PTVer7)
+            {
+                // Only PT version 7 is installed, so ensure that m_TempCollabEditorVersion is set to "PTVersion7"
+                m_TempCollabEditorVersion = _T("PTVersion7");
+            }
+            else if (PTver == PTVer8)
+            {
+                // Only PT version 8 is installed, so ensure that m_TempCollabEditorVersion is set to "PTVersion8"
+                m_TempCollabEditorVersion = _T("PTVersion8");
+            }
+            else if (PTver == PTVer7and8)
+            {
+                // Both PT versions 7 and 8 are installed on the machine.
+
+                // whm modified 18March2017. We are here setting controls for the dialog so just set the PT 
+                // version according to what is specified in the project config file unless it is the case that
+                // m_TempCollabEditorVersion is an empty string. If it is an empty string then we will have
+                // to guess which PT version the user might want. 
+
+                if (m_TempCollabEditorVersion.IsEmpty()) // whm added this test 18March2017
+                {
+                    // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                    // and at least 2 valid/useable projects, otherwise PT 7 
+                    wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion8"));
+                    wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion7"));
+                    wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTVersion8"));
+                    wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTVersion7"));
+                    int pt8Count = pt8ListOfProj.GetCount();
+                    int pt7Count = pt7ListOfProj.GetCount();
+                    if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                    {
+                        m_TempCollabEditorVersion = _T("PTVersion8");
+                    }
+                    else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                    {
+                        m_TempCollabEditorVersion = _T("PTVersion7");
+                    }
+                    else
+                    {
+                        // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                        wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                        m_pApp->LogUserAction(msg);
+                        // Assume the administrator will fix this situation. In the mean time, since both
+                        // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                        m_TempCollabEditorVersion = _T("PTVersion8");
+                    }
+                }
+            }
+            else if (PTver == PTLinuxVer8)
+            {
+                m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+            }
+            else if (PTver == PTLinuxVer7)
+            {
+                m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+            }
+            else if (PTver == PTLinuxVer7and8)
+            {
+                // Both PT versions 7 and 8 for Linux are installed on the machine.
+
+                // whm modified 18March2017. We are here setting controls for the dialog so just set the PT 
+                // version according to what is specified in the project config file unless it is the case that
+                // m_TempCollabEditorVersion is an empty string. If it is an empty string then we will have
+                // to guess which PT version the user might want. 
+
+                if (m_TempCollabEditorVersion.IsEmpty()) // whm added this test 18March2017
+                {
+                    // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                    // and at least 2 valid/useable projects, otherwise PT 7 
+                    wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+                    wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+                    wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8"));
+                    wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7"));
+                    int pt8Count = pt8ListOfProj.GetCount();
+                    int pt7Count = pt7ListOfProj.GetCount();
+                    if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                    {
+                        m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                    }
+                    else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                    {
+                        m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+                    }
+                    else
+                    {
+                        // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                        wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                        m_pApp->LogUserAction(msg);
+                        // Assume the administrator will fix this situation. In the mean time, since both
+                        // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                        m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                    }
+                }
+            }
+        }
+        
+        // Check the AI project name values for consistency.
 		if (!m_TempCollabAIProjectName.IsEmpty() && (this->m_TempCollabSourceProjLangName.IsEmpty() || this->m_TempCollabTargetProjLangName.IsEmpty()))
 		{
 			// Do sanity check to insure the m_TempCollabSourceProjLangName and m_TempCollabTargetLangName
 			// values are consistent with those used in the m_TempCollabAIProjectName.
 			// The AI project name is defined, but the individual source and/or target language names for
-			// the project are empty, so parse them from the language name.
+			// the project are empty, so parse them from the language name. The function assigns values to the 2nd and 3rd parmeters.
 			GetAILangNamesFromAIProjectNames(m_TempCollabAIProjectName, m_TempCollabSourceProjLangName, m_TempCollabTargetProjLangName);
 		}
-	}
-	else
+	} // end of if (collabSettingsArray.GetCount() > 0)
+	else 
 	{
-		// The AI project has no collaboration settings, so parse the
-		// selStr and fill in values for m_TempCollabAIProjectName,
-		// m_TempCollabSourceProjLangName, and m_TempCollabTargetProjLangName.
-		m_TempCollabProjectForSourceInputs = _T("");
+        // The collabSettingsArray.GetCount() == 0, indicating that the currently selected AI project 
+        // has no collaboration settings present within its AI-ProjectConfiguration.aic file.
+        // Initialize the m_TempCollab... variables that we can including m_TempCollabEditorVersion.
+        // We can parse the drop down AI project selection string (setStr) and use 
+		// the values we parse out for m_TempCollabAIProjectName, m_TempCollabSourceProjLangName, 
+        // and m_TempCollabTargetProjLangName
+        m_TempCollabProjectForSourceInputs = _T("");
 		m_TempCollabProjectForTargetExports = _T("");
 		m_TempCollabProjectForFreeTransExports = _T("");
 
 		m_TempCollabAIProjectName = selStr; // AI project name selected in the combo box
 
-		// Call the ParatextIsInstalled() or BibleditIsInstalled() functions directly
+		// Call the ParatextVersionInstalled() or BibleditIsInstalled() functions directly
 		// here rather than using the App's m_bParatextIsInstalled or m_bBibleditIsInstalled
 		// variables (which are only set in OnInit(). The user may have installed one of the
 		// editors during this AI session.
-		if (m_pApp->ParatextIsInstalled())
+        PTVersionsInstalled PTver;
+        PTver = m_pApp->ParatextVersionInstalled();
+        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
 		{
 		     m_TempCollaborationEditor = _T("Paratext"); // default editor
-		}
+             if (PTver == PTVer7)
+             {
+                 // Only PT version 7 is installed, so ensure that m_TempCollabEditorVersion is set to "PTVersion7"
+                 m_TempCollabEditorVersion = _T("PTVersion7");
+             }
+             else if (PTver == PTVer8)
+             {
+                 // Only PT version 8 is installed, so ensure that m_TempCollabEditorVersion is set to "PTVersion8"
+                 m_TempCollabEditorVersion = _T("PTVersion8");
+             }
+             else if (PTver == PTVer7and8)
+             {
+                 // This block was entered only when no project config collab settings were detected,
+                 // so there won't be a PT version already in m_TempCollabEditorVersion to utilize, even
+                 // though both PT versions 7 and 8 are installed on the machine.
+                 // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                 // and at least 2 valid/useable projects, otherwise PT 7 
+                 wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion8"));
+                 wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion7"));
+                 wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTVersion8"));
+                 wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTVersion7"));
+                 int pt8Count = pt8ListOfProj.GetCount();
+                 int pt7Count = pt7ListOfProj.GetCount();
+                 if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                 {
+                     m_TempCollabEditorVersion = _T("PTVersion8");
+                 }
+                 else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                 {
+                     m_TempCollabEditorVersion = _T("PTVersion7");
+                 }
+                 else
+                 {
+                     // neither PT 8 or PT 7 had valid projects dir path nor at least 2 useable projects, log the problem
+                     wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                     m_pApp->LogUserAction(msg);
+                     // Assume the administrator will fix this situation. In the mean time, since both
+                     // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                     m_TempCollabEditorVersion = _T("PTVersion8");
+                 }
+             }
+             else if (PTver == PTLinuxVer8)
+             {
+                 m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+             }
+             else if (PTver == PTLinuxVer7)
+             {
+                 m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+             }
+             else if (PTver == PTLinuxVer7and8)
+             {
+                 // This block was entered only when no project config collab settings were detected,
+                 // so there won't be a PT version already in m_TempCollabEditorVersion to utilize, even
+                 // though both PT versions 7 and 8 are installed on the machine.
+                 // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                 // and at least 2 valid/useable projects, otherwise PT 7 
+                 wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+                 wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+                 wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8"));
+                 wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7"));
+                 int pt8Count = pt8ListOfProj.GetCount();
+                 int pt7Count = pt7ListOfProj.GetCount();
+                 if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                 {
+                     m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                 }
+                 else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                 {
+                     m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+                 }
+                 else
+                 {
+                     // neither PT 8 or PT 7 had valid projects dir path nor at least 2 useable projects, log the problem
+                     wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                     m_pApp->LogUserAction(msg);
+                     // Assume the administrator will fix this situation. In the mean time, since both
+                     // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                     m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                 }
+             }
+        }
 		else if (m_pApp->BibleditIsInstalled())
 		{
 		     m_TempCollaborationEditor = _T("Bibledit"); // don't localize
+            // Bibledit is the only installed external editor, so it doesn't make
+            // sense to set m_TempCollabEditorVersion
 		}
 
 		m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
 		m_TempCollabBookSelected = _T("");
 
-		// parse the language names from the m_TempCollabAIProjectName
+		// Finally, parse the language names from the m_TempCollabAIProjectName
 		m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(selStr,
 			m_TempCollabSourceProjLangName,m_TempCollabTargetProjLangName);
 
 		m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
 		m_TempCollabChapterSelected = _T("");
-	}
+	} // end of else collabSettingsArray.GetCount() == 0 [no collab settings in proj config file]
 
 	// Since the m_TempCollaborationEditor may have changed above we need to get a fresh
 	// list of editor projects
 	projList.Clear();
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
-		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-	}
+        if (m_TempCollabEditorVersion == _T("PTVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+    }
 	else if (m_TempCollaborationEditor == _T("Bibledit"))
 	{
 		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}
 
-	// Note: Regardless of what the value for m_TempCollabAIProjectName might have been in the
+    // =====================================================================================================
+    // Note: The OnComboBoxSelectAiProject() handler calls this DoSetControlsFromConfigFileCollabData()
+    // function. Therefore, regardless of what the value for m_TempCollabAIProjectName might have been in the
 	// project config file collaboration settings (from above), we force it to be what the
 	// administrator selected within the combo box, and force the associated language names too.
+
 	m_TempCollabAIProjectName = selStr; // AI project name selected in the combo box
 	// parse the language names from the m_TempCollabAIProjectName
 	m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(selStr,
 		m_TempCollabSourceProjLangName,m_TempCollabTargetProjLangName);
 
-	// If the m_TempCollaborationEditor string is empty, it indicates that there was no editor
-	// specified in the config file. In such cases initialize it to an installed editor
-	// if available, giving preference to Paratext
+    PTVersionsInstalled PTver;
+    PTver = m_pApp->ParatextVersionInstalled();
+	// If the m_TempCollaborationEditor string is still empty at this point, it indicates that 
+    // there was no editor specified in the config file. In such cases initialize it to an 
+    // installed editor if one is available, giving preference to Paratext
 	if (m_TempCollaborationEditor.IsEmpty())
 	{
 		// m_TempCollaborationEditor is empty so make empty the m_TempCollabProjectFor... variables too
@@ -1186,10 +1925,86 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 		// The text controls will be updated with the empty values below
 
 		// Assign a default editor so the text substitutions for
-		if (m_pApp->ParatextIsInstalled())
+        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
 		{
 		     m_TempCollaborationEditor = _T("Paratext"); // default editor
-		}
+             if (PTver == PTVer7)
+             {
+                 // Only PT version 7 is installed, so ensure that m_TempCollabEditorVersion is set to "PTVersion7"
+                 m_TempCollabEditorVersion = _T("PTVersion7");
+             }
+             else if (PTver == PTVer8)
+             {
+                 // Only PT version 8 is installed, so ensure that m_TempCollabEditorVersion is set to "PTVersion8"
+                 m_TempCollabEditorVersion = _T("PTVersion8");
+             }
+             else if (PTver == PTVer7and8)
+             {
+                 // Both PT versions 7 and 8 are installed on the machine.
+                 // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                 // and at least 2 valid/useable projects, otherwise PT 7 
+                 wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion8"));
+                 wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTVersion7"));
+                 wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTVersion8"));
+                 wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTVersion7"));
+                 int pt8Count = pt8ListOfProj.GetCount();
+                 int pt7Count = pt7ListOfProj.GetCount();
+                 if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                 {
+                     m_TempCollabEditorVersion = _T("PTVersion8");
+                 }
+                 else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                 {
+                     m_TempCollabEditorVersion = _T("PTVersion7");
+                 }
+                 else
+                 {
+                     // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                     wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                     m_pApp->LogUserAction(msg);
+                     // Assume the administrator will fix this situation. In the mean time, since both
+                     // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                     m_TempCollabEditorVersion = _T("PTVersion8");
+                 }
+             }
+             else if (PTver == PTLinuxVer7)
+             {
+                 m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+             }
+             else if (PTver == PTLinuxVer8)
+             {
+                 m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+             }
+             else if (PTver == PTLinuxVer7and8)
+             {
+                 // Both PT versions 7 and 8 for Linux are installed on the machine.
+                 // Assume that PT 8 will be the desired editor if it has a valid projects dir
+                 // and at least 2 valid/useable projects, otherwise PT 7 
+                 wxString pt8ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion8"));
+                 wxString pt7ProjectsDirPath = m_pApp->GetParatextProjectsDirPath(_T("PTLinuxVersion7"));
+                 wxArrayString pt8ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8"));
+                 wxArrayString pt7ListOfProj = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7"));
+                 int pt8Count = pt8ListOfProj.GetCount();
+                 int pt7Count = pt7ListOfProj.GetCount();
+                 if (!pt8ProjectsDirPath.IsEmpty() && pt8Count >= 2)
+                 {
+                     m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                 }
+                 else if (!pt7ProjectsDirPath.IsEmpty() && pt7Count >= 2)
+                 {
+                     m_TempCollabEditorVersion = _T("PTLinuxVersion7");
+                 }
+                 else
+                 {
+                     // neither PT 8 or PT 7 had valid projects dir path or at least 2 useable projects, log the problem
+                     wxString msg = _T("In CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData() both PT 7 and PT 8 are installed but neither has valid projects dir or neither has at least 2 useable projects.");
+                     m_pApp->LogUserAction(msg);
+                     // Assume the administrator will fix this situation. In the mean time, since both
+                     // PT 8 and PT 7 are installed, default here in InitDialog() to PT 8.
+                     m_TempCollabEditorVersion = _T("PTLinuxVersion8");
+                 }
+             }
+        }
 		else if (m_pApp->BibleditIsInstalled())
 		{
 		     m_TempCollaborationEditor = _T("Bibledit"); // don't localize
@@ -1198,14 +2013,63 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
-		if (m_pApp->ParatextIsInstalled())
+        if (PTver == PTVer7 || PTver == PTVer8 || PTver == PTVer7and8 || PTver == PTLinuxVer7 || PTver == PTLinuxVer8 || PTver == PTLinuxVer7and8)
 		{
-			// set the "Paratext" radio box button
-			pRadioBoxScriptureEditor->SetSelection(0);
-		}
+			// set the "Paratext 7" and "Paratext 8" radio box buttons appropriately
+            if (PTver == PTVer7)
+			    pRadioBoxScriptureEditor->SetSelection(0);
+            else if (PTver == PTVer8)
+                pRadioBoxScriptureEditor->SetSelection(1);
+            else if (PTver == PTVer7and8)
+            {
+                // Both PT 7 and PT 8 are installed, set the selection according to the version stored in 
+                // m_TempCollabEditorVersion, unless it is empty then select Paratext 8
+                if (m_TempCollabEditorVersion == _T("PTVersion7"))
+                {
+                    pRadioBoxScriptureEditor->SetSelection(0);
+                }
+                else if (m_TempCollabEditorVersion == _T("PTVersion8"))
+                {
+                    pRadioBoxScriptureEditor->SetSelection(1);
+                }
+                else
+                {
+                    // m_TempCollabEditorVersion was empty so assume Paratext 8
+                    pRadioBoxScriptureEditor->SetSelection(1);
+                }
+            }
+            else if (PTver == PTLinuxVer7)
+            {
+                // PT 7 is installed, select the "Paratext 7" button
+                pRadioBoxScriptureEditor->SetSelection(0);
+            }
+            else if (PTver == PTLinuxVer8)
+            {
+                // PT 8 is installed, select the "Paratext 8" button
+                pRadioBoxScriptureEditor->SetSelection(1);
+            }
+            else if (PTver == PTLinuxVer7and8)
+            {
+                // Both PT 7 for Linux and PT 8 for Linux are installed, set the selection according 
+                // to the version stored in m_TempCollabEditorVersion, unless it is empty then select Paratext 8
+                if (m_TempCollabEditorVersion == _T("PTLinuxVersion7"))
+                {
+                    pRadioBoxScriptureEditor->SetSelection(0);
+                }
+                else if (m_TempCollabEditorVersion == _T("PTLinuxVersion8"))
+                {
+                    pRadioBoxScriptureEditor->SetSelection(1);
+                }
+                else
+                {
+                    // m_TempCollabEditorVersion was empty so assume Paratext 8
+                    pRadioBoxScriptureEditor->SetSelection(1);
+                }
+            }
+        }
 		else if (m_pApp->BibleditIsInstalled())
 		{
-		     pRadioBoxScriptureEditor->SetSelection(1);
+		     pRadioBoxScriptureEditor->SetSelection(2);
 		}
 	}
 	else if (m_TempCollaborationEditor == _T("Bibledit"))
@@ -1213,15 +2077,9 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 		if (m_pApp->BibleditIsInstalled())
 		{
 			// set the "Bibledit" radio box button
-			pRadioBoxScriptureEditor->SetSelection(1);
-		}
-		else if (m_pApp->ParatextIsInstalled())
-		{
-			pRadioBoxScriptureEditor->SetSelection(0);
+			pRadioBoxScriptureEditor->SetSelection(2);
 		}
 	}
-
-	SetStateOfRemovalButton(); // enables the Remove... button because m_TempCollabAIProjectName now has content
 
 	// Fill dialog controls with collab settings
 	// Note: The combo box selection in step 1 was selected by the administrator so something should be selected!
@@ -1232,6 +2090,11 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 	pRadioBtnByChapterOnly->SetValue(m_bTempCollabByChapterOnly);
 	pRadioBtnByWholeBook->SetValue(!m_bTempCollabByChapterOnly);
 
+	SetStateOfRemovalButton(); // enables the Remove... button because m_TempCollabAIProjectName now has content
+    SetStateOfAcceptSetupButton(); // disables the "Accept this setup and prepare for another" button if
+                                   // any of project name, editor, source text, or target text project names
+                                   // are empty
+
 	// Don't set m_bCollabChangedThisDlgSession to TRUE in this handler for merely selecting an existing project
 
 	// Refresh the list of PT/BE projects
@@ -1239,8 +2102,23 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 	projList.Clear();
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
-		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-	}
+        if (m_TempCollabEditorVersion == _T("PTVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion7"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion7")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+        else if (m_TempCollabEditorVersion == _T("PTLinuxVersion8"))
+        {
+            projList = m_pApp->GetListOfPTProjects(_T("PTLinuxVersion8")); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+        }
+    }
 	else if (m_TempCollaborationEditor == _T("Bibledit"))
 	{
 		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
@@ -1253,6 +2131,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 		// error: PT/BE is not set up with enough projects for collaboration
 		// this error will be reported when the administrator clicks on the "Save
 		// Setup for this Collaboration Project Now" button.
+        ;
 	}
 	else
 	{
@@ -1266,6 +2145,13 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 			pListOfProjects->Append(tempStr);
 		}
 	}
+
+    // whm added 30Dec206
+    if (m_TempCollaborationEditor.IsEmpty())
+    {
+        // PT/BE are not installed so just return
+        return;
+    }
 
 	// The PT/BE project source and/or target name variables may be empty if they were empty in 
 	// the config file or when this function is called by OnCreateNewAIProject(). If one or both
@@ -1466,7 +2352,8 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 	// string parameters that don't have at least one book created in them. Therefore, selecting an AI
 	// project that has no collaboration settings won't trigger the "Invalid PT/BE projects detected" message below.
 	if (!CollabProjectsAreValid(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports,
-							m_TempCollabProjectForFreeTransExports, m_TempCollaborationEditor, errorStr, errProj))
+			m_TempCollabProjectForFreeTransExports, m_TempCollaborationEditor, m_TempCollabEditorVersion,
+            errorStr, errProj))
 	{
 		wxString msg = _("Adapt It detected invalid collaboration settings for the \"%s\" project in its project configuration file. The invalid %s project data is:\n%s");
 		wxASSERT(!m_TempCollaborationEditor.IsEmpty());
@@ -1481,6 +2368,77 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 		wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 		m_pApp->LogUserAction(titleMsg);
 	}
+    else
+    {
+        // Check if the selected collab project should be migrated from pointing to PT7 to PT8
+        bool bBothPT7AndPT8InstalledPT8ProjectsWereMigrated = FALSE;
+        if (srcProjFoundInEditor && tgtProjFoundInEditor)
+        {
+            // Check the PT Windows situation
+            if (m_TempCollabEditorVersion == _T("PTVersion7"))
+            {
+                PTVersionsInstalled PTver;
+                PTver = m_pApp->ParatextVersionInstalled();
+                if (PTver == PTVer7and8)
+                {
+                    wxString errStr = _T("");
+                    wxString errProj = _T("");
+                    // We know that the PT7 projects are valid. Check if the PT8 projects are also valid.
+                    if (CollabProjectsAreValid(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports,
+                        m_TempCollabProjectForFreeTransExports, m_TempCollaborationEditor, _T("PTversion8"),
+                        errStr, errProj))
+                    {
+                        // Compare the GUID values of the PT7 and PT8 projects to determine if
+                        // the PT7 projects were migrated to PT8. According to Tom H. the PT8
+                        // project will have the same GUID as the PT7 project when the project
+                        // has successfully migrated to PT8.
+                        // Approach: Compare the GUIDs for the Src, Tgt (and any FreeTrans project)
+                        //   between PT7 and PT8. If the GUIDs match for all collab projects, then
+                        // we can return a TRUE value for bBothPT7AndPT8InstalledPT8ProjectsWereMigrated.
+                        //
+                        bBothPT7AndPT8InstalledPT8ProjectsWereMigrated = CollabProjectsMigrated(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports, m_TempCollabProjectForFreeTransExports,
+                            m_TempCollaborationEditor, _T("PTVersion7"), _T("PTVersion8"));
+                    }
+                }
+            }
+            else if (m_TempCollabEditorVersion == _T("PTLinuxVersion7"))
+            {
+                // Check the PT Linux situation
+                PTVersionsInstalled PTver;
+                PTver = m_pApp->ParatextVersionInstalled();
+                if (PTver == PTLinuxVer7and8)
+                {
+                    wxString errStr = _T("");
+                    wxString errProj = _T("");
+                    // We know that the PT7 projects are valid. Check if the PT8 projects are also valid.
+                    if (CollabProjectsAreValid(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports,
+                        m_TempCollabProjectForFreeTransExports, m_TempCollaborationEditor, _T("PTLinuxversion8"),
+                        errStr, errProj))
+                    {
+                        // Compare the GUID values of the PT7 and PT8 projects to determine if
+                        // the PT7 projects were migrated to PT8. According to Tom H. the PT8
+                        // project will have the same GUID as the PT7 project when the project
+                        // has successfully migrated to PT8.
+                        // Approach: Compare the GUIDs for the Src, Tgt (and any FreeTrans project)
+                        //   between PT7 and PT8. If the GUIDs match for all collab projects, then
+                        // we can return a TRUE value for bBothPT7AndPT8InstalledPT8ProjectsWereMigrated.
+                        //
+                        bBothPT7AndPT8InstalledPT8ProjectsWereMigrated = CollabProjectsMigrated(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports, m_TempCollabProjectForFreeTransExports,
+                            m_TempCollaborationEditor, _T("PTLinuxVersion7"), _T("PTLinuxversion8"));
+                    }
+
+                }
+            }
+        }
+        if (bBothPT7AndPT8InstalledPT8ProjectsWereMigrated)
+        {
+            wxString msg = _("This project is currently set up to collaborate with the selected Paratext 7 projects. Adapt It has determined that those Paratext 7 projects have been migrated to Paratext 8 on this computer. It is strongly recommended that you select Paratext 8 in Step 2 below, and the appropriate migrated projects in Step 3 below.\n\nReminder: If Paratext 7 continues to be the selected Scripture editor after collaboration project were migrated from Paratext 7 to Paratext 8, Adapt It collaboration work will appear only in the old Paratext 7 projects, and not in the Paratext 8 projects. ");
+            wxString title;
+            title = _("Important information about collaboration project: %s");
+            title = title.Format(title, m_TempCollabAIProjectName.c_str());
+            wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+        }
+    }
 }
 
 void CSetupEditorCollaboration::OnRadioBtnByChapterOnly(wxCommandEvent& WXUNUSED(event))
@@ -1537,14 +2495,20 @@ void CSetupEditorCollaboration::OnClose(wxCommandEvent& event)
 	m_pApp->m_CollabProjectForFreeTransExports = m_SaveCollabProjectForFreeTransExports;
 	m_pApp->m_CollabAIProjectName = m_SaveCollabAIProjectName;
 	m_pApp->m_collaborationEditor = m_SaveCollaborationEditor;
+    m_pApp->m_ParatextVersionForProject = m_SaveCollabEditorVersion; // whm added 24June2014
 	m_pApp->m_CollabSourceLangName = m_SaveCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_SaveCollabTargetProjLangName;
-	m_pApp->m_bCollabByChapterOnly = m_bSaveCollabByChapterOnly; // FALSE means the "whole book" option
+	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bSaveCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabBookSelected = m_SaveCollabBookSelected;
 	m_pApp->m_CollabChapterSelected = m_SaveCollabChapterSelected;
+    m_pApp->m_CollabBooksProtectedFromSavingToEditor = m_SaveCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
+    m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = m_SaveCollabDoNotShowMigrationDialogForPT7toPT8; // whm added 6April2017
 
-	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
+    // whm modified 30Dec2016 The App's m_collaborationEditor and m_ParatextVersionForProject
+    // could be empty strings. 
+    //wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
+    //wxASSERT(!m_pApp->m_ParatextVersionForProject.IsEmpty());
 
 	// Force the Main Frame's OnIdle() handler to call DoStartupWizardOnLaunch()
 	// which, when appropriate calls DoStartWorkingWizard(). That in turn calls the
@@ -1575,21 +2539,34 @@ void CSetupEditorCollaboration::OnCancel(wxCommandEvent& event)
 	m_pApp->m_CollabProjectForFreeTransExports = m_SaveCollabProjectForFreeTransExports;
 	m_pApp->m_CollabAIProjectName = m_SaveCollabAIProjectName;
 	m_pApp->m_collaborationEditor = m_SaveCollaborationEditor;
+    m_pApp->m_ParatextVersionForProject = m_SaveCollabEditorVersion; // whm added 24June2016
 	m_pApp->m_CollabSourceLangName = m_SaveCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_SaveCollabTargetProjLangName;
+	// On Cancel, restore the saved initial value, abandon any user-set value in m_bTempCollabByChapterOnly
 	m_pApp->m_bCollabByChapterOnly = m_bSaveCollabByChapterOnly; // FALSE means the "whole book" option
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bSaveCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabBookSelected = m_SaveCollabBookSelected;
 	m_pApp->m_CollabChapterSelected = m_SaveCollabChapterSelected;
+    m_pApp->m_CollabBooksProtectedFromSavingToEditor = m_SaveCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
+    m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = m_SaveCollabDoNotShowMigrationDialogForPT7toPT8; // whm added 6April2017
 
 	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
+    wxASSERT(!m_pApp->m_ParatextVersionForProject.IsEmpty()); // whm added 24June2016
 
 	event.Skip();
 }
 
 void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(event)) // whm added 23Feb12
 {
-	CCreateNewAIProjForCollab newProjDlg(m_pApp->GetMainFrame());
+    PTVersionsInstalled PTver;
+    PTver = m_pApp->ParatextVersionInstalled();
+    if (PTver == PTNotInstalled && !m_pApp->BibleditIsInstalled())
+    {
+        wxMessageBox(_("Neither Paratext nor Bibledit are installed on this computer. Paratext or Bibledit must be installed before Adapt It can collaborate with it."), _("Cannot create a new project for collaboration"), wxICON_EXCLAMATION | wxOK);
+        return;
+    }
+
+    CCreateNewAIProjForCollab newProjDlg(m_pApp->GetMainFrame());
 
 	if (newProjDlg.ShowModal() == wxID_OK)
 	{
@@ -1609,13 +2586,18 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 		// whm 4Jun12 Note: The m_TempCollaborationEditor value should be used for setting
 		// the App's m_collaborationEditor member.
 		m_pApp->m_collaborationEditor = m_TempCollaborationEditor; // selected editor
-		
+        // whm 24June2016 Note: The m_TempCollabEditorVersion value should be used for setting
+        // the App's m_collaborationEditor member.
+        m_pApp->m_ParatextVersionForProject = m_TempCollabEditorVersion; // selected editor version
+
 		m_pApp->m_CollabSourceLangName = _T("");
 		m_pApp->m_CollabTargetLangName = _T("");
 		m_pApp->m_bCollabByChapterOnly = TRUE; // FALSE means the "whole book" option
 		m_pApp->m_bCollaborationExpectsFreeTrans = FALSE;
 		m_pApp->m_CollabBookSelected = _T("");
 		m_pApp->m_CollabChapterSelected = _T("");
+        m_pApp->m_CollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+        m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 
 		bool bDisableBookMode = TRUE;
 		wxString srcLangName = newProjDlg.pTextCtrlSrcLangName->GetValue();
@@ -1669,8 +2651,12 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 			wxASSERT(pComboAiProjects->GetStringSelection() == m_TempCollabAIProjectName);
 			wxASSERT(!m_TempCollabSourceProjLangName.IsEmpty() && !m_TempCollabTargetProjLangName.IsEmpty());
 			wxASSERT(!m_TempCollaborationEditor.IsEmpty());
+            wxASSERT(!m_TempCollabEditorVersion.IsEmpty()); // whm 24June2016 added
 			SetStateOfRemovalButton();
-			// confirm to the user that the project was created
+            SetStateOfAcceptSetupButton(); // enables the "Accept this setup and prepare for another" button if
+                                           // all of: project name, editor, source text, or target text project names
+                                           // have non-empty strings
+            // confirm to the user that the project was created
 			wxString msg = _("An Adapt It project called \"%s\" was successfully created. It will appear as an Adapt It project in the \"Select a Project\" list of the Start Working Wizard.\n\nContinue through steps 2 through 4 below to set up this Adapt It project to collaborate with %s.");
 			msg = msg.Format(msg,m_pApp->m_curProjectName.c_str(), m_TempCollaborationEditor.c_str());
 			wxMessageBox(msg,_("New Adapt It project created"),wxICON_INFORMATION | wxOK);
@@ -1694,19 +2680,13 @@ void CSetupEditorCollaboration::OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUS
 
 bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 {
-	// Ensure that m_TempCollaborationEditor is not an empty string.
-	if (m_TempCollaborationEditor.IsEmpty())
-	{
-		if (m_pApp->m_bParatextIsInstalled)
-		{
-			 m_TempCollaborationEditor = _T("Paratext"); // default editor
-		}
-		else if (m_pApp->m_bBibleditIsInstalled)
-		{
-			 m_TempCollaborationEditor = _T("Bibledit"); // don't localize
-		}
-	}
-	wxASSERT(!m_TempCollaborationEditor.IsEmpty());
+    PTVersionsInstalled PTver;
+    PTver = m_pApp->ParatextVersionInstalled();
+    if (PTver == PTNotInstalled && !m_pApp->BibleditIsInstalled())
+    {
+        wxMessageBox(_("Neither Paratext nor Bibledit are installed on this computer. Paratext or Bibledit must be installed before Adapt It can collaborate with it."), _("Cannot save collaboration setup. "), wxICON_EXCLAMATION | wxOK);
+        return FALSE;
+    }
 
 	// Check for completion of Step 1:
 	// Check if the administrator has selected an AI project from the combo list of AI projects (step 1). If
@@ -1727,12 +2707,21 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		return FALSE; // don't accept any changes - return FALSE to the caller
 	}
 
+    // Note: Step 2 selection of Scripture Editor is initially set somewhat automatically according to
+    // what version of a Scripture editors has been installed on the user's computer. Step 2 allows an
+    // administrator to optionally set a different Scripture editor if it is installed on the user's 
+    // computer (selections are disabled for any editor that is not installed).
+    // For the automatic selection of editor, (or if an editor choice is installed and manually selected 
+    // by the administrator), the list box displays all the available/usable projects for that particular
+    // editor that is selected at left.
+    // Here we just save whatever selection is made automatically, or is overridden by an administrator.
+
 	// Check for the completion of step 3:
 	// Check if the administrator has selected an initial PT/BE project for obtaining source texts.
 	if (m_TempCollabProjectForSourceInputs.IsEmpty())
 	{
 		wxString msg, msg1;
-		msg = _("Please select a %s project for getting source texts. Use the \"Select from List\" button.");
+		msg = _("Please select a %s project for getting source texts. Use the \"Select Source Project from List\" button.");
 		wxASSERT(!m_TempCollaborationEditor.IsEmpty());
 		msg = msg.Format(msg,m_TempCollaborationEditor.c_str());
 		wxMessageBox(msg,_("No source language project selected for collaboration"),wxICON_INFORMATION | wxOK);
@@ -1744,7 +2733,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	if (m_TempCollabProjectForTargetExports.IsEmpty())
 	{
 		wxString msg, msg1;
-		msg = _("Please select a %s project for receiving translated drafts. Use the \"Select from List\" button.");
+		msg = _("Please select a %s project for receiving translated drafts. Use the \"Select Target Project from List\" button.");
 		wxASSERT(!m_TempCollaborationEditor.IsEmpty());
 		msg = msg.Format(msg,m_TempCollaborationEditor.c_str());
 		wxMessageBox(msg,_("No target language project selected for collaboration"),wxICON_INFORMATION | wxOK);
@@ -1807,8 +2796,11 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	// string parameters that don't have at least one book created in them. In this situation, the code
 	// above has already ensured that at least the m_TempCollabProjectForSourceInputs and m_TempCollabProjectForTargetExports
 	// strings are non-empty.
+    // whm 27June2016 revision: Pass m_TempCollabEditorVersion into the CollabProjectsAreValid() function
+    // below, and/or do any additional checks within that function for PT 7 and PT 8 validity checking.
 	if (!CollabProjectsAreValid(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports,
-							m_TempCollabProjectForFreeTransExports, m_TempCollaborationEditor, errorStr, errProj))
+		m_TempCollabProjectForFreeTransExports, m_TempCollaborationEditor, m_TempCollabEditorVersion,
+        errorStr, errProj))
 	{
 		wxString msg = _("The following %s projects are not valid for collaboration:\n%s");
 		wxASSERT(!m_TempCollaborationEditor.IsEmpty());
@@ -1833,28 +2825,31 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	m_pApp->m_CollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
 	m_pApp->m_CollabAIProjectName = m_TempCollabAIProjectName;
 	m_pApp->m_collaborationEditor = m_TempCollaborationEditor;
+    m_pApp->m_ParatextVersionForProject = m_TempCollabEditorVersion; // whm added 25June2016
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabBookSelected = m_TempCollabBookSelected;
 	m_pApp->m_CollabSourceLangName = m_TempCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_TempCollabTargetProjLangName;
 	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly;
 	m_pApp->m_CollabChapterSelected = m_TempCollabChapterSelected;
+    m_pApp->m_CollabBooksProtectedFromSavingToEditor = m_TempCollabBooksProtectedFromSavingToEditor; // whm added 2February2017
+    m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = m_TempCollabDoNotShowMigrationDialogForPT7toPT8; // whm added 6April2017
 
 	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
+    wxASSERT(!m_pApp->m_ParatextVersionForProject.IsEmpty());
 
-	// In order to write the collab settings to the selected project file we need to compose the
-	// path to the project for the second parameter of WriteConfigurationFile().
-	wxString newProjectPath;	// a local string to avoid unnecessarily changing the App's m_curProjectName
-								// and m_curProjectPath.
+	// In order to write the collab settings to the current Adapt It project we need to compose the
+	// path to the project folder for the second parameter of WriteConfigurationFile().
+	wxString newProjectPath;
 	if (!m_pApp->m_customWorkFolderPath.IsEmpty() && m_pApp->m_bUseCustomWorkFolderPath)
 	{
 		newProjectPath = m_pApp->m_customWorkFolderPath + m_pApp->PathSeparator
-								 + m_pApp->m_CollabAIProjectName;
+			+ m_pApp->m_CollabAIProjectName;
 	}
 	else
 	{
 		newProjectPath = m_pApp->m_workFolderPath + m_pApp->PathSeparator
-								 + m_pApp->m_CollabAIProjectName;
+			+ m_pApp->m_CollabAIProjectName;
 	}
 
 	// Call WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile)
@@ -1891,13 +2886,16 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	m_TempCollabProjectForTargetExports = _T("");
 	m_TempCollabProjectForFreeTransExports = _T("");
 	m_TempCollabAIProjectName = _T("");
-	// m_TempCollaborationEditor can stay set to its current value
+    // m_TempCollaborationEditor can stay set to its current value
+    // m_TempCollabEditorVersion can stay set to its current value
 	m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
 	m_TempCollabBookSelected = _T("");
 	m_TempCollabSourceProjLangName = _T("");
 	m_TempCollabTargetProjLangName = _T("");
 	m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
 	m_TempCollabChapterSelected = _T("");
+    m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+    m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 
 	// Zero out all fields so the dialog is ready for another setup if desired
 	wxString strSelection = pComboAiProjects->GetStringSelection();
@@ -1915,6 +2913,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	return TRUE; // success
 }
 
+// whm 25June2016 revised for PT 8 compatibility.
 void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& WXUNUSED(event)) // whm added 23Feb12
 {
 	// "Remove this AI Project from Collaboration"
@@ -1922,7 +2921,6 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	// if we get here an AI project will have been selected.
 	wxString projName = m_TempCollabAIProjectName;
 	wxString msg = _("You are about to remove the collaboration settings for the %s project. If you continue the user will not be able to turn on collaboration with %s for this project.\n\nDo you want to remove the collaboration settings for %s?");
-	wxASSERT(!m_TempCollaborationEditor.IsEmpty());
 	msg = msg.Format(msg, projName.c_str(),m_TempCollaborationEditor.c_str(),projName.c_str());
 	int response = wxMessageBox(msg,_("Confirm removal of collaboration settings"),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 	if (response == wxNO)
@@ -1938,12 +2936,15 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	m_pApp->m_CollabProjectForFreeTransExports = _T("");
 	m_pApp->m_CollabAIProjectName = _T("");
 	// m_pApp->m_collaborationEditor can stay set to its current value
+    // m_pApp->m_ParatextVersionForProject can stay set to its current value - whm added 25June2016
 	m_pApp->m_bCollaborationExpectsFreeTrans = FALSE;
 	m_pApp->m_CollabBookSelected = _T("");
 	m_pApp->m_CollabSourceLangName = _T("");
 	m_pApp->m_CollabTargetLangName = _T("");
 	m_pApp->m_bCollabByChapterOnly = TRUE;
 	m_pApp->m_CollabChapterSelected = _T("");
+    m_pApp->m_CollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+    m_pApp->m_bCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 
 	// In order to write the collab settings to the selected project file we need to compose the
 	// path to the project for the second parameter of WriteConfigurationFile().
@@ -1967,8 +2968,13 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	{
 		wxString newAIconfigFilePath = newProjectPath + m_pApp->PathSeparator + szProjectConfiguration + _T(".aic");
 		// Tell administrator that the setup has been saved.
-		wxString msg = _("The collaboration settings for the \"%s\" project were successfully removed from the project's configuration file at:\n\n%s\n\nYou may now select or create another Adapt It project (step 1) and make collaboration settings for that Adapt It project (setps 2 - 4).\n\nIf you are finished, select \"Close\" to close the setup dialog and test your setup(s) using the Start Working Wizard.");
-		msg = msg.Format(msg,m_TempCollabAIProjectName.c_str(),newAIconfigFilePath.c_str());
+		//wxString msg = _("The collaboration settings for the \"%s\" project were successfully removed from the project's configuration file at:\n\n%s\n\nYou may now select or create another Adapt It project (step 1) and make collaboration settings for that Adapt It project (setps 2 - 4).\n\nIf you are finished, select \"Close\" to close the setup dialog and test your setup(s) using the Start Working Wizard.");
+        wxString msg0 = _("The collaboration settings for the \"%s\" project were successfully removed from the project's configuration file at:\n\n%s\n\n");
+        wxString msg1 = _("You may now select or create another Adapt It project (step 1) and make collaboration settings for that Adapt It project (setps 2 - 4).\n\n");
+        wxString msg2 = _("If you are finished, select \"Close\" to close the setup dialog and test your setup(s) using the Start Working Wizard.");
+        wxString msg;
+        msg = msg0 + msg1 + msg2;
+        msg = msg.Format(msg,m_TempCollabAIProjectName.c_str(),newAIconfigFilePath.c_str());
 		wxMessageBox(msg,_T("Removal of collaboration settings successful"),wxICON_INFORMATION | wxOK);
 		m_bCollabChangedThisDlgSession = FALSE;
 		
@@ -1992,12 +2998,15 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	m_TempCollabProjectForFreeTransExports = _T("");
 	m_TempCollabAIProjectName = _T("");
 	// m_TempCollaborationEditor can stay set to its current value
+    // m_TempCollabEditorVersion can stay set to its current value - whm 25June2016 added
 	m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
 	m_TempCollabBookSelected = _T("");
 	m_TempCollabSourceProjLangName = _T("");
 	m_TempCollabTargetProjLangName = _T("");
 	m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
 	m_TempCollabChapterSelected = _T("");
+    m_TempCollabBooksProtectedFromSavingToEditor = _T(""); // whm added 2February2017
+    m_TempCollabDoNotShowMigrationDialogForPT7toPT8 = FALSE; // whm added 6April2017
 
 	// Zero out all fields so the dialog is ready for another setup if desired
 	wxString strSelection = pComboAiProjects->GetStringSelection();
@@ -2018,10 +3027,26 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 
 void CSetupEditorCollaboration::SetStateOfRemovalButton()
 {
-	if (m_TempCollabAIProjectName.IsEmpty())
-		pBtnRemoveProjFromCollab->Disable();
-	else
-		pBtnRemoveProjFromCollab->Enable();
+    // the only condition for removal of a project from collaboration is that an AI project name
+    // must be selected
+    if (pComboAiProjects->GetSelection() == -1)
+        pBtnRemoveProjFromCollab->Disable();
+    else
+        pBtnRemoveProjFromCollab->Enable();
+}
+
+void CSetupEditorCollaboration::SetStateOfAcceptSetupButton()
+{
+    // Disable "Accept this setup and prepare for another" button unless minimum settings are established.
+    // We enable the "Accept this setup and prepare for another" button only if/when these
+    // settings are established within the dialog's controls: project name, editor, source text name, and target text project name.
+    // whm modified 18March2017 removed disabling if FreeTrans edit box is empty. It is only an optional proj for collaboration!
+    if (pComboAiProjects->GetSelection() == -1
+        || pTextCtrlAsStaticSelectedSourceProj->GetValue().IsEmpty()
+        || pTextCtrlAsStaticSelectedTargetProj->GetValue().IsEmpty())
+        pBtnSaveSetupForThisProjNow->Disable();
+    else
+        pBtnSaveSetupForThisProjNow->Enable();
 }
 
 void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
@@ -2030,7 +3055,7 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 	// the string value in m_collaborationEditor
 	// Substitute string in the "Use this dialog..." top static text
 	wxString text;
-	text = pStaticTextUseThisDialog->GetLabel();
+	text = pStaticTextDialogTopicLine->GetLabel();
 	// whm Note: The control's label text may have already been substituted in which
 	// case there would be no $s to use in the .Format() statement. If substitutions
 	// have already been done, just find and replace the "Paratext" or "Bibledit"
@@ -2040,8 +3065,8 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 	if (text.Find(_T("Bibledit")) != wxNOT_FOUND)
 		text.Replace(_T("Bibledit"),m_TempCollaborationEditor);
 	text = text.Format(text,m_TempCollaborationEditor.c_str());
-	pStaticTextUseThisDialog->SetLabel(text);
-	pStaticTextUseThisDialog->Refresh();
+	pStaticTextDialogTopicLine->SetLabel(text);
+	pStaticTextDialogTopicLine->Refresh();
 
 	// Substitute strings in the static text above the list box
 	text = pStaticTextListOfProjects->GetLabel();
@@ -2142,18 +3167,31 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 
 void CSetupEditorCollaboration::OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(event))
 {
-    // Clicking the "Paratext" button returns nSel = 0; clicking the "Bibledit" button
-    // returns nSel = 1
+    // Clicking the "Paratext 7" button returns nSel = 0; clicking the "Paratext 8" button returns nSel 1;
+    // clicking the "Bibledit" button returns nSel = 2
 	unsigned int nSel = pRadioBoxScriptureEditor->GetSelection();
 	if (nSel == 0)
 	{
-		// "Paratext" button selected
+		// "Paratext 7" button selected
 		m_TempCollaborationEditor = _T("Paratext");
+        m_TempCollabEditorVersion = _T("PTVersion7");
 	}
-	else
+    else if (nSel == 1)
+    {
+        // "Paratext 8" button selected
+        m_TempCollaborationEditor = _T("Paratext");
+        m_TempCollabEditorVersion = _T("PTVersion8");
+    }
+    else
 	{
 		// "Bibledit" button selected
 		m_TempCollaborationEditor = _T("Bibledit");
-	}
+        // for a Bibledit selection the m_TempCollabEditorVersion is ignored
+    }
 	DoInit(TRUE); // TRUE = prompt reminder to use Select from List buttons
 }
+
+
+
+
+

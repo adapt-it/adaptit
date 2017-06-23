@@ -194,29 +194,6 @@ void CAssignLocationsForInputsAndOutputs::InitDialog(wxInitDialogEvent& WXUNUSED
 			pProtectFreeTransOutputs->Disable();
 		}
 	}
-
-	// whm 3Mar12 removed. The administrator now does not determine if collaboration
-	// is ON or OFF - that is now up to the user at the time that an AI project is
-	// selected at the wizard's ProjectPage.
-	/*
-	if ((m_pApp->ParatextIsInstalled() && !m_pApp->m_bCollaboratingWithParatext)
-		|| (m_pApp->BibleditIsInstalled() && !m_pApp->m_bCollaboratingWithBibledit))
-	{
-		// Paratext/Bibledit is installed, but the administrator has not turned ON
-		// collaboration at this point, remind him that, if he plans to switch ON 
-		// collaboration with paratext/Bibledit, he should do it before assigning 
-		// locations for Inputs and Outputs.
-		wxString msg,titleMsg,collabEditor;
-		if (m_pApp->ParatextIsInstalled())
-			collabEditor = _T("Paratext");
-		else if (m_pApp->BibleditIsInstalled())
-			collabEditor = _T("Bibledit");
-		msg = msg.Format(_("%s is installed on this computer. If you intend for the user to collaborate with %s, you should turn ON that collaboration before you assign locations for inputs and outputs in the following dialog."),
-			collabEditor.c_str(),collabEditor.c_str());
-		titleMsg = titleMsg.Format(_("Set up %s collaboration before assigning locations for inputs and outputs"),collabEditor.c_str());
-		wxMessageBox(msg,titleMsg,wxICON_INFORMATION | wxOK);
-	}
-	*/
 }
 
 // event handling functions

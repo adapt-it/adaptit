@@ -173,6 +173,8 @@ bool	  IsAnsiLettersOrDigitsOnly(wxString s);
 
 bool      IsValidFileName(wxString s);
 
+bool	  IsOneOf(wxChar* ptr, wxString& str); // used in IsInWordProper() of doc class; 
+											   // return TRUE if *ptr is within str, else FALSE
 bool      IsUsfmDocument(SPList* pList, bool* pbIsEither); // if FALSE is returned, examine *pbIsEither
 	// value, if TRUE then the outcome was indeterminate (either set could be selected meaningfully),
 	// if FALSE, then PNG 1998 SFM set is indicated
@@ -308,7 +310,9 @@ void      EmptyMarkersAndFilteredStrings(
 								  wxString& filteredInfoStr); 
 bool      GetSFMarkersAsArray(wxString& strToParse, wxArrayString& arr);
 wxString  GetLastMarker(wxString markers);
-bool      IsOneOfAndIfSoGetSpan(wxString inputStr, wxString& charSet, int& span); // BEW added 22May14
+wxString  GetTargetPunctuation(wxString wordOrPhrase, bool bFromWordEnd); // BEW created 17Nov16 for 
+								// use in CAdapt_ItApp::EnsureProperCapitalization()
+//bool      IsOneOfAndIfSoGetSpan(wxString inputStr, wxString& charSet, int& span); // BEW added 22May14
 bool      IsNotOneOfNorSpaceAndIfSoGetSpan(wxChar* pStart, wxChar* pEnd, wxString& charSet, int& span); // BEW added 22May14
 //wxString  ReduceStringToStructuredPuncts(wxString& inputStr); // BEW added 22May14 Deprecated 10Jul15
 bool      IsWhiteSpace(const wxChar *pChar);
@@ -335,6 +339,7 @@ wxString  FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, boo
 wxString  FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFilteredInfo,
 							bool bAttach_m_markers, wxString& mMarkersStr, wxString& xrefStr,
 							wxString& filteredInfoStr, bool bDoCount, bool bCountInTargetText);
+wxString  BuildPostWordStringWithoutUnfiltering(CSourcePhrase* pSingleSrcPhrase, wxString& inlineNBMkrs); // BEW added 8May17
 wxString  FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase);
 wxString  FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
 wxString  GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 

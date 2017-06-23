@@ -100,7 +100,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswud;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;$(ProgramFiles)\Visual Leak Detector\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;_KBSERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;_KBSERVER;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader />
       <PrecompiledHeaderOutputFile>$(IntDir)Adapt_It.pch</PrecompiledHeaderOutputFile>
@@ -128,7 +128,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <Version>6.6</Version>
+      <Version>6.8</Version>
     </Link>
     <PostBuildEvent>
       <Command>copy "..\..\xml\AI_UserProfiles.xml" "Unicode Debug\AI_UserProfiles.xml"
@@ -181,6 +181,7 @@ copy "..\..\po\swh.mo" "Unicode Debug\Languages\swh\Adapt_It_Unicode.mo"
 copy "..\..\po\swh.po" "Unicode Debug\Languages\swh\swh.po"
 copy "..\..\po\default.mo" "Unicode Debug\Languages\default.mo"
 copy "..\..\po\default.po" "Unicode Debug\Languages\default.po"
+IF EXIST "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" xcopy "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" "Unicode Debug\" /Y
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -233,7 +234,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>$(CURL_LIB)\Win32\VC14;$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswu;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;_KBSERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;_KBSERVER;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
       <PrecompiledHeaderOutputFile>$(IntDir)Adapt_It.pch</PrecompiledHeaderOutputFile>
@@ -258,7 +259,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <Version>6.6</Version>
+      <Version>6.8</Version>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "..\..\setup Unicode\"
@@ -317,6 +318,8 @@ copy "..\..\po\swh.mo" "Unicode Release\Languages\swh\Adapt_It_Unicode.mo"
 copy "..\..\po\swh.po" "Unicode Release\Languages\swh\swh.po"
 copy "..\..\po\default.mo" "Unicode Release\Languages\default.mo"
 copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
+IF EXIST "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" xcopy "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" "Unicode Release\" /Y
+
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -348,6 +351,8 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\ChooseLanguageDlg.cpp" />
     <ClCompile Include="..\..\source\ChooseTranslation.cpp" />
     <ClCompile Include="..\..\source\ClientServerConnection.cpp" />
+    <ClCompile Include="..\..\source\CollabProjectMigrationDlg.cpp" />
+    <ClCompile Include="..\..\source\CollabProtectEditorBulkSettingsDlg.cpp" />
     <ClCompile Include="..\..\source\CollabUtilities.cpp" />
     <ClCompile Include="..\..\source\CollabVerseConflictDlg.cpp" />
     <ClCompile Include="..\..\source\CollectBacktranslations.cpp" />
@@ -385,6 +390,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\GuesserSettingsDlg.cpp" />
     <ClCompile Include="..\..\source\helpers.cpp" />
     <ClCompile Include="..\..\source\HtmlFileViewer.cpp" />
+    <ClCompile Include="..\..\source\InstallGitOptionsDlg.cpp" />
     <ClCompile Include="..\..\source\JoinDialog.cpp" />
     <ClCompile Include="..\..\source\jsonreader.cpp" />
     <ClCompile Include="..\..\source\jsonval.cpp" />
@@ -509,6 +515,8 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\ChooseLanguageDlg.h" />
     <ClInclude Include="..\..\source\ChooseTranslation.h" />
     <ClInclude Include="..\..\source\ClientServerConnection.h" />
+    <ClInclude Include="..\..\source\CollabProjectMigrationDlg.h" />
+    <ClInclude Include="..\..\source\CollabProtectEditorBulkSettingsDlg.h" />
     <ClInclude Include="..\..\source\CollabUtilities.h" />
     <ClInclude Include="..\..\source\CollabVerseConflictDlg.h" />
     <ClInclude Include="..\..\source\CollectBacktranslations.h" />
@@ -533,6 +541,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\FreeTransSplitterDlg.h" />
     <ClInclude Include="..\..\source\GuesserAffix.h" />
     <ClInclude Include="..\..\source\GuesserAffixesListsDlg.h" />
+    <ClInclude Include="..\..\source\InstallGitOptionsDlg.h" />
     <ClInclude Include="..\..\source\KBSharingMgrTabbedDlg.h" />
     <ClInclude Include="..\..\source\KbSharingSetup.h" />
     <ClInclude Include="..\..\source\KBSharingStatelessSetupDlg.h" />

@@ -223,6 +223,9 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		case 26: // a wait message so that the user knows KBserver discovery is taking place
 			WaitMsg = _("Discovery of running KBservers is happening...");
 			break;
+		case 27: // a wait message if the user turns on the diagnostic log file creation for a doc parse failure
+			WaitMsg = _("Retrying, and making a log file in folder _LOGS_EMAIL_REPORTS. It is slow...");
+			break;
 #endif
 		default: // whm 28Aug11 Note: keep as a default message
 			WaitMsg = _("Please wait. This may take a while...");
