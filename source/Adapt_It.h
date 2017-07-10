@@ -15,7 +15,7 @@
 /// provides Adapt It with a modal dialog base class which turns off Idle and UIUpdate
 /// processing while the dialog is being shown.
 /// \derivation		The CAdapt_ItApp class is derived from wxApp, and inherits its support
-///                 for the document/view framework.
+///                 for the document/view framework.`
 /// The AIModalDialog class is derived from wxScrollingDialog when built with wxWidgets
 /// prior to version 2.9.x, but derived from wxDialog for version 2.9.x and later.
 /////////////////////////////////////////////////////////////////////////////

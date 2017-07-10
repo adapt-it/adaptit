@@ -235,6 +235,27 @@ void CServDisc_KBserversDlg::OnOK(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	m_bUserCancelled = FALSE;
+
+	// BEW added 10Jul17, because successful discovery when the user has not yet
+	// made the project a KB Sharing one gives no feedback to the GUI that anything
+	// useful has happened, or that there is one or more running KBservers to which
+	// a connection can be made. Connection to a glossing kbserver is rare or very
+	// unlikely, so we'll just ignore that possibility - it would complicate the 
+	// tests done here
+	if (!(pApp->m_bIsKBServerProject || pApp->m_bIsKBServerProject_FromConfigFile)
+		&& count > 0)
+	{
+		// Either this adapting project has not yet been set up to be a KB Sharing
+		// one, or no earlier setup of this project as a KB sharing one was 
+		// recovered from the project config file. Without such a setup, while 
+		// service discovery can succeed, a connection to any running KBserver is
+		// impossible until the project becomes a KB Sharing one. Tell the user.
+		wxString warningStr = _("One or more KBservers may be available. But your project is not yet set up for Knowledge Base Sharing.\nUntil you do this, a connection to any available KBserver is impossible.\nUse the command Setup Or Remove Knowledge Base Sharing, on the Advanced menu.");
+		wxString titleStr = _("Cannot connect yet");
+		wxMessageBox(warningStr, titleStr, wxICON_WARNING | wxOK);
+	}
+
+
 	// Turn the following two flags off - otherwise the Discover One KBserver and
 	// Discover All KBservers menu commands remain disabled
 	pApp->m_bServDiscSingleRunIsCurrent = FALSE;
