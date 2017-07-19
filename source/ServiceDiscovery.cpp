@@ -91,8 +91,8 @@
 // machines, so the trick is to run the discovery for only a few seconds - I'm setting
 // the limit to be 5 seconds (Beier's GC value, his was num of seconds in a day!) and
 // then it needs to shut itself down. In practice, we force shutdown before the 5 second
-// limit is reached. Out solution finds one and shuts down in a fraction over 4 secs.
-// The first paramater of the wxServDisc() signature is very important. It is
+// limit is reached. Our solution finds one and shuts down in a fraction over 4 secs.
+// The first parameter of the wxServDisc() signature is very important. It is
 // a (void*) for the parent class. Beier's solution makes use of the fact that if null
 // is passed in, the new wxServDisc instance is unable to call post_notify() which
 // otherwise would result in an embedded calling of the onSDNotify() handler - leading
@@ -124,7 +124,8 @@
 // point in time we provide no GUI support for changing them. It is possible to safely
 // change them by manually editing the config file and resaving it. The range of values
 // allows are: timer interval - greater or equal to 7.111 seconds (7111 millisecs),
-// and number of runs per burst, 1 or more, 20 or less. The config files enforce these.
+// and number of runs per burst, 1 or more, 20 or less. The config files enforce these,
+// but I've settled for a burst of 6 as a good compromise (takes about 45 secs to run)
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "ServiceDiscovery.h"
 #endif

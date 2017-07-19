@@ -55,6 +55,7 @@ EVT_INIT_DIALOG(CServDisc_KBserversDlg::InitDialog)
 	EVT_BUTTON(wxID_CANCEL, CServDisc_KBserversDlg::OnCancel)
 	EVT_BUTTON(ID_BUTTON_MORE_INFORMATION, CServDisc_KBserversDlg::OnButtonMoreInformation)
 	EVT_BUTTON(ID_BUTTON_REMOVE_KBSERVER_SELECTION, CServDisc_KBserversDlg::OnRemoveSelection)
+	EVT_BUTTON(ID_BUTTON_REMOVE_SEL_ENTRY, CServDisc_KBserversDlg::OnRemoveSelectedEntry)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_URLS, CServDisc_KBserversDlg::OnURLSelection)
 	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_URLS, CServDisc_KBserversDlg::OnURLDeselection)
 	END_EVENT_TABLE()
@@ -195,6 +196,63 @@ void CServDisc_KBserversDlg::OnRemoveSelection(wxCommandEvent& WXUNUSED(event))
 		// A selection is current - so unselect it
 		long selectionLineIndex = (long)nSel;
 		m_pListCtrlUrls->SetItemState(selectionLineIndex, 0, wxLIST_STATE_SELECTED);
+		m_pListCtrlUrls->Refresh();
+		m_urlSelected.Empty();
+		m_hostnameSelected.Empty();
+	}
+}
+
+void CServDisc_KBserversDlg::OnRemoveSelectedEntry(wxCommandEvent& WXUNUSED(event))
+{
+	if (nSel != (size_t)-1)
+	{
+		CAdapt_ItApp* pApp = &wxGetApp();
+
+		// A selection is current - so remove it and the data in arrays for this entry
+		long selectionLineIndex = (long)nSel;
+		m_pListCtrlUrls->DeleteItem(selectionLineIndex); // Beware, nSel becomes -1  after this call
+
+		// Set the list control contents to discovered and or typed urls, 
+		size_t index = (size_t)selectionLineIndex;
+		wxString url = m_urlsArr.Item(index);;
+		wxString hostname = m_hostnamesArr.Item(index);
+		wxString at3 = _T("@@@");
+		wxString selectedComposite = url + at3 + hostname;
+		wxLogDebug(_T("CServDisc_KBserversDlg::OnRemoveSelectedEntry() the constructed composite: %s from index: %d"),
+			selectedComposite.c_str(), index);
+
+		// Search in m_compositeArr for the composite string, and remove it
+		int whereAt = m_compositeArr.Index(selectedComposite);
+		if (whereAt != wxNOT_FOUND)
+		{
+			m_compositeArr.RemoveAt((size_t)whereAt);
+		}
+
+		// Search for selectedComposite also in CAdapt_ItApp::m_ipAddrs_Hostnames,
+		// and remove it
+		// Here selectedComposite has a https:/ prefix, and the strings in the
+		// array m_ipAddrs_Hostnames lack this prefix, so first remove it from
+		// selectedComposite so that the Index() call further below won't fail
+		wxString prefix = _T("https://");
+		size_t mylength = prefix.Length();
+		selectedComposite = selectedComposite.Mid(mylength);
+#if defined (_DEBUG)
+		int aCount = pApp->m_ipAddrs_Hostnames.GetCount();
+		int anIndex;
+		for (anIndex = 0; anIndex < aCount; anIndex++)
+		{
+			wxString anEntry = wxEmptyString;
+			anEntry = pApp->m_ipAddrs_Hostnames.Item(anIndex);
+			wxLogDebug(_T("CServDisc_KBserversDlg::OnRemoveSelectedEntry(), pApp->m_ipAddrs_Hostnames entry: %s at index: %d"),
+					anEntry.c_str(), anIndex);
+		}
+#endif
+		whereAt = pApp->m_ipAddrs_Hostnames.Index(selectedComposite);
+		if (whereAt != wxNOT_FOUND)
+		{
+			pApp->m_ipAddrs_Hostnames.RemoveAt((size_t)whereAt);
+		}
+		// Clean up
 		m_pListCtrlUrls->Refresh();
 		m_urlSelected.Empty();
 		m_hostnameSelected.Empty();

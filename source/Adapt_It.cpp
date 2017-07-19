@@ -16910,9 +16910,9 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
     chosenURL = _T(""); // initialize, we return the chosen url using this parameter
     result = SD_NoResultsYet; // initialize to a 'non-success' result
 
-                              // Add any not already in the aggregated storage on the app, used for display to the user;
+    // Add any not already in the aggregated storage on the app, used for display to the user;
 
-                              // Setup the urls (in m_theURLs) and hostnames (in m_theHostnames)
+    // Setup the urls (in m_theURLs) and hostnames (in m_theHostnames)
     m_theURLs.Clear();
     m_theHostnames.Clear();
     wxString aComposite;
@@ -16922,9 +16922,9 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
     // Default the chosenHostname to <unknown>
     chosenHostname = _("<unknown>");
 
-    // We have an updated aggregate list. Decompose each string into the i[ address and
+    // We have an updated aggregate list. Decompose each string into the ip address and
     // hostname parts, add https:// to the ipaddress to make the URL, and store
-    // the parts in parallel in arrays m_theURLs, and m_theHostnames -
+    // the parts in parallel - in arrays m_theURLs and m_theHostnames
     wxString anIpAddress;
     wxString aHostname;
     wxString aURL;
@@ -17010,7 +17010,7 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
                 if (chosenURL.IsEmpty())
                 {
                     // No choice at this point, his last chance to make one, dooms
-                    // the connection attamept, so treat it as a cancellation
+                    // the connection attempt, so treat it as a cancellation
                     result = SD_MultipleUrls_UserCancelled;
                     wxString message;  message = message.Format(_(
                         "You did not choose a URL. This is the same as clicking Cancel.\nKnowledge base sharing will now be turned OFF.\nYou can try again later, or ask your administrator to help you."));
@@ -17301,8 +17301,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
 
     m_bShownFromServiceDiscoveryAttempt = TRUE; // This boolean decides which of the next messages is shown
-    m_SD_Message_For_Connect = _("If a URL is selected, clicking OK will attempt a connection to that KBserver.  If no URL is selected, a connection is not tried.  The listed URLs and their names are remembered in this session.  Clicking Remove Selection ensures nothing is selected.  If you click Cancel, it turns off sharing - at least until you try again.");
-    m_SD_Message_For_Discovery = _("If a URL is selected, clicking OK will attempt a connection to that KBserver.  If no URL is selected, a connection is not tried.  The listed URLs and their names are remembered in this session.  Clicking Remove Selection ensures nothing is selected.  If you click Cancel, it will leave the current sharing settings unchanged.");
+    m_SD_Message_For_Connect = _("If a URL is selected, clicking OK will attempt a connection to that KBserver.  If no URL is selected, a connection is not tried.  The listed URLs and their names are remembered in this session.  Clicking Clear Selection ensures nothing is selected.  If you click Cancel, it turns off sharing - at least until you try again. To remove an unwanted line, select it and click Remove Selected Entry.");
+    m_SD_Message_For_Discovery = _("If a URL is selected, clicking OK will attempt a connection to that KBserver.  If no URL is selected, a connection is not tried.  The listed URLs and their names are remembered in this session.  Clicking Clear Selection ensures nothing is selected.  If you click Cancel, it will leave the current sharing settings unchanged. To remove an unwanted line, select it and click Remove Selected Entry.");
 
     // BEW 12Apr16, try 14.123 so as to get 4 tries a minute (overlapping was taboo at this early stage)
     //m_KBserverTimer = 12111; // 12.111 sec as of 19Apr16,  with GC back at 5 secs; old was 14123 with GC = 9 secs

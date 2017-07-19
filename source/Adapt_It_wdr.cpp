@@ -11153,36 +11153,43 @@ wxSizer *ServDisc_KBserversDlg( wxWindow *parent, bool call_fit, bool set_sizer 
     item5->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
     item1->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxListCtrl *item6 = new wxListCtrl( parent, ID_LISTCTRL_URLS, wxDefaultPosition, wxSize(600,132), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
+    wxListCtrl *item6 = new wxListCtrl( parent, ID_LISTCTRL_URLS, wxDefaultPosition, wxSize(720,132), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
     item1->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG_BOTTOM, wxT(""), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY );
-    item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG_BOTTOM, wxT(""), wxDefaultPosition, wxSize(-1,90), wxTE_MULTILINE|wxTE_READONLY );
+    item7->SetFont( wxFont( 14, wxROMAN, wxNORMAL, wxNORMAL ) );
+    item1->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
     item8->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item9 = new wxButton( parent, ID_BUTTON_REMOVE_KBSERVER_SELECTION, _("Remove Selection"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item9 = new wxButton( parent, ID_BUTTON_REMOVE_KBSERVER_SELECTION, _("Clear Selection"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->SetToolTip( _("Clear any selection which is current. Do nothing if there is no line selected.") );
     item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item8->Add( 100, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item8->Add( 28, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item10 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->SetDefault();
+    wxButton *item10 = new wxButton( parent, ID_BUTTON_REMOVE_SEL_ENTRY, _("Remove Selected Entry"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetToolTip( _("The selected KBserver is no longer wanted. Remove it from the list") );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item8->Add( 100, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item8->Add( 40, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item11 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item11 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetDefault();
     item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item8->Add( 40, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item12 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item8->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item8, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
