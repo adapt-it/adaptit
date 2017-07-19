@@ -55,6 +55,7 @@ EVT_INIT_DIALOG(CServDisc_KBserversDlg::InitDialog)
 	EVT_BUTTON(wxID_CANCEL, CServDisc_KBserversDlg::OnCancel)
 	EVT_BUTTON(ID_BUTTON_MORE_INFORMATION, CServDisc_KBserversDlg::OnButtonMoreInformation)
 	EVT_BUTTON(ID_BUTTON_REMOVE_KBSERVER_SELECTION, CServDisc_KBserversDlg::OnRemoveSelection)
+	EVT_BUTTON(ID_BUTTON_REMOVE_SEL_ENTRY, CServDisc_KBserversDlg::OnRemoveSelectedEntry)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_URLS, CServDisc_KBserversDlg::OnURLSelection)
 	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_URLS, CServDisc_KBserversDlg::OnURLDeselection)
 	END_EVENT_TABLE()
@@ -201,6 +202,63 @@ void CServDisc_KBserversDlg::OnRemoveSelection(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
+void CServDisc_KBserversDlg::OnRemoveSelectedEntry(wxCommandEvent& WXUNUSED(event))
+{
+	if (nSel != (size_t)-1)
+	{
+		CAdapt_ItApp* pApp = &wxGetApp();
+
+		// A selection is current - so remove it and the data in arrays for this entry
+		long selectionLineIndex = (long)nSel;
+		m_pListCtrlUrls->DeleteItem(selectionLineIndex); // Beware, nSel becomes -1  after this call
+
+		// Set the list control contents to discovered and or typed urls, 
+		size_t index = (size_t)selectionLineIndex;
+		wxString url = m_urlsArr.Item(index);;
+		wxString hostname = m_hostnamesArr.Item(index);
+		wxString at3 = _T("@@@");
+		wxString selectedComposite = url + at3 + hostname;
+		wxLogDebug(_T("CServDisc_KBserversDlg::OnRemoveSelectedEntry() the constructed composite: %s from index: %d"),
+			selectedComposite.c_str(), index);
+
+		// Search in m_compositeArr for the composite string, and remove it
+		int whereAt = m_compositeArr.Index(selectedComposite);
+		if (whereAt != wxNOT_FOUND)
+		{
+			m_compositeArr.RemoveAt((size_t)whereAt);
+		}
+
+		// Search for selectedComposite also in CAdapt_ItApp::m_ipAddrs_Hostnames,
+		// and remove it
+		// Here selectedComposite has a https:/ prefix, and the strings in the
+		// array m_ipAddrs_Hostnames lack this prefix, so first remove it from
+		// selectedComposite so that the Index() call further below won't fail
+		wxString prefix = _T("https://");
+		size_t mylength = prefix.Length();
+		selectedComposite = selectedComposite.Mid(mylength);
+#if defined (_DEBUG)
+		int aCount = pApp->m_ipAddrs_Hostnames.GetCount();
+		int anIndex;
+		for (anIndex = 0; anIndex < aCount; anIndex++)
+		{
+			wxString anEntry = wxEmptyString;
+			anEntry = pApp->m_ipAddrs_Hostnames.Item(anIndex);
+			wxLogDebug(_T("CServDisc_KBserversDlg::OnRemoveSelectedEntry(), pApp->m_ipAddrs_Hostnames entry: %s at index: %d"),
+					anEntry.c_str(), anIndex);
+		}
+#endif
+		whereAt = pApp->m_ipAddrs_Hostnames.Index(selectedComposite);
+		if (whereAt != wxNOT_FOUND)
+		{
+			pApp->m_ipAddrs_Hostnames.RemoveAt((size_t)whereAt);
+		}
+		// Clean up
+		m_pListCtrlUrls->Refresh();
+		m_urlSelected.Empty();
+		m_hostnameSelected.Empty();
+	}
+}
+
 void CServDisc_KBserversDlg::OnURLDeselection(wxListEvent& event)
 {
 	event.Skip();
@@ -235,6 +293,27 @@ void CServDisc_KBserversDlg::OnOK(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	m_bUserCancelled = FALSE;
+
+	// BEW added 10Jul17, because successful discovery when the user has not yet
+	// made the project a KB Sharing one gives no feedback to the GUI that anything
+	// useful has happened, or that there is one or more running KBservers to which
+	// a connection can be made. Connection to a glossing kbserver is rare or very
+	// unlikely, so we'll just ignore that possibility - it would complicate the 
+	// tests done here
+	if (!(pApp->m_bIsKBServerProject || pApp->m_bIsKBServerProject_FromConfigFile)
+		&& count > 0)
+	{
+		// Either this adapting project has not yet been set up to be a KB Sharing
+		// one, or no earlier setup of this project as a KB sharing one was 
+		// recovered from the project config file. Without such a setup, while 
+		// service discovery can succeed, a connection to any running KBserver is
+		// impossible until the project becomes a KB Sharing one. Tell the user.
+		wxString warningStr = _("One or more KBservers may be available. But your project is not yet set up for Knowledge Base Sharing.\nUntil you do this, a connection to any available KBserver is impossible.\nUse the command Setup Or Remove Knowledge Base Sharing, on the Advanced menu.");
+		wxString titleStr = _("Cannot connect yet");
+		wxMessageBox(warningStr, titleStr, wxICON_WARNING | wxOK);
+	}
+
+
 	// Turn the following two flags off - otherwise the Discover One KBserver and
 	// Discover All KBservers menu commands remain disabled
 	pApp->m_bServDiscSingleRunIsCurrent = FALSE;

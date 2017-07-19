@@ -3159,7 +3159,9 @@ void CMainFrame::OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event))
 	// frequency and when those happen, and when each discovery run begins its 1 second
 	// of scanning. KBservers which multicast hard on the heels of an earlier one are
 	// hard to detect, and more than one burst may be required to find such ones
+	gpApp->m_bServDiscBurstIsCurrent = TRUE;
 	gpApp->DoKBserverDiscoveryRuns();
+	gpApp->m_bServDiscBurstIsCurrent = FALSE;
 }
 
 void CMainFrame::OnDiscoverOneKBserver(wxCommandEvent& WXUNUSED(event))
@@ -3168,6 +3170,7 @@ void CMainFrame::OnDiscoverOneKBserver(wxCommandEvent& WXUNUSED(event))
 	// on to cannot be controlled - it's an accident of timing
 	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; /// update handler uses this
 	gpApp->DoServiceDiscoverySingleRun();
+	//gpApp->m_bServDiscSingleRunIsCurrent = FALSE; // delay reset until OnCustomEventEndServiceDiscovery()
 }
 
 void CMainFrame::OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event)
