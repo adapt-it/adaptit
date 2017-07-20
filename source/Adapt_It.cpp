@@ -17277,26 +17277,29 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 										// placement when unfiltering
 
 #if defined(_KBSERVER)
-                                    // Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
-                                    // for a gui action by the user causes a TRUE value to be set for one of them, so that
-                                    // the OnIdle() handler will then call one of the 3 Synchronous functions,
-                                    // Synchronous_CreateEntry(), Synchronous_PseudoDelete(), or Synchronous_PseudoUndelete()
-                                    // to hide the server access to the maximum possible extent, to keep the GUI responsive
+	// BEW 20Jul17 m_bDiscoverKBservers added, set TRUE to use Leon's scripted discovery solutions
+	m_bDiscoverKBservers = TRUE;
+
+    // Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
+    // for a gui action by the user causes a TRUE value to be set for one of them, so that
+    // the OnIdle() handler will then call one of the 3 Synchronous functions,
+    // Synchronous_CreateEntry(), Synchronous_PseudoDelete(), or Synchronous_PseudoUndelete()
+    // to hide the server access to the maximum possible extent, to keep the GUI responsive
     m_bUserDecisionMadeAtDiscovery = FALSE;
     m_bPseudoDelete_For_KBserver = FALSE;
     m_bPseudoUndelete_For_KBserver = FALSE;
     m_bCreateEntry_For_KBserver = FALSE;
     m_pKbServer_For_OnIdle = NULL; // The calls suppored by the above 3 booleans will use
-                                   // this KbServer pointer to get their work done; it
-                                   // is used nowhere except in OnIdle()
-                                   // Next two booleans are set to FALSE unilaterally (as initialization)only here. They
-                                   // get set to whatever the project config file has for the IsKBServerProject and
-                                   // IsGlossingKBServerProject config file lines (which are used to set m_bIsKBServerProject
-                                   // and m_bIsGlossingKBServerProject - but the latter too readily can be cleared to
-                                   // FALSE at various places), and we want two booleans which preserve the current project
-                                   // config file values for these booleans in all circumstances (at least until new values
-                                   // are in the config file), so that we can recover the config file values anytime we
-                                   // want - in particular in the OnProjectPageChanging() handler.
+        // this KbServer pointer to get their work done; it
+        // is used nowhere except in OnIdle()
+        // Next two booleans are set to FALSE unilaterally (as initialization)only here. They
+        // get set to whatever the project config file has for the IsKBServerProject and
+        // IsGlossingKBServerProject config file lines (which are used to set m_bIsKBServerProject
+        // and m_bIsGlossingKBServerProject - but the latter too readily can be cleared to
+        // FALSE at various places), and we want two booleans which preserve the current project
+        // config file values for these booleans in all circumstances (at least until new values
+        // are in the config file), so that we can recover the config file values anytime we
+        // want - in particular in the OnProjectPageChanging() handler.
     m_bIsKBServerProject_FromConfigFile = FALSE;
     m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
 
@@ -17308,16 +17311,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //m_KBserverTimer = 12111; // 12.111 sec as of 19Apr16,  with GC back at 5 secs; old was 14123 with GC = 9 secs
     // 9.111 sec as of 22Apr16,  with GC back at 5 secs; old was 12111 with GC = 5 secs
     m_KBserverTimer = 7247;    // An interval of 4.113 milliseconds works, but main thread is  unresposive for a
-                               // So go to 7.113 secs, to allow main thread time to respond to user clicks.
-                               // half minute. (We can now overlap runs without failure, at the expense of GUI
-                               // temporary paralysis, so don't do that. Keep a timer gap between notifications.)
-                               // One run takes about 4.1 secs
+        // So go to 7.113 secs, to allow main thread time to respond to user clicks.
+        // half minute. (We can now overlap runs without failure, at the expense of GUI
+        // temporary paralysis, so don't do that. Keep a timer gap between notifications.)
+        // One run takes about 4.1 secs
     m_numServiceDiscoveryRuns = 6; // the basic config file's value will override this default if manually changed
     m_bServDiscBurstIsCurrent = FALSE; // initialize
     m_bServDiscSingleRunIsCurrent = FALSE; // initialize
     m_bServDiscGetOneOnly = TRUE; // initialize
-
-                                  // BEW 26May16
+	// BEW 26May16
     m_bAdaptationsKBserverReady = FALSE; // TRUE if a connection is current, to an adaptations KBserver
     m_bGlossesKBserverReady = FALSE; // TRUE if a connection is current, to a glosses KBserver
 
@@ -53203,7 +53205,7 @@ SD_SD_ValueIsIrrelevant
 */
 void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 {
-    // Use SetOwner() to bind the sevice discovery timer to the app instance, the latter will
+    // Use SetOwner() to bind the service discovery timer to the app instance, the latter will
     // handle its notification event, and call OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
     m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
     m_bShownFromServiceDiscoveryAttempt = TRUE;

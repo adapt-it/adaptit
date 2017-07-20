@@ -558,8 +558,8 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
 	EVT_MENU(ID_MENU_SCAN_AGAIN_KBSERVERS,CMainFrame::OnScanForRunningKBservers)
 	EVT_UPDATE_UI(ID_MENU_SCAN_AGAIN_KBSERVERS, CMainFrame::OnUpdateScanForRunningKBservers)
-	EVT_MENU(ID_MENU_DISCOVER_ONE_KBSERVER, CMainFrame::OnDiscoverOneKBserver)
-	EVT_UPDATE_UI(ID_MENU_DISCOVER_ONE_KBSERVER, CMainFrame::OnUpdateDiscoverOneKBserver)
+	EVT_MENU(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnDiscoverKBservers)
+	EVT_UPDATE_UI(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnUpdateDiscoverKBservers)
 
 #endif
 // The following ones disable KB Sharing related menu commands, when the build is not a KBserver one
@@ -2878,8 +2878,18 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 		}
 
 		gpApp->m_bServDiscRunFoundNothing = FALSE; // restore default value
+
+		// BEW 20Jul17 For Leon's scripted discovery, the GUI is blocked until the scan is done,
+		// so we here reinstate the flag being cleared to FALSE
+		gpApp->m_bServDiscSingleRunIsCurrent = FALSE;
+		// BEW 20Jul17 If no kbserver is running, tell the user none was discovered
+		if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
+		{
+			wxMessageBox(_("No KBserver discovered. Ensure one is running and then try again."), wxEmptyString, wxICON_INFORMATION | wxOK);
+		}
+
 	}
-	// If it is from a call of OnDiscoverOneKBserver(), which uses m_bServDiscSingleRunIsCurrent
+	// If it is from a call of OnDiscoverKBservers(), which uses m_bServDiscSingleRunIsCurrent
 	// in update handler to prevent both types of discovery working at once, then clear the
 	// bool here
 	if (nWhichOne == 0 && gpApp->m_bServDiscSingleRunIsCurrent)
@@ -2955,8 +2965,18 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 			}
 		}
 
-		gpApp->m_bServDiscSingleRunIsCurrent = FALSE; // allow the menu command to again be enabled
+		//gpApp->m_bServDiscSingleRunIsCurrent = FALSE; // allow the menu command to again be enabled
 		gpApp->m_bServDiscRunFoundNothing = FALSE; // restore default value
+
+		// BEW 20Jul17 For Leon's scripted discovery, the GUI is blocked until the scan is done,
+		// so we here reinstate the flag being cleared to FALSE
+		gpApp->m_bServDiscSingleRunIsCurrent = FALSE;
+		// BEW 20Jul17 If no kbserver is running, tell the user none was discovered
+		if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
+		{
+			wxMessageBox(_("No KBserver discovered. Ensure one is running and then try again."), wxEmptyString, wxICON_INFORMATION | wxOK);
+		}
+
 	}
 	// It's a detached thread type, so will delete itself; we'll just set its ptr to NULL
 	// (it's never a good idea to leave pointers hanging)
@@ -3152,28 +3172,38 @@ wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& url, wxString& hostname)
 
 #if defined(_KBSERVER)
 
-void CMainFrame::OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event))
-{
-	// Do a burst of KBserver discovery runs. Each run is limited to discoverying one.
-	// Which get discovered is a matter of accidents of timing between the multicast
-	// frequency and when those happen, and when each discovery run begins its 1 second
-	// of scanning. KBservers which multicast hard on the heels of an earlier one are
-	// hard to detect, and more than one burst may be required to find such ones
-	gpApp->m_bServDiscBurstIsCurrent = TRUE;
-	gpApp->DoKBserverDiscoveryRuns();
-	gpApp->m_bServDiscBurstIsCurrent = FALSE;
-}
-
-void CMainFrame::OnDiscoverOneKBserver(wxCommandEvent& WXUNUSED(event))
+// BEW 20Jul17 started refactoring to bypass the old zeroconf way, in favour of
+// using Leon's scripted solutions. A new variable, m_bDiscoverKBservers, is
+// used to choose one or the other solution. TRUE chooses Leon's scripted solution
+void CMainFrame::OnDiscoverKBservers(wxCommandEvent& WXUNUSED(event))
 {
 	// Do a single discovery run. If more than one is running, which one it will latch
 	// on to cannot be controlled - it's an accident of timing
 	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; /// update handler uses this
-	gpApp->DoServiceDiscoverySingleRun();
+
+	if (gpApp->m_bDiscoverKBservers)
+	{
+
+
+
+
+// TODO
+
+
+
+
+
+
+	}
+	else
+	{
+		// This is the old legacy wxServDisc-based way, with threading etc
+		gpApp->DoServiceDiscoverySingleRun();
+	}
 	//gpApp->m_bServDiscSingleRunIsCurrent = FALSE; // delay reset until OnCustomEventEndServiceDiscovery()
 }
 
-void CMainFrame::OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event)
+void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
 {
 	// It should be possible for the user to request another set of service discovery runs
 	// in order to try get hold of a running KBserver not grabbed in earlier runs, so long
@@ -3192,7 +3222,20 @@ void CMainFrame::OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-void CMainFrame::OnUpdateDiscoverOneKBserver(wxUpdateUIEvent& event)
+// ************** REMOVE THIS AND THE UPDATE HANDLER WHEN LEON's SOLUTION IS WORKING ***************
+void CMainFrame::OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event))
+{
+	// Do a burst of KBserver discovery runs. Each run is limited to discoverying one.
+	// Which get discovered is a matter of accidents of timing between the multicast
+	// frequency and when those happen, and when each discovery run begins its 1 second
+	// of scanning. KBservers which multicast hard on the heels of an earlier one are
+	// hard to detect, and more than one burst may be required to find such ones
+	gpApp->m_bServDiscBurstIsCurrent = TRUE;
+	gpApp->DoKBserverDiscoveryRuns();
+	gpApp->m_bServDiscBurstIsCurrent = FALSE;
+}
+
+void CMainFrame::OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event)
 {
 	// It should be possible for the user to request another set of service discovery runs
 	// in order to try get hold of a running KBserver not grabbed in earlier runs, so long

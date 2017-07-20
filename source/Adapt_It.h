@@ -2083,6 +2083,16 @@ class CAdapt_ItApp : public wxApp
 
 #if defined(_KBSERVER)
 
+	// BEW 20jUl17, the following boolean, when TRUE, is used to switch on Leon's scripted
+	// way of discovering one or more KBservers which are publishing, in a single
+	// run. The older wxServDisc way, based on zeroconf, is retained temporarily and
+	// is used if Advanced > Discover All KBservers is clicked. The old menu item
+	// Discover One KBserver has been changed to be Discover KBservers, and it is
+	// in the handler for that choice that this new boolean works (and in other places
+	// of course). When Leon's scripted discovery works, the Discover All KBservers
+	// and related code will be removed from the app
+	bool m_bDiscoverKBservers;
+
 	// The following is the timer for incremental downloads; defaulted to
 	// 5 minutes, but settable by the user to other values in the range 1-120 minutes,
 	// and the minutes value will be stored in the project config file
