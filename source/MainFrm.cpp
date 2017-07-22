@@ -566,7 +566,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 #if !defined(_KBSERVER)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_DLG, CMainFrame::OnUpdateKBSharingDlg)
-	EVT_UPDATE_UI(ID_MENU_DISCOVER_ONE_KBSERVER, CMainFrame::OnUpdateDiscoverOneKBserver)
+	EVT_UPDATE_UI(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnUpdateDiscoverKBservers)
 	EVT_UPDATE_UI(ID_MENU_SCAN_AGAIN_KBSERVERS, CMainFrame::OnUpdateScanForRunningKBservers)
 #endif
 
@@ -2777,7 +2777,7 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 	// when the build is not a _KBSERVER one
 	event.Enable(FALSE);
 }
-void CMainFrame::OnUpdateDiscoverOneKBserver(wxUpdateUIEvent& event)
+void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
 {
 	// Disable the "Discover One KBserver" command, on Tools menu
 	// when the build is not a _KBSERVER one
