@@ -53128,6 +53128,9 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 							  // accumulates composites from service discovery
 	m_theHostnames.Clear(); // ditto
 
+	wxStandardPaths stdPaths;
+	wxString execPath = stdPaths.GetExecutablePath();
+	wxLogDebug(_T("Executable path = %s"), execPath.c_str());
 
 
 
