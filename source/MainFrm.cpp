@@ -2908,9 +2908,12 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 		ServDiscDetail result = SD_NoResultsYet;
 		gpApp->m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
 		gpApp->m_bShownFromServiceDiscoveryAttempt = TRUE;
-		gpApp->m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames accumulates composites from service disocvery
+		gpApp->m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames 
+								  // accumulates composites from service discovery
 		gpApp->m_theHostnames.Clear(); // ditto
-		gpApp->m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
+		// deconstruct the ip@@@hostname strings in m_ipAddrs_Hostnames array into 
+		// the individual arrays m_theURLs and m_theHostnames so these can be
+		// displayed to the user
 		int counter = GetUrlAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, gpApp->m_theURLs, gpApp->m_theHostnames);
 		wxUnusedVar(counter);
 
@@ -2980,7 +2983,7 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 	}
 	// It's a detached thread type, so will delete itself; we'll just set its ptr to NULL
 	// (it's never a good idea to leave pointers hanging)
-	gpApp->m_pServDiscThread[nWhichOne] = NULL; 
+	gpApp->m_pServDiscThread[nWhichOne] = NULL;
 }
 
 // BEW 28Apr16
@@ -3177,23 +3180,26 @@ wxString CMainFrame::GetKBSvrPasswordFromUser(wxString& url, wxString& hostname)
 // used to choose one or the other solution. TRUE chooses Leon's scripted solution
 void CMainFrame::OnDiscoverKBservers(wxCommandEvent& WXUNUSED(event))
 {
+	// If a discovery run is currently in operation, beep and exit without
+	// attempting a new run
+	if (gpApp->m_bServDiscSingleRunIsCurrent || gpApp->m_bServDiscSingleRunIsCurrent)
+	{
+		wxBell();
+		return;
+	}
+
 	// Do a single discovery run. If more than one is running, which one it will latch
-	// on to cannot be controlled - it's an accident of timing
-	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; /// update handler uses this
+	// on to cannot be controlled - it's an accident of timing; Leon's way may latch
+	// on to more than one in a run
+	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; // update handler uses this
 
 	if (gpApp->m_bDiscoverKBservers)
 	{
+		// This is Leon's way, using scripts
+		gpApp->DoDiscoverKBservers();
 
-
-
-
-// TODO
-
-
-
-
-
-
+		gpApp->m_bServDiscSingleRunIsCurrent = FALSE;
+		gpApp->m_bServDiscSingleRunIsCurrent = FALSE;
 	}
 	else
 	{

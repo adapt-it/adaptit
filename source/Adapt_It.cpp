@@ -53116,6 +53116,33 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
     }
 }
 
+// BEW 20Jul17 scan for publishing kbservers - by Leon's scripts. Called from MainFrm.cpp
+// OnDiscoverKBservers() when m_bDiscoverKBservers is TRUE
+void CAdapt_ItApp::DoDiscoverKBservers()
+{
+	// Initializations
+	ServDiscDetail result = SD_NoResultsYet;
+	m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
+	m_bShownFromServiceDiscoveryAttempt = TRUE;
+	m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames 
+							  // accumulates composites from service discovery
+	m_theHostnames.Clear(); // ditto
+
+
+
+
+
+
+
+
+
+
+
+	// TODO
+}
+
+// BEW ??2016 sometime, this is the old legacy wxServDisc based way, called from
+// MainFrm.cpp OnDiscoverKBservers when m_bDiscoverKBservers is FALSE
 void CAdapt_ItApp::DoServiceDiscoverySingleRun()
 {
     if (m_bServDiscBurstIsCurrent)
