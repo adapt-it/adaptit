@@ -17266,13 +17266,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				// removes _Collab_*.xml documents, so as to not remove them and to have
 				// m_bCollaboratingWithParatext and m_bCollaboratingWithBibledit both cleared to FALSE
 
-	// BEW added, 19Jan17, the following 4 public strings in support of ParseWord2()'s
+	// BEW added, 19Jan17, the following 5 public strings in support of ParseWord2()'s
 	// post-word filtering of filterable markers and their content (eg. \x,  \f, \fe ...)
 	// These are used in ParsePostWordStuff() - a CAdaptItDoc member function; their
 	// values are defined here. When used, content will be inserted between the ^^ and ]]
 	strAfterWord = _T("[[after_word^^]]");
 	strAfterEndMkr = _T("[[after_endMkr^^]]");
 	strAfterPunct = _T("[[after_punct^^]]");
+	strAfterSpace = _T("[[after_space^^]]"); // the 'space' may or may not be an ascii one
 	strSearchForAfter = _T("[[after_"); // the search string when checking for post-word
 										// placement when unfiltering
 

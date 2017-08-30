@@ -407,14 +407,17 @@ public:
 	bool			IsInlineNonbindingEndMarker(wxString& mkr);
 	bool			IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd));
 	bool			IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* pEnd); // whm added 10Feb05
-	// Next three are tests made for what precedes pChar when parsing what follows the
+	// Next four are tests made for what precedes pChar when parsing what follows the
 	// word in ParseWord2() and a begin-marker is encountered with no preceding whitespace
+	// or with whitespace (which may not be a latin space) and post word filtering is wanted
 	// (it may be stuff like \f ...\f*, or \x ....\x* etc, which are filterable - so we 
 	// need to give ParseWord2() the capability to do filtering when parsing input text)
 	bool			EndmarkerPrecedes( wxChar* pChar, wxString& precedingEndmarker);
 	bool			PunctuationPrecedes( wxChar* pChar, wxString& precedingPunct, bool bTokenizingTargetText);
 	bool			WordPrecedes( wxChar* pChar, wxString& theWord, 
 								CSourcePhrase*  pSrcPhrase, wxString& spacelessPuncts);
+	bool			SpacePrecedes(wxChar* pChar, wxString& precedingSpace);
+
 // more unfiltering stuff goes just above, if needed
 
 	bool			IsLegacyDocVersionForFileSaveAs();

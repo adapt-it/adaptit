@@ -18650,10 +18650,21 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		}
 */
 #endif
+
+#if defined (_DEBUG)
+// The Sima problem of end of ch 10 of luke being lost, and chapters 11 - 14 happens with a manual export
+// so log seqence numbers and str to see where in the text doc to place a break point for stepping
+		wxLogDebug(_T("RebuildTargetText: sn = %d    tgt str =  %s"), pSrcPhrase->m_nSequNumber, str.c_str());
+
+#endif
+
+
+
 	}// end of while (pos != NULL)
 
 	int textLen = targetstr.Length();
 	target = targetstr; // return all the text in one long wxString
+
 //#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
 	target = DoFwdSlashConsistentChanges(removeAtPunctuation, target);

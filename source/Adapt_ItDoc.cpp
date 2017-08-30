@@ -12283,6 +12283,13 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 			bExitOnReturn = TRUE;
 		}
 	}
+#if defined (_DEBUG)
+	if (pSrcPhrase->m_nSequNumber >= 5)
+	{
+		int break_here = 1;
+	}
+#endif
+
 	// on exit of the loop we are either at buffer end, or backslash of a marker, or a ]
     // closing bracket, or some character which is not whitespace nor a closing quote
     // (IsClosingQuote() also tests for a straightquote or doublequote, so
@@ -12293,19 +12300,59 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 		// curly endquote(s) and possibly a straight one (or more than one) - pLocation_OK
 		// will point at the character following the last curly endquote scanned over, so
 		// only white space and one or more straight quotes can follow that location
-		if (IsEndMarker(ptr, pEnd) || IsEnd(ptr))
+		// 
+		// BEW 3Aug17 added text on next line, IsMarker() and not IsEndMarker() so as
+		// to enter the TRUE block when a begin marker is being pointed at, whether \v, or
+		// \x or \f or \fe etc because we need to go back to TokenizeText to parse these
+		// and possibly filter one or more, so we need to just accept what we've parsed
+		// over here, if anything, and return with ptr pointing at the marker, or pointing
+		// at the start of any previous whitespace if there is any just parsed over.
+		// Use IsEndMarker(ptr, pEnd) call here too? dunno; change IsEndMarker() call into
+		// IsMarker() call here; snd also some code to test that if it is a marker here, it
+		// is not an inline binding marker
+		int offset = wxNOT_FOUND;
+		if (IsMarker(ptr))
 		{
-            // an endmarker is what ptr points at now, or the buffer's end, so we'll accept
-            // everything as valid final punctuation for the current pSrcPhrase; and if not
-            // at buffer end then further parsing is needed in the caller because there may
-            // be more markers and punctuation to be handled for the end of the current
-            // word
- 			if (IsEnd(ptr))
+			wxString aWholeMkr = GetWholeMarker(ptr);
+			wxString augmentedMkr = aWholeMkr + _T(' ');
+			offset = gpApp->m_inlineBindingMarkers.Find(augmentedMkr);
+		}
+
+
+		if ((IsMarker(ptr) && offset ==wxNOT_FOUND) || IsEnd(ptr))
+		{
+            // an endmarker or a begin marker is what ptr points at now, or the buffer's end,
+			// so we'll accept everything as valid final punctuation for the current 
+			// pSrcPhrase; and if not at buffer end then further parsing is needed in the 
+			// caller because there may be more markers and punctuation to be handled for 
+			// the end of the current word. The marker is NOT an inlinebinding one
+ 			//if (IsEnd(ptr) || IsMarker(ptr))
+			//{
+				bExitOnReturn = TRUE; // BEW 3Aug17 do this unilaterally here now
+			//}
+
+			// Back up over any preceding space & adjust ptr & counter
+			int aWhiteSpanLength = 0;
+			wxChar* pTemp = ptr;
+			while ((size_t)aWhiteSpanLength < counter)
 			{
-				// may have been set above, but no harm in making the test again & setting
-				// it here again
-				bExitOnReturn = TRUE;
+				pTemp--;
+				if (IsWhiteSpace(pTemp))
+				{
+					aWhiteSpanLength++;
+				}
+				else
+				{
+					break;
+				}
 			}
+
+			if (aWhiteSpanLength > 0)
+			{
+				counter -= aWhiteSpanLength;
+				ptr = ptr - (size_t)aWhiteSpanLength;
+			}
+
             wxString finalPunct(pPunctStart,counter);
 			if (bPutInOuterStorage)
 			{
@@ -12315,7 +12362,7 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 			{
 				pSrcPhrase->m_follPunct += finalPunct;
 			}
- 			pSrcPhrase->m_srcPhrase += finalPunct; // add any punct'n
+ 			pSrcPhrase->m_srcPhrase += finalPunct; // add any detached punct'n
 			additions += finalPunct; // accumulate here, so that the caller can add any
 									 // additions to secondWord of ~ conjoining, in the
 									 // m_srcPhrase and m_follPunct members; note this
@@ -12327,10 +12374,15 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
             // what ptr points at now could be an inline non-binding endmarker (like \wj*)
             // or one of \f* or \x* (or even an inline binding endmarker with misplaced
             // punctuation before it which we are now parsing over) - so while our parse of
-            // the punctuation in this function halts, the caller's parse must continue
+            // the punctuation in this function halts, the caller's parse may continue
             // over potential endmarkers further on, and there could be outer following
-            // punctuation too
+            // punctuation too; it won't though if bExitOnReturn is TRUE - which is now
+			// the case. 
+			// 3Aug17, Ptr may be pointing at a begin marker - something our parser did
+			// not allow for (and which resulted in some bad parsing when there was
+			// one or more detached quotes)
 			len += counter;
+
 		} // end of TRUE block for test: if (IsEndMarker(ptr,pEnd) || IsEnd(ptr))
 		else
 		{
@@ -12522,7 +12574,7 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 					return len;
 				}
 			} // end of else block for test: if (pLocation_OK > pPunctStart)
-		} // end of else block for test: if (IsEndMarker(ptr,pEnd) || IsEnd(ptr))
+		} // end of else block for test: if marker and not an inline binding mkr or is at buffer end
 	} // end of TRUE block for test: if (bFoundClosingQuote)
 	else if (IsEndMarker(ptr,pEnd) || IsEnd(ptr))
 	{
@@ -15243,7 +15295,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// begin-markers here in TokenizeText()
 				pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
 #ifdef _DEBUG
-				if (pSrcPhrase->m_nSequNumber >= 3) // was 6 for the Irmi book preceded by \xt within \f ... \f* unfiltered
+				if (pSrcPhrase->m_nSequNumber == 1123 || pSrcPhrase->m_nSequNumber == 1277 || pSrcPhrase->m_nSequNumber == 1506)
 				{
 					int break_here = 1;
 				}
@@ -15410,6 +15462,16 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
                 // Do the lookup - these rapid access strings never contain nested markers
 				bool bIsToBeFiltered = gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1;
 
+				if (bIsToBeFiltered) // BEW added 13Aug17 (see next comment for rationale)
+					goto fltr;
+
+				// BEW the next bit was added to handle the possibility of a thing like \x type
+				// of markers being within an unfiltered \f .... \f* span. It is possible for 
+				// ptr to be at a \x marker to be filtered when control gets to here, so we need
+				// to handle filtering of augmentedWholeMkr above here, but after the Find()
+				// done in gCurrentFilterMarkers, otherwise we'll find that the \x or whatever
+				// would wrongly get put into m_markers, instead of being filtered. Beware!
+
 				// Check should we turn on bool for control being in m_bIsWithinUnfilteredInlineSpan 
 				// now (for example, the \f marker for a footnote span not wanted for filtering)
 				if (IsMarker(ptr) && !IsEndMarker2(ptr) && pUsfmAnalysis->inLine && !bIsToBeFiltered
@@ -15440,7 +15502,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				if ((IsAFilteringSFM(pUsfmAnalysis) || bIsToBeFiltered) && !m_bIsWithinUnfilteredInlineSpan)
 				{
 					//bDidSomeFiltering = TRUE;
-					itemLen = ParseFilteringSFM(wholeMkr,ptr,pBufStart,pEnd);
+fltr:					itemLen = ParseFilteringSFM(wholeMkr,ptr,pBufStart,pEnd);
 
 					// get filtered text bracketed by \~FILTER and \~FILTER*
 					bIsFreeTransOrNoteOrBackTrans = IsMarkerFreeTransOrNoteOrBackTrans(
@@ -15774,12 +15836,24 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// This is the Legacy ParseWord(). The refactored (Oct 2016) one
 			// below it is ParseWord2() - signature unchanged. Keep the Legacy one
 			// for the time being. #define Use_Legacy_Parser is at line 76 above
-#if defined (Use_Legacy_Parser)			
+#if defined (Use_Legacy_Parser)
+#if defined (_DEBUG)
+			if (pSrcPhrase->m_nSequNumber >= 5)
+			{
+				int break_here = 1;
+			}
+#endif
 			itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessPuncts,
 				pApp->m_inlineNonbindingMarkers,
 				pApp->m_inlineNonbindingEndMarkers,
 				bIsInlineNonbindingMkr, bIsInlineBindingMkr,
 				bTokenizingTargetText);
+#if defined (_DEBUG)
+			if (pSrcPhrase->m_nSequNumber >= 5)
+			{
+				int break_here = 1;
+			}
+#endif
 #else			
 			// This is the refactored one (Oct-Dec 2016)
 			itemLen = ParseWord2(ptr, pEnd, pSrcPhrase, spacelessPuncts,
@@ -27688,6 +27762,13 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	// 1. punctuation which needs to be stored in m_precPunct, or
 	// 2. an inlineBindingMkr, such as \k or \w etc, or
 	// 3. the first character of the word to be stored as m_key in pSrcPhrase
+	// 4. BEW added 3Aug17 - there are other possibilities, especially if the doc has
+	// straight quotes - detached straight quotes may not be broken at the correct
+	// place, so perhaps " follows, or " followed by \x - \xo ..... \x*, or that same
+	// with a space between the " and \x - and without some refactoring these would
+	// cause text error or losses in an export subsequently done. So beware, & give
+	// extra smarts - both below and in ParseWord2().
+
 	// The first to check for is punctuation, then inlineBinbdingMkr
 
 	// First, parse over any 'detached' preceding punctuation, bearing in mind it may have
@@ -27715,13 +27796,13 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 												 // also after having been used to help decide who owns a straight quote
 												 // which was detected following the word being parsed
 
-												 // this block gets us over all detached preceding quotes and the spaces which
-												 // detach them; we exit this block either when the word proper has been reached, or
-												 // with ptr pointing at some non-quote punctuation attached to the start of the
-												 // word, or with ptr pointing at an inline bound marker. In the event we exit
-												 // pointing at non-quote punctuation, the next block will parse across any such
-												 // punctuation until the word proper has been reached, or until an inline bound mkr
-												 // is reached.
+		// This block gets us over all detached preceding quotes and the spaces which
+		// detach them; we exit this block either when the word proper has been reached, or
+		// with ptr pointing at some non-quote punctuation attached to the start of the
+		// word, or with ptr pointing at an inline bound marker. In the event we exit
+		// pointing at non-quote punctuation, the next block will parse across any such
+		// punctuation until the word proper has been reached, or until an inline bound mkr
+		// is reached.
 		if (IsWhiteSpace(ptr))
 		{
 			pSrcPhrase->m_precPunct += _T(' '); // normalize while we are at it
@@ -27735,9 +27816,69 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// detached non-quote punctuation being spanned in this current block. That
 			// is, we want "... word1 ! "word2" word3 ..." to be handled that way,
 			// instead of being parsed as "... word1 ! " word2" word3 ..." for example
+
 			pSrcPhrase->m_precPunct += *ptr++;
 		}
 		len++;
+
+		// BEW 3Aug17 Jakarta workshop participants ran into problems with markup
+		// word.' " \x - \xo etc
+		// because of two parsing errors: (1) breaking word parsing preceding the "
+		// and (2) within the word parsing function there is no accounting for the
+		// possibility that a non-inlineBindingMarker (such as \x or \v or \f etc)
+		// might follow. It the latter happens we need to refactor here so that
+		// returning from the word parse happens at such a marker, and if possible
+		// back up ptr over any whitespace parsed over, to facilitate the next
+		// CSourcePhrase parse starting at the delimiting space. (The problem
+		// resulted in the \x getting stored wrongly in the iBM attribute, so
+		// that an export would produce "\x -   in the text string, and if x-ref
+		// was for being filtered then all subsequent words in the export would be
+		// omitted from the data until a standalone \x* was encountered - which 
+		// could be far away, or not exist at all
+		if (IsMarker(ptr))
+		{
+			wxString aWholeMkr = GetWholeMarker(ptr);
+			wxString augmentedMkr = aWholeMkr + _T(' ');
+			int offset = wxNOT_FOUND;
+			offset = gpApp->m_inlineBindingMarkers.Find(augmentedMkr);
+			wxChar* pTemp = ptr;
+			int aWhiteSpanLength = 0;
+			if (offset == wxNOT_FOUND)
+			{
+				// What ptr is pointing at is a marker, which is not one of
+				// the inline binding marker set - so it could be \x or \f or \v etc
+				// in which case ParseWord() should exit here, or preceding any
+				// white spaces just parsed over. This may produce an empty
+				// CSourcePhrase, except for some preceding punctuation, but
+				// that is better than going ahead so that the marker ends up
+				// in the inlineBindingMarkers member - which produces disaster
+				// if there is a later export of src or tgt text
+				while (aWhiteSpanLength < len && pTemp > pChar)
+				{
+					pTemp--;
+					if (IsWhiteSpace(pTemp))
+					{
+						aWhiteSpanLength++;
+					}
+					else
+					{
+						break;
+					}
+				}
+
+
+			}
+			if (aWhiteSpanLength > 0)
+			{
+				ptr = ptr - (size_t)aWhiteSpanLength;
+				len = len - aWhiteSpanLength;
+			}
+			if (len > 0)
+			{
+				pSrcPhrase->m_srcPhrase += pSrcPhrase->m_precPunct;
+			}
+			return len;
+		}
 	}
 	// when control reaches here, we may be pointing at further punctuation having
 	// iterated across some data in the above loop, or be pointing at the first character
@@ -28080,6 +28221,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// the actual word for saving in m_key of pSrcPhrase ... well, usually.
 		}
 	} // end of else block for test: if (IsMarker(ptr))
+
 	  // determine if we've found preceding punctuation
 	if (pSrcPhrase->m_precPunct.Len() > 0)
 		bHasPrecPunct = TRUE;
@@ -28671,8 +28813,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		bExitParseWordOnReturn = FALSE;
 		wxString additions; additions.Empty();
 		// in next call, FALSE is bPutInOuterStorage
+
 		len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len,
 			bExitParseWordOnReturn, m_bHasPrecedingStraightQuote, additions, FALSE);
+
 		if (IsFixedSpaceSymbolWithin(pSrcPhrase) && !additions.IsEmpty())
 		{
 			pSrcPhrWord2->m_follPunct += additions;
@@ -29876,6 +30020,13 @@ int CAdapt_ItDoc::ParseWord2(
 	// 1. punctuation which needs to be stored in m_precPunct, or
 	// 2. an inlineBindingMkr, such as \k or \w etc, or
 	// 3. the first character of the word to be stored as m_key in pSrcPhrase
+	// 4. BEW added 3Aug17 - there are other possibilities, especially if the doc has
+	// straight quotes - detached straight quotes may not be broken at the correct
+	// place, so perhaps " follows, or " followed by \x - \xo ..... \x*, or that same
+	// with a space between the " and \x - and without some refactoring these would
+	// cause text error or losses in an export subsequently done. So beware, & give
+	// extra smarts - both below and in ParseWord2().
+
 	// The first to check for is punctuation, then inlineBindingMkr
 
 	// First, parse over any 'detached' preceding punctuation, bearing in mind it may have
@@ -29921,22 +30072,23 @@ int CAdapt_ItDoc::ParseWord2(
 		}
 		else // the legacy ParseWord() parser only had the block below
 		{
-			// This block gets us over all detached preceding quotes and the spaces which
-			// detach them; we exit this block either when the word proper has been reached, or
-			// with ptr pointing at some non-quote punctuation attached to the start of the
-			// word, or with ptr pointing at an inline bound marker. In the event we exit
-			// pointing at non-quote punctuation, the next block will parse across any such
-			// punctuation until the word proper has been reached, or until an inline bound mkr
-			// is reached.
 			// check if a straight quote is in the preceding punctuation - setting the boolean
 			// true will help us decide if a straight quote following the word belongs to the
 			// word as final punctuation, or to the next word as opening punctuation.
 			bool bStraightQuote = IsStraightQuote(ptr);
 			if (bStraightQuote)
 				m_bHasPrecedingStraightQuote = TRUE; // a public boolean of CAdapt_ItDoc class
-					// which gets cleared to default FALSE at the start of each new verse, and
-					// also after having been used to help decide who owns a straight quote
-					// which was detected following the word being parsed
+													 // which gets cleared to default FALSE at the start of each new verse, and
+													 // also after having been used to help decide who owns a straight quote
+													 // which was detected following the word being parsed
+
+													 // This block gets us over all detached preceding quotes and the spaces which
+													 // detach them; we exit this block either when the word proper has been reached, or
+													 // with ptr pointing at some non-quote punctuation attached to the start of the
+													 // word, or with ptr pointing at an inline bound marker. In the event we exit
+													 // pointing at non-quote punctuation, the next block will parse across any such
+													 // punctuation until the word proper has been reached, or until an inline bound mkr
+													 // is reached.
 			if (IsWhiteSpace(ptr))
 			{
 				pSrcPhrase->m_precPunct += _T(' '); // normalize while we are at it
@@ -29944,15 +30096,75 @@ int CAdapt_ItDoc::ParseWord2(
 			}
 			else
 			{
-				// bHasOpeningQuote = TRUE; // FALSE is used later to stop regular opening
+				//bHasOpeningQuote = TRUE; // FALSE is used later to stop regular opening
 				// quote (when initial in a following word) from being interpretted as
 				// belonging to the current sourcephrase in the circumstance where there is
 				// detached non-quote punctuation being spanned in this current block. That
 				// is, we want "... word1 ! "word2" word3 ..." to be handled that way,
 				// instead of being parsed as "... word1 ! " word2" word3 ..." for example
+
 				pSrcPhrase->m_precPunct += *ptr++;
 			}
 			len++;
+
+			// BEW 3Aug17 Jakarta workshop participants ran into problems with markup
+			// word.' " \x - \xo etc
+			// because of two parsing errors: (1) breaking word parsing preceding the "
+			// and (2) within the word parsing function there is no accounting for the
+			// possibility that a non-inlineBindingMarker (such as \x or \v or \f etc)
+			// might follow. It the latter happens we need to refactor here so that
+			// returning from the word parse happens at such a marker, and if possible
+			// back up ptr over any whitespace parsed over, to facilitate the next
+			// CSourcePhrase parse starting at the delimiting space. (The problem
+			// resulted in the \x getting stored wrongly in the iBM attribute, so
+			// that an export would produce "\x -   in the text string, and if x-ref
+			// was for being filtered then all subsequent words in the export would be
+			// omitted from the data until a standalone \x* was encountered - which 
+			// could be far away, or not exist at all
+			if (IsMarker(ptr))
+			{
+				wxString aWholeMkr = GetWholeMarker(ptr);
+				wxString augmentedMkr = aWholeMkr + _T(' ');
+				int offset = wxNOT_FOUND;
+				offset = gpApp->m_inlineBindingMarkers.Find(augmentedMkr);
+				wxChar* pTemp = ptr;
+				int aWhiteSpanLength = 0;
+				if (offset == wxNOT_FOUND)
+				{
+					// What ptr is pointing at is a marker, which is not one of
+					// the inline binding marker set - so it could be \x or \f or \v etc
+					// in which case ParseWord() should exit here, or preceding any
+					// white spaces just parsed over. This may produce an empty
+					// CSourcePhrase, except for some preceding punctuation, but
+					// that is better than going ahead so that the marker ends up
+					// in the inlineBindingMarkers member - which produces disaster
+					// if there is a later export of src or tgt text
+					while (aWhiteSpanLength < len && pTemp > pChar)
+					{
+						pTemp--;
+						if (IsWhiteSpace(pTemp))
+						{
+							aWhiteSpanLength++;
+						}
+						else
+						{
+							break;
+						}
+					}
+
+
+				}
+				if (aWhiteSpanLength > 0)
+				{
+					ptr = ptr - (size_t)aWhiteSpanLength;
+					len = len - aWhiteSpanLength;
+				}
+				if (len > 0)
+				{
+					pSrcPhrase->m_srcPhrase += pSrcPhrase->m_precPunct;
+				}
+				return len;
+			}
 		}
 	}
 	// when control reaches here, we may be pointing at further punctuation having
@@ -30544,10 +30756,10 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 	wxChar 	 fixedSpaceChar = _T('~');
 	int      itemLen = 0;
 #if defined(_DEBUG)
-	if (pSrcPhrase->m_nSequNumber == 7)
+	if (pSrcPhrase->m_nSequNumber == 1)
 	{
 		int break_here = 1;
-        break_here = break_here; // avoid gcc warning
+        //break_here = break_here; // avoid gcc warning
 	}
 #endif
 	bool bParsedSomething = FALSE; // if control does an iteration without ptr advancing,
@@ -30693,7 +30905,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 		bParsedSomething = FALSE; // must be FALSE at the start of each iteration
 #if defined(_DEBUG)
 		//if (pSrcPhrase->m_nSequNumber == 1)
-		if (iterationCount >= 3)
+		if (iterationCount >= 1)
 		{
 			int break_here = 1;
             break_here = break_here; // avoid gcc warning
@@ -31029,47 +31241,121 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 			IsStraightQuote(ptr + 1) && (IsInWordProper(ptr + 2, spacelessPuncts) || 
 			IsPunctuation(ptr + 2, !bTokenizingTargetText) || IsMarker(ptr + 2)))
 		{
-			// Only the IsMarker() test is ambiguous if it returns TRUE. The others 
-			// returning TRUE indicate we should here return len to the caller, and
-			// the space followed by straight quote is not part of the end of the
-			// current word, so return with ptr at the space. If a normal marker is
-			// at ptr + 2, then returning here applies as well. On the other hand,
-			// the marker could be an endmarker (such as \wj* for "words of Jesus")
-			// in which case it needs to be identified in the next iteration of the
-			// loop and stored on the current CSourcePhrase. So test...
-			if (IsEndMarker(ptr + 2, pEnd))
+			// Here check the special case that a begin-marker, filterable, follows
+			// <space><straight quote", and do the saving of the puncts, and the
+			// filtering later in the switch below
+#if defined(_DEBUG)
+			if (pSrcPhrase->m_nSequNumber == 5)
 			{
-				// Store what we parsed over, set endCondition, and go to next iteration
-				wxString str = wxString(ptr, 2);
-				if (bXref_Footnote_orEndnoteStored)
+				int break_here = 1;
+				//break_here = break_here; // avoid gcc warning
+			}
+#endif
+			// Here we deal with something following some nested punctuation -
+			// especially if it is a filterable begin-marker for which filtering
+			// is turned on, and what follows the ptr2 is the something or the
+			// begin-marker. Without this following code, ParseWord2() would
+			// break the parse between punctuation chars, and create an isolate
+			// CSourcePhrase with no content except the punctuation character 
+			// following the location of the break. That is unacceptable
+			wxString strAccumulate = wxString(ptr, 2);
+			if (IsMarker(ptr + 2) && !IsEndMarker(ptr + 2, pEnd))
+			{
+				wxString wholeMkr = GetWholeMarker(ptr + 2);
+				wxString aSpace = _T(" ");
+				wholeMkr += _T(' '); // augmented, for use in gCurrentFilterMarkers
+				int offset = gpApp->gCurrentFilterMarkers.Find(wholeMkr);
+				if (offset != wxNOT_FOUND)
 				{
-					pSrcPhrase->AddFollOuterPuncts(str);
+					// The begin-marker is to be filtered - do that in the next iteration
+					// after getting all the preping done here
+					len = len + 2;
+					ptr = ptr + 2;
+					if (bXref_Footnote_orEndnoteStored)
+					{
+						pSrcPhrase->AddFollOuterPuncts(strAccumulate);
+					}
+					else
+					{
+						pSrcPhrase->m_follPunct += strAccumulate;
+					}
+					// The following call should return the enum value  backslashofmkr
+					// which will be handled in the switch further down
+					endCondition = FindOutWhatIsAtPtr(ptr, pEnd, bTokenizingTargetText);
+					bParsedSomething = TRUE; // and proceed to the switch much further below
+					bFilteringRequired = TRUE;
 				}
 				else
 				{
-					pSrcPhrase->m_follPunct += str;
+					// The augmented marker is not in the fast-access list of filterable
+					// markers, so handle this situation. It is a begin-marker though,
+					// so we'll want to end here the parse of the current CSourcePhrase
+					// after storing etc what we've accumulated and up
+					len += len + 2;
+					if (bXref_Footnote_orEndnoteStored)
+					{
+						pSrcPhrase->AddFollOuterPuncts(strAccumulate);
+					}
+					else
+					{
+						pSrcPhrase->m_follPunct += strAccumulate;
+					}
+					bParsedSomething = TRUE;
+					return len; // the caller's ptr is updated by len on return
 				}
-				len += 2;
-				ptr += 2;
-				endCondition = FindOutWhatIsAtPtr(ptr, pEnd, bTokenizingTargetText);
-				bParsedSomething = TRUE;
 			}
 			else
 			{
-				return len;
+
+				// Only the IsMarker() test is ambiguous if it returns TRUE. The others 
+				// returning TRUE indicate we should here return len to the caller, and
+				// the space followed by straight quote is not part of the end of the
+				// current word, so return with ptr at the space. If a normal marker is
+				// at ptr + 2, then returning here applies as well. On the other hand,
+				// the marker could be an endmarker (such as \wj* for "words of Jesus")
+				// in which case it needs to be identified in the next iteration of the
+				// loop and stored on the current CSourcePhrase. So test...
+				if (IsEndMarker(ptr + 2, pEnd))
+				{
+					// Store what we parsed over, set endCondition, and go to next iteration
+					wxString str = wxString(ptr, 2);
+					if (bXref_Footnote_orEndnoteStored)
+					{
+						pSrcPhrase->AddFollOuterPuncts(str);
+					}
+					else
+					{
+						pSrcPhrase->m_follPunct += str;
+					}
+					len += 2;
+					ptr += 2;
+					endCondition = FindOutWhatIsAtPtr(ptr, pEnd, bTokenizingTargetText);
+					bParsedSomething = TRUE;
+				}
+				else
+				{
+					return len;
+				}
 			}
 		}
 		else if ((endCondition == whitespace) && IsWhiteSpace(ptr) && ((ptr+1) < pEnd) &&
 			IsStraightQuote(ptr + 1))
 		{
+#if defined(_DEBUG)
+			if (pSrcPhrase->m_nSequNumber == 5)
+			{
+				int break_here = 1;
+				//break_here = break_here; // avoid gcc warning
+			}
+#endif
 			wxString strAccumulate = wxString(ptr, 2); // temp store first <whitespace> then
 													   // the ' or " which follows
 			int len2 = len; // use len2 in this block
 			wxChar* ptr2 = ptr + 2; // We don't want to lose original ptr value
 			if (ptr2 < pEnd)
 			{
-				// The first test should be for returning after handling the space and
-				// straight quote...
+
+				// Here we deal with whitespace followed by various possibilities...
 				if (IsWhiteSpace(ptr2) && ((ptr2 + 1) < pEnd) &&
 					(
 					 IsInWordProper(ptr2 + 1, spacelessPuncts) || 
@@ -31082,17 +31368,112 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 					// The whitespace at ptr2 precedes the next word, or non-straight quote,
 					// or ] or a begin marker, so save and return the appropriate len value 
 					// (so that caller's ptr will be pointing at that whitespace)
-					len += len2;
-					if (bXref_Footnote_orEndnoteStored)
+					// len2 here holds the length of the accumulation string of puncts that
+					// are not yet appended to CSourePhrase's storage
+					// BEW 8Aug17 If a filterable begin-marker follows, check if there is one
+					// present and if so do what's neccessary to get the next iteration to
+					// do the filtering in the switch below
+					if (IsMarker(ptr2 + 1) && !IsEndMarker(ptr2 + 1, pEnd))
 					{
-						pSrcPhrase->AddFollOuterPuncts(strAccumulate);
-					}
+						wxString wholeMkr = GetWholeMarker(ptr2 + 1);
+						wxString aSpace = _T(" ");
+						wholeMkr += _T(' '); // augmented, for use in gCurrentFilterMarkers
+						int offset = gpApp->gCurrentFilterMarkers.Find(wholeMkr);
+						if (offset != wxNOT_FOUND)
+						{
+							// The begin-marker is to be filtered - do that in the next iteration
+							// after getting all the preping done here
+							len += len2;
+							ptr = ptr2;
+							if (bXref_Footnote_orEndnoteStored)
+							{
+								pSrcPhrase->AddFollOuterPuncts(strAccumulate);
+								pSrcPhrase->AddFollOuterPuncts(aSpace);
+							}
+							else
+							{
+								pSrcPhrase->m_follPunct += strAccumulate;
+								pSrcPhrase->m_follPunct += aSpace;
+							}
+							ptr++; // pointing now at the begin marker after the space
+							len++; // must count the space too
+							// The following call should return the enum value  backslashofmkr
+							// which will be handled in the switch further down
+							endCondition = FindOutWhatIsAtPtr(ptr, pEnd, bTokenizingTargetText);
+							bParsedSomething = TRUE; // and proceed to the switch much further below
+							bFilteringRequired = TRUE;
+						}
+						else
+						{
+							// The augmented marker is not in the fast-access list of filterable
+							// markers, so handle this situation. It is a begin-marker though,
+							// so we'll want to end here the parse of the current CSourcePhrase
+							// after storing etc what we've accumulated and up
+							len += len2;
+							if (bXref_Footnote_orEndnoteStored)
+							{
+								pSrcPhrase->AddFollOuterPuncts(strAccumulate);
+							}
+							else
+							{
+								pSrcPhrase->m_follPunct += strAccumulate;
+							}
+							bParsedSomething = TRUE;
+							return len; // the caller's ptr is updated by len on return
+						}
+
+					} // end of TRUE block for test: if (IsMarker(ptr2 + 1) && !IsEndMarker(ptr2 + 1, pEnd))
 					else
 					{
-						pSrcPhrase->m_follPunct += strAccumulate;
-					}
-					return len;
-				}
+						// What's at ptr2 + 1 is not a begin-marker, but it could be an endmarker
+						// so need to check that out here too
+						if (IsEndMarker(ptr2 + 1, pEnd))
+						{
+							// It's an endmarker, so we are within an inLine span, unfiltered. Update the
+							// storage etc and return the updated len value
+							len += len2;
+							wxString aSpace = _T(" ");
+							if (bXref_Footnote_orEndnoteStored)
+							{
+								pSrcPhrase->AddFollOuterPuncts(strAccumulate);
+								pSrcPhrase->AddFollOuterPuncts(aSpace);
+							}
+							else
+							{
+								pSrcPhrase->m_follPunct += strAccumulate;
+								pSrcPhrase->m_follPunct += aSpace;
+							}
+							bParsedSomething = TRUE;
+							ptr++; // pointing now at the end marker after the space
+							len++; // must count the space too
+
+							// Parse over the endmarker, store it, &return a len value
+							// consistent with the caller's ptr being just past it
+							wxString myEndMkr = GetWholeMarker(ptr2 + 1);
+							int aLength = myEndMkr.Length();
+							wxASSERT(aLength != 0);
+							pSrcPhrase->AddEndMarker(myEndMkr);
+							len += aLength;
+							return len;
+						}
+						else
+						{
+
+							// If not an endmarker, then do the following because parsing  further should
+							// not be done
+							len += len2;
+							if (bXref_Footnote_orEndnoteStored)
+							{
+								pSrcPhrase->AddFollOuterPuncts(strAccumulate);
+							}
+							else
+							{
+								pSrcPhrase->m_follPunct += strAccumulate;
+							}
+							return len;
+						}
+					} // end of else block for test: if (IsMarker(ptr2 + 1) && !IsEndMarker(ptr2 + 1, pEnd))
+				} // end of the TRUE block for the complex test further above
 				else
 				{
 					// There could be a second <whitespace> followed by ' or " which belongs
@@ -31241,7 +31622,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 			if (pSrcPhrase->m_nSequNumber == 1)
 			{
 				int break_here = 1;
-                break_here = break_here; // avoid gcc warning
+                //break_here = break_here; // avoid gcc warning
             }
 #endif
 			// Parse across punctuation. This stuff will be stored in m_follPuncts, 
@@ -31257,18 +31638,46 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 								// the loop
 			wxChar* savePtr = ptr; // the base for calculating strings to store
 			int len2 = 0;
-			while ((ptr2 < pEnd) &&
-				IsPunctuation(ptr2, !bTokenizingTargetText) &&
-				(*ptr2 != _T(']')) &&
-				!IsMarker(ptr2) &&
-				!IsInWordProper(ptr2, spacelessPuncts) &&
-				!IsWhiteSpace(ptr2) &&
-				!IsOpeningQuote(ptr2)
-				)
+#if defined(_DEBUG)
+			if (pSrcPhrase->m_nSequNumber == 1)
 			{
+				int break_here = 1;
+				//break_here = break_here; // avoid gcc warning
+			}
+#endif
+//			while ((ptr2 < pEnd) &&
+//				IsPunctuation(ptr2, !bTokenizingTargetText) &&
+//				(*ptr2 != _T(']')) &&
+//				!IsMarker(ptr2) &&
+//				!IsInWordProper(ptr2, spacelessPuncts) &&
+//				!IsWhiteSpace(ptr2) &&
+//				!IsOpeningQuote(ptr2)
+//				)
+			while ((ptr2 < pEnd) && (*ptr2 != _T(']')))
+			{
+				// separate out the subtests as one of them is failing unexpectedly
+				// for the sequence  ' <sp> " -- the " didn't get thru the while test
+				bool bIsPunct = IsPunctuation(ptr2, !bTokenizingTargetText);
+				bool bItsAMarker = IsMarker(ptr2);
+				bool bItsInWord = IsInWordProper(ptr2, spacelessPuncts);
+				bool bItsWhite = IsWhiteSpace(ptr2);
+				bool bItsClosingQuote = IsClosingQuote(ptr2);
+				if ((bIsPunct && !bItsAMarker && !bItsInWord && !bItsWhite)
+					|| bItsClosingQuote)
+				{
+					ptr2++;
+					len2++;
+					bParsedSomething = TRUE;
+				}
+				else
+				{
+					break;
+				}
+				/*
 				ptr2++;
 				len2++;
 				bParsedSomething = TRUE;
+				*/
 			}
 			
 			// We broken out of the loop, so store what we have parsed so far
@@ -31328,19 +31737,25 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 				// find out what follows at the new ptr location (there might be a 
 				// further filtering to be done in the next loop iteration), then ensure
 				// there is a further iteration because we've parsed over something here
+				// BEW 8Aug17, allow a space to be preceding the filterable span; since
+				// control is within ParsePostWordStuff, there is no danger of a filterable
+				// pre-word span being handled here.
 				wxString precedingWord  = wxEmptyString;     // initialize
 				wxString precedingPunct = wxEmptyString;     // initialize
 				wxString precedingEndmarker = wxEmptyString; // initialize
+				wxString precedingSpace = wxEmptyString; // initialize
 				wxASSERT((wholeMkr != wxEmptyString) && (wholeMkr.GetChar(0) == gSFescapechar));
 				bool bWordPrecedes = WordPrecedes(ptr, precedingWord, pSrcPhrase, spacelessPuncts);
 				bool bPunctuationPrecedes = PunctuationPrecedes(ptr, precedingPunct, bTokenizingTargetText);
 				bool bEndmarkerPrecedes = EndmarkerPrecedes(ptr, precedingEndmarker);
+				bool bSpacePrecedes = SpacePrecedes(ptr, precedingSpace);
 				// The following metadata strings are from lines 16955 - 962 in OnInit() of Adapt_It.cpp
 				//strAfterWord = _T("[[after_word^^]]");
 				//strAfterEndMkr = _T("[[after_endMkr^^]]");
 				//strAfterPunct = _T("[[after_punct^^]]");
+				//strAfterSpace = _T("[[after_space^^]]");
 				//strSearchForAfter = _T("[[after_");
-				wxString afterWord, afterPunct, afterEndMkr;
+				wxString afterWord, afterPunct, afterEndMkr, afterSpace;
 				int srchOffset = wxNOT_FOUND; // initialize to -1
 				wxString srchStr = _T("^]]");
 				if (bEndmarkerPrecedes)
@@ -31367,11 +31782,19 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 					afterWord.insert((size_t)srchOffset, precedingWord);
 					// e.g. for the word finis afterWord should now be _T("[[after_word^finis^]]")
 				}
-				// Only one of the above 3 strings, afterWord, afterPunct, afterEndMkr, can have
-				// content at the point, the other two are still empty. If for some reason we can't
-				// get the needed filtering done, we'll just exit this block having done nothing
-				// and let the to-be-filtered info appear in the interlinear layout
-				if (bPunctuationPrecedes || bEndmarkerPrecedes || bWordPrecedes)
+				else if (bSpacePrecedes)
+				{
+					afterSpace = gpApp->strAfterSpace;
+					srchOffset = afterSpace.Find(srchStr);
+					wxASSERT(srchOffset > 8 && srchOffset < 16);
+					afterSpace.insert((size_t)srchOffset, precedingSpace);
+					// e.g. for space afterSpace should now be _T("[[after_space^ ^]]")
+				}
+				// Only one of the above 4 strings, afterWord, afterPunct, afterEndMkr, afterSpace,
+				// can have content at this point, the other three are still empty. If for some
+				// reason we can't get the needed filtering done, we'll just exit this block having
+				// done nothing and let the to-be-filtered info appear in the interlinear layout
+				if (bPunctuationPrecedes || bEndmarkerPrecedes || bWordPrecedes || bSpacePrecedes)
 				{
 					// Attempt the filtering and storage, and remove the span from the location
 					// of ptr, thereby achieving the filtering for the current begin marker
@@ -31380,7 +31803,14 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 					span = wxString(ptr, itemLen); // a copy of the filterable span
 
 					// Now we must prepend the relevant metadata
-					if (bPunctuationPrecedes)
+					if (bSpacePrecedes)
+					{
+						// put [[after_punct^ ^]] preceding the span, no space between
+						span = afterSpace + span;
+						temp << filterMkr << _T(' ') << span << _T(' ') << filterMkrEnd;
+						wxASSERT(!temp.IsEmpty());
+					}
+					else if (bPunctuationPrecedes)
 					{
 						// put [[after_punct^<punct char>^]] preceding the span, no space between
 						span = afterPunct + span;
@@ -31586,7 +32016,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 				len += 2;
 				ptr += 2;
 				bParsedSomething = TRUE;
-				// Get endCondition value for next iteratioi
+				// Get endCondition value for next iteration
 				endCondition = FindOutWhatIsAtPtr(ptr, pEnd, bTokenizingTargetText);
 			}
 			else
@@ -31608,7 +32038,8 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 					// we'll iterate to get it stored and ignore (but count) the
 					// unneeded whitespace before it. If a beginmarker, then we
 					// are done parsing the current word - so we then return len
-					// belonging to the next CSourcePhrase, so return len
+					// belonging to the next CSourcePhrase, so return len; unless
+					// its a to be filtered beginmarker after the space
 					if (IsEndMarker((ptr + 1), pEnd))
 					{
 						// The space at ptr is not needed, so iterate to process
@@ -31620,9 +32051,42 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 					}
 					else
 					{
-						// Must be a normal marker, such as \v or whatever, so
-						// return because it belongs on the next CSourcePhrase
-						return len;
+						// Must be a begin-marker at ptr + 1, so if filterable
+						// and to be filtered, prepare for that and iterate
+						// to get the filtering done; keep the preceding space
+						wxString strAccumulate = wxString(ptr, 1);
+						wxString wholeMkr = GetWholeMarker(ptr + 1);
+						wxString aSpace = _T(" ");
+						wholeMkr += _T(' '); // augmented, for use in gCurrentFilterMarkers
+						int offset = gpApp->gCurrentFilterMarkers.Find(wholeMkr);
+						if (offset != wxNOT_FOUND)
+						{
+							// The begin-marker is to be filtered - do that in the next iteration
+							// after getting all the preping done here
+							len = len + 1;
+							ptr = ptr + 1;
+							if (bXref_Footnote_orEndnoteStored)
+							{
+								pSrcPhrase->AddFollOuterPuncts(strAccumulate);
+							}
+							else
+							{
+								pSrcPhrase->m_follPunct += strAccumulate;
+							}
+							// The following call should return the enum value  backslashofmkr
+							// which will be handled in the switch further down
+							endCondition = FindOutWhatIsAtPtr(ptr, pEnd, bTokenizingTargetText);
+							bParsedSomething = TRUE; // and proceed to the switch much further below
+							bFilteringRequired = TRUE;
+							break;  // need this, so that the return len; is not executed below
+									// because we want the loop to iterate for doing the filtering
+						}
+						else
+						{
+							// Must be a normal marker, such as \v or whatever, so
+							// return because it belongs on the next CSourcePhrase
+							return len;
+						}
 					}
 				}
 				if (IsWhiteSpace(ptr) && *(ptr + 1) == _T(']'))
@@ -31818,6 +32282,22 @@ WordParseEndsAt	CAdapt_ItDoc::FindOutWhatIsAtPtr(wxChar* ptr, wxChar* pEnd,
 	}
 	return at; // must be unknownCharType if it is not any of the above
 }
+
+// BEW 8Aug17 need this as well as the ones below, for postword filtering
+// Note, "Space" here may be different from a latin space, for some languages
+// for example, it could be ZWSP
+bool CAdapt_ItDoc::SpacePrecedes(wxChar* pChar, wxString& precedingSpace)
+{
+	precedingSpace = wxEmptyString; // initialize
+	bool bIsWhite = IsWhiteSpace(pChar - 1);
+	if (bIsWhite)
+	{
+		precedingSpace = *(pChar - 1);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 
 // BEW 23Jan17 Helper function to support filtering in post-word position, 
 // for ParseWord2() parser within TokenizeText()

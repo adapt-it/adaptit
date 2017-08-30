@@ -4098,7 +4098,7 @@ public:
 
 public:
 
-	// BEW added, 19Jan17, the following 4 strings in support of ParseWord2()'s
+	// BEW added, 19Jan17, the following 5 strings in support of ParseWord2()'s
 	// post-word filtering of filterable markers and their content (eg. \x,  \f, \fe ...)
 	// These are used in ParsePostWordStuff() - a CAdaptItDoc member function; their
 	// values are initialized to empty strings in the app method OnInit(). ParsePostWordStuff()
@@ -4107,6 +4107,7 @@ public:
 	wxString	strAfterWord;
 	wxString	strAfterEndMkr;
 	wxString	strAfterPunct;
+	wxString    strAfterSpace;
 	wxString	strSearchForAfter;
 
 
