@@ -53124,21 +53124,140 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	ServDiscDetail result = SD_NoResultsYet;
 	m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
 	m_bShownFromServiceDiscoveryAttempt = TRUE;
-	m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames 
+	m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames
 							  // accumulates composites from service discovery
 	m_theHostnames.Clear(); // ditto
 
+    wxStandardPaths stdPaths;
+    wxString execPath = stdPaths.GetExecutablePath(); // ends with "adaptit", to be removed
+    wxString aSlash = PathSeparator;
+    wxString revStr = MakeReverse(execPath);
+    int offset = revStr.Find(aSlash);
+    revStr = revStr.Mid(offset);
+    execPath = MakeReverse(revStr);
+    wxLogDebug(_T("Executable path = %s"),execPath.c_str());
+ #if defined (__WXGTK__)
+
+	// The wxShell() way for Linux
+	// First,we need a current working directory in the running Adapt It in order to have
+	// a temporary place to store our comma-separated list of KBserver ipaddresses and
+	// hostnames in a file called KBservers_List.txt - we delete this file after extracting
+	// its data, so we need to know where it resides, though we don't care where that may
+	// be, as long as we have the absolute path to that folder determinate & stored
+	wxString tempFile = _T("kbservice_file.dat");
+	wxString resultsPath = wxEmptyString;
+	wxString resultsPathFile = _T("resultsPathFile");
+	wxString command = _T("echo `pwd` > resultsPathFile");
+	wxShell(command);
+    wxFFile rpffile(resultsPathFile); //opens for reading
+    if (rpffile.IsOpened())
+    {
+        bool bGotAll = rpffile.ReadAll(&resultsPath);
+        if (bGotAll)
+        {
+            // If successful, retain resultsPath, and close rpffile
+            // There is a newline at the end ofthe returned resultsPath
+            // so remove it before using the rest
+            resultsPath.Trim(); // whites
+            wxLogDebug(_T("Path to results: %s"), resultsPath.c_str() );
+            rpffile.Close();
+        }
+    }
+    // Make a redirecting argument string for the output of running dsb.sh in wxShell()
+    wxString redirectStr = _T(" > ") + resultsPath + PathSeparator + tempFile;
+
+    // For opening the KBservers_List.txt file, we need to add the filename to resultsPath
+    wxString resultsPath2 = resultsPath + PathSeparator + tempFile;
+
+    // While developing, this returns for execPath on Linux for a Debug build:
+    // /home/bruce/adaptit-git/bin/linux/bin/Debug/adaptit   (note, the executable is at the end)
+    // But when running after normal installation, it will/should return:
+    // /usr/bin/adaptit   (again, the adaptit at path end is the executable)
+    wxString scriptPath = execPath + _T("dsb.sh");
+    wxLogDebug(_T("Script path = %s"),scriptPath.c_str());
+
+    // Run Leon's script
+    wxShell(scriptPath + redirectStr);
+
+    bool bFileExists = FALSE;
+    bFileExists = wxFileExists(resultsPath2);
+    if (bFileExists)
+    {
+        //#ifdef _DEBUG
+        //    wxMessageBox(_T("Got some KBserver results."),_T("Success"), wxICON_INFORMATION | wxOK);
+        //#endif
+
+        // look for file of comma-separated results in user's folder
+        wxString resultsStr= wxEmptyString;
+        wxFFile ffile(resultsPath2); //opens for reading
+        if (ffile.IsOpened())
+        {
+            bool bGotAll = ffile.ReadAll(&resultsStr);
+            wxLogDebug(_T("Found these: %s"), resultsStr.c_str() ); // for logging window
+
+            #ifdef _DEBUG
+                // While developing, show the same results in the GUI, for debug version
+                wxString msg;
+                msg = msg.Format(_T("results string: %s"), resultsStr.c_str());
+                wxMessageBox(msg,_T("These...."), wxICON_INFORMATION | wxOK);
+            #endif
+
+            ffile.Close();
+        }
+        // Various other .dat files are produced along the way, which can now be
+        // dispensed with - if they exist. service_file.dat, hostname_file.dat,
+        // kbservice_file.dat which has the composite str with the @@@ delimiters,
+        // and the (temporary) resultsPathFile
+        //* remove temporarily
+        wxString kbsdat = _T("kbs.dat");
+        wxString kbsfdat = _T("kbservice_file.dat");
+        wxString rPthFile = _T("resultsPathFile");
+        wxString aPath = resultsPath + PathSeparator + kbsdat;
+        bFileExists = wxFileExists(aPath);
+        if (bFileExists)
+        {
+            wxRemoveFile(aPath); // Removes kbs.dat
+        }
+        aPath = resultsPath + PathSeparator + kbsfdat;
+        if (bFileExists)
+        {
+            wxRemoveFile(aPath); // Removes kbservice_file.dat
+        }
+        aPath = resultsPath + PathSeparator + rPthFile;
+        bFileExists = wxFileExists(aPath);
+        if (bFileExists)
+        {
+            wxRemoveFile(aPath); // Removes resultsPathFile
+        }
+    //*/
+
+
+
+
+
+// TODO the remainder of the processing of the results etc
+    }
+#else
+
+#if defined (__WXWIN__)
+
+    // TODO  - the batch file way for Windows
+
+    // When developing: C:\adaptit-git\bin\win32\Unicode Debug\Adapt_It_Unicode.exe
+
+
+#else
+    // OSX may need code here, if the __WXGTK__ block's code doesn't work for OSX
+
+#endif
+
+#endif
 
 
 
 
 
 
-
-
-
-
-	// TODO
 }
 
 // BEW ??2016 sometime, this is the old legacy wxServDisc based way, called from
