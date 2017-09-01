@@ -10014,12 +10014,13 @@ bool GetPreFirstChapterChunk(SPArray* arrP, int& startsAt, int& endsAt)
 	}
 	// loop to find the first \c, or failing that, the first \v marker -- any such
 	// CSourcePhrase instance is the first of the following section, so end at the one
-	// prior to that
-	wxString chapterMkr = _T("\\c");
-	wxString verseMkr = _T("\\v");
+	// prior to that. Include  an ASCII space after \c or \v in the match string, to
+	// prevent matching \cl or \vp or \va which are valid usfm markers but are not
+	// chapter or verse markers
+	wxString chapterMkr = _T("\\c ");
+	wxString verseMkr = _T("\\v ");
 	int offset = wxNOT_FOUND;
 	int lastSrcPhraseIndex;
-	bool bIsWhite = TRUE; // initialize
 	while (index <= endIndex)
 	{
 		pSrcPhrase = arrP->Item(index);
@@ -10027,47 +10028,17 @@ bool GetPreFirstChapterChunk(SPArray* arrP, int& startsAt, int& endsAt)
 		offset = markers.Find(chapterMkr);
 		if (offset != wxNOT_FOUND)
 		{
-			// potentially found a chapter marker; make sure it's a genuine \c marker
-			// and not a \cl or other such which does not have whitespace following
-			// the \c of the marker. Continue looping if it is not a chapter marker
-			wxChar charAfterBacklashc = markers.GetChar(offset + 2);
-			bIsWhite = gpApp->GetDocument()->IsWhiteSpace(&charAfterBacklashc);
-			if (bIsWhite)
-			{
-				// It's a genuine chapter marker
-				lastSrcPhraseIndex = index - 1;
-			}
-			else
-			{
-				// It's not a genuine chapter marker, but something else starting 
-				// with \c so continue looping
-				index++; // check the next CSourcePhrase instance for the end
-				continue;
-			}
+			// found a chapter marker
+			lastSrcPhraseIndex = index - 1;
 		}
 		else
 		{
 			offset = markers.Find(verseMkr);
 			if (offset != wxNOT_FOUND)
 			{
-				// no chapter marker, but potentially found a verse marker instead,
-				// so the milestoned material may start there - but first check
-				// that it really is a \v marker; if it is then we are at the end
-				// of any preFirstChapter material, which is at the preceding index
-				wxChar charAfterBacklashv = markers.GetChar(offset + 2);
-				bIsWhite = gpApp->GetDocument()->IsWhiteSpace(&charAfterBacklashv);
-				if (bIsWhite)
-				{
-					// it's a genuine verse marker
-					lastSrcPhraseIndex = index - 1;
-				}
-				else
-				{
-					// It's not a genuine verse marker, but something else starting 
-					// with \v so continue looping
-					index++; // check the next CSourcePhrase instance for the end
-					continue;
-				}
+				// no chapter marker, but found a verse marker instead,
+				// so the milestoned material starts here
+				lastSrcPhraseIndex = index - 1;
 			}
 			else
 			{
