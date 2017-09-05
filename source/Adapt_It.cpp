@@ -16798,6 +16798,145 @@ void CAdapt_ItApp::ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, 
     }
 }
 
+// The next function is necessary because the app storage for the composite string may have a different
+// hostname than the one just discovered, but the same ipaddress. If this is the case, we want to detect
+// the fact, and remove the one from the app storage, and replace with the one we pass in here - and then
+// in onSDNotify() neither TRANSFER nor WITHHOLD, as we are in effect just updating. (The one in the app
+// storage typically has come from an earlier session, via the project config file, when entering the
+// project to do more work in the current session.)
+//
+// BEW 16May16, a further loop needs to be added, to cope with the following scenario. I had used the login
+// from the KB Sharing Manager ( it would have also have worked the same if I'd logging in using the Setup Or
+// Remove K B Sharing dlg) to connect to https://kbserver.jmarsden.org (in California, I'm in Melbourne Australia)
+// and having got a connection, my code puts the url I manually typed into the app's m_ipAddrs_Hostnames array
+// as https://kbserver.jmarsden.org with hostname "unknown" following after a number of spaces. All good. Then
+// I had a KBserver also running on a laptop on my LAN, so I did a service discovery for that, it was found and
+// had the url https://192.168.2.9 with hostname kbserver.local. -- again, all good. Wireless connections. But
+// when, at the end of service discovery the wxMessageBox showed the results, there were three rather than two
+// lines of entry. They were as follows:
+// https://kbserver.jmarsden.org      unknown
+// https://kbserver.jmarsden.org
+// https://192.168.2.9           kbserver.local.
+// Somehow, a spurious repeat of the top entry got "found" (it didn't appear to be as the result of a lookup,
+// but only appears when I already had an existing connection to https://kbserver.jmarsden.org that was active.
+// So my second loop has to detect such a spurious entry and remove it. It would appear that I just need to match
+// the ipaddr part exactly, and remove the spurious entry before a spurious extra url can be produced.
+// BEW later, same day. Crazily, the extra spurious line https://kbserver.jmarsden.org somehow got into the
+// app's m_ipAddrs_Hostnames array as a second line, **BEFORE** UpdateExistingAppCompositeStr() gets called. I
+// have no idea how. But I'll have to build a little function that checks for this happening before
+// UpdateExistingAppCompositeStr() gets called - and remove the partiallyl duplicated bogus second line - or any
+// like that which are identical in the url, but may differ in the KBserver name.
+bool CAdapt_ItApp::UpdateExistingAppCompositeStr(wxString& ipaddr, wxString& hostname, wxString& composite)
+{
+	int count = (int)m_ipAddrs_Hostnames.GetCount();
+	bool bMadeAChange = FALSE;
+	if (count == 0)
+	{
+		// There is no issue - no strings in the app storage yet, so return FALSE
+		return FALSE;
+	}
+	else
+	{
+		int i;
+		for (i = 0; i < count; i++)
+		{
+			wxString aFarComposite = m_ipAddrs_Hostnames.Item(i);
+			// Check if it has the same ip address as was just discovered, if so we want
+			// to update by removing aFarComposite and adding composite (order change in
+			// the array does not matter) providing the passed in hostname cannot be
+			// found in aFarComposite
+			int offset = aFarComposite.Find(ipaddr);
+			if (offset != wxNOT_FOUND)
+			{
+				// There is a match for the ip address, so check further
+				offset = aFarComposite.Find(hostname);
+				if (offset == wxNOT_FOUND && !hostname.IsEmpty())
+				{
+					// The one in the app storage has a different and non-empty hostname
+					// than what was passed in here, so update the app storage to have
+					// the more uptodate hostname
+					m_ipAddrs_Hostnames.RemoveAt(i);
+					m_ipAddrs_Hostnames.Add(composite);
+					// We need to fix the m_strKbServerHostname member's value too,
+					// otherwise the problem will persist due to the wrong value
+					// being retained in the project config file
+					m_strKbServerHostname = hostname; // job done
+					// This hostname problem, because the composite strings in the app
+					// storage are unique, can only occur in one such string. If we've
+					// just fixed one, we've fixed the only possible one with this issue,
+					// so return TRUE
+					bMadeAChange = TRUE;
+				}
+				else
+				{
+					// The hostname passed in is also in the app's existing entry, so
+					// we've got the same ipaddr and same hostname, so don't change
+					// anything - don't do any replacement, but return TRUE as if we
+					// had done so (so no change gets done to the app's entry)
+					// OR
+					// The hostname passed in was empty, so nothing is to be gained
+					// by any replacement.
+					// In either case, return TRUE because then the present values
+					// passed in here will produce no change in the entry the app
+					// already is storing
+					bMadeAChange = TRUE;
+				}
+			}
+		}
+	}
+	if (bMadeAChange)
+	{
+		return TRUE; // one or more replacements done, or,
+					 // some passed in values needed not to be used
+	}
+	return FALSE; // no replacement done to any of them
+}
+
+// BEW created 5Jan16
+// This is similar to AddUniqueString(), but AddUniqueString() does
+// case or caseless compare using the global gbAutoCaps; but for
+// AddUniqueStrCase() I want to control whether the comparison is cased or
+// caseless from the signature. What prompted me to make this version is
+// for comparison of ipaddr strings in the KBserver's service discovery
+// module
+// Return TRUE if the passed in str gets Add()ed to pArrayStr, FALSE if it doesn't
+bool CAdapt_ItApp::AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase)
+{
+	int count = pArrayStr->GetCount();
+	if (count == 0)
+	{
+		pArrayStr->Add(str);
+		return TRUE;
+	}
+	else
+	{
+		int index;
+		if (!bCase)
+		{
+			// case insensitive compare
+			index = pArrayStr->Index(str, FALSE); // bCase is FALSE, so A and a
+							// are the same character (wxWidgets comparison used)
+		}
+		else
+		{
+			//case sensitive (ie. case differentiates)
+			index = pArrayStr->Index(str); // bCase is default TRUE, so A and a
+						// are different characters (wxWidgets comparison used)
+		}
+		if (index == wxNOT_FOUND)
+		{
+			// it's not in there yet, so add it
+			pArrayStr->Add(str);
+			return TRUE;
+		}
+		else
+		{
+			// it's in the array already, so ignore it
+			return FALSE;
+		}
+	}
+}
+
 /*
 // Get the https://192.168.n.m part of aLine, as far as the second colon
 wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
@@ -17010,7 +17149,7 @@ bool CAdapt_ItApp::ConnectUsingDiscoveryResults(wxString curURL, wxString& chose
                 if (chosenURL.IsEmpty())
                 {
                     // No choice at this point, his last chance to make one, dooms
-                    // the connection attamept, so treat it as a cancellation
+                    // the connection attempt, so treat it as a cancellation
                     result = SD_MultipleUrls_UserCancelled;
                     wxString message;  message = message.Format(_(
                         "You did not choose a URL. This is the same as clicking Cancel.\nKnowledge base sharing will now be turned OFF.\nYou can try again later, or ask your administrator to help you."));
@@ -53121,28 +53260,323 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 // OnDiscoverKBservers() when m_bDiscoverKBservers is TRUE
 void CAdapt_ItApp::DoDiscoverKBservers()
 {
-	// Initializations
-	ServDiscDetail result = SD_NoResultsYet;
-	m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
-	m_bShownFromServiceDiscoveryAttempt = TRUE;
-	m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames 
-							  // accumulates composites from service discovery
-	m_theHostnames.Clear(); // ditto
-
-	wxStandardPaths stdPaths;
-	wxString execPath = stdPaths.GetExecutablePath();
-	wxLogDebug(_T("Executable path = %s"), execPath.c_str());
+    // Initializations
+    ServDiscDetail result = SD_NoResultsYet;
+    m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
+    m_bShownFromServiceDiscoveryAttempt = TRUE;
+    m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames
+		       // accumulates composites from service discovery
+    m_theHostnames.Clear(); // ditto
 
 
+    wxStandardPaths stdPaths;
+    wxString execPath = stdPaths.GetExecutablePath(); // ends with "adaptit", to be removed
+    wxString aSlash = PathSeparator;
+    wxString revStr = MakeReverse(execPath);
+    int offset = revStr.Find(aSlash);
+    revStr = revStr.Mid(offset);
+    execPath = MakeReverse(revStr);
+    wxLogDebug(_T("Executable path = %s"),execPath.c_str());
+    wxString resultsStr= wxEmptyString; // a comma-separated result str from scan goes here
+
+ #if defined (__WXGTK__)
+
+	// The wxShell() way for Linux
+	// First,we need a current working directory in the running Adapt It in order to have
+	// a temporary place to store our comma-separated list of KBserver ipaddresses and
+	// hostnames in a file called KBservers_List.txt - we delete this file after extracting
+	// its data, so we need to know where it resides, though we don't care where that may
+	// be, as long as we have the absolute path to that folder determinate & stored
+	wxString tempFile = _T("kbservice_file.dat");
+	wxString resultsPath = wxEmptyString;
+	wxString resultsPathFile = _T("resultsPathFile");
+	wxString command = _T("echo `pwd` > resultsPathFile");
+	wxShell(command);
+    wxFFile rpffile(resultsPathFile); //opens for reading
+    if (rpffile.IsOpened())
+    {
+        bool bGotAll = rpffile.ReadAll(&resultsPath);
+        if (bGotAll)
+        {
+            // If successful, retain resultsPath, and close rpffile
+            // There is a newline at the end ofthe returned resultsPath
+            // so remove it before using the rest
+            resultsPath.Trim(); // whites
+            wxLogDebug(_T("Path to results: %s"), resultsPath.c_str() );
+            rpffile.Close();
+        }
+    }
+    // Make a redirecting argument string for the output of running dsb.sh in wxShell()
+    wxString redirectStr = _T(" > ") + resultsPath + PathSeparator + tempFile;
+
+    // For opening the KBservers_List.txt file, we need to add the filename to resultsPath
+    wxString resultsPath2 = resultsPath + PathSeparator + tempFile;
+
+    // While developing, this returns for execPath on Linux for a Debug build:
+    // /home/bruce/adaptit-git/bin/linux/bin/Debug/adaptit   (note, the executable is at the end)
+    // But when running after normal installation, it will/should return:
+    // /usr/bin/adaptit   (again, the adaptit at path end is the executable)
+    wxString scriptPath = execPath + _T("dsb.sh");
+    wxLogDebug(_T("Script path = %s"),scriptPath.c_str());
+
+    // Run Leon's script
+    wxShell(scriptPath + redirectStr);
+
+    bool bFileExists = FALSE;
+    bFileExists = wxFileExists(resultsPath2);
+    if (bFileExists)
+    {
+        //#ifdef _DEBUG
+        //    wxMessageBox(_T("Got some KBserver results."),_T("Success"), wxICON_INFORMATION | wxOK);
+        //#endif
+
+        // look for file of comma-separated results in user's folder
+        wxFFile ffile(resultsPath2); //opens for reading
+        if (ffile.IsOpened())
+        {
+            bool bGotAll = ffile.ReadAll(&resultsStr);
+            wxLogDebug(_T("Found these: %s"), resultsStr.c_str() ); // for logging window
+
+            #ifdef _DEBUG
+                // While developing, show the same results in the GUI, for debug version
+                wxString msg;
+                msg = msg.Format(_T("results string: %s"), resultsStr.c_str());
+                wxMessageBox(msg,_T("These...."), wxICON_INFORMATION | wxOK);
+            #endif
+
+            ffile.Close();
+        }
+        // Various other .dat files are produced along the way, which can now be
+        // dispensed with - if they exist. service_file.dat, hostname_file.dat,
+        // kbservice_file.dat which has the composite str with the @@@ delimiters,
+        // and the (temporary) resultsPathFile
+        //* remove temporarily
+        wxString kbsdat = _T("kbs.dat");
+        wxString kbsfdat = _T("kbservice_file.dat");
+        wxString rPthFile = _T("resultsPathFile");
+        wxString aPath = resultsPath + PathSeparator + kbsdat;
+        bFileExists = wxFileExists(aPath);
+        if (bFileExists)
+        {
+            wxRemoveFile(aPath); // Removes kbs.dat
+        }
+        aPath = resultsPath + PathSeparator + kbsfdat;
+        if (bFileExists)
+        {
+            wxRemoveFile(aPath); // Removes kbservice_file.dat
+        }
+        aPath = resultsPath + PathSeparator + rPthFile;
+        bFileExists = wxFileExists(aPath);
+        if (bFileExists)
+        {
+            wxRemoveFile(aPath); // Removes resultsPathFile
+        }
+    //*/
 
 
 
 
 
+// TODO the remainder of the processing of the results etc
+    }
+#else
+
+#if defined (__WXWIN__)
+
+    // TODO  - the batch file way for Windows
+
+    // When developing: C:\adaptit-git\bin\win32\Unicode Debug\Adapt_It_Unicode.exe
 
 
+#else
+    // OSX may need code here, if the __WXGTK__ block's code doesn't work for OSX
 
-	// TODO
+#endif
+
+#endif
+
+    // Having obtained one or more composite strings of form ipAddress@@@hostname, we now need to
+    // build glue code to link to the existing code for using ipaddr and hostname to be available
+    // to the user for selecting which KBserver to connect to. In the legacy CServiceDiscovery
+    // class (which I probably will later remove), the logic for this glue is in the latter
+    // class's onSDNotify() member function. I'll copy that over to here, and remove unneeded
+    // details. We'll have a local wxArrayString called m_ipAddresses_Hostnames here in
+    // DoDiscoverKBservers() which will store the one or more composites of form "ipaddr@@@hostname"
+    // resulting from the output of Leon's script dsb.sh which we have run using wxShell(). Then
+    // as in the earlier legacy logic, we need to make various checks:
+
+    // (a) An update function that renames the hostname part of an "ipaddr@@@hostname" string
+    // stored in app's m_ipAddrs_Hostnames wxArrayString (the latter must store only correct
+    // data, and no duplicates) if the app array has a hostname for a given ip address which
+    // differs from the hostname of a running KBserver with identical ip address, just scanned.
+    // If this happens, the newly scanned address/hostname pair is taken as more uptodate, and
+    // so we replace the similar one stored in m_ipAddrs_Hostnames. The function:
+    // UpdateExistingAppCompositeSr() does this job.
+
+    // (b) We have to check for uniqueness, when our scan has a certain ipAddr@@@hostname
+    // composite returned. We don't want duplicates. We don't want case mismatches in ipAddr.
+    // AddUniqueStrCase() does this job. It checks in the app member m_ipAddrs_Hostnames, and only
+    // Add()s a new (unique) ipAddr@@@hostname string to the **LOCAL** m_ipAddresses_Hostnames
+    // wxArrayString.
+
+    // (c) After (a) and (b) are done, what's in the local m_ipAddresses_Hostnames array can
+    // then safely be copied into the apps wxArrayString of similar but not identical name
+    // (that is, into m_ipAddrs_Hostnames).
+
+    // Once that data copy of (c) is done, the legacy KBserver connection support code will work
+    // without additional changes being required. Once that is all debugged and robust, the
+    // wxServDisc-based code of zeroconf can be removed from Adapt It, and we can also remove
+    // the menu item "Discover All KBservers" because Leon's scripts find one or all in a single
+    // scan, but if not so, we can do another discovery with high probability of picking up any
+    // missed in earlier scan(s). The local wxString, resultsStr, has the comma-separated
+    // single line string of form ipAddr@@@hostname,ipAddr@@@hostname, etc, from the scan
+    //wxArrayString ipAddresses_Hostnames; // the local storage
+    wxString composite; // for "ipAddr@@@hostname" as derived from the scan results
+    wxString aUrl; // for the ipAddr part of composite
+    wxString aHostname; // for the Hostname part of composite
+    wxArrayString arrNewComposites; // decomposing the comma separated scan string results
+        // may result in several ipAddr@@@hostname strings, we need to store them somewhere
+        // so here is the place
+
+    //ipAddresses_Hostnames.Clear();
+    arrNewComposites.Clear();
+    // Turn the comma-delimited string into an array of  ipaddr@@@hostname wxStrings
+    bool bHasContent = CommaDelimitedStringToArray(resultsStr, &arrNewComposites);
+    if (bHasContent)
+    {
+        size_t count = arrNewComposites.GetCount();
+        size_t index;
+        for (index = 0; index < count; index++)
+        {
+            wxString aComposite = wxEmptyString;
+            aComposite = arrNewComposites.Item(index);
+            /* remove commenting out if debugging wants to show the composite string
+            #if defined(_DEBUG)
+            wxString msg;
+            msg = msg.Format(_T("Found composite:  %s"), aComposite.c_str());
+            wxMessageBox(msg, _T("Glue code"), wxICON_INFORMATION | wxOK);
+            #endif
+            */
+            // Extract the ipAddress and Hostname string from the current composite string
+            aUrl.Empty();
+            aHostname.Empty();
+            ExtractIpAddrAndHostname(aComposite, aUrl, aHostname);  // return is void
+
+            // Next, check for two identical ipaddr with different hostnames, one stored
+            // on the app already (e.g. as read in from config file), and the other just
+            // scanned. If such is found, remove the one from the config file and replace
+            // with the one from the scan.
+            bool bReplacedOne = UpdateExistingAppCompositeStr(aUrl, aHostname, aComposite);
+            if (!bReplacedOne)
+            {
+                // No instance of same ipaddresses but different hostnames for this
+                // composite string, so no replacment of hostname was done. Go ahead
+                // with checking for no duplication of ipaddr/hostname, if none, the
+                // app's array can be added to with this entry (the composite str) because
+                // it is unique
+                bool bIsUnique = AddUniqueStrCase(&m_ipAddrs_Hostnames, aComposite,TRUE);
+                wxUnusedVar(bIsUnique); // suppress compiler warning
+                if (bIsUnique)
+                {
+                    /* Remove commenting out if GUI reporting wanted for debugging purposes
+                    #if defined(_DEBUG)
+                    wxString msg1;
+                    msg1 = msg1.Format(_T("Adding to app's m_ipAddrs_Hostnames array:  %s"), aComposite.c_str());
+                    wxMessageBox(msg, _T("Glue code"), wxICON_INFORMATION | wxOK);
+                    #endif
+                    */
+                    // Next three lines are not necessary, but do no harm
+                    aComposite.Empty();
+                    aUrl.Empty();
+                    aHostname.Empty();
+               }
+            } // end of TRUE block for test: if (!bReplacedOne)
+            else
+            {
+                // There was a replacement done, so this current composite string can
+                // now be abandoned, and the local variables cleared as preparation for
+                // the next loop iteration
+                aComposite.Empty();
+                aUrl.Empty();
+                aHostname.Empty();
+            } // end of else block for test: if (!bReplacedOne)
+
+        } // end of for loop, getting each new wxString  ipAddr@@@hostname  at each iteration
+        arrNewComposites.Clear(); // tidy up
+
+    } // end of TRUE block for test:  if (bHasContent)
+}
+
+// input : the comma-delimited string; no comma at end, and the only commas in the
+// string must be valid delimiters for the substrings
+// output : an array into which the substrings, (lacking commas) are placed, top down
+// following the left to right order of the passed in string's substrings
+// return: FALSE if str is empty, TRUE if arr ends up with one or more strings in it
+bool CAdapt_ItApp::CommaDelimitedStringToArray(wxString& str, wxArrayString* pArr)
+{
+    if (str.IsEmpty())
+    {
+        return FALSE;
+    }
+    wxString comma = _T(",");
+    wxString theStr = str; // we'll devour this as we break out each substring
+    int offset = wxNOT_FOUND;
+    // Remove any (bogus) string final commas (there should not be any, but play safe)
+    int length = theStr.Length();
+    wxChar lastChar = theStr.GetChar(length - 1);
+    while (lastChar == comma)
+    {
+        theStr = theStr.Left(length - 1);
+        length = length - 1;
+        lastChar = theStr.GetChar(length - 1);
+    }
+
+    theStr.Trim();
+    theStr.Trim(FALSE);
+
+    // Remove any (bogus) initial commas (again, there should not be any)
+    wxChar firstChar = theStr.GetChar(0);
+    while (firstChar == comma)
+    {
+        theStr = theStr.Mid(1);
+        firstChar = theStr.GetChar(0);
+    }
+
+    theStr.Trim();
+    theStr.Trim(FALSE);
+
+     if (theStr.IsEmpty())
+    {
+        return FALSE; // commas or spaces were all there were
+    }
+
+    // Now do the loop to break out and store the substrings
+    do {
+        offset = theStr.Find(comma);
+        if (offset == wxNOT_FOUND  && !theStr.IsEmpty())
+        {
+            // There is one final substring, which is what remains of theStr
+            pArr->Add(theStr);
+            theStr.Empty(); // clear out its contents, cause loop to end
+        }
+        else
+        {
+            // A comma was found, so break out and store this next substring,
+            // then delete up to  and including the comma, then iterate
+            wxString substring = theStr.Left(offset);
+            pArr->Add(substring);
+            theStr = theStr.Mid(offset + 1); // + 1 to jump over the comma
+
+            // In case there are consecutive commas, advance over any such
+            firstChar = theStr.GetChar(0);
+            while (firstChar == comma)
+            {
+                theStr = theStr.Mid(1);
+                firstChar = theStr.GetChar(0);
+            }
+        }
+    } while ( !theStr.IsEmpty() );
+    return TRUE; // tell caller we found one or more substrings
 }
 
 // BEW ??2016 sometime, this is the old legacy wxServDisc based way, called from

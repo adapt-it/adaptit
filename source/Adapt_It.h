@@ -2112,7 +2112,7 @@ class CAdapt_ItApp : public wxApp
     // time to get the _kbserver._tcp.local. service discovered. There is no GUI way to
     // change the value. However, the user can edit the value in the basic configuration
     // file directly.
-	int		m_KBserverTimer; 
+	int		m_KBserverTimer;
 
 	// Storage of username's value for the boolean flags, kbadmin, and useradmin; we store
 	// them here rather than in the KbServer class itself, because the value of these
@@ -2136,7 +2136,7 @@ class CAdapt_ItApp : public wxApp
 
 	wxString				m_SD_Message_For_Connect; // set near start of OnInit()
 	wxString				m_SD_Message_For_Discovery; // ditto
-	bool					m_bShownFromServiceDiscoveryAttempt; // TRUE if dialog shown from 
+	bool					m_bShownFromServiceDiscoveryAttempt; // TRUE if dialog shown from
 								// either Discover One KBserver or Discover All KBservers
 								// FALSE if shown from ConnectUsingServiceDiscoverResults()
 								// The boolean governs which message is displayed in the dialog
@@ -2144,7 +2144,7 @@ class CAdapt_ItApp : public wxApp
 	ServDiscDetail			m_sd_Detail;
 	ServDiscInitialDetail	m_sd_InitialDetail;
 	bool m_bUserDecisionMadeAtDiscovery; // TRUE if at the OK click there was a user
-										 // selection current, or if he clicked Cancel button. If no selection, 
+										 // selection current, or if he clicked Cancel button. If no selection,
 										 // then FALSE
 										 // The next two are used to store the url and (host)name of a discovered KBserver
 										 // from a call of either Discover One KBserver  or  Discover All KBservers
@@ -2978,7 +2978,7 @@ public:
                 // color we set with SetTextBackground(). Each call to SetTextBackground
                 // should have a prior call to SetBackgroundMode(m_backgroundMode), in
                 // which the m_backgroundMode = wxSOLID.
-                
+
 	// BEW 19Oct15 vertical edit needs some help. When fixing Seth's bug, dropping into
 	// vertical edit at the edit of the source text where the wrongly moved word intial
 	// " character gets moved to end of previous word after <space>, editing out the
@@ -2995,7 +2995,7 @@ public:
 										  // (using pRec->bGlossingModeOnEntry)
 	bool		  m_bVertEdit_SeeGlosses; // set TRUE if gbGlosingEnabled was TRUE on entry
 										  // (using pRec->bSeeGlossesEnabledAtEntry)
-										  
+
 	// source encoding as in input data, and system encoding as defined by system codepage,
 	// and the target encoding (determined by tellenc.cpp 3rd party encoding detector)
 	wxFontEncoding	m_srcEncoding;
@@ -3065,7 +3065,7 @@ public:
 	wxString m_strSpacelessTargetPuncts; // ditto
 	bool     m_bParsingSource;
 	wxString m_chapterNumber_for_ParsingSource;
-	wxString m_verseNumber_for_ParsingSource; 
+	wxString m_verseNumber_for_ParsingSource;
 	wxString m_filename_for_ParsingSource; // I think I'll call the file "Log_For_Document_Creation" (see OnInit())
 	bool     m_bSetupDocCreationLogSucceeded; // TRUE if we succeed in creating a log file ready for inserting data into
 	bool	 SetupDocCreationLog(wxString& filename);
@@ -3114,27 +3114,27 @@ private:
 	KbServer* m_pKbServer[2]; // [0] one for adapting, [1] one for glossing
 public:
 	KbServer* m_pKbServer_Persistent; // use this one from the
-			// KbSharingStatelessSetupDlg as it may need to be persistent (as  
+			// KbSharingStatelessSetupDlg as it may need to be persistent (as
 			// when the m_bKbSvrMgr_DeleteAllIsInProgress flag is TRUE) for the
 			// session, or much of the session; but when that flag is false, it
-			// would be deleted when the KB Sharing Manager gets deleted. So 
-			// we don't want either the Manager class, or the 
-			// KBSharingStatelessSetupDlg class owning this pointer. 
+			// would be deleted when the KB Sharing Manager gets deleted. So
+			// we don't want either the Manager class, or the
+			// KBSharingStatelessSetupDlg class owning this pointer.
 			// (It needs to persist when a deletion of the entries in a remote
 			// kb is being done - deleting is done one by one, so it may take
 			// anything from minutes to hours or over a day - depending on
 			// how many hundreds, or thousands of entries are to be deleted.
-			// A KBserver on the LAN, deletes about 20 a second. One on the 
+			// A KBserver on the LAN, deletes about 20 a second. One on the
 			// web with a high latency (4 secs per entry deleted) can tie up
-			// a machine for over a day!! 
+			// a machine for over a day!!
 			// I think the way to handle the problem is to create the instance
 			// in the correct active project (because a KbServer instance has a
 			// pointer to local CKB instance - but deletion doesn't use the
 			// local CKB, so we should be able to safely set that ptr to NULL)
 			// and then once the queue is populated with the entries to delete,
-			// we can have the persistent KbServer instance delete it. (But openssl 
+			// we can have the persistent KbServer instance delete it. (But openssl
 			// leaks memory from a thread, so we must do it synchronously now.)
-			// 
+			//
             // The basic sharing functionalities, however, will not use this persistent
             // KbServer instance - but rather create their KbServer instances on demand
             // (when entering a project for example, deleting when leaving the project
@@ -3145,9 +3145,9 @@ public:
 			// The KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(...event)
 			// is the ONLY place that points at this KbServer instance; the
 			// sharing Manager's other handlers will use m_pKbServer_Occasional
-	KbServer* m_pKbServer_Occasional; // As above, created in OnInit(), 
+	KbServer* m_pKbServer_Occasional; // As above, created in OnInit(),
 			// destroyed in OnExit(), but used for short term KBserver accesses
-			// such as authentications. No mutex proection needed						
+			// such as authentications. No mutex proection needed
 
 	void	  SetKbServer(int whichType, KbServer* pKbSvr);
 	KbServer* GetKbServer(int whichType); // getter for whichever m_pKbServer is current, adapting or glossing
@@ -3159,7 +3159,7 @@ public:
     bool      KbAdaptRunning(void); // True if AI is in adaptations mode and an adaptations KB server is running
     bool      KbGlossRunning(void); // True if AI is in glossing mode and a glossing KB server is running
 	// BEW added next, 26Nov15
-	bool	  ConnectUsingDiscoveryResults(wxString curURL, wxString& chosenURL, 
+	bool	  ConnectUsingDiscoveryResults(wxString curURL, wxString& chosenURL,
 								 wxString& chosenHostname, enum ServDiscDetail &result);
 	bool	  m_bServiceDiscoveryWanted; // TRUE if ConnectUsingDiscoveryResults is wanted, FALSE for manual URL entry
 										 // and don't ever store the value in any config file; default TRUE
@@ -3169,16 +3169,16 @@ public:
 	void	  ServDiscBackground(int nThreadIndex);
 	Thread_ServiceDiscovery* m_pServDiscThread[20]; // one for each run of ServDiscBackground, because now
 				// we allow each run to overlap the last a little, the only app member is this one and if
-				// we allowed a successive run to destroy the previous run's pointer, we would get access 
+				// we allowed a successive run to destroy the previous run's pointer, we would get access
 				// violations -- so each run has its own pointer
 	wxTimer   m_servDiscTimer;
 	void	  OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event));
 	void	  DoServiceDiscoverySingleRun(); // like OnServiceDiscoveryTimer() but without the timer stuff
 	void	  DoDiscoverKBservers(); // BEW 20Jul17 scan for publishing kbservers - by Leon's scripts
 	//void	  ServDiscSingleOnly();
-	int		  m_numServiceDiscoveryRuns; // I'll default it to 3 in OnInit(), but let a manual edit 
+	int		  m_numServiceDiscoveryRuns; // I'll default it to 3 in OnInit(), but let a manual edit
 										 // of basic config file change it ( range: 1 to 20)
-	int		  m_nSDRunCounter; // counts the number of times ServDiscBackground() is called 
+	int		  m_nSDRunCounter; // counts the number of times ServDiscBackground() is called
 	bool	  m_bServDiscBurstIsCurrent;
 	bool	  m_bServDiscSingleRunIsCurrent;
 	bool	  m_bAuthenticationCancellation;
@@ -3189,6 +3189,9 @@ public:
 
 	void	  ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname);
 //	wxString  ExtractURLpart(wxString& aLine);
+    bool      UpdateExistingAppCompositeStr(wxString& ipaddr, wxString& hostname, wxString& composite);
+    bool      AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase);
+    bool      CommaDelimitedStringToArray(wxString& str, wxArrayString* pArr);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
 
@@ -3218,14 +3221,14 @@ public:
 	bool m_bAdaptationsKBserverReady; // TRUE if a connection is current, to an adaptations KBserver
 	bool m_bGlossesKBserverReady; // TRUE if a connection is current, to a glosses KBserver
 	// The above didn't make it into the Linux code on git, so this will line force an update
-	
+
 	// m_bIsKBServerProject and m_bIsGlossingKBServerProject, while set from the project config
 	// file, can be cleared to FALSE at initialization of a setup, losing the values from the
 	// config file. So I've defined two new booleans which likewise are set from the project
 	// config file, but don't get cleared to FALSE anywhere, except at start of OnInit()
 	// and also potentially in the dialog shown to the user when Setup Or Remove Knowledge
 	// Base Sharing is interacted with - via it's two checkboxes (the latter, if different
-	// valued than what was gotten from earlier settings or from config file, must be obeyed). 
+	// valued than what was gotten from earlier settings or from config file, must be obeyed).
 	// This way I can, at any time, determine what the project settings for sharing the
 	// adapting and/or glossing KB actually currently are; or alter them via the
 	// KbSharingSetup instance as mentioned just above.
@@ -3290,7 +3293,7 @@ public:
 	wxString m_strSentFinalPunctsTriggerCaps; // list of sentence final punctuation characters
 				// that cause capitalization at the start of next sentence (no GUI, just a project
 				// configuration line - having content is the flag for the feature being activated
-	void	 EnsureProperCapitalization(int nCurrSequNum, wxString& tgtText); // call it, if conditions 
+	void	 EnsureProperCapitalization(int nCurrSequNum, wxString& tgtText); // call it, if conditions
 																// comply, from start of StoreText()
 	bool	 m_bSentFinalPunctsTriggerCaps; // TRUE if above string is non-empty, FALSE otherwise
 
@@ -4194,7 +4197,7 @@ public:
 	//void OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event);
 	void OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& WXUNUSED(event));
 
-    // whm added next four 20April2017 
+    // whm added next four 20April2017
     void OnAdvancedProtectEditorFmGettingChangesForThisDoc(wxCommandEvent& WXUNUSED(event));
     void OnUpdateAdvancedProtectEditorFmGettingChangesForThisDoc(wxUpdateUIEvent& event);
     void OnAdvancedAllowEditorToGetChangesForThisDoc(wxCommandEvent& WXUNUSED(event));

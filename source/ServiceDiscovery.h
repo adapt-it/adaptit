@@ -9,7 +9,7 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CServiceDiscovery class.
-/// The CServiceDiscovery class automates the detection of the service 
+/// The CServiceDiscovery class automates the detection of the service
 /// _kbserver._tcp.local. (the final period is obligatory) on the LAN.
 /// It is used in order to avoid having the user take explicit steps
 /// to determine the ipv4 address of the running service to be used
@@ -53,7 +53,7 @@
 
 class wxServDisc;
 class wxThread;
-class CAdapt_ItApp; // BEW 4Jan16 
+class CAdapt_ItApp; // BEW 4Jan16
 
 class CServiceDiscovery : public wxEvtHandler
 {
@@ -68,7 +68,7 @@ public:
 	wxServDisc* m_pWxSD; // main service scanner (a child class of this one)
 	CAdapt_ItApp* m_pParent; // BEW 4Jan16
 
-	int	m_postNotifyCount;  // count the number of Post_Notify() calls, we use it to 
+	int	m_postNotifyCount;  // count the number of Post_Notify() calls, we use it to
 							// limit one discovery run to finding one running KBserver
 							// at random from however many are currently running
 	bool m_bDestroyChildren; // When true, this CServiceDiscovery and its owning thread are eligible for shutdown
@@ -83,7 +83,7 @@ public:
 	wxString m_serviceStr;
 
 	// Two helper functions so that we don't transfer to the app data we already have there
-	bool IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
+	//bool IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16 <- deprecated
 	bool AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
 	bool UpdateExistingAppCompositeStr(wxString& ipaddr, wxString& hostname, wxString& composite);
 
