@@ -11873,7 +11873,6 @@ wxMenuBar *AIMenuBarFunc()
     item6->Append( ID_MENU_SHOW_KBSERVER_SETUP_DLG, _("Setup Or Remove &Knowledge Base Sharing..."), _("Turn ON, or OFF, the use of KBserver for KB synchronizing") );
     item6->Append( ID_MENU_SHOW_KBSERVER_DLG, _("&Controls For Knowledge Base Sharing..."), _("Controls for: Set sync interval. Bulk send/receive. Disable/Enable.") );
     item6->Append( ID_MENU_DISCOVER_KBSERVERS, _("Discover KBservers"), _("Scan to discover one or more running KBservers") );
-    item6->Append( ID_MENU_SCAN_AGAIN_KBSERVERS, _("Discover All KBservers"), _("Do a series of service discovery runs to find running KBservers") );
     item0->Append( item6, _("&Advanced") );
     
     wxMenu* item7 = new wxMenu;

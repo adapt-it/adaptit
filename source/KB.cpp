@@ -1910,10 +1910,12 @@ KbServer* CKB::GetMyKbServer()
 		}
 	}
 	// for debugging
+#if defined(_DEBUG)
 	if (pMyKbSvr == NULL)
 	{
         int break_here = 1;
 	}
+#endif
 	return pMyKbSvr;
 }
 

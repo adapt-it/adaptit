@@ -556,8 +556,8 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU (ID_MENU_SHOW_KBSERVER_SETUP_DLG,	CMainFrame::OnKBSharingSetupDlg)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_DLG, CMainFrame::OnUpdateKBSharingDlg)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
-	EVT_MENU(ID_MENU_SCAN_AGAIN_KBSERVERS,CMainFrame::OnScanForRunningKBservers)
-	EVT_UPDATE_UI(ID_MENU_SCAN_AGAIN_KBSERVERS, CMainFrame::OnUpdateScanForRunningKBservers)
+//	EVT_MENU(ID_MENU_SCAN_AGAIN_KBSERVERS,CMainFrame::OnScanForRunningKBservers)
+//	EVT_UPDATE_UI(ID_MENU_SCAN_AGAIN_KBSERVERS, CMainFrame::OnUpdateScanForRunningKBservers)
 	EVT_MENU(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnDiscoverKBservers)
 	EVT_UPDATE_UI(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnUpdateDiscoverKBservers)
 
@@ -3182,7 +3182,7 @@ void CMainFrame::OnDiscoverKBservers(wxCommandEvent& WXUNUSED(event))
 {
 	// If a discovery run is currently in operation, beep and exit without
 	// attempting a new run
-	if (gpApp->m_bServDiscSingleRunIsCurrent || gpApp->m_bServDiscSingleRunIsCurrent)
+	if (gpApp->m_bServDiscSingleRunIsCurrent)
 	{
 		wxBell();
 		return;
@@ -3198,7 +3198,6 @@ void CMainFrame::OnDiscoverKBservers(wxCommandEvent& WXUNUSED(event))
 		// This is Leon's way, using scripts
 		gpApp->DoDiscoverKBservers();
 
-		gpApp->m_bServDiscSingleRunIsCurrent = FALSE;
 		gpApp->m_bServDiscSingleRunIsCurrent = FALSE;
 	}
 	else
@@ -3228,6 +3227,7 @@ void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
+/*
 // ************** REMOVE THIS AND THE UPDATE HANDLER WHEN LEON's SOLUTION IS WORKING ***************
 void CMainFrame::OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event))
 {
@@ -3259,7 +3259,7 @@ void CMainFrame::OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event)
 	else
 		event.Enable(FALSE);
 }
-
+*/
 #endif
 
 // TODO: uncomment EVT_MENU event handler for this function after figure out
