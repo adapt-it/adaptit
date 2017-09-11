@@ -53505,6 +53505,98 @@ void CAdapt_ItApp::DoDiscoverKBservers()
         arrNewComposites.Clear(); // tidy up
 
     } // end of TRUE block for test:  if (bHasContent)
+
+    CMainFrame* pFrame = gpApp->GetMainFrame();
+	if (gpApp->m_bServDiscSingleRunIsCurrent)
+	{
+		// Use columned dialog now - from here, as in the handler is too early - i.e. using
+		// the columned dialog from the Discover One KBserver handler gets a success but the
+		// columned dlg shows nothing. So delay it to be shown here instead...
+
+		// Inform the user what the discovered inventory currently is
+		/* deprecated,
+		wxString title = _("KBservers discovered so far");
+		wxString msg = BuildUrlsAndNamesMessageString();
+		wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+		*/
+		// Initializations
+		ServDiscDetail result = SD_NoResultsYet;
+		gpApp->m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
+		gpApp->m_bShownFromServiceDiscoveryAttempt = TRUE;
+		gpApp->m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames
+								  // accumulates composites from service discovery
+		gpApp->m_theHostnames.Clear(); // ditto
+		// deconstruct the ip@@@hostname strings in m_ipAddrs_Hostnames array into
+		// the individual arrays m_theURLs and m_theHostnames so these can be
+		// displayed to the user
+		int counter = pFrame->GetUrlAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, gpApp->m_theURLs, gpApp->m_theHostnames);
+		wxUnusedVar(counter);
+
+		/*
+		#if defined(_DEBUG)
+		// Create some dummy data for display, for testing purposes
+		gpApp->m_theURLs.Add(_T("https://kbserver.jmarsden.org"));
+		gpApp->m_theHostnames.Add(_T("Jonathans_kbserver"));
+		gpApp->m_theURLs.Add(_T("https://adapt-it.org/KBserver"));
+		gpApp->m_theHostnames.Add(_T("AI-Team-KBserver"));
+		gpApp->m_theURLs.Add(_T("192.168.3.171"));
+		gpApp->m_theHostnames.Add(_T("UbuntuLaptop-kbserver"));
+		gpApp->m_theURLs.Add(_T("192.168.3.234"));
+		gpApp->m_theHostnames.Add(_T("Dell-Mini9"));
+		gpApp->m_theURLs.Add(_T("192.168.3.94"));
+		gpApp->m_theHostnames.Add(_T("kbserver-X1-Carbon"));
+		#endif
+		*/
+		// Set the app variables for chosen url and hostname, initializing
+		// to the empty string first
+		gpApp->m_chosenUrl.Empty();
+		gpApp->m_chosenHostname.Empty();
+		CServDisc_KBserversDlg dlg(pFrame, &gpApp->m_theURLs, &gpApp->m_theHostnames);
+		dlg.Center();
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			gpApp->m_chosenUrl = dlg.m_urlSelected;
+			gpApp->m_chosenHostname = dlg.m_hostnameSelected;
+
+			if (gpApp->m_chosenUrl.IsEmpty())
+			{
+				// The user made no choice (whether there were one or many found)
+				result = SD_MultipleUrls_UserChoseNone;
+			}
+			else
+			{
+				// This is the user's choice (whether there were one or many found)
+				result = SD_MultipleUrls_UserChoseOne;
+			}
+		}
+		else
+		{
+			// Cancelled
+			if (dlg.m_bUserCancelled)
+			{
+				gpApp->m_chosenUrl.Empty();
+				gpApp->m_chosenHostname.Empty();
+				result = SD_MultipleUrls_UserCancelled;
+
+				// Since the user has deliberately chosen to Cancel, and the dialog
+				// has explained what will happen, no further message is needed here
+			}
+		}
+
+		//gpApp->m_bServDiscSingleRunIsCurrent = FALSE; // allow the menu command to again be enabled
+		gpApp->m_bServDiscRunFoundNothing = FALSE; // restore default value
+
+		// BEW 20Jul17 For Leon's scripted discovery, the GUI is blocked until the scan is done,
+		// so we here reinstate the flag being cleared to FALSE
+		gpApp->m_bServDiscSingleRunIsCurrent = FALSE;
+		// BEW 20Jul17 If no kbserver is running, tell the user none was discovered
+		if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
+		{
+			wxMessageBox(_("No KBserver discovered. Ensure one is running and then try again."), wxEmptyString, wxICON_INFORMATION | wxOK);
+		}
+
+	}
+
 }
 
 // input : the comma-delimited string; no comma at end, and the only commas in the
