@@ -15756,7 +15756,8 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 # Define _KBSERVER for all builds - whm added 11Dec2015
 # Uncomment the following _KBSERVER define for version 7.x.x releases
-#AC_DEFINE(_KBSERVER)
+$as_echo "#define _KBSERVER 1" >>confdefs.h
+
 
 # Debug builds pass --debug to wx-config and define _DEBUG
 # Check whether --enable-debug was given.

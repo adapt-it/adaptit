@@ -53269,8 +53269,9 @@ void CAdapt_ItApp::DoDiscoverKBservers()
     m_theHostnames.Clear(); // ditto
 
 
-    wxStandardPaths stdPaths;
-    wxString execPath = stdPaths.GetExecutablePath(); // ends with "adaptit", to be removed
+    //wxStandardPaths stdPaths;
+    // whm modified 11Sept2017 - wxStandardPaths must use the Get() function as follows
+    wxString execPath = wxStandardPaths::Get().GetExecutablePath(); //stdPaths.GetExecutablePath(); // ends with "adaptit", to be removed
     wxString aSlash = PathSeparator;
     wxString revStr = MakeReverse(execPath);
     int offset = revStr.Find(aSlash);
