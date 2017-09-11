@@ -250,8 +250,8 @@ public:
 	void OnKBSharingSetupDlg(wxCommandEvent& event);
 	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
 	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
-	void OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event);
+//	void OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event));
+//	void OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event);
 	void OnDiscoverKBservers(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateDiscoverKBservers(wxUpdateUIEvent& event);
 	int  GetUrlAndHostnameInventory(wxArrayString& compositesArray, 

@@ -53261,7 +53261,7 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 void CAdapt_ItApp::DoDiscoverKBservers()
 {
     // Initializations
-    ServDiscDetail result = SD_NoResultsYet;
+    //ServDiscDetail result = SD_NoResultsYet;
     m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
     m_bShownFromServiceDiscoveryAttempt = TRUE;
     m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames
