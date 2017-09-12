@@ -567,7 +567,8 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_DLG, CMainFrame::OnUpdateKBSharingDlg)
 	EVT_UPDATE_UI(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnUpdateDiscoverKBservers)
-	EVT_UPDATE_UI(ID_MENU_SCAN_AGAIN_KBSERVERS, CMainFrame::OnUpdateScanForRunningKBservers)
+    // whm 11Sept2017 removed the next one since Bruce removed the ID_MENU_SCAN_AGAIN_KBSERVERS identifier from wxDesigner resources
+	//EVT_UPDATE_UI(ID_MENU_SCAN_AGAIN_KBSERVERS, CMainFrame::OnUpdateScanForRunningKBservers)
 #endif
 
 	// TODO: uncomment two event handlers below when figure out why setting tooltip time
