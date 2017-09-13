@@ -9782,9 +9782,15 @@ bool CFreeTrans::DoesItBeginAChapterOrVerse(CPile* pPile)
 {
 	wxString markers = pPile->GetSrcPhrase()->m_markers;
 	int offset;
-	wxString chapterMkr = _T("\\c");
-	wxString verseMkr = _T("\\v"); // a Find() using this will also find \vn which some branches use
-	offset = markers.Find(chapterMkr);
+    // whm 12Sept2017 modified to find _T("\\c ") with suffixed space instead of _T("\\c") to avoid false positive for any \cl marker encountered
+    // valid chapter markers within the m_markers string should contain a space following the \c part of the marker.
+    wxString chapterMkr = _T("\\c ");
+    //wxString verseMkr = _T("\\v"); // a Find() using this will also find \vn which some branches use
+    // whm 12Sept2017 modified to find _T("\\v ") with suffixed space instead of _T("\\v") to avoid false positive for any \va or \vp markers encountered
+    // valid verse markers within the m_markers string should contain a space following the \v part of the marker.
+    // We now assume that those branches that early on were using \vn (as reported in comment above) are no longer doing so. 
+    wxString verseMkr = _T("\\v "); // a Find() using this will also find \vn which some branches use
+    offset = markers.Find(chapterMkr);
 	if (offset != wxNOT_FOUND)
 	{
 		return TRUE;

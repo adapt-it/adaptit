@@ -9713,7 +9713,7 @@ _T("The verse range was parsed, and the following remains unparsed: %s\nfrom the
 // conditions are met, if not, return -1
 int GetNextNonemptyMarkers(SPArray* pArray, int& startFrom, bool& bReachedEndOfArray)
 {
-	wxString verseMkr = _T("\\v");
+	wxString verseMkr = _T("\\v"); // whm 12Sept2017 Note verseMkr is not used or referenced in this function
 	bReachedEndOfArray = FALSE;
 	int count = pArray->GetCount();
 	if (startFrom >= count)

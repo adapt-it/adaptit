@@ -268,7 +268,9 @@ bool CEarlierTranslationDlg::IsMarkedForVerse(CSourcePhrase* pSrcPhrase)
 			for ( int n = 0; n < count; n++ )
 			{
 				str = pList->Item(n);
-				if (str.Find(_T("\\v")) >= 0)
+                // whm 12Sept2017 modified to find _T("\\v ") with suffixed space instead of _T("\\v") to avoid false positive for any \va or \vp markers encountered
+                // As far as I can tell, the m_pMedialMarkers string should contain verse marker strings containing a space following the \v part of the marker.
+                if (str.Find(_T("\\v ")) >= 0)
 				{
 					// we have found a verse marker
 					return TRUE;
@@ -280,7 +282,9 @@ bool CEarlierTranslationDlg::IsMarkedForVerse(CSourcePhrase* pSrcPhrase)
 	else
 	{
 		// contains word or phrase initial markers
-		if (pSrcPhrase->m_markers.Find(_T("\\v")) < 0)
+        // whm 12Sept2017 modified to find _T("\\v ") with suffixed space instead of _T("\\v") to avoid false positive for any \va or \vp markers encountered
+        // As far as I can tell, the m_markers string should contain verse marker strings containing a space following the \v part of the marker.
+        if (pSrcPhrase->m_markers.Find(_T("\\v ")) < 0)
 		{
 			// no verse marker in the string
 			return FALSE;

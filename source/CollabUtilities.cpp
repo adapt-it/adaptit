@@ -212,17 +212,19 @@ extern bool gbDoingInitialSetup;
 	wxASSERT(pCollabInfo != NULL);
 	wxString chMkr;
 	wxString vsMkr;
-	if (pCollabInfo != NULL)
-	{
-		chMkr = _T("\\") + pCollabInfo->chapterMarker;
-		vsMkr = _T("\\") + pCollabInfo->verseMarker;
-	}
-	else
-	{
-		chMkr = _T("\\c");
-		vsMkr = _T("\\v");
-	}
-	// Check if the book lacks a \c (as might Philemon, 2 John, 3 John and Jude).
+    // whm 12Sept2017 modified chMrk and vsMkr forms below to have a space suffixed so that actual verse and chapter makers are
+    // distinguished from markers like \cl, \va, \vp
+    if (pCollabInfo != NULL)
+    {
+        chMkr = _T("\\") + pCollabInfo->chapterMarker + _T(" "); // include suffixed space char
+        vsMkr = _T("\\") + pCollabInfo->verseMarker + _T(" "); // include suffixed space char
+    }
+    else
+    {
+        chMkr = _T("\\c "); // include suffixed space char
+        vsMkr = _T("\\v "); // include suffixed space char
+    }
+    // Check if the book lacks a \c (as might Philemon, 2 John, 3 John and Jude).
 	// If the book has no chapter we give the chapterArray a chapter 1 and indicate
 	// the status of that chapter.
 	for (ct = 0; ct < tot; ct++)
@@ -401,15 +403,17 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 	wxASSERT(pCollabInfo != NULL);
 	wxString chMkr;
 	wxString vsMkr;
+    // whm 12Sept2017 modified chMrk and vsMkr forms below to have a space suffixed so that actual verse and chapter makers are
+    // distinguished from markers like \cl, \va, \vp
 	if (pCollabInfo != NULL)
 	{
-		chMkr = _T("\\") + pCollabInfo->chapterMarker;
-		vsMkr = _T("\\") + pCollabInfo->verseMarker;
+		chMkr = _T("\\") + pCollabInfo->chapterMarker + _T(" "); // include suffixed space char
+		vsMkr = _T("\\") + pCollabInfo->verseMarker + _T(" "); // include suffixed space char
 	}
 	else
 	{
-		chMkr = _T("\\c");
-		vsMkr = _T("\\v");
+		chMkr = _T("\\c "); // include suffixed space char
+		vsMkr = _T("\\v "); // include suffixed space char
 	}
 
 	if (indexOfChItem == -1)
@@ -5381,11 +5385,15 @@ bool GetNextVerseLine(const wxArrayString& usfmText, int& index, bool bOrTestFor
 	while (index < totLines)
 	{
 		wxString testingStr = usfmText.Item(index);
-		if (testingStr.Find(_T("\\v")) != wxNOT_FOUND)
+        // whm 12Sept2017 modified to find _T("\\v ") with suffixed space instead of _T("\\v") to avoid false positive for any \va or \vp markers encountered
+        // As far as I can tell, the usfmText string array elements should contain verse marker strings containing a space following the \v part of the marker.
+        if (testingStr.Find(_T("\\v ")) != wxNOT_FOUND)
 		{
 			return TRUE;
 		}
-		else if (bOrTestForChapterLine && (testingStr.Find(_T("\\c")) != wxNOT_FOUND))
+        // whm 12Sept2017 modified to find _T("\\c ") with suffixed space instead of _T("\\c") to avoid false positive for any \cl marker encountered
+        // As far as I can tell, the usfmText string array elements should contain chapter marker strings containing a space following the \c part of the marker.
+        else if (bOrTestForChapterLine && (testingStr.Find(_T("\\c ")) != wxNOT_FOUND))
 		{
 			return TRUE;
 		}
@@ -5418,7 +5426,9 @@ bool GetAnotherVerseOrChapterLine(const wxArrayString& usfmText, int& index, wxS
 		{
 			return TRUE;
 		}
-		else if (testingStr.Find(_T("\\v")) != wxNOT_FOUND)
+        // whm 12Sept2017 modified to find _T("\\v ") with suffixed space instead of _T("\\v") to avoid false positive for any \va or \vp markers encountered
+        // As far as I can tell, the usfmText string array elements should contain verse marker strings containing a space following the \v part of the marker.
+        else if (testingStr.Find(_T("\\v ")) != wxNOT_FOUND)
 		{
 			return TRUE;
 		}
@@ -5437,7 +5447,9 @@ bool IsVerseLine(const wxArrayString& usfmText, int index)
 	wxASSERT(index < totLines);
 	if (index < totLines)
 	{
-		return ((usfmText.Item(index)).Find(_T("\\v")) != wxNOT_FOUND);
+        // whm 12Sept2017 modified to find _T("\\v ") with suffixed space instead of _T("\\v") to avoid false positive for any \va or \vp markers encountered
+        // As far as I can tell, the usfmText string array elements should contain verse marker strings containing a space following the \v part of the marker.
+        return ((usfmText.Item(index)).Find(_T("\\v ")) != wxNOT_FOUND);
 	}
 	else
 	{
@@ -5452,7 +5464,10 @@ bool IsChapterLine(const wxArrayString& usfmText, int index, wxString& chapterSt
 	wxASSERT(index < totLines);
 	if (index < totLines)
 	{
-		if ((usfmText.Item(index)).Find(_T("\\c")) != wxNOT_FOUND)
+        // whm 12Sept2017 modified to find _T("\\c ") with suffixed space instead of _T("\\c") to avoid false positive for any \cl marker encountered
+        // verified that the GetNumberFromChapterOrVerseStr() function below handles parsing of the number string OK. It actually will issue an assert
+        // if there is no space after the verseStr passed to it.
+		if ((usfmText.Item(index)).Find(_T("\\c ")) != wxNOT_FOUND)
 		{
 			chapterStr = GetNumberFromChapterOrVerseStr(usfmText.Item(index));
 			return TRUE;
@@ -5668,6 +5683,8 @@ bool DoVerseAnalysis(VerseAnalysis& refVAnal, const wxArrayString& md5Array, siz
 	wxString lineStr = md5Array.Item(lineIndex);
 	// test we really do have a line beginning with a verse marker
 	wxString mkr = GetStrictUsfmMarkerFromStructExtentString(lineStr);
+    // whm 12Sept2017 no modifications made here as it appears that the GetStrictUsfmMarkerFromStructExtentString() function above
+    // returns a base verse marker without any possibility of there being a following space. 
 	if (mkr != _T("\\v") || mkr != _T("\\vn"))
 	{
 		// don't expect the error, a message to developer will do

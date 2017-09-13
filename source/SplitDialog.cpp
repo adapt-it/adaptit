@@ -734,7 +734,7 @@ bool CSplitDialog::CurrentDocSpansMoreThanOneChapter()
 {
 	/*
 	  Algorithm :
-		Assume that the number of chapters equals the number of "\\c" markers.
+		Assume that the number of chapters equals the number of "\\c " markers.
 	*/
 
 	int cChapters = 0;

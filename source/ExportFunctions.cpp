@@ -12449,6 +12449,7 @@ int ParseFootnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 
 		// If we are pointing at a marker other than a footnote content marker, or pointing at a
 		// verse marker or any paragraph marker other than \f*
+        // whm 12Sept2017 no modification of verse marker below as GetWholeMarker() above returns wholeMkr without suffixed space
 		if ((wholeMkrUpperCase.Find(_T('F')) != 1
 			&& bIsAParagraphStyle) || wholeMkr == _T("\\v")
 			|| (gpApp->gCurrentSfmSet != PngOnly && wholeMkr == _T("\\fe")))
@@ -12557,7 +12558,8 @@ int ParseEndnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 
 		// If we are pointing at a marker other than a endnote content marker, or pointing at a
 		// verse marker or any paragraph marker other than \fe*
-		if ((wholeMkrUpperCase.Find(_T('F')) != 1
+        // whm 12Sept2017 no modification of verse marker below as GetWholeMarker() above returns wholeMkr without suffixed space
+        if ((wholeMkrUpperCase.Find(_T('F')) != 1
 			&& bIsAParagraphStyle) || (wholeMkr == _T("\\v")))
 		{
 			// we encountered a verse marker or a non-endnote paragraph marker. In
@@ -12668,7 +12670,8 @@ int ParseCrossRef(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 
 		// If we are pointing at a marker other than a crossref content marker, or pointing at a
 		// verse marker or any paragraph marker other than \x*
-		if ((wholeMkrUpperCase.Find(_T('X')) != 1
+        // whm 12Sept2017 no modification of verse marker below as GetWholeMarker() above returns wholeMkr without suffixed space
+        if ((wholeMkrUpperCase.Find(_T('X')) != 1
 			&& bIsAParagraphStyle) || (wholeMkr == _T("\\v")))
 		{
 			// we encountered a verse marker or a non-crossref paragraph marker. In
@@ -16116,7 +16119,7 @@ void BuildRTFStyleTagString(USFMAnalysis* pSfm, wxString& Sdef, wxString& Sindoc
 		AddAnyCharEnhancements(tempSdef,pSfm);
 
 		// Word adds the hidden attribute right after the char enhancements so we'll do the same
-		tempSdef += _T("\\v");
+		tempSdef += _T("\\v"); // whm 12Sept2017 note: this is not a verse marker but a RTF hidden attribute
 
 		tempSdef += outputFontStr; // already has backslash
 		AddAnyFontSizeColor(tempSdef,pSfm, colorTblIndxStr);
