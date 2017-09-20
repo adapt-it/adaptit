@@ -626,8 +626,12 @@ wxString AbbreviateColonSeparatedVerses(const wxString str)
 			// the token is a bridged verse number string, i.e., 2-3
 			// or has an unrecognized non-digit char in it, so we let
 			// it stand by itself in the abbriviated tempStr
-			tempStr += _T(", ") + aToken;
-			bBridgingVerses = FALSE;
+            // whm 20Sept2017 modified to fix logic. If bBridgingVerses is TRUE,
+            // we need to close off the current bridge before adding this token's bridge
+            tempStr += _T('-');
+            tempStr << lastVerseValue;
+            tempStr += _T(", ") + aToken;
+            bBridgingVerses = FALSE;
 		}
 		else
 		{
@@ -671,6 +675,10 @@ wxString AbbreviateColonSeparatedVerses(const wxString str)
 	return tempStr;
 }
 
+/*
+// whm 20Sept2017 The following function had faulty logic. I've changed the
+// code that called this function to use clear logic, so this function is
+// fautly and now unused.
 bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr)
 {
 	// whm 18Jul12 moved from GetSourceTextFromEditor sources to helpers.
@@ -680,7 +688,9 @@ bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr)
 	// determine whether the empty verse range includes all verses of the chapter
 	// or not, we parse the incoming emptyVersesStr to see if it is of the later
 	// "1-29" form. There will be a single '-' character and no comma delimiters.
-	wxASSERT(!emptyVersesStr.IsEmpty());
+    // The caller ensures that the incoming emptyVersesStr will NOT be an empty 
+    // string.
+    wxASSERT(!emptyVersesStr.IsEmpty());
 	bool bAllVersesAreEmpty = FALSE;
 	wxString tempStr = emptyVersesStr;
 	// whm modified 6Feb12 to correct the situation where a range such as 2-47 was
@@ -709,15 +719,17 @@ bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr)
 	}
 	// Just to be sure do another test to ensure there is a '-' and only one '-'
 	// in the string.
-	if (tempStr.Find('-') != wxNOT_FOUND && tempStr.Find('-',FALSE) == tempStr.Find('-',TRUE))
-	{
-		// the position of '-' in the string is the same whether
-		// determined from the left end or the right end of the string
-		bAllVersesAreEmpty = TRUE;
-	}
+    // whm 20Sept2017removed following test. Its logic is flawed. Test is not needed
+	//if (tempStr.Find('-') != wxNOT_FOUND && tempStr.Find('-',FALSE) == tempStr.Find('-',TRUE))
+	//{
+	//	// the position of '-' in the string is the same whether
+	//	// determined from the left end or the right end of the string
+	//	bAllVersesAreEmpty = TRUE;
+	//}
 
 	return bAllVersesAreEmpty;
 }
+*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return             the extracted substring

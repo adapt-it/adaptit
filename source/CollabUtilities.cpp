@@ -612,9 +612,12 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 		// chapter, including the possibility that all verses have content.
 		// Return the results to the caller via emptyVersesStr parameter and the
 		// function's return value.
-		emptyVersesStr = AbbreviateColonSeparatedVerses(emptyVersesStr);
-		if (EmptyVerseRangeIncludesAllVersesOfChapter(emptyVersesStr))
-		{
+		emptyVersesStr = AbbreviateColonSeparatedVerses(emptyVersesStr); // continue to abbreviate for emptyVersesStr
+        //if (EmptyVerseRangeIncludesAllVersesOfChapter(emptyVersesStr))
+        // whm 20Sept2017 changed logic to just check value of nVersesWithContent == 0. 
+        // No longer need the flawed EmptyVerseRangeIncludesAllVersesOfChapter() function
+        if (nVersesWithContent == 0)
+        {
 			if (cTextType == collabTgtText)
 				statusStr = statusStr.Format(_("No translations (no verses of a total of %d have translation text yet)"),nLastVerseNumber);
 			else if (cTextType == collabFreeTransText)
