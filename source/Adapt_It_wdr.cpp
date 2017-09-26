@@ -4581,7 +4581,7 @@ wxSizer *JoinDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item18->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item22 = new wxStaticText( parent, IDC_STATIC_JOINING_WAIT, _("Joining...  Please wait."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item22 = new wxStaticText( parent, IDC_STATIC_JOINING_WAIT, _("Joining...  Please wait."), wxDefaultPosition, wxSize(200,-1), 0 );
     item18->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item18->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
