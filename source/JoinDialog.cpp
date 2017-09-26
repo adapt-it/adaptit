@@ -534,14 +534,40 @@ void CJoinDialog::InitialiseLists()
 	// an *.xml file which has identical content -- it is the latter we enumerate) and also note
 	// the result could be an empty m_acceptedFilesList, but have the caller of EnumerateDocFiles
 	// check it for no entries in the list
+	//
+	// BEW 26Sep17 Need an analysis operation here, to determine which docs have a bookID. The
+	// The code changes made in 2014 are too restrictive - they assume every document will have
+	// a book  ID (such as MAT MRK LUK JHN etc). Then this is not the case, the list may be
+	// partly filled, or empty - in such cases we will want all available documents in the
+	// list like the legacy code, and the user can choose which ones to join. The loop is to be
+	// augmented with code to check for the bookID in each file, and set a count of how 
+	// many have an ID and how many do not. These numbers then govern how we process to fill the list
+	int numDocsWithBookID  = 0;
+	int numDocsTotal = 0;
+	int numDocsWithoutBookID = 0;
+
 	gpApp->GetPossibleAdaptionDocuments(&files, gpApp->GetCurrentDocFolderPath());
 	wxString nextDoc;
 	int ct;
+	numDocsTotal = (int)files.GetCount(); // BEW added 26Sep17
 	for (ct = 0; ct < (int)files.GetCount(); ct++)
 	{
 		nextDoc = files.Item(ct);
 		pAcceptedFiles->Append(nextDoc);
+
+		// BEW 26Sep17 Code additions put here, for setting the 3 ints above
+		wxString pathAndName = gpApp->GetCurrentDocFolderPath() + gpApp->PathSeparator + nextDoc;
+		wxString theBookCode = gpApp->GetBookCodeFastFromDiskFile(pathAndName);
+		if (theBookCode.IsEmpty())
+		{ 
+			numDocsWithBookID++;
+		}
+		else
+		{
+			numDocsWithoutBookID++;
+		}
 	}
+	wxASSERT(numDocsTotal == numDocsWithBookID + numDocsWithoutBookID);
 	
 	// Remove the current document from the file list.
 	CurrentDocFileName = gpApp->GetCurrentDocFileName();
@@ -560,38 +586,47 @@ void CJoinDialog::InitialiseLists()
 	// the one stored in the member, bookID (and we won't even put these rejects in the
 	// pRejectedFiles list, because then the user could override this sensible protection
 	// from joining the wrong things together)
-	if (!bookID.IsEmpty() && pAcceptedFiles->GetCount() > 0)
+	//
+	// BEW 26Sep17, only do the following block provided numDocsTotal == numDocsWithBookID
+	// because that is the only circumstance whereby we can be certain that all the wanted
+	// chapters for a given book are probably going to be present ("probably" because we
+	// can't prevent the user from manually earlier deleting one or more documents that
+	// should not be deleted)
+	if (numDocsTotal == numDocsWithBookID)
 	{
-		bool bRemovedAForeigner;
-		int index = 0;
-		size_t count = pAcceptedFiles->GetCount();
-		do {
-			bRemovedAForeigner = FALSE;
-			for (index = 0; index < (int)count; index++)
-			{
-				wxString pathAndName = gpApp->GetCurrentDocFolderPath() + gpApp->PathSeparator + 
-										pAcceptedFiles->GetString(index);
+		if (!bookID.IsEmpty() && pAcceptedFiles->GetCount() > 0)
+		{
+			bool bRemovedAForeigner;
+			int index = 0;
+			size_t count = pAcceptedFiles->GetCount();
+			do {
+				bRemovedAForeigner = FALSE;
+				for (index = 0; index < (int)count; index++)
+				{
+					wxString pathAndName = gpApp->GetCurrentDocFolderPath() + gpApp->PathSeparator +
+						pAcceptedFiles->GetString(index);
 
-				wxString theBookCode = gpApp->GetBookCodeFastFromDiskFile(pathAndName);
-				if (bookID != theBookCode)
-				{
-					// Reject this list item - delete it from the list
-					pAcceptedFiles->Delete(index);
-					bRemovedAForeigner = TRUE; // we need to iterate the outer loop
-						// in order to try find another which is to be rejected
-					break;
-				}
-				else
-				{
-					// This one is kosher for joining to the currently open document,
-					// so iterate this inner loop
-					;
-				}
-			} // end of for loop
-			// Update the count of list items
-			count = pAcceptedFiles->GetCount();
-		} while (bRemovedAForeigner == TRUE && count > 0);
-	}
+					wxString theBookCode = gpApp->GetBookCodeFastFromDiskFile(pathAndName);
+					if (bookID != theBookCode)
+					{
+						// Reject this list item - delete it from the list
+						pAcceptedFiles->Delete(index);
+						bRemovedAForeigner = TRUE; // we need to iterate the outer loop
+							// in order to try find another which is to be rejected
+						break;
+					}
+					else
+					{
+						// This one is kosher for joining to the currently open document,
+						// so iterate this inner loop
+						;
+					}
+				} // end of for loop
+				// Update the count of list items
+				count = pAcceptedFiles->GetCount();
+			} while (bRemovedAForeigner == TRUE && count > 0);
+		}
+	} // end of TRUE block for test: if (numDocsTotal == numDocsWithBookID)
 
 	ListContentsOrSelectionChanged();
 }
