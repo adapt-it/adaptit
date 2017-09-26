@@ -45,6 +45,7 @@
 #include "Adapt_ItCanvas.h"
 #include "Pile.h"
 #include "helpers.h"
+#include "WaitDlg.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
