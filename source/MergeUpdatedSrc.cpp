@@ -2997,6 +2997,18 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 	{
 		gpApp->GetDocument()->UpdateSequNumbers(initialSequNum, pMergedList);
 
+		// BEW 27Sep17 - removed this call, it was producing a lot of bogus/unwanted 
+		// removals of perfectly good target text retranslations in the Kyaka Enga EPHesians
+		// collaboration with PT8. Good single-word retranslations, with tgt or tgt empty,
+		// were having the tgt text cleared. And at one place at least, a series of retranslations
+		// were not handled properly and the call failed due to a nullptr error. So better
+		// to just not have this call. I checked the first 8 instances of bogus removals,
+		// these were in the 1:1 to 2:10 range of Ephesians, so there would have been heaps
+		// more later, but I gave up looking for them all. No point, because the call is just
+		// producing unnoticed data errors in the merging of Paratext's source with the AI
+		// document for Ephesians. Better to just let any problems with the retranslation
+		// flags in a SrcPhrase pass through as-is. Commenting it out fixed all the errors.
+		/*
         // Call an adjustment helper function which looks for retranslation spans that were
         // partially truncated (at their beginning and/or at their ending), and removes the
         // adaptations in the remainder fragments of such retranslation trucated spans,
@@ -3004,6 +3016,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
         // of a retranslation, does any transfers of ending puncts and/or inline markers
         // back to the last non-placeholder instance
 		EraseAdaptationsFromRetranslationTruncations(pMergedList);
+		*/
 	}
 #if defined(_DEBUG) && defined(MERGE_Recursively)
 	wxLogDebug(_T("in MergeRecursively() after EraseAdaptationsFromRetranslationTruncations(pMergedList): pMergedList->GetCount() = %d"),
