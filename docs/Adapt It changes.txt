@@ -18,6 +18,9 @@ Bug fixes in 6.8.3 release
 if the \x*of a cross-reference which is to be filtered, was absent.
 * Fixed a bug in collaboration which would declare that the last chapter
 of a book has no content, when in fact it has.
+* Fixed a collaboration bug when the user makes single-word retranslations;
+the target text of these was being wrongly removed from the data being
+merged in from Paratext's source text within the collaboration.
 
 
 Version 6.8.3 release 11 May 2017
