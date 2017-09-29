@@ -2243,13 +2243,34 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
     // BEW addition 21Jul14, We are now thru all the checks, so since we are about to go
     // ahead, copy the m_srcWordBreak to m_tgtWordBreak for each CSourcePhrase in the list,
     // as the m_tgtWordBreak contents are used for forming the editable adaptation
+	//
+	// BEW 28Sep17 set the two new member variables by adding a bit of extra code here
 	size_t index;
 	size_t count = pList->GetCount();
+	// Since we are now guaranteed that pList contains only CSourcePhrase instances storing
+	// a single word on each, we can reliably determine whether or not to set them; first
+	// initialize them to 0 and FALSE, then change them if the first CSourcePhrase was
+	// the only one selected
+	m_pFirstSrcPhrase = NULL;
+	m_bSourceIsASingleWord = FALSE;
+	if (count == 1)
+	{
+		m_bSourceIsASingleWord = TRUE;
+	}
+	bool bIsFirst = TRUE;
 	for (index = 0; index < count; index++)
 	{
 		SPList::Node* pos = pList->Item(index);
 		CSourcePhrase* pSPhr = (CSourcePhrase*)pos->GetData();
 		wxASSERT(pSPhr != NULL);
+		// BEW 28Sep17 addition
+		if (bIsFirst && m_bSourceIsASingleWord)
+		{
+			m_pFirstSrcPhrase = pSPhr;
+			bIsFirst = FALSE;
+		}
+		// end of 28Sep17 addition
+
 		pSPhr->SetTgtWordBreak(pSPhr->GetSrcWordBreak());
 		if (index == count - 1)
 		{
@@ -2402,6 +2423,16 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		int nFinish = -1; // it gets set to a correct value in the following call
 		BuildRetranslationSourcePhraseInstances(pRetransList,nSaveSequNum,nNewCount,
 												nCount,nFinish);
+
+		// BEW 28Sep17 complete the logic for ensuring m_bEndRetranslation is set for
+		// a single source text word with empty translation or single word translation
+		// (This is a hack, probably I should refactor BuildRetranslationSourcePhraseInstances()
+		// because that is where the retranslation flags get set, but the following should suffice
+		if (m_bSourceIsASingleWord && (m_pFirstSrcPhrase != NULL) && (retrans.IsEmpty() || nNewCount == 1))
+		{
+			m_pFirstSrcPhrase->m_bEndRetranslation = TRUE;
+		}
+
         // delete the temporary list and delete the pointers to the CSourcePhrase
         // instances on the heap
 		m_pView->DeleteTempList(pRetransList);
@@ -2765,7 +2796,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	// instances will have content in their m_tgtWordBreak wxString member - we must not
 	// clobber these members' contents until we have finished using them to reconstitute
 	// the target text which is to be edited in the dialog
-	
+
 	// Work out where the last non-placeholder CSourcePhrase in the retranslation is - we
 	// will copy it's m_srcWordBreak to the member m_lastNonPlaceholderSrcWordBreak, so that
 	// it can be copied to both m_srcWordBreak and m_tgtWordBreak of any padding
@@ -3127,20 +3158,55 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			if (bActiveLocWithinSelection && nNewCount > nCount)
 				nSaveActiveSequNum += nNewCount - nCount;
 		}
-		m_pApp->m_nActiveSequNum = nSaveActiveSequNum;
 
 		// get a new valid starting pile pointer
 		pStartingPile = m_pView->GetPile(nSaveSequNum);
 		wxASSERT(pStartingPile != NULL);
 
+		// BEW 28Sep17, support m_bEndRetranslationvbeing set when src & tgt are just
+		// single words, or src is single and tgt is empty
+		int aCount = pRetransList->GetCount(); // it's a count of source text words too
+		m_bSourceIsASingleWord = FALSE; // initialize
+		m_pFirstSrcPhrase = NULL; // initialize
+		if (aCount == 1)
+		{
+			m_bSourceIsASingleWord = TRUE;
+			m_pFirstSrcPhrase = pStartingPile->GetSrcPhrase();
+		}
+
+		// m_pApp->m_nActiveSequNum = nSaveActiveSequNum; Commented out BEW 29Sep17 because
+		// it sets the active pile sequ num in **anticipation* of what it will be *AFTER*
+		// PadWithNullSourcePhrasesAtEnd() needs to do - but the latter call needs the
+		// pre-padding active location's sequ number, and so we'd generate an incorrect
+		// active value. Historically, this has not been a problem because our documents
+		// are large - but if the document has a one-src-word retranslation followed by
+		// a second word which is at the end of the document, then the sequ number that
+		// gets gnerated for the active location is 1 greater than there are CSourcePhrase
+		// instances in the doc - leading to a crash. So relocate this line to after the
+		// Pad... call, so that it brings the active sequ num value into line with what
+		// the Pad call does internally
+
 		// determine if we need extra null source phrases inserted, and insert them if we do
 		PadWithNullSourcePhrasesAtEnd(pDoc,pSrcPhrases,nEndSequNum,nNewCount,nCount);
+
+		m_pApp->m_nActiveSequNum = nSaveActiveSequNum; //BEW 29Sep17 relocated this line from
+				// being preceing the Padd...() call. See comment above for reason
 
 		// copy the retranslation's words, one per source phrase, to the constituted sequence of
 		// source phrases (including any null ones) which are to display it
 		int nFinish = -1; // it gets set to a correct value in the following call
 		BuildRetranslationSourcePhraseInstances(pRetransList,nSaveSequNum,nNewCount,
 												nCount,nFinish);
+
+		// BEW 28Sep17 complete the logic for ensuring m_bEndRetranslation is set for
+		// a single source text word with empty translation or single word translation
+		// (This is a hack, probably I should refactor BuildRetranslationSourcePhraseInstances()
+		// because that is where the retranslation flags get set, but the following should suffice
+		if (m_bSourceIsASingleWord && (m_pFirstSrcPhrase != NULL) && (retrans.IsEmpty() || nNewCount == 1))
+		{
+			m_pFirstSrcPhrase->m_bEndRetranslation = TRUE;
+		}
+
         // delete the temporary list and delete the pointers to the CSourcePhrase instances
         // on the heap
 		m_pView->DeleteTempList(pRetransList);

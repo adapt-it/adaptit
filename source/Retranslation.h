@@ -115,6 +115,13 @@ private:
 	CAdapt_ItApp*	m_pApp;	// The app owns this
 	CLayout*		m_pLayout;
 	CAdapt_ItView*	m_pView;
+
+	// BEW added 28Sep17, the next two - to ensure a single word selection with empty tgt or
+	// a single word target, gets the m_bEndRetranslation flag set. Up to this time, it has
+	// not been so. The one CSourcePhrase in this  scenario is both the beginning one of the
+	// retranslation, and the ending one
+	CSourcePhrase* m_pFirstSrcPhrase;
+	bool m_bSourceIsASingleWord;
 	
 	// deglobalified globals
 	bool m_bIsRetranslationCurrent;		// set TRUE when retranslating or editing same, used to 
