@@ -7,12 +7,12 @@ Feature changes and new features in 6.8.4
 the Join Dialog being partially empty, or totally empty. Now, if every
 adapted document contains a book ID (e.g. MAT, or MRK, or LUK etc)
 then the list will contain just the chapters of the currently open book ID
-for the chapter 1 document; otherwise, all document available will be
+for the chapter 1 document; otherwise, all documents available will be
 displayed in the list - which gives the user more work to do to get
 just the ones he or she wants. Compiling the list takes longer, so please wait.
 
 ---------------------------------------------
-Bug fixes in 6.8.3 release
+Bug fixes in 6.8.4 release
 ----------------------------------------------
 * Fixed an export bug in which the export would be truncated, or partly lost,
 if the \x*of a cross-reference which is to be filtered, was absent.
@@ -21,8 +21,14 @@ of a book has no content, when in fact it has.
 * Fixed a collaboration bug when the user makes single-word retranslations;
 the target text of these was being wrongly removed from the data being
 merged in from Paratext's source text within the collaboration.
+* Fixed a logic error in the handlers for making a retranslation, or editing
+a retranslation, which failed to indicated where the retranslation ended.
+* Fixed a bug in the handler for editing a retranslation which caused a
+a program crash when editing a retranslation involving one source text
+word, and there was only one later word in the document (that is, the
+document source text only had two words, and the first was a retranslation).
 
-
+-----------------------------------------------
 Version 6.8.3 release 11 May 2017
 ----------------------------------------------
 Feature changes and new features in 6.8.3 

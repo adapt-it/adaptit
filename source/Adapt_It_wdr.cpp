@@ -11362,7 +11362,7 @@ wxSizer *GitInstallOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     item12->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL, _("This option installs Git using a previously downloaded Git installer. Git can be installed this way without accesing the Internet."), wxDefaultPosition, wxSize(520,40), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL, _("This option installs Git using a previously downloaded Git installer. Git can be installed this way without accessing the Internet."), wxDefaultPosition, wxSize(520,40), wxTE_MULTILINE|wxTE_READONLY );
     item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );

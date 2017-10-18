@@ -9923,6 +9923,10 @@ int CAdapt_ItDoc::ParseWhiteSpace(wxChar *pChar)
 /// BEW 9Sep10 removed need for param pBufStart, since only IsMarker() used to use
 /// it as its second param and with docVersion 5 changes that became unnecessary
 /// BEW additions 24Oct14 for support of USFM nested markers
+/// BEW Filtering of \fig ... \fig* exited early because the figure information carried
+/// a windows path string, so the rest of the figure configuration data ended up in
+/// the data. Fixed this to span across the contents without checking for a marker other
+/// than \fig*
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 									wxChar *pBufStart, wxChar *pEnd)
@@ -15463,8 +15467,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				bool bIsToBeFiltered = gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1;
 
 				if (bIsToBeFiltered) // BEW added 13Aug17 (see next comment for rationale)
+				{
+					// we may need pUsfmAnalysis set before the jump
+					pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
 					goto fltr;
 
+				}
 				// BEW the next bit was added to handle the possibility of a thing like \x type
 				// of markers being within an unfiltered \f .... \f* span. It is possible for 
 				// ptr to be at a \x marker to be filtered when control gets to here, so we need
@@ -15501,8 +15509,28 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				}
 				if ((IsAFilteringSFM(pUsfmAnalysis) || bIsToBeFiltered) && !m_bIsWithinUnfilteredInlineSpan)
 				{
-					//bDidSomeFiltering = TRUE;
-fltr:					itemLen = ParseFilteringSFM(wholeMkr,ptr,pBufStart,pEnd);
+					// If it is a \fig marker, because of the danger of there being an internal
+					// path in windows, which makes folders look like custom SFM markers, we will
+					// test for \fig and if that is the marker passed in, we'll scan straight ti
+					// the matching \fig* marker
+					//size_t counter = 0;
+fltr:				int offset = wxNOT_FOUND;
+					wxString endMarker = wholeMkr + _T('*');
+					if (endMarker == _T("\\fig*"))
+					{
+						wxString endStr = _T("\\fig*");
+						wxString tempStr(ptr);
+						offset = tempStr.Find(endStr);
+						if (offset != wxNOT_FOUND)
+						{
+							//counter = offset + 1 + endStr.Length();
+							itemLen = offset + 1 + endStr.Length();
+						}
+					}
+					else
+					{
+						itemLen = ParseFilteringSFM(wholeMkr, ptr, pBufStart, pEnd);
+					}
 
 					// get filtered text bracketed by \~FILTER and \~FILTER*
 					bIsFreeTransOrNoteOrBackTrans = IsMarkerFreeTransOrNoteOrBackTrans(
