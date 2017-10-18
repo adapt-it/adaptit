@@ -1,4 +1,28 @@
 ﻿----------------------------------------------
+Version 6.8.3 release 18 Oct 2017
+----------------------------------------------
+Feature changes and new features in 6.8.3 (this is a non-released revised 6.8.3 for Darwin workshop)
+----------------------------------------------
+* 
+
+---------------------------------------------
+Bug fixes in 6.8.3 release (non-released version for Darwin workshop)
+----------------------------------------------
+* Fixed a bad text parsing error when \fig .... \fig* information is to be
+filtered out. Earlier, if the figure information  contained a file path, on
+windows it looked like a series of custom SFM markers, and produced
+a truncated filtering of the figure information, the rest of its  information
+then appeared as a huge long bogus marker. Now figure information is
+filtered out correctly.
+
+---------------------------------------------
+Bug fixes in 6.8.3 release
+----------------------------------------------
+* Fixed a potential bug that could make it appear that Bibledit was the 
+collaboration editor along with Paratext, and generate an error message saying
+that Adapt It could not find a system file for Bibledit even though Bibledit
+was not installed.
+----------------------------------------------
 Version 6.8.3 release 11 May 2017
 ----------------------------------------------
 Feature changes and new features in 6.8.3 
