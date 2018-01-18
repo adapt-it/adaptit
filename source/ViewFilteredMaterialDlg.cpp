@@ -356,6 +356,7 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	arrTextContent.Empty();
 	nCustomFilteredItemsCount = 0;
 	int nBeforeBaseIndex = -1;
+    nBeforeBaseIndex = nBeforeBaseIndex; // avoid gcc warning
 #if !defined(USE_LEGACY_PARSER)
 	int nAfterBaseIndex = -1;
 	bHasFilteredInfoAfter = FALSE;

@@ -18657,7 +18657,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 #if defined (_DEBUG)
 // The Sima problem of end of ch 10 of luke being lost, and chapters 11 - 14 happens with a manual export
 // so log seqence numbers and str to see where in the text doc to place a break point for stepping
-		wxLogDebug(_T("RebuildTargetText: sn = %d    tgt str =  %s"), pSrcPhrase->m_nSequNumber, str.c_str());
+		//wxLogDebug(_T("RebuildTargetText: sn = %d    tgt str =  %s"), pSrcPhrase->m_nSequNumber, str.c_str());
 
 #endif
 

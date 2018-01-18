@@ -50,6 +50,9 @@
 #include <wx/wx.h>
 #endif
 
+
+int ID_PHRASE_BOX = 22030;
+
 extern size_t aSequNum; // use with TOKENIZE_BUG
 
 #if defined(__VISUALC__) && __VISUALC__ >= 1400
@@ -1695,11 +1698,22 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 	// destroyed too. Therefore, the target box must not be deleted again in
 	// the App's OnExit() method, when the App terminates.
 
-	pApp->m_pTargetBox = new CPhraseBox(pApp->GetMainFrame()->canvas, -1,_T(""),
-			wxDefaultPosition,wxDefaultSize,
-			wxSIMPLE_BORDER | wxWANTS_CHARS);
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+    // We need a way to detect whether an event originates in the PhraseBox. Therefore
+    // I'm changing the id below from -1 to a known const int ID_PHRASE_BOX, which
+    // has an int value of 22030.
+    // The old -1 value during CPhraseBox creation below just functioned to create
+    // a random but unique id.
 
-	// whm Notes on the wxTextCtrl style flags:
+    //pApp->m_pTargetBox = new CPhraseBox(pApp->GetMainFrame()->canvas, -1, _T(""),
+    //    wxDefaultPosition, wxDefaultSize,
+    //    wxSIMPLE_BORDER | wxWANTS_CHARS);
+
+    pApp->m_pTargetBox = new CPhraseBox(pApp->GetMainFrame()->canvas, ID_PHRASE_BOX, _T(""),
+        wxDefaultPosition, wxDefaultSize,
+        wxSIMPLE_BORDER | wxWANTS_CHARS);
+
+    // whm Notes on the wxTextCtrl style flags:
 	// wxSIMPLE_BORDER - Displays a thin border around the window.
 	// wxWANTS_CHARS - According to the wx docs Use this to indicate that
 	// the window wants to get all char/key events for all keys - even for keys like
@@ -3154,7 +3168,20 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),7,pApp->m_nActiveSequNum);
 //#endif
 
-    // setup the layout and phrase box at the new location; in the refactored design this
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+#if defined(Use_in_line_Choose_Translation_DropDown)
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing
+    // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
+    // PlacePhraseBox call returns prematurely. We might hide the dropdown combobox later below, 
+    // up to the point that the Invalidate() call is made near the end of this function, but I
+    // think that hiding it here is safer.
+    if (pApp->m_pChooseTranslationDropDown != NULL)
+    {
+        pApp->m_pChooseTranslationDropDown->Hide();
+    }
+#endif
+
+// setup the layout and phrase box at the new location; in the refactored design this
     // boils down to working out what the new active location's sequence number is, and
     // then setting the active pile to be the correct one, getting an appropriate gap
     // calculated for the "hole" the box is to occupy, tweaking the layout to conform to
@@ -16617,8 +16644,8 @@ void CAdapt_ItView::Jump(CAdapt_ItApp* pApp, CSourcePhrase* pNewSrcPhrase)
 	CCell* pCell = pApp->m_pActivePile->GetCell(1); // the cell where the phraseBox is to be
 	pApp->m_targetPhrase = pNewSrcPhrase->m_adaption; // make it look normal,
 													  // don't use m_targetStr here
-	PlacePhraseBox(pCell,2);
 	pApp->GetMainFrame()->canvas->ScrollIntoView(nNewSequNum);
+	PlacePhraseBox(pCell,2);
 
 	// update status bar with project name
 	pApp->RefreshStatusBarInfo();
@@ -22586,6 +22613,16 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 			pApp->m_pKB->GetAndRemoveRefString(pApp->m_pActivePile->GetSrcPhrase(),
 												pApp->m_targetPhrase, useTargetPhraseForLookup);
 	}
+
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+#if defined(Use_in_line_Choose_Translation_DropDown)
+    // Invoking the <no adaptation> button indicates user does not want to enter a translation,
+    // so hide the dropdown combobox if it is showing.
+    if (pApp->m_pChooseTranslationDropDown != NULL)
+    {
+        pApp->m_pChooseTranslationDropDown->Hide();
+    }
+#endif
 
 	pApp->m_targetPhrase.Empty(); // clear out the attribute on the view
 	pApp->m_pTargetBox->ChangeValue(_T("")); // clear out the box too

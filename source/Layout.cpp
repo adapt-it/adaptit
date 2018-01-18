@@ -72,6 +72,7 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 #include "Adapt_ItCanvas.h"
 #include "Layout.h"
 #include "FreeTrans.h"
+#include "ChooseTranslation.h"
 
 extern bool gbCheckInclFreeTransText;
 
@@ -601,7 +602,7 @@ void CLayout::PlaceBox()
 								// instead; but this will work even if we have forgotten to
 								// update it in the edit operation's handler
 		pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
-
+        
 		// get the pile width at the active location, using the value in
 		// CLayout::m_curBoxWidth put there by RecalcLayout() or AdjustForUserEdits() or FixBox()
 		int phraseBoxWidth = pActivePile->GetPhraseBoxGapWidth(); // returns CPile::m_nWidth
@@ -961,6 +962,23 @@ void CLayout::PlaceBox()
 					pComposeBox->SetFocus();
 				}
 		}
+
+        // whm added 10Jan2018 to support quick selection of a translation equivalent.
+#if defined(Use_in_line_Choose_Translation_DropDown)
+        // If the dropdown combobox exists and is showing, make sure its position tracks that of the phrasebox
+        if (m_pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            if (m_pApp->m_pChooseTranslationDropDown->IsShown())
+            {
+                // Always repopulate the list with the latest CRefString instances stored in pCurTargetUnit
+                //m_pApp->m_pChooseTranslationDropDown->PopulateDropDownList(0);
+
+                m_pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox();
+                m_pApp->m_pChooseTranslationDropDown->FocusShowAndPopup();
+            }
+        }
+
+#endif
 	}
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
 }

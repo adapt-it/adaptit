@@ -2907,6 +2907,7 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 		*/
 		// Initializations
 		ServDiscDetail result = SD_NoResultsYet;
+        result = result; // avoid gcc warning
 		gpApp->m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
 		gpApp->m_bShownFromServiceDiscoveryAttempt = TRUE;
 		gpApp->m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames 
@@ -4973,6 +4974,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 	KbServer* pKbSvr = NULL;
 	CKB* pKB = NULL;
+    pKB = pKB; // avoid gcc warning
 	if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 	{
 		gpApp->m_bAuthenticationCancellation = FALSE; // make sure it is re-initialized
