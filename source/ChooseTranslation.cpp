@@ -37,6 +37,8 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/tooltip.h> // for wxToolTip
+#include <wx/combo.h>
+
 
 #include "Adapt_It.h"
 #include "KB.h"
@@ -147,13 +149,13 @@ BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
     // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
     // list box part of the combo box is shown (drops down). Notice that this 
     // event is only supported by wxMSW, wxGTK with GTK+ 2.10 or later, and wxOSX/Cocoa
-    EVT_COMBOBOX_DROPDOWN(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListOpen)
+    //EVT_COMBOBOX_DROPDOWN(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListOpen)
 
     // Process a wxEVT_COMBOBOX_CLOSEUP event, which is generated when the list 
     // box of the combo box disappears (closes up). This event is only generated 
     // for the same platforms as wxEVT_COMBOBOX_DROPDOWN above. Also note that
     // only wxMSW and wxOSX/Cocoa support adding or deleting items in this event
-    EVT_COMBOBOX_CLOSEUP(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp)
+    //EVT_COMBOBOX_CLOSEUP(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp)
     
     EVT_KEY_UP(CChooseTranslationDropDown::OnKeyUp)
 END_EVENT_TABLE()
@@ -410,24 +412,24 @@ void CChooseTranslationDropDown::OnComboProcessEnterKeyPress(wxCommandEvent& WXU
     gpApp->m_pTargetBox->SetFocus();
 }
 
-void CChooseTranslationDropDown::OnComboProcessDropDownListOpen(wxCommandEvent& WXUNUSED(event))
-{
-    // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
-    // list box part of the combo box is shown (drops down). Notice that this 
-    // event is only supported by wxMSW, wxGTK with GTK+ 2.10 or later, and wxOSX/Cocoa
-    
-    ; // nothing to do here
-}
-
-void CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event))
-{
-    // Process a wxEVT_COMBOBOX_CLOSEUP event, which is generated when the list 
-    // box of the combo box disappears (closes up). This event is only generated 
-    // for the same platforms as wxEVT_COMBOBOX_DROPDOWN above. Also note that
-    // only wxMSW and wxOSX/Cocoa support adding or deleting items in this event
-
-    ; // nothing to do here
-}
+//void CChooseTranslationDropDown::OnComboProcessDropDownListOpen(wxCommandEvent& WXUNUSED(event))
+//{
+//    // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
+//    // list box part of the combo box is shown (drops down). Notice that this 
+//    // event is only supported by wxMSW, wxGTK with GTK+ 2.10 or later, and wxOSX/Cocoa
+//    
+//    ; // nothing to do here
+//}
+//
+//void CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event))
+//{
+//    // Process a wxEVT_COMBOBOX_CLOSEUP event, which is generated when the list 
+//    // box of the combo box disappears (closes up). This event is only generated 
+//    // for the same platforms as wxEVT_COMBOBOX_DROPDOWN above. Also note that
+//    // only wxMSW and wxOSX/Cocoa support adding or deleting items in this event
+//
+//    ; // nothing to do here
+//}
 
 void CChooseTranslationDropDown::OnKeyUp(wxKeyEvent & event)
 {
