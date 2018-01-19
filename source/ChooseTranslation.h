@@ -85,8 +85,8 @@ protected:
     void OnComboItemSelected(wxCommandEvent& event);
     void OnComboTextChanged(wxCommandEvent& WXUNUSED(event));
     void OnComboProcessEnterKeyPress(wxCommandEvent& WXUNUSED(event));
-    void OnComboProcessDropDownListOpen(wxCommandEvent& WXUNUSED(event));
-    void OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event));
+    //void OnComboProcessDropDownListOpen(wxCommandEvent& WXUNUSED(event)); // these last two not apparently in wx 2.8.12 - we're not using them anyway
+    //void OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event));
 
     void OnKeyUp(wxKeyEvent& event);
 
