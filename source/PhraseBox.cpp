@@ -3117,12 +3117,6 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
     {
         pApp->m_targetPhrase = thePhrase; // update the string storage on the view
             // (do it here rather than before the resizing code else selection bounds are wrong)
-
-        if (this->HasFocus())
-        {
-            int i = 1;
-            i = i;
-        }
     }
 
 	dC.SetFont(SaveFont); // restore old font (ie "System")
