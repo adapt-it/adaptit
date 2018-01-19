@@ -3204,7 +3204,7 @@ void CMainFrame::OnDiscoverKBservers(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		// This is the old legacy wxServDisc-based way, with threading etc
-		gpApp->DoServiceDiscoverySingleRun();
+//		gpApp->DoServiceDiscoverySingleRun();
 	}
 	//gpApp->m_bServDiscSingleRunIsCurrent = FALSE; // delay reset until OnCustomEventEndServiceDiscovery()
 }

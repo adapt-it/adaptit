@@ -63,37 +63,37 @@ public:
 	CServiceDiscovery(CAdapt_ItApp* pParentClass);
 	virtual ~CServiceDiscovery();
 
-	CAdapt_ItApp* m_pApp;
+	//CAdapt_ItApp* m_pApp;
 
-	wxServDisc* m_pWxSD; // main service scanner (a child class of this one)
-	CAdapt_ItApp* m_pParent; // BEW 4Jan16
+	//wxServDisc* m_pWxSD; // main service scanner (a child class of this one)
+	//CAdapt_ItApp* m_pParent; // BEW 4Jan16
 
-	int	m_postNotifyCount;  // count the number of Post_Notify() calls, we use it to
+	//int	m_postNotifyCount;  // count the number of Post_Notify() calls, we use it to
 							// limit one discovery run to finding one running KBserver
 							// at random from however many are currently running
-	bool m_bDestroyChildren; // When true, this CServiceDiscovery and its owning thread are eligible for shutdown
+	//bool m_bDestroyChildren; // When true, this CServiceDiscovery and its owning thread are eligible for shutdown
 
-	unsigned long processID;
+	//unsigned long processID;
 
 	// scratch variables, used in the loop in onSDNotify() handler
-	wxString m_hostname;
-	wxString m_addr;
-	wxString m_port;
+	//wxString m_hostname;
+	//wxString m_addr;
+	//wxString m_port;
 
-	wxString m_serviceStr;
+	//wxString m_serviceStr;
 
 	// Two helper functions so that we don't transfer to the app data we already have there
 	//bool IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16 <- deprecated
-	bool AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
+	//bool AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase); // BEW created 5Jan16
 	bool UpdateExistingAppCompositeStr(wxString& ipaddr, wxString& hostname, wxString& composite);
 
 	// These arrays receive results, which will get passed back to app's ConnectUsingDiscoveryResults() etc.
-	wxArrayString m_sd_servicenames;   // for servicenames, as discovered from query (these are NOT hostnames)
-	wxArrayString m_ipAddrs_Hostnames; // stores unique set of <ipaddress>@@@<hostname> composite strings
+	//wxArrayString m_sd_servicenames;   // for servicenames, as discovered from query (these are NOT hostnames)
+	//wxArrayString m_ipAddrs_Hostnames; // stores unique set of <ipaddress>@@@<hostname> composite strings
 
 protected:
-	void onSDNotify(wxCommandEvent& WXUNUSED(event));
-	void onSDHalting(wxCommandEvent& WXUNUSED(event));
+	//void onSDNotify(wxCommandEvent& WXUNUSED(event));
+	//void onSDHalting(wxCommandEvent& WXUNUSED(event));
 	//void RemoveSpuriousDuplicates(wxArrayString& arr);
 private:
 

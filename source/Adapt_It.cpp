@@ -6007,7 +6007,7 @@ EVT_MENU(ID_MENU_CHANGE_USERNAME, CAdapt_ItApp::OnEditChangeUsername) // is alwa
     EVT_UPDATE_UI(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnUpdateSetupEditorCollaboration)
     EVT_MENU(ID_MENU_MANAGE_DATA_TRANSFER_PROTECTIONS_TO_EDITOR, CAdapt_ItApp::OnManageDataTransfersToEditor)
     EVT_UPDATE_UI(ID_MENU_MANAGE_DATA_TRANSFER_PROTECTIONS_TO_EDITOR, CAdapt_ItApp::OnUpdateManageDataTransfersToEditor)
-        //EVT_MENU(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnPasswordProtectCollaborationSwitching)
+    //EVT_MENU(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnPasswordProtectCollaborationSwitching)
     //EVT_UPDATE_UI(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnUpdatePasswordProtectCollaborationSwitching)
     EVT_MENU(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnTempRestoreUserProfiles) // whm added 14Feb12
     EVT_UPDATE_UI(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnUpdateTempRestoreUserProfiles) // whm added 14Feb12
@@ -6018,7 +6018,7 @@ EVT_MENU(ID_MENU_CHANGE_USERNAME, CAdapt_ItApp::OnEditChangeUsername) // is alwa
 #if defined(_KBSERVER)
     EVT_MENU(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnKBSharingManagerTabbedDlg) // always potentially needed
     EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
-    EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnServiceDiscoveryTimer)
+//    EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnServiceDiscoveryTimer)
 
 #endif
 #if !defined(_KBSERVER)
@@ -16965,7 +16965,8 @@ void CAdapt_ItApp::ServDiscBackground(int nThreadIndex)
     // BEW 12Apr16, changed so that CServiceDiscovery instance is created in the thread,
     // but keeping the app as the parent. Thread's Entry() function calls it, so we can
     // be sure the thread exists
-    m_pServDiscThread[nThreadIndex]->m_pServDisc = new CServiceDiscovery(this);
+    //m_pServDiscThread[nThreadIndex]->m_pServDisc = new CServiceDiscovery(this);
+	wxUnusedVar(nThreadIndex);
 }
 
 
@@ -53109,152 +53110,160 @@ m_ipAddrs_Hostnames.Add(archiveArr.Item(index));
 archiveArr.clear();
 }
 */
+/*
 // Handler for the timer's notification
 void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 {
-    // We do a burst of 3 (default) per call of DoKBserverDiscoveryRuns(), max 20 which
-    // is #defined as 20 in AdaptItconstants.h Minimum 1. User may set a different
-    // default by direct edit of the basic config file
 
-    // m_nSDRunCounter starts with value 0, so pass in the current value as the correct
-    // index, before augmenting it
+	// We do a burst of 3 (default) per call of DoKBserverDiscoveryRuns(), max 20 which
+	// is #defined as 20 in AdaptItconstants.h Minimum 1. User may set a different
+	// default by direct edit of the basic config file
+
+	// m_nSDRunCounter starts with value 0, so pass in the current value as the correct
+	// index, before augmenting it
 
 #if defined(_shutdown_)
-    wxLogDebug(_T("CAdapt_ItApp:: OnServiceDiscoveryTimer():  m_nSDRunCounter (before augment) = %d , Timer interval = %d  (AI.cpp line 49577)"),
-        m_nSDRunCounter, m_servDiscTimer.GetInterval());
+	wxLogDebug(_T("CAdapt_ItApp:: OnServiceDiscoveryTimer():  m_nSDRunCounter (before augment) = %d , Timer interval = %d  (AI.cpp line 49577)"),
+		m_nSDRunCounter, m_servDiscTimer.GetInterval());
 #endif
 
-    if (m_servDiscTimer.IsRunning())
-    {
-        if (m_nSDRunCounter >= m_numServiceDiscoveryRuns)
-        {
-            m_servDiscTimer.Stop();
-            m_nSDRunCounter = 0;
-            // Ensure all ptrs are NULL - they already should be, and it
-            // doesn't really matter if some aren't, as they will be reset
-            // to null before a new burst begins, and are never used otherwise
-            int index;
-            for (index = 0; index < (int)MAX_SERV_DISC_RUNS; index++)
-            {
-                if (m_pServDiscThread[index] != NULL)
-                {
-                    m_pServDiscThread[index] = NULL;
-                }
-            }
-            m_bServDiscBurstIsCurrent = FALSE;
+	if (m_servDiscTimer.IsRunning())
+	{
+		if (m_nSDRunCounter >= m_numServiceDiscoveryRuns)
+		{
+			m_servDiscTimer.Stop();
+			m_nSDRunCounter = 0;
+			// Ensure all ptrs are NULL - they already should be, and it
+			// doesn't really matter if some aren't, as they will be reset
+			// to null before a new burst begins, and are never used otherwise
+			int index;
+			for (index = 0; index < (int)MAX_SERV_DISC_RUNS; index++)
+			{
+				if (m_pServDiscThread[index] != NULL)
+				{
+					m_pServDiscThread[index] = NULL;
+				}
+			}
+			m_bServDiscBurstIsCurrent = FALSE;
 
-            // Finish up the progress dialog's tracking in the status bar
-            wxString progTitle = _("KBservers Discovery");
-            ((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
+			// Finish up the progress dialog's tracking in the status bar
+			wxString progTitle = _("KBservers Discovery");
+			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
 
 
-            // Deprecated - use the columned dialog, it looks better & allows a choice
-            /*
-            // Inform the user what the discovered inventory currently is
-            wxString title = _("KBservers discovered so far");
-            wxString msg = GetMainFrame()->BuildUrlsAndNamesMessageString();
-            wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
-            */
-            // Create some dummy data for display
-            m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames accumulates composites from service disocvery
-            m_theHostnames.Clear(); // ditto
-            m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
-            int counter = GetMainFrame()->GetUrlAndHostnameInventory(m_ipAddrs_Hostnames, m_theURLs, m_theHostnames);
-            wxUnusedVar(counter);
+			// Deprecated - use the columned dialog, it looks better & allows a choice
+*/
+/*			
+			// Inform the user what the discovered inventory currently is
+			wxString title = _("KBservers discovered so far");
+			wxString msg = GetMainFrame()->BuildUrlsAndNamesMessageString();
+			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+*/
+/*			// Create some dummy data for display
+			m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames accumulates composites from service disocvery
+			m_theHostnames.Clear(); // ditto
+			m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
+			int counter = GetMainFrame()->GetUrlAndHostnameInventory(m_ipAddrs_Hostnames, m_theURLs, m_theHostnames);
+			wxUnusedVar(counter);
 
-            /* dummy urls & hostnames for testing purposes
-            m_theURLs.Add(_T("https://kbserver.jmarsden.org"));
-            m_theHostnames.Add(_T("Jonathans_kbserver"));
-            m_theURLs.Add(_T("https://adapt-it.org/KBserver"));
-            m_theHostnames.Add(_T("AI-Team-KBserver"));
-            m_theURLs.Add(_T("192.168.3.171"));
-            m_theHostnames.Add(_T("UbuntuLaptop-kbserver"));
-            m_theURLs.Add(_T("192.168.3.234"));
-            m_theHostnames.Add(_T("Dell-Mini9"));
-            m_theURLs.Add(_T("192.168.3.94"));
-            m_theHostnames.Add(_T("kbserver-X1-Carbon"));
-            */
+			// dummy urls & hostnames for testing purposes
+			m_theURLs.Add(_T("https://kbserver.jmarsden.org"));
+			m_theHostnames.Add(_T("Jonathans_kbserver"));
+			m_theURLs.Add(_T("https://adapt-it.org/KBserver"));
+			m_theHostnames.Add(_T("AI-Team-KBserver"));
+			m_theURLs.Add(_T("192.168.3.171"));
+			m_theHostnames.Add(_T("UbuntuLaptop-kbserver"));
+			m_theURLs.Add(_T("192.168.3.234"));
+			m_theHostnames.Add(_T("Dell-Mini9"));
+			m_theURLs.Add(_T("192.168.3.94"));
+			m_theHostnames.Add(_T("kbserver-X1-Carbon"));
+			
+*/
+/*
 
-            // Set the app variables for chosen url and hostname, initializing
-            // to the empty string first
-            m_chosenUrl.Empty();
-            m_chosenHostname.Empty();
-            CServDisc_KBserversDlg dlg((wxWindow*)GetMainFrame(), &m_theURLs, &m_theHostnames);
-            dlg.Center();
-            if (dlg.ShowModal() == wxID_OK)
-            {
-                m_chosenUrl = dlg.m_urlSelected;
-                m_chosenHostname = dlg.m_hostnameSelected;
+			// Set the app variables for chosen url and hostname, initializing
+			// to the empty string first
+			m_chosenUrl.Empty();
+			m_chosenHostname.Empty();
+			CServDisc_KBserversDlg dlg((wxWindow*)GetMainFrame(), &m_theURLs, &m_theHostnames);
+			dlg.Center();
+			if (dlg.ShowModal() == wxID_OK)
+			{
+				m_chosenUrl = dlg.m_urlSelected;
+				m_chosenHostname = dlg.m_hostnameSelected;
 
-                if (m_chosenUrl.IsEmpty())
-                {
-                    // The user made no choice (whether there were one or many found)
-                    m_sd_Detail = SD_MultipleUrls_UserChoseNone;
-                    m_bUserDecisionMadeAtDiscovery = FALSE;
-                }
-                else
-                {
-                    // This is the user's choice (whether there were one or many found)
-                    m_sd_Detail = SD_MultipleUrls_UserChoseOne;
-                    m_bUserDecisionMadeAtDiscovery = TRUE;
-                }
+				if (m_chosenUrl.IsEmpty())
+				{
+					// The user made no choice (whether there were one or many found)
+					m_sd_Detail = SD_MultipleUrls_UserChoseNone;
+					m_bUserDecisionMadeAtDiscovery = FALSE;
+				}
+				else
+				{
+					// This is the user's choice (whether there were one or many found)
+					m_sd_Detail = SD_MultipleUrls_UserChoseOne;
+					m_bUserDecisionMadeAtDiscovery = TRUE;
+				}
 
-                // Finish up the progress dialog's tracking in the status bar
-                ((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
-            }
-            else
-            {
-                // Cancelled
-                if (dlg.m_bUserCancelled)
-                {
-                    m_chosenUrl.Empty();
-                    m_chosenHostname.Empty();
-                    m_sd_Detail = SD_MultipleUrls_UserCancelled;
-                    m_bUserDecisionMadeAtDiscovery = FALSE;
-                    // Since the user has deliberately chosen to Cancel, and the dialog
-                    // has explained what will happen, no further message is needed here
+				// Finish up the progress dialog's tracking in the status bar
+				((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
+			}
+			else
+			{
+				// Cancelled
+				if (dlg.m_bUserCancelled)
+				{
+					m_chosenUrl.Empty();
+					m_chosenHostname.Empty();
+					m_sd_Detail = SD_MultipleUrls_UserCancelled;
+					m_bUserDecisionMadeAtDiscovery = FALSE;
+					// Since the user has deliberately chosen to Cancel, and the dialog
+					// has explained what will happen, no further message is needed here
 
-                    // Finish up the progress dialog's tracking in the status bar
-                    ((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
-                }
-            }
-            return;
-        }
-    }
+					// Finish up the progress dialog's tracking in the status bar
+					((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
+				}
+			}
+			return;
+		}
+	}
+*/
+	/*
+		m_pServDiscThread[m_nSDRunCounter] = new Thread_ServiceDiscovery;
 
-    m_pServDiscThread[m_nSDRunCounter] = new Thread_ServiceDiscovery;
+		// Control does not reenter OnServiceDiscoveryTimer() so the
+		// job of augmenting m_nSDRunCounter is done at the start of Entry()
+		// and the new value passed back to the app member from there
 
-    // Control does not reenter OnServiceDiscoveryTimer() so the
-    // job of augmenting m_nSDRunCounter is done at the start of Entry()
-    // and the new value passed back to the app member from there
+		wxThreadError error = m_pServDiscThread[m_nSDRunCounter]->Create(12240);
+		if (error != wxTHREAD_NO_ERROR)
+		{
+			wxString msg;
+			msg = msg.Format(_T("Thread_ServiceDiscovery error number: %d"), (int)error);
+			wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 
-    wxThreadError error = m_pServDiscThread[m_nSDRunCounter]->Create(12240);
-    if (error != wxTHREAD_NO_ERROR)
-    {
-        wxString msg;
-        msg = msg.Format(_T("Thread_ServiceDiscovery error number: %d"), (int)error);
-        wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
+			// One may fail but others succeed. Handle this failure
+			m_pServDiscThread[m_nSDRunCounter] = NULL;
+		}
+		else
+		{
+			// no error, so now run the thread - it's of detached type
+			error = m_pServDiscThread[m_nSDRunCounter]->Run();
+			if (error != wxTHREAD_NO_ERROR)
+			{
+				wxString msg;
+				msg = msg.Format(_T("Thread_ServiceDiscovery  error number: %d"), (int)error);
+				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 
-        // One may fail but others succeed. Handle this failure
-        m_pServDiscThread[m_nSDRunCounter] = NULL;
-    }
-    else
-    {
-        // no error, so now run the thread - it's of detached type
-        error = m_pServDiscThread[m_nSDRunCounter]->Run();
-        if (error != wxTHREAD_NO_ERROR)
-        {
-            wxString msg;
-            msg = msg.Format(_T("Thread_ServiceDiscovery  error number: %d"), (int)error);
-            wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
+				// We got it as far as instantiation, but couldn't run it. Handle this one only.
+				// Others in the burst may succeed
+				m_pServDiscThread[m_nSDRunCounter]->Delete();
+				m_pServDiscThread[m_nSDRunCounter] = NULL;
+			}
+		}
 
-            // We got it as far as instantiation, but couldn't run it. Handle this one only.
-            // Others in the burst may succeed
-            m_pServDiscThread[m_nSDRunCounter]->Delete();
-            m_pServDiscThread[m_nSDRunCounter] = NULL;
-        }
-    }
 }
+*/
 
 // BEW 20Jul17 scan for publishing kbservers - by Leon's scripts. Called from MainFrm.cpp
 // OnDiscoverKBservers() when m_bDiscoverKBservers is TRUE
@@ -53374,34 +53383,166 @@ void CAdapt_ItApp::DoDiscoverKBservers()
         }
     //*/
 
-
-
-
-
 // TODO the remainder of the processing of the results etc
     }
-#else
+#endif
 
-#if defined (__WXWIN__)
+#if defined (__WXMSW__)
 
     // TODO  - the batch file way for Windows
 
     // When developing: C:\adaptit-git\bin\win32\Unicode Debug\Adapt_It_Unicode.exe
 
+	// The batch file way for Windows
 
-#else
+// TODO - adjust the following for Windows command prompt
+
+	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; // a legacy variable,  we need it TRUE so the later loop is accessible
+
+	// First,...
+	wxString tempFile = _T("final_kbserver_output_report.dat");
+	wxString scriptName = _T("dsb-win7.bat");
+	int flags = wxEXEC_SYNC;
+
+	// Make a redirecting argument string for the output of running dsb-win7.bat in a
+	// temporary command prompt window using wxExecute()
+	resultsStr = execPath + tempFile; // execPath ends with backslash
+	// Make a path to the dsb-win7.bat file, which should reside in whatever folder 
+	// contains the Adapt It Unicode executable (will differ depending on whether running
+	// from the Vis Studio dev syste's Unicode Debug folder, or Unicode Release folder, of
+	// from the ...\Program Files (x86)\Adapt It WX Unicode\  installation folder when
+	// running a released version.
+	wxString scriptPath = execPath + scriptName;
+	wxString command = scriptPath;
+	wxLogDebug(_T("scriptPath: %s"), scriptPath.c_str());
+	// In the following call, returnVal is currently -1 which is an error (process couldn't start). Don't know why yet.
+//	long returnVal = wxExecute(command, flags, NULL); // 3rd & 4th signature items accepted as default NULL each
+//	long returnVal = wxExecute("c:\\adaptit-git\\bin\\win32\\Unicode Debug\\dsb-win7.bat", flags, NULL); // 3rd & 4th signature items accepted as default NULL each
+
+//	wxUnusedVar(returnVal);
+#ifdef _DEBUG
+	//A test data string to use util we get the wxExecute() call working properly
+	//resultsStr = _T("192.168.2.20@@@kbserverXPSP3,192.168.2.13@@@kbserver,192.168.2.15@@@kbserverX1Carbon");
+
+	// The above test results are processed correctly by the code further below. Comment
+	// out when wxExecute() , see above , is working correctly
+
+	// int valBack = system("CMD_CCOMMAND"); <<-- compiled, but returned 1 and  no command prompt window showed
+	//int valBack = system("cmd.exe /c dir C:\\"); // saw it open & some lines scroll past & then it disappeared, valBack was 0
+	//int valBack = system("cmd.exe /c dir C:\\adaptit-git\\bin\\win32\\Unicode Debug"); // this fails, but does get window created
+	//int valBack = system("cmd.exe /c dsb-win7.bat"); // this did not work either, but got window open
+
+	int ii = 1; // a break point can be put here after uncommenting out
+
+#endif
+
+// do from scratch here
+
+	// first attempt, ignore that this might be a new discovery attempt after  having successfully
+	// discovered some on an earlier run (see the test in Linux code  early on, etc), just do one
+	// run without frills
+
+
+
+	/*
+	wxString resultsPath = wxEmptyString;
+	wxString resultsPathFile = wxGetCwd(); // gets the current working directory <<- unhelful, it get where Adaptations folder is when running
+	wxFFile rpffile(resultsPathFile); //opens for reading
+	if (rpffile.IsOpened())
+	{
+		bool bGotAll = rpffile.ReadAll(&resultsPath);
+		if (bGotAll)
+		{
+			// If successful, retain resultsPath, and close rpffile
+			// There is a newline at the end ofthe returned resultsPath
+			// so remove it before using the rest
+			resultsPath.Trim(); // whites
+			wxLogDebug(_T("Path to results: %s"), resultsPath.c_str());
+			rpffile.Close();
+		}
+	}
+	// Make a redirecting argument string for the output of running dsb.sh in wxShell()
+	wxString redirectStr = _T(" > ") + resultsPath + PathSeparator + tempFile;
+
+	// For opening the KBservers_List.txt file, we need to add the filename to resultsPath
+	wxString resultsPath2 = resultsPath + PathSeparator + tempFile;
+
+	// While developing, this returns for execPath on Linux for a Debug build:
+	// /home/bruce/adaptit-git/bin/linux/bin/Debug/adaptit   (note, the executable is at the end)
+	// But when running after normal installation, it will/should return:
+	// /usr/bin/adaptit   (again, the adaptit at path end is the executable)
+	wxString scriptPath = execPath + _T("dsb.sh");
+	wxLogDebug(_T("Script path = %s"), scriptPath.c_str());
+
+	// Run Leon's script
+	wxShell(scriptPath + redirectStr);
+
+	bool bFileExists = FALSE;
+	bFileExists = wxFileExists(resultsPath2);
+	if (bFileExists)
+	{
+		//#ifdef _DEBUG
+		//    wxMessageBox(_T("Got some KBserver results."),_T("Success"), wxICON_INFORMATION | wxOK);
+		//#endif
+
+		// look for file of comma-separated results in user's folder
+		wxFFile ffile(resultsPath2); //opens for reading
+		if (ffile.IsOpened())
+		{
+			bool bGotAll = ffile.ReadAll(&resultsStr);
+			wxLogDebug(_T("Found these: %s"), resultsStr.c_str()); // for logging window
+
+#ifdef _DEBUG
+															   // While developing, show the same results in the GUI, for debug version
+			wxString msg;
+			msg = msg.Format(_T("results string: %s"), resultsStr.c_str());
+			wxMessageBox(msg, _T("These...."), wxICON_INFORMATION | wxOK);
+#endif
+
+			ffile.Close();
+		}
+		// Various other .dat files are produced along the way, which can now be
+		// dispensed with - if they exist. service_file.dat, hostname_file.dat,
+		// kbservice_file.dat which has the composite str with the @@@ delimiters,
+		// and the (temporary) resultsPathFile
+		//* remove temporarily
+		wxString kbsdat = _T("kbs.dat");
+		wxString kbsfdat = _T("kbservice_file.dat");
+		wxString rPthFile = _T("resultsPathFile");
+		wxString aPath = resultsPath + PathSeparator + kbsdat;
+		bFileExists = wxFileExists(aPath);
+		if (bFileExists)
+		{
+			wxRemoveFile(aPath); // Removes kbs.dat
+		}
+		aPath = resultsPath + PathSeparator + kbsfdat;
+		if (bFileExists)
+		{
+			wxRemoveFile(aPath); // Removes kbservice_file.dat
+		}
+		aPath = resultsPath + PathSeparator + rPthFile;
+		bFileExists = wxFileExists(aPath);
+		if (bFileExists)
+		{
+			wxRemoveFile(aPath); // Removes resultsPathFile
+		}
+	}
+	*/
+
+#endif
+
+#if defined(__WXOSX__)
     // OSX may need code here, if the __WXGTK__ block's code doesn't work for OSX
 
 #endif
 
-#endif
 
     // Having obtained one or more composite strings of form ipAddress@@@hostname, we now need to
     // build glue code to link to the existing code for using ipaddr and hostname to be available
     // to the user for selecting which KBserver to connect to. In the legacy CServiceDiscovery
     // class (which I probably will later remove), the logic for this glue is in the latter
     // class's onSDNotify() member function. I'll copy that over to here, and remove unneeded
-    // details. We'll have a local wxArrayString called m_ipAddresses_Hostnames here in
+    // details. We'll have a local wxArrayString called arrNewComposites here in
     // DoDiscoverKBservers() which will store the one or more composites of form "ipaddr@@@hostname"
     // resulting from the output of Leon's script dsb.sh which we have run using wxShell(). Then
     // as in the earlier legacy logic, we need to make various checks:
@@ -53417,12 +53558,10 @@ void CAdapt_ItApp::DoDiscoverKBservers()
     // (b) We have to check for uniqueness, when our scan has a certain ipAddr@@@hostname
     // composite returned. We don't want duplicates. We don't want case mismatches in ipAddr.
     // AddUniqueStrCase() does this job. It checks in the app member m_ipAddrs_Hostnames, and only
-    // Add()s a new (unique) ipAddr@@@hostname string to the **LOCAL** m_ipAddresses_Hostnames
-    // wxArrayString.
+    // Add()s a new (unique) ipAddr@@@hostname string to ipAddresses_Hostnames wxArrayString.
 
-    // (c) After (a) and (b) are done, what's in the local m_ipAddresses_Hostnames array can
-    // then safely be copied into the apps wxArrayString of similar but not identical name
-    // (that is, into m_ipAddrs_Hostnames).
+    // (c) After (a) and (b) are done, what's in the local ipAddresses_Hostnames array can
+    // then safely be copied into the apps wxArrayString of name m_ipAddrs_Hostnames
 
     // Once that data copy of (c) is done, the legacy KBserver connection support code will work
     // without additional changes being required. Once that is all debugged and robust, the
@@ -53431,7 +53570,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
     // scan, but if not so, we can do another discovery with high probability of picking up any
     // missed in earlier scan(s). The local wxString, resultsStr, has the comma-separated
     // single line string of form ipAddr@@@hostname,ipAddr@@@hostname, etc, from the scan
-    //wxArrayString ipAddresses_Hostnames; // the local storage
+    
     wxString composite; // for "ipAddr@@@hostname" as derived from the scan results
     wxString aUrl; // for the ipAddr part of composite
     wxString aHostname; // for the Hostname part of composite
@@ -53439,7 +53578,6 @@ void CAdapt_ItApp::DoDiscoverKBservers()
         // may result in several ipAddr@@@hostname strings, we need to store them somewhere
         // so here is the place
 
-    //ipAddresses_Hostnames.Clear();
     arrNewComposites.Clear();
     // Turn the comma-delimited string into an array of  ipaddr@@@hostname wxStrings
     bool bHasContent = CommaDelimitedStringToArray(resultsStr, &arrNewComposites);
@@ -53530,6 +53668,9 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		// deconstruct the ip@@@hostname strings in m_ipAddrs_Hostnames array into
 		// the individual arrays m_theURLs and m_theHostnames so these can be
 		// displayed to the user
+		//  In the next call, 1st param is the array of ip@@hostname lines, params 
+		// 2 and  3 are for returning the individual ipaddresses and associated host
+		// for each (Dummy data is below, commented out, if testing was wanted)
 		int counter = pFrame->GetUrlAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, gpApp->m_theURLs, gpApp->m_theHostnames);
 		wxUnusedVar(counter);
 
@@ -53671,7 +53812,7 @@ bool CAdapt_ItApp::CommaDelimitedStringToArray(wxString& str, wxArrayString* pAr
     } while ( !theStr.IsEmpty() );
     return TRUE; // tell caller we found one or more substrings
 }
-
+/*
 // BEW ??2016 sometime, this is the old legacy wxServDisc based way, called from
 // MainFrm.cpp OnDiscoverKBservers when m_bDiscoverKBservers is FALSE
 void CAdapt_ItApp::DoServiceDiscoverySingleRun()
@@ -53683,8 +53824,8 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
     }
 
 #if defined(_shutdown_)
-    wxLogDebug(_T("CAdapt_ItApp:: DoServiceDiscoverySingleRun():  starting"),
-        m_nSDRunCounter, m_servDiscTimer.GetInterval());
+ //   wxLogDebug(_T("CAdapt_ItApp:: DoServiceDiscoverySingleRun():  starting"),
+  //      m_nSDRunCounter, m_servDiscTimer.GetInterval());
 #endif
 
     wxString progTitle;
@@ -53699,8 +53840,8 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
     pStatusBar->UpdateProgress(progTitle, 1, msgDisplayed);
 
 #if defined(_shutdown_)
-    wxLogDebug(_T("CAdapt_ItApp:: DoServiceDiscoverySingleRun():  starting"),
-        m_nSDRunCounter, m_servDiscTimer.GetInterval());
+ //   wxLogDebug(_T("CAdapt_ItApp:: DoServiceDiscoverySingleRun():  starting"),
+ //       m_nSDRunCounter, m_servDiscTimer.GetInterval());
 #endif
 
     m_nSDRunCounter = 0; // the thread, and CServiceDiscovery() use this
@@ -53736,6 +53877,7 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
     // Finish up the progress dialog's tracking in the status bar
     ((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
 }
+*/
 
 /*  Note the new values.....
 enum ServDiscInitialDetail

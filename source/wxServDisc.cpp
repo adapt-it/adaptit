@@ -385,7 +385,7 @@ wxThread::ExitCode wxServDisc::Entry()
 		// Handle the case when no KBserver is running on the LAN
 		if ((parent != NULL) && ((void*)m_pCSD != NULL) && (this->querytype == QTYPE_PTR) )
 		{
-			if (m_pCSD->m_postNotifyCount == 0)
+/*			if (m_pCSD->m_postNotifyCount == 0)
 			{
 				// Nothing was discovered, which is the case when nothing is running
 				wxCommandEvent event(wxServDiscHALTING, wxID_ANY);
@@ -393,15 +393,16 @@ wxThread::ExitCode wxServDisc::Entry()
 
 				// Send it
 #if wxVERSION_NUMBER < 2900
-				wxPostEvent((CServiceDiscovery*)parent, event);
+//				wxPostEvent((CServiceDiscovery*)parent, event);
 #else
-				wxQueueEvent((CServiceDiscovery*)parent, event.Clone());
+//				wxQueueEvent((CServiceDiscovery*)parent, event.Clone());
 #endif		
 #if defined(_zero_)
 				wxLogDebug(_T("wxServDisc:  %p (401) Nothing discovered:  posting the wxServDiscHALTING event"), this);
 #endif
 			}
 		}
+*/
 #if defined(_shutdown_)
 		wxLogDebug(wxT("wxServDisc %p: (406) Entry() exiting, returning NULL; m_pCSD = %lx"), this, m_pCSD);
 #endif
@@ -741,7 +742,7 @@ wxServDisc::wxServDisc(void* p, const wxString& what, int type)
 	// "child" wxServDisc() instances pass in (via (void*)p ) QYTPE_SRV for namescan() and QTYPE_A
 	// for addrscan(), only the original (owned) wxServDisc instance passes in the type QTYPE_PTR. 
 	// We use these facts to distinguish the owned instance from the child instances
-	m_pCSD = (CServiceDiscovery*)parent;
+	//m_pCSD = (CServiceDiscovery*)parent;
 
 	query = what;
 	querytype = type;
@@ -837,13 +838,13 @@ size_t wxServDisc::getResultCount() const
 
 void wxServDisc::post_notify()
 {
-	m_pCSD->m_postNotifyCount++; // BEW added
-	if (m_pCSD->m_postNotifyCount > 1)
-		return; // BEW 21Apr16, exit if the count goes over 1
+//	m_pCSD->m_postNotifyCount++; // BEW added
+//	if (m_pCSD->m_postNotifyCount > 1)
+//		return; // BEW 21Apr16, exit if the count goes over 1
 
 #if defined(_zero_) && defined(_DEBUG)
-	wxLogDebug(_T("wxServDisc:  %p  (845) post_notify() Entered:  parent = %p , m_pCSD->m_postNotifyCount = %d"), 
-				this, (void*)parent, m_pCSD->m_postNotifyCount); // BEW added
+//	wxLogDebug(_T("wxServDisc:  %p  (845) post_notify() Entered:  parent = %p , m_pCSD->m_postNotifyCount = %d"), 
+//				this, (void*)parent, m_pCSD->m_postNotifyCount); // BEW added
 #endif
 	// Beier's code follows, but tests added by BEW in order to do minimal processing etc
 	// BEW changed 21Apr16, Beier's test was: if (parent) because all but the owned wxServDisc
@@ -866,9 +867,9 @@ void wxServDisc::post_notify()
 		wxLogDebug(_T("wxServDisc:  %p (866) post_notify():  posting the wxServDiscNOTIFY event, once only"), this);
 #endif
 		#if wxVERSION_NUMBER < 2900
-		wxPostEvent((CServiceDiscovery*)parent, event);
+		//wxPostEvent((CServiceDiscovery*)parent, event);
 		#else
-		wxQueueEvent((CServiceDiscovery*)parent, event.Clone());
+		//wxQueueEvent((CServiceDiscovery*)parent, event.Clone());
 		#endif		
 	}
 }
@@ -892,7 +893,7 @@ bool wxServDisc::CheckDeathNeeded(CServiceDiscovery* pSDParent, int BEWcount, in
 								 // Ensuring separation is one strategy, but to eliminate gpServiceDiscovery as
 								 // a communication link would be sensible and safer
 	wxUnusedVar(querytype);
-	if (pSDParent->m_bDestroyChildren == TRUE)
+/*	if (pSDParent->m_bDestroyChildren == TRUE)
 	{
 		// The above test handles the case when CServiceDiscovery::onSDNotify() has 
 		// successfully looked up the hostname and ipaddress of a detected 
@@ -929,7 +930,7 @@ bool wxServDisc::CheckDeathNeeded(CServiceDiscovery* pSDParent, int BEWcount, in
 		bBrokeFromLoop = FALSE;
 		exit = FALSE;
 		return FALSE;
-	}
+	}*/
 }
 
 #endif // _KBSERVER // whm 2Dec2015 added otherwise Linux build breaks when _KBSERVER is not defined

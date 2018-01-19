@@ -233,7 +233,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(CURL_LIB)\Win32\VC14;$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswu;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CURL_LIB)\Win32\VC14;$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswu;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;lib\silconverters;_KBSERVER;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
@@ -444,7 +444,6 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" xcopy "..\..\setup Git\
     <ClCompile Include="..\..\source\scrollingdialog.cpp" />
     <ClCompile Include="..\..\source\scrollingwizard.cpp" />
     <ClCompile Include="..\..\source\ServDisc_KBserversDlg.cpp" />
-    <ClCompile Include="..\..\source\ServiceDiscovery.cpp" />
     <ClCompile Include="..\..\source\SetDelay.cpp" />
     <ClCompile Include="..\..\source\SetEncodingDlg.cpp" />
     <ClCompile Include="..\..\source\SetupEditorCollaboration.cpp" />
@@ -457,7 +456,6 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" xcopy "..\..\setup Git\
     <ClCompile Include="..\..\source\Strip.cpp" />
     <ClCompile Include="..\..\source\TargetUnit.cpp" />
     <ClCompile Include="..\..\source\tellenc.cpp" />
-    <ClCompile Include="..\..\source\Thread_ServiceDiscovery.cpp" />
     <ClCompile Include="..\..\source\Timer_KbServerChangedSince.cpp" />
     <ClCompile Include="..\..\source\ToolbarPage.cpp" />
     <ClCompile Include="..\..\source\TransformToGlossesDlg.cpp" />
@@ -473,7 +471,6 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" xcopy "..\..\setup Git\
     <ClCompile Include="..\..\source\Welcome.cpp" />
     <ClCompile Include="..\..\source\WhichBook.cpp" />
     <ClCompile Include="..\..\source\WhichFilesDlg.cpp" />
-    <ClCompile Include="..\..\source\wxServDisc.cpp" />
     <ClCompile Include="..\..\source\Xhtml.cpp" />
     <ClCompile Include="..\..\source\XML.cpp" />
     <ClCompile Include="..\..\source\XMLErrorDlg.cpp" />
@@ -552,10 +549,7 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_12_1_4AI.exe" xcopy "..\..\setup Git\
     <ClInclude Include="..\..\source\pstdint.h" />
     <ClInclude Include="..\..\source\RemoveSomeTgtEntries.h" />
     <ClInclude Include="..\..\source\ServDisc_KBserversDlg.h" />
-    <ClInclude Include="..\..\source\ServiceDiscovery.h" />
-    <ClInclude Include="..\..\source\Thread_ServiceDiscovery.h" />
     <ClInclude Include="..\..\source\UsernameInput.h" />
-    <ClInclude Include="..\..\source\wxServDisc.h" />
     <ClInclude Include="Equivalents_for_reference.h" />
     <ClInclude Include="..\..\source\ExportFunctions.h" />
     <ClInclude Include="..\..\source\ExportInterlinearDlg.h" />
