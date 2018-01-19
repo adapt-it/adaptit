@@ -310,6 +310,8 @@ void CChooseTranslationDropDown::FocusShowAndPopup(void)
     wxLogDebug(_T("DropDown's Popup() function call"));
     // The Popup() function is not available in wx2.8.12, so conditional compile for wxversion
 #if wxVERSION_NUMBER < 2900
+    ;
+#else
     this->Popup();
 #endif
 }
