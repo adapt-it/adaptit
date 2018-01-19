@@ -12287,12 +12287,12 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 			bExitOnReturn = TRUE;
 		}
 	}
-#if defined (_DEBUG)
-	if (pSrcPhrase->m_nSequNumber >= 5)
-	{
-		int break_here = 1;
-	}
-#endif
+//#if defined (_DEBUG)
+//	if (pSrcPhrase->m_nSequNumber >= 5)
+//	{
+//		int break_here = 1;
+//	}
+//#endif
 
 	// on exit of the loop we are either at buffer end, or backslash of a marker, or a ]
     // closing bracket, or some character which is not whitespace nor a closing quote
@@ -15298,12 +15298,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// as well. However, we should only be encountering legacy content
 				// begin-markers here in TokenizeText()
 				pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
-#ifdef _DEBUG
-				if (pSrcPhrase->m_nSequNumber == 1123 || pSrcPhrase->m_nSequNumber == 1277 || pSrcPhrase->m_nSequNumber == 1506)
-				{
-					int break_here = 1;
-				}
-#endif
+//#ifdef _DEBUG
+//				if (pSrcPhrase->m_nSequNumber == 1123 || pSrcPhrase->m_nSequNumber == 1277 || pSrcPhrase->m_nSequNumber == 1506)
+//				{
+//					int break_here = 1;
+//				}
+//#endif
                 // whm revised this block 11Feb05 to support USFM and SFM Filtering. When
                 // TokenizeText encounters previously filtered text (enclosed within
                 // \~FILTER ... \~FILTER* brackets), it strips off those brackets so that
@@ -15865,23 +15865,23 @@ fltr:				int offset = wxNOT_FOUND;
 			// below it is ParseWord2() - signature unchanged. Keep the Legacy one
 			// for the time being. #define Use_Legacy_Parser is at line 76 above
 #if defined (Use_Legacy_Parser)
-#if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 5)
-			{
-				int break_here = 1;
-			}
-#endif
+//#if defined (_DEBUG)
+//			if (pSrcPhrase->m_nSequNumber >= 5)
+//			{
+//				int break_here = 1;
+//			}
+//#endif
 			itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessPuncts,
 				pApp->m_inlineNonbindingMarkers,
 				pApp->m_inlineNonbindingEndMarkers,
 				bIsInlineNonbindingMkr, bIsInlineBindingMkr,
 				bTokenizingTargetText);
-#if defined (_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 5)
-			{
-				int break_here = 1;
-			}
-#endif
+//#if defined (_DEBUG)
+//			if (pSrcPhrase->m_nSequNumber >= 5)
+//			{
+//				int break_here = 1;
+//			}
+//#endif
 #else			
 			// This is the refactored one (Oct-Dec 2016)
 			itemLen = ParseWord2(ptr, pEnd, pSrcPhrase, spacelessPuncts,

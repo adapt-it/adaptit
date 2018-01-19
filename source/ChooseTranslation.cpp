@@ -4,12 +4,15 @@
 /// \author			Bill Martin
 /// \date_created	20 June 2004
 /// \rcs_id $Id$
-/// \copyright		2008 Bruce Waters, Bill Martin, SIL International
+/// \copyright		2018 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CChooseTranslation class.
-/// The CChooseTranslation class provides a dialog in which the user can choose
+/// \description	This is the implementation file for the CChooseTranslation and the CChooseTranslationDropDown classes. 
+/// The CChooseTranslation class provides a dialog in which the user can choose 
 /// either an existing translation, or enter a new translation for a given source phrase.
-/// \derivation		The CChooseTranslation class is derived from AIModalDialog.
+/// The CChooseTranslationDropDown class provides a dropdown wxComboBox that appears in lieu of
+/// the CChooseTranslation dialog when called from the CPhraseBox's ChooseTranslation() function.
+/// \derivation		The CChooseTranslation class is derived from AIModalDialog, and the CChooseTranslationDropDown
+/// class is derived from wxComboBox.
 /// BEW 2July10, this class has been updated to support kbVersion 2
 /////////////////////////////////////////////////////////////////////////////
 
@@ -34,6 +37,8 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/tooltip.h> // for wxToolTip
+#include <wx/combo.h>
+
 
 #include "Adapt_It.h"
 #include "KB.h"
@@ -47,23 +52,11 @@
 #include "Adapt_ItView.h"
 #include "KbServer.h"
 
-// event handler table
-BEGIN_EVENT_TABLE(CChooseTranslation, AIModalDialog)
-EVT_INIT_DIALOG(CChooseTranslation::InitDialog)
-	EVT_BUTTON(wxID_OK, CChooseTranslation::OnOK)
-	EVT_BUTTON(wxID_CANCEL, CChooseTranslation::OnCancel)
-	EVT_BUTTON(IDC_BUTTON_MOVE_UP, CChooseTranslation::OnButtonMoveUp)
-	EVT_UPDATE_UI(IDC_BUTTON_MOVE_UP, CChooseTranslation::OnUpdateButtonMoveUp)
-	EVT_BUTTON(IDC_BUTTON_MOVE_DOWN, CChooseTranslation::OnButtonMoveDown)
-	EVT_UPDATE_UI(IDC_BUTTON_MOVE_DOWN, CChooseTranslation::OnUpdateButtonMoveDown)
-	EVT_LISTBOX(IDC_MYLISTBOX_TRANSLATIONS, CChooseTranslation::OnSelchangeListboxTranslations)
-	EVT_LISTBOX_DCLICK(IDC_MYLISTBOX_TRANSLATIONS, CChooseTranslation::OnDblclkListboxTranslations)
-	EVT_BUTTON(IDC_BUTTON_REMOVE, CChooseTranslation::OnButtonRemove)
-	EVT_UPDATE_UI(IDC_BUTTON_REMOVE, CChooseTranslation::OnUpdateButtonRemove)
-	EVT_BUTTON(ID_BUTTON_CANCEL_ASK, CChooseTranslation::OnButtonCancelAsk) // ID_ was IDC_
-	EVT_BUTTON(ID_BUTTON_CANCEL_AND_SELECT, CChooseTranslation::OnButtonCancelAndSelect) // ID_ was IDC_
-	EVT_KEY_DOWN(CChooseTranslation::OnKeyDown)
-END_EVENT_TABLE()
+//enum SelectionWanted
+//{
+//    No,
+//    Yes
+//};
 
 // for support of auto-capitalization
 
@@ -121,6 +114,408 @@ extern wxString		curKey;
 extern int			nWordsInPhrase;
 extern bool			gbInspectTranslations;
 
+/// This global is defined in Adapt_It.cpp.
+extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
+                            // be changed in the NRoman version, using the extra Layout menu
+extern bool gbVerticalEditInProgress;
+
+int ID_COMBO_CHOOSE_TRANS_DROP_DOWN = 22050;
+//bool bEventForwardedFromDropDown = FALSE;
+extern int ID_PHRASE_BOX;
+
+// whm added 10Jan2018 to support quick selection of a translation equivalent.
+// See CChooseTranslation Dialog class implementation farther below.
+
+// ******************************************************************************************
+// ************************* CChooseTranslationDropDown class *******************************
+// ******************************************************************************************
+
+IMPLEMENT_DYNAMIC_CLASS(CChooseTranslationDropDown, wxComboBox)
+
+// event handler table for the CChooseTranslationDropDown class
+BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
+    // Process a wxEVT_COMBOBOX event, when an item on the list is selected. 
+    // Note that calling GetValue() returns the new value of selection
+    EVT_COMBOBOX(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboItemSelected)
+
+    // Process a wxEVT_TEXT event, when the combobox text changes
+    EVT_TEXT(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboTextChanged)
+
+    // Process a wxEVT_TEXT_ENTER event, when RETURN is pressed in the combobox
+    // (notice that the combobox must have been created with wxTE_PROCESS_ENTER 
+    // style to receive this event)
+    EVT_TEXT_ENTER(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessEnterKeyPress)
+
+    // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
+    // list box part of the combo box is shown (drops down). Notice that this 
+    // event is only supported by wxMSW, wxGTK with GTK+ 2.10 or later, and wxOSX/Cocoa
+    //EVT_COMBOBOX_DROPDOWN(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListOpen)
+
+    // Process a wxEVT_COMBOBOX_CLOSEUP event, which is generated when the list 
+    // box of the combo box disappears (closes up). This event is only generated 
+    // for the same platforms as wxEVT_COMBOBOX_DROPDOWN above. Also note that
+    // only wxMSW and wxOSX/Cocoa support adding or deleting items in this event
+    //EVT_COMBOBOX_CLOSEUP(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp)
+    
+    EVT_KEY_UP(CChooseTranslationDropDown::OnKeyUp)
+END_EVENT_TABLE()
+
+// whm added 10Jan2018 to support quick selection of a translation equivalent.
+// Notes regarding the creation of the CPhraseBox class (from Adapt_ItView.cpp):
+// For reference here are the wxTextCtrl style flags that govern the phrasebox 
+// (these may be of interest when creating the CChooseTranslationDropDown object).
+// wxSIMPLE_BORDER - Displays a thin border around the window.
+// wxWANTS_CHARS - According to the wx docs Use this to indicate that
+// the window wants to get all char/key events for all keys - even for keys like
+// TAB or ENTER which are usually used for dialog navigation and which wouldn't
+// be generated without this style. If you need to use this style in order to
+// get the arrows or etc., but would still like to have normal keyboard navigation
+// take place, you should create and send a wxNavigationKeyEvent in response to
+// the key events for Tab and Shift-Tab.
+// wxTAB_TRAVERSAL - Use this to enable tab traversal for non-dialog windows
+// (not needed for phrasebox).
+
+// The CChooseTranslationDropDown constructor
+CChooseTranslationDropDown::CChooseTranslationDropDown(void)
+{
+    // Anything done here will only be executed when the control is first
+    // created, not each time it is shown or hidden.
+
+    wxASSERT(gpApp->m_pTargetFont != NULL);
+    wxASSERT(gpApp->m_pDlgTgtFont != NULL);
+    CopyFontBaseProperties(gpApp->m_pTargetFont, gpApp->m_pDlgTgtFont);
+    // The CopyFontBaseProperties function above doesn't copy the point size, so
+    // make the dialog font show in the proper dialog font size.
+    gpApp->m_pDlgTgtFont->SetPointSize(gpApp->m_dialogFontSize);
+    this->SetFont(*gpApp->m_pDlgTgtFont);
+    // whm modified 8Jul09 to always use wxLayout_LeftToRight for list boxes, since we
+    // probably don't want the list item right justified and the scroll bar mirrored on
+    // the left side, since the main window is not similarly mirrored.
+#ifdef _RTL_FLAGS
+this->SetLayoutDirection(wxLayout_LeftToRight);
+#endif
+
+
+}
+
+CChooseTranslationDropDown::CChooseTranslationDropDown(wxWindow * parent, 
+    wxWindowID id, 
+    const wxString & value, 
+    const wxPoint & pos, 
+    const wxSize & size, 
+    const wxArrayString & choices, 
+    long style)
+    : wxComboBox(parent, 
+        id,
+        value,
+        pos, 
+        size, 
+        choices, 
+        style) // style is wxCB_DROPDOWN | wxTE_PROCESS_ENTER
+{
+    // Note: the constructor initially creates the dropdown list at the first instance it 
+    // is needed in the application in CPhraseBox::ChooseTranslation(). The dropdown combo 
+    // control is persistent and only shown or hidden as needed. Hence, we don't populate 
+    // its list here in the constructor, but clear the list and re-populate it each time 
+    // just before it is shown in the GUI.
+}
+
+CChooseTranslationDropDown::~CChooseTranslationDropDown(void)
+{
+    // Since the modeless dropdown is a child of the MainFrame's canvas it is deleted 
+    // when the canvas is destroyed upon closing the app.
+}
+
+// Copied and modified/renamed from the PopulateList() in CChooseTranslation dialog class
+// This PopulateDropDownList() should be called just before each time the dropdown is to 
+// be shown in the GUI.
+// Note: commented out references to m_pMyListBox could be used if we needed to implement
+// a custom list box control.
+void CChooseTranslationDropDown::PopulateDropDownList(int selectionIndex)
+{
+    this->Clear();
+
+    if (pCurTargetUnit == NULL)
+    {
+        // there is nothing to add to the list from a valid pCurTargetUnit,
+        // we just return here after clearing list (above)
+        return;
+    }
+
+    wxString s = _("<no adaptation>");
+
+    // set the combobox's list contents to the translation or gloss strings stored
+    // in the global variable pCurTargetUnit, which has just been matched
+    // BEW 25Jun10, ignore any CRefString instances for which m_bDeleted is TRUE
+    CRefString* pRefString;
+    TranslationsList::Node* pos = pCurTargetUnit->m_pTranslations->GetFirst();
+    wxASSERT(pos != NULL);
+    while (pos != NULL)
+    {
+        pRefString = (CRefString*)pos->GetData();
+        pos = pos->GetNext();
+        if (!pRefString->GetDeletedFlag())
+        {
+            // this one is not deleted, so show it to the user
+            wxString str = pRefString->m_translation;
+            if (str.IsEmpty())
+            {
+                str = s;
+            }
+            int nLocation = this->Append(str); // for unsorted lists Append() always returns index of last/just-inserted item
+            // whm note: For CChooseTranslationDropDown we don't really need to keep track 
+            // of pRefString's m_refCount but it won't harm anything to do so.
+            // The combobox's list is NOT sorted; the Append() command above returns the 
+            // just-inserted item's index - before calling SetClientData() below.
+            wxASSERT(nLocation != -1); // we just added it so it must be there!
+            this->SetClientData(nLocation, &pRefString->m_refCount);
+        }
+    }
+    this->SetSelection(selectionIndex);
+}
+
+void CChooseTranslationDropDown::SizeAndPositionDropDownBox(void)
+{
+    CPhraseBox* phraseBox;
+    phraseBox = gpApp->m_pTargetBox;
+    // SizeAndPositionDropDownBox is normally executed while the dropdown is showing,
+    // to avoid flicker hide it while calling SetSize() and SetPosition(), then show it.
+    //this->Hide();
+    wxSize phraseBoxSize;
+    wxSize initialDropDownSize;
+    phraseBoxSize = phraseBox->GetSize();
+    initialDropDownSize = this->GetSize();
+    if (initialDropDownSize != phraseBoxSize)
+    {
+        this->SetSize(phraseBoxSize);
+    }
+    wxPoint phraseBoxPosn = phraseBox->GetPosition();
+    wxPoint adjustedDropDownPosn(phraseBoxPosn.x, phraseBoxPosn.y + phraseBoxSize.GetHeight());
+    wxPoint currDownPosn = this->GetPosition();
+    if (currDownPosn != adjustedDropDownPosn)
+    {
+        this->SetPosition(adjustedDropDownPosn);
+    }
+    // The following moved to separate function:
+    //this->SetFocus();
+    //this->Show();
+    //wxLogDebug(_T("DropDown's Popup() function call"));
+    //this->Popup();
+}
+
+void CChooseTranslationDropDown::FocusShowAndPopup(void)
+{
+    this->SetFocus();
+    this->Show();
+    wxLogDebug(_T("DropDown's Popup() function call"));
+    // The Popup() function is not available in wx2.8.12, so conditional compile for wxversion
+#if wxVERSION_NUMBER < 2900
+    ;
+#else
+    this->Popup();
+#endif
+}
+
+void CChooseTranslationDropDown::OnComboItemSelected(wxCommandEvent& WXUNUSED(event))
+{
+    // Process a wxEVT_COMBOBOX event, when an item on the list is selected.
+    // "selected" here can happen two ways:
+    // 1. If dropdown list is closed with focus in the dropdown's edit box, the user 
+    //    can press down/up arrow key to select items into the edit box without opening
+    //    the dropdown list. Each of these down/up arrow key presses results in a "selection"
+    //    event that triggers this handler.
+    // 2. If the dropdown list is open - by either ALT+DownArrow or mouse click on the 
+    //    dropdown's v arrow icon, moving the highlight to different items in list with
+    //    the down/up arrow keys, doesn't trigger this "selection" event, but pressing Enter,
+    //    while the item is highlighted, or clicking on the highlighted item does trigger 
+    //    this event handler.
+    // Note that calling GetValue() returns the new value of selection
+
+    // When item from dropdown list is selected, copy it overwriting anything in the phrasebox
+
+    // Empty the phrasebox first since WriteText below just writes the text at the insertion point (resulting 
+    // in possible duplication/appending of text if user changes mind and subsequently selects a different item)
+    // WriteText() can't be used to remove text from the phrasebox, so use ChangeValue
+    gpApp->m_pTargetBox->ChangeValue(_T("")); // ChangeValue and SetValue clears the phrasebox's modified flag so we explicitly set it below.
+
+    wxString selItem;
+    selItem = this->GetValue();
+    if (!gpApp->m_pTargetBox->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue
+    {
+        gpApp->m_pTargetBox->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will so its work
+    }
+    //gpApp->m_pTargetBox->SetValue(selItem);
+    //gpApp->m_pTargetBox->ChangeValue(selItem);
+    gpApp->m_pTargetBox->WriteText(selItem); // use WriteText() instead of ChangeValue() or SetValue() since the later two reset the IsModified() to FALSE
+    
+    // Combo item was selected, so move the focus from the dropdown up to the phrasebox where the user 
+    // can make further edits if needed before pressing Enter there to move the PhraseBox on.
+    gpApp->m_pTargetBox->SetFocus();
+}
+
+void CChooseTranslationDropDown::OnComboTextChanged(wxCommandEvent& WXUNUSED(event))
+{
+    // Process a wxEVT_TEXT event, when the combobox text changes.
+    // We copy characters as they are typed over to the m_pTargetBox (PhraseBox). We'll
+    // copy the entire content of the combo control's edit box over for each character
+    // typed, which will deal with backspaces, non-linear edits, etc.
+    // We need to use the WriteText() method writing to m_pTargetBox since it
+    // doesn' reset the IsModified flag. The PhraseBox won't store what is typed
+    // when Enter is finally pressed within the PhraseBox unless the IsModified
+    // flag is set.
+
+    // Empty the phrasebox first since WriteText below just writes the text at the insertion point (resulting 
+    // in possible duplication/appending of text if user changes mind and subsequently selects a different item)
+    // WriteText() can't be used to remove text from the phrasebox, so use ChangeValue
+    gpApp->m_pTargetBox->ChangeValue(_T("")); // ChangeValue and SetValue clears the phrasebox's modified flag so we explicitly set it below.
+
+    wxString selItem;
+    selItem = this->GetValue();
+    if (!gpApp->m_pTargetBox->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue
+    {
+        gpApp->m_pTargetBox->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will so its work
+    }
+    //gpApp->m_pTargetBox->SetValue(selItem);
+    //gpApp->m_pTargetBox->ChangeValue(selItem);
+    gpApp->m_pTargetBox->WriteText(selItem); // use WriteText() instead of ChangeValue() or SetValue() since the later two reset the IsModified() to FALSE
+
+    // Note: The focus stays in the dropdown's edit box until the PhraseBox needs to expand (in FixBox). 
+    // When the box expands, the focus shifts to the PhraseBox (which has the chars typed thus far), but
+    // no additional characters are typed in the dropdown's edit box. I've modified the CPhraseBox, to echo
+    // typed characters back to the dropdown's edit box.
+    // Note: The following won't work from here to correct the above mentioned problem
+    //this->SetFocus(); // Nope. This causes the control to select the text typed to be selected, next char then replaces the selection!
+    //this->SelectNone(); // Nope. This causes the insertion point to go backk to 0, which causes characters to be reverse-typed!
+    
+    // Do not SetFocus() to the m_pTargetBox here, since were copying character by character from
+    // the dropdown's edit box to the phrasebox, but retaining focus in the dropdown's edit box
+    // until Enter is pressed at end of typing.
+}
+
+void CChooseTranslationDropDown::OnComboProcessEnterKeyPress(wxCommandEvent& WXUNUSED(event))
+{
+    // Process a wxEVT_TEXT_ENTER event, when RETURN is pressed in the combobox
+    // (notice that the combobox must have been created with wxTE_PROCESS_ENTER 
+    // style to receive this event)
+
+    // Empty the phrasebox first since WriteText below just writes the text at the insertion point (resulting 
+    // in possible duplication/appending of text if user changes mind and subsequently selects a different item)
+    // WriteText() can't be used to remove text from the phrasebox, so use ChangeValue
+    gpApp->m_pTargetBox->ChangeValue(_T("")); // ChangeValue and SetValue clears the phrasebox's modified flag so we explicitly set it below.
+
+    wxString selItem;
+    selItem = this->GetValue();
+    if (!gpApp->m_pTargetBox->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue
+    {
+        gpApp->m_pTargetBox->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will so its work
+    }
+    //gpApp->m_pTargetBox->SetValue(selItem);
+    //gpApp->m_pTargetBox->ChangeValue(selItem);
+    gpApp->m_pTargetBox->WriteText(selItem); // use WriteText() instead of ChangeValue() or SetValue() since the later two reset the IsModified() to FALSE
+                                             // Move the focus from the dropdown up to the phrasebox where the user can make further edits if needed before pressing Enter there to move on
+    // Enter key was pressed signaling end of edit in the dropdown's edit box, so move focus to the m_pTargetBox
+    gpApp->m_pTargetBox->SetFocus();
+}
+
+//void CChooseTranslationDropDown::OnComboProcessDropDownListOpen(wxCommandEvent& WXUNUSED(event))
+//{
+//    // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
+//    // list box part of the combo box is shown (drops down). Notice that this 
+//    // event is only supported by wxMSW, wxGTK with GTK+ 2.10 or later, and wxOSX/Cocoa
+//    
+//    ; // nothing to do here
+//}
+//
+//void CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event))
+//{
+//    // Process a wxEVT_COMBOBOX_CLOSEUP event, which is generated when the list 
+//    // box of the combo box disappears (closes up). This event is only generated 
+//    // for the same platforms as wxEVT_COMBOBOX_DROPDOWN above. Also note that
+//    // only wxMSW and wxOSX/Cocoa support adding or deleting items in this event
+//
+//    ; // nothing to do here
+//}
+
+void CChooseTranslationDropDown::OnKeyUp(wxKeyEvent & event)
+{
+    // Some code here copied from CPhraseBox::OnKeyUp(wxKeyEvent& event)
+    // This event handler only processes key-events for CChoseTranslationDropDown::OnKeyUp()
+    if (event.GetKeyCode() == WXK_ALT)
+    {
+        gpApp->m_bALT_KEY_DOWN = FALSE; // indicate ALT is not down, for use by DoSrcPhraseSelCopy()
+                                       // continue on
+    }
+
+    // Note: wxWidgets doesn't have a separate OnSysKeyUp() virtual method
+    // so we'll simply detect if the ALT key was down and call the
+    // OnSysKeyUp() method from here
+    if (event.AltDown())// CmdDown() is same as ControlDown on PC,
+                        // and Apple Command key on Macs.
+    {
+        // Note: Here in the dropdown's edit box, there is a conflict with some ALT key 
+        // combinations here, and the ALT key handling that is in CPhraseBox::OnSysKeyUp().
+        // Namely, here the ALT+Down key is the combination that opens the dropdown list
+        // from the keyboard (which is nice and handy). But that same combination made from
+        // CPhraseBox's OnSysKeyUp() is the keyboard command that would ordinarily insert 
+        // a placeholder BEFORE the first selected storage element (or if none is selected, 
+        // then it is inserted before the active location). As the result of this conflict 
+        // the code block below completely handles ALT+WXK_DOWN events here, and doesn't
+        // pass them along to the CPhraseBox::OnSysKeyUp() handler. Hence the user cannot
+        // initiate an action to insert a placeholder before the selected storage element
+        // while focus is in the dropdown's edit box. S/He must press Tab or click the 
+        // mouse in the PhraseBox, or some other key-handling action that puts the focus
+        // into the PhraseBox, where ALT_WXK_DOWN will insert the placeholder.
+        wxASSERT(event.GetId() == ID_COMBO_CHOOSE_TRANS_DROP_DOWN);
+
+        if (!(event.GetKeyCode() == WXK_DOWN))
+        {
+            // For all ALT events except ALT+WXK_DOWN, send key-event handling off to CPhraseBox::OnSysKeyUp().
+            gpApp->m_pTargetBox->OnSysKeyUp(event); // this moves focus to the PhraseBox
+
+        }
+
+        return;
+    }
+
+    // does the user want to force the Choose Translation dialog open?
+    // whm Note 12Feb09: This F8 action is OK on Mac (no conflict)
+    if (event.GetKeyCode() == WXK_F8)
+    {
+        // whm added 26Mar12
+        if (gpApp->m_bReadOnlyAccess)
+        {
+            // Disable the F8 key invocation of the ChooseTranslation dialog
+            return;
+        }
+        gpApp->GetView()->ChooseTranslation();
+        return;
+    }
+
+
+    event.Skip();
+}
+
+// ******************************************************************************************
+// ************************* CChooseTranslation dialog class ********************************
+// ******************************************************************************************
+
+// event handler table for the CChooseTranslation dialog class
+BEGIN_EVENT_TABLE(CChooseTranslation, AIModalDialog)
+    EVT_INIT_DIALOG(CChooseTranslation::InitDialog)
+    EVT_BUTTON(wxID_OK, CChooseTranslation::OnOK)
+    EVT_BUTTON(wxID_CANCEL, CChooseTranslation::OnCancel)
+    EVT_BUTTON(IDC_BUTTON_MOVE_UP, CChooseTranslation::OnButtonMoveUp)
+    EVT_UPDATE_UI(IDC_BUTTON_MOVE_UP, CChooseTranslation::OnUpdateButtonMoveUp)
+    EVT_BUTTON(IDC_BUTTON_MOVE_DOWN, CChooseTranslation::OnButtonMoveDown)
+    EVT_UPDATE_UI(IDC_BUTTON_MOVE_DOWN, CChooseTranslation::OnUpdateButtonMoveDown)
+    EVT_LISTBOX(IDC_MYLISTBOX_TRANSLATIONS, CChooseTranslation::OnSelchangeListboxTranslations)
+    EVT_LISTBOX_DCLICK(IDC_MYLISTBOX_TRANSLATIONS, CChooseTranslation::OnDblclkListboxTranslations)
+    EVT_BUTTON(IDC_BUTTON_REMOVE, CChooseTranslation::OnButtonRemove)
+    EVT_UPDATE_UI(IDC_BUTTON_REMOVE, CChooseTranslation::OnUpdateButtonRemove)
+    EVT_BUTTON(ID_BUTTON_CANCEL_ASK, CChooseTranslation::OnButtonCancelAsk) // ID_ was IDC_
+    EVT_BUTTON(ID_BUTTON_CANCEL_AND_SELECT, CChooseTranslation::OnButtonCancelAndSelect) // ID_ was IDC_
+    EVT_KEY_DOWN(CChooseTranslation::OnKeyDown)
+END_EVENT_TABLE()
 
 CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Choose Translation"),

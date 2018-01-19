@@ -29,8 +29,14 @@
 // **** NOTE**** If commenting out, be sure to do the same to the same #define in
 // line 43 of AdaptItConstants.h
 #define Use_Legacy_Parser
-
 #include <wx/string.h>
+
+// whm added 10Jan2018 to support quick selection of a translation equivalent.
+// When Use_in_line_Choose_Translation_DropDown is defined the default behavior is 
+// to present multiple translation equivalents in a drop-down combobox aligned to 
+// the bottom of the phrasebox instead of the legacy code way of showing a modal 
+// ChooseTranslation dialog.
+//#define Use_in_line_Choose_Translation_DropDown
 
 //#define AUTHENTICATE_AS_BRUCE
 
@@ -396,6 +402,9 @@ class Xhtml;
 
 // forward for Admin Help
 class CHtmlFileViewer;
+
+// forward reference for CChooseTranslationDropDown
+class CChooseTranslationDropDown;
 
 //#include "BString.h"
 
@@ -2734,6 +2743,11 @@ public:
 	wxString		m_targetPhrase; // the text currently in the m_targetBox
 	long			m_nStartChar;   // start of selection in the target box
 	long			m_nEndChar;		// end of selection in the target box
+
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+#if defined(Use_in_line_Choose_Translation_DropDown)
+    CChooseTranslationDropDown* m_pChooseTranslationDropDown;
+#endif
 
 	//bool bUserSelectedFileNew; // BEW removed 24Aug10
 

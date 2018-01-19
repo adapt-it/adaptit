@@ -378,6 +378,7 @@ extern wxCriticalSection g_jsonCritSect;
 #include "HtmlFileViewer.h"
 #include "DVCS.h"
 #include "UsernameInput.h" // BEW added 28May13
+#include "ChooseTranslation.h" // whm added 10Jan2018
 
 //#include "md5.h"
 #include "md5_SB.h"
@@ -18787,6 +18788,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // constructor when a new view is opened)
     m_pTargetBox = (CPhraseBox*)NULL; // added for persistent target box
 
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+#if defined(Use_in_line_Choose_Translation_DropDown)
+    m_pChooseTranslationDropDown = (CChooseTranslationDropDown*)NULL; // for persistent dropdown 
+#endif
     m_pEarlierTransDlg = (CEarlierTranslationDlg*)NULL;
 
     m_pNoteDlg = (CNoteDlg*)NULL; // needed in wx version
@@ -24216,6 +24221,16 @@ int CAdapt_ItApp::OnExit(void)
     // deleted again in the App's OnExit() method, when the App terminates.
     //delete m_pTargetBox;
     //m_pTargetBox = (CPhraseBox*)NULL;
+
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+#if defined(Use_in_line_Choose_Translation_DropDown)
+    // See Note above regarding m_pTargetBox. The m_pChooseTranslationDropDown is also a 
+    // child of its parent the canval window. As such it also should be automatically
+    // destroyed at the time the pView->canvas is destroyed.
+    //if (m_pChooseTranslationDropDown != NULL)
+    //    delete m_pChooseTranslationDropDown;
+    //m_pChooseTranslationDropDown = (CChooseTranslationDropDown*)NULL;
+#endif
 
     if (m_pConfig != NULL) // whm 11Jun12 added NULL test
         delete m_pConfig;
@@ -43999,6 +44014,13 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
         mssg = _("!! TRANSLITERATING !!");
         message += _T("   ") + mssg;
     }
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+#if defined(Use_in_line_Choose_Translation_DropDown)
+    if ((gpApp->m_pChooseTranslationDropDown != NULL) && (gpApp->m_pChooseTranslationDropDown->IsShown()))
+    {
+        message = _("Choose a translation, or type a new translation from drop-down list. Press F8 for more options.");
+    }
+#endif
     StatusBarMessage(message);
     pFrame->m_pStatusBar->Update();
 
@@ -53345,6 +53367,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
         if (ffile.IsOpened())
         {
             bool bGotAll = ffile.ReadAll(&resultsStr);
+            bGotAll = bGotAll; // avoid gcc warning
             wxLogDebug(_T("Found these: %s"), resultsStr.c_str() ); // for logging window
 
             #ifdef _DEBUG
@@ -53660,6 +53683,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		*/
 		// Initializations
 		ServDiscDetail result = SD_NoResultsYet;
+        result = result; // avoid gcc warning
 		gpApp->m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
 		gpApp->m_bShownFromServiceDiscoveryAttempt = TRUE;
 		gpApp->m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames
