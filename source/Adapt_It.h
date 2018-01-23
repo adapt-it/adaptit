@@ -34,8 +34,8 @@
 // When Use_in_line_Choose_Translation_DropDown is defined the default behavior is 
 // to present multiple translation equivalents in a drop-down combobox aligned to 
 // the bottom of the phrasebox instead of the legacy code way of showing a modal 
-// ChooseTranslation dialog.
-//#define Use_in_line_Choose_Translation_DropDown
+// ChooseTranslation dialog. Comment out to only use the Choose Translation dialog.
+#define Use_in_line_Choose_Translation_DropDown
 
 //#define AUTHENTICATE_AS_BRUCE
 
