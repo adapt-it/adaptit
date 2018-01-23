@@ -178,27 +178,11 @@ END_EVENT_TABLE()
 // The CChooseTranslationDropDown constructor
 CChooseTranslationDropDown::CChooseTranslationDropDown(void)
 {
-    // Anything done here will only be executed when the control is first
-    // created, not each time it is shown or hidden.
-
-    wxASSERT(gpApp->m_pTargetFont != NULL);
-    wxASSERT(gpApp->m_pDlgTgtFont != NULL);
-    CopyFontBaseProperties(gpApp->m_pTargetFont, gpApp->m_pDlgTgtFont);
-    // The CopyFontBaseProperties function above doesn't copy the point size, so
-    // make the dialog font show in the proper dialog font size.
-    gpApp->m_pDlgTgtFont->SetPointSize(gpApp->m_dialogFontSize);
-    this->SetFont(*gpApp->m_pDlgTgtFont);
-    // whm modified 8Jul09 to always use wxLayout_LeftToRight for list boxes, since we
-    // probably don't want the list item right justified and the scroll bar mirrored on
-    // the left side, since the main window is not similarly mirrored.
-#ifdef _RTL_FLAGS
-this->SetLayoutDirection(wxLayout_LeftToRight);
-#endif
-
-
+    // we don't use the default constructor
 }
 
-CChooseTranslationDropDown::CChooseTranslationDropDown(wxWindow * parent, 
+CChooseTranslationDropDown::CChooseTranslationDropDown(
+    wxWindow * parent, 
     wxWindowID id, 
     const wxString & value, 
     const wxPoint & pos, 
@@ -218,6 +202,21 @@ CChooseTranslationDropDown::CChooseTranslationDropDown(wxWindow * parent,
     // control is persistent and only shown or hidden as needed. Hence, we don't populate 
     // its list here in the constructor, but clear the list and re-populate it each time 
     // just before it is shown in the GUI.
+    wxASSERT(gpApp->m_pTargetFont != NULL);
+    //wxASSERT(gpApp->m_pDlgTgtFont != NULL);
+
+    //CopyFontBaseProperties(gpApp->m_pTargetFont, gpApp->m_pDlgTgtFont);
+    // The CopyFontBaseProperties function above doesn't copy the point size, so
+    // make the dialog font show in the proper dialog font size.
+    //gpApp->m_pDlgTgtFont->SetPointSize(gpApp->m_dialogFontSize);
+    this->SetFont(*gpApp->m_pTargetFont);
+    // whm modified 8Jul09 to always use wxLayout_LeftToRight for list boxes, since we
+    // probably don't want the list item right justified and the scroll bar mirrored on
+    // the left side, since the main window is not similarly mirrored.
+#ifdef _RTL_FLAGS
+    this->SetLayoutDirection(wxLayout_LeftToRight);
+#endif
+
 }
 
 CChooseTranslationDropDown::~CChooseTranslationDropDown(void)
