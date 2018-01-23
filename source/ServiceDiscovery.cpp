@@ -139,6 +139,9 @@
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
 
+/*
+
+
 #ifndef WX_PRECOMP
 // Include your minimal set of headers here
 #include <wx/arrstr.h>
@@ -160,11 +163,16 @@
 #define _WINSOCKAPI_ // keeps winsock.h from being included in <Windows.h>, it's here just in case
 
 #include "wxServDisc.h"
+*/
+
+
 #include "Adapt_It.h"
 #include "MainFrm.h"
 #include "ServiceDiscovery.h"
 #include "helpers.h"
 
+
+/*
 // to enable or suppress logging, comment out to suppress
 #define _zerocsd_
 
@@ -677,6 +685,11 @@ void CServiceDiscovery::RemoveSpuriousDuplicates(wxArrayString& arr)
 	}
 }
 */
+
+
+
+
+
 /* deprecated
 // BEW created 5Jan16, needed for GetResults() in CServiceDiscovery instance
 bool CServiceDiscovery::IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase)
@@ -714,6 +727,11 @@ bool CServiceDiscovery::IsDuplicateStrCase(wxArrayString* pArrayStr, wxString& s
 	}
 }
 */
+
+
+
+/*
+
 // BEW created 5Jan16
 // This is similar to AddUniqueString() above, but AddUniqueString() does
 // case or caseless compare using the global gbAutoCaps; but for
@@ -758,4 +776,6 @@ bool CServiceDiscovery::AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str
 		}
 	}
 }
+*/
+
 #endif // _KBSERVER

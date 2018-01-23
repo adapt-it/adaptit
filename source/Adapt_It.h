@@ -29,6 +29,7 @@
 // **** NOTE**** If commenting out, be sure to do the same to the same #define in
 // line 43 of AdaptItConstants.h
 #define Use_Legacy_Parser
+#include <wx/string.h>
 
 // whm added 10Jan2018 to support quick selection of a translation equivalent.
 // When Use_in_line_Choose_Translation_DropDown is defined the default behavior is 
@@ -95,15 +96,15 @@ class TranslationsList; // the CTargetUnit's list of CRefString instances
 
 #if defined(_KBSERVER)
 
-class CServiceDiscovery; // BEW 4Jan16
+//class CServiceDiscovery; // BEW 4Jan16
 class CServDisc_KBserversDlg; // BEW 12Jan16
 class CWaitDlg; // BEW 8Feb16
 class Thread_ServiceDiscovery; // BEW 11Apr16
 
 #if wxVERSION_NUMBER < 2900
-DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
+//DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
 #else
-wxDECLARE_EVENT(wxServDiscHALTING, wxCommandEvent);
+//wxDECLARE_EVENT(wxServDiscHALTING, wxCommandEvent);
 #endif
 
 #endif // _KBSERVER
@@ -3187,8 +3188,8 @@ public:
 				// we allowed a successive run to destroy the previous run's pointer, we would get access
 				// violations -- so each run has its own pointer
 	wxTimer   m_servDiscTimer;
-	void	  OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event));
-	void	  DoServiceDiscoverySingleRun(); // like OnServiceDiscoveryTimer() but without the timer stuff
+//	void	  OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event));
+//	void	  DoServiceDiscoverySingleRun(); // like OnServiceDiscoveryTimer() but without the timer stuff
 	void	  DoDiscoverKBservers(); // BEW 20Jul17 scan for publishing kbservers - by Leon's scripts
 	//void	  ServDiscSingleOnly();
 	int		  m_numServiceDiscoveryRuns; // I'll default it to 3 in OnInit(), but let a manual edit
