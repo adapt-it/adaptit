@@ -11733,6 +11733,24 @@ wxSizer *CollabProtectEditorBulkSettingsDlgFunc( wxWindow *parent, bool call_fit
     return item0;
 }
 
+wxSizer *ChooseTransDropDownFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxString *strs1 = (wxString*) NULL;
+    wxComboBox *item1 = new wxComboBox( parent, ID_COMBO_CHOOSE_TRANS, wxT(""), wxDefaultPosition, wxSize(100,-1), 0, strs1, wxCB_DROPDOWN|wxTE_PROCESS_ENTER );
+    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
