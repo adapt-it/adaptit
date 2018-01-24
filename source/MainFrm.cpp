@@ -3890,7 +3890,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 		VertDisplacementFromReportedMainFrameClientSize += m_controlBarHeight;
 		finalHeightOfCanvas -= m_controlBarHeight;
 
-		wxLogDebug(_T("MainFrm.cpp, OnSize(): m_controlBarHeight = %d"), m_controlBarHeight);
+		//wxLogDebug(_T("MainFrm.cpp, OnSize(): m_controlBarHeight = %d"), m_controlBarHeight);
 	}
 
     // Next, set the size and placement for each of the visible "bars" that appear at the
