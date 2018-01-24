@@ -58,6 +58,7 @@
 #include "NoteDlg.h"
 #include "ViewFilteredMaterialDlg.h"
 #include "FreeTrans.h"
+#include "ChooseTranslation.h"
 
 //#define _FT_ADJUST
 //#define CAPTUREMOUSE
@@ -484,7 +485,31 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
 // to clicking on the thumb, arrows, or the paging parts of the canvas' scrollbar.
 void CAdapt_ItCanvas::OnScroll(wxScrollWinEvent& event)
 {
-	event.Skip();	// this is necessary for the built-in scrolling behavior of wxScrolledWindow
+#if defined(Use_in_line_Choose_Translation_DropDown)
+    CAdapt_ItApp* pApp = &wxGetApp();
+    // If the dropdown combobox exists and is showing, make sure its position tracks that of the phrasebox
+    if (pApp->m_pChooseTranslationDropDown != NULL)
+    {
+        if (pApp->m_pChooseTranslationDropDown->IsShown())
+        {
+#if wxVERSION_NUMBER < 2900
+            ;
+#else
+            // Since a scroll of the screen seems to seem to separate the popdown part of the comboobox
+            // from the base edit box part (actually a phantom image), we here make the popup disappear 
+            // when there is an OnScroll event.
+            // TODO: If a way is discovered to prevent the phantom drawn listbox to stay backk at the
+            // original position, this Dismiss() call below may be unnecessary.
+            //if (pApp->m_pChooseTranslationDropDown->IsPopupShown()) // The IsPopupShown() method is only available for wxComboCtrl not wxComboBox
+            //{
+                pApp->m_pChooseTranslationDropDown->Dismiss();
+            //}
+#endif
+         }
+    }
+
+#endif
+    event.Skip();	// this is necessary for the built-in scrolling behavior of wxScrolledWindow
 					// to be processed
 }
 
