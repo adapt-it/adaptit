@@ -3053,7 +3053,11 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
             if (pApp->m_pChooseTranslationDropDown->IsShown())
             {
                 //bWasTypingFromDropDown = pApp->m_pChooseTranslationDropDown->HasFocus();
+#if wxVERSION_NUMBER < 2900
+                ;
+#else
                 bWasTypingFromDropDown = pApp->m_pChooseTranslationDropDown->HasFocus();
+#endif
             }
         }
 #endif
