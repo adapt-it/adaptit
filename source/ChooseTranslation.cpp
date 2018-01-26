@@ -146,6 +146,9 @@ BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
     // style to receive this event)
     EVT_TEXT_ENTER(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessEnterKeyPress)
 
+#if wxVERSION_NUMBER < 2900
+    ;
+#else
     // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
     // list box part of the combo box is shown (drops down). Notice that this 
     // event is only supported by wxMSW, wxGTK with GTK+ 2.10 or later, and wxOSX/Cocoa
@@ -156,7 +159,7 @@ BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
     // for the same platforms as wxEVT_COMBOBOX_DROPDOWN above. Also note that
     // only wxMSW and wxOSX/Cocoa support adding or deleting items in this event
     EVT_COMBOBOX_CLOSEUP(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp)
-    
+#endif
     EVT_KEY_UP(CChooseTranslationDropDown::OnKeyUp)
 END_EVENT_TABLE()
 
@@ -421,6 +424,9 @@ void CChooseTranslationDropDown::OnComboProcessEnterKeyPress(wxCommandEvent& WXU
     gpApp->m_pTargetBox->SetFocus();
 }
 
+#if wxVERSION_NUMBER < 2900
+;
+#else
 void CChooseTranslationDropDown::OnComboProcessDropDownListOpen(wxCommandEvent& WXUNUSED(event))
 {
     // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
@@ -443,6 +449,7 @@ void CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp(wxCommandEven
     bDropDownIsPoppedOpen = FALSE;
     //wxLogDebug(_T("Popup is Closed"));
 }
+#endif
 
 void CChooseTranslationDropDown::OnKeyUp(wxKeyEvent & event)
 {

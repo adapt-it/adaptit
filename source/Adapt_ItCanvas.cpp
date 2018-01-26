@@ -502,7 +502,7 @@ void CAdapt_ItCanvas::OnScroll(wxScrollWinEvent& event)
             // the user from scrolling away to check context during adaptation. However, when the 
             // popup isn't open, the user can scroll the phrasebox-dropdown combination out of the 
             // client area.
-            if (pApp->m_pChooseTranslationDropDown->bDropDownIsPoppedOpen)
+            if (pApp->m_pChooseTranslationDropDown->bDropDownIsPoppedOpen) // bDropDownIsPoppedOpen is always false in wx2.8.12 :(
             {
                 pApp->GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
                 //pApp->m_pChooseTranslationDropDown->Dismiss(); // Don't use Dismiss(). It is not in wx2.8.12 and it seeks focus & prevents scrolling out of view
