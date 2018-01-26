@@ -72,12 +72,11 @@ public:
 
     virtual ~CChooseTranslationDropDown(void); // destructor
 
-    wxSizer*	pChooseTransDropDownSizer;
-    //wxComboBox* pCB;
+    bool bDropDownIsPoppedOpen;
 
     void PopulateDropDownList(int selectionIndex);
     void SizeAndPositionDropDownBox(void);
-    void FocusShowAndPopup(void);
+    void FocusShowAndPopup(bool bScrolling);
 
     wxWindow *GetControl() { return this; }
 
@@ -85,8 +84,8 @@ protected:
     void OnComboItemSelected(wxCommandEvent& event);
     void OnComboTextChanged(wxCommandEvent& WXUNUSED(event));
     void OnComboProcessEnterKeyPress(wxCommandEvent& WXUNUSED(event));
-    //void OnComboProcessDropDownListOpen(wxCommandEvent& WXUNUSED(event)); // these last two not apparently in wx 2.8.12 - we're not using them anyway
-    //void OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event));
+    void OnComboProcessDropDownListOpen(wxCommandEvent& WXUNUSED(event)); // these last two not apparently in wx 2.8.12 - we're not using them anyway
+    void OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event));
 
     void OnKeyUp(wxKeyEvent& event);
 

@@ -18902,6 +18902,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
 #if defined(Use_in_line_Choose_Translation_DropDown)
     m_pChooseTranslationDropDown = (CChooseTranslationDropDown*)NULL; // for persistent dropdown 
+    m_bChooseTransShowPopup = FALSE;
+    m_bChooseTransScrolling = FALSE;
 #endif
     m_pEarlierTransDlg = (CEarlierTranslationDlg*)NULL;
 

@@ -492,19 +492,23 @@ void CAdapt_ItCanvas::OnScroll(wxScrollWinEvent& event)
     {
         if (pApp->m_pChooseTranslationDropDown->IsShown())
         {
-#if wxVERSION_NUMBER < 2900
-            ;
-#else
-            // Since a scroll of the screen seems to seem to separate the popdown part of the comboobox
-            // from the base edit box part (actually a phantom image), we here make the popup disappear 
-            // when there is an OnScroll event.
-            // TODO: If a way is discovered to prevent the phantom drawn listbox to stay backk at the
-            // original position, this Dismiss() call below may be unnecessary.
-            //if (pApp->m_pChooseTranslationDropDown->IsPopupShown()) // The IsPopupShown() method is only available for wxComboCtrl not wxComboBox
-            //{
-                pApp->m_pChooseTranslationDropDown->Dismiss();
-            //}
-#endif
+            // Challenge: 
+            // Since a scroll of the screen with the list popped up separates the popped up list
+            // part of the comboobox from the base edit box part (actually a phantom image), we 
+            // here make the popup disappear (if it was open) by calling the Frame's SendSizeEvent 
+            // when there is an OnScroll event. The SendSizeEvent causes the popup to close. 
+            // When the popup is open it seeks the focus, and prevents the screen from scrolling the 
+            // phrasebox-dropdown combination out of the client area - which effectively prevents 
+            // the user from scrolling away to check context during adaptation. However, when the 
+            // popup isn't open, the user can scroll the phrasebox-dropdown combination out of the 
+            // client area.
+            if (pApp->m_pChooseTranslationDropDown->bDropDownIsPoppedOpen)
+            {
+                pApp->GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
+                //pApp->m_pChooseTranslationDropDown->Dismiss(); // Don't use Dismiss(). It is not in wx2.8.12 and it seeks focus & prevents scrolling out of view
+            }
+            pApp->m_bChooseTransScrolling = TRUE;
+            //pApp->m_bChooseTransShowPopup = TRUE; // Don't need to change this here
          }
     }
 

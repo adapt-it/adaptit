@@ -2747,6 +2747,8 @@ public:
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
 #if defined(Use_in_line_Choose_Translation_DropDown)
     CChooseTranslationDropDown* m_pChooseTranslationDropDown;
+    bool m_bChooseTransShowPopup;
+    bool m_bChooseTransScrolling;
 #endif
 
 	//bool bUserSelectedFileNew; // BEW removed 24Aug10
