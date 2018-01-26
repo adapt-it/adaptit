@@ -132,8 +132,9 @@ extern int ID_PHRASE_BOX;
 
 IMPLEMENT_DYNAMIC_CLASS(CChooseTranslationDropDown, wxComboBox)
 
-// event handler table for the CChooseTranslationDropDown class
-BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
+#if wxVERSION_NUMBER < 2900
+    // event handler table for the CChooseTranslationDropDown class
+    BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
     // Process a wxEVT_COMBOBOX event, when an item on the list is selected. 
     // Note that calling GetValue() returns the new value of selection
     EVT_COMBOBOX(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboItemSelected)
@@ -146,9 +147,22 @@ BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
     // style to receive this event)
     EVT_TEXT_ENTER(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessEnterKeyPress)
 
-#if wxVERSION_NUMBER < 2900
-    ;
+    EVT_KEY_UP(CChooseTranslationDropDown::OnKeyUp)
+    END_EVENT_TABLE()
 #else
+    // event handler table for the CChooseTranslationDropDown class
+    BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
+    // Process a wxEVT_COMBOBOX event, when an item on the list is selected. 
+    // Note that calling GetValue() returns the new value of selection
+    EVT_COMBOBOX(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboItemSelected)
+
+    // Process a wxEVT_TEXT event, when the combobox text changes
+    EVT_TEXT(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboTextChanged)
+
+    // Process a wxEVT_TEXT_ENTER event, when RETURN is pressed in the combobox
+    // (notice that the combobox must have been created with wxTE_PROCESS_ENTER 
+    // style to receive this event)
+    EVT_TEXT_ENTER(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessEnterKeyPress)
     // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
     // list box part of the combo box is shown (drops down). Notice that this 
     // event is only supported by wxMSW, wxGTK with GTK+ 2.10 or later, and wxOSX/Cocoa
@@ -159,9 +173,9 @@ BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
     // for the same platforms as wxEVT_COMBOBOX_DROPDOWN above. Also note that
     // only wxMSW and wxOSX/Cocoa support adding or deleting items in this event
     EVT_COMBOBOX_CLOSEUP(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp)
-#endif
     EVT_KEY_UP(CChooseTranslationDropDown::OnKeyUp)
-END_EVENT_TABLE()
+    END_EVENT_TABLE()
+#endif
 
 // whm added 10Jan2018 to support quick selection of a translation equivalent.
 // Notes regarding the creation of the CPhraseBox class (from Adapt_ItView.cpp):
