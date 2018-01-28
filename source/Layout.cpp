@@ -970,11 +970,9 @@ void CLayout::PlaceBox()
         {
             if (m_pApp->m_pChooseTranslationDropDown->IsShown())
             {
-                // Always repopulate the list with the latest CRefString instances stored in pCurTargetUnit
-                //m_pApp->m_pChooseTranslationDropDown->PopulateDropDownList(0);
-
-                m_pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox();
-                m_pApp->m_pChooseTranslationDropDown->FocusShowAndPopup();
+                //m_pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox(); // moved to MainFrm's OnIdle() handler
+                //m_pApp->m_pChooseTranslationDropDown->FocusShowAndPopup(); // moved to MainFrm's OnIdle() handler
+                m_pApp->m_bChooseTransShowPopup = TRUE;
             }
         }
 

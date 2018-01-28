@@ -35,7 +35,8 @@
 // When Use_in_line_Choose_Translation_DropDown is defined the default behavior is 
 // to present multiple translation equivalents in a drop-down combobox aligned to 
 // the bottom of the phrasebox instead of the legacy code way of showing a modal 
-// ChooseTranslation dialog.
+// ChooseTranslation dialog. Comment out to only use the Choose Translation dialog.
+
 #define Use_in_line_Choose_Translation_DropDown
 
 //#define AUTHENTICATE_AS_BRUCE
@@ -2747,6 +2748,8 @@ public:
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
 #if defined(Use_in_line_Choose_Translation_DropDown)
     CChooseTranslationDropDown* m_pChooseTranslationDropDown;
+    bool m_bChooseTransShowPopup;
+    bool m_bChooseTransScrolling;
 #endif
 
 	//bool bUserSelectedFileNew; // BEW removed 24Aug10

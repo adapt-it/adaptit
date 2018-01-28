@@ -91,6 +91,7 @@
 #include "KB.h"
 #include "StatusBar.h" // EDB added 2Oct12
 #include "CollabUtilities.h" // BEW added 15Sep14
+#include "ChooseTranslation.h" // whm added 10Jan2018
 
 #if defined(_KBSERVER)
 
@@ -3890,7 +3891,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 		VertDisplacementFromReportedMainFrameClientSize += m_controlBarHeight;
 		finalHeightOfCanvas -= m_controlBarHeight;
 
-		wxLogDebug(_T("MainFrm.cpp, OnSize(): m_controlBarHeight = %d"), m_controlBarHeight);
+		//wxLogDebug(_T("MainFrm.cpp, OnSize(): m_controlBarHeight = %d"), m_controlBarHeight);
 	}
 
     // Next, set the size and placement for each of the visible "bars" that appear at the
@@ -4896,6 +4897,17 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	{
 		pApp->m_nInsertCount = 0;
 	}
+
+    if (pApp->m_bChooseTransShowPopup)
+    {
+        if (pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox();
+            pApp->m_pChooseTranslationDropDown->FocusShowAndPopup(pApp->m_bChooseTransScrolling);
+            pApp->m_bChooseTransShowPopup = FALSE;
+            pApp->m_bChooseTransScrolling = FALSE;
+        }
+    }
 
 	// BEW 2Dec2014 Alan Buseman's Guesser - support for hiding the GuesserUpdate() calls
 	// which need to be done pretty often -- and which block the GUI whether done synchronously

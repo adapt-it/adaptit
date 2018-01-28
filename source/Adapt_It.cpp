@@ -12433,6 +12433,12 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 ///    in the case of Paratext 8 running on 64-bit Windows installations.
 /// 3. Checks if the folder designated in 2 above contains the Paratext.exe executable file
 ///    and the ParatextShared.dll file.
+/// whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
+///    their default folder locations. At least one system that runs Windows 10 under 
+///    VMWare Fusion (Ron A), is not able to query the Windows registry for some unknown
+///    reason. Therefore we will return PTVer7, PTVer8, or PTVer7and8 if the Paratext
+///    executables are in their default installation folders even when the installation
+///    paths cannot be determined from the normal Windows registry calls using wxRegKey.
 /// Note: We make every attemtp to get a definitive PT version on Windows for when both
 ///    PT 7 and PT 8 are installed and the projects dir of both installations currently have
 ///    valid/usable PT projects. If only PT 7 has valid/usable projects within its
@@ -12469,10 +12475,10 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
                      // if it points to a valid directory; and it that directory contains a Paratext.exe file
     wxRegKey keyOS64PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
     wxRegKey keyOS32PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
+    wxString dirStrValue;
+    dirStrValue.Empty();
     if (keyOS64PTInstallDir.Exists() && keyOS64PTInstallDir.HasValues())
     {
-        wxString dirStrValue;
-        dirStrValue.Empty();
         if (keyOS64PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
         {
             //wxString settingsDirStrValue;
@@ -12499,8 +12505,6 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
     // If above test failed check next for Paratext 8 installed on a 32-bit Windows OS
     else if (keyOS32PTInstallDir.Exists() && keyOS32PTInstallDir.HasValues())
     {
-        wxString dirStrValue;
-        dirStrValue.Empty();
         if (keyOS32PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
         {
             // get the folder path stored in the key, (i.e., C:\Program Files\Paratext 8\)
@@ -12521,16 +12525,34 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
             }
         }
     }
+    // whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
+    // their default PT8 folder locations - fallback in case wxRegKey fails above even though  
+    // the Paratext 8 executables exist at their normal default paths for Windows.
+    if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
+    {
+        // Check the default PT8 installation location for 32-bit PT
+        wxString exePathPT8_on_32bitOS = _T("C:\\Program Files\\Paratext 8\\Paratext.exe");
+        wxString exePathPT8_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 8\\Paratext.exe");
+        wxString dllPathPT8_on_32bitOS = _T("C:\\Program Files\\Paratext 8\\ParatextShared.dll");
+        wxString dllPathPT8_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 8\\ParatextShared.dll");
+        if ((::wxFileExists(exePathPT8_on_32bitOS)
+            && ::wxFileExists(dllPathPT8_on_32bitOS)) ||
+            (::wxFileExists(exePathPT8_on_64bitOS)
+                && ::wxFileExists(dllPathPT8_on_64bitOS)))
+        {
+            bPT8Installed = TRUE;
+        }
+
+    }
 
     // Check next for a PT7 installation
     // The PT 8's Program_Files_Directory_Ptw8 don't exist, so determine if the PT 7's
     // Program_Files_Directory_Ptw7 key exists in the host Windows' registry; if so,
     // does it point to a valid directory; and does that directory contain a Paratext.exe file
     wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
+    dirStrValue.Empty();
     if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
     {
-        wxString dirStrValue;
-        dirStrValue.Empty();
         if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
         {
             // get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
@@ -12551,6 +12573,27 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
             }
         }
     }
+
+    // whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
+    // their default PT7 folder locations - fallback in case wxRegKey fails above even though  
+    // the Paratext 7 executables exist at their normal default paths for Windows.
+    if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
+    {
+        // Check the default PT7 installation location for 32-bit PT
+        wxString exePathPT7_on_32bitOS = _T("C:\\Program Files\\Paratext 7\\Paratext.exe");
+        wxString exePathPT7_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 7\\Paratext.exe");
+        wxString dllPathPT7_on_32bitOS = _T("C:\\Program Files\\Paratext 7\\ParatextShared.dll");
+        wxString dllPathPT7_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 7\\ParatextShared.dll");
+        if ((::wxFileExists(exePathPT7_on_32bitOS)
+            && ::wxFileExists(dllPathPT7_on_32bitOS)) ||
+            (::wxFileExists(exePathPT7_on_64bitOS)
+                && ::wxFileExists(dllPathPT7_on_64bitOS)))
+        {
+            bPT7Installed = TRUE;
+        }
+
+    }
+
     // If both PT 7 and PT 8 are installed, attempt to determine which installation is useable for
     // collaboration by examining the projects dir for each installation, and determine if only one
     // project dir has valid/useable projects for collaboration. If only PT 7 has valid/usable
@@ -12944,6 +12987,8 @@ wxString CAdapt_ItApp::GetParatextEnvVar(wxString strVariableName, wxString PTve
 /// the system, the function returns an empty string. This function only reads/queries
 /// the Windows registry; it does not make changes to it.
 /// Revised 25June2016 by whm to handle collaboration with PT 8.
+/// Revised 22Jan2018 by whm to check for default paths if wxRegKey fails for some reason,
+/// as reported by Ron A who uses PT8 on a Mac host running Win10 under VMWare Fusion.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
 {
@@ -12955,15 +13000,15 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
 
     wxLogNull logNo; // eliminate any spurious messages from the system
 
+    wxString dirStrValue;
+    dirStrValue.Empty();
     if (PTVersion == _T("PTVersion8")) //if (PTVersion == _T("PTVersion8") || PTVersion == _T(""))
     {
-        // There are two registry views where the PT 8 key might be depending on the host architecture
+        // There are two registry views where the PT 8 key might be depending on the host OS architecture
         wxRegKey keyOS64PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
         wxRegKey keyOS32PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
         if (keyOS64PTInstallDir.Exists() && keyOS64PTInstallDir.HasValues())
         {
-            wxString dirStrValue;
-            dirStrValue.Empty();
             if (keyOS64PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
             {
                 // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext8\)
@@ -12980,8 +13025,6 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
         }
         else if (keyOS32PTInstallDir.Exists() && keyOS32PTInstallDir.HasValues())
         {
-            wxString dirStrValue;
-            dirStrValue.Empty();
             if (keyOS32PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
             {
                 // get the folder path stored in the key, (i.e., C:\Program Files\Paratext8\)
@@ -12996,14 +13039,24 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
                 }
             }
         }
+        // whm 22Jan2018 added additional checks for default PT8 projects folder location - fallback 
+        // in case wxRegKey fails above, we check for projects folder at its normal default path for 
+        // Windows.
+        if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
+        {
+            // Check the default PT8 installation location for projects
+            wxString projPathPT8 = _T("C:\\My Paratext 8 Projects");
+            if (::wxDirExists(projPathPT8))
+            {
+                path = projPathPT8; // no final backslash on path
+            }
+        }
     }
     else if (PTVersion == _T("PTVersion7")) //if (PTVersion == _T("PTVersion7") || path.IsEmpty())
     {
         wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Settings_Directory"));
         if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
         {
-            wxString dirStrValue;
-            dirStrValue.Empty();
             if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
             {
                 // get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
@@ -13016,6 +13069,18 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
                 {
                     path = dirStrValue;
                 }
+            }
+        }
+        // whm 22Jan2018 added additional checks for default PT7 projects folder location - fallback 
+        // in case wxRegKey fails above, we check for projects folder at its normal default path for 
+        // Windows.
+        if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
+        {
+            // Check the default PT7 installation location for projects
+            wxString projPathPT7 = _T("C:\\My Paratext Projects");
+            if (::wxDirExists(projPathPT7))
+            {
+                path = projPathPT7; // no final backslash on path
             }
         }
     }
@@ -13171,6 +13236,8 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 ///    "Program_Files_Directory_Ptw8" to get the PT 8 install dir path.
 /// For PT 7 the following PT 7 registry key is queried for the return value:
 ///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
+/// Note: The Windows registry calls return the path with a final backslash, so we remove
+///    any final backslash from the path before returning.
 /// Linux version returns /usr/lib/Paratext directory by default for PT 7
 /// Linux version returns /usr/lib/Paratext8 directory by default for PT 8, unless there is
 /// no /usr/lib/Paratext8 directory, and /usr/lib/Paratext is being used for the early beta
@@ -13180,6 +13247,12 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 /// This function only reads/queries the Windows registry/system; it does not make changes to it.
 /// Revised 25June2016 by whm to handle collaboration with PT 8.
 /// Revised 27Nov2016 by whm to handle collaboration with the newer PT 8 that can co-exist with PT 7
+/// whm 22Jan2018 added additional checks to determine PT install dir paths from
+/// their default folder locations. At least one system that runs Windows 10 under 
+/// VMWare Fusion (Ron A), is not able to query the Windows registry for some
+/// unknown reason. Therefore as a fall-back, we return their default installation 
+/// folders, if the installation paths cannot be determined from the normal Windows 
+/// registry calls using wxRegKey.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
 {
@@ -13189,15 +13262,15 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
 
     wxLogNull logNo; // eliminate any spurious messages from the system
 
+    wxString dirStrValue;
+    dirStrValue.Empty();
     if (PTVersion == _T("PTVersion8"))
     {
-        // There are registry views where the PT 8 key might be depending on the host architecture
+        // There are two registry views where the PT 8 key might be depending on the host OS architecture
         wxRegKey keyOS64PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Paratext\\8"));
         wxRegKey keyOS32PTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\Paratext\\8"));
         if (keyOS64PTInstallDir.Exists() && keyOS64PTInstallDir.HasValues())
         {
-            wxString dirStrValue;
-            dirStrValue.Empty();
             if (keyOS64PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
             {
                 // get the folder path stored in the key, (i.e., C:\Program Files (x86)\Paratext8\)
@@ -13214,8 +13287,6 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
         }
         else if (keyOS32PTInstallDir.Exists() && keyOS32PTInstallDir.HasValues())
         {
-            wxString dirStrValue;
-            dirStrValue.Empty();
             if (keyOS32PTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
             {
                 // get the folder path stored in the key, (i.e., C:\Program Files\Paratext8\)
@@ -13230,31 +13301,71 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
                 }
             }
         }
-    }
-    else if (PTVersion == _T("PTVersion7"))
-    {
-
-        // If the path string is still empty we didn't find a PT 8 install path, so try to find a PT 7 install path
-        if (path.IsEmpty())
+        // whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
+        // their default PT8 folder locations - fallback in case wxRegKey fails above even though  
+        // the Paratext 8 executables exist at their normal default paths for Windows.
+        if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
         {
-            wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
-            if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
+            // Check the default PT8 installation location for 32-bit/64-bit PT
+            wxString exePathPT8_on_32bitOS = _T("C:\\Program Files\\Paratext 8\\Paratext.exe");
+            wxString exePathPT8_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 8\\Paratext.exe");
+            wxString dllPathPT8_on_32bitOS = _T("C:\\Program Files\\Paratext 8\\ParatextShared.dll");
+            wxString dllPathPT8_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 8\\ParatextShared.dll");
+            if ((::wxFileExists(exePathPT8_on_32bitOS)
+                && ::wxFileExists(dllPathPT8_on_32bitOS)))
             {
-                wxString dirStrValue;
-                dirStrValue.Empty();
-                if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
-                {
-                    // get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
-                    // Note: the dirStrValue path ends with a backslash so we don't add one here.
-                    dirStrValue = keyPTInstallDir.QueryDefaultValue();
-                    if (::wxDirExists(dirStrValue))
-                    {
-                        path = dirStrValue;
-                    }
-                }
+                path = _T("C:\\Program Files\\Paratext 8"); // no final backslash on path
+            }
+            else if ((::wxFileExists(exePathPT8_on_64bitOS)
+                    && ::wxFileExists(dllPathPT8_on_64bitOS)))
+            {
+                path = _T("C:\\Program Files (x86)\\Paratext 8"); // no final backslash on path
             }
         }
     }
+    else if (PTVersion == _T("PTVersion7"))
+    {
+        wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
+        if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
+        {
+            if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+            {
+                // get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
+                // Note: the dirStrValue path ends with a backslash so we don't add one here.
+                dirStrValue = keyPTInstallDir.QueryDefaultValue();
+                // remove the final backslash, since our path values generally don't have a
+                // trailing path separator.
+                if (!dirStrValue.IsEmpty() && dirStrValue.GetChar(dirStrValue.Length() - 1) == _T('\\'))
+                    dirStrValue.RemoveLast(1);
+                if (::wxDirExists(dirStrValue))
+                {
+                    path = dirStrValue;
+                }
+            }
+        }
+        // whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
+        // their default PT7 folder locations - fallback in case wxRegKey fails above even though  
+        // the Paratext 7 executables exist at their normal default paths for Windows.
+        if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
+        {
+            // Check the default PT7 installation location for 32-bit PT
+            wxString exePathPT7_on_32bitOS = _T("C:\\Program Files\\Paratext 7\\Paratext.exe");
+            wxString exePathPT7_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 7\\Paratext.exe");
+            wxString dllPathPT7_on_32bitOS = _T("C:\\Program Files\\Paratext 7\\ParatextShared.dll");
+            wxString dllPathPT7_on_64bitOS = _T("C:\\Program Files (x86)\\Paratext 7\\ParatextShared.dll");
+            if ((::wxFileExists(exePathPT7_on_32bitOS)
+                && ::wxFileExists(dllPathPT7_on_32bitOS)))
+            {
+                path = _T("C:\\Program Files\\Paratext 7"); // no final backslash on path
+            }
+            else if ((::wxFileExists(exePathPT7_on_64bitOS)
+                && ::wxFileExists(dllPathPT7_on_64bitOS)))
+            {
+                path = _T("C:\\Program Files (x86)\\Paratext 7"); // no final backslash on path
+            }
+        }     
+    }
+
 #endif
 #if defined(__WXGTK__) // linux
 
@@ -18791,6 +18902,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
 #if defined(Use_in_line_Choose_Translation_DropDown)
     m_pChooseTranslationDropDown = (CChooseTranslationDropDown*)NULL; // for persistent dropdown 
+    m_bChooseTransShowPopup = FALSE;
+    m_bChooseTransScrolling = FALSE;
 #endif
     m_pEarlierTransDlg = (CEarlierTranslationDlg*)NULL;
 

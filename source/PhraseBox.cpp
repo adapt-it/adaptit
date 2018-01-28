@@ -3053,7 +3053,11 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
             if (pApp->m_pChooseTranslationDropDown->IsShown())
             {
                 //bWasTypingFromDropDown = pApp->m_pChooseTranslationDropDown->HasFocus();
+#if wxVERSION_NUMBER < 2900
+                ;
+#else
                 bWasTypingFromDropDown = pApp->m_pChooseTranslationDropDown->HasFocus();
+#endif
             }
         }
 #endif
@@ -3079,6 +3083,10 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
         {
             if (pApp->m_pChooseTranslationDropDown->IsShown())
             {
+                // Note: This is the only place that we need to call SizeAndPositionDropDownBox() outside
+                // of the MainFrm's OnIdle() handler. Here the phrasebox/dropdown is changing size as the
+                // result of keys being typed into the phrasebox/dropdown, and the dropdown's list is
+                // in a dismissed state.
                 pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox(); // always resize combobox when phrasebox resizes
                 // When the box expands, focus is lost from the dropdown control, so
                 // set it back there, but only if we were typing chars from there before 
@@ -5559,13 +5567,14 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
     // Always repopulate the list with the latest CRefString instances stored in pCurTargetUnit
     pApp->m_pChooseTranslationDropDown->PopulateDropDownList(0); // Used only at this location
 
-    // Show the dropdown below the phrasebox (pApp->m_pTargetBox)
-    pApp->m_pChooseTranslationDropDown->Show();
-
     // Match the size and position of the dropdown to the m_pTargetBox 
-    //pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox(); // not needed here
-    //pApp->m_pChooseTranslationDropDown->Popup(); // non needed here
-    //pApp->m_pChooseTranslationDropDown->Raise(); // not needed
+    //pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox(); // called from MainFrm's OnIdle()
+    //pApp->m_pChooseTranslationDropDown->Popup(); // called from MainFrm's OnIdle()
+    // Show the dropdown below the phrasebox (pApp->m_pTargetBox)
+    //pApp->m_pChooseTranslationDropDown->Show(); // Now only call ->Show() from MainFrm's OnIdle()
+    
+    pApp->m_bChooseTransShowPopup = TRUE;   // triggers the calling of SizeAndPositionDropDownBox()
+                                            // and FocusShowAndPopup() from MainFrm's OnIdle()
 
     // Note: Previously, when the ChooseTranslation dialog would popup, the dialog is derived 
     // from AIModal which disables CMainFrame::OnIdle() while the dialog is in its modal state. 

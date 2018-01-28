@@ -132,8 +132,9 @@ extern int ID_PHRASE_BOX;
 
 IMPLEMENT_DYNAMIC_CLASS(CChooseTranslationDropDown, wxComboBox)
 
-// event handler table for the CChooseTranslationDropDown class
-BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
+#if wxVERSION_NUMBER < 2900
+    // event handler table for the CChooseTranslationDropDown class
+    BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
     // Process a wxEVT_COMBOBOX event, when an item on the list is selected. 
     // Note that calling GetValue() returns the new value of selection
     EVT_COMBOBOX(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboItemSelected)
@@ -146,19 +147,35 @@ BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
     // style to receive this event)
     EVT_TEXT_ENTER(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessEnterKeyPress)
 
+    EVT_KEY_UP(CChooseTranslationDropDown::OnKeyUp)
+    END_EVENT_TABLE()
+#else
+    // event handler table for the CChooseTranslationDropDown class
+    BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
+    // Process a wxEVT_COMBOBOX event, when an item on the list is selected. 
+    // Note that calling GetValue() returns the new value of selection
+    EVT_COMBOBOX(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboItemSelected)
+
+    // Process a wxEVT_TEXT event, when the combobox text changes
+    EVT_TEXT(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboTextChanged)
+
+    // Process a wxEVT_TEXT_ENTER event, when RETURN is pressed in the combobox
+    // (notice that the combobox must have been created with wxTE_PROCESS_ENTER 
+    // style to receive this event)
+    EVT_TEXT_ENTER(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessEnterKeyPress)
     // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
     // list box part of the combo box is shown (drops down). Notice that this 
     // event is only supported by wxMSW, wxGTK with GTK+ 2.10 or later, and wxOSX/Cocoa
-    //EVT_COMBOBOX_DROPDOWN(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListOpen)
+    EVT_COMBOBOX_DROPDOWN(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListOpen)
 
     // Process a wxEVT_COMBOBOX_CLOSEUP event, which is generated when the list 
     // box of the combo box disappears (closes up). This event is only generated 
     // for the same platforms as wxEVT_COMBOBOX_DROPDOWN above. Also note that
     // only wxMSW and wxOSX/Cocoa support adding or deleting items in this event
-    //EVT_COMBOBOX_CLOSEUP(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp)
-    
+    EVT_COMBOBOX_CLOSEUP(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp)
     EVT_KEY_UP(CChooseTranslationDropDown::OnKeyUp)
-END_EVENT_TABLE()
+    END_EVENT_TABLE()
+#endif
 
 // whm added 10Jan2018 to support quick selection of a translation equivalent.
 // Notes regarding the creation of the CPhraseBox class (from Adapt_ItView.cpp):
@@ -178,27 +195,11 @@ END_EVENT_TABLE()
 // The CChooseTranslationDropDown constructor
 CChooseTranslationDropDown::CChooseTranslationDropDown(void)
 {
-    // Anything done here will only be executed when the control is first
-    // created, not each time it is shown or hidden.
-
-    wxASSERT(gpApp->m_pTargetFont != NULL);
-    wxASSERT(gpApp->m_pDlgTgtFont != NULL);
-    CopyFontBaseProperties(gpApp->m_pTargetFont, gpApp->m_pDlgTgtFont);
-    // The CopyFontBaseProperties function above doesn't copy the point size, so
-    // make the dialog font show in the proper dialog font size.
-    gpApp->m_pDlgTgtFont->SetPointSize(gpApp->m_dialogFontSize);
-    this->SetFont(*gpApp->m_pDlgTgtFont);
-    // whm modified 8Jul09 to always use wxLayout_LeftToRight for list boxes, since we
-    // probably don't want the list item right justified and the scroll bar mirrored on
-    // the left side, since the main window is not similarly mirrored.
-#ifdef _RTL_FLAGS
-this->SetLayoutDirection(wxLayout_LeftToRight);
-#endif
-
-
+    // we don't use the default constructor
 }
 
-CChooseTranslationDropDown::CChooseTranslationDropDown(wxWindow * parent, 
+CChooseTranslationDropDown::CChooseTranslationDropDown(
+    wxWindow * parent, 
     wxWindowID id, 
     const wxString & value, 
     const wxPoint & pos, 
@@ -218,6 +219,21 @@ CChooseTranslationDropDown::CChooseTranslationDropDown(wxWindow * parent,
     // control is persistent and only shown or hidden as needed. Hence, we don't populate 
     // its list here in the constructor, but clear the list and re-populate it each time 
     // just before it is shown in the GUI.
+    wxASSERT(gpApp->m_pTargetFont != NULL);
+    //wxASSERT(gpApp->m_pDlgTgtFont != NULL);
+
+    //CopyFontBaseProperties(gpApp->m_pTargetFont, gpApp->m_pDlgTgtFont);
+    // The CopyFontBaseProperties function above doesn't copy the point size, so
+    // make the dialog font show in the proper dialog font size.
+    //gpApp->m_pDlgTgtFont->SetPointSize(gpApp->m_dialogFontSize);
+    this->SetFont(*gpApp->m_pTargetFont);
+    // whm modified 8Jul09 to always use wxLayout_LeftToRight for list boxes, since we
+    // probably don't want the list item right justified and the scroll bar mirrored on
+    // the left side, since the main window is not similarly mirrored.
+#ifdef _RTL_FLAGS
+    this->SetLayoutDirection(wxLayout_LeftToRight);
+#endif
+    bDropDownIsPoppedOpen = FALSE;
 }
 
 CChooseTranslationDropDown::~CChooseTranslationDropDown(void)
@@ -274,6 +290,7 @@ void CChooseTranslationDropDown::PopulateDropDownList(int selectionIndex)
     this->SetSelection(selectionIndex);
 }
 
+// This is called from the MainFrm's OnIdle() handler
 void CChooseTranslationDropDown::SizeAndPositionDropDownBox(void)
 {
     CPhraseBox* phraseBox;
@@ -303,16 +320,20 @@ void CChooseTranslationDropDown::SizeAndPositionDropDownBox(void)
     //this->Popup();
 }
 
-void CChooseTranslationDropDown::FocusShowAndPopup(void)
+// This is called from the MainFrm's OnIdle() handler
+void CChooseTranslationDropDown::FocusShowAndPopup(bool bScrolling)
 {
-    this->SetFocus();
-    this->Show();
+    if (!bScrolling)
+        this->SetFocus();
+    if (!this->IsShown())
+        this->Show();
     wxLogDebug(_T("DropDown's Popup() function call"));
     // The Popup() function is not available in wx2.8.12, so conditional compile for wxversion
 #if wxVERSION_NUMBER < 2900
     ;
 #else
-    this->Popup();
+    if (!bScrolling)
+        this->Popup();
 #endif
 }
 
@@ -417,24 +438,32 @@ void CChooseTranslationDropDown::OnComboProcessEnterKeyPress(wxCommandEvent& WXU
     gpApp->m_pTargetBox->SetFocus();
 }
 
-//void CChooseTranslationDropDown::OnComboProcessDropDownListOpen(wxCommandEvent& WXUNUSED(event))
-//{
-//    // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
-//    // list box part of the combo box is shown (drops down). Notice that this 
-//    // event is only supported by wxMSW, wxGTK with GTK+ 2.10 or later, and wxOSX/Cocoa
-//    
-//    ; // nothing to do here
-//}
-//
-//void CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event))
-//{
-//    // Process a wxEVT_COMBOBOX_CLOSEUP event, which is generated when the list 
-//    // box of the combo box disappears (closes up). This event is only generated 
-//    // for the same platforms as wxEVT_COMBOBOX_DROPDOWN above. Also note that
-//    // only wxMSW and wxOSX/Cocoa support adding or deleting items in this event
-//
-//    ; // nothing to do here
-//}
+#if wxVERSION_NUMBER < 2900
+;
+#else
+void CChooseTranslationDropDown::OnComboProcessDropDownListOpen(wxCommandEvent& WXUNUSED(event))
+{
+    // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
+    // list box part of the combo box is shown (drops down). Notice that this 
+    // event is only supported by wxMSW, wxGTK with GTK+ 2.10 or later, and wxOSX/Cocoa
+    
+    // CAdapt_ItCanvas::OnScroll() needs to know whether the dropdown list if popped down or not
+    bDropDownIsPoppedOpen = TRUE;
+    //wxLogDebug(_T("Popup is Open"));
+}
+
+void CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event))
+{
+    // Process a wxEVT_COMBOBOX_CLOSEUP event, which is generated when the list 
+    // box of the combo box disappears (closes up). This event is only generated 
+    // for the same platforms as wxEVT_COMBOBOX_DROPDOWN above. Also note that
+    // only wxMSW and wxOSX/Cocoa support adding or deleting items in this event
+
+    // CAdapt_ItCanvas::OnScroll() needs to know whether the dropdown list if popped down or not
+    bDropDownIsPoppedOpen = FALSE;
+    //wxLogDebug(_T("Popup is Closed"));
+}
+#endif
 
 void CChooseTranslationDropDown::OnKeyUp(wxKeyEvent & event)
 {
