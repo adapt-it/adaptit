@@ -224,6 +224,44 @@ n:
 }
 
 //////////////////////////////////////////////////////////////
+/// \return nothing
+/// \remarks
+/// A Helper function for doing a time delay in 1/100ths of a second.
+/// Based on helper function DoDelay() but does not use the global 
+/// m_nCurDelay; instead the time in hundredths is taken from the
+/// int parameter.
+/////////////////////////////////////////////////////////////
+void Delay(int hundredths)
+{
+    // set up a time delay loop, according to the m_nCurDelay value (1/100ths sec)
+    wxDateTime startTime;
+    startTime.SetToCurrent(); // need to initialize or get run-time error
+
+    int millisecsStart = startTime.GetMillisecond();
+    int secsStart = startTime.GetSecond();
+    int nSpan = hundredths * 10; // convert hundredths to milliseconds
+    wxDateTime currentTime;
+
+    // work out the time to be elapsed before breaking out of loop
+    int newmillisecs = millisecsStart + nSpan;
+    int endsecs = secsStart + newmillisecs / 1000; // same or up to 3 seconds larger
+    int endMsecs = newmillisecs % 1000; // modulo operator, to get remainder millisecs
+    if (endsecs > secsStart)
+    {
+        // the delay will take us into the next second's interval
+    m:					//_ftime(&currentTime);
+        currentTime.SetToCurrent();
+        if (currentTime.GetSecond() < endsecs)
+            goto m; // loop till we get to the final second's interval
+    }
+    // loop for the remaining milliseconds in the delay
+n:
+    currentTime.SetToCurrent();
+    if (currentTime.GetSecond() == endsecs && currentTime.GetMillisecond() <= endMsecs)
+        goto n;
+}
+
+//////////////////////////////////////////////////////////////
 /// \return an int representing the point size
 /// \param height	-> the (negative) lfHeight value in the LOGFONT
 /// \remarks

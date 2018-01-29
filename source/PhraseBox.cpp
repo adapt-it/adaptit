@@ -5565,7 +5565,7 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
     gbChooseTransDropDownSettingUp = TRUE;  
 
     // Always repopulate the list with the latest CRefString instances stored in pCurTargetUnit
-    pApp->m_pChooseTranslationDropDown->PopulateDropDownList(0); // Used only at this location
+    pApp->m_pChooseTranslationDropDown->PopulateDropDownList(); // Used only at this location
 
     // Match the size and position of the dropdown to the m_pTargetBox 
     //pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox(); // called from MainFrm's OnIdle()

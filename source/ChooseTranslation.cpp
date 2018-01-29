@@ -247,7 +247,7 @@ CChooseTranslationDropDown::~CChooseTranslationDropDown(void)
 // be shown in the GUI.
 // Note: commented out references to m_pMyListBox could be used if we needed to implement
 // a custom list box control.
-void CChooseTranslationDropDown::PopulateDropDownList(int selectionIndex)
+void CChooseTranslationDropDown::PopulateDropDownList()
 {
     this->Clear();
 
@@ -287,7 +287,7 @@ void CChooseTranslationDropDown::PopulateDropDownList(int selectionIndex)
             this->SetClientData(nLocation, &pRefString->m_refCount);
         }
     }
-    this->SetSelection(selectionIndex);
+    //this->SetSelection(selectionIndex);
 }
 
 // This is called from the MainFrm's OnIdle() handler
@@ -323,18 +323,78 @@ void CChooseTranslationDropDown::SizeAndPositionDropDownBox(void)
 // This is called from the MainFrm's OnIdle() handler
 void CChooseTranslationDropDown::FocusShowAndPopup(bool bScrolling)
 {
-    if (!bScrolling)
-        this->SetFocus();
     if (!this->IsShown())
+    {
+        wxLogDebug(_T("FocusShowAndPopup: call Show()"));
         this->Show();
-    wxLogDebug(_T("DropDown's Popup() function call"));
+    }
+    if (!bScrolling)
+    {
+//#if wxVERSION_NUMBER < 2900
+//    ;
+//#else
+//    	if (!this->HasFocus())
+//#endif
+        wxLogDebug(_T("FocusShowAndPopup: call SetFocus()"));
+        this->SetFocus();
+    }
     // The Popup() function is not available in wx2.8.12, so conditional compile for wxversion
 #if wxVERSION_NUMBER < 2900
     ;
 #else
     if (!bScrolling)
+    {
+        //this->PostSizeEventToParent();
+        gpApp->SafeYield(this, TRUE); // This is needed in WXGTK to allow screen paint to complete and not leave the dropdown list as a dislocated ghost
+#if defined(__WXMSW__)
+        wxLogDebug(_T("DropDown: call Popup()"));
+        this->Popup();
+#elif defined(__WXGTK__)
+
+#elif defined(__WXOSX__)
+        wxLogDebug(_T("DropDown: call Popup()"));
         this->Popup();
 #endif
+        //this->Refresh();
+    }
+#endif
+    // Platform inconsistencies:
+    // wxWidgets 2.8.12 doesn't support ->Popup(), ->Dismiss(), nor wxEVT_COMBOBOX_DROPDOWN, nor
+    // wxEVT_COMBOBOX_CLOSEUP events, so we have to conditional compile for the wxVERSION_NUMBER.
+    // In __WXOSX__, the docs say ->Popup() and ->Dismiss() are supported, but not the wxEVT_... 
+    // events mentioned above.
+    //
+    // In both __WXMSW__ and __WXGTK__ SetSelection(0) inserts the item in the dropdown's edit box
+    // and the text in the box selected, but while __WXMSW__ ends up with an insertion point at the end
+    // of the selected text, WXGTK doesn't seem to allow the insertion point in the edit box while
+    // the list is popped up. Another difficulty with __WXGTK__ is that if the text is already in the edit
+    // box is the same as an item clicked-on in the popup list, no change event is generated and hence
+    // the items doesn't get copied up to the phrasebox as it does in the WXWIN version. The __WXMSW__
+    // behaviors are what we want, so I will put some conditional compillation code here for __WXGTK__ 
+    // to try to get __WXGTK__ to more closely do what we want. Namely, I won't call SetSelection(0) here
+    // in FocusShowAndPopup(). That will leave the WXGTK dropdown's edit box empty with the popup 
+    // list showing (the __WXGTK__ popup list also doesn't have any item highlighted, but the user can
+    // press the down/up arrow keys to highlight list items and press Enter to select, or user can 
+    // use the mouse to select an item directly. Either action will cause the text of the selected
+    // item to appear in the dropdown's edit box - and trigger the handler that copies the selection
+    // up to the phrasebox in a way that makes phrasebox know it is in Modified state.
+#if defined(__WXMSW__)
+    this->SetSelection(0); // select first item in list
+#elif defined(__WXGTK__)
+    // Dont call SetSelection(0) for Linux version, instead just copy the first item into the dropdown's
+    // edit box, SetFocus and put insertionpointer at end of the text
+#if wxVERSION_NUMBER < 2900
+    this->SetValue(this->GetString(0)); // wx 2.8.12 doesn't have ChangeValue()
+#else
+    this->ChangeValue(this->GetString(0)); // puts first item in dropdown's edit box without triggering copy to phrasebox
+#endif
+    this->SetFocus();
+    this->SetSelection(-1, -1); // no effect when popup is open
+    this->SetInsertionPointEnd(); // no effect when popup is open
+#elif defined(__WXOSX__)
+    this->SetSelection(0); // select first item in list
+#endif
+    //this->SetInsertionPointEnd();
 }
 
 void CChooseTranslationDropDown::OnComboItemSelected(wxCommandEvent& WXUNUSED(event))
@@ -449,7 +509,7 @@ void CChooseTranslationDropDown::OnComboProcessDropDownListOpen(wxCommandEvent& 
     
     // CAdapt_ItCanvas::OnScroll() needs to know whether the dropdown list if popped down or not
     bDropDownIsPoppedOpen = TRUE;
-    //wxLogDebug(_T("Popup is Open"));
+    wxLogDebug(_T("OnComboProcessDropDownListOpen: Popup Open event"));
 }
 
 void CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event))
@@ -461,7 +521,7 @@ void CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp(wxCommandEven
 
     // CAdapt_ItCanvas::OnScroll() needs to know whether the dropdown list if popped down or not
     bDropDownIsPoppedOpen = FALSE;
-    //wxLogDebug(_T("Popup is Closed"));
+    wxLogDebug(_T("OnComboProcessDropDownListCloseUp: Popup Close event"));
 }
 #endif
 
