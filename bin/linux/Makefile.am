@@ -140,7 +140,7 @@ adaptit_SOURCES = \
 	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
 	../../source/Uuid_AI.cpp ../../source/ViewFilteredMaterialDlg.cpp \
 	../../source/ViewPage.cpp ../../source/WaitDlg.cpp \
-	../../source/Welcome.cpp ../../source/WhichBook.cpp ../../source/WhichFilesDlg.cpp \
+	../../source/Welcome.cpp ../../source/WhichBook.cpp ../../source/WhichFilesDlg.cpp  \
 	../../source/Xhtml.cpp \
 	../../source/XML.cpp ../../source/XMLErrorDlg.cpp ../../source/helpers.cpp
 
