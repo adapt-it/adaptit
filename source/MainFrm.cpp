@@ -4898,6 +4898,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		pApp->m_nInsertCount = 0;
 	}
 
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+#if defined(Use_in_line_Choose_Translation_DropDown)
     if (pApp->m_bChooseTransShowPopup)
     {
         if (pApp->m_pChooseTranslationDropDown != NULL)
@@ -4908,7 +4910,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
             pApp->m_bChooseTransScrolling = FALSE;
         }
     }
-
+#endif
 	// BEW 2Dec2014 Alan Buseman's Guesser - support for hiding the GuesserUpdate() calls
 	// which need to be done pretty often -- and which block the GUI whether done synchronously
 	// as is done here, or asynchronously on a thread (due to mutexes blocking KB saves and

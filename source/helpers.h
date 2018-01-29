@@ -113,6 +113,8 @@ int       TrimAndCountWordsInString(wxString& str);
 
 void      DoDelay();
 
+void      Delay(int hundredths);
+
 int       NegHeightToPointSize(const long& height);
 
 #include "BString.h"

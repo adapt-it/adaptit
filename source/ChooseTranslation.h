@@ -74,7 +74,7 @@ public:
 
     bool bDropDownIsPoppedOpen;
 
-    void PopulateDropDownList(int selectionIndex);
+    void PopulateDropDownList();
     void SizeAndPositionDropDownBox(void);
     void FocusShowAndPopup(bool bScrolling);
 
