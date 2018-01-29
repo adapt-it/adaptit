@@ -333,25 +333,31 @@ void CChooseTranslationDropDown::FocusShowAndPopup(bool bScrolling)
     }
     if (!bScrolling)
     {
-//#if wxVERSION_NUMBER < 2900
-//    ;
-//#else
-//    	if (!this->HasFocus())
-//#endif
+        //#if wxVERSION_NUMBER < 2900
+        //    ;
+        //#else
+        //    	if (!this->HasFocus())
+        //#endif
         wxLogDebug(_T("FocusShowAndPopup: call SetFocus()"));
         this->SetFocus();
     }
-    
+
 #if wxVERSION_NUMBER < 2900
+    if (!this->IsPopupShown())
+    {
         wxLogDebug(_T("DropDown: call ShowPopup()"));
         this->ShowPopup(); // The Popup() function is ShowPopup() in wx2.8.12, so conditional compile for wxversion
+    }
 #else
     if (!bScrolling)
     {
         //this->PostSizeEventToParent();
         gpApp->SafeYield(this, TRUE); // This is needed especially in WXGTK to allow screen paint to complete and not leave the dropdown list as a dislocated ghost
-        wxLogDebug(_T("DropDown: call Popup()"));
-        this->Popup();
+        if (!this->IsPopupShown())
+        {
+            wxLogDebug(_T("DropDown: call Popup()"));
+            this->Popup();
+        }
     }
 #endif
     // Notes on platform inconsistencies when derived from wxComboBox (wxOwnerDrawnComboBox is 
