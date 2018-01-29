@@ -25,6 +25,7 @@
 
 #include <wx/combobox.h>
 #include <wx/combo.h>
+#include <wx/odcombo.h>
 #include "MyListBox.h"
 
 class MapKeyStringToTgtUnit;; 
@@ -56,7 +57,7 @@ enum SelectionWanted
 // If the user clicks elsewhere to reposition the phrasebox to a different location,
 // the dropdown also closes and is hidden. Each time the dropdown is shown it re-
 // populates its list of translation equivalences. 
-class CChooseTranslationDropDown : public wxComboBox
+class CChooseTranslationDropDown : public wxOwnerDrawnComboBox
 {
     friend class CChooseTranslation;
 public:
@@ -91,6 +92,7 @@ protected:
     void OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event));
 #endif
     void OnKeyUp(wxKeyEvent& event);
+    wxCoord OnMeasureItem(size_t item) const;
 
 
 private:

@@ -38,6 +38,7 @@
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/tooltip.h> // for wxToolTip
 #include <wx/combo.h>
+#include <wx/odcombo.h>
 
 
 #include "Adapt_It.h"
@@ -51,6 +52,7 @@
 #include "helpers.h"
 #include "Adapt_ItView.h"
 #include "KbServer.h"
+#include "MainFrm.h"
 
 //enum SelectionWanted
 //{
@@ -113,6 +115,7 @@ extern CTargetUnit* pCurTargetUnit; // defined PhraseBox.cpp
 extern wxString		curKey;
 extern int			nWordsInPhrase;
 extern bool			gbInspectTranslations;
+extern bool         gbGlossingUsesNavFont; // defined in Adapt_ItView.cpp
 
 /// This global is defined in Adapt_It.cpp.
 extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
@@ -130,11 +133,11 @@ extern int ID_PHRASE_BOX;
 // ************************* CChooseTranslationDropDown class *******************************
 // ******************************************************************************************
 
-IMPLEMENT_DYNAMIC_CLASS(CChooseTranslationDropDown, wxComboBox)
+IMPLEMENT_DYNAMIC_CLASS(CChooseTranslationDropDown, wxOwnerDrawnComboBox)
 
 #if wxVERSION_NUMBER < 2900
     // event handler table for the CChooseTranslationDropDown class
-    BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
+    BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxOwnerDrawnComboBox)
     // Process a wxEVT_COMBOBOX event, when an item on the list is selected. 
     // Note that calling GetValue() returns the new value of selection
     EVT_COMBOBOX(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboItemSelected)
@@ -151,7 +154,7 @@ IMPLEMENT_DYNAMIC_CLASS(CChooseTranslationDropDown, wxComboBox)
     END_EVENT_TABLE()
 #else
     // event handler table for the CChooseTranslationDropDown class
-    BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxComboBox)
+    BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxOwnerDrawnComboBox)
     // Process a wxEVT_COMBOBOX event, when an item on the list is selected. 
     // Note that calling GetValue() returns the new value of selection
     EVT_COMBOBOX(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboItemSelected)
@@ -206,7 +209,7 @@ CChooseTranslationDropDown::CChooseTranslationDropDown(
     const wxSize & size, 
     const wxArrayString & choices, 
     long style)
-    : wxComboBox(parent, 
+    : wxOwnerDrawnComboBox(parent,
         id,
         value,
         pos, 
@@ -338,32 +341,25 @@ void CChooseTranslationDropDown::FocusShowAndPopup(bool bScrolling)
         wxLogDebug(_T("FocusShowAndPopup: call SetFocus()"));
         this->SetFocus();
     }
-    // The Popup() function is not available in wx2.8.12, so conditional compile for wxversion
+    
 #if wxVERSION_NUMBER < 2900
-    ;
+        wxLogDebug(_T("DropDown: call ShowPopup()"));
+        this->ShowPopup(); // The Popup() function is ShowPopup() in wx2.8.12, so conditional compile for wxversion
 #else
     if (!bScrolling)
     {
         //this->PostSizeEventToParent();
-        gpApp->SafeYield(this, TRUE); // This is needed in WXGTK to allow screen paint to complete and not leave the dropdown list as a dislocated ghost
-#if defined(__WXMSW__)
+        gpApp->SafeYield(this, TRUE); // This is needed especially in WXGTK to allow screen paint to complete and not leave the dropdown list as a dislocated ghost
         wxLogDebug(_T("DropDown: call Popup()"));
         this->Popup();
-#elif defined(__WXGTK__)
-
-#elif defined(__WXOSX__)
-        wxLogDebug(_T("DropDown: call Popup()"));
-        this->Popup();
-#endif
-        //this->Refresh();
     }
 #endif
-    // Platform inconsistencies:
+    // Notes on platform inconsistencies when derived from wxComboBox (wxOwnerDrawnComboBox is 
+    // better and avoids most of the following issues):
     // wxWidgets 2.8.12 doesn't support ->Popup(), ->Dismiss(), nor wxEVT_COMBOBOX_DROPDOWN, nor
     // wxEVT_COMBOBOX_CLOSEUP events, so we have to conditional compile for the wxVERSION_NUMBER.
     // In __WXOSX__, the docs say ->Popup() and ->Dismiss() are supported, but not the wxEVT_... 
     // events mentioned above.
-    //
     // In both __WXMSW__ and __WXGTK__ SetSelection(0) inserts the item in the dropdown's edit box
     // and the text in the box selected, but while __WXMSW__ ends up with an insertion point at the end
     // of the selected text, WXGTK doesn't seem to allow the insertion point in the edit box while
@@ -378,11 +374,7 @@ void CChooseTranslationDropDown::FocusShowAndPopup(bool bScrolling)
     // use the mouse to select an item directly. Either action will cause the text of the selected
     // item to appear in the dropdown's edit box - and trigger the handler that copies the selection
     // up to the phrasebox in a way that makes phrasebox know it is in Modified state.
-#if defined(__WXMSW__)
     this->SetSelection(0); // select first item in list
-#elif defined(__WXGTK__)
-    // Dont call SetSelection(0) for Linux version, instead just copy the first item into the dropdown's
-    // edit box, SetFocus and put insertionpointer at end of the text
 #if wxVERSION_NUMBER < 2900
     this->SetValue(this->GetString(0)); // wx 2.8.12 doesn't have ChangeValue()
 #else
@@ -391,10 +383,6 @@ void CChooseTranslationDropDown::FocusShowAndPopup(bool bScrolling)
     this->SetFocus();
     this->SetSelection(-1, -1); // no effect when popup is open
     this->SetInsertionPointEnd(); // no effect when popup is open
-#elif defined(__WXOSX__)
-    this->SetSelection(0); // select first item in list
-#endif
-    //this->SetInsertionPointEnd();
 }
 
 void CChooseTranslationDropDown::OnComboItemSelected(wxCommandEvent& WXUNUSED(event))
@@ -582,6 +570,27 @@ void CChooseTranslationDropDown::OnKeyUp(wxKeyEvent & event)
 
 
     event.Skip();
+}
+
+wxCoord CChooseTranslationDropDown::OnMeasureItem(size_t item) const
+{
+    // Get the text extent height of the combobox item - all should have same height
+    // Without OnMeasureItem being defined, the combo box items are vertically too close 
+    // together with descenders clipped. This spaces them vertically better.
+    wxClientDC dC((wxWindow*)gpApp->GetMainFrame()->canvas);
+    wxFont* pFont;
+    wxSize textExtent;
+    if (gbIsGlossing && gbGlossingUsesNavFont)
+        pFont = gpApp->m_pNavTextFont;
+    else
+        pFont = gpApp->m_pTargetFont;
+    wxFont SaveFont = dC.GetFont();
+
+    dC.SetFont(*pFont);
+    wxString thePhrase = this->GetString(item);
+    dC.GetTextExtent(thePhrase, &textExtent.x, &textExtent.y); // measure using the current font
+
+    return wxCoord(textExtent.y);
 }
 
 // ******************************************************************************************
