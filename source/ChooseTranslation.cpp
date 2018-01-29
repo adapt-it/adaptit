@@ -383,7 +383,11 @@ void CChooseTranslationDropDown::FocusShowAndPopup(bool bScrolling)
 #elif defined(__WXGTK__)
     // Dont call SetSelection(0) for Linux version, instead just copy the first item into the dropdown's
     // edit box, SetFocus and put insertionpointer at end of the text
+#if wxVERSION_NUMBER < 2900
+    this->SetValue(this->GetString(0)); // wx 2.8.12 doesn't have ChangeValue()
+#else
     this->ChangeValue(this->GetString(0)); // puts first item in dropdown's edit box without triggering copy to phrasebox
+#endif
     this->SetFocus();
     this->SetSelection(-1, -1); // no effect when popup is open
     this->SetInsertionPointEnd(); // no effect when popup is open
