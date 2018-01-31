@@ -9,10 +9,10 @@
 /// \description	This is the header file for the CChooseTranslation and the CChooseTranslationDropDown classes. 
 /// The CChooseTranslation class provides a dialog in which the user can choose 
 /// either an existing translation, or enter a new translation for a given source phrase.
-/// The CChooseTranslationDropDown class provides a dropdown wxComboBox that appear in lieu of
-/// the CChooseTranslation dialog when called from the CPhraseBox's ChooseTranslation() function.
+/// The CChooseTranslationDropDown class provides a dropdown wxOwnerDrawnComboBox that appears 
+/// in lieu of the CChooseTranslation dialog when called from the CPhraseBox's ChooseTranslation() function.
 /// \derivation		The CChooseTranslation class is derived from AIModalDialog, and the CChooseTranslationDropDown
-/// class is derived from wxComboBox.
+/// class is derived from wxOwnerDrawnComboBox.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef ChooseTranslation_h
@@ -25,6 +25,7 @@
 
 #include <wx/combobox.h>
 #include <wx/combo.h>
+#include <wx/odcombo.h>
 #include "MyListBox.h"
 
 class MapKeyStringToTgtUnit;; 
@@ -37,26 +38,38 @@ enum SelectionWanted
 };
 
 // whm added 10Jan2018 to support quick selection of a translation equivalent.
-// The CChooseTranslationDropDown is a combobox that appears non-modally - instead 
-// of the Choose Translation dialog. It initially has its list open containing the 
-// list of translation equivalents - the same string equivalents that would appear 
-// in the Choose Translation dialog.
+// Here is a developer summary of this new feature to be added in version 6.9.0:
+// The CChooseTranslationDropDown is a wxOwnerDrawnComboBox that appears non-modally
+// just below the phrasebox becomming visible at the same times, and instead of the 
+// Choose Translation dialog (which is still independently available via F8 or the
+// Toolbar button). The dropdown owner drawn combo box initially has its list popped 
+// open and containing the list of translation equivalents - the same string 
+// equivalents that would appear in the Choose Translation dialog.
 // When shown, the dropdown always tracks the position and size of the phrasebox.
-// Since the edit box of the wxComboBox is functioning similarly to the phrasebox
-// we'll ensure that this box gets aligned along the bottom edge of the existing 
-// phrasebox and it will get the initial focus rather than the phrasebox. Hence,
-// the user can use arrow keys and Enter (or Tab?) to select a list item, or simply
-// start typing to enter a new translation. When typing a new translation, the 
-// characters entered are echoed in the phrasebox (similarly to the way the characters
-// are echoed on the free translation line when text is entered in the compose bar in
-// free translation mode).
+// Since the edit box of the wxOwnerDrawnComboBox is functioning similarly to the 
+// phrasebox we'll ensure that this box gets aligned along the bottom edge of the 
+// existing phrasebox and it will get the initial focus rather than the phrasebox. 
+// Hence, the user can use mouse, or arrow keys and Enter, to select a list item, 
+// or simply start typing to enter a new translation. When typing a new translation, 
+// the characters entered are echoed in the phrasebox (similarly to the way the 
+// characters are echoed on the free translation line when text is entered in the 
+// compose bar in free translation mode). Pressing Enter while insertion point is
+// within the combo box's edit box, causes focus to switch up to the phrasebox, where
+// if all is as it should be there, another Enter or Tab key press moves the phrasebox
+// to its next location.
 // If the user clicks in the actual phrasebox while the dropdown is open, the dropdown
 // closes its list but remains available under the existing phrasebox and the focus
 // simply shifts to the phrasebox where a user can could edit there in the usual way.
 // If the user clicks elsewhere to reposition the phrasebox to a different location,
-// the dropdown also closes and is hidden. Each time the dropdown is shown it re-
-// populates its list of translation equivalences. 
-class CChooseTranslationDropDown : public wxComboBox
+// the dropdown also closes and is hidden - unless the next stopping point of the
+// phrasebox is again one where the user can choose from a list of translations. 
+// While the dropdown is showing unnder the phrasebox, most hot keys are still
+// available (such as ALT+LEFTARROW and ALT+RIGHTARROW for making selections of
+// source text left and right of the phrasebox location, as well as pressing F8
+// to bring up the full ChooseTranslation dialog).
+// Each time the dropdown is shown it re-populates its list of translation 
+// equivalences. 
+class CChooseTranslationDropDown : public wxOwnerDrawnComboBox
 {
     friend class CChooseTranslation;
 public:
@@ -74,9 +87,10 @@ public:
 
     bool bDropDownIsPoppedOpen;
 
-    void PopulateDropDownList(int selectionIndex);
+    void PopulateDropDownList();
     void SizeAndPositionDropDownBox(void);
     void FocusShowAndPopup(bool bScrolling);
+    void ProcessInputIntoBoxes();
 
     wxWindow *GetControl() { return this; }
 
@@ -91,6 +105,7 @@ protected:
     void OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event));
 #endif
     void OnKeyUp(wxKeyEvent& event);
+    wxCoord OnMeasureItem(size_t item) const;
 
 
 private:

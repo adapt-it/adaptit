@@ -116,7 +116,7 @@ am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(afmdir)" \
 	"$(DESTDIR)$(htmlmaindir)" "$(DESTDIR)$(miscdir)" \
 	"$(DESTDIR)$(xmldir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_adaptit_OBJECTS = 1035.$(OBJEXT) AIPrintout.$(OBJEXT) \
+am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	AIPrintPreviewFrame.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	Adapt_ItCanvas.$(OBJEXT) Adapt_ItDoc.$(OBJEXT) \
 	Adapt_ItView.$(OBJEXT) Adapt_It_wdr.$(OBJEXT) \
@@ -161,10 +161,9 @@ am_adaptit_OBJECTS = 1035.$(OBJEXT) AIPrintout.$(OBJEXT) \
 	LanguageCodesDlg_Single.$(OBJEXT) LanguageCodesDlg.$(OBJEXT) \
 	LanguagesPage.$(OBJEXT) Layout.$(OBJEXT) \
 	ListDocumentsInOtherFolderDialog.$(OBJEXT) MainFrm.$(OBJEXT) \
-	md5.$(OBJEXT) md5_SB.$(OBJEXT) mdnsd.$(OBJEXT) \
-	MergeUpdatedSrc.$(OBJEXT) MoveDialog.$(OBJEXT) Mover.$(OBJEXT) \
-	MyListBox.$(OBJEXT) NavProtectNewDoc.$(OBJEXT) \
-	NoteDlg.$(OBJEXT) Notes.$(OBJEXT) \
+	md5.$(OBJEXT) md5_SB.$(OBJEXT) MergeUpdatedSrc.$(OBJEXT) \
+	MoveDialog.$(OBJEXT) Mover.$(OBJEXT) MyListBox.$(OBJEXT) \
+	NavProtectNewDoc.$(OBJEXT) NoteDlg.$(OBJEXT) Notes.$(OBJEXT) \
 	OpenExistingProjectDlg.$(OBJEXT) OutputFilenameDlg.$(OBJEXT) \
 	Pathway.$(OBJEXT) PeekAtFile.$(OBJEXT) PhraseBox.$(OBJEXT) \
 	Pile.$(OBJEXT) Placeholder.$(OBJEXT) \
@@ -175,23 +174,21 @@ am_adaptit_OBJECTS = 1035.$(OBJEXT) AIPrintout.$(OBJEXT) \
 	RefString.$(OBJEXT) RemoveSomeTgtEntries.$(OBJEXT) \
 	RefStringMetadata.$(OBJEXT) Retranslation.$(OBJEXT) \
 	RetranslationDlg.$(OBJEXT) scrollingdialog.$(OBJEXT) \
-	scrollingwizard.$(OBJEXT) ServiceDiscovery.$(OBJEXT) \
-	ServDisc_KBserversDlg.$(OBJEXT) SetDelay.$(OBJEXT) \
-	SetEncodingDlg.$(OBJEXT) SetupEditorCollaboration.$(OBJEXT) \
+	scrollingwizard.$(OBJEXT) ServDisc_KBserversDlg.$(OBJEXT) \
+	SetDelay.$(OBJEXT) SetEncodingDlg.$(OBJEXT) \
+	SetupEditorCollaboration.$(OBJEXT) \
 	SilConverterSelectDlg.$(OBJEXT) SourcePhrase.$(OBJEXT) \
 	SplitDialog.$(OBJEXT) Stack.$(OBJEXT) \
 	StartWorkingWizard.$(OBJEXT) StatusBar.$(OBJEXT) \
 	Strip.$(OBJEXT) TargetUnit.$(OBJEXT) tellenc.$(OBJEXT) \
-	Thread_ServiceDiscovery.$(OBJEXT) \
 	Timer_KbServerChangedSince.$(OBJEXT) ToolbarPage.$(OBJEXT) \
 	TransformToGlossesDlg.$(OBJEXT) UsernameInput.$(OBJEXT) \
 	UsfmFilterPage.$(OBJEXT) UnitsDlg.$(OBJEXT) \
 	UnitsPage.$(OBJEXT) UnpackWarningDlg.$(OBJEXT) \
 	Uuid_AI.$(OBJEXT) ViewFilteredMaterialDlg.$(OBJEXT) \
 	ViewPage.$(OBJEXT) WaitDlg.$(OBJEXT) Welcome.$(OBJEXT) \
-	WhichBook.$(OBJEXT) WhichFilesDlg.$(OBJEXT) \
-	wxServDisc.$(OBJEXT) Xhtml.$(OBJEXT) XML.$(OBJEXT) \
-	XMLErrorDlg.$(OBJEXT) helpers.$(OBJEXT)
+	WhichBook.$(OBJEXT) WhichFilesDlg.$(OBJEXT) Xhtml.$(OBJEXT) \
+	XML.$(OBJEXT) XMLErrorDlg.$(OBJEXT) helpers.$(OBJEXT)
 adaptit_OBJECTS = $(am_adaptit_OBJECTS)
 adaptit_LDADD = $(LDADD)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -571,7 +568,6 @@ docFile_DATA = ../../docs/Localization_Readme.txt \
 # the application source, library search path, and link libraries
 #
 adaptit_SOURCES = \
-	../../source/1035.cpp \
 	../../source/AIPrintout.cpp ../../source/AIPrintPreviewFrame.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
 	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp \
@@ -609,7 +605,7 @@ adaptit_SOURCES = \
 	../../source/KBSharingStatelessSetupDlg.cpp ../../source/KbSharingSetup.cpp ../../source/LanguageCodesDlg_Single.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/md5.cpp \
-	../../source/md5_SB.cpp ../../source/mdnsd.cpp ../../source/MergeUpdatedSrc.cpp \
+	../../source/md5_SB.cpp ../../source/MergeUpdatedSrc.cpp \
 	../../source/MoveDialog.cpp \
 	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NavProtectNewDoc.cpp \
 	../../source/NoteDlg.cpp ../../source/Notes.cpp \
@@ -622,7 +618,6 @@ adaptit_SOURCES = \
 	../../source/RemoveSomeTgtEntries.cpp \
 	../../source/RefStringMetadata.cpp ../../source/Retranslation.cpp ../../source/RetranslationDlg.cpp \
 	../../source/scrollingdialog.cpp ../../source/scrollingwizard.cpp \
-	../../source/ServiceDiscovery.cpp \
 	../../source/ServDisc_KBserversDlg.cpp \
 	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SetupEditorCollaboration.cpp \
 	../../source/SilConverterSelectDlg.cpp \
@@ -630,14 +625,13 @@ adaptit_SOURCES = \
 	../../source/StartWorkingWizard.cpp ../../source/StatusBar.cpp \
 	../../source/Strip.cpp ../../source/TargetUnit.cpp \
 	../../source/tellenc.cpp \
-	../../source/Thread_ServiceDiscovery.cpp \
 	../../source/Timer_KbServerChangedSince.cpp \
 	../../source/ToolbarPage.cpp ../../source/TransformToGlossesDlg.cpp \
 	../../source/UsernameInput.cpp ../../source/UsfmFilterPage.cpp \
 	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
 	../../source/Uuid_AI.cpp ../../source/ViewFilteredMaterialDlg.cpp \
 	../../source/ViewPage.cpp ../../source/WaitDlg.cpp \
-	../../source/Welcome.cpp ../../source/WhichBook.cpp ../../source/WhichFilesDlg.cpp ../../source/wxServDisc.cpp \
+	../../source/Welcome.cpp ../../source/WhichBook.cpp ../../source/WhichFilesDlg.cpp \
 	../../source/Xhtml.cpp \
 	../../source/XML.cpp ../../source/XMLErrorDlg.cpp ../../source/helpers.cpp
 
@@ -739,7 +733,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/1035.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AIPrintPreviewFrame.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AIPrintout.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Adapt_It.Po@am__quote@
@@ -847,7 +840,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Retranslation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RetranslationDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ServDisc_KBserversDlg.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ServiceDiscovery.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SetDelay.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SetEncodingDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SetupEditorCollaboration.Po@am__quote@
@@ -859,7 +851,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StatusBar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Strip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TargetUnit.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_ServiceDiscovery.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Timer_KbServerChangedSince.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ToolbarPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TransformToGlossesDlg.Po@am__quote@
@@ -887,11 +878,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jsonwriter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/md5.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/md5_SB.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mdnsd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scrollingdialog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scrollingwizard.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tellenc.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wxServDisc.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -913,20 +902,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
-
-1035.o: ../../source/1035.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT 1035.o -MD -MP -MF $(DEPDIR)/1035.Tpo -c -o 1035.o `test -f '../../source/1035.cpp' || echo '$(srcdir)/'`../../source/1035.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/1035.Tpo $(DEPDIR)/1035.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/1035.cpp' object='1035.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o 1035.o `test -f '../../source/1035.cpp' || echo '$(srcdir)/'`../../source/1035.cpp
-
-1035.obj: ../../source/1035.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT 1035.obj -MD -MP -MF $(DEPDIR)/1035.Tpo -c -o 1035.obj `if test -f '../../source/1035.cpp'; then $(CYGPATH_W) '../../source/1035.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/1035.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/1035.Tpo $(DEPDIR)/1035.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/1035.cpp' object='1035.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o 1035.obj `if test -f '../../source/1035.cpp'; then $(CYGPATH_W) '../../source/1035.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/1035.cpp'; fi`
 
 AIPrintout.o: ../../source/AIPrintout.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AIPrintout.o -MD -MP -MF $(DEPDIR)/AIPrintout.Tpo -c -o AIPrintout.o `test -f '../../source/AIPrintout.cpp' || echo '$(srcdir)/'`../../source/AIPrintout.cpp
@@ -2160,20 +2135,6 @@ md5_SB.obj: ../../source/md5_SB.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o md5_SB.obj `if test -f '../../source/md5_SB.cpp'; then $(CYGPATH_W) '../../source/md5_SB.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/md5_SB.cpp'; fi`
 
-mdnsd.o: ../../source/mdnsd.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mdnsd.o -MD -MP -MF $(DEPDIR)/mdnsd.Tpo -c -o mdnsd.o `test -f '../../source/mdnsd.cpp' || echo '$(srcdir)/'`../../source/mdnsd.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mdnsd.Tpo $(DEPDIR)/mdnsd.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/mdnsd.cpp' object='mdnsd.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mdnsd.o `test -f '../../source/mdnsd.cpp' || echo '$(srcdir)/'`../../source/mdnsd.cpp
-
-mdnsd.obj: ../../source/mdnsd.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mdnsd.obj -MD -MP -MF $(DEPDIR)/mdnsd.Tpo -c -o mdnsd.obj `if test -f '../../source/mdnsd.cpp'; then $(CYGPATH_W) '../../source/mdnsd.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/mdnsd.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mdnsd.Tpo $(DEPDIR)/mdnsd.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/mdnsd.cpp' object='mdnsd.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mdnsd.obj `if test -f '../../source/mdnsd.cpp'; then $(CYGPATH_W) '../../source/mdnsd.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/mdnsd.cpp'; fi`
-
 MergeUpdatedSrc.o: ../../source/MergeUpdatedSrc.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT MergeUpdatedSrc.o -MD -MP -MF $(DEPDIR)/MergeUpdatedSrc.Tpo -c -o MergeUpdatedSrc.o `test -f '../../source/MergeUpdatedSrc.cpp' || echo '$(srcdir)/'`../../source/MergeUpdatedSrc.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/MergeUpdatedSrc.Tpo $(DEPDIR)/MergeUpdatedSrc.Po
@@ -2566,20 +2527,6 @@ scrollingwizard.obj: ../../source/scrollingwizard.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o scrollingwizard.obj `if test -f '../../source/scrollingwizard.cpp'; then $(CYGPATH_W) '../../source/scrollingwizard.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/scrollingwizard.cpp'; fi`
 
-ServiceDiscovery.o: ../../source/ServiceDiscovery.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ServiceDiscovery.o -MD -MP -MF $(DEPDIR)/ServiceDiscovery.Tpo -c -o ServiceDiscovery.o `test -f '../../source/ServiceDiscovery.cpp' || echo '$(srcdir)/'`../../source/ServiceDiscovery.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ServiceDiscovery.Tpo $(DEPDIR)/ServiceDiscovery.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/ServiceDiscovery.cpp' object='ServiceDiscovery.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ServiceDiscovery.o `test -f '../../source/ServiceDiscovery.cpp' || echo '$(srcdir)/'`../../source/ServiceDiscovery.cpp
-
-ServiceDiscovery.obj: ../../source/ServiceDiscovery.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ServiceDiscovery.obj -MD -MP -MF $(DEPDIR)/ServiceDiscovery.Tpo -c -o ServiceDiscovery.obj `if test -f '../../source/ServiceDiscovery.cpp'; then $(CYGPATH_W) '../../source/ServiceDiscovery.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ServiceDiscovery.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ServiceDiscovery.Tpo $(DEPDIR)/ServiceDiscovery.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/ServiceDiscovery.cpp' object='ServiceDiscovery.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ServiceDiscovery.obj `if test -f '../../source/ServiceDiscovery.cpp'; then $(CYGPATH_W) '../../source/ServiceDiscovery.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ServiceDiscovery.cpp'; fi`
-
 ServDisc_KBserversDlg.o: ../../source/ServDisc_KBserversDlg.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ServDisc_KBserversDlg.o -MD -MP -MF $(DEPDIR)/ServDisc_KBserversDlg.Tpo -c -o ServDisc_KBserversDlg.o `test -f '../../source/ServDisc_KBserversDlg.cpp' || echo '$(srcdir)/'`../../source/ServDisc_KBserversDlg.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ServDisc_KBserversDlg.Tpo $(DEPDIR)/ServDisc_KBserversDlg.Po
@@ -2761,20 +2708,6 @@ tellenc.obj: ../../source/tellenc.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/tellenc.cpp' object='tellenc.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tellenc.obj `if test -f '../../source/tellenc.cpp'; then $(CYGPATH_W) '../../source/tellenc.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/tellenc.cpp'; fi`
-
-Thread_ServiceDiscovery.o: ../../source/Thread_ServiceDiscovery.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_ServiceDiscovery.o -MD -MP -MF $(DEPDIR)/Thread_ServiceDiscovery.Tpo -c -o Thread_ServiceDiscovery.o `test -f '../../source/Thread_ServiceDiscovery.cpp' || echo '$(srcdir)/'`../../source/Thread_ServiceDiscovery.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Thread_ServiceDiscovery.Tpo $(DEPDIR)/Thread_ServiceDiscovery.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/Thread_ServiceDiscovery.cpp' object='Thread_ServiceDiscovery.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_ServiceDiscovery.o `test -f '../../source/Thread_ServiceDiscovery.cpp' || echo '$(srcdir)/'`../../source/Thread_ServiceDiscovery.cpp
-
-Thread_ServiceDiscovery.obj: ../../source/Thread_ServiceDiscovery.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_ServiceDiscovery.obj -MD -MP -MF $(DEPDIR)/Thread_ServiceDiscovery.Tpo -c -o Thread_ServiceDiscovery.obj `if test -f '../../source/Thread_ServiceDiscovery.cpp'; then $(CYGPATH_W) '../../source/Thread_ServiceDiscovery.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_ServiceDiscovery.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/Thread_ServiceDiscovery.Tpo $(DEPDIR)/Thread_ServiceDiscovery.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/Thread_ServiceDiscovery.cpp' object='Thread_ServiceDiscovery.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_ServiceDiscovery.obj `if test -f '../../source/Thread_ServiceDiscovery.cpp'; then $(CYGPATH_W) '../../source/Thread_ServiceDiscovery.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_ServiceDiscovery.cpp'; fi`
 
 Timer_KbServerChangedSince.o: ../../source/Timer_KbServerChangedSince.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Timer_KbServerChangedSince.o -MD -MP -MF $(DEPDIR)/Timer_KbServerChangedSince.Tpo -c -o Timer_KbServerChangedSince.o `test -f '../../source/Timer_KbServerChangedSince.cpp' || echo '$(srcdir)/'`../../source/Timer_KbServerChangedSince.cpp
@@ -2985,20 +2918,6 @@ WhichFilesDlg.obj: ../../source/WhichFilesDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/WhichFilesDlg.cpp' object='WhichFilesDlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o WhichFilesDlg.obj `if test -f '../../source/WhichFilesDlg.cpp'; then $(CYGPATH_W) '../../source/WhichFilesDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/WhichFilesDlg.cpp'; fi`
-
-wxServDisc.o: ../../source/wxServDisc.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT wxServDisc.o -MD -MP -MF $(DEPDIR)/wxServDisc.Tpo -c -o wxServDisc.o `test -f '../../source/wxServDisc.cpp' || echo '$(srcdir)/'`../../source/wxServDisc.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/wxServDisc.Tpo $(DEPDIR)/wxServDisc.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/wxServDisc.cpp' object='wxServDisc.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o wxServDisc.o `test -f '../../source/wxServDisc.cpp' || echo '$(srcdir)/'`../../source/wxServDisc.cpp
-
-wxServDisc.obj: ../../source/wxServDisc.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT wxServDisc.obj -MD -MP -MF $(DEPDIR)/wxServDisc.Tpo -c -o wxServDisc.obj `if test -f '../../source/wxServDisc.cpp'; then $(CYGPATH_W) '../../source/wxServDisc.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/wxServDisc.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/wxServDisc.Tpo $(DEPDIR)/wxServDisc.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../../source/wxServDisc.cpp' object='wxServDisc.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o wxServDisc.obj `if test -f '../../source/wxServDisc.cpp'; then $(CYGPATH_W) '../../source/wxServDisc.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/wxServDisc.cpp'; fi`
 
 Xhtml.o: ../../source/Xhtml.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Xhtml.o -MD -MP -MF $(DEPDIR)/Xhtml.Tpo -c -o Xhtml.o `test -f '../../source/Xhtml.cpp' || echo '$(srcdir)/'`../../source/Xhtml.cpp
