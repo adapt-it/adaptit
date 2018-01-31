@@ -28,7 +28,7 @@
 //
 // **** NOTE**** If commenting out, be sure to do the same to the same #define in
 // line 43 of AdaptItConstants.h
-#define Use_Legacy_Parser
+//#define Use_Legacy_Parser
 #include <wx/string.h>
 
 // whm added 10Jan2018 to support quick selection of a translation equivalent.
