@@ -1026,7 +1026,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 
         // whm added 10Jan2018 to support quick selection of a translation equivalent.
 #if defined(Use_in_line_Choose_Translation_DropDown)
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
         // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
         // MoveToNextPile call returns prematurely. We might hide the dropdown combobox later below, 
         // up to the point that the Invalidate() call is made near the end of this function, but I

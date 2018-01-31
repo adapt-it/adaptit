@@ -52,6 +52,7 @@
 #include "KB.h"
 #include "helpers.h"
 #include "Placeholder.h"
+#include "ChooseTranslation.h"
 //////////
 
 
@@ -2482,7 +2483,18 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			m_pApp->m_pTargetBox->ChangeValue(_T(""));
 		}
 	}
-	
+
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+#if defined(Use_in_line_Choose_Translation_DropDown)
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+    // The current phrasebox location is changing due to the placement of the placeholder,
+    // so Hide the dropdown. PlaceBox below may reactivate it if needed.
+    if (m_pApp->m_pChooseTranslationDropDown != NULL)
+    {
+        m_pApp->m_pChooseTranslationDropDown->Hide();
+    }
+#endif
+
 	if (wxGetKeyState(WXK_CONTROL))
 	{
 		// CTRL key is down, so an "insert after" is wanted

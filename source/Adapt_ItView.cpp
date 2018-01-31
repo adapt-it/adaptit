@@ -3170,7 +3170,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
 #if defined(Use_in_line_Choose_Translation_DropDown)
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
     // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
     // PlacePhraseBox call returns prematurely. We might hide the dropdown combobox later below, 
     // up to the point that the Invalidate() call is made near the end of this function, but I
@@ -21057,7 +21057,7 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
               // regular adaptation work. If we decide to hide it later, just uncomment the code
               // below.
 //#if defined(Use_in_line_Choose_Translation_DropDown)
-//            // This seems to be an appropriate place to hide the dropdown combobox if it is showing
+//            // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
 //            // I don't think it is desirable for the dropdown combo box to appear in the screen
 //            // showing only the Target Text, a view where one doesn't do adaptation work, but wishes
 //            // to merely see the target text as it appears uncluttered. We don't need to explicitly
@@ -29161,7 +29161,7 @@ void CAdapt_ItView::ToggleGlossingMode()
 
             // whm added 10Jan2018 to support quick selection of a translation/glossing equivalent.
 #if defined(Use_in_line_Choose_Translation_DropDown)
-            // This seems to be an appropriate place to hide the dropdown combobox if it is showing
+            // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
             // When changing between adapting and glossing or glossing and adapting, we need to
             // initially hide the dropdown as it may have content that is initially not appropriate
             // for the new mode. As adapting or glossing proceeds, it will get filled with glosses 
@@ -29188,7 +29188,7 @@ void CAdapt_ItView::ToggleGlossingMode()
 
             // whm added 10Jan2018 to support quick selection of a translation/glossing equivalent.
 #if defined(Use_in_line_Choose_Translation_DropDown)
-            // This seems to be an appropriate place to hide the dropdown combobox if it is showing
+            // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
             // When changing between adapting and glossing or glossing and adapting, we need to
             // initially hide the dropdown as it may have content that is initially not appropriate
             // for the new mode. As adapting or glossing proceeds, it will get filled with glosses 
