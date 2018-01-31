@@ -190,7 +190,7 @@ public:
 	wxString GetFilterMkrStrFromFilterArrays(wxArrayString* pSfmMarkerAndDescr, wxArrayInt* pFilterFlags);
 	//void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker); // moved to helpers
 	//void RemoveFilterMarkerFromString(wxString& filterMkrStr, wxString wholeMarker); // moved to helpers
-	void SetFilterFlagsInIntArray(wxArrayInt*& pArrayInt,int arrayIndex, int nValue, wxString wholeMarker);
+	void SetFilterFlagsInIntArray(wxArrayInt*& pArrayInt,int arrayIndex, int nValue, wxString wholeMarker, wxArrayString* pSfmMarkerAndDescriptions);
 	void AdjustFilterStateOfUnknownMarkerStr(wxString& unknownMkrStr, wxString wholeMarker, enum UnkMkrFilterSetting filterSetting);
 
 protected:
