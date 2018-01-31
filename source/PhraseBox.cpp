@@ -289,7 +289,7 @@ IMPLEMENT_DYNAMIC_CLASS(CPhraseBox, wxTextCtrl)
 
 BEGIN_EVENT_TABLE(CPhraseBox, wxTextCtrl)
 	EVT_MENU(wxID_UNDO, CPhraseBox::OnEditUndo)
-	EVT_TEXT(-1, CPhraseBox::OnPhraseBoxChanged)
+	EVT_TEXT(ID_PHRASE_BOX, CPhraseBox::OnPhraseBoxChanged)
 	EVT_CHAR(CPhraseBox::OnChar)
 	EVT_KEY_DOWN(CPhraseBox::OnKeyDown)
 	EVT_KEY_UP(CPhraseBox::OnKeyUp)
@@ -5403,6 +5403,13 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 			wxString s;
 			s = GetValue();
 			pApp->m_targetPhrase = s; // otherwise, deletions using <DEL> key are not recorded
+            if (!this->IsModified())
+            {
+                // whm added 10Jan2018 The SetModify() call below is needed for the __WXGTK__ port
+                // For some unknown reason the delete key deleting the whole phrasebox contents
+                // does not set the dirty flag without this.
+                this->SetModify(TRUE);
+            }
 		}
 	}
 	else if (event.GetKeyCode() == WXK_ESCAPE)
