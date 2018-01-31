@@ -38,9 +38,9 @@
 // VERSION_NUMBER value after the Save As... is done; and an access function
 // GetCurrentDocVersion() to get its value whenever needed.
 
-// The following is also defined at line 31 in Adapt_It.h; 
+// The following is also defined at line 31 in Adapt_It.h 
 // *********** IMPORTANT:  commment out both together or uncomment out both together *********
-#define USE_LEGACY_PARSER
+//#define USE_LEGACY_PARSER
 
 #if !defined(USE_LEGACY_PARSER)
 #define VERSION_NUMBER      10  // as of 21 April17, for support of new member m_filteredInfo_After in CSourcePhrase
