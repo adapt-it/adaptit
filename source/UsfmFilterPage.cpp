@@ -1033,8 +1033,12 @@ void CUsfmFilterPageCommon::RemoveFilterMarkerFromString(wxString& filterMkrStr,
 }
 */
 	
-void CUsfmFilterPageCommon::SetFilterFlagsInIntArray(wxArrayInt*& pArrayInt,int arrayIndex, int nValue, wxString wholeMarker)
+void CUsfmFilterPageCommon::SetFilterFlagsInIntArray(wxArrayInt*& pArrayInt,int arrayIndex, int nValue, wxString wholeMarker, wxArrayString* pSfmMarkerAndDescriptions)
 {
+    // whm modified 30Jan2018 adding an additional wxArrayString* pSfmMarkerAndDescriptions parameter to signature
+    // This array is used to set filter flags in an int array for either the Document's or the Project's list.
+    // It was only hard coded to do the Documents list even when it was supposed to be doing the Projects's list.
+    // The problem is now fixed by inputing a pointer to the actual array.
 	// if the wholeMarker already exists in filterMkrStr, remove it.
 	// Assumes wholeMarker begins with backslash, and insures it ends with a delimiting space.
 	wholeMarker.Trim(TRUE); // trim right end
@@ -1057,10 +1061,9 @@ void CUsfmFilterPageCommon::SetFilterFlagsInIntArray(wxArrayInt*& pArrayInt,int 
 		for (i = 0; i < nTot; i++)
 		{
 			marker = gpApp->m_crossRefMarkerSet.Item(i);
-			// Find the marker's index in the pSfmMarkerAndDescriptionsDoc array. This index will be
-			// the flag index in the parallel pFilterFlagsDoc array.
-			//index = gpApp->FindArrayString(marker,pSfmMarkerAndDescriptionsDoc);
-			index = gpApp->FindArrayStringUsingSubString(marker, pSfmMarkerAndDescriptionsDoc, 0);
+			// Find the marker's index in the pSfmMarkerAndDescriptions array. This index will be
+			// the flag index in the parallel pArrayInt (being the pFilterFlagsDoc or pFilterFlagsProj array).
+			index = gpApp->FindArrayStringUsingSubString(marker, pSfmMarkerAndDescriptions, 0);
 			wxASSERT(index != wxNOT_FOUND);
 			(*pArrayInt)[index] = nValue; // nValue is either TRUE or FALSE
 		}
@@ -1079,9 +1082,9 @@ void CUsfmFilterPageCommon::SetFilterFlagsInIntArray(wxArrayInt*& pArrayInt,int 
 		for (i = 0; i < nTot; i++)
 		{
 			marker = gpApp->m_footnoteMarkerSet.Item(i);
-			// Find the marker's index in the pSfmMarkerAndDescriptionsDoc array. This index will be
-			// the flag index in the parallel pFilterFlagsDoc array.
-			index = gpApp->FindArrayStringUsingSubString(marker,pSfmMarkerAndDescriptionsDoc,0);
+            // Find the marker's index in the pSfmMarkerAndDescriptions array. This index will be
+            // the flag index in the parallel pArrayInt (being the pFilterFlagsDoc or pFilterFlagsProj array).
+            index = gpApp->FindArrayStringUsingSubString(marker, pSfmMarkerAndDescriptions,0);
 			wxASSERT(index != wxNOT_FOUND);
 			(*pArrayInt)[index] = nValue; // nValue is either TRUE or FALSE
 		}
@@ -1319,7 +1322,7 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 		}
 		// update the filter flags data array
 		// whm 8Jul12 modified to set flags for this whole marker and any associated content markers
-		SetFilterFlagsInIntArray(pFilterFlagsDoc,actualArrayIndex,TRUE,checkStr);
+		SetFilterFlagsInIntArray(pFilterFlagsDoc,actualArrayIndex,TRUE,checkStr, pSfmMarkerAndDescriptionsDoc);
 
 		// add this whole marker (and any associated content markers) to tempFilterMarkersAfterEditDoc
 		AddFilterMarkerToString(tempFilterMarkersAfterEditDoc, checkStr); // whm added 16Jun05
@@ -1350,7 +1353,7 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 		}
 
 		// whm 8Jul12 modified to set flags for this whole marker and any associated content markers
-		SetFilterFlagsInIntArray(pFilterFlagsDoc,actualArrayIndex,FALSE,checkStr);
+		SetFilterFlagsInIntArray(pFilterFlagsDoc,actualArrayIndex,FALSE,checkStr, pSfmMarkerAndDescriptionsDoc);
 		
 		// remove this whole marker (and any associated content markers) from tempFilterMarkersAfterEditDoc
 		RemoveFilterMarkerFromString(tempFilterMarkersAfterEditDoc, checkStr); // whm added 16Jun05
@@ -1511,7 +1514,7 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutProj(int lbItemIndex)
 
 		// update the filter flags data array
 		// whm 8Jul12 modified to set flags for this whole marker and any associated content markers
-		SetFilterFlagsInIntArray(pFilterFlagsProj,actualArrayIndex,TRUE,checkStr);
+		SetFilterFlagsInIntArray(pFilterFlagsProj,actualArrayIndex,TRUE,checkStr, pSfmMarkerAndDescriptionsProj);
 
 		// add this whole marker (and any associated content markers) to tempFilterMarkersAfterEditProj
 		AddFilterMarkerToString(tempFilterMarkersAfterEditProj, checkStr); // whm added 16Jun05
@@ -1542,7 +1545,7 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutProj(int lbItemIndex)
 		}
 		
 		// whm 8Jul12 modified to set flags for this whole marker and any associated content markers
-		SetFilterFlagsInIntArray(pFilterFlagsProj,actualArrayIndex,FALSE,checkStr);
+		SetFilterFlagsInIntArray(pFilterFlagsProj,actualArrayIndex,FALSE,checkStr, pSfmMarkerAndDescriptionsProj);
 
 		// remove this whole marker (and any associated content markers) from tempFilterMarkersAfterEditProj
 		RemoveFilterMarkerFromString(tempFilterMarkersAfterEditProj, checkStr); // whm added 16Jun05

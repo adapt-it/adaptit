@@ -53641,7 +53641,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		// dispensed with - if they exist. service_file.dat, hostname_file.dat,
 		// kbservice_file.dat which has the composite str with the @@@ delimiters,
 		// and the (temporary) resultsPathFile
-		//* remove temporarily
+		// * remove temporarily
 		wxString kbsdat = _T("kbs.dat");
 		wxString kbsfdat = _T("kbservice_file.dat");
 		wxString rPthFile = _T("resultsPathFile");

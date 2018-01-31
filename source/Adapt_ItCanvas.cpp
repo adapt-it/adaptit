@@ -485,6 +485,7 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
 // to clicking on the thumb, arrows, or the paging parts of the canvas' scrollbar.
 void CAdapt_ItCanvas::OnScroll(wxScrollWinEvent& event)
 {
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
 #if defined(Use_in_line_Choose_Translation_DropDown)
     CAdapt_ItApp* pApp = &wxGetApp();
     // If the dropdown combobox exists and is showing, make sure its position tracks that of the phrasebox
