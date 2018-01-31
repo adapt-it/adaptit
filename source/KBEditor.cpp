@@ -2739,11 +2739,13 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		m_nWordsSelected = -1;
 		m_TheSelectedKey.Empty();
 
-		// the above could fail, eg. if nothing is in the list box, in which case -1 will be
-		//  put in the pCurTgtUnit variable, so change it to a zero pointer
-		if (pCurTgtUnit <= 0)
+        // whm modified 3Jan2018 test for bad/NULL pointer
+        //// the above could fail, eg. if nothing is in the list box, in which case -1 will be
+        ////  put in the pCurTgtUnit variable, so change it to a zero pointer
+        //if (pCurTgtUnit <= 0)
+        if (pCurTgtUnit == NULL)
 		{
-			pCurTgtUnit = 0; // invalid pointer
+			//pCurTgtUnit = 0; // invalid pointer
 			m_flagSetting = m_OFF;
 			wxMessageBox(_T("Warning: Invalid pointer to current target unit returned."),_T(""), wxICON_EXCLAMATION | wxOK);
 		}
