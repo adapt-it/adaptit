@@ -63,6 +63,7 @@
 #include "FreeTransAdjustDlg.h"
 #include "Adapt_ItDoc.h"
 #include "CollectBacktranslations.h"
+#include "ChooseTranslation.h"
 
 //#define Print_failure
 //#define _V6PRINT
@@ -4732,6 +4733,16 @@ bool CFreeTrans::IsFreeTranslationSrcPhrase(CPile* pPile)
 /// proceed with turning on free trans mode
 void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 {
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+#if defined(Use_in_line_Choose_Translation_DropDown)
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+    // Always call Hide when in Free Translation mode
+    if (m_pApp->m_pChooseTranslationDropDown != NULL)
+    {
+        m_pApp->m_pChooseTranslationDropDown->Hide();
+    }
+#endif
+
 	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
 
 	// whm Note: Only log user action when user explicitly selects menu
