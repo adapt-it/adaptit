@@ -4885,11 +4885,15 @@ public:
 	// members for support of KB search functionality added Jan-Feb 2010 by BEW
 	wxArrayString m_arrSearches; // set of search strings for dialog's multiline wxTextCtrl
 	wxArrayString m_arrOldSearches; // old search strings accumulated while in this project, this
-					// array (and the one above)should be cleared when the project is exitted
-	// member for support of user-navigation-protection feature; the dialog is created in
-	// OnInit() whether or not this feature is being used, but only shown when
-	// appropriate; it is destroyed in OnExit()
-	NavProtectNewDoc* m_pNavProtectDlg;
+					                // array (and the one above)should be cleared when the project is exitted
+
+	// whm removed the NavProtectNewDoc* m_pNavProtectDlg pointer below after creating
+    // the dialog on the stack rather than on the heap (which can sometimes lead to a crash
+    // in GTK/Linux version if ShowModal() is then called).
+    //// member for support of user-navigation-protection feature; the dialog is created in
+	//// OnInit() whether or not this feature is being used, but only shown when
+	//// appropriate; it is destroyed in OnExit()
+	//NavProtectNewDoc* m_pNavProtectDlg;
 
     // ConsChk_Empty_NoTU_Dlg class uses these as input parameters for the dialog handler.
     // The 'adaptation' variants of the following are passed in via the creator when

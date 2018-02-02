@@ -709,16 +709,31 @@ bool CAdapt_ItDoc::OnNewDocument()
 			wxString strSelectedFilename;
 			strSelectedFilename.Empty();
 
-			// BEW 16Aug10, Note: we create the one and only instance of m_pNavProtectDlg here
-			// rather than in the app's OnInit() function, because we want the dialog
-			// handler's InitDialog() function called each time the dialog is to be shown using
-			// ShowModal() so that the two buttons will be initialized correctly
-			wxWindow* docWindow = GetDocumentWindow();
-			gpApp->m_pNavProtectDlg = new NavProtectNewDoc(docWindow);
+			
+            // whm modified 1Feb2018. The NavProtectNewDoc dialog is a modal dialog and as
+            // such it should not be created with a call to new and its heap pointer kept
+            // on the App. As a modal dialog it should be just created on the stack here in
+            // OnNewDocument(). On the GTK/Linux version we sometimes get a crash if a modal
+            // dialog is created with the new command. Bruce's comment below about re "we 
+            // want the dialog handler's InitDialog() function called each time the dialog
+            // it to be shown using ShowModal() so that the two buttons will be initialized
+            // correctly" is not really applicable to this dialog. Therefore, to prevent
+            // crashes in the GTK/Linux version, I've refactored the NavProtectNewDoc dialog
+            // creation to be done the normal way, and removed the m_pNavProtectDlg pointers
+            // from the app.
+
+            //// BEW 16Aug10, Note: we create the one and only instance of m_pNavProtectDlg here
+			//// rather than in the app's OnInit() function, because we want the dialog
+			//// handler's InitDialog() function called each time the dialog is to be shown using
+			//// ShowModal() so that the two buttons will be initialized correctly
+			//wxWindow* docWindow = GetDocumentWindow();
+			//gpApp->m_pNavProtectDlg = new NavProtectNewDoc(docWindow);
+            NavProtectNewDoc navProtectDlg(gpApp->GetMainFrame());
 
 			// display the dialog, it's list of filenames is monocline & no navigation
 			// capability is provided
-			if (gpApp->m_pNavProtectDlg->ShowModal() == wxID_CANCEL)
+			//if (gpApp->m_pNavProtectDlg->ShowModal() == wxID_CANCEL)
+			if (navProtectDlg.ShowModal() == wxID_CANCEL)
 			{
 				// the user has hit the Cancel button
 				wxASSERT(strSelectedFilename.IsEmpty());
@@ -729,9 +744,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 				// check if there was a document current, and if so, reinitialize everything
 				if (pView != 0)
 				{
-					if (gpApp->m_pNavProtectDlg != NULL) // whm 11Jun12 added NULL test
-						delete gpApp->m_pNavProtectDlg;
-					gpApp->m_pNavProtectDlg = NULL;
+					//if (gpApp->m_pNavProtectDlg != NULL) // whm 11Jun12 added NULL test
+					//	delete gpApp->m_pNavProtectDlg;
+					//gpApp->m_pNavProtectDlg = NULL;
 					pApp->m_pTargetBox->SetValue(_T(""));
 					if (pApp->m_pBuffer != NULL) // whm 11Jun12 added NULL test
 						delete pApp->m_pBuffer;
@@ -751,13 +766,14 @@ bool CAdapt_ItDoc::OnNewDocument()
 			else
 			{
 				// the user has hit the "Input file" button
-				strSelectedFilename = gpApp->m_pNavProtectDlg->GetUserFileName();
-				wxASSERT(!strSelectedFilename.IsEmpty());
+                //strSelectedFilename = gpApp->m_pNavProtectDlg->GetUserFileName();
+                strSelectedFilename = navProtectDlg.GetUserFileName();
+                wxASSERT(!strSelectedFilename.IsEmpty());
 
 				// the dialog handler can now be deleted and its point set to NULL
-				if (pApp->m_pNavProtectDlg != NULL) // whm 11Jun12 added NULL test
-					delete gpApp->m_pNavProtectDlg;
-				pApp->m_pNavProtectDlg = NULL;
+				//if (pApp->m_pNavProtectDlg != NULL) // whm 11Jun12 added NULL test
+				//	delete gpApp->m_pNavProtectDlg;
+				//pApp->m_pNavProtectDlg = NULL;
 
 				// create the path to the selected file (m_sourceInputsFolderPath is always
 				// defined when the app enters a project, as a folder "__SOURCE_INPUTS" which
