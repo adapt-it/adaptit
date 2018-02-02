@@ -4887,8 +4887,21 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 	pApp->m_pTargetBox->SetFocus();
 	pLayout->m_docEditOperationType = no_edit_op;
+
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+#if defined(Use_in_line_Choose_Translation_DropDown)
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+    // At document end, we should hide the dropdown. Hide it before the Invalidate() and
+    // PlaceBox() calls below to avoid a ghost image.
+    if (pApp->m_pChooseTranslationDropDown != NULL)
+    {
+        pApp->m_pChooseTranslationDropDown->Hide();
+    }
+#endif
+
 	pView->Invalidate();
 	pLayout->PlaceBox();
+
 }
 
 // This OnKeyUp function is called via the EVT_KEY_UP event in our CPhraseBox

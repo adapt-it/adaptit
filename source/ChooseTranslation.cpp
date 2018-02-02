@@ -594,13 +594,34 @@ void CChooseTranslationDropDown::ProcessInputIntoBoxes()
 
     gpApp->m_pTargetBox->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
 
-                                                 //#if defined(FWD_SLASH_DELIM)
-                                                 // BEW added 23Apr15 - in case the user typed a translation manually (with / as word-delimiter)
-                                                 // convert any / back to ZWSP, in case KB storage follows. If the string ends up in m_targetBox
-                                                 // then the ChangeValue() call within CPhraseBox will convert the ZWSP instances back to forward
-                                                 // slashes for display, in case the user does subsequent edits there
-    selItemStr = FwdSlashtoZWSP(selItemStr);  // TODO: Bruce should check that calling FwdSlashtoZWSP() here is appropriate
-                                              //#endif
+//#if defined(FWD_SLASH_DELIM)
+    // BEW added 23Apr15 - in case the user typed a translation manually (with / as word-delimiter)
+    // convert any / back to ZWSP, in case KB storage follows. If the string ends up in m_targetBox
+    // then the ChangeValue() call within CPhraseBox will convert the ZWSP instances back to forward
+    // slashes for display, in case the user does subsequent edits there
+    selItemStr = FwdSlashtoZWSP(selItemStr);
+//#endif
+
+    // whm Note: My testing indicates that we should not put the commented-out code
+    // block for auto-caps processing at this location. From other code, the auto-caps
+    // functionality will still work as long as the user doesn't change something in the
+    // dropdown's edit box before pressing Enter. If the user does change something there
+    // and especially if the user wants to override the case of what is in the dropdown
+    // edit box, s/he can do so. If we allow the code block below to function, the user
+    // won't be able to override the auto-caps process while typing.
+    // Adjust for case, if necessary; this algorithm will not make a lower case string start
+    // with upper case when the source is uppercase if the user types punctuation at the start
+    // of the string. The latter is, however, unlikely - provided the auto punctuation support
+    // is utilized by the user
+    //if (gbAutoCaps && gbSourceIsUpperCase)
+    //{
+    //    bool bNoError = gpApp->GetDocument()->SetCaseParameters(selItemStr, FALSE);
+    //    if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+    //    {
+    //        // make it upper case
+    //        selItemStr.SetChar(0, gcharNonSrcUC);
+    //    }
+    //}
 
     gpApp->m_targetPhrase = selItemStr;
     gpApp->m_pTargetBox->WriteText(selItemStr); // use WriteText() instead of ChangeValue() or SetValue() since the later two reset the IsModified() to FALSE
