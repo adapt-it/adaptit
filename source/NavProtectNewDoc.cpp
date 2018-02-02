@@ -105,9 +105,13 @@ NavProtectNewDoc::~NavProtectNewDoc() // destructor
 void NavProtectNewDoc::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
 	m_pInputFileButton = (wxButton*)FindWindowById(wxID_OK);
+    wxASSERT(m_pInputFileButton != NULL);
 	m_pCancelButton = (wxButton*)FindWindowById(wxID_CANCEL);
+    wxASSERT(m_pCancelButton != NULL);
 	m_pMonoclineListOfFiles = (wxListBox*)FindWindowById(ID_LISTBOX_LOADABLES_FILENAMES);
+    wxASSERT(m_pMonoclineListOfFiles != NULL);
 	m_pInstructionsStaticCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_INSTRUCTIONS); // multiline, read-only
+    wxASSERT(m_pInstructionsStaticCtrl != NULL);
 	wxString leftmsg;
 	
 	m_pMonoclineListOfFiles->Clear();

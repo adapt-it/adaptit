@@ -24004,7 +24004,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                                             //
     GetDocument()->RestoreCurrentDocVersion(); // sets to the value of VERSION_NUMBER
 
-    m_pNavProtectDlg = NULL; // it's created on heap just before being shown, in OnNewDocument()
+    // whm removed the NavProtectNewDoc* m_pNavProtectDlg pointer below after creating
+    // the dialog on the stack rather than on the heap (which can sometimes lead to a crash
+    // in GTK/Linux version if ShowModal() is then called).
+    //m_pNavProtectDlg = NULL; // it's created on heap just before being shown, in OnNewDocument()
     m_sortedLoadableFiles.Clear(); // used to get the list of filenames into the above dialog
 
     // add oxes support here, the creator will call an initializing function to have oxes
