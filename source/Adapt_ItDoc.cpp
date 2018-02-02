@@ -714,7 +714,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// handler's InitDialog() function called each time the dialog is to be shown using
 			// ShowModal() so that the two buttons will be initialized correctly
 			wxWindow* docWindow = GetDocumentWindow();
-			gpApp->m_pNavProtectDlg = new NavProtectNewDoc(docWindow);
+			//gpApp->m_pNavProtectDlg = new NavProtectNewDoc(docWindow);
+			NavProtectNewDoc modalNavProtectNewDlg(docWindow);
+			gpApp->m_pNavProtectDlg = &modalNavProtectNewDlg;
 
 			// display the dialog, it's list of filenames is monocline & no navigation
 			// capability is provided
