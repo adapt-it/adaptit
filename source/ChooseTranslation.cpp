@@ -1795,6 +1795,15 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 
     // whm Note: See the code block for dlg.ShowModal() == wxID_OK in Adapt_ItView.cpp
 
+    // whm Note 10Jan2018 to support quick selection of a translation equivalent.
+    // I considered putting a code block here to dynamically update the
+    // dropdown's list content/ordering if the content/ordering was changed within
+    // the ChooseTranslation dialog. However, when the ChooseTranslation dialog's 
+    // OnOK() handler finishes and the dialog is gone, the selection made within 
+    // the dialog is entered into the phrasebox. The dropdown list doesn't really 
+    // need to get any content/ordering change until the next time the phrasebox
+    // lands at the same source phrase, at which point its list's content/ordering
+    // will have been updated.
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
