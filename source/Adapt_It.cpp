@@ -30864,7 +30864,7 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 /// removal of all owned kb entries from the database before the definition (the
 /// src/nonsrc code pair) can be removed; and the third is to create custom language codes
 /// compliant with the protocols in the RFC5646 standard.
-/// Because the removals need to be done by a detached thread, and due to netword latency
+/// Because the removals need to be done by a detached thread, and due to network latency
 /// might take anything from hours to days to complete, the thread doing the job can't
 /// assume this Manager GUI will remain open until the thread completes. It's permissible
 /// to shut Adapt It, or the machine, down before the thread completes. If so, another
@@ -53535,10 +53535,26 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 
 	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; // a legacy variable,  we need it TRUE so the later loop is accessible
 
+	// wxFileName fn(aPath to a folder);
+	wxFileName fName(execPath);
+	wxString saveCurrentWorkingDirectory = wxFileName::GetCwd();
+	wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
+
+	wxFileName fn(execPath);
+	// TODO test directory exists here
+	fn.SetCwd(execPath);
+	wxLogDebug(_T("wxFileName::SetCwd() to: %s"), execPath.c_str());
+
+
+	//wxString current_dir = fName.GetFullPath();
+	//wxLogDebug(_T("fileName.GetFullPath() returns: %s"), current_dir.c_str());
+
 	// First,...
-	wxString tempFile = _T("final_kbserver_output_report.dat");
-	wxString scriptName = _T("dsb-win7.bat");
+	wxString tempFile = _T("report.dat");
+	wxString scriptName = _T("dsb-win.bat");
 	int flags = wxEXEC_SYNC;
+	//  dsb-win.bat produces, from anywhere in the command prompt:
+	// 192.168.8.170@@@kbserverGazBW.local.,192.168.8.229@@@kbserverXPSP3.local.,192.168.8.125@@@kbserver.local.,
 
 	// Make a redirecting argument string for the output of running dsb-win7.bat in a
 	// temporary command prompt window using wxExecute()
@@ -53549,13 +53565,16 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	// from the ...\Program Files (x86)\Adapt It WX Unicode\  installation folder when
 	// running a released version.
 	wxString scriptPath = execPath + scriptName;
-	wxString command = scriptPath;
-	wxLogDebug(_T("scriptPath: %s"), scriptPath.c_str());
+	//wxString command = scriptPath;
+	//wxLogDebug(_T("scriptPath: %s"), scriptPath.c_str());
+	wxString command(scriptName);
+	wxLogDebug(_T("command contains scriptName: %s"), command.c_str());
+
 	// In the following call, returnVal is currently -1 which is an error (process couldn't start). Don't know why yet.
-//	long returnVal = wxExecute(command, flags, NULL); // 3rd & 4th signature items accepted as default NULL each
+	long returnVal = wxExecute(command, flags, NULL); // 3rd & 4th signature items accepted as default NULL each
 //	long returnVal = wxExecute("c:\\adaptit-git\\bin\\win32\\Unicode Debug\\dsb-win7.bat", flags, NULL); // 3rd & 4th signature items accepted as default NULL each
 
-//	wxUnusedVar(returnVal);
+	wxUnusedVar(returnVal);
 #ifdef _DEBUG
 	//A test data string to use util we get the wxExecute() call working properly
 	//resultsStr = _T("192.168.2.20@@@kbserverXPSP3,192.168.2.13@@@kbserver,192.168.2.15@@@kbserverX1Carbon");
