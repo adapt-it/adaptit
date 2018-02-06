@@ -1409,7 +1409,18 @@ m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
 		
 		// scroll into view, just in case a lot were inserted
 		m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
-		
+
+        // whm added 10Jan2018 to support quick selection of a translation equivalent.
+#if defined(Use_in_line_Choose_Translation_DropDown)
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+        // The current phrasebox location is changing due to the placement of the placeholder,
+        // so Hide the dropdown. PlaceBox below may reactivate it if needed.
+        if (m_pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            m_pApp->m_pChooseTranslationDropDown->Hide();
+        }
+#endif
+
 		m_pView->Invalidate();
 		m_pLayout->PlaceBox();
 	}
@@ -2484,17 +2495,6 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // The current phrasebox location is changing due to the placement of the placeholder,
-    // so Hide the dropdown. PlaceBox below may reactivate it if needed.
-    if (m_pApp->m_pChooseTranslationDropDown != NULL)
-    {
-        m_pApp->m_pChooseTranslationDropDown->Hide();
-    }
-#endif
-
 	if (wxGetKeyState(WXK_CONTROL))
 	{
 		// CTRL key is down, so an "insert after" is wanted
@@ -2678,10 +2678,10 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			gEditRecord.nAdaptationStep_EndingSequNum += 1;
 		}
 		
-		// jump to it (can't use old pile pointers, the recalcLayout call 
+        // jump to it (can't use old pile pointers, the recalcLayout call 
 		// will have clobbered them)
 		CPile* pPile = m_pView->GetPile(nSequNum);
-		m_pView->Jump(m_pApp,pPile->GetSrcPhrase());
+		m_pView->Jump(m_pApp,pPile->GetSrcPhrase()); // whm note: calls ScrollIntoView(), PlacePhraseBox(2), Invalidate() and PlaceBox()
 	}
 	else // not inserting after the selection's end or active location, but before
 	{
@@ -2776,7 +2776,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			gEditRecord.nAdaptationStep_EndingSequNum += 1;
 		}
 		
-		// jump to it (can't use old pile pointers, the recalcLayout call 
+        // jump to it (can't use old pile pointers, the recalcLayout call 
 		// will have clobbered them)
 		CPile* pPile = m_pView->GetPile(nSequNum);
 		m_pView->Jump(m_pApp, pPile->GetSrcPhrase());

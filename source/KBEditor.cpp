@@ -1302,8 +1302,9 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 
 		// put up the KBEditSearch dialog, and in its InitDialog() method do the search and
 		// populate the m_pMatchRecordArray of that class's instance
-		KBEditSearch* pKBSearchDlg = new KBEditSearch(this);
-		if (pKBSearchDlg->ShowModal() == wxID_OK)
+		//KBEditSearch* pKBSearchDlg = new KBEditSearch(this);
+		KBEditSearch modalKBSearchDlg(this);
+		if (modalKBSearchDlg.ShowModal() == wxID_OK)
 		{
 			// the search and any needed editing were done; so accumulate the search
 			// string(s) into the m_arrOldSearches before deleting them (the array
@@ -1381,8 +1382,8 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 			;
 		}
 		gpApp->m_arrSearches.Empty();
-		if (pKBSearchDlg != NULL) // whm 11Jun12 added NULL test
-			delete pKBSearchDlg;
+		//if (modalKBSearchDlg != NULL) // whm 11Jun12 added NULL test
+		//	delete modalKBSearchDlg;
 	}
 }
 

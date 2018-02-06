@@ -4855,7 +4855,7 @@ int KbServer::Synchronous_DoEntireKbDeletion(KbServer* pKbSvr_Persistent, long k
 
 		  // If control gets to here, then the kb definition was removed successfully from
 		  // the kb table. It remains to get the KB Sharing Manager gui to update to show
-		  // the correct result, if it is still running. If not running we have nothing mcu
+		  // the correct result, if it is still running. If not running we have nothing more
 		  // to do and the thread can die after a little housekeeping
 		KBSharingMgrTabbedDlg* pGUI = m_pApp->GetKBSharingMgrTabbedDlg();
 		if (pGUI != NULL)

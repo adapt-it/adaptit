@@ -4591,8 +4591,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	// treat it as a request to forgo any sharing at the present time
 	if (m_bKbSvrAdaptationsTicked || m_bKbSvrGlossesTicked)
 	{
-		KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(this);
-		pHowGetUrl->Center();
+		//KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(this);
+		KbSvrHowGetUrl modalHowGetUrl(this);
+		modalHowGetUrl.Center();
 		int dlgReturnCode;
 		bool bUserCancelled;
 
@@ -4606,7 +4607,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// is to a KBserver running somewhere in the world and accessible over the web)
 		// If service discovery is wanted, the dialog sets m_bServiceDiscoveryWanted
 		// to TRUE (it's a boolean member of the CAdapt_ItApp class)
-		dlgReturnCode = pHowGetUrl->ShowModal();
+		dlgReturnCode = modalHowGetUrl.ShowModal();
 		// The dialog's OnOK() handler will have set m_bServiceDiscoveryWanted to the
 		// user's chosen value; Cancelling, however, cancels from setting up sharing
 		// at all, for the present
@@ -4661,10 +4662,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		}
 
 		// The dialog window is no longer needed, get rid of it
-		if (pHowGetUrl != NULL)
-		{
-			pHowGetUrl->Destroy();
-		}
+		//if (pHowGetUrl != NULL)
+		//{
+			//pHowGetUrl->Destroy();
+		modalHowGetUrl.Destroy();
+		//}
 		// We must turn off the booleans, to prevent bogus reentry
 		m_bKbSvrAdaptationsTicked = FALSE;
 		m_bKbSvrGlossesTicked = FALSE;
@@ -7437,9 +7439,9 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		// (DoConditionalStore() below, needs it to be set)
 		gpApp->m_pActivePile = pView->GetPile(nLastActiveSequNum);
 		wxASSERT(gpApp->m_pActivePile != NULL);
-#if defined(_DEBUG)
-		wxLogDebug(_T("OnCustomEventEndVerticalEdit() m_pActivePile = %x"), gpApp->m_pActivePile);
-#endif
+//#if defined(_DEBUG)
+//		wxLogDebug(_T("OnCustomEventEndVerticalEdit() m_pActivePile = %x"), gpApp->m_pActivePile); <- crashes app, arg mismatch
+//#endif
 
 		// hide the toolbar with the vertical edit process control buttons and user message,
 		// and make it show-able

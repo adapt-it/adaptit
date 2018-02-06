@@ -4887,8 +4887,21 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 	pApp->m_pTargetBox->SetFocus();
 	pLayout->m_docEditOperationType = no_edit_op;
+
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+#if defined(Use_in_line_Choose_Translation_DropDown)
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+    // At document end, we should hide the dropdown. Hide it before the Invalidate() and
+    // PlaceBox() calls below to avoid a ghost image.
+    if (pApp->m_pChooseTranslationDropDown != NULL)
+    {
+        pApp->m_pChooseTranslationDropDown->Hide();
+    }
+#endif
+
 	pView->Invalidate();
 	pLayout->PlaceBox();
+
 }
 
 // This OnKeyUp function is called via the EVT_KEY_UP event in our CPhraseBox
@@ -5514,27 +5527,27 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
     // appears unless we explicitly set the App's m_bAutoInsert member to FALSE.
     pApp->m_bAutoInsert = FALSE;
 
-    // Note: The current phrasebox object is pointed to by the app's m_pTargetBox pointer
-    // It's ChangeValue() method can be used to change its content dynamically. We should
-    // also be able to use m_pTargetBox to determine its current position and size.
-    wxPoint boxPosn;
-    boxPosn = pApp->m_pTargetBox->GetPosition();
-    wxPoint dropDownPosn;
-    dropDownPosn = boxPosn;
-    // Set the position of the dropdown control's y-axis down by the height of the phrasebox
-    dropDownPosn.y = boxPosn.y + pApp->m_pTargetBox->GetSize().GetHeight();
-    wxSize boxSize;
-    // Set the dropdown's Size to be the same as the phrasebox
-    boxSize = pApp->m_pTargetBox->GetSize();
-    wxArrayString dummyStrArray;
-    dummyStrArray.Clear(); // the dropdown list is populated by calls to CChooseTranslationDropDown::SizeAndPositionDropDownBox()
-
     // If the dropdown list has not been created yet, create it, storing its pointer 
     // in m_pChooseTranslationDropDown in the app.
     if (pApp->m_pChooseTranslationDropDown == NULL)
     {
+        // Note: The current phrasebox object is pointed to by the app's m_pTargetBox pointer
+        // It's ChangeValue() method can be used to change its content dynamically. We should
+        // also be able to use m_pTargetBox to determine its current position and size.
+        wxPoint boxPosn;
+        boxPosn = pApp->m_pTargetBox->GetPosition();
+        wxPoint dropDownPosn;
+        dropDownPosn = boxPosn;
+        // Set the position of the dropdown control's y-axis down by the height of the phrasebox
+        dropDownPosn.y = boxPosn.y + pApp->m_pTargetBox->GetSize().GetHeight();
+        wxSize boxSize;
+        // Set the dropdown's Size to be the same as the phrasebox
+        boxSize = pApp->m_pTargetBox->GetSize();
+        wxArrayString dummyStrArray;
+        dummyStrArray.Clear(); // the dropdown list is populated by calls to CChooseTranslationDropDown::SizeAndPositionDropDownBox()
+
         // Like the m_pTargetBox, make the parent of the dropdown list a child of the main frame's canvas
-        pApp->m_pChooseTranslationDropDown = new CChooseTranslationDropDown(pApp->GetMainFrame()->canvas, 
+        pApp->m_pChooseTranslationDropDown = new CChooseTranslationDropDown((wxWindow*)pApp->GetMainFrame()->canvas, 
             ID_COMBO_CHOOSE_TRANS_DROP_DOWN,
             wxEmptyString, 
             dropDownPosn, 
@@ -5574,14 +5587,9 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
     // Always repopulate the list with the latest CRefString instances stored in pCurTargetUnit
     pApp->m_pChooseTranslationDropDown->PopulateDropDownList(); // Used only at this location
 
-    // Match the size and position of the dropdown to the m_pTargetBox 
-    //pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox(); // called from MainFrm's OnIdle()
-    //pApp->m_pChooseTranslationDropDown->Popup(); // called from MainFrm's OnIdle()
-    // Show the dropdown below the phrasebox (pApp->m_pTargetBox)
-    //pApp->m_pChooseTranslationDropDown->Show(); // Now only call ->Show() from MainFrm's OnIdle()
-    
-    pApp->m_bChooseTransShowPopup = TRUE;   // triggers the calling of SizeAndPositionDropDownBox()
-                                            // and FocusShowAndPopup() from MainFrm's OnIdle()
+    // Setting m_bChooseTransShowPopup to TRUE below triggers the calling of 
+    // SizeAndPositionDropDownBox() and FocusShowAndPopup() from MainFrm's OnIdle()
+    pApp->m_bChooseTransShowPopup = TRUE;  
 
     // Note: Previously, when the ChooseTranslation dialog would popup, the dialog is derived 
     // from AIModal which disables CMainFrame::OnIdle() while the dialog is in its modal state. 

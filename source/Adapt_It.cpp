@@ -24004,7 +24004,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                                             //
     GetDocument()->RestoreCurrentDocVersion(); // sets to the value of VERSION_NUMBER
 
-    m_pNavProtectDlg = NULL; // it's created on heap just before being shown, in OnNewDocument()
+    // whm removed the NavProtectNewDoc* m_pNavProtectDlg pointer below after creating
+    // the dialog on the stack rather than on the heap (which can sometimes lead to a crash
+    // in GTK/Linux version if ShowModal() is then called).
+    //m_pNavProtectDlg = NULL; // it's created on heap just before being shown, in OnNewDocument()
     m_sortedLoadableFiles.Clear(); // used to get the list of filenames into the above dialog
 
     // add oxes support here, the creator will call an initializing function to have oxes
@@ -30889,26 +30892,27 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
     // to TRUE if discovery is to be done on the LAN, FALSE if the user is going to type a
     // url he knows (which could be on the LAN, that posibility is not precluded)
     bool bLoginPersonCancelled = FALSE; // initialize
-    KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame());
-    pHowGetUrl->Center();
+	//KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame()); // use new only if  modeless is intended
+	KbSvrHowGetUrl modalHowGetUrl(pApp->GetMainFrame());
+	modalHowGetUrl.Center();
     int dlgReturnCode;
-    dlgReturnCode = pHowGetUrl->ShowModal();
+    dlgReturnCode = modalHowGetUrl.ShowModal();
 
     if (dlgReturnCode == wxID_OK)
     {
         // m_bServiceDiscoveryWanted will have been set or cleared in
         // the OnOK() handler of the above dialog
-        wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
+        wxASSERT(modalHowGetUrl.m_bUserClickedCancel == FALSE);
     }
     else
     {
         // User cancelled. This clobbers the Manager access attempt setup
-        wxASSERT(pHowGetUrl->m_bUserClickedCancel == TRUE);
+        wxASSERT(modalHowGetUrl.m_bUserClickedCancel == TRUE);
     }
-    bLoginPersonCancelled = pHowGetUrl->m_bUserClickedCancel;
+    bLoginPersonCancelled = modalHowGetUrl.m_bUserClickedCancel;
     // The app's value for m_bServiceDiscoveryWanted will have been set within
     // the OnOK() handler of the above dialog
-    pHowGetUrl->Destroy();
+	modalHowGetUrl.Destroy();
     //delete pHowGetUrl; // We don't want the dlg showing any longer
 
     // If the user didn't cancel, then call Authenticate....()
@@ -31009,7 +31013,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
             return;
         }
 
-        m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pApp->GetMainFrame());
+        m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pApp->GetMainFrame()); // on the heap is for modeless dialogs
 
         // BEW 14Sept. Push this object on to the event queue, so it can trap our custom events
         // Oops, nope! It then receives command events when the object is instantiated it
@@ -31030,11 +31034,11 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
         CopyFontBaseProperties(m_pSourceFont, m_pDlgSrcFont);
         m_pDlgSrcFont->SetPointSize(12);
 
-        // show the property sheet
+        // show the property sheet ( we need to access it from two or three places, so make non-modal)
         //if(kbSharingPropertySheet.ShowModal() == wxID_OK)
-        if (pApp->m_pKBSharingMgrTabbedDlg->ShowModal() == wxID_OK)
-        {
-        }
+		pApp->m_pKBSharingMgrTabbedDlg->Show(1);
+        
+        
         // When done, remove from the heap, and set the ptr to NULL
         // (It's owned KbServer instance, the Persistent one, is deleted at the
         // end of OnCancel() or OnOK() already)
