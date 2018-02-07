@@ -501,7 +501,7 @@ void CChooseTranslationDropDown::FocusShowAndPopup(bool bScrolling)
     if (!bScrolling)
     {
         //this->PostSizeEventToParent();
-        gpApp->SafeYield(this, TRUE); // This is needed especially in WXGTK to allow screen paint to complete and not leave the dropdown list as a dislocated ghost
+        //gpApp->SafeYield(this, TRUE); // This is needed especially in WXGTK to allow screen paint to complete and not leave the dropdown list as a dislocated ghost
         if (!this->IsPopupShown())
         {
             wxLogDebug(_T("DropDown: call Popup()"));
