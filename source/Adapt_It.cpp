@@ -30892,28 +30892,27 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
     // to TRUE if discovery is to be done on the LAN, FALSE if the user is going to type a
     // url he knows (which could be on the LAN, that posibility is not precluded)
     bool bLoginPersonCancelled = FALSE; // initialize
-	//KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame()); // use new only if  modeless is intended
-	KbSvrHowGetUrl modalHowGetUrl(pApp->GetMainFrame());
-	modalHowGetUrl.Center();
-    int dlgReturnCode;
-    dlgReturnCode = modalHowGetUrl.ShowModal();
+	{
+		KbSvrHowGetUrl modalHowGetUrl(pApp->GetMainFrame());
+		modalHowGetUrl.Center();
+		int dlgReturnCode;
+		dlgReturnCode = modalHowGetUrl.ShowModal();
 
-    if (dlgReturnCode == wxID_OK)
-    {
-        // m_bServiceDiscoveryWanted will have been set or cleared in
-        // the OnOK() handler of the above dialog
-        wxASSERT(modalHowGetUrl.m_bUserClickedCancel == FALSE);
-    }
-    else
-    {
-        // User cancelled. This clobbers the Manager access attempt setup
-        wxASSERT(modalHowGetUrl.m_bUserClickedCancel == TRUE);
-    }
-    bLoginPersonCancelled = modalHowGetUrl.m_bUserClickedCancel;
-    // The app's value for m_bServiceDiscoveryWanted will have been set within
-    // the OnOK() handler of the above dialog
-	modalHowGetUrl.Destroy();
-    //delete pHowGetUrl; // We don't want the dlg showing any longer
+		if (dlgReturnCode == wxID_OK)
+		{
+			// m_bServiceDiscoveryWanted will have been set or cleared in
+			// the OnOK() handler of the above dialog
+			wxASSERT(modalHowGetUrl.m_bUserClickedCancel == FALSE);
+		}
+		else
+		{
+			// User cancelled. This clobbers the Manager access attempt setup
+			wxASSERT(modalHowGetUrl.m_bUserClickedCancel == TRUE);
+		}
+		bLoginPersonCancelled = modalHowGetUrl.m_bUserClickedCancel;
+		// The app's value for m_bServiceDiscoveryWanted will have been set within
+		// the OnOK() handler of the above dialog
+	} // scope ends, we don't want the dlg showing any longer
 
     // If the user didn't cancel, then call Authenticate....()
     if (!bLoginPersonCancelled) // if the person doing the login did not cancel...
@@ -31035,10 +31034,17 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
         m_pDlgSrcFont->SetPointSize(12);
 
         // show the property sheet ( we need to access it from two or three places, so make non-modal)
-        //if(kbSharingPropertySheet.ShowModal() == wxID_OK)
-		pApp->m_pKBSharingMgrTabbedDlg->Show(1);
+        // We want it to hang around in case KbServer.cpp's Synchronour_DoEntireKbDeletion() can, if
+		// it succeeds in emptying all the records and removing the KB definition, force the update
+		// of the list of available KBs if the Manager is still open. Getting to that point may take
+		// minutes, hours, or days as the records depopulation is one-by-one, so the Mgr needs to be
+		// able to hang around.
+		pApp->m_pKBSharingMgrTabbedDlg->Show();
+		// restore settings when disposed of, do the restoration in the destructor
         
-        
+        /* 
+		// not here - Bill warned me that this would instantly destroy the Mgr and restore the 
+		// settings, accomplishing nothing; so I put this stuff in the Mgr's destructor
         // When done, remove from the heap, and set the ptr to NULL
         // (It's owned KbServer instance, the Persistent one, is deleted at the
         // end of OnCancel() or OnOK() already)
@@ -31052,6 +31058,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
         pFrame->SetKBSvrPassword(m_savePassword);
         m_bIsKBServerProject = m_saveSharingAdaptationsFlag;
         m_bIsGlossingKBServerProject = m_saveSharingGlossesFlag;
+		*/
 
     } // end of TRUE block for test: if (!bLoginPersonCancelled)  i.e. there was no cancel button press
       // There is no need to give a message saying there was a cancellation, as a
