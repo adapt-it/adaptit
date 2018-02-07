@@ -136,6 +136,19 @@ KBSharingMgrTabbedDlg::~KBSharingMgrTabbedDlg()
 	// restore defaults
 	m_pApp->m_bKbPageIsCurrent = FALSE;
 	m_pApp->m_bAdaptingKbIsCurrent = TRUE;
+
+	// When done, remove from the heap, and set the ptr to NULL
+	// (It's owned KbServer instance, the Persistent one, is deleted at the
+	// end of OnCancel() or OnOK() already)
+	m_pApp->m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
+
+	// Restore the user's KBserver-related settings
+	m_pApp->m_strKbServerURL = m_pApp->m_saveOldURLStr;
+	m_pApp->m_strKbServerHostname = m_pApp->m_saveOldHostnameStr;
+	m_pApp->m_strUserID = m_pApp->m_saveOldUsernameStr;
+	m_pApp->GetMainFrame()->SetKBSvrPassword(m_pApp->m_savePassword);
+	m_pApp->m_bIsKBServerProject = m_pApp->m_saveSharingAdaptationsFlag;
+	m_pApp->m_bIsGlossingKBServerProject = m_pApp->m_saveSharingGlossesFlag;
 }
 
 void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
