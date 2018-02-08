@@ -505,8 +505,11 @@ void CAdapt_ItCanvas::OnScroll(wxScrollWinEvent& event)
             // client area.
             if (pApp->m_pChooseTranslationDropDown->bDropDownIsPoppedOpen) // bDropDownIsPoppedOpen is always false in wx2.8.12 :(
             {
+#if wxVERSION_NUMBER < 2900
                 pApp->GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
-                //pApp->m_pChooseTranslationDropDown->Dismiss(); // Don't use Dismiss(). It is not in wx2.8.12 and it seeks focus & prevents scrolling out of view
+#else
+                pApp->m_pChooseTranslationDropDown->Dismiss();
+#endif     
             }
             pApp->m_bChooseTransScrolling = TRUE;
             //pApp->m_bChooseTransShowPopup = TRUE; // Don't need to change this here

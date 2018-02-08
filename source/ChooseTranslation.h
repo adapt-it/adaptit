@@ -91,6 +91,7 @@ public:
     void SizeAndPositionDropDownBox(void);
     void FocusShowAndPopup(bool bScrolling);
     void ProcessInputIntoBoxes();
+    void CloseAndHideDropDown();
 
     wxWindow *GetControl() { return this; }
 

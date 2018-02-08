@@ -452,9 +452,7 @@ void CChooseTranslationDropDown::SizeAndPositionDropDownBox(void)
 {
     CPhraseBox* phraseBox;
     phraseBox = gpApp->m_pTargetBox;
-    // SizeAndPositionDropDownBox is normally executed while the dropdown is showing,
-    // to avoid flicker hide it while calling SetSize() and SetPosition(), then show it.
-    //this->Hide();
+    // SizeAndPositionDropDownBox is normally executed while the dropdown is showing
     wxSize phraseBoxSize;
     wxSize initialDropDownSize;
     phraseBoxSize = phraseBox->GetSize();
@@ -626,6 +624,21 @@ void CChooseTranslationDropDown::ProcessInputIntoBoxes()
     gpApp->m_targetPhrase = selItemStr;
     gpApp->m_pTargetBox->WriteText(selItemStr); // use WriteText() instead of ChangeValue() or SetValue() since the later two reset the IsModified() to FALSE
 
+}
+
+// This method is called in a number of places where the dropdown control needs to be closed and the control
+// itself needs to be hidden from view. Typically this happens when the phrasebox is being relocated and before
+// a call to PlaceBox() occurs. The dropdown list will be hidden until a call to PlaceBox() occurs, which when 
+// appropriate (i.e., there are multiple translations at the new location), will trigger the frame's OnIdle() 
+// method to resize, repopulate the dropdown list, and then show the popup list.
+void CChooseTranslationDropDown::CloseAndHideDropDown()
+{
+#if wxVERSION_NUMBER < 2900
+    ;
+#else
+    this->Dismiss();
+#endif
+    this->Hide();
 }
 
 void CChooseTranslationDropDown::OnComboItemSelected(wxCommandEvent& WXUNUSED(event))

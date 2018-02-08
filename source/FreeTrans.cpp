@@ -4739,7 +4739,7 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
     // Always call Hide when in Free Translation mode
     if (m_pApp->m_pChooseTranslationDropDown != NULL)
     {
-        m_pApp->m_pChooseTranslationDropDown->Hide();
+        m_pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
     }
 #endif
 

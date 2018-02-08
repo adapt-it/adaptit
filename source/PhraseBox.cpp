@@ -1033,7 +1033,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
         // think that hiding it here is safer.
         if (pApp->m_pChooseTranslationDropDown != NULL)
         {
-            pApp->m_pChooseTranslationDropDown->Hide();
+            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
         }
 #endif
 
@@ -4895,7 +4895,7 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
     // PlaceBox() calls below to avoid a ghost image.
     if (pApp->m_pChooseTranslationDropDown != NULL)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
     }
 #endif
 

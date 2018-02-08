@@ -1417,7 +1417,7 @@ m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
         // so Hide the dropdown. PlaceBox below may reactivate it if needed.
         if (m_pApp->m_pChooseTranslationDropDown != NULL)
         {
-            m_pApp->m_pChooseTranslationDropDown->Hide();
+            m_pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
         }
 #endif
 

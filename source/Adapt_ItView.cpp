@@ -3177,7 +3177,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
     // think that hiding it here is safer.
     if (pApp->m_pChooseTranslationDropDown != NULL)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
     }
 #endif
 
@@ -3734,7 +3734,7 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
     // preview is gone.
     if (pApp->m_pChooseTranslationDropDown != NULL)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
     }
 #endif
 
@@ -8475,7 +8475,7 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
     // initial part of the jump to the new location. 
     if (pApp->m_pChooseTranslationDropDown != NULL)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
     }
 #endif
 
@@ -8861,7 +8861,7 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
     // initial part of the jump to the new location. 
     if (pApp->m_pChooseTranslationDropDown != NULL)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
     }
 #endif
 
@@ -9473,7 +9473,7 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
     // initial part of the jump to the new location. 
     if (pApp->m_pChooseTranslationDropDown != NULL)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
     }
 #endif
 
@@ -9783,7 +9783,7 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
     // initial part of the jump to the new location. 
     if (pApp->m_pChooseTranslationDropDown != NULL)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
     }
 #endif
 
@@ -10671,7 +10671,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
     // OnButtonMerge call returns prematurely. 
     if (pApp->m_pChooseTranslationDropDown != NULL)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
     }
 #endif
 
@@ -16355,7 +16355,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
                     // translations possible, the dropdown could re-appear there with different content. 
                     if (pApp->m_pChooseTranslationDropDown != NULL)
                     {
-                        pApp->m_pChooseTranslationDropDown->Hide();
+                        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
                     }
 #endif
 
@@ -16426,7 +16426,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
                     // translations possible, the dropdown could re-appear there with different content. 
                     if (pApp->m_pChooseTranslationDropDown != NULL)
                     {
-                        pApp->m_pChooseTranslationDropDown->Hide();
+                        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
                     }
 #endif
 
@@ -16499,7 +16499,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
                     // translations possible, the dropdown could re-appear there with different content. 
                     if (pApp->m_pChooseTranslationDropDown != NULL)
                     {
-                        pApp->m_pChooseTranslationDropDown->Hide();
+                        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
                     }
 #endif
 
@@ -16595,7 +16595,7 @@ f:					if (!gbIsGlossing)
                     // translations possible, the dropdown could re-appear there with different content. 
                     if (pApp->m_pChooseTranslationDropDown != NULL)
                     {
-                        pApp->m_pChooseTranslationDropDown->Hide();
+                        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
                     }
 #endif
 
@@ -20649,6 +20649,22 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 {
  	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+    // To avoid the popup list leaving a ghost onscreen after a resize event, we dismiss
+    // the popup before calling event.Skip() below. Note: The Dismiss() method is not
+    // available in wx 2.8.12 so we conditional compile for that version.
+#if defined(Use_in_line_Choose_Translation_DropDown)
+    if (pApp->m_pChooseTranslationDropDown != NULL)
+    {
+#if wxVERSION_NUMBER < 2900
+        ;
+#else
+        pApp->m_pChooseTranslationDropDown->Dismiss();
+#endif     
+    }
+
+#endif
+
     // wx note: event.Skip() must be called here in order to pass the size event
     // on to be handled by the CMainFrame::OnSize() method.
 	event.Skip();
@@ -21064,7 +21080,7 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 //            // call Show() in the else block below because PlaceBox() takes care of that. 
 //            if (pApp->m_pChooseTranslationDropDown != NULL)
 //            {
-//                pApp->m_pChooseTranslationDropDown->Hide();
+//                pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
 //            }
 //#endif
 
@@ -22605,7 +22621,7 @@ void CAdapt_ItView::OnButtonBack(wxCommandEvent& WXUNUSED(event))
     // initial part of the jump to the new location. 
     if (pApp->m_pChooseTranslationDropDown != NULL)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
     }
 #endif
 
@@ -22769,7 +22785,7 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
     // so hide the dropdown combobox if it is showing.
     if (pApp->m_pChooseTranslationDropDown != NULL)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
     }
 #endif
 
@@ -29168,7 +29184,7 @@ void CAdapt_ItView::ToggleGlossingMode()
             // in its dropdown list when glossing and with adaptations when adapting. 
             if (pApp->m_pChooseTranslationDropDown != NULL)
             {
-                pApp->m_pChooseTranslationDropDown->Hide();
+                pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
             }
 #endif
 
@@ -29195,7 +29211,7 @@ void CAdapt_ItView::ToggleGlossingMode()
             // in its dropdown list when glossing and with adaptations when adapting. 
             if (pApp->m_pChooseTranslationDropDown != NULL)
             {
-                pApp->m_pChooseTranslationDropDown->Hide();
+                pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
             }
 #endif
             // get any removed glosses in gEditRecord into the GUI list; but if the

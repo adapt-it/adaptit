@@ -4670,7 +4670,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
     // be destroyed at the time its parent (the canvas) is destroyed.
     if (pApp->m_pChooseTranslationDropDown != NULL)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
     }
 #endif
 
