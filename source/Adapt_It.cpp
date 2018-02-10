@@ -6346,6 +6346,8 @@ wxString szExtraPixelsForDiacritics = _T("ExtraPixelsForDiacritics");
 /// moves down the client area etc.
 wxString szKeepPhraseBoxMidscreen = _T("KeepPhraseBoxMidscreen");
 
+wxString szUseChooseTransDropDown = _T("UseChooseTranslationDropDownQuickSelector");
+
 /// Default is FALSE, auto-caps lookup only looks up lower case keys; if user sets the
 /// boolean to TRUE, on fail an auto-caps upper case lookup is attempted - if it
 /// succeeds, a boolean is set to TRUE temporarily - and StoreText() and
@@ -18900,11 +18902,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pTargetBox = (CPhraseBox*)NULL; // added for persistent target box
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
+    m_bUseChooseTransDropDown = TRUE; // defaults to TRUE, but user can change via checkbox in ChooseTranslation dialog, setting saved in project config file
     m_pChooseTranslationDropDown = (CChooseTranslationDropDown*)NULL; // for persistent dropdown 
     m_bChooseTransShowPopup = FALSE;
     m_bChooseTransScrolling = FALSE;
-#endif
+
     m_pEarlierTransDlg = (CEarlierTranslationDlg*)NULL;
 
     m_pNoteDlg = (CNoteDlg*)NULL; // needed in wx version
@@ -24338,15 +24340,13 @@ int CAdapt_ItApp::OnExit(void)
     //delete m_pTargetBox;
     //m_pTargetBox = (CPhraseBox*)NULL;
 
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
+    // whm note 10Jan2018 to support quick selection of a translation equivalent.
     // See Note above regarding m_pTargetBox. The m_pChooseTranslationDropDown is also a 
     // child of its parent the canval window. As such it also should be automatically
     // destroyed at the time the pView->canvas is destroyed.
     //if (m_pChooseTranslationDropDown != NULL)
     //    delete m_pChooseTranslationDropDown;
     //m_pChooseTranslationDropDown = (CChooseTranslationDropDown*)NULL;
-#endif
 
     if (m_pConfig != NULL) // whm 11Jun12 added NULL test
         delete m_pConfig;
@@ -36913,6 +36913,11 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data << szKeepPhraseBoxMidscreen << tab << (int)m_bKeepBoxMidscreen;
     pf->AddLine(data);
 
+    // whm added 10Jan2018
+    data.Empty();
+    data << szUseChooseTransDropDown << tab << (int)m_bUseChooseTransDropDown;
+    pf->AddLine(data);
+
     // BEW added 15Dec14
     data.Empty();
     data << szExtraPixelsForDiacritics << tab << (int)m_nExtraPixelsForDiacritics;
@@ -37538,6 +37543,17 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
             else
             {
                 m_bKeepBoxMidscreen = FALSE;
+            }
+        }
+        else if (name == szUseChooseTransDropDown)
+        {
+            if (strValue == _T("1"))
+            {
+                m_bUseChooseTransDropDown = TRUE;
+            }
+            else
+            {
+                m_bUseChooseTransDropDown = FALSE;
             }
         }
         else if (name == szExtraPixelsForDiacritics)
@@ -44139,12 +44155,13 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
         message += _T("   ") + mssg;
     }
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    if ((gpApp->m_pChooseTranslationDropDown != NULL) && (gpApp->m_pChooseTranslationDropDown->IsShown()))
+    if (m_bUseChooseTransDropDown)
     {
-        message = _("Choose a translation, or type a new translation from drop-down list. Press F8 for more options.");
+        if ((gpApp->m_pChooseTranslationDropDown != NULL) && (gpApp->m_pChooseTranslationDropDown->IsShown()))
+        {
+            message = _("Choose a translation, or type a new translation from drop-down list. Press F8 for more options.");
+        }
     }
-#endif
     StatusBarMessage(message);
     pFrame->m_pStatusBar->Update();
 

@@ -964,19 +964,20 @@ void CLayout::PlaceBox()
 		}
 
         // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-        // If the dropdown combobox exists and is showing, make sure its position tracks that of the phrasebox
-        if (m_pApp->m_pChooseTranslationDropDown != NULL)
+        if (m_pApp->m_bUseChooseTransDropDown)
         {
-            if (m_pApp->m_pChooseTranslationDropDown->IsShown())
+            // If the dropdown combobox exists and is showing, make sure its position tracks that of the phrasebox
+            if (m_pApp->m_pChooseTranslationDropDown != NULL)
             {
-                //m_pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox(); // moved to MainFrm's OnIdle() handler
-                //m_pApp->m_pChooseTranslationDropDown->FocusShowAndPopup(); // moved to MainFrm's OnIdle() handler
-                m_pApp->m_bChooseTransShowPopup = TRUE;
+                if (m_pApp->m_pChooseTranslationDropDown->IsShown())
+                {
+                    //m_pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox(); // moved to MainFrm's OnIdle() handler
+                    //m_pApp->m_pChooseTranslationDropDown->FocusShowAndPopup(); // moved to MainFrm's OnIdle() handler
+                    m_pApp->m_bChooseTransShowPopup = TRUE;
+                }
             }
-        }
 
-#endif
+        }
 	}
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
 }

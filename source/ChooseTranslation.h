@@ -87,11 +87,13 @@ public:
 
     bool bDropDownIsPoppedOpen;
 
-    void PopulateDropDownList();
+    void PopulateDropDownList(CTargetUnit* pCurTU);
     void SizeAndPositionDropDownBox(void);
     void FocusShowAndPopup(bool bScrolling);
     void ProcessInputIntoBoxes();
     void CloseAndHideDropDown();
+    wxString newTranslationToAppend;
+    int listItemIndexToSelect;
 
     wxWindow *GetControl() { return this; }
 
@@ -136,12 +138,14 @@ public:
 	wxTextCtrl*	m_pSourcePhraseBox;
 	wxTextCtrl*	m_pNewTranslationBox;
 	wxTextCtrl* m_pEditReferences;
+    wxCheckBox* m_pCheckShowTransInDropDown;
 	int			m_refCount;
 	wxString	m_refCountStr; // need wxString for validating wxTextCtrl
 	wxString	m_chosenTranslation;
 	bool		m_bEmptyAdaptationChosen;
 	bool		m_bCancelAndSelect;
 	bool		m_bHideCancelAndSelectButton;
+    bool        m_bTempUseChooseTransDropDown;  // whm 10Jan2018 added
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
@@ -158,6 +162,7 @@ protected:
 	void OnUpdateButtonRemove(wxUpdateUIEvent& event);
 	void OnButtonCancelAsk(wxCommandEvent& WXUNUSED(event));
 	void OnButtonCancelAndSelect(wxCommandEvent& event);
+    void OnCheckBoxShowTransInDropDown(wxCommandEvent& event);
 public:
 	void OnKeyDown(wxKeyEvent& event);
 

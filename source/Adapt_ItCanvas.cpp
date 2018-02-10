@@ -486,37 +486,37 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
 void CAdapt_ItCanvas::OnScroll(wxScrollWinEvent& event)
 {
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
     CAdapt_ItApp* pApp = &wxGetApp();
-    // If the dropdown combobox exists and is showing, make sure its position tracks that of the phrasebox
-    if (pApp->m_pChooseTranslationDropDown != NULL)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        if (pApp->m_pChooseTranslationDropDown->IsShown())
+        // If the dropdown combobox exists and is showing, make sure its position tracks that of the phrasebox
+        if (pApp->m_pChooseTranslationDropDown != NULL)
         {
-            // Challenge: 
-            // Since a scroll of the screen with the list popped up separates the popped up list
-            // part of the comboobox from the base edit box part (actually a phantom image), we 
-            // here make the popup disappear (if it was open) by calling the Frame's SendSizeEvent 
-            // when there is an OnScroll event. The SendSizeEvent causes the popup to close. 
-            // When the popup is open it seeks the focus, and prevents the screen from scrolling the 
-            // phrasebox-dropdown combination out of the client area - which effectively prevents 
-            // the user from scrolling away to check context during adaptation. However, when the 
-            // popup isn't open, the user can scroll the phrasebox-dropdown combination out of the 
-            // client area.
-            if (pApp->m_pChooseTranslationDropDown->bDropDownIsPoppedOpen) // bDropDownIsPoppedOpen is always false in wx2.8.12 :(
+            if (pApp->m_pChooseTranslationDropDown->IsShown())
             {
+                // Challenge: 
+                // Since a scroll of the screen with the list popped up separates the popped up list
+                // part of the comboobox from the base edit box part (actually a phantom image), we 
+                // here make the popup disappear (if it was open) by calling the Frame's SendSizeEvent 
+                // when there is an OnScroll event. The SendSizeEvent causes the popup to close. 
+                // When the popup is open it seeks the focus, and prevents the screen from scrolling the 
+                // phrasebox-dropdown combination out of the client area - which effectively prevents 
+                // the user from scrolling away to check context during adaptation. However, when the 
+                // popup isn't open, the user can scroll the phrasebox-dropdown combination out of the 
+                // client area.
+                if (pApp->m_pChooseTranslationDropDown->bDropDownIsPoppedOpen) // bDropDownIsPoppedOpen is always false in wx2.8.12 :(
+                {
 #if wxVERSION_NUMBER < 2900
-                pApp->GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
+                    pApp->GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
 #else
-                pApp->m_pChooseTranslationDropDown->Dismiss();
+                    pApp->m_pChooseTranslationDropDown->Dismiss();
 #endif     
+                }
+                pApp->m_bChooseTransScrolling = TRUE;
+                //pApp->m_bChooseTransShowPopup = TRUE; // Don't need to change this here
             }
-            pApp->m_bChooseTransScrolling = TRUE;
-            //pApp->m_bChooseTransShowPopup = TRUE; // Don't need to change this here
-         }
+        }
     }
-
-#endif
     event.Skip();	// this is necessary for the built-in scrolling behavior of wxScrolledWindow
 					// to be processed
 }

@@ -1411,15 +1411,16 @@ m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
 		m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 
         // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // The current phrasebox location is changing due to the placement of the placeholder,
-        // so Hide the dropdown. PlaceBox below may reactivate it if needed.
-        if (m_pApp->m_pChooseTranslationDropDown != NULL)
+        if (m_pApp->m_bUseChooseTransDropDown)
         {
-            m_pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+            // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+            // The current phrasebox location is changing due to the placement of the placeholder,
+            // so Hide the dropdown. PlaceBox below may reactivate it if needed.
+            if (m_pApp->m_pChooseTranslationDropDown != NULL)
+            {
+                m_pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+            }
         }
-#endif
 
 		m_pView->Invalidate();
 		m_pLayout->PlaceBox();

@@ -4663,17 +4663,17 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // If not hidden here, the dropdown combo box will appear in the blank area of the main
-    // frame after the document disappears. It could be destroyed, but we should allow it to
-    // be destroyed at the time its parent (the canvas) is destroyed.
-    if (pApp->m_pChooseTranslationDropDown != NULL)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+        // If not hidden here, the dropdown combo box will appear in the blank area of the main
+        // frame after the document disappears. It could be destroyed, but we should allow it to
+        // be destroyed at the time its parent (the canvas) is destroyed.
+        if (pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+        }
     }
-#endif
-
     // whm 19Sep11 moved this block here from above the OnSaveModified() call. See
 	// comment where the code is commented out above for reason for the move.
 	// Remove KBs from the heap, when colloborating with an external editor
@@ -28230,8 +28230,9 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 					wxChar* aPtr = ptr;
 					bool bIsWhite = FALSE;
 					do {
-						aPtr = --aPtr; // point at previous wide character
-						bIsWhite = IsWhiteSpace(aPtr);
+                        //aPtr = --aPtr; // whm 10Feb2018 Note: This is non-standard syntax and generates a gcc warning "operation on 'aPtr' may be undefined"
+                        aPtr--; // point at previous wide character
+                        bIsWhite = IsWhiteSpace(aPtr);
 						if (bIsWhite)
 						{
 							whitespaceCount++;
@@ -30500,7 +30501,8 @@ int CAdapt_ItDoc::ParseWord2(
 					wxChar* aPtr = ptr;
 					bool bIsWhite = FALSE;
 					do {
-						aPtr = --aPtr; // point at previous wide character
+						//aPtr = --aPtr; // whm 10Feb2018 Note: This is non-standard syntax and generates a gcc warning "operation on 'aPtr' may be undefined"
+                        aPtr--;  // point at previous wide character
 						bIsWhite = IsWhiteSpace(aPtr);
 						if (bIsWhite)
 						{
@@ -30814,7 +30816,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 	if (pSrcPhrase->m_nSequNumber == 1)
 	{
 		int break_here = 1;
-        //break_here = break_here; // avoid gcc warning
+        break_here = break_here; // avoid gcc warning
 	}
 #endif
 	bool bParsedSomething = FALSE; // if control does an iteration without ptr advancing,
@@ -31303,7 +31305,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 			if (pSrcPhrase->m_nSequNumber == 5)
 			{
 				int break_here = 1;
-				//break_here = break_here; // avoid gcc warning
+				break_here = break_here; // avoid gcc warning
 			}
 #endif
 			// Here we deal with something following some nested punctuation -
@@ -31400,7 +31402,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 			if (pSrcPhrase->m_nSequNumber == 5)
 			{
 				int break_here = 1;
-				//break_here = break_here; // avoid gcc warning
+				break_here = break_here; // avoid gcc warning
 			}
 #endif
 			wxString strAccumulate = wxString(ptr, 2); // temp store first <whitespace> then
@@ -31677,7 +31679,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 			if (pSrcPhrase->m_nSequNumber == 1)
 			{
 				int break_here = 1;
-                //break_here = break_here; // avoid gcc warning
+                break_here = break_here; // avoid gcc warning
             }
 #endif
 			// Parse across punctuation. This stuff will be stored in m_follPuncts, 
@@ -31697,7 +31699,7 @@ int	CAdapt_ItDoc::ParsePostWordStuff(
 			if (pSrcPhrase->m_nSequNumber == 1)
 			{
 				int break_here = 1;
-				//break_here = break_here; // avoid gcc warning
+				break_here = break_here; // avoid gcc warning
 			}
 #endif
 //			while ((ptr2 < pEnd) &&
