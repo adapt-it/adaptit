@@ -2184,6 +2184,11 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	versionStr << wxMINOR_VERSION;
 	versionStr << _T(".");
 	versionStr << wxRELEASE_NUMBER;
+#if defined(_DEBUG)
+    versionStr << _T(" (Release version)");
+#else
+    versionStr << _T(" (Debug version)");
+#endif
 	pStaticWxVersionUsed->SetLabel(versionStr);
 
 	wxString strUILanguage;
