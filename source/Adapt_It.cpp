@@ -18006,6 +18006,51 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pArrayOfCollabProjects = new wxArrayPtrVoid;
 
     /*
+    // Testing the ability of wxExecute to execute a Windows batch file that in turn executed an .exe console program file.
+    // The batch file is called CountSourceLines.bat and the console exe program is cloc-1.08.exe. Both the batch file
+    // and the console exe file are already in our adaptit source tree in the adaptit folder.
+    // The cloc-1.08.exe console program gets an inventory of source lines from a project (in our case adaptit)
+    // On my test machine, the CountSourceLines.bat batch file is at this path:
+    // C:\Users\Bill\Documents\adaptit\CountSourceLines.bat
+    // Use braces to restrict scope to this block and avoid any clashing with program variables
+    {
+        int flags = wxEXEC_SYNC; // this works
+        // int flags = wxEXEC_ASYNC; // this works
+        wxString space = _T(" ");
+        wxString quote = _T("\"");
+        wxString batchFileName = _T("CountSourceLines.bat");
+        wxString path2adaptitProj = _T("C:\\Users\\Bill\\Documents\\adaptit\\");
+        wxString winCmdProcessor = _T("cmd.exe");
+        wxString cmdOptions = _T("/c");
+        // wxString commandLine = _T("cmd.exe /c C:\\Users\\Bill\\Documents\\adaptit\\CountSourceLines.bat C:\\Users\\Bill\\Documents\\adaptit\\");
+        wxString commandLine = winCmdProcessor + space + cmdOptions + space + quote + path2adaptitProj + batchFileName + space + path2adaptitProj + quote; 
+        wxArrayString outputMsg, errorsMsg;
+        // Use the wxExecute() override that takes the two wxStringArray parameters. This
+        // also redirects the output and suppresses the dos console window during execution.
+        // Note: Be patient! This wxExecute() call takes a few seconds (7 to 10) to complete!
+        long result = ::wxExecute(commandLine, outputMsg, errorsMsg, flags);
+        int ctOutput = (int)outputMsg.GetCount();
+        int ctError = (int)errorsMsg.GetCount();
+        int ct;
+        wxLogDebug(_T("wxExecute result returned: %d"),(int)result);
+        wxLogDebug(_T("--- Output messages below: ---"));
+        for (ct = 0; ct < ctOutput; ct++)
+        {
+            wxLogDebug(outputMsg.Item(ct));
+        }
+        wxLogDebug(_T("--- Error messages below: ---"));
+        if (ctError == 0)
+            wxLogDebug(_T("        NONE"));
+        for (ct = 0; ct < ctError; ct++)
+        {
+            wxLogDebug(errorsMsg.Item(ct));
+        }
+        int nDebugBreakpoint = 1; // put bread point at this line and examine wxLogDebug output in VS output window
+        nDebugBreakpoint = nDebugBreakpoint; // avoid gcc warning
+    }
+    */
+
+    /*
     // testing the AddCollabBooksAndOrChaptersToProtectedCollabString() function
     {
         // the following are for testing, comment out after debugging
