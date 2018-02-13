@@ -31,14 +31,6 @@
 //#define Use_Legacy_Parser
 #include <wx/string.h>
 
-// whm added 10Jan2018 to support quick selection of a translation equivalent.
-// When Use_in_line_Choose_Translation_DropDown is defined the default behavior is 
-// to present multiple translation equivalents in a drop-down combobox aligned to 
-// the bottom of the phrasebox instead of the legacy code way of showing a modal 
-// ChooseTranslation dialog. Comment out to only use the Choose Translation dialog.
-
-#define Use_in_line_Choose_Translation_DropDown
-
 //#define AUTHENTICATE_AS_BRUCE
 
 // whm added 5Jun12 for debugging purposes. The FORCE_BIBLEDIT_IS_INSTALLED_FLAG
@@ -193,7 +185,7 @@ class KBSharingMgrTabbedDlg;
 //
 // whm 6Jan12 Note: When changing these version numbers we also need to change the version number
 // in the following:
-// 1. The appVerStr const defined below (about line 217).
+// 1. The appVerStr const defined below (about line 234).
 // 2. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the xml folder.
 // 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
 //    NOTE: Use an editor such as Notepad to edit Adapt_It.rc. DO NOT USE
@@ -201,7 +193,7 @@ class KBSharingMgrTabbedDlg;
 //    #include "wx/msw/wx.rc" statement and add a lot of other
 //    Windows-specific stuff to the file - resulting in a build failure.
 // 4. The Visual Studio 2015 Adapt_It > Properties > Linker > Version (do for All Configurations).
-//    For this version, just use the first two version digits, i.e., 6.8 to
+//    For this version, just use the first two version digits, i.e., 6.9 to
 //    keep things compatible with newer versions of Visual Studio.
 // 5. The Mac's Info.plist file in adaptit/bin/mac/.
 // 6. The Linux's ChangeLog (done automatically by batch file if the version number in
@@ -224,14 +216,14 @@ class KBSharingMgrTabbedDlg;
 // ******** START ACCUMULATING COPIES OF THE AI_UserProfiles.xml *************************
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_MINOR_PART 8 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 3 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_MINOR_PART 9 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 0 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 11
-#define VERSION_DATE_MONTH 5
-#define VERSION_DATE_YEAR 2017
-const wxString appVerStr(_T("6.8.3"));
+#define VERSION_DATE_DAY 10
+#define VERSION_DATE_MONTH 2
+#define VERSION_DATE_YEAR 2018
+const wxString appVerStr(_T("6.9.0"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -2746,11 +2738,10 @@ public:
 	long			m_nEndChar;		// end of selection in the target box
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
+    bool m_bUseChooseTransDropDown;
     CChooseTranslationDropDown* m_pChooseTranslationDropDown;
     bool m_bChooseTransShowPopup;
     bool m_bChooseTransScrolling;
-#endif
 
 	//bool bUserSelectedFileNew; // BEW removed 24Aug10
 

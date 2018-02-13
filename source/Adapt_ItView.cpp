@@ -3169,17 +3169,18 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //#endif
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
-    // PlacePhraseBox call returns prematurely. We might hide the dropdown combobox later below, 
-    // up to the point that the Invalidate() call is made near the end of this function, but I
-    // think that hiding it here is safer.
-    if (pApp->m_pChooseTranslationDropDown != NULL)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+        // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
+        // PlacePhraseBox call returns prematurely. We might hide the dropdown combobox later below, 
+        // up to the point that the Invalidate() call is made near the end of this function, but I
+        // think that hiding it here is safer.
+        if (pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+        }
     }
-#endif
 
 // setup the layout and phrase box at the new location; in the refactored design this
     // boils down to working out what the new active location's sequence number is, and
@@ -3726,17 +3727,18 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 #endif
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // If not hidden here, the dropdown combo box will appear superimposed over the print 
-    // preview. When Print Preview is closed, if the dropdown was open before the preview,
-    // it will appear again popped up - probably due to a PlaceBox() call after the
-    // preview is gone.
-    if (pApp->m_pChooseTranslationDropDown != NULL)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+        // If not hidden here, the dropdown combo box will appear superimposed over the print 
+        // preview. When Print Preview is closed, if the dropdown was open before the preview,
+        // it will appear again popped up - probably due to a PlaceBox() call after the
+        // preview is gone.
+        if (pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+        }
     }
-#endif
 
     // whm 25Sep11 modified. As I did in the PrintOptionsDlg::InitDialog() function,
 	// we should initialize the values of gbCheckInclGlossesText and gbCheckInclFreeTransText
@@ -8469,15 +8471,16 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // OnButtonToEnd will cause a jump to a different location, and we call Hide() at the
-    // initial part of the jump to the new location. 
-    if (pApp->m_pChooseTranslationDropDown != NULL)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+        // OnButtonToEnd will cause a jump to a different location, and we call Hide() at the
+        // initial part of the jump to the new location. 
+        if (pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+        }
     }
-#endif
 
     if (pApp->m_bFreeTranslationMode)
 	{
@@ -8855,15 +8858,16 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // OnButtonToStart will cause a jump to a different location, and we call Hide() at the
-    // initial part of the jump to the new location. 
-    if (pApp->m_pChooseTranslationDropDown != NULL)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+        // OnButtonToStart will cause a jump to a different location, and we call Hide() at the
+        // initial part of the jump to the new location. 
+        if (pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+        }
     }
-#endif
 
     if (pApp->m_bFreeTranslationMode)
 	{
@@ -9467,15 +9471,16 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // OnButtonStepDown will cause a jump to a different location, and we call Hide() at the
-    // initial part of the jump to the new location. 
-    if (pApp->m_pChooseTranslationDropDown != NULL)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+        // OnButtonStepDown will cause a jump to a different location, and we call Hide() at the
+        // initial part of the jump to the new location. 
+        if (pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+        }
     }
-#endif
 
 	// continuing, because a chapter beginning was found...
 	GetLayout()->m_pDoc->ResetPartnerPileWidth(GetSrcPhrase(nSaveOldSequNum)); // update old loc'n
@@ -9777,15 +9782,16 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // OnButtonStepUp will cause a jump to a different location, and we call Hide() at the
-    // initial part of the jump to the new location. 
-    if (pApp->m_pChooseTranslationDropDown != NULL)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+        // OnButtonStepUp will cause a jump to a different location, and we call Hide() at the
+        // initial part of the jump to the new location. 
+        if (pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+        }
     }
-#endif
 
     gnOldSequNum = pApp->m_nActiveSequNum; // save old location
 
@@ -10665,15 +10671,16 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing
-    // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
-    // OnButtonMerge call returns prematurely. 
-    if (pApp->m_pChooseTranslationDropDown != NULL)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing
+        // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
+        // OnButtonMerge call returns prematurely. 
+        if (pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+        }
     }
-#endif
 
 	// make pApp->m_targetPhrase cleared, as it must accumulate any existing translations
 	// removed from the KB because of the merge
@@ -16349,15 +16356,16 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 					}
 
                     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-                    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                    // The Jump() call below will be to a different location, and if that location has multiple
-                    // translations possible, the dropdown could re-appear there with different content. 
-                    if (pApp->m_pChooseTranslationDropDown != NULL)
+                    if (pApp->m_bUseChooseTransDropDown)
                     {
-                        pApp->m_pChooseTranslationDropDown->Hide();
+                        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+                        // The Jump() call below will be to a different location, and if that location has multiple
+                        // translations possible, the dropdown could re-appear there with different content. 
+                        if (pApp->m_pChooseTranslationDropDown != NULL)
+                        {
+                            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+                        }
                     }
-#endif
 
                     // jump to whatever pile is not in a retranslation,
 					// as close to wanted loc'n as possible
@@ -16420,15 +16428,16 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 					}
 
                     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-                    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                    // The Jump() call below will be to a different location, and if that location has multiple
-                    // translations possible, the dropdown could re-appear there with different content. 
-                    if (pApp->m_pChooseTranslationDropDown != NULL)
+                    if (pApp->m_bUseChooseTransDropDown)
                     {
-                        pApp->m_pChooseTranslationDropDown->Hide();
+                        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+                        // The Jump() call below will be to a different location, and if that location has multiple
+                        // translations possible, the dropdown could re-appear there with different content. 
+                        if (pApp->m_pChooseTranslationDropDown != NULL)
+                        {
+                            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+                        }
                     }
-#endif
 
                     // jump to whatever pile is not in a retranslation, as close to wanted
 					// loc'n as possible
@@ -16493,15 +16502,16 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 					}
 
                     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-                    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                    // The Jump() call below will be to a different location, and if that location has multiple
-                    // translations possible, the dropdown could re-appear there with different content. 
-                    if (pApp->m_pChooseTranslationDropDown != NULL)
+                    if (pApp->m_bUseChooseTransDropDown)
                     {
-                        pApp->m_pChooseTranslationDropDown->Hide();
+                        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+                        // The Jump() call below will be to a different location, and if that location has multiple
+                        // translations possible, the dropdown could re-appear there with different content. 
+                        if (pApp->m_pChooseTranslationDropDown != NULL)
+                        {
+                            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+                        }
                     }
-#endif
 
                     // jump to whatever pile is not in a retranslation, as close to wanted
 					// loc'n as possible
@@ -16589,15 +16599,16 @@ f:					if (!gbIsGlossing)
 					}
 
                     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-                    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                    // The Jump() call below will be to a different location, and if that location has multiple
-                    // translations possible, the dropdown could re-appear there with different content. 
-                    if (pApp->m_pChooseTranslationDropDown != NULL)
+                    if (pApp->m_bUseChooseTransDropDown)
                     {
-                        pApp->m_pChooseTranslationDropDown->Hide();
+                        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+                        // The Jump() call below will be to a different location, and if that location has multiple
+                        // translations possible, the dropdown could re-appear there with different content. 
+                        if (pApp->m_pChooseTranslationDropDown != NULL)
+                        {
+                            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+                        }
                     }
-#endif
 
                     // jump to whatever pile is not in a retranslation, as close to wanted
 					// loc'n as possible
@@ -20649,6 +20660,23 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 {
  	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
+    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+    // To avoid the popup list leaving a ghost onscreen after a resize event, we dismiss
+    // the popup before calling event.Skip() below. Note: The Dismiss() method is not
+    // available in wx 2.8.12 so we conditional compile for that version.
+    if (pApp->m_bUseChooseTransDropDown)
+    {
+        if (pApp->m_pChooseTranslationDropDown != NULL)
+        {
+#if wxVERSION_NUMBER < 2900
+            ;
+#else
+            pApp->m_pChooseTranslationDropDown->Dismiss();
+#endif     
+        }
+
+    }
+
     // wx note: event.Skip() must be called here in order to pass the size event
     // on to be handled by the CMainFrame::OnSize() method.
 	event.Skip();
@@ -21048,25 +21076,20 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 	{
 		if (tbi != NULL)
 		{
-
-//            // whm comment 10Jan2018 to support quick selection of a translation equivalent.
-              // While it would be a bit strange for someone to adapt text while they cannot
-              // see the source text, in this Target-Only-Visible mode it is possible to do so,
-              // since the phrasebox is present and works in this mode as it did in other modes.
-              // Hence, I will allow the dropdown combo box to appear here as it would for
-              // regular adaptation work. If we decide to hide it later, just uncomment the code
-              // below.
-//#if defined(Use_in_line_Choose_Translation_DropDown)
-//            // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-//            // I don't think it is desirable for the dropdown combo box to appear in the screen
-//            // showing only the Target Text, a view where one doesn't do adaptation work, but wishes
-//            // to merely see the target text as it appears uncluttered. We don't need to explicitly
-//            // call Show() in the else block below because PlaceBox() takes care of that. 
-//            if (pApp->m_pChooseTranslationDropDown != NULL)
-//            {
-//                pApp->m_pChooseTranslationDropDown->Hide();
-//            }
-//#endif
+            // whm comment 10Jan2018 to support quick selection of a translation equivalent.
+            // While it would be a bit strange for someone to adapt text while they cannot
+            // see the source text, in this Target-Only-Visible mode it is possible to do so,
+            // since the phrasebox is present and works in this mode as it did in other modes.
+            // Hence, I will allow the dropdown combo box to appear here as it would for
+            // regular adaptation work. If we decide to hide it later, just uncomment the code
+            // below.
+            //if (pApp->m_bUseChooseTransDropDown)
+            //{
+            //  if (pApp->m_pChooseTranslationDropDown != NULL)
+            //  {
+            //       pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+            //  }
+            //}
 
 			tbi->SetShortHelp(_("Show Source And Target Text")); // what will happen if they click the button
 			tbi->SetLabel(_("View Mode")); // what will happen if they click the button
@@ -22599,15 +22622,16 @@ void CAdapt_ItView::OnButtonBack(wxCommandEvent& WXUNUSED(event))
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // OnButtonBack will cause a jump to a different location, and we call Hide() at the
-    // initial part of the jump to the new location. 
-    if (pApp->m_pChooseTranslationDropDown != NULL)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+        // OnButtonBack will cause a jump to a different location, and we call Hide() at the
+        // initial part of the jump to the new location. 
+        if (pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+        }
     }
-#endif
 
     // there must be a valid earlier active location, so jump to there
 	int nOldSequNum;
@@ -22764,14 +22788,15 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    // Invoking the <no adaptation> button indicates user does not want to enter a translation,
-    // so hide the dropdown combobox if it is showing.
-    if (pApp->m_pChooseTranslationDropDown != NULL)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        // Invoking the <no adaptation> button indicates user does not want to enter a translation,
+        // so hide the dropdown combobox if it is showing.
+        if (pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+        }
     }
-#endif
 
 	pApp->m_targetPhrase.Empty(); // clear out the attribute on the view
 	pApp->m_pTargetBox->ChangeValue(_T("")); // clear out the box too
@@ -29160,17 +29185,18 @@ void CAdapt_ItView::ToggleGlossingMode()
 			// we are changing from glossing to adapting
 
             // whm added 10Jan2018 to support quick selection of a translation/glossing equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-            // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-            // When changing between adapting and glossing or glossing and adapting, we need to
-            // initially hide the dropdown as it may have content that is initially not appropriate
-            // for the new mode. As adapting or glossing proceeds, it will get filled with glosses 
-            // in its dropdown list when glossing and with adaptations when adapting. 
-            if (pApp->m_pChooseTranslationDropDown != NULL)
+            if (pApp->m_bUseChooseTransDropDown)
             {
-                pApp->m_pChooseTranslationDropDown->Hide();
+                // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+                // When changing between adapting and glossing or glossing and adapting, we need to
+                // initially hide the dropdown as it may have content that is initially not appropriate
+                // for the new mode. As adapting or glossing proceeds, it will get filled with glosses 
+                // in its dropdown list when glossing and with adaptations when adapting. 
+                if (pApp->m_pChooseTranslationDropDown != NULL)
+                {
+                    pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+                }
             }
-#endif
 
 			// get any removed adaptations in gEditRecord into the GUI list; but if the
 			// mode current on is free translations mode, don't do so
@@ -29187,17 +29213,18 @@ void CAdapt_ItView::ToggleGlossingMode()
 			// we are changing from adapting to glossing
 
             // whm added 10Jan2018 to support quick selection of a translation/glossing equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-            // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-            // When changing between adapting and glossing or glossing and adapting, we need to
-            // initially hide the dropdown as it may have content that is initially not appropriate
-            // for the new mode. As adapting or glossing proceeds, it will get filled with glosses 
-            // in its dropdown list when glossing and with adaptations when adapting. 
-            if (pApp->m_pChooseTranslationDropDown != NULL)
+            if (pApp->m_bUseChooseTransDropDown)
             {
-                pApp->m_pChooseTranslationDropDown->Hide();
+                // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+                // When changing between adapting and glossing or glossing and adapting, we need to
+                // initially hide the dropdown as it may have content that is initially not appropriate
+                // for the new mode. As adapting or glossing proceeds, it will get filled with glosses 
+                // in its dropdown list when glossing and with adaptations when adapting. 
+                if (pApp->m_pChooseTranslationDropDown != NULL)
+                {
+                    pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+                }
             }
-#endif
             // get any removed glosses in gEditRecord into the GUI list; but if the
 			// mode current on is free translations mode, don't do so
 			bool bAllsWell;

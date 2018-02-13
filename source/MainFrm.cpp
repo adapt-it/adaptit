@@ -2184,6 +2184,11 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	versionStr << wxMINOR_VERSION;
 	versionStr << _T(".");
 	versionStr << wxRELEASE_NUMBER;
+#if defined(_DEBUG)
+    versionStr << _T(" (Release version)");
+#else
+    versionStr << _T(" (Debug version)");
+#endif
 	pStaticWxVersionUsed->SetLabel(versionStr);
 
 	wxString strUILanguage;
@@ -4901,18 +4906,19 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    if (pApp->m_bChooseTransShowPopup)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        if (pApp->m_pChooseTranslationDropDown != NULL)
+        if (pApp->m_bChooseTransShowPopup)
         {
-            pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox();
-            pApp->m_pChooseTranslationDropDown->FocusShowAndPopup(pApp->m_bChooseTransScrolling);
-            pApp->m_bChooseTransShowPopup = FALSE;
-            pApp->m_bChooseTransScrolling = FALSE;
+            if (pApp->m_pChooseTranslationDropDown != NULL)
+            {
+                pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox();
+                pApp->m_pChooseTranslationDropDown->FocusShowAndPopup(pApp->m_bChooseTransScrolling);
+                pApp->m_bChooseTransShowPopup = FALSE;
+                pApp->m_bChooseTransScrolling = FALSE;
+            }
         }
     }
-#endif
 	// BEW 2Dec2014 Alan Buseman's Guesser - support for hiding the GuesserUpdate() calls
 	// which need to be done pretty often -- and which block the GUI whether done synchronously
 	// as is done here, or asynchronously on a thread (due to mutexes blocking KB saves and

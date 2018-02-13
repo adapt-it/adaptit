@@ -98,12 +98,7 @@ public:
 	bool LookAhead(CPile* pNewPile);
 	int	 BuildPhrases(wxString phrases[10],int nActiveSequNum, SPList* pSourcePhrases);
 	bool OnePass(CAdapt_ItView *pView);
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    bool ChooseTranslation();
-#else
     bool ChooseTranslation(bool bHideCancelAndSelectButton = FALSE);
-#endif
 	bool LookUpSrcWord(CPile* pNewPile);
 	//SPList::Node* GetSrcPhrasePos(int nSequNum, SPList* pSourcePhrases);
 	void SetModify(bool modify);

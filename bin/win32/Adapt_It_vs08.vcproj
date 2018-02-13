@@ -397,10 +397,6 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath="..\..\source\1035.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Adapt_It.cpp"
 				>
 			</File>
@@ -542,6 +538,14 @@
 			</File>
 			<File
 				RelativePath="..\..\source\ClientServerConnection.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\CollabProjectMigrationDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\CollabProtectEditorBulkSettingsDlg.cpp"
 				>
 			</File>
 			<File
@@ -693,6 +697,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\InstallGitOptionsDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\JoinDialog.cpp"
 				>
 			</File>
@@ -782,10 +790,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\md5_SB.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\mdnsd.c"
 				>
 			</File>
 			<File
@@ -905,10 +909,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\ServiceDiscovery.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\SetDelay.cpp"
 				>
 			</File>
@@ -954,10 +954,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\tellenc.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_ServiceDiscovery.cpp"
 				>
 			</File>
 			<File
@@ -1021,10 +1017,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\wxServDisc.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Xhtml.cpp"
 				>
 			</File>
@@ -1041,10 +1033,6 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
-			<File
-				RelativePath="..\..\source\1035.h"
-				>
-			</File>
 			<File
 				RelativePath="..\..\source\Adapt_It.h"
 				>
@@ -1151,6 +1139,14 @@
 			</File>
 			<File
 				RelativePath="..\..\source\ClientServerConnection.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\CollabProjectMigrationDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\CollabProtectEditorBulkSettingsDlg.h"
 				>
 			</File>
 			<File
@@ -1303,6 +1299,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\HtmlFileViewer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\InstallGitOptionsDlg.h"
 				>
 			</File>
 			<File
@@ -1522,10 +1522,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\ServiceDiscovery.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\SetDelay.h"
 				>
 			</File>
@@ -1571,10 +1567,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\tellenc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_ServiceDiscovery.h"
 				>
 			</File>
 			<File
@@ -1635,10 +1627,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\WhichFilesDlg.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\wxServDisc.h"
 				>
 			</File>
 			<File
