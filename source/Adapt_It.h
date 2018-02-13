@@ -3192,7 +3192,7 @@ public:
 				// violations -- so each run has its own pointer
 	wxTimer   m_servDiscTimer;
 //	void	  OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event));
-//	void	  DoServiceDiscoverySingleRun(); // like OnServiceDiscoveryTimer() but without the timer stuff
+	void	  DoServiceDiscoverySingleRun(); // like OnServiceDiscoveryTimer() but without the timer stuff
 	void	  DoDiscoverKBservers(); // BEW 20Jul17 scan for publishing kbservers - by Leon's scripts
 	//void	  ServDiscSingleOnly();
 	int		  m_numServiceDiscoveryRuns; // I'll default it to 3 in OnInit(), but let a manual edit

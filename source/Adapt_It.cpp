@@ -119,6 +119,7 @@
 #include <wx/stockitem.h> // for ::wxGetStockLabel()
 #if defined(_KBSERVER)
 #include <wx/thread.h>
+
 #endif
 
 // libcurl
@@ -394,6 +395,7 @@ extern wxCriticalSection g_jsonCritSect;
 #include "ServDisc_KBserversDlg.h" // BEW 12Jan16
 #include "KbSvrHowGetUrl.h"
 #include "Thread_ServiceDiscovery.h"
+#include "WinKBserverSrch.h"
 extern std::string str_CURLbuffer;
 extern std::string str_CURLheaders;
 
@@ -436,6 +438,9 @@ extern std::string str_CURLheaders;
 #include <tlhelp32.h>
 #include <tchar.h>
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
 
 #if !wxUSE_WXHTML_HELP
 #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
@@ -53546,20 +53551,21 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 
 	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; // a legacy variable,  we need it TRUE so the later loop is accessible
 
+	/*
 	// wxFileName fn(aPath to a folder);
 	wxFileName fName(execPath);
+	*/
 	wxString saveCurrentWorkingDirectory = wxFileName::GetCwd();
 	wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
-
+	/*
 	wxFileName fn(execPath);
-	// TODO test directory exists here
 	fn.SetCwd(execPath);
 	wxLogDebug(_T("wxFileName::SetCwd() to: %s"), execPath.c_str());
 
-
+// ONE OF THEM WORKED, WITH RESULTS TO execPath folder - find out what I did, it was just before lunch, see notes 9 Feb18 (1)
 	//wxString current_dir = fName.GetFullPath();
 	//wxLogDebug(_T("fileName.GetFullPath() returns: %s"), current_dir.c_str());
-
+	*/
 	// First,...
 	wxString tempFile = _T("report.dat");
 	wxString scriptName = _T("dsb-win.bat");
@@ -53578,14 +53584,41 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	wxString scriptPath = execPath + scriptName;
 	//wxString command = scriptPath;
 	//wxLogDebug(_T("scriptPath: %s"), scriptPath.c_str());
-	wxString command(scriptName);
-	wxLogDebug(_T("command contains scriptName: %s"), command.c_str());
+//	wxString command(scriptName);
+//	wxLogDebug(_T("command contains scriptName: %s"), command.c_str());
 
 	// In the following call, returnVal is currently -1 which is an error (process couldn't start). Don't know why yet.
-	long returnVal = wxExecute(command, flags, NULL); // 3rd & 4th signature items accepted as default NULL each
+//	long returnVal = wxExecute(command, flags, NULL); // 3rd & 4th signature items accepted as default NULL each
 //	long returnVal = wxExecute("c:\\adaptit-git\\bin\\win32\\Unicode Debug\\dsb-win7.bat", flags, NULL); // 3rd & 4th signature items accepted as default NULL each
 
-	wxUnusedVar(returnVal);
+//	wxUnusedVar(returnVal);
+
+	// wxFileName fn(aPath to a folder);
+	//wxFileName fName(execPath);
+	//wxString saveCurrentWorkingDirectory = wxFileName::GetCwd();
+	//wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
+
+	//wxFileName fn(_T("C:\\Users\\bwaters\\leon-Feb8\\testKBsearch.exe"));
+	// TODO test directory exists here
+	//fn.SetCwd(_T("C:\\Users\\bwaters\\leon-Feb8\\"));
+	//wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), wxFileName::GetCwd().c_str());
+	//wxLogDebug(_T("wxFileName::SetCwd() to: %s"), _T("C:\\Users\\bwaters\\leon-Feb8\\"));
+
+	//int OKflag = DoMySearch();
+	//wxString command = _T("C:\\Users\\bwaters\\leon-Feb8\\testKBsearch.exe");
+	//wxString command = _T("testKBsearch.exe");
+	//wxString command = _T("DoMySearch()");
+	//long returnVal = wxExecute(command, flags, NULL);
+	//wxFileName fln(execPath);
+	//fln.SetCwd(execPath);
+	//wxString command = _T("DoMySearch()");
+
+
+
+	//int OKflag = DoMySearch(); <<-- need to put it in a detached thread to run in that process, Leon's Kill() clobbers AI
+	// BETTER STILL - Bill's email of 13Feb2018 shows how to call dsb-win.bat within wxExecute correctly - except I won't 
+	// use the two wxArrayString arguments, but just let Leon's batch file drop the result line in report.dat
+
 #ifdef _DEBUG
 	//A test data string to use util we get the wxExecute() call working properly
 	//resultsStr = _T("192.168.2.20@@@kbserverXPSP3,192.168.2.13@@@kbserver,192.168.2.15@@@kbserverX1Carbon");
@@ -53979,7 +54012,7 @@ bool CAdapt_ItApp::CommaDelimitedStringToArray(wxString& str, wxArrayString* pAr
     } while ( !theStr.IsEmpty() );
     return TRUE; // tell caller we found one or more substrings
 }
-/*
+
 // BEW ??2016 sometime, this is the old legacy wxServDisc based way, called from
 // MainFrm.cpp OnDiscoverKBservers when m_bDiscoverKBservers is FALSE
 void CAdapt_ItApp::DoServiceDiscoverySingleRun()
@@ -54012,8 +54045,8 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
 #endif
 
     m_nSDRunCounter = 0; // the thread, and CServiceDiscovery() use this
-    m_pServDiscThread[m_nSDRunCounter] = new Thread_ServiceDiscovery;
-
+    //m_pServDiscThread[m_nSDRunCounter] = new Thread_ServiceDiscovery;
+	/*
     wxThreadError error = m_pServDiscThread[m_nSDRunCounter]->Create(12240);
     if (error != wxTHREAD_NO_ERROR)
     {
@@ -54040,11 +54073,12 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
             m_pServDiscThread[m_nSDRunCounter] = NULL;
         }
     }
+	*/
     m_nSDRunCounter = 0;
     // Finish up the progress dialog's tracking in the status bar
     ((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
 }
-*/
+
 
 /*  Note the new values.....
 enum ServDiscInitialDetail
@@ -54070,6 +54104,7 @@ SD_MultipleUrls_UserChoseNone,
 SD_SD_ValueIsIrrelevant
 };
 */
+
 void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 {
     // Use SetOwner() to bind the service discovery timer to the app instance, the latter will
