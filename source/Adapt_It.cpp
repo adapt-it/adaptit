@@ -17564,8 +17564,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
 
     m_bShownFromServiceDiscoveryAttempt = TRUE; // This boolean decides which of the next messages is shown
-    m_SD_Message_For_Connect = _("If a URL is selected, clicking OK will attempt a connection to that KBserver.  If no URL is selected, a connection is not tried.  The listed URLs and their names are remembered in this session.  Clicking Remove Selection ensures nothing is selected.  If you click Cancel, it turns off sharing - at least until you try again.");
-    m_SD_Message_For_Discovery = _("If a URL is selected, clicking OK will attempt a connection to that KBserver.  If no URL is selected, a connection is not tried.  The listed URLs and their names are remembered in this session.  Clicking Remove Selection ensures nothing is selected.  If you click Cancel, it will leave the current sharing settings unchanged.");
+    m_SD_Message_For_Connect = m_SD_Message_For_Connect = _("Select the URL you wish to connect to, then click OK.  If none is selected, a connection will not be tried.  The listed URLs are stored for use in this work session - including any remote ones for which you manually supplied the correct connection details.  Clicking Remove Selection ensures nothing is selected.  Cancel turns off sharing and leaves the current sharing settings unchanged.  If someone closes down a running KBserver, use the Remove Selected Entry to clear it from the list.  Take note - a successful connection also requires that an appropriate KBserver database has already been set up for the project you are in.");
+    m_SD_Message_For_Discovery = _("KBserver discovery only works for KBservers connected to the Local Area Network (LAN).  The server which supports the LAN does not have to be connected to the web, though it can be.  Here you just see the KBservers presently running on the LAN.  A connection to a listed KBserver cannot be done from this discovery attempt; but the listed URLs are stored for use later in this work session.  Repeated discovery attempts are allowed.  If someone closes down a running KBserver, use the Remove Selected Entry button to clear it from the list.");
 
     // BEW 12Apr16, try 14.123 so as to get 4 tries a minute (overlapping was taboo at this early stage)
     //m_KBserverTimer = 12111; // 12.111 sec as of 19Apr16,  with GC back at 5 secs; old was 14123 with GC = 9 secs
@@ -53501,6 +53501,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
     execPath = MakeReverse(revStr);
     wxLogDebug(_T("Executable path = %s"),execPath.c_str());
     wxString resultsStr= wxEmptyString; // a comma-separated result str from scan goes here
+	wxString resultsPath = wxEmptyString; // path to report.dat goes here
 
  #if defined (__WXGTK__)
 
@@ -53630,20 +53631,21 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	*/
 	// First,...
 	wxString tempFile = _T("report.dat");
-	wxString scriptName = _T("dsb-win.bat");
-	int flags = wxEXEC_SYNC;
+	wxString scriptName = _T("dsb-win.bat"); // <<-- not needed
+	//int flags = wxEXEC_SYNC;
 	//  dsb-win.bat produces, from anywhere in the command prompt:
 	// 192.168.8.170@@@kbserverGazBW.local.,192.168.8.229@@@kbserverXPSP3.local.,192.168.8.125@@@kbserver.local.,
 
-	// Make a redirecting argument string for the output of running dsb-win7.bat in a
-	// temporary command prompt window using wxExecute()
-	resultsStr = execPath + tempFile; // execPath ends with backslash
-	// Make a path to the dsb-win7.bat file, which should reside in whatever folder 
+	// Make a path to the executable's folder, ending with report.dat
+	resultsPath = execPath + tempFile; // execPath ends with backslash
+
+	// Make a path to the dsb-win.bat file, which should reside in whatever folder 
 	// contains the Adapt It Unicode executable (will differ depending on whether running
 	// from the Vis Studio dev syste's Unicode Debug folder, or Unicode Release folder, of
 	// from the ...\Program Files (x86)\Adapt It WX Unicode\  installation folder when
 	// running a released version.
-	wxString scriptPath = execPath + scriptName;
+
+	//wxString scriptPath = execPath + scriptName;
 	//wxString command = scriptPath;
 	//wxLogDebug(_T("scriptPath: %s"), scriptPath.c_str());
 //	wxString command(scriptName);
@@ -53680,6 +53682,75 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	//int OKflag = DoMySearch(); <<-- need to put it in a detached thread to run in that process, Leon's Kill() clobbers AI
 	// BETTER STILL - Bill's email of 13Feb2018 shows how to call dsb-win.bat within wxExecute correctly - except I won't 
 	// use the two wxArrayString arguments, but just let Leon's batch file drop the result line in report.dat
+
+
+	// Use braces to restrict scope to this block and avoid any clashing with program variables
+	{
+		int flags = wxEXEC_SYNC; // this works
+		// int flags = wxEXEC_ASYNC; // this works
+
+		wxString saveCurrentWorkingDirectory = wxFileName::GetCwd();
+		wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
+
+		wxFileName fName(execPath);
+		fName.SetCwd(execPath);
+		wxLogDebug(_T("SetCwd() to: %s"), execPath.c_str());
+
+		wxString space = _T(" ");
+		wxString quote = _T("\"");
+		wxString batchFileName = _T("dsb-win.bat");
+		//wxString path2adaptitProj = _T("C:\\Users\\Bill\\Documents\\adaptit\\");
+		wxString path2adaptitProj = execPath;
+		wxString winCmdProcessor = _T("cmd.exe");
+		wxString cmdOptions = _T("/c");
+		// wxString commandLine = _T("cmd.exe /c C:\\Users\\Bill\\Documents\\adaptit\\CountSourceLines.bat C:\\Users\\Bill\\Documents\\adaptit\\");
+		//wxString commandLine = winCmdProcessor + space + cmdOptions + space + quote + path2adaptitProj + batchFileName + space + path2adaptitProj + quote;
+		wxString commandLine = winCmdProcessor + space + cmdOptions + space + quote + path2adaptitProj + batchFileName + quote;
+		//wxArrayString outputMsg, errorsMsg;
+		// Use the wxExecute() override that takes the two wxStringArray parameters. This
+		// also redirects the output and suppresses the dos console window during execution.
+		// Note: Be patient! This wxExecute() call takes a few seconds (7 to 10) to complete!
+		//long result = ::wxExecute(commandLine, outputMsg, errorsMsg, flags);
+		wxArrayString outputMsg;
+		wxArrayString errorsMsg;
+		long returnVal = ::wxExecute(commandLine, outputMsg, errorsMsg, flags, NULL); // 3rd & 4th signature items accepted as default NULL each
+		wxUnusedVar(returnVal);
+
+		/* Bill's stuff
+		int ctOutput = (int)outputMsg.GetCount();
+		int ctError = (int)errorsMsg.GetCount();
+		int ct;
+		wxLogDebug(_T("wxExecute result returned: %d"), (int)result);
+		wxLogDebug(_T("--- Output messages below: ---"));
+		for (ct = 0; ct < ctOutput; ct++)
+		{
+			wxLogDebug(outputMsg.Item(ct));
+		}
+		wxLogDebug(_T("--- Error messages below: ---"));
+		if (ctError == 0)
+			wxLogDebug(_T("        NONE"));
+		for (ct = 0; ct < ctError; ct++)
+		{
+			wxLogDebug(errorsMsg.Item(ct));
+		}
+		int nDebugBreakpoint = 1; // put break point at this line and examine wxLogDebug output in VS output window
+		nDebugBreakpoint = nDebugBreakpoint; // avoid gcc warning
+		*/
+		// restore current working directory
+		fName.SetCwd(saveCurrentWorkingDirectory);
+		wxLogDebug(_T("Restore current working directory: %s"), (wxFileName::GetCwd()).c_str());
+
+		// look for file of comma-separated results in executable's folder
+		wxFFile ffile(resultsPath); //opens for reading
+		if (ffile.IsOpened())
+		{
+			bool bGotAll = ffile.ReadAll(&resultsStr);
+			bGotAll = bGotAll; // avoid gcc warning
+			wxLogDebug(_T("Found this: %s"), resultsStr.c_str()); // for logging window
+
+			ffile.Close();
+		}
+	}
 
 #ifdef _DEBUG
 	//A test data string to use util we get the wxExecute() call working properly
