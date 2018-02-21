@@ -1000,7 +1000,11 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
         // if vertical editing is currently in progress we must check if the lookup target
         // is within the editable span, if not then control has moved the box into the gray
         // area beyond the editable span and that means a step transition is warranted &
-        // the user should be asked what step is next
+        // the user should be asked what step is next.
+		// BUT!! (BEW 7Feb18) If the pNewPile has no translation (ie. target) text yet,
+		// we don't want OnIdle() to keep on calling OnePass(), as then the user gets 
+		// no chance to type in an adaptation at the new location. So check, and clear
+		//  m_bAutoInsert to FALSE so as to halt the forward advances of the phrasebox. 
 		if (gbVerticalEditInProgress)
 		{
 			int nCurrentSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
@@ -1013,15 +1017,13 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 				gbTunnellingOut = TRUE; // so caller can use it
 				return FALSE; // try returning FALSE
 			}
-			else
-			{
-				// BEW 19Oct15 No transition of vert edit modes,
-				// so we can store this location on the app
-				gpApp->m_vertEdit_LastActiveSequNum = nCurrentSequNum;
+			// BEW 19Oct15 No transition of vert edit modes,
+			// so we can store this location on the app
+			gpApp->m_vertEdit_LastActiveSequNum = nCurrentSequNum;
 #if defined(_DEBUG)
-				wxLogDebug(_T("VertEdit PhrBox, MoveToNextPile() storing loc'n: %d "), nCurrentSequNum);
+			wxLogDebug(_T("VertEdit PhrBox, MoveToNextPile() storing loc'n: %d "), nCurrentSequNum);
 #endif
-			}
+			
 		}
 
         // whm added 10Jan2018 to support quick selection of a translation equivalent.
@@ -1154,6 +1156,14 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		{
 			pNewPile = pApp->m_pActivePile;
 
+			// clear all storage of the earlier location's target text
+			translation.Empty();
+			pApp->m_targetPhrase.Empty();
+			// initialize the phrase box too, so it doesn't carry the old string
+			// to the next pile's cell
+			ChangeValue(pApp->m_targetPhrase);
+
+
             // RecalcLayout call when there is no adaptation available from the LookAhead,
             // (or user cancelled when shown the Choose Translation dialog from within the
             // LookAhead() function, having matched) we must cause auto lookup and
@@ -1204,10 +1214,6 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 				pDoc->ResetPartnerPileWidth(pNewPile->GetSrcPhrase());
 			}
 		}
-
-		// initialize the phrase box too, so it doesn't carry the old string to the next
-		// pile's cell
-		ChangeValue(pApp->m_targetPhrase); //SetWindowText(pApp->m_targetPhrase);
 
 		// if we merged and moved, we have to update pNewPile, because we have done a
 		// RecalcLayout in the LookAhead() function; it's possible to return from
@@ -4620,6 +4626,31 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 		#ifdef _FIND_DELAY
 			wxLogDebug(_T("3. After MoveToNextPile"));
 		#endif
+		// If in vertical edit mode, and the phrasebox has come to a hole, then we
+		// want to halt OnePass() calls in OnIdle() so that the user gets the chance
+		// to adapt at the hole
+		if (gbVerticalEditInProgress && bSuccessful)
+		{
+			// m_pActivePile will be at the hole
+			CPile* pNewPile = pApp->m_pActivePile;
+			CSourcePhrase* pSrcPhrase = pNewPile->GetSrcPhrase();
+			if (pSrcPhrase->m_adaption.IsEmpty())
+			{
+				// make sure the old location's values are not carried to this location
+				translation.Empty();
+				pApp->m_targetPhrase.Empty();
+				ChangeValue(pApp->m_targetPhrase);
+				// if the dropdown is visible, hide it
+#if defined(Use_in_line_Choose_Translation_DropDown)
+				if (pApp->m_pChooseTranslationDropDown != NULL)
+				{
+					pApp->m_pChooseTranslationDropDown->Hide();
+				}
+#endif
+				// make OnIdle() halt auto-inserting
+				pApp->m_bAutoInsert = FALSE;
+			}
+		}
 	}
 	if (!bSuccessful)
 	{
