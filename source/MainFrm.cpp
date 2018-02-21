@@ -7379,7 +7379,16 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 
 	// Get from the app the various phrasebox and sequ num location params
 	// needed for restoring the original state
-	int nLastActiveSequNum = gpApp->m_vertEdit_LastActiveSequNum;
+	//int nLastActiveSequNum = gpApp->m_vertEdit_LastActiveSequNum;
+	// BEW 21Feb18 using the commented line above, when an Enter keypress has
+	// sent the phrasebox into the gray area, (first CSourcePhrase which is grayed0
+	// results in a wrong active location being calculated, because the correct
+	// location for m_vertEdit_LastActiveSequNum will be 1 less than that variable's
+	// value at this point. Inspecting the EditRecord reveals that it's nStartingSequNum
+	// is correct, and its nNewSpanCount is correct; so the final CSourcePhrase location
+	// can be calculated from these two values - avoiding the sequ num location error
+	int nLastActiveSequNum = pRec->nStartingSequNum + pRec->nNewSpanCount - 1;
+
 	//BEW 14Apr16 removed this assert because it is violated by the legitimate user
 	// action of doing an edit source text with selection of the last word of the document
 	// and adding some more source text words. Causes this to trip and there is nothing

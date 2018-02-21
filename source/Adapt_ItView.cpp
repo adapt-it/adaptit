@@ -12312,7 +12312,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 
 // pass in a pile pointer which we want to know whether or not it is in the gray text area;
 // the gEditStep is a global, so does not need to be passed in; return TRUE if the pile is
-// in the editabe area, FALSE if in the gray area, and if a NULL pile is passed in, treat
+// in the editable area, FALSE if in the gray area, and if a NULL pile is passed in, treat
 // it as equivalent to being in the gray area (ie. return FALSE)
 bool CAdapt_ItView::CheckForVerticalEditBoundsError(CPile* pPile)
 {
@@ -28177,7 +28177,7 @@ void CAdapt_ItView::SetVerticalEditModeMessage(wxString messageText)
 	pMsgBox->ChangeValue(messageText);
 }
 
-// use the following when placing the phrase box in vertical editing moode's steps
+// use the following when placing the phrase box in vertical editing mode's steps
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
 // BEW 10Jan12, fixed bug in which the unqualified nSequNum == pRec->nSaveActiveSequNum
