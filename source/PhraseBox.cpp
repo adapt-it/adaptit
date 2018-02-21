@@ -1027,17 +1027,18 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		}
 
         // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
-        // MoveToNextPile call returns prematurely. We might hide the dropdown combobox later below, 
-        // up to the point that the Invalidate() call is made near the end of this function, but I
-        // think that hiding it here is safer.
-        if (pApp->m_pChooseTranslationDropDown != NULL)
+        if (pApp->m_bUseChooseTransDropDown)
         {
-            pApp->m_pChooseTranslationDropDown->Hide();
+            // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+            // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
+            // MoveToNextPile call returns prematurely. We might hide the dropdown combobox later below, 
+            // up to the point that the Invalidate() call is made near the end of this function, but I
+            // think that hiding it here is safer.
+            if (pApp->m_pChooseTranslationDropDown != NULL)
+            {
+                pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+            }
         }
-#endif
 
         // set active pile, and same var on the phrase box, and active sequ number - but
         // note that only the active sequence number will remain valid if a merge is
@@ -2140,27 +2141,37 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 		pApp->m_bAutoInsert = FALSE;
 
 		bool bOK;
-		if (gbIsGlossing)
+        if (gbIsGlossing)
+        {
             // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-            bOK = ChooseTranslation();
-#else
-            bOK = ChooseTranslation(TRUE); // TRUE causes Cancel And Select button to be hidden
-#endif
-		else
-			bOK = ChooseTranslation(); // default makes Cancel And Select button visible
+            if (pApp->m_bUseChooseTransDropDown)
+            {
+                bOK = ChooseTranslation();
+            }
+            else
+            {
+                bOK = ChooseTranslation(TRUE); // TRUE causes Cancel And Select button to be hidden
+            }
+        }
+        else
+        {
+            bOK = ChooseTranslation(); // default makes Cancel And Select button visible
+        }
 
         // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-        // Unilaterally set the m_bAutoInsert flag to FALSE so that the movement of the phrasebox
-        // will halt, giving the user opportunity to interact with the just-shown dropdown combobox.
-        pApp->m_bAutoInsert = FALSE;
-        // Set bOK to FALSE so that LookAhead() will be forced to return FALSE below
-        bOK = FALSE;
-#else
-        // wx version: restore the state of m_bAutoInsert
-		pApp->m_bAutoInsert = saveAutoInsert;
-#endif
+        if (pApp->m_bUseChooseTransDropDown)
+        {
+            // Unilaterally set the m_bAutoInsert flag to FALSE so that the movement of the phrasebox
+            // will halt, giving the user opportunity to interact with the just-shown dropdown combobox.
+            pApp->m_bAutoInsert = FALSE;
+            // Set bOK to FALSE so that LookAhead() will be forced to return FALSE below
+            bOK = FALSE;
+        }
+        else
+        {
+            // wx version: restore the state of m_bAutoInsert
+            pApp->m_bAutoInsert = saveAutoInsert;
+        }
 
 		pCurTargetUnit = (CTargetUnit*)NULL; // ensure the global var is cleared
 											 //after the dialog has used it
@@ -3049,24 +3060,24 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 		ptCurBoxLocation.y -= 2;
 
         // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-        // Check if we were typing text from the dropdown's edit box. The test needs to
-        // be done here before the ResizeBox() call below because ResizeBox() moves focus
-        // away from the dropdown and to the PhraseBox.
         bool bWasTypingFromDropDown = FALSE;
-        if (pApp->m_pChooseTranslationDropDown != NULL)
+        if (pApp->m_bUseChooseTransDropDown)
         {
-            if (pApp->m_pChooseTranslationDropDown->IsShown())
+            // Check if we were typing text from the dropdown's edit box. The test needs to
+            // be done here before the ResizeBox() call below because ResizeBox() moves focus
+            // away from the dropdown and to the PhraseBox.
+            if (pApp->m_pChooseTranslationDropDown != NULL)
             {
-                //bWasTypingFromDropDown = pApp->m_pChooseTranslationDropDown->HasFocus();
+                if (pApp->m_pChooseTranslationDropDown->IsShown())
+                {
 #if wxVERSION_NUMBER < 2900
-                ;
+                    ;
 #else
-                bWasTypingFromDropDown = pApp->m_pChooseTranslationDropDown->HasFocus();
+                    bWasTypingFromDropDown = pApp->m_pChooseTranslationDropDown->HasFocus();
 #endif
+                }
             }
         }
-#endif
 
 		if (gbIsGlossing && gbGlossingUsesNavFont)
 		{
@@ -3082,33 +3093,34 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 			pApp->m_pTargetBox->MarkDirty(); // TRUE (restore modified status)
 
         // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-        // Code execution only gets here at moment a box resize happens.
-        // Since the phrasebox is expanding, we'll also resize the dropdown combobox
-        if (pApp->m_pChooseTranslationDropDown != NULL)
+        if (pApp->m_bUseChooseTransDropDown)
         {
-            if (pApp->m_pChooseTranslationDropDown->IsShown())
+            // Code execution only gets here at moment a box resize happens.
+            // Since the phrasebox is expanding, we'll also resize the dropdown combobox
+            if (pApp->m_pChooseTranslationDropDown != NULL)
             {
-                // Note: This is the only place that we need to call SizeAndPositionDropDownBox() outside
-                // of the MainFrm's OnIdle() handler. Here the phrasebox/dropdown is changing size as the
-                // result of keys being typed into the phrasebox/dropdown, and the dropdown's list is
-                // in a dismissed state.
-                pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox(); // always resize combobox when phrasebox resizes
-                // When the box expands, focus is lost from the dropdown control, so
-                // set it back there, but only if we were typing chars from there before 
-                // the resize occurred.
-                if (bWasTypingFromDropDown)
+                if (pApp->m_pChooseTranslationDropDown->IsShown())
                 {
-                    // We only want focus to go back to the dropdown's edit box if we were
-                    // typing chars from there when the box was resized. We don't mess
-                    // with the focus if we were typing from the phrasebox itself.
-                    long insPoint = this->GetInsertionPoint();
-                    pApp->m_pChooseTranslationDropDown->SetFocus();
-                    pApp->m_pChooseTranslationDropDown->SetInsertionPoint(insPoint);
+                    // Note: This is the only place that we need to call SizeAndPositionDropDownBox() outside
+                    // of the MainFrm's OnIdle() handler. Here the phrasebox/dropdown is changing size as the
+                    // result of keys being typed into the phrasebox/dropdown, and the dropdown's list is
+                    // in a dismissed state.
+                    pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox(); // always resize combobox when phrasebox resizes
+                    // When the box expands, focus is lost from the dropdown control, so
+                    // set it back there, but only if we were typing chars from there before 
+                    // the resize occurred.
+                    if (bWasTypingFromDropDown)
+                    {
+                        // We only want focus to go back to the dropdown's edit box if we were
+                        // typing chars from there when the box was resized. We don't mess
+                        // with the focus if we were typing from the phrasebox itself.
+                        long insPoint = this->GetInsertionPoint();
+                        pApp->m_pChooseTranslationDropDown->SetFocus();
+                        pApp->m_pChooseTranslationDropDown->SetInsertionPoint(insPoint);
+                    }
                 }
             }
         }
-#endif
 
 		//GDLC Removed 2010-02-09
 		//gbExpanding = FALSE;
@@ -4429,11 +4441,12 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 		else if (event.GetKeyCode() == WXK_DOWN)
 		{
             // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-            // Sanity test. See Note in CChooseTranslationDropDown::OnKeyUp().
-            wxASSERT(event.GetId() != ID_COMBO_CHOOSE_TRANS_DROP_DOWN);
-            wxASSERT(event.GetId() == ID_PHRASE_BOX);
-#endif
+            if (pApp->m_bUseChooseTransDropDown)
+            {
+                // Sanity test. See Note in CChooseTranslationDropDown::OnKeyUp().
+                wxASSERT(event.GetId() != ID_COMBO_CHOOSE_TRANS_DROP_DOWN);
+                wxASSERT(event.GetId() == ID_PHRASE_BOX);
+            }
 			// whm Note 12Feb09: Control passes through here when a simultaneous Ctrl-Alt-Down press is
 			// released. This equates to a Command-Option-Down combination, which is acceptable and
 			// doesn't conflict with any reserved keys on a Mac. If only Ctrl-Down (Command-Down on a
@@ -4920,15 +4933,16 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 	pLayout->m_docEditOperationType = no_edit_op;
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // At document end, we should hide the dropdown. Hide it before the Invalidate() and
-    // PlaceBox() calls below to avoid a ghost image.
-    if (pApp->m_pChooseTranslationDropDown != NULL)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        pApp->m_pChooseTranslationDropDown->Hide();
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+        // At document end, we should hide the dropdown. Hide it before the Invalidate() and
+        // PlaceBox() calls below to avoid a ghost image.
+        if (pApp->m_pChooseTranslationDropDown != NULL)
+        {
+            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
+        }
     }
-#endif
 
 	pView->Invalidate();
 	pLayout->PlaceBox();
@@ -5512,12 +5526,8 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 
 // BEW 26Mar10, some changes needed for support of doc version 5
 // BEW 21Jun10, no changes needed for support of kbVersion 2
-// whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-bool CPhraseBox::ChooseTranslation()
-#else
+// whm modified 10Jan2018 to support quick selection of a translation equivalent.
 bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
-#endif
 {
 	// refactored 2Apr09
 	// update status bar with project name
@@ -5550,172 +5560,177 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    // First, we need to stop any auto-insertions so the dropdown box can be interacted with
-    // by the user at this point where the legacy app presented the modal Choose Translation
-    // dialog. Since the dropdown list is created just once and is shown or hidden as needed
-    // it is essentially "modeless" and auto-insertions won't be prevented when the dropdown
-    // appears unless we explicitly set the App's m_bAutoInsert member to FALSE.
-    pApp->m_bAutoInsert = FALSE;
-
-    // If the dropdown list has not been created yet, create it, storing its pointer 
-    // in m_pChooseTranslationDropDown in the app.
-    if (pApp->m_pChooseTranslationDropDown == NULL)
+    if (pApp->m_bUseChooseTransDropDown)
     {
-        // Note: The current phrasebox object is pointed to by the app's m_pTargetBox pointer
-        // It's ChangeValue() method can be used to change its content dynamically. We should
-        // also be able to use m_pTargetBox to determine its current position and size.
-        wxPoint boxPosn;
-        boxPosn = pApp->m_pTargetBox->GetPosition();
-        wxPoint dropDownPosn;
-        dropDownPosn = boxPosn;
-        // Set the position of the dropdown control's y-axis down by the height of the phrasebox
-        dropDownPosn.y = boxPosn.y + pApp->m_pTargetBox->GetSize().GetHeight();
-        wxSize boxSize;
-        // Set the dropdown's Size to be the same as the phrasebox
-        boxSize = pApp->m_pTargetBox->GetSize();
-        wxArrayString dummyStrArray;
-        dummyStrArray.Clear(); // the dropdown list is populated by calls to CChooseTranslationDropDown::SizeAndPositionDropDownBox()
+        // First, we need to stop any auto-insertions so the dropdown box can be interacted with
+        // by the user at this point where the legacy app presented the modal Choose Translation
+        // dialog. Since the dropdown list is created just once and is shown or hidden as needed
+        // it is essentially "modeless" and auto-insertions won't be prevented when the dropdown
+        // appears unless we explicitly set the App's m_bAutoInsert member to FALSE.
+        pApp->m_bAutoInsert = FALSE;
 
-        // Like the m_pTargetBox, make the parent of the dropdown list a child of the main frame's canvas
-        pApp->m_pChooseTranslationDropDown = new CChooseTranslationDropDown((wxWindow*)pApp->GetMainFrame()->canvas, 
-            ID_COMBO_CHOOSE_TRANS_DROP_DOWN,
-            wxEmptyString, 
-            dropDownPosn, 
-            boxSize, 
-            dummyStrArray,
-            wxCB_DROPDOWN | wxTE_PROCESS_ENTER);
-        //wxCB_SIMPLE | wxTE_PROCESS_ENTER);
+        // If the dropdown list has not been created yet, create it, storing its pointer 
+        // in m_pChooseTranslationDropDown in the app.
+        if (pApp->m_pChooseTranslationDropDown == NULL)
+        {
+            // TODO: Put the block of code here and in CChooseTranslation::OnOK() handler
+            // into a separate function named CreateChooseTranslationDropDown();
+            // Note: The current phrasebox object is pointed to by the app's m_pTargetBox pointer
+            // It's ChangeValue() method can be used to change its content dynamically. We should
+            // also be able to use m_pTargetBox to determine its current position and size.
+            wxPoint boxPosn;
+            boxPosn = pApp->m_pTargetBox->GetPosition();
+            wxPoint dropDownPosn;
+            dropDownPosn = boxPosn;
+            // Set the position of the dropdown control's y-axis down by the height of the phrasebox
+            dropDownPosn.y = boxPosn.y + pApp->m_pTargetBox->GetSize().GetHeight();
+            wxSize boxSize;
+            // Set the dropdown's Size to be the same as the phrasebox
+            boxSize = pApp->m_pTargetBox->GetSize();
+            wxArrayString dummyStrArray;
+            dummyStrArray.Clear(); // the dropdown list is populated by calls to CChooseTranslationDropDown::SizeAndPositionDropDownBox()
 
-        // Notes about the dropdown combobox styles:
-        // 1. the wxCB_SIMPLE style combobox keeps its list always open when the control
-        // is being shown. Unfortunately, using wxCB_SIMPLE results in an Assert from the 
-        // wx library when calling ->Hide() on the control (which must be done when the 
-        // PhraseBox moves to/lands at a location that no multiple translations are available 
-        // to display to the user. It appears that the library erroneously makes the debug 
-        // assert as it attempts to close the wxChoice part of the control instead of just
-        // hiding it in the internal coding of the Hide() call. Not worth tweaking the 
-        // wx library code to prevent the assert.
-        // The best style option seems to be wxCB_DROPDOWN. It appears to be what we want.
-        // The wxCB_DROPDOWN created control is somewhat sensitive to focus events making it
-        // difficult at times to get the dropdown list to stay open after calling the PopUp()
-        // method programatically, especially after subsequent recalc and screen refreshes 
-        // have been done. The dropdown also automatically closes if user types anywhere 
-        // outside the control, including the main window's scroll bar. These behaviors are
-        // mostly consistent with default behaviors of comboboxes.
-        // 2. The combobox must be created with wxTE_PROCESS_ENTER style to be able to receive 
-        // wxEVT_TEXT_ENTER events.
+            // Like the m_pTargetBox, make the parent of the dropdown list a child of the main frame's canvas
+            pApp->m_pChooseTranslationDropDown = new CChooseTranslationDropDown((wxWindow*)pApp->GetMainFrame()->canvas,
+                ID_COMBO_CHOOSE_TRANS_DROP_DOWN,
+                wxEmptyString,
+                dropDownPosn,
+                boxSize,
+                dummyStrArray,
+                wxCB_DROPDOWN | wxTE_PROCESS_ENTER);
+            //wxCB_SIMPLE | wxTE_PROCESS_ENTER);
+
+            // Notes about the dropdown combobox styles:
+            // 1. the wxCB_SIMPLE style combobox keeps its list always open when the control
+            // is being shown. Unfortunately, using wxCB_SIMPLE results in an Assert from the 
+            // wx library when calling ->Hide() on the control (which must be done when the 
+            // PhraseBox moves to/lands at a location that no multiple translations are available 
+            // to display to the user. It appears that the library erroneously makes the debug 
+            // assert as it attempts to close the wxChoice part of the control instead of just
+            // hiding it in the internal coding of the Hide() call. Not worth tweaking the 
+            // wx library code to prevent the assert.
+            // The best style option seems to be wxCB_DROPDOWN. It appears to be what we want.
+            // The wxCB_DROPDOWN created control is somewhat sensitive to focus events making it
+            // difficult at times to get the dropdown list to stay open after calling the PopUp()
+            // method programatically, especially after subsequent recalc and screen refreshes 
+            // have been done. The dropdown also automatically closes if user types anywhere 
+            // outside the control, including the main window's scroll bar. These behaviors are
+            // mostly consistent with default behaviors of comboboxes.
+            // 2. The combobox must be created with wxTE_PROCESS_ENTER style to be able to receive 
+            // wxEVT_TEXT_ENTER events.
+        }
+
+        wxASSERT(pApp->m_pChooseTranslationDropDown != NULL);
+
+        // The global setting to TRUE is used to suppress execution of some code blocks in
+        // MoveToNextPile() that assume LookAhead() returning FALSE implies the need to call
+        // the HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan() function, handle 
+        // CancelAndSelect actions, etc.
+        gbChooseTransDropDownSettingUp = TRUE;
+
+        // Always repopulate the list with the latest CRefString instances stored in pCurTargetUnit
+        pApp->m_pChooseTranslationDropDown->PopulateDropDownList(pCurTargetUnit); // Used only at this location
+
+        // Setting m_bChooseTransShowPopup to TRUE below triggers the calling of 
+        // SizeAndPositionDropDownBox() and FocusShowAndPopup() from MainFrm's OnIdle()
+        pApp->m_bChooseTransShowPopup = TRUE;
+
+        // Note: Previously, when the ChooseTranslation dialog would popup, the dialog is derived 
+        // from AIModal which disables CMainFrame::OnIdle() while the dialog is in its modal state. 
+        // Now, with the "modeless" dropdown combobox being displayed instead, we need to ensure 
+        // that the phrasebox halts at the pile where the ChooseTranslation dialog would have been 
+        // popped up, rather than continuing on its merry way. It needs to halt here to allow the 
+        // user to interact with the dropdown list.
+
+        return TRUE;
     }
-    
-    wxASSERT(pApp->m_pChooseTranslationDropDown != NULL);
+    else
+    {
 
-    // The global setting to TRUE is used to suppress execution of some code blocks in
-    // MoveToNextPile() that assume LookAhead() returning FALSE implies the need to call
-    // the HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan() function, handle 
-    // CancelAndSelect actions, etc.
-    gbChooseTransDropDownSettingUp = TRUE;  
+        // The original code that only called the Choose Translation dialog is below:
+        CPile* pActivePile = pView->GetPile(pApp->m_nActiveSequNum); // doesn't rely on m_pActivePile
 
-    // Always repopulate the list with the latest CRefString instances stored in pCurTargetUnit
-    pApp->m_pChooseTranslationDropDown->PopulateDropDownList(); // Used only at this location
+        CChooseTranslation dlg(pApp->GetMainFrame());
+        dlg.Centre();
 
-    // Setting m_bChooseTransShowPopup to TRUE below triggers the calling of 
-    // SizeAndPositionDropDownBox() and FocusShowAndPopup() from MainFrm's OnIdle()
-    pApp->m_bChooseTransShowPopup = TRUE;  
+        // update status bar with project name
+        pApp->RefreshStatusBarInfo();
 
-    // Note: Previously, when the ChooseTranslation dialog would popup, the dialog is derived 
-    // from AIModal which disables CMainFrame::OnIdle() while the dialog is in its modal state. 
-    // Now, with the "modeless" dropdown combobox being displayed instead, we need to ensure 
-    // that the phrasebox halts at the pile where the ChooseTranslation dialog would have been 
-    // popped up, rather than continuing on its merry way. It needs to halt here to allow the 
-    // user to interact with the dropdown list.
+        // initialize m_chosenTranslation, other initialization is in InitDialog()
+        dlg.m_chosenTranslation.Empty();
+        dlg.m_bHideCancelAndSelectButton = bHideCancelAndSelectButton; // defaults to FALSE if
+                                                                       // not set in caller
+        // put up the dialog
+        gbInspectTranslations = FALSE;
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            gbUserCancelledChooseTranslationDlg = FALSE;
 
-    return TRUE;
-#else
-    // The original code that only called the Choose Translation dialog is below:
-    CPile* pActivePile = pView->GetPile(pApp->m_nActiveSequNum); // doesn't rely on m_pActivePile
+            // set the translation static var from the member m_chosenTranslation
+            translation = dlg.m_chosenTranslation;
 
-	CChooseTranslation dlg(pApp->GetMainFrame());
-	dlg.Centre();
+            // do a case adjustment if necessary
+            bool bNoError = TRUE;
+            if (gbAutoCaps)
+            {
+                //bNoError = pView->SetCaseParameters(pApp->m_pActivePile->m_pSrcPhrase->m_key);
+                bNoError = pApp->GetDocument()->SetCaseParameters(pActivePile->GetSrcPhrase()->m_key);
+                if (bNoError && gbSourceIsUpperCase)
+                {
+                    bNoError = pApp->GetDocument()->SetCaseParameters(translation, FALSE);
+                    if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+                    {
+                        translation.SetChar(0, gcharNonSrcUC);
+                    }
+                }
+            }
+            // bw added block above 16Aug04
+            pView->RemoveSelection();
+            return TRUE;
+        }
+        else
+        {
+            // must have hit Cancel button, or the Cancel And Select button
+            if (dlg.m_bCancelAndSelect)
+            {
+                // set the private member boolean
+                m_bCancelAndSelectButtonPressed = TRUE;
+            }
+            else
+            {
+                // clear the private member boolean
+                m_bCancelAndSelectButtonPressed = FALSE;
+            }
 
-	// update status bar with project name
-	pApp->RefreshStatusBarInfo();
+            // we have to undo any merge, but only provided the unmerge has not already
+            // been done in the OnButtonRestore() function; a merge can only have been done
+            // if adapting is current, so suppress the unmerge if glossing is current
+            if (!gbIsGlossing && gbMergeDone && !gbUnmergeJustDone)
+            {
+                gbMergeDone = FALSE;
+                gbSuppressLookup = TRUE; // don't want LookUpSrcWord() called from
+                                         // OnButtonRestore() because
+                pView->UnmergePhrase();  // UnmergePhrase() otherwise calls LookUpSrcWord()
+                                         // which calls ChooseTranslation()
+                gbSuppressMergeInMoveToNextPile = FALSE; // reinstate it, 20May09
+            }
+            else
+            {
+                if (gbIsGlossing)
+                {
+                    // these should not be necessary, but will keep things safe when glossing
+                    gbMergeDone = FALSE;
+                    gbSuppressLookup = TRUE;
+                    gbSuppressMergeInMoveToNextPile = FALSE; // reinstate it, 20May09
+                }
+            }
 
-	// initialize m_chosenTranslation, other initialization is in InitDialog()
-	dlg.m_chosenTranslation.Empty();
-	dlg.m_bHideCancelAndSelectButton = bHideCancelAndSelectButton; // defaults to FALSE if
-																   // not set in caller
-	// put up the dialog
-	gbInspectTranslations = FALSE;
-	if(dlg.ShowModal() == wxID_OK)
-	{
-		gbUserCancelledChooseTranslationDlg = FALSE;
-
-		// set the translation static var from the member m_chosenTranslation
-		translation = dlg.m_chosenTranslation;
-
-		// do a case adjustment if necessary
-		bool bNoError = TRUE;
-		if (gbAutoCaps)
-		{
-			//bNoError = pView->SetCaseParameters(pApp->m_pActivePile->m_pSrcPhrase->m_key);
-			bNoError = pApp->GetDocument()->SetCaseParameters(pActivePile->GetSrcPhrase()->m_key);
-			if (bNoError && gbSourceIsUpperCase)
-			{
-				bNoError = pApp->GetDocument()->SetCaseParameters(translation, FALSE);
-				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
-				{
-					translation.SetChar(0, gcharNonSrcUC);
-				}
-			}
-		}
-		// bw added block above 16Aug04
-		pView->RemoveSelection();
-		return TRUE;
-	}
-	else
-	{
-		// must have hit Cancel button, or the Cancel And Select button
-		if (dlg.m_bCancelAndSelect)
-		{
-			// set the private member boolean
-			m_bCancelAndSelectButtonPressed = TRUE;
-		}
-		else
-		{
-			// clear the private member boolean
-			m_bCancelAndSelectButtonPressed = FALSE;
-		}
-
-		// we have to undo any merge, but only provided the unmerge has not already
-		// been done in the OnButtonRestore() function; a merge can only have been done
-		// if adapting is current, so suppress the unmerge if glossing is current
-		if (!gbIsGlossing && gbMergeDone && !gbUnmergeJustDone)
-		{
-			gbMergeDone = FALSE;
-			gbSuppressLookup = TRUE; // don't want LookUpSrcWord() called from
-									 // OnButtonRestore() because
-			pView->UnmergePhrase();  // UnmergePhrase() otherwise calls LookUpSrcWord()
-									 // which calls ChooseTranslation()
-			gbSuppressMergeInMoveToNextPile = FALSE; // reinstate it, 20May09
-		}
-		else
-		{
-			if (gbIsGlossing)
-			{
-				// these should not be necessary, but will keep things safe when glossing
-				gbMergeDone = FALSE;
-				gbSuppressLookup = TRUE;
-				gbSuppressMergeInMoveToNextPile = FALSE; // reinstate it, 20May09
-			}
-		}
-
-		gbUserCancelledChooseTranslationDlg = TRUE; // use in MoveToNextPile() to
-							// suppress a second showing of dialog from LookUpSrcWord()
-		pView->RemoveSelection();
-		return FALSE;
-	}
-#endif
-
+            gbUserCancelledChooseTranslationDlg = TRUE; // use in MoveToNextPile() to
+                                // suppress a second showing of dialog from LookUpSrcWord()
+            pView->RemoveSelection();
+            return FALSE;
+        }
+    }
 }
 
 void CPhraseBox::SetModify(bool modify)

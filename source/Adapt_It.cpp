@@ -119,6 +119,7 @@
 #include <wx/stockitem.h> // for ::wxGetStockLabel()
 #if defined(_KBSERVER)
 #include <wx/thread.h>
+
 #endif
 
 // libcurl
@@ -436,6 +437,9 @@ extern std::string str_CURLheaders;
 #include <tlhelp32.h>
 #include <tchar.h>
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
 
 #if !wxUSE_WXHTML_HELP
 #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
@@ -6345,6 +6349,8 @@ wxString szExtraPixelsForDiacritics = _T("ExtraPixelsForDiacritics");
 /// autoscrolling is done so that the phrase box is at the second strip from the top, and
 /// moves down the client area etc.
 wxString szKeepPhraseBoxMidscreen = _T("KeepPhraseBoxMidscreen");
+
+wxString szUseChooseTransDropDown = _T("UseChooseTranslationDropDownQuickSelector");
 
 /// Default is FALSE, auto-caps lookup only looks up lower case keys; if user sets the
 /// boolean to TRUE, on fail an auto-caps upper case lookup is attempted - if it
@@ -17557,8 +17563,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
 
     m_bShownFromServiceDiscoveryAttempt = TRUE; // This boolean decides which of the next messages is shown
-    m_SD_Message_For_Connect = _("If a URL is selected, clicking OK will attempt a connection to that KBserver.  If no URL is selected, a connection is not tried.  The listed URLs and their names are remembered in this session.  Clicking Remove Selection ensures nothing is selected.  If you click Cancel, it turns off sharing - at least until you try again.");
-    m_SD_Message_For_Discovery = _("If a URL is selected, clicking OK will attempt a connection to that KBserver.  If no URL is selected, a connection is not tried.  The listed URLs and their names are remembered in this session.  Clicking Remove Selection ensures nothing is selected.  If you click Cancel, it will leave the current sharing settings unchanged.");
+    m_SD_Message_For_Connect = m_SD_Message_For_Connect = _("Select the URL you wish to connect to, then click OK.  If none is selected, a connection will not be tried.  The listed URLs are stored for use in this work session - including any remote ones for which you manually supplied the correct connection details.  Clicking Remove Selection ensures nothing is selected.  Cancel turns off sharing and leaves the current sharing settings unchanged.  If someone closes down a running KBserver, use the Remove Selected Entry to clear it from the list.  Take note - a successful connection also requires that an appropriate KBserver database has already been set up for the project you are in.");
+    m_SD_Message_For_Discovery = _("KBserver discovery only works for KBservers connected to the Local Area Network (LAN).  The server which supports the LAN does not have to be connected to the web, though it can be.  Here you just see the KBservers presently running on the LAN.  A connection to a listed KBserver cannot be done from this discovery attempt; but the listed URLs are stored for use later in this work session.  Repeated discovery attempts are allowed.  If someone closes down a running KBserver, use the Remove Selected Entry button to clear it from the list.");
 
     // BEW 12Apr16, try 14.123 so as to get 4 tries a minute (overlapping was taboo at this early stage)
     //m_KBserverTimer = 12111; // 12.111 sec as of 19Apr16,  with GC back at 5 secs; old was 14123 with GC = 9 secs
@@ -18002,6 +18008,51 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm added 26Apr11 for AI-PT Collaboration support
     m_pArrayOfCollabProjects = new wxArrayPtrVoid;
+
+    /*
+    // Testing the ability of wxExecute to execute a Windows batch file that in turn executed an .exe console program file.
+    // The batch file is called CountSourceLines.bat and the console exe program is cloc-1.08.exe. Both the batch file
+    // and the console exe file are already in our adaptit source tree in the adaptit folder.
+    // The cloc-1.08.exe console program gets an inventory of source lines from a project (in our case adaptit)
+    // On my test machine, the CountSourceLines.bat batch file is at this path:
+    // C:\Users\Bill\Documents\adaptit\CountSourceLines.bat
+    // Use braces to restrict scope to this block and avoid any clashing with program variables
+    {
+        int flags = wxEXEC_SYNC; // this works
+        // int flags = wxEXEC_ASYNC; // this works
+        wxString space = _T(" ");
+        wxString quote = _T("\"");
+        wxString batchFileName = _T("CountSourceLines.bat");
+        wxString path2adaptitProj = _T("C:\\Users\\Bill\\Documents\\adaptit\\");
+        wxString winCmdProcessor = _T("cmd.exe");
+        wxString cmdOptions = _T("/c");
+        // wxString commandLine = _T("cmd.exe /c C:\\Users\\Bill\\Documents\\adaptit\\CountSourceLines.bat C:\\Users\\Bill\\Documents\\adaptit\\");
+        wxString commandLine = winCmdProcessor + space + cmdOptions + space + quote + path2adaptitProj + batchFileName + space + path2adaptitProj + quote; 
+        wxArrayString outputMsg, errorsMsg;
+        // Use the wxExecute() override that takes the two wxStringArray parameters. This
+        // also redirects the output and suppresses the dos console window during execution.
+        // Note: Be patient! This wxExecute() call takes a few seconds (7 to 10) to complete!
+        long result = ::wxExecute(commandLine, outputMsg, errorsMsg, flags);
+        int ctOutput = (int)outputMsg.GetCount();
+        int ctError = (int)errorsMsg.GetCount();
+        int ct;
+        wxLogDebug(_T("wxExecute result returned: %d"),(int)result);
+        wxLogDebug(_T("--- Output messages below: ---"));
+        for (ct = 0; ct < ctOutput; ct++)
+        {
+            wxLogDebug(outputMsg.Item(ct));
+        }
+        wxLogDebug(_T("--- Error messages below: ---"));
+        if (ctError == 0)
+            wxLogDebug(_T("        NONE"));
+        for (ct = 0; ct < ctError; ct++)
+        {
+            wxLogDebug(errorsMsg.Item(ct));
+        }
+        int nDebugBreakpoint = 1; // put bread point at this line and examine wxLogDebug output in VS output window
+        nDebugBreakpoint = nDebugBreakpoint; // avoid gcc warning
+    }
+    */
 
     /*
     // testing the AddCollabBooksAndOrChaptersToProtectedCollabString() function
@@ -18900,11 +18951,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pTargetBox = (CPhraseBox*)NULL; // added for persistent target box
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
+    m_bUseChooseTransDropDown = TRUE; // defaults to TRUE, but user can change via checkbox in ChooseTranslation dialog, setting saved in project config file
     m_pChooseTranslationDropDown = (CChooseTranslationDropDown*)NULL; // for persistent dropdown 
     m_bChooseTransShowPopup = FALSE;
     m_bChooseTransScrolling = FALSE;
-#endif
+
     m_pEarlierTransDlg = (CEarlierTranslationDlg*)NULL;
 
     m_pNoteDlg = (CNoteDlg*)NULL; // needed in wx version
@@ -24338,15 +24389,13 @@ int CAdapt_ItApp::OnExit(void)
     //delete m_pTargetBox;
     //m_pTargetBox = (CPhraseBox*)NULL;
 
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
+    // whm note 10Jan2018 to support quick selection of a translation equivalent.
     // See Note above regarding m_pTargetBox. The m_pChooseTranslationDropDown is also a 
     // child of its parent the canval window. As such it also should be automatically
     // destroyed at the time the pView->canvas is destroyed.
     //if (m_pChooseTranslationDropDown != NULL)
     //    delete m_pChooseTranslationDropDown;
     //m_pChooseTranslationDropDown = (CChooseTranslationDropDown*)NULL;
-#endif
 
     if (m_pConfig != NULL) // whm 11Jun12 added NULL test
         delete m_pConfig;
@@ -36913,6 +36962,11 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data << szKeepPhraseBoxMidscreen << tab << (int)m_bKeepBoxMidscreen;
     pf->AddLine(data);
 
+    // whm added 10Jan2018
+    data.Empty();
+    data << szUseChooseTransDropDown << tab << (int)m_bUseChooseTransDropDown;
+    pf->AddLine(data);
+
     // BEW added 15Dec14
     data.Empty();
     data << szExtraPixelsForDiacritics << tab << (int)m_nExtraPixelsForDiacritics;
@@ -37538,6 +37592,17 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
             else
             {
                 m_bKeepBoxMidscreen = FALSE;
+            }
+        }
+        else if (name == szUseChooseTransDropDown)
+        {
+            if (strValue == _T("1"))
+            {
+                m_bUseChooseTransDropDown = TRUE;
+            }
+            else
+            {
+                m_bUseChooseTransDropDown = FALSE;
             }
         }
         else if (name == szExtraPixelsForDiacritics)
@@ -44139,12 +44204,13 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
         message += _T("   ") + mssg;
     }
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-#if defined(Use_in_line_Choose_Translation_DropDown)
-    if ((gpApp->m_pChooseTranslationDropDown != NULL) && (gpApp->m_pChooseTranslationDropDown->IsShown()))
+    if (m_bUseChooseTransDropDown)
     {
-        message = _("Choose a translation, or type a new translation from drop-down list. Press F8 for more options.");
+        if ((gpApp->m_pChooseTranslationDropDown != NULL) && (gpApp->m_pChooseTranslationDropDown->IsShown()))
+        {
+            message = _("Choose a translation, or type a new translation from drop-down list. Press F8 for more options.");
+        }
     }
-#endif
     StatusBarMessage(message);
     pFrame->m_pStatusBar->Update();
 
@@ -53416,17 +53482,19 @@ void CAdapt_ItApp::OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event))
 void CAdapt_ItApp::DoDiscoverKBservers()
 {
     // Initializations
-    //ServDiscDetail result = SD_NoResultsYet;
     m_bUserDecisionMadeAtDiscovery = FALSE; // initialize
     m_bShownFromServiceDiscoveryAttempt = TRUE;
     m_theURLs.Clear(); // these are made on demand, m_ipAddrs_Hostnames
-		       // accumulates composites from service discovery
+					   // accumulates composites from service discovery
     m_theHostnames.Clear(); // ditto
 
+	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; // a legacy variable,  we need 
+								// it to be TRUE so the later loop is accessible
 
-    //wxStandardPaths stdPaths;
-    // whm modified 11Sept2017 - wxStandardPaths must use the Get() function as follows
-    wxString execPath = wxStandardPaths::Get().GetExecutablePath(); //stdPaths.GetExecutablePath(); // ends with "adaptit", to be removed
+    // whm 11Sept2017 - wxStandardPaths must use the Get() function as follows
+    wxString execPath = wxStandardPaths::Get().GetExecutablePath(); 
+	// stdPaths.GetExecutablePath(); // ends with "adaptit", which is to be removed
+
     wxString aSlash = PathSeparator;
     wxString revStr = MakeReverse(execPath);
     int offset = revStr.Find(aSlash);
@@ -53434,6 +53502,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
     execPath = MakeReverse(revStr);
     wxLogDebug(_T("Executable path = %s"),execPath.c_str());
     wxString resultsStr= wxEmptyString; // a comma-separated result str from scan goes here
+	wxString resultsPath = wxEmptyString; // path to report.dat goes here
 
  #if defined (__WXGTK__)
 
@@ -53472,6 +53541,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
     // /home/bruce/adaptit-git/bin/linux/bin/Debug/adaptit   (note, the executable is at the end)
     // But when running after normal installation, it will/should return:
     // /usr/bin/adaptit   (again, the adaptit at path end is the executable)
+	// But the code above removes the executable from the end of execPath, leaving the slash there
     wxString scriptPath = execPath + _T("dsb.sh");
     wxLogDebug(_T("Script path = %s"),scriptPath.c_str());
 
@@ -53504,115 +53574,109 @@ void CAdapt_ItApp::DoDiscoverKBservers()
             ffile.Close();
         }
         // Various other .dat files are produced along the way, which can now be
-        // dispensed with - if they exist. service_file.dat, hostname_file.dat,
-        // kbservice_file.dat which has the composite str with the @@@ delimiters,
-        // and the (temporary) resultsPathFile
-        //* remove temporarily
-        wxString kbsdat = _T("kbs.dat");
-        wxString kbsfdat = _T("kbservice_file.dat");
+        // dispensed with - Leon's script will do that at the start of each new
+		// run, and we leave the temporary files from the run 'as is' since they
+		// provide a handy auditing path for what went wrong if there was an error
+		// Here we need only remove the resultsPathFile, since we made it here
         wxString rPthFile = _T("resultsPathFile");
-        wxString aPath = resultsPath + PathSeparator + kbsdat;
-        bFileExists = wxFileExists(aPath);
-        if (bFileExists)
-        {
-            wxRemoveFile(aPath); // Removes kbs.dat
-        }
-        aPath = resultsPath + PathSeparator + kbsfdat;
-        if (bFileExists)
-        {
-            wxRemoveFile(aPath); // Removes kbservice_file.dat
-        }
-        aPath = resultsPath + PathSeparator + rPthFile;
+        wxString aPath = resultsPath + PathSeparator + rPthFile;
         bFileExists = wxFileExists(aPath);
         if (bFileExists)
         {
             wxRemoveFile(aPath); // Removes resultsPathFile
         }
-    //*/
-
-// TODO the remainder of the processing of the results etc
     }
 #endif
 
 #if defined (__WXMSW__)
 
-    // TODO  - the batch file way for Windows
-
-    // When developing: C:\adaptit-git\bin\win32\Unicode Debug\Adapt_It_Unicode.exe
-
-	// The batch file way for Windows
-
-// TODO - adjust the following for Windows command prompt
-
-	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; // a legacy variable,  we need it TRUE so the later loop is accessible
-
-	// wxFileName fn(aPath to a folder);
-	wxFileName fName(execPath);
 	wxString saveCurrentWorkingDirectory = wxFileName::GetCwd();
 	wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
 
-	wxFileName fn(execPath);
-	// TODO test directory exists here
-	fn.SetCwd(execPath);
-	wxLogDebug(_T("wxFileName::SetCwd() to: %s"), execPath.c_str());
+	wxString tempFile = _T("report.dat"); // results string (single comma delimited line) are put here
 
-
-	//wxString current_dir = fName.GetFullPath();
-	//wxLogDebug(_T("fileName.GetFullPath() returns: %s"), current_dir.c_str());
-
-	// First,...
-	wxString tempFile = _T("report.dat");
-	wxString scriptName = _T("dsb-win.bat");
-	int flags = wxEXEC_SYNC;
-	//  dsb-win.bat produces, from anywhere in the command prompt:
+	//  dsb-win.bat produces, from anywhere in a command prompt window, a string like this for 3 kbservers running:
 	// 192.168.8.170@@@kbserverGazBW.local.,192.168.8.229@@@kbserverXPSP3.local.,192.168.8.125@@@kbserver.local.,
 
-	// Make a redirecting argument string for the output of running dsb-win7.bat in a
-	// temporary command prompt window using wxExecute()
-	resultsStr = execPath + tempFile; // execPath ends with backslash
-	// Make a path to the dsb-win7.bat file, which should reside in whatever folder 
+	// Make a path to the executable's folder, ending with report.dat
+	resultsPath = execPath + tempFile; // execPath ends with backslash
+
+	// Make a path to the dsb-win.bat file, which should reside in whatever folder 
 	// contains the Adapt It Unicode executable (will differ depending on whether running
 	// from the Vis Studio dev syste's Unicode Debug folder, or Unicode Release folder, of
 	// from the ...\Program Files (x86)\Adapt It WX Unicode\  installation folder when
 	// running a released version.
-	wxString scriptPath = execPath + scriptName;
-	//wxString command = scriptPath;
-	//wxLogDebug(_T("scriptPath: %s"), scriptPath.c_str());
-	wxString command(scriptName);
-	wxLogDebug(_T("command contains scriptName: %s"), command.c_str());
 
-	// In the following call, returnVal is currently -1 which is an error (process couldn't start). Don't know why yet.
-	long returnVal = wxExecute(command, flags, NULL); // 3rd & 4th signature items accepted as default NULL each
-//	long returnVal = wxExecute("c:\\adaptit-git\\bin\\win32\\Unicode Debug\\dsb-win7.bat", flags, NULL); // 3rd & 4th signature items accepted as default NULL each
+	// Use braces to restrict scope to this block and avoid any clashing with program variables
+	{
+		int flags = wxEXEC_SYNC; // this works, and we want the blocking
+		// int flags = wxEXEC_ASYNC; // this works
 
-	wxUnusedVar(returnVal);
+		wxString saveCurrentWorkingDirectory = wxFileName::GetCwd();
+		wxLogDebug(_T("wxFileName::GetCwd() returns: %s"), saveCurrentWorkingDirectory.c_str());
+
+		wxFileName fName(execPath);
+		fName.SetCwd(execPath);
+		wxLogDebug(_T("SetCwd() to: %s"), execPath.c_str());
+
+		wxString space = _T(" ");
+		wxString quote = _T("\"");
+		wxString batchFileName = _T("dsb-win.bat");
+		wxString path2adaptitProj = execPath;
+		wxString winCmdProcessor = _T("cmd.exe");
+		wxString cmdOptions = _T("/c");
+		wxString commandLine = winCmdProcessor + space + cmdOptions + space + quote + path2adaptitProj + batchFileName + quote;
+
+		// Use the wxExecute() override that takes the two wxStringArray parameters. This
+		// also redirects the output and suppresses the dos console window during execution.
+		// Note: Be patient! This wxExecute() call may take a few seconds (7 to 10) to complete!
+		wxArrayString outputMsg;
+		wxArrayString errorsMsg;
+		long returnVal = ::wxExecute(commandLine, outputMsg, errorsMsg, flags, NULL);
+		wxUnusedVar(returnVal);
+
+		// restore current working directory
+		fName.SetCwd(saveCurrentWorkingDirectory);
+		wxLogDebug(_T("Restore current working directory: %s"), (wxFileName::GetCwd()).c_str());
+
+		// look for file of comma-separated results in executable's folder
+		wxFFile ffile(resultsPath); //opens for reading
+		if (ffile.IsOpened())
+		{
+			bool bGotAll = ffile.ReadAll(&resultsStr);
+			bGotAll = bGotAll; // avoid gcc warning
+			wxLogDebug(_T("Found this: %s"), resultsStr.c_str()); // for logging window
+
+			ffile.Close();
+		}
+	}
+
 #ifdef _DEBUG
-	//A test data string to use util we get the wxExecute() call working properly
+	//A test data string to use until we get the wxExecute() call working properly
 	//resultsStr = _T("192.168.2.20@@@kbserverXPSP3,192.168.2.13@@@kbserver,192.168.2.15@@@kbserverX1Carbon");
 
 	// The above test results are processed correctly by the code further below. Comment
 	// out when wxExecute() , see above , is working correctly
-
-	// int valBack = system("CMD_CCOMMAND"); <<-- compiled, but returned 1 and  no command prompt window showed
-	//int valBack = system("cmd.exe /c dir C:\\"); // saw it open & some lines scroll past & then it disappeared, valBack was 0
-	//int valBack = system("cmd.exe /c dir C:\\adaptit-git\\bin\\win32\\Unicode Debug"); // this fails, but does get window created
-	//int valBack = system("cmd.exe /c dsb-win7.bat"); // this did not work either, but got window open
-
-	int ii = 1; // a break point can be put here after uncommenting out
+#endif
 
 #endif
 
-// do from scratch here
-
-	// first attempt, ignore that this might be a new discovery attempt after  having successfully
-	// discovered some on an earlier run (see the test in Linux code  early on, etc), just do one
-	// run without frills
-
-
-
-	/*
+#if defined(__WXOSX__)
+   
+	// First,we need a current working directory in the running Adapt It in order to have
+	// a temporary place to store our comma-separated list of KBserver ipaddresses and
+	// hostnames in a file called report.dat 
+	// We need to know where it resides, though we don't care where that may
+	// be, as long as we have the absolute path to that folder determinate & stored
+	// It and other temporary files get lodged there, they are cleared out at the
+	// start of a new discovery run, and filled with the results of the new run.
+	wxString tempFile = _T("report.dat");
 	wxString resultsPath = wxEmptyString;
-	wxString resultsPathFile = wxGetCwd(); // gets the current working directory <<- unhelful, it get where Adaptations folder is when running
+	wxString resultsPathFile = _T("resultsPathFile");
+	// backtick pwd backtick means evaluate print working directory command and replace 
+	// with the output in the wrapping command
+	wxString command = _T("echo `pwd` > resultsPathFile");
+	wxShell(command); //get the current working directory string stored in file named resultsPathFile
 	wxFFile rpffile(resultsPathFile); //opens for reading
 	if (rpffile.IsOpened())
 	{
@@ -53627,21 +53691,24 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 			rpffile.Close();
 		}
 	}
-	// Make a redirecting argument string for the output of running dsb.sh in wxShell()
-	wxString redirectStr = _T(" > ") + resultsPath + PathSeparator + tempFile;
+	// Make a redirecting argument string for evaporating unwanted output 
+	// from dsb-osx.sh in wxShell()
+	wxString redirectStr = _T(" 2>/dev/null");
 
 	// For opening the KBservers_List.txt file, we need to add the filename to resultsPath
-	wxString resultsPath2 = resultsPath + PathSeparator + tempFile;
+	wxString resultsPath2 = resultsPath + PathSeparator + tempFile; // path to report.dat
 
 	// While developing, this returns for execPath on Linux for a Debug build:
 	// /home/bruce/adaptit-git/bin/linux/bin/Debug/adaptit   (note, the executable is at the end)
 	// But when running after normal installation, it will/should return:
 	// /usr/bin/adaptit   (again, the adaptit at path end is the executable)
-	wxString scriptPath = execPath + _T("dsb.sh");
+	// But the code at top removes the executable from the end of execPath, leaving the slash there
+	// For OSX, it remains to be seen what the paths are. Obtain from the logging if it is accessible
+	wxString scriptPath = execPath + _T("dsb-osx.sh") + redirectStr;
 	wxLogDebug(_T("Script path = %s"), scriptPath.c_str());
 
 	// Run Leon's script
-	wxShell(scriptPath + redirectStr);
+	wxShell(scriptPath);
 
 	bool bFileExists = FALSE;
 	bFileExists = wxFileExists(resultsPath2);
@@ -53651,58 +53718,32 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		//    wxMessageBox(_T("Got some KBserver results."),_T("Success"), wxICON_INFORMATION | wxOK);
 		//#endif
 
-		// look for file of comma-separated results in user's folder
+		// look for file of comma-separated results
 		wxFFile ffile(resultsPath2); //opens for reading
 		if (ffile.IsOpened())
 		{
 			bool bGotAll = ffile.ReadAll(&resultsStr);
+			bGotAll = bGotAll; // avoid gcc warning
 			wxLogDebug(_T("Found these: %s"), resultsStr.c_str()); // for logging window
 
-#ifdef _DEBUG
-															   // While developing, show the same results in the GUI, for debug version
+	#ifdef _DEBUG													   
+			// While developing, show the same results in the GUI, for debug version
 			wxString msg;
 			msg = msg.Format(_T("results string: %s"), resultsStr.c_str());
 			wxMessageBox(msg, _T("These...."), wxICON_INFORMATION | wxOK);
-#endif
-
+	#endif
 			ffile.Close();
 		}
-		// Various other .dat files are produced along the way, which can now be
-		// dispensed with - if they exist. service_file.dat, hostname_file.dat,
-		// kbservice_file.dat which has the composite str with the @@@ delimiters,
-		// and the (temporary) resultsPathFile
-		// * remove temporarily
-		wxString kbsdat = _T("kbs.dat");
-		wxString kbsfdat = _T("kbservice_file.dat");
+		// resultsPathFile was created in this block, so we have to remove it ourselves
 		wxString rPthFile = _T("resultsPathFile");
-		wxString aPath = resultsPath + PathSeparator + kbsdat;
+		wxString aPath = resultsPath + PathSeparator + rPthFile;
 		bFileExists = wxFileExists(aPath);
 		if (bFileExists)
 		{
-			wxRemoveFile(aPath); // Removes kbs.dat
-		}
-		aPath = resultsPath + PathSeparator + kbsfdat;
-		if (bFileExists)
-		{
-			wxRemoveFile(aPath); // Removes kbservice_file.dat
-		}
-		aPath = resultsPath + PathSeparator + rPthFile;
-		bFileExists = wxFileExists(aPath);
-		if (bFileExists)
-		{
-			wxRemoveFile(aPath); // Removes resultsPathFile
+			wxRemoveFile(aPath); // Removes temporary resultsPathFile
 		}
 	}
-	*/
-
 #endif
-
-#if defined(__WXOSX__)
-    // OSX may need code here, if the __WXGTK__ block's code doesn't work for OSX
-
-#endif
-
-
     // Having obtained one or more composite strings of form ipAddress@@@hostname, we now need to
     // build glue code to link to the existing code for using ipaddr and hostname to be available
     // to the user for selecting which KBserver to connect to. In the legacy CServiceDiscovery
@@ -53710,8 +53751,9 @@ void CAdapt_ItApp::DoDiscoverKBservers()
     // class's onSDNotify() member function. I'll copy that over to here, and remove unneeded
     // details. We'll have a local wxArrayString called arrNewComposites here in
     // DoDiscoverKBservers() which will store the one or more composites of form "ipaddr@@@hostname"
-    // resulting from the output of Leon's script dsb.sh which we have run using wxShell(). Then
-    // as in the earlier legacy logic, we need to make various checks:
+    // resulting from the output of Leon's script (dsb.sh for Linux, dsb-osx.sh for OSX) for which 
+	// we have run using wxShell(). Then as in the earlier legacy logic, we need to make various 
+	// checks as follows:
 
     // (a) An update function that renames the hostname part of an "ipaddr@@@hostname" string
     // stored in app's m_ipAddrs_Hostnames wxArrayString (the latter must store only correct
@@ -53814,16 +53856,6 @@ void CAdapt_ItApp::DoDiscoverKBservers()
     CMainFrame* pFrame = gpApp->GetMainFrame();
 	if (gpApp->m_bServDiscSingleRunIsCurrent)
 	{
-		// Use columned dialog now - from here, as in the handler is too early - i.e. using
-		// the columned dialog from the Discover One KBserver handler gets a success but the
-		// columned dlg shows nothing. So delay it to be shown here instead...
-
-		// Inform the user what the discovered inventory currently is
-		/* deprecated,
-		wxString title = _("KBservers discovered so far");
-		wxString msg = BuildUrlsAndNamesMessageString();
-		wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
-		*/
 		// Initializations
 		ServDiscDetail result = SD_NoResultsYet;
         result = result; // avoid gcc warning
@@ -53891,8 +53923,6 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 				// has explained what will happen, no further message is needed here
 			}
 		}
-
-		//gpApp->m_bServDiscSingleRunIsCurrent = FALSE; // allow the menu command to again be enabled
 		gpApp->m_bServDiscRunFoundNothing = FALSE; // restore default value
 
 		// BEW 20Jul17 For Leon's scripted discovery, the GUI is blocked until the scan is done,
@@ -53903,9 +53933,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		{
 			wxMessageBox(_("No KBserver discovered. Ensure one is running and then try again."), wxEmptyString, wxICON_INFORMATION | wxOK);
 		}
-
-	}
-
+	} // end of TRUE block for test: if (gpApp->m_bServDiscSingleRunIsCurrent)
 }
 
 // input : the comma-delimited string; no comma at end, and the only commas in the
@@ -53979,7 +54007,7 @@ bool CAdapt_ItApp::CommaDelimitedStringToArray(wxString& str, wxArrayString* pAr
     } while ( !theStr.IsEmpty() );
     return TRUE; // tell caller we found one or more substrings
 }
-/*
+
 // BEW ??2016 sometime, this is the old legacy wxServDisc based way, called from
 // MainFrm.cpp OnDiscoverKBservers when m_bDiscoverKBservers is FALSE
 void CAdapt_ItApp::DoServiceDiscoverySingleRun()
@@ -54012,8 +54040,8 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
 #endif
 
     m_nSDRunCounter = 0; // the thread, and CServiceDiscovery() use this
-    m_pServDiscThread[m_nSDRunCounter] = new Thread_ServiceDiscovery;
-
+    //m_pServDiscThread[m_nSDRunCounter] = new Thread_ServiceDiscovery;
+	/*
     wxThreadError error = m_pServDiscThread[m_nSDRunCounter]->Create(12240);
     if (error != wxTHREAD_NO_ERROR)
     {
@@ -54040,11 +54068,12 @@ void CAdapt_ItApp::DoServiceDiscoverySingleRun()
             m_pServDiscThread[m_nSDRunCounter] = NULL;
         }
     }
+	*/
     m_nSDRunCounter = 0;
     // Finish up the progress dialog's tracking in the status bar
     ((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(progTitle);
 }
-*/
+
 
 /*  Note the new values.....
 enum ServDiscInitialDetail
@@ -54070,6 +54099,7 @@ SD_MultipleUrls_UserChoseNone,
 SD_SD_ValueIsIrrelevant
 };
 */
+
 void CAdapt_ItApp::DoKBserverDiscoveryRuns()
 {
     // Use SetOwner() to bind the service discovery timer to the app instance, the latter will

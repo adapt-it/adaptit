@@ -9,7 +9,7 @@ AC_PROG_LIBTOOL
 
 # Define _KBSERVER for all builds - whm added 11Dec2015
 # Uncomment the following _KBSERVER define for version 7.x.x releases
-AC_DEFINE(_KBSERVER)
+#AC_DEFINE(_KBSERVER)
 
 # Debug builds pass --debug to wx-config and define _DEBUG
 AC_ARG_ENABLE([debug],

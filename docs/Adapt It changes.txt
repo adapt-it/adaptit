@@ -1,8 +1,16 @@
 ﻿----------------------------------------------
-Version 6.8.4 release <date here>
+Version 6.9.0 release 15 February 2018
 ----------------------------------------------
-Feature changes and new features in 6.8.4 
+Feature changes and new features in 6.9.0 
 --------------------------------------------------------------------------------------------
+* There is now a Choose Translation drop down list that automatically pops
+open when the phrasebox stops at a location where more than one translation
+is available from the knowledge base. This new feature makes it much easier
+and more efficient to select a translation equivalent. The advantage of the 
+drop down list is that selecting a translation equivalent can be done more 
+directly, without having to interact with the modal Choose Translation dialog. 
+The legacy Choose Translation dialog is still available by pressing its icon 
+on the tool bar or by using the F8 or Ctrl+L hot keys. 
 * Changed Join Documents. Since 2014, it could show the list within
 the Join Dialog being partially empty, or totally empty. Now, if every
 adapted document contains a book ID (e.g. MAT, or MRK, or LUK etc)
@@ -12,7 +20,7 @@ displayed in the list - which gives the user more work to do to get
 just the ones he or she wants. Compiling the list takes longer, so please wait.
 
 ---------------------------------------------
-Bug fixes in 6.8.4 release
+Bug fixes in 6.9.0 release
 ----------------------------------------------
 * Fixed an export bug in which the export would be truncated, or partly lost,
 if the \x*of a cross-reference which is to be filtered, was absent.
