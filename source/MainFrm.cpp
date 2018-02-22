@@ -2852,65 +2852,13 @@ void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event
 void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 {
 	int nWhichOne = (int)event.GetExtraLong();
-	// If doing a burst, and the first run cannot find any running KBservers, then there is
-	// no point in doing any further runs in a burst. So shut the burst down and give feedback
-	// to the user
-	if (nWhichOne == 0 && gpApp->m_bServDiscBurstIsCurrent && gpApp->m_bServDiscRunFoundNothing)
-	{
-		// First, get the scan burst shut down prematurely
-		if (gpApp->m_servDiscTimer.IsRunning())
-		{
-			gpApp->m_servDiscTimer.Stop();
-			gpApp->m_nSDRunCounter = 0;
-			// Ensure all ptrs are NULL
-			int index;
-			for (index = 0; index < (int)MAX_SERV_DISC_RUNS; index++)
-			{
-				if (gpApp->m_pServDiscThread[index] != NULL)
-				{
-					gpApp->m_pServDiscThread[index] = NULL;
-				}
-			}
-			gpApp->m_bServDiscBurstIsCurrent = FALSE;
 
-			// Finish up the progress dialog's tracking in the status bar
-			wxString progTitle = _("KBservers Discovery");
-			((CStatusBar*)m_pStatusBar)->FinishProgress(progTitle);
-			
-			// Inform the user what the discovered inventory currently is
-			wxString title = _("KBservers discovered so far");
-			wxString msg = BuildUrlsAndNamesMessageString();
-			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
-			
-		}
-
-		gpApp->m_bServDiscRunFoundNothing = FALSE; // restore default value
-
-		// BEW 20Jul17 For Leon's scripted discovery, the GUI is blocked until the scan is done,
-		// so we here reinstate the flag being cleared to FALSE
-		gpApp->m_bServDiscSingleRunIsCurrent = FALSE;
-		// BEW 20Jul17 If no kbserver is running, tell the user none was discovered
-		if (gpApp->m_ipAddrs_Hostnames.IsEmpty())
-		{
-			wxMessageBox(_("No KBserver discovered. Ensure one is running and then try again."), wxEmptyString, wxICON_INFORMATION | wxOK);
-		}
-
-	}
-	// If it is from a call of OnDiscoverKBservers(), which uses m_bServDiscSingleRunIsCurrent
-	// in update handler to prevent both types of discovery working at once, then clear the
-	// bool here
 	if (nWhichOne == 0 && gpApp->m_bServDiscSingleRunIsCurrent)
 	{
 		// Use columned dialog now - from here, as in the handler is too early - i.e. using
 		// the columned dialog from the Discover One KBserver handler gets a success but the
 		// columned dlg shows nothing. So delay it to be shown here instead...
 
-		// Inform the user what the discovered inventory currently is
-		/* deprecated,
-		wxString title = _("KBservers discovered so far");
-		wxString msg = BuildUrlsAndNamesMessageString();
-		wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
-		*/
 		// Initializations
 		ServDiscDetail result = SD_NoResultsYet;
         result = result; // avoid gcc warning
@@ -2922,7 +2870,8 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 		// deconstruct the ip@@@hostname strings in m_ipAddrs_Hostnames array into 
 		// the individual arrays m_theURLs and m_theHostnames so these can be
 		// displayed to the user
-		int counter = GetUrlAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, gpApp->m_theURLs, gpApp->m_theHostnames);
+		int counter = GetUrlAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, 
+										gpApp->m_theURLs, gpApp->m_theHostnames);
 		wxUnusedVar(counter);
 
 		/*
@@ -2987,11 +2936,7 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 		{
 			wxMessageBox(_("No KBserver discovered. Ensure one is running and then try again."), wxEmptyString, wxICON_INFORMATION | wxOK);
 		}
-
 	}
-	// It's a detached thread type, so will delete itself; we'll just set its ptr to NULL
-	// (it's never a good idea to leave pointers hanging)
-	gpApp->m_pServDiscThread[nWhichOne] = NULL;
 }
 
 // BEW 28Apr16
@@ -3218,21 +3163,14 @@ void CMainFrame::OnDiscoverKBservers(wxCommandEvent& WXUNUSED(event))
 
 void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
 {
-	// It should be possible for the user to request another set of service discovery runs
-	// in order to try get hold of a running KBserver not grabbed in earlier runs, so long
-	// as he is in a project that has document open and the document has data. Sharing of
-	// a KB is pointless in any other circumstance. However, disable the menu item if a
-	// burst of discovery scans is currently in progress - one or more of m_pServDiscThread[]
-	// non-NULL tests positive for scanning to be currently in progress
 	if (gpApp->m_pKB != NULL && gpApp->m_pSourcePhrases->GetCount() > 0)
 	{
-		if (gpApp->m_bServDiscBurstIsCurrent || gpApp->m_bServDiscSingleRunIsCurrent)
-			event.Enable(FALSE);
-		else
-			event.Enable(TRUE);
+		event.Enable(TRUE);
 	}
 	else
+	{
 		event.Enable(FALSE);
+	}
 }
 
 /*

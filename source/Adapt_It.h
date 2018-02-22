@@ -2111,13 +2111,6 @@ class CAdapt_ItApp : public wxApp
 	// timer, multiply by 1000*60 since the timer's units are milliseconds)
 	int		m_nKbServerIncrementalDownloadInterval;
 
-    // Value for the WaitTimeout(thousandths of a second) in intermittent service
-    // discovery. Defaulted to 16731 milliseconds, for the m_pServDiscTimer
-    // time to get the _kbserver._tcp.local. service discovered. There is no GUI way to
-    // change the value. However, the user can edit the value in the basic configuration
-    // file directly.
-	int		m_KBserverTimer;
-
 	// Storage of username's value for the boolean flags, kbadmin, and useradmin; we store
 	// them here rather than in the KbServer class itself, because the value of these
 	// flags need to be known before either of the adapting or glossing KbServer classes
@@ -3177,17 +3170,8 @@ public:
 									 // that a burst of runs should be attempted. I think bursts should be 3 runs each
 	bool	  m_bEnteringKBserverProject; // used in OnIdle() to delay connection attempt until doc is displayed
 	void	  ServDiscBackground(int nThreadIndex);
-	Thread_ServiceDiscovery* m_pServDiscThread[20]; // one for each run of ServDiscBackground, because now
-				// we allow each run to overlap the last a little, the only app member is this one and if
-				// we allowed a successive run to destroy the previous run's pointer, we would get access
-				// violations -- so each run has its own pointer
 	wxTimer   m_servDiscTimer;
-//	void	  OnServiceDiscoveryTimer(wxTimerEvent& WXUNUSED(event));
-	void	  DoServiceDiscoverySingleRun(); // like OnServiceDiscoveryTimer() but without the timer stuff
 	void	  DoDiscoverKBservers(); // BEW 20Jul17 scan for publishing kbservers - by Leon's scripts
-	//void	  ServDiscSingleOnly();
-	int		  m_numServiceDiscoveryRuns; // I'll default it to 3 in OnInit(), but let a manual edit
-										 // of basic config file change it ( range: 1 to 20)
 	int		  m_nSDRunCounter; // counts the number of times ServDiscBackground() is called
 	bool	  m_bServDiscBurstIsCurrent;
 	bool	  m_bServDiscSingleRunIsCurrent;
@@ -3195,10 +3179,8 @@ public:
 	bool	  m_bUserLoggedIn; // TRUE when the user (not an administrator) logs in successfully
 	bool	  m_bLoginFailureErrorSeen; // an aid to prevent too many error messages
 	bool	  m_bServDiscRunFoundNothing; // used for premature halting a burst of scans when no KBservers are running
-	void	  DoKBserverDiscoveryRuns();
 
 	void	  ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname);
-//	wxString  ExtractURLpart(wxString& aLine);
     bool      UpdateExistingAppCompositeStr(wxString& ipaddr, wxString& hostname, wxString& composite);
     bool      AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, bool bCase);
     bool      CommaDelimitedStringToArray(wxString& str, wxArrayString* pArr);

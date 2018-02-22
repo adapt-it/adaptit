@@ -138,10 +138,9 @@
 // call which is penultimate to this NUMINSERTS call.
 #define NUMINSERTS 8
 
+// Next two for how long to leave up the info Wait msg when discovering
 #if defined(_KBSERVER)
 #define MSG_SECONDS 1
 #define MSG_MILLISECONDS 300
-
-#define MAX_SERV_DISC_RUNS 20
 #endif
 
