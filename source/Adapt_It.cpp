@@ -53155,7 +53155,6 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	// its data, so we need to know where it resides, though we don't care where that may
 	// be, as long as we have the absolute path to that folder determinate & stored
 	wxString tempFile = _T("kbservice_file.dat");
-	wxString resultsPath = wxEmptyString;
 	wxString resultsPathFile = _T("resultsPathFile");
 	wxString command = _T("echo `pwd` > resultsPathFile");
 	wxShell(command);
@@ -53313,7 +53312,6 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	// It and other temporary files get lodged there, they are cleared out at the
 	// start of a new discovery run, and filled with the results of the new run.
 	wxString tempFile = _T("report.dat");
-	wxString resultsPath = wxEmptyString;
 	wxString resultsPathFile = _T("resultsPathFile");
 	// backtick pwd backtick means evaluate print working directory command and replace 
 	// with the output in the wrapping command
