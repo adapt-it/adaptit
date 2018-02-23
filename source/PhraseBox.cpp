@@ -49,7 +49,6 @@
 #include "Strip.h"
 #include "SourcePhrase.h"
 #include "Adapt_ItDoc.h"
-//#include "SourceBundle.h"
 #include "Layout.h"
 #include "RefString.h"
 #include "AdaptitConstants.h"

@@ -34045,6 +34045,10 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 
             }
         }
+		else if (name == szKbServerHostname)
+		{
+			m_strKbServerHostname = strValue;
+		}
         else
 #endif
             if (name == szAdaptitPath)

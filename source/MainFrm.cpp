@@ -2974,6 +2974,14 @@ void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
 	}
 }
 
+#else
+
+void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
+{
+
+	event.Enable(FALSE);
+}
+
 #endif
 
 // TODO: uncomment EVT_MENU event handler for this function after figure out
