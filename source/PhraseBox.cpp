@@ -2947,7 +2947,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// preserve cursor location, in case we merge, so we can restore it afterwards
 		long nStartChar;
 		long nEndChar;
-		GetSelection(&nStartChar,&nEndChar);
+        GetTextCtrl()->GetSelection(&nStartChar,&nEndChar);
 
 		wxPoint ptNew;
 		wxRect rectClient;
@@ -3050,7 +3050,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 
 		// set the globals for the cursor location, ie. m_nStartChar & m_nEndChar,
 		// ready for box display
-		GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar);
+        GetTextCtrl()->GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar);
 
 		// save the phrase box's text, in case user hits SHIFT+END to unmerge a phrase
         m_SaveTargetPhrase = pApp->m_targetPhrase;
@@ -3178,7 +3178,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 		{
 			pLayout->m_curBoxWidth += pApp->m_nExpandBox*charSize.x;
 
-			GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar); // store current phrase
+            GetTextCtrl()->GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar); // store current phrase
 					// box selection in app's m_nStartChar & m_nEndChar members
 
 			bUpdateOfLayoutNeeded = TRUE;
@@ -3192,7 +3192,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 				pApp->m_targetPhrase = GetValue(); // store current typed string
 
 				//move old code into here & then modify it
-				GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar); // store current selection
+                GetTextCtrl()->GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar); // store current selection
 
 				// we are trying to delete text in the phrase box by pressing backspace key
 				// shrink the box by 2 'w' widths if the space at end is >= 4 'w' widths
@@ -3244,7 +3244,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 				pLayout->m_curBoxWidth = textExtent.x + pApp->m_nExpandBox*charSize.x;
 
 				// move the old code into here
-				GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar); // store current selection
+                GetTextCtrl()->GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar); // store current selection
 
 				bUpdateOfLayoutNeeded = TRUE;
 			} // end block for nSelector == 1 case
@@ -3400,7 +3400,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	// the OnChar() handler, because it is placed before the Skip() call (the OnChar() base
 	// class call in MFC)
 
-	GetSelection(&m_nSaveStart,&m_nSaveEnd);
+    GetTextCtrl()->GetSelection(&m_nSaveStart,&m_nSaveEnd);
 
     // MFC Note: CEdit's Undo() function does not undo a backspace deletion of a selection
     // or single char, so implement that here & in an override for OnEditUndo();
@@ -3480,7 +3480,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	// preserve cursor location, in case we merge, so we can restore it afterwards
 	long nStartChar;
 	long nEndChar;
-	GetSelection(&nStartChar,&nEndChar);
+    GetTextCtrl()->GetSelection(&nStartChar,&nEndChar);
 
     // whm Note: See note below about meeding to move some code from OnChar() to the
     // OnPhraseBoxChanged() handler in the wx version, because the OnChar() handler does
@@ -4546,7 +4546,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 		// allow any of this (except Alt + Backspace) if glossing is ON - in those cases, just return
 		if (gbIsGlossing)
 			return;
-		GetSelection(&nStart,&nEnd);
+        GetTextCtrl()->GetSelection(&nStart,&nEnd);
 		if (event.GetKeyCode() == WXK_RIGHT) // ALT+RIGHT
 		{
 			if (gbRTL_Layout)
@@ -5954,7 +5954,7 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
     // but also the background gray instead of the desired pink. It is better to do this
     // here than in OnLButtonUp since it prevents the cursor from being momemtarily seen in
     // the phrase box if clicked.
-	if (pApp->m_bFreeTranslationMode && !this->IsEditable())
+	if (pApp->m_bFreeTranslationMode && !this->GetTextCtrl()->IsEditable())
 	{
 		CMainFrame* pFrame;
 		pFrame = pApp->GetMainFrame();
@@ -5987,7 +5987,7 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 	pApp->m_bUserTypedSomething = TRUE;
     m_bRetainBoxContents = TRUE;
 	event.Skip();
-	GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar);
+    GetTextCtrl()->GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar);
 }
 
 // BEW 13Apr10, no changes needed for support of doc version 5
@@ -5997,7 +5997,7 @@ void CPhraseBox::OnLButtonUp(wxMouseEvent& event)
 	// This mouse event is only activated when user clicks mouse L button within
 	// the phrase box, not elsewhere on the screen
 	event.Skip();
-	GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar);
+	GetTextCtrl()->GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar);
 }
 
 void CPhraseBox::OnComboItemSelected(wxCommandEvent & WXUNUSED(event))

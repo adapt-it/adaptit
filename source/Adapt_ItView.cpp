@@ -2019,11 +2019,11 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
     // whm added to only Remove any selected text
 	if (!pApp->m_pTargetBox->GetTextCtrl()->GetStringSelection().IsEmpty()) // whm 14Feb2018 added GetTextCtrl()->
 	{
-		pApp->m_pTargetBox->GetSelection(&nS,&nE);
+		pApp->m_pTargetBox->GetTextCtrl()->GetSelection(&nS,&nE);
 		pApp->m_pTargetBox->Remove(nS,nE); //m_targetBox.Clear();
 	}
 	long nStart; long nEnd;
-	pApp->m_pTargetBox->GetSelection(&nStart,&nEnd);
+	pApp->m_pTargetBox->GetTextCtrl()->GetSelection(&nStart,&nEnd);
 	wxString targetPhrase;
 	targetPhrase = pApp->m_pTargetBox->GetValue();
 	wxString saveStr = targetPhrase; // make a copy in case we later have to abort
@@ -10811,7 +10811,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		int strBoxLen = strBox.Length();
 		long nStart;
 		long nEnd;
-		pApp->m_pTargetBox->GetSelection(&nStart, &nEnd);
+		pApp->m_pTargetBox->GetTextCtrl()->GetSelection(&nStart, &nEnd);
 
 		if (pApp->m_pTargetBox->m_bAbandonable)
 		{
@@ -13307,7 +13307,7 @@ void CAdapt_ItView::OnUpdateEditCopy(wxUpdateUIEvent& event)
 	if (pApp->m_pTargetBox != NULL)
 		if (pApp->m_pTargetBox->IsShown())
 		{
-			pApp->m_pTargetBox->GetSelection(&nStartChar,&nEndChar);
+			pApp->m_pTargetBox->GetTextCtrl()->GetSelection(&nStartChar,&nEndChar);
 			bTargetBoxSel = nStartChar != nEndChar;
 		}
 
@@ -13568,7 +13568,7 @@ void CAdapt_ItView::OnUpdateEditCut(wxUpdateUIEvent& event)
 	if (pApp->m_pTargetBox != NULL)
 		if (pApp->m_pTargetBox->IsShown())
 		{
-			pApp->m_pTargetBox->GetSelection(&nStartChar1,&nEndChar1);
+			pApp->m_pTargetBox->GetTextCtrl()->GetSelection(&nStartChar1,&nEndChar1);
 			bTargetBoxSel = nStartChar1 != nEndChar1;
 		}
 
