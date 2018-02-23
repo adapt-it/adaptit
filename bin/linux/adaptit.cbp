@@ -325,10 +325,6 @@
 		<Unit filename="../../res/wxWindowsLogo2.svg" />
 		<Unit filename="../../res/wxwidgets02-small.bmp" />
 		<Unit filename="../../res/wxwidgets02-small.svg" />
-		<Unit filename="../../source/1035.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../source/1035.h" />
 		<Unit filename="../../source/AIPrintPreviewFrame.cpp" />
 		<Unit filename="../../source/AIPrintPreviewFrame.h" />
 		<Unit filename="../../source/AIPrintout.cpp" />
@@ -550,8 +546,6 @@
 		<Unit filename="../../source/RetranslationDlg.h" />
 		<Unit filename="../../source/ServDisc_KBserversDlg.cpp" />
 		<Unit filename="../../source/ServDisc_KBserversDlg.h" />
-		<Unit filename="../../source/ServiceDiscovery.cpp" />
-		<Unit filename="../../source/ServiceDiscovery.h" />
 		<Unit filename="../../source/SetDelay.cpp" />
 		<Unit filename="../../source/SetDelay.h" />
 		<Unit filename="../../source/SetEncodingDlg.cpp" />
@@ -574,8 +568,6 @@
 		<Unit filename="../../source/Strip.h" />
 		<Unit filename="../../source/TargetUnit.cpp" />
 		<Unit filename="../../source/TargetUnit.h" />
-		<Unit filename="../../source/Thread_ServiceDiscovery.cpp" />
-		<Unit filename="../../source/Thread_ServiceDiscovery.h" />
 		<Unit filename="../../source/Timer_KbServerChangedSince.cpp" />
 		<Unit filename="../../source/Timer_KbServerChangedSince.h" />
 		<Unit filename="../../source/ToolbarPage.cpp" />
@@ -632,10 +624,6 @@
 		<Unit filename="../../source/md5.h" />
 		<Unit filename="../../source/md5_SB.cpp" />
 		<Unit filename="../../source/md5_SB.h" />
-		<Unit filename="../../source/mdnsd.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../source/mdnsd.h" />
 		<Unit filename="../../source/pstdint.h" />
 		<Unit filename="../../source/scrollingdialog.cpp" />
 		<Unit filename="../../source/scrollingdialog.h" />
@@ -643,8 +631,6 @@
 		<Unit filename="../../source/scrollingwizard.h" />
 		<Unit filename="../../source/tellenc.cpp" />
 		<Unit filename="../../source/tellenc.h" />
-		<Unit filename="../../source/wxServDisc.cpp" />
-		<Unit filename="../../source/wxServDisc.h" />
 		<Unit filename="../../source/wxUUID.h" />
 		<Extensions>
 			<code_completion />

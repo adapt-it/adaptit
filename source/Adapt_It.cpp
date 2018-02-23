@@ -6291,7 +6291,7 @@ wxString szFreeTransLanguageCode = _T("FreeTranslationLanguageCode");
 wxString szIsKBServerProject = _T("IsKBServerProject");
 
 wxString szSentFinalPunctsTriggerCaps = _T("SentenceFinalPunctuationTriggeringCapitalization"); // BEW added 9May16
-wxString szUpperCaseAnywhereInFirstWord = _T("UpperCaseAnywhereInFirstWordOfSource"); // BEW added 24May16, 
+wxString szUpperCaseAnywhereInFirstWord = _T("UpperCaseAnywhereInFirstWordOfSource"); // BEW added 24May16,
 														// for things like src: na-John -> tgt: Johan
 
 /// The label that identifies the whether or not the project is associated with sharing a
@@ -12430,7 +12430,7 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 /// 3. Checks if the folder designated in 2 above contains the Paratext.exe executable file
 ///    and the ParatextShared.dll file.
 /// whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
-///    their default folder locations. At least one system that runs Windows 10 under 
+///    their default folder locations. At least one system that runs Windows 10 under
 ///    VMWare Fusion (Ron A), is not able to query the Windows registry for some unknown
 ///    reason. Therefore we will return PTVer7, PTVer8, or PTVer7and8 if the Paratext
 ///    executables are in their default installation folders even when the installation
@@ -12522,7 +12522,7 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
         }
     }
     // whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
-    // their default PT8 folder locations - fallback in case wxRegKey fails above even though  
+    // their default PT8 folder locations - fallback in case wxRegKey fails above even though
     // the Paratext 8 executables exist at their normal default paths for Windows.
     if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
     {
@@ -12571,7 +12571,7 @@ PTVersionsInstalled CAdapt_ItApp::ParatextVersionInstalled()
     }
 
     // whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
-    // their default PT7 folder locations - fallback in case wxRegKey fails above even though  
+    // their default PT7 folder locations - fallback in case wxRegKey fails above even though
     // the Paratext 7 executables exist at their normal default paths for Windows.
     if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
     {
@@ -13035,8 +13035,8 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
                 }
             }
         }
-        // whm 22Jan2018 added additional checks for default PT8 projects folder location - fallback 
-        // in case wxRegKey fails above, we check for projects folder at its normal default path for 
+        // whm 22Jan2018 added additional checks for default PT8 projects folder location - fallback
+        // in case wxRegKey fails above, we check for projects folder at its normal default path for
         // Windows.
         if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
         {
@@ -13067,8 +13067,8 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath(wxString PTVersion)
                 }
             }
         }
-        // whm 22Jan2018 added additional checks for default PT7 projects folder location - fallback 
-        // in case wxRegKey fails above, we check for projects folder at its normal default path for 
+        // whm 22Jan2018 added additional checks for default PT7 projects folder location - fallback
+        // in case wxRegKey fails above, we check for projects folder at its normal default path for
         // Windows.
         if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
         {
@@ -13244,10 +13244,10 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 /// Revised 25June2016 by whm to handle collaboration with PT 8.
 /// Revised 27Nov2016 by whm to handle collaboration with the newer PT 8 that can co-exist with PT 7
 /// whm 22Jan2018 added additional checks to determine PT install dir paths from
-/// their default folder locations. At least one system that runs Windows 10 under 
+/// their default folder locations. At least one system that runs Windows 10 under
 /// VMWare Fusion (Ron A), is not able to query the Windows registry for some
-/// unknown reason. Therefore as a fall-back, we return their default installation 
-/// folders, if the installation paths cannot be determined from the normal Windows 
+/// unknown reason. Therefore as a fall-back, we return their default installation
+/// folders, if the installation paths cannot be determined from the normal Windows
 /// registry calls using wxRegKey.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
@@ -13298,7 +13298,7 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
             }
         }
         // whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
-        // their default PT8 folder locations - fallback in case wxRegKey fails above even though  
+        // their default PT8 folder locations - fallback in case wxRegKey fails above even though
         // the Paratext 8 executables exist at their normal default paths for Windows.
         if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
         {
@@ -13340,7 +13340,7 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
             }
         }
         // whm 22Jan2018 added additional checks for Paratext.exe and ParatextShared.dll located at
-        // their default PT7 folder locations - fallback in case wxRegKey fails above even though  
+        // their default PT7 folder locations - fallback in case wxRegKey fails above even though
         // the Paratext 7 executables exist at their normal default paths for Windows.
         if (dirStrValue.IsEmpty() || !::wxDirExists(dirStrValue))
         {
@@ -13359,7 +13359,7 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath(wxString PTVersion)
             {
                 path = _T("C:\\Program Files (x86)\\Paratext 7"); // no final backslash on path
             }
-        }     
+        }
     }
 
 #endif
@@ -17964,7 +17964,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         wxString winCmdProcessor = _T("cmd.exe");
         wxString cmdOptions = _T("/c");
         // wxString commandLine = _T("cmd.exe /c C:\\Users\\Bill\\Documents\\adaptit\\CountSourceLines.bat C:\\Users\\Bill\\Documents\\adaptit\\");
-        wxString commandLine = winCmdProcessor + space + cmdOptions + space + quote + path2adaptitProj + batchFileName + space + path2adaptitProj + quote; 
+        wxString commandLine = winCmdProcessor + space + cmdOptions + space + quote + path2adaptitProj + batchFileName + space + path2adaptitProj + quote;
         wxArrayString outputMsg, errorsMsg;
         // Use the wxExecute() override that takes the two wxStringArray parameters. This
         // also redirects the output and suppresses the dos console window during execution.
@@ -18889,7 +18889,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
     m_bUseChooseTransDropDown = TRUE; // defaults to TRUE, but user can change via checkbox in ChooseTranslation dialog, setting saved in project config file
-    m_pChooseTranslationDropDown = (CChooseTranslationDropDown*)NULL; // for persistent dropdown 
+    m_pChooseTranslationDropDown = (CChooseTranslationDropDown*)NULL; // for persistent dropdown
     m_bChooseTransShowPopup = FALSE;
     m_bChooseTransScrolling = FALSE;
 
@@ -24327,7 +24327,7 @@ int CAdapt_ItApp::OnExit(void)
     //m_pTargetBox = (CPhraseBox*)NULL;
 
     // whm note 10Jan2018 to support quick selection of a translation equivalent.
-    // See Note above regarding m_pTargetBox. The m_pChooseTranslationDropDown is also a 
+    // See Note above regarding m_pTargetBox. The m_pChooseTranslationDropDown is also a
     // child of its parent the canval window. As such it also should be automatically
     // destroyed at the time the pView->canvas is destroyed.
     //if (m_pChooseTranslationDropDown != NULL)
@@ -31027,9 +31027,9 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		// able to hang around.
 		pApp->m_pKBSharingMgrTabbedDlg->Show();
 		// restore settings when disposed of, do the restoration in the destructor
-        
-        /* 
-		// not here - Bill warned me that this would instantly destroy the Mgr and restore the 
+
+        /*
+		// not here - Bill warned me that this would instantly destroy the Mgr and restore the
 		// settings, accomplishing nothing; so I put this stuff in the Mgr's destructor
         // When done, remove from the heap, and set the ptr to NULL
         // (It's owned KbServer instance, the Persistent one, is deleted at the
@@ -53130,11 +53130,11 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 					   // accumulates composites from service discovery
     m_theHostnames.Clear(); // ditto
 
-	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; // a legacy variable,  we need 
+	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; // a legacy variable,  we need
 								// it to be TRUE so the later loop is accessible
 
     // whm 11Sept2017 - wxStandardPaths must use the Get() function as follows
-    wxString execPath = wxStandardPaths::Get().GetExecutablePath(); 
+    wxString execPath = wxStandardPaths::Get().GetExecutablePath();
 	// stdPaths.GetExecutablePath(); // ends with "adaptit", which is to be removed
 
     wxString aSlash = PathSeparator;
@@ -53155,7 +53155,6 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	// its data, so we need to know where it resides, though we don't care where that may
 	// be, as long as we have the absolute path to that folder determinate & stored
 	wxString tempFile = _T("kbservice_file.dat");
-	wxString resultsPath = wxEmptyString;
 	wxString resultsPathFile = _T("resultsPathFile");
 	wxString command = _T("echo `pwd` > resultsPathFile");
 	wxShell(command);
@@ -53243,7 +53242,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	// Make a path to the executable's folder, ending with report.dat
 	resultsPath = execPath + tempFile; // execPath ends with backslash
 
-	// Make a path to the dsb-win.bat file, which should reside in whatever folder 
+	// Make a path to the dsb-win.bat file, which should reside in whatever folder
 	// contains the Adapt It Unicode executable (will differ depending on whether running
 	// from the Vis Studio dev syste's Unicode Debug folder, or Unicode Release folder, of
 	// from the ...\Program Files (x86)\Adapt It WX Unicode\  installation folder when
@@ -53304,18 +53303,17 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 #endif
 
 #if defined(__WXOSX__)
-   
+
 	// First,we need a current working directory in the running Adapt It in order to have
 	// a temporary place to store our comma-separated list of KBserver ipaddresses and
-	// hostnames in a file called report.dat 
+	// hostnames in a file called report.dat
 	// We need to know where it resides, though we don't care where that may
 	// be, as long as we have the absolute path to that folder determinate & stored
 	// It and other temporary files get lodged there, they are cleared out at the
 	// start of a new discovery run, and filled with the results of the new run.
 	wxString tempFile = _T("report.dat");
-	wxString resultsPath = wxEmptyString;
 	wxString resultsPathFile = _T("resultsPathFile");
-	// backtick pwd backtick means evaluate print working directory command and replace 
+	// backtick pwd backtick means evaluate print working directory command and replace
 	// with the output in the wrapping command
 	wxString command = _T("echo `pwd` > resultsPathFile");
 	wxShell(command); //get the current working directory string stored in file named resultsPathFile
@@ -53333,7 +53331,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 			rpffile.Close();
 		}
 	}
-	// Make a redirecting argument string for evaporating unwanted output 
+	// Make a redirecting argument string for evaporating unwanted output
 	// from dsb-osx.sh in wxShell()
 	wxString redirectStr = _T(" 2>/dev/null");
 
@@ -53368,7 +53366,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 			bGotAll = bGotAll; // avoid gcc warning
 			wxLogDebug(_T("Found these: %s"), resultsStr.c_str()); // for logging window
 
-	#ifdef _DEBUG													   
+	#ifdef _DEBUG
 			// While developing, show the same results in the GUI, for debug version
 			wxString msg;
 			msg = msg.Format(_T("results string: %s"), resultsStr.c_str());
@@ -53393,8 +53391,8 @@ void CAdapt_ItApp::DoDiscoverKBservers()
     // class's onSDNotify() member function. I'll copy that over to here, and remove unneeded
     // details. We'll have a local wxArrayString called arrNewComposites here in
     // DoDiscoverKBservers() which will store the one or more composites of form "ipaddr@@@hostname"
-    // resulting from the output of Leon's script (dsb.sh for Linux, dsb-osx.sh for OSX) for which 
-	// we have run using wxShell(). Then as in the earlier legacy logic, we need to make various 
+    // resulting from the output of Leon's script (dsb.sh for Linux, dsb-osx.sh for OSX) for which
+	// we have run using wxShell(). Then as in the earlier legacy logic, we need to make various
 	// checks as follows:
 
     // (a) An update function that renames the hostname part of an "ipaddr@@@hostname" string
@@ -53420,7 +53418,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
     // scan, but if not so, we can do another discovery with high probability of picking up any
     // missed in earlier scan(s). The local wxString, resultsStr, has the comma-separated
     // single line string of form ipAddr@@@hostname,ipAddr@@@hostname, etc, from the scan
-    
+
     wxString composite; // for "ipAddr@@@hostname" as derived from the scan results
     wxString aUrl; // for the ipAddr part of composite
     wxString aHostname; // for the Hostname part of composite
@@ -53509,7 +53507,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		// deconstruct the ip@@@hostname strings in m_ipAddrs_Hostnames array into
 		// the individual arrays m_theURLs and m_theHostnames so these can be
 		// displayed to the user
-		//  In the next call, 1st param is the array of ip@@hostname lines, params 
+		//  In the next call, 1st param is the array of ip@@hostname lines, params
 		// 2 and  3 are for returning the individual ipaddresses and associated host
 		// for each (Dummy data is below, commented out, if testing was wanted)
 		int counter = pFrame->GetUrlAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, gpApp->m_theURLs, gpApp->m_theHostnames);
