@@ -5993,7 +5993,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 		// whm added following to show and enable the target box
 		pApp->m_pTargetBox->Show();
 		pApp->m_pTargetBox->Enable(TRUE);
-		pApp->m_pTargetBox->SetEditable(TRUE);
+		pApp->m_pTargetBox->GetTextCtrl()->SetEditable(TRUE);
 	}
 
 	// restore focus and cursor position or selection
@@ -6015,14 +6015,14 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
         // wx version: by setting the targetbox with SetEditable(FALSE) instead of
         // Enable(FALSE) we get to control the background color, keeping it pink in free
         // trans mode
-		pApp->m_pTargetBox->SetEditable(FALSE);
+		pApp->m_pTargetBox->GetTextCtrl()->SetEditable(FALSE);
 		pApp->m_pTargetBox->SetBackgroundColour(pApp->m_freeTransCurrentSectionBackgroundColor);
 	}
 	else
 	{
 		// enable clicks and editing to be done in the phrase box
 		// (do also in OnAdvancedFreeTranslationMode())
-		pApp->m_pTargetBox->SetEditable(TRUE);
+		pApp->m_pTargetBox->GetTextCtrl()->SetEditable(TRUE);
 		// whm 20Nov10 commented out Guesser color change - here is not the
 		// place to set the phrasebox color - it gets overwritten in a later
 		// call in pLayout->PlaceBox().

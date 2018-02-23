@@ -5039,7 +5039,7 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 		// prevent clicks and editing being done in phrase box (do also in ResizeBox())
 		if (m_pApp->m_pTargetBox->IsShown() && m_pApp->m_pTargetBox->GetHandle() != NULL)
 		{
-			m_pApp->m_pTargetBox->SetEditable(FALSE);
+			m_pApp->m_pTargetBox->GetTextCtrl()->SetEditable(FALSE);
 		}
 		m_pLayout->m_pCanvas->ScrollIntoView(m_pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber);
 
@@ -5175,7 +5175,7 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 
 		// allow clicks and editing to be done in phrase box (do also in ResizeBox())
 		if (m_pApp->m_pTargetBox->IsShown() && m_pApp->m_pTargetBox->GetHandle() != NULL)
-			m_pApp->m_pTargetBox->SetEditable(TRUE);
+			m_pApp->m_pTargetBox->GetTextCtrl()->SetEditable(TRUE);
 
         // get any removed adaptations in gEditRecord into the GUI list, if the restored
         // state is adapting mode; if glossing mode, get the removed glosses into the GUI

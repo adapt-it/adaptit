@@ -6697,7 +6697,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 			// whm added 29Mar12. When read-only access is active, we don't show the phrasebox
 			pApp->m_pTargetBox->Hide();
 			pApp->m_pTargetBox->Enable(FALSE);
-			pApp->m_pTargetBox->SetEditable(FALSE);
+			pApp->m_pTargetBox->GetTextCtrl()->SetEditable(FALSE);
 		}
 		else
 		{
