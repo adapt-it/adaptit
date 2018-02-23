@@ -102,12 +102,8 @@
 #include "KbSharingSetup.h" // BEW added 10Oct13
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
 #include "Timer_KbServerChangedSince.h"
-#include "ServiceDiscovery.h"
 #include "WaitDlg.h"
-#include "Thread_ServiceDiscovery.h"
 #include "ServDisc_KBserversDlg.h" // BEW 12Jan16
-
-#define _shutdown_
 
 #endif // _KBSERVER
 
@@ -383,7 +379,6 @@ IMPLEMENT_CLASS(CMainFrame, wxDocParentFrame)
 //DECLARE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit, -1)
 //DECLARE_EVENT_TYPE(wxEVT_Glosses_Edit, -1)
 //DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
-//DECLARE_EVENT_TYPE(wxEVT_End_ServiceDiscovery, -1) <<-- moved to Thread_ServiceDiscovery.h
 
 
 DEFINE_EVENT_TYPE(wxEVT_Adaptations_Edit)
@@ -557,8 +552,6 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU (ID_MENU_SHOW_KBSERVER_SETUP_DLG,	CMainFrame::OnKBSharingSetupDlg)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_DLG, CMainFrame::OnUpdateKBSharingDlg)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
-//	EVT_MENU(ID_MENU_SCAN_AGAIN_KBSERVERS,CMainFrame::OnScanForRunningKBservers)
-//	EVT_UPDATE_UI(ID_MENU_SCAN_AGAIN_KBSERVERS, CMainFrame::OnUpdateScanForRunningKBservers)
 	EVT_MENU(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnDiscoverKBservers)
 	EVT_UPDATE_UI(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnUpdateDiscoverKBservers)
 
@@ -568,14 +561,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
 	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_DLG, CMainFrame::OnUpdateKBSharingDlg)
 	EVT_UPDATE_UI(ID_MENU_DISCOVER_KBSERVERS, CMainFrame::OnUpdateDiscoverKBservers)
-    // whm 11Sept2017 removed the next one since Bruce removed the ID_MENU_SCAN_AGAIN_KBSERVERS identifier from wxDesigner resources
-	//EVT_UPDATE_UI(ID_MENU_SCAN_AGAIN_KBSERVERS, CMainFrame::OnUpdateScanForRunningKBservers)
 #endif
-
-	// TODO: uncomment two event handlers below when figure out why setting tooltip time
-	// disables tooltips
-	//EVT_MENU(ID_HELP_SET_TOOLTIP_DELAY,CMainFrame::OnSetToolTipDelayTime)
-	//EVT_UPDATE_UI(ID_HELP_SET_TOOLTIP_DELAY, CMainFrame::OnUpdateSetToolTipDelayTime)
 
 	EVT_COMBOBOX(IDC_COMBO_REMOVALS, CMainFrame::OnRemovalsComboSelChange)
 
@@ -583,7 +569,6 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU(wxID_ABOUT, CMainFrame::OnAppAbout) // MFC handles this in CAdapt_ItApp, wxWidgets' doc/view here
 	EVT_SIZE(CMainFrame::OnSize)
 	EVT_CLOSE(CMainFrame::OnClose)
-	//EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CMainFrame::OnMRUFile) // whm removed 1Oct12
 #ifdef __WXMSW__
 	// wx version doesn't use an event handling macro for handling broadcast Windows messages;
 	// instead we first override the MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
@@ -1309,30 +1294,6 @@ void Code2BookFolderName(wxArrayPtrVoid* pBooksArray, const wxString& strBookCod
 	nBookIndex = -1;
 }
 
-/* whm removed 27May11 - no longer needed
-void DeleteSourcePhrases_ForSyncScrollReceive(CAdapt_ItDoc* pDoc, SPList* pList)
-{
-	CSourcePhrase* pSrcPhrase = NULL;
-	if (pList != NULL)
-	{
-		if (!pList->IsEmpty())
-		{
-			// delete all the tokenizations of the source text
-			SPList::Node* pos = pList->GetFirst();
-			while (pos != NULL)
-			{
-				pSrcPhrase = pos->GetData();
-				pos = pos->GetNext();
-				pDoc->DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // ignore partner piles
-					// because this function works only on a temporary list of
-					// CSourcePhrase instances and so there never are any partner piles
-			}
-			pList->Clear();
-		}
-	}
-}
-*/
-
 #ifdef __WXMSW__
 bool CMainFrame::DoSantaFeFocus(WXWPARAM wParam, WXLPARAM WXUNUSED(lParam))
 {
@@ -1448,8 +1409,6 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 //#else
 	m_bShowScrollData = FALSE;// does not show scroll parameters and client size in status bar
 //#endif
-
-	//m_bUsingHighResDPIScreen = FALSE;
 
 	// these dummy ID values are placeholders for unused entries in the accelerator below
 	// that are not implemented in the wx version
@@ -2540,44 +2499,6 @@ void CMainFrame::OnQuickStartHelp(wxCommandEvent& WXUNUSED(event))
 	if (bSuccess) gpApp->LogUserAction(_T("Launched Adapt_It_Quick_Start.htm in browser"));
 }
 
-/*
-// whm removed 2Oct11
-void CMainFrame::OnOnlineHelp(wxCommandEvent& WXUNUSED(event))
-{
-	gpApp->LogUserAction(_T("Initiated OnOnlineHelp()"));
-	const wxString onlineHelpURL = _T("http://adaptit.martintribe.org/Using_Adapt_It.htm");
-	int flags;
-	flags = wxBROWSER_NEW_WINDOW;
-	bool bLaunchOK;
-	bLaunchOK = ::wxLaunchDefaultBrowser(onlineHelpURL, flags);
-	if (!bLaunchOK)
-	{
-		wxString strMsg;
-		strMsg = strMsg.Format(_T("Adapt It could not launch your browser to access the online help.\nIf you have Internet access, you can try launching your browser\nyourself and view the online Adapt It help site by writing down\nthe following Internet address and typing it by hand in your browser:\n %s"),onlineHelpURL.c_str());
-		wxMessageBox(strMsg, _T("Error launching browser"), wxICON_EXCLAMATION | wxOK);
-		gpApp->LogUserAction(strMsg);
-	}
-}
-*/
-
-// whm 5Nov10 removed the Adapt It Forum... Help menu item because the Adapt It Talk forum
-// was never well utilized its functionality was soon to be removed by Google at the end
-// of 2010.
-//void CMainFrame::OnUserForum(wxCommandEvent& WXUNUSED(event))
-//{
-//	const wxString userForumURL = _T("http://groups.google.com/group/AdaptIt-Talk");
-//	int flags;
-//	flags = wxBROWSER_NEW_WINDOW;
-//	bool bLaunchOK;
-//	bLaunchOK = ::wxLaunchDefaultBrowser(userForumURL, flags);
-//	if (!bLaunchOK)
-//	{
-//		wxString strMsg;
-//		strMsg = strMsg.Format(_T("Adapt It could not launch your browser to access the user forum.\nIf you have Internet access, you can try launching your browser\nyourself and go to the Adapt It user forum by writing down\nthe following Internet address and typing it by hand in your browser:\n %s"),userForumURL.c_str());
-//		wxMessageBox(strMsg, _T("Error launching browser"), wxICON_EXCLAMATION | wxOK);
-//	}
-//}
-
 // Provide a direct way to report a problem. This is a menu item that can be used
 // to compose a report and sent it from Adapt It either indirectly, going first
 // to the user's email program, or directly via MAPI email protocols (On Window
@@ -2619,11 +2540,6 @@ void CMainFrame::OnUpdateUseToolTips(wxUpdateUIEvent& event)
 
 void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 {
-	//wxMenuBar* pMenuBar = this->GetMenuBar();
-	//wxASSERT(pMenuBar != NULL);
-	//wxMenuItem * pUseToolTips = pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS);
-	//wxASSERT(pUseToolTips != NULL);
-
 	wxLogNull logNo; // avoid spurious messages from the system
 
 	if (gpApp->m_bUseToolTips)
@@ -2784,18 +2700,7 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 	// when the build is not a _KBSERVER one
 	event.Enable(FALSE);
 }
-void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
-{
-	// Disable the "Discover One KBserver" command, on Tools menu
-	// when the build is not a _KBSERVER one
-	event.Enable(FALSE);
-}
-void CMainFrame::OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event)
-{
-	// Disable the "Discover One KBserver" command, on Tools menu
-	// when the build is not a _KBSERVER one
-	event.Enable(FALSE);
-}
+
 #endif // end block for when this is not a _KBSERVER build
 
 #if defined(_KBSERVER)
@@ -2845,7 +2750,6 @@ void CMainFrame::OnCustomEventCallAuthenticateDlg(wxCommandEvent& WXUNUSED(event
     bool bSuccess = AuthenticateCheckAndSetupKBSharing(gpApp, gpApp->m_bServiceDiscoveryWanted);
 	// pass the final value back to the app,
 	gpApp->m_bServiceDiscoveryWanted = TRUE; // Restore default value
-	gpApp->m_bServDiscGetOneOnly = TRUE; // restore default
 	wxUnusedVar(bSuccess);
 }
 
@@ -2925,9 +2829,6 @@ void CMainFrame::OnCustomEventEndServiceDiscovery(wxCommandEvent& event)
 			}
 		}
 
-		//gpApp->m_bServDiscSingleRunIsCurrent = FALSE; // allow the menu command to again be enabled
-		gpApp->m_bServDiscRunFoundNothing = FALSE; // restore default value
-
 		// BEW 20Jul17 For Leon's scripted discovery, the GUI is blocked until the scan is done,
 		// so we here reinstate the flag being cleared to FALSE
 		gpApp->m_bServDiscSingleRunIsCurrent = FALSE;
@@ -2970,81 +2871,6 @@ int CMainFrame::GetUrlAndHostnameInventory(wxArrayString& compositesArray,
 		}
 	}
 	return count;
-}
-
-wxString CMainFrame::BuildUrlsAndNamesMessageString()
-{
-	wxArrayString urlsArray;
-	wxArrayString namesArray;
-	wxString columnLabels = _("           URL                                         Name\n");
-	wxString noServersYet = _("No running KBservers have been discovered yet.\nAre you sure there is a KBserver running on the local network? Check.");
-	wxString oneExtra = _T(' ');
-	wxString spaces = _T("     ");
-
-	int  counter = GetUrlAndHostnameInventory(gpApp->m_ipAddrs_Hostnames, urlsArray, namesArray);
-	if (counter == 0)
-	{
-		return noServersYet;
-	}
-	wxString msgStr = wxEmptyString;
-	if (counter == 0)
-		return msgStr;
-	int i;
-	msgStr += columnLabels;
-	// BEW 28Apr16 There are a couple of things to note. (a) the hostnames can be nicely lined
-	// up if we add an extra space or two when the last digit field of a url is two or one digits
-	// long, respectively. (b) A given url, even if unchanged from previous session, can have
-	// a different hostname at a later time. If string identity on the compositeStr is done, 
-	// this results in 2 lines with the same url but different hostnames (this probably only
-	// applies while we don't specify unique server names yet) - anyway, check for this and if
-	// so then replace the hostname with the "discovered" one - the m_strKbServerHostname is
-	// the config file's value --  but the check (and fix) needs to be done at the part of
-	// CServiceDiscovery::onSDNotify() which is about to do the TRANSFERRING... of what
-	// appears to be a new value (the entry to the project may have already put last session's
-	// url and hostname into m_ipAddrs_Hostnames array, so we need to check - and if two urls
-	// are the same, then the one already in the latter array should be deleted and replaced
-	// by the composite string about to be transferred.
-	// BEW 16May16 urls like https://kbserver.jmarsden.org are longer, so I'm changing the algorithm
-	// for getting the hostnames lined up nicely. I'll get the longest url, and for shorter ones add
-	// following spaces up to the same length. Then I'll add an additional 4 spaces to them all.
-	int aLength;
-	wxString fourspaces = _T("    ");
-	wxString aURL = urlsArray.Item(0);
-	int maxLength = aURL.Length(); // the length of the first url
-	wxString aLine;
-	for (i = 1; i < counter; i++)
-	{
-		aURL = urlsArray.Item(i);
-		aLength = aURL.Length();
-		if (aLength > maxLength)
-		{
-			maxLength = aLength;
-		}
-	}
-#if defined(_DEBUG)
-	wxLogDebug(_T("BuildUrlAndNamesMessageString(): maxLength = %d  and number of entries = %d"), maxLength, counter);
-#endif
-	int j;
-	int nPadding;
-	for (i = 0; i < counter; i++)
-	{
-		aURL = urlsArray.Item(i);
-		aLength = aURL.Length();
-		if (aLength < maxLength)
-		{
-			// Pad its end with spaces, then add four more
-			nPadding = maxLength - aLength;
-			for (j = 0; j < nPadding; j++)
-			{
-				aURL += oneExtra;
-			}
-		}
-		aLine = aURL + fourspaces;
-		aLine += namesArray.Item(i); // add the KBserver name
-		aLine += _T('\n'); // start a new line
-		msgStr += aLine;
-	}
-	return msgStr;
 }
 
 // public accessor
@@ -3141,8 +2967,7 @@ void CMainFrame::OnDiscoverKBservers(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-	// Do a single discovery run. If more than one is running, which one it will latch
-	// on to cannot be controlled - it's an accident of timing; Leon's way may latch
+	// Do a single discovery run. Leon's way may latch
 	// on to more than one in a run
 	gpApp->m_bServDiscSingleRunIsCurrent = TRUE; // update handler uses this
 
@@ -3153,12 +2978,6 @@ void CMainFrame::OnDiscoverKBservers(wxCommandEvent& WXUNUSED(event))
 
 		gpApp->m_bServDiscSingleRunIsCurrent = FALSE;
 	}
-	else
-	{
-		// This is the old legacy wxServDisc-based way, with threading etc
-//		gpApp->DoServiceDiscoverySingleRun();
-	}
-	//gpApp->m_bServDiscSingleRunIsCurrent = FALSE; // delay reset until OnCustomEventEndServiceDiscovery()
 }
 
 void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
@@ -3173,39 +2992,6 @@ void CMainFrame::OnUpdateDiscoverKBservers(wxUpdateUIEvent& event)
 	}
 }
 
-/*
-// ************** REMOVE THIS AND THE UPDATE HANDLER WHEN LEON's SOLUTION IS WORKING ***************
-void CMainFrame::OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event))
-{
-	// Do a burst of KBserver discovery runs. Each run is limited to discoverying one.
-	// Which get discovered is a matter of accidents of timing between the multicast
-	// frequency and when those happen, and when each discovery run begins its 1 second
-	// of scanning. KBservers which multicast hard on the heels of an earlier one are
-	// hard to detect, and more than one burst may be required to find such ones
-	gpApp->m_bServDiscBurstIsCurrent = TRUE;
-	gpApp->DoKBserverDiscoveryRuns();
-	gpApp->m_bServDiscBurstIsCurrent = FALSE;
-}
-
-void CMainFrame::OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event)
-{
-	// It should be possible for the user to request another set of service discovery runs
-	// in order to try get hold of a running KBserver not grabbed in earlier runs, so long
-	// as he is in a project that has document open and the document has data. Sharing of
-	// a KB is pointless in any other circumstance. However, disable the menu item if a
-	// burst of discovery scans is currently in progress - one or more of m_pServDiscThread[]
-	// non-NULL tests positive for scanning to be currently in progress
-	if (gpApp->m_pKB != NULL && gpApp->m_pSourcePhrases->GetCount() > 0)
-	{
-		if (gpApp->m_bServDiscBurstIsCurrent || gpApp->m_bServDiscSingleRunIsCurrent)
-			event.Enable(FALSE);
-		else
-			event.Enable(TRUE);
-	}
-	else
-		event.Enable(FALSE);
-}
-*/
 #endif
 
 // TODO: uncomment EVT_MENU event handler for this function after figure out
@@ -4605,11 +4391,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		}
 
 		// The dialog window is no longer needed, get rid of it
-		//if (pHowGetUrl != NULL)
-		//{
-			//pHowGetUrl->Destroy();
 		modalHowGetUrl.Destroy();
-		//}
+		
 		// We must turn off the booleans, to prevent bogus reentry
 		m_bKbSvrAdaptationsTicked = FALSE;
 		m_bKbSvrGlossesTicked = FALSE;

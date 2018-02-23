@@ -391,14 +391,10 @@ extern wxCriticalSection g_jsonCritSect;
 #include "KBSharingStatelessSetupDlg.h"
 #include "Timer_KbServerChangedSince.h"
 #include "KBSharingMgrTabbedDlg.h"
-#include "ServiceDiscovery.h" // BEW 4Jan16
 #include "ServDisc_KBserversDlg.h" // BEW 12Jan16
 #include "KbSvrHowGetUrl.h"
-#include "Thread_ServiceDiscovery.h"
 extern std::string str_CURLbuffer;
 extern std::string str_CURLheaders;
-
-//#define _shutdown_
 
 #endif // _KBSERVER
 
@@ -17049,39 +17045,6 @@ bool CAdapt_ItApp::AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, boo
 	}
 }
 
-/*
-// Get the https://192.168.n.m part of aLine, as far as the second colon
-wxString CAdapt_ItApp::ExtractURLpart(wxString& aLine)
-{
-wxString emptyStr = _T("");
-wxString search = _T("https://192.168.");
-int offset = aLine.Find(search);
-if (offset == 0)
-{
-int length = search.Len();
-wxString resultStr = aLine.Left(length);
-wxString leftover = aLine.Mid(length);
-offset = leftover.Find(_T(':'));
-wxASSERT(offset >= 3); // there must be at least n.m with n minimally single digits, so 3 or more
-resultStr += leftover.Left(offset);
-return resultStr;
-}
-return wxGetEmptyString();
-}
-*/
-
-void CAdapt_ItApp::ServDiscBackground(int nThreadIndex)
-{
-    // BEW 4Jan16, 2nd param is the parent class for CServiceDiscovery instance, the app class
-
-    // BEW 12Apr16, changed so that CServiceDiscovery instance is created in the thread,
-    // but keeping the app as the parent. Thread's Entry() function calls it, so we can
-    // be sure the thread exists
-    //m_pServDiscThread[nThreadIndex]->m_pServDisc = new CServiceDiscovery(this);
-	//wxUnusedVar(nThreadIndex);
-}
-
-
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if chosenURL contains a URL string to be used for authenticating to
 ///             a discovered running KBserver on the LAN; FALSE if there was a problem or
@@ -17556,9 +17519,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bIsKBServerProject_FromConfigFile = FALSE;
     m_bIsGlossingKBServerProject_FromConfigFile = FALSE;
 
-    m_bServDiscBurstIsCurrent = FALSE; // initialize
     m_bServDiscSingleRunIsCurrent = FALSE; // initialize
-    m_bServDiscGetOneOnly = TRUE; // initialize
 	// BEW 26May16
     m_bAdaptationsKBserverReady = FALSE; // TRUE if a connection is current, to an adaptations KBserver
     m_bGlossesKBserverReady = FALSE; // TRUE if a connection is current, to a glosses KBserver
@@ -53604,7 +53565,6 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 				// has explained what will happen, no further message is needed here
 			}
 		}
-		gpApp->m_bServDiscRunFoundNothing = FALSE; // restore default value
 
 		// BEW 20Jul17 For Leon's scripted discovery, the GUI is blocked until the scan is done,
 		// so we here reinstate the flag being cleared to FALSE

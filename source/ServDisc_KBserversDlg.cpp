@@ -280,10 +280,8 @@ void CServDisc_KBserversDlg::OnButtonMoreInformation(wxCommandEvent& WXUNUSED(ev
 void CServDisc_KBserversDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	// Turn the following two flags off - otherwise the Discover One KBserver and
-	// Discover All KBservers menu commands remain disabled
+	// Turn the following flag off - otherwise the Discover KBservers menu command remains disabled
 	pApp->m_bServDiscSingleRunIsCurrent = FALSE;
-	pApp->m_bServDiscBurstIsCurrent = FALSE;
 	// don't need to do anything except
 	m_bUserCancelled = TRUE;
 	EndModal(wxID_CANCEL);
@@ -314,10 +312,8 @@ void CServDisc_KBserversDlg::OnOK(wxCommandEvent& event)
 	}
 
 
-	// Turn the following two flags off - otherwise the Discover One KBserver and
-	// Discover All KBservers menu commands remain disabled
+	// Turn the following flag off - otherwise the Discover KBservers menu command remains disabled
 	pApp->m_bServDiscSingleRunIsCurrent = FALSE;
-	pApp->m_bServDiscBurstIsCurrent = FALSE;
 	// The caller will read the m_urlSelected value after the dialog is dismissed,
 	// but before it's class instance is destroyed
 	event.Skip(); // dismiss the dialog

@@ -240,7 +240,6 @@ public:
 	// of these are not disabled (but do nothing), so better if I disable them
 	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
 	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
-	void OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event);
 	void OnUpdateDiscoverKBservers(wxUpdateUIEvent& event);
 #endif
 
@@ -250,15 +249,11 @@ public:
 	void OnKBSharingSetupDlg(wxCommandEvent& event);
 	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
 	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
-//	void OnScanForRunningKBservers(wxCommandEvent& WXUNUSED(event));
-//	void OnUpdateScanForRunningKBservers(wxUpdateUIEvent& event);
 	void OnDiscoverKBservers(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateDiscoverKBservers(wxUpdateUIEvent& event);
 	int  GetUrlAndHostnameInventory(wxArrayString& compositesArray, 
 			wxArrayString& urlsArray, wxArrayString& namesArray);
-	wxString BuildUrlsAndNamesMessageString();
 
-	int nEntriesToEndServiceDiscovery;
 private:
 	wxString m_kbserverPassword;
 public:

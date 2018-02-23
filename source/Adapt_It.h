@@ -3166,19 +3166,12 @@ public:
 								 wxString& chosenHostname, enum ServDiscDetail &result);
 	bool	  m_bServiceDiscoveryWanted; // TRUE if ConnectUsingDiscoveryResults is wanted, FALSE for manual URL entry
 										 // and don't ever store the value in any config file; default TRUE
-	bool	  m_bServDiscGetOneOnly; // TRUE if service discovery - but a single run only, is wanted; FALSe
-									 // that a burst of runs should be attempted. I think bursts should be 3 runs each
 	bool	  m_bEnteringKBserverProject; // used in OnIdle() to delay connection attempt until doc is displayed
-	void	  ServDiscBackground(int nThreadIndex);
-	wxTimer   m_servDiscTimer;
 	void	  DoDiscoverKBservers(); // BEW 20Jul17 scan for publishing kbservers - by Leon's scripts
-	int		  m_nSDRunCounter; // counts the number of times ServDiscBackground() is called
-	bool	  m_bServDiscBurstIsCurrent;
 	bool	  m_bServDiscSingleRunIsCurrent;
 	bool	  m_bAuthenticationCancellation;
 	bool	  m_bUserLoggedIn; // TRUE when the user (not an administrator) logs in successfully
 	bool	  m_bLoginFailureErrorSeen; // an aid to prevent too many error messages
-	bool	  m_bServDiscRunFoundNothing; // used for premature halting a burst of scans when no KBservers are running
 
 	void	  ExtractIpAddrAndHostname(wxString& result, wxString& ipaddr, wxString& hostname);
     bool      UpdateExistingAppCompositeStr(wxString& ipaddr, wxString& hostname, wxString& composite);
