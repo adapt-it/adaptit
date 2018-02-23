@@ -101,9 +101,6 @@ extern wxString	gSpacelessTgtPunctuation; // contents of app's m_punctuation[1] 
 /// Defined in Adapt_ItView.cpp
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
-/// This global is defined in PhraseBox.cpp.
-extern wxString		translation; // translation, for a matched source phrase key
-
 /// This global provides a persistent location during the current session for storage of
 /// vertical edit information
 extern	EditRecord gEditRecord; // store info pertinent to generalized editing with entry
@@ -4734,15 +4731,10 @@ bool CFreeTrans::IsFreeTranslationSrcPhrase(CPile* pPile)
 void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 {
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (m_pApp->m_bUseChooseTransDropDown)
-    {
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // Always call Hide when in Free Translation mode
-        if (m_pApp->m_pChooseTranslationDropDown != NULL)
-        {
-            m_pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-        }
-    }
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+    // Always close and clear the dropdown when entering Free Translation mode
+    m_pApp->m_pTargetBox->CloseDropDown();
+    m_pApp->m_pTargetBox->ClearDropDownList();
 
 	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
 
@@ -4989,10 +4981,10 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 				m_pApp->m_targetPhrase = pSP->m_adaption;
 			}
 		}
-		translation = m_pApp->m_targetPhrase; // in case we just unmerged, since a
+        m_pApp->m_pTargetBox->m_Translation = m_pApp->m_targetPhrase; // in case we just unmerged, since a
                         //PlacePhraseBox() call with selector == 1 or 3 will set
                         //m_targetPhrase to whatever is currently in the global string
-                        //translation when it jumps the block of code for removing the new
+                        //m_Translation when it jumps the block of code for removing the new
                         //location's entry from the KB
 		CCell* pCell = pPile->GetCell(1); // need this for the PlacePhraseBox() call
 		m_pView->PlacePhraseBox(pCell,1); // 1 = inhibit saving at old location, as we did it above
@@ -5176,7 +5168,7 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 					   // we want processing to continue regardless)
 		}
 
-		translation.Empty(); // don't preserve anything from a former adaptation state
+        m_pApp->m_pTargetBox->m_Translation.Empty(); // don't preserve anything from a former adaptation state
 		if (m_pApp->m_pTargetBox->GetHandle() != NULL)
 			if (m_pApp->m_pTargetBox->IsShown())
 				m_pApp->m_pTargetBox->SetFocus();
@@ -6684,7 +6676,7 @@ void CFreeTrans::ToggleFreeTranslationMode()
 		{
 			// free translation mode was just turned off
 
-			translation.Empty(); // don't preserve anything from a former adaptation state
+            m_pApp->m_pTargetBox->m_Translation.Empty(); // don't preserve anything from a former adaptation state
 			if (m_pApp->m_pTargetBox->IsShown())
 			{
 				m_pApp->m_pTargetBox->Enable(TRUE);
@@ -6943,11 +6935,11 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 											  // line in the strip
 			if (gbIsGlossing)
 			{
-				translation = pCell->GetPile()->GetSrcPhrase()->m_gloss;
+                m_pApp->m_pTargetBox->m_Translation = pCell->GetPile()->GetSrcPhrase()->m_gloss;
 			}
 			else
 			{
-				translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
+                m_pApp->m_pTargetBox->m_Translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
 			}
 			int selector = 1; // this selector inhibits both intial and final code
 							  // blocks (ie. no save to KB and no removal from KB
@@ -7087,11 +7079,11 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 											  // line in the strip
 			if (gbIsGlossing)
 			{
-				translation = pCell->GetPile()->GetSrcPhrase()->m_gloss;
+                m_pApp->m_pTargetBox->m_Translation = pCell->GetPile()->GetSrcPhrase()->m_gloss;
 			}
 			else
 			{
-				translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
+                m_pApp->m_pTargetBox->m_Translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
 			}
 			int selector = 1; // this selector inhibits both intial and final code blocks
 						// (ie. no save to KB and no removal from KB at the new location)
@@ -7570,11 +7562,11 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 			CCell* pCell = pPrevPile->GetCell(1);
 			if (gbIsGlossing)
 			{
-				translation = pCell->GetPile()->GetSrcPhrase()->m_gloss;
+                m_pApp->m_pTargetBox->m_Translation = pCell->GetPile()->GetSrcPhrase()->m_gloss;
 			}
 			else
 			{
-				translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
+                m_pApp->m_pTargetBox->m_Translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
 			}
 			int selector = 1; // this selector inhibits both intial and final code blocks
                               // (ie. no save to KB and no removal from KB at the new
@@ -10157,7 +10149,7 @@ void CFreeTrans::DoJoinWithPrevious()
 		// Finally, app's m_targetPhrase member will still contain the translation for the
 		// former current section, and it will be carried to othe earlier section (and
 		// shouldn't be) unless we fix it here
-		translation.Empty(); // ensure this global is empty
+        m_pApp->m_pTargetBox->m_Translation.Empty(); // ensure this global is empty
 		m_pApp->m_targetPhrase = pItsAnchorSrcPhr->m_adaption; // may be an empty string
 		m_pApp->m_pTargetBox->ChangeValue(_T("")); // clear it
 		if (!m_pApp->m_targetPhrase.IsEmpty())
@@ -10201,7 +10193,7 @@ void CFreeTrans::DoJoinWithPrevious()
 		// Finally, app's m_targetPhrase member will still contain the translation for the
 		// former current section, and it will be carried to othe earlier section (and
 		// shouldn't be) unless we fix it here
-		translation.Empty(); // ensure this global is empty
+        m_pApp->m_pTargetBox->m_Translation.Empty(); // ensure this global is empty
 		m_pApp->m_targetPhrase = pAnchorSrcPhrase->m_adaption; // may be an empty string
 		m_pApp->m_pTargetBox->ChangeValue(_T("")); // clear it
 		if (!m_pApp->m_targetPhrase.IsEmpty())

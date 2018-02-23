@@ -1240,7 +1240,12 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	wxASSERT(pKB != NULL);
 	int rv = 0; // rv is "return value", initialize it
 	wxString timestamp;
-	wxString curKey;
+    // whm 20Feb2018 note: changed name of local curKey below to currKey to avoid
+    // confusion with CPhraseBox's value (the curKey there was also named to m_CurKey)
+    // But, see uses of the global that might relate to KbServer considerations in
+    // ChooseTranslation.cpp's OnButtonRemove() handler - about line 1487
+    // and ChooseTranslation.cpp's InitDialog() handler - about line 1567-1569.
+    wxString currKey;  
 	s_DoGetAllMutex.Lock();
 	switch (action)
 	{
@@ -1249,16 +1254,16 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
         // call this case this while the user is interactively adapting or glossing,
         // because it will slow the GUI response abysmally. Instead, we'll rely on the
         // occasional ChangedSince() calls getting the local KB populated more quickly.
-		curKey = (m_pApp->m_pActivePile->GetSrcPhrase())->m_key;
+		currKey = (m_pApp->m_pActivePile->GetSrcPhrase())->m_key;
 		// *** NOTE *** in the above call, I've got no support for AutoCapitalization; if
 		// that was wanted, more code would be needed here - or alternatively, use the
 		// adjusted key from within AutoCapsLookup() which in turn would require that we
-		// modify this function to pass in the adjusted string for curKey via
+		// modify this function to pass in the adjusted string for currKey via
 		// DownloadToKB's signature
 // LookupEntriesForSourcePhrase()'s code is currently commented out because we don't use it
 // and so I've commented this call out here; if we end up using it, then remove this
 // commenting out
-//		rv = LookupEntriesForSourcePhrase(curKey);
+//		rv = LookupEntriesForSourcePhrase(currKey);
 		if (rv != 0)
 		{
 			ClearAllPrivateStorageArrays(); // don't risk passing on possibly bogus values

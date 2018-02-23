@@ -92,6 +92,7 @@ class CPlaceholder : public wxEvtHandler
 		CAdapt_ItApp*	m_pApp;	// The app owns this
 		CLayout*		m_pLayout;
 		CAdapt_ItView*	m_pView;
+        bool m_bDummyAddedTemporarily;
 		
 		DECLARE_EVENT_TABLE()
 	};

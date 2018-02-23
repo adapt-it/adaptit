@@ -85,34 +85,7 @@ extern bool gbDoingInitialSetup;
 extern bool	gbAutoCaps;
 
 /// This global is defined in Adapt_It.cpp.
-extern bool	gbSourceIsUpperCase;
-
-/// This global is defined in Adapt_It.cpp.
 extern bool	gbNonSourceIsUpperCase;
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbMatchedKB_UCentry;
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbNoSourceCaseEquivalents;
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbNoTargetCaseEquivalents;
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbNoGlossCaseEquivalents;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharNonSrcLC;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharNonSrcUC;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharSrcLC;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharSrcUC;
 
 /// This global is defined in Adapt_It.cpp.
 extern bool gbSuppressSetup;
@@ -124,9 +97,6 @@ extern EditRecord gEditRecord;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress;
-
-/// This global is defined in Adapt_ItView.cpp.
-extern EditStep gEditStep;
 
 /// This global is defined in Adapt_It.cpp.
 extern CPile* gpGreenWedgePile;
@@ -158,14 +128,6 @@ extern bool gbCheckInclFreeTransText;
 
 /// This global is defined in Adapt_ItView.h.
 extern bool gbCheckInclGlossesText;
-
-//GDLC removed 2010-02-09
-// This global is defined in PhraseBox.cpp
-//extern bool gbExpanding;
-
-//GDLC removed 2010-02-09
-// This global is defined in PhraseBox.cpp
-//extern bool	gbContracting;
 
 // whm NOTE: wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) does not have an
 // equivalent to the nFormat parameter, but wxDC has a SetLayoutDirection(wxLayoutDirection
@@ -964,19 +926,50 @@ void CLayout::PlaceBox()
 		}
 
         // whm added 10Jan2018 to support quick selection of a translation equivalent.
-        if (m_pApp->m_bUseChooseTransDropDown)
-        {
-            // If the dropdown combobox exists and is showing, make sure its position tracks that of the phrasebox
-            if (m_pApp->m_pChooseTranslationDropDown != NULL)
-            {
-                if (m_pApp->m_pChooseTranslationDropDown->IsShown())
-                {
-                    //m_pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox(); // moved to MainFrm's OnIdle() handler
-                    //m_pApp->m_pChooseTranslationDropDown->FocusShowAndPopup(); // moved to MainFrm's OnIdle() handler
-                    m_pApp->m_bChooseTransShowPopup = TRUE;
-                }
-            }
+        // This PlaceBox() function is always called just before the phrasebox 'rests' 
+        // and can be interacted with by the user. Hence this is the main location in the
+        // application where we do the following to set up the content and characteristics 
+        // of the phrasebox's (m_pTargetBox) dropdown control:
+        // 1. Load the contents of the phrasebox's drop down list (via calling PopulateDropDownList() below).
+        //    If this PlaceBox() was called at the point the ChooseTranslation dialog was dismissed
+        //    the pTargetUnitFromChooseTrans parameter to PopulateDropDownList() will be non-NULL and 
+        //    PopulateDropDownList() will use that target unit data to populate the dropdown list. 
+        //    If pTargetUnitFromChooseTrans == NULL, then PopulateDropDownList() will use the appropriate
+        //    KB and its GetTargetUnit() method to populate the dropdown list.
+        // 2. Set which button appears on the dropdown control - down arrow button or disabled (X) button
+        // 3. Set the App flag m_bChooseTransShowPopup to TRUE or FALSE to inform OnInit() whether
+        //    to display the dropdown's list (TRUE) or suppress opening the list (FALSE).
+        // 4. Set the Selection to the first list item (when there are multiple items in the list).
+        // 5. ??? Determine what to enter in the dropdown's edit box when there are no KB ref strings.???
 
+        int selectionIndex = -1;
+        m_pApp->m_pTargetBox->PopulateDropDownList(m_pApp->m_pTargetBox->pTargetUnitFromChooseTrans, selectionIndex); // uses global pTargetUnitFromChooseTrans
+
+        // Clear the ChooseTranslation dialog globals
+        m_pApp->m_pTargetBox->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL; // pTargetUnitFromChooseTrans's main use is finished, so set it back to NULL
+        m_pApp->m_pTargetBox->m_Translation.Empty();
+
+        if (m_pApp->m_pTargetBox->GetCount() > 1)
+        {
+            // There are multiple translation equivalents in the dropdown's list, so
+            // set the dropdown's button to its normal enabled state. 
+            m_pApp->m_pTargetBox->SetButtonBitmaps(m_pApp->m_pTargetBox->dropbutton_normal, false, m_pApp->m_pTargetBox->dropbutton_pressed, m_pApp->m_pTargetBox->dropbutton_hover, m_pApp->m_pTargetBox->dropbutton_disabled);
+            m_pApp->m_pTargetBox->SetSelection(selectionIndex); // set selection to the index determined by PopulatDropDownList above
+            m_pApp->m_bChooseTransShowPopup = TRUE;
+            // TODO: Assign appropriate text to m_pTargetBox here??? Use DoGetSuitableText_ForPlacePhraseBox() here ??? - after if ... else blocks for both ???
+        }
+        else // when m_pApp->m_pTargetBox->GetCount() == 0
+        {
+            // There are no translation equivalents in the dropdown's list, so
+            // set the dropdown's button to its "disabled" state. 
+            m_pApp->m_pTargetBox->SetButtonBitmaps(m_pApp->m_pTargetBox->dropbutton_blank, false, m_pApp->m_pTargetBox->dropbutton_blank, m_pApp->m_pTargetBox->dropbutton_blank, m_pApp->m_pTargetBox->dropbutton_blank);
+            m_pApp->m_bChooseTransShowPopup = FALSE;
+            // A previous call to PlacePhraseBox() would have called DoGetSuitableText_ForPlacePhraseBox() which 
+            // stored a suitable string str which was assigned to the App's m_targetPhrase member, and it would have
+            // been followed by AutoCaps processing. We should be able to put it in the m_pTargetBox here.
+            m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
+            m_pApp->m_pTargetBox->SetSelection(-1, -1); // select all
+            m_pApp->m_pTargetBox->SetFocus();
         }
 	}
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
@@ -1899,11 +1892,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		// we have no active active location currently, and the box is hidden, the active
 		// pile is null and the active sequence number is -1, so we want a layout that has
 		// no place provided for a phrase box, and we'll draw the end of the document
-		//GDLC Removed setting of gbExpanding 2010-02-09
-		//gbExpanding = FALSE; // has to be restored to default value
 	}
-	//GDLC Removed setting of gbContracting 2010-02-09
-	//gbContracting = FALSE; // restore default value
+
 /*
 #ifdef _DEBUG
 	{
@@ -1976,10 +1966,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	}
 #endif
 */
-
-	//GDLC Removed setting of gbExpanding & gb Contracting 2010-02-09
-	//gbExpanding = FALSE; // has to be restored to default value
-	//gbContracting = FALSE; // restore default value (also done above)
 
 	if (!m_pApp->m_bIsPrinting)
 	{

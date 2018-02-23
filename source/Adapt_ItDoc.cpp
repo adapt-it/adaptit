@@ -174,9 +174,6 @@ extern bool gbMismatchedBookCode; // BEW added 21Mar07
 /// This global is defined in MainFrm.cpp.
 extern bool gbIgnoreScriptureReference_Receive;
 
-/// This global is defined in MainFrm.cpp.
-extern bool gbIgnoreScriptureReference_Send;
-
 /// This global is used only in RetokenizeText() to increment the number n associated with
 /// the final number n composing the "Rebuild Logn.txt" files, which inform the user of
 /// any problems encountered during document rebuilding.
@@ -187,9 +184,6 @@ extern bool gbPropagationNeeded;
 
 /// This global is defined in TransferMarkersDlg.cpp.
 extern TextType gPropagationType;
-
-// This global is defined in Adapt_ItView.cpp.  BEW removed 27Jan09
-extern bool gbInhibitMakeTargetStringCall; // see view for reason for this
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbIsUnstructuredData;
@@ -243,9 +237,6 @@ extern	int		gnSaveLeading;
 /// This global is defined in Adapt_ItView.cpp.
 extern	int		gnSaveGap;
 
-/// This global is defined in PhraseBox.cpp.
-extern	wxString	translation;
-
 /// Indicates if the user has cancelled an operation.
 bool	bUserCancelled = FALSE;
 
@@ -255,14 +246,8 @@ bool	bUserCancelled = FALSE;
 /// This global is defined in Adapt_ItView.cpp.
 extern	bool	gbConsistencyCheckCurrent;
 
-/// This global is defined in Adapt_ItView.cpp.
-extern	int		gnOldSequNum;
-
 // This global is defined in Adapt_It.cpp.
 //extern	bool	gbAbortMRUOpen; // whm 1Oct12 removed
-
-/// This global is defined in Adapt_It.cpp.
-extern bool		gbPassedAppInitialization;
 
 /// This global is defined in Adapt_It.cpp.
 extern wxString szProjectConfiguration;
@@ -277,7 +262,6 @@ extern bool gbHackedDataCharWarningGiven;
 extern bool	gbAutoCaps;
 extern bool	gbSourceIsUpperCase;
 extern bool	gbNonSourceIsUpperCase;
-extern bool	gbMatchedKB_UCentry;
 extern bool	gbNoSourceCaseEquivalents;
 extern bool	gbNoTargetCaseEquivalents;
 extern bool	gbNoGlossCaseEquivalents;
@@ -1339,7 +1323,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
 					pView->Invalidate();
 					pApp->m_nActiveSequNum = 0;
-					gnOldSequNum = -1; // no previous location exists yet
+                    pApp->m_nOldSequNum = -1; // no previous location exists yet
 					// get rid of the stored rebuilt source text, leave a space there instead
 					if (pApp->m_pBuffer)
 						*pApp->m_pBuffer = _T(' ');
@@ -1367,13 +1351,13 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 			// set initial location of the targetBox
 			pApp->m_targetPhrase = pView->CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),FALSE);
-			translation = pApp->m_targetPhrase;
+            pApp->m_pTargetBox->m_Translation = pApp->m_targetPhrase;
 			pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
 			pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // calls RecalcLayout()
 
 			// save old sequ number in case required for toolbar's Back button - in this case
 			// there is no earlier location, so set it to -1
-			gnOldSequNum = -1;
+            pApp->m_nOldSequNum = -1;
 
 			// set the initial global position variable
 			break;
@@ -1467,7 +1451,7 @@ bool CAdapt_ItDoc::OnNewDocument()
     // BEW added 01Oct06: to get an up-to-date project config file saved (in case user
     // turned on or off the book mode in the wizard) so that if the app subsequently
     // crashes, at least the next launch will be in the expected mode
-	if (gbPassedAppInitialization && !pApp->m_curProjectPath.IsEmpty())
+	if (pApp->m_bPassedAppInitialization && !pApp->m_curProjectPath.IsEmpty())
 	{
 		bool bOK;
 		if (pApp->m_bUseCustomWorkFolderPath && !pApp->m_customWorkFolderPath.IsEmpty())
@@ -2561,7 +2545,7 @@ void CAdapt_ItDoc::PutPhraseBoxAtDocEnd()
 		else
 		{
 			boxValue = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
-			translation = boxValue;
+            pApp->m_pTargetBox->m_Translation = boxValue;
 		}
 		pApp->m_targetPhrase = boxValue;
 		pApp->m_pTargetBox->ChangeValue(boxValue);
@@ -2616,7 +2600,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 			PutPhraseBoxAtDocEnd();
 #if defined(_DEBUG)
 			wxLogDebug(_T("DoFileSave_Protected() relocation codeblock: translation = %s , m_pTargetBox has: %s"),
-				translation.c_str(), gpApp->m_pTargetBox->GetValue().c_str());
+                gpApp->m_pTargetBox->m_Translation.c_str(), gpApp->m_pTargetBox->GetValue().c_str());
 #endif
 		}
 	}
@@ -4663,17 +4647,13 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (pApp->m_bUseChooseTransDropDown)
-    {
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // If not hidden here, the dropdown combo box will appear in the blank area of the main
-        // frame after the document disappears. It could be destroyed, but we should allow it to
-        // be destroyed at the time its parent (the canvas) is destroyed.
-        if (pApp->m_pChooseTranslationDropDown != NULL)
-        {
-            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-        }
-    }
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+    // If not hidden here, the dropdown combo box will appear in the blank area of the main
+    // frame after the document disappears. It could be destroyed, but we should allow it to
+    // be destroyed at the time its parent (the canvas) is destroyed.
+    pApp->m_pTargetBox->CloseDropDown();
+    pApp->m_pTargetBox->ClearDropDownList();
+
     // whm 19Sep11 moved this block here from above the OnSaveModified() call. See
 	// comment where the code is commented out above for reason for the move.
 	// Remove KBs from the heap, when colloborating with an external editor
@@ -6220,9 +6200,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// BEW 16Aug16, Restore the default, which is Shift_Launch no longer on, if it was on
 	pApp->m_bDoNormalProjectOpening = TRUE;
 
-	//wxLogDebug(_T("3538 at start of OnOpenDocument(), m_bCancelAndSelectButtonPressed = %d"),
-	//	gpApp->m_pTargetBox->GetCancelAndSelectFlag());
-
 	// refactored 10Mar09
 	pApp->m_nSaveActiveSequNum = 0;     // reset to a default initial value, safe for any length of doc
 
@@ -6555,7 +6532,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 
 		// save old sequ number in case required for toolbar's Back button - no earlier one yet,
 		// so just use the value -1
-		gnOldSequNum = -1;
+        pApp->m_nOldSequNum = -1;
 	}
 
 	// determine m_curOutputPath, so it can be saved to config files as m_lastDocPath
@@ -6573,10 +6550,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
     // BEW added 01Oct06: to get an up-to-date project config file saved (in case user
     // turned on or off the book mode in the wizard) so that if the app subsequently
     // crashes, at least the next launch will be in the expected mode (see near top of
-    // CAdapt_It.cpp for an explanation of the gbPassedAppInitialization global flag)
+    // CAdapt_It.cpp for an explanation of the m_bPassedAppInitialization flag)
 	// BEW added 12Nov09, m_bAutoExport test to suppress writing the project config file
 	// when export is done from the command line export command
-	if (gbPassedAppInitialization && !pApp->m_curProjectPath.IsEmpty() && !pApp->m_bAutoExport)
+	if (pApp->m_bPassedAppInitialization && !pApp->m_curProjectPath.IsEmpty() && !pApp->m_bAutoExport)
 	{
         // BEW on 4Jan07 added change to WriteConfiguration to save the external current
         // work directory and reestablish it at the end of the WriteConfiguration call,
@@ -18198,7 +18175,7 @@ bool CAdapt_ItDoc::DeleteContents()
 		pApp->m_targetPhrase = _T("");
 	}
 
-	translation = _T(""); // make sure the global var is clear
+    pApp->m_pTargetBox->m_Translation.Empty(); // make sure the global var is clear
 
 	return wxDocument::DeleteContents(); // just returns TRUE
 }
@@ -22487,21 +22464,21 @@ void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& e
 	// is called by explicit menu action, not when it is called from other functions.
 	if (event.GetId() == ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES)
 	{
-		if (!gbIgnoreScriptureReference_Send)
+		if (!gpApp->m_bIgnoreScriptureReference_Send)
 			gpApp->LogUserAction(_T("Send Synchronized Scrolling Messages OFF"));
 		else
 			gpApp->LogUserAction(_T("Send Synchronized Scrolling Messages ON"));
 	}
 
 	// toggle the setting
-	if (!gbIgnoreScriptureReference_Send)
+	if (!gpApp->m_bIgnoreScriptureReference_Send)
 	{
 		// toggle the checkmark to OFF
 		if (pAdvancedMenuSendSSMsgs != NULL)
 		{
 			pAdvancedMenuSendSSMsgs->Check(FALSE);
 		}
-		gbIgnoreScriptureReference_Send = TRUE;
+        gpApp->m_bIgnoreScriptureReference_Send = TRUE;
 	}
 	else
 	{
@@ -22510,7 +22487,7 @@ void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& e
 		{
 			pAdvancedMenuSendSSMsgs->Check(TRUE);
 		}
-		gbIgnoreScriptureReference_Send = FALSE;
+        gpApp->m_bIgnoreScriptureReference_Send = FALSE;
 	}
 }
 
@@ -24344,9 +24321,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 //#endif
 								// TRUE in StoreText call is support for a <no adaptation> empty
 								// string; if has effect only if newAdaption is empty
-								gbInhibitMakeTargetStringCall = TRUE;
+								pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 								pKB->StoreText(pSrcPhrase, pSrcPhrase->m_adaption, TRUE);
-								gbInhibitMakeTargetStringCall = FALSE;
+                                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 
 								// check if it has also a non-deleted <Not In KB>
 								// CRefString in pTU, if so, it would be inconsistent to
@@ -24530,9 +24507,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                                     // subsequent errors that may exist -- same below, when
                                     // we don't do the same fix in pKBCopy, it's for this
                                     // reason also)
-									gbInhibitMakeTargetStringCall = TRUE;
+                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation, TRUE);
-									gbInhibitMakeTargetStringCall = FALSE;
+                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 
 									// check if it has also a non-deleted <Not In KB>
 									// CRefString in pTU, if so, it would be inconsistent to
@@ -24679,9 +24656,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								if (tempStr.IsEmpty())
 								{
 									// TRUE = allow empty string storage
-									gbInhibitMakeTargetStringCall = TRUE;
+                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase,tempStr,TRUE);
-									gbInhibitMakeTargetStringCall = FALSE;
+                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 								}
 								else
 								{
@@ -24770,9 +24747,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							case store_empty_meaning:
 								{
 									// make a normal entry of it in pKB (leave pKBCopy unchanged)
-									gbInhibitMakeTargetStringCall = TRUE;
+                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation, TRUE);
-									gbInhibitMakeTargetStringCall = FALSE;
+                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 
 									// check if it has also a non-deleted <Not In KB>
 									// CRefString in pTU, if so, it would be inconsistent to
@@ -24926,9 +24903,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                                     // subsequent errors that may exist -- same below, when
                                     // we don't do the same fix in pKBCopy, it's for this
                                     // reason also)
-									gbInhibitMakeTargetStringCall = TRUE;
+                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation, TRUE);
-									gbInhibitMakeTargetStringCall = FALSE;
+                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 
 									// check if it has also a non-deleted <Not In KB>
 									// CRefString in pTU, if so, it would be inconsistent to
@@ -25195,9 +25172,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								if (tempStr.IsEmpty())
 								{
 									// TRUE = allow empty string storage
-									gbInhibitMakeTargetStringCall = TRUE;
+                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase,tempStr,TRUE);
-									gbInhibitMakeTargetStringCall = FALSE;
+                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 								}
 								else
 								{
@@ -25344,9 +25321,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							case store_empty_meaning:
 								{
 									// make the empty adaptation a normal entry  in KB
-									gbInhibitMakeTargetStringCall = TRUE;
+                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
-									gbInhibitMakeTargetStringCall = FALSE;
+                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 
 									// check if it has also a non-deleted <Not In KB>
 									// CRefString in pTU, if so, it would be inconsistent to
@@ -25854,9 +25831,9 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							// (Remember, in glossing mode, there is no punctuation stripping or restoring)
 							// TRUE in StoreText call is support for a <no adaptation> empty
 							// string; if has effect only if newAdaption is empty
-							gbInhibitMakeTargetStringCall = TRUE;
+                            pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 							pKB->StoreText(pSrcPhrase, pSrcPhrase->m_gloss, TRUE);
-							gbInhibitMakeTargetStringCall = FALSE;
+                            pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 
 							continue;
 						}

@@ -78,6 +78,7 @@ extern size_t aSequNum; // use with TOKENIZE_BUG
 #include <wx/propdlg.h>
 #include <wx/busyinfo.h>
 #include <wx/dynlib.h> // for wxDynamicLibrary
+#include <wx/odcombo.h>
 
 // whm refactored printing 10Oct2016
 // ------------------------------------------------------------
@@ -205,11 +206,6 @@ extern size_t aSequNum; // use with TOKENIZE_BUG
 //#define max(a,b)            (((a) > (b)) ? (a) : (b))
 //#endif
 
-/// This global is defined in Adapt_ItView.cpp.
-bool gbLegacySourceTextCopy = FALSE; // BEW added 16July08 at Roland Fumey's
-									 // request (see CViewPage.h & .cpp)
-//#define IDW_TARGET_EDITBOX 1001
-
 // Globals
 
 // next global is for passing to SetupCursorGlobals()'s third parameter, for box_cursor
@@ -221,38 +217,15 @@ extern const wxChar *FUNC_NAME_EC_INITIALIZE_CONVERTER_AW;
 extern const wxChar *FUNC_NAME_EC_IS_INSTALLED;
 extern const wxChar *FUNC_NAME_EC_CONVERT_STRING_AW;
 
-extern bool gbSavedTargetStringWithPunctInReviewingMode;			// these two are defined in PhraseBox.cpp and are for support
-extern wxString gStrSavedTargetStringWithPunctInReviewingMode;	// of preserving a hole when phrase box lands and leaves while
-													// Reviewing mode is turned on (added 19Dec07)
 /// This global is defined in SplitDialog.cpp.
 extern bool gbIsDocumentSplittingDialogActive; // see SplitDialog.cpp
-
-/// This global is defined in PhraseBox.cpp.
-extern bool gbSuppressStoreForAltBackspaceKeypress;
-extern bool gbNoAdaptationRemovalRequested;
 
 /// This global is defined in MainFrm.cpp.
 extern bool gbIgnoreScriptureReference_Receive;
 
-/// This global is defined in MainFrm.cpp.
-extern bool gbIgnoreScriptureReference_Send;
-
-// for support of scripture synchronizing messages (the sending side of it) -- the
-// following string must differ from the one obtained in the
-// SendScriptureReferenceFocusMessage() function before a new scripture reference focus
-// message is sent (for example, when first entering a new verse, one is sent; but we don't
-// want to send one every time the phrase box lands on another word in the same verse) The
-// view's member function SendScriptureReferenceFocusMessage() accesses this global string.
-wxString gOldChapVerseStr = _T(""); // the "chapter:verse" string used in the last broadcast message
-
-/// This global is defined in Adapt_ItView.cpp.
-extern bool gbLegacySourceTextCopy;	// default is legacy behaviour, to copy the source text (unless
-									// the project config file establishes the FALSE value instead)
-
 /// This global is defined in Adapt_It.cpp.
 extern bool gbFreeTranslationJustRemovedInVFMdialog;
 
-extern bool gbRetainBoxContents; // from version 1.4.2, see CPhraseBox for comments on its use whm added bool
 extern wxString ccErrorStr;	// used in CConsistentChanger
 
 /// This global is defined in Adapt_It.cpp.
@@ -260,13 +233,6 @@ extern wxChar gSFescapechar; // the escape char used for start of a standard for
 
 /// This global is defined in Adapt_It.cpp.
 extern bool gbHasBookFolders; // TRUE when Adaptations folder is found to have Bible book
-
-// Used for inhibiting multiple accesses to MakeTargetStringIncludingPunctuation when only one is needed.
-bool gbInhibitMakeTargetStringCall = FALSE;
-
-// for suppressing MakeTargetStringIncludingPunctuation in ReDoPhraseBox( ) when moving to the
-// previous pile (which might have internal punct & we don't want to see Place dialog)
-extern bool gbMovingToPreviousPile;
 
 // extern declarations for free translation support (whm moved these to the app)
 
@@ -305,42 +271,13 @@ extern bool	gbNonSourceIsUpperCase;
 extern bool	gbMatchedKB_UCentry;
 
 /// This global is defined in Adapt_It.cpp.
-extern bool	gbNoSourceCaseEquivalents;
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbNoTargetCaseEquivalents;
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbNoGlossCaseEquivalents;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharNonSrcLC;
-
-/// This global is defined in Adapt_It.cpp.
 extern wxChar gcharNonSrcUC;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharSrcLC;
-
-extern bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
-							   // is enabled, FALSE is legacy initial position only
-extern int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
-							// character was found to be located, wxNOT_FOUND if not located
-
 
 /// This global is defined in Adapt_It.cpp.
 extern wxString szProjectConfiguration;
 
 /// This global is defined in Adapt_It.cpp.
 extern wxString szAdminProjectConfiguration;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharSrcUC;
-
-bool	gbCallerIsRemoveButton = FALSE;
-
-// for getting source text updated after an edit
-//int	gnOldMaxIndex = 0;
 
 // next four are for version 2.0 which includes the option of a 3rd line for glossing
 
@@ -374,11 +311,6 @@ bool	gbIsUnstructuredData = FALSE;
 
 /// This global is defined in Adapt_It.cpp.
 extern bool gbDoingInitialSetup;
-
-//extern wxArrayString m_exportBareMarkers;
-//extern wxArrayString m_exportMarkerAndDescriptions;
-//extern wxArrayInt m_exportFilterFlags;
-//extern wxArrayInt m_exportFilterFlagsBeforeEdit; // to detect any changes to list of markers for export
 
 // Note: for the following, when TRUE the item is placed into the body of the output text (as boxed
 // paragraphs for non-interlinear RTF output; as separate table row for interlinear RTF output). When
@@ -486,12 +418,6 @@ extern int	gnVerticalBoxBloat; // see CAdapt_ItApp (bloats vertical dim'n of phr
 // strips, etc., we no doubt encounter problems in layout and must avoid inadvertently
 // "reversing" parts of the RTL layout because of the micromanaged layout done in the
 // coding of the MFC version.
-
-bool gbDummyAddedTemporarily = FALSE; // TRUE if an null sourcephrase is to be inserted
-        // after the sel'n or after the active location, when the either of those are at
-        // the GetMaxIndex() location (we use InsertNullSrcPhrase() which always inserts
-        // before a location, so we have to add a dummy at the end until the insert is
-        // done, and then remove it.
 
 //////////////////////////////////////////////////////////////////////////////////////
 // BEW 7May08: the next globals are for source text editing; the refactored functionality
@@ -772,17 +698,8 @@ bool gbVerticalEdit_SynchronizedScrollReceiveBooleanWasON = FALSE;
 // for the refactored code for src text editing
 /////////////////////////////////////////////////////////////////////////////////////
 
-extern bool		gbByCopyOnly;		  // see CPhraseBox for explanation of its function
 extern int		gnLastEarlierChapter; // preserve chapter and verse number used in last call of
 extern int		gnLastEarlierVerse;	  // View Earlier Translation dialog
-
-/// Multiply width of 'w' character this many times to get the slop at right-hand-side
-/// (RHS) of initial phrase box width, or the amount to expand the box by.
-short			gnExpandBox = 8;
-
-/// Use this multiplier to calculate when text gets too near the RHS of the phrase box, so
-/// that expansion becomes necessary - see the FixBox() function in CPhraseBox class.
-short			gnNearEndFactor = 3;
 
 wxRect			grectViewClient;
 
@@ -797,15 +714,6 @@ int				gnSaveLeading = 4;
 /// display the target language and those that display normal target lines.
 int				gnSaveGap = 8;
 
-extern bool		gbUnmergeJustDone;		 // see CPhraseBox for explanation
-extern bool		gbCompletedMergeAndMove; // see CPhraseBox for explanation
-extern bool		gbEnterTyped;			 // see CPhraseBox for explanation
-
-extern  wxString	gSaveTargetPhrase; // for use by the SHIFT+END shortcut for unmerging a phrase
-
-//GDLC Removed 2010-02-09
-//extern	bool	gbExpanding; // see use in CalcPileWidth // defined in CPhraseBox // changed int to bool
-
 /// This global is defined in Adapt_It.cpp.
 extern  int		nSequNumForLastAutoSave;
 
@@ -815,14 +723,6 @@ extern	bool	bUserCancelled;
 extern  bool	gbJustCancelled; // set TRUE when Find or Find & Replace dialog
         // window has just been cancelled and needed for view's OnButtonMerge() function,
         // the look ahead code block
-bool bSuppressDefaultAdaptation = FALSE;	// normally FALSE, but set TRUE whenever
-        // user is wanting a MergeWords done by typing into the phrase box (which also
-        // ensures cons.changes won't be done on the typing) - actually more complex than
-        // this, see CPhraseBox OnChar()
-bool   gbInspectTranslations = FALSE;	// TRUE when user manually opens CChooseTranslation
-		// to inspect adaptations
-extern bool		gbUserCancelledChooseTranslationDlg;
-extern bool		gbSuppressLookup; // see CPhraseBox globals for explanation
 
 // global to make source phrase accessible to dialogs and to the callback functions of the
 // xml parser (so this has multiple uses - beware)
@@ -840,7 +740,6 @@ bool	gbConsistencyCheckCurrent = FALSE;
 // some globals for use in merging
 wxString gOldConcatStr = _T("");			// may have punctuation
 wxString gOldConcatStrNoPunct = _T("");  // has any punctuation removed
-bool	gbMergeSucceeded = FALSE;
 
 // miscellaneous
 bool	gbJustClosedProject = FALSE; // use to suppress Welcome to Adapt It window after doc opened
@@ -855,25 +754,6 @@ bool	gbFindOrReplaceCurrent = FALSE; // for use by CMainFrame's OnActive() funct
 //bool gbMatchedRetranslation = FALSE; BEW 3Aug09 changed it to be the app member
 //m_bMatchedRetranslation
 int  gnRetransEndSequNum; // sequ num of last srcPhrase in a matched retranslation
-
-/// A global for saving a source phrase's old sequence number in case it is required
-/// for the toolbar's Back button; or for saving the active location in a variety of
-/// command handlers. When there is no earlier location, it is set to -1, but you should
-/// never rely on it having the value -1 unless you know you've set -1 earlier
-int gnOldSequNum = -1;
-
-// globals defined in CPhraseBox
-extern int			nWordsInPhrase;
-
-/// This global is defined in PhraseBox.cpp.
-extern wxString		translation; // translation, for a matched source phrase key
-
-extern CTargetUnit*	pCurTargetUnit; // when valid, it is the matched CTargetUnit instance
-extern wxString		curKey; // when non empty, it is the current key string which was matched
-
-// global set by ChooseTranslation, when user selects <no adaptation>, then PhraseBox will
-// not use CopySource() but instead use an empty string for the adaptation
-bool	gbEmptyAdaptationChosen = FALSE;
 
 // global for alerting OnLButtonUp() that selection has been halted at a boundary
 // (set in OnMouseMove())
@@ -1530,11 +1410,11 @@ void CAdapt_ItView::OnInitialUpdate()
 		wxCommandEvent uevent;
 		GetDocument()->OnAdvancedReceiveSynchronizedScrollingMessages(uevent); //toggle flag to TRUE ie. OFF
 	}
-	if (gbIgnoreScriptureReference_Send)
+	if (pApp->m_bIgnoreScriptureReference_Send)
 	{
 		// scripture reference sending starts out turned off, so get
 		// the command unticked (meaning 'it is disabled', that is, turned off)
-		gbIgnoreScriptureReference_Send = FALSE;
+        pApp->m_bIgnoreScriptureReference_Send = FALSE;
 		wxCommandEvent uevent;
 		GetDocument()->OnAdvancedSendSynchronizedScrollingMessages(uevent); //toggle flag to TRUE ie. OFF
 	}
@@ -1698,20 +1578,59 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 	// destroyed too. Therefore, the target box must not be deleted again in
 	// the App's OnExit() method, when the App terminates.
 
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // We need a way to detect whether an event originates in the PhraseBox. Therefore
+    // whm modified 10Jan2018 to support quick selection of a translation equivalent.
+    // The CPhraseBox stored on App's m_pTargetBox is now derived from 
+    // wxOwnerDrawnComboBox.
+    // In case we need a way to detect whether an event originates in the PhraseBox,
     // I'm changing the id below from -1 to a known const int ID_PHRASE_BOX, which
     // has an int value of 22030.
     // The old -1 value during CPhraseBox creation below just functioned to create
     // a random but unique id.
 
+    // Here is the legacy Phrasebox creation code:
     //pApp->m_pTargetBox = new CPhraseBox(pApp->GetMainFrame()->canvas, -1, _T(""),
     //    wxDefaultPosition, wxDefaultSize,
     //    wxSIMPLE_BORDER | wxWANTS_CHARS);
 
-    pApp->m_pTargetBox = new CPhraseBox(pApp->GetMainFrame()->canvas, ID_PHRASE_BOX, _T(""),
-        wxDefaultPosition, wxDefaultSize,
-        wxSIMPLE_BORDER | wxWANTS_CHARS);
+    wxArrayString dummyArrStr;
+
+    // whm 14Feb2018 modified for a CPhraseBox derived from wxOwnerDrawnComboBox. 
+    // Now we use the CPhraseBox::CPhraseBox custom constructor to create the 
+    // persistent phrasebox/targetbox assigning it to the App's m_pTargetBox 
+    // member. Its position and size is set programatically in code just as it
+    // was when it was derived from wxTextCtrl.
+
+    pApp->m_pTargetBox = new CPhraseBox(
+        pApp->GetMainFrame()->canvas,
+        ID_PHRASE_BOX,
+        _T(""),
+        wxDefaultPosition,
+        wxDefaultSize,
+        dummyArrStr,
+        wxCB_DROPDOWN | wxTE_PROCESS_ENTER); // legacy flags: wxSIMPLE_BORDER | wxWANTS_CHARS);
+
+    // whm Additional Notes 14Feb2018:
+    // The styles that were used for the wxTextCtrl derived phrasebox were: wxSIMPLE_BORDER | wxWANTS_CHARS
+    // wxWidgets Docs say about these styles which are styles of wxWindow:
+    //    The wxWANTS_CHARS style "Use to indicate that the window wants to get all char / key events 
+    // for all keys - even for keys like TAB or ENTER which are usually used for dialog 
+    // navigation and which wouldn't be generated without this style. If you need to use 
+    // this style in order to get the arrows or etc., but would still like to have normal 
+    // keyboard navigation take place, you should call Navigate in response to the key 
+    // events for Tab and Shift-Tab."
+    //    The wxBORDER_SIMPLE style - "Displays a thin border around the window. wxBORDER_SIMPLE
+    // is the old name for this style."
+    //
+    // For the wxOwnerDrawnComboBox, it already has a simple border around its text control part
+    // but I've used the styles: wxCB_DROPDOWN | wxTE_PROCESS_ENTER which are more pertinent to
+    // the standard wxComboBox. I think the wxOwnerDrawnComboBox already makes use of them 
+    // internally, so our use of them here is probably redundant (omitting the wxCB_DROPDOWN style,
+    // we still get a fully functional owner drawn combo box).
+    // wxWidgets Docs say say of these styles which are styles of wxComboCtrl:
+    //    The wxCB_DROPDOWN style - "Creates a combobox with a drop-down list. MSW and Motif only. "
+    //    The wxTE_PROCESS_ENTER style - "The control will generate the event wxEVT_TEXT_ENTER (otherwise 
+    // pressing Enter key is either processed internally by the control or used for navigation between 
+    // dialog controls). Windows only."
 
     // whm Notes on the wxTextCtrl style flags:
 	// wxSIMPLE_BORDER - Displays a thin border around the window.
@@ -1724,6 +1643,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 	// the key events for Tab and Shift-Tab.
 	// wxTAB_TRAVERSAL - Use this to enable tab traversal for non-dialog windows
 	// (not needed for phrasebox).
+
 	pApp->m_pTargetBox->ChangeValue(_T(""));
 	// hide and disable the target box until input is expected
 	pApp->m_pTargetBox->Hide();
@@ -1997,7 +1917,7 @@ int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
 	int charWidth;
 	int charDummyHeight;
 	pDC->GetTextExtent(aChar,&charWidth,&charDummyHeight);
-	pileWidth += gnExpandBox*charWidth; // allow same slop factor as for
+	pileWidth += pApp->m_nExpandBox*charWidth; // allow same slop factor as for
 										// RemakePhraseBox & OnChar
 	dc.SetFont(SaveFont); // restore original font, don't need wxClientDC any more
 	return pileWidth;
@@ -2025,7 +1945,7 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 	// whm modified 29Oct10 to handle Guessing
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	gbByCopyOnly = FALSE; // set this flag FALSE, so text put in the box won't
+	pApp->m_pTargetBox->m_bBoxTextByCopyOnly = FALSE; // set this flag FALSE, so text put in the box won't
             // be thrown away if user subsequently clicks to place box elsewhere
             // without doing anything in the phrase box first
 	wxString pasteStr;
@@ -2096,8 +2016,8 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
     // selection. If so, then use wxTextCtrl's Remove() method to only remove the
     // selection.
 	long nS, nE;
-	if (!pApp->m_pTargetBox->GetStringSelection().IsEmpty()) // whm added to
-												// only Remove any selected text
+    // whm added to only Remove any selected text
+	if (!pApp->m_pTargetBox->GetTextCtrl()->GetStringSelection().IsEmpty()) // whm 14Feb2018 added GetTextCtrl()->
 	{
 		pApp->m_pTargetBox->GetSelection(&nS,&nE);
 		pApp->m_pTargetBox->Remove(nS,nE); //m_targetBox.Clear();
@@ -2164,10 +2084,10 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 			nSaveActiveSequNum = nFirstSequNum;
 
 		// do the merge
-		bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN for temporary
+		pApp->m_pTargetBox->m_bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN for temporary
 										   // suppression only
 		MergeWords();
-		bSuppressDefaultAdaptation = FALSE;
+        pApp->m_pTargetBox->m_bSuppressDefaultAdaptation = FALSE;
 
 		// restore the active pile pointers
 		pPile = GetPile(nSaveActiveSequNum);
@@ -2374,7 +2294,7 @@ bool CAdapt_ItView::SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 
 		// jump to whatever pile is not in a retranslation, as close to wanted loc'n as possible
 		nSaveActiveSequNum = pSrcPhrase->m_nSequNumber;
-		gnOldSequNum = nSaveActiveSequNum; // the only safe option, since old location may now
+        pApp->m_nOldSequNum = nSaveActiveSequNum; // the only safe option, since old location may now
 										   // be within the retranslation
 		Jump(pApp,pSrcPhrase);
 	}
@@ -2540,7 +2460,7 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 	{
 		// there is as yet no translation for this source phrase & no copy from source
 		pApp->m_pTargetBox->m_bAbandonable = TRUE;
-		gbByCopyOnly = FALSE;
+        pApp->m_pTargetBox->m_bBoxTextByCopyOnly = FALSE;
 	}
 	else
 	{
@@ -2552,7 +2472,7 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
         // never set TRUE, regardless of the value of the m_bHasKBEntry and m_bNotInKB
 		// flags. It's then the bNoValidText which is significant, and that has to be TRUE
 		// (indicative of a "hole") for lookup to take place.
-		gbByCopyOnly = FALSE;
+        pApp->m_pTargetBox->m_bBoxTextByCopyOnly = FALSE;
 		if (bNoValidText)
 		{
             // BEW added 20Dec07 to prevent lookup when in Reviewing mode (some further
@@ -2582,9 +2502,9 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 					// no text or punctuation, or no text and punctuation not yet placed,
 					// or no text and punctuation was earlier placed -- whichever is the case
 					// we need to preserve that state
-					gbSavedTargetStringWithPunctInReviewingMode = TRUE;  // it gets cleared again at
+                    pApp->m_pTargetBox->m_bSavedTargetStringWithPunctInReviewingMode = TRUE;  // it gets cleared again at
 															// end of MakeTargetStringIncludingPunctuation()
-					gStrSavedTargetStringWithPunctInReviewingMode = pSrcPhrase->m_targetStr; // cleared
+                    pApp->m_pTargetBox->m_StrSavedTargetStringWithPunctInReviewingMode = pSrcPhrase->m_targetStr; // cleared
 															// at end of MakeTargetStringIncludingPunctuation()
 				}
 
@@ -2606,11 +2526,11 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 			{
 				if (!gbIsGlossing)// do nix here if glossing is on, since glossing disallows merges
 				{
-					if (!gbCompletedMergeAndMove) // (true means phrase box moved before Choose
+					if (!pApp->m_pTargetBox->m_bCompletedMergeAndMove) // (true means phrase box moved before Choose
 					{							  // Translation dialog can be shown, see LookAhead( )
 						// do this only if the flag was not set
 						pApp->m_pTargetBox->m_bAbandonable = FALSE;
-						if (nWordsInPhrase > 1) // nWordsInPhrase is a global
+						if (pApp->m_pTargetBox->m_nWordsInPhrase > 1) // m_nWordsInPhrase is a global
 						{
 							// do the needed merge, etc.
 							pApp->bLookAheadMerge = TRUE; // set static flag to ON
@@ -2631,34 +2551,34 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
                 // except null text - unless there already is something on the source
                 // phrase - in which case use that
 				pApp->m_pTargetBox->m_bAbandonable = FALSE;
-                // if we are glossing, then the global variable wxString translation, will
+                // if we are glossing, then the global variable wxString m_Translation, will
                 // have the gloss because a successful lookup was done
 				if (!gbIsGlossing)
 				{
                     // if adapting, check for a not in kb entry and if it is, then adjust
-                    // translation; strictly speaking we only want to clear the string when
+                    // m_Translation; strictly speaking we only want to clear the string when
                     // in Drafting mode, but in Reviewing mode we want to let whatever was
                     // formerly there continue unchanged, so a test would be appropriate
                     // here if it was not for the fact that above we wrap the LookAhead
                     // call in a test of the m_bDrafting flag, and so in Reviewing mode
                     // bGotOne remains FALSE and so this current block would not be entered
-					if (translation == _T("<Not In KB>"))
+					if (pApp->m_pTargetBox->m_Translation == _T("<Not In KB>"))
 					{
 						pApp->m_bSaveToKB = FALSE;
 						pSrcPhrase->m_bHasKBEntry = FALSE; // ensures * shows above this srcPhrase
 						pSrcPhrase->m_bNotInKB = TRUE;
 						if (pSrcPhrase->m_targetStr.IsEmpty())
 						{
-							translation.Empty(); // clear the global
+                            pApp->m_pTargetBox->m_Translation.Empty(); // clear the global
 							pApp->m_targetPhrase.Empty();
 						}
 						else
 						{
-							translation = pSrcPhrase->m_targetStr;
+                            pApp->m_pTargetBox->m_Translation = pSrcPhrase->m_targetStr;
 						}
 					}
 				}
-				str = translation; // adapting or glossing, put the final translation into str
+				str = pApp->m_pTargetBox->m_Translation; // adapting or glossing, put the final m_Translation into str
 			}
 		}
 		else // there is valid text -- this is typically the case when in Reviewing mode; it
@@ -2684,9 +2604,9 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 					// no text or punctuation, or no text and punctuation not yet placed,
 					// or no text and punctuation was earlier placed -- whichever is the case
 					// we need to preserve that state
-					gbSavedTargetStringWithPunctInReviewingMode = TRUE;	// it gets cleared again at end
+                    pApp->m_pTargetBox->m_bSavedTargetStringWithPunctInReviewingMode = TRUE;	// it gets cleared again at end
 															// of MakeTargetStringIncludingPunctuation()
-					gStrSavedTargetStringWithPunctInReviewingMode = pSrcPhrase->m_targetStr; // cleared at
+                    pApp->m_pTargetBox->m_StrSavedTargetStringWithPunctInReviewingMode = pSrcPhrase->m_targetStr; // cleared at
 																// end of MakeTargetStringIncludingPunctuation()
 				}
 				pApp->m_pTargetBox->m_bAbandonable = FALSE; // don't throw away unedited
@@ -2753,13 +2673,13 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 					if (bSomethingIsCopied)
 					{
 						str = CopySourceKey(pSrcPhrase, pApp->m_bUseConsistentChanges);
-													// and it sets gbByCopyOnly to TRUE
+													// and it sets m_bBoxTextByCopyOnly to TRUE
 					}
 					else // nothing copied, or its a null source phrase, or a null string
 					{
                         // we didn't do a copy, so we will want whatever eventually results
                         // to still be stored later on
-						gbByCopyOnly = FALSE;
+                        pApp->m_pTargetBox->m_bBoxTextByCopyOnly = FALSE;
 					}
 					// if its a null source phrase, or the copy source flag is turned off,
 					// or the user stored a null string as the adaption, we don't show anything
@@ -2977,13 +2897,13 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		pOldActiveSrcPhrase = pOldActivePile->GetSrcPhrase();
 		wxASSERT(pOldActiveSrcPhrase);
 	}
-	gbEnterTyped = FALSE; // ensure its false, only hitting ENTER key
+	pApp->m_pTargetBox->m_bEnterTyped = FALSE; // ensure its false, only hitting ENTER key
 						  // should set it TRUE
 	wxASSERT(pCell);
 	if (pCell->GetCellIndex() != 1) // index == 1 is the line of cells
 									// which has the phrase box
 	{
-		gSaveTargetPhrase = pApp->m_targetPhrase; // an adaptation, or a gloss, depending on mode
+		pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_targetPhrase; // an adaptation, or a gloss, depending on mode
 		pLayout->m_docEditOperationType = relocate_box_op;
 		return;
 	}
@@ -3085,7 +3005,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 				bool bOK = TRUE;
 				if (!pApp->m_targetPhrase.IsEmpty())
 				{
-					if (pApp->m_pTargetBox->IsModified()) // MFC GetModify()
+					if (pApp->m_pTargetBox->GetTextCtrl()->IsModified()) // MFC GetModify()  // whm 14Feb2018 added GetTextCtrl()->
 					{
 						if (pApp->m_pTargetBox->m_bAbandonable)
 						{
@@ -3107,7 +3027,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					}
 
 					// it has to be saved to the relevant KB now
-					if (!pApp->m_pTargetBox->m_bAbandonable || !gbByCopyOnly)
+					if (!pApp->m_pTargetBox->m_bAbandonable || !pApp->m_pTargetBox->m_bBoxTextByCopyOnly)
 					{
 						bOK = pApp->m_pTargetBox->DoStore_ForPlacePhraseBox(pApp, pApp->m_targetPhrase);
 					}
@@ -3128,7 +3048,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 						// earlier before returning
 						pApp->m_pTargetBox->SetFocus();
 						pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
-						gSaveTargetPhrase = pApp->m_targetPhrase;
+                        pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_targetPhrase;
 						::wxBell(); // ring the bell to say that something wasn't right
 						pLayout->m_docEditOperationType = relocate_box_op;
 //#ifdef _DEBUG
@@ -3168,19 +3088,10 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),7,pApp->m_nActiveSequNum);
 //#endif
 
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (pApp->m_bUseChooseTransDropDown)
-    {
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
-        // PlacePhraseBox call returns prematurely. We might hide the dropdown combobox later below, 
-        // up to the point that the Invalidate() call is made near the end of this function, but I
-        // think that hiding it here is safer.
-        if (pApp->m_pChooseTranslationDropDown != NULL)
-        {
-            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-        }
-    }
+    // whm note 10Jan2018 to support quick selection of a translation equivalent.
+    // This PlacePhraseBox() ends up by calling the Layout's PlaceBox().
+    // Therefore we don't need to mess with calling CloseDropDown() or
+    // ClearDropDown() here in PlacePhraseBox().
 
 // setup the layout and phrase box at the new location; in the refactored design this
     // boils down to working out what the new active location's sequence number is, and
@@ -3214,12 +3125,12 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	bool bSomethingIsCopied = FALSE;
 
     // if we have just chosen an empty adaptation or gloss string in the Choose Translation
-    // dialog, then ensure that's what appears in the box; gbEmptyAdaptationChosen will be
+    // dialog, then ensure that's what appears in the box; m_bEmptyAdaptationChosen will be
     // TRUE if that is how we got here with an empty str
-	if (gbEmptyAdaptationChosen)
+	if (pApp->m_pTargetBox->m_bEmptyAdaptationChosen)
 	{
 		// str is already empty, so nothing much to do
-		gbEmptyAdaptationChosen = FALSE;
+        pApp->m_pTargetBox->m_bEmptyAdaptationChosen = FALSE;
 
         // this next call relies for it's success on pActivePile being the CPile* at the
         // new active location, and that the partner CSourcePhrase instance has its
@@ -3278,9 +3189,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	}
 
 	// BEW added to test, 27Jun05, for free translation support (added selector == 3 test)
-	if ((selector == 1 || selector == 3) && !translation.IsEmpty())
+	if ((selector == 1 || selector == 3) && !pApp->m_pTargetBox->m_Translation.IsEmpty())
 	{
-		// bypass the removal from KB, since if translation is non-empty, it will have
+		// bypass the removal from KB, since if m_Translation is non-empty, it will have
 		// been done within code higher up in the current call tree (that's what
 		// selector == 1 possibly means in this context)
 		// The selector == 3 case is when the last PlacePhraseBox() call was just to the
@@ -3288,7 +3199,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		// adjustment so a second call can be made after the iterating backwards finishes
 		// -- but later changes mean we need selector == 3 case anyway, even though we no
 		// longer have bundles
-		str = translation;
+		str = pApp->m_pTargetBox->m_Translation;
 
 		// this next call relies for it's success on pActivePile being the CPile* at the
 		// new active location, and that the partner CSourcePhrase instance has its
@@ -3373,7 +3284,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 			}
 		}
 	}
-	gSaveTargetPhrase = pApp->m_targetPhrase;
+    pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_targetPhrase;
 
 	// BEW 1Jun10, moved to here from within DoGetSuitableText_ForPlacePhraseBox(), as it
 	// logically makes no sense in the latter, and is more relevant here (particularly as
@@ -3459,9 +3370,6 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 			}
 		}
 	}
-	//wxLogDebug(_T("2972 before RecalcLayout in view PlacePhraseBox(), m_bCancelAndSelectButtonPressed = %d"),
-	//	pApp->m_pTargetBox->GetCancelAndSelectFlag());
-
     // recalculate the layout; before the actual strips are rebuilt, doc class member
     // ResetPartnerPileWidth(), with bool param, bNoActiveLocationCalculation, default
     // FALSE is called, to get a fresh active pile pointer in m_pileList, and a new gap
@@ -3497,16 +3405,17 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
     // RecalcLayout() calls will clobber any selection we try to make beforehand, so do the
     // selecting now; do it also before recalculating the phrase box, since if anything
     // moves, we want the phrase box location to be correct
-	if (pApp->m_pTargetBox->GetCancelAndSelectFlag())
-	{
-		// this block is entered when the user places the phrase box with a click at a
-		// hole and lookup is done and there is more than one KB adaptation (or gloss)
-		// available and he clicks the Cancel & Select button; DoCancelAndSelect clears
-		// the private bool m_bCancelAndSelectButtonPressed in the CPhraseBox instance
-		pApp->m_pTargetBox->DoCancelAndSelect(this, pApp->m_pActivePile);
-		pApp->m_bSelectByArrowKey = TRUE; // so it is ready for extending
-	}
-	gbCompletedMergeAndMove = FALSE;
+    // whm 22Feb2018 removed - Cancel and Select button in Choose Translation dialog now removed
+	//if (pApp->m_pTargetBox->GetCancelAndSelectFlag())
+	//{
+	//	// this block is entered when the user places the phrase box with a click at a
+	//	// hole and lookup is done and there is more than one KB adaptation (or gloss)
+	//	// available and he clicks the Cancel & Select button; DoCancelAndSelect clears
+	//	// the private bool m_bCancelAndSelectButtonPressed in the CPhraseBox instance
+	//	pApp->m_pTargetBox->DoCancelAndSelect(this, pApp->m_pActivePile);
+	//	pApp->m_bSelectByArrowKey = TRUE; // so it is ready for extending
+	//}
+    pApp->m_pTargetBox->m_bCompletedMergeAndMove = FALSE;
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),14,pApp->m_nActiveSequNum);
 //#endif
@@ -3727,18 +3636,12 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 #endif
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (pApp->m_bUseChooseTransDropDown)
-    {
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // If not hidden here, the dropdown combo box will appear superimposed over the print 
-        // preview. When Print Preview is closed, if the dropdown was open before the preview,
-        // it will appear again popped up - probably due to a PlaceBox() call after the
-        // preview is gone.
-        if (pApp->m_pChooseTranslationDropDown != NULL)
-        {
-            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-        }
-    }
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+    // If not hidden here, the dropdown combo box will appear superimposed over the print 
+    // preview. When Print Preview is closed, if the dropdown was open before the preview,
+    // it will appear again popped up - due to a PlaceBox() call after the preview is gone.
+    pApp->m_pTargetBox->CloseDropDown();
+    //pApp->m_pTargetBox->ClearDropDownList(); // if dropdown has items before Print Preview preserve them when Print Preview closes
 
     // whm 25Sep11 modified. As I did in the PrintOptionsDlg::InitDialog() function,
 	// we should initialize the values of gbCheckInclGlossesText and gbCheckInclFreeTransText
@@ -4385,10 +4288,10 @@ bool CAdapt_ItView::GetChapterAndVerse(SPList* pList, CSourcePhrase* pStartingSr
 /// message needs to be sent, for the current location as defined by where pSrcPhrase
 /// happens to be in the document's pList (the list could be pDoc->m_pSourcePhrases, or a
 /// tempory SPList pointer used for checking a document not currently open). Internally,
-/// the function checks the global CStrings: gOldChapVerseStr and gCurChapVerseStr, and if
+/// the function checks the global CStrings: m_OldChapVerseStr and gCurChapVerseStr, and if
 /// these are not different then a message is not sent; but if they are, then the message
-/// will be sent provided the global bool gbIgnoreScriptureReference_Send is FALSE (the
-/// function call needs to be wrapped by an if (!gbIgnoreScriptureReference_Send) test --
+/// will be sent provided the global bool pApp->m_bIgnoreScriptureReference_Send is FALSE (the
+/// function call needs to be wrapped by an if (!pApp->m_bIgnoreScriptureReference_Send) test --
 /// because the GUI command sets or clears this boolean). Also, internally the overloaded
 /// version of the GetChapterAndVerse() function, which returns TRUE if successful and
 /// FALSE otherwise, is called - and if FALSE is returned then no message is sent. If the
@@ -4399,7 +4302,8 @@ bool CAdapt_ItView::GetChapterAndVerse(SPList* pList, CSourcePhrase* pStartingSr
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::SendScriptureReferenceFocusMessage(SPList* pList, CSourcePhrase* pSrcPhrase)
 {
-	wxASSERT(pList != NULL);
+    CAdapt_ItApp* pApp = &wxGetApp();
+    wxASSERT(pList != NULL);
 	wxASSERT(pSrcPhrase != NULL);
 	wxString strChVerse = _T("");
 	bool bAllIsOK = GetChapterAndVerse(pList, pSrcPhrase, strChVerse);
@@ -4407,7 +4311,7 @@ void CAdapt_ItView::SendScriptureReferenceFocusMessage(SPList* pList, CSourcePhr
 	{
 		return; // don't send any message
 	}
-	if (gOldChapVerseStr == strChVerse)
+	if (pApp->m_OldChapVerseStr == strChVerse)
 	{
         // the currently found scripture reference substring does not differ from that in
         // the last sent message, so don't resend it
@@ -4426,13 +4330,13 @@ void CAdapt_ItView::SendScriptureReferenceFocusMessage(SPList* pList, CSourcePhr
 	}
     // we have a valid substring, and the reference is different than for the last one, so
     // send it (but this function won't be called if the global
-    // gbIgnoreScriptureReference_Send is TRUE, so if control has got to here, then the
+    // pApp->m_bIgnoreScriptureReference_Send is TRUE, so if control has got to here, then the
     // global is FALSE and sending is wanted by the user)
 	SyncScrollSend(strBookCode, strChVerse);
 
 	// finally, update the global wxString which remembers what the this chap:verse
 	// reference was
-	gOldChapVerseStr = strChVerse;
+    pApp->m_OldChapVerseStr = strChVerse;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -5934,6 +5838,7 @@ void  CAdapt_ItView::PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint margi
 // already existing target box. The target box is created once in the App and lives while
 // the app lives. When the target box should not be shown, it is now simply hidden, rather
 // than destroyed and reshown.
+// Called from CPhraseBox::FixBox() and CLayout::PlaceBox()
 void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int nHeight,
 				wxString &text, int nStartingChar, int nEndingChar, CPile* pActivePile)
 {
@@ -5957,9 +5862,10 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 		aWidth = aWidth > nGapWidth ? nGapWidth : aWidth;
 	}
 
-	gbEnterTyped = FALSE; // ensure it is FALSE, only ENTER key typed should set it TRUE
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp);
+
+    pApp->m_pTargetBox->m_bEnterTyped = FALSE; // ensure it is FALSE, only ENTER key typed should set it TRUE
 	wxRect rectBox(wxPoint((*pLoc).x, (*pLoc).y), wxPoint((*pLoc).x + aWidth,
 					(*pLoc).y + nHeight+4)); // logical coords
 
@@ -6558,7 +6464,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		GetDocument()->OnAdvancedReceiveSynchronizedScrollingMessages(uevent); //toggle it to TRUE
 	}
 
-	if (!gbIgnoreScriptureReference_Send)
+	if (!pApp->m_bIgnoreScriptureReference_Send)
 	{
 		// scripture reference sending is turned on, and it must be
 		// off when there is no project current
@@ -8198,6 +8104,25 @@ bool CAdapt_ItView::IsMarkerWithSpaceInFilterMarkersString(wxString& mkrWithSpac
 // retranslation or not, or overlapping one) 
 // BEW refactored 31Jul16 so that if called when ALT key is down, it instead copies
 // the selected m_srcPhrase instances to the clipboard
+// whm 16Feb2018 Notes: 
+// DoSrcPhraseSelCopy() is only called from OnEditCopy() and OnEditCopy() is not triggered
+// by the user invoking Ctrl+C or even Ctrl+ALt+C. Ctrl+ALt+C could call it if it were a defined
+// hot-key in a key handler - but currently is not. Hence, the ALT key will be down when this
+// function executes ONLY if/when accessing the Edit > Copy from the keyboard using the ALT hot 
+// key to access Adapt It's main menu. In fact, the ALT key will NOT be in a down state when 
+// accessing the main menu using just the mouse pointer. 
+// From his 31Jul16 comment above, I assume Bruce instituted the ALT key down detection as a
+// means of copying m_srcPhrase instances to the clipboard (instead of the m_targetPhrase) to
+// ONLY be accomplished in the very limited circumstance that a user first selects source phrase
+// words, then accesses the main Edit menu by holding down the ALT key + E to open the Edit menu
+// and finally selecting the "Copy" command from that Edit menu. 
+// Bruce had the App's m_bALT_KEY_DOWN default to FALSE in OnInit(). He sets it to TRUE in 
+// CPhraseBox::OnKeyDown(). But he attempted to reset it to FALSE in the OnKeyUp() handler but 
+// attempting to do so in OnKeyUp() would never work (ALT+DOWN is never detected there). 
+// Hence, assuming the bAltDown functionality in DoSrcPhraseSelCopy() really is desired, I have 
+// modified Bruce's code in the following manner:
+// 1. Leave m_bALT_KEY_DOWN detection when TRUE as is in OnKeyDown().  
+// 2. Resetting m_bALT_KEY_DOWN to FALSE before return from this DoSrcPhraseSelCopy()
 void CAdapt_ItView::DoSrcPhraseSelCopy()
 {
 	// refactored 7Apr09
@@ -8213,8 +8138,8 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 	wxTheClipboard->Clear();
 
 	bool bAltDown = pApp->m_bALT_KEY_DOWN;
-	wxLogDebug(_T("DoSrcPhraseSelCopy(): app::m_bALT_KEY_DOWN = %s"), 
-		(wxString(pApp->m_bALT_KEY_DOWN ? _T("TRUE") : _T("FALSE"))).c_str());
+	//wxLogDebug(_T("DoSrcPhraseSelCopy(): app::m_bALT_KEY_DOWN = %s"), 
+	//	(wxString(pApp->m_bALT_KEY_DOWN ? _T("TRUE") : _T("FALSE"))).c_str());
 
 	if (pApp->m_selectionLine == 0)
 	{
@@ -8319,10 +8244,15 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 			} // end of else block for test: if (pCell->GetPile() == pApp->m_pActivePile)
 		}
 	}
-	else
-		return;
+    else
+    {
+        pApp->m_bALT_KEY_DOWN = FALSE; // whm 16Feb2018 added
+        return;
+    }
 
-	if (wxTheClipboard->Open())
+    pApp->m_bALT_KEY_DOWN = FALSE; // whm 16Feb2018 added
+
+    if (wxTheClipboard->Open())
 	{
 		// This data objects are held by the clipboard,
 		// so do not delete them in the app.
@@ -8409,9 +8339,9 @@ bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 				// it has to be saved to the KB if not empty
 				MakeTargetStringIncludingPunctuation(pSrcPhrase,pApp->m_targetPhrase);
 				RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
-				gbInhibitMakeTargetStringCall = TRUE;
+                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 				bOK = pApp->m_pKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
-				gbInhibitMakeTargetStringCall = FALSE;
+                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 			}
 			else
 				bOK = TRUE; // no store, but not an error so return TRUE
@@ -8471,16 +8401,11 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (pApp->m_bUseChooseTransDropDown)
-    {
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // OnButtonToEnd will cause a jump to a different location, and we call Hide() at the
-        // initial part of the jump to the new location. 
-        if (pApp->m_pChooseTranslationDropDown != NULL)
-        {
-            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-        }
-    }
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+    // OnButtonToEnd will cause a jump to a different location, and we call Hide() at the
+    // initial part of the jump to the new location. 
+    pApp->m_pTargetBox->CloseDropDown();
+    pApp->m_pTargetBox->ClearDropDownList();
 
     if (pApp->m_bFreeTranslationMode)
 	{
@@ -8494,7 +8419,7 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 		tempStr.Empty();
 		pEdit->ChangeValue(tempStr);
 	}
-	gnOldSequNum = pApp->m_nActiveSequNum; // save old location
+    pApp->m_nOldSequNum = pApp->m_nActiveSequNum; // save old location
 
 	SPList* pList = pApp->m_pSourcePhrases;
 
@@ -8772,7 +8697,7 @@ void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase,
     // function otherwise it will add punctuation to the m_targetStr field on the
     // document's pSrcPhrase which is currently active, and that member already has the
     // required punctuation because we have copied the old string prior to the rebuild
-	gbInhibitMakeTargetStringCall = TRUE;
+    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 	bool bOK = pApp->m_pKB->StoreText(pSrcPhrase,adaptationStr);
 	bOK = bOK; // avoid warning
 	// now the glossing KB
@@ -8783,7 +8708,7 @@ void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase,
 	// restore current mode
 	gbGlossingVisible = bSaveEnableFlag;
 	gbIsGlossing = bSaveGlossingFlag;
-	gbInhibitMakeTargetStringCall = FALSE; // restore the default setting
+    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE; // restore the default setting
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -8858,16 +8783,11 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (pApp->m_bUseChooseTransDropDown)
-    {
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // OnButtonToStart will cause a jump to a different location, and we call Hide() at the
-        // initial part of the jump to the new location. 
-        if (pApp->m_pChooseTranslationDropDown != NULL)
-        {
-            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-        }
-    }
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+    // OnButtonToStart will cause a jump to a different location, and we call Hide() at the
+    // initial part of the jump to the new location. 
+    pApp->m_pTargetBox->CloseDropDown();
+    pApp->m_pTargetBox->ClearDropDownList();
 
     if (pApp->m_bFreeTranslationMode)
 	{
@@ -8882,7 +8802,7 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 		pEdit->ChangeValue(tempStr);
 	}
 
-	gnOldSequNum = pApp->m_nActiveSequNum; // save old location
+    pApp->m_nOldSequNum = pApp->m_nActiveSequNum; // save old location
 
 	SPList* pList = pApp->m_pSourcePhrases;
 
@@ -9274,8 +9194,8 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 				pApp->m_pTargetBox->ChangeValue(pSrcPhr->m_adaption);
 			}
 			pApp->m_pTargetBox->m_bAbandonable = FALSE;
-			// make the translation global string be empty to avoid any confusions
-			translation.Empty();
+			// make the m_Translation string be empty to avoid any confusions
+			pApp->m_pTargetBox->m_Translation.Empty();
 		}
 		else
 		{
@@ -9433,7 +9353,7 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 	int nSaveOldSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 	wxString saveTargetPhrase = pApp->m_targetPhrase;
 
-	gnOldSequNum = pApp->m_nActiveSequNum; // save old location
+    pApp->m_nOldSequNum = pApp->m_nActiveSequNum; // save old location
 
 	// remove any selection to be safe from unwanted selection-related side effects
 	RemoveSelection();
@@ -9471,16 +9391,11 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (pApp->m_bUseChooseTransDropDown)
-    {
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // OnButtonStepDown will cause a jump to a different location, and we call Hide() at the
-        // initial part of the jump to the new location. 
-        if (pApp->m_pChooseTranslationDropDown != NULL)
-        {
-            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-        }
-    }
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+    // OnButtonStepDown will cause a jump to a different location, and we call Hide() at the
+    // initial part of the jump to the new location. 
+    pApp->m_pTargetBox->CloseDropDown();
+    pApp->m_pTargetBox->ClearDropDownList();
 
 	// continuing, because a chapter beginning was found...
 	GetLayout()->m_pDoc->ResetPartnerPileWidth(GetSrcPhrase(nSaveOldSequNum)); // update old loc'n
@@ -9782,18 +9697,13 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (pApp->m_bUseChooseTransDropDown)
-    {
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // OnButtonStepUp will cause a jump to a different location, and we call Hide() at the
-        // initial part of the jump to the new location. 
-        if (pApp->m_pChooseTranslationDropDown != NULL)
-        {
-            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-        }
-    }
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+    // OnButtonStepUp will cause a jump to a different location, and we call Hide() at the
+    // initial part of the jump to the new location. 
+    pApp->m_pTargetBox->CloseDropDown();
+    pApp->m_pTargetBox->ClearDropDownList();
 
-    gnOldSequNum = pApp->m_nActiveSequNum; // save old location
+    pApp->m_nOldSequNum = pApp->m_nActiveSequNum; // save old location
 
 	// remove any selection to be safe from unwanted selection-related side effects
 	RemoveSelection();
@@ -10231,7 +10141,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	bool bSuppressCopyingExtraSourceWords = FALSE;
 	bool bNoninitialSelectionsHaveTranslation = FALSE;	// TRUE if a non-active-location
 												// selected pile has a translation in it
-	if (gbRetainBoxContents)
+	if (pApp->m_pTargetBox->m_bRetainBoxContents)
 	{
         // whenever this is set, the user will have just deselected the default text in the
         // phrase box and selected some source words- and so we get to this present code
@@ -10247,7 +10157,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	}
 
     // if we are merging because of a match when LookAhead was called, set things up using
-    // the nWordsInPhrase (global) value in the PhraseBox file; otherwise, use the
+    // the m_nWordsInPhrase value in the PhraseBox file; otherwise, use the
     // selection (bLookAheadMerge is a static class boolean defined in the CAdapt_ItApp
     // class & set by the LookAhead function in CPhraseBox class)
 #if defined(_DEBUG)
@@ -10273,7 +10183,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 				;
 			}
 		}
-		nCount = nWordsInPhrase; // RHS is a global variable defined in PhraseBox.cpp
+		nCount = pApp->m_pTargetBox->m_nWordsInPhrase; // RHS is a global variable defined in PhraseBox.cpp
 		pPile = pApp->m_pActivePile;
 		wxASSERT(pPile != NULL);
 		pStartingPile = pPile; // need this later - see next block for explanation
@@ -10320,7 +10230,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 				pApp->m_pTargetBox->SetFocus();
 				pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 			}
-			gbMergeSucceeded = FALSE;
+            pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
 			Invalidate(); // get a redraw done, and the phrase box reshown
 			GetLayout()->PlaceBox();
 			pApp->m_bMergerIsCurrent = FALSE;
@@ -10368,11 +10278,11 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
             // contents first, otherwise the contents will be lost when the merge takes
             // place
             // BEW 05Oct06; commented out next line, because CopySourceKey() sets
-            // gbByCopyOnly to TRUE and if a copy has just been done before this merge, it
+            // m_bBoxTextByCopyOnly to TRUE and if a copy has just been done before this merge, it
             // makes no sense to make the flag FALSE here so as to force a copy; so we want
             // the copy skipped if the flag is still TRUE
-			//gbByCopyOnly = FALSE;
-			if (!pApp->m_pTargetBox->m_bAbandonable || !gbByCopyOnly)
+			//m_bBoxTextByCopyOnly = FALSE;
+			if (!pApp->m_pTargetBox->m_bAbandonable || !pApp->m_pTargetBox->m_bBoxTextByCopyOnly)
 			{
 				MakeTargetStringIncludingPunctuation(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 				RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
@@ -10390,11 +10300,11 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 				{
 								pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				}
-				gbInhibitMakeTargetStringCall = TRUE;
+                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 				bool bOK;
 				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 				bOK = bOK; // avoid warning
-				gbInhibitMakeTargetStringCall = FALSE;
+                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 			}
 			// BEW 12Jan17 added this test - copied from block above, see comments in block above for why
 			if (pApp->m_bUseConsistentChanges)
@@ -10524,7 +10434,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 		}
-		gbMergeSucceeded = FALSE;
+        pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
@@ -10554,7 +10464,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 		}
-		gbMergeSucceeded = FALSE;
+        pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
@@ -10580,7 +10490,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 		}
-		gbMergeSucceeded = FALSE;
+        pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		RemoveSelection();
@@ -10610,7 +10520,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 		}
-		gbMergeSucceeded = FALSE;
+        pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
@@ -10636,7 +10546,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 		}
-		gbMergeSucceeded = FALSE;
+        pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
@@ -10665,22 +10575,18 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	if (GetSelectionWordCount() > MAX_WORDS)
 	{
 		pApp->GetRetranslation()->DoRetranslation();
-		gbMergeSucceeded = FALSE;
+        pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
 		pApp->m_bMergerIsCurrent = FALSE;
 		return;
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (pApp->m_bUseChooseTransDropDown)
-    {
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing
-        // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
-        // OnButtonMerge call returns prematurely. 
-        if (pApp->m_pChooseTranslationDropDown != NULL)
-        {
-            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-        }
-    }
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing
+    // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
+    // OnButtonMerge call returns prematurely. PlaceBox() will be called below and may
+    // put up a newly populated dropdown list after this merge.
+    pApp->m_pTargetBox->CloseDropDown();
+    pApp->m_pTargetBox->ClearDropDownList();
 
 	// make pApp->m_targetPhrase cleared, as it must accumulate any existing translations
 	// removed from the KB because of the merge
@@ -10949,7 +10855,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		// legacy behaviour, that is, typically forward selection. Nothing changed here.
-		if (!bSuppressDefaultAdaptation)
+		if (!pApp->m_pTargetBox->m_bSuppressDefaultAdaptation)
 		{
 			if (strOldAdaptation.IsEmpty())
 				// BEW 13Nov10 removed strAdapt support
@@ -11031,12 +10937,12 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
     // the last single character which the user typed, provided that the selections beyond
     // the active location don't have any translation - if they do then we would instead
     // interpret the single keypress as an attempt to replace the earlier stuff. We get
-    // what we want by setting gbRetainBoxContents since OnChar( ) will test the value on
-    // return from MergeWords( ). Two local flags are needed to get this to happen at just
-	// the right times.
+    // what we want by setting pApp->m_pTargetBox->m_bRetainBoxContents to TRUE since 
+    // OnChar( ) will test the value on return from MergeWords( ). Two local flags are 
+    // needed to get this to happen at just the right times.
 	int newLen = pApp->m_targetPhrase.Length();
 	if (newLen > 1 && !bNoninitialSelectionsHaveTranslation)
-		gbRetainBoxContents = TRUE;
+        pApp->m_pTargetBox->m_bRetainBoxContents = TRUE;
 
 	// set up the m_inform attribute, if there are medial markers
 	if (pFirstSrcPhrase->m_bHasInternalMarkers)
@@ -11055,7 +10961,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	}
 	Invalidate();
 	GetLayout()->PlaceBox();
-	gbMergeSucceeded = TRUE;
+    pApp->m_pTargetBox->m_bMergeSucceeded = TRUE;
 	pApp->m_bMergerIsCurrent = FALSE;
 
 //#if defined(FWD_SLASH_DELIM)
@@ -11791,69 +11697,58 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
     // if not then just retain the old merged phrase's translation
 	bool bWantSelect = FALSE;
 	bool bGotTranslation;
-	if (!gbSuppressLookup)
+	bGotTranslation = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
+	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum); // restore pointer, since
+										// LookUpSrcWord() now calls RecalcLayout()
+	if (bGotTranslation)
 	{
-		gbUnmergeJustDone = TRUE; // prevent second OnButtonRestore() call from within
-								  // ChooseTranslation() within LookUpSrcWord() if user happens
-								  // to cancel the Choose Translation dialog (see CPhraseBox code)
-		bGotTranslation = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
-		gbUnmergeJustDone = FALSE; // clear flag, ready for next time
-		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum); // restore pointer, since
-											// LookUpSrcWord() now calls RecalcLayout()
-		if (bGotTranslation)
+		// we have to check here, in case the m_Translation it found was a "<Not In KB>"
+		// - in which case, we must display an empty box and ensure that the pile has an
+		// asterisk above it, etc
+		if (pApp->m_pTargetBox->m_Translation == _T("<Not In KB>"))
 		{
-			// we have to check here, in case the translation it found was a "<Not In KB>"
-			// - in which case, we must display an empty box and ensure that the pile has an
-			// asterisk above it, etc
-			if (translation == _T("<Not In KB>"))
-			{
-				pApp->m_targetPhrase.Empty(); // phrase box must be shown empty
-				pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-				pApp->m_pActivePile->GetSrcPhrase()->m_bNotInKB = TRUE;
-				pApp->m_pActivePile->GetSrcPhrase()->m_adaption.Empty();
-				pApp->m_pActivePile->GetSrcPhrase()->m_targetStr.Empty();
-				bWantSelect = FALSE;
-			}
-			else
-			{
-				pApp->m_targetPhrase = translation; // set using the global var,
-													// set in LookUpSrcWord()
-				bWantSelect = TRUE;
-			}
+			pApp->m_targetPhrase.Empty(); // phrase box must be shown empty
+			pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
+			pApp->m_pActivePile->GetSrcPhrase()->m_bNotInKB = TRUE;
+			pApp->m_pActivePile->GetSrcPhrase()->m_adaption.Empty();
+			pApp->m_pActivePile->GetSrcPhrase()->m_targetStr.Empty();
+			bWantSelect = FALSE;
 		}
-		else // no translation found
+		else
 		{
-			// do the copy of source instead, or nothing if Copy Source flag is not set
-			if (pApp->m_bCopySource)
-			{
-                // copy source key only provided this is not a null source phrase, don't
-                // want "..." copied!
-				pApp->m_targetPhrase =
-						CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),
-										pApp->m_bUseConsistentChanges);
-				bWantSelect = TRUE;
-				pApp->m_pTargetBox->m_bAbandonable = TRUE;
-			}
-			else
-			{
-				pApp->m_targetPhrase.Empty();
-				bWantSelect = FALSE;
-			}
+			pApp->m_targetPhrase = pApp->m_pTargetBox->m_Translation; // set using the global var,
+												// set in LookUpSrcWord()
+			bWantSelect = TRUE;
 		}
+	}
+	else // no translation found
+	{
+		// do the copy of source instead, or nothing if Copy Source flag is not set
+		if (pApp->m_bCopySource)
+		{
+            // copy source key only provided this is not a null source phrase, don't
+            // want "..." copied!
+			pApp->m_targetPhrase =
+					CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),
+									pApp->m_bUseConsistentChanges);
+			bWantSelect = TRUE;
+			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+		}
+		else
+		{
+			pApp->m_targetPhrase.Empty();
+			bWantSelect = FALSE;
+		}
+	}
 
-		// need to recalc layout again
+	// need to recalc layout again
 #ifdef _NEW_LAYOUT
-		GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+	GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
 #else
-		GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+	GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #endif
-		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-		wxASSERT(pApp->m_pActivePile != NULL);
-	}
-	else // was suppressed, so clear the flag now
-	{
-		gbSuppressLookup = FALSE;
-	}
+	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	wxASSERT(pApp->m_pActivePile != NULL);
 
 	if (bWantSelect)
 	{
@@ -13346,7 +13241,7 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 		// refrain from using Unity interface in Precise Pangolin. (BEW 24Jan13, the
 		// problem goes away if the Unity 'global menu' feature is uninstalled - I did so;
 		// or it can be disabled on a per-app basis, but this is too tricky for me to bother.)
-        wxTextCtrl* pEdit2 = pApp->m_pTargetBox;
+        wxTextCtrl* pEdit2 = pApp->m_pTargetBox->GetTextCtrl(); // whm 14Feb2018 added ->GetTextCtrl()
         if (pEdit2 == pWnd)
         {
             pEdit2->Copy();
@@ -13600,7 +13495,7 @@ void CAdapt_ItView::OnEditCut(wxCommandEvent& WXUNUSED(event))
 		pEdit->Cut(); // cut to the clipboard using wxTextCtrl's built in function
 					  // (CF_TEXT format)
 
-	wxTextCtrl* pEdit2 = pApp->m_pTargetBox;
+	wxTextCtrl* pEdit2 = pApp->m_pTargetBox->GetTextCtrl(); // whm 14Feb2018 added ->GetTextCtrl()
 	if (pEdit2 == pWnd)
 	{
 		pEdit2->Cut();
@@ -13782,7 +13677,7 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 		return _T("");
 	}
 
-	if (!gbLegacySourceTextCopy)
+	if (!pApp->m_bLegacySourceTextCopy)
 	{
 		// the user wants smart copying done to the phrase box when the active location
 		// landed on does not have any existing adaptation (in adapting mode), or, gloss
@@ -13809,7 +13704,7 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 		}
 	}
 
-	gbByCopyOnly = TRUE;
+    pApp->m_pTargetBox->m_bBoxTextByCopyOnly = TRUE;
 
 	wxString str2 = _T("");
 	// BEW 13Jan17 Need to make CTargetBox's m_pAbandonable boolean be FALSE if
@@ -13828,7 +13723,7 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 		// apply to the merged string (ie. merged with whatever is returned here)
 		str2 = DoConsistentChanges(str);
 
-		if (gbLegacySourceTextCopy)
+		if (pApp->m_bLegacySourceTextCopy)
 		{
 			//BEW 13Jan17  str2 may have temporary initial & final spaces
 			// still present so get rid of them before testing for inequality
@@ -14167,10 +14062,10 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	// ensure blank variables
-	translation.Empty();
-	curKey.Empty();
-	nWordsInPhrase = 0;
-	pCurTargetUnit = NULL;
+    pApp->m_pTargetBox->m_Translation.Empty();
+	pApp->m_pTargetBox->m_CurKey.Empty();
+    pApp->m_pTargetBox->m_nWordsInPhrase = 0;
+	pApp->m_pTargetBox->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL;
 
 	CKB* pKB;
 	int nCurLongest;
@@ -14213,11 +14108,11 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 
 	// check we are within bounds
 	CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-	// BEW removed test here, 6Aug13 - it was setting nWordsInPhrase to 1 in glossing
+	// BEW removed test here, 6Aug13 - it was setting m_nWordsInPhrase to 1 in glossing
 	// mode, and so phrasal lookups never succeeded
-	nWordsInPhrase = pSrcPhrase->m_nSrcWords;
+    pApp->m_pTargetBox->m_nWordsInPhrase = pSrcPhrase->m_nSrcWords;
 
-	if (nWordsInPhrase > nCurLongest)
+	if (pApp->m_pTargetBox->m_nWordsInPhrase > nCurLongest)
 	{
 		// something is really wrong, this should not be possible
 		wxString str =
@@ -14225,7 +14120,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 "Error: longest phrase in KB is shorter than current source phrase's number of words!\n");
 		str += _T("So this command will be ignored.\n");
 		wxMessageBox(str, _T(""), wxICON_EXCLAMATION | wxOK);
-		nWordsInPhrase = 0;
+        pApp->m_pTargetBox->m_nWordsInPhrase = 0;
 		pApp->m_pTargetBox->SetFocus();
 		return;
 	}
@@ -14254,21 +14149,25 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		wxASSERT(bOK);
 		bOK = bOK; // avoid warning
 	}
-	// get a pointer to the target unit for the current key
-	pCurTargetUnit = pKB->GetTargetUnit(nWordsInPhrase, pSrcPhrase->m_key);
-	if (pCurTargetUnit == NULL)
+	// Get a pointer to the target unit for the current key
+    // whm 10Jan2018 Note: The following assignment to pTargetUnitFromChooseTrans should
+    // be the ONLY place within the sources where a non-null pointer value is
+    // assigned to pTargetUnitFromChooseTrans, now that OnButtonChooseTranslation() is the
+    // sole place where the ChooseTranslation dialog is called.
+    pApp->m_pTargetBox->pTargetUnitFromChooseTrans = pKB->GetTargetUnit(pApp->m_pTargetBox->m_nWordsInPhrase, pSrcPhrase->m_key);
+	if (pApp->m_pTargetBox->pTargetUnitFromChooseTrans == NULL)
 	{
 		// IDS_NO_KB_ENTRY
 		wxMessageBox(_(
 "Sorry, the knowledge base does not yet have an entry matching this source text, so the Choose Translation dialog cannot be shown."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
-		nWordsInPhrase = 0;
+        pApp->m_pTargetBox->m_nWordsInPhrase = 0;
 		pApp->m_pTargetBox->SetFocus();
 		return;
 	}
 	else
 	{
-		curKey = pSrcPhrase->m_key;
+        pApp->m_pTargetBox->m_CurKey = pSrcPhrase->m_key;
 		CChooseTranslation dlg(pApp->GetMainFrame());
 		dlg.Centre();
 		// initialize m_chosenTranslation, other initialization is in OnInitDialog()
@@ -14276,22 +14175,20 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 
 		// put up the dialog
 		bool bCancelled = FALSE;
-		gbInspectTranslations = TRUE; // use TRUE value to hide the "Cancel and Select" button
 		if(dlg.ShowModal() == wxID_OK)
 		{
 			// set the translation static var from the member m_chosenText
-			translation = dlg.m_chosenTranslation;
+            pApp->m_pTargetBox->m_Translation = dlg.m_chosenTranslation;
 			if (dlg.m_bEmptyAdaptationChosen)
-				gbEmptyAdaptationChosen = TRUE; // enable PlacePhraseBox to use the
+                pApp->m_pTargetBox->m_bEmptyAdaptationChosen = TRUE; // enable PlacePhraseBox to use the
 												// null string chosen
 		}
 		else
 		{
 			// must have hit Cancel button
 			bCancelled = TRUE;
-			gbEmptyAdaptationChosen = FALSE;
+            pApp->m_pTargetBox->m_bEmptyAdaptationChosen = FALSE;
 		}
-		gbInspectTranslations = FALSE;
 
         // remove the refString again, to restore the phrase box and KB to the proper state
         // for having landed there - if the user removed the refString in the dialog,
@@ -14317,20 +14214,22 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		// if user hit the cancell button, we can return immediately
 		if (bCancelled)
 		{
-			nWordsInPhrase = 0;
-			pCurTargetUnit = NULL;
-			curKey.Empty();
+            pApp->m_pTargetBox->m_nWordsInPhrase = 0;
+            pApp->m_pTargetBox->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL;
+            pApp->m_pTargetBox->m_CurKey.Empty();
 			pApp->m_pTargetBox->SetFocus();
 			return;
 		}
 
-		// use the translation global variable to set the phrase box to the
+		// use the m_Translation global variable to set the phrase box to the
 		// chosen adaptation
-		pApp->m_targetPhrase = translation;
-		pApp->m_pTargetBox->ChangeValue(translation);
+		pApp->m_targetPhrase = pApp->m_pTargetBox->m_Translation;
+		pApp->m_pTargetBox->ChangeValue(pApp->m_pTargetBox->m_Translation);
+        // whm Note: PlacePhraseBox() call below ends by calling the Layout's PlaceBox() which
+        // in turn calls PopulateDropDownList(). 
 		PlacePhraseBox(pApp->m_pActivePile->GetCell(1), 1); // selector = 1 inhibits the
-							// saving to KB since there was no click to a new location
-		gbEmptyAdaptationChosen = FALSE; // ensure its safely defused!
+							                                // saving to KB since there was no click to a new location
+        pApp->m_pTargetBox->m_bEmptyAdaptationChosen = FALSE; // ensure its safely defused!
 
 		// get a new (valid) active pile pointer, now that the layout is recalculated (again!)
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
@@ -14344,10 +14243,12 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
 		pApp->m_pTargetBox->SetFocus();
-		translation.Empty(); // clear the globals
-		curKey.Empty();
+        // whm 19Feb2018 the m_Translation global is used in PlaceBox() call below by 
+        // PopulateDropDownList() so we must not clear it here, but after it is used there.
+		//pApp->m_pTargetBox->m_Translation.Empty(); // clear the globals
+		//pApp->m_pTargetBox->m_CurKey.Empty();
 		Invalidate();
-		GetLayout()->PlaceBox();
+		GetLayout()->PlaceBox(); // whm note: Why call PlaceBox() here when PlacePhraseBox() above ends by calling PlaceBox() at the same location???
 	}
 }
 
@@ -14525,7 +14426,7 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 		// If there is a subsequent StoreText() call, we'll want m_targetStr
 		// in the pSrcPhrase to get any punctuation addition done, so ensure
 		// this flag is FALSE so that can happen
-		gbInhibitMakeTargetStringCall = FALSE;
+        pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 
 		// Reversion to "Save In Knowledge base" is only able to be done in
 		// adapting mode. In glossing mode, the checkbox is always ticked and
@@ -14535,7 +14436,7 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 		// processing time. The second subtest causes a skip of the call if
 		// Bob Eaton's special use of the KB in collaboration with the
 		// SIL Converters feature is currently turned on
-		if (!gbIsGlossing && !gbSuppressStoreForAltBackspaceKeypress)
+		if (!gbIsGlossing && !pApp->m_pTargetBox->m_bSuppressStoreForAltBackspaceKeypress)
 		{
 			// BEW 4Sep15 added following function call, to make the reversion
 			// happen in every location in every document where it exists as a
@@ -15060,7 +14961,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 #endif */
     // BEW added 19Dec07: bleed out the case when Reviewing mode is on and the box is about
     // to leave a hole which may or may not have had punctuation there; the former
-    // m_targetStr is preserved in gStrSavedTargetStringWithPunctInReviewingMode, and the
+    // m_targetStr is preserved in m_StrSavedTargetStringWithPunctInReviewingMode, and the
     // test for needing to do this restoration is that the global flag
     // gbSavedTargetStringWithPunctInReviewingMode is TRUE, and we must clear the flag
     // before returning
@@ -15068,7 +14969,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 	if ( !(theSequNum == pApp->m_nCurSequNum_ForPlacementDialog &&
 		  pApp->m_nPlacePunctDlgCallNumber > 1) )
 	{
-		if (gbSavedTargetStringWithPunctInReviewingMode)
+		if (pApp->m_pTargetBox->m_bSavedTargetStringWithPunctInReviewingMode)
 		{
 			// the flag will only be true when the location was a hole when the box
 			// landed there, so we can rely on m_targetPhrase being empty provided the
@@ -15080,15 +14981,15 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			if (pApp->m_targetPhrase.IsEmpty())
 			{
 				// it is still empty, so do the restoration etc.
-				pSrcPhrase->m_targetStr = gStrSavedTargetStringWithPunctInReviewingMode;
-				gStrSavedTargetStringWithPunctInReviewingMode.Empty();
-				gbSavedTargetStringWithPunctInReviewingMode = FALSE; // restore default value
+				pSrcPhrase->m_targetStr = pApp->m_pTargetBox->m_StrSavedTargetStringWithPunctInReviewingMode;
+                pApp->m_pTargetBox->m_StrSavedTargetStringWithPunctInReviewingMode.Empty();
+                pApp->m_pTargetBox->m_bSavedTargetStringWithPunctInReviewingMode = FALSE; // restore default value
 				return;
 			}
 			// user must have typed something, so clean up and control can fall thru
 			// to the rest
-			gStrSavedTargetStringWithPunctInReviewingMode.Empty();
-			gbSavedTargetStringWithPunctInReviewingMode = FALSE; // restore default value
+            pApp->m_pTargetBox->m_StrSavedTargetStringWithPunctInReviewingMode.Empty();
+            pApp->m_pTargetBox->m_bSavedTargetStringWithPunctInReviewingMode = FALSE; // restore default value
 		}
 	}
 
@@ -16231,7 +16132,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 	KB_Entry rsEntry;
 	if (pApp->m_nActiveSequNum != -1)
 	{
-		gnOldSequNum = pApp->m_nActiveSequNum; // preserve old location
+        pApp->m_nOldSequNum = pApp->m_nActiveSequNum; // preserve old location
 		if (pApp->m_pTargetBox->GetHandle() != NULL && pApp->m_pTargetBox->IsShown())
 		{
 			// abandon storage when not wanted (test added Oct 2004 - see above comment)
@@ -16282,15 +16183,15 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 				{
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				}
-				gbInhibitMakeTargetStringCall = TRUE;
+                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
-				gbInhibitMakeTargetStringCall = FALSE;
+                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 			}
 		}
 	}
 	else
 	{
-		gnOldSequNum = -1; // if we were at the eof, need -1
+        pApp->m_nOldSequNum = -1; // if we were at the eof, need -1
 						   // to signal no earlier valid location
 	}
 
@@ -16356,16 +16257,11 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 					}
 
                     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-                    if (pApp->m_bUseChooseTransDropDown)
-                    {
-                        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                        // The Jump() call below will be to a different location, and if that location has multiple
-                        // translations possible, the dropdown could re-appear there with different content. 
-                        if (pApp->m_pChooseTranslationDropDown != NULL)
-                        {
-                            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-                        }
-                    }
+                    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+                    // The Jump() call below will be to a different location, and if that location has multiple
+                    // translations possible, the dropdown could re-appear there with different content. 
+                    pApp->m_pTargetBox->CloseDropDown();
+                    pApp->m_pTargetBox->ClearDropDownList();
 
                     // jump to whatever pile is not in a retranslation,
 					// as close to wanted loc'n as possible
@@ -16381,7 +16277,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 #endif
 					// if the user has turned on the sending of synchronized scrolling
 					// messages, send the relevant message
-					if (!gbIgnoreScriptureReference_Send)
+					if (!pApp->m_bIgnoreScriptureReference_Send)
 					{
 						SendScriptureReferenceFocusMessage(pApp->m_pSourcePhrases,pSrcPhrase);
 					}
@@ -16428,16 +16324,11 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 					}
 
                     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-                    if (pApp->m_bUseChooseTransDropDown)
-                    {
-                        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                        // The Jump() call below will be to a different location, and if that location has multiple
-                        // translations possible, the dropdown could re-appear there with different content. 
-                        if (pApp->m_pChooseTranslationDropDown != NULL)
-                        {
-                            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-                        }
-                    }
+                    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+                    // The Jump() call below will be to a different location, and if that location has multiple
+                    // translations possible, the dropdown could re-appear there with different content. 
+                    pApp->m_pTargetBox->CloseDropDown();
+                    pApp->m_pTargetBox->ClearDropDownList();
 
                     // jump to whatever pile is not in a retranslation, as close to wanted
 					// loc'n as possible
@@ -16453,7 +16344,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 #endif
 					// if the user has turned on the sending of synchronized scrolling
 					// messages, send the relevant message
-					if (!gbIgnoreScriptureReference_Send)
+					if (!pApp->m_bIgnoreScriptureReference_Send)
 					{
 						SendScriptureReferenceFocusMessage(pApp->m_pSourcePhrases,pSrcPhrase);
 					}
@@ -16502,16 +16393,11 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 					}
 
                     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-                    if (pApp->m_bUseChooseTransDropDown)
-                    {
-                        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                        // The Jump() call below will be to a different location, and if that location has multiple
-                        // translations possible, the dropdown could re-appear there with different content. 
-                        if (pApp->m_pChooseTranslationDropDown != NULL)
-                        {
-                            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-                        }
-                    }
+                    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+                    // The Jump() call below will be to a different location, and if that location has multiple
+                    // translations possible, the dropdown could re-appear there with different content. 
+                    pApp->m_pTargetBox->CloseDropDown();
+                    pApp->m_pTargetBox->ClearDropDownList();
 
                     // jump to whatever pile is not in a retranslation, as close to wanted
 					// loc'n as possible
@@ -16527,7 +16413,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 #endif
 					// if the user has turned on the sending of synchronized scrolling
 					// messages, send the relevant message
-					if (!gbIgnoreScriptureReference_Send)
+					if (!pApp->m_bIgnoreScriptureReference_Send)
 					{
 						SendScriptureReferenceFocusMessage(pApp->m_pSourcePhrases,pSrcPhrase);
 					}
@@ -16599,16 +16485,11 @@ f:					if (!gbIsGlossing)
 					}
 
                     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-                    if (pApp->m_bUseChooseTransDropDown)
-                    {
-                        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                        // The Jump() call below will be to a different location, and if that location has multiple
-                        // translations possible, the dropdown could re-appear there with different content. 
-                        if (pApp->m_pChooseTranslationDropDown != NULL)
-                        {
-                            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-                        }
-                    }
+                    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+                    // The Jump() call below will be to a different location, and if that location has multiple
+                    // translations possible, the dropdown could re-appear there with different content. 
+                    pApp->m_pTargetBox->CloseDropDown();
+                    pApp->m_pTargetBox->ClearDropDownList();
 
                     // jump to whatever pile is not in a retranslation, as close to wanted
 					// loc'n as possible
@@ -16624,7 +16505,7 @@ f:					if (!gbIsGlossing)
 #endif
 					// if the user has turned on the sending of synchronized scrolling
 					// messages, send the relevant message
-					if (!gbIgnoreScriptureReference_Send)
+					if (!pApp->m_bIgnoreScriptureReference_Send)
 					{
 						SendScriptureReferenceFocusMessage(pApp->m_pSourcePhrases,pSrcPhrase);
 					}
@@ -17577,10 +17458,10 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				}
 				// now do the store
-				gbInhibitMakeTargetStringCall = TRUE;
+                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 									pApp->m_targetPhrase);
-				gbInhibitMakeTargetStringCall = FALSE;
+                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 			}
 			bOK = bOK; // avoid warning
 			// now get rid of the phrase box, until we need it again
@@ -20094,10 +19975,10 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 			pSrcPhrase->m_bHasKBEntry = FALSE;
 			pApp->m_bSaveToKB = TRUE;
 
-            // put the replacement string into the global translation variable, which with
+            // put the replacement string into the m_Translation variable, which with
             // selector value of 1 in the PlacePhraseBox call, will ensure it goes into
             // m_targetPhrase member, and ends up in the created phrase box
-			translation = replStr;
+            pApp->m_pTargetBox->m_Translation = replStr;
 
 			// prepare for phrase box creation
 			pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
@@ -20107,7 +19988,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 			// place the phrase box
 			PlacePhraseBox(pCell,1);
 
-			translation.Empty(); // clear it, no longer needed
+            pApp->m_pTargetBox->m_Translation.Empty(); // clear it, no longer needed
 
 			// get a new active pile pointer, the PlacePhraseBox call
 			// did a recalc of the layout
@@ -20118,7 +19999,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 
             // save old sequ number in case required for toolbar's Back button - after a
             // Replace, the only safe location is the now current active location
-			gnOldSequNum = pApp->m_nActiveSequNum;
+            pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
 			Invalidate();
 			GetLayout()->PlaceBox();
@@ -20164,10 +20045,10 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				onright = oldTgtNoPunct.Right(nRight);
 			}
 
-            // put the final string into the global translation variable, which with
+            // put the final string into the m_Translation variable, which with
             // selector value of 1 in the PlacePhraseBox call, will ensure it goes into
             // m_targetPhrase member, and ends up in the created phrase box
-			translation = left + replStr + onright;
+            pApp->m_pTargetBox->m_Translation = left + replStr + onright;
 
 			// prepare for phrase box creation
 			pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
@@ -20176,16 +20057,16 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 
             // update pSrcPhrase so it shows the new stuff (we can do this because no KB
             // storage is involved)
-			wxString adaptionStr = translation;
+			wxString adaptionStr = pApp->m_pTargetBox->m_Translation;
 			RemovePunctuation(pDoc,&adaptionStr,from_target_text);
 			pSrcPhrase->m_adaption = adaptionStr;
-			pApp->m_targetPhrase = translation;
+			pApp->m_targetPhrase = pApp->m_pTargetBox->m_Translation;
 			MakeTargetStringIncludingPunctuation(pSrcPhrase,pApp->m_targetPhrase);
 
 			// place the phrase box
 			PlacePhraseBox(pCell,1); // selector == 1 inhibits both the
 									 // internal restore code blocks
-			translation.Empty(); // clear it, no longer needed
+            pApp->m_pTargetBox->m_Translation.Empty(); // clear it, no longer needed
 
 			// get a new active pile pointer, the PlacePhraseBox call did a
 			// recalc of the layout
@@ -20195,7 +20076,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 												// since it's a null src phrase
             // save old sequ number in case required for toolbar's Back button - use
             // current location
-			gnOldSequNum = pApp->m_nActiveSequNum;
+            pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
 			Invalidate();
 			GetLayout()->PlaceBox();
@@ -20282,7 +20163,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 
 			// save old sequ number in case required for toolbar's Back button
 			// - use current location
-			gnOldSequNum = pApp->m_nActiveSequNum;
+            pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
 			Invalidate();
 			GetLayout()->PlaceBox();
@@ -20296,7 +20177,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 		wxCommandEvent event;
 		OnButtonMerge(event);
 
-		if (gbMergeSucceeded)
+		if (pApp->m_pTargetBox->m_bMergeSucceeded)
 		{
 			// restore the clobbered pointers
 			pPile = GetPile(pApp->m_nActiveSequNum);
@@ -20390,7 +20271,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 
 			// save old sequ number in case required for toolbar's Back button
 			// - use current location
-			gnOldSequNum = pApp->m_nActiveSequNum;
+            pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
 		}
 		else
@@ -20664,18 +20545,12 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
     // To avoid the popup list leaving a ghost onscreen after a resize event, we dismiss
     // the popup before calling event.Skip() below. Note: The Dismiss() method is not
     // available in wx 2.8.12 so we conditional compile for that version.
-    if (pApp->m_bUseChooseTransDropDown)
-    {
-        if (pApp->m_pChooseTranslationDropDown != NULL)
-        {
 #if wxVERSION_NUMBER < 2900
-            ;
+    ;
 #else
-            pApp->m_pChooseTranslationDropDown->Dismiss();
+    pApp->m_pTargetBox->Dismiss();
+    //pApp->m_pTargetBox->ClearDropDownList(); // don't call ClearDropDownList() here
 #endif     
-        }
-
-    }
 
     // wx note: event.Skip() must be called here in order to pass the size event
     // on to be handled by the CMainFrame::OnSize() method.
@@ -21083,13 +20958,7 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
             // Hence, I will allow the dropdown combo box to appear here as it would for
             // regular adaptation work. If we decide to hide it later, just uncomment the code
             // below.
-            //if (pApp->m_bUseChooseTransDropDown)
-            //{
-            //  if (pApp->m_pChooseTranslationDropDown != NULL)
-            //  {
-            //       pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-            //  }
-            //}
+            // pApp->m_pTargetBox->CloseDropDown();
 
 			tbi->SetShortHelp(_("Show Source And Target Text")); // what will happen if they click the button
 			tbi->SetLabel(_("View Mode")); // what will happen if they click the button
@@ -22425,7 +22294,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 				pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
 				pView->Invalidate();
 				pApp->m_nActiveSequNum = 0;
-				gnOldSequNum = -1; // no previous location exists yet
+                pApp->m_nOldSequNum = -1; // no previous location exists yet
 				return;
 			}
 			else
@@ -22447,7 +22316,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 
 		// set initial location of the targetBox
 		pApp->m_targetPhrase = pView->CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),FALSE);
-		translation = pApp->m_targetPhrase;
+        pApp->m_pTargetBox->m_Translation = pApp->m_targetPhrase;
 		pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
 		pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // calls RecalcLayout()
 
@@ -22553,12 +22422,12 @@ void CAdapt_ItView::OnUpdateImportEditedSourceText(wxUpdateUIEvent& event)
 	if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() &&
 		pApp->m_nActiveSequNum >= 0)
 	{
-		// BEW 26Mar12, removed the test for gnOldSequNum as it is irrelevant for whether
+		// BEW 26Mar12, removed the test for m_nOldSequNum as it is irrelevant for whether
 		// or not to import edited source text (it's designed primarily for support of the
 		// Back button, and I think I cloned this code from elsewhere and didn't realize that
 		// this test here would wrongly prevent an import to a just-opened document in which the
 		// phrase box has not yet been moved)
-		//if (gnOldSequNum == -1)
+		//if (pApp->m_nOldSequNum == -1)
 		//	event.Enable(FALSE);
 		//else
 			event.Enable(TRUE);
@@ -22574,7 +22443,7 @@ void CAdapt_ItView::OnUpdateImportEditedSourceText(wxUpdateUIEvent& event)
 /// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If
 /// Vertical editing is in progress this handler disables the Back button and returns
 /// immediately. Otherwise, if there are source phrases in the App's m_pSourcePhrases list,
-/// if the App's m_endIndex is within a valid range, and if the global gnOldSequNum does
+/// if the App's m_endIndex is within a valid range, and if the global m_nOldSequNum does
 /// not equal -1, this handler enables the toolBar's "Jump Back" button, otherwise it
 /// disables the toolBar button.
 /////////////////////////////////////////////////////////////////////////////////
@@ -22599,7 +22468,7 @@ void CAdapt_ItView::OnUpdateButtonBack(wxUpdateUIEvent& event)
 	if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() &&
 		pApp->m_nActiveSequNum >= 0)
 	{
-		if (gnOldSequNum == -1)
+		if (pApp->m_nOldSequNum == -1)
 			event.Enable(FALSE);
 		else
 			event.Enable(TRUE);
@@ -22615,29 +22484,24 @@ void CAdapt_ItView::OnButtonBack(wxCommandEvent& WXUNUSED(event))
 	// remove any selection to be safe from unwanted selection-related side effects
 	RemoveSelection();
 
-	if (gnOldSequNum == -1)
+	if (pApp->m_nOldSequNum == -1)
 	{
 		::wxBell();
 		return;
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (pApp->m_bUseChooseTransDropDown)
-    {
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // OnButtonBack will cause a jump to a different location, and we call Hide() at the
-        // initial part of the jump to the new location. 
-        if (pApp->m_pChooseTranslationDropDown != NULL)
-        {
-            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-        }
-    }
+    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+    // OnButtonBack will cause a jump to a different location, and we call Hide() at the
+    // initial part of the jump to the new location. 
+    pApp->m_pTargetBox->CloseDropDown();
+    pApp->m_pTargetBox->ClearDropDownList();
 
     // there must be a valid earlier active location, so jump to there
 	int nOldSequNum;
 	if (pApp->m_nActiveSequNum == -1)
 	{
-		// current location is at eof, so gnOldSequNum will need to be set to -1
+		// current location is at eof, so pApp->m_nOldSequNum will need to be set to -1
 		nOldSequNum = -1;
 	}
 	else
@@ -22645,7 +22509,7 @@ void CAdapt_ItView::OnButtonBack(wxCommandEvent& WXUNUSED(event))
 		nOldSequNum = pApp->m_nActiveSequNum; // location we are about to leave
 											  // becomes new old one
 	}
-	CPile* pPile = GetPile(gnOldSequNum);
+	CPile* pPile = GetPile(pApp->m_nOldSequNum);
 	if (pPile != NULL)
 	{
 		// define the new active location & jump there
@@ -22653,7 +22517,7 @@ void CAdapt_ItView::OnButtonBack(wxCommandEvent& WXUNUSED(event))
 		Jump(pApp,pPile->GetSrcPhrase());
 	}
 	// update its value from the saved one in the local variable
-	gnOldSequNum = nOldSequNum;
+    pApp->m_nOldSequNum = nOldSequNum;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -22788,15 +22652,10 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (pApp->m_bUseChooseTransDropDown)
-    {
-        // Invoking the <no adaptation> button indicates user does not want to enter a translation,
-        // so hide the dropdown combobox if it is showing.
-        if (pApp->m_pChooseTranslationDropDown != NULL)
-        {
-            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-        }
-    }
+    // Invoking the <no adaptation> button indicates user does not want to enter a translation,
+    // so hide the dropdown combobox if it is showing.
+    pApp->m_pTargetBox->CloseDropDown();
+    pApp->m_pTargetBox->ClearDropDownList();
 
 	pApp->m_targetPhrase.Empty(); // clear out the attribute on the view
 	pApp->m_pTargetBox->ChangeValue(_T("")); // clear out the box too
@@ -25667,7 +25526,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 	{
 		// any one of the following 3 tests is sufficient cause for attempting to store
 		if (pApp->m_bUserTypedSomething || !pApp->m_pTargetBox->m_bAbandonable ||
-			!gbByCopyOnly)
+			!pApp->m_pTargetBox->m_bBoxTextByCopyOnly)
 		{
 			// make sure m_targetPhrase doesn't have any final spaces
 			pApp->m_pTargetBox->RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
@@ -25676,7 +25535,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 			// unless it's empty
 			if (!pApp->m_targetPhrase.IsEmpty())
 			{
-				if (pApp->m_pTargetBox->IsModified()) //MFC uses GetModify()
+				if (pApp->m_pTargetBox->GetTextCtrl()->IsModified()) //MFC uses GetModify() // whm 14Feb2018 added GetTextCtrl()->
 				{
 					// only save if something (eg a click or typing) has set the box's
 					// dirty flag
@@ -25691,7 +25550,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 				}
 
 				// it has to be saved to the relevant KB now
-				if (!pApp->m_pTargetBox->m_bAbandonable || !gbByCopyOnly)
+				if (!pApp->m_pTargetBox->m_bAbandonable || !pApp->m_pTargetBox->m_bBoxTextByCopyOnly)
 				{
 					KB_Entry rsEntry;
 					if (gbIsGlossing)
@@ -25739,12 +25598,12 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 						{
 							pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 						}
-						gbInhibitMakeTargetStringCall = TRUE;
+                        pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 						bool bOK;
 						bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 															pApp->m_targetPhrase);
 						bOK = bOK; // avoid warning
-						gbInhibitMakeTargetStringCall = FALSE;
+                        pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 					}
 				}
 			} // end block for non-empty box contents
@@ -25786,10 +25645,10 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 					{
 						pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 					}
-					gbInhibitMakeTargetStringCall = TRUE;
+                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 					bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 														pApp->m_targetPhrase);
-					gbInhibitMakeTargetStringCall = FALSE;
+                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 				}
 
 				// check for a failure, abandon the function if the store failed? No, we'll
@@ -28189,7 +28048,7 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNu
 
     // first make sure any pile's CSourcePhrase instance's source text or
     // translation or gloss is not carried forward or back to a different step
-	translation.Empty();
+    pApp->m_pTargetBox->m_Translation.Empty();
 	pApp->m_targetPhrase.Empty();
 
 	// now set up the phrase box
@@ -28200,19 +28059,19 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNu
 	bool bFoundSomething = FALSE;
 	if (gbIsGlossing)
 	{
-		translation = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+        pApp->m_pTargetBox->m_Translation = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
 	}
 	else
 	{
-		translation = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+        pApp->m_pTargetBox->m_Translation = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
 	}
-	if (translation.IsEmpty())
+	if (pApp->m_pTargetBox->m_Translation.IsEmpty())
 	{
 		// this call sets translation to something, or leaves it empty if the lookup
 		// found nothing
 		bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
 	}
-	pApp->m_targetPhrase = translation; // global CString  translation is set
+	pApp->m_targetPhrase = pApp->m_pTargetBox->m_Translation; //m_Translation is set
         // by whatever is adaptation or gloss if user switched modes, and if there is no
         // such string yet, then do LookUpSrcWord() and if there is an entry in the KB, use
         // that, else leave empty
@@ -28222,8 +28081,8 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNu
 	// stored string in pRec, provided nothing was found above
 	if (!bFoundSomething && nSequNum == pRec->nSaveActiveSequNum)
 	{
-		translation = pRec->oldPhraseBoxText;
-		pApp->m_targetPhrase = translation;
+        pApp->m_pTargetBox->m_Translation = pRec->oldPhraseBoxText;
+		pApp->m_targetPhrase = pApp->m_pTargetBox->m_Translation;
 	}
 	CLayout* pLayout = GetLayout();
 #ifdef _NEW_LAYOUT
@@ -29185,18 +29044,13 @@ void CAdapt_ItView::ToggleGlossingMode()
 			// we are changing from glossing to adapting
 
             // whm added 10Jan2018 to support quick selection of a translation/glossing equivalent.
-            if (pApp->m_bUseChooseTransDropDown)
-            {
-                // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                // When changing between adapting and glossing or glossing and adapting, we need to
-                // initially hide the dropdown as it may have content that is initially not appropriate
-                // for the new mode. As adapting or glossing proceeds, it will get filled with glosses 
-                // in its dropdown list when glossing and with adaptations when adapting. 
-                if (pApp->m_pChooseTranslationDropDown != NULL)
-                {
-                    pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-                }
-            }
+            // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+            // When changing between adapting and glossing or glossing and adapting, we need to
+            // initially hide the dropdown as it may have content that is initially not appropriate
+            // for the new mode. As adapting or glossing proceeds, it will get filled with glosses 
+            // in its dropdown list when glossing and with adaptations when adapting. 
+            pApp->m_pTargetBox->CloseDropDown();
+            pApp->m_pTargetBox->ClearDropDownList();
 
 			// get any removed adaptations in gEditRecord into the GUI list; but if the
 			// mode current on is free translations mode, don't do so
@@ -29213,18 +29067,14 @@ void CAdapt_ItView::ToggleGlossingMode()
 			// we are changing from adapting to glossing
 
             // whm added 10Jan2018 to support quick selection of a translation/glossing equivalent.
-            if (pApp->m_bUseChooseTransDropDown)
-            {
-                // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                // When changing between adapting and glossing or glossing and adapting, we need to
-                // initially hide the dropdown as it may have content that is initially not appropriate
-                // for the new mode. As adapting or glossing proceeds, it will get filled with glosses 
-                // in its dropdown list when glossing and with adaptations when adapting. 
-                if (pApp->m_pChooseTranslationDropDown != NULL)
-                {
-                    pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-                }
-            }
+            // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+            // When changing between adapting and glossing or glossing and adapting, we need to
+            // initially hide the dropdown as it may have content that is initially not appropriate
+            // for the new mode. As adapting or glossing proceeds, it will get filled with glosses 
+            // in its dropdown list when glossing and with adaptations when adapting. 
+            pApp->m_pTargetBox->CloseDropDown();
+            pApp->m_pTargetBox->ClearDropDownList();
+
             // get any removed glosses in gEditRecord into the GUI list; but if the
 			// mode current on is free translations mode, don't do so
 			bool bAllsWell;

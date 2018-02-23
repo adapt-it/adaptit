@@ -396,9 +396,6 @@ class Xhtml;
 // forward for Admin Help
 class CHtmlFileViewer;
 
-// forward reference for CChooseTranslationDropDown
-class CChooseTranslationDropDown;
-
 //#include "BString.h"
 
 #if defined(_DEBUG) && defined(__WXGTK__)
@@ -2725,18 +2722,18 @@ public:
     // recreating the targetBox repeatedly as the MFC version did, it now lives undestroyed
     // for the life of the View, and will simply be shown, hidden, moved, and/or resized
     // where necessary.
-	CPhraseBox*		m_pTargetBox;
+	CPhraseBox*		m_pTargetBox; // One of the above pointers will be assigned to this one
+    bool            m_bTargetBoxWithoutList;
 	wxString		m_targetPhrase; // the text currently in the m_targetBox
 	long			m_nStartChar;   // start of selection in the target box
 	long			m_nEndChar;		// end of selection in the target box
 
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    bool m_bUseChooseTransDropDown;
-    CChooseTranslationDropDown* m_pChooseTranslationDropDown;
+    // whm added 10Jan2018 after deriving CPhraseBox from wxOwnerDrawnComboBox
     bool m_bChooseTransShowPopup;
-    bool m_bChooseTransScrolling;
-
-	//bool bUserSelectedFileNew; // BEW removed 24Aug10
+    // whm 21Feb2018 modified by moving some globals out of global space
+    bool m_bLegacySourceTextCopy;
+    bool m_bIgnoreScriptureReference_Send;
+    wxString m_OldChapVerseStr;
 
 	// Single instance checker added as a new feature to wxWidgets version
 	wxSingleInstanceChecker* m_pChecker; // used for preventing more than one
@@ -3074,7 +3071,7 @@ public:
 	bool	 SetupDocCreationLog(wxString& filename);
 	bool	 m_bMakeDocCreationLogfile;
 
-	bool	 m_bALT_KEY_DOWN; // BEW added 31Jul16 to track ALT key down (TRUE), and up (back to FALSE)
+	bool	 m_bALT_KEY_DOWN; // BEW added 31Jul16 to track ALT key down (TRUE), and up (back to FALSE) // whm removed 16Feb2018
 
 #if defined(_KBSERVER)
 	// support for Status bar showing "Deleting n of m" while deleting a kb from KBserver
@@ -3703,6 +3700,20 @@ public:
                 // inserting provided the view's m_bSingleStep flag is FALSE; when FALSE,
                 // no repetitive matching is tried.
 
+    short       m_nExpandBox;
+
+    /// Use this multiplier to calculate when text gets too near the RHS of the phrase box, so
+    /// that expansion becomes necessary - see the FixBox() function in CPhraseBox class.
+    short		m_nNearEndFactor;
+
+    /// An int for saving a source phrase's old sequence number in case it is required
+    /// for the toolbar's Back button; or for saving the active location in a variety of
+    /// command handlers. When there is no earlier location, it is set to -1, but you should
+    /// never rely on it having the value -1 unless you know you've set -1 earlier
+    int m_nOldSequNum;
+
+
+
     // enable or suppress RTL reading checkboxes in the fontpage, for the Wizard, and
     // preferences (for ANSI version, we want them unseen; for unicode NR version, we want
     // them seen)
@@ -3710,6 +3721,19 @@ public:
     // boolean for the LTR or RTL reading order choice in the layout (see CreateStrip() in
     // the view class)
 	bool		m_bRTL_Layout;
+
+    /// BEW added 01Oct06, so that calling WriteProjectSettingsConfiguration() which is called
+    /// at the end, now, of OnNewDocument() and OnOpenDocument(), does not get called in
+    /// OnNewDocument() when m_bPassedAppInitialization is FALSE, since the latter function call
+    /// is called by the framework within ProcessShellCommand() which is called from within
+    /// InitInstance() - and since the m_bBookMode defaults to FALSE, and m_nBookIndex defaults
+    /// to -1 at every launch, this MFC call of OnNewDocument() would otherwise unlaterally
+    /// turn off book mode which was on when the app last exitted. We can't have this happen,
+    /// so we use this new flag to suppress the config file write for the project settings
+    /// until we are actually in the wizard (and hence passed all the initializations).
+    bool m_bPassedAppInitialization;
+
+
 
     // auto-capitalization support, for version 2.0 and later (also a menagerie of global
     // flags defined in Adapt_ItApp.cpp)

@@ -70,9 +70,6 @@ extern bool gbGlossingUsesNavFont;
 int			gnLastEarlierChapter = 1; // preserves last user choice, so it can be the default on
 int			gnLastEarlierVerse = 1;	  // the next entry to the dialog
 
-/// This global is defined in Adapt_ItView.cpp.
-extern int	gnOldSequNum;
-
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
@@ -586,7 +583,7 @@ a:		str = str.Format(_("Sorry, but the chapter and verse combination %s does not
 void CEarlierTranslationDlg::OnCloseAndJump(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	gnOldSequNum = pApp->m_nActiveSequNum;
+    pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
 	// jump to the requested location
 	int nSequNum = m_nFirstSequNumBasic;

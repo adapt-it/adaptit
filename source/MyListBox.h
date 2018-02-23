@@ -36,7 +36,7 @@ public:
 	// other methods
 
 protected:
-	void OnSysKeyUp(wxKeyEvent& event);
+	//void OnSysKeyUp(wxKeyEvent& event);
 	void OnSysKeyDown(wxKeyEvent& event);
 	void OnChar(wxKeyEvent& event);
 

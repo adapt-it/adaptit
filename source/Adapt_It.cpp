@@ -449,7 +449,6 @@ extern int	gnFromChapter;
 extern int	gnFromVerse;
 extern int	gnToChapter;
 extern int	gnToVerse;
-extern bool gbInhibitMakeTargetStringCall;
 
 /// This global is defined in CAdapt_ItView
 extern bool	gbCheckInclFreeTransText;
@@ -471,10 +470,10 @@ extern bool gbRTLLayout;
 /// be embedded inline within verse, poetry, headings, subtitles, section headings, etc).
 TextType gPreviousTextType; // moved here to global space in the Doc
 
-                            /// A compatibility struct for the source language font, which is only used to hold the
-                            /// Logfont info used by MFC and which is stored within Adapt It's config files. Many of
-                            /// the values stored in the fontInfo structs are not used by the wxWidgets version, but
-                            /// are read and written back out to the config files to maintain backward compatibility.
+/// A compatibility struct for the source language font, which is only used to hold the
+/// Logfont info used by MFC and which is stored within Adapt It's config files. Many of
+/// the values stored in the fontInfo structs are not used by the wxWidgets version, but
+/// are read and written back out to the config files to maintain backward compatibility.
 fontInfo SrcFInfo;
 
 /// A compatibility struct for the target language font, which is only used to hold the
@@ -540,52 +539,22 @@ extern bool gbVerticalEditInProgress; // defined in Adapt_ItView.cpp
 extern bool gbAdaptBeforeGloss; // defined in Adapt_ItView.cpp
                                 // (for vertical edit functionality)
 
-                                /// BEW added 01Oct06, so that calling WriteProjectSettingsConfiguration() which is called
-                                /// at the end, now, of OnNewDocument() and OnOpenDocument(), does not get called in
-                                /// OnNewDocument() when gbPassedAppInitialization is FALSE, since the latter function call
-                                /// is called by the framework within ProcessShellCommand() which is called from within
-                                /// InitInstance() - and since the m_bBookMode defaults to FALSE, and m_nBookIndex defaults
-                                /// to -1 at every launch, this MFC call of OnNewDocument() would otherwise unlaterally
-                                /// turn off book mode which was on when the app last exitted. We can't have this happen,
-                                /// so we use this new flag to suppress the config file write for the project settings
-                                /// until we are actually in the wizard (and hence passed all the initializations).
-bool gbPassedAppInitialization = FALSE;
-
 /// When TRUE gbUpdateDocTitleNeeded causes OnIdle() to update the window title if the open
 /// attempt failed, otherwise the failed doc name remains in the window's title bar. Note,
 /// since OnOpenRecentFile always returns TRUE, we have to unilaterally cause OnIdle to do
 /// the update of the title to ensure we catch the failures.
 bool gbUpdateDocTitleNeeded = FALSE; // is set only by a failed MRU document open
 
-                                     /// This global is defined in DocPage.cpp.
+/// This global is defined in DocPage.cpp.
 extern bool gbReachedDocPage; // BEW added 10Nov05  (see DocPage.cpp, & OnInitDialog())
 
-                              /// This global is defined in PhraseBox.cpp.
-extern bool gbCameToEnd; // see PhraseBox.cpp
-
-                         // This global boolean is used to inform functions involved in opening documents whether
-                         // the file is being opened via the OnMRUFile() function, i.e., due to the user attempting
-                         // to open the file from the MRU list. If the file no longer exists and is an XML one, we
-                         // use the bool TRUE value to give the user a nice informative message and avoid ugly
-                         // error messages, and allow him to try again. TRUE if while the OnMRUFile() function is
-                         // active due to the user attempting to open a file from the MRU list (if the file no
-                         // longer exists and is an XML one, we use the bool TRUE value to give the user a nice
-                         // informative message and avoid ugly error messages, and allow him to try again.
-                         //bool gbTryingMRUOpen = FALSE; // whm removed 1Oct12
-
-                         /// This global is defined in SplitDialog.cpp. (It has nothing to do with window
-                         /// splitting, but is for splitting the document's list of source phrase instances into
-                         /// two or more shorter lists, and hence into two or more shorter documents)
+/// This global is defined in SplitDialog.cpp. (It has nothing to do with window
+/// splitting, but is for splitting the document's list of source phrase instances into
+/// two or more shorter lists, and hence into two or more shorter documents)
 extern bool gbIsDocumentSplittingDialogActive; // see SplitDialog.cpp
-
-                                               /// This global is defined in PhraseBox.cpp.
-extern bool gbSuppressStoreForAltBackspaceKeypress;
 
 /// This global is defined in MainFrm.cpp.
 extern bool gbIgnoreScriptureReference_Receive;
-
-/// This global is defined in MainFrm.cpp.
-extern bool gbIgnoreScriptureReference_Send;
 
 /// This global is defined in MainFrm.cpp.
 extern SPList* gpDocList;
@@ -799,22 +768,11 @@ wxHtmlHelpController* m_pHelpController = (wxHtmlHelpController*)NULL;
 /// Global pointer to the help controller instance.
 //wxHelpController* m_pHelpController = (wxHelpController*)NULL;
 
-/// This global is defined in Adapt_ItView.cpp.
-extern short gnExpandBox;  // see start of Adapt_ItView.cpp for explanation of these
-
-                           /// This global is defined in Adapt_ItView.cpp.
-extern short gnNearEndFactor;
-
-/// This global is defined in Adapt_ItView.cpp.
-extern	bool gbLegacySourceTextCopy; // defined in Adapt_ItView.cpp, to govern
-                                     // the default phrase box text
-
-                                     /// Pointer to the Start Working Wizard instance.
+/// Pointer to the Start Working Wizard instance.
 CStartWorkingWizard* pStartWorkingWizard = (CStartWorkingWizard*)NULL;
 
 /// Pointer to the ChooseCollabOptionsDlg instance
 CChooseCollabOptionsDlg* pChooseCollabOptionsDlg = (CChooseCollabOptionsDlg*)NULL;
-
 
 /// Pointer to the project page instance
 CProjectPage* pProjectPage = (CProjectPage*)NULL;
@@ -843,19 +801,6 @@ CUsfmFilterPagePrefs* pUsfmFilterPageInPrefs = (CUsfmFilterPagePrefs*)NULL;
 /// Contains the sequence number for the last auto save operation; -1 if auto save is
 /// turned off.
 int nSequNumForLastAutoSave;
-
-// Indicates whether a document is being opened via the MRU list. Its value is set to TRUE
-// in the main frame's OnMRUFile() function.
-//bool gbViaMostRecentFileList = FALSE; // whm removed 1Oct12
-
-/// This global is defined in PhraseBox.cpp.
-extern int nCurrentSequNum;
-
-// A global that indicates whether it is possible to open a file from the MRU list. It is
-// set TRUE if m_bDisableBookMode is TRUE when SetupDirectories() is called (the post MRU
-// file click is the time when this is significant, because there is not enough info to
-// recreate the folder path if books.xml failed on input or parse).
-//bool gbAbortMRUOpen = FALSE; // whm 1Oct12 removed
 
 // Bible books folders support - folder name defaults for when there is no "books.XML" file
 // in work folder. NT and OT book name string constants, for GUI - especially setting up a
@@ -6623,20 +6568,20 @@ wxString szTgtDiffsTextColor = _T("TargetDifferencesTextColor");
 
 /// The label that identifies the following string encoded number as the application's
 /// "PhraseBoxExpansionMultiplier". This value is written in the "Settings" part of the
-/// basic configuration file. Adapt It stores this path in the App's gnExpandBox member
-/// variable.
+/// basic configuration file. Adapt It stores this path in the App's m_nExpandBox 
+/// member variable.
 wxString szPhraseBoxExpansionMultiplier = _T("PhraseBoxExpansionMultiplier");
 
 /// The label that identifies the following string encoded number as the application's
 /// "TooNearEndMultiplier". This value is written in the "Settings" part of the basic
-/// configuration file. Adapt It stores this path in the App's gnNearEndFactor member
+/// configuration file. Adapt It stores this path in the App's m_nNearEndFactor member
 /// variable.
 wxString szTooNearEndMultiplier = _T("TooNearEndMultiplier");
 
 /// The label that identifies the following string encoded number as the application's
 /// "LegacyCopyForPhraseBox". This value is written in the "ProjectSettings" part of the
 /// project configuration file. Adapt It stores this path in the App's
-/// gbLegacySourceTextCopy member variable.
+/// m_bLegacySourceTextCopy member variable.
 wxString szLegacyCopyForPhraseBox = _T("LegacyCopyForPhraseBox");
 
 // Next two were for old punct, for when source & target are not differentiated
@@ -10123,7 +10068,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
     if (pMenuBar->FindItem(ID_ADVANCED_USETRANSLITERATIONMODE) != NULL) // whm added 28Jul11
         pMenuBar->Check(ID_ADVANCED_USETRANSLITERATIONMODE, m_bTransliterationMode);
     if (pMenuBar->FindItem(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES) != NULL) // whm added 28Jul11
-        pMenuBar->Check(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, !gbIgnoreScriptureReference_Send);
+        pMenuBar->Check(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, !m_bIgnoreScriptureReference_Send);
     if (pMenuBar->FindItem(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES) != NULL) // whm added 28Jul11
         pMenuBar->Check(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, !gbIgnoreScriptureReference_Receive);
     // whm added 20Jul11 to initialize the View menu's "Show Administrator Menu... (Password protected)" item
@@ -17463,6 +17408,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     gnOffsetToUCcharSrc = wxNOT_FOUND;     // initialize
     gbUCSrcCapitalAnywhere = FALSE; // initialize to legacy 'only word-initial capital checked for'
 
+    /// Multiply width of 'w' character this many times to get the slop at right-hand-side
+    /// (RHS) of initial phrase box width, or the amount to expand the box by.
+    m_nExpandBox = 8;
+
 	m_bParsingSource = FALSE;
 	m_chapterNumber_for_ParsingSource = _T("0");
 	m_verseNumber_for_ParsingSource = _T("0");
@@ -17471,7 +17420,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_filename_for_ParsingSource = _T("Log_For_Document_Creation.txt");
 	m_bSetupDocCreationLogSucceeded = FALSE;
 	m_bMakeDocCreationLogfile = FALSE; // a checkbox in ViewPage.cpp turns it on
-	m_bALT_KEY_DOWN = FALSE;
+	m_bALT_KEY_DOWN = FALSE; // whm removed 16Feb2018
 
 	m_bDoNormalProjectOpening = TRUE; // default value
 	m_bUserWantsNoCollabInShiftLaunch = FALSE; // set TRUE in GetAIProjectCollabStatus() is
@@ -17549,10 +17498,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                     // maximize visual control of the fixes (user can change
                                     // when initiating a new Consistency Check; we don't save
                                     // this flag in any config file
-    gbInhibitMakeTargetStringCall = FALSE; // app should start with this OFF
-                                           // BEW 21May15 added next five, for support of the freeze/thaw optimization for a sequence
-                                           // of consecutive auto-inserts from the KB, see AdaptitConstants.h for NUMINSERTS value
-                                           // as well (currently 8)
     m_bIsFrozen = FALSE;
     m_bDoFreeze = FALSE;
     m_bSupportFreeze = FALSE; // set FALSE once the GUI checkbox has been added to the app
@@ -18822,14 +18767,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                      // character string for external text files:
                                      // On Windows it is "\r\n"; on Linux it is "\n"; on Macintosh it is "\r"
 
-                                     // BEW added 01Oct06, we set it TRUE when program counter reaches the end of
-                                     // InitInstance() because there is a framework call of OnNewDocument() made in
-                                     // InitInstances()'s ProcessShellCommand() call and our addition of code to immediately
-                                     // write out the project settings config file at the end of OnNewDocument() would
-                                     // result in book mode being unilaterally reset to OFF before we even got to the
-                                     // wizard. So we use th gbPassedAppInitialization flag to suppress the config file
-                                     // write until we are actually in the wizard
-    gbPassedAppInitialization = FALSE;
+    // BEW added 01Oct06, we set it TRUE when program counter reaches the end of
+    // InitInstance() because there is a framework call of OnNewDocument() made in
+    // InitInstances()'s ProcessShellCommand() call and our addition of code to immediately
+    // write out the project settings config file at the end of OnNewDocument() would
+    // result in book mode being unilaterally reset to OFF before we even got to the
+    // wizard. So we use th m_bPassedAppInitialization flag to suppress the config file
+    // write until we are actually in the wizard
+    m_bPassedAppInitialization = FALSE;
 
     // *** Initializations below were originally in the Doc in the MFC version ***
     // Variable initializations below moved here from the Doc because the
@@ -18885,13 +18830,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Variable initializations below moved here from the View because the wxWidgets'
     // doc/view framework deletes the View and recreates it afresh (calling the View's
     // constructor when a new view is opened)
-    m_pTargetBox = (CPhraseBox*)NULL; // added for persistent target box
+    m_pTargetBox = (CPhraseBox*)NULL; // The target box in use (assigned from one above with/without list)
+    m_bTargetBoxWithoutList = FALSE; // When FALSE the phrasebox has dropdown list and arrow button, when TRUE is has empty button symbol
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    m_bUseChooseTransDropDown = TRUE; // defaults to TRUE, but user can change via checkbox in ChooseTranslation dialog, setting saved in project config file
-    m_pChooseTranslationDropDown = (CChooseTranslationDropDown*)NULL; // for persistent dropdown 
     m_bChooseTransShowPopup = FALSE;
-    m_bChooseTransScrolling = FALSE;
+
+    // default is legacy behaviour, to copy the source text (unless
+    // the project config file establishes the FALSE value instead)
+    m_bLegacySourceTextCopy = FALSE;
 
     m_pEarlierTransDlg = (CEarlierTranslationDlg*)NULL;
 
@@ -18949,8 +18896,23 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     gbPrintOnlyPgNumInFooter = FALSE;
 
     gbIgnoreScriptureReference_Receive = TRUE;
-    gbIgnoreScriptureReference_Send = TRUE;
-    gbLegacySourceTextCopy = TRUE; // default is legacy behaviour,
+    
+    // whm 21Feb2018 moved some globals out of global space
+
+    // for support of scripture synchronizing messages (the sending side of it) -- the
+    // following string must differ from the one obtained in the
+    // SendScriptureReferenceFocusMessage() function before a new scripture reference focus
+    // message is sent (for example, when first entering a new verse, one is sent; but we don't
+    // want to send one every time the phrase box lands on another word in the same verse) The
+    // view's member function SendScriptureReferenceFocusMessage() accesses this global string.
+    m_OldChapVerseStr.Empty(); // the "chapter:verse" string used in the last broadcast message
+
+    /// This boolean is used to toggle the appropriate menu selections having to do with
+    /// sending and receiving of sync scrolling messages, and informs functions involved in the
+    /// SantaFeFocus message of the state of those sync scrolling settings.
+    m_bIgnoreScriptureReference_Send = TRUE;
+
+    m_bLegacySourceTextCopy = TRUE; // default is legacy behaviour,
                                    // to copy the source text (unless the project config file establishes the
                                    // FALSE value instead)
 
@@ -23474,7 +23436,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                            // we are passed all the MFC initialization stuff, and about to enter the Start
                                            // Working... wizard, so indicate it is safe for OnNewDocument() to be able to write
                                            // out the project config file once the user's setting for book mode is in place
-    gbPassedAppInitialization = TRUE;
+    m_bPassedAppInitialization = TRUE;
 
     // curl needs to be initialized just once per run of the application
     // Note: curl leaks this small heap block; and openssl also leaks a small heap block.
@@ -24063,9 +24025,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxString wholeMarker = GetDocument()->GetWholeMarker(ptr);
     */
 
-    //wxLogDebug(_T("At end of app's member function OnInit(), m_bCancelAndSelectButtonPressed = %d"),
-    //	m_pTargetBox->GetCancelAndSelectFlag());
-
     // Next call prevents old userprofiles files from accumulating on disk
     RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13 (UserProfiles support is handled
                                           // in this OnInit() function at lines 19780 to 20,420 approximately)
@@ -24318,21 +24277,13 @@ int CAdapt_ItApp::OnExit(void)
     }
 
     // WX Note: Our TargetBox is now a child of the view's canvas (which itself is derived
-    // from wxScrolledWindow. As a child of the canvas window, m_pTargetBox will be
+    // from wxScrolledWindow). As a child of the canvas window, m_pTargetBox will be
     // automatically destroyed when pView->canvas is destroyed during doc/view's normal
     // cleanup. That is, when our View is destroyed, all child windows (including our
     // target box) are automatically destroyed too. Therefore, the target box must not be
     // deleted again in the App's OnExit() method, when the App terminates.
     //delete m_pTargetBox;
     //m_pTargetBox = (CPhraseBox*)NULL;
-
-    // whm note 10Jan2018 to support quick selection of a translation equivalent.
-    // See Note above regarding m_pTargetBox. The m_pChooseTranslationDropDown is also a 
-    // child of its parent the canval window. As such it also should be automatically
-    // destroyed at the time the pView->canvas is destroyed.
-    //if (m_pChooseTranslationDropDown != NULL)
-    //    delete m_pChooseTranslationDropDown;
-    //m_pChooseTranslationDropDown = (CChooseTranslationDropDown*)NULL;
 
     if (m_pConfig != NULL) // whm 11Jun12 added NULL test
         delete m_pConfig;
@@ -31383,7 +31334,7 @@ void CAdapt_ItApp::DoAutoSaveDoc()
     wxDateTime time = wxDateTime::Now();
     m_timeSettings.m_tLastDocSave = time;
     m_timeSettings.m_tLastKBSave = time;
-    nSequNumForLastAutoSave = nCurrentSequNum;
+    nSequNumForLastAutoSave = m_pTargetBox->m_nCurrentSequNum;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -33297,11 +33248,11 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
     pf->AddLine(data);
 
     data.Empty();
-    data << szPhraseBoxExpansionMultiplier << tab << gnExpandBox;
+    data << szPhraseBoxExpansionMultiplier << tab << m_nExpandBox;
     pf->AddLine(data);
 
     data.Empty();
-    data << szTooNearEndMultiplier << tab << gnNearEndFactor;
+    data << szTooNearEndMultiplier << tab << m_nNearEndFactor;
     pf->AddLine(data);
 
     if (m_bRTL_Layout)
@@ -35286,14 +35237,14 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
                 num = wxAtoi(strValue);
                 if (num < 5 || num > 30)
                     num = 10;
-                gnExpandBox = num;
+                m_nExpandBox = num;
             }
             else if (name == szTooNearEndMultiplier)
             {
                 num = wxAtoi(strValue);
                 if (num < 3 || num > 6)
                     num = 3;
-                gnNearEndFactor = num;
+                m_nNearEndFactor = num;
             }
             else if (name == szRTL_Layout)
             {
@@ -36111,8 +36062,9 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
     m_curGapWidth = 10; // BEW 23Apr15 changed from 16 to 10, config file will override though
     m_bSuppressFirst = TRUE;
     m_bSuppressLast = TRUE;
-    gnExpandBox = 8;
-    gnNearEndFactor = 3;
+    m_nExpandBox = 8;
+    m_nNearEndFactor = 3;
+    m_nOldSequNum = -1;
     m_bHidePunctuation = FALSE;
 
     m_bUseStartupWizardOnLaunch = TRUE;
@@ -36851,10 +36803,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data << szKeepPhraseBoxMidscreen << tab << (int)m_bKeepBoxMidscreen;
     pf->AddLine(data);
 
-    // whm added 10Jan2018
-    data.Empty();
-    data << szUseChooseTransDropDown << tab << (int)m_bUseChooseTransDropDown;
-    pf->AddLine(data);
+    // whm added 10Jan2018 - removed 18Feb2018 after deriving CPhraseBox from wxOwnerDrawnComboBox
+    //data.Empty();
+    //data << szUseChooseTransDropDown << tab << (int)m_bUseChooseTransDropDown;
+    //pf->AddLine(data);
 
     // BEW added 15Dec14
     data.Empty();
@@ -37261,7 +37213,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data << szSilConverterNormalize << tab << number;
     pf->AddLine(data);
 
-    if (gbLegacySourceTextCopy)
+    if (m_bLegacySourceTextCopy)
         number = _T("1");
     else
         number = _T("0");
@@ -37483,17 +37435,18 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 m_bKeepBoxMidscreen = FALSE;
             }
         }
-        else if (name == szUseChooseTransDropDown)
-        {
-            if (strValue == _T("1"))
-            {
-                m_bUseChooseTransDropDown = TRUE;
-            }
-            else
-            {
-                m_bUseChooseTransDropDown = FALSE;
-            }
-        }
+        // whm added 10Jan2018 - removed 18Feb2018 after deriving CPhraseBox from wxOwnerDrawnComboBox
+        //else if (name == szUseChooseTransDropDown)
+        //{
+        //    if (strValue == _T("1"))
+        //    {
+        //        m_bUseChooseTransDropDown = TRUE;
+        //    }
+        //    else
+        //    {
+        //        m_bUseChooseTransDropDown = FALSE;
+        //    }
+        //}
         else if (name == szExtraPixelsForDiacritics)
         {
             num = wxAtoi(strValue);
@@ -38460,9 +38413,9 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
             if (!(num == 0 || num == 1))
                 num = 1;
             if (num == 0)
-                gbLegacySourceTextCopy = FALSE;
+                m_bLegacySourceTextCopy = FALSE;
             else
-                gbLegacySourceTextCopy = TRUE;
+                m_bLegacySourceTextCopy = TRUE;
         }
         else if (name == szDoAdaptingBeforeGlossing_InVerticalEdit)
         {
@@ -44093,9 +44046,9 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
         message += _T("   ") + mssg;
     }
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (m_bUseChooseTransDropDown)
+    if (this->m_bChooseTransShowPopup)
     {
-        if ((gpApp->m_pChooseTranslationDropDown != NULL) && (gpApp->m_pChooseTranslationDropDown->IsShown()))
+        if ((gpApp->m_pTargetBox != NULL) && (gpApp->m_pTargetBox->GetCount() > 1))
         {
             message = _("Choose a translation, or type a new translation from drop-down list. Press F8 for more options.");
         }

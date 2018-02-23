@@ -101,6 +101,7 @@ public:
 	wxString			m_targetLanguageName;
 
 	int				m_nMaxWords; // current number of words in max length of src phrase
+    bool            m_bCallerIsRemoveButton;
 
 	MapKeyStringToTgtUnit*	m_pMap[MAX_WORDS]; // stores associations of key and ptr to CTargetUnit instances
 									   // where the key is a phrase with [index + 1] source words
@@ -137,7 +138,7 @@ public:
 	bool			IsThisAGlossingKB(); // accessor for private bool m_bGlossingKB
 	CBString		MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);
 	void			RedoStorage(CSourcePhrase* pSrcPhrase, wxString& errorStr); // BEW 15Nov10 moved from view
-	void			RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase);
+	void			RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int m_nWordsInPhrase);
 	void			RestoreForceAskSettings(KPlusCList* pKeys);
 	bool			StoreText(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, bool bSupportNoAdaptationButton = FALSE);
 	bool			StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase);
