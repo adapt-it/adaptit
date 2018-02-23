@@ -78,7 +78,6 @@ extern bool	gbNonSourceIsUpperCase;
 extern bool	gbMatchedKB_UCentry;
 extern bool	gbNoSourceCaseEquivalents;
 extern bool	gbNoTargetCaseEquivalents;
-extern bool	gbNoGlossCaseEquivalents;
 extern wxChar gcharNonSrcLC;
 extern wxChar gcharNonSrcUC;
 extern wxChar gcharSrcLC;
@@ -89,13 +88,8 @@ extern int  gnOffsetToUCcharSrc; // offset to source text location where the upp
 								 // character was found to be located, wxNOT_FOUND if not located
 
 // next, miscellaneous needed ones
-extern bool gbNoAdaptationRemovalRequested;
-extern bool gbCallerIsRemoveButton;
 extern wxChar gSFescapechar;
 extern bool bSupportNoAdaptationButton;
-extern bool gbSuppressStoreForAltBackspaceKeypress;
-extern bool gbByCopyOnly;
-extern bool gbInhibitMakeTargetStringCall;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
@@ -110,6 +104,7 @@ CKB::CKB()
 {
 	m_pApp = &wxGetApp();
 	m_nMaxWords = 1; // value for a minimal phrase
+    m_bCallerIsRemoveButton = FALSE;
 
 	for (int i = 0; i< MAX_WORDS; i++)
 	{
@@ -123,6 +118,7 @@ CKB::CKB(bool bGlossingKB)
 {
 	m_pApp = &wxGetApp();
 	m_nMaxWords = 1; // value for a minimal phrase
+    m_bCallerIsRemoveButton = FALSE;
 
 	for (int i = 0; i< MAX_WORDS; i++)
 	{
@@ -707,11 +703,11 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 	keyStr = FwdSlashtoZWSP(keyStr);
 //#endif
 
-    // the test of gbCallerIsRemoveButton is to prevent a wrong change to lower case if
+    // the test of m_bCallerIsRemoveButton is to prevent a wrong change to lower case if
     // autocapitalization is on and the user clicked in the KB editor, or in Choose
     // Translation dlg, the Remove button; otherwise the wrong entry could get deleted
     // and the data made invalid
-	if (gbAutoCaps && !gbCallerIsRemoveButton)
+	if (gbAutoCaps && !m_bCallerIsRemoveButton)
 	{
 		if (gbNoSourceCaseEquivalents)
 			// this is equivalent to gbAutoCaps being off, so just do a normal lookup
@@ -987,7 +983,7 @@ KB_Entry CKB::GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRe
 /// \param      pSrcPhrase      ->  pointer to the CSourcePhrase instance whose m_key
 ///                                 member supplies the key for locating the CTargetUnit
 ///                                 in the relevant knowledge base map
-/// \param      nWordsInPhrase  ->  used in order to define which map to look up
+/// \param      m_nWordsInPhrase  ->  used in order to define which map to look up
 /// \remarks
 /// Removes the wxString and reference count associated with it, (embodied as a CRefString
 /// object)from a CTargetUnit instance in the knowledge base, as follows:
@@ -997,7 +993,7 @@ KB_Entry CKB::GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRe
 /// flag to FALSE; also make sure m_bAlwaysAsk is set or cleared as the case may be. For
 /// version 2.0 and onwards we must test m_bGlossingKB in order to set the KB pointer to
 /// either the adaption KB or the glossing KB; and the caller must supply the appropriate
-/// first and last parameters (ie. a pRefString from the glossing KB and nWordsInPhrase set
+/// first and last parameters (ie. a pRefString from the glossing KB and m_nWordsInPhrase set
 /// to 1 when m_bGlossingKB is TRUE)
 /// Ammended, July 2003, to support auto capitalization
 /// BEW changed 05July2006 to fix a long-standing error where the m_bHasKBEntry flag, or
@@ -1016,12 +1012,12 @@ KB_Entry CKB::GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRe
 /// BEW 8Jun10, updated for kbVersion 2 support (legacy code kept, commented out, in case
 /// at a future date we want to use it for a 'clear kb' [of deleted entries] capability)
 // BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
-void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase)
+void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int m_nWordsInPhrase)
 {
 	if (m_bGlossingKB)
 	{
 		pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-		nWordsInPhrase = nWordsInPhrase; // to prevent compiler warning (BEW 13Nov10)
+		m_nWordsInPhrase = m_nWordsInPhrase; // to prevent compiler warning (BEW 13Nov10)
 	}
 	else
 	{
@@ -1136,7 +1132,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
         //BEW changed behaviour 20Jun06 because unilaterally returning here whenever the
         //m_translation string was empty meant that if the user wanted to remove his
         //earlier "<no adaptation>" choice, there was no way to effect it from the
-        //interface. So now we have a global flag gbNoAdaptationRemovalRequested which is
+        //interface. So now we have a global flag m_bNoAdaptationRemovalRequested which is
         //TRUE whenever the user hits backspace or Del key in an empty phrasebox, provided
         //that locatation's CSourcePhrase has m_bHasKBEntry (when in adapting mode) set
         //TRUE, or m_bHasGlossingKBEntry (when in glossing mode) set TRUE. Hence if neither
@@ -1144,14 +1140,14 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
         //flag value) behaviour as before.
 		if (pRefString->m_translation.IsEmpty())
 		{
-			if (!gbNoAdaptationRemovalRequested)
+			if (!m_pApp->m_pTargetBox->m_bNoAdaptationRemovalRequested)
 				return; // never automatically reduce count to zero; if user wants to be
                         //rid of it, he must do so manually -- no, there was no 'manual'
                         //way to do it for the document CSourcePhrase instance, so 20Jun06
                         //change introduces a backspace or DEL key press to effect the
                         //removal
 		}
-		gbNoAdaptationRemovalRequested = FALSE; // ensure cleared to default value, &
+        m_pApp->m_pTargetBox->m_bNoAdaptationRemovalRequested = FALSE; // ensure cleared to default value, &
                         // permit removal after the flag may have been used in previous
                         // block
 
@@ -2045,7 +2041,7 @@ bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation)
 	}
 	bool bNoError = TRUE;
 	bool bNoError2 = TRUE;
-	gbByCopyOnly = FALSE; // restore default value (should have been done in caller,
+    m_pApp->m_pTargetBox->m_bBoxTextByCopyOnly = FALSE; // restore default value (should have been done in caller,
 	// but this will make sure)
 	wxString adjusted = _T(""); // use for the final translation value
 	wxString adjustedKey = key;
@@ -2180,7 +2176,7 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 	// finally. It's only taken 7 years to get it fixed!!!! (And some good data from Ross
 	// Jones, bless him.)
 	bool bNoError = TRUE;
-	gbByCopyOnly = FALSE; // restore default value (should have been done in caller,
+    m_pApp->m_pTargetBox->m_bBoxTextByCopyOnly = FALSE; // restore default value (should have been done in caller,
 						  // but this will make sure)
 	wxString adjusted = adaptation; // could have upper case initial character or non-initial location
 	if (gbAutoCaps)
@@ -3891,7 +3887,7 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // text, a call to MakeTargetStringIncludingPunctuation( ) is done in the caller, and then
 // RemovePunctuation() is called in the caller, so a second call of
 // MakeTargetStringIncludingPunctuation( ) within StoreText( ) is not required in this
-// circumstance - in this case, a global boolean gbInhibitMakeTargetStringCall is used to
+// circumstance - in this case, a global boolean m_bInhibitMakeTargetStringCall is used to
 // jump the call within StoreText( ). For 4.1.0 and later,
 // MakeTargetStringIncludingPunctuation() is not now called. See below.
 //
@@ -3968,10 +3964,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	}
 	m_pApp->GetDocument()->Modify(TRUE);
 
-    // BEW added 20Apr06, to store <Not In KB> when gbSuppressStoreForAltBackspaceKeypress
+    // BEW added 20Apr06, to store <Not In KB> when m_bSuppressStoreForAltBackspaceKeypress
     // flag is TRUE - as wanted by Bob Eaton; we support this only in adapting mode, not
     // glossing mode
-	if (!m_bGlossingKB && gbSuppressStoreForAltBackspaceKeypress)
+	if (!m_bGlossingKB && m_pApp->m_pTargetBox->m_bSuppressStoreForAltBackspaceKeypress)
 	{
 		// rest of this block's code is a simplification of code from later in StoreText()
 		int nMapIndex;
@@ -4104,7 +4100,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		return TRUE;
 	} // end of block for processing a store when transliterating using SILConverters transliterator
 
-	gbByCopyOnly = FALSE; // restore default setting
+    m_pApp->m_pTargetBox->m_bBoxTextByCopyOnly = FALSE; // restore default setting
 
 	// First get rid of final spaces, if tgtPhrase has content
 	if (!tgtPhrase.IsEmpty())
@@ -4168,7 +4164,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pSrcPhrase->m_adaption = FwdSlashtoZWSP(pSrcPhrase->m_adaption);
 			}
 //#endif
-			if (!gbInhibitMakeTargetStringCall)
+			if (!m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall)
 			{
 				// sets m_targetStr member too, also does auto-capitalization adjustments
 				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase);
@@ -4874,7 +4870,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		return TRUE; // this is not an error, just suppression of the store
 	}
 
-	gbByCopyOnly = FALSE; // restore default setting
+    m_pApp->m_pTargetBox->m_bBoxTextByCopyOnly = FALSE; // restore default setting
 
 	// is the m_targetPhrase empty?
 	if (tgtPhrase.IsEmpty())
@@ -4963,7 +4959,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				pSrcPhrase->m_adaption = FwdSlashtoZWSP(pSrcPhrase->m_adaption);
 			}
 //#endif
-			if (!gbInhibitMakeTargetStringCall)
+			if (!m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall)
 			{
 				// sets m_targetStr member too, and handles auto-capitalization
 				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase);
@@ -6328,11 +6324,11 @@ void CKB::RedoStorage(CSourcePhrase* pSrcPhrase, wxString& errorStr)
 
 			// legacy code follows
 			pSrcPhrase->m_bHasKBEntry = FALSE; // has to be false on input to StoreText()
-			gbInhibitMakeTargetStringCall = TRUE; // prevent any punctuation placement
+            m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE; // prevent any punctuation placement
 												  // dialogs from showing
 			bool bOK = StoreText(pSrcPhrase,pSrcPhrase->m_adaption,TRUE); // TRUE =
 													// support storing empty adaptation
-			gbInhibitMakeTargetStringCall = FALSE;
+            m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 			if (!bOK)
 			{
 				// I don't expect any error here, but just in case ...

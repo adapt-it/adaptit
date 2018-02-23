@@ -240,9 +240,6 @@ const long CMainFrame::ID_AUI_TOOLBAR = wxNewId();
 // includes above
 
 
-extern bool gbPassedAppInitialization; // for RossJones m_targetStr value not sticking bug
-extern int  gnOldSequNum;
-
 extern wxMutex KBAccessMutex;
 
 /// This global is defined in Adapt_It.cpp
@@ -325,14 +322,6 @@ extern bool		gbMatchedKB_UCentry;
 /// This global is defined in Adapt_It.cpp.
 extern wxChar	gcharNonSrcUC;
 
-extern bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
-							   // is enabled, FALSE is legacy initial position only
-extern int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
-							// character was found to be located, wxNOT_FOUND if not located
-
-/// This global is defined in PhraseBox.cpp.
-extern bool		gbCameToEnd; // see PhraseBox.cpp
-
 extern  int		gnRetransEndSequNum; // sequ num of last srcPhrase in a matched retranslation
 extern  bool	gbHaltedAtBoundary;
 extern	bool	gbFindOrReplaceCurrent;
@@ -351,9 +340,6 @@ extern	bool	gbSuppressSetup;
 
 /// This global is defined in Adapt_It.cpp.
 extern  bool	gbUpdateDocTitleNeeded;
-
-/// This global is defined in PhraseBox.cpp.
-extern  int	nCurrentSequNum;
 
 /// This global is defined in Adapt_It.cpp.
 extern  int	nSequNumForLastAutoSave;
@@ -614,10 +600,6 @@ const int ScriptureReferenceFocus = 1;
 /// SantaFeFocus message of the state of those sync scrolling settings.
 bool	gbIgnoreScriptureReference_Receive = TRUE;
 
-/// This global boolean is used to toggle the appropriate menu selections having to do with
-/// sending and receiving of sync scrolling messages, and informs functions involved in the
-/// SantaFeFocus message of the state of those sync scrolling settings.
-bool	gbIgnoreScriptureReference_Send = TRUE;
 int		gnMatchedSequNumber = -1; // set to the sequence number when a matching ch:verse is found
 
 /// A temporary store for parsed in AI document's list of CSourcePhrase pointers.
@@ -803,7 +785,7 @@ void SyncScrollSend(const wxString& strThreeLetterBook, const wxString& strChapV
 {
 #ifdef __WXMSW__
     wxRegKey keyScriptureRef(_T("HKEY_CURRENT_USER\\Software\\SantaFe\\Focus\\ScriptureReference")); //CRegKey keyScriptureRef;
-	if (!gbIgnoreScriptureReference_Send)
+	if (!gpApp->m_bIgnoreScriptureReference_Send)
 	{
 		if( keyScriptureRef.Create())
 		{
@@ -4432,7 +4414,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		else
 		{
 			// we are counting phrase box moves for doing autosaves
-			if (nCurrentSequNum > nSequNumForLastAutoSave + pApp->m_nMoves)
+			if (pApp->m_pTargetBox->m_nCurrentSequNum > nSequNumForLastAutoSave + pApp->m_nMoves)
 			{
 				if(pDoc->IsModified())
 					pApp->DoAutoSaveDoc();
@@ -4572,9 +4554,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		gbUpdateDocTitleNeeded = FALSE; // turn it off until the next MRU doc open failure
 	}
 
-	if (gbCameToEnd)
+	if (pApp->m_pTargetBox->m_bCameToEnd)
 	{
-		gbCameToEnd = FALSE; // whm moved this above wxMessageBox because Linux version
+        pApp->m_pTargetBox->m_bCameToEnd = FALSE; // whm moved this above wxMessageBox because Linux version
 							 // was repeatedly calling wxMessageBox causing crash
 		// BEW added 9Jun14, don't show this message when in clipboard adapt mode, because
 		// it will come up every time a string of text is finished being adapted, and that
@@ -4627,19 +4609,35 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (pApp->m_bUseChooseTransDropDown)
+    if (pApp->m_bChooseTransShowPopup)
     {
-        if (pApp->m_bChooseTransShowPopup)
+        // The App's m_bChooseTransShowPopup flag is TRUE which means the 
+        // phrasebox has landed and is 'resting' somewhere at a location 
+        // after a PlaceBox() call. Here in OnIdle() we attempt to keep
+        // the popup list open (where it contains at least one item) and 
+        // keep the popup list closed/dismissed (where it has no items).
+
+        // whm Note: originally I tried to get/set the enable state of
+        // the dropdown's button, but that did not work since the GetButton()
+        // call always returns NULL.
+        //wxWindow* pBtn = pApp->m_pTargetBox->GetButton(); // always returns NULL so can't disable dropdown arrow button
+        //if (pBtn != NULL)
+        //{
+            //pApp->m_pTargetBox->GetButton()->Enable();
+        //}
+        
+        // Popup the dropdown's list if it has content, otherwise keep it closed.
+        if (pApp->m_pTargetBox->GetCount() > 1)
         {
-            if (pApp->m_pChooseTranslationDropDown != NULL)
-            {
-                pApp->m_pChooseTranslationDropDown->SizeAndPositionDropDownBox();
-                pApp->m_pChooseTranslationDropDown->FocusShowAndPopup(pApp->m_bChooseTransScrolling);
-                pApp->m_bChooseTransShowPopup = FALSE;
-                pApp->m_bChooseTransScrolling = FALSE;
-            }
+            pApp->m_pTargetBox->PopupDropDownList();
         }
+        else
+        {
+            pApp->m_pTargetBox->CloseDropDown();
+        }
+        pApp->m_bChooseTransShowPopup = FALSE;
     }
+    
 	// BEW 2Dec2014 Alan Buseman's Guesser - support for hiding the GuesserUpdate() calls
 	// which need to be done pretty often -- and which block the GUI whether done synchronously
 	// as is done here, or asynchronously on a thread (due to mutexes blocking KB saves and

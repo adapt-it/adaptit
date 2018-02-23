@@ -75,7 +75,6 @@ extern CFontPageWiz* pFontPageWiz;
 extern CCaseEquivPageWiz* pCaseEquivPageWiz;
 
 extern bool			gbIsGlossing;
-extern wxString		translation;
 
 // the following are common functions - used by the CPunctCorrespPageWiz class
 // and the CPunctCorrespPagePrefs class
@@ -1354,7 +1353,7 @@ void CPunctCorrespPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 		else
 		{
 			boxValue = gpApp->m_pActivePile->GetSrcPhrase()->m_adaption;
-			translation = boxValue;
+            gpApp->m_pTargetBox->m_Translation = boxValue;
 		}
 		gpApp->m_targetPhrase = boxValue;
 		gpApp->m_pTargetBox->ChangeValue(boxValue);

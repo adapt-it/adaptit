@@ -60,15 +60,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 // External globals
 ///////////////////////////////////////////////////////////////////////////////
-extern int gnOldSequNum;
 extern bool gbVerticalEditInProgress;
-extern bool gbInhibitMakeTargetStringCall;
 extern bool gbIsGlossing;
 extern bool gbShowTargetOnly;
-extern bool gbDummyAddedTemporarily;
 extern EditRecord gEditRecord;
 extern wxChar gSFescapechar;
-extern const wxChar* filterMkr;			// defined in Adapt_ItDoc
 
 ///////////////////////////////////////////////////////////////////////////////
 // Event Table
@@ -96,6 +92,15 @@ CPlaceholder::CPlaceholder(CAdapt_ItApp* app)
 	m_pApp = app;
 	m_pLayout = m_pApp->GetLayout();
 	m_pView = m_pApp->GetView();
+
+    // whm 21Feb2018 moved and renamed gbDummyAddedTemporarily to become a private member
+    // of CPlaceholder, initialized here.
+    // TRUE if an null sourcephrase is to be inserted
+    // after the sel'n or after the active location, when the either of those are at
+    // the GetMaxIndex() location (we use InsertNullSrcPhrase() which always inserts
+    // before a location, so we have to add a dummy at the end until the insert is
+    // done, and then remove it.
+    m_bDummyAddedTemporarily = FALSE;
 }
 
 CPlaceholder::~CPlaceholder()
@@ -114,7 +119,7 @@ CPlaceholder::~CPlaceholder()
 void CPlaceholder::InsertNullSrcPhraseBefore() 
 {
 	// first save old sequ num for active location
-	gnOldSequNum = m_pApp->m_nActiveSequNum;
+    m_pApp->m_nOldSequNum = m_pApp->m_nActiveSequNum;
 	
     // find the pile preceding which to do the insertion - it will either be preceding the
     // first selected pile, if there is a selection current, or preceding the active
@@ -184,12 +189,12 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
         // we are about to leave the current phrase box location, so we must try to store
         // what is now in the box, if the relevant flags allow it
 		m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
-		gbInhibitMakeTargetStringCall = TRUE;
+        m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 		bool bOK;
 		bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
 						m_pApp->m_targetPhrase);
 		bOK = bOK; // avoid warning
-		gbInhibitMakeTargetStringCall = FALSE;
+        m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 	}
 	
 	InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount);
@@ -212,7 +217,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 	
 	// CTRL key is down, so an "insert after" is wanted
 	// first save old sequ num for active location
-	gnOldSequNum = m_pApp->m_nActiveSequNum;
+    m_pApp->m_nOldSequNum = m_pApp->m_nActiveSequNum;
 	
 	// find the pile after which to do the insertion - it will either be after the
 	// last selected pile if there is a selection current, or after the active location
@@ -281,11 +286,11 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
         // we are about to leave the current phrase box location, so we must try to store
         // what is now in the box, if the relevant flags allow it
 		m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
-		gbInhibitMakeTargetStringCall = TRUE;
+        m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 		bool bOK;
 		bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
 		bOK = bOK; // avoid warning
-		gbInhibitMakeTargetStringCall = FALSE;
+        m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 	}
 	
     // at this point, we need to increment the pInsertLocPile pointer to the next pile, and
@@ -294,8 +299,8 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
     // there is no selection, is at the very end of the document (ie. last sourcephrase),
     // there is no following source phrase instance to insert before. If this is the case,
     // we have to append a dummy sourcephrase at the end of the document, do the insertion,
-    // and then remove it again; and we will also have to set (and later clear) the global
-    // gbDummyAddedTemporarily because this is used in the function in order to force a
+    // and then remove it again; and we will also have to set (and later clear)  
+    // m_bDummyAddedTemporarily because this is used in the function in order to force a
     // leftwards association only (and hence the user does not have to be asked whether to
     // associate right or left, if there is final punctuation)
 	SPList* pSrcPhrases = m_pApp->m_pSourcePhrases;
@@ -303,7 +308,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 	if (nSequNum == m_pApp->GetMaxIndex())
 	{
 		// a dummy is temporarily required
-		gbDummyAddedTemporarily = TRUE;
+		m_bDummyAddedTemporarily = TRUE;
 		
 		// do the append
 		pDummySrcPhrase = new CSourcePhrase;
@@ -344,9 +349,9 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 	
 	InsertNullSourcePhrase(pDoc,pInsertLocPile,nCount,TRUE,FALSE,FALSE); // here, never for
 	// Retransln if we inserted a dummy, now get rid of it and clear the global flag
-	if (gbDummyAddedTemporarily)
+	if (m_bDummyAddedTemporarily)
 	{
-		gbDummyAddedTemporarily = FALSE;
+        m_bDummyAddedTemporarily = FALSE;
 		
 		// now remove the dummy element, and make sure memory is not leaked!
 		// for refactored code, first remove the partner pile for the dummy, then the dummy
@@ -815,7 +820,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 			
 			// bleed off the case when we are inserting before a temporary dummy srcphrase,
 			// since in this situation association always can only be leftwards
-			if (!bInsertBefore && gbDummyAddedTemporarily)
+			if (!bInsertBefore && m_bDummyAddedTemporarily)
 			{
 				bAssociatingRightwards = FALSE;
 			}
@@ -1411,16 +1416,11 @@ m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
 		m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 
         // whm added 10Jan2018 to support quick selection of a translation equivalent.
-        if (m_pApp->m_bUseChooseTransDropDown)
-        {
-            // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-            // The current phrasebox location is changing due to the placement of the placeholder,
-            // so Hide the dropdown. PlaceBox below may reactivate it if needed.
-            if (m_pApp->m_pChooseTranslationDropDown != NULL)
-            {
-                m_pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-            }
-        }
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+        // The current phrasebox location is changing due to the placement of the placeholder,
+        // so Hide the dropdown. PlaceBox below may reactivate it if needed.
+        m_pApp->m_pTargetBox->CloseDropDown();
+        m_pApp->m_pTargetBox->ClearDropDownList();
 
 		m_pView->Invalidate();
 		m_pLayout->PlaceBox();
@@ -2174,7 +2174,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
     // save old sequ number in case required for toolbar's Back button - but since it
     // probably has been lost (being the null source phrase location), to be safe we must
     // set it to the current active location
-	gnOldSequNum = m_pApp->m_nActiveSequNum;
+    m_pApp->m_nOldSequNum = m_pApp->m_nActiveSequNum;
 	
 	// scroll into view, just in case a lot were inserted
 	m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
@@ -2500,7 +2500,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 	{
 		// CTRL key is down, so an "insert after" is wanted
 		// first save old sequ num for active location
-		gnOldSequNum = m_pApp->m_nActiveSequNum;
+        m_pApp->m_nOldSequNum = m_pApp->m_nActiveSequNum;
 		
 		// find the pile after which to do the insertion - it will either be after the
 		// last selected pile if there is a selection current, or after the active location
@@ -2570,12 +2570,12 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
             // we are about to leave the current phrase box location, so we must try to
             // store what is now in the box, if the relevant flags allow it
 			m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
-			gbInhibitMakeTargetStringCall = TRUE;
+            m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 			bool bOK;
 			bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
 											m_pApp->m_targetPhrase);
 			bOK = bOK; // avoid warning
-			gbInhibitMakeTargetStringCall = FALSE;
+            m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 		}
 		
         // at this point, we need to increment the pInsertLocPile pointer to the next pile,
@@ -2585,7 +2585,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
         // sourcephrase), there is no following source phrase instance to insert before. If
         // this is the case, we have to append a dummy sourcephrase at the end of the
         // document, do the insertion, and then remove it again; and we will also have to
-        // set (and later clear) the global gbDummyAddedTemporarily because this is used in
+        // set (and later clear) m_bDummyAddedTemporarily because this is used in
         // the function in order to force a leftwards association only (and hence the user
         // does not have to be asked whether to associate right or left, if there is final
         // punctuation)
@@ -2594,7 +2594,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		if (nSequNum == m_pApp->GetMaxIndex())
 		{
 			// a dummy is temporarily required
-			gbDummyAddedTemporarily = TRUE;
+            m_bDummyAddedTemporarily = TRUE;
 			
 			// do the append
 			pDummySrcPhrase = new CSourcePhrase;
@@ -2636,9 +2636,9 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		InsertNullSourcePhrase(pDoc,pInsertLocPile,nCount,TRUE,FALSE,FALSE); // here, never
 		// for Retransln
 		// if we inserted a dummy, now get rid of it and clear the global flag
-		if (gbDummyAddedTemporarily)
+		if (m_bDummyAddedTemporarily)
 		{
-			gbDummyAddedTemporarily = FALSE;
+            m_bDummyAddedTemporarily = FALSE;
 			
 			// first, remove the temporary partner pile
 			pDoc->DeletePartnerPile(pDummySrcPhrase);
@@ -2687,7 +2687,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 	else // not inserting after the selection's end or active location, but before
 	{
 		// first save old sequ num for active location
-		gnOldSequNum = m_pApp->m_nActiveSequNum;
+        m_pApp->m_nOldSequNum = m_pApp->m_nActiveSequNum;
 		
         // find the pile preceding which to do the insertion - it will either be preceding
         // the first selected pile, if there is a selection current, or preceding the
@@ -2757,12 +2757,12 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
             // we are about to leave the current phrase box location, so we must try to
             // store what is now in the box, if the relevant flags allow it
 			m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
-			gbInhibitMakeTargetStringCall = TRUE;
+            m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 			bool bOK;
 			bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
 											m_pApp->m_targetPhrase);
 			bOK = bOK; // avoid warning
-			gbInhibitMakeTargetStringCall = FALSE;
+            m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 		}
 		
 		InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount);

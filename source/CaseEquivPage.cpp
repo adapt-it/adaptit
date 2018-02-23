@@ -84,13 +84,7 @@ extern bool gbSrcHasUcAndLc;
 extern bool	gbAutoCaps;
 
 /// This global is defined in Adapt_It.cpp.
-extern bool	gbSourceIsUpperCase;
-
-/// This global is defined in Adapt_It.cpp.
 extern bool	gbNonSourceIsUpperCase;
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbMatchedKB_UCentry;
 
 /// This global is defined in Adapt_It.cpp.
 extern bool	gbNoSourceCaseEquivalents;
@@ -100,18 +94,6 @@ extern bool	gbNoTargetCaseEquivalents;
 
 /// This global is defined in Adapt_It.cpp.
 extern bool	gbNoGlossCaseEquivalents;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharNonSrcLC;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharNonSrcUC;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharSrcLC;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharSrcUC;
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;

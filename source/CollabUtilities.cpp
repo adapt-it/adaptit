@@ -94,9 +94,6 @@ const int filterMkrEndLen = 9;
 
 extern bool gbIsGlossing;
 extern bool gbGlossingUsesNavFont;
-//extern bool gbForceUTF8; // not used within CollabUtilities.cpp
-extern int  gnOldSequNum;
-//extern bool gbTryingMRUOpen; // whm 1Oct12 removed
 extern bool gbConsistencyCheckCurrent;
 extern bool gbDoingInitialSetup;
 
@@ -2199,7 +2196,7 @@ void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle)
 		pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
 	}
 	pView->Invalidate();
-	gnOldSequNum = -1; // no previous location exists yet
+    pApp->m_nOldSequNum = -1; // no previous location exists yet
 }
 
 // Saves a wxString, theText (which in the Unicode build should be UTF16 text, and in the
@@ -3107,7 +3104,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
 		}
 		pView->Invalidate();
-		gnOldSequNum = -1; // no previous location exists yet
+        pApp->m_nOldSequNum = -1; // no previous location exists yet
 	}
 
 	// Update for step 10 finished.

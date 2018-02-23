@@ -80,9 +80,6 @@ extern bool gbHaltedAtBoundary;
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing;
 
-/// This global is defined in Adapt_ItView.cpp.
-extern int gnOldSequNum;
-
 /// This global is defined in Adapt_It.cpp.
 extern CPile* gpNotePile;
 
@@ -106,9 +103,6 @@ extern CPile* gpGreenWedgePile;
 extern bool gbSuppressSetup;
 
 //extern wxString gFreeTranslationStr;
-
-/// This global is defined in PhraseBox.cpp.
-extern wxString translation;
 
 /// The global gpCurFreeTransSectionPileArray was defined in Adapt_It.cpp, but was changed to a member variable
 /// of the class CFreeTrans. GDLC 2010-02-16
@@ -485,38 +479,27 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
 // to clicking on the thumb, arrows, or the paging parts of the canvas' scrollbar.
 void CAdapt_ItCanvas::OnScroll(wxScrollWinEvent& event)
 {
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
+    // whm added 10Jan2018 - to support dropdown CPhraseBox derived from wxOwnerDrawnComboBox
     CAdapt_ItApp* pApp = &wxGetApp();
-    if (pApp->m_bUseChooseTransDropDown)
+    // Since a scroll of the screen with the list popped up separates the popped up list
+    // part of the comboobox from the base edit box part (actually a phantom image), we 
+    // here make the popup disappear (if it was open) by calling Dismiss() in wx2.9/3.x or
+    // for wx2.8.12 the Frame's SendSizeEvent - when there is an OnScroll event (the 
+    // SendSizeEvent causes the popup to close). 
+    // When the popup is open it seeks the focus, and prevents the screen from scrolling the 
+    // phrasebox-dropdown combination out of the client area - which effectively prevents 
+    // the user from scrolling away to check context during adaptation. However, when the 
+    // popup isn't open, the user can scroll the phrasebox-dropdown combination out of the 
+    // client area.
+    if (pApp->m_pTargetBox->IsPopupShown()) // bDropDownIsPoppedOpen is always false in wx2.8.12 :(
     {
-        // If the dropdown combobox exists and is showing, make sure its position tracks that of the phrasebox
-        if (pApp->m_pChooseTranslationDropDown != NULL)
-        {
-            if (pApp->m_pChooseTranslationDropDown->IsShown())
-            {
-                // Challenge: 
-                // Since a scroll of the screen with the list popped up separates the popped up list
-                // part of the comboobox from the base edit box part (actually a phantom image), we 
-                // here make the popup disappear (if it was open) by calling the Frame's SendSizeEvent 
-                // when there is an OnScroll event. The SendSizeEvent causes the popup to close. 
-                // When the popup is open it seeks the focus, and prevents the screen from scrolling the 
-                // phrasebox-dropdown combination out of the client area - which effectively prevents 
-                // the user from scrolling away to check context during adaptation. However, when the 
-                // popup isn't open, the user can scroll the phrasebox-dropdown combination out of the 
-                // client area.
-                if (pApp->m_pChooseTranslationDropDown->bDropDownIsPoppedOpen) // bDropDownIsPoppedOpen is always false in wx2.8.12 :(
-                {
 #if wxVERSION_NUMBER < 2900
-                    pApp->GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
+        pApp->GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
 #else
-                    pApp->m_pChooseTranslationDropDown->Dismiss();
+        pApp->m_pTargetBox->Dismiss();
 #endif     
-                }
-                pApp->m_bChooseTransScrolling = TRUE;
-                //pApp->m_bChooseTransShowPopup = TRUE; // Don't need to change this here
-            }
-        }
     }
+
     event.Skip();	// this is necessary for the built-in scrolling behavior of wxScrolledWindow
 					// to be processed
 }
@@ -1080,7 +1063,7 @@ x:					CCell* pCell = 0;
 					pCell = pPile->GetCell(1); // we want the 2nd line, for phrase box
 
 					// save old sequ number in case required for toolbar's Back button
-					gnOldSequNum = pApp->m_nActiveSequNum;
+                    pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
 					// place the phrase box
 					pView->PlacePhraseBox(pCell,2);
@@ -1636,7 +1619,7 @@ x:					CCell* pCell = 0;
 					}
 
 					// save old sequ number in case required for toolbar's Back button
-					gnOldSequNum = pApp->m_nActiveSequNum;
+                    pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
                     // BEW 8Aug13, For support of "The HACK" (see end of OnIdle()) --
                     // trying to debug the failure of an edited form to "stick" when the
@@ -1724,7 +1707,7 @@ x:					CCell* pCell = 0;
 						// make m_bIsCurrentFreeTransSection FALSE on every pile
 						pApp->m_pLayout->MakeAllPilesNonCurrent();
 
-						// BEW added 8Apr10, the global wxString translation has to be given
+						// BEW added 8Apr10, the wxString m_Translation has to be given
 						// the value for the phrase box at the new location, otherwise the
 						// last location's string will wrongly be put there; we get the value
 						// from the m_adaption member of that CSourcePhrase instance in
@@ -1734,11 +1717,11 @@ x:					CCell* pCell = 0;
 						// being done while in glossing mode (which it is legal to do)
 						if (gbIsGlossing)
 						{
-							translation = pCell->GetPile()->GetSrcPhrase()->m_gloss;
+                            pApp->m_pTargetBox->m_Translation = pCell->GetPile()->GetSrcPhrase()->m_gloss;
 						}
 						else
 						{
-							translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
+                            pApp->m_pTargetBox->m_Translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
 						}
 
 						// the PlacePhraseBox() call calls CLayout::RecalcLayout()
@@ -1780,13 +1763,13 @@ x:					CCell* pCell = 0;
 														!pApp->m_bDefineFreeTransByPunctuation;
 						}
 						ScrollIntoView(pApp->m_nActiveSequNum);
-						translation.Empty();
+                        pApp->m_pTargetBox->m_Translation.Empty();
 
 					} // end of block for test: pApp->m_bFreeTranslationMode == TRUE
 					else
 					{
 						// not in free translation mode
-						translation.Empty();
+                        pApp->m_pTargetBox->m_Translation.Empty();
 
 						#ifdef _Trace_Click_FT
 						TRACE1("PlacePhraseBox() next, normal mode; key: %s\n", pApp->m_targetPhrase);
@@ -1794,7 +1777,7 @@ x:					CCell* pCell = 0;
 
 						// if the user has turned on the sending of synchronized scrolling
 						// messages, send the relevant message
-						if (!gbIgnoreScriptureReference_Send)
+						if (!pApp->m_bIgnoreScriptureReference_Send)
 						{
 							pView->SendScriptureReferenceFocusMessage(pApp->m_pSourcePhrases,pCell->GetPile()->GetSrcPhrase());
 						}
@@ -1821,18 +1804,18 @@ x:					CCell* pCell = 0;
 						// m_adaption should be empty. Effect this in the block immediately
 						// below, but generically enough to apply to more than just [ and ]
 						// when they are punctuation and there is no word-building chars.
-						// The old location's sequ number is preserved in gnOldSequNum
+						// The old location's sequ number is preserved in m_nOldSequNum
 						// BEW 20May16 added 3rd subtest to next line, otherwise it bleeds out
 						// user's choice of manual typing of punctuation in the block further
 						// down
-						if (gnOldSequNum != -1 && !pApp->m_bCopySourcePunctuation &&
-							(pView->GetPile(gnOldSequNum)->GetSrcPhrase()->m_precPunct == _T("[") ||
-							pView->GetPile(gnOldSequNum)->GetSrcPhrase()->m_follPunct == _T("]")) )
+						if (pApp->m_nOldSequNum != -1 && !pApp->m_bCopySourcePunctuation &&
+							(pView->GetPile(pApp->m_nOldSequNum)->GetSrcPhrase()->m_precPunct == _T("[") ||
+							pView->GetPile(pApp->m_nOldSequNum)->GetSrcPhrase()->m_follPunct == _T("]")) )
 						{
-							CSourcePhrase* sp = pView->GetPile(gnOldSequNum)->GetSrcPhrase();
+							CSourcePhrase* sp = pView->GetPile(pApp->m_nOldSequNum)->GetSrcPhrase();
 							// In this circumstance, m_targetStr should be set to m_adaption,
 							// and no punctuation copies done
-							translation = sp->m_adaption;
+                            pApp->m_pTargetBox->m_Translation = sp->m_adaption;
 							sp->m_targetStr = sp->m_adaption;
 							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
 							// is done at the leaving location, but a removal from the KB
@@ -1840,7 +1823,7 @@ x:					CCell* pCell = 0;
 						}
 						else if (pApp->m_pTargetBox->m_bAbandonable)
 						{
-							translation.Empty();
+                            pApp->m_pTargetBox->m_Translation.Empty();
 							pApp->m_targetPhrase.Empty();
 							pApp->m_pTargetBox->ChangeValue(_T(""));
 							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
@@ -1854,7 +1837,7 @@ x:					CCell* pCell = 0;
 							// not exist (i.e. sn = -1 for that location) will give a
 							// crash. Therefore test for this and do a different
 							// PlacePhraseBox() call if that is the case
-							if (gnOldSequNum == -1)
+							if (pApp->m_nOldSequNum == -1)
 							{
 								pView->PlacePhraseBox(pCell, 2); // selector = 2 (meaning
 									// KB access is not done at the leaving location, but

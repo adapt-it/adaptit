@@ -60,7 +60,6 @@
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 extern bool gbIsGlossing;
 extern bool gbGlossingUsesNavFont;
-extern int gnOldSequNum;
 extern CAdapt_ItApp* gpApp;
 extern wxString szProjectConfiguration;
 

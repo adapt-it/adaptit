@@ -62,7 +62,7 @@ IMPLEMENT_DYNAMIC_CLASS(CMyListBox, wxListBox)
 
 // event handler table
 BEGIN_EVENT_TABLE(CMyListBox, wxListBox)
-	EVT_KEY_UP(CMyListBox::OnSysKeyUp)
+	//EVT_KEY_UP(CMyListBox::OnSysKeyUp)
 	EVT_KEY_DOWN(CMyListBox::OnSysKeyDown)
 	EVT_CHAR(CMyListBox::OnChar)
 END_EVENT_TABLE()
@@ -85,6 +85,8 @@ CMyListBox::~CMyListBox() // destructor
 
 // event handling functions
 
+// whm removed CMyListBox::OnSysKeyUp() since the Choose Translation dialog no longer has a Cancel and Select button
+/*
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxKeyEvent that is generated after a key is released by the user 
@@ -118,6 +120,7 @@ void CMyListBox::OnSysKeyUp(wxKeyEvent& event)
 	// Note: The special list box selection behaviors are implemented in OnSysKeyDown() below since we
 	// want those behaviors to replace the default wxListBox native behaviors on all platforms.
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
