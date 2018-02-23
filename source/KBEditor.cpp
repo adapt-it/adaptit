@@ -81,20 +81,12 @@ extern bool	gbAutoCaps;
 /// These globals are defined in Adapt_It.cpp
 extern bool	gbSourceIsUpperCase;
 extern bool	gbNonSourceIsUpperCase;
-extern bool	gbMatchedKB_UCentry;
-extern bool	gbNoSourceCaseEquivalents;
-extern bool	gbNoTargetCaseEquivalents;
-extern bool	gbNoGlossCaseEquivalents;
 extern wxChar gcharNonSrcLC;
-extern wxChar gcharNonSrcUC;
 extern wxChar gcharSrcLC;
-extern wxChar gcharSrcUC;
 extern bool gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
 									// is enabled, FALSE is legacy initial position only
 extern int  gnOffsetToUCcharSrc; // offset to source text location where the upper case
 								 // character was found to be located, wxNOT_FOUND if not located
-
-extern bool	gbCallerIsRemoveButton;
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
@@ -1626,7 +1618,15 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
     // handler for Remove button in the Choose Translation dialog), and use the flag to
     // jump the capitalization smarts and instead just do a lookup on the key as supplied
     // to the function.
-	gbCallerIsRemoveButton = TRUE;
+    // in support of removal when autocapitalization might be on - see the OnButtonRemove handler
+    // in KBEditor.cpp for a full explanation of the need for this flag
+    CKB* pKB;
+    if (gbIsGlossing)
+        pKB = gpApp->m_pGlossingKB;
+    else
+        pKB = gpApp->m_pKB;
+    if (pKB != NULL)
+        pKB->m_bCallerIsRemoveButton = TRUE;
 
     // user hit the Yes button, so go ahead; remove the string from the list and then make
     // the first element in the list the new selection - provided there is one left
@@ -1753,7 +1753,8 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 
 	m_pEditRefCount->SetValue(m_refCountStr);
 	m_pEditOrAddTranslationBox->SetValue(m_edTransStr);
-	gbCallerIsRemoveButton = FALSE; // reestablish the safe default
+    if (pKB != NULL)
+	    pKB->m_bCallerIsRemoveButton = FALSE; // reestablish the safe default
 	UpdateButtons();
 	gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save
 										// button enabled
@@ -1944,7 +1945,7 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 	else
 		return; // impossible to move the list element of the list further down!
 
-	// now change the order of the CRefString in pCurTargetUnit to match the new order
+	// now change the order of the CRefString in pCurTgtUnit to match the new order
 	CRefString* pRefString;
 	if (nSel > nOldSel)
 	{

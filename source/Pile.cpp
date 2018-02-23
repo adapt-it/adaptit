@@ -125,13 +125,7 @@ extern bool gbGlossingVisible;
 //extern CAdapt_ItApp* gpApp;
 extern const wxChar* filterMkr;
 
-// globals relevant to the phrase box  (usually defined in Adapt_ItView.cpp)
-extern short gnExpandBox; // set to 8
-
 extern CAdapt_ItApp* gpApp;
-//GDLC Removed 2010-02-10
-// This global is defined in PhraseBox.cpp.
-//extern bool gbExpanding;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
@@ -475,32 +469,21 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			wxSize charSize;
 			//aDC.GetTextExtent(aChar, &charSize.x, &charSize.y);
 			aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
-			boxExtent.x += gnExpandBox*charSize.x; // add a slop factor (gnExpandBox is user settable)
+			boxExtent.x += gpApp->m_nExpandBox*charSize.x; // add a slop factor (m_nExpandBox is user settable)
 			if (boxGapWidth < boxExtent.x)
 			{
 				boxGapWidth = boxExtent.x;
 			}
 
-            // again adjust the value if the box has just expanded, FixBox() has calculated
-            // a new phrase box width already and stored that width in
-            // CLayout::m_curBoxWidth, so we must now check, if the box is expanding, to
-            // see if that stored width is greater than the one so far calculated, and if
-			//****GDLC CHECK NEEDED on how widthMode gets to this function
-            // so, use the greater value - and if expanding, FixBox() sets gbExpanding to
-            // TRUE. If not expanding (the box could be contracting) we just use the
-            // unadjusted value. FixBox() also clears the gbExpanding flag before exitting,
-			// so between setting that flag TRUE and clearing it to FALSE, there has to be
-			// a determination of the new box width, storage of it to
-			// CLayout::m_curBoxWidth, and a recalculation of the strips to reflect the
-			// correct pile population of them after the box width changed - the latter is
-			// done by RecalcLayout (and also by LayoutStrip() in the legacy code), but in
-			// the new layout code where we replace many calls to RecalcLayout() by
-			// AdjustForUserEdits(), then the latter would have to be called instead.
-			// CalcPhraseBoxGapWidth() therefore does not clear the gbExpanding flag, it
-			// just uses it for the following test
-//GDLC Changed test 2010-02-10
+            // whm 18Feb2018 modified to take into account that the phrasebox now has a dropdown
+            // button that takes up room on the right end of the phrasebox. We need to add to 
+            // boxGapWidth the width of that button - which will be a constant value regardless
+            // of whether the phrasebox is expanding or not. Currently button width is 17 pixels.
+            wxSize buttonSize = gpApp->m_pTargetBox->GetButtonSize();
+            if (buttonSize.x > 0)
+                boxGapWidth += buttonSize.GetX();
+
 			if (widthMode == expanding)
-//			if (gbExpanding)
 			{
 				if (m_pLayout->m_curBoxWidth > boxGapWidth)
 					boxGapWidth = m_pLayout->m_curBoxWidth;
@@ -1047,7 +1030,7 @@ bool CPile::IsWrapPile()
 // BEW 22Feb10, no changes for support of doc version 5
 void CPile::PrintPhraseBox(wxDC* pDC)
 {
-	wxTextCtrl* pBox = m_pLayout->m_pApp->m_pTargetBox;
+	wxTextCtrl* pBox = m_pLayout->m_pApp->m_pTargetBox->GetTextCtrl(); // whm 14Feb2018 added ->GetTextCtrl()
 	wxASSERT(pBox);
 	wxRect rectBox;
 	int width;

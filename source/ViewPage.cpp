@@ -50,13 +50,6 @@
 #include "Pile.h"
 #include "Layout.h"
 
-/// This global is defined in Adapt_ItView.cpp.
-extern bool gbLegacySourceTextCopy;	// default is legacy behaviour, to copy the source text (unless
-									// the project config file establishes the FALSE value instead)
-
-/// This global is defined in Adapt_ItView.cpp.
-extern short gnExpandBox;
-
 IMPLEMENT_DYNAMIC_CLASS( CViewPage, wxPanel )
 
 // event handler table
@@ -85,7 +78,7 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	tempGapWidth = 0;
 	tempLMargin = 0;
 	tempMinPileWidth = 20;
-	tempMultiplier = gnExpandBox;
+	tempMultiplier = pApp->m_nExpandBox;
 	tempDlgFontSize = 12;
 	tempSuppressFirst = FALSE;
 	tempSuppressLast = FALSE;
@@ -295,7 +288,7 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 
 	// determine what the Copy of the source text when pile has no adaptation, or gloss,
 	// should do in gloss mode, or adaptations mode, respectively (BEW added 16July08)
-	gbLegacySourceTextCopy = !tempNotLegacySourceTextCopy;
+    pApp->m_bLegacySourceTextCopy = !tempNotLegacySourceTextCopy;
 
 	// Get checkbox value for the support of freeze &  thaw
 	bTempFreezeAndThaw = m_pCheckFreezeAndThaw->GetValue();
@@ -369,9 +362,9 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 
 	strTemp = m_pEditMultiplier->GetValue();
 	nVal = wxAtoi(strTemp);
-	if (nVal != gnExpandBox)
+	if (nVal != pApp->m_nExpandBox)
 		pLayout->m_bViewParamsChanged = TRUE;
-	gnExpandBox = nVal;
+    pApp->m_nExpandBox = nVal;
 
 	strTemp = m_pEditDlgFontSize->GetValue();
 	nVal = wxAtoi(strTemp);
@@ -400,13 +393,13 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	tempGapWidth = pApp->m_curGapWidth;
 	tempLMargin = pApp->m_curLMargin;
 	tempMinPileWidth = pApp->m_nMinPileWidth;
-	tempMultiplier = gnExpandBox;
+	tempMultiplier = pApp->m_nExpandBox;
 	tempDlgFontSize = pApp->m_dialogFontSize; // added missed initialization
 	tempMakeWelcomeVisible = !pApp->m_bSuppressWelcome;
 	tempUseStartupWizardOnLaunch = pApp->m_bUseStartupWizardOnLaunch; // always remains true since version 3
 	tempHighlightAutoInsertions = !pApp->m_bSuppressTargetHighlighting;
 	tempAutoInsertionsHighlightColor = pApp->m_AutoInsertionsHighlightColor;
-	tempNotLegacySourceTextCopy = !gbLegacySourceTextCopy;
+	tempNotLegacySourceTextCopy = !pApp->m_bLegacySourceTextCopy;
 	int nRadioBoxSelection = pApp->m_bKeepBoxMidscreen ? 0 : 1;
 	m_pRadioBox->SetSelection(nRadioBoxSelection);
 	// BEW added 9Jul14

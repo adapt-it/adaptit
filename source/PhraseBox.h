@@ -23,6 +23,10 @@
     #pragma interface "PhraseBox.h"
 #endif
 
+//#include <wx/combobox.h>
+//#include <wx/combo.h>
+#include <wx/odcombo.h>
+
 #include "SourcePhrase.h" // needed for
 
 // forward declarations
@@ -37,19 +41,21 @@ class CLayout;
 /// The CPhraseBox class governs the behavior of the phrase or
 /// target box where the user enters and/or edits translations while adapting text.
 /// \derivation		The PhraseBox class derives from the wxTextCtrl class.
-class CPhraseBox : public wxTextCtrl
+//class CPhraseBox : public wxTextCtrl
+class CPhraseBox : public wxOwnerDrawnComboBox
 {
 public:
 	CPhraseBox(void); // wx needs the explicit constructor here
 
-	CPhraseBox(wxWindow *parent, wxWindowID id, const wxString &value,
-				const wxPoint &pos, const wxSize &size, int style = 0)
-				: wxTextCtrl(parent, id, value, pos, size, style)
-	{
-		m_textColor = wxColour(0,0,0); // default to black
-		m_bMergeWasDone = FALSE;
-		m_bCancelAndSelectButtonPressed = FALSE;
-	}
+    CPhraseBox(
+        wxWindow * parent,
+        wxWindowID id,
+        const wxString & value,
+        const wxPoint & pos,
+        const wxSize & size,
+        const wxArrayString & choices,
+        long style = 0);
+
 	virtual ~CPhraseBox(void);
 
 // Attributes
@@ -61,7 +67,31 @@ public:
 	bool		m_bMergeWasDone; // whm moved here from within OnChar()
 	bool		m_bCurrentCopySrcPunctuationFlag; // BEW added 20May16 (preserve m_bCopySourcePunctuation
 					// value so it can be restored within DoStore_ForPlacePhraseBox() )
+    bool        m_bRetainBoxContents;
+    bool        m_bMergeSucceeded;
+    bool        m_bSuppressDefaultAdaptation;
+    bool        m_bBoxTextByCopyOnly;
+    bool        m_bTunnellingOut;
+    bool        m_bSavedTargetStringWithPunctInReviewingMode;
+    wxString    m_StrSavedTargetStringWithPunctInReviewingMode;
+    bool        m_bNoAdaptationRemovalRequested;
+    bool        m_bCameToEnd;
+    bool        m_bTemporarilySuspendAltBKSP;
+    bool        m_bSuppressStoreForAltBackspaceKeypress;
+    //bool        m_bMovingToPreviousPile; // initialized but unused 
+    bool        m_bCompletedMergeAndMove;
+    bool        m_bEnterTyped;
+    bool        m_bInhibitMakeTargetStringCall;
+    long        m_nSaveStart; //int m_nSaveStart; // these two are for implementing Undo() for a backspace operation
+    long        m_nSaveEnd; //int m_nSaveEnd;                 
+    int         m_nCurrentSequNum; /// Contains the current sequence number of the active pile (m_nActiveSequNum) for use by auto-saving.
+    int         m_nWordsInPhrase;
+    wxString	m_CurKey;
+    wxString    m_Translation;
+    bool        m_bEmptyAdaptationChosen;
 
+    wxString    m_SaveTargetPhrase;
+    CTargetUnit* pTargetUnitFromChooseTrans;
 
 protected:
 	bool CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, CPile* pNextEmptyPile,
@@ -73,11 +103,13 @@ protected:
 	bool DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView,
 							CPile* pCurPile, bool bIsTransliterateMode = FALSE);
 							// BEW added DoStore_NormalOrTransliterateModes() 24Mar09, to simplify MoveToNextPile()
+    // whm 22Feb2018 removed bool m_bCancelAndSelect parameter and logic
 	void HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
-							CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect);
+							CPile* pNewPile, bool& bWantSelect);
 							// BEW added 24Mar09, to simplify MoveToNextPile()
+    // whm 22Feb2018 removed bool m_bCancelAndSelect parameter and logic
 	void HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
-							CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect);
+							CPile* pNewPile, bool& bWantSelect);
 							// BEW added 24Mar09, to simplify MoveToNextPile()
 	void MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect);
 							// BEW added MakeCopyOrSetNothing() 24Mar09,  to simplify MoveToNextPile()
@@ -90,21 +122,40 @@ protected:
 	void JumpForward(CAdapt_ItView* pView);
 
 public:
-	void DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile);
+	//void DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile);
 	bool DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	CLayout* GetLayout();
 	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
 							int nSelector); // BEW made public on 14Mar11, now called in view's OnDraw()
+    int GetLineLength(long lineNo); // whm 14Feb2018 added (GetLineLength() is in wxTextCtrl but not wxOwnerDrawnComboBox)
+    void OnComboProcessDropDownListOpen(wxCommandEvent & WXUNUSED(event));
+    void OnComboProcessDropDownListCloseUp(wxCommandEvent & WXUNUSED(event));
+    void PopulateDropDownList(CTargetUnit * pTU, int& selectionIndex);
+    void CloseDropDown();
+    void PopupDropDownList();
+    wxBitmap dropbutton_hover; // (xpm_dropbutton_hover);
+    wxBitmap dropbutton_pressed; // (xpm_dropbutton_pressed);
+    wxBitmap dropbutton_normal; // (xpm_dropbutton_normal);
+    wxBitmap dropbutton_disabled; // (xpm_dropbutton_disabled);
+    wxBitmap dropbutton_blank; // (xpm_dropbutton_blank);
+    char * xpm_dropbutton_hover;
+    char * xpm_dropbutton_pressed;
+    char * xpm_dropbutton_normal;
+    char * xpm_dropbutton_disabled;
+    char * xpm_dropbutton_blank;
+
+
 	bool LookAhead(CPile* pNewPile);
 	int	 BuildPhrases(wxString phrases[10],int nActiveSequNum, SPList* pSourcePhrases);
 	bool OnePass(CAdapt_ItView *pView);
-    bool ChooseTranslation(bool bHideCancelAndSelectButton = FALSE);
+    void ClearDropDownList();
 	bool LookUpSrcWord(CPile* pNewPile);
 	//SPList::Node* GetSrcPhrasePos(int nSequNum, SPList* pSourcePhrases);
 	void SetModify(bool modify);
 	bool GetModify();
-	bool GetCancelAndSelectFlag(); // accessor for private bool m_bCancelAndSelectButtonPressed getting
-	void ChangeCancelAndSelectFlag(bool bValue); // accessor to change private bool m_bCancelAndSelectButtonPressed
+    // whm 22Feb2018 removed - Cancel and Select button in Choose Translation dialog now removed
+    //bool GetCancelAndSelectFlag(); // accessor for private bool m_bCancelAndSelectButtonPressed getting
+	//void ChangeCancelAndSelectFlag(bool bValue); // accessor to change private bool m_bCancelAndSelectButtonPressed
 	// Generated message map functions
 	void RemoveFinalSpaces(CPhraseBox* pBox,wxString* pStr);
 	void RemoveFinalSpaces(wxString& rStr); // overload of the public function, BEW added 30Apr08
@@ -113,13 +164,15 @@ public:
 	// BEW added 23Apr15
 	void ChangeValue(const wxString& value); // will replace all ZWSP with / if app->m_bFwdSlashDelimiter is TRUE
 //#endif
-    void OnSysKeyUp(wxKeyEvent& event); // whm 10Jan2018 made public for access by CChooseTranslationDropDown::OnKeyUp()
 protected:
 	void OnChar(wxKeyEvent& event);
 	void OnKeyUp(wxKeyEvent& event);
 	void OnKeyDown(wxKeyEvent& event);
+    void OnSysKeyUp(wxKeyEvent& event);
 	void OnLButtonDown(wxMouseEvent& event);
 	void OnLButtonUp(wxMouseEvent& event);
+    void OnComboItemSelected(wxCommandEvent& WXUNUSED(event));
+    wxCoord OnMeasureItem(size_t item) const;
 public:
 	void OnEditUndo(wxCommandEvent& WXUNUSED(event));
 	void OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event));

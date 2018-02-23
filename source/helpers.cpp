@@ -94,24 +94,13 @@ const int filterMkrEndLen = 9;
 extern bool gbIsGlossing;
 extern bool gbGlossingUsesNavFont;
 extern bool gbForceUTF8;
-extern int  gnOldSequNum;
 //extern bool gbTryingMRUOpen; // whm 1Oct12 removed
 extern bool gbConsistencyCheckCurrent;
-extern bool gbInhibitMakeTargetStringCall;
 
 // globals needed due to moving functions here from mainly the view class
 // next group for auto-capitalization support
 extern bool	gbAutoCaps;
-extern bool	gbSourceIsUpperCase;
 extern bool	gbNonSourceIsUpperCase;
-extern bool	gbMatchedKB_UCentry;
-extern bool	gbNoSourceCaseEquivalents;
-extern bool	gbNoTargetCaseEquivalents;
-extern bool	gbNoGlossCaseEquivalents;
-extern wxChar gcharNonSrcLC;
-extern wxChar gcharNonSrcUC;
-extern wxChar gcharSrcLC;
-extern wxChar gcharSrcUC;
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding.
@@ -9897,7 +9886,7 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 				pView->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase, gpApp->m_targetPhrase);
 				pView->RemovePunctuation(pDoc, &gpApp->m_targetPhrase, from_target_text);
 			}
-			gbInhibitMakeTargetStringCall = TRUE;
+            gpApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 			if (gbIsGlossing)
 			{
 				// whm 19Sep11 added test for gpApp->m_pGlossingKB being NULL
@@ -9929,7 +9918,7 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 					}
 				}
 			}
-			gbInhibitMakeTargetStringCall = FALSE;
+            gpApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 			if (!bOK)
 			{
 				// something is wrong if the store did not work, but we can tolerate the error

@@ -64,7 +64,6 @@ extern bool	gbIsGlossing;
 extern bool gbShowTargetOnly;
 extern int	gnSelectionLine;
 extern bool gbVerticalEditInProgress;
-extern int	gnOldSequNum;
 extern wxPoint gptLastClick;
 
 // Define type safe pointer lists
@@ -2554,7 +2553,7 @@ void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 {
 	CPile* pPile = NULL;
 	CSourcePhrase* pSrcPhrase = NULL;
-	gnOldSequNum = m_pApp->m_nActiveSequNum; // save it, to be safe
+    m_pApp->m_nOldSequNum = m_pApp->m_nActiveSequNum; // save it, to be safe
 	
     // create the note attached to the first sourcephrase of a selection if there is one,
     // else do it at the active location

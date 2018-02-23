@@ -6,13 +6,10 @@
 /// \rcs_id $Id$
 /// \copyright		2018 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CChooseTranslation and the CChooseTranslationDropDown classes. 
+/// \description	This is the implementation file for the CChooseTranslation class. 
 /// The CChooseTranslation class provides a dialog in which the user can choose 
 /// either an existing translation, or enter a new translation for a given source phrase.
-/// The CChooseTranslationDropDown class provides a dropdown wxOwnerDrawnComboBox that appears 
-/// in lieu of the CChooseTranslation dialog when called from the CPhraseBox's ChooseTranslation() function.
-/// \derivation		The CChooseTranslation class is derived from AIModalDialog, and the CChooseTranslationDropDown
-/// class is derived from wxOwnerDrawnComboBox.
+/// \derivation		The CChooseTranslation class is derived from AIModalDialog.
 /// BEW 2July10, this class has been updated to support kbVersion 2
 /////////////////////////////////////////////////////////////////////////////
 
@@ -54,69 +51,13 @@
 #include "KbServer.h"
 #include "MainFrm.h"
 
-//enum SelectionWanted
-//{
-//    No,
-//    Yes
-//};
-
-// for support of auto-capitalization
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbAutoCaps;
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbSourceIsUpperCase;
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbNonSourceIsUpperCase;
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbMatchedKB_UCentry;
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbNoSourceCaseEquivalents;
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbNoTargetCaseEquivalents;
-
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbNoGlossCaseEquivalents;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharNonSrcLC;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharNonSrcUC;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharSrcLC;
-
-/// This global is defined in Adapt_It.cpp.
-extern wxChar gcharSrcUC;
-
-extern bool	gbCallerIsRemoveButton;
-
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
-// This global is defined in Adapt_ItView.cpp.
-//extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
-
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
-
-// This global is defined in Adapt_It.cpp.
-//extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
-							// be changed in the NRoman version, using the extra Layout menu
-extern CTargetUnit* pCurTargetUnit; // defined PhraseBox.cpp
-extern wxString		curKey;
-extern int			nWordsInPhrase;
-extern bool			gbInspectTranslations;
-extern bool         gbGlossingUsesNavFont; // defined in Adapt_ItView.cpp
-extern bool         gbEmptyAdaptationChosen; // defined in Adapt_ItView.cpp
 
 /// This global is defined in Adapt_It.cpp.
 extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
@@ -126,699 +67,6 @@ extern bool gbVerticalEditInProgress;
 int ID_COMBO_CHOOSE_TRANS_DROP_DOWN = 22050;
 //bool bEventForwardedFromDropDown = FALSE;
 extern int ID_PHRASE_BOX;
-
-// whm added 10Jan2018 to support quick selection of a translation equivalent.
-// See CChooseTranslation Dialog class implementation farther below.
-
-// ******************************************************************************************
-// ************************* CChooseTranslationDropDown class *******************************
-// ******************************************************************************************
-
-IMPLEMENT_DYNAMIC_CLASS(CChooseTranslationDropDown, wxOwnerDrawnComboBox)
-
-#if wxVERSION_NUMBER < 2900
-    // event handler table for the CChooseTranslationDropDown class
-    BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxOwnerDrawnComboBox)
-    // Process a wxEVT_COMBOBOX event, when an item on the list is selected. 
-    // Note that calling GetValue() returns the new value of selection
-    EVT_COMBOBOX(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboItemSelected)
-
-    // Process a wxEVT_TEXT event, when the combobox text changes
-    EVT_TEXT(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboTextChanged)
-
-    // Process a wxEVT_TEXT_ENTER event, when RETURN is pressed in the combobox
-    // (notice that the combobox must have been created with wxTE_PROCESS_ENTER 
-    // style to receive this event)
-    EVT_TEXT_ENTER(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessEnterKeyPress)
-
-    EVT_KEY_UP(CChooseTranslationDropDown::OnKeyUp)
-    END_EVENT_TABLE()
-#else
-    // event handler table for the CChooseTranslationDropDown class
-    BEGIN_EVENT_TABLE(CChooseTranslationDropDown, wxOwnerDrawnComboBox)
-    // Process a wxEVT_COMBOBOX event, when an item on the list is selected. 
-    // Note that calling GetValue() returns the new value of selection
-    EVT_COMBOBOX(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboItemSelected)
-
-    // Process a wxEVT_TEXT event, when the combobox text changes
-    EVT_TEXT(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboTextChanged)
-
-    // Process a wxEVT_TEXT_ENTER event, when RETURN is pressed in the combobox
-    // (notice that the combobox must have been created with wxTE_PROCESS_ENTER 
-    // style to receive this event)
-    EVT_TEXT_ENTER(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessEnterKeyPress)
-    // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
-    // list box part of the combo box is shown (drops down). Notice that this 
-    // event is only supported by wxMSW, wxGTK with GTK+ 2.10 or later, and wxOSX/Cocoa
-    EVT_COMBOBOX_DROPDOWN(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListOpen)
-
-    // Process a wxEVT_COMBOBOX_CLOSEUP event, which is generated when the list 
-    // box of the combo box disappears (closes up). This event is only generated 
-    // for the same platforms as wxEVT_COMBOBOX_DROPDOWN above. Also note that
-    // only wxMSW and wxOSX/Cocoa support adding or deleting items in this event
-    EVT_COMBOBOX_CLOSEUP(ID_COMBO_CHOOSE_TRANS_DROP_DOWN, CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp)
-    EVT_KEY_UP(CChooseTranslationDropDown::OnKeyUp)
-    END_EVENT_TABLE()
-#endif
-
-// whm added 10Jan2018 to support quick selection of a translation equivalent.
-// Notes regarding the creation of the CPhraseBox class (from Adapt_ItView.cpp):
-// For reference here are the wxTextCtrl style flags that govern the phrasebox 
-// (these may be of interest when creating the CChooseTranslationDropDown object).
-// wxSIMPLE_BORDER - Displays a thin border around the window.
-// wxWANTS_CHARS - According to the wx docs Use this to indicate that
-// the window wants to get all char/key events for all keys - even for keys like
-// TAB or ENTER which are usually used for dialog navigation and which wouldn't
-// be generated without this style. If you need to use this style in order to
-// get the arrows or etc., but would still like to have normal keyboard navigation
-// take place, you should create and send a wxNavigationKeyEvent in response to
-// the key events for Tab and Shift-Tab.
-// wxTAB_TRAVERSAL - Use this to enable tab traversal for non-dialog windows
-// (not needed for phrasebox).
-
-// The CChooseTranslationDropDown constructor
-CChooseTranslationDropDown::CChooseTranslationDropDown(void)
-{
-    // we don't use the default constructor
-}
-
-CChooseTranslationDropDown::CChooseTranslationDropDown(
-    wxWindow * parent, 
-    wxWindowID id, 
-    const wxString & value, 
-    const wxPoint & pos, 
-    const wxSize & size, 
-    const wxArrayString & choices, 
-    long style)
-    : wxOwnerDrawnComboBox(parent,
-        id,
-        value,
-        pos, 
-        size, 
-        choices, 
-        style) // style is wxCB_DROPDOWN | wxTE_PROCESS_ENTER
-{
-    // Note: the constructor initially creates the dropdown list at the first instance it 
-    // is needed in the application in CPhraseBox::ChooseTranslation(). The dropdown combo 
-    // control is persistent and only shown or hidden as needed. Hence, we don't populate 
-    // its list here in the constructor, but clear the list and re-populate it each time 
-    // just before it is shown in the GUI.
-    wxASSERT(gpApp->m_pTargetFont != NULL);
-    //wxASSERT(gpApp->m_pDlgTgtFont != NULL);
-
-    newTranslationToAppend.Empty();
-    listItemIndexToSelect = 0;
-
-    //CopyFontBaseProperties(gpApp->m_pTargetFont, gpApp->m_pDlgTgtFont);
-    // The CopyFontBaseProperties function above doesn't copy the point size, so
-    // make the dialog font show in the proper dialog font size.
-    //gpApp->m_pDlgTgtFont->SetPointSize(gpApp->m_dialogFontSize);
-    this->SetFont(*gpApp->m_pTargetFont);
-    // whm modified 8Jul09 to always use wxLayout_LeftToRight for list boxes, since we
-    // probably don't want the list item right justified and the scroll bar mirrored on
-    // the left side, since the main window is not similarly mirrored.
-#ifdef _RTL_FLAGS
-    this->SetLayoutDirection(wxLayout_LeftToRight);
-#endif
-    bDropDownIsPoppedOpen = FALSE;
-    
-    // Use some nicer dropdown control buttons
-    //  /* XPM */
-    static const char * xpm_dropbutton_hover[] = {
-        /* columns rows colors chars-per-pixel */
-        "14 15 47 1 ",
-        "  c black",
-        ". c #588EF1",
-        "X c #598EF1",
-        "o c #588FF1",
-        "O c #598FF1",
-        "+ c #5C91F1",
-        "@ c #6194F2",
-        "# c #6597F2",
-        "$ c #6A99F2",
-        "% c #6C9CF3",
-        "& c #719FF4",
-        "* c #75A2F4",
-        "= c #7AA4F3",
-        "- c #7DA7F4",
-        "; c #81AAF5",
-        ": c #85ADF5",
-        "> c #89B0F5",
-        ", c #8EB2F5",
-        "< c #91B5F6",
-        "1 c #92B6F6",
-        "2 c #96B8F7",
-        "3 c #9ABBF7",
-        "4 c #9DBDF6",
-        "5 c #9EBEF7",
-        "6 c #A2C0F7",
-        "7 c #AAC6F7",
-        "8 c #A6C3F8",
-        "9 c #AFC9F8",
-        "0 c #AEC8F9",
-        "q c #B2CBF8",
-        "w c #B6CEF9",
-        "e c #BBD1F9",
-        "r c #C3D6FA",
-        "t c #C7D9FA",
-        "y c #CBDCFA",
-        "u c #CFDEFB",
-        "i c #D3E1FC",
-        "p c #D7E4FC",
-        "a c #DAE6FC",
-        "s c #DFE9FC",
-        "d c #E3ECFD",
-        "f c #E7EEFD",
-        "g c #E8EFFD",
-        "h c #EBF1FD",
-        "j c #EFF4FD",
-        "k c #F3F7FE",
-        "l c None",
-        /* pixels */
-        "llllllllllllll",
-        "llll      llll",
-        "llll +XX+ llll",
-        "llll %@oX llll",
-        "llll -&#X llll",
-        "llll ,;*$ llll",
-        "llll 4<:= llll",
-        "llll 062> llll",
-        "l     q83    l",
-        "ll faurw74< ll",
-        "lll hsiteq lll",
-        "llll jdpy llll",
-        "lllll kg lllll",
-        "llllll  llllll",
-        "llllllllllllll"
-    };
-
-    //  /* XPM */
-    static const char * xpm_dropbutton_pressed[] = {
-        /* columns rows colors chars-per-pixel */
-        "14 15 31 1 ",
-        "  c black",
-        ". c #000DBC",
-        "X c #0713BD",
-        "o c #0814BE",
-        "O c #1521C1",
-        "+ c #1722C2",
-        "@ c #232DC5",
-        "# c #252EC5",
-        "$ c #323AC9",
-        "% c #343CC9",
-        "& c #3F47CC",
-        "* c #4148CC",
-        "= c #4F55CF",
-        "- c #5056D0",
-        "; c #5C60D3",
-        ": c #5D61D3",
-        "> c #6B6ED6",
-        ", c #6C6FD6",
-        "< c #6E71D7",
-        "1 c #787ADA",
-        "2 c #7A7CDA",
-        "3 c #7B7DDB",
-        "4 c #8788DE",
-        "5 c #8889DE",
-        "6 c #9595E1",
-        "7 c #9797E1",
-        "8 c #A3A2E4",
-        "9 c #A5A2E4",
-        "0 c #AEABE7",
-        "q c #AEACE7",
-        "w c None",
-        /* pixels */
-        "wwwwwwwwwwwwww",
-        "wwww      wwww",
-        "wwww .... wwww",
-        "wwww X... wwww",
-        "wwww @Oo. wwww",
-        "wwww &$#+ wwww",
-        "wwww :=*% wwww",
-        "wwww 1>:- wwww",
-        "w     42,    w",
-        "ww 0q08652< ww",
-        "www 000097 www",
-        "wwww 0q0q wwww",
-        "wwwww qq wwwww",
-        "wwwwww  wwwwww",
-        "wwwwwwwwwwwwww"
-    };
-
-    //  /* XPM */
-    static const char * xpm_dropbutton_normal[] = {
-        /* columns rows colors chars-per-pixel */
-        "14 15 3 1 ",
-        "  c black",
-        ". c gray100",
-        "X c None",
-        /* pixels */
-        "XXXXXXXXXXXXXX",
-        "XXXX      XXXX",
-        "XXXX .... XXXX",
-        "XXXX .... XXXX",
-        "XXXX .... XXXX",
-        "XXXX .... XXXX",
-        "XXXX .... XXXX",
-        "XXXX .... XXXX",
-        "X     ...    X",
-        "XX ........ XX",
-        "XXX ...... XXX",
-        "XXXX .... XXXX",
-        "XXXXX .. XXXXX",
-        "XXXXXX  XXXXXX",
-        "XXXXXXXXXXXXXX"
-    };
-
-    wxBitmap dropbutton_hover(xpm_dropbutton_hover);
-    wxBitmap dropbutton_pressed(xpm_dropbutton_pressed);
-    wxBitmap dropbutton_normal(xpm_dropbutton_normal);
-    this->SetButtonBitmaps(xpm_dropbutton_normal, false, xpm_dropbutton_pressed, xpm_dropbutton_hover);
-}
-
-CChooseTranslationDropDown::~CChooseTranslationDropDown(void)
-{
-    // Since the modeless dropdown is a child of the MainFrame's canvas it is deleted 
-    // when the canvas is destroyed upon closing the app.
-}
-
-// Copied and modified/renamed from the PopulateList() in CChooseTranslation dialog class
-// This PopulateDropDownList() should be called just before each time the dropdown is to 
-// be shown in the GUI.
-// Note: commented out references to m_pMyListBox could be used if we needed to implement
-// a custom list box control.
-void CChooseTranslationDropDown::PopulateDropDownList(CTargetUnit* pCurTU)
-{
-    this->Clear();
-
-    if (pCurTU == NULL)
-    {
-        // there is nothing to add to the list from a valid pCurTargetUnit,
-        // we just return here after clearing list (above)
-        return;
-    }
-
-    wxString s = _("<no adaptation>");
-
-    // set the combobox's list contents to the translation or gloss strings stored
-    // in the global variable pCurTargetUnit (passed in as pCurTU), which has just been matched.
-    // BEW 25Jun10, ignore any CRefString instances for which m_bDeleted is TRUE
-    CRefString* pRefString;
-    TranslationsList::Node* pos = pCurTU->m_pTranslations->GetFirst();
-    wxASSERT(pos != NULL);
-    while (pos != NULL)
-    {
-        pRefString = (CRefString*)pos->GetData();
-        pos = pos->GetNext();
-        if (!pRefString->GetDeletedFlag())
-        {
-            // this one is not deleted, so show it to the user
-            wxString str = pRefString->m_translation;
-            if (str.IsEmpty())
-            {
-                str = s;
-            }
-            int nLocation = this->Append(str); // for unsorted lists Append() always returns index of last/just-inserted item
-            // whm note: For CChooseTranslationDropDown we don't really need to keep track 
-            // of pRefString's m_refCount but it won't harm anything to do so.
-            // The combobox's list is NOT sorted; the Append() command above returns the 
-            // just-inserted item's index - before calling SetClientData() below.
-            wxASSERT(nLocation != -1); // we just added it so it must be there!
-            this->SetClientData(nLocation, &pRefString->m_refCount);
-        }
-    }
-    if (!this->newTranslationToAppend.IsEmpty())
-    {
-        listItemIndexToSelect = this->Append(newTranslationToAppend);
-        newTranslationToAppend.Empty(); // clear the newTranslationToAppend to be ready for next use
-    }
-    //this->SetSelection(selectionIndex);
-}
-
-// This is called from the MainFrm's OnIdle() handler
-void CChooseTranslationDropDown::SizeAndPositionDropDownBox(void)
-{
-    CPhraseBox* phraseBox;
-    phraseBox = gpApp->m_pTargetBox;
-    // SizeAndPositionDropDownBox is normally executed while the dropdown is showing
-    wxSize phraseBoxSize;
-    wxSize initialDropDownSize;
-    phraseBoxSize = phraseBox->GetSize();
-    initialDropDownSize = this->GetSize();
-    if (initialDropDownSize != phraseBoxSize)
-    {
-        this->SetSize(phraseBoxSize);
-    }
-    wxPoint phraseBoxPosn = phraseBox->GetPosition();
-    wxPoint adjustedDropDownPosn(phraseBoxPosn.x, phraseBoxPosn.y + phraseBoxSize.GetHeight());
-    wxPoint currDownPosn = this->GetPosition();
-    if (currDownPosn != adjustedDropDownPosn)
-    {
-        this->SetPosition(adjustedDropDownPosn);
-    }
-}
-
-// This is called from the MainFrm's OnIdle() handler
-void CChooseTranslationDropDown::FocusShowAndPopup(bool bScrolling)
-{
-    if (!this->IsShown())
-    {
-        wxLogDebug(_T("FocusShowAndPopup: call Show()"));
-        this->Show();
-    }
-    if (!bScrolling)
-    {
-        //#if wxVERSION_NUMBER < 2900
-        //    ;
-        //#else
-        //    	if (!this->HasFocus())
-        //#endif
-        wxLogDebug(_T("FocusShowAndPopup: call SetFocus()"));
-        this->SetFocus();
-    }
-
-#if wxVERSION_NUMBER < 2900
-    if (!this->IsPopupShown())
-    {
-        wxLogDebug(_T("DropDown: call ShowPopup()"));
-        this->ShowPopup(); // The Popup() function is ShowPopup() in wx2.8.12, so conditional compile for wxversion
-    }
-#else
-    if (!bScrolling)
-    {
-        //this->PostSizeEventToParent();
-        //gpApp->SafeYield(this, TRUE); // This is needed especially in WXGTK to allow screen paint to complete and not leave the dropdown list as a dislocated ghost
-        if (!this->IsPopupShown())
-        {
-            wxLogDebug(_T("DropDown: call Popup()"));
-            this->Popup();
-        }
-    }
-#endif
-    // Notes by whm 30Jan2018:
-    // I encountered a number of platform inconsistencies when I attempted to derive this class from 
-    // wxComboBox. I found that the wxOwnerDrawnComboBox is much better, more flexible, and avoids 
-    // most of the issues mentioned below:
-    // wxWidgets 2.8.12 doesn't support ->Popup(), ->Dismiss(), nor wxEVT_COMBOBOX_DROPDOWN, nor
-    // wxEVT_COMBOBOX_CLOSEUP events in wxComboBox, so we have to conditional compile for the 
-    // wxVERSION_NUMBER for those calls (Travis currently compiles against wx 2.8.12).
-    // In __WXOSX__, the docs say ->Popup() and ->Dismiss() are supported, but not the wxEVT_... 
-    // events mentioned above.
-    // In both __WXMSW__ and __WXGTK__ SetSelection(0) inserts the item in the dropdown's edit box
-    // and the text in the box selected, but while __WXMSW__ ends up with an insertion point at the end
-    // of the selected text, WXGTK doesn't seem to allow the insertion point in the edit box while
-    // the list is popped up. Another difficulty with __WXGTK__ is that if the text is already in the edit
-    // box is the same as an item clicked-on in the popup list, no change event is generated and hence
-    // the items doesn't get copied up to the phrasebox as it does in the WXWIN version. The __WXMSW__
-    // behaviors are what we want, so tried to put some conditional compillation code here for __WXGTK__ 
-    // to try to get __WXGTK__ to more closely do what we want. Namely, we don't call SetSelection(0) here
-    // in FocusShowAndPopup(). That will leave the WXGTK dropdown's edit box empty with the popup 
-    // list showing (the __WXGTK__ popup list also doesn't have any item highlighted, but the user can
-    // press the down/up arrow keys to highlight list items and press Enter to select, or user can 
-    // use the mouse to select an item directly. Either action will cause the text of the selected
-    // item to appear in the dropdown's edit box - and trigger the handler that copies the selection
-    // up to the phrasebox in a way that makes phrasebox know it is in Modified state.
-
-    this->SetSelection(listItemIndexToSelect); // select first item in list
-#if wxVERSION_NUMBER < 2900
-    this->SetValue(this->GetString(listItemIndexToSelect)); // wx 2.8.12 doesn't have ChangeValue()
-#else
-    this->ChangeValue(this->GetString(listItemIndexToSelect)); // puts first item in dropdown's edit box without triggering copy to phrasebox
-#endif
-    listItemIndexToSelect = 0; // reset it to zero if not zero
-    this->SetFocus();
-    // The following could be used to not have the combo box's text selected, but have the edit 
-    // insertion point positioned at the end of the text. This was going to be needed for the __WXGTK__
-    // port, but switching to the wxOwnerDrawnComboBox eliminated the need for it. Having the text
-    // all selected is more consistent with what happens when the phrasebox lands at a hole. 
-    //this->SetSelection(-1, -1); // no effect when popup is open
-    //this->SetInsertionPointEnd(); // no effect when popup is open
-}
-
-void CChooseTranslationDropDown::ProcessInputIntoBoxes()
-{
-    // Some coding copied from Bruce's CChooseTranslation::OnOK() handler and View's OnButtonChooseTranslation()
-    wxString s;
-    // IDS_NO_ADAPTATION
-    s = s.Format(_("<no adaptation>")); // get "<no adaptation>" ready in case needed
-
-    // Process a wxEVT_COMBOBOX event, when an item on the list is selected.
-    // "selected" here can happen two ways:
-    // 1. If dropdown list is closed with focus in the dropdown's edit box, the user 
-    //    can press down/up arrow key to select items into the edit box without opening
-    //    the dropdown list. Each of these down/up arrow key presses results in a "selection"
-    //    event that triggers this handler.
-    // 2. If the dropdown list is open - by either ALT+DownArrow or mouse click on the 
-    //    dropdown's v arrow icon, moving the highlight to different items in list with
-    //    the down/up arrow keys, doesn't trigger this "selection" event, but pressing Enter,
-    //    while the item is highlighted, or clicking on the highlighted item does trigger 
-    //    this event handler.
-    // Note that calling GetValue() returns the new value of selection
-
-    // When item from dropdown list is selected, copy it overwriting anything in the phrasebox
-
-    // Empty the phrasebox first since WriteText below just writes the text at the insertion point (resulting 
-    // in possible duplication/appending of text if user changes mind and subsequently selects a different item)
-    // WriteText() can't be used to remove text from the phrasebox, so use ChangeValue
-    gpApp->m_pTargetBox->ChangeValue(_T("")); // ChangeValue and SetValue clears the phrasebox's modified flag so we explicitly set it below.
-
-    wxString selItemStr;
-    selItemStr = this->GetValue();
-    if (selItemStr == s)
-    {
-        selItemStr = _T(""); // restore null string
-                             // whm Note: I don't think we need to bother setting the gbEmptyAdaptationChosen global here since
-                             // with the dropdown choose translation feature we don't need to call PlacePhraseBox as is done
-                             // after the ChooseTranslation dialog was dismissed. The PhraseBox location hasn't changed. We
-                             // change its content below.
-                             //gbEmptyAdaptationChosen = TRUE; // set the gbEmptyAdaptationChosen global used by PlacePhraseBox
-    }
-
-    if (!gpApp->m_pTargetBox->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue
-    {
-        gpApp->m_pTargetBox->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will so its work
-    }
-
-    gpApp->m_pTargetBox->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
-
-//#if defined(FWD_SLASH_DELIM)
-    // BEW added 23Apr15 - in case the user typed a translation manually (with / as word-delimiter)
-    // convert any / back to ZWSP, in case KB storage follows. If the string ends up in m_targetBox
-    // then the ChangeValue() call within CPhraseBox will convert the ZWSP instances back to forward
-    // slashes for display, in case the user does subsequent edits there
-    selItemStr = FwdSlashtoZWSP(selItemStr);
-//#endif
-
-    // whm Note: My testing indicates that we should not put the commented-out code
-    // block for auto-caps processing at this location. From other code, the auto-caps
-    // functionality will still work as long as the user doesn't change something in the
-    // dropdown's edit box before pressing Enter. If the user does change something there
-    // and especially if the user wants to override the case of what is in the dropdown
-    // edit box, s/he can do so. If we allow the code block below to function, the user
-    // won't be able to override the auto-caps process while typing.
-    // Adjust for case, if necessary; this algorithm will not make a lower case string start
-    // with upper case when the source is uppercase if the user types punctuation at the start
-    // of the string. The latter is, however, unlikely - provided the auto punctuation support
-    // is utilized by the user
-    //if (gbAutoCaps && gbSourceIsUpperCase)
-    //{
-    //    bool bNoError = gpApp->GetDocument()->SetCaseParameters(selItemStr, FALSE);
-    //    if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
-    //    {
-    //        // make it upper case
-    //        selItemStr.SetChar(0, gcharNonSrcUC);
-    //    }
-    //}
-
-    gpApp->m_targetPhrase = selItemStr;
-    gpApp->m_pTargetBox->WriteText(selItemStr); // use WriteText() instead of ChangeValue() or SetValue() since the later two reset the IsModified() to FALSE
-
-}
-
-// This method is called in a number of places where the dropdown control needs to be closed and the control
-// itself needs to be hidden from view. Typically this happens when the phrasebox is being relocated and before
-// a call to PlaceBox() occurs. The dropdown list will be hidden until a call to PlaceBox() occurs, which when 
-// appropriate (i.e., there are multiple translations at the new location), will trigger the frame's OnIdle() 
-// method to resize, repopulate the dropdown list, and then show the popup list.
-void CChooseTranslationDropDown::CloseAndHideDropDown()
-{
-#if wxVERSION_NUMBER < 2900
-    ;
-#else
-    this->Dismiss();
-#endif
-    this->Hide();
-}
-
-void CChooseTranslationDropDown::OnComboItemSelected(wxCommandEvent& WXUNUSED(event))
-{
-    // This is only called when a list item is selected, not when Enter pressed within the dropdown's edit box
-    ProcessInputIntoBoxes();
-    // Combo item was selected, so move the focus from the dropdown up to the phrasebox where the user 
-    // can make further edits if needed before pressing Enter there to move the PhraseBox on.
-    gpApp->m_pTargetBox->SetFocus();
-}
-
-void CChooseTranslationDropDown::OnComboTextChanged(wxCommandEvent& WXUNUSED(event))
-{
-    // This is only called when Enter pressed within the dropdown's edit box
-    ProcessInputIntoBoxes();
-    /*
-    // TODO: Determine what if any of changes made in OnComboItemSelected above need to be done here ???
-
-    // Process a wxEVT_TEXT event, when the combobox text changes.
-    // We copy characters as they are typed over to the m_pTargetBox (PhraseBox). We'll
-    // copy the entire content of the combo control's edit box over for each character
-    // typed, which will deal with backspaces, non-linear edits, etc.
-    // We need to use the WriteText() method writing to m_pTargetBox since it
-    // doesn' reset the IsModified flag. The PhraseBox won't store what is typed
-    // when Enter is finally pressed within the PhraseBox unless the IsModified
-    // flag is set.
-
-    // Empty the phrasebox first since WriteText below just writes the text at the insertion point (resulting 
-    // in possible duplication/appending of text if user changes mind and subsequently selects a different item)
-    // WriteText() can't be used to remove text from the phrasebox, so use ChangeValue
-    gpApp->m_pTargetBox->ChangeValue(_T("")); // ChangeValue and SetValue clears the phrasebox's modified flag so we explicitly set it below.
-
-    wxString selItem;
-    selItem = this->GetValue();
-    if (!gpApp->m_pTargetBox->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue
-    {
-        gpApp->m_pTargetBox->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will so its work
-    }
-    //gpApp->m_pTargetBox->SetValue(selItem);
-    //gpApp->m_pTargetBox->ChangeValue(selItem);
-    gpApp->m_pTargetBox->WriteText(selItem); // use WriteText() instead of ChangeValue() or SetValue() since the later two reset the IsModified() to FALSE
-
-    // Note: The focus stays in the dropdown's edit box until the PhraseBox needs to expand (in FixBox). 
-    // When the box expands, the focus shifts to the PhraseBox (which has the chars typed thus far), but
-    // no additional characters are typed in the dropdown's edit box. I've modified the CPhraseBox, to echo
-    // typed characters back to the dropdown's edit box.
-    // Note: The following won't work from here to correct the above mentioned problem
-    //this->SetFocus(); // Nope. This causes the control to select the text typed to be selected, next char then replaces the selection!
-    //this->SelectNone(); // Nope. This causes the insertion point to go backk to 0, which causes characters to be reverse-typed!
-    */
-
-    // Do not SetFocus() to the m_pTargetBox here, since were copying character by character from
-    // the dropdown's edit box to the phrasebox, but retaining focus in the dropdown's edit box
-    // until Enter is pressed at end of typing.
-}
-
-void CChooseTranslationDropDown::OnComboProcessEnterKeyPress(wxCommandEvent& WXUNUSED(event))
-{
-    // TODO: Determine what if any of changes made in OnComboItemSelected above need to be done here ???
-    ProcessInputIntoBoxes();
-    // Combo item was selected, so move the focus from the dropdown up to the phrasebox where the user 
-    // can make further edits if needed before pressing Enter there to move the PhraseBox on.
-    gpApp->m_pTargetBox->SetFocus();
-}
-
-#if wxVERSION_NUMBER < 2900
-;
-#else
-void CChooseTranslationDropDown::OnComboProcessDropDownListOpen(wxCommandEvent& WXUNUSED(event))
-{
-    // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
-    // list box part of the combo box is shown (drops down). Notice that this 
-    // event is only supported by wxMSW, wxGTK with GTK+ 2.10 or later, and wxOSX/Cocoa
-    
-    // CAdapt_ItCanvas::OnScroll() needs to know whether the dropdown list if popped down or not
-    bDropDownIsPoppedOpen = TRUE;
-    wxLogDebug(_T("OnComboProcessDropDownListOpen: Popup Open event"));
-}
-
-void CChooseTranslationDropDown::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event))
-{
-    // Process a wxEVT_COMBOBOX_CLOSEUP event, which is generated when the list 
-    // box of the combo box disappears (closes up). This event is only generated 
-    // for the same platforms as wxEVT_COMBOBOX_DROPDOWN above. Also note that
-    // only wxMSW and wxOSX/Cocoa support adding or deleting items in this event
-
-    // CAdapt_ItCanvas::OnScroll() needs to know whether the dropdown list if popped down or not
-    bDropDownIsPoppedOpen = FALSE;
-    wxLogDebug(_T("OnComboProcessDropDownListCloseUp: Popup Close event"));
-}
-#endif
-
-void CChooseTranslationDropDown::OnKeyUp(wxKeyEvent & event)
-{
-    // Some code here copied from CPhraseBox::OnKeyUp(wxKeyEvent& event)
-    // This event handler only processes key-events for CChoseTranslationDropDown::OnKeyUp()
-    if (event.GetKeyCode() == WXK_ALT)
-    {
-        gpApp->m_bALT_KEY_DOWN = FALSE; // indicate ALT is not down, for use by DoSrcPhraseSelCopy()
-                                       // continue on
-    }
-
-    // Note: wxWidgets doesn't have a separate OnSysKeyUp() virtual method
-    // so we'll simply detect if the ALT key was down and call the
-    // OnSysKeyUp() method from here
-    if (event.AltDown())// CmdDown() is same as ControlDown on PC,
-                        // and Apple Command key on Macs.
-    {
-        // Note: Here in the dropdown's edit box, there is a conflict with some ALT key 
-        // combinations here, and the ALT key handling that is in CPhraseBox::OnSysKeyUp().
-        // Namely, here the ALT+Down key is the combination that opens the dropdown list
-        // from the keyboard (which is nice and handy). But that same combination made from
-        // CPhraseBox's OnSysKeyUp() is the keyboard command that would ordinarily insert 
-        // a placeholder BEFORE the first selected storage element (or if none is selected, 
-        // then it is inserted before the active location). As the result of this conflict 
-        // the code block below completely handles ALT+WXK_DOWN events here, and doesn't
-        // pass them along to the CPhraseBox::OnSysKeyUp() handler. Hence the user cannot
-        // initiate an action to insert a placeholder before the selected storage element
-        // while focus is in the dropdown's edit box. S/He must press Tab or click the 
-        // mouse in the PhraseBox, or some other key-handling action that puts the focus
-        // into the PhraseBox, where ALT_WXK_DOWN will insert the placeholder.
-        wxASSERT(event.GetId() == ID_COMBO_CHOOSE_TRANS_DROP_DOWN);
-
-        if (!(event.GetKeyCode() == WXK_DOWN))
-        {
-            // For all ALT events except ALT+WXK_DOWN, send key-event handling off to CPhraseBox::OnSysKeyUp().
-            gpApp->m_pTargetBox->OnSysKeyUp(event); // this moves focus to the PhraseBox
-
-        }
-
-        return;
-    }
-
-    // does the user want to force the Choose Translation dialog open?
-    // whm Note 12Feb09: This F8 action is OK on Mac (no conflict)
-    if (event.GetKeyCode() == WXK_F8)
-    {
-        // whm added 26Mar12
-        if (gpApp->m_bReadOnlyAccess)
-        {
-            // Disable the F8 key invocation of the ChooseTranslation dialog
-            return;
-        }
-        gpApp->GetView()->ChooseTranslation();
-        return;
-    }
-
-
-    event.Skip();
-}
-
-wxCoord CChooseTranslationDropDown::OnMeasureItem(size_t item) const
-{
-    // Get the text extent height of the combobox item - all should have same height
-    // Without OnMeasureItem being defined, the combo box items are vertically too close 
-    // together with descenders clipped. This spaces them vertically better.
-    wxClientDC dC((wxWindow*)gpApp->GetMainFrame()->canvas);
-    wxFont* pFont;
-    wxSize textExtent;
-    if (gbIsGlossing && gbGlossingUsesNavFont)
-        pFont = gpApp->m_pNavTextFont;
-    else
-        pFont = gpApp->m_pTargetFont;
-    wxFont SaveFont = dC.GetFont();
-
-    dC.SetFont(*pFont);
-    wxString thePhrase = this->GetString(item);
-    dC.GetTextExtent(thePhrase, &textExtent.x, &textExtent.y); // measure using the current font
-
-    return wxCoord(textExtent.y);
-}
 
 // ******************************************************************************************
 // ************************* CChooseTranslation dialog class ********************************
@@ -838,9 +86,6 @@ BEGIN_EVENT_TABLE(CChooseTranslation, AIModalDialog)
     EVT_BUTTON(IDC_BUTTON_REMOVE, CChooseTranslation::OnButtonRemove)
     EVT_UPDATE_UI(IDC_BUTTON_REMOVE, CChooseTranslation::OnUpdateButtonRemove)
     EVT_BUTTON(ID_BUTTON_CANCEL_ASK, CChooseTranslation::OnButtonCancelAsk) // ID_ was IDC_
-    EVT_BUTTON(ID_BUTTON_CANCEL_AND_SELECT, CChooseTranslation::OnButtonCancelAndSelect) // ID_ was IDC_
-    EVT_CHECKBOX(ID_CHECKBOX_SHOW_DROP_DOWN, CChooseTranslation::OnCheckBoxShowTransInDropDown)
-    EVT_KEY_DOWN(CChooseTranslation::OnKeyDown)
 END_EVENT_TABLE()
 
 CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
@@ -904,7 +149,6 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	m_refCountStr << m_refCount;
 	// wx version note: The parent of our dialogs is not the View, so we'll get the
 	// view elsewhere
-	m_bHideCancelAndSelectButton = FALSE;
 
 	m_pMyListBox = (CMyListBox*)FindWindowById(IDC_MYLISTBOX_TRANSLATIONS);
 
@@ -916,15 +160,15 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 
 	m_pEditReferences = (wxTextCtrl*)FindWindowById(IDC_EDIT_REFERENCES);
 
-    m_pCheckShowTransInDropDown = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHOW_DROP_DOWN);
+    //m_pCheckShowTransInDropDown = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHOW_DROP_DOWN);
 
 	//m_pEditReferences->SetValidator(wxGenericValidator(&m_refCountStr)); // whm removed 21Nov11
 	m_pEditReferences->SetBackgroundColour(gpApp->sysColorBtnFace);
 	m_pEditReferences->Enable(FALSE); // it is readonly and should not receive focus on Tab
 
-	// get pointers to the CKB instance & the map which stores the pCurTargetUnit contents
+	// get pointers to the CKB instance & the map which stores the pTargetUnitFromChooseTrans contents
 	// being viewed
-	m_nWordsInPhrase = nWordsInPhrase; // RHS is a global we need to eliminate eventually,
+	m_nWordsInPhrase = gpApp->m_pTargetBox->m_nWordsInPhrase; // RHS is a global we need to eliminate eventually,
 									   // as also is gbIsGlossing, and gpApp too
 	wxASSERT( m_nWordsInPhrase <= MAX_WORDS && m_nWordsInPhrase > 0);
 	if (gbIsGlossing)
@@ -935,7 +179,7 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	{
 		m_pKB = gpApp->m_pKB;
 	}
-	m_pMap = m_pKB->m_pMap[m_nWordsInPhrase-1];
+	m_pMap = m_pKB->m_pMap[m_nWordsInPhrase-1]; // whm note: m_pMap is not used anywhere within this CChooseTranslation class
 
 	// Note: We don't need to set up any SetValidators for data transfer
 	// in this class since all assignment of values is done in OnOK()
@@ -948,7 +192,7 @@ CChooseTranslation::~CChooseTranslation() // destructor
 
 void CChooseTranslation::OnButtonCancelAsk(wxCommandEvent& WXUNUSED(event))
 {
-	pCurTargetUnit->m_bAlwaysAsk = FALSE;
+	gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->m_bAlwaysAsk = FALSE;
 	m_pMyListBox->SetFocus();
 }
 
@@ -998,14 +242,14 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	TranslationsList::Node* pos = NULL;
 
 	// change the order of the string in the list box
-	// BEW 28Jun10, kbVersion 2 complicates things now, because the pCurTargetUnit pointer
+	// BEW 28Jun10, kbVersion 2 complicates things now, because the pTargetUnitFromChooseTrans pointer
 	// may contain one or more "removed" (i.e. with their m_bDeleted flags set TRUE)
 	// CRefString instances, and so we can't rely on the list box index for the selection
 	// matching an actual undeleted CRefString instance in the m_pTranslations list - so
 	// we have to find by searching, and we have to skip over any removed ones, etc
 	int count;
 	count = m_pMyListBox->GetCount(); // how many there are that are visible
-	int numNotDeleted = pCurTargetUnit->CountNonDeletedRefStringInstances(); // the visible ones
+	int numNotDeleted = gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->CountNonDeletedRefStringInstances(); // the visible ones
 	wxASSERT(count == numNotDeleted);
 	wxASSERT(nSel < count);
 	count = count; // avoid warning
@@ -1026,9 +270,9 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		// get the index for the selected CRefString instance being moved (this call
 		// handles the possible presence of deleted instances) and from it, the
 		// CRefString instance -- this index is for the CTargetUnit's list, not ListBox
-		nListIndex = pCurTargetUnit->FindRefString(itemStr); // handles empty string correctly
+		nListIndex = gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->FindRefString(itemStr); // handles empty string correctly
 		wxASSERT(nListIndex != wxNOT_FOUND);
-		pos = pCurTargetUnit->m_pTranslations->Item(nListIndex);
+		pos = gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->m_pTranslations->Item(nListIndex);
 		wxASSERT(pos != NULL);
 
 		// now delete the label at nLocation, so the label following then occupies its index
@@ -1050,7 +294,7 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	{
 		return; // impossible to move up the first element in the list!
 	}
-	// now change the order of the CRefString in pCurTargetUnit to match the new order
+	// now change the order of the CRefString in pTargetUnitFromChooseTrans to match the new order
 	CRefString* pRefString = NULL;
 	if (nSel < nOldSel)
 	{
@@ -1079,14 +323,14 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		// pos now points at the first preceding non-deleted CRefString instance, which is
 		// the one before which we want to put pOldRefStr by way of insertion, but first
 		// delete the node containing the old location's instance
-		pCurTargetUnit->m_pTranslations->DeleteNode(posOld);
+        gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->m_pTranslations->DeleteNode(posOld);
 		wxASSERT(pos != NULL);
 
-        // now do the insertion, bringing the pCurTargetUnit's list into line with what the
+        // now do the insertion, bringing the pTargetUnitFromChooseTrans's list into line with what the
         // listbox in the GUI shows to the user
         // Note: wxList::Insert places the item before the given item and the inserted item
         // then has the pos node position.
-		pos = pCurTargetUnit->m_pTranslations->Insert(pos,pRefString);
+		pos = gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->m_pTranslations->Insert(pos,pRefString);
 		if (pos == NULL)
 		{
 			// a rough & ready error message, unlikely to ever be called
@@ -1103,7 +347,7 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		// client data of the moved list item beyond a single Move Up button click...
 		// Yes, it does. See comments in OnButtonMoveDown() for more information about
 		// this error and its fix.
-		PopulateList(pCurTargetUnit, nSel, Yes);
+		PopulateList(gpApp->m_pTargetBox->pTargetUnitFromChooseTrans, nSel, Yes);
 	}
 }
 
@@ -1153,13 +397,13 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 	TranslationsList::Node* pos = NULL;
 
 	// change the order of the string in the list box
-	// BEW 30Jun10, kbVersion 2 complicates things now, because the pCurTargetUnit pointer
+	// BEW 30Jun10, kbVersion 2 complicates things now, because the pTargetUnitFromChooseTrans pointer
 	// may contain one or more "removed" (i.e. with their m_bDeleted flags set TRUE)
 	// CRefString instances, and so we can't rely on the list box index for the selection
 	// matching an actual undeleted CRefString instance in the m_pTranslations list - so
 	// we have to find by searching, and we have to skip over any removed ones, etc
 	int count = m_pMyListBox->GetCount(); // how many there are that are visible
-	int numNotDeleted = pCurTargetUnit->CountNonDeletedRefStringInstances(); // the visible ones
+	int numNotDeleted = gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->CountNonDeletedRefStringInstances(); // the visible ones
 	wxASSERT(count == numNotDeleted);
 	wxASSERT(nSel < count);
 	numNotDeleted = numNotDeleted; // prevent compiler warning in Release build
@@ -1193,9 +437,9 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		// get the index for the selected CRefString instance being moved (this call
 		// handles the possible presence of deleted instances) and from it, the
 		// CRefString instance -- this index is for the CTargetUnit's list, not ListBox
-		nListIndex = pCurTargetUnit->FindRefString(itemStr); // handles empty string correctly
+		nListIndex = gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->FindRefString(itemStr); // handles empty string correctly
 		wxASSERT(nListIndex != wxNOT_FOUND);
-		pos = pCurTargetUnit->m_pTranslations->Item(nListIndex);
+		pos = gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->m_pTranslations->Item(nListIndex);
 		wxASSERT(pos != NULL);
 
 		// now delete the label at nLocation, so the label following then occupies its index
@@ -1224,7 +468,7 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		return; // impossible to move the list element of the list further down!
 	}
 
-	// now change the order of the CRefString in pCurTargetUnit to match the new order
+	// now change the order of the CRefString in pTargetUnitFromChooseTrans to match the new order
 	CRefString* pRefString = NULL;
 	if (nSel > nOldSel)
 	{
@@ -1252,7 +496,7 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		} while(aRefStrPtr->GetDeletedFlag() && pos != NULL);
         // now advance over this non-deleted one -- this may make the iterator return NULL
         // if we are at the end of the list; then the insertion, bringing the
-        // pCurTargetUnit's list into line with what the listbox in the GUI shows to the
+        // pTargetUnitFromChooseTrans's list into line with what the listbox in the GUI shows to the
         // user
         // Note: wxList::Insert places the item before the given item and the inserted item
         // then has the pos node position
@@ -1260,20 +504,20 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		if (pos == NULL)
 		{
 			// we are at the list's end
-			pCurTargetUnit->m_pTranslations->Append(pRefString);
+            gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->m_pTranslations->Append(pRefString);
 		}
 		else
 		{
 			// we are at a CRefString instance, so we can insert before it
-			pCurTargetUnit->m_pTranslations->Insert(pos,pRefString);
+            gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->m_pTranslations->Insert(pos,pRefString);
 		}
 		// delete the node containing the old location's instance
-		pCurTargetUnit->m_pTranslations->DeleteNode(posOld);
+        gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->m_pTranslations->DeleteNode(posOld);
 
 		// check the insertion or append got done right, a simple message will do (in
 		// English) for the developer if it didn't work - this error is unlikely to ever
 		// happen
-		pos = pCurTargetUnit->m_pTranslations->Find(pRefString);
+		pos = gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->m_pTranslations->Find(pRefString);
 		if (pos == NULL)
 		{
 			// a rough & ready error message, unlikely to ever be called
@@ -1292,7 +536,7 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		// above for a potential explanation for this error.
 		// (If you comment out this next PopulateList() call and the error will reappear,
 		// and if you uncomment out the wxLogDebug code above, you'll see what I mean)
-		PopulateList(pCurTargetUnit, nSel, Yes);
+		PopulateList(gpApp->m_pTargetBox->pTargetUnitFromChooseTrans, nSel, Yes);
 	}
 }
 
@@ -1329,6 +573,8 @@ void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(ev
 	// that goes into the OnOK() handler. Testing shows that when making a double-click on a list
 	// box the OnSelchangeListBoxTranslations() is called first, then this
 	// OnDblclkListboxTranslations() handler is called.
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
 
 	wxString s;
 	// IDS_NO_ADAPTATION
@@ -1354,8 +600,8 @@ void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(ev
 	if (str == s)
 	{
 		str = _T(""); // restore null string to be shown in the phrase box
-		m_bEmptyAdaptationChosen = TRUE; // this will be used to set the
-								// gbEmptyAdaptationChosen global used by PlacePhraseBox
+        pApp->m_pTargetBox->m_bEmptyAdaptationChosen = TRUE; // this will be used to set the
+								// m_bEmptyAdaptationChosen used by PlacePhraseBox
 	}
 	m_chosenTranslation = str;
 	//TransferDataToWindow(); // whm removed 21Nov11
@@ -1365,8 +611,6 @@ void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(ev
     // parameter needs to be the value that gets returned from the ShowModal() being invoked on this
     // dialog - which in the case of a double-click, should be wxID_OK.
 
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
 	pApp->m_pTargetBox->m_bAbandonable = FALSE;
 }
 
@@ -1395,7 +639,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	}
 
     // get the index of the selected translation string (this will be same index for the
-	// CRefString stored in pCurTargetUnit if there are no deleted CRefString instances,
+	// CRefString stored in pTargetUnitFromChooseTrans if there are no deleted CRefString instances,
 	// but if there area deleted ones, the indices will not be in sync)
 	int nSel;
 	wxString str;
@@ -1413,14 +657,14 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	// find the corresponding CRefString instance in the knowledge base, and set the
 	// nPreviousReferences variable for use in the message box; if user hits Yes
 	// then go ahead and do the removals.
-    // Note: the global pCurTargetUnit is set to a target unit in either the glossing KB
+    // Note: the global pTargetUnitFromChooseTrans is set to a target unit in either the glossing KB
     // (when glossing is ON) or to one in the normal KB when adapting, so we don't need to
     // test for the KB type here.
 	// BEW 25Jun10, because of the possible presence of deletions, we must get pos by a
 	// find rather than rely on the selection index
-	int itemIndex = pCurTargetUnit->FindRefString(str);
+	int itemIndex = gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->FindRefString(str);
 	wxASSERT(itemIndex != wxNOT_FOUND);
-	TranslationsList::Node* pos = pCurTargetUnit->m_pTranslations->Item(itemIndex);
+	TranslationsList::Node* pos = gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->m_pTranslations->Item(itemIndex);
 	wxASSERT(pos != NULL);
 	CRefString* pRefString = (CRefString*)pos->GetData();
 	wxASSERT(pRefString != NULL);
@@ -1485,7 +729,13 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 
 	// in support of removal when autocapitalization might be on - see the OnButtonRemove handler
 	// in KBEditor.cpp for a full explanation of the need for this flag
-	gbCallerIsRemoveButton = TRUE;
+    CKB* pKB;
+    if (gbIsGlossing)
+        pKB = gpApp->m_pGlossingKB;
+    else
+        pKB = gpApp->m_pKB;
+    if (pKB != NULL)
+        pKB->m_bCallerIsRemoveButton = TRUE;
 
 	// BEW added 19Feb13 for kbserver support
 #if defined(_KBSERVER)
@@ -1497,9 +747,9 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	{
 		KbServer* pKbSvr = gpApp->GetKbServer(gpApp->GetKBTypeForServer());
 
-		if (!pCurTargetUnit->IsItNotInKB())
+		if (!gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->IsItNotInKB())
 		{
-			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, curKey, pRefString->m_translation);
+			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, gpApp->m_pTargetBox->m_CurKey, pRefString->m_translation);
 			wxUnusedVar(rv);
 		}
 	}
@@ -1512,12 +762,12 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	pRefString->m_refCount = 0;
 
 	// get the count of non-deleted CRefString instances for this CTargetUnit instance
-	int numNotDeleted = pCurTargetUnit->CountNonDeletedRefStringInstances();
+	int numNotDeleted = gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->CountNonDeletedRefStringInstances();
 
 	// did we remove the last item in the box?
 	if (numNotDeleted == 0)
 	{
-		// this means the pCurTargetUnit has no undeleted CRefString instances left
+		// this means the pTargetUnitFromChooseTrans has no undeleted CRefString instances left
 
 		// legacy code here has been omitted -- nothing to do in this block now
 
@@ -1530,7 +780,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	}
     // do we need to show the Do Not Ask Again button? (BEW 28May10: yes, if the flag
     // is true, as in the test in next line)
-	if ((numNotDeleted == 1) && pCurTargetUnit->m_bAlwaysAsk)
+	if ((numNotDeleted == 1) && gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->m_bAlwaysAsk)
 	{
 		//wxWindow* pButton = FindWindowById(IDC_BUTTON_CANCEL_ASK);
 		wxWindow* pButton = FindWindowById(ID_BUTTON_CANCEL_ASK);
@@ -1539,7 +789,8 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	}
 	//TransferDataToWindow(); // whm removed 21Nov11
 	m_pEditReferences->ChangeValue(m_refCountStr); // whm added 21Nov11
-	gbCallerIsRemoveButton = FALSE; // reestablish the safe default
+    if (pKB != NULL)
+        pKB->m_bCallerIsRemoveButton = FALSE; // reestablish the safe default
     // If the last translation was removed set focus to the New Translation edit box,
     // otherwise to the Translations list box. (requested by Wolfgang Stradner).
 	if (numNotDeleted == 0)
@@ -1555,9 +806,6 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 
 	m_bEmptyAdaptationChosen = FALSE;
 	m_bCancelAndSelect = FALSE;
-
-    m_bTempUseChooseTransDropDown = gpApp->m_bUseChooseTransDropDown; // whm 10Jan2018 added
-    m_pCheckShowTransInDropDown->SetValue(m_bTempUseChooseTransDropDown); // whm 10Jan2018 added
 
 	wxString s;
 	s = s.Format(_("<no adaptation>")); // that is, "<no adaptation>", ready in case we need it
@@ -1582,53 +830,25 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 								m_pMyListBox, NULL, gpApp->m_pDlgTgtFont);
 	#endif
 
-	// BEW 23Apr15, curKey ( a global wxString, set when the phrasebox lands at a location)
+	// BEW 23Apr15, m_CurKey ( CPhraseBox wxString, set when the phrasebox lands at a location)
 	// is used here. In the event that it is a key for a merged phrase, it may contain ZWSP
-	// but we do not need to restore / for each such ZWSP in curKey, if we are currently
+	// but we do not need to restore / for each such ZWSP in m_CurKey, if we are currently
 	// supporting / as a word-breaking pseudo whitespace character, because the m_pSourcePhraseBox
 	// is read-only. (The user can copy from there though, which would copy any ZWSP unconverted,
 	// but we may not be able to do much about that.)
 
 	// set the "matched source text" edit box contents
-	m_pSourcePhraseBox->ChangeValue(curKey);
+	m_pSourcePhraseBox->ChangeValue(gpApp->m_pTargetBox->m_CurKey);
 
 	// set the "new translation" edit box contents to a null string
 	m_pNewTranslationBox->ChangeValue(_T(""));
 
-	// set the list box contents to the translation or gloss strings stored
-	// in the global variable pCurTargetUnit, which has just been matched
-	// BEW 25Jun10, ignore any CRefString instances for which m_bDeleted is TRUE
-	/*
-	CRefString* pRefString;
-	TranslationsList::Node* pos = pCurTargetUnit->m_pTranslations->GetFirst();
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
-	{
-		pRefString = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
-		if (!pRefString->GetDeletedFlag())
-		{
-			// this one is not deleted, so show it to the user
-			wxString str = pRefString->m_translation;
-			if (str.IsEmpty())
-			{
-				str = s;
-			}
-			m_pMyListBox->Append(str);
-			// m_pMyListBox is NOT sorted but it is safest to find the just-inserted
-			// item's index before calling SetClientData()
-			int nLocation = gpApp->FindListBoxItem(m_pMyListBox,str,caseSensitive,exactString);
-			wxASSERT(nLocation != -1); // we just added it so it must be there!
-			m_pMyListBox->SetClientData(nLocation,&pRefString->m_refCount);
-		}
-	}
-	*/
 	// BEW 23Apr15 - if supporting / as a word-breaking character currently, we don't convert
 	// any ZWSP to / in the list, because we don't edit the list directly. The m_pNewTranslationBox
 	// box needs to show / between words, but we don't populate the box by any list selection - only 
 	// by the user explicitly typing text there. If / is given this word-breaking status, then the
 	// user should type / explicitly between words when he types into that box.
-	PopulateList(pCurTargetUnit, 0, No);
+	PopulateList(gpApp->m_pTargetBox->pTargetUnitFromChooseTrans, 0, No);
 
 	// select the first string in the listbox by default
 	// BEW changed 3Dec12, if the list box is empty, the ASSERT below trips. So we need a test
@@ -1652,10 +872,9 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 
 	// hide the Do Not Ask Again button if there is more than one item in the list
 	int nItems = m_pMyListBox->GetCount();
-	//wxWindow* pButton = FindWindowById(IDC_BUTTON_CANCEL_ASK);
 	wxWindow* pButton = FindWindowById(ID_BUTTON_CANCEL_ASK);
 	wxASSERT(pButton != NULL);
-	if (nItems == 1 && pCurTargetUnit->m_bAlwaysAsk)
+	if (nItems == 1 && gpApp->m_pTargetBox->pTargetUnitFromChooseTrans->m_bAlwaysAsk)
 	{
 		// only one, so allow user to stop the forced ask by hitting the button, so show it
 		pButton->Show(TRUE);
@@ -1664,17 +883,6 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	else
 	{
 		// more than one, so we don't want to see the button
-		pButton->Show(FALSE);
-	}
-
-	// hide the cancel and select button if the user is just inspecting translations at the active
-	// location, or if we get here because we are just looking up a single word so as to put its
-	// appropriate translation in the phrase box (eg. when Cancel of LookAhead matched phrase is done)
-	// or when glossing is ON
-	if (gbInspectTranslations || m_bHideCancelAndSelectButton)
-	{
-		//wxButton* pButton = (wxButton*)FindWindowById(IDC_BUTTON_CANCEL_AND_SELECT);
-		wxButton* pButton = (wxButton*)FindWindowById(ID_BUTTON_CANCEL_AND_SELECT);
 		pButton->Show(FALSE);
 	}
 
@@ -1696,7 +904,7 @@ void CChooseTranslation::PopulateList(CTargetUnit* pTU, int selectionIndex, enum
 	wxString s = _("<no adaptation>");
 
 	// set the list box contents to the translation or gloss strings stored
-	// in the global variable pCurTargetUnit, which has just been matched
+	// in the global variable pTargetUnitFromChooseTrans, which has just been matched
 	// BEW 25Jun10, ignore any CRefString instances for which m_bDeleted is TRUE
 	CRefString* pRefString;
 	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
@@ -1739,34 +947,34 @@ void CChooseTranslation::OnButtonCancelAndSelect(wxCommandEvent& event)
 	OnCancel(event);
 }
 
-// whm 10Jan2018 added
-void CChooseTranslation::OnCheckBoxShowTransInDropDown(wxCommandEvent & WXUNUSED(event))
-{
-    m_bTempUseChooseTransDropDown = m_pCheckShowTransInDropDown->GetValue();
-}
+// whm 17Feb2018 removed - not needed with dropdown integrated in CPhraseBox class
+//void CChooseTranslation::OnCheckBoxShowTransInDropDown(wxCommandEvent & WXUNUSED(event))
+//{
+//    m_bTempUseChooseTransDropDown = m_pCheckShowTransInDropDown->GetValue();
+//}
 
-void CChooseTranslation::OnKeyDown(wxKeyEvent& event)
-// applies only when adapting; when glossing, just immediately exit
-{
-	if (gbIsGlossing) return; // glossing being ON must not allow this shortcut to work
-	if (event.AltDown())
-	{
-		// ALT key is down, so if right arrow key pressed, interpret the ALT key press as
-		// a click on "Cancel And Select" button
-		if (event.GetKeyCode() == WXK_RIGHT)
-		{
-			wxButton* pButton = (wxButton*)FindWindowById(ID_BUTTON_CANCEL_AND_SELECT);
-			if (pButton->IsShown())
-			{
-				wxCommandEvent evt = wxID_CANCEL;
-				OnButtonCancelAndSelect(evt);
-				return;
-			}
-			else
-				return; // ignore the keypress when the button is invisible
-		}
-	}
-}
+//void CChooseTranslation::OnKeyDown(wxKeyEvent& event)
+//// applies only when adapting; when glossing, just immediately exit
+//{
+//	if (gbIsGlossing) return; // glossing being ON must not allow this shortcut to work
+//	if (event.AltDown())
+//	{
+//		// ALT key is down, so if right arrow key pressed, interpret the ALT key press as
+//		// a click on "Cancel And Select" button
+//		if (event.GetKeyCode() == WXK_RIGHT)
+//		{
+//			wxButton* pButton = (wxButton*)FindWindowById(ID_BUTTON_CANCEL_AND_SELECT);
+//			if (pButton->IsShown())
+//			{
+//				wxCommandEvent evt = wxID_CANCEL;
+//				OnButtonCancelAndSelect(evt);
+//				return;
+//			}
+//			else
+//				return; // ignore the keypress when the button is invisible
+//		}
+//	}
+//}
 
 void CChooseTranslation::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
@@ -1811,142 +1019,14 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 			if (str == s)
 			{
 				str = _T(""); // restore null string
-				m_bEmptyAdaptationChosen = TRUE; // this will be used to set the
-										// gbEmptyAdaptationChosen global used by PlacePhraseBox
+                pApp->m_pTargetBox->m_bEmptyAdaptationChosen = TRUE; // this will be used to set the
+										// m_bEmptyAdaptationChosen used by PlacePhraseBox
 			}
 
 			m_chosenTranslation = str;
 		}
 	}
 	pApp->m_pTargetBox->m_bAbandonable = FALSE;
-
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // If the dropdown was being used and the user unticked the "Show
-    // Translations using Drop Down Quick Selector" checkbox, we need to close
-    // and hide the dropdown.
-    if (pApp->m_bUseChooseTransDropDown && !m_bTempUseChooseTransDropDown)
-    {
-        // Hide the dropdown combobox if it is showing. 
-        if (pApp->m_pChooseTranslationDropDown != NULL)
-        {
-            pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-        }
-    }
-    // If the dropdown was not being used and the user ticked the "Show
-    // Translations in Drop Down Quick Selector" checkbox, we need to
-    // make adjustments to the content/selection of the dropdown list.
-    // If the user entered a new translation in the dialog's edit box we
-    // need to add/append that new translation to the dropdown's list. 
-    // If the user simply hit OK with a list item selected, we want the
-    // dropdown's list to have that same item selected. The user may have
-    // rearranged or deleted item(s) from the translations list before
-    // clicking the dialog's OK button. The dropdown list needs to change
-    // to be like the dialog's list since the dropdown will automatically 
-    // show and popup its list when this dialog is dismissed.
-    if (!pApp->m_bUseChooseTransDropDown && m_bTempUseChooseTransDropDown)
-    {
-        // Note: It is possible to get here without having created the ChooseTranslation
-        // dropdown control. So test for that and created it here if it hasn't been
-        // created
-        if (pApp->m_pChooseTranslationDropDown == NULL)
-        {
-            // TODO: Put the block of code here and in PhraseBox.cpp's ChooseTranslation() function
-            // into a separate function named CreateChooseTranslationDropDown();
-            // Note: The current phrasebox object is pointed to by the app's m_pTargetBox pointer
-            // It's ChangeValue() method can be used to change its content dynamically. We should
-            // also be able to use m_pTargetBox to determine its current position and size.
-            wxPoint boxPosn;
-            boxPosn = pApp->m_pTargetBox->GetPosition();
-            wxPoint dropDownPosn;
-            dropDownPosn = boxPosn;
-            // Set the position of the dropdown control's y-axis down by the height of the phrasebox
-            dropDownPosn.y = boxPosn.y + pApp->m_pTargetBox->GetSize().GetHeight();
-            wxSize boxSize;
-            // Set the dropdown's Size to be the same as the phrasebox
-            boxSize = pApp->m_pTargetBox->GetSize();
-            wxArrayString dummyStrArray;
-            dummyStrArray.Clear(); // the dropdown list is populated by calls to CChooseTranslationDropDown::SizeAndPositionDropDownBox()
-
-                                   // Like the m_pTargetBox, make the parent of the dropdown list a child of the main frame's canvas
-            pApp->m_pChooseTranslationDropDown = new CChooseTranslationDropDown((wxWindow*)pApp->GetMainFrame()->canvas,
-                ID_COMBO_CHOOSE_TRANS_DROP_DOWN,
-                wxEmptyString,
-                dropDownPosn,
-                boxSize,
-                dummyStrArray,
-                wxCB_DROPDOWN | wxTE_PROCESS_ENTER);
-            //wxCB_SIMPLE | wxTE_PROCESS_ENTER);
-
-            // Notes about the dropdown combobox styles:
-            // 1. the wxCB_SIMPLE style combobox keeps its list always open when the control
-            // is being shown. Unfortunately, using wxCB_SIMPLE results in an Assert from the 
-            // wx library when calling ->Hide() on the control (which must be done when the 
-            // PhraseBox moves to/lands at a location that no multiple translations are available 
-            // to display to the user. It appears that the library erroneously makes the debug 
-            // assert as it attempts to close the wxChoice part of the control instead of just
-            // hiding it in the internal coding of the Hide() call. Not worth tweaking the 
-            // wx library code to prevent the assert.
-            // The best style option seems to be wxCB_DROPDOWN. It appears to be what we want.
-            // The wxCB_DROPDOWN created control is somewhat sensitive to focus events making it
-            // difficult at times to get the dropdown list to stay open after calling the PopUp()
-            // method programatically, especially after subsequent recalc and screen refreshes 
-            // have been done. The dropdown also automatically closes if user types anywhere 
-            // outside the control, including the main window's scroll bar. These behaviors are
-            // mostly consistent with default behaviors of comboboxes.
-            // 2. The combobox must be created with wxTE_PROCESS_ENTER style to be able to receive 
-            // wxEVT_TEXT_ENTER events.
-        }
-        wxASSERT(pApp->m_pChooseTranslationDropDown != NULL);
-        if (!strNew.IsEmpty())
-        {
-            // The user has entered a new translation string in the edit box, so we
-            // append the new translation string to the dropdown's list by assigning
-            // it to the newTranslationToAppend member. 
-            // Note: The pCurTargetUnit extern global is populated from the KB as it 
-            // existed before the Choose Translation dialog was called up. 
-            // The pCurTargetUnit content is only intended to exist during the 
-            // presentation of the Choose Translation dialog. At the point this OnOK()
-            // handler is called, the content of pCurTargetUnit was adjusted via the 
-            // OnButtonMoveDown(), OnButtonMoveUp() and OnButtonRemove() handlers, but
-            // it won't include the new string the user typed into the new translation
-            // edit box. The new translation only gets added to the KB when the user
-            // moves on/relocates the phrasebox. To make it appear in the dropdown's
-            // list, we assign the strNew string to the newTranslationToAppend string 
-            // in the ChooseTranslationDropDown class, that its PopulateDropDownList() 
-            // will append it to the combobox's list before the dropdown appears upon
-            // the dismissal of the Choose Translation dialog.
-            pApp->m_pChooseTranslationDropDown->newTranslationToAppend = strNew;
-        }
-        else
-        {
-            // The user pressed OK without entering a new translation, and we assume
-            // s/he wanted the selected items in the dialog's list to be used as the
-            // translation. Since the user also wants to now start using the dropdown
-            // instead of the dialog, we need to pre-select the item in the dropdown's
-            // list that corresponds to the item that was selected in the dialog's 
-            // list.
-            // Note: it is possible that the user removed all items from the dialog's
-            // list using the "Remove" button. In that case there would be no selection
-            // since the list would be empty. If that is the case we don't want to
-            // show an empty dropdown list, so we will instead just hide the dropdown
-            // list for the current location.
-            int nSel = m_pMyListBox->GetSelection();
-            if (nSel == -1)
-            {
-                // User removed all items from dialog's list, so hide the dropdown
-                pApp->m_pChooseTranslationDropDown->CloseAndHideDropDown();
-            }
-            else
-            {
-                // There was a valid selectioh in the dialog, so make the dropdown
-                // select the same item when it appears after the dialog is dismissed.
-                pApp->m_pChooseTranslationDropDown->listItemIndexToSelect = nSel;
-            }
-        }
-    }
-
-    // The project config file retains the new value being assigned to the App's m_pChooseTranslationDropDown member.
-    pApp->m_bUseChooseTransDropDown = m_bTempUseChooseTransDropDown; // whm 10Jan2018 added
 
 //#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15 - in case the user typed a translation manually (with / as word-delimiter)
@@ -1956,17 +1036,23 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 	m_chosenTranslation = FwdSlashtoZWSP(m_chosenTranslation);
 //#endif
 
-    // whm Note: See the code block for dlg.ShowModal() == wxID_OK in Adapt_ItView.cpp
+    // whm notes 10Jan2018 to support quick selection of a translation equivalent.
+    // The m_chosenTranslation string that is set above was initialized to empty
+    // by the calling routines - the View's OnButtonChooseTranslation(), and the now 
+    // unused CPhraseBox::ChooseTranslation(). The m_chosenTranslation is used by those
+    // calling routines within their if(dlg.ShowModal() == wxID_OK) blocks to assign
+    // the value of m_chosenTranslation to the global string translation. Hence,
+    // as soon as this dialog is dismissed via OnOK(), the translation string will
+    // be updated with any new translation the user entered. Back in the 
+    // CPhraseBox::PopulateDropDownList() function, PopulateDropDownList() will 
+    // add/append that new translation to the dropdown's list. 
+    // If the user simply hit OK with a list item selected, PopulateDropDownList()
+    // ensures that same item is selected. The user may have rearranged or deleted 
+    // item(s) from the translations list before clicking the dialog's OK button. 
+    // The dropdown list changes to be like the dialog's list (with the addition of
+    // any new translation typed in the dialog) and the dropdown will automatically 
+    // show and popup its list when this dialog is dismissed.
 
-    // whm Note 10Jan2018 to support quick selection of a translation equivalent.
-    // I considered putting a code block here to dynamically update the
-    // dropdown's list content/ordering if the content/ordering was changed within
-    // the ChooseTranslation dialog. However, when the ChooseTranslation dialog's 
-    // OnOK() handler finishes and the dialog is gone, the selection made within 
-    // the dialog is entered into the phrasebox. The dropdown list doesn't really 
-    // need to get any content/ordering change until the next time the phrasebox
-    // lands at the same source phrase, at which point its list's content/ordering
-    // will have been updated.
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 

@@ -83,26 +83,15 @@
 // External globals
 ///////////////////////////////////////////////////////////////////////////////
 extern bool gbIsGlossing;
-extern bool gbInhibitMakeTargetStringCall;
 extern bool gbAutoCaps;
-extern bool gbUnmergeJustDone;
 extern bool gbSourceIsUpperCase;
 extern bool gbNonSourceIsUpperCase;
 extern bool gbShowTargetOnly;
 extern bool gbVerticalEditInProgress;
 extern bool gbHasBookFolders;
-extern int  gnOldSequNum;
 extern wxChar gcharNonSrcUC;
-extern bool gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position 
-							   // is enabled, FALSE is legacy initial position only
-extern int  gnOffsetToUCcharSrc; // offset to source text location where the upper case
-							// character was found to be located, wxNOT_FOUND if not located
-
 
 extern EditRecord gEditRecord;
-/// This global is defined in PhraseBox.cpp.
-extern wxString		translation; // translation, for a matched source phrase key
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Event Table
@@ -1669,14 +1658,7 @@ void CRetranslation::RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& st
 		bNoError = m_pApp->GetDocument()->SetCaseParameters(theKey);
 	}
 
-    // although this function strictly speaking is not necessarily invoked in the context
-    // of an unmerge, the gbUnmergeJustDone flag being TRUE gives us the behaviour we want;
-    // ie. we certainly DON'T want OnButtonRestore() called from here!
-	gbUnmergeJustDone = TRUE; // prevent second OnButtonRestore() call from within
-	// ChooseTranslation() within LookUpSrcWord() if user happens to
-	// cancel the Choose Translation dialog (see CPhraseBox code)
 	bGotTranslation = m_pApp->m_pTargetBox->LookUpSrcWord(m_pApp->m_pActivePile);
-	gbUnmergeJustDone = FALSE; // clear flag to default value, since it is a global boolean
 	wxASSERT(m_pApp->m_pActivePile); // it was created in the caller just prior to this
 	// function being called
 	if (bGotTranslation)
@@ -1684,7 +1666,7 @@ void CRetranslation::RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& st
         // we have to check here, in case the translation it found was a "<Not In KB>" - in
         // which case, we must display m_targetStr and ensure that the pile has an asterisk
         // above it, etc
-		if (translation == _T("<Not In KB>"))
+		if (m_pApp->m_pTargetBox->m_Translation == _T("<Not In KB>"))
 		{
 			str.Empty(); // phrase box must be shown empty
 			m_pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
@@ -1693,7 +1675,7 @@ void CRetranslation::RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& st
 		}
 		else
 		{
-			str = translation; // set using the global var, set in LookUpSrcWord call
+			str = m_pApp->m_pTargetBox->m_Translation; // set using the global var, set in LookUpSrcWord call
 		}
 
 		if (gbAutoCaps && gbSourceIsUpperCase)
@@ -2107,10 +2089,10 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		m_pView->MakeTargetStringIncludingPunctuation(m_pApp->m_pActivePile->GetSrcPhrase(),
 														m_pApp->m_targetPhrase);
 		m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
-		gbInhibitMakeTargetStringCall = TRUE;
+        m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 		bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),
 											m_pApp->m_targetPhrase);
-		gbInhibitMakeTargetStringCall = FALSE;
+        m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 		if (!bOK)
 		{
 			m_bIsRetranslationCurrent = FALSE;
@@ -2206,8 +2188,8 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
     // location be the CSourcePhrase instance immediately following the retranslation, and
     // set the global gnOldsequNum to the old sequence number value so the Back button can
     // later jump back to the old active location if the user wants
-    gnOldSequNum = nSaveActiveSequNum;
-	int nSaveOldSequNum = gnOldSequNum; // need this to avoid calls below clobbering the
+    m_pApp->m_nOldSequNum = nSaveActiveSequNum;
+	int nSaveOldSequNum = m_pApp->m_nOldSequNum; // need this to avoid calls below clobbering the
 	// value set
 	if (bActiveLocWithinSelection || (abs(nEndSequNum - nSaveActiveSequNum) > 80))
 		nSaveActiveSequNum = nEndSequNum + 1;
@@ -2317,6 +2299,12 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		wxString retrans = dlg.m_retranslation;
 		int nNewCount = 0; // number of CSourcePhrase instances returned from the
 		// tokenization operation
+
+        // whm added 10Jan2018 to support quick selection of a translation equivalent.
+        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
+        // Always Hide and Clear the dropdown list when doing a retranslation
+        m_pApp->m_pTargetBox->CloseDropDown();
+        m_pApp->m_pTargetBox->ClearDropDownList();
 
         // tokenize the retranslation (which is target text) into a list of new
         // CSourcePhrase instances on the heap (the m_srcPhrase and m_key members will then
@@ -2679,7 +2667,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		m_pView->OnToggleRespectBoundary(event);
 	}
 	m_bInsertingWithinFootnote = FALSE; // restore default value
-	gnOldSequNum = nSaveOldSequNum; // restore the value we set earlier
+    m_pApp->m_nOldSequNum = nSaveOldSequNum; // restore the value we set earlier
 }
 
 // BEW 18Feb10, modified for support of doc version 5 (some code added to handle
@@ -2872,10 +2860,10 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
 			if (!m_pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 			{
-				gbInhibitMakeTargetStringCall = TRUE;
+                m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 				bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),
 									 m_pApp->m_targetPhrase);
-				gbInhibitMakeTargetStringCall = FALSE;
+                m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 				if (!bOK)
 				{
 					m_bIsRetranslationCurrent = FALSE;
@@ -3764,10 +3752,10 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 			m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
 			if (m_pApp->m_targetPhrase != m_pApp->m_pActivePile->GetSrcPhrase()->m_adaption)
 			{
-				gbInhibitMakeTargetStringCall = TRUE;
+                m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
 				bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),
 												 m_pApp->m_targetPhrase);
-				gbInhibitMakeTargetStringCall = FALSE;
+                m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
 				if (!bOK)
 					return; // can't proceed until a valid adaption (which could be null)
 				// is supplied for the former active pile's srcPhrase
