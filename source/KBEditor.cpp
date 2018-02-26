@@ -169,7 +169,7 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	wxASSERT(pKB != NULL);
 	pCurTgtUnit = NULL;
 	pCurRefString = NULL;
-	m_curKey = _T("");
+    m_currentKey = _T("");
 
 	m_nCurPage = 0; // default to first page (1 Word)
 	m_bRemindUserToDoAConsistencyCheck = FALSE; // set TRUE if user does respellings
@@ -265,7 +265,7 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(nNewSel != -1);
 	pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
 	wxASSERT(pCurTgtUnit != NULL);
-	m_curKey = str;
+    m_currentKey = str;
 
 	int nTopOfListItem = 0; // initialize (Mike wants some lines above the selection
 		// to be visible; I'll give him 3 above, so selection will be 4th line
@@ -289,7 +289,7 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 #if defined(_DEBUG) && defined(DUALS_BUG)
 	bool bDoAbaotem = FALSE;
 	int counter = 0;
-	if (m_curKey == _T("abaotem"))
+	if (m_currentKey == _T("abaotem"))
 	{
 		bDoAbaotem = TRUE;
 		wxLogDebug(_T("\n")); // want a blank line to separate groups
@@ -686,7 +686,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		activeAdaption.SetChar(0, gcharNonSrcLC);
 	}
 	// Make the tests... and do the replacement if the tests succeed
-	if (activeKey == m_curKey && activeAdaption == maybeSolidusOldText)
+	if (activeKey == m_currentKey && activeAdaption == maybeSolidusOldText)
 	{
 		// The pSrcPhrase at the active location has to be updated in order to prevent
 		// the oldText from sneaking back into the KB unbidden. Do it here.
@@ -804,7 +804,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 			// create the thread and fire it off
 			if (!pCurTgtUnit->IsItNotInKB())
 			{
-				int rv = pKbSvr->Synchronous_KbEditorUpdateButton(pKbSvr, m_curKey, oldText, newText);
+				int rv = pKbSvr->Synchronous_KbEditorUpdateButton(pKbSvr, m_currentKey, oldText, newText);
 				wxUnusedVar(rv);
 			}
 		}
@@ -868,7 +868,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	bNoError = TRUE;
 	if (gbAutoCaps)
 	{
-		//bNoError = pApp->GetDocument()->SetCaseParameters(m_curKey); // for source word or phrase
+		//bNoError = pApp->GetDocument()->SetCaseParameters(m_currentKey); // for source word or phrase
 		//if (bNoError)
 		//{
 		//	m_srcKeyStr = pKB->AutoCapsMakeStorageString(m_srcKeyStr); // might be returned as lower case initial
@@ -921,7 +921,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		// create the thread and fire it off
 		if (!pCurTgtUnit->IsItNotInKB())
 		{
-			int rv = pKbSvr->Synchronous_KbEditorUpdateButton(pKbSvr, m_curKey, oldText, newText);
+			int rv = pKbSvr->Synchronous_KbEditorUpdateButton(pKbSvr, m_currentKey, oldText, newText);
 			wxUnusedVar(rv);
 		}
 	}
@@ -1682,7 +1682,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	
 		if (!pCurTgtUnit->IsItNotInKB())
 		{
-			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, m_curKey, pRefString->m_translation);
+			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, m_currentKey, pRefString->m_translation);
 			wxUnusedVar(rv);
 		}
 
@@ -2589,7 +2589,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	// select the first string in the keys listbox by default, if possible; but if
 	// m_TheSelectedKey has content, then try to make the selection default
 	// to m_TheSelectedKey instead, for rapid access to the desired entry.
-	m_curKey = _T("");
+    m_currentKey = _T("");
 	int nCount = m_pListBoxKeys->GetCount();
 	int nTopOfListItem = 0; // initialize (Mike wants some lines above the selection
 			// to be visible; I'll give him 3 above, so selection will be 4th line
@@ -2711,11 +2711,11 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				}
 			}
 		}
-		m_curKey = m_pListBoxKeys->GetStringSelection(); // set m_curKey
+        m_currentKey = m_pListBoxKeys->GetStringSelection(); // set m_curKey
 		m_pListBoxKeys->SetFirstItem(nTopOfListItem);
 
 #if defined(_DEBUG) && defined(DUALS_BUG)
-		if (m_curKey == _T("abaotem"))
+		if (m_currentKey == _T("abaotem"))
 		{
 			bDoAbaotem = TRUE;
 			counter = 0;

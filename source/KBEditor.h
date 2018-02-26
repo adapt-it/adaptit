@@ -84,7 +84,7 @@ public:
 	int				m_nWordsSelected; // whm eliminated gnWordsInPhrase global; now only this m_nWordsSelected is needed
 	wxString		m_TheSelectedKey; // if multiple keys selected, take only the first
 
-	wxString		m_curKey;
+	wxString		m_currentKey; // whm 24Feb2018 renamed from m_curKey to m_currentKey to distinguish from m_CurKey (note: capital C) in CPhraseBox 
 	int				m_nCurPage; // whm added for wx version
 	// BEW 1Sep15 added next two so that the message shown at the Update button does not get shown more than 3 times per KB editor session
 	int             m_messageCount;

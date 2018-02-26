@@ -925,6 +925,9 @@ void CLayout::PlaceBox()
 				}
 		}
 
+        // whm Note The code between exclamation marks below could be place in a separate function
+        // within CPhraseBox perhaps called SetupPhraseBoxForThisLocation().
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // whm added 10Jan2018 to support quick selection of a translation equivalent.
         // This PlaceBox() function is always called just before the phrasebox 'rests' 
         // and can be interacted with by the user. Hence this is the main location in the
@@ -940,37 +943,46 @@ void CLayout::PlaceBox()
         // 3. Set the App flag m_bChooseTransShowPopup to TRUE or FALSE to inform OnInit() whether
         //    to display the dropdown's list (TRUE) or suppress opening the list (FALSE).
         // 4. Set the Selection to the first list item (when there are multiple items in the list).
-        // 5. ??? Determine what to enter in the dropdown's edit box when there are no KB ref strings.???
+        // 5. TODO: Determine what to enter in the dropdown's edit box when there are no KB ref strings.???
 
-        int selectionIndex = -1;
-        m_pApp->m_pTargetBox->PopulateDropDownList(m_pApp->m_pTargetBox->pTargetUnitFromChooseTrans, selectionIndex); // uses global pTargetUnitFromChooseTrans
-
-        // Clear the ChooseTranslation dialog globals
-        m_pApp->m_pTargetBox->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL; // pTargetUnitFromChooseTrans's main use is finished, so set it back to NULL
-        m_pApp->m_pTargetBox->m_Translation.Empty();
-
-        if (m_pApp->m_pTargetBox->GetCount() > 1)
+        if (!m_pApp->bLookAheadMerge)
         {
-            // There are multiple translation equivalents in the dropdown's list, so
-            // set the dropdown's button to its normal enabled state. 
-            m_pApp->m_pTargetBox->SetButtonBitmaps(m_pApp->m_pTargetBox->dropbutton_normal, false, m_pApp->m_pTargetBox->dropbutton_pressed, m_pApp->m_pTargetBox->dropbutton_hover, m_pApp->m_pTargetBox->dropbutton_disabled);
-            m_pApp->m_pTargetBox->SetSelection(selectionIndex); // set selection to the index determined by PopulatDropDownList above
-            m_pApp->m_bChooseTransShowPopup = TRUE;
-            // TODO: Assign appropriate text to m_pTargetBox here??? Use DoGetSuitableText_ForPlacePhraseBox() here ??? - after if ... else blocks for both ???
+            int selectionIndex = -1;
+            m_pApp->m_pTargetBox->PopulateDropDownList(m_pApp->pTargetUnitFromChooseTrans, selectionIndex); // uses global pTargetUnitFromChooseTrans
+
+            // Clear the ChooseTranslation dialog choice-related variables
+            m_pApp->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL;
+
+            // whm Note: Setting m_Translation to Empty() can't be done here. See end of OnButtonChooseTranslation() in the View.
+            // Since PlaceBox() gets called multiple times in the course of a user action, resetting
+            // variables to null or default values should not be done from this location. Hence, I 
+            // commented out the m_Translation.Empty() call below.
+            // m_pApp->m_pTargetBox->m_Translation.Empty(); 
+
+            if (m_pApp->m_pTargetBox->GetCount() > 1)
+            {
+                // There are multiple translation equivalents in the dropdown's list, so
+                // set the dropdown's button to its normal enabled state. 
+                m_pApp->m_pTargetBox->SetButtonBitmaps(m_pApp->m_pTargetBox->dropbutton_normal, false, m_pApp->m_pTargetBox->dropbutton_pressed, m_pApp->m_pTargetBox->dropbutton_hover, m_pApp->m_pTargetBox->dropbutton_disabled);
+                m_pApp->m_pTargetBox->SetSelection(selectionIndex); // set selection to the index determined by PopulatDropDownList above
+                m_pApp->m_bChooseTransShowPopup = TRUE;
+                // TODO: Assign appropriate text to m_pTargetBox here??? Use DoGetSuitableText_ForPlacePhraseBox() here ??? - after if ... else blocks for both ???
+            }
+            else // when m_pApp->m_pTargetBox->GetCount() == 0
+            {
+                // There are no translation equivalents in the dropdown's list, so
+                // set the dropdown's button to its "disabled" state. 
+                m_pApp->m_pTargetBox->SetButtonBitmaps(m_pApp->m_pTargetBox->dropbutton_blank, false, m_pApp->m_pTargetBox->dropbutton_blank, m_pApp->m_pTargetBox->dropbutton_blank, m_pApp->m_pTargetBox->dropbutton_blank);
+                m_pApp->m_bChooseTransShowPopup = FALSE;
+                // A previous call to PlacePhraseBox() would have called DoGetSuitableText_ForPlacePhraseBox() which 
+                // stored a suitable string str which was assigned to the App's m_targetPhrase member, and it would have
+                // been followed by AutoCaps processing. We should be able to put it in the m_pTargetBox here.
+                m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
+                m_pApp->m_pTargetBox->SetSelection(-1, -1); // select all
+                m_pApp->m_pTargetBox->SetFocus();
+            }
         }
-        else // when m_pApp->m_pTargetBox->GetCount() == 0
-        {
-            // There are no translation equivalents in the dropdown's list, so
-            // set the dropdown's button to its "disabled" state. 
-            m_pApp->m_pTargetBox->SetButtonBitmaps(m_pApp->m_pTargetBox->dropbutton_blank, false, m_pApp->m_pTargetBox->dropbutton_blank, m_pApp->m_pTargetBox->dropbutton_blank, m_pApp->m_pTargetBox->dropbutton_blank);
-            m_pApp->m_bChooseTransShowPopup = FALSE;
-            // A previous call to PlacePhraseBox() would have called DoGetSuitableText_ForPlacePhraseBox() which 
-            // stored a suitable string str which was assigned to the App's m_targetPhrase member, and it would have
-            // been followed by AutoCaps processing. We should be able to put it in the m_pTargetBox here.
-            m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
-            m_pApp->m_pTargetBox->SetSelection(-1, -1); // select all
-            m_pApp->m_pTargetBox->SetFocus();
-        }
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	}
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
 }

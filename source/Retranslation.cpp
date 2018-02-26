@@ -2089,10 +2089,10 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		m_pView->MakeTargetStringIncludingPunctuation(m_pApp->m_pActivePile->GetSrcPhrase(),
 														m_pApp->m_targetPhrase);
 		m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
-        m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+        m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
 		bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),
 											m_pApp->m_targetPhrase);
-        m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+        m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 		if (!bOK)
 		{
 			m_bIsRetranslationCurrent = FALSE;
@@ -2860,10 +2860,10 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
 			if (!m_pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 			{
-                m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
 				bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),
 									 m_pApp->m_targetPhrase);
-                m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 				if (!bOK)
 				{
 					m_bIsRetranslationCurrent = FALSE;
@@ -3752,10 +3752,10 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 			m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
 			if (m_pApp->m_targetPhrase != m_pApp->m_pActivePile->GetSrcPhrase()->m_adaption)
 			{
-                m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
 				bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),
 												 m_pApp->m_targetPhrase);
-                m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 				if (!bOK)
 					return; // can't proceed until a valid adaption (which could be null)
 				// is supplied for the former active pile's srcPhrase

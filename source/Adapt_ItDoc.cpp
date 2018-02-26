@@ -24321,9 +24321,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 //#endif
 								// TRUE in StoreText call is support for a <no adaptation> empty
 								// string; if has effect only if newAdaption is empty
-								pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+								pApp->m_bInhibitMakeTargetStringCall = TRUE;
 								pKB->StoreText(pSrcPhrase, pSrcPhrase->m_adaption, TRUE);
-                                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                                pApp->m_bInhibitMakeTargetStringCall = FALSE;
 
 								// check if it has also a non-deleted <Not In KB>
 								// CRefString in pTU, if so, it would be inconsistent to
@@ -24507,9 +24507,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                                     // subsequent errors that may exist -- same below, when
                                     // we don't do the same fix in pKBCopy, it's for this
                                     // reason also)
-                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                                    pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation, TRUE);
-                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                                    pApp->m_bInhibitMakeTargetStringCall = FALSE;
 
 									// check if it has also a non-deleted <Not In KB>
 									// CRefString in pTU, if so, it would be inconsistent to
@@ -24656,9 +24656,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								if (tempStr.IsEmpty())
 								{
 									// TRUE = allow empty string storage
-                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                                    pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase,tempStr,TRUE);
-                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                                    pApp->m_bInhibitMakeTargetStringCall = FALSE;
 								}
 								else
 								{
@@ -24747,9 +24747,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							case store_empty_meaning:
 								{
 									// make a normal entry of it in pKB (leave pKBCopy unchanged)
-                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                                    pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation, TRUE);
-                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                                    pApp->m_bInhibitMakeTargetStringCall = FALSE;
 
 									// check if it has also a non-deleted <Not In KB>
 									// CRefString in pTU, if so, it would be inconsistent to
@@ -24903,9 +24903,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                                     // subsequent errors that may exist -- same below, when
                                     // we don't do the same fix in pKBCopy, it's for this
                                     // reason also)
-                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                                    pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation, TRUE);
-                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                                    pApp->m_bInhibitMakeTargetStringCall = FALSE;
 
 									// check if it has also a non-deleted <Not In KB>
 									// CRefString in pTU, if so, it would be inconsistent to
@@ -25172,9 +25172,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								if (tempStr.IsEmpty())
 								{
 									// TRUE = allow empty string storage
-                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                                    pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase,tempStr,TRUE);
-                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                                    pApp->m_bInhibitMakeTargetStringCall = FALSE;
 								}
 								else
 								{
@@ -25321,9 +25321,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							case store_empty_meaning:
 								{
 									// make the empty adaptation a normal entry  in KB
-                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                                    pApp->m_bInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
-                                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                                    pApp->m_bInhibitMakeTargetStringCall = FALSE;
 
 									// check if it has also a non-deleted <Not In KB>
 									// CRefString in pTU, if so, it would be inconsistent to
@@ -25831,9 +25831,9 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							// (Remember, in glossing mode, there is no punctuation stripping or restoring)
 							// TRUE in StoreText call is support for a <no adaptation> empty
 							// string; if has effect only if newAdaption is empty
-                            pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                            pApp->m_bInhibitMakeTargetStringCall = TRUE;
 							pKB->StoreText(pSrcPhrase, pSrcPhrase->m_gloss, TRUE);
-                            pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                            pApp->m_bInhibitMakeTargetStringCall = FALSE;
 
 							continue;
 						}

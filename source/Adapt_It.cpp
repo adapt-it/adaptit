@@ -17420,7 +17420,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_filename_for_ParsingSource = _T("Log_For_Document_Creation.txt");
 	m_bSetupDocCreationLogSucceeded = FALSE;
 	m_bMakeDocCreationLogfile = FALSE; // a checkbox in ViewPage.cpp turns it on
-	m_bALT_KEY_DOWN = FALSE; // whm removed 16Feb2018
+	m_bALT_KEY_DOWN = FALSE;
 
 	m_bDoNormalProjectOpening = TRUE; // default value
 	m_bUserWantsNoCollabInShiftLaunch = FALSE; // set TRUE in GetAIProjectCollabStatus() is
@@ -17498,6 +17498,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                     // maximize visual control of the fixes (user can change
                                     // when initiating a new Consistency Check; we don't save
                                     // this flag in any config file
+
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // whm 24Feb2018 modified by moving some globals out of global space
+    m_bInhibitMakeTargetStringCall = FALSE; // app should start with this OFF
+    m_bMergeSucceeded = FALSE;
+    m_bSuppressDefaultAdaptation = FALSE;
+    pTargetUnitFromChooseTrans = (CTargetUnit*)NULL;
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    // BEW 21May15 added next five, for support of the freeze/thaw optimization for a sequence
+    // of consecutive auto-inserts from the KB, see AdaptitConstants.h for NUMINSERTS value
+    // as well (currently 8)
     m_bIsFrozen = FALSE;
     m_bDoFreeze = FALSE;
     m_bSupportFreeze = FALSE; // set FALSE once the GUI checkbox has been added to the app
@@ -18831,7 +18843,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // doc/view framework deletes the View and recreates it afresh (calling the View's
     // constructor when a new view is opened)
     m_pTargetBox = (CPhraseBox*)NULL; // The target box in use (assigned from one above with/without list)
-    m_bTargetBoxWithoutList = FALSE; // When FALSE the phrasebox has dropdown list and arrow button, when TRUE is has empty button symbol
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
     m_bChooseTransShowPopup = FALSE;

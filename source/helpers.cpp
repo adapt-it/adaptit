@@ -9886,7 +9886,7 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 				pView->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase, gpApp->m_targetPhrase);
 				pView->RemovePunctuation(pDoc, &gpApp->m_targetPhrase, from_target_text);
 			}
-            gpApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+            gpApp->m_bInhibitMakeTargetStringCall = TRUE;
 			if (gbIsGlossing)
 			{
 				// whm 19Sep11 added test for gpApp->m_pGlossingKB being NULL
@@ -9918,7 +9918,7 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 					}
 				}
 			}
-            gpApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+            gpApp->m_bInhibitMakeTargetStringCall = FALSE;
 			if (!bOK)
 			{
 				// something is wrong if the store did not work, but we can tolerate the error

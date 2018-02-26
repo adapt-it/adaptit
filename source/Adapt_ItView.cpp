@@ -2084,10 +2084,10 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 			nSaveActiveSequNum = nFirstSequNum;
 
 		// do the merge
-		pApp->m_pTargetBox->m_bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN for temporary
+		pApp->m_bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN for temporary
 										   // suppression only
 		MergeWords();
-        pApp->m_pTargetBox->m_bSuppressDefaultAdaptation = FALSE;
+        pApp->m_bSuppressDefaultAdaptation = FALSE;
 
 		// restore the active pile pointers
 		pPile = GetPile(nSaveActiveSequNum);
@@ -2526,11 +2526,12 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 			{
 				if (!gbIsGlossing)// do nix here if glossing is on, since glossing disallows merges
 				{
+                    // whm 24Feb2018 TODO: Bruce should check the logic of using m_bCompletedMergeAndMove with the new dropdown feature!!
 					if (!pApp->m_pTargetBox->m_bCompletedMergeAndMove) // (true means phrase box moved before Choose
 					{							  // Translation dialog can be shown, see LookAhead( )
 						// do this only if the flag was not set
 						pApp->m_pTargetBox->m_bAbandonable = FALSE;
-						if (pApp->m_pTargetBox->m_nWordsInPhrase > 1) // m_nWordsInPhrase is a global
+						if (pApp->m_pTargetBox->m_nWordsInPhrase > 1) // m_nWordsInPhrase is a member of CPhraseBox
 						{
 							// do the needed merge, etc.
 							pApp->bLookAheadMerge = TRUE; // set static flag to ON
@@ -2897,7 +2898,10 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		pOldActiveSrcPhrase = pOldActivePile->GetSrcPhrase();
 		wxASSERT(pOldActiveSrcPhrase);
 	}
-	pApp->m_pTargetBox->m_bEnterTyped = FALSE; // ensure its false, only hitting ENTER key
+    // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
+    // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
+    // the code I've removed it. 
+    //pApp->m_pTargetBox->m_bEnterTyped = FALSE; // ensure its false, only hitting ENTER key
 						  // should set it TRUE
 	wxASSERT(pCell);
 	if (pCell->GetCellIndex() != 1) // index == 1 is the line of cells
@@ -3405,7 +3409,10 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
     // RecalcLayout() calls will clobber any selection we try to make beforehand, so do the
     // selecting now; do it also before recalculating the phrase box, since if anything
     // moves, we want the phrase box location to be correct
+    //
     // whm 22Feb2018 removed - Cancel and Select button in Choose Translation dialog now removed
+    // along with the m_bCancelAndSelectButtonPressed global and the CPhraseBox::GetCancelAndSelectFlag() 
+    // function.
 	//if (pApp->m_pTargetBox->GetCancelAndSelectFlag())
 	//{
 	//	// this block is entered when the user places the phrase box with a click at a
@@ -3415,6 +3422,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	//	pApp->m_pTargetBox->DoCancelAndSelect(this, pApp->m_pActivePile);
 	//	pApp->m_bSelectByArrowKey = TRUE; // so it is ready for extending
 	//}
+
     pApp->m_pTargetBox->m_bCompletedMergeAndMove = FALSE;
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),14,pApp->m_nActiveSequNum);
@@ -5865,7 +5873,10 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp);
 
-    pApp->m_pTargetBox->m_bEnterTyped = FALSE; // ensure it is FALSE, only ENTER key typed should set it TRUE
+    // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
+    // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
+    // the code I've removed it. 
+    //pApp->m_pTargetBox->m_bEnterTyped = FALSE; // ensure it is FALSE, only ENTER key typed should set it TRUE
 	wxRect rectBox(wxPoint((*pLoc).x, (*pLoc).y), wxPoint((*pLoc).x + aWidth,
 					(*pLoc).y + nHeight+4)); // logical coords
 
@@ -8339,9 +8350,9 @@ bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 				// it has to be saved to the KB if not empty
 				MakeTargetStringIncludingPunctuation(pSrcPhrase,pApp->m_targetPhrase);
 				RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
-                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                pApp->m_bInhibitMakeTargetStringCall = TRUE;
 				bOK = pApp->m_pKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
-                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                pApp->m_bInhibitMakeTargetStringCall = FALSE;
 			}
 			else
 				bOK = TRUE; // no store, but not an error so return TRUE
@@ -8697,7 +8708,7 @@ void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase,
     // function otherwise it will add punctuation to the m_targetStr field on the
     // document's pSrcPhrase which is currently active, and that member already has the
     // required punctuation because we have copied the old string prior to the rebuild
-    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+    pApp->m_bInhibitMakeTargetStringCall = TRUE;
 	bool bOK = pApp->m_pKB->StoreText(pSrcPhrase,adaptationStr);
 	bOK = bOK; // avoid warning
 	// now the glossing KB
@@ -8708,7 +8719,7 @@ void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase,
 	// restore current mode
 	gbGlossingVisible = bSaveEnableFlag;
 	gbIsGlossing = bSaveGlossingFlag;
-    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE; // restore the default setting
+    pApp->m_bInhibitMakeTargetStringCall = FALSE; // restore the default setting
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -10183,7 +10194,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 				;
 			}
 		}
-		nCount = pApp->m_pTargetBox->m_nWordsInPhrase; // RHS is a global variable defined in PhraseBox.cpp
+		nCount = pApp->m_pTargetBox->m_nWordsInPhrase; // RHS is a member of CPhraseBox
 		pPile = pApp->m_pActivePile;
 		wxASSERT(pPile != NULL);
 		pStartingPile = pPile; // need this later - see next block for explanation
@@ -10230,7 +10241,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 				pApp->m_pTargetBox->SetFocus();
 				pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 			}
-            pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
+            pApp->m_bMergeSucceeded = FALSE;
 			Invalidate(); // get a redraw done, and the phrase box reshown
 			GetLayout()->PlaceBox();
 			pApp->m_bMergerIsCurrent = FALSE;
@@ -10300,11 +10311,11 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 				{
 								pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				}
-                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                pApp->m_bInhibitMakeTargetStringCall = TRUE;
 				bool bOK;
 				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 				bOK = bOK; // avoid warning
-                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                pApp->m_bInhibitMakeTargetStringCall = FALSE;
 			}
 			// BEW 12Jan17 added this test - copied from block above, see comments in block above for why
 			if (pApp->m_bUseConsistentChanges)
@@ -10434,7 +10445,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 		}
-        pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
+        pApp->m_bMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
@@ -10464,7 +10475,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 		}
-        pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
+        pApp->m_bMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
@@ -10490,7 +10501,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 		}
-        pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
+        pApp->m_bMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		RemoveSelection();
@@ -10520,7 +10531,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 		}
-        pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
+        pApp->m_bMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
@@ -10546,7 +10557,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 		}
-        pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
+        pApp->m_bMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		GetLayout()->Redraw();
@@ -10575,7 +10586,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	if (GetSelectionWordCount() > MAX_WORDS)
 	{
 		pApp->GetRetranslation()->DoRetranslation();
-        pApp->m_pTargetBox->m_bMergeSucceeded = FALSE;
+        pApp->m_bMergeSucceeded = FALSE;
 		pApp->m_bMergerIsCurrent = FALSE;
 		return;
 	}
@@ -10855,7 +10866,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		// legacy behaviour, that is, typically forward selection. Nothing changed here.
-		if (!pApp->m_pTargetBox->m_bSuppressDefaultAdaptation)
+		if (!pApp->m_bSuppressDefaultAdaptation)
 		{
 			if (strOldAdaptation.IsEmpty())
 				// BEW 13Nov10 removed strAdapt support
@@ -10961,7 +10972,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	}
 	Invalidate();
 	GetLayout()->PlaceBox();
-    pApp->m_pTargetBox->m_bMergeSucceeded = TRUE;
+    pApp->m_bMergeSucceeded = TRUE;
 	pApp->m_bMergerIsCurrent = FALSE;
 
 //#if defined(FWD_SLASH_DELIM)
@@ -14065,7 +14076,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
     pApp->m_pTargetBox->m_Translation.Empty();
 	pApp->m_pTargetBox->m_CurKey.Empty();
     pApp->m_pTargetBox->m_nWordsInPhrase = 0;
-	pApp->m_pTargetBox->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL;
+	pApp->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL;
 
 	CKB* pKB;
 	int nCurLongest;
@@ -14154,8 +14165,8 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
     // be the ONLY place within the sources where a non-null pointer value is
     // assigned to pTargetUnitFromChooseTrans, now that OnButtonChooseTranslation() is the
     // sole place where the ChooseTranslation dialog is called.
-    pApp->m_pTargetBox->pTargetUnitFromChooseTrans = pKB->GetTargetUnit(pApp->m_pTargetBox->m_nWordsInPhrase, pSrcPhrase->m_key);
-	if (pApp->m_pTargetBox->pTargetUnitFromChooseTrans == NULL)
+    pApp->pTargetUnitFromChooseTrans = pKB->GetTargetUnit(pApp->m_pTargetBox->m_nWordsInPhrase, pSrcPhrase->m_key);
+	if (pApp->pTargetUnitFromChooseTrans == NULL)
 	{
 		// IDS_NO_KB_ENTRY
 		wxMessageBox(_(
@@ -14215,7 +14226,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		if (bCancelled)
 		{
             pApp->m_pTargetBox->m_nWordsInPhrase = 0;
-            pApp->m_pTargetBox->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL;
+            pApp->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL;
             pApp->m_pTargetBox->m_CurKey.Empty();
 			pApp->m_pTargetBox->SetFocus();
 			return;
@@ -14243,12 +14254,21 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
 		pApp->m_pTargetBox->SetFocus();
-        // whm 19Feb2018 the m_Translation global is used in PlaceBox() call below by 
-        // PopulateDropDownList() so we must not clear it here, but after it is used there.
+        // whm 19Feb2018 the m_Translation global is used in Layout's PlaceBox() call (called below)
+        // by PopulateDropDownList(), so we must not clear it here, but after it is used there.
 		//pApp->m_pTargetBox->m_Translation.Empty(); // clear the globals
 		//pApp->m_pTargetBox->m_CurKey.Empty();
 		Invalidate();
-		GetLayout()->PlaceBox(); // whm note: Why call PlaceBox() here when PlacePhraseBox() above ends by calling PlaceBox() at the same location???
+		GetLayout()->PlaceBox(); // whm 24Feb2018 The Layout's PlaceBox gets called twice - once above within
+        // the PlacePhraseBox() call, and again here at the end of the OnButtonChooseTranslation() function.
+        // So, with such convoluted flow of control, we set the m_Translation variable back to empty
+        // here after the second PlaceBox() call rather than after it is used within the 
+        // CPhraseBox::PopulateDropDownList() call. Otherwise the m_Translation variable is cleared
+        // after the first call of PlaceBox() making it useless for the second PlaceBox() call where
+        // it is needed.
+        // TODO: Determine if there really is a need for the PlaceBox() call here within the OnButtonChooseTranslation()
+        // handler.
+        pApp->m_pTargetBox->m_Translation.Empty(); // If the PlaceBox() call can be removed, this can go back into Layout's PlaceBox() after the PopulateDropDownList() call
 	}
 }
 
@@ -14426,7 +14446,7 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 		// If there is a subsequent StoreText() call, we'll want m_targetStr
 		// in the pSrcPhrase to get any punctuation addition done, so ensure
 		// this flag is FALSE so that can happen
-        pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+        pApp->m_bInhibitMakeTargetStringCall = FALSE;
 
 		// Reversion to "Save In Knowledge base" is only able to be done in
 		// adapting mode. In glossing mode, the checkbox is always ticked and
@@ -14963,7 +14983,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
     // to leave a hole which may or may not have had punctuation there; the former
     // m_targetStr is preserved in m_StrSavedTargetStringWithPunctInReviewingMode, and the
     // test for needing to do this restoration is that the global flag
-    // gbSavedTargetStringWithPunctInReviewingMode is TRUE, and we must clear the flag
+    // m_bSavedTargetStringWithPunctInReviewingMode is TRUE, and we must clear the flag
     // before returning
     // Don't do the next block if the function was called before at same location
 	if ( !(theSequNum == pApp->m_nCurSequNum_ForPlacementDialog &&
@@ -16183,9 +16203,9 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 				{
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				}
-                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                pApp->m_bInhibitMakeTargetStringCall = TRUE;
 				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
-                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                pApp->m_bInhibitMakeTargetStringCall = FALSE;
 			}
 		}
 	}
@@ -17458,10 +17478,10 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				}
 				// now do the store
-                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                pApp->m_bInhibitMakeTargetStringCall = TRUE;
 				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 									pApp->m_targetPhrase);
-                pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                pApp->m_bInhibitMakeTargetStringCall = FALSE;
 			}
 			bOK = bOK; // avoid warning
 			// now get rid of the phrase box, until we need it again
@@ -20177,7 +20197,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 		wxCommandEvent event;
 		OnButtonMerge(event);
 
-		if (pApp->m_pTargetBox->m_bMergeSucceeded)
+		if (pApp->m_bMergeSucceeded)
 		{
 			// restore the clobbered pointers
 			pPile = GetPile(pApp->m_nActiveSequNum);
@@ -25598,12 +25618,12 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 						{
 							pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 						}
-                        pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                        pApp->m_bInhibitMakeTargetStringCall = TRUE;
 						bool bOK;
 						bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 															pApp->m_targetPhrase);
 						bOK = bOK; // avoid warning
-                        pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                        pApp->m_bInhibitMakeTargetStringCall = FALSE;
 					}
 				}
 			} // end block for non-empty box contents
@@ -25645,10 +25665,10 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 					{
 						pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 					}
-                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+                    pApp->m_bInhibitMakeTargetStringCall = TRUE;
 					bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 														pApp->m_targetPhrase);
-                    pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+                    pApp->m_bInhibitMakeTargetStringCall = FALSE;
 				}
 
 				// check for a failure, abandon the function if the store failed? No, we'll

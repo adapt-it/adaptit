@@ -54,7 +54,7 @@ public:
 	wxString	m_refCountStr; // need wxString for validating wxTextCtrl
 	wxString	m_chosenTranslation;
 	bool		m_bEmptyAdaptationChosen;
-	bool		m_bCancelAndSelect;
+	//bool		m_bCancelAndSelect; // whm 24Feb2018 removed - there is no longer any Cancel and Select functionality
     bool        m_bTempUseChooseTransDropDown;  // whm 10Jan2018 added
 
 protected:
@@ -71,9 +71,9 @@ protected:
 	void OnButtonRemove(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateButtonRemove(wxUpdateUIEvent& event);
 	void OnButtonCancelAsk(wxCommandEvent& WXUNUSED(event));
-	void OnButtonCancelAndSelect(wxCommandEvent& event);
+	//void OnButtonCancelAndSelect(wxCommandEvent& event); // whm 24Feb2018 removed - not needed with dropdown integrated in CPhraseBox class
 public:
-	//void OnKeyDown(wxKeyEvent& event);
+	//void OnKeyDown(wxKeyEvent& event); - not needed with dropdown integrated in CPhraseBox class
 
 private:
 	CKB* m_pKB;

@@ -1012,6 +1012,7 @@ KB_Entry CKB::GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRe
 /// BEW 8Jun10, updated for kbVersion 2 support (legacy code kept, commented out, in case
 /// at a future date we want to use it for a 'clear kb' [of deleted entries] capability)
 // BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
+// whm TODO: Remove the int m_nWordsInPhrase parameter which is not used 
 void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int m_nWordsInPhrase)
 {
 	if (m_bGlossingKB)
@@ -4164,7 +4165,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pSrcPhrase->m_adaption = FwdSlashtoZWSP(pSrcPhrase->m_adaption);
 			}
 //#endif
-			if (!m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall)
+			if (!m_pApp->m_bInhibitMakeTargetStringCall)
 			{
 				// sets m_targetStr member too, also does auto-capitalization adjustments
 				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase);
@@ -4959,7 +4960,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				pSrcPhrase->m_adaption = FwdSlashtoZWSP(pSrcPhrase->m_adaption);
 			}
 //#endif
-			if (!m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall)
+			if (!m_pApp->m_bInhibitMakeTargetStringCall)
 			{
 				// sets m_targetStr member too, and handles auto-capitalization
 				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase);
@@ -6324,11 +6325,11 @@ void CKB::RedoStorage(CSourcePhrase* pSrcPhrase, wxString& errorStr)
 
 			// legacy code follows
 			pSrcPhrase->m_bHasKBEntry = FALSE; // has to be false on input to StoreText()
-            m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE; // prevent any punctuation placement
+            m_pApp->m_bInhibitMakeTargetStringCall = TRUE; // prevent any punctuation placement
 												  // dialogs from showing
 			bool bOK = StoreText(pSrcPhrase,pSrcPhrase->m_adaption,TRUE); // TRUE =
 													// support storing empty adaptation
-            m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+            m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 			if (!bOK)
 			{
 				// I don't expect any error here, but just in case ...

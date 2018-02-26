@@ -2722,15 +2722,21 @@ public:
     // recreating the targetBox repeatedly as the MFC version did, it now lives undestroyed
     // for the life of the View, and will simply be shown, hidden, moved, and/or resized
     // where necessary.
-	CPhraseBox*		m_pTargetBox; // One of the above pointers will be assigned to this one
-    bool            m_bTargetBoxWithoutList;
+	CPhraseBox*		m_pTargetBox; // Our PhraseBox with a dropdown list
 	wxString		m_targetPhrase; // the text currently in the m_targetBox
 	long			m_nStartChar;   // start of selection in the target box
 	long			m_nEndChar;		// end of selection in the target box
 
-    // whm added 10Jan2018 after deriving CPhraseBox from wxOwnerDrawnComboBox
+    // whm modified 10Jan2018 after deriving CPhraseBox from wxOwnerDrawnComboBox
     bool m_bChooseTransShowPopup;
-    // whm 21Feb2018 modified by moving some globals out of global space
+
+    // whm 24Feb2018 modified by moving some globals out of global space
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    bool m_bInhibitMakeTargetStringCall; // moved here from Adapt_ItView.cpp global space
+    bool m_bMergeSucceeded; // moved here from Adapt_ItView.cpp global space
+    bool m_bSuppressDefaultAdaptation;
+    CTargetUnit* pTargetUnitFromChooseTrans;
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     bool m_bLegacySourceTextCopy;
     bool m_bIgnoreScriptureReference_Send;
     wxString m_OldChapVerseStr;
@@ -3071,7 +3077,7 @@ public:
 	bool	 SetupDocCreationLog(wxString& filename);
 	bool	 m_bMakeDocCreationLogfile;
 
-	bool	 m_bALT_KEY_DOWN; // BEW added 31Jul16 to track ALT key down (TRUE), and up (back to FALSE) // whm removed 16Feb2018
+	bool	 m_bALT_KEY_DOWN; // BEW added 31Jul16 to track ALT key down (TRUE), and up (back to FALSE)
 
 #if defined(_KBSERVER)
 	// support for Status bar showing "Deleting n of m" while deleting a kb from KBserver

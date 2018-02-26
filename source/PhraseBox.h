@@ -64,12 +64,10 @@ public:
 	//CPile*		m_pActivePile; // refactored BEW 23Mar09, removed this copy, view's one is enough
 	bool		m_bAbandonable;
 	wxString	m_backspaceUndoStr;
-	bool		m_bMergeWasDone; // whm moved here from within OnChar()
+	//bool		m_bMergeWasDone; // whm 24Feb2018 removed.
 	bool		m_bCurrentCopySrcPunctuationFlag; // BEW added 20May16 (preserve m_bCopySourcePunctuation
 					// value so it can be restored within DoStore_ForPlacePhraseBox() )
     bool        m_bRetainBoxContents;
-    bool        m_bMergeSucceeded;
-    bool        m_bSuppressDefaultAdaptation;
     bool        m_bBoxTextByCopyOnly;
     bool        m_bTunnellingOut;
     bool        m_bSavedTargetStringWithPunctInReviewingMode;
@@ -78,10 +76,11 @@ public:
     bool        m_bCameToEnd;
     bool        m_bTemporarilySuspendAltBKSP;
     bool        m_bSuppressStoreForAltBackspaceKeypress;
-    //bool        m_bMovingToPreviousPile; // initialized but unused 
+    bool        m_bSuppressMergeInMoveToNextPile; 
+    //bool        m_bMovingToPreviousPile; // whm 24Feb2018 initialized but unused so removed 
     bool        m_bCompletedMergeAndMove;
-    bool        m_bEnterTyped;
-    bool        m_bInhibitMakeTargetStringCall;
+    //bool        m_bMergeDone; // whm 24Feb2018 removed.
+    //bool        m_bEnterTyped; // whm 24Feb2018 removed.
     long        m_nSaveStart; //int m_nSaveStart; // these two are for implementing Undo() for a backspace operation
     long        m_nSaveEnd; //int m_nSaveEnd;                 
     int         m_nCurrentSequNum; /// Contains the current sequence number of the active pile (m_nActiveSequNum) for use by auto-saving.
@@ -91,38 +90,42 @@ public:
     bool        m_bEmptyAdaptationChosen;
 
     wxString    m_SaveTargetPhrase;
-    CTargetUnit* pTargetUnitFromChooseTrans;
+    //CTargetUnit* pTargetUnitFromChooseTrans; // whm 24Feb2018 moved to the App
 
 protected:
 	bool CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, CPile* pNextEmptyPile,
 							CPile* pCurPile); // BEW added 24Mar09, to simplify MoveToNextPile()
 	void DealWithUnsuccessfulStore(CAdapt_ItApp* pApp, CAdapt_ItView* pView, CPile* pNextEmptyPile);
-							// BEW added DealWithUnsuccessfulStore() 24Mar09, to simplify MoveToNextPile()
+	// BEW added DealWithUnsuccessfulStore() 24Mar09, to simplify MoveToNextPile()
 	//bool DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView,
 	//						CPile* pCurPile, CPile* pNextEmptyPile, bool bIsTransliterateMode = FALSE);
 	bool DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView,
 							CPile* pCurPile, bool bIsTransliterateMode = FALSE);
-							// BEW added DoStore_NormalOrTransliterateModes() 24Mar09, to simplify MoveToNextPile()
+	// BEW added DoStore_NormalOrTransliterateModes() 24Mar09, to simplify MoveToNextPile()
     // whm 22Feb2018 removed bool m_bCancelAndSelect parameter and logic
-	void HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
+    //void HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
+    //                      CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect);
+    void HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
 							CPile* pNewPile, bool& bWantSelect);
-							// BEW added 24Mar09, to simplify MoveToNextPile()
+	// BEW added 24Mar09, to simplify MoveToNextPile()
     // whm 22Feb2018 removed bool m_bCancelAndSelect parameter and logic
+    //void HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
+    //                      CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect);
 	void HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
 							CPile* pNewPile, bool& bWantSelect);
-							// BEW added 24Mar09, to simplify MoveToNextPile()
+	// BEW added 24Mar09, to simplify MoveToNextPile()
 	void MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect);
-							// BEW added MakeCopyOrSetNothing() 24Mar09,  to simplify MoveToNextPile()
+	// BEW added MakeCopyOrSetNothing() 24Mar09,  to simplify MoveToNextPile()
 	bool MoveToNextPile(CPile* pCurPile);
 	bool MoveToNextPile_InTransliterationMode(CPile* pCurPile); // BEW added 24Mar09
-							// to simplify the syntax for MoveToNextPile()
+	// to simplify the syntax for MoveToNextPile()
 	bool MoveToPrevPile(CPile* pCurPile);
 	bool MoveToImmedNextPile(CPile* pCurPile);
 	bool IsActiveLocWithinSelection(const CAdapt_ItView* WXUNUSED(pView), const CPile* pActivePile);
 	void JumpForward(CAdapt_ItView* pView);
 
 public:
-	//void DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile);
+	//void DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile); // whm 22Feb2018 removed - along with Cancel and Select button in wxDesigner resources
 	bool DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	CLayout* GetLayout();
 	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,

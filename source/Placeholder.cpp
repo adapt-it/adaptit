@@ -189,12 +189,12 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
         // we are about to leave the current phrase box location, so we must try to store
         // what is now in the box, if the relevant flags allow it
 		m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
-        m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+        m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
 		bool bOK;
 		bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
 						m_pApp->m_targetPhrase);
 		bOK = bOK; // avoid warning
-        m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+        m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 	}
 	
 	InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount);
@@ -286,11 +286,11 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
         // we are about to leave the current phrase box location, so we must try to store
         // what is now in the box, if the relevant flags allow it
 		m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
-        m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+        m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
 		bool bOK;
 		bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
 		bOK = bOK; // avoid warning
-        m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+        m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 	}
 	
     // at this point, we need to increment the pInsertLocPile pointer to the next pile, and
@@ -2570,12 +2570,12 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
             // we are about to leave the current phrase box location, so we must try to
             // store what is now in the box, if the relevant flags allow it
 			m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
-            m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+            m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
 			bool bOK;
 			bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
 											m_pApp->m_targetPhrase);
 			bOK = bOK; // avoid warning
-            m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+            m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 		}
 		
         // at this point, we need to increment the pInsertLocPile pointer to the next pile,
@@ -2757,12 +2757,12 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
             // we are about to leave the current phrase box location, so we must try to
             // store what is now in the box, if the relevant flags allow it
 			m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
-            m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = TRUE;
+            m_pApp->m_bInhibitMakeTargetStringCall = TRUE;
 			bool bOK;
 			bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
 											m_pApp->m_targetPhrase);
 			bOK = bOK; // avoid warning
-            m_pApp->m_pTargetBox->m_bInhibitMakeTargetStringCall = FALSE;
+            m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 		}
 		
 		InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount);
