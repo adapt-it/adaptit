@@ -184,7 +184,7 @@ private:
     // BEW added 26Mar10, for doc version 5, ChooseTranslation() and DoCancelAndSelect()
     // use this, the former sets it if the relevant button is pressed, the latter uses it
     // snf then clears it
-	bool m_bCancelAndSelectButtonPressed;
+	//bool m_bCancelAndSelectButtonPressed; // whm 26Feb2018 removed
 
 	DECLARE_DYNAMIC_CLASS(CPhraseBox)
 	// DECLARE_DYNAMIC_CLASS() is used inside a class declaration to

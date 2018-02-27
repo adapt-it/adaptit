@@ -102,6 +102,7 @@ IMPLEMENT_DYNAMIC_CLASS(CPhraseBox, wxOwnerDrawnComboBox)
 BEGIN_EVENT_TABLE(CPhraseBox, wxOwnerDrawnComboBox)
 	EVT_MENU(wxID_UNDO, CPhraseBox::OnEditUndo)
 	EVT_TEXT(ID_PHRASE_BOX, CPhraseBox::OnPhraseBoxChanged)
+    //EVT_TEXT_ENTER(ID_PHRASE_BOX, CPhraseBox::OnComboProcessEnterKeyPress) // this doesn't detect Enter key used when selecting an item from the dropdown list
 	EVT_CHAR(CPhraseBox::OnChar)
 	EVT_KEY_DOWN(CPhraseBox::OnKeyDown)
 	EVT_KEY_UP(CPhraseBox::OnKeyUp)
@@ -3802,6 +3803,10 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	{
 	case WXK_RETURN: //13:	// RETURN key
 		{
+            // whm 26Feb2018 Note: Code from this case WXK_RETURN is also used in the 
+            // OnComboItemSelected() handler to advance the phrasebox when an item is 
+            // selected from the list.
+
 			// save old sequ number in case required for toolbar's Back button
             pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
@@ -6126,7 +6131,14 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex)
     // the KB until the phrasebox moves on with Enter or Tab.
     if (!m_Translation.IsEmpty())
     {
-        selectionIndex = this->Append(m_Translation);
+        // whm added 26Feb2018 check for if the string already exists. If it exists don't
+        // append it again.
+        int foundItem = -1;
+        foundItem = this->FindString(m_Translation);
+        if (foundItem == wxNOT_FOUND)
+        {
+            selectionIndex = this->Append(m_Translation);
+        }
     }
 
 }
@@ -6276,6 +6288,16 @@ void CPhraseBox::OnComboItemSelected(wxCommandEvent & WXUNUSED(event))
 
     this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
 
+    // whm 26Feb2018 addition to OnComboItemSelected() to cause the phrasebox to move on when 
+    // an item is selected from the dropdown list, we can do the same thing here that is done 
+    // when the WXK_RETURN key press is detected in the OnChar() handler, namely just 
+    // set m_nOldSequNum to the m_nActiveSequNum and call JumpForward(pView).
+    // Code below copied from the case WXK_RETURN in OnChar().
+    CLayout* pLayout = GetLayout();
+    CAdapt_ItView* pView = pLayout->m_pView;
+    // save old sequ number in case required for toolbar's Back button
+    gpApp->m_nOldSequNum = gpApp->m_nActiveSequNum;
+    JumpForward(pView);
 }
 
 wxCoord CPhraseBox::OnMeasureItem(size_t item) const

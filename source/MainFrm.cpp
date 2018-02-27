@@ -4422,7 +4422,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		else
 		{
 			// we are counting phrase box moves for doing autosaves
-			if (pApp->m_pTargetBox->m_nCurrentSequNum > nSequNumForLastAutoSave + pApp->m_nMoves)
+            // whm 26Feb2018 Added test for NULL on m_pTargetBox - Linux version OnIdle() handler initiates early
+            if (gpApp->m_pTargetBox != NULL && (pApp->m_pTargetBox->m_nCurrentSequNum > nSequNumForLastAutoSave + pApp->m_nMoves))
 			{
 				if(pDoc->IsModified())
 					pApp->DoAutoSaveDoc();
@@ -4562,7 +4563,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		gbUpdateDocTitleNeeded = FALSE; // turn it off until the next MRU doc open failure
 	}
 
-	if (pApp->m_pTargetBox->m_bCameToEnd)
+    // whm 26Feb2018 Added test for NULL on m_pTargetBox - Linux version OnIdle() handler initiates early
+	if (gpApp->m_pTargetBox != NULL && pApp->m_pTargetBox->m_bCameToEnd)
 	{
         pApp->m_pTargetBox->m_bCameToEnd = FALSE; // whm moved this above wxMessageBox because Linux version
 							 // was repeatedly calling wxMessageBox causing crash
@@ -4633,15 +4635,19 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
         //{
             //pApp->m_pTargetBox->GetButton()->Enable();
         //}
-        
+
         // Popup the dropdown's list if it has content, otherwise keep it closed.
-        if (pApp->m_pTargetBox->GetCount() > 1)
+        // whm 26Feb2018 Added outer test for NULL on m_pTargetBox - Linux version OnIdle() handler initiates early
+        if (pApp->m_pTargetBox != NULL)
         {
-            pApp->m_pTargetBox->PopupDropDownList();
-        }
-        else
-        {
-            pApp->m_pTargetBox->CloseDropDown();
+            if (pApp->m_pTargetBox->GetCount() > 1)
+            {
+                pApp->m_pTargetBox->PopupDropDownList();
+            }
+            else
+            {
+                pApp->m_pTargetBox->CloseDropDown();
+            }
         }
         pApp->m_bChooseTransShowPopup = FALSE;
     }
