@@ -22,13 +22,13 @@
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
-// Comment out Use_Legacy_Parser to cause the simpler and better refactored (Nov-Dec,2016)
+// Comment out USE_LEGACY_PARSER to cause the simpler and better refactored (Nov-Dec,2016)
 // ParseWord2() to be used, and the m_bBoundary setting code done in ParseWord2() rather
 // than in the legacy place, after the propagation code in TokenizeText()
 //
 // **** NOTE**** If commenting out, be sure to do the same to the same #define in
 // line 43 of AdaptItConstants.h
-//#define Use_Legacy_Parser
+#define USE_LEGACY_PARSER
 #include <wx/string.h>
 
 //#define AUTHENTICATE_AS_BRUCE

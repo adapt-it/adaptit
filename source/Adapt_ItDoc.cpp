@@ -8608,7 +8608,7 @@ h:						bool bIsInitial = TRUE;
 				} // end of while loop with test: (offset = FindFromPos(pSrcPhrase->GetFilteredInfo(),filterMkr,offset)) != -1
 			} // end of TRUE block for test: if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
 
-#ifndef Use_Legacy_Parser
+#ifndef USE_LEGACY_PARSER
 
 			bDidSomeUnfiltering_After = FALSE; // reinitialize, for working with m_filteredInfo_After
 			//bool bWeUnfilteredSomething = FALSE; // might be needed within a loop
@@ -15867,8 +15867,9 @@ fltr:				int offset = wxNOT_FOUND;
 #endif
 			// This is the Legacy ParseWord(). The refactored (Oct 2016) one
 			// below it is ParseWord2() - signature unchanged. Keep the Legacy one
-			// for the time being. #define Use_Legacy_Parser is at line 76 above
-#if defined (Use_Legacy_Parser)
+			// for the time being. #define USE_LEGACY_PARSER is at line 31 of 
+			// Adapt_It.h and line 43 of AdaptItConstants.h
+#if defined (USE_LEGACY_PARSER)
 //#if defined (_DEBUG)
 //			if (pSrcPhrase->m_nSequNumber >= 5)
 //			{
@@ -16123,7 +16124,7 @@ fltr:				int offset = wxNOT_FOUND;
 			// just call the pSrcPhrase->m_markers.Trim(FALSE) statement
 			//if (pSrcPhrase->m_markers.GetChar(0) == _T(' '))
 			pSrcPhrase->m_markers.Trim(FALSE);
-#if defined(Use_Legacy_Parser)
+#if defined(USE_LEGACY_PARSER)
 			// BEW Nov 2016  ParseWord2() now does it internally - a more natural place
 			// BEW 11Oct10, Handle setting of the m_bBoundary flag here, rather than in
 			// ParseWord() itself
@@ -30662,7 +30663,7 @@ int CAdapt_ItDoc::ParseWord2(
 	// boundarySet (punctuation with , excluded) but the passed in spacelessPuncts.
 	//
 	// This and the next block were moved from TokenizeText. The #define
-	// Use_Legacy_Parser should be commented out for this ParseWord2() (and doing
+	// USE_LEGACY_PARSER should be commented out for this ParseWord2() (and doing
 	// so enables the legacy code below to run within TokenizeText() too) to be used
 	// or uncommented out to use the legacy ParseWord()
 	if (!pSrcPhrase->m_follPunct.IsEmpty() || !pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
