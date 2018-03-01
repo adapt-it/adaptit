@@ -3434,6 +3434,17 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	// auto-insert adaptations.
 	pApp->m_bIsGuess = FALSE;
 
+    // whm 27Feb2018 Note: Here at the end of PlacePhraseBox() is one candidate location 
+    // to have the block of code (presently within Layout's PlaceBox) that sets up and 
+    // populates the dropdown list. Putting it here in PlacePhraseBox would help to eliminate
+    // the repeated execution of that block that it gets in its location in PlaceBox().
+    // The down side, however, is that my analysis of all uses of PlacePhraseBox() and PlaceBox()
+    // indicates that this same code would have to be (via putting it into a separate function) 
+    // put in over 100 places where PlaceBox() is called and there was no prior call of 
+    // PlacePhraseBox(). Conclusion: Best I think to leave the setup and populating routines
+    // within PlaceBox(), and just ensure that it can tolerate repeated/redundant calls for
+    // the phrasebox located at the same location.
+
 	Invalidate();
 	pLayout->PlaceBox();
 }

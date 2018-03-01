@@ -925,7 +925,7 @@ void CLayout::PlaceBox()
 				}
 		}
 
-        // whm Note The code between exclamation marks below could be place in a separate function
+        // whm Note The code between exclamation marks below could be placed in a separate function
         // within CPhraseBox perhaps called SetupPhraseBoxForThisLocation().
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // whm added 10Jan2018 to support quick selection of a translation equivalent.
@@ -933,6 +933,9 @@ void CLayout::PlaceBox()
         // and can be interacted with by the user. Hence this is the main location in the
         // application where we do the following to set up the content and characteristics 
         // of the phrasebox's (m_pTargetBox) dropdown control:
+        // 0. Test for the App's bLookAheadMerge flag. By allowing this code to execute only when 
+        //    bLookAheadMerge is FALSE, it eliminates one extraneous call of this block of code when 
+        //    PlaceBox() is called from LookAhead() upstream.
         // 1. Load the contents of the phrasebox's drop down list (via calling PopulateDropDownList() below).
         //    If this PlaceBox() was called at the point the ChooseTranslation dialog was dismissed
         //    the pTargetUnitFromChooseTrans parameter to PopulateDropDownList() will be non-NULL and 
@@ -943,11 +946,18 @@ void CLayout::PlaceBox()
         // 3. Set the App flag m_bChooseTransShowPopup to TRUE or FALSE to inform OnInit() whether
         //    to display the dropdown's list (TRUE) or suppress opening the list (FALSE).
         // 4. Set the Selection to the first list item (when there are multiple items in the list).
-        // 5. TODO: Determine what to enter in the dropdown's edit box when there are no KB ref strings.???
+        // 5. When m_pTargetBox->GetCount() == 0 (in the else block below) the m_targetPhrase content
+        //    held on the App is inserted into the phrasebox (m_pTargetBox), and the content is selected.
 
         if (!m_pApp->bLookAheadMerge)
         {
             int selectionIndex = -1;
+            // whm 27Feb2018 Note: If the Choose Translation dialog was called before this execution of the 
+            // PopulateDropDownList() function below, any changes, additions, reordering, deletions to the KB 
+            // items listed there will pass into PopulateDropDownList() via the pTargetUnitFromChooseTrans 
+            // parameter, and any selection of a list item from that dialog will be returned here via the
+            // selectionIndex parameter for the SetSelection(selectionIndex) command in the if...else block
+            // below.
             m_pApp->m_pTargetBox->PopulateDropDownList(m_pApp->pTargetUnitFromChooseTrans, selectionIndex); // uses global pTargetUnitFromChooseTrans
 
             // Clear the ChooseTranslation dialog choice-related variables
@@ -966,7 +976,10 @@ void CLayout::PlaceBox()
                 m_pApp->m_pTargetBox->SetButtonBitmaps(m_pApp->m_pTargetBox->dropbutton_normal, false, m_pApp->m_pTargetBox->dropbutton_pressed, m_pApp->m_pTargetBox->dropbutton_hover, m_pApp->m_pTargetBox->dropbutton_disabled);
                 m_pApp->m_pTargetBox->SetSelection(selectionIndex); // set selection to the index determined by PopulatDropDownList above
                 m_pApp->m_bChooseTransShowPopup = TRUE;
-                // TODO: Assign appropriate text to m_pTargetBox here??? Use DoGetSuitableText_ForPlacePhraseBox() here ??? - after if ... else blocks for both ???
+                // The SetSelection() command above assigns the appropriate text to m_pTargetBox here, since the dropdown's
+                // own mechanism copied the selected list item into its edit box.
+                // Note: The LookAhead() function (upstream) will probably have called the DoGetSuitableText_ForPlacePhraseBox()
+                // function here.
             }
             else // when m_pApp->m_pTargetBox->GetCount() == 0
             {
@@ -977,6 +990,17 @@ void CLayout::PlaceBox()
                 // A previous call to PlacePhraseBox() would have called DoGetSuitableText_ForPlacePhraseBox() which 
                 // stored a suitable string str which was assigned to the App's m_targetPhrase member, and it would have
                 // been followed by AutoCaps processing. We should be able to put it in the m_pTargetBox here.
+                // Note: Without the following assignment of m_targetPhrase to the m_pTargetBox, the phrasebox
+                // displays as empty, but the dropdown list (when activated) shows the copy of the source text as
+                // a single (temporary?) item in its list.
+                // Note: The legacy phrasebox would have automatically copied source text into the phrasebox. 
+                // However, with the new dropdown phrasebox, the source is being added as a list item instead of being
+                // copied into the dropdown's edit box and leaving the list empty (by; PopulateDropDownList() above. 
+                // That behavior is different than I expected, it is probably OK, since a user could - after typing 
+                // something different into the edit box - have a change of mind and just select the copied source
+                // text from the list. Just because the copied source text appears in the list at that point doesn't
+                // mean that it resides in the KB, and won't get stored in the KB unless the user hits Enter/Tab while
+                // the copied source word in in the edit box.
                 m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
                 m_pApp->m_pTargetBox->SetSelection(-1, -1); // select all
                 m_pApp->m_pTargetBox->SetFocus();

@@ -2490,9 +2490,14 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 		else
 			pView->RemoveSelection(); // glossing, or adapting a single src word only
 
+        // whm 27Feb2018 Note: The following block that sets this m_pTargetBox to be empty
+        // and the App's m_targetPhrase to _T("") needs to be retained, otherwise the code
+        // later in dropdown setup and PopulateDropDownList() will add the source string to
+        // the list. TODO: Investigate why this happens.
+        //
 		// next code is taken from end of MoveToNextPile()
 		// initialize the phrase box to be empty, so as not to confuse the user
-		if (GetHandle() != NULL) // This won't happen in wx version since we don't destroy the targetbox window
+		if (GetHandle() != NULL) // This won't happen (a NULL handle) in wx version since we don't destroy the targetbox window
 		{
 			// wx version note: we do the following elsewhere when we hide the m_pTargetBox
 			ChangeValue(_T(""));
@@ -6012,8 +6017,12 @@ void CPhraseBox::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(even
 // populated dropdown list.
 void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex)
 {
+    CAdapt_ItApp* pApp = &wxGetApp();
+    CAdapt_ItView *pView = pApp->GetView(); // <<-- BEWARE if we later support multiple views/panes
     selectionIndex = -1; // initialize to inform caller if no selection was possible
     this->Clear();
+    wxString initialBoxContent;
+    initialBoxContent.Empty();
     // The incoming pTU can be null when called from Layout's PlaceBox() and means 
     // the ChooseTranslation dialog was not called just before the PlaceBox() call.
     CTargetUnit* pTargetUnit = (CTargetUnit*)NULL; // a local target unit pointer
@@ -6023,8 +6032,6 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex)
         // So when pTU is NULL, we get the pTargetUnitFromChooseTrans directly using the 
         // appropriate KB's GetTargetUnit() method to populate the dropdown list.
 
-        CAdapt_ItApp* pApp = &wxGetApp();
-        CAdapt_ItView *pView = pApp->GetView(); // <<-- BEWARE if we later support multiple views/panes
         m_nWordsInPhrase = 0;	  // the global, initialize to value assuming no match
 
         // BEW changed next few lines, 6Aug13, because it was not refactored earlier to agree
@@ -6063,6 +6070,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex)
         else
         {
             temp = pApp->m_targetPhrase;
+            initialBoxContent = temp;
             // BEW 13Nov10, the flag below is never set TRUE so remove the code which uses it
             if (!gbIsGlossing) // || gbRemovePunctuationFromGlosses)
             {
@@ -6121,7 +6129,23 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex)
     }
     if (count > 0)
     {
-        selectionIndex = 0; // have caller select first in list (index 0)
+        if (!initialBoxContent.IsEmpty())
+        {
+            // The phrasebox had an entry when we landed there (which could have been a copy of the source text)
+            int indx = -1;
+            indx = (int)this->FindString(initialBoxContent);  
+            if (indx != wxNOT_FOUND)
+            {
+                // Select the list item - if it exists in the list - that matches what was in the 
+                // phrasebox when we landed there.
+                selectionIndex = indx;
+            }
+        }
+        else
+        {
+            // If the phrase box had no content, they we just select first item in the list
+            selectionIndex = 0; // have caller select first in list (index 0)
+        }
     }
     // See notes in CChooseTranslation::OnOK().
     // If the ChooseTranslation dialog was just called up and a new translation string was entered
