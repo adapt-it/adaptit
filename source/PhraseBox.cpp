@@ -359,7 +359,7 @@ CPhraseBox::CPhraseBox(
 
     // whm 24Feb2018 removed the m_bMergeDone global as unneeded since CPhraseBox::ChooseTranslation()
     // has been removed from the app now that CPhraseBox is derived from wxOwnerDrawnComboBox.
-    // m_bMergeDonce (previously called gbMergeDone) was only acted on within the 
+    // m_bMergeDone (previously called gbMergeDone) was only acted on within the 
     // CPhraseBox::ChooseTranslation() function - and that function has been removed.
     //
     // global, used in ChooseTranslation()
@@ -2471,7 +2471,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 
         // whm 24Feb2018 removed the m_bMergeDone global as unneeded since CPhraseBox::ChooseTranslation()
         // has been removed from the app now that CPhraseBox is derived from wxOwnerDrawnComboBox.
-        // m_bMergeDonce (previously called gbMergeDone) was only acted on within the CPhraseBox::ChooseTranslation()
+        // m_bMergeDone (previously called gbMergeDone) was only acted on within the CPhraseBox::ChooseTranslation()
         // function - and that function has been removed.
         //m_bMergeDone = FALSE; //  global, used in ChooseTranslation()
 
