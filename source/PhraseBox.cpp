@@ -6021,6 +6021,8 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex)
     CAdapt_ItView *pView = pApp->GetView(); // <<-- BEWARE if we later support multiple views/panes
     selectionIndex = -1; // initialize to inform caller if no selection was possible
     this->Clear();
+    wxString initialBoxContent;
+    initialBoxContent.Empty();
     // The incoming pTU can be null when called from Layout's PlaceBox() and means 
     // the ChooseTranslation dialog was not called just before the PlaceBox() call.
     CTargetUnit* pTargetUnit = (CTargetUnit*)NULL; // a local target unit pointer
@@ -6068,6 +6070,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex)
         else
         {
             temp = pApp->m_targetPhrase;
+            initialBoxContent = temp;
             // BEW 13Nov10, the flag below is never set TRUE so remove the code which uses it
             if (!gbIsGlossing) // || gbRemovePunctuationFromGlosses)
             {
@@ -6126,7 +6129,23 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex)
     }
     if (count > 0)
     {
-        selectionIndex = 0; // have caller select first in list (index 0)
+        if (!initialBoxContent.IsEmpty())
+        {
+            // The phrasebox had an entry when we landed there (which could have been a copy of the source text)
+            int indx = -1;
+            indx = (int)this->FindString(initialBoxContent);  
+            if (indx != wxNOT_FOUND)
+            {
+                // Select the list item - if it exists in the list - that matches what was in the 
+                // phrasebox when we landed there.
+                selectionIndex = indx;
+            }
+        }
+        else
+        {
+            // If the phrase box had no content, they we just select first item in the list
+            selectionIndex = 0; // have caller select first in list (index 0)
+        }
     }
     // See notes in CChooseTranslation::OnOK().
     // If the ChooseTranslation dialog was just called up and a new translation string was entered
