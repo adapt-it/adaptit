@@ -31331,6 +31331,12 @@ void CAdapt_ItApp::OnUpdateInstallGit(wxUpdateUIEvent & event)
 /// \remarks
 /// Called from: the App's SaveDocChanges() and from CMainFrame's OnIdle. Calls the Doc's
 /// DoFileSave() method, and updates the times for auto saving operations.
+/// BEW 5March2018 added a check that m_pSourcePhrases list has not been cleared out 
+/// when the timer fires to initiate a DoAutoSaveDoc() call. If emptied list, that would
+/// clobber the user's total adapting work etc within the document - a bug that has 
+/// mystified us for 17 years without resolution! Don't do the protected save (and it's
+/// internal DoFileSave() if there is no list of CSourcePhrase instances for 
+/// CSourcePhrase::MakeXML(int) to access!
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DoAutoSaveDoc()
 // with additions for handling glossing versus adapting (ie. to get the stuff in the
@@ -31338,9 +31344,11 @@ void CAdapt_ItApp::DoAutoSaveDoc()
 {
     bool bOkay;
     //bOkay = GetDocument()->DoFileSave(FALSE);
-    bOkay = GetDocument()->DoFileSave_Protected(FALSE, _T("")); // FALSE - don't show wait/progress dialog
-    wxCHECK_RET(bOkay, _T("DoAutoSaveDoc(): DoFileSave_Protected() failed, line 23,053 in Adapt_It.cpp"));
-
+	if (!m_pSourcePhrases->IsEmpty()) // BEW 5Mar18, added test to skip the save attempt on empty list
+	{
+		bOkay = GetDocument()->DoFileSave_Protected(FALSE, _T("")); // FALSE - don't show wait/progress dialog
+		wxCHECK_RET(bOkay, _T("DoAutoSaveDoc(): DoFileSave_Protected() failed, line 23,053 in Adapt_It.cpp"));
+	}
     // update the time it was last saved
     wxDateTime time = wxDateTime::Now();
     m_timeSettings.m_tLastDocSave = time;
