@@ -53278,7 +53278,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 
 #endif
 
-#if defined(__WXOSX__)
+#if defined(__WXOSX_COCOA__)
 
 	// First,we need a current working directory in the running Adapt It in order to have
 	// a temporary place to store our comma-separated list of KBserver ipaddresses and
