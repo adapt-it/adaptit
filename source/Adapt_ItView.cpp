@@ -2307,9 +2307,14 @@ bool CAdapt_ItView::SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 // returns a pointer to the next pile having no target language (adapted) string, or NULL
 // if there is no such empty pile later in the document
 // for version 2.0 and on, the check is done on m_glossing instead, when glossing is ON
+// BEW 12Mar18 Added a hack to correct a hole which wrongly has m_bHasKBEntry TRUE when in fact
+// the adaptation KB's CTargetUnit at that pile's CSourcePhrase has no empty string translation;
+// when that happens, unless we correct m_bHasKBEntry to be FALSE, the phrasebox won't stop
+// there as OnePass() gets to the hole
 CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
 {
-	// refactored 23Mar09
+	// refactored 23Mar09, BEW 12Mar18
+	CKB* pKB = GetKB(); // added 12Mar18
 	if (gbIsGlossing)
 	{
 		do
@@ -2326,6 +2331,28 @@ CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
 			pPile = GetNextPile(pPile);
 			if (pPile == NULL)
 				break;
+			// BEW 12Mar18 The hack mentioned above to fix a CSourcePhrase which thinks it
+			// has an empty string in the KB as an adaptation here when the KB knows it hasn't
+			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+			int numWords = pSrcPhrase->m_nSrcWords;
+			CTargetUnit* pTU = pKB->GetTargetUnit(numWords, pSrcPhrase->m_key);
+			bool bTargetUnitHasEmptyTranslation = pTU->HasEmptyTranslation();
+			if (gbIsGlossing)
+			{
+				if (pSrcPhrase->m_bHasGlossingKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_gloss.IsEmpty())
+				{
+					// Correction of the flag value is needed
+					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+				}
+			}
+			else
+			{
+				if (pSrcPhrase->m_bHasKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_adaption.IsEmpty())
+				{
+					// Correction of the flag value is needed
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+				}
+			}
 		} while (pPile->GetSrcPhrase()->m_bHasKBEntry ||
 					pPile->GetSrcPhrase()->m_bNotInKB ||
 					pPile->GetSrcPhrase()->m_bRetranslation);
@@ -3111,6 +3138,33 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	wxASSERT(pSrcPhrase);
 	pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
 	wxASSERT(pApp->m_nActiveSequNum >= 0);
+
+	// BEW 12Mar18 add a fix-it hack if CSourcePhrase at the clicked location has
+	// no adaptation (or no gloss if glossing is on) but the KB entry does not have
+	// a saved empty string in its relevant CTargetUnit. In such a circumstance, the
+	// relevant CSourcePhrase has to have the appropriate flag set back to FALSE
+	// BEW 12Mar18 The hack mentioned above to fix a CSourcePhrase which thinks it
+	// has an empty string in the KB as an adaptation here when the KB knows it hasn't
+	CKB* pKB = GetKB();
+	int numWords = pSrcPhrase->m_nSrcWords;
+	CTargetUnit* pTU = pKB->GetTargetUnit(numWords, pSrcPhrase->m_key);
+	bool bTargetUnitHasEmptyTranslation = pTU->HasEmptyTranslation();
+	if (gbIsGlossing)
+	{
+		if (pSrcPhrase->m_bHasGlossingKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_gloss.IsEmpty())
+		{
+			// Correction of the flag value is needed
+			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+		}
+	}
+	else
+	{
+		if (pSrcPhrase->m_bHasKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_adaption.IsEmpty())
+		{
+			// Correction of the flag value is needed
+			pSrcPhrase->m_bHasKBEntry = FALSE;
+		}
+	}
 
 	//  uncomment out, for a handy way to check the TextType values at various
 	//  locations in the doc

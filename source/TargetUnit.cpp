@@ -146,6 +146,25 @@ CTargetUnit::~CTargetUnit()
 	m_pTranslations = (TranslationsList*)NULL;
 }
 
+// Return TRUE if this CTargetUnit stores an empty translation string.
+// (Uses FindRefString(wxString &translationStr) with translationStr empty
+// to do the job. HasEmptyTranslation() is used in PlacePhraseBox() to
+// make FALSE the m_bHasKBEntry flag when the phrasebox lands at a hole
+// which wrongly has the flag TRUE, so that the auto-insert process will
+// not jump over it, but halt there for user action to happen
+// BEW created 12Mar18
+bool CTargetUnit::HasEmptyTranslation()
+{
+	bool bTellCaller = FALSE;
+	wxString itsEmpty = wxEmptyString;
+	int returned = FindRefString(itsEmpty);
+	if (returned != wxNOT_FOUND)
+	{
+		bTellCaller = TRUE;
+	}
+	return bTellCaller;
+}
+
 // returns an index to a non-deleted CRefString instance whose m_translation member matches
 // the passed in translationStr; otherwise returns wxNOT_FOUND if there was no match
 // 

@@ -80,6 +80,7 @@ public:
 
 	// getters and setters
 public:
+	bool		HasEmptyTranslation(); // return TRUE if this CTargetUnit stores an empty translation string
 //	wxString	GetSourceKey(); // returns m_sourceKey
 //	void		SetSourceKey(wxString srcKey); // sets m_sourceKey
 	int			FindRefString(wxString& translationStr);
