@@ -17445,6 +17445,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// BEW 20Jul17 m_bDiscoverKBservers added, set TRUE to use Leon's scripted discovery solutions
 	m_bDiscoverKBservers = TRUE;
 
+	m_SD_Message_For_Connect = _("Select the URL you wish to connect to, then click OK.  If none is selected, a connection will not be tried. The listed URLs are  stored for use in this work session - including any remote ones for which you manually typed in the correct connection details.  Clicking Remove Selection ensures nothing is selected.  Cancel turns off sharing and leaves the current sharing settings unchanged.  If someone closes down a running KBserver, Remove Selected Entry will clear it from the list.  Take note - a successful connection also requires that an appropriate KBserver database has already been set up for the project you are in.");
+	m_SD_Message_For_Discovery = _("KBserver discovery only works for KBservers connected to the Local Area Network (LAN), or a private local network (PAN).  The server which supports the LAN, or PAN, does not have to be connected to the web, though it can be. Here you just see the KBservers presently running on the LAN or PAN.  A connection to a listed KBserver cannot be done from this discovery attempt; but the listed URLs are stored for use later in this work session.  Repeated discovery attempts are allowed.  If someone closes down a running KBserver, Remove Selected Entry will clear it from the list.");
+
     // Next 3 booleans must be FALSE at all times, except briefly when a KB Sharing handler
     // for a gui action by the user causes a TRUE value to be set for one of them, so that
     // the OnIdle() handler will then call one of the 3 Synchronous functions,
