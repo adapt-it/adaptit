@@ -2336,21 +2336,24 @@ CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
 			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 			int numWords = pSrcPhrase->m_nSrcWords;
 			CTargetUnit* pTU = pKB->GetTargetUnit(numWords, pSrcPhrase->m_key);
-			bool bTargetUnitHasEmptyTranslation = pTU->HasEmptyTranslation();
-			if (gbIsGlossing)
+			if (pTU != NULL)
 			{
-				if (pSrcPhrase->m_bHasGlossingKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_gloss.IsEmpty())
+				bool bTargetUnitHasEmptyTranslation = pTU->HasEmptyTranslation();
+				if (gbIsGlossing)
 				{
-					// Correction of the flag value is needed
-					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+					if (pSrcPhrase->m_bHasGlossingKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_gloss.IsEmpty())
+					{
+						// Correction of the flag value is needed
+						pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+					}
 				}
-			}
-			else
-			{
-				if (pSrcPhrase->m_bHasKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_adaption.IsEmpty())
+				else
 				{
-					// Correction of the flag value is needed
-					pSrcPhrase->m_bHasKBEntry = FALSE;
+					if (pSrcPhrase->m_bHasKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_adaption.IsEmpty())
+					{
+						// Correction of the flag value is needed
+						pSrcPhrase->m_bHasKBEntry = FALSE;
+					}
 				}
 			}
 		} while (pPile->GetSrcPhrase()->m_bHasKBEntry ||
@@ -3148,24 +3151,29 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	CKB* pKB = GetKB();
 	int numWords = pSrcPhrase->m_nSrcWords;
 	CTargetUnit* pTU = pKB->GetTargetUnit(numWords, pSrcPhrase->m_key);
-	bool bTargetUnitHasEmptyTranslation = pTU->HasEmptyTranslation();
-	if (gbIsGlossing)
+	if (pTU != NULL)
 	{
-		if (pSrcPhrase->m_bHasGlossingKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_gloss.IsEmpty())
+		if (pTU != NULL)
 		{
-			// Correction of the flag value is needed
-			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+			bool bTargetUnitHasEmptyTranslation = pTU->HasEmptyTranslation();
+			if (gbIsGlossing)
+			{
+				if (pSrcPhrase->m_bHasGlossingKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_gloss.IsEmpty())
+				{
+					// Correction of the flag value is needed
+					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+				}
+			}
+			else
+			{
+				if (pSrcPhrase->m_bHasKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_adaption.IsEmpty())
+				{
+					// Correction of the flag value is needed
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+				}
+			}
 		}
 	}
-	else
-	{
-		if (pSrcPhrase->m_bHasKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_adaption.IsEmpty())
-		{
-			// Correction of the flag value is needed
-			pSrcPhrase->m_bHasKBEntry = FALSE;
-		}
-	}
-
 	//  uncomment out, for a handy way to check the TextType values at various
 	//  locations in the doc
 	//	wxString sss;
