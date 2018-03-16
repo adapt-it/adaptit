@@ -73,6 +73,8 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 #include "Layout.h"
 #include "FreeTrans.h"
 #include "ChooseTranslation.h"
+#include "KB.h"
+#include "TargetUnit.h"
 
 extern bool gbCheckInclFreeTransText;
 
@@ -86,6 +88,15 @@ extern bool	gbAutoCaps;
 
 /// This global is defined in Adapt_It.cpp.
 extern bool	gbNonSourceIsUpperCase;
+
+/// This global is defined in Adapt_It.cpp.
+extern bool		gbSourceIsUpperCase;
+
+/// This global is defined in Adapt_It.cpp.
+extern bool		gbMatchedKB_UCentry;
+
+/// This global is defined in Adapt_It.cpp.
+extern wxChar	gcharNonSrcUC;
 
 /// This global is defined in Adapt_It.cpp.
 extern bool gbSuppressSetup;
@@ -938,9 +949,9 @@ void CLayout::PlaceBox()
         //    PlaceBox() is called from LookAhead() upstream.
         // 1. Load the contents of the phrasebox's drop down list (via calling PopulateDropDownList() below).
         //    If this PlaceBox() was called at the point the ChooseTranslation dialog was dismissed
-        //    the pTargetUnitFromChooseTrans parameter to PopulateDropDownList() will be non-NULL and 
+        //    the pCurTargetUnit parameter to PopulateDropDownList() will be non-NULL and 
         //    PopulateDropDownList() will use that target unit data to populate the dropdown list. 
-        //    If pTargetUnitFromChooseTrans == NULL, then PopulateDropDownList() will use the appropriate
+        //    If pCurTargetUnit == NULL, then PopulateDropDownList() will use the appropriate
         //    KB and its GetTargetUnit() method to populate the dropdown list.
         // 2. Set which button appears on the dropdown control - down arrow button or disabled (X) button
         // 3. Set the App flag m_bChooseTransShowPopup to TRUE or FALSE to inform OnInit() whether
@@ -951,45 +962,319 @@ void CLayout::PlaceBox()
 
         if (!m_pApp->bLookAheadMerge)
         {
-            int selectionIndex = -1;
-            // whm 27Feb2018 Note: If the Choose Translation dialog was called before this execution of the 
-            // PopulateDropDownList() function below, any changes, additions, reordering, deletions to the KB 
-            // items listed there will pass into PopulateDropDownList() via the pTargetUnitFromChooseTrans 
-            // parameter, and any selection of a list item from that dialog will be returned here via the
-            // selectionIndex parameter for the SetSelection(selectionIndex) command in the if...else block
-            // below.
-            m_pApp->m_pTargetBox->PopulateDropDownList(m_pApp->pTargetUnitFromChooseTrans, selectionIndex); // uses global pTargetUnitFromChooseTrans
-
-            // Clear the ChooseTranslation dialog choice-related variables
-            m_pApp->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL;
-
-            // whm Note: Setting m_Translation to Empty() can't be done here. See end of OnButtonChooseTranslation() in the View.
-            // Since PlaceBox() gets called multiple times in the course of a user action, resetting
-            // variables to null or default values should not be done from this location. Hence, I 
-            // commented out the m_Translation.Empty() call below.
-            // m_pApp->m_pTargetBox->m_Translation.Empty(); 
-
-            if (m_pApp->m_pTargetBox->GetCount() > 1)
+            // whm 5Mar2018 refactored the setup and PopulateDropDownList() function to better make use of
+            // BEW's original coding handles the phrasebox contents (and KB access and storage) by the time 
+            // code execution arrives here in PlaceBox().
+            // If the caller was LookAhead(), or if the ChooseTranslation dialog was just dismissed before
+            // this PlaceBox() call, the global pCurTargetUnit will have been defined at this point, and we
+            // can use it. It it is NULL we get the target unit at this location
+            if (m_pApp->pCurTargetUnit == NULL)
             {
+                CTargetUnit* pTargetUnit = (CTargetUnit*)NULL; // a local target unit pointer
+                // No pCurTargetUnit was available in the caller to populate the list,
+                // So when pTU is NULL, we get the pCurTargetUnit directly using the 
+                // appropriate KB's GetTargetUnit() method to populate the dropdown list.
+
+                m_pApp->m_pTargetBox->m_nWordsInPhrase = 0;	  // the global, initialize to value assuming no match
+
+                                          // BEW changed next few lines, 6Aug13, because it was not refactored earlier to agree
+                                          // with the change to use all tabs of the glossing KB in glossing mode
+                CKB* pKB;
+                int nCurLongest; // index of the map which is highest having content, maps at higher index
+                                 // values currently have no content
+                if (gbIsGlossing)
+                {
+                    pKB = m_pApp->m_pGlossingKB;
+                }
+                else
+                {
+                    pKB = m_pApp->m_pKB;
+                }
+                // no matches are possible for phrases longer than nCurLongest
+                nCurLongest = pKB->m_nMaxWords;
+
+                // check we are within bounds
+                CSourcePhrase* pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
+                // BEW removed test here, 6Aug13 - it was setting m_nWordsInPhrase to 1 in glossing
+                // mode, and so phrasal lookups never succeeded
+                m_pApp->m_pTargetBox->m_nWordsInPhrase = pSrcPhrase->m_nSrcWords;
+
+                // get a pointer to the target unit for the current key - could be NULL
+                pTargetUnit = pKB->GetTargetUnit(m_pApp->m_pTargetBox->m_nWordsInPhrase, pSrcPhrase->m_key); // set the local pointer for use below
+
+                // Assign the local target unit to the App's member pCurTargetUnit
+                m_pApp->pCurTargetUnit = pTargetUnit;
+            }
+            int nRefStrCount = 0;
+            bool bNoAdaptationFlagPresent = FALSE; // the PopulateDropDownList() function may change this value
+            int indexOfNoAdaptation = -1; // the PopulateDropDownList() function may change this value
+            if (m_pApp->pCurTargetUnit != NULL)
+            {
+                nRefStrCount = m_pApp->pCurTargetUnit->CountNonDeletedRefStringInstances();
+            }
+            if (nRefStrCount > 0)
+            {
+                int selectionIndex = -1;
+                // whm 5Mar2018 Note: When nRefStrCount is > 0
+                // whm 27Feb2018 Note: If the Choose Translation dialog was called before this execution of the 
+                // PopulateDropDownList() function below, any changes, additions, reordering, deletions to the KB 
+                // items listed there will pass into PopulateDropDownList() via the pCurTargetUnit 
+                // parameter, and any selection of a list item from that dialog will be returned here via the
+                // selectionIndex parameter, and presence and index of <no adaptation> are returned in the
+                // bNoAdaptationFlagPresent the SetSelection(selectionIndex) command in the if...else block
+                // below.
+                if (m_pApp->pCurTargetUnit != NULL)
+                {
+                    m_pApp->m_pTargetBox->PopulateDropDownList(m_pApp->pCurTargetUnit, selectionIndex, bNoAdaptationFlagPresent, indexOfNoAdaptation);
+                }
+
+                // Clear the ChooseTranslation dialog choice-related variables
+                m_pApp->pCurTargetUnit = (CTargetUnit*)NULL;
+
+                // whm Note: Setting m_Translation to Empty() can't be done here. See end of OnButtonChooseTranslation() in the View.
+                // Since PlaceBox() gets called multiple times in the course of a user action, resetting
+                // variables to null or default values should not be done from this location. Hence, I 
+                // commented out the m_Translation.Empty() call below.
+                // m_pApp->m_pTargetBox->m_Translation.Empty(); 
+
                 // There are multiple translation equivalents in the dropdown's list, so
                 // set the dropdown's button to its normal enabled state. 
                 m_pApp->m_pTargetBox->SetButtonBitmaps(m_pApp->m_pTargetBox->dropbutton_normal, false, m_pApp->m_pTargetBox->dropbutton_pressed, m_pApp->m_pTargetBox->dropbutton_hover, m_pApp->m_pTargetBox->dropbutton_disabled);
-                m_pApp->m_pTargetBox->SetSelection(selectionIndex); // set selection to the index determined by PopulatDropDownList above
-                m_pApp->m_bChooseTransShowPopup = TRUE;
-                // The SetSelection() command above assigns the appropriate text to m_pTargetBox here, since the dropdown's
-                // own mechanism copied the selected list item into its edit box.
-                // Note: The LookAhead() function (upstream) will probably have called the DoGetSuitableText_ForPlacePhraseBox()
-                // function here.
+                // Set the dropdown's list selection to the selectionIndex determined by PopulatDropDownList above.
+                // If selectionIndex is -1, it removes any list selection from dropdown list
+                m_pApp->m_pTargetBox->SetSelection(selectionIndex);
+                // whm 7Mar2018 addition - SetSelection() highlights the item in the list, and it
+                // also automatically copies the item string from the dropdown list, matching the 
+                // selectionIndex, into the combo box's edit box.
+                // The dropdown list, however, like the ChooseTranslation dialog's list, may contain
+                // items and those items are not-adjusted for case - they are lower case when gbAutoCaps 
+                // is TRUE. When we call SetSelection(), it puts the lower case form of the item string 
+                // into the m_pApp->m_pTargetBox (the phrasebox). 
+
+                // We need to ensure the following behaviors govern the new dropdown phrasebox:
+                //
+                // The phrasebox's dropdown list should have appropriate and intuitive opening and closing 
+                // behaviors:
+                // * In cases where the nRefStrCount is == 1, the dropdown list should be initially closed.
+                // * In cases where the nRefStrCount is > 1, the dropdown list should be initially open.
+                //
+                // The phrasebox's edit box should display empty (no string content) when:
+                // * The <no adaptation> (empty ref string) button was previously selected for this location,
+                //    regardless of how many ref strings are in the target unit at this location.
+                // * This location is a "hole", and the m_bCopySource flag is FALSE. When this location is 
+                //    a "hole" the nRefStrCount will be 0 if the m_bCopySource flag is FALSE (and the else 
+                //    block handles the situation below). However, if the m_bCopySource flag is TRUE, the 
+                //    nRefStrCount will be 1 and this current block will handle the situation.
+                //
+                // The phrasebox's dropdown list should be populated with non-deleted ref strings from the
+                // current target unit pCurTargetUnit. 
+                // * The pCurTargetUnit, may actually come from a just-dismissed ChooseTranslation dialog
+                //    or, if NULL initially, be determined by the code above for the current location. 
+                // * The target unit's ref strings may include a "<no adaptation>" ref string which is stored
+                //    internally as an empty ref string. An empty ref string is reconstituted (for display 
+                //    purposes) as "<no adaptation>" when it resides in a list (dropdown or ChooseTranslation). 
+                // * The "<no adaptation>" string should only appear as an item in the list of translation 
+                //    equivalent(s), and not within the phrasebox itself which should be empty.
+                // * If the ref string appearing at the current location was a user designated <no adaptation> 
+                //    string and the nRefStrCount is > 1, the dropdown list appears at the current location and
+                //    the <no adaptation> list item should be highlighted/selected (but the phrasebox itself 
+                //    should remain empty). 
+                //
+                // The phrasebox should have appropropriate list item selection behaviors:
+                // * If the current location had a previous translation there, that item should be highlighted 
+                //    in the dropdown list so the user can see it, and possibly select from the other list 
+                //    items there - or just start typing a new translation (first letter typed replaces the
+                //    currently highlighted string in the phrasebox).
+                // * In cases where the nRefStrCount is just 1 and it represents a <no adaptation> ref string, 
+                //    the dropdown list should initially appear closed up and the dropdown's edit box empty
+                //    (as described above), but the <no adaptation> item can be seen in the list if the user 
+                //    manually clicks on the dropdown's down-arrow button. 
+
+                // Testing indicates that it is not sufficient to just call ChangeValue(m_pApp->m_targetPhrase) 
+                // to get the behaviors described above, now that routine calling of the ChooseTranslation 
+                // dialog has been replaced by dropdown phrasebox that is ubiquitous.
+                
+                // Note: If we need to handle case issues, the code for gbAutoCaps from PlacePhraseBox() is 
+                // shown commented out below:
+                /*
+                // Therefore, we'll process the target box contents here for case depending on the 
+                // value of gbAutoCaps - using the same block of code that was used in 
+                // PlacePhraseBox (at the a: label).
+                bool bNoError = TRUE;
+                if (gbAutoCaps)
+                {
+                    if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+                    {
+                        bNoError = m_pApp->GetDocument()->SetCaseParameters(m_pApp->m_targetPhrase, FALSE);
+                        if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+                        {
+                            // change to upper case initial letter
+                            m_pApp->m_targetPhrase.SetChar(0, gcharNonSrcUC);
+                        }
+                    }
+                }
+                m_pApp->m_pTargetBox->m_SaveTargetPhrase = m_pApp->m_targetPhrase;
+                */
+
+                // Within this block we know that nRefStrCount > 0
+
+                // If there is only 1 refstring and the m_targetPhrase is not empty, set the
+                // phrasebox's edit box to contain the m_targetPhrase string, highlighted, 
+                // and keep the dropdown list closed.
+                // For multiple dropdown entries, or we  
+                if (nRefStrCount == 1) // && !m_pApp->m_targetPhrase.IsEmpty())
+                {
+                    m_pApp->m_bChooseTransShowPopup = FALSE;
+
+                }
+                else // nRefStrCount > 1
+                {
+                    m_pApp->m_bChooseTransShowPopup = TRUE;
+                }
+
+                if (bNoAdaptationFlagPresent)
+                {
+                    // A <no adaptation> ref string is present
+                    if (nRefStrCount == 1)
+                    {
+                        // There is only one ref string and it is empty, i.e., it is <no adaptation>.
+                        // The App's m_targetPhrase and the phrasebox's edit box should be empty.
+                        wxASSERT(indexOfNoAdaptation == 0);
+                        // While m_targetPhrase should be empty, the spurious calls of PlaceBox() before
+                        // we get to the "real" one, the m_targetPhrase value may contain a value for
+                        // the previous location instead of the current one, so the following wxASSERT
+                        // cannot be relied on, and so I've commented it out.
+                        //wxASSERT(m_pApp->m_targetPhrase.IsEmpty());
+                        m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
+                        m_pApp->m_pTargetBox->SetFocus();
+
+                    }
+                    else if (nRefStrCount > 1)
+                    {
+                        // There is more than 1 ref string, and one of them should be <no adaptation>,
+                        // and the PopulateDropDownList() function determined that the <no adaptation> 
+                        // item should be selected. In this situation, the phrasebox's edit box will 
+                        // also be empty
+                        m_pApp->m_pTargetBox->SetSelection(indexOfNoAdaptation);
+                        // The SetSelection call above has the side-effect of puting the list item 
+                        // <no adaptation> in the dropdown's edit box, so we have to make the box's
+                        // content be empty here.
+                        // While m_targetPhrase should be empty, the spurious calls of PlaceBox() before
+                        // we get to the "real" one, the m_targetPhrase value may contain a value for
+                        // the previous location instead of the current one, so the following wxASSERT
+                        // cannot be relied on, and so I've commented it out.
+                        //wxASSERT(m_pApp->m_targetPhrase.IsEmpty());
+                        m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
+                    }
+                }
+                else // no <no adaptation> present
+                {
+                    // There is no <no adaptation> ref string in play at this location
+                    if (nRefStrCount == 1)
+                    {
+                        // There is one and only one ref string and it cannot be a <no adaptation> type, but
+                        // it could be either a copy of the source word/phrase if this is a "hole" location,
+                        // or it could be a location that had one and only one previously entered translation
+                        if (m_pApp->m_bCopySource == TRUE)
+                        {
+
+                            // A prior call to PlacePhraseBox() and CopySourceKey() should 
+                            // have ensured that the m_pApp->m_targetPhrase has the copy of the source 
+                            // word/phrase in it.
+                            // The following conditions/flags should be TRUE:
+                            CSourcePhrase* pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
+                            //wxASSERT(!m_pApp->m_pTargetBox->GetValue().IsEmpty()); // the actual phrasebox - m_pTargetBox() - could be empty here
+                            wxASSERT(!pSrcPhrase->m_bHasKBEntry);
+                        }
+                        else // m_bCopySource is FALSE
+                        {
+                            // The one and only ref string is not a copy of the source word/phrase, but is
+                            // a unique translation that was entered previously. If we get here it would be
+                            // by a user directly clicking this location to put the phrasebox here. 
+                            // The following conditions/flags should be TRUE:
+                            CSourcePhrase* pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
+                            wxASSERT(!pSrcPhrase->m_adaption.IsEmpty());
+                            wxASSERT(pSrcPhrase->m_bHasKBEntry);
+                            // The phrasebox has one item in its list and it should appear in the
+                            // dropdown's edit box, selected
+                            m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
+                            m_pApp->m_pTargetBox->SetSelection(selectionIndex);
+
+                        }
+                    }
+                    else // nRefStrCount > 1
+                    {
+                        // The is more than 1 ref string, none of which are <no adaptation>.
+                        // Here we basically just ensure that any existing phrasebox content
+                        // is selected in the dropdown list using the selectIndex info we got
+                        // back from PopulateDropDownList().
+                        m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
+                        m_pApp->m_pTargetBox->SetSelection(selectionIndex);
+                        //m_pApp->m_pTargetBox->SetSelection(-1, -1); // select all
+
+                    }
+                }
+                // UP TO HERE 7Mar2018 !!!!
+
+                 // Below for debugging only!!!
+                {
+                    wxString selStr = m_pApp->m_pTargetBox->GetTextCtrl()->GetStringSelection();
+                    wxString tgtBoxValue = m_pApp->m_pTargetBox->GetValue();
+                    wxString srcPhraseOfActivePile = m_pApp->m_pActivePile->m_pSrcPhrase->m_srcPhrase;
+                    wxString targetStrOfActivePile = m_pApp->m_pActivePile->m_pSrcPhrase->m_targetStr;
+                    wxString srcPhraseKey = m_pApp->m_pActivePile->m_pSrcPhrase->m_key;
+                    wxString srcPhraseAdaption = m_pApp->m_pActivePile->m_pSrcPhrase->m_adaption;
+                    wxString targetPhraseOnApp = m_pApp->m_targetPhrase;
+                    wxString translation = m_pApp->m_pTargetBox->m_Translation;
+                    CTargetUnit* ptgtUnitFmChooseTrans = m_pApp->pCurTargetUnit; ptgtUnitFmChooseTrans = ptgtUnitFmChooseTrans;
+                    bool hasKBEntry = m_pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry; hasKBEntry = hasKBEntry;
+                    bool notInKB = m_pApp->m_pActivePile->m_pSrcPhrase->m_bNotInKB; notInKB = notInKB;
+                    // we use this 3-flag cocktail below elsewhere to test for these values of the three flags as
+                    // the condition for telling the application to retain the phrase box's contents when
+                    // user deselects target word, then makes a phrase and merges by typing.
+                    // m_bAbandonable is set FALSE, m_bUserTypedSomething is set TRUE, and m_bRetainContents is set TRUE for:
+                    // A click in the phrasebox (in OnLButtonDown), or Right/Left arrow key press (in OnKeyUp), or if
+                    // during a merge the m_targetPhrase > 1 and selections beyond the active location don't have any
+                    // translation (in OnButtonMerge)
+                    wxString alwaysAsk;
+                    if (m_pApp->pCurTargetUnit != NULL)
+                        if (m_pApp->pCurTargetUnit->m_bAlwaysAsk)
+                            alwaysAsk = _T("1");
+                        else
+                            alwaysAsk = _T("0");
+                    else
+                        alwaysAsk = _T("-1");
+                    bool abandonable = m_pApp->m_pTargetBox->m_bAbandonable; abandonable = abandonable;
+                    bool userTypedSomething = m_pApp->m_bUserTypedSomething; userTypedSomething = userTypedSomething;
+                    bool retainBoxContents = m_pApp->m_pTargetBox->m_bRetainBoxContents; retainBoxContents = retainBoxContents; // used in OnButtonMerge()
+                    wxLogDebug(_T("|***********************************************************************************"));
+                    wxLogDebug(_T("|***|For nRefStrCount > 0 [%d]: m_srcPhrase = %s, m_targetStr = %s, m_key = %s, m_adaption = %s"),nRefStrCount, srcPhraseOfActivePile.c_str(),targetStrOfActivePile.c_str(), srcPhraseAdaption.c_str(), srcPhraseAdaption.c_str());
+                    wxLogDebug(_T("|***|App's m_targetPhrase = %s, m_Translation = %s, m_pTargetBox->GetValue() = %s"),targetPhraseOnApp.c_str(), translation.c_str(),tgtBoxValue.c_str());
+                    wxLogDebug(_T("|***|  SrcPhrase Flags: m_bHasKBEntry = %d, m_bNotInKB = %d, targetUnit->m_bAlwaysAsk = %s"), (int)hasKBEntry, (int)notInKB, alwaysAsk.c_str());
+                    wxLogDebug(_T("|***|  TargetBox Flags: m_bAbandonable = %d, m_bUserTypedSomething = %d, m_bRetainBoxContents = %d"),(int)abandonable, (int)userTypedSomething, (int)retainBoxContents);
+                    wxLogDebug(_T("|***********************************************************************************"));
+                }
+                // Above for debugging only!!!
+                
+                
             }
-            else // when m_pApp->m_pTargetBox->GetCount() == 0
+            else // when nRefStrCount == 0
             {
-                // There are no translation equivalents in the dropdown's list, so
-                // set the dropdown's button to its "disabled" state. 
+                // whm 5Mar2018 Note: When nRefStrCount is 0, we are at a 'hole', and there are no translation 
+                // equivalents in the dropdown's list. In this case we don't call PopulateDropDownList() here
+                // (which automatically clears the dropdown list before re-populating it), so here we must make 
+                // sure the dropdown list is empty, and set the dropdown's button image to its "disabled" state. 
+                m_pApp->m_pTargetBox->ClearDropDownList();
                 m_pApp->m_pTargetBox->SetButtonBitmaps(m_pApp->m_pTargetBox->dropbutton_blank, false, m_pApp->m_pTargetBox->dropbutton_blank, m_pApp->m_pTargetBox->dropbutton_blank, m_pApp->m_pTargetBox->dropbutton_blank);
+                // With nothing in the dropdown list, we inform OnIdle() not to show the dropdown list
                 m_pApp->m_bChooseTransShowPopup = FALSE;
                 // A previous call to PlacePhraseBox() would have called DoGetSuitableText_ForPlacePhraseBox() which 
                 // stored a suitable string str which was assigned to the App's m_targetPhrase member, and it would have
-                // been followed by AutoCaps processing. We should be able to put it in the m_pTargetBox here.
+                // been followed by any AutoCaps processing. Hence, if m_bCopySource was TRUE the m_targetPhrase member
+                // string will contain the copied source word/phrase processed by CopySourceKey(), which - if gbAutoCaps 
+                // was also TRUE, the case of the copied source word/phrase will be preserved.
+                
+                //We should be able to put it in the m_pTargetBox here.
                 // Note: Without the following assignment of m_targetPhrase to the m_pTargetBox, the phrasebox
                 // displays as empty, but the dropdown list (when activated) shows the copy of the source text as
                 // a single (temporary?) item in its list.
@@ -1001,9 +1286,78 @@ void CLayout::PlaceBox()
                 // text from the list. Just because the copied source text appears in the list at that point doesn't
                 // mean that it resides in the KB, and won't get stored in the KB unless the user hits Enter/Tab while
                 // the copied source word in in the edit box.
+
+                
+                // Below for debugging only!!!
+                {
+                    wxString selStr = m_pApp->m_pTargetBox->GetTextCtrl()->GetStringSelection();
+                    wxString tgtBoxValue = m_pApp->m_pTargetBox->GetValue();
+                    wxString srcPhraseOfActivePile = m_pApp->m_pActivePile->m_pSrcPhrase->m_srcPhrase;
+                    wxString targetStrOfActivePile = m_pApp->m_pActivePile->m_pSrcPhrase->m_targetStr;
+                    wxString srcPhraseKey = m_pApp->m_pActivePile->m_pSrcPhrase->m_key;
+                    wxString srcPhraseAdaption = m_pApp->m_pActivePile->m_pSrcPhrase->m_adaption;
+                    wxString targetPhraseOnApp = m_pApp->m_targetPhrase;
+                    wxString translation = m_pApp->m_pTargetBox->m_Translation;
+                    CTargetUnit* ptgtUnitFmChooseTrans = m_pApp->pCurTargetUnit; ptgtUnitFmChooseTrans = ptgtUnitFmChooseTrans;
+                    bool hasKBEntry = m_pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry; hasKBEntry = hasKBEntry;
+                    bool notInKB = m_pApp->m_pActivePile->m_pSrcPhrase->m_bNotInKB; notInKB = notInKB;
+                    // we use this 3-flag cocktail below elsewhere to test for these values of the three flags as
+                    // the condition for telling the application to retain the phrase box's contents when
+                    // user deselects target word, then makes a phrase and merges by typing.
+                    // m_bAbandonable is set FALSE, m_bUserTypedSomething is set TRUE, and m_bRetainContents is set TRUE for:
+                    // A click in the phrasebox (in OnLButtonDown), or Right/Left arrow key press (in OnKeyUp), or if
+                    // during a merge the m_targetPhrase > 1 and selections beyond the active location don't have any
+                    // translation (in OnButtonMerge)
+                    wxString alwaysAsk;
+                    if (m_pApp->pCurTargetUnit != NULL)
+                        if (m_pApp->pCurTargetUnit->m_bAlwaysAsk)
+                            alwaysAsk = _T("1");
+                        else
+                            alwaysAsk = _T("0");
+                    else
+                        alwaysAsk = _T("-1");
+                    bool abandonable = m_pApp->m_pTargetBox->m_bAbandonable; abandonable = abandonable;
+                    bool userTypedSomething = m_pApp->m_bUserTypedSomething; userTypedSomething = userTypedSomething;
+                    bool retainBoxContents = m_pApp->m_pTargetBox->m_bRetainBoxContents; retainBoxContents = retainBoxContents; // used in OnButtonMerge()
+                    wxLogDebug(_T("|***********************************************************************************"));
+                    wxLogDebug(_T("|***|For nRefStrCount == 0 [%d]: m_srcPhrase = %s, m_targetStr = %s, m_key = %s, m_adaption = %s"), nRefStrCount, srcPhraseOfActivePile.c_str(), targetStrOfActivePile.c_str(), srcPhraseAdaption.c_str(), srcPhraseAdaption.c_str());
+                    wxLogDebug(_T("|***|App's m_targetPhrase = %s, m_Translation = %s, m_pTargetBox->GetValue() = %s"), targetPhraseOnApp.c_str(), translation.c_str(), tgtBoxValue.c_str());
+                    wxLogDebug(_T("|***|  SrcPhrase Flags: m_bHasKBEntry = %d, m_bNotInKB = %d, targetUnit->m_bAlwaysAsk = %s"), (int)hasKBEntry, (int)notInKB, alwaysAsk.c_str());
+                    wxLogDebug(_T("|***|  TargetBox Flags: m_bAbandonable = %d, m_bUserTypedSomething = %d, m_bRetainBoxContents = %d"), (int)abandonable, (int)userTypedSomething, (int)retainBoxContents);
+                    wxLogDebug(_T("|***********************************************************************************"));
+                }
+                // Above for debugging only!!!
+                
+                
                 m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
                 m_pApp->m_pTargetBox->SetSelection(-1, -1); // select all
                 m_pApp->m_pTargetBox->SetFocus();
+                /*
+                // Below for debugging only!!!
+                {
+                    wxString selStr = m_pApp->m_pTargetBox->GetTextCtrl()->GetStringSelection();
+                    wxString tgtBoxValue = m_pApp->m_pTargetBox->GetValue();
+                    wxString srcPhraseOfActivePile = m_pApp->m_pActivePile->m_pSrcPhrase->m_srcPhrase;
+                    wxString targetStrOfActivePile = m_pApp->m_pActivePile->m_pSrcPhrase->m_targetStr;
+                    wxString adaptionStrOfActivePile = m_pApp->m_pActivePile->m_pSrcPhrase->m_adaption;
+                    wxString targetPhraseOnApp = m_pApp->m_targetPhrase;
+                    wxString translation = m_pApp->m_pTargetBox->m_Translation;
+                    CTargetUnit* ptgtUnitFmChooseTrans = m_pApp->pCurTargetUnit; ptgtUnitFmChooseTrans = ptgtUnitFmChooseTrans;
+                    bool hasKBEntry = m_pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry; hasKBEntry = hasKBEntry;
+                    bool notInKB = m_pApp->m_pActivePile->m_pSrcPhrase->m_bNotInKB; notInKB = notInKB;
+                    // we use this 3-flag cocktail below elsewhere to test for these values of the three flags as
+                    // the condition for telling the application to retain the phrase box's contents when
+                    // user deselects target word, then makes a phrase and merges by typing.
+                    // m_bAbandonable is set FALSE, m_bUserTypedSomething is set TRUE, and m_bRetainContents is set TRUE for:
+                    // A click in the phrasebox (in OnLButtonDown), or Right/Left arrow key press (in OnKeyUp), or if
+                    // during a merge the m_targetPhrase > 1 and selections beyond the active location don't have any
+                    // translation (in OnButtonMerge)
+                    bool abandonable = m_pApp->m_pTargetBox->m_bAbandonable; abandonable = abandonable;
+                    bool userTypedSomething = m_pApp->m_bUserTypedSomething; userTypedSomething = userTypedSomething;
+                    bool retainBoxContents = m_pApp->m_pTargetBox->m_bRetainBoxContents; retainBoxContents = retainBoxContents; // used in OnButtonMerge()
+                }
+                // Above for debugging only!!!
+                */
             }
         }
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

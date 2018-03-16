@@ -17507,7 +17507,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bInhibitMakeTargetStringCall = FALSE; // app should start with this OFF
     m_bMergeSucceeded = FALSE;
     m_bSuppressDefaultAdaptation = FALSE;
-    pTargetUnitFromChooseTrans = (CTargetUnit*)NULL;
+    pCurTargetUnit = (CTargetUnit*)NULL;
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     // BEW 21May15 added next five, for support of the freeze/thaw optimization for a sequence

@@ -4640,7 +4640,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
         // whm 26Feb2018 Added outer test for NULL on m_pTargetBox - Linux version OnIdle() handler initiates early
         if (pApp->m_pTargetBox != NULL)
         {
-            if (pApp->m_pTargetBox->GetCount() > 1)
+            if (pApp->m_pTargetBox->GetCount() > 0)
             {
                 pApp->m_pTargetBox->PopupDropDownList();
             }

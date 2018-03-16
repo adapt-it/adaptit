@@ -55,6 +55,7 @@ public:
 	wxString	m_chosenTranslation;
 	bool		m_bEmptyAdaptationChosen;
 	//bool		m_bCancelAndSelect; // whm 24Feb2018 removed - there is no longer any Cancel and Select functionality
+    bool		m_bHideCancelAndSelectButton;
     bool        m_bTempUseChooseTransDropDown;  // whm 10Jan2018 added
 
 protected:

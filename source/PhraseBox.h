@@ -128,7 +128,8 @@ public:
     int GetLineLength(long lineNo); // whm 14Feb2018 added (GetLineLength() is in wxTextCtrl but not wxOwnerDrawnComboBox)
     void OnComboProcessDropDownListOpen(wxCommandEvent & WXUNUSED(event));
     void OnComboProcessDropDownListCloseUp(wxCommandEvent & WXUNUSED(event));
-    void PopulateDropDownList(CTargetUnit * pTU, int& selectionIndex);
+    void OnComboProcessEnterKeyPress(wxCommandEvent & WXUNUSED(event));
+    void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptatio);
     void CloseDropDown();
     void PopupDropDownList();
     wxBitmap dropbutton_hover; // (xpm_dropbutton_hover);
@@ -183,3 +184,4 @@ private:
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
 #endif /* PhraseBox_h */
+

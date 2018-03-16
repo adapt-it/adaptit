@@ -3699,13 +3699,6 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
     m_previewModality = wxPreviewFrame_AppModal;
 #endif
 
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // If not hidden here, the dropdown combo box will appear superimposed over the print 
-    // preview. When Print Preview is closed, if the dropdown was open before the preview,
-    // it will appear again popped up - due to a PlaceBox() call after the preview is gone.
-    pApp->m_pTargetBox->CloseDropDown();
-    //pApp->m_pTargetBox->ClearDropDownList(); // if dropdown has items before Print Preview preserve them when Print Preview closes
 
     // whm 25Sep11 modified. As I did in the PrintOptionsDlg::InitDialog() function,
 	// we should initialize the values of gbCheckInclGlossesText and gbCheckInclFreeTransText
@@ -8462,14 +8455,6 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 	CMainFrame* pFrame;
 	wxTextCtrl* pEdit = NULL; // whm initialized to NULL
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // OnButtonToEnd will cause a jump to a different location, and we call Hide() at the
-    // initial part of the jump to the new location. 
-    pApp->m_pTargetBox->CloseDropDown();
-    pApp->m_pTargetBox->ClearDropDownList();
-
     if (pApp->m_bFreeTranslationMode)
 	{
 		pFrame = (CMainFrame*)pApp->GetMainFrame();
@@ -8844,14 +8829,6 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 	CMainFrame* pFrame;
 	wxTextCtrl* pEdit = NULL; // whm initialized to NULL
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // OnButtonToStart will cause a jump to a different location, and we call Hide() at the
-    // initial part of the jump to the new location. 
-    pApp->m_pTargetBox->CloseDropDown();
-    pApp->m_pTargetBox->ClearDropDownList();
-
     if (pApp->m_bFreeTranslationMode)
 	{
 		pFrame = (CMainFrame*)pApp->GetMainFrame();
@@ -9453,13 +9430,6 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 		return;
 	}
 
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // OnButtonStepDown will cause a jump to a different location, and we call Hide() at the
-    // initial part of the jump to the new location. 
-    pApp->m_pTargetBox->CloseDropDown();
-    pApp->m_pTargetBox->ClearDropDownList();
-
 	// continuing, because a chapter beginning was found...
 	GetLayout()->m_pDoc->ResetPartnerPileWidth(GetSrcPhrase(nSaveOldSequNum)); // update old loc'n
 
@@ -9758,13 +9728,6 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 		::wxBell();
 		return;
 	}
-
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // OnButtonStepUp will cause a jump to a different location, and we call Hide() at the
-    // initial part of the jump to the new location. 
-    pApp->m_pTargetBox->CloseDropDown();
-    pApp->m_pTargetBox->ClearDropDownList();
 
     pApp->m_nOldSequNum = pApp->m_nActiveSequNum; // save old location
 
@@ -10642,14 +10605,6 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		pApp->m_bMergerIsCurrent = FALSE;
 		return;
 	}
-
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing
-    // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
-    // OnButtonMerge call returns prematurely. PlaceBox() will be called below and may
-    // put up a newly populated dropdown list after this merge.
-    pApp->m_pTargetBox->CloseDropDown();
-    pApp->m_pTargetBox->ClearDropDownList();
 
 	// make pApp->m_targetPhrase cleared, as it must accumulate any existing translations
 	// removed from the KB because of the merge
@@ -14128,7 +14083,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
     pApp->m_pTargetBox->m_Translation.Empty();
 	pApp->m_pTargetBox->m_CurKey.Empty();
     pApp->m_pTargetBox->m_nWordsInPhrase = 0;
-	pApp->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL;
+	pApp->pCurTargetUnit = (CTargetUnit*)NULL;
 
 	CKB* pKB;
 	int nCurLongest;
@@ -14213,12 +14168,12 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		bOK = bOK; // avoid warning
 	}
 	// Get a pointer to the target unit for the current key
-    // whm 10Jan2018 Note: The following assignment to pTargetUnitFromChooseTrans should
+    // whm 10Jan2018 Note: The following assignment to pCurTargetUnit should
     // be the ONLY place within the sources where a non-null pointer value is
-    // assigned to pTargetUnitFromChooseTrans, now that OnButtonChooseTranslation() is the
+    // assigned to pCurTargetUnit, now that OnButtonChooseTranslation() is the
     // sole place where the ChooseTranslation dialog is called.
-    pApp->pTargetUnitFromChooseTrans = pKB->GetTargetUnit(pApp->m_pTargetBox->m_nWordsInPhrase, pSrcPhrase->m_key);
-	if (pApp->pTargetUnitFromChooseTrans == NULL)
+    pApp->pCurTargetUnit = pKB->GetTargetUnit(pApp->m_pTargetBox->m_nWordsInPhrase, pSrcPhrase->m_key);
+	if (pApp->pCurTargetUnit == NULL)
 	{
 		// IDS_NO_KB_ENTRY
 		wxMessageBox(_(
@@ -14278,7 +14233,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		if (bCancelled)
 		{
             pApp->m_pTargetBox->m_nWordsInPhrase = 0;
-            pApp->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL;
+            pApp->pCurTargetUnit = (CTargetUnit*)NULL;
             pApp->m_pTargetBox->m_CurKey.Empty();
 			pApp->m_pTargetBox->SetFocus();
 			return;
@@ -16328,13 +16283,6 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 						}
 					}
 
-                    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-                    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                    // The Jump() call below will be to a different location, and if that location has multiple
-                    // translations possible, the dropdown could re-appear there with different content. 
-                    pApp->m_pTargetBox->CloseDropDown();
-                    pApp->m_pTargetBox->ClearDropDownList();
-
                     // jump to whatever pile is not in a retranslation,
 					// as close to wanted loc'n as possible
 					Jump(pApp,pSrcPhrase);
@@ -16394,13 +16342,6 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 							}
 						}
 					}
-
-                    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-                    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                    // The Jump() call below will be to a different location, and if that location has multiple
-                    // translations possible, the dropdown could re-appear there with different content. 
-                    pApp->m_pTargetBox->CloseDropDown();
-                    pApp->m_pTargetBox->ClearDropDownList();
 
                     // jump to whatever pile is not in a retranslation, as close to wanted
 					// loc'n as possible
@@ -16463,13 +16404,6 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 							}
 						}
 					}
-
-                    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-                    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                    // The Jump() call below will be to a different location, and if that location has multiple
-                    // translations possible, the dropdown could re-appear there with different content. 
-                    pApp->m_pTargetBox->CloseDropDown();
-                    pApp->m_pTargetBox->ClearDropDownList();
 
                     // jump to whatever pile is not in a retranslation, as close to wanted
 					// loc'n as possible
@@ -16555,13 +16489,6 @@ f:					if (!gbIsGlossing)
 							}
 						}
 					}
-
-                    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-                    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-                    // The Jump() call below will be to a different location, and if that location has multiple
-                    // translations possible, the dropdown could re-appear there with different content. 
-                    pApp->m_pTargetBox->CloseDropDown();
-                    pApp->m_pTargetBox->ClearDropDownList();
 
                     // jump to whatever pile is not in a retranslation, as close to wanted
 					// loc'n as possible
@@ -20621,7 +20548,6 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
     ;
 #else
     pApp->m_pTargetBox->Dismiss();
-    //pApp->m_pTargetBox->ClearDropDownList(); // don't call ClearDropDownList() here
 #endif     
 
     // wx note: event.Skip() must be called here in order to pass the size event
@@ -22561,13 +22487,6 @@ void CAdapt_ItView::OnButtonBack(wxCommandEvent& WXUNUSED(event))
 		::wxBell();
 		return;
 	}
-
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // OnButtonBack will cause a jump to a different location, and we call Hide() at the
-    // initial part of the jump to the new location. 
-    pApp->m_pTargetBox->CloseDropDown();
-    pApp->m_pTargetBox->ClearDropDownList();
 
     // there must be a valid earlier active location, so jump to there
 	int nOldSequNum;

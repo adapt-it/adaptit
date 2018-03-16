@@ -166,7 +166,7 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	m_pEditReferences->SetBackgroundColour(gpApp->sysColorBtnFace);
 	m_pEditReferences->Enable(FALSE); // it is readonly and should not receive focus on Tab
 
-	// get pointers to the CKB instance & the map which stores the pTargetUnitFromChooseTrans contents
+	// get pointers to the CKB instance & the map which stores the pCurTargetUnit contents
 	// being viewed
 	m_nWordsInPhrase = gpApp->m_pTargetBox->m_nWordsInPhrase; // RHS is a member of CPhraseBox
 
@@ -192,7 +192,7 @@ CChooseTranslation::~CChooseTranslation() // destructor
 
 void CChooseTranslation::OnButtonCancelAsk(wxCommandEvent& WXUNUSED(event))
 {
-	gpApp->pTargetUnitFromChooseTrans->m_bAlwaysAsk = FALSE;
+	gpApp->pCurTargetUnit->m_bAlwaysAsk = FALSE;
 	m_pMyListBox->SetFocus();
 }
 
@@ -242,14 +242,14 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	TranslationsList::Node* pos = NULL;
 
 	// change the order of the string in the list box
-	// BEW 28Jun10, kbVersion 2 complicates things now, because the pTargetUnitFromChooseTrans pointer
+	// BEW 28Jun10, kbVersion 2 complicates things now, because the pCurTargetUnit pointer
 	// may contain one or more "removed" (i.e. with their m_bDeleted flags set TRUE)
 	// CRefString instances, and so we can't rely on the list box index for the selection
 	// matching an actual undeleted CRefString instance in the m_pTranslations list - so
 	// we have to find by searching, and we have to skip over any removed ones, etc
 	int count;
 	count = m_pMyListBox->GetCount(); // how many there are that are visible
-	int numNotDeleted = gpApp->pTargetUnitFromChooseTrans->CountNonDeletedRefStringInstances(); // the visible ones
+	int numNotDeleted = gpApp->pCurTargetUnit->CountNonDeletedRefStringInstances(); // the visible ones
 	wxASSERT(count == numNotDeleted);
 	wxASSERT(nSel < count);
 	count = count; // avoid warning
@@ -270,9 +270,9 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		// get the index for the selected CRefString instance being moved (this call
 		// handles the possible presence of deleted instances) and from it, the
 		// CRefString instance -- this index is for the CTargetUnit's list, not ListBox
-		nListIndex = gpApp->pTargetUnitFromChooseTrans->FindRefString(itemStr); // handles empty string correctly
+		nListIndex = gpApp->pCurTargetUnit->FindRefString(itemStr); // handles empty string correctly
 		wxASSERT(nListIndex != wxNOT_FOUND);
-		pos = gpApp->pTargetUnitFromChooseTrans->m_pTranslations->Item(nListIndex);
+		pos = gpApp->pCurTargetUnit->m_pTranslations->Item(nListIndex);
 		wxASSERT(pos != NULL);
 
 		// now delete the label at nLocation, so the label following then occupies its index
@@ -294,7 +294,7 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	{
 		return; // impossible to move up the first element in the list!
 	}
-	// now change the order of the CRefString in pTargetUnitFromChooseTrans to match the new order
+	// now change the order of the CRefString in pCurTargetUnit to match the new order
 	CRefString* pRefString = NULL;
 	if (nSel < nOldSel)
 	{
@@ -323,14 +323,14 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		// pos now points at the first preceding non-deleted CRefString instance, which is
 		// the one before which we want to put pOldRefStr by way of insertion, but first
 		// delete the node containing the old location's instance
-        gpApp->pTargetUnitFromChooseTrans->m_pTranslations->DeleteNode(posOld);
+        gpApp->pCurTargetUnit->m_pTranslations->DeleteNode(posOld);
 		wxASSERT(pos != NULL);
 
-        // now do the insertion, bringing the pTargetUnitFromChooseTrans's list into line with what the
+        // now do the insertion, bringing the pCurTargetUnit's list into line with what the
         // listbox in the GUI shows to the user
         // Note: wxList::Insert places the item before the given item and the inserted item
         // then has the pos node position.
-		pos = gpApp->pTargetUnitFromChooseTrans->m_pTranslations->Insert(pos,pRefString);
+		pos = gpApp->pCurTargetUnit->m_pTranslations->Insert(pos,pRefString);
 		if (pos == NULL)
 		{
 			// a rough & ready error message, unlikely to ever be called
@@ -347,7 +347,7 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		// client data of the moved list item beyond a single Move Up button click...
 		// Yes, it does. See comments in OnButtonMoveDown() for more information about
 		// this error and its fix.
-		PopulateList(gpApp->pTargetUnitFromChooseTrans, nSel, Yes);
+		PopulateList(gpApp->pCurTargetUnit, nSel, Yes);
 	}
 }
 
@@ -397,13 +397,13 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 	TranslationsList::Node* pos = NULL;
 
 	// change the order of the string in the list box
-	// BEW 30Jun10, kbVersion 2 complicates things now, because the pTargetUnitFromChooseTrans pointer
+	// BEW 30Jun10, kbVersion 2 complicates things now, because the pCurTargetUnit pointer
 	// may contain one or more "removed" (i.e. with their m_bDeleted flags set TRUE)
 	// CRefString instances, and so we can't rely on the list box index for the selection
 	// matching an actual undeleted CRefString instance in the m_pTranslations list - so
 	// we have to find by searching, and we have to skip over any removed ones, etc
 	int count = m_pMyListBox->GetCount(); // how many there are that are visible
-	int numNotDeleted = gpApp->pTargetUnitFromChooseTrans->CountNonDeletedRefStringInstances(); // the visible ones
+	int numNotDeleted = gpApp->pCurTargetUnit->CountNonDeletedRefStringInstances(); // the visible ones
 	wxASSERT(count == numNotDeleted);
 	wxASSERT(nSel < count);
 	numNotDeleted = numNotDeleted; // prevent compiler warning in Release build
@@ -437,9 +437,9 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		// get the index for the selected CRefString instance being moved (this call
 		// handles the possible presence of deleted instances) and from it, the
 		// CRefString instance -- this index is for the CTargetUnit's list, not ListBox
-		nListIndex = gpApp->pTargetUnitFromChooseTrans->FindRefString(itemStr); // handles empty string correctly
+		nListIndex = gpApp->pCurTargetUnit->FindRefString(itemStr); // handles empty string correctly
 		wxASSERT(nListIndex != wxNOT_FOUND);
-		pos = gpApp->pTargetUnitFromChooseTrans->m_pTranslations->Item(nListIndex);
+		pos = gpApp->pCurTargetUnit->m_pTranslations->Item(nListIndex);
 		wxASSERT(pos != NULL);
 
 		// now delete the label at nLocation, so the label following then occupies its index
@@ -468,7 +468,7 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		return; // impossible to move the list element of the list further down!
 	}
 
-	// now change the order of the CRefString in pTargetUnitFromChooseTrans to match the new order
+	// now change the order of the CRefString in pCurTargetUnit to match the new order
 	CRefString* pRefString = NULL;
 	if (nSel > nOldSel)
 	{
@@ -496,7 +496,7 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		} while(aRefStrPtr->GetDeletedFlag() && pos != NULL);
         // now advance over this non-deleted one -- this may make the iterator return NULL
         // if we are at the end of the list; then the insertion, bringing the
-        // pTargetUnitFromChooseTrans's list into line with what the listbox in the GUI shows to the
+        // pCurTargetUnit's list into line with what the listbox in the GUI shows to the
         // user
         // Note: wxList::Insert places the item before the given item and the inserted item
         // then has the pos node position
@@ -504,20 +504,20 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		if (pos == NULL)
 		{
 			// we are at the list's end
-            gpApp->pTargetUnitFromChooseTrans->m_pTranslations->Append(pRefString);
+            gpApp->pCurTargetUnit->m_pTranslations->Append(pRefString);
 		}
 		else
 		{
 			// we are at a CRefString instance, so we can insert before it
-            gpApp->pTargetUnitFromChooseTrans->m_pTranslations->Insert(pos,pRefString);
+            gpApp->pCurTargetUnit->m_pTranslations->Insert(pos,pRefString);
 		}
 		// delete the node containing the old location's instance
-        gpApp->pTargetUnitFromChooseTrans->m_pTranslations->DeleteNode(posOld);
+        gpApp->pCurTargetUnit->m_pTranslations->DeleteNode(posOld);
 
 		// check the insertion or append got done right, a simple message will do (in
 		// English) for the developer if it didn't work - this error is unlikely to ever
 		// happen
-		pos = gpApp->pTargetUnitFromChooseTrans->m_pTranslations->Find(pRefString);
+		pos = gpApp->pCurTargetUnit->m_pTranslations->Find(pRefString);
 		if (pos == NULL)
 		{
 			// a rough & ready error message, unlikely to ever be called
@@ -536,7 +536,7 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		// above for a potential explanation for this error.
 		// (If you comment out this next PopulateList() call and the error will reappear,
 		// and if you uncomment out the wxLogDebug code above, you'll see what I mean)
-		PopulateList(gpApp->pTargetUnitFromChooseTrans, nSel, Yes);
+		PopulateList(gpApp->pCurTargetUnit, nSel, Yes);
 	}
 }
 
@@ -639,7 +639,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	}
 
     // get the index of the selected translation string (this will be same index for the
-	// CRefString stored in pTargetUnitFromChooseTrans if there are no deleted CRefString instances,
+	// CRefString stored in pCurTargetUnit if there are no deleted CRefString instances,
 	// but if there area deleted ones, the indices will not be in sync)
 	int nSel;
 	wxString str;
@@ -657,14 +657,14 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	// find the corresponding CRefString instance in the knowledge base, and set the
 	// nPreviousReferences variable for use in the message box; if user hits Yes
 	// then go ahead and do the removals.
-    // Note: the global pTargetUnitFromChooseTrans is set to a target unit in either the glossing KB
+    // Note: the global pCurTargetUnit is set to a target unit in either the glossing KB
     // (when glossing is ON) or to one in the normal KB when adapting, so we don't need to
     // test for the KB type here.
 	// BEW 25Jun10, because of the possible presence of deletions, we must get pos by a
 	// find rather than rely on the selection index
-	int itemIndex = gpApp->pTargetUnitFromChooseTrans->FindRefString(str);
+	int itemIndex = gpApp->pCurTargetUnit->FindRefString(str);
 	wxASSERT(itemIndex != wxNOT_FOUND);
-	TranslationsList::Node* pos = gpApp->pTargetUnitFromChooseTrans->m_pTranslations->Item(itemIndex);
+	TranslationsList::Node* pos = gpApp->pCurTargetUnit->m_pTranslations->Item(itemIndex);
 	wxASSERT(pos != NULL);
 	CRefString* pRefString = (CRefString*)pos->GetData();
 	wxASSERT(pRefString != NULL);
@@ -747,7 +747,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	{
 		KbServer* pKbSvr = gpApp->GetKbServer(gpApp->GetKBTypeForServer());
 
-		if (!gpApp->pTargetUnitFromChooseTrans->IsItNotInKB())
+		if (!gpApp->pCurTargetUnit->IsItNotInKB())
 		{
 			int rv = pKbSvr->Synchronous_PseudoDelete(pKbSvr, gpApp->m_pTargetBox->m_CurKey, pRefString->m_translation);
 			wxUnusedVar(rv);
@@ -762,12 +762,12 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	pRefString->m_refCount = 0;
 
 	// get the count of non-deleted CRefString instances for this CTargetUnit instance
-	int numNotDeleted = gpApp->pTargetUnitFromChooseTrans->CountNonDeletedRefStringInstances();
+	int numNotDeleted = gpApp->pCurTargetUnit->CountNonDeletedRefStringInstances();
 
 	// did we remove the last item in the box?
 	if (numNotDeleted == 0)
 	{
-		// this means the pTargetUnitFromChooseTrans has no undeleted CRefString instances left
+		// this means the pCurTargetUnit has no undeleted CRefString instances left
 
 		// legacy code here has been omitted -- nothing to do in this block now
 
@@ -780,7 +780,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	}
     // do we need to show the Do Not Ask Again button? (BEW 28May10: yes, if the flag
     // is true, as in the test in next line)
-	if ((numNotDeleted == 1) && gpApp->pTargetUnitFromChooseTrans->m_bAlwaysAsk)
+	if ((numNotDeleted == 1) && gpApp->pCurTargetUnit->m_bAlwaysAsk)
 	{
 		//wxWindow* pButton = FindWindowById(IDC_BUTTON_CANCEL_ASK);
 		wxWindow* pButton = FindWindowById(ID_BUTTON_CANCEL_ASK);
@@ -848,7 +848,7 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// box needs to show / between words, but we don't populate the box by any list selection - only 
 	// by the user explicitly typing text there. If / is given this word-breaking status, then the
 	// user should type / explicitly between words when he types into that box.
-	PopulateList(gpApp->pTargetUnitFromChooseTrans, 0, No);
+	PopulateList(gpApp->pCurTargetUnit, 0, No);
 
 	// select the first string in the listbox by default
 	// BEW changed 3Dec12, if the list box is empty, the ASSERT below trips. So we need a test
@@ -874,7 +874,7 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	int nItems = m_pMyListBox->GetCount();
 	wxWindow* pButton = FindWindowById(ID_BUTTON_CANCEL_ASK);
 	wxASSERT(pButton != NULL);
-	if (nItems == 1 && gpApp->pTargetUnitFromChooseTrans->m_bAlwaysAsk)
+	if (nItems == 1 && gpApp->pCurTargetUnit->m_bAlwaysAsk)
 	{
 		// only one, so allow user to stop the forced ask by hitting the button, so show it
 		pButton->Show(TRUE);
@@ -904,7 +904,7 @@ void CChooseTranslation::PopulateList(CTargetUnit* pTU, int selectionIndex, enum
 	wxString s = _("<no adaptation>");
 
 	// set the list box contents to the translation or gloss strings stored
-	// in the global variable pTargetUnitFromChooseTrans, which has just been matched
+	// in the global variable pCurTargetUnit, which has just been matched
 	// BEW 25Jun10, ignore any CRefString instances for which m_bDeleted is TRUE
 	CRefString* pRefString;
 	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();

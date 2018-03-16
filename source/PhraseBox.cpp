@@ -102,7 +102,7 @@ IMPLEMENT_DYNAMIC_CLASS(CPhraseBox, wxOwnerDrawnComboBox)
 BEGIN_EVENT_TABLE(CPhraseBox, wxOwnerDrawnComboBox)
 	EVT_MENU(wxID_UNDO, CPhraseBox::OnEditUndo)
 	EVT_TEXT(ID_PHRASE_BOX, CPhraseBox::OnPhraseBoxChanged)
-    //EVT_TEXT_ENTER(ID_PHRASE_BOX, CPhraseBox::OnComboProcessEnterKeyPress) // this doesn't detect Enter key used when selecting an item from the dropdown list
+    EVT_TEXT_ENTER(ID_PHRASE_BOX, CPhraseBox::OnComboProcessEnterKeyPress) // this doesn't detect Enter key used when selecting an item from the dropdown list
 	EVT_CHAR(CPhraseBox::OnChar)
 	EVT_KEY_DOWN(CPhraseBox::OnKeyDown)
 	EVT_KEY_UP(CPhraseBox::OnKeyUp)
@@ -202,13 +202,13 @@ CPhraseBox::CPhraseBox(
     // this, see CPhraseBox OnChar()
     //m_bSuppressDefaultAdaptation = FALSE; // whm Note: functions as intended as App member
 
-    // whm 24Feb2018 The pTargetUnitFromChooseTrans member was originally named pCurTargetUnit.
-    // It was originally declared in PhraseBox's global space (initialized to NULL).
+    // whm 24Feb2018 The pCurTargetUnit member was originally declared in 
+    // PhraseBox's global space (initialized to NULL).
     // Although I initially had it as a member of CPhraseBox, I moved it to become a member of
     // CAdapt_ItAPP and initialized it there where it still functions as intended.
     //
-    // when non-NULL, pTargetUnitFromChooseTrans is the matched CTargetUnit instance from the Choose Translation dialog
-    //pTargetUnitFromChooseTrans = (CTargetUnit*)NULL; // whm Note: functions as intended as App member
+    // when non-NULL, pCurTargetUnit is the matched CTargetUnit instance from the Choose Translation dialog
+    //pCurTargetUnit = (CTargetUnit*)NULL; // whm Note: functions as intended as App member
 
     // whm 24Feb2018 moved to constructor and initialized here via .Empty(). It originally was 
     // named gSaveTargetPhrase and initialized to _T("") in PhraseBox.cpp's global space. 
@@ -1550,7 +1550,11 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 			}
 		}
 
-		// if we merged and moved, we have to update pNewPile, because we have done a
+        // initialize the phrase box too, so it doesn't carry the old string to the next
+        // pile's cell
+        ChangeValue(pApp->m_targetPhrase); //SetWindowText(pApp->m_targetPhrase);
+
+        // if we merged and moved, we have to update pNewPile, because we have done a
 		// RecalcLayout in the LookAhead() function; it's possible to return from
 		// LookAhead() without having done a recalc of the layout, so the else block
 		// should cover that situation
@@ -2249,6 +2253,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 			}
 			else
 			{
+                // whm Note: return empty m_Translation string when pSrcPhrase->m_nSrcWords is not > 1 OR pSrcPhrase->m_gloss is EMPTY
 				return FALSE; // return empty string in the m_Translation global wxString
 			}
 		}
@@ -2264,7 +2269,8 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 			}
 			else
 			{
-				return FALSE; // return empty string in the m_Translation global wxString
+                // whm Note: return empty m_Translation string when pSrcPhrase->m_nSrcWords is not > 1 OR pSrcPhrase->m_adaption is EMPTY
+                return FALSE; // return empty string in the m_Translation global wxString
 			}
 		}
 	}
@@ -2309,7 +2315,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 	// if no match was found, we return immediately with a return value of FALSE
 	if (!bFound)
 	{
-		pApp->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL; // the global pointer must be cleared
+		pApp->pCurTargetUnit = (CTargetUnit*)NULL; // the global pointer must be cleared
 		m_CurKey.Empty(); // global var m_CurKey not needed, so clear it
 		return FALSE;
 	}
@@ -2317,6 +2323,17 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
     // now that the choose translation feature is implemented in the CPhraseBox's dropdown
     // list. Hence, we should not set pTargetUnitFromChooseTrans here, since it should only be set
     // from the View's OnButtonChooseTranslation() handler.
+
+    // whm 5Mar2018 Note: Originally on 10Jan2018 I commented out the next line as it was
+    // primarily used to store the target unit supplied by the ChooseTranslation dialog,
+    // however, we can extend its usefulness for my current refactoring of the dropdown
+    // setup code in Layout's PlaceBox() function.
+    // I've also renamed it from pTargetUnitFromChooseTrans back to its original name of 
+    // pCurTargetUnit.
+	pApp->pCurTargetUnit = pTargetUnit; // set global pointer so the dialog can use it if it 
+                                        // is called
+
+
 	m_CurKey = phrases[index]; // set the m_CurKey so the dialog can use it if it is called
 							 // m_CurKey is a global variable (the lookup of phrases[index] is
 							 // done on a copy, so m_CurKey retains the case of the key as in
@@ -2346,7 +2363,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 	// and should be handled the same as the if(!bFound) test above
 	if (count == 0)
 	{
-		pApp->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL; // the global pointer must be cleared
+		pApp->pCurTargetUnit = (CTargetUnit*)NULL; // the global pointer must be cleared
 		m_CurKey.Empty(); // global var m_CurKey not needed, so clear it
 		return FALSE;
 	}
@@ -2397,6 +2414,12 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 			}
 		}
 
+        // whm 5Mar2018 Note about original comment below. It is no longer possible to have
+        // a situation in which the "user cancels the dialog" as there is no longer any
+        // possibility of the ChooseTranslation dialog appearing during LookAhead(). Also
+        // the phrase box should now be shown at it new location and there is no need for
+        // "the old state will have to be restored...any merge needs to be unmerged".
+        //
 		// the following code added to support Bill Martin's wish that the phrase box be shown
 		// at its new location when the dialog is open (if the user cancels the dialog, the old
 		// state will have to be restored - that is, any merge needs to be unmerged)
@@ -2419,18 +2442,17 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 			pView->RemoveSelection(); // glossing, or adapting a single src word only
 
         // whm 27Feb2018 Note: The following block that sets this m_pTargetBox to be empty
-        // and the App's m_targetPhrase to _T("") needs to be retained, otherwise the code
-        // later in dropdown setup and PopulateDropDownList() will add the source string to
-        // the list. TODO: Investigate why this happens.
+        // and the App's m_targetPhrase to _T("") needs to be removed for phrasebox contents
+        // to appear in the dropdown phrasebox.
         //
 		// next code is taken from end of MoveToNextPile()
 		// initialize the phrase box to be empty, so as not to confuse the user
-		if (GetHandle() != NULL) // This won't happen (a NULL handle) in wx version since we don't destroy the targetbox window
-		{
-			// wx version note: we do the following elsewhere when we hide the m_pTargetBox
-			ChangeValue(_T(""));
-			pApp->m_targetPhrase = _T("");
-		}
+		//if (GetHandle() != NULL) // This won't happen (a NULL handle) in wx version since we don't destroy the targetbox window
+		//{
+		//	// wx version note: we do the following elsewhere when we hide the m_pTargetBox
+		//	ChangeValue(_T(""));
+		//	pApp->m_targetPhrase = _T("");
+		//}
 
 		// recalculate the layout
 #ifdef _NEW_LAYOUT
@@ -3643,7 +3665,24 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		{
             // whm 26Feb2018 Note: Code from this case WXK_RETURN is also used in the 
             // OnComboItemSelected() handler to advance the phrasebox when an item is 
-            // selected from the list.
+            // selected from the list. Here however, an ENTER is pressed within the dropdown's
+            // edit box - the phrasebox itself. So, pressing Enter in dropdown phrasebox - is 
+            // tantamount to having selected that dropdown list item directly.
+            // It should in the new app do the same thing that happened in the legacy app when 
+            // the Choose Translation dialog had popped up and the desired item was already
+            // highlighted in its dialog list, and the user pressed the OK button. That OK button
+            // press is essentially the same as the user in the new app pressing the Enter key
+            // when something is contained in the dropdown's edit box. 
+            // Hence, before calling MoveToPrevPile() or JumpForward() below, we should inform
+            // the app to handle the contents as a change.
+            wxString boxContent;
+            boxContent = this->GetValue();
+            gpApp->m_targetPhrase = boxContent;
+            if (!this->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue // whm 14Feb2018 added GetTextCtrl()->
+            {
+                this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will so its work // whm 14Feb2018 added GetTextCtrl()->
+            }
+            this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
 
 			// save old sequ number in case required for toolbar's Back button
             pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
@@ -3682,7 +3721,27 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		return;
 	case WXK_TAB: //9:		// TAB key
 		{
-			// save old sequ number in case required for toolbar's Back button
+            // whm 26Feb2018 Note: Except for handling of SHIFT+TAB below, the handling of WXK_TAB
+            // below should be identical to the handling of WXK_RETURN above. So, pressing Tab 
+            // within dropdown phrasebox - when the content of the dropdown's edit box is tantamount 
+            // to having selected that dropdown list item directly.
+            // It should - in the new app - do the same thing that happened in the legacy app when 
+            // the Choose Translation dialog had popped up and the desired item was already
+            // highlighted in its dialog list, and the user pressed the OK button. That OK button
+            // press is essentially the same as the user in the new app pressing the Enter key
+            // when something is contained in the dropdown's edit box. 
+            // Hence, before calling MoveToPrevPile() or JumpForward() below, we should inform
+            // the app to handle the contents as a change.
+            wxString boxContent;
+            boxContent = this->GetValue();
+            gpApp->m_targetPhrase = boxContent;
+            if (!this->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue // whm 14Feb2018 added GetTextCtrl()->
+            {
+                this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will so its work // whm 14Feb2018 added GetTextCtrl()->
+            }
+            this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
+
+                                      // save old sequ number in case required for toolbar's Back button
             pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
 			// SHIFT+TAB is the 'universal' keyboard way to cause a move back, so implement it
@@ -5815,110 +5874,52 @@ void CPhraseBox::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(even
     //bDropDownIsPoppedOpen = FALSE;
     wxLogDebug(_T("OnComboProcessDropDownListCloseUp: Popup Close event"));
 }
+void CPhraseBox::OnComboProcessEnterKeyPress(wxCommandEvent & WXUNUSED(event))
+{
+    // This event gets triggered when Enter key is pressed while the phrasebox has focus
+    int i = 1;
+    i = i;
+}
 #endif
 
 
 // This code based on PopulateList() in the CChooseTranslation dialog class.
-// The pTU parameter is the pTargetUnitFromChooseTrans passed in from the 
-// caller PlaceBox(). The pTargetUnitFromChooseTrans will be NULL unless 
-// PlaceBox() was called immediately on the dismissal of the Choose Translation 
-// dialog. If pTargetUnitFromChooseTrans is not NULL, we use it to populate 
-// the dropdown list. If it is NULL, we borrow code from the View's 
-// OnButtonChooseTranslation to get the pTargetUnitFromChooseTrans using the 
-// appropriate KB's GetTargetUnit() method.
+// The pTU parameter is the pCurTargetUnit passed in from the dropdown setup
+// code in PlaceBox(), which determined the value of pCurTargetUnit at the
+// PlaceBox() location. If PlaceBox() was called immediately on the dismissal 
+// of the Choose Translation dialog. pCurTargetUnit will reflect any changes 
+// made to the composition or ordering of the ref strings in that dialog. 
+// If pTU is not NULL, we use it herre to populate the dropdown list.
 // The selectionIndex is a reference parameter and will return the index
-// of the user-selected item, or the user-entered new translation string in the
-// populated dropdown list.
-void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex)
+// of the user-selected item, or the index of the user-entered new translation 
+// string in the populated dropdown list.
+// whm 4Mar2018 moved some of the code that previously determined the value of
+// pCurTargetUnit from within this function back to the caller in the Layout's
+// PlaceBox() function.
+void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptation)
 {
-    CAdapt_ItApp* pApp = &wxGetApp();
-    CAdapt_ItView *pView = pApp->GetView(); // <<-- BEWARE if we later support multiple views/panes
     selectionIndex = -1; // initialize to inform caller if no selection was possible
     this->Clear();
     wxString initialBoxContent;
-    initialBoxContent.Empty();
-    // The incoming pTU can be null when called from Layout's PlaceBox() and means 
-    // the ChooseTranslation dialog was not called just before the PlaceBox() call.
-    CTargetUnit* pTargetUnit = (CTargetUnit*)NULL; // a local target unit pointer
+    // Get the initial phrasebox content so we can match it in dropdown list if it is there
+    initialBoxContent = gpApp->m_targetPhrase;
+    
     if (pTU == NULL)
     {
-        // No pTargetUnitFromChooseTrans was available in the caller to populate the list,
-        // So when pTU is NULL, we get the pTargetUnitFromChooseTrans directly using the 
-        // appropriate KB's GetTargetUnit() method to populate the dropdown list.
-
-        m_nWordsInPhrase = 0;	  // the global, initialize to value assuming no match
-
-        // BEW changed next few lines, 6Aug13, because it was not refactored earlier to agree
-        // with the change to use all tabs of the glossing KB in glossing mode
-        CKB* pKB;
-        int nCurLongest; // index of the map which is highest having content, maps at higher index
-                         // values currently have no content
-        if (gbIsGlossing)
-        {
-            pKB = pApp->m_pGlossingKB;
-        }
-        else
-        {
-            pKB = pApp->m_pKB;
-        }
-        // no matches are possible for phrases longer than nCurLongest
-        nCurLongest = pKB->m_nMaxWords; 
-
-        // check we are within bounds
-        CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-        // BEW removed test here, 6Aug13 - it was setting m_nWordsInPhrase to 1 in glossing
-        // mode, and so phrasal lookups never succeeded
-        m_nWordsInPhrase = pSrcPhrase->m_nSrcWords;
-
-        // restore the current phrase box's text in the KB, so that potential singly referenced
-        // adaptations not yet in the KB will still show in the dialog; but don't do so if the
-        // phrasebox is empty (since we want <no adaptation> to show only when the button of
-        // that name has been pressed)
-        wxString temp;
-        bool bOK = TRUE;
-        bool bEmptyBox = FALSE;
-        if (pApp->m_targetPhrase.IsEmpty())
-        {
-            bEmptyBox = TRUE;
-        }
-        else
-        {
-            temp = pApp->m_targetPhrase;
-            initialBoxContent = temp;
-            // BEW 13Nov10, the flag below is never set TRUE so remove the code which uses it
-            if (!gbIsGlossing) // || gbRemovePunctuationFromGlosses)
-            {
-                pView->RemovePunctuation(pView->GetDocument(), &temp, from_target_text);
-            }
-            // TRUE in the next call means we can store an empty adaptation or gloss
-            bOK = pKB->StoreText(pSrcPhrase, temp, TRUE);
-            wxASSERT(bOK);
-            bOK = bOK; // avoid warning
-        }
-        // get a pointer to the target unit for the current key - could be NULL
-        pTargetUnit = pKB->GetTargetUnit(m_nWordsInPhrase, pSrcPhrase->m_key); // set the local pointer for use below
+        return; // If the incoming pTU is null then just return with empty list
     }
-    else
-    {
-        pTargetUnit = pTU; // the caller did have a non-NULL pTargetUnitFromChooseTrans passed in so set the local pointer for use below
-    }
-    // pTargetUnit can be NULL for instance if coming from a OnChar() triggered OnButtonMerge() which calls PlaceBox()
-    // at the merged location, at which there may be no KB entry.
-    //wxASSERT(pTargetUnit != NULL);
-    if (pTargetUnit == NULL)
-    {
-        return; // with empty dropdown list
-    }
-
     wxString s = _("<no adaptation>");
 
-    // set the combobox's list contents to the translation or gloss strings stored
-    // in the global variable pTargetUnitFromChooseTrans (passed in as pTU), which has just been matched.
-    // BEW 25Jun10, ignore any CRefString instances for which m_bDeleted is TRUE
+    // Populate the combobox's list contents with the translation or gloss strings 
+    // stored in the global variable pCurTargetUnit (passed in as pTU).
+    // Ignore any CRefString instances for which m_bDeleted is TRUE.
     CRefString* pRefString;
-    TranslationsList::Node* pos = pTargetUnit->m_pTranslations->GetFirst();
+    TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
     wxASSERT(pos != NULL);
     int count = 0;
+    // initialize the reference parameters
+    indexOfNoAdaptation = -1; // initialize to -1 or not found
+    bNoAdaptationFlagPresent = FALSE;
     while (pos != NULL)
     {
         pRefString = (CRefString*)pos->GetData();
@@ -5927,11 +5928,19 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex)
         {
             // this one is not deleted, so show it to the user
             wxString str = pRefString->m_translation;
+            // Note: If user clicked on <no adaptation> gpApp->m_targetPhrase and initialBoxContent 
+            // will also be an empty string.
             if (str.IsEmpty())
             {
                 str = s;
+                bNoAdaptationFlagPresent = TRUE;
             }
             int nLocation = this->Append(str);
+            if (bNoAdaptationFlagPresent)
+            {
+                // Get index of the <no adaptation> string in the dropdown list for use below
+                indexOfNoAdaptation = nLocation;
+            }
             count++;
             // The combobox's list is NOT sorted; the Append() command above returns the 
             // just-inserted item's index.
@@ -5947,7 +5956,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex)
         {
             // The phrasebox had an entry when we landed there (which could have been a copy of the source text)
             int indx = -1;
-            indx = (int)this->FindString(initialBoxContent);  
+            indx = (int)this->FindString(initialBoxContent, FALSE);  // FALSE - not case sensitive
             if (indx != wxNOT_FOUND)
             {
                 // Select the list item - if it exists in the list - that matches what was in the 
@@ -5957,29 +5966,49 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex)
         }
         else
         {
-            // If the phrase box had no content, they we just select first item in the list
-            selectionIndex = 0; // have caller select first in list (index 0)
+            // If the phrasebox had no content, then we just select first item in the list -
+            // unless the phrasebox was empty because user clicked <no adaptation>, in which case 
+            // we don't make a selection, but leave selectionIndex as -1 (as initialized at 
+            // the beginning of this function). 
+            if (indexOfNoAdaptation != -1)
+            {
+                // User clicked <no adaptation>, leave selectionIndex with value of -1 
+                // the indexOfNoAdaptation will have the index of the <no adaptation> item
+                // to inform the caller.
+                ; 
+            }
+            else
+            {
+                selectionIndex = 0; // have caller select first in list (index 0)
+            }
         }
     }
     // See notes in CChooseTranslation::OnOK().
     // If the ChooseTranslation dialog was just called up and a new translation string was entered
-    // in that dialog and OK'ed, the global m_Translation variable (defined in PhraseBox.cpp global space
-    // will contain that new translation. Although the new translation will appear in the dropdown list,
-    // and will appear in the dropdown's edit box (selected), the new translation doesn't get added to 
+    // in that dialog and OK'ed, the m_Translation variable (defined in CPhraseBox) will contain
+    // that new translation. Although the new translation will appear in the dropdown list, and
+    // will appear in the dropdown's edit box (selected), the new translation doesn't get added to 
     // the KB until the phrasebox moves on with Enter or Tab.
     if (!m_Translation.IsEmpty())
     {
-        // whm added 26Feb2018 check for if the string already exists. If it exists don't
-        // append it again.
+        // whm updated 5Mar2018 check for if the string already exists. If not, append it and set its
+        // selectionIndex. If it already exists in the list don't append it again, but update its 
+        // selectionIndex to its current index in the list.
         int foundItem = -1;
         foundItem = this->FindString(m_Translation);
         if (foundItem == wxNOT_FOUND)
         {
             selectionIndex = this->Append(m_Translation);
         }
+        else
+        {
+            selectionIndex = foundItem;
+        }
+        m_Translation.Empty(); // We've used it so clear it
     }
-
 }
+
+
 
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
@@ -6106,6 +6135,8 @@ void CPhraseBox::OnComboItemSelected(wxCommandEvent & WXUNUSED(event))
     JumpForward(pView);
 }
 
+// This OnMeasureItem() function implements the virtual function in wxOwnerDrawnComboBox
+// It returns the height of the list item according to the vertical text extend
 wxCoord CPhraseBox::OnMeasureItem(size_t item) const
 {
     // Get the text extent height of the combobox item - all should have same height
@@ -6124,7 +6155,7 @@ wxCoord CPhraseBox::OnMeasureItem(size_t item) const
     wxString thePhrase = this->GetString(item);
     dC.GetTextExtent(thePhrase, &textExtent.x, &textExtent.y); // measure using the current font
 
-    return wxCoord(textExtent.y);
+    return wxCoord(textExtent.GetY()+2);
 }
 
 // return TRUE if we made a match and there is a translation to be inserted (see static var
@@ -6185,15 +6216,15 @@ bool CPhraseBox::LookUpSrcWord(CPile* pNewPile)
 	// if no match was found, we return immediately with a return value of FALSE
 	if (!bFound)
 	{
-		pApp->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL; // the global pointer must be cleared
+		pApp->pCurTargetUnit = (CTargetUnit*)NULL; // the global pointer must be cleared
 		m_CurKey.Empty(); // global var m_CurKey not needed, so clear it
 		return FALSE;
 	}
     // whm 10Jan2018 Note: We do not call the ChooseTranslation dialog from LookAhead()
     // now that the choose translation feature is implemented in the CPhraseBox's dropdown
-    // list. Hence, we should not set pTargetUnitFromChooseTrans here, since it should only be set
+    // list. Hence, we should not set pCurTargetUnit here, since it should only be set
     // from the View's OnButtonChooseTranslation() handler.
-    //pTargetUnitFromChooseTrans = pTargetUnit; // set global pointer so the dialog can use it if it is called
+    //pCurTargetUnit = pTargetUnit; // set global pointer so the dialog can use it if it is called
 	m_CurKey = phrases[index]; // set the global m_CurKey so the dialog can use it if it is called
 							 // (phrases[0] is copied for the lookup, so m_CurKey has initial case
 							 // setting as in the doc's sourcephrase instance; we don't need
@@ -6208,7 +6239,7 @@ bool CPhraseBox::LookUpSrcWord(CPile* pNewPile)
 	{
 		// nothing in the KB for this key (except, possibly, one or more deleted
 		// CRefString instances)
-		pApp->pTargetUnitFromChooseTrans = (CTargetUnit*)NULL;
+		pApp->pCurTargetUnit = (CTargetUnit*)NULL;
 		m_CurKey.Empty();
 		return FALSE;
 	}

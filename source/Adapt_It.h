@@ -2735,7 +2735,7 @@ public:
     bool m_bInhibitMakeTargetStringCall; // moved here from Adapt_ItView.cpp global space
     bool m_bMergeSucceeded; // moved here from Adapt_ItView.cpp global space
     bool m_bSuppressDefaultAdaptation;
-    CTargetUnit* pTargetUnitFromChooseTrans;
+    CTargetUnit* pCurTargetUnit;
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     bool m_bLegacySourceTextCopy;
     bool m_bIgnoreScriptureReference_Send;

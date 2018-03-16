@@ -4646,14 +4646,6 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 		return;
 	}
 
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // If not hidden here, the dropdown combo box will appear in the blank area of the main
-    // frame after the document disappears. It could be destroyed, but we should allow it to
-    // be destroyed at the time its parent (the canvas) is destroyed.
-    pApp->m_pTargetBox->CloseDropDown();
-    pApp->m_pTargetBox->ClearDropDownList();
-
     // whm 19Sep11 moved this block here from above the OnSaveModified() call. See
 	// comment where the code is commented out above for reason for the move.
 	// Remove KBs from the heap, when colloborating with an external editor
