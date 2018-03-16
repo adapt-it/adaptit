@@ -61,10 +61,8 @@ public:
 // Attributes
 public:
 	wxColour	m_textColor;
-	//CPile*		m_pActivePile; // refactored BEW 23Mar09, removed this copy, view's one is enough
 	bool		m_bAbandonable;
 	wxString	m_backspaceUndoStr;
-	//bool		m_bMergeWasDone; // whm 24Feb2018 removed.
 	bool		m_bCurrentCopySrcPunctuationFlag; // BEW added 20May16 (preserve m_bCopySourcePunctuation
 					// value so it can be restored within DoStore_ForPlacePhraseBox() )
     bool        m_bRetainBoxContents;
@@ -79,8 +77,6 @@ public:
     bool        m_bSuppressMergeInMoveToNextPile; 
     //bool        m_bMovingToPreviousPile; // whm 24Feb2018 initialized but unused so removed 
     bool        m_bCompletedMergeAndMove;
-    //bool        m_bMergeDone; // whm 24Feb2018 removed.
-    //bool        m_bEnterTyped; // whm 24Feb2018 removed.
     long        m_nSaveStart; //int m_nSaveStart; // these two are for implementing Undo() for a backspace operation
     long        m_nSaveEnd; //int m_nSaveEnd;                 
     int         m_nCurrentSequNum; /// Contains the current sequence number of the active pile (m_nActiveSequNum) for use by auto-saving.
@@ -125,7 +121,6 @@ protected:
 	void JumpForward(CAdapt_ItView* pView);
 
 public:
-	//void DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile); // whm 22Feb2018 removed - along with Cancel and Select button in wxDesigner resources
 	bool DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	CLayout* GetLayout();
 	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
@@ -153,12 +148,9 @@ public:
 	bool OnePass(CAdapt_ItView *pView);
     void ClearDropDownList();
 	bool LookUpSrcWord(CPile* pNewPile);
-	//SPList::Node* GetSrcPhrasePos(int nSequNum, SPList* pSourcePhrases);
 	void SetModify(bool modify);
 	bool GetModify();
-    // whm 22Feb2018 removed - Cancel and Select button in Choose Translation dialog now removed
-    //bool GetCancelAndSelectFlag(); // accessor for private bool m_bCancelAndSelectButtonPressed getting
-	//void ChangeCancelAndSelectFlag(bool bValue); // accessor to change private bool m_bCancelAndSelectButtonPressed
+
 	// Generated message map functions
 	void RemoveFinalSpaces(CPhraseBox* pBox,wxString* pStr);
 	void RemoveFinalSpaces(wxString& rStr); // overload of the public function, BEW added 30Apr08
@@ -181,10 +173,6 @@ public:
 	void OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event));
 
 private:
-    // BEW added 26Mar10, for doc version 5, ChooseTranslation() and DoCancelAndSelect()
-    // use this, the former sets it if the relevant button is pressed, the latter uses it
-    // snf then clears it
-	//bool m_bCancelAndSelectButtonPressed; // whm 26Feb2018 removed
 
 	DECLARE_DYNAMIC_CLASS(CPhraseBox)
 	// DECLARE_DYNAMIC_CLASS() is used inside a class declaration to

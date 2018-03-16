@@ -141,8 +141,6 @@ CPhraseBox::CPhraseBox(void)
 	// shown when needed. I've chosen the latter.
 
     m_textColor = wxColour(0, 0, 0); // default to black
-    //m_bMergeWasDone = FALSE; // whm 24Feb2018 removed
-    //m_bCancelAndSelectButtonPressed = FALSE; // whm 14Feb2018 removed 
     m_bCurrentCopySrcPunctuationFlag = TRUE; // default
     // whm Note: The above initializations composed all CPhraseBox constructor initializations
     // before the addition of the custom constructor below for the dropdown phrasebox.
@@ -173,17 +171,6 @@ CPhraseBox::CPhraseBox(
     // This member repeated here from the default constructor
     m_textColor = wxColour(0,0,0); // default to black
     
-    // whm 24Feb2018 removed. m_bMergeWasDone was repeated here from the default constructor. 
-    // This member variable, however serves no active role in the program code. The only place 
-    // its value is tested is in CPhraseBox::OnChar(), where it is not doing anything (the test 
-    // code block there is just an empty statement with a semi-colon), so I've removed it.
-    // m_bMergeWasDone = FALSE;
-
-    // whm 14Feb2018 removed. m_bCancelAndSelectButtonPressed was repeated here from the
-    // default constructor. Later 22Feb2018 removed DoCancelAndSelect() - along with the 
-    // Cancel and Select button in wxDesigner resources as well as this flag.
-    //m_bCancelAndSelectButtonPressed = FALSE; 
-
     // This member repeated here from the default constructor
     m_bCurrentCopySrcPunctuationFlag = TRUE; // default
 
@@ -347,23 +334,6 @@ CPhraseBox::CPhraseBox(
     // for support of Bill Martin's wish that the phrase box
     // be at the new location when the Choose Translation dialog is shown
     m_bCompletedMergeAndMove = FALSE; 
-
-    // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-    // actually uses or tests for its value - it is only assigned a TRUE or FALSE value. 
-    // To help unclutter the code I've removed it as it could not have served any purpose
-    // as a bool flag in the codebase. The original comment (below) was misleading as the
-    // original gbEnterTyped never appeared in the CPhraseBox::BuildPhrases() function.
-    //
-    // used in BuildPhrases() to speed up finding the current srcPhrase
-    //m_bEnterTyped = FALSE; 
-
-    // whm 24Feb2018 removed the m_bMergeDone global as unneeded since CPhraseBox::ChooseTranslation()
-    // has been removed from the app now that CPhraseBox is derived from wxOwnerDrawnComboBox.
-    // m_bMergeDone (previously called gbMergeDone) was only acted on within the 
-    // CPhraseBox::ChooseTranslation() function - and that function has been removed.
-    //
-    // global, used in ChooseTranslation()
-    //m_bMergeDone = FALSE;
 
     // whm 24Feb2018 m_bInhibitMakeTargetStringCall was originally named gbInhibitMakeTargetStringCall
     // and was originally declared and initialized in Adapt_ItView.cpp's global space. I renamed it and
@@ -750,7 +720,6 @@ CLayout* CPhraseBox::GetLayout()
 // (2) for non-vertical edit mode, if the new location would be within a retranslation, it
 // shows an informative message to the user, enables the button for copying punctuation,
 // and returns FALSE
-// (3) if within a retranslation, the global bool m_bEnterTyped is cleared to FALSE - whm removed m_bEnterTyped 25Fwb2018
 // BEW 13Apr10, no changes needed for support of doc version 5
 // BEW 9Apr12, changed to support discontinuous hightlight spans for auto-inserts
 bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView,
@@ -793,10 +762,6 @@ bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pVi
 "Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),
 						_T(""), wxICON_INFORMATION | wxOK);
 		GetLayout()->m_pApp->m_pTargetBox->SetFocus();
-        // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-        // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-        // the code I've removed it. 
-        //m_bEnterTyped = FALSE;
 		// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
 		wxCommandEvent event;
 		if (!GetLayout()->m_pApp->m_bCopySourcePunctuation)
@@ -828,16 +793,9 @@ void CPhraseBox::DealWithUnsuccessfulStore(CAdapt_ItApp* pApp, CAdapt_ItView* pV
 {
 	if (!pApp->m_bSingleStep)
 	{
-        // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-        // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-        // the code I've removed it. 
-        //m_bEnterTyped = FALSE;
 		pApp->m_bAutoInsert = FALSE; // cause halt, if auto lookup & inserting is ON
 	}
-    // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-    // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-    // the code I've removed it. 
-    //m_bEnterTyped = FALSE;
+
 	// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
 	wxCommandEvent event;
 	if (!pApp->m_bCopySourcePunctuation)
@@ -988,13 +946,20 @@ void CPhraseBox::MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
 // flag to remain always FALSE, is just a temporary measure to ensure that I don't
 // mess up the logic by a quick refactor that removes the effects of the original
 // bool flags.
+// BEW 16Mar18 removed Bill's two temporary flags. If I understand Bill's dropdown combo
+// correctly, the removal of Choose Translation dialog automatically coming up means
+// that at the location where that would happen, it would be appropriate just to halt 
+// and try find appropriate KB target text to insert in the combobox there - but actually
+// there may not be any reason to halt so as to invoke this legacy hack function - so it 
+// may never be called. Anyway, Bill can test and determine if my foggy brain is thinking right
+//
 //void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_ItApp* pApp,
 //    CAdapt_ItView* pView, CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect)
 void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_ItApp* pApp,
 	CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect)
 {
-    bool m_bCancelAndSelect_temp = FALSE; // whm 22Feb2018 added for temp fix
-    bool gbUserCancelledChooseTranslationDlg_temp = FALSE; // whm 22Feb2018 added for temp fix
+    //bool m_bCancelAndSelect_temp = FALSE; // whm 22Feb2018 added for temp fix
+    //bool gbUserCancelledChooseTranslationDlg_temp = FALSE; // whm 22Feb2018 added for temp fix
 
     pApp->m_pTargetBox->m_bAbandonable = TRUE;
 
@@ -1003,6 +968,8 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
     // depending on the m_bCopySource flag, either initialize the targetPhrase to
     // an empty string, or to a copy of the sourcePhrase's key string
     bool bGotTranslation = FALSE;
+
+	/* BEW removed 16Mar18
     if (!gbIsGlossing && m_bCancelAndSelect_temp)
     {
         // in ChooseTranslation dialog the user wants the 'cancel and select'
@@ -1016,6 +983,8 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
     }
     else
     {
+	*/
+		/*
         // user didn't press the Cancel and Select button in the Choose Translation
         // dialog, but he may have pressed Cancel button, or OK button - so try to
         // find a translation given these possibilities (note, nWordsInPhrase equal
@@ -1050,6 +1019,8 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
                 bGotTranslation = LookUpSrcWord(pNewPile);
             }
         }
+		*/
+		bGotTranslation = LookUpSrcWord(pNewPile); // BEW 16Mar18 added this line, because the above logic was commented out
         pNewPile = pApp->m_pActivePile; // update the pointer, since LookUpSrcWord()
                                         // calls RecalcLayout() & resets m_pActivePile (in refactored code
                                         // this call is still needed because we replace the old pile with the
@@ -1082,7 +1053,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
             // BEW added 1Jul09, the flag should be TRUE if nothing was found
             pApp->m_pTargetBox->m_bAbandonable = TRUE;
         }
-    }
+    //} // BEW removed 16Mar18
  }
 
 // BEW 13Apr10, changes needed for support of doc version 5
@@ -1099,15 +1070,22 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
 // flag to remain always FALSE, is just a temporary measure to ensure that I don't
 // mess up the logic by a quick refactor that removes the effects of the original
 // bool flags.
+ // BEW 16Mar18 refactored to simplify - combobox implementation does not require so much logic
 //void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp,
 //     CAdapt_ItView* pView, CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect)
 void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp,
 	CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect)
 {
-    bool m_bCancelAndSelect_temp = FALSE; // whm 22Feb2018 added for temp fix
-    bool gbUserCancelledChooseTranslationDlg_temp = FALSE; // whm 22Feb2018 added for temp fix
+    //bool m_bCancelAndSelect_temp = FALSE; // whm 22Feb2018 added for temp fix
+    //bool gbUserCancelledChooseTranslationDlg_temp = FALSE; // whm 22Feb2018 added for temp fix
 
     pApp->m_bAutoInsert = FALSE; // cause halt
+
+	// BEW 16Mar18, refactored a bit in response to Bill's request to check logic out in the combo dropdown implementation
+	// With the combobox approach, Lookup() doesn't get a chance to put up Choose Translation dialog, instead, the user
+	// eyeballs the dropped down (or not) list to decide what to do. Halting the box with m_bAutoInsert set FALSE should suffice,
+	// so the test below and it's true block should be removed.
+/*
     if (!gbIsGlossing && m_bCancelAndSelect_temp)
     {
         // user cancelled CChooseTranslation dialog because he wants instead to
@@ -1124,17 +1102,25 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
     }
     else // user does not want a "Cancel and Select" selection; or is glossing
     {
+*/ 
+		// BEW 16Mar18, With the combodropdown implementation, it ought not be possible at this 
+		// point to know what the user will want, I've set bWantSelect to FALSE able
+
         // try find a translation for the single source word, use it if we find one;
         // else do the usual copy of source word, with possible cc processing, etc.
         // LookUpSrcWord( ) has been ammended (July 2003) for auto capitalization
         // support; it does any needed case change before returning, leaving the
-        // resulting string in the global variable: translation
+        // resulting string in the app member: m_Translation
         // whm 21Feb2018 note: the legacy gbUserCancelledChooseTranslationDlg is now 
         // removed from the app, so its logical value would be FALSE (never 
         // set to TRUE); whether a dialog was Cancelled is no longer a factor in the
         // logic of the following if ... else block. I've set a local _temp bool above
         // to FALSE as a temporary fix.
+		// BEW 16Mar18 - the code below simplifies for the combodropdown box implementation
+		// because glossing uses word counts greater than 1 now, and all we want here is
+		// to get something for the box, if possible
         bool bGotTranslation = FALSE;
+		/*
         if (!gbUserCancelledChooseTranslationDlg_temp || m_nWordsInPhrase == 1)
         {
             bGotTranslation = LookUpSrcWord(pNewPile);
@@ -1143,19 +1129,21 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
         {
             gbUserCancelledChooseTranslationDlg_temp = FALSE; // restore default value
 
-                                                         // if the user cancelled the Choose Translation dialog when a phrase was
-                                                         // merged, then he will probably want a lookup done for the first word
-                                                         // of the now unmerged phrase; nWordsInPhrase will still contain the
-                                                         // word count for the formerly merged phrase, so use it; but when glossing
-                                                         // nWordsInPhrase should never be anything except 1, so this block should
-                                                         // not get entered when glossing
-            if (m_nWordsInPhrase > 1) // nWordsInPhrase is a global, set in LookAhead()
+            // if the user cancelled the Choose Translation dialog when a phrase was
+            // merged, then he will probably want a lookup done for the first word
+            // of the now unmerged phrase; nWordsInPhrase will still contain the
+            // word count for the formerly merged phrase, so use it; but when glossing
+            // nWordsInPhrase should never be anything except 1, so this block should
+            // not get entered when glossing
+            if (m_nWordsInPhrase > 1) // nWordsInPhrase is set in LookAhead()
                                     // or in LookUpSrcWord()
             {
                 // must be adapting mode
                 bGotTranslation = LookUpSrcWord(pNewPile);
             }
         }
+		*/
+		bGotTranslation = LookUpSrcWord(pNewPile); // BEW 16Mar18
         pNewPile = pApp->m_pActivePile; // update the pointer (needed, because
                                         // RecalcLayout() was done by LookUpSrcWord(), and in its refactored
                                         // code we called ResetPartnerPileWidth() to get width updated and
@@ -1176,6 +1164,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
                 m_Translation = pNewPile->GetSrcPhrase()->m_targetStr;
                 pNewPile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
                 pNewPile->GetSrcPhrase()->m_bNotInKB = TRUE;
+				bWantSelect = TRUE;
             }
 
             pApp->m_targetPhrase = m_Translation; // set using the global var,
@@ -1204,7 +1193,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
         {
             pApp->m_bAutoInsert = TRUE; // revoke the halt
         }
-    }
+    //} // BEW 16Mar18 removed true block
 }
 
 // returns TRUE if the move was successful, FALSE if not successful
@@ -1354,10 +1343,6 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		// ensure the view knows the pile pointer is no longer valid
 		pApp->m_pActivePile = (CPile*)NULL;
 		pApp->m_nActiveSequNum = -1;
-        // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-        // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-        // the code I've removed it. 
-        //m_bEnterTyped = FALSE;
 		if (m_bSuppressStoreForAltBackspaceKeypress)
             m_SaveTargetPhrase.Empty();
 		m_bSuppressStoreForAltBackspaceKeypress = FALSE; // make sure it's off before returning
@@ -1533,18 +1518,13 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 			// to the next pile's cell
 			ChangeValue(pApp->m_targetPhrase);
 
-            // whm modified 22Feb2018 to remove logic related to Cancel and Select.
-            // [Original comment below]:
             // RecalcLayout call when there is no adaptation available from the LookAhead,
             // (or user cancelled when shown the Choose Translation dialog from within the
             // LookAhead() function, having matched) we must cause auto lookup and
             // inserting to be turned off, so that the user can do a manual adaptation; but
             // if the m_bAcceptDefaults flag is on, then the copied source (having been
             // through c.changes) is accepted without user input, the m_bAutoInsert flag is
-            // turned back on, so processing will continue; while if
-            // m_bCancelAndSelectButtonPressed is TRUE, then the first two words are
-            // selected instead ready for a merger or for extending the selection - if both
-            // flags are TRUE, the m_bCancelAndSelectButtonPressed is to have priority
+            // turned back on, so processing will continue
             pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
 
             if (!pApp->m_bSingleStep)
@@ -1603,19 +1583,6 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 													pApp->m_pActivePile->GetSrcPhrase());
 		}
 
-        /*
-        // we had to delay the call of DoCancelAndSelect() until now because earlier
-        // RecalcLayout() calls will clobber any selection we try to make beforehand, so do
-        // the selecting now; do it also before recalculating the phrase box, since if
-        // anything moves, we want its location to be correct. When glossing, Cancel
-        // and Select is not allowed, so we skip this block
-		if (!gbIsGlossing && m_bCancelAndSelectButtonPressed)
-
-		{
-			DoCancelAndSelect(pView, pApp->m_pActivePile); // clears m_bCancelAndSelectButtonPressed
-			pApp->m_bSelectByArrowKey = TRUE; // so it is ready for extending
-		}
-        */ 
 		// update status bar with project name
 		pApp->RefreshStatusBarInfo();
 
@@ -1667,16 +1634,6 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
         return TRUE;
 	}
 }
-
-//bool CPhraseBox::GetCancelAndSelectFlag()
-//{
-//	return m_bCancelAndSelectButtonPressed;
-//}
-
-//void CPhraseBox::ChangeCancelAndSelectFlag(bool bValue)
-//{
-//	m_bCancelAndSelectButtonPressed = bValue;
-//}
 
 // returns TRUE if all was well, FALSE if something prevented the move
 // Note: this is based on MoveToNextPile(), but with added code for transliterating - and
@@ -1865,10 +1822,6 @@ b:	pApp->m_bSaveToKB = TRUE;
 		// ensure the view knows the pile pointer is no longer valid
 		pApp->m_pActivePile = (CPile*)NULL;
 		pApp->m_nActiveSequNum = -1;
-        // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-        // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-        // the code I've removed it. 
-        //m_bEnterTyped = FALSE;
 		if (m_bSuppressStoreForAltBackspaceKeypress)
             m_SaveTargetPhrase.Empty();
 		m_bSuppressStoreForAltBackspaceKeypress = FALSE; // make sure it's off before returning
@@ -2075,10 +2028,7 @@ b:	pApp->m_bSaveToKB = TRUE;
             // inserting to be turned off, so that the user can do a manual adaptation; but
             // if the m_bAcceptDefaults flag is on, then the copied source (having been
             // through c.changes) is accepted without user input, the m_bAutoInsert flag is
-            // turned back on, so processing will continue; while if
-            // m_bCancelAndSelectButtonPressed is TRUE, then the first two words are
-            // selected instead ready for a merger or for extending the selection - if both
-            // flags are TRUE, the m_bCancelAndSelectButtonPressed is to have priority
+            // turned back on, so processing will continue
             pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
 			if (!pApp->m_bSingleStep)
 			{
@@ -2136,19 +2086,6 @@ b:	pApp->m_bSaveToKB = TRUE;
 			pView->SendScriptureReferenceFocusMessage(pApp->m_pSourcePhrases,
 													pApp->m_pActivePile->GetSrcPhrase());
 		}
-        /*
-        // we had to delay the call of DoCancelAndSelect() until now because earlier
-        // RecalcLayout() calls will clobber any selection we try to make beforehand, so do
-        // the selecting now; do it also before recalculating the phrase box, since if
-        // anything moves, we want its location to be correct. When glossing, Cancel
-        // and Select is not allowed, so we skip this block
-		if (m_bCancelAndSelectButtonPressed)
-
-		{
-			DoCancelAndSelect(pView, pApp->m_pActivePile); // clears m_bCancelAndSelectButtonPressed
-			pApp->m_bSelectByArrowKey = TRUE; // so it is ready for extending
-		}
-        */
 
 		// update status bar with project name
 		pApp->RefreshStatusBarInfo();
@@ -2380,7 +2317,6 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
     // now that the choose translation feature is implemented in the CPhraseBox's dropdown
     // list. Hence, we should not set pTargetUnitFromChooseTrans here, since it should only be set
     // from the View's OnButtonChooseTranslation() handler.
-	//pTargetUnitFromChooseTrans = pTargetUnit; // set global pointer so the dialog can use it if it is called
 	m_CurKey = phrases[index]; // set the m_CurKey so the dialog can use it if it is called
 							 // m_CurKey is a global variable (the lookup of phrases[index] is
 							 // done on a copy, so m_CurKey retains the case of the key as in
@@ -2454,7 +2390,6 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 			pSelection->Append(pAnchorCell);
 
 			// extend the selection to the right, if more than one pile is involved
-			// When glossing, the block will be skipped because m_nWordsInPhrase will equal 1
 			if (m_nWordsInPhrase > 1)
 			{
 				// extend the selection
@@ -2469,12 +2404,6 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 		// adaptation is available, so use it if the source phrase has only a single word, but
 		// if it's multi-worded, we must first do a merge and recalc of the layout
 
-        // whm 24Feb2018 removed the m_bMergeDone global as unneeded since CPhraseBox::ChooseTranslation()
-        // has been removed from the app now that CPhraseBox is derived from wxOwnerDrawnComboBox.
-        // m_bMergeDone (previously called gbMergeDone) was only acted on within the CPhraseBox::ChooseTranslation()
-        // function - and that function has been removed.
-        //m_bMergeDone = FALSE; //  global, used in ChooseTranslation()
-
 		if (m_nWordsInPhrase > 1) // m_nWordsInPhrase is a global, set in this function
 								// or in LookUpSrcWord()
 		{
@@ -2484,7 +2413,6 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 			pView->MergeWords(); // calls protected OnButtonMerge() in CAdapt_ItView class
 			m_bAbandonable = bSaveFlag; // preserved the flag across the merge
 			pApp->bLookAheadMerge = FALSE; // restore static flag to OFF
-            //m_bMergeDone = TRUE; // removed 24Feb2018. See comment above
             m_bSuppressMergeInMoveToNextPile = TRUE; // restored 24Feb2018 after being accidentally removed
         }
 		else
@@ -2561,68 +2489,6 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
         // methods of summoning the ChooseTranslation dialog make use of the 
         // Adapt_ItView::ChooseTranslation() function, rather than the old 
         // CPhraseBox::ChooseTranslation() function of the same name (now removed from the codebase).
-
-        /*
-		bool bOK;
-        if (gbIsGlossing)
-        {
-            bOK = ChooseTranslation(TRUE); // TRUE causes Cancel And Select button to be hidden
-        }
-        else
-        {
-            bOK = ChooseTranslation(); // default makes Cancel And Select button visible
-        }
-
-        // wx version: restore the state of m_bAutoInsert
-        pApp->m_bAutoInsert = saveAutoInsert;
-        */
-
-        // whm TODO: determine the impact of the following block of code related to the now-removed
-        // ChooseTranslation dialog call being eliminated.
-        //
-        // What is the impact of setting pTargetUnitFromChooseTrans to NULL and making m_CurKey empty?
-        // Answers: pTargetUnitFromChooseTrans can be set back to NULL here but doesn't need to because
-        // we set it to NULL after it is used in the PopulateDropDownList() in the Layout's
-        // PlaceBox() call above. 
-
-        // TODO: What is the impact of allowing the LookAhead() to complete always without a
-        // return FALSE below - as it would have been on a user-CANCEL from the no-longer-existing
-        // dialog? The only code left in LookAhead() after removal of ChooseTranslation()
-        // call and related code via /* ... */ below - is the adjusting the m_Translation ('translation') 
-        // string for AutoCaps in the if (gbAutoCaps && gbSourceIsUpperCase) below. 
-        // Note: At the end of LookAhead() the normal return of LookAhead() is TRUE.
-
-        /*
-        // Set bOK to FALSE so that LookAhead() will be forced to return FALSE below
-        bOK = FALSE;
-
-		pTargetUnitFromChooseTrans = (CTargetUnit*)NULL; // ensure the global var is cleared
-											 //after the dialog has used it
-		m_CurKey.Empty(); // ditto for the current key string (global)
-		
-        if (!bOK)
-		{
-            // user cancelled, so return FALSE for a 'non-match' situation; the
-            // m_bCancelAndSelectButtonPressed private bool variable (set from
-            // CChooseTranslation's returned value for its m_bCancelAndSelect member) will
-            // have already been set (if relevant) and can be used in the caller (ie. in
-            // MoveToNextPile)
-            // whm 24Feb2018 note: m_bCompletedMergeAndMove is reset to FALSE at end of MoveToNextPile...()
-            // so not doing so here won't affect its use.
-			//m_bCompletedMergeAndMove = FALSE; 
-
-			return FALSE;
-		}
-        // [old comments]
-		// if bOK was TRUE, translation static var will have been set via the dialog; but
-		// any needed case change to get the data ready for showing in the view will not have
-		// been done within the dialog's handler code - so do them below
-
-		// User has produced a translation from the Choose Translation dialog
-		// so set the globals to the active sequence number, so we can track
-		// any automatically inserted target/gloss text, starting from the
-		// current phrase box location (where the Choose Translation dialog appears).
-        */
 
 		// BEW changed 9Apr12 for support of discontinuous highlighting spans...
 		// A new protocol is needed here. The legacy code wiped out any auto-insert
@@ -2701,11 +2567,6 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		// check the mode, whether or not it is single step, and route accordingly
 		if (pApp->m_bSingleStep)
 		{
-            // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-            // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-            // the code I've removed it. 
-            //m_bEnterTyped = TRUE; // try speed up by using GetSrcPhrasePos() call in
-									// BuildPhrases()
 			int bSuccessful;
 			if (pApp->m_bTransliterationMode && !gbIsGlossing)
 			{
@@ -2903,10 +2764,6 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		{
 			// cause auto-inserting using the OnIdle handler to commence
 			pApp->m_bAutoInsert = TRUE;
-            // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-            // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-            // the code I've removed it. 
-            //m_bEnterTyped = TRUE;
 
 			// User has pressed the Enter key  (OnChar() calls JumpForward())
 			// BEW changed 9Apr12, to support discontinuous highlighting
@@ -3111,11 +2968,6 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			}
 			// if neither test succeeds, then let
 			// m_targetPhrase contents stand unchanged
-
-            // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-            // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-            // the code I've removed it. 
-            //m_bEnterTyped = FALSE;
 
 			pLayout->m_docEditOperationType = relocate_box_op;
 		} // end of block for bSuccessful == TRUE
@@ -3612,15 +3464,6 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 #ifdef Do_Clipping
 	//wxLogDebug(_T("In OnChar), ** KEY TYPED **"));
 #endif
-
-    // whm 24Feb2018 removed the m_bMergeWasDone flag, as it serves no purpose (see OnChar comment)
-    //m_bMergeWasDone = FALSE; //bool bMergeWasDone = FALSE;
-
-    // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-    // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-    // the code I've removed it. 
-    //m_bEnterTyped = FALSE;
-
 	// whm Note: The following code for handling the WXK_BACK key is ok to leave here in
 	// the OnChar() handler, because it is placed before the Skip() call (the OnChar() base
 	// class call in MFC)
@@ -3752,8 +3595,8 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 				}
 			}
 			pView->MergeWords(); // simply calls OnButtonMerge
-            // whm 24Feb2018 removed the m_bMergeWasDone flag, as it serves no purpose (see OnChar comment)
-            //m_bMergeWasDone = TRUE;
+            // 
+            //
 			pLayout->m_docEditOperationType = merge_op;
             pApp->m_bSuppressDefaultAdaptation = FALSE;
 
@@ -3769,16 +3612,6 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			// so in OnButtonMerge( ) we test the phrasebox's string and if it has more than just
 			// the last character typed, we assume we want to keep the other content - and so there
 			// we also set m_bRetainBoxContents
-            // whm 24Feb2018 removed the test and empty code block below. Also removed the m_bMergeWasDone
-            // flag, as it serves no purpose.
-			//if (m_bRetainBoxContents && m_bMergeWasDone)
-			//{
-			//	; // do nothing - note, exiting via here leaves the cursor after whatever
-			//	// character the user typed, so if that was a hyphen then the cursor will
-			//	// be preceding the concatenating space which usually the user will then
-			//	// want to delete; so leave the cursor location unchanged as this
-			//	// fortuitous location is precisely where we would want to be
-			//}
             m_bRetainBoxContents = FALSE; // turn it back off (default) until next required
 		}
 	}
@@ -3833,10 +3666,6 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 				{
 					// it was successful
 					pLayout->m_docEditOperationType = relocate_box_op;
-                    // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-                    // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-                    // the code I've removed it. 
-                    //m_bEnterTyped = FALSE;
 				}
 
 				pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
@@ -3880,10 +3709,6 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 				else
 				{
 					// it was successful
-                    // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-                    // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-                    // the code I've removed it. 
-                    //m_bEnterTyped = FALSE;
 					pLayout->m_docEditOperationType = relocate_box_op;
 				}
 
@@ -5551,22 +5376,11 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 		}
 	}
 	pLayout->m_docEditOperationType = relocate_box_op;
-    // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-    // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-    // the code I've removed it. 
-    //m_bEnterTyped = TRUE; // keep it continuing to use the faster GetSrcPhras BuildPhrases()
 	pView->Invalidate(); // added 1Apr09, since we return at next line
 	pLayout->PlaceBox();
 	#ifdef _FIND_DELAY
 		wxLogDebug(_T("8. End of OnePass"));
 	#endif
-
-	// whm added 20Nov10 reset the m_bIsGuess flag below. Can't do it in PlaceBox()
-	// because PlaceBox() is called first via the MoveToNextPile() call near the beginning
-	// of this function, then again in the line above - twice while control flow is going
-	// through this function in the normal course of auto-insert adaptations.
-	//pApp->m_bIsGuess = FALSE;
-
 	return TRUE; // all was okay
 }
 
@@ -6166,38 +5980,6 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex)
     }
 
 }
-
-// whm 22Feb2018 removed DoCancelAndSelect() - along with Cancel and Select button in wxDesigner resources.
-// It is no longer applicable with CPhraseBox derived from wxOwnerDrawnComboBox.
-/* 
-// the pPile pointer passed it must be the pointer to the active pile
-// BEW 26Mar10 changes needed for support of doc version 5
-void CPhraseBox::DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile)
-{
-	// refactored 2Apr09
-	if (gbIsGlossing) return; // unneeded,  but ensures correct behaviour
-							  // if I goofed elsewhere
-	CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-	// BEW changed 3Aug09 to always have the selection line for Find Next be the source
-	// text line - this makes the interface more consistent
-	int nSelLineIndex = 0;
-    // BEW changed 26Mar10, internally it tests bDoRecalcLayout and so it will do the
-    // RecalcLayout(), resetting of active sequ num, and the active pile to that location
-    // if TRUE. The m_bCancelAndSelectButtonPressed value passed in needs to be TRUE
-    //
-	// BEW added protection, 14May10; a hard-coded 2 will cause crash if the document has
-	// only a single word and bad initialization has the m_targetBox's
-	// m_bCancelAndSelectButtonPressed value set TRUE, since there are not enough piles to
-	// be able to select 2 in that case!
-	CAdapt_ItApp* pApp = &wxGetApp();
-	if (pSrcPhrase->m_nSequNumber < pApp->GetMaxIndex())
-	{
-		pView->MakeSelectionForFind(pSrcPhrase->m_nSequNumber,2,nSelLineIndex,
-									m_bCancelAndSelectButtonPressed);
-	}
-	m_bCancelAndSelectButtonPressed = FALSE; // must clear to default FALSE immediately
-}
-*/
 
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnLButtonDown(wxMouseEvent& event)

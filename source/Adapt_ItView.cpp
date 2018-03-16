@@ -2928,11 +2928,6 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		pOldActiveSrcPhrase = pOldActivePile->GetSrcPhrase();
 		wxASSERT(pOldActiveSrcPhrase);
 	}
-    // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-    // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-    // the code I've removed it. 
-    //pApp->m_pTargetBox->m_bEnterTyped = FALSE; // ensure its false, only hitting ENTER key
-						  // should set it TRUE
 	wxASSERT(pCell);
 	if (pCell->GetCellIndex() != 1) // index == 1 is the line of cells
 									// which has the phrase box
@@ -3472,18 +3467,6 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
     // selecting now; do it also before recalculating the phrase box, since if anything
     // moves, we want the phrase box location to be correct
     //
-    // whm 22Feb2018 removed - Cancel and Select button in Choose Translation dialog now removed
-    // along with the m_bCancelAndSelectButtonPressed global and the CPhraseBox::GetCancelAndSelectFlag() 
-    // function.
-	//if (pApp->m_pTargetBox->GetCancelAndSelectFlag())
-	//{
-	//	// this block is entered when the user places the phrase box with a click at a
-	//	// hole and lookup is done and there is more than one KB adaptation (or gloss)
-	//	// available and he clicks the Cancel & Select button; DoCancelAndSelect clears
-	//	// the private bool m_bCancelAndSelectButtonPressed in the CPhraseBox instance
-	//	pApp->m_pTargetBox->DoCancelAndSelect(this, pApp->m_pActivePile);
-	//	pApp->m_bSelectByArrowKey = TRUE; // so it is ready for extending
-	//}
 
     pApp->m_pTargetBox->m_bCompletedMergeAndMove = FALSE;
 //#ifdef _DEBUG
@@ -5946,10 +5929,6 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp);
 
-    // whm 24Feb2018 removed the m_bEnterTyped (previously named gbEnterTyped) because no code 
-    // actually uses or tests for its value - it is only assigned TRUE or FALSE. To help unclutter 
-    // the code I've removed it. 
-    //pApp->m_pTargetBox->m_bEnterTyped = FALSE; // ensure it is FALSE, only ENTER key typed should set it TRUE
 	wxRect rectBox(wxPoint((*pLoc).x, (*pLoc).y), wxPoint((*pLoc).x + aWidth,
 					(*pLoc).y + nHeight+4)); // logical coords
 
