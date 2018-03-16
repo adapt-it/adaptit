@@ -102,7 +102,6 @@ IMPLEMENT_DYNAMIC_CLASS(CPhraseBox, wxOwnerDrawnComboBox)
 BEGIN_EVENT_TABLE(CPhraseBox, wxOwnerDrawnComboBox)
 	EVT_MENU(wxID_UNDO, CPhraseBox::OnEditUndo)
 	EVT_TEXT(ID_PHRASE_BOX, CPhraseBox::OnPhraseBoxChanged)
-    EVT_TEXT_ENTER(ID_PHRASE_BOX, CPhraseBox::OnComboProcessEnterKeyPress) // this doesn't detect Enter key used when selecting an item from the dropdown list
 	EVT_CHAR(CPhraseBox::OnChar)
 	EVT_KEY_DOWN(CPhraseBox::OnKeyDown)
 	EVT_KEY_UP(CPhraseBox::OnKeyUp)
@@ -5873,12 +5872,6 @@ void CPhraseBox::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(even
     // CAdapt_ItCanvas::OnScroll() needs to know whether the dropdown list if popped down or not
     //bDropDownIsPoppedOpen = FALSE;
     wxLogDebug(_T("OnComboProcessDropDownListCloseUp: Popup Close event"));
-}
-void CPhraseBox::OnComboProcessEnterKeyPress(wxCommandEvent & WXUNUSED(event))
-{
-    // This event gets triggered when Enter key is pressed while the phrasebox has focus
-    int i = 1;
-    i = i;
 }
 #endif
 
