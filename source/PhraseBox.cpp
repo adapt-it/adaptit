@@ -952,13 +952,16 @@ void CPhraseBox::MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
 // there may not be any reason to halt so as to invoke this legacy hack function - so it 
 // may never be called. Anyway, Bill can test and determine if my foggy brain is thinking right
 //
+// whm 16Mar2018 restored BEW changes made 16Mar18 in attempt to find why app is now
+// failing to fill text within the phrasebox and have it pre-selected.
+//
 //void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_ItApp* pApp,
 //    CAdapt_ItView* pView, CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect)
 void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_ItApp* pApp,
 	CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect)
 {
-    //bool m_bCancelAndSelect_temp = FALSE; // whm 22Feb2018 added for temp fix
-    //bool gbUserCancelledChooseTranslationDlg_temp = FALSE; // whm 22Feb2018 added for temp fix
+    bool m_bCancelAndSelect_temp = FALSE; // whm 22Feb2018 added for temp fix
+    bool gbUserCancelledChooseTranslationDlg_temp = FALSE; // whm 22Feb2018 added for temp fix
 
     pApp->m_pTargetBox->m_bAbandonable = TRUE;
 
@@ -968,7 +971,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
     // an empty string, or to a copy of the sourcePhrase's key string
     bool bGotTranslation = FALSE;
 
-	/* BEW removed 16Mar18
+	//  BEW removed 16Mar18, whm restored 16Mar2018
     if (!gbIsGlossing && m_bCancelAndSelect_temp)
     {
         // in ChooseTranslation dialog the user wants the 'cancel and select'
@@ -982,8 +985,6 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
     }
     else
     {
-	*/
-		/*
         // user didn't press the Cancel and Select button in the Choose Translation
         // dialog, but he may have pressed Cancel button, or OK button - so try to
         // find a translation given these possibilities (note, nWordsInPhrase equal
@@ -1018,8 +1019,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
                 bGotTranslation = LookUpSrcWord(pNewPile);
             }
         }
-		*/
-		bGotTranslation = LookUpSrcWord(pNewPile); // BEW 16Mar18 added this line, because the above logic was commented out
+		//bGotTranslation = LookUpSrcWord(pNewPile); // BEW 16Mar18 added this line, because the above logic was commented out, whm removed 16Mar2018
         pNewPile = pApp->m_pActivePile; // update the pointer, since LookUpSrcWord()
                                         // calls RecalcLayout() & resets m_pActivePile (in refactored code
                                         // this call is still needed because we replace the old pile with the
@@ -1052,7 +1052,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
             // BEW added 1Jul09, the flag should be TRUE if nothing was found
             pApp->m_pTargetBox->m_bAbandonable = TRUE;
         }
-    //} // BEW removed 16Mar18
+    } // BEW removed 16Mar18, whm restored 16Mar2018
  }
 
 // BEW 13Apr10, changes needed for support of doc version 5
@@ -1070,13 +1070,17 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
 // mess up the logic by a quick refactor that removes the effects of the original
 // bool flags.
  // BEW 16Mar18 refactored to simplify - combobox implementation does not require so much logic
-//void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp,
+ //
+ // whm 16Mar2018 restored BEW changes made 16Mar18 in attempt to find why app is now
+ // failing to fill text within the phrasebox and have it pre-selected.
+ //
+ //void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp,
 //     CAdapt_ItView* pView, CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect)
 void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp,
 	CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect)
 {
-    //bool m_bCancelAndSelect_temp = FALSE; // whm 22Feb2018 added for temp fix
-    //bool gbUserCancelledChooseTranslationDlg_temp = FALSE; // whm 22Feb2018 added for temp fix
+    bool m_bCancelAndSelect_temp = FALSE; // whm 22Feb2018 added for temp fix
+    bool gbUserCancelledChooseTranslationDlg_temp = FALSE; // whm 22Feb2018 added for temp fix
 
     pApp->m_bAutoInsert = FALSE; // cause halt
 
@@ -1084,7 +1088,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
 	// With the combobox approach, Lookup() doesn't get a chance to put up Choose Translation dialog, instead, the user
 	// eyeballs the dropped down (or not) list to decide what to do. Halting the box with m_bAutoInsert set FALSE should suffice,
 	// so the test below and it's true block should be removed.
-/*
+
     if (!gbIsGlossing && m_bCancelAndSelect_temp)
     {
         // user cancelled CChooseTranslation dialog because he wants instead to
@@ -1101,7 +1105,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
     }
     else // user does not want a "Cancel and Select" selection; or is glossing
     {
-*/ 
+
 		// BEW 16Mar18, With the combodropdown implementation, it ought not be possible at this 
 		// point to know what the user will want, I've set bWantSelect to FALSE able
 
@@ -1119,7 +1123,6 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
 		// because glossing uses word counts greater than 1 now, and all we want here is
 		// to get something for the box, if possible
         bool bGotTranslation = FALSE;
-		/*
         if (!gbUserCancelledChooseTranslationDlg_temp || m_nWordsInPhrase == 1)
         {
             bGotTranslation = LookUpSrcWord(pNewPile);
@@ -1141,8 +1144,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
                 bGotTranslation = LookUpSrcWord(pNewPile);
             }
         }
-		*/
-		bGotTranslation = LookUpSrcWord(pNewPile); // BEW 16Mar18
+		//bGotTranslation = LookUpSrcWord(pNewPile); // BEW 16Mar18, whm removed 16Mar2018
         pNewPile = pApp->m_pActivePile; // update the pointer (needed, because
                                         // RecalcLayout() was done by LookUpSrcWord(), and in its refactored
                                         // code we called ResetPartnerPileWidth() to get width updated and
@@ -1163,7 +1165,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
                 m_Translation = pNewPile->GetSrcPhrase()->m_targetStr;
                 pNewPile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
                 pNewPile->GetSrcPhrase()->m_bNotInKB = TRUE;
-				bWantSelect = TRUE;
+				//bWantSelect = TRUE; // whm removed BEW's addition 16Mar2018
             }
 
             pApp->m_targetPhrase = m_Translation; // set using the global var,
@@ -1192,7 +1194,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
         {
             pApp->m_bAutoInsert = TRUE; // revoke the halt
         }
-    //} // BEW 16Mar18 removed true block
+    } // BEW 16Mar18 removed true block, whm restored 16Mar2018
 }
 
 // returns TRUE if the move was successful, FALSE if not successful
@@ -1383,18 +1385,6 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 #endif
 			
 		}
-
-        // whm added 10Jan2018 to support quick selection of a translation equivalent.
-        // Probably don't need to call CloseDropDown() and ClearDropDownList() here, since
-        // MoveToNextPile() ends with a call to PlaceBox().
-        // TODO: Test whether these 2 calls are needed.
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // Any earlier above, the dropdown combobox would possibly be hidden prematurely when the
-        // MoveToNextPile call returns prematurely. We might hide the dropdown combobox later below, 
-        // up to the point that the Invalidate() call is made near the end of this function, but I
-        // think that hiding it here is safer.
-        pApp->m_pTargetBox->CloseDropDown();
-        pApp->m_pTargetBox->ClearDropDownList();
 
         // set active pile, and same var on the phrase box, and active sequ number - but
         // note that only the active sequence number will remain valid if a merge is
@@ -5528,13 +5518,6 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 	pApp->m_pTargetBox->SetFocus();
 	pLayout->m_docEditOperationType = no_edit_op;
-
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // At document end, we should hide the dropdown. Hide it before the Invalidate() and
-    // PlaceBox() calls below to avoid a ghost image.
-    pApp->m_pTargetBox->CloseDropDown();
-    pApp->m_pTargetBox->ClearDropDownList();
 
 	pView->Invalidate();
 	pLayout->PlaceBox();

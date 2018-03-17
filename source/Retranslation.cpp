@@ -2300,12 +2300,6 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		int nNewCount = 0; // number of CSourcePhrase instances returned from the
 		// tokenization operation
 
-        // whm added 10Jan2018 to support quick selection of a translation equivalent.
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // Always Hide and Clear the dropdown list when doing a retranslation
-        m_pApp->m_pTargetBox->CloseDropDown();
-        m_pApp->m_pTargetBox->ClearDropDownList();
-
         // tokenize the retranslation (which is target text) into a list of new
         // CSourcePhrase instances on the heap (the m_srcPhrase and m_key members will then
         // contain target text - which a function further below will mine in order to

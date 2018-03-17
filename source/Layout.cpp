@@ -1214,8 +1214,8 @@ void CLayout::PlaceBox()
 
                     }
                 }
-                // UP TO HERE 7Mar2018 !!!!
 
+                /*
                  // Below for debugging only!!!
                 {
                     wxString selStr = m_pApp->m_pTargetBox->GetTextCtrl()->GetStringSelection();
@@ -1255,7 +1255,7 @@ void CLayout::PlaceBox()
                     wxLogDebug(_T("|***********************************************************************************"));
                 }
                 // Above for debugging only!!!
-                
+                */
                 
             }
             else // when nRefStrCount == 0
@@ -1287,7 +1287,7 @@ void CLayout::PlaceBox()
                 // mean that it resides in the KB, and won't get stored in the KB unless the user hits Enter/Tab while
                 // the copied source word in in the edit box.
 
-                
+                /*
                 // Below for debugging only!!!
                 {
                     wxString selStr = m_pApp->m_pTargetBox->GetTextCtrl()->GetStringSelection();
@@ -1327,37 +1327,11 @@ void CLayout::PlaceBox()
                     wxLogDebug(_T("|***********************************************************************************"));
                 }
                 // Above for debugging only!!!
-                
+                */
                 
                 m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
                 m_pApp->m_pTargetBox->SetSelection(-1, -1); // select all
                 m_pApp->m_pTargetBox->SetFocus();
-                /*
-                // Below for debugging only!!!
-                {
-                    wxString selStr = m_pApp->m_pTargetBox->GetTextCtrl()->GetStringSelection();
-                    wxString tgtBoxValue = m_pApp->m_pTargetBox->GetValue();
-                    wxString srcPhraseOfActivePile = m_pApp->m_pActivePile->m_pSrcPhrase->m_srcPhrase;
-                    wxString targetStrOfActivePile = m_pApp->m_pActivePile->m_pSrcPhrase->m_targetStr;
-                    wxString adaptionStrOfActivePile = m_pApp->m_pActivePile->m_pSrcPhrase->m_adaption;
-                    wxString targetPhraseOnApp = m_pApp->m_targetPhrase;
-                    wxString translation = m_pApp->m_pTargetBox->m_Translation;
-                    CTargetUnit* ptgtUnitFmChooseTrans = m_pApp->pCurTargetUnit; ptgtUnitFmChooseTrans = ptgtUnitFmChooseTrans;
-                    bool hasKBEntry = m_pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry; hasKBEntry = hasKBEntry;
-                    bool notInKB = m_pApp->m_pActivePile->m_pSrcPhrase->m_bNotInKB; notInKB = notInKB;
-                    // we use this 3-flag cocktail below elsewhere to test for these values of the three flags as
-                    // the condition for telling the application to retain the phrase box's contents when
-                    // user deselects target word, then makes a phrase and merges by typing.
-                    // m_bAbandonable is set FALSE, m_bUserTypedSomething is set TRUE, and m_bRetainContents is set TRUE for:
-                    // A click in the phrasebox (in OnLButtonDown), or Right/Left arrow key press (in OnKeyUp), or if
-                    // during a merge the m_targetPhrase > 1 and selections beyond the active location don't have any
-                    // translation (in OnButtonMerge)
-                    bool abandonable = m_pApp->m_pTargetBox->m_bAbandonable; abandonable = abandonable;
-                    bool userTypedSomething = m_pApp->m_bUserTypedSomething; userTypedSomething = userTypedSomething;
-                    bool retainBoxContents = m_pApp->m_pTargetBox->m_bRetainBoxContents; retainBoxContents = retainBoxContents; // used in OnButtonMerge()
-                }
-                // Above for debugging only!!!
-                */
             }
         }
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

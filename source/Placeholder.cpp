@@ -1415,13 +1415,6 @@ m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
 		// scroll into view, just in case a lot were inserted
 		m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 
-        // whm added 10Jan2018 to support quick selection of a translation equivalent.
-        // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-        // The current phrasebox location is changing due to the placement of the placeholder,
-        // so Hide the dropdown. PlaceBox below may reactivate it if needed.
-        m_pApp->m_pTargetBox->CloseDropDown();
-        m_pApp->m_pTargetBox->ClearDropDownList();
-
 		m_pView->Invalidate();
 		m_pLayout->PlaceBox();
 	}

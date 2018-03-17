@@ -4730,12 +4730,6 @@ bool CFreeTrans::IsFreeTranslationSrcPhrase(CPile* pPile)
 /// proceed with turning on free trans mode
 void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 {
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-    // Always close and clear the dropdown when entering Free Translation mode
-    m_pApp->m_pTargetBox->CloseDropDown();
-    m_pApp->m_pTargetBox->ClearDropDownList();
-
 	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
 
 	// whm Note: Only log user action when user explicitly selects menu

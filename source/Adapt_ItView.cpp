@@ -2311,6 +2311,9 @@ bool CAdapt_ItView::SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 // the adaptation KB's CTargetUnit at that pile's CSourcePhrase has no empty string translation;
 // when that happens, unless we correct m_bHasKBEntry to be FALSE, the phrasebox won't stop
 // there as OnePass() gets to the hole
+// whm 16Mar2018 modified the determination of bTargetUnitHasEmptyTranslation in the do...while
+// loop below. It can be TRUE only when there is just one ref strings which is an 
+                // empty string (i.e., <no adaptation>). 
 CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
 {
 	// refactored 23Mar09, BEW 12Mar18
@@ -2336,21 +2339,31 @@ CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
 			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 			int numWords = pSrcPhrase->m_nSrcWords;
 			CTargetUnit* pTU = pKB->GetTargetUnit(numWords, pSrcPhrase->m_key);
+            int refStrCount = 0; // whm 16Mar2018 added
 			if (pTU != NULL)
 			{
-				bool bTargetUnitHasEmptyTranslation = pTU->HasEmptyTranslation();
+                // whm 16Mar2018 modified the determination of bTargetUnitHasEmptyTranslation 
+                // below. It can be TRUE only when there is just one ref string which is an 
+                // empty string (i.e., <no adaptation>).
+                refStrCount = pTU->CountNonDeletedRefStringInstances();
+                bool bTargetUnitHasEmptyTranslation = pTU->HasEmptyTranslation(); // HasEmptyTranslation() returns TRUE if at least one ref string is empty (there may be multiple ref strings)
+                if (bTargetUnitHasEmptyTranslation == TRUE && refStrCount > 1)
+                {
+                    // There is are more than one ref strings, one of which is the empty string.
+                    bTargetUnitHasEmptyTranslation = FALSE;
+                }
 				if (gbIsGlossing)
 				{
-					if (pSrcPhrase->m_bHasGlossingKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_gloss.IsEmpty())
-					{
+                    if (pSrcPhrase->m_bHasGlossingKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_gloss.IsEmpty())
+                    {
 						// Correction of the flag value is needed
 						pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 					}
 				}
 				else
 				{
-					if (pSrcPhrase->m_bHasKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_adaption.IsEmpty())
-					{
+                    if (pSrcPhrase->m_bHasKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_adaption.IsEmpty())
+                    {
 						// Correction of the flag value is needed
 						pSrcPhrase->m_bHasKBEntry = FALSE;
 					}
@@ -3118,11 +3131,12 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //#endif
 
     // whm note 10Jan2018 to support quick selection of a translation equivalent.
+    // See similar code in GetNextEmptyPile().
     // This PlacePhraseBox() ends up by calling the Layout's PlaceBox().
     // Therefore we don't need to mess with calling CloseDropDown() or
     // ClearDropDown() here in PlacePhraseBox().
 
-// setup the layout and phrase box at the new location; in the refactored design this
+    // setup the layout and phrase box at the new location; in the refactored design this
     // boils down to working out what the new active location's sequence number is, and
     // then setting the active pile to be the correct one, getting an appropriate gap
     // calculated for the "hole" the box is to occupy, tweaking the layout to conform to
@@ -3146,23 +3160,33 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	CKB* pKB = GetKB();
 	int numWords = pSrcPhrase->m_nSrcWords;
 	CTargetUnit* pTU = pKB->GetTargetUnit(numWords, pSrcPhrase->m_key);
-	if (pTU != NULL)
+    int refStrCount = 0; // whm 16Mar2018 added
+    if (pTU != NULL)
 	{
 		if (pTU != NULL)
 		{
-			bool bTargetUnitHasEmptyTranslation = pTU->HasEmptyTranslation();
-			if (gbIsGlossing)
+            // whm 16Mar2018 modified the determination of bTargetUnitHasEmptyTranslation 
+            // below. It can be TRUE only when there is just one ref string which is an 
+            // empty string (i.e., <no adaptation>).
+            refStrCount = pTU->CountNonDeletedRefStringInstances();
+            bool bTargetUnitHasEmptyTranslation = pTU->HasEmptyTranslation(); // HasEmptyTranslation() returns TRUE if at least one ref string is empty (there may be multiple ref strings)
+            if (bTargetUnitHasEmptyTranslation == TRUE && refStrCount > 1)
+            {
+                // There is are more than one ref strings, one of which is the empty string.
+                bTargetUnitHasEmptyTranslation = FALSE;
+            }
+            if (gbIsGlossing)
 			{
-				if (pSrcPhrase->m_bHasGlossingKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_gloss.IsEmpty())
-				{
+                if (pSrcPhrase->m_bHasGlossingKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_gloss.IsEmpty())
+                {
 					// Correction of the flag value is needed
 					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 				}
 			}
 			else
 			{
-				if (pSrcPhrase->m_bHasKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_adaption.IsEmpty())
-				{
+                if (pSrcPhrase->m_bHasKBEntry && !bTargetUnitHasEmptyTranslation && pSrcPhrase->m_adaption.IsEmpty())
+                {
 					// Correction of the flag value is needed
 					pSrcPhrase->m_bHasKBEntry = FALSE;
 				}
@@ -22642,12 +22666,6 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 												pApp->m_targetPhrase, useTargetPhraseForLookup);
 	}
 
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // Invoking the <no adaptation> button indicates user does not want to enter a translation,
-    // so hide the dropdown combobox if it is showing.
-    pApp->m_pTargetBox->CloseDropDown();
-    pApp->m_pTargetBox->ClearDropDownList();
-
 	pApp->m_targetPhrase.Empty(); // clear out the attribute on the view
 	pApp->m_pTargetBox->ChangeValue(_T("")); // clear out the box too
 	if (gbIsGlossing)
@@ -29034,15 +29052,6 @@ void CAdapt_ItView::ToggleGlossingMode()
 		{
 			// we are changing from glossing to adapting
 
-            // whm added 10Jan2018 to support quick selection of a translation/glossing equivalent.
-            // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-            // When changing between adapting and glossing or glossing and adapting, we need to
-            // initially hide the dropdown as it may have content that is initially not appropriate
-            // for the new mode. As adapting or glossing proceeds, it will get filled with glosses 
-            // in its dropdown list when glossing and with adaptations when adapting. 
-            pApp->m_pTargetBox->CloseDropDown();
-            pApp->m_pTargetBox->ClearDropDownList();
-
 			// get any removed adaptations in gEditRecord into the GUI list; but if the
 			// mode current on is free translations mode, don't do so
 			bool bAllsWell;
@@ -29056,15 +29065,6 @@ void CAdapt_ItView::ToggleGlossingMode()
 		else
 		{
 			// we are changing from adapting to glossing
-
-            // whm added 10Jan2018 to support quick selection of a translation/glossing equivalent.
-            // This seems to be an appropriate place to hide the dropdown combobox if it is showing.
-            // When changing between adapting and glossing or glossing and adapting, we need to
-            // initially hide the dropdown as it may have content that is initially not appropriate
-            // for the new mode. As adapting or glossing proceeds, it will get filled with glosses 
-            // in its dropdown list when glossing and with adaptations when adapting. 
-            pApp->m_pTargetBox->CloseDropDown();
-            pApp->m_pTargetBox->ClearDropDownList();
 
             // get any removed glosses in gEditRecord into the GUI list; but if the
 			// mode current on is free translations mode, don't do so
