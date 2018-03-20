@@ -5284,6 +5284,12 @@ bool IsUsfmStructureChanged(wxString& oldText, wxString& newText)
 	}
 }
 
+// whm 20Mar2018 refactored to correct bad parse of Language Identifier field which in Paratext 8 may 
+// add "Advanced" information that adds extra fields to the EthnologueCode, for example "ug:Arab:143:"
+// as found in at least one user's Paratext 8's Settings.xml file. The extra tokens delimited by ':'
+// characters resulted in the while loop overwriting the first 2 or 3 fields with the last 2 or 3 
+// tokens garbling the composedProjStr.
+// The refactored version now puts the extra field tokens all in the EthnologueCode field.
 bool CollabProjectFoundInListOfEditorProjects(wxString projName, wxArrayString projList, wxString& composedProjStr)
 {
 	int nProjCount;
@@ -5322,20 +5328,37 @@ bool CollabProjectFoundInListOfEditorProjects(wxString projName, wxArrayString p
 				wxString tokenStr = tkz.GetNextToken();
 				tokenStr.Trim(FALSE);
 				tokenStr.Trim(TRUE);
-				switch (tokCt)
-				{
-				case 1: tmpShortName = tokenStr; // the short name is the 1st token
-					if (tokenStr == tmpIncomingShortName)
-						bProjFound = TRUE;
-					break;
-				case 2: tmpFullName = tokenStr; // the full name is the 2nd token
-					break;
-				case 3: tmpLangName = tokenStr; // the language name is the 3rd token
-					break;
-				case 4: tmpEthnologueCode = tokenStr; // the ethnologue code is the 4th token
-					break;
-				default: tmpShortName = tokenStr;
-				}
+                if (tokCt == 1)
+                {
+                    // whm 20Mar2018 Note: The Paratext project's ShortName is the
+                    // only part of a PT project identification that should be unique,
+                    // hence if we found a ShortName, we've found the project in the
+                    // list of editor projects.
+                    tmpShortName = tokenStr; // the short name is the 1st token
+                    if (tokenStr == tmpIncomingShortName)
+                        bProjFound = TRUE;
+                }
+                else if (tokCt == 2)
+                {
+                    tmpFullName = tokenStr; // the full name is the 2nd token
+                }
+                else if (tokCt == 3)
+                {
+                    tmpLangName = tokenStr; // the language name is the 3rd token
+                }
+                else if (tokCt >= 4)
+                {
+                    if (tmpEthnologueCode.IsEmpty())
+                    {
+                        tmpEthnologueCode = tokenStr; // the ethnologue code is the 4th token
+                    }
+                    else
+                    {
+                        // Put extra tokens in the tmpEthnologueCode field, for example one user's 
+                        // EthnologueCode was "ug:Arab:143:"
+                        tmpEthnologueCode += _T(":") + tokenStr; // don't pad these with spaces
+                    }
+                }
 				tokCt++;
 			}
 			if (tmpProjComposedName.IsEmpty() && bProjFound)
