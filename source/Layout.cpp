@@ -992,6 +992,7 @@ void CLayout::PlaceBox()
                 }
                 // no matches are possible for phrases longer than nCurLongest
                 nCurLongest = pKB->m_nMaxWords;
+                nCurLongest = nCurLongest; // avoid gcc warning
 
                 // check we are within bounds
                 CSourcePhrase* pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
@@ -1332,6 +1333,8 @@ void CLayout::PlaceBox()
                 m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
                 m_pApp->m_pTargetBox->SetSelection(-1, -1); // select all
                 m_pApp->m_pTargetBox->SetFocus();
+
+                m_pApp->pCurTargetUnit = (CTargetUnit*)NULL; // clear the target unit in this nRefStrCount == 0 block too.
             }
         }
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
