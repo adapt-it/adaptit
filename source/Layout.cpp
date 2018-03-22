@@ -944,9 +944,10 @@ void CLayout::PlaceBox()
         // and can be interacted with by the user. Hence this is the main location in the
         // application where we do the following to set up the content and characteristics 
         // of the phrasebox's (m_pTargetBox) dropdown control:
-        // 0. Test for the App's bLookAheadMerge flag. By allowing this code to execute only when 
-        //    bLookAheadMerge is FALSE, it eliminates one extraneous call of this block of code when 
-        //    PlaceBox() is called from LookAhead() upstream.
+        // 0. Test for the App's bLookAheadMerge, m_bAutoInsert, or m_bMovingToDifferentPile flags. 
+        //    By allowing this code to execute only when all those flags are FALSE, it eliminates 
+        //    extraneous calls of this block of code when PlaceBox() is called during merging and
+        //    moving operations.
         // 1. Load the contents of the phrasebox's drop down list (via calling PopulateDropDownList() below).
         //    If this PlaceBox() was called at the point the ChooseTranslation dialog was dismissed
         //    the pCurTargetUnit parameter to PopulateDropDownList() will be non-NULL and 
@@ -954,20 +955,22 @@ void CLayout::PlaceBox()
         //    If pCurTargetUnit == NULL, then PopulateDropDownList() will use the appropriate
         //    KB and its GetTargetUnit() method to populate the dropdown list.
         // 2. Set which button appears on the dropdown control - down arrow button or disabled (X) button
-        // 3. Set the App flag m_bChooseTransShowPopup to TRUE or FALSE to inform OnInit() whether
+        // 3. Set the App flag m_bChooseTransShowPopup to TRUE or FALSE to inform OnIdle() whether
         //    to display the dropdown's list (TRUE) or suppress opening the list (FALSE).
+        // TODO: update the following points !!!
         // 4. Set the Selection to the first list item (when there are multiple items in the list).
         // 5. When m_pTargetBox->GetCount() == 0 (in the else block below) the m_targetPhrase content
         //    held on the App is inserted into the phrasebox (m_pTargetBox), and the content is selected.
 
-        if (!m_pApp->bLookAheadMerge)
+        
+        if (!m_pApp->bLookAheadMerge && !m_pApp->m_bAutoInsert && !m_pApp->m_bMovingToDifferentPile)
         {
             // whm 5Mar2018 refactored the setup and PopulateDropDownList() function to better make use of
             // BEW's original coding handles the phrasebox contents (and KB access and storage) by the time 
             // code execution arrives here in PlaceBox().
             // If the caller was LookAhead(), or if the ChooseTranslation dialog was just dismissed before
             // this PlaceBox() call, the global pCurTargetUnit will have been defined at this point, and we
-            // can use it. It it is NULL we get the target unit at this location
+            // should use it. It it is NULL we just get the target unit at this location and use it.
             if (m_pApp->pCurTargetUnit == NULL)
             {
                 CTargetUnit* pTargetUnit = (CTargetUnit*)NULL; // a local target unit pointer
@@ -1183,9 +1186,7 @@ void CLayout::PlaceBox()
                             // have ensured that the m_pApp->m_targetPhrase has the copy of the source 
                             // word/phrase in it.
                             // The following conditions/flags should be TRUE:
-                            CSourcePhrase* pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
                             //wxASSERT(!m_pApp->m_pTargetBox->GetValue().IsEmpty()); // the actual phrasebox - m_pTargetBox() - could be empty here
-                            wxASSERT(!pSrcPhrase->m_bHasKBEntry);
                         }
                         else // m_bCopySource is FALSE
                         {

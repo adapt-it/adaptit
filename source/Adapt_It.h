@@ -3706,6 +3706,9 @@ public:
                 // inserting provided the view's m_bSingleStep flag is FALSE; when FALSE,
                 // no repetitive matching is tried.
 
+    // whm added 22Mar2018 for detecting callers of PlaceBox()
+    bool        m_bMovingToDifferentPile;
+
     short       m_nExpandBox;
 
     /// Use this multiplier to calculate when text gets too near the RHS of the phrase box, so

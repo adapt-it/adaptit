@@ -197,8 +197,10 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
         m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 	}
 	
+    m_pApp->m_bMovingToDifferentPile = TRUE; // whm 22Mar2018 added
 	InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount);
-	
+    m_pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added
+
 	// jump to it (can't use old pile pointers, the recalcLayout call will have 
 	// clobbered them)
 	CPile* pPile = m_pView->GetPile(nSequNum);
@@ -347,8 +349,10 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		nSequNum++; // make the sequence number agree
 	}
 	
+    m_pApp->m_bMovingToDifferentPile = TRUE; // whm 22Mar2018 added
 	InsertNullSourcePhrase(pDoc,pInsertLocPile,nCount,TRUE,FALSE,FALSE); // here, never for
 	// Retransln if we inserted a dummy, now get rid of it and clear the global flag
+    m_pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added
 	if (m_bDummyAddedTemporarily)
 	{
         m_bDummyAddedTemporarily = FALSE;
@@ -2626,9 +2630,11 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			nSequNum++; // make the sequence number agree
 		}
 		
+        m_pApp->m_bMovingToDifferentPile = TRUE; // whm 22Mar2018 added
 		InsertNullSourcePhrase(pDoc,pInsertLocPile,nCount,TRUE,FALSE,FALSE); // here, never
 		// for Retransln
-		// if we inserted a dummy, now get rid of it and clear the global flag
+        m_pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added
+        // if we inserted a dummy, now get rid of it and clear the global flag
 		if (m_bDummyAddedTemporarily)
 		{
             m_bDummyAddedTemporarily = FALSE;
@@ -2758,8 +2764,10 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
             m_pApp->m_bInhibitMakeTargetStringCall = FALSE;
 		}
 		
-		InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount);
-		
+        m_pApp->m_bMovingToDifferentPile = TRUE; // whm 22Mar2018 added
+        InsertNullSourcePhrase(pDoc, pInsertLocPile, nCount);
+        m_pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added
+
 		// BEW added 10Sep08 in support of Vertical Edit mode
 		if (gbVerticalEditInProgress)
 		{

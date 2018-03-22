@@ -1208,6 +1208,10 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
 bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+
+    // whm added 22Mar2018 for detecting callers of PlaceBox()
+    pApp->m_bMovingToDifferentPile = TRUE;
+
 	pApp->m_preGuesserStr.Empty(); // BEW 27Nov14, in case a src string, or modified string
 		// is stored ready for user's Esc keypress to restore the pre-guesser
 		// form, clear it, because the box is gunna move and we want it
@@ -1254,7 +1258,10 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 				CheckPhraseBoxDoesNotLandWithinRetranslation(pView, pNextEmptyPile, pCurPile);
 		if (!bNotInRetranslation)
 		{
-			// the phrase box landed in a retranslation, so halt the lookup and insert loop
+            // whm added 22Mar2018 for detecting callers of PlaceBox()
+            pApp->m_bMovingToDifferentPile = FALSE;
+
+            // the phrase box landed in a retranslation, so halt the lookup and insert loop
 			// so the user can do something manually to achieve what he wants in the
 			// viscinity of the retranslation
 			return FALSE;
@@ -1292,7 +1299,10 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		bOK = DoStore_NormalOrTransliterateModes(pApp, pDoc, pView, pCurPile);
 		if (!bOK)
 		{
-			DealWithUnsuccessfulStore(pApp, pView, pNextEmptyPile);
+            // whm added 22Mar2018 for detecting callers of PlaceBox()
+            pApp->m_bMovingToDifferentPile = FALSE;
+
+            DealWithUnsuccessfulStore(pApp, pView, pNextEmptyPile);
 			return FALSE; // can't move until a valid adaption (which could be null) is supplied
 		}
 	}
@@ -1330,7 +1340,10 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 							nextStep, TRUE); // bForceTransition is TRUE
 			if (bCommandPosted)
 			{
-				// don't proceed further because the current vertical edit step has ended
+                // whm added 22Mar2018 for detecting callers of PlaceBox()
+                pApp->m_bMovingToDifferentPile = FALSE;
+
+                // don't proceed further because the current vertical edit step has ended
 				m_bTunnellingOut = TRUE; // so caller can use it
 				return FALSE;
 			}
@@ -1349,7 +1362,10 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		m_bSuppressStoreForAltBackspaceKeypress = FALSE; // make sure it's off before returning
 		m_bTemporarilySuspendAltBKSP = FALSE;
 
-		return FALSE; // we are at the end of the document
+        // whm added 22Mar2018 for detecting callers of PlaceBox()
+        pApp->m_bMovingToDifferentPile = FALSE;
+
+        return FALSE; // we are at the end of the document
 	}
 	else
 	{
@@ -1373,7 +1389,10 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 									m_nCurrentSequNum,nextStep); // bForceTransition is FALSE
 			if (bCommandPosted)
 			{
-				// don't proceed further because the current vertical edit step has ended
+                // whm added 22Mar2018 for detecting callers of PlaceBox()
+                pApp->m_bMovingToDifferentPile = FALSE;
+
+                // don't proceed further because the current vertical edit step has ended
 				m_bTunnellingOut = TRUE; // so caller can use it
 				return FALSE; // try returning FALSE
 			}
@@ -1623,6 +1642,9 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 
         // make sure gbSuppressMergeInMoveToNextPile is reset to the default value
         m_bSuppressMergeInMoveToNextPile = FALSE;
+
+        // whm added 22Mar2018 for detecting callers of PlaceBox()
+        pApp->m_bMovingToDifferentPile = FALSE;
 
         return TRUE;
 	}
@@ -2457,7 +2479,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 		// scroll into view
 		pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
-		// make what we've done visible
+        // make what we've done visible
 		pView->Invalidate();
 		pLayout->PlaceBox();
 
@@ -5842,7 +5864,7 @@ void CPhraseBox::OnComboProcessDropDownListOpen(wxCommandEvent& WXUNUSED(event))
         this->CloseDropDown();
     }
     //bDropDownIsPoppedOpen = TRUE; // CAdapt_ItCanvas::OnScroll() needs to know whether the dropdown list if popped down or not
-    wxLogDebug(_T("OnComboProcessDropDownListOpen: Popup Open event"));
+    //wxLogDebug(_T("OnComboProcessDropDownListOpen: Popup Open event"));
 }
 
 void CPhraseBox::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event))
@@ -5854,7 +5876,7 @@ void CPhraseBox::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(even
 
     // CAdapt_ItCanvas::OnScroll() needs to know whether the dropdown list if popped down or not
     //bDropDownIsPoppedOpen = FALSE;
-    wxLogDebug(_T("OnComboProcessDropDownListCloseUp: Popup Close event"));
+    //wxLogDebug(_T("OnComboProcessDropDownListCloseUp: Popup Close event"));
 }
 #endif
 

@@ -18260,6 +18260,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bKBReady = FALSE;
     m_bGlossingKBReady = FALSE;
     m_bAutoInsert = FALSE;
+
+    // whm added 22Mar2018 for detecting callers of PlaceBox()
+    m_bMovingToDifferentPile = FALSE;
+
     m_bTablesLoaded = FALSE; // whm added 23May04 not initialized in MFC
 
                              // BEW 8Jun10, removed support for checkbox "Recognise standard format

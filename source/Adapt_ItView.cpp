@@ -16678,7 +16678,9 @@ void CAdapt_ItView::Jump(CAdapt_ItApp* pApp, CSourcePhrase* pNewSrcPhrase)
 	pApp->m_targetPhrase = pNewSrcPhrase->m_adaption; // make it look normal,
 													  // don't use m_targetStr here
 	pApp->GetMainFrame()->canvas->ScrollIntoView(nNewSequNum);
+    pApp->m_bMovingToDifferentPile = TRUE; // whm 22Mar2018 added
 	PlacePhraseBox(pCell,2);
+    pApp->m_bMovingToDifferentPile = FALSE; // whm 22Mar2018 added
 
 	// update status bar with project name
 	pApp->RefreshStatusBarInfo();
