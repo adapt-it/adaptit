@@ -6134,7 +6134,7 @@ void CPhraseBox::OnComboItemSelected(wxCommandEvent & WXUNUSED(event))
 }
 
 // This OnMeasureItem() function implements the virtual function in wxOwnerDrawnComboBox
-// It returns the height of the list item according to the vertical text extend
+// It returns the height of the list item according to the vertical text extent
 wxCoord CPhraseBox::OnMeasureItem(size_t item) const
 {
     // Get the text extent height of the combobox item - all should have same height

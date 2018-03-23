@@ -78,6 +78,7 @@
 #include "ConflictResActionDlg.h"
 #include "CollabVerseConflictDlg.h"
 #include "KbSvrHowGetUrl.h"
+#include "Adapt_ItCanvas.h"
 
 
 /// This global is defined in Adapt_It.cpp.
@@ -3098,6 +3099,11 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		}
 		// we must place the box at the active pile's location
 		pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
+
+        // whm 23Mar2018 added ScrollIntoView() which is needed for collaboration documents
+        // just as it is called for non-collaboration documents
+        pApp->GetMainFrame()->canvas->ScrollIntoView(nActiveSequNum);
+
 		// delay the Place...() call until next OnIdle() if the flag is TRUE
 		if (!pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle)
 		{

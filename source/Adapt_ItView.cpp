@@ -6024,6 +6024,10 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	// WX version resizes rather than recreating the target box
 	pApp->m_pTargetBox->SetSize(rectBox.GetLeft(),rectBox.GetTop(),
 								rectBox.GetWidth(),rectBox.GetHeight());
+    // whm 22Mar2018 testing affect of the SetMargins() command as possible fix for the bad margin setting in the Mac port
+    // Note: A value of wxPoint(-1, -1) should use the default values.
+    //pApp->m_pTargetBox->SetMargins(wxPoint(-1, -1));
+    //pApp->m_pTargetBox->SetMargins(wxPoint(1, 1));
 
     // whm note: Shouldn't the following adjustment come before the SetSize call above???
     // BEW answer: no, SetSize() would then wipe out the effect.
