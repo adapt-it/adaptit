@@ -6517,10 +6517,18 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 		}
 
+        // whm 28Mar2018 Note: This nexe PlacePhraseBox() call is called from the DocPage's
+        // OnWizardFinish(), which was in turn called by DocPage's OnWizardPageChanging().
+        // The OnWizardPageChanging() function itself will end up calling PlaceBox(), so
+        // we should suppress PlacePhraseBox()'s own PlaceBox() call and its execution of 
+        // code in SetupDropDownPhraseBoxForThisLocation() here by setting the App's
+        // m_bMovingToDifferentPile flag to TRUE during the PlacePhraseBox() call.
+        pApp->m_bMovingToDifferentPile = TRUE;
 		pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // selector = 2, because we
 			// were not at any previous location, so inhibit the initial StoreText call,
 			// but enable the removal from KB storage of the adaptation text (see comments under
 			// the PlacePhraseBox function header, for an explanation of selector values)
+        pApp->m_bMovingToDifferentPile = FALSE;
 
 		// save old sequ number in case required for toolbar's Back button - no earlier one yet,
 		// so just use the value -1
