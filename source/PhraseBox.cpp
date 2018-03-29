@@ -5912,22 +5912,18 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     //            SetSelection(indexOfNoAdaptation), and ensure that m_targetPhrase is assigned in the
     //            m_pTargetBox.
     //        If the bNoAdaptationFlagPresent == FALSE we ensure the following:
-    //          When nRefStrCount == 1, that ref String must NOT be an empty string, but it could be
-    //            either a copy of the source word/phrase if we're at a "hole" location, or it could
-    //            be a location that had one and only one previously entered translation.
-    //            When m_bCopySource == TRUE, nothing special need be done; a prior call to PlacePhraseBox()
-    //              and CopySourceKey() should have ensured that the App's m_targetPhrase has the copy of
-    //              the source word/phrase in it. 
-    //            When m_bCopySource == FALSE, we know that this one and only ref string is not a copy
-    //              of the source word/phrase, but is a unique translation that was entered previously
-    //              and is coming from the KB. In this case we can assert that the pSrcPhrase here has
-    //              a non-empty m_adaption member, and its m_bHasKBEntry is TRUE. In this case we call
-    //              SetSelection(selectionIndex) and ensure the m_pTargetBox's edit box is assigned the
-    //              value of m_targetPhrase.
+    //          When nRefStrCount == 1, there is one and only one ref string and it cannot be 
+    //          a <no adaptation> type. The PopulateDropDownList() function has put the ref 
+    //          string as the first string in the dropdown list. Do the following:
+    //              Call GetString(0) and assign that item's string to the App's m_targetPhrase.
+    //              Change the value in the m_pTargetBox to become the value now in m_targetPhrase.
+    //              Call SetSelection(0) to select/highlight the list item (also copies it to the edit box).
     //          When nRefStrCount > 1, we know that there is more than 1 ref String none of which are 
-    //            empty ("<no adaptation>"). Here we basically ensure that any existing phrasebox content
-    //            is selected using the selectIndex value we got back from PopulateDropDownList(), and 
-    //            that the m_pTargetBox's edit box is assigned the value of m_targetPhrase.
+    //            empty ("<no adaptation>"). Do the following:
+    //            If the selectionIndex is -1, set index to 0, otherwise set index to value of selectionIndex.
+    //            Call GetString(index) and assign it to the App's m_targetPhrase.
+    //            Change the value in the m_pTargetBox to become the value now in m_targetPhrase.
+    //            Call SetSelection(index) to select/highlight the list item (also copies it to the edit box).
     //
     // When the count of non-deleted ref string instances nRefStrCount is == 0:
     // In this case - when nRefStrCount == 0, we are at a "hole", and there are no translation equivalents
@@ -6145,45 +6141,26 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             {
                 // There is no <no adaptation> ref string in play at this location
                 wxASSERT(indexOfNoAdaptation == -1);
-
                 if (nRefStrCount == 1)
                 {
-                    // There is one and only one ref string and it cannot be a <no adaptation> type, but
-                    // it could be either a copy of the source word/phrase if this is a "hole" location,
-                    // or it could be a location that had one and only one previously entered translation
-                    CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-                    if (pApp->m_bCopySource == TRUE)
+                    // There is one and only one ref string and it cannot be a <no adaptation> type.
+                    wxASSERT(pApp->m_pTargetBox->GetCount() == 1);
+                    int index;
+                    if (selectionIndex == -1)
                     {
-
-                        // A prior call to PlacePhraseBox() and CopySourceKey() should 
-                        // have ensured that the m_pApp->m_targetPhrase has the copy of the source 
-                        // word/phrase in it.
-                        // The following conditions/flags should be TRUE:
-                        // But Note: the actual phrasebox - m_pTargetBox() - could be empty here in the context
-                        // of multiple spurious calls of PlaceBox(). Such spurious calls have probably been
-                        // eliminated, but to be safe I've commented out the assert below.
-                        //wxASSERT(!pApp->m_pTargetBox->GetValue().IsEmpty()); 
-                        wxASSERT(pApp->m_pTargetBox->GetCount() == 1);
-                        pApp->m_targetPhrase = pApp->m_pTargetBox->GetString(0);
-                        pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
-                        pApp->m_pTargetBox->SetSelection(0);
+                        // If we pass a selectionIndex of -1 to the SetSelection() call below it
+                        // would just empty the edit box and not select the item. Instead we
+                        // set the index to 0 to get the first item
+                        index = 0;
                     }
-                    else // m_bCopySource is FALSE
+                    else
                     {
-                        // The one and only ref string is not a copy of the source word/phrase, but is
-                        // a unique translation that was entered previously. If we get here it would be
-                        // by a user directly clicking this location to put the phrasebox here. 
-                        // The following conditions/flags should be TRUE:
-                        //wxASSERT(!pSrcPhrase->m_adaption.IsEmpty());
-                        //wxASSERT(pSrcPhrase->m_bHasKBEntry);
-                        // The phrasebox has one item in its list and it should appear in the
-                        // dropdown's edit box, selected
-                        wxASSERT(pApp->m_pTargetBox->GetCount() == 1);
-                        pApp->m_targetPhrase = pApp->m_pTargetBox->GetString(0);
-                        pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
-                        pApp->m_pTargetBox->SetSelection(0);
-
+                        // The PopulateDropDownList() function determined a selectionIndex to use
+                        index = selectionIndex;
                     }
+                    pApp->m_targetPhrase = pApp->m_pTargetBox->GetString(index);
+                    pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+                    pApp->m_pTargetBox->SetSelection(index);
                 }
                 else // nRefStrCount > 1
                 {
@@ -6191,20 +6168,23 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     // Here we basically just ensure that any existing phrasebox content
                     // is selected in the dropdown list using the selectIndex info we got
                     // back from PopulateDropDownList().
-                    // TODO: The code below in this else block could be used as the sole block 
-                    // of code needed within the outer 'else // no <no adaptation> present' block
                     wxASSERT(pApp->m_pTargetBox->GetCount() > 1);
-                    pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+                    int index;
                     if (selectionIndex == -1)
                     {
                         // If we pass a selectionIndex of -1 to the SetSelection() call below it
-                        // would just empty the edit box and not select the item
-                        pApp->m_pTargetBox->SetSelection(0);
+                        // would just empty the edit box and not select the item. Instead we
+                        // set the index to 0 to get the first item
+                        index = 0;
                     }
                     else
                     {
-                        pApp->m_pTargetBox->SetSelection(selectionIndex);
+                        // The PopulateDropDownList() function determined a selectionIndex to use
+                        index = selectionIndex;
                     }
+                    pApp->m_targetPhrase = pApp->m_pTargetBox->GetString(index);
+                    pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+                    pApp->m_pTargetBox->SetSelection(index);
                     pApp->m_pTargetBox->SetSelection(-1, -1); // select all
                 }
             }
