@@ -6151,6 +6151,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     // There is one and only one ref string and it cannot be a <no adaptation> type, but
                     // it could be either a copy of the source word/phrase if this is a "hole" location,
                     // or it could be a location that had one and only one previously entered translation
+                    CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
                     if (pApp->m_bCopySource == TRUE)
                     {
 
@@ -6162,6 +6163,10 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                         // of multiple spurious calls of PlaceBox(). Such spurious calls have probably been
                         // eliminated, but to be safe I've commented out the assert below.
                         //wxASSERT(!pApp->m_pTargetBox->GetValue().IsEmpty()); 
+                        wxASSERT(pApp->m_pTargetBox->GetCount() == 1);
+                        pApp->m_targetPhrase = pApp->m_pTargetBox->GetString(0);
+                        pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+                        pApp->m_pTargetBox->SetSelection(0);
                     }
                     else // m_bCopySource is FALSE
                     {
@@ -6169,13 +6174,14 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                         // a unique translation that was entered previously. If we get here it would be
                         // by a user directly clicking this location to put the phrasebox here. 
                         // The following conditions/flags should be TRUE:
-                        CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-                        wxASSERT(!pSrcPhrase->m_adaption.IsEmpty());
-                        wxASSERT(pSrcPhrase->m_bHasKBEntry);
+                        //wxASSERT(!pSrcPhrase->m_adaption.IsEmpty());
+                        //wxASSERT(pSrcPhrase->m_bHasKBEntry);
                         // The phrasebox has one item in its list and it should appear in the
                         // dropdown's edit box, selected
+                        wxASSERT(pApp->m_pTargetBox->GetCount() == 1);
+                        pApp->m_targetPhrase = pApp->m_pTargetBox->GetString(0);
                         pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
-                        pApp->m_pTargetBox->SetSelection(selectionIndex);
+                        pApp->m_pTargetBox->SetSelection(0);
 
                     }
                 }
@@ -6185,8 +6191,20 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     // Here we basically just ensure that any existing phrasebox content
                     // is selected in the dropdown list using the selectIndex info we got
                     // back from PopulateDropDownList().
+                    // TODO: The code below in this else block could be used as the sole block 
+                    // of code needed within the outer 'else // no <no adaptation> present' block
+                    wxASSERT(pApp->m_pTargetBox->GetCount() > 1);
                     pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
-                    pApp->m_pTargetBox->SetSelection(selectionIndex);
+                    if (selectionIndex == -1)
+                    {
+                        // If we pass a selectionIndex of -1 to the SetSelection() call below it
+                        // would just empty the edit box and not select the item
+                        pApp->m_pTargetBox->SetSelection(0);
+                    }
+                    else
+                    {
+                        pApp->m_pTargetBox->SetSelection(selectionIndex);
+                    }
                     pApp->m_pTargetBox->SetSelection(-1, -1); // select all
                 }
             }
