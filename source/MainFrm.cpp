@@ -4636,13 +4636,25 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
             //pApp->m_pTargetBox->GetButton()->Enable();
         //}
 
-        // Popup the dropdown's list if it has content, otherwise keep it closed.
+        // Popup the dropdown's list if it has content, otherwise keep it closed, but only if
+        // we are not moving to different pile, and are not merging. 
+        // Filtering out the PopupupDropDownList() calls when merging and when the phrasebox
+        // is in the process of moving, helps reduce rapid flickering due to momentary popping
+        // up of the dropdown list that would otherwise happen during merging and repeated
+        // auto-inserting before the phrasebox rests at the new location.
         // whm 26Feb2018 Added outer test for NULL on m_pTargetBox - Linux version OnIdle() handler initiates early
         if (pApp->m_pTargetBox != NULL)
         {
             if (pApp->m_pTargetBox->GetCount() > 0)
             {
-                pApp->m_pTargetBox->PopupDropDownList();
+                if (!pApp->m_bMovingToDifferentPile && !pApp->bLookAheadMerge)
+                {
+                    pApp->m_pTargetBox->PopupDropDownList();
+                }
+                else
+                {
+                    pApp->m_pTargetBox->CloseDropDown();
+                }
             }
             else
             {

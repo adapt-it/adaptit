@@ -125,10 +125,14 @@ public:
 	CLayout* GetLayout();
 	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
 							int nSelector); // BEW made public on 14Mar11, now called in view's OnDraw()
-    int GetLineLength(long lineNo); // whm 14Feb2018 added (GetLineLength() is in wxTextCtrl but not wxOwnerDrawnComboBox)
+
+    // whm 10Jan2018 added members below to implement the dropdown phrasebox functionality
+    void SetupDropDownPhraseBoxForThisLocation();
+    int GetLineLength(long lineNo); // whm 14Feb2018 added. Note: GetLineLength() is in wxTextCtrl but not wxOwnerDrawnComboBox.
     void OnComboProcessDropDownListOpen(wxCommandEvent & WXUNUSED(event));
     void OnComboProcessDropDownListCloseUp(wxCommandEvent & WXUNUSED(event));
     void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptatio);
+    void ClearDropDownList();
     void CloseDropDown();
     void PopupDropDownList();
     wxBitmap dropbutton_hover; // (xpm_dropbutton_hover);
@@ -146,7 +150,6 @@ public:
 	bool LookAhead(CPile* pNewPile);
 	int	 BuildPhrases(wxString phrases[10],int nActiveSequNum, SPList* pSourcePhrases);
 	bool OnePass(CAdapt_ItView *pView);
-    void ClearDropDownList();
 	bool LookUpSrcWord(CPile* pNewPile);
 	void SetModify(bool modify);
 	bool GetModify();
