@@ -10529,29 +10529,35 @@ wxSizer *ClipboardAdaptBarFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
-    item1->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item1->Add( 4, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Copy to the Clipboard: "), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item2 = new wxButton( parent, ID_BUTTON_GET_FROM_CLIPBOARD, _("Get Source Text From Clipboard"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->SetToolTip( _("Copies the clipboard's text to use as source text for adapting") );
     item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item3 = new wxButton( parent, ID_BUTTON_COPY_TO_CLIPBOARD, _("Adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->SetToolTip( _("Copies the adaptation text to the clipboard, the dialog remains open") );
-    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item1->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item4 = new wxButton( parent, ID_BUTTON_COPY_FREETRANS_TO_CLIPBOARD, _("Free Translations"), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->SetToolTip( _("Copies the free translation to the clipboard, the dialog remains open") );
-    item1->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item5 = new wxButton( parent, ID_BUTTON_CLIPBOARD_ADAPT_CLOSE, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->SetDefault();
-    item5->SetToolTip( _("Throw everything away except what was copied to the clipboard") );
-    item1->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Copy to the Clipboard: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item4 = new wxButton( parent, ID_BUTTON_COPY_TO_CLIPBOARD, _("Adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->SetToolTip( _("Copies the adaptation text to the clipboard, the dialog remains open") );
+    item1->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item5 = new wxButton( parent, ID_BUTTON_COPY_FREETRANS_TO_CLIPBOARD, _("Free Translations"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->SetToolTip( _("Copies the free translation to the clipboard, the dialog remains open") );
+    item1->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item6 = new wxButton( parent, ID_BUTTON_CLIPBOARD_ADAPT_CLOSE, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->SetDefault();
+    item6->SetToolTip( _("Clear the layout and close down this feature") );
+    item1->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( 4, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

@@ -129,6 +129,8 @@ wxMutex	kbsvr_arrays;
 
 extern wxCriticalSection g_jsonCritSect;
 
+wxMutex s_AutoSaveMutex;
+
 // Comment out to prevent DoServiceDiscovery() from logging with wxLogDebug()
 #define _DOSERVDISC
 #define ERR_DUPLICATE
@@ -5821,64 +5823,65 @@ EVT_MENU(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnFileExportKb)
 EVT_UPDATE_UI(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnUpdateFileExportKb)
 EVT_MENU(ID_MENU_CHANGE_USERNAME, CAdapt_ItApp::OnEditChangeUsername) // is always enabled, needs no update handler
                                                                       //whm removed 1Oct12
-                                                                      //EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CAdapt_ItApp::OnOpenRecentFile)
+    //EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CAdapt_ItApp::OnOpenRecentFile)
 
-                                                                      // We must not associate OnExit with wxID_EXIT. If we do, OnExit() executes immediately
-                                                                      // upon selection of File|Exit causing all sorts of problems. Rather we must allow
-                                                                      // OnExit() to be called by the doc/view framework after it has deleted the current doc
-                                                                      // and view. Otherwise, if this handler below is enabled, the app won't exit without
-                                                                      // crashing in the process.
-                                                                      //EVT_MENU(wxID_EXIT, OnExit)
+    // We must not associate OnExit with wxID_EXIT. If we do, OnExit() executes immediately
+    // upon selection of File|Exit causing all sorts of problems. Rather we must allow
+    // OnExit() to be called by the doc/view framework after it has deleted the current doc
+    // and view. Otherwise, if this handler below is enabled, the app won't exit without
+    // crashing in the process.
+    //EVT_MENU(wxID_EXIT, OnExit)
 
-                                                                      // Edit Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                                                                      // OnEditUndo is in the View
-                                                                      // OnUpdateEditUndo is in the View
-                                                                      // OnEditCut is in the View
-                                                                      // OnUpdateEditCut is in the View
-                                                                      // OnEditCopy is in the View
-                                                                      // OnUpdateEditCopy is in the View
-                                                                      // OnEditPaste is in the View
-                                                                      // OnUpdateEditPaste is in the View
-                                                                      // OnGoTo is in the View
-                                                                      // OnUpdateGoTo is in the View
-                                                                      // OnEditPunctCorresp is in the View  // incorporated into Edit|Preferences
-                                                                      // OnUpdateEditPunctCorresp is in the View  // incorporated into Edit|Preferences
-                                                                      // OnEditSourceText is in the View
-                                                                      // OnUpdateEditSourceText is in the View
-                                                                      // OnEditConsistencyCheck is in the View -- no it's not
-                                                                      // OnUpdateEditConsistencyCheck is in the View
-                                                                      // Lower to Upper Case Equivalences... removed as a separate menu item from Edit
-                                                                      // menu (now handled by Edit Preferences)
-                                                                      // OnEditPreferences is in the View
-                                                                      // OnUpdateEditPreferences is in the View
+    // Edit Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // OnEditUndo is in the View
+    // OnUpdateEditUndo is in the View
+    // OnEditCut is in the View
+    // OnUpdateEditCut is in the View
+    // OnEditCopy is in the View
+    // OnUpdateEditCopy is in the View
+    // OnEditPaste is in the View
+    // OnUpdateEditPaste is in the View
+    // OnGoTo is in the View
+    // OnUpdateGoTo is in the View
+    // OnEditPunctCorresp is in the View  // incorporated into Edit|Preferences
+    // OnUpdateEditPunctCorresp is in the View  // incorporated into Edit|Preferences
+    // OnEditSourceText is in the View
+    // OnUpdateEditSourceText is in the View
+    // OnEditConsistencyCheck is in the View -- no it's not
+    // OnUpdateEditConsistencyCheck is in the View
+    // Lower to Upper Case Equivalences... removed as a separate menu item from Edit
+    // menu (now handled by Edit Preferences)
+    // OnEditPreferences is in the View
+    // OnUpdateEditPreferences is in the View
 
-                                                                      // View Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                                                                      //OnViewToolBar is in the MainFrame
-                                                                      //OnUpdateViewToolBar is in the MainFrame
-                                                                      //OnViewStatusBar is in the MainFrame
-                                                                      //OnUpdateViewStatusBar is in the MainFrame
-                                                                      //OnViewComposeBar is in the MainFrame
-                                                                      //OnUpdateViewComposeBar is in the MainFrame
-                                                                      //OnCopySource is in the View
-                                                                      //OnUpdateCopySource is in the View // not in MFC version
-                                                                      //OnFitWindow is in the View
-                                                                      //OnMarkerWrapsStrip is in the View
-                                                                      //OnUpdateMarkerWrapsStrip is in the View
-                                                                      //OnUnits is in the View
-                                                                      //OnUpdateUnits is in the View
+    // View Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //OnViewToolBar is in the MainFrame
+    //OnUpdateViewToolBar is in the MainFrame
+    //OnViewStatusBar is in the MainFrame
+    //OnUpdateViewStatusBar is in the MainFrame
+    //OnViewComposeBar is in the MainFrame
+    //OnUpdateViewComposeBar is in the MainFrame
+    //OnCopySource is in the View
+    //OnUpdateCopySource is in the View // not in MFC version
+    //OnFitWindow is in the View
+    //OnMarkerWrapsStrip is in the View
+    //OnUpdateMarkerWrapsStrip is in the View
+    //OnUnits is in the View
+    //OnUpdateUnits is in the View
 
-                                                                      // Tools Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                                                                      //OnFind is in the View
-                                                                      //OnUpdateFind is in the View
-                                                                      //OnReplace is in the View
-                                                                      //OnUpdateReplace is in the View
+    // Tools Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //OnFind is in the View
+    //OnUpdateFind is in the View
+    //OnReplace is in the View
+    //OnUpdateReplace is in the View
     EVT_MENU(ID_TOOLS_CLIPBOARD_ADAPT, CAdapt_ItApp::OnToolsClipboardAdapt)
     EVT_UPDATE_UI(ID_TOOLS_CLIPBOARD_ADAPT, CAdapt_ItApp::OnUpdateToolsClipboardAdapt)
     EVT_UPDATE_UI(ID_BUTTON_COPY_TO_CLIPBOARD, CAdapt_ItApp::OnUpdateButtonCopyToClipboard)
     EVT_BUTTON(ID_BUTTON_COPY_TO_CLIPBOARD, CAdapt_ItApp::OnButtonCopyToClipboard)
     EVT_UPDATE_UI(ID_BUTTON_COPY_FREETRANS_TO_CLIPBOARD, CAdapt_ItApp::OnUpdateButtonCopyFreeTransToClipboard)
     EVT_BUTTON(ID_BUTTON_COPY_FREETRANS_TO_CLIPBOARD, CAdapt_ItApp::OnButtonCopyFreeTransToClipboard)
-    EVT_BUTTON(ID_BUTTON_CLIPBOARD_ADAPT_CLOSE, CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg)
+	EVT_BUTTON(ID_BUTTON_CLIPBOARD_ADAPT_CLOSE, CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg)
+	EVT_BUTTON(ID_BUTTON_GET_FROM_CLIPBOARD, CAdapt_ItApp::OnButtonGetFromClipboard)
 
     EVT_MENU(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnToolsDefineCC)
     EVT_UPDATE_UI(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnUpdateLoadCcTables)
@@ -5888,6 +5891,8 @@ EVT_MENU(ID_MENU_CHANGE_USERNAME, CAdapt_ItApp::OnEditChangeUsername) // is alwa
     // whm added 24March2017 the next two for the "Install the Git program..." Tools menu item
     EVT_MENU(ID_TOOLS_INSTALL_GIT, CAdapt_ItApp::OnToolsInstallGit)
     EVT_UPDATE_UI(ID_TOOLS_INSTALL_GIT, CAdapt_ItApp::OnUpdateInstallGit)
+
+	// void OnGetFromClipboard(wxCommandEvent& WXUNUSED(event)); // BEW added 27Mar18
 
 
     //OnUseConsistentChanges is in the View
@@ -24173,12 +24178,41 @@ int CAdapt_ItApp::OnExit(void)
     // Remove any files lurking there, they don't need to persist
     EmptyCollaborationTempFolder(); // see CollabUtilities.h (at bottom)
 
-                                    // m_pSavedDocForClipboardAdapt should be empty, but if not destroy the CSourcePhrase
-                                    // instances in it before deleting the list instance
-    if (m_pSavedDocForClipboardAdapt->size() > 0)
+	// BEW 2Apr18 The refactored (for persistence) Clipboard Adapt feature allows the
+	// user to exit the app while the feature is still running. So we need to test
+	// for app's m_bClipboardAdaptMode flag being true, and if so, run the handler
+	// that will close the mode and restore the original (saved) doc, if any such
+	// existed and was saved. While this might not be necessary, doing so restores
+	// a safe app state and predictability as to what that state is at the inception
+	// of OnExit()
+	if (m_bClipboardAdaptMode)
+	{
+		s_AutoSaveMutex.Lock(); // we want the lock in case auto-save doc fires during closure
+
+		wxCommandEvent dummyevent;
+		OnButtonCloseClipboardAdaptDlg(dummyevent);
+
+		s_AutoSaveMutex.Unlock();
+
+		// ensure the flag is FALSE
+		m_bClipboardAdaptMode = FALSE;
+	}
+	wxString msg = _T("OnExit() called; m_pSourcePhrases size = %d");
+	int size = 0;
+	if (m_pSourcePhrases->GetCount() > 0)
+	{
+		size = (int)m_pSourcePhrases->GetCount();
+	}
+	msg = msg.Format(msg, size);
+	this->LogUserAction(msg);
+
+	// m_pSavedDocForClipboardAdapt should be empty, but if not destroy the CSourcePhrase
+	// instances in it before deleting the list instance; no mutex protection needed here
+	// because DoAutoSaveDoc() does not look at the contents of m_pSavedDocForClipboardAdapt
+	if (m_pSavedDocForClipboardAdapt->size() > 0)
     {
         GetDocument()->DeleteSourcePhrases(m_pSavedDocForClipboardAdapt, FALSE); // FALSE means
-                                                                                 // 'don't try delete partner piles too'
+                                                     // 'don't try delete partner piles too'
     }
     delete m_pSavedDocForClipboardAdapt;
 
@@ -24371,17 +24405,21 @@ int CAdapt_ItApp::OnExit(void)
 
     if (gpDocList != NULL)
     {
+		s_AutoSaveMutex.Lock();
         // delete the object, it's contents should already have been removed
         delete gpDocList;
         gpDocList = (SPList*)NULL;
+		s_AutoSaveMutex.Unlock();
     }
 
     // In wxWidgets we've moved all the doc's data members to the App
     // The following is from the MFC's CAdapt_ItDoc::~CAdapt_ItDoc() destructor:
     if (m_pSourcePhrases != NULL)
     {
+		s_AutoSaveMutex.Lock();
         delete m_pSourcePhrases;
         m_pSourcePhrases = (SPList*)NULL;
+		s_AutoSaveMutex.Unlock();
     }
 
     if (m_pBuffer != NULL)
@@ -30327,6 +30365,113 @@ void CAdapt_ItApp::OnUpdateToolsClipboardAdapt(wxUpdateUIEvent& event)
     }
 }
 
+void CAdapt_ItApp::OnButtonGetFromClipboard(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItDoc* pDoc = GetDocument();
+	CLayout* pLayout = GetLayout();
+	CMainFrame* pMainFrame = GetMainFrame();
+	CAdapt_ItView* pView = GetView();
+	//size_t nStartAt = 0;
+	//size_t nEndAt = 0;
+	//bool bIsOK = TRUE;
+	wxString loadedSrcText; loadedSrcText.Empty();
+	//SPList* pSaveList = m_pSavedDocForClipboardAdapt; // our cache, if we need it
+
+	// Remove the fragment in m_pSourcePhrases
+	pDoc->DeleteSourcePhrases(m_pSourcePhrases, TRUE); // TRUE means delete partner piles
+													   // hide the toolbar
+	//if (pMainFrame->m_pClipboardAdaptBar->IsShown())
+	//{
+	//	pMainFrame->m_pClipboardAdaptBar->Hide();
+	//}
+	//pMainFrame->SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
+								 // do the needed redraw;
+
+// ======================
+
+// Get the text from the clipboard, if open
+	bool bClipboardTextAbsent = TRUE;
+	if (wxTheClipboard->Open())
+	{
+		if (wxTheClipboard->IsSupported(wxDF_TEXT))
+		{
+			wxTextDataObject data;
+			wxTheClipboard->GetData(data);
+			loadedSrcText = data.GetText();
+			//wxMessageBox( data.GetText() ); // <-  comment out later
+			if (!loadedSrcText.IsEmpty())
+			{
+				bClipboardTextAbsent = FALSE;
+			}
+		}
+		wxTheClipboard->Close();
+	}
+	// Check the clipboard is not empty, if it is, just warn
+	if (bClipboardTextAbsent)
+	{
+		// nothing to do, so tell user
+		/*
+		// BEW 28Mar18, now tha the feature stays open for many potential clipboard
+		// adapts, this function is no longer needed
+		RestoreDocStateWhenEmptyClipboard(pSaveList, (int)nStartAt, (int)nEndAt,
+			m_pSourcePhrases, m_bADocIsLoaded);
+		*/
+		wxMessageBox(_("The clipboard was empty; there is nothing to do."),
+			_("No Source Text"), wxICON_INFORMATION | wxOK);
+		return;
+	}
+
+	// Now, fill the m_pSourcePhrases list with the parsed source text;
+	// 0 is the value of param: int nInitialSequNum
+	m_bClipboardTextLoaded = FALSE;
+	int numInstances = pView->TokenizeTextString(m_pSourcePhrases, loadedSrcText, 0);
+	if (numInstances == 0)
+	{
+		// We can get here if, for example, the clipboard just contained some
+		// whitespace characters; we treat this the same as an empty clipboard
+		/*
+		// BEW 28Mar18, now tha the feature stays open for many potential clipboard
+		// adapts, this function is no longer needed
+		RestoreDocStateWhenEmptyClipboard(pSaveList, (int)nStartAt, (int)nEndAt,
+			m_pSourcePhrases, m_bADocIsLoaded);
+		*/
+		wxMessageBox(_("The clipboard was empty; there is nothing to do."),
+			_("No Source Text"), wxICON_INFORMATION | wxOK);
+		return;
+	}
+	else
+	{
+		// There is at least one CSourcePhrase instance ready for display
+		pView->UpdateSequNumbers(0);
+		m_bClipboardTextLoaded = TRUE;
+
+		// get rid of any relic text in phrase box storage
+		m_pTargetBox->Clear();
+		m_targetPhrase.Empty();
+
+
+		m_nActiveSequNum = 0;
+		m_pActivePile = NULL;
+#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+#else
+		pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+#endif
+		// recalculate the active pile & update location for phraseBox creation
+		m_pActivePile = pView->GetPile(m_nActiveSequNum);
+		if (m_pActivePile != NULL)
+		{
+			pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
+			m_nStartChar = 0;
+			m_nEndChar = -1; // ensure initially all is selected
+			m_pTargetBox->SetSelection(-1, -1); // select all
+			m_pTargetBox->SetFocus();
+		}
+		pView->Invalidate();
+		pLayout->PlaceBox();
+	} // end of TRUE block for test: if (numInstances > 0)
+}
+
 void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event))
 {
     CAdapt_ItDoc* pDoc = GetDocument();
@@ -30407,9 +30552,18 @@ void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event
     // worked (the Update handler does not allow clipboard adapt mode to be entered
     // if the document is in read-only mode, so that issue is taken care of already)
     SaveKB(FALSE, TRUE); // don't want backup produced, do want progress to be tracked
-                         // Now that m_bClipboardAdaptMode is FALSE, the status bar refresh will restore the
-                         // document information, or default info if no doc was loaded
+    // Now that m_bClipboardAdaptMode is FALSE, the status bar refresh will restore the
+    // document information, or default info if no doc was loaded
     RefreshStatusBarInfo();
+
+	wxString msg = _T("OnButtonCloseClipboardAdaptDlg() now exiting; uncached m_pSourcePhrases size = %d");
+	int size = 0;
+	if (m_pSourcePhrases->GetCount() > 0)
+	{
+		size = (int)m_pSourcePhrases->GetCount();
+	}
+	msg = msg.Format(msg, size);
+	this->LogUserAction(msg);
 }
 
 
@@ -30439,6 +30593,16 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
         return;
     }
 
+	wxString msg = _T("OnToolsClipboardAdapt()correctly entered; m_pSourcePhrases size = %d");
+	int size = 0;
+	if (m_pSourcePhrases->GetCount() > 0)
+	{
+		size = (int)m_pSourcePhrases->GetCount();
+	}
+	msg = msg.Format(msg, size);
+	this->LogUserAction(msg);
+
+
     // Save the window's titlebar's doc title while the mode is turned on, and write "Clipboard'
     // (localizable) instead - save in app's m_savedDocTitle wxString
     wxString modeTitleStr = _("Clipboard");
@@ -30448,13 +30612,15 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 
     m_bClipboardAdaptMode = TRUE; // set the flag which indicates the mode is turned on
 
-                                  // Now that m_bClipboardAdaptMode is TRUE, the status bar refresh will have
-                                  // the project information, etc, with "Clipboard Text" added at the end instead of
-                                  // Folder: followed by the folder name
+    // Now that m_bClipboardAdaptMode is TRUE, the status bar refresh will have
+    // the project information, etc, with "Clipboard Text" added at the end instead of
+    // Folder: followed by the folder name
     RefreshStatusBarInfo();
 
     CAdapt_ItDoc* pDoc = GetDocument();
     CLayout* pLayout = GetLayout();
+	CAdapt_ItView* pView = GetView();
+
     CMainFrame* pMainFrame = GetMainFrame();
     // If free translation mode is current, clear the ComposeBar's text box
     if (m_bFreeTranslationMode)
@@ -30465,11 +30631,9 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
     bool bIsOK = TRUE;
     size_t nStartAt = 0;
     size_t nEndAt = 0;
-    CAdapt_ItView* pView = GetView();
     pView->RemoveSelection(); // must not have an active selection,
                               // or the update handlers will give a crash of app
-    wxString loadedSrcText; loadedSrcText.Empty();
-    m_bIsPrinting = FALSE;
+     m_bIsPrinting = FALSE;
 
     // Check if there is a document open - if there is, cache it (the SPList contents) in
     // the dedicated alternative SPList storage on the Adapt_ItApp class
@@ -30479,69 +30643,39 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
     m_bADocIsLoaded = FALSE;
     if (m_pSourcePhrases->size() > 0)
     {
-        // There is a document loaded. Cache it until the user abandons the clipboard
+        // There is a document loaded. Cache it until the user closes the clipboard adapt feature
         // adaptation effort
         m_bADocIsLoaded = TRUE;
         nEndAt = m_pSourcePhrases->size() - 1;
         bIsOK = pView->DeepCopySourcePhraseSublist(m_pSourcePhrases, (int)nStartAt, (int)nEndAt, pSaveList);
         bIsOK = bIsOK; // avoid warning
         m_nSaveSequNumForDocRestore = m_nActiveSequNum;
+
+		s_AutoSaveMutex.Lock();
         // We do minimal damage to the original doc - so just clear out the sourcephrase
         // list and their partner piles; leave all else untouched
         pDoc->DeleteSourcePhrases(m_pSourcePhrases, TRUE); // TRUE means 'delete partner piles too'
+
+		s_AutoSaveMutex.Unlock();
+
         m_savedTextBoxStr = m_pTargetBox->GetValue(); // cashe it pending restoration later
-    }
-    // Get the text from the clipboard, if open
-    bool bClipboardTextAbsent = TRUE;
-    if (wxTheClipboard->Open())
-    {
-        if (wxTheClipboard->IsSupported(wxDF_TEXT))
-        {
-            wxTextDataObject data;
-            wxTheClipboard->GetData(data);
-            loadedSrcText = data.GetText();
-            //wxMessageBox( data.GetText() ); // <-  comment out later
-            if (!loadedSrcText.IsEmpty())
-            {
-                bClipboardTextAbsent = FALSE;
-            }
-        }
-        wxTheClipboard->Close();
-    }
-    // Check the clipboard is not empty, if it is, get out gracefully and with a message
-    if (bClipboardTextAbsent)
-    {
-        // nothing to do, so restore old state
-        RestoreDocStateWhenEmptyClipboard(pSaveList, (int)nStartAt, (int)nEndAt,
-            m_pSourcePhrases, m_bADocIsLoaded);
-        wxMessageBox(_("The clipboard was empty; there is nothing to do."),
-            _("No Source Text"), wxICON_INFORMATION | wxOK);
-        return;
-    }
 
-    // Now, fill the m_pSourcePhrases list with the parsed source text;
-    // 0 is the value of param: int nInitialSequNum
-    m_bClipboardTextLoaded = FALSE;
-    int numInstances = pView->TokenizeTextString(m_pSourcePhrases, loadedSrcText, 0);
-    if (numInstances == 0)
-    {
-        // We can get here if, for example, the clipboard just contained some
-        // whitespace characters; we treat this the same as an empty clipboard
-        RestoreDocStateWhenEmptyClipboard(pSaveList, (int)nStartAt, (int)nEndAt,
-            m_pSourcePhrases, m_bADocIsLoaded);
-        wxMessageBox(_("The clipboard was empty; there is nothing to do."),
-            _("No Source Text"), wxICON_INFORMATION | wxOK);
-        return;
-    }
-    else
-    {
-        // There is at least one CSourcePhrase instance ready for display
-        pView->UpdateSequNumbers(0);
-        m_bClipboardTextLoaded = TRUE;
+		//pDoc->DeleteSourcePhrases();
+		pLayout->GetInvalidStripArray()->Clear();
+		pLayout->DestroyStrips();
+		pLayout->DestroyPiles(); // restored, DestroySourcePhrases() no longer destorys
+								 // the partner piles
+		m_pActivePile = (CPile*)NULL;
+		m_pTargetBox->ChangeValue(_T("")); //pApp->m_targetBox.Destroy();
+		m_nActiveSequNum = -1;
+		m_selectionLine = -1;
+		pView->Invalidate(); // our own
+		//pLayout->PlaceBox();
 
-        // get rid of any relic text in phrase box storage
-        m_pTargetBox->Clear();
-        m_targetPhrase.Empty();
+		// hide and disable the target box until input is expected
+		m_pTargetBox->Hide(); // whm note: ChangeValue(_T("")) is called above
+
+	}
 
         // Make visible the mode's toolbar at the top of the client area of the frame
         // window, and get the client area resized (using CMainFrm::OnSize()) and redrawn
@@ -30553,30 +30687,12 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
         // whm Note: Client area is changing size so send a size event to get the layout to
         // change since the doc/view framework won't do it for us.
         pMainFrame->SendSizeEvent(); // forces the CMainFrame::SetSize() handler
-                                     // to run and do the needed redraw
-                                     // Get the layout redrawn etc
-        m_nActiveSequNum = 0;
-        m_pActivePile = NULL;
-#ifdef _NEW_LAYOUT
-        pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
-#else
-        pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
-#endif
-        // recalculate the active pile & update location for phraseBox creation
-        m_pActivePile = pView->GetPile(m_nActiveSequNum);
-        if (m_pActivePile != NULL)
-        {
-            pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
-            m_nStartChar = 0;
-            m_nEndChar = -1; // ensure initially all is selected
-            m_pTargetBox->SetSelection(-1, -1); // select all
-            m_pTargetBox->SetFocus();
-        }
-        pView->Invalidate();
-        pLayout->PlaceBox();
-    } // end of TRUE block for test: if (numInstances > 0)
+  		return; 
 }
 
+// BEW 28Mar18, now tha the feature stays open for many potential clipboard
+// adapts, this function is no longer needed
+/*
 void CAdapt_ItApp::RestoreDocStateWhenEmptyClipboard(SPList* pList, int nStartingSequNum,
     int nEndingSequNum, SPList* pOldList, bool bDocIsLoaded) // this is a private function
 {
@@ -30634,7 +30750,7 @@ void CAdapt_ItApp::RestoreDocStateWhenEmptyClipboard(SPList* pList, int nStartin
     // restore the document information, or default info if no doc was loaded
     RefreshStatusBarInfo();
 }
-
+*/
 void CAdapt_ItApp::OnUpdateButtonCopyToClipboard(wxUpdateUIEvent& event)
 {
     //CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -30651,9 +30767,15 @@ void CAdapt_ItApp::OnUpdateButtonCopyToClipboard(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnButtonCopyToClipboard(wxCommandEvent& WXUNUSED(event))
 {
+	if (m_pSourcePhrases->IsEmpty())
+	{
+		wxBell();
+		return;
+	}
+
     // If the phrasebox is still at an active location, make sure the adaptation
     // there has been saved to the KB and m_targetStr constructed for its CSourcePhrase
-    // In the signature below, first bool is bAttamptyStoreToKB, second is bNoStore (a
+    // In the signature below, first bool is bAttemptStoreToKB, second is bNoStore (a
     // return value which tells us when the attempt went wrong and no store got done)
     // and the third is bSuppressWarningOnStoreKBFailure - we'll suppress the warning,
     // as failure not likely to happen often if at all
@@ -30705,9 +30827,15 @@ void CAdapt_ItApp::OnUpdateButtonCopyFreeTransToClipboard(wxUpdateUIEvent& event
 
 void CAdapt_ItApp::OnButtonCopyFreeTransToClipboard(wxCommandEvent& WXUNUSED(event))
 {
+	if (m_pSourcePhrases->IsEmpty())
+	{
+		wxBell();
+		return;
+	}
+
     // If the phrasebox is still at an active location, make sure the adaptation
     // there has been saved to the KB and m_targetStr constructed for its CSourcePhrase
-    // In the signature below, first bool is bAttamptyStoreToKB, second is bNoStore (a
+    // In the signature below, first bool is bAttemptStoreToKB, second is bNoStore (a
     // return value which tells us when the attempt went wrong and no store got done)
     // and the third is bSuppressWarningOnStoreKBFailure - we'll suppress the warning,
     // as failure not likely to happen often if at all
@@ -31343,20 +31471,46 @@ void CAdapt_ItApp::OnUpdateInstallGit(wxUpdateUIEvent & event)
 /// clobber the user's total adapting work etc within the document - a bug that has 
 /// mystified us for 17 years without resolution! Don't do the protected save (and it's
 /// internal DoFileSave() if there is no list of CSourcePhrase instances for 
-/// CSourcePhrase::MakeXML(int) to access!
+/// CSourcePhrase::MakeXML(int) to access! Or if m_bClipboardAdaptMode is turned on.
+/// We also need to impose sequentiality on the call of DoAutoSaveDoc() with other
+/// places in the app where document closure or app exit is taking place - because we
+/// can't have m_pSourcePhrases being accessed for making XML to save at the same time
+/// that the same array is being emmptied out. We use a mutex for this protection here
+/// and at other places where emptying of the doc list can happen
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DoAutoSaveDoc()
 // with additions for handling glossing versus adapting (ie. to get the stuff in the
 // phrase box into the appropriate KB before the save is done)
 {
     bool bOkay;
-    //bOkay = GetDocument()->DoFileSave(FALSE);
-	if (!m_pSourcePhrases->IsEmpty()) // BEW 5Mar18, added test to skip the save attempt on empty list
+	// BEW 5Mar18, added test to skip the save attempt on empty list
+	// and on 1Apr18 added subtest of m_bClipboardAdaptMode -- because the
+	// real doc is cached and the tempory one, if saved, would take on real
+	// doc's  name, resulting in loss of real doc's contents - gotta prevent that.
+	// Also added two LogUserAction() calls so that if  auto-saving is causing
+	// a data loss problem, we have a chance of finding out easily
+	if (!m_pSourcePhrases->IsEmpty() && !m_bClipboardAdaptMode) 
 	{
+		s_AutoSaveMutex.Lock();
+
+		wxString msg = _T("DoAutoSaveDoc() calling DoFileSave_Protected(); m_pSourcePhrases size = %d");
+		int size = 0;
+		if (m_pSourcePhrases->GetCount() > 0)
+		{
+			size = (int)m_pSourcePhrases->GetCount();
+		}
+		msg = msg.Format(msg, size);
+		this->LogUserAction(msg);
+
 		bOkay = GetDocument()->DoFileSave_Protected(FALSE, _T("")); // FALSE - don't show wait/progress dialog
-		wxCHECK_RET(bOkay, _T("DoAutoSaveDoc(): DoFileSave_Protected() failed, line 23,053 in Adapt_It.cpp"));
+		wxCHECK_RET(bOkay, _T("DoAutoSaveDoc(): DoFileSave_Protected() failed, line 23,425 approx, in Adapt_It.cpp"));
+
+		msg = _T("DoAutoSave: DoFileSave_Protected() has returned");
+		this->LogUserAction(msg);
+
+		s_AutoSaveMutex.Unlock();
 	}
-    // update the time it was last saved
+    // update the time it was last saved, or the attempt was made
     wxDateTime time = wxDateTime::Now();
     m_timeSettings.m_tLastDocSave = time;
     m_timeSettings.m_tLastKBSave = time;
@@ -44884,7 +45038,9 @@ void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
     CAdapt_ItDoc* pDoc = GetDocument();
     if (!l->IsEmpty())
     {
-        // delete all the tokenizations of the source text
+		s_AutoSaveMutex.Lock();
+		
+		// delete all the tokenizations of the source text
         SPList::Node* pos = l->GetFirst();
         while (pos != NULL)
         {
@@ -44898,6 +45054,8 @@ void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
                                                      // but the returns are diminished, so I'll not bother
         }
         l->Clear();
+
+		s_AutoSaveMutex.Unlock();
     }
 }
 

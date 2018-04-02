@@ -138,6 +138,8 @@ extern enum TextType gPreviousTextType; // moved to global space in the App, mad
 /// in UTF-8 encoding.
 #define nBOMLen 3
 
+extern wxMutex s_AutoSaveMutex;
+
 /// Length of the byte-order-mark (BOM) which consists of the two bytes 0xFF and 0xFE in
 /// in UTF-16 encoding.
 #define nU16BOMLen 2
@@ -18142,11 +18144,14 @@ bool CAdapt_ItDoc::DeleteContents()
 		pApp->m_pBuffer->Empty();
 	}
 
+	s_AutoSaveMutex.Lock();
+
 	// delete the source phrases
 	DeleteSourcePhrases(); // this does not delete the partner piles as
 		// the internal DeleteSingleSrcPhrase() has the 2nd param FALSE so
 		// that it does not call DeletePartnerPile() -- so delete those
 		// separately below en masse with the DestroyPiles() call
+	s_AutoSaveMutex.Unlock();
 
 	// the strips, piles and cells have to be destroyed to make way for the new ones
 	CAdapt_ItView* pView = (CAdapt_ItView*)NULL;

@@ -4231,10 +4231,13 @@ public:
 	void OnUpdateLoadCcTables(wxUpdateUIEvent& event);
 
 	void OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event)); // BEW added 9May14
+	void OnButtonGetFromClipboard(wxCommandEvent& WXUNUSED(event)); // BEW added 27Mar18
 	void OnUpdateToolsClipboardAdapt(wxUpdateUIEvent& event); // ditto
-private:
-	void RestoreDocStateWhenEmptyClipboard(SPList* pList, int nStartingSequNum,
-				int nEndingSequNum, SPList* pOldList, bool bDocIsLoaded);
+//private:
+	// BEW 28Mar18, now tha the feature stays open for many potential clipboard
+	// adapts, this function is no longer needed
+	//void RestoreDocStateWhenEmptyClipboard(SPList* pList, int nStartingSequNum,
+	//			int nEndingSequNum, SPList* pOldList, bool bDocIsLoaded);
 public:
 
 	void OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXUNUSED(event));

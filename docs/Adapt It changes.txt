@@ -18,7 +18,29 @@ then the list will contain just the chapters of the currently open book ID
 for the chapter 1 document; otherwise, all documents available will be
 displayed in the list - which gives the user more work to do to get
 just the ones he or she wants. Compiling the list takes longer, so please wait.
-
+* Modified the Clipboard Adapt feature to stay open until the user chooses
+to close it by clicking the Close button. This allows multiple small adaptations
+to be done, without having to open the feature by a menu choice each time
+some new source text for adapting has been copied to the clipboard.
+* Protection added which should prevent Auto-Save from causing loss of
+the user's adapting work in a file in rare circumstances. (We suspect that it was
+when a legitimate document destruction was in progress and the auto-save timer
+fired to cause a document save - but the document no longer existed.)
+* Disallowing "Edit Source Text" feature when the Clipboard Adapt feature is
+in use.
+* Some extra collection of information for the User Log, to help the developers
+to find out what might be causing a failure.
+* When the source text has no upper case/lower case distinction, but the target
+text does have that (e.g. Arabic script to Cyrillic script), the Auto-capitalize 
+feature did not work. In recent versions we provided a project configuration file
+line called: SentenceFinalPunctuationTriggeringCapitalization where the user
+could manually type sentence final punctuation characters which should trigger
+automatic capitalization of the first word of the next sentence - such as	”’.>!?
+That was introduced in version 6.8.0.
+We did  not, however, provide a way for the user to add the needed punctuation
+via the Adapt It user interface. This meant the help we provided became forgotten
+over time. Now a text box has been added in Preferences to allow typing the 
+punctuation there.
 ---------------------------------------------
 Bug fixes in 6.9.0 release
 ----------------------------------------------

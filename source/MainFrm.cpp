@@ -240,7 +240,7 @@ const long CMainFrame::ID_AUI_TOOLBAR = wxNewId();
 // includes above
 
 
-extern wxMutex KBAccessMutex;
+//extern wxMutex KBAccessMutex;
 
 /// This global is defined in Adapt_It.cpp
 extern CStartWorkingWizard* pStartWorkingWizard;

@@ -279,6 +279,9 @@ extern wxString szProjectConfiguration;
 /// This global is defined in Adapt_It.cpp.
 extern wxString szAdminProjectConfiguration;
 
+/// This global is defined in Adapt_It.cpp
+extern wxMutex s_AutoSaveMutex;
+
 // next four are for version 2.0 which includes the option of a 3rd line for glossing
 
 /// When TRUE it indicates that the application is in the "See Glosses" mode. In the
@@ -14905,6 +14908,16 @@ void CAdapt_ItView::ClobberDocument()
 
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+
+	wxString msg = _T("ClobberDocument() entered; m_pSourcePhrases size = %d");
+	int size = 0;
+	if (pApp->m_pSourcePhrases->GetCount() > 0)
+	{
+		size = (int)pApp->m_pSourcePhrases->GetCount();
+	}
+	msg = msg.Format(msg, size);
+	pApp->LogUserAction(msg);
+
 	CAdapt_ItDoc* pDoc = (CAdapt_ItDoc*)GetDocument();
 	wxASSERT(pDoc != NULL);
 	CLayout* pLayout = GetLayout();
@@ -14944,7 +14957,13 @@ void CAdapt_ItView::ClobberDocument()
     // now clobber it all the view stuff associated with the document, leaving an empty
     // document object
 	pDoc->Modify(FALSE); // MFC has SetModifiedFlag(FALSE)
+
+	s_AutoSaveMutex.Lock();
+
 	pDoc->DeleteSourcePhrases();
+
+	s_AutoSaveMutex.Unlock();
+
 	pLayout->GetInvalidStripArray()->Clear();
 	pLayout->DestroyStrips();
 	pLayout->DestroyPiles(); // restored, DestroySourcePhrases() no longer destorys
@@ -14973,6 +14992,9 @@ void CAdapt_ItView::ClobberDocument()
 	// hide and disable the target box until input is expected
 	pApp->m_pTargetBox->Hide(); // whm note: ChangeValue(_T("")) is called above
 	pApp->m_pTargetBox->Enable(FALSE);
+
+	msg = _T("ClobberDocument() exiting");
+	pApp->LogUserAction(msg);
 }
 
 void CAdapt_ItView::CloseProject()
@@ -22791,6 +22813,12 @@ void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event)
 		return;
 	}
 
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	// whm added 25May11 We disable the Edit Source Text... menu command when collaborating
 	// with Paratext or Bibledit - it is in the external editor where the source text should be
 	// edited - otherwise source text can get out of sync with what is in the external
@@ -25825,6 +25853,18 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 	if (pApp->m_bReadOnlyAccess)
 	{
 		::wxBell(); // whm 15Mar12 added wxBell()
+		return;
+	}
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		// BEW added 28Mar18, because Clipboard Adapt mode makes minimal modifications to
+		// any exist document when the feature is set up - and in particular it leaves the
+		// EditRecode unchanged; so if the user were to be allowed to choose to edit the
+		// source text from within Clipboard Adapt mode, the spans and all the other data
+		// in the Edit Record are those applying to the previous document that was cached
+		// pending restoration after that mode is dismissed; so trying to edit would (did)
+		// crash the app. So don't allow it.
+		::wxBell();
 		return;
 	}
 	CAdapt_ItDoc* pDoc = GetDocument();
