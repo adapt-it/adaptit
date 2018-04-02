@@ -1159,11 +1159,11 @@ wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxCheckBox *item6 = new wxCheckBox( parent, ID_CHECK_SOURCE_USES_CAPS, _("Check here if the source text contains both upper case and lower case"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->SetToolTip( _("Check this box if the source text uses capitalization") );
-    item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxTOP|wxBOTTOM, 5 );
+    item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
     wxCheckBox *item7 = new wxCheckBox( parent, ID_CHECK_USE_AUTO_CAPS, _("Check here if you want Adapt It to automatically capitalize a word-initial lower case letter when appropriate"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->SetToolTip( _("Check this box to Use Automatic Capitalization") );
-    item5->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxTOP|wxBOTTOM, 5 );
+    item5->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxTOP, 5 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
 
@@ -1174,7 +1174,7 @@ wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item2->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxFlexGridSizer *item10 = new wxFlexGridSizer( 3, 1, 3 );
+    wxFlexGridSizer *item10 = new wxFlexGridSizer( 3, 0, 3 );
 
     wxStaticText *item11 = new wxStaticText( parent, ID_TEXT_SL, _("Source Language"), wxDefaultPosition, wxDefaultSize, 0 );
     item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -1185,15 +1185,15 @@ wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item13 = new wxStaticText( parent, ID_TEXT_GL, _("Gloss Language"), wxDefaultPosition, wxDefaultSize, 0 );
     item10->Add( item13, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxTextCtrl *item14 = new wxTextCtrl( parent, IDC_EDIT_SRC_CASE_EQUIVALENCES, wxT(""), wxDefaultPosition, wxSize(-1,100), wxTE_MULTILINE|wxTE_CENTRE );
+    wxTextCtrl *item14 = new wxTextCtrl( parent, IDC_EDIT_SRC_CASE_EQUIVALENCES, wxT(""), wxDefaultPosition, wxSize(-1,98), wxTE_MULTILINE|wxTE_CENTRE );
     item14->SetToolTip( _("Edit Source text lower case - upper case pairs here") );
     item10->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item15 = new wxTextCtrl( parent, IDC_EDIT_TGT_CASE_EQUIVALENCES, wxT(""), wxDefaultPosition, wxSize(-1,100), wxTE_MULTILINE|wxTE_CENTRE );
+    wxTextCtrl *item15 = new wxTextCtrl( parent, IDC_EDIT_TGT_CASE_EQUIVALENCES, wxT(""), wxDefaultPosition, wxSize(-1,98), wxTE_MULTILINE|wxTE_CENTRE );
     item15->SetToolTip( _("Edit Target text lower case - upper case pairs here") );
     item10->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_EDIT_GLOSS_CASE_EQUIVALENCES, wxT(""), wxDefaultPosition, wxSize(-1,100), wxTE_MULTILINE|wxTE_CENTRE );
+    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_EDIT_GLOSS_CASE_EQUIVALENCES, wxT(""), wxDefaultPosition, wxSize(-1,98), wxTE_MULTILINE|wxTE_CENTRE );
     item16->SetToolTip( _("Edit Gloss text lower case - upper case pairs here") );
     item10->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -1249,22 +1249,19 @@ wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
 
-    item27->Add( 20, 4, 0, wxALIGN_CENTER|wxALL, 5 );
-
     wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("Sentence-final punctuation triggering capitalization"), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->SetFont( wxFont( 14, wxSWISS, wxNORMAL, wxBOLD ) );
+    item28->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
     item28->SetToolTip( _("Use this when the source language does not have a case distinction but the target language does") );
     item27->Add( item28, 0, wxALIGN_CENTER, 5 );
 
-    wxTextCtrl *item29 = new wxTextCtrl( parent, ID_TEXTCTRL_TRIGGER_MSG, _("Type into the box below any punctuation characters that should cause the next adaptation word to be capitalized, for example:  ?.!>"), wxDefaultPosition, wxSize(400,60), wxTE_MULTILINE );
-    item29->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxNORMAL ) );
-    item27->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item29 = new wxTextCtrl( parent, ID_TEXTCTRL_TRIGGER_MSG, _("Type into the box below any punctuation characters that should cause the next adaptation word to be capitalized, for example:  ?.!>"), wxDefaultPosition, wxSize(-1,36), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    item27->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     wxTextCtrl *item30 = new wxTextCtrl( parent, ID_TEXTCTRL_CASE_TRIGGERS, wxT(""), wxDefaultPosition, wxSize(80,32), 0 );
     item30->SetFont( wxFont( 14, wxSWISS, wxNORMAL, wxNORMAL ) );
-    item27->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item27->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    item2->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     item1->Add( item2, 1, wxGROW|wxALL, 5 );
 
@@ -1976,7 +1973,7 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxFlexGridSizer *item4 = new wxFlexGridSizer( 2, 4, 2 );
+    wxFlexGridSizer *item4 = new wxFlexGridSizer( 2, 3, 2 );
 
     wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -2125,7 +2122,7 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     };
     wxRadioBox *item42 = new wxRadioBox( parent, ID_RADIOBOX_SCROLL_INTO_VIEW, _("Options for Scroll Into View"), wxDefaultPosition, wxSize(20,-1), 2, strs42, 2, wxRA_SPECIFY_ROWS );
     item42->SetToolTip( _("Choose whether you want the strips to move vertically, or the phrase box, while working") );
-    item41->Add( item42, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item41->Add( item42, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
     item4->Add( item41, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
 
@@ -2185,7 +2182,7 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxCheckBox *item57 = new wxCheckBox( parent, ID_CHECKBOX_DIAGNOSTIC_LOG, _("Document creation failed. Make logfile on next try. (Warning: time consuming)"), wxDefaultPosition, wxDefaultSize, 0 );
     item57->SetToolTip( _("Creates logfile: Log_For_Document_Creation.txt in _LOGS_EMAIL_REPORTS folder ") );
-    item56->Add( item57, 0, wxALIGN_CENTER|wxALL, 5 );
+    item56->Add( item57, 0, wxALIGN_CENTER, 5 );
 
     item4->Add( item56, 0, wxALIGN_CENTER_VERTICAL, 5 );
 

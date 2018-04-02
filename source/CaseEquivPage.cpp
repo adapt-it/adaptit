@@ -440,7 +440,8 @@ void CCaseEquivPageCommon::DoBnCheckedSrcHasCaps() // added by whm 11Aug04
 		// make the second checkbox visible
 		wxCheckBox* pChkBox2 = (wxCheckBox*)FindWindowById(ID_CHECK_USE_AUTO_CAPS);
 		pChkBox2->Show();
-	}
+        pCaseEquivSizer->Layout(); // whm 2Apr2018 added to avoid the sentence level stuff being overwritten
+    }
 }
 
 void CCaseEquivPageCommon::DoBnCheckedUseAutoCaps() // added by whm 11Aug04
