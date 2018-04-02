@@ -1247,6 +1247,25 @@ wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item2->Add( item10, 1, wxALIGN_CENTER_VERTICAL, 5 );
 
+    wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
+
+    item27->Add( 20, 4, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("Sentence-final punctuation triggering capitalization"), wxDefaultPosition, wxDefaultSize, 0 );
+    item28->SetFont( wxFont( 14, wxSWISS, wxNORMAL, wxBOLD ) );
+    item28->SetToolTip( _("Use this when the source language does not have a case distinction but the target language does") );
+    item27->Add( item28, 0, wxALIGN_CENTER, 5 );
+
+    wxTextCtrl *item29 = new wxTextCtrl( parent, ID_TEXTCTRL_TRIGGER_MSG, _("Type into the box below any punctuation characters that should cause the next adaptation word to be capitalized, for example:  ?.!>"), wxDefaultPosition, wxSize(400,60), wxTE_MULTILINE );
+    item29->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxNORMAL ) );
+    item27->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxTextCtrl *item30 = new wxTextCtrl( parent, ID_TEXTCTRL_CASE_TRIGGERS, wxT(""), wxDefaultPosition, wxSize(80,32), 0 );
+    item30->SetFont( wxFont( 14, wxSWISS, wxNORMAL, wxNORMAL ) );
+    item27->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item2->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
     item1->Add( item2, 1, wxGROW|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );

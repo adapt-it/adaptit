@@ -15477,7 +15477,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// we may need pUsfmAnalysis set before the jump
 					pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
 					goto fltr;
-
+				}
+				// might be an unknown marker, eg. \yy - if so pUsfmAnalysis is NULL - so
+				// test and jump to further down
+				if (pUsfmAnalysis == NULL)
+				{
+					goto isnull;
 				}
 				// BEW the next bit was added to handle the possibility of a thing like \x type
 				// of markers being within an unfiltered \f .... \f* span. It is possible for 
@@ -15681,7 +15686,7 @@ fltr:				int offset = wxNOT_FOUND;
 					// saved in m_markers; but for endmarkers we have to suppress their use
 					// for display in the navigation text area - we must do that job in
 					// AnalyseMarker() below - after the ParseWord() call.
-					itemLen = ParseMarker(ptr); // BEW 24Oct14, handles USFM nested markers too
+isnull:					itemLen = ParseMarker(ptr); // BEW 24Oct14, handles USFM nested markers too
 					AppendItem(tokBuffer,temp,ptr,itemLen);
                     // being a non-filtering marker, it can't possibly be \free, and so we
                     // don't have to worry about the filter-related boolean flags in

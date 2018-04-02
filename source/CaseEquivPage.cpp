@@ -114,6 +114,7 @@ void CCaseEquivPageCommon::DoSetDataAndPointers()
 	m_strSrcEquivalences = _T("");
 	m_strTgtEquivalences = _T("");
 	m_strGlossEquivalences = _T("");
+	m_strTriggerPuncts = _T("");
 
 	// I'm not getting wxGenericValidator to work properly so we'll transfer data
 	// to/from controls and string variables manually.
@@ -125,6 +126,9 @@ void CCaseEquivPageCommon::DoSetDataAndPointers()
 
 	m_pEditGlossEquivalences = (wxTextCtrl*)FindWindowById(IDC_EDIT_GLOSS_CASE_EQUIVALENCES);
 	//m_pEditGlossEquivalences->SetValidator(wxGenericValidator(&m_strGlossEquivalences));
+
+	m_pEditTriggerPuncts = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_CASE_TRIGGERS);
+	m_strTriggerPuncts = gpApp->m_strSentFinalPunctsTriggerCaps;
 }
 
 void CCaseEquivPageCommon::DoInit()
@@ -181,6 +185,7 @@ void CCaseEquivPageCommon::DoInit()
 	m_pEditSrcEquivalences->ChangeValue(m_strSrcEquivalences);
 	m_pEditTgtEquivalences->ChangeValue(m_strTgtEquivalences);
 	m_pEditGlossEquivalences->ChangeValue(m_strGlossEquivalences);
+	m_pEditTriggerPuncts->ChangeValue(m_strTriggerPuncts);
 
 	// The flag called gbSrcHasUcAndLc stores the user's indication of whether the 
 	// source uses upper and lower case or not. Make the checkbox reflect the
@@ -793,6 +798,17 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 		casePgCommon.m_strSrcEquivalences = casePgCommon.m_pEditSrcEquivalences->GetValue();
 		casePgCommon.m_strTgtEquivalences = casePgCommon.m_pEditTgtEquivalences->GetValue();
 		casePgCommon.m_strGlossEquivalences = casePgCommon.m_pEditGlossEquivalences->GetValue();
+		casePgCommon.m_strTriggerPuncts = casePgCommon.m_pEditTriggerPuncts->GetValue();
+		gpApp->m_strSentFinalPunctsTriggerCaps = casePgCommon.m_strTriggerPuncts;
+		if (casePgCommon.m_strTriggerPuncts.IsEmpty())
+		{
+			gpApp->m_bSentFinalPunctsTriggerCaps = FALSE;
+		}
+		else
+		{
+			gpApp->m_bSentFinalPunctsTriggerCaps = TRUE;
+		}
+
 		bool bGood = TRUE;
 
 		// build the source case strings
@@ -1031,6 +1047,17 @@ void CCaseEquivPagePrefs::OnOK(wxCommandEvent& event)
 	casePgCommon.m_strSrcEquivalences = casePgCommon.m_pEditSrcEquivalences->GetValue();
 	casePgCommon.m_strTgtEquivalences = casePgCommon.m_pEditTgtEquivalences->GetValue();
 	casePgCommon.m_strGlossEquivalences = casePgCommon.m_pEditGlossEquivalences->GetValue();
+	casePgCommon.m_strTriggerPuncts = casePgCommon.m_pEditTriggerPuncts->GetValue();
+	gpApp->m_strSentFinalPunctsTriggerCaps = casePgCommon.m_strTriggerPuncts;
+	if (casePgCommon.m_strTriggerPuncts.IsEmpty())
+	{
+		gpApp->m_bSentFinalPunctsTriggerCaps = FALSE;
+	}
+	else
+	{
+		gpApp->m_bSentFinalPunctsTriggerCaps = TRUE;
+	}
+
 	bool bGood = TRUE;
 
 	// build the source case strings

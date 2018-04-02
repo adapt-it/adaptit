@@ -59,6 +59,10 @@ public:
 	wxTextCtrl* m_pEditGlossEquivalences;
 	wxString m_strGlossEquivalences;
 
+	// for the punctuation triggers box
+	wxTextCtrl* m_pEditTriggerPuncts;
+	wxString m_strTriggerPuncts;
+
 	//enum { IDD = IDD_LOWER_TO_UPPER_EQUIVALENCES };
 	void DoSetDataAndPointers();
 	void DoInit();
