@@ -30316,7 +30316,9 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
 /// and before the menu is displayed.
 /// If the application is in read-only mode, or vertical edit is in progress, or no KBs
-/// are loaded, then disable the menu item; otherwise, enable it
+/// are loaded, or a collaboration is current, then disable the menu item; 
+/// otherwise, enable it
+/// BEW refactored 5Apr18 to comply with a persisting clipboard adapt gui
 
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateToolsClipboardAdapt(wxUpdateUIEvent& event)
@@ -30328,6 +30330,12 @@ void CAdapt_ItApp::OnUpdateToolsClipboardAdapt(wxUpdateUIEvent& event)
     // document is closed - so we can't use the clipboard adaptation functionality when
     // there is no doc loaded and we are in collaboration mode; out of collaboration mode
     // we can do that of course
+	if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
     if (m_bReadOnlyAccess)
     {
         event.Enable(FALSE);
