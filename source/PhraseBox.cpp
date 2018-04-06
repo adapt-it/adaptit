@@ -6144,7 +6144,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                 if (nRefStrCount == 1)
                 {
                     // There is one and only one ref string and it cannot be a <no adaptation> type.
-                    wxASSERT(pApp->m_pTargetBox->GetCount() == 1);
+                    //wxASSERT(pApp->m_pTargetBox->GetCount() == 1);
                     int index;
                     if (selectionIndex == -1)
                     {
@@ -6168,7 +6168,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     // Here we basically just ensure that any existing phrasebox content
                     // is selected in the dropdown list using the selectIndex info we got
                     // back from PopulateDropDownList().
-                    wxASSERT(pApp->m_pTargetBox->GetCount() > 1);
+                    //wxASSERT(pApp->m_pTargetBox->GetCount() > 1);
                     int index;
                     if (selectionIndex == -1)
                     {
