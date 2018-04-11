@@ -5985,6 +5985,13 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             pApp->pCurTargetUnit = pTargetUnit;
         }
 
+        // whm 10Apr2018 added. Set the initial value of m_bAbandonable to TRUE since we are setting up
+        // for the dropdown phrasebox, and any content in the phrasebox should initially be considered
+        // abandonable at least here when setting up the dropdown phrasebox for display to the user.
+        // Certain actions at the current location may change the flag to FALSE before the phrasebox
+        // moves - such as any key press that changes the phrasebox contents. 
+        this->m_bAbandonable = TRUE;
+
         // Get a count of the number of non-deleted ref string instances for the current target unit
         // (which may be adjusted by a prior instance of the ChooseTranslation dialog)
         int nRefStrCount = 0;
@@ -6430,6 +6437,14 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 {
 	// This mouse event is only activated when user clicks mouse L button within
 	// the phrase box, not elsewhere on the screen
+    // whm 10Apr2018 update: With the implementation of the new dropdown phrasebox, 
+    // this OnLButtonDown() handler is not activated when the user clicks mouse L button 
+    // within the phrasebox. But, surprisingly, it is triggered/executed when the user 
+    // clicks on the dropdown control's down-arrow button.
+    // Hence, currently neither this handler nor the OnLButtonDown() handler in the 
+    // CAdapt_ItCanvas get triggered when the user simply clicks within the phrasebox
+    // to remove the selection. This behavior is different that the behavior that was
+    // expected for a phrasebox based on wxTextCtrl.
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
