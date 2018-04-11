@@ -6501,6 +6501,15 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 }
 
 // BEW 13Apr10, no changes needed for support of doc version 5
+// whm 10Apr2018 update: With the implementation of the new dropdown phrasebox, 
+// this OnLButtonUp() handler is not activated when the user clicks mouse L button 
+// and releases it within the phrasebox. Unlike the OnLButtonDown() handler - see comment
+// on OnLButtonDown() above - this OnLButtonUp() is never triggered/executed not even
+// when the user clicks on the dropdown control's down-arrow button and releases.
+// Hence, currently neither this handler nor the OnLButtonDown() handler in the 
+// CAdapt_ItCanvas get triggered when the user simply clicks within the phrasebox
+// to remove the selection. This behavior is different that the behavior that was
+// expected for a phrasebox based on wxTextCtrl.
 void CPhraseBox::OnLButtonUp(wxMouseEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
