@@ -6030,7 +6030,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 
             // We're in the nRefStrCount > 0 block so there is at lease one translation equivalent
             // in the dropdown's list, so set the dropdown's button to its normal "enabled" state. 
-            // TODO: If in Free Translation mode, use the "disable" button on the dropdown control
+            // If in Free Translation mode, use the "disable" button on the dropdown control
             if (pApp->m_bFreeTranslationMode)
                 pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
             else
@@ -6077,10 +6077,10 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 
             // Within this block we know that nRefStrCount > 0
 
-            // If there is only 1 refstring and the m_targetPhrase is not empty, set the
-            // phrasebox's edit box to contain the m_targetPhrase string, highlighted, 
-            // and keep the dropdown list closed.
-            // For multiple dropdown entries, or we  
+            // If in Free translation mode keep the dropdown list closed.
+            // When not in Free translation mode:
+            // If there is only 1 refstring tell OnIdle() to keep the dropdown list closed.
+            // For multiple dropdown entries, we tell OnIdle() to open the dropdown list. 
             if (pApp->m_bFreeTranslationMode)
                 pApp->m_bChooseTransShowPopup = FALSE;
             else
