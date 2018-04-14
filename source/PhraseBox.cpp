@@ -5961,7 +5961,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
         {
             // Get a local target unit pointer.
             // No pCurTargetUnit was available in the caller to populate the list,
-            // So when pTU is NULL, we get the pCurTargetUnit directly using the 
+            // So when pCurTargetUnit is NULL, we get the pCurTargetUnit directly using the 
             // appropriate KB's GetTargetUnit() method to populate the dropdown list.
             CTargetUnit* pTargetUnit = (CTargetUnit*)NULL;
 
@@ -6035,6 +6035,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                 pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
             else
                 pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);
+
             // Set the dropdown's list selection to the selectionIndex determined by PopulatDropDownList above.
             // If selectionIndex is -1, it removes any list selection from dropdown list
             // Note: SetSelection() with a single parameter operates to select/highlight the
