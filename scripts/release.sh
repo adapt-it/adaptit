@@ -37,14 +37,18 @@
 #   - Always generates A05suffix hook and uses sed to update existing DEBFULLNAME and DEBEMAIL
 #   - Always generates A06makewx hook file to build static custom wx library within pbuilder chroot
 #   - Add echo comments to console output to more easily track progress 
-
+# Revised 2018-02-05 by Bill Martin
+#   - Add zesty, artful and bionic to OSRELEASES and UBUNTU_SUITES
+# Revised 2018-04-17
+#   - Corrected the A05suffix hook script to cd to /tmp/buildd/*/ instead of ~/*?
+#   - Moved wx library static build parts of script to release-static.sh
 
 AID_GITURL="https://github.com/adapt-it/adaptit.git"
 PBUILDFOLDER=${PBUILDFOLDER:-$HOME/pbuilder}
 HOOKSDIR="/hooks"
 PROJECTS_DIR="$HOME/projects"	# AID development default file location for the adaptit repo
 PACKAGING_DIR="$HOME/packaging"      # default location for the packaging copy of the adaptit repo
-OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty utopic vivid wily xenial yakkety sid"}
+OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty utopic vivid wily xenial yakkety zesty artful bionic sid"}
 DEVTOOLS="build-essential ubuntu-dev-tools debhelper pbuilder libtool quilt git subversion"
 BUILDDEPS="libwxgtk2.8-dev zip uuid-dev libcurl3-gnutls-dev"
 
@@ -100,8 +104,11 @@ DEBIAN_SUITES=($UNSTABLE_CODENAME $TESTING_CODENAME $STABLE_CODENAME \
     "experimental" "unstable" "testing" "stable")
 
 # List of Ubuntu suites. Update these when needed.
-UBUNTU_SUITES=("yakkety" "xenial" "wily" "vivid" "utopic" "trusty" "saucy" "raring" "quantal" \
-    "precise" "oneiric" "natty" "maverick" "lucid" "karmic" "jaunty" \
+UBUNTU_SUITES=("bionic" "artful" "zesty" "yakkety" \
+    "xenial" "wily" "vivid" "utopic" \
+    "trusty" "saucy" "raring" "quantal" \
+    "precise" "oneiric" "natty" "maverick" \
+    "lucid" "karmic" "jaunty" \
     "intrepid" "hardy" "gutsy")
 
 # Mirrors to use. Update these to your preferred mirror.
@@ -127,10 +134,10 @@ case "$DIST" in
         DIST="sid"
         ;;
     $TESTING_CODENAME)
-        DIST="wheezy"
+        DIST="stretch"
         ;;
     $STABLE_CODENAME)
-        DIST="squeeze"
+        DIST="jessie"
         ;;
     "maya")
         DIST="precise"
@@ -144,10 +151,19 @@ case "$DIST" in
     "rafaela")
         DIST="trusty"
         ;;
+    "rosa")
+        DIST="trusty"
+        ;;
     "sarah")
         DIST="xenial"
         ;;
     "serena")
+        DIST="xenial"
+        ;;
+    "sonya")
+        DIST="xenial"
+        ;;
+    "sylvia")
         DIST="xenial"
         ;;
 esac
@@ -224,6 +240,7 @@ echo -e "\nCreating A05suffix hook file at: $PBUILDFOLDER$HOOKSDIR/"
 # whm - 2016-04-20 Added rosa => trusty and sarah => xenial DISTs
 # whm - 2016-12-09 Added serena => xenial DIST
 # whm - 2017-01-14 Always generates A05suffix hook and uses sed to update existing DEBFULLNAME and DEBEMAIL
+# whm - 2018-04-17 Corrected to cd to /tmp/buildd/*/
 
 echo ""
 echo "******************************************************************************"
@@ -257,10 +274,19 @@ case "$DIST" in
     "rafaela")
         DIST="trusty"
         ;;
+    "rosa")
+        DIST="trusty"
+        ;;
     "sarah")
         DIST="xenial"
         ;;
     "serena")
+        DIST="xenial"
+        ;;
+    "sonya")
+        DIST="xenial"
+        ;;
+    "sylvia")
         DIST="xenial"
         ;;
 esac
@@ -275,7 +301,15 @@ then
     echo "******************************************************************************"
     echo " Add $DIST to package version and remove trailing 1 from distribution suffix"
     echo "******************************************************************************"
-    cd ~/*/
+    echo "ls -la /tmp/buildd/"
+    ls -la /tmp/buildd/*/
+    PWDDIR=`pwd`
+    echo "Current pwd Dir is: $PWDDIR"
+    echo "Changing dir before debchange..."
+    #cd ~/*/
+    cd /tmp/buildd/*/
+    PWDDIR=`pwd`
+    echo "Current pwd Dir is: $PWDDIR"
     debchange --local=+$DIST "Build for $DIST"
     # Remove unwanted trailing 1 from distribution suffix
     sed -i -e "1s/+${DIST}1/+${DIST}/" debian/changelog
@@ -321,121 +355,6 @@ DebEmailInA05suffix=`grep "DEBEMAIL=" ${PBUILDFOLDER}$HOOKSDIR/A05suffix`
 echo -e "\nValues of DEBFULLNAME and DEBEMAIL exported from ~/pbuilder/hooks/A05suffix:"
 echo "   $DebFullNameInA05suffix"
 echo "   $DebEmailInA05suffix"
-
-# Always install/update pbuilder hook to download, configure and build custom wxWidgets  
-# library for Xenial and later packages
-# Note: Using << "EOF" to create HERE DOC parameter expansion is suppressed; 
-#       Using << EOF to create HERE DOC parameter expansion happens
-echo -e "\nCreating A06makewx hook file at: $PBUILDFOLDER$HOOKSDIR/"
-  cat >${PBUILDFOLDER}$HOOKSDIR/A06makewx <<"EOF"
-#!/bin/bash
-# pbuilder hook to download, configure and build custom wxWidgets 3 
-# library for Xenial and later packages
-#
-# Bill Martin - 2017-01-14
-    
-echo ""
-echo "******************************************************************************"
-echo " Begin executing the A06makewx pbuilder hook script "
-echo "******************************************************************************"
-
-WXVER="3.0.2"
-WXDIR="$HOME/wxWidgets-$WXVER"
-RELEASEBUILDDIR="/buildgtku"
-DEBUGBUILDDIR="/buildgtkud"
-WXGZARCHIVE="wxWidgets-$WXVER.tar.bz2"
-SCRIPTNAME="makewx.sh"
-WX302URL="https://sourceforge.net/projects/wxwindows/files/$WXVER/wxWidgets-$WXVER.tar.bz2"
-DEBUGCONFIGOPTIONS="--enable-static --disable-shared --enable-monolithic --without-gtkprint --enable-debug"
-RELEASECONFIGOPTIONS="--enable-static --disable-shared --enable-monolithic --without-gtkprint"
-BUILDS="release" # Only do release build for packaging. The "debug" blocks of code below are skipped
-
-TYPE=$(lsb_release -si)
-if [ x"$TYPE" = x"LinuxMint" ]; then
-  TYPE="Ubuntu"
-fi
-DIST=$(lsb_release -sc)
-case "$DIST" in
-    $UNSTABLE_CODENAME)
-        DIST="sid"
-        ;;
-    $TESTING_CODENAME)
-        DIST="stretch"
-        ;;
-    $STABLE_CODENAME)
-        DIST="jessie"
-        ;;
-    "maya")
-        DIST="precise"
-        ;;
-    "qiana")
-        DIST="trusty"
-        ;;
-    "rebecca")
-        DIST="trusty"
-        ;;
-    "rafaela")
-        DIST="trusty"
-        ;;
-    "sarah")
-        DIST="xenial"
-        ;;
-    "serena")
-        DIST="xenial"
-        ;;
-esac
-echo -e "\nThe Modified Codename for Deveopment is: $DIST"
-
-if [ x"$DIST" = x"xenial" ]; then
-    cd
-    PWDDIR=`pwd`
-    echo "Current pwd Dir is: $PWDDIR"
-    echo ""
-    echo "******************************************************************************"
-    echo " Download, configure & build the wxWidgets $WXVER library for static linking "
-    echo "******************************************************************************"
-    echo ""
-    echo "******************************************************************************"
-    echo " Downloading and extracting source tree from $WXGZARCHIVE archive "
-    echo "******************************************************************************"
-    echo "Retrieving the $WXGZARCHIVE archive from $WX302URL..."
-    echo ""
-    wget --no-clobber --no-directories --no-check-certificate $WX302URL
-    echo "Expanding the $WXGZARCHIVE archive"
-    sleep 2
-    # can include v option to tar below for verbose output
-    tar xjf $WXGZARCHIVE
-
-    echo ""
-    echo "******************************************************************************"
-    echo " Configuring the wxWidgets $WXVER library"
-    echo "******************************************************************************"
-    mkdir -p $WXDIR$RELEASEBUILDDIR
-    cd $WXDIR$RELEASEBUILDDIR
-    echo "Configuring the $WXDIR$RELEASEBUILDDIR build using configure options: "
-    echo "   $RELEASECONFIGOPTIONS"
-    sleep 3
-    ../configure $RELEASECONFIGOPTIONS
-
-    echo ""
-    echo "******************************************************************************"
-    echo " Cleaning and Making the wxWidgets $WXVER library"
-    echo "******************************************************************************"
-    echo "Clean and Make the $WXDIR$RELEASEBUILDDIR library. Please wait..."
-    sleep 3
-    make clean
-    make
-    echo "******************************************************************************"
-    echo " Finished A06makewx script and building the wxWidgets $WXVER library"
-    echo "******************************************************************************"
-else
-    echo ""
-    echo "Skipping preparation of custom wxWidgets $WXVER library for $DIST"
-    echo ""
-fi
-EOF
-# end of EOF ${PBUILDFOLDER}$HOOKSDIR/A06makewx
-chmod 0755 ${PBUILDFOLDER}$HOOKSDIR/A06makewx
 
 # Install build dependencies
 echo -e "\nInstalling build dependencies"
