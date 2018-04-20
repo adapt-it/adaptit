@@ -5961,7 +5961,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
         {
             // Get a local target unit pointer.
             // No pCurTargetUnit was available in the caller to populate the list,
-            // So when pTU is NULL, we get the pCurTargetUnit directly using the 
+            // So when pCurTargetUnit is NULL, we get the pCurTargetUnit directly using the 
             // appropriate KB's GetTargetUnit() method to populate the dropdown list.
             CTargetUnit* pTargetUnit = (CTargetUnit*)NULL;
 
@@ -5984,6 +5984,13 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             // Assign the local target unit to the App's member pCurTargetUnit for use below
             pApp->pCurTargetUnit = pTargetUnit;
         }
+
+        // whm 10Apr2018 added. Set the initial value of m_bAbandonable to TRUE since we are setting up
+        // for the dropdown phrasebox, and any content in the phrasebox should initially be considered
+        // abandonable at least here when setting up the dropdown phrasebox for display to the user.
+        // Certain actions at the current location may change the flag to FALSE before the phrasebox
+        // moves - such as any key press that changes the phrasebox contents. 
+        this->m_bAbandonable = TRUE;
 
         // Get a count of the number of non-deleted ref string instances for the current target unit
         // (which may be adjusted by a prior instance of the ChooseTranslation dialog)
@@ -6023,11 +6030,12 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 
             // We're in the nRefStrCount > 0 block so there is at lease one translation equivalent
             // in the dropdown's list, so set the dropdown's button to its normal "enabled" state. 
-            // TODO: If in Free Translation mode, use the "disable" button on the dropdown control
+            // If in Free Translation mode, use the "disable" button on the dropdown control
             if (pApp->m_bFreeTranslationMode)
                 pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
             else
                 pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);
+
             // Set the dropdown's list selection to the selectionIndex determined by PopulatDropDownList above.
             // If selectionIndex is -1, it removes any list selection from dropdown list
             // Note: SetSelection() with a single parameter operates to select/highlight the
@@ -6070,10 +6078,10 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 
             // Within this block we know that nRefStrCount > 0
 
-            // If there is only 1 refstring and the m_targetPhrase is not empty, set the
-            // phrasebox's edit box to contain the m_targetPhrase string, highlighted, 
-            // and keep the dropdown list closed.
-            // For multiple dropdown entries, or we  
+            // If in Free translation mode keep the dropdown list closed.
+            // When not in Free translation mode:
+            // If there is only 1 refstring tell OnIdle() to keep the dropdown list closed.
+            // For multiple dropdown entries, we tell OnIdle() to open the dropdown list. 
             if (pApp->m_bFreeTranslationMode)
                 pApp->m_bChooseTransShowPopup = FALSE;
             else
@@ -6144,7 +6152,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                 if (nRefStrCount == 1)
                 {
                     // There is one and only one ref string and it cannot be a <no adaptation> type.
-                    wxASSERT(pApp->m_pTargetBox->GetCount() == 1);
+                    //wxASSERT(pApp->m_pTargetBox->GetCount() == 1);
                     int index;
                     if (selectionIndex == -1)
                     {
@@ -6168,7 +6176,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     // Here we basically just ensure that any existing phrasebox content
                     // is selected in the dropdown list using the selectIndex info we got
                     // back from PopulateDropDownList().
-                    wxASSERT(pApp->m_pTargetBox->GetCount() > 1);
+                    //wxASSERT(pApp->m_pTargetBox->GetCount() > 1);
                     int index;
                     if (selectionIndex == -1)
                     {
@@ -6430,6 +6438,14 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 {
 	// This mouse event is only activated when user clicks mouse L button within
 	// the phrase box, not elsewhere on the screen
+    // whm 10Apr2018 update: With the implementation of the new dropdown phrasebox, 
+    // this OnLButtonDown() handler is not activated when the user clicks mouse L button 
+    // within the phrasebox. But, surprisingly, it is triggered/executed when the user 
+    // clicks on the dropdown control's down-arrow button.
+    // Hence, currently neither this handler nor the OnLButtonDown() handler in the 
+    // CAdapt_ItCanvas get triggered when the user simply clicks within the phrasebox
+    // to remove the selection. This behavior is different that the behavior that was
+    // expected for a phrasebox based on wxTextCtrl.
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
@@ -6486,6 +6502,15 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 }
 
 // BEW 13Apr10, no changes needed for support of doc version 5
+// whm 10Apr2018 update: With the implementation of the new dropdown phrasebox, 
+// this OnLButtonUp() handler is not activated when the user clicks mouse L button 
+// and releases it within the phrasebox. Unlike the OnLButtonDown() handler - see comment
+// on OnLButtonDown() above - this OnLButtonUp() is never triggered/executed not even
+// when the user clicks on the dropdown control's down-arrow button and releases.
+// Hence, currently neither this handler nor the OnLButtonDown() handler in the 
+// CAdapt_ItCanvas get triggered when the user simply clicks within the phrasebox
+// to remove the selection. This behavior is different that the behavior that was
+// expected for a phrasebox based on wxTextCtrl.
 void CPhraseBox::OnLButtonUp(wxMouseEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();

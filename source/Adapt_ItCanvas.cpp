@@ -1926,6 +1926,10 @@ x:					CCell* pCell = 0;
 							ScrollIntoView(pApp->m_nActiveSequNum);
 						}
 					} // end of block for test: pApp->m_bFreeTranslationMode
+                    // whm 10Apr2018 experimenting by adding event.Skip() here before
+                    // the return statement. It makes no difference; a click within the
+                    // phrasebox to remove the highlight doesn't pass through here.
+                    //event.Skip();
 					return;
 
 				} // end block for test: pCell->GetCellIndex() == 1

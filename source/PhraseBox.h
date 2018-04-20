@@ -128,13 +128,15 @@ public:
 
     // whm 10Jan2018 added members below to implement the dropdown phrasebox functionality
     void SetupDropDownPhraseBoxForThisLocation();
+    void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptatio);
     int GetLineLength(long lineNo); // whm 14Feb2018 added. Note: GetLineLength() is in wxTextCtrl but not wxOwnerDrawnComboBox.
     void OnComboProcessDropDownListOpen(wxCommandEvent & WXUNUSED(event));
     void OnComboProcessDropDownListCloseUp(wxCommandEvent & WXUNUSED(event));
-    void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptatio);
     void ClearDropDownList();
     void CloseDropDown();
     void PopupDropDownList();
+
+    // The following members are used to present a dropdown arrow or a rose pink X for the control's button:
     wxBitmap dropbutton_hover; // (xpm_dropbutton_hover);
     wxBitmap dropbutton_pressed; // (xpm_dropbutton_pressed);
     wxBitmap dropbutton_normal; // (xpm_dropbutton_normal);
