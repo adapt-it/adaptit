@@ -5858,7 +5858,7 @@ bool CPhraseBox::GetModify()
 // m_bMovingToDifferentPile flags are all FALSE, we are able to restrict code execution
 // here to once (approximately) per final landing location of the phrasebox.
 // WARNING: It is possible that the three boolean flags may not prevent all spurious
-// calls of this function. Therefore, it is best to not put anyithing within this
+// calls of this function. Therefore, it is best to not put anything within this
 // function that cannot be executed more than once, and still achieve the same desired
 // result.
 void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()

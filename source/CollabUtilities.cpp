@@ -2718,6 +2718,49 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		wxString fullFileName;
 		fullFileName = fn.GetFullName();
 
+		// BEW 19Apr18 Provide more failure diagnostics here, for LogUserAction() - we want to know
+		// the filesize (in case it got trucated; the path and filename - tells us from where and
+		// whether it is a collaboration file, and the last 15 characters which should contain the
+		// </AdaptItDoc> string
+		wxFile f;
+		long fileLen;
+		int nReadBytes;
+		if (f.Exists(pathToDoc) && f.Open(pathToDoc, wxFile::read))
+		{
+			fileLen = f.Length(); // get length of file in bytes.
+			if (fileLen > 15) // bytes
+			{
+				char* pBuff = new char[fileLen + 1]; // create on the heap just in case it is a huge file
+				memset(pBuff, 0, fileLen + 1);
+				nReadBytes = f.Read(pBuff, fileLen);
+				char* pShortBuff = new char[16];
+				memset(pShortBuff, 0, 16); // fill with nulls
+
+				long nStart = nReadBytes - 15;
+				char* ptr = pBuff + nStart;
+				char* pShort = pShortBuff;
+				while (*ptr != 0)
+				{
+					// copy the last 15 characters to the short buffer 
+					// which should contain </AdaptItDoc> and maybe crlf after it)
+					*pShort++ = *ptr++;
+				}
+				CBString bytes(pShortBuff);
+				wxString endingStr;
+				pApp->Convert8to16(bytes, endingStr);
+				endingStr.Trim(FALSE); endingStr.Trim(TRUE); // both ends, in case some whitespace is present
+
+				// Now construct the log entry for LogUserAction and insert it into the log
+				wxString strLog = _T("OnOpenDocument: Path&Filename = %s , size (in bytes) = %d , File ending = %s");
+				strLog = strLog.Format(strLog, pathToDoc.c_str(), nReadBytes, endingStr.c_str());
+				pApp->LogUserAction(strLog);
+
+				delete[] pBuff;
+				delete[] pShortBuff;
+				f.Close();
+			}
+		}
+
 		// whm 24Aug11 Note: ReadDoc_XML() no longer puts up a progress/wait dialog of its own.
 		// We need to create a separate progress dialog here to monitor the ReadDoc_XML()
 		// progress. We can't use a pointer from our calling function GetSourceTextFromEditor::OnOK()

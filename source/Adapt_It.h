@@ -31,6 +31,15 @@
 #define USE_LEGACY_PARSER
 #include <wx/string.h>
 
+// Use the following #define, in _DEBUG mode, to turn on the use of a logging function called
+// LogDropdownState() which uses a set of wxLogDebug() calls internally to track the values of
+// parameters like m_TargetBox::m_bAbandonable flag, the box's contents, and app's 
+// string contents for the member m_targetPhrase, pActiveSrcPhrase's m_key and m_adaption and
+// m_nSequNumber; and from the KB, the pTU's inventory of CRefString instances'm_translation 
+// string values and the value of each's m_bDeleted  boolflag. And to print the callers name and
+// line number for where LogDropdownState() is being called. Callable only in _DEBUG builds.
+#define _ABANDONABLE
+
 //#define AUTHENTICATE_AS_BRUCE
 
 // whm added 5Jun12 for debugging purposes. The FORCE_BIBLEDIT_IS_INSTALLED_FLAG
@@ -4233,11 +4242,7 @@ public:
 	void OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event)); // BEW added 9May14
 	void OnButtonGetFromClipboard(wxCommandEvent& WXUNUSED(event)); // BEW added 27Mar18
 	void OnUpdateToolsClipboardAdapt(wxUpdateUIEvent& event); // ditto
-//private:
-	// BEW 28Mar18, now tha the feature stays open for many potential clipboard
-	// adapts, this function is no longer needed
-	//void RestoreDocStateWhenEmptyClipboard(SPList* pList, int nStartingSequNum,
-	//			int nEndingSequNum, SPList* pOldList, bool bDocIsLoaded);
+
 public:
 
 	void OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXUNUSED(event));
@@ -4675,6 +4680,9 @@ public:
 	bool	LoadKB(bool bShowProgress);
 	bool	LoadGlossingKB(bool bShowProgress);
 	void	LoadGuesser(CKB* Kb);
+	void	LogDropdownState(wxString functionName, wxString fileName, int lineNumber); // BEW 17Apr18 a  
+				// self-contained logger for feedback about m_bAbandonable and friends, to be used when 
+				// _ABANDONABLE is #defined
 	wxString GetMostCommonForm(CTargetUnit* pTU, wxString* pNotInKBstr); // BEW added 21Jan15
 	bool	CreateAndLoadKBs(); // whm 28Aug11 added
 	wxFontEncoding MapMFCCharsetToWXFontEncoding(const int Charset);

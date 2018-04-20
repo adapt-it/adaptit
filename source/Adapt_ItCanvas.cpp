@@ -541,6 +541,11 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	// BEW added this line at 20May16
 	pApp->m_pTargetBox->m_bCurrentCopySrcPunctuationFlag = pApp->m_bCopySourcePunctuation;
 
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+
+	pApp->LogDropdownState(_T("OnLButtonDown()"), _T("Adapt_ItCanvas.cpp"), 546);
+
+#endif
 
 	bool bClickWasProductive = FALSE;
 
@@ -1845,9 +1850,16 @@ x:					CCell* pCell = 0;
 							}
 							else
 							{
+
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+								pApp->LogDropdownState(_T("OnLButtonDown() before PlacePhraseBox()"), _T("Adapt_ItCanvas.cpp"), 1856);
+#endif
 								// Now get the phrasebox placed
 								pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
 									// KB access is done at both leaving and landing locations)
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+								pApp->LogDropdownState(_T("OnLButtonDown() after PlacePhraseBox()"), _T("Adapt_ItCanvas.cpp"), 1861);
+#endif
 							}
 						}
 						ScrollIntoView(pApp->m_nActiveSequNum);

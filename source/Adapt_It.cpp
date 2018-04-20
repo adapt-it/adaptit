@@ -30349,20 +30349,20 @@ void CAdapt_ItApp::OnUpdateToolsClipboardAdapt(wxUpdateUIEvent& event)
         return;
     }
     // Allow Tools > "Adapt clipboard text" only if a project is open (a doc need not be open)
+	// and the feature is not currently open (KB's need to be available)
     if ((!gbIsGlossing && pApp->m_bKBReady) || (gbIsGlossing && pApp->m_bGlossingKBReady))
     {
-        if (!m_bClipboardTextLoaded)
+        if (!m_bClipboardAdaptMode)
         {
             //wxLogDebug(_T(" m_KBReady   %d   m_bGlossingKBReady  %d"  ), (int)pApp->m_bKBReady, (int)pApp->m_bGlossingKBReady);
             event.Enable(TRUE);
         }
         else
         {
-            // Once the text is loaded, disable the menu command in case the user clicks
-            // it by mistake, rather than using one of the "Copy..." buttons in the bar;
-            // without this, a mistaken click of the menu item wipes out his adaptations
-            // (but KB contents are still updated fortunately) with the clipboard text
-            // again, requiring a second adaptation be done - we must prevent this
+            // Once the feature is turned on, disable the menu command in case the user clicks
+            // it by mistake while the feature is open; without this, a mistaken click of the menu item 
+			// wipes out his adaptations, and clobbers the content of any original document 
+            // that was cached when the mode was first turned on
             event.Enable(FALSE);
         }
     }
@@ -30698,67 +30698,6 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
   		return; 
 }
 
-// BEW 28Mar18, now tha the feature stays open for many potential clipboard
-// adapts, this function is no longer needed
-/*
-void CAdapt_ItApp::RestoreDocStateWhenEmptyClipboard(SPList* pList, int nStartingSequNum,
-    int nEndingSequNum, SPList* pOldList, bool bDocIsLoaded) // this is a private function
-{
-    CAdapt_ItDoc* pDoc = GetDocument();
-    CLayout* pLayout = GetLayout();
-    CAdapt_ItView* pView = GetView();
-    CMainFrame* pMainFrame = GetMainFrame();
-    // We've nothing to do, so restore the document and active location if there was a
-    // doc loaded in the view window, then tell the user (in caller) there is no clipboard
-    // text and exit this handler without doing anything. Nothing has changed in the GUI as
-    // yet, but a recalc of the layout is needed because the partner piles got
-    // clobbered at the DeleteSourcePhrases() call in the caller
-    m_bClipboardAdaptMode = FALSE;
-    bool bIsOK = TRUE;
-    if (bDocIsLoaded)
-    {
-        bIsOK = pView->DeepCopySourcePhraseSublist(pList, (int)nStartingSequNum, (int)nEndingSequNum, pOldList);
-        bIsOK = bIsOK; // avoid warning
-        m_nActiveSequNum = m_nSaveSequNumForDocRestore;
-        m_nSaveSequNumForDocRestore = 0; // a safe default
-        pDoc->DeleteSourcePhrases(m_pSaveList, FALSE); // FALSE means don't delete partner piles
-
-                                                       // RecalcLayout() and place the phrase box
-        m_pActivePile = NULL;
-#ifdef _NEW_LAYOUT
-        pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
-#else
-        pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
-#endif
-        // recalculate the active pile & update location for phraseBox creation
-        m_pActivePile = pView->GetPile(m_nActiveSequNum);
-        if (m_pActivePile != NULL)
-        {
-            pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
-            m_nStartChar = 0;
-            m_nEndChar = -1; // ensure initially all is selected
-            m_pTargetBox->SetSelection(-1, -1); // select all
-            m_pTargetBox->SetFocus();
-        }
-        pView->Invalidate();
-        pLayout->PlaceBox();
-    }
-
-    // Restore the status bar text, and the window's former Title
-    m_bADocIsLoaded = FALSE; // restore default value
-    m_bClipboardTextLoaded = FALSE; // default, in case user does another
-                                    // clipboard adaptation attempt
-    m_savedTextBoxStr.Empty();
-    // the window title restore is next 4 lines
-    wxString oldTitleStr = m_savedDocTitle;
-    pDoc->SetTitle(oldTitleStr);
-    pDoc->SetFilename(oldTitleStr, TRUE); // here TRUE means "notify the views"
-    m_savedDocTitle.Empty();
-    // Now that m_bClipboardAdaptMode is FALSE, the status bar refresh will
-    // restore the document information, or default info if no doc was loaded
-    RefreshStatusBarInfo();
-}
-*/
 void CAdapt_ItApp::OnUpdateButtonCopyToClipboard(wxUpdateUIEvent& event)
 {
     //CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -54005,4 +53944,68 @@ bool CAdapt_ItApp::SetupDocCreationLog(wxString& filename)
 	}
 	return TRUE;
 }
+
+// BEW 17Apr18 a self-contained logger for feedback about m_bAbandonable and 
+// friends, to be used when _ABANDONABLE is #defined. _ABANDONABLE is #defined near the top
+// of Adapt_It.h   Comment it out when the logging output is no longer needed
+void CAdapt_ItApp::LogDropdownState(wxString functionName, wxString fileName, int lineNumber)
+{
+	wxString func = functionName;
+	wxString memberOf = fileName;
+	wxString msg = _T("\nIn function:  %s  of filename:  %s  called at line number: %d");
+	msg = msg.Format(msg, func.c_str(), memberOf.c_str(), lineNumber);
+	wxLogDebug(msg);
+
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	bool bAbandonableValue = pApp->m_pTargetBox->m_bAbandonable;
+	wxString value = bAbandonableValue ? _T("TRUE") : _T("FALSE");
+	wxString contents = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+	wxString trackingStr = pApp->m_targetPhrase;
+	msg = _T("m_bAbandonable is  %s  , Box contents currently = %s  ,  and  m_targetPhrase is  %s");
+	msg = msg.Format(msg, value.c_str(), contents.c_str(), trackingStr.c_str());
+	wxLogDebug(msg);
+
+	CSourcePhrase* pActiveSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+	if (pActiveSrcPhrase != NULL)
+	{
+		msg = _T("Active CSourcePhrase: m_key =  %s  , m_adaption = %s  ,  sequenceNumber  %d ,  m_bHasKBEntry is  %s");
+		value = pActiveSrcPhrase->m_bHasKBEntry ? _T("TRUE") : _T("FALSE");
+		msg = msg.Format(msg, pActiveSrcPhrase->m_key.c_str(), pActiveSrcPhrase->m_adaption.c_str(), pActiveSrcPhrase->m_nSequNumber, value.c_str());
+		wxLogDebug(msg);
+	}
+
+	CTargetUnit* pTU = NULL;
+	CAdapt_ItView* pView = pApp->GetView();
+	CKB* pKB = pView->GetKB(); // this is the adaptation knowledge base's reference
+	if (!gbIsGlossing && pApp->m_bKBReady && (pView != NULL))
+	{
+		int numWords = pActiveSrcPhrase->m_nSrcWords;
+		pTU = pKB->GetTargetUnit(numWords, pActiveSrcPhrase->m_key);
+		int refStrCount = 0;
+		if (pTU != NULL)
+		{
+			refStrCount = pTU->CountNonDeletedRefStringInstances();
+			if (!pTU->m_pTranslations->IsEmpty() && refStrCount > 0)
+			{
+				TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
+				CRefString* pRefStr = NULL;
+				while (tpos != NULL)
+				{
+					pRefStr = (CRefString*)tpos->GetData();
+					wxASSERT(pRefStr != NULL);
+					tpos = tpos->GetNext();
+					bool bDeleted = pRefStr->GetDeletedFlag();
+					if (!bDeleted)
+					{
+						msg = _T("KB-stored translation for key:  %s  , CRefString's m_translation is:  %s");
+						msg = msg.Format(msg, pActiveSrcPhrase->m_key.c_str(), pRefStr->m_translation.c_str());
+						wxLogDebug(msg);
+					}
+				}
+			}
+		}
+	}
+}
+
+
 

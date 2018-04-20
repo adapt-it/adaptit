@@ -308,7 +308,7 @@ void CServDisc_KBserversDlg::OnOK(wxCommandEvent& event)
 		// impossible until the project becomes a KB Sharing one. Tell the user.
 		wxString warningStr = _("One or more KBservers may be available. But your project is not yet set up for Knowledge Base Sharing.\nUntil you do this, a connection to any available KBserver is impossible.\nUse the command Setup Or Remove Knowledge Base Sharing, on the Advanced menu.");
 		wxString titleStr = _("Cannot connect yet");
-		wxMessageBox(warningStr, titleStr, wxICON_WARNING | wxOK);
+		wxMessageBox(warningStr, titleStr, wxICON_INFORMATION | wxOK);
 	}
 
 

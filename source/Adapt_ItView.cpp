@@ -2919,6 +2919,10 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		return;
 	}
 	CAdapt_ItApp* pApp = &wxGetApp();
+
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+	pApp->LogDropdownState(_T("PlacePhraseBox() just entered"), _T("Adapt_ItView.cpp"), 2924);
+#endif
 	CPile* pClickedPile = pCell->GetPile();
 	wxASSERT(pClickedPile);
 //#ifdef _DEBUG
@@ -3046,6 +3050,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 				// make sure pApp->m_targetPhrase doesn't have any final spaces
 				pApp->m_pTargetBox->RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
 
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+				pApp->LogDropdownState(_T("PlacePhraseBox() leaving, about to save to KB, selector = 0"), _T("Adapt_ItView.cpp"), 3054);
+#endif
 				// any existing phraseBox text must be saved to the KB, unless its empty
 				bool bOK = TRUE;
 				if (!pApp->m_targetPhrase.IsEmpty())
@@ -3079,6 +3086,11 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),4,pApp->m_nActiveSequNum);
 //#endif
+
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE block  for empty m_targetPhrase test, selector = 0"), _T("Adapt_ItView.cpp"), 3091);
+#endif
+
 				} // end block for test !pApp->m_targetPhrase.IsEmpty() == TRUE
 				else
 				{
@@ -3099,6 +3111,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),5,pApp->m_nActiveSequNum);
 //#endif
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE block, selector = 0 ELSE block for empty m_targetPhrase test, will now return to caller"), _T("Adapt_ItView.cpp"), 3115);
+#endif
 						return;
 					}
 				} // end else block for test:  !pApp->m_targetPhrase.IsEmpty()
@@ -28973,6 +28988,14 @@ void CAdapt_ItView::OnExportFreeTranslations(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnUpdateAdvancedEnableglossing(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		// in this mode, glossing is pointless because there is no way to return the
+		// glosses to the clipboard - so disallow an attempt to see the glossing gui
+		// in order to then turn on glossing mode
+		event.Enable(FALSE);
+		return;
+	}
 	// we'll allow it to be toggled on or off provided a project is open; the two
 	// kb flags being TRUE will be a sufficient test.
 	if (pApp->m_bKBReady && pApp->m_bGlossingKBReady)

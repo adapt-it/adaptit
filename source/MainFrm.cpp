@@ -4669,7 +4669,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	// as is done here, or asynchronously on a thread (due to mutexes blocking KB saves and
 	// guesser lists' acccesses). So the best place to hide them is at idle time when the user
 	// is eyeballing what's in the gui or deciding what next to type. The calls are done here,
-	// deliberately *after* auto-insertions, to prevent accidently interruptions to the
+	// deliberately *after* auto-insertions, to prevent accidental interruptions to the
 	// auto-insert mechanism of the block immediately above. *Don't change this order of these
 	// two blocks!*
 	// Support requires the following extra apparatus:
