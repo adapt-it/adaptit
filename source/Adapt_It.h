@@ -2737,7 +2737,7 @@ public:
 	long			m_nEndChar;		// end of selection in the target box
 
     // whm modified 10Jan2018 after deriving CPhraseBox from wxOwnerDrawnComboBox
-    bool m_bChooseTransShowPopup;
+    bool m_bChooseTransInitializePopup;
 
     // whm 24Feb2018 modified by moving some globals out of global space
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

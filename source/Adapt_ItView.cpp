@@ -14214,10 +14214,12 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		bOK = bOK; // avoid warning
 	}
 	// Get a pointer to the target unit for the current key
-    // whm 10Jan2018 Note: The following assignment to pCurTargetUnit should
-    // be the ONLY place within the sources where a non-null pointer value is
-    // assigned to pCurTargetUnit, now that OnButtonChooseTranslation() is the
-    // sole place where the ChooseTranslation dialog is called.
+    // whm 10Jan2018 Note: In the Legacy app, the following assignment to pCurTargetUnit 
+    // was the ONLY place within the sources where a non-null pointer value is
+    // assigned to pCurTargetUnit. In the dropdown phrasebox implementation - if not assigned
+    // a value here within OnButtonChooseTranslation() - an attempt to assign it a value for
+    // the current location is also made within the SetupDropDownPhraseBoxForThisLocation()
+    // function.
     pApp->pCurTargetUnit = pKB->GetTargetUnit(pApp->m_pTargetBox->m_nWordsInPhrase, pSrcPhrase->m_key);
 	if (pApp->pCurTargetUnit == NULL)
 	{
@@ -21017,7 +21019,8 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 		if (tbi != NULL)
 		{
             // whm comment 10Jan2018 to support quick selection of a translation equivalent.
-            // While it would be a bit strange for someone to adapt text while they cannot
+            // I debated whether the phrasebox should have its popup list visible for this
+            // mode. While it would be a bit strange for someone to adapt text while they cannot
             // see the source text, in this Target-Only-Visible mode it is possible to do so,
             // since the phrasebox is present and works in this mode as it did in other modes.
             // Hence, I will allow the dropdown combo box to appear here as it would for

@@ -6290,7 +6290,8 @@ wxString szExtraPixelsForDiacritics = _T("ExtraPixelsForDiacritics");
 /// moves down the client area etc.
 wxString szKeepPhraseBoxMidscreen = _T("KeepPhraseBoxMidscreen");
 
-wxString szUseChooseTransDropDown = _T("UseChooseTranslationDropDownQuickSelector");
+// whm 19Apr2018 removed. No longer need to save this setting
+//wxString szUseChooseTransDropDown = _T("UseChooseTranslationDropDownQuickSelector");
 
 /// Default is FALSE, auto-caps lookup only looks up lower case keys; if user sets the
 /// boolean to TRUE, on fail an auto-caps upper case lookup is attempted - if it
@@ -18857,7 +18858,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pTargetBox = (CPhraseBox*)NULL; // The target box in use (assigned from one above with/without list)
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    m_bChooseTransShowPopup = FALSE;
+    m_bChooseTransInitializePopup = FALSE;
 
     // default is legacy behaviour, to copy the source text (unless
     // the project config file establishes the FALSE value instead)
@@ -44177,7 +44178,13 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
         message += _T("   ") + mssg;
     }
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (this->m_bChooseTransShowPopup)
+    // whm 19Apr2018 Note: The following status message only appears for a split second
+    // in the new dropdown phrasebox code, because the m_bChooseTransInitializePopup is
+    // only true for one OnIdle() cycle, then becomes FALSE again.
+    // TODO: Is this status line help desirable enough to devise a different flag to use 
+    // so that this status line help message will appear while the phrasebox is at
+    // locations where multiple translations are displaying in the dropdown list???
+    if (this->m_bChooseTransInitializePopup)
     {
         if ((gpApp->m_pTargetBox != NULL) && (gpApp->m_pTargetBox->GetCount() > 1))
         {

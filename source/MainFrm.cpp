@@ -4619,13 +4619,13 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	}
 
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    if (pApp->m_bChooseTransShowPopup)
+    if (pApp->m_bChooseTransInitializePopup)
     {
-        // The App's m_bChooseTransShowPopup flag is TRUE which means the 
+        // The App's m_bChooseTransInitializePopup flag is TRUE which means the 
         // phrasebox has landed and is 'resting' somewhere at a location 
-        // after a PlaceBox() call. Here in OnIdle() we attempt to keep
+        // after a PlaceBox() call. Here in OnIdle() we initialize
         // the popup list open (where it contains at least one item) and 
-        // keep the popup list closed/dismissed (where it has no items).
+        // initialize the popup list closed/dismissed (where it has no items).
 
         // whm Note: originally I tried to get/set the enable state of
         // the dropdown's button, but that did not work since the GetButton()
@@ -4637,7 +4637,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
         //}
 
         // Popup the dropdown's list if it has content, otherwise keep it closed, but only if
-        // we are not moving to different pile, and are not merging. 
+        // we are not moving to different pile, not auto-inserting and are not merging. 
         // Filtering out the PopupupDropDownList() calls when merging and when the phrasebox
         // is in the process of moving, helps reduce rapid flickering due to momentary popping
         // up of the dropdown list that would otherwise happen during merging and repeated
@@ -4645,10 +4645,19 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
         // whm 26Feb2018 Added outer test for NULL on m_pTargetBox - Linux version OnIdle() handler initiates early
         if (pApp->m_pTargetBox != NULL)
         {
+            // whm Note: The test below could test for GetCount() > 1, if we want the dropdown list
+            // to remain closed when just one item is in the list, in which case that item is generally
+            // selected and placed in the phrasebox's edit box and in the user's view, making it somewhat
+            // unnecessary to have the list popped open and showing only that same signle item.
             if (pApp->m_pTargetBox->GetCount() > 0)
             {
-                if (!pApp->m_bMovingToDifferentPile && !pApp->bLookAheadMerge)
+                if (!pApp->m_bMovingToDifferentPile && !pApp->m_bAutoInsert && !pApp->bLookAheadMerge)
                 {
+                    // whm Note: The CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
+                    // ensures that the OnIdle() trigger flag m_bChooseTransInitializePopup is
+                    // only set to TRUE when all three of the above flags are FALSE. 
+                    // Hence, this if block should always execute, and the else block below 
+                    // should never execute. 
                     pApp->m_pTargetBox->PopupDropDownList();
                 }
                 else
@@ -4661,7 +4670,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
                 pApp->m_pTargetBox->CloseDropDown();
             }
         }
-        pApp->m_bChooseTransShowPopup = FALSE;
+        pApp->m_bChooseTransInitializePopup = FALSE;
     }
     
 	// BEW 2Dec2014 Alan Buseman's Guesser - support for hiding the GuesserUpdate() calls

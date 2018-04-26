@@ -3702,7 +3702,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			// affect wxGetKeyState() results making it appear that WXK_SHIFT is not detected
 			// below. Solution: remove the breakpoint(s) for wxGetKeyState(WXK_SHIFT) to
 			// register properly.
-			if (wxGetKeyState(WXK_SHIFT))
+			if (wxGetKeyState(WXK_SHIFT)) // SHIFT+RETURN key
 			{
 				// shift key is down, so move back a pile
 
@@ -3759,7 +3759,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			// whm Note: Beware! Setting breakpoints in OnChar() before this point can
 			// affect wxGetKeyState() results making it appear that WXK_SHIFT is not detected
 			// below. Solution: remove the breakpoint(s) for wxGetKeyState(WXK_SHIFT) to
-			if (wxGetKeyState(WXK_SHIFT))
+			if (wxGetKeyState(WXK_SHIFT)) // SHIFT+TAB
 			{
 				// shift key is down, so move back a pile
 
@@ -5870,36 +5870,45 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     // and characteristics of the phrasebox's (m_pTargetBox) dropdown control:
     //
     // 1. Test for the App's bLookAheadMerge, m_bAutoInsert, or m_bMovingToDifferentPile flags. 
-    //    By allowing this code to execute only when all those flags are FALSE, it eliminates 
-    //    extraneous calls of this block of code when PlaceBox() is called during merging and
-    //    moving operations.
+    //    By allowing the code in this function to execute only when all those flags are FALSE, 
+    //    it eliminates extraneous calls of this block of code when PlaceBox() is called during
+    //    merging, auto-inserting, and PlaceBox() calls in the midst of box moving operations.
     //
-    // 2. Get the count of non-deleted ref string instances, and proceed as follows:
+    // 2. Set boolean flags to prepare the location for the dropdown phrasebox
+    //    2.a Initialize m_bChooseTransInitializePopup to TRUE so OnIdle() can set the initial
+    //        state of the dropdown popup - open or closed.
+    //        If in Free Translation mode initialize m_bChooseTransInitializePopup to FALSE.
+    //    2.b Initialize m_bAbandonable to TRUE so that an immediate click away to a new
+    //        location will not change the current location, unless user changes are made
+    //        (which should set m_bAbandonable to FALSE).
+    // 3. Determine a pCurTargetUnit for the present location. If a previous ChooseTranslation
+    //    dialog session was just dismissed with changes made to this target unit, pCurTargetUnit
+    //    will be non-NULL, and we use it to determine the non-deleted ref strings for the dropdown
+    //    list. If pCurTargetUnit is NULL at this point, we determine the target unit for the 
+    //    current location and use it to determine the non-deleted ref strings, if any.
+    //
+    // 4. Get the count of non-deleted ref string instances by calling pCurTargetUnit's 
+    //    CountNonDeletedRefStringInstances() function, and proceed as follows depending
+    //    on the returned count:
     //
     // When the count of non-deleted ref string instances nRefStrCount is > 0:
-    //    2a. Load the contents of the phrasebox's drop down list (via calling PopulateDropDownList()).
+    //    4a. Load the contents of the phrasebox's drop down list (via calling PopulateDropDownList()).
     //        The PopulateDropDownList() function returns (via reference parameters) information about
     //        a list item that should be selected/highlighted (via selectionIndex), as well as whether
     //        there is a <no adaptation> ref string present (via bNoAdaptationFlagPresent), and if that
     //        flag is to be selected/highlighted (via indexOfNoAdaptation).
-    //        If this PlaceBox() was called at the point the ChooseTranslation dialog was dismissed
-    //        the pCurTargetUnit parameter to PopulateDropDownList() will be non-NULL and 
-    //        PopulateDropDownList() will use that target unit data to populate the dropdown list. 
-    //        If pCurTargetUnit == NULL, then PopulateDropDownList() will use the appropriate
-    //        KB and its GetTargetUnit() to determine a new value for pCurTargetUnit, which will then
-    //        be used to populate the dropdown list.
-    //    2b. Call SetButtonBitmaps() to use the "normal" set of button bitmaps on the dropdown control,
+    //    4b. Call SetButtonBitmaps() to use the "normal" set of button bitmaps on the dropdown control,
     //        the down arrow button - indicating to user that the dropdown list has one or more items.
-    //    2c. Call SetSelection(selectionIndex). The selectionIndex could be -1 which would remove any
+    //    4c. Call SetSelection(selectionIndex). The selectionIndex could be -1 which would remove any
     //        selection/highlight; or if >= 0 it highlights the selection. 
     //        Note that selecting/highlighting any list item has the side-effect of copying the item's 
     //        string at selectionIndex from the dropdown list into the combo box's edit box.
-    //    2d. If the nRefStrCount == 1 we suppress OnIdle()'s opening of the popup list, by setting the 
+    //    4d. If the nRefStrCount == 1 we suppress OnIdle()'s opening of the popup list, by setting the 
     //        App's m_bChooseTransShowPopoup flag to FALSE, since any selection of the single item is 
     //        automatically copied into the edit box/phrasebox. 
-    //        Otherwise, when nRefStrCount > 1, we set the App's m_bChooseTransShowPopup flag to TRUE
+    //        Otherwise, when nRefStrCount > 1, we set the App's m_bChooseTransInitializePopup flag to TRUE
     //        to cause the dropdown box to initially appear in an open state.
-    //    2e. If the bNoAdaptationFlagPresent == TRUE we ensure the following (see and cf. 2f, 2g, 2h below): 
+    //    4e. If the bNoAdaptationFlagPresent == TRUE we ensure the following (see and cf. 2f, 2g, 2h below): 
     //          When nRefStrCount == 1, that ref String must be an empty string, i.e., represented as
     //            "<no adaptation" as the single list item (with indexOfNoAdaptation == 0). 
     //            Here we avoid calling SetSelection() in this case to avoid the unwanted side effect of 
@@ -5928,23 +5937,23 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     // When the count of non-deleted ref string instances nRefStrCount is == 0:
     // In this case - when nRefStrCount == 0, we are at a "hole", and there are no translation equivalents
     // in the dropdown's list.
-    //    2a. We call ClearDropDownList() here to ensure that the list is empty. We do NOT call 
+    //    4a. We call ClearDropDownList() here to ensure that the list is empty. We do NOT call 
     //        PopulateDropDownList(), as we do not need selection indices returned for an empty list.
-    //    2b. Call SetButtonBitmaps() to use the [X] button set of button bitmaps on the dropdown control,
+    //    4b. Call SetButtonBitmaps() to use the [X] button set of button bitmaps on the dropdown control,
     //        the [X] button image - indicating to user that there are no translation equivalents in the
     //        dropdown list to choose from. The list is not truly "disabled" - the user can still click on
     //        the [X] button, but the list will just open and be empty.
-    //    2c. We do NOT call SetSelection() here as there is nothing to select/highlight.
-    //    2d. With nothing in the dropdown list we set the App's m_bChooseTransShowPopup flag to FALSE,
+    //    4c. We do NOT call SetSelection() here as there is nothing to select/highlight.
+    //    4d. With nothing in the dropdown list we set the App's m_bChooseTransInitializePopup flag to FALSE,
     //        which informs OnIdle() not to open/show the dropdown list.
-    //    2e. The bNoAdaptationFlagPresent will always be FALSE when nRefStrCount == 0.
-    //    2f. Call SetSelection(-1, -1) to select all content of the phrasebox - which in this case
+    //    4e. The bNoAdaptationFlagPresent will always be FALSE when nRefStrCount == 0.
+    //    4f. Call SetSelection(-1, -1) to select all content of the phrasebox - which in this case
     //        would be a copy of the source phrase if m_bCopySource == TRUE, empty otherwise.
-    //    2g. Assign m_pTargetBox to contain the value of m_targetPhrase (a copy of source phrase if 
+    //    4g. Assign m_pTargetBox to contain the value of m_targetPhrase (a copy of source phrase if 
     //        m_bCopySource == TRUE).
-    //    2h. Call SetFocus() to ensure phrasebox is in focus (probably not needed but doesn't hurt)
+    //    4h. Call SetFocus() to ensure phrasebox is in focus (probably not needed but doesn't hurt)
     //
-    // 3. Reset the App's pCurTargetUnit to NULL to prepare for the next location or manual calling 
+    // 5. Reset the App's pCurTargetUnit to NULL to prepare for the next location or manual calling 
     //    up of the ChooseTranslation dialog.
     CAdapt_ItApp* pApp = &wxGetApp();
     wxASSERT(pApp != NULL);
@@ -5953,6 +5962,22 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     // spurios execution when PlaceBox() is called during merging and moving operations.
     if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)
     {
+        // If in Free translation mode keep the dropdown list closed by not allowing
+        // OnIdle() to initialize the phrasebox's dropdown list to an open state.
+        // But, when not in Free translation mode have OnIdle() initialize the phrasebox's
+        // to the appropriate state - open for a list with items, closed for an empty list
+        if (pApp->m_bFreeTranslationMode)
+            pApp->m_bChooseTransInitializePopup = FALSE;
+        else
+            pApp->m_bChooseTransInitializePopup = TRUE;
+
+        // whm 10Apr2018 added. Set the initial value of m_bAbandonable to TRUE since we are setting up
+        // for the dropdown phrasebox, and any content in the phrasebox should initially be considered
+        // abandonable at least here when setting up the dropdown phrasebox for display to the user.
+        // Certain actions at the current location may change the flag to FALSE before the phrasebox
+        // moves - such as any key press that changes the phrasebox contents. 
+        this->m_bAbandonable = TRUE;
+
         // If the caller was LookAhead(), or if the ChooseTranslation dialog was just dismissed before
         // this SetupDropDownPhraseBoxForThisLocation() call, the global pCurTargetUnit will have been 
         // defined at this point, and we should use it. If it is NULL we determine pCurTargetUnit at 
@@ -5985,13 +6010,6 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             pApp->pCurTargetUnit = pTargetUnit;
         }
 
-        // whm 10Apr2018 added. Set the initial value of m_bAbandonable to TRUE since we are setting up
-        // for the dropdown phrasebox, and any content in the phrasebox should initially be considered
-        // abandonable at least here when setting up the dropdown phrasebox for display to the user.
-        // Certain actions at the current location may change the flag to FALSE before the phrasebox
-        // moves - such as any key press that changes the phrasebox contents. 
-        this->m_bAbandonable = TRUE;
-
         // Get a count of the number of non-deleted ref string instances for the current target unit
         // (which may be adjusted by a prior instance of the ChooseTranslation dialog)
         int nRefStrCount = 0;
@@ -6005,21 +6023,18 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
         if (nRefStrCount > 0)
         {
             int selectionIndex = -1;
-            // whm 5Mar2018 Note: When nRefStrCount is > 0
+            // whm 5Mar2018 Note: This block executes when nRefStrCount is > 0
             // whm 27Feb2018 Note: If the Choose Translation dialog was called before the execution of the 
             // PopulateDropDownList() function below, any changes, additions, reordering, deletions to the KB 
             // items listed there will pass into PopulateDropDownList() via the pCurTargetUnit 
             // parameter, and any selection of a list item from that dialog will be returned here via the
-            // selectionIndex parameter, and presence and index of <no adaptation> are returned in the
+            // selectionIndex parameter, and the presence and index of <no adaptation> are returned in the
             // bNoAdaptationFlagPresent the SetSelection(selectionIndex) command in the if...else block
             // below.
             if (pApp->pCurTargetUnit != NULL)
             {
                 pApp->m_pTargetBox->PopulateDropDownList(pApp->pCurTargetUnit, selectionIndex, bNoAdaptationFlagPresent, indexOfNoAdaptation);
             }
-
-            // Clear the current target unit pointer
-            pApp->pCurTargetUnit = (CTargetUnit*)NULL;
 
             // whm Note: Setting m_Translation to Empty() can't be done here. 
             // See end of OnButtonChooseTranslation() in the View.
@@ -6077,25 +6092,6 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             */
 
             // Within this block we know that nRefStrCount > 0
-
-            // If in Free translation mode keep the dropdown list closed.
-            // When not in Free translation mode:
-            // If there is only 1 refstring tell OnIdle() to keep the dropdown list closed.
-            // For multiple dropdown entries, we tell OnIdle() to open the dropdown list. 
-            if (pApp->m_bFreeTranslationMode)
-                pApp->m_bChooseTransShowPopup = FALSE;
-            else
-            {
-                if (nRefStrCount == 1) // && !m_pApp->m_targetPhrase.IsEmpty())
-                {
-                    pApp->m_bChooseTransShowPopup = FALSE;
-
-                }
-                else // nRefStrCount > 1
-                {
-                    pApp->m_bChooseTransShowPopup = TRUE;
-                }
-            }
 
             // Note: The target unit's ref strings may include a "<no adaptation>" ref string which 
             // is stored internally as an empty ref string. An empty ref string is reconstituted 
@@ -6252,7 +6248,9 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             pApp->m_pTargetBox->ClearDropDownList();
             pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
             // With nothing in the dropdown list, we inform OnIdle() not to show the dropdown list
-            pApp->m_bChooseTransShowPopup = FALSE;
+            // whm 18Apr2018 moved the setting of m_bChooseTransInitializePopup to TRUE/FALSE
+            // above the if (nRefStrCount > 0) ... else blocks.
+            //pApp->m_bChooseTransInitializePopup = FALSE;
             // A previous call to PlacePhraseBox() would have called DoGetSuitableText_ForPlacePhraseBox() which 
             // stored a suitable string str which was assigned to the App's m_targetPhrase member, and it would have
             // been followed by any AutoCaps processing. Hence, if m_bCopySource was TRUE the m_targetPhrase member
@@ -6264,8 +6262,9 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             pApp->m_pTargetBox->SetSelection(-1, -1); // select all
             pApp->m_pTargetBox->SetFocus();
 
-            pApp->pCurTargetUnit = (CTargetUnit*)NULL; // clear the target unit in this nRefStrCount == 0 block too.
         }
+        // Clear the current target unit pointer
+        pApp->pCurTargetUnit = (CTargetUnit*)NULL; // clear the target unit in this nRefStrCount == 0 block too.
     }
 }
 
@@ -6275,13 +6274,14 @@ int CPhraseBox::GetLineLength(long lineNo) // whm 14Feb2018 added (GetLineLength
 }
 
 #if wxVERSION_NUMBER >= 2900
-void CPhraseBox::OnComboProcessDropDownListOpen(wxCommandEvent& WXUNUSED(event))
+void CPhraseBox::OnComboProcessDropDownListOpen(wxCommandEvent& event)
 {
     // Process a wxEVT_COMBOBOX_DROPDOWN event, which is generated when the 
     // list box part of the combo box is shown (drops down). Notice that this 
     // event is only supported by wxMSW, wxGTK with GTK+ 2.10 or later, and wxOSX/Cocoa
     if (gpApp->m_pTargetBox->GetCount() < 1)
     {
+        event.Skip();
         this->CloseDropDown();
     }
     //bDropDownIsPoppedOpen = TRUE; // CAdapt_ItCanvas::OnScroll() needs to know whether the dropdown list if popped down or not
@@ -6437,14 +6437,14 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
 void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 {
 	// This mouse event is only activated when user clicks mouse L button within
-	// the phrase box, not elsewhere on the screen
+	// the phrase box, not elsewhere on the screen [but see next comment]...
     // whm 10Apr2018 update: With the implementation of the new dropdown phrasebox, 
     // this OnLButtonDown() handler is not activated when the user clicks mouse L button 
     // within the phrasebox. But, surprisingly, it is triggered/executed when the user 
     // clicks on the dropdown control's down-arrow button.
     // Hence, currently neither this handler nor the OnLButtonDown() handler in the 
     // CAdapt_ItCanvas get triggered when the user simply clicks within the phrasebox
-    // to remove the selection. This behavior is different that the behavior that was
+    // to remove the selection. This behavior is different than the behavior that was
     // expected for a phrasebox based on wxTextCtrl.
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -6497,6 +6497,7 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 	m_bAbandonable = FALSE;
 	pApp->m_bUserTypedSomething = TRUE;
     m_bRetainBoxContents = TRUE;
+    wxLogDebug(_T("CPhraseBox::OnLButtonDown() triggered"));
 	event.Skip();
     GetTextCtrl()->GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar);
 }
@@ -6504,19 +6505,24 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 // BEW 13Apr10, no changes needed for support of doc version 5
 // whm 10Apr2018 update: With the implementation of the new dropdown phrasebox, 
 // this OnLButtonUp() handler is not activated when the user clicks mouse L button 
-// and releases it within the phrasebox. Unlike the OnLButtonDown() handler - see comment
-// on OnLButtonDown() above - this OnLButtonUp() is never triggered/executed not even
-// when the user clicks on the dropdown control's down-arrow button and releases.
+// and releases it within the phrasebox. But, like the OnLButtonDown() handler - see 
+// comment in OnLButtonDown() above - this OnLButtonUp() is triggered/executed 
+// when the user clicks briefly on the dropdown control's down-arrow button and 
+// releases - but OnLButtonUp() doesn't seem to be triggered after a long-press of
+// the mouse on the down-arrow button. 
 // Hence, currently neither this handler nor the OnLButtonDown() handler in the 
 // CAdapt_ItCanvas get triggered when the user simply clicks within the phrasebox
-// to remove the selection. This behavior is different that the behavior that was
-// expected for a phrasebox based on wxTextCtrl.
+// to remove the selection. This behavior is different than the behavior that was
+// expected for a phrasebox based on wxTextCtrl in which the same handlers are
+// triggered when the user clicks within the phrasebox to remove a selection.
+// Hence, 
 void CPhraseBox::OnLButtonUp(wxMouseEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// This mouse event is only activated when user clicks mouse L button within
 	// the phrase box, not elsewhere on the screen
-	event.Skip();
+    wxLogDebug(_T("CPhraseBox::OnLButtonUp() triggered"));
+    event.Skip();
 	GetTextCtrl()->GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar);
 }
 
