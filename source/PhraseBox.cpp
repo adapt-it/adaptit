@@ -5396,7 +5396,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 				pApp->m_nCurDelay = 0; // set back to zero
 			}
 		}
-        // whm 19Feb2018 modified don't empty the global m_Translation string before PlaceBox() call
+        // whm 19Feb2018 modified. Don't empty the global m_Translation string before PlaceBox() call
         // below. The PlaceBox may need it for PopulateDropDownList() after which m_Translation.Empty()
         // will be called there.
 		//m_Translation.Empty(); // clear the static string storage for the translation (or gloss)
