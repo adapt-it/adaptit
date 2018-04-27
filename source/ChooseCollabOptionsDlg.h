@@ -51,6 +51,7 @@ protected:
 	void OnRadioTurnCollabOFF(wxCommandEvent& WXUNUSED(event));
 	void OnRadioReadOnlyON(wxCommandEvent& WXUNUSED(event));
 	void OnCancel(wxCommandEvent& event);
+    void OnActivate(wxActivateEvent& event);
 
 private:
 	// class attributes

@@ -57,7 +57,8 @@ BEGIN_EVENT_TABLE(CChooseCollabOptionsDlg, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_TELL_ME_MORE, CChooseCollabOptionsDlg::OnBtnTellMeMore)
 	EVT_BUTTON(wxID_OK, CChooseCollabOptionsDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CChooseCollabOptionsDlg::OnCancel)
-END_EVENT_TABLE()
+    EVT_ACTIVATE(CChooseCollabOptionsDlg::OnActivate)
+    END_EVENT_TABLE()
 
 CChooseCollabOptionsDlg::CChooseCollabOptionsDlg(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Choose How You Want To Work With This Project"),
@@ -304,6 +305,14 @@ void CChooseCollabOptionsDlg::OnRadioReadOnlyON(wxCommandEvent& WXUNUSED(event))
 void CChooseCollabOptionsDlg::OnCancel(wxCommandEvent& event)
 {
 	event.Skip();
+}
+
+void CChooseCollabOptionsDlg::OnActivate(wxActivateEvent & event)
+{
+    // Set focus on the OK button
+    wxLogDebug(_T("Calling pBtnOK->SetFocus() in CChooseCollabOptionsDlg::OnActivate()"));
+    pBtnOK->SetFocus();
+    event.Skip();
 }
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.

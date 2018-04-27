@@ -117,7 +117,7 @@ BEGIN_EVENT_TABLE(CStartWorkingWizard, wxWizard)
 BEGIN_EVENT_TABLE(CStartWorkingWizard, wxScrollingWizard)
 #endif
 	EVT_BUTTON(wxID_CANCEL, CStartWorkingWizard::OnCancel)
-	EVT_ACTIVATE(CStartWorkingWizard::OnActivate)
+	// EVT_ACTIVATE(CStartWorkingWizard::OnActivate) // whm 27Apr2018 removed
 END_EVENT_TABLE()
 
 
@@ -288,18 +288,28 @@ wxWizardPage* CStartWorkingWizard::GetFirstPage()
 	}
 }
 
+// whm 27Apr2018 removed this OnActivate() handler as it suffers from
+// some re-entrancy problem and that issues a "'SetFocus' failed with error 
+// 0x00000057 (the parameter is incorrect.)." in the Debug console output.
+// The better place to set focus on the OK button of the ChooseCollabOptionsDlg
+// is within an OnActivate() handler within the CChooseCollabOptionsDlg class
+// itself - which I've done.
+/*
 void CStartWorkingWizard::OnActivate(wxActivateEvent& event)
 {
 	if (this->GetCurrentPage() == pProjectPage)
 	{
 		if (pChooseCollabOptionsDlg != NULL)
 		{
+            wxLogDebug(_T("Now calling SetFocus() on pChooseCollabOptionsDlg"));
 			pChooseCollabOptionsDlg->SetFocus();
-			pChooseCollabOptionsDlg->pBtnOK->SetFocus();
+            wxLogDebug(_T("Now calling SetFocus() on pChooseCollabOptionsDlg->pBtnOK"));
+            pChooseCollabOptionsDlg->pBtnOK->SetFocus();
 		}
 	}
 	event.Skip();
 }
+*/
 
 void CStartWorkingWizard::OnCancel(wxCommandEvent& event)
 {

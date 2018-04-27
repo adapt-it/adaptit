@@ -49,7 +49,7 @@ public:
 	wxSizer* pStartWorkingWizardSizer;
  	wxSizer* pWizardPageSizer;
 	void OnCancel(wxCommandEvent& event);
-	void OnActivate(wxActivateEvent& event);
+	//void OnActivate(wxActivateEvent& event); // whm 27Apr2018 removed
 
 protected:
 
