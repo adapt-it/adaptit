@@ -5948,6 +5948,9 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     //    up of the ChooseTranslation dialog.
     CAdapt_ItApp* pApp = &wxGetApp();
     wxASSERT(pApp != NULL);
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+	pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() before  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 5952);
+#endif
 
     // Here we restrict execution for when all 3 flags below are FALSE. This reduces/eliminates
     // spurios execution when PlaceBox() is called during merging and moving operations.
@@ -5983,14 +5986,19 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 
             // Assign the local target unit to the App's member pCurTargetUnit for use below
             pApp->pCurTargetUnit = pTargetUnit;
-        }
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 5990);
+#endif
+		}
 
         // whm 10Apr2018 added. Set the initial value of m_bAbandonable to TRUE since we are setting up
         // for the dropdown phrasebox, and any content in the phrasebox should initially be considered
         // abandonable at least here when setting up the dropdown phrasebox for display to the user.
         // Certain actions at the current location may change the flag to FALSE before the phrasebox
         // moves - such as any key press that changes the phrasebox contents. 
-        this->m_bAbandonable = TRUE;
+		// BEW 26Apr18 removed the setting of the flag, it has to be done with more tests, at end
+		// of PlaceBox() using a smart function (and m_bHasKBEntry has to be dealt with there too)
+        //this->m_bAbandonable = TRUE;
 
         // Get a count of the number of non-deleted ref string instances for the current target unit
         // (which may be adjusted by a prior instance of the ChooseTranslation dialog)
@@ -6001,6 +6009,9 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
         {
             nRefStrCount = pApp->pCurTargetUnit->CountNonDeletedRefStringInstances();
         }
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+		pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 6013);
+#endif
 
         if (nRefStrCount > 0)
         {
@@ -6017,7 +6028,9 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             {
                 pApp->m_pTargetBox->PopulateDropDownList(pApp->pCurTargetUnit, selectionIndex, bNoAdaptationFlagPresent, indexOfNoAdaptation);
             }
-
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() After m_pTargetBox->PopulateDropDownList()"), _T("PhraseBox.cpp"), 6032);
+#endif
             // Clear the current target unit pointer
             pApp->pCurTargetUnit = (CTargetUnit*)NULL;
 
@@ -6096,6 +6109,9 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     pApp->m_bChooseTransShowPopup = TRUE;
                 }
             }
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() before if (bNoAdaptationFlagPresent)"), _T("PhraseBox.cpp"), 6113);
+#endif
 
             // Note: The target unit's ref strings may include a "<no adaptation>" ref string which 
             // is stored internally as an empty ref string. An empty ref string is reconstituted 
@@ -6125,8 +6141,10 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     //wxASSERT(pApp->m_targetPhrase.IsEmpty());
                     pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
                     pApp->m_pTargetBox->SetFocus();
-
-                }
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE  block for if (nRefStrCount == 1)"), _T("PhraseBox.cpp"), 6145);
+#endif
+				}
                 else if (nRefStrCount > 1)
                 {
                     // There is more than 1 ref string, and one of them should be <no adaptation>,
@@ -6143,7 +6161,10 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     // wxASSERT cannot be relied on, and so to be safe, I've commented it out.
                     //wxASSERT(pApp->m_targetPhrase.IsEmpty());
                     pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
-                }
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE  block for else if (nRefStrCount > 1)"), _T("PhraseBox.cpp"), 6165);
+#endif
+				}
             }
             else // no <no adaptation> present
             {
@@ -6151,7 +6172,10 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                 wxASSERT(indexOfNoAdaptation == -1);
                 if (nRefStrCount == 1)
                 {
-                    // There is one and only one ref string and it cannot be a <no adaptation> type.
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() else block for <noAdaptation>, and TRUE for if (nRefStrCount == 1)"), _T("PhraseBox.cpp"), 6176);
+#endif
+						// There is one and only one ref string and it cannot be a <no adaptation> type.
                     //wxASSERT(pApp->m_pTargetBox->GetCount() == 1);
                     int index;
                     if (selectionIndex == -1)
@@ -6169,7 +6193,10 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     pApp->m_targetPhrase = pApp->m_pTargetBox->GetString(index);
                     pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
                     pApp->m_pTargetBox->SetSelection(index);
-                }
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() else block for <noAdaptation>, and end TRUE block for if (nRefStrCount == 1)"), _T("PhraseBox.cpp"), 6197);
+#endif
+				}
                 else // nRefStrCount > 1
                 {
                     // There is more than 1 ref string, none of which are <no adaptation>.
@@ -6180,21 +6207,36 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     int index;
                     if (selectionIndex == -1)
                     {
-                        // If we pass a selectionIndex of -1 to the SetSelection() call below it
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+						pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() start TRUE block for if (selectionIndex == -1)"), _T("PhraseBox.cpp"), 6211);
+#endif
+							// If we pass a selectionIndex of -1 to the SetSelection() call below it
                         // would just empty the edit box and not select the item. Instead we
                         // set the index to 0 to get the first item
                         index = 0;
-                    }
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+						pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE block for if (selectionIndex == -1)"), _T("PhraseBox.cpp"), 6218);
+#endif
+					}
                     else
                     {
-                        // The PopulateDropDownList() function determined a selectionIndex to use
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+						pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() start ELSE block for if (selectionIndex == -1)"), _T("PhraseBox.cpp"), 6224);
+#endif
+							// The PopulateDropDownList() function determined a selectionIndex to use
                         index = selectionIndex;
-                    }
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+						pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end ELSE block for if (selectionIndex == -1)"), _T("PhraseBox.cpp"), 6229);
+#endif
+					}
                     pApp->m_targetPhrase = pApp->m_pTargetBox->GetString(index);
                     pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
                     pApp->m_pTargetBox->SetSelection(index);
                     pApp->m_pTargetBox->SetSelection(-1, -1); // select all
                 }
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+				pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end ELSE block for if (bNoAdaptationFlagPresent)"), _T("PhraseBox.cpp"), 6238);
+#endif
             }
 
             /*

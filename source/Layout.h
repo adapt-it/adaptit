@@ -376,6 +376,11 @@ public:
 	int			GetStripCount(); // return a count of how many strips are
 								 // in the current layout
 	bool		GetBoxVisibilityFlag();
+	// BEW 26Apr18 created SetProtocolFlags() to get m_bAbandonable set correctly at the end of
+	// a PlaceBox() call; and internally, to make sure that m_bHasKBEntry (or, if glossing mode
+	// is current, then m_bHasGlossingKBEntry) is set to the correct value when appropriate - 
+	// such as when landing at a different location in the document
+	bool		SetProtocolFlags(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase, bool& bAbandonable);
 
 	// function calls relevant to laying out the view updated after user's doc-editing operation
 
