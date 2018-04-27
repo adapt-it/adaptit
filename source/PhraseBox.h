@@ -130,7 +130,7 @@ public:
     void SetupDropDownPhraseBoxForThisLocation();
     void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptatio);
     int GetLineLength(long lineNo); // whm 14Feb2018 added. Note: GetLineLength() is in wxTextCtrl but not wxOwnerDrawnComboBox.
-    void OnComboProcessDropDownListOpen(wxCommandEvent & WXUNUSED(event));
+    void OnComboProcessDropDownListOpen(wxCommandEvent & event);
     void OnComboProcessDropDownListCloseUp(wxCommandEvent & WXUNUSED(event));
     void ClearDropDownList();
     void CloseDropDown();

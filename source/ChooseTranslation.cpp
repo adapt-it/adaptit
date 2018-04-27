@@ -64,8 +64,6 @@ extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this 
                             // be changed in the NRoman version, using the extra Layout menu
 extern bool gbVerticalEditInProgress;
 
-int ID_COMBO_CHOOSE_TRANS_DROP_DOWN = 22050;
-//bool bEventForwardedFromDropDown = FALSE;
 extern int ID_PHRASE_BOX;
 
 // ******************************************************************************************
@@ -159,8 +157,6 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	m_pNewTranslationBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_NEW_TRANSLATION);
 
 	m_pEditReferences = (wxTextCtrl*)FindWindowById(IDC_EDIT_REFERENCES);
-
-    //m_pCheckShowTransInDropDown = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SHOW_DROP_DOWN);
 
 	//m_pEditReferences->SetValidator(wxGenericValidator(&m_refCountStr)); // whm removed 21Nov11
 	m_pEditReferences->SetBackgroundColour(gpApp->sysColorBtnFace);
