@@ -13848,7 +13848,11 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 			if (str3 != saveWord)
 			{
 				// Prevent the result from being abandonable
-				pApp->m_pTargetBox->m_bAbandonable = FALSE;
+				//pApp->m_pTargetBox->m_bAbandonable = FALSE; <- llegacy behaviour
+				pApp->m_pTargetBox->m_bAbandonable = TRUE; // BEW 27Apr18 changed, because 
+						// a copy, no matter how much it is modified programmatically, 
+						// should be abandonable until user does something in the GUI 
+						//to make it non-abandonable
 			}
 		}
 
@@ -13906,6 +13910,8 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 			pApp->m_bIsGuess = bIsGuess;
 		}
 	}
+	pApp->m_pTargetBox->m_bAbandonable = TRUE; // BEW 27Apr18 added this line, a copy, even if programmatically
+			// modified, should be abandonable until the user does something to make it not so
 	return str2;
 }
 

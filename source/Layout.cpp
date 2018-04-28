@@ -958,20 +958,12 @@ void CLayout::PlaceBox()
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 959);
 #endif
-		// fix m_bAbandonable, and flags m_bHasKBEntry or m_bHasGlossingKBEntry if gIsGlossing is TRUE
-		m_pApp->m_pTargetBox->m_bAbandonable = SetProtocolFlags(m_pApp, pActivePile->GetSrcPhrase(), m_pApp->m_pTargetBox->m_bAbandonable);
 
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetProtocolFlags()"), _T("Layout.cpp"), 965);
-#endif
 	}
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
 }
 
-// BEW 26Apr18 created SetProtocolFlags() to get m_bAbandonable set correctly at the end of
-// a PlaceBox() call; and internally, to make sure that m_bHasKBEntry (or, if glossing mode
-// is current, then m_bHasGlossingKBEntry) is set to the correct value when appropriate - 
-// such as when landing at a different location in the document
+/*
 bool CLayout::SetProtocolFlags(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase, bool& bAbandonable)
 {
 	// Initializations
@@ -985,23 +977,12 @@ bool CLayout::SetProtocolFlags(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase, bo
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+// TODO - remove this function later if there is nothing needed here
 
 
 	return bNewAbandonable;
 }
-
+*/
 
 bool CLayout::GetBoxVisibilityFlag()
 {

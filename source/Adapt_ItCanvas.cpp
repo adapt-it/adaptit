@@ -1831,9 +1831,15 @@ x:					CCell* pCell = 0;
                             pApp->m_pTargetBox->m_Translation.Empty();
 							pApp->m_targetPhrase.Empty();
 							pApp->m_pTargetBox->ChangeValue(_T(""));
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+							pApp->LogDropdownState(_T("OnLButtonDown() m_bAbandonable TRUE block, before calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1835);
+#endif
 							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
 								// is done at the leaving location, but a removal from the KB
 								// will be done at the landing location
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+							pApp->LogDropdownState(_T("OnLButtonDown() end of m_bAbandonable TRUE block, after calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1841);
+#endif
 						}
 						else
 						{
@@ -1850,15 +1856,14 @@ x:					CCell* pCell = 0;
 							}
 							else
 							{
-
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-								pApp->LogDropdownState(_T("OnLButtonDown() before PlacePhraseBox()"), _T("Adapt_ItCanvas.cpp"), 1856);
+								pApp->LogDropdownState(_T("OnLButtonDown() before calling PlacePhraseBox() in normal situation, selector == 0"), _T("Adapt_ItCanvas.cpp"), 1860);
 #endif
 								// Now get the phrasebox placed
 								pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
 									// KB access is done at both leaving and landing locations)
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-								pApp->LogDropdownState(_T("OnLButtonDown() after PlacePhraseBox()"), _T("Adapt_ItCanvas.cpp"), 1861);
+								pApp->LogDropdownState(_T("OnLButtonDown() after the usual selector = 0 PlacePhraseBox() call has returned"), _T("Adapt_ItCanvas.cpp"), 1866);
 #endif
 							}
 						}
