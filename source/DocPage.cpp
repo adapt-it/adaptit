@@ -1106,6 +1106,13 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
                                                                 // for our phrasebox
                 pApp->m_nStartChar = len;
                 pApp->m_nEndChar = len;
+                // whm 27Apr2018 Note: The following SetFocus() call
+                // generates an API error logged in the Output window during
+                // debugging: "..\..\src\msw\window.cpp(643): 'SetFocus' failed
+                // with error 0x00000057 (the parameter is incorrect.)."
+                // It is annoying to see it appear in the output window but
+                // it is of unknown cause and apparently harmless.
+                // The else block below probably also generates the API error output.
                 pApp->m_pTargetBox->SetFocus();
             }
             else
