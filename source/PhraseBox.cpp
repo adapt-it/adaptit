@@ -6114,25 +6114,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             */
 
             // Within this block we know that nRefStrCount > 0
-			/*
-            // If in Free translation mode keep the dropdown list closed.
-            // When not in Free translation mode:
-            // If there is only 1 refstring tell OnIdle() to keep the dropdown list closed.
-            // For multiple dropdown entries, we tell OnIdle() to open the dropdown list. 
-            if (pApp->m_bFreeTranslationMode)
-                pApp->m_bChooseTransShowPopup = FALSE;
-            else
-            {
-                if (nRefStrCount == 1) // && !m_pApp->m_targetPhrase.IsEmpty())
-                {
-                    pApp->m_bChooseTransShowPopup = FALSE;
 
-                }
-                else // nRefStrCount > 1
-                {
-                    pApp->m_bChooseTransShowPopup = TRUE;
-                }
-            } */
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
 //			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() before if (bNoAdaptationFlagPresent)"), _T("PhraseBox.cpp"), 6137);
 //#endif

@@ -3467,6 +3467,30 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 					else
 						pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,
 												emptyStr, useGlossOrAdaptationForLookup);
+
+					// BEW 28Apr18 Clicking at a hole in the document will, if CopySourceKey() gets called
+					// because KB has no entry available for the source text at that location, the
+					// CopySourceKey() will, just before exiting, set m_bAbandonable to TRUE; but if the
+					// KB does have one or more adaptations available there, CopySourceKey() will not get
+					// called. So we have to here check for the active location's CSourcePhrase being a
+					// hole -  which we can detect by its m_adaption member being empty. If it is empty,
+					// then set m_bAbandonable here, to be TRUE (failure to do this will leave an unwanted
+					// top-of-list entry being copied as target text adaptation if user clicks elsewhere
+					// without editing or any action which makes the box become dirty)
+					CPile* myActivePile = pCell->GetPile();
+					CSourcePhrase* pSP = NULL;
+					pSP = myActivePile->GetSrcPhrase();
+					if (pSP == pSrcPhrase) // make sure we are at the new landing location
+					{
+						if (pSP->m_adaption.IsEmpty() || pApp->m_pKB->IsItNotInKB(pSP))
+						{
+							pApp->m_pTargetBox->m_bAbandonable = TRUE;
+
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+							pApp->LogDropdownState(_T("PlacePhraseBox() landing, forcing m_bAbandonable to TRUE at hole which has KB entry available, selector == 0 or 2"), _T("Adapt_ItCanvas.cpp"), 3490);
+#endif
+						}
+					}
 				}
 				else
 				{
@@ -3490,7 +3514,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 				}
 			}
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-			pApp->LogDropdownState(_T("PlacePhraseBox() landing, !bHasNothing TRUE block, after any RefString removal"), _T("Adapt_ItView.cpp"), 3493);
+			pApp->LogDropdownState(_T("PlacePhraseBox() landing, !bHasNothing TRUE block, after any RefString removal"), _T("Adapt_ItView.cpp"), 3517);
 #endif
 
 		}
@@ -3548,7 +3572,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),13,pApp->m_nActiveSequNum);
 //#endif
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after RecalcLayout(), keeping strips & piles"), _T("Adapt_ItView.cpp"), 3551);
+	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after RecalcLayout(), keeping strips & piles"), _T("Adapt_ItView.cpp"), 3575);
 #endif
 
     // we had to delay the call of DoCancelAndSelect() until now because earlier
@@ -3582,7 +3606,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	Invalidate();
 	pLayout->PlaceBox();
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after PlaceBox() immediately before exiting PlacePhraseBox()"), _T("Adapt_ItView.cpp"), 3585);
+	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after PlaceBox() immediately before exiting PlacePhraseBox()"), _T("Adapt_ItView.cpp"), 3609);
 #endif
 
 }
