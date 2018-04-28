@@ -575,7 +575,11 @@ void CLayout::PlaceBox()
 								// instead; but this will work even if we have forgotten to
 								// update it in the edit operation's handler
 		pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
-        
+ 
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+		m_pApp->LogDropdownState(_T("PlaceBox() just entered, after pActivePile set"), _T("Layout.cpp"), 580);
+#endif
+
 		// get the pile width at the active location, using the value in
 		// CLayout::m_curBoxWidth put there by RecalcLayout() or AdjustForUserEdits() or FixBox()
 		int phraseBoxWidth = pActivePile->GetPhraseBoxGapWidth(); // returns CPile::m_nWidth
@@ -853,7 +857,7 @@ void CLayout::PlaceBox()
 		// make the phrase box size adjustments, set the colour of its text, tell it where it
 		// is to be drawn. ResizeBox doesn't recreate the box; it just calls SetSize() and
 		// causes it to be visible again; CPhraseBox has a color variable & uses reflected
-		// notification
+		// notification; and m_targetPhrase passed in here internally sets m_pTargetBox contents
 		if (gbIsGlossing && gbGlossingUsesNavFont)
 		{
 			m_pView->ResizeBox(&ptPhraseBoxTopLeft, phraseBoxWidth, GetNavTextHeight(),
@@ -868,6 +872,9 @@ void CLayout::PlaceBox()
 						pActivePile);
 			m_pApp->m_pTargetBox->m_textColor = GetTgtColor(); // was pApp->m_targetColor;
 		}
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+		m_pApp->LogDropdownState(_T("PlaceBox() after emptying m_pTargetBox and finished ResizeBox() call which sets m_pTargetBox value"), _T("Layout.cpp"), 876);
+#endif
 
 		// set the color - CPhraseBox has a color variable & uses reflected notification
 		if (bSetTextColor)
@@ -917,6 +924,9 @@ void CLayout::PlaceBox()
 			// call our own SetModify(FALSE) which calls DiscardEdits() (see Phrasebox.cpp)
 			m_pApp->m_pTargetBox->SetModify(FALSE);
 		}
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+		m_pApp->LogDropdownState(_T("PlaceBox() after SetModify() call, & colour setting of background"), _T("Layout.cpp"), 928);
+#endif
 
 		// put focus in compose bar's edit box if in free translation mode
 		if (m_pApp->m_bFreeTranslationMode)
@@ -941,12 +951,38 @@ void CLayout::PlaceBox()
         // translation equivalent.
         // See comments in the SetupDropDownPhraseBox() function for a detailed description of what the
         // function does.
+		// BEW 26Apr18 removed the internal unilateral setting of m_bAbandonable to TRUE in this Setup....() function
         m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 959);
+#endif
 
 	}
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
 }
+
+/*
+bool CLayout::SetProtocolFlags(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase, bool& bAbandonable)
+{
+	// Initializations
+	bool bOldAbandonable = bAbandonable;
+	bool bNewAbandonable = TRUE; // default it to true
+	CPhraseBox*	pTargetBox = pApp->m_pTargetBox;
+	wxString targetPhrase = pApp->m_targetPhrase;
+	bool bHasKBEntry = pSrcPhrase->m_bHasKBEntry;
+	bool bHasGlossingKBEntry = pSrcPhrase->m_bHasGlossingKBEntry;
+	// global gbIsGlossing is accessible here, so use that
+
+
+
+// TODO - remove this function later if there is nothing needed here
+
+
+	return bNewAbandonable;
+}
+*/
 
 bool CLayout::GetBoxVisibilityFlag()
 {
