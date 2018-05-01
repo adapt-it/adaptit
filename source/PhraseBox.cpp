@@ -3691,7 +3691,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
             gpApp->m_targetPhrase = boxContent;
             if (!this->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue // whm 14Feb2018 added GetTextCtrl()->
             {
-                this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will so its work // whm 14Feb2018 added GetTextCtrl()->
+                this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will do its work // whm 14Feb2018 added GetTextCtrl()->
             }
             this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
 
@@ -3748,17 +3748,17 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
             gpApp->m_targetPhrase = boxContent;
             if (!this->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue // whm 14Feb2018 added GetTextCtrl()->
             {
-                this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will so its work // whm 14Feb2018 added GetTextCtrl()->
+                this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will do its work // whm 14Feb2018 added GetTextCtrl()->
             }
             this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
 
-                                      // save old sequ number in case required for toolbar's Back button
+            // save old sequ number in case required for toolbar's Back button
             pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
 			// SHIFT+TAB is the 'universal' keyboard way to cause a move back, so implement it
 			// whm Note: Beware! Setting breakpoints in OnChar() before this point can
 			// affect wxGetKeyState() results making it appear that WXK_SHIFT is not detected
-			// below. Solution: remove the breakpoint(s) for wxGetKeyState(WXK_SHIFT) to
+			// below. Solution: remove the breakpoint(s) for wxGetKeyState(WXK_SHIFT) to <- end of comment lost
 			if (wxGetKeyState(WXK_SHIFT)) // SHIFT+TAB
 			{
 				// shift key is down, so move back a pile
@@ -6012,7 +6012,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             // Assign the local target unit to the App's member pCurTargetUnit for use below
             pApp->pCurTargetUnit = pTargetUnit;
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
-//			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 5990);
+//			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 6015);
 //#endif
 		}
 
@@ -6036,7 +6036,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             nRefStrCount = pApp->pCurTargetUnit->CountNonDeletedRefStringInstances();
         }
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
-//		pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 6013);
+//		pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 6039);
 //#endif
 
         if (nRefStrCount > 0)
@@ -6147,7 +6147,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
                     pApp->m_pTargetBox->SetFocus();
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE  block for if (nRefStrCount == 1)"), _T("PhraseBox.cpp"), 6168);
+					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE  block for if (nRefStrCount == 1)"), _T("PhraseBox.cpp"), 6150);
 #endif
 				}
                 else if (nRefStrCount > 1)
@@ -6167,7 +6167,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     //wxASSERT(pApp->m_targetPhrase.IsEmpty());
                     pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE  block for else if (nRefStrCount > 1)"), _T("PhraseBox.cpp"), 6188);
+					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE  block for else if (nRefStrCount > 1)"), _T("PhraseBox.cpp"), 6170);
 #endif
 				}
             }
@@ -6196,7 +6196,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
                     pApp->m_pTargetBox->SetSelection(index);
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end block for 'no <no adaptation> present' "), _T("PhraseBox.cpp"), 6217);
+					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end block for 'no <no adaptation> present' "), _T("PhraseBox.cpp"), 6199);
 #endif
 				}
                 else // nRefStrCount > 1
@@ -6224,7 +6224,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     pApp->m_pTargetBox->SetSelection(index);
                     pApp->m_pTargetBox->SetSelection(-1, -1); // select all
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end block for nRefStrCount > 1, and lacking <no adaptation>"), _T("PhraseBox.cpp"), 6245);
+					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end block for nRefStrCount > 1, and lacking <no adaptation>"), _T("PhraseBox.cpp"), 6227);
 #endif
 				}
             }
@@ -6273,7 +6273,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             // Above for debugging only!!!
             */
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end of TRUE block for nRefStrCount > 0"), _T("PhraseBox.cpp"), 6294);
+			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end of TRUE block for nRefStrCount > 0"), _T("PhraseBox.cpp"), 6276);
 #endif
         }
         else // when nRefStrCount == 0
@@ -6300,7 +6300,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             pApp->m_pTargetBox->SetSelection(-1, -1); // select all
             pApp->m_pTargetBox->SetFocus();
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end of block for nRefStrCount == 0"), _T("PhraseBox.cpp"), 6321);
+			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end of block for nRefStrCount == 0"), _T("PhraseBox.cpp"), 6303);
 #endif
 
         }
@@ -6605,7 +6605,7 @@ void CPhraseBox::OnComboItemSelected(wxCommandEvent & WXUNUSED(event))
     
     if (!this->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue // whm 14Feb2018 added GetTextCtrl()->
     {
-        this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will so its work // whm 14Feb2018 added GetTextCtrl()->
+        this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will do its work // whm 14Feb2018 added GetTextCtrl()->
     }
 
     this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
