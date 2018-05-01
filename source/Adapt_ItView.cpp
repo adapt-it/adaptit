@@ -3044,11 +3044,34 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 						AddUniqueInt(pLayout->GetInvalidStripArray(), stripIndex);
 					}
 				}
-				// user has not typed anything at the new location yet
-				pApp->m_bUserTypedSomething = FALSE;
+				// user has not typed anything at the new location yet <<-- wrong (BEW 30Apr18), this is the 'leaving'
+				// first part of PlacePhraseBox() and so there may have been user typing (or a click in box requiring
+				// we keep and store the current target text) done, so we need to get this app boolean member set TRUE
+				// or FALSE more cleverly - eg. OnPhraseBoxChanged (a PlaceBox.cpp member) will have the flag
+				// TRUE if the user typed something, so we need to test it here and get m_adaption from whichever
+				// is the appropriate place...
+				// pApp->m_bUserTypedSomething = FALSE;  <<-- BEW removed, 30Apr18, and added the test further below
 
-				// make sure pApp->m_targetPhrase doesn't have any final spaces
+				// make sure pApp->m_targetPhrase doesn't have any final spaces; at this point, m_adaption will be
+				// set by the contents of m_targetPhrase (and m_pTargetBox will have the same contents), unless
 				pApp->m_pTargetBox->RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
+
+				// BEW 30Apr18  added next test to fix a bug where 'landing' the phrasebox can get a wrong m_adaption
+				// when box moves off - i.e. leaves, because a non-empty list copies top entry to the box before 
+				// the store gets done, even though user did not alter the box nor a click in the box happened
+				if (!(pApp->m_bUserTypedSomething  /* TODO add check for a user click here, ANDed */))					// <<<---------- TODO
+				{
+					// User did not type something, AND no user click in the box (the latter is not coded for yet)
+					// In this circumstance, the earlier value of m_adaption should be restored. pApp->m_pActivePile->GetSrcPhrase()
+					// still has the old values for src and tgt retained, so restore the box from its m_adaption member
+					// and likewise m_targetPhrase  and re-do the call of RemoveFinalSpaces() for safety's sake
+					pApp->m_pTargetBox->m_bAbandonable = FALSE;
+					wxString adaption = pApp->m_pTargetBox->m_SaveTargetPhrase;
+					pApp->m_targetPhrase = adaption;
+					pApp->m_pTargetBox->ChangeValue(adaption);
+
+					pApp->m_pTargetBox->RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
+				}
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 				pApp->LogDropdownState(_T("PlacePhraseBox() leaving, about to save to KB, selector = 0"), _T("Adapt_ItView.cpp"), 3054);

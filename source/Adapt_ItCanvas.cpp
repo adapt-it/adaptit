@@ -565,7 +565,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 							// so we'll calculate logical coords for point below
 
 	// BEW added 6Mar06: check if the point clicked was outside of an open note dialog - we'll
-	// assume this is indended as a click to open a different note dialog without losing the note
+	// assume this is intended as a click to open a different note dialog without losing the note
 	// from the current note dialog which is about to become disposed of - we have to restore the
 	// text in that one as filtered note text at that source phrase location before the new
 	// one is opened. If the click was not intended that way, then too bad - the note dialog
