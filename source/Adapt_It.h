@@ -2726,11 +2726,15 @@ public:
 	CNoteDlg*	m_pNoteDlg; // non-modal
 
 	// attributes in support of the travelling edit box (CPhraseBox)
-    // wxWidgets design Note: whm I've changed the MFC m_targetBox to m_pTargetBox and
-    // create it only in the View's OnCreate() method. Instead of destroying it and
-    // recreating the targetBox repeatedly as the MFC version did, it now lives undestroyed
-    // for the life of the View, and will simply be shown, hidden, moved, and/or resized
-    // where necessary.
+    // wxWidgets design Note: whm I've changed the MFC m_targetBox to m_pTargetBox.
+    // whm 3May2018 Instances of the new PhraseBox are now created in the App function
+    // DoCreatePhraseBox(). That function is called in two places (1) in the View's
+    // OnCreate() method, and in the OnOK() handler of the CFontPagePrefs class.
+    // Instead of destroying it and recreating the targetBox repeatedly as the MFC 
+    // version did, it now lives undestroyed for most of the life of the View
+    // (unless there is a font change), and will simply be shown, hidden, 
+    // moved, and/or resized where necessary.
+    void DoCreatePhraseBox();
 	CPhraseBox*		m_pTargetBox; // Our PhraseBox with a dropdown list
 	wxString		m_targetPhrase; // the text currently in the m_targetBox
 	long			m_nStartChar;   // start of selection in the target box

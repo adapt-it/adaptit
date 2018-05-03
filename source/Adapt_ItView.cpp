@@ -50,9 +50,6 @@
 #include <wx/wx.h>
 #endif
 
-
-int ID_PHRASE_BOX = 22030;
-
 extern size_t aSequNum; // use with TOKENIZE_BUG
 
 #if defined(__VISUALC__) && __VISUALC__ >= 1400
@@ -1595,57 +1592,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
     //    wxDefaultPosition, wxDefaultSize,
     //    wxSIMPLE_BORDER | wxWANTS_CHARS);
 
-    wxArrayString dummyArrStr;
-
-    // whm 14Feb2018 modified for a CPhraseBox derived from wxOwnerDrawnComboBox. 
-    // Now we use the CPhraseBox::CPhraseBox custom constructor to create the 
-    // persistent phrasebox/targetbox assigning it to the App's m_pTargetBox 
-    // member. Its position and size is set programatically in code just as it
-    // was when it was derived from wxTextCtrl.
-
-    pApp->m_pTargetBox = new CPhraseBox(
-        pApp->GetMainFrame()->canvas,
-        ID_PHRASE_BOX,
-        _T(""),
-        wxDefaultPosition,
-        wxDefaultSize,
-        dummyArrStr,
-        wxCB_DROPDOWN | wxTE_PROCESS_ENTER); // legacy flags: wxSIMPLE_BORDER | wxWANTS_CHARS);
-
-    // whm Additional Notes 14Feb2018:
-    // The styles that were used for the wxTextCtrl derived phrasebox were: wxSIMPLE_BORDER | wxWANTS_CHARS
-    // wxWidgets Docs say about these styles which are styles of wxWindow:
-    //    The wxWANTS_CHARS style "Use to indicate that the window wants to get all char / key events 
-    // for all keys - even for keys like TAB or ENTER which are usually used for dialog 
-    // navigation and which wouldn't be generated without this style. If you need to use 
-    // this style in order to get the arrows or etc., but would still like to have normal 
-    // keyboard navigation take place, you should call Navigate in response to the key 
-    // events for Tab and Shift-Tab."
-    //    The wxBORDER_SIMPLE style - "Displays a thin border around the window. wxBORDER_SIMPLE
-    // is the old name for this style."
-    //
-    // For the wxOwnerDrawnComboBox, it already has a simple border around its text control part
-    // but I've used the styles: wxCB_DROPDOWN | wxTE_PROCESS_ENTER which are more pertinent to
-    // the standard wxComboBox. I think the wxOwnerDrawnComboBox already makes use of them 
-    // internally, so our use of them here is probably redundant (omitting the wxCB_DROPDOWN style,
-    // we still get a fully functional owner drawn combo box).
-    // wxWidgets Docs say say of these styles which are styles of wxComboCtrl:
-    //    The wxCB_DROPDOWN style - "Creates a combobox with a drop-down list. MSW and Motif only. "
-    //    The wxTE_PROCESS_ENTER style - "The control will generate the event wxEVT_TEXT_ENTER (otherwise 
-    // pressing Enter key is either processed internally by the control or used for navigation between 
-    // dialog controls). Windows only."
-
-    // whm Notes on the wxTextCtrl style flags:
-	// wxSIMPLE_BORDER - Displays a thin border around the window.
-	// wxWANTS_CHARS - According to the wx docs Use this to indicate that
-	// the window wants to get all char/key events for all keys - even for keys like
-	// TAB or ENTER which are usually used for dialog navigation and which wouldn't
-	// be generated without this style. If you need to use this style in order to
-	// get the arrows or etc., but would still like to have normal keyboard navigation
-	// take place, you should create and send a wxNavigationKeyEvent in response to
-	// the key events for Tab and Shift-Tab.
-	// wxTAB_TRAVERSAL - Use this to enable tab traversal for non-dialog windows
-	// (not needed for phrasebox).
+    pApp->DoCreatePhraseBox();
 
 	pApp->m_pTargetBox->ChangeValue(_T(""));
 	// hide and disable the target box until input is expected
@@ -6177,11 +6124,18 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 #endif // for _RTL_FLAGS
 
 	pApp->m_pTargetBox->ChangeValue(text);
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-		pApp->m_pTargetBox->SetFont(*pApp->m_pNavTextFont);
+    if (gbIsGlossing && gbGlossingUsesNavFont)
+    {
+        pApp->m_pTargetBox->SetFont(*pApp->m_pNavTextFont);
+    }
 
-	else
-		pApp->m_pTargetBox->SetFont(*pApp->m_pTargetFont);
+    else
+    {
+        pApp->m_pTargetBox->SetFont(*pApp->m_pTargetFont);
+        //int ptSize;
+        //ptSize = pApp->m_pTargetFont->GetPointSize();
+        //ptSize = ptSize; // debug line
+    }
 
 	// whm modified 29Mar12. As of this date, this is the only
 	// location in the whole code base where the m_pTargetBox->Show()

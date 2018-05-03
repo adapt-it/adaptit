@@ -1213,6 +1213,13 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 		// nor strip populations, therefore m_bFontInfoChanged should not be set TRUE here
 		//gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	}
+
+    // whm 3May2018 added call to recreate the phrasebox in order to make font size changes
+    // get rendered correctly within the phrasebox's dropdown list.
+    // The dropdown phrasebox should get populated at the PlaceBox() call that 
+    // happens after this fontPage::OnOK() exits and the Preferences dialog exist.
+    gpApp->DoCreatePhraseBox();
+
 	// enable complex rendering
 	// whm note for wx version: Right-to-left reading is handled automatically in Uniscribe and
 	// Pango, but they differ in how they handle Unicode text chars that are from the first 128

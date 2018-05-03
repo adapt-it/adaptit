@@ -254,6 +254,8 @@ wxMutex s_AutoSaveMutex;
 #include <tchar.h>
 #endif
 
+// whm 3May2018 moved here from the View
+int ID_PHRASE_BOX = 22030;
 
 // The following include was originally Copyright (c) 2005 by Dan
 // Moulding, but the features of version 2.0 were implemented by
@@ -29623,6 +29625,89 @@ CPlaceholder*	CAdapt_ItApp::GetPlaceholder()
 {
     wxASSERT(m_pPlaceholder);
     return m_pPlaceholder;
+}
+
+void CAdapt_ItApp::DoCreatePhraseBox()
+{
+    // Create the target box using custom constructor
+    // WX Note: Our TargetBox is now a child of the view's canvas (which
+    // itself is derived from wxScrolledWindow. As a child of the canvas
+    // window, m_pTargetBox will be automatically destroyed when pView->canvas
+    // is destroyed during doc/view's normal cleanup. That is, when our View is
+    // destroyed, all child windows (including our target box) are automatically
+    // destroyed too. Therefore, the target box must not be deleted again in
+    // the App's OnExit() method, when the App terminates.
+
+    // whm modified 10Jan2018 to support quick selection of a translation equivalent.
+    // The CPhraseBox stored on App's m_pTargetBox is now derived from 
+    // wxOwnerDrawnComboBox.
+    // In case we need a way to detect whether an event originates in the PhraseBox,
+    // I'm changing the id below from -1 to a known const int ID_PHRASE_BOX, which
+    // has an int value of 22030.
+    // The old -1 value during CPhraseBox creation below just functioned to create
+    // a random but unique id.
+    wxArrayString dummyArrStr;
+
+    // Now we use the CPhraseBox::CPhraseBox custom constructor to create the 
+    // persistent phrasebox/targetbox assigning it to the App's m_pTargetBox 
+    // member. Its position and size is set programatically in code just as it
+    // was when it was derived from wxTextCtrl.
+
+    // When DoCreatePhraseBox() is called from the View's OnCreate() method at
+    // program startup the m_pTargetBox pointer will be NULL. But when the
+    // DoCreatePhraseBox() function is called after View creation, we must
+    // first Destroy the old object, then create the new one. 
+    // First destroy any existing object pointed to by m_pTargetBox
+    if (m_pTargetBox != NULL)
+    {
+        m_pTargetBox->Destroy();
+        m_pTargetBox = (CPhraseBox*)NULL;
+    }
+
+    m_pTargetBox = new CPhraseBox(
+        GetMainFrame()->canvas,
+        ID_PHRASE_BOX,
+        _T(""),
+        wxDefaultPosition,
+        wxDefaultSize,
+        dummyArrStr,
+        wxCB_DROPDOWN | wxTE_PROCESS_ENTER);
+
+    // whm Additional Notes 14Feb2018:
+    // The styles that were used for the wxTextCtrl derived phrasebox were: wxSIMPLE_BORDER | wxWANTS_CHARS
+    // wxWidgets Docs say about these styles which are styles of wxWindow:
+    //    The wxWANTS_CHARS style "Use to indicate that the window wants to get all char / key events 
+    // for all keys - even for keys like TAB or ENTER which are usually used for dialog 
+    // navigation and which wouldn't be generated without this style. If you need to use 
+    // this style in order to get the arrows or etc., but would still like to have normal 
+    // keyboard navigation take place, you should call Navigate in response to the key 
+    // events for Tab and Shift-Tab."
+    //    The wxBORDER_SIMPLE style - "Displays a thin border around the window. wxBORDER_SIMPLE
+    // is the old name for this style."
+    //
+    // For the wxOwnerDrawnComboBox, it already has a simple border around its text control part
+    // but I've used the styles: wxCB_DROPDOWN | wxTE_PROCESS_ENTER which are more pertinent to
+    // the standard wxComboBox. I think the wxOwnerDrawnComboBox already makes use of them 
+    // internally, so our use of them here is probably redundant (omitting the wxCB_DROPDOWN style,
+    // we still get a fully functional owner drawn combo box).
+    // wxWidgets Docs say say of these styles which are styles of wxComboCtrl:
+    //    The wxCB_DROPDOWN style - "Creates a combobox with a drop-down list. MSW and Motif only. "
+    //    The wxTE_PROCESS_ENTER style - "The control will generate the event wxEVT_TEXT_ENTER (otherwise 
+    // pressing Enter key is either processed internally by the control or used for navigation between 
+    // dialog controls). Windows only."
+
+    // whm Notes on the wxTextCtrl style legacy flags:
+    // wxSIMPLE_BORDER - Displays a thin border around the window.
+    // wxWANTS_CHARS - According to the wx docs Use this to indicate that
+    // the window wants to get all char/key events for all keys - even for keys like
+    // TAB or ENTER which are usually used for dialog navigation and which wouldn't
+    // be generated without this style. If you need to use this style in order to
+    // get the arrows or etc., but would still like to have normal keyboard navigation
+    // take place, you should create and send a wxNavigationKeyEvent in response to
+    // the key events for Tab and Shift-Tab.
+    // wxTAB_TRAVERSAL - Use this to enable tab traversal for non-dialog windows
+    // (not needed for phrasebox).
+
 }
 
 #if defined(_KBSERVER)
