@@ -6601,7 +6601,7 @@ void CPhraseBox::OnComboItemSelected(wxCommandEvent & WXUNUSED(event))
     }
 
     gpApp->m_targetPhrase = selItemStr;
-    this->GetTextCtrl()->ChangeValue(selItemStr); // use WriteText() instead of ChangeValue() or SetValue() since the later two reset the IsModified() to FALSE
+    this->GetTextCtrl()->ChangeValue(selItemStr); // use of ChangeValue() or SetValue() resets the IsModified() to FALSE
     
     if (!this->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue // whm 14Feb2018 added GetTextCtrl()->
     {
