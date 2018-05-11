@@ -952,13 +952,38 @@ void CLayout::PlaceBox()
         // See comments in the SetupDropDownPhraseBox() function for a detailed description of what the
         // function does.
 		// BEW 26Apr18 removed the internal unilateral setting of m_bAbandonable to TRUE in this Setup....() function
-        m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
+		// BEW 2May18 for Reviewing mode, suppressed call when m_bDrafting is FALSE
+		if (m_pApp->m_bDrafting)
+		{
+			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
+		}
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+		// BEW 7May18 Since PlaceBox() is typically the last significant call before the user sees the
+		// altered state of the GUI, and because a lookup from the KB will have been done - and with auto-caps
+		// on that means m_pTargetBox (the contents of which are seen by the user in the GUI) will have received
+		// a lower-case-initial-character from the lookup, it is appropriate to do an auto-caps adjustment here
+		// and update the contents of m_pTargetBox just in case the source text has a capital-letter-initial
+		// string at this location
+		if (gbAutoCaps)
+		{
+			bool bNoError = TRUE;
+			bNoError = m_pApp->GetDocument()->SetCaseParameters(m_pApp->m_pActivePile->GetSrcPhrase()->m_key);
+			if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+			{
+				bNoError = m_pApp->GetDocument()->SetCaseParameters(m_pApp->m_targetPhrase, FALSE); // FALSE is bIsSrcText
+				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+				{
+					// change to upper case initial letter
+					m_pApp->m_targetPhrase.SetChar(0, gcharNonSrcUC);
+					m_pApp->m_pTargetBox->m_bAbandonable = FALSE; // If tgt text changed, it must become non-Abandonable (BEW added line 7May18)
+				}
+			}
+			m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase); // keep m_pTargetBox contents in sync with m_targetPhrase
+		}
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 959);
+		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 985);
 #endif
-
 	}
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
 }
@@ -974,7 +999,6 @@ bool CLayout::SetProtocolFlags(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase, bo
 	bool bHasKBEntry = pSrcPhrase->m_bHasKBEntry;
 	bool bHasGlossingKBEntry = pSrcPhrase->m_bHasGlossingKBEntry;
 	// global gbIsGlossing is accessible here, so use that
-
 
 
 // TODO - remove this function later if there is nothing needed here

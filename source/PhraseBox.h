@@ -88,6 +88,19 @@ public:
     wxString    m_SaveTargetPhrase;
     //CTargetUnit* pTargetUnitFromChooseTrans; // whm 24Feb2018 moved to the App
 
+	// BEW 7May18 Added members for saving the to-be-removed CRefString, it's owning pTU (pointer to
+	// CTargetUnit, and the list index at which the to-be-removed CRefString currently lives (before
+	// the removal takes place due to the phrasebox landing at that location). Setting these values
+	// will be done from places within the KB lookup function. The app will use these variables for
+	// keeping what's saved here for display in the combobox dropdown list, while from the KB the
+	// relevant CRefString has been removed. PlaceBox() is called at the end of PlacePhraseBox()
+	// and so we will have the CRefString reinstated before PlaceBox()'s list gets dropped down
+	int          nSaveComboBoxListIndex;
+	wxString	 strSaveListEntry;
+	bool		 bRemovedAdaptionReadyForInserting; // into the combo box's dropdown list - at its former location
+	void InitializeComboLandingParams(); // initialize the above member variables, I'll decline 
+										 // using the m_ prefix in their names, as these are very hacky
+
 protected:
 	bool CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, CPile* pNextEmptyPile,
 							CPile* pCurPile); // BEW added 24Mar09, to simplify MoveToNextPile()

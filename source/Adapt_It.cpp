@@ -17410,6 +17410,7 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bVertEdit_AtFirst = FALSE; // explained in Adapt_It.h at line 2262
     m_bMergerIsCurrent = FALSE; // BEW 14Apr16
     m_bSentFinalPunctsTriggerCaps = FALSE; // if m_strSentFinalPunctsTriggerCaps has content,
                                            // will be TRUE (see project config file)
@@ -18271,6 +18272,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // whm added 22Mar2018 for detecting callers of PlaceBox()
     m_bMovingToDifferentPile = FALSE;
+	// BEW added 10May18 for governance of dropdown list removed KB entry reinsertion 
+	// within the dropdown list on 'landing'at a new location
+	m_bLandingBox = FALSE;
 
     m_bTablesLoaded = FALSE; // whm added 23May04 not initialized in MFC
 
@@ -54053,16 +54057,17 @@ void CAdapt_ItApp::LogDropdownState(wxString functionName, wxString fileName, in
 	wxString value = bAbandonableValue ? _T("TRUE") : _T("FALSE");
 	wxString contents = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
 	wxString trackingStr = pApp->m_targetPhrase;
-	msg = _T("m_bAbandonable is  %s  , Box contents currently = %s  ,  and  m_targetPhrase is  %s");
+	msg = _T("m_bAbandonable is  %s  , m_pTargetBox contents currently = %s  ,  and  m_targetPhrase is  %s");
 	msg = msg.Format(msg, value.c_str(), contents.c_str(), trackingStr.c_str());
 	wxLogDebug(msg);
 
 	CSourcePhrase* pActiveSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 	if (pActiveSrcPhrase != NULL)
 	{
-		msg = _T("Active CSourcePhrase: m_key =  %s  , m_adaption = %s  ,  sequenceNumber  %d ,  m_bHasKBEntry is  %s");
+		msg = _T("Active CSourcePhrase: m_key =  %s  , m_adaption = %s  ,  m_gloss = %s  , sequenceNumber  %d ,  m_bHasKBEntry is  %s");
 		value = pActiveSrcPhrase->m_bHasKBEntry ? _T("TRUE") : _T("FALSE");
-		msg = msg.Format(msg, pActiveSrcPhrase->m_key.c_str(), pActiveSrcPhrase->m_adaption.c_str(), pActiveSrcPhrase->m_nSequNumber, value.c_str());
+		msg = msg.Format(msg, pActiveSrcPhrase->m_key.c_str(), pActiveSrcPhrase->m_adaption.c_str(), 
+					pActiveSrcPhrase->m_gloss, pActiveSrcPhrase->m_nSequNumber, value.c_str());
 		wxLogDebug(msg);
 	}
 
@@ -54099,5 +54104,80 @@ void CAdapt_ItApp::LogDropdownState(wxString functionName, wxString fileName, in
 	}
 }
 
+/// BEW 9May18 A bit complex to explain. Bill wanted that a combolist phrasebox 'landing' at a location,
+/// (and legacy code operates in that circumstance to remove the KB's CRefString if m_refCount is 1, 
+/// but just to decrement by 1 if the m_refCount is greater than one) where m_refCount is 1, to have
+/// the legacy KB CRefString removal happen as normal, but the combobox-based phrasebox (m_pTargetBox)
+/// nevertheless would still drop down it's list with the removed adaptation still in it.
+/// Our code, in PlacePhraseBox(), needs a hack. PlaceBox() is called at the end of PlacePhraseBox(),
+/// PlaceBox() is where the code for dropping down the list is located, but the removal of the 
+/// the CRefString when 'landing' will have already been done earlier.
+/// So we need a hack to preserve needed information until later when the visible list is dropped down.
+/// We must have some kind of hack to preserve the adaptation and the index of where it would be in 
+/// the dropped down list; we have no other way to restore it there for the user to see it eventually
+/// in the dropped down list. 
+/// So, code in PlacePhraseBox() operates in a carefully constrained context (m_bLandingBox being TRUE) 
+/// is an important constraint, plus other constraints) to preserve required values for the
+/// function which drops down the combobox's list to be able to reinsert the removed adaptation 
+/// at the correct place in the being-dropped-down list when the PlaceBox() call eventually gets called. 
+/// The reinsertet item should also be shown selected in the list because, if the user does nothing but 
+/// move the phrasebox elsewhere, the selected list item will then be auto-restored as the adaptation 
+/// for that location.
+/// What BuildTempDropDownComboList() does is to build a temporary wxArrayString which stores the
+/// eventual list's contents, but called in PlacePhraseBox() prior to the CRefString being deleted
+/// when the phrasebox is 'landing' at the new location (whether by user click on the location, or by 
+/// the app's auto-inserting state calling Jump() to go to the next 'hole'). From this function
+/// we can then obtain a matching list (but with the extra adaptation retained) in which we can
+/// programmatically search to find the matchedItem index for the passed in pAdaptation. pTU, of 
+/// course, is the CTargetUnit instance which has the list of CRefStrings for the 'landing' 
+/// location's KB entries - from which we build this list. This list is temporary - it is cleared
+/// as soon as the matchedItem's index is computed.
+/// The whole thing is just so we can calculate the correct index (matchedItem) and give it to the
+/// caller for storage for use when the real list is being computed for showing to the user.
+/// Returns: TRUE if the build and item matchup was successful, FALSE otherwise
+/// params
+/// pTU            ->  ptr to CTargetUnit containing the relevant list of ptr to CRefString instances
+/// pAdaption      ->  ptr to a copy of the adaptation string which is going to be removed when it's CRefString is removed
+/// matchedItem    <-  location (0-based index) of the *pAdaptation string in the built wxArrayString
+bool CAdapt_ItApp::BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdaption, int& matchedItem)
+{
+	wxArrayString arrTempComboList; // build the list box contents and store its adaptations here
+									// (no need to clear(), it's initialized to empty at instantiation)
+	matchedItem = wxNOT_FOUND; // value -1,  initialize
+	wxString matchMe = *pAdaption; // work with a copy of the passed in string
+	wxASSERT(pTU != NULL);
+	// Ignore any CRefString instances for which m_bDeleted is TRUE.
+	CRefString* pRefString;
+	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+	wxASSERT(pos != NULL);
+	int nLocation = 0;
+	while (pos != NULL)
+	{
+		pRefString = (CRefString*)pos->GetData();
+		pos = pos->GetNext();
+		if (!pRefString->GetDeletedFlag())
+		{
+			// this one is not deleted, so add it to the string array
+			wxString str = pRefString->m_translation;
+			// Note: str might be a (quite legal) empty adaptation string
+			nLocation = arrTempComboList.Add(str);
+			// The combobox's list is NOT sorted, so we just add to what is already
+			// there. The Add() command returns the just-inserted item's index.
+			wxASSERT(nLocation != -1); // we just added it so it must be there!
 
-
+			// Test for identity between the two strings str and matchMe. If they
+			// match, then return nLocation as the wanted matchedItem index, clear
+			// what has been built and return TRUE
+			if (str == matchMe)
+			{
+				arrTempComboList.clear(); // don't leak memory
+				matchedItem = nLocation;
+				return TRUE;
+			}
+		}
+	}
+	// If control gets to here, no match was made. (Very unexpected, or impossible,
+	// but handle it safely anyway)
+	arrTempComboList.clear(); // don't leak memory
+	return FALSE;
+}
