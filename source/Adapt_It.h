@@ -38,7 +38,7 @@
 // m_nSequNumber; and from the KB, the pTU's inventory of CRefString instances'm_translation 
 // string values and the value of each's m_bDeleted  boolflag. And to print the callers name and
 // line number for where LogDropdownState() is being called. Callable only in _DEBUG builds.
-#define _ABANDONABLE
+//#define _ABANDONABLE
 
 //#define AUTHENTICATE_AS_BRUCE
 
@@ -2255,6 +2255,13 @@ class CAdapt_ItApp : public wxApp
 
 	// BEW added 23Nov12, for support of Cancel All Steps button in Vertical Edit mode
 	bool m_bCalledFromOnVerticalEditCancelAllSteps; // default is FALSE, initialized in OnInit()
+	// BEW 4May18, a helper for forcing the first CSourcePhrase in a adaptationStep or 
+	// glossingStep of VerticalEdit mode to retain the user's typed-in adaptation, or
+	// gloss, when the phrasebox is moved forward by an Enter key press (this issue has
+	// plagued the VerticalEdit feature for many years, hopefully now we'll have a robust fix)
+	bool m_bVertEdit_AtFirst; // TRUE (set from custom event handler) when a Step is just
+							  // entered, FALSE when phrasebox moves on in the step. Used to
+							  // limit the fix to just the first CSourcePhrase in the span
 
 	ToolbarButtonSize m_toolbarSize;
 	bool m_bShowToolbarIconAndText; // default is FALSE
@@ -3717,6 +3724,9 @@ public:
 
     // whm added 22Mar2018 for detecting callers of PlaceBox()
     bool        m_bMovingToDifferentPile;
+	// BEW added 10May18 for governance of dropdown list removed KB entry reinsertion 
+	// within the dropdown list on 'landing'at a new location
+	bool m_bLandingBox;
 
     short       m_nExpandBox;
 
@@ -4680,9 +4690,11 @@ public:
 	bool	LoadKB(bool bShowProgress);
 	bool	LoadGlossingKB(bool bShowProgress);
 	void	LoadGuesser(CKB* Kb);
+	bool	m_bLanding;
 	void	LogDropdownState(wxString functionName, wxString fileName, int lineNumber); // BEW 17Apr18 a  
 				// self-contained logger for feedback about m_bAbandonable and friends, to be used when 
 				// _ABANDONABLE is #defined
+	bool	BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdaption, int& matchedItem); // BEW 9May18
 	wxString GetMostCommonForm(CTargetUnit* pTU, wxString* pNotInKBstr); // BEW added 21Jan15
 	bool	CreateAndLoadKBs(); // whm 28Aug11 added
 	wxFontEncoding MapMFCCharsetToWXFontEncoding(const int Charset);

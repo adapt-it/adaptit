@@ -373,6 +373,8 @@ CPhraseBox::CPhraseBox(
     // not use CopySource() but instead use an empty string for the adaptation
     m_bEmptyAdaptationChosen = FALSE;
 
+	// BEW added 7May18, initialize the saved ref string's pointer to NULL
+	InitializeComboLandingParams();
 
     // Use custom dropdown control buttons
     //  /* XPM */
@@ -2343,8 +2345,6 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
     // pCurTargetUnit.
 	pApp->pCurTargetUnit = pTargetUnit; // set global pointer so the dialog can use it if it 
                                         // is called
-
-
 	m_CurKey = phrases[index]; // set the m_CurKey so the dialog can use it if it is called
 							 // m_CurKey is a global variable (the lookup of phrases[index] is
 							 // done on a copy, so m_CurKey retains the case of the key as in
@@ -2590,6 +2590,61 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 	// refactored 25Mar09
 	CLayout* pLayout = GetLayout();
 	CAdapt_ItApp* pApp = pLayout->m_pApp;
+
+	// BEW 4May18 help first, and only first, CSourcePhrase to retain m_adaption or
+	// m_gloss when box moves forward by Enter or Tab press
+	if (pApp->m_bVertEdit_AtFirst)
+	{
+		// BEW 3May18 If we are in vertical editing mode, PlaceBox() only is called, there is 
+		// no call to PlacePhraseBox() and hence none of the latter's logic is available for setting
+		// m_pTargetBox contents, nor m_targetPhase, nor m_adaption, nor source phrase's m_adaption
+		// and so we'll need to do it somewhere - here seems like a good place, because MoveToNextPile()
+		// will call DoStore_NormalOrTransliterateModes(pApp, pDoc, pView, pCurPile) and we want these
+		// storage members to have correct values before that happens below. Out of vertical edit mode,
+		// PlacePhraseBox() normally sets the storage members updated for the KB store. If we don't do
+		// the task here, then the updated pOldActiveSrcPhrase will have the old target text - before
+		// any user edits could be done
+		if (gbVerticalEditInProgress)
+		{
+			wxString theText = pApp->m_targetPhrase; // this should have been set correctly 
+													 // from the prior KB store operation
+			pApp->m_pTargetBox->ChangeValue(theText);
+			pApp->m_pTargetBox->m_Translation = theText;
+			if (gbIsGlossing)
+			{
+				pApp->m_pActivePile->GetSrcPhrase()->m_gloss = theText;
+			}
+			else
+			{
+				CSourcePhrase* pSrcPhr = pApp->m_pActivePile->GetSrcPhrase();
+				pSrcPhr->m_adaption = theText;
+
+				// check punctuation, if any, and compute m_targetStr value 
+				if (!pSrcPhr->m_precPunct.IsEmpty())
+				{
+					theText = pSrcPhr->m_precPunct + theText;
+				}
+				if (!pSrcPhr->m_follPunct.IsEmpty())
+				{
+					theText += pSrcPhr->m_follPunct;
+				}
+				if (!pSrcPhr->GetFollowingOuterPunct().IsEmpty())
+				{
+					theText += pSrcPhr->GetFollowingOuterPunct();
+				}
+				pApp->m_pActivePile->GetSrcPhrase()->m_targetStr = theText;
+#if defined(_DEBUG)
+				CSourcePhrase* mySrcPhrasePtr = pApp->m_pActivePile->GetSrcPhrase();
+				wxLogDebug(_T("VerticalEdit: JumpForward() at start: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
+					mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(),
+					mySrcPhrasePtr->m_targetStr.c_str(), pApp->m_targetPhrase.c_str());
+#endif
+			}
+		}
+		pApp->m_pTargetBox->m_bAbandonable = FALSE;
+		pApp->m_bVertEdit_AtFirst = FALSE; // reset FALSE so other CSourcePhrases don't do this fix-it hack
+	}
+
 	if (pApp->m_bDrafting)
 	{
         // get an adjusted pile pointer for the new active location, and we want the
@@ -5958,7 +6013,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     CAdapt_ItApp* pApp = &wxGetApp();
     wxASSERT(pApp != NULL);
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() just now entered"), _T("PhraseBox.cpp"), 5961);
+	pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() just now entered"), _T("PhraseBox.cpp"), 6020);
 #endif
 
     // Here we restrict execution for when all 3 flags below are FALSE. This reduces/eliminates
@@ -5973,7 +6028,8 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             pApp->m_bChooseTransInitializePopup = FALSE;
         else
             pApp->m_bChooseTransInitializePopup = TRUE;
-		/* no, BEW 27Apr18 - I expect the flag to be FALSE here, it should not be unilaterally set TRUE in this function
+		/* //no, BEW 27Apr18 - I expect the flag to be FALSE here, it should not be unilaterally 
+		   //set TRUE in this function
         // whm 10Apr2018 added. Set the initial value of m_bAbandonable to TRUE since we are setting up
         // for the dropdown phrasebox, and any content in the phrasebox should initially be considered
         // abandonable at least here when setting up the dropdown phrasebox for display to the user.
@@ -6012,20 +6068,10 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             // Assign the local target unit to the App's member pCurTargetUnit for use below
             pApp->pCurTargetUnit = pTargetUnit;
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
-//			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 6015);
+//			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 6074);
 //#endif
 		}
 
-
-        // whm 10Apr2018 added. Set the initial value of m_bAbandonable to TRUE since we are setting up
-        // for the dropdown phrasebox, and any content in the phrasebox should initially be considered
-        // abandonable at least here when setting up the dropdown phrasebox for display to the user.
-        // Certain actions at the current location may change the flag to FALSE before the phrasebox
-        // moves - such as any key press that changes the phrasebox contents. 
-		// BEW 26Apr18 removed the setting of the flag, it has to be done elsewhere, in a place and
-		// manner yet to be determined
-        //this->m_bAbandonable = TRUE;
-		
         // Get a count of the number of non-deleted ref string instances for the current target unit
         // (which may be adjusted by a prior instance of the ChooseTranslation dialog)
         int nRefStrCount = 0;
@@ -6036,7 +6082,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             nRefStrCount = pApp->pCurTargetUnit->CountNonDeletedRefStringInstances();
         }
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
-//		pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 6039);
+//		pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 6088);
 //#endif
 
         if (nRefStrCount > 0)
@@ -6113,10 +6159,10 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_targetPhrase;
             */
 
-            // Within this block we know that nRefStrCount > 0
+            // Within this block we know that nRefStrCount > 0 ; or it could be > 1 if the insertion of saved adaptation happened
 
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
-//			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() before if (bNoAdaptationFlagPresent)"), _T("PhraseBox.cpp"), 6137);
+//			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() before if (bNoAdaptationFlagPresent)"), _T("PhraseBox.cpp"), 6164);
 //#endif
             // Note: The target unit's ref strings may include a "<no adaptation>" ref string which 
             // is stored internally as an empty ref string. An empty ref string is reconstituted 
@@ -6124,9 +6170,17 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             // (dropdown or ChooseTranslation). The default value of the bNoAdaptationFlagPresent is
             // FALSE, but The PopulateDropDownList() function call above determines when the value
             // of bNoAdaptationFlagPresent is TRUE.
+
+			// BEW 9May18 -- refactored to take into account the possibility of restoration, in adapting
+			// mode, of a stored copy of a deleted adaptation, to the dropdown list. If there was
+			// restoration, the other values present were different and unique - and since nRefStrCount
+			// was determined by counting CRefString instances after the removal from the KB of the
+			// being restored, the list will be bigger by 1 than the nRefStrCount values used in the
+			// three test blocks below. I'll try refactor these blocks with minimal disturbance of the
+			// logic Bill describes
             if (bNoAdaptationFlagPresent)
             {
-                // A <no adaptation> ref string is present
+                // A <no adaptation> ref string is present (BEW, and the insertion of another was blocked)
                 if (nRefStrCount == 1)
                 {
                     // There is only one ref string and it is empty, i.e., it is <no adaptation>.
@@ -6147,7 +6201,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
                     pApp->m_pTargetBox->SetFocus();
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE  block for if (nRefStrCount == 1)"), _T("PhraseBox.cpp"), 6150);
+					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE  block for if (nRefStrCount == 1)"), _T("PhraseBox.cpp"), 6195);
 #endif
 				}
                 else if (nRefStrCount > 1)
@@ -6167,7 +6221,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     //wxASSERT(pApp->m_targetPhrase.IsEmpty());
                     pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE  block for else if (nRefStrCount > 1)"), _T("PhraseBox.cpp"), 6170);
+					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE  block for else if (nRefStrCount > 1)"), _T("PhraseBox.cpp"), 6215);
 #endif
 				}
             }
@@ -6196,7 +6250,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
                     pApp->m_pTargetBox->SetSelection(index);
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end block for 'no <no adaptation> present' "), _T("PhraseBox.cpp"), 6199);
+					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end block for 'no <no adaptation> present' "), _T("PhraseBox.cpp"), 6244);
 #endif
 				}
                 else // nRefStrCount > 1
@@ -6224,7 +6278,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     pApp->m_pTargetBox->SetSelection(index);
                     pApp->m_pTargetBox->SetSelection(-1, -1); // select all
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end block for nRefStrCount > 1, and lacking <no adaptation>"), _T("PhraseBox.cpp"), 6227);
+					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end block for nRefStrCount > 1, and lacking <no adaptation>"), _T("PhraseBox.cpp"), 6272);
 #endif
 				}
             }
@@ -6273,36 +6327,60 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             // Above for debugging only!!!
             */
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end of TRUE block for nRefStrCount > 0"), _T("PhraseBox.cpp"), 6276);
+			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end of TRUE block for nRefStrCount > 0"), _T("PhraseBox.cpp"), 6321);
 #endif
         }
         else // when nRefStrCount == 0
         {
+			// BEW 9May18, ammended the following note...
             // whm 5Mar2018 Note: When nRefStrCount is 0, we are at a 'hole', and there are no translation 
-            // equivalents in the dropdown's list. In this case we don't call PopulateDropDownList() here
+            // equivalents in the dropdown's list - as populated from pTU's current list of CRefStrings.
+			// But if the boolean  bRemovedAdaptionReadyForInserting is TRUE, and the mode is 'not glossing',
+			// then there is an adaptation ready to be re-inserted to the list, provided m_bLandingBox
+			// is TRUE. We must check - so Bill's code here divides into two possibilities, (a) nothing is ready
+			// for reinserting - in which case his earlier code applies; or (b) an adaptation is ready to become
+			// the only entry in the list - it will be the top one once re-inserted, in which case a new block
+			// of code is required here.
+			// In the former (a) case we don't call PopulateDropDownList() here
             // (which automatically clears the dropdown list before re-populating it), but here also we must
             // make sure the dropdown list is empty, and set the dropdown's button image to its "disabled" 
-            // state. 
-            pApp->m_pTargetBox->ClearDropDownList();
-            pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
-            // With nothing in the dropdown list, we inform OnIdle() not to show the dropdown list
-            // whm 18Apr2018 moved the setting of m_bChooseTransInitializePopup to TRUE/FALSE
-            // above the if (nRefStrCount > 0) ... else blocks.
-            //pApp->m_bChooseTransInitializePopup = FALSE;
-            // A previous call to PlacePhraseBox() would have called DoGetSuitableText_ForPlacePhraseBox() which 
-            // stored a suitable string str which was assigned to the App's m_targetPhrase member, and it would have
-            // been followed by any AutoCaps processing. Hence, if m_bCopySource was TRUE the m_targetPhrase member
-            // string will contain the copied source word/phrase processed by CopySourceKey(), which - if gbAutoCaps 
-            // was also TRUE, the case of the copied source word/phrase will be preserved.
+            // state. Handle Bill's logic first. The other case, (b) we will restore to the contents of m_pTargetBox 
+			// the removed value, and to the list to be shown - but only if in adapting mode and 'landing' the box.
+			if (!bRemovedAdaptionReadyForInserting)
+			{
+				// Case (a) Bill's original logic applies
+				pApp->m_pTargetBox->ClearDropDownList();
+				pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
+				// With nothing in the dropdown list, we inform OnIdle() not to show the dropdown list
+				// whm 18Apr2018 moved the setting of m_bChooseTransInitializePopup to TRUE/FALSE
+				// above the if (nRefStrCount > 0) ... else blocks.
+				//pApp->m_bChooseTransInitializePopup = FALSE;
+				// A previous call to PlacePhraseBox() would have called DoGetSuitableText_ForPlacePhraseBox() which 
+				// stored a suitable string str which was assigned to the App's m_targetPhrase member, and it would have
+				// been followed by any AutoCaps processing. Hence, if m_bCopySource was TRUE the m_targetPhrase member
+				// string will contain the copied source word/phrase processed by CopySourceKey(), which - if gbAutoCaps 
+				// was also TRUE, the case of the copied source word/phrase will be preserved.
 
-            //We should be able to put it in the m_pTargetBox here.
-            pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
-            pApp->m_pTargetBox->SetSelection(-1, -1); // select all
-            pApp->m_pTargetBox->SetFocus();
+				//We should be able to put it in the m_pTargetBox here.
+				pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+				pApp->m_pTargetBox->SetSelection(-1, -1); // select all
+				pApp->m_pTargetBox->SetFocus();
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end of block for nRefStrCount == 0"), _T("PhraseBox.cpp"), 6303);
+				pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end of block for nRefStrCount == 0"), _T("PhraseBox.cpp"), 6348);
 #endif
-
+			}
+			else
+			{
+				// we do the insertion only when the landing flag is TRUE, and not in glossing mode
+				if (!gbIsGlossing && pApp->m_bLandingBox)
+				{
+					pApp->m_pTargetBox->ClearDropDownList();
+					pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);
+					this->Append(strSaveListEntry);
+					this->m_bAbandonable = FALSE;
+					pApp->m_pTargetBox->SetSelection(0);
+				}
+			}
         }
         // Clear the current target unit pointer
         pApp->pCurTargetUnit = (CTargetUnit*)NULL; // clear the target unit in this nRefStrCount == 0 block too.
@@ -6349,7 +6427,7 @@ void CPhraseBox::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(even
 // PlaceBox() location. If PlaceBox() was called immediately on the dismissal 
 // of the Choose Translation dialog. pCurTargetUnit will reflect any changes 
 // made to the composition or ordering of the ref strings in that dialog. 
-// If pTU is not NULL, we use it herre to populate the dropdown list.
+// If pTU is not NULL, we use it here to populate the dropdown list.
 // The selectionIndex is a reference parameter and will return the index
 // of the user-selected item, or the index of the user-entered new translation 
 // string in the populated dropdown list.
@@ -6360,6 +6438,17 @@ void CPhraseBox::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(even
 // better make use of BEW's original coding as it already handles the bulk of 
 // the phrasebox contents (and KB access and storage) by the time code execution 
 // calls PopulateDropDownList().
+// BEW 9May18, refactored (by a code addition) so that if a n_refCount == 1 KB
+// entry got deleted at the 'landing' of the phrasebox, its adaptation here
+// gets reinstated (but not so in the KB) at the correct location, and that
+// location becomes the selected location. This feature addition requested
+// by Bill Martin (about Feb 2018, plus or minus, by email) Storing the value
+// to reinstate and its index in the list is done in PlacePhraseBox() before
+// the value gets removed from the KB, and the needed restoration values were
+// copied to m_pTargetBox, if matched successfully, to member variables here
+// in PhraseBox, for that restoration-to-list purpose; namely, strSaveListEntry
+// and nSaveComboBoxListIndex. The insertion is done only when the boolean
+// bRemovedAdaptionReadyForInserting has been set TRUE
 void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptation)
 {
     selectionIndex = -1; // initialize to inform caller if no selection was possible
@@ -6367,6 +6456,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
     wxString initialBoxContent;
     // Get the initial phrasebox content so we can match it in dropdown list if it is there
     initialBoxContent = gpApp->m_targetPhrase;
+	bool bDeletionReinserted = FALSE;
     
     if (pTU == NULL)
     {
@@ -6392,6 +6482,8 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
         {
             // this one is not deleted, so show it to the user
             wxString str = pRefString->m_translation;
+			bool bExcludeAnother = FALSE; // BEW added 9May18 - there can only be one <no adaptation> in the list
+
             // Note: If user clicked on <no adaptation> gpApp->m_targetPhrase and initialBoxContent 
             // will also be an empty string.
             if (str.IsEmpty())
@@ -6404,7 +6496,52 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
             {
                 // Get index of the <no adaptation> string in the dropdown list for use below
                 indexOfNoAdaptation = nLocation;
+				bExcludeAnother = TRUE;
             }
+			// BEW addition 9May18 If there is a deleted adaptation ready for inserting because of
+			// the phrasebox landing the we will have set TRUE m_bLandingBox in it at the right place
+			if (!gbIsGlossing && gpApp->m_bLandingBox && bRemovedAdaptionReadyForInserting)
+			{
+				if (nSaveComboBoxListIndex == count) // count is not yet augmented, so it
+													 // works as a valid index at this point
+				{
+					if (strSaveListEntry.IsEmpty())
+					{
+						if (!bExcludeAnother)
+						{
+							// The list entry already present before the insertion is not a <no adaptation> one
+							// and the one to be inserted therefore must be a <no adaptation> one - which
+							// we should show selected in the list
+							strSaveListEntry = s;
+							bNoAdaptationFlagPresent = TRUE;
+
+							int anIndex = (int)this->Insert(strSaveListEntry, (unsigned int)count);
+							selectionIndex = anIndex; // there are are least two items, even if one is an 
+													  // empty string, so we DO want an empty string visible
+													  // (as <no adaptation> ) in the list, and if it was
+													  // what was inserted, we DO want it shown selected
+							count++; // count this re-inserted adaptation
+							bDeletionReinserted = TRUE; // used below
+							gpApp->m_pTargetBox->m_bAbandonable = FALSE;
+							indexOfNoAdaptation = anIndex;
+						}
+					}
+					else
+					{
+						// strSaveListEntry is not empty, but another in the list might be; anyway
+						// do the insertion and it should be shown selected
+						int anIndex = (int)this->Insert(strSaveListEntry, (unsigned int)count);
+						selectionIndex = anIndex; // there are are least two items, even if one is an 
+												  // empty string, so we DO want an empty string visible
+												  // (as <no adaptation> ) in the list, and we want the
+												  // inserted entry to be selected 
+						count++; // count this re-inserted adaptation
+						bDeletionReinserted = TRUE; // used below
+						gpApp->m_pTargetBox->m_bAbandonable = FALSE;
+						indexOfNoAdaptation = -1;
+					}
+				}
+			}
             count++;
             // The combobox's list is NOT sorted; the Append() command above returns the 
             // just-inserted item's index.
@@ -6414,7 +6551,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
             this->SetClientData(nLocation, &pRefString->m_refCount);
         }
     }
-    if (count > 0)
+    if (count > 0  && !bDeletionReinserted) // BEW added 2nd subtest on 9May18
     {
         if (!initialBoxContent.IsEmpty())
         {
@@ -6424,8 +6561,8 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
             if (indx != wxNOT_FOUND)
             {
                 // Select the list item - if it exists in the list - that matches what was in the 
-                // phrasebox when we landed there.
-                selectionIndex = indx;
+                // phrasebox when we landed there. 
+				selectionIndex = indx;
             }
         }
         else
@@ -6494,6 +6631,14 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 	if (pApp->m_bReadOnlyAccess)
 	{
 		// return without calling Skip(). Beep for read-only feedback
+		::wxBell();
+		return;
+	}
+
+	// BEW 2May18 Inhibit dropping down (or up) if in Reviewing mode)
+	if (!pApp->m_bDrafting)
+	{
+		// return without calling Skip(). Beep for Review mode feedback
 		::wxBell();
 		return;
 	}
@@ -7122,3 +7267,10 @@ void CPhraseBox::ChangeValue(const wxString& value)
 
 //#endif
 
+void CPhraseBox::InitializeComboLandingParams()
+{
+	nSaveComboBoxListIndex = -1;  // -1 indicates "not yet set or known"
+	strSaveListEntry.empty();
+	bRemovedAdaptionReadyForInserting = FALSE; // into the combo box's dropdown list - at its former location
+	gpApp->m_bLandingBox = FALSE;
+}

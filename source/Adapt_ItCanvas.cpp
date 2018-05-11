@@ -1070,6 +1070,14 @@ x:					CCell* pCell = 0;
 					// save old sequ number in case required for toolbar's Back button
                     pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
+					// BEW 7May18. We use the fact that OnLButtonDown() is never called when there is a user
+					// click on the dropdown-based phrasebox to advantage. If control has entered and gets
+					// to this point, then the click must have been to a pile which is not the current active
+					// one - and that means that the phrasebox is going to move - which in turn means that
+					// we can safely set app's member boolean m_bLandingBox to TRUE. This will help give
+					// better behaviours for the refactored GUI with a combo-box based phrasebox
+					pApp->m_bLandingBox = TRUE;
+
 					// place the phrase box
 					pView->PlacePhraseBox(pCell,2);
 
@@ -1859,6 +1867,14 @@ x:					CCell* pCell = 0;
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 								pApp->LogDropdownState(_T("OnLButtonDown() before calling PlacePhraseBox() in normal situation, selector == 0"), _T("Adapt_ItCanvas.cpp"), 1880);
 #endif
+								// BEW 7May18. We use the fact that OnLButtonDown() is never called when there is a user
+								// click on the dropdown-based phrasebox to advantage. If control has entered and gets
+								// to this point, then the click must have been to a pile which is not the current active
+								// one - and that means that the phrasebox is going to move - which in turn means that
+								// we can safely set app's member boolean m_bLandingBox to TRUE. This help will give better
+								// behaviours for the refactored GUI with a combo-box based phrasebox
+								pApp->m_bLandingBox = TRUE;
+
 								// Now get the phrasebox placed
 								pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
 									// KB access is done at both leaving and landing locations)
@@ -2027,6 +2043,46 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 		// function but it does what we want)
 		CPile* pCurPile = NULL;
 		CCell* pCell = pView->GetClickedCell(&point); // returns NULL if point was not in a cell
+
+		// BEW 1May18 - try injecting the code for simulating a click on the wxOwnerDrawnComboBox
+		// here
+
+		// BEW 1May18 Inserted code for checking if the point clicked is within the cell rectangle in which
+		// the phrasebox (based on a mixed class of text box and combo control etc,) a wxOwnerDrawnComboBox class,
+		// is currently located. If it is within, then we post a custom event to the event queue, trapping it in
+		// CMainPrame::OnIdle(), with handler within CMainFrame. In the handler we do whatever it takes to simulate
+		// a legacy click on the old version's of Adapt It's wxTextCtrl-based phrasebox. Can't do the same with
+		// the owner drawn combo box because the click is intercepted by the combobox, not the embedded text control.
+		// So we have to do it this round-about way. When we get the right pile & the right cell within it, these
+		// will be in logical coordinates, so we'll need to convert our clicked point to logical coords before we
+		// test for the click being within the cell's rectangle. Here goes...
+		// Nope, this OnLButtonUp() does not get called when clicking over the combobox --  try find another way.
+		/* keep the code in case I find a way
+		if (!pApp->m_pSourcePhrases->IsEmpty() && !gbIsGlossing && pApp->m_bKBReady)
+		{
+			wxPoint clickPt = point;
+			wxRect  cellRect; // to be calculated herein
+							  // get the point into logical coordinates
+			wxClientDC clientDC(this); // make a device context for this job, on the stack
+			DoPrepareDC(clientDC); // get origin adjusted into logical coords (calls wxScrolledWindow::DoPrepareDC)
+			wxPoint logicalClickPoint(event.GetLogicalPosition(clientDC));
+			// We now have logicalClickPoint calculated. Next, we must get the pile list and get the pile
+			// which contains the reference to the active source phrase where the wxOwnerDrawnComboBox is
+			CPile* pPile = NULL;
+			CCell* pCell = NULL;
+			pPile = pApp->m_pActivePile;
+			int sequNum = pPile->GetSrcPhrase()->m_nSequNumber; // this is also a valid index into the pile list
+			CLayout* pLayout = pApp->GetLayout();
+			pPile = pLayout->GetPile(sequNum);
+			pCell = pPile->GetCell(1);  // we want the 2nd line, for phrase box
+			pCell->GetCellRect(cellRect);
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+			wxString msg = _T("OnLButtonUp() line 2064 of Canvas, Logical clicked point (x = %d, y = %d) Logical cell rect (x %d, y %d, width %d, height %d)");
+			msg = msg.Format(msg, logicalClickPoint.x, logicalClickPoint.y, cellRect.x, cellRect.y, cellRect.width, cellRect.height);
+			wxLogDebug(msg);
+#endif
+		}
+		*/
 
 		// BEW added 03Oct08 for support of vertical editing, to prevent dragging
 		// a selection into the gray text area either side of the editable span
