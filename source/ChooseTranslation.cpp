@@ -50,6 +50,7 @@
 #include "Adapt_ItView.h"
 #include "KbServer.h"
 #include "MainFrm.h"
+#include "Pile.h" // BEW added 12May18
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
@@ -184,6 +185,208 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 CChooseTranslation::~CChooseTranslation() // destructor
 {
 
+}
+
+// BEW 25Jun10, changes needed for support of kbVersion 2
+void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
+{
+	//InitDialog() is not virtual, no call needed to a base class
+
+	m_bEmptyAdaptationChosen = FALSE;
+	//m_bCancelAndSelect = FALSE;
+
+	wxString s;
+	s = s.Format(_("<no adaptation>")); // that is, "<no adaptation>", ready in case we need it
+
+										// first, use the current source and target language fonts for the list box
+										// and edit boxes (in case there are special characters)
+
+										// make the fonts show user's desired point size in the dialog
+#ifdef _RTL_FLAGS
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pSourcePhraseBox, NULL,
+		NULL, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bSrcRTL);
+#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pSourcePhraseBox, NULL,
+		NULL, NULL, gpApp->m_pDlgSrcFont);
+#endif
+
+#ifdef _RTL_FLAGS
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pNewTranslationBox, NULL,
+		m_pMyListBox, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
+#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pNewTranslationBox, NULL,
+		m_pMyListBox, NULL, gpApp->m_pDlgTgtFont);
+#endif
+
+	// BEW 23Apr15, m_CurKey ( CPhraseBox wxString, set when the phrasebox lands at a location)
+	// is used here. In the event that it is a key for a merged phrase, it may contain ZWSP
+	// but we do not need to restore / for each such ZWSP in m_CurKey, if we are currently
+	// supporting / as a word-breaking pseudo whitespace character, because the m_pSourcePhraseBox
+	// is read-only. (The user can copy from there though, which would copy any ZWSP unconverted,
+	// but we may not be able to do much about that.)
+
+	// set the "matched source text" edit box contents
+	m_pSourcePhraseBox->ChangeValue(gpApp->m_pTargetBox->m_CurKey);
+
+	// set the "new translation" edit box contents to a null string
+	m_pNewTranslationBox->ChangeValue(_T(""));
+
+	// BEW 23Apr15 - if supporting / as a word-breaking character currently, we don't convert
+	// any ZWSP to / in the list, because we don't edit the list directly. The m_pNewTranslationBox
+	// box needs to show / between words, but we don't populate the box by any list selection - only 
+	// by the user explicitly typing text there. If / is given this word-breaking status, then the
+	// user should type / explicitly between words when he types into that box.
+	PopulateList(gpApp->pCurTargetUnit, 0, No);
+
+	// select the first string in the listbox by default
+	// BEW changed 3Dec12, if the list box is empty, the ASSERT below trips. So we need a test
+	// that checks for an empty list, and sets nothing in that case
+	if (!m_pMyListBox->IsEmpty())
+	{
+		m_pMyListBox->SetSelection(0);
+		wxString str = m_pMyListBox->GetStringSelection();
+		int nNewSel = gpApp->FindListBoxItem(m_pMyListBox, str, caseSensitive, exactString);
+		wxASSERT(nNewSel != -1);
+		m_refCount = *(wxUint32*)m_pMyListBox->GetClientData(nNewSel);
+		m_refCountStr.Empty();
+		m_refCountStr << m_refCount;
+		// the above could fail, if nothing is in the list box, in which case -1 will be put in the
+		// m_refCount variable, in which case that is out of bounds, so change to zero
+		if (m_refCount < 0)
+		{
+			m_refCount = 0;
+		}
+	}
+
+	// hide the Do Not Ask Again button if there is more than one item in the list
+	int nItems = m_pMyListBox->GetCount();
+	wxWindow* pButton = FindWindowById(ID_BUTTON_CANCEL_ASK);
+	wxASSERT(pButton != NULL);
+	if (nItems == 1 && gpApp->pCurTargetUnit->m_bAlwaysAsk)
+	{
+		// only one, so allow user to stop the forced ask by hitting the button, so show it
+		pButton->Show(TRUE);
+
+	}
+	else
+	{
+		// more than one, so we don't want to see the button
+		pButton->Show(FALSE);
+	}
+
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pEditReferences->ChangeValue(m_refCountStr); // whm added 21Nov11
+
+												   // place the dialog window so as not to obscure things
+												   // work out where to place the dialog window
+	gpApp->GetView()->AdjustDialogPosition(this);
+
+	m_pMyListBox->SetFocus();
+
+}
+
+// pass 0 for selectionIndex if doSel has value No
+// BEW 12May18 refactored (by an addition) to support consistency between dropdown listbox behaviour
+// and the PopulateList() function. In PhraseBox.cpp, there is code to check for the phrasebox landing
+// causing a CRefString with m_refCount set to 1, while being cleared from the KB, the adaptation to be
+// retained in the dropdown list - so user can see it having it being auto-reinserted at the correct
+// location according to the order of CRefStrings in the CTargetUnit instance. The legacy PopulateList()
+// code below would only show non-deleted entries from the CTargetUnit. Since ChooseTranslation() is
+// available along with the dropdown-list phrasebox, the user is gunna get confused if the dropdown
+// has an entry which, if he chooses the ChooseTranslation() option, won't appear in the ChooseTranslation
+// dialog's list. So, I need to refactor, to test for all the conditions satified that justify showing
+// this dialog's list with the deleted adaptation (not gloss, I don't support doing this for glossing
+// mode) in its proper place in the list. That will keep things in sync when the list in either place
+// is viewed. Fortunately, all that I need to do is provide an else block for the test
+// if (!pRefString->GetDeletedFlag()), and do the refactoring work in there. Unlike in the phrasebox 
+// dropdown list, if we match the relevant removed adaptation here and restore it to the list, we
+// will not show it selected to the user - because ChooseTranslation() dialog parallels code in
+// EditKnowledgeBase and we don't want to stipulate what the user's choice is when the dialog shows.
+void CChooseTranslation::PopulateList(CTargetUnit* pTU, int selectionIndex, enum SelectionWanted doSel)
+{
+	m_pMyListBox->Clear();
+	wxString s = _("<no adaptation>");
+
+	// set the list box contents to the translation or gloss strings stored
+	// in the global variable pCurTargetUnit, which has just been matched
+	// BEW 25Jun10, ignore any CRefString instances for which m_bDeleted is TRUE
+	CRefString* pRefString;
+	int nLocation = -1;
+	wxString str = wxEmptyString;
+	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+	wxASSERT(pos != NULL);
+//	bool bWasReinserted = FALSE;		// BEW 14May18 -- commented out, I may need it if I reinstate the code at 338++
+	while (pos != NULL)
+	{
+		pRefString = (CRefString*)pos->GetData();
+		pos = pos->GetNext();
+		if (!pRefString->GetDeletedFlag())
+		{
+			// this one is not deleted, so show it to the user
+			str = pRefString->m_translation;
+			if (str.IsEmpty())
+			{
+				str = s;
+			}
+			m_pMyListBox->Append(str);
+			// m_pMyListBox is NOT sorted but it is safest to find the just-inserted
+			// item's index before calling SetClientData()
+			nLocation = gpApp->FindListBoxItem(m_pMyListBox, str, caseSensitive, exactString);
+			wxASSERT(nLocation != -1); // we just added it so it must be there!
+			m_pMyListBox->SetClientData(nLocation, &pRefString->m_refCount);
+		}
+/* BEW 14May18 This gets the temporarialy deleted adaptation shown in the list, but clicking it does nothing useful yet - I'm unsure whether to do this or not
+		else // this else block deals with deleted CRefString instances only
+		{
+			// BEW 12May18 check for a deleted adaptation at the active location, provided not
+			// glossing and various other constraints are satisfied. If so, restore it to the
+			// list in the correct location it had before the box landed at the current location
+			if (!gbIsGlossing && !gpApp->m_bFreeTranslationMode)
+			{
+				// So far so good. Next, check pSrcPhrase at the active location for felicity
+				// conditions there which enable checking further here
+				CSourcePhrase* pSrcPhrase = gpApp->m_pActivePile->GetSrcPhrase();
+				if (!pSrcPhrase->m_bHasKBEntry && !pSrcPhrase->m_bNotInKB &&
+					!pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation)
+				{
+					// We know pRefString has its deleted flag set TRUE, so grab the m_refCount
+					// and m_translation values. If m_refCount is 1 then this is a candidate
+					// for being deleted at the landing of the phrasebox - check this first
+					if (pRefString->m_refCount == 1)
+					{
+						// It's a candidate. It's a deleted one we want to restore if the
+						// contents of it's m_translation member match the value in 
+						// pSrcPhrase->m_adaption
+						if (pSrcPhrase->m_adaption == pRefString->m_translation)
+						{
+							// Yep, this is one to be restored to the list. To do that right
+							// we have to Append() it now, and set its nLocation
+							str = pRefString->m_translation;
+							if (str.IsEmpty())
+							{
+								str = s;
+							}
+							m_pMyListBox->Append(str);
+							// m_pMyListBox is NOT sorted but it is safest to find the just-inserted
+							// item's index before calling SetClientData()
+							nLocation = gpApp->FindListBoxItem(m_pMyListBox, str, caseSensitive, exactString);
+							wxASSERT(nLocation != -1); // we just added it so it must be there!
+							m_pMyListBox->SetClientData(nLocation, &pRefString->m_refCount);
+
+							bWasReinserted = TRUE; // we can use this for some good purpose if necessary
+												   // but for now we won't use it to set selectionIndex
+							//selectionIndex = nLocation;
+						}
+					}
+				}
+			}
+		} // end of else block for test: if (!pRefString->GetDeletedFlag())
+*/
+	} // end of loop
+	if (doSel == Yes)
+	{
+		m_pMyListBox->SetSelection(selectionIndex);
+	}
 }
 
 void CChooseTranslation::OnButtonCancelAsk(wxCommandEvent& WXUNUSED(event))
@@ -795,141 +998,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		m_pMyListBox->SetFocus();
 }
 
-// BEW 25Jun10, changes needed for support of kbVersion 2
-void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
-{
-	//InitDialog() is not virtual, no call needed to a base class
 
-	m_bEmptyAdaptationChosen = FALSE;
-	//m_bCancelAndSelect = FALSE;
-
-	wxString s;
-	s = s.Format(_("<no adaptation>")); // that is, "<no adaptation>", ready in case we need it
-
-	// first, use the current source and target language fonts for the list box
-	// and edit boxes (in case there are special characters)
-
-	// make the fonts show user's desired point size in the dialog
-	#ifdef _RTL_FLAGS
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pSourcePhraseBox, NULL,
-								NULL, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bSrcRTL);
-	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pSourcePhraseBox, NULL,
-								NULL, NULL, gpApp->m_pDlgSrcFont);
-	#endif
-
-	#ifdef _RTL_FLAGS
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pNewTranslationBox, NULL,
-								m_pMyListBox, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
-	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pNewTranslationBox, NULL,
-								m_pMyListBox, NULL, gpApp->m_pDlgTgtFont);
-	#endif
-
-	// BEW 23Apr15, m_CurKey ( CPhraseBox wxString, set when the phrasebox lands at a location)
-	// is used here. In the event that it is a key for a merged phrase, it may contain ZWSP
-	// but we do not need to restore / for each such ZWSP in m_CurKey, if we are currently
-	// supporting / as a word-breaking pseudo whitespace character, because the m_pSourcePhraseBox
-	// is read-only. (The user can copy from there though, which would copy any ZWSP unconverted,
-	// but we may not be able to do much about that.)
-
-	// set the "matched source text" edit box contents
-	m_pSourcePhraseBox->ChangeValue(gpApp->m_pTargetBox->m_CurKey);
-
-	// set the "new translation" edit box contents to a null string
-	m_pNewTranslationBox->ChangeValue(_T(""));
-
-	// BEW 23Apr15 - if supporting / as a word-breaking character currently, we don't convert
-	// any ZWSP to / in the list, because we don't edit the list directly. The m_pNewTranslationBox
-	// box needs to show / between words, but we don't populate the box by any list selection - only 
-	// by the user explicitly typing text there. If / is given this word-breaking status, then the
-	// user should type / explicitly between words when he types into that box.
-	PopulateList(gpApp->pCurTargetUnit, 0, No);
-
-	// select the first string in the listbox by default
-	// BEW changed 3Dec12, if the list box is empty, the ASSERT below trips. So we need a test
-	// that checks for an empty list, and sets nothing in that case
-	if (!m_pMyListBox->IsEmpty())
-	{
-        m_pMyListBox->SetSelection(0);
-        wxString str = m_pMyListBox->GetStringSelection();
-        int nNewSel = gpApp->FindListBoxItem(m_pMyListBox,str,caseSensitive,exactString);
-        wxASSERT(nNewSel != -1);
-        m_refCount = *(wxUint32*)m_pMyListBox->GetClientData(nNewSel);
-        m_refCountStr.Empty();
-        m_refCountStr << m_refCount;
-        // the above could fail, if nothing is in the list box, in which case -1 will be put in the
-        // m_refCount variable, in which case that is out of bounds, so change to zero
-        if (m_refCount < 0)
-        {
-            m_refCount = 0;
-        }
-	}
-
-	// hide the Do Not Ask Again button if there is more than one item in the list
-	int nItems = m_pMyListBox->GetCount();
-	wxWindow* pButton = FindWindowById(ID_BUTTON_CANCEL_ASK);
-	wxASSERT(pButton != NULL);
-	if (nItems == 1 && gpApp->pCurTargetUnit->m_bAlwaysAsk)
-	{
-		// only one, so allow user to stop the forced ask by hitting the button, so show it
-		pButton->Show(TRUE);
-
-	}
-	else
-	{
-		// more than one, so we don't want to see the button
-		pButton->Show(FALSE);
-	}
-
-	//TransferDataToWindow(); // whm removed 21Nov11
-	m_pEditReferences->ChangeValue(m_refCountStr); // whm added 21Nov11
-
-	// place the dialog window so as not to obscure things
-	// work out where to place the dialog window
-	gpApp->GetView()->AdjustDialogPosition(this);
-
-	m_pMyListBox->SetFocus();
-
-}
-
-// pass 0 for selectionIndex if doSel has value No
-void CChooseTranslation::PopulateList(CTargetUnit* pTU, int selectionIndex, enum SelectionWanted doSel)
-{
-	m_pMyListBox->Clear();
-	wxString s = _("<no adaptation>");
-
-	// set the list box contents to the translation or gloss strings stored
-	// in the global variable pCurTargetUnit, which has just been matched
-	// BEW 25Jun10, ignore any CRefString instances for which m_bDeleted is TRUE
-	CRefString* pRefString;
-	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
-	{
-		pRefString = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
-		if (!pRefString->GetDeletedFlag())
-		{
-			// this one is not deleted, so show it to the user
-			wxString str = pRefString->m_translation;
-			if (str.IsEmpty())
-			{
-				str = s;
-			}
-			m_pMyListBox->Append(str);
-			// m_pMyListBox is NOT sorted but it is safest to find the just-inserted
-			// item's index before calling SetClientData()
-			int nLocation = gpApp->FindListBoxItem(m_pMyListBox,str,caseSensitive,exactString);
-			wxASSERT(nLocation != -1); // we just added it so it must be there!
-			m_pMyListBox->SetClientData(nLocation,&pRefString->m_refCount);
-		}
-	}
-	if (doSel == Yes)
-	{
-		m_pMyListBox->SetSelection(selectionIndex);
-	}
-}
 
 // whm 24Feb2018 removed - not needed with dropdown integrated in CPhraseBox class
 //void CChooseTranslation::OnButtonCancelAndSelect(wxCommandEvent& event)

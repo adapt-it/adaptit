@@ -6013,7 +6013,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     CAdapt_ItApp* pApp = &wxGetApp();
     wxASSERT(pApp != NULL);
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() just now entered"), _T("PhraseBox.cpp"), 6020);
+	pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() just now entered"), _T("PhraseBox.cpp"), 6016);
 #endif
 
     // Here we restrict execution for when all 3 flags below are FALSE. This reduces/eliminates
@@ -6068,7 +6068,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             // Assign the local target unit to the App's member pCurTargetUnit for use below
             pApp->pCurTargetUnit = pTargetUnit;
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
-//			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 6074);
+//			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 6071);
 //#endif
 		}
 
@@ -6080,6 +6080,10 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
         if (pApp->pCurTargetUnit != NULL)
         {
             nRefStrCount = pApp->pCurTargetUnit->CountNonDeletedRefStringInstances();
+
+#ifdef _DEBUG
+			wxLogDebug(_T("PhraseBox.cpp at line %d ,nRefStringCount before a landing deletion = %d"), 6085, nRefStrCount);
+#endif
         }
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
 //		pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 6088);
@@ -6499,7 +6503,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
 				bExcludeAnother = TRUE;
             }
 			// BEW addition 9May18 If there is a deleted adaptation ready for inserting because of
-			// the phrasebox landing the we will have set TRUE m_bLandingBox in it at the right place
+			// the phrasebox landing, then we will have set TRUE m_bLandingBox in it at the right place
 			if (!gbIsGlossing && gpApp->m_bLandingBox && bRemovedAdaptionReadyForInserting)
 			{
 				if (nSaveComboBoxListIndex == count) // count is not yet augmented, so it
@@ -6550,8 +6554,55 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
             wxASSERT(nLocation != -1); // we just added it so it must be there!
             this->SetClientData(nLocation, &pRefString->m_refCount);
         }
-    }
-    if (count > 0  && !bDeletionReinserted) // BEW added 2nd subtest on 9May18
+    } // end of while loop
+
+	// BEW 12May18 It is possible for there to be a valid insert location index, and a valid
+	// entry waiting for reinsertion in the list, and both bRemovedAdaptionReadyForInserting
+	// and m_bLandingBox being TRUE, and nevertheless when control exits the above loop, the
+	// insertion into the list was not done (i.e. bDeletionReinserted still FALSE). It happens
+	// this way... If the pTU has the deleted entry last in its list of CRefString instances
+	// (which will always be the case if the user has just typed a new adaptation here, moved
+	// the box by any method elsewhere, and then clicked to move the box back to the location
+	// where he entered the new adaptation), then that new entry will have its deleted flag
+	// set TRUE because of the landing of the phrasebox back at that location. When the above
+	// loop executes, it then comes to the final iteration - and finds that the CRefString is
+	// a deleted one - and therefore skips to the loop end to iterate, finds pos has gone NULL
+	// and so exits. That skip jumps over the insertion code, and so the loop does not get
+	// the insertion done. Therefore, here, after the loop has exited, we must test for
+	// this scenario, and Append() the waiting-for-insertion adaptation to the end of the list.
+	// We do so now, if the felicity conditions are met. Bill's code further down will then
+	// match it at its proper location in the list and return the correct selectionIndex
+	// to return to the caller
+	if (!gbIsGlossing && gpApp->m_bLandingBox && 
+		bRemovedAdaptionReadyForInserting && !bDeletionReinserted)
+	{
+		if (strSaveListEntry.IsEmpty())
+		{
+			// The is a <no adaptation> one - which we should show selected in the list
+			strSaveListEntry = s;
+			bNoAdaptationFlagPresent = TRUE;
+
+			int anIndex = (int)this->Insert(strSaveListEntry, (unsigned int)nSaveComboBoxListIndex);
+			selectionIndex = anIndex;
+			count++; // count this re-inserted adaptation
+			bDeletionReinserted = TRUE;
+			gpApp->m_pTargetBox->m_bAbandonable = FALSE;
+			indexOfNoAdaptation = anIndex;
+		}
+		else
+		{
+			// strSaveListEntry is not empty, but another in the list might be; anyway
+			// do the insertion and it should be shown selected
+			int anIndex = (int)this->Insert(strSaveListEntry, (unsigned int)nSaveComboBoxListIndex);
+			selectionIndex = anIndex;
+			count++; // count this re-inserted adaptation
+			bDeletionReinserted = TRUE; // used below
+			gpApp->m_pTargetBox->m_bAbandonable = FALSE;
+			indexOfNoAdaptation = -1;
+		}
+	}
+
+    if (count > 0)
     {
         if (!initialBoxContent.IsEmpty())
         {
