@@ -190,7 +190,6 @@ public:
 	CTargetUnit* GetTargetUnitForKbSharing(wxString keyStr);
 	void		MakeAndStoreNewRefString(CTargetUnit* pTU, wxString& tgtPhrase,
 									wxString& username, bool bDeletedFlag);
-	CRefString*	GetMatchingRefString(CTargetUnit* pTU, wxString& tgtPhrase, bool& bIsDeleted);
 
 	// Does nothing if the project is not a KB sharing one, or if it is but sharing is
 	// currently disabled. Otherwise, it calls the create entry function synchronously. 
@@ -209,6 +208,12 @@ public:
 
 
 #endif // for _KBSERVER
+
+    // whm 13May2018 Moved the GetMatchingRefString() function below outside the _KBSERVER contitional
+    // define block above. The GetMatchingRefString() function is now called in Adapt_ItView.cpp's
+    // PlacePhraseBox() function apart from the _KBSERVER code. Otherwise, we get a build failure when
+    // _KBSERVER is not defined.
+	CRefString*	GetMatchingRefString(CTargetUnit* pTU, wxString& tgtPhrase, bool& bIsDeleted);
 
   private:
 
