@@ -1961,6 +1961,14 @@ void CKB::MakeAndStoreNewRefString(CTargetUnit* pTU, wxString& tgtPhrase,
 	// flag, which is the value FALSE - so nothing to do here
 }
 
+
+#endif // for _KBSERVER
+
+// whm 13May2018 Moved the GetMatchingRefString() function below outside the _KBSERVER contitional
+// define block above. The GetMatchingRefString() function is now called in Adapt_ItView.cpp's
+// PlacePhraseBox() function apart from the _KBSERVER code. Otherwise, we get a build failure when
+// _KBSERVER is not defined.
+
 /// \return                 the pointer to the matched CRefString instance, or NULL if
 ///                         none was matched in this particular pTU
 /// \param pTU          ->  pointer to the CTargetUnit instance which has one or more
@@ -1999,8 +2007,6 @@ CRefString*	CKB::GetMatchingRefString(CTargetUnit* pTU, wxString& tgtPhrase, boo
 }
 
 
-
-#endif // for _KBSERVER
 
 // BEW added 1Sep15
 // Returns FALSE if there is no available (ie. not pseudo-deleted) CRefString
