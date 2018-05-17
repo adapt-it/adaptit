@@ -17410,6 +17410,8 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bTypedNewAdaptationInChooseTranslation = FALSE; // to support getting a new adaptation into 
+									// the combobox list direct from ChooseTranslation() dialog
 	m_bVertEdit_AtFirst = FALSE; // explained in Adapt_It.h at line 2262
     m_bMergerIsCurrent = FALSE; // BEW 14Apr16
     m_bSentFinalPunctsTriggerCaps = FALSE; // if m_strSentFinalPunctsTriggerCaps has content,
@@ -54181,3 +54183,35 @@ bool CAdapt_ItApp::BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdapt
 	arrTempComboList.clear(); // don't leak memory
 	return FALSE;
 }
+
+// BEW added 17May18 returns the adaptation string with saved punctuation restored, 
+// for setting m_targetStr
+wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase)
+{
+	wxString str = wxEmptyString;
+	if (pSrcPhrase == NULL)
+	{
+		wxASSERT(pSrcPhrase != NULL);
+		return str;
+	}
+	if (pSrcPhrase->m_adaption.IsEmpty())
+	{
+		return str;
+	}
+	str = pSrcPhrase->m_adaption;
+	if (!pSrcPhrase->m_precPunct.IsEmpty())
+	{
+		str = pSrcPhrase->m_precPunct + str;
+	}
+	if (!pSrcPhrase->m_follPunct.IsEmpty())
+	{
+		str += pSrcPhrase->m_follPunct;
+	}
+	if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+	{
+		str += pSrcPhrase->GetFollowingOuterPunct();
+	}
+	return str;
+}
+
+

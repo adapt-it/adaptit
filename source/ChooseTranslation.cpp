@@ -1062,6 +1062,19 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 	if (!strNew.IsEmpty())
 	{
 		m_chosenTranslation = strNew;
+
+		// BEW added 16May18 to support getting this new adaptation into the dropdown 
+		// phrasebox's list - we use it to provide a new processing path in the caller
+		// which is OnButtonChooseTranslation(), because the legacy path amongst other 
+		// things (mostly unnecessary or unhelpful) get PlacePhraseBox() called which
+		// was particular unfortunate because it treated the opening of the ChooseTranslation()
+		// dialog as a 'landing' event - which then immediately removed the new CRefString
+		// for the new meaning typed, thereby undoing what we wanted to do - that is, get
+		// the new meaning into the dropdown list. So we'll do differently with this
+		// newly added app boolean. Note, if the user chooses a value from the current
+		// ChooseTranslation() dialog's list - Bill's legacy code should then apply
+		// as control will not enter this comment's block to set this new bool TRUE
+		pApp->m_bTypedNewAdaptationInChooseTranslation = TRUE;
 	}
 	else
 	{
@@ -1102,8 +1115,8 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
     // by the calling routines - the View's OnButtonChooseTranslation(), and the now 
     // unused CPhraseBox::ChooseTranslation(). The m_chosenTranslation is used by those
     // calling routines within their if(dlg.ShowModal() == wxID_OK) blocks to assign
-    // the value of m_chosenTranslation to the global string translation. Hence,
-    // as soon as this dialog is dismissed via OnOK(), the translation string will
+    // the value of m_chosenTranslation to the global string m_Translation. Hence,
+    // as soon as this dialog is dismissed via OnOK(), the m_Translation string will
     // be updated with any new translation the user entered. Back in the 
     // CPhraseBox::PopulateDropDownList() function, PopulateDropDownList() will 
     // add/append that new translation to the dropdown's list. 
@@ -1113,8 +1126,152 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
     // The dropdown list changes to be like the dialog's list (with the addition of
     // any new translation typed in the dialog) and the dropdown will automatically 
     // show and popup its list when this dialog is dismissed.
+	// BEW 14May18 the above comment of 10Jan is what would be good to happen, but since then
+	// someone or Bill has removed the capacity to implement the above protocol. So I'll have
+	// a go here. First, I'll try getting m_chosenTranslation into m_pTargetBox's wxTextEdit
+	// member, replacing whatever currently was there. We'll not try to support an empty string
+	// from here.
+	if (!m_chosenTranslation.IsEmpty() && pApp->m_bTypedNewAdaptationInChooseTranslation)
+	{
+		//pApp->m_pTargetBox->m_Translation = m_chosenTranslation; // avoid, otherwise PopulateDropDownList() will enter 
+			// the last block which tests for m_Translation being non-empty and we don't want/need that to happen;
+			// besides, for legacy situations the caller will set m_Translation to m_chosenTranslation anyway, but
+			// if app's new boolean, m_bTypedNewAdaptationInChooseTranslation is TRUE, we will provide a new path
+			// in OnButtonChooseTranslation() that only does the necessary minimal stuff - since the choose translation
+			// dialog can only be opened at the active location (I think the legacy code does a lot of unneeded calls
+			// at the end of OnButtonChooseTranslation() - Invalidate() is needed to repaint after the dlg closes, but
+			// PlacePhraseBox(), PlaceBox(), ScrollIntoView(), RemoveRefString() not so - there's no location change
+			// in the phrasebox.
+		pApp->m_targetPhrase = m_chosenTranslation;
+		wxTextEntry* pTextEntry = pApp->m_pTargetBox->GetTextCtrl();
+		// check what's in it currently
+		wxString currentStr = pTextEntry->GetValue();
+		wxLogDebug(_T("pTextEntry->GetValue(),  returns currentStr:  %s"), currentStr.c_str());
+		pApp->m_pTargetBox->SetModify(TRUE);
 
-	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
+		// Get the chosen translation string into the dropdown combobox's text entry control
+		pTextEntry->ChangeValue(m_chosenTranslation); // doesn't generate a wxEVT_TEXT event
+#if defined (_DEBUG)
+		wxLogDebug(_T("m_pTargetBox->GetModify()  returns 1 or 0: value is  %d"), (int)pApp->m_pTargetBox->GetModify());
+		// check if it got entered
+		wxString updatedStr = pTextEntry->GetValue();
+		wxLogDebug(_T("pTextEntry->GetValue() returns updatedStr:  %s"), updatedStr.c_str());
+#endif
+		// Algorithm?  Try just deleting and remaking the list here; may be best to do a StoreText() call, 
+		// and then the rebuilding may go easier - append to end of pTU list, and that will get the new 
+		// meaning into the shared KB if KB Sharing is turned on, as well, and other useful magic
+
+		// ========================BEW working on the above on 15May18 ======================================
+		CPile* pActivePile = gpApp->m_pActivePile;
+		CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
+		wxASSERT(pSrcPhrase != NULL);
+		CKB* pKB = m_pKB;
+		CTargetUnit* pTargetUnit = (CTargetUnit*)NULL;
+		pApp->m_pTargetBox->m_nWordsInPhrase = 0; // initialize
+		pApp->m_pTargetBox->m_nWordsInPhrase = pSrcPhrase->m_nSrcWords;
+
+		// Do this only when in adapting mode; and we don't support empty string adaptations here
+		if (!gbIsGlossing && !m_chosenTranslation.IsEmpty() && !pKB->IsThisAGlossingKB())
+		{
+			bool bSupportNoAdaptationButton = FALSE; // not supporting <no adaptation> choice in Choose Translation dlg
+
+			// Handy to do StoreText() here, as we get a lot for free. In particular, KBserver support, and especially
+			// guaranteed appending of the new non-empty adaptation to the appropriate CTargetUnit instance, as well
+			// as the on-the-side magic of getting pSrcPhrase's m_adaption and m_targetStr members set, a m_refCount
+			// value of 1 (hence greater than zero) for use when building the new dropdown list, and a guaranteed
+			// valid pointer to the appropriate CTargetUnit instance
+			pKB->StoreText(pSrcPhrase, m_chosenTranslation, bSupportNoAdaptationButton);
+
+			// Plagiarizing code from SetupDropDownComboBox() in what follows, from PhraseBox.cpp ...
+
+			// Get a pointer to the target unit for the current key - could be NULL
+			pTargetUnit = pKB->GetTargetUnit(pApp->m_pTargetBox->m_nWordsInPhrase, pSrcPhrase->m_key);
+
+			// Get a count of the number of non-deleted ref string instances for the target unit
+			// (as augmented by the StoreText() giving storage of a new CRefString with m_refCount of 1)
+			int nRefStrCount = 0; // initialize
+			bool bNoAdaptationFlagPresent = FALSE; // the PopulateDropDownList() function may change this value
+			int indexOfNoAdaptation = -1; // the PopulateDropDownList() function may change this value
+			if (pTargetUnit != NULL)
+			{
+				nRefStrCount = pTargetUnit->CountNonDeletedRefStringInstances();
+#ifdef _DEBUG
+				wxLogDebug(_T("ChooseTranslation.cpp OnOK(), line  %d ,nRefStringCount (non-deleted ones) = %d"), 1199, nRefStrCount);
+#endif
+			}
+			// Close the dropdown list if not already closed, then clobber its contents
+			if (pApp->m_pTargetBox->IsPopupShown())
+			{
+				pApp->m_pTargetBox->CloseDropDown();
+			}
+			pApp->m_pTargetBox->ClearDropDownList();
+
+			// Now populate the dropdown list again, from the pCurTargetUnit pointer, and set the
+			// selectionIndex to point at the last item in the list
+			if (nRefStrCount > 0)
+			{
+				int selectionIndex = -1; // initialize, it will be set from the PopulateDropDownList()
+						// call, the adaptation stored in pApp->m_targetPhrase, being matched against
+						// the list contents generated in that call's internal loop of CRefString
+						// instances, i.e. their m_translation member values. (The new adaptation
+						// stored in the pTargetUnit list is guaranteed to be last in the list
+						// because the StoreText() will have appended, and the user has had no
+						// chance to move it up or down)
+				if (pTargetUnit != NULL)
+				{
+					pApp->m_pTargetBox->PopulateDropDownList(pTargetUnit, selectionIndex, bNoAdaptationFlagPresent, indexOfNoAdaptation);
+					wxASSERT(selectionIndex == nRefStrCount - 1); // verify it is indeed last in the list
+				}
+				// set the icon button for the phrasebox
+				pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);
+
+				// Set the dropdown's list selection to the selectionIndex determined by PopulatDropDownList above.
+				// If selectionIndex is -1, it removes any list selection from dropdown list
+				// Note: SetSelection() with a single parameter operates to select/highlight the
+				// dropdown's list item at the designated selectionIndex parameter. The
+				// SetSelection() with two parameters operates to select a substring of text
+				// within the dropdown's edit box, delineated by the two parameters.
+				pApp->m_pTargetBox->SetSelection(selectionIndex);
+				// whm 7Mar2018 addition - SetSelection() highlights the item in the list, and it
+				// also has a side effect in that it automatically copies the item string from the 
+				// dropdown list (matching the selectionIndex) into the dropdown's edit box.
+
+				// Note: at this point no attempt has been made to capitalize the new list entry;
+				// if gbAutoCaps is TRUE, adjusting for case for what is in the dropdown's textEdit
+				// could be done here - but it may not be needed, adjustment on moving the phrasebox
+				// should happen, if necessary, without further intervention
+
+				//pApp->m_pTargetBox->SetFocus(); BEW removed because this call always fails, even though wx's window.cpp is found, etc
+				// The PopulateDropDownList() function determined a selectionIndex to use
+				int index = selectionIndex;
+				pApp->m_targetPhrase = pApp->m_pTargetBox->GetString(index);
+				pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+				pApp->m_pTargetBox->SetSelection(index);
+				pApp->m_pTargetBox->SetSelection(-1, -1); // select all
+				// This next line is essential. Without it, the phrasebox will seem right, but moving away by
+				// a click or by Enter key will leave a hole at the old location - the reason is that the
+				// PlacePhraseBox() call uses m_pTargetBox->m_SaveTargetPhrase to put the old location's
+				// adaptation into m_targetPhrase, and into m_pTargetBox; so if left empty, a hole is left
+				// when the phrasebox moves off somewhere else -- nope, this didn't fix it, but is needed
+				pApp->m_pTargetBox->m_SaveTargetPhrase = m_chosenTranslation; // didn't fix it either- see below
+				// Checking CCell::Draw() and it's call of DrawCell() at the relevant location revealed
+				// that pSrcPhrase's m_targetStr member is empty, and it is that member which gets
+				// passed to pPhrase within DrawCell() for drawing in the GUI. So it draws nothing, leaving
+				// an apparent hole.
+#if defined (_DEBUG)
+				int another_nRefStrCount = pTargetUnit->CountNonDeletedRefStringInstances();
+				wxLogDebug(_T("ChooseTranslation.cpp OnOK() at end, line  %d ,nRefStringCount (non-deleted ones) = %d"), 1265, another_nRefStrCount);
+				wxLogDebug(_T("ChooseTranslation.cpp OnOK() at end, line  %d , m_targetStr= %s"), 1266, pSrcPhrase->m_targetStr.c_str());
+#endif
+				// Clear the target unit pointer (unnecesary, it's an auto variable anyway)
+				pTargetUnit = (CTargetUnit*)NULL;
+			} // end TRUE block for test: if (nRefStrCount > 0)
+
+		}
+		// ==============================================================================
+	}
+
+	event.Skip();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

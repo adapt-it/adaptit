@@ -527,7 +527,17 @@ void CCell::Draw(wxDC* pDC)
 	wxColour color(GetColor());	// get the default colour to be used for drawing this
         // cell's text (it may be overridden below - eg. to gray, when vertical edit is
         // being done)
-
+/*
+#if defined (_DEBUG) 
+		// BEW 16May18 checking Draw() gets called at sn = 40 when phrasebox has moved on
+	if (m_nCell == 1 && m_pOwningPile->m_pSrcPhrase->m_nSequNumber == 40)
+	{
+		wxLogDebug(_T("Draw() called for adaptation Cell at sn = 40, at Src = %s  Tgt= %s  m_bHasKBEntry= %d , m_targetStr= %s"),
+			m_pOwningPile->m_pSrcPhrase->m_key.c_str(), m_pOwningPile->m_pSrcPhrase->m_adaption.c_str(), 
+			(int)m_pOwningPile->m_pSrcPhrase->m_bHasKBEntry , m_pOwningPile->m_pSrcPhrase->m_targetStr.c_str());
+	}
+#endif
+*/
     // vertical edit: change text colour to gray if it is before or after the editable
     // span. 
     // whm: initialized the following two ints to 0 to avoid "potentially uninitialized
@@ -743,7 +753,6 @@ void CCell::Draw(wxDC* pDC)
 			}
 		}
 	}
-
     // finally, since the cell's background colour has been set appropriately, the
     // foreground drawing (ie. the text drawing) can be done... so draw every cell except
     // where the phrase box is going to be displayed - i.e. don't draw in the cell with
@@ -1024,6 +1033,15 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
                 }
         }
 #endif
+/*  Very useful if the display leaves a hole somewhere unexpectedly, and you know the m_nSequNumber value of the location
+#if defined (_DEBUG) 
+			// BEW 16May18 checking DrawCell() gets called at sn = 40 when phrasebox has moved on
+			if (m_nCell == 1 && m_pOwningPile->m_pSrcPhrase->m_nSequNumber == 40)
+			{
+				wxLogDebug(_T("DrawCell() called for adaptation Cell at sn = 40, at *pPhrase= %s"),(*pPhrase).c_str());
+			}
+#endif
+*/
 
 //#if defined(__WXGTK__) && defined(Print_failure)
 /* I couldn't get the line-squeezing for no doc opened, when Adapt Clipboard Text used, compared to when doc is present

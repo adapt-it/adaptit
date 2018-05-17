@@ -3101,9 +3101,36 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 	// of that difference in behavior, I moved the code dependent on updating
 	// pApp->m_targetPhrase from OnChar() to this OnPhraseBoxChanged() handler.
     CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	CAdapt_ItView* pView = (CAdapt_ItView*)pApp->GetView();
+
+	//wxLogDebug(_T("this->GetModify()  returns 1 or 0: value is  %d"), (int)this->GetModify()); <- even though ChooseTranslation() sets flag, it is cleared before getting to here
+	/*
+	// If test is TRUE, the user set an adaptation value in ChooseTranslation dialog
+	if (gpApp->m_bForceComboBoxUpdate_FromChooseTranslationChanged)
+	{
+		
+//#if defined (_DEBUG) && defined (_ABANDONABLE)
+		pApp->LogDropdownState(_T("OnPhraseBoxChanged() Forcing ChooseTranslation typed value)"), _T("PhraseBox.cpp"), 3113);
+//#endif
+		if (this->IsPopupShown())
+		{
+			this->CloseDropDown();
+		}
+		//this->ClearDropDownList();
+		this->SetupDropDownPhraseBoxForThisLocation();
+
+		//#if defined (_DEBUG) && defined (_ABANDONABLE)
+		pApp->LogDropdownState(_T("OnPhraseBoxChanged() After call of SetupDropDownPhraseBoxForThisLocation())"), _T("PhraseBox.cpp"), 3123);
+		//#endif
+
+		// clear flag
+		gpApp->m_bForceComboBoxUpdate_FromChooseTranslationChanged = FALSE;
+		return;
+	}
+	*/
+	// The legacy code follows - this function is normally used only when OnChar() is receiving keystrokes
     if (this->GetTextCtrl()->IsModified()) // whm 14Feb2018 added GetTextCtrl()-> for IsModified()
 	{
-		CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 		// preserve cursor location, in case we merge, so we can restore it afterwards
 		long nStartChar;
 		long nEndChar;
@@ -3132,15 +3159,15 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			pApp->m_nEndChar = nEndChar;
 		}
 
-        // whm Note: Because of differences in the handling of events, in wxWidgets the
-        // GetValue() call below retrieves the contents of the phrasebox after the
-        // keystroke and so it includes the keyed character. OnChar() is processed before
-        // OnPhraseBoxChanged(), and in that handler the key typed is not accessible.
-        // Getting it here, therefore, is the only way to get it after the character has
-        // been added to the box. This is in contrast to the MFC version where
-        // GetWindowText(thePhrase) at the same code location in PhraseBox::OnChar there
-        // gets the contents of the phrasebox including the just typed character.
-		thePhrase = GetValue(); // current box text (including the character just typed)
+		// whm Note: Because of differences in the handling of events, in wxWidgets the
+		// GetValue() call below retrieves the contents of the phrasebox after the
+		// keystroke and so it includes the keyed character. OnChar() is processed before
+		// OnPhraseBoxChanged(), and in that handler the key typed is not accessible.
+		// Getting it here, therefore, is the only way to get it after the character has
+		// been added to the box. This is in contrast to the MFC version where
+		// GetWindowText(thePhrase) at the same code location in PhraseBox::OnChar there
+		// gets the contents of the phrasebox including the just typed character.
+			thePhrase = GetValue(); // current box text (including the character just typed)
 
 		// BEW 6Jul09, try moving the auto-caps code from OnIdle() to here
 		if (gbAutoCaps && pApp->m_pActivePile != NULL)
@@ -3207,7 +3234,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 
 		// adjust box size
 		FixBox(pView, thePhrase, bWasMadeDirty, textExtent, 0); // selector = 0 for incrementing box extent
-
+		
 		// set the globals for the cursor location, ie. m_nStartChar & m_nEndChar,
 		// ready for box display
         GetTextCtrl()->GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar);
@@ -6029,7 +6056,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
         else
             pApp->m_bChooseTransInitializePopup = TRUE;
 		/* //no, BEW 27Apr18 - I expect the flag to be FALSE here, it should not be unilaterally 
-		   //set TRUE in this function
+		   //set TRUE in this function - I've left Bill's comment here to warn against an error.
         // whm 10Apr2018 added. Set the initial value of m_bAbandonable to TRUE since we are setting up
         // for the dropdown phrasebox, and any content in the phrasebox should initially be considered
         // abandonable at least here when setting up the dropdown phrasebox for display to the user.
@@ -6132,7 +6159,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             pApp->m_pTargetBox->SetSelection(selectionIndex);
             // whm 7Mar2018 addition - SetSelection() highlights the item in the list, and it
             // also has a side effect in that it automatically copies the item string from the 
-            // dropdown list (matching the selectionIndexand) into the dropdown's edit box.
+            // dropdown list (matching the selectionIndex) into the dropdown's edit box.
 
             // The dropdown list, however, like the ChooseTranslation dialog's list, may contain
             // items and those items are not-adjusted for case - they are lower case when gbAutoCaps 
@@ -6184,7 +6211,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 			// logic Bill describes
             if (bNoAdaptationFlagPresent)
             {
-                // A <no adaptation> ref string is present (BEW, and the insertion of another was blocked)
+                // A <no adaptation> ref string is present
                 if (nRefStrCount == 1)
                 {
                     // There is only one ref string and it is empty, i.e., it is <no adaptation>.
@@ -6481,6 +6508,10 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
     while (pos != NULL)
     {
         pRefString = (CRefString*)pos->GetData();
+#if defined(_DEBUG)
+		wxLogDebug(_T("PopulateDropDownList: m_translation= %s , m_bDeleted= %d , m_refCount= %d"),
+			pRefString->m_translation.c_str(), (int)pRefString->GetDeletedFlag(), pRefString->m_refCount);
+#endif
         pos = pos->GetNext();
         if (!pRefString->GetDeletedFlag())
         {

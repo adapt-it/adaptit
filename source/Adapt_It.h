@@ -3728,9 +3728,6 @@ public:
 
     // whm added 22Mar2018 for detecting callers of PlaceBox()
     bool        m_bMovingToDifferentPile;
-	// BEW added 10May18 for governance of dropdown list removed KB entry reinsertion 
-	// within the dropdown list on 'landing'at a new location
-	bool m_bLandingBox;
 
     short       m_nExpandBox;
 
@@ -4619,6 +4616,7 @@ public:
 	int		GetMaxIndex(); // BEW added 21Mar09
 	int		GetOptimumDlgEditBoxHeight(int pointSize);
 	int		GetOptimumDlgFontSize(int pointSize);
+	bool	m_bLanding; // used when printing (I think)
 	bool	PathHas_mo_LocalizationFile(wxString dirPath, wxString subFolderName);
 	void	SaveCurrentUILanguageInfoToConfig();
 	void	SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
@@ -4694,10 +4692,16 @@ public:
 	bool	LoadKB(bool bShowProgress);
 	bool	LoadGlossingKB(bool bShowProgress);
 	void	LoadGuesser(CKB* Kb);
-	bool	m_bLanding;
+	// BEW added 10May18 for governance of dropdown list removed KB entry reinsertion 
+	// within the dropdown list on 'landing'at a new location
+	bool m_bLandingBox;
+	bool m_bTypedNewAdaptationInChooseTranslation; // to support getting a new adaptation into the combo list direct from ChooseTranslation() dialog
+			//ChooseTranslation() new typed value to force an update in CPhraseBox::OnPhraseBoxChanged()
 	void	LogDropdownState(wxString functionName, wxString fileName, int lineNumber); // BEW 17Apr18 a  
 				// self-contained logger for feedback about m_bAbandonable and friends, to be used when 
 				// _ABANDONABLE is #defined
+	wxString SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase); // BEW added 17May18 returns 
+					// the adaptation string with saved punctuation restored, for setting m_targetStr
 	bool	BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdaption, int& matchedItem); // BEW 9May18
 	wxString GetMostCommonForm(CTargetUnit* pTU, wxString* pNotInKBstr); // BEW added 21Jan15
 	bool	CreateAndLoadKBs(); // whm 28Aug11 added
