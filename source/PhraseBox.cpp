@@ -3543,9 +3543,19 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 // OnChar is called via EVT_CHAR(OnChar) in our CPhraseBox Event Table.
 // BEW 13Apr10, no changes needed for support of doc version 5
 // BEW 22Jun10, no changes needed for support of kbVersion 2
+//
+// whm 16May2018 Note: This OnChar() handler is not triggered by the first
+// alphanumeric character pressed when the dropdown list is open and displaying.
+// The first character typed is registered in the Windows version and gets placed
+// in the phrasebox (replacing the highlighted text). Subsequent typing (after
+// the first key pressed) does trigger this handler in Windows. 
+// In the Linux version, this OnChar() handler is not triggered on any alphanumeric
+// key presses until the user explicitly closes the dropdown list.
 void CPhraseBox::OnChar(wxKeyEvent& event)
 {
 	// whm Note: OnChar() is called before OnPhraseBoxChanged()
+    wxLogDebug(_T("In CPhraseBox::OnChar() key code: %d"),event.GetKeyCode());
+
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CLayout* pLayout = GetLayout();
@@ -5647,8 +5657,9 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 // of ALT, SHIFT, or CTRL keys.
 void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 {
-	//wxLogDebug(_T("OnKeyUp() %d called from PhraseBox"),event.GetKeyCode());
-	CAdapt_ItApp* pApp = &wxGetApp();
+    wxLogDebug(_T("In CPhraseBox::OnKeyUp() key code: %d"), event.GetKeyCode());
+
+    CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
@@ -5750,7 +5761,9 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 {
-	// refactored 2Apr09
+    wxLogDebug(_T("In CPhraseBox::OnKeyDown() key code: %d"), event.GetKeyCode());
+
+    // refactored 2Apr09
 	//wxLogDebug(_T("OnKeyDown() %d called from PhraseBox"),event.GetKeyCode());
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);

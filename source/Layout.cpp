@@ -956,7 +956,10 @@ void CLayout::PlaceBox()
 		if (m_pApp->m_bDrafting)
 		{
 			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
-		}
+            m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            wxWindow* fwin = wxWindow::FindFocus();
+            wxLogDebug(_T("Focused window* is %p, m_pTargetBox win is %p, m_pTargetBox->GetTextCtrl() win is: %p"), fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl());
+        }
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 		// BEW 7May18 Since PlaceBox() is typically the last significant call before the user sees the
