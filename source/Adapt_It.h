@@ -31,6 +31,9 @@
 #define USE_LEGACY_PARSER
 #include <wx/string.h>
 
+// comment out to turn off the frequent logging of value of boolean: m_bTypedNewAdaptationInChooseTranslation
+//#define TRACK_PHRBOX_CHOOSETRANS_BOOL
+
 // Use the following #define, in _DEBUG mode, to turn on the use of a logging function called
 // LogDropdownState() which uses a set of wxLogDebug() calls internally to track the values of
 // parameters like m_TargetBox::m_bAbandonable flag, the box's contents, and app's 
@@ -38,7 +41,7 @@
 // m_nSequNumber; and from the KB, the pTU's inventory of CRefString instances'm_translation 
 // string values and the value of each's m_bDeleted  boolflag. And to print the callers name and
 // line number for where LogDropdownState() is being called. Callable only in _DEBUG builds.
-//#define _ABANDONABLE
+#define _ABANDONABLE
 
 //#define AUTHENTICATE_AS_BRUCE
 

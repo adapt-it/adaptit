@@ -2862,7 +2862,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	// refactored 2Apr09
 	CLayout* pLayout = GetLayout();
 	CAdapt_ItApp* pApp = &wxGetApp();
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("\n\nView, PlacePhraseBox() line  %d  - Starting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2866,
 												(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -2874,14 +2874,14 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	}
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	pApp->LogDropdownState(_T("PlacePhraseBox() just entered"), _T("Adapt_ItView.cpp"), 2871);
+	pApp->LogDropdownState(_T("PlacePhraseBox() just entered"), _T("Adapt_ItView.cpp"), 2877);
 #endif
 	CPile* pClickedPile = pCell->GetPile();
 	wxASSERT(pClickedPile);
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
 //#endif
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2885,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -2905,7 +2905,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		pOldActiveSrcPhrase = pOldActivePile->GetSrcPhrase();
 		wxASSERT(pOldActiveSrcPhrase);
 	}
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2909,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -2916,7 +2916,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_targetPhrase; // an adaptation, or a gloss, depending on mode
 		pLayout->m_docEditOperationType = relocate_box_op;
 		pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // re-initialize
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 		wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2920,
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -2933,16 +2933,16 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		{
 			// active location is undefined because we are at the end of the document
 			bNoError = FALSE;
-		}
-		else
+		}else
 		{
 			bNoError = pApp->GetDocument()->SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key);
+
+			CSourcePhrase* pSP = pApp->m_pActivePile->GetSrcPhrase(); // BEW 19May18 added
+			if (gbIsGlossing) { pApp->m_pTargetBox->m_SaveTargetPhrase = pSP->m_gloss; }
+			else { pApp->m_pTargetBox->m_SaveTargetPhrase = pSP->m_adaption; }
 		}
 	}
-//#ifdef _DEBUG
-//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),2,pApp->m_nActiveSequNum);
-//#endif
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2946,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -2952,6 +2952,11 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	if (!(pApp->m_nActiveSequNum == -1)) // can't do the following block if there is no
 										 // active pile currently in existence
 	{
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+		wxLogDebug(_T("View, PlacePhraseBox() line  %d  'Leaving', pApp->m_SaveTargetPhrase = %s"), 2956,
+			pApp->m_pTargetBox->m_SaveTargetPhrase);
+#endif
+
         // if it's an <Not In KB> entry, from version 1.4.0 and onwards, by Susanna Imrie's
         // suggestion, we allow the document to have a non null adaptation even when <Not
         // In KB> has been chosen; so we don't clear, but we do the check to fix a wrongly
@@ -2976,7 +2981,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
             // setting is to use the toolbar checkbox - this applies when adapting, not
             // glossing)
 			pApp->m_pKB->Fix_NotInKB_WronglyEditedOut(pApp->m_pActivePile);
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 			wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2980,
 				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif		
@@ -2995,7 +3000,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),2970,pApp->m_nActiveSequNum);
 //#endif
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 			wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2998,
 				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif			if (selector == 0 || selector == 3)
@@ -3020,7 +3025,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 						AddUniqueInt(pLayout->GetInvalidStripArray(), stripIndex);
 					}
 				}
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 				wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3023,
 					(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -3042,7 +3047,6 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 				// In vertical edit mode, we want this block to be done only for adaptationStep or glossingStep -
 				// we want the adaptation to 'stick' even if he does it by clicking on the CSourcePhrases rather
 				// than advancing using Enter or Tab keypress.
-				
 				if ((!gbVerticalEditInProgress && !pApp->m_bUserTypedSomething) ||
 					(gbVerticalEditInProgress && (gEditStep == 2 || gEditStep == 3)))
 				{
@@ -3050,9 +3054,10 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					// In this circumstance, the earlier value of m_adaption should be restored. pApp->m_pActivePile->GetSrcPhrase()
 					// still has the old values for src and tgt retained, so restore the box from its m_adaption member
 					// and likewise m_targetPhrase  and re-do the call of RemoveFinalSpaces() for safety's sake
-#if defined (_DEBUG) //&& defined (_ABANDONABLE)
-					pApp->LogDropdownState(_T("PlacePhraseBox() leaving, about to use  m_SaveTargetText, selector = 0"), _T("Adapt_ItView.cpp"), 3021);
-					wxLogDebug(_T("PlacePhraseBox() leaving, m_SaveTargetText= %s  at line %d"), pApp->m_pTargetBox->m_SaveTargetPhrase.c_str(), 3022);
+					pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;  // BEW added 19May18
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+					pApp->LogDropdownState(_T("PlacePhraseBox() leaving, about to use  m_SaveTargetText, selector = 0"), _T("Adapt_ItView.cpp"), 3059);
+					wxLogDebug(_T("PlacePhraseBox() leaving, m_SaveTargetText= %s  at line %d"), pApp->m_pTargetBox->m_SaveTargetPhrase.c_str(), 3060);
 #endif
 					pApp->m_pTargetBox->m_bAbandonable = FALSE;
 					wxString adaption = pApp->m_pTargetBox->m_SaveTargetPhrase;
@@ -3061,14 +3066,14 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 
 					pApp->m_pTargetBox->RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
 				}
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 				wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3064,
 					(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-				pApp->LogDropdownState(_T("PlacePhraseBox() leaving, about to save to KB, selector = 0"), _T("Adapt_ItView.cpp"), 3028);
-#endif
+//#if defined (_DEBUG) && defined (_ABANDONABLE)
+//				pApp->LogDropdownState(_T("PlacePhraseBox() leaving, about to save to KB, selector = 0"), _T("Adapt_ItView.cpp"), 3028);
+//#endif
 				// any existing phraseBox text must be saved to the KB, unless its empty
 				bool bOK = TRUE;
 				if (!pApp->m_targetPhrase.IsEmpty())
@@ -3093,7 +3098,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 							; // formerly, relic code to display the empty adapt dialog was here
 						}
 					}
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 					wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3096,
 						(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -3103,7 +3108,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					{
 						bOK = pApp->m_pTargetBox->DoStore_ForPlacePhraseBox(pApp, pApp->m_targetPhrase);
 					}
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 					wxLogDebug(_T("View, PlacePhraseBox() line  %d - after DoStore_ForPlacePhraseBox(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3106,
 						(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -3120,7 +3125,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //#endif
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE block  for non-empty m_targetPhrase test, selector = 0"), _T("Adapt_ItView.cpp"), 3065);
+pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE block  for non-empty m_targetPhrase test, selector = 0"), _T("Adapt_ItView.cpp"), 3128);
 #endif
 
 				} // end block for test !pApp->m_targetPhrase.IsEmpty() == TRUE
@@ -3129,8 +3134,8 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 					// pApp->m_targetPhrase is empty, so let StoreText handle
 					// what needs to happen.
 					bOK = pApp->m_pTargetBox->DoStore_ForPlacePhraseBox(pApp, pApp->m_targetPhrase);
-#if defined (_DEBUG)
-					wxLogDebug(_T("View, PlacePhraseBox() line  %d - after DoStore_ForPlacePhraseBox(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3132,
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+					wxLogDebug(_T("View, PlacePhraseBox() line  %d - after DoStore_ForPlacePhraseBox(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3138,
 						(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 					// check for a failure, abandon the function if the store failed
@@ -3143,14 +3148,14 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
                         pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_targetPhrase;
 						::wxBell(); // ring the bell to say that something wasn't right
 						pLayout->m_docEditOperationType = relocate_box_op;
-//#ifdef _DEBUG
-//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3086,pApp->m_nActiveSequNum);
-//#endif
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE block, selector = 0 ELSE block for empty m_targetPhrase test, will now return to caller"), _T("Adapt_ItView.cpp"), 3142);
+#ifdef _DEBUG
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3147,pApp->m_nActiveSequNum);
 #endif
+//#if defined (_DEBUG) && defined (_ABANDONABLE)
+//pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE block, selector = 0 ELSE block for empty m_targetPhrase test, will now return to caller"), _T("Adapt_ItView.cpp"), 3142);
+//#endif
 						pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // re-initialize
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 						wxLogDebug(_T("View, PlacePhraseBox() line  %d - end of leaving code, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3151,
 							(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -3187,6 +3192,10 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),7,pApp->m_nActiveSequNum);
 //#endif
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d  Committing to 'Landing' location, pApp->m_SaveTargetPhrase = %s"), 3196,
+		pApp->m_pTargetBox->m_SaveTargetPhrase);
+#endif
 
 	// BEW 7May18. We use the fact that OnLButtonDown() is never called when there is a user
 	// click on the dropdown-based phrasebox to advantage. If control has entered and gets
@@ -3199,7 +3208,7 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 	//{
 		pApp->m_bLandingBox = TRUE;
 	//}
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 		wxLogDebug(_T("View, PlacePhraseBox() line  %d - started landing code, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3202,
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -3242,9 +3251,9 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
     int refStrCount = 0; // whm 16Mar2018 added
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after pKB->GetTargetUnit(), selector = 0, initializing for next bit..."), _T("Adapt_ItView.cpp"), 3176);
+	pApp->LogDropdownState(_T("\nPlacePhraseBox() landing, after pKB->GetTargetUnit(), selector = 0, initializing for next bit..."), _T("Adapt_ItView.cpp"), 3245);
 #endif
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3247,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -3278,9 +3287,9 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 					// Correction of the flag value is needed
 					pSrcPhrase->m_bHasKBEntry = FALSE;
 
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after counting non-deleted RefStrings, in correction block for m_adaption is empty"), _T("Adapt_ItView.cpp"), 3209);
-#endif
+//#if defined (_DEBUG) && defined (_ABANDONABLE)
+//	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after counting non-deleted RefStrings, in correction block for m_adaption is empty"), _T("Adapt_ItView.cpp"), 3209);
+//#endif
 				}
 			}
 		}
@@ -3300,7 +3309,7 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 	bool bHasNothing = FALSE;
 	bool bNoValidText = FALSE;
 	bool bSomethingIsCopied = FALSE;
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3303,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -3321,12 +3330,12 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
                                 // value that it sets in the active pile's m_nWidth member
 		goto a;
 	}
-//#ifdef _DEBUG
-//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3248,pApp->m_nActiveSequNum);
-//#endif
-#if defined (_DEBUG)
+#ifdef _DEBUG
+	wxLogDebug(_T("PlacePhraseBox at %d ,  'Leaving'  Active Sequ Num  %d"),3334,pApp->m_nActiveSequNum);
+#endif
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3327,
-		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+		(int)pApp-> && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL));
 #endif
 
     // if we are attempting to place the box on a location where the entry is "<Not In
@@ -3364,8 +3373,8 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3284,pApp->m_nActiveSequNum);
 //#endif
-#if defined (_DEBUG)
-		wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3367,
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
+		wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3376,
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 		goto a;
@@ -3376,9 +3385,9 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
         // the source phrase's m_bNotInKB value since that only applies when adapting
 		pApp->m_bSaveToKB = TRUE;
 
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-		pApp->LogDropdownState(_T("PlacePhraseBox() landing, after m_bSaveToKB set TRUE"), _T("Adapt_ItView.cpp"), 3295);
-#endif
+//#if defined (_DEBUG) && defined (_ABANDONABLE)
+//		pApp->LogDropdownState(_T("PlacePhraseBox() landing, after m_bSaveToKB set TRUE"), _T("Adapt_ItView.cpp"), 3389);
+//#endif
 	}
 
 	// BEW added to test, 27Jun05, for free translation support (added selector == 3 test)
@@ -3404,9 +3413,9 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),10,pApp->m_nActiveSequNum);
 //#endif
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-		pApp->LogDropdownState(_T("PlacePhraseBox() landing, after str set to m_pTargetBox->m_Translation, & before goto a;"), _T("Adapt_ItView.cpp"), 3322);
+		pApp->LogDropdownState(_T("PlacePhraseBox() landing, after str set to m_pTargetBox->m_Translation, & before goto a;"), _T("Adapt_ItView.cpp"), 3416);
 #endif
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 		wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3409,
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -3437,7 +3446,7 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 			bSomethingIsCopied = TRUE;
 	}
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
-//	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after setting bHasNothing, bNoValidText, bSomethingIsCopied (all false?)"), _T("Adapt_ItView.cpp"), 3350);
+//	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after setting bHasNothing, bNoValidText, bSomethingIsCopied (all false?)"), _T("Adapt_ItView.cpp"), 3449);
 //#endif
 
 	// get the auto capitalization parameters for the sourcephrase's key
@@ -3459,8 +3468,8 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 	// need a test here, and if it is true, set str to the empty string instead; we
 	// need do this only for a Find dialog (ie. gbFind is TRUE) because the Replace dlg
 	// will not permit source text searching.
-#if defined (_DEBUG)
-	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3462,
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3472,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 	if (gbFind && gbFindIsCurrent && pSrcPhrase->m_adaption.IsEmpty())
@@ -3471,15 +3480,15 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 	{
 		DoGetSuitableText_ForPlacePhraseBox(pApp, pSrcPhrase, selector, pActivePile, str,
 										bHasNothing, bNoValidText, bSomethingIsCopied);
-#if defined (_DEBUG)
-		wxLogDebug(_T("View, PlacePhraseBox() line  %d  after DoGetSuitableText...(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3474,
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
+		wxLogDebug(_T("View, PlacePhraseBox() line  %d  after DoGetSuitableText...(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3484,
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 		wxString gotstring = _T("DoGetSuitableText_ForPlacePhraseBox() got string: %s");
 		gotstring = gotstring.Format(gotstring, str.c_str());
 		wxLogDebug(gotstring);
-		pApp->LogDropdownState(_T("PlacePhraseBox() landing, after return from DoGetSuitableText_ForPlacePhraseBox()"), _T("Adapt_ItView.cpp"), 3385);
+		pApp->LogDropdownState(_T("PlacePhraseBox() landing, after return from DoGetSuitableText_ForPlacePhraseBox()"), _T("Adapt_ItView.cpp"), 3491);
 #endif
 	}
 //#ifdef _DEBUG
@@ -3503,15 +3512,16 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 			}
 		}
 	}
-#if defined (_DEBUG)
-	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3506,
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3515,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
     pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_targetPhrase;
 	pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase); // BEW 7May18 added line, m_targetPhrase & contents of m_pTargetBox must stay in sync
-
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after m_targetPhrase set to str; case adjust, m_SaveTargetPhrase set to m_targetPhrase"), _T("Adapt_ItView.cpp"), 3413);
+	pApp->LogDropdownState(_T("PlacePhraseBox() Landing, just set m_SaveTargetPhrase, & box contents, to m_targetPhrase"), _T("Adapt_ItView.cpp"), 3522);
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d 'Landing' pApp->m_SaveTargetPhrase = %s"), 3523,pApp->m_pTargetBox->m_SaveTargetPhrase);
+
 #endif
 
 	// BEW 8May18 This is where I'll place the code for implementing Bill's request that 
@@ -3586,10 +3596,10 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 						}
 						else
 						{
-#ifdef _DEBUG
-							wxLogDebug(_T("view::PlacePhraseBox at line %d , strAdaptation =  %s"), 3489, strAdaptation.c_str());
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+	wxLogDebug(_T("View::PlacePhraseBox at line %d , strAdaptation from CRefString to be deleted =  %s"), 3599, strAdaptation.c_str());
 #endif
-#if defined (_DEBUG)
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 							wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3592,
 								(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -3610,8 +3620,8 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 								// Store the index into m_pTargetBox
 								pApp->m_pTargetBox->nSaveComboBoxListIndex = nSelectionIndex;
 								theAdaptation = strAdaptation;
-#if defined (_DEBUG)
-								wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3613,
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
+								wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3623,
 									(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 								// The theAdaptation local variable is the adaptation string that will get removed 
@@ -3626,9 +3636,11 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 								// deleted adaptation to its place in the list at the time it gets dropped down
 								// - but only when various constraints are satified
 								pApp->m_pTargetBox->bRemovedAdaptionReadyForInserting = TRUE;
-#ifdef _DEBUG
+#ifdef _DEBUG 
 								wxLogDebug(_T("view::PlacePhraseBox at line %d , m_pTargetBox->bRemovedAdaptionReadyForInserting = TRUE  strSaveListEntry = %s  Index = %d"),
-									3523, pApp->m_pTargetBox->strSaveListEntry.c_str(), nSelectionIndex);
+									3639, pApp->m_pTargetBox->strSaveListEntry.c_str(), nSelectionIndex);
+#endif
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 								wxLogDebug(_T("view::PlacePhraseBox at line %d , m_pTargetBox->bRemovedAdaptionReadyForInserting = TRUE"),3524);
 #endif
 							}
@@ -3642,10 +3654,10 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 
 								// Ensure FALSE value, doing this should be redundant, but it makes sure just in case
 								pApp->m_pTargetBox->bRemovedAdaptionReadyForInserting = FALSE;
-#ifdef _DEBUG
-								wxLogDebug(_T("view::PlacePhraseBox at line %d , m_pTargetBox->bRemovedAdaptionReadyForInserting = FALSE"), 3538);
-#endif
-#if defined (_DEBUG)
+//#ifdef _DEBUG
+//								wxLogDebug(_T("view::PlacePhraseBox at line %d , m_pTargetBox->bRemovedAdaptionReadyForInserting = FALSE"), 3657);
+//#endif
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 								wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3648,
 									(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
@@ -3672,17 +3684,17 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
         // wrongly) - in such instances, we must suppress the removal
 		if (pApp->GetRetranslation()->GetSuppressRemovalOfRefString() == FALSE)
 		{
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-		pApp->LogDropdownState(_T("PlacePhraseBox() landing, !bHasNothing TRUE block, get ready for removing RefString"), _T("Adapt_ItView.cpp"), 3465);
-#endif
+//#if defined (_DEBUG) && defined (_ABANDONABLE)
+//		pApp->LogDropdownState(_T("PlacePhraseBox() landing, !bHasNothing TRUE block, get ready for removing RefString"), _T("Adapt_ItView.cpp"), 3687);
+//#endif
 			// remove the CRefString from the KB if it is referenced only once, otherwise
 			// decrement its reference count by one, so that if user edits the string the KB
 			// (or if glossing, then the glossing KB) will be kept up to date
 			if (selector != 1 && selector != 3) // see comments under the function header
 												// for an explanation of the selector values
 			{
-#if defined (_DEBUG)
-				wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3684,
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
+				wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 36896,
 					(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 				// do this for selector values 0 or 2,
@@ -3722,12 +3734,12 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 							pApp->m_pTargetBox->m_bAbandonable = TRUE;
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-							pApp->LogDropdownState(_T("PlacePhraseBox() landing, forcing m_bAbandonable to TRUE at hole which has KB entry available, selector == 0 or 2"), _T("Adapt_ItCanvas.cpp"), 3610);
+	pApp->LogDropdownState(_T("PlacePhraseBox() landing, forcing m_bAbandonable to TRUE at hole which has KB entry available, selector == 0 or 2"), _T("Adapt_ItView.cpp"), 3736);
 #endif
 						}
 					}
-#if defined (_DEBUG)
-					wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3729,
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
+					wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3741,
 						(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 				}
@@ -3751,14 +3763,14 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 					// make sure idle events are continuing
 					wxWakeUpIdle();
 				}
-#if defined (_DEBUG)
-				wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3755,
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
+				wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3766,
 					(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif			
 			}
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-			pApp->LogDropdownState(_T("PlacePhraseBox() landing, !bHasNothing TRUE block, after any RefString removal"), _T("Adapt_ItView.cpp"), 3637);
-#endif
+//#if defined (_DEBUG) && defined (_ABANDONABLE)
+//			pApp->LogDropdownState(_T("PlacePhraseBox() landing, !bHasNothing TRUE block, after any RefString removal"), _T("Adapt_ItView.cpp"), 3771);
+//#endif
 
 		}
 	}
@@ -3792,15 +3804,15 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
     // RecalcLayout() call with a call to the faster AdjustForUserEdits(), which also
     // likewise calls ResetPartnerPileWidth() - for the same reason as given above)
 //#ifdef _DEBUG
-//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3672,pApp->m_nActiveSequNum);
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3806,pApp->m_nActiveSequNum);
 //#endif
 #ifdef _NEW_LAYOUT
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
-#if defined (_DEBUG)
-	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3802,
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3814,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
     // update the active pile pointer to point at the refreshed pile pointer which the
@@ -3816,15 +3828,15 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	}
 
 //#ifdef _DEBUG
-//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3693,pApp->m_nActiveSequNum);
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3830,pApp->m_nActiveSequNum);
 //#endif
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after RecalcLayout(), keeping strips & piles"), _T("Adapt_ItView.cpp"), 3696);
-#endif
+//#if defined (_DEBUG) && defined (_ABANDONABLE)
+//	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after RecalcLayout(), keeping strips & piles"), _T("Adapt_ItView.cpp"), 3833);
+//#endif
 
     pApp->m_pTargetBox->m_bCompletedMergeAndMove = FALSE;
 //#ifdef _DEBUG
-//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),14,pApp->m_nActiveSequNum);
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3838,pApp->m_nActiveSequNum);
 //#endif
 
 	// whm added 20Nov10 reset the m_bIsGuess flag below. Can't do it in PlaceBox()
@@ -3845,21 +3857,29 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
     // the phrasebox located at the same location.
 
 	Invalidate();
-#if defined (_DEBUG)
-	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3847,
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 386047,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+#endif
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d  - before PlaceBox(), pApp->m_SaveTargetPhrase = %s"), 3864,
+		pApp->m_pTargetBox->m_SaveTargetPhrase);
+
 #endif
 	pLayout->PlaceBox();
 	// BEW 7May18. restore default values for m_bLandingBox etc. We don't do this
 	// in PlaceBox itself, as the latter is called at too many places where landing
 	// of the box requiring our special list insertion hack is not involved.
 	pApp->m_pTargetBox->InitializeComboLandingParams();
+
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after PlaceBox() immediately before exiting PlacePhraseBox()"), _T("Adapt_ItView.cpp"), 3728);
+	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after PlaceBox() about to exit PlacePhraseBox()"), _T("Adapt_ItView.cpp"), 3875);
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d 'Landing' - now exiting, pApp->m_SaveTargetPhrase = %s"), 3876,
+		pApp->m_pTargetBox->m_SaveTargetPhrase);
 #endif
 	pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // re-initialize
-#if defined (_DEBUG)
-	wxLogDebug(_T("View, PlacePhraseBox() line  %d  - exiting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3860,
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d  - exiting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3881,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 }
@@ -14471,6 +14491,10 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 	pApp->m_pTargetBox->m_CurKey.Empty();
     pApp->m_pTargetBox->m_nWordsInPhrase = 0;
 	pApp->pCurTargetUnit = (CTargetUnit*)NULL;
+#if defined (_DEBUG)
+	wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d  - Starting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14475,
+		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+#endif
 
 	CKB* pKB;
 	int nCurLongest;
@@ -14549,11 +14573,19 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		{
 			RemovePunctuation(GetDocument(),&temp,from_target_text);
 		}
+#if defined (_DEBUG)
+		wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d  - before StoreText(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14557,
+			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+#endif
 		// TRUE in the next call means we can store an empty adaptation or gloss
 		bOK = pKB->StoreText(pSrcPhrase, temp, TRUE);
 		wxASSERT(bOK);
 		bOK = bOK; // avoid warning
 	}
+#if defined (_DEBUG)
+	wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d  - after StoreText(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14566,
+		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+#endif
 	// Get a pointer to the target unit for the current key
     // whm 10Jan2018 Note: In the Legacy app, the following assignment to pCurTargetUnit 
     // was the ONLY place within the sources where a non-null pointer value is
@@ -14574,6 +14606,11 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
+#if defined (_DEBUG)
+		wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d before ShowModal(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14590,
+			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+#endif
+
         pApp->m_pTargetBox->m_CurKey = pSrcPhrase->m_key;
 		CChooseTranslation dlg(pApp->GetMainFrame());
 		dlg.Centre();
@@ -14589,6 +14626,10 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 			if (dlg.m_bEmptyAdaptationChosen)
                 pApp->m_pTargetBox->m_bEmptyAdaptationChosen = TRUE; // enable PlacePhraseBox to use the
 												// null string chosen
+#if defined (_DEBUG)
+			wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d after ShowModal() wxID_OK, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14610,
+				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+#endif
 		}
 		else
 		{
@@ -14600,9 +14641,13 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		// BEW 16May18 Provide a new processing path for when the user has typed a new adaptation
 		// into the box for that purpose. The legacy processing path did unhelpful things. See
 		// more detailed comment in OnOK() in ChooseTranslation.cpp
-		//if (!gbIsGlossing && !bCancelled && pApp->m_bTypedNewAdaptationInChooseTranslation)
-		if (!gbIsGlossing && !bCancelled)
-			{
+		if (!gbIsGlossing && !bCancelled && pApp->m_bTypedNewAdaptationInChooseTranslation)
+		//if (!gbIsGlossing && !bCancelled)
+		{
+#if defined (_DEBUG)
+			wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d Start simpler code block, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14628,
+				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+#endif
 			int len = pApp->m_pTargetBox->GetLineLength(0);
 			pApp->m_nStartChar = len;
 			pApp->m_nEndChar = len; // cursor at end of text in the box
@@ -14611,9 +14656,19 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->m_Translation.Empty();
 			// we may need a RecalcLayout() done, for the moment I'm sticking with the existing layout - it should be okay
 			Invalidate(); // get the parts of the screen covered by the dialog repainted
-			GetLayout()->PlaceBox(); // might not be needed - check later, but maybe needed in order to show the new box contents
-			pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // gotta restore initialized value before leaving here
 
+			//int saveBoolean = pApp->m_bTypedNewAdaptationInChooseTranslation;
+			GetLayout()->PlaceBox(); // might not be needed? No it is needed - otherwise it rebuids list on 
+						// where I move phrasebox too & adds old locations meanings to the list there. Ouch.
+						
+			// I didn't notice the next line, that clobbers the boolean too early - so is probably why I
+			// got the error. Commenting it out should suffice
+			//pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // gotta restore initialized value before leaving here
+
+#if defined (_DEBUG)
+			wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d returning, at end simpler code block, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14642,
+				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+#endif
 			return;
 		}
 
@@ -14625,6 +14680,11 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		wxString emptyStr = _T("");
 		if (!bEmptyBox)
 		{
+#if defined (_DEBUG)
+			wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d Start, legacy code, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14657,
+				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+#endif
+
 			// "remove" the CRefString instance, or decrement is m_refCount if the latter
 			// is > 1
 			if (gbIsGlossing)
@@ -14685,6 +14745,10 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
         // TODO: Determine if there really is a need for the PlaceBox() call here within the OnButtonChooseTranslation()
         // handler.
         pApp->m_pTargetBox->m_Translation.Empty(); // If the PlaceBox() call can be removed, this can go back into Layout's PlaceBox() after the PopulateDropDownList() call
+#if defined (_DEBUG)
+		wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d End legacy code block, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14722,
+			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+#endif
 	}
 }
 

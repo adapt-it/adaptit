@@ -54094,12 +54094,12 @@ void CAdapt_ItApp::LogDropdownState(wxString functionName, wxString fileName, in
 					wxASSERT(pRefStr != NULL);
 					tpos = tpos->GetNext();
 					bool bDeleted = pRefStr->GetDeletedFlag();
-					if (!bDeleted)
-					{
-						msg = _T("KB-stored translations for key:  %s  , CRefString's m_translation is:  %s");
-						msg = msg.Format(msg, pActiveSrcPhrase->m_key.c_str(), pRefStr->m_translation.c_str());
-						wxLogDebug(msg);
-					}
+//					if (!bDeleted)   // uncomment out if these are wanted
+//					{
+//						msg = _T("KB-stored translations for key:  %s  , CRefString's m_translation is:  %s");
+//						msg = msg.Format(msg, pActiveSrcPhrase->m_key.c_str(), pRefStr->m_translation.c_str());
+//						wxLogDebug(msg);
+//					}
 				}
 			}
 		}

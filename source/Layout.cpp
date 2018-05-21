@@ -549,6 +549,11 @@ void CLayout::PlaceBox()
 //#if defined(_DEBUG)
 //	wxLogDebug(_T("CLayout::PlaceBox() at start, line 563: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetValue().c_str());
 //#endif
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+	wxLogDebug(_T("Layout, PlaceBox() line  %d  on entry, pApp->m_SaveTargetPhrase = %s"), 553,
+		gpApp->m_pTargetBox->m_SaveTargetPhrase);
+
+#endif
 
 	// get the phrase box placed in the active location and made visible, and suitably
 	// prepared - unless it should not be made visible (eg. when updating the layout
