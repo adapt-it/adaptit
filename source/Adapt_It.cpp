@@ -44307,7 +44307,7 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
     {
         if ((gpApp->m_pTargetBox != NULL) && (gpApp->m_pTargetBox->GetCount() > 1))
         {
-            message = _("Choose a translation, or type a new translation from drop-down list. Press F8 for more options.");
+            message = _("Choose a translation from the drop-down list, or type a new translation. Press F8 for more options.");
         }
     }
     StatusBarMessage(message);
