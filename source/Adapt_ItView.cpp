@@ -3003,7 +3003,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 			wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2998,
 				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
-#endif			if (selector == 0 || selector == 3)
+#endif			
+            if (selector == 0 || selector == 3)
 			{
                 // mark invalid the strip preceding the active strip, so as to allow
                 // migration upwards of a small pile at start of active strip if the active

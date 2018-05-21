@@ -29679,6 +29679,34 @@ void CAdapt_ItApp::DoCreatePhraseBox()
         dummyArrStr,
         wxCB_DROPDOWN | wxTE_PROCESS_ENTER);
 
+    // whm 16May2018 Note:
+    // TODO: Issue to resolve in Linux version: 
+    // Normal alphanumeric key presses in the Linux version do not get registered within
+    // the phrasebox when the dropdown list is open. While the dropdown list is open the 
+    // press of an alphanumeric key should close the dropdown list and the key should be
+    // registered/entered into the phrasebox - replacing the initially selected text there.
+    // This happens in the Windows version, but in the Linux version all alphanumeric key
+    // presses are ignored. Only arrow keys are recognized until the user causes the dropdown
+    // list to close (via click elsewhere, resize, direct scroll action, etc). Once the
+    // dropdown list deliberately closed the phrasebox receives the alphanumeric key presses.
+    //
+    // My experimentation shows that, even on Windows, if the following UseAltPopupWindow() 
+    // method (of wxComboCtrl) is called here after phrasebox creation, that the Windows 
+    // version also does not receive/register alphanumeric key presses - similar to what
+    // happens by default in the Linux version.
+    // According to the wx docs for wxComboCtrl, the UseAltPopupWindow() is designed to:
+    //   "Enable or disable usage of an alternative popup window, which guarantees ability 
+    //   to focus the popup control, and allows common native controls to function normally.
+    //   This alternative popup window is usually a wxDialog, and as such, when it is shown, 
+    //   its parent top - level window will appear as if the focus has been lost from it."
+    //m_pTargetBox->UseAltPopupWindow();
+    // What the Linux version needs is the opposite, some tweak or setting that enables
+    // alphanumeric key presses to get registered within the phrasebox while the dropdown list
+    // is open - so that it behaves the same as the Windows version with respect to a user
+    // directly typing a new translation into the phrasebox's edit box while the dropdown list
+    // is open - the initial alphanumeric key press should dismiss the dropdown list, and that
+    // key press entered into the phrasebox's edit box - replacing the highlighted contents.
+
     // whm Additional Notes 14Feb2018:
     // The styles that were used for the wxTextCtrl derived phrasebox were: wxSIMPLE_BORDER | wxWANTS_CHARS
     // wxWidgets Docs say about these styles which are styles of wxWindow:
