@@ -54125,6 +54125,7 @@ void CAdapt_ItApp::LogDropdownState(wxString functionName, wxString fileName, in
 					pRefStr = (CRefString*)tpos->GetData();
 					wxASSERT(pRefStr != NULL);
 					tpos = tpos->GetNext();
+
 					bool bDeleted = pRefStr->GetDeletedFlag();
 					if (!bDeleted)   // uncomment out if these are wanted
 					{
