@@ -1,28 +1,72 @@
 ﻿----------------------------------------------
-Version 6.8.3 release 18 Oct 2017
+Version 6.9.0 release 23 May 2018
 ----------------------------------------------
-Feature changes and new features in 6.8.3 (this is a non-released revised 6.8.3 for Darwin workshop)
-----------------------------------------------
-* 
-
+Feature changes and new features in 6.9.0 
+--------------------------------------------------------------------------------------------
+* There is now a Choose Translation drop down list that automatically pops
+open when the phrasebox stops at a location where more than one translation
+is available from the knowledge base. This new feature makes it much easier
+and more efficient to select a translation equivalent. The advantage of the 
+drop down list is that selecting a translation equivalent can be done more 
+directly, without having to interact with the modal Choose Translation dialog. 
+The legacy Choose Translation dialog is still available by pressing its icon 
+on the tool bar or by using the F8 or Ctrl+L hot keys. 
+* Changed Join Documents. Since 2014, it could show the list within
+the Join Dialog being partially empty, or totally empty. Now, if every
+adapted document contains a book ID (e.g. MAT, or MRK, or LUK etc)
+then the list will contain just the chapters of the currently open book ID
+for the chapter 1 document; otherwise, all documents available will be
+displayed in the list - which gives the user more work to do to get
+just the ones he or she wants. Compiling the list takes longer, so please wait.
+* Modified the Clipboard Adapt feature to stay open until the user chooses
+to close it by clicking the Close button. This allows multiple small adaptations
+to be done, without having to open the feature by a menu choice each time
+some new source text for adapting has been copied to the clipboard.
+* Protection added which should prevent Auto-Save from causing loss of
+the user's adapting work in a file in rare circumstances. (We suspect that it was
+when a legitimate document destruction was in progress and the auto-save timer
+fired to cause a document save - but the document no longer existed.)
+* Disallowing "Edit Source Text" feature when the Clipboard Adapt feature is
+in use.
+* Some extra collection of information for the User Log, to help the developers
+to find out what might be causing a failure.
+* When the source text has no upper case/lower case distinction, but the target
+text does have that (e.g. Arabic script to Cyrillic script), the Auto-capitalize 
+feature did not work. In recent versions we provided a project configuration file
+line called: SentenceFinalPunctuationTriggeringCapitalization where the user
+could manually type sentence final punctuation characters which should trigger
+automatic capitalization of the first word of the next sentence - such as	”’.>!?
+That was introduced in version 6.8.0.
+We did  not, however, provide a way for the user to add the needed punctuation
+via the Adapt It user interface. This meant the help we provided became forgotten
+over time. Now a text box has been added in Preferences to allow typing the 
+punctuation there.
 ---------------------------------------------
-Bug fixes in 6.8.3 release (non-released version for Darwin workshop)
+Bug fixes in 6.9.0 release
 ----------------------------------------------
-* Fixed a bad text parsing error when \fig .... \fig* information is to be
-filtered out. Earlier, if the figure information  contained a file path, on
-windows it looked like a series of custom SFM markers, and produced
-a truncated filtering of the figure information, the rest of its  information
-then appeared as a huge long bogus marker. Now figure information is
-filtered out correctly.
+* Fixed an export bug in which the export would be truncated, or partly lost,
+if the \x*of a cross-reference which is to be filtered, was absent.
+* Fixed a bug in collaboration which would declare that the last chapter
+of a book has no content, when in fact it has.
+* Fixed a collaboration bug when the user makes single-word retranslations;
+the target text of these was being wrongly removed from the data being
+merged in from Paratext's source text within the collaboration.
+* Fixed a logic error in the handlers for making a retranslation, or editing
+a retranslation, which failed to indicated where the retranslation ended.
+* Fixed a bug in the handler for editing a retranslation which caused a
+a program crash when editing a retranslation involving one source text
+word, and there was only one later word in the document (that is, the
+document source text only had two words, and the first was a retranslation).
+* Fixed a bug which can appear when Paratext 8 projects have a complex
+Language identifier field that is made up of more than one code separated
+by colon characters. Adapt It was parsing the codes wrongly which caused
+Adapt It to not be able to recognize the Paratext projects after they were
+set up for collaboration within Adapt It.
+* Fixed a bug that appeared in version 6.8.3 that would could cause a crash
+when accessing the Administrator menu after changing to a French or other
+non-English interface.
 
----------------------------------------------
-Bug fixes in 6.8.3 release
-----------------------------------------------
-* Fixed a potential bug that could make it appear that Bibledit was the 
-collaboration editor along with Paratext, and generate an error message saying
-that Adapt It could not find a system file for Bibledit even though Bibledit
-was not installed.
-----------------------------------------------
+-----------------------------------------------
 Version 6.8.3 release 11 May 2017
 ----------------------------------------------
 Feature changes and new features in 6.8.3 

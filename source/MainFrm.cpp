@@ -3479,10 +3479,16 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 			// Don't call this code when the menu has just been hidden - that would crash
 			// the app since the menu is then not available, hence this test
 			wxMenuBar* pMenuBar = GetMenuBar();
-			int nAdminMenu = pMenuBar->FindMenu(_T("Administrator"));
-			wxMenu* pAdminMenu = pMenuBar->GetMenu(nAdminMenu);
-			wxMenuItem* pShareMgrMenuItem = pAdminMenu->FindItem(ID_MENU_KBSHARINGMGR,&pAdminMenu);
-			pShareMgrMenuItem->Enable(FALSE);
+            // whm modified 22May2018 to simplify and avoid crash due to FindMenu(_T("Administrator")) returning
+            // a -1 value (wxNOT_FOUND) for a non-English localization. Just use the FindItem() method of
+            // wxMenuBar which only needs the item's ID value to directly to get a pointer to the 
+            // pShareMgrMenuItem without needing to first get a pointer to the Administrator menu item.
+			//int nAdminMenu = pMenuBar->FindMenu(_T("Administrator"));
+			//wxMenu* pAdminMenu = pMenuBar->GetMenu(nAdminMenu);
+			//wxMenuItem* pShareMgrMenuItem = pAdminMenu->FindItem(ID_MENU_KBSHARINGMGR,&pAdminMenu);
+            wxMenuItem* pShareMgrMenuItem = pMenuBar->FindItem(ID_MENU_KBSHARINGMGR);
+            if (pShareMgrMenuItem)
+			    pShareMgrMenuItem->Enable(FALSE);
 		}
 	}
 #endif
