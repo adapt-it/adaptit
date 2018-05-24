@@ -988,7 +988,8 @@ void CLayout::PlaceBox()
 				}
 			}
 			m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase); // keep m_pTargetBox contents in sync with m_targetPhrase
-		}
+            m_pApp->m_pTargetBox->SetSelection(-1, -1); // whm added 23May2018 otherwise Linux version looses selection of text in phrasebox
+        }
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 985);
 #endif
