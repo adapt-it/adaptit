@@ -1,5 +1,4 @@
-﻿----------------------------------------------
-Version 6.9.0 release 28 May 2018
+﻿Version 6.9.0 release 23 May 2018
 ----------------------------------------------
 Feature changes and new features in 6.9.0 
 --------------------------------------------------------------------------------------------
@@ -67,7 +66,10 @@ document source text only had two words, and the first was a retranslation).
 Language identifier field that is made up of more than one code separated
 by colon characters. Adapt It was parsing the codes wrongly which caused
 Adapt It to not be able to recognize the Paratext projects after they were
-set up for collaboration within Adapt It. 
+set up for collaboration within Adapt It.
+* Fixed a bug that appeared in version 6.8.3 that would could cause a crash
+when accessing the Administrator menu after changing to a French or other
+non-English interface.
 
 -----------------------------------------------
 Version 6.8.3 release 11 May 2017

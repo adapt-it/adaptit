@@ -549,6 +549,11 @@ void CLayout::PlaceBox()
 //#if defined(_DEBUG)
 //	wxLogDebug(_T("CLayout::PlaceBox() at start, line 563: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetValue().c_str());
 //#endif
+#if defined (_DEBUG) && defined (_ABANDONABLE)
+	wxLogDebug(_T("Layout, PlaceBox() line  %d  on entry, pApp->m_SaveTargetPhrase = %s"), 553,
+		gpApp->m_pTargetBox->m_SaveTargetPhrase);
+
+#endif
 
 	// get the phrase box placed in the active location and made visible, and suitably
 	// prepared - unless it should not be made visible (eg. when updating the layout
@@ -956,7 +961,10 @@ void CLayout::PlaceBox()
 		if (m_pApp->m_bDrafting)
 		{
 			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
-		}
+            m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            wxWindow* fwin = wxWindow::FindFocus();
+            wxLogDebug(_T("Focused window* is %p, m_pTargetBox win is %p, m_pTargetBox->GetTextCtrl() win is: %p"), fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl());
+        }
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 		// BEW 7May18 Since PlaceBox() is typically the last significant call before the user sees the
@@ -980,7 +988,8 @@ void CLayout::PlaceBox()
 				}
 			}
 			m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase); // keep m_pTargetBox contents in sync with m_targetPhrase
-		}
+            m_pApp->m_pTargetBox->SetSelection(-1, -1); // whm added 23May2018 otherwise Linux version looses selection of text in phrasebox
+        }
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 985);
 #endif

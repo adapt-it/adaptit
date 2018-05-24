@@ -122,8 +122,8 @@ void CInstallGitOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
         // Remove the top dialog text which doesn't apply when Git is already installed
         //pStaticTextTop->SetLabel(_(""));
         //pStaticDescTopBtn->SetLabel(_(""));
-        pStaticTextTop->ChangeValue(_(""));
-		pStaticDescTopBtn->ChangeValue(_(""));
+        pStaticTextTop->ChangeValue(_T(""));
+		pStaticDescTopBtn->ChangeValue(_T(""));
 		// and replace the first two descriptions with suitable text
 		wxString descrTop = _("A working Git installation is on this computer, but you still have options.");
 		wxString descrNext = _("Adapt It will try to use the existing Git installation.");

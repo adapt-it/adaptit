@@ -29679,6 +29679,34 @@ void CAdapt_ItApp::DoCreatePhraseBox()
         dummyArrStr,
         wxCB_DROPDOWN | wxTE_PROCESS_ENTER);
 
+    // whm 16May2018 Note:
+    // TODO: Issue to resolve in Linux version: 
+    // Normal alphanumeric key presses in the Linux version do not get registered within
+    // the phrasebox when the dropdown list is open. While the dropdown list is open the 
+    // press of an alphanumeric key should close the dropdown list and the key should be
+    // registered/entered into the phrasebox - replacing the initially selected text there.
+    // This happens in the Windows version, but in the Linux version all alphanumeric key
+    // presses are ignored. Only arrow keys are recognized until the user causes the dropdown
+    // list to close (via click elsewhere, resize, direct scroll action, etc). Once the
+    // dropdown list deliberately closed the phrasebox receives the alphanumeric key presses.
+    //
+    // My experimentation shows that, even on Windows, if the following UseAltPopupWindow() 
+    // method (of wxComboCtrl) is called here after phrasebox creation, that the Windows 
+    // version also does not receive/register alphanumeric key presses - similar to what
+    // happens by default in the Linux version.
+    // According to the wx docs for wxComboCtrl, the UseAltPopupWindow() is designed to:
+    //   "Enable or disable usage of an alternative popup window, which guarantees ability 
+    //   to focus the popup control, and allows common native controls to function normally.
+    //   This alternative popup window is usually a wxDialog, and as such, when it is shown, 
+    //   its parent top - level window will appear as if the focus has been lost from it."
+    //m_pTargetBox->UseAltPopupWindow();
+    // What the Linux version needs is the opposite, some tweak or setting that enables
+    // alphanumeric key presses to get registered within the phrasebox while the dropdown list
+    // is open - so that it behaves the same as the Windows version with respect to a user
+    // directly typing a new translation into the phrasebox's edit box while the dropdown list
+    // is open - the initial alphanumeric key press should dismiss the dropdown list, and that
+    // key press entered into the phrasebox's edit box - replacing the highlighted contents.
+
     // whm Additional Notes 14Feb2018:
     // The styles that were used for the wxTextCtrl derived phrasebox were: wxSIMPLE_BORDER | wxWANTS_CHARS
     // wxWidgets Docs say about these styles which are styles of wxWindow:
@@ -44279,7 +44307,7 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
     {
         if ((gpApp->m_pTargetBox != NULL) && (gpApp->m_pTargetBox->GetCount() > 1))
         {
-            message = _("Choose a translation, or type a new translation from drop-down list. Press F8 for more options.");
+            message = _("Choose a translation from the drop-down list, or type a new translation. Press F8 for more options.");
         }
     }
     StatusBarMessage(message);
@@ -53490,14 +53518,12 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 
 #if defined(__WXOSX_COCOA__)
 
-	// First,we need a current working directory in the running Adapt It in order to have
-	// a temporary place to store our comma-separated list of KBserver ipaddresses and
-	// hostnames in a file called report.dat
-	// We need to know where it resides, though we don't care where that may
-	// be, as long as we have the absolute path to that folder determinate & stored
+	// Although the script can be run from anywhere, the appropriate place to run
+	// it from is where the adaptit executable is located. 
 	// It and other temporary files get lodged there, they are cleared out at the
 	// start of a new discovery run, and filled with the results of the new run.
-	wxString tempFile = _T("report.dat");
+	wxString reportFile = _T("report.dat");
+/*
 	wxString resultsPathFile = _T("resultsPathFile");
 	// backtick pwd backtick means evaluate print working directory command and replace
 	// with the output in the wrapping command
@@ -53517,12 +53543,15 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 			rpffile.Close();
 		}
 	}
-	// Make a redirecting argument string for evaporating unwanted output
+*/
+	// Make a redirecting argument string for output
 	// from dsb-osx.sh in wxShell()
-	wxString redirectStr = _T(" 2>/dev/null");
+	//wxString redirectStr = _T(" 2>/dev/null"); <<-- I don't think we need this
+	//wxString redirectStr = _T(" 2>") + resultsPathFile;
 
-	// For opening the KBservers_List.txt file, we need to add the filename to resultsPath
-	wxString resultsPath2 = resultsPath + PathSeparator + tempFile; // path to report.dat
+	// For opening the report.dat, we need to add the filename to resultsPathFile
+	//resultsPath = resultsPathFile + PathSeparator + reportFile; // path to report.dat
+	resultsPath = execPath + reportFile; // path to report.dat
 
 	// While developing, this returns for execPath on Linux for a Debug build:
 	// /home/bruce/adaptit-git/bin/linux/bin/Debug/adaptit   (note, the executable is at the end)
@@ -53530,14 +53559,15 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	// /usr/bin/adaptit   (again, the adaptit at path end is the executable)
 	// But the code at top removes the executable from the end of execPath, leaving the slash there
 	// For OSX, it remains to be seen what the paths are. Obtain from the logging if it is accessible
-	wxString scriptPath = execPath + _T("dsb-osx.sh") + redirectStr;
+	//wxString scriptPath = execPath + _T("dsb-osx.sh") + redirectStr;
+	wxString scriptPath = execPath + _T("dsb-osx.sh");
 	wxLogDebug(_T("Script path = %s"), scriptPath.c_str());
 
 	// Run Leon's script
 	wxShell(scriptPath);
 
 	bool bFileExists = FALSE;
-	bFileExists = wxFileExists(resultsPath2);
+	bFileExists = wxFileExists(resultsPath);
 	if (bFileExists)
 	{
 		//#ifdef _DEBUG
@@ -53545,7 +53575,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		//#endif
 
 		// look for file of comma-separated results
-		wxFFile ffile(resultsPath2); //opens for reading
+		wxFFile ffile(resultsPath); //opens for reading
 		if (ffile.IsOpened())
 		{
 			bool bGotAll = ffile.ReadAll(&resultsStr);
@@ -53560,6 +53590,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 	#endif
 			ffile.Close();
 		}
+		/* no way, we leave it there!
 		// resultsPathFile was created in this block, so we have to remove it ourselves
 		wxString rPthFile = _T("resultsPathFile");
 		wxString aPath = resultsPath + PathSeparator + rPthFile;
@@ -53568,6 +53599,7 @@ void CAdapt_ItApp::DoDiscoverKBservers()
 		{
 			wxRemoveFile(aPath); // Removes temporary resultsPathFile
 		}
+		*/
 	}
 #endif
     // Having obtained one or more composite strings of form ipAddress@@@hostname, we now need to
@@ -54093,12 +54125,13 @@ void CAdapt_ItApp::LogDropdownState(wxString functionName, wxString fileName, in
 					pRefStr = (CRefString*)tpos->GetData();
 					wxASSERT(pRefStr != NULL);
 					tpos = tpos->GetNext();
+
 					bool bDeleted = pRefStr->GetDeletedFlag();
-					if (!bDeleted)
+					if (!bDeleted)   // uncomment out if these are wanted
 					{
-						msg = _T("KB-stored translations for key:  %s  , CRefString's m_translation is:  %s");
-						msg = msg.Format(msg, pActiveSrcPhrase->m_key.c_str(), pRefStr->m_translation.c_str());
-						wxLogDebug(msg);
+//						msg = _T("KB-stored translations for key:  %s  , CRefString's m_translation is:  %s");
+//						msg = msg.Format(msg, pActiveSrcPhrase->m_key.c_str(), pRefStr->m_translation.c_str());
+//						wxLogDebug(msg);
 					}
 				}
 			}
