@@ -14600,9 +14600,9 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		// BEW 16May18 Provide a new processing path for when the user has typed a new adaptation
 		// into the box for that purpose. The legacy processing path did unhelpful things. See
 		// more detailed comment in OnOK() in ChooseTranslation.cpp
-		//if (!gbIsGlossing && !bCancelled && pApp->m_bTypedNewAdaptationInChooseTranslation)
-		if (!gbIsGlossing && !bCancelled)
-			{
+		if (!gbIsGlossing && !bCancelled && pApp->m_bTypedNewAdaptationInChooseTranslation)
+		//if (!gbIsGlossing && !bCancelled)
+		{
 			int len = pApp->m_pTargetBox->GetLineLength(0);
 			pApp->m_nStartChar = len;
 			pApp->m_nEndChar = len; // cursor at end of text in the box

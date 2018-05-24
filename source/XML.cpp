@@ -4121,6 +4121,9 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 			else if (attrName == xml_sn)
 			{
 				gpSrcPhrase->m_nSequNumber = atoi(attrValue);
+//#if defined (_DEBUG)
+//				wxLogDebug(_T("Parsing Doc: sn = %d"), gpSrcPhrase->m_nSequNumber); // VERY VALUABLE for detecting an XML error introduced by manual doc xml fixing
+//#endif
 			}
 			else if (attrName == xml_w)
 			{
