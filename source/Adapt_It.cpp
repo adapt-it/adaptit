@@ -7182,6 +7182,12 @@ wxString szSrcHasUcAndLc = _T("SourceHasUpperCaseAndLowerCase");// added in wx v
 wxString szUseSFMarkerSet = _T("UseSFMarkerSet");
 
 /// The label that identifies the following string encoded value as the application's
+/// "AutoOpenPhraseBoxTranslationsList". This value is written in the "Settings" part of the
+/// project configuration file. Adapt It stores this value in the App's 
+/// m_bAutoOpenPhraseboxOnLanding member.
+wxString szAutoOpenPhraseBoxTranslationsList = _T("AutoOpenPhraseBoxTranslationsList");
+
+/// The label that identifies the following string encoded value as the application's
 /// "UsfmOnly". This value is written in the "Settings" part of the basic configuration
 /// file. Adapt It stores this value in the App's gProjectSfmSetForConfig global enum
 /// variable.
@@ -18728,6 +18734,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bECConnected = FALSE;
     m_eSilConverterNormalizeOutput = 0;
     m_bTransliterationMode = FALSE;
+
+    // whm added 24May2018 for support of enabling/disabling auto-opening of phrasebox's dropdown list
+    // upon arriving at a location with multiple translations. The m_bAutoOpenPhraseboxOnLanding value
+    // is stored in the project settings file, so the following initial defaults may be changed by the
+    // reading of the project config file.
+#if defined (__WXMSW__)
+    m_bAutoOpenPhraseboxOnLanding = TRUE;
+#elif defined (__WXGTK__)
+    m_bAutoOpenPhraseboxOnLanding = FALSE;
+#elif defined (__WXOSX__)
+    m_bAutoOpenPhraseboxOnLanding = FALSE;
+#else
+    m_bAutoOpenPhraseboxOnLanding = FALSE;
+#endif
 
     bECDriverDLLLoaded = FALSE;
 #ifdef USE_SIL_CONVERTERS
@@ -37496,6 +37516,15 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data << szForceVerseSectioning << tab << number;
     pf->AddLine(data);
 
+    // whm added 24May2018 check box to auto-open dropdown on arrival at location with multiple translations
+    if (m_bAutoOpenPhraseboxOnLanding)
+        number = _T("1");
+    else
+        number = _T("0");
+    data.Empty();
+    data << szAutoOpenPhraseBoxTranslationsList << tab << number;
+    pf->AddLine(data);
+
     /* //BEW 7Oct14 deprecated. We'll use instead m_bZWSPinDoc, which we'll set true
     // automatically when we detect ZWSP within the document
     if (m_bFreeTransUsesZWSP)
@@ -38697,6 +38726,17 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 m_bForceVerseSectioning = TRUE;
             else
                 m_bForceVerseSectioning = FALSE;
+        }
+        //  whm added 24May2018 check box to auto-open dropdown on arrival at location with multiple translations
+        else if (name == szAutoOpenPhraseBoxTranslationsList)
+        {
+            num = wxAtoi(strValue);
+            if (!(num == 0 || num == 1))
+                num = 1; // default is ON
+            if (num == 1)
+                m_bAutoOpenPhraseboxOnLanding = TRUE;
+            else
+                m_bAutoOpenPhraseboxOnLanding = FALSE;
         }
         // BEW 7Oct14 deprecated. Keep it so any old config files don't complain
         // but just don't use it in app. App will automatically detect ZWSP in

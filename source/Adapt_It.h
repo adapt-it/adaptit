@@ -4098,6 +4098,9 @@ public:
 	bool	m_bUnpacking;	// TRUE when Unpack Document... is in progress, else FALSE
 				// (used in SetupDirectories())
 
+    // whm added 24May2018 to support user choice to enable/disable dropdown auto-open
+    // on arrival at locations where there are multiple translations
+    bool    m_bAutoOpenPhraseboxOnLanding;
 
 	// next two for read-only support....
 	// the next boolean is for support of read-only protection of the data accessed in a

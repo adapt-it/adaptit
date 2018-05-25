@@ -4664,7 +4664,21 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
                     // only set to TRUE when all three of the above flags are FALSE. 
                     // Hence, this if block should always execute, and the else block below 
                     // should never execute. 
-                    pApp->m_pTargetBox->PopupDropDownList();
+                    // whm modified 24May2018. The initial 6.9.0 release sets the the value of the App's 
+                    // m_bAutoOpenPhraseboxOnLanding boolean to an initial default depending on the
+                    // platform. Windows defaults to TRUE, Linux (and Mac OSX) default to FALSE.
+                    // Also the user can control the persistent setting using a new check box within the
+                    // Choose Translation dialog. We now honor the platform's default setting, or the
+                    // user's override setting here. This is the only location in the application where
+                    // PopupDropDownList() may be called.
+                    if (pApp->m_bAutoOpenPhraseboxOnLanding)
+                    {
+                        pApp->m_pTargetBox->PopupDropDownList();
+                    }
+                    else
+                    {
+                        pApp->m_pTargetBox->CloseDropDown();
+                    }
                 }
                 else
                 {
