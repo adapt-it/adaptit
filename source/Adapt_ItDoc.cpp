@@ -15567,7 +15567,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				{
 					// If it is a \fig marker, because of the danger of there being an internal
 					// path in windows, which makes folders look like custom SFM markers, we will
-					// test for \fig and if that is the marker passed in, we'll scan straight ti
+					// test for \fig and if that is the marker passed in, we'll scan straight to
 					// the matching \fig* marker
 					//size_t counter = 0;
 fltr:				int offset = wxNOT_FOUND;

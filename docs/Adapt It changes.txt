@@ -1,5 +1,4 @@
-﻿----------------------------------------------
-Version 6.9.0 release 23 May 2018
+﻿Version 6.9.0 release 23 May 2018
 ----------------------------------------------
 Feature changes and new features in 6.9.0 
 --------------------------------------------------------------------------------------------
@@ -23,9 +22,15 @@ to close it by clicking the Close button. This allows multiple small adaptations
 to be done, without having to open the feature by a menu choice each time
 some new source text for adapting has been copied to the clipboard.
 * Protection added which should prevent Auto-Save from causing loss of
-the user's adapting work in a file in rare circumstances. (We suspect that it was
-when a legitimate document destruction was in progress and the auto-save timer
-fired to cause a document save - but the document no longer existed.)
+the user's adapting work in a file in rare circumstances. (It was caused by a
+legitimate document destruction being in progress and the auto-save timer
+fired to cause a document save - but by then the document no longer existed.)
+Now, doc save and doc destroy are forced to be sequential. If the save begins
+first doc destruction is blocked until the  save completes; if the auto-save
+begins first, doc destruction is blocked until it completes - and then the auto-save
+gets its chance, and the app checks for the doc still being in existence - and if
+it is not, the auto-save is skipped. This means the error will never happen again,
+and it is now safe to have auto-saving turned on in all circumstances.
 * Disallowing "Edit Source Text" feature when the Clipboard Adapt feature is
 in use.
 * Some extra collection of information for the User Log, to help the developers
@@ -45,14 +50,14 @@ punctuation there.
 Bug fixes in 6.9.0 release
 ----------------------------------------------
 * Fixed an export bug in which the export would be truncated, or partly lost,
-if the \x*of a cross-reference which is to be filtered, was absent.
+if the \x* of a cross-reference which is to be filtered, was absent.
 * Fixed a bug in collaboration which would declare that the last chapter
 of a book has no content, when in fact it has.
 * Fixed a collaboration bug when the user makes single-word retranslations;
 the target text of these was being wrongly removed from the data being
 merged in from Paratext's source text within the collaboration.
 * Fixed a logic error in the handlers for making a retranslation, or editing
-a retranslation, which failed to indicated where the retranslation ended.
+a retranslation, which failed to indicate where the retranslation ended.
 * Fixed a bug in the handler for editing a retranslation which caused a
 a program crash when editing a retranslation involving one source text
 word, and there was only one later word in the document (that is, the
