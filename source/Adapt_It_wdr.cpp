@@ -9377,26 +9377,26 @@ wxSizer *ChooseTranslationDlgFunc2( wxWindow *parent, bool call_fit, bool set_si
 
     wxButton *item25 = new wxButton( parent, IDC_BUTTON_MOVE_UP, _("Move &Up"), wxDefaultPosition, wxDefaultSize, 0 );
     item25->SetToolTip( _("Move the selected translation up in the list") );
-    item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
+    item24->Add( item25, 0, wxALIGN_CENTER, 0 );
 
     wxButton *item26 = new wxButton( parent, IDC_BUTTON_REMOVE, _("&Remove From KB"), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
     item26->SetToolTip( _("Remove the selected translation from the knowledge base") );
-    item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 0 );
+    item24->Add( item26, 0, wxALIGN_CENTER, 0 );
 
     wxButton *item27 = new wxButton( parent, IDC_BUTTON_MOVE_DOWN, _("Move &Down"), wxDefaultPosition, wxDefaultSize, 0 );
     item27->SetToolTip( _("Move a selected translation down in the list") );
-    item24->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+    item24->Add( item27, 0, wxALIGN_CENTER, 0 );
 
-    item24->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item24->Add( 20, 20, 0, wxALIGN_CENTER, 0 );
 
     wxButton *item28 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
     item28->SetDefault();
-    item24->Add( item28, 0, wxALIGN_CENTER|wxALL, 0 );
+    item24->Add( item28, 0, wxALIGN_CENTER|wxTOP, 0 );
 
     wxButton *item29 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+    item24->Add( item29, 0, wxALIGN_CENTER|wxTOP, 0 );
 
-    item19->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    item19->Add( item24, 0, wxALIGN_CENTER, 5 );
 
     item8->Add( item19, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
