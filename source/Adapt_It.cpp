@@ -5485,6 +5485,26 @@ wxLANGUAGE_USER_DEFINED		//	230	null	null
 /// \remarks
 /// Called from: The App's ChooseInterfaceLanguage(), and CLanguagesPage::InitDialog(). An
 /// array consisting of triplets of full language names, the wxWidgets language enum
+/// symbol wxLANGUAGE_USER_DEFINED, and the short canonical name (used for subdirectories). 
+/// Used to correlate full language names, enum symbols and canonical names. 
+/// Note: This language data is unique to Adapt It. Since - as of January 2017, Poedit no
+/// longer stores the full language name as an X extension in the po/mo files, we need to
+/// be able to associate our custom full language names and the appropirate ISO 639-3 3-letter
+/// code for use within Adapt It.
+/// whm added 28May2018 to provide long language names for custom ISO 639-3 codes not recognized
+/// by the wxLocale system.
+////////////////////////////////////////////////////////////////////////////////////////
+LangInfo langsKnownToAI[] = 
+{
+    { _T("Tok Pisin"), wxLANGUAGE_USER_DEFINED, _T("tpi") },
+    { _T("Swahili"), wxLANGUAGE_USER_DEFINED, _T("swh") }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: The App's ChooseInterfaceLanguage(), and CLanguagesPage::InitDialog(). An
+/// array consisting of triplets of full language names, the wxWidgets language enum
 /// symbols, and the short canonical name (used for subdirectories). Used to correlate full
 /// language names, enum symbols and canonical names. Note: This language data is taken
 /// from the void wxLocale::InitLanguagesDB() function in the wxWidgets intl.cpp library
@@ -7977,6 +7997,10 @@ wxLanguage CAdapt_ItApp::GetLanguageFromFullLangName(const wxString fullLangName
 /////////////////////////////////////////////////////////////////////////////////////////
 wxLanguage CAdapt_ItApp::GetLanguageFromDirStr(const wxString dirStr, wxString &fullLangName)
 {
+    // whm 28May2018 modified to return in the fullLangName reference parameter the
+    // full language name of a custom added language known to Adapt It, for example,
+    // "Tok Pisin" or "Swahili" are currently the only two in the langsKnownToAI struct.
+    //
     // Scan through the langsKnownToWX[] array of LangInfo structs for the dirStr
     int ct = 0;
     while (langsKnownToWX[ct].fullName != NULL)
@@ -8013,6 +8037,21 @@ wxLanguage CAdapt_ItApp::GetLanguageFromDirStr(const wxString dirStr, wxString &
         }
         ct++;
     }
+
+    // whm 28May2018 added the following block searching in our custom langsKnownToAI[] array
+    ct = 0;
+    while (langsKnownToAI[ct].fullName != NULL)
+    {
+        if (langsKnownToAI[ct].shortName == dirStr)
+        {
+            // we've found the shortName in our langsKnownToWX[] array, so assign
+            // fullLangName the string value in langsKnownToWX[ct].fullName
+            fullLangName = langsKnownToAI[ct].fullName;
+            return langsKnownToAI[ct].code;
+        }
+        ct++;
+    }
+
     // If we get here we've searched the whole array and not found dirStr or its prefix
     // in langsKnownToWX[].
     return wxLANGUAGE_UNKNOWN;
@@ -8161,11 +8200,20 @@ bool CAdapt_ItApp::InitializeLanguageLocale(wxString shortLangName, wxString lon
 
     bool bLoadOK = TRUE;
     wxLogNull nolog; // avoid spurious messages from the system
+    // whm 28May2018 modified. Changed the third parameter in the wxLocale constructor
+    // below to use the "C" locale as default. This prevents an annoying assert message
+    // that pops up in wx3.x repeatedly when a non-English localization is set. The assert
+    // says, 
+    //    "You probably called setlocale() directly instead of using wxLocale and now there is a
+    //    mismatch between C/C++ and Windows locale.
+    //    Things are going to break, please only change locale by creating wxLocale objects to avoid this!"
+    // The assert is tripped when each button image is created by wxGetBitmapFromMemory(), due to a problem
+    // it has in wx 3.x in determining the decimal point character for the so-called locale mismatches.
 #if WXWIN_COMPATIBILITY_2_8
-    m_pLocale = new wxLocale(longLangName, shortLangName, _T(""), TRUE, TRUE);
+    m_pLocale = new wxLocale(longLangName, shortLangName, _T("C"), TRUE, TRUE);
     // GDLC 9Jul12 Last parameter removed for 2.9.x
 #else
-    m_pLocale = new wxLocale(longLangName, shortLangName, _T(""), TRUE);
+    m_pLocale = new wxLocale(longLangName, shortLangName, _T("C"), TRUE);
 #endif
     if (!pathPrefix.IsEmpty())
         m_pLocale->AddCatalogLookupPathPrefix(pathPrefix);
@@ -15824,6 +15872,32 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 #else
         m_pConfig->Write(_T("ui_language_path"), currLocInfo.curr_localizationPath);
 #endif
+        // whm 28May2018 modified the code below. As of January 2017 We cannot use the 
+        // GetLanguageNameFromBinaryMoFile() function to determine the full language 
+        // name, because the Poedit no longer makes use of an extension labeled 
+        // X-Poedit-Language within its po / mo files. Instead we'll check for the
+        // full language name from our own hard-coded list defined in our 
+        // langsKnownToAI[] array, via a call to our GetLanguageFromDirStr()
+        // function - now modified to check the langsKnownToAI[] array.
+        // Note: The dirStr first parameter expected in GetLanguageFromDirStr() should
+        // be identical to the curr_shortName field of the currLocInfo struct found above.
+        wxLanguage lang;
+        wxString fullLangName;
+        lang = GetLanguageFromDirStr(currLocInfo.curr_shortName, fullLangName);
+        if (lang == wxLANGUAGE_USER_DEFINED)
+        {
+            // we found one of our custom defined language names, currently either 
+            // Tok Pisin or Swahili.
+            // The full language name is returned in the fullLangName ref parameter, so
+            // use it to correct/update the value in currLocInfo.curr_fullName
+            currLocInfo.curr_fullName = fullLangName;
+            // Update the curr_fullName in the registry
+            m_pConfig->Write(_T("ui_language_name"), currLocInfo.curr_fullName);
+        }
+
+        /* // whm 28May2018 modified - the following code block below is now obsolete
+        // and so any curr_fullName that contains "[Contains Unknown or New Localization]"
+        // will remain unless corrected/updated by the block above.
         // whm added 6Jan13 ensure that the ui_language_name represents
         // the "Language: " name value in the binary mo file stored in
         // the localization directory represented by the ui_language_code
@@ -15859,6 +15933,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
                 }
             }
         }
+        */
     }
 
     // Next, retrieve any user defined language data from the user_defined_language_n keys.
@@ -15884,6 +15959,62 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
         // the full language name from an existing localization mo file. Use
         // the same modification as in the code block above in the case of the
         // ui_language_name.
+        // whm 28May2018 modified. See comments in the above block
+        // Here we are dealing with a tempStr that represents a composite string
+        // delimited by colon characters of the form:
+        // nnn:xxx:xxx
+        //    or
+        // nnn:xxx:xxx [Contains Unknown or New Localization]
+        // We want the third field to represent the actual full name of any custom
+        // language that has been defined, so that it will be of the form:
+        // nnn:xxx:Language
+        // where xxx is the 2 or 3-letter language code and Language is the name of the Language
+
+        // First extract the first xxx code from tempStr (it is the field
+        // between the first and second : delimiters and represents the short
+        // ISO 639-3 code as well as the localization directory name.
+        // Put the field sub-strings in separate variables for easy reassembly blow.
+        wxString langEnumIntStr;
+        wxString langCodeStr;
+        wxString langNameStr;
+        int posColon;
+        posColon = tempStr.Find(_T(':'));
+        langEnumIntStr = tempStr.BeforeFirst(_T(':'));
+        langCodeStr = tempStr.Mid(posColon + 1);
+        posColon = langCodeStr.Find(_T(':'));
+        langCodeStr = langCodeStr.Left(posColon);
+        langNameStr = langCodeStr.AfterLast(_T(':'));
+        wxASSERT(!langCodeStr.IsEmpty());
+        if (!langCodeStr.IsEmpty())
+        {
+
+            wxString moFilePath;
+            moFilePath = GetLocalizationMoFilePath(langCodeStr);
+            if (wxFileExists(moFilePath))
+            {
+                wxLanguage lang;
+                wxString fullLangName;
+                lang = GetLanguageFromDirStr(currLocInfo.curr_shortName, fullLangName);
+                if (lang == wxLANGUAGE_USER_DEFINED)
+                {
+                    // we found one of our custom defined language names, currently either 
+                    // Tok Pisin or Swahili.
+                    // The full language name is returned in the fullLangName ref parameter, so
+                    // use it to correct/update the value in the registry's 
+                    langNameStr = fullLangName;
+                    // Rebuild the registry composite string and write the correction/update
+                    // back to m_pConfig's user_defined_language_u_n value
+                    tempStr = langEnumIntStr + _T(':') + langCodeStr + _T(':') + langNameStr + _T(':'); // string ends with a colon
+                    m_pConfig->Write(str, tempStr); // reassigned tempStr is also used below in keyArray.Add()
+                }
+            }
+        }
+
+
+
+        /* // whm 28May2018 modified - the following code block below is now obsolete
+        // and so any curr_fullName that contains "[Contains Unknown or New Localization]"
+        // will remain unless corrected/updated by the block above.
         if (tempStr.Find(_T("[Contains Unknown or New Localization]")) != wxNOT_FOUND)
         {
             // The m_pConfig data most likely using a
@@ -15896,7 +16027,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
             // The tempStr here is of the form:
             // nnn:xxx:xxx [Contains Unknown or New Localization]
             // and we want it to be of the form:
-            // nnn:xxx Language
+            // nnn:xxx:Language
             // where xxx is the 2 or 3-letter language code and Language is
             // the name of the Language retrieved from the .mo file within the
             // xxx localization folder structure.
@@ -15932,6 +16063,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
                 }
             }
         }
+        */
 
 
         keyArray.Add(tempStr);
