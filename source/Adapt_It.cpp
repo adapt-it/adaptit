@@ -15984,7 +15984,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
         posColon = langCodeStr.Find(_T(':'));
         langCodeStr = langCodeStr.Left(posColon);
         langNameStr = langCodeStr.AfterLast(_T(':'));
-        wxASSERT(!langCodeStr.IsEmpty());
+        //wxASSERT(!langCodeStr.IsEmpty());
         if (!langCodeStr.IsEmpty())
         {
 
