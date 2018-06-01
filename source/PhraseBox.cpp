@@ -3551,6 +3551,19 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 // the first key pressed) does trigger this handler in Windows. 
 // In the Linux version, this OnChar() handler is not triggered on any alphanumeric
 // key presses until the user explicitly closes the dropdown list.
+// whm 1Jun2018 Notes: OnChar() currently does the following key handling:
+// 1. Detects if key even is modified with CTRL down, or ALT down, or any arrow
+//    key: WXK_DOWN, WXK_UP, WXK_LEFT, or WXK_RIGHT. If so, event.Skip() is called 
+//    so that OnKeyUp() will handle those special cases. Then return is called to
+//    exit immediately from OnChar().
+// 2. Set pApp->m_nPlacePunctDlgCallNumber = 0 initializing it on every alphanumeric key stroke.
+// 3. Handle WXK_BACK key event - to effect an Undo for a backspace deletion of a selection or
+//    a single char.
+// 4. Call event.Skip() if the key event is NOT WXK_RETURN or WXK_TAB - to prevent bell sounding (?)
+// 5. Automatically effect a merger if a selection is present - assuming the user intended to do so
+//    before an OnChar() event.
+// 6. Handle WXK_RETURN key event. This could be moved to OnKeyUp() where WXK_TAB handling is located.
+// 7. Handle WXK_BACK key event - to effect box resizing on backspace.
 void CPhraseBox::OnChar(wxKeyEvent& event)
 {
 	// whm Note: OnChar() is called before OnPhraseBoxChanged()
@@ -3822,6 +3835,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			}
 		} // end case 13: block
 		return;
+    /*  // whm 1Jun2018 moved the WXK_TAB handling to the OnKeyUp() handler
 	case WXK_TAB: //9:		// TAB key
 		{
             // whm 26Feb2018 Note: Except for handling of SHIFT+TAB below, the handling of WXK_TAB
@@ -3895,6 +3909,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			}
 			return;
 		}
+    */
 	case WXK_BACK: //8:		// BackSpace key
 		{
 			bool bWasMadeDirty = TRUE;
@@ -5646,13 +5661,15 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 // whm Note 15Feb2018 modified key handling so that ALL AltDown(), ShiftDown(), and ControlDown()
 // events are now sent to OnSysKeyUp() for processing.
 // whm 16Feb2018 Notes: OnKeyUp() currently does the following key handling:
-// 1. Detects all AltDown(), all ShiftDown(), and all ControlDown() events (with key combinations) and
+// 1. Detects WXX_TAB and processes it like the WXK_RETURN key in OnChar(). The WXK_TAB block also
+//    does a merge if there is a source phrase selection (like WXK_RETURN does).
+// 2. Detects all AltDown(), all ShiftDown(), and all ControlDown() events (with key combinations) and
 //    routes all processing of those events to the separate function OnSysKeyUp(), and returns 
 //    without calling Skip() suppressing further handling after execution of OnSysKeyUp().
-// 2. Detects SHIFT+CTRL+SPACE, and if detected calls OnCtrlShiftSpacebar(), then return to suppress further handling.
-// 3. Detects WXK_RIGHT and WXK_LEFT; if detected sets flags m_bAbandonable = FALSE, pApp->m_bUserTypedSomething = TRUE,
+// 3. Detects SHIFT+CTRL+SPACE, and if detected calls OnCtrlShiftSpacebar(), then return to suppress further handling.
+// 4. Detects WXK_RIGHT and WXK_LEFT; if detected sets flags m_bAbandonable = FALSE, pApp->m_bUserTypedSomething = TRUE,
 //    and m_bRetainBoxContents = TRUE, for use if auto-merge (OnButtonMerge) is called on a selection.
-// 4. Detects WXK_F8 and if detected calls Adapt_ItView::ChooseTranslation() then return to suppress further handling.
+// 5. Detects WXK_F8 and if detected calls Adapt_ItView::ChooseTranslation() then return to suppress further handling.
 // Note: Put in this OnKeyUp() handler custom key handling that does not involve simultaneous use 
 // of ALT, SHIFT, or CTRL keys.
 void CPhraseBox::OnKeyUp(wxKeyEvent& event)
@@ -5661,10 +5678,181 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 
     CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
+    CLayout* pLayout = GetLayout();
+    CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 
-	// whm 16Feb2018 Note: The following test using GetKeyCode will never work for detecting a WXK_ALT key event.
+    // whm 1Jun2018 Moved WXK_TAB key handling from OnChar() to here in OnKeyUp(), since a tab key
+    // press does not trigger OnChar(). To make Tab work exactly like Enter, we need to ensure that
+    // other things done in OnChar() prior to handling WXK_TAB (and WXK_ENTER) are also here too.
+    // This includes detecting if there is a selection, and doing it for the user on the first
+    // character typed - in this case the character is Tab. We put the code for merging a selection
+    // within the WXK_TAB handling block in this case, since we are specifically dealing with just
+    // the Tab key event here, whereas in OnChar() it merges a selection for any key press that
+    // triggers OnChar().
+    long keycode = event.GetKeyCode();
+    if (keycode == WXK_TAB)
+    {
+        // First handle merging of any selection - as is done in OnChar().
+        // preserve cursor location, in case we merge, so we can restore it afterwards
+        long nStartChar;
+        long nEndChar;
+        GetTextCtrl()->GetSelection(&nStartChar, &nEndChar);
+
+        // whm Note: See note below about meeding to move some code from OnChar() to the
+        // OnPhraseBoxChanged() handler in the wx version, because the OnChar() handler does
+        // not have access to the changed value of the new string within the control reflecting
+        // the keystroke that triggers OnChar().
+        //
+        wxSize textExtent;
+        pApp->RefreshStatusBarInfo();
+
+        // if there is a selection, and user forgets to make the phrase before typing, then do it
+        // for him on the first character typed. But if glossing, no merges are allowed.
+
+        int theCount = pApp->m_selection.GetCount();
+        if (!gbIsGlossing && theCount > 1 && (pApp->m_pActivePile == pApp->m_pAnchor->GetPile()
+            || IsActiveLocWithinSelection(pView, pApp->m_pActivePile)))
+        {
+            if (pView->GetSelectionWordCount() > MAX_WORDS)
+            {
+                pApp->GetRetranslation()->DoRetranslation();
+            }
+            else
+            {
+                if (!pApp->m_bUserTypedSomething &&
+                    !pApp->m_pActivePile->GetSrcPhrase()->m_targetStr.IsEmpty())
+                {
+                    pApp->m_bSuppressDefaultAdaptation = FALSE; // we want what is already there
+                }
+                else
+                {
+                    // for version 1.4.2 and onwards, we will want to check m_bRetainBoxContents
+                    // and two other flags, for a click or arrow key press is meant to allow
+                    // the deselected source word already in the phrasebox to be retained; so we
+                    // here want the m_bSuppressDefaultAdaptation flag set TRUE only when the
+                    // m_bRetainBoxContents is FALSE (- though we use two other flags too to
+                    // ensure we get this behaviour only when we want it)
+                    if (m_bRetainBoxContents && !m_bAbandonable && pApp->m_bUserTypedSomething)
+                    {
+                        pApp->m_bSuppressDefaultAdaptation = FALSE;
+                    }
+                    else
+                    {
+                        pApp->m_bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN used for temporary
+                                                                   // suppression only
+                    }
+                }
+                pView->MergeWords(); // simply calls OnButtonMerge
+                                     // 
+                                     //
+                pLayout->m_docEditOperationType = merge_op;
+                pApp->m_bSuppressDefaultAdaptation = FALSE;
+
+                // we can assume what the user typed, provided it is a letter, replaces what was
+                // merged together, but if tab or return was typed, we allow the merged text to
+                // remain intact & pass the character on to the switch below; but since v1.4.2 we
+                // can only assume this when m_bRetainBoxContents is FALSE, if it is TRUE and
+                // a merge was done, then there is probably more than what was just typed, so we
+                // retain that instead; also, we we have just returned from a MergeWords( ) call in
+                // which the phrasebox has been set up with correct text (such as previous target text
+                // plus the last character typed for an extra merge when a selection was present, we
+                // don't want this wiped out and have only the last character typed inserted instead,
+                // so in OnButtonMerge( ) we test the phrasebox's string and if it has more than just
+                // the last character typed, we assume we want to keep the other content - and so there
+                // we also set m_bRetainBoxContents
+                m_bRetainBoxContents = FALSE; // turn it back off (default) until next required
+            }
+        }
+        else
+        {
+            // if there is a selection, but the anchor is removed from the active location, we
+            // don't want to make a phrase elsewhere, so just remove the selection. Or if
+            // glossing, just silently remove the selection - that should be sufficient alert
+            // to the user that the merge operation is unavailable
+            pView->RemoveSelection();
+            wxClientDC dC(pLayout->m_pCanvas);
+            pView->canvas->DoPrepareDC(dC); // adjust origin
+            pApp->GetMainFrame()->PrepareDC(dC); // wxWidgets' drawing.cpp sample also calls
+                                                 // PrepareDC on the owning frame
+            pLayout->m_docEditOperationType = no_edit_op;
+            pView->Invalidate();
+        }
+
+        // Now handle the WXK_TAB processing
+        // whm 26Feb2018 Note: Except for handling of SHIFT+TAB below, the handling of WXK_TAB
+        // below should be identical to the handling of WXK_RETURN above. So, pressing Tab 
+        // within dropdown phrasebox - when the content of the dropdown's edit box is tantamount 
+        // to having selected that dropdown list item directly.
+        // It should - in the new app - do the same thing that happened in the legacy app when 
+        // the Choose Translation dialog had popped up and the desired item was already
+        // highlighted in its dialog list, and the user pressed the OK button. That OK button
+        // press is essentially the same as the user in the new app pressing the Enter key
+        // when something is contained in the dropdown's edit box. 
+        // Hence, before calling MoveToPrevPile() or JumpForward() below, we should inform
+        // the app to handle the contents as a change.
+        wxString boxContent;
+        boxContent = this->GetValue();
+        gpApp->m_targetPhrase = boxContent;
+        if (!this->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue // whm 14Feb2018 added GetTextCtrl()->
+        {
+            this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will do its work // whm 14Feb2018 added GetTextCtrl()->
+        }
+        this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
+
+                                      // save old sequ number in case required for toolbar's Back button
+        pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
+
+        // SHIFT+TAB is the 'universal' keyboard way to cause a move back, so implement it
+        // whm Note: Beware! Setting breakpoints in OnChar() before this point can
+        // affect wxGetKeyState() results making it appear that WXK_SHIFT is not detected
+        // below. Solution: remove the breakpoint(s) for wxGetKeyState(WXK_SHIFT) to <- end of comment lost
+        if (wxGetKeyState(WXK_SHIFT)) // SHIFT+TAB
+        {
+            // shift key is down, so move back a pile
+
+            // Shift+Tab (reverse direction) indicates user is probably
+            // backing up to correct something that was perhaps automatically
+            // inserted, so we will preserve any highlighting and do nothing
+            // here in response to Shift+Tab.
+
+            Freeze();
+
+            int bSuccessful = MoveToPrevPile(pApp->m_pActivePile);
+            if (!bSuccessful)
+            {
+                // we have come to the start of the document, so do nothing
+                pLayout->m_docEditOperationType = no_edit_op;
+            }
+            else
+            {
+                // it was successful
+                pLayout->m_docEditOperationType = relocate_box_op;
+            }
+
+            // scroll, if necessary
+            pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+
+            // save the phrase box's text, in case user hits SHIFT+END key to unmerge
+            // a phrase
+            m_SaveTargetPhrase = pApp->m_targetPhrase;
+
+            Thaw();
+            return;
+        }
+        else
+        {
+            //BEW changed 01Aug05. Some users are familiar with using TAB key to advance
+            // (especially when working with databases), and without thinking do so in Adapt It
+            // and expect the Lookup process to take place, etc - and then get quite disturbed
+            // when it doesn't happen that way. So for version 3 and onwards, we will interpret
+            // a TAB keypress as if it was an ENTER keypress
+            JumpForward(pView);
+        }
+        return;
+    }
+
+    // whm 16Feb2018 Note: The following test using GetKeyCode will never work for detecting a WXK_ALT key event.
     // Even calling event.AltDown() will NOT detect if ALT is down here in OnKeyUp(). 
     // Removed the m_bALT_KEY_DOWN coding - see my comments in the View's DoSrcPhraseSelCopy()
     // The basic reason is that m_bALT_KEY_DOWN cannot be set FALSE from the OnKeyUp() and the very limited
