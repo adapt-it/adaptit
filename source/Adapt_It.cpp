@@ -7470,6 +7470,117 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
     return m_pMainFrame;
 }
 
+// whm 2Jun2018 added to filter all events for wxEVT_CHAR and wxEVT_LEFT_UP events when dropdown is open
+// For reference see: https://wiki.wxwidgets.org/Catching_key_events_globally section: Filter Events
+int CAdapt_ItApp::FilterEvent(wxEvent & event)
+{
+    const wxEventType t = event.GetEventType();
+    if (t == wxEVT_LEFT_UP)
+    {
+        if (m_pTargetBox != NULL)
+        {
+            // whm TODO: Need to borrow some code from the CAdapt_ItCanvas::OnLButtonDown()
+            if (((wxMouseEvent&)event).GetEventObject() == m_pTargetBox->GetTextCtrl())
+            {
+                // This block is executed when a wxEVT_LEFT_DOWN event occurs within the phrasebox's 
+                // edit box. You can put code here to make the phrasebox dirty from a simple left-click
+                // inside the phrasebox.
+                if (m_pTargetBox->IsPopupShown())
+                {
+#if wxVERSION_NUMBER < 2900
+                    GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
+#else
+                    // Even though Windows will call Dismiss() on the first character stroke, we don't have to
+                    // limit the Dismiss() call to only the Linux version. It doesn't hurt anything for the
+                    // Dismiss() call to be done on a combo box whose dropdown is already closed.
+                    m_pTargetBox->Dismiss();
+#endif     
+                }
+                m_pTargetBox->SetSelection(0,0);
+                m_pTargetBox->GetTextCtrl()->SetInsertionPointEnd(); // seems to have no effect on Linux
+                m_pTargetBox->GetTextCtrl()->Refresh();
+                // Although we catch the wcEVT_LEFT_UP event, we need to call the CPhraseBox::OnLButtonDown() 
+                // handler to execute it flag coctail (including m_bAbandonable = FALSE).
+                // Using wxEvt_LEFT_UP also has the happy effect of unselecting the contents of the
+                // phrasebox on the first mouse click.
+                m_pTargetBox->OnLButtonDown((wxMouseEvent&)event);
+                
+                //int breakpoint = 0;
+                //breakpoint = breakpoint;
+            }
+        }
+    }
+    if (t == wxEVT_CHAR) //if (t == wxEVT_KEY_DOWN)
+    {
+        if (m_pTargetBox != NULL)
+        {
+            // If the dropdown list is open we should close it
+            if (m_pTargetBox->IsPopupShown())
+            {
+                // Note: On Windows a key press with dropdown open results in two wxEVT_KEY_DOWN events being
+                // filtered here, first one has a negative value returned by GetId() call below, the second
+                // one has the ID of the phrasebox (22030).
+                // On Linux a key press with dropdown open results in one wxEVT_KEY_DOWN event being
+                // filtered here. It has a negative value, and cannot be used to identify the phrasebox.
+                // Observation: The Windows version of wx propagates the key event on to the phrasebox
+                // closing its dropdown list and registering the first key stroke into the phrasebox replacing
+                // its currently selected text. But note that this first key going into the phrasebox does 
+                // NOT result in the triggering of the CPhraseBox::OnChar() method for that alphanumeric 
+                // character, as does any/all following alphanumeric input after that first character.
+                int keyCode = ((wxKeyEvent&)event).GetKeyCode();
+                wxChar keyChar = wxChar(keyCode);
+                wxLogDebug(_T("wxChar = %s"),wxString(keyChar).c_str());
+                //int keyid = event.GetId(); // returns negative number on Linux.
+                //wxClassInfo* classInfo = event.GetClassInfo();
+                //wxString className = classInfo->GetClassName();
+                //wxLogDebug(_T("Key_down_event: event type: %d, key id: %d class name: %s wxChar = %s"), (int)t, keyid, className.c_str(),wxString(keyChar).c_str());
+                
+                // The block below is for testing and setting breakpoints in the Windows version.
+                // It has the same conditions as the block below that is conditionally compiled
+                // for __WXGTK__ and __WXMAC__.
+                if (!((wxKeyEvent&)event).HasModifiers() && !((wxKeyEvent&)event).ShiftDown() 
+                    && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP)
+                    && wxIsprint(keyChar))
+                {
+                    int breakpoint = 0;
+                    breakpoint = breakpoint;
+                }
+
+                // Don't Dismiss() the dropdown for list navigation keys WXK_DOWN and WXK_UP
+                if (!(keyCode == WXK_DOWN) && !(keyCode == WXK_UP) && !(keyCode == WXK_PAGEDOWN) && !(keyCode == WXK_PAGEUP))
+                {
+#if wxVERSION_NUMBER < 2900
+                    GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
+#else
+                    // Even though Windows will call Dismiss() on the first character stroke, we don't have to
+                    // limit the Dismiss() call to only the Linux version. It doesn't hurt anything for the
+                    // Dismiss() call to be done on a combo box whose dropdown is already closed.
+                    m_pTargetBox->Dismiss();
+#endif     
+                    // For the Linux (and probably Mac) version, we need to manually put this first alphanumeric
+                    // character into the phrasebox
+#if defined (__WXGTK__) || defined (__WXMAC__)
+                // If the key that was typed is an alphanumeric key put it into the phrasebox.
+                    if (!((wxKeyEvent&)event).HasModifiers() && !((wxKeyEvent&)event).ShiftDown()
+                        && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP && !(keyCode == WXK_PAGEDOWN) && !(keyCode == WXK_PAGEUP))
+                        && wxIsprint(keyChar))
+                    {
+                        m_pTargetBox->ChangeValue(keyChar);
+                        // Since the insertion point ends up at position zero - before the char just typed
+                        // we need to set it to the position after the char
+                        m_pTargetBox->SetInsertionPointEnd();
+                    }
+#endif
+                }
+            }
+        }
+
+        //m_last = wxDateTime::Now();
+    }
+    // Continue processing the event normally as well.
+    return Event_Skip;
+}
+
 /*
 // whm 14Nov11 Note: This FitWithScrolling() function is now integrated in Julian Smart's
 // wxScrollingDialog class which (along with scScrollingWizard) is now used throughout
@@ -18871,14 +18982,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // upon arriving at a location with multiple translations. The m_bAutoOpenPhraseboxOnLanding value
     // is stored in the project settings file, so the following initial defaults may be changed by the
     // reading of the project config file.
+    // whm 2Jun2018 modified the defaults to be TRUE for all platforms
 #if defined (__WXMSW__)
     m_bAutoOpenPhraseboxOnLanding = TRUE;
 #elif defined (__WXGTK__)
-    m_bAutoOpenPhraseboxOnLanding = FALSE;
+    m_bAutoOpenPhraseboxOnLanding = TRUE;
 #elif defined (__WXOSX__)
-    m_bAutoOpenPhraseboxOnLanding = FALSE;
+    m_bAutoOpenPhraseboxOnLanding = TRUE;
 #else
-    m_bAutoOpenPhraseboxOnLanding = FALSE;
+    m_bAutoOpenPhraseboxOnLanding = TRUE;
 #endif
 
     bECDriverDLLLoaded = FALSE;

@@ -2085,6 +2085,9 @@ class CAdapt_ItApp : public wxApp
 
 	wxTimer m_timer;
 
+    // whm 2Jun2018 added to filter all events for key down event when dropdown is open
+    virtual int FilterEvent(wxEvent& event);
+
 	// BEW 12May16 We need a way to prevent OnIdle() events from asking the user for a KBserver
 	// login choice while the wizard is running. OnIdle() will, without this, check only for
 	// the flag m_bEnteringKBserverProject being true, and it is defaulted to true in OnInit()

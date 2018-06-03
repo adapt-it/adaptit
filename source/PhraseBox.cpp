@@ -6907,6 +6907,9 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
     // CAdapt_ItCanvas get triggered when the user simply clicks within the phrasebox
     // to remove the selection. This behavior is different than the behavior that was
     // expected for a phrasebox based on wxTextCtrl.
+    //
+    // whm 2Jun2018 update: This handler is now called from the CAdapt_ItApp::FilterEvent()
+    // function when a wxEVT_LEFT_DOWN event occurs on the edit box area of the phrasebox.
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
