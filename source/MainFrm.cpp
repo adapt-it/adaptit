@@ -7393,7 +7393,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 
 #if defined(_DEBUG) && defined(_VERTEDIT)
 		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 7368: PhraseBox contents:  %s"), 
-			gpApp->m_pTargetBox->GetValue());
+			gpApp->m_pTargetBox->GetValue().c_str());
 #endif
 #if defined(_DEBUG) && defined(_VERTEDIT)
 	{
