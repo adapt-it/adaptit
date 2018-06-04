@@ -7497,7 +7497,7 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
 #endif     
                 }
                 m_pTargetBox->SetSelection(0,0);
-                m_pTargetBox->GetTextCtrl()->SetInsertionPointEnd(); // seems to have no effect on Linux
+                //m_pTargetBox->GetTextCtrl()->SetInsertionPointEnd(); // seems to have no effect on Linux
                 m_pTargetBox->GetTextCtrl()->Refresh();
                 // Although we catch the wcEVT_LEFT_UP event, we need to call the CPhraseBox::OnLButtonDown() 
                 // handler to execute it flag coctail (including m_bAbandonable = FALSE).
@@ -7507,10 +7507,19 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                 
                 //int breakpoint = 0;
                 //breakpoint = breakpoint;
-            }
+            //}
+            //else
+            //{
+            //    // For clicks on the canvas other than directly on the phrasebox
+            //    CMainFrame* pFrame = GetMainFrame();
+            //    if (pFrame != NULL && pFrame->canvas != NULL)
+            //    {
+            //        pFrame->canvas->OnLButtonUp((wxMouseEvent&)event);
+            //    }
+            //}
         }
-    }
-    if (t == wxEVT_CHAR) //if (t == wxEVT_KEY_DOWN)
+    } // end of if (t == wxEVT_LEFT_UP)
+    if (t == wxEVT_CHAR)
     {
         if (m_pTargetBox != NULL)
         {
@@ -7574,9 +7583,7 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                 }
             }
         }
-
-        //m_last = wxDateTime::Now();
-    }
+    } // end of if (t == wxEVT_CHAR)
     // Continue processing the event normally as well.
     return Event_Skip;
 }
