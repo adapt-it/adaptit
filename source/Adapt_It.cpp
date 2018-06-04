@@ -54393,7 +54393,7 @@ void CAdapt_ItApp::LogDropdownState(wxString functionName, wxString fileName, in
 		msg = _T("Active CSourcePhrase: m_key =  %s  , m_adaption = %s  ,  m_gloss = %s  , sequenceNumber  %d ,  m_bHasKBEntry is  %s");
 		value = pActiveSrcPhrase->m_bHasKBEntry ? _T("TRUE") : _T("FALSE");
 		msg = msg.Format(msg, pActiveSrcPhrase->m_key.c_str(), pActiveSrcPhrase->m_adaption.c_str(), 
-					pActiveSrcPhrase->m_gloss, pActiveSrcPhrase->m_nSequNumber, value.c_str());
+					pActiveSrcPhrase->m_gloss.c_str(), pActiveSrcPhrase->m_nSequNumber, value.c_str());
 		wxLogDebug(msg);
 	}
 
