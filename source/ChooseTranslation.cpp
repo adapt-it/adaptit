@@ -1158,10 +1158,11 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 			// PlacePhraseBox(), PlaceBox(), ScrollIntoView(), RemoveRefString() not so - there's no location change
 			// in the phrasebox.
 		pApp->m_targetPhrase = m_chosenTranslation;
-		wxTextEntry* pTextEntry = pApp->m_pTargetBox->GetTextCtrl();
+        // whm 3Jun2018 changes to not use wxTextEntry class directly. Travis CI uses wx2.8.12 which knows nothing of wxTextEntry
+		//wxTextEntry* pTextEntry = pApp->m_pTargetBox->GetTextCtrl();
 		// check what's in it currently
-		wxString currentStr = pTextEntry->GetValue();
-		wxLogDebug(_T("pTextEntry->GetValue(),  returns currentStr:  %s"), currentStr.c_str());
+        wxString currentStr = pApp->m_pTargetBox->GetValue(); // pTextEntry->GetValue();
+		wxLogDebug(_T("m_pTargetBox->GetValue(),  returns currentStr:  %s"), currentStr.c_str());
 		pApp->m_pTargetBox->SetModify(TRUE);
 
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
@@ -1169,7 +1170,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 		// Get the chosen translation string into the dropdown combobox's text entry control
-		pTextEntry->ChangeValue(m_chosenTranslation); // doesn't generate a wxEVT_TEXT event
+        pApp->m_pTargetBox->ChangeValue(m_chosenTranslation); // doesn't generate a wxEVT_TEXT event
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 		wxLogDebug(_T("m_pTargetBox->GetModify()  returns 1 or 0: value is  %d"), (int)pApp->m_pTargetBox->GetModify());
 		// check if it got entered
