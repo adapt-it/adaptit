@@ -7507,7 +7507,7 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                 
                 //int breakpoint = 0;
                 //breakpoint = breakpoint;
-            //}
+            }
             //else
             //{
             //    // For clicks on the canvas other than directly on the phrasebox
