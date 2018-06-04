@@ -7585,7 +7585,8 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
         }
     } // end of if (t == wxEVT_CHAR)
     // Continue processing the event normally as well.
-    return Event_Skip;
+    event.Skip();
+    return -1; // Event_Skip;
 }
 
 /*
