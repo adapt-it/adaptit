@@ -1,5 +1,5 @@
 #!/bin/bash
-# aid-dev-setup.sh -- Set up environment for developing Adapt It Desktop (AID) on Ubuntu/Wasta 12.04, 14.04 or 16.04.
+# aid-dev-setup.sh -- Set up environment for developing Adapt It Desktop (AID) on Ubuntu/Wasta 12.04, 14.04, 16.04, 18.04.
 # Note: This scipt may be called from the setup-work-dev-tools.sh script (option 1), or it 
 #       can be called independently as a stand-alone script.
 # Date: 2015-06-23
@@ -19,6 +19,7 @@
 #   able to update user's /etc/apt/sources.list to include the CodeBlocks PPA
 # Revision: 26January2017 Added test for Internet connection and wget error check.
 # Requires an Internet connection to retrieve keys and use apt-get install
+# Revision: 5June2018 added support for Linux Mint up to Tara, Ubuntu up to Bionic.
 
 # Test for Internet connection
 echo -e "GET http://google.com HTTP/1.0\n\n" | nc google.com 80 > /dev/null 2>&1
@@ -45,16 +46,21 @@ AID_DEV_TOOLS_OLD="codeblocks poedit git gnome-common libgtk2.0-0-dbg libgtk2.0-
   build-essential gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
   libwxbase2.8-0 libwxbase2.8-dbg libwxbase2.8-dev libwxgtk2.8-0 libwxgtk2.8-dbg \
   libwxgtk2.8-dev wx-common wx2.8-headers wx2.8-i18n"
-AID_DEV_TOOLS_NEW="codeblocks poedit git gnome-common libgtk-3-0-dbg libgtk-3-dev \
+#AID_DEV_TOOLS_NEW="codeblocks poedit git gnome-common libgtk-3-0-dbg libgtk-3-dev \
+#  build-essential gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
+#  libwxbase3.0-0v5 libwxbase3.0-0v5-dbg libwxbase3.0-dev libwxgtk3.0-0v5 libwxgtk3.0-0v5-dbg \
+#  libwxgtk3.0-dev wx-common wx3.0-headers wx3.0-i18n"
+# Tools for Bionic system listed below for AID_DEV_TOOLS_NEW
+AID_DEV_TOOLS_NEW="codeblocks poedit git gnome-common libgtk-3-dev \
   build-essential gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
-  libwxbase3.0-0v5 libwxbase3.0-0v5-dbg libwxbase3.0-dev libwxgtk3.0-0v5 libwxgtk3.0-0v5-dbg \
-  libwxgtk3.0-dev wx-common wx3.0-headers wx3.0-i18n"
+  libwxbase3.0-0v5 libwxbase3.0-dev libwxgtk3.0-0v5 \
+  libwxgtk3.0-dev wx-common wx3.0-headers wx3.0-i18n libcanberra-gtk-module"
 APT_SOURCES_LIST_DIR="/etc/apt/sources.list"
 # Note: the wx2.8-i18n and wx3.0-i18n packages cannot be installed at the same time, 
 # otherwise you get: apt-get error: wx2.8-i18n : Conflicts: wx-i18n
 # Removed libgnomeprintui2.2-dev from AID_DEV_TOOLS... list above (it's not in 14.04 and not really needed)
 supportedDistIDs="LinuxMint Ubuntu"
-supportedCodenames="maya qiana rebecca rafaela rosa sarah precise trusty utopic vivid wily xenial yakkety"
+supportedCodenames="maya qiana rebecca rafaela rosa sarah serena sonya sylvia tara precise trusty utopic vivid wily xenial yakkety zesty artful bionic"
 echo -e "\nDetermine if system is LinuxMint or Ubuntu and its Codename"
 # Determine whether we are setting up a LinuxMint/Wasta system or a straight Ubuntu system
 # The 'lsb_release -is' command returns "LinuxMint" on Mint systems and "Ubuntu" on Ubuntu systems.
@@ -81,7 +87,8 @@ fi
 
 # Ensure the apt repository is setup for the SIL repository using the proper Codename.
 # On LinuxMint/Wasta systems, the Codename for the SIL repo must use the Ubuntu equivalent 
-# LTS Codename, i.e., "precise" for maya, or "trusty" for qiana, rebecca, rafaela, rosa, "xenial" for sarah, serena.
+# LTS Codename, i.e., "precise" for maya, or "trusty" for qiana, rebecca, rafaela, rosa, 
+# "xenial" for sarah, serena, sonya, sylvia, "bionic" for tara.
 case $distCodename in
   "maya")
   distCodename="precise"
@@ -103,6 +110,15 @@ case $distCodename in
   ;;
   "serena")
   distCodename="xenial"
+  ;;
+  "sonya")
+  distCodename="xenial"
+  ;;
+  "sylvia")
+  distCodename="xenial"
+  ;;
+  "tara")
+  distCodename="bionic"
   ;;
 esac
 echo "  The Modified Codename for Deveopment is: $distCodename"
@@ -190,6 +206,14 @@ case $distCodename in
         -i -e '\@deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu xenial main@d' \
         $APT_SOURCES_LIST_DIR
   ;;
+  "bionic")
+    # 
+    echo "As of June 2018, the PPA for codeblocks-stable/ubuntu bionic main"
+    echo "   has not been released."
+    sudo sed -i -e '$a deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu bionic main' \
+        -i -e '\@deb http://ppa.launchpad.net/damien-moore/codeblocks-stable/ubuntu bionic main@d' \
+        $APT_SOURCES_LIST_DIR
+  ;;
 esac
 
 # Ensure CodeBlocks key is installed
@@ -245,7 +269,7 @@ sudo apt-get -q update
 # Install tools for development work focusing on Adapt It Desktop (AID)
 echo -e "\nInstalling AIM development tools for $distCodename..."
 # When next LTS after xenial arrives we need to include it in test below
-if [ "$distCodename" = "xenial" ]; then
+if [ "$distCodename" = "xenial" ] || [ "$distCodename" = "bionic" ]; then
   sudo apt-get install $AID_DEV_TOOLS_NEW -y
 else
   sudo apt-get install $AID_DEV_TOOLS_OLD -y
