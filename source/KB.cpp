@@ -1102,10 +1102,10 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
         // the relevant flag to FALSE.
 		if (!(m_pApp->GetRetranslation()->GetIsRetranslationCurrent()))
 		{
-#if defined (_DEBUG)
-			wxLogDebug(_T("Decrementing CRefString: m_translation= %s , with m_refCount= %d , for pSrcPhrase->m_key= %s , at sequNum= %d"),
-				pRefString->m_translation.c_str(), pRefString->m_refCount, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_nSequNumber);
-#endif
+//#if defined (_DEBUG)
+//			wxLogDebug(_T("Decrementing CRefString: m_translation= %s , with m_refCount= %d , for pSrcPhrase->m_key= %s , at sequNum= %d"),
+//				pRefString->m_translation.c_str(), pRefString->m_refCount, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_nSequNumber);
+//#endif
 			// BEW 20Mar07: don't decrement if retranslation, or editing of same,
 			// is currently happening
 			pRefString->m_refCount = --nRefCount;

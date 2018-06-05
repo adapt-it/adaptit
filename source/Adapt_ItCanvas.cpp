@@ -1078,6 +1078,10 @@ x:					CCell* pCell = 0;
 					// one - and that means that the phrasebox is going to move - which in turn means that
 					// we can safely set app's member boolean m_bLandingBox to TRUE. This will help give
 					// better behaviours for the refactored GUI with a combo-box based phrasebox
+                    //
+                    // whm 3Jun2018 TODO: BEW needs to revisit logic stated in above comment after whm 
+                    // implementation of the App's FilterEvent() which may indeed call this OnLButtonDown() 
+                    // handler.
 					pApp->m_bLandingBox = TRUE;
 
 					// place the phrase box

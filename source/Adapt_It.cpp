@@ -349,6 +349,7 @@ int ID_PHRASE_BOX = 22030;
 #include "CCTabbedDialog.h"
 #include "WhichFilesDlg.h" // renamed from original "RestoreKBDlg.h"
 #include "SourcePhrase.h"
+#include "Strip.h"
 #include "Pile.h"
 #include "TransformToGlossesDlg.h"
 #include "EarlierTranslationDlg.h"
@@ -1760,7 +1761,7 @@ const wxString defaultProfileItems[] =
     _T("/PROFILE:"),
     _T("/MENU:"),
     _T("MENU:itemID=\"ID_TOOLS_INSTALL_GIT\":itemType=\"subMenu\":itemText=\"Install the Git program...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
-    _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+    _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
     _T("/PROFILE:"),
     _T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
     _T("/PROFILE:"),
@@ -7470,21 +7471,32 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
     return m_pMainFrame;
 }
 
-// whm 2Jun2018 added to filter all events for wxEVT_CHAR and wxEVT_LEFT_UP events when dropdown is open
+// whm 2Jun2018 added to filter all events for wxEVT_LEFT_DOWN and wxEVT_CHAR events when dropdown 
+// is open. 
+// Problem 1: On Linux, when dropdown list is open, a Left mouse click on either the phrasebox or
+// on the canvas causes the dropdown list to close, but the wxEVT_LEFT_DOWN event is consumed, but
+// a wxEVT_LEFT_UP event gets triggered - meaning only the "up" click is executed. This means that
+// only the CPhraseBox::OnLButtonUp() is executed for a click on the phrasebox, and only the 
+// CAdapt_ItCanvas::OnLButtonUp() is executed for a click on the canvas.
 // For reference see: https://wiki.wxwidgets.org/Catching_key_events_globally section: Filter Events
 int CAdapt_ItApp::FilterEvent(wxEvent & event)
 {
     const wxEventType t = event.GetEventType();
-    if (t == wxEVT_LEFT_UP)
+    // We need to catch wxEVT_LEFT_DOWN to get the initial open/closed state of the dropdown list.
+    // If we instead try to use wxEVT_LEFT_UP, the box will have already been closed by the focus
+    // shift before getting to the if (m_pTargetBox->IsPopupShown()) test below.
+    if (m_pTargetBox != NULL)
     {
-        if (m_pTargetBox != NULL)
+        /*
+        if (t == wxEVT_LEFT_DOWN)
         {
-            // whm TODO: Need to borrow some code from the CAdapt_ItCanvas::OnLButtonDown()
-            if (((wxMouseEvent&)event).GetEventObject() == m_pTargetBox->GetTextCtrl())
+            wxLogDebug(_T("**Left Button Down**"));
+            if (ClickedOnPhraseBoxLocation((wxMouseEvent&)event))
             {
                 // This block is executed when a wxEVT_LEFT_DOWN event occurs within the phrasebox's 
-                // edit box. You can put code here to make the phrasebox dirty from a simple left-click
-                // inside the phrasebox.
+                // edit box. 
+                wxLogDebug(_T("***Clicked on phrasebox***"));
+                // TODO: Dropdown closes before getting here!!!
                 if (m_pTargetBox->IsPopupShown())
                 {
 #if wxVERSION_NUMBER < 2900
@@ -7495,33 +7507,71 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                     // Dismiss() call to be done on a combo box whose dropdown is already closed.
                     m_pTargetBox->Dismiss();
 #endif     
+                    // When the dropdown list is showing, the text inside the edit box will be selected. 
+                    // Dismissing/Closing the dropdown normally won't remove the text highlighting because
+                    // the code elsewhere will use the App's m_nStartChar and m_nEndChar settings. Since
+                    // the user can just start typing to enter a new translation replacing the completely
+                    // highlighted text, here we will tell the App vars that we want there to be no selection
+                    // by setting m_nStartChar and m_nEndChar to zero.
+                    m_nStartChar = 0;
+                    m_nEndChar = 0;
+                    //m_pTargetBox->SetSelection(0, 0);
+                    //m_pTargetBox->GetTextCtrl()->SetInsertionPointEnd(); // seems to have no effect on Linux
+                    //m_pTargetBox->GetTextCtrl()->Refresh();
+                    // Although we catch the wcEVT_LEFT_UP event, we need to call the CPhraseBox::OnLButtonDown() 
+                    // handler to execute it flag coctail (including m_bAbandonable = FALSE).
+                    // Using wxEvt_LEFT_UP also has the happy effect of unselecting the contents of the
+                    // phrasebox on the first mouse click.
+                    m_pTargetBox->OnLButtonDown((wxMouseEvent&)event);
                 }
-                m_pTargetBox->SetSelection(0,0);
-                //m_pTargetBox->GetTextCtrl()->SetInsertionPointEnd(); // seems to have no effect on Linux
-                m_pTargetBox->GetTextCtrl()->Refresh();
-                // Although we catch the wcEVT_LEFT_UP event, we need to call the CPhraseBox::OnLButtonDown() 
-                // handler to execute it flag coctail (including m_bAbandonable = FALSE).
-                // Using wxEvt_LEFT_UP also has the happy effect of unselecting the contents of the
-                // phrasebox on the first mouse click.
-                m_pTargetBox->OnLButtonDown((wxMouseEvent&)event);
-                
+
                 //int breakpoint = 0;
                 //breakpoint = breakpoint;
             }
-            //else
-            //{
-            //    // For clicks on the canvas other than directly on the phrasebox
-            //    CMainFrame* pFrame = GetMainFrame();
-            //    if (pFrame != NULL && pFrame->canvas != NULL)
-            //    {
-            //        pFrame->canvas->OnLButtonUp((wxMouseEvent&)event);
-            //    }
-            //}
+            //else if (m_pTargetBox->IsPopupShown() && ((wxMouseEvent&)event).GetEventObject() == this->GetMainFrame()->canvas)
+            else if (ClickedOnOtherTargetLocation((wxMouseEvent&)event))
+            {
+                wxLogDebug(_T("***Clicked on other target location***"));
+                int BreakPoint = 0;
+                BreakPoint = BreakPoint;
+                    // For clicks on the canvas other than directly on the phrasebox
+                    CMainFrame* pFrame = GetMainFrame();
+                    if (pFrame != NULL && pFrame->canvas != NULL)
+                    {
+                        wxLogDebug(_T("Calling CAdapt_ItCanvas::OnLButtonUp() from FilterEvent() wxEVT_LEFT_DOWN"));
+                        pFrame->canvas->OnLButtonUp((wxMouseEvent&)event);
+                    }
+            }
+            int breakpoint = 0;
+            breakpoint = breakpoint;
+        } // end of if (t == wxEVT_LEFT_DOWN)
+        */
+
+        if (t == wxEVT_LEFT_UP)
+        {
+            wxLogDebug(_T("**Left Button Up**"));
+            if (ClickedOnPhraseBoxLocation((wxMouseEvent&)event))
+            {
+                wxLogDebug(_T("***Clicked on phrasebox***"));
+                wxLogDebug(_T("Calling CPhraseBox::OnLButtonDown() from FilterEvent() wxEVT_LEFT_UP"));
+                m_pTargetBox->OnLButtonDown((wxMouseEvent&)event);
+                wxLogDebug(_T("Calling CPhraseBox::OnLButtonUp() from FilterEvent() wxEVT_LEFT_UP"));
+                m_pTargetBox->OnLButtonUp((wxMouseEvent&)event);
+            }
+            else if (ClickedOnOtherTargetLocation((wxMouseEvent&)event))
+            {
+                wxLogDebug(_T("***Clicked on other target location***"));
+                CMainFrame* pFrame = GetMainFrame();
+                if (pFrame != NULL && pFrame->canvas != NULL)
+                {
+                    wxLogDebug(_T("Calling CAdapt_ItCanvas::OnLButtonDown() from FilterEvent() wxEVT_LEFT_UP"));
+                    pFrame->canvas->OnLButtonDown((wxMouseEvent&)event);
+                }
+            }
+
         }
-    } // end of if (t == wxEVT_LEFT_UP)
-    if (t == wxEVT_CHAR)
-    {
-        if (m_pTargetBox != NULL)
+
+        if (t == wxEVT_CHAR)
         {
             // If the dropdown list is open we should close it
             if (m_pTargetBox->IsPopupShown())
@@ -7538,16 +7588,16 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                 // character, as does any/all following alphanumeric input after that first character.
                 int keyCode = ((wxKeyEvent&)event).GetKeyCode();
                 wxChar keyChar = wxChar(keyCode);
-                wxLogDebug(_T("wxChar = %s"),wxString(keyChar).c_str());
+                wxLogDebug(_T("wxChar = %s"), wxString(keyChar).c_str());
                 //int keyid = event.GetId(); // returns negative number on Linux.
                 //wxClassInfo* classInfo = event.GetClassInfo();
                 //wxString className = classInfo->GetClassName();
                 //wxLogDebug(_T("Key_down_event: event type: %d, key id: %d class name: %s wxChar = %s"), (int)t, keyid, className.c_str(),wxString(keyChar).c_str());
-                
+
                 // The block below is for testing and setting breakpoints in the Windows version.
                 // It has the same conditions as the block below that is conditionally compiled
                 // for __WXGTK__ and __WXMAC__.
-                if (!((wxKeyEvent&)event).HasModifiers() && !((wxKeyEvent&)event).ShiftDown() 
+                if (!((wxKeyEvent&)event).HasModifiers() && !((wxKeyEvent&)event).ShiftDown()
                     && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP)
                     && wxIsprint(keyChar))
                 {
@@ -7569,7 +7619,7 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                     // For the Linux (and probably Mac) version, we need to manually put this first alphanumeric
                     // character into the phrasebox
 #if defined (__WXGTK__) || defined (__WXMAC__)
-                // If the key that was typed is an alphanumeric key put it into the phrasebox.
+            // If the key that was typed is an alphanumeric key put it into the phrasebox.
                     if (!((wxKeyEvent&)event).HasModifiers() && !((wxKeyEvent&)event).ShiftDown()
                         && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP && !(keyCode == WXK_PAGEDOWN) && !(keyCode == WXK_PAGEUP))
                         && wxIsprint(keyChar))
@@ -7582,11 +7632,125 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
 #endif
                 }
             }
-        }
-    } // end of if (t == wxEVT_CHAR)
+            
+        } // end of if (t == wxEVT_CHAR)
+    }
     // Continue processing the event normally as well.
     event.Skip();
     return -1; // Event_Skip;
+}
+
+// whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
+bool CAdapt_ItApp::ClickedOnPhraseBoxLocation(wxMouseEvent& event)
+{
+    // The object represented by the m_pTargetBox->GetTextCtrl() return value is the pointer
+    // to just the wxTextCtrl part of the dropdown phrasebox. Clicking on just the phrasebox
+    // down button here returns FALSE as it is a different object.
+    if (m_pTargetBox->GetTextCtrl() == ((wxMouseEvent&)event).GetEventObject())
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+    /*
+    CAdapt_ItView* pView = (CAdapt_ItView*)GetView();
+    wxASSERT(pView != NULL);
+    wxPoint point;
+    point = event.GetPosition();	// GetPosition() gets the point on the view port relative to upper-left
+                                    // corner of the window.
+                                    // get the point into logical coordinates
+    CAdapt_ItCanvas* pCanvas = this->GetMainFrame()->canvas;
+    wxClientDC aDC(pCanvas); // make a device context
+    pCanvas->DoPrepareDC(aDC); // get origin adjusted (calls wxScrolledWindow::DoPrepareDC)
+
+                               // we don't need to call CalcUnscrolledPosition here because GetLogicalPosition already
+                               // provides logical coordinates for the clicked point; wxPoint in device coords was needed
+                               // above to set the gptLastClick (used in AdjustDialogByClick), so we'll get the logical
+                               // coords of the point here.
+    wxPoint logicalPoint(event.GetLogicalPosition(aDC));
+    point = logicalPoint;
+
+    CCell* pCell = pView->GetClickedCell(&point); // returns NULL if the point was not in a cell
+
+
+    wxRect tgtBoxRect = m_pTargetBox->GetRect();
+
+    CStrip* pClickedStrip = pView->GetNearestStrip(&point);
+    if (pClickedStrip != NULL)
+    {
+        int numPiles;
+        numPiles = pClickedStrip->GetPileCount();
+        if (numPiles > 0)
+        {
+            CPile* pPile = NULL;
+            int indexPile;
+            for (indexPile = 0; indexPile < numPiles; indexPile++)
+            {
+                pPile = pClickedStrip->GetPileByIndex(indexPile);
+                wxASSERT(pPile != NULL);
+                wxRect pileRect = pPile->GetPileRect();
+                //if (pileRect.Contains(point))
+                //{
+                int nSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
+                if (nSequNum == m_nActiveSequNum)
+                    return TRUE;
+                //}
+            }
+        }
+    }
+    return FALSE;
+    */
+}
+
+// whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
+bool CAdapt_ItApp::ClickedOnOtherTargetLocation(wxMouseEvent& event)
+{
+    CAdapt_ItView* pView = (CAdapt_ItView*)GetView();
+    wxASSERT(pView != NULL);
+    wxPoint point;
+    point = event.GetPosition();	// GetPosition() gets the point on the view port relative to upper-left
+                                    // corner of the window.
+                                    // get the point into logical coordinates
+    CAdapt_ItCanvas* pCanvas = this->GetMainFrame()->canvas;
+    wxClientDC aDC(pCanvas); // make a device context
+    pCanvas->DoPrepareDC(aDC); // get origin adjusted (calls wxScrolledWindow::DoPrepareDC)
+
+                      // we don't need to call CalcUnscrolledPosition here because GetLogicalPosition already
+                      // provides logical coordinates for the clicked point; wxPoint in device coords was needed
+                      // above to set the gptLastClick (used in AdjustDialogByClick), so we'll get the logical
+                      // coords of the point here.
+    wxPoint logicalPoint(event.GetLogicalPosition(aDC));
+    point = logicalPoint;
+
+    CStrip* pClickedStrip = pView->GetNearestStrip(&point);
+    if (pClickedStrip != NULL)
+    {
+        int numPiles;
+        numPiles = pClickedStrip->GetPileCount();
+        if (numPiles > 0)
+        {
+            CPile* pPile = NULL;
+            CCell* pCell = NULL;
+            wxRect cellRect;
+            int indexPile;
+            for (indexPile = 0; indexPile < numPiles; indexPile++)
+            {
+                pPile = pClickedStrip->GetPileByIndex(indexPile);
+                wxASSERT(pPile != NULL);
+                wxRect pileRect = pPile->GetPileRect();
+                if (pileRect.Contains(point))
+                {
+                    pCell = pPile->GetCell(1);
+                    pCell->GetCellRect(cellRect);
+                    if (cellRect.Contains(point))
+                        return TRUE;
+                }
+            }
+        }
+    }
+    return FALSE;
 }
 
 /*

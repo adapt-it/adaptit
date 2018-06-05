@@ -6309,9 +6309,9 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
         {
             nRefStrCount = pApp->pCurTargetUnit->CountNonDeletedRefStringInstances();
 
-#ifdef _DEBUG
-			wxLogDebug(_T("PhraseBox.cpp at line %d ,nRefStringCount before a landing deletion = %d"), 6085, nRefStrCount);
-#endif
+//#ifdef _DEBUG
+//			wxLogDebug(_T("PhraseBox.cpp at line %d ,nRefStringCount before a landing deletion = %d"), 6085, nRefStrCount);
+//#endif
         }
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
 //		pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() TRUE for  if (!pApp->bLookAheadMerge && !pApp->m_bAutoInsert && !pApp->m_bMovingToDifferentPile)"), _T("PhraseBox.cpp"), 6088);
@@ -6897,6 +6897,8 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 {
+    wxLogDebug(_T("CPhraseBox::::OnLButtonDown() triggered"));
+
 	// This mouse event is only activated when user clicks mouse L button within
 	// the phrase box, not elsewhere on the screen [but see next comment]...
     // whm 10Apr2018 update: With the implementation of the new dropdown phrasebox, 
@@ -6969,7 +6971,7 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 	m_bAbandonable = FALSE;
 	pApp->m_bUserTypedSomething = TRUE;
     m_bRetainBoxContents = TRUE;
-    wxLogDebug(_T("CPhraseBox::OnLButtonDown() triggered"));
+    //wxLogDebug(_T("CPhraseBox::OnLButtonDown() triggered with flag m_bAbandonable = FALSE"));
 	event.Skip();
     GetTextCtrl()->GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar);
 }

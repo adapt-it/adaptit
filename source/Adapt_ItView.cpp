@@ -3331,9 +3331,9 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
                                 // value that it sets in the active pile's m_nWidth member
 		goto a;
 	}
-#ifdef _DEBUG
-	wxLogDebug(_T("PlacePhraseBox at %d ,  'Leaving'  Active Sequ Num  %d"),3334,pApp->m_nActiveSequNum);
-#endif
+//#ifdef _DEBUG
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  'Leaving'  Active Sequ Num  %d"),3334,pApp->m_nActiveSequNum);
+//#endif
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3327,
 		(int)pApp-> && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL));
