@@ -2954,7 +2954,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	{
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 		wxLogDebug(_T("View, PlacePhraseBox() line  %d  'Leaving', pApp->m_SaveTargetPhrase = %s"), 2956,
-			pApp->m_pTargetBox->m_SaveTargetPhrase);
+			pApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
 #endif
 
         // if it's an <Not In KB> entry, from version 1.4.0 and onwards, by Susanna Imrie's
@@ -3195,7 +3195,7 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 //#endif
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d  Committing to 'Landing' location, pApp->m_SaveTargetPhrase = %s"), 3196,
-		pApp->m_pTargetBox->m_SaveTargetPhrase);
+		pApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
 #endif
 
 	// BEW 7May18. We use the fact that OnLButtonDown() is never called when there is a user
@@ -3331,9 +3331,9 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
                                 // value that it sets in the active pile's m_nWidth member
 		goto a;
 	}
-#ifdef _DEBUG
-	wxLogDebug(_T("PlacePhraseBox at %d ,  'Leaving'  Active Sequ Num  %d"),3334,pApp->m_nActiveSequNum);
-#endif
+//#ifdef _DEBUG
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  'Leaving'  Active Sequ Num  %d"),3334,pApp->m_nActiveSequNum);
+//#endif
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3327,
 		(int)pApp-> && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL));
@@ -3521,7 +3521,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase); // BEW 7May18 added line, m_targetPhrase & contents of m_pTargetBox must stay in sync
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	pApp->LogDropdownState(_T("PlacePhraseBox() Landing, just set m_SaveTargetPhrase, & box contents, to m_targetPhrase"), _T("Adapt_ItView.cpp"), 3522);
-	wxLogDebug(_T("View, PlacePhraseBox() line  %d 'Landing' pApp->m_SaveTargetPhrase = %s"), 3523,pApp->m_pTargetBox->m_SaveTargetPhrase);
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d 'Landing' pApp->m_SaveTargetPhrase = %s"), 3523,pApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
 
 #endif
 
@@ -3864,7 +3864,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 #endif
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d  - before PlaceBox(), pApp->m_SaveTargetPhrase = %s"), 3864,
-		pApp->m_pTargetBox->m_SaveTargetPhrase);
+		pApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
 
 #endif
 	pLayout->PlaceBox();
@@ -3876,7 +3876,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after PlaceBox() about to exit PlacePhraseBox()"), _T("Adapt_ItView.cpp"), 3875);
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d 'Landing' - now exiting, pApp->m_SaveTargetPhrase = %s"), 3876,
-		pApp->m_pTargetBox->m_SaveTargetPhrase);
+		pApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
 #endif
 	pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // re-initialize
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
@@ -24452,7 +24452,7 @@ void CAdapt_ItView::InitializeEditRecord(EditRecord& editRec)
 {
 #if defined(_DEBUG) && defined(_VERTEDIT)
 		CAdapt_ItApp* pApp = &wxGetApp();
-		wxLogDebug(_T("InitializeEditRecord() at entry line, 21869: PhraseBox contents:     %s"), pApp->m_pTargetBox->GetValue());
+		wxLogDebug(_T("InitializeEditRecord() at entry line, 21869: PhraseBox contents:     %s"), pApp->m_pTargetBox->GetValue().c_str());
 #endif
 	// BEW added 17Apr08
 	// first clear the global boolean which tracks whether or not

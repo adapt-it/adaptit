@@ -349,6 +349,7 @@ int ID_PHRASE_BOX = 22030;
 #include "CCTabbedDialog.h"
 #include "WhichFilesDlg.h" // renamed from original "RestoreKBDlg.h"
 #include "SourcePhrase.h"
+#include "Strip.h"
 #include "Pile.h"
 #include "TransformToGlossesDlg.h"
 #include "EarlierTranslationDlg.h"
@@ -1760,7 +1761,7 @@ const wxString defaultProfileItems[] =
     _T("/PROFILE:"),
     _T("/MENU:"),
     _T("MENU:itemID=\"ID_TOOLS_INSTALL_GIT\":itemType=\"subMenu\":itemText=\"Install the Git program...\":itemDescr=\"Tools menu\":adminCanChange=\"1\":"),
-    _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+    _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
     _T("/PROFILE:"),
     _T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
     _T("/PROFILE:"),
@@ -5485,6 +5486,26 @@ wxLANGUAGE_USER_DEFINED		//	230	null	null
 /// \remarks
 /// Called from: The App's ChooseInterfaceLanguage(), and CLanguagesPage::InitDialog(). An
 /// array consisting of triplets of full language names, the wxWidgets language enum
+/// symbol wxLANGUAGE_USER_DEFINED, and the short canonical name (used for subdirectories). 
+/// Used to correlate full language names, enum symbols and canonical names. 
+/// Note: This language data is unique to Adapt It. Since - as of January 2017, Poedit no
+/// longer stores the full language name as an X extension in the po/mo files, we need to
+/// be able to associate our custom full language names and the appropirate ISO 639-3 3-letter
+/// code for use within Adapt It.
+/// whm added 28May2018 to provide long language names for custom ISO 639-3 codes not recognized
+/// by the wxLocale system.
+////////////////////////////////////////////////////////////////////////////////////////
+LangInfo langsKnownToAI[] = 
+{
+    { _T("Tok Pisin"), wxLANGUAGE_USER_DEFINED, _T("tpi") },
+    { _T("Swahili"), wxLANGUAGE_USER_DEFINED, _T("swh") }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: The App's ChooseInterfaceLanguage(), and CLanguagesPage::InitDialog(). An
+/// array consisting of triplets of full language names, the wxWidgets language enum
 /// symbols, and the short canonical name (used for subdirectories). Used to correlate full
 /// language names, enum symbols and canonical names. Note: This language data is taken
 /// from the void wxLocale::InitLanguagesDB() function in the wxWidgets intl.cpp library
@@ -7182,6 +7203,12 @@ wxString szSrcHasUcAndLc = _T("SourceHasUpperCaseAndLowerCase");// added in wx v
 wxString szUseSFMarkerSet = _T("UseSFMarkerSet");
 
 /// The label that identifies the following string encoded value as the application's
+/// "AutoOpenPhraseBoxTranslationsList". This value is written in the "Settings" part of the
+/// project configuration file. Adapt It stores this value in the App's 
+/// m_bAutoOpenPhraseboxOnLanding member.
+wxString szAutoOpenPhraseBoxTranslationsList = _T("AutoOpenPhraseBoxTranslationsList");
+
+/// The label that identifies the following string encoded value as the application's
 /// "UsfmOnly". This value is written in the "Settings" part of the basic configuration
 /// file. Adapt It stores this value in the App's gProjectSfmSetForConfig global enum
 /// variable.
@@ -7442,6 +7469,288 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
 {
     wxASSERT(m_pMainFrame != NULL);
     return m_pMainFrame;
+}
+
+// whm 2Jun2018 added to filter all events for wxEVT_LEFT_DOWN and wxEVT_CHAR events when dropdown 
+// is open. 
+// Problem 1: On Linux, when dropdown list is open, a Left mouse click on either the phrasebox or
+// on the canvas causes the dropdown list to close, but the wxEVT_LEFT_DOWN event is consumed, but
+// a wxEVT_LEFT_UP event gets triggered - meaning only the "up" click is executed. This means that
+// only the CPhraseBox::OnLButtonUp() is executed for a click on the phrasebox, and only the 
+// CAdapt_ItCanvas::OnLButtonUp() is executed for a click on the canvas.
+// For reference see: https://wiki.wxwidgets.org/Catching_key_events_globally section: Filter Events
+int CAdapt_ItApp::FilterEvent(wxEvent & event)
+{
+    const wxEventType t = event.GetEventType();
+    // We need to catch wxEVT_LEFT_DOWN to get the initial open/closed state of the dropdown list.
+    // If we instead try to use wxEVT_LEFT_UP, the box will have already been closed by the focus
+    // shift before getting to the if (m_pTargetBox->IsPopupShown()) test below.
+    if (m_pTargetBox != NULL)
+    {
+        /*
+        if (t == wxEVT_LEFT_DOWN)
+        {
+            wxLogDebug(_T("**Left Button Down**"));
+            if (ClickedOnPhraseBoxLocation((wxMouseEvent&)event))
+            {
+                // This block is executed when a wxEVT_LEFT_DOWN event occurs within the phrasebox's 
+                // edit box. 
+                wxLogDebug(_T("***Clicked on phrasebox***"));
+                // TODO: Dropdown closes before getting here!!!
+                if (m_pTargetBox->IsPopupShown())
+                {
+#if wxVERSION_NUMBER < 2900
+                    GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
+#else
+                    // Even though Windows will call Dismiss() on the first character stroke, we don't have to
+                    // limit the Dismiss() call to only the Linux version. It doesn't hurt anything for the
+                    // Dismiss() call to be done on a combo box whose dropdown is already closed.
+                    m_pTargetBox->Dismiss();
+#endif     
+                    // When the dropdown list is showing, the text inside the edit box will be selected. 
+                    // Dismissing/Closing the dropdown normally won't remove the text highlighting because
+                    // the code elsewhere will use the App's m_nStartChar and m_nEndChar settings. Since
+                    // the user can just start typing to enter a new translation replacing the completely
+                    // highlighted text, here we will tell the App vars that we want there to be no selection
+                    // by setting m_nStartChar and m_nEndChar to zero.
+                    m_nStartChar = 0;
+                    m_nEndChar = 0;
+                    //m_pTargetBox->SetSelection(0, 0);
+                    //m_pTargetBox->GetTextCtrl()->SetInsertionPointEnd(); // seems to have no effect on Linux
+                    //m_pTargetBox->GetTextCtrl()->Refresh();
+                    // Although we catch the wcEVT_LEFT_UP event, we need to call the CPhraseBox::OnLButtonDown() 
+                    // handler to execute it flag coctail (including m_bAbandonable = FALSE).
+                    // Using wxEvt_LEFT_UP also has the happy effect of unselecting the contents of the
+                    // phrasebox on the first mouse click.
+                    m_pTargetBox->OnLButtonDown((wxMouseEvent&)event);
+                }
+
+                //int breakpoint = 0;
+                //breakpoint = breakpoint;
+            }
+            //else if (m_pTargetBox->IsPopupShown() && ((wxMouseEvent&)event).GetEventObject() == this->GetMainFrame()->canvas)
+            else if (ClickedOnOtherTargetLocation((wxMouseEvent&)event))
+            {
+                wxLogDebug(_T("***Clicked on other target location***"));
+                int BreakPoint = 0;
+                BreakPoint = BreakPoint;
+                    // For clicks on the canvas other than directly on the phrasebox
+                    CMainFrame* pFrame = GetMainFrame();
+                    if (pFrame != NULL && pFrame->canvas != NULL)
+                    {
+                        wxLogDebug(_T("Calling CAdapt_ItCanvas::OnLButtonUp() from FilterEvent() wxEVT_LEFT_DOWN"));
+                        pFrame->canvas->OnLButtonUp((wxMouseEvent&)event);
+                    }
+            }
+            int breakpoint = 0;
+            breakpoint = breakpoint;
+        } // end of if (t == wxEVT_LEFT_DOWN)
+        */
+
+        if (t == wxEVT_LEFT_UP)
+        {
+            wxLogDebug(_T("**Left Button Up**"));
+            if (ClickedOnPhraseBoxLocation((wxMouseEvent&)event))
+            {
+                wxLogDebug(_T("***Clicked on phrasebox***"));
+                wxLogDebug(_T("Calling CPhraseBox::OnLButtonDown() from FilterEvent() wxEVT_LEFT_UP"));
+                m_pTargetBox->OnLButtonDown((wxMouseEvent&)event);
+                wxLogDebug(_T("Calling CPhraseBox::OnLButtonUp() from FilterEvent() wxEVT_LEFT_UP"));
+                m_pTargetBox->OnLButtonUp((wxMouseEvent&)event);
+            }
+            else if (ClickedOnOtherTargetLocation((wxMouseEvent&)event))
+            {
+                wxLogDebug(_T("***Clicked on other target location***"));
+                CMainFrame* pFrame = GetMainFrame();
+                if (pFrame != NULL && pFrame->canvas != NULL)
+                {
+                    wxLogDebug(_T("Calling CAdapt_ItCanvas::OnLButtonDown() from FilterEvent() wxEVT_LEFT_UP"));
+                    pFrame->canvas->OnLButtonDown((wxMouseEvent&)event);
+                }
+            }
+
+        }
+
+        if (t == wxEVT_CHAR)
+        {
+            // If the dropdown list is open we should close it
+            if (m_pTargetBox->IsPopupShown())
+            {
+                // Note: On Windows a key press with dropdown open results in two wxEVT_KEY_DOWN events being
+                // filtered here, first one has a negative value returned by GetId() call below, the second
+                // one has the ID of the phrasebox (22030).
+                // On Linux a key press with dropdown open results in one wxEVT_KEY_DOWN event being
+                // filtered here. It has a negative value, and cannot be used to identify the phrasebox.
+                // Observation: The Windows version of wx propagates the key event on to the phrasebox
+                // closing its dropdown list and registering the first key stroke into the phrasebox replacing
+                // its currently selected text. But note that this first key going into the phrasebox does 
+                // NOT result in the triggering of the CPhraseBox::OnChar() method for that alphanumeric 
+                // character, as does any/all following alphanumeric input after that first character.
+                int keyCode = ((wxKeyEvent&)event).GetKeyCode();
+                wxChar keyChar = wxChar(keyCode);
+                wxLogDebug(_T("wxChar = %s"), wxString(keyChar).c_str());
+                //int keyid = event.GetId(); // returns negative number on Linux.
+                //wxClassInfo* classInfo = event.GetClassInfo();
+                //wxString className = classInfo->GetClassName();
+                //wxLogDebug(_T("Key_down_event: event type: %d, key id: %d class name: %s wxChar = %s"), (int)t, keyid, className.c_str(),wxString(keyChar).c_str());
+
+                // The block below is for testing and setting breakpoints in the Windows version.
+                // It has the same conditions as the block below that is conditionally compiled
+                // for __WXGTK__ and __WXMAC__.
+                if (!((wxKeyEvent&)event).HasModifiers() && !((wxKeyEvent&)event).ShiftDown()
+                    && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP)
+                    && wxIsprint(keyChar))
+                {
+                    int breakpoint = 0;
+                    breakpoint = breakpoint;
+                }
+
+                // Don't Dismiss() the dropdown for list navigation keys WXK_DOWN and WXK_UP
+                if (!(keyCode == WXK_DOWN) && !(keyCode == WXK_UP) && !(keyCode == WXK_PAGEDOWN) && !(keyCode == WXK_PAGEUP))
+                {
+#if wxVERSION_NUMBER < 2900
+                    GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
+#else
+                    // Even though Windows will call Dismiss() on the first character stroke, we don't have to
+                    // limit the Dismiss() call to only the Linux version. It doesn't hurt anything for the
+                    // Dismiss() call to be done on a combo box whose dropdown is already closed.
+                    m_pTargetBox->Dismiss();
+#endif     
+                    // For the Linux (and probably Mac) version, we need to manually put this first alphanumeric
+                    // character into the phrasebox
+#if defined (__WXGTK__) || defined (__WXMAC__)
+            // If the key that was typed is an alphanumeric key put it into the phrasebox.
+                    if (!((wxKeyEvent&)event).HasModifiers() && !((wxKeyEvent&)event).ShiftDown()
+                        && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP && !(keyCode == WXK_PAGEDOWN) && !(keyCode == WXK_PAGEUP))
+                        && wxIsprint(keyChar))
+                    {
+                        m_pTargetBox->ChangeValue(keyChar);
+                        // Since the insertion point ends up at position zero - before the char just typed
+                        // we need to set it to the position after the char
+                        m_pTargetBox->SetInsertionPointEnd();
+                    }
+#endif
+                }
+            }
+            
+        } // end of if (t == wxEVT_CHAR)
+    }
+    // Continue processing the event normally as well.
+    event.Skip();
+    return -1; // Event_Skip;
+}
+
+// whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
+bool CAdapt_ItApp::ClickedOnPhraseBoxLocation(wxMouseEvent& event)
+{
+    // The object represented by the m_pTargetBox->GetTextCtrl() return value is the pointer
+    // to just the wxTextCtrl part of the dropdown phrasebox. Clicking on just the phrasebox
+    // down button here returns FALSE as it is a different object.
+    if (m_pTargetBox->GetTextCtrl() == ((wxMouseEvent&)event).GetEventObject())
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+    /*
+    CAdapt_ItView* pView = (CAdapt_ItView*)GetView();
+    wxASSERT(pView != NULL);
+    wxPoint point;
+    point = event.GetPosition();	// GetPosition() gets the point on the view port relative to upper-left
+                                    // corner of the window.
+                                    // get the point into logical coordinates
+    CAdapt_ItCanvas* pCanvas = this->GetMainFrame()->canvas;
+    wxClientDC aDC(pCanvas); // make a device context
+    pCanvas->DoPrepareDC(aDC); // get origin adjusted (calls wxScrolledWindow::DoPrepareDC)
+
+                               // we don't need to call CalcUnscrolledPosition here because GetLogicalPosition already
+                               // provides logical coordinates for the clicked point; wxPoint in device coords was needed
+                               // above to set the gptLastClick (used in AdjustDialogByClick), so we'll get the logical
+                               // coords of the point here.
+    wxPoint logicalPoint(event.GetLogicalPosition(aDC));
+    point = logicalPoint;
+
+    CCell* pCell = pView->GetClickedCell(&point); // returns NULL if the point was not in a cell
+
+
+    wxRect tgtBoxRect = m_pTargetBox->GetRect();
+
+    CStrip* pClickedStrip = pView->GetNearestStrip(&point);
+    if (pClickedStrip != NULL)
+    {
+        int numPiles;
+        numPiles = pClickedStrip->GetPileCount();
+        if (numPiles > 0)
+        {
+            CPile* pPile = NULL;
+            int indexPile;
+            for (indexPile = 0; indexPile < numPiles; indexPile++)
+            {
+                pPile = pClickedStrip->GetPileByIndex(indexPile);
+                wxASSERT(pPile != NULL);
+                wxRect pileRect = pPile->GetPileRect();
+                //if (pileRect.Contains(point))
+                //{
+                int nSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
+                if (nSequNum == m_nActiveSequNum)
+                    return TRUE;
+                //}
+            }
+        }
+    }
+    return FALSE;
+    */
+}
+
+// whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
+bool CAdapt_ItApp::ClickedOnOtherTargetLocation(wxMouseEvent& event)
+{
+    CAdapt_ItView* pView = (CAdapt_ItView*)GetView();
+    wxASSERT(pView != NULL);
+    wxPoint point;
+    point = event.GetPosition();	// GetPosition() gets the point on the view port relative to upper-left
+                                    // corner of the window.
+                                    // get the point into logical coordinates
+    CAdapt_ItCanvas* pCanvas = this->GetMainFrame()->canvas;
+    wxClientDC aDC(pCanvas); // make a device context
+    pCanvas->DoPrepareDC(aDC); // get origin adjusted (calls wxScrolledWindow::DoPrepareDC)
+
+                      // we don't need to call CalcUnscrolledPosition here because GetLogicalPosition already
+                      // provides logical coordinates for the clicked point; wxPoint in device coords was needed
+                      // above to set the gptLastClick (used in AdjustDialogByClick), so we'll get the logical
+                      // coords of the point here.
+    wxPoint logicalPoint(event.GetLogicalPosition(aDC));
+    point = logicalPoint;
+
+    CStrip* pClickedStrip = pView->GetNearestStrip(&point);
+    if (pClickedStrip != NULL)
+    {
+        int numPiles;
+        numPiles = pClickedStrip->GetPileCount();
+        if (numPiles > 0)
+        {
+            CPile* pPile = NULL;
+            CCell* pCell = NULL;
+            wxRect cellRect;
+            int indexPile;
+            for (indexPile = 0; indexPile < numPiles; indexPile++)
+            {
+                pPile = pClickedStrip->GetPileByIndex(indexPile);
+                wxASSERT(pPile != NULL);
+                wxRect pileRect = pPile->GetPileRect();
+                if (pileRect.Contains(point))
+                {
+                    pCell = pPile->GetCell(1);
+                    pCell->GetCellRect(cellRect);
+                    if (cellRect.Contains(point))
+                        return TRUE;
+                }
+            }
+        }
+    }
+    return FALSE;
 }
 
 /*
@@ -7971,6 +8280,10 @@ wxLanguage CAdapt_ItApp::GetLanguageFromFullLangName(const wxString fullLangName
 /////////////////////////////////////////////////////////////////////////////////////////
 wxLanguage CAdapt_ItApp::GetLanguageFromDirStr(const wxString dirStr, wxString &fullLangName)
 {
+    // whm 28May2018 modified to return in the fullLangName reference parameter the
+    // full language name of a custom added language known to Adapt It, for example,
+    // "Tok Pisin" or "Swahili" are currently the only two in the langsKnownToAI struct.
+    //
     // Scan through the langsKnownToWX[] array of LangInfo structs for the dirStr
     int ct = 0;
     while (langsKnownToWX[ct].fullName != NULL)
@@ -8007,6 +8320,21 @@ wxLanguage CAdapt_ItApp::GetLanguageFromDirStr(const wxString dirStr, wxString &
         }
         ct++;
     }
+
+    // whm 28May2018 added the following block searching in our custom langsKnownToAI[] array
+    ct = 0;
+    while (langsKnownToAI[ct].fullName != NULL)
+    {
+        if (langsKnownToAI[ct].shortName == dirStr)
+        {
+            // we've found the shortName in our langsKnownToWX[] array, so assign
+            // fullLangName the string value in langsKnownToWX[ct].fullName
+            fullLangName = langsKnownToAI[ct].fullName;
+            return langsKnownToAI[ct].code;
+        }
+        ct++;
+    }
+
     // If we get here we've searched the whole array and not found dirStr or its prefix
     // in langsKnownToWX[].
     return wxLANGUAGE_UNKNOWN;
@@ -8155,11 +8483,20 @@ bool CAdapt_ItApp::InitializeLanguageLocale(wxString shortLangName, wxString lon
 
     bool bLoadOK = TRUE;
     wxLogNull nolog; // avoid spurious messages from the system
+    // whm 28May2018 modified. Changed the third parameter in the wxLocale constructor
+    // below to use the "C" locale as default. This prevents an annoying assert message
+    // that pops up in wx3.x repeatedly when a non-English localization is set. The assert
+    // says, 
+    //    "You probably called setlocale() directly instead of using wxLocale and now there is a
+    //    mismatch between C/C++ and Windows locale.
+    //    Things are going to break, please only change locale by creating wxLocale objects to avoid this!"
+    // The assert is tripped when each button image is created by wxGetBitmapFromMemory(), due to a problem
+    // it has in wx 3.x in determining the decimal point character for the so-called locale mismatches.
 #if WXWIN_COMPATIBILITY_2_8
-    m_pLocale = new wxLocale(longLangName, shortLangName, _T(""), TRUE, TRUE);
+    m_pLocale = new wxLocale(longLangName, shortLangName, _T("C"), TRUE, TRUE);
     // GDLC 9Jul12 Last parameter removed for 2.9.x
 #else
-    m_pLocale = new wxLocale(longLangName, shortLangName, _T(""), TRUE);
+    m_pLocale = new wxLocale(longLangName, shortLangName, _T("C"), TRUE);
 #endif
     if (!pathPrefix.IsEmpty())
         m_pLocale->AddCatalogLookupPathPrefix(pathPrefix);
@@ -15818,6 +16155,32 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 #else
         m_pConfig->Write(_T("ui_language_path"), currLocInfo.curr_localizationPath);
 #endif
+        // whm 28May2018 modified the code below. As of January 2017 We cannot use the 
+        // GetLanguageNameFromBinaryMoFile() function to determine the full language 
+        // name, because the Poedit no longer makes use of an extension labeled 
+        // X-Poedit-Language within its po / mo files. Instead we'll check for the
+        // full language name from our own hard-coded list defined in our 
+        // langsKnownToAI[] array, via a call to our GetLanguageFromDirStr()
+        // function - now modified to check the langsKnownToAI[] array.
+        // Note: The dirStr first parameter expected in GetLanguageFromDirStr() should
+        // be identical to the curr_shortName field of the currLocInfo struct found above.
+        wxLanguage lang;
+        wxString fullLangName;
+        lang = GetLanguageFromDirStr(currLocInfo.curr_shortName, fullLangName);
+        if (lang == wxLANGUAGE_USER_DEFINED)
+        {
+            // we found one of our custom defined language names, currently either 
+            // Tok Pisin or Swahili.
+            // The full language name is returned in the fullLangName ref parameter, so
+            // use it to correct/update the value in currLocInfo.curr_fullName
+            currLocInfo.curr_fullName = fullLangName;
+            // Update the curr_fullName in the registry
+            m_pConfig->Write(_T("ui_language_name"), currLocInfo.curr_fullName);
+        }
+
+        /* // whm 28May2018 modified - the following code block below is now obsolete
+        // and so any curr_fullName that contains "[Contains Unknown or New Localization]"
+        // will remain unless corrected/updated by the block above.
         // whm added 6Jan13 ensure that the ui_language_name represents
         // the "Language: " name value in the binary mo file stored in
         // the localization directory represented by the ui_language_code
@@ -15853,6 +16216,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
                 }
             }
         }
+        */
     }
 
     // Next, retrieve any user defined language data from the user_defined_language_n keys.
@@ -15878,6 +16242,62 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
         // the full language name from an existing localization mo file. Use
         // the same modification as in the code block above in the case of the
         // ui_language_name.
+        // whm 28May2018 modified. See comments in the above block
+        // Here we are dealing with a tempStr that represents a composite string
+        // delimited by colon characters of the form:
+        // nnn:xxx:xxx
+        //    or
+        // nnn:xxx:xxx [Contains Unknown or New Localization]
+        // We want the third field to represent the actual full name of any custom
+        // language that has been defined, so that it will be of the form:
+        // nnn:xxx:Language
+        // where xxx is the 2 or 3-letter language code and Language is the name of the Language
+
+        // First extract the first xxx code from tempStr (it is the field
+        // between the first and second : delimiters and represents the short
+        // ISO 639-3 code as well as the localization directory name.
+        // Put the field sub-strings in separate variables for easy reassembly blow.
+        wxString langEnumIntStr;
+        wxString langCodeStr;
+        wxString langNameStr;
+        int posColon;
+        posColon = tempStr.Find(_T(':'));
+        langEnumIntStr = tempStr.BeforeFirst(_T(':'));
+        langCodeStr = tempStr.Mid(posColon + 1);
+        posColon = langCodeStr.Find(_T(':'));
+        langCodeStr = langCodeStr.Left(posColon);
+        langNameStr = langCodeStr.AfterLast(_T(':'));
+        //wxASSERT(!langCodeStr.IsEmpty());
+        if (!langCodeStr.IsEmpty())
+        {
+
+            wxString moFilePath;
+            moFilePath = GetLocalizationMoFilePath(langCodeStr);
+            if (wxFileExists(moFilePath))
+            {
+                wxLanguage lang;
+                wxString fullLangName;
+                lang = GetLanguageFromDirStr(currLocInfo.curr_shortName, fullLangName);
+                if (lang == wxLANGUAGE_USER_DEFINED)
+                {
+                    // we found one of our custom defined language names, currently either 
+                    // Tok Pisin or Swahili.
+                    // The full language name is returned in the fullLangName ref parameter, so
+                    // use it to correct/update the value in the registry's 
+                    langNameStr = fullLangName;
+                    // Rebuild the registry composite string and write the correction/update
+                    // back to m_pConfig's user_defined_language_u_n value
+                    tempStr = langEnumIntStr + _T(':') + langCodeStr + _T(':') + langNameStr + _T(':'); // string ends with a colon
+                    m_pConfig->Write(str, tempStr); // reassigned tempStr is also used below in keyArray.Add()
+                }
+            }
+        }
+
+
+
+        /* // whm 28May2018 modified - the following code block below is now obsolete
+        // and so any curr_fullName that contains "[Contains Unknown or New Localization]"
+        // will remain unless corrected/updated by the block above.
         if (tempStr.Find(_T("[Contains Unknown or New Localization]")) != wxNOT_FOUND)
         {
             // The m_pConfig data most likely using a
@@ -15890,7 +16310,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
             // The tempStr here is of the form:
             // nnn:xxx:xxx [Contains Unknown or New Localization]
             // and we want it to be of the form:
-            // nnn:xxx Language
+            // nnn:xxx:Language
             // where xxx is the 2 or 3-letter language code and Language is
             // the name of the Language retrieved from the .mo file within the
             // xxx localization folder structure.
@@ -15926,6 +16346,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
                 }
             }
         }
+        */
 
 
         keyArray.Add(tempStr);
@@ -18728,6 +19149,21 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bECConnected = FALSE;
     m_eSilConverterNormalizeOutput = 0;
     m_bTransliterationMode = FALSE;
+
+    // whm added 24May2018 for support of enabling/disabling auto-opening of phrasebox's dropdown list
+    // upon arriving at a location with multiple translations. The m_bAutoOpenPhraseboxOnLanding value
+    // is stored in the project settings file, so the following initial defaults may be changed by the
+    // reading of the project config file.
+    // whm 2Jun2018 modified the defaults to be TRUE for all platforms
+#if defined (__WXMSW__)
+    m_bAutoOpenPhraseboxOnLanding = TRUE;
+#elif defined (__WXGTK__)
+    m_bAutoOpenPhraseboxOnLanding = TRUE;
+#elif defined (__WXOSX__)
+    m_bAutoOpenPhraseboxOnLanding = TRUE;
+#else
+    m_bAutoOpenPhraseboxOnLanding = TRUE;
+#endif
 
     bECDriverDLLLoaded = FALSE;
 #ifdef USE_SIL_CONVERTERS
@@ -37496,6 +37932,15 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data << szForceVerseSectioning << tab << number;
     pf->AddLine(data);
 
+    // whm added 24May2018 check box to auto-open dropdown on arrival at location with multiple translations
+    if (m_bAutoOpenPhraseboxOnLanding)
+        number = _T("1");
+    else
+        number = _T("0");
+    data.Empty();
+    data << szAutoOpenPhraseBoxTranslationsList << tab << number;
+    pf->AddLine(data);
+
     /* //BEW 7Oct14 deprecated. We'll use instead m_bZWSPinDoc, which we'll set true
     // automatically when we detect ZWSP within the document
     if (m_bFreeTransUsesZWSP)
@@ -38697,6 +39142,17 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 m_bForceVerseSectioning = TRUE;
             else
                 m_bForceVerseSectioning = FALSE;
+        }
+        //  whm added 24May2018 check box to auto-open dropdown on arrival at location with multiple translations
+        else if (name == szAutoOpenPhraseBoxTranslationsList)
+        {
+            num = wxAtoi(strValue);
+            if (!(num == 0 || num == 1))
+                num = 1; // default is ON
+            if (num == 1)
+                m_bAutoOpenPhraseboxOnLanding = TRUE;
+            else
+                m_bAutoOpenPhraseboxOnLanding = FALSE;
         }
         // BEW 7Oct14 deprecated. Keep it so any old config files don't complain
         // but just don't use it in app. App will automatically detect ZWSP in
@@ -54101,7 +54557,7 @@ void CAdapt_ItApp::LogDropdownState(wxString functionName, wxString fileName, in
 		msg = _T("Active CSourcePhrase: m_key =  %s  , m_adaption = %s  ,  m_gloss = %s  , sequenceNumber  %d ,  m_bHasKBEntry is  %s");
 		value = pActiveSrcPhrase->m_bHasKBEntry ? _T("TRUE") : _T("FALSE");
 		msg = msg.Format(msg, pActiveSrcPhrase->m_key.c_str(), pActiveSrcPhrase->m_adaption.c_str(), 
-					pActiveSrcPhrase->m_gloss, pActiveSrcPhrase->m_nSequNumber, value.c_str());
+					pActiveSrcPhrase->m_gloss.c_str(), pActiveSrcPhrase->m_nSequNumber, value.c_str());
 		wxLogDebug(msg);
 	}
 

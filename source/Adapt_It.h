@@ -41,7 +41,7 @@
 // m_nSequNumber; and from the KB, the pTU's inventory of CRefString instances'm_translation 
 // string values and the value of each's m_bDeleted  boolflag. And to print the callers name and
 // line number for where LogDropdownState() is being called. Callable only in _DEBUG builds.
-#define _ABANDONABLE
+//#define _ABANDONABLE
 
 //#define AUTHENTICATE_AS_BRUCE
 
@@ -232,7 +232,7 @@ class KBSharingMgrTabbedDlg;
 #define VERSION_BUILD_PART 0 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 23
+#define VERSION_DATE_DAY 28
 #define VERSION_DATE_MONTH 5
 #define VERSION_DATE_YEAR 2018
 const wxString appVerStr(_T("6.9.0"));
@@ -2084,6 +2084,15 @@ class CAdapt_ItApp : public wxApp
     CMainFrame* GetMainFrame();
 
 	wxTimer m_timer;
+
+    // whm 2Jun2018 added to filter all events for key down event when dropdown is open
+    virtual int FilterEvent(wxEvent& event);
+
+    // whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
+    bool ClickedOnPhraseBoxLocation(wxMouseEvent& event);
+
+    // whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
+    bool ClickedOnOtherTargetLocation(wxMouseEvent& event);
 
 	// BEW 12May16 We need a way to prevent OnIdle() events from asking the user for a KBserver
 	// login choice while the wizard is running. OnIdle() will, without this, check only for
@@ -4098,6 +4107,9 @@ public:
 	bool	m_bUnpacking;	// TRUE when Unpack Document... is in progress, else FALSE
 				// (used in SetupDirectories())
 
+    // whm added 24May2018 to support user choice to enable/disable dropdown auto-open
+    // on arrival at locations where there are multiple translations
+    bool    m_bAutoOpenPhraseboxOnLanding;
 
 	// next two for read-only support....
 	// the next boolean is for support of read-only protection of the data accessed in a

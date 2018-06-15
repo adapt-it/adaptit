@@ -163,6 +163,10 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	m_pEditReferences->SetBackgroundColour(gpApp->sysColorBtnFace);
 	m_pEditReferences->Enable(FALSE); // it is readonly and should not receive focus on Tab
 
+    // whm added 24May2018 check box to auto-open dropdown on arrival at location with multiple translations
+    m_pCheckAutoOpenPhraseboxOnLanding = (wxCheckBox*)FindWindowById(ID_CHECKBOX_AUTO_OPEN_TRANS_LIST);
+    wxASSERT(m_pCheckAutoOpenPhraseboxOnLanding != NULL);
+
 	// get pointers to the CKB instance & the map which stores the pCurTargetUnit contents
 	// being viewed
 	m_nWordsInPhrase = gpApp->m_pTargetBox->m_nWordsInPhrase; // RHS is a member of CPhraseBox
@@ -230,6 +234,10 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 
 	// set the "new translation" edit box contents to a null string
 	m_pNewTranslationBox->ChangeValue(_T(""));
+
+    // whm added 24May2018 Initialize check box to auto-open dropdown on arrival at location 
+    // with multiple translations to value currently held on the App.
+    m_pCheckAutoOpenPhraseboxOnLanding->SetValue(gpApp->m_bAutoOpenPhraseboxOnLanding);
 
 	// BEW 23Apr15 - if supporting / as a word-breaking character currently, we don't convert
 	// any ZWSP to / in the list, because we don't edit the list directly. The m_pNewTranslationBox
@@ -1049,8 +1057,15 @@ void CChooseTranslation::OnCancel(wxCommandEvent& WXUNUSED(event))
 // if the dialog is modeless.
 void CChooseTranslation::OnOK(wxCommandEvent& event)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
+    CAdapt_ItApp* pApp = &wxGetApp();
+    wxASSERT(pApp != NULL);
+
+    // whm added 24May2018 Save user's check box preference enabling/disabling auto-open dropdown on 
+    // arrival at location with multiple translations - if change was made.
+    if (m_pCheckAutoOpenPhraseboxOnLanding->GetValue() != pApp->m_bAutoOpenPhraseboxOnLanding)
+    {
+        pApp->m_bAutoOpenPhraseboxOnLanding = m_pCheckAutoOpenPhraseboxOnLanding->GetValue();
+    }
 
 	wxString s;
 	// IDS_NO_ADAPTATION
@@ -1143,10 +1158,11 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 			// PlacePhraseBox(), PlaceBox(), ScrollIntoView(), RemoveRefString() not so - there's no location change
 			// in the phrasebox.
 		pApp->m_targetPhrase = m_chosenTranslation;
-		wxTextEntry* pTextEntry = pApp->m_pTargetBox->GetTextCtrl();
+        // whm 3Jun2018 changes to not use wxTextEntry class directly. Travis CI uses wx2.8.12 which knows nothing of wxTextEntry
+		//wxTextEntry* pTextEntry = pApp->m_pTargetBox->GetTextCtrl();
 		// check what's in it currently
-		wxString currentStr = pTextEntry->GetValue();
-		wxLogDebug(_T("pTextEntry->GetValue(),  returns currentStr:  %s"), currentStr.c_str());
+        wxString currentStr = pApp->m_pTargetBox->GetValue(); // pTextEntry->GetValue();
+		wxLogDebug(_T("m_pTargetBox->GetValue(),  returns currentStr:  %s"), currentStr.c_str());
 		pApp->m_pTargetBox->SetModify(TRUE);
 
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
@@ -1154,7 +1170,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 		// Get the chosen translation string into the dropdown combobox's text entry control
-		pTextEntry->ChangeValue(m_chosenTranslation); // doesn't generate a wxEVT_TEXT event
+        pApp->m_pTargetBox->ChangeValue(m_chosenTranslation); // doesn't generate a wxEVT_TEXT event
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 		wxLogDebug(_T("m_pTargetBox->GetModify()  returns 1 or 0: value is  %d"), (int)pApp->m_pTargetBox->GetModify());
 		// check if it got entered

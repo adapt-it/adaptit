@@ -4664,7 +4664,21 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
                     // only set to TRUE when all three of the above flags are FALSE. 
                     // Hence, this if block should always execute, and the else block below 
                     // should never execute. 
-                    pApp->m_pTargetBox->PopupDropDownList();
+                    // whm modified 24May2018. The initial 6.9.0 release sets the the value of the App's 
+                    // m_bAutoOpenPhraseboxOnLanding boolean to an initial default depending on the
+                    // platform. Windows defaults to TRUE, Linux (and Mac OSX) default to FALSE.
+                    // Also the user can control the persistent setting using a new check box within the
+                    // Choose Translation dialog. We now honor the platform's default setting, or the
+                    // user's override setting here. This is the only location in the application where
+                    // PopupDropDownList() may be called.
+                    if (pApp->m_bAutoOpenPhraseboxOnLanding)
+                    {
+                        pApp->m_pTargetBox->PopupDropDownList();
+                    }
+                    else
+                    {
+                        pApp->m_pTargetBox->CloseDropDown();
+                    }
                 }
                 else
                 {
@@ -7192,13 +7206,14 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 			arr.Add(src);
 		}
 		wxString spaces = _T("  "); // note the list below, comma delimited, not one long string
-		wxLogDebug(_T("%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
-			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
-			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
-			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
-			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
-			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
-			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+        // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+        wxString tempStr = _T("");
+        for (i = 0; i < 30; i++)
+        {
+            tempStr += arr.Item(i);
+            tempStr += spaces;
+        }
+        wxLogDebug(_T("%s"),tempStr.c_str());
 	}
 #endif
 
@@ -7331,13 +7346,14 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");  // note the list below, comma delimited, not one long string
-		wxLogDebug(_T("At 7325: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
-			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
-			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
-			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
-			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
-			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
-			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+                                     // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+        wxString tempStr = _T("");
+        for (i = 0; i < 30; i++)
+        {
+            tempStr += arr.Item(i);
+            tempStr += spaces;
+        }
+        wxLogDebug(_T("At 7325: %s"), tempStr.c_str());
 	}
 #endif
 
@@ -7377,7 +7393,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 
 #if defined(_DEBUG) && defined(_VERTEDIT)
 		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 7368: PhraseBox contents:  %s"), 
-			gpApp->m_pTargetBox->GetValue());
+			gpApp->m_pTargetBox->GetValue().c_str());
 #endif
 #if defined(_DEBUG) && defined(_VERTEDIT)
 	{
@@ -7394,13 +7410,14 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 			arr.Add(src);
 		}
 		wxString spaces = _T("  "); // note the list below, comma delimited, not one long string
-		wxLogDebug(_T("At 173: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
-			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
-			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
-			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
-			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
-			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
-			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+                                    // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+        wxString tempStr = _T("");
+        for (i = 0; i < 30; i++)
+        {
+            tempStr += arr.Item(i);
+            tempStr += spaces;
+        }
+        wxLogDebug(_T("At 173: %s"), tempStr.c_str());
 	}
 #endif
 		// populate the combobox with the required removals data for the returned-to state
@@ -7561,13 +7578,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("CX %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
-			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
-			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
-			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
-			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
-			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
-			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+        // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+        wxString tempStr = _T("");
+        for (i = 0; i < 30; i++)
+        {
+            tempStr += arr.Item(i);
+            tempStr += spaces;
+        }
+        wxLogDebug(_T("CX %s"), tempStr.c_str());
 	}
 #endif
 	if (gbVerticalEditInProgress)
@@ -7734,13 +7752,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("A 6497: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
-			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
-			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
-			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
-			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
-			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
-			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+        // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+        wxString tempStr = _T("");
+        for (i = 0; i < 30; i++)
+        {
+            tempStr += arr.Item(i);
+            tempStr += spaces;
+        }
+        wxLogDebug(_T("A 6497:%s"), tempStr.c_str());
 	}
 #endif
 						// restore the editable span to what it was when adaptationsStep
@@ -7778,13 +7797,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("B 6541: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
-			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
-			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
-			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
-			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
-			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
-			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+        // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+        wxString tempStr = _T("");
+        for (i = 0; i < 30; i++)
+        {
+            tempStr += arr.Item(i);
+            tempStr += spaces;
+        }
+        wxLogDebug(_T("B 6541: %s"), tempStr.c_str());
 	}
 #endif
 					}
@@ -7877,13 +7897,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("b 6640: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
-			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
-			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
-			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
-			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
-			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
-			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+        // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+        wxString tempStr = _T("");
+        for (i = 0; i < 30; i++)
+        {
+            tempStr += arr.Item(i);
+            tempStr += spaces;
+        }
+        wxLogDebug(_T("b 6640: %s"), tempStr.c_str());
 	}
 #endif
 					// handle the user edits done in the Edit Source Text dialog
@@ -7918,13 +7939,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("C 6681: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
-			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
-			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
-			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
-			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
-			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
-			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+        // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+        wxString tempStr = _T("");
+        for (i = 0; i < 30; i++)
+        {
+            tempStr += arr.Item(i);
+            tempStr += spaces;
+        }
+        wxLogDebug(_T("C 6681: %s"), tempStr.c_str());
 	}
 #endif
 
@@ -7964,13 +7986,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("D 6727: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
-			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
-			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
-			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
-			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
-			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
-			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+        // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+        wxString tempStr = _T("");
+        for (i = 0; i < 30; i++)
+        {
+            tempStr += arr.Item(i);
+            tempStr += spaces;
+        }
+        wxLogDebug(_T("D 6727: %s"), tempStr.c_str());
 	}
 #endif
 #if defined(__WXGTK__)
@@ -8311,13 +8334,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("E: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
-			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
-			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
-			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
-			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
-			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
-			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+        // whm 3Jun2018 modified to use a for loop and simpler wxLogDebug syntax and adding .c_str()
+        wxString tempStr = _T("");
+        for (i = 0; i < 30; i++)
+        {
+            tempStr += arr.Item(i);
+            tempStr += spaces;
+        }
+        wxLogDebug(_T("E: %s"), tempStr.c_str());
 		// clean up & restore original state
 	}
 #endif

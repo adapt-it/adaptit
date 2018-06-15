@@ -521,7 +521,9 @@ void CAdapt_ItCanvas::DiscardEdits()
 // a wedge was clicked when in fact, it wasn't
 void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
+    wxLogDebug(_T("CAdapt_ItCanvas::OnLButtonDown() triggered"));
+
+    CAdapt_ItApp* pApp = &wxGetApp();
 	CLayout* pLayout = pApp->m_pLayout;
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
@@ -1076,6 +1078,10 @@ x:					CCell* pCell = 0;
 					// one - and that means that the phrasebox is going to move - which in turn means that
 					// we can safely set app's member boolean m_bLandingBox to TRUE. This will help give
 					// better behaviours for the refactored GUI with a combo-box based phrasebox
+                    //
+                    // whm 3Jun2018 TODO: BEW needs to revisit logic stated in above comment after whm 
+                    // implementation of the App's FilterEvent() which may indeed call this OnLButtonDown() 
+                    // handler.
 					pApp->m_bLandingBox = TRUE;
 
 					// place the phrase box
@@ -2013,6 +2019,8 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 // do the selection of the current pile, if not already selected; release mouse, and set
 // direction
 {
+    wxLogDebug(_T("CAdapt_ItCanvas::OnLButtonUp() triggered"));
+
 	gbReplaceAllIsCurrent = FALSE; // need this, otherwise after a Find and Replace (and even
     // though no replaces are done), if user cancels the find and replace dlg, then clicks
     // to remove the selection (this somehow sets gbReplaceAllIsCurrent to TRUE) then on

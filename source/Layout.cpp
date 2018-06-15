@@ -551,7 +551,7 @@ void CLayout::PlaceBox()
 //#endif
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	wxLogDebug(_T("Layout, PlaceBox() line  %d  on entry, pApp->m_SaveTargetPhrase = %s"), 553,
-		gpApp->m_pTargetBox->m_SaveTargetPhrase);
+		gpApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
 
 #endif
 
