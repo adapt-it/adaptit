@@ -246,12 +246,25 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// user should type / explicitly between words when he types into that box.
 	PopulateList(gpApp->pCurTargetUnit, 0, No);
 
-	// select the first string in the listbox by default
+	// select the first string in the listbox by default?
+	// BEW changed 21Jun18; if the list is set to be dropped down automatically
+	// when the phrasebox lands somewhere, then it will have a selection made
+	// in most cases - so pick up this selection index and use that as the default
+	// provided it is not wxNOT_FOUND (i.e. not -1)
+
 	// BEW changed 3Dec12, if the list box is empty, the ASSERT below trips. So we need a test
 	// that checks for an empty list, and sets nothing in that case
 	if (!m_pMyListBox->IsEmpty())
 	{
-		m_pMyListBox->SetSelection(0);
+		m_pMyListBox->SetSelection(0); // initialize to zero in case no better value is available
+
+		// BEW 21Jun18 added, as explained above; in order to sync the indices for the selection
+		// between Choose Translation's list and the phrasebox dropdown's (open) list
+		int curIndex = gpApp->m_pTargetBox->GetSelection(); // the current index for the dropdown list selection
+		if (curIndex != wxNOT_FOUND && gpApp->m_bAutoOpenPhraseboxOnLanding)
+		{
+			m_pMyListBox->SetSelection(curIndex);
+		}
 		wxString str = m_pMyListBox->GetStringSelection();
 		int nNewSel = gpApp->FindListBoxItem(m_pMyListBox, str, caseSensitive, exactString);
 		wxASSERT(nNewSel != -1);
@@ -1282,6 +1295,10 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 				pApp->m_targetPhrase = pApp->m_pTargetBox->GetString(index);
 				pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 				pApp->m_pTargetBox->SetSelection(index);
+
+				//int curIndex = pApp->m_pTargetBox->GetSelection(); // just checked this call exists
+
+
 				pApp->m_pTargetBox->SetSelection(-1, -1); // select all
 				// This next line is essential. Without it, the phrasebox will seem right, but moving away by
 				// a click or by Enter key will leave a hole at the old location - the reason is that the
