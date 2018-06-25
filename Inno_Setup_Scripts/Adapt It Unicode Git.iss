@@ -16,6 +16,7 @@
 
 #define MyAppName "Git Downloader for Adapt It"
 #define MyAppVersion "2.12.1"
+#define MyAppPublisher "Adapt It"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Git_Downloader_2_12_1_4AI.exe"
 #define MyAppShortName "Git Downloader"
@@ -29,6 +30,7 @@ AppID={{DB254DB1-ECD3-4583-A392-DC64CB84999F}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
+AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}

@@ -19,6 +19,7 @@
 
 #define MyAppName "Adapt It WX Unicode"
 #define MyAppVersion "6.9.0"
+#define MyAppPublisher "Adapt It"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It_Unicode.exe"
 #define MyAppShortName "Adapt It"
@@ -32,6 +33,7 @@ AppID={{7317EA81-BC6E-4A4F-AE2B-44ADE6A2188F}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
+AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
