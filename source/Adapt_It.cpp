@@ -7472,7 +7472,11 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
 }
 
 // whm 2Jun2018 added to filter all events for wxEVT_LEFT_DOWN and wxEVT_CHAR events when dropdown 
-// is open. 
+// is open. FilterEvent() is conditionally compiled mainly for Linux and Mac ports. The Windows port
+// seems to regularly pass the wxEVT_LEFT_DOWN and wxEVT_CHAR events on to the control's descendants
+// when the dropdown list is open, so the intervention of this FilterEvent() function is not needed
+// for Windows version.
+//
 // Problem 1: On Linux, when dropdown list is open, a Left mouse click on either the phrasebox or
 // on the canvas causes the dropdown list to close, but the wxEVT_LEFT_DOWN event is consumed, but
 // a wxEVT_LEFT_UP event gets triggered - meaning only the "up" click is executed. This means that
@@ -7482,10 +7486,10 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
 int CAdapt_ItApp::FilterEvent(wxEvent & event)
 {
     const wxEventType t = event.GetEventType();
+#if defined (__WXGTK__) || defined (__WXMAC__)
     // We need to catch wxEVT_LEFT_DOWN to get the initial open/closed state of the dropdown list.
     // If we instead try to use wxEVT_LEFT_UP, the box will have already been closed by the focus
     // shift before getting to the if (m_pTargetBox->IsPopupShown()) test below.
-#if defined (__WXGTK__) || defined (__WXMAC__)
     if (m_pTargetBox != NULL)
     {
         /*
@@ -31953,6 +31957,15 @@ void CAdapt_ItApp::OnToolsInstallGit(wxCommandEvent & WXUNUSED(event))
                 // Don't show the dialog
                 ;
             }
+        }
+    }
+    else
+    {
+        CInstallGitOptionsDlg gitInsDlg(pApp->GetMainFrame());
+        gitInsDlg.Centre();
+        if (gitInsDlg.ShowModal() == wxID_OK)
+        {
+            ;
         }
     }
 }
