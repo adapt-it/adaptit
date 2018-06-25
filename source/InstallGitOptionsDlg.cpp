@@ -170,7 +170,7 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
             else
             {
                 // 
-                msg = msg + _("If you have not previously downloaded the Git installer (36MB) and you have Internet access, the recommended way to obtain the Git program is to run the Adapt It installer again and choose to have it automatically download and install the Git program with the correct settings.\n\n");
+                msg = msg + _("If you have not previously downloaded the Git installer (40MB) and you have Internet access, the recommended way to obtain the Git program is to run the Adapt It installer again and choose to have it automatically download and install the Git program with the correct settings.\n\n");
             }
             // Remind the administrator/user that once Git has been downloaded once, that
             // installer will be preserved in the Adapt It installation folder where it could be
@@ -195,7 +195,7 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
         // downloader/installer is handles checking to see if Git is already installed, and it will
         // issue the following Yes/No confirmation prompt if Git is already installed:
         // "The Git program is already installed. If Git is not working properly, you can download 
-        // a fresh copy (36MB) and reinstall it. Would you like to download and reinstall Git?" [Yes] [No]
+        // a fresh copy (40MB) and reinstall it. Would you like to download and reinstall Git?" [Yes] [No]
         // If the user responds 'Yes' the download and installation proceed. If the user responds 'No'
         // another message says:
         // The installer will now quit without trying to reinstall Git. The recommended way to install 
