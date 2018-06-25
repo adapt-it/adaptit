@@ -7485,6 +7485,7 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
     // We need to catch wxEVT_LEFT_DOWN to get the initial open/closed state of the dropdown list.
     // If we instead try to use wxEVT_LEFT_UP, the box will have already been closed by the focus
     // shift before getting to the if (m_pTargetBox->IsPopupShown()) test below.
+#if defined (__WXGTK__) || defined (__WXMAC__)
     if (m_pTargetBox != NULL)
     {
         /*
@@ -7597,7 +7598,7 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                 // The block below is for testing and setting breakpoints in the Windows version.
                 // It has the same conditions as the block below that is conditionally compiled
                 // for __WXGTK__ and __WXMAC__.
-                if (!((wxKeyEvent&)event).HasModifiers() && !((wxKeyEvent&)event).ShiftDown()
+                if (!((wxKeyEvent&)event).HasModifiers() // && !((wxKeyEvent&)event).ShiftDown()
                     && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP)
                     && wxIsprint(keyChar))
                 {
@@ -7617,10 +7618,10 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                     m_pTargetBox->Dismiss();
 #endif     
                     // For the Linux (and probably Mac) version, we need to manually put this first alphanumeric
-                    // character into the phrasebox
-#if defined (__WXGTK__) || defined (__WXMAC__)
-            // If the key that was typed is an alphanumeric key put it into the phrasebox.
-                    if (!((wxKeyEvent&)event).HasModifiers() && !((wxKeyEvent&)event).ShiftDown()
+                    // character into the phrasebox.
+                    // whm 24June2018 removed the !ShiftDown() filter - upper case chars need to be processed!
+                    // If the key that was typed is an alphanumeric key put it into the phrasebox.
+                    if (!((wxKeyEvent&)event).HasModifiers() // && !((wxKeyEvent&)event).ShiftDown()
                         && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP && !(keyCode == WXK_PAGEDOWN) && !(keyCode == WXK_PAGEUP))
                         && wxIsprint(keyChar))
                     {
@@ -7629,12 +7630,12 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                         // we need to set it to the position after the char
                         m_pTargetBox->SetInsertionPointEnd();
                     }
-#endif
                 }
             }
             
         } // end of if (t == wxEVT_CHAR)
     }
+#endif
     // Continue processing the event normally as well.
     event.Skip();
     return -1; // Event_Skip;

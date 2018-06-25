@@ -3777,6 +3777,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	long keycode = event.GetKeyCode();
 	switch(keycode)
 	{
+    /*
 	case WXK_RETURN: //13:	// RETURN key
 		{
             // whm 26Feb2018 Note: Code from this case WXK_RETURN is also used in the 
@@ -3811,7 +3812,8 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			{
 				// shift key is down, so move back a pile
 
-				int bSuccessful = MoveToPrevPile(pApp->m_pActivePile);
+                wxLogDebug(_T("CPhraseBox::OnChar() handling SHIFT + WXK_RETURN key"));
+                int bSuccessful = MoveToPrevPile(pApp->m_pActivePile);
 				if (!bSuccessful)
 				{
 					// we were at the start of the document, so do nothing
@@ -3831,10 +3833,13 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			}
 			else // we are moving forwards rather than backwards
 			{
-				JumpForward(pView);
+                wxLogDebug(_T("CPhraseBox::OnChar() handling WXK_RETURN key"));
+                JumpForward(pView);
 			}
 		} // end case 13: block
 		return;
+    */  // whm 24Jun2018 moved the WXK_RETURN handling to the OnKeyUp() handler
+
     /*  // whm 1Jun2018 moved the WXK_TAB handling to the OnKeyUp() handler
 	case WXK_TAB: //9:		// TAB key
 		{
@@ -5690,8 +5695,12 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
     // within the WXK_TAB handling block in this case, since we are specifically dealing with just
     // the Tab key event here, whereas in OnChar() it merges a selection for any key press that
     // triggers OnChar().
+    // whm 24June2018 combined WXK_TAB and WXK_RETURN handling in the same block of code below.
+    // The WXK_RETURN key handling was previosuly located in OnChar(), but that seemed to not work
+    // on the Mac OSX platform (where the OnChar handler might not be called for WXK_RETURN).
     long keycode = event.GetKeyCode();
-    if (keycode == WXK_TAB)
+    if (keycode == WXK_TAB
+    || keycode == WXK_RETURN)
     {
         // First handle merging of any selection - as is done in OnChar().
         // preserve cursor location, in case we merge, so we can restore it afterwards
@@ -5779,11 +5788,10 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
             pView->Invalidate();
         }
 
-        // Now handle the WXK_TAB processing
-        // whm 26Feb2018 Note: Except for handling of SHIFT+TAB below, the handling of WXK_TAB
-        // below should be identical to the handling of WXK_RETURN above. So, pressing Tab 
-        // within dropdown phrasebox - when the content of the dropdown's edit box is tantamount 
-        // to having selected that dropdown list item directly.
+        // Now handle the WXK_TAB or WXK_RETURN processing.
+        // whm 24June2018 Note: The handling of WXK_TAB and WXK_RETURN should be identical.
+        // So, pressing Tab within dropdown phrasebox - when the content of the dropdown's edit 
+        // box is open is tantamount to having selected that dropdown list item directly.
         // It should - in the new app - do the same thing that happened in the legacy app when 
         // the Choose Translation dialog had popped up and the desired item was already
         // highlighted in its dialog list, and the user pressed the OK button. That OK button
@@ -5807,11 +5815,16 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
         // whm Note: Beware! Setting breakpoints in OnChar() before this point can
         // affect wxGetKeyState() results making it appear that WXK_SHIFT is not detected
         // below. Solution: remove the breakpoint(s) for wxGetKeyState(WXK_SHIFT) to <- end of comment lost
-        if (wxGetKeyState(WXK_SHIFT)) // SHIFT+TAB
+        if (wxGetKeyState(WXK_SHIFT)) // SHIFT+TAB or SHIFT+RETURN
         {
             // shift key is down, so move back a pile
 
-            // Shift+Tab (reverse direction) indicates user is probably
+            if (keycode == WXK_TAB)
+                wxLogDebug(_T("CPhraseBox::OnKeyUp() handling SHIFT + WXK_TAB key"));
+            else if (keycode == WXK_RETURN)
+                wxLogDebug(_T("CPhraseBox::OnKeyUp() handling SHIFT + WXK_REUTRN key"));
+
+            // Shift+Tab or Shift+RETURN (reverse direction) indicates user is probably
             // backing up to correct something that was perhaps automatically
             // inserted, so we will preserve any highlighting and do nothing
             // here in response to Shift+Tab.
@@ -5847,11 +5860,14 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
             // and expect the Lookup process to take place, etc - and then get quite disturbed
             // when it doesn't happen that way. So for version 3 and onwards, we will interpret
             // a TAB keypress as if it was an ENTER keypress
+            if (keycode == WXK_TAB)
+                wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_TAB key"));
+            else if (keycode == WXK_RETURN)
+                wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_REUTRN key"));
             JumpForward(pView);
         }
         return;
     }
-
     // whm 16Feb2018 Note: The following test using GetKeyCode will never work for detecting a WXK_ALT key event.
     // Even calling event.AltDown() will NOT detect if ALT is down here in OnKeyUp(). 
     // Removed the m_bALT_KEY_DOWN coding - see my comments in the View's DoSrcPhraseSelCopy()
