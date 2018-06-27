@@ -7043,16 +7043,22 @@ void CPhraseBox::OnComboItemSelected(wxCommandEvent & WXUNUSED(event))
 
     this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
 
-    // whm 26Feb2018 addition to OnComboItemSelected() to cause the phrasebox to move on when 
-    // an item is selected from the dropdown list, we can do the same thing here that is done 
-    // when the WXK_RETURN key press is detected in the OnChar() handler, namely just 
-    // set m_nOldSequNum to the m_nActiveSequNum and call JumpForward(pView).
-    // Code below copied from the case WXK_RETURN in OnChar().
-    CLayout* pLayout = GetLayout();
-    CAdapt_ItView* pView = pLayout->m_pView;
-    // save old sequ number in case required for toolbar's Back button
-    gpApp->m_nOldSequNum = gpApp->m_nActiveSequNum;
-    JumpForward(pView);
+	/*
+	// BEW 27Jun18, This is not the legacy behaviour. So it needs to be commented out. The
+	// legacy behaviour was that the new phrasebox contents showed, and the box just sat
+	// there waiting for further user action. That's what commenting out here will restore.
+	//
+	// whm 26Feb2018 addition to OnComboItemSelected() to cause the phrasebox to move on when
+	// an item is selected from the dropdown list, we can do the same thing here that is done
+	// when the WXK_RETURN key press is detected in the OnChar() handler, namely just
+	// set m_nOldSequNum to the m_nActiveSequNum and call JumpForward(pView).
+	// Code below copied from the case WXK_RETURN in OnChar().
+	CLayout* pLayout = GetLayout();
+	CAdapt_ItView* pView = pLayout->m_pView;
+	// save old sequ number in case required for toolbar's Back button
+	gpApp->m_nOldSequNum = gpApp->m_nActiveSequNum;
+	JumpForward(pView);
+	*/
 }
 
 // This OnMeasureItem() function implements the virtual function in wxOwnerDrawnComboBox
