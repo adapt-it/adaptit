@@ -638,6 +638,19 @@ void CLayout::PlaceBox()
 			{
 				bSetModify = FALSE;
 				bSetTextColor = TRUE;
+				/* this doesn't do anything different
+				// BEW 25Jun18, testing the idea of cursor at end of box contents if the latter is non-empty
+				wxString text;
+				text = m_pApp->m_pTargetBox->GetValue();
+				if (!text.IsEmpty())
+				{
+					int len = text.Length();
+					m_pApp->m_nStartChar = len;
+					m_pApp->m_nEndChar = len;
+					m_pApp->m_pTargetBox->SetSelection((long)len, (long)len);
+					bSetModify = TRUE;
+				}
+				*/
 				break;
 			}
 /*		case merge_op:
