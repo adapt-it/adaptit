@@ -7058,8 +7058,7 @@ void CPhraseBox::OnComboItemSelected(wxCommandEvent & WXUNUSED(event))
     }
 
     this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
-
-	/* 
+	/*
 	// BEW 27Jun18, This is not the legacy behaviour. So it needs to be commented out. The
 	// legacy behaviour was that the new phrasebox contents showed, and the box just sat
 	// there waiting for further user action. That's what commenting out here will restore.

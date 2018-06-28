@@ -1072,6 +1072,25 @@ x:					CCell* pCell = 0;
 					// save old sequ number in case required for toolbar's Back button
                     pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
+					pApp->m_nOnLButtonDownEntranceCount++; // set cache only for the count equalling 1, we allow two entrances
+					
+					// BEW 28Jun18 also cache this value for using within PlacePhraseBox to define 
+					// pOldActivePile pointer but beware, OnLButtonDown() is, also called a 2nd time
+					// in FilterEvent() and by that time the active location will have moved from
+					// the kick off location (unless use clicked the active location, of course)
+					// and so we must suppress updating the cached value on the second call
+					if (pApp->m_nOnLButtonDownEntranceCount == 1)
+					{
+						pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
+						wxLogDebug(_T(" OnLButtonDown() 1085, setting m_nCacheLeavingLocation, cached sequ num = %d"),
+							pApp->m_nCacheLeavingLocation);
+					}
+					else
+					{
+						// second entrance, so reset the count to 0
+						pApp->m_nOnLButtonDownEntranceCount = 0;
+					}
+
 					// BEW 7May18. We use the fact that OnLButtonDown() is never called when there is a user
 					// click on the dropdown-based phrasebox to advantage. If control has entered and gets
 					// to this point, then the click must have been to a pile which is not the current active

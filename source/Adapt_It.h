@@ -104,7 +104,6 @@ class TranslationsList; // the CTargetUnit's list of CRefString instances
 //class CServiceDiscovery; // BEW 4Jan16
 class CServDisc_KBserversDlg; // BEW 12Jan16
 class CWaitDlg; // BEW 8Feb16
-class Thread_ServiceDiscovery; // BEW 11Apr16
 
 #if wxVERSION_NUMBER < 2900
 //DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
@@ -2219,6 +2218,30 @@ class CAdapt_ItApp : public wxApp
 	/// collaboration parameters, and when implemented, also Bibledit collaboration
 	/// parameters.
 	wxFileConfig* m_pConfig;
+
+	/// BEW 28Jun18 The change at version 6.9.0 to support a dropdown list integrated in
+	/// a wxOwnerDrawnComboBox control resulted in some former legacy robust behaviours
+	/// becoming flaky, or worse. Two new problems, amongst others, cropped up. 
+	/// (1) Sometimes, clicking to relocate the phrasebox after typing a new adaptation
+	/// at a hole, the typed adaptation got lost and not entered into the KB. 
+	/// (2) When relocating the phrasebox by clicks at different holes, while the first
+	/// jump may work right, a second sent the phrasebox off to a sequence number much
+	/// further on than where the user clicked for the box to go to. Diagnosing revealed
+	/// that the cause was the the m_nActiveSequNum used within PlacePhraseBox() had
+	/// gotten the sequence number of the clicked location, rather than the old value of
+	/// the same at the location that was where the box was located before the click.
+	/// PlacePhraseBox defined pOldSrcPhrase based on the pile calculated from that now
+	/// bogus earlier position, causing the phrasebox to get located at a pile much further
+	/// on that expected. 
+	/// Solution? I'm testing caching the sequence number of thelocation at which the phrasebox
+	/// lands, so that when the next click to jump to some other location (or to the same location)
+	/// can used the cached sequ num value to get at the correct pile, and hence the correct
+	/// pSrcPhrase at the 'leaving' location, in order that the GUI shows correct strings, and the
+	/// KB gets the correct entry added, and jumps to wrong places in the document don't happen
+	int m_nCacheLeavingLocation; // -1 (wxNOT_FOUND) when not set, set in OnLButtonDown()
+	int m_nOnLButtonDownEntranceCount; // allow 2, first sets m_CacheLeavingLocation, second
+			// disallows setting it (because it's in FilterEvent() and phrasebox has moved on
+			// by then to where the user clicked, we don't want to cache the wrong sequ num
 
     /// The application's m_pParser member can be used to process command line arguments.
     /// The command line processing in the MFC version was implemented but did not work

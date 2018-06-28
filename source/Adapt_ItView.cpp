@@ -2896,14 +2896,25 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		pApp->m_nActiveSequNum = sequNum; // BEW added 14Mar13, now the GetPile() call five
 										  // lines down won't give a crash!
 	}
-
+	// BEW 28Jun18, use cached m_nActiveSequNumber value at pApp->m_nCacheLeavingLocation
+	// in order to be sure to get the correct pile at the earlier phrasebox location
 	CSourcePhrase* pOldActiveSrcPhrase = NULL;
-	CPile* pOldActivePile = GetPile(pApp->m_nActiveSequNum);
-						// returns NULL if passed in value is -1
+	CPile* pOldActivePile = NULL;
+	if (pApp->m_nCacheLeavingLocation != wxNOT_FOUND)
+	{
+		// GetPile returns NULL if m_nCacheLeavingLocation is -1
+		pOldActivePile = GetPile(pApp->m_nCacheLeavingLocation);
+	}
 	if (pOldActivePile != NULL)
 	{
 		pOldActiveSrcPhrase = pOldActivePile->GetSrcPhrase();
 		wxASSERT(pOldActiveSrcPhrase);
+	}
+	if (pOldActivePile != NULL)
+	{
+		wxLogDebug(_T("PlacePhraseBox 2915 at start; Leaving pOldActivePile:  m_key = %s , m_bAbandonable = %d , m_adaption = %s"),
+			pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
+			pOldActiveSrcPhrase->m_adaption.c_str());
 	}
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2909,
@@ -3075,6 +3086,11 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
 //				pApp->LogDropdownState(_T("PlacePhraseBox() leaving, about to save to KB, selector = 0"), _T("Adapt_ItView.cpp"), 3028);
 //#endif
+				if (pOldActivePile != NULL)
+				{
+					wxLogDebug(_T("PlacePhraseBox at 3091, Leaving:  m_key = %s , m_bAbandonable = %d"),
+						pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable);
+				}
 				// any existing phraseBox text must be saved to the KB, unless its empty
 				bool bOK = TRUE;
 				if (!pApp->m_targetPhrase.IsEmpty())
@@ -3103,6 +3119,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3096,
 						(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
+					wxLogDebug(_T("PlacePhraseBox at 3122, Leaving:  m_key = %s , m_bAbandonable = %d"),
+						pApp->m_pActivePile->GetSrcPhrase()->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable);
 
 					// it has to be saved to the relevant KB now
 					if (!pApp->m_pTargetBox->m_bAbandonable || !pApp->m_pTargetBox->m_bBoxTextByCopyOnly)
@@ -3113,10 +3131,18 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					wxLogDebug(_T("View, PlacePhraseBox() line  %d - after DoStore_ForPlacePhraseBox(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3106,
 						(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
-
+					if (pOldActivePile != NULL)
+					{
+#ifdef _DEBUG
+						wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"), 3133, pApp->m_nActiveSequNum);
+#endif
+						wxLogDebug(_T("PlacePhraseBox at 3139 after DoStore...(), Leaving:  m_key = %s , m_bAbandonable = %d  sn = %d"),
+							pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
+							pOldActiveSrcPhrase->m_nSequNumber);
+					}
 #ifdef _DEBUG
 					CSourcePhrase* pSP = pApp->m_pActivePile->GetSrcPhrase();
-					wxLogDebug(_T("PlacePhraseBox at %d ,  m_targetStr=  %s"), 3068, pSP->m_targetStr.c_str());
+					wxLogDebug(_T("PlacePhraseBox at %d ,  m_targetStr =  %s"), 3145, pSP->m_targetStr.c_str());
 					// try a manual set... for debugging
 					//pSP->m_targetStr = pSP->m_adaption;  // YAY, it worked. So DoStore_ForPlacePhraseBox(pApp, pApp->m_targetPhrase) needs fixing
 #endif
@@ -3150,7 +3176,7 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 						::wxBell(); // ring the bell to say that something wasn't right
 						pLayout->m_docEditOperationType = relocate_box_op;
 #ifdef _DEBUG
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3147,pApp->m_nActiveSequNum);
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3179,pApp->m_nActiveSequNum);
 #endif
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
 //pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE block, selector = 0 ELSE block for empty m_targetPhrase test, will now return to caller"), _T("Adapt_ItView.cpp"), 3142);
@@ -3167,6 +3193,12 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 			} // end block for selector equals 0 or 3
 		} // end normal block where saving of the text in the KB, for the
 		  // old active loc'n, would be done
+		if (pOldActivePile != NULL)
+		{
+			wxLogDebug(_T("PlacePhraseBox 3198, at end of Leaving:  m_key = %s , m_bAbandonable = %d , m_adaption = %s"),
+				pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
+				pOldActiveSrcPhrase->m_adaption.c_str());
+		}
 	}
 
 	// before we deal with the clicked location, we want to recalculate the width of the
