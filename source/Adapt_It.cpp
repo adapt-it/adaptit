@@ -17432,20 +17432,14 @@ bool CAdapt_ItApp::AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, boo
 /// \param      workFolderPath -> the path to the Adapt It Unicode Work folder (where the
 ///                               ServDiscResults.txt file resides)
 /// \remarks
-/// Our implementation of service discovery, cross platform, is based on the sdwrap/wxServDisc
-/// resources provided by Christian Beier, 2008. (See the wxServDisc.h header for more detail.)
-/// Our use of those resources is GUI-less, since the service we listen for is fixed.
-/// Beier's code works, but leaks a few kilobytes of memory when it is shut down - the leaks
-/// are of his making, due to incomplete cleanup code. I have managed to reduce the leak count
-/// to zero but at the cost of limiting one discovery run to finding just one KBserver.
+/// Our implementation of service discovery, cross platform, is based on scripts written
+/// by Leon Pearl. They work at a level lower than http or https, and so are not limited
+/// by system admin person's security protocol implemented at that higher level.
 ///
-/// ConnectUsingDiscoveryResults is called prior to an authentication attempt to a running KBserver.
-/// The service:  "_kbserver._tcp.local." is scanned for (note, there MUST be a period
-/// following the word local & the wrapping " " are not part of the string), and if a
-/// KBserver is running. Normally, only one KBserver should be running; if that is not the
-/// case, raw ips are not enough, so hostnames are displayed as well. If two or more are
-/// running, a dialog will open to allow the user to select one for connecting to. Multiples
-/// (if running) are detected by doing discovery in a background thread governed by a timer.
+/// ConnectUsingDiscoveryResults is called in an authentication attempt to a running KBserver.
+/// The service:  "_kbserver._tcp" is scanned for. The scripts are fast - typicaly finding all
+/// running KBservers within about 3 seconds. IP address, and hostname, are scanned for, and
+/// the results displayed to the user. Repeated user initiated scans are acceptable & safe. 
 ///
 /// Of course, a lot of things may go wrong. Everybody may forget to turn on a KBserver -
 /// if so, they'll need to be warned that no sharing can happen till they run one. Or the thread
@@ -17456,15 +17450,13 @@ bool CAdapt_ItApp::AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, boo
 /// the current running server's url, and if they differ, ask the user if he wants a connection
 /// to the different url. In a workshop, there could be several KBservers running, one for each
 /// of several workgroups from different language projects - so we have to discover them all.
-/// The service discovery thread will only run for a few seconds, and that is enough time to
-/// detect one instance multicasting on the LAN. It will report the ip address and hostname
-/// for the KBserver it detects in  CAdapt_ItApp::m_theURLs and CAdapt_ItApp::m_theHostnames
-/// wxArrayString arrays. DoServiceDiscovery will, after the data is stored there, access that
-/// data and use it for implementing the protocols described above. Background discovery lasts
-/// for as long as the app session is active.
+/// The service discovery will report the ip address and hostname for the KBserver/s it detects 
+/// in  CAdapt_ItApp::m_theURLs and CAdapt_ItApp::m_theHostnames wxArrayString arrays. 
+/// DoServiceDiscovery() will, after the data is stored there, access that data and use it for 
+/// implementing the protocols described above.
 /// Because of the variety of possible states, the following enum will be used internally
 /// to help with implementing suitable protocols: The enum is defined in Adapt_It.h at
-/// about line 765
+/// about line 803. It's over-specified for our needs, but the extra values are benign.
 /// enum ServDiscInitialDetail
 /// {
 /// 	SDInit_NoStoredUrl,
@@ -17831,6 +17823,9 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_nCacheLeavingLocation = wxNOT_FOUND; // (-1) see full explanation in Adapt_It.h
+	m_nOnLButtonDownEntranceCount = 0; // BEW 28Jun18 for this and previous line
+
 	m_bTypedNewAdaptationInChooseTranslation = FALSE; // to support getting a new adaptation into 
 									// the combobox list direct from ChooseTranslation() dialog
 	m_bVertEdit_AtFirst = FALSE; // explained in Adapt_It.h at line 2262
