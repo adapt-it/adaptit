@@ -77,6 +77,7 @@ DECLARE_EVENT_TYPE(wxEVT_Join_With_Next, -1)
 DECLARE_EVENT_TYPE(wxEVT_Join_With_Previous, -1)
 DECLARE_EVENT_TYPE(wxEVT_Split_It, -1)
 DECLARE_EVENT_TYPE(wxEVT_Delayed_GetChapter, -1)
+DECLARE_EVENT_TYPE(wxEVT_Cursor_To_End, -1)
 
 #if defined(_KBSERVER)
 
@@ -307,6 +308,7 @@ public:
 #endif
 
     void OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventCursorToEnd(wxCommandEvent& WXUNUSED(event));
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
 	void OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event));

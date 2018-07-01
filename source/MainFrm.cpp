@@ -380,6 +380,7 @@ DEFINE_EVENT_TYPE(wxEVT_Join_With_Next)
 DEFINE_EVENT_TYPE(wxEVT_Join_With_Previous)
 DEFINE_EVENT_TYPE(wxEVT_Split_It)
 DEFINE_EVENT_TYPE(wxEVT_Delayed_GetChapter)
+DEFINE_EVENT_TYPE(wxEVT_Cursor_To_End)
 
 #if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
@@ -401,6 +402,13 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
 #endif
 
 // it may also be convenient to define an event table macro for the above event types
+#define EVT_CURSOR_TO_END(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Cursor_To_End, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+
 #define EVT_ADAPTATIONS_EDIT(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY( \
         wxEVT_Adaptations_Edit, id, wxID_ANY, \
@@ -568,6 +576,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 #endif
 
 	// Our Custom Event handlers:
+	EVT_CURSOR_TO_END(-1, CMainFrame::OnCustomEventCursorToEnd)
 	EVT_ADAPTATIONS_EDIT(-1, CMainFrame::OnCustomEventAdaptationsEdit)
 	EVT_FREE_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventFreeTranslationsEdit)
 	EVT_BACK_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventBackTranslationsEdit)
@@ -4862,6 +4871,25 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 #endif // for _KBSERVER #defined
 
+	// More custom event handlers
+	if (pApp->m_bShowCursorAtEnd)
+	{
+		// Do the work of putting the cursor at end of the selected box contents,
+		// and put the focus there too, after removing the selection
+		// Some serendipity here: if the OnLButtonDown() click is on a location
+		// where the input focus is not, then on Windows this handler is called;
+		// but any subsequent clicks on the phrasebox, this handler is NOT called,
+		// which is actually exactly what we want - otherwise, any time the user
+		// is ending in the phrasebox and uses a click to relocate the cursor in
+		// the box, it would unhelpfully jump to the end of the box contents. It
+		// doesn't do that, and I have to guess it is something to do with focus.
+		// What Linux or OSX might do remains to be seen.
+		wxString strContents = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+		int len = strContents.Length();
+		pApp->m_pTargetBox->SetSelection((long)len, (long)len);
+		pApp->m_bShowCursorAtEnd = FALSE; // we want it only the once, let user's editing happen
+	}
+
 	// mrh - if doc recovery is pending, we must skip all the following, since the doc won't be valid:
     if (pApp->m_recovery_pending)
         return;
@@ -4967,6 +4995,12 @@ void CMainFrame::OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event))
 
 // whm Note: this and following custom event handlers are in the View in the MFC version
 //
+void CMainFrame::OnCustomEventCursorToEnd(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->m_bShowCursorAtEnd = TRUE;
+}
+
 // The following is the handler for a wxEVT_Adaptations_Edit event message, defined in the
 // event table macro EVT_ADAPTATIONS_EDIT.
 // The wxEVT_Adaptations_Edit event is sent to the window event loop by a
@@ -4984,7 +5018,6 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 	wxLogDebug(_T("OnCustomEventAdaptationsEdit() gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
 		(int)gEditStep);
 #endif
-
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = pApp->GetView();

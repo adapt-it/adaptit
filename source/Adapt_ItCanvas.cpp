@@ -1858,12 +1858,14 @@ x:					CCell* pCell = 0;
 							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
 							// is done at the leaving location, but a removal from the KB
 							// will be done at the landing location
+
 						}
 						else if (pApp->m_pTargetBox->m_bAbandonable)
 						{
                             pApp->m_pTargetBox->m_Translation.Empty();
 							pApp->m_targetPhrase.Empty();
 							pApp->m_pTargetBox->ChangeValue(_T(""));
+
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 							pApp->LogDropdownState(_T("OnLButtonDown() m_bAbandonable TRUE block, before calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1835);
 #endif
@@ -1908,6 +1910,10 @@ x:					CCell* pCell = 0;
 #endif
 							}
 						}
+						// BEW addedd 30Jun18 - to support AuSIL request for cursor at end
+						wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
+						wxPostEvent(pApp->GetMainFrame(), eventCursorToEnd);
+
 						ScrollIntoView(pApp->m_nActiveSequNum);
 					}
 

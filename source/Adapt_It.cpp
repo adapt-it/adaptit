@@ -17828,6 +17828,8 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bShowCursorAtEnd = FALSE; // initialize (legacy behaviour, cursor not forced to end)
+
 	m_nCacheLeavingLocation = wxNOT_FOUND; // (-1) see full explanation in Adapt_It.h
 	m_nOnLButtonDownEntranceCount = 0; // BEW 28Jun18 for this and previous line
 
