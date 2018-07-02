@@ -4872,6 +4872,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 #endif // for _KBSERVER #defined
 
 	// More custom event handlers
+	
 	if (pApp->m_bShowCursorAtEnd)
 	{
 		// Do the work of putting the cursor at end of the selected box contents,
@@ -4887,7 +4888,19 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		wxString strContents = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
 		int len = strContents.Length();
 		pApp->m_pTargetBox->SetSelection((long)len, (long)len);
+		pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 		pApp->m_bShowCursorAtEnd = FALSE; // we want it only the once, let user's editing happen
+
+		// BEW 2Jul18 -- the phrasebox does not respond to a Backspace properly
+		// if the list is still down, (it deletes the whole box contents) so
+		// programmatically try fix this. 
+
+		/* no help
+		if (pApp->m_pTargetBox->IsPopupShown())
+		{
+			pApp->m_pTargetBox->CloseDropDown();
+		}
+		*/
 	}
 
 	// mrh - if doc recovery is pending, we must skip all the following, since the doc won't be valid:

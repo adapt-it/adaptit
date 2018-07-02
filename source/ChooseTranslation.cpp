@@ -295,11 +295,18 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		pButton->Show(FALSE);
 	}
 
+	// BEW 2Jul18 -- the ChooseTranslation dialog will not work right if the combobox list is
+	// open, so programmatically close it here if it is showing
+	if (gpApp->m_pTargetBox->IsPopupShown())
+	{
+		gpApp->m_pTargetBox->CloseDropDown();
+	}
+
 	//TransferDataToWindow(); // whm removed 21Nov11
 	m_pEditReferences->ChangeValue(m_refCountStr); // whm added 21Nov11
 
-												   // place the dialog window so as not to obscure things
-												   // work out where to place the dialog window
+	// place the dialog window so as not to obscure things
+	// work out where to place the dialog window
 	gpApp->GetView()->AdjustDialogPosition(this);
 
 	m_pMyListBox->SetFocus();
@@ -1264,7 +1271,14 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 				if (pTargetUnit != NULL)
 				{
 					pApp->m_pTargetBox->PopulateDropDownList(pTargetUnit, selectionIndex, bNoAdaptationFlagPresent, indexOfNoAdaptation);
-					wxASSERT(selectionIndex == nRefStrCount - 1); // verify it is indeed last in the list
+					// BEW 2Jul18
+					// wxASSERT(selectionIndex == nRefStrCount - 1); // verify it is indeed last in the list
+					// With the dropdown combobox phrasebox I was able to generate a sequence of GUI ops that
+					// caused the above assert to trip. a. change the meaning b. click elsewhere. c click back
+					// on same location. Choose Translation, add new meaning in text control, click OK to 
+					// accept, and the assert tripped: with selectionIndex = 0 but nRefStrCount = 2, so that
+					// we get 0 == 1 which is a fail. So I'll force the selection to be last instead.
+					selectionIndex = nRefStrCount - 1;
 				}
 				// set the icon button for the phrasebox
 				pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);

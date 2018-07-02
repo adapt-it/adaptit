@@ -1910,7 +1910,7 @@ x:					CCell* pCell = 0;
 #endif
 							}
 						}
-						// BEW addedd 30Jun18 - to support AuSIL request for cursor at end
+						// BEW added 30Jun18 - to support AuSIL request for cursor at end
 						wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
 						wxPostEvent(pApp->GetMainFrame(), eventCursorToEnd);
 

@@ -6653,6 +6653,11 @@ void CPhraseBox::OnComboProcessDropDownListOpen(wxCommandEvent& event)
     }
     //bDropDownIsPoppedOpen = TRUE; // CAdapt_ItCanvas::OnScroll() needs to know whether the dropdown list if popped down or not
     //wxLogDebug(_T("OnComboProcessDropDownListOpen: Popup Open event"));
+
+	// BEW addedd 30Jun18 - to support AuSIL request for cursor at end
+	wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
+	wxPostEvent(gpApp->GetMainFrame(), eventCursorToEnd);
+
 }
 
 void CPhraseBox::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(event))
@@ -6665,6 +6670,10 @@ void CPhraseBox::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(even
     // CAdapt_ItCanvas::OnScroll() needs to know whether the dropdown list if popped down or not
     //bDropDownIsPoppedOpen = FALSE;
     //wxLogDebug(_T("OnComboProcessDropDownListCloseUp: Popup Close event"));
+
+	// BEW addedd 30Jun18 - to support AuSIL request for cursor at end
+	wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
+	wxPostEvent(gpApp->GetMainFrame(), eventCursorToEnd);
 }
 #endif
 
@@ -7073,7 +7082,11 @@ void CPhraseBox::OnComboItemSelected(wxCommandEvent & WXUNUSED(event))
     // save old sequ number in case required for toolbar's Back button
     gpApp->m_nOldSequNum = gpApp->m_nActiveSequNum;
     JumpForward(pView);
-	*/ 
+	*/
+	// BEW addedd 30Jun18 - to support AuSIL request for cursor at end
+	wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
+	wxPostEvent(gpApp->GetMainFrame(), eventCursorToEnd);
+
 }
 
 // This OnMeasureItem() function implements the virtual function in wxOwnerDrawnComboBox
