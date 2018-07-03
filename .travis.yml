@@ -7,8 +7,8 @@ language: cpp
 
 before_install:
 - sudo apt-get update -qq
-sudo apt-get remove -qq libwxbase2.8-0 libwxbase2.8-dbg libwxbase2.8-dev libwxgtk2.8-0 libwxgtk2.8-dbg libwxgtk2.8-dev wx2.8-headers wx2.8-i18n
-sudo apt-get install -qq uuid-dev curl libcurl4-gnutls-dev libwxbase3.0-0v5 libwxbase3.0-dev libwxgtk3.0-0v5 libwxgtk3.0-dev wx-common wx3.0-headers wx3.0-i18n libgtk-3-dev libcanberra-gtk-module
+#- sudo apt-get remove -qq libwxbase2.8-0 libwxbase2.8-dbg libwxbase2.8-dev libwxgtk2.8-0 libwxgtk2.8-dbg libwxgtk2.8-dev wx2.8-headers wx2.8-i18n
+- sudo apt-get install -qq uuid-dev curl libcurl4-gnutls-dev libwxbase3.0-0v5 libwxbase3.0-dev libwxgtk3.0-0v5 libwxgtk3.0-dev wx-common wx3.0-headers wx3.0-i18n libgtk-3-dev libcanberra-gtk-module
 
 script: ./scripts/build-ai.sh
 
