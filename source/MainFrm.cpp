@@ -4708,7 +4708,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
     //
     // This code is useful for debugging focus problems
     // (which are plentiful when dealing with popup windows).
-#if 0
+//#if 0
     static wxWindow* lastFocus = (wxWindow*)NULL;
 
     wxWindow* curFocus = ::wxWindow::FindFocus();
@@ -4719,11 +4719,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
         if (curFocus)
             className = curFocus->GetClassInfo()->GetClassName();
         lastFocus = curFocus;
-        wxLogDebug(wxT("FOCUSED: %s %X"),
+        wxLogDebug(wxT("FOCUSED: %s %p"),
             className,
-            (unsigned int)curFocus);
+            curFocus);
     }
-#endif
+//#endif
 
 
 	// BEW 2Dec2014 Alan Buseman's Guesser - support for hiding the GuesserUpdate() calls
