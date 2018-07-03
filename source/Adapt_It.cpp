@@ -7486,13 +7486,40 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
 int CAdapt_ItApp::FilterEvent(wxEvent & event)
 {
     const wxEventType t = event.GetEventType();
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // whm 30Jun2018 temporarily disabling the conditional define for Linux/Mac below
+    // while developing the bool functions that will be used in FilterEvent()
+    // TODO: Redo the conditional defines for Linux/Mac as well as any needed for
+    // the Windows __WXMSW__ port before code testing and release.
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #if defined (__WXGTK__) || defined (__WXMAC__)
     // We need to catch wxEVT_LEFT_DOWN to get the initial open/closed state of the dropdown list.
     // If we instead try to use wxEVT_LEFT_UP, the box will have already been closed by the focus
     // shift before getting to the if (m_pTargetBox->IsPopupShown()) test below.
     if (m_pTargetBox != NULL)
     {
+        //if (t == wxEVT_ENTER_WINDOW)
+        //{
+
+        //}
+
+        if (t == wxEVT_LEFT_DOWN)
+        {
+            //int MenuID;
+            if (ClickedOnMainMenuBar((wxMouseEvent&)event))
+            {
+                wxLogDebug(_T("Clicked on Main Menu Bar"));
+            }
+
+            int breakpoint = 0;
+            breakpoint = breakpoint;
+            wxLogDebug(_T("**Triggered wxEVT_LEFT_DOWN in FilterEvent()**"));
+
+        }
         /*
+        // whm Note: ***CAUTION*** attempting to filter wxEVT_LEFT_DOWN event and setting breakpoints
+        // in this function within gdb seems to result in hanging up the entire system, necessitating 
+        // a cold reboot!!! Instead of using breakpoints it is better to post wxLogDebug statements.
         if (t == wxEVT_LEFT_DOWN)
         {
             wxLogDebug(_T("**Left Button Down**"));
@@ -7554,7 +7581,7 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
 
         if (t == wxEVT_LEFT_UP)
         {
-            wxLogDebug(_T("**Left Button Up**"));
+            wxLogDebug(_T("**Triggered wxEVT_LEFT_UP in FilterEvent()**"));
             if (ClickedOnPhraseBoxLocation((wxMouseEvent&)event))
             {
                 wxLogDebug(_T("***Clicked on phrasebox***"));
@@ -7581,6 +7608,26 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
             // If the dropdown list is open we should close it
             if (m_pTargetBox->IsPopupShown())
             {
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                if (TypedReservedDropDownListNavKey((wxKeyEvent&)event))
+                {
+                    int Breakpoint = 0;
+                    Breakpoint = Breakpoint;
+
+                }
+                else if (TypedSysKeyInPhraseBox((wxKeyEvent&)event))
+                {
+                    int Breakpoint = 0;
+                    Breakpoint = Breakpoint;
+
+                }
+                else if (TypedAlphanumericKeyInPhraseBox((wxKeyEvent&)event))
+                {
+                    int Breakpoint = 0;
+                    Breakpoint = Breakpoint;
+
+                }
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 // Note: On Windows a key press with dropdown open results in two wxEVT_KEY_DOWN events being
                 // filtered here, first one has a negative value returned by GetId() call below, the second
                 // one has the ID of the phrasebox (22030).
@@ -7638,6 +7685,37 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
             }
             
         } // end of if (t == wxEVT_CHAR)
+
+        if (t == wxEVT_ENTER_WINDOW)
+        {
+            //if (!(this->GetMainFrame()->canvas == ((wxMouseEvent&)event).GetEventObject()))
+            //{
+            //    int Breakpoint = 0;
+            //    Breakpoint = Breakpoint;
+            //}
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            if (MouseOverMainMenuBar((wxMouseEvent&) event))
+            {
+                int Breakpoint = 0;
+                Breakpoint = Breakpoint;
+
+            }
+            /*
+            else if (MouseOverToolBar((wxMouseEvent&)event))
+            {
+                int Breakpoint = 0;
+                Breakpoint = Breakpoint;
+
+            }
+            else if (MouseOverModeBar((wxMouseEvent&)event))
+            {
+                int Breakpoint = 0;
+                Breakpoint = Breakpoint;
+
+            }
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            */
+        }
     }
 #endif
     // Continue processing the event normally as well.
@@ -7645,7 +7723,8 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
     return -1; // Event_Skip;
 }
 
-// whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
+// whm 2Jun2018 added the following to filter all events for key up/down event when dropdown is open
+// This function is used within the wxEVT_LEFT_UP block of FilterEvent():
 bool CAdapt_ItApp::ClickedOnPhraseBoxLocation(wxMouseEvent& event)
 {
     // The object represented by the m_pTargetBox->GetTextCtrl() return value is the pointer
@@ -7659,7 +7738,9 @@ bool CAdapt_ItApp::ClickedOnPhraseBoxLocation(wxMouseEvent& event)
     {
         return FALSE;
     }
-    /*
+    /* 
+    // below is an alternate attempt at determining if the phrasebox was clicked on,
+    // but the technique above is much simpler and more reliable.
     CAdapt_ItView* pView = (CAdapt_ItView*)GetView();
     wxASSERT(pView != NULL);
     wxPoint point;
@@ -7710,6 +7791,7 @@ bool CAdapt_ItApp::ClickedOnPhraseBoxLocation(wxMouseEvent& event)
 }
 
 // whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
+// This function is used within the wxEVT_LEFT_UP block of FilterEvent():
 bool CAdapt_ItApp::ClickedOnOtherTargetLocation(wxMouseEvent& event)
 {
     CAdapt_ItView* pView = (CAdapt_ItView*)GetView();
@@ -7757,6 +7839,89 @@ bool CAdapt_ItApp::ClickedOnOtherTargetLocation(wxMouseEvent& event)
     }
     return FALSE;
 }
+
+bool CAdapt_ItApp::ClickedOnMainMenuBar(wxMouseEvent & event)
+{
+    //wxRect menuRect = this->GetMainFrame()->m_pMenuBar->HitTest(GetRect();
+    wxPoint mousePtrPos = ((wxMouseEvent&)event).GetPosition();
+    int itemAtPosition = this->GetMainFrame()->m_pMenuBar->HitTest(mousePtrPos);
+    //if (menuRect.Contains(mousePtrPos))
+    if (itemAtPosition == 1)
+    {
+        return TRUE;
+        // TODO: Close dropdown list
+        // TODO: Propagate the mouse click on
+    }
+    //int objectID = ((wxMouseEvent&)event).GetId(); // TODO: This is returning a large negative number instead of an object ID.
+    //if (objectID == ID_FILE_MENU
+    //    || objectID == ID_EDIT_MENU
+    //    || objectID == ID_VIEW_MENU
+    //    || objectID == ID_TOOLS_MENU
+    //    || objectID == ID_EXPORT_IMPORT_MENU
+    //    || objectID == ID_ADVANCED_MENU
+    //    || objectID == ID_LAYOUT_MENU
+    //    || objectID == ID_HELP_MENU
+    //    || objectID == ID_ADMINISTRATOR_MENU)
+    //{
+    //    MenuID = objectID;
+    //    return TRUE;
+    //}
+    return false;
+}
+
+// The following three are used within the wxEVT_MOTION or wxEVT_ENTER_WINDOW blocks of FilterEvent():
+bool CAdapt_ItApp::MouseOverMainMenuBar(wxMouseEvent& event)
+{
+    if (this->GetMainFrame()->m_pMenuBar == ((wxMouseEvent&)event).GetEventObject())
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+bool CAdapt_ItApp::MouseOverToolBar(wxMouseEvent& event)
+{
+    if (this->GetMainFrame()->m_auiToolbar == ((wxMouseEvent&)event).GetEventObject())
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+bool CAdapt_ItApp::MouseOverModeBar(wxMouseEvent& event)
+{
+    if (this->GetMainFrame()->m_pControlBar == ((wxMouseEvent&)event).GetEventObject())
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+// The following three are used within the wxEVT_CHAR block of FilterEvent():
+bool CAdapt_ItApp::TypedReservedDropDownListNavKey(wxKeyEvent& WXUNUSED(event))
+{
+    return FALSE;
+}
+
+bool CAdapt_ItApp::TypedSysKeyInPhraseBox(wxKeyEvent& WXUNUSED(event))
+{
+    return FALSE;
+}
+
+bool CAdapt_ItApp::TypedAlphanumericKeyInPhraseBox(wxKeyEvent& WXUNUSED(event))
+{
+    return FALSE;
+}
+
 
 /*
 // whm 14Nov11 Note: This FitWithScrolling() function is now integrated in Julian Smart's

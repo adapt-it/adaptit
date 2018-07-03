@@ -360,6 +360,9 @@ public: // edb 05 March 2010 - need this public in order to call it from CRetran
 									 bool bDoRecalcLayoutInternally);
 	void		ToggleCopySource();
 	int			m_nCallCount;
+    void        OnFind(wxCommandEvent& event); // whm 1Jul2018 moved here to public access
+    void        OnGoTo(wxCommandEvent& WXUNUSED(event)); // whm 1Jul2018 moved here to public access
+    void        OnToolsKbEditor(wxCommandEvent& WXUNUSED(event)); // whm 1Jul2018 moved here to public access
 protected:
 	bool		ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
 							wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
@@ -426,11 +429,11 @@ protected:
 	void OnUpdateButtonChooseTranslation(wxUpdateUIEvent& event);
 	void OnFileExport(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileExport(wxUpdateUIEvent& event);
-	void OnToolsKbEditor(wxCommandEvent& WXUNUSED(event));
+	//void OnToolsKbEditor(wxCommandEvent& WXUNUSED(event)); // whm 1Jul2018 moved to public access
 	void OnUpdateToolsKbEditor(wxUpdateUIEvent& event);
-	void OnGoTo(wxCommandEvent& WXUNUSED(event));
+	//void OnGoTo(wxCommandEvent& WXUNUSED(event)); // whm 1Jul2018 moved to public access
 	void OnUpdateGoTo(wxUpdateUIEvent& event);
-	void OnFind(wxCommandEvent& event);
+	//void OnFind(wxCommandEvent& event); // whm 1Jul2018 moved to public access
 	void OnUpdateFind(wxUpdateUIEvent& event);
 	void OnReplace(wxCommandEvent& event);
 	void OnUpdateReplace(wxUpdateUIEvent& event);

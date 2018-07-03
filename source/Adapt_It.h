@@ -2087,11 +2087,19 @@ class CAdapt_ItApp : public wxApp
     // whm 2Jun2018 added to filter all events for key down event when dropdown is open
     virtual int FilterEvent(wxEvent& event);
 
-    // whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
+    // whm 2Jun2018 added the following to filter all events for key up/down event when dropdown is open
+    // The following two are used within the wxEVT_LEFT_UP block of FilterEvent():
     bool ClickedOnPhraseBoxLocation(wxMouseEvent& event);
-
-    // whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
     bool ClickedOnOtherTargetLocation(wxMouseEvent& event);
+    bool ClickedOnMainMenuBar(wxMouseEvent& event);
+    // The following three are used within the wxEVT_MOTION or wxEVT_ENTER_WINDOW blocks of FilterEvent():
+    bool MouseOverMainMenuBar(wxMouseEvent& event);
+    bool MouseOverToolBar(wxMouseEvent& event);
+    bool MouseOverModeBar(wxMouseEvent& event);
+    // The following three are used within the wxEVT_CHAR block of FilterEvent():
+    bool TypedReservedDropDownListNavKey(wxKeyEvent& event);
+    bool TypedSysKeyInPhraseBox(wxKeyEvent& event);
+    bool TypedAlphanumericKeyInPhraseBox(wxKeyEvent& event);
 
 	// BEW 12May16 We need a way to prevent OnIdle() events from asking the user for a KBserver
 	// login choice while the wizard is running. OnIdle() will, without this, check only for

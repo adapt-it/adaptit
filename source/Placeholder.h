@@ -73,6 +73,8 @@ class CPlaceholder : public wxEvtHandler
 		void		UntransferTransferredMarkersAndPuncts(
 							SPList*				pSrcPhraseList,
 							CSourcePhrase*		pSrcPhrase);
+		void OnButtonNullSrc(wxCommandEvent& WXUNUSED(event)); // whm 1Jul2018 moved to public
+		void OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event)); // whm 1Jul2018 moved to public
 	private:
 
 		// a utility for setting or clearing the bFollowingMarkers boolean (although
@@ -83,9 +85,7 @@ class CPlaceholder : public wxEvtHandler
 
 	protected:
 		// event handlers
-		void OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event));
 		void OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event);
-		void OnButtonNullSrc(wxCommandEvent& WXUNUSED(event));
 		void OnUpdateButtonNullSrc(wxUpdateUIEvent& event);
 		
 	private:

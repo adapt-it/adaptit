@@ -4702,6 +4702,30 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
         pApp->m_bChooseTransInitializePopup = FALSE;
     }
     
+    // whm 2Jul2018 added the following from the wxWidgets combo sample
+    // uncomment the #if 0 and #endif lines to deactivate after focus
+    // debugging is finished
+    //
+    // This code is useful for debugging focus problems
+    // (which are plentiful when dealing with popup windows).
+//#if 0
+    static wxWindow* lastFocus = (wxWindow*)NULL;
+
+    wxWindow* curFocus = ::wxWindow::FindFocus();
+
+    if (curFocus != lastFocus)
+    {
+        const wxChar* className = wxT("<none>");
+        if (curFocus)
+            className = curFocus->GetClassInfo()->GetClassName();
+        lastFocus = curFocus;
+        wxLogDebug(wxT("FOCUSED: %s %X"),
+            className,
+            (unsigned int)curFocus);
+    }
+//#endif
+
+
 	// BEW 2Dec2014 Alan Buseman's Guesser - support for hiding the GuesserUpdate() calls
 	// which need to be done pretty often -- and which block the GUI whether done synchronously
 	// as is done here, or asynchronously on a thread (due to mutexes blocking KB saves and
@@ -4887,8 +4911,21 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// What Linux or OSX might do remains to be seen.
 		wxString strContents = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
 		int len = strContents.Length();
-		pApp->m_pTargetBox->SetSelection((long)len, (long)len);
-		pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+        pApp->m_pTargetBox->GetTextCtrl()->SetSelection((long)len, (long)len);
+        
+        // whm 2Jul2018 added below a dummy call of GetSelection() to see if the
+        // owner drawn combo box internally was reacting correctly to the 
+        // SetSelection() call above. It is. Both the dummyStart and dummyEnd 
+        // values are detected by GetSelection() here to be the len value as
+        // set above. 
+        // Since the GetSelection() call in the OnChar() handler (just before 
+        // the WXK_BACK key is processed there) returns start and end 
+        // selection values that indicating the text has gotten selected again
+        // before reaching that point in OnChar(), I think we can conclude that
+        // something causes the content of the phrasebox to get selected again
+        // in the middle of the process of handling a press of the Backspace key.
+        long dummyStart, dummyEnd;
+        pApp->m_pTargetBox->GetTextCtrl()->GetSelection(&dummyStart, &dummyEnd);
 		pApp->m_bShowCursorAtEnd = FALSE; // we want it only the once, let user's editing happen
 
 		// BEW 2Jul18 -- the phrasebox does not respond to a Backspace properly

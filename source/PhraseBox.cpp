@@ -3605,8 +3605,8 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	// whm Note: The following code for handling the WXK_BACK key is ok to leave here in
 	// the OnChar() handler, because it is placed before the Skip() call (the OnChar() base
 	// class call in MFC)
-
-    GetTextCtrl()->GetSelection(&m_nSaveStart,&m_nSaveEnd);
+    
+    GetTextCtrl()->GetSelection(&m_nSaveStart, &m_nSaveEnd);
 
     // MFC Note: CEdit's Undo() function does not undo a backspace deletion of a selection
     // or single char, so implement that here & in an override for OnEditUndo();
@@ -3661,7 +3661,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		}
 	}
 
-	// wxWidgets Note: The wxTextCtrl does not have a virtual OnChar() method,
+    // wxWidgets Note: The wxTextCtrl does not have a virtual OnChar() method,
 	// so we'll just call .Skip() for any special handling of the WXK_RETURN and WXK_TAB
 	// key events. In wxWidgets, calling event.Skip() is analagous to calling
 	// the base class version of a virtual function. Note: wxTextCtrl has
@@ -5267,6 +5267,159 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
             return; // whm 16Feb2018 added 
         }
     }
+
+    // whm 1July2018 added. Handle the accelerator key commands here in OnSysKeyUp() for the Linux/Mac platform
+    // for the situation when the dropdown list is open. The code below addresses this problem:
+    //    When the phrasebox's dropdown list is open all accelerator keys get effectively blocked on the 
+    //    Linux/Mac(?) platform - but only when the dropdown list is open. 
+    // Once the dropdown list is closed, the accelerator key works normally on Linux. This behavior results in the
+    // user having to type the accelerator key combination twice to get it to execute on Linux/Mac(?) anytime the 
+    // dropdown list is open.
+    // Note that all predefined accelerator keys work on Windows even when the dropdown list is open, and in such 
+    // cases in Windows invoking the accelerator key once closes the dropdown, and executes the desired action
+    // as intended. Moreover, on Windows, the accelerator key event does not come through OnSysKeyUp() to this 
+    // point - regardless of whether the dropdown is open or closed.
+    // However, on Linux/Mac(?) the accelerator key gets (partially) consumed when it triggers the
+    // closing of the dropdown list, so that the accelerator key combination does not carry out the intended
+    // action, but fortunately, the key event does pass through this point in OnSysKeyUp(). So we can handle the 
+    // accelerator key combinations here by explicitly calling the functions in the application directly here.
+    // When the dropdown is closed on Linux/Mac(?), the accelerator key combination works as originally intended 
+    // just like the Windows version and control doesn't pass through here. Hence, we don't have to conditionally
+    // compile the blocks of code below that handle the accelerator key actions for Linux/Mac.
+    // 
+    // The accelerator keys are defined in the CMainFrame's constructor. They are all associated with either a
+    // menu item's identifier, or a tool bar button's identifier (see copied code lines below), so that when 
+    // invoked, the accelerator is designed to immediately invoke that menu item or tool bar button, just as
+    // though the user selected that menu item or tool bar item.
+    // There are upwards of 35 accelerator keys defined there. 
+    // For our purposes here we will only handle the more common ones that would be invoked during editing, 
+    // including the following - copied as they look in CMainFrame:
+    /*
+    entries[2].Set(wxACCEL_CTRL, (int) 'L', ID_BUTTON_CHOOSE_TRANSLATION); // whm checked OK
+    entries[3].Set(wxACCEL_CTRL, (int) 'E', ID_BUTTON_EDIT_RETRANSLATION); // whm checked OK
+    entries[4].Set(wxACCEL_CTRL, (int) 'M', ID_BUTTON_MERGE); // whm checked OK - OnButtonMerge() needed trap door added to avoid crash
+    entries[5].Set(wxACCEL_CTRL, (int) 'I', ID_BUTTON_NULL_SRC); // whm checked OK
+    entries[6].Set(wxACCEL_CTRL, (int) 'D', ID_BUTTON_REMOVE_NULL_SRCPHRASE); // whm checked OK
+    entries[7].Set(wxACCEL_CTRL, (int) 'U', ID_BUTTON_RESTORE); // whm checked OK
+    entries[8].Set(wxACCEL_CTRL, (int) 'R', ID_BUTTON_RETRANSLATION); // whm checked OK
+    ...
+    entries[14].Set(wxACCEL_CTRL, (int) '2', ID_EDIT_MOVE_NOTE_BACKWARD); // whm checked OK
+    entries[15].Set(wxACCEL_CTRL, (int) '3', ID_EDIT_MOVE_NOTE_FORWARD); // whm checked OK
+    ...
+    entries[18].Set(wxACCEL_CTRL, (int) 'Q', ID_EDIT_SOURCE_TEXT); // whm checked OK
+    ...
+    entries[20].Set(wxACCEL_CTRL, (int) 'Z', wxID_UNDO); // standard wxWidgets ID
+    ...
+    entries[25].Set(wxACCEL_CTRL, (int) 'S', wxID_SAVE); // standard wxWidgets ID // whm checked OK
+    ...
+    entries[27].Set(wxACCEL_CTRL, (int) 'F', wxID_FIND); // standard wxWidgets ID // whm checked OK
+    entries[28].Set(wxACCEL_CTRL, (int) 'G', ID_GO_TO); // On Mac Command-G is Find Next but this is close enough
+    ...
+    entries[33].Set(wxACCEL_CTRL, (int) 'K', ID_TOOLS_KB_EDITOR); // whm checked OK
+    ...
+    entries[35].Set(wxACCEL_CTRL, (int) '7', ID_TOOLS_CLIPBOARD_ADAPT);
+    */
+    // **** NOTICE The following blocks of code are only executed in the Linux/Mac versions **** 
+    // **** when the phrasebox's dropdown list is open and blocking the accelerator keys.   ****
+    // Handle the predefined accelerator key Ctrl+L to summon the Choose Translation dialog
+    if (event.ControlDown() && event.GetKeyCode() == 76) // CTRL+L (Choose Translation dialog)
+    {
+        if (pApp->m_bReadOnlyAccess)
+        {
+            // Disable the F8 key invocation of the ChooseTranslation dialog
+            return;
+        }
+        pView->ChooseTranslation();
+        return;
+    }
+    // Handle the predefined accelerator key Ctrl+E to summon the Edit A Retranslation dialog
+    if (event.ControlDown() && event.GetKeyCode() == 69) // CTRL+E (Edit A Retranslation dialog)
+    {
+        wxCommandEvent dummyevent;
+        pApp->GetRetranslation()->OnButtonEditRetranslation(dummyevent);
+    }
+    // Handle the predefined accelerator key Ctrl+M to Make (Merge) A Phrase
+    if (event.ControlDown() && event.GetKeyCode() == 77) // CTRL+M (Make A Phrase)
+    {
+        pView->MergeWords(); // simply calls OnButtonMerge
+    }
+    // Handle the predefined accelerator key Ctrl+I to Insert A Placeholder
+    if (event.ControlDown() && event.GetKeyCode() == 73) // CTRL+I (Insert A Placeholder)
+    {
+        wxCommandEvent dummyevent;
+        pApp->GetPlaceholder()->OnButtonNullSrc(dummyevent);
+    }
+    // Handle the predefined accelerator key Ctrl+D to Removed A Placeholder
+    if (event.ControlDown() && event.GetKeyCode() == 68) // CTRL+D (Remove A Placeholder)
+    {
+        wxCommandEvent dummyevent;
+        pApp->GetPlaceholder()->OnButtonRemoveNullSrcPhrase(dummyevent);
+    }
+    // Handle the predefined accelerator key Ctrl+U to Unmake a Phrase
+    if (event.ControlDown() && event.GetKeyCode() == 85) // CTRL+U (Unmake a Phrase)
+    {
+        pView->UnmergePhrase();
+    }
+    // Handle the predefined accelerator key Ctrl+R to Do A Retranslation
+    if (event.ControlDown() && event.GetKeyCode() == 82) // CTRL+R (Do A Retranslation)
+    {
+        wxCommandEvent dummyevent;
+        pApp->GetRetranslation()->OnButtonRetranslation(dummyevent);
+    }
+    //// Handle the predefined accelerator key Ctrl+2 to Jump to Previous Note
+    //if (event.ControlDown() && event.GetKeyCode() == 50) // CTRL+2 (Jump to Previous Note)
+    //{
+    //    // TODO:
+    //}
+    //// Handle the predefined accelerator key Ctrl+3 to Jump to the Next Note
+    //if (event.ControlDown() && event.GetKeyCode() == 51) // CTRL+3 (Jump to the Next Note)
+    //{
+    //    // TODO:
+    //}
+    // Handle the predefined accelerator key Ctrl+Q to Edit Source Text...
+    if (event.ControlDown() && event.GetKeyCode() == 81) // CTRL+Q (Edit Source Text...)
+    {
+        wxCommandEvent dummyevent;
+        pView->EditSourceText(dummyevent);
+    }
+    // Handle the predefined accelerator key Ctrl+Z to Undo
+    if (event.ControlDown() && event.GetKeyCode() == 90) // CTRL+Z (Undo)
+    {
+        wxCommandEvent dummyevent;
+        this->OnEditUndo(dummyevent);
+    }
+    // Handle the predefined accelerator key Ctrl+S to Save
+    if (event.ControlDown() && event.GetKeyCode() == 83) // CTRL+S (Save)
+    {
+        wxCommandEvent dummyevent;
+        pApp->GetDocument()->OnFileSave(dummyevent);
+    }
+    // Handle the predefined accelerator key Ctrl+F to Find...
+    if (event.ControlDown() && event.GetKeyCode() == 70) // CTRL+F (Find...)
+    {
+        wxCommandEvent dummyevent;
+        pView->OnFind(dummyevent);
+    }
+    // Handle the predefined accelerator key Ctrl+G to Go To...
+    if (event.ControlDown() && event.GetKeyCode() == 71) // CTRL+G (Go To...)
+    {
+        wxCommandEvent dummyevent;
+        pView->OnGoTo(dummyevent);
+    }
+    // Handle the predefined accelerator key Ctrl+K to Knowledge Base Editor...
+    if (event.ControlDown() && event.GetKeyCode() == 75) // CTRL+K (Knowledge Base Editor...)
+    {
+        wxCommandEvent dummyevent;
+        pView->OnToolsKbEditor(dummyevent);
+    }
+    // Handle the predefined accelerator key Ctrl+7 to Adapt Clipboard Text
+    if (event.ControlDown() && event.GetKeyCode() == 55) // CTRL+7 (Adapt Clipboard Text)
+    {
+        wxCommandEvent dummyevent;
+        pApp->OnToolsClipboardAdapt(dummyevent);
+    }
+
+
     // whm Note: no event.Skip() from OnSysKeyUP()
 }
 
@@ -5936,6 +6089,9 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 		pView->ChooseTranslation();
 		return;
 	}
+
+    // whm TODO: Put activator here for WXK_F1 help, so that F1 doesn't need to be pressed
+    // twice on Linux/Mac when the dropdown list is open
 
 	event.Skip();
 }
