@@ -2107,7 +2107,7 @@ class CAdapt_ItApp : public wxApp
 	// so the ask happens at the Next> click at the wizard's Projects page - which is *not* what
 	// we want to happen at that time. So we'll add this second boolean to the test, so that
 	// the first idle event AFTER the wizard has closed, will trigger the connection request dlg
-	bool    m_bWizardIsRunning; // it's easier for a non _KBSERVER build to just leave it out of the _KBSERVER wrapper
+	bool m_bWizardIsRunning; // it's easier for a non _KBSERVER build to just leave it out of the _KBSERVER wrapper
 
 
 #if defined(_KBSERVER)
