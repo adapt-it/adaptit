@@ -4704,7 +4704,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
     
     // whm 2Jul2018 added the following from the wxWidgets combo sample
     // uncomment the #if 0 and #endif lines to deactivate after focus
-    // debugging is finished
+    // debugging is finished.
     //
     // This code is useful for debugging focus problems
     // (which are plentiful when dealing with popup windows).
