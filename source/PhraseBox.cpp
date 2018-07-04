@@ -3555,14 +3555,14 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 // 1. Detects if key even is modified with CTRL down, or ALT down, or any arrow
 //    key: WXK_DOWN, WXK_UP, WXK_LEFT, or WXK_RIGHT. If so, event.Skip() is called 
 //    so that OnKeyUp() will handle those special cases. Then return is called to
-//    exit immediately from OnChar().
+//    exit immediately from OnChar() before processing the list items below.
 // 2. Set pApp->m_nPlacePunctDlgCallNumber = 0 initializing it on every alphanumeric key stroke.
 // 3. Handle WXK_BACK key event - to effect an Undo for a backspace deletion of a selection or
 //    a single char.
 // 4. Call event.Skip() if the key event is NOT WXK_RETURN or WXK_TAB - to prevent bell sounding (?)
 // 5. Automatically effect a merger if a selection is present - assuming the user intended to do so
 //    before an OnChar() event.
-// 6. Handle WXK_RETURN key event. This could be moved to OnKeyUp() where WXK_TAB handling is located.
+// 6. Note: The WXX_TAB, WXK_NUMPAD_ENTER and WXK_RETURN keys are all now processed alike in OnKeyUp().
 // 7. Handle WXK_BACK key event - to effect box resizing on backspace.
 void CPhraseBox::OnChar(wxKeyEvent& event)
 {
@@ -4713,7 +4713,9 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 // BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 {
-	// wx Note: This routine handles Adapt It's AltDown key events
+    wxLogDebug(_T("In CPhraseBox::OnSysKeyUp() key code: %d"), event.GetKeyCode());
+
+    // wx Note: This routine handles Adapt It's AltDown key events
 	// and CmdDown events (= ControlDown on PCs; Apple Command key events on Macs).
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -5819,8 +5821,7 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 // whm Note 15Feb2018 modified key handling so that ALL AltDown(), ShiftDown(), and ControlDown()
 // events are now sent to OnSysKeyUp() for processing.
 // whm 16Feb2018 Notes: OnKeyUp() currently does the following key handling:
-// 1. Detects WXX_TAB and processes it like the WXK_RETURN key in OnChar(). The WXK_TAB block also
-//    does a merge if there is a source phrase selection (like WXK_RETURN does).
+// 1. Detects WXX_TAB, WXK_NUMPAD_ENTER and WXK_RETURN keys and processes them all alike.
 // 2. Detects all AltDown(), all ShiftDown(), and all ControlDown() events (with key combinations) and
 //    routes all processing of those events to the separate function OnSysKeyUp(), and returns 
 //    without calling Skip() suppressing further handling after execution of OnSysKeyUp().
@@ -5853,7 +5854,8 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
     // on the Mac OSX platform (where the OnChar handler might not be called for WXK_RETURN).
     long keycode = event.GetKeyCode();
     if (keycode == WXK_TAB
-    || keycode == WXK_RETURN)
+    || keycode == WXK_RETURN
+    || keycode == WXK_NUMPAD_ENTER) // whm 3Jul2018 added for extended keyboard numpad ENTER users
     {
         // First handle merging of any selection - as is done in OnChar().
         // preserve cursor location, in case we merge, so we can restore it afterwards
@@ -6812,7 +6814,8 @@ void CPhraseBox::OnComboProcessDropDownListOpen(wxCommandEvent& event)
 
 	// BEW addedd 30Jun18 - to support AuSIL request for cursor at end
 	wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
-	wxPostEvent(gpApp->GetMainFrame(), eventCursorToEnd);
+    // whm 3Jul2018 commented out the wxPostEvent below so I can work in FilterEvent()
+    //wxPostEvent(gpApp->GetMainFrame(), eventCursorToEnd);
 
 }
 
@@ -6829,7 +6832,8 @@ void CPhraseBox::OnComboProcessDropDownListCloseUp(wxCommandEvent& WXUNUSED(even
 
 	// BEW addedd 30Jun18 - to support AuSIL request for cursor at end
 	wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
-	wxPostEvent(gpApp->GetMainFrame(), eventCursorToEnd);
+    // whm 3Jul2018 commented out the wxPostEvent below so I can work in FilterEvent()
+    //wxPostEvent(gpApp->GetMainFrame(), eventCursorToEnd);
 }
 #endif
 
@@ -7241,7 +7245,8 @@ void CPhraseBox::OnComboItemSelected(wxCommandEvent & WXUNUSED(event))
 	*/
 	// BEW addedd 30Jun18 - to support AuSIL request for cursor at end
 	wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
-	wxPostEvent(gpApp->GetMainFrame(), eventCursorToEnd);
+    // whm 3Jul2018 commented out the wxPostEvent below so I can work in FilterEvent()
+	//wxPostEvent(gpApp->GetMainFrame(), eventCursorToEnd);
 
 }
 

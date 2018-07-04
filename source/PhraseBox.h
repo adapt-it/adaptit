@@ -181,10 +181,10 @@ protected:
 	void OnChar(wxKeyEvent& event);
 	void OnKeyUp(wxKeyEvent& event);
 	void OnKeyDown(wxKeyEvent& event);
-    void OnSysKeyUp(wxKeyEvent& event);
     void OnComboItemSelected(wxCommandEvent& WXUNUSED(event));
     wxCoord OnMeasureItem(size_t item) const;
 public:
+    void OnSysKeyUp(wxKeyEvent& event); // whm 3Jul2018 moved to public 
 	void OnLButtonUp(wxMouseEvent& event); // whm 2Jun2018 moved to public access for use in App's FilterEvent()
 	void OnLButtonDown(wxMouseEvent& event); // whm 2Jun2018 moved to public access for use in App's FilterEvent()
 	void OnEditUndo(wxCommandEvent& WXUNUSED(event));

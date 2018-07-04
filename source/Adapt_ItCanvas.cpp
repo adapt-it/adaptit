@@ -1912,7 +1912,8 @@ x:					CCell* pCell = 0;
 						}
 						// BEW added 30Jun18 - to support AuSIL request for cursor at end
 						wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
-						wxPostEvent(pApp->GetMainFrame(), eventCursorToEnd);
+                        // whm 3Jul2018 commented out the wxPostEvent below so I can work in FilterEvent()
+                        //wxPostEvent(pApp->GetMainFrame(), eventCursorToEnd);
 
 						ScrollIntoView(pApp->m_nActiveSequNum);
 					}
