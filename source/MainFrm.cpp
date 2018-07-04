@@ -4660,11 +4660,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
         // whm 26Feb2018 Added outer test for NULL on m_pTargetBox - Linux version OnIdle() handler initiates early
         if (pApp->m_pTargetBox != NULL)
         {
-            // whm Note: The test below could test for GetCount() > 1, if we want the dropdown list
-            // to remain closed when just one item is in the list, in which case that item is generally
+            // whm 3Jul2018 change. Changed the test below to GetCount() > 1, so that the dropdown list
+            // will remain closed when just one item is in the list. That one item is generally
             // selected and placed in the phrasebox's edit box and in the user's view, making it somewhat
             // unnecessary to have the list popped open and showing only that same single item.
-            if (pApp->m_pTargetBox->GetCount() > 0)
+            if (pApp->m_pTargetBox->GetCount() > 1)
             {
                 if (!pApp->m_bMovingToDifferentPile && !pApp->m_bAutoInsert && !pApp->bLookAheadMerge)
                 {
