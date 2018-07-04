@@ -976,7 +976,8 @@ void CLayout::PlaceBox()
 			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
             m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
             wxWindow* fwin = wxWindow::FindFocus();
-            wxLogDebug(_T("Focused window* is %p, m_pTargetBox win is %p, m_pTargetBox->GetTextCtrl() win is: %p"), fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl());
+            wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"), 
+                fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl(), m_pApp->m_pTargetBox->GetPopupControl());
         }
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

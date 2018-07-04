@@ -6521,9 +6521,17 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             // in the dropdown's list, so set the dropdown's button to its normal "enabled" state. 
             // If in Free Translation mode, use the "disable" button on the dropdown control
             if (pApp->m_bFreeTranslationMode)
+            {
                 pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
+            }
+            else if (nRefStrCount == 1)
+            {
+                pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
+            }
             else
+            {
                 pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);
+            }
 
             // Set the dropdown's list selection to the selectionIndex determined by PopulatDropDownList above.
             // If selectionIndex is -1, it removes any list selection from dropdown list
@@ -6781,8 +6789,12 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 				if (!gbIsGlossing && pApp->m_bLandingBox)
 				{
 					pApp->m_pTargetBox->ClearDropDownList();
-					pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);
-					this->Append(strSaveListEntry);
+                    // whm 4Jul2018 ammended SetButtonBitmaps() call below. The ClearDropDownList() has been 
+                    // called above, and a single entry is appended back into the list below making the list 
+                    // count == 1. We've decided that when there is just one item in the combobox it should
+                    // have the "disabled" appearance instead of the normal down arrow button.
+                    pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
+                    this->Append(strSaveListEntry);
 					this->m_bAbandonable = FALSE;
 					pApp->m_pTargetBox->SetSelection(0);
 				}
