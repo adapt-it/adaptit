@@ -4888,7 +4888,22 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 				pApp->GetRetranslation()->DoRetranslationByUpArrow();
 			}
 		}
-
+#if defined(__WXGTK__)
+        else if (event.GetKeyCode() == WXK_DOWN) // ALT+DOWN (normally reserved for opening/closing dropdown list)
+        {
+            // Unfortunately, the dropdown blocks all AltDown modified events while the dropdown is open
+            // and that explains why the ALT+DOWN can open the dropdown when it is closed, but cannot close
+            // it when it is open. I'll leave the code here in case we figure out a way to unblock all ALT
+            // modified key events on Linux.
+            // Hence, this block is never entered on Linux when the dropdown is open.
+            // The ALT+DOWN on Windows both opens and closes the dropdown list.
+            // On Linux/Mac? however, ALT+DOWN only opens the dropdown list if it's closed. It doesn't 
+            // close it if it is in an open state. This block of code attempts to make the Linux behavior
+            // similar to Windows, where ALT+DOWN acts like a toggle.
+            if (this->IsPopupShown())
+                CloseDropDown();
+        }
+#endif
 		// BEW added 26Sep05, to implement Roland Fumey's request that the shortcut for unmerging
 		// not be SHIFT+End as in the legacy app, but something else; so I'll make it ALT+Delete
 		// and then SHIFT+End can be used for extending the selection in the phrase box's CEdit

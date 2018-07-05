@@ -2088,6 +2088,7 @@ class CAdapt_ItApp : public wxApp
     virtual int FilterEvent(wxEvent& event);
 
     // whm 2Jun2018 added the following to filter all events for key up/down event when dropdown is open
+    bool PhraseBoxIsInFocus();
     // The following two are used within the wxEVT_LEFT_UP block of FilterEvent():
     bool ClickedOnPhraseBoxLocation(wxMouseEvent& event);
     bool ClickedOnOtherTargetLocation(wxMouseEvent& event);
@@ -2098,6 +2099,7 @@ class CAdapt_ItApp : public wxApp
     bool MouseOverModeBar(wxMouseEvent& event);
     // The following three are used within the wxEVT_CHAR block of FilterEvent():
     bool TypedReservedDropDownListNavKey(wxKeyEvent& event);
+    bool TypedNonReservedNavKey(wxKeyEvent& event);
     bool TypedSysKeyInPhraseBox(wxKeyEvent& event);
     bool TypedAlphanumericKeyInPhraseBox(wxKeyEvent& event);
 
