@@ -7775,10 +7775,13 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                         // Detected a normal alphanumeric key press including ShiftDown() forms.
                         // Excludes reserved navigation arrow keys WXK_DOWN, WXK_UP, WXK_PAGEDOWN and WXK_PAGEUP,
                         // Exludes any key events that return TRUE for HasModifiers() which includes any
+                        // The use of GetUnicodeKey() also excludes other keys like the function keys, F8, etc.
                         // accelerator keys modified by CTRL down, and other special hot keys modified
                         // by ALT down. Basically returns true for any key that becomes visible text within the
                         // phrasebox.
-                        int keyCode = ((wxKeyEvent&)event).GetKeyCode();
+                        // For alphanumeric key detection we must use GetUnicodeKey() here and not simply GetKeyCode()
+                        // The GetKeyCode() will include function keys including F8 etc, which we want to filter out here.
+                        int keyCode = ((wxKeyEvent&)event).GetUnicodeKey(); // must use GetUnicodeKey() here!
                         wxChar keyChar = wxChar(keyCode);
                         wxLogDebug(_T("wxChar = %s"), wxString(keyChar).c_str());
 
@@ -8165,7 +8168,9 @@ bool CAdapt_ItApp::TypedSysKeyInPhraseBox(wxKeyEvent& WXUNUSED(event))
 // For use in App's FilterEvent() function.
 bool CAdapt_ItApp::TypedAlphanumericKeyInPhraseBox(wxKeyEvent& event)
 {
-    int keyCode = event.GetKeyCode();
+    // For alphanumeric key detection we must use GetUnicodeKey() here and not simply GetKeyCode()
+    // The GetKeyCode() will include function keys including F8 etc, which we want to filter out here.
+    int keyCode = event.GetUnicodeKey(); // must use GetUnicodeKey() here!
     wxChar keyChar = wxChar(keyCode);
     if (
            !((wxKeyEvent&)event).HasModifiers() // Note: HasModifiers() does not include ShiftDown()
