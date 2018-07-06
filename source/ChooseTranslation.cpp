@@ -1281,7 +1281,20 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 					selectionIndex = nRefStrCount - 1;
 				}
 				// set the icon button for the phrasebox
-				pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);
+                // whm 5Jul2018 modified to set the "X" button on the dropdown control for when nRefStrCount == 1
+                // and set the normal down-arrow button for when nRefStrCount > 1. See below where I've also added
+                // an else if (nRefStrCount == 0) block where we now set the control to have the "X" button (previously
+                // no explicit change was made to the button appearance for the nRefStrCount == 0 case).
+                if (nRefStrCount == 1)
+                {
+                    // Set the "X" button
+                    pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
+                }
+                else
+                {
+                    // Set the normal down-arrow button
+                    pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);
+                }
 
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 				wxLogDebug(_T("ChooseTranslation OnOK(), line  %d  - after Populate...(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 1244,
@@ -1337,6 +1350,11 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 #endif
 
 			} // end TRUE block for test: if (nRefStrCount > 0)
+            else if (nRefStrCount == 0) // whm 5Jul2018 added the following else block
+            {
+                // Set the "X" button
+                pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
+            }
 
 		}
 		// ==============================================================================

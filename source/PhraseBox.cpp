@@ -5867,7 +5867,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
     // whm 24June2018 combined WXK_TAB and WXK_RETURN handling in the same block of code below.
     // The WXK_RETURN key handling was previosuly located in OnChar(), but that seemed to not work
     // on the Mac OSX platform (where the OnChar handler might not be called for WXK_RETURN).
-    long keycode = event.GetKeyCode();
+    int keycode = event.GetKeyCode();
     if (keycode == WXK_TAB
     || keycode == WXK_RETURN
     || keycode == WXK_NUMPAD_ENTER) // whm 3Jul2018 added for extended keyboard numpad ENTER users
