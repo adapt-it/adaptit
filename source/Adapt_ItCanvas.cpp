@@ -1069,10 +1069,7 @@ x:					CCell* pCell = 0;
 					pApp->m_pActivePile = pPile;
 					pCell = pPile->GetCell(1); // we want the 2nd line, for phrase box
 
-					// save old sequ number in case required for toolbar's Back button
-                    pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
-
-					pApp->m_nOnLButtonDownEntranceCount++; // set cache only for the count equalling 1, we allow two entrances
+					pApp->m_nOnLButtonDownEntranceCount++; // set cache only for the count equaling 1, we allow two entrances
 					
 					// BEW 28Jun18 also cache this value for using within PlacePhraseBox to define 
 					// pOldActivePile pointer but beware, OnLButtonDown() is, also called a 2nd time
@@ -1081,27 +1078,18 @@ x:					CCell* pCell = 0;
 					// and so we must suppress updating the cached value on the second call
 					if (pApp->m_nOnLButtonDownEntranceCount == 1)
 					{
+						// save old sequ number in case required for toolbar's Back button
+						pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
+
 						pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
 						wxLogDebug(_T(" OnLButtonDown() 1085, setting m_nCacheLeavingLocation, cached sequ num = %d"),
 							pApp->m_nCacheLeavingLocation);
 					}
 					else
 					{
-						// second entrance, so reset the count to 0
+						// second or more entrance, so reset the count to 0
 						pApp->m_nOnLButtonDownEntranceCount = 0;
 					}
-
-					// BEW 7May18. We use the fact that OnLButtonDown() is never called when there is a user
-					// click on the dropdown-based phrasebox to advantage. If control has entered and gets
-					// to this point, then the click must have been to a pile which is not the current active
-					// one - and that means that the phrasebox is going to move - which in turn means that
-					// we can safely set app's member boolean m_bLandingBox to TRUE. This will help give
-					// better behaviours for the refactored GUI with a combo-box based phrasebox
-                    //
-                    // whm 3Jun2018 TODO: BEW needs to revisit logic stated in above comment after whm 
-                    // implementation of the App's FilterEvent() which may indeed call this OnLButtonDown() 
-                    // handler.
-					pApp->m_bLandingBox = TRUE;
 
 					// place the phrase box
 					pView->PlacePhraseBox(pCell,2);
