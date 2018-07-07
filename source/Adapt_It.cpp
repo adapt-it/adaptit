@@ -7484,45 +7484,44 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
 {
     const wxEventType t = event.GetEventType();
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // IMPORTANT CONSIDERATIONS: When handling events here in FilterEvent() the timing can be
+    // tricky, especially for detecting a downstream events such as whether the dropdown list 
+    // is OPEN or CLOSED. For example, when calling m_pTargetBox->IsPopupShown() it may be TRUE 
+    // at the beginning of FilterEvent() but it will quickly turn FALSE after a few statements 
+    // in FilterEvent() are executed. So, as soon as possible, we call IsPopupShown() at the
+    // beginning of our function below, and we set the local boolean value bEVT_LEFT_DOWN or 
+    // bEVT_CHAR to TRUE if one of those events has occurred while the dropdown list is 
+    // initially open. That way we don't need to, nor should we call IsPopupShown() later in 
+    // the function when it might not be TRUE.
+    //
     // whm 30Jun2018 Note: Certain parts of FilterEvent() are conditionally compiled for the
     // Linux/Mac ports. Other parts are compiled for all 3 ports: Linux, Mac and Windows.
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     if (m_pTargetBox != NULL)
     {
-        // whm Note: On Linux (and possibly on Mac), Mouse Capture into the dropdown list
-        // prevents wxEVT_ENTER_WINDOW and wxEVT_MOTION events from getting to FilterEvent()
-        // function while the dropdown list is open. 
-        // TODO: Is there a way to grab these mouse events from the dropdown window?
-        //if (t == wxEVT_ENTER_WINDOW)
-        //{
-        //}
-        //if (t == wxEVT_MOTION)
-        //{
-        //}
-
         // Observation: On Linux, when dropdown list is open, a Left mouse click on either the phrasebox or
         // on the canvas causes the dropdown list to close, but the wxEVT_LEFT_DOWN event is consumed. However,
         // a wxEVT_LEFT_UP event gets triggered - meaning only the "up" click is executed. This means that
         // only the CPhraseBox::OnLButtonUp() is executed for a click on the phrasebox, and only the 
         // CAdapt_ItCanvas::OnLButtonUp() is executed for a click on the canvas.
-        if (t == wxEVT_LEFT_DOWN)
-        {
-            //int MenuID;
-            if (ClickedOnMainMenuBar((wxMouseEvent&)event)) // TODO: ClickedOnMainMenuBar() not yet working
-            {
-                wxLogDebug(_T("Clicked on Main Menu Bar"));
-            }
 
-            int breakpoint = 0;
-            breakpoint = breakpoint;
-            wxLogDebug(_T("**Triggered wxEVT_LEFT_DOWN in FilterEvent()**"));
-
-        }
-        /*
         // whm Note: ***CAUTION*** attempting to filter wxEVT_LEFT_DOWN event and setting breakpoints
         // in this function within gdb seems to result in hanging up the entire system, necessitating 
         // a cold reboot!!! Instead of using breakpoints it is better to post wxLogDebug statements.
+        //if (t == wxEVT_LEFT_DOWN)
+        //{
+        //    //int MenuID;
+        //    if (ClickedOnMainMenuBar((wxMouseEvent&)event)) // TODO: ClickedOnMainMenuBar() not yet working
+        //    {
+        //        wxLogDebug(_T("Clicked on Main Menu Bar"));
+        //    }
+
+        //    int breakpoint = 0;
+        //    breakpoint = breakpoint;
+        //    wxLogDebug(_T("**Triggered wxEVT_LEFT_DOWN in FilterEvent()**"));
+        //}
+        /*
         // TODO: Revisit the wxEVT_LEFT_DOWN filtering later
         if (t == wxEVT_LEFT_DOWN)
         {
@@ -7578,11 +7577,30 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
         } // end of if (t == wxEVT_LEFT_DOWN)
         */
 
+        
+        // Without the wxEVT_LEFT_UP intervention below Windows a left click into the phrasebox's edit box
+        // does nothing but close the dropdown list if it is open, leaving the text in the edit box selected. 
+        // If the dropdown list is closed when the click into the phrasebox is done, only the selection of 
+        // text is removed and the insertion point is placed wherever the mouse pointer was pointing in the 
+        // text at the time of the left click. In either case, neither the CPhraseBox::OnLButtonDown(), nor
+        // the CPhraseBox::OnLButtonUp() handler is triggered without the intervention below. 
+        // Other behaviors:
+        // If the left click is directly on the dropdown button, both the CPhraseBox::OnLButtonDown() and 
+        // the CPhraseBox::OnLButtonUp() handlers are called!
+        // If an item in the list is selected with a mouse or with arrow key and Return, 
+        // 
+        //
+        // With the wxEVT_LEFT_UP intervention below compiled into the code, a left click into the phrasebox's
+        // edit box outputs the wxLogDebug calls contained in the ClickedOnPhraseBoxLocation() block below
         if (t == wxEVT_LEFT_UP)
         {
-            wxLogDebug(_T("**Triggered wxEVT_LEFT_UP in FilterEvent()**"));
+            // The wxEVT_LEFT_UP proves to be more consistent that the wxEVT_LEFT_DOWN event and allows some time
+            // for the internal state of the phrasebox to get settled before.
+            // Note: We cannot call m_pTargetBox->IsPopupShowing() to detect if the dropdown list is open
+            // because the wxEVT_LEFT_UP gets the list closed before we get to this point.
             if (ClickedOnPhraseBoxLocation((wxMouseEvent&)event))
             {
+                wxLogDebug(_T("**Triggered wxEVT_LEFT_UP in FilterEvent()**"));
                 wxLogDebug(_T("***Clicked on phrasebox***"));
                 wxLogDebug(_T("Calling CPhraseBox::OnLButtonDown() from FilterEvent() wxEVT_LEFT_UP"));
                 m_pTargetBox->OnLButtonDown((wxMouseEvent&)event);
@@ -7591,6 +7609,7 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
             }
             else if (ClickedOnOtherTargetLocation((wxMouseEvent&)event))
             {
+                wxLogDebug(_T("**Triggered wxEVT_LEFT_UP in FilterEvent()**"));
                 wxLogDebug(_T("***Clicked on other target location***"));
                 CMainFrame* pFrame = GetMainFrame();
                 if (pFrame != NULL && pFrame->canvas != NULL)
@@ -7599,8 +7618,8 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                     pFrame->canvas->OnLButtonDown((wxMouseEvent&)event);
                 }
             }
-
         }
+        
 
         if (t == wxEVT_CHAR)
         {
@@ -7640,7 +7659,7 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
 
                     // Solution to Problem 1: 
 
-#if defined(__WXMSW__) || defined(__WXGTK__) || defined(__WXMAC__)
+#if defined(__WXMSW__) || defined(__WXGTK__) || defined(__WXMAC__) // compile below for all platforms
                     // This TypedNonReservedNavKey() defined block detects these keys: 
                     // LEFT Arrow, RIGHT Arrow, ALT+LEFT Arrow, and ALT+RIGHT Arrow. 
                     // The interventions here should execute on all platforms to overcome these 

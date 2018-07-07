@@ -5870,7 +5870,8 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
     int keycode = event.GetKeyCode();
     if (keycode == WXK_TAB
     || keycode == WXK_RETURN
-    || keycode == WXK_NUMPAD_ENTER) // whm 3Jul2018 added for extended keyboard numpad ENTER users
+    || keycode == WXK_NUMPAD_ENTER
+    || keycode == WXK_NUMPAD_TAB) // whm 5Jul2018 added for extended keyboard numpad ENTER and numpad TAB users
     {
         // First handle merging of any selection - as is done in OnChar().
         // preserve cursor location, in case we merge, so we can restore it afterwards
@@ -7221,6 +7222,7 @@ void CPhraseBox::OnComboItemSelected(wxCommandEvent & WXUNUSED(event))
 
     wxString selItemStr;
     selItemStr = this->GetValue();
+    wxLogDebug(_T("List Item Selected: %s"),selItemStr.c_str());
     if (selItemStr == s)
     {
         selItemStr = _T(""); // restore null string
