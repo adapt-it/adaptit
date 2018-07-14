@@ -701,12 +701,12 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 			pSrcPhrase->m_adaption = maybeSolidusNewText;
 		}
 		gpApp->m_targetPhrase = maybeSolidusNewText;
-		gpApp->m_pTargetBox->ChangeValue(maybeSolidusNewText);
+		gpApp->m_pTargetBox->GetTextCtrl()->ChangeValue(maybeSolidusNewText);
 		// Select the text in the box (focus will be returned there later)
 		int len = gpApp->m_targetPhrase.Length();
 		gpApp->m_nStartChar = len;
 		gpApp->m_nEndChar = len;
-		gpApp->m_pTargetBox->SetSelection(len,len);
+		gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
 	}
 
 //#if defined(FWD_SLASH_DELIM)

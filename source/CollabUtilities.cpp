@@ -2180,11 +2180,11 @@ void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle)
 	pApp->m_nActiveSequNum = 0;
 	if (gbIsGlossing && gbGlossingUsesNavFont)
 	{
-		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+		pApp->m_pTargetBox->GetTextCtrl()->SetOwnForegroundColour(pLayout->GetNavTextColor());// whm 12Jul2018 added ->GetTextCtrl() part
 	}
 	else
 	{
-		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+		pApp->m_pTargetBox->GetTextCtrl()->SetOwnForegroundColour(pLayout->GetTgtColor());// whm 12Jul2018 added ->GetTextCtrl() part
 	}
 
 	// set initial location of the targetBox
@@ -3114,11 +3114,11 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		pApp->m_nActiveSequNum = nActiveSequNum; // if not set in the block just above, it's 0 still
 		if (gbIsGlossing && gbGlossingUsesNavFont)
 		{
-			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+			pApp->m_pTargetBox->GetTextCtrl()->SetOwnForegroundColour(pLayout->GetNavTextColor());// whm 12Jul2018 added ->GetTextCtrl() part
 		}
 		else
 		{
-			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+			pApp->m_pTargetBox->GetTextCtrl()->SetOwnForegroundColour(pLayout->GetTgtColor());// whm 12Jul2018 added ->GetTextCtrl() part
 		}
 
 		// set initial location of the targetBox, m_pActivePile should be valid, but just

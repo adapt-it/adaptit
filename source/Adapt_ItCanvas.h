@@ -55,6 +55,13 @@ public:
 	void UseGraphicContext(bool use) {m_useContext = use; Refresh();};
 #endif
 	
+    // whm 12Jul2018 added the following handlers for catching the events for 
+    // handling the phrasebox's new dropdown button and dropdown list. Although
+    // the events are caught here in CAdapt_ItCanvas, the following handlers
+    // simply call the handlers of the same name in CPhraseBox.
+    void OnTogglePhraseBoxButton(wxCommandEvent& event);
+    void OnListBoxItemSelected(wxCommandEvent& event);
+
 	//void OnPaint(wxPaintEvent& event); // see note in .cpp file
 	//void OnSize(wxSizeEvent& event); // see note in .cpp file
     void OnLButtonDown(wxMouseEvent& event);

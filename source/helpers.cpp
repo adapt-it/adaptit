@@ -10039,7 +10039,7 @@ void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w,
 	// the viewing area for the layout; or if a low position is required, at bottom right
 	int phraseBoxHeight;
 	int phraseBoxWidth;
-	pApp->m_pTargetBox->GetSize(&phraseBoxWidth,&phraseBoxHeight); // it's the width we want
+	pApp->m_pTargetBox->GetTextCtrl()->GetSize(&phraseBoxWidth,&phraseBoxHeight); // it's the width we want // whm 12Jul2018 added GetTextCtrl()-> part
 	int pixelsAvailableAtTop = YPos - stripheight; // remember box is in line 2 of strip
 	int pixelsAvailableAtBottom = rectScreen.GetBottom() - stripheight - pixelsAvailableAtTop - 20; // 20 for status bar
 	int pixelsAvailableAtLeft = XPos - 10; // -10 to clear away from the phrase box a little bit
@@ -10170,7 +10170,7 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
     // Next get the Phrase box size and position metrics
 	int phraseBoxHeight;
 	int phraseBoxWidth;
-	pApp->m_pTargetBox->GetSize(&phraseBoxWidth,&phraseBoxHeight); // it's the width we want
+	pApp->m_pTargetBox->GetTextCtrl()->GetSize(&phraseBoxWidth,&phraseBoxHeight); // it's the width we want // whm 12Jul2018 added GetTextCtrl()-> part
 
 	// We need to know where the frame rectangle is, in screen coordinates, & width & height
 	CMainFrame* pFrame = pApp->GetMainFrame();

@@ -57,7 +57,6 @@
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
-// IMPLEMENT_CLASS(CMyListBox, wxBaseMyListBox)
 IMPLEMENT_DYNAMIC_CLASS(CMyListBox, wxListBox)
 
 // event handler table

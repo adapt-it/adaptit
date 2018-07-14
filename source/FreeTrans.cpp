@@ -5165,7 +5165,7 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
         m_pApp->m_pTargetBox->m_Translation.Empty(); // don't preserve anything from a former adaptation state
 		if (m_pApp->m_pTargetBox->GetHandle() != NULL)
 			if (m_pApp->m_pTargetBox->IsShown())
-				m_pApp->m_pTargetBox->SetFocus();
+				m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 
 		// allow clicks and editing to be done in phrase box (do also in ResizeBox())
 		if (m_pApp->m_pTargetBox->IsShown() && m_pApp->m_pTargetBox->GetHandle() != NULL)
@@ -6657,7 +6657,7 @@ void CFreeTrans::ToggleFreeTranslationMode()
 
 			// prevent clicks and editing being done in phrase box (do also in CreateBox())
 			if (m_pApp->m_pTargetBox->IsShown())
-				m_pApp->m_pTargetBox->Enable(FALSE);
+				m_pApp->m_pTargetBox->Enable(FALSE); // whm 12July2018 Note: It is re-enabled when free translation mode is turned off, and in ResizeBox()
 			m_pFrame->canvas->ScrollIntoView(
 									m_pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber);
 
@@ -6674,7 +6674,7 @@ void CFreeTrans::ToggleFreeTranslationMode()
 			if (m_pApp->m_pTargetBox->IsShown())
 			{
 				m_pApp->m_pTargetBox->Enable(TRUE);
-				m_pApp->m_pTargetBox->SetFocus();
+				m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 			}
 
             // get any removed adaptations in gEditRecord into the GUI list,
@@ -10145,10 +10145,10 @@ void CFreeTrans::DoJoinWithPrevious()
 		// shouldn't be) unless we fix it here
         m_pApp->m_pTargetBox->m_Translation.Empty(); // ensure this global is empty
 		m_pApp->m_targetPhrase = pItsAnchorSrcPhr->m_adaption; // may be an empty string
-		m_pApp->m_pTargetBox->ChangeValue(_T("")); // clear it
+		m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T("")); // clear it
 		if (!m_pApp->m_targetPhrase.IsEmpty())
 		{
-			m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
+			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase);
 		}
 	}
 	else
@@ -10189,10 +10189,10 @@ void CFreeTrans::DoJoinWithPrevious()
 		// shouldn't be) unless we fix it here
         m_pApp->m_pTargetBox->m_Translation.Empty(); // ensure this global is empty
 		m_pApp->m_targetPhrase = pAnchorSrcPhrase->m_adaption; // may be an empty string
-		m_pApp->m_pTargetBox->ChangeValue(_T("")); // clear it
+		m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T("")); // clear it
 		if (!m_pApp->m_targetPhrase.IsEmpty())
 		{
-			m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
+			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase);
 		}
 	}
 
@@ -10547,7 +10547,7 @@ void CFreeTrans::DoSplitIt()
 
 		// BEW 9Jun14 the anchor pile can get the old active pile's adaptation if we don't 
 		// ensure that here it instead gets the new active pile's adaptation
-		m_pApp->m_pTargetBox->Clear();
+		m_pApp->m_pTargetBox->GetTextCtrl()->Clear();// whm 12Jul2018 added GetTextCtrl()-> part
 		m_pApp->m_targetPhrase = pAnchorSrcPhrase->m_adaption;
 		// PlaceBox() will put m_targetPhrase into the wxTextEdit which is the phrasebox
 

@@ -2084,12 +2084,14 @@ class CAdapt_ItApp : public wxApp
 
 	wxTimer m_timer;
 
-    // whm 2Jun2018 added to filter all events for key down event when dropdown is open
-    virtual int FilterEvent(wxEvent& event);
+    // whm 12Jul2018 removed - no longer using FilterEvent() with new phrasebox
+    //virtual int FilterEvent(wxEvent& event);
 
-    // whm 2Jun2018 added the following to filter all events for key up/down event when dropdown is open
-    bool PhraseBoxIsInFocus();
+    // whm 12Jul2018 removed the following that were used with FilterEvent
+    /*
+    // bool PhraseBoxIsInFocus();
     // The following two are used within the wxEVT_LEFT_UP block of FilterEvent():
+    // TODO: Remove any of these that might not be needed with the new phrasebox
     bool ClickedOnPhraseBoxLocation(wxMouseEvent& event);
     bool ClickedOnOtherTargetLocation(wxMouseEvent& event);
     bool ClickedOnMainMenuBar(wxMouseEvent& event);
@@ -2102,7 +2104,7 @@ class CAdapt_ItApp : public wxApp
     bool TypedNonReservedNavKey(wxKeyEvent& event);
     bool TypedSysKeyInPhraseBox(wxKeyEvent& event);
     bool TypedAlphanumericKeyInPhraseBox(wxKeyEvent& event);
-
+    */
 	// BEW 12May16 We need a way to prevent OnIdle() events from asking the user for a KBserver
 	// login choice while the wizard is running. OnIdle() will, without this, check only for
 	// the flag m_bEnteringKBserverProject being true, and it is defaulted to true in OnInit()
@@ -2228,6 +2230,10 @@ class CAdapt_ItApp : public wxApp
 	/// collaboration parameters, and when implemented, also Bibledit collaboration
 	/// parameters.
 	wxFileConfig* m_pConfig;
+
+    /// whm 13Jul2018 TODO: Bruce should check to see if the m_nCacheLeavingLocation
+    /// and m_nOnLButtonDownEntranceCount hacks are still necessary with the new phrasebox.
+    /// If not, they should be removed.
 
 	/// BEW 28Jun18 The change at version 6.9.0 to support a dropdown list integrated in
 	/// a wxOwnerDrawnComboBox control resulted in some former legacy robust behaviours
@@ -2785,7 +2791,7 @@ public:
 	long			m_nStartChar;   // start of selection in the target box
 	long			m_nEndChar;		// end of selection in the target box
 
-    // whm modified 10Jan2018 after deriving CPhraseBox from wxOwnerDrawnComboBox
+    // whm modified 10Jan2018 after implementing CPhraseBox dropdown list
     bool m_bChooseTransInitializePopup;
 
     // whm 24Feb2018 modified by moving some globals out of global space
