@@ -1230,7 +1230,7 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 							// probably gets overridden by ResizeBox() which actually uses m_bTgtRTL 
 							// when it sets the alignment for the target box
 	{
-		gpApp->m_pTargetBox->SetLayoutDirection(wxLayout_RightToLeft);
+		gpApp->m_pTargetBox->GetTextCtrl()->SetLayoutDirection(wxLayout_RightToLeft);// whm 12Jul2018 added GetTextCtrl()-> part
 		gpApp->LogUserAction(_T("In FontPage: Target Layout RTL"));
 // whm Note: Pango overrides the following SetStyle() command
 //#ifndef __WXMSW__
@@ -1239,7 +1239,7 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
-		gpApp->m_pTargetBox->SetLayoutDirection(wxLayout_LeftToRight);
+		gpApp->m_pTargetBox->GetTextCtrl()->SetLayoutDirection(wxLayout_LeftToRight);// whm 12Jul2018 added GetTextCtrl()-> part
 		gpApp->LogUserAction(_T("In FontPage: Target Layout LTR"));
 // whm Note: Pango overrides the following SetStyle() command
 //#ifndef __WXMSW__

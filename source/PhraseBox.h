@@ -37,24 +37,24 @@ class CPile;
 class CTargetUnit;
 class CKB;
 class CLayout;
+class CMyListBox;
 
 /// The CPhraseBox class governs the behavior of the phrase or
 /// target box where the user enters and/or edits translations while adapting text.
 /// \derivation		The PhraseBox class derives from the wxTextCtrl class.
-//class CPhraseBox : public wxTextCtrl
-class CPhraseBox : public wxOwnerDrawnComboBox
+class CPhraseBox : public wxTextCtrl
 {
 public:
 	CPhraseBox(void); // wx needs the explicit constructor here
 
+    // whm 11Jul18 this constructor uses the wxDesigner resource PhraseBoxDropDownFunc()
     CPhraseBox(
-        wxWindow * parent,
-        wxWindowID id,
-        const wxString & value,
-        const wxPoint & pos,
-        const wxSize & size,
-        const wxArrayString & choices,
-        long style = 0);
+        wxWindow *parent, 
+        wxWindowID id, 
+        const wxString &value,
+        const wxPoint &pos, 
+        const wxSize &size, 
+        int style = 0);
 
 	virtual ~CPhraseBox(void);
 
@@ -85,6 +85,7 @@ public:
     wxString    m_Translation;
     bool        m_bEmptyAdaptationChosen;
 
+
     wxString    m_SaveTargetPhrase;
     //CTargetUnit* pTargetUnitFromChooseTrans; // whm 24Feb2018 moved to the App
 
@@ -100,6 +101,20 @@ public:
 	bool		 bRemovedAdaptionReadyForInserting; // into the combo box's dropdown list - at its former location
 	void InitializeComboLandingParams(); // initialize the above member variables, I'll decline 
 										 // using the m_ prefix in their names, as these are very hacky
+    wxSize  m_computedPhraseBoxSize; // stores the computed size of the phrasebox's sizer - accounting for its current layout state
+
+    // Some PhraseBox Getters
+    wxTextCtrl* GetTextCtrl(); // this gets the wxTextCtrl that has been created by the PhraseBoxDropDownFunc() in wxDesigner
+    CMyListBox* GetDropDownList(); // this gets the wxListBox that has been created by the PhraseBoxDropDownFunc() in wxDesigner
+    wxBitmapButton* GetPhraseBoxButton(); // this gets the wxButton control that has been created by the PhraseBoxDropDownFunc() in wxDesigner
+    // Some PhraseBox Setters
+    void SetTextCtrl(wxTextCtrl* textCtrl);
+    void SetDropDownList(CMyListBox* listBox);
+    void SetPhraseBoxButton(wxBitmapButton* listButton);
+    // whm 12Jul2018 Note: The handler for the PhraseBox dropdown button is
+    // now in CAdapt_ItCanvas::OnTogglePhraseBoxButton()
+    void SetButtonBitMapNormal();
+    void SetButtonBitMapXDisabled();
 
 protected:
 	bool CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, CPile* pNextEmptyPile,
@@ -142,12 +157,12 @@ public:
     // whm 10Jan2018 added members below to implement the dropdown phrasebox functionality
     void SetupDropDownPhraseBoxForThisLocation();
     void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptatio);
-    int GetLineLength(long lineNo); // whm 14Feb2018 added. Note: GetLineLength() is in wxTextCtrl but not wxOwnerDrawnComboBox.
-    void OnComboProcessDropDownListOpen(wxCommandEvent & event);
-    void OnComboProcessDropDownListCloseUp(wxCommandEvent & WXUNUSED(event));
+
     void ClearDropDownList();
     void CloseDropDown();
     void PopupDropDownList();
+    void HidePhraseBox();
+    void SetSizeAndHeightOfDropDownList(int width);
 
     // The following members are used to present a dropdown arrow or a rose pink X for the control's button:
     wxBitmap dropbutton_hover; // (xpm_dropbutton_hover);
@@ -178,8 +193,7 @@ public:
 	void ChangeValue(const wxString& value); // will replace all ZWSP with / if app->m_bFwdSlashDelimiter is TRUE
 //#endif
 protected:
-    void OnComboItemSelected(wxCommandEvent& WXUNUSED(event));
-    wxCoord OnMeasureItem(size_t item) const;
+    //wxCoord OnMeasureItem(size_t item) const; // whm 12Jul2018 removed - no longer using wxOwnerDrawnComboBox
 public:
 	void OnKeyDown(wxKeyEvent& event);
 	void OnChar(wxKeyEvent& event);
@@ -190,7 +204,20 @@ public:
 	void OnEditUndo(wxCommandEvent& WXUNUSED(event));
 	void OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event));
 
+    // whm 12Jul2018 The events for the handlers below are actually caught in
+    // CAdapt_ItCanvas. The handlers there of the same name simply call these
+    // handlers below to do the actual handling of the events. Hence the handlers
+    // below do not have a presence in the CPhraseBox event table at the beginning
+    // of PhraseBox.cpp.
+    void OnTogglePhraseBoxButton(wxCommandEvent& event);
+    void OnListBoxItemSelected(wxCommandEvent& event);
+
+
 private:
+
+    wxTextCtrl* m_pTextCtrl;
+    CMyListBox* m_pDropDownList;
+    wxBitmapButton* m_pPhraseBoxButton;
 
 	DECLARE_DYNAMIC_CLASS(CPhraseBox)
 	// DECLARE_DYNAMIC_CLASS() is used inside a class declaration to

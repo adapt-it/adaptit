@@ -732,7 +732,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					//if (gpApp->m_pNavProtectDlg != NULL) // whm 11Jun12 added NULL test
 					//	delete gpApp->m_pNavProtectDlg;
 					//gpApp->m_pNavProtectDlg = NULL;
-					pApp->m_pTargetBox->SetValue(_T(""));
+					pApp->m_pTargetBox->GetTextCtrl()->SetValue(_T("")); // whm 12Jul2018 added GetTextCtrl()-> part
 					if (pApp->m_pBuffer != NULL) // whm 11Jun12 added NULL test
 						delete pApp->m_pBuffer;
 					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
@@ -804,7 +804,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					// check if there was a document current, and if so, reinitialize everything
 					if (pView != 0)
 					{
-						pApp->m_pTargetBox->SetValue(_T(""));
+						pApp->m_pTargetBox->GetTextCtrl()->SetValue(_T("")); // whm 12Jul2018 added GetTextCtrl()-> part
 						if (pApp->m_pBuffer != NULL) // whm 11Jun12 added NULL test
 							delete pApp->m_pBuffer;
 						pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
@@ -1012,7 +1012,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 							_T(""),wxICON_INFORMATION | wxOK);
 
 						// reinitialize everything
-						pApp->m_pTargetBox->ChangeValue(_T(""));
+						pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 						if (pApp->m_pBuffer != NULL) // whm 11Jun12 added NULL test
 							delete pApp->m_pBuffer;
 						pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
@@ -1048,7 +1048,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 						_T(""), wxICON_INFORMATION | wxOK);
 
 					// reinitialize everything
-					pApp->m_pTargetBox->ChangeValue(_T(""));
+					pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 					if (pApp->m_pBuffer != NULL) // whm 11Jun12 added NULL test
 						delete pApp->m_pBuffer;
 					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
@@ -1259,7 +1259,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					_T(""), wxICON_EXCLAMATION | wxOK);
 
 				// restore everything
-				pApp->m_pTargetBox->ChangeValue(_T(""));
+				pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 				if (pApp->m_pBuffer != NULL) // whm 11Jun12 added NULL test
 					delete pApp->m_pBuffer;
 				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
@@ -1345,11 +1345,11 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// BEW added 10Jun09, support phrase box matching of the text colour chosen
 			if (gbIsGlossing && gbGlossingUsesNavFont)
 			{
-				pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+				pApp->m_pTargetBox->GetTextCtrl()->SetOwnForegroundColour(pLayout->GetNavTextColor());// whm 12Jul2018 added ->GetTextCtrl() part
 			}
 			else
 			{
-				pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+				pApp->m_pTargetBox->GetTextCtrl()->SetOwnForegroundColour(pLayout->GetTgtColor());// whm 12Jul2018 added ->GetTextCtrl() part
 			}
 
 			// set initial location of the targetBox
@@ -2379,11 +2379,11 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
     if (pApp->m_pTargetBox->GetHandle() != NULL && !pApp->m_targetPhrase.IsEmpty()
         && (pApp->m_pTargetBox->IsShown()))
     {
-        int len = pApp->m_pTargetBox->GetLineLength(0); // line number zero
+        int len = pApp->m_pTargetBox->GetTextCtrl()->GetLineLength(0); // line number zero
         // for our phrasebox
         pApp->m_nStartChar = len;
         pApp->m_nEndChar = len;
-        pApp->m_pTargetBox->SetFocus();
+        pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
     }
     else
     {
@@ -2391,7 +2391,7 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
         {
             pApp->m_nStartChar = 0;
             pApp->m_nEndChar = 0;
-            pApp->m_pTargetBox->SetFocus();
+            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
         }
     }
 
@@ -2551,7 +2551,7 @@ void CAdapt_ItDoc::PutPhraseBoxAtDocEnd()
             pApp->m_pTargetBox->m_Translation = boxValue;
 		}
 		pApp->m_targetPhrase = boxValue;
-		pApp->m_pTargetBox->ChangeValue(boxValue);
+		pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(boxValue);
 		pApp->GetView()->PlacePhraseBox(pApp->m_pActivePile->GetCell(1), 2);
 		pApp->GetView()->Invalidate();
 	}
@@ -2603,7 +2603,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 			PutPhraseBoxAtDocEnd();
 #if defined(_DEBUG)
 			wxLogDebug(_T("DoFileSave_Protected() relocation codeblock: translation = %s , m_pTargetBox has: %s"),
-                gpApp->m_pTargetBox->m_Translation.c_str(), gpApp->m_pTargetBox->GetValue().c_str());
+                gpApp->m_pTargetBox->m_Translation.c_str(), gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
 #endif
 		}
 	}
@@ -3647,7 +3647,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	if (pApp->m_pTargetBox != NULL)
 	{
 		if (pApp->m_pTargetBox->IsShown() &&
-			pView->GetFrame()->FindFocus() == (wxWindow*)pApp->m_pTargetBox && !bNoStore)
+			pView->GetFrame()->FindFocus() == (wxWindow*)pApp->m_pTargetBox->GetTextCtrl() && !bNoStore) // whm 12Jul2018 added GetTextCtrl()-> part
 		{
 			wxString emptyStr = _T("");
 			if (gbIsGlossing)
@@ -6557,11 +6557,11 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		// BEW added 10Jun09, support phrase box matching of the text colour chosen
 		if (gbIsGlossing && gbGlossingUsesNavFont)
 		{
-			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+			pApp->m_pTargetBox->GetTextCtrl()->SetOwnForegroundColour(pLayout->GetNavTextColor());// whm 12Jul2018 added ->GetTextCtrl() part
 		}
 		else
 		{
-			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+			pApp->m_pTargetBox->GetTextCtrl()->SetOwnForegroundColour(pLayout->GetTgtColor());// whm 12Jul2018 added ->GetTextCtrl() part
 		}
 
         // whm 28Mar2018 Note: This next PlacePhraseBox() call is called from the DocPage's
@@ -6742,9 +6742,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 			pApp->GetView()->canvas->Refresh(); // needed? the call in OnIdle() is more effective
 
 			// whm added 29Mar12. When read-only access is active, we don't show the phrasebox
-			pApp->m_pTargetBox->Hide();
-			pApp->m_pTargetBox->Enable(FALSE);
-			pApp->m_pTargetBox->GetTextCtrl()->SetEditable(FALSE);
+            pApp->m_pTargetBox->HidePhraseBox(); // hides all three parts of the new phrasebox
+
+			pApp->m_pTargetBox->Enable(FALSE); // whm 12July2018 Note: It is re-enabled in ResizeBox()
+			pApp->m_pTargetBox->GetTextCtrl()->SetEditable(FALSE); // whm 12July2018 Note: SetEditable(TRUE) done in ResizeBox()
 		}
 		else
 		{
@@ -18225,7 +18226,7 @@ bool CAdapt_ItDoc::DeleteContents()
 
 		if (pApp->m_pTargetBox != NULL)
 		{
-			pApp->m_pTargetBox->ChangeValue(_T(""));
+			pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 		}
 
 		pApp->m_targetPhrase = _T("");
@@ -25502,10 +25503,11 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		}// end of while (pos1 != NULL)
 
 		// save document and KB
-		pApp->m_pTargetBox->Hide(); // this prevents DoFileSave() trying to
-                // store to kb with a source phrase with m_bHasKBEntry flag
-                // TRUE, which would cause an assert to trip
-		pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str
+        pApp->m_pTargetBox->HidePhraseBox(); // hides all three parts of the new phrasebox
+
+        // store to kb with a source phrase with m_bHasKBEntry flag
+        // TRUE, which would cause an assert to trip
+		pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T("")); // need to set it to null str
 											     // since it won't get recreated
 
         // BEW 9July10, added test and changed param to FALSE if doing bible book folders
@@ -26385,10 +26387,11 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 		}// end of while (pos1 != NULL)
 
 		// save document and KB
-		pApp->m_pTargetBox->Hide(); // this prevents DoFileSave() trying to
-                // store to kb with a source phrase with m_bHasKBEntry flag
-                // TRUE, which would cause an assert to trip
-		pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str
+        pApp->m_pTargetBox->HidePhraseBox(); // hides all three parts of the new phrasebox
+
+        // store to kb with a source phrase with m_bHasKBEntry flag
+        // TRUE, which would cause an assert to trip
+		pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T("")); // need to set it to null str
 											     // since it won't get recreated
 		// BEW removed 29Apr10 in favour of the "_Protected" version below, to
 		// give better data protection

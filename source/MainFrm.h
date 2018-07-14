@@ -77,7 +77,7 @@ DECLARE_EVENT_TYPE(wxEVT_Join_With_Next, -1)
 DECLARE_EVENT_TYPE(wxEVT_Join_With_Previous, -1)
 DECLARE_EVENT_TYPE(wxEVT_Split_It, -1)
 DECLARE_EVENT_TYPE(wxEVT_Delayed_GetChapter, -1)
-DECLARE_EVENT_TYPE(wxEVT_Cursor_To_End, -1)
+//DECLARE_EVENT_TYPE(wxEVT_Cursor_To_End, -1) // whm 12Jul2018 The following custom event is no longer needed:
 
 #if defined(_KBSERVER)
 

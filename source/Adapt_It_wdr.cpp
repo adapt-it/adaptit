@@ -11770,13 +11770,31 @@ wxSizer *CollabProtectEditorBulkSettingsDlgFunc( wxWindow *parent, bool call_fit
     return item0;
 }
 
-wxSizer *ChooseTransDropDownFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+wxSizer *PhraseBoxDropDownFunc_UNUSED( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxString *strs1 = (wxString*) NULL;
-    wxComboBox *item1 = new wxComboBox( parent, ID_COMBO_CHOOSE_TRANS, wxT(""), wxDefaultPosition, wxSize(100,-1), 0, strs1, wxCB_DROPDOWN|wxTE_PROCESS_ENTER );
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_PHRASE_BOX_DESIGNER, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_PROCESS_TAB|wxTE_PROCESS_ENTER );
+    item1->Add( item2, 1, wxALIGN_CENTER, 5 );
+
+    wxBitmapToggleButton *item3 = new wxBitmapToggleButton( parent, ID_BMTOGGLEBUTTON_PHRASEBOX, AIToolBarBitmapsUnToggledFunc( 0 ), wxDefaultPosition, wxSize(20,-1) );
+    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxString *strs6 = (wxString*) NULL;
+    wxListBox *item6 = new wxListBox( parent, ID_DROP_DOWN_LIST, wxDefaultPosition, wxSize(80,100), 0, strs6, wxLB_SINGLE );
+    item5->Add( item6, 1, wxGROW, 5 );
+
+    item4->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    item0->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     if (set_sizer)
     {

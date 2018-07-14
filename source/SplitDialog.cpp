@@ -656,7 +656,7 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 	if (!gpApp->m_targetPhrase.IsEmpty())
 	{
 		gpApp->m_targetPhrase = wxEmptyString;
-		gpApp->m_pTargetBox->SetValue(wxEmptyString);
+		gpApp->m_pTargetBox->GetTextCtrl()->SetValue(wxEmptyString); // whm 12Jul2018 added GetTextCtrl()-> part
 	}
 
 	// Save the split bits.
