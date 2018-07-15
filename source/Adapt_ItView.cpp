@@ -1056,10 +1056,40 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	if (pActivePile != NULL && pApp->m_nActiveSequNum != -1)
 	{
 		//int activePileWidth = pActivePile->m_nWidth;
-		wxSize boxSize = pApp->m_pTargetBox->GetSize(); // whm 12Jul2018 TODO: Check difference with GetTextCtrl()-> added
-		int boxWidth = (int)boxSize.GetWidth() - 1; // -1 to ignore box boundary, else boxWidth
-													// is consistently 1 more than layoutGapWith
-													// resulting in needless FixBox() calls
+
+        // whm 14Jul2018 modified. This 'hack' gets checked for nearly every pile. It needs 
+        // to account for the size of the new phrasebox being the wxTextCtrl + dropodown button
+        // so I've made that adjustment here and within the CPile::CalcPhraseBoxGapWidth() 
+        // function. 
+        // The 'hack' here originally only got the boxSize from the size of the legacy phrasebox's
+        // wxTextCtrl. We need to adjust that boxSize to include the width of the new button, plus
+        // the 1-pixel gap between them. The button and 1-pixel adjustment which will be a 
+        // constant value regardless of whether the phrasebox itself is expanding or not. 
+        // Currently (13Jul2018) button width is about 20 pixels (but may change if we redo the 
+        // current xpm button with a better quality one), plus 1 pixels for the space between 
+        // the legacy phrasebox edit box and the new button.
+        // For drawing purposes here in OnDraw(), the Layout's m_curBoxWidth should have already
+        // calculated the new phrasebox plus its new button width from a prior call of the 
+        // CPile::CalcPhraseBoxGapWidth() function (see my modification there that includes
+        // the extra horizontal space needed for the new button and 1-pixel space).
+        // The 'hack' here ignores the pActivePile->m_nWidth value and calculates afresh
+        // the width of the legacy phrasebox's wxTextCtrl, as it exists at this moment in 
+        // OnDraw(), and adjusts the boxWidth value to include the new phrasebox button and
+        // 1-pixel space.
+        wxSize boxSize = pApp->m_pTargetBox->GetTextCtrl()->GetSize();
+        // The above boxSize alone calculates just the legacy phrasebox size, not including 
+        // the button and intervening 1-pixel. Below we calculate an adjustedButtonWidth
+        // and use it to increment the boxWidth value for the new phrasebox.
+        wxSize buttonSize = pApp->m_pTargetBox->GetPhraseBoxButton()->GetSize();
+        int adjustedButtonWidth = buttonSize.GetX() + 1; // allow 1 pixels space before the button
+        int boxWidth = (int)boxSize.GetWidth() - 1; // -1 to ignore box boundary, else boxWidth
+                                                    // is consistently 1 more than layoutGapWith
+                                                    // resulting in needless FixBox() calls
+        if (buttonSize.x > 0)
+            boxWidth += adjustedButtonWidth;
+        // whm 13Jul2018 Note: The above change should eliminate the problem of the phrasebox 
+        // button encroaching on the next target pile/cell.
+
 		int layoutGapWidth = pApp->m_pLayout->m_curBoxWidth;
 		if (boxWidth > layoutGapWidth)
 		{
@@ -1540,12 +1570,16 @@ void CAdapt_ItView::OnInitialUpdate()
 	pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
 									// and other setters
 	pApp->m_targetPhrase = saveText;
-	pApp->m_nStartChar = -1;
-	pApp->m_nEndChar = -1;
-	if (pApp->m_pTargetBox != NULL)
-	{
-		pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); // select it all
-	}
+    // whm 13Jul2018 removed the following code. This OnInitialUpdate() gets called from
+    // OnInit() very early in the program startup process BEFORE the start working wizard
+    // runs and certainly before a document has been opened.
+    // Therefore, calling SetSelection() below is pointless at this early juncture.
+	//pApp->m_nStartChar = -1;
+	//pApp->m_nEndChar = -1;
+	//if (pApp->m_pTargetBox != NULL)
+	//{
+	//	pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); // select it all
+	//}
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5
@@ -6458,11 +6492,22 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	}
 #endif // for _RTL_FLAGS
 
-    // whm 12Jul2018 addition of sizing and positioning code for the phrasebox's button and its list
-    // Adjust the placement of the new phrasebox button for centering to the right of the phrasebox. This
-    // should calculate an adjustment to account for an increased height of phrasebox due to
-    // font changes of the target text. For now I'll set its upper left position 1 pixel to the right and 
-    // center it at the right side of the phrasebox's rectBox.
+    // whm 12Jul2018 addition.
+    // Note that this ResizeBox() function is called within PlaceBox() shortly before the
+    // SetupDropDownPhraseBoxForThisLocation() is called. Now that the new size/position
+    // of the legacy phrasebox's edit box has been calculated to be of sufficient width 
+    // and height for the target text it contains (plus slop), the code below takes care 
+    // of the relative positioning of the new phrasebox's button, and the sizing and
+    // positioning of its dropdown list.
+    //
+    // First, adjust the placement of the new phrasebox button, centering it to the right 
+    // of the phrasebox (using the rectBox size as determined above). We set the button's 
+    // upper left position 1 pixel to the right of the rectBox's right side, and center
+    // it along the right side of the phrasebox's current rectBox. The rectBox will be
+    // changing dynamically, depending on the text extent of its contents, but the
+    // phrasebox button won't be changing in size. The code below keeps it aligned
+    // along the approximate center of the current rectBox.
+    //
     wxRect buttonRect = pApp->m_pTargetBox->GetPhraseBoxButton()->GetRect();
     int buttonHeight = buttonRect.GetHeight();
     int phraseboxHeight = rectBox.GetHeight();

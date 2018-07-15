@@ -2251,7 +2251,6 @@ void CPhraseBox::HidePhraseBox()
     this->GetDropDownList()->Hide();
 }
 
-
 void CPhraseBox::SetSizeAndHeightOfDropDownList(int width)
 {
     // The incoming width parameter is set by the caller in the View's ResizeBox, and is 
@@ -6506,7 +6505,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     //    4d. With nothing in the dropdown list we set the App's m_bChooseTransInitializePopup flag to FALSE,
     //        which informs OnIdle() not to open/show the dropdown list.
     //    4e. The bNoAdaptationFlagPresent will always be FALSE when nRefStrCount == 0.
-    //    4f. Call SetSelection(-1, -1) to select all content of the phrasebox - which in this case
+    //    4f. Call SetSelection(-1,-1) to select all content of the phrasebox - which in this case
     //        would be a copy of the source phrase if m_bCopySource == TRUE, empty otherwise.
     //    4g. Assign m_pTargetBox to contain the value of m_targetPhrase (a copy of source phrase if 
     //        m_bCopySource == TRUE).
@@ -6797,7 +6796,9 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     pApp->m_targetPhrase = pApp->m_pTargetBox->GetDropDownList()->GetString(index);
                     this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
                     this->GetDropDownList()->SetSelection(index);
-                    this->GetTextCtrl()->SetSelection(-1, -1); // select all
+                    // whm 13Jul2018 modified to remove selection and put insertion point at end
+                    int len = this->GetTextCtrl()->GetValue().Length();
+                    this->GetTextCtrl()->SetSelection(len,len); // put insertion point at end
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end block for nRefStrCount > 1, and lacking <no adaptation>"), _T("PhraseBox.cpp"), 6272);
 #endif
@@ -6885,7 +6886,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 
 				//We should be able to put it in the m_pTargetBox here.
                 this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
-                this->GetTextCtrl()->SetSelection(-1, -1); // select all
+                this->GetTextCtrl()->SetSelection(-1,-1); // select all
                 this->GetTextCtrl()->SetFocus();
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 				pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end of block for nRefStrCount == 0"), _T("PhraseBox.cpp"), 6348);

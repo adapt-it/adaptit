@@ -1931,7 +1931,7 @@ x:					CCell* pCell = 0;
 						// BEW added 30Jun18 - to support AuSIL request for cursor at end
                         // whm 12Jul2018 removed custom event and re-instated SetSelection(len,len) here
                         long len = (long)pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
-                        pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+                        pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
 
                         // whm 12Jul2018 The following custom event is no longer needed:
                         //wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);

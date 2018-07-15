@@ -1318,10 +1318,13 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 				pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
 				pApp->m_pTargetBox->GetDropDownList()->SetSelection(index);
 
-				//int curIndex = pApp->m_pTargetBox->GetDropDownList()->GetSelection(); // just checked this call exists
-
-
-				pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // select all
+                // whm 13Jul2018 modified SetSelection to select all when nRefStrCount is 0 or 1,
+                // otherwise (for nRefStrCount > 1) remove selection and place insertion point at end 
+                int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
+                if (nRefStrCount > 1)
+                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+                else
+				    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
 				// This next line is essential. Without it, the phrasebox will seem right, but moving away by
 				// a click or by Enter key will leave a hole at the old location - the reason is that the
 				// PlacePhraseBox() call uses m_pTargetBox->m_SaveTargetPhrase to put the old location's
