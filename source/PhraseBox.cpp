@@ -2251,6 +2251,19 @@ void CPhraseBox::HidePhraseBox()
     this->GetDropDownList()->Hide();
 }
 
+// This SetSizeAndHeightOfDropDownList() function attempts to calculate the
+// vertical size needed for the phrasebox's new dropdown list to make its
+// items visible on screen. 
+// TODO for BEW: The function should detect how much of the logical doc is 
+// available for displaying its list, as well as perhaps how much screen space  
+// is available from the current scroll position. It should make adjustments to
+// accommodate the best view. Note that the wxListBox does have a vertical
+// scroll bar on all platforms that appears if the number of items cannot be
+// shown within the current vertical height setting of the list. Some platforms
+// such as Linux, also put a horizontal scroll bar at the bottom of the list
+// which is not so helpful there since it appears sometimes even when all
+// items in the list are easily visible without the need for horizontal 
+// scrolling.
 void CPhraseBox::SetSizeAndHeightOfDropDownList(int width)
 {
     // The incoming width parameter is set by the caller in the View's ResizeBox, and is 

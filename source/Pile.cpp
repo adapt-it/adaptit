@@ -475,10 +475,19 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 				boxGapWidth = boxExtent.x;
 			}
 
-            // whm 13Jul2018 TODO: Bruce should verify that I have done the coding below correctly.
+            // whm 13Jul2018 TODO: Bruce should verify that I have interpreted correctly what 
+            // CalcPhraseBoxGapWidth()'s purpose is, and that my modification done in the coding 
+            // below are appropriate to accommodate the new phrasebox with its dropdown button.
+            // Problem/Issue to sort out: The value returned from CalcPhraseBoxGapWidth() function
+            // seems to be used to adjust the actual size of the phrasebox (edit box part), rather
+            // than merely determining the gap width that the phrasebox will be shown in. There 
+            // needs to be a way for the new phrasebox to fit within the gap - including its new
+            // dropdown button.
+            // 
             // See and compare the code adjustment made here with the code change made in the 
             // 'hack' in the View's OnDraw() method. Also see the code and logic within the View's
-            // ResizeBox() method.
+            // ResizeBox() method, where relative positioning of phrasebox's button and dropdown list
+            // are maintained.
             // Note that the new phrasebox now has a button that is always aligned to the right end 
             // of the wxTextCtrl that makes up the new phrasebox. There is a gap of 1 pixel
             // between the legacy phrasebox's wxTextCtrl and the bitmap dropdown button.
@@ -496,8 +505,10 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
             // the size of the new button, plus the 1-pixel gap between the legacy box and the new 
             // button.
             // Note: There is a hack in the View's OnDraw() function where the same calculation needs
-            // to be done for the calculation of the boxSize variable there to keep the calculations
-            // in sync - at least for the purposes of the hack.
+            // to be done for the calculation of a local boxSize variable there to keep the 
+            // calculations in sync - at least for the purposes of the hack to intervent if ever
+            // necessary.
+            //
             // We need to add to the above calculation of boxGapWidth the width of the new button
             // plus the 1-pixel space between its and the legacy phrasebox. This addition will be a 
             // constant value regardless of whether the phrasebox is expanding or not. 
@@ -524,6 +535,16 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	}
 
 	// before returning, put the final value back into CLayout::m_curBoxWidth
+    // whm 13Jul2018 BEW TODO: 
+    // Note: The following assignment of boxGapWidth to the Layout's m_curBoxWidth
+    // makes the m_curBoxWidth be the same as the boxGapWidth, but should not be
+    // so with the new phrasebox and dropdown button. It increases the effective
+    // size of the edit box part of the new phrasebox by the width amount of the 
+    // newly added dropdown button (plus 1-pixel spacing). We need a way to keep
+    // the calculated boxGapWidth independent of the m_curBoxWidth - in order for
+    // the button part of the new phrasebox to fit within the gap and not encroach
+    // on any following pile. See related comments also in the View's ResizeBox()  
+    // and OnDraw() functions. 
 	m_pLayout->m_curBoxWidth = boxGapWidth;
 
 	return boxGapWidth;

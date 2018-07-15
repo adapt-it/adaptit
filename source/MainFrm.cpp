@@ -4647,6 +4647,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		pApp->m_nInsertCount = 0;
 	}
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
     if (pApp->m_bChooseTransInitializePopup)
     {
@@ -4729,6 +4730,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
             curFocus);
     }
 //#endif
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 	// BEW 2Dec2014 Alan Buseman's Guesser - support for hiding the GuesserUpdate() calls

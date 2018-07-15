@@ -1057,14 +1057,18 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	{
 		//int activePileWidth = pActivePile->m_nWidth;
 
-        // whm 14Jul2018 modified. This 'hack' gets checked for nearly every pile. It needs 
-        // to account for the size of the new phrasebox being the wxTextCtrl + dropodown button
-        // so I've made that adjustment here and within the CPile::CalcPhraseBoxGapWidth() 
-        // function. 
+        // whm 14Jul2018 modified. Note that code execution goes through here routinely for nearly
+        // every pile that is drawn. This 'hack' needs to account for the size of the new 
+        // phrasebox width being the wxTextCtrl + dropodown button + 1-pixel space between them.
+        // I've attempted to make that adjustment here and within the CPile::CalcPhraseBoxGapWidth() 
+        // function (see my comments there too).
         // The 'hack' here originally only got the boxSize from the size of the legacy phrasebox's
-        // wxTextCtrl. We need to adjust that boxSize to include the width of the new button, plus
-        // the 1-pixel gap between them. The button and 1-pixel adjustment which will be a 
-        // constant value regardless of whether the phrasebox itself is expanding or not. 
+        // wxTextCtrl. Presumably, we need to adjust that boxSize to include the width of the new 
+        // button, plus the 1-pixel gap between them. The button and 1-pixel adjustment in width
+        // will be a constant value regardless of whether the phrasebox itself has 
+        // expanded/contracted or not. The GetPhraseBoxButton()->GetSize() returns that size and 
+        // when it plus 1-pixel is calculated that amounts to the increase in width needed for
+        // the new phrasebox to fit within the gap determined by CalcPhraseBoxGapWidth().
         // Currently (13Jul2018) button width is about 20 pixels (but may change if we redo the 
         // current xpm button with a better quality one), plus 1 pixels for the space between 
         // the legacy phrasebox edit box and the new button.
@@ -1076,6 +1080,10 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
         // the width of the legacy phrasebox's wxTextCtrl, as it exists at this moment in 
         // OnDraw(), and adjusts the boxWidth value to include the new phrasebox button and
         // 1-pixel space.
+        // TODO: Issue for BEW to solve: The calculation done in OnDraw() seems to affect the
+        // actual width of the phrasebox, making the edit box part alone wide enough to fill
+        // the gap calculated by CalcPhraseBoxGapWidth(). But that makes the dropdown button
+        // still encroach upon any following pile.
         wxSize boxSize = pApp->m_pTargetBox->GetTextCtrl()->GetSize();
         // The above boxSize alone calculates just the legacy phrasebox size, not including 
         // the button and intervening 1-pixel. Below we calculate an adjustedButtonWidth
@@ -1085,8 +1093,8 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
         int boxWidth = (int)boxSize.GetWidth() - 1; // -1 to ignore box boundary, else boxWidth
                                                     // is consistently 1 more than layoutGapWith
                                                     // resulting in needless FixBox() calls
-        if (buttonSize.x > 0)
-            boxWidth += adjustedButtonWidth;
+        //if (buttonSize.x > 0)
+        //    boxWidth += adjustedButtonWidth;
         // whm 13Jul2018 Note: The above change should eliminate the problem of the phrasebox 
         // button encroaching on the next target pile/cell.
 
@@ -6456,11 +6464,6 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	pApp->m_pTargetBox->GetTextCtrl()->SetSize(rectBox.GetLeft(),rectBox.GetTop(), // whm 12Jul2018 added GetTextCtrl()-> TODO: Test this
 								rectBox.GetWidth(),rectBox.GetHeight());
     
-    // whm 22Mar2018 testing affect of the SetMargins() command as possible fix for the bad margin setting in the Mac port
-    // Note: A value of wxPoint(-1, -1) should use the default values.
-    //pApp->m_pTargetBox->SetMargins(wxPoint(-1, -1));
-    //pApp->m_pTargetBox->SetMargins(wxPoint(1, 1));
-
     // whm note: Shouldn't the following adjustment come before the SetSize call above???
     // BEW answer: no, SetSize() would then wipe out the effect.
 #ifdef _RTL_FLAGS
@@ -6492,12 +6495,13 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	}
 #endif // for _RTL_FLAGS
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // whm 12Jul2018 addition.
     // Note that this ResizeBox() function is called within PlaceBox() shortly before the
     // SetupDropDownPhraseBoxForThisLocation() is called. Now that the new size/position
-    // of the legacy phrasebox's edit box has been calculated to be of sufficient width 
-    // and height for the target text it contains (plus slop), the code below takes care 
-    // of the relative positioning of the new phrasebox's button, and the sizing and
+    // of the legacy phrasebox's edit box has been calculated above to be of sufficient 
+    // width and height for the target text it contains (plus slop), the code below takes 
+    // care of the relative positioning of the new phrasebox's button, and the sizing and
     // positioning of its dropdown list.
     //
     // First, adjust the placement of the new phrasebox button, centering it to the right 
@@ -6507,7 +6511,11 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
     // changing dynamically, depending on the text extent of its contents, but the
     // phrasebox button won't be changing in size. The code below keeps it aligned
     // along the approximate center of the current rectBox.
-    //
+    // Important Note: The code below does not change the size of the rectBox as determined
+    // above. It merely functions to align the elements of the new phrasebox. The only
+    // change in size is done for the DropDown List, to keep it sized and aligned with
+    // the current width of the rectBox. The vertical size of the dropdown list is done
+    // in the OnIdle() function in MainFrm.cpp (see comment below for the reason).
     wxRect buttonRect = pApp->m_pTargetBox->GetPhraseBoxButton()->GetRect();
     int buttonHeight = buttonRect.GetHeight();
     int phraseboxHeight = rectBox.GetHeight();
@@ -6520,8 +6528,9 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
     // whm Note: The SetSize() call above sets the list width to be that of the phrasebox, however, it
     // just sets the height at the default value set on creation (100 pixels). ResizeBox() is called
     // before the dropdown list is populated (later in PlaceBox()), so we call the 
-    // SetSizeAndHeightOfDropDownList() within the PopupDropDownList() that is called from OnIdle() in
-    // MainFrm.cpp.
+    // CPhraseBox::SetSizeAndHeightOfDropDownList() within the PopupDropDownList() which
+    // is in turn only called from OnIdle() in MainFrm.cpp.
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(text);
     if (gbIsGlossing && gbGlossingUsesNavFont)
