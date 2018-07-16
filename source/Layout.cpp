@@ -1018,6 +1018,12 @@ void CLayout::PlaceBox()
 #endif
 	}
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
+
+    // whm 15Jul2018 added the following bool value to determine if user presses Up or Down arrow
+    // to highlight a different item in the dropdown list before pressing Enter/Tab to leave the 
+    // current location. We initialize it to FALSE here at the end of PlaceBox() to ensure it
+    // is FALSE at each location of the phrasebox.
+    m_pApp->m_pTargetBox->bUp_DownArrowKeyPressed = FALSE; // initialized to FALSE at each location - at end of Layout's PlaceBox().
 }
 
 /*
