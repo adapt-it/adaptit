@@ -5882,9 +5882,15 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
             // compare it to the contents of the edit box. If they are they are different
             // we interpret the Enter/Tab press as a selection action, put the newly
             // highlighted list item into the phrasebox's edit box and stay put.
-            // TODO: check to see if the following strings being compared need to first
-            // be adjusted for case and/or <no adaptation> for the comparison to be
-            // robust.
+
+            // TODO: BEW to check and advise
+            // Note that a list item may be "<no adaptation>" or "<no gloss>",
+            // but its representation in the phrase box will be a null "" string. Also
+            // when autocaps is active there may be case differences between strings in
+            // the dropdown list and those in the phrasebox. Hence, I would think that
+            // in the following strings comparison, the list item string should first 
+            // be adjusted for case and/or a <no adaptation> string set to a null "" 
+            // string before the comparison BEFORE the following comparison. 
             if (this->GetDropDownList()->GetStringSelection() != this->GetTextCtrl()->GetValue())
             {
                 // The selected item string is different from what is in the phrasebox's
@@ -5893,7 +5899,10 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
                 // We can just call the OnListBoxItemSelected() handler here as it
                 // does exactly what we need.
                 wxCommandEvent dummyevent;
-                OnListBoxItemSelected(dummyevent);
+                OnListBoxItemSelected(dummyevent); 
+                // Note: The above OnListBoxItemSelected() call adjusts for <no adaptation> and 
+                // for case before putting the string selection into the phrasebox.
+                // 
                 // Reset the bUp_DownArrowKeyPressed flag in case the user makes yet another
                 // selection from the list to change the previous selection.
                 bUp_DownArrowKeyPressed = FALSE;
