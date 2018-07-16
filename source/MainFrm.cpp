@@ -4540,9 +4540,20 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		if (pApp->m_bStartViaWizard && pApp->m_pTargetBox != NULL)
 		{
 			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-			pApp->m_nEndChar = -1;
-			pApp->m_nStartChar = -1;
-			pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+            // whm 13Jul2018 modified with new protocol that has the phrasebox content
+            // wholly selected only when its list contains 0 or 1 items, but removes
+            // the selection and puts the insertion point at end when list contains
+            // 2 or more items.
+            int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
+            pApp->m_nEndChar = -1;
+            pApp->m_nStartChar = -1;
+            if (pApp->m_pTargetBox != NULL)
+            {
+                if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
+                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+                else
+                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); // select it all
+            }
 			pApp->m_bStartViaWizard = FALSE; // suppress this code from now on
 		}
 
@@ -4636,6 +4647,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		pApp->m_nInsertCount = 0;
 	}
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
     if (pApp->m_bChooseTransInitializePopup)
     {
@@ -4718,6 +4730,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
             curFocus);
     }
 //#endif
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 	// BEW 2Dec2014 Alan Buseman's Guesser - support for hiding the GuesserUpdate() calls

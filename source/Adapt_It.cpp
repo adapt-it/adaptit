@@ -27364,12 +27364,19 @@ int CAdapt_ItApp::GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView)
         m_targetPhrase = pSrcPhrase->m_adaption;
 
     // BEW added 29Jul09, get the phrase box text into the box and all selected
+    // whm 13Jul2018 modified for new protocol of only selecting all when 
+    // dropdown list count is > 1, otherwise removing selection and putting
+    // insertion point at end.
     m_pTargetBox->GetTextCtrl()->ChangeValue(m_targetPhrase);
+    int len = m_pTargetBox->GetTextCtrl()->GetValue().Length();
     m_nStartChar = -1;
     m_nEndChar = -1;
     if (m_pTargetBox != NULL)
     {
-        m_pTargetBox->GetTextCtrl()->SetSelection(m_nStartChar, m_nEndChar); // select it all
+        if (m_pTargetBox->GetDropDownList()->GetCount() > 1)
+            m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+        else
+            m_pTargetBox->GetTextCtrl()->SetSelection(m_nStartChar,m_nEndChar); // select it all
     }
 
     return m_nActiveSequNum;
@@ -31486,7 +31493,7 @@ void CAdapt_ItApp::OnButtonGetFromClipboard(wxCommandEvent& WXUNUSED(event))
 			pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
 			m_nStartChar = 0;
 			m_nEndChar = -1; // ensure initially all is selected
-			m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // select all
+			m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
 			m_pTargetBox->GetTextCtrl()->SetFocus();
 		}
 		pView->Invalidate();
@@ -31543,7 +31550,7 @@ void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event
             pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
             m_nStartChar = 0;
             m_nEndChar = -1; // ensure initially all is selected
-            m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // select all
+            m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
             m_pTargetBox->GetTextCtrl()->SetFocus();
         }
     }
@@ -32317,7 +32324,7 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
     int len = pApp->m_targetPhrase.Length();
     m_nStartChar = len;
     m_nEndChar = len;
-    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
     pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 }
 
@@ -47453,7 +47460,7 @@ void CAdapt_ItApp::DoPrintCleanup()
         GetMainFrame()->canvas->ScrollIntoView(m_nActiveSequNum);
         m_nStartChar = 0;
         m_nEndChar = -1; // ensure initially all is selected
-        m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // select all
+        m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
         m_pTargetBox->GetTextCtrl()->SetFocus();
     }
 
@@ -47470,14 +47477,14 @@ void CAdapt_ItApp::DoPrintCleanup()
         pEdit->SetFocus();
         if (!m_pActivePile->GetSrcPhrase()->m_bHasFreeTrans)
         {
-            pEdit->SetSelection(-1, -1); // -1, -1 selects it all
+            pEdit->SetSelection(-1,-1); // -1, -1 selects it all
         }
         else
         {
             int len = pEdit->GetValue().Length();
             if (len > 0)
             {
-                pEdit->SetSelection(len, len);
+                pEdit->SetSelection(len,len);
             }
         }
     }

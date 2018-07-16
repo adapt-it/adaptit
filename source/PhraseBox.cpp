@@ -593,6 +593,12 @@ CPhraseBox::CPhraseBox(wxWindow * parent, wxWindowID id, const wxString & value,
     // BEW added 7May18, initialize the saved ref string's pointer to NULL
     InitializeComboLandingParams();
 
+    // whm 15Jul2018 added the following bool value to determine if user presses Up or Down arrow
+    // to highlight a different item in the dropdown list before pressing Enter/Tab to leave the 
+    // current location. One-time initialization to FALSE is made here but it is set to FALSE at
+    // each location within the Layout's PlaceBox() function.
+    bUp_DownArrowKeyPressed = FALSE; // initialized to FALSE at each location - at end of Layout's PlaceBox().
+
     //  /* XPM */
     const char * xpm_dropbutton_normal[] = {
         /* columns rows colors chars-per-pixel */
@@ -2251,7 +2257,19 @@ void CPhraseBox::HidePhraseBox()
     this->GetDropDownList()->Hide();
 }
 
-
+// This SetSizeAndHeightOfDropDownList() function attempts to calculate the
+// vertical size needed for the phrasebox's new dropdown list to make its
+// items visible on screen. 
+// TODO for BEW: The function should detect how much of the logical doc is 
+// available for displaying its list, as well as perhaps how much screen space  
+// is available from the current scroll position. It should make adjustments to
+// accommodate the best view. Note that the wxListBox does have a vertical
+// scroll bar on all platforms that appears if the number of items cannot be
+// shown within the current vertical height setting of the list. Some platforms
+// such as Linux, also put a horizontal scroll bar at the bottom of the list
+// which is not so helpful there since it appears sometimes even when all
+// items in the list are easily visible without the need for horizontal 
+// scrolling.
 void CPhraseBox::SetSizeAndHeightOfDropDownList(int width)
 {
     // The incoming width parameter is set by the caller in the View's ResizeBox, and is 
@@ -5844,6 +5862,59 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
     || keycode == WXK_NUMPAD_ENTER
     || keycode == WXK_NUMPAD_TAB) // whm 5Jul2018 added for extended keyboard numpad ENTER and numpad TAB users
     {
+        // whm 15Jul2018 added code here in the Enter/Return/Tab key handling to determine if
+        // the Enter/Return/Tab key press was done AFTER the user highlighted a different
+        // item in the dropdown list, i.e., different from the text that was originally in 
+        // the phrasebox's edit box when the phraseebox landed at its current location. If 
+        // a different item has been highlighted using Up/Down arrows the Enter/Return/Tab
+        // press should be interpreted as a selection action to put the new/different item
+        // into the phrasebox's edit box, and stay at that location, rather than a signal 
+        // to move the phrasebox forward to another location. If, after moving the highlight
+        // with Up/Down arrow keys, the highlighted item's text value is the same as the
+        // text that was in the edit box when the phrasebox landed at that location, the
+        // Enter/Return/Tab key press should be interpreted as the signal to accept the
+        // text within the edit box as the form of target text that should be put at that
+        // location and move the phrasebox forward.
+        if (bUp_DownArrowKeyPressed)
+        {
+            // The user moved the highlight up/down during the editing session at this
+            // location. We get the string selection that is currently highlighted and
+            // compare it to the contents of the edit box. If they are they are different
+            // we interpret the Enter/Tab press as a selection action, put the newly
+            // highlighted list item into the phrasebox's edit box and stay put.
+
+            // TODO: BEW to check and advise
+            // Note that a list item may be "<no adaptation>" or "<no gloss>",
+            // but its representation in the phrase box will be a null "" string. Also
+            // when autocaps is active there may be case differences between strings in
+            // the dropdown list and those in the phrasebox. Hence, I would think that
+            // in the following strings comparison, the list item string should first 
+            // be adjusted for case and/or a <no adaptation> string set to a null "" 
+            // string before the comparison BEFORE the following comparison. 
+            if (this->GetDropDownList()->GetStringSelection() != this->GetTextCtrl()->GetValue())
+            {
+                // The selected item string is different from what is in the phrasebox's
+                // edit box, so we interpret the Enter/Tab key press to put the current
+                // list selection into the phrasebox and stay put.
+                // We can just call the OnListBoxItemSelected() handler here as it
+                // does exactly what we need.
+                wxCommandEvent dummyevent;
+                OnListBoxItemSelected(dummyevent); 
+                // Note: The above OnListBoxItemSelected() call adjusts for <no adaptation> and 
+                // for case before putting the string selection into the phrasebox.
+                // 
+                // Reset the bUp_DownArrowKeyPressed flag in case the user makes yet another
+                // selection from the list to change the previous selection.
+                bUp_DownArrowKeyPressed = FALSE;
+                // We don't want to process the Enter/Tab key press to JumpForward()
+                // so just return here.
+                return;
+            }
+            // If we get here the string selected in the list was identical to the string
+            // currently in the phrasebox's edit box, so proceed with the normal Enter/Tab
+            // key processing below (to JumpForward).
+        }
+        
         // First handle merging of any selection - as is done in OnChar().
         // preserve cursor location, in case we merge, so we can restore it afterwards
         long nStartChar;
@@ -6274,6 +6345,15 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
     else if (event.GetKeyCode() == WXK_DOWN) // DOWN ARROW
     {
         // DOWN arrow key was pressed while focus is in the phrasebox's edit box.
+
+        // whm 15Jul2018 added the following bool, set to TRUE here, so we can detect
+        // if user highlighted a different dropdown list item while at this location.
+        // The bUp_DownArrowKeyPressed value is reset to FALSE in PlaceBox().
+        // It is used within the WXK_RETURN, WXK_TAB ... handler in OnKeyUp() to
+        // interpret whether the Enter/Tab key press should select the different item 
+        // from the dropdown list, or just function to move the phrasebox forward.
+        bUp_DownArrowKeyPressed = TRUE;
+
         // We change the highlight to the next lower item in the list if there are > 1 
         // list items in the list and the highlight is not on the last item. 
         // If the highlighted is on the last item, we move the highlight to the first 
@@ -6316,6 +6396,15 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
     else if (event.GetKeyCode() == WXK_UP) // UP ARROW
     {
         // UP arrow key was pressed while focus is in the phrasebox's edit box.
+
+        // whm 15Jul2018 added the following bool, set to TRUE here, so we can detect
+        // if user highlighted a different dropdown list item while at this location.
+        // The bUp_DownArrowKeyPressed value is reset to FALSE in PlaceBox().
+        // It is used within the WXK_RETURN, WXK_TAB ... handler in OnKeyUp() to
+        // interpret whether the Enter/Tab key press should select the different item 
+        // from the dropdown list, or just function to move the phrasebox forward.
+        bUp_DownArrowKeyPressed = TRUE;
+
         // We change the highlight to a higher item in the list if there are > 1 list items
         // in the list. If the highlighted item in the list is the last item, we move the
         // highlight to the first item in the list.
@@ -6506,7 +6595,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     //    4d. With nothing in the dropdown list we set the App's m_bChooseTransInitializePopup flag to FALSE,
     //        which informs OnIdle() not to open/show the dropdown list.
     //    4e. The bNoAdaptationFlagPresent will always be FALSE when nRefStrCount == 0.
-    //    4f. Call SetSelection(-1, -1) to select all content of the phrasebox - which in this case
+    //    4f. Call SetSelection(-1,-1) to select all content of the phrasebox - which in this case
     //        would be a copy of the source phrase if m_bCopySource == TRUE, empty otherwise.
     //    4g. Assign m_pTargetBox to contain the value of m_targetPhrase (a copy of source phrase if 
     //        m_bCopySource == TRUE).
@@ -6797,7 +6886,9 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     pApp->m_targetPhrase = pApp->m_pTargetBox->GetDropDownList()->GetString(index);
                     this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
                     this->GetDropDownList()->SetSelection(index);
-                    this->GetTextCtrl()->SetSelection(-1, -1); // select all
+                    // whm 13Jul2018 modified to remove selection and put insertion point at end
+                    int len = this->GetTextCtrl()->GetValue().Length();
+                    this->GetTextCtrl()->SetSelection(len,len); // put insertion point at end
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end block for nRefStrCount > 1, and lacking <no adaptation>"), _T("PhraseBox.cpp"), 6272);
 #endif
@@ -6885,7 +6976,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 
 				//We should be able to put it in the m_pTargetBox here.
                 this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
-                this->GetTextCtrl()->SetSelection(-1, -1); // select all
+                this->GetTextCtrl()->SetSelection(-1,-1); // select all
                 this->GetTextCtrl()->SetFocus();
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 				pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end of block for nRefStrCount == 0"), _T("PhraseBox.cpp"), 6348);
@@ -7350,6 +7441,8 @@ void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & WXUNUSED(event))
     }
 
     this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
+    // whm 15Jul2018 added following flag settings to get selected string to stick
+    gpApp->m_bUserTypedSomething = TRUE;
 
     // BEW addedd 30Jun18 - to support AuSIL request for cursor at end
     // whm 12Jul2018 removed custom event and re-instated SetSelection(len,len) here

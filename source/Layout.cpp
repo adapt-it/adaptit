@@ -1002,13 +1002,28 @@ void CLayout::PlaceBox()
 				}
 			}
 			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase); // keep m_pTargetBox contents in sync with m_targetPhrase
-            m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // whm added 23May2018 otherwise Linux version looses selection of text in phrasebox
+            // whm 13Jul2018 added - if phrasebox list has > 1 items remove selection and 
+            // put insertion point at end, otherwise select all (for item count of 0 or 1)
+            long len = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
+            int itemCt = m_pApp->m_pTargetBox->GetDropDownList()->GetCount();
+            if (itemCt > 1)
+            {
+                m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+            }
+            else
+                m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // whm added 23May2018 otherwise Linux version looses selection of text in phrasebox
         }
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 985);
 #endif
 	}
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
+
+    // whm 15Jul2018 added the following bool value to determine if user presses Up or Down arrow
+    // to highlight a different item in the dropdown list before pressing Enter/Tab to leave the 
+    // current location. We initialize it to FALSE here at the end of PlaceBox() to ensure it
+    // is FALSE at each location of the phrasebox.
+    m_pApp->m_pTargetBox->bUp_DownArrowKeyPressed = FALSE; // initialized to FALSE at each location - at end of Layout's PlaceBox().
 }
 
 /*
