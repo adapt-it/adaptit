@@ -2016,8 +2016,8 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 					  // and so deleting them would destroy part of the document;
 					  // similarly in other places below in this function
 		pList = (SPList*)NULL;
-		m_pApp->m_pTargetBox->SetFocus();
-		m_pApp->m_pTargetBox->SetSelection(m_pApp->m_nStartChar,m_pApp->m_nEndChar);
+		m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+		m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(m_pApp->m_nStartChar,m_pApp->m_nEndChar);
 		m_pView->Invalidate();
 		m_pLayout->PlaceBox();
 		return;
@@ -2035,8 +2035,8 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			delete pList;
 		pList = (SPList*)NULL;
 		m_pView->RemoveSelection();
-		m_pApp->m_pTargetBox->SetFocus();
-		m_pApp->m_pTargetBox->SetSelection(m_pApp->m_nStartChar,m_pApp->m_nEndChar);
+		m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+		m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(m_pApp->m_nStartChar,m_pApp->m_nEndChar);
 		m_pView->Invalidate();
 		m_pLayout->PlaceBox();
 		return;
@@ -2120,7 +2120,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	m_pApp->m_targetPhrase.Empty();
 	if (m_pApp->m_pTargetBox != NULL)
 	{
-		m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
+		m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase);
 	}
 
     // determine the value for the active sequ number on exit, so we will know where to
@@ -2621,7 +2621,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,emptyStr,useGlossOrAdaptationForLookup);
 
 		m_pApp->m_targetPhrase = str3; // the Phrase Box can have punctuation as well as text
-		m_pApp->m_pTargetBox->ChangeValue(str3);
+		m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(str3);
 		m_pApp->m_nStartChar = -1;
 		m_pApp->m_nEndChar = -1;
 
@@ -2889,7 +2889,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	m_pApp->m_targetPhrase.Empty();
 	if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown())
 	{
-		m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase); // clear it
+		m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase); // clear it
 	}
 
     // we have to accumulate now the text comprising the current retranslation, since we
@@ -3379,7 +3379,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		m_pApp->m_targetPhrase = str3;
 		if (m_pApp->m_pTargetBox != NULL)
 		{
-			m_pApp->m_pTargetBox->ChangeValue(str3);
+			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(str3);
 		}
 
         // layout , so that the targetBox won't encroach on the next cell's adaption
@@ -4031,7 +4031,7 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	}
 	m_pApp->m_targetPhrase = str3; // update what is to be shown in the phrase box
 	// BEW 24Jul14, make the box show it
-	m_pApp->m_pTargetBox->ChangeValue(str3);
+	m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(str3);
 
 	// ensure the selection is removed
 	m_pView->RemoveSelection();
@@ -4264,8 +4264,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			int length = m_pApp->m_targetPhrase.Length();
 			m_pApp->m_nStartChar = length;
 			m_pApp->m_nEndChar = length;
-			m_pApp->m_pTargetBox->SetSelection(length,length);
-			m_pApp->m_pTargetBox->SetFocus();
+			m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(length,length);
+			m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 			// whm added 05Jan07 to restore the former current working directory for safety
 			// sake to what it was on entry, since there was a wxSetWorkingDirectory call made
 			// above
@@ -4666,8 +4666,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	m_pApp->m_nEndChar = length;
 	if (m_pApp->m_pTargetBox != NULL && m_pApp->m_pTargetBox->IsShown())
 	{
-		m_pApp->m_pTargetBox->SetSelection(length,length);
-		m_pApp->m_pTargetBox->SetFocus();
+		m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(length,length);
+		m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 	}
 	// BEW added 05Jan07 to restore the former current working directory
 	// to what it was on entry

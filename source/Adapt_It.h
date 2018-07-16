@@ -104,7 +104,6 @@ class TranslationsList; // the CTargetUnit's list of CRefString instances
 //class CServiceDiscovery; // BEW 4Jan16
 class CServDisc_KBserversDlg; // BEW 12Jan16
 class CWaitDlg; // BEW 8Feb16
-class Thread_ServiceDiscovery; // BEW 11Apr16
 
 #if wxVERSION_NUMBER < 2900
 //DECLARE_EVENT_TYPE(wxServDiscHALTING, -1);
@@ -2085,22 +2084,34 @@ class CAdapt_ItApp : public wxApp
 
 	wxTimer m_timer;
 
-    // whm 2Jun2018 added to filter all events for key down event when dropdown is open
-    virtual int FilterEvent(wxEvent& event);
+    // whm 12Jul2018 removed - no longer using FilterEvent() with new phrasebox
+    //virtual int FilterEvent(wxEvent& event);
 
-    // whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
+    // whm 12Jul2018 removed the following that were used with FilterEvent
+    /*
+    // bool PhraseBoxIsInFocus();
+    // The following two are used within the wxEVT_LEFT_UP block of FilterEvent():
+    // TODO: Remove any of these that might not be needed with the new phrasebox
     bool ClickedOnPhraseBoxLocation(wxMouseEvent& event);
-
-    // whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
     bool ClickedOnOtherTargetLocation(wxMouseEvent& event);
-
+    bool ClickedOnMainMenuBar(wxMouseEvent& event);
+    // The following three are used within the wxEVT_MOTION or wxEVT_ENTER_WINDOW blocks of FilterEvent():
+    bool MouseOverMainMenuBar(wxMouseEvent& event);
+    bool MouseOverToolBar(wxMouseEvent& event);
+    bool MouseOverModeBar(wxMouseEvent& event);
+    // The following three are used within the wxEVT_CHAR block of FilterEvent():
+    bool TypedReservedDropDownListNavKey(wxKeyEvent& event);
+    bool TypedNonReservedNavKey(wxKeyEvent& event);
+    bool TypedSysKeyInPhraseBox(wxKeyEvent& event);
+    bool TypedAlphanumericKeyInPhraseBox(wxKeyEvent& event);
+    */
 	// BEW 12May16 We need a way to prevent OnIdle() events from asking the user for a KBserver
 	// login choice while the wizard is running. OnIdle() will, without this, check only for
 	// the flag m_bEnteringKBserverProject being true, and it is defaulted to true in OnInit()
 	// so the ask happens at the Next> click at the wizard's Projects page - which is *not* what
 	// we want to happen at that time. So we'll add this second boolean to the test, so that
 	// the first idle event AFTER the wizard has closed, will trigger the connection request dlg
-	bool    m_bWizardIsRunning; // it's easier for a non _KBSERVER build to just leave it out of the _KBSERVER wrapper
+	bool m_bWizardIsRunning; // it's easier for a non _KBSERVER build to just leave it out of the _KBSERVER wrapper
 
 
 #if defined(_KBSERVER)
@@ -2220,6 +2231,34 @@ class CAdapt_ItApp : public wxApp
 	/// parameters.
 	wxFileConfig* m_pConfig;
 
+    /// whm 13Jul2018 TODO: Bruce should check to see if the m_nCacheLeavingLocation
+    /// and m_nOnLButtonDownEntranceCount hacks are still necessary with the new phrasebox.
+    /// If not, they should be removed.
+
+	/// BEW 28Jun18 The change at version 6.9.0 to support a dropdown list integrated in
+	/// a wxOwnerDrawnComboBox control resulted in some former legacy robust behaviours
+	/// becoming flaky, or worse. Two new problems, amongst others, cropped up. 
+	/// (1) Sometimes, clicking to relocate the phrasebox after typing a new adaptation
+	/// at a hole, the typed adaptation got lost and not entered into the KB. 
+	/// (2) When relocating the phrasebox by clicks at different holes, while the first
+	/// jump may work right, a second sent the phrasebox off to a sequence number much
+	/// further on than where the user clicked for the box to go to. Diagnosing revealed
+	/// that the cause was the the m_nActiveSequNum used within PlacePhraseBox() had
+	/// gotten the sequence number of the clicked location, rather than the old value of
+	/// the same at the location that was where the box was located before the click.
+	/// PlacePhraseBox defined pOldSrcPhrase based on the pile calculated from that now
+	/// bogus earlier position, causing the phrasebox to get located at a pile much further
+	/// on that expected. 
+	/// Solution? I'm testing caching the sequence number of thelocation at which the phrasebox
+	/// lands, so that when the next click to jump to some other location (or to the same location)
+	/// can used the cached sequ num value to get at the correct pile, and hence the correct
+	/// pSrcPhrase at the 'leaving' location, in order that the GUI shows correct strings, and the
+	/// KB gets the correct entry added, and jumps to wrong places in the document don't happen
+	int m_nCacheLeavingLocation; // -1 (wxNOT_FOUND) when not set, set in OnLButtonDown()
+	int m_nOnLButtonDownEntranceCount; // allow 2, first sets m_CacheLeavingLocation, second
+			// disallows setting it (because it's in FilterEvent() and phrasebox has moved on
+			// by then to where the user clicked, we don't want to cache the wrong sequ num
+
     /// The application's m_pParser member can be used to process command line arguments.
     /// The command line processing in the MFC version was implemented but did not work
     /// correctly. Although available for future use, it has not been implemented fully in
@@ -2261,6 +2300,10 @@ class CAdapt_ItApp : public wxApp
 	// "unit" of text but the unit is internally complex (ie. a sequence of words, not a
 	// single word), such as DoExtendedSearch(), etc
 	bool m_bMatchedRetranslation;
+
+	/// Support for AuSIL request for box cursor to start at end of box contents, rather
+	/// than all the contents be shown selected
+	bool m_bShowCursorAtEnd;
 
 	// support for read-only protection
 	ReadOnlyProtection* m_pROP;
@@ -2759,7 +2802,7 @@ public:
 	long			m_nStartChar;   // start of selection in the target box
 	long			m_nEndChar;		// end of selection in the target box
 
-    // whm modified 10Jan2018 after deriving CPhraseBox from wxOwnerDrawnComboBox
+    // whm modified 10Jan2018 after implementing CPhraseBox dropdown list
     bool m_bChooseTransInitializePopup;
 
     // whm 24Feb2018 modified by moving some globals out of global space

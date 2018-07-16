@@ -581,7 +581,7 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	// the viewing area for the layout; or if a low position is required, at bottom right
 	int phraseBoxHeight;
 	int phraseBoxWidth;
-	gpApp->m_pTargetBox->GetSize(&phraseBoxWidth,&phraseBoxHeight); // it's the width we want
+	gpApp->m_pTargetBox->GetTextCtrl()->GetSize(&phraseBoxWidth,&phraseBoxHeight); // it's the width we want
 	int pixelsAvailableAtTop = m_ptBoxTopLeft.y - stripheight; // remember box is in line 2 of strip
 	int pixelsAvailableAtBottom = rectScreen.GetBottom() - stripheight - pixelsAvailableAtTop - 20; // 20 for status bar
 	int pixelsAvailableAtLeft = m_ptBoxTopLeft.x - 10; // -10 to clear away from the phrase box a little bit

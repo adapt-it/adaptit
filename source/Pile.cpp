@@ -475,13 +475,51 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 				boxGapWidth = boxExtent.x;
 			}
 
-            // whm 18Feb2018 modified to take into account that the phrasebox now has a dropdown
-            // button that takes up room on the right end of the phrasebox. We need to add to 
-            // boxGapWidth the width of that button - which will be a constant value regardless
-            // of whether the phrasebox is expanding or not. Currently button width is 17 pixels.
-            wxSize buttonSize = gpApp->m_pTargetBox->GetButtonSize();
+            // whm 13Jul2018 TODO: Bruce should verify that I have interpreted correctly what 
+            // CalcPhraseBoxGapWidth()'s purpose is, and that my modification done in the coding 
+            // below are appropriate to accommodate the new phrasebox with its dropdown button.
+            // Problem/Issue to sort out: The value returned from CalcPhraseBoxGapWidth() function
+            // seems to be used to adjust the actual size of the phrasebox (edit box part), rather
+            // than merely determining the gap width that the phrasebox will be shown in. There 
+            // needs to be a way for the new phrasebox to fit within the gap - including its new
+            // dropdown button.
+            // 
+            // See and compare the code adjustment made here with the code change made in the 
+            // 'hack' in the View's OnDraw() method. Also see the code and logic within the View's
+            // ResizeBox() method, where relative positioning of phrasebox's button and dropdown list
+            // are maintained.
+            // Note that the new phrasebox now has a button that is always aligned to the right end 
+            // of the wxTextCtrl that makes up the new phrasebox. There is a gap of 1 pixel
+            // between the legacy phrasebox's wxTextCtrl and the bitmap dropdown button.
+            // I am here assuming the CalcPhraseBoxGapWidth()'s purpose is to calculate the size of 
+            // the "empty gap" that is needed for the phrasebox (and its new button component) to 
+            // be shown() at the pile that is to become the active location.
+            // We need to account for the new phrasebox's total width here (and in OnDraw) in order
+            // to prevent the phrasebox's button from encroaching on any following target pile/cell
+            // at the time the View's OnDraw() method is called, and strips and piles get drawn in
+            // such a way to leave sufficient space gap for the new phrasebox and its button to be
+            // shown within that gap.
+            // For our CalcPhraseBoxGapWidth() the size of gap/width to accommodate the new 
+            // phrasebox needs to be calculated to include the size of the legacy phrasebox (using 
+            // the m_nMinWidth and/or text extent calcs already done above), and now adjusted for 
+            // the size of the new button, plus the 1-pixel gap between the legacy box and the new 
+            // button.
+            // Note: There is a hack in the View's OnDraw() function where the same calculation needs
+            // to be done for the calculation of a local boxSize variable there to keep the 
+            // calculations in sync - at least for the purposes of the hack to intervent if ever
+            // necessary.
+            //
+            // We need to add to the above calculation of boxGapWidth the width of the new button
+            // plus the 1-pixel space between its and the legacy phrasebox. This addition will be a 
+            // constant value regardless of whether the phrasebox is expanding or not. 
+            // Currently (13Jul2018) the button width is about 20 pixels (but its size may change 
+            // if/when we redo the current xpm button with a better quality one).
+            // We note that the new adjusted value for boxGapWidth is assigned to the Layout's 
+            // m_curBoxWidth member and also returned by CalcPhraseBoxGapWidth() to the caller.
+            wxSize buttonSize = gpApp->m_pTargetBox->GetPhraseBoxButton()->GetSize();
+            int adjustedButtonWidth = buttonSize.GetX() + 1; // allow 1 pixels space before the button
             if (buttonSize.x > 0)
-                boxGapWidth += buttonSize.GetX();
+                boxGapWidth += adjustedButtonWidth;
 
 			if (widthMode == expanding)
 			{
@@ -497,6 +535,16 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	}
 
 	// before returning, put the final value back into CLayout::m_curBoxWidth
+    // whm 13Jul2018 BEW TODO: 
+    // Note: The following assignment of boxGapWidth to the Layout's m_curBoxWidth
+    // makes the m_curBoxWidth be the same as the boxGapWidth, but should not be
+    // so with the new phrasebox and dropdown button. It increases the effective
+    // size of the edit box part of the new phrasebox by the width amount of the 
+    // newly added dropdown button (plus 1-pixel spacing). We need a way to keep
+    // the calculated boxGapWidth independent of the m_curBoxWidth - in order for
+    // the button part of the new phrasebox to fit within the gap and not encroach
+    // on any following pile. See related comments also in the View's ResizeBox()  
+    // and OnDraw() functions. 
 	m_pLayout->m_curBoxWidth = boxGapWidth;
 
 	return boxGapWidth;

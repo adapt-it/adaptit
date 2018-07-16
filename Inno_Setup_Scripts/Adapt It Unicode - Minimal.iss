@@ -7,18 +7,21 @@
 ; - itdownload.dll    // DLL that allows us to download 3rd party apps
 ; - it_download.iss   // ITD script to connect the DLL
 ; whm 25 Mar 2017: Code changes to enhance the installer and provide more flexible and 
-; economic Git installation options. See also the Adapt It Unicode Git.iss script
-; which creates a special Git_Downloader2_12_1_4AI.exe installer that is now included in the [Files]
-; section below. The Git_Downloader2_12_1_4AI.exe installer is used by the main Adapt It program
+; economic Git installation options. 
+; whm 25Jun2018 Updated version of Git to 2.18.0 and Git_Downloader to 2_18_0.
+; See also the Adapt It Unicode Git.iss script which creates a special 
+; Git_Downloader2_18_0_4AI.exe installer that is now included in the [Files] section below. 
+; The Git_Downloader2_18_0_4AI.exe installer is used by the main Adapt It program
 ; when it is desired to install a missing Git program that didn't get installed at the
 ; time Adapt It itself was installed (or removed after Adapt It was installed).
-; IMPORTANT: RUN THE Adapt It Unicode Git.iss SCRIPT TO CREATE Git_Downloader2_12_1_4AI.exe
+; IMPORTANT: RUN THE Adapt It Unicode Git.iss SCRIPT TO CREATE Git_Downloader2_18_0_4AI.exe
 ; BEFORE COMPILING THIS SCRIPT
 ; whm 4 April 2017: Removed rdwrtp7.exe and related Windows dlls from the Adapt It installers.
 #include "it_download.iss"
 
 #define MyAppName "Adapt It WX Unicode"
 #define MyAppVersion "6.9.0"
+#define MyAppPublisher "Adapt It"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It_Unicode.exe"
 #define MyAppShortName "Adapt It"
@@ -32,6 +35,7 @@ AppID={{7317EA81-BC6E-4A4F-AE2B-44ADE6A2188F}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
+AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
@@ -74,6 +78,7 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 
 [Files]
 Source: "{#SvnBase}\setup Unicode - Minimal\Adapt_It_Unicode.exe"; DestDir: "{app}"; Flags: ignoreversion; 
+Source: "{#SvnBase}\setup Git\Git_Downloader_2_18_0_4AI.exe"; DestDir: "{app}"; Flags: ignoreversion; 
 Source: "{#SvnBase}\setup Unicode - Minimal\AI_UserProfiles.xml"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode - Minimal\AI_USFM.xml"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode - Minimal\books.xml"; DestDir: "{app}"; Flags: ignoreversion
@@ -109,7 +114,8 @@ Name: {commondesktop}\{#MyAppName}; Filename: {app}\{#MyAppExeName}; Tasks: desk
 //const GitSetupURL = 'https://github.com/msysgit/msysgit/releases/download/Git-1.9.5-preview20150319/Git-1.9.5-preview20150319.exe';
 //const GitSetupURL = 'https://github.com/git-for-windows/git/releases/download/v2.6.2.windows.1/Git-2.6.2-32-bit.exe';
 // whm 23Mar2017 updated the 32-bit Git download URL from adapt-it.org to Git version 2.12.1.
-const GitInstallerFileName = 'Git-2.12.1-32-bit.exe';
+// whm 25Jun2018 updated the 32-bit Git download URL from adapt-it.org to Git version 2.18.0
+const GitInstallerFileName = 'Git-2.18.0-32-bit.exe';
 const GitSetupURL = 'http://www.adapt-it.org/' + GitInstallerFileName;
 //const GitSetupURL64 = 'https://github.com/git-for-windows/git/releases/download/v2.6.2.windows.1/Git-2.6.2-64-bit.exe';
   Btn1Desc = 'Only install Adapt It. I will use Adapt It without Git, or I will install Git later.';

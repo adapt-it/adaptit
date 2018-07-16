@@ -1,4 +1,18 @@
-﻿Version 6.9.0 release 28 May 2018
+﻿Version 6.9.1 release <add date here>
+----------------------------------------------
+Feature changes and new features in 6.9.1
+--------------------------------------------------------------------------------------------
+* Formerly the default index was 0 ('top of list') unilaterally if the user
+opened the Choose Translation dialog, when there was a phrasebox list
+opened - which typically also has an item selected. This had the potential
+for causing an unnoticed meaning change if the phrasebox's list's selection
+was for an item which was not the top of the list. So this needed fixing.
+Now Choose Translation dialog's initialization detects what the dropped
+down list's selection is, and uses that index as the default for the selecting
+the item in Choose Translation dialog's list, on opening of the dialog. That
+is, the index values are now programmatically synced.
+
+Version 6.9.0 release 28 May 2018
 ----------------------------------------------
 Feature changes and new features in 6.9.0 
 --------------------------------------------------------------------------------------------

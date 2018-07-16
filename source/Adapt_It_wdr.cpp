@@ -3986,30 +3986,30 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxTextCtrl *item5 = new wxTextCtrl( parent, IDC_EDIT_PRECONTEXT, wxT(""), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxGROW );
     item5->SetToolTip( _("This is the preceding context of the source text text shown below") );
-    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Original Source Text (including standard format markers, but lengthy filtered material within the selection is removed). The text in this box can be copied:"), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
-    item0->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item0->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item8 = new wxTextCtrl( parent, IDC_EDIT_OLD_SOURCE_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxGROW );
     item8->SetToolTip( _("This is the original source text you selected  - it is read only") );
-    item7->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item7->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     item0->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC1, _("You can edit the text, or the markers, or both. Do not edit the markers unless you know what you are doing. A marker must have a space following it; end markers (these end with *, for example \\f*)  can optionally have a following space omitted. If your selection included one or more notes or free translations, they were removed and stored in lists so that you will not have to deal with them here. Collected back translations in this section of the document were deleted."), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
-    item9->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item9->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC2, _("After this dialog closes, Adapt It helps you. (1) It helps you do new adaptations; and glosses too when appropriate, for the new source text. (2) It  automatically restores removed notes ( their locations may differ a little bit). (3) It helps you to produce new free translations, or edit the old ones. (4) Any deleted back translations will be automatically collected again."), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
-    item9->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item9->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     item0->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -4033,13 +4033,13 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     item17->SetToolTip( _("Click Cancel to discard any edits and close the dialog") );
     item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+    item13->Add( item15, 0, wxALIGN_CENTER|wxRIGHT, 5 );
 
     item12->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxTextCtrl *item18 = new wxTextCtrl( parent, IDC_EDIT_NEW_SOURCE, wxT(""), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_PROCESS_ENTER|wxVSCROLL );
     item18->SetToolTip( _("This is the source text you selected to edit - make your changes here") );
-    item12->Add( item18, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item12->Add( item18, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     item0->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -4054,7 +4054,7 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxTextCtrl *item22 = new wxTextCtrl( parent, IDC_EDIT_FOLLCONTEXT, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxGROW );
     item22->SetToolTip( _("This is the following context of the source text text shown above") );
-    item19->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item19->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     item19->Add( 20, 5, 0, wxALIGN_CENTER, 5 );
 
@@ -11770,13 +11770,31 @@ wxSizer *CollabProtectEditorBulkSettingsDlgFunc( wxWindow *parent, bool call_fit
     return item0;
 }
 
-wxSizer *ChooseTransDropDownFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+wxSizer *PhraseBoxDropDownFunc_UNUSED( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxString *strs1 = (wxString*) NULL;
-    wxComboBox *item1 = new wxComboBox( parent, ID_COMBO_CHOOSE_TRANS, wxT(""), wxDefaultPosition, wxSize(100,-1), 0, strs1, wxCB_DROPDOWN|wxTE_PROCESS_ENTER );
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_PHRASE_BOX_DESIGNER, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_PROCESS_TAB|wxTE_PROCESS_ENTER );
+    item1->Add( item2, 1, wxALIGN_CENTER, 5 );
+
+    wxBitmapToggleButton *item3 = new wxBitmapToggleButton( parent, ID_BMTOGGLEBUTTON_PHRASEBOX, AIToolBarBitmapsUnToggledFunc( 0 ), wxDefaultPosition, wxSize(20,-1) );
+    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxString *strs6 = (wxString*) NULL;
+    wxListBox *item6 = new wxListBox( parent, ID_DROP_DOWN_LIST, wxDefaultPosition, wxSize(80,100), 0, strs6, wxLB_SINGLE );
+    item5->Add( item6, 1, wxGROW, 5 );
+
+    item4->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    item0->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     if (set_sizer)
     {

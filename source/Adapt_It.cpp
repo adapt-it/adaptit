@@ -254,7 +254,8 @@ wxMutex s_AutoSaveMutex;
 #include <tchar.h>
 #endif
 
-// whm 3May2018 moved here from the View
+// whm 13Jul2018 the following value is the ID for the wxTextCtrl
+// part of our new 3-part phrasebox.
 int ID_PHRASE_BOX = 22030;
 
 // The following include was originally Copyright (c) 2005 by Dan
@@ -7471,87 +7472,141 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
     return m_pMainFrame;
 }
 
+// whm 11July2018 disabling the contents of FilterEvent() as it should not be needed
+// in the refactored phrasebox
+/*
+
 // whm 2Jun2018 added to filter all events for wxEVT_LEFT_DOWN and wxEVT_CHAR events when dropdown 
-// is open. 
-// Problem 1: On Linux, when dropdown list is open, a Left mouse click on either the phrasebox or
-// on the canvas causes the dropdown list to close, but the wxEVT_LEFT_DOWN event is consumed, but
-// a wxEVT_LEFT_UP event gets triggered - meaning only the "up" click is executed. This means that
-// only the CPhraseBox::OnLButtonUp() is executed for a click on the phrasebox, and only the 
-// CAdapt_ItCanvas::OnLButtonUp() is executed for a click on the canvas.
+// is open. FilterEvent() is conditionally compiled so that parts of it execute on Linux and Mac ports
+// and other parts execute on ALL ports. Currently no parts of FilterEvent() execute only on Windows. 
+// The Windows port regularly closes the dropdown list for the various events filtered in FilterEvent(),
+// whereas the Linux/Mac ports require more intervention here to close the dropdown is open.
+// See comments within this function for more details on the problem behaviors and what FilterEvent()
+// does to remedy those problems.
+//
 // For reference see: https://wiki.wxwidgets.org/Catching_key_events_globally section: Filter Events
 int CAdapt_ItApp::FilterEvent(wxEvent & event)
 {
     const wxEventType t = event.GetEventType();
-    // We need to catch wxEVT_LEFT_DOWN to get the initial open/closed state of the dropdown list.
-    // If we instead try to use wxEVT_LEFT_UP, the box will have already been closed by the focus
-    // shift before getting to the if (m_pTargetBox->IsPopupShown()) test below.
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // IMPORTANT CONSIDERATIONS: When handling events here in FilterEvent() the timing can be
+    // tricky, especially for detecting a downstream events such as whether the dropdown list 
+    // is OPEN or CLOSED. For example, when calling m_pTargetBox->IsPopupShown() it may be TRUE 
+    // at the beginning of FilterEvent() but it will quickly turn FALSE after a few statements 
+    // in FilterEvent() are executed. So, as soon as possible, we call IsPopupShown() at the
+    // beginning of our function below, and we set the local boolean value bEVT_LEFT_DOWN or 
+    // bEVT_CHAR to TRUE if one of those events has occurred while the dropdown list is 
+    // initially open. That way we don't need to, nor should we call IsPopupShown() later in 
+    // the function when it might not be TRUE.
+    //
+    // whm 30Jun2018 Note: Certain parts of FilterEvent() are conditionally compiled for the
+    // Linux/Mac ports. Other parts are compiled for all 3 ports: Linux, Mac and Windows.
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     if (m_pTargetBox != NULL)
     {
-        /*
-        if (t == wxEVT_LEFT_DOWN)
-        {
-            wxLogDebug(_T("**Left Button Down**"));
-            if (ClickedOnPhraseBoxLocation((wxMouseEvent&)event))
-            {
-                // This block is executed when a wxEVT_LEFT_DOWN event occurs within the phrasebox's 
-                // edit box. 
-                wxLogDebug(_T("***Clicked on phrasebox***"));
-                // TODO: Dropdown closes before getting here!!!
-                if (m_pTargetBox->IsPopupShown())
-                {
-#if wxVERSION_NUMBER < 2900
-                    GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
-#else
-                    // Even though Windows will call Dismiss() on the first character stroke, we don't have to
-                    // limit the Dismiss() call to only the Linux version. It doesn't hurt anything for the
-                    // Dismiss() call to be done on a combo box whose dropdown is already closed.
-                    m_pTargetBox->Dismiss();
-#endif     
-                    // When the dropdown list is showing, the text inside the edit box will be selected. 
-                    // Dismissing/Closing the dropdown normally won't remove the text highlighting because
-                    // the code elsewhere will use the App's m_nStartChar and m_nEndChar settings. Since
-                    // the user can just start typing to enter a new translation replacing the completely
-                    // highlighted text, here we will tell the App vars that we want there to be no selection
-                    // by setting m_nStartChar and m_nEndChar to zero.
-                    m_nStartChar = 0;
-                    m_nEndChar = 0;
-                    //m_pTargetBox->SetSelection(0, 0);
-                    //m_pTargetBox->GetTextCtrl()->SetInsertionPointEnd(); // seems to have no effect on Linux
-                    //m_pTargetBox->GetTextCtrl()->Refresh();
-                    // Although we catch the wcEVT_LEFT_UP event, we need to call the CPhraseBox::OnLButtonDown() 
-                    // handler to execute it flag coctail (including m_bAbandonable = FALSE).
-                    // Using wxEvt_LEFT_UP also has the happy effect of unselecting the contents of the
-                    // phrasebox on the first mouse click.
-                    m_pTargetBox->OnLButtonDown((wxMouseEvent&)event);
-                }
+        // Observation: On Linux, when dropdown list is open, a Left mouse click on either the phrasebox or
+        // on the canvas causes the dropdown list to close, but the wxEVT_LEFT_DOWN event is consumed. However,
+        // a wxEVT_LEFT_UP event gets triggered - meaning only the "up" click is executed. This means that
+        // only the CPhraseBox::OnLButtonUp() is executed for a click on the phrasebox, and only the 
+        // CAdapt_ItCanvas::OnLButtonUp() is executed for a click on the canvas.
 
-                //int breakpoint = 0;
-                //breakpoint = breakpoint;
-            }
-            //else if (m_pTargetBox->IsPopupShown() && ((wxMouseEvent&)event).GetEventObject() == this->GetMainFrame()->canvas)
-            else if (ClickedOnOtherTargetLocation((wxMouseEvent&)event))
-            {
-                wxLogDebug(_T("***Clicked on other target location***"));
-                int BreakPoint = 0;
-                BreakPoint = BreakPoint;
-                    // For clicks on the canvas other than directly on the phrasebox
-                    CMainFrame* pFrame = GetMainFrame();
-                    if (pFrame != NULL && pFrame->canvas != NULL)
-                    {
-                        wxLogDebug(_T("Calling CAdapt_ItCanvas::OnLButtonUp() from FilterEvent() wxEVT_LEFT_DOWN"));
-                        pFrame->canvas->OnLButtonUp((wxMouseEvent&)event);
-                    }
-            }
-            int breakpoint = 0;
-            breakpoint = breakpoint;
-        } // end of if (t == wxEVT_LEFT_DOWN)
-        */
+        // whm Note: ***CAUTION*** attempting to filter wxEVT_LEFT_DOWN event and setting breakpoints
+        // in this function within gdb seems to result in hanging up the entire system, necessitating 
+        // a cold reboot!!! Instead of using breakpoints it is better to post wxLogDebug statements.
+        //if (t == wxEVT_LEFT_DOWN)
+        //{
+        //    //int MenuID;
+        //    if (ClickedOnMainMenuBar((wxMouseEvent&)event)) // TODO: ClickedOnMainMenuBar() not yet working
+        //    {
+        //        wxLogDebug(_T("Clicked on Main Menu Bar"));
+        //    }
 
+        //    int breakpoint = 0;
+        //    breakpoint = breakpoint;
+        //    wxLogDebug(_T("**Triggered wxEVT_LEFT_DOWN in FilterEvent()**"));
+        //}
+
+        
+        //// TODO: Revisit the wxEVT_LEFT_DOWN filtering later
+        //if (t == wxEVT_LEFT_DOWN)
+        //{
+        //    wxLogDebug(_T("**Left Button Down**"));
+        //    if (ClickedOnPhraseBoxLocation((wxMouseEvent&)event))
+        //    {
+        //        // This block is executed when a wxEVT_LEFT_DOWN event occurs within the phrasebox's 
+        //        // edit box. 
+        //        wxLogDebug(_T("***Clicked on phrasebox***"));
+        //        // TODO: Dropdown closes before getting here!!!
+        //        if (m_pTargetBox->IsPopupShown())
+        //        {
+        //            // Even though Windows will call Dismiss() on the first character stroke, we don't have to
+        //            // limit the Dismiss() call to only the Linux version. It doesn't hurt anything for the
+        //            // Dismiss() call to be done on a combo box whose dropdown is already closed.
+        //            m_pTargetBox->CloseDropDown();
+        //            // When the dropdown list is showing, the text inside the edit box will be selected. 
+        //            // Dismissing/Closing the dropdown normally won't remove the text highlighting because
+        //            // the code elsewhere will use the App's m_nStartChar and m_nEndChar settings. Since
+        //            // the user can just start typing to enter a new translation replacing the completely
+        //            // highlighted text, here we will tell the App vars that we want there to be no selection
+        //            // by setting m_nStartChar and m_nEndChar to zero.
+        //            m_nStartChar = 0;
+        //            m_nEndChar = 0;
+        //            //m_pTargetBox->GetTextCtrl()->SetSelection(0, 0);
+        //            //m_pTargetBox->GetTextCtrl()->SetInsertionPointEnd(); // seems to have no effect on Linux
+        //            //m_pTargetBox->GetTextCtrl()->Refresh();
+        //            // Although we catch the wcEVT_LEFT_UP event, we need to call the CPhraseBox::OnLButtonDown() 
+        //            // handler to execute it flag coctail (including m_bAbandonable = FALSE).
+        //            // Using wxEvt_LEFT_UP also has the happy effect of unselecting the contents of the
+        //            // phrasebox on the first mouse click.
+        //            m_pTargetBox->OnLButtonDown((wxMouseEvent&)event);
+        //        }
+
+        //        //int breakpoint = 0;
+        //        //breakpoint = breakpoint;
+        //    }
+        //    else if (ClickedOnOtherTargetLocation((wxMouseEvent&)event))
+        //    {
+        //        wxLogDebug(_T("***Clicked on other target location***"));
+        //        int BreakPoint = 0;
+        //        BreakPoint = BreakPoint;
+        //            // For clicks on the canvas other than directly on the phrasebox
+        //            CMainFrame* pFrame = GetMainFrame();
+        //            if (pFrame != NULL && pFrame->canvas != NULL)
+        //            {
+        //                wxLogDebug(_T("Calling CAdapt_ItCanvas::OnLButtonUp() from FilterEvent() wxEVT_LEFT_DOWN"));
+        //                pFrame->canvas->OnLButtonUp((wxMouseEvent&)event);
+        //            }
+        //    }
+        //    int breakpoint = 0;
+        //    breakpoint = breakpoint;
+        //} // end of if (t == wxEVT_LEFT_DOWN)
+        
+
+
+        // Without the wxEVT_LEFT_UP intervention below Windows a left click into the phrasebox's edit box
+        // does nothing but close the dropdown list if it is open, leaving the text in the edit box selected. 
+        // If the dropdown list is closed when the click into the phrasebox is done, only the selection of 
+        // text is removed and the insertion point is placed wherever the mouse pointer was pointing in the 
+        // text at the time of the left click. In either case, neither the CPhraseBox::OnLButtonDown(), nor
+        // the CPhraseBox::OnLButtonUp() handler is triggered without the intervention below. 
+        // Other behaviors:
+        // If the left click is directly on the dropdown button, both the CPhraseBox::OnLButtonDown() and 
+        // the CPhraseBox::OnLButtonUp() handlers are called!
+        // If an item in the list is selected with a mouse or with arrow key and Return, 
+        // 
+        //
+        // With the wxEVT_LEFT_UP intervention below compiled into the code, a left click into the phrasebox's
+        // edit box outputs the wxLogDebug calls contained in the ClickedOnPhraseBoxLocation() block below
         if (t == wxEVT_LEFT_UP)
         {
-            wxLogDebug(_T("**Left Button Up**"));
+            // The wxEVT_LEFT_UP proves to be more consistent that the wxEVT_LEFT_DOWN event and allows some time
+            // for the internal state of the phrasebox to get settled before.
+            // Note: We cannot call m_pTargetBox->IsPopupShowing() to detect if the dropdown list is open
+            // because the wxEVT_LEFT_UP gets the list closed before we get to this point.
             if (ClickedOnPhraseBoxLocation((wxMouseEvent&)event))
             {
+                wxLogDebug(_T("**Triggered wxEVT_LEFT_UP in FilterEvent()**"));
                 wxLogDebug(_T("***Clicked on phrasebox***"));
                 wxLogDebug(_T("Calling CPhraseBox::OnLButtonDown() from FilterEvent() wxEVT_LEFT_UP"));
                 m_pTargetBox->OnLButtonDown((wxMouseEvent&)event);
@@ -7560,6 +7615,7 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
             }
             else if (ClickedOnOtherTargetLocation((wxMouseEvent&)event))
             {
+                wxLogDebug(_T("**Triggered wxEVT_LEFT_UP in FilterEvent()**"));
                 wxLogDebug(_T("***Clicked on other target location***"));
                 CMainFrame* pFrame = GetMainFrame();
                 if (pFrame != NULL && pFrame->canvas != NULL)
@@ -7568,79 +7624,353 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                     pFrame->canvas->OnLButtonDown((wxMouseEvent&)event);
                 }
             }
-
         }
+        
 
         if (t == wxEVT_CHAR)
         {
-            // If the dropdown list is open we should close it
+            // If the dropdown list is open any key press will close it, but on Linux/Mac
+            // the key press itself is not propagated on when the dropdown list is open,
+            // so we detect whether the popup is open here (before the code downstream 
+            // closes it), close the dropdown here, and directly call from here the 
+            // appropriate CPhraseBox key event handler.
+            // We must take care in our filtering of the wxEVT_CHAR events to make sure
+            // that we only intervene for those key events that happen when the dropdown
+            // list is open, AND when the phrasebox control is in focus.
             if (m_pTargetBox->IsPopupShown())
             {
-                // Note: On Windows a key press with dropdown open results in two wxEVT_KEY_DOWN events being
-                // filtered here, first one has a negative value returned by GetId() call below, the second
-                // one has the ID of the phrasebox (22030).
-                // On Linux a key press with dropdown open results in one wxEVT_KEY_DOWN event being
-                // filtered here. It has a negative value, and cannot be used to identify the phrasebox.
-                // Observation: The Windows version of wx propagates the key event on to the phrasebox
-                // closing its dropdown list and registering the first key stroke into the phrasebox replacing
-                // its currently selected text. But note that this first key going into the phrasebox does 
-                // NOT result in the triggering of the CPhraseBox::OnChar() method for that alphanumeric 
-                // character, as does any/all following alphanumeric input after that first character.
-                int keyCode = ((wxKeyEvent&)event).GetKeyCode();
-                wxChar keyChar = wxChar(keyCode);
-                wxLogDebug(_T("wxChar = %s"), wxString(keyChar).c_str());
-                //int keyid = event.GetId(); // returns negative number on Linux.
-                //wxClassInfo* classInfo = event.GetClassInfo();
-                //wxString className = classInfo->GetClassName();
-                //wxLogDebug(_T("Key_down_event: event type: %d, key id: %d class name: %s wxChar = %s"), (int)t, keyid, className.c_str(),wxString(keyChar).c_str());
+                // The dropdown list is open!
 
-                // The block below is for testing and setting breakpoints in the Windows version.
-                // It has the same conditions as the block below that is conditionally compiled
-                // for __WXGTK__ and __WXMAC__.
-                if (!((wxKeyEvent&)event).HasModifiers() && !((wxKeyEvent&)event).ShiftDown()
-                    && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP)
-                    && wxIsprint(keyChar))
+                // We do the following interventions only when the phrasebox is in focus.
+                // Normally the phrasebox is in focus when the dropdown list is open, but the
+                // library code for wxOwnerDrawnComboBox has a m_partialCompletionTimer variable
+                // it uses in handling certain key strokes which may affect transitions between
+                // the changing of window focus, so we'll try to play safe by detecting that
+                // the phrasebox is not only open, but still has the focus - before performing
+                // the following interventions.
+                if (PhraseBoxIsInFocus())
                 {
-                    int breakpoint = 0;
-                    breakpoint = breakpoint;
-                }
+                    // Problem 1:
+                    // Pressing LEFT, RIGHT, ALT+LEFT, or ALT+RIGHT keys don't react immediately
+                    // when dropdown is open. It takes two presses of the above keys - the first press
+                    // closes the dropdown list (in downstream code), and the second key press then is
+                    // caught by the CPhraseBox key handlers.
 
-                // Don't Dismiss() the dropdown for list navigation keys WXK_DOWN and WXK_UP
-                if (!(keyCode == WXK_DOWN) && !(keyCode == WXK_UP) && !(keyCode == WXK_PAGEDOWN) && !(keyCode == WXK_PAGEUP))
-                {
-#if wxVERSION_NUMBER < 2900
-                    GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
-#else
-                    // Even though Windows will call Dismiss() on the first character stroke, we don't have to
-                    // limit the Dismiss() call to only the Linux version. It doesn't hurt anything for the
-                    // Dismiss() call to be done on a combo box whose dropdown is already closed.
-                    m_pTargetBox->Dismiss();
-#endif     
-                    // For the Linux (and probably Mac) version, we need to manually put this first alphanumeric
-                    // character into the phrasebox
-#if defined (__WXGTK__) || defined (__WXMAC__)
-            // If the key that was typed is an alphanumeric key put it into the phrasebox.
-                    if (!((wxKeyEvent&)event).HasModifiers() && !((wxKeyEvent&)event).ShiftDown()
-                        && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP && !(keyCode == WXK_PAGEDOWN) && !(keyCode == WXK_PAGEUP))
-                        && wxIsprint(keyChar))
+                    // Problem 2: 
+                    // ALT+LEFT and ALT+RIGHT keys do not pass through FilterEvent() at all
+                    // on Linux platform when the dropdown is open. In fact no keys of the type 
+                    // HasModifiers() (with ALT down or CTRL down) pass through FilterEvent() on
+                    // the Linux platform when the dropdown is open.
+                    // No Solution to Problem 2 is known at this time!!!
+
+                    // Solution to Problem 1: 
+
+#if defined(__WXMSW__) || defined(__WXGTK__) || defined(__WXMAC__) // compile below for all platforms
+                    // This TypedNonReservedNavKey() defined block detects these keys: 
+                    // LEFT Arrow, RIGHT Arrow, ALT+LEFT Arrow, and ALT+RIGHT Arrow. 
+                    // The interventions here should execute on all platforms to overcome these 
+                    // Unwanted Behaviors:
+                    //   Pressing LEFT or RIGHT arrow keys either don't close the dropdown, or
+                    //   if they do on a given platform, they don't remove the selection, and
+                    //   don't set the insertion point in an intuitive way.
+                    // Solution:
+                    //   1. Use our TypedNonReservedNavKey() function to detect only nav key 
+                    //      events LEFT Arrow, RIGHT Arrow, ALT+LEFT Arrow, and ALT+RIGHT Arrow.
+                    //   2. Close the dropdown list from here.
+                    //   3. Determine if whole phrasebox text is selected, and if so, remove the
+                    //      selection and adjust the insertion point for LEFT and RIGHT key press.
+                    //   4. For ALT+LEFT and ALT+RIGHT key presses don't bother with removing the
+                    //      selection, but leave it selected (unless intervention elsewhere has
+                    //      removed it).
+                    //   5. Call the CPhraseBox::OnSysKeyUp() handler directly from here, which
+                    //      has the usual Adapt It way of handling LEFT Arrow, RIGHT Arrow, 
+                    //      ALT+LEFT Arrow, and ALT+RIGHT Arrow.
+                    //   6. Return from FilterEvent() without calling event.Skip(). Since we have
+                    //      directly called OnSysKeyUp() we don't want OnSysKeyUp() to get called 
+                    //      again downstream from here.
+                    if (TypedNonReservedNavKey((wxKeyEvent&)event)) // 1.
                     {
-                        m_pTargetBox->ChangeValue(keyChar);
+                        // LEFT, RIGHT, ALT+LEFT, or ALT+RIGHT was pressed while dropdown open/focused
+                        // 2.
+                        m_pTargetBox->CloseDropDown();
+                        // 3.
+                        long strLen;
+                        strLen = m_pTargetBox->GetValue().Length();
+                        long startSel;
+                        long endSel;
+                        m_pTargetBox->GetSelection(&startSel, &endSel);
+                        // Adjust selection and insertion point for LEFT and RIGHT key press, but
+                        // only if whole contents is selected - in case another means has been found
+                        // to remove the selection and place insertion point at end before coming here.
+                        if (startSel == 0 && endSel == strLen)
+                        {
+                            // whole phrasebox content is selected at this point, so remove the selection 
+                            // and adjust insertion point. 
+                            if (((wxKeyEvent&)event).GetKeyCode() == WXK_LEFT)
+                            {
+                                // A LEFT key press should remove selection and put insertion point end -1.
+                                m_pTargetBox->GetTextCtrl()->SetSelection(endSel - 1, endSel - 1);
+                            }
+                            else if (((wxKeyEvent&)event).GetKeyCode() == WXK_RIGHT)
+                            {
+                                // A RIGHT key press should remove selection and put insertion point at end.
+                                m_pTargetBox->GetTextCtrl()->SetSelection(strLen, strLen);
+                            }
+                            // 4. Don't remove any selection for ALT+LEFT or ALT+RIGHT
+                        }
+                        // 5.
+                        // Note: On Linux (and Mac?) the next call to OnSysKeyUp() won't happen for
+                        // ALT+LEFT nor ALT+RIGHT because they aren't detected in FilterEvent() on Linux
+                        // when the dropdown list is open.
+                        m_pTargetBox->OnSysKeyUp((wxKeyEvent&)event); // OnKeyUP() diverts ALT+LEFT and ALT+RIGHT to OnSysKeyUp()
+                        // 6.
+                        return 1; // value of 1 means Event_Processed. The event was already handled, don't process it normally. // Don't call event.Skip()
+
+                        // whm TODO: There are other non-reserved nav keys that are handled within OnSysKeyUp()
+                        // and which probably require pressing twice to activate their functionality when the
+                        // dropdown list is open. In the list below, all but # 10-#13 probably cannot be detected
+                        // on Linux, but most of the other probably can be detected on Windows.
+                        // Those other sys key presses include: 
+
+                        // 2. Handles ALT+ENTER to Make a Phrase if not glossing and selection count > 1.
+                        // 3. Handles ALT+BACKSPACE to advance phrasebox without KB lookup if transliteration mode in ON
+                        //    and not glossing.
+                        // 4. Handles ALT+BACKSPACE if transliteration mode in OFF with error message to user.
+                        // 5. Handles ALT+RIGHT to extent selection right if not glossing.
+                        // 6. Handles ALT+LEFT to extent selection left if not glossing.
+                        // 7. Handles ALT+UP to summon the retranslation dialog via DoRetranslationByUpArrow().
+                        // 8. Note: ALT+DOWN no longer handled (to insert placeholder BEFORE) in our key handlers because 
+                        //    ALT+DOWN is the built in hot key to make the dropdown list open/close. See SHIFT+ALT+DOWN below.
+                        // 9. Handle ALT+DELETE to un-merge a current merger into separate words, when not glossing.
+                        // 10. Handle SHIFT+UP to scroll the screen up about 1 strip. A simple WXK_UP cannot be used anymore
+                        //     because it is reserved to move the highlight in the dropdown list.
+                        // 11. Handle SHIFT+DOWN to scroll the screen down about 1 strip. A simple WXK_DOWN cannot be used 
+                        //     anymore because it is reserved to move the highlight in the dropdown list.
+                        // 12. Handle SHIFT+PAGEUP to scroll the screen up about a screen full. A simple WXK_PAGEUP cannot
+                        //     be used anymore because it is reserved to move the highlight in the dropdown list.
+                        // 13. Handle SHIFT+PAGEDOWN to scroll the screen down about a screen full. A simple WXK_PAGEDOWN
+                        //     cannot be used anymore because it is reserved to move the highlight in the dropdown list.
+                        // 14. Handle SHIFT+ALT+DOWN or SHIFT+CTRL+DOWN to add a placeholder BEFORE the phrasebox location.
+                        //     Previously this was just ALT+DOWN, but ALT+DOWN is now reserved to toggle the dropdown list 
+                        //     open/closed.
+                        // 15. Handle SHIFT+CTRL+SPACE to enter a ZWSP (zero width space) into the composebar's editbox; 
+                        //     replacing a selection if there is one defined.
+                        // 16. Handle CTRL+DOWN to insert placeholder AFTER the phrasebox location (not on a Mac)
+                        //     TODO: Add CTRL+ALT+DOWN as alternate???
+                        // 17. Handle CTRL+ENTER to Jump Forward when transliteration, or warning message if not 
+                        //     transliteration is not turned ON.
+                    }
+#endif
+                    // Don't use else if for the remainin tests - as we are not necessarily dealing with exclusive 
+                    // categories in our bool key event detection functions
+
+                    // The TypedAlphanumericKeyInPhraseBox() is needed because of differences between Windows and
+                    // Linux/Mac in the handling of the first alphanumeric character typed while the dropdown list is 
+                    // open. 
+                    // The interventions here should execute on all platforms to overcome these 
+                    // Unwanted Behaviors:
+                    //    On Windows: The alphanumeric character key press closes the dropdown list, and the owner
+                    // drwawn combo box copies that character into the phrasebox, but it doesn't call all 3 of the 
+                    // normal CPhraseBox handlers for the first key press - it only calls OnKeyUp(). That is 
+                    // problematic on Windows when a source phrase selection is current, because the first key gets
+                    // put into the phrasebox, but no merge happens because there is no call to the CPhraseBox::OnChar() 
+                    // handler to merge the source phrase at that first key press. Instead, the merge happens on 
+                    // the second key press and the first key is lost/omitted from the phrasebox.
+                    //    On Linux/Mac: The alphanumeric character simply gets blocked when the dropdown list is open, and
+                    // the key is not registered in the phrasebox, and none of the 3 normal CPhraseBox handlers get
+                    // called. 
+                    // Solution:
+                    //   1. Use our TypedAlphanumericKeyInPhraseBox() function below to detect only alphanumeric key 
+                    //   events - the characters that make up normal text entered into the phrasebox.
+                    //   2. Close the dropdown list from here.
+                    //   3. Determine if whole phrasebox text is selected, and if so, remove the
+                    //      selection and adjust the insertion point for LEFT and RIGHT key press.
+                    //   4. For ALT+LEFT and ALT+RIGHT key presses don't bother with removing the
+                    //      selection, but leave it selected (unless intervention elsewhere has
+                    //      removed it).
+                    //   5. Call the CPhraseBox::OnSysKeyUp() handler directly from here, which
+                    //      has the usual Adapt It way of handling LEFT Arrow, RIGHT Arrow, 
+                    //      ALT+LEFT Arrow, and ALT+RIGHT Arrow.
+                    //   6. Return from FilterEvent() without calling event.Skip(). Since we have
+                    //      directly called OnSysKeyUp() we don't want OnSysKeyUp() to get called 
+                    //      again downstream from here.
+                    // 
+                    if (TypedAlphanumericKeyInPhraseBox((wxKeyEvent&)event))
+                    {
+                        // Detected a normal alphanumeric key press including ShiftDown() forms.
+                        // Excludes reserved navigation arrow keys WXK_DOWN, WXK_UP, WXK_PAGEDOWN and WXK_PAGEUP,
+                        // Exludes any key events that return TRUE for HasModifiers() which includes any
+                        // The use of GetUnicodeKey() also excludes other keys like the function keys, F8, etc.
+                        // accelerator keys modified by CTRL down, and other special hot keys modified
+                        // by ALT down. Basically returns true for any key that becomes visible text within the
+                        // phrasebox.
+                        // For alphanumeric key detection we must use GetUnicodeKey() here and not simply GetKeyCode()
+                        // The GetKeyCode() will include function keys including F8 etc, which we want to filter out here.
+                        int keyCode = ((wxKeyEvent&)event).GetUnicodeKey(); // must use GetUnicodeKey() here!
+                        wxChar keyChar = wxChar(keyCode);
+                        wxLogDebug(_T("wxChar = %s"), wxString(keyChar).c_str());
+
+                        m_pTargetBox->CloseDropDown();
+                        // Manually put this first alphanumeric character into the phrasebox
+                        // but call OnKeyDown() and OnChar() first. OnChar() will take care of any
+                        // merger that needs doing before we put our first typed alphanumeric character
+                        // into the phrasebox.
+                        m_pTargetBox->OnKeyDown((wxKeyEvent&)event);
+                        m_pTargetBox->OnChar((wxKeyEvent&)event); // This call of OnChar() triggers a merger if a selection is present
+                        // Now that any awaiting merger has been done, put the first typed character into the phrasebox
+                        m_pTargetBox->GetTextCtrl()->ChangeValue(keyChar);
                         // Since the insertion point ends up at position zero - before the char just typed
                         // we need to set it to the position after the char
                         m_pTargetBox->SetInsertionPointEnd();
+                        m_pTargetBox->OnKeyUp((wxKeyEvent&)event);
+
+                        int Breakpoint = 0;
+                        Breakpoint = Breakpoint;
+
+                        return 1;  // value of 1 means Event_Processed. The event was already handled, don't process it normally. // Don't call event.Skip()
+
+                    }
+
+                    if (TypedReservedDropDownListNavKey((wxKeyEvent&)event))
+                    {
+                        int Breakpoint = 0;
+                        Breakpoint = Breakpoint;
+                    }
+
+                    if (TypedSysKeyInPhraseBox((wxKeyEvent&)event))
+                    {
+                        int Breakpoint = 0;
+                        Breakpoint = Breakpoint;
+
+                    }
+
+                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    // Note: On Windows a key press with dropdown open results in two wxEVT_KEY_DOWN events being
+                    // filtered here, first one has a negative value returned by GetId() call below, the second
+                    // one has the ID of the phrasebox (22030).
+                    // On Linux a key press with dropdown open results in one wxEVT_KEY_DOWN event being
+                    // filtered here. It has a negative value, and cannot be used to identify the phrasebox.
+                    // Observation: The Windows version of wx propagates the key event on to the phrasebox
+                    // closing its dropdown list and registering the first key stroke into the phrasebox replacing
+                    // its currently selected text. But note that this first key going into the phrasebox does 
+                    // NOT result in the triggering of the CPhraseBox::OnChar() method for that alphanumeric 
+                    // character, as does any/all following alphanumeric input after that first character.
+                    int keyCode = ((wxKeyEvent&)event).GetKeyCode();
+                    wxChar keyChar = wxChar(keyCode);
+                    wxLogDebug(_T("wxChar = %s"), wxString(keyChar).c_str());
+                    //int keyid = event.GetId(); // returns negative number on Linux.
+                    //wxClassInfo* classInfo = event.GetClassInfo();
+                    //wxString className = classInfo->GetClassName();
+                    //wxLogDebug(_T("Key_down_event: event type: %d, key id: %d class name: %s wxChar = %s"), (int)t, keyid, className.c_str(),wxString(keyChar).c_str());
+
+                    // The block below is for testing and setting breakpoints in the Windows version.
+                    // It has the same conditions as the block below that is conditionally compiled
+                    // for __WXGTK__ and __WXMAC__.
+                    if (!((wxKeyEvent&)event).HasModifiers() // && !((wxKeyEvent&)event).ShiftDown()
+                        && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP)
+                        && wxIsprint(keyChar))
+                    {
+                        int breakpoint = 0;
+                        breakpoint = breakpoint;
+                    }
+
+#if 0 //#if defined (__WXGTK__) || defined (__WXMAC__)
+
+                    // Don't Dismiss() the dropdown for list navigation keys WXK_DOWN and WXK_UP
+                    if (!(keyCode == WXK_DOWN) && !(keyCode == WXK_UP) && !(keyCode == WXK_PAGEDOWN) && !(keyCode == WXK_PAGEUP))
+                    {
+                        // Even though Windows will call Dismiss() on the first character stroke, we don't have to
+                        // limit the Dismiss() call to only the Linux version. It doesn't hurt anything for the
+                        // Dismiss() call to be done on a combo box whose dropdown is already closed.
+                        m_pTargetBox->CloseDropDown();
+                        // For the Linux (and probably Mac) version, we need to manually put this first alphanumeric
+                        // character into the phrasebox.
+                        // whm 24June2018 removed the !ShiftDown() filter - upper case chars need to be processed!
+                        // If the key that was typed is an alphanumeric key put it into the phrasebox.
+                        if (!((wxKeyEvent&)event).HasModifiers() // && !((wxKeyEvent&)event).ShiftDown()
+                            && !(keyCode == WXK_DOWN) && !(keyCode == WXK_UP && !(keyCode == WXK_PAGEDOWN) && !(keyCode == WXK_PAGEUP))
+                            && wxIsprint(keyChar))
+                        {
+                            m_pTargetBox->GetTextCtrl()->ChangeValue(keyChar);
+                            // Since the insertion point ends up at position zero - before the char just typed
+                            // we need to set it to the position after the char
+                            m_pTargetBox->SetInsertionPointEnd();
+                        }
                     }
 #endif
-                }
+                } // end of if (PhraseBoxIsInFocus())   
             }
             
         } // end of if (t == wxEVT_CHAR)
+
+        if (t == wxEVT_ENTER_WINDOW)
+        {
+            //if (!(this->GetMainFrame()->canvas == ((wxMouseEvent&)event).GetEventObject()))
+            //{
+            //    int Breakpoint = 0;
+            //    Breakpoint = Breakpoint;
+            //}
+            //// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            //if (MouseOverMainMenuBar((wxMouseEvent&) event))
+            //{
+            //    int Breakpoint = 0;
+            //    Breakpoint = Breakpoint;
+
+            //}
+           
+            //else if (MouseOverToolBar((wxMouseEvent&)event))
+            //{
+            //    int Breakpoint = 0;
+            //    Breakpoint = Breakpoint;
+
+            //}
+            //else if (MouseOverModeBar((wxMouseEvent&)event))
+            //{
+            //    int Breakpoint = 0;
+            //    Breakpoint = Breakpoint;
+
+            //}
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+           
+        }
     }
+//#endifj
+
+    
     // Continue processing the event normally as well.
     event.Skip();
     return -1; // Event_Skip;
 }
+     
+*/
 
-// whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
+/*
+// whm 12Jul2018 Note: If the following PhraseBoxIsInFocus() function is needed apart from
+// the wxOwnerDrawnComboBox and FilterEvent(), it could be refactored for the new phrasebox
+// and discriminating the actual m_pTargetBox->GetTextCtrl() part of the phrasebox.
+bool CAdapt_ItApp::PhraseBoxIsInFocus()
+{
+    // Note: The ClassInfo type of the phrasebox on Windows is either CPhraseBox or 
+    // wxListBox when the dropdown list is open.
+    // The ClassInfo type of the phrasebox on Linux/Mac? is either CPhraseBox or 
+    // wxVListBox.
+    const wxChar* className = wxT("<none>");
+    wxWindow* focusWindow = ::wxWindow::FindFocus();
+    if (focusWindow)
+        className = focusWindow->GetClassInfo()->GetClassName();
+    wxString classNStr = wxString(className);
+    wxLogDebug(_T("In FilterEvent() focused window = %s %p"), className, focusWindow); // no .c_str() needed here on className
+    if (classNStr == _T("CPhraseBox") || classNStr == _T("wxVListBox") || classNStr == _T("wxListBox"))
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+*/
+
+/*
+// whm 2Jun2018 added the following to filter all events for key up/down event when dropdown is open
+// This function is used within the wxEVT_LEFT_UP block of FilterEvent():
 bool CAdapt_ItApp::ClickedOnPhraseBoxLocation(wxMouseEvent& event)
 {
     // The object represented by the m_pTargetBox->GetTextCtrl() return value is the pointer
@@ -7654,57 +7984,10 @@ bool CAdapt_ItApp::ClickedOnPhraseBoxLocation(wxMouseEvent& event)
     {
         return FALSE;
     }
-    /*
-    CAdapt_ItView* pView = (CAdapt_ItView*)GetView();
-    wxASSERT(pView != NULL);
-    wxPoint point;
-    point = event.GetPosition();	// GetPosition() gets the point on the view port relative to upper-left
-                                    // corner of the window.
-                                    // get the point into logical coordinates
-    CAdapt_ItCanvas* pCanvas = this->GetMainFrame()->canvas;
-    wxClientDC aDC(pCanvas); // make a device context
-    pCanvas->DoPrepareDC(aDC); // get origin adjusted (calls wxScrolledWindow::DoPrepareDC)
-
-                               // we don't need to call CalcUnscrolledPosition here because GetLogicalPosition already
-                               // provides logical coordinates for the clicked point; wxPoint in device coords was needed
-                               // above to set the gptLastClick (used in AdjustDialogByClick), so we'll get the logical
-                               // coords of the point here.
-    wxPoint logicalPoint(event.GetLogicalPosition(aDC));
-    point = logicalPoint;
-
-    CCell* pCell = pView->GetClickedCell(&point); // returns NULL if the point was not in a cell
-
-
-    wxRect tgtBoxRect = m_pTargetBox->GetRect();
-
-    CStrip* pClickedStrip = pView->GetNearestStrip(&point);
-    if (pClickedStrip != NULL)
-    {
-        int numPiles;
-        numPiles = pClickedStrip->GetPileCount();
-        if (numPiles > 0)
-        {
-            CPile* pPile = NULL;
-            int indexPile;
-            for (indexPile = 0; indexPile < numPiles; indexPile++)
-            {
-                pPile = pClickedStrip->GetPileByIndex(indexPile);
-                wxASSERT(pPile != NULL);
-                wxRect pileRect = pPile->GetPileRect();
-                //if (pileRect.Contains(point))
-                //{
-                int nSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
-                if (nSequNum == m_nActiveSequNum)
-                    return TRUE;
-                //}
-            }
-        }
-    }
-    return FALSE;
-    */
 }
 
 // whm 2Jun2018 added to filter all events for key up/down event when dropdown is open
+// This function is used within the wxEVT_LEFT_UP block of FilterEvent():
 bool CAdapt_ItApp::ClickedOnOtherTargetLocation(wxMouseEvent& event)
 {
     CAdapt_ItView* pView = (CAdapt_ItView*)GetView();
@@ -7752,6 +8035,143 @@ bool CAdapt_ItApp::ClickedOnOtherTargetLocation(wxMouseEvent& event)
     }
     return FALSE;
 }
+
+bool CAdapt_ItApp::ClickedOnMainMenuBar(wxMouseEvent & event)
+{
+    //wxRect menuRect = this->GetMainFrame()->m_pMenuBar->HitTest(GetRect();
+    wxPoint mousePtrPos = ((wxMouseEvent&)event).GetPosition();
+    int itemAtPosition = this->GetMainFrame()->m_pMenuBar->HitTest(mousePtrPos);
+    //if (menuRect.Contains(mousePtrPos))
+    if (itemAtPosition == 1)
+    {
+        return TRUE;
+        // TODO: Close dropdown list
+        // TODO: Propagate the mouse click on
+    }
+    //int objectID = ((wxMouseEvent&)event).GetId(); // TODO: This is returning a large negative number instead of an object ID.
+    //if (objectID == ID_FILE_MENU
+    //    || objectID == ID_EDIT_MENU
+    //    || objectID == ID_VIEW_MENU
+    //    || objectID == ID_TOOLS_MENU
+    //    || objectID == ID_EXPORT_IMPORT_MENU
+    //    || objectID == ID_ADVANCED_MENU
+    //    || objectID == ID_LAYOUT_MENU
+    //    || objectID == ID_HELP_MENU
+    //    || objectID == ID_ADMINISTRATOR_MENU)
+    //{
+    //    MenuID = objectID;
+    //    return TRUE;
+    //}
+    return false;
+}
+
+// The following three are used within the wxEVT_MOTION or wxEVT_ENTER_WINDOW blocks of FilterEvent():
+bool CAdapt_ItApp::MouseOverMainMenuBar(wxMouseEvent& event)
+{
+    if (this->GetMainFrame()->m_pMenuBar == ((wxMouseEvent&)event).GetEventObject())
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+bool CAdapt_ItApp::MouseOverToolBar(wxMouseEvent& event)
+{
+    if (this->GetMainFrame()->m_auiToolbar == ((wxMouseEvent&)event).GetEventObject())
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+bool CAdapt_ItApp::MouseOverModeBar(wxMouseEvent& event)
+{
+    if (this->GetMainFrame()->m_pControlBar == ((wxMouseEvent&)event).GetEventObject())
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+// The following three are used within the wxEVT_CHAR block of FilterEvent():
+bool CAdapt_ItApp::TypedReservedDropDownListNavKey(wxKeyEvent& WXUNUSED(event))
+{
+    return FALSE;
+}
+
+// Detect the WXK_LEFT, WXK_RIGHT, and ALTDOWN + WXK_LEFT and ALTDOWN + WXK_RIGHT
+// For use in App's FilterEvent() function.
+bool CAdapt_ItApp::TypedNonReservedNavKey(wxKeyEvent& event)
+{
+    int keyCode = event.GetKeyCode();
+    if (event.AltDown() && keyCode == WXK_LEFT)
+    {
+        wxLogDebug(_T("Pressed ALT + LEFT Arrow key"));
+        return TRUE;
+    }
+    else if (event.AltDown() && keyCode == WXK_RIGHT)
+    {
+        wxLogDebug(_T("Pressed ALT + RIGHT Arrow key"));
+        return TRUE;
+    }
+    else if (keyCode == WXK_LEFT)
+   {
+        wxLogDebug(_T("Pressed LEFT Arrow key"));
+        return TRUE;
+    }
+    else if (keyCode == WXK_RIGHT)
+    {
+        wxLogDebug(_T("Pressed RIGHT Arrow key"));
+        return TRUE;
+    }
+    return false;
+}
+
+// Detect 
+// For use in App's FilterEvent() function.
+bool CAdapt_ItApp::TypedSysKeyInPhraseBox(wxKeyEvent& WXUNUSED(event))
+{
+    return FALSE;
+}
+
+// Detect normal alphanumeric key presses including ShiftDown() forms.
+// Excludes reserved navigation arrow keys WXK_DOWN, WXK_UP, WXK_PAGEDOWN and WXK_PAGEUP,
+// Exludes any key events that return TRUE for HasModifiers() which includes any
+// accelerator keys modified by CTRL down, and other special hot keys modified
+// by ALT down. Basically returns true for any key that becomes visible text within the
+// phrasebox.
+// For use in App's FilterEvent() function.
+bool CAdapt_ItApp::TypedAlphanumericKeyInPhraseBox(wxKeyEvent& event)
+{
+    // For alphanumeric key detection we must use GetUnicodeKey() here and not simply GetKeyCode()
+    // The GetKeyCode() will include function keys including F8 etc, which we want to filter out here.
+    int keyCode = event.GetUnicodeKey(); // must use GetUnicodeKey() here!
+    wxChar keyChar = wxChar(keyCode);
+    if (
+           !((wxKeyEvent&)event).HasModifiers() // Note: HasModifiers() does not include ShiftDown()
+        && !(keyCode == WXK_DOWN) 
+        && !(keyCode == WXK_UP) 
+        && !(keyCode == WXK_PAGEDOWN) 
+        && !(keyCode == WXK_PAGEUP)
+        // Exclude other keys here - such as WXK_HOME, WXK_END ???
+        && wxIsprint(keyChar)
+        )
+    {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+*/
 
 /*
 // whm 14Nov11 Note: This FitWithScrolling() function is now integrated in Julian Smart's
@@ -17432,20 +17852,14 @@ bool CAdapt_ItApp::AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, boo
 /// \param      workFolderPath -> the path to the Adapt It Unicode Work folder (where the
 ///                               ServDiscResults.txt file resides)
 /// \remarks
-/// Our implementation of service discovery, cross platform, is based on the sdwrap/wxServDisc
-/// resources provided by Christian Beier, 2008. (See the wxServDisc.h header for more detail.)
-/// Our use of those resources is GUI-less, since the service we listen for is fixed.
-/// Beier's code works, but leaks a few kilobytes of memory when it is shut down - the leaks
-/// are of his making, due to incomplete cleanup code. I have managed to reduce the leak count
-/// to zero but at the cost of limiting one discovery run to finding just one KBserver.
+/// Our implementation of service discovery, cross platform, is based on scripts written
+/// by Leon Pearl. They work at a level lower than http or https, and so are not limited
+/// by system admin person's security protocol implemented at that higher level.
 ///
-/// ConnectUsingDiscoveryResults is called prior to an authentication attempt to a running KBserver.
-/// The service:  "_kbserver._tcp.local." is scanned for (note, there MUST be a period
-/// following the word local & the wrapping " " are not part of the string), and if a
-/// KBserver is running. Normally, only one KBserver should be running; if that is not the
-/// case, raw ips are not enough, so hostnames are displayed as well. If two or more are
-/// running, a dialog will open to allow the user to select one for connecting to. Multiples
-/// (if running) are detected by doing discovery in a background thread governed by a timer.
+/// ConnectUsingDiscoveryResults is called in an authentication attempt to a running KBserver.
+/// The service:  "_kbserver._tcp" is scanned for. The scripts are fast - typicaly finding all
+/// running KBservers within about 3 seconds. IP address, and hostname, are scanned for, and
+/// the results displayed to the user. Repeated user initiated scans are acceptable & safe. 
 ///
 /// Of course, a lot of things may go wrong. Everybody may forget to turn on a KBserver -
 /// if so, they'll need to be warned that no sharing can happen till they run one. Or the thread
@@ -17456,15 +17870,13 @@ bool CAdapt_ItApp::AddUniqueStrCase(wxArrayString* pArrayStr, wxString& str, boo
 /// the current running server's url, and if they differ, ask the user if he wants a connection
 /// to the different url. In a workshop, there could be several KBservers running, one for each
 /// of several workgroups from different language projects - so we have to discover them all.
-/// The service discovery thread will only run for a few seconds, and that is enough time to
-/// detect one instance multicasting on the LAN. It will report the ip address and hostname
-/// for the KBserver it detects in  CAdapt_ItApp::m_theURLs and CAdapt_ItApp::m_theHostnames
-/// wxArrayString arrays. DoServiceDiscovery will, after the data is stored there, access that
-/// data and use it for implementing the protocols described above. Background discovery lasts
-/// for as long as the app session is active.
+/// The service discovery will report the ip address and hostname for the KBserver/s it detects 
+/// in  CAdapt_ItApp::m_theURLs and CAdapt_ItApp::m_theHostnames wxArrayString arrays. 
+/// DoServiceDiscovery() will, after the data is stored there, access that data and use it for 
+/// implementing the protocols described above.
 /// Because of the variety of possible states, the following enum will be used internally
 /// to help with implementing suitable protocols: The enum is defined in Adapt_It.h at
-/// about line 765
+/// about line 803. It's over-specified for our needs, but the extra values are benign.
 /// enum ServDiscInitialDetail
 /// {
 /// 	SDInit_NoStoredUrl,
@@ -17831,6 +18243,11 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bShowCursorAtEnd = FALSE; // initialize (legacy behaviour, cursor not forced to end)
+
+	m_nCacheLeavingLocation = wxNOT_FOUND; // (-1) see full explanation in Adapt_It.h
+	m_nOnLButtonDownEntranceCount = 0; // BEW 28Jun18 for this and previous line
+
 	m_bTypedNewAdaptationInChooseTranslation = FALSE; // to support getting a new adaptation into 
 									// the combobox list direct from ChooseTranslation() dialog
 	m_bVertEdit_AtFirst = FALSE; // explained in Adapt_It.h at line 2262
@@ -20715,7 +21132,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         wxLogDebug(_T("m_languageInfo = NULL"));
     }
 
-    wxASSERT(!m_appInstallPathOnly.IsEmpty()); //wxASSERT(!m_setupFolder.IsEmpty());
+    //wxASSERT(!m_appInstallPathOnly.IsEmpty()); //wxASSERT(!m_setupFolder.IsEmpty());
 
                                                // At this point - just before loading any non-English localization catalog, we
                                                // populate the m_mapMenuLabelStrToIdint with the English menu label items and
@@ -20741,32 +21158,32 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         currLocalizationInfo = ProcessUILanguageInfoFromConfig(); // this needs to come after
                                                                   // the m_languageInfo is defined above
 
-                                                                  // On first run of Adapt It (when no previous interface language choice has been made),
-                                                                  // or if the user holds down the ALT key while running the application, the following
-                                                                  // ChooseInterfaceLanguage() call will check to see if localizations other than the
-                                                                  // default system language are present on the user's computer. If so,
-                                                                  // ChooseInterfaceLanguage() will present the user with a "Select your preferred
-                                                                  // language for Adapt It's menus and other messages" dialog in which an alternative
-                                                                  // interface language choice can be made. For first run of Adapt It, the default choice
-                                                                  // is "Use default language" (wxLANGUAGE_DEFAULT).
-                                                                  // The only choices available in the dialog are languages for which actual localization
-                                                                  // subfolders exist in the localization path and contain an <appName>.mo localization
-                                                                  // file.
-                                                                  // Once the user makes the choice the interface is set to use that language.
-                                                                  // After the first run of Adapt It, the user's choice of UI language is saved in the
-                                                                  // wxConfig's Adapt_It_WX.ini (Windows) or .Adapt_It_WX (Linux and Mac), and the user
-                                                                  // won't be asked again at program startup - but the user can later change the interface
-                                                                  // language choice from within the app via View | "Choose Interface Language...".
-                                                                  // Note: currLocalizationInfo.curr_UI_Language is initialized to wxLANGUAGE_UNKNOWN by
-                                                                  // OnInit(), but may be changed by ProcessUILanguageInfoFromConfig() call made above
-                                                                  // if a valid interface language has been previously determined.
+        // On first run of Adapt It (when no previous interface language choice has been made),
+        // or if the user holds down the ALT key while running the application, the following
+        // ChooseInterfaceLanguage() call will check to see if localizations other than the
+        // default system language are present on the user's computer. If so,
+        // ChooseInterfaceLanguage() will present the user with a "Select your preferred
+        // language for Adapt It's menus and other messages" dialog in which an alternative
+        // interface language choice can be made. For first run of Adapt It, the default choice
+        // is "Use default language" (wxLANGUAGE_DEFAULT).
+        // The only choices available in the dialog are languages for which actual localization
+        // subfolders exist in the localization path and contain an <appName>.mo localization
+        // file.
+        // Once the user makes the choice the interface is set to use that language.
+        // After the first run of Adapt It, the user's choice of UI language is saved in the
+        // wxConfig's Adapt_It_WX.ini (Windows) or .Adapt_It_WX (Linux and Mac), and the user
+        // won't be asked again at program startup - but the user can later change the interface
+        // language choice from within the app via View | "Choose Interface Language...".
+        // Note: currLocalizationInfo.curr_UI_Language is initialized to wxLANGUAGE_UNKNOWN by
+        // OnInit(), but may be changed by ProcessUILanguageInfoFromConfig() call made above
+        // if a valid interface language has been previously determined.
 
-                                                                  // See if Localizations exist on this computer.
-                                                                  // Note: The LocalizationFilesExist() call below has the side
-                                                                  // effect of setting the m_pConfig's ui_localizationFilesExist_unicode
-                                                                  // (or ui_localizationFilesExist) value to 1 (true) or 0 (false)
-                                                                  // depending on whether the localization files exist or not on this
-                                                                  // computer.
+        // See if Localizations exist on this computer.
+        // Note: The LocalizationFilesExist() call below has the side
+        // effect of setting the m_pConfig's ui_localizationFilesExist_unicode
+        // (or ui_localizationFilesExist) value to 1 (true) or 0 (false)
+        // depending on whether the localization files exist or not on this
+        // computer.
         bool bLocalizationFilesExist = 0;
         bLocalizationFilesExist = LocalizationFilesExist(); // sets ui_localizationFilesExist_unicode to 1 or 0
         bLocalizationFilesExist = bLocalizationFilesExist; // to avoid gcc warning
@@ -26948,12 +27365,19 @@ int CAdapt_ItApp::GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView)
         m_targetPhrase = pSrcPhrase->m_adaption;
 
     // BEW added 29Jul09, get the phrase box text into the box and all selected
-    m_pTargetBox->ChangeValue(m_targetPhrase);
+    // whm 13Jul2018 modified for new protocol of only selecting all when 
+    // dropdown list count is > 1, otherwise removing selection and putting
+    // insertion point at end.
+    m_pTargetBox->GetTextCtrl()->ChangeValue(m_targetPhrase);
+    int len = m_pTargetBox->GetTextCtrl()->GetValue().Length();
     m_nStartChar = -1;
     m_nEndChar = -1;
     if (m_pTargetBox != NULL)
     {
-        m_pTargetBox->SetSelection(m_nStartChar, m_nEndChar); // select it all
+        if (m_pTargetBox->GetDropDownList()->GetCount() > 1)
+            m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+        else
+            m_pTargetBox->GetTextCtrl()->SetSelection(m_nStartChar,m_nEndChar); // select it all
     }
 
     return m_nActiveSequNum;
@@ -30080,14 +30504,13 @@ void CAdapt_ItApp::DoCreatePhraseBox()
     // destroyed too. Therefore, the target box must not be deleted again in
     // the App's OnExit() method, when the App terminates.
 
-    // whm modified 10Jan2018 to support quick selection of a translation equivalent.
-    // The CPhraseBox stored on App's m_pTargetBox is now derived from 
-    // wxOwnerDrawnComboBox.
-    // In case we need a way to detect whether an event originates in the PhraseBox,
-    // I'm changing the id below from -1 to a known const int ID_PHRASE_BOX, which
-    // has an int value of 22030.
-    // The old -1 value during CPhraseBox creation below just functioned to create
-    // a random but unique id.
+    // whm modified 11July2018 to support quick selection of a translation equivalent.
+    // The CPhraseBox stored on App's m_pTargetBox is now derived from a wxDesigner
+    // resource by the function PhraseBoxDropDownFunc(). It was previously derived
+    // from wxOwnerDrawnComboBox.
+    // The ID of the wxTextCtrl within the PhraseBoxDropDownFunc() is 
+    // const int ID_PHRASE_BOX, which has an int value of 22030 set at the beginning
+    // of this Adapt_It.cpp source file.
     wxArrayString dummyArrStr;
 
     // Now we use the CPhraseBox::CPhraseBox custom constructor to create the 
@@ -30098,10 +30521,16 @@ void CAdapt_ItApp::DoCreatePhraseBox()
     // When DoCreatePhraseBox() is called from the View's OnCreate() method at
     // program startup the m_pTargetBox pointer will be NULL. But when the
     // DoCreatePhraseBox() function is called after View creation, we must
-    // first Destroy the old object, then create the new one. 
-    // First destroy any existing object pointed to by m_pTargetBox
+    // first Destroy the old phrasebox objects, then create new ones. 
+    // First destroy any existing object pointed to by m_pTargetBox, then
+    // create it.
     if (m_pTargetBox != NULL)
     {
+        // whm 13Jul2018 note: calling m_pTargetBox->Hide() doesn't have any
+        // affect in the new phrasebox; individual components of the phrasebox 
+        // need to be hidden individually. Use the HidePhraseBox() function
+        // instead.
+        m_pTargetBox->HidePhraseBox(); // hides all parts of the new phrasebox
         m_pTargetBox->Destroy();
         m_pTargetBox = (CPhraseBox*)NULL;
     }
@@ -30111,10 +30540,59 @@ void CAdapt_ItApp::DoCreatePhraseBox()
         ID_PHRASE_BOX,
         _T(""),
         wxDefaultPosition,
-        wxDefaultSize,
-        dummyArrStr,
-        wxCB_DROPDOWN | wxTE_PROCESS_ENTER);
+        wxSize(80, -1),
+        wxTE_PROCESS_TAB | wxTE_PROCESS_ENTER);
 
+    wxASSERT(m_pTargetBox != NULL);
+    wxTextCtrl* pTextCtrl = m_pTargetBox;
+    // Set the phrasebox's private pointer to the text control
+    m_pTargetBox->SetTextCtrl(pTextCtrl);
+
+    // Now that m_pTarbetBox has been created, its methods, getters, setters, are available
+    // to us to set up the bitmap button and dropdown list that are associated with the new
+    // phrasebox.
+
+    // Next destroy any existing object pointed to by phrasebox's private member
+    // m_pPhraseBoxButton
+    wxBitmapButton* pBitmapBtn = m_pTargetBox->GetPhraseBoxButton();
+    if (pBitmapBtn != NULL)
+    {
+        pBitmapBtn->Destroy();
+        pBitmapBtn = (wxBitmapButton*)NULL;
+    }
+
+    pBitmapBtn = new wxBitmapButton(GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, m_pTargetBox->dropbutton_normal, wxDefaultPosition, wxSize(20, 24));
+    // Set the phrasebox's private pointer to the button
+    m_pTargetBox->SetPhraseBoxButton(pBitmapBtn);
+    
+    // Finally destroy any existing object pointed to by phrasebox's private member
+    // m_pDropDownList
+    // whm Note: Use our CMyListBox which is derived from wxListBox and is used in the Choose Translation dialog
+    CMyListBox* pListBox = m_pTargetBox->GetDropDownList();
+    if (pListBox != NULL)
+    {
+        pListBox->Destroy();
+        pListBox = (CMyListBox*)NULL;
+    }
+
+    pListBox = new CMyListBox(GetMainFrame()->canvas, ID_DROP_DOWN_LIST, wxDefaultPosition, wxSize(80, 100), 0, NULL, wxLB_SINGLE);
+    // Set the phrasebox's private pointer to the list
+    m_pTargetBox->SetDropDownList(pListBox);
+
+    // whm 11July2018 Note: The above code creates the new PhraseBox.
+    // To access the wxTextCtrl member of the phrasebox we use the access method 
+    // called GetTextCtrl() - using the same name that wxOwnerDrawnComboBox used to access
+    // their text control. We set the pointer to the wxTextCtrl using SetTextCtrl().
+    // To access the wxBitmapButton member of the phrasebox we use the access method
+    // called GetPhraseBoxButton(). We set the pointer to the wxBitmapButton using
+    // SetPhraseBoxButton().
+    // To access the CMyListBox member of the phrasebox we use the access method 
+    // called GetDropDownList(). We use this name rather than the GetPopupControl() name
+    // that was used by wxOwnerDrawnComboBox class. We set the pointer to the CMyListBox
+    // uing SetDropDownList().
+
+
+    // [whm 13Jul2018 BELOW ARE OLD NOTES RE PROBLEM BEHAVIORS OF wxOwnerDrawnComboBox]
     // whm 16May2018 Note:
     // TODO: Issue to resolve in Linux version: 
     // Normal alphanumeric key presses in the Linux version do not get registered within
@@ -30165,18 +30643,6 @@ void CAdapt_ItApp::DoCreatePhraseBox()
     //    The wxTE_PROCESS_ENTER style - "The control will generate the event wxEVT_TEXT_ENTER (otherwise 
     // pressing Enter key is either processed internally by the control or used for navigation between 
     // dialog controls). Windows only."
-
-    // whm Notes on the wxTextCtrl style legacy flags:
-    // wxSIMPLE_BORDER - Displays a thin border around the window.
-    // wxWANTS_CHARS - According to the wx docs Use this to indicate that
-    // the window wants to get all char/key events for all keys - even for keys like
-    // TAB or ENTER which are usually used for dialog navigation and which wouldn't
-    // be generated without this style. If you need to use this style in order to
-    // get the arrows or etc., but would still like to have normal keyboard navigation
-    // take place, you should create and send a wxNavigationKeyEvent in response to
-    // the key events for Tab and Shift-Tab.
-    // wxTAB_TRAVERSAL - Use this to enable tab traversal for non-dialog windows
-    // (not needed for phrasebox).
 
 }
 
@@ -31010,7 +31476,7 @@ void CAdapt_ItApp::OnButtonGetFromClipboard(wxCommandEvent& WXUNUSED(event))
 		m_bClipboardTextLoaded = TRUE;
 
 		// get rid of any relic text in phrase box storage
-		m_pTargetBox->Clear();
+		m_pTargetBox->GetTextCtrl()->Clear();
 		m_targetPhrase.Empty();
 
 
@@ -31028,8 +31494,8 @@ void CAdapt_ItApp::OnButtonGetFromClipboard(wxCommandEvent& WXUNUSED(event))
 			pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
 			m_nStartChar = 0;
 			m_nEndChar = -1; // ensure initially all is selected
-			m_pTargetBox->SetSelection(-1, -1); // select all
-			m_pTargetBox->SetFocus();
+			m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
+			m_pTargetBox->GetTextCtrl()->SetFocus();
 		}
 		pView->Invalidate();
 		pLayout->PlaceBox();
@@ -31077,7 +31543,7 @@ void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event
     pView->Invalidate();
     if (m_bADocIsLoaded)
     {
-        m_pTargetBox->ChangeValue(m_savedTextBoxStr); // restore cached string
+        m_pTargetBox->GetTextCtrl()->ChangeValue(m_savedTextBoxStr); // restore cached string
         m_targetPhrase = m_savedTextBoxStr;
         pLayout->PlaceBox();
         if (m_pActivePile != NULL)
@@ -31085,8 +31551,8 @@ void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event
             pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
             m_nStartChar = 0;
             m_nEndChar = -1; // ensure initially all is selected
-            m_pTargetBox->SetSelection(-1, -1); // select all
-            m_pTargetBox->SetFocus();
+            m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
+            m_pTargetBox->GetTextCtrl()->SetFocus();
         }
     }
     else
@@ -31097,8 +31563,9 @@ void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event
         pView->RemoveSelection();
         m_targetPhrase.Empty();
         m_nActiveSequNum = -1;
-        m_pTargetBox->Hide();
-        m_pTargetBox->ChangeValue(_T(""));
+        m_pTargetBox->HidePhraseBox(); // hides all three parts of the new phrasebox
+
+        m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
         m_pActivePile = NULL;
     }
     m_bADocIsLoaded = FALSE; // restore default value
@@ -31222,7 +31689,7 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 
 		s_AutoSaveMutex.Unlock();
 
-        m_savedTextBoxStr = m_pTargetBox->GetValue(); // cashe it pending restoration later
+        m_savedTextBoxStr = m_pTargetBox->GetTextCtrl()->GetValue(); // cashe it pending restoration later
 
 		//pDoc->DeleteSourcePhrases();
 		pLayout->GetInvalidStripArray()->Clear();
@@ -31230,14 +31697,14 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 		pLayout->DestroyPiles(); // restored, DestroySourcePhrases() no longer destorys
 								 // the partner piles
 		m_pActivePile = (CPile*)NULL;
-		m_pTargetBox->ChangeValue(_T("")); //pApp->m_targetBox.Destroy();
+		m_pTargetBox->GetTextCtrl()->ChangeValue(_T("")); //pApp->m_targetBox.Destroy();
 		m_nActiveSequNum = -1;
 		m_selectionLine = -1;
 		pView->Invalidate(); // our own
 		//pLayout->PlaceBox();
 
 		// hide and disable the target box until input is expected
-		m_pTargetBox->Hide(); // whm note: ChangeValue(_T("")) is called above
+        m_pTargetBox->HidePhraseBox(); // hides all three parts of the new phrasebox
 
 	}
 
@@ -31858,8 +32325,8 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
     int len = pApp->m_targetPhrase.Length();
     m_nStartChar = len;
     m_nEndChar = len;
-    pApp->m_pTargetBox->SetSelection(len, len);
-    pApp->m_pTargetBox->SetFocus();
+    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+    pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -31952,6 +32419,15 @@ void CAdapt_ItApp::OnToolsInstallGit(wxCommandEvent & WXUNUSED(event))
                 // Don't show the dialog
                 ;
             }
+        }
+    }
+    else
+    {
+        CInstallGitOptionsDlg gitInsDlg(pApp->GetMainFrame());
+        gitInsDlg.Centre();
+        if (gitInsDlg.ShowModal() == wxID_OK)
+        {
+            ;
         }
     }
 }
@@ -37490,7 +37966,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data << szKeepPhraseBoxMidscreen << tab << (int)m_bKeepBoxMidscreen;
     pf->AddLine(data);
 
-    // whm added 10Jan2018 - removed 18Feb2018 after deriving CPhraseBox from wxOwnerDrawnComboBox
+    // whm added 10Jan2018 - removed 18Feb2018 after implementing dropdown
     //data.Empty();
     //data << szUseChooseTransDropDown << tab << (int)m_bUseChooseTransDropDown;
     //pf->AddLine(data);
@@ -38131,7 +38607,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 m_bKeepBoxMidscreen = FALSE;
             }
         }
-        // whm added 10Jan2018 - removed 18Feb2018 after deriving CPhraseBox from wxOwnerDrawnComboBox
+        // whm added 10Jan2018 - removed 18Feb2018 after implementing phrasebox dropdown
         //else if (name == szUseChooseTransDropDown)
         //{
         //    if (strValue == _T("1"))
@@ -43134,7 +43610,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
     if (m_pTargetBox != NULL)
     {
         if (m_pTargetBox->IsShown())
-            m_pTargetBox->SetFocus();
+            m_pTargetBox->GetTextCtrl()->SetFocus();
         // also get the status bar updated, if there is a document visible
         if (gpApp->m_nActiveSequNum != -1 && gpApp->m_pActivePile != NULL)
             gpApp->RefreshStatusBarInfo();
@@ -44761,7 +45237,7 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
     // locations where multiple translations are displaying in the dropdown list???
     if (this->m_bChooseTransInitializePopup)
     {
-        if ((gpApp->m_pTargetBox != NULL) && (gpApp->m_pTargetBox->GetCount() > 1))
+        if ((gpApp->m_pTargetBox != NULL) && (gpApp->m_pTargetBox->GetDropDownList()->GetCount() > 1))
         {
             message = _("Choose a translation from the drop-down list, or type a new translation. Press F8 for more options.");
         }
@@ -46985,8 +47461,8 @@ void CAdapt_ItApp::DoPrintCleanup()
         GetMainFrame()->canvas->ScrollIntoView(m_nActiveSequNum);
         m_nStartChar = 0;
         m_nEndChar = -1; // ensure initially all is selected
-        m_pTargetBox->SetSelection(-1, -1); // select all
-        m_pTargetBox->SetFocus();
+        m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
+        m_pTargetBox->GetTextCtrl()->SetFocus();
     }
 
     // if cleaning up when free translation mode is active, override the focus being in
@@ -47002,14 +47478,14 @@ void CAdapt_ItApp::DoPrintCleanup()
         pEdit->SetFocus();
         if (!m_pActivePile->GetSrcPhrase()->m_bHasFreeTrans)
         {
-            pEdit->SetSelection(-1, -1); // -1, -1 selects it all
+            pEdit->SetSelection(-1,-1); // -1, -1 selects it all
         }
         else
         {
             int len = pEdit->GetValue().Length();
             if (len > 0)
             {
-                pEdit->SetSelection(len, len);
+                pEdit->SetSelection(len,len);
             }
         }
     }

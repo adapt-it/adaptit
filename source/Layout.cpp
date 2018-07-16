@@ -638,6 +638,19 @@ void CLayout::PlaceBox()
 			{
 				bSetModify = FALSE;
 				bSetTextColor = TRUE;
+				/* this doesn't do anything different
+				// BEW 25Jun18, testing the idea of cursor at end of box contents if the latter is non-empty
+				wxString text;
+				text = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+				if (!text.IsEmpty())
+				{
+					int len = text.Length();
+					m_pApp->m_nStartChar = len;
+					m_pApp->m_nEndChar = len;
+					m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection((long)len, (long)len);
+					bSetModify = TRUE;
+				}
+				*/
 				break;
 			}
 /*		case merge_op:
@@ -854,9 +867,9 @@ void CLayout::PlaceBox()
 		m_docEditOperationType = invalid_op_enum_value; // an invalid value
 
 		// wx Note: we don't destroy the target box, just set its text to null
-		m_pApp->m_pTargetBox->ChangeValue(_T(""));
+		m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 //#if defined(_DEBUG)
-//	wxLogDebug(_T("CLayout::PlaceBox() line 563: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetValue().c_str());
+//	wxLogDebug(_T("CLayout::PlaceBox() line 563: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
 //#endif
 
 		// make the phrase box size adjustments, set the colour of its text, tell it where it
@@ -898,11 +911,11 @@ void CLayout::PlaceBox()
 		{
 			if (m_pApp->m_bFreeTranslationMode && m_pApp->m_nActiveSequNum != -1)
 			{
-				m_pApp->m_pTargetBox->SetBackgroundColour(m_pApp->m_freeTransCurrentSectionBackgroundColor);
+				m_pApp->m_pTargetBox->GetTextCtrl()->SetBackgroundColour(m_pApp->m_freeTransCurrentSectionBackgroundColor);// whm 12Jul2018 added GetTextCtrl()-> part
 			}
 			else
 			{
-			m_pApp->m_pTargetBox->SetBackgroundColour(m_pApp->m_GuessHighlightColor);
+			m_pApp->m_pTargetBox->GetTextCtrl()->SetBackgroundColour(m_pApp->m_GuessHighlightColor);// whm 12Jul2018 added GetTextCtrl()-> part
 			// Note: PlaceBox() is called twice in the process of executing PhraseBox's
 			// OnePass() function (one via a MoveToNextPile call and once later in OnePass.
 			// If we reset the m_pApp->m_bIsGuess flag to FALSE here in PlaceBox()
@@ -916,7 +929,7 @@ void CLayout::PlaceBox()
 		else
 		{
 			// normal background color in target box is white
-			m_pApp->m_pTargetBox->SetBackgroundColour(wxColour(255,255,255)); // white
+			m_pApp->m_pTargetBox->GetTextCtrl()->SetBackgroundColour(wxColour(255,255,255)); // white // whm 12Jul2018 added GetTextCtrl()-> part
 		}
 		// handle the dirty flag
 		if (bSetModify)
@@ -963,7 +976,8 @@ void CLayout::PlaceBox()
 			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
             m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
             wxWindow* fwin = wxWindow::FindFocus();
-            wxLogDebug(_T("Focused window* is %p, m_pTargetBox win is %p, m_pTargetBox->GetTextCtrl() win is: %p"), fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl());
+            wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"), 
+                fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl(), m_pApp->m_pTargetBox->GetDropDownList());
         }
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -987,14 +1001,29 @@ void CLayout::PlaceBox()
 					m_pApp->m_pTargetBox->m_bAbandonable = FALSE; // If tgt text changed, it must become non-Abandonable (BEW added line 7May18)
 				}
 			}
-			m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase); // keep m_pTargetBox contents in sync with m_targetPhrase
-            m_pApp->m_pTargetBox->SetSelection(-1, -1); // whm added 23May2018 otherwise Linux version looses selection of text in phrasebox
+			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase); // keep m_pTargetBox contents in sync with m_targetPhrase
+            // whm 13Jul2018 added - if phrasebox list has > 1 items remove selection and 
+            // put insertion point at end, otherwise select all (for item count of 0 or 1)
+            long len = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
+            int itemCt = m_pApp->m_pTargetBox->GetDropDownList()->GetCount();
+            if (itemCt > 1)
+            {
+                m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+            }
+            else
+                m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // whm added 23May2018 otherwise Linux version looses selection of text in phrasebox
         }
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 985);
 #endif
 	}
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
+
+    // whm 15Jul2018 added the following bool value to determine if user presses Up or Down arrow
+    // to highlight a different item in the dropdown list before pressing Enter/Tab to leave the 
+    // current location. We initialize it to FALSE here at the end of PlaceBox() to ensure it
+    // is FALSE at each location of the phrasebox.
+    m_pApp->m_pTargetBox->bUp_DownArrowKeyPressed = FALSE; // initialized to FALSE at each location - at end of Layout's PlaceBox().
 }
 
 /*

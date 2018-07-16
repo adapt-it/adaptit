@@ -380,6 +380,8 @@ DEFINE_EVENT_TYPE(wxEVT_Join_With_Next)
 DEFINE_EVENT_TYPE(wxEVT_Join_With_Previous)
 DEFINE_EVENT_TYPE(wxEVT_Split_It)
 DEFINE_EVENT_TYPE(wxEVT_Delayed_GetChapter)
+//DEFINE_EVENT_TYPE(wxEVT_Cursor_To_End) // whm 12Jul2018 The custom event is no longer needed
+
 
 #if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
@@ -401,6 +403,15 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
 #endif
 
 // it may also be convenient to define an event table macro for the above event types
+
+// whm 12Jul2018 The following custom event is no longer needed:
+//#define EVT_CURSOR_TO_END(id, fn) \
+//    DECLARE_EVENT_TABLE_ENTRY( \
+//        wxEVT_Cursor_To_End, id, wxID_ANY, \
+//        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+//        (wxObject *) NULL \
+//    ),
+
 #define EVT_ADAPTATIONS_EDIT(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY( \
         wxEVT_Adaptations_Edit, id, wxID_ANY, \
@@ -568,6 +579,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 #endif
 
 	// Our Custom Event handlers:
+	//EVT_CURSOR_TO_END(-1, CMainFrame::OnCustomEventCursorToEnd)
 	EVT_ADAPTATIONS_EDIT(-1, CMainFrame::OnCustomEventAdaptationsEdit)
 	EVT_FREE_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventFreeTranslationsEdit)
 	EVT_BACK_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventBackTranslationsEdit)
@@ -3912,7 +3924,7 @@ void CMainFrame::OnViewModeBar(wxCommandEvent& WXUNUSED(event))
 			// restore focus to the targetBox, if it is visible
 			if (gpApp->m_pTargetBox != NULL)
 				if (gpApp->m_pTargetBox->IsShown())
-					gpApp->m_pTargetBox->SetFocus();
+					gpApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 		}
 	}
 }
@@ -4057,7 +4069,7 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			// restore focus to the targetBox, if it is visible (moved here by BEW on 18Oct06)
 			if (pApp->m_pTargetBox != NULL)
 				if (pApp->m_pTargetBox->IsShown()) // MFC could use BOOL IsWindowVisible() here
-					pApp->m_pTargetBox->SetFocus();
+					pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 		}
 		else
 		{
@@ -4202,7 +4214,7 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 		// restore focus to the targetBox, if it is visible
 		if (pApp->m_pTargetBox != NULL)
 			if (pApp->m_pTargetBox->IsShown())
-				pApp->m_pTargetBox->SetFocus();
+				pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 	}
 	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
 	// otherwise strange behavior may occur.
@@ -4527,10 +4539,21 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// it selected as if the File... New... route was taken, rather than the wiz.
 		if (pApp->m_bStartViaWizard && pApp->m_pTargetBox != NULL)
 		{
-			pApp->m_pTargetBox->SetFocus();
-			pApp->m_nEndChar = -1;
-			pApp->m_nStartChar = -1;
-			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            // whm 13Jul2018 modified with new protocol that has the phrasebox content
+            // wholly selected only when its list contains 0 or 1 items, but removes
+            // the selection and puts the insertion point at end when list contains
+            // 2 or more items.
+            int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
+            pApp->m_nEndChar = -1;
+            pApp->m_nStartChar = -1;
+            if (pApp->m_pTargetBox != NULL)
+            {
+                if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
+                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+                else
+                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); // select it all
+            }
 			pApp->m_bStartViaWizard = FALSE; // suppress this code from now on
 		}
 
@@ -4624,23 +4647,15 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		pApp->m_nInsertCount = 0;
 	}
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // whm added 10Jan2018 to support quick selection of a translation equivalent.
     if (pApp->m_bChooseTransInitializePopup)
     {
         // The App's m_bChooseTransInitializePopup flag is TRUE which means the 
         // phrasebox has landed and is 'resting' somewhere at a location 
         // after a PlaceBox() call. Here in OnIdle() we initialize
-        // the popup list open (where it contains at least one item) and 
+        // the popup list open (where it contains at least two items) and 
         // initialize the popup list closed/dismissed (where it has no items).
-
-        // whm Note: originally I tried to get/set the enable state of
-        // the dropdown's button, but that did not work since the GetButton()
-        // call always returns NULL.
-        //wxWindow* pBtn = pApp->m_pTargetBox->GetButton(); // always returns NULL so can't disable dropdown arrow button
-        //if (pBtn != NULL)
-        //{
-            //pApp->m_pTargetBox->GetButton()->Enable();
-        //}
 
         // Popup the dropdown's list if it has content, otherwise keep it closed, but only if
         // we are not moving to different pile, not auto-inserting and are not merging. 
@@ -4651,11 +4666,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
         // whm 26Feb2018 Added outer test for NULL on m_pTargetBox - Linux version OnIdle() handler initiates early
         if (pApp->m_pTargetBox != NULL)
         {
-            // whm Note: The test below could test for GetCount() > 1, if we want the dropdown list
-            // to remain closed when just one item is in the list, in which case that item is generally
+            // whm 3Jul2018 change. Changed the test below to GetCount() > 1, so that the dropdown list
+            // will remain closed when just one item is in the list. That one item is generally
             // selected and placed in the phrasebox's edit box and in the user's view, making it somewhat
             // unnecessary to have the list popped open and showing only that same single item.
-            if (pApp->m_pTargetBox->GetCount() > 0)
+            if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
             {
                 if (!pApp->m_bMovingToDifferentPile && !pApp->m_bAutoInsert && !pApp->bLookAheadMerge)
                 {
@@ -4693,6 +4708,31 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
         pApp->m_bChooseTransInitializePopup = FALSE;
     }
     
+    // whm 2Jul2018 added the following from the wxWidgets combo sample
+    // uncomment the #if 0 and #endif lines to deactivate after focus
+    // debugging is finished.
+    //
+    // This code is useful for debugging focus problems
+    // (which are plentiful when dealing with popup windows).
+//#if 0
+    static wxWindow* lastFocus = (wxWindow*)NULL;
+
+    wxWindow* curFocus = ::wxWindow::FindFocus();
+
+    if (curFocus != lastFocus)
+    {
+        const wxChar* className = wxT("<none>");
+        if (curFocus)
+            className = curFocus->GetClassInfo()->GetClassName();
+        lastFocus = curFocus;
+        wxLogDebug(wxT("FOCUSED: %s %p"),
+            className,
+            curFocus);
+    }
+//#endif
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 	// BEW 2Dec2014 Alan Buseman's Guesser - support for hiding the GuesserUpdate() calls
 	// which need to be done pretty often -- and which block the GUI whether done synchronously
 	// as is done here, or asynchronously on a thread (due to mutexes blocking KB saves and
@@ -4862,6 +4902,51 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 #endif // for _KBSERVER #defined
 
+	// More custom event handlers
+	
+	if (pApp->m_bShowCursorAtEnd)
+	{
+		// Do the work of putting the cursor at end of the selected box contents,
+		// and put the focus there too, after removing the selection
+		// Some serendipity here: if the OnLButtonDown() click is on a location
+		// where the input focus is not, then on Windows this handler is called;
+		// but any subsequent clicks on the phrasebox, this handler is NOT called,
+		// which is actually exactly what we want - otherwise, any time the user
+		// is ending in the phrasebox and uses a click to relocate the cursor in
+		// the box, it would unhelpfully jump to the end of the box contents. It
+		// doesn't do that, and I have to guess it is something to do with focus.
+		// What Linux or OSX might do remains to be seen.
+		wxString strContents = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+		int len = strContents.Length();
+        pApp->m_pTargetBox->GetTextCtrl()->SetSelection((long)len, (long)len);
+        
+        // whm 2Jul2018 added below a dummy call of GetSelection() to see if the
+        // owner drawn combo box internally was reacting correctly to the 
+        // SetSelection() call above. It is. Both the dummyStart and dummyEnd 
+        // values are detected by GetSelection() here to be the len value as
+        // set above. 
+        // Since the GetSelection() call in the OnChar() handler (just before 
+        // the WXK_BACK key is processed there) returns start and end 
+        // selection values that indicating the text has gotten selected again
+        // before reaching that point in OnChar(), I think we can conclude that
+        // something causes the content of the phrasebox to get selected again
+        // in the middle of the process of handling a press of the Backspace key.
+        long dummyStart, dummyEnd;
+        pApp->m_pTargetBox->GetTextCtrl()->GetSelection(&dummyStart, &dummyEnd);
+		pApp->m_bShowCursorAtEnd = FALSE; // we want it only the once, let user's editing happen
+
+		// BEW 2Jul18 -- the phrasebox does not respond to a Backspace properly
+		// if the list is still down, (it deletes the whole box contents) so
+		// programmatically try fix this. 
+
+		/* no help
+		if (pApp->m_pTargetBox->IsPopupShown())
+		{
+			pApp->m_pTargetBox->CloseDropDown();
+		}
+		*/
+	}
+
 	// mrh - if doc recovery is pending, we must skip all the following, since the doc won't be valid:
     if (pApp->m_recovery_pending)
         return;
@@ -4967,6 +5052,12 @@ void CMainFrame::OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event))
 
 // whm Note: this and following custom event handlers are in the View in the MFC version
 //
+void CMainFrame::OnCustomEventCursorToEnd(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->m_bShowCursorAtEnd = TRUE;
+}
+
 // The following is the handler for a wxEVT_Adaptations_Edit event message, defined in the
 // event table macro EVT_ADAPTATIONS_EDIT.
 // The wxEVT_Adaptations_Edit event is sent to the window event loop by a
@@ -4984,7 +5075,6 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 	wxLogDebug(_T("OnCustomEventAdaptationsEdit() gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
 		(int)gEditStep);
 #endif
-
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = pApp->GetView();
@@ -7288,12 +7378,12 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 #endif
 			}
 			gpApp->m_targetPhrase = strLastBoxContents;
-			gpApp->m_pTargetBox->ChangeValue(strLastBoxContents);
+			gpApp->m_pTargetBox->GetTextCtrl()->ChangeValue(strLastBoxContents);
 		}
 		else
 		{
 			gpApp->m_targetPhrase.Empty();
-			gpApp->m_pTargetBox->ChangeValue(_T(""));
+			gpApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 		}
 		// Make sure the box contents is not abandonable
 		gpApp->m_pTargetBox->m_bAbandonable = FALSE;
@@ -7393,7 +7483,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 
 #if defined(_DEBUG) && defined(_VERTEDIT)
 		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 7368: PhraseBox contents:  %s"), 
-			gpApp->m_pTargetBox->GetValue().c_str());
+			gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());// whm 12Jul2018 added GetTextCtrl()-> part
 #endif
 #if defined(_DEBUG) && defined(_VERTEDIT)
 	{
@@ -7438,7 +7528,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		}
 #if defined(_DEBUG) && defined(_VERTEDIT)
 		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 7413: PhraseBox contents:    %s"), 
-			gpApp->m_pTargetBox->GetValue().c_str());
+			gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());// whm 12Jul2018 added GetTextCtrl()-> part
 #endif
 
 		// initiate a redraw of the frame and the client area (Note, this is MFC's CFrameWnd
@@ -7464,7 +7554,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		//SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
 #if defined(_DEBUG) && defined(_VERTEDIT)
 		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 7438: PhraseBox contents:   %s"), 
-			gpApp->m_pTargetBox->GetValue().c_str());
+			gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());// whm 12Jul2018 added GetTextCtrl()-> part
 #endif
 
 		// clear by initializing (but the gEditRecord's removed data lists, which are maintained
@@ -7482,13 +7572,13 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 			pLayout->GetGapWidth(), pLayout->GetLogicalDocSize().x);
 #if defined(_DEBUG) && defined(_VERTEDIT)
 		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 7457: PhraseBox contents:  %s"), 
-			gpApp->m_pTargetBox->GetValue().c_str());
+			gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());// whm 12Jul2018 added GetTextCtrl()-> part
 #endif
 		pView->Invalidate(); // get the layout drawn
 		pLayout->PlaceBox();
 #if defined(_DEBUG) && defined(_VERTEDIT)
 		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 7463: After PlaceBox(), PhraseBox contents:  %s"), 
-			gpApp->m_pTargetBox->GetValue().c_str());
+			gpApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());// whm 12Jul2018 added GetTextCtrl()-> part
 #endif
 	}
 
@@ -8437,7 +8527,7 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 
 	// if control gets here then the copy must therefore be going to the phrase box; so
 	// store a copy of phrase box text here in case Undo Last Copy button is used later
-	gOldEditBoxTextStr = pApp->m_pTargetBox->GetValue();
+	gOldEditBoxTextStr = pApp->m_pTargetBox->GetTextCtrl()->GetValue();// whm 12Jul2018 added GetTextCtrl()-> part
 
 	// if auto capitalization is on, determine the source text's case properties
 	bool bNoError = TRUE;
@@ -8480,7 +8570,7 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	{
 		if (pApp->m_pTargetBox->IsShown())
 		{
-			pApp->m_pTargetBox->SetFocus();
+			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 			pApp->m_pTargetBox->m_bAbandonable = FALSE;
 		}
 	}

@@ -140,6 +140,13 @@ float ypos = -1;
 BEGIN_EVENT_TABLE(CAdapt_ItCanvas, wxScrolledWindow)
     EVT_PAINT(CAdapt_ItCanvas::OnPaint) // whm added 28May07
 
+    // whm 12Jul2018 Note: The the events for the following event handlers 
+    // are caught here in CAdapt_ItCanvas, but the handlers below simply
+    // call the public handlers of the same name in CPhraseBox:
+    EVT_BUTTON(ID_BMTOGGLEBUTTON_PHRASEBOX, CAdapt_ItCanvas::OnTogglePhraseBoxButton) // detected here but handled by calling CPhraseBox::OnTogglePhraseBoxButton()
+    EVT_LISTBOX(ID_DROP_DOWN_LIST, CAdapt_ItCanvas::OnListBoxItemSelected) // detected here but handled by calling CPhraseBox::OnTogglePhraseBoxButton()
+    EVT_LISTBOX_DCLICK(ID_DROP_DOWN_LIST, CAdapt_ItCanvas::OnListBoxItemSelected) // detected here but handled by calling CPhraseBox::OnTogglePhraseBoxButton()
+
 	// wx Note: wxScrollEvent only appears to intercept scroll events for scroll bars manually
 	// placed in wxWindow based windows. In order to handle scroll events for windows like
 	// wxScrolledWindow, we must use wxScrollWinEvent in the functions and EVT_SCROLLWIN macro
@@ -479,8 +486,10 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
 // to clicking on the thumb, arrows, or the paging parts of the canvas' scrollbar.
 void CAdapt_ItCanvas::OnScroll(wxScrollWinEvent& event)
 {
-    // whm added 10Jan2018 - to support dropdown CPhraseBox derived from wxOwnerDrawnComboBox
-    CAdapt_ItApp* pApp = &wxGetApp();
+    // whm added 13Jan2018 - removed the CloseDropDown() call below as it is not
+    // needed to correct problems with ghosting of the new dropdown list.
+    //CAdapt_ItApp* pApp = &wxGetApp();
+    // [NOTE explains why this was needed when phrasebox was derived from wxOwnerDrawnComboBox]
     // Since a scroll of the screen with the list popped up separates the popped up list
     // part of the comboobox from the base edit box part (actually a phantom image), we 
     // here make the popup disappear (if it was open) by calling Dismiss() in wx2.9/3.x or
@@ -491,14 +500,7 @@ void CAdapt_ItCanvas::OnScroll(wxScrollWinEvent& event)
     // the user from scrolling away to check context during adaptation. However, when the 
     // popup isn't open, the user can scroll the phrasebox-dropdown combination out of the 
     // client area.
-    if (pApp->m_pTargetBox->IsPopupShown()) // bDropDownIsPoppedOpen is always false in wx2.8.12 :(
-    {
-#if wxVERSION_NUMBER < 2900
-        pApp->GetMainFrame()->SendSizeEvent(); // causes the dropdown list to close
-#else
-        pApp->m_pTargetBox->Dismiss();
-#endif     
-    }
+    //pApp->m_pTargetBox->CloseDropDown();
 
     event.Skip();	// this is necessary for the built-in scrolling behavior of wxScrolledWindow
 					// to be processed
@@ -512,6 +514,22 @@ bool CAdapt_ItCanvas::IsModified() const
 
 void CAdapt_ItCanvas::DiscardEdits()
 {
+}
+
+// whm 12Jul2018 Note: This PhraseBox Button handler only forwards event handling
+// to the handler of the same name in CPhraseBox.
+void CAdapt_ItCanvas::OnTogglePhraseBoxButton(wxCommandEvent & event)
+{
+    CAdapt_ItApp* pApp = &wxGetApp();
+    pApp->m_pTargetBox->OnTogglePhraseBoxButton(event);
+}
+
+// whm 12Jul2018 Note: This PhraseBox Button handler only forwards event handling
+// to the handler of the same name in CPhraseBox.
+void CAdapt_ItCanvas::OnListBoxItemSelected(wxCommandEvent & event)
+{
+    CAdapt_ItApp* pApp = &wxGetApp();
+    pApp->m_pTargetBox->OnListBoxItemSelected(event);
 }
 
 // BEW 22Jun10, no changes needed for support of kbVersion 2
@@ -940,8 +958,8 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 				{
 					if (pApp->m_pTargetBox->IsShown())
 					{
-						pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
-						pApp->m_pTargetBox->SetFocus();
+						pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+						pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 					}
 				}
 y:				; // I may put some code here later
@@ -993,8 +1011,8 @@ y:				; // I may put some code here later
 					{
 						if (pApp->m_pTargetBox->IsShown())
 						{
-							pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
-							pApp->m_pTargetBox->SetFocus();
+							pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+							pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 						}
 					}
 					gbJustReplaced = FALSE; // clear to default value
@@ -1072,6 +1090,25 @@ x:					CCell* pCell = 0;
 					// save old sequ number in case required for toolbar's Back button
                     pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
+					pApp->m_nOnLButtonDownEntranceCount++; // set cache only for the count equalling 1, we allow two entrances
+					
+					// BEW 28Jun18 also cache this value for using within PlacePhraseBox to define 
+					// pOldActivePile pointer but beware, OnLButtonDown() is, also called a 2nd time
+					// in FilterEvent() and by that time the active location will have moved from
+					// the kick off location (unless use clicked the active location, of course)
+					// and so we must suppress updating the cached value on the second call
+					if (pApp->m_nOnLButtonDownEntranceCount == 1)
+					{
+						pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
+						wxLogDebug(_T(" OnLButtonDown() 1085, setting m_nCacheLeavingLocation, cached sequ num = %d"),
+							pApp->m_nCacheLeavingLocation);
+					}
+					else
+					{
+						// second entrance, so reset the count to 0
+						pApp->m_nOnLButtonDownEntranceCount = 0;
+					}
+
 					// BEW 7May18. We use the fact that OnLButtonDown() is never called when there is a user
 					// click on the dropdown-based phrasebox to advantage. If control has entered and gets
 					// to this point, then the click must have been to a pile which is not the current active
@@ -1102,8 +1139,8 @@ x:					CCell* pCell = 0;
 					{
 						if (pApp->m_pTargetBox->IsShown())
 						{
-							pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
-							pApp->m_pTargetBox->SetFocus();
+							pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+							pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 						}
 					}
 					gbHaltedAtBoundary = FALSE;
@@ -1164,7 +1201,7 @@ x:					CCell* pCell = 0;
 					wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
-					pApp->m_pTargetBox->SetFocus();
+					pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 					return;
 				}
 				else
@@ -1187,7 +1224,7 @@ x:					CCell* pCell = 0;
 					wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
-					pApp->m_pTargetBox->SetFocus();
+					pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 					return;
 				}
 				else
@@ -1211,7 +1248,7 @@ x:					CCell* pCell = 0;
 					wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
-					pApp->m_pTargetBox->SetFocus();
+					pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 					return;
 				}
 				else
@@ -1592,7 +1629,7 @@ x:					CCell* pCell = 0;
 							// put the focus back in the former place
 							if (pApp->m_pTargetBox != NULL)
 								if (pApp->m_pTargetBox->IsShown())
-									pApp->m_pTargetBox->SetFocus();
+									pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 							return;
 						}
 					}
@@ -1839,12 +1876,14 @@ x:					CCell* pCell = 0;
 							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
 							// is done at the leaving location, but a removal from the KB
 							// will be done at the landing location
+
 						}
 						else if (pApp->m_pTargetBox->m_bAbandonable)
 						{
                             pApp->m_pTargetBox->m_Translation.Empty();
 							pApp->m_targetPhrase.Empty();
-							pApp->m_pTargetBox->ChangeValue(_T(""));
+							pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
+
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 							pApp->LogDropdownState(_T("OnLButtonDown() m_bAbandonable TRUE block, before calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1835);
 #endif
@@ -1889,6 +1928,15 @@ x:					CCell* pCell = 0;
 #endif
 							}
 						}
+						// BEW added 30Jun18 - to support AuSIL request for cursor at end
+                        // whm 12Jul2018 removed custom event and re-instated SetSelection(len,len) here
+                        long len = (long)pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
+                        pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+
+                        // whm 12Jul2018 The following custom event is no longer needed:
+                        //wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
+                        //wxPostEvent(pApp->GetMainFrame(), eventCursorToEnd);
+
 						ScrollIntoView(pApp->m_nActiveSequNum);
 					}
 
@@ -2051,46 +2099,6 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 		// function but it does what we want)
 		CPile* pCurPile = NULL;
 		CCell* pCell = pView->GetClickedCell(&point); // returns NULL if point was not in a cell
-
-		// BEW 1May18 - try injecting the code for simulating a click on the wxOwnerDrawnComboBox
-		// here
-
-		// BEW 1May18 Inserted code for checking if the point clicked is within the cell rectangle in which
-		// the phrasebox (based on a mixed class of text box and combo control etc,) a wxOwnerDrawnComboBox class,
-		// is currently located. If it is within, then we post a custom event to the event queue, trapping it in
-		// CMainPrame::OnIdle(), with handler within CMainFrame. In the handler we do whatever it takes to simulate
-		// a legacy click on the old version's of Adapt It's wxTextCtrl-based phrasebox. Can't do the same with
-		// the owner drawn combo box because the click is intercepted by the combobox, not the embedded text control.
-		// So we have to do it this round-about way. When we get the right pile & the right cell within it, these
-		// will be in logical coordinates, so we'll need to convert our clicked point to logical coords before we
-		// test for the click being within the cell's rectangle. Here goes...
-		// Nope, this OnLButtonUp() does not get called when clicking over the combobox --  try find another way.
-		/* keep the code in case I find a way
-		if (!pApp->m_pSourcePhrases->IsEmpty() && !gbIsGlossing && pApp->m_bKBReady)
-		{
-			wxPoint clickPt = point;
-			wxRect  cellRect; // to be calculated herein
-							  // get the point into logical coordinates
-			wxClientDC clientDC(this); // make a device context for this job, on the stack
-			DoPrepareDC(clientDC); // get origin adjusted into logical coords (calls wxScrolledWindow::DoPrepareDC)
-			wxPoint logicalClickPoint(event.GetLogicalPosition(clientDC));
-			// We now have logicalClickPoint calculated. Next, we must get the pile list and get the pile
-			// which contains the reference to the active source phrase where the wxOwnerDrawnComboBox is
-			CPile* pPile = NULL;
-			CCell* pCell = NULL;
-			pPile = pApp->m_pActivePile;
-			int sequNum = pPile->GetSrcPhrase()->m_nSequNumber; // this is also a valid index into the pile list
-			CLayout* pLayout = pApp->GetLayout();
-			pPile = pLayout->GetPile(sequNum);
-			pCell = pPile->GetCell(1);  // we want the 2nd line, for phrase box
-			pCell->GetCellRect(cellRect);
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-			wxString msg = _T("OnLButtonUp() line 2064 of Canvas, Logical clicked point (x = %d, y = %d) Logical cell rect (x %d, y %d, width %d, height %d)");
-			msg = msg.Format(msg, logicalClickPoint.x, logicalClickPoint.y, cellRect.x, cellRect.y, cellRect.width, cellRect.height);
-			wxLogDebug(msg);
-#endif
-		}
-		*/
 
 		// BEW added 03Oct08 for support of vertical editing, to prevent dragging
 		// a selection into the gray text area either side of the editable span

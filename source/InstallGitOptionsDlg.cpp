@@ -92,8 +92,8 @@ CInstallGitOptionsDlg::~CInstallGitOptionsDlg() // destructor
 void CInstallGitOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
     //InitDialog() is not virtual, no call needed to a base class
-    GitInstallerFileName = _T("Git-2.12.1-32-bit.exe");
-    GitDownloadInstallerFileName = _T("Git_Downloader_2_12_1_4AI.exe");
+    GitInstallerFileName = _T("Git-2.18.0-32-bit.exe");
+    GitDownloadInstallerFileName = _T("Git_Downloader_2_18_0_4AI.exe");
     needsRestartMsg = _("The computer will need to restart before Git will be activated and the document histories can be managed. After closing this dialog, quit Adapt It, and then restart your computer. The next time you run Adapt It the document history items will work on the Adapt It File menu.");
     bGitInstalled = FALSE;
     GitSetupURL = _T("http://www.adapt-it.org/") + GitInstallerFileName;
@@ -170,7 +170,7 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
             else
             {
                 // 
-                msg = msg + _("If you have not previously downloaded the Git installer (36MB) and you have Internet access, the recommended way to obtain the Git program is to run the Adapt It installer again and choose to have it automatically download and install the Git program with the correct settings.\n\n");
+                msg = msg + _("If you have not previously downloaded the Git installer (40MB) and you have Internet access, the recommended way to obtain the Git program is to run the Adapt It installer again and choose to have it automatically download and install the Git program with the correct settings.\n\n");
             }
             // Remind the administrator/user that once Git has been downloaded once, that
             // installer will be preserved in the Adapt It installation folder where it could be
@@ -191,11 +191,11 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
     }
     else if (pRadioBtnDownloadAndInstallGitFromInternet->GetValue())
     {
-        // Note: Since Git_Downloader_2_12_1_4AI.exe is designed so that it can be used as a standalone
+        // Note: Since Git_Downloader_2_18_0_4AI.exe is designed so that it can be used as a standalone
         // downloader/installer is handles checking to see if Git is already installed, and it will
         // issue the following Yes/No confirmation prompt if Git is already installed:
         // "The Git program is already installed. If Git is not working properly, you can download 
-        // a fresh copy (36MB) and reinstall it. Would you like to download and reinstall Git?" [Yes] [No]
+        // a fresh copy (40MB) and reinstall it. Would you like to download and reinstall Git?" [Yes] [No]
         // If the user responds 'Yes' the download and installation proceed. If the user responds 'No'
         // another message says:
         // The installer will now quit without trying to reinstall Git. The recommended way to install 
@@ -203,18 +203,18 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
         // downloaded separately (from: http://git-scm.com/downloads) and installed at a later time 
         // after this installer has finished." [OK]
 
-        // Call our small Git_Downloader_2_12_1_4AI.exe Git program to download and install the 
-        // the actual Git installer. The local path of our small Git_Downloader_2_12_1_4AI.exe
+        // Call our small Git_Downloader_2_18_0_4AI.exe Git program to download and install the 
+        // the actual Git installer. The local path of our small Git_Downloader_2_18_0_4AI.exe
         // should be stored in GitDownloadInstallerPathAndName.
         wxString commandLine;
         // Our small installer doesn't need any command-line arguments. It internally uses the 
         // "/SILENT" and "/NORESTART" options.
-        // First it downloads the actual Git installer called "Git-2.12.1-32-bit.exe" saving it in the 
+        // First it downloads the actual Git installer called "Git-2.18.0-32-bit.exe" saving it in the 
         // C:\Program Files (x86)\Adapt It WX Unicode\ folder, then it executed the downloaded Git installer
         // which has a nice progress bar, but suppresses the usual wizard pages. The Git installer is supposed
         // to disappear automatically when installation is finished but may present a "Completed" page with
         // "Finish" button for the user to click.
-        commandLine = GitDownloadInstallerPathAndName; // typically: "C:\Program Files (x86)\Adapt It WX Unicode\Git_Downloader_2_12_1_4AI.exe"
+        commandLine = GitDownloadInstallerPathAndName; // typically: "C:\Program Files (x86)\Adapt It WX Unicode\Git_Downloader_2_18_0_4AI.exe"
         long result = -1;
         wxArrayString outputMsg;
         wxArrayString errorsMsg;
@@ -292,7 +292,7 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
             // User opted to not use the existing Git installer that we found, perhaps because
             // the user wants to use a different (updated) one from a thumb drive, so present 
             // the file dialog and allow navigating to the desired installer.
-            wxString Prompt = _("Select a Git installer file, for example Git-2.12.1-32-bit.exe [version 2.12.1 numbers may vary]");
+            wxString Prompt = _("Select a Git installer file, for example Git-2.18.0-32-bit.exe [version 2.18.0 numbers may vary]");
             wxString FileName = _T("Git-*.exe");
             wxString InitialDirectory = PathToAIInstallation;
             wxString Filter = _("Git Installer (Git*.exe)|*.exe|All Files (*.*)|*.*||");
@@ -312,8 +312,8 @@ void CInstallGitOptionsDlg::OnOK(wxCommandEvent& event)
                 GitInstallerPathAndName = fileDlg.GetPath();
                 // Note: The user picked file could be anything, but hopefully with the help of the file dialog's
                 // specified InitialDirectory, Filter, and the supplied FileName pattern above, the choice would 
-                // be the normal Git installer, i.e., Git-2.12.1-32-bit.exe. If the user tries, it is possible for her/him to 
-                // select our small installer named Git_Downloader_2_12_1_4AI.exe instead. That would still work, but
+                // be the normal Git installer, i.e., Git-2.18.0-32-bit.exe. If the user tries, it is possible for her/him to 
+                // select our small installer named Git_Downloader_2_18_0_4AI.exe instead. That would still work, but
                 // might lead to additional/unnecessary prompts to the user.
                 
                 wxString commandLine;

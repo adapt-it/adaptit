@@ -1356,7 +1356,7 @@ void CPunctCorrespPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
             gpApp->m_pTargetBox->m_Translation = boxValue;
 		}
 		gpApp->m_targetPhrase = boxValue;
-		gpApp->m_pTargetBox->ChangeValue(boxValue);
+		gpApp->m_pTargetBox->GetTextCtrl()->ChangeValue(boxValue);
 		gpApp->GetView()->PlacePhraseBox(gpApp->m_pActivePile->GetCell(1),2);
 		gpApp->GetView()->Invalidate();
 	}

@@ -65,7 +65,7 @@ extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this 
                             // be changed in the NRoman version, using the extra Layout menu
 extern bool gbVerticalEditInProgress;
 
-extern int ID_PHRASE_BOX;
+//extern int ID_PHRASE_BOX;
 
 // ******************************************************************************************
 // ************************* CChooseTranslation dialog class ********************************
@@ -246,12 +246,25 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// user should type / explicitly between words when he types into that box.
 	PopulateList(gpApp->pCurTargetUnit, 0, No);
 
-	// select the first string in the listbox by default
+	// select the first string in the listbox by default?
+	// BEW changed 21Jun18; if the list is set to be dropped down automatically
+	// when the phrasebox lands somewhere, then it will have a selection made
+	// in most cases - so pick up this selection index and use that as the default
+	// provided it is not wxNOT_FOUND (i.e. not -1)
+
 	// BEW changed 3Dec12, if the list box is empty, the ASSERT below trips. So we need a test
 	// that checks for an empty list, and sets nothing in that case
 	if (!m_pMyListBox->IsEmpty())
 	{
-		m_pMyListBox->SetSelection(0);
+		m_pMyListBox->SetSelection(0); // initialize to zero in case no better value is available
+
+		// BEW 21Jun18 added, as explained above; in order to sync the indices for the selection
+		// between Choose Translation's list and the phrasebox dropdown's (open) list
+		int curIndex = gpApp->m_pTargetBox->GetDropDownList()->GetSelection(); // the current index for the dropdown list selection
+		if (curIndex != wxNOT_FOUND && gpApp->m_bAutoOpenPhraseboxOnLanding)
+		{
+			m_pMyListBox->SetSelection(curIndex);
+		}
 		wxString str = m_pMyListBox->GetStringSelection();
 		int nNewSel = gpApp->FindListBoxItem(m_pMyListBox, str, caseSensitive, exactString);
 		wxASSERT(nNewSel != -1);
@@ -282,11 +295,15 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		pButton->Show(FALSE);
 	}
 
+	// BEW 2Jul18 -- the ChooseTranslation dialog will not work right if the combobox list is
+	// open, so programmatically close it here if it is showing
+    gpApp->m_pTargetBox->CloseDropDown();
+
 	//TransferDataToWindow(); // whm removed 21Nov11
 	m_pEditReferences->ChangeValue(m_refCountStr); // whm added 21Nov11
 
-												   // place the dialog window so as not to obscure things
-												   // work out where to place the dialog window
+	// place the dialog window so as not to obscure things
+	// work out where to place the dialog window
 	gpApp->GetView()->AdjustDialogPosition(this);
 
 	m_pMyListBox->SetFocus();
@@ -1158,21 +1175,18 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 			// PlacePhraseBox(), PlaceBox(), ScrollIntoView(), RemoveRefString() not so - there's no location change
 			// in the phrasebox.
 		pApp->m_targetPhrase = m_chosenTranslation;
-        // whm 3Jun2018 changes to not use wxTextEntry class directly. Travis CI uses wx2.8.12 which knows nothing of wxTextEntry
-		//wxTextEntry* pTextEntry = pApp->m_pTargetBox->GetTextCtrl();
-		// check what's in it currently
-        wxString currentStr = pApp->m_pTargetBox->GetValue(); // pTextEntry->GetValue();
-		wxLogDebug(_T("m_pTargetBox->GetValue(),  returns currentStr:  %s"), currentStr.c_str());
-		pApp->m_pTargetBox->SetModify(TRUE);
+        wxString currentStr = pApp->m_pTargetBox->GetTextCtrl()->GetValue(); // whm 12Jul2018 added ->GetTextCtrl() part
+		wxLogDebug(_T("m_pTargetBox->GetTextCtrl()->GetValue(),  returns currentStr:  %s"), currentStr.c_str());
+		pApp->m_pTargetBox->SetModify(TRUE); // SetModify() internally calls this->GetTextCtrl()->MarkDirty() or this->GetTextCtrl()->DiscardEdits()
 
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 		wxLogDebug(_T("\n\nChooseTranslation OnOK(), line  %d  - Starting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 1153,
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 		// Get the chosen translation string into the dropdown combobox's text entry control
-        pApp->m_pTargetBox->ChangeValue(m_chosenTranslation); // doesn't generate a wxEVT_TEXT event
+        pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_chosenTranslation); // doesn't generate a wxEVT_TEXT event
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-		wxLogDebug(_T("m_pTargetBox->GetModify()  returns 1 or 0: value is  %d"), (int)pApp->m_pTargetBox->GetModify());
+		wxLogDebug(_T("m_pTargetBox->GetTextCtrl()->GetModify()  returns 1 or 0: value is  %d"), (int)pApp->m_pTargetBox->GetTextCtrl()->GetModify());
 		// check if it got entered
 		wxString updatedStr = pTextEntry->GetValue();
 		wxLogDebug(_T("pTextEntry->GetValue() returns updatedStr:  %s"), updatedStr.c_str());
@@ -1227,10 +1241,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 #endif
 			}
 			// Close the dropdown list if not already closed, then clobber its contents
-			if (pApp->m_pTargetBox->IsPopupShown())
-			{
-				pApp->m_pTargetBox->CloseDropDown();
-			}
+			pApp->m_pTargetBox->CloseDropDown();
 			pApp->m_pTargetBox->ClearDropDownList();
 
 			// Now populate the dropdown list again, from the pCurTargetUnit pointer, and set the
@@ -1251,10 +1262,34 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 				if (pTargetUnit != NULL)
 				{
 					pApp->m_pTargetBox->PopulateDropDownList(pTargetUnit, selectionIndex, bNoAdaptationFlagPresent, indexOfNoAdaptation);
-					wxASSERT(selectionIndex == nRefStrCount - 1); // verify it is indeed last in the list
+					// BEW 2Jul18
+					// wxASSERT(selectionIndex == nRefStrCount - 1); // verify it is indeed last in the list
+					// With the dropdown combobox phrasebox I was able to generate a sequence of GUI ops that
+					// caused the above assert to trip. a. change the meaning b. click elsewhere. c click back
+					// on same location. Choose Translation, add new meaning in text control, click OK to 
+					// accept, and the assert tripped: with selectionIndex = 0 but nRefStrCount = 2, so that
+					// we get 0 == 1 which is a fail. So I'll force the selection to be last instead.
+					selectionIndex = nRefStrCount - 1;
 				}
 				// set the icon button for the phrasebox
-				pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);
+                // whm 12Jul2018 modified Previously used nRefStrCount here, but nRefStrCount may change 
+                // within the PopulateDropDownList() call above. 
+                // Set the "X" button on the dropdown control for when list count <= 1 items. 
+                // and set the normal down-arrow button for when list count is > 1 items. See below where I've also added
+                // an else if (nRefStrCount == 0) block where we now set the control to have the "X" button (previously
+                // no explicit change was made to the button appearance for the item count == 0 case).
+                if (pApp->m_pTargetBox->GetDropDownList()->GetCount() <= 1)
+                {
+                    // Set the "X" button
+                    pApp->m_pTargetBox->SetButtonBitMapXDisabled();
+                    //pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
+                }
+                else
+                {
+                    // Set the normal down-arrow button
+                    pApp->m_pTargetBox->SetButtonBitMapNormal();
+                    //pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);
+                }
 
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 				wxLogDebug(_T("ChooseTranslation OnOK(), line  %d  - after Populate...(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 1244,
@@ -1266,7 +1301,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 				// dropdown's list item at the designated selectionIndex parameter. The
 				// SetSelection() with two parameters operates to select a substring of text
 				// within the dropdown's edit box, delineated by the two parameters.
-				pApp->m_pTargetBox->SetSelection(selectionIndex);
+				pApp->m_pTargetBox->GetDropDownList()->SetSelection(selectionIndex);
 				// whm 7Mar2018 addition - SetSelection() highlights the item in the list, and it
 				// also has a side effect in that it automatically copies the item string from the 
 				// dropdown list (matching the selectionIndex) into the dropdown's edit box.
@@ -1276,13 +1311,20 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 				// could be done here - but it may not be needed, adjustment on moving the phrasebox
 				// should happen, if necessary, without further intervention
 
-				//pApp->m_pTargetBox->SetFocus(); BEW removed because this call always fails, even though wx's window.cpp is found, etc
+				//pApp->m_pTargetBox->GetTextCtrl()->SetFocus(); BEW removed because this call always fails, even though wx's window.cpp is found, etc
 				// The PopulateDropDownList() function determined a selectionIndex to use
 				int index = selectionIndex;
-				pApp->m_targetPhrase = pApp->m_pTargetBox->GetString(index);
-				pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
-				pApp->m_pTargetBox->SetSelection(index);
-				pApp->m_pTargetBox->SetSelection(-1, -1); // select all
+				pApp->m_targetPhrase = pApp->m_pTargetBox->GetDropDownList()->GetString(index);
+				pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+				pApp->m_pTargetBox->GetDropDownList()->SetSelection(index);
+
+                // whm 13Jul2018 modified SetSelection to select all when nRefStrCount is 0 or 1,
+                // otherwise (for nRefStrCount > 1) remove selection and place insertion point at end 
+                int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
+                if (nRefStrCount > 1)
+                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+                else
+				    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
 				// This next line is essential. Without it, the phrasebox will seem right, but moving away by
 				// a click or by Enter key will leave a hole at the old location - the reason is that the
 				// PlacePhraseBox() call uses m_pTargetBox->m_SaveTargetPhrase to put the old location's
@@ -1306,6 +1348,12 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 #endif
 
 			} // end TRUE block for test: if (nRefStrCount > 0)
+            else if (pApp->m_pTargetBox->GetDropDownList()->GetCount() == 0) // whm 5Jul2018 added the following else block
+            {
+                // Set the "X" button
+                pApp->m_pTargetBox->SetButtonBitMapXDisabled();
+                //pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
+            }
 
 		}
 		// ==============================================================================

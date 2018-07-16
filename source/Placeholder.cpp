@@ -1410,10 +1410,10 @@ m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
 	if (bRestoreTargetBox)
 	{
 		// restore focus, and selection if any
-		m_pApp->m_pTargetBox->SetFocus();
+		m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 		if (m_pApp->m_nStartChar != m_pApp->m_nEndChar)
 		{
-			m_pApp->m_pTargetBox->SetSelection(m_pApp->m_nStartChar, m_pApp->m_nEndChar); 
+			m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(m_pApp->m_nStartChar, m_pApp->m_nEndChar); 
 		}
 		
 		// scroll into view, just in case a lot were inserted
@@ -2426,7 +2426,7 @@ void CPlaceholder::OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event)
 		else
 		{
 			wxWindow *focus = wxWindow::FindFocus();
-			if (focus != NULL && m_pApp->m_pTargetBox == focus) // don't use GetHandle() on m_pTargetBox here !!!
+			if (focus != NULL && m_pApp->m_pTargetBox->GetTextCtrl() == focus) // don't use GetHandle() on m_pTargetBox here !!! // whm 12Jul2018 added ->GetTextCtrl() part
 			{
 				if (m_pApp->m_pActivePile != NULL && m_pApp->m_pActivePile->GetSrcPhrase() != NULL)
 				{
@@ -2489,7 +2489,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		m_pApp->m_targetPhrase.Empty();
 		if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown())
 		{
-			m_pApp->m_pTargetBox->ChangeValue(_T(""));
+			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 		}
 	}
 
@@ -2833,7 +2833,7 @@ void CPlaceholder::OnUpdateButtonNullSrc(wxUpdateUIEvent& event)
 	{
 		// BEW changed 24Jan13, to make the test more robust
 		if ((!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1 ) || 
-			(m_pApp->m_pTargetBox->IsShown() && (m_pApp->m_pTargetBox == wxWindow::FindFocus())))
+			(m_pApp->m_pTargetBox->IsShown() && (m_pApp->m_pTargetBox->GetTextCtrl() == wxWindow::FindFocus()))) // whm 12Jul2018 added ->GetTextCtrl() part
 		{
 			bCanInsert = TRUE;
 		}

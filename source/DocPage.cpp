@@ -1102,8 +1102,8 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
             if (pApp->m_pTargetBox->GetHandle() != NULL && !pApp->m_targetPhrase.IsEmpty()
                 && (pApp->m_pTargetBox->IsShown()))
             {
-                int len = pApp->m_pTargetBox->GetLineLength(0); // line number zero
-                                                                // for our phrasebox
+                int len = pApp->m_pTargetBox->GetTextCtrl()->GetLineLength(0); // line number zero
+                                                                // for our phrasebox // whm 12Jul2018 added GetTextCtrl()-> part
                 pApp->m_nStartChar = len;
                 pApp->m_nEndChar = len;
                 // whm 27Apr2018 Note: The following SetFocus() call
@@ -1113,7 +1113,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
                 // It is annoying to see it appear in the output window but
                 // it is of unknown cause and apparently harmless.
                 // The else block below probably also generates the API error output.
-                pApp->m_pTargetBox->SetFocus();
+                pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
             }
             else
             {
@@ -1121,7 +1121,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
                 {
                     pApp->m_nStartChar = 0;
                     pApp->m_nEndChar = 0;
-                    pApp->m_pTargetBox->SetFocus();
+                    pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
                 }
             }
 		}

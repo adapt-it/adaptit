@@ -39,7 +39,8 @@
 
 
 *.xcuserstate
-/bin/win32/Adapt_It.VC.opendb
+/bin/win32/*.opendb
 /bin/win32/Adapt_It.VC.db
 /setup Git/Git_Downloader_2_12_1_4AI.exe
 /bin/win32/Adapt_It.aps
+/setup Git/Git_Downloader_2_18_0_4AI.exe
