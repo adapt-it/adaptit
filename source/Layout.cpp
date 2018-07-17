@@ -1024,6 +1024,11 @@ void CLayout::PlaceBox()
     // current location. We initialize it to FALSE here at the end of PlaceBox() to ensure it
     // is FALSE at each location of the phrasebox.
     m_pApp->m_pTargetBox->bUp_DownArrowKeyPressed = FALSE; // initialized to FALSE at each location - at end of Layout's PlaceBox().
+
+    // whm 16Jul2018 added to implement undo of phrasebox changes via Esc key. We initialize it
+    // to an empty string in the CPhraseBox constructor, but here in PlaceBox() we assign it the 
+    // initial content of the phrasebox near.
+    m_pApp->m_pTargetBox->initialPhraseBoxContentsOnLanding = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
 }
 
 /*

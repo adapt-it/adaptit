@@ -599,6 +599,11 @@ CPhraseBox::CPhraseBox(wxWindow * parent, wxWindowID id, const wxString & value,
     // each location within the Layout's PlaceBox() function.
     bUp_DownArrowKeyPressed = FALSE; // initialized to FALSE at each location - at end of Layout's PlaceBox().
 
+    // whm 16Jul2018 added to implement undo of phrasebox changes via Esc key. We initialize it
+    // to an empty string here, but it gets assigned the initial content of the phrasebox near the
+    // end of the Layout's PlaceBox() function.
+    initialPhraseBoxContentsOnLanding = _T("");
+
     //  /* XPM */
     const char * xpm_dropbutton_normal[] = {
         /* columns rows colors chars-per-pixel */
@@ -6337,6 +6342,14 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 			this->Refresh();
 			return;
 		}
+        else
+        {
+            // The Esc key was pressed in order to effect an undo - that is restore the original
+            // value to the phrasebox that it had on landing at the current location. This allows 
+            // the user to change the phrasebox back to its original content after doing edits,
+            // or after selecting a list item that was not intended, etc.
+            this->GetTextCtrl()->ChangeValue(initialPhraseBoxContentsOnLanding);
+        }
 	}
     // whm 13Jul2018 added handlers for WXK_DOWN and WXK_UP in order for those arrow keys
     // to be able to move the highlight within the new phrasebox's dropdown list when pressed
