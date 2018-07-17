@@ -163,6 +163,7 @@ public:
     void PopupDropDownList();
     void HidePhraseBox();
     void SetSizeAndHeightOfDropDownList(int width);
+    wxString GetListItemAdjustedforPhraseBox(bool bSetEmptyAdaptationChosen);
     bool bUp_DownArrowKeyPressed; // initialized to FALSE at each location - at end of Layout's PlaceBox().
     wxString initialPhraseBoxContentsOnLanding; // whm 16Jul2018 added to implement undo of phrasebox changes via Esc key
 

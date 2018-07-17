@@ -2332,6 +2332,56 @@ void CPhraseBox::SetSizeAndHeightOfDropDownList(int width)
     pApp->m_pTargetBox->GetDropDownList()->SetSize(width, totalY);
 }
 
+// whm 17Jul2018 added the following function to return the selected dropdown list
+// string, modified for insertion into the phrasebox or for comparison with existing
+// phrasebox contents. The function does the following adjustments to the list item
+// string before returning it:
+// 1. Removes any _("<no adaptation>") list item value as it doesn't belong in the phrasebox
+// 2. If the parameter bSetEmptyAdaptationChosen is TRUE, it sets the m_bEmptyAdaptationChosen
+//    member to TRUE to informs code elsewhere that the empty string represents a no adaptation
+//    choice on part of user.
+// 3. Calls FwdSlashtoZWSP() on the list item string.
+// 4. Adjusts the string for case if gbAutoCaps && gbSourceIsUpperCase.
+// 5. Returns the processed string to the caller.
+// Called From: GetListItemAdjustedforPhraseBox() is called from two places:
+//   From: OnListBoxItemSelected() to process a list item before inserting it into the phrasebox - with TRUE parameter
+//   From: CPhraseBox::OnKeyUp()'s Enter/Tab handling - to compare list item string with phrasebox contents with FALSE parameter
+wxString CPhraseBox::GetListItemAdjustedforPhraseBox(bool bSetEmptyAdaptationChosen)
+{
+    wxString s;
+    s = s.Format(_("<no adaptation>")); // get "<no adaptation>" ready in case needed
+
+    wxString selItemStr;
+    selItemStr = this->GetDropDownList()->GetStringSelection();
+    wxLogDebug(_T("List Item Selected: %s"), selItemStr.c_str());
+    if (selItemStr == s)
+    {
+        selItemStr = _T(""); // restore null string
+        if (bSetEmptyAdaptationChosen)
+            m_bEmptyAdaptationChosen = TRUE; // set the m_bEmptyAdaptationChosen global used by PlacePhraseBox
+    }
+
+    //#if defined(FWD_SLASH_DELIM)
+    // BEW added 23Apr15 - in case the user typed a translation manually (with / as word-delimiter)
+    // convert any / back to ZWSP, in case KB storage follows. If the string ends up in m_targetBox
+    // then the ChangeValue() call within CPhraseBox will convert the ZWSP instances back to forward
+    // slashes for display, in case the user does subsequent edits there
+    selItemStr = FwdSlashtoZWSP(selItemStr);
+    //#endif
+
+    if (gbAutoCaps && gbSourceIsUpperCase)
+    {
+        bool bNoError = gpApp->GetDocument()->SetCaseParameters(selItemStr, FALSE);
+        if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+        {
+            // make it upper case
+            selItemStr.SetChar(0, gcharNonSrcUC);
+        }
+    }
+
+    return selItemStr;
+}
+
 // return TRUE if we made a match and there is a translation to be inserted (see static var
 // below); return FALSE if there was no match. This function assumes that the pNewPile pointer
 // passed in is the active pile, and that CAdapt_ItApp::m_nActiveSequNum is the correct
@@ -5888,15 +5938,16 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
             // we interpret the Enter/Tab press as a selection action, put the newly
             // highlighted list item into the phrasebox's edit box and stay put.
 
-            // TODO: BEW to check and advise
-            // Note that a list item may be "<no adaptation>" or "<no gloss>",
-            // but its representation in the phrase box will be a null "" string. Also
-            // when autocaps is active there may be case differences between strings in
-            // the dropdown list and those in the phrasebox. Hence, I would think that
-            // in the following strings comparison, the list item string should first 
-            // be adjusted for case and/or a <no adaptation> string set to a null "" 
-            // string before the comparison BEFORE the following comparison. 
-            if (this->GetDropDownList()->GetStringSelection() != this->GetTextCtrl()->GetValue())
+            // Note that a list item may be "<no adaptation>" or not adjusted for case 
+            // or FwdSlashtoZWSP considerations. We need to compare apples with apples here.
+            // The function GetListItemAdjustedforPhraseBox(FALSE) makes the adjustment 
+            // to the list item's string - for accurate comparison with the phrasebox 
+            // contents (which has already been adjusted). The FALSE parameter is used here
+            // since we are only comparing the list item string with the phrasebox content,
+            // and not assigning the list item to the phrasebox as is done in the
+            // OnListBoxItemSelected() handler where GetListItemAdjustedforPhraseBox(TRUE)
+            // is used.
+            if (this->GetListItemAdjustedforPhraseBox(FALSE) != this->GetTextCtrl()->GetValue())
             {
                 // The selected item string is different from what is in the phrasebox's
                 // edit box, so we interpret the Enter/Tab key press to put the current
@@ -7414,36 +7465,9 @@ void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & WXUNUSED(event))
 {
     // This is only called when a list item is selected, not when Enter pressed 
     // within the dropdown's edit box
-    wxString s;
-    // IDS_NO_ADAPTATION
-    s = s.Format(_("<no adaptation>")); // get "<no adaptation>" ready in case needed
 
     wxString selItemStr;
-    selItemStr = this->GetDropDownList()->GetStringSelection(); //GetValue();
-    wxLogDebug(_T("List Item Selected: %s"), selItemStr.c_str());
-    if (selItemStr == s)
-    {
-        selItemStr = _T(""); // restore null string
-        m_bEmptyAdaptationChosen = TRUE; // set the m_bEmptyAdaptationChosen global used by PlacePhraseBox
-    }
-
-    //#if defined(FWD_SLASH_DELIM)
-    // BEW added 23Apr15 - in case the user typed a translation manually (with / as word-delimiter)
-    // convert any / back to ZWSP, in case KB storage follows. If the string ends up in m_targetBox
-    // then the ChangeValue() call within CPhraseBox will convert the ZWSP instances back to forward
-    // slashes for display, in case the user does subsequent edits there
-    selItemStr = FwdSlashtoZWSP(selItemStr);
-    //#endif
-
-    if (gbAutoCaps && gbSourceIsUpperCase)
-    {
-        bool bNoError = gpApp->GetDocument()->SetCaseParameters(selItemStr, FALSE);
-        if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
-        {
-            // make it upper case
-            selItemStr.SetChar(0, gcharNonSrcUC);
-        }
-    }
+    selItemStr = this->GetListItemAdjustedforPhraseBox(TRUE); // whm 17Jul2018 added TRUE sets m_bEmptyAdaptationChosen = TRUE
 
     gpApp->m_targetPhrase = selItemStr;
     this->GetTextCtrl()->ChangeValue(selItemStr); //this->GetTextCtrl()->ChangeValue(selItemStr); // use of ChangeValue() or SetValue() resets the IsModified() to FALSE
