@@ -4686,14 +4686,18 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
                     // Choose Translation dialog. We now honor the platform's default setting, or the
                     // user's override setting here. This is the only location in the application where
                     // PopupDropDownList() may be called.
-                    if (pApp->m_bAutoOpenPhraseboxOnLanding)
-                    {
-                        pApp->m_pTargetBox->PopupDropDownList();
-                    }
-                    else
-                    {
-                        pApp->m_pTargetBox->CloseDropDown();
-                    }
+                    // whm 17Jul2018 removed the App's m_bAutoOpenPhraseboxOnLanding member and
+                    // the associated check box from the Choose Translation dialog. Therefore now the
+                    // dropdown list always opens on all platforms when code execution enters this
+                    // block.
+                    //if (pApp->m_bAutoOpenPhraseboxOnLanding)
+                    //{
+                    pApp->m_pTargetBox->PopupDropDownList();
+                    //}
+                    //else
+                    //{
+                    //    pApp->m_pTargetBox->CloseDropDown();
+                    //}
                 }
                 else
                 {

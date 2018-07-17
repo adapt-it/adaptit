@@ -228,13 +228,13 @@ class KBSharingMgrTabbedDlg;
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 9 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 0 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 1 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 28
-#define VERSION_DATE_MONTH 5
+#define VERSION_DATE_DAY 20
+#define VERSION_DATE_MONTH 7
 #define VERSION_DATE_YEAR 2018
-const wxString appVerStr(_T("6.9.0"));
+const wxString appVerStr(_T("6.9.1"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -4150,9 +4150,10 @@ public:
 	bool	m_bUnpacking;	// TRUE when Unpack Document... is in progress, else FALSE
 				// (used in SetupDirectories())
 
-    // whm added 24May2018 to support user choice to enable/disable dropdown auto-open
-    // on arrival at locations where there are multiple translations
-    bool    m_bAutoOpenPhraseboxOnLanding;
+    // whm 17Jul2018 removed check box to auto-open dropdown on arrival at location with multiple translations
+    // This checkbox was mainly added as a temporary option due to problems with the wxOwnerDrawnComboBox 
+    // derived control - now fixed.
+    //bool    m_bAutoOpenPhraseboxOnLanding;
 
 	// next two for read-only support....
 	// the next boolean is for support of read-only protection of the data accessed in a

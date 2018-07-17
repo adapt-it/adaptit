@@ -163,9 +163,11 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	m_pEditReferences->SetBackgroundColour(gpApp->sysColorBtnFace);
 	m_pEditReferences->Enable(FALSE); // it is readonly and should not receive focus on Tab
 
-    // whm added 24May2018 check box to auto-open dropdown on arrival at location with multiple translations
-    m_pCheckAutoOpenPhraseboxOnLanding = (wxCheckBox*)FindWindowById(ID_CHECKBOX_AUTO_OPEN_TRANS_LIST);
-    wxASSERT(m_pCheckAutoOpenPhraseboxOnLanding != NULL);
+    // whm 17Jul2018 removed check box to auto-open dropdown on arrival at location with multiple translations
+    // This checkbox was mainly added as a temporary option due to problems with the wxOwnerDrawnComboBox 
+    // derived control - now fixed.
+    //m_pCheckAutoOpenPhraseboxOnLanding = (wxCheckBox*)FindWindowById(ID_CHECKBOX_AUTO_OPEN_TRANS_LIST);
+    //wxASSERT(m_pCheckAutoOpenPhraseboxOnLanding != NULL);
 
 	// get pointers to the CKB instance & the map which stores the pCurTargetUnit contents
 	// being viewed
@@ -235,9 +237,10 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// set the "new translation" edit box contents to a null string
 	m_pNewTranslationBox->ChangeValue(_T(""));
 
-    // whm added 24May2018 Initialize check box to auto-open dropdown on arrival at location 
-    // with multiple translations to value currently held on the App.
-    m_pCheckAutoOpenPhraseboxOnLanding->SetValue(gpApp->m_bAutoOpenPhraseboxOnLanding);
+    // whm 17Jul2018 removed check box to auto-open dropdown on arrival at location with multiple translations
+    // This checkbox was mainly added as a temporary option due to problems with the wxOwnerDrawnComboBox 
+    // derived control - now fixed.
+    //m_pCheckAutoOpenPhraseboxOnLanding->SetValue(gpApp->m_bAutoOpenPhraseboxOnLanding);
 
 	// BEW 23Apr15 - if supporting / as a word-breaking character currently, we don't convert
 	// any ZWSP to / in the list, because we don't edit the list directly. The m_pNewTranslationBox
@@ -261,8 +264,12 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		// BEW 21Jun18 added, as explained above; in order to sync the indices for the selection
 		// between Choose Translation's list and the phrasebox dropdown's (open) list
 		int curIndex = gpApp->m_pTargetBox->GetDropDownList()->GetSelection(); // the current index for the dropdown list selection
-		if (curIndex != wxNOT_FOUND && gpApp->m_bAutoOpenPhraseboxOnLanding)
-		{
+
+        // whm 17Jul2018 removed the App's m_bAutoOpenPhraseboxOnLanding member and
+        // the associated check box from the Choose Translation dialog.
+        //if (curIndex != wxNOT_FOUND && gpApp->m_bAutoOpenPhraseboxOnLanding)
+        if (curIndex != wxNOT_FOUND)
+        {
 			m_pMyListBox->SetSelection(curIndex);
 		}
 		wxString str = m_pMyListBox->GetStringSelection();
@@ -1077,12 +1084,13 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
     CAdapt_ItApp* pApp = &wxGetApp();
     wxASSERT(pApp != NULL);
 
-    // whm added 24May2018 Save user's check box preference enabling/disabling auto-open dropdown on 
-    // arrival at location with multiple translations - if change was made.
-    if (m_pCheckAutoOpenPhraseboxOnLanding->GetValue() != pApp->m_bAutoOpenPhraseboxOnLanding)
-    {
-        pApp->m_bAutoOpenPhraseboxOnLanding = m_pCheckAutoOpenPhraseboxOnLanding->GetValue();
-    }
+    // whm 17Jul2018 removed check box to auto-open dropdown on arrival at location with multiple translations
+    // This checkbox was mainly added as a temporary option due to problems with the wxOwnerDrawnComboBox 
+    // derived control - now fixed.
+    //if (m_pCheckAutoOpenPhraseboxOnLanding->GetValue() != pApp->m_bAutoOpenPhraseboxOnLanding)
+    //{
+    //    pApp->m_bAutoOpenPhraseboxOnLanding = m_pCheckAutoOpenPhraseboxOnLanding->GetValue();
+    //}
 
 	wxString s;
 	// IDS_NO_ADAPTATION

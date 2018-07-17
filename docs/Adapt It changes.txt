@@ -1,7 +1,40 @@
-﻿Version 6.9.1 release <add date here>
+﻿Version 6.9.1 release 20 July 2018
 ----------------------------------------------
 Feature changes and new features in 6.9.1
 --------------------------------------------------------------------------------------------
+* The Choose Translation drop down list in version 6.9.0 prevented many mouse
+commands from responding on the first click, requiring the user to click on 
+tool bar buttons, menus, etc a second time when the drop down list was open.
+That problem is now solved as of version 6.9.1. 
+* The drop down list that opens below the PhraseBox now has more consistent 
+behavior. It only opens when there are two or more entries in the list to
+choose from, and its drop down activation button should now have a more 
+consistent appearance - showning the down arrow button only when there are
+multiple translations to choose from, and a disabled "X" button at other times.
+* When the PhraseBox lands at a location, previous versions of Adapt It would
+select the entire contents of the PhraseBox. As of version 6.9.1 the contents
+are selected only if a copy of the source text line was copied into the
+PhraseBox. If the PhraseBox contains target text from a previous adaptation or
+target text representing the top entry in the drop down list, the text within
+the PhraseBox is not selected/highlighted. Instead the editing insertion point 
+is set at the end of the contents - as an aid for users if they need to add a
+suffix to the form in the PhraseBox.
+* Tool tips for tool bar buttons and other interface elements would not show
+if the drop down list was open in version 6.9.0. This has been fixed in
+version 6.9.1.
+* The Escape (Esc) key now functions as a PhraseBox Undo feature that restores 
+the original contents of the PhraseBox, if after a selection from the drop down
+list was made, or after edits were made to the content of the PhraseBox, the 
+user wants to restore the original content of the PhraseBox. 
+* Some users reported that the PhraseBox would jump unexpectedly to a different
+location, especially during the use of the Choose Translation dialog or the
+KB Editor dialog. This issue of unwanted jumps has now been fixed.
+* Removed from the Choose Translation dialog the check box that allowed a user
+to [ ] "Open the phrasebox dropdown list automatically". The drop down list
+always opens in version 6.9.1 and behaves better than it did in version 6.9.0. 
+The check box was mainly available as an option for users of the Linux version 
+that were especially affected by focus problems when the drop down list(used
+in version 6.9.0) was open.
 * Formerly the default index was 0 ('top of list') unilaterally if the user
 opened the Choose Translation dialog, when there was a phrasebox list
 opened - which typically also has an item selected. This had the potential
@@ -11,6 +44,26 @@ Now Choose Translation dialog's initialization detects what the dropped
 down list's selection is, and uses that index as the default for the selecting
 the item in Choose Translation dialog's list, on opening of the dialog. That
 is, the index values are now programmatically synced.
+
+---------------------------------------------
+Bug fixes in 6.9.0 release
+---------------------------------------------
+* Fixed window focus problems that were caused by the type of drop down combo
+box that was used in version 6.9.0. A different drop down list mechanism is
+now used that does not constrain the focus (and mouse clicks) for exclusive
+use of the drop down list below the PhraseBox. This change allows interface
+elements to respond to a single mouse click, and tool tips to show - even
+when the drop down list is open.
+* Fixed a localization problem that caused a crash when the interface was set
+to a language other than English. Also fixed a localization issue that caused
+certain localization languages that have 3-letter codes (primarily Tok Pisin
+and Swahili) to show only the 3-letter code rather than the full language name
+within the dialog that would allow a user to "Select your preferred language 
+for Adapt It's menus and other messages".
+* Fixed a bug in the Windows Installer that would prevent it from offering to
+install the Git program as part of a new Adapt It installation. The version of
+Git that gets installed in new installations (or from the Tools menu) is 
+now 2.18.0.
 
 Version 6.9.0 release 28 May 2018
 ----------------------------------------------

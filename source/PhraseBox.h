@@ -163,7 +163,9 @@ public:
     void PopupDropDownList();
     void HidePhraseBox();
     void SetSizeAndHeightOfDropDownList(int width);
+    wxString GetListItemAdjustedforPhraseBox(bool bSetEmptyAdaptationChosen);
     bool bUp_DownArrowKeyPressed; // initialized to FALSE at each location - at end of Layout's PlaceBox().
+    wxString initialPhraseBoxContentsOnLanding; // whm 16Jul2018 added to implement undo of phrasebox changes via Esc key
 
     // The following members are used to present a dropdown arrow or a rose pink X for the control's button:
     wxBitmap dropbutton_hover; // (xpm_dropbutton_hover);

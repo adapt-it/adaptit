@@ -50,8 +50,10 @@ public:
 	wxTextCtrl*	m_pSourcePhraseBox;
 	wxTextCtrl*	m_pNewTranslationBox;
 	wxTextCtrl* m_pEditReferences;
-    // whm added 24May2018 check box to auto-open dropdown on arrival at location with multiple translations
-    wxCheckBox* m_pCheckAutoOpenPhraseboxOnLanding;
+    // whm 17Jul2018 removed check box to auto-open dropdown on arrival at location with multiple translations
+    // This checkbox was mainly added as a temporary option due to problems with the wxOwnerDrawnComboBox 
+    // derived control - now fixed.
+    //wxCheckBox* m_pCheckAutoOpenPhraseboxOnLanding;
 	int			m_refCount;
 	wxString	m_refCountStr; // need wxString for validating wxTextCtrl
 	wxString	m_chosenTranslation;
