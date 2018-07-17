@@ -144,6 +144,12 @@ public:
 												// and used by PlacePhraseBoxInLayout()
 	int					m_curBoxWidth;
 
+	// BEW 17Jul18 cache the unadjusted virtual document height, while RecalcLayout works
+	// with an increased height temporarily, and for setting scroll range larger to comply
+	// with the increased height. At the end of RecalcLayout(), restore this cached height
+	// to avoid accumulating empty space at the end of the document.
+	int m_nCachedDocHeight;
+
 	// booleans that track what kind of changes were made within the Preferences dialog -
 	// these govern which parameters we pass to RecalcLayout() - whether to keep or create
 	// piles, recalc pile widths, call SetupLayoutParameters(), keep or create strips, etc

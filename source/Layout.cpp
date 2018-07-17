@@ -1752,6 +1752,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		wxLogDebug(_T("\n\nNOT PRINTING   RecalcLayout()  app m_docSize.x  %d  CLayout m_logicalDocSize.x %d"),
 				pApp->m_docSize.x, m_logicalDocSize.x);
 	*/
+
 #if defined(Do_Clipping)
 	SetFullWindowDrawFlag(TRUE);
 #endif
@@ -2055,6 +2056,21 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		// class uses this m_docSize value for determining scroll bar parameters and whether
 		// horizontal and / or vertical scroll bars are needed
 		m_pApp->m_docSize = m_logicalDocSize;
+
+		// BEW 17Jul18, lengthen the virtual document height by a half-screen's amount;
+		// using strip and leading heights, and half the value of the number of visible strips.
+		// The reason for this is that the dropdown phrasebox could drop down a list of such
+		// length that it goes below the bottom of the scrollable range of stips - making some
+		// of it inaccessible except by choosing to open the Choose Translation dialog - which
+		// a user may not realize it could help him in such a situation (it's relocatable). So
+		// we'll give a half screen of void space, which should be enough for seeing all of
+		// any worthwhile dropdown list - user's baulk at having lists with more than a few
+		// entries anyway, as it takes too long to choose which entry - often preferring to
+		// remove low frequency adaptations from them. So half a screen should be plenty.
+		m_nCachedDocHeight = m_pApp->m_docSize.GetHeight(); // a CLayout member value
+
+		int newHeight = m_nCachedDocHeight + (m_numVisibleStrips / 2) * (m_nStripHeight + m_nCurLeading);
+		m_pApp->m_docSize.SetHeight(newHeight); // temporary, cached value restored below
 	}
 	// next line for debugging...
 	//theVirtualSize = m_pApp->GetMainFrame()->canvas->GetVirtualSize();
@@ -2086,6 +2102,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		// steps/units. Before we can call SetScrollbars we must calculate the size of the
 		// document in scroll units, which is the size in pixels divided by the pixels per
 		// unit.
+
 		pFrame->canvas->GetScrollPixelsPerUnit(&pixelsPerUnitX,&pixelsPerUnitY);
 		noUnitsX = m_pApp->m_docSize.GetWidth() / pixelsPerUnitX;
 		noUnitsY = m_pApp->m_docSize.GetHeight() / pixelsPerUnitY;
@@ -2111,6 +2128,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 												// i.e., the size of the virtual window
     			xPos,yPos,						// sets initial position of scrollbars NEEDED!
     			noRefresh);						// SetScrollPos called elsewhere
+
+		// BEW 17Jul18 restore the correct doc height from the value cached at function start
+		m_pApp->m_docSize.SetHeight(m_nCachedDocHeight); // restore true value
 	}
 
 	// if free translation mode is turned on, get the current section
@@ -2126,7 +2146,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 {
     wxLogDebug(_T("RecalcLayout() line 2024, flags at free trans block at end ************\nm_bFreeTranslationMode %d , m_bIsPrinting %d , gbCheckInclFreeTransText %u"),
                m_pApp->m_bFreeTranslationMode, m_pApp->m_bIsPrinting, gbCheckInclFreeTransText);
-
 }
 #endif
 	if (m_pApp->m_bFreeTranslationMode && !m_pApp->m_bSuppressFreeTransRestoreAfterPrint 

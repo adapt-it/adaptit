@@ -126,6 +126,8 @@ public:
 	void		SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection);
 	bool		GetIsCurrentFreeTransSection();
 
+	// BEW added 17July18 so as to allow box + slop to be a different (lesser) value than the gap width
+	int			m_nBoxOnlyWidth; // use this for box width, no longer use the gap width
 private:
 	bool		HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers
 

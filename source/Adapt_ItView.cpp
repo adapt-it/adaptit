@@ -62,6 +62,7 @@ extern size_t aSequNum; // use with TOKENIZE_BUG
 
 //#define _Trace_DrawFreeTrans
 //#define CHECK_GEDITSTEP
+#define _NEWDRAW
 
 #include <wx/docview.h>	// includes wxWidgets doc/view framework
 #include <wx/file.h>
