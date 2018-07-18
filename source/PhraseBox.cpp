@@ -604,61 +604,186 @@ CPhraseBox::CPhraseBox(wxWindow * parent, wxWindowID id, const wxString & value,
     // end of the Layout's PlaceBox() function.
     initialPhraseBoxContentsOnLanding = _T("");
 
-    //  /* XPM */
-    const char * xpm_dropbutton_normal[] = {
-        /* columns rows colors chars-per-pixel */
-        "14 15 3 1 ",
-        "  c black",
-        ". c gray100",
-        "X c None",
-        /* pixels */
-        "XXXXXXXXXXXXXX",
-        "XXXX      XXXX",
-        "XXXX .... XXXX",
-        "XXXX .... XXXX",
-        "XXXX .... XXXX",
-        "XXXX .... XXXX",
-        "XXXX .... XXXX",
-        "XXXX .... XXXX",
-        "X     ...    X",
-        "XX ........ XX",
-        "XXX ...... XXX",
-        "XXXX .... XXXX",
-        "XXXXX .. XXXXX",
-        "XXXXXX  XXXXXX",
-        "XXXXXXXXXXXXXX"
-    };
+    ////  /* XPM */
+    //const char * xpm_dropbutton_normal[] = {
+    //    /* columns rows colors chars-per-pixel */
+    //    "14 15 3 1 ",
+    //    "  c black",
+    //    ". c gray100",
+    //    "X c None",
+    //    /* pixels */
+    //    "XXXXXXXXXXXXXX",
+    //    "XXXX      XXXX",
+    //    "XXXX .... XXXX",
+    //    "XXXX .... XXXX",
+    //    "XXXX .... XXXX",
+    //    "XXXX .... XXXX",
+    //    "XXXX .... XXXX",
+    //    "XXXX .... XXXX",
+    //    "X     ...    X",
+    //    "XX ........ XX",
+    //    "XXX ...... XXX",
+    //    "XXXX .... XXXX",
+    //    "XXXXX .. XXXXX",
+    //    "XXXXXX  XXXXXX",
+    //    "XXXXXXXXXXXXXX"
+    //};
+
+    /* XPM */
+    static char * xpm_dropbutton_normal[] = {
+        "18 22 72 1",
+        " 	c None",
+        ".	c #070607",
+        "+	c #07090B",
+        "@	c #070A0B",
+        "#	c #070A0A",
+        "$	c #070608",
+        "%	c #05313D",
+        "&	c #01738F",
+        "*	c #017A98",
+        "=	c #017896",
+        "-	c #017998",
+        ";	c #017490",
+        ">	c #05333E",
+        ",	c #043946",
+        "'	c #0086A7",
+        ")	c #008EB1",
+        "!	c #008CAF",
+        "~	c #0087A8",
+        "{	c #043A48",
+        "]	c #043844",
+        "^	c #0182A2",
+        "/	c #008AAC",
+        "(	c #0088AA",
+        "_	c #0183A3",
+        ":	c #043945",
+        "<	c #043845",
+        "[	c #008AAD",
+        "}	c #0183A4",
+        "|	c #070405",
+        "1	c #043947",
+        "2	c #060506",
+        "3	c #070708",
+        "4	c #06222A",
+        "5	c #05333F",
+        "6	c #025A71",
+        "7	c #0087A9",
+        "8	c #0089AB",
+        "9	c #0087AA",
+        "0	c #025B71",
+        "a	c #070506",
+        "b	c #07080A",
+        "c	c #052D38",
+        "d	c #008EB2",
+        "e	c #008FB2",
+        "f	c #052E3A",
+        "g	c #070504",
+        "h	c #052C37",
+        "i	c #017B99",
+        "j	c #052F3A",
+        "k	c #070507",
+        "l	c #070404",
+        "m	c #042F3A",
+        "n	c #017693",
+        "o	c #017795",
+        "p	c #04313D",
+        "q	c #070505",
+        "r	c #052F39",
+        "s	c #017592",
+        "t	c #008DB0",
+        "u	c #008DB1",
+        "v	c #04303C",
+        "w	c #060405",
+        "x	c #060404",
+        "y	c #042B36",
+        "z	c #052F3B",
+        "A	c #080404",
+        "B	c #052832",
+        "C	c #017C9B",
+        "D	c #017F9E",
+        "E	c #052B35",
+        "F	c #062229",
+        "G	c #06212B",
+        "    .+@####@+$    ",
+        "    %&*====-;>    ",
+        "    ,')!!!!)~{    ",
+        "    ]^/((((/_:    ",
+        "    <^[((((/},    ",
+        "    <^[((((/},    ",
+        "    <^[((((/},    ",
+        "    <^[((((/},    ",
+        "    <^[((((/},    ",
+        "    <^[((((/},    ",
+        "    <^[((((/},    ",
+        "    ]^[((((/}:    ",
+        "   |<^/((((/}1|   ",
+        "2345678((((890543a",
+        " bc^d((((((((e}fb ",
+        "  gh-!((((((!ijk  ",
+        "   lmn!((((!opq   ",
+        "    lrst((uovw    ",
+        "     xyn))=zq     ",
+        "      ABCDE|      ",
+        "       qFG.       ",
+        "        22        " };
 
     // Custom dropdown control button for blank button (no visible dropdown arror)
-    //  /* XPM */
-    const char * xpm_dropbutton_blank[] = {
-        /* columns rows colors chars-per-pixel */
-        "15 18 4 1 ",  // TODO: whm - Test this. It is a one-pixel wide image of transparent pixels
-        "  c black",
-        ". c gray100",
-        "r c #FFE4E1", // misty rose
-        "X c None",
-        /* pixels */
-        "               ",
-        " rrrrrrrrrrrrr ",
-        " rrrrrrrrrrrrr ",
-        "  rrrrrrrrrrr  ",
-        " r rrrrrrrrr r ",
-        " rr rrrrrrr rr ",
-        " rrr rrrrr rrr ",
-        " rrrr rrr rrrr ",
-        " rrrrr r rrrrr ",
-        " rrrrr r rrrrr ",
-        " rrrr rrr rrrr ",
-        " rrr rrrrr rrr ",
-        " rr rrrrrrr rr ",
-        " r rrrrrrrrr r ",
-        "  rrrrrrrrrrr  ",
-        " rrrrrrrrrrrrr ",
-        " rrrrrrrrrrrrr ",
-        "               "
-    };
-    
+    ////  /* XPM */
+    //const char * xpm_dropbutton_blank[] = {
+    //    /* columns rows colors chars-per-pixel */
+    //    "15 18 4 1 ",  // TODO: whm - Test this. It is a one-pixel wide image of transparent pixels
+    //    "  c black",
+    //    ". c gray100",
+    //    "r c #FFE4E1", // misty rose
+    //    "X c None",
+    //    /* pixels */
+    //    "               ",
+    //    " rrrrrrrrrrrrr ",
+    //    " rrrrrrrrrrrrr ",
+    //    "  rrrrrrrrrrr  ",
+    //    " r rrrrrrrrr r ",
+    //    " rr rrrrrrr rr ",
+    //    " rrr rrrrr rrr ",
+    //    " rrrr rrr rrrr ",
+    //    " rrrrr r rrrrr ",
+    //    " rrrrr r rrrrr ",
+    //    " rrrr rrr rrrr ",
+    //    " rrr rrrrr rrr ",
+    //    " rr rrrrrrr rr ",
+    //    " r rrrrrrrrr r ",
+    //    "  rrrrrrrrrrr  ",
+    //    " rrrrrrrrrrrrr ",
+    //    " rrrrrrrrrrrrr ",
+    //    "               "
+    //};
+
+    /* XPM */
+        static char * xpm_dropbutton_blank[] = {
+            "18 22 2 1",
+            " 	c None",
+            ".	c #D50F00",
+            "..................",
+            "..              ..",
+            ". .            . .",
+            ". .            . .",
+            ".  .          .  .",
+            ".   .        .   .",
+            ".    .      .    .",
+            ".     .    .     .",
+            ".     .    .     .",
+            ".      .  .      .",
+            ".       ..       .",
+            ".       ..       .",
+            ".      .  .      .",
+            ".     .    .     .",
+            ".     .    .     .",
+            ".    .      .    .",
+            ".   .        .   .",
+            ".  .          .  .",
+            ". .            . .",
+            ". .            . .",
+            "..              ..",
+            ".................." };
     dropbutton_normal = wxBitmap(xpm_dropbutton_normal);
     dropbutton_blank = wxBitmap(xpm_dropbutton_blank);
 
@@ -8049,11 +8174,21 @@ void CPhraseBox::SetPhraseBoxButton(wxBitmapButton* listButton)
 
 void CPhraseBox::SetButtonBitMapNormal()
 {
+    wxPoint currPosn = this->GetPhraseBoxButton()->GetPosition();
+    this->GetPhraseBoxButton()->Destroy();
+    wxBitmapButton* pBitmapBtn = new wxBitmapButton(gpApp->GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, gpApp->m_pTargetBox->dropbutton_normal, wxDefaultPosition, wxSize(20, 24));
+    gpApp->m_pTargetBox->SetPhraseBoxButton(pBitmapBtn);
     this->GetPhraseBoxButton()->SetBitmapLabel(dropbutton_normal);
+    this->GetPhraseBoxButton()->SetPosition(currPosn);
 }
 
 void CPhraseBox::SetButtonBitMapXDisabled()
 {
+    wxPoint currPosn = this->GetPhraseBoxButton()->GetPosition();
+    this->GetPhraseBoxButton()->Destroy();
+    wxBitmapButton* pBitmapBtn = new wxBitmapButton(gpApp->GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, gpApp->m_pTargetBox->dropbutton_blank, wxDefaultPosition, wxSize(20, 24));
+    gpApp->m_pTargetBox->SetPhraseBoxButton(pBitmapBtn);
     this->GetPhraseBoxButton()->SetBitmapLabel(dropbutton_blank);
+    this->GetPhraseBoxButton()->SetPosition(currPosn);
 }
 

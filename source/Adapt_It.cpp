@@ -39639,6 +39639,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
         // has been removed
         else if (name == szAutoOpenPhraseBoxTranslationsList)
         {
+            ;
             //num = wxAtoi(strValue);
             //if (!(num == 0 || num == 1))
             //    num = 1; // default is ON
