@@ -93,6 +93,12 @@ extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this 
 /// This global is defined in Adapt_It.cpp
 extern int ID_PHRASE_BOX; // 22030 
 
+/// This global is defined in Adapt_It.cpp.
+extern int ID_BMTOGGLEBUTTON_PHRASEBOX;
+
+/// This global is defined in Adapt_It.cpp.
+extern int ID_DROP_DOWN_LIST;
+
 IMPLEMENT_DYNAMIC_CLASS(CPhraseBox, wxTextCtrl)
 
 BEGIN_EVENT_TABLE(CPhraseBox, wxTextCtrl) //BEGIN_EVENT_TABLE(CPhraseBox, wxTextCtrl)
@@ -316,7 +322,7 @@ CPhraseBox::CPhraseBox(void)
 //
 //    // Custom dropdown control button for blank button (no visible dropdown arror)
 //    //  /* XPM */
-//    const char * xpm_dropbutton_blank[] = {
+//    const char * xpm_dropbutton_X[] = {
 //        /* columns rows colors chars-per-pixel */
 //        "15 18 4 1 ",  // TODO: whm - Test this. It is a one-pixel wide image of transparent pixels
 //        "  c black",
@@ -359,15 +365,6 @@ CPhraseBox::CPhraseBox(void)
 //        " rrrrrrrrrrrrr ",
 //        "               "
 //    };
-//
-//    dropbutton_hover = wxBitmap(xpm_dropbutton_hover);
-//    dropbutton_pressed = wxBitmap(xpm_dropbutton_pressed);
-//    dropbutton_normal = wxBitmap(xpm_dropbutton_normal);
-//    dropbutton_disabled = wxBitmap(xpm_dropbutton_disabled);
-//    dropbutton_blank = wxBitmap(xpm_dropbutton_blank);
-//    this->SetButtonBitmaps(dropbutton_normal, false, dropbutton_pressed, dropbutton_hover, dropbutton_disabled);
-//    //this->SetButtonBitmaps(xpm_dropbutton_blank, false, xpm_dropbutton_blank, xpm_dropbutton_blank, xpm_dropbutton_blank);
-
 
 
 CPhraseBox::CPhraseBox(wxWindow * parent, wxWindowID id, const wxString & value, const wxPoint & pos, const wxSize & size, int style)
@@ -382,7 +379,7 @@ CPhraseBox::CPhraseBox(wxWindow * parent, wxWindowID id, const wxString & value,
     // phrasebox.
     m_pTextCtrl = (wxTextCtrl*)NULL; // Globally, this private pointer points to App's m_pTargetBox
     m_pDropDownList = (CMyListBox*)NULL;
-    m_pPhraseBoxButton = (wxBitmapButton*)NULL;
+    m_pPhraseBoxButton = (wxBitmapToggleButton*)NULL;
 
     // This member repeated here from the default constructor
     m_textColor = wxColour(0,0,0); // default to black
@@ -630,106 +627,81 @@ CPhraseBox::CPhraseBox(wxWindow * parent, wxWindowID id, const wxString & value,
     //};
 
     /* XPM */
-    static char * xpm_dropbutton_normal[] = {
-        "18 22 72 1",
-        " 	c None",
-        ".	c #070607",
-        "+	c #07090B",
-        "@	c #070A0B",
-        "#	c #070A0A",
-        "$	c #070608",
-        "%	c #05313D",
-        "&	c #01738F",
-        "*	c #017A98",
-        "=	c #017896",
-        "-	c #017998",
-        ";	c #017490",
-        ">	c #05333E",
-        ",	c #043946",
-        "'	c #0086A7",
-        ")	c #008EB1",
-        "!	c #008CAF",
-        "~	c #0087A8",
-        "{	c #043A48",
-        "]	c #043844",
-        "^	c #0182A2",
-        "/	c #008AAC",
-        "(	c #0088AA",
-        "_	c #0183A3",
-        ":	c #043945",
-        "<	c #043845",
-        "[	c #008AAD",
-        "}	c #0183A4",
-        "|	c #070405",
-        "1	c #043947",
-        "2	c #060506",
-        "3	c #070708",
-        "4	c #06222A",
-        "5	c #05333F",
-        "6	c #025A71",
-        "7	c #0087A9",
-        "8	c #0089AB",
-        "9	c #0087AA",
-        "0	c #025B71",
-        "a	c #070506",
-        "b	c #07080A",
-        "c	c #052D38",
-        "d	c #008EB2",
-        "e	c #008FB2",
-        "f	c #052E3A",
-        "g	c #070504",
-        "h	c #052C37",
-        "i	c #017B99",
-        "j	c #052F3A",
-        "k	c #070507",
-        "l	c #070404",
-        "m	c #042F3A",
-        "n	c #017693",
-        "o	c #017795",
-        "p	c #04313D",
-        "q	c #070505",
-        "r	c #052F39",
-        "s	c #017592",
-        "t	c #008DB0",
-        "u	c #008DB1",
-        "v	c #04303C",
-        "w	c #060405",
-        "x	c #060404",
-        "y	c #042B36",
-        "z	c #052F3B",
-        "A	c #080404",
-        "B	c #052832",
-        "C	c #017C9B",
-        "D	c #017F9E",
-        "E	c #052B35",
-        "F	c #062229",
-        "G	c #06212B",
-        "    .+@####@+$    ",
-        "    %&*====-;>    ",
-        "    ,')!!!!)~{    ",
-        "    ]^/((((/_:    ",
-        "    <^[((((/},    ",
-        "    <^[((((/},    ",
-        "    <^[((((/},    ",
-        "    <^[((((/},    ",
-        "    <^[((((/},    ",
-        "    <^[((((/},    ",
-        "    <^[((((/},    ",
-        "    ]^[((((/}:    ",
-        "   |<^/((((/}1|   ",
-        "2345678((((890543a",
-        " bc^d((((((((e}fb ",
-        "  gh-!((((((!ijk  ",
-        "   lmn!((((!opq   ",
-        "    lrst((uovw    ",
-        "     xyn))=zq     ",
-        "      ABCDE|      ",
-        "       qFG.       ",
-        "        22        " };
-
+    const  char * xpm_dropbutton_normal[] = {
+    "16 20 50 1",
+    " 	c None",
+    ".	c #070506",
+    "+	c #070303",
+    "@	c #060808",
+    "#	c #044151",
+    "$	c #02657E",
+    "%	c #044353",
+    "&	c #060607",
+    "*	c #03566C",
+    "=	c #0088AA",
+    "-	c #025A70",
+    ";	c #070406",
+    ">	c #070606",
+    ",	c #070707",
+    "'	c #070405",
+    ")	c #070505",
+    "!	c #080404",
+    "~	c #070809",
+    "{	c #043E4D",
+    "]	c #043947",
+    "^	c #051E25",
+    "/	c #026B86",
+    "(	c #026680",
+    "_	c #07090B",
+    ":	c #061B22",
+    "<	c #04333F",
+    "[	c #070404",
+    "}	c #070607",
+    "|	c #06181F",
+    "1	c #0085A7",
+    "2	c #034759",
+    "3	c #034A5C",
+    "4	c #017997",
+    "5	c #070708",
+    "6	c #01728E",
+    "7	c #05303C",
+    "8	c #051F26",
+    "9	c #0087A9",
+    "0	c #026983",
+    "a	c #035064",
+    "b	c #0086A8",
+    "c	c #06191F",
+    "d	c #080606",
+    "e	c #017693",
+    "f	c #060608",
+    "g	c #05242D",
+    "h	c #007E9E",
+    "i	c #060A0C",
+    "j	c #060202",
+    "k	c #026179",
+    "    .++++++.    ",
+    "    @#$$$$%&    ",
+    "    @*====-&    ",
+    "    @*====-&    ",
+    "    @*====-&    ",
+    "    @*====-&    ",
+    "    @*====-&    ",
+    ";+>,'*====-)!>~;",
+    " +{]^/====(_:<[)",
+    " }|1=========2> ",
+    "  .3========45  ",
+    "   .6=======7}  ",
+    "   ,89=====0+   ",
+    "    .a====bcd   ",
+    "     5e===a)    ",
+    "     fg9=hi     ",
+    "      '*=]5     ",
+    "      j_k[      ",
+    "       }',      ",
+    "        [       " };
     // Custom dropdown control button for blank button (no visible dropdown arror)
     ////  /* XPM */
-    //const char * xpm_dropbutton_blank[] = {
+    //const char * xpm_dropbutton_X[] = {
     //    /* columns rows colors chars-per-pixel */
     //    "15 18 4 1 ",  // TODO: whm - Test this. It is a one-pixel wide image of transparent pixels
     //    "  c black",
@@ -758,34 +730,33 @@ CPhraseBox::CPhraseBox(wxWindow * parent, wxWindowID id, const wxString & value,
     //};
 
     /* XPM */
-        static char * xpm_dropbutton_blank[] = {
-            "18 22 2 1",
-            " 	c None",
-            ".	c #D50F00",
-            "..................",
-            "..              ..",
-            ". .            . .",
-            ". .            . .",
-            ".  .          .  .",
-            ".   .        .   .",
-            ".    .      .    .",
-            ".     .    .     .",
-            ".     .    .     .",
-            ".      .  .      .",
-            ".       ..       .",
-            ".       ..       .",
-            ".      .  .      .",
-            ".     .    .     .",
-            ".     .    .     .",
-            ".    .      .    .",
-            ".   .        .   .",
-            ".  .          .  .",
-            ". .            . .",
-            ". .            . .",
-            "..              ..",
-            ".................." };
-    dropbutton_normal = wxBitmap(xpm_dropbutton_normal);
-    dropbutton_blank = wxBitmap(xpm_dropbutton_blank);
+const char * xpm_dropbutton_X[] = {
+    "16 20 2 1",
+    " 	c None",
+    ".	c #D50F00",
+    "................",
+    "..            ..",
+    ". .          . .",
+    ". .          . .",
+    ".  .        .  .",
+    ".   .      .   .",
+    ".    .    .    .",
+    ".    .    .    .",
+    ".     .  .     .",
+    ".      ..      .",
+    ".      ..      .",
+    ".     .  .     .",
+    ".    .    .    .",
+    ".    .    .    .",
+    ".   .      .   .",
+    ".  .        .  .",
+    ". .          . .",
+    ". .          . .",
+    "..            ..",
+    "................" };
+
+    bmp_dropbutton_normal = wxBitmap(xpm_dropbutton_normal);
+    bmp_dropbutton_X = wxBitmap(xpm_dropbutton_X);
 
 }
 
@@ -6728,13 +6699,13 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     //    CountNonDeletedRefStringInstances() function, and proceed as follows depending
     //    on the returned count:
     //
-    // When the count of non-deleted ref string instances nRefStrCount is > 0:
+    // When the count of non-deleted ref string instances nRefStrCount is > 1:
     //    4a. Load the contents of the phrasebox's drop down list (via calling PopulateDropDownList()).
     //        The PopulateDropDownList() function returns (via reference parameters) information about
     //        a list item that should be selected/highlighted (via selectionIndex), as well as whether
     //        there is a <no adaptation> ref string present (via bNoAdaptationFlagPresent), and if that
     //        flag is to be selected/highlighted (via indexOfNoAdaptation).
-    //    4b. Call SetButtonBitmaps() to use the "normal" set of button bitmaps on the dropdown control,
+    //    4b. Call SetButtonBitMapNormal() to use the "normal" set of button bitmaps on the dropdown control,
     //        the down arrow button - indicating to user that the dropdown list has one or more items.
     //    4c. Call SetSelection(selectionIndex). The selectionIndex could be -1 which would remove any
     //        selection/highlight; or if >= 0 it highlights the selection. 
@@ -6776,7 +6747,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     // in the dropdown's list.
     //    4a. We call ClearDropDownList() here to ensure that the list is empty. We do NOT call 
     //        PopulateDropDownList(), as we do not need selection indices returned for an empty list.
-    //    4b. Call SetButtonBitmaps() to use the [X] button set of button bitmaps on the dropdown control,
+    //    4b. Call SetButtonBitMapXDisabled() to use the [X] button set of button bitmaps on the dropdown control,
     //        the [X] button image - indicating to user that there are no translation equivalents in the
     //        dropdown list to choose from. The list is not truly "disabled" - the user can still click on
     //        the [X] button, but the list will just open and be empty.
@@ -6905,17 +6876,14 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             if (pApp->m_bFreeTranslationMode)
             {
                 this->SetButtonBitMapXDisabled();
-                //pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
             }
             else if (pApp->m_pTargetBox->GetDropDownList()->GetCount() <= 1)
             {
                 this->SetButtonBitMapXDisabled();
-                //pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
             }
             else
             {
                 this->SetButtonBitMapNormal();
-                //pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);
             }
 
             // Set the dropdown's list selection to the selectionIndex determined by PopulatDropDownList above.
@@ -7152,7 +7120,6 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 				// Case (a) Bill's original logic applies
 				pApp->m_pTargetBox->ClearDropDownList();
                 this->SetButtonBitMapXDisabled();
-				//pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
 				// With nothing in the dropdown list, we inform OnIdle() not to show the dropdown list
 				// whm 18Apr2018 moved the setting of m_bChooseTransInitializePopup to TRUE/FALSE
 				// above the if (nRefStrCount > 0) ... else blocks.
@@ -7177,12 +7144,11 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 				if (!gbIsGlossing && pApp->m_bLandingBox)
 				{
 					this->ClearDropDownList();
-                    // whm 4Jul2018 ammended SetButtonBitmaps() call below. The ClearDropDownList() has been 
+                    // whm 4Jul2018 ammended SetButtonBitMapXDisabled() call below. The ClearDropDownList() has been 
                     // called above, and a single entry is appended back into the list below making the list 
                     // count == 1. We've decided that when there is just one item in the combobox it should
                     // have the "disabled" appearance instead of the normal down arrow button.
                     this->SetButtonBitMapXDisabled();
-                    //pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
                     this->GetDropDownList()->Append(strSaveListEntry);
 					this->m_bAbandonable = FALSE;
 					this->GetDropDownList()->SetSelection(0);
@@ -8151,7 +8117,7 @@ CMyListBox* CPhraseBox::GetDropDownList()
     return m_pDropDownList;
 }
 
-wxBitmapButton* CPhraseBox::GetPhraseBoxButton()
+wxBitmapToggleButton* CPhraseBox::GetPhraseBoxButton()
 {
     return m_pPhraseBoxButton;
 }
@@ -8166,7 +8132,7 @@ void CPhraseBox::SetDropDownList(CMyListBox* listBox)
     m_pDropDownList = listBox;
 }
 
-void CPhraseBox::SetPhraseBoxButton(wxBitmapButton* listButton)
+void CPhraseBox::SetPhraseBoxButton(wxBitmapToggleButton* listButton)
 {
     m_pPhraseBoxButton = listButton;
 
@@ -8176,9 +8142,14 @@ void CPhraseBox::SetButtonBitMapNormal()
 {
     wxPoint currPosn = this->GetPhraseBoxButton()->GetPosition();
     this->GetPhraseBoxButton()->Destroy();
-    wxBitmapButton* pBitmapBtn = new wxBitmapButton(gpApp->GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, gpApp->m_pTargetBox->dropbutton_normal, wxDefaultPosition, wxSize(20, 24));
+    // whm 18Jul2018 the Linux version needs the bitmap size to be about 10 pixels wider and taller (30, 34) as it has a wide button margin that can't be changed
+#if defined (__WXGTK__)
+    wxBitmapToggleButton* pBitmapBtn = new wxBitmapToggleButton(gpApp->GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, bmp_dropbutton_normal, wxDefaultPosition, wxSize(30, 34));
+#else
+    wxBitmapToggleButton* pBitmapBtn = new wxBitmapToggleButton(gpApp->GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, bmp_dropbutton_normal, wxDefaultPosition, wxSize(22, 26));
+#endif
     gpApp->m_pTargetBox->SetPhraseBoxButton(pBitmapBtn);
-    this->GetPhraseBoxButton()->SetBitmapLabel(dropbutton_normal);
+    //this->GetPhraseBoxButton()->SetBitmapLabel(wxBitmap(xpm_dropbutton_normal));
     this->GetPhraseBoxButton()->SetPosition(currPosn);
 }
 
@@ -8186,9 +8157,13 @@ void CPhraseBox::SetButtonBitMapXDisabled()
 {
     wxPoint currPosn = this->GetPhraseBoxButton()->GetPosition();
     this->GetPhraseBoxButton()->Destroy();
-    wxBitmapButton* pBitmapBtn = new wxBitmapButton(gpApp->GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, gpApp->m_pTargetBox->dropbutton_blank, wxDefaultPosition, wxSize(20, 24));
+#if defined (__WXGTK__)
+    wxBitmapToggleButton* pBitmapBtn = new wxBitmapToggleButton(gpApp->GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, bmp_dropbutton_X, wxDefaultPosition, wxSize(30, 34));
+#else
+    wxBitmapToggleButton* pBitmapBtn = new wxBitmapToggleButton(gpApp->GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, bmp_dropbutton_X, wxDefaultPosition, wxSize(22, 26));
+#endif
     gpApp->m_pTargetBox->SetPhraseBoxButton(pBitmapBtn);
-    this->GetPhraseBoxButton()->SetBitmapLabel(dropbutton_blank);
+    //this->GetPhraseBoxButton()->SetBitmapLabel(dropbutton_X);
     this->GetPhraseBoxButton()->SetPosition(currPosn);
 }
 

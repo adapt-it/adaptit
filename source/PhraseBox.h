@@ -106,11 +106,11 @@ public:
     // Some PhraseBox Getters
     wxTextCtrl* GetTextCtrl(); // this gets the wxTextCtrl that has been created by the PhraseBoxDropDownFunc() in wxDesigner
     CMyListBox* GetDropDownList(); // this gets the wxListBox that has been created by the PhraseBoxDropDownFunc() in wxDesigner
-    wxBitmapButton* GetPhraseBoxButton(); // this gets the wxButton control that has been created by the PhraseBoxDropDownFunc() in wxDesigner
+    wxBitmapToggleButton* GetPhraseBoxButton(); // this gets the wxButton control that has been created by the PhraseBoxDropDownFunc() in wxDesigner
     // Some PhraseBox Setters
     void SetTextCtrl(wxTextCtrl* textCtrl);
     void SetDropDownList(CMyListBox* listBox);
-    void SetPhraseBoxButton(wxBitmapButton* listButton);
+    void SetPhraseBoxButton(wxBitmapToggleButton* listButton);
     // whm 12Jul2018 Note: The handler for the PhraseBox dropdown button is
     // now in CAdapt_ItCanvas::OnTogglePhraseBoxButton()
     void SetButtonBitMapNormal();
@@ -168,16 +168,16 @@ public:
     wxString initialPhraseBoxContentsOnLanding; // whm 16Jul2018 added to implement undo of phrasebox changes via Esc key
 
     // The following members are used to present a dropdown arrow or a rose pink X for the control's button:
-    wxBitmap dropbutton_hover; // (xpm_dropbutton_hover);
-    wxBitmap dropbutton_pressed; // (xpm_dropbutton_pressed);
-    wxBitmap dropbutton_normal; // (xpm_dropbutton_normal);
-    wxBitmap dropbutton_disabled; // (xpm_dropbutton_disabled);
-    wxBitmap dropbutton_blank; // (xpm_dropbutton_blank);
-    char * xpm_dropbutton_hover;
-    char * xpm_dropbutton_pressed;
+    //wxBitmap dropbutton_hover; // (xpm_dropbutton_hover);
+    //wxBitmap dropbutton_pressed; // (xpm_dropbutton_pressed);
+    wxBitmap bmp_dropbutton_normal; // (xpm_dropbutton_normal);
+    //wxBitmap dropbutton_disabled; // (xpm_dropbutton_disabled);
+    wxBitmap bmp_dropbutton_X; // (xpm_dropbutton_X);
+    //char * xpm_dropbutton_hover;
+    //char * xpm_dropbutton_pressed;
     char * xpm_dropbutton_normal;
-    char * xpm_dropbutton_disabled;
-    char * xpm_dropbutton_blank;
+    //char * xpm_dropbutton_disabled;
+    char * xpm_dropbutton_X;
 
 
 	bool LookAhead(CPile* pNewPile);
@@ -220,7 +220,7 @@ private:
 
     wxTextCtrl* m_pTextCtrl;
     CMyListBox* m_pDropDownList;
-    wxBitmapButton* m_pPhraseBoxButton;
+    wxBitmapToggleButton* m_pPhraseBoxButton;
 
 	DECLARE_DYNAMIC_CLASS(CPhraseBox)
 	// DECLARE_DYNAMIC_CLASS() is used inside a class declaration to

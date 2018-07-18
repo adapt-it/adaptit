@@ -1290,13 +1290,11 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
                 {
                     // Set the "X" button
                     pApp->m_pTargetBox->SetButtonBitMapXDisabled();
-                    //pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
                 }
                 else
                 {
                     // Set the normal down-arrow button
                     pApp->m_pTargetBox->SetButtonBitMapNormal();
-                    //pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);
                 }
 
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
@@ -1360,7 +1358,6 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
             {
                 // Set the "X" button
                 pApp->m_pTargetBox->SetButtonBitMapXDisabled();
-                //pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
             }
 
 		}
