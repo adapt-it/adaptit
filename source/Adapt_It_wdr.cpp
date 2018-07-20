@@ -11762,7 +11762,7 @@ wxSizer *PhraseBoxDropDownFunc_UNUSED( wxWindow *parent, bool call_fit, bool set
     wxTextCtrl *item2 = new wxTextCtrl( parent, ID_PHRASE_BOX_DESIGNER, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_PROCESS_TAB|wxTE_PROCESS_ENTER );
     item1->Add( item2, 1, wxALIGN_CENTER, 5 );
 
-    wxBitmapToggleButton *item3 = new wxBitmapToggleButton( parent, ID_BMTOGGLEBUTTON_PHRASEBOX, AIToolBarBitmapsUnToggledFunc( 0 ), wxDefaultPosition, wxSize(20,-1) );
+    wxBitmapToggleButton *item3 = new wxBitmapToggleButton( parent, ID_BMTOGGLEBUTTON_PHRASEBOX_DESIGNER, AIToolBarBitmapsUnToggledFunc( 0 ), wxDefaultPosition, wxSize(20,-1) );
     item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
@@ -11772,7 +11772,7 @@ wxSizer *PhraseBoxDropDownFunc_UNUSED( wxWindow *parent, bool call_fit, bool set
     wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
     wxString *strs6 = (wxString*) NULL;
-    wxListBox *item6 = new wxListBox( parent, ID_DROP_DOWN_LIST, wxDefaultPosition, wxSize(80,100), 0, strs6, wxLB_SINGLE );
+    wxListBox *item6 = new wxListBox( parent, ID_DROP_DOWN_LIST_DESIGNER, wxDefaultPosition, wxSize(80,100), 0, strs6, wxLB_SINGLE );
     item5->Add( item6, 1, wxGROW, 5 );
 
     item4->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );

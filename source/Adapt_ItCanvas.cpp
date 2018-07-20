@@ -126,6 +126,12 @@ extern bool gbIgnoreScriptureReference_Receive;
 extern bool gbIgnoreScriptureReference_Send;
 
 /// This global is defined in Adapt_It.cpp.
+extern int ID_BMTOGGLEBUTTON_PHRASEBOX;
+
+/// This global is defined in Adapt_It.cpp.
+extern int ID_DROP_DOWN_LIST;
+
+/// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // for rapid access to the app class
 
 // IMPLEMENT_CLASS(CAdapt_ItCanvas, wxScrolledWindow)
@@ -143,7 +149,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItCanvas, wxScrolledWindow)
     // whm 12Jul2018 Note: The the events for the following event handlers 
     // are caught here in CAdapt_ItCanvas, but the handlers below simply
     // call the public handlers of the same name in CPhraseBox:
-    EVT_BUTTON(ID_BMTOGGLEBUTTON_PHRASEBOX, CAdapt_ItCanvas::OnTogglePhraseBoxButton) // detected here but handled by calling CPhraseBox::OnTogglePhraseBoxButton()
+    EVT_TOGGLEBUTTON(ID_BMTOGGLEBUTTON_PHRASEBOX, CAdapt_ItCanvas::OnTogglePhraseBoxButton) // detected here but handled by calling CPhraseBox::OnTogglePhraseBoxButton()
     EVT_LISTBOX(ID_DROP_DOWN_LIST, CAdapt_ItCanvas::OnListBoxItemSelected) // detected here but handled by calling CPhraseBox::OnTogglePhraseBoxButton()
     EVT_LISTBOX_DCLICK(ID_DROP_DOWN_LIST, CAdapt_ItCanvas::OnListBoxItemSelected) // detected here but handled by calling CPhraseBox::OnTogglePhraseBoxButton()
 

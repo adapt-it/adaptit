@@ -6603,11 +6603,11 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
     wxRect buttonRect = pApp->m_pTargetBox->GetPhraseBoxButton()->GetRect();
     int buttonHeight = buttonRect.GetHeight();
     int phraseboxHeight = rectBox.GetHeight();
-    int adjustHeight = (phraseboxHeight - buttonHeight) / 2;
+    int adjustHeight = ((phraseboxHeight - buttonHeight) / 2) - 1;
     pApp->m_pTargetBox->GetPhraseBoxButton()->SetPosition(wxPoint(rectBox.GetRight() + 1, rectBox.GetTop() + adjustHeight));
     // whm 12Jul2018 addition - set the width of the dropdown list to be the same as the width of the
     // phrasebox's rectBox. Set its position to be aligned to the bottom of the phrasebox's rectBox.
-    pApp->m_pTargetBox->GetDropDownList()->SetPosition(wxPoint(rectBox.GetLeft(), rectBox.GetBottom()));
+    pApp->m_pTargetBox->GetDropDownList()->SetPosition(wxPoint(rectBox.GetLeft(), rectBox.GetBottom() -2));
     pApp->m_pTargetBox->GetDropDownList()->SetSize(rectBox.GetWidth(), -1);
     // whm Note: The SetSize() call above sets the list width to be that of the phrasebox, however, it
     // just sets the height at the default value set on creation (100 pixels). ResizeBox() is called

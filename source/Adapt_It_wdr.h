@@ -1183,8 +1183,8 @@ const int ID_BUTTON_CHAPTERS_DE_SELECT_ALL = 10901;
 wxSizer *CollabProtectEditorBulkSettingsDlgFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
 const int ID_PHRASE_BOX_DESIGNER = 10902;
-const int ID_BMTOGGLEBUTTON_PHRASEBOX = 10903;
-const int ID_DROP_DOWN_LIST = 10904;
+const int ID_BMTOGGLEBUTTON_PHRASEBOX_DESIGNER = 10903;
+const int ID_DROP_DOWN_LIST_DESIGNER = 10904;
 wxSizer *PhraseBoxDropDownFunc_UNUSED( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
 // Declare menubar functions

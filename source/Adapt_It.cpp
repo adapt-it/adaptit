@@ -254,9 +254,11 @@ wxMutex s_AutoSaveMutex;
 #include <tchar.h>
 #endif
 
-// whm 13Jul2018 the following value is the ID for the wxTextCtrl
-// part of our new 3-part phrasebox.
+// whm 13Jul2018 the following values are the IDs for the wxTextCtrl, button, and dropdown list
+// of our new 3-part phrasebox.
 int ID_PHRASE_BOX = 22030;
+int ID_BMTOGGLEBUTTON_PHRASEBOX = 22040;
+int ID_DROP_DOWN_LIST = 22050;
 
 // The following include was originally Copyright (c) 2005 by Dan
 // Moulding, but the features of version 2.0 were implemented by
@@ -30566,14 +30568,18 @@ void CAdapt_ItApp::DoCreatePhraseBox()
 
     // Next destroy any existing object pointed to by phrasebox's private member
     // m_pPhraseBoxButton
-    wxBitmapButton* pBitmapBtn = m_pTargetBox->GetPhraseBoxButton();
+    wxBitmapToggleButton* pBitmapBtn = m_pTargetBox->GetPhraseBoxButton();
     if (pBitmapBtn != NULL)
     {
         pBitmapBtn->Destroy();
-        pBitmapBtn = (wxBitmapButton*)NULL;
+        pBitmapBtn = (wxBitmapToggleButton*)NULL;
     }
 
-    pBitmapBtn = new wxBitmapButton(GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, m_pTargetBox->dropbutton_normal, wxDefaultPosition, wxSize(20, 24));
+#if defined (__WXGTK__)
+    pBitmapBtn = new wxBitmapToggleButton(GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, m_pTargetBox->bmp_dropbutton_normal, wxDefaultPosition, wxSize(30, 34));
+#else
+    pBitmapBtn = new wxBitmapToggleButton(GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, m_pTargetBox->bmp_dropbutton_normal, wxDefaultPosition, wxSize(22, 26));
+#endif
     // Set the phrasebox's private pointer to the button
     m_pTargetBox->SetPhraseBoxButton(pBitmapBtn);
     
@@ -30595,8 +30601,8 @@ void CAdapt_ItApp::DoCreatePhraseBox()
     // To access the wxTextCtrl member of the phrasebox we use the access method 
     // called GetTextCtrl() - using the same name that wxOwnerDrawnComboBox used to access
     // their text control. We set the pointer to the wxTextCtrl using SetTextCtrl().
-    // To access the wxBitmapButton member of the phrasebox we use the access method
-    // called GetPhraseBoxButton(). We set the pointer to the wxBitmapButton using
+    // To access the wxBitmapToggleButton member of the phrasebox we use the access method
+    // called GetPhraseBoxButton(). We set the pointer to the wxBitmapToggleButton using
     // SetPhraseBoxButton().
     // To access the CMyListBox member of the phrasebox we use the access method 
     // called GetDropDownList(). We use this name rather than the GetPopupControl() name
@@ -39641,6 +39647,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
         // has been removed
         else if (name == szAutoOpenPhraseBoxTranslationsList)
         {
+            ;
             //num = wxAtoi(strValue);
             //if (!(num == 0 || num == 1))
             //    num = 1; // default is ON
