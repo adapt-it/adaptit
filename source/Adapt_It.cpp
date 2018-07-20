@@ -24973,6 +24973,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     //int style = (int)wxFONTSTYLE_ITALIC; // it's decimal 93
 
+	GetLayout()->m_curBoxWidth = 120; // BEW 20Jul18 provide a reasonable default
+									  // size for the phrasebox width at app startup
 	// take an initial shot at setting the set of source punctuation characters
 	// (with no spaces included); also do it when Preferences is exited in case
 	// the user changes the punctuation inventory in the Punctuation tab

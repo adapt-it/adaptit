@@ -122,9 +122,7 @@ WX_DEFINE_LIST(PileList);
 // from the view to the CPile class
 extern bool gbShowTargetOnly;
 extern bool gbGlossingVisible;
-//extern CAdapt_ItApp* gpApp;
 extern const wxChar* filterMkr;
-
 extern CAdapt_ItApp* gpApp;
 
 /// This global is defined in Adapt_ItView.cpp.
@@ -377,6 +375,20 @@ int	CPile::GetPhraseBoxGapWidth()
 	return m_nWidth;
 }
 
+int	CPile::GetPhraseBoxWidth() //BEW added 19Jul18, gets m_currBoxWidth value
+{
+	return gpApp->m_pLayout->m_curBoxWidth;
+}
+
+void CPile::SetPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
+{
+	gpApp->m_pLayout->m_curBoxWidth = CalcPhraseBoxWidth(widthMode);
+}
+
+void CPile::SetPhraseBoxWidth(int boxwidth)
+{
+	gpApp->m_pLayout->m_curBoxWidth = boxwidth;
+}
 
 // Calculates the pile's width before laying out the current pile in a strip. The function
 // is not interested in the relative ordering of the glossing and adapting cells, and so
@@ -426,22 +438,262 @@ int CPile::CalcPileWidth()
 	return pileWidth;
 }
 
+int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
+{
+	// box width is what we'll compute to return to caller. It starts out as a
+	// "basic width" computed from the text extent for the adaptation, including
+	// any punctuation; and then we add to that the width of the user's chosen
+	// slop size for the wxTextCtrl (we compute that as a multiple of 'f' character
+	// widths; and then dynamically get the width of the dropdown list's button.
+	// The result should be then less (by a little bit, or maybe by much if the
+	// source text is longer) than the phrasebox gap width computed separately
+	// by CalcPhraseBoxGapWidth()
+	int boxWidth = gpApp->m_nMinPileWidth; // ensure we never get a width of zero
+
+	// get a device context for the canvas on the stack
+	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
+	wxSize boxExtent;
+	wxString mytext = wxEmptyString;
+	if ((m_pSrcPhrase != NULL) && (m_pSrcPhrase->m_nSequNumber == gpApp->m_nActiveSequNum))
+	{
+		// We do these calculations only when the pile is the active pile - that is, where
+		// the phrasebox is located in the interlinear layout. What we do here must work in
+		// all of Adapt It's modes - adapting, glossing, free translating. The code below
+		// must get an adequate with, for each mode. Also, at "holes" the m_pTargetBox will
+		// be empty; so we need to provide a minimum box width into which to typing is
+		// facilitated for a while without a resize; that means, the slop, and the drop down
+		// button
+		wxUnusedVar(widthMode); // our new protocol may make this enum value unneeded, 
+								// it certainly is not needed here
+		// First, what's in the wxTextCtrl? - get it's extent. This could be tgt text, or
+		// gloss text; but if at a hole, the box will need to be wide enough to accomodate
+		// the copied source text. Impliment that understanding.
+		mytext = gpApp->m_pTargetBox->GetTextCtrl()->GetValue();
+		if (mytext.IsEmpty())
+		{
+			// The active location is a hole.
+
+			// Check out the source text's width, and use that instead. 
+			// Then add slop and also the width of the dropdown button.
+			mytext = m_pSrcPhrase->m_srcPhrase; // it's never empty in our layout
+			aDC.SetFont(*m_pLayout->m_pSrcFont);
+			aDC.GetTextExtent(mytext, &boxExtent.x, &boxExtent.y);
+			if (boxExtent.x > boxWidth)
+			{
+				boxWidth = boxExtent.x;
+			}
+
+			// Calculate the phrasebox slop, based on the width of 'f' characters.
+			// Our box slop (whitespace where more chars can be typed without a resize of 
+			// the box being needed) is calculated by multiplying the width of an f 
+			// character (less 1 pixel) by m_nExpandBox - a user-settable value in Preferences...
+			wxChar aChar = _T('f'); 
+			wxString fStr = aChar;
+			wxSize charSize;
+			aDC.GetTextExtent(fStr, &charSize.x, &charSize.y);
+			// Monospaced fonts may have the width of an 'f' character the same as a 'w', so 
+			// subtract 1 to ensure we are working with a width less than that of 'w'
+			// (width of 'w' is used for the phrasebox gap calculation, done elsewhere)
+			int slop = gpApp->m_nExpandBox*(charSize.x - 1);
+			boxWidth += slop;
+			
+			// Finally, add the adjusted width of the dropdown button
+			wxSize buttonSize = gpApp->m_pTargetBox->GetPhraseBoxButton()->GetSize();
+			int adjustedButtonWidth = buttonSize.GetX() + 1; // allow 1 pixel of space before it
+			if (buttonSize.x > 0)
+			{
+				boxWidth += adjustedButtonWidth;
+			}
+
+		} // end of TRUE block for test: if (mytext.IsEmpty())
+		else
+		{
+			// There is text in the phrasebox, either an adaptation, or a gloss
+			if (gbIsGlossing)
+			{
+				// Glossing mode is current
+				if (gbGlossingUsesNavFont)
+				{
+					aDC.SetFont(*m_pLayout->m_pNavTextFont); // using NavText font
+				}
+				else 
+				{
+					aDC.SetFont(*m_pLayout->m_pTgtFont); // it's using the target font
+				}
+
+			}
+			else
+			{
+				// Adapting mode is current
+				aDC.SetFont(*m_pLayout->m_pTgtFont); // it's using the target font
+			}
+			aDC.GetTextExtent(mytext, &boxExtent.x, &boxExtent.y);
+
+			// Set the boxWidth, with m_nMinPileWidth as a lower bound on width
+			if (boxWidth > boxExtent.x)
+			{
+				boxWidth = boxExtent.x;
+			}
+
+			// Calculate the phrasebox slop, based on the width of 'f' characters.
+			// Our box slop (whitespace where more chars can be typed without a resize of 
+			// the box being needed) is calculated by multiplying the width of an f 
+			// character (less 1 pixel) by m_nExpandBox - a user-settable value in Preferences...
+			wxChar aChar = _T('f');
+			wxString fStr = aChar;
+			wxSize charSize;
+			aDC.GetTextExtent(fStr, &charSize.x, &charSize.y);
+			// Monospaced fonts may have the width of an 'f' character the same as a 'w', so 
+			// subtract 1 to ensure we are working with a width less than that of 'w'
+			// (width of 'w' is used for the phrasebox gap calculation, done elsewhere)
+			int slop = gpApp->m_nExpandBox*(charSize.x - 1);
+			boxWidth += slop;
+
+			// Finally, add the adjusted width of the dropdown button
+			wxSize buttonSize = gpApp->m_pTargetBox->GetPhraseBoxButton()->GetSize();
+			int adjustedButtonWidth = buttonSize.GetX() + 1; // allow 1 pixel of space before it
+			if (buttonSize.x > 0)
+			{
+				boxWidth += adjustedButtonWidth;
+			}
+
+			/* I think the logic below is now bogus - we don't want to augment an earlier location's width value when relocating to a shorter gap - comment out for now
+			// If, due to user's typing within the phrasebox, the m_curBoxWidth value is already
+			// larger than the value for boxWidth we've computed there, then add the slop amount
+			// to accomodate any additional typing that may be required
+			if (widthMode == expanding)
+			{
+				if (m_pLayout->m_curBoxWidth > boxWidth)
+				{
+					boxWidth = m_pLayout->m_curBoxWidth + slop;
+				}
+			}
+			*/
+		} // end of else block for test: if (mytext.IsEmpty())
+	}
+	return boxWidth;
+}
+
+
 //GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
 // (0 is contracting, 1 is steadyAsSheGoes, 2 is expanding)
+// BEW refactored for listbox phrasebox within sizer
 int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 {
-	wxUnusedVar(widthMode);
-
     // is this pile the active one? If so, get a pile width using m_pApp->m_targetPhrase
     // (the phrase box contents) for the pile extent (plus some slop), because at the
     // active location the m_adaption & m_targetStr members of pSrcPhrase are not set, and
-    // won't be until the user hits Enter key to move phrase box on or clickes to place it
-    // elsewhere, so only pApp->m_targetPhrase is valid; note, for version 2 which supports
+    // won't be until the user hits Enter key to move phrase box on or clicks to place it
+    // elsewhere, so only pApp->m_targetPhrase is valid, or the contents of the ptr to the
+	// wxTextCtrl itself; note, for version 2 which supports
     // a glossing line, the box will contain a gloss rather than an adaptation whenever
     // gbIsGlossing is TRUE. Glossing could be using the target font, or the navText font.
 	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
 	wxSize extent;
+	// boxGapWidth is what we return to the caller. When drawing for the active location,
+	// the pile there has to have sufficient width -- and the drawing will need to make
+	// use of the active pile's m_nWidth value which is set by asigning this function's
+	// return value to m_nWidth. (A similar CPile member, m_nMinWidth is used for pile
+	// drawing at non-active locations - and therefore does not need to account for the
+	// dropdown list button. Pile width is the max of all text extents, src, tgt, and
+	// possibly gloss. That calculation is done by CalcPileWidth(). We need to use it
+	// here, and add the button width to widen the pile sufficiently for the dropdown
+	// button. The interpile gap is added when a strip is created, so we don't need
+	// to do anthing here with that layout parameter. I'm going to refactor the messy
+	// legacy code & its logging, with a simpler version which should suffice
 	int boxGapWidth = m_nMinWidth; // start with this minimum value (text-based)
+	boxGapWidth = CalcPileWidth(); // calc text extents of src, tgt, gloss - sets to max
+	// but the tgt calculation is based on pSrcPhrase->m_targetStr, which may at this
+	// point not have content. So the value obtained so far may be correct (if source text
+	// is longest), or wrong, if the eventual adaptation turns out to be longer. So here
+	// we must look at the wxTextCtrl in the dropdown phrasebox, get it's extent, and if
+	// the width is wider than the boxGapWidth value above, set boxGapWidth to that 
+	// value instead. (We handle the dropdown button further below.)
+
+	// Only do this calculation provided the m_pSrcPhrase pointer is set and that
+	// CSourcePhrase instance is the one at the active location, if not so, return
+	// PHRASE_BOX_WIDTH_UNSET which has the value -1
+	if (m_pSrcPhrase != NULL)
+	{
+		if (m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+		{
+			wxSize boxExtent;
+			wxString boxText = wxEmptyString; // initialize
+			boxText = m_pLayout->m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+			// Get text extent based on current contents of the phrase box;
+			// remember, glossing mode might be current
+			if (gbIsGlossing && gbGlossingUsesNavFont)
+			{
+				aDC.SetFont(*m_pLayout->m_pNavTextFont); // it's using the navText font
+				aDC.GetTextExtent(boxText, &boxExtent.x, &boxExtent.y);
+			}
+			else // if not glossing, or not using nav text when glossing, it's using the target font
+			{
+				aDC.SetFont(*m_pLayout->m_pTgtFont);
+				aDC.GetTextExtent(boxText, &boxExtent.x, &boxExtent.y);
+			}
+			int boxTextWidth = boxExtent.x;
+			// Test for the actual phrasebox control's text being longest, if so, use that value
+			if (boxGapWidth < boxTextWidth)
+			{
+				// The phrasebox's text is longest, so use that to ensure the gap is large enough
+				boxGapWidth = boxTextWidth;
+			}
+			// At this point we have the width of the widest text worked out. The phrasebox will
+			// have (1) user-set slop at the end for typing in, (2) a button which follows. So we have
+			// to augment the gap width we are calculating by adding those values in.
+			if (boxGapWidth < 40)
+				boxGapWidth = 40; // in case m_targetPhrase was empty or very small
+			wxChar aChar = _T('w'); // our box slop (whitespace where more chars can be typed
+									// without a resize of the box being needed) is calculated
+									// by multiplying the width of a w character by m_nExpandBox
+									// which is a user-settable value in Preferences...
+			wxString wStr = aChar;
+			wxSize charSize;
+			aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
+			int slop = gpApp->m_nExpandBox*charSize.x;
+			boxGapWidth += slop; // add the slop amount to the gap
+
+			// Next we need to add to the above calculation of boxGapWidth the width of the new
+			// button plus the 1-pixel space between its and the legacy phrasebox. This addition 
+			// will be a constant value regardless of whether the phrasebox is expanding or not. 
+			// Currently (13Jul2018) the button width is about 20 pixels (but its size may change 
+			// if/when we redo the current xpm button with a better quality one).
+			// We note that the new adjusted value for boxGapWidth is assigned to the Layout's 
+			// m_curBoxWidth member and also returned by CalcPhraseBoxGapWidth() to the caller.
+			//int gapWidthWithoutButton = boxGapWidth; // use in the test below
+			wxSize buttonSize = gpApp->m_pTargetBox->GetPhraseBoxButton()->GetSize();
+			int adjustedButtonWidth = buttonSize.GetX() + 1; // allow 1 pixels space before the button
+			if (buttonSize.x > 0)
+			{
+				boxGapWidth += adjustedButtonWidth;
+			}
+			// Correct to here, as far as calculating the gap. ResizeBox() will get the phrasebox size right.
+			// If expanding because the user's typing has increased the adaptation text length to the
+			// degree that the box must be resized larger, the layout may have a wider textctrl with 
+			// its slop & button - so we have to expand the gap to acccomodate the resize that will be done
+			if (widthMode == expanding)
+			{
+				if (m_pLayout->m_curBoxWidth > boxGapWidth)
+				{
+					boxGapWidth = m_pLayout->m_curBoxWidth + slop; // increasing the gap by the slop value
+						// - that should be enough of an increase to the gap, m_curBoxWidth already is a 
+					    // sum of text extent + button width + the phrase box slop (as calculated by multiples
+					    // of 'f' widths, less 1) - the box's slop is what got consumed by the user's edits,
+					    // so adding the same amount of slop as calculated by the larger 'w' character widths,
+					    // should keep the gap bigger than the phrasebox to be lodged there
+				}
+			}
+			// BEW 18Jul18, that should do it, for this function's refactoring
+		} // end of TRUE block for test: if (m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+	}
+	else
+	{
+		// CSourcePhrase pointer was null, so cannot calculate a value
+		return PHRASE_BOX_WIDTH_UNSET;
+	} // end of else block for test: if (m_pSrcPhrase != NULL)
+
+	/* legacy code plus logging and a tweak or two that did not solve the problem
 	// BEW 17Jul18, m_pLayout->m_curBoxWidth is unset (large -ve rubbish value) so
 	// set the same minimum here for it too
 	m_pLayout->m_curBoxWidth = m_nMinWidth;
@@ -450,7 +702,7 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 		m_nMinWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
 #endif
 
-    // only do this calculation provided the m_pSrcPhrase pointer is set and the partner
+    // only do this calculation provided the m_pSrcPhrase pointer is set and that
     // CSourcePhrase instance is the one at the active location, if not so, return
     // PHRASE_BOX_WIDTH_UNSET which has the value -1
 	if (m_pSrcPhrase != NULL)
@@ -494,12 +746,12 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 #endif
 			// BEW added 17Jul18, initialize a boxGapWidth big enough for the text length plus the slop
 			boxGapWidth = boxExtent.x; // includes slop as defined by user in Preferences...
-			/* legacy code
-			if (boxGapWidth < boxExtent.x)
-			{
-				boxGapWidth = boxExtent.x;
-			}
-			*/
+			// legacy code
+			//if (boxGapWidth < boxExtent.x)
+			//{
+			//	boxGapWidth = boxExtent.x;
+			//}
+			//
 #if defined(_DEBUG) && defined(_NEWDRAW)
 			wxLogDebug(_T("CPile::CalcPhraseBoxGapWidth(): initialized boxGapWidth (includes slop): %d , for box text: %s"),
 				boxGapWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
@@ -519,13 +771,13 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			wxLogDebug(_T("CPile::CalcPhraseBoxGapWidth(): reset (from m_nBoxOnlyWidth) m_pLayout->m_curBoxWidth = %d, for box text: %s"),
 				m_pLayout->m_curBoxWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
 #endif
-			/*
-			if (widthMode == expanding)
-			{
-				if (m_nBoxOnlyWidth > m_pLayout->m_curBoxWidth)
-					m_pLayout->m_curBoxWidth = m_nBoxOnlyWidth;
-			}
-			*/
+			//
+			//if (widthMode == expanding)
+			//{
+			//	if (m_nBoxOnlyWidth > m_pLayout->m_curBoxWidth)
+			//		m_pLayout->m_curBoxWidth = m_nBoxOnlyWidth;
+			//}
+			//
             // whm 13Jul2018 TODO: Bruce should verify that I have interpreted correctly what 
             // CalcPhraseBoxGapWidth()'s purpose is, and that my modification done in the coding 
             // below are appropriate to accommodate the new phrasebox with its dropdown button.
@@ -571,13 +823,13 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
             int adjustedButtonWidth = buttonSize.GetX() + 1; // allow 1 pixels space before the button
             if (buttonSize.x > 0)
                 boxGapWidth += adjustedButtonWidth;
-			/* legacy test
-			if (widthMode == expanding)
-			{
-				if (m_pLayout->m_curBoxWidth > boxGapWidth)
-					boxGapWidth = m_pLayout->m_curBoxWidth;
-			}
-			*/
+			// legacy test
+			//if (widthMode == expanding)
+			//{
+			//	if (m_pLayout->m_curBoxWidth > boxGapWidth)
+			//		boxGapWidth = m_pLayout->m_curBoxWidth;
+			//}
+			//
 			// BEW 17Jul18 change the test to account for the dropdown button && its 1-pixel separation
 			if (widthMode == expanding)
 			{
@@ -615,6 +867,8 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	wxLogDebug(_T("CPile::CalcPhraseBoxGapWidth() at end: m_pLayout->m_curBoxWidth: %d , for box text: %s, and new boxGapWidth: %d  CHECK for valid values, and gap larger"),
 		m_pLayout->m_curBoxWidth, m_pLayout->m_pApp->m_targetPhrase.c_str(), boxGapWidth);
 #endif
+	*/
+
 	return boxGapWidth;
 }
 
@@ -1246,6 +1500,12 @@ void CPile::Draw(wxDC* pDC)
 	if (!m_pLayout->m_pApp->m_bIsPrinting ||
 		(m_pLayout->m_pApp->m_bIsPrinting && !gbIsGlossing))
 	{
+#if defined(_DEBUG)
+		//if (m_pCell[1]->GetPile() == m_pLayout->m_pApp->m_pActivePile)
+		//{
+		//	int break_here = 1;
+		//}
+#endif
 		m_pCell[1]->Draw(pDC); // always draw the line which has the phrase box
 	}
 

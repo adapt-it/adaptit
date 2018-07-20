@@ -97,6 +97,21 @@ public:
 	int			CalcPileWidth(); // based on the text in the cells only, no account taken of active loc
 //GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
 	int			CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes);
+	// BEW 19Jul18, for Bill's dropdown+textctrl+button solution for the phrasebox, we need a separate 
+	// function than CalcPhraseBoxGapWidth() - our new function, which calculates the width of the
+	// phrasebox in a similar manner to CalcPhraseBoxGapWidth() but with some essential differences...
+	// Our new function is CalcPhraseBoxWidth() with the same signature, but
+	// (a) the basic length is calculated solely from the width extent of the text in the wxTextControl
+	// at the active location (whereas for CalcPhraseBoxGapWidth() it bets the basic length as the max
+	// of the text lengths for src, gloss, and wxTextCtrl contents at active location), the button width
+	// is the same in both functions, but
+	// (b) the slop value is computed, for the CalcPhraseBoxGapWidth() function, in a multiple of 'w'
+	// character widths, whereas CalcPhraseBoxWidth() uses the same multiple of 'f' character widths
+	// for the phrasebox slop. 'f' is less wide the 'w', so this guarantees that the phrasebox will
+	// always fit into the gap left for it. The view's OnDraw() will use this new function, as will
+	// ResizeBox() and FixBox() I expect (I've not yet finished the refactoring)
+	int			CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes);
+
 	int			GetStripIndex();
 	CStrip*		GetStrip();
 	void		SetStrip(CStrip* pStrip);
@@ -125,9 +140,12 @@ public:
 	int			GetPhraseBoxGapWidth(); // returns value of m_nWidth
 	void		SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection);
 	bool		GetIsCurrentFreeTransSection();
+	int			GetPhraseBoxWidth(); //BEW added 19Jul18, gets Layout's m_currBoxWidth value
+	void		SetPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes); // BEW added 19Jul18
+	void		SetPhraseBoxWidth(int boxwidth); // an override, to set an explicit known width
 
 	// BEW added 17July18 so as to allow box + slop to be a different (lesser) value than the gap width
-	int			m_nBoxOnlyWidth; // use this for box width, no longer use the gap width
+	//int			m_nBoxOnlyWidth; // use this for box width, no longer use the gap width
 private:
 	bool		HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers
 

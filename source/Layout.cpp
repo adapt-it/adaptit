@@ -579,6 +579,9 @@ void CLayout::PlaceBox()
 		CPile* pActivePile = GetPile(nActiveSequNum); // could use view's m_pActivePile
 								// instead; but this will work even if we have forgotten to
 								// update it in the edit operation's handler
+
+		pActivePile->SetPhraseBoxWidth();
+
 		pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
  
 #if defined (_DEBUG) && defined (_ABANDONABLE)
@@ -587,10 +590,11 @@ void CLayout::PlaceBox()
 
 		// get the pile width at the active location, using the value in
 		// CLayout::m_curBoxWidth put there by RecalcLayout() or AdjustForUserEdits() or FixBox()
-		int phraseBoxWidth = pActivePile->GetPhraseBoxGapWidth(); // returns CPile::m_nWidth
-		//int phraseBoxWidth = m_curBoxWidth; // I was going to use this, but I think the best
-		//design is to only use the value stored in CLayout::m_curBoxWidth for the brief
-		//interval within the execution of FixBox() when a box expansion happens (and
+		int phraseBoxWidth = pActivePile->GetPhraseBoxWidth(); 
+		// returns returns the width of the box text, plus width of the slop as a multiple of
+		// 'f' character widths less 1 pixel, plus the dropdown button width.
+		//I think the best design is to only use the value stored in CLayout::m_curBoxWidth for
+		// the brief interval within the execution of FixBox() when a box expansion happens (and
 		//immediately after a call to RecalcLayout() or later to AdjustForUserEdits()), since
 		//then the CalcPhraseBoxGapWidth() call in RecalcLayout() or in AdjustForUserEdits()
 		//will use the phraseBoxWidthAdjustMode parameter passed to it to test for largest of
@@ -1966,7 +1970,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	}
 	else // control is past the end of the document
 	{
-		// we have no active active location currently, and the box is hidden, the active
+		// we have no active location currently, and the box is hidden, the active
 		// pile is null and the active sequence number is -1, so we want a layout that has
 		// no place provided for a phrase box, and we'll draw the end of the document
 	}

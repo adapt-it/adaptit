@@ -3344,7 +3344,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// been added to the box. This is in contrast to the MFC version where
 		// GetWindowText(thePhrase) at the same code location in PhraseBox::OnChar there
 		// gets the contents of the phrasebox including the just typed character.
-			thePhrase = this->GetTextCtrl()->GetValue(); // current box text (including the character just typed)
+		thePhrase = this->GetTextCtrl()->GetValue(); // current box text (including the character just typed)
 
 		// BEW 6Jul09, try moving the auto-caps code from OnIdle() to here
 		if (gbAutoCaps && pApp->m_pActivePile != NULL)
@@ -3409,8 +3409,41 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 							// this flag FALSE
         this->MarkDirty(); //this->GetTextCtrl()->MarkDirty(); // whm 14Feb2018 added this->GetTextCtrl()->
 
+
+// BEW 19Jul18 currently FixBox() is doing nothing; so put a SetPhraseBoxWidth() call here - 'steadyAsSheGoes'
+// to get the box width calculated, and follow with a ResizeBox() call to get it located etc
+		//* Nope, it had no effect on the too-small phrasebox in the GUI -- I'll need to log and/or step
+		{ // temporary - for testing
+			pApp->m_pActivePile->CalcPhraseBoxWidth();
+
+			wxPoint ptCurBoxLocation;
+			CCell* pActiveCell = pApp->m_pActivePile->GetCell(1);
+			pActiveCell->TopLeft(ptCurBoxLocation); // returns the .x and .y values in the signature's ref variable
+													// BEW 25Dec14, cells are 2 pixels larger vertically as of today, so move TopLeft of box
+													// back up by 2 pixels, so text baseline keeps aligned
+			ptCurBoxLocation.y -= 2;
+
+			// whm 13Jul2018 Note: The CPhraseBox is now implemented with 3 separate components. Its
+			// size and position are maintained in the View's ResizeBox() function below, which 
+			// ensures the phrasebox components are adjusted automatically whenever this FixBox() 
+			// function is called.
+
+			if (gbIsGlossing && gbGlossingUsesNavFont)
+			{
+				pView->ResizeBox(&ptCurBoxLocation, pApp->GetLayout()->m_curBoxWidth, pApp->GetLayout()->GetNavTextHeight(),
+					pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
+			}
+			else
+			{
+				pView->ResizeBox(&ptCurBoxLocation, pApp->GetLayout()->m_curBoxWidth, pApp->GetLayout()->GetTgtTextHeight(),
+					pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
+			}
+			pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles, steadyAsSheGoes);
+
+		}
+		//*/
 		// adjust box size
-		FixBox(pView, thePhrase, bWasMadeDirty, textExtent, 0); // selector = 0 for incrementing box extent
+		//FixBox(pView, thePhrase, bWasMadeDirty, textExtent, 0); // selector = 0 for incrementing box extent
 		
 		// set the globals for the cursor location, ie. m_nStartChar & m_nEndChar,
 		// ready for box display
@@ -3464,9 +3497,10 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	// RecalcLayout() will have access to it when it is setting the width of the active pile.
 
 	//GDLC Added 2010-02-09
-	enum phraseBoxWidthAdjustMode nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
+    enum phraseBoxWidthAdjustMode nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
+	// nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
 
-	CAdapt_ItApp* pApp = &wxGetApp();
+ 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	//bool bWholeScreenUpdate = TRUE; // suppress for now, we'll probably do it
 	//differently (such as with a clipping rectangle, and may not calculate that here anyway)

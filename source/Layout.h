@@ -328,12 +328,13 @@ public:
 	int			GetGapWidth();
 
 	// setter and getter for the pile height & strip height;
-	// also the current leading value
+	// also the current leading value, and compose phrasebox with button
 	void		SetPileAndStripHeight();
 	int			GetPileHeight();
 	int			GetStripHeight();
 	void		SetCurLeading(CAdapt_ItApp* pApp);
 	int			GetCurLeading();
+	int			GetPhraseBoxWidth(); //BEW added 19Jul18, gets m_currBoxWidth value
 
 	// left margin for strips
 	void		SetCurLMargin(CAdapt_ItApp* pApp);
