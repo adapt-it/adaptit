@@ -383,6 +383,12 @@ int	CPile::GetPhraseBoxWidth() //BEW added 19Jul18, gets m_currBoxWidth value
 void CPile::SetPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 {
 	gpApp->m_pLayout->m_curBoxWidth = CalcPhraseBoxWidth(widthMode);
+	// BEW 20Jul18 despite the claim in CalcPileWith() that setting m_nMinWidth
+	// for the active location can be left to RecalcLayout(), in the refactored
+	// drawing protocol (supporting dropdown phrasebox) it does not appear to 
+	// be the case that that is always sufficient. So, I'll add the call here
+	// to get m_nMinWidth updated for the active pile too
+	SetMinWidth();
 }
 
 void CPile::SetPhraseBoxWidth(int boxwidth)
