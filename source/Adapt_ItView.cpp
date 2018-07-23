@@ -62,7 +62,7 @@ extern size_t aSequNum; // use with TOKENIZE_BUG
 
 //#define _Trace_DrawFreeTrans
 //#define CHECK_GEDITSTEP
-#define _NEWDRAW
+
 
 #include <wx/docview.h>	// includes wxWidgets doc/view framework
 #include <wx/file.h>
@@ -6441,34 +6441,18 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	// BEW 19Jul18, refactored to get the m_curBoxWidth value, from CLayout, which now is calculated
 	// by a new function in CPile, CalcPhraseBoxWidth(), independent of the gap calculations
 	//int nGapWidth = pActivePile->GetPhraseBoxGapWidth();
-	pActivePile->SetPhraseBoxWidth(); // calls CalcPhraseBoxWidth()
+	// pActivePile->SetPhraseBoxWidth(); // calls CalcPhraseBoxWidth()
 
-	// Work out which width we use - whether the passed in one, or what's already in Layout's m_curBoxWidth;
-	// we must use the larger one  (when the widthMode = steadyAsSheGoes, the default if unspecified)
-	int nBoxWidth = pActivePile->GetPhraseBoxWidth(); // value of Layout's m_currBoxWidth
-	int aWidth = nWidth;
-	if (nWidth > nBoxWidth)
+	// Check that m_nWidth (the phrasebox at gap's width) has not become less than 
+	// the m_nMinWidth value (the box contents's width as shown at non-active locations)
+	// and if it has then re-calculate the phrasebox width (it should never happen as
+	// the passed in phraseBoxWidth was calculated in the caller just a few lines earlier
+	// but not harm in playing safe)
+	int aWidth = nWidth; // nWidth is passed in as const, so can't assign to it
+	if (nWidth < pActivePile->GetMinWidth())
 	{
-		// The width passed in is greater than the calculated with stored currently in Layout's m_curBoxWidth
-		// so a resize to a longer phrasebox is required. (FixBox() does that - it calls ResizeBox() so
-		// check the recognition of a larger phrasebox actually happens in FixBox(), we don't need to do it here.
-		// But we do need to update the m_curBoxWidth cached value in the one CLayout instance, because the
-		// phrasebox we are building is the bigger one, unless we are expanding or contracting
-		pActivePile->SetPhraseBoxWidth(nWidth);
+		aWidth = pActivePile->CalcPhraseBoxWidth(); // redo the calculation
 	}
-	else
-	{
-		// The Layout's m_curBoxWidth is greater, so we will use that. No need then to update Layout's
-		// cached value in m_curBoxWidth
-		aWidth = nBoxWidth;
-	}
-	/* Legacy test
-	int aWidth = nWidth;
-	if ( nBoxWidth >= 10)
-	{
-		aWidth = aWidth > nBoxWidth ? nBoxWidth : aWidth;
-	}
-	*/
 	wxRect rectBox(wxPoint((*pLoc).x, (*pLoc).y), wxPoint((*pLoc).x + aWidth,
 					(*pLoc).y + nHeight+4)); // logical coords
 

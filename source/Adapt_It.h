@@ -62,6 +62,7 @@
 #if defined(_DEBUG)
 //#define FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 #endif
+#define _NEWDRAW
 
 // support for incremental building of KB Server client code !! BEW 3Oct12, Moved to be a
 // preprocessor symbol in the Debug build!!

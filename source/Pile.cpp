@@ -64,8 +64,6 @@
 // to micromanage the layout direction itself in the coding of text, cells, piles, strips,
 // etc.
 
-#define _NEWDRAW
-
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Pile.h"
@@ -454,14 +452,12 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 	// The result should be then less (by a little bit, or maybe by much if the
 	// source text is longer) than the phrasebox gap width computed separately
 	// by CalcPhraseBoxGapWidth()
-	int boxWidth = gpApp->m_nMinPileWidth; // ensure we never get a width of zero
-
-	// get a device context for the canvas on the stack
-	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
-	wxSize boxExtent;
+	wxSize boxExtent; int boxWidth = 0;
 	wxString mytext = wxEmptyString;
 	if ((m_pSrcPhrase != NULL) && (m_pSrcPhrase->m_nSequNumber == gpApp->m_nActiveSequNum))
 	{
+		// Get a device context for the canvas on the stack
+		wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
 		// We do these calculations only when the pile is the active pile - that is, where
 		// the phrasebox is located in the interlinear layout. What we do here must work in
 		// all of Adapt It's modes - adapting, glossing, free translating. The code below
@@ -471,10 +467,20 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 		// button
 		wxUnusedVar(widthMode); // our new protocol may make this enum value unneeded, 
 								// it certainly is not needed here
+		boxWidth = gpApp->m_nMinPileWidth; // ensure we never get a width of zero
+
+#if defined(_DEBUG) && defined(_NEWDRAW)
+		wxLogDebug(_T("CPile::CalcPhraseBoxWidth() line 473 starting boxWidth:  %d,  (from gpApp->m_nMinPileWidth) ; for box text: %s"),
+			boxWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
+#endif
 		// First, what's in the wxTextCtrl? - get it's extent. This could be tgt text, or
 		// gloss text; but if at a hole, the box will need to be wide enough to accomodate
 		// the copied source text. Impliment that understanding.
 		mytext = gpApp->m_pTargetBox->GetTextCtrl()->GetValue();
+#if defined(_DEBUG) && defined(_NEWDRAW)
+		wxLogDebug(_T("CPile::CalcPhraseBoxWidth():line 481, gpApp->m_pTargetBox->GetTextCtrl() mytext: %s"), mytext.c_str());
+#endif
+
 		if (mytext.IsEmpty())
 		{
 			// The active location is a hole.
@@ -488,6 +494,10 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 			{
 				boxWidth = boxExtent.x;
 			}
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("CPile::CalcPhraseBoxWidth(): src text extent.x based boxWidth:  %d , when box text is EMPTY"),
+				boxWidth);
+#endif
 
 			// Calculate the phrasebox slop, based on the width of 'f' characters.
 			// Our box slop (whitespace where more chars can be typed without a resize of 
@@ -510,6 +520,9 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 			{
 				boxWidth += adjustedButtonWidth;
 			}
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("CPile::CalcPhraseBoxWidth():line 524, EMPTY box, slop + button gives boxWidth = %d  [end of 'empty' block]"), boxWidth);
+#endif
 
 		} // end of TRUE block for test: if (mytext.IsEmpty())
 		else
@@ -535,11 +548,12 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 			}
 			aDC.GetTextExtent(mytext, &boxExtent.x, &boxExtent.y);
 
-			// Set the boxWidth, with m_nMinPileWidth as a lower bound on width
-			if (boxWidth > boxExtent.x)
-			{
-				boxWidth = boxExtent.x;
-			}
+			// Start the boxWidth calculation with the x-extent of the text in the phrasebox
+			boxWidth = boxExtent.x;
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("CPile::CalcPhraseBoxWidth(): line 554 , boxExtent.x (no slop or button yet) = %d, for box text: %s"),
+				boxExtent.x, mytext.c_str());
+#endif
 
 			// Calculate the phrasebox slop, based on the width of 'f' characters.
 			// Our box slop (whitespace where more chars can be typed without a resize of 
@@ -562,6 +576,10 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 			{
 				boxWidth += adjustedButtonWidth;
 			}
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("CPile::CalcPhraseBoxWidth(): line 580 , final boxWidth (slop & button added) = %d, for box text: %s"),
+				boxWidth, mytext.c_str());
+#endif
 
 			/* I think the logic below is now bogus - we don't want to augment an earlier location's width value when relocating to a shorter gap - comment out for now
 			// If, due to user's typing within the phrasebox, the m_curBoxWidth value is already
@@ -609,12 +627,18 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	// legacy code & its logging, with a simpler version which should suffice
 	int boxGapWidth = m_nMinWidth; // start with this minimum value (text-based)
 	boxGapWidth = CalcPileWidth(); // calc text extents of src, tgt, gloss - sets to max
-	// but the tgt calculation is based on pSrcPhrase->m_targetStr, which may at this
+		// but the tgt calculation is based on pSrcPhrase->m_targetStr, which may at this
 	// point not have content. So the value obtained so far may be correct (if source text
 	// is longest), or wrong, if the eventual adaptation turns out to be longer. So here
 	// we must look at the wxTextCtrl in the dropdown phrasebox, get it's extent, and if
 	// the width is wider than the boxGapWidth value above, set boxGapWidth to that 
 	// value instead. (We handle the dropdown button further below.)
+
+#if defined(_DEBUG) && defined(_NEWDRAW)
+	wxLogDebug(_T("CPile::CalcPhraseBoxGapWidth() line 618 starting: m_nMinWidth (of pile) = %d, for box text: %s  [Calculated by CalcPileWith()]"),
+		m_nMinWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
+#endif
+
 
 	// Only do this calculation provided the m_pSrcPhrase pointer is set and that
 	// CSourcePhrase instance is the one at the active location, if not so, return
@@ -645,6 +669,11 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 				// The phrasebox's text is longest, so use that to ensure the gap is large enough
 				boxGapWidth = boxTextWidth;
 			}
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("CPile::CalcPhraseBoxGapWidth():line 653 boxGapWidth (no slop or button added) = %d, for box text: %s"),
+				boxExtent.x, m_pLayout->m_pApp->m_targetPhrase.c_str());
+#endif
+
 			// At this point we have the width of the widest text worked out. The phrasebox will
 			// have (1) user-set slop at the end for typing in, (2) a button which follows. So we have
 			// to augment the gap width we are calculating by adding those values in.
@@ -659,6 +688,10 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
 			int slop = gpApp->m_nExpandBox*charSize.x;
 			boxGapWidth += slop; // add the slop amount to the gap
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("CPile::CalcPhraseBoxGapWidth():line 672 boxGapWidth (slop added) = %d, for box text: %s"),
+				boxExtent.x, m_pLayout->m_pApp->m_targetPhrase.c_str());
+#endif
 
 			// Next we need to add to the above calculation of boxGapWidth the width of the new
 			// button plus the 1-pixel space between its and the legacy phrasebox. This addition 
@@ -674,6 +707,10 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			{
 				boxGapWidth += adjustedButtonWidth;
 			}
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("CPile::CalcPhraseBoxGapWidth():line 691 boxGapWidth (button added) = %d, for box text: %s"),
+				boxExtent.x, m_pLayout->m_pApp->m_targetPhrase.c_str());
+#endif
 			// Correct to here, as far as calculating the gap. ResizeBox() will get the phrasebox size right.
 			// If expanding because the user's typing has increased the adaptation text length to the
 			// degree that the box must be resized larger, the layout may have a wider textctrl with 
@@ -688,6 +725,10 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 					    // of 'f' widths, less 1) - the box's slop is what got consumed by the user's edits,
 					    // so adding the same amount of slop as calculated by the larger 'w' character widths,
 					    // should keep the gap bigger than the phrasebox to be lodged there
+#if defined(_DEBUG) && defined(_NEWDRAW)
+					wxLogDebug(_T("CPile::CalcPhraseBoxGapWidth():line 709 EH??  boxGapWidth (size hack called) = %d, for box text: %s"),
+						boxGapWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
+#endif
 				}
 			}
 			// BEW 18Jul18, that should do it, for this function's refactoring
@@ -771,10 +812,10 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			// go on as Bill has them below. m_BoxOnlyWidth should then be used for setting Layout's
 			// m_curBoxWidth; and the calculated gap width should be returned as boxGapWidth as before,
 			// on exit
-			m_nBoxOnlyWidth = boxGapWidth;
-			m_pLayout->m_curBoxWidth = m_nBoxOnlyWidth; // has to be set, whether expanding, contracting, or stead as she goes
+			// m_nBoxOnlyWidth = boxGapWidth; m_nBoxOnlyWidth no longer exists
+			//m_pLayout->m_curBoxWidth = m_nBoxOnlyWidth; // has to be set, whether expanding, contracting, or stead as she goes
 #if defined(_DEBUG) && defined(_NEWDRAW)
-			wxLogDebug(_T("CPile::CalcPhraseBoxGapWidth(): reset (from m_nBoxOnlyWidth) m_pLayout->m_curBoxWidth = %d, for box text: %s"),
+			wxLogDebug(_T("CPile::CalcPhraseBoxGapWidth(): m_pLayout->m_curBoxWidth = %d, for box text: %s"),
 				m_pLayout->m_curBoxWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
 #endif
 			//
