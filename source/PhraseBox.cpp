@@ -2347,6 +2347,8 @@ void CPhraseBox::PopupDropDownList()
     // Note: Button is not hidden, just show the list
     this->GetDropDownList()->Show();
     int rectWidth = this->GetTextCtrl()->GetRect().GetWidth();
+    int buttonWidth = this->GetPhraseBoxButton()->GetRect().GetWidth();
+    rectWidth += (buttonWidth + 1); // Gets the total width of phrasebox including edit box, button and 1-pixel space between.
     this->SetSizeAndHeightOfDropDownList(rectWidth);
 }
 
