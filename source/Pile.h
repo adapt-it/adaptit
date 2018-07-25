@@ -141,6 +141,8 @@ public:
 	void		TopLeft(wxPoint& ptTopLeft);
 
 	void		SetMinWidth(); // sets m_nMinWidth (width large enough for cells, calls CalcPileWidth())
+	void		SetMinWidth(int width); // overload, for using when restoring a cached m_nMinWidth value;
+
 //GDLC 2010-02-10 Added parameter to SetPhraseBoxGapWidth with default value steadyAsSheGoes
 	void		SetPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes); 
 											// sets m_nWidth (the width to be used at active 

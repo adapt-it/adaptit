@@ -1099,14 +1099,12 @@ x:					CCell* pCell = 0;
 					pApp->m_nOnLButtonDownEntranceCount++; // set cache only for the count equalling 1, we allow two entrances
 					
 					// BEW 28Jun18 also cache this value for using within PlacePhraseBox to define 
-					// pOldActivePile pointer but beware, OnLButtonDown() is, also called a 2nd time
-					// in FilterEvent() and by that time the active location will have moved from
-					// the kick off location (unless use clicked the active location, of course)
-					// and so we must suppress updating the cached value on the second call
+					// pOldActivePile pointer (suppress resetting if reentered, as the box may have
+					// moved on)
 					if (pApp->m_nOnLButtonDownEntranceCount == 1)
 					{
 						pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
-						wxLogDebug(_T(" OnLButtonDown() 1085, setting m_nCacheLeavingLocation, cached sequ num = %d"),
+						wxLogDebug(_T(" OnLButtonDown() 1107, setting m_nCacheLeavingLocation, cached sequ num = %d"),
 							pApp->m_nCacheLeavingLocation);
 					}
 					else
@@ -1115,16 +1113,6 @@ x:					CCell* pCell = 0;
 						pApp->m_nOnLButtonDownEntranceCount = 0;
 					}
 
-					// BEW 7May18. We use the fact that OnLButtonDown() is never called when there is a user
-					// click on the dropdown-based phrasebox to advantage. If control has entered and gets
-					// to this point, then the click must have been to a pile which is not the current active
-					// one - and that means that the phrasebox is going to move - which in turn means that
-					// we can safely set app's member boolean m_bLandingBox to TRUE. This will help give
-					// better behaviours for the refactored GUI with a combo-box based phrasebox
-                    //
-                    // whm 3Jun2018 TODO: BEW needs to revisit logic stated in above comment after whm 
-                    // implementation of the App's FilterEvent() which may indeed call this OnLButtonDown() 
-                    // handler.
 					pApp->m_bLandingBox = TRUE;
 
 					// place the phrase box
@@ -1833,9 +1821,9 @@ x:					CCell* pCell = 0;
 						// not in free translation mode
                         pApp->m_pTargetBox->m_Translation.Empty();
 
-						#ifdef _Trace_Click_FT
-						TRACE1("PlacePhraseBox() next, normal mode; key: %s\n", pApp->m_targetPhrase);
-						#endif
+						//#ifdef _Trace_Click_FT
+						//TRACE1("PlacePhraseBox() next, normal mode; key: %s\n", pApp->m_targetPhrase);
+						//#endif
 
 						// if the user has turned on the sending of synchronized scrolling
 						// messages, send the relevant message
@@ -1891,13 +1879,13 @@ x:					CCell* pCell = 0;
 							pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-							pApp->LogDropdownState(_T("OnLButtonDown() m_bAbandonable TRUE block, before calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1835);
+							pApp->LogDropdownState(_T("OnLButtonDown() m_bAbandonable TRUE block, before calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1882);
 #endif
 							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
 								// is done at the leaving location, but a removal from the KB
 								// will be done at the landing location
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-							pApp->LogDropdownState(_T("OnLButtonDown() end of m_bAbandonable TRUE block, after calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1841);
+							pApp->LogDropdownState(_T("OnLButtonDown() end of m_bAbandonable TRUE block, after calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1888);
 #endif
 						}
 						else
@@ -1916,21 +1904,37 @@ x:					CCell* pCell = 0;
 							else
 							{
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-								pApp->LogDropdownState(_T("OnLButtonDown() before calling PlacePhraseBox() in normal situation, selector == 0"), _T("Adapt_ItCanvas.cpp"), 1880);
+								pApp->LogDropdownState(_T("OnLButtonDown() before calling PlacePhraseBox() in normal situation, selector == 0"), _T("Adapt_ItCanvas.cpp"), 1907);
 #endif
-								// BEW 7May18. We use the fact that OnLButtonDown() is never called when there is a user
-								// click on the dropdown-based phrasebox to advantage. If control has entered and gets
-								// to this point, then the click must have been to a pile which is not the current active
-								// one - and that means that the phrasebox is going to move - which in turn means that
-								// we can safely set app's member boolean m_bLandingBox to TRUE. This help will give better
-								// behaviours for the refactored GUI with a combo-box based phrasebox
+								wxASSERT(pApp->m_nOldSequNum != -1);
+
+								// save old sequ number in case required for toolbar's Back button
+								//pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
+
+								pApp->m_nOnLButtonDownEntranceCount++; // set cache only for the count equalling 1, we allow two entrances
+
+								// BEW 28Jun18 also cache this value for using within PlacePhraseBox to define 
+								// pOldActivePile pointer (suppress resetting if reentered, as the box may have
+								// moved on)
+								if (pApp->m_nOnLButtonDownEntranceCount == 1)
+								{
+									pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
+									wxLogDebug(_T(" OnLButtonDown() 1922, setting m_nCacheLeavingLocation, cached sequ num = %d"),
+										pApp->m_nCacheLeavingLocation);
+								}
+								else
+								{
+									// second entrance, so reset the count to 0
+									pApp->m_nOnLButtonDownEntranceCount = 0;
+								}
+
 								pApp->m_bLandingBox = TRUE;
 
 								// Now get the phrasebox placed
 								pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
 									// KB access is done at both leaving and landing locations)
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-								pApp->LogDropdownState(_T("OnLButtonDown() after the usual selector = 0 PlacePhraseBox() call has returned"), _T("Adapt_ItCanvas.cpp"), 1886);
+								pApp->LogDropdownState(_T("OnLButtonDown() after the usual selector = 0 PlacePhraseBox() call has returned"), _T("Adapt_ItCanvas.cpp"), 1937);
 #endif
 							}
 						}

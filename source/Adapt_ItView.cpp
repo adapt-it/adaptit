@@ -2955,14 +2955,14 @@ void CAdapt_ItView::FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSele
 // BEW 21Jul14 for ZWSP support: no changes were necessary
 void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	// refactored 2Apr09
+	CLayout* pLayout = GetLayout();
 #if defined (_DEBUG)
 	wxLogDebug(_T("\n\n*** Entering PlacePhraseBox()  , selector = %d"), selector);
 #endif
-	// refactored 2Apr09
-	CLayout* pLayout = GetLayout();
-	CAdapt_ItApp* pApp = &wxGetApp();
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-	wxLogDebug(_T("\n\nView, PlacePhraseBox() line  %d  - Starting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2866,
+	wxLogDebug(_T("\n\nView, PlacePhraseBox() line  %d  - Starting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2965,
 												(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 	if (pCell == NULL)
@@ -2973,7 +2973,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	}
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	pApp->LogDropdownState(_T("PlacePhraseBox() just entered"), _T("Adapt_ItView.cpp"), 2877);
+	pApp->LogDropdownState(_T("PlacePhraseBox() just entered"), _T("Adapt_ItView.cpp"), 2976);
 #endif
 	CPile* pClickedPile = pCell->GetPile();
 	wxASSERT(pClickedPile);
@@ -2981,7 +2981,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
 //#endif
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2885,
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2984,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 
@@ -3011,12 +3011,12 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	}
 	if (pOldActivePile != NULL)
 	{
-		wxLogDebug(_T("PlacePhraseBox 2915 at start; Leaving pOldActivePile:  m_key = %s , m_bAbandonable = %d , m_adaption = %s"),
+		wxLogDebug(_T("PlacePhraseBox 3014 at start; Leaving pOldActivePile:  m_key = %s , m_bAbandonable = %d , m_adaption = %s"),
 			pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
 			pOldActiveSrcPhrase->m_adaption.c_str());
 	}
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2909,
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3019,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 	wxASSERT(pCell);
@@ -3310,14 +3310,6 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 		// bNoActiveLocationCalculation is TRUE to suppress the wide gap calculation
 		pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase,TRUE);
 	}
-/* oops, pOldActivePile is NULL here
-	// BEW 24Jul18 recalculate the gap and phrasebox width - the user may have chosen a longer
-	// list entry
-	pApp->m_pActivePile = pOldActivePile;
-	pApp->m_nActiveSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-	pOldActivePile->SetPhraseBoxWidth();
-	pOldActivePile->SetPhraseBoxGapWidth();
-*/
 
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),6,pApp->m_nActiveSequNum);
@@ -4012,6 +4004,13 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	// in PlaceBox itself, as the latter is called at too many places where landing
 	// of the box requiring our special list insertion hack is not involved.
 	pApp->m_pTargetBox->InitializeComboLandingParams();
+
+	// BEW 25Jul18, Cache the sequence number of this clicked location, so that a subsequent
+	// click to a different location can use this value to set the old active pile etc.
+	// Epecially app's m_nCacheLeavingLocation - which makes it all happen, and having
+	// it the wrong value causes the "Leaving" pile's GUI gaps to be messed up.
+	pApp->m_nCacheLeavingLocation = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+	pApp->m_nOnLButtonDownEntranceCount = 0; // 25Jul18, we no longer care about a reentrancy - it now doesn't happen
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	pApp->LogDropdownState(_T("PlacePhraseBox() landing, after PlaceBox() about to exit PlacePhraseBox()"), _T("Adapt_ItView.cpp"), 3875);

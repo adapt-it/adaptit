@@ -364,6 +364,12 @@ void CPile::SetMinWidth()
 #endif
 }
 
+// overload, for using when restoring a cached m_nMinWidth value
+void CPile::SetMinWidth(int width)
+{
+	m_nMinWidth = width;
+}
+
 //GDLC 2010-02-10 Added parameter to SetPhraseBoxGapWidth with default value steadyAsSheGoes
 void CPile::SetPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 {

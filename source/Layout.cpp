@@ -547,8 +547,13 @@ void CLayout::PlaceBox()
 	// event from within Draw() which lead to an infinite loop; we need to call PlaceBox()
 	// after Invalidate() calls, and after Redraw() calls
 #if defined(_DEBUG)
-	wxLogDebug(_T("\n\n*** Entering PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d"), 
-		m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth);
+{ // set a temporary scope
+	int nActiveSequNum = m_pApp->m_nActiveSequNum;
+	CPile* pActivePile = GetPile(nActiveSequNum);
+	wxLogDebug(_T("\n\n*** Entering PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
+		m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
+		pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);
+}
 #endif
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	wxLogDebug(_T("Layout, PlaceBox() line  %d  on entry, pApp->m_SaveTargetPhrase = %s"), 553,
@@ -581,7 +586,13 @@ void CLayout::PlaceBox()
 								// instead; but this will work even if we have forgotten to
 								// update it in the edit operation's handler
 
-		pActivePile->SetPhraseBoxWidth();
+		// BEW 25Jul18 If the location being left behind is narrow in terms of width of box
+		// and list, the box gap may also be much smaller than it needs to be - so while
+		// we have a valid pActivePile, get the gap and box width calculations refreshed
+		// before they get used in a RecalcLayout() call.
+		pActivePile->SetPhraseBoxGapWidth(); // this is what I added on 25Jul18
+
+		pActivePile->SetPhraseBoxWidth(); // this is the legacy call - always been here
 
 		pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
  
@@ -1033,12 +1044,15 @@ void CLayout::PlaceBox()
     // whm 16Jul2018 added to implement undo of phrasebox changes via Esc key. We initialize it
     // to an empty string in the CPhraseBox constructor, but here in PlaceBox() we assign it the 
     // initial content of the phrasebox near.
-    m_pApp->m_pTargetBox->initialPhraseBoxContentsOnLanding = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
 #if defined(_DEBUG)
-	wxLogDebug(_T("*** Leaving PlaceBox(),  m_curBoxWidth:  %d   m_curListWidth  %d"), 
-		m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth);
+	{ // set a temporary scope
+		int nActiveSequNum = m_pApp->m_nActiveSequNum;
+		CPile* pActivePile = GetPile(nActiveSequNum);
+		wxLogDebug(_T("*** Leavinging PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
+			m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
+			pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);
+	}
 #endif
-
 }
 
 /*
