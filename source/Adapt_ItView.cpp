@@ -7231,8 +7231,17 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	}
 
 	// BEW added 22Jan10, clear the KB search string arrays
-	pApp->m_arrSearches.Clear(); // set of search strings for dialog's multiline wxTextCtrl
-	pApp->m_arrOldSearches.Clear(); // old search strings accumulated while in this project
+    // whm 24Jul2018 added test to only call Clear() on m_arrSearches if its count is > 0.
+    // To prevent a crash in a similar Clear() call when the array was empty in the CKBEDitor::OnOK()
+    // handler, it was necessary to only call Clear() when the array was non-empty. So, out of
+    // caution and to avoid a possible crash due to calling delete on a bad pointer, we'll do the
+    // same test here.
+    if (pApp->m_arrSearches.GetCount() > 0)
+        pApp->m_arrSearches.Clear(); // set of search strings for dialog's multiline wxTextCtrl
+    // whm 24JUL2018 added test for m_arrOldSearches below for same reason as for m_arrSearches 
+    // above.
+    if (pApp->m_arrOldSearches.GetCount() > 0)
+	    pApp->m_arrOldSearches.Clear(); // old search strings accumulated while in this project
 
 	// whm added 27Apr12. When the project is closed the m_curProjectPath should be an empty string.
 	pApp->m_curProjectPath.Empty();
