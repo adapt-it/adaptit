@@ -112,6 +112,16 @@ public:
 	// ResizeBox() and FixBox() I expect (I've not yet finished the refactoring)
 	int			CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes);
 
+	int			CalcPhraseBoxListWidth(); //BEW added 24Jul18 calculates the width of the listbox
+					// for the CSourcePhrase instance at the active location (m_pActivePile) based
+					// on the KB's pTU pointer for the CSourcePhrase's m_key member.
+					// Internally, each of the non-(pseudo)deleted KB entries has its x-extent
+					// measured, the the width is then set to the largest of these values.
+					// The intent is that the width of the dropdown phrasebox (Layout's m_curBoxWidth)
+					// will always be the larger of m_curBoxWidth and m_curListWidth. This has the
+					// additional benefit that the list, when dropped down, will extend to the right
+					// hand edge of the phrasebox's dropdown list button
+
 	int			GetStripIndex();
 	CStrip*		GetStrip();
 	void		SetStrip(CStrip* pStrip);
@@ -143,6 +153,9 @@ public:
 	int			GetPhraseBoxWidth(); //BEW added 19Jul18, gets Layout's m_currBoxWidth value
 	void		SetPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes); // BEW added 19Jul18
 	void		SetPhraseBoxWidth(int boxwidth); // an override, to set an explicit known width
+	int			GetPhraseBoxListWidth(); // BEW added 24Jul18  gets Layout's m_curListWidth value
+	void		SetPhraseBoxListWidth(); // BEW added 24Jul18  set's Layout's m_curListWidth value starting from 
+										 // m_pActivePile & accessing the relevant CTargetUnit instance
 
 	// BEW added 17July18 so as to allow box + slop to be a different (lesser) value than the gap width
 	//int			m_nBoxOnlyWidth; // use this for box width, no longer use the gap width

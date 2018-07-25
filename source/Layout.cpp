@@ -546,9 +546,10 @@ void CLayout::PlaceBox()
     // BEW 30Jun09, moved PlacePhraseBoxInLayout() to here, to avoid generating a paint
 	// event from within Draw() which lead to an infinite loop; we need to call PlaceBox()
 	// after Invalidate() calls, and after Redraw() calls
-//#if defined(_DEBUG)
-//	wxLogDebug(_T("CLayout::PlaceBox() at start, line 563: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetValue().c_str());
-//#endif
+#if defined(_DEBUG)
+	wxLogDebug(_T("\n\n*** Entering PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d"), 
+		m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth);
+#endif
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	wxLogDebug(_T("Layout, PlaceBox() line  %d  on entry, pApp->m_SaveTargetPhrase = %s"), 553,
 		gpApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
@@ -1033,6 +1034,11 @@ void CLayout::PlaceBox()
     // to an empty string in the CPhraseBox constructor, but here in PlaceBox() we assign it the 
     // initial content of the phrasebox near.
     m_pApp->m_pTargetBox->initialPhraseBoxContentsOnLanding = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+#if defined(_DEBUG)
+	wxLogDebug(_T("*** Leaving PlaceBox(),  m_curBoxWidth:  %d   m_curListWidth  %d"), 
+		m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth);
+#endif
+
 }
 
 /*
@@ -1741,6 +1747,10 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 //GDLC Added third parameter 2010-02-09
 bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
 {
+#if defined (_DEBUG)
+	wxLogDebug(_T("\n\n*** Entering RecalcLayout()  , selector = %d"), (int)selector);
+#endif
+
     // RecalcLayout() is the refactored equivalent to the former view class's RecalcLayout()
     // function - the latter built only a bundle's-worth of strips, but the new design must build
 	// strips for the whole document - so potentially may consume a lot of time; however, the
@@ -2181,6 +2191,10 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		}
 	}
 	m_lastLayoutSelector = selector; // inform Draw() about what we did here
+#if defined (_DEBUG)
+	wxLogDebug(_T("*** Leaving RecalcLayout()  , selector = %d"), (int)selector);
+#endif
+
 	return TRUE;
 }
 

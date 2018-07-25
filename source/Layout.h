@@ -142,8 +142,11 @@ public:
 
 	doc_edit_op			m_docEditOperationType; // set in user doc edit handler functions
 												// and used by PlacePhraseBoxInLayout()
-	int					m_curBoxWidth;
-
+	int					m_curBoxWidth;  // width, as the sum of text extent.x + slop + button width
+	int					m_curListWidth; // BEW added 24Jul18, width of the active location's drop 
+										// down list, as the max of the non-deleted adaptation 
+										// text extent.x values in the pTU (ptr to CTargetUnit)
+										// at the active pile
 	// BEW 17Jul18 cache the unadjusted virtual document height, while RecalcLayout works
 	// with an increased height temporarily, and for setting scroll range larger to comply
 	// with the increased height. At the end of RecalcLayout(), restore this cached height
@@ -334,7 +337,7 @@ public:
 	int			GetStripHeight();
 	void		SetCurLeading(CAdapt_ItApp* pApp);
 	int			GetCurLeading();
-	int			GetPhraseBoxWidth(); //BEW added 19Jul18, gets m_currBoxWidth value
+	//int			GetPhraseBoxWidth(); //BEW removed, use the one in CPile class
 
 	// left margin for strips
 	void		SetCurLMargin(CAdapt_ItApp* pApp);

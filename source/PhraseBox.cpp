@@ -2346,8 +2346,29 @@ void CPhraseBox::PopupDropDownList()
 {
     // Note: Button is not hidden, just show the list
     this->GetDropDownList()->Show();
-    int rectWidth = this->GetTextCtrl()->GetRect().GetWidth();
-    this->SetSizeAndHeightOfDropDownList(rectWidth);
+	// BEW 24Jul18, in the refactored support for the phrasebox with list, button
+	// and wxTextCtrl, we can profitably set the list as wide as possible. 
+	// The CPile class has a SetPhraseBoxListWidth() function, which calculates
+	// the Layout's m_curListWidth as wide enough to hold all list entries;
+	// and compares with Layout's m_curBoxWidth (which takes adaptation + slop
+	// + button width as the 'phrasebox width'), and whichever is the larger 
+	// is taken as the phrasebox width.
+	int rectWidth = this->GetTextCtrl()->GetRect().GetWidth();
+	this->SetSizeAndHeightOfDropDownList(rectWidth);
+	/* this didn't appear to work as well as expected, and it still didn't widen the list to right hand side of the dropdown button
+	gpApp->m_pActivePile->SetPhraseBoxWidth();
+	int rectWidth;
+	int myWidth = gpApp->m_pActivePile->GetPhraseBoxWidth();
+	if (myWidth == wxNOT_FOUND)
+	{
+		rectWidth = this->GetTextCtrl()->GetRect().GetWidth(); // Bill's earlier way suffices
+	}
+	else
+	{
+		rectWidth = myWidth;
+	}
+	this->SetSizeAndHeightOfDropDownList(rectWidth);
+	*/
 }
 
 void CPhraseBox::HidePhraseBox()
@@ -3494,7 +3515,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// update m_targetPhrase to agree with what has been typed so far
 		pApp->m_targetPhrase = thePhrase;
 
-		bool bWasMadeDirty = FALSE;
+		//bool bWasMadeDirty = FALSE;  unused
 
 		// whm Note: here we can eliminate the test for Return, BackSpace and Tab
 		pApp->m_bUserTypedSomething = TRUE;

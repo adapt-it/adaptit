@@ -1031,6 +1031,7 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 #if defined(_DEBUG) && defined(_NEWDRAW) && !defined(__WXGTK__)
 	wxLogDebug(_T("CAdapt_ItView::OnDraw(): Active pile's m_pOwningStrip: %x"), (unsigned int)pApp->m_pActivePile->GetStrip());
 #endif
+	//CPile* pActivePile = pApp->m_pActivePile;
 
     // BEW 14Mar11, Gerry Andersen reports that occasionally, for an unknown set of user
     // actions, the display is updated in such a way that the right end of the phrase box
@@ -2954,7 +2955,9 @@ void CAdapt_ItView::FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSele
 // BEW 21Jul14 for ZWSP support: no changes were necessary
 void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 {
-
+#if defined (_DEBUG)
+	wxLogDebug(_T("\n\n*** Entering PlacePhraseBox()  , selector = %d"), selector);
+#endif
 	// refactored 2Apr09
 	CLayout* pLayout = GetLayout();
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -3307,6 +3310,15 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 		// bNoActiveLocationCalculation is TRUE to suppress the wide gap calculation
 		pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase,TRUE);
 	}
+/* oops, pOldActivePile is NULL here
+	// BEW 24Jul18 recalculate the gap and phrasebox width - the user may have chosen a longer
+	// list entry
+	pApp->m_pActivePile = pOldActivePile;
+	pApp->m_nActiveSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+	pOldActivePile->SetPhraseBoxWidth();
+	pOldActivePile->SetPhraseBoxGapWidth();
+*/
+
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),6,pApp->m_nActiveSequNum);
 //#endif
@@ -4010,6 +4022,9 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d  - exiting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3881,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+#endif
+#if defined (_DEBUG)
+	wxLogDebug(_T("*** Leaving PlacePhraseBox()  , selector = %d"), selector);
 #endif
 }
 
