@@ -2299,7 +2299,11 @@ void CKBEditor::OnOK(wxCommandEvent& event)
 	}
 
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
-	gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
+    // whm 24Jul2018 added test to only call Clear() on m_arrSearches if its count is > 0,
+    // otherwise after adding meanings to a source phrase and clicking OK, the Clear() call would
+    // crash due to calling delete on a bad pointer.
+    if (gpApp->m_arrSearches.GetCount() > 0)
+	    gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
 
 	if (m_bRemindUserToDoAConsistencyCheck)
 	{
@@ -2328,7 +2332,12 @@ void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
 												emptyStr, useGlossOrAdaptationForLookup);
 	}
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
-	gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
+    // whm 24Jul2018 added test to only call Clear() on m_arrSearches if its count is > 0,
+    // otherwise after adding meanings to a source phrase and clicking Cancel, the Clear() 
+    // call might crash here as it can in the OnOK() handler above, due to calling delete 
+    // on a bad pointer.
+    if (gpApp->m_arrSearches.GetCount() > 0)
+        gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
 
 	if (m_bRemindUserToDoAConsistencyCheck)
 	{
