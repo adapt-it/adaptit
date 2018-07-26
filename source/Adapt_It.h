@@ -2234,31 +2234,17 @@ class CAdapt_ItApp : public wxApp
 
     /// whm 13Jul2018 TODO: Bruce should check to see if the m_nCacheLeavingLocation
     /// and m_nOnLButtonDownEntranceCount hacks are still necessary with the new phrasebox.
-    /// If not, they should be removed.
+	/// BEW 26Jul18, removed unnecessary entrance count, retained the cache integer - it's needed
 
-	/// BEW 28Jun18 The change at version 6.9.0 to support a dropdown list integrated in
-	/// a wxOwnerDrawnComboBox control resulted in some former legacy robust behaviours
-	/// becoming flaky, or worse. Two new problems, amongst others, cropped up. 
-	/// (1) Sometimes, clicking to relocate the phrasebox after typing a new adaptation
-	/// at a hole, the typed adaptation got lost and not entered into the KB. 
-	/// (2) When relocating the phrasebox by clicks at different holes, while the first
-	/// jump may work right, a second sent the phrasebox off to a sequence number much
-	/// further on than where the user clicked for the box to go to. Diagnosing revealed
-	/// that the cause was the the m_nActiveSequNum used within PlacePhraseBox() had
-	/// gotten the sequence number of the clicked location, rather than the old value of
-	/// the same at the location that was where the box was located before the click.
-	/// PlacePhraseBox defined pOldSrcPhrase based on the pile calculated from that now
-	/// bogus earlier position, causing the phrasebox to get located at a pile much further
-	/// on that expected. 
-	/// Solution? I'm testing caching the sequence number of thelocation at which the phrasebox
-	/// lands, so that when the next click to jump to some other location (or to the same location)
-	/// can used the cached sequ num value to get at the correct pile, and hence the correct
+	/// Cache the sequence number of the location at which the phrasebox lands, so that
+	/// when the next click to jump to some other location (or to the same location)
+	/// the cached sequ num value is used to get at the correct pile, and hence the correct
 	/// pSrcPhrase at the 'leaving' location, in order that the GUI shows correct strings, and the
-	/// KB gets the correct entry added, and jumps to wrong places in the document don't happen
+	/// KB gets the correct entry added, and the old pile's sequence number worked out, and
+	/// from that the old pile reset, and from that ResetPartnerPileWidth() called to
+	// make invalid the location at which the user action of leaving for another location
+	// happened, etc. (Comment updated, BEW 26Jul18)
 	int m_nCacheLeavingLocation; // -1 (wxNOT_FOUND) when not set, set in OnLButtonDown()
-	int m_nOnLButtonDownEntranceCount; // allow 2, first sets m_CacheLeavingLocation, second
-			// disallows setting it (because it's in FilterEvent() and phrasebox has moved on
-			// by then to where the user clicked, we don't want to cache the wrong sequ num
 
     /// The application's m_pParser member can be used to process command line arguments.
     /// The command line processing in the MFC version was implemented but did not work

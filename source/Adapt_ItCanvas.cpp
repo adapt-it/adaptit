@@ -1096,22 +1096,11 @@ x:					CCell* pCell = 0;
 					// save old sequ number in case required for toolbar's Back button
                     pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
-					pApp->m_nOnLButtonDownEntranceCount++; // set cache only for the count equalling 1, we allow two entrances
-					
-					// BEW 28Jun18 also cache this value for using within PlacePhraseBox to define 
-					// pOldActivePile pointer (suppress resetting if reentered, as the box may have
-					// moved on)
-					if (pApp->m_nOnLButtonDownEntranceCount == 1)
-					{
-						pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
-						wxLogDebug(_T(" OnLButtonDown() 1107, setting m_nCacheLeavingLocation, cached sequ num = %d"),
-							pApp->m_nCacheLeavingLocation);
-					}
-					else
-					{
-						// second entrance, so reset the count to 0
-						pApp->m_nOnLButtonDownEntranceCount = 0;
-					}
+					// BEW 28Jun18 cache this value for using within PlacePhraseBox() to enable 
+					// recalculating the correct pOldActivePile pointer 
+					pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
+					wxLogDebug(_T(" OnLButtonDown() 1102, setting m_nCacheLeavingLocation, cached sequ num = %d"),
+						pApp->m_nCacheLeavingLocation);
 
 					pApp->m_bLandingBox = TRUE;
 
@@ -1904,29 +1893,18 @@ x:					CCell* pCell = 0;
 							else
 							{
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-								pApp->LogDropdownState(_T("OnLButtonDown() before calling PlacePhraseBox() in normal situation, selector == 0"), _T("Adapt_ItCanvas.cpp"), 1907);
+								pApp->LogDropdownState(_T("OnLButtonDown() before calling PlacePhraseBox() in normal situation, selector == 0"), _T("Adapt_ItCanvas.cpp"), 1896);
 #endif
 								wxASSERT(pApp->m_nOldSequNum != -1);
 
 								// save old sequ number in case required for toolbar's Back button
 								//pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
-								pApp->m_nOnLButtonDownEntranceCount++; // set cache only for the count equalling 1, we allow two entrances
-
 								// BEW 28Jun18 also cache this value for using within PlacePhraseBox to define 
-								// pOldActivePile pointer (suppress resetting if reentered, as the box may have
-								// moved on)
-								if (pApp->m_nOnLButtonDownEntranceCount == 1)
-								{
-									pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
-									wxLogDebug(_T(" OnLButtonDown() 1922, setting m_nCacheLeavingLocation, cached sequ num = %d"),
-										pApp->m_nCacheLeavingLocation);
-								}
-								else
-								{
-									// second entrance, so reset the count to 0
-									pApp->m_nOnLButtonDownEntranceCount = 0;
-								}
+								// pOldActivePile pointer
+								pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
+								wxLogDebug(_T(" OnLButtonDown() 1906, setting m_nCacheLeavingLocation, cached sequ num = %d"),
+									pApp->m_nCacheLeavingLocation);
 
 								pApp->m_bLandingBox = TRUE;
 
@@ -1934,7 +1912,7 @@ x:					CCell* pCell = 0;
 								pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
 									// KB access is done at both leaving and landing locations)
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-								pApp->LogDropdownState(_T("OnLButtonDown() after the usual selector = 0 PlacePhraseBox() call has returned"), _T("Adapt_ItCanvas.cpp"), 1937);
+								pApp->LogDropdownState(_T("OnLButtonDown() after the usual selector = 0 PlacePhraseBox() call has returned"), _T("Adapt_ItCanvas.cpp"), 1915);
 #endif
 							}
 						}
@@ -2002,7 +1980,7 @@ x:					CCell* pCell = 0;
 						// mark the current section
 						pFreeTrans->MarkFreeTranslationPilesForColoring(pFreeTrans->m_pCurFreeTransSectionPileArray);
 #ifdef _DEBUG
-//			wxString amsg = _T("Line 1768, OnLButtonDown(), in Adapt_ItCanvas.cpp");
+//			wxString amsg = _T("Line 1983, OnLButtonDown(), in Adapt_ItCanvas.cpp");
 //			pFreeTrans->DebugPileArray(amsg, pFreeTrans->m_pCurFreeTransSectionPileArray);
 #endif
 						if (pApp->m_nActiveSequNum >= 0 &&

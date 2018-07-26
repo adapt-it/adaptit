@@ -546,7 +546,7 @@ void CLayout::PlaceBox()
     // BEW 30Jun09, moved PlacePhraseBoxInLayout() to here, to avoid generating a paint
 	// event from within Draw() which lead to an infinite loop; we need to call PlaceBox()
 	// after Invalidate() calls, and after Redraw() calls
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined (_NEWDRAW)
 { // set a temporary scope
 	int nActiveSequNum = m_pApp->m_nActiveSequNum;
 	CPile* pActivePile = GetPile(nActiveSequNum);
@@ -556,7 +556,7 @@ void CLayout::PlaceBox()
 }
 #endif
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-	wxLogDebug(_T("Layout, PlaceBox() line  %d  on entry, pApp->m_SaveTargetPhrase = %s"), 553,
+	wxLogDebug(_T("Layout, PlaceBox() line  %d  on entry, pApp->m_SaveTargetPhrase = %s"), 559,
 		gpApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
 
 #endif
@@ -597,7 +597,7 @@ void CLayout::PlaceBox()
 		pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
  
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-		m_pApp->LogDropdownState(_T("PlaceBox() just entered, after pActivePile set"), _T("Layout.cpp"), 580);
+		m_pApp->LogDropdownState(_T("PlaceBox() just entered, after pActivePile set"), _T("Layout.cpp"), 600);
 #endif
 
 		// get the pile width at the active location, using the value in
@@ -885,7 +885,7 @@ void CLayout::PlaceBox()
 		// wx Note: we don't destroy the target box, just set its text to null
 		m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 //#if defined(_DEBUG)
-//	wxLogDebug(_T("CLayout::PlaceBox() line 563: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
+//	wxLogDebug(_T("CLayout::PlaceBox() line 888: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
 //#endif
 
 		// make the phrase box size adjustments, set the colour of its text, tell it where it
@@ -907,7 +907,7 @@ void CLayout::PlaceBox()
 			m_pApp->m_pTargetBox->m_textColor = GetTgtColor(); // was pApp->m_targetColor;
 		}
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-		m_pApp->LogDropdownState(_T("PlaceBox() after emptying m_pTargetBox and finished ResizeBox() call which sets m_pTargetBox value"), _T("Layout.cpp"), 876);
+		m_pApp->LogDropdownState(_T("PlaceBox() after emptying m_pTargetBox and finished ResizeBox() call which sets m_pTargetBox value"), _T("Layout.cpp"), 910);
 #endif
 
 		// set the color - CPhraseBox has a color variable & uses reflected notification
@@ -959,7 +959,7 @@ void CLayout::PlaceBox()
 			m_pApp->m_pTargetBox->SetModify(FALSE);
 		}
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-		m_pApp->LogDropdownState(_T("PlaceBox() after SetModify() call, & colour setting of background"), _T("Layout.cpp"), 928);
+		m_pApp->LogDropdownState(_T("PlaceBox() after SetModify() call, & colour setting of background"), _T("Layout.cpp"), 962);
 #endif
 
 		// put focus in compose bar's edit box if in free translation mode
@@ -1030,7 +1030,7 @@ void CLayout::PlaceBox()
                 m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // whm added 23May2018 otherwise Linux version looses selection of text in phrasebox
         }
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 985);
+		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 1033);
 #endif
 	}
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
@@ -1044,7 +1044,7 @@ void CLayout::PlaceBox()
     // whm 16Jul2018 added to implement undo of phrasebox changes via Esc key. We initialize it
     // to an empty string in the CPhraseBox constructor, but here in PlaceBox() we assign it the 
     // initial content of the phrasebox near.
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined (_NEWDRAW)
 	{ // set a temporary scope
 		int nActiveSequNum = m_pApp->m_nActiveSequNum;
 		CPile* pActivePile = GetPile(nActiveSequNum);
@@ -1465,7 +1465,7 @@ void CLayout::SetGapWidth(CAdapt_ItApp* pApp)
 	m_nCurGapWidth = pApp->m_curGapWidth; // user sets it in Preferences' View tab
 }
 // CLayout, CStrip, CPile & CCell are mutual friends, so they can grab m_nCurGapWidth
-// directly, but outsiders will need the followinng
+// directly, but outsiders will need the following
 int CLayout::GetGapWidth()
 {
 	return m_nCurGapWidth;
