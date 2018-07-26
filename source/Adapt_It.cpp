@@ -30550,6 +30550,9 @@ void CAdapt_ItApp::DoCreatePhraseBox()
         m_pTargetBox = (CPhraseBox*)NULL;
     }
 
+    // Create the phrasebox's edit box. Like the dropdown list creation below, the
+    // edit box is here created with a default position and size - it's size and position 
+    // will be set dynamically by other code as the box changes locations and contents.
     m_pTargetBox = new CPhraseBox(
         GetMainFrame()->canvas,
         ID_PHRASE_BOX,
@@ -30594,6 +30597,8 @@ void CAdapt_ItApp::DoCreatePhraseBox()
         pListBox = (CMyListBox*)NULL;
     }
 
+    // Create the dropdown list using a default position and size - it's size and position 
+    // will be set dynamically by other code as the box changes locations and contents.
     pListBox = new CMyListBox(GetMainFrame()->canvas, ID_DROP_DOWN_LIST, wxDefaultPosition, wxSize(80, 100), 0, NULL, wxLB_SINGLE);
     // Set the phrasebox's private pointer to the list
     m_pTargetBox->SetDropDownList(pListBox);
