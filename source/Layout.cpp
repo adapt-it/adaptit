@@ -1041,13 +1041,24 @@ void CLayout::PlaceBox()
     // is FALSE at each location of the phrasebox.
     m_pApp->m_pTargetBox->bUp_DownArrowKeyPressed = FALSE; // initialized to FALSE at each location - at end of Layout's PlaceBox().
 
-    // whm 16Jul2018 added to implement undo of phrasebox changes via Esc key. We initialize it
-    // to an empty string in the CPhraseBox constructor, but here in PlaceBox() we assign it the 
-    // initial content of the phrasebox near.
+	// BEW 27Jul18 If the gap width (m_nWidth) as calculated above is less than the max of
+	// m_curBoxWidth and m_curListWidth, the reset the value to that maximum; similarly 
+	// if there is too much gap
+	int nActiveSequNum = m_pApp->m_nActiveSequNum;
+	CPile* pActivePile = GetPile(nActiveSequNum);
+	int max = wxMax(gpApp->GetLayout()->m_curBoxWidth, gpApp->GetLayout()->m_curListWidth);
+	int pileGap = GetGapWidth();
+	if ((pActivePile->m_nWidth < max) || (pActivePile->m_nWidth >(max + pileGap)))
+	{
+		// the gap for the phrase box needs widening in order to avoid encroachment on next pile
+		pActivePile->m_nWidth = max + pileGap; // + pileGap to avoid a "crowded look" for the adjacent piles
+		m_pApp->GetDocument()->ResetPartnerPileWidth(pActivePile->GetSrcPhrase()); // gets strip invalid, etc
+		gpApp->GetLayout()->RecalcLayout(m_pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
+	}
 #if defined(_DEBUG) && defined (_NEWDRAW)
 	{ // set a temporary scope
-		int nActiveSequNum = m_pApp->m_nActiveSequNum;
-		CPile* pActivePile = GetPile(nActiveSequNum);
+		//int nActiveSequNum = m_pApp->m_nActiveSequNum;
+		//CPile* pActivePile = GetPile(nActiveSequNum);
 		wxLogDebug(_T("*** Leavinging PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
 			m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
 			pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);

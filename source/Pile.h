@@ -152,7 +152,7 @@ public:
 	int			GetPhraseBoxGapWidth(); // returns value of m_nWidth
 	void		SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection);
 	bool		GetIsCurrentFreeTransSection();
-	int			GetPhraseBoxWidth(); //BEW added 19Jul18, gets Layout's m_currBoxWidth value
+	int			GetPhraseBoxWidth(); //BEW added 19Jul18, gets Layout's m_curBoxWidth value
 	void		SetPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes); // BEW added 19Jul18
 	void		SetPhraseBoxWidth(int boxwidth); // an override, to set an explicit known width
 	int			GetPhraseBoxListWidth(); // BEW added 24Jul18  gets Layout's m_curListWidth value

@@ -4027,6 +4027,21 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	wxLogDebug(_T("View, PlacePhraseBox() line  %d  - exiting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 4022,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
+	// BEW 27Jul18 If the gap width (m_nWidth) is less than the max of m_curBoxWidth 
+	// and m_curListWidth, then reset the value to that maximum; similarly 
+	// if there is too much gap
+	int a = pApp->GetLayout()->m_curBoxWidth;
+	int b = pApp->GetLayout()->m_curListWidth;
+	int max = ::wxMax(a, b);
+	int pileGap = pApp->GetLayout()->GetGapWidth();
+	if ((pApp->m_pActivePile->GetPhraseBoxGapWidth() < max) || (pApp->m_pActivePile->GetPhraseBoxGapWidth() > (max + pileGap)))
+	{
+		// the gap for the phrase box needs widening in order to avoid encroachment on next pile
+		pApp->m_pActivePile->SetPhraseBoxGapWidth(max + pileGap); // + pileGap to avoid a "crowded look" for the adjacent piles
+		pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
+		pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
+	}
+
 #if defined (_DEBUG)
 	wxLogDebug(_T("*** Leaving PlacePhraseBox()  , selector = %d"), selector);
 #endif

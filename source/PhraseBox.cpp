@@ -7598,6 +7598,10 @@ void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & WXUNUSED(event))
     wxString selItemStr;
     selItemStr = this->GetListItemAdjustedforPhraseBox(TRUE); // whm 17Jul2018 added TRUE sets m_bEmptyAdaptationChosen = TRUE
 
+#if defined(_DEBUG) && defined(_NEWDRAW)
+	wxLogDebug(_T("CPhraseBox::OnListBoxItemSelected() at start: selItemStr: %s , for replacing box text: %s , at index:  %d"),
+		selItemStr.c_str(), gpApp->m_targetPhrase.c_str(), this->GetDropDownList()->GetSelection());
+#endif
     gpApp->m_targetPhrase = selItemStr;
     this->GetTextCtrl()->ChangeValue(selItemStr); //this->GetTextCtrl()->ChangeValue(selItemStr); // use of ChangeValue() or SetValue() resets the IsModified() to FALSE
 
@@ -7619,11 +7623,19 @@ void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & WXUNUSED(event))
     // whm 13Jul2018 added. The new phrasebox's list doesn't automatically closed upon
     // making a selection, so we do it here, and ensure focus is in the edit box.
     this->CloseDropDown();
+
+	// BEW 27Jul18 we need to force gap recalculations etc here, before focus is put
+	// in the phrasebox
+	gpApp->GetDocument()->ResetPartnerPileWidth(gpApp->m_pActivePile->GetSrcPhrase());
+	gpApp->GetLayout()->RecalcLayout(gpApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
+
     this->GetTextCtrl()->SetFocus();
 
     // whm 12Jul2018 The following custom event is no longer needed:
     //wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
     //wxPostEvent(gpApp->GetMainFrame(), eventCursorToEnd);
+
+
 }
 
 /*
