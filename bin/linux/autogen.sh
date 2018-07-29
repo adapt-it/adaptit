@@ -2,7 +2,7 @@
 # whm 29Jul2018 replaced old autogen.sh with single line autoreconf -fi below:
 # autoreconf options: -f force creation of all autotool helpers, -i copy missing ones
 # Output versions
-autoreconf --version
+#autoreconf --version
 aclocal --version
 libtoolize --version
 automake --version
