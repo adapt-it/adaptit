@@ -550,9 +550,12 @@ void CLayout::PlaceBox()
 { // set a temporary scope
 	int nActiveSequNum = m_pApp->m_nActiveSequNum;
 	CPile* pActivePile = GetPile(nActiveSequNum);
-	wxLogDebug(_T("\n\n*** Entering PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
-		m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
-		pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);
+    if (pActivePile != NULL)
+    {
+        wxLogDebug(_T("\n\n*** Entering PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
+            m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
+            pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);
+    }
 }
 #endif
 #if defined (_DEBUG) && defined (_ABANDONABLE)
@@ -1045,12 +1048,15 @@ void CLayout::PlaceBox()
     // to an empty string in the CPhraseBox constructor, but here in PlaceBox() we assign it the 
     // initial content of the phrasebox near.
 #if defined(_DEBUG) && defined (_NEWDRAW)
-	{ // set a temporary scope
-		int nActiveSequNum = m_pApp->m_nActiveSequNum;
-		CPile* pActivePile = GetPile(nActiveSequNum);
-		wxLogDebug(_T("*** Leavinging PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
-			m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
-			pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);
+    { // set a temporary scope
+        int nActiveSequNum = m_pApp->m_nActiveSequNum;
+        CPile* pActivePile = GetPile(nActiveSequNum);
+        if (pActivePile != NULL)
+        {
+            wxLogDebug(_T("*** Leavinging PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
+                m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
+                pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);
+        }
 	}
 #endif
 }
