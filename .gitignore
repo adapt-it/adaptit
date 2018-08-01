@@ -18,6 +18,16 @@
 /bin/win32/vc90.pdb
 /bin/linux/build_debug/
 /bin/linux/build_release/
+/bin/linux/INSTALL
+/bin/linux/Makefile.in
+/bin/linux/aclocal.m4
+/bin/linux/config.guess
+/bin/linux/config.sub
+/bin/linux/configure
+/bin/linux/depcomp
+/bin/linux/install-sh
+/bin/linux/ltmain.sh
+/bin/linux/missing
 /bin/linux/adaptit.depend
 /bin/linux/bin/
 /bin/linux/compile

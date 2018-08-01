@@ -1047,12 +1047,15 @@ void CLayout::PlaceBox()
 		gpApp->GetLayout()->RecalcLayout(m_pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
 	}
 #if defined(_DEBUG) && defined (_NEWDRAW)
-	{ // set a temporary scope
-		//int nActiveSequNum = m_pApp->m_nActiveSequNum;
-		//CPile* pActivePile = GetPile(nActiveSequNum);
-		wxLogDebug(_T("*** Leavinging PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
-			m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
-			pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);
+    { // set a temporary scope
+        int nActiveSequNum = m_pApp->m_nActiveSequNum;
+        CPile* pActivePile = GetPile(nActiveSequNum);
+        if (pActivePile != NULL)
+        {
+            wxLogDebug(_T("*** Leavinging PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
+                m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
+                pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);
+        }
 	}
 #endif
 }
