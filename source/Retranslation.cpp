@@ -3321,7 +3321,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	// determine the text to be shown, if any, in the target box when it is recreated
 	// BEW additions 08Sep08 for support of vertical editing mode
 	wxString str3; // use this one for m_targetStr contents
-	// define the operation type, so PlacePhraseBoxInLayout() can do its job correctly
+
 	m_pLayout->m_docEditOperationType = edit_retranslation_op;
 	if (gbVerticalEditInProgress && bVerticalEdit_SuppressPhraseBox)
 	{

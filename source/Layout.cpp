@@ -291,10 +291,6 @@ void CLayout::Draw(wxDC* pDC)
     // uptodate and the last character typed was not "seen", so I had to move it back here.
 	// Now I'll try a m_bDoFullWindowDraw flag set when Redraw() or RecalcLayout() is
 	// called - yes, that turned out to be the way to do it! See CAdapt_ItView::Invalidate()
-	// BEW 30Jun09 it turns out that handling the phrase box here generates a paint event
-	// from within Draw() which then results in Draw() going into an infinite loop - so
-	// I'm moving the PlacePhraseBoxInLayout() call and the test which precedes it out of
-	// here - probably into the end of Invalidate(), and the end of Redraw() too.
 #ifdef Do_Clipping
 	// temporary code for debugging
 	//wxSize sizePhraseBox = m_pApp->m_pTargetBox->GetClientSize(); //  pixels
@@ -543,16 +539,18 @@ bool CLayout::GetFullWindowDrawFlag()
 // BEW 22Jun10, no changes needed for support of kbVersion 2
 void CLayout::PlaceBox()
 {
-    // BEW 30Jun09, moved PlacePhraseBoxInLayout() to here, to avoid generating a paint
-	// event from within Draw() which lead to an infinite loop; we need to call PlaceBox()
-	// after Invalidate() calls, and after Redraw() calls
+    // BEW 30Jun09, removed PlacePhraseBoxInLayout(); use PlaceBox() only. 
+	// We need to call PlaceBox() after Invalidate() calls or Redraw() calls
 #if defined(_DEBUG) && defined (_NEWDRAW)
 { // set a temporary scope
 	int nActiveSequNum = m_pApp->m_nActiveSequNum;
 	CPile* pActivePile = GetPile(nActiveSequNum);
-	wxLogDebug(_T("\n\n*** Entering PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
-		m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
-		pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);
+	if (pActivePile != NULL)
+	{
+		wxLogDebug(_T("\n\n*** Entering PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
+			m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
+			pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);
+	}
 }
 #endif
 #if defined (_DEBUG) && defined (_ABANDONABLE)
@@ -605,15 +603,10 @@ void CLayout::PlaceBox()
 		int phraseBoxWidth = pActivePile->GetPhraseBoxWidth(); 
 		// returns returns the width of the box text, plus width of the slop as a multiple of
 		// 'f' character widths less 1 pixel, plus the dropdown button width.
-		//I think the best design is to only use the value stored in CLayout::m_curBoxWidth for
-		// the brief interval within the execution of FixBox() when a box expansion happens (and
-		//immediately after a call to RecalcLayout() or later to AdjustForUserEdits()), since
-		//then the CalcPhraseBoxGapWidth() call in RecalcLayout() or in AdjustForUserEdits()
-		//will use the phraseBoxWidthAdjustMode parameter passed to it to test for largest of
-		//m_curBoxWidth and a value based on text extent plus slop, and use the larger -
-		//setting result in m_nWidth, so the ResizeBox() calls here in PlacePhraseBoxInLayout()
-		//should always expect m_nWidth for the active pile will have been correctly set, and
-		//so always use that for the width to pass in to the ResizeBox() call below.
+		// I think the best design is to only use the value stored in CLayout::m_curBoxWidth for
+		// the width of the control (with its slop) plus the button +1 for the gap between button
+		// and the control.
+		//That frees m_nWidth for the active pile to be for the phrasebox gap width
 
 		// Note: the m_nStartChar and m_nEndChar app members, for cursor placement or text selection
 		// range specification get set by the SetupCursorGlobals() calls in the switch below
@@ -654,19 +647,17 @@ void CLayout::PlaceBox()
 			{
 				bSetModify = FALSE;
 				bSetTextColor = TRUE;
-				/* this doesn't do anything different
-				// BEW 25Jun18, testing the idea of cursor at end of box contents if the latter is non-empty
+				// BEW 25Jun18, put cursor at end of box contents if the text is non-empty
 				wxString text;
 				text = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
 				if (!text.IsEmpty())
 				{
-					int len = text.Length();
+					long len = (long)text.Length();
 					m_pApp->m_nStartChar = len;
 					m_pApp->m_nEndChar = len;
-					m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection((long)len, (long)len);
+					m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
 					bSetModify = TRUE;
 				}
-				*/
 				break;
 			}
 /*		case merge_op:
@@ -2913,8 +2904,14 @@ void CLayout::SetupCursorGlobals(wxString& phrase, enum box_cursor state,
 		}
 	case cursor_at_offset:
 		{
+			// BEW refactored 30Jul18 to put the cursor after a pasted substring or selection
 			wxASSERT(nBoxCursorOffset >= 0);
+			/* old code
 			m_pApp->m_nStartChar = nBoxCursorOffset;
+			m_pApp->m_nEndChar = m_pApp->m_nStartChar;
+			*/
+			long span = m_pApp->m_nEndChar - m_pApp->m_nStartChar;
+			m_pApp->m_nStartChar = nBoxCursorOffset + span;
 			m_pApp->m_nEndChar = m_pApp->m_nStartChar;
 			break;
 		}

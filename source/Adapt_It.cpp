@@ -18254,8 +18254,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
 	m_nOldSequNum = (int)wxNOT_FOUND; // initialize so I can jump code which expects a non
 									  // positive value, in PlacePhraseBox()
-	m_bShowCursorAtEnd = FALSE; // initialize (legacy behaviour, cursor not forced to end)
-
 	m_nCacheLeavingLocation = wxNOT_FOUND; // (-1) see full explanation in Adapt_It.h
 
 	m_bTypedNewAdaptationInChooseTranslation = FALSE; // to support getting a new adaptation into 
@@ -24975,6 +24973,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #endif // _KBSERVER
 
     //int style = (int)wxFONTSTYLE_ITALIC; // it's decimal 93
+
+	GetMainFrame()->m_bUpdatePhraseBoxWidth = FALSE; // initialize to 'no update needed yet'
 
 	GetLayout()->m_curBoxWidth = 120; // BEW 20Jul18 provide a reasonable default
 									  // size for the phrasebox width at app startup

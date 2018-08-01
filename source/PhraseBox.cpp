@@ -62,6 +62,8 @@ extern bool gbVerticalEditInProgress;
 extern EditStep gEditStep;
 extern EditRecord gEditRecord;
 extern CAdapt_ItApp* gpApp; // to access it fast
+extern int gnBoxCursorOffset;  // use with 'cursor_at_offset' enum value in SetCursorGlobals()
+
 
 // for support of auto-capitalization
 
@@ -3519,8 +3521,8 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			wxPoint ptCurBoxLocation;
 			CCell* pActiveCell = pApp->m_pActivePile->GetCell(1);
 			pActiveCell->TopLeft(ptCurBoxLocation); // returns the .x and .y values in the signature's ref variable
-													// BEW 25Dec14, cells are 2 pixels larger vertically as of today, so move TopLeft of box
-													// back up by 2 pixels, so text baseline keeps aligned
+						// BEW 25Dec14, cells are 2 pixels larger vertically as of today, so move TopLeft of box
+						// back up by 2 pixels, so text baseline keeps aligned
 			ptCurBoxLocation.y -= 2;
 
 			// whm 13Jul2018 Note: The CPhraseBox is now implemented with 3 separate components. Its
@@ -3562,6 +3564,377 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
+// BEW created, 30Jul18, it replaces the old FixBox() function which did a similar job
+// but how the GUI works with a dropdown phrasebox suggests we can do it better with
+// this function. If the returned boolean is TRUE, a boolean in CMainFrame gets set,
+// then OnIdle will traps that and calls a hander to get the resize done - whether the
+// resize is because a smaller box size is called for, or a longer box size needed.
+// This function is essentially a filter - each typed character should cause this
+// function to be called, and the calculations done. If GUI controlling characters
+// like Enter or Tab occur, they can be pre-filtered before this is called, but others
+// like backspace or delete should not be an issue because the calculations here 
+// solely use parameters such as text extent, boundaries, average character wide,
+// and the like - so those other things won't be a nuisance so long as we call
+// event.Skip() in the caller to get them passed upstream in the event hierarchy.
+bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
+{
+	bool bUpdateNeeded = FALSE; // inintialize consistent with box width 
+								// recalculation not being needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = GetLayout();
+	//CAdapt_ItView* pView = pApp->GetView();
+	wxString thePhrase = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+	bool bWasMadeDirty = pApp->m_pTargetBox->GetModify();
+	CAdapt_ItCanvas* canvas = pLayout->GetCanvas();
+	//wxASSERT(pApp->m_pActivePile != NULL);
+	//CPile* pActivePile = pApp->m_pActivePile; // might not be needed
+
+	wxClientDC dC(this);
+	wxFont* pFont;
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+		pFont = pApp->m_pNavTextFont;
+	else
+		pFont = pApp->m_pTargetFont;
+	wxFont SaveFont = dC.GetFont();
+	dC.SetFont(*pFont);
+
+	// Measure using the current font. Note, we are only interesting in the text
+	// in the wxTextCtrl for this measurement, we ignore slop & the dropdown button
+	wxSize textExtent;
+	dC.GetTextExtent(thePhrase, &textExtent.x, &textExtent.y);
+	int curTextWidth = textExtent.x;
+
+	// We need the width of the character or string that was passed in
+	wxSize strSize(0,0);
+	int inStrWidth;
+	if (inStr.IsEmpty())
+	{
+		inStrWidth = 0;
+	}
+	else
+	{
+		dC.GetTextExtent(inStr, &strSize.x, &strSize.y);
+		inStrWidth = strSize.x;
+	}
+
+	// We need an average character with for our calculations. Use 'w' width.
+	wxString aChar = _T('w');
+	wxSize charSize;
+	dC.GetTextExtent(aChar, &charSize.x, &charSize.y);
+	int averageCharWidth = charSize.x;
+	wxASSERT(averageCharWidth > 0);
+
+	// We also need the current width of the wxTextCtrl's rectangle
+	wxSize sizePhraseBox = pApp->m_pTargetBox->GetTextCtrl()->GetClientSize(); // in pixels
+	int curBoxWidth = sizePhraseBox.x;
+#if defined(_DEBUG) && defined(_NEWDRAW)
+	wxLogDebug(_T("\nCPhraseBox::UpdatePhraseBoxWidth(): on entry, curBoxWidth: %d , curTextWidth = %d, for box text: %s"),
+		curBoxWidth, curTextWidth, thePhrase.c_str());
+#endif
+
+	// We also need to have the correct user-defined slop width; using the user-set
+	// multiple of 'f' widths so as to get the pixel width for the slop (a constant width
+	// unless the user changes the multiplier m_nExpandBox in the Preferences... dialog)
+	wxChar fChar = _T('f');
+	wxString fStr = fChar;
+	wxSize fCharSize;
+	dC.GetTextExtent(fStr, &fCharSize.x, &fCharSize.y);
+	// Monospaced fonts may have the width of an 'f' character the same as a 'w', so 
+	// subtract 1 to ensure we are working with a width less than that of 'w'
+	// (width of 'w' is used for the phrasebox gap calculation, done elsewhere)
+	int slopWidth = gpApp->m_nExpandBox*(fCharSize.x - 1);
+
+	// Calculate where the right-hand end's boundary is
+	int boundary = curBoxWidth - 2 * averageCharWidth; // typing or pasting beyond
+									// this boundary will trigger a widening of the box
+
+#if defined(_DEBUG) && defined(_NEWDRAW)
+	wxLogDebug(_T("CPhraseBox::UpdatePhraseBoxWidth(): curTextWidth %d , inStrWidth %d , slopWidth %d , boundary %d"),
+		curTextWidth, inStrWidth, slopWidth, boundary);
+#endif
+
+	// First do the calculation for a test for box expansion being needed
+	if (curTextWidth + inStrWidth > boundary)
+	{
+		bUpdateNeeded = TRUE;
+#if defined(_DEBUG) && defined(_NEWDRAW)
+		wxLogDebug(_T("CPhraseBox::UpdatePhraseBoxWidth(): expand test: curTextWidth + inStrWidth > boundary  = TRUE, bUpdateNeeded set TRUE"));
+#endif
+	}
+/* Test the expansion case - get that working first
+	else
+	{
+		// A width expansion is not needed, so check for a contraction being needed.
+		// Our criteria is that if sufficient characters are removed that the amount of
+		// free space is equal to or greater than the slopWidth (the latter is a const)
+		// then the box can be recreated smaller with the current amount of slop added
+		// (Note: there may be several contractions required before the original size
+		// is reached.
+		// Note2: the user is allowed to remove all the content in the phrasebox; if 
+		// he removes much, the box must not shrink to be less than what the source
+		// phrase at that location would require if copied
+		wxString srcPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase;
+		wxFont* pSrcFont = pApp->m_pSourceFont;
+		wxSize sourceExtent;
+		dC.SetFont(*pSrcFont);
+		dC.GetTextExtent(srcPhrase, &sourceExtent.x, &sourceExtent.y);
+		int minWidth = sourceExtent.x; //+ pApp->m_nExpandBox*averageCharWidth;
+		if (curTextWidth <= minWidth)
+		{
+			// we are about to contracting too much, so do an update
+			bUpdateNeeded = TRUE;
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("CPhraseBox::UpdatePhraseBoxWidth(): minWidth = %d; 1st contracting: curTextWidth <= minWidth  = TRUE, bUpdateNeeded set TRUE"),
+				minWidth);
+#endif
+		}
+		else
+		{
+
+			// That handles the 'box too small' case; we now want a calculation for
+			// 'long' text being reduced by an amount but leaves a span in the
+			// end of the phrasebox wider than the width of the slop. 
+			// That too requires a contraction
+			if ((curTextWidth > minWidth) && (curTextWidth < curBoxWidth - slopWidth))
+			{
+				// enough characters are removed to allow an update with what remains
+				// of the text, including the desired amount of slop following
+				bUpdateNeeded = TRUE;
+#if defined(_DEBUG) && defined(_NEWDRAW)
+				wxLogDebug(_T("CPhraseBox::UpdatePhraseBoxWidth(): 2nd contracting: (curTextWidth > minWidth) && (curTextWidth < curBoxWidth - slopWidth) = TRUE, bUpdateNeeded set TRUE"));
+#endif
+			}
+		}
+		// The following is a safety first calculation, we don't allow box widths
+		// lower than 40
+		if ( curBoxWidth < 40 )
+		{
+			bUpdateNeeded = TRUE;
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("CPhraseBox::UpdatePhraseBoxWidth(): safety test entered: curBoxWidth < 40 = TRUE, bUpdateNeeded set TRUE"));
+#endif
+		}
+	
+	}
+	*/
+	// When an update is needed, the phrasebox will have been kept accepting characters
+	// or strings without the GUI having a box resize done, by the focus being in the
+	// phrasebox's wxTextCtrl - whereupon CPile's CalcPhraseBoxGapWidth() is not called
+	// and SetPhraseBoxGapWidth) then just grabs the current gap width stored in the
+	// CLayout instance; accordingly, we need to enable the gap and phrasebox width to
+	// be recalculated afresh. To do this, we must ensure that the phrasebox has focus
+	// killed. We can do that by giving focus to the canvas window, which kills focus
+	// to whatever other window had it
+	if (bUpdateNeeded)
+	{
+		canvas->SetFocus();
+		pApp->m_pTargetBox->m_bAbandonable = FALSE;
+		if (!bWasMadeDirty)
+		{
+			pApp->m_pTargetBox->SetModify(TRUE);
+		}
+		// Store the current values for nStartChar and nEndChar for the cursor location,
+		// so the selection can be restored after the resized phrasebox is ready for work
+		pApp->m_pTargetBox->GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar);
+#if defined(_DEBUG) && defined(_NEWDRAW)
+		wxLogDebug(_T("CPhraseBox::UpdatePhraseBoxWidth(): if (bUpdateNeeded) **** TRUE block entered ****"));
+#endif
+	}
+	// If neither expanding or conctracting needed, bUpdateNeeded will be returned as FALSE;
+	return bUpdateNeeded;
+}
+
+// BEW created, 30Jul18, it replaces the old FixBox() function which did a similar job
+// but how the GUI works with a dropdown phrasebox suggests we can do it better with
+// this function. If the returned boolean is TRUE, a boolean in CMainFrame gets set,
+// then OnIdle will traps that and calls a hander to get the resize done - whether the
+// resize is because a smaller box size is called for, or a longer box size needed.
+// This function is essentially a filter - each typed character should cause this
+// function to be called, and the calculations done. If GUI controlling characters
+// like Enter or Tab occur, they can be pre-filtered before this is called, but others
+// like backspace or delete should not be an issue because the calculations here 
+// solely use parameters such as text extent, boundaries, average character wide,
+// and the like - so those other things won't be a nuisance so long as we call
+// event.Skip() in the caller to get them passed upstream in the event hierarchy.
+// For a contraction, the caller will be a function dealing with BACKSPACE key
+// or DELETE key - so to flag this fact the caller must pass in an empty string
+// for inStr. We turn that into a boolean, bContracting, and only run the internal
+// code when bContracting is TRUE; if it is not TRUE, then the function returns
+// FALSE and no contraction will then be imposed upon the phrasebox
+bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
+{
+	bool bUpdateNeeded = FALSE; // inintialize consistent with box width 
+								// recalculation not being needed
+	bool bContracting = FALSE; // initialize
+	if (inStr.IsEmpty())
+	{
+		bContracting = TRUE;
+	}
+	if (bContracting)
+	{
+		CAdapt_ItApp* pApp = &wxGetApp();
+		CLayout* pLayout = GetLayout();
+		//CAdapt_ItView* pView = pApp->GetView();
+		wxString thePhrase = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+		bool bWasMadeDirty = pApp->m_pTargetBox->GetModify();
+		CAdapt_ItCanvas* canvas = pLayout->GetCanvas();
+
+		wxClientDC dC(this);
+		wxFont* pFont;
+		if (gbIsGlossing && gbGlossingUsesNavFont)
+			pFont = pApp->m_pNavTextFont;
+		else
+			pFont = pApp->m_pTargetFont;
+		wxFont SaveFont = dC.GetFont();
+		dC.SetFont(*pFont);
+
+		// Measure using the current font. Note, we are only interesting in the text
+		// in the wxTextCtrl for this measurement, we ignore slop & the dropdown button
+		wxSize textExtent;
+		dC.GetTextExtent(thePhrase, &textExtent.x, &textExtent.y);
+		int curTextWidth = textExtent.x;
+
+		// When contracting we don't need the width of the character or 
+		// string that was passed in, as it was an empty string, so
+		// inStrWidth will be set to zero here
+		wxSize strSize(0, 0);
+		int inStrWidth;
+		if (inStr.IsEmpty())
+		{
+			inStrWidth = 0;
+		}
+		else
+		{
+			dC.GetTextExtent(inStr, &strSize.x, &strSize.y);
+			inStrWidth = strSize.x;
+		}
+
+		// We need an average character with for our calculations. Use 'w' width.
+		wxString aChar = _T('w');
+		wxSize charSize;
+		dC.GetTextExtent(aChar, &charSize.x, &charSize.y);
+		int averageCharWidth = charSize.x;
+		wxASSERT(averageCharWidth > 0);
+
+		// We also need the current width of the wxTextCtrl's rectangle
+		wxSize sizePhraseBox = pApp->m_pTargetBox->GetTextCtrl()->GetClientSize(); // in pixels
+		int curBoxWidth = sizePhraseBox.x;
+#if defined(_DEBUG) && defined(_NEWDRAW)
+		wxLogDebug(_T("\nCPhraseBox::UpdatePhraseBoxWidth_Contracting(): on entry, curBoxWidth: %d , curTextWidth = %d, for box text: %s"),
+			curBoxWidth, curTextWidth, thePhrase.c_str());
+#endif
+
+		// We also need to have the correct user-defined slop width; using the user-set
+		// multiple of 'f' widths so as to get the pixel width for the slop (a constant width
+		// unless the user changes the multiplier m_nExpandBox in the Preferences... dialog)
+		wxChar fChar = _T('f');
+		wxString fStr = fChar;
+		wxSize fCharSize;
+		dC.GetTextExtent(fStr, &fCharSize.x, &fCharSize.y);
+		// Monospaced fonts may have the width of an 'f' character the same as a 'w', so 
+		// subtract 1 to ensure we are working with a width less than that of 'w'
+		// (width of 'w' is used for the phrasebox gap calculation, done elsewhere)
+		int slopWidth = gpApp->m_nExpandBox*(fCharSize.x - 1);
+
+		// Calculate where the right-hand end's boundary is - but not needed for 'contracting
+		//int boundary = curBoxWidth - 2 * averageCharWidth;
+
+#if defined(_DEBUG) && defined(_NEWDRAW)
+		wxLogDebug(_T("CPhraseBox::UpdatePhraseBoxWidth_Contracting(): curTextWidth %d , inStrWidth %d , slopWidth %d"),
+			curTextWidth, inStrWidth, slopWidth);
+#endif
+		// Our criteria is that if sufficient characters are removed that the amount of
+		// free space is equal to or greater than the slopWidth (the latter is a const)
+		// then the box can be recreated smaller with the current amount of slop added
+		// (Note: there may be several contractions required before the original size
+		// is reached.
+		// Note2: the user is allowed to remove all the content in the phrasebox; if
+		// he removes much, the box must not shrink to be less than what the source
+		// phrase at that location would require for a width if copied to the box
+		wxString srcPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase;
+		wxFont* pSrcFont = pApp->m_pSourceFont;
+		wxSize sourceExtent;
+		dC.SetFont(*pSrcFont);
+		dC.GetTextExtent(srcPhrase, &sourceExtent.x, &sourceExtent.y);
+		int minWidth = sourceExtent.x; //+ pApp->m_nExpandBox*averageCharWidth;
+		if (curTextWidth <= minWidth)
+		{
+			// we are about to contracting too much, so don't do an update
+			bUpdateNeeded = FALSE;
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("CPhraseBox::UpdatePhraseBoxWidth_Contracting(): minWidth = %d; curTextWidth <= minWidth = TRUE, bUpdateNeeded set FALSE"),
+				minWidth);
+#endif
+		}
+		else
+		{
+			// That handles the 'box too small' case; we now want a calculation for
+			// 'long' text being reduced by an amount but leaves a span in the
+			// end of the phrasebox wider than the width of an augmented slop value.
+			// That is what leads to a normal contraction. In the test below, the
+			// first subtest checks that there is some available space for a
+			// contraction, and the second subtest only permits the contraction
+			// provided that if there were a contraction of the current box width
+			// by 1.5*slop amount of pixels, that would result in a box that still
+			// is wide enough to contain all the text
+			if ( ((curBoxWidth - minWidth) > 0) && 
+				 (curBoxWidth - (slopWidth + slopWidth / 2) > curTextWidth)
+			   )
+			{
+				bUpdateNeeded = TRUE;
+#if defined(_DEBUG) && defined(_NEWDRAW)
+				wxLogDebug(_T("CPhraseBox::UpdatePhraseBoxWidth_Contracting(): (curBoxWidth - (slopWidth + slopWidth / 2) > curTextWidth) = TRUE, bUpdateNeeded set TRUE"));
+#endif
+			}
+			else
+			{
+				bUpdateNeeded = FALSE;
+#if defined(_DEBUG) && defined(_NEWDRAW)
+				wxLogDebug(_T("CPhraseBox::UpdatePhraseBoxWidth_Contracting(): (curBoxWidth - (slopWidth + slopWidth / 2) > curTextWidth) = FALSE, bUpdateNeeded set FALSE"));
+#endif
+			}
+			// The following is just a safety first calculation - perhaps never called.
+			// We don't allow box widths less than 40 pixels
+			if (curBoxWidth < 40)
+			{
+				bUpdateNeeded = TRUE;
+#if defined(_DEBUG) && defined(_NEWDRAW)
+				wxLogDebug(_T("CPhraseBox::UpdatePhraseBoxWidth_Contracting(): SAFETY TEST ENTERED: curBoxWidth < 40 = TRUE, bUpdateNeeded set TRUE"));
+#endif
+			}
+		}
+
+		// When an update is needed for a contracting phrasebox, we must ensure that the 
+		// phrasebox has focus killed. We can do that by giving focus to the canvas window,
+		// which kills focus to whatever other window had it
+		if (bUpdateNeeded)
+		{
+			canvas->SetFocus();
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+			if (!bWasMadeDirty)
+			{
+				pApp->m_pTargetBox->SetModify(TRUE);
+			}
+			// Don't try to keep a selection or cursor position, the contraction(s)
+			// may remove the location or the selection span anyway. The caller
+			// should set the position to be at the end of the text after it has
+			// contracted - that would be the most useful location;  so use the
+			// Layout's enum value  relocate_box_op  in the caller, because that 
+			// has the calculation for putting the cursor at the text end
+			//pApp->m_pTargetBox->GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar);
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("CPhraseBox::UpdatePhraseBoxWidth_Contracting(): if (bUpdateNeeded) **** TRUE block entered ****"));
+#endif
+		}
+	} // end of TRUE block for test: if (bContracting)
+
+	// If neither expanding or contracting needed, bUpdateNeeded will be returned as FALSE;
+	return bUpdateNeeded;
+}
+
+// ********************************************* TODO ***********************************
+// REMOVE FixBox() from the app
+
 // FixBox() is the core function for supporting box expansion and contraction in various
 // situations, especially when typing into the box; this version detects when adjustment to
 // the layout is required, it calls CLayout::RecalcLayout() to tweak the strips at the
@@ -3592,13 +3965,13 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	// obtained directly from the layout after the layout has been recalculated. To
 	// recalculate the layout correctly, all the new FixBox() needs to do is:
 	// (1) work out if a RecalcLayout(), or other strip tweaking call, is needed, and
+	// if so, ensure a ResetPartnerPileWidth(pSrcPhrse, FALSE) is done first, and then
 	// (2) prior to making the RecalcLayout() call, or other strip tweaking call, the new
 	// phrase box width must be calculated and stored in CLayout::m_curBoxWidth so that
 	// RecalcLayout() will have access to it when it is setting the width of the active pile.
 
 	//GDLC Added 2010-02-09
     enum phraseBoxWidthAdjustMode nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
-	// nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
 
  	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -3690,7 +4063,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 				pApp->m_targetPhrase = GetValue(); // store current typed string
 
 				//move old code into here & then modify it
-                GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); //GetTextCtrl()->GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current selection
+                GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current selection
 
 				// we are trying to delete text in the phrase box by pressing backspace key
 				// shrink the box by 2 'w' widths if the space at end is >= 4 'w' widths
@@ -3725,7 +4098,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 					nPhraseBoxWidthAdjustMode = contracting;
 				}
 				//GDLC I think that the normal SetPhraseBoxGapWidth() should be called with
-				// nPhraseBoxWidthAdjustmentModepassed to it as a parameter instead of simply
+				// nPhraseBoxWidthAdjustmentMode passed to it as a parameter instead of simply
 				// using newWidth.
 				pApp->m_pActivePile->SetPhraseBoxGapWidth(newWidth); // sets m_nWidth to newWidth
                 // The gbContracting flag used above? RecalcLayout() will override
@@ -3742,7 +4115,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 				pLayout->m_curBoxWidth = textExtent.x + pApp->m_nExpandBox*charSize.x;
 
 				// move the old code into here
-                GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); //GetTextCtrl()->GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current selection
+                GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current selection
 
 				bUpdateOfLayoutNeeded = TRUE;
 			} // end block for nSelector == 1 case
@@ -3822,7 +4195,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	// and stays so for subsequent Enter presses in later holes in the same and following strips:
 	// same addition is at the end of the ResizeBox() function, for the same reason
 	//pView->m_targetBox.Invalidate(); // hopefully this will fix it - it doesn't unfortunately
-	 // perhaps the box paint occurs too early and the view point wipes it. How then do we delay
+	 // perhaps the box paint occurs too early and the view paint wipes it. How then do we delay
 	 // the box paint? Maybe put the invalidate call into the View's OnDraw() at the end of its handler?
 	//pView->RemakePhraseBox(pView->m_pActivePile, pView->m_targetPhrase); // also doesn't work.
 }
@@ -3856,15 +4229,9 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 // BEW 13Apr10, no changes needed for support of doc version 5
 // BEW 22Jun10, no changes needed for support of kbVersion 2
 //
-// whm 16May2018 Note: This OnChar() handler is not triggered by the first
-// alphanumeric character pressed when the dropdown list is open and displaying.
-// The first character typed is registered in the Windows version and gets placed
-// in the phrasebox (replacing the highlighted text). Subsequent typing (after
-// the first key pressed) does trigger this handler in Windows. 
-// In the Linux version, this OnChar() handler is not triggered on any alphanumeric
-// key presses until the user explicitly closes the dropdown list.
+
 // whm 1Jun2018 Notes: OnChar() currently does the following key handling:
-// 1. Detects if key even is modified with CTRL down, or ALT down, or any arrow
+// 1. Detects if key event is modified with CTRL down, or ALT down, or any arrow
 //    key: WXK_DOWN, WXK_UP, WXK_LEFT, or WXK_RIGHT. If so, event.Skip() is called 
 //    so that OnKeyUp() will handle those special cases. Then return is called to
 //    exit immediately from OnChar() before processing the list items below.
@@ -3980,8 +4347,11 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	// a non-virtual OnChar() method. See "wxTextCtrl OnChar event handling.txt"
 	// for a newsgroup sample describing how to use OnChar() to do "auto-
 	// completion" while a user types text into a text ctrl.
-	if (!(event.GetKeyCode() == WXK_RETURN || event.GetKeyCode() == WXK_TAB)) // I don't
-											// want a bell when RET key or HT key typed
+	if (!(event.GetKeyCode() == WXK_RETURN || event.GetKeyCode() == WXK_TAB)) // Code above
+		// lets OnKeyDown() or OnKeyUp() handle these keypresses; so all we do here is
+		// call event.Skip() which gets the other characters handled; so that
+		// on return what follows this TRUE block gets done (.e. backspace key, 
+		// automerging if necessary, etc)
 	{
         // whm note: Instead of explicitly calling the OnChar() function in the base class
         // (as would normally be done for C++ virtual functions), in wxWidgets, we call
@@ -4000,7 +4370,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	long nEndChar;
     GetSelection(&nStartChar, &nEndChar); //GetTextCtrl()->GetSelection(&nStartChar, &nEndChar);
 
-    // whm Note: See note below about meeding to move some code from OnChar() to the
+    // whm Note: See note below about needing to move some code from OnChar() to the
     // OnPhraseBoxChanged() handler in the wx version, because the OnChar() handler does
     // not have access to the changed value of the new string within the control reflecting
     // the keystroke that triggers OnChar().
@@ -4094,8 +4464,9 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	case WXK_BACK: //8:		// BackSpace key
 		{
 			bool bWasMadeDirty = TRUE;
+			//pLayout->m_docEditOperationType = no_edit_op; // legacy app used this choice
 			pLayout->m_docEditOperationType = no_edit_op;
-            // whm Note: pApp->m_targetPhrase is updated in OnPhraseBoxChanged, so the wx
+			// whm Note: pApp->m_targetPhrase is updated in OnPhraseBoxChanged, so the wx
             // version uses the global below, rather than a value determined in OnChar(),
             // which would not be current.
  			// BEW added test 1Jul09, because when a selection for a merge is current and
@@ -4108,16 +4479,56 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			// initiated by a <BS> key press, we suppress the FixBox() call
 			if (!pApp->m_bMergeSucceeded)
 			{
-				FixBox(pView, pApp->m_targetPhrase, bWasMadeDirty, textExtent, 2);
+				// wxChar typedChar = event.GetUnicodeKey(); // don't need when BACKSPACE or DELETE typed
+				wxString inStr = wxEmptyString; // use empty as a flag that we are contracting
+
+				// BEW 31Jul18, next four lines added so we can get a value into the global gnBoxCursorOffset,
+				// which the target_box_paste_op will cause to be used by SetCursorGlobals, to keep the cursor
+				// where it is while the deletions are being done; as the switch in PlaceBox calls
+				// SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_offset, gnBoxCursorOffset); to do the
+				// job and so gnBoxCursorOffset must first be correctly set
+				long from;
+				long to;
+				pApp->m_pTargetBox->GetSelection(&from, &to);
+				gnBoxCursorOffset = (int)from;
+
+				bool bDoUpdate = UpdatePhraseBoxWidth_Contracting(inStr);
+				if (bDoUpdate)
+				{
+					bWasMadeDirty = TRUE;
+					pLayout->m_docEditOperationType = target_box_paste_op; // this enum value, when control gets to
+							// the switch in PlaceBox(), will keep the cursor where it is after the operation
+					pApp->GetMainFrame()->m_bUpdatePhraseBoxWidth = TRUE; // cause custom event creation in OnIdle()
+									// to be done, which then gets OnCustomEventWidthUpdating() called, and in that
+									// is the call to the frame's DoPhraseBoxWidthUpdate() - which gets the update
+									// done. The latter contains code plagiarized from PlacePhraseBox() but with
+									// comments removed; so it invalidates the strip, recalcs the layout, calls
+									// ResizeBox() and then PlaceBox() - forcing a recalc of the layout
+				}
+				//FixBox(pView, pApp->m_targetPhrase, bWasMadeDirty, textExtent, 2); // <<-- deprecated, 30Jul18 BEW  ************ REMOVE It ************ <- TODO
 										// selector = 2 for "contracting" the box
+				if (bWasMadeDirty)
+					pApp->m_pTargetBox->GetTextCtrl()->MarkDirty();
 			}
             pApp->m_bMergeSucceeded = FALSE; // clear to default FALSE, otherwise backspacing
 									// to remove phrase box characters won't get the
 									// needed box resizes done
 		}
 	default:
-		;
+	{
+		// Test what shows up here. No help. If I put a break point here, then control halts
+		// and the correct myChar is returned, including a backspace ( key code 8) which as
+		// a wxString is just an empty string. But if I remove the break point, then the
+		// wxLogDebug() does not get called, indicating control did not enter there.
+		// OnKeyDown() and OnChar() do a better job, do discount this default case as useful.
+		//wxChar myChar = event.GetUnicodeKey();
+		//wxString asString = myChar;
+#if defined(_DEBUG) && defined(_NEWDRAW)
+		//wxLogDebug(_T("CPhraseBox;:OnChar(wxKeyEvent &event) char typed, asString: %s"), asString.c_str());
+#endif
 	}
+		;
+	} // don't remove this closing brace
 }
 
 // returns TRUE if the move was successful, FALSE if not successful
@@ -6037,13 +6448,13 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
     // whm 1Jun2018 Moved WXK_TAB key handling from OnChar() to here in OnKeyUp(), since a tab key
     // press does not trigger OnChar(). To make Tab work exactly like Enter, we need to ensure that
     // other things done in OnChar() prior to handling WXK_TAB (and WXK_ENTER) are also here too.
-    // This includes detecting if there is a selection, and doing it for the user on the first
+    // This includes detecting if there is a selection, and doing the merger for the user on the first
     // character typed - in this case the character is Tab. We put the code for merging a selection
     // within the WXK_TAB handling block in this case, since we are specifically dealing with just
     // the Tab key event here, whereas in OnChar() it merges a selection for any key press that
     // triggers OnChar().
     // whm 24June2018 combined WXK_TAB and WXK_RETURN handling in the same block of code below.
-    // The WXK_RETURN key handling was previosuly located in OnChar(), but that seemed to not work
+    // The WXK_RETURN key handling was previously located in OnChar(), but that seemed to not work
     // on the Mac OSX platform (where the OnChar handler might not be called for WXK_RETURN).
     int keycode = event.GetKeyCode();
     if (keycode == WXK_TAB
@@ -6054,7 +6465,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
         // whm 15Jul2018 added code here in the Enter/Return/Tab key handling to determine if
         // the Enter/Return/Tab key press was done AFTER the user highlighted a different
         // item in the dropdown list, i.e., different from the text that was originally in 
-        // the phrasebox's edit box when the phraseebox landed at its current location. If 
+        // the phrasebox's edit box when the phrasebox landed at its current location. If 
         // a different item has been highlighted using Up/Down arrows the Enter/Return/Tab
         // press should be interpreted as a selection action to put the new/different item
         // into the phrasebox's edit box, and stay at that location, rather than a signal 
@@ -6266,7 +6677,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
             if (keycode == WXK_TAB)
                 wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_TAB key"));
             else if (keycode == WXK_RETURN)
-                wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_REUTRN key"));
+                wxLogDebug(_T("CPhraseBox::OnKeyUp() handling WXK_RETURN key"));
             JumpForward(pView);
         }
         return;
@@ -6343,7 +6754,20 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
     // whm TODO: Put activator here for WXK_F1 help, so that F1 doesn't need to be pressed
     // twice on Linux/Mac when the dropdown list is open
 
+	// BEW 31Jul18, is a lengthening of the phrasebox needed?
+	bool bDoUpdate = FALSE;
+	wxChar typedChar = event.GetUnicodeKey();
+	pLayout->m_inputString = typedChar; // a custom event will pick up m_inputString to 
+										// help get the widening to happen
+	bDoUpdate = UpdatePhraseBoxWidth_Expanding(pLayout->m_inputString);
+	if (bDoUpdate)
+	{
+		pLayout->m_docEditOperationType = char_typed_op;
+		pApp->GetMainFrame()->m_bUpdatePhraseBoxWidth = TRUE;
+	}
+
 	event.Skip();
+
 }
 
 // This OnKeyDown function is called via the EVT_KEY_DOWN event in our CPhraseBox
@@ -6460,6 +6884,16 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 		}
 		else
 		{
+			// BEW 31Jul18, next four lines added so we can get a value into the global gnBoxCursorOffset,
+			// which the target_box_paste_op will cause to be used by SetCursorGlobals, to keep the cursor
+			// where it is while the forward deletions are being done; as the switch in PlaceBox calls
+			// SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_offset, gnBoxCursorOffset); to do the
+			// job and so gnBoxCursorOffset must first be correctly set
+			long from;
+			long to;
+			pApp->m_pTargetBox->GetSelection(&from, &to);
+			gnBoxCursorOffset = (int)from;
+
 			// legacy behaviour: handle the forward character deletion
 			m_backspaceUndoStr.Empty();
 			m_nSaveStart = -1;
@@ -6468,13 +6902,37 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 			wxString s;
 			s = GetValue();
 			pApp->m_targetPhrase = s; // otherwise, deletions using <DEL> key are not recorded
-            if (!this->IsModified()) //if (!this->GetTextCtrl()->IsModified()) // whm 14Feb2018 added GetTextCtrl()->
+            if (!this->IsModified()) 
             {
                 // whm added 10Jan2018 The SetModify() call below is needed for the __WXGTK__ port
                 // For some unknown reason the delete key deleting the whole phrasebox contents
                 // does not set the dirty flag without this.
                 this->SetModify(TRUE);
             }
+
+			// BEW 31Jul18, this code could be put, for the Windows build at least, in OnChar() as OnChar()
+			// is triggered by a WXK_DELETE keypress. But since we've handled delete keypress here for a long
+			// long time, we can let it remain here. Delete key will contract the text in the phrasebox, and so
+			// we need to support the UpdatePhraseBoxWidth_Contracting() function here too.
+			wxString inStr = wxEmptyString;
+
+			// Moved the next call out of the true block for bDoUpdate, as we want this to happen whether
+			// or not an update is done
+			pApp->GetLayout()->m_docEditOperationType = target_box_paste_op; // this enum value, when control
+				// gets to the switch in PlaceBox(), will calculate where the cursor is, and keep it there
+				// (even though it was not a target box paste operation - the result for that, and what we
+				// we want here, is the same)
+
+			bool bDoUpdate = UpdatePhraseBoxWidth_Contracting(inStr);
+			if (bDoUpdate)
+			{
+				pApp->GetMainFrame()->m_bUpdatePhraseBoxWidth = TRUE; // cause custom event creation in OnIdle()
+						// to be done, which then gets OnCustomEventWidthUpdating() called, and in that
+						// is the call to the frame's DoPhraseBoxWidthUpdate() - which gets the update
+						// done. The latter contains code plagiarized from PlacePhraseBox() but with
+						// comments removed; so it invalidates the strip, recalcs the layout, calls
+						// ResizeBox() and then PlaceBox() - forcing a recalc of the layout
+			}
 		}
 	}
 	else if (event.GetKeyCode() == WXK_ESCAPE)

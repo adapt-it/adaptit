@@ -2287,11 +2287,6 @@ class CAdapt_ItApp : public wxApp
 	// "unit" of text but the unit is internally complex (ie. a sequence of words, not a
 	// single word), such as DoExtendedSearch(), etc
 	bool m_bMatchedRetranslation;
-
-	/// Support for AuSIL request for box cursor to start at end of box contents, rather
-	/// than all the contents be shown selected
-	bool m_bShowCursorAtEnd;
-
 	// support for read-only protection
 	ReadOnlyProtection* m_pROP;
 

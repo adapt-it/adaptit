@@ -77,7 +77,7 @@ DECLARE_EVENT_TYPE(wxEVT_Join_With_Next, -1)
 DECLARE_EVENT_TYPE(wxEVT_Join_With_Previous, -1)
 DECLARE_EVENT_TYPE(wxEVT_Split_It, -1)
 DECLARE_EVENT_TYPE(wxEVT_Delayed_GetChapter, -1)
-//DECLARE_EVENT_TYPE(wxEVT_Cursor_To_End, -1) // whm 12Jul2018 The following custom event is no longer needed:
+DECLARE_EVENT_TYPE(wxEVT_Width_Updating, -1) // BEW 31Jul18
 
 #if defined(_KBSERVER)
 
@@ -194,7 +194,16 @@ public:
 	int m_removalsBarHeight;
 	int m_vertEditBarHeight;
 	int m_clipboardAdaptBarHeight; // BEW added 9May14
-
+	int m_bUpdatePhraseBoxWidth; // BEW added 30Jul18, OnIdle() will trap TRUE with a handler to get
+								 // the phrasebox sized greater or smaller, depending on whether the
+								 // user was typing more characters than the current width could
+								 // display, or removing so many characters that a resize smaller is
+								 // appropriate. (Formerly, a now deprecated function called FixBox()
+								 // was tasked to do this kind of thing)
+	bool DoPhraseBoxWidthUpdate(); // BEW added 30July18, this is the handler which OnIdle() uses
+								 // to effect a widening or contracting of the phrasebox width when
+								 // user editing actions in the phrasebox result in the flag
+								 // m_bUpdatePhraseBoxWidth being set TRUE
     void OnAppAbout(wxCommandEvent& WXUNUSED(event));
 	// OnIdle moved here from the App. When it was in the App it was causing
 	// the File | Exit and App x cancel commands to not be responsive there
@@ -308,7 +317,7 @@ public:
 #endif
 
     void OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event));
-	void OnCustomEventCursorToEnd(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventWidthUpdating(wxCommandEvent& WXUNUSED(event));  // BEW 31Jul18
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
 	void OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event));

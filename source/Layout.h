@@ -141,7 +141,7 @@ public:
 	CMainFrame*			m_pMainFrame;
 
 	doc_edit_op			m_docEditOperationType; // set in user doc edit handler functions
-												// and used by PlacePhraseBoxInLayout()
+												
 	int					m_curBoxWidth;  // width, as the sum of text extent.x + slop + button width
 	int					m_curListWidth; // BEW added 24Jul18, width of the active location's drop 
 										// down list, as the max of the non-deleted adaptation 
@@ -153,6 +153,8 @@ public:
 	// to avoid accumulating empty space at the end of the document.
 	int m_nCachedDocHeight;
 
+	wxString			m_inputString;  // BEW 31Jul18, holds last character typed, or a char or string pasted
+										// for use when expanding or contracting the phrasebox
 	// booleans that track what kind of changes were made within the Preferences dialog -
 	// these govern which parameters we pass to RecalcLayout() - whether to keep or create
 	// piles, recalc pile widths, call SetupLayoutParameters(), keep or create strips, etc
@@ -410,8 +412,7 @@ public:
 											// just lays them out, ensuring  proper spacing
 	void		DoRecalcLayoutAfterPreferencesDlg();
 	void		RecalcPileWidths(PileList* pPiles);
-	void		PlaceBox(); // call this after Invalidate() and after Redraw(); contents of
-							// PlacePhraseBoxInLayout() moved into here, and the latter removed
+	void		PlaceBox(); // call this after Invalidate() and after Redraw()
 	void		SetupCursorGlobals(wxString& phrase, enum box_cursor state,
 							int nBoxCursorOffset = 0); // BEW added 7Apr09
 	bool		GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInLast);// BEW

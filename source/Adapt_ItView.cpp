@@ -22381,11 +22381,31 @@ void CAdapt_ItView::OnEditUndo(wxCommandEvent& event)
 	{
 		if (pApp->m_pTargetBox->m_backspaceUndoStr.IsEmpty())
 		{
+			// Didn't use BACKSPACE key
 			pApp->m_pTargetBox->GetTextCtrl()->Undo(); // whm 12Jul2018 Undo() is method of wxTextCtrl - added ->GetTextCtrl() part
+
+			// A box resize may be needed
+			wxString inStr = wxEmptyString;
+			bool bDoUpdate = pApp->m_pTargetBox->UpdatePhraseBoxWidth_Contracting(inStr);
+			if (bDoUpdate)
+			{
+				pApp->GetLayout()->m_docEditOperationType = relocate_box_op;
+				pApp->GetMainFrame()->m_bUpdatePhraseBoxWidth = TRUE;
+			}
 		}
 		else
 		{
+			// Used BACKSPACE key
 			pApp->m_pTargetBox->OnEditUndo(event); // OnEditUndo() is method of CPhraseBox uses GetTextCtrl()->
+
+			// A box resize may be needed
+			wxString inStr = pApp->m_pTargetBox->m_backspaceUndoStr;
+			bool bDoUpdate = pApp->m_pTargetBox->UpdatePhraseBoxWidth_Expanding(inStr);
+			if (bDoUpdate)
+			{
+				pApp->GetLayout()->m_docEditOperationType = relocate_box_op; // put cursor at text end
+				pApp->GetMainFrame()->m_bUpdatePhraseBoxWidth = TRUE;
+			}
 		}
 	}
 }

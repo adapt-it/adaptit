@@ -80,6 +80,7 @@
 #include "PhraseBox.h"
 #include "Cell.h"
 #include "Pile.h"
+#include "Strip.h"
 #include "SourcePhrase.h"
 #include "Layout.h"
 #include "MainFrm.h"
@@ -242,6 +243,9 @@ const long CMainFrame::ID_AUI_TOOLBAR = wxNewId();
 
 //extern wxMutex KBAccessMutex;
 
+/// This global is defined in Adapt_ItView.cpp
+extern int gnBoxCursorOffset;
+
 /// This global is defined in Adapt_It.cpp
 extern CStartWorkingWizard* pStartWorkingWizard;
 
@@ -380,7 +384,7 @@ DEFINE_EVENT_TYPE(wxEVT_Join_With_Next)
 DEFINE_EVENT_TYPE(wxEVT_Join_With_Previous)
 DEFINE_EVENT_TYPE(wxEVT_Split_It)
 DEFINE_EVENT_TYPE(wxEVT_Delayed_GetChapter)
-//DEFINE_EVENT_TYPE(wxEVT_Cursor_To_End) // whm 12Jul2018 The custom event is no longer needed
+DEFINE_EVENT_TYPE(wxEVT_Width_Updating) // BEW 31Jul18
 
 
 #if defined(_KBSERVER)
@@ -514,6 +518,14 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
         (wxObject *) NULL \
     ),
 
+#define EVT_WIDTH_UPDATING(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Width_Updating, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+
+
 #endif
 
 
@@ -579,7 +591,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 #endif
 
 	// Our Custom Event handlers:
-	//EVT_CURSOR_TO_END(-1, CMainFrame::OnCustomEventCursorToEnd)
+	EVT_WIDTH_UPDATING(-1, CMainFrame::OnCustomEventWidthUpdating)
 	EVT_ADAPTATIONS_EDIT(-1, CMainFrame::OnCustomEventAdaptationsEdit)
 	EVT_FREE_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventFreeTranslationsEdit)
 	EVT_BACK_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventBackTranslationsEdit)
@@ -4253,6 +4265,14 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 	pApp->GetBasePointers(pDoc,pView,pBox);
 
+	if (m_bUpdatePhraseBoxWidth)
+	{
+		wxCommandEvent eventCustom(wxEVT_Width_Updating);
+		wxPostEvent(this, eventCustom); // custom event handlers are in CMainFrame
+
+		m_bUpdatePhraseBoxWidth = FALSE; // ready for next update request
+	}
+
     // if a document has just been created or opened in collaboration mode - collaborating
     // with Paratext or Bibledit, and the phrase box has been set up; and because setup of
     // the box potentially could cause a premature opening of the Choose Translation dialog
@@ -4908,6 +4928,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 	// More custom event handlers
 	
+	/* deprecated in second quarter of 2018
 	if (pApp->m_bShowCursorAtEnd)
 	{
 		// Do the work of putting the cursor at end of the selected box contents,
@@ -4938,19 +4959,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
         long dummyStart, dummyEnd;
         pApp->m_pTargetBox->GetTextCtrl()->GetSelection(&dummyStart, &dummyEnd);
 		pApp->m_bShowCursorAtEnd = FALSE; // we want it only the once, let user's editing happen
-
-		// BEW 2Jul18 -- the phrasebox does not respond to a Backspace properly
-		// if the list is still down, (it deletes the whole box contents) so
-		// programmatically try fix this. 
-
-		/* no help
-		if (pApp->m_pTargetBox->IsPopupShown())
-		{
-			pApp->m_pTargetBox->CloseDropDown();
-		}
-		*/
 	}
-
+	*/
 	// mrh - if doc recovery is pending, we must skip all the following, since the doc won't be valid:
     if (pApp->m_recovery_pending)
         return;
@@ -5053,13 +5063,109 @@ void CMainFrame::OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event))
 }
 #endif
 
+// BEW added 30July18, this is the handler which OnIdle() uses
+// to effect a widening or contracting of the phrasebox width when
+// user editing actions in the phrasebox result in the flag
+// m_bUpdatePhraseBoxWidth being set TRUE; the last task of this
+// handler is to clear the flag back to FALSE (In legacy versions,
+// a function called FixBox() was used to do similar work.)
+bool CMainFrame::DoPhraseBoxWidthUpdate()
+{
+	bool bSuccess = TRUE;
+
+	// The following code is copied in toto from the end of PlacePhraseBox()
+	// except that the comments are minimized, for full comments see that
+	// function.
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = pApp->GetLayout();
+	CAdapt_ItView* pView = pApp->GetView();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+
+	// mark invalid the strip following the new active strip
+	if (pApp->m_nActiveSequNum != -1)
+	{
+		CPile* pile = pView->GetPile(pApp->m_nActiveSequNum);
+		wxASSERT(pile != NULL);
+		int stripIndex = pile->GetStripIndex();
+		if (stripIndex < (int)pLayout->GetStripArray()->GetCount() - 1)
+		{
+			stripIndex++;
+			CStrip* pStrip = pLayout->GetStripByIndex(stripIndex);
+			int stripWidth = pStrip->Width();
+			int freeS = pStrip->GetFree();
+			if (freeS > stripWidth / 4)
+			{
+				// BEW changed 20Jan11, we want only unique indices in the array
+				AddUniqueInt(pLayout->GetInvalidStripArray(), stripIndex);
+			}
+		}
+	}
+	// Renew the layout
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+	// update the active pile pointer 
+	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+	wxASSERT(pApp->m_pActivePile);
+	CSourcePhrase* pSPhr = pApp->m_pActivePile->GetSrcPhrase();
+	if (pSPhr != NULL)
+	{
+		pDoc->ResetPartnerPileWidth(pSPhr);
+	}
+	pApp->m_pTargetBox->m_bCompletedMergeAndMove = FALSE;
+	pApp->m_bIsGuess = FALSE;
+
+	//pLayout->m_docEditOperationType = relocate_box_op; no, better is to keep the cursor where it is
+
+	// BEW 31Jul18, next four lines added so we can get a value into the global gnBoxCursorOffset,
+	// which the target_box_paste_op will cause to be used by SetCursorGlobals, to keep the cursor
+	// where it is while the deletions are being done; as the switch in PlaceBox calls
+	// SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_offset, gnBoxCursorOffset); to do the
+	// job and so gnBoxCursorOffset must first be correctly set
+	long from;
+	long to;
+	pApp->m_pTargetBox->GetSelection(&from, &to);
+	gnBoxCursorOffset = (int)from;
+	pLayout->m_docEditOperationType = target_box_paste_op;
+
+	pApp->GetView()->Invalidate();
+	pLayout->PlaceBox();
+	//pApp->m_pTargetBox->InitializeComboLandingParams();
+	pApp->m_nCacheLeavingLocation = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+	pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // re-initialize
+	int a = pApp->GetLayout()->m_curBoxWidth;
+	int b = pApp->GetLayout()->m_curListWidth;
+	int max = ::wxMax(a, b);
+	int pileGap = pApp->GetLayout()->GetGapWidth();
+	if ((pApp->m_pActivePile->GetPhraseBoxGapWidth() < max) || (pApp->m_pActivePile->GetPhraseBoxGapWidth() > (max + pileGap)))
+	{
+		// the gap for the phrase box needs widening in order to avoid encroachment on next pile
+		pApp->m_pActivePile->SetPhraseBoxGapWidth(max + pileGap); // + pileGap to avoid a "crowded look" for the adjacent piles
+		pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
+		pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
+	}
+	// *** Remember to set the input focus back to the size-updated phrasebox so
+	// that subsequent user typing, or character removals, don't cause layout 
+	// recalculations nor box resizing until the criteria for resizing happen
+	// again (if in fact they do happen again at the current location) ****
+	gpApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+
+	// Restore the selection, or caret location
+	gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar);
+
+	return bSuccess;
+}
 
 // whm Note: this and following custom event handlers are in the View in the MFC version
 //
-void CMainFrame::OnCustomEventCursorToEnd(wxCommandEvent& WXUNUSED(event))
+// BEW 31Jul18
+void CMainFrame::OnCustomEventWidthUpdating(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	pApp->m_bShowCursorAtEnd = TRUE;
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	bool bSuccessful = DoPhraseBoxWidthUpdate(); // expanding or contracting the phrasebox
+	wxUnusedVar(bSuccessful);
 }
 
 // The following is the handler for a wxEVT_Adaptations_Edit event message, defined in the
