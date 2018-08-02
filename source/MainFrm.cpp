@@ -408,14 +408,6 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
 
 // it may also be convenient to define an event table macro for the above event types
 
-// whm 12Jul2018 The following custom event is no longer needed:
-//#define EVT_CURSOR_TO_END(id, fn) \
-//    DECLARE_EVENT_TABLE_ENTRY( \
-//        wxEVT_Cursor_To_End, id, wxID_ANY, \
-//        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
-//        (wxObject *) NULL \
-//    ),
-
 #define EVT_ADAPTATIONS_EDIT(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY( \
         wxEVT_Adaptations_Edit, id, wxID_ANY, \
