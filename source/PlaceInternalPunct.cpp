@@ -224,6 +224,7 @@ void CPlaceInternalPunct::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
 
 a:	m_ptgtPhraseBox->SetValue(m_tgtPhrase); // keep the box contents agreeing with the modified string
 	m_ptgtPhraseBox->SetFocus();
+    // whm 3Aug2018 Note: No 'select all' involved here and is a PlaceInternalPunct dialog box
 	m_ptgtPhraseBox->SetSelection(nEnd+strLen,nEnd+strLen); 
 }
 

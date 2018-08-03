@@ -1593,6 +1593,16 @@ const wxString defaultProfileItems[] =
     _T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
     _T("/PROFILE:"),
     _T("/MENU:"),
+    _T("MENU:itemID=\"ID_SELECT_COPIED_SOURCE\":itemType=\"subMenu\":itemText=\"Se&lect Copied Source\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+    _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("/MENU:"),
     _T("MENU:itemID=\"ID_MARKER_WRAPS_STRIP\":itemType=\"subMenu\":itemText=\"&Wrap At Standard Format Markers\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
     _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
     _T("/PROFILE:"),
@@ -6616,6 +6626,12 @@ wxString szTooNearEndMultiplier = _T("TooNearEndMultiplier");
 /// m_bLegacySourceTextCopy member variable.
 wxString szLegacyCopyForPhraseBox = _T("LegacyCopyForPhraseBox");
 
+/// The label that identifies the following string encoded number as the application's
+/// "SelectCopiedSource". This value is written in the "ProjectSettings" part of the
+/// project configuration file. Adapt It stores this value in the App's 
+/// m_bSelectCopiedSource member variable.
+wxString szSelectCopiedSource = _T("SelectCopiedSource");
+
 // Next two were for old punct, for when source & target are not differentiated
 
 /// A label now unused, that was used in old versions for punctuation. It is only retained
@@ -10817,6 +10833,8 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
         pMenuBar->Check(ID_VIEW_MODE_BAR, this->m_bModeBarVisible); // whm added 6Jan12
     if (pMenuBar->FindItem(ID_COPY_SOURCE) != NULL)
         pMenuBar->Check(ID_COPY_SOURCE, m_bCopySource);
+    if (pMenuBar->FindItem(ID_SELECT_COPIED_SOURCE) != NULL) // whm 2Aug2018 added
+        pMenuBar->Check(ID_SELECT_COPIED_SOURCE, m_bSelectCopiedSource);
     if (pMenuBar->FindItem(ID_MARKER_WRAPS_STRIP) != NULL)
         pMenuBar->Check(ID_MARKER_WRAPS_STRIP, m_bMarkerWrapsStrip);
     if (pMenuBar->FindItem(ID_USE_CC) != NULL)
@@ -19768,6 +19786,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bSaveToKB = TRUE;
     m_bForceAsk = FALSE;
     m_bCopySource = TRUE;
+    m_bSelectCopiedSource = FALSE; // whm added 2Aug2018 initialize to FALSE
     m_bMarkerWrapsStrip = TRUE;
     m_bRespectBoundaries = TRUE;
     m_bHidePunctuation = FALSE; // default, on very first launch
@@ -27383,6 +27402,9 @@ int CAdapt_ItApp::GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView)
     // whm 13Jul2018 modified for new protocol of only selecting all when 
     // dropdown list count is > 1, otherwise removing selection and putting
     // insertion point at end.
+    // whm 3Aug2018 modified for latest protocol of only selecting all when
+    // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+    // View menu's 'Select Copied Source' toggle menu item. 
     m_pTargetBox->GetTextCtrl()->ChangeValue(m_targetPhrase);
     int len = m_pTargetBox->GetTextCtrl()->GetValue().Length();
     m_nStartChar = -1;
@@ -27390,9 +27412,18 @@ int CAdapt_ItApp::GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView)
     if (m_pTargetBox != NULL)
     {
         if (m_pTargetBox->GetDropDownList()->GetCount() > 1)
-            m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+        {
+            // Never select phrasebox contents when there a > 1 items in list
+            m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+        }
         else
-            m_pTargetBox->GetTextCtrl()->SetSelection(m_nStartChar,m_nEndChar); // select it all
+        {
+            // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+            if (this->m_bSelectCopiedSource)
+                m_pTargetBox->GetTextCtrl()->SetSelection(m_nStartChar, m_nEndChar); // select it all
+            else
+                m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+        }
     }
 
     return m_nActiveSequNum;
@@ -31516,9 +31547,25 @@ void CAdapt_ItApp::OnButtonGetFromClipboard(wxCommandEvent& WXUNUSED(event))
 		if (m_pActivePile != NULL)
 		{
 			pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
-			m_nStartChar = 0;
+			m_nStartChar = -1; // whm 3Aug2018 corrected this from 0 to -1
 			m_nEndChar = -1; // ensure initially all is selected
-			m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
+            // whm 3Aug2018 modified for latest protocol of only selecting all when
+            // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+            // View menu's 'Select Copied Source' toggle menu item. 
+            int len = m_pTargetBox->GetTextCtrl()->GetValue().Length();
+            if (m_pTargetBox->GetDropDownList()->GetCount() > 1)
+            {
+                // Never select phrasebox contents when there a > 1 items in list
+                m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+            }
+            else
+            {
+                // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+                if (this->m_bSelectCopiedSource)
+                    m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // select it all
+                else
+                    m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+            }
 			m_pTargetBox->GetTextCtrl()->SetFocus();
 		}
 		pView->Invalidate();
@@ -31573,9 +31620,25 @@ void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event
         if (m_pActivePile != NULL)
         {
             pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
-            m_nStartChar = 0;
+            m_nStartChar = -1; // whm 3Aug2018 corrected this from 0 to -1
             m_nEndChar = -1; // ensure initially all is selected
-            m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
+            // whm 3Aug2018 modified for latest protocol of only selecting all when
+            // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+            // View menu's 'Select Copied Source' toggle menu item. 
+            int len = m_pTargetBox->GetTextCtrl()->GetValue().Length();
+            if (m_pTargetBox->GetDropDownList()->GetCount() > 1)
+            {
+                // Never select phrasebox contents when there a > 1 items in list
+                m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+            }
+            else
+            {
+                // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+                if (this->m_bSelectCopiedSource)
+                    m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // select it all
+                else
+                    m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+            }
             m_pTargetBox->GetTextCtrl()->SetFocus();
         }
     }
@@ -32349,8 +32412,23 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
     int len = pApp->m_targetPhrase.Length();
     m_nStartChar = len;
     m_nEndChar = len;
-    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
-    pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+    // whm 3Aug2018 modified for latest protocol of only selecting all when
+    // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+    // View menu's 'Select Copied Source' toggle menu item. 
+    if (m_pTargetBox->GetDropDownList()->GetCount() > 1)
+    {
+        // Never select phrasebox contents when there a > 1 items in list
+        m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+    }
+    else
+    {
+        // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+        if (this->m_bSelectCopiedSource)
+            m_pTargetBox->GetTextCtrl()->SetSelection(m_nStartChar, m_nEndChar); // select it all
+        else
+            m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+    }
+    this->m_pTargetBox->GetTextCtrl()->SetFocus();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -38408,6 +38486,15 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data << szLegacyCopyForPhraseBox << tab << number;
     pf->AddLine(data);
 
+    // whm 2Aug2018 added
+    if (m_bSelectCopiedSource)
+        number = _T("1");
+    else
+        number = _T("0");
+    data.Empty();
+    data << szSelectCopiedSource << tab << number;
+    pf->AddLine(data);
+
     if (gbAdaptBeforeGloss)
         number = _T("1");
     else
@@ -39614,6 +39701,24 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 m_bLegacySourceTextCopy = FALSE;
             else
                 m_bLegacySourceTextCopy = TRUE;
+        }
+        // whm 2Aug2018 added
+        else if (name == szSelectCopiedSource)
+        {
+            num = wxAtoi(strValue);
+            if (!(num == 0 || num == 1))
+                num = 1;
+            if (num == 0)
+                m_bSelectCopiedSource = FALSE;
+            else
+                m_bSelectCopiedSource = TRUE;
+            // whm 3Aug2018 added to immediately update toggle menu item 'Select Copied Source'
+            // using value of m_bSelectCopiedSource from project config file.
+            CMainFrame* pMainFrame = GetMainFrame();
+            wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+            if (pMenuBar->FindItem(ID_SELECT_COPIED_SOURCE) != NULL) // whm 2Aug2018 added
+                pMenuBar->Check(ID_SELECT_COPIED_SOURCE, m_bSelectCopiedSource);
+
         }
         else if (name == szDoAdaptingBeforeGlossing_InVerticalEdit)
         {
@@ -47491,9 +47596,25 @@ void CAdapt_ItApp::DoPrintCleanup()
                                // because GetPile makes m_pActivePile NULL.
     {
         GetMainFrame()->canvas->ScrollIntoView(m_nActiveSequNum);
-        m_nStartChar = 0;
+        m_nStartChar = -1; // whm 3Aug2018 corrected this from 0 to -1
         m_nEndChar = -1; // ensure initially all is selected
-        m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
+        // whm 3Aug2018 modified for latest protocol of only selecting all when
+        // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+        // View menu's 'Select Copied Source' toggle menu item. 
+        int len = m_pTargetBox->GetTextCtrl()->GetValue().Length();
+        if (m_pTargetBox->GetDropDownList()->GetCount() > 1)
+        {
+            // Never select phrasebox contents when there a > 1 items in list
+            m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+        }
+        else
+        {
+            // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+            if (this->m_bSelectCopiedSource)
+                m_pTargetBox->GetTextCtrl()->SetSelection(m_nStartChar, m_nEndChar); // select it all
+            else
+                m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+        }
         m_pTargetBox->GetTextCtrl()->SetFocus();
     }
 
@@ -47510,6 +47631,8 @@ void CAdapt_ItApp::DoPrintCleanup()
         pEdit->SetFocus();
         if (!m_pActivePile->GetSrcPhrase()->m_bHasFreeTrans)
         {
+            // whm 3Aug2018 Note: The pEdit here is the compose bar's edit box
+            // TODO: Should we suppress the select all for the compose bar???
             pEdit->SetSelection(-1,-1); // -1, -1 selects it all
         }
         else

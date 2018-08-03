@@ -1326,11 +1326,23 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 
                 // whm 13Jul2018 modified SetSelection to select all when nRefStrCount is 0 or 1,
                 // otherwise (for nRefStrCount > 1) remove selection and place insertion point at end 
+                // whm 3Aug2018 modified for latest protocol of only selecting all when
+                // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+                // View menu's 'Select Copied Source' toggle menu item. 
                 int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
                 if (nRefStrCount > 1)
-                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+                {
+                    // Never select phrasebox contents when there are > 1 nRefStrCount items
+                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+                }
                 else
-				    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
+                {
+                    // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+                    if (pApp->m_bSelectCopiedSource)
+                        pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // select all
+                    else
+                        pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+                }
 				// This next line is essential. Without it, the phrasebox will seem right, but moving away by
 				// a click or by Enter key will leave a hole at the old location - the reason is that the
 				// PlacePhraseBox() call uses m_pTargetBox->m_SaveTargetPhrase to put the old location's

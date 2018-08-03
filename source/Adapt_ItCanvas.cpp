@@ -964,6 +964,8 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 				{
 					if (pApp->m_pTargetBox->IsShown())
 					{
+                        // whm 3Aug2018 Note: I think the SetSelection here restores any existing selection
+                        // so it should be allowed to stand as is.
 						pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 						pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 					}
@@ -1017,7 +1019,9 @@ y:				; // I may put some code here later
 					{
 						if (pApp->m_pTargetBox->IsShown())
 						{
-							pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+                            // whm 3Aug2018 Note: I think the SetSelection here restores any existing selection
+                            // so it should be allowed to stand as is.
+                            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 							pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 						}
 					}
@@ -1122,7 +1126,9 @@ x:					CCell* pCell = 0;
 					{
 						if (pApp->m_pTargetBox->IsShown())
 						{
-							pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+                            // whm 3Aug2018 Note: I think the SetSelection here restores any existing selection
+                            // so it should be allowed to stand as is.
+                            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 							pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 						}
 					}
@@ -1917,15 +1923,28 @@ x:					CCell* pCell = 0;
 							}
 						}
 						// BEW added 30Jun18 - to support AuSIL request for cursor at end
-                        // whm 12Jul2018 removed custom event and re-instated SetSelection(len,len) here
+                        // whm 3Aug2018 modified for latest protocol of only selecting all when
+                        // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+                        // View menu's 'Select Copied Source' toggle menu item. 
                         long len = (long)pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
-                        pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+                        if (pApp->m_pTargetBox != NULL)
+                        {
+                            if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
+                            {
+                                // Never select phrasebox contents when there a > 1 items in list
+                                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+                            }
+                            else
+                            {
+                                // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+                                if (pApp->m_bSelectCopiedSource)
+                                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select it all
+                                else
+                                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+                            }
+                        }
 
-                        // whm 12Jul2018 The following custom event is no longer needed:
-                        //wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
-                        //wxPostEvent(pApp->GetMainFrame(), eventCursorToEnd);
-
-						ScrollIntoView(pApp->m_nActiveSequNum);
+                        ScrollIntoView(pApp->m_nActiveSequNum);
 					}
 
 					// restore default button image, and m_bCopySourcePunctuation to TRUE
@@ -1973,6 +1992,9 @@ x:					CCell* pCell = 0;
 							}
 							else
 							{
+                                // whm 3Aug2018 Note: This select all has to do with the compose bar
+                                // behavior. TODO: Determine if it should be suppressed if 'Select Copied Source'
+                                // toggle menu item is NOT ticked???
 								pEditCompose->SetSelection(-1,-1);// -1,-1 selects all
 							}
 						}

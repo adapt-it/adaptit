@@ -169,7 +169,9 @@ void FreeTransSplitterDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// he can click and Split again to his heart's content
 	long length = (long)m_theFreeTrans.Len();
 	long half = length / 2;
-	m_pEditFreeTrans->SetSelection(half,half);
+    // whm 3Aug2018 No adjustment to SetSelection() call below
+    // that have to do with the free trans splitter dialog.
+    m_pEditFreeTrans->SetSelection(half,half);
 	// Put focus in the second control, so that the location of the cursor can be seen
 	m_pEditFreeTrans->SetFocus();
 }
@@ -235,7 +237,9 @@ void FreeTransSplitterDlg::OnButtonSplitHere(wxCommandEvent& WXUNUSED(event))
 	m_pEditFreeTrans->GetSelection(&myFrom, &myTo);
 	m_offset = (size_t)myFrom;
 	// Turn a selection into an insertion point
-	if (myFrom != myTo)
+    // whm 3Aug2018 No adjustment to SetSelection() call below
+    // that has to do with the Free trans splitter dialog.
+    if (myFrom != myTo)
 	{
 		m_pEditFreeTrans->SetSelection(myFrom, myFrom);
 	}

@@ -2662,6 +2662,10 @@ public:
 	bool m_bCopySource; // when TRUE, if no match, copy the source key as first guess
                 // at the target adaption or gloss, when FALSE, an empty string is used
                 // instead
+    // whm 2Aug2018 added the following
+    bool m_bSelectCopiedSource; // when TRUE, copied source text within phrasebox is selected
+                // Whem FALSE (the default), copied source text in phrasebox is not selected, 
+                // and the insertion point is placed at end of the text.
 	bool m_bMarkerWrapsStrip; // when TRUE, a st.format marker causes a wrap of the strip
 	bool m_bRespectBoundaries; // TRUE by default, if FALSE, user can violate
 	bool m_bHidePunctuation;	// when TRUE, punctuation is not shown in lines 0 & 1, if

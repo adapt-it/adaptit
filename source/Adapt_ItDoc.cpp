@@ -4606,6 +4606,11 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 		pApp->m_bCopySource = FALSE;
 		pApp->GetView()->ToggleCopySource(); // toggles m_bCopySource's value & resets menu item
 		pApp->m_bSaveCopySourceFlag_For_Collaboration = FALSE; // when closing doc, always clear
+        
+        // whm 2Aug2018 Note: The Select Copied Source menu item is enabled only when the
+        // m_bCopySource value is TRUE. Its check status is determined by the value the
+        // user stored in the project config file (i.e., it may be ticked, but will be
+        // disabled whenever the Copy Source menu item is not ticked.
 	}
 
 	// whm 19Sep11 modified. The UnloadKBs() call below during collaboration should

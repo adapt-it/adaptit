@@ -4089,7 +4089,10 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			pApp->m_pComposeFont->SetPointSize(12);
 			pEdit->SetFont(*pApp->m_pComposeFont);
 
-			if (gpApp->m_bFreeTranslationMode)
+            // whm 3Aug2018 Note: SetSelection below relates to compose bar's edit box, and
+            // I assume the 'select all' is appropriate here so no adjustment made related
+            // to the 'Select Copied Source' protocol.
+            if (gpApp->m_bFreeTranslationMode)
 			{
 				// when commencing free translation mode, show any pre-existing content selected
 				// also clear the starting and ending character indices for the box contents
@@ -4544,15 +4547,27 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
             // wholly selected only when its list contains 0 or 1 items, but removes
             // the selection and puts the insertion point at end when list contains
             // 2 or more items.
+            // whm 3Aug2018 modified for latest protocol of only selecting all when
+            // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+            // View menu's 'Select Copied Source' toggle menu item. 
             int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
             pApp->m_nEndChar = -1;
             pApp->m_nStartChar = -1;
             if (pApp->m_pTargetBox != NULL)
             {
                 if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
+                {
+                    // Never select phrasebox contents when there a > 1 items in list
                     pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+                }
                 else
-                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); // select it all
+                {
+                    // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+                    if (pApp->m_bSelectCopiedSource)
+                        pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); // select it all
+                    else
+                        pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+                }
             }
 			pApp->m_bStartViaWizard = FALSE; // suppress this code from now on
 		}
@@ -5129,6 +5144,7 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 	gpApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 
 	// Restore the selection, or caret location
+    // whm 3Aug2018 Note: No suppression of 'select all' needed for the call below.
 	gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar);
 	return bSuccess;
 }
