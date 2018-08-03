@@ -406,6 +406,13 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
 
 // it may also be convenient to define an event table macro for the above event types
 
+#define EVT_WIDTH_UPDATING(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Width_Updating, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+
 #define EVT_ADAPTATIONS_EDIT(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY( \
         wxEVT_Adaptations_Edit, id, wxID_ANY, \
