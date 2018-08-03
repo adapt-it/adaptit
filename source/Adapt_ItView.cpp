@@ -22379,19 +22379,16 @@ void CAdapt_ItView::OnEditUndo(wxCommandEvent& event)
 	wxWindow* pWnd = wxWindow::FindFocus();
 	if (pWnd == (wxWindow*)pApp->m_pTargetBox->GetTextCtrl()) // whm 12Jul2018 added ->GetTextCtrl() part
 	{
+		wxString inStr;
+		bool bDoUpdate;
 		if (pApp->m_pTargetBox->m_backspaceUndoStr.IsEmpty())
 		{
 			// Didn't use BACKSPACE key
 			pApp->m_pTargetBox->GetTextCtrl()->Undo(); // whm 12Jul2018 Undo() is method of wxTextCtrl - added ->GetTextCtrl() part
 
 			// A box resize may be needed
-			wxString inStr = wxEmptyString;
-			bool bDoUpdate = pApp->m_pTargetBox->UpdatePhraseBoxWidth_Contracting(inStr);
-			if (bDoUpdate)
-			{
-				pApp->GetLayout()->m_docEditOperationType = relocate_box_op;
-				pApp->GetMainFrame()->m_bUpdatePhraseBoxWidth = TRUE;
-			}
+			inStr = wxEmptyString;
+			bDoUpdate = pApp->m_pTargetBox->UpdatePhraseBoxWidth_Contracting(inStr);
 		}
 		else
 		{
@@ -22399,13 +22396,19 @@ void CAdapt_ItView::OnEditUndo(wxCommandEvent& event)
 			pApp->m_pTargetBox->OnEditUndo(event); // OnEditUndo() is method of CPhraseBox uses GetTextCtrl()->
 
 			// A box resize may be needed
-			wxString inStr = pApp->m_pTargetBox->m_backspaceUndoStr;
-			bool bDoUpdate = pApp->m_pTargetBox->UpdatePhraseBoxWidth_Expanding(inStr);
-			if (bDoUpdate)
-			{
-				pApp->GetLayout()->m_docEditOperationType = relocate_box_op; // put cursor at text end
-				pApp->GetMainFrame()->m_bUpdatePhraseBoxWidth = TRUE;
-			}
+			inStr = pApp->m_pTargetBox->m_backspaceUndoStr;
+			bDoUpdate = pApp->m_pTargetBox->UpdatePhraseBoxWidth_Expanding(inStr);
+		}
+		// If bDoUpdate is TRUE, then get it done
+		if (bDoUpdate)
+		{
+			bool bSuccessful = pApp->GetMainFrame()->DoPhraseBoxWidthUpdate();
+			wxUnusedVar(bSuccessful);
+			// DoPhraseBoxWidthUpdate uses target_box_paste_op which in PlaceBox()
+			// gets SetCursorGlobals called with enum value: cursor_at_offset,
+			// which locates the caret at its former position; we don't want that,
+			// here, so override to get it put at the end of the box's text
+			pApp->GetLayout()->m_docEditOperationType = relocate_box_op;
 		}
 	}
 }

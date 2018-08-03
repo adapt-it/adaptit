@@ -384,8 +384,6 @@ DEFINE_EVENT_TYPE(wxEVT_Join_With_Next)
 DEFINE_EVENT_TYPE(wxEVT_Join_With_Previous)
 DEFINE_EVENT_TYPE(wxEVT_Split_It)
 DEFINE_EVENT_TYPE(wxEVT_Delayed_GetChapter)
-DEFINE_EVENT_TYPE(wxEVT_Width_Updating) // BEW 31Jul18
-
 
 #if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
@@ -510,14 +508,6 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
         (wxObject *) NULL \
     ),
 
-#define EVT_WIDTH_UPDATING(id, fn) \
-    DECLARE_EVENT_TABLE_ENTRY( \
-        wxEVT_Width_Updating, id, wxID_ANY, \
-        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
-        (wxObject *) NULL \
-    ),
-
-
 #endif
 
 
@@ -583,7 +573,6 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 #endif
 
 	// Our Custom Event handlers:
-	EVT_WIDTH_UPDATING(-1, CMainFrame::OnCustomEventWidthUpdating)
 	EVT_ADAPTATIONS_EDIT(-1, CMainFrame::OnCustomEventAdaptationsEdit)
 	EVT_FREE_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventFreeTranslationsEdit)
 	EVT_BACK_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventBackTranslationsEdit)
@@ -4257,14 +4246,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 	pApp->GetBasePointers(pDoc,pView,pBox);
 
-	if (m_bUpdatePhraseBoxWidth)
-	{
-		wxCommandEvent eventCustom(wxEVT_Width_Updating);
-		wxPostEvent(this, eventCustom); // custom event handlers are in CMainFrame
-
-		m_bUpdatePhraseBoxWidth = FALSE; // ready for next update request
-	}
-
     // if a document has just been created or opened in collaboration mode - collaborating
     // with Paratext or Bibledit, and the phrase box has been set up; and because setup of
     // the box potentially could cause a premature opening of the Choose Translation dialog
@@ -5138,27 +5119,15 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 		pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
 		pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
 	}
-	// *** Remember to set the input focus back to the size-updated phrasebox so
-	// that subsequent user typing, or character removals, don't cause layout 
-	// recalculations nor box resizing until the criteria for resizing happen
-	// again (if in fact they do happen again at the current location) ****
 	gpApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 
 	// Restore the selection, or caret location
 	gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar);
-
 	return bSuccess;
 }
 
 // whm Note: this and following custom event handlers are in the View in the MFC version
 //
-// BEW 31Jul18
-void CMainFrame::OnCustomEventWidthUpdating(wxCommandEvent& WXUNUSED(event))
-{
-	//CAdapt_ItApp* pApp = &wxGetApp();
-	bool bSuccessful = DoPhraseBoxWidthUpdate(); // expanding or contracting the phrasebox
-	wxUnusedVar(bSuccessful);
-}
 
 // The following is the handler for a wxEVT_Adaptations_Edit event message, defined in the
 // event table macro EVT_ADAPTATIONS_EDIT.

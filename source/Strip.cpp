@@ -497,16 +497,23 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	{
 		pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
 	}
-	else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
-	{
-		// when tweaking strips rather than rebuilding, we won't get a larger gap
-		// calculated at the active pile unless we call it here, provided the active
-		// location is within the area of strips being rebuilt
-		pileWidth = pPile->CalcPhraseBoxGapWidth();
-	}
 	else
 	{
-		pileWidth = pPile->m_nMinWidth;
+		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+		{
+			// when tweaking strips rather than rebuilding, we won't get a larger gap
+			// calculated at the active pile unless we call it here, provided the active
+			// location is within the area of strips being rebuilt
+			pileWidth = pPile->CalcPhraseBoxGapWidth();
+#if defined(_DEBUG) //&& defined(_NEWDRAW)
+		wxLogDebug(_T("%s():line %d, sets: pileWidth = %d, for box text: %s"),
+			__func__, __LINE__, pPile->m_nWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+#endif
+		}
+		else
+		{
+			pileWidth = pPile->m_nMinWidth;
+		}
 	}
 	m_arrPiles.Add(pPile); // store it
 	m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary

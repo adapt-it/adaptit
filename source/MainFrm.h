@@ -77,7 +77,6 @@ DECLARE_EVENT_TYPE(wxEVT_Join_With_Next, -1)
 DECLARE_EVENT_TYPE(wxEVT_Join_With_Previous, -1)
 DECLARE_EVENT_TYPE(wxEVT_Split_It, -1)
 DECLARE_EVENT_TYPE(wxEVT_Delayed_GetChapter, -1)
-DECLARE_EVENT_TYPE(wxEVT_Width_Updating, -1) // BEW 31Jul18
 
 #if defined(_KBSERVER)
 
@@ -317,7 +316,6 @@ public:
 #endif
 
     void OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event));
-	void OnCustomEventWidthUpdating(wxCommandEvent& WXUNUSED(event));  // BEW 31Jul18
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
 	void OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event));
