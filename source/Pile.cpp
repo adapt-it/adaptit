@@ -452,21 +452,26 @@ int CPile::CalcPhraseBoxListWidth()
 
 			// Calculate the phrasebox slop, based on the width of 'f' characters.
 			// Our box slop (whitespace where more chars can be typed without a resize of 
-			// the box being needed) is calculated by multiplying the width of an f 
-			// character (less 1 pixel) by m_nExpandBox - a user-settable value in Preferences...
-			wxChar aChar = _T('f');
-			wxString fStr = aChar;
+			// the box being needed) is calculated by multiplying the width of a 'w' 
+			// character by m_nExpandBox - a user-settable value in Preferences...
+			wxChar aChar = _T('w');
+			wxString wStr = aChar;
 			wxSize charSize;
-			aDC.GetTextExtent(fStr, &charSize.x, &charSize.y);
-			// Monospaced fonts may have the width of an 'f' character the same as a 'w', so 
-			// subtract 1 to ensure we are working with a width less than that of 'w'
-			// (width of 'w' is used for the phrasebox gap calculation, done elsewhere)
-			slop = gpApp->m_nExpandBox*(charSize.x - 1);
+			aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
+			slop = gpApp->m_nExpandBox*charSize.x;
 
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("%s():line %d, 'w' based slop: %d , for box text: %s  "),
+				__func__, __LINE__, slop, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+#endif
 			// Second, calculate the adjusted width of the dropdown button
 			wxSize buttonSize = gpApp->m_pTargetBox->GetPhraseBoxButton()->GetSize();
 			adjustedButtonWidth = buttonSize.GetX() + 1; // allow 1 pixel of space before it
 
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("%s():line %d, adjustedButtonWidth: %d , for box text: %s  "),
+				__func__, __LINE__, adjustedButtonWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+#endif
 			// Set which KB is in force, and which font to use for the measuring
 			if (gbIsGlossing)
 			{
@@ -521,7 +526,10 @@ int CPile::CalcPhraseBoxListWidth()
 					}
 				}
 			}
-
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("%s():line %d, text extents-based width: %d , final listWidth (adding button and slop) = %d , for box text: %s  "),
+				__func__, __LINE__, listWidth, (listWidth + slop + adjustedButtonWidth), m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+#endif
 			// Add in the button width and the slop
 			listWidth += (slop + adjustedButtonWidth);
 		} // end of TRUE block for test: if ((pSrcPhrase != NULL) && (pSrcPhrase->m_nSequNumber == nActiveSequNum))
