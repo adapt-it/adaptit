@@ -601,6 +601,11 @@ void CPile::SetPhraseBoxWidth(int boxwidth)
 // members m_srcPhrase, m_targetStr, m_gloss on the CSourcePhrase instance pointed at by
 // this particular CPile instance. The width is the maximum extent.x for the three strings
 // checked.
+// BEW 4Aug18, Hey, it's crazy to take the gloss extent when adapting mode is on, and
+// glosses are not seen either. Long glosses just make for unnatural wide phrasesbox.
+// When glosses are visible, we have to take them into account so that gaps are wide
+// enough, and even if in adapting mode with glosses showing, we must do so also to
+// avoid sequential long glosses overwriting each other on the screen. Refactor accordingly
 int CPile::CalcPileWidth()
 {
 	int pileWidth = gpApp->m_nMinPileWidth; // was 40; BEW changed 19May15 // was 40; // ensure we never get a pileWidth of zero
@@ -608,9 +613,13 @@ int CPile::CalcPileWidth()
 	// get a device context for the canvas on the stack (wont' accept uncasted definition)
 	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
 	wxSize extent;
+
+	// First, source text
 	aDC.SetFont(*m_pLayout->m_pSrcFont); // works, now we are friends
 	aDC.GetTextExtent(m_pSrcPhrase->m_srcPhrase, &extent.x, &extent.y);
 	pileWidth = extent.x; // can assume >= to key's width, as differ only by possible punctuation
+
+	// Now target text
 	if (!m_pSrcPhrase->m_targetStr.IsEmpty())
 	{
 		aDC.SetFont(*m_pLayout->m_pTgtFont);
@@ -620,16 +629,21 @@ int CPile::CalcPileWidth()
 			pileWidth = extent.x;
 		}
 	}
-	if (!m_pSrcPhrase->m_gloss.IsEmpty())
+	// Now gloss text, but only if glosses are seen in adapting mode, or we are
+	// in glossing mode
+	if (gbIsGlossing || gbGlossingVisible)
 	{
-		if (gbGlossingUsesNavFont)
-			aDC.SetFont(*m_pLayout->m_pNavTextFont);
-		else
-			aDC.SetFont(*m_pLayout->m_pTgtFont);
-		aDC.GetTextExtent(m_pSrcPhrase->m_gloss, &extent.x, &extent.y);
-		if (extent.x > pileWidth)
+		if (!m_pSrcPhrase->m_gloss.IsEmpty())
 		{
-			pileWidth = extent.x;
+			if (gbGlossingUsesNavFont)
+				aDC.SetFont(*m_pLayout->m_pNavTextFont);
+			else
+				aDC.SetFont(*m_pLayout->m_pTgtFont);
+			aDC.GetTextExtent(m_pSrcPhrase->m_gloss, &extent.x, &extent.y);
+			if (extent.x > pileWidth)
+			{
+				pileWidth = extent.x;
+			}
 		}
 	}
 	// BEW added next two lines, 14Jul11, supposedly they aren't necessary, but if
@@ -638,8 +652,6 @@ int CPile::CalcPileWidth()
 	// BEW changed 19May15
 	if (pileWidth < gpApp->m_nMinPileWidth) // was40)
 		pileWidth = gpApp->m_nMinPileWidth; // was 40; BEW changed 19May15
-	//if (pileWidth < 40)
-	//	pileWidth = 40;
 	return pileWidth;
 }
 
@@ -648,7 +660,7 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 	// box width is what we'll compute to return to caller. It starts out as a
 	// "basic width" computed from the text extent for the adaptation, including
 	// any punctuation; and then we add to that the width of the user's chosen
-	// slop size for the wxTextCtrl (we compute that as a multiple of 'f' character
+	// slop size for the wxTextCtrl (we compute that as a multiple of 'w' character
 	// widths; and then dynamically get the width of the dropdown list's button.
 	// The result should be then less (by a little bit, or maybe by much if the
 	// source text is longer) than the phrasebox gap width computed separately
@@ -668,7 +680,7 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 		// button
 		wxUnusedVar(widthMode); // our new protocol may make this enum value unneeded, 
 								// it certainly is not needed here
-		boxWidth = gpApp->m_nMinPileWidth; // ensure we never get a width of zero
+		boxWidth = gpApp->m_nMinPileWidth; // set at 40 I think
 
 #if defined(_DEBUG) && defined(_NEWDRAW)
 		wxLogDebug(_T("%s():line %d, starting boxWidth:  %d,  (from gpApp->m_nMinPileWidth) ; for box text: %s"),
@@ -818,11 +830,12 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	// to do anthing here with that layout parameter.
 	boxGapWidth = m_nMinWidth; // start with this minimum value (text-based)
 	int nNonActivePileWidth = CalcPileWidth(); // max of src, tgt, gloss widths
-	boxGapWidth = nNonActivePileWidth; // a good starting point
+	// We need to start from whichever is the largest of the two
+	boxGapWidth = boxGapWidth > nNonActivePileWidth ? boxGapWidth : nNonActivePileWidth;
 
 #if defined(_DEBUG) && defined(_NEWDRAW)
-	wxLogDebug(_T("%s():line %d, starting: m_nMinWidth (of pile) = %d, for box text: %s  [as Calculated by CalcPileWith()] so far"),
-		__func__, __LINE__, m_nMinWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
+	wxLogDebug(_T("%s():line %d, starting calc: m_nMinWidth  %d , CalcPileWith() %d , Larger is: %d , for box text: %s"),
+		__func__, __LINE__, m_nMinWidth, nNonActivePileWidth, boxGapWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
 #endif
 	// Only do the following calculations provided the m_pSrcPhrase pointer is set
 	// and that CSourcePhrase instance is the one at the active location, if not so,
