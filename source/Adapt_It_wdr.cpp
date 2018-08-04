@@ -11852,6 +11852,7 @@ wxMenuBar *AIMenuBarFunc()
     item3->Append( ID_VIEW_MODE_BAR, _("&Mode Bar"), _("Show or hide the mode bar"), wxITEM_CHECK );
     item3->AppendSeparator();
     item3->Append( ID_COPY_SOURCE, _("Copy Sourc&e"), _("Copy source text to phrase box as default translation"), wxITEM_CHECK );
+    item3->Append( ID_SELECT_COPIED_SOURCE, _("Se&lect Copied Source"), _("Select the copied source text within the phrase box when the box lands at a location"), wxITEM_CHECK );
     item3->Append( ID_MARKER_WRAPS_STRIP, _("&Wrap At Standard Format Markers"), _("Start a new strip whenever a standard format marker is encountered"), wxITEM_CHECK );
     item3->Append( ID_UNITS, _("&Units of Measurement..."), _("Units to be used when printing") );
     item3->AppendSeparator();

@@ -655,6 +655,7 @@ void CLayout::PlaceBox()
 					long len = (long)text.Length();
 					m_pApp->m_nStartChar = len;
 					m_pApp->m_nEndChar = len;
+                    // whm 3Aug2018 No adjustment for any 'select all' here
 					m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
 					bSetModify = TRUE;
 				}
@@ -966,6 +967,7 @@ void CLayout::PlaceBox()
 					wxString text;
 					text = pComposeBox->GetValue();
 					int len = text.Length();
+                    // whm 3Aug2018 Note: No 'select all' at work here, and no adjustment for compose bar box.
 					pComposeBox->SetSelection(len,len);
 					pComposeBox->SetFocus();
 				}
@@ -1011,14 +1013,24 @@ void CLayout::PlaceBox()
 			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase); // keep m_pTargetBox contents in sync with m_targetPhrase
             // whm 13Jul2018 added - if phrasebox list has > 1 items remove selection and 
             // put insertion point at end, otherwise select all (for item count of 0 or 1)
+            // whm 3Aug2018 modified for latest protocol of only selecting all when
+            // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+            // View menu's 'Select Copied Source' toggle menu item. 
             long len = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
             int itemCt = m_pApp->m_pTargetBox->GetDropDownList()->GetCount();
             if (itemCt > 1)
             {
+                // Never select phrasebox contents when there a > 1 items in list
                 m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
             }
             else
-                m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // whm added 23May2018 otherwise Linux version looses selection of text in phrasebox
+            {
+                // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+                if (m_pApp->m_bSelectCopiedSource)
+                    m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // whm added 23May2018 otherwise Linux version looses selection of text in phrasebox
+                else
+                    m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+            }
         }
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 1033);
@@ -2196,6 +2208,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		wxTextCtrl* pEdit = (wxTextCtrl*)
 							m_pMainFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		pEdit->SetFocus();
+        // whm 3Aug2018 Note: SetSelection below relates to compose bar's edit box, and
+        // I assume the 'select all' is appropriate here so no adjustment made related
+        // to the 'Select Copied Source' protocol.
 		if (!m_pApp->m_pActivePile->GetSrcPhrase()->m_bHasFreeTrans)
 		{
 			pEdit->SetSelection(-1,-1); // -1, -1 selects it all

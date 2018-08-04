@@ -841,6 +841,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	// View Menu
 	EVT_MENU(ID_COPY_SOURCE, CAdapt_ItView::OnCopySource)
 	EVT_UPDATE_UI(ID_COPY_SOURCE, CAdapt_ItView::OnUpdateCopySource)
+    EVT_MENU(ID_SELECT_COPIED_SOURCE, CAdapt_ItView::OnSelectCopiedSource)
+    EVT_UPDATE_UI(ID_SELECT_COPIED_SOURCE, CAdapt_ItView::OnUpdateSelectCopiedSource)
 	EVT_MENU(ID_MARKER_WRAPS_STRIP, CAdapt_ItView::OnMarkerWrapsStrip)
 	EVT_UPDATE_UI(ID_MARKER_WRAPS_STRIP, CAdapt_ItView::OnUpdateMarkerWrapsStrip)
 	EVT_MENU(ID_UNITS, CAdapt_ItView::OnUnits)
@@ -1485,6 +1487,15 @@ void CAdapt_ItView::OnInitialUpdate()
 		pApp->m_bCopySource = FALSE;
 		OnCopySource(dummyevent); // toggle it ON, and set the checkmark
 	}
+    // whm 2Aug2018 added
+    if (pApp->m_bSelectCopiedSource)
+    {
+        // make sure the Select Copied Source menu item is shown without checkmark.
+        // The value of m_bSelectCopiedSource will be set from the project config file's
+        // stored value possibly overriding this initial setting.
+        pApp->m_bSelectCopiedSource = TRUE;
+        OnSelectCopiedSource(dummyevent);
+    }
 
     // wx version: the Save As XML menu item is always shown with checkmark and cannot be
     // changed
@@ -2892,8 +2903,24 @@ void CAdapt_ItView::FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSele
 	{
 		if (pApp->m_pTargetBox->IsShown())
 		{
-			pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // -1,-1 selects all
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            // whm 3Aug2018 modified for latest protocol of only selecting all when
+            // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+            // View menu's 'Select Copied Source' toggle menu item. 
+            int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
+            if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
+            {
+                // Never select phrasebox contents when there a > 1 items in list
+                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+            }
+            else
+            {
+                // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+                if (pApp->m_bSelectCopiedSource)
+                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select it all
+                else
+                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+            }
+            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 		}
 	}
 
@@ -3276,6 +3303,7 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 						// we must restore the box's selection to what it was
 						// earlier before returning
 						pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                        // whm 3Aug2018 Note: The following SetSelection should not be suppressed.
 						pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
                         pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_targetPhrase;
 						::wxBell(); // ring the bell to say that something wasn't right
@@ -6677,6 +6705,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	// It is annoying to see it appear in the output window but
 	// it is of unknown cause and apparently harmless.
 	pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+    // whm 3Aug2018 Note: The following SetSelection() should not be suppressed
 	pApp->m_pTargetBox->GetTextCtrl()->SetSelection(nStartingChar,nEndingChar);
 	pApp->m_nStartChar = (int)nStartingChar;
 	pApp->m_nEndChar = (int)nEndingChar;
@@ -6881,6 +6910,8 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 	int len;
 	// BEW modified 3Apr08, restore focus to the phrase box, except when in free translation
 	// mode in which case it needs to be restored to the compose bar's editbox
+    // whm 3Aug2018 Note: No suppression of a select all would be appropriate within the if...else
+    // blocks below.
 	if (pApp->m_bFreeTranslationMode)
 	{
 		CMainFrame* pFrame = pApp->GetMainFrame();
@@ -10880,6 +10911,8 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			if (pApp->m_pTargetBox->GetHandle() != NULL)
 			{
 				pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
+                // the SetSelection call below.
 				pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 			}
             pApp->m_bMergeSucceeded = FALSE;
@@ -11084,7 +11117,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
 		{
 			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-			pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
+            // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
+            // the SetSelection call below.
+            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 		}
         pApp->m_bMergeSucceeded = FALSE;
 		Invalidate();
@@ -11114,7 +11149,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
 		{
 			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-			pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
+            // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
+            // the SetSelection call below.
+            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 		}
         pApp->m_bMergeSucceeded = FALSE;
 		Invalidate();
@@ -11140,7 +11177,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
 		{
 			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-			pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+            // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
+            // the SetSelection call below.
+            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 		}
         pApp->m_bMergeSucceeded = FALSE;
 		Invalidate();
@@ -11170,7 +11209,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
 		{
 			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-			pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+            // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
+            // the SetSelection call below.
+            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 		}
         pApp->m_bMergeSucceeded = FALSE;
 		Invalidate();
@@ -11196,7 +11237,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
 		{
 			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-			pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
+            // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
+            // the SetSelection call below.
+            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
 		}
         pApp->m_bMergeSucceeded = FALSE;
 		Invalidate();
@@ -13043,50 +13086,143 @@ void CAdapt_ItView::OnCheckForceAsk(wxCommandEvent& WXUNUSED(event))
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CAdapt_ItView::OnCopySource(wxCommandEvent& event)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	CMainFrame *pFrame = wxGetApp().GetMainFrame();
-	wxASSERT(pFrame != NULL);
-	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
-	wxASSERT(pMenuBar != NULL);
-	wxMenuItem * pViewCopySource = pMenuBar->FindItem(ID_COPY_SOURCE);
+    CAdapt_ItApp* pApp = &wxGetApp();
+    wxASSERT(pApp != NULL);
+    CMainFrame *pFrame = wxGetApp().GetMainFrame();
+    wxASSERT(pFrame != NULL);
+    wxMenuBar* pMenuBar = pFrame->GetMenuBar();
+    wxASSERT(pMenuBar != NULL);
+    wxMenuItem * pViewCopySource = pMenuBar->FindItem(ID_COPY_SOURCE);
 
-	// whm Note: Since OnMarkerWrapsStrip() is also called from the View's OnInitialUpdate()
-	// we test here to make sure we're logging the actual menu item call and not the
-	// OnInitialUpdate call.
-	if (event.GetId() == ID_COPY_SOURCE)
-	{
-		if (pApp->m_bCopySource)
-			pApp->LogUserAction(_T("Turned Copy Source OFF"));
-		else
-			pApp->LogUserAction(_T("Turned Copy Source ON"));
-	}
+    // whm Note: Since OnMarkerWrapsStrip() is also called from the View's OnInitialUpdate()
+    // we test here to make sure we're logging the actual menu item call and not the
+    // OnInitialUpdate call.
+    if (event.GetId() == ID_COPY_SOURCE)
+    {
+        if (pApp->m_bCopySource)
+            pApp->LogUserAction(_T("Turned Copy Source OFF"));
+        else
+            pApp->LogUserAction(_T("Turned Copy Source ON"));
+    }
 
-	// toggle the setting
-	if (pApp->m_bCopySource)
-	{
-		// toggle the checkmark to OFF
-		if (pViewCopySource != NULL)
-		{
-			pViewCopySource->Check(FALSE);
-		}
-		pApp->m_bCopySource = FALSE;
-	}
-	else
-	{
-		// toggle the checkmark to ON
-		if (pViewCopySource != NULL)
-		{
-			pViewCopySource->Check(TRUE);
-		}
-		pApp->m_bCopySource = TRUE;
-	}
+    // toggle the setting
+    if (pApp->m_bCopySource)
+    {
+        // toggle the checkmark to OFF
+        if (pViewCopySource != NULL)
+        {
+            pViewCopySource->Check(FALSE);
+        }
+        pApp->m_bCopySource = FALSE;
+    }
+    else
+    {
+        // toggle the checkmark to ON
+        if (pViewCopySource != NULL)
+        {
+            pViewCopySource->Check(TRUE);
+        }
+        pApp->m_bCopySource = TRUE;
+    }
 
-	// restore focus to the targetBox, if it is visible
-	if (pApp->m_pTargetBox != NULL)
-		if (pApp->m_pTargetBox->IsShown())
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+    // restore focus to the targetBox, if it is visible
+    if (pApp->m_pTargetBox != NULL)
+        if (pApp->m_pTargetBox->IsShown())
+            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 }
+
+/// whm added 2Aug2018 to handle Select Copied Source checkable menu item.
+/// The Select Copied Source menu item may be disabled (when m_bCopySource
+/// is false). This menu handler will only execute when the menu item is
+/// enabled, that is, when the toggle menu item above it ("Copy Source")
+/// is TRUE. When the Copy Source menu item is toggled to an unticked state
+/// the Select Copied Source menu item will be disabled.
+void CAdapt_ItView::OnSelectCopiedSource(wxCommandEvent& event)
+{
+    CAdapt_ItApp* pApp = &wxGetApp();
+    wxASSERT(pApp != NULL);
+    CMainFrame *pFrame = wxGetApp().GetMainFrame();
+    wxASSERT(pFrame != NULL);
+    wxMenuBar* pMenuBar = pFrame->GetMenuBar();
+    wxASSERT(pMenuBar != NULL);
+    wxMenuItem * pViewSelectCopiedSource = pMenuBar->FindItem(ID_SELECT_COPIED_SOURCE);
+
+    // whm Note: Since OnMarkerWrapsStrip() is also called from the View's OnInitialUpdate()
+    // we test here to make sure we're logging the actual menu item call and not the
+    // OnInitialUpdate call.
+
+    if (event.GetId() == ID_SELECT_COPIED_SOURCE)
+    {
+        if (pApp->m_bSelectCopiedSource)
+            pApp->LogUserAction(_T("Turned Select Copied Source OFF"));
+        else
+            pApp->LogUserAction(_T("Turned Select Copied Source ON"));
+    }
+
+    // toggle the setting
+    if (pApp->m_bSelectCopiedSource)
+    {
+        // toggle the checkmark to OFF
+        if (pViewSelectCopiedSource != NULL)
+        {
+            pViewSelectCopiedSource->Check(FALSE);
+        }
+        pApp->m_bSelectCopiedSource = FALSE;
+    }
+    else
+    {
+        // toggle the checkmark to ON
+        if (pViewSelectCopiedSource != NULL)
+        {
+            pViewSelectCopiedSource->Check(TRUE);
+        }
+        pApp->m_bSelectCopiedSource = TRUE;
+    }
+
+    // Remove or restore any selection from phrasebox text where appropriate
+    // based on the new value of pApp->m_bSelectCopiedSource.
+    int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
+    if (pApp->m_pTargetBox != NULL)
+    {
+        if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
+        {
+            // Never select phrasebox contents when there a > 1 items in list
+            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+        }
+        else
+        {
+            // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+            if (pApp->m_bSelectCopiedSource)
+                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select it all
+            else
+                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+        }
+    }
+
+    // restore focus to the targetBox, if it is visible
+    if (pApp->m_pTargetBox != NULL)
+        if (pApp->m_pTargetBox->IsShown())
+            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+}
+
+// whm 2Aug2018 added
+// The Select Copied Source menu item toggle, should only be enabled when
+// the Copy Source menu item (above it) is ticked (TRUE), as indicated by
+// a TRUE value for the App's m_bCopySource value.
+void CAdapt_ItView::OnUpdateSelectCopiedSource(wxUpdateUIEvent& event)
+{
+    CAdapt_ItApp* pApp = &wxGetApp();
+
+    if (pApp->m_bCopySource)
+    {
+        event.Enable(TRUE);
+    }
+    else
+    {
+        event.Enable(FALSE);
+    }
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
@@ -13588,7 +13724,9 @@ void CAdapt_ItView::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 			pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		if (pEdit != 0)
 		{
-			pEdit->SetSelection(-1,-1);
+            // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
+            // the SetSelection call below as this is compose bar's 'select all'.
+            pEdit->SetSelection(-1,-1);
 			pApp->m_nStartChar = -1;
 			pApp->m_nEndChar = -1;
 			pEdit->SetFocus();
@@ -15601,7 +15739,12 @@ void CAdapt_ItView::ClobberDocument()
 		pApp->m_bCopySource = FALSE;
 		pApp->GetView()->ToggleCopySource(); // toggles m_bCopySource's value & resets menu item
 		pApp->m_bSaveCopySourceFlag_For_Collaboration = FALSE; // when closing doc, always clear
-	}
+
+        // whm 2Aug2018 Note: The Select Copied Source menu item is enabled only when the
+        // m_bCopySource value is TRUE. Its check status is determined by the value the
+        // user stored in the project config file (i.e., it may be ticked, but will be
+        // disabled whenever the Copy Source menu item is not ticked.
+    }
 
     // BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion
     // lists, because each document, on opening it, it must start with a truly empty
@@ -16851,7 +16994,9 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 			int len = pApp->m_targetPhrase.Length();
 			pApp->m_nStartChar = len;
 			pApp->m_nEndChar = len;
-			pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+            // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
+            // the SetSelection call below.
+            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
 			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 		}
 	}
@@ -28305,14 +28450,30 @@ bailout:	pAdaptList->Clear();
 															// are in CMainFrame
 		}
 	}
-	else
+	else // when user cancelled
 	{
 		bUserCancelled = TRUE;
 
 		// old phrase box location should be valid, so put value back
 		pApp->m_targetPhrase = pRec->oldPhraseBoxText;
 		pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
-		pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select it all
+        // whm 3Aug2018 modified for latest protocol of only selecting all when
+        // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+        // View menu's 'Select Copied Source' toggle menu item. 
+        int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
+        if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
+        {
+            // Never select phrasebox contents when there a > 1 items in list
+            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+        }
+        else
+        {
+            // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+            if (pApp->m_bSelectCopiedSource)
+                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select it all
+            else
+                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
+        }
 		pApp->LogUserAction(_T("Cancelled from OnEditSourceText()"));
 	}
 #if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
@@ -28971,8 +29132,26 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNu
 						thePhrase = str;
 
 						// fix the cursor location, make it selected
+                        // whm 3Aug2018 Note: The nStart value was set to 0 above, and
+                        // the line below sets it to the length of the string, so effectively
+                        // this selects all. So, I've modified it for latest protocol of 
+                        // only selecting all when user has set App's m_bSelectCopiedSource 
+                        // var to TRUE by ticking the View menu's 'Select Copied Source' 
+                        // toggle menu item. 
 						nEnd = (int)str.Length();
-						pApp->m_pTargetBox->GetTextCtrl()->SetSelection(nStart, nEnd);
+                        if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
+                        {
+                            // Never select phrasebox contents when there a > 1 items in list
+                            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(nEnd,nEnd); // here nEnd is length of string
+                        }
+                        else
+                        {
+                            // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+                            if (pApp->m_bSelectCopiedSource)
+                                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(nStart,nEnd); // select it all
+                            else
+                                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(nEnd,nEnd);
+                        }
 					}
 				}
 			}
@@ -31253,6 +31432,7 @@ void CAdapt_ItView::OnButtonUndoLastCopy(wxCommandEvent& WXUNUSED(event))
 		pTextBox->ChangeValue(theText); // change the string in the
 										// wxTextCtrl in the compose bar
 		long len = theText.Len();
+        // whm 3Aug2018 Note: No select all at work below.
 		pTextBox->SetSelection(len,len);
 		pTextBox->SetFocus();
 		pApp->GetMainFrame()->SendSizeEvent(); // forces the CMainFrame::SetSize() handler

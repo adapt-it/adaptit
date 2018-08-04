@@ -706,6 +706,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		int len = gpApp->m_targetPhrase.Length();
 		gpApp->m_nStartChar = len;
 		gpApp->m_nEndChar = len;
+        // whm 3Aug2018 Note: No adjustment here needed for 'select all'
 		gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
 	}
 

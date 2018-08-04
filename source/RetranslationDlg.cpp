@@ -109,6 +109,8 @@ void CRetranslationDlg::OnCopyRetranslationToClipboard(wxCommandEvent& WXUNUSED(
 		return;
 	}
 	pRetransBox->SetFocus();
+    // whm 3Aug2018 Note: The SetSelection 'select all' here involves the Retranslation box,
+    // so I assume there should be no adjustment for 'Select Copied Source' here.
 	pRetransBox->SetSelection(-1,-1); // -1,-1 selects all
 	pRetransBox->Copy(); // copy to the clipboard using wxTextCtrl's built in function (CF_TEXT format)
 
@@ -119,7 +121,10 @@ void CRetranslationDlg::OnCopyRetranslationToClipboard(wxCommandEvent& WXUNUSED(
 	m_sourceText = pSrcTextToTransBox->GetValue(); // whm added 21Nov11
 	
 	int len = m_retranslation.Length();
-	pRetransBox->SetSelection(len,len);
+    // whm 3Aug2018 Note: The SetSelection here involves the Retranslation box,
+    // and no 'select all' done here, so I assume there should be no adjustment 
+    // for 'Select Copied Source' here.
+    pRetransBox->SetSelection(len,len);
 }
 
 void CRetranslationDlg::OnButtonToggleContext(wxCommandEvent& WXUNUSED(event))
@@ -343,7 +348,9 @@ void CRetranslationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 	pSrcTextToTransBox->ChangeValue(m_sourceText); // whm added 21Nov11
 
 	pRetransBox->SetFocus();
-	pRetransBox->SetSelection(-1,-1);
+    // whm 3Aug2018 Note: The SetSelection 'select all' here involves the Retranslation box,
+    // so I assume there should be no adjustment for 'Select Copied Source' here.
+    pRetransBox->SetSelection(-1,-1);
 	// when both params of SetSelection above are -1 all text is selected
 	// MFC SetSel() had third param TRUE indicating not to scroll, but not available in wx.
 	//TransferDataToWindow(); // whm removed 21Nov11 redundant call

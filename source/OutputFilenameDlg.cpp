@@ -111,7 +111,8 @@ void COutputFilenameDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	wxFileName fn(m_strFilename);
 	pEdit->SetValue(fn.GetName());
 	pEdit->SetFocus();
-	pEdit->SetSelection(-1,-1); // -1,-1 selects all
+    // whm 3Aug2018 Note: No adjustment made in SetSelection() call below.
+    pEdit->SetSelection(-1,-1); // -1,-1 selects all
 }
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
