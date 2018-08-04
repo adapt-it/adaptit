@@ -170,7 +170,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 	int pileWidth = 0;
 	int nCurrentSpan = 0;
 
-    // clear the two arrays - failure to do this leaves gargage in their members (such as
+    // clear the two arrays - failure to do this leaves garbage in their members (such as
     // m_size a huge number & m_count a huge number) & so get app crash
 	m_arrPiles.Clear();
 	m_arrPileOffsets.Clear();
@@ -214,15 +214,26 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		{
 			pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
 		}
-		else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
-		{
-			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be
-                    // large enough to accomodate the phrase box's width, even if just
-                    // expanded due to the user's typing
-		}
-		else
-		{
-			pileWidth = pPile->m_nMinWidth;
+		else 
+		{ 
+			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+			{
+				//pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be
+						// large enough to accomodate the phrase box's width, even if just
+						// expanded due to the user's typing
+				// BEW 3Aug18, refactored to use the CalcPhraseBoxGapWidthCall(), the
+				// overrided CreateStrip() had it, but it was lacking from here
+				
+				pileWidth = pPile->CalcPhraseBoxGapWidth();
+#if defined(_DEBUG) && defined(_NEWDRAW)
+				wxLogDebug(_T("%s():line %d, sets: pileWidth = %d, for box text: %s"),
+					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+#endif
+			}
+			else
+			{
+				pileWidth = pPile->m_nMinWidth;
+			}
 		}
 		m_arrPiles.Add(pPile); // store it
 		m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
@@ -273,15 +284,26 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			{
 				pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
 			}
-			else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
-			{
-				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
-											 // to accomodate the phrase box's width, even if just
-											 // expanded due to the user's typing
-			}
-			else
-			{
-				pileWidth = pPile->m_nMinWidth;
+			else 
+			{	
+				if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+				{
+					//pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
+					// to accomodate the phrase box's width, even if just
+					// expanded due to the user's typing
+					// BEW 3Aug18, refactored to use the CalcPhraseBoxGapWidthCall(), the
+					// overrided CreateStrip() had it, but it was lacking from here
+					
+					pileWidth = pPile->CalcPhraseBoxGapWidth();
+#if defined(_DEBUG) && defined(_NEWDRAW)
+					wxLogDebug(_T("%s():line %d, sets: pileWidth = %d, for box text: %s"),
+						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+#endif
+				}
+				else
+				{
+					pileWidth = pPile->m_nMinWidth;
+				}
 			}
 			nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space for this
 											// pile to be eligible for inclusion in the strip
@@ -505,9 +527,9 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			// calculated at the active pile unless we call it here, provided the active
 			// location is within the area of strips being rebuilt
 			pileWidth = pPile->CalcPhraseBoxGapWidth();
-#if defined(_DEBUG) //&& defined(_NEWDRAW)
+#if defined(_DEBUG) && defined(_NEWDRAW)
 		wxLogDebug(_T("%s():line %d, sets: pileWidth = %d, for box text: %s"),
-			__func__, __LINE__, pPile->m_nWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+			__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 #endif
 		}
 		else
@@ -615,15 +637,26 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
 		}
-		else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
-		{
-			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
-										 // to accomodate the phrase box's width, even if just
-										 // expanded due to the user's typing
-		}
 		else
 		{
-			pileWidth = pPile->m_nMinWidth;
+			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+			{
+				//pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
+				// to accomodate the phrase box's width, even if just
+				// expanded due to the user's typing
+				// BEW 3Aug18, refactored to use the CalcPhraseBoxGapWidthCall(), the
+				// overrided CreateStrip() had it, but it was lacking from here
+
+				pileWidth = pPile->CalcPhraseBoxGapWidth();
+#if defined(_DEBUG) && defined(_NEWDRAW)
+				wxLogDebug(_T("%s():line %d, sets: pileWidth = %d, for box text: %s"),
+					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+#endif
+			}
+			else
+			{
+				pileWidth = pPile->m_nMinWidth;
+			}
 		}
 		nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space
 						// for this pile to be eligible for inclusion in the strip
@@ -639,15 +672,17 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 												// m_arrPiles array
 			// set the pile's m_pOwningStrip member
 			pPile->m_pOwningStrip = this;
-/*
-#ifdef _DEBUG
+
+#if defined(_DEBUG) && defined(_NEWDRAW)
 	{
-		wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
-		wxLogDebug(_T("2. inloop	CreateStrip: m-nStrip %d   pile[ %d ] pileWidth %d , offset %d , free left %d, numPlaced %d srcPhrase %s"),
-					this->m_nStrip,pileIndex_InStrip,pileWidth,nHorzOffset_FromLeft,m_nFree, numPlaced, src);
+		if (pPile->m_pOwningStrip->m_nStrip == 3)
+		{
+			wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
+			wxLogDebug(_T("%s():line %d, in loop  m_nStrip %d   pile[%d] , pileWidth %d , offset %d , free left %d, numPlaced %d srcPhrase %s"),
+				__func__, __LINE__, this->m_nStrip, pileIndex_InStrip, pileWidth, nHorzOffset_FromLeft, m_nFree, numPlaced, src);
+		}
 	}
 #endif
-*/
 		}
 		else
 		{
