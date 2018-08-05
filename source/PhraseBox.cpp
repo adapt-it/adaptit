@@ -4423,11 +4423,73 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		pView->Invalidate();
 	}
 
-    // whm Note: The following code is moved to the OnPhraseBoxChanged() handler in the wx
+    // whm [old] Note: The following code is moved to the OnPhraseBoxChanged() handler in the wx
     // version, because the OnChar() handler does not have access to the changed value of
     // the new string within the control reflecting the keystroke that triggers OnChar().
     // Because of that difference in behavior, I moved the code dependent on updating
     // pApp->m_targetPhrase from OnChar() to the OnPhraseBoxChanged() handler.
+
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Note: code below moved here to OnChar() from OnKeyUp().
+    // whm 5Aug2018 Note: After making the filtering modifications to filter out the control
+    // characters (value >= 32), I noted that GetUnicodeKey() returns the upper case version 
+    // of the key stroke in the wxChar typedChar variable below. This is standard for wxWidgets
+    // key handling within the OnKeyUp() handler. To get the actual wxChar for getting text 
+    // extents, we need to do this processing within the OnChar() handler instead. Therefore, 
+    // I've moved the following call of UpdatePhraseBoxWidth_Expanding(pLayout->m_inputString)
+    // to the OnChar() handler. That should get more accurate text extents for the box
+    // lengthening.
+    // 
+    // BEW 31Jul18, is a lengthening of the phrasebox needed?
+    bool bDoUpdate = FALSE;
+    // whm 5Aug2018 Note: We need to do some filtering for the GetUnicodeKey() event. For example, the
+    // Backspace key returns a control key value of 8 ('\b'), which within UpdatePhraseBoxWidth_Expanding()
+    // below the 8 value actually gets translated to a positive width of 12 (in inStrWidth) which lengthens
+    // the string within the box rather than shorten it! Ditto for the Escape key value of 27 which within
+    // UpdatePhraseBoxWidth() below the 27 value gets translated to a positive width of 12 (in inStrWidth),
+    // lengthening the string. Using the example in the wxWidgets docs for wxKeyEvent as a guide (see:
+    // http://docs.wxwidgets.org/3.1/classwx_key_event.html#a3dccc5a254770931e5d8066ef47e7fb0 )
+    // I'm instituding a filter to eliminate control char codes from being processed by the 
+    // UpdatePhraseBoxWidth_Expanding() call below.
+    wxChar typedChar = event.GetUnicodeKey();
+    if (typedChar != WXK_NONE)
+    {
+        // It's a "normal" character. Notice that this includes
+        // control characters in 1..31 range, e.g. WXK_RETURN or
+        // WXK_BACK, so check for them explicitly.
+        if (typedChar >= 32)
+        {
+            wxLogDebug(_T("In CPhraseBox::OnKeyUp() You pressed '%c' - key code: %d"), typedChar, event.GetKeyCode());
+            pLayout->m_inputString = typedChar;
+            bDoUpdate = UpdatePhraseBoxWidth_Expanding(pLayout->m_inputString);
+            if (bDoUpdate)
+            {
+                // whm 5Aug NOTE for BEW TODO: I think the active pile's m_pSrcPhrase's m_adaptation and m_targetStr
+                // members need to be updated at some point BEFORE the DoPhraseBoxWidthUpdate() call below, otherwise 
+                // they get truncated - I think this is the issue that Graeme and I observed when typing into the 
+                // phrasebox until the box expands at which point the truncation happens. You can see the truncation
+                // by examining the pile's m_adaptation and m_targetStr contents in the DoPhraseBoxWidthUpdate() below.
+                bool bSuccessful = pApp->GetMainFrame()->DoPhraseBoxWidthUpdate(); // expanding the phrasebox
+                wxUnusedVar(bSuccessful);
+                // Maybe best not to mess with the cursor location - to take the 'do nothing' option
+                pLayout->m_docEditOperationType = char_typed_op;
+            }
+        }
+        else
+        {
+            // It's a control character.
+            wxLogDebug(_T("In CPhraseBox::OnKeyUp() You pressed control char '%c' - key code: %d"), typedChar, event.GetKeyCode());
+            // Allow the control char to drop through to event.Skip() below - although this OnKeyUp() 
+            // handler should be the last handler processing key events.
+            ;
+        }
+    }
+    else
+    {
+        wxLogDebug(_T("In CPhraseBox::OnKeyUp() GetUnicodeKey() returned  '%c' - WXK_NONE"), typedChar);
+    }
+    // Note: code above moved here to OnChar() from OnKeyUp()
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	long keycode = event.GetKeyCode();
 	switch(keycode)
@@ -6419,10 +6481,10 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 // whm Note 15Feb2018 modified key handling so that ALL AltDown(), ShiftDown(), and ControlDown()
 // events are now sent to OnSysKeyUp() for processing.
 // whm 16Feb2018 Notes: OnKeyUp() currently does the following key handling:
-// 1. Detects WXX_TAB, WXK_NUMPAD_ENTER and WXK_RETURN keys and processes them all alike.
-// 2. Detects all AltDown(), all ShiftDown(), and all ControlDown() events (with key combinations) and
+// 1. Detects all AltDown(), all ShiftDown(), and all ControlDown() events (with key combinations) and
 //    routes all processing of those events to the separate function OnSysKeyUp(), and returns 
 //    without calling Skip() suppressing further handling after execution of OnSysKeyUp().
+// 2. Detects WXX_TAB, WXK_NUMPAD_ENTER and WXK_RETURN keys and processes them all alike.
 // 3. Detects SHIFT+CTRL+SPACE, and if detected calls OnCtrlShiftSpacebar(), then return to suppress further handling.
 // 4. Detects WXK_RIGHT and WXK_LEFT; if detected sets flags m_bAbandonable = FALSE, pApp->m_bUserTypedSomething = TRUE,
 //    and m_bRetainBoxContents = TRUE, for use if auto-merge (OnButtonMerge) is called on a selection.
@@ -6431,7 +6493,7 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 // of ALT, SHIFT, or CTRL keys.
 void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 {
-    wxLogDebug(_T("In CPhraseBox::OnKeyUp() key code: %d"), event.GetKeyCode());
+    // wxLogDebug(_T("In CPhraseBox::OnKeyUp() key code: %d"), event.GetKeyCode()); 
 
     CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -6750,19 +6812,60 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
     // whm TODO: Put activator here for WXK_F1 help, so that F1 doesn't need to be pressed
     // twice on Linux/Mac when the dropdown list is open
 
+    /* 
+    // whm 5Aug2018 Note: After making the filtering modifications to filter out the control
+    // characters (value >= 32), I noted that GetUnicodeKey() returns the upper case version 
+    // of the key stroke in the wxChar typedChar variable below. This is standard for wxWidgets
+    // key handling within the OnKeyUp() handler. To get the actual wxChar for getting text 
+    // extents, we need to do this processing within the OnChar() handler instead. Therefore, 
+    // I've moved the following call of UpdatePhraseBoxWidth_Expanding(pLayout->m_inputString)
+    // to the OnChar() handler. That should get more accurate text extents for the box
+    // lengthening.
+    // 
 	// BEW 31Jul18, is a lengthening of the phrasebox needed?
 	bool bDoUpdate = FALSE;
-	wxChar typedChar = event.GetUnicodeKey();
-	pLayout->m_inputString = typedChar;
-	bDoUpdate = UpdatePhraseBoxWidth_Expanding(pLayout->m_inputString);
-	if (bDoUpdate)
-	{
-		bool bSuccessful = pApp->GetMainFrame()->DoPhraseBoxWidthUpdate(); // expanding the phrasebox
-		wxUnusedVar(bSuccessful);
-		// Maybe best not to mess with the cursor location - to take the 'do nothing' option
-		pLayout->m_docEditOperationType = char_typed_op;
-	}
-
+    // whm 5Aug2018 Note: We need to do some filtering for the GetUnicodeKey() event. For example, the
+    // Backspace key returns a control key value of 8 ('\b'), which within UpdatePhraseBoxWidth_Expanding()
+    // below the 8 value actually gets translated to a positive width of 12 (in inStrWidth) which lengthens
+    // the string within the box rather than shorten it! Ditto for the Escape key value of 27 which within
+    // UpdatePhraseBoxWidth() below the 27 value gets translated to a positive width of 12 (in inStrWidth),
+    // lengthening the string. Using the example in the wxWidgets docs for wxKeyEvent as a guide (see:
+    // http://docs.wxwidgets.org/3.1/classwx_key_event.html#a3dccc5a254770931e5d8066ef47e7fb0 )
+    // I'm instituding a filter to eliminate control char codes from being processed by the 
+    // UpdatePhraseBoxWidth_Expanding() call below.
+    wxChar typedChar = event.GetUnicodeKey();
+    if (typedChar != WXK_NONE)
+    {
+        // It's a "normal" character. Notice that this includes
+        // control characters in 1..31 range, e.g. WXK_RETURN or
+        // WXK_BACK, so check for them explicitly.
+        if (typedChar >= 32)
+        {
+            wxLogDebug(_T("In CPhraseBox::OnKeyUp() You pressed '%c' - key code: %d"), typedChar, event.GetKeyCode());
+            pLayout->m_inputString = typedChar;
+            bDoUpdate = UpdatePhraseBoxWidth_Expanding(pLayout->m_inputString);
+            if (bDoUpdate)
+            {
+                bool bSuccessful = pApp->GetMainFrame()->DoPhraseBoxWidthUpdate(); // expanding the phrasebox
+                wxUnusedVar(bSuccessful);
+                // Maybe best not to mess with the cursor location - to take the 'do nothing' option
+                pLayout->m_docEditOperationType = char_typed_op;
+            }
+        }
+        else
+        {
+            // It's a control character.
+            wxLogDebug(_T("In CPhraseBox::OnKeyUp() You pressed control char '%c' - key code: %d"), typedChar, event.GetKeyCode());
+            // Allow the control char to drop through to event.Skip() below - although this OnKeyUp() 
+            // handler should be the last handler processing key events.
+            ;
+        }
+    }
+    else
+    {
+        wxLogDebug(_T("In CPhraseBox::OnKeyUp() GetUnicodeKey() returned  '%c' - WXK_NONE"), typedChar);
+    }
+    */
 	event.Skip();
 }
 
