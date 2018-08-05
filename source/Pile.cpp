@@ -739,7 +739,7 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 		else
 		{
 			// There is text in the phrasebox, either an adaptation, or a gloss
-			if (gbIsGlossing)
+			if (gbIsGlossing || gbGlossingVisible)
 			{
 				// Glossing mode is current
 				if (gbGlossingUsesNavFont)
@@ -766,18 +766,15 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 				__func__, __LINE__, boxExtent.x, mytext.c_str());
 #endif
 
-			// Calculate the phrasebox slop, based on the width of 'f' characters.
+			// Calculate the phrasebox slop, based on the width of 'w' characters.
 			// Our box slop (whitespace where more chars can be typed without a resize of 
-			// the box being needed) is calculated by multiplying the width of an f 
-			// character (less 1 pixel) by m_nExpandBox - a user-settable value in Preferences...
-			wxChar aChar = _T('f');
-			wxString fStr = aChar;
+			// the box being needed) is calculated by multiplying the width of a w 
+			// character by m_nExpandBox - a user-settable value in Preferences...
+			wxChar aChar = _T('w');
+			wxString wStr = aChar;
 			wxSize charSize;
-			aDC.GetTextExtent(fStr, &charSize.x, &charSize.y);
-			// Monospaced fonts may have the width of an 'f' character the same as a 'w', so 
-			// subtract 1 to ensure we are working with a width less than that of 'w'
-			// (width of 'w' is used for the phrasebox gap calculation, done elsewhere)
-			int slop = gpApp->m_nExpandBox*(charSize.x - 1);
+			aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
+			int slop = gpApp->m_nExpandBox*charSize.x;
 			boxWidth += slop;
 
 			// Finally, add the adjusted width of the dropdown button
@@ -830,7 +827,8 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	// to do anthing here with that layout parameter.
 	boxGapWidth = m_nMinWidth; // start with this minimum value (text-based)
 	int nNonActivePileWidth = CalcPileWidth(); // max of src, tgt, gloss widths
-	// We need to start from whichever is the largest of the two
+	// We need to start from whichever is the largest of the two - usually they
+	// will be the same value
 	boxGapWidth = boxGapWidth > nNonActivePileWidth ? boxGapWidth : nNonActivePileWidth;
 
 #if defined(_DEBUG) && defined(_NEWDRAW)
@@ -854,11 +852,10 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			{
 				boxGapWidth = theCurrentBoxWidth;
 #if defined(_DEBUG) && defined(_NEWDRAW)
-				wxLogDebug(_T("%s():line %d, ** starting from the current box width ** = %d"),
+				wxLogDebug(_T("%s():line %d  starting calcs, theCurrentBoxWidth is bigger, set boxGapWidth to it: = %d"),
 					__func__, __LINE__, theCurrentBoxWidth);
 #endif
 			}
-
 			// The list width may be wider, check and if so, use that width instead
 			int listWidth = CalcPhraseBoxListWidth();
 			if (listWidth == wxNOT_FOUND)
@@ -869,17 +866,19 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			else
 			{
 				// The calculation was okay - so do the compare
-				if (listWidth > boxGapWidth)
+				if ((listWidth > 0)  && (listWidth > boxGapWidth))
 				{
+#if defined(_DEBUG) && defined(_NEWDRAW)
+					wxLogDebug(_T("%s():line %d  listWidth expands the boxGapWidth value by  %d  pixels"),
+						__func__, __LINE__, listWidth - boxGapWidth);
+#endif
 					boxGapWidth = listWidth;
 				}
 			}
-
 			// The value we have so far obtained should fit the current box width, 
 			// as the drawing will add a further interPileGap number of pixels.
-			// So test to see if this is enough. Sort of... this is not part of the RecalcLayout
-			// and Draw calculations, so we need to add the interpile gap here
-			// explicitly
+			// So test to see if this is enough. Sort of... from testing it seems
+			// we need to add a further interpile gap width here too for good spacing
 			boxGapWidth += m_pLayout->GetGapWidth();
 
 			/*
@@ -959,11 +958,11 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 				if (m_pLayout->m_curBoxWidth > boxGapWidth)
 				{
 					boxGapWidth = m_pLayout->m_curBoxWidth + slop; // increasing the gap by the slop value
-																   // - that should be enough of an increase to the gap, m_curBoxWidth already is a 
-																   // sum of text extent + button width + the phrase box slop (as calculated by multiples
-																   // of 'f' widths, less 1) - the box's slop is what got consumed by the user's edits,
-																   // so adding the same amount of slop as calculated by the larger 'w' character widths,
-																   // should keep the gap bigger than the phrasebox to be lodged there
+					// - that should be enough of an increase to the gap, m_curBoxWidth already is a 
+					// sum of text extent + button width + the phrase box slop (as calculated by multiples
+					// of 'f' widths, less 1) - the box's slop is what got consumed by the user's edits,
+					// so adding the same amount of slop as calculated by the larger 'w' character widths,
+					// should keep the gap bigger than the phrasebox to be lodged there
 #if defined(_DEBUG) && defined(_NEWDRAW)
 					wxLogDebug(_T("%s():line %d, EH?? SHOULD NOT NEED THIS HACK;  boxGapWidth (size hack called) = %d, for box text: %s"),
 						__func__, __LINE__, boxGapWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
@@ -977,7 +976,7 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 		// BEW 3Aug18 - Bill says that Linux wraps widgets with more whitespace than
 		// Windows, and my testing shows that the gap is sometimes about 6 or so pixels
 		// overlapping the next pile's adaptation. So try a hack of an extra 20 pixels
-		// to compensate and give some interpile gap as well
+		// to compensate by giving some more pixels to the interpile gap
 #ifdef __wxGTK__
 		boxGapWidth += 20;
 #endif
