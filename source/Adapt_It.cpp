@@ -25002,6 +25002,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// the user changes the punctuation inventory in the Punctuation tab
 	m_strSpacelessSourcePuncts = MakeSpacelessPunctsString(this, sourceLang);
 	m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(this, targetLang);
+
+	m_bSuppressRecalcLayout = FALSE; // set default
     return TRUE;
 }
 

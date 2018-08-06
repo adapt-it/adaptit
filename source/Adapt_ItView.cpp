@@ -4070,6 +4070,9 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 		pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
 	}
 
+	// ensure RecalcLayout() can do its work
+	pApp->m_bSuppressRecalcLayout = FALSE;
+
 #if defined (_DEBUG)
 	wxLogDebug(_T("*** Leaving PlacePhraseBox()  , selector = %d"), selector);
 #endif
@@ -22532,8 +22535,10 @@ void CAdapt_ItView::OnEditUndo(wxCommandEvent& event)
 			pApp->m_pTargetBox->GetTextCtrl()->Undo(); // whm 12Jul2018 Undo() is method of wxTextCtrl - added ->GetTextCtrl() part
 
 			// A box resize may be needed
-			inStr = wxEmptyString;
-			bDoUpdate = pApp->m_pTargetBox->UpdatePhraseBoxWidth_Contracting(inStr);
+
+			// BEW 6Aug18 temporarily commented out, I've yet to investigate what needs to happen
+//			inStr = wxEmptyString;
+//			bDoUpdate = pApp->m_pTargetBox->UpdatePhraseBoxWidth_Contracting(inStr);
 		}
 		else
 		{
@@ -22541,12 +22546,15 @@ void CAdapt_ItView::OnEditUndo(wxCommandEvent& event)
 			pApp->m_pTargetBox->OnEditUndo(event); // OnEditUndo() is method of CPhraseBox uses GetTextCtrl()->
 
 			// A box resize may be needed
-			inStr = pApp->m_pTargetBox->m_backspaceUndoStr;
-			bDoUpdate = pApp->m_pTargetBox->UpdatePhraseBoxWidth_Expanding(inStr);
+			// BEW 6Aug18 temporarily commented out, I've yet to investigate what needs to happen
+//			inStr = pApp->m_pTargetBox->m_backspaceUndoStr;
+//			bDoUpdate = pApp->m_pTargetBox->UpdatePhraseBoxWidth_Expanding(inStr);
 		}
+		/* temporarily commented out, BEW 6Aug18, I've yet to investigate what needs to happen
 		// If bDoUpdate is TRUE, then get it done
 		if (bDoUpdate)
 		{
+			pApp->GetLayout()->m_bSuppressRecalcLayout = FALSE; // allow CreateStrip() to accomodate box changes
 			bool bSuccessful = pApp->GetMainFrame()->DoPhraseBoxWidthUpdate();
 			wxUnusedVar(bSuccessful);
 			// DoPhraseBoxWidthUpdate uses target_box_paste_op which in PlaceBox()
@@ -22555,6 +22563,7 @@ void CAdapt_ItView::OnEditUndo(wxCommandEvent& event)
 			// here, so override to get it put at the end of the box's text
 			pApp->GetLayout()->m_docEditOperationType = relocate_box_op;
 		}
+		*/
 	}
 }
 

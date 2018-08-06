@@ -1802,7 +1802,21 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		wxLogDebug(_T("\n\nNOT PRINTING   RecalcLayout()  app m_docSize.x  %d  CLayout m_logicalDocSize.x %d"),
 				pApp->m_docSize.x, m_logicalDocSize.x);
 	*/
-
+	if (m_pApp->m_bSuppressRecalcLayout)
+	{
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s():line %d, m_bSuppressRecalcLayout is  %s"), __func__, __LINE__, (wxString(_T("TRUE")).c_str()));
+#endif
+		//m_bSuppressRecalcLayout = FALSE; // one suppression only? No, contracting OnPhraseBoxChanged() gives another RecalcLayout()
+		return TRUE; // early return, we don't want typing into the box to cause an update yet
+	}
+	else
+	{
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s():line %d, m_bSuppressRecalcLayout is  %s"), __func__, __LINE__, (wxString(_T("FALSE")).c_str()));
+#endif
+		wxNO_OP;
+	}
 #if defined(Do_Clipping)
 	SetFullWindowDrawFlag(TRUE);
 #endif
@@ -2228,7 +2242,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 #if defined (_DEBUG)
 	wxLogDebug(_T("*** Leaving RecalcLayout()  , selector = %d"), (int)selector);
 #endif
-
 	return TRUE;
 }
 

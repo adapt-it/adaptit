@@ -163,10 +163,10 @@ public:
 				// returns FALSE. Pass in the character just typed as a wxString, or the 
 				// string being pasted into the phrasebox control from the clipboard
 
-
+	/* BEW deprecated 6Aug18
 	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
 							int nSelector); // BEW made public on 14Mar11, now called in view's OnDraw()
-
+	*/
     // whm 10Jan2018 added members below to implement the dropdown phrasebox functionality
     void SetupDropDownPhraseBoxForThisLocation();
     void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptatio);

@@ -549,7 +549,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 				// BEW 3Aug18, refactored to use the CalcPhraseBoxGapWidthCall(), the
 				// overrided CreateStrip() had it, but it was lacking from here
 
-				pileWidth = pPile->CalcPhraseBoxGapWidth(); // + 2*gap; // add another gap
+				pileWidth = pPile->CalcPhraseBoxGapWidth();
 #if defined(_DEBUG) && defined(_NEWDRAW)
 				// need list width too...
 				int listWidth = pPile->CalcPhraseBoxListWidth();
@@ -576,7 +576,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 												// m_arrPiles array
 			// set the pile's m_pOwningStrip member
 			pPile->m_pOwningStrip = this;
-
+/*
 #if defined(_DEBUG) && defined(_NEWDRAW)
 	{
 		if (pPile->m_pOwningStrip->m_nStrip == 3) // because this strip is my test case - with the overlap observable
@@ -594,8 +594,8 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			wxLogDebug(_T("%s():line %d, in loop, pPile:  Left %d ,  Right %d , itsWidth %d , nCurrentSpan %d , srcPhrase %s"),
 				__func__, __LINE__, topLeft.x, bottomRight.x, itsWidth, nCurrentSpan, src.c_str());
 		}
-	}
-#endif
+	} 
+#endif  */
 		}
 		else
 		{

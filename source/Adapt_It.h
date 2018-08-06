@@ -2299,6 +2299,10 @@ class CAdapt_ItApp : public wxApp
 	bool m_bVertEdit_AtFirst; // TRUE (set from custom event handler) when a Step is just
 							  // entered, FALSE when phrasebox moves on in the step. Used to
 							  // limit the fix to just the first CSourcePhrase in the span
+	bool m_bSuppressRecalcLayout; // BEW 6Aug18 used to halt characters typed into the box
+								  // from causing every keypress to push piles to the right of the active location
+								  // the character's width each time, until a box width adjustment is required
+								  // default is FALSE so that recalcs happen at all other times
 
 	ToolbarButtonSize m_toolbarSize;
 	bool m_bShowToolbarIconAndText; // default is FALSE
