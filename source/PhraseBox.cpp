@@ -4451,6 +4451,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
             if (bDoUpdate)
             {
 				pApp->m_bSuppressRecalcLayout = FALSE; // allow CreateStrip() to accomodate box changes
+				pLayout->m_boxMode = expanding;
 
                 // whm 5Aug NOTE for BEW TODO: I think the active pile's m_pSrcPhrase's m_adaptation and m_targetStr
                 // members need to be updated at some point BEFORE the DoPhraseBoxWidthUpdate() call below, otherwise 
@@ -4521,10 +4522,22 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 				{
 					//pApp->m_bSuppressRecalcLayout = FALSE; // allow CreateStrip() to accomodate box changes
 					bWasMadeDirty = TRUE;
+					pApp->GetLayout()->m_boxMode = contracting;
+
 					pLayout->m_docEditOperationType = target_box_paste_op; // this enum value, when control gets to
 							// the switch in PlaceBox(), will keep the cursor where it is after the operation
 					bool bSuccessful = pApp->GetMainFrame()->DoPhraseBoxWidthUpdate(); // contracting the phrasebox
-					wxUnusedVar(bSuccessful);
+					if (bSuccessful)
+					{
+						if (pLayout->m_bFrameResizeWanted)
+						{
+							wxSizeEvent size_event;
+							CMainFrame* pFrame = pApp->GetMainFrame();
+							pFrame->OnSize(size_event); // calls RecalcLayout()
+							//wxClientDC aDC(pFrame->canvas);
+							//pView->OnDraw(&aDC);
+						}
+					}
 				}
 				//FixBox(pView, pApp->m_targetPhrase, bWasMadeDirty, textExtent, 2); // <<-- deprecated, 30Jul18 BEW  ************ REMOVE It ************ <- TODO
 										// selector = 2 for "contracting" the box
@@ -7001,13 +7014,15 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
                 // does not set the dirty flag without this.
                 this->SetModify(TRUE);
             }
-/* BACKSPACE goes here, as well as to OnChar() comment this out as we must have one call of UpdatePhraseBoxWidth_Contracting
+/* BACKSPACE sends control here, as well as to OnChar() comment this out as we must have one call of UpdatePhraseBoxWidth_Contracting
 			// BEW 31Jul18, this code could be put, for the Windows build at least, in OnChar() as OnChar()
 			// is triggered by a WXK_DELETE keypress. But since we've handled delete keypress here for a long
 			// long time, we can let it remain here. Delete key will contract the text in the phrasebox, and so
 			// we need to support the UpdatePhraseBoxWidth_Contracting() function here too.
 			wxString inStr = wxEmptyString;
 			bool bDoUpdate = UpdatePhraseBoxWidth_Contracting(inStr);
+			pApp->GetLayout()->m_boxMode = contracting;
+
 			if (bDoUpdate)
 			{
 				pApp->m_bSuppressRecalcLayout = FALSE; // allow CreateStrip() to accomodate box changes
@@ -8489,6 +8504,7 @@ void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event))
 			{
 				pApp->m_bSuppressRecalcLayout = FALSE; // allow CreateStrip() to accomodate box changes
 				bWasMadeDirty = TRUE;
+				pApp->GetLayout()->m_boxMode = contracting;
 				pApp->GetLayout()->m_docEditOperationType = target_box_paste_op; // this enum value, when control gets to
 						// the switch in PlaceBox(), will keep the cursor where it is after the operation
 				bool bSuccessful = pApp->GetMainFrame()->DoPhraseBoxWidthUpdate(); // contracting the phrasebox

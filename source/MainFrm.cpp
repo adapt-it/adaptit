@@ -3517,6 +3517,11 @@ void CMainFrame::OnUpdateViewAdminMenu(wxUpdateUIEvent& event)
 // BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 {
+#if defined(_DEBUG) && defined(_NEWDRAW)
+	wxLogDebug(_T("%s():line %d, *** Frame::OnSize() ENTERED ***"),
+		__func__, __LINE__);
+#endif
+
     // wx version notes about frame size changes:
     // CMainFrame is Adapt It's primary application frame or window. The CMainFrame is the
     // parent frame for everything that happens in Adapt It, including all first level
@@ -3777,6 +3782,11 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 		pView->Invalidate();
 		gpApp->m_pLayout->PlaceBox();
 	}
+#if defined(_DEBUG) && defined(_NEWDRAW)
+	wxLogDebug(_T("%s():line %d, *** Frame::OnSize() EXITING ***"),
+		__func__, __LINE__);
+#endif
+
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5
@@ -5075,6 +5085,7 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 	CLayout* pLayout = pApp->GetLayout();
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	enum phraseBoxWidthAdjustMode boxMode = pLayout->m_boxMode;
 
 	// mark invalid the strip following the new active strip
 	if (pApp->m_nActiveSequNum != -1)
@@ -5097,9 +5108,9 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 	}
 	// Renew the layout
 #ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles, boxMode);
 #else
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles, boxMode);
 #endif
 	// update the active pile pointer 
 	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);

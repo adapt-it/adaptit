@@ -157,7 +157,8 @@ public:
 				// to call a handler to effect the width update; or if no update is needed, 
 				// returns FALSE. Pass in the character just typed as a wxString, or the 
 				// string being pasted into the phrasebox control from the clipboard
-	bool UpdatePhraseBoxWidth_Contracting(wxString inStr); // BEW addedd 30Jul18 the returned bool 
+	bool UpdatePhraseBoxWidth_Contracting(wxString inStr); 
+				// BEW addedd 30Jul18 the returned bool 
 				// sets CMainFrame::m_bUpdatePhraseBoxWidth to TRUE, which OnIdle() then traps, 
 				// to call a handler to effect the width update; or if no update is needed, 
 				// returns FALSE. Pass in the character just typed as a wxString, or the 

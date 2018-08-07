@@ -22539,6 +22539,7 @@ void CAdapt_ItView::OnEditUndo(wxCommandEvent& event)
 			// BEW 6Aug18 temporarily commented out, I've yet to investigate what needs to happen
 //			inStr = wxEmptyString;
 //			bDoUpdate = pApp->m_pTargetBox->UpdatePhraseBoxWidth_Contracting(inStr);
+//			pApp->GetLayout()->m_boxMode = contracting;
 		}
 		else
 		{

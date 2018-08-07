@@ -357,9 +357,9 @@ void CPile::SetStrip(CStrip* pStrip)
 void CPile::SetMinWidth()
 {
 	m_nMinWidth = CalcPileWidth();
-#if defined(_DEBUG) //&& defined(_NEWDRAW)
-	wxLogDebug(_T("CPile::SetMinWidth(), sets: m_nMinWidth = %d, for box text: %s"),
-		m_nMinWidth, gpApp->m_pTargetBox->GetValue().c_str());
+#if defined(_DEBUG) && defined(_NEWDRAW)
+	wxLogDebug(_T("%s():line %d, sets: m_nMinWidth to: %d, for box text: %s"),
+		__func__, __LINE__, m_nMinWidth, gpApp->m_pTargetBox->GetValue().c_str());
 #endif
 }
 
@@ -383,7 +383,7 @@ void CPile::SetPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	}
 */
 #if defined(_DEBUG) //&& defined(_NEWDRAW)
-	wxLogDebug(_T("%s():line %d, CalcPhraseBoxGapWidth() sets: m_nWidth = %d, for box text: %s"),
+	wxLogDebug(_T("%s():line %d, CalcPhraseBoxGapWidth() sets: m_nWidth (gap) = %d , for box text: %s"),
 		__func__, __LINE__, m_nWidth, gpApp->m_pTargetBox->GetValue().c_str());
 #endif
 }
@@ -468,10 +468,10 @@ int CPile::CalcPhraseBoxListWidth()
 			wxSize buttonSize = gpApp->m_pTargetBox->GetPhraseBoxButton()->GetSize();
 			adjustedButtonWidth = buttonSize.GetX() + 1; // allow 1 pixel of space before it
 
-#if defined(_DEBUG) && defined(_NEWDRAW)
-			wxLogDebug(_T("%s():line %d, adjustedButtonWidth: %d , for box text: %s  "),
-				__func__, __LINE__, adjustedButtonWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-#endif
+//#if defined(_DEBUG) && defined(_NEWDRAW)
+//			wxLogDebug(_T("%s():line %d, adjustedButtonWidth: %d , for box text: %s  "),
+//				__func__, __LINE__, adjustedButtonWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+//#endif
 			// Set which KB is in force, and which font to use for the measuring
 			if (gbIsGlossing)
 			{
@@ -526,10 +526,10 @@ int CPile::CalcPhraseBoxListWidth()
 					}
 				}
 			}
-#if defined(_DEBUG) && defined(_NEWDRAW)
-			wxLogDebug(_T("%s():line %d, text extents-based width: %d , final listWidth (adding button and slop) = %d , for box text: %s  "),
-				__func__, __LINE__, listWidth, (listWidth + slop + adjustedButtonWidth), m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
-#endif
+//#if defined(_DEBUG) && defined(_NEWDRAW)
+//			wxLogDebug(_T("%s():line %d, text extents-based width: %d , final listWidth (adding button and slop) = %d , for box text: %s  "),
+//				__func__, __LINE__, listWidth, (listWidth + slop + adjustedButtonWidth), m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+//#endif
 			// Add in the button width and the slop
 			listWidth += (slop + adjustedButtonWidth);
 		} // end of TRUE block for test: if ((pSrcPhrase != NULL) && (pSrcPhrase->m_nSequNumber == nActiveSequNum))
@@ -555,10 +555,12 @@ void CPile::SetPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 		// the reference count to 0 which in turn removes the CTargetUnit 
 		// instance from the KB until the phrasebox moves to a new location)
 		// In such a circumstance, treat the phrasebox as not having a list
-		gpApp->m_pLayout->m_curBoxWidth = CalcPhraseBoxWidth(widthMode);
+		gpApp->m_pLayout->m_curBoxWidth = CalcPhraseBoxWidth(widthMode); // widthMode is now unused in this function
+		SetMinWidth();
+
 #if defined(_DEBUG) //&& defined(_NEWDRAW)
-		wxLogDebug(_T("CPile::SetPhraseBoxWidth(), returning from CalcPhraseBoxWidth() sets: m_curBoxWidth = %d, for box text: %s  [listWidth = wxNOT_FOUND]"),
-			gpApp->m_pLayout->m_curBoxWidth, gpApp->m_pTargetBox->GetValue().c_str());
+		wxLogDebug(_T("%s():line %d, returning from CalcPhraseBoxWidth() sets: m_curBoxWidth = %d, for box text: %s  [listWidth = wxNOT_FOUND]"),
+			__func__, __LINE__, gpApp->m_pLayout->m_curBoxWidth, gpApp->m_pTargetBox->GetValue().c_str());
 #endif
 	}
 	else
@@ -573,8 +575,8 @@ void CPile::SetPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 			gpApp->m_pLayout->m_curBoxWidth = listWidth;
 		}
 #if defined(_DEBUG) //&& defined(_NEWDRAW)
-		wxLogDebug(_T("CPile::SetPhraseBoxWidth(), returning from CalcPhraseBoxWidth() sets: m_curBoxWidth = %d, for box text: %s  [listWidth = %d]"),
-			gpApp->m_pLayout->m_curBoxWidth, gpApp->m_pTargetBox->GetValue().c_str(), listWidth);
+		wxLogDebug(_T("%s():line %d, returning from CalcPhraseBoxWidth() sets: m_curBoxWidth = %d, for box text: %s  [listWidth = %d]"),
+			__func__, __LINE__, gpApp->m_pLayout->m_curBoxWidth, gpApp->m_pTargetBox->GetValue().c_str(), listWidth);
 #endif
 
 		// BEW 20Jul18 despite the claim in CalcPileWith() that setting m_nMinWidth
@@ -589,10 +591,10 @@ void CPile::SetPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 void CPile::SetPhraseBoxWidth(int boxwidth)
 {
 	gpApp->m_pLayout->m_curBoxWidth = boxwidth;
-#if defined(_DEBUG) //&& defined(_NEWDRAW)
-	wxLogDebug(_T("CPile::SetPhraseBoxWidth() OVERLOADED manual boxwidth passed in, sets: m_curBoxWidth = %d, for box text: %s"),
-		boxwidth, gpApp->m_pTargetBox->GetValue().c_str());
-#endif
+//#if defined(_DEBUG) //&& defined(_NEWDRAW)
+//	wxLogDebug(_T("CPile::SetPhraseBoxWidth() OVERLOADED manual boxwidth passed in, sets: m_curBoxWidth = %d, for box text: %s"),
+//		boxwidth, gpApp->m_pTargetBox->GetValue().c_str());
+//#endif
 }
 
 // Calculates the pile's width before laying out the current pile in a strip. The function
@@ -682,17 +684,17 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 								// it certainly is not needed here
 		boxWidth = gpApp->m_nMinPileWidth; // set at 40 I think
 
-#if defined(_DEBUG) && defined(_NEWDRAW)
-		wxLogDebug(_T("%s():line %d, starting boxWidth:  %d,  (from gpApp->m_nMinPileWidth) ; for box text: %s"),
-			__func__, __LINE__, boxWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
-#endif
+//#if defined(_DEBUG) && defined(_NEWDRAW)
+//		wxLogDebug(_T("%s():line %d, starting boxWidth:  %d,  (from gpApp->m_nMinPileWidth) ; for box text: %s"),
+//			__func__, __LINE__, boxWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
+//#endif
 		// First, what's in the wxTextCtrl? - get it's extent. This could be tgt text, or
 		// gloss text; but if at a hole, the box will need to be wide enough to accomodate
 		// the copied source text. Impliment that understanding.
 		mytext = gpApp->m_pTargetBox->GetTextCtrl()->GetValue();
-#if defined(_DEBUG) && defined(_NEWDRAW)
-		wxLogDebug(_T("%s():line %d, box text: %s"), __func__, __LINE__, mytext.c_str());
-#endif
+//#if defined(_DEBUG) && defined(_NEWDRAW)
+//		wxLogDebug(_T("%s():line %d, box text: %s"), __func__, __LINE__, mytext.c_str());
+//#endif
 
 		if (mytext.IsEmpty())
 		{
@@ -707,10 +709,10 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 			{
 				boxWidth = boxExtent.x;
 			}
-#if defined(_DEBUG) && defined(_NEWDRAW)
-			wxLogDebug(_T("%s():line %d, src text extent.x based boxWidth:  %d , when box text is EMPTY"),
-				__func__, __LINE__, boxWidth);
-#endif
+//#if defined(_DEBUG) && defined(_NEWDRAW)
+//			wxLogDebug(_T("%s():line %d, src text extent.x based boxWidth:  %d , when box text is EMPTY"),
+//				__func__, __LINE__, boxWidth);
+//#endif
 
 			// Calculate the phrasebox slop, based on the width of 'w' characters.
 			// Our box slop (whitespace where more chars can be typed without a resize of 
@@ -730,10 +732,10 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 			{
 				boxWidth += adjustedButtonWidth;
 			}
-#if defined(_DEBUG) && defined(_NEWDRAW)
-			wxLogDebug(_T("%s():line %d, EMPTY box, slop + button gives boxWidth = %d  [end of 'empty' block]"), 
-				__func__, __LINE__, boxWidth);
-#endif
+//#if defined(_DEBUG) && defined(_NEWDRAW)
+//			wxLogDebug(_T("%s():line %d, EMPTY box, slop + button gives boxWidth = %d  [end of 'empty' block]"), 
+//				__func__, __LINE__, boxWidth);
+//#endif
 
 		} // end of TRUE block for test: if (mytext.IsEmpty())
 		else
@@ -799,6 +801,8 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 // BEW refactored for listbox phrasebox within sizer
 int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 {
+	wxUnusedVar(widthMode);
+
     // This function should only be called on the active pile. Use m_pApp->m_targetPhrase
     // (the phrase box contents) for the pile extent (plus some slop), because at the
     // active location the m_adaption & m_targetStr members of pSrcPhrase are not set, and
@@ -831,10 +835,10 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	// will be the same value
 	boxGapWidth = boxGapWidth > nNonActivePileWidth ? boxGapWidth : nNonActivePileWidth;
 
-#if defined(_DEBUG) && defined(_NEWDRAW)
-	wxLogDebug(_T("%s():line %d, starting calc: m_nMinWidth  %d , CalcPileWith() %d , Larger is: %d , for box text: %s"),
-		__func__, __LINE__, m_nMinWidth, nNonActivePileWidth, boxGapWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
-#endif
+//#if defined(_DEBUG) && defined(_NEWDRAW)
+//	wxLogDebug(_T("%s():line %d, starting calc: m_nMinWidth  %d , CalcPileWith() %d , Larger is: %d , for box text: %s"),
+//		__func__, __LINE__, m_nMinWidth, nNonActivePileWidth, boxGapWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
+//#endif
 	// Only do the following calculations provided the m_pSrcPhrase pointer is set
 	// and that CSourcePhrase instance is the one at the active location, if not so,
 	// return PHRASE_BOX_WIDTH_UNSET which has the value -1
@@ -851,10 +855,10 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			if (theCurrentBoxWidth > boxGapWidth)
 			{
 				boxGapWidth = theCurrentBoxWidth;
-#if defined(_DEBUG) && defined(_NEWDRAW)
-				wxLogDebug(_T("%s():line %d  starting calcs, theCurrentBoxWidth is bigger, set boxGapWidth to it: = %d"),
-					__func__, __LINE__, theCurrentBoxWidth);
-#endif
+//#if defined(_DEBUG) && defined(_NEWDRAW)
+//				wxLogDebug(_T("%s():line %d  starting calcs, theCurrentBoxWidth is bigger, set boxGapWidth to it: = %d"),
+//					__func__, __LINE__, theCurrentBoxWidth);
+//#endif
 			}
 			// The list width may be wider, check and if so, use that width instead
 			int listWidth = CalcPhraseBoxListWidth();
@@ -868,10 +872,10 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 				// The calculation was okay - so do the compare
 				if ((listWidth > 0)  && (listWidth > boxGapWidth))
 				{
-#if defined(_DEBUG) && defined(_NEWDRAW)
-					wxLogDebug(_T("%s():line %d  listWidth expands the boxGapWidth value by  %d  pixels"),
-						__func__, __LINE__, listWidth - boxGapWidth);
-#endif
+//#if defined(_DEBUG) && defined(_NEWDRAW)
+//					wxLogDebug(_T("%s():line %d  listWidth expands the boxGapWidth value by  %d  pixels"),
+//						__func__, __LINE__, listWidth - boxGapWidth);
+//#endif
 					boxGapWidth = listWidth;
 				}
 			}

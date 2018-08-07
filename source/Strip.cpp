@@ -562,13 +562,29 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 				pileWidth = pPile->m_nMinWidth;
 			}
 		}
-		nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space
-						// for this pile to be eligible for inclusion in the strip
+		// BEW hack, 7Aug18
+		if (m_pLayout->m_boxMode == contracting)
+		{
+			// avoids encroachment on to next pile
+			nCurrentSpan = pileWidth + 2 * gap;
+		}
+		else
+		{
+			nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space
+							// for this pile to be eligible for inclusion in the strip
+		}
 		if (nCurrentSpan <= m_nFree)
 		{
 			// this pile will fit in the strip, so add it
 			m_arrPiles.Add(pPile); // store it
-			m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
+			if (m_pLayout->m_boxMode == contracting)
+			{
+				m_arrPileOffsets.Add(nHorzOffset_FromLeft + gap); // store larger offset to left boundary
+			}
+			else
+			{
+				m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
+			}
 			numPlaced++; // increment counter of how many placed
 			pileIndex++; // set tracker index to index of next pile to be placed
 			m_nFree -= nCurrentSpan; // reduce the free space accordingly
@@ -576,13 +592,13 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 												// m_arrPiles array
 			// set the pile's m_pOwningStrip member
 			pPile->m_pOwningStrip = this;
-/*
+//*
 #if defined(_DEBUG) && defined(_NEWDRAW)
 	{
 		if (pPile->m_pOwningStrip->m_nStrip == 3) // because this strip is my test case - with the overlap observable
 		{
 			wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
-			wxLogDebug(_T("%s():line %d, in loop,  m_nStrip %d   pile[%d] , pileWidth %d , offset %d , free left %d, numPlaced %d , srcPhrase %s"),
+			wxLogDebug(_T("%s():line %d, in loop,  m_nStrip %d   pile[%d] , pileWidth %d , nHorzOffset_FromLeft %d , free left %d, numPlaced %d , srcPhrase %s"),
 				__func__, __LINE__, this->m_nStrip, pileIndex_InStrip, pileWidth, nHorzOffset_FromLeft, m_nFree, numPlaced, src.c_str());
 
 			// I want CRect values for (top)left, and width, and (bottom)right - to assist in working out where
@@ -595,7 +611,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 				__func__, __LINE__, topLeft.x, bottomRight.x, itsWidth, nCurrentSpan, src.c_str());
 		}
 	} 
-#endif  */
+#endif  //*/
 		}
 		else
 		{

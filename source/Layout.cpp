@@ -1778,8 +1778,25 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 //GDLC Added third parameter 2010-02-09
 bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
 {
+	m_bFrameResizeWanted = FALSE;  // set TRUE below if boxMode is 'contracting'
 #if defined (_DEBUG)
-	wxLogDebug(_T("\n\n*** Entering RecalcLayout()  , selector = %d"), (int)selector);
+	wxString strContracting = _T("contracting");
+	wxString strSteady = _T("steadyAsSheGoes");
+	wxString strExpanding = _T("expanding");
+	wxString strPassedIn = wxEmptyString;
+	if (boxMode == contracting)
+	{
+		strPassedIn = strContracting;
+	}
+	else if (boxMode == steadyAsSheGoes)
+	{
+		strPassedIn = strSteady;
+	}
+	else
+	{
+		strPassedIn = strExpanding;
+	}
+	wxLogDebug(_T("\n\n*** Entering RecalcLayout()  , selector = %d , boxMode: %s"), (int)selector, strPassedIn.c_str());
 #endif
 
     // RecalcLayout() is the refactored equivalent to the former view class's RecalcLayout()
@@ -2013,8 +2030,16 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 				// phrase box is meant to contract for this recalculation, so suppress the
 				// size calculation internally for the active location because it would be
 				// larger than the contracted width we want
-				m_pDoc->ResetPartnerPileWidth(pSrcPhrase,TRUE); // TRUE is the boolean
-														// bNoActiveLocationCalculation
+				// BEW 7Aug18, I think we do need the size calc now
+				//m_pDoc->ResetPartnerPileWidth(pSrcPhrase, TRUE); // TRUE is the boolean
+				//												 // bNoActiveLocationCalculation
+				m_pDoc->ResetPartnerPileWidth(pSrcPhrase, FALSE); // FALSE is the boolean
+																 // bNoActiveLocationCalculation
+				m_bFrameResizeWanted = TRUE; // OnChar() uses to get an OnSize() done for the frame
+#if defined(_DEBUG) && defined(_NEWDRAW)
+				wxLogDebug(_T("%s():line %d, INSIDE TRUE block (boxMode == contracting): calls ResetPartnerPileWidth(), sets m_bFrameResizeWanted to TRUE"),
+					__func__, __LINE__);
+#endif
 			}
 			else // not contracting, could be expanding or no size change
 			{

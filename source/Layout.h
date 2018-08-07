@@ -388,6 +388,7 @@ public:
 	int			GetStripCount(); // return a count of how many strips are
 								 // in the current layout
 	bool		GetBoxVisibilityFlag();
+	bool		m_bFrameResizeWanted;  // used by 'contracting' enum, set within RecalcLayout()
 	/* no need for it so far
 	// BEW 26Apr18 created SetProtocolFlags() to get m_bAbandonable set correctly at the end of
 	// a PlaceBox() call; and internally, to make sure that m_bHasKBEntry (or, if glossing mode
@@ -418,6 +419,10 @@ public:
 	bool		GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInLast);// BEW
 						// added 3June09, in support of a smarter ScrollIntoView() function
 	void		CopyPileList_Shallow(PileList* pOrigPileList, PileList* pDestPileList);
+	enum phraseBoxWidthAdjustMode m_boxMode; // BEW 7Aug18, In legacy app, FixBox() passed a value to
+									// other functions; in our refactored design we need a place
+									// for storing one of the enum values so that our layout 
+									// support functions can find what mode is currently wanted
 
     // get the range of visible strips in the viscinity of the active location; pass in the
     // sequNum value, and return indices for the first and last visible strips (the last
