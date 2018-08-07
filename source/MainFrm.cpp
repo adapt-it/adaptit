@@ -5126,7 +5126,11 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 	pLayout->m_docEditOperationType = target_box_paste_op;
 
 	pApp->GetView()->Invalidate();
-	pLayout->PlaceBox();
+    // whm 6Aug2018 remove BEW's pLayout->PlaceBox() call below which causes the truncation of the
+    // phrasebox text. PlaceBox() should not be called while editing characters within the phrasebox!!
+    // From the comment above, I suspect the logic of this DoPhraseBoxWidthUpdate() needs a review
+    // 
+	//pLayout->PlaceBox();
 	//pApp->m_pTargetBox->InitializeComboLandingParams();
 	pApp->m_nCacheLeavingLocation = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 	pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // re-initialize
