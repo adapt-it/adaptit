@@ -62,7 +62,8 @@
 #if defined(_DEBUG)
 //#define FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 #endif
-#define _NEWDRAW
+//#define _NEWDRAW
+#define _EXPAND
 
 // support for incremental building of KB Server client code !! BEW 3Oct12, Moved to be a
 // preprocessor symbol in the Debug build!!
@@ -2090,7 +2091,6 @@ class CAdapt_ItApp : public wxApp
 
     // whm 12Jul2018 removed the following that were used with FilterEvent
     /*
-    // bool PhraseBoxIsInFocus();
     // The following two are used within the wxEVT_LEFT_UP block of FilterEvent():
     // TODO: Remove any of these that might not be needed with the new phrasebox
     bool ClickedOnPhraseBoxLocation(wxMouseEvent& event);
@@ -2299,10 +2299,6 @@ class CAdapt_ItApp : public wxApp
 	bool m_bVertEdit_AtFirst; // TRUE (set from custom event handler) when a Step is just
 							  // entered, FALSE when phrasebox moves on in the step. Used to
 							  // limit the fix to just the first CSourcePhrase in the span
-	bool m_bSuppressRecalcLayout; // BEW 6Aug18 used to halt characters typed into the box
-								  // from causing every keypress to push piles to the right of the active location
-								  // the character's width each time, until a box width adjustment is required
-								  // default is FALSE so that recalcs happen at all other times
 
 	ToolbarButtonSize m_toolbarSize;
 	bool m_bShowToolbarIconAndText; // default is FALSE

@@ -7969,29 +7969,10 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
      
 */
 
-/*
+
 // whm 12Jul2018 Note: If the following PhraseBoxIsInFocus() function is needed apart from
 // the wxOwnerDrawnComboBox and FilterEvent(), it could be refactored for the new phrasebox
 // and discriminating the actual m_pTargetBox->GetTextCtrl() part of the phrasebox.
-bool CAdapt_ItApp::PhraseBoxIsInFocus()
-{
-    // Note: The ClassInfo type of the phrasebox on Windows is either CPhraseBox or 
-    // wxListBox when the dropdown list is open.
-    // The ClassInfo type of the phrasebox on Linux/Mac? is either CPhraseBox or 
-    // wxVListBox.
-    const wxChar* className = wxT("<none>");
-    wxWindow* focusWindow = ::wxWindow::FindFocus();
-    if (focusWindow)
-        className = focusWindow->GetClassInfo()->GetClassName();
-    wxString classNStr = wxString(className);
-    wxLogDebug(_T("In FilterEvent() focused window = %s %p"), className, focusWindow); // no .c_str() needed here on className
-    if (classNStr == _T("CPhraseBox") || classNStr == _T("wxVListBox") || classNStr == _T("wxListBox"))
-    {
-        return TRUE;
-    }
-    return FALSE;
-}
-*/
 
 /*
 // whm 2Jun2018 added the following to filter all events for key up/down event when dropdown is open
@@ -24324,6 +24305,32 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                                   // any unknown markers
     aDC.GetTextExtent(_T(' '), &sizeSpace.x, &sizeSpace.y);
 
+	// BEW 14Aug18, calculate the dropdown button width, and store it in CLayout in its
+	// buttonWidth public member int. Adapt It has to be refactored for a different button
+	// width, so we can be certain this calculated width will remain constant in each session
+	wxSize buttonSize = m_pTargetBox->GetPhraseBoxButton()->GetSize();
+	int adjustedButtonWidth = buttonSize.GetX() + 1; // allow 1 pixel of space before it
+	if (buttonSize.x > 0)
+	{
+		this->GetLayout()->buttonWidth = adjustedButtonWidth;
+	}
+	else
+	{
+		// Give it a hard coded width, 24 pixels is about right
+		this->GetLayout()->buttonWidth = 24;
+	}
+
+	// Also use the above wxClientDC to get an initial value for the slop width
+	// for the phrasebox's wxTextCtrl - store it in CLayout as a public int called
+	// slop. Because its value will change with changes in the size of the target
+	// font, the same calculation is also done when Preferences... dialog is dismissed
+	// in view's OnEditPreferences() handler
+	aChar = _T('w');
+	wxString wStr = aChar;
+	wxSize charSize;
+	aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
+	GetLayout()->slop = m_nExpandBox*charSize.x;
+
     // Set up the rapid access data strings for wrap markers, sectionHead markers,
     // inLine markers, and filter markers.
     SetupMarkerStrings();
@@ -24993,8 +25000,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     //int style = (int)wxFONTSTYLE_ITALIC; // it's decimal 93
 
-	GetMainFrame()->m_bUpdatePhraseBoxWidth = FALSE; // initialize to 'no update needed yet'
-
 	GetLayout()->m_curBoxWidth = 120; // BEW 20Jul18 provide a reasonable default
 									  // size for the phrasebox width at app startup
 	// take an initial shot at setting the set of source punctuation characters
@@ -25002,8 +25007,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// the user changes the punctuation inventory in the Punctuation tab
 	m_strSpacelessSourcePuncts = MakeSpacelessPunctsString(this, sourceLang);
 	m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(this, targetLang);
-
-	m_bSuppressRecalcLayout = FALSE; // set default
     return TRUE;
 }
 

@@ -1055,11 +1055,11 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
     // than the previous pile's left offset plus its m_nWidth value. We can test for the
     // latter too, and when that happens, force the recalc before the draw.
 
-//	CPile* pActivePile = pApp->m_pActivePile;
-//	CPile* pPrevPile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum - 1);
-//	wxUnusedVar(pPrevPile);
-//	if (pActivePile != NULL && pApp->m_nActiveSequNum != -1)
-//	{
+	CPile* pActivePile = pApp->m_pActivePile;
+	CPile* pPrevPile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum - 1);
+	wxUnusedVar(pPrevPile);
+	if (pActivePile != NULL && pApp->m_nActiveSequNum != -1)
+	{
 		//int activePileWidth = pActivePile->m_nWidth;
 
         // whm 14Jul2018 modified. Note that code execution goes through here routinely for nearly
@@ -1105,7 +1105,7 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 		// the active pile which the drawing digs down to the active strip, and the active
 		// pile within it.
 		// I'll start with minimal changes, to test out how they work with my other refactorings
-		/*
+		
 		// hopefully, these hacks are no longer needed. I've place SetPhraseBoxWidth() at the 
 		// start of PlaceBox(), and the box gap is now automatically generated from active pile, 
 		// correctly, at RecalcLayout() using pile's m_nWidth. This stuff is no longer needed
@@ -1119,41 +1119,17 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 		// CalcPhraseBoxWidth() which does the on-demand calculations, including button with and slop
 		// for the active pile's location. This gets Layout's m_curBoxWidth cache member set, given
 		// the current returned text from the m_pTargetPhrase->GetTextControl(). So set it now.
-		pApp->m_pActivePile->SetPhraseBoxWidth();
+		pApp->m_pActivePile->SetPhraseBoxWidth(); // BEW 13Aug18 now includes slop and button width
+
+		pApp->m_pActivePile->SetPhraseBoxGapWidth(); // BEW 13Aug18, required, as box and gap are no longer the same
+
+#if defined(_DEBUG) && defined(_EXPAND)
 		int boxWidth = pApp->m_pActivePile->GetPhraseBoxWidth();
-
-        //wxSize boxSize = pApp->m_pTargetBox->GetTextCtrl()->GetSize();
-#if defined(_DEBUG) && defined(_NEWDRAW)
-		wxString boxStr = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
-		wxLogDebug(_T("\nCAdapt_ItView::OnDraw(): Adaptation: %s , Layout's m_curBoxWidth assigned to boxWidth: %d"),
-			boxStr.c_str(), boxWidth);
+		int phraseBoxGapWidth = pApp->m_pActivePile->GetPhraseBoxGapWidth();
+		wxLogDebug(_T("\n%s():line %d, active pile, layout has: m_curBoxWidth: %d , layout's current phrasebox gap width (m_nWidth): %d"),
+			__func__, __LINE__, boxWidth, phraseBoxGapWidth);
 #endif
-		*/
-		// BEW 19Jul18 some of the calcs below are redundant, but I'll leave them for now...
-		/*
-		// The above boxSize alone calculates just the legacy phrasebox size, not including 
-        // the button and intervening 1-pixel. Below we calculate an adjustedButtonWidth
-        // and use it to increment the boxWidth value for the new phrasebox.
-        wxSize buttonSize = pApp->m_pTargetBox->GetPhraseBoxButton()->GetSize();
-        int adjustedButtonWidth = buttonSize.GetX() + 1; // allow 1 pixels space before the button
-        boxWidth = (int)boxSize.GetWidth() - 1; // -1 to ignore box boundary, else boxWidth
-                                                    // is consistently 1 more than layoutGapWith
-                                                    // resulting in needless FixBox() calls
-        if (buttonSize.x > 0)
-            boxWidth += adjustedButtonWidth;
-        // whm 13Jul2018 Note: The above change should eliminate the problem of the phrasebox 
-        // button encroaching on the next target pile/cell. 
-		*/
-		/* no use of layoutGapWidth is made (other than the wxLogDebug() call), so comment out
-		//int layoutGapWidth = pApp->m_pLayout->m_curBoxWidth; // <- legacy calculation - this causes encroachment
-		int layoutGapWidth = pApp->m_pActivePile->CalcPhraseBoxGapWidth(); // enum defaults to steadyAsSheGoes
-
-		//layoutGapWidth += adjustedButtonWidth + pApp->m_pLayout->GetGapWidth();
-#if defined(_DEBUG) && defined(_NEWDRAW)
-		wxLogDebug(_T("\nCAdapt_ItView::OnDraw(): layout's m_curBoxWidth: %d , layoutGapWidth (boxwidth_with_slop+button): %d"),
-			pApp->m_pLayout->m_curBoxWidth, layoutGapWidth);
-#endif
-		*/
+		
 		/*
 		if (boxWidth > layoutGapWidth)  // if my earlier refactorings are done right, boxWidth should not be greater if I've not typed box-filling characters
 		{
@@ -1209,7 +1185,7 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 			}
 		}
 		*/
-//	}
+	}
 
 	// draw the layout
 	GetLayout()->Draw(pDC);
@@ -4070,9 +4046,6 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 		pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
 	}
 
-	// ensure RecalcLayout() can do its work
-	pApp->m_bSuppressRecalcLayout = FALSE;
-
 #if defined (_DEBUG)
 	wxLogDebug(_T("*** Leaving PlacePhraseBox()  , selector = %d"), selector);
 #endif
@@ -6818,6 +6791,20 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
         // classes that know how to handle the data. Because of this modification, we don't
         // need to update them from here after the CEditPreferencesDlg's ShowModal() call
         // is made - as does the MFC version.
+
+		// BEW 14Aug18, ... with one exception. This is the perfect place to calculate the
+		// value, for this session, of the phrasebox slop. It will change if the user has
+		// altered the multiplier, or if the font size is changed, or both. We only
+		// need calculate it here once per entry to Preferences, and the calculation is quick;
+		// the slop width it calculates is stored as the CLayout public member: slop
+		// We must also do this calculation at the end of OnInit(), to provided a valid
+		// value, since the user may not call Preferences
+		wxClientDC aDC(pApp->GetMainFrame()->canvas);
+		wxChar aChar = _T('w');
+		wxString wStr = aChar;
+		wxSize charSize;
+		aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
+		pApp->GetLayout()->slop = pApp->m_nExpandBox*charSize.x;
 	}
 	else
 	{
@@ -22545,26 +22532,7 @@ void CAdapt_ItView::OnEditUndo(wxCommandEvent& event)
 		{
 			// Used BACKSPACE key
 			pApp->m_pTargetBox->OnEditUndo(event); // OnEditUndo() is method of CPhraseBox uses GetTextCtrl()->
-
-			// A box resize may be needed
-			// BEW 6Aug18 temporarily commented out, I've yet to investigate what needs to happen
-//			inStr = pApp->m_pTargetBox->m_backspaceUndoStr;
-//			bDoUpdate = pApp->m_pTargetBox->UpdatePhraseBoxWidth_Expanding(inStr);
 		}
-		/* temporarily commented out, BEW 6Aug18, I've yet to investigate what needs to happen
-		// If bDoUpdate is TRUE, then get it done
-		if (bDoUpdate)
-		{
-			pApp->GetLayout()->m_bSuppressRecalcLayout = FALSE; // allow CreateStrip() to accomodate box changes
-			bool bSuccessful = pApp->GetMainFrame()->DoPhraseBoxWidthUpdate();
-			wxUnusedVar(bSuccessful);
-			// DoPhraseBoxWidthUpdate uses target_box_paste_op which in PlaceBox()
-			// gets SetCursorGlobals called with enum value: cursor_at_offset,
-			// which locates the caret at its former position; we don't want that,
-			// here, so override to get it put at the end of the box's text
-			pApp->GetLayout()->m_docEditOperationType = relocate_box_op;
-		}
-		*/
 	}
 }
 

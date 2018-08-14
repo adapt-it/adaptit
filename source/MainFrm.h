@@ -193,16 +193,6 @@ public:
 	int m_removalsBarHeight;
 	int m_vertEditBarHeight;
 	int m_clipboardAdaptBarHeight; // BEW added 9May14
-	int m_bUpdatePhraseBoxWidth; // BEW added 30Jul18, OnIdle() will trap TRUE with a handler to get
-								 // the phrasebox sized greater or smaller, depending on whether the
-								 // user was typing more characters than the current width could
-								 // display, or removing so many characters that a resize smaller is
-								 // appropriate. (Formerly, a now deprecated function called FixBox()
-								 // was tasked to do this kind of thing)
-	bool DoPhraseBoxWidthUpdate(); // BEW added 30July18, this is the handler which OnIdle() uses
-								 // to effect a widening or contracting of the phrasebox width when
-								 // user editing actions in the phrasebox result in the flag
-								 // m_bUpdatePhraseBoxWidth being set TRUE
     void OnAppAbout(wxCommandEvent& WXUNUSED(event));
 	// OnIdle moved here from the App. When it was in the App it was causing
 	// the File | Exit and App x cancel commands to not be responsive there

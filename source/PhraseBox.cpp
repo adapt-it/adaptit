@@ -3504,7 +3504,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// update m_targetPhrase to agree with what has been typed so far
 		pApp->m_targetPhrase = thePhrase;
 
-		//bool bWasMadeDirty = FALSE;  unused
+		bool bWasMadeDirty = FALSE;  //unused
 
 		// whm Note: here we can eliminate the test for Return, BackSpace and Tab
 		pApp->m_bUserTypedSomething = TRUE;
@@ -3514,13 +3514,10 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		m_bBoxTextByCopyOnly = FALSE; // even if copied, typing something makes it different so set
 							// this flag FALSE
         this->MarkDirty(); //this->GetTextCtrl()->MarkDirty(); // whm 14Feb2018 added this->GetTextCtrl()->
+		bWasMadeDirty = TRUE; // BEW added 13Aug18, for the FixBox() call below
 
-
-// BEW 19Jul18 currently FixBox() is doing nothing; so put a SetPhraseBoxWidth() call here - 'steadyAsSheGoes'
-// to get the box width calculated, and follow with a ResizeBox() call to get it located etc
-		//* Nope, it had no effect on the too-small phrasebox in the GUI -- I'll need to log and/or step
-		{ // temporary - for testing
-			pApp->m_pActivePile->CalcPhraseBoxWidth();
+		{ 
+			//pApp->m_pActivePile->CalcPhraseBoxWidth();
 
 			wxPoint ptCurBoxLocation;
 			CCell* pActiveCell = pApp->m_pActivePile->GetCell(1);
@@ -3547,9 +3544,9 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 			pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles, steadyAsSheGoes);
 
 		}
-		//*/
+		
 		// adjust box size
-		//FixBox(pView, thePhrase, bWasMadeDirty, textExtent, 0); // selector = 0 for incrementing box extent
+		FixBox(pView, thePhrase, bWasMadeDirty, textExtent, 0); // selector = 0 for incrementing box extent
 		
 		// set the globals for the cursor location, ie. m_nStartChar & m_nEndChar,
 		// ready for box display
@@ -3572,17 +3569,17 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 // If the returned boolean is TRUE, the caller can then act or ignore on FALSE returned.
 // This function is essentially a filter - each typed character should cause this
 // function to be called, and the calculations done. If GUI controlling characters
-// like Enter or Tab occur, they are handled elsewhere - in OnSysKeyUp()
+// like Enter or Tab occur, they are handled elsewhere - in OnSysKeyUp() or the caller
 bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 {
+	// On entry we don't know if any box width change is needed; code within
+	// this function will work out if an expansion is needed, returning TRUE if so
 
 	bool bUpdateNeeded = FALSE; // initialize consistent with box width 
 								// recalculation not being needed
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxString thePhrase = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
 	bool bWasMadeDirty = pApp->m_pTargetBox->GetModify();
-
-	pApp->m_bSuppressRecalcLayout = TRUE;
 
 	wxClientDC dC(this);
 	wxFont* pFont;
@@ -3626,6 +3623,13 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 	wxLogDebug(_T("\n%s():line %d, on entry, curBoxWidth: %d , curTextWidth = %d, for box text: %s"),
 		__func__, __LINE__, curBoxWidth, curTextWidth, thePhrase.c_str());
 #endif
+#if defined (_DEBUG) && defined (_EXPAND)
+	wxLogDebug(_T("\n%s():line %d, on entry: curBoxWidth: %d , inStr (char typed) = %s, for box text: %s"),
+		__func__, __LINE__, curBoxWidth, inStr.c_str(), thePhrase.c_str());
+#endif
+
+	// TODO -- the slop width can be moved elsewhere, it's constant so long
+	// as the user does not change the setting in Preferences - *************************** put in CLayout, where it makes sense & grab from there
 	wxString wStr = _T('w');
 	wxSize wCharSize;
 	dC.GetTextExtent(wStr, &wCharSize.x, &wCharSize.y);
@@ -3675,8 +3679,6 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 		wxLogDebug(_T("%s():line %d, if (bUpdateNeeded) **** TRUE block entered **** -- caller will get expansion update done"), 
 			__func__, __LINE__);
 #endif
-		pApp->m_bSuppressRecalcLayout = FALSE; // let RecalcLayout() do it's job,
-						// however many calls of it may happen before next char is typed
 	}
 	else
 	{
@@ -3685,14 +3687,273 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 		wxLogDebug(_T("%s():line %d, if (bUpdateNeeded) **** FALSE block entered **** -- caller does nothing"), 
 			__func__, __LINE__);
 #endif
-		pApp->m_bSuppressRecalcLayout = TRUE; // keep the layout immobile
-
 	}
-	// If expanding is not needed, bUpdateNeeded will be returned as FALSE;
+	// If expanding is not needed, bUpdateNeeded will be returned as FALSE
+	// and that will, because of what the calling FixBox() does, keep the GUI immobile
 	return bUpdateNeeded;
 }
 
-// BEW created, 30Jul18, it replaces the old FixBox() function which did a similar job.
+// FixBox() is the core function for supporting box expansion and contraction in various
+// situations, especially when typing into the box; this version detects when adjustment to
+// the layout is required, it calls CLayout::RecalcLayout() to tweak the strips at the
+// active location - that is with input parameter keep_strips_keep_piles. FixBox() is
+// currently called only in the following CPhraseBox functions: OnPhraseBoxChanged() with
+// selector 0 passed in; OnChar() for backspace keypress, with selector 2 passed in;
+// OnEditUndo() with selector 1 passed in, and (BEW added 14Mar11) OnDraw() of
+// CAdapt_ItView.
+// refactored 26Mar09
+// BEW 13Apr10, no changes needed for support of doc version 5
+// BEW 22Jun10, no changes needed for support of kbVersion 2
+void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty,
+	wxSize& textExtent, int nSelector)
+{
+	// destroys the phrase box and recreates it with a different size, depending on the
+	// nSelector value.
+	// nSelector == 0, increment the box width using its earlier value
+	// nSelector == 1, recalculate the box width using the input string extent
+	// nSelector == 2, backspace was typed, so box may be contracting
+	// This new version tries to be smarter for deleting text from the box, so that we
+	// don't recalculate the layout for the whole screen on each press of the backspace key
+	// - to reduce the blinking effect
+	// version 2.0 takes text extent of m_gloss into consideration, if gbIsGlossing is TRUE
+
+	// Note: the refactored design of this function is greatly simplified by the fact that
+	// in the new layout system, the TopLeft location for the resized phrase box is
+	// obtained directly from the layout after the layout has been recalculated. To
+	// recalculate the layout correctly, all the new FixBox() needs to do is:
+	// (1) work out if a RecalcLayout(), or other strip tweaking call, is needed, and
+	// (2) prior to making the RecalcLayout() call, or other strip tweaking call, the new
+	// phrase box width must be calculated and stored in CLayout::m_curBoxWidth so that
+	// RecalcLayout() will have access to it when it is setting the width of the active pile.
+
+	//GDLC Added 2010-02-09
+	enum phraseBoxWidthAdjustMode nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
+
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	//bool bWholeScreenUpdate = TRUE; // suppress for now, we'll probably do it
+	//differently (such as with a clipping rectangle, and may not calculate that here anyway)
+	CLayout* pLayout = GetLayout();
+
+	// ensure the active pile is up to date
+	pApp->m_pActivePile = pLayout->m_pView->GetPile(pApp->m_nActiveSequNum);
+	wxASSERT(pApp->m_pActivePile);
+
+	//wxSize currBoxSize(pApp->m_curBoxWidth,pApp->m_nTgtHeight);
+	wxSize sizePhraseBox = GetClientSize(); // BEW added 25Mar09; it's in pixels
+	wxSize currBoxSize(pLayout->m_curBoxWidth, sizePhraseBox.y); // note, this is better, because if
+																 // glossing mode is on and glossing uses the navText font, the height
+																 // might be different from the height of the target text font
+
+	wxClientDC dC(this);
+	wxFont* pFont;
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+		pFont = pApp->m_pNavTextFont;
+	else
+		pFont = pApp->m_pTargetFont;
+	wxFont SaveFont = dC.GetFont();
+
+	dC.SetFont(*pFont);
+	dC.GetTextExtent(thePhrase, &textExtent.x, &textExtent.y); // measure using the current font
+	wxSize textExtent2;
+	wxSize textExtent3;
+	wxSize textExtent4; // version 2.0 and onwards, for extent of m_gloss
+						//CStrip* pPrevStrip;
+
+						// if close to the right boundary, then recreate the box larger (by 3 chars of width 'w')
+	wxString aChar = _T('w');
+	wxSize charSize;
+	dC.GetTextExtent(aChar, &charSize.x, &charSize.y);
+	bool bResult;
+	if (nSelector < 2)
+	{
+		// when either incrementing the box width from what it was, or recalculating a
+		// width using m_targetPhrase contents, generate TRUE if the horizontal extent of
+		// the text in it is greater or equal to the current box width less 3 'w' widths
+		// (if so, an expansion is required, if not, current size can stand)
+		bResult = textExtent.x >= currBoxSize.x - pApp->m_nNearEndFactor*charSize.x;
+	}
+	else
+	{
+		// when potentially about to contract the box, generate TRUE if the horizontal
+		// extent of the text in it is less than or equal to the current box width less 4
+		// 'w' widths (if so, a contraction is required, if not, current size can stand)
+		// BEW changed 25Jun05, the above criterion produced very frequent resizing; let's
+		// do it far less often...
+		//bResult = textExtent.x <= currBoxSize.x - (4*charSize.x); // the too-often way
+		bResult = textExtent.x < currBoxSize.x - (pApp->m_nExpandBox * charSize.x); // BEW 13Aug18, before, I hard coded 8 for m_nExpandBox here
+	}
+	bool bUpdateOfLayoutNeeded = FALSE;
+	if (bResult)
+	{
+		// a width change is required....therefore set m_curBoxWidth and call RecalcLayout()
+		if (nSelector < 2)
+			nPhraseBoxWidthAdjustMode = expanding; // this is passed on to the functions that
+												   // calculate the new width of the phrase box
+
+												   // make sure the activeSequNum is set correctly, we need it to be able
+												   // to restore the pActivePile pointer after the layout is recalculated
+												   //
+												   // BEW removed 26Mar09 because the m_nActiveSequNum variable is to be trusted over
+												   // the m_pActivePile - just in case our refactored code forgets to set the latter
+												   // at some point; but our code won't work if the former is ever wrong - we'd see
+												   // the muck up in the display of the layout immediately!
+												   //pApp->m_nActiveSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+
+												   // calculate the new width
+		if (nSelector == 0)
+		{
+			pLayout->m_curBoxWidth += pApp->m_nExpandBox*charSize.x;
+
+			GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current phrase
+																  // box selection in app's m_nStartChar & m_nEndChar members
+
+			bUpdateOfLayoutNeeded = TRUE;
+		}
+		else // next block is for nSelector == 1 or 2 cases
+		{
+			if (nSelector == 2)
+			{
+				// backspace was typed, box may be about to contract
+
+				pApp->m_targetPhrase = GetValue(); // store current typed string
+
+												   //move old code into here & then modify it
+				GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current selection
+
+																	  // we are trying to delete text in the phrase box by pressing backspace key
+																	  // shrink the box by 2 'w' widths if the space at end is >= 4 'w' widths
+																	  // BEW changed 25Jun09, to have the box shrink done less often to reduce blinking,
+																	  // the new criterion will shrink the box by 7 'w' widths -- no make it
+																	  // just 5 w widths (26Jun09)
+																	  //int newWidth = pLayout->m_curBoxWidth - 2 * charSize.x;
+																	  //int newWidth = pLayout->m_curBoxWidth - 7 * charSize.x;
+				int newWidth = pLayout->m_curBoxWidth - 5 * charSize.x;
+				// we have to compare with a reasonable box width based on source text
+				// width to ensure we don't reduce the width below that (otherwise piles
+				// to the right will encroach over the end of the active location's source
+				// text)
+				wxString srcPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase;
+				wxFont* pSrcFont = pApp->m_pSourceFont;
+				wxSize sourceExtent;
+				dC.SetFont(*pSrcFont);
+				dC.GetTextExtent(srcPhrase, &sourceExtent.x, &sourceExtent.y);
+				int minWidth = sourceExtent.x + pApp->m_nExpandBox*charSize.x;
+				if (newWidth <= minWidth)
+				{
+					// we are contracting too much, so set to minWidth instead
+					pLayout->m_curBoxWidth = minWidth;
+					//GDLC 2010-02-09
+					nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
+				}
+				else
+				{
+					// newWidth is larger than minWidth, so we can do the full contraction
+					pLayout->m_curBoxWidth = newWidth;
+					//GDLC 2010-02-09
+					nPhraseBoxWidthAdjustMode = contracting;
+				}
+				//GDLC I think that the normal SetPhraseBoxGapWidth() should be called with
+				// nPhraseBoxWidthAdjustmentModepassed to it as a parameter instead of simply
+				// using newWidth.
+				pApp->m_pActivePile->SetPhraseBoxGapWidth(newWidth); // sets m_nWidth to newWidth
+																	 // The gbContracting flag used above? RecalcLayout() will override
+																	 // m_curBoxWidth if we leave this flag FALSE; setting it makes the
+																	 // ResetPartnerPileWidth() call within RecalcLayout() not do an active pile
+																	 // gap width calculation that otherwise sets the box width too wide and the
+																	 // backspaces then done contract the width of the phrase box not as much as
+																	 // expected (the RecalcLayout() call clears gbContracting after using it)
+				bUpdateOfLayoutNeeded = TRUE;
+			} // end block for nSelector == 2 case
+			else
+			{
+				// nSelector == 1 case
+				pLayout->m_curBoxWidth = textExtent.x + pApp->m_nExpandBox*charSize.x;
+
+				// move the old code into here
+				GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current selection
+
+				bUpdateOfLayoutNeeded = TRUE;
+			} // end block for nSelector == 1 case
+		} // end nSelector != 0 block
+
+		if (bUpdateOfLayoutNeeded)
+		{
+#ifdef _NEW_LAYOUT
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles, nPhraseBoxWidthAdjustMode);
+#else
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+			wxASSERT(pApp->m_pActivePile != NULL);
+		}
+
+		// resize using the stored information (version 1.2.3 and earlier used to recreate, but
+		// this conflicted with Keyman (which sends backspace sequences to delete matched char
+		// sequences to be converted, so I changed to a resize for version 1.2.4 and onwards.
+		// Everything seems fine.
+		// wx version: In the MFC version there was a CreateBox function as well as a ResizeBox
+		// function used here. I have simplified the code to use ResizeBox everywhere, since
+		// the legacy CreateBox now no longer recreates the phrasebox each time it's called.
+
+		wxPoint ptCurBoxLocation;
+		CCell* pActiveCell = pApp->m_pActivePile->GetCell(1);
+		pActiveCell->TopLeft(ptCurBoxLocation); // returns the .x and .y values in the signature's ref variable
+												// BEW 25Dec14, cells are 2 pixels larger vertically as of today, so move TopLeft of box
+												// back up by 2 pixels, so text baseline keeps aligned
+		ptCurBoxLocation.y -= 2;
+
+		if (gbIsGlossing && gbGlossingUsesNavFont)
+		{
+			pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetNavTextHeight(),
+				pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
+		}
+		else
+		{
+			pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetTgtTextHeight(),
+				pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
+		}
+		if (bWasMadeDirty)
+			pApp->m_pTargetBox->MarkDirty(); // TRUE (restore modified status)
+
+											 //GDLC Removed 2010-02-09
+											 //gbExpanding = FALSE;
+											 //#ifdef Do_Clipping
+											 //		// support clipping
+											 //		if (!bUpdateOfLayoutNeeded)
+											 //			pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
+											 //#endif
+	} // end bResult == TRUE block
+	else
+	{
+		//#ifdef Do_Clipping
+		//		// no reason to change box size, so we should be able to support clipping
+		//		// (provided no scroll is happening - but that is deal with elsewhere, search for
+		//		// SetScrollingFlag() to find where)
+		//		pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
+		//#endif
+	}
+	if (nSelector < 2)
+		pApp->m_targetPhrase = thePhrase; // update the string storage on the view
+										  // (do it here rather than before the resizing code else selection bounds are wrong)
+
+	dC.SetFont(SaveFont); // restore old font (ie "System")
+	//gSaveTargetPhrase = pApp->m_targetPhrase;
+
+	// whm Note re BEW's note below: the non-visible phrasebox was not a problem in the wx version.
+	// BEW added 20Dec07: in Reviewing mode, the box does not always get drawn (eg. if click on a
+	// strip which is all holes and then advance the box by using Enter key, the box remains invisible,
+	// and stays so for subsequent Enter presses in later holes in the same and following strips:
+	// same addition is at the end of the ResizeBox() function, for the same reason
+	//pView->m_targetBox.Invalidate(); // hopefully this will fix it - it doesn't unfortunately
+	// perhaps the box paint occurs too early and the view point wipes it. How then do we delay
+	// the box paint? Maybe put the invalidate call into the View's OnDraw() at the end of its handler?
+	//pView->RemakePhraseBox(pView->m_pActivePile, pView->m_targetPhrase); // also doesn't work.
+}
+
+
+
+// BEW created, 30Jul18, it is in the refactored FixBox() function.
 // If the returned boolean is TRUE, the caller can then act or ignore on FALSE returned.
 // For a contraction, the caller will be a function dealing with BACKSPACE key
 // or DELETE key - so to flag this fact the caller must pass in an empty string
@@ -3701,9 +3962,6 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 // FALSE and no contraction will then be imposed upon the phrasebox
 bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 {
-	gpApp->m_bSuppressRecalcLayout = TRUE; // keep piles after active location
-					//from marching to the left for each backspace press or delete press
-
 	bool bUpdateNeeded = FALSE; // inintialize consistent with box width 
 								// recalculation not being needed
 	bool bContracting = FALSE; // initialize
@@ -3764,10 +4022,16 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 		wxLogDebug(_T("\n%s():line %d, on entry: curBoxWidth: %d , curTextWidth = %d, for box text: %s"),
 			__func__, __LINE__, curBoxWidth, curTextWidth, thePhrase.c_str());
 #endif
+#if defined (_DEBUG) && defined (_EXPAND)
+		wxLogDebug(_T("\n%s():line %d, on entry: curBoxWidth: %d , inStr (char typed) = %s, for box text: %s"),
+			__func__, __LINE__, curBoxWidth, inStr.c_str(), thePhrase.c_str());
+#endif
 
 		// We also need to have the correct user-defined slop width; using the user-set
 		// multiple of 'w' widths so as to get the pixel width for the slop (a constant width
-		// unless the user changes the multiplier m_nExpandBox in the Preferences... dialog)
+		// unless the user changes the multiplier m_nExpandBox in the Preferences... dialog) **************** TODO this is 
+													// same every time, relocate to CLayout, and grab from there
+													// (only Preferences, view tab, can change the slop width)
 		wxChar wChar = _T('w');
 		wxString wStr = wChar;
 		wxSize wCharSize;
@@ -3820,9 +4084,9 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 			pApp->m_pTargetBox->m_bAbandonable = FALSE;
 			int boundary = curBoxWidth - slopWidth; // test against this
 			if ( (curBoxWidth - minWidth > 0) && 
-				 //(curBoxWidth - slopWidth > curTextWidth)
-				//(curTextWidth < (curBoxWidth - slopWidth)) // the FixBox() test, no different really
-				(curTextWidth < boundary)
+				 //(curBoxWidth - slopWidth > curTextWidth) // <<-- nope, no good
+				//(curTextWidth < (curBoxWidth - slopWidth)) // the old FixBox() test, no different really, so no good
+				(curTextWidth < boundary) // <<-- this is the correct test
 			   )
 			{
 				bUpdateNeeded = TRUE;
@@ -3844,7 +4108,7 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 			// We don't allow box widths less than 40 pixels
 			if (curBoxWidth < 40)
 			{
-				bUpdateNeeded = TRUE;
+				bUpdateNeeded = FALSE;  // keep the piles immobile, short text in the box is not an update causer
 #if defined(_DEBUG) && defined(_NEWDRAW)
 				wxLogDebug(_T("%s():line %d, SAFETY TEST ENTERED: curBoxWidth < 40 = TRUE, bUpdateNeeded set TRUE"),
 					__func__, __LINE__);
@@ -3867,13 +4131,6 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 			wxLogDebug(_T("%s():line %d, if (bUpdateNeeded) **** TRUE block entered **** -- caller gets contraction update done"), 
 				__func__, __LINE__);
 #endif
-			// next lines pointless, the next RecalcLayout() call will reset m_curBoxWidth back large again 
-			//CLayout* pLayout = pApp->GetLayout();
-			//int newWidth = pLayout->m_curBoxWidth - slopWidth;
-			//pLayout->m_curBoxWidth = newWidth;
-
-			pApp->m_bSuppressRecalcLayout = FALSE; // let RecalcLayout()
-					                     // get it's work done
 		}
 		else
 		{
@@ -3882,284 +4139,12 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 			wxLogDebug(_T("%s():line %d, if (bUpdateNeeded) **** FALSE block entered **** -- caller does nothing"), 
 				__func__, __LINE__);
 #endif
-			pApp->m_bSuppressRecalcLayout = TRUE; // keep the layout immobile
 		}
-
 	} // end of TRUE block for test: if (bContracting)
 
 	// If contracting is not needed, bUpdateNeeded will be returned as FALSE;
 	return bUpdateNeeded;
 }
-
-// ********************************************* TODO ***********************************
-// REMOVE FixBox() from the app
-
-// FixBox() is the core function for supporting box expansion and contraction in various
-// situations, especially when typing into the box; this version detects when adjustment to
-// the layout is required, it calls CLayout::RecalcLayout() to tweak the strips at the
-// active location - that is with input parameter keep_strips_keep_piles. FixBox() is
-// called in the following CPhraseBox functions: OnPhraseBoxChanged() with
-// selector 0 passed in; OnChar() for backspace keypress, with selector 2 passed in;
-// OnEditUndo() with selector 1 passed in, and (BEW added 14Mar11) OnDraw() of
-// CAdapt_ItView.
-// refactored 26Mar09
-// BEW 13Apr10, no changes needed for support of doc version 5
-// BEW 22Jun10, no changes needed for support of kbVersion 2
-// Called from the View's OnDraw() 2X, CPhraseBox's OnEditUndo(), OnChar(), and OnPhraseBoxChanged()
-/* BEW deprecated 8Aug18
-void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty,
-						wxSize& textExtent,int nSelector)
-{
-    // destroys the phrase box and recreates it with a different size, depending on the
-    // nSelector value.
-    // nSelector == 0, increment the box width using its earlier value
-    // nSelector == 1, recalculate the box width using the input string extent
-    // nSelector == 2, backspace was typed, so box may be contracting
-    // This new version tries to be smarter for deleting text from the box, so that we
-    // don't recalculate the layout for the whole screen on each press of the backspace key
-    // - to reduce the blinking effect
-    // version 2.0 takes text extent of m_gloss into consideration, if gbIsGlossing is TRUE
-
-	// Note: the refactored design of this function is greatly simplified by the fact that
-	// in the new layout system, the TopLeft location for the resized phrase box is
-	// obtained directly from the layout after the layout has been recalculated. To
-	// recalculate the layout correctly, all the new FixBox() needs to do is:
-	// (1) work out if a RecalcLayout(), or other strip tweaking call, is needed, and
-	// if so, ensure a ResetPartnerPileWidth(pSrcPhrse, FALSE) is done first, and then
-	// (2) prior to making the RecalcLayout() call, or other strip tweaking call, the new
-	// phrase box width must be calculated and stored in CLayout::m_curBoxWidth so that
-	// RecalcLayout() will have access to it when it is setting the width of the active pile.
-
-	//GDLC Added 2010-02-09
-    enum phraseBoxWidthAdjustMode nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
-
- 	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	//bool bWholeScreenUpdate = TRUE; // suppress for now, we'll probably do it
-	//differently (such as with a clipping rectangle, and may not calculate that here anyway)
-	CLayout* pLayout = GetLayout();
-
-	// ensure the active pile is up to date
-	pApp->m_pActivePile = pLayout->m_pView->GetPile(pApp->m_nActiveSequNum);
-	wxASSERT(pApp->m_pActivePile);
-
-	//wxSize currBoxSize(pApp->m_curBoxWidth,pApp->m_nTgtHeight);
-	wxSize sizePhraseBox = GetClientSize(); // BEW added 25Mar09; it's in pixels
-	wxSize currBoxSize(pLayout->m_curBoxWidth, sizePhraseBox.y); // note, this is better, because if
-						// glossing mode is on and glossing uses the navText font, the height
-						// might be different from the height of the target text font
-
-	wxClientDC dC(this);
-	wxFont* pFont;
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-		pFont = pApp->m_pNavTextFont;
-	else
-		pFont = pApp->m_pTargetFont;
-	wxFont SaveFont = dC.GetFont();
-
-	dC.SetFont(*pFont);
-	dC.GetTextExtent(thePhrase, &textExtent.x, &textExtent.y); // measure using the current font
-	wxSize textExtent2;
-	wxSize textExtent3;
-	wxSize textExtent4; // version 2.0 and onwards, for extent of m_gloss
-	//CStrip* pPrevStrip;
-
-	// if close to the right boundary, then recreate the box larger (by 3 chars of width 'w')
-	wxString aChar = _T('w');
-	wxSize charSize;
-	dC.GetTextExtent(aChar, &charSize.x, &charSize.y);
-	bool bResult;
-	if (nSelector < 2)
-	{
-		// when either incrementing the box width from what it was, or recalculating a
-		// width using m_targetPhrase contents, generate TRUE if the horizontal extent of
-		// the text in it is greater or equal to the current box width less 3 'w' widths
-		// (if so, an expansion is required, if not, current size can stand)
-		bResult = textExtent.x >= currBoxSize.x - pApp->m_nNearEndFactor*charSize.x;
-	}
-	else
-	{
-        // when potentially about to contract the box, generate TRUE if the horizontal
-        // extent of the text in it is less than or equal to the current box width less 4
-        // 'w' widths (if so, a contraction is required, if not, current size can stand)
-		// BEW changed 25Jun05, the above criterion produced very frequent resizing; let's
-		// do it far less often...
-		//bResult = textExtent.x <= currBoxSize.x - (4*charSize.x); // the too-often way
-		bResult = textExtent.x < currBoxSize.x - (8*charSize.x);
-	}
-	bool bUpdateOfLayoutNeeded = FALSE;
-	if (bResult )
-	{
-		// a width change is required....therefore set m_curBoxWidth and call RecalcLayout()
-		if (nSelector < 2)
-			nPhraseBoxWidthAdjustMode = expanding; // this is passed on to the functions that
-								// calculate the new width of the phrase box
-
-		// make sure the activeSequNum is set correctly, we need it to be able
-		// to restore the pActivePile pointer after the layout is recalculated
-		//
-		// BEW removed 26Mar09 because the m_nActiveSequNum variable is to be trusted over
-		// the m_pActivePile - just in case our refactored code forgets to set the latter
-		// at some point; but our code won't work if the former is ever wrong - we'd see
-		// the muck up in the display of the layout immediately!
-		//pApp->m_nActiveSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-
-		// calculate the new width
-		if (nSelector == 0)
-		{
-			pLayout->m_curBoxWidth += pApp->m_nExpandBox*charSize.x;
-
-            GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); //GetTextCtrl()->GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current phrase
-					// box selection in app's m_nStartChar & m_nEndChar members
-
-			bUpdateOfLayoutNeeded = TRUE;
-		}
-		else // next block is for nSelector == 1 or 2 cases
-		{
-			if (nSelector == 2)
-			{
-				// backspace was typed, box may be about to contract
-
-				pApp->m_targetPhrase = GetValue(); // store current typed string
-
-				//move old code into here & then modify it
-                GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current selection
-
-				// we are trying to delete text in the phrase box by pressing backspace key
-				// shrink the box by 2 'w' widths if the space at end is >= 4 'w' widths
-				// BEW changed 25Jun09, to have the box shrink done less often to reduce blinking,
-				// the new criterion will shrink the box by 7 'w' widths -- no make it
-				// just 5 w widths (26Jun09)
-				//int newWidth = pLayout->m_curBoxWidth - 2 * charSize.x;
-				//int newWidth = pLayout->m_curBoxWidth - 7 * charSize.x;
-				int newWidth = pLayout->m_curBoxWidth - 5 * charSize.x;
-				// we have to compare with a reasonable box width based on source text
-				// width to ensure we don't reduce the width below that (otherwise piles
-				// to the right will encroach over the end of the active location's source
-				// text)
-				wxString srcPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase;
-				wxFont* pSrcFont = pApp->m_pSourceFont;
-				wxSize sourceExtent;
-				dC.SetFont(*pSrcFont);
-				dC.GetTextExtent(srcPhrase, &sourceExtent.x, &sourceExtent.y);
-				int minWidth = sourceExtent.x + pApp->m_nExpandBox*charSize.x;
-				if (newWidth <= minWidth)
-				{
-					// we are contracting too much, so set to minWidth instead
-					pLayout->m_curBoxWidth = minWidth;
-					//GDLC 2010-02-09
-					nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
-				}
-				else
-				{
-					// newWidth is larger than minWidth, so we can do the full contraction
-					pLayout->m_curBoxWidth = newWidth;
-					//GDLC 2010-02-09
-					nPhraseBoxWidthAdjustMode = contracting;
-				}
-				//GDLC I think that the normal SetPhraseBoxGapWidth() should be called with
-				// nPhraseBoxWidthAdjustmentMode passed to it as a parameter instead of simply
-				// using newWidth.
-				pApp->m_pActivePile->SetPhraseBoxGapWidth(newWidth); // sets m_nWidth to newWidth
-                // The gbContracting flag used above? RecalcLayout() will override
-                // m_curBoxWidth if we leave this flag FALSE; setting it makes the
-                // ResetPartnerPileWidth() call within RecalcLayout() not do an active pile
-                // gap width calculation that otherwise sets the box width too wide and the
-                // backspaces then done contract the width of the phrase box not as much as
-                // expected (the RecalcLayout() call clears gbContracting after using it)
-				bUpdateOfLayoutNeeded = TRUE;
-			} // end block for nSelector == 2 case
-			else
-			{
-				// nSelector == 1 case
-				pLayout->m_curBoxWidth = textExtent.x + pApp->m_nExpandBox*charSize.x;
-
-				// move the old code into here
-                GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current selection
-
-				bUpdateOfLayoutNeeded = TRUE;
-			} // end block for nSelector == 1 case
-		} // end nSelector != 0 block
-
-		if (bUpdateOfLayoutNeeded)
-		{
-#ifdef _NEW_LAYOUT
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles, nPhraseBoxWidthAdjustMode);
-#else
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-			wxASSERT(pApp->m_pActivePile != NULL);
-		}
-
-		// resize using the stored information (version 1.2.3 and earlier used to recreate, but
-		// this conflicted with Keyman (which sends backspace sequences to delete matched char
-		// sequences to be converted, so I changed to a resize for version 1.2.4 and onwards.
-		// Everything seems fine.
-		// wx version: In the MFC version there was a CreateBox function as well as a ResizeBox
-		// function used here. I have simplified the code to use ResizeBox everywhere, since
-		// the legacy CreateBox now no longer recreates the phrasebox each time it's called.
-
-		wxPoint ptCurBoxLocation;
-		CCell* pActiveCell = pApp->m_pActivePile->GetCell(1);
-		pActiveCell->TopLeft(ptCurBoxLocation); // returns the .x and .y values in the signature's ref variable
-		// BEW 25Dec14, cells are 2 pixels larger vertically as of today, so move TopLeft of box
-		// back up by 2 pixels, so text baseline keeps aligned
-		ptCurBoxLocation.y -= 2;
-
-        // whm 13Jul2018 Note: The CPhraseBox is now implemented with 3 separate components. Its
-        // size and position are maintained in the View's ResizeBox() function below, which 
-        // ensures the phrasebox components are adjusted automatically whenever this FixBox() 
-        // function is called.
-
-		if (gbIsGlossing && gbGlossingUsesNavFont)
-		{
-			pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetNavTextHeight(),
-				pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
-		}
-		else
-		{
-			pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetTgtTextHeight(),
-				pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
-		}
-		if (bWasMadeDirty)
-            pApp->m_pTargetBox->GetTextCtrl()->MarkDirty(); // TRUE (restore modified status) // whm 14Feb2018 added GetTextCtrl()->
-
-//#ifdef Do_Clipping
-//		// support clipping
-//		if (!bUpdateOfLayoutNeeded)
-//			pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
-//#endif
-	} // end bResult == TRUE block
-	else
-	{
-//#ifdef Do_Clipping
-//		// no reason to change box size, so we should be able to support clipping
-//		// (provided no scroll is happening - but that is deal with elsewhere, search for
-//		// SetScrollingFlag() to find where)
-//		pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
-//#endif
-	}
-    if (nSelector < 2)
-    {
-        pApp->m_targetPhrase = thePhrase; // update the string storage on the view
-            // (do it here rather than before the resizing code else selection bounds are wrong)
-    }
-
-	dC.SetFont(SaveFont); // restore old font (ie "System")
-    m_SaveTargetPhrase = pApp->m_targetPhrase;
-
-	// whm Note re BEW's note below: the non-visible phrasebox was not a problem in the wx version.
-	// BEW added 20Dec07: in Reviewing mode, the box does not always get drawn (eg. if click on a
-	// strip which is all holes and then advance the box by using Enter key, the box remains invisible,
-	// and stays so for subsequent Enter presses in later holes in the same and following strips:
-	// same addition is at the end of the ResizeBox() function, for the same reason
-	//pView->m_targetBox.Invalidate(); // hopefully this will fix it - it doesn't unfortunately
-	 // perhaps the box paint occurs too early and the view paint wipes it. How then do we delay
-	 // the box paint? Maybe put the invalidate call into the View's OnDraw() at the end of its handler?
-	//pView->RemakePhraseBox(pView->m_pActivePile, pView->m_targetPhrase); // also doesn't work.
-}
-*/
 
 // MFC docs say about CWnd::OnChar "The framework calls this member function when
 // a keystroke translates to a nonsystem character. This function is called before
@@ -4239,13 +4224,15 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	// phrasebox - so that's what we do here, and the non-stick bug is history
 	pApp->m_nPlacePunctDlgCallNumber = 0; // initialize on every keystroke
 
-#ifdef Do_Clipping
-	//wxLogDebug(_T("In OnChar), ** KEY TYPED **"));
+#ifdef _EXPAND
+	wxLogDebug(_T("%s():line %d, ** KEY TYPED **"), __func__, __LINE__);
 #endif
+	pApp->m_bMergeSucceeded = FALSE; //bool bMergeWasDone = FALSE;
+	//gbEnterTyped = FALSE; // BEW 13Aug18 appears to be no longer needed
+
 	// whm Note: The following code for handling the WXK_BACK key is ok to leave here in
 	// the OnChar() handler, because it is placed before the Skip() call (the OnChar() base
-	// class call in MFC)
-    
+	// class call in MFC)  
    GetSelection(&m_nSaveStart, &m_nSaveEnd); //GetTextCtrl()->GetSelection(&m_nSaveStart, &m_nSaveEnd);
 
     // MFC Note: CEdit's Undo() function does not undo a backspace deletion of a selection
@@ -4323,6 +4310,13 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
         // because GetValue() does not get the new value of the control's contents when
         // called from within OnChar, but received the previous value of the string as it
         // existed before the keystroke that triggers OnChar.
+		// BEW 13Aug18, the above comment is correct, but it really doesn't matter if
+		// there is a character pending for insertion to the phrasebox and we do our
+		// tests without it yet being in the box - why? because the slop can absorb it
+		// safely - all we must do is prevent the current width of the box from going
+		// beyond the boundary we set - which is user settable, currently 3 'w' widths
+		// from the end of the box's rectangle - enough to absorb a character in any
+		// language
 		event.Skip();
 	}
 
@@ -4331,7 +4325,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	long nEndChar;
     GetSelection(&nStartChar, &nEndChar); //GetTextCtrl()->GetSelection(&nStartChar, &nEndChar);
 
-    // whm Note: See note below about needing to move some code from OnChar() to the
+    // whm Note: See note above about needing to move some code from OnChar() to the
     // OnPhraseBoxChanged() handler in the wx version, because the OnChar() handler does
     // not have access to the changed value of the new string within the control reflecting
     // the keystroke that triggers OnChar().
@@ -4375,9 +4369,8 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 													   // suppression only
 				}
 			}
-			pView->MergeWords(); // simply calls OnButtonMerge
-            // 
-            //
+			pView->MergeWords(); // simply calls OnButtonMerge 
+			pApp->m_bMergeSucceeded = TRUE;
 			pLayout->m_docEditOperationType = merge_op;
             pApp->m_bSuppressDefaultAdaptation = FALSE;
 
@@ -4417,6 +4410,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
     // Because of that difference in behavior, I moved the code dependent on updating
     // pApp->m_targetPhrase from OnChar() to the OnPhraseBoxChanged() handler.
 
+/* BEW 13Aug18 removing, as I'm reverting to the legacy FixBox() -- but I'll put the moved case blocks back, but delete them as Bill moved them to UnKeyUp()
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Note: code below moved here to OnChar() from OnKeyUp().
     // whm 5Aug2018 Note: After making the filtering modifications to filter out the control
@@ -4449,22 +4443,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
         {
             wxLogDebug(_T("In CPhraseBox::OnKeyUp() You pressed '%c' - key code: %d"), typedChar, event.GetKeyCode());
             pLayout->m_inputString = typedChar;
-            bDoUpdate = UpdatePhraseBoxWidth_Expanding(pLayout->m_inputString);
-            if (bDoUpdate)
-            {
-				pApp->m_bSuppressRecalcLayout = FALSE; // allow CreateStrip() to accomodate box changes
-				pLayout->m_boxMode = expanding;
 
-                // whm 5Aug NOTE for BEW TODO: I think the active pile's m_pSrcPhrase's m_adaptation and m_targetStr
-                // members need to be updated at some point BEFORE the DoPhraseBoxWidthUpdate() call below, otherwise 
-                // they get truncated - I think this is the issue that Graeme and I observed when typing into the 
-                // phrasebox until the box expands at which point the truncation happens. You can see the truncation
-                // by examining the pile's m_adaptation and m_targetStr contents in the DoPhraseBoxWidthUpdate() below.
-                bool bSuccessful = pApp->GetMainFrame()->DoPhraseBoxWidthUpdate(); // expanding the phrasebox
-                wxUnusedVar(bSuccessful);
-                // Maybe best not to mess with the cursor location - to take the 'do nothing' option
-                pLayout->m_docEditOperationType = char_typed_op;
-            }
         }
         else
         {
@@ -4472,8 +4451,6 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
             wxLogDebug(_T("In CPhraseBox::OnKeyUp() You pressed control char '%c' - key code: %d"), typedChar, event.GetKeyCode());
             // Allow the control char to drop through to event.Skip() below - although this OnKeyUp() 
             // handler should be the last handler processing key events.
-			// NO! do not reset FALSE here. Only once in TRUE block, or only once in ELSE block below
-			//pApp->GetLayout()->m_bSuppressRecalcLayout = FALSE; // allow CreateStrip() to accomodate GUI changes
 		}
     }
     else
@@ -4482,12 +4459,106 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
     }
     // Note: code above moved here to OnChar() from OnKeyUp()
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+*/
 	long keycode = event.GetKeyCode();
 	switch(keycode)
 	{
     // whm 24Jun2018 moved the WXK_RETURN handling to the OnKeyUp() handler
     // whm 1Jun2018 moved the WXK_TAB handling to the OnKeyUp() handler
+	/*
+	case WXK_RETURN: //13:	// RETURN key
+	{
+		// save old sequ number in case required for toolbar's Back button
+		gnOldSequNum = pApp->m_nActiveSequNum;
+
+		// whm Note: Beware! Setting breakpoints in OnChar() before this point can
+		// affect wxGetKeyState() results making it appear that WXK_SHIFT is not detected
+		// below. Solution: remove the breakpoint(s) for wxGetKeyState(WXK_SHIFT) to
+		// register properly.
+		if (wxGetKeyState(WXK_SHIFT))
+		{
+			// shift key is down, so move back a pile
+
+			int bSuccessful = MoveToPrevPile(pApp->m_pActivePile);
+			if (!bSuccessful)
+			{
+				// we were at the start of the document, so do nothing
+				;
+			}
+			else
+			{
+				// it was successful
+				pLayout->m_docEditOperationType = relocate_box_op;
+				gbEnterTyped = FALSE;
+			}
+
+			pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+
+			// save the phrase box's text, in case user hits SHIFT+End to unmerge a phrase
+			gSaveTargetPhrase = pApp->m_targetPhrase;
+			return;
+		}
+		else // we are moving forwards rather than backwards
+		{
+			JumpForward(pView);
+		}
+	} // end case 13: block
+	return;
+	case WXK_TAB: //9:		// TAB key
+	{
+		// save old sequ number in case required for toolbar's Back button
+		gnOldSequNum = pApp->m_nActiveSequNum;
+
+		// SHIFT+TAB is the 'universal' keyboard way to cause a move back, so implement it
+		// whm Note: Beware! Setting breakpoints in OnChar() before this point can
+		// affect wxGetKeyState() results making it appear that WXK_SHIFT is not detected
+		// below. Solution: remove the breakpoint(s) for wxGetKeyState(WXK_SHIFT) to
+		if (wxGetKeyState(WXK_SHIFT))
+		{
+			// shift key is down, so move back a pile
+
+			// Shift+Tab (reverse direction) indicates user is probably
+			// backing up to correct something that was perhaps automatically
+			// inserted, so we will preserve any highlighting and do nothing
+			// here in response to Shift+Tab.
+
+			Freeze();
+
+			int bSuccessful = MoveToPrevPile(pApp->m_pActivePile);
+			if (!bSuccessful)
+			{
+				// we have come to the start of the document, so do nothing
+				pLayout->m_docEditOperationType = no_edit_op;
+			}
+			else
+			{
+				// it was successful
+				gbEnterTyped = FALSE;
+				pLayout->m_docEditOperationType = relocate_box_op;
+			}
+
+			// scroll, if necessary
+			pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+
+			// save the phrase box's text, in case user hits SHIFT+END key to unmerge
+			// a phrase
+			gSaveTargetPhrase = pApp->m_targetPhrase;
+
+			Thaw();
+			return;
+		}
+		else
+		{
+			//BEW changed 01Aug05. Some users are familiar with using TAB key to advance
+			// (especially when working with databases), and without thinking do so in Adapt It
+			// and expect the Lookup process to take place, etc - and then get quite disturbed
+			// when it doesn't happen that way. So for version 3 and onwards, we will interpret
+			// a TAB keypress as if it was an ENTER keypress
+			JumpForward(pView);
+		}
+		return;
+	}
+*/
 	case WXK_BACK: //8:		// BackSpace key
 		{
 			bool bWasMadeDirty = TRUE;
@@ -4506,9 +4577,6 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			// initiated by a <BS> key press, we suppress that kind of code
 			if (!pApp->m_bMergeSucceeded)
 			{
-				// wxChar typedChar = event.GetUnicodeKey(); // don't need when BACKSPACE or DELETE typed
-				wxString inStr = wxEmptyString; // use empty as a flag that we are contracting
-
 				// BEW 31Jul18, next four lines added so we can get a value into the global gnBoxCursorOffset,
 				// which the target_box_paste_op will cause to be used by SetCursorGlobals, to keep the cursor
 				// where it is while the deletions are being done; as the switch in PlaceBox calls
@@ -4519,51 +4587,20 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 				pApp->m_pTargetBox->GetSelection(&from, &to);
 				gnBoxCursorOffset = (int)from;
 
-				bool bDoUpdate = UpdatePhraseBoxWidth_Contracting(inStr);
-				if (bDoUpdate)
-				{
-					//pApp->m_bSuppressRecalcLayout = FALSE; // allow CreateStrip() to accomodate box changes
-					bWasMadeDirty = TRUE;
-					pApp->GetLayout()->m_boxMode = contracting;
-
-					pLayout->m_docEditOperationType = target_box_paste_op; // this enum value, when control gets to
-							// the switch in PlaceBox(), will keep the cursor where it is after the operation
-					bool bSuccessful = pApp->GetMainFrame()->DoPhraseBoxWidthUpdate(); // contracting the phrasebox
-					if (bSuccessful)
-					{
-						if (pLayout->m_bFrameResizeWanted)
-						{
-							wxSizeEvent size_event;
-							CMainFrame* pFrame = pApp->GetMainFrame();
-							pFrame->OnSize(size_event); // calls RecalcLayout()
-							//wxClientDC aDC(pFrame->canvas);
-							//pView->OnDraw(&aDC);
-						}
-					}
-				}
-				//FixBox(pView, pApp->m_targetPhrase, bWasMadeDirty, textExtent, 2); // <<-- deprecated, 30Jul18 BEW  ************ REMOVE It ************ <- TODO
-										// selector = 2 for "contracting" the box
+				FixBox(pView, pApp->m_targetPhrase, bWasMadeDirty, textExtent, 2);
+										// selector = 2 for "contracting" the box				
 				if (bWasMadeDirty)
 					pApp->m_pTargetBox->GetTextCtrl()->MarkDirty();
 			}
+			
             pApp->m_bMergeSucceeded = FALSE; // clear to default FALSE, otherwise backspacing
 									// to remove phrase box characters won't get the
 									// needed box resizes done
 		}
 	default:
 	{
-		// Test what shows up here. No help. If I put a break point here, then control halts
-		// and the correct myChar is returned, including a backspace ( key code 8) which as
-		// a wxString is just an empty string. But if I remove the break point, then the
-		// wxLogDebug() does not get called, indicating control did not enter there.
-		// OnKeyDown() and OnChar() do a better job, do discount this default case as useful.
-		//wxChar myChar = event.GetUnicodeKey();
-		//wxString asString = myChar;
-#if defined(_DEBUG) && defined(_NEWDRAW)
-		//wxLogDebug(_T("CPhraseBox;:OnChar(wxKeyEvent &event) char typed, asString: %s"), asString.c_str());
-#endif
-	}
 		;
+	}
 	} // don't remove this closing brace
 }
 
@@ -6104,8 +6141,6 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	wxASSERT(pApp != NULL);
 
 	CLayout* pLayout = GetLayout();
-
-	pApp->m_bSuppressRecalcLayout = FALSE; // ensure RecalcLayout() calls can do their work
 
 	//CSourcePhrase* pOldActiveSrcPhrase = NULL; // set but not used
 	int nActiveSequNum = pApp->m_nActiveSequNum;

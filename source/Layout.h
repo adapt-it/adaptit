@@ -272,6 +272,19 @@ public:
 									   // view classes; that is, it hooks up CLayout to the
 									   // legacy parameters wherever they were stored (it calls
 									   // app class's UpdateTextHeights() function too
+	
+	// BEW 10Aug18 - some functions used within FixBox() - the refactored version for support
+	// of phrasebox with button and dropdown list, follow now...
+	bool		BSorDEL_NoModifiers(wxKeyEvent event); // return TRUE if no modifier key is
+					// held down and either a Backspace or Delet key is simultaneously pressed
+					// else, returns FALSE. Used in refactored FixBox()
+	bool		TextCtrlHasSelection(wxTextCtrl* pTextCtrl, long& from, long& to, int& length); //BEW created 9Aug18
+//	bool		PhraseBoxIsInFocus(); // Bill's function for the wxOwnerDrawnComboBox control, which we abandoned
+	bool		TextCtrlIsInFocus(); // BEW 10Aug18 reinstated this variant of focus checking call
+									  // - for use in the refactored FixBox(), and moved to CLayout class
+	bool		DoPhraseBoxWidthUpdate(); // BEW added 30July18, this is the handler which FixBox() uses
+								   // to effect a widening or contracting of the phrasebox width	
+
 	// Strip destructors
 	void		DestroyStrip(int index); // note: doesn't destroy piles and their cells, these
 										 // are managed by m_pPiles list & must persist
@@ -366,6 +379,9 @@ public:
 	wxArrayPtrVoid* GetStripArray();
 	wxArrayInt*		GetInvalidStripArray();
 	void			ClearSavePileList();
+
+	int				slop; // constant unless Preferences changes it, so store here
+	int				buttonWidth; // constant, unless a new Adapt It version changes the button width
 
 	//////// public utility functions ////////
 

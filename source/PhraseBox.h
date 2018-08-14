@@ -103,6 +103,9 @@ public:
 										 // using the m_ prefix in their names, as these are very hacky
     wxSize  m_computedPhraseBoxSize; // stores the computed size of the phrasebox's sizer - accounting for its current layout state
 
+	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
+		int nSelector); // BEW made public on 14Mar11, now called in view's OnDraw()
+
     // Some PhraseBox Getters
     wxTextCtrl* GetTextCtrl(); // this gets the wxTextCtrl that has been created by the PhraseBoxDropDownFunc() in wxDesigner
     CMyListBox* GetDropDownList(); // this gets the wxListBox that has been created by the PhraseBoxDropDownFunc() in wxDesigner
@@ -152,22 +155,14 @@ public:
 	bool DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	CLayout* GetLayout();
 
-	bool UpdatePhraseBoxWidth_Expanding(wxString inStr); // BEW addedd 30Jul18 the returned bool 
-				// sets CMainFrame::m_bUpdatePhraseBoxWidth to TRUE, which OnIdle() then traps, 
-				// to call a handler to effect the width update; or if no update is needed, 
-				// returns FALSE. Pass in the character just typed as a wxString, or the 
-				// string being pasted into the phrasebox control from the clipboard
+	bool UpdatePhraseBoxWidth_Expanding(wxString inStr); // BEW addedd 30Jul18 the returned bool, 
+				// if TRUE, causes RecalcLayout to be non-suppressed so that the gui and box width
+				// can quickly be changed; if FALSE, then box and gui stay immobile
 	bool UpdatePhraseBoxWidth_Contracting(wxString inStr); 
-				// BEW addedd 30Jul18 the returned bool 
-				// sets CMainFrame::m_bUpdatePhraseBoxWidth to TRUE, which OnIdle() then traps, 
-				// to call a handler to effect the width update; or if no update is needed, 
-				// returns FALSE. Pass in the character just typed as a wxString, or the 
-				// string being pasted into the phrasebox control from the clipboard
+				// BEW addedd 30Jul18 the returned bool the returned bool, if TRUE,
+				// causes RecalcLayout to be non-suppressed so that the gui and box width
+				// can quickly be changed; if FALSE, then box and gui stay immobile
 
-	/* BEW deprecated 6Aug18
-	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
-							int nSelector); // BEW made public on 14Mar11, now called in view's OnDraw()
-	*/
     // whm 10Jan2018 added members below to implement the dropdown phrasebox functionality
     void SetupDropDownPhraseBoxForThisLocation();
     void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptatio);
