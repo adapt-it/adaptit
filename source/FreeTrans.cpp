@@ -5163,9 +5163,13 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 		}
 
         m_pApp->m_pTargetBox->m_Translation.Empty(); // don't preserve anything from a former adaptation state
-		if (m_pApp->m_pTargetBox->GetHandle() != NULL)
-			if (m_pApp->m_pTargetBox->IsShown())
-				m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+        if (m_pApp->m_pTargetBox != NULL)
+        {
+            if (m_pApp->m_pTargetBox->IsShown())
+            {
+                m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+            }
+        }
 
 		// allow clicks and editing to be done in phrase box (do also in ResizeBox())
 		if (m_pApp->m_pTargetBox->IsShown() && m_pApp->m_pTargetBox->GetHandle() != NULL)
@@ -6676,7 +6680,8 @@ void CFreeTrans::ToggleFreeTranslationMode()
 			if (m_pApp->m_pTargetBox->IsShown())
 			{
 				m_pApp->m_pTargetBox->Enable(TRUE);
-				m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+
+                m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
 			}
 
             // get any removed adaptations in gEditRecord into the GUI list,

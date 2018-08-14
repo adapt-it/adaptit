@@ -647,6 +647,7 @@ void CLayout::PlaceBox()
 			{
 				bSetModify = FALSE;
 				bSetTextColor = TRUE;
+                /* whm 13Aug2018 removed. SetSelection(len,len) is done elsewhere
 				// BEW 25Jun18, put cursor at end of box contents if the text is non-empty
 				wxString text;
 				text = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
@@ -659,6 +660,7 @@ void CLayout::PlaceBox()
 					m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
 					bSetModify = TRUE;
 				}
+                */
 				break;
 			}
 /*		case merge_op:
@@ -983,10 +985,11 @@ void CLayout::PlaceBox()
 		if (m_pApp->m_bDrafting)
 		{
 			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
-            m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-            wxWindow* fwin = wxWindow::FindFocus();
-            wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"), 
-                fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl(), m_pApp->m_pTargetBox->GetDropDownList());
+        m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+            //m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus(); // SetFocusAndSetSelectionAtLanding() called below
+            //wxWindow* fwin = wxWindow::FindFocus();
+            //wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"), 
+            //    fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl(), m_pApp->m_pTargetBox->GetDropDownList());
         }
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1011,32 +1014,18 @@ void CLayout::PlaceBox()
 				}
 			}
 			m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_pApp->m_targetPhrase); // keep m_pTargetBox contents in sync with m_targetPhrase
-            // whm 13Jul2018 added - if phrasebox list has > 1 items remove selection and 
-            // put insertion point at end, otherwise select all (for item count of 0 or 1)
-            // whm 3Aug2018 modified for latest protocol of only selecting all when
-            // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
-            // View menu's 'Select Copied Source' toggle menu item. 
-            long len = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
-            int itemCt = m_pApp->m_pTargetBox->GetDropDownList()->GetCount();
-            if (itemCt > 1)
-            {
-                // Never select phrasebox contents when there a > 1 items in list
-                m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
-            }
-            else
-            {
-                // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-                if (m_pApp->m_bSelectCopiedSource)
-                    m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // whm added 23May2018 otherwise Linux version looses selection of text in phrasebox
-                else
-                    m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-            }
+            // whm 13Aug2018 moved SetFocusAndSetSelectionAtLanding() call outside this 'if (gbAutoCaps)' block. 
         }
+
+        m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 		m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 1033);
 #endif
 	}
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
+    // whm 8Aug2018 added. Assign phrasebox contents to initialPhraseBoxContentsOnLanding on landing at this location 
+    m_pApp->m_pTargetBox->initialPhraseBoxContentsOnLanding = m_pApp->m_pTargetBox->GetTextCtrl()->GetValue();
 
     // whm 15Jul2018 added the following bool value to determine if user presses Up or Down arrow
     // to highlight a different item in the dropdown list before pressing Enter/Tab to leave the 

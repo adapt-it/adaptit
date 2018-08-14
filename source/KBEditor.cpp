@@ -702,7 +702,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		}
 		gpApp->m_targetPhrase = maybeSolidusNewText;
 		gpApp->m_pTargetBox->GetTextCtrl()->ChangeValue(maybeSolidusNewText);
-		// Select the text in the box (focus will be returned there later)
+		// Un-Select the text in the box (focus will be returned there later)
 		int len = gpApp->m_targetPhrase.Length();
 		gpApp->m_nStartChar = len;
 		gpApp->m_nEndChar = len;

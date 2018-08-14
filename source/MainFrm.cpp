@@ -3932,10 +3932,14 @@ void CMainFrame::OnViewModeBar(wxCommandEvent& WXUNUSED(event))
 		{
 			// the bar has just been made invisible
 			// restore focus to the targetBox, if it is visible
-			if (gpApp->m_pTargetBox != NULL)
-				if (gpApp->m_pTargetBox->IsShown())
-					gpApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-		}
+            if (gpApp->m_pTargetBox != NULL)
+            {
+                if (gpApp->m_pTargetBox->IsShown())
+                {
+                    gpApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                }
+            }
+        }
 	}
 }
 
@@ -4077,10 +4081,14 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			gpApp->m_bComposeBarWasAskedForFromViewMenu = FALSE; // needed for free translation mode
 
 			// restore focus to the targetBox, if it is visible (moved here by BEW on 18Oct06)
-			if (pApp->m_pTargetBox != NULL)
-				if (pApp->m_pTargetBox->IsShown()) // MFC could use BOOL IsWindowVisible() here
-					pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-		}
+            if (pApp->m_pTargetBox != NULL)
+            {
+                if (pApp->m_pTargetBox->IsShown())
+                {
+                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                }
+            }
+        }
 		else
 		{
             // the bar is visible, so set the font - normally m_pComposeFont will preserve
@@ -4225,9 +4233,13 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 			}
 		}
 		// restore focus to the targetBox, if it is visible
-		if (pApp->m_pTargetBox != NULL)
-			if (pApp->m_pTargetBox->IsShown())
-				pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+        if (pApp->m_pTargetBox != NULL)
+        {
+            if (pApp->m_pTargetBox->IsShown())
+            {
+                pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+            }
+        }
 	}
 	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
 	// otherwise strange behavior may occur.
@@ -4561,23 +4573,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
             // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
             // View menu's 'Select Copied Source' toggle menu item. 
             int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
-            pApp->m_nEndChar = -1;
-            pApp->m_nStartChar = -1;
+            pApp->m_nEndChar = len;
+            pApp->m_nStartChar = len;
             if (pApp->m_pTargetBox != NULL)
             {
-                if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
-                {
-                    // Never select phrasebox contents when there a > 1 items in list
-                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-                }
-                else
-                {
-                    // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-                    if (pApp->m_bSelectCopiedSource)
-                        pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); // select it all
-                    else
-                        pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-                }
+                pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
             }
 			pApp->m_bStartViaWizard = FALSE; // suppress this code from now on
 		}
@@ -5156,6 +5156,8 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 		pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
 		pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
 	}
+    // whm 13Aug2018 Note: SetFocus() call below is correctly set before the 
+    // SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar) call below.
 	gpApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 
 	// Restore the selection, or caret location
@@ -8679,8 +8681,9 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	{
 		if (pApp->m_pTargetBox->IsShown())
 		{
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+
+            pApp->m_pTargetBox->m_bAbandonable = FALSE;
 		}
 	}
 	pView->Invalidate(); // whm: Why call Invalidate here? (Because the text

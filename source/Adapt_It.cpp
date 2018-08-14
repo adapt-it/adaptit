@@ -27400,32 +27400,17 @@ int CAdapt_ItApp::GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView)
     else
         m_targetPhrase = pSrcPhrase->m_adaption;
 
-    // BEW added 29Jul09, get the phrase box text into the box and all selected
-    // whm 13Jul2018 modified for new protocol of only selecting all when 
-    // dropdown list count is > 1, otherwise removing selection and putting
-    // insertion point at end.
+    m_pTargetBox->GetTextCtrl()->ChangeValue(m_targetPhrase);
+
     // whm 3Aug2018 modified for latest protocol of only selecting all when
     // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
     // View menu's 'Select Copied Source' toggle menu item. 
-    m_pTargetBox->GetTextCtrl()->ChangeValue(m_targetPhrase);
     int len = m_pTargetBox->GetTextCtrl()->GetValue().Length();
-    m_nStartChar = -1;
-    m_nEndChar = -1;
+    m_nStartChar = len;
+    m_nEndChar = len;
     if (m_pTargetBox != NULL)
     {
-        if (m_pTargetBox->GetDropDownList()->GetCount() > 1)
-        {
-            // Never select phrasebox contents when there a > 1 items in list
-            m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-        }
-        else
-        {
-            // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-            if (this->m_bSelectCopiedSource)
-                m_pTargetBox->GetTextCtrl()->SetSelection(m_nStartChar, m_nEndChar); // select it all
-            else
-                m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-        }
+       this->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
     }
 
     return m_nActiveSequNum;
@@ -31551,24 +31536,8 @@ void CAdapt_ItApp::OnButtonGetFromClipboard(wxCommandEvent& WXUNUSED(event))
 			pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
 			m_nStartChar = -1; // whm 3Aug2018 corrected this from 0 to -1
 			m_nEndChar = -1; // ensure initially all is selected
-            // whm 3Aug2018 modified for latest protocol of only selecting all when
-            // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
-            // View menu's 'Select Copied Source' toggle menu item. 
-            int len = m_pTargetBox->GetTextCtrl()->GetValue().Length();
-            if (m_pTargetBox->GetDropDownList()->GetCount() > 1)
-            {
-                // Never select phrasebox contents when there a > 1 items in list
-                m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-            }
-            else
-            {
-                // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-                if (this->m_bSelectCopiedSource)
-                    m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // select it all
-                else
-                    m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-            }
-			m_pTargetBox->GetTextCtrl()->SetFocus();
+
+            m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 		}
 		pView->Invalidate();
 		pLayout->PlaceBox();
@@ -31624,24 +31593,8 @@ void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event
             pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
             m_nStartChar = -1; // whm 3Aug2018 corrected this from 0 to -1
             m_nEndChar = -1; // ensure initially all is selected
-            // whm 3Aug2018 modified for latest protocol of only selecting all when
-            // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
-            // View menu's 'Select Copied Source' toggle menu item. 
-            int len = m_pTargetBox->GetTextCtrl()->GetValue().Length();
-            if (m_pTargetBox->GetDropDownList()->GetCount() > 1)
-            {
-                // Never select phrasebox contents when there a > 1 items in list
-                m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-            }
-            else
-            {
-                // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-                if (this->m_bSelectCopiedSource)
-                    m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // select it all
-                else
-                    m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-            }
-            m_pTargetBox->GetTextCtrl()->SetFocus();
+                             
+            m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
         }
     }
     else
@@ -32414,23 +32367,8 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
     int len = pApp->m_targetPhrase.Length();
     m_nStartChar = len;
     m_nEndChar = len;
-    // whm 3Aug2018 modified for latest protocol of only selecting all when
-    // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
-    // View menu's 'Select Copied Source' toggle menu item. 
-    if (m_pTargetBox->GetDropDownList()->GetCount() > 1)
-    {
-        // Never select phrasebox contents when there a > 1 items in list
-        m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-    }
-    else
-    {
-        // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-        if (this->m_bSelectCopiedSource)
-            m_pTargetBox->GetTextCtrl()->SetSelection(m_nStartChar, m_nEndChar); // select it all
-        else
-            m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-    }
-    this->m_pTargetBox->GetTextCtrl()->SetFocus();
+
+    m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -43745,15 +43683,26 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
         }
     }
 
+    // whm 13Aug2018 removed: Since pDoc->OnFileClose(event) was called above 
+    // (if the doc was open) which calls ClobberDocument(), which in turn
+    // calls HidePhraseBox(), so this block should never be entered since 
+    // the phrasebox should not be showing, and hence, no SetFocus() nor
+    // a SetFocusAndSetSelectionAtLanding(), nor a RefreshStatusBarInfo()
+    // makes sense here.
+    /*
     // restore focus to the targetBox, if it is visible
     if (m_pTargetBox != NULL)
     {
         if (m_pTargetBox->IsShown())
-            m_pTargetBox->GetTextCtrl()->SetFocus();
+        {
+            // whm 13Aug2018 modified. Previously just had SetFocus() call.
+            m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+        }
         // also get the status bar updated, if there is a document visible
         if (gpApp->m_nActiveSequNum != -1 && gpApp->m_pActivePile != NULL)
             gpApp->RefreshStatusBarInfo();
     }
+    */
 
     // force the Startup Wizard open, otherwise user might be confused about the doc
     // remaining gone and nothing else happening
@@ -47600,24 +47549,8 @@ void CAdapt_ItApp::DoPrintCleanup()
         GetMainFrame()->canvas->ScrollIntoView(m_nActiveSequNum);
         m_nStartChar = -1; // whm 3Aug2018 corrected this from 0 to -1
         m_nEndChar = -1; // ensure initially all is selected
-        // whm 3Aug2018 modified for latest protocol of only selecting all when
-        // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
-        // View menu's 'Select Copied Source' toggle menu item. 
-        int len = m_pTargetBox->GetTextCtrl()->GetValue().Length();
-        if (m_pTargetBox->GetDropDownList()->GetCount() > 1)
-        {
-            // Never select phrasebox contents when there a > 1 items in list
-            m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-        }
-        else
-        {
-            // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-            if (this->m_bSelectCopiedSource)
-                m_pTargetBox->GetTextCtrl()->SetSelection(m_nStartChar, m_nEndChar); // select it all
-            else
-                m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-        }
-        m_pTargetBox->GetTextCtrl()->SetFocus();
+
+        m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
     }
 
     // if cleaning up when free translation mode is active, override the focus being in

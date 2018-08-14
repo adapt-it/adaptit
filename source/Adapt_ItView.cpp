@@ -1651,16 +1651,10 @@ void CAdapt_ItView::OnInitialUpdate()
 	pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
 									// and other setters
 	pApp->m_targetPhrase = saveText;
-    // whm 13Jul2018 removed the following code. This OnInitialUpdate() gets called from
-    // OnInit() very early in the program startup process BEFORE the start working wizard
-    // runs and certainly before a document has been opened.
-    // Therefore, calling SetSelection() below is pointless at this early juncture.
-	//pApp->m_nStartChar = -1;
-	//pApp->m_nEndChar = -1;
-	//if (pApp->m_pTargetBox != NULL)
-	//{
-	//	pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); // select it all
-	//}
+    // whm 13Jul2018 removed SetSelection() 'select all' code from this location at
+    // end of OnInitialUpdate(). OnInitialUpdate() gets called from OnInit() very 
+    // early in the program startup process BEFORE the start working wizard runs 
+    // and certainly before a document has been opened.
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5
@@ -2903,25 +2897,9 @@ void CAdapt_ItView::FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSele
 	{
 		if (pApp->m_pTargetBox->IsShown())
 		{
-            // whm 3Aug2018 modified for latest protocol of only selecting all when
-            // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
-            // View menu's 'Select Copied Source' toggle menu item. 
-            int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
-            if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
-            {
-                // Never select phrasebox contents when there a > 1 items in list
-                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-            }
-            else
-            {
-                // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-                if (pApp->m_bSelectCopiedSource)
-                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select it all
-                else
-                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-            }
-            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-		}
+
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+        }
 	}
 
 	// recreate the selection to be in top line; we suppress this in places where another
@@ -3300,8 +3278,10 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 					// check for a failure, abandon the function if the store failed
 					if (!bOK)
 					{
-						// we must restore the box's selection to what it was
-						// earlier before returning
+						// We must restore the box's selection to what it was
+						// earlier before returning.
+                        // whm 13Aug2018 Note: The SetFocus() call here precedes the SetSelection, so
+                        // it should work OK on Linux/Mac.
 						pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
                         // whm 3Aug2018 Note: The following SetSelection should not be suppressed.
 						pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
@@ -6707,7 +6687,9 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	// with error 0x00000057 (the parameter is incorrect.)."
 	// It is annoying to see it appear in the output window but
 	// it is of unknown cause and apparently harmless.
-	pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+    // whm 13Aug2018 Note: The SetFocus() call here precedes the SetSelection, so
+    // it should work OK on Linux/Mac.
+    pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
     // whm 3Aug2018 Note: The following SetSelection() should not be suppressed
 	pApp->m_pTargetBox->GetTextCtrl()->SetSelection(nStartingChar,nEndingChar);
 	pApp->m_nStartChar = (int)nStartingChar;
@@ -6939,8 +6921,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 			len = pApp->m_targetPhrase.Length();
 			pApp->m_nStartChar = len;
 			pApp->m_nEndChar = len;
-			pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 		}
 	}
 
@@ -10913,7 +10894,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			// WX Note: There is no ::IsWindow() equivalent in wxWidgets
 			if (pApp->m_pTargetBox->GetHandle() != NULL)
 			{
-				pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                // whm 13Aug2018 Note: The SetFocus() call here precedes the SetSelection, so
+                // it should work OK on Linux/Mac.
+                pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
                 // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
                 // the SetSelection call below.
 				pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
@@ -11119,7 +11102,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		// WX Note: There is no ::IsWindow() equivalent in wxWidgets
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
 		{
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            // whm 13Aug2018 Note: The SetFocus() call here precedes the SetSelection, so
+            // it should work OK on Linux/Mac.
+            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
             // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
             // the SetSelection call below.
             pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
@@ -11151,7 +11136,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		RemoveSelection();
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
 		{
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            // whm 13Aug2018 Note: The SetFocus() call here precedes the SetSelection, so
+            // it should work OK on Linux/Mac.
+            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
             // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
             // the SetSelection call below.
             pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
@@ -11179,7 +11166,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		// WX Note: There is no ::IsWindow() equivalent in wxWidgets
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
 		{
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            // whm 13Aug2018 Note: The SetFocus() call here precedes the SetSelection, so
+            // it should work OK on Linux/Mac.
+            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
             // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
             // the SetSelection call below.
             pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
@@ -11211,7 +11200,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		RemoveSelection();
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
 		{
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            // whm 13Aug2018 Note: The SetFocus() call here precedes the SetSelection, so
+            // it should work OK on Linux/Mac.
+            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
             // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
             // the SetSelection call below.
             pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
@@ -11239,7 +11230,9 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		RemoveSelection();
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
 		{
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            // whm 13Aug2018 Note: The SetFocus() call here precedes the SetSelection, so
+            // it should work OK on Linux/Mac.
+            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
             // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
             // the SetSelection call below.
             pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
@@ -13068,9 +13061,13 @@ void CAdapt_ItView::OnCheckSingleStep(wxCommandEvent& WXUNUSED(event))
 	pApp->m_bSingleStep = pApp->m_bSingleStep == TRUE ? FALSE : TRUE;
 
 	// restore focus to the targetBox, if it is visible
-	if (pApp->m_pTargetBox != NULL)
-		if (pApp->m_pTargetBox->IsShown())
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+    if (pApp->m_pTargetBox != NULL)
+    {
+        if (pApp->m_pTargetBox->IsShown())
+        {
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+        }
+    }
 }
 
 void CAdapt_ItView::OnCheckForceAsk(wxCommandEvent& WXUNUSED(event))
@@ -13081,9 +13078,13 @@ void CAdapt_ItView::OnCheckForceAsk(wxCommandEvent& WXUNUSED(event))
 	pApp->m_bForceAsk = pApp->m_bForceAsk == TRUE ? FALSE : TRUE;
 
 	// restore focus to the targetBox, if it is visible
-	if (pApp->m_pTargetBox != NULL)
-		if (pApp->m_pTargetBox->IsShown())
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+    if (pApp->m_pTargetBox != NULL)
+    {
+        if (pApp->m_pTargetBox->IsShown())
+        {
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+        }
+    }
 }
 
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
@@ -13130,8 +13131,12 @@ void CAdapt_ItView::OnCopySource(wxCommandEvent& event)
 
     // restore focus to the targetBox, if it is visible
     if (pApp->m_pTargetBox != NULL)
+    {
         if (pApp->m_pTargetBox->IsShown())
-            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+        {
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+        }
+    }
 }
 
 /// whm added 2Aug2018 to handle Select Copied Source checkable menu item.
@@ -13184,28 +13189,15 @@ void CAdapt_ItView::OnSelectCopiedSource(wxCommandEvent& event)
 
     // Remove or restore any selection from phrasebox text where appropriate
     // based on the new value of pApp->m_bSelectCopiedSource.
-    int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
+    // The SetFocusAndSetSelectionAtLanding() function ensures that the
+    // SetFocus() call precedes the SetSelection(len,len) call.
     if (pApp->m_pTargetBox != NULL)
     {
-        if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
+        if (pApp->m_pTargetBox->IsShown())
         {
-            // Never select phrasebox contents when there a > 1 items in list
-            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
-        }
-        else
-        {
-            // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-            if (pApp->m_bSelectCopiedSource)
-                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select it all
-            else
-                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
         }
     }
-
-    // restore focus to the targetBox, if it is visible
-    if (pApp->m_pTargetBox != NULL)
-        if (pApp->m_pTargetBox->IsShown())
-            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 }
 
 // whm 2Aug2018 added
@@ -13393,9 +13385,13 @@ void CAdapt_ItView::OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// restore focus to the targetBox, if it is visible
-	if (pApp->m_pTargetBox != NULL)
-		if (pApp->m_pTargetBox->IsShown())
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+    if (pApp->m_pTargetBox != NULL)
+    {
+        if (pApp->m_pTargetBox->IsShown())
+        {
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+        }
+    }
 }
 
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
@@ -13475,9 +13471,13 @@ void CAdapt_ItView::OnUseSilConverter(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// restore focus to the targetBox, if it is visible
-	if (pApp->m_pTargetBox != NULL)
-		if (pApp->m_pTargetBox->IsShown())
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+    if (pApp->m_pTargetBox != NULL)
+    {
+        if (pApp->m_pTargetBox->IsShown())
+        {
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -13569,9 +13569,13 @@ void CAdapt_ItView::OnAcceptChanges(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// restore focus to the targetBox, if it is visible
-	if (pApp->m_pTargetBox != NULL)
-		if (pApp->m_pTargetBox->IsShown())
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+    if (pApp->m_pTargetBox != NULL)
+    {
+        if (pApp->m_pTargetBox->IsShown())
+        {
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+        }
+    }
 }
 
 // whm added 26Mar12. Disable mode bar control when read-only mode is active
@@ -13630,10 +13634,14 @@ void CAdapt_ItView::OnRadioDrafting(wxCommandEvent& event)
 	}
 
 	// restore focus to the targetBox, if it is visible
-	if (pApp->m_pTargetBox != NULL)
-		if (pApp->m_pTargetBox->IsShown())
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-	pApp->RefreshStatusBarInfo();
+    if (pApp->m_pTargetBox != NULL)
+    {
+        if (pApp->m_pTargetBox->IsShown())
+        {
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+        }
+    }
+    pApp->RefreshStatusBarInfo();
 }
 
 // whm added 26Mar12. Disable mode bar control when read-only mode is active
@@ -13692,10 +13700,14 @@ void CAdapt_ItView::OnRadioReviewing(wxCommandEvent& event)
 	}
 
 	// restore focus to the targetBox, if it is visible
-	if (pApp->m_pTargetBox != NULL)
-		if ((pApp->m_pTargetBox->IsShown()))
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-	pApp->RefreshStatusBarInfo();
+    if (pApp->m_pTargetBox != NULL)
+    {
+        if (pApp->m_pTargetBox->IsShown())
+        {
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+        }
+    }
+    pApp->RefreshStatusBarInfo();
 }
 
 void CAdapt_ItView::OnClearContentsButton(wxCommandEvent& WXUNUSED(event))
@@ -14916,7 +14928,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		str += _T("So this command will be ignored.\n");
 		wxMessageBox(str, _T(""), wxICON_EXCLAMATION | wxOK);
         pApp->m_pTargetBox->m_nWordsInPhrase = 0;
-		pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+		pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
 		return;
 	}
 
@@ -14967,8 +14979,8 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 "Sorry, the knowledge base does not yet have an entry matching this source text, so the Choose Translation dialog cannot be shown."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
         pApp->m_pTargetBox->m_nWordsInPhrase = 0;
-		pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-		return;
+        pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+        return;
 	}
 	else
 	{
@@ -15070,7 +15082,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
             pApp->m_pTargetBox->m_nWordsInPhrase = 0;
             pApp->pCurTargetUnit = (CTargetUnit*)NULL;
             pApp->m_pTargetBox->m_CurKey.Empty();
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 			return;
 		}
 
@@ -15095,7 +15107,8 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		// scroll into view, just in case a lot were inserted
 		pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
-		pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+        pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+
         // whm 19Feb2018 the m_Translation global is used in Layout's PlaceBox() call (called below)
         // by PopulateDropDownList(), so we must not clear it here, but after it is used there.
 		//pApp->m_pTargetBox->m_Translation.Empty(); // clear the globals
@@ -15338,9 +15351,13 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// restore focus to the targetBox, if it is visible
-	if (pApp->m_pTargetBox != NULL)
-		if (pApp->m_pTargetBox->IsShown())
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+    if (pApp->m_pTargetBox != NULL)
+    {
+        if (pApp->m_pTargetBox->IsShown())
+        {
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+        }
+    }
 
 	// BEW added 20May09, next line required in order to get * shown
 	GetLayout()->Redraw();
@@ -16997,11 +17014,8 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 			int len = pApp->m_targetPhrase.Length();
 			pApp->m_nStartChar = len;
 			pApp->m_nEndChar = len;
-            // whm 3Aug2018 Note: No suppression of any select all would be appropriate for 
-            // the SetSelection call below.
-            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-		}
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+        }
 	}
 
 	// BEW added 20May09, next line required in order to remove the selection
@@ -17189,7 +17203,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 									wxMessageBox(_(
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
 									_T(""), wxICON_EXCLAMATION | wxOK);
-									pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 									pApp->LogUserAction(_T("Go To command failed. No valid location for the phrase box..."));
 									goto b; // don't jump anywhere
 								}
@@ -17249,7 +17263,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 									wxMessageBox(_(
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
 									_T(""),wxICON_EXCLAMATION | wxOK);
-									pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 									pApp->LogUserAction(_T("Go To command failed. No valid location for the phrase box..."));
 									goto b; // don't jump anywhere
 								}
@@ -17311,7 +17325,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 									wxMessageBox(_(
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
 									_T(""), wxICON_EXCLAMATION | wxOK);
-									pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 									pApp->LogUserAction(_T("Go To command failed. No valid location for the phrase box..."));
 									goto b; // don't jump anywhere
 								}
@@ -17396,7 +17410,7 @@ f:					if (!gbIsGlossing)
 									wxMessageBox(_(
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
 									_T(""), wxICON_EXCLAMATION | wxOK);
-									pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 									pApp->LogUserAction(_T("Go To command failed. No valid location for the phrase box..."));
 									goto b; // don't jump anywhere
 								}
@@ -17437,7 +17451,7 @@ a:			str = str.Format(_(
 "Sorry, but the chapter and verse combination  %s  does not exist in this document. The command will be ignored."),
 			dlg.m_chapterVerse.c_str());
 			wxMessageBox(str,_T(""), wxICON_EXCLAMATION | wxOK);
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 			pApp->LogUserAction(str);
 			goto b;
 		}
@@ -21456,12 +21470,6 @@ bool CAdapt_ItView::IsUnstructuredData(SPList* pList)
 void CAdapt_ItView::OnSize(wxSizeEvent& event)
 {
  	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-
-    // whm added 10Jan2018 to support quick selection of a translation equivalent.
-    // To avoid the popup list leaving a ghost onscreen after a resize event, we dismiss
-    // the popup before calling event.Skip() below. Note: The Dismiss() method is not
-    // available in wx 2.8.12 so we conditional compile for that version.
-    //pApp->m_pTargetBox->CloseDropDown();
 
     // wx note: event.Skip() must be called here in order to pass the size event
     // on to be handled by the CMainFrame::OnSize() method.
@@ -26292,7 +26300,7 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
 	// get the restored layout and phrase box redrawn
-	pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 	Invalidate();
 	GetLayout()->PlaceBox();
 	InitializeEditRecord(*pRec);
@@ -28467,24 +28475,10 @@ bailout:	pAdaptList->Clear();
 		// old phrase box location should be valid, so put value back
 		pApp->m_targetPhrase = pRec->oldPhraseBoxText;
 		pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
-        // whm 3Aug2018 modified for latest protocol of only selecting all when
-        // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
-        // View menu's 'Select Copied Source' toggle menu item. 
-        int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
-        if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
-        {
-            // Never select phrasebox contents when there a > 1 items in list
-            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-        }
-        else
-        {
-            // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-            if (pApp->m_bSelectCopiedSource)
-                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select it all
-            else
-                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-        }
-		pApp->LogUserAction(_T("Cancelled from OnEditSourceText()"));
+
+        pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+
+        pApp->LogUserAction(_T("Cancelled from OnEditSourceText()"));
 	}
 #if defined(_DEBUG) && defined(CHECK_GEDITSTEP)
 	wxLogDebug(_T("OnEditSourceText() At N: gEditStep has value %d  (2 is adaptationsEditStep, 4 is freeTranslations...)"),
@@ -29127,8 +29121,6 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNu
 				if (pApp->m_pTargetBox != NULL && (pApp->m_pTargetBox->IsShown()))
 				{
 					str = thePhrase;
-					// set cursor offsets
-					int nStart = 0; int nEnd = 1;
 
 					// check out its case status
 					bNoError = pApp->GetDocument()->SetCaseParameters(str, FALSE); // FALSE is value for bIsSrcText
@@ -29141,28 +29133,8 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNu
 						pApp->m_pTargetBox->Refresh();
 						thePhrase = str;
 
-						// fix the cursor location, make it selected
-                        // whm 3Aug2018 Note: The nStart value was set to 0 above, and
-                        // the line below sets it to the length of the string, so effectively
-                        // this selects all. So, I've modified it for latest protocol of 
-                        // only selecting all when user has set App's m_bSelectCopiedSource 
-                        // var to TRUE by ticking the View menu's 'Select Copied Source' 
-                        // toggle menu item. 
-						nEnd = (int)str.Length();
-                        if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
-                        {
-                            // Never select phrasebox contents when there a > 1 items in list
-                            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(nEnd,nEnd); // here nEnd is length of string
-                        }
-                        else
-                        {
-                            // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-                            if (pApp->m_bSelectCopiedSource)
-                                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(nStart,nEnd); // select it all
-                            else
-                                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(nEnd,nEnd);
-                        }
-					}
+                        pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+                    }
 				}
 			}
 		}
@@ -30400,10 +30372,14 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
 	pApp->m_pTargetBox->m_bAbandonable = FALSE; // we assume the new
 												// contents are wanted
 	// restore focus to the targetBox, if it is visible
-	if (pApp->m_pTargetBox != NULL)
-		if (pApp->m_pTargetBox->IsShown())
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-	Invalidate();
+    if (pApp->m_pTargetBox != NULL)
+    {
+        if (pApp->m_pTargetBox->IsShown())
+        {
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+        }
+    }
+    Invalidate();
 	GetLayout()->PlaceBox();
 }
 
@@ -31134,9 +31110,13 @@ void CAdapt_ItView::OnAdvancedUseTransliterationMode(wxCommandEvent& event)
 	pApp->RefreshStatusBarInfo();
 
 	// restore focus to the phrase box (free translations cannot be on for this mode)
-	if (pApp->m_pTargetBox != NULL)
-		if (pApp->m_pTargetBox->IsShown())
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+    if (pApp->m_pTargetBox != NULL)
+    {
+        if (pApp->m_pTargetBox->IsShown())
+        {
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -31497,7 +31477,7 @@ void CAdapt_ItView::OnButtonUndoLastCopy(wxCommandEvent& WXUNUSED(event))
 		{
 			if (pApp->m_pTargetBox->IsShown())
 			{
-				pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 				pApp->m_pTargetBox->m_bAbandonable = FALSE;
 			}
 		}
@@ -31807,10 +31787,14 @@ void CAdapt_ItView::ShowGlosses()
 	pApp->m_pTargetBox->m_bAbandonable = FALSE; // we assume the new contents are wanted
 
 	// restore focus to the targetBox, if it is visible
-	if (pApp->m_pTargetBox != NULL)
-		if (pApp->m_pTargetBox->IsShown())
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-	Invalidate();
+    if (pApp->m_pTargetBox != NULL)
+    {
+        if (pApp->m_pTargetBox->IsShown())
+        {
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+        }
+    }
+    Invalidate();
 	GetLayout()->PlaceBox();
 }
 

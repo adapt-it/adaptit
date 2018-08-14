@@ -2010,25 +2010,8 @@ a:			CCell* pCell = 0;
 			{
 				if (gpApp->m_pTargetBox->IsShown())
 				{
-                    // whm 3Aug2018 modified for latest protocol of only selecting all when
-                    // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
-                    // View menu's 'Select Copied Source' toggle menu item. 
-                    int len = gpApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
-                    if (gpApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
-                    {
-                        // Never select phrasebox contents when there a > 1 items in list
-                        gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-                    }
-                    else
-                    {
-                        // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-                        if (gpApp->m_bSelectCopiedSource)
-                            gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select it all
-                        else
-                            gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-                    }
-					gpApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-				}
+                    gpApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                }
 			}
 
 			// recreate the selection to be in line 1, hence ignoring boundary flags

@@ -2370,12 +2370,12 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
     docName = pApp->m_curOutputFilename;
     docPath = pApp->m_curOutputPath;
 
-//    bool bOK = OnOpenDocument (docPath, false);  -- for some reason this bounces back without doing anything.  But calling it
-//  indirectly seems to work...
+    //bool bOK = OnOpenDocument (docPath, false);  -- for some reason this bounces back without doing anything.  But calling it
+    //indirectly seems to work...
 
     if (!CallOpenDocument (docPath))  return FALSE;
 
-// put the focus in the phrase box, after any text
+    // put the focus in the phrase box, after any text
     if (pApp->m_pTargetBox->GetHandle() != NULL && !pApp->m_targetPhrase.IsEmpty()
         && (pApp->m_pTargetBox->IsShown()))
     {
@@ -2383,7 +2383,7 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
         // for our phrasebox
         pApp->m_nStartChar = len;
         pApp->m_nEndChar = len;
-        pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+        pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
     }
     else
     {
@@ -2391,7 +2391,7 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
         {
             pApp->m_nStartChar = 0;
             pApp->m_nEndChar = 0;
-            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
         }
     }
 
