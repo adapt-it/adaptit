@@ -919,8 +919,9 @@ bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pVi
 		wxMessageBox(_(
 "Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),
 						_T(""), wxICON_INFORMATION | wxOK);
-		GetLayout()->m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-		// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
+        gpApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+                                                                
+        // if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
 		wxCommandEvent event;
 		if (!GetLayout()->m_pApp->m_bCopySourcePunctuation)
 		{
@@ -3263,7 +3264,8 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
 				pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-				this->GetTextCtrl()->SetFocus();
+
+                pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
 
 			}
             m_Translation.Empty(); // clear the static string storage for the translation
@@ -4649,8 +4651,8 @@ bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
 			{
 				// we are about to try to move back into the gray text area before the edit span, disallow
 				::wxBell();
-                this->GetTextCtrl()->SetFocus();
-				pLayout->m_docEditOperationType = no_edit_op;
+                pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+                pLayout->m_docEditOperationType = no_edit_op;
 				return FALSE;
 			}
 		}
@@ -4662,8 +4664,8 @@ bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
                 // trans span, disallow (I don't think we can invoke this function from
                 // within free translation mode, but no harm to play safe)
 				::wxBell();
-                this->GetTextCtrl()->SetFocus();
-				pLayout->m_docEditOperationType = no_edit_op;
+                pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+                pLayout->m_docEditOperationType = no_edit_op;
 				return FALSE;
 			}
 		}
@@ -4674,8 +4676,8 @@ bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
 		wxMessageBox(_(
 "You are already at the start of the file, so it is not possible to move back any further."),
 		_T(""), wxICON_INFORMATION | wxOK);
-        this->GetTextCtrl()->SetFocus();
-		pLayout->m_docEditOperationType = no_edit_op;
+        pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+        pLayout->m_docEditOperationType = no_edit_op;
 		return FALSE;
 	}
 	bool bOK;
@@ -4691,8 +4693,8 @@ bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
 			wxMessageBox(_(
 "To edit or remove a retranslation you must use the toolbar buttons for those operations."),
 			_T(""), wxICON_INFORMATION | wxOK);
-            this->GetTextCtrl()->SetFocus();
-			pLayout->m_docEditOperationType = no_edit_op;
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+            pLayout->m_docEditOperationType = no_edit_op;
 			return FALSE;
 		}
 	}
@@ -5045,8 +5047,8 @@ bool CPhraseBox::MoveToImmedNextPile(CPile *pCurPile)
 			//wxMessageBox(_(
             //"Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),
 			//_T(""), wxICON_INFORMATION | wxOK);
-            this->GetTextCtrl()->SetFocus();
-			GetLayout()->m_docEditOperationType = no_edit_op;
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+            GetLayout()->m_docEditOperationType = no_edit_op;
 			return FALSE;
 		}
 	}
@@ -5404,28 +5406,16 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 			pView->MergeWords();
 			GetLayout()->m_docEditOperationType = merge_op;
 
-			// select the lot
             // whm 3Aug2018 modified for latest protocol of only selecting all when
             // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
             // View menu's 'Select Copied Source' toggle menu item. 
             int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
-            if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
-            {
-                // Never select phrasebox contents when there a > 1 items in list
-                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-            }
-            else
-            {
-                // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-                if (pApp->m_bSelectCopiedSource)
-                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // select it all
-                else
-                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-            }
-			pApp->m_nStartChar = -1;
-			pApp->m_nEndChar = -1;
+ 			pApp->m_nStartChar = len;
+			pApp->m_nEndChar = len;
 
-			// set old sequ number in case required for toolbar's Back button - in this case
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+
+            // set old sequ number in case required for toolbar's Back button - in this case
 			// it may have been a location which no longer exists because it was absorbed in
 			// the merge, so set it to the merged phrase itself
             pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
@@ -5458,10 +5448,14 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 			wxMessageBox(_("Transliteration mode is not yet turned on."),_T(""),wxICON_EXCLAMATION | wxOK);
 
 			// restore focus to the phrase box
-			if (pApp->m_pTargetBox != NULL)
-				if (pApp->m_pTargetBox->IsShown())
-                    this->GetTextCtrl()->SetFocus();
-			return;
+            if (pApp->m_pTargetBox != NULL)
+            {
+                if (pApp->m_pTargetBox->IsShown())
+                {
+                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                }
+            }
+            return;
 		}
 
 		// ALT key is down, if an arrow key pressed, extend/retract sel'n left or right
@@ -5489,6 +5483,8 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 					wxMessageBox(_("Sorry, you cannot extend the selection that far to the right unless you also use one of the techniques for ignoring boundaries."),_T(""), wxICON_INFORMATION | wxOK);
 				}
 			}
+            // whm 13Aug2018 Note: SetFocus() is correctly placed before the SetSelection(nStart,nEnd) 
+            // call below.
             this->GetTextCtrl()->SetFocus();
             // whm 3Aug2018 Note: Below the previous selection is being restored,
             // so no adjustment made for 'Select Copied Source'
@@ -5515,6 +5511,8 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 					wxMessageBox(_("Sorry, you cannot extend the selection that far to the left unless you also use one of the techniques for ignoring boundaries. "), _T(""), wxICON_INFORMATION | wxOK);
 				}
 			}
+            // whm 13Aug2018 Note: SetFocus() is correctly placed before the SetSelection(nStart,nEnd) 
+            // call below.
             this->GetTextCtrl()->SetFocus();
             // whm 3Aug2018 Note: Below the previous selection is being restored,
             // so no adjustment made for 'Select Copied Source'
@@ -5746,6 +5744,8 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
             return;
             
             // restore cursor location when done
+            // whm 13Aug2018 Note: SetFocus() is correctly placed before the 
+            // SetSelection(pApp->m_nStartChar, pApp->m_nEndChar) call below.
         c:	this->GetTextCtrl()->SetFocus();
             // whm 3Aug2018 Note: Below the previous selection is being restored,
             // so no adjustment made for 'Select Copied Source'
@@ -5831,6 +5831,8 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
             return;
             
             // restore cursor location when done
+            // whm 13Aug2018 Note: SetFocus() is correctly placed before the 
+            // SetSelection(pApp->m_nStartChar, pApp->m_nEndChar) call below.
         d:	this->GetTextCtrl()->SetFocus();
             // whm 3Aug2018 Note: Below the previous selection is being restored,
             // so no adjustment made for 'Select Copied Source'
@@ -5965,8 +5967,12 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 
             // restore focus to the phrase box
             if (pApp->m_pTargetBox != NULL)
+            {
                 if (pApp->m_pTargetBox->IsShown())
-                    this->GetTextCtrl()->SetFocus();
+                {
+                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                }
+            }
             return; // whm 16Feb2018 added 
         }
     }
@@ -6342,11 +6348,11 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			RestorePhraseBoxAtDocEndSafely(pApp, pView);  // BEW added 8Sep14
 
 		} // end of TRUE block for test: if (pApp->m_pActivePile == NULL || pApp->m_nActiveSequNum == -1)
-
 		else // we have a non-null active pile defined, and sequence number >= 0
 		{
-            this->GetTextCtrl()->SetFocus();
-			pLayout->m_docEditOperationType = no_edit_op; // is this correct for here?
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+
+            pLayout->m_docEditOperationType = no_edit_op; // is this correct for here?
 		}
 
 		// BEW 21May15, this is the second of three places in OnePass() where a Thaw() call
@@ -6496,20 +6502,21 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 	wxString transln = pTheSrcPhrase->m_adaption;
 	pApp->m_targetPhrase = transln;
     this->GetTextCtrl()->ChangeValue(transln);
-	int length = transln.Len();
-    // whm 3Aug2018 Note: Below no 'select all' involved so no adjustment made.
-    this->GetTextCtrl()->SetSelection(length,length);
 	pApp->m_bAutoInsert = FALSE; // ensure we halt for user to type translation
 #ifdef _NEW_LAYOUT
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
-	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+
+    pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+    // whm 13Aug2018 reordered code here so that SetFocus() precedes the
+    // SetSelection(length, length) call.
     this->GetTextCtrl()->SetFocus();
-	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-    this->GetTextCtrl()->SetFocus();
-	pLayout->m_docEditOperationType = no_edit_op;
+    int length = transln.Len();
+    // whm 3Aug2018 Note: Below no 'select all' involved so no adjustment made.
+    this->GetTextCtrl()->SetSelection(length, length);
+    pLayout->m_docEditOperationType = no_edit_op;
 
 	pView->Invalidate();
 	pLayout->PlaceBox();
@@ -7350,7 +7357,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     //        automatically copied into the edit box/phrasebox. 
     //        Otherwise, when nRefStrCount > 1, we set the App's m_bChooseTransInitializePopup flag to TRUE
     //        to cause the dropdown box to initially appear in an open state.
-    //    4e. If the bNoAdaptationFlagPresent == TRUE we ensure the following (see and cf. 2f, 2g, 2h below): 
+    //    4e. If the bNoAdaptationFlagPresent == TRUE we ensure the following (see and cf. 4f, 4g, 4h below): 
     //          When nRefStrCount == 1, that ref String must be an empty string, i.e., represented as
     //            "<no adaptation" as the single list item (with indexOfNoAdaptation == 0). 
     //            Here we avoid calling SetSelection() in this case to avoid the unwanted side effect of 
@@ -7600,7 +7607,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     // spurious PlaceBox() calls where it may not be empty.
                     //wxASSERT(pApp->m_targetPhrase.IsEmpty());
                     this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
-                    this->GetTextCtrl()->SetFocus();
+                    //this->GetTextCtrl()->SetFocus(); // handled below in SetFocusAndSetSelectionAtLanding()
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE  block for if (nRefStrCount == 1)"), _T("PhraseBox.cpp"), 6195);
 #endif
@@ -7767,7 +7774,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 
                 //We should be able to put it in the m_pTargetBox here.
                 this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
-                this->GetTextCtrl()->SetFocus();
+                //this->GetTextCtrl()->SetFocus(); // handled below in SetFocusAndSetSelectionAtLanding()
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 				pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end of block for nRefStrCount == 0"), _T("PhraseBox.cpp"), 6348);
 #endif
@@ -7792,25 +7799,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             // end of SetupDropDownPhraseBoxForThisLocation(). See below.
 
         }
-        // whm added 3Aug2018 new protocol, that only selects the copied source
-        // at the user's optional choice via the View menu's 'Select Copied Source' toggle
-        // menu item - as indicated by the App's m_bSelectCopiedSource and stored within 
-        // the project config file. This protocol applies to both the if (!bRemovedAdaptionReadyForInserting) 
-        // block (nRefCount == 0), and else block (Append) above.
-        int len = (int)pApp->m_targetPhrase.Length();
-        if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
-        {
-            // Never select phrasebox contents when there a > 1 items in list
-            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-        }
-        else
-        {
-            // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-            if (pApp->m_bSelectCopiedSource)
-                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1, -1); // select it all
-            else
-                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-        }
+        pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
 
         // Clear the current target unit pointer
         pApp->pCurTargetUnit = (CTargetUnit*)NULL; // clear the target unit in this nRefStrCount == 0 block too.
@@ -8178,32 +8167,31 @@ void CPhraseBox::OnTogglePhraseBoxButton(wxCommandEvent & WXUNUSED(event))
     // we get to control focus. When the new phrasebox button is clicked, it
     // grabs the focus, so we need to explicitly put the focus back to the
     // phrasebox's edit box whenever the dropdown button is toggled.
+    // The focus is restored and proper selections done in the 
+    // SetFocusAndSetSelectionAtLanding() call at the end of this function
+
     if (pApp->m_pTargetBox->GetDropDownList()->IsShown())
     {
         pApp->m_pTargetBox->GetDropDownList()->Hide();
-        // When hiding the list, put focus into the phrasebox's edit box
-        pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
     }
     else
     {
         if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
         {
             pApp->m_pTargetBox->GetDropDownList()->Show();
-            // When showing the list, we initially put focus into the phrasebox's 
-            // edit box. Within the phrasebox we detect any navigation key presses
-            // that are intended to move the list highlight and make actual selections
-            // from the list - such as WXK_DOWN and WXK_UP. 
-            // In any case, even with the list open, our focus whould be kept
-            // on the phrasebox's edit box
-            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
         }
         else
         {
             pApp->m_pTargetBox->GetDropDownList()->Hide();
-            // When hiding the list, put focus into the phrasebox's edit box
-            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
         }
     }
+    // When showing the list, we initially put focus into the phrasebox's 
+    // edit box. Within the phrasebox we detect any navigation key presses
+    // that are intended to move the list highlight and make actual selections
+    // from the list - such as WXK_DOWN and WXK_UP. 
+    // In any case, whether the list open or closed, our focus whould be kept
+    // in the phrasebox's edit box
+    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
 }
 
 // whm 12Jul2018 Note: The event for this PhraseBox dropdown list handler is 
@@ -8235,27 +8223,6 @@ void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & WXUNUSED(event))
     // whm 15Jul2018 added following flag settings to get selected string to stick
     gpApp->m_bUserTypedSomething = TRUE;
 
-    // BEW addedd 30Jun18 - to support AuSIL request for cursor at end
-    // whm 12Jul2018 removed custom event and re-instated SetSelection(len,len) here
-    // which now works as intended.
-    int len = this->GetTextCtrl()->GetValue().Length();
-    // whm 3Aug2018 modified for latest protocol of only selecting all when
-    // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
-    // View menu's 'Select Copied Source' toggle menu item. 
-    if (gpApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
-    {
-        // Never select phrasebox contents when there a > 1 items in list
-        gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-    }
-    else
-    {
-        // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-        if (gpApp->m_bSelectCopiedSource)
-            gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select it all
-        else
-            gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-    }
-
     // whm 13Jul2018 added. The new phrasebox's list doesn't automatically closed upon
     // making a selection, so we do it here, and ensure focus is in the edit box.
     this->CloseDropDown();
@@ -8265,13 +8232,7 @@ void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & WXUNUSED(event))
 	gpApp->GetDocument()->ResetPartnerPileWidth(gpApp->m_pActivePile->GetSrcPhrase());
 	gpApp->GetLayout()->RecalcLayout(gpApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
 
-    this->GetTextCtrl()->SetFocus();
-
-    // whm 12Jul2018 The following custom event is no longer needed:
-    //wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
-    //wxPostEvent(gpApp->GetMainFrame(), eventCursorToEnd);
-
-
+    gpApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
 }
 
 /*
@@ -8555,6 +8516,7 @@ void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event))
 			m_backspaceUndoStr.Empty(); // clear, so it can't be mistakenly undone again
 
 			// fix the cursor location
+            // whm 13Aug2018 TODO: Make code below conform to new selection protocol.
 			if (bRestoringAll)
 			{
 				pApp->m_nStartChar = -1;
@@ -8884,3 +8846,46 @@ void CPhraseBox::SetButtonBitMapXDisabled()
     this->GetPhraseBoxButton()->SetPosition(currPosn);
 }
 
+
+// whm 13Aug2018 added. This SetFocusAndSetSelectionAtLanding() function encapsulates
+// the current protocol adopted as of version 6.9.1 that specifies the phrasebox 
+// should be in focus, but its text should not have any initial selection at landing
+// and the edit insertion point should be at the END of the text. The new protocol allows
+// for an exception; the user has the option of having all text selected, but only if the 
+// phrasebox's dropdown list has 0 or 1 items (i.e., the 'Copy Source' menu item is 
+// toggled TRUE), AND the user has ticked the 'Select Copied Source' toggle menu, 
+// toggleing it to TRUE. 
+// This function also ensures that SetFocus() is called BEFORE SetSelection(len,len) to
+// avoid the Linux/Mac version's apparent default of selecting all text in the edit box
+// when the SetFocus() call follows a SetSelection(len,len) call - nullifying the effect
+// of the SetSelection(len,len) call on the non-Windows platforms.
+//
+// NOTE: This function should NOT be called for situations in which the phrasebox has
+// previously landed and an editing operation is in progress within the phrasebox, and
+// a previously made text selection must be preserved. That is, DO NOT USE this function
+// when the SetSelection() call utilizes the App's m_nStartChar and m_nEndChar values 
+// as in GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar).
+void CPhraseBox::SetFocusAndSetSelectionAtLanding()
+{
+    // whm 13Aug2018 Ensure SetFocus() called before SetSelection, otherwise 
+    // Linux/Mac versions select all text when SetFocus() is called after SetSelection.
+    this->GetTextCtrl()->SetFocus();
+    // whm 3Aug2018 modified for latest protocol of only selecting all when
+    // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+    // View menu's 'Select Copied Source' toggle menu item. 
+    int len = this->GetTextCtrl()->GetValue().Length();
+    if (this->GetDropDownList()->GetCount() > 1)
+    {
+        // Never select phrasebox contents when there a > 1 items in list.
+        // Set insertion point at end of text.
+        this->GetTextCtrl()->SetSelection(len, len);
+    }
+    else
+    {
+        // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
+        if (gpApp->m_bSelectCopiedSource)
+            this->GetTextCtrl()->SetSelection(-1, -1); // select it all
+        else
+            this->GetTextCtrl()->SetSelection(len, len); // Set insertion point at end of text.
+    }
+}

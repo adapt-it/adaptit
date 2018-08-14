@@ -47,7 +47,7 @@ class CPhraseBox : public wxTextCtrl
 public:
 	CPhraseBox(void); // wx needs the explicit constructor here
 
-    // whm 11Jul18 this constructor uses the wxDesigner resource PhraseBoxDropDownFunc()
+    // whm 11Jul18 this constructor only creates the edit box part of the phrasebox, see App's DoCreatePhraseBox()
     CPhraseBox(
         wxWindow *parent, 
         wxWindowID id, 
@@ -118,6 +118,7 @@ public:
     // now in CAdapt_ItCanvas::OnTogglePhraseBoxButton()
     void SetButtonBitMapNormal();
     void SetButtonBitMapXDisabled();
+    void SetFocusAndSetSelectionAtLanding();
 
 protected:
 	bool CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, CPile* pNextEmptyPile,

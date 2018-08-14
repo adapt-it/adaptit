@@ -1094,6 +1094,12 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 
 			return; // wxExit(msg); whm modified 27May11
 		}
+
+        /*
+        // whm 13Aug2018 removed block below. The OnOpenDocument() call above internally
+        // calls PlaceBox() from within PlacePhraseBox() which takes care of SetFocus() 
+        // calls and SetSelection(len,len) calls.
+
 		// If we're going to recover the document, we skip this bit since it would probably crash!
 		// We can't just bail out since we need to take down the wizard properly
         if (!pApp->m_recovery_pending)                                          
@@ -1125,6 +1131,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
                 }
             }
 		}
+        */
 
     // close off the wizard:
 		pStartWorkingWizard->EndModal(1);   // mrh - need this on Mac/Cocoa.  On Linux apparently Show(FALSE) automatically calls

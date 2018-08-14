@@ -964,10 +964,12 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 				{
 					if (pApp->m_pTargetBox->IsShown())
 					{
-                        // whm 3Aug2018 Note: I think the SetSelection here restores any existing selection
+                        // whm 3Aug2018 Note: The SetSelection here restores any existing selection
                         // so it should be allowed to stand as is.
-						pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+                        // whm 13Aug2018 modified to call SetFocus() before the SetSelection() call below.
+                        // Otherwise, if SetFocus() is called last, the Linux/Mac versions do a select all.
 						pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+						pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 					}
 				}
 y:				; // I may put some code here later
@@ -1019,10 +1021,12 @@ y:				; // I may put some code here later
 					{
 						if (pApp->m_pTargetBox->IsShown())
 						{
-                            // whm 3Aug2018 Note: I think the SetSelection here restores any existing selection
+                            // whm 3Aug2018 Note: The SetSelection here restores any existing selection
                             // so it should be allowed to stand as is.
-                            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+                            // whm 13Aug2018 modified to call SetFocus() before the SetSelection() call below.
+                            // Otherwise, if SetFocus() is called last, the Linux/Mac versions do a select all.
 							pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 						}
 					}
 					gbJustReplaced = FALSE; // clear to default value
@@ -1126,10 +1130,12 @@ x:					CCell* pCell = 0;
 					{
 						if (pApp->m_pTargetBox->IsShown())
 						{
-                            // whm 3Aug2018 Note: I think the SetSelection here restores any existing selection
+                            // whm 3Aug2018 Note: The SetSelection here restores any existing selection
                             // so it should be allowed to stand as is.
+                            // whm 13Aug2018 modified to call SetFocus() before the SetSelection() call below.
+                            // Otherwise, if SetFocus() is called last, the Linux/Mac versions do a select all.
+                            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
                             pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
-							pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
 						}
 					}
 					gbHaltedAtBoundary = FALSE;
@@ -1190,8 +1196,8 @@ x:					CCell* pCell = 0;
 					wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
-					pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-					return;
+                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                    return;
 				}
 				else
 				{
@@ -1213,8 +1219,8 @@ x:					CCell* pCell = 0;
 					wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
-					pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-					return;
+                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                    return;
 				}
 				else
 				{
@@ -1237,8 +1243,8 @@ x:					CCell* pCell = 0;
 					wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
-					pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-					return;
+                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                    return;
 				}
 				else
 				{
@@ -1616,9 +1622,13 @@ x:					CCell* pCell = 0;
 	"Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),_T(""),
 							wxICON_INFORMATION | wxOK);
 							// put the focus back in the former place
-							if (pApp->m_pTargetBox != NULL)
-								if (pApp->m_pTargetBox->IsShown())
-									pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                            if (pApp->m_pTargetBox != NULL)
+                            {
+                                if (pApp->m_pTargetBox->IsShown())
+                                {
+                                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                                }
+                            }
 							return;
 						}
 					}
@@ -1926,22 +1936,10 @@ x:					CCell* pCell = 0;
                         // whm 3Aug2018 modified for latest protocol of only selecting all when
                         // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
                         // View menu's 'Select Copied Source' toggle menu item. 
-                        long len = (long)pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
                         if (pApp->m_pTargetBox != NULL)
                         {
-                            if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
-                            {
-                                // Never select phrasebox contents when there a > 1 items in list
-                                pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-                            }
-                            else
-                            {
-                                // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-                                if (pApp->m_bSelectCopiedSource)
-                                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select it all
-                                else
-                                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-                            }
+
+                            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
                         }
 
                         ScrollIntoView(pApp->m_nActiveSequNum);

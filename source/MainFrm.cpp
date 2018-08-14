@@ -3932,10 +3932,14 @@ void CMainFrame::OnViewModeBar(wxCommandEvent& WXUNUSED(event))
 		{
 			// the bar has just been made invisible
 			// restore focus to the targetBox, if it is visible
-			if (gpApp->m_pTargetBox != NULL)
-				if (gpApp->m_pTargetBox->IsShown())
-					gpApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-		}
+            if (gpApp->m_pTargetBox != NULL)
+            {
+                if (gpApp->m_pTargetBox->IsShown())
+                {
+                    gpApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                }
+            }
+        }
 	}
 }
 
@@ -4077,10 +4081,14 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			gpApp->m_bComposeBarWasAskedForFromViewMenu = FALSE; // needed for free translation mode
 
 			// restore focus to the targetBox, if it is visible (moved here by BEW on 18Oct06)
-			if (pApp->m_pTargetBox != NULL)
-				if (pApp->m_pTargetBox->IsShown()) // MFC could use BOOL IsWindowVisible() here
-					pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-		}
+            if (pApp->m_pTargetBox != NULL)
+            {
+                if (pApp->m_pTargetBox->IsShown())
+                {
+                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                }
+            }
+        }
 		else
 		{
             // the bar is visible, so set the font - normally m_pComposeFont will preserve
@@ -4225,9 +4233,13 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 			}
 		}
 		// restore focus to the targetBox, if it is visible
-		if (pApp->m_pTargetBox != NULL)
-			if (pApp->m_pTargetBox->IsShown())
-				pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+        if (pApp->m_pTargetBox != NULL)
+        {
+            if (pApp->m_pTargetBox->IsShown())
+            {
+                pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+            }
+        }
 	}
 	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
 	// otherwise strange behavior may occur.
@@ -4561,23 +4573,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
             // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
             // View menu's 'Select Copied Source' toggle menu item. 
             int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
-            pApp->m_nEndChar = -1;
-            pApp->m_nStartChar = -1;
+            pApp->m_nEndChar = len;
+            pApp->m_nStartChar = len;
             if (pApp->m_pTargetBox != NULL)
             {
-                if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
-                {
-                    // Never select phrasebox contents when there a > 1 items in list
-                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-                }
-                else
-                {
-                    // Only select all if user has ticked the View menu's 'Select Copied Source' toggle menu item.
-                    if (pApp->m_bSelectCopiedSource)
-                        pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); // select it all
-                    else
-                        pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-                }
+                pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
             }
 			pApp->m_bStartViaWizard = FALSE; // suppress this code from now on
 		}
@@ -5068,6 +5068,103 @@ void CMainFrame::OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event))
 }
 #endif
 
+// BEW added 30July18, this is the handler which OnIdle() uses
+// to effect a widening or contracting of the phrasebox width when
+// user editing actions in the phrasebox result in the flag
+// m_bUpdatePhraseBoxWidth being set TRUE; the last task of this
+// handler is to clear the flag back to FALSE (In legacy versions,
+// a function called FixBox() was used to do similar work.)
+bool CMainFrame::DoPhraseBoxWidthUpdate()
+{
+	bool bSuccess = TRUE;
+
+	// The following code is copied in toto from the end of PlacePhraseBox()
+	// except that the comments are minimized, for full comments see that
+	// function.
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = pApp->GetLayout();
+	CAdapt_ItView* pView = pApp->GetView();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	enum phraseBoxWidthAdjustMode boxMode = pLayout->m_boxMode;
+
+	// mark invalid the strip following the new active strip
+	if (pApp->m_nActiveSequNum != -1)
+	{
+		CPile* pile = pView->GetPile(pApp->m_nActiveSequNum);
+		wxASSERT(pile != NULL);
+		int stripIndex = pile->GetStripIndex();
+		if (stripIndex < (int)pLayout->GetStripArray()->GetCount() - 1)
+		{
+			stripIndex++;
+			CStrip* pStrip = pLayout->GetStripByIndex(stripIndex);
+			int stripWidth = pStrip->Width();
+			int freeS = pStrip->GetFree();
+			if (freeS > stripWidth / 4)
+			{
+				// BEW changed 20Jan11, we want only unique indices in the array
+				AddUniqueInt(pLayout->GetInvalidStripArray(), stripIndex);
+			}
+		}
+	}
+	// Renew the layout
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles, boxMode);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles, boxMode);
+#endif
+	// update the active pile pointer 
+	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+	wxASSERT(pApp->m_pActivePile);
+	CSourcePhrase* pSPhr = pApp->m_pActivePile->GetSrcPhrase();
+	if (pSPhr != NULL)
+	{
+		pDoc->ResetPartnerPileWidth(pSPhr);
+	}
+	pApp->m_pTargetBox->m_bCompletedMergeAndMove = FALSE;
+	pApp->m_bIsGuess = FALSE;
+
+	//pLayout->m_docEditOperationType = relocate_box_op; no, better is to keep the cursor where it is
+
+	// BEW 31Jul18, next four lines added so we can get a value into the global gnBoxCursorOffset,
+	// which the target_box_paste_op will cause to be used by SetCursorGlobals, to keep the cursor
+	// where it is while the deletions are being done; as the switch in PlaceBox calls
+	// SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_offset, gnBoxCursorOffset); to do the
+	// job and so gnBoxCursorOffset must first be correctly set
+	long from;
+	long to;
+	pApp->m_pTargetBox->GetSelection(&from, &to);
+	gnBoxCursorOffset = (int)from;
+	pLayout->m_docEditOperationType = target_box_paste_op;
+
+	pApp->GetView()->Invalidate();
+    // whm 6Aug2018 remove BEW's pLayout->PlaceBox() call below which causes the truncation of the
+    // phrasebox text. PlaceBox() should not be called while editing characters within the phrasebox!!
+    // From the comment above, I suspect the logic of this DoPhraseBoxWidthUpdate() needs a review
+    // 
+	//pLayout->PlaceBox();
+	//pApp->m_pTargetBox->InitializeComboLandingParams();
+	pApp->m_nCacheLeavingLocation = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+	pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // re-initialize
+	int a = pApp->GetLayout()->m_curBoxWidth;
+	int b = pApp->GetLayout()->m_curListWidth;
+	int max = ::wxMax(a, b);
+	int pileGap = pApp->GetLayout()->GetGapWidth();
+	if ((pApp->m_pActivePile->GetPhraseBoxGapWidth() < max) || (pApp->m_pActivePile->GetPhraseBoxGapWidth() > (max + pileGap)))
+	{
+		// the gap for the phrase box needs widening in order to avoid encroachment on next pile
+		pApp->m_pActivePile->SetPhraseBoxGapWidth(max + pileGap); // + pileGap to avoid a "crowded look" for the adjacent piles
+		pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
+		pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
+	}
+    // whm 13Aug2018 Note: SetFocus() call below is correctly set before the 
+    // SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar) call below.
+	gpApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+
+	// Restore the selection, or caret location
+    // whm 3Aug2018 Note: No suppression of 'select all' needed for the call below.
+	gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar);
+	return bSuccess;
+}
 
 // whm Note: this and following custom event handlers are in the View in the MFC version
 //
@@ -8584,8 +8681,9 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	{
 		if (pApp->m_pTargetBox->IsShown())
 		{
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+
+            pApp->m_pTargetBox->m_bAbandonable = FALSE;
 		}
 	}
 	pView->Invalidate(); // whm: Why call Invalidate here? (Because the text

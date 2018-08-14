@@ -2016,7 +2016,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 					  // and so deleting them would destroy part of the document;
 					  // similarly in other places below in this function
 		pList = (SPList*)NULL;
-		m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+        // whm 13Aug2018 Note: The SetFocus() correctly precedes the 
+        // SetSelection(m_pApp->m_nStartChar, m_pApp->m_nEndChar) call below it.
+        m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
         // whm 3Aug2018 Note: The following SetSelection() call restores a previous selection,
         // so no adjustment made here for 'Select Copied Source' protocol.
 		m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(m_pApp->m_nStartChar,m_pApp->m_nEndChar);
@@ -2037,7 +2039,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			delete pList;
 		pList = (SPList*)NULL;
 		m_pView->RemoveSelection();
-		m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+        // whm 13Aug2018 Note: The SetFocus() correctly precedes the 
+        // SetSelection(m_pApp->m_nStartChar, m_pApp->m_nEndChar) call below it.
+        m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
         // whm 3Aug2018 Note: The following SetSelection() call restores a previous selection,
         // so no adjustment made here for 'Select Copied Source' protocol.
         m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(m_pApp->m_nStartChar,m_pApp->m_nEndChar);
@@ -4268,10 +4272,10 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			int length = m_pApp->m_targetPhrase.Length();
 			m_pApp->m_nStartChar = length;
 			m_pApp->m_nEndChar = length;
-            // whm 3Aug2018 Note: No 'select all' involved here.
-			m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(length,length);
-			m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-			// whm added 05Jan07 to restore the former current working directory for safety
+
+            m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+
+            // whm added 05Jan07 to restore the former current working directory for safety
 			// sake to what it was on entry, since there was a wxSetWorkingDirectory call made
 			// above
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
@@ -4671,11 +4675,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	m_pApp->m_nEndChar = length;
 	if (m_pApp->m_pTargetBox != NULL && m_pApp->m_pTargetBox->IsShown())
 	{
-        // whm 3Aug2018 Note: No 'select all' involved here,
-        // so no adjustment made here for 'Select Copied Source' protocol.
-        m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(length,length);
-		m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-	}
+        m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+    }
 	// BEW added 05Jan07 to restore the former current working directory
 	// to what it was on entry
 	bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
