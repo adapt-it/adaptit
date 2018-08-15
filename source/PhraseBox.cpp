@@ -376,9 +376,6 @@ CPhraseBox::CPhraseBox(wxWindow * parent, wxWindowID id, const wxString & value,
     // be called in the current codebase. The PhraseBox is only created in one location in
     // the codebase in the CAdapt_ItView::OnCreate() function. 
 
-    // whm Note: See the App's DoCreatePhraseBox() function for how we've adapted a wxDesigner 
-    // resouce-creating function (that is named PhraseBoxDropDownFunc()) to create our new 
-    // phrasebox.
     m_pTextCtrl = (wxTextCtrl*)NULL; // Globally, this private pointer points to App's m_pTargetBox
     m_pDropDownList = (CMyListBox*)NULL;
     m_pPhraseBoxButton = (wxBitmapToggleButton*)NULL;
