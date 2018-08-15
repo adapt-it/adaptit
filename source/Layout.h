@@ -280,7 +280,8 @@ public:
 					// else, returns FALSE. Used in refactored FixBox()
 	bool		TextCtrlHasSelection(wxTextCtrl* pTextCtrl, long& from, long& to, int& length); //BEW created 9Aug18
 //	bool		PhraseBoxIsInFocus(); // Bill's function for the wxOwnerDrawnComboBox control, which we abandoned
-	bool		TextCtrlIsInFocus(); // BEW 10Aug18 reinstated this variant of focus checking call
+	// BEW 13Aug18, deprecated my version below, as Bill says focus is not handled uniformly across all platforms
+	//bool		TextCtrlIsInFocus(); // BEW 10Aug18 reinstated this variant of focus checking call
 									  // - for use in the refactored FixBox(), and moved to CLayout class
 	bool		DoPhraseBoxWidthUpdate(); // BEW added 30July18, this is the handler which FixBox() uses
 								   // to effect a widening or contracting of the phrasebox width	
@@ -438,8 +439,8 @@ public:
 	enum phraseBoxWidthAdjustMode m_boxMode; // BEW 7Aug18, In legacy app, FixBox() passed a value to
 									// other functions; in our refactored design we need a place
 									// for storing one of the enum values so that our layout 
-									// support functions can find what mode is currently wanted
-
+									// support functions, as set here by FixBox(), can find 
+									// what mode is currently in effect
     // get the range of visible strips in the viscinity of the active location; pass in the
     // sequNum value, and return indices for the first and last visible strips (the last
     // may be partly or even wholely out lower than then the bottom of the window's client

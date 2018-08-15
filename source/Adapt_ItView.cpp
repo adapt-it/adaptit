@@ -6787,6 +6787,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		wxSize charSize;
 		aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
 		pApp->GetLayout()->slop = pApp->m_nExpandBox*charSize.x;
+
 	}
 	else
 	{

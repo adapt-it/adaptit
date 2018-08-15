@@ -1708,6 +1708,12 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 		wxASSERT(pSrcPhrase != NULL);
 
 		// create the CPile instance
+//#if defined(_DEBUG)
+//		if (pSrcPhrase->m_nSequNumber == 15)
+//		{
+//			int break_here = 1;
+//		}
+//#endif
 		pPile = CreatePile(pSrcPhrase);
 		wxASSERT(pPile != NULL);
 
@@ -1769,24 +1775,47 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
 {
 	m_bFrameResizeWanted = FALSE;  // set TRUE below if boxMode is 'contracting'
+	
 #if defined (_DEBUG) && defined (_EXPAND)
 	wxString strContracting = _T("contracting");
 	wxString strSteady = _T("steadyAsSheGoes");
 	wxString strExpanding = _T("expanding");
-	wxString strPassedIn = wxEmptyString;
+	wxString modePassedIn = wxEmptyString;
+
+	wxString selector_0 = _T("create_strips_create_piles");
+	wxString selector_1 = _T("create_strips_keep_piles");
+	wxString selector_2 = _T("keep_strips_keep_piles");
+	wxString selector_3 = _T("create_strips_update_pile_widths");
+	wxString selectorPassedIn = wxEmptyString;
 	if (boxMode == contracting)
 	{
-		strPassedIn = strContracting;
+		modePassedIn = strContracting;
 	}
 	else if (boxMode == steadyAsSheGoes)
 	{
-		strPassedIn = strSteady;
+		modePassedIn = strSteady;
 	}
 	else
 	{
-		strPassedIn = strExpanding;
+		modePassedIn = strExpanding;
 	}
-	wxLogDebug(_T("\n*** Entering RecalcLayout()  , selector = %d , boxMode: %s"), (int)selector, strPassedIn.c_str());
+	if (selector == 0)
+	{
+		selectorPassedIn = selector_0;
+	}
+	else if (selector == 1)
+	{
+		selectorPassedIn = selector_1;
+	}
+	else if (selector == 2)
+	{
+		selectorPassedIn = selector_2;
+	}
+	else
+	{
+		selectorPassedIn = selector_3;
+	}
+	wxLogDebug(_T("\n*** Entering RecalcLayout()  , selector = %s , boxMode: %s"), selectorPassedIn.c_str(), modePassedIn.c_str());
 #endif
 
     // RecalcLayout() is the refactored equivalent to the former view class's RecalcLayout()
@@ -1923,13 +1952,15 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	viewDC.SetMapMode(wxMM_TEXT); // equivalent to MFC's MM_TEXT for drawing to the screen
 
 
-	// RecalcLayout() depends on the app's m_nActiveSequNum valuel for where the active
+	// RecalcLayout() depends on the app's m_nActiveSequNum value for where the active
 	// location is to be; so we'll make that dependency explicit in the next few lines,
 	// obtaining the active pile pointer which corresponds to that active location as well
 	bool bAtDocEnd = FALSE; // set TRUE if m_nActiveSequNum is -1 (as is the case when at
 							// the end of the document)
 	CPile* pActivePile = NULL;
 	pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum); // will return NULL if sn is -1
+	// Note, if in OnOpenDocument, the piles will not exist yet, so pActivePile will be NULL
+
 	// BEW added 2nd test, for sn == -1, because reliance on gbDoingInitialSetup is risky
 	// -- for example, in collab mode the flag stayed TRUE, and so bAtDocEnd didn't get
 	// set when the last bit of adapting in the file was done and the phrase box moved
@@ -1964,7 +1995,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	}
 	else if (selector == create_strips_update_pile_widths)
 	{
-		RecalcPileWidths(&m_pileList);
+		RecalcPileWidths(&m_pileList); // appropriate for font changes
 	}
 
 	int gap = m_nCurGapWidth; // distance in pixels for interpile gap
@@ -2006,13 +2037,14 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 				// size calculation internally for the active location because it would be
 				// larger than the contracted width we want
 				// BEW 7Aug18, I think we do need the size calc now
-				m_pDoc->ResetPartnerPileWidth(pSrcPhrase, TRUE); // TRUE is the boolean
+				//m_pDoc->ResetPartnerPileWidth(pSrcPhrase, TRUE); // TRUE is the boolean
 																 // bNoActiveLocationCalculation
-				//m_pDoc->ResetPartnerPileWidth(pSrcPhrase, FALSE); // FALSE is the boolean
+				// BEW 15Aug18, Nah, retain this legacy logic until testing reveals we need to change it
+				m_pDoc->ResetPartnerPileWidth(pSrcPhrase, FALSE); // FALSE is the boolean
 																 // bNoActiveLocationCalculation
 				m_bFrameResizeWanted = TRUE; // OnChar() uses to get an OnSize() done for the frame
-#if defined(_DEBUG) && defined(_NEWDRAW)
-				wxLogDebug(_T("%s():line %d, INSIDE TRUE block (boxMode == contracting): calls ResetPartnerPileWidth(), sets m_bFrameResizeWanted to TRUE"),
+#if defined(_DEBUG) && defined(_EXPAND)
+				wxLogDebug(_T("%s():line %d, INSIDE TRUE block (boxMode == contracting): calls ResetPartnerPileWidth() with FALSE, sets m_bFrameResizeWanted to TRUE"),
 					__func__, __LINE__);
 #endif
 			}
@@ -2020,6 +2052,10 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 			{
 				// allow the active location gap calculation to be done
 				m_pDoc->ResetPartnerPileWidth(pSrcPhrase);
+#if defined(_DEBUG) && defined(_EXPAND)
+				wxLogDebug(_T("%s():line %d, could be steadAsSheGoes or expanding: calls ResetPartnerPileWidth() with default TRUE, no frame resize requested"),
+					__func__, __LINE__);
+#endif
 			}
 		}
 	}
@@ -2240,7 +2276,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	}
 	m_lastLayoutSelector = selector; // inform Draw() about what we did here
 #if defined (_DEBUG)
-	wxLogDebug(_T("*** Leaving RecalcLayout()  , selector = %d"), (int)selector);
+	wxLogDebug(_T("\n*** Leaving RecalcLayout()  , selector = %d  <<--passed to m_lastLayoutSelector (in CLayout) for Draw() to use"), (int)selector);
 #endif
 	return TRUE;
 }
@@ -4161,6 +4197,7 @@ bool CLayout::PhraseBoxIsInFocus()
 	return FALSE;
 }
 */
+/* deprecated
 // BEW 11Aug18, created this variant of Bill's deprecated function above - to ensure that
 // when the phrasebox's wxTextCtrl has the focus, it really is the one in m_pTargetBox
 bool CLayout::TextCtrlIsInFocus()
@@ -4184,7 +4221,7 @@ bool CLayout::TextCtrlIsInFocus()
 	}
 	return FALSE;
 }
-
+*/
 
 // FixBox() is the core function for supporting box expansion and contraction in various
 // situations, especially when typing into the box; this version detects when adjustment to

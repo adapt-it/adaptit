@@ -95,21 +95,15 @@ public:
 	bool		IsWrapPile();
 
 	int			CalcPileWidth(); // based on the text in the cells only, no account taken of active loc
-//GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
+	// GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
+	// BEW 14Aug18, pass in 'expanding' or 'contracting' for widthMode, depending on what FixBox()
+	// determines is needed. When the phrasebox has enough slop for more character(s), steadyAsSheGodes
+	// is appropriate; but when the box needs expanding, pass in 'expanding', and for a contraction
+	// pass in 'contracting'. Unless I change my mind, internally the 'contracting' value will not
+	// actually do anything to the box's gap in the layout (but I can change this easily), more
+	// important is typing in lots of characters, as the box *MUSt* expand to accomodate them so
+	// that all remain visible
 	int			CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes);
-	// BEW 19Jul18, for Bill's dropdown+textctrl+button solution for the phrasebox, we need a separate 
-	// function than CalcPhraseBoxGapWidth() - our new function, which calculates the width of the
-	// phrasebox in a similar manner to CalcPhraseBoxGapWidth() but with some essential differences...
-	// Our new function is CalcPhraseBoxWidth() with the same signature, but
-	// (a) the basic length is calculated solely from the width extent of the text in the wxTextControl
-	// at the active location (whereas for CalcPhraseBoxGapWidth() it bets the basic length as the max
-	// of the text lengths for src, gloss, and wxTextCtrl contents at active location), the button width
-	// is the same in both functions, but
-	// (b) the slop value is computed, for the CalcPhraseBoxGapWidth() function, in a multiple of 'w'
-	// character widths, whereas CalcPhraseBoxWidth() uses the same multiple of 'f' character widths
-	// for the phrasebox slop. 'f' is less wide the 'w', so this guarantees that the phrasebox will
-	// always fit into the gap left for it. The view's OnDraw() will use this new function, as will
-	// ResizeBox() and FixBox() I expect (I've not yet finished the refactoring)
 	int			CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes);
 
 	int			CalcPhraseBoxListWidth(); //BEW added 24Jul18 calculates the width of the listbox

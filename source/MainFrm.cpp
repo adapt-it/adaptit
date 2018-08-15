@@ -5068,12 +5068,10 @@ void CMainFrame::OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event))
 }
 #endif
 
-// BEW added 30July18, this is the handler which OnIdle() uses
-// to effect a widening or contracting of the phrasebox width when
-// user editing actions in the phrasebox result in the flag
-// m_bUpdatePhraseBoxWidth being set TRUE; the last task of this
-// handler is to clear the flag back to FALSE (In legacy versions,
-// a function called FixBox() was used to do similar work.)
+// BEW added 30July18, this is aa handler for doing a box width update.
+// BEW 14Aug18 Actually, it may not be needed in my latest code, so I'll comment it
+// out for now
+/*
 bool CMainFrame::DoPhraseBoxWidthUpdate()
 {
 	bool bSuccess = TRUE;
@@ -5137,12 +5135,7 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 	pLayout->m_docEditOperationType = target_box_paste_op;
 
 	pApp->GetView()->Invalidate();
-    // whm 6Aug2018 remove BEW's pLayout->PlaceBox() call below which causes the truncation of the
-    // phrasebox text. PlaceBox() should not be called while editing characters within the phrasebox!!
-    // From the comment above, I suspect the logic of this DoPhraseBoxWidthUpdate() needs a review
-    // 
-	//pLayout->PlaceBox();
-	//pApp->m_pTargetBox->InitializeComboLandingParams();
+
 	pApp->m_nCacheLeavingLocation = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 	pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // re-initialize
 	int a = pApp->GetLayout()->m_curBoxWidth;
@@ -5165,6 +5158,7 @@ bool CMainFrame::DoPhraseBoxWidthUpdate()
 	gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar);
 	return bSuccess;
 }
+*/
 
 // whm Note: this and following custom event handlers are in the View in the MFC version
 //

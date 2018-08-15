@@ -166,6 +166,8 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 {
 	m_nFree = nStripWidth;
 
+	boxMode = m_pLayout->m_boxMode; // only relevant to the active CStrip, and it's active CPile
+
 	CPile* pPile = NULL;
 	int pileWidth = 0;
 	int nCurrentSpan = 0;
@@ -218,14 +220,29 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		{ 
 			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
-				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be
-						// large enough to accomodate the phrase box's width, even if just
-						// expanded due to the user's typing				
-				//pileWidth = pPile->CalcPhraseBoxGapWidth(); // +2 * gap; // add another gap
+				boxMode = m_pLayout->m_boxMode;
+				pileWidth = pPile->CalcPhraseBoxGapWidth();
+
 #if defined(_DEBUG) && defined(_EXPAND)
-				wxLogDebug(_T("%s():line %d, sets: pileWidth = %d, for box text: %s"),
-					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				// currently boxMode is unused, except for logging purposes
+				if (boxMode == expanding)
+				{
+					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
+						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				}
+				else if (boxMode == steadyAsSheGoes)
+				{
+					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
+						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				}
+				else
+				{
+					// must be 'contracting'
+					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
+						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				}
 #endif
+
 			}
 			else
 			{
@@ -285,20 +302,29 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			{	
 				if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 				{
-					pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
-											// to accomodate the phrase box's width, even if just
-											// expanded due to the user's typing					
-					//pileWidth = pPile->CalcPhraseBoxGapWidth(); // + 2*gap; // add another gap
-#if defined(_DEBUG) && defined(_EXPAND)
-					// need list width too...
-					//int listWidth = pPile->CalcPhraseBoxListWidth();
-					//wxLogDebug(_T("%s():line %d, in loop, sets: pileWidth = %d, listWidth = %d , for box text: %s"),
-					//	__func__, __LINE__, pileWidth, listWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+					boxMode = m_pLayout->m_boxMode;
+					pileWidth = pPile->CalcPhraseBoxGapWidth();
 
-					wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
-					wxLogDebug(_T("%s():line %d, in loop,  m_nStrip %d   pile[%d] , pileWidth %d , offset %d , free left %d, srcPhrase %s"),
-						__func__, __LINE__, this->m_nStrip, pileIndex_InStrip, pileWidth, nHorzOffset_FromLeft, m_nFree, src.c_str());
+#if defined(_DEBUG) && defined(_EXPAND)
+					// currently boxMode is unused, except for logging purposes
+					if (boxMode == expanding)
+					{
+						wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
+							__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+					}
+					else if (boxMode == steadyAsSheGoes)
+					{
+						wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
+							__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+					}
+					else
+					{
+						// must be 'contracting'
+						wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
+							__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+					}
 #endif
+
 				}
 				else
 				{
@@ -372,6 +398,8 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 {
 	m_nFree = nStripWidth;
 
+	boxMode = m_pLayout->m_boxMode; // only relevant to the active CStrip, and it's active CPile
+
 	CPile* pPile = NULL;
 	int pileWidth = 0;
 	int nCurrentSpan = 0;
@@ -411,7 +439,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	wxASSERT(pPile);
 	// set the pile's m_pOwningStrip member
 	pPile->m_pOwningStrip = this;
-	if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
+	if (m_pLayout->m_pApp->m_nActiveSequNum == -1 || m_pLayout->m_bLayoutWithoutVisiblePhraseBox)
 	{
 		pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
 	}
@@ -419,14 +447,27 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	{
 		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
-			// when tweaking strips rather than rebuilding, we won't get a larger gap
-			// calculated at the active pile unless we call it here, provided the active
-			// location is within the area of strips being rebuilt
-			pileWidth = pPile->CalcPhraseBoxGapWidth(); // gap calc only needed once, rest of 
-										// piles in loop can just use the new m_nWidth
+			boxMode = m_pLayout->m_boxMode;
+			pileWidth = pPile->CalcPhraseBoxGapWidth();
+			 
 #if defined(_DEBUG) && defined(_EXPAND)
-		wxLogDebug(_T("%s():line %d, sets: pileWidth = %d, for box text: %s    keep_strips_keep_piles - selector is 2"),
-			__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+			// currently boxMode is unused, except for logging purposes
+			if (boxMode == expanding)
+			{
+				wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
+					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+			}
+			else if (boxMode == steadyAsSheGoes)
+			{
+				wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
+					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+			}
+			else
+			{
+				// must be 'contracting'
+				wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
+					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+			}
 #endif
 		}
 		else
@@ -538,13 +579,29 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
-				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
-									// to accomodate the phrase box's width, even if just
-									// expanded due to the user's typing
+				boxMode = m_pLayout->m_boxMode;
+				pileWidth = pPile->CalcPhraseBoxGapWidth(); 
+
 #if defined(_DEBUG) && defined(_EXPAND)
-				wxLogDebug(_T("%s():line %d, sets: pileWidth = %d, for box text: %s    keep_strips_keep_piles - selector is 2"),
-					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				// currently boxMode is unused, except for logging purposes
+				if (boxMode == expanding)
+				{
+					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
+						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				}
+				else if (boxMode == steadyAsSheGoes)
+				{
+					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
+						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				}
+				else
+				{
+					// must be 'contracting'
+					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
+						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				}
 #endif
+
 			}
 			else
 			{

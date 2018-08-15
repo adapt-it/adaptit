@@ -3567,6 +3567,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
+/* BEW 14Aug18 deprecated
 // BEW created, 30Jul18, it replaces the old FixBox() function which did a similar job.
 // If the returned boolean is TRUE, the caller can then act or ignore on FALSE returned.
 // This function is essentially a filter - each typed character should cause this
@@ -3630,12 +3631,10 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 		__func__, __LINE__, curBoxWidth, inStr.c_str(), thePhrase.c_str());
 #endif
 
-	// TODO -- the slop width can be moved elsewhere, it's constant so long
-	// as the user does not change the setting in Preferences - *************************** put in CLayout, where it makes sense & grab from there
 	wxString wStr = _T('w');
-	wxSize wCharSize;
+	wxSize wCharSize(0,0);
 	dC.GetTextExtent(wStr, &wCharSize.x, &wCharSize.y);
-	int slopWidth = gpApp->m_nExpandBox*wCharSize.x;
+	averageCharWidth = wCharSize.x;
 
 	// Calculate where the right-hand end's boundary is
 	int boundary = curBoxWidth - 3 * averageCharWidth; // typing or pasting beyond
@@ -3694,6 +3693,7 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 	// and that will, because of what the calling FixBox() does, keep the GUI immobile
 	return bUpdateNeeded;
 }
+*/
 
 // FixBox() is the core function for supporting box expansion and contraction in various
 // situations, especially when typing into the box; this version detects when adjustment to
@@ -3711,7 +3711,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 {
 	// destroys the phrase box and recreates it with a different size, depending on the
 	// nSelector value.
-	// nSelector == 0, increment the box width using its earlier value
+	// nSelector == 0, increment the box width using a pre-calculated value
 	// nSelector == 1, recalculate the box width using the input string extent
 	// nSelector == 2, backspace was typed, so box may be contracting
 	// This new version tries to be smarter for deleting text from the box, so that we
@@ -3727,6 +3727,11 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	// (2) prior to making the RecalcLayout() call, or other strip tweaking call, the new
 	// phrase box width must be calculated and stored in CLayout::m_curBoxWidth so that
 	// RecalcLayout() will have access to it when it is setting the width of the active pile.
+
+#if defined(_DEBUG) && defined(_EXPAND)
+	wxLogDebug(_T("\n%s():line %d, *********   FixBox() Entered *********"),
+		__func__, __LINE__);
+#endif
 
 	//GDLC Added 2010-02-09
 	enum phraseBoxWidthAdjustMode nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
@@ -3951,9 +3956,12 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	// perhaps the box paint occurs too early and the view point wipes it. How then do we delay
 	// the box paint? Maybe put the invalidate call into the View's OnDraw() at the end of its handler?
 	//pView->RemakePhraseBox(pView->m_pActivePile, pView->m_targetPhrase); // also doesn't work.
+
+#if defined(_DEBUG) && defined(_EXPAND)
+	wxLogDebug(_T("\n%s():line %d, *********   Leaving  FixBox()  *********"),
+		__func__, __LINE__);
+#endif
 }
-
-
 
 // BEW created, 30Jul18, it is in the refactored FixBox() function.
 // If the returned boolean is TRUE, the caller can then act or ignore on FALSE returned.
@@ -3962,6 +3970,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 // for inStr. We turn that into a boolean, bContracting, and only run the internal
 // code when bContracting is TRUE; if it is not TRUE, then the function returns
 // FALSE and no contraction will then be imposed upon the phrasebox
+/* BEW 14Aug18 deprecated
 bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 {
 	bool bUpdateNeeded = FALSE; // inintialize consistent with box width 
@@ -4059,8 +4068,8 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 		dC.SetFont(*pSrcFont);
 		dC.GetTextExtent(srcPhrase, &sourceExtent.x, &sourceExtent.y);
 		int minWidth = sourceExtent.x + pApp->m_nExpandBox*averageCharWidth;
-		*/
-		int minWidth = pApp->m_pActivePile->CalcPileWidth(); // sets to max width taking
+*/
+/*		int minWidth = pApp->m_pActivePile->CalcPileWidth(); // sets to max width taking
 				// gbIsGlossing, gbGlossesVisible, into account - if no glosses are
 				// visible then only the max of src and tgt widths is calculated
 		if (curTextWidth <= minWidth)
@@ -4147,6 +4156,7 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 	// If contracting is not needed, bUpdateNeeded will be returned as FALSE;
 	return bUpdateNeeded;
 }
+*/
 
 // MFC docs say about CWnd::OnChar "The framework calls this member function when
 // a keystroke translates to a nonsystem character. This function is called before
@@ -8483,11 +8493,42 @@ void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event))
 			// rebuild the box the correct size
 			wxSize textExtent;
 			bool bWasMadeDirty = TRUE;
+			//wxUnusedVar(bWasMadeDirty);
 
-			/* BEW removed 6Aug18
-			FixBox(pView,thePhrase,bWasMadeDirty,textExtent,1); // selector = 1 for using
-																// thePhrase's extent
-			*/
+			// BEW 14Aug18 guidance for implementer of a better Undo...
+			//
+			// The selector value passed in to FixBox() is important. If any coding is
+			// done to work out the final phrasebox string from the Undo request, that
+			// coding should be done and the string passed to FixBox().
+			// Fix box will then process the information according to the following protocol:
+			//
+			// selector = 0;  the phrasebox contents have already been updated by
+			// pre-processing elsewhere, and FixBox() will work out what the boxMode
+			// should be. The passed in 'thePhrase' will be ignored.
+			//
+			// selector = 1;  FixBox() will take the 'thePhrase' string, and make it
+			// the phrasebox's contents. boxMode will be set to default 'steadyAsSheGoes'.
+			// but there is nothing to stop the developer writing code to change this
+			// after the fact if it has been determined that the new box text is longer
+			// than the old - in which case, store in CLayout's m_boxMode, 'expanding'
+			//
+			// selector = 2; Backspace key, or Delete key was pressed, and so potentially
+			// the phrasebox will contract a little. Pass in 'contracting' for the boxMode.
+			// In the legacy app, selector 2 had little effect, leaving the phrasebox length
+			// unmodified and just the text appropriately shortened. Currently, I've 
+			// continued this legacy behaviour.
+			//
+			// The boxMode that FixBox() chooses, is stored by it in the CLayout's public
+			// member enum, phraseBoxWidthAdjustMode m_boxMode. Other functions, like
+			// RecalcLayout() and CreateStrip() will grab it from there; the former to
+			// get a CStrip recalculation done for the active strip, and the latter to
+			// widen the gap for the phrasebox to fit into appropriately, at the active
+			// pile. View's OnDraw() will get these changes made visible, if an Invalidate()
+			// is called, after a RecalcLayout() call has returned.
+			int selector = 1;
+			FixBox(gpApp->GetView(), thePhrase, bWasMadeDirty, textExtent, selector); 
+																 
+			
 			// safest alternative may be to assume a contraction, as then the input char
 			// will be nothing (empty string) <<-- no this isn't safe at all, we need to know what the result of the undo is, compared to beforehand
 			wxString inStr = wxEmptyString;
@@ -8496,7 +8537,7 @@ void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->GetSelection(&from, &to);
 			gnBoxCursorOffset = (int)from;
 
-			/* BEW 6Aug18 comment out temporarily, I have not yet investigated the OnEditUndo code 
+			/* BEW 6Aug18 comment out - probably permanently, I have not yet investigated the OnEditUndo code 
 			bool bDoUpdate = UpdatePhraseBoxWidth_Contracting(inStr);
 			if (bDoUpdate)
 			{

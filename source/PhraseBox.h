@@ -156,10 +156,11 @@ public:
 	bool DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	CLayout* GetLayout();
 
-	bool UpdatePhraseBoxWidth_Expanding(wxString inStr); // BEW addedd 30Jul18 the returned bool, 
+	// BEW 14Aug18 deprecated
+	//bool UpdatePhraseBoxWidth_Expanding(wxString inStr); // BEW addedd 30Jul18 the returned bool, 
 				// if TRUE, causes RecalcLayout to be non-suppressed so that the gui and box width
 				// can quickly be changed; if FALSE, then box and gui stay immobile
-	bool UpdatePhraseBoxWidth_Contracting(wxString inStr); 
+	//bool UpdatePhraseBoxWidth_Contracting(wxString inStr);    // BEW 14Aug18 deprecated
 				// BEW addedd 30Jul18 the returned bool the returned bool, if TRUE,
 				// causes RecalcLayout to be non-suppressed so that the gui and box width
 				// can quickly be changed; if FALSE, then box and gui stay immobile
