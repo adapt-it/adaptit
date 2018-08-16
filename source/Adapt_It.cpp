@@ -55276,4 +55276,84 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase)
 	return str;
 }
 
+void CAdapt_ItApp::MyLogger()
+{
+	// Set up useful accessor pointers
+	CAdapt_ItApp* pApp = this;
+	CAdapt_ItDoc* pDoc = this->GetDocument();
+	CAdapt_ItView* pView = this->GetView();
+	CLayout* pLayout = this->GetLayout();
+	CPhraseBox* pPhraseBox = this->m_pTargetBox;
+	SPList* pSrcPhrList = this->m_pSourcePhrases;
+	// avoid compiler warnings if any are unused, this does not prevent us using any of them
+	wxUnusedVar(pApp);
+	wxUnusedVar(pDoc);
+	wxUnusedVar(pView);
+	wxUnusedVar(pLayout);
+	wxUnusedVar(pPhraseBox);
+	wxUnusedVar(pSrcPhrList);
 
+	// I want to know what the width of the phrasebox is as control works its
+	// way through various functions. At phrasebox update of width time, the
+	// phrasebox width increases enormously - overwriting one or more piles
+	// to the right. I want to find where this is being caused.
+	wxString contents = wxEmptyString;
+	int width = 0;
+	int sequNum = 0;
+	wxString srcStr = wxEmptyString;
+	wxString tgtStr = wxEmptyString;
+	wxString glossStr = wxEmptyString;
+	wxTextCtrl* pBox = NULL;
+	wxRect rect = { 0,0,0,0 };
+	CPile* pPile = pView->GetPile(pApp->m_nActiveSequNum);
+	if (pPile != NULL)
+	{
+		if (pPile == pApp->m_pActivePile)
+		{
+			pBox = pPhraseBox->GetTextCtrl();
+			CSourcePhrase* pSP = pPile->GetSrcPhrase();
+			sequNum = pSP->m_nSequNumber;
+			srcStr = pSP->m_srcPhrase;
+			tgtStr = pSP->m_targetStr;
+			if (gbIsGlossing)
+			{
+				glossStr = pSP->m_gloss;
+			}
+			wxASSERT(pBox != NULL);
+			// The phrasebox is located at the current active pile
+			contents = pBox->GetValue();
+			// not interested if the phrasebox has nothing in it yet
+			if (contents.IsEmpty())
+				return;
+			else
+			{
+				// Get the width of the phrasebox's wxTextCtrl (ignore the button,
+				// it's about 23 pixels more, or Linux, 31 pixels more)
+				rect = pBox->GetRect();
+				width = rect.GetWidth();
+				//Now use wxLogDebug to make the results accessible - logging the
+				// file, function, and line number as well
+				if (gbIsGlossing)
+				{
+					wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d"),
+						__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), glossStr.c_str(),
+						contents.c_str(), width);
+				}
+				else
+				{  // adapting
+					if (gbIsGlossing)
+					{
+
+
+					}
+					else
+					{
+						wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d"),
+							__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgtStr.c_str(),
+							contents.c_str(), width);
+					}
+				}
+			}
+		}
+	}
+}

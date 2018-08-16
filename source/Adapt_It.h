@@ -4589,6 +4589,10 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
     wxString m_savedDocTitle; // temporarily save Titlebar's title string here when doing clipboard adapt
                               // End of new variables for support of clipboard-based adaptation & free translation
 
+	// BEW 16Aug18 a useful logger function that can be dropped anywhere, innards can
+	// be changed for whatever logging purpose is needed
+	void MyLogger();
+
 	// BEW added next 6 lines 10July, for storing and retrieving the USFM text strings for
 	// the exported target text, and exported free translation text, when collaborating
 	// with the external editor. The exports are done and stored here when the doc has
