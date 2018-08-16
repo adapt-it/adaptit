@@ -6484,6 +6484,25 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	// by a new function in CPile, CalcPhraseBoxWidth(), independent of the gap calculations
 	//int nGapWidth = pActivePile->GetPhraseBoxGapWidth();
 	// pActivePile->SetPhraseBoxWidth(); // calls CalcPhraseBoxWidth()
+#if defined(_DEBUG) && defined(_EXPAND)
+	{
+		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+		wxString contents = wxEmptyString; int width = 0;
+		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+		if (gbIsGlossing)
+		{
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+		else
+		{  // adapting
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+	}
+#endif
 
 	// Check that m_nWidth (the phrasebox at gap's width) has not become less than 
 	// the m_nMinWidth value (the box contents's width as shown at non-active locations)
@@ -6569,11 +6588,62 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 				rectBox.top, rectBox.left);
 	}
 	#endif
-
+#if defined(_DEBUG) && defined(_EXPAND)
+	{
+		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+		wxString contents = wxEmptyString; int width = 0;
+		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+		if (gbIsGlossing)
+		{
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+		else
+		{  // adapting
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+	}
+#endif
+// BEW 16Aug18 logging shows this next call sets the wrong size when a width adjustment is being done *****************************
+#if defined(_DEBUG) && defined(_EXPAND)
+	CPile* pActiveP = pApp->m_pActivePile;
+	if (pActiveP != NULL)
+	{
+		CSourcePhrase* pSP = pActiveP->GetSrcPhrase();
+		int sn = pSP->m_nSequNumber;
+		if (sn == 15)
+		{
+			int break_here = 1;
+		}
+	}
+#endif
 	// WX version resizes rather than recreating the target box
 	pApp->m_pTargetBox->GetTextCtrl()->SetSize(rectBox.GetLeft(),rectBox.GetTop(), // whm 12Jul2018 added GetTextCtrl()-> TODO: Test this
 								rectBox.GetWidth(),rectBox.GetHeight());
-    
+ 
+#if defined(_DEBUG) && defined(_EXPAND)
+	{
+		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+		wxString contents = wxEmptyString; int width = 0;
+		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+		if (gbIsGlossing)
+		{
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+		else
+		{  // adapting
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+	}
+#endif
+
     // whm note: Shouldn't the following adjustment come before the SetSize call above???
     // BEW answer: no, SetSize() would then wipe out the effect.
 #ifdef _RTL_FLAGS
@@ -6587,6 +6657,25 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
     // first 128 point positions. In wxMSW SetLayoutDirection() aligns these to the right
     // in the phrasebox but in wxGTK (under Pango) SetLahoutDirection() aligns these to the
     // left within the phrasebox.
+#if defined(_DEBUG) && defined(_EXPAND)
+	{
+		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+		wxString contents = wxEmptyString; int width = 0;
+		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+		if (gbIsGlossing)
+		{
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+		else
+		{  // adapting
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+	}
+#endif
 	if (pApp->m_bTgtRTL)
 	{
 		pApp->m_pTargetBox->GetTextCtrl()->SetLayoutDirection(wxLayout_RightToLeft); // whm 12Jul2018 added GetTextCtrl()-> part
@@ -6631,7 +6720,28 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
     int phraseboxHeight = rectBox.GetHeight();
     int adjustHeight = ((phraseboxHeight - buttonHeight) / 2) - 1;
     pApp->m_pTargetBox->GetPhraseBoxButton()->SetPosition(wxPoint(rectBox.GetRight() + 1, rectBox.GetTop() + adjustHeight));
-    // whm 12Jul2018 addition - set the width of the dropdown list to be the same as the width of the
+
+#if defined(_DEBUG) && defined(_EXPAND)
+	{
+		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+		wxString contents = wxEmptyString; int width = 0;
+		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+		if (gbIsGlossing)
+		{
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+		else
+		{  // adapting
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+	}
+#endif
+
+	// whm 12Jul2018 addition - set the width of the dropdown list to be the same as the width of the
     // phrasebox's rectBox. Set its position to be aligned to the bottom of the phrasebox's rectBox.
     pApp->m_pTargetBox->GetDropDownList()->SetPosition(wxPoint(rectBox.GetLeft(), rectBox.GetBottom() -2));
     pApp->m_pTargetBox->GetDropDownList()->SetSize(rectBox.GetWidth(), -1);
@@ -6641,6 +6751,25 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
     // CPhraseBox::SetSizeAndHeightOfDropDownList() within the PopupDropDownList() which
     // is in turn only called from OnIdle() in MainFrm.cpp.
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#if defined(_DEBUG) && defined(_EXPAND)
+	{
+		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+		wxString contents = wxEmptyString; int width = 0;
+		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+		if (gbIsGlossing)
+		{
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+		else
+		{  // adapting
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+	}
+#endif
 
     pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(text);
     if (gbIsGlossing && gbGlossingUsesNavFont)
@@ -6650,7 +6779,6 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
         pApp->m_pTargetBox->GetDropDownList()->SetFont(*pApp->m_pNavTextFont); // whm 12Jul2018 added
 
     }
-
     else
     {
         pApp->m_pTargetBox->GetTextCtrl()->SetFont(*pApp->m_pTargetFont); // whm 12Jul2018 added GetTextCtrl()-> part
@@ -6660,6 +6788,25 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
         //ptSize = pApp->m_pTargetFont->GetPointSize();
         //ptSize = ptSize; // debug line
     }
+#if defined(_DEBUG) && defined(_EXPAND)
+	{
+		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+		wxString contents = wxEmptyString; int width = 0;
+		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+		if (gbIsGlossing)
+		{
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+		else
+		{  // adapting
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+	}
+#endif
 
 	// whm modified 29Mar12. As of this date, this is the only
 	// location in the whole code base where the m_pTargetBox->Show()
@@ -6691,6 +6838,25 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	pApp->m_pTargetBox->GetTextCtrl()->SetSelection(nStartingChar,nEndingChar);
 	pApp->m_nStartChar = (int)nStartingChar;
 	pApp->m_nEndChar = (int)nEndingChar;
+#if defined(_DEBUG) && defined(_EXPAND)
+	{
+		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+		wxString contents = wxEmptyString; int width = 0;
+		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+		if (gbIsGlossing)
+		{
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+		else
+		{  // adapting
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+	}
+#endif
 
 	if (pApp->m_bFreeTranslationMode)
 	{
@@ -6704,7 +6870,26 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	}
 	else
 	{
-		// enable clicks and editing to be done in the phrase box
+#if defined(_DEBUG) && defined(_EXPAND)
+	{
+		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+		wxString contents = wxEmptyString; int width = 0;
+		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+		if (gbIsGlossing)
+		{
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+		else
+		{  // adapting
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+	}
+#endif
+	// enable clicks and editing to be done in the phrase box
 		// (do also in OnAdvancedFreeTranslationMode())
 		pApp->m_pTargetBox->GetTextCtrl()->SetEditable(TRUE);
 		// whm 20Nov10 commented out Guesser color change - here is not the
@@ -6724,6 +6909,25 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 //#endif
+#if defined(_DEBUG) && defined(_EXPAND)
+	{
+		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+		wxString contents = wxEmptyString; int width = 0;
+		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+		if (gbIsGlossing)
+		{
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+		else
+		{  // adapting
+			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+				contents.c_str(), width);
+		}
+	}
+#endif
 
 }
 
