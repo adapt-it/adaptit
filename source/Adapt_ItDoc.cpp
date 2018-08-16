@@ -7359,7 +7359,7 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 		wxASSERT(pPile != NULL);
 		pPile->SetMinWidth(); // set m_nMinWidth - it's the maximum extent of the src,
 							  // adapt or gloss text
-
+		/* BEW 15Aug18 every char typed, control enters the next block, and it does not fix issues - so comment the block out
         // if it is at the active location, then the width needs to be wider -
         // SetPhraseBoxGapWidth() in CPile does that, and sets m_nWidth in the partner pile
         // instance (but if not at the active location, the default value m_nMinWidth will
@@ -7378,7 +7378,7 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
             // prevents the unwanted large gap calculation at the old location
 			pPile->SetPhraseBoxGapWidth();
 		}
-
+		*/
 		// mark the strip invalid and put the parent strip's index into
 		// CLayout::m_invalidStripArray if it is not in the array already
 		MarkStripInvalid(pPile);

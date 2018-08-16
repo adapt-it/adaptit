@@ -221,7 +221,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
 				boxMode = m_pLayout->m_boxMode;
-				pileWidth = pPile->CalcPhraseBoxGapWidth();
+				pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
 
 #if defined(_DEBUG) && defined(_EXPAND)
 				// currently boxMode is unused, except for logging purposes
@@ -303,7 +303,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 				if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 				{
 					boxMode = m_pLayout->m_boxMode;
-					pileWidth = pPile->CalcPhraseBoxGapWidth();
+					pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
 
 #if defined(_DEBUG) && defined(_EXPAND)
 					// currently boxMode is unused, except for logging purposes
@@ -448,7 +448,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
 			boxMode = m_pLayout->m_boxMode;
-			pileWidth = pPile->CalcPhraseBoxGapWidth();
+			pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
 			 
 #if defined(_DEBUG) && defined(_EXPAND)
 			// currently boxMode is unused, except for logging purposes
@@ -580,7 +580,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
 				boxMode = m_pLayout->m_boxMode;
-				pileWidth = pPile->CalcPhraseBoxGapWidth(); 
+				pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode); 
 
 #if defined(_DEBUG) && defined(_EXPAND)
 				// currently boxMode is unused, except for logging purposes

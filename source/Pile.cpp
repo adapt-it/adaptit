@@ -357,8 +357,8 @@ void CPile::SetStrip(CStrip* pStrip)
 void CPile::SetMinWidth()
 {
 	m_nMinWidth = CalcPileWidth();
-#if defined(_DEBUG) && defined(_NEWDRAW)
-	wxLogDebug(_T("%s():line %d, sets: m_nMinWidth to: %d, for box text: %s"),
+#if defined(_DEBUG) && defined(_EXPAND)
+	wxLogDebug(_T("%s():line %d, sets: m_nMinWidth to: %d, for box text: %s   *********** called CalcPileWidth() *****"),
 		__func__, __LINE__, m_nMinWidth, gpApp->m_pTargetBox->GetValue().c_str());
 #endif
 }
@@ -375,13 +375,15 @@ void CPile::SetPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	/* Oops, when in OnOpenDocument() and creating piles and strips, m_pActivePile is NULL
 #if defined (_DEBUG) && defined (_EXPAND)
 
-	if (gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber == 15)
+	if (gpApp->m_pActivePile != NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber == 15)
 	{
 		int breakhere = 1;
 	}
 #endif
 	*/
 	m_nWidth = CalcPhraseBoxGapWidth(widthMode);
+
+
 /* CalcPhraseBoxGapWidth() now takes lists width into account, so don't need this
 	// BEW 27Jul18 If the gap width (m_nWidth) as calculated above is less than the max of
 	// m_curBoxWidth and m_curListWidth, the reset the value to that maximum

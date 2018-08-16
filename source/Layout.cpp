@@ -2031,6 +2031,10 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 			pActivePile = GetPile(m_pApp->m_nActiveSequNum);
 			wxASSERT(pActivePile);
 			CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
+
+			// BEW added 18Aug18
+			m_boxMode = boxMode; // make sure Layout has it
+
 			if (boxMode == contracting)
 			{
 				// phrase box is meant to contract for this recalculation, so suppress the
@@ -2051,9 +2055,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 			else // not contracting, could be expanding or no size change
 			{
 				// allow the active location gap calculation to be done
-				m_pDoc->ResetPartnerPileWidth(pSrcPhrase);
+				m_pDoc->ResetPartnerPileWidth(pSrcPhrase); // bNoActiveLocationCalculation is default FALSE
 #if defined(_DEBUG) && defined(_EXPAND)
-				wxLogDebug(_T("%s():line %d, could be steadAsSheGoes or expanding: calls ResetPartnerPileWidth() with default TRUE, no frame resize requested"),
+				wxLogDebug(_T("%s():line %d, could be steadyAsSheGoes or expanding: calls ResetPartnerPileWidth() with default FALSE, no frame resize requested"),
 					__func__, __LINE__);
 #endif
 			}
