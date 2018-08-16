@@ -55304,7 +55304,7 @@ void CAdapt_ItApp::MyLogger(int& sequNum, wxString& srcStr, wxString& tgt_or_glo
 	srcStr = wxEmptyString;
 	tgt_or_glossStr = wxEmptyString;
 	wxTextCtrl* pBox = NULL;
-	wxRect rect = { 0,0,0,0 };
+	wxRect rect = wxRect( 0,0,0,0 );
 	CPile* pPile = pView->GetPile(pApp->m_nActiveSequNum);
 	if (pPile != NULL)
 	{
@@ -55370,7 +55370,7 @@ void CAdapt_ItApp::MyLogger()
 	wxString tgtStr = wxEmptyString;
 	wxString glossStr = wxEmptyString;
 	wxTextCtrl* pBox = NULL;
-	wxRect rect = { 0,0,0,0 };
+	wxRect rect = wxRect( 0,0,0,0 );
 	CPile* pPile = pView->GetPile(pApp->m_nActiveSequNum);
 	if (pPile != NULL)
 	{
