@@ -1775,7 +1775,10 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
 {
 	m_bFrameResizeWanted = FALSE;  // set TRUE below if boxMode is 'contracting'
-	
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	gpApp->MyLogger();
+//#endif
+
 #if defined (_DEBUG) && defined (_EXPAND)
 	wxString strContracting = _T("contracting");
 	wxString strSteady = _T("steadyAsSheGoes");
@@ -2279,6 +2282,11 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		}
 	}
 	m_lastLayoutSelector = selector; // inform Draw() about what we did here
+
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	gpApp->MyLogger();
+//#endif
+
 #if defined (_DEBUG)
 	wxLogDebug(_T("\n*** Leaving RecalcLayout()  , selector = %d  <<--passed to m_lastLayoutSelector (in CLayout) for Draw() to use"), (int)selector);
 #endif

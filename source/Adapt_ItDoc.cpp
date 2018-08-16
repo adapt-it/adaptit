@@ -7346,6 +7346,10 @@ int CAdapt_ItDoc::IndexOf(CSourcePhrase* pSrcPhrase)
 void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 										   bool bNoActiveLocationCalculation)
 {
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	gpApp->MyLogger();
+//#endif
+
 	// refactored 13Mar09 & some more on 27Apr09
 	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in
 									 // pSrcPhrase, in the app's m_pSourcePhrases list
@@ -7393,6 +7397,9 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 		wxASSERT(FALSE);
 		wxExit();
 	}
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	gpApp->MyLogger();
+//#endif
 }
 
 void CAdapt_ItDoc::MarkStripInvalid(CPile* pChangedPile)

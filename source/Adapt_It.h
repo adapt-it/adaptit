@@ -4589,9 +4589,14 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
     wxString m_savedDocTitle; // temporarily save Titlebar's title string here when doing clipboard adapt
                               // End of new variables for support of clipboard-based adaptation & free translation
 
-	// BEW 16Aug18 a useful logger function that can be dropped anywhere, innards can
-	// be changed for whatever logging purpose is needed
-	void MyLogger();
+	// BEW 16Aug18 a useful logger function - unfortunately, need to keep the
+	// wxLogDebug() call outside the call, so that the correct file and function
+	// and line number get reported right
+	// Two versions, first for finding general location; second for drilling down to the bad spot
+	void MyLogger(); // this version is useful at the start and end of functions, provided the caller indicates
+					 // by means of a separate wxLogDebug() that entry or exit if the function has happened
+	void MyLogger(int& sequNum, wxString& srcStr, wxString& tgt_or_glossStr,
+		wxString& contents, int& width);
 
 	// BEW added next 6 lines 10July, for storing and retrieving the USFM text strings for
 	// the exported target text, and exported free translation text, when collaborating

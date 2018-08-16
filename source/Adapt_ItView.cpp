@@ -1015,6 +1015,10 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	pApp->MyLogger();
+//#endif
+
 
 	if (GetLayout() == NULL)
 		return; // application not fully initialized yet
@@ -1186,9 +1190,15 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 		}
 		*/
 	}
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	pApp->MyLogger();
+//#endif
 
 	// draw the layout
 	GetLayout()->Draw(pDC);
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	pApp->MyLogger();
+//#endif
 
     // BEW added 7Jul05 for drawing the free translation text substrings in the spaces
     // created under each of the strips - but only when we are not currently printing
@@ -2947,6 +2957,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 #if defined (_DEBUG)
 	wxLogDebug(_T("\n\n*** Entering PlacePhraseBox()  , selector = %d"), selector);
 #endif
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	pApp->MyLogger();
+//#endif
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 	wxLogDebug(_T("\n\nView, PlacePhraseBox() line  %d  - Starting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 2965,
 												(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
@@ -3335,6 +3348,11 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 		wxLogDebug(_T("View, PlacePhraseBox() line  %d - started landing code, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3346,
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
+//#if defined(_DEBUG) && defined(_EXPAND)
+//		pApp->MyLogger();
+//#endif
+
+
     // whm note 10Jan2018 to support quick selection of a translation equivalent.
     // See similar code in GetNextEmptyPile().
     // This PlacePhraseBox() ends up by calling the Layout's PlaceBox().
@@ -4025,7 +4043,9 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 		pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
 		pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
 	}
-
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	pApp->MyLogger();
+//#endif
 #if defined (_DEBUG)
 	wxLogDebug(_T("*** Leaving PlacePhraseBox()  , selector = %d"), selector);
 #endif
@@ -6439,6 +6459,10 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp);
 
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	pApp->MyLogger();
+//#endif
+
 	//refactored 7Apr09
 	#ifdef _Trace_Box_Loc_Wrong
 	if (pApp->m_nActiveSequNum >20)
@@ -6697,6 +6721,10 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 		pApp->m_pTargetBox->SetBackgroundColour(wxColour(255,255,255)); // white
 		//}
 	}
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	pApp->MyLogger();
+//#endif
+
 }
 
 void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
