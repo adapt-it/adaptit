@@ -2418,9 +2418,9 @@ void CPhraseBox::SetSizeAndHeightOfDropDownList(int width)
     // For now, we'll conditionally compile an approximate value for all platforms:
     int nLeadingPixels;
 #if defined (__WXMSW__)
-    nLeadingPixels = 3;
+    nLeadingPixels = 2; // whm 15Aug2018 after testing changed the windows nLeadingPixels value from 3 to 2.
 #elif defined (__WXGTK__)
-    nLeadingPixels = 12;
+    nLeadingPixels = 11; // whm 15Aug2018 after texting changed the Linux nLeadingPixels value from 12 to 11.
 #elif defined (__WXMAC__)
     nLeadingPixels = 4; // TODO: Graeme, experiment with various values here to see what works best for a variety of font sizes
 #endif
@@ -4058,15 +4058,13 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
 		// Note2: the user is allowed to remove all the content in the phrasebox; if
 		// he removes much, the box must not shrink to be less than what the source
 		// phrase at that location would require for a width if copied to the box
-		/*
-		wxString srcPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase;
-		wxFont* pSrcFont = pApp->m_pSourceFont;
-		wxSize sourceExtent;
-		dC.SetFont(*pSrcFont);
-		dC.GetTextExtent(srcPhrase, &sourceExtent.x, &sourceExtent.y);
-		int minWidth = sourceExtent.x + pApp->m_nExpandBox*averageCharWidth;
-*/
-/*		int minWidth = pApp->m_pActivePile->CalcPileWidth(); // sets to max width taking
+		//wxString srcPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase;
+		//wxFont* pSrcFont = pApp->m_pSourceFont;
+		//wxSize sourceExtent;
+		//dC.SetFont(*pSrcFont);
+		//dC.GetTextExtent(srcPhrase, &sourceExtent.x, &sourceExtent.y);
+		//int minWidth = sourceExtent.x + pApp->m_nExpandBox*averageCharWidth;
+		int minWidth = pApp->m_pActivePile->CalcPileWidth(); // sets to max width taking
 				// gbIsGlossing, gbGlossesVisible, into account - if no glosses are
 				// visible then only the max of src and tgt widths is calculated
 		if (curTextWidth <= minWidth)
