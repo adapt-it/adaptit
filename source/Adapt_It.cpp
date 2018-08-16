@@ -24316,9 +24316,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 	else
 	{
-		// Give it a hard coded width, 24 pixels is about right
-		this->GetLayout()->buttonWidth = 24;
-	}
+		// Give it a hard coded width, 22 pixels for Windows/Mac, or 30 pixels for Linux, is about right
+#if defined (__WXGTK__)
+        this->GetLayout()->buttonWidth = 30;
+#else
+        this->GetLayout()->buttonWidth = 22;
+#endif
+    }
 
 	// Also use the above wxClientDC to get an initial value for the slop width
 	// for the phrasebox's wxTextCtrl - store it in CLayout as a public int called
