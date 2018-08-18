@@ -6455,23 +6455,23 @@ void  CAdapt_ItView::PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint margi
 // than destroyed and reshown.
 // Called from CPhraseBox::FixBox() and CLayout::PlaceBox()
 void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int nHeight,
-				wxString &text, int nStartingChar, int nEndingChar, CPile* pActivePile)
+    wxString &text, int nStartingChar, int nEndingChar, CPile* pActivePile)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp);
+    CAdapt_ItApp* pApp = &wxGetApp();
+    wxASSERT(pApp);
 
-//#if defined(_DEBUG) && defined(_EXPAND)
-//	pApp->MyLogger();
-//#endif
+    //#if defined(_DEBUG) && defined(_EXPAND)
+    //	pApp->MyLogger();
+    //#endif
 
-	//refactored 7Apr09
-	#ifdef _Trace_Box_Loc_Wrong
-	if (pApp->m_nActiveSequNum >20)
-	{
-	wxLogDebug(_T("\nCreateBox   pLoc {y= %d ,x= %d } sequ num = %d\n"),
-		pLoc->y, pLoc->x,pActivePile->GetSourcePhrase()->m_nSequNumber);
-	}
-	#endif
+        //refactored 7Apr09
+#ifdef _Trace_Box_Loc_Wrong
+    if (pApp->m_nActiveSequNum > 20)
+    {
+        wxLogDebug(_T("\nCreateBox   pLoc {y= %d ,x= %d } sequ num = %d\n"),
+            pLoc->y, pLoc->x, pActivePile->GetSourcePhrase()->m_nSequNumber);
+    }
+#endif
 
     // 7Apr09, in the refactored version, the pActivePile parameter is no longer needed, so
     // I've repurposed it to provide a check of the gap width (active pile's m_nWidth
@@ -6482,75 +6482,132 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	// by a new function in CPile, CalcPhraseBoxWidth(), independent of the gap calculations
 	//int nGapWidth = pActivePile->GetPhraseBoxGapWidth();
 	// pActivePile->SetPhraseBoxWidth(); // calls CalcPhraseBoxWidth()
+
 #if defined(_DEBUG) && defined(_EXPAND)
-	{
-		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
-		wxString contents = wxEmptyString; int width = 0;
-		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
-		if (gbIsGlossing)
-		{
-			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
-				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-				contents.c_str(), width);
-		}
-		else
-		{  // adapting
-			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
-				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-				contents.c_str(), width);
-		}
-	}
+    {
+        int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+        wxString contents = wxEmptyString; int width = 0;
+        pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+        if (gbIsGlossing)
+        {
+            wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+                __FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+                contents.c_str(), width);
+        }
+        else
+        {  // adapting
+            wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+                __FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+                contents.c_str(), width);
+        }
+    }
 #endif
 
-	// Check that m_nWidth (the phrasebox at gap's width) has not become less than 
-	// the m_nMinWidth value (the box contents's width as shown at non-active locations)
-	// and if it has then re-calculate the phrasebox width (it should never happen as
-	// the passed in phraseBoxWidth was calculated in the caller just a few lines earlier
-	// but not harm in playing safe)
-	int aWidth = nWidth; // nWidth is passed in as const, so can't assign to it
-	if (nWidth < pActivePile->GetMinWidth())
-	{
-		aWidth = pActivePile->CalcPhraseBoxWidth(); // redo the calculation
-	}
-	wxRect rectBox(wxPoint((*pLoc).x, (*pLoc).y), wxPoint((*pLoc).x + aWidth,
-					(*pLoc).y + nHeight+4)); // logical coords
+    // Check that m_nWidth (the phrasebox at gap's width) has not become less than 
+    // the m_nMinWidth value (the box contents's width as shown at non-active locations)
+    // and if it has then re-calculate the phrasebox width (it should never happen as
+    // the passed in phraseBoxWidth was calculated in the caller just a few lines earlier
+    // but not harm in playing safe)
+    int aWidth = nWidth; // nWidth is passed in as const, so can't assign to it
+    if (nWidth < pActivePile->GetMinWidth())
+    {
+        aWidth = pActivePile->CalcPhraseBoxWidth(); // redo the calculation
+    }
+    wxRect rectBox(wxPoint((*pLoc).x, (*pLoc).y), wxPoint((*pLoc).x + aWidth,
+        (*pLoc).y + nHeight + 4)); // logical coords
 
-	#ifdef _Trace_Box_Loc_Wrong
-	if (pApp->m_nActiveSequNum >20)
-	{
-	wxLogDebug(_T("ResizeBox  rectBox topLeft { %d , %d } BEFORE OnPrepareDC & LPtoDP\n"),
-			rectBox.top, rectBox.left);
-	}
-	#endif
+#ifdef _Trace_Box_Loc_Wrong
+    if (pApp->m_nActiveSequNum > 20)
+    {
+        wxLogDebug(_T("ResizeBox  rectBox topLeft { %d , %d } BEFORE OnPrepareDC & LPtoDP\n"),
+            rectBox.top, rectBox.left);
+    }
+#endif
 
-	/*
-	{
-	#ifdef _DEBUG
-		wxLogTrace(_T("\nTrace 0 - Within ResizeBox - before OnPrepareDC call"));
-		wxString str;
-		str = str.Format("rectBox -- Logical coords: T= %d, L= %d, B= %d, R= %d\n",
-			rectBox.GetTop(), rectBox.GetLeft(), rectBox.GetBottom(), rectBox.GetRight());
-		wxLogTrace(str);
-	#endif
-	}
-	*/
+    /*
+    {
+    #ifdef _DEBUG
+        wxLogTrace(_T("\nTrace 0 - Within ResizeBox - before OnPrepareDC call"));
+        wxString str;
+        str = str.Format("rectBox -- Logical coords: T= %d, L= %d, B= %d, R= %d\n",
+            rectBox.GetTop(), rectBox.GetLeft(), rectBox.GetBottom(), rectBox.GetRight());
+        wxLogTrace(str);
+    #endif
+    }
+    */
 
-	// convert to device coords
-	wxClientDC aDC(pApp->GetMainFrame()->canvas);
-	canvas->DoPrepareDC(aDC); // adjust origin
+    // convert to device coords
+    wxClientDC aDC(pApp->GetMainFrame()->canvas);
+    canvas->DoPrepareDC(aDC); // adjust origin
 
-	//wxPoint ptrLoc = *pLoc; // unused
+    //wxPoint ptrLoc = *pLoc; // unused
 
+#if defined(_DEBUG) && defined(_EXPAND)
+    {
+        CPile* pActiveP = pApp->m_pActivePile;
+        if (pActiveP != NULL)
+        {
+            CSourcePhrase* pSP = pActiveP->GetSrcPhrase();
+            int sn = pSP->m_nSequNumber;
+            if (sn == 15)
+            {
+                int break_here = 1;
+            }
+        }
+    }
+#endif
+
+#if defined(_DEBUG) && defined(_EXPAND)
+    {
+        int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+        wxString contents = wxEmptyString; int width = 0;
+        pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+        if (gbIsGlossing)
+        {
+            wxLogDebug(_T("BEFORE CalcScrolledPosition %s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+                __FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+                contents.c_str(), width);
+        }
+        else
+        {  // adapting
+            wxLogDebug(_T("BEFORE CalcScrolledPosition %s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+                __FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+                contents.c_str(), width);
+        }
+    }
+#endif
     // CalcScrolledPosition is the complement of CalcUnscrolledPosition;
     // CalcScrolledPosition translates logical coordinates to device ones.
-	int newXPos,newYPos;
-	pApp->GetMainFrame()->canvas->CalcScrolledPosition(
-								rectBox.x,rectBox.y,&newXPos,&newYPos);
-	rectBox.x = newXPos;
-	rectBox.y = newYPos;
-	// we leave the width and height the same
+    int newXPos, newYPos;
+    pApp->GetMainFrame()->canvas->CalcScrolledPosition(
+        rectBox.x, rectBox.y, &newXPos, &newYPos);
+    // whm 16Aug2018 change. The CalcScrolledPosition() call above eventually returns a bad (highly inflated) value for newXPos.
+    // We don't need the x-axis value anyway, just the y-axis value which seems to be behaved at this point. 
+    // So I'm commenting out the assignment of newXPos to rectBox.x below.
+    //rectBox.x = newXPos;
+    rectBox.y = newYPos;
+    // we leave the width and height the same
+#if defined(_DEBUG) && defined(_EXPAND)
+    {
+        int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+        wxString contents = wxEmptyString; int width = 0;
+        pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+        if (gbIsGlossing)
+        {
+            wxLogDebug(_T("AFTER CalcScrolledPosition %s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+                __FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+                contents.c_str(), width);
+        }
+        else
+        {  // adapting
+            wxLogDebug(_T("AFTER CalcScrolledPosition %s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+                __FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+                contents.c_str(), width);
+        }
+    }
+#endif
 
-	// Below are alternates for calculating scrolled position
+    // Below are alternates for calculating scrolled position
 //#ifdef _DEBUG
 //	// The device coords can be found by subtracting the logical coords of the upper left corner as
 //	// reported by GetViewStart, from rectBox's upper left corner coords. This doesn't change the
@@ -6579,32 +6636,33 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 //	wxASSERT(y == yy);
 //#endif
 
-	#ifdef _Trace_Box_Loc_Wrong
-	if (pApp->m_nActiveSequNum >20)
-	{
-		wxLogDebug(_T("ResizeBox  rectBox topLeft { %d , %d } AFTER OnPrepareDC & LPtoDP\n"),
-				rectBox.top, rectBox.left);
-	}
-	#endif
-#if defined(_DEBUG) && defined(_EXPAND)
-	{
-		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
-		wxString contents = wxEmptyString; int width = 0;
-		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
-		if (gbIsGlossing)
-		{
-			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
-				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-				contents.c_str(), width);
-		}
-		else
-		{  // adapting
-			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
-				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-				contents.c_str(), width);
-		}
-	}
+#ifdef _Trace_Box_Loc_Wrong
+    if (pApp->m_nActiveSequNum > 20)
+    {
+        wxLogDebug(_T("ResizeBox  rectBox topLeft { %d , %d } AFTER OnPrepareDC & LPtoDP\n"),
+            rectBox.top, rectBox.left);
+    }
 #endif
+#if defined(_DEBUG) && defined(_EXPAND)
+    {
+        int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
+        wxString contents = wxEmptyString; int width = 0;
+        pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
+        if (gbIsGlossing)
+        {
+            wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+                __FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+                contents.c_str(), width);
+        }
+        else
+        {  // adapting
+            wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+                __FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
+                contents.c_str(), width);
+        }
+    }
+#endif
+
 	// WX version resizes rather than recreating the target box
 
 	pApp->m_pTargetBox->GetTextCtrl()->SetSize(rectBox.GetLeft(),rectBox.GetTop(), // whm 12Jul2018 added GetTextCtrl()-> TODO: Test this
