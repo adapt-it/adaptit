@@ -4087,7 +4087,25 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 											 //		if (!bUpdateOfLayoutNeeded)
 											 //			pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
 											 //#endif
-	} // end bResult == TRUE block
+                                             // BEW 17Aug18 try frame's OnSize() to force strip recalcs - otherwise, they can go offscreen at right
+                                             // well, stops them going off screen, but also stops box expanding
+
+        // whm 18Aug2018 moved the OnSize() and Invalidate() calls from the end of FixBox() 
+        // to this block where FixBox() actually makes some changes to box size - and where
+        // updating of piles/strips should be done (whether the OnSize() hack is used to do it
+        // or some better non-hack way is employed).
+        // Note: Placing the OnSize() call here still causes truncation of the phrasebox
+        // contents, but only after a box change. Concerning the truncation problem: As long 
+        // as OnSize() is called from here this will happen unless PlaceBox() has a parameter 
+        // to forego calling the SetupDropDownPhraseBoxForThisLocation() function for certain 
+        // locations where SetupDropDownPhraseBoxForThisLocation() was already initially 
+        // called at that location.
+        wxSizeEvent dummyEvent;
+        pApp->GetMainFrame()->OnSize(dummyEvent);
+
+        pApp->GetView()->Invalidate(); // BEW added, 18/Aug/2018
+
+    } // end bResult == TRUE block
 	else
 	{
 		//#ifdef Do_Clipping
@@ -4134,13 +4152,6 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	// the box paint? Maybe put the invalidate call into the View's OnDraw() at the end of its handler?
 	//pView->RemakePhraseBox(pView->m_pActivePile, pView->m_targetPhrase); // also doesn't work.
 
-	// BEW 17Aug18 try frame's OnSize() to force strip recalcs - otherwise, they can go offscreen at right
-	// well, stops them going off screen, but also stops box expanding
-	wxSizeEvent dummyEvent;
-	pApp->GetMainFrame()->OnSize(dummyEvent);
-	
-	
-	pApp->GetView()->Invalidate(); // BEW added, 18/Aug/2018
 
 #if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();

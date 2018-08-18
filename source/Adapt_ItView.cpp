@@ -6552,6 +6552,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
             if (sn == 15)
             {
                 int break_here = 1;
+                break_here = break_here;
             }
         }
     }
@@ -21816,7 +21817,8 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 		}
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 		Invalidate();
-		GetLayout()->PlaceBox();
+        // whm 18Aug2018 PlaceBox() call here should use noDropDownInitialization enum value.
+        GetLayout()->PlaceBox(noDropDownInitialization);
 	}
 }
 
@@ -22801,6 +22803,8 @@ void CAdapt_ItView::OnEditUndo(wxCommandEvent& event)
 	{
 		wxString inStr;
 		bool bDoUpdate;
+        wxUnusedVar(bDoUpdate);
+
 		if (pApp->m_pTargetBox->m_backspaceUndoStr.IsEmpty())
 		{
 			// Didn't use BACKSPACE key

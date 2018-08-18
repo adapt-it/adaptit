@@ -538,7 +538,7 @@ bool CLayout::GetFullWindowDrawFlag()
 #endif
 
 // BEW 22Jun10, no changes needed for support of kbVersion 2
-void CLayout::PlaceBox()
+void CLayout::PlaceBox(enum placeBoxSetup placeboxsetup)
 {
     // BEW 30Jun09, removed PlacePhraseBoxInLayout(); use PlaceBox() only. 
 	// We need to call PlaceBox() after Invalidate() calls or Redraw() calls
@@ -985,8 +985,11 @@ void CLayout::PlaceBox()
 		// BEW 2May18 for Reviewing mode, suppressed call when m_bDrafting is FALSE
 		if (m_pApp->m_bDrafting)
 		{
-			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
-        m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+            if (placeboxsetup == initializeDropDown)
+            {
+                m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
+            }
+            m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
             //m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus(); // SetFocusAndSetSelectionAtLanding() called below
             //wxWindow* fwin = wxWindow::FindFocus();
             //wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"), 

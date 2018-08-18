@@ -7346,6 +7346,8 @@ int CAdapt_ItDoc::IndexOf(CSourcePhrase* pSrcPhrase)
 void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 										   bool bNoActiveLocationCalculation)
 {
+    wxUnusedVar(bNoActiveLocationCalculation);
+
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	gpApp->MyLogger();
 //#endif
