@@ -2955,6 +2955,13 @@ a:			int nFirstStripIndex = -1;
 			// otherwise, extend the index range to include the active strip
 			nIndexOfLast = nIndexOfLast_Active;
 		}
+		else
+		{
+			// BEW 18Aug18, Neither greater nor less, so...
+			// Set the current strip as invalid, to force an update 
+			// - otherwise, wide piles will force strip final ones to go off-screen
+			nIndexOfFirst = nIndexOfLast = nIndexOfActiveStrip;
+		}
 	}
 }
 

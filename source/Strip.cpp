@@ -247,7 +247,6 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 				}
 #endif
-
 			}
 			else
 			{
@@ -333,7 +332,6 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 							__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 					}
 #endif
-
 				}
 				else
 				{
@@ -376,7 +374,6 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 					__func__, __LINE__, topLeft.x, bottomRight.x, itsWidth, nCurrentSpan, src.c_str());
 			}
 #endif
-
 			// update index for next iteration
 			pileIndex_InStrip++;
 			nWidthOfPreviousPile = pileWidth;
@@ -629,19 +626,8 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 				pileWidth = pPile->m_nMinWidth;
 			}
 		}
-/* BEW 13Aug18, deprecated this hack until we know for sure it is needed
-		// BEW hack, 7Aug18
-		if (m_pLayout->m_boxMode == contracting)
-		{
-			// avoids encroachment on to next pile
-			nCurrentSpan = pileWidth + 2 * gap;
-		}
-		else
-		{
-			nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space
-							// for this pile to be eligible for inclusion in the strip
-		}
-*/
+		nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space
+							// for this pile to be eligible for inclusion in the strip	
 		if (nCurrentSpan <= m_nFree)
 		{
 			// this pile will fit in the strip, so add it
