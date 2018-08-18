@@ -3352,6 +3352,7 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 //		pApp->MyLogger();
 //#endif
 
+		pLayout->m_curBoxWidth = pApp->m_nMinPileWidth; // reset small for new location
 
     // whm note 10Jan2018 to support quick selection of a translation equivalent.
     // See similar code in GetNextEmptyPile().
@@ -6477,9 +6478,6 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
     // value) against the nWidth value passed in - so that if nWidth exceeds the space left
     // at the active pile's gap, the gap width is used instead
 
-	// BEW 19Jul18 Hmmmm, I'm beginning to think that FixBox() should be called as needed from within here,
-	// rather than this function being called from FixBox() - anyway, for the present, proceed...
-	//
 	// BEW 19Jul18, refactored to get the m_curBoxWidth value, from CLayout, which now is calculated
 	// by a new function in CPile, CalcPhraseBoxWidth(), independent of the gap calculations
 	//int nGapWidth = pActivePile->GetPhraseBoxGapWidth();
@@ -6607,20 +6605,8 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 		}
 	}
 #endif
-// BEW 16Aug18 logging shows this next call sets the wrong size when a width adjustment is being done *****************************
-#if defined(_DEBUG) && defined(_EXPAND)
-	CPile* pActiveP = pApp->m_pActivePile;
-	if (pActiveP != NULL)
-	{
-		CSourcePhrase* pSP = pActiveP->GetSrcPhrase();
-		int sn = pSP->m_nSequNumber;
-		if (sn == 15)
-		{
-			int break_here = 1;
-		}
-	}
-#endif
 	// WX version resizes rather than recreating the target box
+
 	pApp->m_pTargetBox->GetTextCtrl()->SetSize(rectBox.GetLeft(),rectBox.GetTop(), // whm 12Jul2018 added GetTextCtrl()-> TODO: Test this
 								rectBox.GetWidth(),rectBox.GetHeight());
  

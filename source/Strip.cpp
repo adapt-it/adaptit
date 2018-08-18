@@ -222,6 +222,11 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			{
 				boxMode = m_pLayout->m_boxMode;
 				pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
+				// BEW 17Aug18 add this, to force the following piles wider - Nah, it's good for only one widening
+				//if (boxMode == expanding)
+				//{
+				//	pileWidth += m_pLayout->slop;
+				//}
 
 #if defined(_DEBUG) && defined(_EXPAND)
 				// currently boxMode is unused, except for logging purposes
@@ -304,7 +309,11 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 				{
 					boxMode = m_pLayout->m_boxMode;
 					pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
-
+					// BEW 17Aug18 add this, to force the following piles wider
+					//if (boxMode == expanding)  - Nah, it's good for only one widening
+					//{
+					//	pileWidth += m_pLayout->slop;
+					//}
 #if defined(_DEBUG) && defined(_EXPAND)
 					// currently boxMode is unused, except for logging purposes
 					if (boxMode == expanding)
@@ -449,7 +458,12 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			boxMode = m_pLayout->m_boxMode;
 			pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
-			 
+			// BEW 17Aug18 add this, to force the following piles wider
+			//if (boxMode == expanding) - Nah, it's good for only one widening
+			//{
+			//	pileWidth += m_pLayout->slop;
+			//}
+
 #if defined(_DEBUG) && defined(_EXPAND)
 			// currently boxMode is unused, except for logging purposes
 			if (boxMode == expanding)
@@ -581,11 +595,18 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			{
 				boxMode = m_pLayout->m_boxMode;
 				pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode); 
+				// BEW 17Aug18 add this, to force the following piles wider
+				//if (boxMode == expanding) - Nah, it's good for only one widening
+				//{
+				//	pileWidth += m_pLayout->slop;
+				//}
 
 #if defined(_DEBUG) && defined(_EXPAND)
 				// currently boxMode is unused, except for logging purposes
 				if (boxMode == expanding)
 				{
+					pileWidth += m_pLayout->slop;
+
 					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
 						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 				}

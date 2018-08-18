@@ -3752,10 +3752,16 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	wxASSERT(pApp->m_pActivePile);
 
 	//wxSize currBoxSize(pApp->m_curBoxWidth,pApp->m_nTgtHeight);
-	wxSize sizePhraseBox = GetClientSize(); // BEW added 25Mar09; it's in pixels
-	wxSize currBoxSize(pLayout->m_curBoxWidth, sizePhraseBox.y); // note, this is better, because if
-																 // glossing mode is on and glossing uses the navText font, the height
-																 // might be different from the height of the target text font
+	wxSize sizePhraseBox = GetClientSize(); // BEW added 25Mar09; we just want the y-value
+
+	// Next is the legacy call, it's not correct for the new refactored box
+	//wxSize currBoxSize(pLayout->m_curBoxWidth, sizePhraseBox.y); // note, this is better,
+			// because if glossing mode is on and glossing uses the navText font, the
+			//  height might be different from the height of the target text font
+	// BEW 17Aug18, deprecated the above call, and replaced with the following
+	pLayout->m_curBoxWidth = pApp->m_pActivePile->CalcPhraseBoxWidth(); 
+	int newWidth = pLayout->m_curBoxWidth;
+	wxSize currBoxSize(newWidth, sizePhraseBox.y);
 
 	wxClientDC dC(this);
 	wxFont* pFont;
@@ -3767,12 +3773,13 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 
 	dC.SetFont(*pFont);
 	dC.GetTextExtent(thePhrase, &textExtent.x, &textExtent.y); // measure using the current font
-	wxSize textExtent2;
-	wxSize textExtent3;
-	wxSize textExtent4; // version 2.0 and onwards, for extent of m_gloss
+	//wxSize textExtent2;
+	//wxSize textExtent3;
+	//wxSize textExtent4; // version 2.0 and onwards, for extent of m_gloss
 						//CStrip* pPrevStrip;
 
-						// if close to the right boundary, then recreate the box larger (by 3 chars of width 'w')
+	// if close to the right boundary, then recreate the box larger 
+	// ('close' being 3 chars of width 'w' short)
 	wxString aChar = _T('w');
 	wxSize charSize;
 	dC.GetTextExtent(aChar, &charSize.x, &charSize.y);
@@ -3804,7 +3811,10 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 		// width using m_targetPhrase contents, generate TRUE if the horizontal extent of
 		// the text in it is greater or equal to the current box width less 3 'w' widths
 		// (if so, an expansion is required, if not, current size can stand)
-		bResult = textExtent.x >= currBoxSize.x - pApp->m_nNearEndFactor*charSize.x;
+		//bResult = textExtent.x >= currBoxSize.x - pApp->GetLayout()->slop;
+		// BEW 17Aug18, deprecated above test, try the following
+		int boundary = currBoxSize.x - pApp->GetLayout()->buttonWidth; // test against this
+		bResult = textExtent.x >= boundary;
 
 #if defined(_DEBUG) && defined(_EXPAND)
 		{
@@ -3834,16 +3844,17 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 		// BEW changed 25Jun05, the above criterion produced very frequent resizing; let's
 		// do it far less often...
 		//bResult = textExtent.x <= currBoxSize.x - (4*charSize.x); // the too-often way
-		bResult = textExtent.x < currBoxSize.x - (pApp->m_nExpandBox * charSize.x); // BEW 13Aug18, before, 
-																// I hard coded 8 for m_nExpandBox here
+		bResult = textExtent.x < currBoxSize.x - (pApp->GetLayout()->slop); // BEW 13Aug18, before, 
+													// I hard coded 8 for m_nExpandBox here
 	}
 	bool bUpdateOfLayoutNeeded = FALSE;
 	if (bResult)
 	{
 		// a width change is required....therefore set m_curBoxWidth and call RecalcLayout()
 		if (nSelector < 2)
-		nPhraseBoxWidthAdjustMode = expanding; // this is passed on to the functions that
-											   // calculate the new width of the phrase box
+		{
+			nPhraseBoxWidthAdjustMode = expanding; // this is passed on to the functions that
+		}									   // calculate the new width of the phrase box
 
 		// make sure the activeSequNum is set correctly, we need it to be able
 		// to restore the pActivePile pointer after the layout is recalculated
@@ -3876,10 +3887,10 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 			}
 		}
 #endif
-			pLayout->m_curBoxWidth += pApp->m_nExpandBox*charSize.x;
+		pLayout->m_curBoxWidth += pApp->GetLayout()->slop;
 
-			GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current phrase
-																  // box selection in app's m_nStartChar & m_nEndChar members
+		GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current phrase
+					// box selection in app's m_nStartChar & m_nEndChar members
 
 			bUpdateOfLayoutNeeded = TRUE;
 		}
@@ -3891,7 +3902,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 
 				pApp->m_targetPhrase = GetValue(); // store current typed string
 
-												   //move old code into here & then modify it
+				//move old code into here & then modify it
 				GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current selection
 
 				// we are trying to delete text in the phrase box by pressing backspace key
@@ -3899,8 +3910,6 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 				// BEW changed 25Jun09, to have the box shrink done less often to reduce blinking,
 				// the new criterion will shrink the box by 7 'w' widths -- no make it
 				// just 5 w widths (26Jun09)
-				//int newWidth = pLayout->m_curBoxWidth - 2 * charSize.x;
-				//int newWidth = pLayout->m_curBoxWidth - 7 * charSize.x;
 				int newWidth = pLayout->m_curBoxWidth - 5 * charSize.x;
 				// we have to compare with a reasonable box width based on source text
 				// width to ensure we don't reduce the width below that (otherwise piles
@@ -3942,7 +3951,8 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 			else
 			{
 				// nSelector == 1 case
-				pLayout->m_curBoxWidth = textExtent.x + pApp->m_nExpandBox*charSize.x;
+				//pLayout->m_curBoxWidth = textExtent.x + pApp->GetLayout()->slop;
+				pLayout->m_curBoxWidth += pApp->GetLayout()->slop; // increase it by the slop's width
 
 				// move the old code into here
 				GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current selection
@@ -4089,7 +4099,8 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	}
 	if (nSelector < 2)
 		pApp->m_targetPhrase = thePhrase; // update the string storage on the view
-										  // (do it here rather than before the resizing code else selection bounds are wrong)
+	// (do it here rather than before the resizing code else selection bounds are wrong)
+
 #if defined(_DEBUG) && defined(_EXPAND)
 	{
 		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
@@ -4122,6 +4133,14 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	// perhaps the box paint occurs too early and the view point wipes it. How then do we delay
 	// the box paint? Maybe put the invalidate call into the View's OnDraw() at the end of its handler?
 	//pView->RemakePhraseBox(pView->m_pActivePile, pView->m_targetPhrase); // also doesn't work.
+
+	// BEW 17Aug18 try frame's OnSize() to force strip recalcs - otherwise, they can go offscreen at right
+	// well, stops them going off screen, but also stops box expanding
+	wxSizeEvent dummyEvent;
+	pApp->GetMainFrame()->OnSize(dummyEvent);
+	
+	
+	pApp->GetView()->Invalidate(); // BEW added, 18/Aug/2018
 
 #if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
@@ -6328,6 +6347,8 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	wxASSERT(pApp != NULL);
 
 	CLayout* pLayout = GetLayout();
+	// BEW added 18Aug18 - ensure a large former m_curBoxWidth value is not retained in the move
+	pLayout->m_curBoxWidth = pApp->m_nMinPileWidth; // reset small for new location
 
 	//CSourcePhrase* pOldActiveSrcPhrase = NULL; // set but not used
 	int nActiveSequNum = pApp->m_nActiveSequNum;
