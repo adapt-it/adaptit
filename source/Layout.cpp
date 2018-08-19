@@ -3046,6 +3046,17 @@ bool CLayout::GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidS
 	}
 
 	int nAfterStripIndex = nLastInvalidStrip + 1; // following strip's index, or bounds error
+
+	// BEW 19Aug18 see the comment in the else block below, with same date, for the reason
+	// why these extra strips (a max of 5 extras) are to be added. They are 'protection'
+	// in case the user's work changes the inventory of piles before the drawing is completed.
+	int nExtraStrips = 0;
+	if (nAfterStripIndex + 5 > (int)(m_stripArray.GetCount() - 1))
+	{
+		// Oops, 5 more are not available - take instead as many as are available
+		int lastIndex = (int)(m_stripArray.GetCount() - 1);
+		nExtraStrips = lastIndex - nAfterStripIndex;
+	}
 	if (nAfterStripIndex > (int)(m_stripArray.GetCount() - 1))
 	{
 		// the "after" strip does not exist, therefore the last invalid strip is also the
@@ -3061,7 +3072,32 @@ bool CLayout::GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidS
 		// (we search for the bounding pile, because the old pile at the end of the
 		// invalid strips may no longer exist, so we can't assume a search for it will
 		// succeed)
-		CStrip* pAfterStrip = (CStrip*)m_stripArray.Item(nAfterStripIndex);
+		// BEW 19Aug18 - I got crash this way. I had adapted piles, selected some which
+		// included 'bilongen' as a src word, it was a typo as it should have been 'bilong' 
+		// 'en', and so I selected that and the preceding word 'namel' ('midddle') and
+		// did Edit Source Text. In that dialog I put in the missing space before 'en'
+		// and clicked OK. That sent the app into vertical edit mode - with 3 piles
+		// not grayed out:  namel bilong en   which I intended to adapt as a phrase
+		// meaning 'his waist'. I selected them, clicked to make the merger happen,
+		// typed in  his waist  and click Enter to advance the box into the gray area
+		// to indicate finish. Got an assert, which on checking revealed that the merger
+		// had removed piles which the code's arithmetic calculations relied on from the
+		// m_pSourcePhrases list. So the calculations tripped an assert.
+		// Solution? If more than that active strip were declared invalid, then it would
+		// be possible for the pile flowing code to move piles from the following 
+		// valid strips up to file the gap, instead of assuming the gap's piles (at the
+		// merger location) still existed. I added 4 in the .Item() call just here
+		// commented out and retested - that worked fine. So I need to programmatically
+		// extend the range of strips considered invalid, even if they are not, just
+		// in case that the user decides, in vertical edit mode, to do legitimate operations
+		// that alter the inventory of piles - such as mergers or retranslations, in the
+		// immediate location of the active strip. How many extra strips, then, to consider
+		// invalid? Probably about 5; but I have to write code to check that the document
+		// has 5 extra strips available - and if fewer, take as many as can be had.
+		// So the extra code will work out a number between 0 and 5, and add it to the
+		// nAfterStripIndex, before .Item() uses the result.
+		//CStrip* pAfterStrip = (CStrip*)m_stripArray.Item(nAfterStripIndex);
+		CStrip* pAfterStrip = (CStrip*)m_stripArray.Item(nAfterStripIndex + nExtraStrips);
 		CPile* pFirstAfterPile = (CPile*)pAfterStrip->m_arrPiles.Item(0); // this one is unedited
 		wxASSERT(pFirstAfterPile);
 		nEndPileIndex = m_pileList.IndexOf(pFirstAfterPile) - 1;

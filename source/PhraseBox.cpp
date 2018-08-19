@@ -4124,22 +4124,6 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	dC.SetFont(SaveFont); // restore old font (ie "System")
 	//gSaveTargetPhrase = pApp->m_targetPhrase;
 
-	// whm Note re BEW's note below: the non-visible phrasebox was not a problem in the wx version.
-	// BEW added 20Dec07: in Reviewing mode, the box does not always get drawn (eg. if click on a
-	// strip which is all holes and then advance the box by using Enter key, the box remains invisible,
-	// and stays so for subsequent Enter presses in later holes in the same and following strips:
-	// same addition is at the end of the ResizeBox() function, for the same reason
-	//pView->m_targetBox.Invalidate(); // hopefully this will fix it - it doesn't unfortunately
-	// perhaps the box paint occurs too early and the view point wipes it. How then do we delay
-	// the box paint? Maybe put the invalidate call into the View's OnDraw() at the end of its handler?
-	//pView->RemakePhraseBox(pView->m_pActivePile, pView->m_targetPhrase); // also doesn't work.
-
-	// BEW 17Aug18 try frame's OnSize() to force strip recalcs - otherwise, they can go offscreen at right
-	// well, stops them going off screen, but also stops box expanding
-	wxSizeEvent dummyEvent;
-	pApp->GetMainFrame()->OnSize(dummyEvent);
-	
-	
 	pApp->GetView()->Invalidate(); // BEW added, 18/Aug/2018
 
 #if defined(_DEBUG) && defined(_EXPAND)
