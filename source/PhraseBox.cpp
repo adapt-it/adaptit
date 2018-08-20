@@ -3785,26 +3785,6 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	dC.GetTextExtent(aChar, &charSize.x, &charSize.y);
 	bool bResult;
 
-#if defined(_DEBUG) && defined(_EXPAND)
-	{
-		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
-		wxString contents = wxEmptyString; int width = 0;
-		gpApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
-		if (gbIsGlossing)
-		{
-			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
-				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-				contents.c_str(), width);
-		}
-		else
-		{  // adapting
-			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
-				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-				contents.c_str(), width);
-		}
-	}
-#endif
-
 	if (nSelector < 2)
 	{
 		// when either incrementing the box width from what it was, or recalculating a
@@ -3815,26 +3795,6 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 		// BEW 17Aug18, deprecated above test, try the following
 		int boundary = currBoxSize.x - pApp->GetLayout()->buttonWidth; // test against this
 		bResult = textExtent.x >= boundary;
-
-#if defined(_DEBUG) && defined(_EXPAND)
-		{
-			int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
-			wxString contents = wxEmptyString; int width = 0;
-			gpApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
-			if (gbIsGlossing)
-			{
-				wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
-					__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-					contents.c_str(), width);
-			}
-			else
-			{  // adapting
-				wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
-					__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-					contents.c_str(), width);
-			}
-		}
-#endif
 	}
 	else
 	{
@@ -3868,30 +3828,10 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 		// calculate the new width
 		if (nSelector == 0)
 		{
-#if defined(_DEBUG) && defined(_EXPAND)
-		{
-			int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
-			wxString contents = wxEmptyString; int width = 0;
-			gpApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
-			if (gbIsGlossing)
-			{
-				wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
-					__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-					contents.c_str(), width);
-			}
-			else
-			{  // adapting
-				wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
-					__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-					contents.c_str(), width);
-			}
-		}
-#endif
-		pLayout->m_curBoxWidth += pApp->GetLayout()->slop;
+			pLayout->m_curBoxWidth += pApp->GetLayout()->slop;
 
-		GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current phrase
+			GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); // store current phrase
 					// box selection in app's m_nStartChar & m_nEndChar members
-
 			bUpdateOfLayoutNeeded = TRUE;
 		}
 		else // next block is for nSelector == 1 or 2 cases
@@ -3964,25 +3904,6 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 
 		if (bUpdateOfLayoutNeeded)
 		{
-#if defined(_DEBUG) && defined(_EXPAND)
-		{
-			int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
-			wxString contents = wxEmptyString; int width = 0;
-			gpApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
-			if (gbIsGlossing)
-			{
-				wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
-					__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-					contents.c_str(), width);
-			}
-			else
-			{  // adapting
-				wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
-					__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-					contents.c_str(), width);
-			}
-		}
-#endif
 #ifdef _NEW_LAYOUT
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles, nPhraseBoxWidthAdjustMode);
 #else
@@ -3990,25 +3911,6 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 #endif
 			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 			wxASSERT(pApp->m_pActivePile != NULL);
-#if defined(_DEBUG) && defined(_EXPAND)
-			{
-				int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
-				wxString contents = wxEmptyString; int width = 0;
-				gpApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
-				if (gbIsGlossing)
-				{
-					wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
-						__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-						contents.c_str(), width);
-				}
-				else
-				{  // adapting
-					wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
-						__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-						contents.c_str(), width);
-				}
-			}
-#endif
 		}
 
 		// resize using the stored information (version 1.2.3 and earlier used to recreate, but
@@ -4022,8 +3924,8 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 		wxPoint ptCurBoxLocation;
 		CCell* pActiveCell = pApp->m_pActivePile->GetCell(1);
 		pActiveCell->TopLeft(ptCurBoxLocation); // returns the .x and .y values in the signature's ref variable
-												// BEW 25Dec14, cells are 2 pixels larger vertically as of today, so move TopLeft of box
-												// back up by 2 pixels, so text baseline keeps aligned
+				// BEW 25Dec14, cells are 2 pixels larger vertically as of today, so move TopLeft of box
+				// back up by 2 pixels, so text baseline keeps aligned
 		ptCurBoxLocation.y -= 2;
 
 		if (gbIsGlossing && gbGlossingUsesNavFont)
@@ -4033,60 +3935,19 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 		}
 		else
 		{
-#if defined(_DEBUG) && defined(_EXPAND)
-		{
-			int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
-			wxString contents = wxEmptyString; int width = 0;
-			gpApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
-			if (gbIsGlossing)
-			{
-				wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
-					__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-					contents.c_str(), width);
-			}
-			else
-			{  // adapting
-				wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
-					__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-					contents.c_str(), width);
-			}
-		}
-#endif
-
 			pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetTgtTextHeight(),
 				pApp->m_targetPhrase, pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
-
-#if defined(_DEBUG) && defined(_EXPAND)
-			{
-				int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
-				wxString contents = wxEmptyString; int width = 0;
-				gpApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
-				if (gbIsGlossing)
-				{
-					wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
-						__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-						contents.c_str(), width);
-				}
-				else
-				{  // adapting
-					wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
-						__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-						contents.c_str(), width);
-				}
-			}
-#endif
-
 		}
 		if (bWasMadeDirty)
 			pApp->m_pTargetBox->MarkDirty(); // TRUE (restore modified status)
 
-											 //GDLC Removed 2010-02-09
-											 //gbExpanding = FALSE;
-											 //#ifdef Do_Clipping
-											 //		// support clipping
-											 //		if (!bUpdateOfLayoutNeeded)
-											 //			pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
-											 //#endif
+			//GDLC Removed 2010-02-09
+			//gbExpanding = FALSE;
+			//#ifdef Do_Clipping
+			//		// support clipping
+			//		if (!bUpdateOfLayoutNeeded)
+			//			pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
+			//#endif
 	} // end bResult == TRUE block
 	else
 	{
@@ -4101,26 +3962,6 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 		pApp->m_targetPhrase = thePhrase; // update the string storage on the view
 	// (do it here rather than before the resizing code else selection bounds are wrong)
 
-#if defined(_DEBUG) && defined(_EXPAND)
-	{
-		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
-		wxString contents = wxEmptyString; int width = 0;
-		gpApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
-		if (gbIsGlossing)
-		{
-			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
-				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-				contents.c_str(), width);
-		}
-		else
-		{  // adapting
-			wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
-				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
-				contents.c_str(), width);
-		}
-	}
-#endif
-
 	dC.SetFont(SaveFont); // restore old font (ie "System")
 	//gSaveTargetPhrase = pApp->m_targetPhrase;
 
@@ -4133,198 +3974,6 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 #endif
 }
 
-// BEW created, 30Jul18, it is in the refactored FixBox() function.
-// If the returned boolean is TRUE, the caller can then act or ignore on FALSE returned.
-// For a contraction, the caller will be a function dealing with BACKSPACE key
-// or DELETE key - so to flag this fact the caller must pass in an empty string
-// for inStr. We turn that into a boolean, bContracting, and only run the internal
-// code when bContracting is TRUE; if it is not TRUE, then the function returns
-// FALSE and no contraction will then be imposed upon the phrasebox
-/* BEW 14Aug18 deprecated
-bool CPhraseBox::UpdatePhraseBoxWidth_Contracting(wxString inStr)
-{
-	bool bUpdateNeeded = FALSE; // inintialize consistent with box width 
-								// recalculation not being needed
-	bool bContracting = FALSE; // initialize
-	if (inStr.IsEmpty())
-	{
-		bContracting = TRUE;
-	}
-	if (bContracting)
-	{
-		CAdapt_ItApp* pApp = &wxGetApp();
-		wxString thePhrase = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
-		bool bWasMadeDirty = pApp->m_pTargetBox->GetModify();
-
-		wxClientDC dC(this);
-		wxFont* pFont;
-		if (gbIsGlossing && gbGlossingUsesNavFont)
-			pFont = pApp->m_pNavTextFont;
-		else
-			pFont = pApp->m_pTargetFont;
-		wxFont SaveFont = dC.GetFont();
-		dC.SetFont(*pFont);
-
-		// Measure using the current font. Note, we are only interesting in the text
-		// in the wxTextCtrl for this measurement, we ignore slop & the dropdown button.
-		// However, the text could be adaptation text, or gloss text.
-		wxSize textExtent;
-		dC.GetTextExtent(thePhrase, &textExtent.x, &textExtent.y);
-		int curTextWidth = textExtent.x;
-
-		// When contracting we don't need the width of the character or 
-		// string that was passed in, as it was an empty string, so
-		// inStrWidth will be set to zero here
-		wxSize strSize(0, 0);
-		int inStrWidth;
-		if (inStr.IsEmpty())
-		{
-			inStrWidth = 0;
-		}
-		else
-		{
-			// If, however, the passed in string was not empty, it
-			// is safer to have a size for it - even if we don't use it
-			dC.GetTextExtent(inStr, &strSize.x, &strSize.y);
-			inStrWidth = strSize.x;
-		}
-
-		// We need an average character with for our calculations. Use 'w' width.
-		wxString aChar = _T('w');
-		wxSize charSize;
-		dC.GetTextExtent(aChar, &charSize.x, &charSize.y);
-		int averageCharWidth = charSize.x;
-		wxASSERT(averageCharWidth > 0);
-
-		// We also need the current width of the wxTextCtrl's rectangle
-		wxSize sizePhraseBox = pApp->m_pTargetBox->GetTextCtrl()->GetClientSize(); // in pixels
-		int curBoxWidth = sizePhraseBox.x;
-#if defined(_DEBUG) && defined(_NEWDRAW)
-		wxLogDebug(_T("\n%s():line %d, on entry: curBoxWidth: %d , curTextWidth = %d, for box text: %s"),
-			__func__, __LINE__, curBoxWidth, curTextWidth, thePhrase.c_str());
-#endif
-#if defined (_DEBUG) && defined (_EXPAND)
-		wxLogDebug(_T("\n%s():line %d, on entry: curBoxWidth: %d , inStr (char typed) = %s, for box text: %s"),
-			__func__, __LINE__, curBoxWidth, inStr.c_str(), thePhrase.c_str());
-#endif
-
-		// We also need to have the correct user-defined slop width; using the user-set
-		// multiple of 'w' widths so as to get the pixel width for the slop (a constant width
-		// unless the user changes the multiplier m_nExpandBox in the Preferences... dialog) **************** TODO this is 
-													// same every time, relocate to CLayout, and grab from there
-													// (only Preferences, view tab, can change the slop width)
-		wxChar wChar = _T('w');
-		wxString wStr = wChar;
-		wxSize wCharSize;
-		dC.GetTextExtent(wStr, &wCharSize.x, &wCharSize.y);
-		int slopWidth = gpApp->m_nExpandBox*wCharSize.x;
-
-#if defined(_DEBUG) && defined(_NEWDRAW)
-		wxLogDebug(_T("%s():line %d, curTextWidth %d , inStrWidth %d , slopWidth %d"),
-			__func__, __LINE__, curTextWidth, inStrWidth, slopWidth);
-#endif
-		// Our criteria is that if sufficient characters are removed that the amount of
-		// free space is equal to or greater than the slopWidth (the latter is a const)
-		// then the box can be recreated smaller with the current amount of slop added
-		// (Note: there may be several contractions required before the original size
-		// is reached.
-		// Note2: the user is allowed to remove all the content in the phrasebox; if
-		// he removes much, the box must not shrink to be less than what the source
-		// phrase at that location would require for a width if copied to the box
-		//wxString srcPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase;
-		//wxFont* pSrcFont = pApp->m_pSourceFont;
-		//wxSize sourceExtent;
-		//dC.SetFont(*pSrcFont);
-		//dC.GetTextExtent(srcPhrase, &sourceExtent.x, &sourceExtent.y);
-		//int minWidth = sourceExtent.x + pApp->m_nExpandBox*averageCharWidth;
-		int minWidth = pApp->m_pActivePile->CalcPileWidth(); // sets to max width taking
-				// gbIsGlossing, gbGlossesVisible, into account - if no glosses are
-				// visible then only the max of src and tgt widths is calculated
-		if (curTextWidth <= minWidth)
-		{
-			// we are about to contract too much, so don't do an update
-			bUpdateNeeded = FALSE;
-#if defined(_DEBUG) && defined(_NEWDRAW)
-			wxLogDebug(_T("%s():line %d, minWidth = %d; curTextWidth <= minWidth is TRUE, bUpdateNeeded set FALSE"),
-				__func__, __LINE__, minWidth);
-#endif
-		}
-		else
-		{
-			// That handles the 'box too small' case; we now want a calculation for
-			// 'long' text being reduced by an amount but leaves a span in the
-			// end of the phrasebox wider than the width of the slop value.
-			// That is what leads to a normal contraction. In the test below, the
-			// first subtest checks that there is some available space for a
-			// contraction, and the second subtest only permits the contraction
-			// provided that if there were a contraction of the current box width
-			// by the slop amount of pixels, that would result in a box that still
-			// is wide enough to contain all the text
-			pApp->m_pTargetBox->m_bAbandonable = FALSE;
-			int boundary = curBoxWidth - slopWidth; // test against this
-			if ( (curBoxWidth - minWidth > 0) && 
-				 //(curBoxWidth - slopWidth > curTextWidth) // <<-- nope, no good
-				//(curTextWidth < (curBoxWidth - slopWidth)) // the old FixBox() test, no different really, so no good
-				(curTextWidth < boundary) // <<-- this is the correct test
-			   )
-			{
-				bUpdateNeeded = TRUE;
-#if defined(_DEBUG) && defined(_NEWDRAW)
-				wxLogDebug(_T("%s():line %d, (curBoxWidth - slopWidth > curTextWidth) is TRUE, bUpdateNeeded set TRUE"),
-					__func__, __LINE__ );
-#endif
-			}
-			else
-			{
-				bUpdateNeeded = FALSE;
-#if defined(_DEBUG) && defined(_NEWDRAW)
-				wxLogDebug(_T("%s():line %d (curBoxWidth - (slopWidth + slopWidth / 2) > curTextWidth) is FALSE, bUpdateNeeded set FALSE"), 
-					__func__, __LINE__);
-#endif
-
-			}
-			// The following is just a safety first calculation - perhaps never called.
-			// We don't allow box widths less than 40 pixels
-			if (curBoxWidth < 40)
-			{
-				bUpdateNeeded = FALSE;  // keep the piles immobile, short text in the box is not an update causer
-#if defined(_DEBUG) && defined(_NEWDRAW)
-				wxLogDebug(_T("%s():line %d, SAFETY TEST ENTERED: curBoxWidth < 40 = TRUE, bUpdateNeeded set TRUE"),
-					__func__, __LINE__);
-#endif
-			}
-		}
-		// OK, act on what the above tests say
-		if (bUpdateNeeded)
-		{
-			pApp->m_pTargetBox->m_bAbandonable = FALSE;
-			if (!bWasMadeDirty)
-			{
-				pApp->m_pTargetBox->SetModify(TRUE);
-			}
-			// Keep the cursor position (done in the caller or further upstream. Otherwise 
-			// after a few chars get deleted, the cursor position jumps to the text's end - 
-			// which is not where user would want it to go when giving a sequence of backspaces
-			// or delete keypresses
-#if defined(_DEBUG) && defined(_NEWDRAW)
-			wxLogDebug(_T("%s():line %d, if (bUpdateNeeded) **** TRUE block entered **** -- caller gets contraction update done"), 
-				__func__, __LINE__);
-#endif
-		}
-		else
-		{
-			pApp->m_pTargetBox->m_bAbandonable = FALSE;
-#if defined(_DEBUG) && defined(_NEWDRAW)
-			wxLogDebug(_T("%s():line %d, if (bUpdateNeeded) **** FALSE block entered **** -- caller does nothing"), 
-				__func__, __LINE__);
-#endif
-		}
-	} // end of TRUE block for test: if (bContracting)
-
-	// If contracting is not needed, bUpdateNeeded will be returned as FALSE;
-	return bUpdateNeeded;
-}
-*/
 
 // MFC docs say about CWnd::OnChar "The framework calls this member function when
 // a keystroke translates to a nonsystem character. This function is called before

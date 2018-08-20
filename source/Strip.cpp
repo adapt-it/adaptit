@@ -162,6 +162,7 @@ void CStrip::Draw(wxDC* pDC)
 // PileList::Item() call at the start of the function, so time is saved when setting up the
 // strips for a whole document)
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 19Aug18 refactored for supporting dropdown list phrasebox
 PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
@@ -308,11 +309,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 				{
 					boxMode = m_pLayout->m_boxMode;
 					pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
-					// BEW 17Aug18 add this, to force the following piles wider
-					//if (boxMode == expanding)  - Nah, it's good for only one widening
-					//{
-					//	pileWidth += m_pLayout->slop;
-					//}
+					/*
 #if defined(_DEBUG) && defined(_EXPAND)
 					// currently boxMode is unused, except for logging purposes
 					if (boxMode == expanding)
@@ -332,6 +329,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 							__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 					}
 #endif
+					*/
 				}
 				else
 				{
@@ -358,8 +356,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 
 			// set the pile's m_pOwningStrip member
 			pPile->m_pOwningStrip = this;
-
-
+/*
 #if defined(_DEBUG) && defined(_NEWDRAW)
 			if (pPile->m_pOwningStrip->m_nStrip == 3)
 			{
@@ -374,6 +371,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 					__func__, __LINE__, topLeft.x, bottomRight.x, itsWidth, nCurrentSpan, src.c_str());
 			}
 #endif
+*/
 			// update index for next iteration
 			pileIndex_InStrip++;
 			nWidthOfPreviousPile = pileWidth;
@@ -400,6 +398,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 // strip, there will always be at least one - empty strips are illegal; the function
 // should not be called if there are no more piles to be placed.
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 19Aug18 refactored for supporting dropdown list phrasebox
 int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
@@ -455,12 +454,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			boxMode = m_pLayout->m_boxMode;
 			pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
-			// BEW 17Aug18 add this, to force the following piles wider
-			//if (boxMode == expanding) - Nah, it's good for only one widening
-			//{
-			//	pileWidth += m_pLayout->slop;
-			//}
-
+/* keep
 #if defined(_DEBUG) && defined(_EXPAND)
 			// currently boxMode is unused, except for logging purposes
 			if (boxMode == expanding)
@@ -480,6 +474,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 			}
 #endif
+*/
 		}
 		else
 		{
@@ -592,12 +587,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			{
 				boxMode = m_pLayout->m_boxMode;
 				pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode); 
-				// BEW 17Aug18 add this, to force the following piles wider
-				//if (boxMode == expanding) - Nah, it's good for only one widening
-				//{
-				//	pileWidth += m_pLayout->slop;
-				//}
-
+/* keep this				
 #if defined(_DEBUG) && defined(_EXPAND)
 				// currently boxMode is unused, except for logging purposes
 				if (boxMode == expanding)
@@ -619,7 +609,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 				}
 #endif
-
+*/
 			}
 			else
 			{
@@ -647,7 +637,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 												// m_arrPiles array
 			// set the pile's m_pOwningStrip member
 			pPile->m_pOwningStrip = this;
-//*
+
 #if defined(_DEBUG) && defined(_NEWDRAW)
 	{
 		if (pPile->m_pOwningStrip->m_nStrip == 3) // because this strip is my test case - with the overlap observable
@@ -666,7 +656,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 				__func__, __LINE__, topLeft.x, bottomRight.x, itsWidth, nCurrentSpan, src.c_str());
 		}
 	} 
-#endif  //*/
+#endif
 		}
 		else
 		{

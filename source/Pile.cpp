@@ -689,7 +689,7 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 	// the strips, and ensuring an adequate gap at the pile which is the active one.
 	int newBoxWidth = m_pLayout->m_curBoxWidth;
 #if defined(_DEBUG) && defined(_EXPAND)
-	wxLogDebug(_T("%s:%s():line %d, Layout's current WIDTH (maybe augmented by FixBox):  %d , for box text [ %s ]"),
+	wxLogDebug(_T("%s:%s():line %d, Layout's current WIDTH (might get augmented by FixBox):  %d , for box text [ %s ]"),
 		__FILE__, __func__, __LINE__, newBoxWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
 #endif
 
@@ -723,31 +723,6 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 					__FILE__,__func__, __LINE__, nStartingWidth, pileWidth, listWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
 		#endif
 		int nSaveInitialWidth = boxWidth;
-		/* now unneeded, CalcPileWidth() takes account of source text width
-		mytext = gpApp->m_pTargetBox->GetTextCtrl()->GetValue();
-		if (mytext.IsEmpty())
-		{
-			// The active location is a hole. That's all we have for our calculation
-
-			// Check out the source text's width, and use that instead. 
-			// Then add slop and also the width of the dropdown button.
-			mytext = m_pSrcPhrase->m_srcPhrase; // it's never empty in our layout
-			aDC.SetFont(*m_pLayout->m_pSrcFont);
-			aDC.GetTextExtent(mytext, &boxExtent.x, &boxExtent.y);
-			if (boxExtent.x > boxWidth)
-			{
-				boxWidth = boxExtent.x;
-			}
-
-		} // end of TRUE block for test: if (mytext.IsEmpty())
-		else
-		{
-			// There is text in the phrasebox, either an adaptation, or a gloss
-			boxWidth = CalcPileWidth(); // returns max of src, tgt, gloss, extents
-
-
-		} // end of else block for test: if (mytext.IsEmpty())
-		*/
 		// Sanity test
 		if (boxWidth < nSaveInitialWidth)
 		{
@@ -775,6 +750,9 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 		// this will automatically add the expanded value to the
 		// former of these two
 	}
+
+// TODO -- calculation for See Glosses, and Glossing mode; also need a CalcGlossListWidth(); and get max
+
 	return boxWidth;
 }
 
@@ -813,12 +791,12 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 				__func__, __LINE__, boxGapWidth, m_pLayout->GetGapWidth());
 #endif
 			// BEW comment 14Aug17 The value we have so far obtained should fit the 
-			// current box width, as the drawing will will need to know the new value 
+			// current box width, as the CreateStrip will will need to know the new
+			// augmented value, when expanding, for CreateStrip's calculation of
+			// the gap to leave for the phrasebox at the active location.
 			// for the pile's nHorzOffset member (which defines where the next pile
-			// will begin within the active strip being (re)created. We should also
-			// ensure that create_strips_keep_piles is the enum value passed to 
-			// RecalcLayout(). We have all the info we need here for setting
-			// the pile's nHorzOffset value. But we need to do this only when the
+			// We can use either create_strips_keep_piles or keep_strips_keep_piles
+			// when calling RecalcLayout(). But we need to do this only when the
 			// widthMode enum value passed in is 'expanding'; for steadyAsSheGoes
 			// there is sufficient slop not to warrant an expansion; and for
 			// 'contracting' either we don't bother, or we'll adjust the gap
@@ -834,8 +812,8 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 				{
 					// Make sure CLayout has the boxMode (synonym for passed in widthMode)
 					m_pLayout->m_boxMode = widthMode;
-					// The active CStrip, when being re-created, will grab the enum value from CLayout
-
+					// The active CStrip, when being re-created, 
+					// will grab the enum value from CLayout
 #if defined(_DEBUG) && defined(_EXPAND)
 					wxString strExp(_T("expanding"));
 					wxLogDebug(_T("%s:%s():line %d, Layout's m_boxMode:  %s, sequNum: %d , text [ %s ]"),
@@ -847,11 +825,8 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			/* uncomment out if I change my mind about 'contracting' state
 			else if (widthMode == contracting)
 			{
-			// For contracting, it probably means similar code to above, except
-			// probably pluses become subtractions or the like
-
-
-			// TODO maybe
+			// BEW 20Aug18 For contracting, we may need a tweak here. TODO maybe?
+			// Testing says it's not needed, just like in the legacy versions
 			}
 			*/
 		}

@@ -7346,6 +7346,7 @@ int CAdapt_ItDoc::IndexOf(CSourcePhrase* pSrcPhrase)
 void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 										   bool bNoActiveLocationCalculation)
 {
+	wxUnusedVar(bNoActiveLocationCalculation);
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	gpApp->MyLogger();
 //#endif
@@ -7363,26 +7364,6 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 		wxASSERT(pPile != NULL);
 		pPile->SetMinWidth(); // set m_nMinWidth - it's the maximum extent of the src,
 							  // adapt or gloss text
-		/* BEW 15Aug18 every char typed, control enters the next block, and it does not fix issues - so comment the block out
-        // if it is at the active location, then the width needs to be wider -
-        // SetPhraseBoxGapWidth() in CPile does that, and sets m_nWidth in the partner pile
-        // instance (but if not at the active location, the default value m_nMinWidth will
-        // apply)
-		if (!bNoActiveLocationCalculation)
-		{
-            // EXPLANATION FOR THE ABOVE TEST: we need the capacity to have the phrase box
-            // be at the active location, but not have the gap width left in the layout be
-            // wide enough to accomodate the box - this situation happens in
-            // PlacePhraseBox() when we want a box width calculation for the pile which is
-            // being left behind (and which at the point when the pile's width is being
-            // calculated it is still the active pile, but later in the function when the
-            // clicked pile is instituted as the new active location, the gap will have to
-            // be based on what is at that new location, not the old one; hence setting the
-            // bNoActiveLocationCalculation parameter TRUE just for such a situation
-            // prevents the unwanted large gap calculation at the old location
-			pPile->SetPhraseBoxGapWidth();
-		}
-		*/
 		// mark the strip invalid and put the parent strip's index into
 		// CLayout::m_invalidStripArray if it is not in the array already
 		MarkStripInvalid(pPile);

@@ -406,13 +406,7 @@ public:
 								 // in the current layout
 	bool		GetBoxVisibilityFlag();
 	bool		m_bFrameResizeWanted;  // used by 'contracting' enum, set within RecalcLayout()
-	/* no need for it so far
-	// BEW 26Apr18 created SetProtocolFlags() to get m_bAbandonable set correctly at the end of
-	// a PlaceBox() call; and internally, to make sure that m_bHasKBEntry (or, if glossing mode
-	// is current, then m_bHasGlossingKBEntry) is set to the correct value when appropriate - 
-	// such as when landing at a different location in the document
-	bool		SetProtocolFlags(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase, bool& bAbandonable);
-	*/
+
 	// function calls relevant to laying out the view updated after user's doc-editing operation
 
 	// create the list of CPile objects (it's a parallel list to document's m_pSourcePhrases

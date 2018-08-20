@@ -1034,53 +1034,7 @@ void CLayout::PlaceBox()
     // is FALSE at each location of the phrasebox.
     m_pApp->m_pTargetBox->bUp_DownArrowKeyPressed = FALSE; // initialized to FALSE at each location - at end of Layout's PlaceBox().
 
-	// BEW 27Jul18 If the gap width (m_nWidth) as calculated above is less than the max of
-	// m_curBoxWidth and m_curListWidth, the reset the value to that maximum; similarly 
-	// if there is too much gap
-	int nActiveSequNum = m_pApp->m_nActiveSequNum;
-	CPile* pActivePile = GetPile(nActiveSequNum);
-	int max = wxMax(gpApp->GetLayout()->m_curBoxWidth, gpApp->GetLayout()->m_curListWidth);
-	int pileGap = GetGapWidth();
-	if ((pActivePile->m_nWidth < max) || (pActivePile->m_nWidth >(max + pileGap)))
-	{
-		// the gap for the phrase box needs widening in order to avoid encroachment on next pile
-		pActivePile->m_nWidth = max + pileGap; // + pileGap to avoid a "crowded look" for the adjacent piles
-		m_pApp->GetDocument()->ResetPartnerPileWidth(pActivePile->GetSrcPhrase()); // gets strip invalid, etc
-		gpApp->GetLayout()->RecalcLayout(m_pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
-	}
-#if defined(_DEBUG) && defined (_NEWDRAW)
-    { // set a temporary scope
-        int nActiveSequNum = m_pApp->m_nActiveSequNum;
-        CPile* pActivePile = GetPile(nActiveSequNum);
-        if (pActivePile != NULL)
-        {
-            wxLogDebug(_T("*** Leavinging PlaceBox(),  PhraseBox:  %s   m_curBoxWidth:  %d   m_curListWidth  %d  m_nWidth (the gap) %d  m_nMinWidth  %d  sequNum  %d  adaption: %s"),
-                m_pApp->m_pTargetBox->GetValue().c_str(), m_pApp->GetLayout()->m_curBoxWidth, m_pApp->GetLayout()->m_curListWidth,
-                pActivePile->m_nWidth, pActivePile->m_nMinWidth, nActiveSequNum, pActivePile->GetSrcPhrase()->m_adaption);
-        }
-	}
-#endif
 }
-
-/*
-bool CLayout::SetProtocolFlags(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase, bool& bAbandonable)
-{
-	// Initializations
-	bool bOldAbandonable = bAbandonable;
-	bool bNewAbandonable = TRUE; // default it to true
-	CPhraseBox*	pTargetBox = pApp->m_pTargetBox;
-	wxString targetPhrase = pApp->m_targetPhrase;
-	bool bHasKBEntry = pSrcPhrase->m_bHasKBEntry;
-	bool bHasGlossingKBEntry = pSrcPhrase->m_bHasGlossingKBEntry;
-	// global gbIsGlossing is accessible here, so use that
-
-
-// TODO - remove this function later if there is nothing needed here
-
-
-	return bNewAbandonable;
-}
-*/
 
 bool CLayout::GetBoxVisibilityFlag()
 {
@@ -2043,17 +1997,13 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 				// phrase box is meant to contract for this recalculation, so suppress the
 				// size calculation internally for the active location because it would be
 				// larger than the contracted width we want
-				// BEW 7Aug18, I think we do need the size calc now
-				//m_pDoc->ResetPartnerPileWidth(pSrcPhrase, TRUE); // TRUE is the boolean
-																 // bNoActiveLocationCalculation
-				// BEW 15Aug18, Nah, retain this legacy logic until testing reveals we need to change it
 				m_pDoc->ResetPartnerPileWidth(pSrcPhrase, FALSE); // FALSE is the boolean
 																 // bNoActiveLocationCalculation
 				m_bFrameResizeWanted = TRUE; // OnChar() uses to get an OnSize() done for the frame
-#if defined(_DEBUG) && defined(_EXPAND)
-				wxLogDebug(_T("%s():line %d, INSIDE TRUE block (boxMode == contracting): calls ResetPartnerPileWidth() with FALSE, sets m_bFrameResizeWanted to TRUE"),
-					__func__, __LINE__);
-#endif
+//#if defined(_DEBUG) && defined(_EXPAND)
+//				wxLogDebug(_T("%s():line %d, INSIDE TRUE block (boxMode == contracting): calls ResetPartnerPileWidth() with FALSE, sets m_bFrameResizeWanted to TRUE"),
+//					__func__, __LINE__);
+//#endif
 			}
 			else // not contracting, could be expanding or no size change
 			{
@@ -2072,7 +2022,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		// pile is null and the active sequence number is -1, so we want a layout that has
 		// no place provided for a phrase box, and we'll draw the end of the document
 	}
-
 /*
 #ifdef _DEBUG
 	{
