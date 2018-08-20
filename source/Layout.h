@@ -117,6 +117,20 @@ enum layout_selector {
 	create_strips_update_pile_widths
 };
 
+// whm 18Aug2018 added to use as a parameter within PlaceBox() calls
+// where the initializeDropDown value passed in has PlaceBox() call
+// the CPhraseBox::SetupDropDownPhraseBoxForThisLocation() function,
+// and the noDropDownInitialization value passed in informs PlaceBox()
+// to not call SetupDropDownPhraseBoxForThisLocation(). These values
+// are designed to make PlaceBox() calls sensitive to whether the drop
+// down phrasebox needs initialization or no initialization (because it
+// was previously initialized from the given location).
+enum placeBoxSetup
+{
+    initializeDropDown,
+    noDropDownInitialization
+};
+
 /// The CLayout class manages the layout of the document. It's private members pull
 /// together into one place parameters pertinent to dynamically laying out the strips piles
 /// and cells of the layout. Setters in various parts of the application set these private
@@ -141,7 +155,7 @@ public:
 	CMainFrame*			m_pMainFrame;
 
 	doc_edit_op			m_docEditOperationType; // set in user doc edit handler functions
-												
+
 	int					m_curBoxWidth;  // width, as the sum of text extent.x + slop + button width
 	int					m_curListWidth; // BEW added 24Jul18, width of the active location's drop 
 										// down list, as the max of the non-deleted adaptation 
@@ -424,7 +438,7 @@ public:
 											// just lays them out, ensuring  proper spacing
 	void		DoRecalcLayoutAfterPreferencesDlg();
 	void		RecalcPileWidths(PileList* pPiles);
-	void		PlaceBox(); // call this after Invalidate() and after Redraw()
+	void		PlaceBox(enum placeBoxSetup placeboxsetup = initializeDropDown); // call this after Invalidate() and after Redraw()
 	void		SetupCursorGlobals(wxString& phrase, enum box_cursor state,
 							int nBoxCursorOffset = 0); // BEW added 7Apr09
 	bool		GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInLast);// BEW

@@ -3948,7 +3948,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 			//		if (!bUpdateOfLayoutNeeded)
 			//			pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
 			//#endif
-	} // end bResult == TRUE block
+    } // end bResult == TRUE block
 	else
 	{
 		//#ifdef Do_Clipping
@@ -3963,7 +3963,6 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	// (do it here rather than before the resizing code else selection bounds are wrong)
 
 	dC.SetFont(SaveFont); // restore old font (ie "System")
-	//gSaveTargetPhrase = pApp->m_targetPhrase;
 
 	pApp->GetView()->Invalidate(); // BEW added, 18/Aug/2018
 

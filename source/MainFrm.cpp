@@ -3780,7 +3780,8 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	if (pView && !pLayout->GetPileList()->IsEmpty())
 	{
 		pView->Invalidate();
-		gpApp->m_pLayout->PlaceBox();
+        // whm 18Aug2018 PlaceBox() call here should use noDropDownInitialization enum value.
+		gpApp->m_pLayout->PlaceBox(noDropDownInitialization);
 	}
 #if defined(_DEBUG) && defined(_NEWDRAW)
 	wxLogDebug(_T("%s():line %d, *** Frame::OnSize() EXITING ***"),
