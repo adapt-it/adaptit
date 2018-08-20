@@ -11699,7 +11699,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			pFirstSrcPhrase->m_inform += s;
 		}
 	}
-//	Invalidate();
+	Invalidate();
 	GetLayout()->PlaceBox();
     pApp->m_bMergeSucceeded = TRUE;
 	pApp->m_bMergerIsCurrent = FALSE;
@@ -11767,17 +11767,6 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	}
 #endif
 #endif
-#ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
-#else
-	pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
-#endif
-
-	// get a new (valid) active pile pointer, now that the layout is recalculated
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-	wxASSERT(pApp->m_pActivePile != NULL);
-
-	Invalidate();
 }
 
 void CAdapt_ItView::UpdateSequNumbers(int nFirstSequNum)
