@@ -605,8 +605,10 @@ void CPile::SetPhraseBoxWidth(int boxwidth)
 // avoid sequential long glosses overwriting each other on the screen. Refactor accordingly
 int CPile::CalcPileWidth()
 {
-	int pileWidth = gpApp->m_nMinPileWidth; // was 40; BEW changed 19May15 // was 40; // ensure we never get a pileWidth of zero
-
+	int pileWidth = gpApp->m_nMinPileWidth; // was 40; BEW changed 19May15 
+					// was 40; // ensure we never get a pileWidth of zero
+	int pileWidth_Tgt = pileWidth; // initialize
+	int pileWidth_Gloss = pileWidth;
 	// get a device context for the canvas on the stack (wont' accept uncasted definition)
 	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
 	wxSize extent;
@@ -621,10 +623,14 @@ int CPile::CalcPileWidth()
 	{
 		aDC.SetFont(*m_pLayout->m_pTgtFont);
 		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
-		if (extent.x > pileWidth)
+		if (extent.x > pileWidth_Tgt)
 		{
-			pileWidth = extent.x;
+			pileWidth_Tgt = extent.x;
 		}
+	}
+	if (pileWidth_Tgt > pileWidth)
+	{
+		pileWidth = pileWidth_Tgt;
 	}
 	// Now gloss text, but only if glosses are seen in adapting mode, or we are
 	// in glossing mode
@@ -637,18 +643,19 @@ int CPile::CalcPileWidth()
 			else
 				aDC.SetFont(*m_pLayout->m_pTgtFont);
 			aDC.GetTextExtent(m_pSrcPhrase->m_gloss, &extent.x, &extent.y);
-			if (extent.x > pileWidth)
+			if (extent.x > pileWidth_Gloss)
 			{
-				pileWidth = extent.x;
+				pileWidth_Gloss = extent.x;
 			}
 		}
+		if (pileWidth_Gloss > pileWidth)
+		{
+			pileWidth = pileWidth_Gloss;
+		}
 	}
-	// BEW added next two lines, 14Jul11, supposedly they aren't necessary, but if
-	// m_srcPhrase and m_targetStr and m_gloss are each empty, pileWidth somehow ends up
-	// with a value of 0, and so this fixes that
-	// BEW changed 19May15
-	if (pileWidth < gpApp->m_nMinPileWidth) // was40)
-		pileWidth = gpApp->m_nMinPileWidth; // was 40; BEW changed 19May15
+	// BEW added next two lines, 19May15, sanity test, ensure the width is never zero
+	if (pileWidth < gpApp->m_nMinPileWidth)
+		pileWidth = gpApp->m_nMinPileWidth;
 	return pileWidth;
 }
 

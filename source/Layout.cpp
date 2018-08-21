@@ -1723,11 +1723,15 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 // should have their "final" values, such as font choices, colours, etc. It is also to be
 // called whenever the layout has been corrupted by a user action, such as a font change
 // (which clobbers prior text extent values stored in the piles) or a punctuation setting
-// change, etc. RecalcLayout() in the refactored design is a potentially "costly"
-// calculation - if the document is large, the piles and strips for the whole document have
-// to be recalculated from the data in the current document - (need to consider a progress
-// bar in the status bar in window bottom). The ptr value for the passed in pList is usually
-// the application's m_pSourcePhrases list, but it can be a sublist copied from that
+// change, or a change from adapting mode to that plus "See Glosses" (they could be wider
+// than the adaptations), or to Glossing mode - again, their widths could be often wider 
+// than those of the src or target widths. 
+// RecalcLayout() in the refactored design is a potentially "costly" calculation - if the 
+// document is large, the piles and strips for the whole document have to be recalculated 
+// from the data in it - (need to consider a progress bar in the status bar in window 
+// bottom, or at least a "Please wait" message). The ptr value for the passed in pList
+// is usually the application's m_pSourcePhrases list, but it can be a sublist copied 
+// from that
 //GDLC Added third parameter 2010-02-09
 bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
 {

@@ -31808,11 +31808,31 @@ void CAdapt_ItView::ShowGlosses()
 	{
 		pApp->m_pTargetBox->GetTextCtrl()->SetOwnForegroundColour(pLayout->GetTgtColor());// whm 12Jul2018 added ->GetTextCtrl() part
 	}
-#ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#else
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+	// BEW 21Aug18 Turning "See Glosses" on or off is an expensive operation, and if the document
+	// is large the user may think it has hung - all pile widths have to be recalculated, and then
+	// the strips rebuilt. It's appropriate here to give a warning -- a "Please wait" message
+	// should suffice. In a tempory scope so it disappears when the Recalc is done.
+	{
+		// put up a Wait dialog (we'll also use a progress bar - see below)
+		// BEW 5Feb16 this modeless dialog on Linux doesn't display its contents, so show
+		// it only for Windows
+#if defined(__WXMSW__)
+		CWaitDlg waitDlg(pFrame);
+		// indicate we want the closing the document wait message
+		waitDlg.m_nWaitMsgNum = 28;	// 23 has:  "Please wait: all widths are being resized & strips recreated"
+		waitDlg.Centre();
+		waitDlg.Show(TRUE);// On Linux, the dialog frame appears, but the text in it is not displayed (need ShowModal() for that)
+		waitDlg.Update();
+		// the wait dialog is automatically destroyed when it goes out of scope below
 #endif
+
+#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_update_pile_widths); // a 'time-expensive' operation
+#else
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
+
+	}
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
 

@@ -226,6 +226,9 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		case 27: // a wait message if the user turns on the diagnostic log file creation for a doc parse failure
 			WaitMsg = _("Retrying, and making a log file in folder _LOGS_EMAIL_REPORTS. It is slow...");
 			break;
+		case 28: // a wait message if the user enters or leaves "See Glosses" mode from or to adapting mode, respectively
+			WaitMsg = _("Please wait: all widths are being resized, then strips created again");
+			break;
 #endif
 		default: // whm 28Aug11 Note: keep as a default message
 			WaitMsg = _("Please wait. This may take a while...");
