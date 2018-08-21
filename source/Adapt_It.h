@@ -4136,11 +4136,6 @@ public:
 	bool	m_bUnpacking;	// TRUE when Unpack Document... is in progress, else FALSE
 				// (used in SetupDirectories())
 
-    // whm 17Jul2018 removed check box to auto-open dropdown on arrival at location with multiple translations
-    // This checkbox was mainly added as a temporary option due to problems with the wxOwnerDrawnComboBox 
-    // derived control - now fixed.
-    //bool    m_bAutoOpenPhraseboxOnLanding;
-
 	// next two for read-only support....
 	// the next boolean is for support of read-only protection of the data accessed in a
 	// remote folder by a user on a remote machine, or a different account on local machine

@@ -237,11 +237,6 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// set the "new translation" edit box contents to a null string
 	m_pNewTranslationBox->ChangeValue(_T(""));
 
-    // whm 17Jul2018 removed check box to auto-open dropdown on arrival at location with multiple translations
-    // This checkbox was mainly added as a temporary option due to problems with the wxOwnerDrawnComboBox 
-    // derived control - now fixed.
-    //m_pCheckAutoOpenPhraseboxOnLanding->SetValue(gpApp->m_bAutoOpenPhraseboxOnLanding);
-
 	// BEW 23Apr15 - if supporting / as a word-breaking character currently, we don't convert
 	// any ZWSP to / in the list, because we don't edit the list directly. The m_pNewTranslationBox
 	// box needs to show / between words, but we don't populate the box by any list selection - only 
@@ -265,9 +260,6 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		// between Choose Translation's list and the phrasebox dropdown's (open) list
 		int curIndex = gpApp->m_pTargetBox->GetDropDownList()->GetSelection(); // the current index for the dropdown list selection
 
-        // whm 17Jul2018 removed the App's m_bAutoOpenPhraseboxOnLanding member and
-        // the associated check box from the Choose Translation dialog.
-        //if (curIndex != wxNOT_FOUND && gpApp->m_bAutoOpenPhraseboxOnLanding)
         if (curIndex != wxNOT_FOUND)
         {
 			m_pMyListBox->SetSelection(curIndex);
@@ -1083,14 +1075,6 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 {
     CAdapt_ItApp* pApp = &wxGetApp();
     wxASSERT(pApp != NULL);
-
-    // whm 17Jul2018 removed check box to auto-open dropdown on arrival at location with multiple translations
-    // This checkbox was mainly added as a temporary option due to problems with the wxOwnerDrawnComboBox 
-    // derived control - now fixed.
-    //if (m_pCheckAutoOpenPhraseboxOnLanding->GetValue() != pApp->m_bAutoOpenPhraseboxOnLanding)
-    //{
-    //    pApp->m_bAutoOpenPhraseboxOnLanding = m_pCheckAutoOpenPhraseboxOnLanding->GetValue();
-    //}
 
 	wxString s;
 	// IDS_NO_ADAPTATION

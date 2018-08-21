@@ -4698,32 +4698,15 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
             // unnecessary to have the list popped open and showing only that same single item.
             if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
             {
-                if (!pApp->m_bMovingToDifferentPile && !pApp->m_bAutoInsert && !pApp->bLookAheadMerge)
+                if (!pApp->m_bMovingToDifferentPile && !pApp->m_bAutoInsert && !pApp->bLookAheadMerge
+                    && !pApp->m_bFreeTranslationMode) // whm 21Aug2018 added test && !m_bFreeTranslationMode. Dropdown list shouldn't open during free trans mode
                 {
                     // whm Note: The CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     // ensures that the OnIdle() trigger flag m_bChooseTransInitializePopup is
                     // only set to TRUE when all three of the above flags are FALSE. 
                     // Hence, this if block should always execute, and the else block below 
                     // should never execute. 
-                    // whm modified 24May2018. The initial 6.9.0 release sets the the value of the App's 
-                    // m_bAutoOpenPhraseboxOnLanding boolean to an initial default depending on the
-                    // platform. Windows defaults to TRUE, Linux (and Mac OSX) default to FALSE.
-                    // Also the user can control the persistent setting using a new check box within the
-                    // Choose Translation dialog. We now honor the platform's default setting, or the
-                    // user's override setting here. This is the only location in the application where
-                    // PopupDropDownList() may be called.
-                    // whm 17Jul2018 removed the App's m_bAutoOpenPhraseboxOnLanding member and
-                    // the associated check box from the Choose Translation dialog. Therefore now the
-                    // dropdown list always opens on all platforms when code execution enters this
-                    // block.
-                    //if (pApp->m_bAutoOpenPhraseboxOnLanding)
-                    //{
                     pApp->m_pTargetBox->PopupDropDownList();
-                    //}
-                    //else
-                    //{
-                    //    pApp->m_pTargetBox->CloseDropDown();
-                    //}
                 }
                 else
                 {

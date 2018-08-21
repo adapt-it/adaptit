@@ -19574,24 +19574,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_eSilConverterNormalizeOutput = 0;
     m_bTransliterationMode = FALSE;
 
-    // whm 17Jul2018 removed check box to auto-open dropdown on arrival at location with multiple translations
-    // This checkbox was mainly added as a temporary option due to problems with the wxOwnerDrawnComboBox 
-    // derived control - now fixed.
-    // whm added 24May2018 for support of enabling/disabling auto-opening of phrasebox's dropdown list
-    // upon arriving at a location with multiple translations. The m_bAutoOpenPhraseboxOnLanding value
-    // is stored in the project settings file, so the following initial defaults may be changed by the
-    // reading of the project config file.
-    // whm 2Jun2018 modified the defaults to be TRUE for all platforms
-//#if defined (__WXMSW__)
-//    m_bAutoOpenPhraseboxOnLanding = TRUE;
-//#elif defined (__WXGTK__)
-//    m_bAutoOpenPhraseboxOnLanding = TRUE;
-//#elif defined (__WXOSX__)
-//    m_bAutoOpenPhraseboxOnLanding = TRUE;
-//#else
-//    m_bAutoOpenPhraseboxOnLanding = TRUE;
-//#endif
-
     bECDriverDLLLoaded = FALSE;
 #ifdef USE_SIL_CONVERTERS
     // Do not try to load SIL Converters ECDriver.dll on Win95 and Win98
@@ -38465,17 +38447,6 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data.Empty();
     data << szForceVerseSectioning << tab << number;
     pf->AddLine(data);
-
-    // whm 17Jul2018 removed check box to auto-open dropdown on arrival at location with multiple translations
-    // This checkbox was mainly added as a temporary option due to problems with the wxOwnerDrawnComboBox 
-    // derived control - now fixed.
-    //if (m_bAutoOpenPhraseboxOnLanding)
-    //    number = _T("1");
-    //else
-    //    number = _T("0");
-    //data.Empty();
-    //data << szAutoOpenPhraseBoxTranslationsList << tab << number;
-    //pf->AddLine(data);
 
     /* //BEW 7Oct14 deprecated. We'll use instead m_bZWSPinDoc, which we'll set true
     // automatically when we detect ZWSP within the document

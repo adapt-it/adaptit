@@ -7266,9 +7266,14 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
         // But, when not in Free translation mode have OnIdle() initialize the phrasebox's
         // to the appropriate state - open for a list with items, closed for an empty list
         if (pApp->m_bFreeTranslationMode)
+        {
             pApp->m_bChooseTransInitializePopup = FALSE;
+            this->CloseDropDown(); // whm 21Aug2018 added. Unilaterally close the dropdown list when in free trans mode.
+        }
         else
+        {
             pApp->m_bChooseTransInitializePopup = TRUE;
+        }
 		/* //no, BEW 27Apr18 - I expect the flag to be FALSE here, it should not be unilaterally 
 		   //set TRUE in this function - I've left Bill's comment here to warn against an error.
         // whm 10Apr2018 added. Set the initial value of m_bAbandonable to TRUE since we are setting up
@@ -8051,35 +8056,47 @@ void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & WXUNUSED(event))
     // This is only called when a list item is selected, not when Enter pressed 
     // within the dropdown's edit box
 
-    wxString selItemStr;
-    selItemStr = this->GetListItemAdjustedforPhraseBox(TRUE); // whm 17Jul2018 added TRUE sets m_bEmptyAdaptationChosen = TRUE
+    // whm 21Aug2018 added code to prevent a selection from being entered into the
+    // phrasebox during free translation mode
+    if (!gpApp->m_bFreeTranslationMode)
+    {
+
+        wxString selItemStr;
+        selItemStr = this->GetListItemAdjustedforPhraseBox(TRUE); // whm 17Jul2018 added TRUE sets m_bEmptyAdaptationChosen = TRUE
 
 #if defined(_DEBUG) && defined(_NEWDRAW)
-	wxLogDebug(_T("CPhraseBox::OnListBoxItemSelected() at start: selItemStr: %s , for replacing box text: %s , at index:  %d"),
-		selItemStr.c_str(), gpApp->m_targetPhrase.c_str(), this->GetDropDownList()->GetSelection());
+        wxLogDebug(_T("CPhraseBox::OnListBoxItemSelected() at start: selItemStr: %s , for replacing box text: %s , at index:  %d"),
+            selItemStr.c_str(), gpApp->m_targetPhrase.c_str(), this->GetDropDownList()->GetSelection());
 #endif
-    gpApp->m_targetPhrase = selItemStr;
-    this->GetTextCtrl()->ChangeValue(selItemStr); //this->GetTextCtrl()->ChangeValue(selItemStr); // use of ChangeValue() or SetValue() resets the IsModified() to FALSE
+        gpApp->m_targetPhrase = selItemStr;
+        this->GetTextCtrl()->ChangeValue(selItemStr); //this->GetTextCtrl()->ChangeValue(selItemStr); // use of ChangeValue() or SetValue() resets the IsModified() to FALSE
 
-    if (!this->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue
-    {
-        this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will do its work // whm 12Jul2018 added GetTextCtrl()->
+        if (!this->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue
+        {
+            this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will do its work // whm 12Jul2018 added GetTextCtrl()->
+        }
+
+        this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
+        // whm 15Jul2018 added following flag settings to get selected string to stick
+        gpApp->m_bUserTypedSomething = TRUE;
+
+        // whm 13Jul2018 added. The new phrasebox's list doesn't automatically closed upon
+        // making a selection, so we do it here, and ensure focus is in the edit box.
+        this->CloseDropDown();
+
+        // BEW 27Jul18 we need to force gap recalculations etc here, before focus is put
+        // in the phrasebox
+        gpApp->GetDocument()->ResetPartnerPileWidth(gpApp->m_pActivePile->GetSrcPhrase());
+        gpApp->GetLayout()->RecalcLayout(gpApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
+
+        gpApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
     }
-
-    this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
-    // whm 15Jul2018 added following flag settings to get selected string to stick
-    gpApp->m_bUserTypedSomething = TRUE;
-
-    // whm 13Jul2018 added. The new phrasebox's list doesn't automatically closed upon
-    // making a selection, so we do it here, and ensure focus is in the edit box.
-    this->CloseDropDown();
-
-	// BEW 27Jul18 we need to force gap recalculations etc here, before focus is put
-	// in the phrasebox
-	gpApp->GetDocument()->ResetPartnerPileWidth(gpApp->m_pActivePile->GetSrcPhrase());
-	gpApp->GetLayout()->RecalcLayout(gpApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
-
-    gpApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+    else
+    {
+        // free translation mode in effect, just beep and return
+        ::wxBell();
+        return;
+    }
 }
 
 /*
