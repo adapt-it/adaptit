@@ -2138,9 +2138,9 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	versionStr << _T(".");
 	versionStr << wxRELEASE_NUMBER;
 #if defined(_DEBUG)
-    versionStr << _T(" (Release version)");
-#else
     versionStr << _T(" (Debug version)");
+#else
+    versionStr << _T(" (Release version)");
 #endif
 	pStaticWxVersionUsed->SetLabel(versionStr);
 
