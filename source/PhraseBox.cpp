@@ -7506,9 +7506,25 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                         // The PopulateDropDownList() function determined a selectionIndex to use
                         index = selectionIndex;
                     }
-                    pApp->m_targetPhrase = pApp->m_pTargetBox->GetDropDownList()->GetString(index);
-                    this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+
+                    // whm 22Aug2018 modification. The index could be pointing to a "<Not In KB>" entry.
+                    // If so, we keep the m_targetPhrase, if any, rather than putting <Not In KB> into
+                    // the phrasebox's edit box.
+                    wxString tempStr = pApp->m_pTargetBox->GetDropDownList()->GetString(index);
+                    if (tempStr == _T("<Not In KB>"))
+                    {
+                        // Use any existing m_targetPhrase, which may be empty string.
+                        this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+                    }
+                    else
+                    {
+                        pApp->m_targetPhrase = pApp->m_pTargetBox->GetDropDownList()->GetString(index);
+                        this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+                    }
                     pApp->m_pTargetBox->GetDropDownList()->SetSelection(index);
+                    // whm 13Jul2018 modified to remove selection and put insertion point at end
+                    // whm 3Aug2018 Note: The SetSelection(...,...) call is made in the outer block near the
+                    // end of SetupDropDownPhraseBoxForThisLocation(). See below.
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end block for 'no <no adaptation> present' "), _T("PhraseBox.cpp"), 6244);
 #endif
@@ -7533,11 +7549,24 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 						// The PopulateDropDownList() function determined a selectionIndex to use
                         index = selectionIndex;
 					}
-                    pApp->m_targetPhrase = pApp->m_pTargetBox->GetDropDownList()->GetString(index);
-                    this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
-                    this->GetDropDownList()->SetSelection(index);
+                    // whm 22Aug2018 modification. Although it shouldn't be the case when nRefStrCount > 1,
+                    // The index value could be pointing to a "<Not In KB>" entry.
+                    // If so, we keep the m_targetPhrase, if any, rather than putting <Not In KB> into
+                    // the phrasebox's edit box.
+                    wxString tempStr = pApp->m_pTargetBox->GetDropDownList()->GetString(index);
+                    if (tempStr == _T("<Not In KB>"))
+                    {
+                        // Use any existing m_targetPhrase, which may be empty string.
+                        this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+                    }
+                    else
+                    {
+                        pApp->m_targetPhrase = pApp->m_pTargetBox->GetDropDownList()->GetString(index);
+                        this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+                    }
+                    pApp->m_pTargetBox->GetDropDownList()->SetSelection(index);
                     // whm 13Jul2018 modified to remove selection and put insertion point at end
-                    // whm 3Aug2018 Note: The SetSelection call is made in the outer block near the
+                    // whm 3Aug2018 Note: The SetSelection(...,...) call is made in the outer block near the
                     // end of SetupDropDownPhraseBoxForThisLocation(). See below.
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
@@ -7739,6 +7768,10 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
                 indexOfNoAdaptation = nLocation;
 				bExcludeAnother = TRUE;
             }
+
+            // whm 22Aug2018 Note: We handle the situation where <Not In KB> is present
+            // within the poppulated dropdown list in the caller SetupDropDownPhraseBoxForThisLocation().
+
 			// BEW addition 9May18 If there is a deleted adaptation ready for inserting because of
 			// the phrasebox landing, then we will have set TRUE m_bLandingBox in it at the right place
 			if (!gbIsGlossing && gpApp->m_bLandingBox && bRemovedAdaptionReadyForInserting)
