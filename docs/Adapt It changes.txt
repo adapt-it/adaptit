@@ -1,4 +1,4 @@
-﻿Version 6.9.1 release 20 July 2018
+﻿Version 6.9.1 release 27 August 2018
 ----------------------------------------------
 Feature changes and new features in 6.9.1
 --------------------------------------------------------------------------------------------
@@ -14,11 +14,14 @@ multiple translations to choose from, and a disabled "X" button at other times.
 * When the PhraseBox lands at a location, previous versions of Adapt It would
 select the entire contents of the PhraseBox. As of version 6.9.1 the contents
 are selected only if a copy of the source text line was copied into the
-PhraseBox. If the PhraseBox contains target text from a previous adaptation or
-target text representing the top entry in the drop down list, the text within
-the PhraseBox is not selected/highlighted. Instead the editing insertion point 
-is set at the end of the contents - as an aid for users if they need to add a
-suffix to the form in the PhraseBox.
+PhraseBox, and the user has ticked the View menu's "Select Copied Source" 
+toggle menu item. The "Select Copied Source" View menu item remains ticked or
+un-ticked from session to session since its value is saved in the project
+configuration file. If the PhraseBox contains target text from a previous 
+adaptation or target text representing the top entry in the drop down list, 
+the text within the PhraseBox is not selected/highlighted. Instead the editing 
+insertion point is set at the end of the contents - as an aid for users if they 
+need to add a suffix to the form in the PhraseBox.
 * Tool tips for tool bar buttons and other interface elements would not show
 if the drop down list was open in version 6.9.0. This has been fixed in
 version 6.9.1.
@@ -46,7 +49,7 @@ the item in Choose Translation dialog's list, on opening of the dialog. That
 is, the index values are now programmatically synced.
 
 ---------------------------------------------
-Bug fixes in 6.9.0 release
+Bug fixes in 6.9.1 release
 ---------------------------------------------
 * Fixed window focus problems that were caused by the type of drop down combo
 box that was used in version 6.9.0. A different drop down list mechanism is
@@ -64,6 +67,8 @@ for Adapt It's menus and other messages".
 install the Git program as part of a new Adapt It installation. The version of
 Git that gets installed in new installations (or from the Tools menu) is 
 now 2.18.0.
+* Fixed the version build type (Debug or Release), which was incorrectly 
+being reported in the About Adapt It dialog accessible from the Help menu.
 
 Version 6.9.0 release 28 May 2018
 ----------------------------------------------

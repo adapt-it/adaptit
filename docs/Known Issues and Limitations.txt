@@ -33,16 +33,6 @@ RTF file can then be loaded into LibreOffice Writer or Microsoft
 Word and printed from those application. These RTF exports actually
 give much more control over the printing and appearance of those
 documents.
-2. In Ubuntu Precise, running the Unity Interface, the text control 
-in the ComposeBar does not maintain the input focus, nor any 
-selection made, when the user mouses to the Unity menu bar (which
-was formerly Adapt It's menu bar) to choose from the Edit menu
-any of the commands Cut, Copy, or Paste. Results will not be what
-you expect, Paste may be disabled, and Cut or Copy clears the 
-phrase box instead. This is an Ubuntu issue which we can't fix.
-A bug report has been sent to the Unity developers. In the meantime:
-CTRL+C, CTRL+X, and CTRL+V work correctly, and you'll have no
-problems if you use these shortcuts instead.
 
 All Versions:
 
