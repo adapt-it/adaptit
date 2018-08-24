@@ -1152,6 +1152,12 @@ bool CAdapt_ItDoc::OnNewDocument()
 				gpApp->gCurrentSfmSet = gpApp->gProjectSfmSetForConfig;
 			}
 
+            // whm 24Aug2018 added. A new document should initially adopt the App's gProjectFilterMarkersForConfig
+            // as the document's gCurrentFilterMarkers for the new document. The user can change the
+            // filter markers after document creation as desired, but the filter markers as set in the
+            // project's filter marker list should be the initial default. 
+            gpApp->gCurrentFilterMarkers = gpApp->gProjectFilterMarkersForConfig;
+
 //#if defined(FWD_SLASH_DELIM)
 			// BEW 23Apr15, if supporting / as a whitespace word-breaking character, preprocess
 			// the input text to have no ZWSP in it, and to insert / at the correct places where
