@@ -2933,7 +2933,9 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			// Do a diagnostic run (see View page of Preferences)
 			pApp->LogUserAction(msgEnglish);
 			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
-			return FALSE;
+            // whm 23Aug2018 added FinishProgress() must be called before return is called
+            pStatusBar->FinishProgress(_("Merging Documents..."));
+            return FALSE;
 		}
 
 		SPList* pMergedList = new SPList; // store the results of the merging here

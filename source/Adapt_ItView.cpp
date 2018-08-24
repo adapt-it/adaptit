@@ -15683,15 +15683,21 @@ bool CAdapt_ItView::DoGlobalRestoreOfSaveToKB(wxString sourceKey)
 			pApp->LogUserAction(msg);
 			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
 			canvas->Thaw();
-			return FALSE;
+            // whm 23Aug2018 added before return statement, must call FinishProgress()
+            if (pApp->m_bShowProgress)
+            {
+                pStatusBar->FinishProgress(_T("MakeInKB"));
+            }
+            return FALSE;
 		}
 	}
 	// Close off Progress Bar & thaw the frozen client area
+    // whm 23Aug2018, put canvas->Thaw() before the FinishProgress() call just in case.
+	canvas->Thaw();
 	if (pApp->m_bShowProgress)
 	{
 		pStatusBar->FinishProgress(_T("MakeInKB"));
 	}
-	canvas->Thaw();
 
 	pApp->m_bShowProgress = FALSE;
 	return TRUE;

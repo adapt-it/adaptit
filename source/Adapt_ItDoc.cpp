@@ -6444,8 +6444,16 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 
 	// Now the filename strings are set up, if we're recovering a corrupt doc, we can bail out.
 
-	if (gpApp->m_recovery_pending)
-		return FALSE;
+    if (gpApp->m_recovery_pending)
+    {
+        // whm 23Aug2018 added pStatusBar->FinishProgress(...) below
+        // The progress bar should call FinishProgress before all return statements.
+        if (nTotal > 0 && bShowProgress)
+        {
+            pStatusBar->FinishProgress(_("Opening the Document"));
+        }
+        return FALSE;
+    }
 
 	// filenames and paths for the doc and any backup are now guaranteed to be
 	// what they should be
@@ -9683,8 +9691,8 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 			}
 		} // end of loop for scanning contents of successive pSrcPhrase instances
 
-		// remove the progress indicator window
-		pStatusBar->FinishProgress(_("Processing Filtering Change(s)"));
+		//// remove the progress indicator window // whm 23Aug2018 moved to outer block below
+		//pStatusBar->FinishProgress(_("Processing Filtering Change(s)"));
 
         // prepare for update of view... locate the phrase box approximately where it was,
         // but if that is not a valid location then put it at the end of the doc
@@ -9693,6 +9701,14 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 			gpApp->m_nActiveSequNum = numElements - 1;
 
 	} // end of block for bIsFilteringRequired == TRUE
+
+    // whm 23Aug2018 Change. Moved the pStatusBar->FinishProgress() call that is about
+    // 10 lines above within the bIsFilteringRequired == TRUE block to this outer block.
+    // where it will be parallel to the pStatusBar->StartProgress() call near the
+    // beginning of ReconstituteAfterFilteringChange()
+    // remove the progress indicator window
+    pStatusBar->FinishProgress(_("Processing Filtering Change(s)"));
+
 
     // GetSavePhraseBoxLocationUsingList calculates a safe location (ie. not in a
     // retranslation), sets the view's m_nActiveSequNumber member to that value, and
