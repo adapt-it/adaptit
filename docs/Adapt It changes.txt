@@ -67,6 +67,11 @@ for Adapt It's menus and other messages".
 install the Git program as part of a new Adapt It installation. The version of
 Git that gets installed in new installations (or from the Tools menu) is 
 now 2.18.0.
+* Fixed a failure to close a progress bar in the status bar after completing 
+a change in filtered markers in the Filtering/USFM tab of Preferences.
+* Fixed the failure of new documents to use the set of filtered markers that 
+are defined as defaults for the project. This fix applies to both normal new 
+documents and new collaboration documents. 
 * Fixed the version build type (Debug or Release), which was incorrectly 
 being reported in the About Adapt It dialog accessible from the Help menu.
 
