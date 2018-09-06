@@ -7647,7 +7647,7 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
                 {
                     wxLogDebug(_T("Calling CAdapt_ItCanvas::OnLButtonDown() from FilterEvent() wxEVT_LEFT_UP"));
                     pFrame->canvas->OnLButtonDown((wxMouseEvent&)event);
-                }
+				}
             }
         }
         

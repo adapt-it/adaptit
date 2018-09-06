@@ -552,6 +552,9 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	wxASSERT(pView != NULL);
+	wxLogDebug(_T("OnLButtonDown() at start: m_nCacheLeavingLocation = %d"),
+		pApp->m_nCacheLeavingLocation);
+
 	pApp->m_preGuesserStr.Empty(); // BEW 27Nov14, in case a src string, or modified string
 				// is stored ready for user's Esc keypress to restore the pre-guesser
 				// form, clear it, because the box is gunna move and we want it
@@ -1041,6 +1044,10 @@ y:				; // I may put some code here later
                     // the == NULL test here.
 x:					CCell* pCell = 0;
 					CPile* pPile = 0;
+					// This is a first entrance of the code pointer to this handler, so
+					// at this point, the phrasebox will not yet have moved from where
+					// it is to some other location, or even to the same location, 
+					// depending on where the user clicked
 					if (!pApp->m_selection.IsEmpty())
 					{
 						CCellList::Node* cpos = pApp->m_selection.GetFirst();
@@ -1050,8 +1057,7 @@ x:					CCell* pCell = 0;
 					}
 					else
 					{
-                        // no selection, so find another way to define active location
-                        // & place the phrase box
+						// no selection, so find another way to define the "Leaving" location
 						int nCurSequNum = pApp->m_nActiveSequNum;
 						if (nCurSequNum == -1)
 						{
@@ -1069,15 +1075,24 @@ x:					CCell* pCell = 0;
 							pApp->m_nActiveSequNum = 0;
 						}
 						pPile = pView->GetPile(pApp->m_nActiveSequNum);
-					}
-					CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+						pCell = pPile->GetCell(1); // whether adapting or glossing mode
 
-                    // pPile is what we will use for the active pile, so set everything
-                    // up there, provided it is not in a retranslation - if it is,
-                    // place the box preceding it, if possible, else after it; but if
-                    // we are glossing, then ignore the fact of the retranslation,
-                    // since we can have a phrasebox within a retranslation when
-                    // glossing
+						// BEW 6Jul18, ensure we've got a valid cached sequ number for "Leaving" location
+						if (pApp->m_nCacheLeavingLocation == wxNOT_FOUND)
+						{
+							pApp->m_nCacheLeavingLocation = pPile->GetSrcPhrase()->m_nSequNumber;
+						}
+					}
+
+					CSourcePhrase* pSrcPhrase = NULL;
+					pSrcPhrase = pPile->GetSrcPhrase();
+
+					// pPile is what we will use for the active pile, so set everything
+					// up there, provided it is not in a retranslation - if it is,
+					// place the box preceding it, if possible, else after it; but if
+					// we are glossing, then ignore the fact of the retranslation,
+					// since we can have a phrasebox within a retranslation when
+					// glossing
 					CPile* pSavePile = pPile;
 					while (!gbIsGlossing && pSrcPhrase->m_bRetranslation)
 					{
@@ -1100,7 +1115,6 @@ x:					CCell* pCell = 0;
 					pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
 					pApp->m_pActivePile = pPile;
 					pCell = pPile->GetCell(1); // we want the 2nd line, for phrase box
-
 					// save old sequ number in case required for toolbar's Back button
                     pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
@@ -1116,7 +1130,7 @@ x:					CCell* pCell = 0;
 					pView->PlacePhraseBox(pCell,2);
 
                     // get a new active pile pointer, the PlacePhraseBox call did a
-                    // recal of the layout
+                    // recalc of the layout
 					pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 					wxASSERT(pApp->m_pActivePile);
 
@@ -1863,6 +1877,9 @@ x:					CCell* pCell = 0;
 						// BEW 20May16 added 3rd subtest to next line, otherwise it bleeds out
 						// user's choice of manual typing of punctuation in the block further
 						// down
+						wxLogDebug(_T("OnLButtonDown() 1837; after x: label,  m_nCacheLeavingLocation = %d"),
+							pApp->m_nCacheLeavingLocation);
+
 						if (pApp->m_nOldSequNum != -1 && !pApp->m_bCopySourcePunctuation &&
 							(pView->GetPile(pApp->m_nOldSequNum)->GetSrcPhrase()->m_precPunct == _T("[") ||
 							pView->GetPile(pApp->m_nOldSequNum)->GetSrcPhrase()->m_follPunct == _T("]")) )

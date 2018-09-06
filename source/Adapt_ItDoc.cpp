@@ -15599,8 +15599,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						}
 					}
 				}
-				if ((IsAFilteringSFM(pUsfmAnalysis) || bIsToBeFiltered) && !m_bIsWithinUnfilteredInlineSpan)
-				{
+                if ((IsAFilteringSFM(pUsfmAnalysis) && bIsToBeFiltered) && !m_bIsWithinUnfilteredInlineSpan)// whm 25Aug2018 changed || to && for proper logic - cf use in IsPostwordFilteringRequired()
+                {
 					// If it is a \fig marker, because of the danger of there being an internal
 					// path in windows, which makes folders look like custom SFM markers, we will
 					// test for \fig and if that is the marker passed in, we'll scan straight to

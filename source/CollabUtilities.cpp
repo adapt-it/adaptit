@@ -11155,8 +11155,61 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 // version, if the errant marker is in the AI document, would fail to send content after 
 // such a marker was encountered - and I never was able to figure why - stepping *did not*
 // work.
+// BEW 5Sep18 - discovered to my consternation that in 30Aug16 I generated *** TARGET***
+// text and somehow expected it to miraculously become source text. Duh! Let's have a
+// second go at it - pinching code from the switch in RebuildSourceText() in 
+// ExportFunctions.cpp  For the present, the legacy code is just commented out.
 wxString MakeSourceTextForCollabConflictResDlg()
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxString source = _T(""); // a buffer built from pSrcPhrase->m_srcPhrase strings
+
+	SPList* pList = pApp->m_pSourcePhrases;
+	wxASSERT(pList);
+	bool bIsUnstructuredData = gpApp->GetView()->IsUnstructuredData(pList);
+	wxString s1 = gSFescapechar;
+	wxString paraMkr = s1 + _T("p ");
+
+	// get the CString which is the source text data, as ammended by any edits on it
+	// done so far; or the current target text data, or the current glosses data, or the
+	// current free translations data, as the case may be	wxString source;	
+	//source.Empty();
+	bool bRTFOutput = FALSE;
+
+	int nTextLength;
+	// do the reconstruction from CSourcePhrase instances in the document...
+
+	// RebuildSourceText removes filter brackets from the source or target, exposing
+	// previously filtered material as it was before input tokenization, and also exposes
+	// new information added and filtered in the document, such as backtranslations, notes,
+	// and free translations. So does RebuildTargetText.
+
+	// Rebuild the text and apply the output filter to it.
+	//bool bIsFiltered = FALSE; // initializations
+	wxString footnote = _T("\\f ");
+	wxString filteredMkrs = pApp->gCurrentFilterMarkers;
+
+	nTextLength = RebuildSourceText(source);
+	wxUnusedVar(nTextLength); // avoid warning
+							  // BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
+	ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
+
+											// Apply output filter to the source text
+											// m_exportBareMarkers is a global wxArrayString defined in ExportSOptions.cpp (I think)
+											// and m_exportFilterFlags is a wxArrayInt which works in parallel to indicate filtered or not
+	source = ApplyOutputFilterToText(source, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+
+	// format for text oriented output
+	FormatMarkerBufferForOutput(source, sourceTextExport);
+
+	source = RemoveMultipleSpaces(source);
+
+	if (bIsUnstructuredData)
+	{
+		FormatUnstructuredTextBufferForOutput(source, bRTFOutput);
+	}
+
+	/* BEW 5Sep18 deprecated, it generated target text! Ouch.
 	wxString srcText = _T("");
 	// BEW changed 30Aug16 because \x* lacking preceding \x causes target text loss from the
 	// call of ApplyOutputFilterToText() which is supposed to get rid of it (and does) but
@@ -11168,26 +11221,29 @@ wxString MakeSourceTextForCollabConflictResDlg()
 	// by chapter rather than by whole book
 	if (gpApp->m_bCollabByChapterOnly)
 	{
-		// BEW 22Jun15, added subtest: || gpApp->m_CollabChapterSelected != _T("0")
-		// because we don't want to remove any \id and bookcode if we are in a
-		// chapterless book, such as 2JN, 3JN or JUD
-		if (gpApp->m_bCollaboratingWithBibledit
-			|| (gpApp->m_bCollaboratingWithParatext
-			&& (gpApp->m_CollabChapterSelected != _T("1") && gpApp->m_CollabChapterSelected != _T("0"))))
-		{
-			srcText = RemoveIDMarkerAndCode(srcText);
-		}
+	// BEW 22Jun15, added subtest: || gpApp->m_CollabChapterSelected != _T("0")
+	// because we don't want to remove any \id and bookcode if we are in a
+	// chapterless book, such as 2JN, 3JN or JUD
+	if (gpApp->m_bCollaboratingWithBibledit
+	|| (gpApp->m_bCollaboratingWithParatext
+	&& (gpApp->m_CollabChapterSelected != _T("1") && gpApp->m_CollabChapterSelected != _T("0"))))
+	{
+	srcText = RemoveIDMarkerAndCode(srcText);
+	}
 	}
 	int offset = srcText.Find(_T('\\'));
 	if (offset != wxNOT_FOUND && offset > 0)
 	{
-		srcText = srcText.Mid(offset); // guarantees srcText starts with a marker
+	srcText = srcText.Mid(offset); // guarantees srcText starts with a marker
 	}
-#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	#if defined(_DEBUG) && defined(LIST_MD5LINES)
 	int length = srcText.Length();
 	wxLogDebug(_T("MakeSourceTextForCollabConflictResDlg(): Text Length just before returning:  %d\n"), length);
-#endif
+	#endif
 	return srcText;
+	*/
+
+	return source;
 }
 
 int AskIfCollabSettingsBeRemovedFromProjConfig(

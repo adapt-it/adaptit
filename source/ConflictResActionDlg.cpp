@@ -173,9 +173,9 @@ CConflictResActionDlg::~CConflictResActionDlg() // destructor
 	
 }
 
-	void OnBnClickedRadioRetainPTorBE(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedRadioForceAI(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedRadioConflictResDlg(wxCommandEvent& WXUNUSED(event));
+//	void OnBnClickedRadioRetainPTorBE(wxCommandEvent& WXUNUSED(event));
+//	void OnBnClickedRadioForceAI(wxCommandEvent& WXUNUSED(event));
+//	void OnBnClickedRadioConflictResDlg(wxCommandEvent& WXUNUSED(event));
 
 void CConflictResActionDlg::OnBnClickedRadioRetainPTorBE(wxCommandEvent& WXUNUSED(event))
 {
