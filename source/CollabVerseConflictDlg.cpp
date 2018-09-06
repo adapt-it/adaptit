@@ -174,6 +174,10 @@ void CCollabVerseConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 		verseRefsArray.Add(MakeVerseReference(pCR));
 		sourceTextVsArray.Add(pCR->srcText);
 		aiTargetTextVsArray.Add(pCR->AIText);
+#if defined (_DEBUG)
+		wxLogDebug(_T("%s : %s() : line %d : pCR->srcText = %s : pCR->AIText = %s : index = %d"),
+			__FILE__, __func__, __LINE__, pCR->srcText.c_str(), pCR->AIText.c_str(), index);
+#endif
 		ptTargetTextVsArray.Add(pCR->PTorBEText_original);
 		ptTargetTextVsEditedArray.Add(pCR->PTorBEText_edited);
 	}

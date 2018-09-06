@@ -14196,8 +14196,20 @@ wxString EscapeAnyEmbeddedRTFControlChars(wxString& textStr)
 			*pNew++ = *pOld++;
 		}
 		*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
+		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
+		// had the unfortunate effect of text2 never receiving the processed 
+		// results, so do it here now
+		textStr2 = wxString(pBuffer2, (size_t)(pNew - pBuffer2));
+
 	} // end of special scoping block
 	//textStr2.UngetWriteBuf(); // whm 8Jun12 removed - not needed in wxStringBuffer for 2.9.3
+/*
+#if defined (_DEBUG)
+	int break_here = 1;
+	wxLogDebug(_T("%s:%s():line %d: Initial src txt: %s"),
+		__FILE__, __func__, __LINE__, (textStr2.Left(200)).c_str());
+#endif
+*/
 	return textStr2;
 }
 
@@ -18472,9 +18484,22 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 			}
 		} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
 		*pNew = (wxChar)0; // terminate the new buffer string with null char
+
+		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
+		// had the unfortunate effect of text2 never receiving the processed 
+		// results, so do it here now
+		text2 = wxString(pBuff2, (size_t)(pNew - pBuff2));
+
 	} // end of special scoping block
 	//text2.UngetWriteBuf(); // whm 8Jun12 removed - not used with wxStringBuffer
 	text = text2; // replace old string with new one
+/*
+#if defined (_DEBUG)
+	int break_here = 1;
+	wxLogDebug(_T("%s:%s():line %d: Initial src txt: %s"),
+		__FILE__, __func__, __LINE__, (text2.Left(200)).c_str());
+#endif
+*/
 }
 
 // BEW revised 31Oct05
@@ -19255,9 +19280,22 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 			}
 		}
 		*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
+
+		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
+		// had the unfortunate effect of text2 never receiving the processed 
+		// results, so do it here now
+		textStr2 = wxString(pBuffer2, (size_t)(pNew - pBuffer2));
+
 	} // end the scoping block where pBuffer2 is created as wxStringBuffer from textStr2.
 	  // Note: this block ending is required to return textStr2 to its usable state.
 	//textStr2.UngetWriteBuf(); // whm 8Jun12 not used with wxStringBuffer
+/*
+#if defined (_DEBUG)
+	int break_here = 1;
+	wxLogDebug(_T("%s:%s():line %d: Initial src txt: %s"),
+		__FILE__, __func__, __LINE__, (textStr2.Left(200)).c_str());
+#endif
+*/
 	return textStr2;
 }
 
@@ -19566,8 +19604,19 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 			}
 		}
 		*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
+		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
+		// had the unfortunate effect of text2 never receiving the processed 
+		// results, so do it here now
+		textStr2 = wxString(pBuffer2, (size_t)(pNew - pBuffer2));
 	} // end of special scoping block
 	//textStr2.UngetWriteBuf(); // whm 8Jun12 removed - not used with wxStringBuffer
+/*
+#if defined (_DEBUG)
+		int break_here = 1;
+		wxLogDebug(_T("%s:%s():line %d: Initial src txt: %s"),
+			__FILE__, __func__, __LINE__, (textStr2.Left(200)).c_str());
+#endif
+*/
 	return textStr2;
 }
 
@@ -19948,9 +19997,24 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 			}
 		} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
 		*pNew = (wxChar)0; // terminate the new buffer string with null char
+		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
+		// had the unfortunate effect of text2 never receiving the processed 
+		// results, so do it here now
+		text2 = wxString(pBuff2, (size_t)(pNew - pBuff2));
 	} // end of special scoping block
 	//text2.UngetWriteBuf(); // whm 8Jun12 removed - not used with wxStringBuffer
+
 	text = text2; // replace old string with new one
+	/*
+	#if defined (_DEBUG)
+		if (expType == sourceTextExport && gpApp->m_bConflictResolutionTurnedOn)
+		{
+			int break_here = 1;
+			wxLogDebug(_T("%s:%s():line %d: Initial src txt: %s"),
+				__FILE__, __func__, __LINE__, (text.Left(200)).c_str());
+		}
+	#endif
+	*/
 }
 
 void FormatUnstructuredTextBufferForOutput(wxString& text, bool bRTFOutput)
@@ -20083,6 +20147,12 @@ void FormatUnstructuredTextBufferForOutput(wxString& text, bool bRTFOutput)
 			}
 		}
 		*pNew = (wxChar)0; // add a null at the end of the string in pBuff2
+
+		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
+		// had the unfortunate effect of text2 never receiving the processed 
+		// results, so do it here now
+		text2 = wxString(pBuff2, (size_t)(pNew - pBuff2));
+
 	} // end of special scoping block
 	//text2.UngetWriteBuf(); // whm 8Jun12 removed - not used with wxStringBuffer
 	text = text2; // return the modified data
