@@ -8157,9 +8157,9 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 							// so that the user can specify what level of conflict res he wants,
 							// but if the flag is FALSE, then both this and the subsequent
 							// conflict res dialog cannot open, and legacy conflict resolution
-							// applies (at least until the user goes to the View tab of Preferences
-							// to turn user-directed conflict resolution back on (ie. allow the
-							// dialogs to be shown again)
+							// applies (at least until the user goes to the Backups & Misc tab
+							// of Preferences to turn user-directed conflict resolution back on
+							// (ie. allow the dialogs to be shown again)
 							if (!gpApp->m_bRetainPTorBEversion && !gpApp->m_bForceAIversion &&
 								!gpApp->m_bUseConflictResolutionDlg && gpApp->m_bConflictResolutionTurnedOn)
 							{

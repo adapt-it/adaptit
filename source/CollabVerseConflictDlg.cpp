@@ -321,6 +321,7 @@ void CCollabVerseConflictDlg::FillEditBoxesWithVerseTextForHighlightedItem()
 {
 	pTextCtrlSourceText->ChangeValue(sourceTextVsArray.Item(CurrentListBoxHighlightedIndex));
 	pTextCtrlAITargetVersion->ChangeValue(aiTargetTextVsArray.Item(CurrentListBoxHighlightedIndex));
+	//pTextCtrlAITargetVersion->ChangeValue(aiTargetTextVsArray.Item(CurrentListBoxHighlightedIndex));
 	// We use the ptTargetTextVsArray for getting the string value whenever that value is the
 	// same as what we'd get from ptTargetTextVsEditedArray; but if the latter is different than
 	// the former, it's because of user edits and so the user will want to see his edited version
