@@ -1410,11 +1410,12 @@ m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
 	if (bRestoreTargetBox)
 	{
 		// restore focus, and selection if any
+        // whm 13Aug2018 Note: The SetFocus() correctly precedes the 
+        // SetSelection(m_pApp->m_nStartChar, m_pApp->m_nEndChar) call below it.
 		m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-		if (m_pApp->m_nStartChar != m_pApp->m_nEndChar)
-		{
-			m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(m_pApp->m_nStartChar, m_pApp->m_nEndChar); 
-		}
+        // whm 3Aug2018 Note: The following SetSelection restores any previous
+        // selection, so no adjustment for 'Select Copied Source' needed here.
+		m_pApp->m_pTargetBox->GetTextCtrl()->SetSelection(m_pApp->m_nStartChar, m_pApp->m_nEndChar); 
 		
 		// scroll into view, just in case a lot were inserted
 		m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);

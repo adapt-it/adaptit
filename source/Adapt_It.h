@@ -62,6 +62,8 @@
 #if defined(_DEBUG)
 //#define FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 #endif
+//#define _NEWDRAW
+#define _EXPAND
 
 // support for incremental building of KB Server client code !! BEW 3Oct12, Moved to be a
 // preprocessor symbol in the Debug build!!
@@ -228,13 +230,13 @@ class KBSharingMgrTabbedDlg;
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 9 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 0 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 1 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 28
-#define VERSION_DATE_MONTH 5
+#define VERSION_DATE_DAY 27
+#define VERSION_DATE_MONTH 8
 #define VERSION_DATE_YEAR 2018
-const wxString appVerStr(_T("6.9.0"));
+const wxString appVerStr(_T("6.9.1"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -2089,7 +2091,6 @@ class CAdapt_ItApp : public wxApp
 
     // whm 12Jul2018 removed the following that were used with FilterEvent
     /*
-    // bool PhraseBoxIsInFocus();
     // The following two are used within the wxEVT_LEFT_UP block of FilterEvent():
     // TODO: Remove any of these that might not be needed with the new phrasebox
     bool ClickedOnPhraseBoxLocation(wxMouseEvent& event);
@@ -2233,19 +2234,16 @@ class CAdapt_ItApp : public wxApp
 
     /// whm 13Jul2018 TODO: Bruce should check to see if the m_nCacheLeavingLocation
     /// and m_nOnLButtonDownEntranceCount hacks are still necessary with the new phrasebox.
-    /// If not, they should be removed.
+	/// BEW 26Jul18, removed unnecessary entrance count, retained the cache integer - it's needed
 
-	/// BEW 28Jun18 The change at version 6.9.0 to support a dropdown list integrated in
-	/// a wxOwnerDrawnComboBox control resulted in some former legacy robust behaviours
-	/// becoming flaky, or worse. Two new problems, amongst others, cropped up. 
-	/// (1) Sometimes, clicking to relocate the phrasebox after typing a new adaptation
-	/// at a hole, the typed adaptation got lost and not entered into the KB. 
-	/// (2) When relocating the phrasebox by clicks at different holes, while the first
-	/// jump may work right, a second sent the phrasebox off to a sequence number much
-	/// further on than where the user clicked for the box to go to. 
-	/// BEW 0Jul18 Bill's investigation serendipitously indicated that the click events
-	/// are falling through the top level object and if a button lies below, the button's handler
-	/// gets triggered. I think it is time to abandon using wxOwnerDrawnComboBox class.
+	/// Cache the sequence number of the location at which the phrasebox lands, so that
+	/// when the next click to jump to some other location (or to the same location)
+	/// the cached sequ num value is used to get at the correct pile, and hence the correct
+	/// pSrcPhrase at the 'leaving' location, in order that the GUI shows correct strings, and the
+	/// KB gets the correct entry added, and the old pile's sequence number worked out, and
+	/// from that the old pile reset, and from that ResetPartnerPileWidth() called to
+	// make invalid the location at which the user action of leaving for another location
+	// happened, etc. (Comment updated, BEW 26Jul18)
 	int m_nCacheLeavingLocation; // -1 (wxNOT_FOUND) when not set, set in OnLButtonDown()
 
     /// The application's m_pParser member can be used to process command line arguments.
@@ -2289,11 +2287,6 @@ class CAdapt_ItApp : public wxApp
 	// "unit" of text but the unit is internally complex (ie. a sequence of words, not a
 	// single word), such as DoExtendedSearch(), etc
 	bool m_bMatchedRetranslation;
-
-	/// Support for AuSIL request for box cursor to start at end of box contents, rather
-	/// than all the contents be shown selected
-	bool m_bShowCursorAtEnd;
-
 	// support for read-only protection
 	ReadOnlyProtection* m_pROP;
 
@@ -2669,6 +2662,10 @@ public:
 	bool m_bCopySource; // when TRUE, if no match, copy the source key as first guess
                 // at the target adaption or gloss, when FALSE, an empty string is used
                 // instead
+    // whm 2Aug2018 added the following
+    bool m_bSelectCopiedSource; // when TRUE, copied source text within phrasebox is selected
+                // Whem FALSE (the default), copied source text in phrasebox is not selected, 
+                // and the insertion point is placed at end of the text.
 	bool m_bMarkerWrapsStrip; // when TRUE, a st.format marker causes a wrap of the strip
 	bool m_bRespectBoundaries; // TRUE by default, if FALSE, user can violate
 	bool m_bHidePunctuation;	// when TRUE, punctuation is not shown in lines 0 & 1, if
@@ -4139,10 +4136,6 @@ public:
 	bool	m_bUnpacking;	// TRUE when Unpack Document... is in progress, else FALSE
 				// (used in SetupDirectories())
 
-    // whm added 24May2018 to support user choice to enable/disable dropdown auto-open
-    // on arrival at locations where there are multiple translations
-    bool    m_bAutoOpenPhraseboxOnLanding;
-
 	// next two for read-only support....
 	// the next boolean is for support of read-only protection of the data accessed in a
 	// remote folder by a user on a remote machine, or a different account on local machine
@@ -4590,6 +4583,15 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
     void     OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event));
     wxString m_savedDocTitle; // temporarily save Titlebar's title string here when doing clipboard adapt
                               // End of new variables for support of clipboard-based adaptation & free translation
+
+	// BEW 16Aug18 a useful logger function - unfortunately, need to keep the
+	// wxLogDebug() call outside the call, so that the correct file and function
+	// and line number get reported right
+	// Two versions, first for finding general location; second for drilling down to the bad spot
+	void MyLogger(); // this version is useful at the start and end of functions, provided the caller indicates
+					 // by means of a separate wxLogDebug() that entry or exit if the function has happened
+	void MyLogger(int& sequNum, wxString& srcStr, wxString& tgt_or_glossStr,
+		wxString& contents, int& width);
 
 	// BEW added next 6 lines 10July, for storing and retrieving the USFM text strings for
 	// the exported target text, and exported free translation text, when collaborating

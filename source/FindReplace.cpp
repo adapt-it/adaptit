@@ -54,6 +54,7 @@
 #include "MainFrm.h" // whm added 24Jul06
 #include "Adapt_ItCanvas.h" // whm added 24Jul06
 #include "helpers.h"
+#include "MyListBox.h"
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
@@ -675,6 +676,9 @@ void CFindDlg::DoRadioSrcOnly()
 	
 	wxASSERT(m_pEditSrc != NULL);
 	m_pEditSrc->SetFocus();
+    // whm 3Aug2018 Note: TODO: I assume the select all below is appropriate
+    // for the find dialog, and shouldn't be suppressed if 'Select Copied Source'
+    // menu item is NOT ticked.
 	m_pEditSrc->SetSelection(-1,-1); // -1,-1 selects all
 	m_pEditSrc->Show(TRUE);
 	
@@ -704,7 +708,10 @@ void CFindDlg::DoRadioTgtOnly()
 	
 	wxASSERT(m_pEditTgt != NULL);
 	m_pEditTgt->SetFocus();
-	m_pEditTgt->SetSelection(-1,-1); // -1,-1 selects all
+    // whm 3Aug2018 Note: TODO: I assume the select all below is appropriate
+    // for the find dialog, and shouldn't be suppressed if 'Select Copied Source'
+    // menu item is NOT ticked.
+    m_pEditTgt->SetSelection(-1,-1); // -1,-1 selects all
 	m_pEditTgt->Show(TRUE);
 	m_bSrcOnly = FALSE;
 	m_bTgtOnly = TRUE;
@@ -727,7 +734,10 @@ void CFindDlg::DoRadioSrcAndTgt()
 	
 	wxASSERT(m_pEditTgt != NULL);
 	m_pEditTgt->SetFocus();
-	m_pEditTgt->SetSelection(-1,-1); // -1,-1 selects all
+    // whm 3Aug2018 Note: TODO: I assume the select all below is appropriate
+    // for the find dialog, and shouldn't be suppressed if 'Select Copied Source'
+    // menu item is NOT ticked.
+    m_pEditTgt->SetSelection(-1,-1); // -1,-1 selects all
 	m_pEditTgt->Show(TRUE);
 	m_bSrcOnly = FALSE;
 	m_bTgtOnly = FALSE;
@@ -1613,7 +1623,10 @@ void CReplaceDlg::DoRadioSrcOnly()
 	
 	wxASSERT(m_pEditSrc != NULL);
 	m_pEditSrc->SetFocus();
-	m_pEditSrc->SetSelection(-1,-1); // -1,-1 selects all
+    // whm 3Aug2018 Note: TODO: I assume the select all below is appropriate
+    // for the replace dialog, and shouldn't be suppressed if 'Select Copied Source'
+    // menu item is NOT ticked.
+    m_pEditSrc->SetSelection(-1,-1); // -1,-1 selects all
 	m_pEditSrc->Show(TRUE);
 	
 	wxASSERT(m_pStaticTgtBoxLabel != NULL);
@@ -1642,7 +1655,10 @@ void CReplaceDlg::DoRadioTgtOnly()
 	
 	wxASSERT(m_pEditTgt != NULL);
 	m_pEditTgt->SetFocus();
-	m_pEditTgt->SetSelection(-1,-1); // -1,-1 selects all
+    // whm 3Aug2018 Note: TODO: I assume the select all below is appropriate
+    // for the replace dialog, and shouldn't be suppressed if 'Select Copied Source'
+    // menu item is NOT ticked.
+    m_pEditTgt->SetSelection(-1,-1); // -1,-1 selects all
 	m_pEditTgt->Show(TRUE);
 	m_bSrcOnly = FALSE;
 	m_bTgtOnly = TRUE;
@@ -1665,7 +1681,10 @@ void CReplaceDlg::DoRadioSrcAndTgt()
 	
 	wxASSERT(m_pEditTgt != NULL);
 	m_pEditTgt->SetFocus();
-	m_pEditTgt->SetSelection(-1,-1); // -1,-1 selects all
+    // whm 3Aug2018 Note: TODO: I assume the select all below is appropriate
+    // for the replace dialog, and shouldn't be suppressed if 'Select Copied Source'
+    // menu item is NOT ticked.
+    m_pEditTgt->SetSelection(-1,-1); // -1,-1 selects all
 	m_pEditTgt->Show(TRUE);
 	m_bSrcOnly = FALSE;
 	m_bTgtOnly = FALSE;
@@ -1991,9 +2010,8 @@ a:			CCell* pCell = 0;
 			{
 				if (gpApp->m_pTargetBox->IsShown())
 				{
-					gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // -1,-1 selects all
-					gpApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-				}
+                    gpApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                }
 			}
 
 			// recreate the selection to be in line 1, hence ignoring boundary flags

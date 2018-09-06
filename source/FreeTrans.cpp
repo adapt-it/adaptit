@@ -5163,9 +5163,13 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 		}
 
         m_pApp->m_pTargetBox->m_Translation.Empty(); // don't preserve anything from a former adaptation state
-		if (m_pApp->m_pTargetBox->GetHandle() != NULL)
-			if (m_pApp->m_pTargetBox->IsShown())
-				m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+        if (m_pApp->m_pTargetBox != NULL)
+        {
+            if (m_pApp->m_pTargetBox->IsShown())
+            {
+                m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+            }
+        }
 
 		// allow clicks and editing to be done in phrase box (do also in ResizeBox())
 		if (m_pApp->m_pTargetBox->IsShown() && m_pApp->m_pTargetBox->GetHandle() != NULL)
@@ -5632,6 +5636,8 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 	// colour the current section
 	MarkFreeTranslationPilesForColoring(m_pCurFreeTransSectionPileArray);
 	pEdit->SetFocus();
+    // whm 3Aug2018 Note: The pEdit below is the compose bar's edit box,
+    // so I assume the select all below is appropriate for that box.
 	pEdit->SetSelection(-1,-1); // -1,-1 selects all
 #ifdef _DEBUG
 //		amsg = _T("Line 5422, end of SetupCurrentFreeTransSection(), in FreeTrans.cpp");
@@ -6674,7 +6680,8 @@ void CFreeTrans::ToggleFreeTranslationMode()
 			if (m_pApp->m_pTargetBox->IsShown())
 			{
 				m_pApp->m_pTargetBox->Enable(TRUE);
-				m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+
+                m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
 			}
 
             // get any removed adaptations in gEditRecord into the GUI list,
@@ -6773,7 +6780,9 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 		str = pEdit->GetValue();
 		int len = str.Length();
 		pEdit->SetFocus();
-		pEdit->SetSelection(len,len);
+        // whm 3Aug2018 Note: The pEdit below is the compose bar's edit box
+        // and no 'select all' is involved here.
+        pEdit->SetSelection(len,len);
 		return;
 	}
 
@@ -7124,6 +7133,9 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 			wxString editedText;
 			editedText = pEdit->GetValue();
 			int len = editedText.Length();
+            // whm 3Aug2018 Note: I assume that since the SetSelection() calls below
+            // are on the compose bar's edit box, no suppression of the select all is
+            // warranted in the else block below.
 			if (len > 0)
 				pEdit->SetSelection(len,len);
 			else
@@ -7578,7 +7590,10 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 			wxString editStr;
 			editStr = pEdit->GetValue();
 			int len = editStr.Length();
-			if (len > 0)
+            // whm 3Aug2018 Note: I assume that since the SetSelection() calls below
+            // are on the compose bar's edit box, no suppression of the select all is
+            // warranted in the else block below.
+            if (len > 0)
 				pEdit->SetSelection(len,len);
 			else
 				pEdit->SetSelection(-1,-1); // -1,-1 selection entire text;
@@ -7649,7 +7664,10 @@ void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 			}
 			m_pView->Invalidate(); // cause redraw, and so a call to SetupCurrentFreeTransSection()
 			m_pLayout->PlaceBox();
-			pEdit->SetFocus(); // put focus in compose bar's edit control
+            // whm 3Aug2018 Note: I assume that since the SetSelection() calls below
+            // are on the compose bar's edit box, no suppression of the select all is
+            // warranted below.
+            pEdit->SetFocus(); // put focus in compose bar's edit control
 			pEdit->SetSelection(-1,-1); // -1,-1 selects all in wx
 		}
 	}
@@ -7712,7 +7730,10 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 			// colour the current section & select the text
 			MarkFreeTranslationPilesForColoring(m_pCurFreeTransSectionPileArray);
 			pEdit->SetFocus();
-			pEdit->SetSelection(-1,-1); //-1,-1 selects all in wx
+            // whm 3Aug2018 Note: I assume that since the SetSelection() calls below
+            // are on the compose bar's edit box, no suppression of the select all is
+            // warranted below.
+            pEdit->SetSelection(-1,-1); //-1,-1 selects all in wx
 
 			// get the window updated
 			m_pView->Invalidate();
@@ -7840,7 +7861,10 @@ void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 			// colour the current section & select the text
 			MarkFreeTranslationPilesForColoring(m_pCurFreeTransSectionPileArray);
 			pEdit->SetFocus();
-			pEdit->SetSelection(-1,-1); // -1,-1 selects all in wx
+            // whm 3Aug2018 Note: I assume that since the SetSelection() calls below
+            // are on the compose bar's edit box, no suppression of the select all is
+            // warranted below.
+            pEdit->SetSelection(-1,-1); // -1,-1 selects all in wx
 
 			// get the window updated
 			m_pView->Invalidate();
@@ -9990,6 +10014,8 @@ void CFreeTrans::DoJoinWithNext()
 	wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
 	m_pFrame->m_pComposeBarEditBox->SetFocus();
 	m_pFrame->m_pComposeBarEditBox->ChangeValue(freetrans);
+    // whm 3Aug2018 No adjustment to SetSelection() calls below
+    // that have to do with the compose bar's edit box.
 	if (m_savedTypingOffset != wxNOT_FOUND)
 	{
 		m_pFrame->m_pComposeBarEditBox->SetSelection(m_savedTypingOffset, m_savedTypingOffset);
@@ -10217,7 +10243,9 @@ void CFreeTrans::DoJoinWithPrevious()
 	wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
 	m_pFrame->m_pComposeBarEditBox->SetFocus();
 	m_pFrame->m_pComposeBarEditBox->ChangeValue(freetrans);
-	if (m_savedTypingOffset != wxNOT_FOUND)
+    // whm 3Aug2018 No adjustment to SetSelection() calls below
+    // that have to do with the compose bar's edit box.
+    if (m_savedTypingOffset != wxNOT_FOUND)
 	{
 		m_pFrame->m_pComposeBarEditBox->SetSelection(m_savedTypingOffset, m_savedTypingOffset);
 	}
@@ -10558,7 +10586,9 @@ void CFreeTrans::DoSplitIt()
 		wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
 		m_pFrame->m_pComposeBarEditBox->SetFocus();
 		m_pFrame->m_pComposeBarEditBox->ChangeValue(freetrans);
-		if (m_savedTypingOffset != wxNOT_FOUND)
+        // whm 3Aug2018 No adjustment to SetSelection() calls below
+        // that have to do with the compose bar's edit box.
+        if (m_savedTypingOffset != wxNOT_FOUND)
 		{
 			m_pFrame->m_pComposeBarEditBox->SetSelection(m_savedTypingOffset, m_savedTypingOffset);
 		}

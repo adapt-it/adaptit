@@ -126,6 +126,12 @@ extern bool gbIgnoreScriptureReference_Receive;
 extern bool gbIgnoreScriptureReference_Send;
 
 /// This global is defined in Adapt_It.cpp.
+extern int ID_BMTOGGLEBUTTON_PHRASEBOX;
+
+/// This global is defined in Adapt_It.cpp.
+extern int ID_DROP_DOWN_LIST;
+
+/// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // for rapid access to the app class
 
 // IMPLEMENT_CLASS(CAdapt_ItCanvas, wxScrolledWindow)
@@ -143,7 +149,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItCanvas, wxScrolledWindow)
     // whm 12Jul2018 Note: The the events for the following event handlers 
     // are caught here in CAdapt_ItCanvas, but the handlers below simply
     // call the public handlers of the same name in CPhraseBox:
-    EVT_BUTTON(ID_BMTOGGLEBUTTON_PHRASEBOX, CAdapt_ItCanvas::OnTogglePhraseBoxButton) // detected here but handled by calling CPhraseBox::OnTogglePhraseBoxButton()
+    EVT_TOGGLEBUTTON(ID_BMTOGGLEBUTTON_PHRASEBOX, CAdapt_ItCanvas::OnTogglePhraseBoxButton) // detected here but handled by calling CPhraseBox::OnTogglePhraseBoxButton()
     EVT_LISTBOX(ID_DROP_DOWN_LIST, CAdapt_ItCanvas::OnListBoxItemSelected) // detected here but handled by calling CPhraseBox::OnTogglePhraseBoxButton()
     EVT_LISTBOX_DCLICK(ID_DROP_DOWN_LIST, CAdapt_ItCanvas::OnListBoxItemSelected) // detected here but handled by calling CPhraseBox::OnTogglePhraseBoxButton()
 
@@ -961,8 +967,12 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 				{
 					if (pApp->m_pTargetBox->IsShown())
 					{
-						pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+                        // whm 3Aug2018 Note: The SetSelection here restores any existing selection
+                        // so it should be allowed to stand as is.
+                        // whm 13Aug2018 modified to call SetFocus() before the SetSelection() call below.
+                        // Otherwise, if SetFocus() is called last, the Linux/Mac versions do a select all.
 						pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+						pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 					}
 				}
 y:				; // I may put some code here later
@@ -1014,8 +1024,12 @@ y:				; // I may put some code here later
 					{
 						if (pApp->m_pTargetBox->IsShown())
 						{
-							pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+                            // whm 3Aug2018 Note: The SetSelection here restores any existing selection
+                            // so it should be allowed to stand as is.
+                            // whm 13Aug2018 modified to call SetFocus() before the SetSelection() call below.
+                            // Otherwise, if SetFocus() is called last, the Linux/Mac versions do a select all.
 							pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 						}
 					}
 					gbJustReplaced = FALSE; // clear to default value
@@ -1101,13 +1115,16 @@ x:					CCell* pCell = 0;
 					pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
 					pApp->m_pActivePile = pPile;
 					pCell = pPile->GetCell(1); // we want the 2nd line, for phrase box
-					
 					// save old sequ number in case required for toolbar's Back button
-					pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
+                    pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
 
+					// BEW 28Jun18 cache this value for using within PlacePhraseBox() to enable 
+					// recalculating the correct pOldActivePile pointer 
 					pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
-					wxLogDebug(_T(" OnLButtonDown() 1091, setting m_nCacheLeavingLocation, cached sequ num = %d"),
+					wxLogDebug(_T(" OnLButtonDown() 1102, setting m_nCacheLeavingLocation, cached sequ num = %d"),
 						pApp->m_nCacheLeavingLocation);
+
+					pApp->m_bLandingBox = TRUE;
 
 					// place the phrase box
 					pView->PlacePhraseBox(pCell,2);
@@ -1127,8 +1144,12 @@ x:					CCell* pCell = 0;
 					{
 						if (pApp->m_pTargetBox->IsShown())
 						{
-							pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
-							pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                            // whm 3Aug2018 Note: The SetSelection here restores any existing selection
+                            // so it should be allowed to stand as is.
+                            // whm 13Aug2018 modified to call SetFocus() before the SetSelection() call below.
+                            // Otherwise, if SetFocus() is called last, the Linux/Mac versions do a select all.
+                            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                            pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 						}
 					}
 					gbHaltedAtBoundary = FALSE;
@@ -1189,8 +1210,8 @@ x:					CCell* pCell = 0;
 					wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
-					pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-					return;
+                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                    return;
 				}
 				else
 				{
@@ -1212,8 +1233,8 @@ x:					CCell* pCell = 0;
 					wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
-					pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-					return;
+                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                    return;
 				}
 				else
 				{
@@ -1236,8 +1257,8 @@ x:					CCell* pCell = 0;
 					wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
-					pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-					return;
+                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                    return;
 				}
 				else
 				{
@@ -1615,9 +1636,13 @@ x:					CCell* pCell = 0;
 	"Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),_T(""),
 							wxICON_INFORMATION | wxOK);
 							// put the focus back in the former place
-							if (pApp->m_pTargetBox != NULL)
-								if (pApp->m_pTargetBox->IsShown())
-									pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+                            if (pApp->m_pTargetBox != NULL)
+                            {
+                                if (pApp->m_pTargetBox->IsShown())
+                                {
+                                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                                }
+                            }
 							return;
 						}
 					}
@@ -1815,9 +1840,9 @@ x:					CCell* pCell = 0;
 						// not in free translation mode
                         pApp->m_pTargetBox->m_Translation.Empty();
 
-						#ifdef _Trace_Click_FT
-						TRACE1("PlacePhraseBox() next, normal mode; key: %s\n", pApp->m_targetPhrase);
-						#endif
+						//#ifdef _Trace_Click_FT
+						//TRACE1("PlacePhraseBox() next, normal mode; key: %s\n", pApp->m_targetPhrase);
+						//#endif
 
 						// if the user has turned on the sending of synchronized scrolling
 						// messages, send the relevant message
@@ -1876,13 +1901,13 @@ x:					CCell* pCell = 0;
 							pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-							pApp->LogDropdownState(_T("OnLButtonDown() m_bAbandonable TRUE block, before calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1835);
+							pApp->LogDropdownState(_T("OnLButtonDown() m_bAbandonable TRUE block, before calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1882);
 #endif
 							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
 								// is done at the leaving location, but a removal from the KB
 								// will be done at the landing location
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-							pApp->LogDropdownState(_T("OnLButtonDown() end of m_bAbandonable TRUE block, after calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1841);
+							pApp->LogDropdownState(_T("OnLButtonDown() end of m_bAbandonable TRUE block, after calling PlacePhraseBox() with selector == 2, no store leaving but KB item removal on landing"), _T("Adapt_ItCanvas.cpp"), 1888);
 #endif
 						}
 						else
@@ -1901,34 +1926,40 @@ x:					CCell* pCell = 0;
 							else
 							{
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-								pApp->LogDropdownState(_T("OnLButtonDown() before calling PlacePhraseBox() in normal situation, selector == 0"), _T("Adapt_ItCanvas.cpp"), 1880);
+								pApp->LogDropdownState(_T("OnLButtonDown() before calling PlacePhraseBox() in normal situation, selector == 0"), _T("Adapt_ItCanvas.cpp"), 1896);
 #endif
-								// BEW 7May18. We use the fact that OnLButtonDown() is never called when there is a user
-								// click on the dropdown-based phrasebox to advantage. If control has entered and gets
-								// to this point, then the click must have been to a pile which is not the current active
-								// one - and that means that the phrasebox is going to move - which in turn means that
-								// we can safely set app's member boolean m_bLandingBox to TRUE. This help will give better
-								// behaviours for the refactored GUI with a combo-box based phrasebox
+								wxASSERT(pApp->m_nOldSequNum != -1);
+
+								// save old sequ number in case required for toolbar's Back button
+								//pApp->m_nOldSequNum = pApp->m_nActiveSequNum;
+
+								// BEW 28Jun18 also cache this value for using within PlacePhraseBox to define 
+								// pOldActivePile pointer
+								pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
+								wxLogDebug(_T(" OnLButtonDown() 1906, setting m_nCacheLeavingLocation, cached sequ num = %d"),
+									pApp->m_nCacheLeavingLocation);
+
 								pApp->m_bLandingBox = TRUE;
 
 								// Now get the phrasebox placed
 								pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
 									// KB access is done at both leaving and landing locations)
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-								pApp->LogDropdownState(_T("OnLButtonDown() after the usual selector = 0 PlacePhraseBox() call has returned"), _T("Adapt_ItCanvas.cpp"), 1886);
+								pApp->LogDropdownState(_T("OnLButtonDown() after the usual selector = 0 PlacePhraseBox() call has returned"), _T("Adapt_ItCanvas.cpp"), 1915);
 #endif
 							}
 						}
 						// BEW added 30Jun18 - to support AuSIL request for cursor at end
-                        // whm 12Jul2018 removed custom event and re-instated SetSelection(len,len) here
-                        long len = (long)pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
-                        pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
+                        // whm 3Aug2018 modified for latest protocol of only selecting all when
+                        // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+                        // View menu's 'Select Copied Source' toggle menu item. 
+                        if (pApp->m_pTargetBox != NULL)
+                        {
 
-                        // whm 12Jul2018 The following custom event is no longer needed:
-                        //wxCommandEvent eventCursorToEnd(wxEVT_Cursor_To_End);
-                        //wxPostEvent(pApp->GetMainFrame(), eventCursorToEnd);
+                            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                        }
 
-						ScrollIntoView(pApp->m_nActiveSequNum);
+                        ScrollIntoView(pApp->m_nActiveSequNum);
 					}
 
 					// restore default button image, and m_bCopySourcePunctuation to TRUE
@@ -1976,6 +2007,9 @@ x:					CCell* pCell = 0;
 							}
 							else
 							{
+                                // whm 3Aug2018 Note: This select all has to do with the compose bar
+                                // behavior. TODO: Determine if it should be suppressed if 'Select Copied Source'
+                                // toggle menu item is NOT ticked???
 								pEditCompose->SetSelection(-1,-1);// -1,-1 selects all
 							}
 						}
@@ -1983,7 +2017,7 @@ x:					CCell* pCell = 0;
 						// mark the current section
 						pFreeTrans->MarkFreeTranslationPilesForColoring(pFreeTrans->m_pCurFreeTransSectionPileArray);
 #ifdef _DEBUG
-//			wxString amsg = _T("Line 1768, OnLButtonDown(), in Adapt_ItCanvas.cpp");
+//			wxString amsg = _T("Line 1983, OnLButtonDown(), in Adapt_ItCanvas.cpp");
 //			pFreeTrans->DebugPileArray(amsg, pFreeTrans->m_pCurFreeTransSectionPileArray);
 #endif
 						if (pApp->m_nActiveSequNum >= 0 &&

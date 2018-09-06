@@ -702,10 +702,11 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		}
 		gpApp->m_targetPhrase = maybeSolidusNewText;
 		gpApp->m_pTargetBox->GetTextCtrl()->ChangeValue(maybeSolidusNewText);
-		// Select the text in the box (focus will be returned there later)
+		// Un-Select the text in the box (focus will be returned there later)
 		int len = gpApp->m_targetPhrase.Length();
 		gpApp->m_nStartChar = len;
 		gpApp->m_nEndChar = len;
+        // whm 3Aug2018 Note: No adjustment here needed for 'select all'
 		gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
 	}
 
@@ -2299,7 +2300,11 @@ void CKBEditor::OnOK(wxCommandEvent& event)
 	}
 
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
-	gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
+    // whm 24Jul2018 added test to only call Clear() on m_arrSearches if its count is > 0,
+    // otherwise after adding meanings to a source phrase and clicking OK, the Clear() call would
+    // crash due to calling delete on a bad pointer.
+    if (gpApp->m_arrSearches.GetCount() > 0)
+	    gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
 
 	if (m_bRemindUserToDoAConsistencyCheck)
 	{
@@ -2328,7 +2333,12 @@ void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
 												emptyStr, useGlossOrAdaptationForLookup);
 	}
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
-	gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
+    // whm 24Jul2018 added test to only call Clear() on m_arrSearches if its count is > 0,
+    // otherwise after adding meanings to a source phrase and clicking Cancel, the Clear() 
+    // call might crash here as it can in the OnOK() handler above, due to calling delete 
+    // on a bad pointer.
+    if (gpApp->m_arrSearches.GetCount() > 0)
+        gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
 
 	if (m_bRemindUserToDoAConsistencyCheck)
 	{

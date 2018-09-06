@@ -162,15 +162,18 @@ void CStrip::Draw(wxDC* pDC)
 // PileList::Item() call at the start of the function, so time is saved when setting up the
 // strips for a whole document)
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 19Aug18 refactored for supporting dropdown list phrasebox
 PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
+
+	boxMode = m_pLayout->m_boxMode; // only relevant to the active CStrip, and it's active CPile
 
 	CPile* pPile = NULL;
 	int pileWidth = 0;
 	int nCurrentSpan = 0;
 
-    // clear the two arrays - failure to do this leaves gargage in their members (such as
+    // clear the two arrays - failure to do this leaves garbage in their members (such as
     // m_size a huge number & m_count a huge number) & so get app crash
 	m_arrPiles.Clear();
 	m_arrPileOffsets.Clear();
@@ -214,15 +217,42 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		{
 			pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
 		}
-		else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
-		{
-			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be
-                    // large enough to accomodate the phrase box's width, even if just
-                    // expanded due to the user's typing
-		}
-		else
-		{
-			pileWidth = pPile->m_nMinWidth;
+		else 
+		{ 
+			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+			{
+				boxMode = m_pLayout->m_boxMode;
+				pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
+				// BEW 17Aug18 add this, to force the following piles wider - Nah, it's good for only one widening
+				//if (boxMode == expanding)
+				//{
+				//	pileWidth += m_pLayout->slop;
+				//}
+
+#if defined(_DEBUG) && defined(_EXPAND)
+				// currently boxMode is unused, except for logging purposes
+				if (boxMode == expanding)
+				{
+					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
+						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				}
+				else if (boxMode == steadyAsSheGoes)
+				{
+					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
+						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				}
+				else
+				{
+					// must be 'contracting'
+					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
+						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				}
+#endif
+			}
+			else
+			{
+				pileWidth = pPile->m_nMinWidth;
+			}
 		}
 		m_arrPiles.Add(pPile); // store it
 		m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
@@ -273,15 +303,38 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			{
 				pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
 			}
-			else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
-			{
-				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
-											 // to accomodate the phrase box's width, even if just
-											 // expanded due to the user's typing
-			}
-			else
-			{
-				pileWidth = pPile->m_nMinWidth;
+			else 
+			{	
+				if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+				{
+					boxMode = m_pLayout->m_boxMode;
+					pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
+					/*
+#if defined(_DEBUG) && defined(_EXPAND)
+					// currently boxMode is unused, except for logging purposes
+					if (boxMode == expanding)
+					{
+						wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
+							__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+					}
+					else if (boxMode == steadyAsSheGoes)
+					{
+						wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
+							__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+					}
+					else
+					{
+						// must be 'contracting'
+						wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
+							__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+					}
+#endif
+					*/
+				}
+				else
+				{
+					pileWidth = pPile->m_nMinWidth;
+				}
 			}
 			nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space for this
 											// pile to be eligible for inclusion in the strip
@@ -303,7 +356,22 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 
 			// set the pile's m_pOwningStrip member
 			pPile->m_pOwningStrip = this;
-
+/*
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			if (pPile->m_pOwningStrip->m_nStrip == 3)
+			{
+				wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
+				// I want CRect values for (top)left, and width, and (bottom)right - to assist in working out where
+				// the pile following the active one gets drawn, and the src string to make sure pile is right one
+				wxRect pileRect = pPile->GetPileRect();
+				wxPoint topLeft = pileRect.GetTopLeft();
+				wxPoint bottomRight = pileRect.GetBottomRight();
+				int itsWidth = pileRect.width; // should be the same as pileWith above
+				wxLogDebug(_T("%s():line %d, in loop, pPile:  Left %d ,  Right %d , itsWidth %d , nCurrentSpan %d , srcPhrase %s"),
+					__func__, __LINE__, topLeft.x, bottomRight.x, itsWidth, nCurrentSpan, src.c_str());
+			}
+#endif
+*/
 			// update index for next iteration
 			pileIndex_InStrip++;
 			nWidthOfPreviousPile = pileWidth;
@@ -315,127 +383,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;
 		}
 	}
-//	else
-//	{
-		/* unneeded code, identical to LTR code except for a cosmetic name change of one variable
-		// Unicode version, and Right to Left layout is wanted
-		int nHorzOffset_FromRight = 0;
-		int pileIndex_InStrip = 0; // index into CStrip's m_arrPiles array of void*
-		int nWidthOfPreviousPile = 0;
 
-        // we must always have at least one pile in the strip in order to prevent an infinite
-        // loop of empty strips if the width of the first pile should happen to exceed the
-        // strip's width; so we place the first unilaterally, regardless of its width
-		pPile = (CPile*)pos->GetData();
-		// set the pile's m_pOwningStrip member
-		pPile->m_pOwningStrip = this;
-		if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
-		{
-			pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
-		}
-		else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
-		{
-			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
-										 // to accomodate the phrase box's width, even if just
-										 // expanded due to the user's typing
-		}
-		else
-		{
-			pileWidth = pPile->m_nMinWidth;
-		}
-		m_arrPiles.Add(pPile); // store it
-		m_arrPileOffsets.Add(nHorzOffset_FromRight); // store offset to right boundary
-		m_nFree -= pileWidth; // reduce the free space accordingly
-		pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
-
-		// prepare for next iteration
-		nWidthOfPreviousPile = pileWidth;
-		pileIndex_InStrip++;
-		pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
-		nHorzOffset_FromRight = nWidthOfPreviousPile + gap;
-
-		// if m_nFree went negative or zero, we can't fit any more piles, so declare
-		// the strip full
-		if (m_nFree <= 0)
-		{
-			m_bValid = TRUE;
-			//return nPileIndex_InList;
-			return pos;
-		}
-
-		// append second and later piles to the strip
-		while (pos != NULL  && m_nFree > 0)
-		{
-			pPile = (CPile*)pos->GetData();
-			wxASSERT(pPile != NULL);
-
-            // break out of the loop without including this pile in the strip if it is a
-            // non-initial pile which contains a marker in its pointed at pSrcPhrase which
-            // is a wrap marker for text (we want strips to wrap too, provided the view
-            // menu item has that feature turned on)
-			if (m_pLayout->m_pApp->m_bMarkerWrapsStrip && pileIndex_InStrip > 0)
-			{
-				bool bCausesWrap = pPile->IsWrapPile();
-				if (bCausesWrap && !(m_nStrip == 0 && pileIndex_InStrip == 1))
-				{
-					// if we need to wrap, discontinue assigning piles to this strip (the
-					// nPileIndex_InList value is already correct for returning to caller)
-					m_bValid = TRUE;
-					//return nPileIndex_InList;
-					return pos;
-				}
-			}
-
-            // if control gets to here, the pile is a potential candidate for inclusion in
-            // this strip, so work out if it will fit - and if it does, add it to the
-            // m_arrPiles, etc
-			if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
-			{
-				pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
-			}
-			else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
-			{
-				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be
-                                // large enough to accomodate the phrase box's width, even
-                                // if just expanded due to the user's typing
-			}
-			else
-			{
-				pileWidth = pPile->m_nMinWidth;
-			}
-			nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space for this
-											// pile to be eligible for inclusion in the strip
-			if (nCurrentSpan <= m_nFree)
-			{
-				// this pile will fit in the strip, so add it
-				m_arrPiles.Add(pPile); // store it
-				m_arrPileOffsets.Add(nHorzOffset_FromRight); // store offset to right boundary
-				m_nFree -= nCurrentSpan; // reduce the free space accordingly
-				pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
-			}
-			else
-			{
-				// this pile won't fit, so the strip is full - declare it full and return
-				// the pile list's index for use in the next strip's creation
-				m_bValid = TRUE;
-				return pos;
-			}
-
-			// set the pile's m_pOwningStrip member
-			pPile->m_pOwningStrip = this;
-
-			// update index for next iteration
-			pileIndex_InStrip++;
-			nWidthOfPreviousPile = pileWidth;
-
-			// advance the iterator for the CLayout's m_pileList list of pile pointers
-			pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
-
-			// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
-			nHorzOffset_FromRight += nWidthOfPreviousPile + gap;
-		}
-	*/
-//	}
 	// if the loop exits because the while test yields FALSE, then either we are at the end of the
 	// document or the first pile was wider than the whole strip - in either case we must declare
 	// this strip filled and we are done
@@ -450,9 +398,12 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 // strip, there will always be at least one - empty strips are illegal; the function
 // should not be called if there are no more piles to be placed.
 // BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 19Aug18 refactored for supporting dropdown list phrasebox
 int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
+
+	boxMode = m_pLayout->m_boxMode; // only relevant to the active CStrip, and it's active CPile
 
 	CPile* pPile = NULL;
 	int pileWidth = 0;
@@ -493,20 +444,42 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	wxASSERT(pPile);
 	// set the pile's m_pOwningStrip member
 	pPile->m_pOwningStrip = this;
-	if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
+	if (m_pLayout->m_pApp->m_nActiveSequNum == -1 || m_pLayout->m_bLayoutWithoutVisiblePhraseBox)
 	{
 		pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
 	}
-	else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
-	{
-		// when tweaking strips rather than rebuilding, we won't get a larger gap
-		// calculated at the active pile unless we call it here, provided the active
-		// location is within the area of strips being rebuilt
-		pileWidth = pPile->CalcPhraseBoxGapWidth();
-	}
 	else
 	{
-		pileWidth = pPile->m_nMinWidth;
+		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+		{
+			boxMode = m_pLayout->m_boxMode;
+			pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode);
+/* keep
+#if defined(_DEBUG) && defined(_EXPAND)
+			// currently boxMode is unused, except for logging purposes
+			if (boxMode == expanding)
+			{
+				wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
+					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+			}
+			else if (boxMode == steadyAsSheGoes)
+			{
+				wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
+					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+			}
+			else
+			{
+				// must be 'contracting'
+				wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
+					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+			}
+#endif
+*/
+		}
+		else
+		{
+			pileWidth = pPile->m_nMinWidth;
+		}
 	}
 	m_arrPiles.Add(pPile); // store it
 	m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
@@ -608,23 +581,55 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
 		}
-		else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
-		{
-			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
-										 // to accomodate the phrase box's width, even if just
-										 // expanded due to the user's typing
-		}
 		else
 		{
-			pileWidth = pPile->m_nMinWidth;
+			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+			{
+				boxMode = m_pLayout->m_boxMode;
+				pileWidth = pPile->CalcPhraseBoxGapWidth(boxMode); 
+/* keep this				
+#if defined(_DEBUG) && defined(_EXPAND)
+				// currently boxMode is unused, except for logging purposes
+				if (boxMode == expanding)
+				{
+					pileWidth += m_pLayout->slop;
+
+					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
+						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				}
+				else if (boxMode == steadyAsSheGoes)
+				{
+					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
+						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				}
+				else
+				{
+					// must be 'contracting'
+					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
+						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+				}
+#endif
+*/
+			}
+			else
+			{
+				pileWidth = pPile->m_nMinWidth;
+			}
 		}
 		nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space
-						// for this pile to be eligible for inclusion in the strip
+							// for this pile to be eligible for inclusion in the strip	
 		if (nCurrentSpan <= m_nFree)
 		{
 			// this pile will fit in the strip, so add it
 			m_arrPiles.Add(pPile); // store it
-			m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
+			if (m_pLayout->m_boxMode == contracting)
+			{
+				m_arrPileOffsets.Add(nHorzOffset_FromLeft + gap); // store larger offset to left boundary
+			}
+			else
+			{
+				m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
+			}
 			numPlaced++; // increment counter of how many placed
 			pileIndex++; // set tracker index to index of next pile to be placed
 			m_nFree -= nCurrentSpan; // reduce the free space accordingly
@@ -632,15 +637,26 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 												// m_arrPiles array
 			// set the pile's m_pOwningStrip member
 			pPile->m_pOwningStrip = this;
-/*
-#ifdef _DEBUG
+
+#if defined(_DEBUG) && defined(_NEWDRAW)
 	{
-		wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
-		wxLogDebug(_T("2. inloop	CreateStrip: m-nStrip %d   pile[ %d ] pileWidth %d , offset %d , free left %d, numPlaced %d srcPhrase %s"),
-					this->m_nStrip,pileIndex_InStrip,pileWidth,nHorzOffset_FromLeft,m_nFree, numPlaced, src);
-	}
+		if (pPile->m_pOwningStrip->m_nStrip == 3) // because this strip is my test case - with the overlap observable
+		{
+			wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
+			wxLogDebug(_T("%s():line %d, in loop,  m_nStrip %d   pile[%d] , pileWidth %d , nHorzOffset_FromLeft %d , free left %d, numPlaced %d , srcPhrase %s"),
+				__func__, __LINE__, this->m_nStrip, pileIndex_InStrip, pileWidth, nHorzOffset_FromLeft, m_nFree, numPlaced, src.c_str());
+
+			// I want CRect values for (top)left, and width, and (bottom)right - to assist in working out where
+			// the pile following the active one gets drawn, and the src string to make sure pile is right one
+			wxRect pileRect = pPile->GetPileRect();
+			wxPoint topLeft = pileRect.GetTopLeft();
+			wxPoint bottomRight = pileRect.GetBottomRight();
+			int itsWidth = pileRect.width; // should be the same as pileWith above
+			wxLogDebug(_T("%s():line %d, in loop, pPile:  Left %d ,  Right %d , itsWidth %d , nCurrentSpan %d , srcPhrase %s"),
+				__func__, __LINE__, topLeft.x, bottomRight.x, itsWidth, nCurrentSpan, src.c_str());
+		}
+	} 
 #endif
-*/
 		}
 		else
 		{

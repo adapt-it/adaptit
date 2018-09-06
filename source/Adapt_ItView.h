@@ -413,6 +413,8 @@ protected:
 	// whm Note: The UpdateUI handler for OnUpdateCheckKBSave() is in MainFrm.cpp
 	void OnCheckForceAsk(wxCommandEvent& WXUNUSED(event));
 	void OnCopySource(wxCommandEvent& event);
+    void OnSelectCopiedSource(wxCommandEvent& event);
+    void OnUpdateSelectCopiedSource(wxUpdateUIEvent & event);
 	void OnUpdateCopySource(wxUpdateUIEvent& event);
 	void OnClearContentsButton(wxCommandEvent& WXUNUSED(event));
 	void OnSelectAllButton(wxCommandEvent& WXUNUSED(event));

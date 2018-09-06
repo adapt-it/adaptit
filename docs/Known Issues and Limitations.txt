@@ -1,4 +1,4 @@
-Limitations and known issues in the version 6.9.0 
+Limitations and known issues in the version 6.9.1 
 of Adapt It WX and Adapt It WX Unicode:
 
 Windows version:
@@ -21,17 +21,7 @@ box.
 
 Linux version:
 
-1. The new dropdown phrasebox behaves a little differently in the
-Linux version than in the Windows version. In the Linux version the
-dropdown list must be closed before you can start entering a new
-translation into the phrasebox, and before using the ALT+LeftArrow
-or ALT+RightArrow hot keys to select source text before merging them
-into a phrase. The Linux version blocks all alphanumeric key strokes
-while the dropdown list is open. You can press the Esc key to close 
-the dropdown list before typing a new translation, or just click on
-the phrasebox button (or any whitespace area of the main window) to
-close the phrasebox's list when needed.
-2. In Ubuntu Xenial and newer distributions, a newer version (3.0.2)
+1. In Ubuntu Xenial and newer distributions, a newer version (3.0.2)
 of the wxWidgets library is used. In that library Adapt It printing
 functions (the File -> Print and File -> Print Preview functions) 
 are not working as expected. We are working on a fix for these 
@@ -43,16 +33,6 @@ RTF file can then be loaded into LibreOffice Writer or Microsoft
 Word and printed from those application. These RTF exports actually
 give much more control over the printing and appearance of those
 documents.
-3. In Ubuntu Precise, running the Unity Interface, the text control 
-in the ComposeBar does not maintain the input focus, nor any 
-selection made, when the user mouses to the Unity menu bar (which
-was formerly Adapt It's menu bar) to choose from the Edit menu
-any of the commands Cut, Copy, or Paste. Results will not be what
-you expect, Paste may be disabled, and Cut or Copy clears the 
-phrase box instead. This is an Ubuntu issue which we can't fix.
-A bug report has been sent to the Unity developers. In the meantime:
-CTRL+C, CTRL+X, and CTRL+V work correctly, and you'll have no
-problems if you use these shortcuts instead.
 
 All Versions:
 

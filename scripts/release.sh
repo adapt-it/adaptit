@@ -42,6 +42,10 @@
 # Revised 2018-04-17
 #   - Corrected the A05suffix hook script to cd to /tmp/buildd/*/ instead of ~/*?
 #   - Moved wx library static build parts of script to release-static.sh
+# Revised 2018-08-25
+#   - Added a call to autogen.sh from within the bin/linux dir of the checkout folder
+#        $PACKAGING_DIR/adaptit-${RELEASE}, for example, $HOME/packaging/adaptit-6.9.1/bin/linux
+#        The call of autogen.sh is now done before the cleanup of unwanted non-source files.
 
 AID_GITURL="https://github.com/adapt-it/adaptit.git"
 PBUILDFOLDER=${PBUILDFOLDER:-$HOME/pbuilder}
@@ -422,7 +426,17 @@ cd $PACKAGING_DIR/adaptit-${RELEASE}
 #git checkout tags/${RELEASE} -b ${RELEASE} || exit 1
 git checkout -b ${RELEASE} adaptit-${RELEASE} || exit 1
 
-cd ..
+# call autogen.sh in bin/linux to recreate the build environment
+cd $PACKAGING_DIR/adaptit-${RELEASE}/bin/linux
+echo -e "\nCall autogen.sh to recreate the build environment"
+pathbefore=`pwd`
+echo "Path before autogen.sh: $pathbefore"
+./autogen.sh
+
+#cd ..
+cd $PACKAGING_DIR
+pathafter=`pwd`
+echo "Path after autogen.sh: $pathafter"
 
 # Delete unwanted non-source files here
 echo -e "\nRemoving unwanted non-source files from adaptit-${RELEASE}"

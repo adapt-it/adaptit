@@ -117,6 +117,20 @@ enum layout_selector {
 	create_strips_update_pile_widths
 };
 
+// whm 18Aug2018 added to use as a parameter within PlaceBox() calls
+// where the initializeDropDown value passed in has PlaceBox() call
+// the CPhraseBox::SetupDropDownPhraseBoxForThisLocation() function,
+// and the noDropDownInitialization value passed in informs PlaceBox()
+// to not call SetupDropDownPhraseBoxForThisLocation(). These values
+// are designed to make PlaceBox() calls sensitive to whether the drop
+// down phrasebox needs initialization or no initialization (because it
+// was previously initialized from the given location).
+enum placeBoxSetup
+{
+    initializeDropDown,
+    noDropDownInitialization
+};
+
 /// The CLayout class manages the layout of the document. It's private members pull
 /// together into one place parameters pertinent to dynamically laying out the strips piles
 /// and cells of the layout. Setters in various parts of the application set these private
@@ -141,9 +155,20 @@ public:
 	CMainFrame*			m_pMainFrame;
 
 	doc_edit_op			m_docEditOperationType; // set in user doc edit handler functions
-												// and used by PlacePhraseBoxInLayout()
-	int					m_curBoxWidth;
 
+	int					m_curBoxWidth;  // width, as the sum of text extent.x + slop + button width
+	int					m_curListWidth; // BEW added 24Jul18, width of the active location's drop 
+										// down list, as the max of the non-deleted adaptation 
+										// text extent.x values in the pTU (ptr to CTargetUnit)
+										// at the active pile
+	// BEW 17Jul18 cache the unadjusted virtual document height, while RecalcLayout works
+	// with an increased height temporarily, and for setting scroll range larger to comply
+	// with the increased height. At the end of RecalcLayout(), restore this cached height
+	// to avoid accumulating empty space at the end of the document.
+	int m_nCachedDocHeight;
+
+	wxString			m_inputString;  // BEW 31Jul18, holds last character typed, or a char or string pasted
+										// for use when expanding or contracting the phrasebox
 	// booleans that track what kind of changes were made within the Preferences dialog -
 	// these govern which parameters we pass to RecalcLayout() - whether to keep or create
 	// piles, recalc pile widths, call SetupLayoutParameters(), keep or create strips, etc
@@ -261,6 +286,20 @@ public:
 									   // view classes; that is, it hooks up CLayout to the
 									   // legacy parameters wherever they were stored (it calls
 									   // app class's UpdateTextHeights() function too
+	
+	// BEW 10Aug18 - some functions used within FixBox() - the refactored version for support
+	// of phrasebox with button and dropdown list, follow now...
+	bool		BSorDEL_NoModifiers(wxKeyEvent event); // return TRUE if no modifier key is
+					// held down and either a Backspace or Delet key is simultaneously pressed
+					// else, returns FALSE. Used in refactored FixBox()
+	bool		TextCtrlHasSelection(wxTextCtrl* pTextCtrl, long& from, long& to, int& length); //BEW created 9Aug18
+//	bool		PhraseBoxIsInFocus(); // Bill's function for the wxOwnerDrawnComboBox control, which we abandoned
+	// BEW 13Aug18, deprecated my version below, as Bill says focus is not handled uniformly across all platforms
+	//bool		TextCtrlIsInFocus(); // BEW 10Aug18 reinstated this variant of focus checking call
+									  // - for use in the refactored FixBox(), and moved to CLayout class
+	bool		DoPhraseBoxWidthUpdate(); // BEW added 30July18, this is the handler which FixBox() uses
+								   // to effect a widening or contracting of the phrasebox width	
+
 	// Strip destructors
 	void		DestroyStrip(int index); // note: doesn't destroy piles and their cells, these
 										 // are managed by m_pPiles list & must persist
@@ -322,12 +361,13 @@ public:
 	int			GetGapWidth();
 
 	// setter and getter for the pile height & strip height;
-	// also the current leading value
+	// also the current leading value, and compose phrasebox with button
 	void		SetPileAndStripHeight();
 	int			GetPileHeight();
 	int			GetStripHeight();
 	void		SetCurLeading(CAdapt_ItApp* pApp);
 	int			GetCurLeading();
+	//int			GetPhraseBoxWidth(); //BEW removed, use the one in CPile class
 
 	// left margin for strips
 	void		SetCurLMargin(CAdapt_ItApp* pApp);
@@ -355,6 +395,9 @@ public:
 	wxArrayInt*		GetInvalidStripArray();
 	void			ClearSavePileList();
 
+	int				slop; // constant unless Preferences changes it, so store here
+	int				buttonWidth; // constant, unless a new Adapt It version changes the button width
+
 	//////// public utility functions ////////
 
 	void		UpdateStripIndices(int nStartFrom = 0); // updateg the m_nStrip index
@@ -376,13 +419,8 @@ public:
 	int			GetStripCount(); // return a count of how many strips are
 								 // in the current layout
 	bool		GetBoxVisibilityFlag();
-	/* no need for it so far
-	// BEW 26Apr18 created SetProtocolFlags() to get m_bAbandonable set correctly at the end of
-	// a PlaceBox() call; and internally, to make sure that m_bHasKBEntry (or, if glossing mode
-	// is current, then m_bHasGlossingKBEntry) is set to the correct value when appropriate - 
-	// such as when landing at a different location in the document
-	bool		SetProtocolFlags(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase, bool& bAbandonable);
-	*/
+	bool		m_bFrameResizeWanted;  // used by 'contracting' enum, set within RecalcLayout()
+
 	// function calls relevant to laying out the view updated after user's doc-editing operation
 
 	// create the list of CPile objects (it's a parallel list to document's m_pSourcePhrases
@@ -400,14 +438,17 @@ public:
 											// just lays them out, ensuring  proper spacing
 	void		DoRecalcLayoutAfterPreferencesDlg();
 	void		RecalcPileWidths(PileList* pPiles);
-	void		PlaceBox(); // call this after Invalidate() and after Redraw(); contents of
-							// PlacePhraseBoxInLayout() moved into here, and the latter removed
+	void		PlaceBox(enum placeBoxSetup placeboxsetup = initializeDropDown); // call this after Invalidate() and after Redraw()
 	void		SetupCursorGlobals(wxString& phrase, enum box_cursor state,
 							int nBoxCursorOffset = 0); // BEW added 7Apr09
 	bool		GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInLast);// BEW
 						// added 3June09, in support of a smarter ScrollIntoView() function
 	void		CopyPileList_Shallow(PileList* pOrigPileList, PileList* pDestPileList);
-
+	enum phraseBoxWidthAdjustMode m_boxMode; // BEW 7Aug18, In legacy app, FixBox() passed a value to
+									// other functions; in our refactored design we need a place
+									// for storing one of the enum values so that our layout 
+									// support functions, as set here by FixBox(), can find 
+									// what mode is currently in effect
     // get the range of visible strips in the viscinity of the active location; pass in the
     // sequNum value, and return indices for the first and last visible strips (the last
     // may be partly or even wholely out lower than then the bottom of the window's client

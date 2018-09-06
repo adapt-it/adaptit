@@ -80,6 +80,7 @@
 #include "PhraseBox.h"
 #include "Cell.h"
 #include "Pile.h"
+#include "Strip.h"
 #include "SourcePhrase.h"
 #include "Layout.h"
 #include "MainFrm.h"
@@ -242,6 +243,9 @@ const long CMainFrame::ID_AUI_TOOLBAR = wxNewId();
 
 //extern wxMutex KBAccessMutex;
 
+/// This global is defined in Adapt_ItView.cpp
+extern int gnBoxCursorOffset;
+
 /// This global is defined in Adapt_It.cpp
 extern CStartWorkingWizard* pStartWorkingWizard;
 
@@ -380,8 +384,6 @@ DEFINE_EVENT_TYPE(wxEVT_Join_With_Next)
 DEFINE_EVENT_TYPE(wxEVT_Join_With_Previous)
 DEFINE_EVENT_TYPE(wxEVT_Split_It)
 DEFINE_EVENT_TYPE(wxEVT_Delayed_GetChapter)
-//DEFINE_EVENT_TYPE(wxEVT_Cursor_To_End) // whm 12Jul2018 The custom event is no longer needed
-
 
 #if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
@@ -404,13 +406,12 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
 
 // it may also be convenient to define an event table macro for the above event types
 
-// whm 12Jul2018 The following custom event is no longer needed:
-//#define EVT_CURSOR_TO_END(id, fn) \
-//    DECLARE_EVENT_TABLE_ENTRY( \
-//        wxEVT_Cursor_To_End, id, wxID_ANY, \
-//        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
-//        (wxObject *) NULL \
-//    ),
+#define EVT_WIDTH_UPDATING(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Width_Updating, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
 
 #define EVT_ADAPTATIONS_EDIT(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY( \
@@ -579,7 +580,6 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 #endif
 
 	// Our Custom Event handlers:
-	//EVT_CURSOR_TO_END(-1, CMainFrame::OnCustomEventCursorToEnd)
 	EVT_ADAPTATIONS_EDIT(-1, CMainFrame::OnCustomEventAdaptationsEdit)
 	EVT_FREE_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventFreeTranslationsEdit)
 	EVT_BACK_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventBackTranslationsEdit)
@@ -2138,9 +2138,9 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	versionStr << _T(".");
 	versionStr << wxRELEASE_NUMBER;
 #if defined(_DEBUG)
-    versionStr << _T(" (Release version)");
-#else
     versionStr << _T(" (Debug version)");
+#else
+    versionStr << _T(" (Release version)");
 #endif
 	pStaticWxVersionUsed->SetLabel(versionStr);
 
@@ -3517,6 +3517,11 @@ void CMainFrame::OnUpdateViewAdminMenu(wxUpdateUIEvent& event)
 // BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 {
+#if defined(_DEBUG) && defined(_NEWDRAW)
+	wxLogDebug(_T("%s():line %d, *** Frame::OnSize() ENTERED ***"),
+		__func__, __LINE__);
+#endif
+
     // wx version notes about frame size changes:
     // CMainFrame is Adapt It's primary application frame or window. The CMainFrame is the
     // parent frame for everything that happens in Adapt It, including all first level
@@ -3775,8 +3780,14 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	if (pView && !pLayout->GetPileList()->IsEmpty())
 	{
 		pView->Invalidate();
-		gpApp->m_pLayout->PlaceBox();
+        // whm 18Aug2018 PlaceBox() call here should use noDropDownInitialization enum value.
+		gpApp->m_pLayout->PlaceBox(noDropDownInitialization);
 	}
+#if defined(_DEBUG) && defined(_NEWDRAW)
+	wxLogDebug(_T("%s():line %d, *** Frame::OnSize() EXITING ***"),
+		__func__, __LINE__);
+#endif
+
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5
@@ -3922,10 +3933,14 @@ void CMainFrame::OnViewModeBar(wxCommandEvent& WXUNUSED(event))
 		{
 			// the bar has just been made invisible
 			// restore focus to the targetBox, if it is visible
-			if (gpApp->m_pTargetBox != NULL)
-				if (gpApp->m_pTargetBox->IsShown())
-					gpApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-		}
+            if (gpApp->m_pTargetBox != NULL)
+            {
+                if (gpApp->m_pTargetBox->IsShown())
+                {
+                    gpApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                }
+            }
+        }
 	}
 }
 
@@ -4067,10 +4082,14 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			gpApp->m_bComposeBarWasAskedForFromViewMenu = FALSE; // needed for free translation mode
 
 			// restore focus to the targetBox, if it is visible (moved here by BEW on 18Oct06)
-			if (pApp->m_pTargetBox != NULL)
-				if (pApp->m_pTargetBox->IsShown()) // MFC could use BOOL IsWindowVisible() here
-					pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-		}
+            if (pApp->m_pTargetBox != NULL)
+            {
+                if (pApp->m_pTargetBox->IsShown())
+                {
+                    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+                }
+            }
+        }
 		else
 		{
             // the bar is visible, so set the font - normally m_pComposeFont will preserve
@@ -4089,7 +4108,10 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			pApp->m_pComposeFont->SetPointSize(12);
 			pEdit->SetFont(*pApp->m_pComposeFont);
 
-			if (gpApp->m_bFreeTranslationMode)
+            // whm 3Aug2018 Note: SetSelection below relates to compose bar's edit box, and
+            // I assume the 'select all' is appropriate here so no adjustment made related
+            // to the 'Select Copied Source' protocol.
+            if (gpApp->m_bFreeTranslationMode)
 			{
 				// when commencing free translation mode, show any pre-existing content selected
 				// also clear the starting and ending character indices for the box contents
@@ -4212,9 +4234,13 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 			}
 		}
 		// restore focus to the targetBox, if it is visible
-		if (pApp->m_pTargetBox != NULL)
-			if (pApp->m_pTargetBox->IsShown())
-				pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+        if (pApp->m_pTargetBox != NULL)
+        {
+            if (pApp->m_pTargetBox->IsShown())
+            {
+                pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+            }
+        }
 	}
 	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
 	// otherwise strange behavior may occur.
@@ -4544,15 +4570,15 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
             // wholly selected only when its list contains 0 or 1 items, but removes
             // the selection and puts the insertion point at end when list contains
             // 2 or more items.
+            // whm 3Aug2018 modified for latest protocol of only selecting all when
+            // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+            // View menu's 'Select Copied Source' toggle menu item. 
             int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
-            pApp->m_nEndChar = -1;
-            pApp->m_nStartChar = -1;
+            pApp->m_nEndChar = len;
+            pApp->m_nStartChar = len;
             if (pApp->m_pTargetBox != NULL)
             {
-                if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
-                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len, len);
-                else
-                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); // select it all
+                pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
             }
 			pApp->m_bStartViaWizard = FALSE; // suppress this code from now on
 		}
@@ -4672,28 +4698,15 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
             // unnecessary to have the list popped open and showing only that same single item.
             if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
             {
-                if (!pApp->m_bMovingToDifferentPile && !pApp->m_bAutoInsert && !pApp->bLookAheadMerge)
+                if (!pApp->m_bMovingToDifferentPile && !pApp->m_bAutoInsert && !pApp->bLookAheadMerge
+                    && !pApp->m_bFreeTranslationMode) // whm 21Aug2018 added test && !m_bFreeTranslationMode. Dropdown list shouldn't open during free trans mode
                 {
                     // whm Note: The CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     // ensures that the OnIdle() trigger flag m_bChooseTransInitializePopup is
                     // only set to TRUE when all three of the above flags are FALSE. 
                     // Hence, this if block should always execute, and the else block below 
                     // should never execute. 
-                    // whm modified 24May2018. The initial 6.9.0 release sets the the value of the App's 
-                    // m_bAutoOpenPhraseboxOnLanding boolean to an initial default depending on the
-                    // platform. Windows defaults to TRUE, Linux (and Mac OSX) default to FALSE.
-                    // Also the user can control the persistent setting using a new check box within the
-                    // Choose Translation dialog. We now honor the platform's default setting, or the
-                    // user's override setting here. This is the only location in the application where
-                    // PopupDropDownList() may be called.
-                    if (pApp->m_bAutoOpenPhraseboxOnLanding)
-                    {
-                        pApp->m_pTargetBox->PopupDropDownList();
-                    }
-                    else
-                    {
-                        pApp->m_pTargetBox->CloseDropDown();
-                    }
+                    pApp->m_pTargetBox->PopupDropDownList();
                 }
                 else
                 {
@@ -4904,6 +4917,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 	// More custom event handlers
 	
+	/* deprecated in second quarter of 2018
 	if (pApp->m_bShowCursorAtEnd)
 	{
 		// Do the work of putting the cursor at end of the selected box contents,
@@ -4934,19 +4948,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
         long dummyStart, dummyEnd;
         pApp->m_pTargetBox->GetTextCtrl()->GetSelection(&dummyStart, &dummyEnd);
 		pApp->m_bShowCursorAtEnd = FALSE; // we want it only the once, let user's editing happen
-
-		// BEW 2Jul18 -- the phrasebox does not respond to a Backspace properly
-		// if the list is still down, (it deletes the whole box contents) so
-		// programmatically try fix this. 
-
-		/* no help
-		if (pApp->m_pTargetBox->IsPopupShown())
-		{
-			pApp->m_pTargetBox->CloseDropDown();
-		}
-		*/
 	}
-
+	*/
 	// mrh - if doc recovery is pending, we must skip all the following, since the doc won't be valid:
     if (pApp->m_recovery_pending)
         return;
@@ -5049,14 +5052,100 @@ void CMainFrame::OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event))
 }
 #endif
 
+// BEW added 30July18, this is aa handler for doing a box width update.
+// BEW 14Aug18 Actually, it may not be needed in my latest code, so I'll comment it
+// out for now
+/*
+bool CMainFrame::DoPhraseBoxWidthUpdate()
+{
+	bool bSuccess = TRUE;
+
+	// The following code is copied in toto from the end of PlacePhraseBox()
+	// except that the comments are minimized, for full comments see that
+	// function.
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = pApp->GetLayout();
+	CAdapt_ItView* pView = pApp->GetView();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	enum phraseBoxWidthAdjustMode boxMode = pLayout->m_boxMode;
+
+	// mark invalid the strip following the new active strip
+	if (pApp->m_nActiveSequNum != -1)
+	{
+		CPile* pile = pView->GetPile(pApp->m_nActiveSequNum);
+		wxASSERT(pile != NULL);
+		int stripIndex = pile->GetStripIndex();
+		if (stripIndex < (int)pLayout->GetStripArray()->GetCount() - 1)
+		{
+			stripIndex++;
+			CStrip* pStrip = pLayout->GetStripByIndex(stripIndex);
+			int stripWidth = pStrip->Width();
+			int freeS = pStrip->GetFree();
+			if (freeS > stripWidth / 4)
+			{
+				// BEW changed 20Jan11, we want only unique indices in the array
+				AddUniqueInt(pLayout->GetInvalidStripArray(), stripIndex);
+			}
+		}
+	}
+	// Renew the layout
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles, boxMode);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles, boxMode);
+#endif
+	// update the active pile pointer 
+	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+	wxASSERT(pApp->m_pActivePile);
+	CSourcePhrase* pSPhr = pApp->m_pActivePile->GetSrcPhrase();
+	if (pSPhr != NULL)
+	{
+		pDoc->ResetPartnerPileWidth(pSPhr);
+	}
+	pApp->m_pTargetBox->m_bCompletedMergeAndMove = FALSE;
+	pApp->m_bIsGuess = FALSE;
+
+	//pLayout->m_docEditOperationType = relocate_box_op; no, better is to keep the cursor where it is
+
+	// BEW 31Jul18, next four lines added so we can get a value into the global gnBoxCursorOffset,
+	// which the target_box_paste_op will cause to be used by SetCursorGlobals, to keep the cursor
+	// where it is while the deletions are being done; as the switch in PlaceBox calls
+	// SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_offset, gnBoxCursorOffset); to do the
+	// job and so gnBoxCursorOffset must first be correctly set
+	long from;
+	long to;
+	pApp->m_pTargetBox->GetSelection(&from, &to);
+	gnBoxCursorOffset = (int)from;
+	pLayout->m_docEditOperationType = target_box_paste_op;
+
+	pApp->GetView()->Invalidate();
+
+	pApp->m_nCacheLeavingLocation = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+	pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // re-initialize
+	int a = pApp->GetLayout()->m_curBoxWidth;
+	int b = pApp->GetLayout()->m_curListWidth;
+	int max = ::wxMax(a, b);
+	int pileGap = pApp->GetLayout()->GetGapWidth();
+	if ((pApp->m_pActivePile->GetPhraseBoxGapWidth() < max) || (pApp->m_pActivePile->GetPhraseBoxGapWidth() > (max + pileGap)))
+	{
+		// the gap for the phrase box needs widening in order to avoid encroachment on next pile
+		pApp->m_pActivePile->SetPhraseBoxGapWidth(max + pileGap); // + pileGap to avoid a "crowded look" for the adjacent piles
+		pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // gets strip invalid, etc
+		pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
+	}
+    // whm 13Aug2018 Note: SetFocus() call below is correctly set before the 
+    // SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar) call below.
+	gpApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+
+	// Restore the selection, or caret location
+    // whm 3Aug2018 Note: No suppression of 'select all' needed for the call below.
+	gpApp->m_pTargetBox->GetTextCtrl()->SetSelection(gpApp->m_nStartChar, gpApp->m_nEndChar);
+	return bSuccess;
+}
+*/
 
 // whm Note: this and following custom event handlers are in the View in the MFC version
 //
-void CMainFrame::OnCustomEventCursorToEnd(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	pApp->m_bShowCursorAtEnd = TRUE;
-}
 
 // The following is the handler for a wxEVT_Adaptations_Edit event message, defined in the
 // event table macro EVT_ADAPTATIONS_EDIT.
@@ -8570,8 +8659,9 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	{
 		if (pApp->m_pTargetBox->IsShown())
 		{
-			pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
-			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+
+            pApp->m_pTargetBox->m_bAbandonable = FALSE;
 		}
 	}
 	pView->Invalidate(); // whm: Why call Invalidate here? (Because the text

@@ -1152,6 +1152,12 @@ bool CAdapt_ItDoc::OnNewDocument()
 				gpApp->gCurrentSfmSet = gpApp->gProjectSfmSetForConfig;
 			}
 
+            // whm 24Aug2018 added. A new document should initially adopt the App's gProjectFilterMarkersForConfig
+            // as the document's gCurrentFilterMarkers for the new document. The user can change the
+            // filter markers after document creation as desired, but the filter markers as set in the
+            // project's filter marker list should be the initial default. 
+            gpApp->gCurrentFilterMarkers = gpApp->gProjectFilterMarkersForConfig;
+
 //#if defined(FWD_SLASH_DELIM)
 			// BEW 23Apr15, if supporting / as a whitespace word-breaking character, preprocess
 			// the input text to have no ZWSP in it, and to insert / at the correct places where
@@ -2370,12 +2376,12 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
     docName = pApp->m_curOutputFilename;
     docPath = pApp->m_curOutputPath;
 
-//    bool bOK = OnOpenDocument (docPath, false);  -- for some reason this bounces back without doing anything.  But calling it
-//  indirectly seems to work...
+    //bool bOK = OnOpenDocument (docPath, false);  -- for some reason this bounces back without doing anything.  But calling it
+    //indirectly seems to work...
 
     if (!CallOpenDocument (docPath))  return FALSE;
 
-// put the focus in the phrase box, after any text
+    // put the focus in the phrase box, after any text
     if (pApp->m_pTargetBox->GetHandle() != NULL && !pApp->m_targetPhrase.IsEmpty()
         && (pApp->m_pTargetBox->IsShown()))
     {
@@ -2383,7 +2389,7 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
         // for our phrasebox
         pApp->m_nStartChar = len;
         pApp->m_nEndChar = len;
-        pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+        pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
     }
     else
     {
@@ -2391,7 +2397,7 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
         {
             pApp->m_nStartChar = 0;
             pApp->m_nEndChar = 0;
-            pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+            pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
         }
     }
 
@@ -4606,6 +4612,11 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 		pApp->m_bCopySource = FALSE;
 		pApp->GetView()->ToggleCopySource(); // toggles m_bCopySource's value & resets menu item
 		pApp->m_bSaveCopySourceFlag_For_Collaboration = FALSE; // when closing doc, always clear
+        
+        // whm 2Aug2018 Note: The Select Copied Source menu item is enabled only when the
+        // m_bCopySource value is TRUE. Its check status is determined by the value the
+        // user stored in the project config file (i.e., it may be ticked, but will be
+        // disabled whenever the Copy Source menu item is not ticked.
 	}
 
 	// whm 19Sep11 modified. The UnloadKBs() call below during collaboration should
@@ -6198,9 +6209,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// refactored 10Mar09
 	pApp->m_nSaveActiveSequNum = 0;     // reset to a default initial value, safe for any length of doc
 
-    // whm Version 3 Note: Since the WX version i/o is strictly XML, we do not need nor use
-    // the legacy version's OnOpenDocument() serialization facilities, and can thus avoid
-    // the black box problems it caused.
+	// whm Version 3 Note: Since the WX version i/o is strictly XML, we do not need nor use
+	// the legacy version's OnOpenDocument() serialization facilities, and can thus avoid
+	// the black box problems it caused.
 	// Old legacy version notes below:
 	// The MFC code called the virtual methods base class OnOpenDocument here:
 	//if (!CDocument::OnOpenDocument(lpszPathName)) // The MFC code
@@ -6274,7 +6285,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	{
 		progMsg = _("Reading file %s - part %d of %d");
 		wxFileName fn(filename);
-		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+		msgDisplayed = progMsg.Format(progMsg, fn.GetFullName().c_str(), 1, nTotal);
 		pStatusBar->StartProgress(_("Opening the Document"), msgDisplayed, nTotal);
 	}
 
@@ -6342,71 +6353,71 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		wxString fullFileName;
 		fullFileName = fn.GetFullName();
 
-		bool bReadOK = ReadDoc_XML (thePath,this, _("Opening the Document"), nTotal); // pProgDlg can be NULL
+		bool bReadOK = ReadDoc_XML(thePath, this, _("Opening the Document"), nTotal); // pProgDlg can be NULL
 
 		if (!bReadOK)
 		{
-// if we could possibly recover the doc, but haven't posted the "recover doc" event yet, we do it now:
-            if ( pApp->m_commitCount > 0 && !pApp->m_recovery_pending)
-            {
- //               wxCommandEvent  eventCustom (wxEVT_Recover_Doc);
- //               wxPostEvent (pApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
-
-                pApp->m_recovery_pending = TRUE;
-                pApp->m_reopen_recovered_doc = TRUE;    // In this one case we just reopen the doc after recovery.  It should be the
-                                                        //  most common case.
-            }
-
-        // at this point, if we can't attempt a recovery, we just display a message and give up.  If we are attempting a recovery,
-        //  we skip this block and continue with some of the initialization we need before we can bail out.
-
-            if (!pApp->m_recovery_pending)
+			// if we could possibly recover the doc, but haven't posted the "recover doc" event yet, we do it now:
+			if (pApp->m_commitCount > 0 && !pApp->m_recovery_pending)
 			{
-                wxString s;
-                // whm 1Oct12 removed MRU code
-                /*
-                if (gbTryingMRUOpen)
-                {
-                    // a nice warm & comfy message about the file perhaps not actually existing
-                    // any longer will keep the user from panic
-                    // IDS_MRU_NO_FILE
-                    s = _(
-    "The file you clicked could not be opened. It probably no longer exists. When you click OK the Start Working... wizard will open to let you open a project and document from there instead.");
-                    wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
-                    gpApp->LogUserAction(s);
-                    wxCommandEvent dummyevent;
-                    OnFileOpen(dummyevent); // have another go, via the Start Working wizard
-                    if (nTotal > 0 && bShowProgress)
-                    {
-                        pStatusBar->FinishProgress(_("Opening the Document"));
-                    }
-                    return TRUE;
-                }
-                else
-                {
-                */
-                    // uglier message because we expect a good read, but we allow the user to continue
-                    // IDS_XML_READ_ERR
-                s = _(
-    "There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
-                    wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
-                    gpApp->LogUserAction(s);
-                //}
-                if (nTotal > 0 && bShowProgress)
-                {
-                    pStatusBar->FinishProgress(_("Opening the Document"));
-                }
-                return FALSE;     // mrh - returning TRUE causes mayhem higher up!
-            }
+				//               wxCommandEvent  eventCustom (wxEVT_Recover_Doc);
+				//               wxPostEvent (pApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
+
+				pApp->m_recovery_pending = TRUE;
+				pApp->m_reopen_recovered_doc = TRUE;    // In this one case we just reopen the doc after recovery.  It should be the
+														//  most common case.
+			}
+
+			// at this point, if we can't attempt a recovery, we just display a message and give up.  If we are attempting a recovery,
+			//  we skip this block and continue with some of the initialization we need before we can bail out.
+
+			if (!pApp->m_recovery_pending)
+			{
+				wxString s;
+				// whm 1Oct12 removed MRU code
+				/*
+				if (gbTryingMRUOpen)
+				{
+					// a nice warm & comfy message about the file perhaps not actually existing
+					// any longer will keep the user from panic
+					// IDS_MRU_NO_FILE
+					s = _(
+	"The file you clicked could not be opened. It probably no longer exists. When you click OK the Start Working... wizard will open to let you open a project and document from there instead.");
+					wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
+					gpApp->LogUserAction(s);
+					wxCommandEvent dummyevent;
+					OnFileOpen(dummyevent); // have another go, via the Start Working wizard
+					if (nTotal > 0 && bShowProgress)
+					{
+						pStatusBar->FinishProgress(_("Opening the Document"));
+					}
+					return TRUE;
+				}
+				else
+				{
+				*/
+				// uglier message because we expect a good read, but we allow the user to continue
+				// IDS_XML_READ_ERR
+				s = _(
+					"There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
+				wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
+				gpApp->LogUserAction(s);
+				//}
+				if (nTotal > 0 && bShowProgress)
+				{
+					pStatusBar->FinishProgress(_("Opening the Document"));
+				}
+				return FALSE;     // mrh - returning TRUE causes mayhem higher up!
+			}
 		}
 	}
 
 	if (pApp->m_bWantSourcePhrasesOnly)
 	{
-        // From here on in for the rest of this function, all we do is set globals,
-        // filenames, config file parameters, and change the view, all things we're not to
-        // do if m_bWantSourcePhrasesOnly is set. Hence, we simply exit early; because all
-        // we are wanting is the list of CSourcePhrase instances.
+		// From here on in for the rest of this function, all we do is set globals,
+		// filenames, config file parameters, and change the view, all things we're not to
+		// do if m_bWantSourcePhrasesOnly is set. Hence, we simply exit early; because all
+		// we are wanting is the list of CSourcePhrase instances.
 		gpApp->LogUserAction(_T("Return TRUE early from OnOpenDocument() m_bWantSourcePhrasesOnly"));
 		ValidateNoteStorage();
 		if (nTotal > 0 && bShowProgress)
@@ -6429,7 +6440,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		// BEW changed 23June07 to allow for the possibility that more than one period
 		// may be used in a filename
 		filenameStr = MakeReverse(filenameStr);
-		filenameStr.Remove(0,4); //filenameStr.Delete(0,4); // remove "lmx."
+		filenameStr.Remove(0, 4); //filenameStr.Delete(0,4); // remove "lmx."
 		filenameStr = MakeReverse(filenameStr);
 		filenameStr += _T(".BAK");
 		//filenameStr += _T(".xml"); // produces *.BAK.xml BEW removed 3Mar11
@@ -6437,13 +6448,21 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	gpApp->m_curOutputBackupFilename = filenameStr;
 	gpApp->m_curOutputPath = filename;
 
-// Now the filename strings are set up, if we're recovering a corrupt doc, we can bail out.
+	// Now the filename strings are set up, if we're recovering a corrupt doc, we can bail out.
 
     if (gpApp->m_recovery_pending)
+    {
+        // whm 23Aug2018 added pStatusBar->FinishProgress(...) below
+        // The progress bar should call FinishProgress before all return statements.
+        if (nTotal > 0 && bShowProgress)
+        {
+            pStatusBar->FinishProgress(_("Opening the Document"));
+        }
         return FALSE;
+    }
 
-    // filenames and paths for the doc and any backup are now guaranteed to be
-    // what they should be
+	// filenames and paths for the doc and any backup are now guaranteed to be
+	// what they should be
 	// CAdapt_ItApp* pApp = GetApp();		// mrh - moved to start of function
 	// CAdapt_ItView* pView = pApp->GetView();
 //#ifdef _DEBUG
@@ -6454,7 +6473,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	if (pApp->m_docSize.GetWidth() < 100 || pApp->m_docSize.GetWidth() > width)
 	{
 		::wxBell(); // tell me it was wrong
-		pApp->m_docSize = wxSize(width - 40,600); // ensure a correctly sized document
+		pApp->m_docSize = wxSize(width - 40, 600); // ensure a correctly sized document
 		pApp->GetMainFrame()->canvas->SetVirtualSize(pApp->m_docSize);
 	}
 
@@ -6462,6 +6481,26 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	CLayout* pLayout = GetLayout();
 	pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
 									// and other setters
+
+#if defined (_DEBUG) && defined (_EXPAND)
+	{ // make local scope
+		int index = 0;
+		SPList*	pList = pApp->m_pSourcePhrases;
+		if (pList->GetCount() >= 20)
+		{
+			wxSPListNode* pSPNode = pList->Item(0);
+			for (index = 0; index < 20; index++)
+			{
+				CSourcePhrase* pSP = pSPNode->GetData();
+				wxLogDebug(_T("%s():line %d, m_key = %s   m_adaption = %s  index = %d  ,  sequNum  %d"),
+					__func__, __LINE__, pSP->m_key.c_str(), pSP->m_adaption.c_str(), index, pSP->m_nSequNumber);
+				pSPNode = pSPNode->GetNext();
+			}
+		}
+	}
+	// Sequence numbers are properly advancing, from 0
+#endif
+
 #ifdef _NEW_LAYOUT
 	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
 #else
@@ -6470,14 +6509,14 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	if (!bIsOK)
 	{
 		// unlikely to fail, so just have something for the developer here
-		wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnOpenDocument()"),
+		wxMessageBox(_T("Error. RecalcLayout() failed in OnOpenDocument()"),
 		_T(""),wxICON_STOP);
-		wxASSERT(FALSE);
-		gpApp->LogUserAction(_T("Error. RecalcLayout(TRUE) failed in OnOpenDocument()"));
+		gpApp->LogUserAction(_T("Error. RecalcLayout() failed in OnOpenDocument()"));
 		if (nTotal > 0 && bShowProgress)
 		{
 			pStatusBar->FinishProgress(_("Opening the Document"));
 		}
+		wxASSERT(FALSE);
 		wxExit();
 	}
 
@@ -7321,6 +7360,11 @@ int CAdapt_ItDoc::IndexOf(CSourcePhrase* pSrcPhrase)
 void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 										   bool bNoActiveLocationCalculation)
 {
+	wxUnusedVar(bNoActiveLocationCalculation);
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	gpApp->MyLogger();
+//#endif
+
 	// refactored 13Mar09 & some more on 27Apr09
 	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in
 									 // pSrcPhrase, in the app's m_pSourcePhrases list
@@ -7334,26 +7378,6 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 		wxASSERT(pPile != NULL);
 		pPile->SetMinWidth(); // set m_nMinWidth - it's the maximum extent of the src,
 							  // adapt or gloss text
-
-        // if it is at the active location, then the width needs to be wider -
-        // SetPhraseBoxGapWidth() in CPile does that, and sets m_nWidth in the partner pile
-        // instance (but if not at the active location, the default value m_nMinWidth will
-        // apply)
-		if (!bNoActiveLocationCalculation)
-		{
-            // EXPLANATION FOR THE ABOVE TEST: we need the capacity to have the phrase box
-            // be at the active location, but not have the gap width left in the layout be
-            // wide enough to accomodate the box - this situation happens in
-            // PlacePhraseBox() when we want a box width calculation for the pile which is
-            // being left behind (and which at the point when the pile's width is being
-            // calculated it is still the active pile, but later in the function when the
-            // clicked pile is instituted as the new active location, the gap will have to
-            // be based on what is at that new location, not the old one; hence setting the
-            // bNoActiveLocationCalculation parameter TRUE just for such a situation
-            // prevents the unwanted large gap calculation at the old location
-			pPile->SetPhraseBoxGapWidth();
-		}
-
 		// mark the strip invalid and put the parent strip's index into
 		// CLayout::m_invalidStripArray if it is not in the array already
 		MarkStripInvalid(pPile);
@@ -7368,6 +7392,9 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 		wxASSERT(FALSE);
 		wxExit();
 	}
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	gpApp->MyLogger();
+//#endif
 }
 
 void CAdapt_ItDoc::MarkStripInvalid(CPile* pChangedPile)
@@ -9670,8 +9697,8 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 			}
 		} // end of loop for scanning contents of successive pSrcPhrase instances
 
-		// remove the progress indicator window
-		pStatusBar->FinishProgress(_("Processing Filtering Change(s)"));
+		//// remove the progress indicator window // whm 23Aug2018 moved to outer block below
+		//pStatusBar->FinishProgress(_("Processing Filtering Change(s)"));
 
         // prepare for update of view... locate the phrase box approximately where it was,
         // but if that is not a valid location then put it at the end of the doc
@@ -9680,6 +9707,14 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 			gpApp->m_nActiveSequNum = numElements - 1;
 
 	} // end of block for bIsFilteringRequired == TRUE
+
+    // whm 23Aug2018 Change. Moved the pStatusBar->FinishProgress() call that is about
+    // 10 lines above within the bIsFilteringRequired == TRUE block to this outer block.
+    // where it will be parallel to the pStatusBar->StartProgress() call near the
+    // beginning of ReconstituteAfterFilteringChange()
+    // remove the progress indicator window
+    pStatusBar->FinishProgress(_("Processing Filtering Change(s)"));
+
 
     // GetSavePhraseBoxLocationUsingList calculates a safe location (ie. not in a
     // retranslation), sets the view's m_nActiveSequNumber member to that value, and
@@ -15564,8 +15599,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						}
 					}
 				}
-				if ((IsAFilteringSFM(pUsfmAnalysis) || bIsToBeFiltered) && !m_bIsWithinUnfilteredInlineSpan)
-				{
+                if ((IsAFilteringSFM(pUsfmAnalysis) && bIsToBeFiltered) && !m_bIsWithinUnfilteredInlineSpan)// whm 25Aug2018 changed || to && for proper logic - cf use in IsPostwordFilteringRequired()
+                {
 					// If it is a \fig marker, because of the danger of there being an internal
 					// path in windows, which makes folders look like custom SFM markers, we will
 					// test for \fig and if that is the marker passed in, we'll scan straight to

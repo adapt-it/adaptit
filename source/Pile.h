@@ -95,8 +95,27 @@ public:
 	bool		IsWrapPile();
 
 	int			CalcPileWidth(); // based on the text in the cells only, no account taken of active loc
-//GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
+	// GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
+	// BEW 14Aug18, pass in 'expanding' or 'contracting' for widthMode, depending on what FixBox()
+	// determines is needed. When the phrasebox has enough slop for more character(s), steadyAsSheGodes
+	// is appropriate; but when the box needs expanding, pass in 'expanding', and for a contraction
+	// pass in 'contracting'. Unless I change my mind, internally the 'contracting' value will not
+	// actually do anything to the box's gap in the layout (but I can change this easily), more
+	// important is typing in lots of characters, as the box *MUSt* expand to accomodate them so
+	// that all remain visible
 	int			CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes);
+	int			CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes);
+
+	int			CalcPhraseBoxListWidth(); //BEW added 24Jul18 calculates the width of the listbox
+					// for the CSourcePhrase instance at the active location (m_pActivePile) based
+					// on the KB's pTU pointer for the CSourcePhrase's m_key member.
+					// Internally, each of the non-(pseudo)deleted KB entries has its x-extent
+					// measured, the the width is then set to the largest of these values.
+					// The intent is that the width of the dropdown phrasebox (Layout's m_curBoxWidth)
+					// will always be the larger of m_curBoxWidth and m_curListWidth. This has the
+					// additional benefit that the list, when dropped down, will extend to the right
+					// hand edge of the phrasebox's dropdown list button
+
 	int			GetStripIndex();
 	CStrip*		GetStrip();
 	void		SetStrip(CStrip* pStrip);
@@ -116,6 +135,8 @@ public:
 	void		TopLeft(wxPoint& ptTopLeft);
 
 	void		SetMinWidth(); // sets m_nMinWidth (width large enough for cells, calls CalcPileWidth())
+	void		SetMinWidth(int width); // overload, for using when restoring a cached m_nMinWidth value;
+
 //GDLC 2010-02-10 Added parameter to SetPhraseBoxGapWidth with default value steadyAsSheGoes
 	void		SetPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes); 
 											// sets m_nWidth (the width to be used at active 
@@ -125,7 +146,15 @@ public:
 	int			GetPhraseBoxGapWidth(); // returns value of m_nWidth
 	void		SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection);
 	bool		GetIsCurrentFreeTransSection();
+	int			GetPhraseBoxWidth(); //BEW added 19Jul18, gets Layout's m_curBoxWidth value
+	void		SetPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode = steadyAsSheGoes); // BEW added 19Jul18
+	void		SetPhraseBoxWidth(int boxwidth); // an override, to set an explicit known width
+	int			GetPhraseBoxListWidth(); // BEW added 24Jul18  gets Layout's m_curListWidth value
+	void		SetPhraseBoxListWidth(); // BEW added 24Jul18  set's Layout's m_curListWidth value starting from 
+										 // m_pActivePile & accessing the relevant CTargetUnit instance
 
+	// BEW added 17July18 so as to allow box + slop to be a different (lesser) value than the gap width
+	//int			m_nBoxOnlyWidth; // use this for box width, no longer use the gap width
 private:
 	bool		HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers
 

@@ -188,6 +188,7 @@ void CNoteDlg::OnIdle(wxIdleEvent& WXUNUSED(event))
 		// text's CEdit. If that was the case, then globals gnStartOffset and gnEndOffset
 		// will still preserve the offsets for the required selection - so test and if 
 		// successful, set up the selection
+        // whm 3Aug2018 Note: No adjustment made in SetSelection() call below.
 		if (!m_strNote.IsEmpty() && gnStartOffset > -1 && gnEndOffset > -1 && (gnEndOffset - gnStartOffset) > 0)
 		{
 			pEditNote->SetSelection(gnStartOffset,gnEndOffset);
@@ -287,7 +288,8 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 			// BEW changed 6MarO8, to permit a preexisting search string to be retained until
 			// the user explicitly deletes it; in this block, since we are opening from a non-search
 			// opening action, we just restore the string but otherwise ignore it
-			pEditNote->SetSelection(len,len); // put the cursor at the end
+            // whm 3Aug2018 Note: No adjustment made in SetSelection() call below.
+            pEditNote->SetSelection(len,len); // put the cursor at the end
 			//gSearchStr.Empty(); // ensure it is empty
 		}
 
@@ -307,7 +309,8 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	}
 	else
 	{
-		pEditNote->SetSelection(0,len); // I've decided against 'instruction text' - as Cancel button's
+        // whm 3Aug2018 Note: No adjustment made in SetSelection() call below.
+        pEditNote->SetSelection(0,len); // I've decided against 'instruction text' - as Cancel button's
 							  // behaviour then gets more complicated
 	}
 
@@ -338,7 +341,8 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 		pEditSearch->SetFocus();
 
 		// also make the cursor be after the search text
-		pEditSearch->SetSelection(srchLen,srchLen);
+        // whm 3Aug2018 Note: No adjustment made in SetSelection() call below.
+        pEditSearch->SetSelection(srchLen,srchLen);
 	}
 	else
 	{

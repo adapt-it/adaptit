@@ -163,9 +163,11 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	m_pEditReferences->SetBackgroundColour(gpApp->sysColorBtnFace);
 	m_pEditReferences->Enable(FALSE); // it is readonly and should not receive focus on Tab
 
-    // whm added 24May2018 check box to auto-open dropdown on arrival at location with multiple translations
-    m_pCheckAutoOpenPhraseboxOnLanding = (wxCheckBox*)FindWindowById(ID_CHECKBOX_AUTO_OPEN_TRANS_LIST);
-    wxASSERT(m_pCheckAutoOpenPhraseboxOnLanding != NULL);
+    // whm 17Jul2018 removed check box to auto-open dropdown on arrival at location with multiple translations
+    // This checkbox was mainly added as a temporary option due to problems with the wxOwnerDrawnComboBox 
+    // derived control - now fixed.
+    //m_pCheckAutoOpenPhraseboxOnLanding = (wxCheckBox*)FindWindowById(ID_CHECKBOX_AUTO_OPEN_TRANS_LIST);
+    //wxASSERT(m_pCheckAutoOpenPhraseboxOnLanding != NULL);
 
 	// get pointers to the CKB instance & the map which stores the pCurTargetUnit contents
 	// being viewed
@@ -235,10 +237,6 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// set the "new translation" edit box contents to a null string
 	m_pNewTranslationBox->ChangeValue(_T(""));
 
-    // whm added 24May2018 Initialize check box to auto-open dropdown on arrival at location 
-    // with multiple translations to value currently held on the App.
-    m_pCheckAutoOpenPhraseboxOnLanding->SetValue(gpApp->m_bAutoOpenPhraseboxOnLanding);
-
 	// BEW 23Apr15 - if supporting / as a word-breaking character currently, we don't convert
 	// any ZWSP to / in the list, because we don't edit the list directly. The m_pNewTranslationBox
 	// box needs to show / between words, but we don't populate the box by any list selection - only 
@@ -261,8 +259,9 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		// BEW 21Jun18 added, as explained above; in order to sync the indices for the selection
 		// between Choose Translation's list and the phrasebox dropdown's (open) list
 		int curIndex = gpApp->m_pTargetBox->GetDropDownList()->GetSelection(); // the current index for the dropdown list selection
-		if (curIndex != wxNOT_FOUND && gpApp->m_bAutoOpenPhraseboxOnLanding)
-		{
+
+        if (curIndex != wxNOT_FOUND)
+        {
 			m_pMyListBox->SetSelection(curIndex);
 		}
 		wxString str = m_pMyListBox->GetStringSelection();
@@ -1077,13 +1076,6 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
     CAdapt_ItApp* pApp = &wxGetApp();
     wxASSERT(pApp != NULL);
 
-    // whm added 24May2018 Save user's check box preference enabling/disabling auto-open dropdown on 
-    // arrival at location with multiple translations - if change was made.
-    if (m_pCheckAutoOpenPhraseboxOnLanding->GetValue() != pApp->m_bAutoOpenPhraseboxOnLanding)
-    {
-        pApp->m_bAutoOpenPhraseboxOnLanding = m_pCheckAutoOpenPhraseboxOnLanding->GetValue();
-    }
-
 	wxString s;
 	// IDS_NO_ADAPTATION
 	s = s.Format(_("<no adaptation>")); // get "<no adaptation>" ready in case needed
@@ -1282,13 +1274,11 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
                 {
                     // Set the "X" button
                     pApp->m_pTargetBox->SetButtonBitMapXDisabled();
-                    //pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
                 }
                 else
                 {
                     // Set the normal down-arrow button
                     pApp->m_pTargetBox->SetButtonBitMapNormal();
-                    //pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_normal, false, pApp->m_pTargetBox->dropbutton_pressed, pApp->m_pTargetBox->dropbutton_hover, pApp->m_pTargetBox->dropbutton_disabled);
                 }
 
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
@@ -1318,14 +1308,9 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 				pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
 				pApp->m_pTargetBox->GetDropDownList()->SetSelection(index);
 
-                // whm 13Jul2018 modified SetSelection to select all when nRefStrCount is 0 or 1,
-                // otherwise (for nRefStrCount > 1) remove selection and place insertion point at end 
-                int len = pApp->m_pTargetBox->GetTextCtrl()->GetValue().Length();
-                if (nRefStrCount > 1)
-                    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
-                else
-				    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
-				// This next line is essential. Without it, the phrasebox will seem right, but moving away by
+                pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+
+                // This next line is essential. Without it, the phrasebox will seem right, but moving away by
 				// a click or by Enter key will leave a hole at the old location - the reason is that the
 				// PlacePhraseBox() call uses m_pTargetBox->m_SaveTargetPhrase to put the old location's
 				// adaptation into m_targetPhrase, and into m_pTargetBox; so if left empty, a hole is left
@@ -1352,7 +1337,6 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
             {
                 // Set the "X" button
                 pApp->m_pTargetBox->SetButtonBitMapXDisabled();
-                //pApp->m_pTargetBox->SetButtonBitmaps(pApp->m_pTargetBox->dropbutton_blank, false, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank, pApp->m_pTargetBox->dropbutton_blank);
             }
 
 		}

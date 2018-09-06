@@ -77,7 +77,6 @@ DECLARE_EVENT_TYPE(wxEVT_Join_With_Next, -1)
 DECLARE_EVENT_TYPE(wxEVT_Join_With_Previous, -1)
 DECLARE_EVENT_TYPE(wxEVT_Split_It, -1)
 DECLARE_EVENT_TYPE(wxEVT_Delayed_GetChapter, -1)
-//DECLARE_EVENT_TYPE(wxEVT_Cursor_To_End, -1) // whm 12Jul2018 The following custom event is no longer needed:
 
 #if defined(_KBSERVER)
 
@@ -194,7 +193,6 @@ public:
 	int m_removalsBarHeight;
 	int m_vertEditBarHeight;
 	int m_clipboardAdaptBarHeight; // BEW added 9May14
-
     void OnAppAbout(wxCommandEvent& WXUNUSED(event));
 	// OnIdle moved here from the App. When it was in the App it was causing
 	// the File | Exit and App x cancel commands to not be responsive there
@@ -277,6 +275,7 @@ public:
 	bool m_bKbSvrGlossesTicked;
 
 #endif // _KBSERVER
+	// bool DoPhraseBoxWidthUpdate(); BEW 14Aug18 - might not need this
 
 	void OnClose(wxCloseEvent& event);
 	// UI handlers for the checkboxes in the controlBar
@@ -308,7 +307,6 @@ public:
 #endif
 
     void OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event));
-	void OnCustomEventCursorToEnd(wxCommandEvent& WXUNUSED(event));
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
 	void OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event));

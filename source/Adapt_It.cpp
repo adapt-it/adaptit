@@ -254,9 +254,11 @@ wxMutex s_AutoSaveMutex;
 #include <tchar.h>
 #endif
 
-// whm 13Jul2018 the following value is the ID for the wxTextCtrl
-// part of our new 3-part phrasebox.
+// whm 13Jul2018 the following values are the IDs for the wxTextCtrl, button, and dropdown list
+// of our new 3-part phrasebox.
 int ID_PHRASE_BOX = 22030;
+int ID_BMTOGGLEBUTTON_PHRASEBOX = 22040;
+int ID_DROP_DOWN_LIST = 22050;
 
 // The following include was originally Copyright (c) 2005 by Dan
 // Moulding, but the features of version 2.0 were implemented by
@@ -1582,6 +1584,16 @@ const wxString defaultProfileItems[] =
     _T("/PROFILE:"),
     _T("/MENU:"),
     _T("MENU:itemID=\"ID_COPY_SOURCE\":itemType=\"subMenu\":itemText=\"Copy Sourc&e\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+    _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+    _T("/PROFILE:"),
+    _T("/MENU:"),
+    _T("MENU:itemID=\"ID_SELECT_COPIED_SOURCE\":itemType=\"subMenu\":itemText=\"Se&lect Copied Source\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
     _T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
     _T("/PROFILE:"),
     _T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -6614,6 +6626,12 @@ wxString szTooNearEndMultiplier = _T("TooNearEndMultiplier");
 /// m_bLegacySourceTextCopy member variable.
 wxString szLegacyCopyForPhraseBox = _T("LegacyCopyForPhraseBox");
 
+/// The label that identifies the following string encoded number as the application's
+/// "SelectCopiedSource". This value is written in the "ProjectSettings" part of the
+/// project configuration file. Adapt It stores this value in the App's 
+/// m_bSelectCopiedSource member variable.
+wxString szSelectCopiedSource = _T("SelectCopiedSource");
+
 // Next two were for old punct, for when source & target are not differentiated
 
 /// A label now unused, that was used in old versions for punctuation. It is only retained
@@ -7207,6 +7225,13 @@ wxString szUseSFMarkerSet = _T("UseSFMarkerSet");
 /// "AutoOpenPhraseBoxTranslationsList". This value is written in the "Settings" part of the
 /// project configuration file. Adapt It stores this value in the App's 
 /// m_bAutoOpenPhraseboxOnLanding member.
+// whm 17Jul2018 removed check box to auto-open dropdown on arrival at location with multiple translations
+// This checkbox was mainly added as a temporary option due to problems with the wxOwnerDrawnComboBox 
+// derived control - now fixed.
+// The following szAutoOpenPhraseBoxTranslationsList is still provided so the 
+// GetProjectSettingsConfiguration() function can recognize, but ignore a config
+// file that might have the no-longer-used "AutoOpenPhraseBoxTranslationsList"
+// settings value. 
 wxString szAutoOpenPhraseBoxTranslationsList = _T("AutoOpenPhraseBoxTranslationsList");
 
 /// The label that identifies the following string encoded value as the application's
@@ -7944,29 +7969,10 @@ int CAdapt_ItApp::FilterEvent(wxEvent & event)
      
 */
 
-/*
+
 // whm 12Jul2018 Note: If the following PhraseBoxIsInFocus() function is needed apart from
 // the wxOwnerDrawnComboBox and FilterEvent(), it could be refactored for the new phrasebox
 // and discriminating the actual m_pTargetBox->GetTextCtrl() part of the phrasebox.
-bool CAdapt_ItApp::PhraseBoxIsInFocus()
-{
-    // Note: The ClassInfo type of the phrasebox on Windows is either CPhraseBox or 
-    // wxListBox when the dropdown list is open.
-    // The ClassInfo type of the phrasebox on Linux/Mac? is either CPhraseBox or 
-    // wxVListBox.
-    const wxChar* className = wxT("<none>");
-    wxWindow* focusWindow = ::wxWindow::FindFocus();
-    if (focusWindow)
-        className = focusWindow->GetClassInfo()->GetClassName();
-    wxString classNStr = wxString(className);
-    wxLogDebug(_T("In FilterEvent() focused window = %s %p"), className, focusWindow); // no .c_str() needed here on className
-    if (classNStr == _T("CPhraseBox") || classNStr == _T("wxVListBox") || classNStr == _T("wxListBox"))
-    {
-        return TRUE;
-    }
-    return FALSE;
-}
-*/
 
 /*
 // whm 2Jun2018 added the following to filter all events for key up/down event when dropdown is open
@@ -10808,6 +10814,8 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
         pMenuBar->Check(ID_VIEW_MODE_BAR, this->m_bModeBarVisible); // whm added 6Jan12
     if (pMenuBar->FindItem(ID_COPY_SOURCE) != NULL)
         pMenuBar->Check(ID_COPY_SOURCE, m_bCopySource);
+    if (pMenuBar->FindItem(ID_SELECT_COPIED_SOURCE) != NULL) // whm 2Aug2018 added
+        pMenuBar->Check(ID_SELECT_COPIED_SOURCE, m_bSelectCopiedSource);
     if (pMenuBar->FindItem(ID_MARKER_WRAPS_STRIP) != NULL)
         pMenuBar->Check(ID_MARKER_WRAPS_STRIP, m_bMarkerWrapsStrip);
     if (pMenuBar->FindItem(ID_USE_CC) != NULL)
@@ -18243,8 +18251,8 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
-	m_bShowCursorAtEnd = FALSE; // initialize (legacy behaviour, cursor not forced to end)
-
+	m_nOldSequNum = (int)wxNOT_FOUND; // initialize so I can jump code which expects a non
+									  // positive value, in PlacePhraseBox()
 	m_nCacheLeavingLocation = wxNOT_FOUND; // (-1) see full explanation in Adapt_It.h
 
 	m_bTypedNewAdaptationInChooseTranslation = FALSE; // to support getting a new adaptation into 
@@ -19566,21 +19574,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_eSilConverterNormalizeOutput = 0;
     m_bTransliterationMode = FALSE;
 
-    // whm added 24May2018 for support of enabling/disabling auto-opening of phrasebox's dropdown list
-    // upon arriving at a location with multiple translations. The m_bAutoOpenPhraseboxOnLanding value
-    // is stored in the project settings file, so the following initial defaults may be changed by the
-    // reading of the project config file.
-    // whm 2Jun2018 modified the defaults to be TRUE for all platforms
-#if defined (__WXMSW__)
-    m_bAutoOpenPhraseboxOnLanding = TRUE;
-#elif defined (__WXGTK__)
-    m_bAutoOpenPhraseboxOnLanding = TRUE;
-#elif defined (__WXOSX__)
-    m_bAutoOpenPhraseboxOnLanding = TRUE;
-#else
-    m_bAutoOpenPhraseboxOnLanding = TRUE;
-#endif
-
     bECDriverDLLLoaded = FALSE;
 #ifdef USE_SIL_CONVERTERS
     // Do not try to load SIL Converters ECDriver.dll on Win95 and Win98
@@ -19756,6 +19749,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bSaveToKB = TRUE;
     m_bForceAsk = FALSE;
     m_bCopySource = TRUE;
+    m_bSelectCopiedSource = FALSE; // whm added 2Aug2018 initialize to FALSE
     m_bMarkerWrapsStrip = TRUE;
     m_bRespectBoundaries = TRUE;
     m_bHidePunctuation = FALSE; // default, on very first launch
@@ -24293,6 +24287,36 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                                   // any unknown markers
     aDC.GetTextExtent(_T(' '), &sizeSpace.x, &sizeSpace.y);
 
+	// BEW 14Aug18, calculate the dropdown button width, and store it in CLayout in its
+	// buttonWidth public member int. Adapt It has to be refactored for a different button
+	// width, so we can be certain this calculated width will remain constant in each session
+	wxSize buttonSize = m_pTargetBox->GetPhraseBoxButton()->GetSize();
+	int adjustedButtonWidth = buttonSize.GetX() + 1; // allow 1 pixel of space before it
+	if (buttonSize.x > 0)
+	{
+		this->GetLayout()->buttonWidth = adjustedButtonWidth;
+	}
+	else
+	{
+		// Give it a hard coded width, 22 pixels for Windows/Mac, or 30 pixels for Linux, is about right
+#if defined (__WXGTK__)
+        this->GetLayout()->buttonWidth = 30;
+#else
+        this->GetLayout()->buttonWidth = 22;
+#endif
+    }
+
+	// Also use the above wxClientDC to get an initial value for the slop width
+	// for the phrasebox's wxTextCtrl - store it in CLayout as a public int called
+	// slop. Because its value will change with changes in the size of the target
+	// font, the same calculation is also done when Preferences... dialog is dismissed
+	// in view's OnEditPreferences() handler
+	aChar = _T('w');
+	wxString wStr = aChar;
+	wxSize charSize;
+	aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
+	GetLayout()->slop = m_nExpandBox*charSize.x;
+
     // Set up the rapid access data strings for wrap markers, sectionHead markers,
     // inLine markers, and filter markers.
     SetupMarkerStrings();
@@ -24962,6 +24986,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     //int style = (int)wxFONTSTYLE_ITALIC; // it's decimal 93
 
+	GetLayout()->m_curBoxWidth = 120; // BEW 20Jul18 provide a reasonable default
+									  // size for the phrasebox width at app startup
 	// take an initial shot at setting the set of source punctuation characters
 	// (with no spaces included); also do it when Preferences is exited in case
 	// the user changes the punctuation inventory in the Punctuation tab
@@ -27363,20 +27389,17 @@ int CAdapt_ItApp::GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView)
     else
         m_targetPhrase = pSrcPhrase->m_adaption;
 
-    // BEW added 29Jul09, get the phrase box text into the box and all selected
-    // whm 13Jul2018 modified for new protocol of only selecting all when 
-    // dropdown list count is > 1, otherwise removing selection and putting
-    // insertion point at end.
     m_pTargetBox->GetTextCtrl()->ChangeValue(m_targetPhrase);
+
+    // whm 3Aug2018 modified for latest protocol of only selecting all when
+    // user has set App's m_bSelectCopiedSource var to TRUE by ticking the
+    // View menu's 'Select Copied Source' toggle menu item. 
     int len = m_pTargetBox->GetTextCtrl()->GetValue().Length();
-    m_nStartChar = -1;
-    m_nEndChar = -1;
+    m_nStartChar = len;
+    m_nEndChar = len;
     if (m_pTargetBox != NULL)
     {
-        if (m_pTargetBox->GetDropDownList()->GetCount() > 1)
-            m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
-        else
-            m_pTargetBox->GetTextCtrl()->SetSelection(m_nStartChar,m_nEndChar); // select it all
+       this->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
     }
 
     return m_nActiveSequNum;
@@ -30534,6 +30557,9 @@ void CAdapt_ItApp::DoCreatePhraseBox()
         m_pTargetBox = (CPhraseBox*)NULL;
     }
 
+    // Create the phrasebox's edit box. Like the dropdown list creation below, the
+    // edit box is here created with a default position and size - it's size and position 
+    // will be set dynamically by other code as the box changes locations and contents.
     m_pTargetBox = new CPhraseBox(
         GetMainFrame()->canvas,
         ID_PHRASE_BOX,
@@ -30553,14 +30579,18 @@ void CAdapt_ItApp::DoCreatePhraseBox()
 
     // Next destroy any existing object pointed to by phrasebox's private member
     // m_pPhraseBoxButton
-    wxBitmapButton* pBitmapBtn = m_pTargetBox->GetPhraseBoxButton();
+    wxBitmapToggleButton* pBitmapBtn = m_pTargetBox->GetPhraseBoxButton();
     if (pBitmapBtn != NULL)
     {
         pBitmapBtn->Destroy();
-        pBitmapBtn = (wxBitmapButton*)NULL;
+        pBitmapBtn = (wxBitmapToggleButton*)NULL;
     }
 
-    pBitmapBtn = new wxBitmapButton(GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, m_pTargetBox->dropbutton_normal, wxDefaultPosition, wxSize(20, 24));
+#if defined (__WXGTK__)
+    pBitmapBtn = new wxBitmapToggleButton(GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, m_pTargetBox->bmp_dropbutton_normal, wxDefaultPosition, wxSize(30, 34));
+#else
+    pBitmapBtn = new wxBitmapToggleButton(GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, m_pTargetBox->bmp_dropbutton_normal, wxDefaultPosition, wxSize(22, 26));
+#endif
     // Set the phrasebox's private pointer to the button
     m_pTargetBox->SetPhraseBoxButton(pBitmapBtn);
     
@@ -30574,6 +30604,8 @@ void CAdapt_ItApp::DoCreatePhraseBox()
         pListBox = (CMyListBox*)NULL;
     }
 
+    // Create the dropdown list using a default position and size - it's size and position 
+    // will be set dynamically by other code as the box changes locations and contents.
     pListBox = new CMyListBox(GetMainFrame()->canvas, ID_DROP_DOWN_LIST, wxDefaultPosition, wxSize(80, 100), 0, NULL, wxLB_SINGLE);
     // Set the phrasebox's private pointer to the list
     m_pTargetBox->SetDropDownList(pListBox);
@@ -30582,8 +30614,8 @@ void CAdapt_ItApp::DoCreatePhraseBox()
     // To access the wxTextCtrl member of the phrasebox we use the access method 
     // called GetTextCtrl() - using the same name that wxOwnerDrawnComboBox used to access
     // their text control. We set the pointer to the wxTextCtrl using SetTextCtrl().
-    // To access the wxBitmapButton member of the phrasebox we use the access method
-    // called GetPhraseBoxButton(). We set the pointer to the wxBitmapButton using
+    // To access the wxBitmapToggleButton member of the phrasebox we use the access method
+    // called GetPhraseBoxButton(). We set the pointer to the wxBitmapToggleButton using
     // SetPhraseBoxButton().
     // To access the CMyListBox member of the phrasebox we use the access method 
     // called GetDropDownList(). We use this name rather than the GetPopupControl() name
@@ -31491,10 +31523,10 @@ void CAdapt_ItApp::OnButtonGetFromClipboard(wxCommandEvent& WXUNUSED(event))
 		if (m_pActivePile != NULL)
 		{
 			pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
-			m_nStartChar = 0;
+			m_nStartChar = -1; // whm 3Aug2018 corrected this from 0 to -1
 			m_nEndChar = -1; // ensure initially all is selected
-			m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
-			m_pTargetBox->GetTextCtrl()->SetFocus();
+
+            m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 		}
 		pView->Invalidate();
 		pLayout->PlaceBox();
@@ -31548,10 +31580,10 @@ void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event
         if (m_pActivePile != NULL)
         {
             pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
-            m_nStartChar = 0;
+            m_nStartChar = -1; // whm 3Aug2018 corrected this from 0 to -1
             m_nEndChar = -1; // ensure initially all is selected
-            m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
-            m_pTargetBox->GetTextCtrl()->SetFocus();
+                             
+            m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
         }
     }
     else
@@ -32324,8 +32356,8 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
     int len = pApp->m_targetPhrase.Length();
     m_nStartChar = len;
     m_nEndChar = len;
-    pApp->m_pTargetBox->GetTextCtrl()->SetSelection(len,len);
-    pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
+
+    m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -38383,6 +38415,15 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
     data << szLegacyCopyForPhraseBox << tab << number;
     pf->AddLine(data);
 
+    // whm 2Aug2018 added
+    if (m_bSelectCopiedSource)
+        number = _T("1");
+    else
+        number = _T("0");
+    data.Empty();
+    data << szSelectCopiedSource << tab << number;
+    pf->AddLine(data);
+
     if (gbAdaptBeforeGloss)
         number = _T("1");
     else
@@ -38405,15 +38446,6 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
         number = _T("0");
     data.Empty();
     data << szForceVerseSectioning << tab << number;
-    pf->AddLine(data);
-
-    // whm added 24May2018 check box to auto-open dropdown on arrival at location with multiple translations
-    if (m_bAutoOpenPhraseboxOnLanding)
-        number = _T("1");
-    else
-        number = _T("0");
-    data.Empty();
-    data << szAutoOpenPhraseBoxTranslationsList << tab << number;
     pf->AddLine(data);
 
     /* //BEW 7Oct14 deprecated. We'll use instead m_bZWSPinDoc, which we'll set true
@@ -39588,6 +39620,24 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
             else
                 m_bLegacySourceTextCopy = TRUE;
         }
+        // whm 2Aug2018 added
+        else if (name == szSelectCopiedSource)
+        {
+            num = wxAtoi(strValue);
+            if (!(num == 0 || num == 1))
+                num = 1;
+            if (num == 0)
+                m_bSelectCopiedSource = FALSE;
+            else
+                m_bSelectCopiedSource = TRUE;
+            // whm 3Aug2018 added to immediately update toggle menu item 'Select Copied Source'
+            // using value of m_bSelectCopiedSource from project config file.
+            CMainFrame* pMainFrame = GetMainFrame();
+            wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
+            if (pMenuBar->FindItem(ID_SELECT_COPIED_SOURCE) != NULL) // whm 2Aug2018 added
+                pMenuBar->Check(ID_SELECT_COPIED_SOURCE, m_bSelectCopiedSource);
+
+        }
         else if (name == szDoAdaptingBeforeGlossing_InVerticalEdit)
         {
             num = wxAtoi(strValue);
@@ -39618,16 +39668,22 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
             else
                 m_bForceVerseSectioning = FALSE;
         }
-        //  whm added 24May2018 check box to auto-open dropdown on arrival at location with multiple translations
+        // whm 17Jul2018 removed check box to auto-open dropdown on arrival at location with multiple translations
+        // This checkbox was mainly added as a temporary option due to problems with the wxOwnerDrawnComboBox 
+        // derived control - now fixed.
+        // So, the block below will recognize the "AutoOpenPhraseBoxTranslationsList" label within 
+        // the config file, but ignore it since its associated App member m_bAutoOpenPhraseBoxOnLanding
+        // has been removed
         else if (name == szAutoOpenPhraseBoxTranslationsList)
         {
-            num = wxAtoi(strValue);
-            if (!(num == 0 || num == 1))
-                num = 1; // default is ON
-            if (num == 1)
-                m_bAutoOpenPhraseboxOnLanding = TRUE;
-            else
-                m_bAutoOpenPhraseboxOnLanding = FALSE;
+            ;
+            //num = wxAtoi(strValue);
+            //if (!(num == 0 || num == 1))
+            //    num = 1; // default is ON
+            //if (num == 1)
+            //    m_bAutoOpenPhraseboxOnLanding = TRUE;
+            //else
+            //    m_bAutoOpenPhraseboxOnLanding = FALSE;
         }
         // BEW 7Oct14 deprecated. Keep it so any old config files don't complain
         // but just don't use it in app. App will automatically detect ZWSP in
@@ -43605,15 +43661,26 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
         }
     }
 
+    // whm 13Aug2018 removed: Since pDoc->OnFileClose(event) was called above 
+    // (if the doc was open) which calls ClobberDocument(), which in turn
+    // calls HidePhraseBox(), so this block should never be entered since 
+    // the phrasebox should not be showing, and hence, no SetFocus() nor
+    // a SetFocusAndSetSelectionAtLanding(), nor a RefreshStatusBarInfo()
+    // makes sense here.
+    /*
     // restore focus to the targetBox, if it is visible
     if (m_pTargetBox != NULL)
     {
         if (m_pTargetBox->IsShown())
-            m_pTargetBox->GetTextCtrl()->SetFocus();
+        {
+            // whm 13Aug2018 modified. Previously just had SetFocus() call.
+            m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+        }
         // also get the status bar updated, if there is a document visible
         if (gpApp->m_nActiveSequNum != -1 && gpApp->m_pActivePile != NULL)
             gpApp->RefreshStatusBarInfo();
     }
+    */
 
     // force the Startup Wizard open, otherwise user might be confused about the doc
     // remaining gone and nothing else happening
@@ -47458,10 +47525,10 @@ void CAdapt_ItApp::DoPrintCleanup()
                                // because GetPile makes m_pActivePile NULL.
     {
         GetMainFrame()->canvas->ScrollIntoView(m_nActiveSequNum);
-        m_nStartChar = 0;
+        m_nStartChar = -1; // whm 3Aug2018 corrected this from 0 to -1
         m_nEndChar = -1; // ensure initially all is selected
-        m_pTargetBox->GetTextCtrl()->SetSelection(-1,-1); // select all
-        m_pTargetBox->GetTextCtrl()->SetFocus();
+
+        m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
     }
 
     // if cleaning up when free translation mode is active, override the focus being in
@@ -47477,6 +47544,8 @@ void CAdapt_ItApp::DoPrintCleanup()
         pEdit->SetFocus();
         if (!m_pActivePile->GetSrcPhrase()->m_bHasFreeTrans)
         {
+            // whm 3Aug2018 Note: The pEdit here is the compose bar's edit box
+            // TODO: Should we suppress the select all for the compose bar???
             pEdit->SetSelection(-1,-1); // -1, -1 selects it all
         }
         else
@@ -55178,4 +55247,142 @@ wxString CAdapt_ItApp::SimplePunctuationRestoration(CSourcePhrase* pSrcPhrase)
 	return str;
 }
 
+void CAdapt_ItApp::MyLogger(int& sequNum, wxString& srcStr, wxString& tgt_or_glossStr,
+							wxString& contents, int& width)
+{
+	// Set up useful accessor pointers
+	CAdapt_ItApp* pApp = this;
+	CAdapt_ItDoc* pDoc = this->GetDocument();
+	CAdapt_ItView* pView = this->GetView();
+	CLayout* pLayout = this->GetLayout();
+	CPhraseBox* pPhraseBox = this->m_pTargetBox;
+	SPList* pSrcPhrList = this->m_pSourcePhrases;
+	// avoid compiler warnings if any are unused, this does not prevent us using any of them
+	wxUnusedVar(pApp);
+	wxUnusedVar(pDoc);
+	wxUnusedVar(pView);
+	wxUnusedVar(pLayout);
+	wxUnusedVar(pPhraseBox);
+	wxUnusedVar(pSrcPhrList);
 
+	// I want to know what the width of the phrasebox is as control works its
+	// way through various functions. At phrasebox update of width time, the
+	// phrasebox width increases enormously - overwriting one or more piles
+	// to the right. I want to find where this is being caused.
+	contents = wxEmptyString;
+	width = 0;
+	sequNum = 0;
+	srcStr = wxEmptyString;
+	tgt_or_glossStr = wxEmptyString;
+	wxTextCtrl* pBox = NULL;
+	wxRect rect = wxRect( 0,0,0,0 );
+	CPile* pPile = pView->GetPile(pApp->m_nActiveSequNum);
+	if (pPile != NULL)
+	{
+		if (pPile == pApp->m_pActivePile)
+		{
+			pBox = pPhraseBox->GetTextCtrl();
+			CSourcePhrase* pSP = pPile->GetSrcPhrase();
+			sequNum = pSP->m_nSequNumber;
+			srcStr = pSP->m_srcPhrase;
+			if (gbIsGlossing)
+			{
+				//Glossing
+				tgt_or_glossStr = pSP->m_gloss;
+			}
+			else
+			{
+				// Adapting
+				tgt_or_glossStr = pSP->m_targetStr;
+			}
+			wxASSERT(pBox != NULL);
+			// The phrasebox is located at the current active pile
+			contents = pBox->GetValue();
+			// not interested if the phrasebox has nothing in it yet
+			if (contents.IsEmpty())
+			{
+				contents = _T("Target, or Gloss, is empty");
+			}
+			// Get the width of the phrasebox's wxTextCtrl (ignore the button,
+			// it's about 23 pixels more, or Linux, 31 pixels more)
+			rect = pBox->GetRect();
+			width = rect.GetWidth();
+			//Now use wxLogDebug to make the results accessible - logging the
+			// file, function, and line number as well - done in the caller
+		}
+	}
+}
+
+void CAdapt_ItApp::MyLogger()
+{
+	// Set up useful accessor pointers
+	CAdapt_ItApp* pApp = this;
+	CAdapt_ItDoc* pDoc = this->GetDocument();
+	CAdapt_ItView* pView = this->GetView();
+	CLayout* pLayout = this->GetLayout();
+	CPhraseBox* pPhraseBox = this->m_pTargetBox;
+	SPList* pSrcPhrList = this->m_pSourcePhrases;
+	// avoid compiler warnings if any are unused, this does not prevent us using any of them
+	wxUnusedVar(pApp);
+	wxUnusedVar(pDoc);
+	wxUnusedVar(pView);
+	wxUnusedVar(pLayout);
+	wxUnusedVar(pPhraseBox);
+	wxUnusedVar(pSrcPhrList);
+
+	// I want to know what the width of the phrasebox is as control works its
+	// way through various functions. At phrasebox update of width time, the
+	// phrasebox width increases enormously - overwriting one or more piles
+	// to the right. I want to find where this is being caused.
+	wxString contents = wxEmptyString;
+	int width = 0;
+	int sequNum = 0;
+	wxString srcStr = wxEmptyString;
+	wxString tgtStr = wxEmptyString;
+	wxString glossStr = wxEmptyString;
+	wxTextCtrl* pBox = NULL;
+	wxRect rect = wxRect( 0,0,0,0 );
+	CPile* pPile = pView->GetPile(pApp->m_nActiveSequNum);
+	if (pPile != NULL)
+	{
+		if (pPile == pApp->m_pActivePile)
+		{
+			pBox = pPhraseBox->GetTextCtrl();
+			CSourcePhrase* pSP = pPile->GetSrcPhrase();
+			sequNum = pSP->m_nSequNumber;
+			srcStr = pSP->m_srcPhrase;
+			tgtStr = pSP->m_targetStr;
+			if (gbIsGlossing)
+			{
+				glossStr = pSP->m_gloss;
+				if (glossStr.IsEmpty())
+				{
+					glossStr = _T("Gloss is empty");
+				}
+			}
+			wxASSERT(pBox != NULL);
+			// The phrasebox is located at the current active pile
+			contents = pBox->GetValue();
+
+			// Get the width of the phrasebox's wxTextCtrl (ignore the button,
+			// it's about 23 pixels more, or Linux, 31 pixels more)
+			rect = pBox->GetRect();
+			width = rect.GetWidth();
+
+			//Now use wxLogDebug to make the results accessible - logging the
+			// file, function, and line number as well
+			if (gbIsGlossing)
+			{
+				wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , gloss = %s , box text: %s , wxTextCtrl width = %d  *****"),
+					__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), glossStr.c_str(),
+					contents.c_str(), width);
+			}
+			else
+			{  // adapting
+				wxLogDebug(_T("%s:%s():line %d, sn = %d , src = %s , tgt = %s , box text: %s , wxTextCtrl width = %d  *****"),
+					__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgtStr.c_str(),
+					contents.c_str(), width);
+			}
+		}
+	}
+}

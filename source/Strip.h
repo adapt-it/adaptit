@@ -93,6 +93,9 @@ public:
 	void	SetValidityFlag(bool bValid);
 	bool	GetValidityFlag();
 
+	// BEW added 14Aug18 for adjusting the gap into which the phrasebox must fit, 
+	// pushing piles to the right when CreateStrip() is called for the active strip
+	enum phraseBoxWidthAdjustMode boxMode; // whether contracting, steadyAsSheGoes, or expanding
 	
 	
 	DECLARE_DYNAMIC_CLASS(CStrip) 

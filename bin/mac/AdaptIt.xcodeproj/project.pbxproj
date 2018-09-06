@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0311D9811A72F43D0052BC3E /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0311D9801A72F43D0052BC3E /* Images.xcassets */; };
+		0315C013213584C80017F543 /* CollabProtectEditorBulkSettingsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0315C012213584C80017F543 /* CollabProtectEditorBulkSettingsDlg.cpp */; };
 		031BF31A11932FF6005223ED /* Uuid_AI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 031BF31811932FF6005223ED /* Uuid_AI.cpp */; };
 		034B73FC16EFAC53009A6389 /* ToolbarPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 034B73FA16EFAC53009A6389 /* ToolbarPage.cpp */; };
 		03566C671BCD95C0008365C8 /* CollabVerseConflictDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03566C611BCD95C0008365C8 /* CollabVerseConflictDlg.cpp */; };
@@ -90,13 +91,8 @@
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
 		C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */ = {isa = PBXBuildFile; fileRef = C853F9991222543700334B95 /* iso639-3codes.txt */; };
 		C85CE18314103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */; };
-		C88174261CE4A0E30017FCC6 /* 1035.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C88174251CE4A0E30017FCC6 /* 1035.cpp */; };
-		C88174291CE4A3AB0017FCC6 /* mdnsd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C88174281CE4A3AB0017FCC6 /* mdnsd.cpp */; };
 		C881742C1CE4A4F00017FCC6 /* KbSvrHowGetUrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C881742A1CE4A4F00017FCC6 /* KbSvrHowGetUrl.cpp */; };
 		C881742F1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C881742D1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.cpp */; };
-		C88174321CE4A5D20017FCC6 /* ServiceDiscovery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C88174301CE4A5D20017FCC6 /* ServiceDiscovery.cpp */; };
-		C88174351CE4A6A70017FCC6 /* wxServDisc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C88174331CE4A6A70017FCC6 /* wxServDisc.cpp */; };
-		C88174381CE4A7220017FCC6 /* Thread_ServiceDiscovery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C88174361CE4A7220017FCC6 /* Thread_ServiceDiscovery.cpp */; };
 		C8A144BC1429F5D20022E0F1 /* convauto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A144BA1429F5D20022E0F1 /* convauto.cpp */; };
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
 		C8C3970C15D3D2670093A3CE /* BookNameDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */; };
@@ -187,6 +183,8 @@
 
 /* Begin PBXFileReference section */
 		0311D9801A72F43D0052BC3E /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = AdaptIt/Images.xcassets; sourceTree = "<group>"; };
+		0315C011213584C70017F543 /* CollabProtectEditorBulkSettingsDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CollabProtectEditorBulkSettingsDlg.h; path = ../../source/CollabProtectEditorBulkSettingsDlg.h; sourceTree = "<group>"; };
+		0315C012213584C80017F543 /* CollabProtectEditorBulkSettingsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CollabProtectEditorBulkSettingsDlg.cpp; path = ../../source/CollabProtectEditorBulkSettingsDlg.cpp; sourceTree = "<group>"; };
 		031BF31811932FF6005223ED /* Uuid_AI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Uuid_AI.cpp; path = ../../source/Uuid_AI.cpp; sourceTree = SOURCE_ROOT; };
 		031BF31911932FF6005223ED /* Uuid_AI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Uuid_AI.h; path = ../../source/Uuid_AI.h; sourceTree = SOURCE_ROOT; };
 		034B73FA16EFAC53009A6389 /* ToolbarPage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ToolbarPage.cpp; path = ../../source/ToolbarPage.cpp; sourceTree = "<group>"; };
@@ -334,20 +332,10 @@
 		C853F9991222543700334B95 /* iso639-3codes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "iso639-3codes.txt"; path = "../../docs/iso639-3codes.txt"; sourceTree = SOURCE_ROOT; };
 		C85CE18114103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConsChk_Empty_noTU_Dlg.h; path = ../../source/ConsChk_Empty_noTU_Dlg.h; sourceTree = SOURCE_ROOT; };
 		C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConsChk_Empty_noTU_Dlg.cpp; path = ../../source/ConsChk_Empty_noTU_Dlg.cpp; sourceTree = SOURCE_ROOT; };
-		C88174231CE49FA40017FCC6 /* 1035.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = 1035.h; path = ../../source/1035.h; sourceTree = "<group>"; };
-		C88174251CE4A0E30017FCC6 /* 1035.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = 1035.cpp; path = ../../source/1035.cpp; sourceTree = "<group>"; };
-		C88174271CE4A2DA0017FCC6 /* mdnsd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mdnsd.h; path = ../../source/mdnsd.h; sourceTree = "<group>"; };
-		C88174281CE4A3AB0017FCC6 /* mdnsd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = mdnsd.cpp; path = ../../source/mdnsd.cpp; sourceTree = "<group>"; };
 		C881742A1CE4A4F00017FCC6 /* KbSvrHowGetUrl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KbSvrHowGetUrl.cpp; path = ../../source/KbSvrHowGetUrl.cpp; sourceTree = "<group>"; };
 		C881742B1CE4A4F00017FCC6 /* KbSvrHowGetUrl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KbSvrHowGetUrl.h; path = ../../source/KbSvrHowGetUrl.h; sourceTree = "<group>"; };
 		C881742D1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ServDisc_KBserversDlg.cpp; path = ../../source/ServDisc_KBserversDlg.cpp; sourceTree = "<group>"; };
 		C881742E1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ServDisc_KBserversDlg.h; path = ../../source/ServDisc_KBserversDlg.h; sourceTree = "<group>"; };
-		C88174301CE4A5D20017FCC6 /* ServiceDiscovery.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ServiceDiscovery.cpp; path = ../../source/ServiceDiscovery.cpp; sourceTree = "<group>"; };
-		C88174311CE4A5D20017FCC6 /* ServiceDiscovery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ServiceDiscovery.h; path = ../../source/ServiceDiscovery.h; sourceTree = "<group>"; };
-		C88174331CE4A6A70017FCC6 /* wxServDisc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wxServDisc.cpp; path = ../../source/wxServDisc.cpp; sourceTree = "<group>"; };
-		C88174341CE4A6A70017FCC6 /* wxServDisc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wxServDisc.h; path = ../../source/wxServDisc.h; sourceTree = "<group>"; };
-		C88174361CE4A7220017FCC6 /* Thread_ServiceDiscovery.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_ServiceDiscovery.cpp; path = ../../source/Thread_ServiceDiscovery.cpp; sourceTree = "<group>"; };
-		C88174371CE4A7220017FCC6 /* Thread_ServiceDiscovery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_ServiceDiscovery.h; path = ../../source/Thread_ServiceDiscovery.h; sourceTree = "<group>"; };
 		C8A144BA1429F5D20022E0F1 /* convauto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = convauto.cpp; path = ../../source/convauto.cpp; sourceTree = SOURCE_ROOT; };
 		C8A144BB1429F5D20022E0F1 /* convauto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = convauto.h; path = ../../source/convauto.h; sourceTree = SOURCE_ROOT; };
 		C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ReadOnlyProtection.cpp; path = ../../source/ReadOnlyProtection.cpp; sourceTree = SOURCE_ROOT; };
@@ -566,8 +554,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				C88174251CE4A0E30017FCC6 /* 1035.cpp */,
-				C88174231CE49FA40017FCC6 /* 1035.h */,
+				0315C012213584C80017F543 /* CollabProtectEditorBulkSettingsDlg.cpp */,
+				0315C011213584C70017F543 /* CollabProtectEditorBulkSettingsDlg.h */,
 				C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */,
 				C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */,
 				C8F82DB50F3F9CAB007579B8 /* Adapt_It_wdr.h */,
@@ -746,8 +734,6 @@
 				27501E2D176FD106000AC145 /* md5_SB.h */,
 				7D98196A139C7002009F4E93 /* md5.cpp */,
 				7D98196B139C7002009F4E93 /* md5.h */,
-				C88174281CE4A3AB0017FCC6 /* mdnsd.cpp */,
-				C88174271CE4A2DA0017FCC6 /* mdnsd.h */,
 				C8442B85135FADD300981EB2 /* MergeUpdatedSrc.cpp */,
 				C8442B8D135FAF2A00981EB2 /* MergeUpdatedSrc.h */,
 				C8F82E090F3F9CAB007579B8 /* MoveDialog.cpp */,
@@ -805,8 +791,6 @@
 				7D4EEBC01471932C003B4CC2 /* scrollingwizard.h */,
 				C881742D1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.cpp */,
 				C881742E1CE4A58B0017FCC6 /* ServDisc_KBserversDlg.h */,
-				C88174301CE4A5D20017FCC6 /* ServiceDiscovery.cpp */,
-				C88174311CE4A5D20017FCC6 /* ServiceDiscovery.h */,
 				C8F82E2B0F3F9CAB007579B8 /* SetDelay.cpp */,
 				C8F82E2C0F3F9CAB007579B8 /* SetDelay.h */,
 				C8F82E2D0F3F9CAB007579B8 /* SetEncodingDlg.cpp */,
@@ -831,8 +815,6 @@
 				C8F82E3E0F3F9CAB007579B8 /* TargetUnit.h */,
 				7D22945D0FE9C0EA00D49638 /* tellenc.cpp */,
 				03F468AE11F759A300B3CAEC /* tellenc.h */,
-				C88174361CE4A7220017FCC6 /* Thread_ServiceDiscovery.cpp */,
-				C88174371CE4A7220017FCC6 /* Thread_ServiceDiscovery.h */,
 				27BD963A16E0161700583C59 /* Timer_KbServerChangedSince.cpp */,
 				27BD963B16E0161700583C59 /* Timer_KbServerChangedSince.h */,
 				034B73FA16EFAC53009A6389 /* ToolbarPage.cpp */,
@@ -863,8 +845,6 @@
 				C8F82E540F3F9CAB007579B8 /* WhichBook.h */,
 				C8F82E550F3F9CAB007579B8 /* WhichFilesDlg.cpp */,
 				C8F82E560F3F9CAB007579B8 /* WhichFilesDlg.h */,
-				C88174331CE4A6A70017FCC6 /* wxServDisc.cpp */,
-				C88174341CE4A6A70017FCC6 /* wxServDisc.h */,
 				27AC52F61598029E009E7C07 /* Xhtml.cpp */,
 				27AC52F8159802C4009E7C07 /* Xhtml.h */,
 				C8F82E570F3F9CAB007579B8 /* XML.cpp */,
@@ -984,7 +964,8 @@
 				ORGANIZATIONNAME = "SIL Australia";
 				TargetAttributes = {
 					8D0C4E890486CD37000505A6 = {
-						DevelopmentTeam = YMY6HM7S6S;
+						DevelopmentTeam = C5GMB572MV;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -1137,7 +1118,6 @@
 				C8F82EAB0F3F9CAB007579B8 /* WhichFilesDlg.cpp in Sources */,
 				C8F82EAC0F3F9CAB007579B8 /* XML.cpp in Sources */,
 				C8F82EAD0F3F9CAB007579B8 /* XMLErrorDlg.cpp in Sources */,
-				C88174321CE4A5D20017FCC6 /* ServiceDiscovery.cpp in Sources */,
 				7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */,
 				C823A0A91008817D00BCDA62 /* tellenc.cpp in Sources */,
 				C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */,
@@ -1155,12 +1135,9 @@
 				0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */,
 				03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */,
 				C80E02BB1222481000ECCA6A /* AdminEditMenuProfile.cpp in Sources */,
-				C88174351CE4A6A70017FCC6 /* wxServDisc.cpp in Sources */,
-				C88174291CE4A3AB0017FCC6 /* mdnsd.cpp in Sources */,
 				C80E02BC1222481000ECCA6A /* NavProtectNewDoc.cpp in Sources */,
 				7D4C1A2F125D7EAA005DF3C6 /* UsfmFilterPage.cpp in Sources */,
 				7DCCD18A127FA19000A42526 /* CorGuess.cpp in Sources */,
-				C88174261CE4A0E30017FCC6 /* 1035.cpp in Sources */,
 				7DCCD18B127FA19000A42526 /* GuesserSettingsDlg.cpp in Sources */,
 				7DCCD1A0128CF1CF00A42526 /* EmailReportDlg.cpp in Sources */,
 				C8DE45671323679C0030EC9B /* base64.cpp in Sources */,
@@ -1191,6 +1168,7 @@
 				03CFAA0B161DE73400B82F58 /* StatusBar.cpp in Sources */,
 				272E3D2016BF647D00566D31 /* KBSharing.cpp in Sources */,
 				27BD963D16E0161700583C59 /* Timer_KbServerChangedSince.cpp in Sources */,
+				0315C013213584C80017F543 /* CollabProtectEditorBulkSettingsDlg.cpp in Sources */,
 				277D32EB18CD34700089CFC2 /* GuesserAffix.cpp in Sources */,
 				0392EF5D1EA166C900DCDE57 /* InstallGitOptionsDlg.cpp in Sources */,
 				034B73FC16EFAC53009A6389 /* ToolbarPage.cpp in Sources */,
@@ -1201,7 +1179,6 @@
 				27462BDC17474EBE005605DA /* jsonwriter.cpp in Sources */,
 				27B3963F1754B69A0034E461 /* UsernameInput.cpp in Sources */,
 				27501E2E176FD106000AC145 /* md5_SB.cpp in Sources */,
-				C88174381CE4A7220017FCC6 /* Thread_ServiceDiscovery.cpp in Sources */,
 				C8C8E0CA17883B6F00ABDFBC /* KBSharingMgrTabbedDlg.cpp in Sources */,
 				278D48BE1839859900562C6F /* FreeTransAdjustDlg.cpp in Sources */,
 				C881742C1CE4A4F00017FCC6 /* KbSvrHowGetUrl.cpp in Sources */,
@@ -1277,7 +1254,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN29)/build/osx/build/Debug";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
@@ -1289,6 +1266,7 @@
 				);
 				PRODUCT_NAME = "Adapt It";
 				PRODUCT_NAME_NO_SPACE = AdaptIt;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = "";
 				USER_HEADER_SEARCH_PATHS = "$(WXWIN29)/build/osx/setup/cocoa/include ${BOOST_ROOT} ${WXWIN29}/include .";
 				VALID_ARCHS = "x86_64 i386";
@@ -1354,13 +1332,14 @@
 					"__WXMAC_XCODE__=1",
 					"WX_PRECOMP=1",
 					"wxUSE_UNICODE=1",
+					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN29)/build/osx/build/Release";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
@@ -1372,6 +1351,7 @@
 				);
 				PRODUCT_NAME = "Adapt It";
 				PRODUCT_NAME_NO_SPACE = AdaptIt;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = "";
 				USER_HEADER_SEARCH_PATHS = "$(WXWIN29)/build/osx/setup/cocoa/include ${BOOST_ROOT} ${WXWIN29}/include .";
 				VALID_ARCHS = "x86_64 i386";
@@ -1451,7 +1431,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/buildosxud/lib";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
@@ -1470,6 +1450,7 @@
 				);
 				PRODUCT_NAME = "Adapt It";
 				PRODUCT_NAME_NO_SPACE = AdaptIt;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = "";
 				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/build/osx/setup/cocoa/include ${BOOST_ROOT} ${WXWIN}/include .";
 				VALID_ARCHS = "x86_64 i386";
@@ -1535,13 +1516,14 @@
 					"__WXMAC_XCODE__=1",
 					"WX_PRECOMP=1",
 					"wxUSE_UNICODE=1",
+					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/buildosxu/lib";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
@@ -1560,6 +1542,7 @@
 				);
 				PRODUCT_NAME = "Adapt It";
 				PRODUCT_NAME_NO_SPACE = AdaptIt;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = "";
 				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/build/osx/setup/cocoa/include ${BOOST_ROOT} ${WXWIN}/include .";
 				VALID_ARCHS = "x86_64 i386";
@@ -1639,7 +1622,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN30)/build/osx/build/Debug";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
@@ -1651,6 +1634,7 @@
 				);
 				PRODUCT_NAME = "Adapt It";
 				PRODUCT_NAME_NO_SPACE = AdaptIt;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = "";
 				USER_HEADER_SEARCH_PATHS = "$(WXWIN30)/build/osx/setup/cocoa/include ${BOOST_ROOT} ${WXWIN30}/include .";
 				VALID_ARCHS = "x86_64 i386";
@@ -1716,14 +1700,14 @@
 					"__WXMAC_XCODE__=1",
 					"WX_PRECOMP=1",
 					"wxUSE_UNICODE=1",
-					_KBSERVER,
+					NDEBUG,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN30)/build/osx/build/Release";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
@@ -1735,6 +1719,7 @@
 				);
 				PRODUCT_NAME = "Adapt It";
 				PRODUCT_NAME_NO_SPACE = AdaptIt;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = "";
 				USER_HEADER_SEARCH_PATHS = "$(WXWIN30)/build/osx/setup/cocoa/include ${BOOST_ROOT} ${WXWIN30}/include .";
 				VALID_ARCHS = "x86_64 i386";
@@ -1814,7 +1799,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/build/osx/build/Debug";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
@@ -1826,6 +1811,7 @@
 				);
 				PRODUCT_NAME = "Adapt It";
 				PRODUCT_NAME_NO_SPACE = AdaptIt;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = "";
 				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/build/osx/setup/cocoa/include ${BOOST_ROOT} ${WXWIN}/include .";
 				VALID_ARCHS = "x86_64 i386";
@@ -1897,7 +1883,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/build/osx/build/Release";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
@@ -1909,6 +1895,7 @@
 				);
 				PRODUCT_NAME = "Adapt It";
 				PRODUCT_NAME_NO_SPACE = AdaptIt;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = "";
 				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/build/osx/setup/cocoa/include ${BOOST_ROOT} ${WXWIN}/include .";
 				VALID_ARCHS = "x86_64 i386";

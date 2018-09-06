@@ -544,7 +544,7 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 {
 	if (this == pSrcPhrase)
 		return FALSE; // don't merge with itself
-	
+
 	// save the original in the m_pSavedWords list, in case we later want
 	// to restore the original sequence of minimal CSourcePhrase instances
 	if (m_pSavedWords == NULL)

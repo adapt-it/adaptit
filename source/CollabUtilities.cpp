@@ -2933,7 +2933,9 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			// Do a diagnostic run (see View page of Preferences)
 			pApp->LogUserAction(msgEnglish);
 			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
-			return FALSE;
+            // whm 23Aug2018 added FinishProgress() must be called before return is called
+            pStatusBar->FinishProgress(_("Merging Documents..."));
+            return FALSE;
 		}
 
 		SPList* pMergedList = new SPList; // store the results of the merging here
@@ -10905,6 +10907,13 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 				nStep = 5;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 				pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
+
+                // whm 24Aug2018 added. In collaboration mode, we are here creating a new collaboration
+                // document. A new document should initially adopt the App's gProjectFilterMarkersForConfig
+                // as the document's gCurrentFilterMarkers for the new document. The user can change the
+                // filter markers after document creation as desired, but the filter markers as set in the
+                // project's filter marker list should be the initial default.
+                gpApp->gCurrentFilterMarkers = gpApp->gProjectFilterMarkersForConfig;
 
 				// it doesn't exist, so we have to tokenize the source text coming from PT
 				// or BE, create the document, save it and lay it out in the view window...

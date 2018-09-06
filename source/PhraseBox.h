@@ -47,7 +47,7 @@ class CPhraseBox : public wxTextCtrl
 public:
 	CPhraseBox(void); // wx needs the explicit constructor here
 
-    // whm 11Jul18 this constructor uses the wxDesigner resource PhraseBoxDropDownFunc()
+    // whm 11Jul18 this constructor only creates the edit box part of the phrasebox, see App's DoCreatePhraseBox()
     CPhraseBox(
         wxWindow *parent, 
         wxWindowID id, 
@@ -103,18 +103,22 @@ public:
 										 // using the m_ prefix in their names, as these are very hacky
     wxSize  m_computedPhraseBoxSize; // stores the computed size of the phrasebox's sizer - accounting for its current layout state
 
+	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
+		int nSelector); // BEW made public on 14Mar11, now called in view's OnDraw()
+
     // Some PhraseBox Getters
     wxTextCtrl* GetTextCtrl(); // this gets the wxTextCtrl that has been created by the PhraseBoxDropDownFunc() in wxDesigner
     CMyListBox* GetDropDownList(); // this gets the wxListBox that has been created by the PhraseBoxDropDownFunc() in wxDesigner
-    wxBitmapButton* GetPhraseBoxButton(); // this gets the wxButton control that has been created by the PhraseBoxDropDownFunc() in wxDesigner
+    wxBitmapToggleButton* GetPhraseBoxButton(); // this gets the wxButton control that has been created by the PhraseBoxDropDownFunc() in wxDesigner
     // Some PhraseBox Setters
     void SetTextCtrl(wxTextCtrl* textCtrl);
     void SetDropDownList(CMyListBox* listBox);
-    void SetPhraseBoxButton(wxBitmapButton* listButton);
+    void SetPhraseBoxButton(wxBitmapToggleButton* listButton);
     // whm 12Jul2018 Note: The handler for the PhraseBox dropdown button is
     // now in CAdapt_ItCanvas::OnTogglePhraseBoxButton()
     void SetButtonBitMapNormal();
     void SetButtonBitMapXDisabled();
+    void SetFocusAndSetSelectionAtLanding();
 
 protected:
 	bool CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, CPile* pNextEmptyPile,
@@ -151,8 +155,15 @@ protected:
 public:
 	bool DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	CLayout* GetLayout();
-	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
-							int nSelector); // BEW made public on 14Mar11, now called in view's OnDraw()
+
+	// BEW 14Aug18 deprecated
+	//bool UpdatePhraseBoxWidth_Expanding(wxString inStr); // BEW addedd 30Jul18 the returned bool, 
+				// if TRUE, causes RecalcLayout to be non-suppressed so that the gui and box width
+				// can quickly be changed; if FALSE, then box and gui stay immobile
+	//bool UpdatePhraseBoxWidth_Contracting(wxString inStr);    // BEW 14Aug18 deprecated
+				// BEW addedd 30Jul18 the returned bool the returned bool, if TRUE,
+				// causes RecalcLayout to be non-suppressed so that the gui and box width
+				// can quickly be changed; if FALSE, then box and gui stay immobile
 
     // whm 10Jan2018 added members below to implement the dropdown phrasebox functionality
     void SetupDropDownPhraseBoxForThisLocation();
@@ -163,19 +174,21 @@ public:
     void PopupDropDownList();
     void HidePhraseBox();
     void SetSizeAndHeightOfDropDownList(int width);
+    wxString GetListItemAdjustedforPhraseBox(bool bSetEmptyAdaptationChosen);
     bool bUp_DownArrowKeyPressed; // initialized to FALSE at each location - at end of Layout's PlaceBox().
+    wxString initialPhraseBoxContentsOnLanding; // whm 16Jul2018 added to implement undo of phrasebox changes via Esc key
 
     // The following members are used to present a dropdown arrow or a rose pink X for the control's button:
-    wxBitmap dropbutton_hover; // (xpm_dropbutton_hover);
-    wxBitmap dropbutton_pressed; // (xpm_dropbutton_pressed);
-    wxBitmap dropbutton_normal; // (xpm_dropbutton_normal);
-    wxBitmap dropbutton_disabled; // (xpm_dropbutton_disabled);
-    wxBitmap dropbutton_blank; // (xpm_dropbutton_blank);
-    char * xpm_dropbutton_hover;
-    char * xpm_dropbutton_pressed;
+    //wxBitmap dropbutton_hover; // (xpm_dropbutton_hover);
+    //wxBitmap dropbutton_pressed; // (xpm_dropbutton_pressed);
+    wxBitmap bmp_dropbutton_normal; // (xpm_dropbutton_normal);
+    //wxBitmap dropbutton_disabled; // (xpm_dropbutton_disabled);
+    wxBitmap bmp_dropbutton_X; // (xpm_dropbutton_X);
+    //char * xpm_dropbutton_hover;
+    //char * xpm_dropbutton_pressed;
     char * xpm_dropbutton_normal;
-    char * xpm_dropbutton_disabled;
-    char * xpm_dropbutton_blank;
+    //char * xpm_dropbutton_disabled;
+    char * xpm_dropbutton_X;
 
 
 	bool LookAhead(CPile* pNewPile);
@@ -218,7 +231,7 @@ private:
 
     wxTextCtrl* m_pTextCtrl;
     CMyListBox* m_pDropDownList;
-    wxBitmapButton* m_pPhraseBoxButton;
+    wxBitmapToggleButton* m_pPhraseBoxButton;
 
 	DECLARE_DYNAMIC_CLASS(CPhraseBox)
 	// DECLARE_DYNAMIC_CLASS() is used inside a class declaration to

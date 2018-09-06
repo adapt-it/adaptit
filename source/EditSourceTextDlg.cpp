@@ -208,6 +208,8 @@ void CEditSourceTextDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 
 	// set the focus to the source text edit box
 	pSrcTextEdit->SetFocus();
+    // whm 3Aug2018 Note: TODO: Determine if the select all command below
+    // should be suppressed for this edit box during Edit Source Text???
 	pSrcTextEdit->SetSelection(-1,-1); // -1,-1 selects all
 
 	//pEditSourceTextDlgSizer->Layout();
