@@ -271,6 +271,19 @@ extern bool	gbMatchedKB_UCentry;
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gcharNonSrcUC;
 
+/// Next six defined in Adapt_It.cpp
+extern bool	gbNoSourceCaseEquivalents;
+extern bool	gbNoTargetCaseEquivalents;
+extern wxChar gcharNonSrcLC;
+extern wxChar gcharNonSrcUC;
+extern wxChar gcharSrcLC;
+extern wxChar gcharSrcUC;
+
+extern bool gbUCSrcCapitalAnywhere; // TRUE if searching for capital at non-initial position
+									// is enabled, FALSE is legacy initial position only
+extern int  gnOffsetToUCcharSrc; // offset to source text location where the upper case
+								 // character was found to be located, wxNOT_FOUND if not located
+
 /// This global is defined in Adapt_It.cpp.
 extern wxString szProjectConfiguration;
 
@@ -3708,11 +3721,57 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 				bool bIsDeleted = FALSE; // initialize
 				wxString theAdaptation = wxEmptyString; // initialize
 				wxString strAdaptation = pSrcPhrase->m_adaption;
+				// BEW 10Sep18 Taking  m_adaption means that it could be a word or phrase
+				// with upper case initial character, but for auto-caps ON the KB stores
+				// lower case initial entries, and so GetMatchingRefString() would fail
+				// in matching and return NULL if the source phrase has capitalized source
+				// text key. So we first must check and convert to lower case here,
+				// before attempting the call
+				// NOTE: I have not tried to support word-medial capitalization here, but
+				// KB.cpp does support that. I will instead try a hack, so that returning
+				// NULL from the call in such a context will not cause loss of data
+
+				if (gbAutoCaps)
+				{
+					if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+					{
+						bNoError = pApp->GetDocument()->SetCaseParameters(strAdaptation, FALSE); // param bIsSrcText is FALSE
+						if (bNoError && gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+						{
+							// change to lower case initial letter
+							strAdaptation.SetChar(0, gcharNonSrcLC);
+							pApp->m_pTargetBox->m_bAbandonable = FALSE; 
+						}
+					}
+				}
+				int nSelectionIndex = wxNOT_FOUND; // initialize to -1
+
 				CRefString* pRefString = pApp->m_pKB->GetMatchingRefString(pTU, strAdaptation, bIsDeleted);
 				if (pRefString == NULL)
 				{
-					// Didn't get the ref string - that ruins this hack, so abort it
-					pApp->m_pTargetBox->InitializeComboLandingParams();
+					// Didn't get the ref string - that ruins this hack, but some kind
+					// of recovery code is needed here - otherwise the result will be
+					// that an adaptation will get lost from the phrasebox and the list
+					// and another list entry would then sneak into the phrasebox - 
+					// possibly unnoticed, so a 'safety' hack is needed
+					// (NULL might be returned if capitalization is non-initial, as
+					// the above call won't make the match required)
+					if ( !pApp->m_pTargetBox->GetTextCtrl()->IsEmpty() && gbUCSrcCapitalAnywhere)
+					{
+						// assume that non-initial capitalization is the cause of the failure,
+						// and so recover by forcing strAdaptation to be taken as is, and
+						// put at the top of the list and in the phrasebox
+						nSelectionIndex = 0; // go for top of list, safest bet
+						pApp->m_pTargetBox->nSaveComboBoxListIndex = nSelectionIndex;
+						theAdaptation = strAdaptation;
+						pApp->m_pTargetBox->strSaveListEntry = theAdaptation;
+
+						goto recovery;
+					}
+					else
+					{
+						pApp->m_pTargetBox->InitializeComboLandingParams();
+					}
 				}
 				else
 				{
@@ -3754,7 +3813,6 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 							// there's no other way. We'll build an arrTempComboList using the function below which
 							// clones bits of code from Bill's PopulateDropDownList() function, but simplified, since
 							// we've already excluded <Not In KB>-contained CRefString instances from consideration here
-							int nSelectionIndex = wxNOT_FOUND;
 							bool bSuccessfulMatch = FALSE;
 							bSuccessfulMatch = pApp->BuildTempDropDownComboList(pTU, &strAdaptation, nSelectionIndex);
 							if (bSuccessfulMatch && (nSelectionIndex != wxNOT_FOUND))
@@ -3777,7 +3835,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 								// and it can grab what it needs from its own member variables and restore the
 								// deleted adaptation to its place in the list at the time it gets dropped down
 								// - but only when various constraints are satified
-								pApp->m_pTargetBox->bRemovedAdaptionReadyForInserting = TRUE;
+recovery:						pApp->m_pTargetBox->bRemovedAdaptionReadyForInserting = TRUE;
 #ifdef _DEBUG 
 								wxLogDebug(_T("view::PlacePhraseBox at line %d , m_pTargetBox->bRemovedAdaptionReadyForInserting = TRUE  strSaveListEntry = %s  Index = %d"),
 									3774, pApp->m_pTargetBox->strSaveListEntry.c_str(), nSelectionIndex);

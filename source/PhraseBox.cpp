@@ -8074,7 +8074,7 @@ void CPhraseBox::OnTogglePhraseBoxButton(wxCommandEvent & WXUNUSED(event))
     // edit box. Within the phrasebox we detect any navigation key presses
     // that are intended to move the list highlight and make actual selections
     // from the list - such as WXK_DOWN and WXK_UP. 
-    // In any case, whether the list open or closed, our focus whould be kept
+    // In any case, whether the list open or closed, our focus should be kept
     // in the phrasebox's edit box
     pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
 }

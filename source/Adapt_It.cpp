@@ -689,9 +689,9 @@ bool   gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial p
 int    gnOffsetToUCcharSrc; // offset to source text location where the upper case
                             // character was found to be located, wxNOT_FOUND if not located
 
-                            /// Use to suppress the message box asking if the src language has upper/lower case
-                            /// distinction, when the flag is being restored to TRUE from reading the project's config
-                            /// file.
+/// Use to suppress the message box asking if the src language has upper/lower case
+/// distinction, when the flag is being restored to TRUE from reading the project's config
+/// file.
 bool gbSuppressAutoCapsAsk = FALSE;
 
 /// This global is defined in OpenExistingProjectDlg.cpp.

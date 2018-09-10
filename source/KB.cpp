@@ -82,7 +82,7 @@ extern wxChar gcharNonSrcLC;
 extern wxChar gcharNonSrcUC;
 extern wxChar gcharSrcLC;
 extern wxChar gcharSrcUC;
-extern bool gbUCSrcCapitalAnywhere; // TRUE if searching for captial at non-initial position
+extern bool gbUCSrcCapitalAnywhere; // TRUE if searching for capital at non-initial position
 									// is enabled, FALSE is legacy initial position only
 extern int  gnOffsetToUCcharSrc; // offset to source text location where the upper case
 								 // character was found to be located, wxNOT_FOUND if not located
