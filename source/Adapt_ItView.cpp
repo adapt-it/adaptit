@@ -3745,6 +3745,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 					}
 				}
 				int nSelectionIndex = wxNOT_FOUND; // initialize to -1
+				bool bSuccessfulMatch = FALSE; // initialize
 
 				CRefString* pRefString = pApp->m_pKB->GetMatchingRefString(pTU, strAdaptation, bIsDeleted);
 				if (pRefString == NULL)
@@ -3813,7 +3814,6 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 							// there's no other way. We'll build an arrTempComboList using the function below which
 							// clones bits of code from Bill's PopulateDropDownList() function, but simplified, since
 							// we've already excluded <Not In KB>-contained CRefString instances from consideration here
-							bool bSuccessfulMatch = FALSE;
 							bSuccessfulMatch = pApp->BuildTempDropDownComboList(pTU, &strAdaptation, nSelectionIndex);
 							if (bSuccessfulMatch && (nSelectionIndex != wxNOT_FOUND))
 							{
