@@ -5850,7 +5850,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item6->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
 
     wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_PUNCT_CORRESP_PAGE, _("Where there is no corresponding punctuation character, leave that cell empty - whether it is a source or a target cell."), wxDefaultPosition, wxSize(-1,351), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
-    item6->Add( item8, 0, wxGROW, 0 );
+    item6->Add( item8, 1, wxGROW, 0 );
 
     item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxRIGHT, 5 );
 
@@ -5885,7 +5885,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item17->Add( 5, 10, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item17, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item17, 0, wxGROW|wxALL, 0 );
 
     wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Source  "), wxDefaultPosition, wxDefaultSize, 0 );
     item13->Add( item19, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -5914,7 +5914,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item25->Add( 5, 20, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item25, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item25, 0, wxGROW|wxALL, 0 );
 
     wxTextCtrl *item27 = new wxTextCtrl( parent, IDC_EDIT_SRC1, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item27, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -5943,7 +5943,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item33->Add( 5, 20, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item33, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item33, 0, wxGROW|wxALL, 0 );
 
     wxTextCtrl *item35 = new wxTextCtrl( parent, IDC_EDIT_SRC3, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item35, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -5972,7 +5972,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item41->Add( 5, 20, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item41, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item41, 0, wxGROW|wxALL, 0 );
 
     wxTextCtrl *item43 = new wxTextCtrl( parent, IDC_EDIT_SRC5, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item43, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -6001,7 +6001,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item49->Add( 5, 20, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item49, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item49, 0, wxGROW|wxALL, 0 );
 
     wxTextCtrl *item51 = new wxTextCtrl( parent, IDC_EDIT_SRC7, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item51, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -6030,7 +6030,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item57->Add( 5, 20, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item57, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item57, 0, wxGROW|wxALL, 0 );
 
     wxTextCtrl *item59 = new wxTextCtrl( parent, IDC_EDIT_SRC9, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item59, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -6059,7 +6059,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item65->Add( 5, 20, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item65, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item65, 0, wxGROW|wxALL, 0 );
 
     wxTextCtrl *item67 = new wxTextCtrl( parent, IDC_EDIT_SRC11, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item67, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -6088,7 +6088,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item73->Add( 5, 20, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item73, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item73, 0, wxGROW|wxALL, 0 );
 
     wxTextCtrl *item75 = new wxTextCtrl( parent, IDC_EDIT_SRC13, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item75, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -6117,7 +6117,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item81->Add( 5, 20, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item81, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item81, 0, wxGROW|wxALL, 0 );
 
     wxTextCtrl *item83 = new wxTextCtrl( parent, IDC_EDIT_SRC15, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item83, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -6146,7 +6146,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item89->Add( 5, 20, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item89, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item89, 0, wxGROW|wxALL, 0 );
 
     wxTextCtrl *item91 = new wxTextCtrl( parent, IDC_EDIT_SRC17, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item91, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -6175,7 +6175,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item97->Add( 5, 20, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item97, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item97, 0, wxGROW|wxALL, 0 );
 
     wxTextCtrl *item99 = new wxTextCtrl( parent, IDC_EDIT_SRC19, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item99, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -6204,7 +6204,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item105->Add( 5, 20, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item105, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item105, 0, wxGROW|wxALL, 0 );
 
     wxTextCtrl *item107 = new wxTextCtrl( parent, IDC_EDIT_SRC21, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item107, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -6233,7 +6233,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item113->Add( 5, 20, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item113, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item113, 0, wxGROW|wxALL, 0 );
 
     wxTextCtrl *item115 = new wxTextCtrl( parent, IDC_EDIT_SRC23, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item115, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -6262,7 +6262,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item121->Add( 5, 20, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item13->Add( item121, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->Add( item121, 0, wxGROW|wxALL, 0 );
 
     wxTextCtrl *item123 = new wxTextCtrl( parent, IDC_EDIT_SRC25, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item123, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -6273,9 +6273,35 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxTextCtrl *item125 = new wxTextCtrl( parent, IDC_EDIT_TGT25, wxT(""), wxDefaultPosition, wxSize(50,26), wxTE_CENTRE );
     item13->Add( item125, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item10->Add( item13, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->AddGrowableRow( 1 );
 
-    item9->Add( item10, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item13->AddGrowableRow( 2 );
+
+    item13->AddGrowableRow( 3 );
+
+    item13->AddGrowableRow( 4 );
+
+    item13->AddGrowableRow( 5 );
+
+    item13->AddGrowableRow( 6 );
+
+    item13->AddGrowableRow( 7 );
+
+    item13->AddGrowableRow( 8 );
+
+    item13->AddGrowableRow( 9 );
+
+    item13->AddGrowableRow( 10 );
+
+    item13->AddGrowableRow( 11 );
+
+    item13->AddGrowableRow( 12 );
+
+    item13->AddGrowableRow( 13 );
+
+    item10->Add( item13, 1, wxGROW|wxALL, 0 );
+
+    item9->Add( item10, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     wxStaticLine *item126 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(-1,20), wxLI_VERTICAL );
     item9->Add( item126, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
@@ -6393,11 +6419,31 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxTextCtrl *item164 = new wxTextCtrl( parent, IDC_EDIT_2TGT9, wxT(""), wxDefaultPosition, wxSize(90,26), wxTE_CENTRE );
     item131->Add( item164, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
+    item131->AddGrowableRow( 1 );
+
+    item131->AddGrowableRow( 2 );
+
+    item131->AddGrowableRow( 3 );
+
+    item131->AddGrowableRow( 4 );
+
+    item131->AddGrowableRow( 5 );
+
+    item131->AddGrowableRow( 6 );
+
+    item131->AddGrowableRow( 7 );
+
+    item131->AddGrowableRow( 8 );
+
+    item131->AddGrowableRow( 9 );
+
+    item131->AddGrowableRow( 10 );
+
     item127->Add( item131, 1, wxGROW|wxALL, 0 );
 
-    item9->Add( item127, 0, wxALIGN_CENTER_HORIZONTAL|wxLEFT, 5 );
+    item9->Add( item127, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxLEFT, 5 );
 
-    item5->Add( item9, 1, wxALIGN_CENTER|wxALL, 0 );
+    item5->Add( item9, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     item1->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

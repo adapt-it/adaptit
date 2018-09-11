@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
-"POT-Creation-Date: 2018-08-22 16:15-0500\n"
-"PO-Revision-Date: 2018-08-22 16:15-0500\n"
+"POT-Creation-Date: 2018-08-29 11:47-0500\n"
+"PO-Revision-Date: 2018-08-29 11:50-0500\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "Language: id\n"
@@ -12,9 +12,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: ../source\n"
-"X-Generator: Poedit 1.8.11\n"
+"X-Generator: Poedit 2.1.1\n"
 "X-Poedit-KeywordsList: _\n"
 "X-Poedit-SearchPath-0: .\n"
+
+# Priority 1
+#: AIPrintPreviewFrame.h:35
+msgid "Print Preview"
+msgstr "Lihat Dokumen Seakan-akan Dicetak"
 
 #: Adapt_It.cpp:4694
 #, c-format
@@ -66,15 +71,15 @@ msgstr "Tidak dapat membuat arsip \"AI_UserProfiles.xml\" yang baru"
 msgid "See Glosses"
 msgstr "Lihat Arti Kata"
 
-#: Adapt_It.cpp:10004 Adapt_It.cpp:18594 Adapt_ItView.cpp:30197
-#: Adapt_ItView.cpp:30361 ConsistencyCheckDlg.cpp:193
+#: Adapt_It.cpp:10004 Adapt_It.cpp:18594 Adapt_ItView.cpp:30203
+#: Adapt_ItView.cpp:30367 ConsistencyCheckDlg.cpp:193
 #: ConsistencyCheckDlg.cpp:797 RemoveSomeTgtEntries.cpp:176
 msgid "<no gloss>"
 msgstr "<arti kata tidak tersedia>"
 
 # Priority 1
-#: Adapt_It.cpp:10008 Adapt_It.cpp:18593 Adapt_ItView.cpp:30185
-#: Adapt_ItView.cpp:30372 Adapt_It_wdr.cpp:283 Adapt_It_wdr.cpp:6469
+#: Adapt_It.cpp:10008 Adapt_It.cpp:18593 Adapt_ItView.cpp:30191
+#: Adapt_ItView.cpp:30378 Adapt_It_wdr.cpp:283 Adapt_It_wdr.cpp:6469
 #: ChooseTranslation.cpp:205 ChooseTranslation.cpp:332
 #: ChooseTranslation.cpp:458 ChooseTranslation.cpp:613
 #: ChooseTranslation.cpp:776 ChooseTranslation.cpp:804
@@ -252,12 +257,12 @@ msgid "Delete all the notes currently in the document"
 msgstr "Hapus semua catatan yang sekarang ada dalam dokumen"
 
 # Priority 1
-#: Adapt_It.cpp:10149 Adapt_ItView.cpp:21657 Adapt_ItView.cpp:21678
+#: Adapt_It.cpp:10149 Adapt_ItView.cpp:21663 Adapt_ItView.cpp:21684
 msgid "Boundaries"
 msgstr "Batas-batas"
 
 # Priority 1
-#: Adapt_It.cpp:10149 Adapt_ItView.cpp:21656 MainFrm.cpp:1643
+#: Adapt_It.cpp:10149 Adapt_ItView.cpp:21662 MainFrm.cpp:1643
 #: ToolbarPage.cpp:200
 msgid "Ignore Boundaries"
 msgstr "Mengabaikan batas-batas"
@@ -269,14 +274,14 @@ msgid "Ignore boundaries when making selections"
 msgstr "Abaikan batas ketika memilih bagian tertentu"
 
 # Priority 1
-#: Adapt_It.cpp:10150 Adapt_ItView.cpp:21780 Adapt_ItView.cpp:21801
+#: Adapt_It.cpp:10150 Adapt_ItView.cpp:21786 Adapt_ItView.cpp:21807
 #: EditPreferencesDlg.cpp:223 EditPreferencesDlg.cpp:227
 #: EditPreferencesDlg.cpp:432 EditPreferencesDlg.cpp:486
 msgid "Punctuation"
 msgstr "Tanda Baca"
 
 # Priority 1
-#: Adapt_It.cpp:10150 Adapt_ItView.cpp:21800 Adapt_It_wdr.cpp:12008
+#: Adapt_It.cpp:10150 Adapt_ItView.cpp:21806 Adapt_It_wdr.cpp:12008
 #: Adapt_It_wdr.cpp:12063 MainFrm.cpp:1644 ToolbarPage.cpp:201
 msgid "Hide Punctuation"
 msgstr "Sembunyikan Tanda Baca"
@@ -486,12 +491,12 @@ msgid "Force the Choose Translation dialog to be shown"
 msgstr "Paksakan kotak perintah \"Pilih Terjemahan\" untuk muncul"
 
 # Priority 1
-#: Adapt_It.cpp:10169 Adapt_ItView.cpp:21942 Adapt_ItView.cpp:21963
+#: Adapt_It.cpp:10169 Adapt_ItView.cpp:21948 Adapt_ItView.cpp:21969
 msgid "View Mode"
 msgstr "Lihat Mode"
 
 # Priority 1
-#: Adapt_It.cpp:10169 Adapt_ItView.cpp:21962 Adapt_It_wdr.cpp:12036
+#: Adapt_It.cpp:10169 Adapt_ItView.cpp:21968 Adapt_It_wdr.cpp:12036
 #: Adapt_It_wdr.cpp:12091 MainFrm.cpp:1663 ToolbarPage.cpp:220
 msgid "Show Target Text Only"
 msgstr "Hanya Tunjukkan Teks Sasaran"
@@ -521,7 +526,7 @@ msgstr ""
 "berdasarkan pasal dan ayat"
 
 # Priority 1
-#: Adapt_It.cpp:10172 Adapt_ItView.cpp:22093 Adapt_ItView.cpp:22114
+#: Adapt_It.cpp:10172 Adapt_ItView.cpp:22099 Adapt_ItView.cpp:22120
 msgid "Punctuation Copy"
 msgstr "Penggandaan Tanda Baca"
 
@@ -617,7 +622,7 @@ msgid "Find and Replace...\tCtrl-Shift-F"
 msgstr "Cari dan Gantikan...\tCtrl-Shift-F"
 
 # Priority 1
-#: Adapt_It.cpp:10721 Adapt_ItView.cpp:21330 Adapt_ItView.cpp:21421
+#: Adapt_It.cpp:10721 Adapt_ItView.cpp:21336 Adapt_ItView.cpp:21427
 msgid "Layout Window Right To Left\tCtrl-Shift-1"
 msgstr "Atur Kata-kata Dari Kanan Ke Kiri\tCtrl-Shift-1"
 
@@ -918,8 +923,8 @@ msgid "a gloss"
 msgstr "sebuah arti kata"
 
 # Priority 1
-#: Adapt_It.cpp:18595 Adapt_ItDoc.cpp:24910 Adapt_ItDoc.cpp:25070
-#: Adapt_ItDoc.cpp:25329 Adapt_ItDoc.cpp:26147 ConsistencyCheckDlg.cpp:87
+#: Adapt_It.cpp:18595 Adapt_ItDoc.cpp:24932 Adapt_ItDoc.cpp:25092
+#: Adapt_ItDoc.cpp:25351 Adapt_ItDoc.cpp:26169 ConsistencyCheckDlg.cpp:87
 msgid "Inconsistency Found"
 msgstr "Ketidakcocokan Ditemukan"
 
@@ -1020,7 +1025,7 @@ msgstr ""
 msgid "Error of file named CustomWorkFolderLocation"
 msgstr ""
 
-#: Adapt_It.cpp:23145 Adapt_ItDoc.cpp:4721
+#: Adapt_It.cpp:23145 Adapt_ItDoc.cpp:4727
 msgid "Untitled - Adapt It"
 msgstr ""
 
@@ -1594,17 +1599,17 @@ msgstr ""
 "Apakah Anda mau teruskan?"
 
 # Priority 1
-#: Adapt_It.cpp:32630 Adapt_ItDoc.cpp:1635 Adapt_ItDoc.cpp:3453
-#: Adapt_ItDoc.cpp:3879
+#: Adapt_It.cpp:32630 Adapt_ItDoc.cpp:1641 Adapt_ItDoc.cpp:3459
+#: Adapt_ItDoc.cpp:3885
 #, c-format
 msgid "Saving File %s  - %d of %d Total words and phrases"
 msgstr "Sedang menyimpan arsip \"%s\" - no. %d dari jumlah %d kata dan frasa"
 
 # Priority 1
 #: Adapt_It.cpp:32633 Adapt_It.cpp:32637 Adapt_It.cpp:32645 Adapt_It.cpp:32656
-#: Adapt_ItDoc.cpp:1642 Adapt_ItDoc.cpp:1657 Adapt_ItDoc.cpp:1664
-#: Adapt_ItDoc.cpp:1668 Adapt_ItDoc.cpp:5983 Adapt_ItDoc.cpp:5999
-#: Adapt_ItDoc.cpp:6004 Adapt_ItDoc.cpp:6010 Adapt_ItDoc.cpp:6013
+#: Adapt_ItDoc.cpp:1648 Adapt_ItDoc.cpp:1663 Adapt_ItDoc.cpp:1670
+#: Adapt_ItDoc.cpp:1674 Adapt_ItDoc.cpp:5989 Adapt_ItDoc.cpp:6005
+#: Adapt_ItDoc.cpp:6010 Adapt_ItDoc.cpp:6016 Adapt_ItDoc.cpp:6019
 msgid "Saving File"
 msgstr "Sedang menyimpan Arsip"
 
@@ -1706,7 +1711,7 @@ msgid "Error parsing font information"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:35547 Adapt_It.cpp:38935 Adapt_ItDoc.cpp:14616 XML.cpp:558
+#: Adapt_It.cpp:35547 Adapt_It.cpp:38935 Adapt_ItDoc.cpp:14638 XML.cpp:558
 msgid ""
 "\n"
 "You should not use this non-Unicode version of Adapt It.\n"
@@ -1724,7 +1729,7 @@ msgid ""
 "Basic Configuration File's punctuation string (see below):"
 msgstr ""
 
-#: Adapt_It.cpp:35551 Adapt_It.cpp:38939 Adapt_ItDoc.cpp:14619 XML.cpp:561
+#: Adapt_It.cpp:35551 Adapt_It.cpp:38939 Adapt_ItDoc.cpp:14641 XML.cpp:561
 msgid "Warning: Invalid Characters Detected"
 msgstr ""
 
@@ -2007,7 +2012,7 @@ msgstr "sasaran"
 msgid "navigation"
 msgstr "Petunjuk"
 
-#: Adapt_It.cpp:42551 Adapt_ItDoc.cpp:4456 Adapt_ItDoc.cpp:6280 KB.cpp:2316
+#: Adapt_It.cpp:42551 Adapt_ItDoc.cpp:4462 Adapt_ItDoc.cpp:6286 KB.cpp:2316
 #, c-format
 msgid "Reading file %s - part %d of %d"
 msgstr "Sedang membaca arsip \"%s\" - bagian no. %d dari jumlah %d bagian"
@@ -2176,7 +2181,7 @@ msgstr ""
 msgid "Deleting %d of %d"
 msgstr "Sedang menghapus no. %d dari jumlah %d "
 
-#: Adapt_It.cpp:48072
+#: Adapt_It.cpp:48074
 msgid ""
 "Setup of the chapter and verse range failed. This printing operation has "
 "been aborted. Perhaps the document does not contain chapter or verse numbers "
@@ -2186,88 +2191,88 @@ msgstr ""
 "sudah dihentikan. Mungkin cakupan pasal atau ayatnya tidak sesuai dengan apa "
 "yang ada dalam dokumen ini."
 
-#: Adapt_It.cpp:48108
+#: Adapt_It.cpp:48110
 msgid ""
 "Setup of your chosen range of pages for printing, failed. This printing "
 "operation has been aborted. Please alert the developers."
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:48330
+#: Adapt_It.cpp:48332
 msgid "Locate the folder you wish to use for Adapt It work"
 msgstr "Cari map yang Anda ingin pakai untuk arsip-arsip Adapt It"
 
-#: Adapt_It.cpp:48443
+#: Adapt_It.cpp:48445
 #, c-format
 msgid ""
 "Adapt It needs to close the currently open project (%s) in order to set up "
 "collaboration with %s."
 msgstr ""
 
-#: Adapt_It.cpp:48485
+#: Adapt_It.cpp:48487
 msgid ""
 "There are no collaboration projects set up yet for this user. Use the "
 "\"Setup Or Remove Collaboration\" menu item on the Administrator menu to set "
 "up collaboration projects."
 msgstr ""
 
-#: Adapt_It.cpp:48486
+#: Adapt_It.cpp:48488
 msgid "No Adapt It collaboration projects found"
 msgstr ""
 
-#: Adapt_It.cpp:48541
+#: Adapt_It.cpp:48543
 #, c-format
 msgid ""
 "Chapter %s of the book %s is already marked to prevent changes from being "
 "transferred to %s, so ignoring the command."
 msgstr ""
 
-#: Adapt_It.cpp:48546
+#: Adapt_It.cpp:48548
 #, c-format
 msgid ""
 "The whole book %s is already marked to prevent changes from being "
 "transferred to %s, so ignoring the command."
 msgstr ""
 
-#: Adapt_It.cpp:48549 Adapt_It.cpp:48653
+#: Adapt_It.cpp:48551 Adapt_It.cpp:48655
 msgid "Command ignored"
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:48558 Adapt_It.cpp:48662
+#: Adapt_It.cpp:48560 Adapt_It.cpp:48664
 #: CollabProtectEditorBulkSettingsDlg.cpp:1521 GetSourceTextFromEditor.cpp:281
 msgid "Chapter"
 msgstr "Pasal"
 
-#: Adapt_It.cpp:48580
+#: Adapt_It.cpp:48582
 #, c-format
 msgid "Changes to %s will no longer be transferred to %s."
 msgstr ""
 
-#: Adapt_It.cpp:48582 Adapt_It.cpp:48686
+#: Adapt_It.cpp:48584 Adapt_It.cpp:48688
 msgid "Collaboration settings changed"
 msgstr ""
 
-#: Adapt_It.cpp:48645
+#: Adapt_It.cpp:48647
 #, c-format
 msgid ""
 "Chapter %s of the book %s is not marked to prevent changes from being "
 "transferred to %s, so ignoring the command."
 msgstr ""
 
-#: Adapt_It.cpp:48650
+#: Adapt_It.cpp:48652
 #, c-format
 msgid ""
 "The whole book %s is not marked to prevent changes from being transferred to "
 "%s, so ignoring the command."
 msgstr ""
 
-#: Adapt_It.cpp:48684
+#: Adapt_It.cpp:48686
 #, c-format
 msgid "Changes to %s will now be transferred to %s."
 msgstr ""
 
-#: Adapt_It.cpp:48920 GuesserAffixesListsDlg.cpp:423
+#: Adapt_It.cpp:48922 GuesserAffixesListsDlg.cpp:423
 #: KBSharingMgrTabbedDlg.cpp:749 MainFrm.cpp:2480
 #, c-format
 msgid ""
@@ -2282,21 +2287,21 @@ msgid ""
 "instead?"
 msgstr ""
 
-#: Adapt_It.cpp:48922 GuesserAffixesListsDlg.cpp:425
+#: Adapt_It.cpp:48924 GuesserAffixesListsDlg.cpp:425
 #: KBSharingMgrTabbedDlg.cpp:751 MainFrm.cpp:2482
 msgid "Browser launch error"
 msgstr ""
 
-#: Adapt_It.cpp:48926
+#: Adapt_It.cpp:48928
 msgid "Help for Administrators"
 msgstr "Bantuan untuk administrator"
 
 # Priority 1
-#: Adapt_It.cpp:48985
+#: Adapt_It.cpp:48987
 msgid "Type A Password"
 msgstr "Ketik Kata Sandi"
 
-#: Adapt_It.cpp:48987
+#: Adapt_It.cpp:48989
 msgid ""
 "The password can be a mix of letters, numbers and punctuation. Less than "
 "five characters will not be accepted.\n"
@@ -2306,16 +2311,16 @@ msgid ""
 msgstr ""
 
 # Refers to the typed password having less than four characters
-#: Adapt_It.cpp:49034
+#: Adapt_It.cpp:49036
 msgid "Too short."
 msgstr "Terlalu pendek."
 
 # Priority 1
-#: Adapt_It.cpp:49391
+#: Adapt_It.cpp:49393
 msgid "You failed to locate a valid work folder. Please try again."
 msgstr "Anda belum mendapatkan map kerja yang dapat dipakai. Harap coba lagi."
 
-#: Adapt_It.cpp:49442
+#: Adapt_It.cpp:49444
 #, c-format
 msgid ""
 "You have selected the following folder to be used as a custom work folder:\n"
@@ -2327,7 +2332,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_It.cpp:49892
+#: Adapt_It.cpp:49894
 msgid ""
 "Someone just opened the project folder on the remote computer, so you have "
 "READ-ONLY access."
@@ -2336,27 +2341,27 @@ msgstr ""
 "untuk sementara Anda hanya bisa membaca, tidak bisa mengubah."
 
 # Priority 1
-#: Adapt_It.cpp:49892 ReadOnlyProtection.cpp:1074
+#: Adapt_It.cpp:49894 ReadOnlyProtection.cpp:1074
 msgid "Another process owns write permission"
 msgstr "Proses yang lain memiliki hak mengubah"
 
 # Priority 1
-#: Adapt_It.cpp:50398 Adapt_It_wdr.cpp:725
+#: Adapt_It.cpp:50400 Adapt_It_wdr.cpp:725
 msgid "Source Font Name"
 msgstr "Nama Jenis Huruf Bahasa Sumber"
 
 # Priority 1
-#: Adapt_It.cpp:50483 Adapt_It_wdr.cpp:797
+#: Adapt_It.cpp:50485 Adapt_It_wdr.cpp:797
 msgid "Target Font Name"
 msgstr "Nama Jenis Huruf Bahasa Sasaran"
 
 # Priority 1
-#: Adapt_It.cpp:50568 Adapt_It_wdr.cpp:869
+#: Adapt_It.cpp:50570 Adapt_It_wdr.cpp:869
 msgid "Navigation Font Name"
 msgstr "Nama Jenis Huruf Bahasa Petunjuk"
 
 # Priority 1
-#: Adapt_It.cpp:50591
+#: Adapt_It.cpp:50593
 msgid ""
 "The following fonts (in the project configuration file) cannot be found on "
 "your computer:"
@@ -2365,7 +2370,7 @@ msgstr ""
 "tidak ditemukan di computer Anda:"
 
 # Priority 1
-#: Adapt_It.cpp:50594
+#: Adapt_It.cpp:50596
 #, c-format
 msgid ""
 "\n"
@@ -2380,34 +2385,34 @@ msgstr ""
 "\"Edit\"."
 
 # Priority 1
-#: Adapt_It.cpp:50596
+#: Adapt_It.cpp:50598
 msgid "Font name in configuration file not found"
 msgstr "Tidak menemukan jenis huruf yang disebut dalam arsip pengaturan"
 
 # Priority 1
-#: Adapt_It.cpp:50874 Adapt_It.cpp:51320 Adapt_It.cpp:51542 Adapt_It.cpp:51598
-#: Adapt_It.cpp:51645
+#: Adapt_It.cpp:50876 Adapt_It.cpp:51322 Adapt_It.cpp:51544 Adapt_It.cpp:51600
+#: Adapt_It.cpp:51647
 msgid "Unable to write updated config file, so just did nothing"
 msgstr "Tidak berhasil menyimpan perubahan pada arsip setelan"
 
 # Priority 1
-#: Adapt_It.cpp:51742
+#: Adapt_It.cpp:51744
 msgid "Export Knowledge Base"
 msgstr "Ekspor Kamus"
 
 # Priority 1
-#: Adapt_It.cpp:51828
+#: Adapt_It.cpp:51830
 msgid "dictionary records"
 msgstr "kata-kata dan frasa-frasa di kamus"
 
 # Priority 1
 # Label of a checkbox, which ticked activates glossing mode (editor puts the phrase box in the glossing line)
-#: Adapt_It.cpp:51832 Adapt_It.cpp:51878
+#: Adapt_It.cpp:51834 Adapt_It.cpp:51880
 msgid "glossing"
 msgstr "memberi arti kata"
 
 # Priority 1
-#: Adapt_It.cpp:51907
+#: Adapt_It.cpp:51909
 msgid ""
 "SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*."
 "*)|*.*||"
@@ -2416,21 +2421,21 @@ msgstr ""
 "*.txt|Semua Arsip (*.*)|*.*||"
 
 # Priority 1
-#: Adapt_It.cpp:51911
+#: Adapt_It.cpp:51913
 msgid "XML LIFT export (*.lift)|*.lift|All Files (*.*)|*.*||"
 msgstr "Ekspor dalam bentuk LIFT (*.lift)|*.lift|Semua Arsip (*.*)|*.*||"
 
 # Priority 1
-#: Adapt_It.cpp:51915
+#: Adapt_It.cpp:51917
 msgid "Filename For KB Export"
 msgstr "Nama arsip untuk ekspor Kamus Adaptasi"
 
 # Priority 1
-#: Adapt_It.cpp:51967
+#: Adapt_It.cpp:51969
 msgid "Unable to open knowledge base export file."
 msgstr "Tidak bisa membuka arsip untuk mengekspor Kamus Adaptasi."
 
-#: Adapt_It.cpp:52015 ExportFunctions.cpp:870 ExportFunctions.cpp:1895
+#: Adapt_It.cpp:52017 ExportFunctions.cpp:870 ExportFunctions.cpp:1895
 #: ExportFunctions.cpp:2056 ExportFunctions.cpp:8755 Retranslation.cpp:4698
 #, c-format
 msgid ""
@@ -2443,12 +2448,12 @@ msgid ""
 "%s"
 msgstr ""
 
-#: Adapt_It.cpp:52016 ExportFunctions.cpp:1896 ExportFunctions.cpp:2058
+#: Adapt_It.cpp:52018 ExportFunctions.cpp:1896 ExportFunctions.cpp:2058
 #: ExportFunctions.cpp:8757 Retranslation.cpp:4699
 msgid "Export operation successful"
 msgstr ""
 
-#: Adapt_It.cpp:54791 MainFrm.cpp:2832
+#: Adapt_It.cpp:54793 MainFrm.cpp:2832
 msgid "No KBserver discovered. Ensure one is running and then try again."
 msgstr ""
 
@@ -2492,7 +2497,7 @@ msgstr ""
 "dari Palang Alat."
 
 # Priority 1
-#: Adapt_ItCanvas.cpp:2141 Adapt_ItView.cpp:22390 Adapt_ItView.cpp:22438
+#: Adapt_ItCanvas.cpp:2141 Adapt_ItView.cpp:22396 Adapt_ItView.cpp:22444
 msgid ""
 "Sorry, you are trying to select text of different types, such as a heading "
 "and verse text, or some other illegal combination. Combining verse text with "
@@ -2571,13 +2576,13 @@ msgstr ""
 "Maaf, Adapt It tidak bisa bekerja dengan baik kalau Anda tidak sebutkan nama "
 "dokumen yang akan menjadi hasil akhir nanti. Coba lagi."
 
-#: Adapt_ItDoc.cpp:1165 CollabUtilities.cpp:2923
+#: Adapt_ItDoc.cpp:1171 CollabUtilities.cpp:2923
 msgid ""
 "Aborting document creation. A significant parsing error occurred. See View "
 "page of Preferences for how to produce a diagnostic log file on a retry."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:1258
+#: Adapt_ItDoc.cpp:1264
 msgid ""
 "Sorry, but there was no source language data in the file you input, so there "
 "is nothing to be displayed. Try a different file."
@@ -2586,25 +2591,25 @@ msgstr ""
 "tidak ada yang bisa dimunculkan. Coba arsip lain."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1371 Adapt_ItDoc.cpp:1399 Adapt_ItDoc.cpp:1437
-#: Adapt_ItView.cpp:23312 Adapt_ItView.cpp:23325 Adapt_ItView.cpp:23362
+#: Adapt_ItDoc.cpp:1377 Adapt_ItDoc.cpp:1405 Adapt_ItDoc.cpp:1443
+#: Adapt_ItView.cpp:23318 Adapt_ItView.cpp:23331 Adapt_ItView.cpp:23368
 #, c-format
 msgid "Error opening file %s."
 msgstr "Tidak dapat membuka arsip \"%s\"."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1383 Adapt_ItView.cpp:23323
+#: Adapt_ItDoc.cpp:1389 Adapt_ItView.cpp:23329
 msgid "The file you selected for input appears to be a binary file."
 msgstr "Arsip yang Anda pilih untuk data masukan sepertinya arsip biner."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1388
+#: Adapt_ItDoc.cpp:1394
 msgid "Adapt It cannot use Microsoft Word Document (doc) files as input files."
 msgstr ""
 "Adapt It tidak bisa menerima arsip dalam format Microsoft Word (doc, docx)."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1394
+#: Adapt_ItDoc.cpp:1400
 msgid ""
 "Adapt It cannot use OpenOffice's Open Document Text (odt) files as input "
 "files."
@@ -2613,39 +2618,39 @@ msgstr ""
 "(.odt)."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1397
+#: Adapt_ItDoc.cpp:1403
 msgid "Adapt It input files must be plain text files."
 msgstr ""
 "Adapt It hanya bisa menerima arsip dalam format teks biasa (misalnya .txt)."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1421 Adapt_ItView.cpp:23346
+#: Adapt_ItDoc.cpp:1427 Adapt_ItView.cpp:23352
 msgid "File read error: no data was read in"
 msgstr "Error membaca arsip:  data tidak dibaca"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1430 Adapt_ItView.cpp:23355
+#: Adapt_ItDoc.cpp:1436 Adapt_ItView.cpp:23361
 msgid "The file you selected for input is a Unicode file."
 msgstr "Arsip yang Anda pilih untuk data masukan adalah arsip Unicode."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1432 Adapt_ItView.cpp:23357
+#: Adapt_ItDoc.cpp:1438 Adapt_ItView.cpp:23363
 msgid "This Regular version of Adapt It cannot process Unicode text files."
 msgstr "Versi Adapt It ini tidak bisa menerima arsip Unicode."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1435 Adapt_ItView.cpp:23360
+#: Adapt_ItDoc.cpp:1441 Adapt_ItView.cpp:23366
 msgid ""
 "You should install and use the Unicode version of Adapt It to process "
 "Unicode text files."
 msgstr ""
 "Untuk menggunakan arsip Unicode, Anda harus memakai Adapt It versi Unicode."
 
-#: Adapt_ItDoc.cpp:1696
+#: Adapt_ItDoc.cpp:1702
 msgid "No username entered -- owner not changed."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:1816
+#: Adapt_ItDoc.cpp:1822
 msgid ""
 "Adapt It cannot maintain a history of its documents because the Git program "
 "is not installed on this computer. Git can be installed by selecting the "
@@ -2654,11 +2659,11 @@ msgid ""
 "computer for Git to work."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:1817
+#: Adapt_ItDoc.cpp:1823
 msgid "Git program is not available for use by Adapt It"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:1905 Adapt_ItDoc.cpp:2772
+#: Adapt_ItDoc.cpp:1911 Adapt_ItDoc.cpp:2778
 #, c-format
 msgid ""
 "Adapt It cannot transfer your work to %s while %s is running.\n"
@@ -2666,72 +2671,72 @@ msgid ""
 "shut it down. Then switch back to Adapt It and do the save operation again."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:1908 Adapt_ItDoc.cpp:2775
+#: Adapt_ItDoc.cpp:1914 Adapt_ItDoc.cpp:2781
 msgid "Collaboration editor is running"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:1914
+#: Adapt_ItDoc.cpp:1920
 msgid ""
 "Before saving in the document history, you must enter a username for "
 "yourself."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:1920
+#: Adapt_ItDoc.cpp:1926
 msgid "No username entered -- document not saved."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:1930
+#: Adapt_ItDoc.cpp:1936
 msgid "Sorry, it appears the owner of this document is "
 msgstr "Maaf, rupanya pemilik dokumen ini adalah "
 
-#: Adapt_ItDoc.cpp:1931
+#: Adapt_ItDoc.cpp:1937
 msgid " but the currently logged in user is "
 msgstr " tetapi Anda adalah "
 
-#: Adapt_ItDoc.cpp:1932
+#: Adapt_ItDoc.cpp:1938
 msgid ".  Only the document's owner can save in the document history."
 msgstr ". Hanya pemilik dokumen diizinkan menyimpan sejarah dokumen."
 
-#: Adapt_ItDoc.cpp:1962
+#: Adapt_ItDoc.cpp:1968
 msgid ""
 "Before saving in the document history, you must either ACCEPT the revision "
 "or RETURN to the latest one."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:2093
+#: Adapt_ItDoc.cpp:2099
 msgid "There are no more recent versions in the history!"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:2099 Adapt_ItDoc.cpp:2169
+#: Adapt_ItDoc.cpp:2105 Adapt_ItDoc.cpp:2175
 msgid "We're already back at the earliest version saved!"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:2163
+#: Adapt_ItDoc.cpp:2169
 msgid "There are no earlier versions saved!"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:2266
+#: Adapt_ItDoc.cpp:2272
 msgid "We're not looking at earlier revisions!"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:2365
+#: Adapt_ItDoc.cpp:2371
 msgid ""
 "This document was corrupt, but we have restored the latest version saved in "
 "the document history."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:2455 Adapt_ItDoc.cpp:2463
+#: Adapt_ItDoc.cpp:2461 Adapt_ItDoc.cpp:2469
 msgid "There are no previous versions in the history!"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:2682 Adapt_ItDoc.cpp:6008
+#: Adapt_ItDoc.cpp:2688 Adapt_ItDoc.cpp:6014
 msgid "Warning: document save failed for some reason.\n"
 msgstr "Peringatan:  dokumen tidak berhasil disimpan.\n"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:2716
+#: Adapt_ItDoc.cpp:2722
 msgid ""
 "Something went wrong. The adaptation document's file on disk was lost or "
 "destroyed. If the document is still visible, please click the Save command "
@@ -2742,12 +2747,12 @@ msgstr ""
 "segera."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:2717 Adapt_ItDoc.cpp:2735
+#: Adapt_ItDoc.cpp:2723 Adapt_ItDoc.cpp:2741
 msgid "Immediate Save Is Recommended"
 msgstr "Sebaiknya Simpan Segera"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:2733
+#: Adapt_ItDoc.cpp:2739
 msgid ""
 "Something went wrong. The adaptation document was not saved to disk. Please "
 "click the Save command on the File menu immediately, and if the error "
@@ -2762,20 +2767,20 @@ msgstr ""
 "harus hentikan Adapt It dan mulai lagi."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:2833
+#: Adapt_ItDoc.cpp:2839
 msgid "Please wait while the translation is sent to Paratext..."
 msgstr "Mohon Tunggu, Adapt It sedang mengirim terjemahan ke Paratext..."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:2837
+#: Adapt_ItDoc.cpp:2843
 msgid "Please wait while the translation is sent to Bibledit..."
 msgstr "Mohon Tunggu, Adapt It sedang mengirim terjemahan ke Bibledit..."
 
-#: Adapt_ItDoc.cpp:2897 Adapt_ItDoc.cpp:2997
+#: Adapt_ItDoc.cpp:2903 Adapt_ItDoc.cpp:3003
 msgid "Elevate Permission Level?"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:2898 Adapt_ItDoc.cpp:2998
+#: Adapt_ItDoc.cpp:2904 Adapt_ItDoc.cpp:3004
 msgid ""
 "Probably the owner of the text being transferred lacks Translator or "
 "Administrator permission level for the target text project within Paratext, "
@@ -2785,18 +2790,18 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:2954
+#: Adapt_ItDoc.cpp:2960
 msgid "Please wait while the free translation is sent to Paratext..."
 msgstr "Mohon Tunggu, Adapt It sedang mengirim terjemahan bebas ke Paratext..."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:2958
+#: Adapt_ItDoc.cpp:2964
 msgid "Please wait while the free translation is sent to Bibledit..."
 msgstr "Mohon Tunggu, Adapt It sedang mengirim terjemahan bebas ke Bibledit..."
 
 # Priority 1
 # Do not translate the |*.xml| or the |*.xml|| parts
-#: Adapt_ItDoc.cpp:3217
+#: Adapt_ItDoc.cpp:3223
 msgid ""
 "New XML format, for 6.0.0 and later (default)|*.xml|Legacy XML format, as in "
 "versions 3, 4 or 5. |*.xml||"
@@ -2805,12 +2810,12 @@ msgstr ""
 "xml|Format XML yang lama, misal versi 3, 4 atau 5. |*.xml||"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:3223
+#: Adapt_ItDoc.cpp:3229
 msgid "Save As"
 msgstr "Simpan Sebagai"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:3258
+#: Adapt_ItDoc.cpp:3264
 msgid ""
 "You must not use the Save As... dialog to change where Adapt It stores its "
 "document files. You can only rename the file, or make a different 'Save as "
@@ -2821,22 +2826,22 @@ msgstr ""
 "dan/atau menyimpan dengan jenis arsip yang lain."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:3259
+#: Adapt_ItDoc.cpp:3265
 msgid "Folder Change Is Not Allowed"
 msgstr "Tidak Boleh Memakai Map Lain"
 
-#: Adapt_ItDoc.cpp:3286
+#: Adapt_ItDoc.cpp:3292
 msgid ""
 "Adapt It documents cannot be renamed when collaborating with Paratext or "
 "Bibledit."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:3287
+#: Adapt_ItDoc.cpp:3293
 msgid "Cannot Change The Document's Filename"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:3306
+#: Adapt_ItDoc.cpp:3312
 #, c-format
 msgid ""
 "Filenames cannot include these characters: %s Please type a valid filename "
@@ -2846,12 +2851,12 @@ msgstr ""
 "yang tidak memakai karakter itu."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:3307
+#: Adapt_ItDoc.cpp:3313
 msgid "Bad Characters In Filename"
 msgstr "Karakter Tak Sah Di Nama Arsip"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:3317
+#: Adapt_ItDoc.cpp:3323
 msgid ""
 "The new filename you have typed conflicts with an existing filename. You "
 "cannot use that name, please type another."
@@ -2860,15 +2865,15 @@ msgstr ""
 "nama arsip yang berbeda."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:3318
+#: Adapt_ItDoc.cpp:3324
 msgid "Conflicting Filename"
 msgstr "Nama Arsip Sudah Ada"
 
-#: Adapt_ItDoc.cpp:3618
+#: Adapt_ItDoc.cpp:3624
 msgid "Warning: the attempt to backup the current document failed."
 msgstr "Peringatan: Adapt It gagal membuat arsip cadangan untuk dokumen ini."
 
-#: Adapt_ItDoc.cpp:3680
+#: Adapt_ItDoc.cpp:3686
 #, c-format
 msgid ""
 "This document (%s) is now saved on disk in the older (version 3, 4, 5) xml "
@@ -2880,37 +2885,37 @@ msgid ""
 "document, or exit from this version of Adapt It."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:3915 Adapt_ItDoc.cpp:3978
+#: Adapt_ItDoc.cpp:3921 Adapt_ItDoc.cpp:3984
 msgid ""
 "Warning: the SaveAs... attempt failed for some reason, the file was not "
 "created."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:3916 Adapt_ItDoc.cpp:3923 Adapt_ItDoc.cpp:3953
-#: Adapt_ItDoc.cpp:3979 Adapt_ItDoc.cpp:3986
+#: Adapt_ItDoc.cpp:3922 Adapt_ItDoc.cpp:3929 Adapt_ItDoc.cpp:3959
+#: Adapt_ItDoc.cpp:3985 Adapt_ItDoc.cpp:3992
 msgid "SaveAs... failed"
 msgstr "Simpan Sebagai... gagal"
 
-#: Adapt_ItDoc.cpp:3921 Adapt_ItDoc.cpp:3984
+#: Adapt_ItDoc.cpp:3927 Adapt_ItDoc.cpp:3990
 #, c-format
 msgid ""
 "Warning: the SaveAs... attempt failed for some reason, the file: %s was not "
 "created."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:3952
+#: Adapt_ItDoc.cpp:3958
 msgid ""
 "Warning: a SaveAs... file with the same name is illegal, so nothing was done."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:4460 Adapt_ItDoc.cpp:4466 Adapt_ItDoc.cpp:4486
-#: Adapt_ItDoc.cpp:4503 Adapt_ItDoc.cpp:4514 Adapt_ItDoc.cpp:4518
+#: Adapt_ItDoc.cpp:4466 Adapt_ItDoc.cpp:4472 Adapt_ItDoc.cpp:4492
+#: Adapt_ItDoc.cpp:4509 Adapt_ItDoc.cpp:4520 Adapt_ItDoc.cpp:4524
 msgid "Opening Document In Another Project"
 msgstr "Sedang Membuka Dokumen Dalam Proyek Lain"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:4500 Adapt_ItDoc.cpp:6396 CollabUtilities.cpp:2815
+#: Adapt_ItDoc.cpp:4506 Adapt_ItDoc.cpp:6402 CollabUtilities.cpp:2815
 msgid ""
 "There was an error parsing in the XML file.\n"
 "If you edited the XML file earlier, you may have introduced an error.\n"
@@ -2922,7 +2927,7 @@ msgstr ""
 "Ubahlah dengan program pengolah kata, lalu coba lagi."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:4511
+#: Adapt_ItDoc.cpp:4517
 msgid ""
 "Sorry, the wxWidgets version of Adapt It does not read legacy .adt document "
 "format; it only reads the .xml format."
@@ -2930,7 +2935,7 @@ msgstr ""
 "Maaf, versi Adapt It \"wxWidgets\" tidak membaca arsip lama yang menggunakan "
 "akhiran .adt; versi ini hanya bisa membaca format XML."
 
-#: Adapt_ItDoc.cpp:4832 Adapt_ItDoc.cpp:4836
+#: Adapt_ItDoc.cpp:4838 Adapt_ItDoc.cpp:4842
 #, c-format
 msgid "Warning: document backup failed for the path:  %s   No backup was done."
 msgstr ""
@@ -2938,7 +2943,7 @@ msgstr ""
 "ada cadangan yang dibuat."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:4875
+#: Adapt_ItDoc.cpp:4881
 #, c-format
 msgid ""
 "Could not remove the backed up document file: %s; the application will "
@@ -2947,7 +2952,7 @@ msgstr ""
 "Tidak bisa mengeluarkan arsip cadangan \"%s\".  Adapt It akan meneruskan "
 "saja."
 
-#: Adapt_ItDoc.cpp:4890
+#: Adapt_ItDoc.cpp:4896
 #, c-format
 msgid ""
 "Warning: document backup failed because the following name is not valid: "
@@ -2956,36 +2961,37 @@ msgstr ""
 "Peringatan: Adapt It gagal membuat cadangan dokumen karena nama ini tidak "
 "sah: %s    Tidak ada arsip cadangan yang dibuat."
 
-#: Adapt_ItDoc.cpp:4902
+#: Adapt_ItDoc.cpp:4908
 #, c-format
 msgid ""
 "Could not open a file stream for backup, in BackupDocument(), for file %s"
 msgstr ""
 
-#: Adapt_ItDoc.cpp:5814
+#: Adapt_ItDoc.cpp:5820
 #, c-format
 msgid "When transforming documents, the Open function failed, for the path: %s"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:5954
+#: Adapt_ItDoc.cpp:5960
 #, c-format
 msgid "The document %s has changed. Do you want to save it? "
 msgstr "Arsip \"%s\" sudah berubah.  Apakah Anda ingin menyimpannya? "
 
 # Priority 1
-#: Adapt_ItDoc.cpp:5978
+#: Adapt_ItDoc.cpp:5984
 #, c-format
 msgid "Saving file %s - %d of %d Total words and phrases"
 msgstr "Sedang menyimpan arsip \"%s\" - no. %d dari jumlah %d kata dan frasa"
 
-#: Adapt_ItDoc.cpp:6283 Adapt_ItDoc.cpp:6350 Adapt_ItDoc.cpp:6402
-#: Adapt_ItDoc.cpp:6419 Adapt_ItDoc.cpp:6503 Adapt_ItDoc.cpp:6518
-#: Adapt_ItDoc.cpp:6717 Adapt_ItDoc.cpp:6737 Adapt_ItDoc.cpp:6783
+#: Adapt_ItDoc.cpp:6289 Adapt_ItDoc.cpp:6356 Adapt_ItDoc.cpp:6408
+#: Adapt_ItDoc.cpp:6425 Adapt_ItDoc.cpp:6459 Adapt_ItDoc.cpp:6517
+#: Adapt_ItDoc.cpp:6532 Adapt_ItDoc.cpp:6731 Adapt_ItDoc.cpp:6751
+#: Adapt_ItDoc.cpp:6797
 msgid "Opening the Document"
 msgstr "Sedang membuka dokumen"
 
-#: Adapt_ItDoc.cpp:6513
+#: Adapt_ItDoc.cpp:6527
 msgid ""
 "Nothing was read in successfully.\n"
 "This can happen if the document being loaded was created with a later "
@@ -3003,7 +3009,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:6712 ExportFunctions.cpp:1938
+#: Adapt_ItDoc.cpp:6726 ExportFunctions.cpp:1938
 #, c-format
 msgid ""
 "Unable to open the file for exporting the target text with path:\n"
@@ -3013,26 +3019,26 @@ msgstr ""
 "%s"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:7897
+#: Adapt_ItDoc.cpp:7911
 #, c-format
 msgid "Pass 1 - %d of %d Total words and phrases"
 msgstr "Pemindaian 1:   no. %d dari jumlah %d  kata dan frasa"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:7901 Adapt_ItDoc.cpp:8864 Adapt_ItDoc.cpp:8908
-#: Adapt_ItDoc.cpp:8915 Adapt_ItDoc.cpp:9004 Adapt_ItDoc.cpp:9034
-#: Adapt_ItDoc.cpp:9682 Adapt_ItDoc.cpp:9687
+#: Adapt_ItDoc.cpp:7915 Adapt_ItDoc.cpp:8878 Adapt_ItDoc.cpp:8922
+#: Adapt_ItDoc.cpp:8929 Adapt_ItDoc.cpp:9018 Adapt_ItDoc.cpp:9048
+#: Adapt_ItDoc.cpp:9696 Adapt_ItDoc.cpp:9716
 msgid "Processing Filtering Change(s)"
 msgstr "Sedang Mengolah Perubahan Penyaringan"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:8913
+#: Adapt_ItDoc.cpp:8927
 #, c-format
 msgid "Pass 2 - %d of %d Total words and phrases"
 msgstr "Pemindaian 2:  no. %d dari jumlah %d  kata dan frasa"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:14617
+#: Adapt_ItDoc.cpp:14639
 msgid ""
 "Extended 8-bit ASCII characters were detected in your\n"
 "input document:"
@@ -3042,44 +3048,44 @@ msgstr ""
 
 # Priority 1
 # An abbreviation for "End of Footnote". Any translation should be as brief/short as possible
-#: Adapt_ItDoc.cpp:16165 ExportFunctions.cpp:5917 ExportFunctions.cpp:5922
+#: Adapt_ItDoc.cpp:16187 ExportFunctions.cpp:5917 ExportFunctions.cpp:5922
 #: Pile.cpp:1216
 msgid "end fn"
 msgstr "akhir fn"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:17354 ExportFunctions.cpp:3927 Retranslation.cpp:252
+#: Adapt_ItDoc.cpp:17376 ExportFunctions.cpp:3927 Retranslation.cpp:252
 #: Retranslation.cpp:268 Retranslation.cpp:4326
 #, c-format
 msgid "%s  - %d of %d Total words and phrases"
 msgstr "Arsip:   %s  Jumlah  kata dan frasa: no. %d dari jumlah %d kata/frasa"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:17359 Adapt_ItDoc.cpp:17453 Adapt_ItDoc.cpp:17473
-#: Adapt_ItDoc.cpp:17486 Adapt_ItDoc.cpp:17525 Adapt_ItDoc.cpp:17560
-#: Adapt_ItDoc.cpp:17578 Adapt_ItDoc.cpp:17601 Adapt_ItDoc.cpp:17614
-#: Adapt_ItDoc.cpp:17735 Adapt_ItDoc.cpp:17815
+#: Adapt_ItDoc.cpp:17381 Adapt_ItDoc.cpp:17475 Adapt_ItDoc.cpp:17495
+#: Adapt_ItDoc.cpp:17508 Adapt_ItDoc.cpp:17547 Adapt_ItDoc.cpp:17582
+#: Adapt_ItDoc.cpp:17600 Adapt_ItDoc.cpp:17623 Adapt_ItDoc.cpp:17636
+#: Adapt_ItDoc.cpp:17757 Adapt_ItDoc.cpp:17837
 msgid "Packing Document"
 msgstr "Sedang Memperpadat Dokumen"
 
 # Priority 1
 # Do not translate the (*.aip)|*.aip|| part.
-#: Adapt_ItDoc.cpp:17718 Adapt_ItDoc.cpp:21654
+#: Adapt_ItDoc.cpp:17740 Adapt_ItDoc.cpp:21676
 msgid "Packed Documents (*.aip)|*.aip||"
 msgstr "Dokumen-dokumen yang dipadatkan (*.aip)|*.aip||"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:17721
+#: Adapt_ItDoc.cpp:17743
 msgid "Filename For Packed Document"
 msgstr "Nama arsip untuk dokumen yang telah dipadatkan"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:17787 EmailReportDlg.cpp:513
+#: Adapt_ItDoc.cpp:17809 EmailReportDlg.cpp:513
 #, c-format
 msgid "Could not write to the packed/zipped file: %s"
 msgstr "Tidak bisa menulis data di arsip terpadat yang bernama \"%s\""
 
-#: Adapt_ItDoc.cpp:17810
+#: Adapt_ItDoc.cpp:17832
 #, c-format
 msgid ""
 "The packed document file was named:\n"
@@ -3099,11 +3105,11 @@ msgstr ""
 "%s"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:17811
+#: Adapt_ItDoc.cpp:17833
 msgid "Packing of document successful"
 msgstr "Sudah berhasil memadatkan dokumen"
 
-#: Adapt_ItDoc.cpp:18483
+#: Adapt_ItDoc.cpp:18505
 msgid ""
 "Before closing the document, you must either ACCEPT the revision or RETURN "
 "to the latest one."
@@ -3111,7 +3117,7 @@ msgstr ""
 "Sebelum menutup dokumen ini, Anda harus TERIMA perubahan atau KEMBALI ke "
 "versi sebelumnya."
 
-#: Adapt_ItDoc.cpp:18847
+#: Adapt_ItDoc.cpp:18869
 msgid ""
 "There were places where automatic rebuilding of the document potentially did "
 "not fully succeeded. Visually check and edit where necessary: "
@@ -3121,13 +3127,13 @@ msgstr ""
 "tidak terlihat, atau bahan yang terlihat tidak tersaring. Periksa dokumen "
 "dan ubah jika diperlukan."
 
-#: Adapt_ItDoc.cpp:18857
+#: Adapt_ItDoc.cpp:18879
 msgid ""
 "Locate the following chapter:verse locations for potential errors in the "
 "rebuild of the document. Visually check and edit where necessary: "
 msgstr ""
 
-#: Adapt_ItDoc.cpp:19115
+#: Adapt_ItDoc.cpp:19137
 msgid ""
 " ... for additional later locations needing manual editing please check the "
 "document visually. The full list has been saved in your project folder in "
@@ -3137,7 +3143,7 @@ msgstr ""
 "Daftar lengkap sudah disimpan dalam map proyek Anda sebagai dokumen "
 "\"Rebuild Log.txt\""
 
-#: Adapt_ItDoc.cpp:19123
+#: Adapt_ItDoc.cpp:19145
 msgid ""
 "    This list has been saved in your project folder in the file \"Rebuild "
 "Log.txt\""
@@ -3146,11 +3152,11 @@ msgstr ""
 "Log.txt\""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:21652
+#: Adapt_ItDoc.cpp:21674
 msgid "Load And Unpack The Compressed Document"
 msgstr "Muat dan uraikan kembali dokumen yang dipadatkan"
 
-#: Adapt_ItDoc.cpp:21697
+#: Adapt_ItDoc.cpp:21719
 #, c-format
 msgid ""
 "Choose a Packed Document from the following list:\n"
@@ -3158,7 +3164,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:21756
+#: Adapt_ItDoc.cpp:21778
 #, c-format
 msgid ""
 "Error uncompressing; cannot open the file: %s\n"
@@ -3169,7 +3175,7 @@ msgstr ""
 
 # Priority 1
 # The %s refers to a file name
-#: Adapt_ItDoc.cpp:21772
+#: Adapt_ItDoc.cpp:21794
 #, c-format
 msgid "Error removing %s after unpack document command."
 msgstr ""
@@ -3177,7 +3183,7 @@ msgstr ""
 "terpadat\"."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:22088
+#: Adapt_ItDoc.cpp:22110
 msgid ""
 "There is a document of the same name in an Adapt It project of the same name "
 "on this computer."
@@ -3186,7 +3192,7 @@ msgstr ""
 "sama di komputer ini."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:22089
+#: Adapt_ItDoc.cpp:22111
 #, c-format
 msgid ""
 "\n"
@@ -3197,7 +3203,7 @@ msgstr ""
 
 # Priority 1
 # The %s refers to the path of the project
-#: Adapt_ItDoc.cpp:22090
+#: Adapt_ItDoc.cpp:22112
 #, c-format
 msgid ""
 "\n"
@@ -3207,7 +3213,7 @@ msgstr ""
 "      Jalur proyek : %s"
 
 # Do not translate the %s%s%s part
-#: Adapt_ItDoc.cpp:22092
+#: Adapt_ItDoc.cpp:22114
 #, c-format
 msgid ""
 "%s%s%s\n"
@@ -3220,13 +3226,13 @@ msgstr ""
 
 # Priority 1
 # The %s refers to a file name
-#: Adapt_ItDoc.cpp:22109
+#: Adapt_ItDoc.cpp:22131
 #, c-format
 msgid "Failed removing %s before overwrite."
 msgstr "Gagal mengeluarkan %s sebelum menulis data."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:22188
+#: Adapt_ItDoc.cpp:22210
 #, c-format
 msgid "Error renaming earlier configuration file with path %s."
 msgstr ""
@@ -3235,12 +3241,12 @@ msgstr ""
 
 # Priority 1
 # Leave two spaces at the beginning.
-#: Adapt_ItDoc.cpp:22190
+#: Adapt_ItDoc.cpp:22212
 msgid "  Aborting the command."
 msgstr "  Sedang menghentikan pelaksanaan perintah."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:22209
+#: Adapt_ItDoc.cpp:22231
 #, c-format
 msgid ""
 "Unable to open the file for writing out the UTF-8 project configuration "
@@ -3252,14 +3258,14 @@ msgstr ""
 "%s"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:22226
+#: Adapt_ItDoc.cpp:22248
 #, c-format
 msgid "Error restoring name of earlier configuration file with path %s."
 msgstr "Error waktu coba memulihkan arsip pengaturan yang lama di jalur %s."
 
 # Priority 1
 # Sentence starts with two spaces
-#: Adapt_ItDoc.cpp:22229
+#: Adapt_ItDoc.cpp:22251
 msgid ""
 "  Exit Adapt It and manually change .BAK to .aic for the project "
 "configuration file."
@@ -3267,13 +3273,13 @@ msgstr ""
 "  Keluarlah dari Adapt It lalu ganti akhiran .BAK dengan akhiran .aic di "
 "arsip pengaturan proyek."
 
-#: Adapt_ItDoc.cpp:22245
+#: Adapt_ItDoc.cpp:22267
 msgid "Writing out the project configuration file's content failed."
 msgstr "Tidak berhasil menulis isi arsip pengaturan proyek."
 
 # Priority 1
 # Sentence starts with a space
-#: Adapt_ItDoc.cpp:22248
+#: Adapt_ItDoc.cpp:22270
 msgid ""
 " Exit Adapt It, and in Windows Explorer manually restore the .BAK extension "
 "on the renamed project configuration file to .aic before launching again. "
@@ -3283,14 +3289,14 @@ msgstr ""
 "arsip pengaturan proyek menjadi .aic, baru jalankan Adapt It lagi.  Awas, "
 "mungkin arsip pengaturan itu sudah rusak."
 
-#: Adapt_ItDoc.cpp:22266
+#: Adapt_ItDoc.cpp:22288
 msgid ""
 "Removing the renamed earlier project configuration file failed. Do it "
 "manually later in Windows Explorer - it has a .BAK extension."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:22301
+#: Adapt_ItDoc.cpp:22323
 #, c-format
 msgid ""
 "Unable to open the xml text file for writing to doc folder, with path:\n"
@@ -3300,12 +3306,12 @@ msgstr ""
 "%s"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:22314
+#: Adapt_ItDoc.cpp:22336
 msgid "Writing out the xml document file's content failed."
 msgstr "Gagal menulis isi arsip dokumen XML."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:22333
+#: Adapt_ItDoc.cpp:22355
 msgid ""
 "Opening the xml document file for Unpack Document... failed. (It was stored "
 "successfully on disk. Try opening it with the Open command on the File menu.)"
@@ -3315,11 +3321,11 @@ msgstr ""
 "\"Buka\" di menu \"Berkas\".)"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:22359
+#: Adapt_ItDoc.cpp:22381
 msgid "A message about knowledge base sharing"
 msgstr "Tentang pembagian kamus"
 
-#: Adapt_ItDoc.cpp:22363
+#: Adapt_ItDoc.cpp:22385
 #, c-format
 msgid ""
 "The person who packed the document was sharing the adaptations knowledge "
@@ -3328,7 +3334,7 @@ msgid ""
 "be shared, you may wish to do the same."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:22369
+#: Adapt_ItDoc.cpp:22391
 #, c-format
 msgid ""
 "The person who packed the document was sharing the glossing knowledge base "
@@ -3337,7 +3343,7 @@ msgid ""
 "be shared, you may wish to do the same."
 msgstr ""
 
-#: Adapt_ItDoc.cpp:22376
+#: Adapt_ItDoc.cpp:22398
 #, c-format
 msgid ""
 "The person who packed the document was sharing both the adapting and the "
@@ -3347,35 +3353,35 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:22733 Adapt_ItDoc.cpp:23066 Adapt_ItDoc.cpp:23070
-#: Adapt_ItDoc.cpp:23139 Adapt_ItDoc.cpp:23240 Adapt_ItDoc.cpp:23276
-#: Adapt_ItDoc.cpp:23280 Adapt_ItDoc.cpp:23329 Adapt_ItDoc.cpp:23333
-#: Adapt_ItDoc.cpp:23350 Adapt_ItDoc.cpp:23362 Adapt_ItDoc.cpp:23376
-#: Adapt_ItDoc.cpp:23398
+#: Adapt_ItDoc.cpp:22755 Adapt_ItDoc.cpp:23088 Adapt_ItDoc.cpp:23092
+#: Adapt_ItDoc.cpp:23161 Adapt_ItDoc.cpp:23262 Adapt_ItDoc.cpp:23298
+#: Adapt_ItDoc.cpp:23302 Adapt_ItDoc.cpp:23351 Adapt_ItDoc.cpp:23355
+#: Adapt_ItDoc.cpp:23372 Adapt_ItDoc.cpp:23384 Adapt_ItDoc.cpp:23398
+#: Adapt_ItDoc.cpp:23420
 msgid "Performing Consistency Check"
 msgstr "Sedang Mengecek Keseragaman"
 
-#: Adapt_ItDoc.cpp:23060
+#: Adapt_ItDoc.cpp:23082
 msgid ""
 "No document is open. First have a document open, then the choice to check it "
 "will work."
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:23070
+#: Adapt_ItDoc.cpp:23092
 msgid "Checking current document"
 msgstr "Sedang mengecek dokumen ini"
 
-#: Adapt_ItDoc.cpp:23134 Adapt_ItDoc.cpp:23180
+#: Adapt_ItDoc.cpp:23156 Adapt_ItDoc.cpp:23202
 msgid "Checking Book"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:23240 Adapt_ItDoc.cpp:23280 Adapt_ItDoc.cpp:23711
+#: Adapt_ItDoc.cpp:23262 Adapt_ItDoc.cpp:23302 Adapt_ItDoc.cpp:23733
 msgid "Starting Consistency Check"
 msgstr "Sedang Memulai Cek Keseragaman"
 
-#: Adapt_ItDoc.cpp:23248
+#: Adapt_ItDoc.cpp:23270
 msgid ""
 "There are no saved document files yet for this project. At least one "
 "document file is required for the operation you chose to be successful. The "
@@ -3386,17 +3392,17 @@ msgstr ""
 "yang disimpan. Perintah ini akan dihentikan."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:23333
+#: Adapt_ItDoc.cpp:23355
 msgid "Cleaning up..."
 msgstr "Sedang membereskan..."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:23350
+#: Adapt_ItDoc.cpp:23372
 msgid "Finishing Consistency Check"
 msgstr "Sedang Menyelesaikan Cek Keseragaman"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:23358
+#: Adapt_ItDoc.cpp:23380
 #, c-format
 msgid ""
 "The consistency check was successful. There were %d source words and "
@@ -3406,49 +3412,49 @@ msgstr ""
 "%d arsip."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:23376
+#: Adapt_ItDoc.cpp:23398
 msgid "Saving Current Document"
 msgstr "Sedang Menyimpan Dokumen"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:23382
+#: Adapt_ItDoc.cpp:23404
 msgid "Could not save the current document. Consistency Check Command aborted."
 msgstr ""
 "Tidak bisa menyimpan dokumen yang sedang dikerjakan.  Cek Keseragaman sudah "
 "dihentikan."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:23711 Adapt_ItDoc.cpp:23744 Adapt_ItDoc.cpp:25548
+#: Adapt_ItDoc.cpp:23733 Adapt_ItDoc.cpp:23766 Adapt_ItDoc.cpp:25570
 #: ChooseConsistencyCheckTypeDlg.cpp:60
 msgid "Consistency Check"
 msgstr "Cek Keseragaman"
 
-#: Adapt_ItDoc.cpp:23743
+#: Adapt_ItDoc.cpp:23765
 #, c-format
 msgid "Checking: %s (file %d of %d)"
 msgstr "Sedang memeriksa:  %s  (arsip no. %d dari jumlah %d arsip)"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:25533 Adapt_ItDoc.cpp:26420
+#: Adapt_ItDoc.cpp:25555 Adapt_ItDoc.cpp:26442
 msgid "Warning: failure on document save operation."
 msgstr "Peringatan:  gagal waktu coba menyimpan dokumen."
 
 # Priority 1
-#: Adapt_ItDoc.cpp:26751 UsfmFilterPage.cpp:362
+#: Adapt_ItDoc.cpp:26773 UsfmFilterPage.cpp:362
 msgid "[UNKNOWN MARKER]"
 msgstr "[PENANDA TAK DIKENAL]"
 
 # Priority 1
-#: Adapt_ItDoc.cpp:26760
+#: Adapt_ItDoc.cpp:26782
 msgid "[FILTERED]"
 msgstr "[TERSARING]"
 
-#: Adapt_ItDoc.cpp:27298
+#: Adapt_ItDoc.cpp:27320
 msgid "Set or Clear a Book Name"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItDoc.cpp:28242 Adapt_ItDoc.cpp:30513
+#: Adapt_ItDoc.cpp:28264 Adapt_ItDoc.cpp:30535
 #, c-format
 msgid ""
 "Adapt It does not recognise this marker: %s which is in the input file.\n"
@@ -3641,7 +3647,7 @@ msgstr ""
 
 # Priority 1
 # begins with a space
-#: Adapt_ItView.cpp:11690 Adapt_ItView.cpp:22315
+#: Adapt_ItView.cpp:11690 Adapt_ItView.cpp:22321
 msgid " Medial markers: "
 msgstr " Penanda tengah: "
 
@@ -3745,8 +3751,8 @@ msgid ""
 "enter your project again."
 msgstr ""
 
-#: Adapt_ItView.cpp:17261 Adapt_ItView.cpp:17321 Adapt_ItView.cpp:17383
-#: Adapt_ItView.cpp:17468
+#: Adapt_ItView.cpp:17267 Adapt_ItView.cpp:17327 Adapt_ItView.cpp:17389
+#: Adapt_ItView.cpp:17474
 msgid ""
 "Sorry, the Go To command failed. No valid location for the phrase box could "
 "be found before or after your chosen chapter and verse. (Are all your "
@@ -3756,7 +3762,7 @@ msgstr ""
 "yang benar untuk kotak frasa sebelum atau sesudah pasal dan ayat yang Anda "
 "pilih. (Apakah semua adaptasi Anda berbentuk terjemahan ulang?)"
 
-#: Adapt_ItView.cpp:17508
+#: Adapt_ItView.cpp:17514
 #, c-format
 msgid ""
 "Sorry, but the chapter and verse combination  %s  does not exist in this "
@@ -3766,51 +3772,51 @@ msgstr ""
 "ini akan dibatalkan."
 
 # Priority 1
-#: Adapt_ItView.cpp:21332 Adapt_ItView.cpp:21423 Adapt_It_wdr.cpp:11936
+#: Adapt_ItView.cpp:21338 Adapt_ItView.cpp:21429 Adapt_It_wdr.cpp:11936
 msgid "Layout Window Right To Left\tCtrl-1"
 msgstr "Letak Jendela Kanan Ke Kiri\tCtrl-1"
 
 # Priority 1
-#: Adapt_ItView.cpp:21348 Adapt_ItView.cpp:21402
+#: Adapt_ItView.cpp:21354 Adapt_ItView.cpp:21408
 msgid "Layout Window Left To Right\tCtrl-Shift-1"
 msgstr "Letak Jendela Kiri Ke Kanan\tCtrl-Shift-1"
 
 # Priority 1
-#: Adapt_ItView.cpp:21350 Adapt_ItView.cpp:21404
+#: Adapt_ItView.cpp:21356 Adapt_ItView.cpp:21410
 msgid "Layout Window Left To Right\tCtrl-1"
 msgstr "Letak Jendela Kiri Ke Kanan\tCtrl-1"
 
 # Priority 1
-#: Adapt_ItView.cpp:21677
+#: Adapt_ItView.cpp:21683
 msgid "Stop Selection At Boundaries"
 msgstr "Hentikan pilihan ketika sampai di batas"
 
 # Priority 1
-#: Adapt_ItView.cpp:21779
+#: Adapt_ItView.cpp:21785
 msgid "Show Punctuation"
 msgstr "Tunjukkan tanda baca"
 
-#: Adapt_ItView.cpp:21941
+#: Adapt_ItView.cpp:21947
 msgid "Show Source And Target Text"
 msgstr "Tunjukkan Teks Sumber dan Sasaran"
 
 # Priority 1
-#: Adapt_ItView.cpp:22092
+#: Adapt_ItView.cpp:22098
 msgid "No punctuation copy"
 msgstr "Tidak mengaktifkan salinan tanda baca"
 
 # Priority 1
-#: Adapt_ItView.cpp:22113
+#: Adapt_ItView.cpp:22119
 msgid "Enable Punctuation Copy"
 msgstr "Mengaktifkan Salinan Tanda Baca"
 
 # Priority 1
-#: Adapt_ItView.cpp:22734
+#: Adapt_ItView.cpp:22740
 msgid "Import to Knowledge Base"
 msgstr "Impor ke Kamus Adaptasi..."
 
 # Priority 1
-#: Adapt_ItView.cpp:22851
+#: Adapt_ItView.cpp:22857
 msgid ""
 "SFM plain text import (from \\lx & \\ge fields) (*.txt)|*.txt|All Files (*."
 "*)|*.*||"
@@ -3819,41 +3825,41 @@ msgstr ""
 "Arsip (*.*)|*.*||"
 
 # Priority 1
-#: Adapt_ItView.cpp:22856
+#: Adapt_ItView.cpp:22862
 msgid "XML LIFT import (*.lift)|*.lift|All Files (*.*)|*.*||"
 msgstr "Impor kamus LIFT (*.lift)|*.lift|Semua Arsip (*.*)|*.*||"
 
-#: Adapt_ItView.cpp:22861
+#: Adapt_ItView.cpp:22867
 msgid "Filename for KB import"
 msgstr ""
 
-#: Adapt_ItView.cpp:22895
+#: Adapt_ItView.cpp:22901
 msgid "Import KB Records from SFM File"
 msgstr ""
 
-#: Adapt_ItView.cpp:22902
+#: Adapt_ItView.cpp:22908
 msgid "Import KB Records from LIFT File"
 msgstr ""
 
-#: Adapt_ItView.cpp:22921
+#: Adapt_ItView.cpp:22927
 #, c-format
 msgid ""
 "Choose a file from the following list:\n"
 "(from the location: %s):"
 msgstr ""
 
-#: Adapt_ItView.cpp:23052
+#: Adapt_ItView.cpp:23058
 msgid ""
 "Import your edited version of the source text which belongs to the currently "
 "open document"
 msgstr ""
 
 # Priority 1
-#: Adapt_ItView.cpp:23055
+#: Adapt_ItView.cpp:23061
 msgid "SFM plain text import(*.txt)|*.txt|All Files (*.*)|*.*||"
 msgstr "Impor teks dalam format SFM (*.txt)|*.txt|Semua Arsip (*.*)|*.*||"
 
-#: Adapt_ItView.cpp:23202
+#: Adapt_ItView.cpp:23208
 msgid ""
 "Warning: there was no source language data in the file you imported, so the "
 "document has not been changed."
@@ -12831,29 +12837,30 @@ msgstr ""
 
 # Priority 1
 #: CollabUtilities.cpp:2850 CollabUtilities.cpp:2892 CollabUtilities.cpp:2901
-#: CollabUtilities.cpp:2908 CollabUtilities.cpp:2919 CollabUtilities.cpp:2943
-#: CollabUtilities.cpp:2955 CollabUtilities.cpp:2961 CollabUtilities.cpp:2978
-#: CollabUtilities.cpp:3001 CollabUtilities.cpp:3022 CollabUtilities.cpp:3028
-#: CollabUtilities.cpp:3108 CollabUtilities.cpp:3161 CollabUtilities.cpp:3164
+#: CollabUtilities.cpp:2908 CollabUtilities.cpp:2919 CollabUtilities.cpp:2937
+#: CollabUtilities.cpp:2945 CollabUtilities.cpp:2957 CollabUtilities.cpp:2963
+#: CollabUtilities.cpp:2980 CollabUtilities.cpp:3003 CollabUtilities.cpp:3024
+#: CollabUtilities.cpp:3030 CollabUtilities.cpp:3110 CollabUtilities.cpp:3163
+#: CollabUtilities.cpp:3166
 msgid "Merging Documents..."
 msgstr "Sedang menggabungkan dokumen-dokumen..."
 
-#: CollabUtilities.cpp:4302
+#: CollabUtilities.cpp:4304
 #, c-format
 msgid "Source project (%s) does not have any books created in it."
 msgstr ""
 
-#: CollabUtilities.cpp:4323
+#: CollabUtilities.cpp:4325
 #, c-format
 msgid "Target project (%s) does not have any books created in it."
 msgstr ""
 
-#: CollabUtilities.cpp:4344
+#: CollabUtilities.cpp:4346
 #, c-format
 msgid "Free Translation project (%s) does not have any books created in it."
 msgstr ""
 
-#: CollabUtilities.cpp:4624
+#: CollabUtilities.cpp:4626
 #, c-format
 msgid ""
 "Adapt It cannot find the helper application %s at the following location:\n"
@@ -12864,7 +12871,7 @@ msgid ""
 "Administrators (HTML) on the Help Menu."
 msgstr ""
 
-#: CollabUtilities.cpp:4632
+#: CollabUtilities.cpp:4634
 #, c-format
 msgid ""
 "Adapt It cannot execute the helper application %s at the following "
@@ -12878,56 +12885,56 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: CollabUtilities.cpp:6991
+#: CollabUtilities.cpp:6993
 msgid "free translation"
 msgstr "terjemahan bebas"
 
 # Priority 1
-#: CollabUtilities.cpp:7041
+#: CollabUtilities.cpp:7043
 msgid "translation"
 msgstr "terjemahan"
 
-#: CollabUtilities.cpp:10344
+#: CollabUtilities.cpp:10346
 #, c-format
 msgid "Getting the chapter and laying out the document... step %d of %d"
 msgstr ""
 "Sedang menerima pasal dan mengatur dokumen... langkah no. %d dari jumlah %d "
 "langkah"
 
-#: CollabUtilities.cpp:10348
+#: CollabUtilities.cpp:10350
 #, c-format
 msgid "Getting the book and laying out the document... step %d of %d"
 msgstr ""
 "Sedang menerima kitab dan mengatur dokumen... langkah no. %d dari jumlah %d "
 "langkah"
 
-#: CollabUtilities.cpp:10353 CollabUtilities.cpp:10357
-#: CollabUtilities.cpp:10361 CollabUtilities.cpp:10405
-#: CollabUtilities.cpp:10439 CollabUtilities.cpp:10529
-#: CollabUtilities.cpp:10690 CollabUtilities.cpp:10742
-#: CollabUtilities.cpp:10804 CollabUtilities.cpp:10843
-#: CollabUtilities.cpp:10851 CollabUtilities.cpp:10879
-#: CollabUtilities.cpp:10907 CollabUtilities.cpp:10947
-#: CollabUtilities.cpp:10964 CollabUtilities.cpp:10970
-#: CollabUtilities.cpp:11019 CollabUtilities.cpp:11029
-#: CollabUtilities.cpp:11035 CollabUtilities.cpp:11103
-#: CollabUtilities.cpp:11114
+#: CollabUtilities.cpp:10355 CollabUtilities.cpp:10359
+#: CollabUtilities.cpp:10363 CollabUtilities.cpp:10407
+#: CollabUtilities.cpp:10441 CollabUtilities.cpp:10531
+#: CollabUtilities.cpp:10692 CollabUtilities.cpp:10744
+#: CollabUtilities.cpp:10806 CollabUtilities.cpp:10845
+#: CollabUtilities.cpp:10853 CollabUtilities.cpp:10881
+#: CollabUtilities.cpp:10909 CollabUtilities.cpp:10956
+#: CollabUtilities.cpp:10973 CollabUtilities.cpp:10979
+#: CollabUtilities.cpp:11028 CollabUtilities.cpp:11038
+#: CollabUtilities.cpp:11044 CollabUtilities.cpp:11112
+#: CollabUtilities.cpp:11123
 msgid "Getting Document for Collaboration"
 msgstr ""
 
-#: CollabUtilities.cpp:10416
+#: CollabUtilities.cpp:10418
 msgid ""
 "Could not read data from the Paratext/Bibledit projects. Please submit a "
 "problem report to the Adapt It developers (see the Help menu)."
 msgstr ""
 
-#: CollabUtilities.cpp:10840
+#: CollabUtilities.cpp:10842
 msgid ""
 "The document was corrupt, but we have successfully restored the last version "
 "saved in the history.  Please re-attempt what you were doing."
 msgstr ""
 
-#: CollabUtilities.cpp:10867
+#: CollabUtilities.cpp:10869
 msgid ""
 "The Copy Source (to Target) command on View Menu is temporarily turned off "
 "because the source text was edited outside of Adapt It.\n"
@@ -12938,7 +12945,7 @@ msgid ""
 "translation too."
 msgstr ""
 
-#: CollabUtilities.cpp:10961
+#: CollabUtilities.cpp:10970
 msgid ""
 "Unexpected (non-fatal) error when trying to load source text obtained from "
 "the external editor.\n"
@@ -12957,18 +12964,18 @@ msgid ""
 "likely a problem in the structure of the source text."
 msgstr ""
 
-#: CollabUtilities.cpp:11193
+#: CollabUtilities.cpp:11202
 msgid "[none assigned]"
 msgstr ""
 
-#: CollabUtilities.cpp:11194 ProjectPage.cpp:747
+#: CollabUtilities.cpp:11203 ProjectPage.cpp:747
 #, c-format
 msgid ""
 "When opening the %s project Adapt It detected the following error(s):\n"
 "\n"
 msgstr ""
 
-#: CollabUtilities.cpp:11198
+#: CollabUtilities.cpp:11207
 #, c-format
 msgid ""
 "The Adapt It project \"%s\" was previously setup for collaboration with %s, "
@@ -12996,7 +13003,7 @@ msgid ""
 "Do you want to remove collaboration settings from this \"%s\" project?"
 msgstr ""
 
-#: CollabUtilities.cpp:11222 ProjectPage.cpp:750
+#: CollabUtilities.cpp:11231 ProjectPage.cpp:750
 msgid "This project's collaboration settings are invalid"
 msgstr ""
 
@@ -17584,12 +17591,12 @@ msgstr ""
 msgid "Discovery of running KBservers is happening..."
 msgstr ""
 
-#: WaitDlg.cpp:227
+#: WaitDlg.cpp:228
 msgid ""
 "Retrying, and making a log file in folder _LOGS_EMAIL_REPORTS. It is slow..."
 msgstr ""
 
-#: WaitDlg.cpp:230
+#: WaitDlg.cpp:231
 msgid "Please wait: all widths are being resized, then strips created again"
 msgstr ""
 
@@ -17888,11 +17895,6 @@ msgstr "< &Balik"
 #: scrollingwizard.cpp:590
 msgid "&Finish"
 msgstr "Selesaikan"
-
-# Priority 1
-#: AIPrintPreviewFrame.h:35
-msgid "Print Preview"
-msgstr "Lihat Dokumen Seakan-akan Dicetak"
 
 #~ msgid "KBservers? Search number %d of %d"
 #~ msgstr "KBservers?  Cari no. %d dari jumlah %d "
