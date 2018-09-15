@@ -14990,7 +14990,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
     pApp->m_pTargetBox->m_nWordsInPhrase = 0;
 	pApp->pCurTargetUnit = (CTargetUnit*)NULL;
 #if defined (_DEBUG)
-	wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d  - Starting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14475,
+	wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d  - Starting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), __LINE__,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 
@@ -15072,7 +15072,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 			RemovePunctuation(GetDocument(),&temp,from_target_text);
 		}
 #if defined (_DEBUG)
-		wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d  - before StoreText(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14557,
+		wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d  - before StoreText(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), __LINE__,
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 		// TRUE in the next call means we can store an empty adaptation or gloss
@@ -15081,7 +15081,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		bOK = bOK; // avoid warning
 	}
 #if defined (_DEBUG)
-	wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d  - after StoreText(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14566,
+	wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d  - after StoreText(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), __LINE__,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 	// Get a pointer to the target unit for the current key
@@ -15105,7 +15105,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 #if defined (_DEBUG)
-		wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d before ShowModal(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14590,
+		wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d before ShowModal(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), __LINE__,
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 
@@ -15125,7 +15125,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
                 pApp->m_pTargetBox->m_bEmptyAdaptationChosen = TRUE; // enable PlacePhraseBox to use the
 												// null string chosen
 #if defined (_DEBUG)
-			wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d after ShowModal() wxID_OK, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14610,
+			wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d after ShowModal() wxID_OK, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), __LINE__,
 				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 		}
@@ -15143,7 +15143,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		//if (!gbIsGlossing && !bCancelled)
 		{
 #if defined (_DEBUG)
-			wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d Start simpler code block, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14628,
+			wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d Start simpler code block, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), __LINE__,
 				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 			int len = pApp->m_pTargetBox->GetTextCtrl()->GetLineLength(0); // whm 12Jul2018 added GetTextCtrl()-> part
@@ -15164,7 +15164,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 			//pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE; // gotta restore initialized value before leaving here
 
 #if defined (_DEBUG)
-			wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d returning, at end simpler code block, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14642,
+			wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d returning, at end simpler code block, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), __LINE__,
 				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 			return;
@@ -15179,7 +15179,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		if (!bEmptyBox)
 		{
 #if defined (_DEBUG)
-			wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d Start, legacy code, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14657,
+			wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d Start, legacy code, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), __LINE__,
 				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 
@@ -15245,7 +15245,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
         // handler.
         pApp->m_pTargetBox->m_Translation.Empty(); // If the PlaceBox() call can be removed, this can go back into Layout's PlaceBox() after the PopulateDropDownList() call
 #if defined (_DEBUG)
-		wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d End legacy code block, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 14722,
+		wxLogDebug(_T("view, OnButtonChooseTranslation, line  %d End legacy code block, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), __LINE__,
 			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 	}
@@ -17117,13 +17117,21 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 		pApp->LogUserAction(_T("KB Editor menu item disabled"));
 		return;
 	}
+#if defined (_DEBUG)
+    wxLogDebug(_T("view, OnToolsKbEditor, line  %d  - Starting, pApp->m_targetPhrase = %s phrasebox = %s ctItems = %d"), __LINE__,
+        pApp->m_targetPhrase.c_str(),pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str(), pApp->m_pTargetBox->GetDropDownList()->GetCount());
+#endif
 
 	CKBEditor editorPage(pApp->GetMainFrame());
 	editorPage.Centre();
 
 	if (editorPage.ShowModal() == wxID_OK)
 	{
-		// make the user's changes to the KB persistent (FALSE = no Auto backup)
+#if defined (_DEBUG)
+        wxLogDebug(_T("view, OnToolsKbEditor, line  %d  - After wxID_OK, pApp->m_targetPhrase = %s phrasebox = %s ctItems = %d"), __LINE__,
+            pApp->m_targetPhrase.c_str(), pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str(), pApp->m_pTargetBox->GetDropDownList()->GetCount());
+#endif
+        // make the user's changes to the KB persistent (FALSE = no Auto backup)
 		// whm TODO: Saving of KBs should only be done if a change was made in the KB Editor
 		if (gbIsGlossing)
 			pApp->SaveGlossingKB(FALSE);
@@ -17154,8 +17162,39 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 	{
 		// a layout exists
 		GetLayout()->Redraw();
+#if defined (_DEBUG)
+        wxLogDebug(_T("view, OnToolsKbEditor, line  %d  - BEFORE PlaceBox, pApp->m_targetPhrase = %s phrasebox = %s ctItems = %d"), __LINE__,
+            pApp->m_targetPhrase.c_str(), pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str(), pApp->m_pTargetBox->GetDropDownList()->GetCount());
+#endif
+        // whm 11Sept2018 Note: The user may have changed the KB entries within the KBEditor before
+        // it was dismissed above. Therefore we leave the PlaceBox() call below without adding the
+        // noDropDownInitialization parameter in its call - which then uses the default initializeDropDown
+        // enum internally and calls the SetupDropDownPhraseBoxForThisLocation() to initialize the dropdown
+        // list - to include any changes made in the editor.
 		GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
-	}
+#if defined (_DEBUG)
+        wxLogDebug(_T("view, OnToolsKbEditor, line  %d  -  AFTER PlaceBox, pApp->m_targetPhrase = %s phrasebox = %s ctItems = %d"), __LINE__,
+            pApp->m_targetPhrase.c_str(), pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str(), pApp->m_pTargetBox->GetDropDownList()->GetCount());
+#endif
+
+        // whm 15Sep2018 added the code below that needs to follow the PlaceBox() call above. 
+        // It is needed because, early within the PlaceBox() call above the physical content
+        // of the phrasebox is clobbered - changed to an empty string - as it prepares to setup the
+        // phrasebox for the location. Within the KBEditor's InitDialog() and OnOK() handlers we detected
+        // if the ref string associated with the original phrasebox's content had a present_but_deleted
+        // state, setting that state in its m_bBoxContent_present_but_deleted member. We also kept the 
+        // original phrasebox content in the KBEditor's m_originalPhraseBoxContent member. 
+        // We'll use those values to put the content back into the phrasebox for that
+        // situation, so that if the user moves the box elsewhere without doing any typeing or clicking
+        // in the box, the value will get retained - but only for this special situation where 
+        // m_bBoxContent_present_but_deleted is TRUE. We also set the phrasebox's m_bAbandonable
+        // member to FALSE. 
+        if (editorPage.m_bBoxContent_present_but_deleted)
+        {
+            pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(editorPage.m_originalPhraseBoxContent);
+            pApp->m_pTargetBox->m_bAbandonable = FALSE;
+        }
+    }
 
 	if (pApp->m_bForceFullConsistencyCheck)
 	{

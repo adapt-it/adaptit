@@ -2065,6 +2065,10 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 	m_maxMessageCount = 3; // that's enough, (Update button may be used hundreds of times)
 	m_messageCount = 0;
 
+    // whm 15Sep2018 added below - used in OnOK() handler to restore a 1 ref count
+    // ref string that gets deleted to the phrasebox.
+    this->m_originalPhraseBoxContent.Empty();
+    this->m_bBoxContent_present_but_deleted = FALSE;
     // wx Note: The dialog fonts for the list boxes are set by calls to
     // SetFontAndDirectionalityForDialogControl() in the LoadDataForPage() function. That
     // is necessary because in the wx version there are different pointers to the dialog
@@ -2116,6 +2120,10 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 		{
 			gpApp->GetView()->StoreBeforeProceeding(gpApp->m_pActivePile->GetSrcPhrase());
 			bKBEntryTemporarilyAddedForLookup = TRUE;
+            // whm 15Sep2018 added below - used in caller View's OnToolsKBEditor after the PlaceBox()
+            // call (which empties the phrasebox content), to restore phrasebox 
+            // content of a 1 ref count ref string that gets deleted here in KBEditor.
+            this->m_originalPhraseBoxContent = gpApp->m_pTargetBox->GetTextCtrl()->GetValue();
 		}
 		gpApp->GetView()->RemoveSelection(); // to be safe, on return from the KB editor
 											 // we want predictability
@@ -2134,7 +2142,11 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
         // function does this.
 		gpApp->GetView()->StoreBeforeProceeding(gpApp->m_pActivePile->GetSrcPhrase());
 		bKBEntryTemporarilyAddedForLookup = TRUE;
-	}
+        // whm 15Sep2018 added below - used in caller View's OnToolsKBEditor after the PlaceBox()
+        // call (which empties the phrasebox content), to restore phrasebox 
+        // content of a 1 ref count ref string that gets deleted here in KBEditor.
+        this->m_originalPhraseBoxContent = gpApp->m_pTargetBox->GetTextCtrl()->GetValue();
+    }
 	else
 	{
         // No selection is active and there is no valid active location (which can happen,
@@ -2297,6 +2309,31 @@ void CKBEditor::OnOK(wxCommandEvent& event)
 		else
 			gpApp->m_pKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(),
 												emptyStr, useGlossOrAdaptationForLookup);
+        // whm 15Sep2018 added. If the phrasebox was not empty, and the refString of the target
+        // text there had a ref count of 1 on entry, the above GetAndRemoveRefString() call would
+        // remove it from the KB, setting its m_bDeleted member to TRUE. Here within the KBEditor's
+        // OnOK() handler, we need to detect this situation and set a member bool value
+        // m_bBoxContent_present_but_deleted to TRUE to inform the caller of this situation
+        // so the caller (View's OnToolsKbEditor) can retain the original text in the phrasebox 
+        // and set the m_pTargetBox->m_bAbandonable to FALSE - so that if the user moves the 
+        // box elsewhere without doing any typing or clicking in the box, the original entry 
+        // gets retained. 
+        // Moreover, if the user actually clicked the "Remove" button in the KBEditor to remove 
+        // this same original phrasebox content, the user has to manually delete the entry from 
+        // the phrasebox before moving on, to truly keep that original content deleted in the KB 
+        // at this location.
+        CRefString* pRefStr = NULL;
+        KB_Entry rsEntry = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+            pApp->m_pActivePile->GetSrcPhrase()->m_key, pApp->m_targetPhrase, pRefStr);
+        if (pRefStr != NULL && rsEntry == present_but_deleted)
+        {
+            // Ensure that the m_originalPhraseBoxContent is put back into the phrasebox
+            // back in the caller (OnToolsKbEditor) after its PlaceBox() call. See above 
+            // comment.
+            wxString debugStr = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+            debugStr = debugStr; // to avoid GCC warning
+            m_bBoxContent_present_but_deleted = TRUE;
+        }
 	}
 
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog

@@ -104,6 +104,10 @@ public:
 	void LoadDataForPage(int pageNumSel,int nStartingSelection);
 	bool IsInListBox(wxListBox* listBox, wxString str);
 
+    // whm 15Sep2018 added for use by caller View's OnToolsKbEditor to restore phrasebox content after PlaceBox() call there.
+    wxString m_originalPhraseBoxContent; 
+    bool m_bBoxContent_present_but_deleted;
+
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
