@@ -8109,6 +8109,13 @@ void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & WXUNUSED(event))
             this->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will do its work // whm 12Jul2018 added GetTextCtrl()->
         }
 
+        // whm 15Sep2018 added the Modify(TRUE) statement below, otherwise the document is not made 'dirty' by simply
+        // selecting a dropdown list item. When a list box item is selected, it does not automatically trigger the 
+        // OnPhraseBoxChanged() function. The code below activates the "Save" button in the toolbar for situations 
+        // in which the document was not previously in a 'dirty' state, and the only edit performed after at that 
+        // point is to select a different translation from the dropdown list before attempting to save.
+        gpApp->GetDocument()->Modify(TRUE);
+
         this->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
         // whm 15Jul2018 added following flag settings to get selected string to stick
         gpApp->m_bUserTypedSomething = TRUE;
