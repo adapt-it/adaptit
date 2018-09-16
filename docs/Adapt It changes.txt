@@ -1,4 +1,29 @@
-﻿Version 6.9.1 release 27 August 2018
+﻿Version 6.9.2 bug fix update 18 September 2018
+----------------------------------------------
+Feature changes and new features in 6.9.2
+--------------------------------------------------------------------------------------------
+* None
+---------------------------------------------
+Bug fixes in 6.9.2 update
+---------------------------------------------
+* The Knowledge Base Editor could lose one or more meanings from the knowledge
+base for meanings that had a reference count (number of uses) of just one. The
+problem is fixed in this update.
+* Although making changes within the phrase box would make the document 'dirty'
+- meaning that the document knows it has unsaved change(s), simply selecting a 
+meaning from the phrase box's drop down list would not in itself notify the 
+document that it was 'dirty' with unsaved changes. With the fix in this update,
+selecting a meaning from the phrase box's drop down list now makes the document
+'dirty' and now enable the Save item on the File menu, and the Save button on 
+the tool bar.
+* The edit boxes on the 'Punctuation' tab page within the Preferences dialog 
+(accessible from the Edit menu) would not expand and could consequent cut off
+the tops or bottoms of the punctuation characters entered on that page of
+Preferences. The boxes now expand vertically if the Preferences dialog is 
+resized to be taller by dragging the dialog taller using the resizing thumb tab 
+on the lower right corner of the dialog.
+
+Version 6.9.1 release 27 August 2018
 ----------------------------------------------
 Feature changes and new features in 6.9.1
 --------------------------------------------------------------------------------------------
