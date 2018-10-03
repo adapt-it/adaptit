@@ -97,11 +97,11 @@ void CPunctCorrespPageCommon::DoSetDataAndPointers()
 	// method added code to PopulateWithGlyphs() to effect data transfer.
 
 	m_editSrcPunct[0] = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC0);
-#if defined (_DEBUG)
-	wxRect rect = m_editSrcPunct[0]->GetRect();
-	int height = rect.GetHeight();
-	int width = rect.GetWidth();
-#endif
+//#if defined (_DEBUG)
+//	wxRect rect = m_editSrcPunct[0]->GetRect();
+//	int height = rect.GetHeight();
+//	int width = rect.GetWidth();
+//#endif
 	m_editSrcPunct[1] = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC1);
 	m_editSrcPunct[2] = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC2);
 	m_editSrcPunct[3] = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC3);
@@ -892,16 +892,16 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
     if (len < 4)
         return FALSE;       // mrh - sometimes I've found a len of 1 when the string should be empty
 
-	if (len > 9)
-	{
-		wxString msg;
-		msg = msg.Format(_("Error, pair of hex numbers plus space longer than 9 digits: %s\n"),dataStr.c_str());
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
-		msg += _T("In PunctCorrespPage ") + msg;
-		gpApp->LogUserAction(msg);
-		return FALSE;
-	}
-	wxString s;
+    if (len > 9)
+    {
+        wxString msg;
+        msg = msg.Format(_("Error, pair of hex numbers plus space longer than 9 digits: %s\n"),dataStr.c_str());
+        wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+        msg += _T("In PunctCorrespPage ") + msg;
+        gpApp->LogUserAction(msg);
+        return FALSE;
+    }
+    wxString s;
 	s.Empty();
 	s1.Empty();
 	s2.Empty();

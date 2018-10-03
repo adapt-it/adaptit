@@ -2377,13 +2377,13 @@ void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
     if (gpApp->m_arrSearches.GetCount() > 0)
         gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
 
-	if (m_bRemindUserToDoAConsistencyCheck)
-	{
-		// give yes/no message, and set app boolean member m_bForceFullConsistencyCheck if
-		// the user responds with a Yes button click (to have consistency check started
-		// after the KBEditor dialog goes away)
-		MessageForConsistencyCheck();
-	}
+    if (m_bRemindUserToDoAConsistencyCheck)
+    {
+        // give yes/no message, and set app boolean member m_bForceFullConsistencyCheck if
+        // the user responds with a Yes button click (to have consistency check started
+        // after the KBEditor dialog goes away)
+        MessageForConsistencyCheck();
+    }
 }
 
 // other class methods

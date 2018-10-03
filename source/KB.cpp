@@ -147,7 +147,7 @@ CKB::~CKB()
 void CKB::Copy(const CKB& kb)
 {
 
-	wxASSERT(this);
+	//wxASSERT(this); // whm 3Oct2018 removed - it generates gcc warning "nonnull argument 'this' compared to NULL
 	const CKB* pCopy = &kb;
 	wxASSERT(pCopy);
 

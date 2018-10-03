@@ -1985,7 +1985,7 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
     if ( pApp->m_commitCount < 0 )
         pApp->m_commitCount = 0;
 
-	pApp->m_commitCount += 1;					// bump the commit count
+    pApp->m_commitCount += 1;					// bump the commit count
 
 	pApp->m_owner = gpApp->m_strUserID;		// owner may have been NOOWNER, but must be assigned on a commit
 

@@ -1172,9 +1172,9 @@ bool AIPrintout::OnBeginDocument(int startPage, int endPage)
     if (!wxPrintout::OnBeginDocument(startPage, endPage))
         return false;
 
-	// this initialization of gbIsPrinting need to be done because OnEndPrinting is called after each
-	// page is rendered in print preview and m_bIsPrinting is set FALSE there.
-	m_pApp->m_bIsPrinting = TRUE;
+    // this initialization of gbIsPrinting need to be done because OnEndPrinting is called after each
+    // page is rendered in print preview and m_bIsPrinting is set FALSE there.
+    m_pApp->m_bIsPrinting = TRUE;
     return true;
 }
 

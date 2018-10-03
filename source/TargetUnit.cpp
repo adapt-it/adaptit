@@ -119,7 +119,7 @@ CTargetUnit::CTargetUnit(const CTargetUnit &tu)
 // friend functions. See Dale & Teague pp. 343-344. 
 void CTargetUnit::Copy(const CTargetUnit &tu)
 {
-	wxASSERT(this);
+	//wxASSERT(this); // whm 3Oct2018 removed - it generates gcc warning "nonnull argument 'this' compared to NULL
 	wxASSERT(m_pTranslations);
 	wxASSERT(m_pTranslations->GetCount() == 0);
 	m_bAlwaysAsk = tu.m_bAlwaysAsk;

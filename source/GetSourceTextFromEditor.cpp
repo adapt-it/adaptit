@@ -199,8 +199,8 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
         PTvers = m_pApp->m_collaborationEditor + _T(" ") + PTvers;
     else
         PTvers = m_pApp->m_collaborationEditor;
-	usingTheseProj = usingTheseProj.Format(usingTheseProj,PTvers.c_str());
-	pStaticBoxUsingTheseProjects->SetLabel(usingTheseProj);
+    usingTheseProj = usingTheseProj.Format(usingTheseProj,PTvers.c_str());
+    pStaticBoxUsingTheseProjects->SetLabel(usingTheseProj);
 
 	// Assign the Temp values for use in this dialog until OnOK() executes
 	m_TempCollabProjectForSourceInputs = m_pApp->m_CollabProjectForSourceInputs;

@@ -4954,11 +4954,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
     if (pApp->m_recovery_pending)
         return;
 
-	// This no longer important block is moved here to the end, BEW 20May16
-	// wx version: Display some scrolling data on the statusbar. m_bShowScrollData is only
-	// true when _DEBUG is defined, so it will not appear in release versions.
-	if (m_bShowScrollData && this->m_pStatusBar->IsShown())
-	{
+    // This no longer important block is moved here to the end, BEW 20May16
+    // wx version: Display some scrolling data on the statusbar. m_bShowScrollData is only
+    // true when _DEBUG is defined, so it will not appear in release versions.
+    if (m_bShowScrollData && this->m_pStatusBar->IsShown())
+    {
 		static size_t pgSize, scrPos, scrMax;
 		static int pixPU, vStartx, vStarty;
 		static wxSize csz, frsz, vsz, cz;
