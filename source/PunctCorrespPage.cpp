@@ -98,9 +98,9 @@ void CPunctCorrespPageCommon::DoSetDataAndPointers()
 
 	m_editSrcPunct[0] = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC0);
 #if defined (_DEBUG)
-	wxRect rect = m_editSrcPunct[0]->GetRect();
-	int height = rect.GetHeight();
-	int width = rect.GetWidth();
+//	wxRect rect = m_editSrcPunct[0]->GetRect();
+//	int height = rect.GetHeight();
+//	int width = rect.GetWidth();
 #endif
 	m_editSrcPunct[1] = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC1);
 	m_editSrcPunct[2] = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC2);

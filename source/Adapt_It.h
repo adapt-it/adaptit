@@ -250,6 +250,11 @@ inline int GetAISvnVersion()
 
 // whm added 30Jan12 to force all platforms to use TCP based IPC - even on the Windows
 // platform rather that its usual DDE.
+// BEW 21Nov18 Bill commented it out, which means that DDE (which is windows only for
+// inter process communications) got used. TCP/IP is more cross-platform friendly, and
+// probably should be used because emails from Joshua Hahn in Nov 20 and thereabouts
+// indicated that his Mac OSX machine running Windows in Parallels fails in the OnInit()
+// so I will reinstate it and try get a clean compile. Got 23 errors. Commenting out again for the present.
 //#define useTCPbasedIPC
 
 // whm added 20Oct10 for user profiles support
