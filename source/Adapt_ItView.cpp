@@ -157,9 +157,9 @@ extern size_t aSequNum; // use with TOKENIZE_BUG
 #include "PrintOptionsDlg.h"
 #include "ConsistentChanger.h"
 #include "SilConverterSelectDlg.h"
-#ifdef USE_SIL_CONVERTERS
-#include "ecdriver.h"
-#endif
+//#ifdef USE_SIL_CONVERTERS
+//#include "ecdriver.h"
+//#endif
 #include "FreeTrans.h"
 #include "Adapt_ItView.h"
 #include "Notes.h"

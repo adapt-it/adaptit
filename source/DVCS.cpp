@@ -236,7 +236,7 @@ int  DVCS::init_repository ()
     if ( wxDirExists(_T(".git")) )
         return 0;           // init already done -- just return
 
-	git_command = _T("init");
+    git_command = _T("init");
     git_arguments.Clear();
     git_options.Clear();
 	returnCode = call_git (FALSE);

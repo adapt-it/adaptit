@@ -151,219 +151,219 @@ CAdminEditMenuProfile::~CAdminEditMenuProfile() // destructor
 
 void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
-	//InitDialog() is not virtual, no call needed to a base class
+    //InitDialog() is not virtual, no call needed to a base class
 
-	bChangesMadeToProfileItems = FALSE;
-	bChangeMadeToProfileSelection = FALSE;
-	bChangeMadeToDescriptionItems = FALSE;
-	tempWorkflowProfile = m_pApp->m_nWorkflowProfile;
-	startingWorkflowProfile = tempWorkflowProfile;
-	compareLBStr = _T("      %s   [%s]");
-	
-	// Get a wxArrayString of the factory descriptionProfileN strings from the
-	// internal default unix-like strings
-	factoryDescrArrayStrings.Clear();
-	factoryDescrArrayStrings = GetArrayOfFactoryDescrStrings();
+    bChangesMadeToProfileItems = FALSE;
+    bChangeMadeToProfileSelection = FALSE;
+    bChangeMadeToDescriptionItems = FALSE;
+    tempWorkflowProfile = m_pApp->m_nWorkflowProfile;
+    startingWorkflowProfile = tempWorkflowProfile;
+    compareLBStr = _T("      %s   [%s]");
+    
+    // Get a wxArrayString of the factory descriptionProfileN strings from the
+    // internal default unix-like strings
+    factoryDescrArrayStrings.Clear();
+    factoryDescrArrayStrings = GetArrayOfFactoryDescrStrings();
 
-	// Deallocate the memory in the App's m_pUserProfiles and m_pAI_MenuStructure
-	// These are instances of UserProfiles AI_MenuStructure that were allocated 
-	// on the heap. These routines first destroy the internal items that were
-	// allocated on the heap, then the top level items.
-	m_pApp->DestroyUserProfiles(m_pApp->m_pUserProfiles);
+    // Deallocate the memory in the App's m_pUserProfiles and m_pAI_MenuStructure
+    // These are instances of UserProfiles AI_MenuStructure that were allocated 
+    // on the heap. These routines first destroy the internal items that were
+    // allocated on the heap, then the top level items.
+    m_pApp->DestroyUserProfiles(m_pApp->m_pUserProfiles);
 
-	// Reread the AI_UserProfiles.xml file (this also loads the App's 
-	// m_pUserProfiles data structure with latest values stored on disk).
-	// Note: the AI_UserProfiles.xml file was read when the app first 
-	// ran from OnInit() and the app's menus configured for those values.
-	// We need to reread the AI_UserProfiles.xml each time the InitDialog()
-	// is called because we change the interface dynamically and need to 
-	// reload the data from the xml file in case the administrator previously
-	// changed the profile during the current session (which automatically
-	// saved any changes to AI_UserProfiles.xml).
-	wxString readDataFrom;
-	readDataFrom = _T("AI_UserProfiles.xml File");
-	// whm 25Aug11 Note: The AI_UserProfiles.xml file is not large enough to require
-	// a wxProgressDialog, so we send NULL through ReadPROFILES_XML().
-	bool bReadOK = ReadPROFILES_XML(m_pApp->m_userProfileFileWorkFolderPath,_T(""),0);
-	if (!bReadOK)
-	{
-		// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read
-		// We'll populate the list boxes with default settings parsed from our
-		// default unix-like strings
-		readDataFrom = _T("Internal Default Strings (Unable to read AI_UserProfiles.xml)");
-		m_pApp->SetupDefaultUserProfiles(m_pApp->m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
-	}
-	else
-	{
-		// AI_UserProfiles.xml was read successfully
-		// Note: GetAndAssignIdValuesToUserProfilesStruct() needs to be called here
-		// because ReadPROFILES_XML() does not call it, and it needs to be called at
-		// some point after ReadPROFILES_XML().
-		m_pApp->GetAndAssignIdValuesToUserProfilesStruct(m_pApp->m_pUserProfiles);
-	}
-	wxLogDebug(_T("Reading data from the %s"),readDataFrom.c_str());
-	
-	
-	// Now that we've read the data (xml file or string defaults if xml file not present)
-	// we can initialize some characteristics of the dialog.
-	// First adjust the notebook tabs for number of profiles and labels
+    // Reread the AI_UserProfiles.xml file (this also loads the App's 
+    // m_pUserProfiles data structure with latest values stored on disk).
+    // Note: the AI_UserProfiles.xml file was read when the app first 
+    // ran from OnInit() and the app's menus configured for those values.
+    // We need to reread the AI_UserProfiles.xml each time the InitDialog()
+    // is called because we change the interface dynamically and need to 
+    // reload the data from the xml file in case the administrator previously
+    // changed the profile during the current session (which automatically
+    // saved any changes to AI_UserProfiles.xml).
+    wxString readDataFrom;
+    readDataFrom = _T("AI_UserProfiles.xml File");
+    // whm 25Aug11 Note: The AI_UserProfiles.xml file is not large enough to require
+    // a wxProgressDialog, so we send NULL through ReadPROFILES_XML().
+    bool bReadOK = ReadPROFILES_XML(m_pApp->m_userProfileFileWorkFolderPath,_T(""),0);
+    if (!bReadOK)
+    {
+        // XML.cpp issues a Warning that AI_UserProfiles.xml could not be read
+        // We'll populate the list boxes with default settings parsed from our
+        // default unix-like strings
+        readDataFrom = _T("Internal Default Strings (Unable to read AI_UserProfiles.xml)");
+        m_pApp->SetupDefaultUserProfiles(m_pApp->m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
+    }
+    else
+    {
+        // AI_UserProfiles.xml was read successfully
+        // Note: GetAndAssignIdValuesToUserProfilesStruct() needs to be called here
+        // because ReadPROFILES_XML() does not call it, and it needs to be called at
+        // some point after ReadPROFILES_XML().
+        m_pApp->GetAndAssignIdValuesToUserProfilesStruct(m_pApp->m_pUserProfiles);
+    }
+    wxLogDebug(_T("Reading data from the %s"),readDataFrom.c_str());
+    
+    
+    // Now that we've read the data (xml file or string defaults if xml file not present)
+    // we can initialize some characteristics of the dialog.
+    // First adjust the notebook tabs for number of profiles and labels
 
-	// scan through the pNotebook pages and compare with data in AI_UserProfiles.xml
-	int totPages = (int)pNotebook->GetPageCount();
-	int totProfileNames = (int)m_pApp->m_pUserProfiles->definedProfileNames.GetCount();
-	if (totProfileNames != totPages)
-	{
-		// the number of pages in the wxDesigner notebook is different from the number
-		// of profile names defined in the AI_UserProfiles.xml file. Make the notebook
-		// agree with the incoming data from AI_UserProfiles.xml.
-		if (totProfileNames > totPages)
-		{
-			// need to add page(s)
-			int numToAdd = totProfileNames - totPages;
-			int i;
-			for (i = 0; i < numToAdd; i++);
-			{
-				wxPanel* pPage = new wxPanel(pNotebook, -1);
-				MenuEditorPanelFunc(pPage, FALSE);
-				pNotebook->AddPage(pPage, _T("AddedPage"));
-				wxLogDebug(_T("User Workflow Profile dialog tab page %s added! [Reading data from %s]"),pNotebook->GetPageText(pNotebook->GetPageCount() - 1).c_str(),readDataFrom.c_str());
-			}
-		}
-		else if (totProfileNames < totPages)
-		{
-			// need to remove page(s)
-			int numToRemove = totPages - totProfileNames;
-			int i;
-			int lastPageIndex = pNotebook->GetPageCount() - 1;
-			for (i = 0; i < numToRemove; i++);
-			{
-				// remove page(s) on the right
-				wxLogDebug(_T("User Workflow Profile dialog tab page %s removed! [Reading data from %s]"),pNotebook->GetPageText(lastPageIndex).c_str(),readDataFrom.c_str());
-				pNotebook->RemovePage(lastPageIndex);
-				lastPageIndex = pNotebook->GetPageCount() - 1;
-			}
-		}
-	}
-	// We have now insured that there are the same number of tab pages as profile names in
-	// AI_UserProfiles.xml.
-	// Now go through and assign the names from the m_pUserProfiles->definedProfileNames array.
-	int ct;
-	totPages = pNotebook->GetPageCount(); // make sure this is current
-	wxString existingTabLabel;
-	wxString profileTabLabel;
-	for (ct = 0; ct < totPages; ct++)
-	{
-		//wxNotebookPage* pNBPage; // unused
-		existingTabLabel = pNotebook->GetPageText(ct);
-		profileTabLabel = m_pApp->m_pUserProfiles->definedProfileNames.Item(ct);
-		if (profileTabLabel != existingTabLabel)
-		{
-			pNotebook->SetPageText(ct,profileTabLabel);
-			wxLogDebug(_T("User Workflow Profile dialog tab page changed from %s to %s. [Reading data from %s]"),existingTabLabel.c_str(),profileTabLabel.c_str(),readDataFrom.c_str());
-		}
-	}
+    // scan through the pNotebook pages and compare with data in AI_UserProfiles.xml
+    int totPages = (int)pNotebook->GetPageCount();
+    int totProfileNames = (int)m_pApp->m_pUserProfiles->definedProfileNames.GetCount();
+    if (totProfileNames != totPages)
+    {
+        // the number of pages in the wxDesigner notebook is different from the number
+        // of profile names defined in the AI_UserProfiles.xml file. Make the notebook
+        // agree with the incoming data from AI_UserProfiles.xml.
+        if (totProfileNames > totPages)
+        {
+            // need to add page(s)
+            int numToAdd = totProfileNames - totPages;
+            int i;
+            for (i = 0; i < numToAdd; i++)
+            {
+                wxPanel* pPage = new wxPanel(pNotebook, -1);
+                MenuEditorPanelFunc(pPage, FALSE);
+                pNotebook->AddPage(pPage, _T("AddedPage"));
+                wxLogDebug(_T("User Workflow Profile dialog tab page %s added! [Reading data from %s]"),pNotebook->GetPageText(pNotebook->GetPageCount() - 1).c_str(),readDataFrom.c_str());
+            }
+        }
+        else if (totProfileNames < totPages)
+        {
+            // need to remove page(s)
+            int numToRemove = totPages - totProfileNames;
+            int i;
+            int lastPageIndex = pNotebook->GetPageCount() - 1;
+            for (i = 0; i < numToRemove; i++)
+            {
+                // remove page(s) on the right
+                wxLogDebug(_T("User Workflow Profile dialog tab page %s removed! [Reading data from %s]"),pNotebook->GetPageText(lastPageIndex).c_str(),readDataFrom.c_str());
+                pNotebook->RemovePage(lastPageIndex);
+                lastPageIndex = pNotebook->GetPageCount() - 1;
+            }
+        }
+    }
+    // We have now insured that there are the same number of tab pages as profile names in
+    // AI_UserProfiles.xml.
+    // Now go through and assign the names from the m_pUserProfiles->definedProfileNames array.
+    int ct;
+    totPages = pNotebook->GetPageCount(); // make sure this is current
+    wxString existingTabLabel;
+    wxString profileTabLabel;
+    for (ct = 0; ct < totPages; ct++)
+    {
+        //wxNotebookPage* pNBPage; // unused
+        existingTabLabel = pNotebook->GetPageText(ct);
+        profileTabLabel = m_pApp->m_pUserProfiles->definedProfileNames.Item(ct);
+        if (profileTabLabel != existingTabLabel)
+        {
+            pNotebook->SetPageText(ct,profileTabLabel);
+            wxLogDebug(_T("User Workflow Profile dialog tab page changed from %s to %s. [Reading data from %s]"),existingTabLabel.c_str(),profileTabLabel.c_str(),readDataFrom.c_str());
+        }
+    }
 
-	// To keep track of which profiles an administrator may have edited, set up a
-	// wxArrayInt array of in values (that can be 1 or 0, corresponding to bool 
-	// values) to help track which profiles have changed.
-	const int numProfiles = ct;
-	bProfileChanged.SetCount(numProfiles,0); // initialize all array elements to zero (0)
-	bDescriptionChanged.SetCount(numProfiles,0); // initialize all array elements to zero (0)
+    // To keep track of which profiles an administrator may have edited, set up a
+    // wxArrayInt array of in values (that can be 1 or 0, corresponding to bool 
+    // values) to help track which profiles have changed.
+    const int numProfiles = ct;
+    bProfileChanged.SetCount(numProfiles,0); // initialize all array elements to zero (0)
+    bDescriptionChanged.SetCount(numProfiles,0); // initialize all array elements to zero (0)
 
-	// Select whatever tab the administrator has set if any, first tab if none.
-	if (tempWorkflowProfile < 0 || tempWorkflowProfile > (int)pNotebook->GetPageCount())
-	{
-		// the config file's value for the saved user workflow profile (from 
-		// m_pApp->m_nWorkflowProfile) was invalid, so set the temporary value
-		// to zero, i.e., the "None" profile.
-		// Not likely to happen so use English message
-		wxString msg = _T("The user workflow profile value saved in the project configuration file was out of range (%d).\nA value of 0 (= \"None\") will be used instead.");
-		msg = msg.Format(msg,tempWorkflowProfile);
-		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
-		tempWorkflowProfile = 0;
-	}
-	// Get the indices for the current workflow profile value
-	if (tempWorkflowProfile > 0)
-	{
-		// The tempWorkflowProfile > 0 so tab selection index is tempWorkflowProfile - 1
-		notebookTabIndex = tempWorkflowProfile - 1;
-		selectedComboProfileIndex = notebookTabIndex;
-		lastNotebookTabIndex = notebookTabIndex;
-	}
-	else
-	{
-		// tempWorkflowProfile is 0 ("None"), so just set the notebook tab to the first page Novice (default)
-		notebookTabIndex = 0; // open the dialog with the "Novice" tab displaying if "None" selected for user profile
-		selectedComboProfileIndex = notebookTabIndex;
-		lastNotebookTabIndex = notebookTabIndex;
-	}
-	// ChangeSelection does not generate page changing events
-	pNotebook->ChangeSelection(notebookTabIndex);
-	
-	// set the wxComboBox to its initial state from the tempWorkflowProfile copied from the config file's value
-	// The Combobox index is same as the tab index, but is tempWorkflowProfile
-	if (tempWorkflowProfile == 0)
-	{
-		// set "None" radio button
-		pRadioBtnNone->SetValue(TRUE); // does not cause a wxEVT_COMMAND_RADIOBUTTON_SELECTED event to get emitted
-		pRadioBtnUseAProfile->SetValue(FALSE); // " "
-		// also disable the profile selection controls
-		pButtonResetToFactory->Enable(FALSE);
-		pEditProfileDescr->Enable(FALSE);
-		pStaticTextDescr->Enable(FALSE);
-		pComboBox->Enable(FALSE);
-	}
-	else
-	{
-		// set the "Use a workflow profile" radio button
-		pRadioBtnNone->SetValue(FALSE); // does not cause a wxEVT_COMMAND_RADIOBUTTON_SELECTED event to get emitted
-		pRadioBtnUseAProfile->SetValue(TRUE); // " "
-		// also enable the profile selection controls
-		pButtonResetToFactory->Enable(TRUE);
-		pEditProfileDescr->Enable(TRUE);
-		pStaticTextDescr->Enable(TRUE);
-		pComboBox->Enable(TRUE);
-		// set the combo box to the current workflow profile value
-		// tempWorkflowProfile here > 0, so set selectedComboProfileIndex to tempWorkflowProfile - 1
-		pComboBox->SetSelection(selectedComboProfileIndex); // this does not cause a wxEVT_COMMAND_COMBOBOX_SELECTED event
-		// whm 19Sep11 added below
-		if (tempUserProfiles != NULL)
-		{
-			wxString str = tempUserProfiles->descriptionProfileTexts.Item(selectedComboProfileIndex);
-			// Note: no need to replace entities here
-			pEditProfileDescr->ChangeValue(str);
-		}
-	}
-		
+    // Select whatever tab the administrator has set if any, first tab if none.
+    if (tempWorkflowProfile < 0 || tempWorkflowProfile > (int)pNotebook->GetPageCount())
+    {
+        // the config file's value for the saved user workflow profile (from 
+        // m_pApp->m_nWorkflowProfile) was invalid, so set the temporary value
+        // to zero, i.e., the "None" profile.
+        // Not likely to happen so use English message
+        wxString msg = _T("The user workflow profile value saved in the project configuration file was out of range (%d).\nA value of 0 (= \"None\") will be used instead.");
+        msg = msg.Format(msg,tempWorkflowProfile);
+        wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+        tempWorkflowProfile = 0;
+    }
+    // Get the indices for the current workflow profile value
+    if (tempWorkflowProfile > 0)
+    {
+        // The tempWorkflowProfile > 0 so tab selection index is tempWorkflowProfile - 1
+        notebookTabIndex = tempWorkflowProfile - 1;
+        selectedComboProfileIndex = notebookTabIndex;
+        lastNotebookTabIndex = notebookTabIndex;
+    }
+    else
+    {
+        // tempWorkflowProfile is 0 ("None"), so just set the notebook tab to the first page Novice (default)
+        notebookTabIndex = 0; // open the dialog with the "Novice" tab displaying if "None" selected for user profile
+        selectedComboProfileIndex = notebookTabIndex;
+        lastNotebookTabIndex = notebookTabIndex;
+    }
+    // ChangeSelection does not generate page changing events
+    pNotebook->ChangeSelection(notebookTabIndex);
+    
+    // set the wxComboBox to its initial state from the tempWorkflowProfile copied from the config file's value
+    // The Combobox index is same as the tab index, but is tempWorkflowProfile
+    if (tempWorkflowProfile == 0)
+    {
+        // set "None" radio button
+        pRadioBtnNone->SetValue(TRUE); // does not cause a wxEVT_COMMAND_RADIOBUTTON_SELECTED event to get emitted
+        pRadioBtnUseAProfile->SetValue(FALSE); // " "
+        // also disable the profile selection controls
+        pButtonResetToFactory->Enable(FALSE);
+        pEditProfileDescr->Enable(FALSE);
+        pStaticTextDescr->Enable(FALSE);
+        pComboBox->Enable(FALSE);
+    }
+    else
+    {
+        // set the "Use a workflow profile" radio button
+        pRadioBtnNone->SetValue(FALSE); // does not cause a wxEVT_COMMAND_RADIOBUTTON_SELECTED event to get emitted
+        pRadioBtnUseAProfile->SetValue(TRUE); // " "
+        // also enable the profile selection controls
+        pButtonResetToFactory->Enable(TRUE);
+        pEditProfileDescr->Enable(TRUE);
+        pStaticTextDescr->Enable(TRUE);
+        pComboBox->Enable(TRUE);
+        // set the combo box to the current workflow profile value
+        // tempWorkflowProfile here > 0, so set selectedComboProfileIndex to tempWorkflowProfile - 1
+        pComboBox->SetSelection(selectedComboProfileIndex); // this does not cause a wxEVT_COMMAND_COMBOBOX_SELECTED event
+        // whm 19Sep11 added below
+        if (tempUserProfiles != NULL)
+        {
+            wxString str = tempUserProfiles->descriptionProfileTexts.Item(selectedComboProfileIndex);
+            // Note: no need to replace entities here
+            pEditProfileDescr->ChangeValue(str);
+        }
+    }
+        
 
-	// create a temporary UserProfiles object for use in AdminEditMenuProfile.
-	tempUserProfiles = new UserProfiles;
-	// Make a temporary copy tempUserProfiles of the App's m_pUserProfiles and only work with it
-	// until OnOK() is called. Only in OnOK() do we then copy the tempUserProfiles data back to
-	// the App's m_pUserProfiles.
-	// Note: The app also has an m_pFactoryUserProfiles struct on the heap that we can use to
-	// reset anything we want back to original factory values.
-	CopyUserProfiles(m_pApp->m_pUserProfiles, tempUserProfiles);
-	
-	if (tempWorkflowProfile > 0)
-	{
-		// add the descriptionProfileText to the edit box
-		// Call InsertEntities() to make any entities in the text look natural in the edit box
-		// Entities need to be inserted before placing the descriptive text in the edit
-		// control. They will be replaced again before saving any edits back to xml. The
-		// XML.cpp file has an InsertEntities() function but it uses CBString. Rather than
-		// converting to CBString we just insert the entities here manually.
-		wxString str = tempUserProfiles->descriptionProfileTexts.Item(selectedComboProfileIndex);
-		// Note: no need to replace entities here
-		pEditProfileDescr->ChangeValue(str);
-	}
-	// Finally populate the list box corresponding to the notebookTabIndex
-	PopulateListBox(notebookTabIndex);
+    // create a temporary UserProfiles object for use in AdminEditMenuProfile.
+    tempUserProfiles = new UserProfiles;
+    // Make a temporary copy tempUserProfiles of the App's m_pUserProfiles and only work with it
+    // until OnOK() is called. Only in OnOK() do we then copy the tempUserProfiles data back to
+    // the App's m_pUserProfiles.
+    // Note: The app also has an m_pFactoryUserProfiles struct on the heap that we can use to
+    // reset anything we want back to original factory values.
+    CopyUserProfiles(m_pApp->m_pUserProfiles, tempUserProfiles);
+    
+    if (tempWorkflowProfile > 0)
+    {
+        // add the descriptionProfileText to the edit box
+        // Call InsertEntities() to make any entities in the text look natural in the edit box
+        // Entities need to be inserted before placing the descriptive text in the edit
+        // control. They will be replaced again before saving any edits back to xml. The
+        // XML.cpp file has an InsertEntities() function but it uses CBString. Rather than
+        // converting to CBString we just insert the entities here manually.
+        wxString str = tempUserProfiles->descriptionProfileTexts.Item(selectedComboProfileIndex);
+        // Note: no need to replace entities here
+        pEditProfileDescr->ChangeValue(str);
+    }
+    // Finally populate the list box corresponding to the notebookTabIndex
+    PopulateListBox(notebookTabIndex);
 
-	// Now that we've finished initializing, turn update idle handling back on 
-	// so it will update our buttons.
-	wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL);
-	wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_ALL);
+    // Now that we've finished initializing, turn update idle handling back on 
+    // so it will update our buttons.
+    wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL);
+    wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_ALL);
 }
 
 // event handling functions

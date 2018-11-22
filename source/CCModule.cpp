@@ -3281,8 +3281,8 @@ WFILE * CCCModule::wfopen(wxString pszFileName, wxString mode)
     else
         stream->fTextMode= TRUE; // fTextMode is also used in wgetc
 
-	bool bOpenOK;
-	bOpenOK = FALSE;
+    bool bOpenOK;
+    bOpenOK = FALSE;
 	//bool bFileAlreadyExists;
 	//bFileAlreadyExists = FALSE;
 	bOpenOK = stream->hfFile->Open(strFileName, wxmode);

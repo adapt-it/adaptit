@@ -45,9 +45,9 @@
 
 #include "Adapt_It.h"
 #include "SilConverterSelectDlg.h"
-#ifdef USE_SIL_CONVERTERS
-#include "ecdriver.h"
-#endif
+//#ifdef USE_SIL_CONVERTERS
+//#include "ecdriver.h"
+//#endif
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // for rapid access to the app class

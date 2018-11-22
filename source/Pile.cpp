@@ -867,8 +867,8 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 	bool bRTLLayout;
 	bRTLLayout = FALSE;
 	wxRect rectBounding;
-	if (this == NULL)
-		return;
+	//if (this == NULL) // whm 3Oct2018 removed - it generates gcc warning "nonnull argument 'this' compared to NULL
+	//	return;
 	GetPileRect(rectBounding); // get the bounding rectangle for this CCell instance
 #ifdef _RTL_FLAGS
 	if (m_pLayout->m_pApp->m_bNavTextRTL)

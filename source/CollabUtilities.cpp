@@ -4590,53 +4590,53 @@ wxString GetPathToBeRdwrt()
     if (!gpApp->BibleditIsInstalled())
         return wxEmptyString;
 
-	// Note: whm revised 6Dec11 to search for bibledit-rdwrt and adaptit-bibledit-rdwrt on
-	// the PATH environment variable. The App's m_BibleditInstallDirPath member is determined
-	// by calling GetBibleditInstallDirPath() which uses the GetProgramLocationFromSystemPATH()
-	// function directly. Hence, the path stored in the App's m_BibleditInstallDirPath member
-	// already has the appropriate prefix (for bibledit-gtk), so we don't need to add a prefix
-	// here.
-	if (::wxFileExists(gpApp->GetBibleditInstallDirPath() + gpApp->PathSeparator + _T("bibledit-rdwrt")))
-	{
-		// bibledit-rdwrt exists in the Bibledit installation so use it.
-		// First, determine if file is executable from the current process
-		//beRdwrtPathAndFileName = gpApp->m_BibleditInstallDirPath + gpApp->PathSeparator + _T("bibledit-rdwrt");
-		beRdwrtPathAndFileName = gpApp->GetBibleditInstallDirPath() + gpApp->PathSeparator + _T("bibledit-rdwrt");
-	}
-	else
-	{
-		// bibledit-rdwrt does not exist in the Bibledit installation (i.e., the Bibledit version
-		// isn't at least 4.2.93), so use our copy in the /usr/bin folder called adaptit-bibledit-rdwrt.
-		// whm 22Nov11 note: previously I tried using the /usr/share/adaptit/ folder and calling the
-		// utility program bibledit-rdwrt, but the debian installer was refusing to allow a file with
-		// executable permissions to be placed there (it would remove the executable permissions on
-		// installation). So, we will put a prefix on Adapt It's version and call it adaptit-bibledit-rdwrt,
-		// and store it in the normal folder for installed applications /usr/bin/ alongside the main adaptit
-		// executable.
-		//beRdwrtPathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("adaptit-bibledit-rdwrt");
-		beRdwrtPathAndFileName = gpApp->GetAdaptit_Bibledit_rdwrtInstallDirPath() + gpApp->PathSeparator + _T("adaptit-bibledit-rdwrt");
-		//wxASSERT(::wxFileExists(beRdwrtPathAndFileName));
-		// Note: The beRdwrtPathAndFileName console app does uses the same Linux dynamic libraries that
-		// the main bibledit-gtk program uses, but the version of Bibledit needs to be at least version
-		// 4.2.x for our version of adaptit-bibledit-rdwrt to work.
-	}
-	if (!::wxFileExists(beRdwrtPathAndFileName))
-	{
-		wxFileName fn(beRdwrtPathAndFileName);
-		wxString msg = _("Adapt It cannot find the helper application %s at the following location:\n\n%s\n\nFor more information see the Trouble Shooting topic in Help for Administrators (HTML) on the Help Menu.");
-		msg = msg.Format(msg,fn.GetFullName().c_str(), beRdwrtPathAndFileName.c_str(),fn.GetFullName().c_str());
-		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
-		gpApp->LogUserAction(msg);
-	}
-	else if (!wxFileName::IsFileExecutable(beRdwrtPathAndFileName))
-	{
-		wxFileName fn(beRdwrtPathAndFileName);
-		wxString msg = _("Adapt It cannot execute the helper application %s at the following location:\n\n%s\n\nPlease ensure that the current user has execute permissions for %s.\nFor more information see the Trouble Shooting topic in Help for Administrators (HTML) on the Help Menu.");
-		msg = msg.Format(msg,fn.GetFullName().c_str(), beRdwrtPathAndFileName.c_str(),fn.GetFullName().c_str());
-		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
-		gpApp->LogUserAction(msg);
-	}
-	return beRdwrtPathAndFileName;
+    // Note: whm revised 6Dec11 to search for bibledit-rdwrt and adaptit-bibledit-rdwrt on
+    // the PATH environment variable. The App's m_BibleditInstallDirPath member is determined
+    // by calling GetBibleditInstallDirPath() which uses the GetProgramLocationFromSystemPATH()
+    // function directly. Hence, the path stored in the App's m_BibleditInstallDirPath member
+    // already has the appropriate prefix (for bibledit-gtk), so we don't need to add a prefix
+    // here.
+    if (::wxFileExists(gpApp->GetBibleditInstallDirPath() + gpApp->PathSeparator + _T("bibledit-rdwrt")))
+    {
+        // bibledit-rdwrt exists in the Bibledit installation so use it.
+        // First, determine if file is executable from the current process
+        //beRdwrtPathAndFileName = gpApp->m_BibleditInstallDirPath + gpApp->PathSeparator + _T("bibledit-rdwrt");
+        beRdwrtPathAndFileName = gpApp->GetBibleditInstallDirPath() + gpApp->PathSeparator + _T("bibledit-rdwrt");
+    }
+    else
+    {
+        // bibledit-rdwrt does not exist in the Bibledit installation (i.e., the Bibledit version
+        // isn't at least 4.2.93), so use our copy in the /usr/bin folder called adaptit-bibledit-rdwrt.
+        // whm 22Nov11 note: previously I tried using the /usr/share/adaptit/ folder and calling the
+        // utility program bibledit-rdwrt, but the debian installer was refusing to allow a file with
+        // executable permissions to be placed there (it would remove the executable permissions on
+        // installation). So, we will put a prefix on Adapt It's version and call it adaptit-bibledit-rdwrt,
+        // and store it in the normal folder for installed applications /usr/bin/ alongside the main adaptit
+        // executable.
+        //beRdwrtPathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("adaptit-bibledit-rdwrt");
+        beRdwrtPathAndFileName = gpApp->GetAdaptit_Bibledit_rdwrtInstallDirPath() + gpApp->PathSeparator + _T("adaptit-bibledit-rdwrt");
+        //wxASSERT(::wxFileExists(beRdwrtPathAndFileName));
+        // Note: The beRdwrtPathAndFileName console app does uses the same Linux dynamic libraries that
+        // the main bibledit-gtk program uses, but the version of Bibledit needs to be at least version
+        // 4.2.x for our version of adaptit-bibledit-rdwrt to work.
+    }
+    if (!::wxFileExists(beRdwrtPathAndFileName))
+    {
+        wxFileName fn(beRdwrtPathAndFileName);
+        wxString msg = _("Adapt It cannot find the helper application %s at the following location:\n\n%s\n\nFor more information see the Trouble Shooting topic in Help for Administrators (HTML) on the Help Menu.");
+        msg = msg.Format(msg,fn.GetFullName().c_str(), beRdwrtPathAndFileName.c_str(),fn.GetFullName().c_str());
+        wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+        gpApp->LogUserAction(msg);
+    }
+    else if (!wxFileName::IsFileExecutable(beRdwrtPathAndFileName))
+    {
+        wxFileName fn(beRdwrtPathAndFileName);
+        wxString msg = _("Adapt It cannot execute the helper application %s at the following location:\n\n%s\n\nPlease ensure that the current user has execute permissions for %s.\nFor more information see the Trouble Shooting topic in Help for Administrators (HTML) on the Help Menu.");
+        msg = msg.Format(msg,fn.GetFullName().c_str(), beRdwrtPathAndFileName.c_str(),fn.GetFullName().c_str());
+        wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+        gpApp->LogUserAction(msg);
+    }
+    return beRdwrtPathAndFileName;
 }
 
 wxString GetBibleditInstallPath()
