@@ -22764,8 +22764,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     if (numMonitors > 1)
     {
         // assume two monitors
-        wxDisplay displayOne(0);
-        wxDisplay displayTwo(1);
+        wxDisplay displayOne((unsigned)0); // whm 14Jan2019 wx 3.2.1 wxDisplay constructor requires (unsigned) int so added cast
+        wxDisplay displayTwo((unsigned)1); // whm 14Jan2019 wx 3.2.1 wxDisplay constructor requires (unsigned) int so added cast
         wxRect dispOneRect = displayOne.GetClientArea(); // x=0, y=0, width=1920,
                                                          // height=1140 // doesn't include taskbar on Windows
         wxRect dispTwoRect = displayTwo.GetClientArea(); // x=1920, y=0, width=1920,
