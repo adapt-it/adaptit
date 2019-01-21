@@ -27,6 +27,8 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/docview.h>
+
 // other includes
 
 #include "Adapt_It.h"

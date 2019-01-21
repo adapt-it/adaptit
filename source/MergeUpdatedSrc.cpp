@@ -29,6 +29,8 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/docview.h>
+
 #include "Adapt_It.h"
 #include "FreeTrans.h"
 #include "SourcePhrase.h"

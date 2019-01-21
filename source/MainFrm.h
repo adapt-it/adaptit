@@ -27,7 +27,7 @@
 #include <wx/html/helpctrl.h> //(wxHTML based help controller: wxHtmlHelpController)
 #include <wx/aui/aui.h>
 
-//#include "Adapt_It.h"
+#include "Adapt_It.h"
 
 #define _VERTEDIT
 // comment out the above to turn off logging for vertical edit wxLogDebug() calls
@@ -44,6 +44,7 @@ class CAdapt_ItApp;
 class CAdapt_ItCanvas;
 class wxHelpControllerBase;
 class wxHtmlHelpController;
+class wxDocParentFrame;
 class CFreeTrans;
 class CNotes;
 

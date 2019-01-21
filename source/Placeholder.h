@@ -21,7 +21,6 @@
 #pragma interface "Placeholder.h"
 #endif
 
-
 //////////////////////////////////////////////////////////////////////////////////
 /// The CPlaceholder class contains methods for working with placeholder 
 /// elements within the translated text.

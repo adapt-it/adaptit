@@ -34,6 +34,8 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/docview.h>
+
 #include "Adapt_It.h"
 #include "helpers.h"
 #include "SourcePhrase.h"

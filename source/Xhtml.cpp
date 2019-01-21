@@ -71,6 +71,7 @@
 								// The MSDN docs for warning C4428 are also misleading!
 #endif
 
+#include <wx/docview.h>
 #include <wx/arrimpl.cpp>
 #include <wx/tokenzr.h>
 #include <wx/filesys.h> // for wxFileName

@@ -28,6 +28,7 @@
 #include <wx/wfstream.h>
 #endif
 
+#include <wx/docview.h>
 #include <wx/utils.h> // for ::wxDirExists, ::wxSetWorkingDirectory, etc
 #include <wx/textfile.h> // for wxTextFile
 

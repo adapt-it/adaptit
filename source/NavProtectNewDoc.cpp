@@ -46,7 +46,8 @@
 #include "Adapt_It.h"
 #include "helpers.h" // it has the Get... functions for getting list of files, folders
 					 // and optionally sorting
-#include "Adapt_It_wdr.h" // needed for the AIMainFrameIcons(index) function which returns
+// whm 15Jan2019 changed to #include Adapt_It_Resources.h instead of Adapt_It_wdr.h
+#include "Adapt_It_Resources.h" // needed for the AIMainFrameIcons(index) function which returns
 						  // for index values 10 and 11 the folder icon and file icon
 						  // respectively, which we use in the two wxListCtrl instances to
 						  // distinguish folder names from filenames; the function returns

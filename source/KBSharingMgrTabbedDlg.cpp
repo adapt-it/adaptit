@@ -34,7 +34,7 @@
 #define _WANT_DEBUGLOG // comment out to suppress wxLogDebug() calls
 
 // other includes
-//#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
+#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/filesys.h> // for wxFileName
 //#include <wx/dir.h> // for wxDir

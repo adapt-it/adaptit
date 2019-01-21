@@ -39,6 +39,7 @@
 #endif
 
 #include <wx/object.h>
+#include <wx/docview.h>
 
 #include "AdaptitConstants.h"
 #include "Adapt_It.h"

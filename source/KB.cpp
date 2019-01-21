@@ -33,6 +33,7 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/docview.h>
 #include <wx/hashmap.h>
 #include <wx/datstrm.h> // needed for wxDataOutputStream() and wxDataInputStream()
 #include <wx/wfstream.h>

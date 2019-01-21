@@ -313,6 +313,7 @@ int ID_DROP_DOWN_LIST = 22050;
 #endif
 
 // Other includes
+#include "Adapt_It_Resources.h"
 #include "AIPrintout.h"
 #include "ReadOnlyProtection.h"
 #include "Adapt_It.h"

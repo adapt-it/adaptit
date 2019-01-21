@@ -33,12 +33,14 @@
 #endif
 
 // other includes
-//#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
+#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 //#include <wx/valgen.h> // for wxGenericValidator
 #include "Adapt_It.h" // need this for AIModalDialog definition
-#include "Adapt_It_wdr.h"
+// whm 15Jan2019 changed to #include Adapt_It_Resources.h instead of Adapt_It_wdr.h
+#include "Adapt_It_Resources.h"
 #include "helpers.h"
 #include "Adapt_ItDoc.h"
+#include "Adapt_ItView.h"
 #include "Adapt_ItCanvas.h"
 #include "MainFrm.h"
 #include "ConsChk_Empty_noTU_Dlg.h"

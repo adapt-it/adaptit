@@ -38,6 +38,7 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/docview.h>
 #include <wx/filename.h>
 #include <wx/tokenzr.h>
 #include <wx/colour.h>

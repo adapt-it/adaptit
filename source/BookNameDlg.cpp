@@ -37,7 +37,8 @@
 
 // other includes
 #include "Adapt_It.h" // need this for AIModalDialog definition
-#include "Adapt_It_wdr.h"
+// whm 15Jan2019 changed to #include Adapt_It_Resources.h instead of Adapt_It_wdr.h
+#include "Adapt_It_Resources.h"
 #include "BookNameDlg.h"
 
 /// This global is defined in Adapt_It.cpp.

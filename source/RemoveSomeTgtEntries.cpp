@@ -49,7 +49,8 @@
 
 // other includes
 #include "Adapt_It.h"
-#include "Adapt_It_wdr.h"
+// whm 15Jan2019 changed to #include Adapt_It_Resources.h instead of Adapt_It_wdr.h
+#include "Adapt_It_Resources.h"
 #include "KB.h"
 #include "TargetUnit.h"
 #include "KBEditor.h"

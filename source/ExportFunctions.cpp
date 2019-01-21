@@ -37,6 +37,7 @@
 #include <wx/txtstrm.h>
 #include <wx/dir.h>
 #include <wx/longlong.h>
+#include <wx/docview.h>
 
 // BEW removed 15Jun11 until we support OXES
 // BEW reinstated 19May12, for OXES v1 support

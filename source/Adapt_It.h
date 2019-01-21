@@ -128,6 +128,8 @@ class CWaitDlg; // BEW 8Feb16
 // Once CFreeTrans is completed, a search and destroy operation was carried out to remove
 // the old code wherever _FREETR was found
 
+class wxDocManager;
+class wxPageSetupDialogData;
 class wxFontData;
 class AIPrintout;
 // for debugging m_bNoAutoSave not getting preserved across app closure and relaunch...

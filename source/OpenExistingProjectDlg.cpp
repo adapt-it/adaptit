@@ -40,6 +40,7 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/docview.h>
 #include <wx/valgen.h>
 #include "Adapt_It.h"
 #include "helpers.h"
