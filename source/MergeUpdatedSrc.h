@@ -29,6 +29,7 @@ WX_DECLARE_OBJARRAY(CSourcePhrase*, SPArray);
 #define _string_h_loaded
 #include "string.h"
 #endif
+
 #include "Adapt_It.h"
 
 class CBString;

@@ -38,6 +38,8 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/docview.h>
+
 #if defined(_KBSERVER)
 
 // other includes

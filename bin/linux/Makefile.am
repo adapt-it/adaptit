@@ -79,7 +79,7 @@ adaptit.htb: ../../hlp
 adaptit_SOURCES = \
 	../../source/AIPrintout.cpp ../../source/AIPrintPreviewFrame.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
-	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp \
+	../../source/Adapt_It_Resources.cpp ../../source/AdminMoveOrCopy.cpp \
 	../../source/AssignLocationsForInputsAndOutputs.cpp \
 	../../source/AdminEditMenuProfile.cpp ../../source/AutoSavingPage.cpp \
 	../../source/base64.cpp ../../source/BString.cpp ../../source/BookNameDlg.cpp \

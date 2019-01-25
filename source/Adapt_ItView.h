@@ -35,6 +35,7 @@
 //class MyTextCtrl; // temp
 class CAdapt_ItCanvas;
 class wxFile;
+class wxView;
 
 class CAdapt_ItDoc;
 class CAdapt_ItView;

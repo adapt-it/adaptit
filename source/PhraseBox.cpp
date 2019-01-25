@@ -35,6 +35,8 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/docview.h>
+
 // Other includes uncomment as implemented
 #include "Adapt_It.h"
 #include "PhraseBox.h"

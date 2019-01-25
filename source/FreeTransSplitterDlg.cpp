@@ -55,9 +55,12 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/docview.h>
+
 // other includes
 #include "Adapt_It.h"
-#include "Adapt_It_wdr.h"
+// whm 15Jan2019 changed to #include Adapt_It_Resources.h instead of Adapt_It_wdr.h
+#include "Adapt_It_Resources.h"
 #include "FreeTrans.h"
 #include "helpers.h"
 #include "Pile.h"

@@ -42,7 +42,7 @@
 #if defined(_KBSERVER)
 
 // other includes
-//#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
+#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include "Adapt_It.h"
 #include "MainFrm.h"
 #include "helpers.h"

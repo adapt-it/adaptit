@@ -31,10 +31,12 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/docview.h>
+
 #include <wx/print.h> // for wxPrintPreview
 
-#include "AIPrintPreviewFrame.h"
 #include "Adapt_It.h"
+#include "AIPrintPreviewFrame.h"
 #include "Adapt_ItView.h"
 #include "FreeTrans.h"
 #include "MainFrm.h"

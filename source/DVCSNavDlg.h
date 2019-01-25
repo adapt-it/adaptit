@@ -19,7 +19,6 @@
     #pragma interface "DVCSNavDlg.h"
 #endif
 
-
 class DVCSNavDlg : public AIModalDialog
 {
 public:

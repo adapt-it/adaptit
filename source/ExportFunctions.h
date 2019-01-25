@@ -40,6 +40,7 @@ enum ExportType
 };
 */
 class CAdapt_ItView; // forward ref
+
 //enum UniqueFileIncrementMethod; // whm 28Jul12 removed; gives gcc compile error
 
 // main export functions:

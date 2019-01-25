@@ -39,6 +39,7 @@
 #endif
 
 // other includes
+#include <wx/docview.h>
 #include <wx/fileconf.h>
 
 #include "Adapt_It.h"

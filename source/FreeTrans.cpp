@@ -33,6 +33,8 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/docview.h>
+
 //#define _Trace_DrawFreeTrans
 
 #if defined(__VISUALC__) && __VISUALC__ >= 1400

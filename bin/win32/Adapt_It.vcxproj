@@ -325,7 +325,7 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\Adapt_It.cpp" />
-    <ClCompile Include="..\..\source\Adapt_It_wdr.cpp" />
+    <ClCompile Include="..\..\source\Adapt_It_Resources.cpp" />
     <ClCompile Include="..\..\source\Adapt_ItCanvas.cpp" />
     <ClCompile Include="..\..\source\Adapt_ItDoc.cpp" />
     <ClCompile Include="..\..\source\Adapt_ItView.cpp" />
@@ -482,7 +482,6 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
   <ItemGroup>
     <ClInclude Include="..\..\source\Adapt_It.h" />
     <ClInclude Include="..\..\source\Adapt_It_Resources.h" />
-    <ClInclude Include="..\..\source\Adapt_It_wdr.h" />
     <ClInclude Include="..\..\source\Adapt_ItCanvas.h" />
     <ClInclude Include="..\..\source\Adapt_ItDoc.h" />
     <ClInclude Include="..\..\source\Adapt_ItView.h" />
