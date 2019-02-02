@@ -21229,7 +21229,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     fontAvail = wxFontMapper::Get()->IsEncodingAvailable(fontenc);
     // Windows: fontAvail = true
     //  Ubuntu: fontAvail = true
-    wxCHECK_MSG(fontAvail, FALSE, _T("OnInit() wxFontMapper returned FALSE (no font available) line 14500"));
+
+	
+	wxCHECK_MSG(fontAvail, FALSE, _T("OnInit() wxFontMapper returned FALSE (no font available) line 14500"));
     //wxFontEncoding altFontEnc;
     //wxString facename = _T("");
     //bool gotAltFont;
@@ -22760,13 +22762,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // in such configurations. Checking for multiple monitors can be done with the
     // wxDisplay class.
     //
-    int numMonitors;
+    unsigned int numMonitors;
     numMonitors = wxDisplay::GetCount();
     if (numMonitors > 1)
     {
-        // assume two monitors
-        wxDisplay displayOne((unsigned)0); // whm 14Jan2019 wx 3.2.1 wxDisplay constructor requires (unsigned) int so added cast
-        wxDisplay displayTwo((unsigned)1); // whm 14Jan2019 wx 3.2.1 wxDisplay constructor requires (unsigned) int so added cast
+		const unsigned int monitorOne = 0;
+		const unsigned int monitorTwo = 1;
+        wxDisplay displayOne(monitorOne);
+        wxDisplay displayTwo(monitorTwo);
         wxRect dispOneRect = displayOne.GetClientArea(); // x=0, y=0, width=1920,
                                                          // height=1140 // doesn't include taskbar on Windows
         wxRect dispTwoRect = displayTwo.GetClientArea(); // x=1920, y=0, width=1920,
