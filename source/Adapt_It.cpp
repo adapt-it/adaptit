@@ -46480,12 +46480,12 @@ void CAdapt_ItApp::UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo)
                                                                      //fInfo.fQuality = 2; // quality ignored in wxWidgets, so leave current value
     switch (font->GetFamily())
     {
-    case wxROMAN: fInfo.fFamily = 1; break;     //1 = FF_ROMAN (MFC)
-    case wxSWISS: fInfo.fFamily = 2; break;     //2 = FF_SWISS (MFC)
-    case wxMODERN: fInfo.fFamily = 3; break;    //3 = FF_MODERN (MFC)
-    case wxSCRIPT: fInfo.fFamily = 4; break;    //4 = FF_SCRIPT (MFC)
-    case wxDECORATIVE: fInfo.fFamily = 5; break;//5 = FF_DECORATIVE (MFC)
-    case wxDEFAULT: fInfo.fFamily = 0; break;   //0 = FF_DONTCAR (MFC)
+    case wxFONTFAMILY_ROMAN: fInfo.fFamily = 1; break;     //1 = FF_ROMAN (MFC)
+    case wxFONTFAMILY_SWISS: fInfo.fFamily = 2; break;     //2 = FF_SWISS (MFC)
+    case wxFONTFAMILY_MODERN: fInfo.fFamily = 3; break;    //3 = FF_MODERN (MFC)
+    case wxFONTFAMILY_SCRIPT: fInfo.fFamily = 4; break;    //4 = FF_SCRIPT (MFC)
+    case wxFONTFAMILY_DECORATIVE: fInfo.fFamily = 5; break;//5 = FF_DECORATIVE (MFC)
+    case wxFONTFAMILY_DEFAULT: fInfo.fFamily = 0; break;   //0 = FF_DONTCAR (MFC)
     default: fInfo.fFamily = 0;
     }
     // wxWidgets is only interested in the family which is encoded in bits 4-7
