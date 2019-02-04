@@ -1,3 +1,4 @@
+// This file was processed by the sedConvert.sh script
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
 /// \file			PeekAtFile.h
@@ -248,7 +249,7 @@ enum TxtDir CPeekAtFileDlg::ReverseTextDirectionality(enum TxtDir currentDir)
 	m_pEditCtrl->SetEditable(FALSE);
 
 	// now add the control to the sizer & get the dialog's layout refreshed...
-	m_pContainingHBoxSizer->Add(m_pEditCtrl, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+	m_pContainingHBoxSizer->Add(m_pEditCtrl, 1, wxGROW, 5 );
 
 	// adjust the layout and refresh the client area
 	this->Layout();
