@@ -54,24 +54,30 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'">
     <PreBuildEvent>
-      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+      <Command>If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.2  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.2  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.4  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.4  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.1  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.1  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.2  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.2  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 
 If NOT DEFINED WXWIN goto buildEventFailed
 If NOT DEFINED WXVER goto buildEventFailed
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.2  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.4  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.0  ( If NOT %25WXVER%25 == 31 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.1  ( If NOT %25WXVER%25 == 31 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.2  ( If NOT %25WXVER%25 == 31 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
 goto buildEventOK
 :buildEventFailed
@@ -81,6 +87,7 @@ echo *** Pre-Build event for $(ProjectName) FAILED
 echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
 echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
 echo *** For example:
+echo ***    If WXWIN is set to "c:\wxWidgets-3.1.x" then WXVER should be set to 31
 echo ***    If WXWIN is set to "c:\wxWidgets-3.0.x" then WXVER should be set to 30
 echo ***    If WXWIN is set to "c:\wxWidgets-2.9.x" then WXVER should be set to 29
 echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28
@@ -187,24 +194,30 @@ IF EXIST "..\..\setup Git\Git_Downloader_2_18_0_4AI.exe" xcopy "..\..\setup Git\
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Release|Win32'">
     <PreBuildEvent>
-      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+      <Command>If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.2  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.2  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.4  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.4  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.1  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.1  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.2  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.2  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 
 If NOT DEFINED WXWIN goto buildEventFailed
 If NOT DEFINED WXVER goto buildEventFailed
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.1  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-3.0.2  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.4  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.0  ( If NOT %25WXVER%25 == 31 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.1  ( If NOT %25WXVER%25 == 31 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.1.2  ( If NOT %25WXVER%25 == 31 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
 goto buildEventOK
 :buildEventFailed
@@ -214,6 +227,7 @@ echo *** Pre-Build event for $(ProjectName) FAILED
 echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
 echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
 echo *** For example:
+echo ***    If WXWIN is set to "c:\wxWidgets-3.1.x" then WXVER should be set to 31
 echo ***    If WXWIN is set to "c:\wxWidgets-3.0.x" then WXVER should be set to 30
 echo ***    If WXWIN is set to "c:\wxWidgets-2.9.x" then WXVER should be set to 29
 echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28

@@ -11836,6 +11836,189 @@ wxSizer *PhraseBoxDropDownFunc_UNUSED( wxWindow *parent, bool call_fit, bool set
     return item0;
 }
 
+wxSizer *LanguageCodesDialog2Func( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxFlexGridSizer *item1 = new wxFlexGridSizer( 1, 0, 0 );
+
+    wxStaticBox *item3 = new wxStaticBox( parent, -1, wxT("") );
+    wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_CODES_MSG1, _("Enter 2-letter or 3-letter language codes for source, target, gloss and free translation languages:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item4, 0, wxALL, 0 );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_CODES_MSG2, _("If you know the 2-letter or 3-letter codes enter them directly below or search the list above"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item5, 0, wxALL, 0 );
+
+    wxFlexGridSizer *item6 = new wxFlexGridSizer( 4, 0, 10 );
+
+    wxStaticText *item7 = new wxStaticText( parent, ID_SRC_LANGUAGE_CODE, _("Code for &Source:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item7, 0, wxALIGN_CENTER, 0 );
+
+    wxStaticText *item8 = new wxStaticText( parent, ID_TGT_LANGUAGE_CODE, _("Code for &Target:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item8, 0, wxALIGN_CENTER, 0 );
+
+    wxStaticText *item9 = new wxStaticText( parent, ID_GLS_LANGUAGE_CODE, _("Code for &Gloss:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item9, 0, wxALIGN_CENTER, 0 );
+
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT_FRTR, _("Code for &Free Translation:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
+    item11->SetToolTip( _("The 2-letter or 3-letter code for the Source Language goes here") );
+    item6->Add( item11, 1, wxGROW|wxALL, 0 );
+
+    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_TGT_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
+    item12->SetToolTip( _("The 2-letter or 3-letter code for the Target Language goes here") );
+    item6->Add( item12, 1, wxGROW|wxALL, 0 );
+
+    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_GLS_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
+    item13->SetToolTip( _("The 2-letter or 3-letter code for the Gloss Language goes here") );
+    item6->Add( item13, 1, wxGROW|wxALL, 0 );
+
+    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_FRTR_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
+    item14->SetToolTip( _("The 2-letter or 3-letter language code for the free translation goes here") );
+    item6->Add( item14, 1, wxGROW|wxALL, 0 );
+
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("(required)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("(required)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("(optional)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, _("(optional)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item2->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticBox *item20 = new wxStaticBox( parent, -1, _("&List of Language Codes and Names:") );
+    wxStaticBoxSizer *item19 = new wxStaticBoxSizer( item20, wxVERTICAL );
+
+    wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item22 = new wxStaticText( parent, ID_STATICTEXT_SCROLL_LIST, _("Scroll &list and highlight language, or search for language or code below"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item22, 0, wxALL, 0 );
+
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, _("(The 2-letter codes are listed first followed by the 3-letter codes)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item23, 0, wxALL, 0 );
+
+    wxString *strs24 = (wxString*) NULL;
+    wxListBox *item24 = new wxListBox( parent, ID_LIST_LANGUAGE_CODES_NAMES, wxDefaultPosition, wxSize(400,220), 0, strs24, wxLB_SINGLE );
+    item24->SetToolTip( _("This is a list of languages and their 3-letter codes") );
+    item21->Add( item24, 1, wxGROW|wxALL, 0 );
+
+    item19->Add( item21, 1, wxGROW|wxALL, 0 );
+
+    wxBoxSizer *item25 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxFlexGridSizer *item27 = new wxFlexGridSizer( 3, 0, 0 );
+
+    item27->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item28 = new wxStaticText( parent, ID_STATICTEXT_SEARCH_FOR_LANG_NAME, _("Language Name"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item27->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item29 = new wxStaticText( parent, ID_TEXT, _("Search for:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxTextCtrl *item30 = new wxTextCtrl( parent, ID_TEXTCTRL_SEARCH_LANG_NAME, wxT(""), wxDefaultPosition, wxSize(120,-1), wxTE_PROCESS_ENTER );
+    item30->SetToolTip( _("Enter a language name, or part of a name here") );
+    item27->Add( item30, 0, wxGROW|wxALL, 0 );
+
+    wxButton *item31 = new wxButton( parent, ID_BUTTON_FIND_LANGUAGE, _("Find"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->Add( item31, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item26->Add( item27, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item26->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxFlexGridSizer *item32 = new wxFlexGridSizer( 3, 0, 0 );
+
+    item32->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, _("Code"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item32->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item34 = new wxStaticText( parent, ID_TEXT, _("Search for:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item34, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxTextCtrl *item35 = new wxTextCtrl( parent, ID_TEXTCTRL_SEARCH_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(50,-1), wxTE_PROCESS_ENTER );
+    item35->SetToolTip( _("Enter a 2 or 3 letter language code here") );
+    item32->Add( item35, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item36 = new wxButton( parent, ID_BUTTON_FIND_CODE, _("Find"), wxDefaultPosition, wxDefaultSize, 0 );
+    item36->SetToolTip( _("Use this button to find the next occurrence in list if it exists") );
+    item32->Add( item36, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item26->Add( item32, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item25->Add( item26, 0, wxALL, 0 );
+
+    wxFlexGridSizer *item37 = new wxFlexGridSizer( 2, 0, 10 );
+
+    wxButton *item38 = new wxButton( parent, ID_BUTTON_USE_SEL_AS_SRC, _("Use highlighted code for Sourc&e Language"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->SetToolTip( _("Use this button to copy the 3-letter code of the selected language above to the Source Language Code box below") );
+    item37->Add( item38, 0, wxALL, 0 );
+
+    wxButton *item39 = new wxButton( parent, ID_BUTTON_USE_SEL_AS_GLS, _("Use highlighted code for Gloss Language"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->Add( item39, 0, wxALL, 5 );
+
+    wxButton *item40 = new wxButton( parent, ID_BUTTON_USE_SEL_AS_TGT, _("Use highlighted code for T&arget Language"), wxDefaultPosition, wxDefaultSize, 0 );
+    item40->SetToolTip( _("Use this button to copy the 3-letter code of the selected language above to the Target Language Code box below") );
+    item37->Add( item40, 0, wxALL, 0 );
+
+    wxButton *item41 = new wxButton( parent, ID_BUTTON_USE_SEL_AS_FRTR, _("Use highlighted code for Free Translation Language"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->Add( item41, 0, wxALL, 5 );
+
+    item25->Add( item37, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item19->Add( item25, 0, wxGROW|wxALL, 0 );
+
+    item1->Add( item19, 1, wxGROW|wxALL, 0 );
+
+    wxBoxSizer *item42 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item43 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item43->SetDefault();
+    item42->Add( item43, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item42->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item44 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item42->Add( item44, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item42, 0, wxALIGN_RIGHT|wxALL, 0 );
+
+    item1->AddGrowableCol( 0 );
+
+    item1->AddGrowableRow( 0 );
+
+    item1->AddGrowableRow( 1 );
+
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()

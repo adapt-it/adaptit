@@ -51,8 +51,9 @@ public:
     bool m_bFirstNameSearch;
 
 	wxListBox* pListBox;
-	wxTextCtrl* pEditSearchForLangName;
-	wxTextCtrl* pEditSourceLangCode;
+    wxTextCtrl* pEditSearchForLangName;
+    wxTextCtrl* pEditSearchForLangCode;
+    wxTextCtrl* pEditSourceLangCode;
 	wxTextCtrl* pEditTargetLangCode;
 	wxTextCtrl* pEditGlossLangCode;
 	wxTextCtrl* pEditFreeTransLangCode; // BEW added 23Jul12
@@ -85,7 +86,8 @@ protected:
 	void OnUseSelectedCodeForGlsLanguage(wxCommandEvent& WXUNUSED(event));
 	void OnUseSelectedCodeForFreeTransLanguage(wxCommandEvent& WXUNUSED(event));
 	void OnSelchangeListboxLanguageCodes(wxCommandEvent& WXUNUSED(event));
-	void OnEnterInSearchBox(wxCommandEvent& WXUNUSED(event));
+	void OnEnterInSearchByName(wxCommandEvent& WXUNUSED(event));
+    void OnEnterInSearchByCode(wxCommandEvent& WXUNUSED(event));
 	wxString Get3LetterCodeFromLBItem(); // helper function
 
 private:
