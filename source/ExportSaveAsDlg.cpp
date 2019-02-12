@@ -136,7 +136,7 @@ CExportSaveAsDlg::CExportSaveAsDlg(wxWindow* parent) // dialog constructor
 	Panel1->SetWindowStyle(wxEXPAND);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	lblExportTo = new wxStaticText(Panel1, ID_LBLEXPORTTO, _("Export to:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_LBLEXPORTTO"));
-	BoxSizer1->Add(lblExportTo, 1, wxALL|wxALIGN_RIGHT, 10);
+	BoxSizer1->Add(lblExportTo, 1, wxALL, 10);
 	btnExportToTxt = new wxBitmapButton(Panel1, ID_BTNEXPORTTOTXT, gpApp->wxGetBitmapFromMemory(text_txt_png), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BTNEXPORTTOTXT"));
 	BoxSizer1->Add(btnExportToTxt, 1, wxALL|wxALIGN_CENTER, 5);
 	btnExportToRtf = new wxBitmapButton(Panel1, ID_BTNEXPORTTORTF, gpApp->wxGetBitmapFromMemory(text_rtf_png), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BTNEXPORTTORTF"));
