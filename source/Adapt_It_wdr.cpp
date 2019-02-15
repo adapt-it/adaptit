@@ -2818,33 +2818,23 @@ wxSizer *NoteDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *item15 = new wxButton( parent, IDC_DELETE_BTN, _("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->SetToolTip( _("Delete this note (the note dialog will close)") );
+    item14->Add( item15, 0, wxALL, 0 );
 
-    item15->Add( 20, 10, 0, wxALIGN_CENTER, 5 );
+    item14->Add( 120, 20, 0, wxALIGN_CENTER, 5 );
 
-    wxButton *item16 = new wxButton( parent, IDC_DELETE_BTN, _("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->SetToolTip( _("Delete this note (the note dialog will close)") );
-    item15->Add( item16, 0, wxALL, 0 );
+    wxButton *item16 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->SetToolTip( _("Click OK to close the note dialog") );
+    item14->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item14->Add( item15, 1, wxALIGN_CENTER, 5 );
+    item14->Add( 40, 20, 0, wxALIGN_CENTER, 5 );
 
-    wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *item17 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->SetToolTip( _("Click Cancel to close the note dialog without making any changes") );
+    item14->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item17->Add( 80, 20, 0, wxALIGN_CENTER, 5 );
-
-    wxButton *item18 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->SetToolTip( _("Click OK to close the note dialog") );
-    item17->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item17->Add( 40, 5, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item19 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->SetToolTip( _("Click Cancel to close the note dialog without making any changes") );
-    item17->Add( item19, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item14->Add( item17, 2, wxALIGN_RIGHT|wxRIGHT|wxBOTTOM, 5 );
-
-    item3->Add( item14, 0, wxGROW, 5 );
+    item3->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item3, 0, wxGROW|wxALL, 0 );
 
