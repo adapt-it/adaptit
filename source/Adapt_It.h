@@ -232,13 +232,13 @@ class KBSharingMgrTabbedDlg;
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 9 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 2 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 3 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
 #define VERSION_DATE_DAY 18
-#define VERSION_DATE_MONTH 9
-#define VERSION_DATE_YEAR 2018
-const wxString appVerStr(_T("6.9.2"));
+#define VERSION_DATE_MONTH 2
+#define VERSION_DATE_YEAR 2019
+const wxString appVerStr(_T("6.9.3"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()

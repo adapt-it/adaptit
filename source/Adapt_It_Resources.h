@@ -58,11 +58,6 @@
 #ifndef __Adapt_It_Resources_H__
 #define __Adapt_It_Resources_H__
 
-#if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "Adapt_It_Resources.h"
-#endif
-
-
 #include "Adapt_It_wdr.h"
 
 

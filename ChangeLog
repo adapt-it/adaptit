@@ -1,4 +1,23 @@
-﻿Version 6.9.2 bug fix update 18 September 2018
+﻿Version 6.9.3 bug fix update 18 February 2019
+----------------------------------------------
+Feature changes and new features in 6.9.3
+--------------------------------------------------------------------------------------------
+* Reorganized the Language Codes dialog, and clarified some of its text labels 
+and buttons.
+* Updated the list of 2-letter and 3-letter language codes that appear in the
+Languag Codes dialog. The codes come from the latest version of the IANA registry 
+of language codes.
+---------------------------------------------
+Bug fixes in 6.9.3 update
+---------------------------------------------
+* Fixed a problem that could prevent the 2-letter and 3-letter language codes 
+from appearing in the list within the Lanugage Codes dialog.
+* Removed the potential for a "rare" crash, caused by moving the
+phrasebox to a new location before the application had gotten
+a valid pointer to where the phrasebox currently was located.
+
+--------------------------------------------
+Version 6.9.2 bug fix update 18 September 2018
 ----------------------------------------------
 Feature changes and new features in 6.9.2
 --------------------------------------------------------------------------------------------
@@ -6,6 +25,11 @@ Feature changes and new features in 6.9.2
 ---------------------------------------------
 Bug fixes in 6.9.2 update
 ---------------------------------------------
+* Various problems were fixed, such as tooltips not showing; the user needing an
+extra click in the phrasebox in order to get legacy things to work; etc. We were
+using the wrong widget for the phrasebox+list+dropdown button. So we started
+over with 3 appropriate widgets bound together, and restored the good legacy
+behaviours in doing that.
 * The Knowledge Base Editor could lose one or more meanings from the knowledge
 base for meanings that had a reference count (number of uses) of just one. The
 problem is fixed in this update.
@@ -17,7 +41,7 @@ selecting a meaning from the phrase box's drop down list now makes the document
 'dirty' and now enable the Save item on the File menu, and the Save button on 
 the tool bar.
 * The edit boxes on the 'Punctuation' tab page within the Preferences dialog 
-(accessible from the Edit menu) would not expand and could consequent cut off
+(accessible from the Edit menu) would not expand and could consequently cut off
 the tops or bottoms of the punctuation characters entered on that page of
 Preferences. The boxes now expand vertically if the Preferences dialog is 
 resized to be taller by dragging the dialog taller using the resizing thumb tab 

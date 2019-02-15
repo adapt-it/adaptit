@@ -92,11 +92,5 @@
 
 #include "Adapt_It_wdr.cpp"
 
-// ************** You can generate new dialogs within wxDesigner but *****************
-// ************** copy the code it generates in Adapt_It_wdr.cpp for *****************
-// ************** a new resource function, placing that new function *****************
-// ************** into this implementation file for actual incorporation *************
-// ************** into the Adapt It code base for compilation. ***********************
-
 
 

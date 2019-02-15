@@ -1,11 +1,17 @@
-﻿Version 6.9.3 bug fix update ?? February 2019
+﻿Version 6.9.3 bug fix update 18 February 2019
 ----------------------------------------------
 Feature changes and new features in 6.9.3
 --------------------------------------------------------------------------------------------
-* None
+* Reorganized the Language Codes dialog, and clarified some of its text labels 
+and buttons.
+* Updated the list of 2-letter and 3-letter language codes that appear in the
+Languag Codes dialog. The codes come from the latest version of the IANA registry 
+of language codes.
 ---------------------------------------------
 Bug fixes in 6.9.3 update
 ---------------------------------------------
+* Fixed a problem that could prevent the 2-letter and 3-letter language codes 
+from appearing in the list within the Lanugage Codes dialog.
 * Removed the potential for a "rare" crash, caused by moving the
 phrasebox to a new location before the application had gotten
 a valid pointer to where the phrasebox currently was located.
