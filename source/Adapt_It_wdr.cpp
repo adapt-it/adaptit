@@ -36,9 +36,6 @@
 /// function prototypes for all the resources used by Adapt It specified and
 /// managed by wxDesigner. 
 /////////////////////////////////////////////////////////////////////////////
-#if defined(__GNUC__)
-	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 #include "ComposeBarEditBox.h"
 #include <wx/fontenum.h> // needed for SetEncodingDlg.h below
 #include "Adapt_It.h" // needed for SetEncodingDlg.h below

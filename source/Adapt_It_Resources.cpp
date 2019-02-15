@@ -90,31 +90,6 @@
 ///
 /////////////////////////////////////////////////////////////////////////////
 
-// the following improves GCC compilation performance
-#if defined(__GNUG__) && !defined(__APPLE__) //The GNU C++ compiler defines this.
-// Testing it is equivalent to testing (__GNUC__ && __cplusplus).
-#pragma implementation "Adapt_It_Resources.h"
-#endif
-
-// For compilers that support precompilation, includes "wx.h".
-#include <wx/wxprec.h>
-
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
-
-#ifndef WX_PRECOMP
-// Include your minimal set of headers here, or wx.h
-#include <wx/wx.h>
-#endif
-
-#include <wx/intl.h>
-
-#include "ComposeBarEditBox.h"
-#include <wx/fontenum.h> // needed for SetEncodingDlg.h below
-#include "Adapt_It.h" // needed for SetEncodingDlg.h below
-#include "SetEncodingDlg.h"
-
 #include "Adapt_It_wdr.cpp"
 
 // ************** You can generate new dialogs within wxDesigner but *****************
