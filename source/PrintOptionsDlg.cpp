@@ -206,38 +206,56 @@ CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 
 #if defined(Print_failure)
 #if defined(_DEBUG) && defined(__WXGTK__)
-    wxLogDebug(_T("PrintOptionsDlg  ~CPrintOptionsDlg() line 205 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d ,\n        bHideFreeTranslationsOnClose = %d, m_bFreeTranslationMode = %d"),
+    wxLogDebug(_T("PrintOptionsDlg  ~CPrintOptionsDlg() line 209 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d ,\n        bHideFreeTranslationsOnClose = %d, m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)bHideFreeTranslationsOnClose, (int)pApp->m_bFreeTranslationMode);
 #endif
 #endif
-	if (bHideFreeTranslationsOnClose)
+	// BEW 19Feb19, added test here for app's m_bFreeTranslation flag testing TRUE as
+	// a condition for execution to enter the following block of code which deals with
+	// free translation being current. When printing, the full document is parcelled into
+	// a set of page content short documents (after caching the full document of course)
+	// and there must be restoration of the full document before this free translation
+	// code block below is dealt with. Such restoration is done by calling the function
+	// DoPrintCleanup(), after setting m_nAIPrintout_Destructor_ReentrancyCount to have
+	// the value of 1. If, in all that, there is an error, there will be an app crash.
+	// This happened to Bill when testing for 6.9.3 version a few days ago, but when
+	// I did the same test - with the same wxWidgets (3.1.2), I got no crash. So I assume
+	// Bill's error was transient; just like yesterday I got a transient error which
+	// caused every dropdown of the phrasebox list to be correctly sized, but empty.
+	// Nevertheless, because Bill got that error, whether really transient or not, I
+	// am putting extra protection here in the form of a test for free translation mode
+	// being currently on.
+	if (pApp->m_bFreeTranslationMode)
 	{
-		pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode(ftModeOFF);
-	}
-	if (bHideGlossesOnClose)
-	{
-		pApp->GetView()->ShowGlosses();
-	}
-	// BEW removed, 25Oct12. Having the Thaw() in the destructor was too late, the memory of
-	// the early Freeze() had by then been lost, and so this Thaw() was throwing an
-	// exception that there was no matching Freeze(). Fixed the problem by moving these
-	// lines to both OnOK() handler and OnCancel() handler.
-//	if (pApp->m_bFrozenForPrinting)
-//	{
-//		pApp->GetMainFrame()->Thaw();
-//		pApp->m_bFrozenForPrinting = FALSE;
-//	}
-	// BEW added 19Nov11
-    gbCheckInclFreeTransText = FALSE; // restore default OFF
-    gbCheckInclGlossesText = FALSE; // restore default OFF
+		// Do this block only when free translation mode is still current
+		if (bHideFreeTranslationsOnClose)
+		{
+			pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode(ftModeOFF);
+		}
+		if (bHideGlossesOnClose)
+		{
+			pApp->GetView()->ShowGlosses();
+		}
+		// BEW removed, 25Oct12. Having the Thaw() in the destructor was too late, the memory of
+		// the early Freeze() had by then been lost, and so this Thaw() was throwing an
+		// exception that there was no matching Freeze(). Fixed the problem by moving these
+		// lines to both OnOK() handler and OnCancel() handler.
+	//	if (pApp->m_bFrozenForPrinting)
+	//	{
+	//		pApp->GetMainFrame()->Thaw();
+	//		pApp->m_bFrozenForPrinting = FALSE;
+	//	}
+		// BEW added 19Nov11
+		gbCheckInclFreeTransText = FALSE; // restore default OFF
+		gbCheckInclGlossesText = FALSE; // restore default OFF
 
 #if defined(Print_failure)
 #if defined(_DEBUG) && defined(__WXGTK__)
-    wxLogDebug(_T("PrintOptionsDlg  ~CPrintOptionsDlg() line 228 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d ,\n        bHideFreeTranslationsOnClose = %d, m_bFreeTranslationMode = %d"),
-               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)bHideFreeTranslationsOnClose, (int)pApp->m_bFreeTranslationMode);
+		wxLogDebug(_T("PrintOptionsDlg  ~CPrintOptionsDlg() line 254 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d ,\n        bHideFreeTranslationsOnClose = %d, m_bFreeTranslationMode = %d"),
+			(int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)bHideFreeTranslationsOnClose, (int)pApp->m_bFreeTranslationMode);
 #endif
 #endif
-
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -379,7 +397,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	}
 #if defined(Print_failure)
 #if defined(_DEBUG) && defined(__WXGTK__)
-    wxLogDebug(_T("PrintOptionsDlg  InitDialog() line 356: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d, m_bFreeTranslationMode = %d"),
+    wxLogDebug(_T("PrintOptionsDlg  InitDialog() line 400: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d, m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
 #endif
@@ -409,7 +427,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
     }
 
 #if defined(_DEBUG) && defined(Print_failure)
-    wxLogDebug(_T("InitDialog() before LayoutAndPaginate(), m_selectionLine = %d , m_bPrintingSelection %d    (at line 376)"),
+    wxLogDebug(_T("InitDialog() before LayoutAndPaginate(), m_selectionLine = %d , m_bPrintingSelection %d    (at line 430)"),
                pApp->m_selectionLine, pApp->m_bPrintingSelection);
 #endif
 
@@ -704,7 +722,7 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1; // BEW added 18Jul09
 #if defined(Print_failure)
 #if defined(_DEBUG) && defined(__WXGTK__)
-    wxLogDebug(_T("PrintOptionsDlg  OnOK() line 626 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+    wxLogDebug(_T("PrintOptionsDlg  OnOK() line 725 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
 #endif

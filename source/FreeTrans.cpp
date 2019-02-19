@@ -4822,11 +4822,11 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 #if defined(_DEBUG) && defined(__WXGTK__)
     if (ftModeSwitch == ftModeON)
     {
-        wxLogDebug(_T("FreeTrans.cpp line 3991                      *** SwitchScreenFreeTranslationMode called ***  with ftModeSwitch = ftModeON"));
+        wxLogDebug(_T("FreeTrans.cpp line 4825    *** SwitchScreenFreeTranslationMode called ***  with ftModeSwitch = ftModeON"));
     }
     else
     {
-        wxLogDebug(_T("FreeTrans.cpp line 3995                      *** SwitchScreenFreeTranslationMode called ***  with ftModeSwitch = ftModeOFF"));
+        wxLogDebug(_T("FreeTrans.cpp line 4829    *** SwitchScreenFreeTranslationMode called ***  with ftModeSwitch = ftModeOFF"));
     }
 #endif
 #endif

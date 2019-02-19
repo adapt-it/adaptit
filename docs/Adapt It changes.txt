@@ -11,7 +11,7 @@ of language codes.
 Bug fixes in 6.9.3 update
 ---------------------------------------------
 * Fixed a problem that could prevent the 2-letter and 3-letter language codes 
-from appearing in the list within the Lanugage Codes dialog.
+from appearing in the list within the Language Codes dialog.
 * Removed the potential for a "rare" crash, caused by moving the
 phrasebox to a new location before the application had gotten
 a valid pointer to where the phrasebox currently was located.

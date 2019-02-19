@@ -7796,6 +7796,10 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
 													  // empty string, so we DO want an empty string visible
 													  // (as <no adaptation> ) in the list, and if it was
 													  // what was inserted, we DO want it shown selected
+#if defined(_DEBUG)
+							wxLogDebug(_T("PopulateDropDownList: no adaptation is true, block: strSaveListEntry= %s , count= %d"),
+								strSaveListEntry, (unsigned int)count);
+#endif
 							count++; // count this re-inserted adaptation
 							bDeletionReinserted = TRUE; // used below
 							gpApp->m_pTargetBox->m_bAbandonable = FALSE;
@@ -7807,6 +7811,10 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
 						// strSaveListEntry is not empty, but another in the list might be; anyway
 						// do the insertion and it should be shown selected
 						int anIndex = (int)this->GetDropDownList()->Insert(strSaveListEntry, (unsigned int)count);
+#if defined(_DEBUG)
+						wxLogDebug(_T("PopulateDropDownList: else block: strSaveListEntry= %s , count= %d"),
+							strSaveListEntry, (unsigned int)count);
+#endif
 						selectionIndex = anIndex; // there are are least two items, even if one is an 
 												  // empty string, so we DO want an empty string visible
 												  // (as <no adaptation> ) in the list, and we want the
