@@ -171,43 +171,43 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxFlexGridSizer *item35 = new wxFlexGridSizer( 2, 0, 0 );
 
     wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, _("Active User Interface Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item36, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item35->Add( item36, 0, wxALL, 0 );
 
     wxStaticText *item37 = new wxStaticText( parent, ID_STATIC_UI_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item35->Add( item37, 0, wxALL, 0 );
 
     wxStaticText *item38 = new wxStaticText( parent, ID_TEXT, _("Host Operating System:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item38, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item35->Add( item38, 0, wxALL, 0 );
 
     wxStaticText *item39 = new wxStaticText( parent, ID_STATIC_HOST_OS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item35->Add( item39, 0, wxALL, 0 );
 
     wxStaticText *item40 = new wxStaticText( parent, ID_TEXT, _("System Default Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item40, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item35->Add( item40, 0, wxALL, 0 );
 
     wxStaticText *item41 = new wxStaticText( parent, ID_STATIC_SYS_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item35->Add( item41, 0, wxALL, 0 );
 
     wxStaticText *item42 = new wxStaticText( parent, ID_TEXT, _("System Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item42, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item35->Add( item42, 0, wxALL, 0 );
 
     wxStaticText *item43 = new wxStaticText( parent, ID_STATIC_SYS_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item35->Add( item43, 0, wxALL, 0 );
 
     wxStaticText *item44 = new wxStaticText( parent, ID_TEXT, _("Canonical Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item44, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item35->Add( item44, 0, wxALL, 0 );
 
     wxStaticText *item45 = new wxStaticText( parent, ID_STATIC_CANONICAL_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item35->Add( item45, 0, wxALL, 0 );
 
     wxStaticText *item46 = new wxStaticText( parent, ID_TEXT, _("System Encoding:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item46, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item35->Add( item46, 0, wxALL, 0 );
 
     wxStaticText *item47 = new wxStaticText( parent, ID_STATIC_SYS_ENCODING_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item35->Add( item47, 0, wxALL, 0 );
 
     wxStaticText *item48 = new wxStaticText( parent, ID_TEXT, _("System Layout Direction:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item48, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item35->Add( item48, 0, wxALL, 0 );
 
     wxStaticText *item49 = new wxStaticText( parent, ID_STATIC_SYSTEM_LAYOUT_DIR, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item35->Add( item49, 0, wxALL, 0 );
@@ -233,7 +233,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item51->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item0->Add( item51, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item0->Add( item51, 0, wxALL, 5 );
 
     if (set_sizer)
     {
@@ -495,7 +495,7 @@ wxSizer *OpenExistingProjectDlgFunc( wxWindow *parent, bool call_fit, bool set_s
     item6->SetToolTip( _("Click Cancel to stop accessing another project") );
     item4->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item4, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item0->Add( item4, 0, wxALL, 5 );
 
     if (set_sizer)
     {
@@ -756,7 +756,7 @@ wxSizer *FontsPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxButton *item16 = new wxButton( parent, IDC_SOURCE_LANG, _("Change Font..."), wxDefaultPosition, wxDefaultSize, 0 );
     item16->SetToolTip( _("Click this button to change the source language font (name, size, etc.)") );
-    item15->Add( item16, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item15->Add( item16, 0, wxALL, 5 );
 
     item6->Add( item15, 0, wxALIGN_CENTER, 5 );
 
@@ -2604,7 +2604,7 @@ wxSizer *SplitDialogFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxButton *item13 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item13->SetDefault();
     item13->SetToolTip( _("Click this button to close this dialog") );
-    item7->Add( item13, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item7->Add( item13, 0, wxALL, 0 );
 
     item2->Add( item7, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -2876,14 +2876,14 @@ wxSizer *CollectBackTranslationsDlgFunc( wxWindow *parent, bool call_fit, bool s
 
     item4->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item4->Add( 20, 20, 0, wxALIGN_BOTTOM, 5 );
+    item4->Add( 20, 20, 0, 0, 5 );
 
     wxButton *item9 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->SetDefault();
     item9->SetToolTip( _("Click OK to proceed with the collection of back translations") );
     item4->Add( item9, 0, wxALL, 5 );
 
-    item4->Add( 20, 20, 0, wxALIGN_BOTTOM, 5 );
+    item4->Add( 20, 20, 0, 0, 5 );
 
     wxButton *item10 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item10->SetToolTip( _("Click this button to Cancel without collecting any text for back translations") );
@@ -2955,7 +2955,7 @@ wxSizer *SetDelayDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item13->SetToolTip( _("Click this button to Cancel any changes") );
     item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item11, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item0->Add( item11, 0, wxALL, 5 );
 
     if (set_sizer)
     {
@@ -3193,7 +3193,7 @@ wxSizer *ExportSaveAsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item20->Realize();
     item19->Add( item20, 0, wxGROW|wxALL, 5 );
 
-    item2->Add( item19, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item2->Add( item19, 0, wxALL, 0 );
 
     item2->AddGrowableRow( 0 );
 
@@ -3403,7 +3403,7 @@ wxSizer *ExportInterlinearDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     item41->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item41, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item0->Add( item41, 0, wxALL, 0 );
 
     if (set_sizer)
     {
@@ -3478,7 +3478,7 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
     item4->Add( item15, 1, wxGROW|wxALL, 5 );
 
     wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Marker Description:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->Add( item17, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item4->Add( item17, 0, wxALL, 5 );
 
     wxStaticText *item18 = new wxStaticText( parent, IDC_STATIC_MARKER_DESCRIPTION, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item18->SetToolTip( _("This is a description of the marker selected in the Marker list box (at upper left)") );
@@ -3487,7 +3487,7 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
     item4->Add( 80, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Marker Status:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->Add( item19, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item4->Add( item19, 0, wxALL, 5 );
 
     wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -3528,7 +3528,7 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
 
     item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item3->Add( item22, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item3->Add( item22, 0, wxALL, 0 );
 
     item2->Add( item3, 1, wxGROW, 0 );
 
@@ -3557,11 +3557,11 @@ wxSizer *GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Chapter:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->Add( item5, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item4->Add( item5, 0, wxALL, 0 );
 
     item4->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item3->Add( item4, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item3->Add( item4, 0, wxALL, 5 );
 
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -3571,18 +3571,18 @@ wxSizer *GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item3->Add( item6, 1, wxGROW|wxALL, 0 );
 
-    item2->Add( item3, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item2->Add( item3, 0, wxALL, 0 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
     wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Verse:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->Add( item10, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item9->Add( item10, 0, wxALL, 0 );
 
     item9->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item8->Add( item9, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item8->Add( item9, 0, wxALL, 5 );
 
     wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -3592,7 +3592,7 @@ wxSizer *GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item8->Add( item11, 1, wxGROW|wxALL, 0 );
 
-    item2->Add( item8, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item2->Add( item8, 0, wxALL, 0 );
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -3612,7 +3612,7 @@ wxSizer *GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item17->SetToolTip( _("Click Cancel to close the dialog without going to another location in the document") );
     item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item15, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item2->Add( item15, 0, wxALL, 0 );
 
     item1->Add( item2, 1, wxGROW|wxALL, 5 );
 
@@ -3856,7 +3856,7 @@ wxSizer *ChooseConsistencyCheckTypeDlgFunc( wxWindow *parent, bool call_fit, boo
 
     item1->Add( item2, 1, wxGROW|wxALL, 5 );
 
-    item0->Add( item1, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item0->Add( item1, 0, wxALL, 5 );
 
     wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -3871,7 +3871,7 @@ wxSizer *ChooseConsistencyCheckTypeDlgFunc( wxWindow *parent, bool call_fit, boo
 
     item11->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item0->Add( item11, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item0->Add( item11, 0, wxALL, 5 );
 
     if (set_sizer)
     {
@@ -4134,7 +4134,7 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxButton *item30 = new wxButton( parent, IDC_BUTTON_FLAG_TOGGLE, _("&Toggle The Setting"), wxDefaultPosition, wxDefaultSize, 0 );
     item30->SetToolTip( _("Toggle the \"Force Choice For This Item\" checkbox YES or NO") );
-    item26->Add( item30, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item26->Add( item30, 0, wxALL, 0 );
 
     item11->Add( item26, 0, wxGROW|wxALL, 0 );
 
@@ -4304,7 +4304,7 @@ wxWindow *item6 = item7;
 
     item18->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item2->Add( item18, 0, wxALIGN_RIGHT|wxLEFT|wxRIGHT, 0 );
+    item2->Add( item18, 0, wxLEFT|wxRIGHT, 0 );
 
     item1->Add( item2, 1, wxGROW|wxLEFT|wxRIGHT, 5 );
 
@@ -4574,7 +4574,7 @@ wxSizer *ListDocInOtherFolderDlgFunc( wxWindow *parent, bool call_fit, bool set_
     item6->SetDefault();
     item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item5, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item2->Add( item5, 0, wxALL, 0 );
 
     item1->Add( item2, 1, wxGROW|wxALL, 0 );
 
@@ -4729,7 +4729,7 @@ wxSizer *SetEncodingDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item36->SetToolTip( _("Click Cancel to close the dialog without changing the encoding or face name") );
     item34->Add( item36, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item33->Add( item34, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item33->Add( item34, 0, wxALL, 0 );
 
     item33->Add( 20, 10, 0, wxALIGN_CENTER, 5 );
 
@@ -4769,7 +4769,7 @@ wxSizer *CCTableEditDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item3->Add( 60, 20, 0, wxALIGN_CENTER, 5 );
 
-    item0->Add( item3, 1, wxALIGN_RIGHT|wxALL, 5 );
+    item0->Add( item3, 1, wxALL, 5 );
 
     item0->Add( 640, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -5054,7 +5054,7 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item41->SetToolTip( _("Close the Find-Replace dialog") );
     item38->Add( item41, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item38, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item1->Add( item38, 0, wxALL, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALL, 0 );
 
@@ -5232,7 +5232,7 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item36->SetToolTip( _("Close the Find-Replace dialog") );
     item32->Add( item36, 0, wxALL, 0 );
 
-    item1->Add( item32, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item1->Add( item32, 0, wxALL, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALL, 0 );
 
@@ -5269,7 +5269,7 @@ wxSizer *CCTableNameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item5->SetToolTip( _("Click Cancel to stop the process and return to what you were doing") );
     item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item3, 0, wxALIGN_RIGHT, 5 );
+    item0->Add( item3, 0, 0, 5 );
 
     if (set_sizer)
     {
@@ -5376,7 +5376,7 @@ wxSizer *PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxFlexGridSizer *item27 = new wxFlexGridSizer( 5, 12, 0 );
 
     wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("from: chapter"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item27->Add( item28, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item27->Add( item28, 0, wxALL, 5 );
 
     wxTextCtrl *item29 = new wxTextCtrl( parent, IDC_EDIT1, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item29->SetToolTip( _("Type the begining chapter to start printing here") );
@@ -5385,14 +5385,14 @@ wxSizer *PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item27->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxStaticText *item30 = new wxStaticText( parent, ID_TEXT, _("verse"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item27->Add( item30, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item27->Add( item30, 0, wxALL, 5 );
 
     wxTextCtrl *item31 = new wxTextCtrl( parent, IDC_EDIT2, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item31->SetToolTip( _("Type the beginning verse to start printing here") );
     item27->Add( item31, 1, wxGROW|wxALL, 5 );
 
     wxStaticText *item32 = new wxStaticText( parent, ID_TEXT, _("to: chapter"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item27->Add( item32, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item27->Add( item32, 0, wxALL, 5 );
 
     wxTextCtrl *item33 = new wxTextCtrl( parent, IDC_EDIT3, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item33->SetToolTip( _("Type the ending chapter to print here") );
@@ -5401,7 +5401,7 @@ wxSizer *PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item27->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxStaticText *item34 = new wxStaticText( parent, ID_TEXT, _("verse"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item27->Add( item34, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item27->Add( item34, 0, wxALL, 5 );
 
     wxTextCtrl *item35 = new wxTextCtrl( parent, IDC_EDIT4, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item35->SetToolTip( _("Type the ending verse to print here") );
@@ -5538,7 +5538,7 @@ wxWindow *item4 = item5;
     wxButton *item12 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item10, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item1->Add( item10, 0, wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -5580,7 +5580,7 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXT_AS_STATIC_SHORT_LANG_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), wxTE_READONLY|wxNO_BORDER | wxGROW );
     item6->Add( item8, 1, wxGROW|wxALL, 0 );
 
-    item2->Add( item6, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item2->Add( item6, 0, wxALL, 0 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -5592,7 +5592,7 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXT_AS_STATIC_LONG_LANG_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), wxTE_READONLY|wxTE_PROCESS_TAB|wxNO_BORDER | wxGROW );
     item9->Add( item11, 1, wxGROW|wxALL, 0 );
 
-    item2->Add( item9, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item2->Add( item9, 0, wxALL, 0 );
 
     item1->Add( item2, 1, wxGROW|wxALL, 5 );
 
@@ -5624,7 +5624,7 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     item19->SetToolTip( _("Click Cancel to make no changes to the interface language") );
     item17->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item17, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item1->Add( item17, 0, wxALL, 0 );
 
     item1->AddGrowableCol( 0 );
 
@@ -6734,7 +6734,7 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxButton *item28 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item25->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item25, 0, wxALIGN_RIGHT, 5 );
+    item0->Add( item25, 0, 0, 5 );
 
     if (set_sizer)
     {
@@ -7019,7 +7019,7 @@ wxSizer *LanguageCodesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxButton *item37 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item35->Add( item37, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item35, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item1->Add( item35, 0, wxALL, 0 );
 
     item1->AddGrowableCol( 0 );
 
@@ -7073,7 +7073,7 @@ wxSizer *PeekAtFileFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item5->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item5, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item1->Add( item5, 0, wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -7257,7 +7257,7 @@ wxWindow *item5 = item6;
 
     item22->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item3->Add( item22, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item3->Add( item22, 0, wxALL, 0 );
 
     item2->Add( item3, 1, wxGROW|wxALL, 5 );
 
@@ -7535,7 +7535,7 @@ wxSizer *GuesserSettingsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer
     wxButton *item26 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item23->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item23, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item1->Add( item23, 0, wxALL, 0 );
 
     wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
 
@@ -7828,113 +7828,105 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticBox *item3 = new wxStaticBox( parent, -1, _("Using these %s projects:") );
+    wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxHORIZONTAL );
+    STATIC_TEXT_PTorBE_PROJECTS = item2;
 
-    wxStaticBox *item4 = new wxStaticBox( parent, -1, _("Using these %s projects:") );
-    wxStaticBoxSizer *item3 = new wxStaticBoxSizer( item4, wxHORIZONTAL );
-    STATIC_TEXT_PTorBE_PROJECTS = item3;
+    wxFlexGridSizer *item4 = new wxFlexGridSizer( 2, 0, 5 );
 
-    wxFlexGridSizer *item5 = new wxFlexGridSizer( 2, 0, 5 );
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_SRC_PROJ, _("Source Project: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item5, 0, wxALL, 0 );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_SRC_PROJ, _("Source Project: "), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item6, 0, wxALL, 0 );
+    wxStaticText *item6 = new wxStaticText( parent, ID_STATIC_TEXT_SRC_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item6, 0, wxALL, 0 );
 
-    wxStaticText *item7 = new wxStaticText( parent, ID_STATIC_TEXT_SRC_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item7, 0, wxALL, 0 );
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_TGT_PROJ, _("Target Project: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item7, 0, wxALL, 0 );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_TGT_PROJ, _("Target Project: "), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item8, 0, wxALL, 0 );
+    wxStaticText *item8 = new wxStaticText( parent, ID_STATIC_TEXT_TGT_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item8, 0, wxALL, 0 );
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_STATIC_TEXT_TGT_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item9, 0, wxALL, 0 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT_FREETRANS_PROJ, _("Free Translation Project: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item9, 0, wxALL, 0 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT_FREETRANS_PROJ, _("Free Translation Project: "), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item10, 0, wxALL, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_STATIC_TEXT_FREETRANS_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item10, 0, wxALL, 0 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_STATIC_TEXT_FREETRANS_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item11, 0, wxALL, 0 );
+    item2->Add( item4, 0, wxALL, 0 );
 
-    item3->Add( item5, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( 10, 20, 0, wxALL, 0 );
 
-    item2->Add( 10, 20, 0, wxALL, 0 );
+    wxStaticBox *item12 = new wxStaticBox( parent, -1, _("Using this Adapt It project:") );
+    wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxHORIZONTAL );
 
-    wxStaticBox *item13 = new wxStaticBox( parent, -1, _("Using this Adapt It project:") );
-    wxStaticBoxSizer *item12 = new wxStaticBoxSizer( item13, wxHORIZONTAL );
+    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT_AI_PROJ, wxT("Language A to Language B adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->Add( item14, 0, wxALL, 0 );
 
-    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT_AI_PROJ, wxT("Language A to Language B adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item15, 0, wxALL, 0 );
+    item11->Add( item13, 0, wxALL, 0 );
 
-    item12->Add( item14, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item1->Add( item11, 0, wxALL, 0 );
 
-    item2->Add( item12, 0, wxALL, 0 );
+    item0->Add( item1, 0, wxALL, 0 );
 
-    item1->Add( item2, 0, wxGROW|wxALL, 0 );
+    wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item16 = new wxBoxSizer( wxVERTICAL );
+    wxFlexGridSizer *item16 = new wxFlexGridSizer( 2, 0, 0 );
 
-    wxFlexGridSizer *item17 = new wxFlexGridSizer( 2, 0, 0 );
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Select a &book:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item17, 0, wxALL, 5 );
 
-    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, _("Select a &book:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item18, 0, wxALL, 5 );
+    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT_SELECT_A_CHAPTER, _("Select a &chapter:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item18, 0, wxALL, 5 );
 
-    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT_SELECT_A_CHAPTER, _("Select a &chapter:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item19, 0, wxALL, 5 );
+    wxString *strs19 = (wxString*) NULL;
+    wxListBox *item19 = new wxListBox( parent, ID_LISTBOX_BOOK_NAMES, wxDefaultPosition, wxSize(150,120), 0, strs19, wxLB_SINGLE );
+    item19->SetToolTip( _("List of books available in this project") );
+    item16->Add( item19, 1, wxFIXED_MINSIZE|wxGROW|wxALL, 5 );
 
-    wxString *strs20 = (wxString*) NULL;
-    wxListBox *item20 = new wxListBox( parent, ID_LISTBOX_BOOK_NAMES, wxDefaultPosition, wxSize(150,120), 0, strs20, wxLB_SINGLE );
-    item20->SetToolTip( _("List of books available in this project") );
-    item17->Add( item20, 1, wxFIXED_MINSIZE|wxGROW|wxALL, 5 );
+    wxListCtrl *item20 = new wxListCtrl( parent, ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, wxDefaultPosition, wxSize(420,120), wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL  );
+    item20->SetToolTip( _("Chapters available for the selected book (and their translation status)") );
+    item16->Add( item20, 1, wxGROW|wxALL, 5 );
 
-    wxListCtrl *item21 = new wxListCtrl( parent, ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, wxDefaultPosition, wxSize(420,120), wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL  );
-    item21->SetToolTip( _("Chapters available for the selected book (and their translation status)") );
-    item17->Add( item21, 1, wxGROW|wxALL, 5 );
+    item16->AddGrowableCol( 0 );
 
-    item17->AddGrowableCol( 0 );
+    item16->AddGrowableCol( 1 );
 
-    item17->AddGrowableCol( 1 );
+    item16->AddGrowableRow( 1 );
 
-    item17->AddGrowableRow( 1 );
+    item15->Add( item16, 1, wxGROW|wxALL, 0 );
 
-    item16->Add( item17, 1, wxGROW|wxALL, 0 );
+    item0->Add( item15, 1, wxALL, 0 );
 
-    item1->Add( item16, 1, wxGROW|wxALL, 0 );
+    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+    wxTextCtrl *item22 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NOTE, wxT(""), wxDefaultPosition, wxSize(80,60), wxTE_MULTILINE|wxTE_READONLY );
+    item22->SetToolTip( _("More information about the status of a selected chapter or book") );
+    item21->Add( item22, 1, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NOTE, wxT(""), wxDefaultPosition, wxSize(80,60), wxTE_MULTILINE|wxTE_READONLY );
-    item23->SetToolTip( _("More information about the status of a selected chapter or book") );
-    item22->Add( item23, 1, wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item21, 0, wxGROW|wxALL, 0 );
 
-    item1->Add( item22, 0, wxGROW|wxALL, 0 );
+    wxStaticLine *item23 = new wxStaticLine( parent, ID_LINE_1, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item0->Add( item23, 0, wxGROW|wxALL, 5 );
 
-    wxStaticLine *item24 = new wxStaticLine( parent, ID_LINE_1, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item1->Add( item24, 0, wxGROW|wxALL, 5 );
+    wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *item25 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
+    item24->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item27 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->Add( item27, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item26 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item26->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item24->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item28 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->Add( item28, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item26->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item25->Add( item26, 1, wxALIGN_CENTER|wxALL, 0 );
-
-    item1->Add( item25, 0, wxALIGN_RIGHT|wxALL, 0 );
-
-    item0->Add( item1, 1, wxGROW|wxALL, 0 );
+    item0->Add( item24, 0, wxALL, 0 );
 
     if (set_sizer)
     {
@@ -8133,7 +8125,7 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
 
     wxBoxSizer *item56 = new wxBoxSizer( wxHORIZONTAL );
 
-    item1->Add( item56, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item1->Add( item56, 0, wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -8501,7 +8493,7 @@ wxSizer *KBExportImportOptionsFunc( wxWindow *parent, bool call_fit, bool set_si
     wxButton *item7 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item5, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item0->Add( item5, 0, wxALL, 0 );
 
     if (set_sizer)
     {
@@ -8844,7 +8836,7 @@ wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_f
 
     item55->Add( item56, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item55, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item1->Add( item55, 0, wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -8920,7 +8912,7 @@ wxSizer *CreateNewAIProjForCollabFunc( wxWindow *parent, bool call_fit, bool set
     wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
 
     wxStaticText *item18 = new wxStaticText( parent, ID_TEXT_AS_STATIC_NEW_AI_PROJ_NAME, _("The new Adapt It Project Name will be:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item18, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item17->Add( item18, 0, wxALL, 0 );
 
     wxTextCtrl *item19 = new wxTextCtrl( parent, ID_TEXTCTRL_NEW_AI_PROJ_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
     item17->Add( item19, 1, wxGROW|wxALL, 0 );
@@ -8944,7 +8936,7 @@ wxSizer *CreateNewAIProjForCollabFunc( wxWindow *parent, bool call_fit, bool set
 
     item21->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item0->Add( item21, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item0->Add( item21, 0, wxALL, 5 );
 
     if (set_sizer)
     {
@@ -9016,7 +9008,7 @@ wxSizer *BookNameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxButton *item17 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item4->Add( item15, 0, wxALIGN_RIGHT, 5 );
+    item4->Add( item15, 0, 0, 5 );
 
     item0->Add( item4, 0, wxGROW|wxALL, 5 );
 
@@ -9393,7 +9385,7 @@ wxSizer *DVCSDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxButton *item7 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item5, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item2->Add( item5, 0, wxALL, 0 );
 
     item1->Add( item2, 1, wxGROW|wxALL, 5 );
 
@@ -9757,7 +9749,7 @@ wxWindow *item6 = item7;
     wxButton *item13 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item11, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item1->Add( item11, 0, wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -9794,14 +9786,14 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
 
     wxRadioButton *item7 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE1_KB, _("Type 1: Adaptations knowledge base - for storing shared associations between a source and a target language"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->SetValue( TRUE );
-    item6->Add( item7, 0, wxALIGN_CENTER, 15 );
+    item6->Add( item7, 0, 0, 15 );
 
     item3->Add( item6, 0, wxBOTTOM, 5 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
     wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE2_KB, _("Type 2: Glossing knowledge base - for storing shared associations between a source and a glossing language"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->Add( item9, 0, wxALIGN_CENTER, 10 );
+    item8->Add( item9, 0, 0, 10 );
 
     item3->Add( item8, 0, 0, 0 );
 
@@ -10242,28 +10234,28 @@ wxSizer *SplitterDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxFlexGridSizer *item3 = new wxFlexGridSizer( 2, 2, 4 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Text:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->Add( item4, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item3->Add( item4, 0, wxALL, 5 );
 
     wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC_TRANS, wxT(""), wxDefaultPosition, wxSize(500,52), wxTE_MULTILINE|wxTE_READONLY );
     item5->SetToolTip( _("This is the text which is being  free translated") );
     item3->Add( item5, 1, wxGROW, 5 );
 
     wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("Free Translation:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->Add( item6, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item3->Add( item6, 0, wxALL, 5 );
 
     wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_FREE_TRANS, wxT(""), wxDefaultPosition, wxSize(500,52), wxTE_MULTILINE|wxTE_READONLY );
     item7->SetToolTip( _("This is the free translation for the above text. Click where to split it.") );
     item3->Add( item7, 1, wxGROW, 5 );
 
     wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("For current section:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->Add( item8, 0, wxALIGN_RIGHT, 5 );
+    item3->Add( item8, 0, 0, 5 );
 
     wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_CURRENT_SECTION, wxT(""), wxDefaultPosition, wxSize(460,52), wxTE_MULTILINE|wxTE_READONLY );
     item9->SetToolTip( _("What you see here will be kept within the current section") );
     item3->Add( item9, 1, wxGROW, 5 );
 
     wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("For next section:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->Add( item10, 0, wxALIGN_RIGHT, 5 );
+    item3->Add( item10, 0, 0, 5 );
 
     wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_NEXT_SECTION, wxT(""), wxDefaultPosition, wxSize(460,52), wxTE_MULTILINE|wxTE_READONLY );
     item11->SetToolTip( _("What you see here will be put at the start of the next section") );
@@ -10801,7 +10793,7 @@ wxSizer *SingleLanguageCodeDlgFunc( wxWindow *parent, bool call_fit, bool set_si
     wxButton *item28 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item26->Add( item28, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item26, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item1->Add( item26, 0, wxALL, 0 );
 
     item1->AddGrowableCol( 0 );
 
@@ -11159,7 +11151,7 @@ wxSizer *ServDisc_KBserversDlg( wxWindow *parent, bool call_fit, bool set_sizer 
 
     item8->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item8, 0, wxALIGN_RIGHT|wxLEFT|wxRIGHT, 5 );
+    item1->Add( item8, 0, wxLEFT|wxRIGHT, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -11278,7 +11270,7 @@ wxSizer *PasswordDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxButton *item13 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item11, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item0->Add( item11, 0, wxALL, 5 );
 
     if (set_sizer)
     {
@@ -11904,7 +11896,7 @@ wxSizer *LanguageCodesDialog2Func( wxWindow *parent, bool call_fit, bool set_siz
     wxButton *item44 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item42->Add( item44, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item42, 0, wxALIGN_RIGHT|wxALL, 0 );
+    item1->Add( item42, 0, wxALL, 0 );
 
     item1->AddGrowableCol( 0 );
 
