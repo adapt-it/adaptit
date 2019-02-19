@@ -3,10 +3,15 @@
 # https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
 # and processes the IANA list into a more concise form writing it to iso639-3codes.txt
 # in the project's docs directory, where Installers/packaging routines can find it.
-# Adapt It reads it and displays its contents to the user within the LanguageCodesDlg 
-# dialog's list of language codes. 
+# Adapt It reads it and displays the contents of iso639-3codes.txt to the user within 
+# the LanguageCodesDlg dialog's list of language codes.
+# Parameter (optional):
+# Can take one optional parameter $1 which, if used, overrides the default output path
+# of "../docs/" for the output location of the iso639-3codes.txt file. For example "."
+# would output the iso639-3codes.txt file to the same directory the script is executed 
+# from; "~/Desktop/" would output the iso639-3codes.txt file to the desktop.
 # Author: Bill Martin <bill_martin@sil.org>
-# Date: 2019-01-31
+# Date: 2019-02-09
 #
 # Comments:
 #The original IANA file looks like the following (with %% delimiting separate records):
@@ -56,12 +61,22 @@
 IANA_LANG_SUBTAG_REGISTRY_URL="https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry"
 iso639_3CodesFileName="iso639-3codes.txt"
 DOCS_DIR="../docs/" # adaptit/docs dir relative to the adaptit/scripts dir.
+# Accept only a parameter representing a valid path
+if [[ "x$1" != "x" ]] && [[ -d "$1" ]]; then
+  # A parameter $1 was input to the script
+  # Ensure the parameter path ends with a slash /
+  TEMPDIR="${1%/}"
+  #echo "Debug: TEMPDIR is [$TEMPDIR]"
+  DOCS_DIR="$TEMPDIR/"
+  #echo "Debug: DOCS_DIR is [$DOCS_DIR]"
+fi
+echo -e "\nOutput to $DOCS_DIR""iso639_3CodesFileName"
+sleep 3s
 DELIMITER="%%"
 COUNT=0
-#OUTFILE=$iso639_3CodesFileName # Use this line for testing only; comment out this line after debugging and un-comment next line
 OUTFILE=$DOCS_DIR$iso639_3CodesFileName
 
-DOWNLOAD_DATE=`date`
+DOWNLOAD_DATE=`date +%Y-%m-%d@%H:%M:%S`
 start=`date +%s` # keep track of run-time of script
 
 # Test for Internet access; warn and abort if www.iana.org cannot be accessed
@@ -82,12 +97,20 @@ fi
 # - wget dumps to standard output, and collect that into the variable RAW_DATA.
 RAW_DATA=$(wget https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry -q -O -)
 
-# first backup the $iso639_3CodesFileName file to $iso639_3CodesFileName.bak
-mv --force $OUTFILE $OUTFILE".bak"
+# first backup the $iso639_3CodesFileName file, if it exists, to $iso639_3CodesFileName.bak
+if [[ -f "$OUTFILE" ]]; then
+  mv --force $OUTFILE $OUTFILE".bak"
+fi
 #Split the String into substring records. RAW_DATA delimits records by %%.
 IFS='%%' s_split=($RAW_DATA)
 echo "Total preprocess Lines - ${#s_split[@]}"
-echo -e "ID\tPrint_Name - last download date: $DOWNLOAD_DATE" | tee -a $OUTFILE
+IANA_FILE_DATE=$s_split # Assigns 1st array element to IANA_FILE_DATE variable (has a final \n)
+IANA_FILE_DATE=${IANA_FILE_DATE//$'\n'/} # Remove any (final) newlines
+echo -e "\nIANA Data $IANA_FILE_DATE"
+sleep 3s
+
+echo -e "\n******************************************************************************"
+echo -e "ID\tPrint_Name IANA data $IANA_FILE_DATE - download date: $DOWNLOAD_DATE" | tee -a $OUTFILE
 for i in ${s_split[@]}
 do
     i=${i//$'\n'/$' '} # Replace all newlines with spaces.
@@ -112,6 +135,7 @@ do
       echo "$i" | tee -a $OUTFILE
     fi
 done
+echo -e "\n******************************************************************************"
 echo "No of Lines output to $OUTFILE: $COUNT"
 echo "Script running time: $((($(date +%s)-$start))) seconds"
 
