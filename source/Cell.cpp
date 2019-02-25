@@ -591,7 +591,12 @@ void CCell::Draw(wxDC* pDC)
 	// side of the current free translation section
 	int nFT_First = -1;
 	int nFT_Last  = -1;
-	if (m_pLayout->m_pApp->m_bFreeTranslationMode && !gbIsBeingPreviewed)
+	// BEW 22Feb19 added the 'not printing' subtest, in case Print... command is 
+	// somehow given while free translating - which should not be possible because
+	// I will today be making previewing and printing menu choices be disabled
+	// when free translation mode is ON
+	if (m_pLayout->m_pApp->m_bFreeTranslationMode && !gbIsBeingPreviewed && !m_pLayout->m_pApp->m_bIsPrinting)
+//	if (m_pLayout->m_pApp->m_bFreeTranslationMode && !gbIsBeingPreviewed) // legacy test
 	{
 		m_pLayout->m_pApp->GetFreeTrans()->GetCurSectionFirstAndLast(&nFT_First, &nFT_Last);
 		if (m_pOwningPile->m_pSrcPhrase->m_nSequNumber < nFT_First ||

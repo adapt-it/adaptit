@@ -286,6 +286,8 @@ void CLayout::Draw(wxDC* pDC)
 			m_pApp->m_bIsFrozen = TRUE;
 		}
 	}
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	// BEW 23Jun09 - tried moving the placement of the phrase box to Invalidate() so as to
 	// support clipping, but that was too early in the flow of events, and the box was not
@@ -343,6 +345,10 @@ void CLayout::Draw(wxDC* pDC)
 		// not printing nor print previewing
 		GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex);
 	}
+
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	// check for any invalid strips in the range to be drawn, and if one is found, call
 	// the CleanUpFromStripAt() function, doing it for a window's worth of strips, so that
 	// no invalid strip will be visible to the user - either when displaying document
@@ -366,6 +372,9 @@ void CLayout::Draw(wxDC* pDC)
 			}
 		}
 	}
+
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	// in case the count of the inventory of strips has changed because a strip was
 	// cleared and removed, check for this possibility and reset the nLastStripIndex if it
@@ -394,6 +403,8 @@ void CLayout::Draw(wxDC* pDC)
 			nLastStripIndex = newLastIndex;
 		}
 	}
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	// draw the visible strips (includes an extra one, where possible)
 	for (i = nFirstStripIndex; i <= nLastStripIndex; i++)
@@ -420,6 +431,9 @@ void CLayout::Draw(wxDC* pDC)
 								  // medial punctuation) at a single active location
 	m_pApp->m_nPlacePunctDlgCallNumber = 0; // clear to default value of zero
 	m_pApp->m_nCurSequNum_ForPlacementDialog = -1; // reset to default -1 "undefined" value
+
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 }
 
 // the Redraw() member function can be used in many places where, in the legacy application,
@@ -564,6 +578,10 @@ wxLogDebug(_T("Layout, PlaceBox() line  %d  on entry, pApp->m_SaveTargetPhrase =
 // prepared - unless it should not be made visible (eg. when updating the layout
 // in the middle of a procedure, before the final update is done at a later time)
 //if (!pLayout->GetBoxVisibilityFlag())
+
+wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+	(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 if (!m_bLayoutWithoutVisiblePhraseBox)
 {
 	int nActiveSequNum = m_pApp->m_nActiveSequNum;
@@ -611,6 +629,9 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 
 	// Note: the m_nStartChar and m_nEndChar app members, for cursor placement or text selection
 	// range specification get set by the SetupCursorGlobals() calls in the switch below
+
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	// handle any operation specific parameter settings
 	// this stuff may not be needed now that I've had to put PlaceBox() all over the app
@@ -877,7 +898,10 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 	// fall through to the no_edit_op case, which does nothing
 	m_docEditOperationType = invalid_op_enum_value; // an invalid value
 
-													// wx Note: we don't destroy the target box, just set its text to null
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
+	// wx Note: we don't destroy the target box, just set its text to null
 	m_pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T(""));
 	//#if defined(_DEBUG)
 	//	wxLogDebug(_T("CLayout::PlaceBox() line 888: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetTextCtrl()->GetValue().c_str());
@@ -904,6 +928,8 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	m_pApp->LogDropdownState(_T("PlaceBox() after emptying m_pTargetBox and finished ResizeBox() call which sets m_pTargetBox value"), _T("Layout.cpp"), 910);
 #endif
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	// set the color - CPhraseBox has a color variable & uses reflected notification
 	if (bSetTextColor)
@@ -920,6 +946,10 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 	// background in the phrase box when it is at an anchor location
 	if (m_pApp->m_bIsGuess || m_pApp->m_bFreeTranslationMode)
 	{
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  ** Tests m_bFreeTranslationMode TRUE"),
+			__FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 		if (m_pApp->m_bFreeTranslationMode && m_pApp->m_nActiveSequNum != -1)
 		{
 			m_pApp->m_pTargetBox->GetTextCtrl()->SetBackgroundColour(m_pApp->m_freeTransCurrentSectionBackgroundColor);// whm 12Jul2018 added GetTextCtrl()-> part
@@ -927,15 +957,18 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 		else
 		{
 			m_pApp->m_pTargetBox->GetTextCtrl()->SetBackgroundColour(m_pApp->m_GuessHighlightColor);// whm 12Jul2018 added GetTextCtrl()-> part
-																									// Note: PlaceBox() is called twice in the process of executing PhraseBox's
-																									// OnePass() function (one via a MoveToNextPile call and once later in OnePass.
-																									// If we reset the m_pApp->m_bIsGuess flag to FALSE here in PlaceBox()
-																									// the second call of PlaceBox() from OnePass will reset the background color
-																									// to white in the else block below because the else block below would then
-																									// be exectuted on the second call. Instead of resetting m_bIsGuess here,
-																									// I've reset it at the end of the OnePass() function.
-																									//m_pApp->m_bIsGuess = FALSE;
+			// Note: PlaceBox() is called twice in the process of executing PhraseBox's
+			// OnePass() function (one via a MoveToNextPile call and once later in OnePass.
+			// If we reset the m_pApp->m_bIsGuess flag to FALSE here in PlaceBox()
+			// the second call of PlaceBox() from OnePass will reset the background color
+			// to white in the else block below because the else block below would then
+			// be exectuted on the second call. Instead of resetting m_bIsGuess here,
+			// I've reset it at the end of the OnePass() function.
+			//m_pApp->m_bIsGuess = FALSE;
 		}
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	}
 	else
 	{
@@ -956,13 +989,20 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	m_pApp->LogDropdownState(_T("PlaceBox() after SetModify() call, & colour setting of background"), _T("Layout.cpp"), 962);
 #endif
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	// put focus in compose bar's edit box if in free translation mode
 	if (m_pApp->m_bFreeTranslationMode)
 	{
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  ** 2nd test m_bFreeTranslationMode TRUE"),
+			__FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 		CMainFrame* pFrame = m_pApp->GetMainFrame();
 		wxASSERT(pFrame != NULL);
 		if (pFrame->m_pComposeBar != NULL)
+		{
 			if (pFrame->m_pComposeBar->IsShown())
 			{
 				wxTextCtrl* pComposeBox = (wxTextCtrl*)
@@ -974,6 +1014,9 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 				pComposeBox->SetSelection(len, len);
 				pComposeBox->SetFocus();
 			}
+		}
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -995,6 +1038,9 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 																 //wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"), 
 																 //    fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl(), m_pApp->m_pTargetBox->GetDropDownList());
 	}
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	// BEW 7May18 Since PlaceBox() is typically the last significant call before the user sees the
@@ -1022,6 +1068,9 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 	}
 
 	m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
+
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	m_pApp->LogDropdownState(_T("PlaceBox() after call and return from SetupDropDownPhraseBoxForThisLocation()"), _T("Layout.cpp"), 1033);
@@ -1736,10 +1785,9 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
 {
 	m_bFrameResizeWanted = FALSE;  // set TRUE below if boxMode is 'contracting'
-								   //#if defined(_DEBUG) && defined(_EXPAND)
-								   //	gpApp->MyLogger();
-								   //#endif
-
+//#if defined(_DEBUG) && defined(_EXPAND)
+//	gpApp->MyLogger();
+//#endif
 #if defined (_DEBUG) && defined (_EXPAND)
 	wxString strContracting = _T("contracting");
 	wxString strSteady = _T("steadyAsSheGoes");
@@ -1779,8 +1827,11 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	{
 		selectorPassedIn = selector_3;
 	}
-	wxLogDebug(_T("\n*** Entering RecalcLayout()  , selector = %s , boxMode: %s"), selectorPassedIn.c_str(), modePassedIn.c_str());
+	wxLogDebug(_T("\n*** Entering RecalcLayout()  , selector = %s , boxMode: %s"), 
+		selectorPassedIn.c_str(), modePassedIn.c_str());
 #endif
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	// RecalcLayout() is the refactored equivalent to the former view class's RecalcLayout()
 	// function - the latter built only a bundle's-worth of strips, but the new design must build
@@ -1805,6 +1856,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 #if defined(Do_Clipping)
 	SetFullWindowDrawFlag(TRUE);
 #endif
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	if (!m_pApp->m_bIsPrinting)
 	{
 		m_numVisibleStrips = CalcNumVisibleStrips();
@@ -1817,6 +1871,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 								 // own a parallel list of CPile instances in one-to-one correspondence with the
 								 // CSourcePhrase instances, and each of piles will contain a pointer to the
 								 // sourcePhrase it is associated with
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	if (selector == create_strips_and_piles || selector == create_strips_keep_piles ||
 		selector == create_strips_update_pile_widths)
@@ -1871,16 +1927,18 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	// when printing)
 	wxClientDC viewDC(m_pApp->GetMainFrame()->canvas);
 	m_pApp->GetMainFrame()->canvas->DoPrepareDC(viewDC); //  adjust origin
-														 // BEW 9Jul09; add test to jump grectViewClient calculation when printing, it just
-														 // wastes time because the values are not used when printing
+	// BEW 9Jul09; add test to jump grectViewClient calculation when printing, it just
+	// wastes time because the values are not used when printing
+
 	if (!m_pApp->m_bIsPrinting)
 	{
 		m_pApp->GetMainFrame()->canvas->CalcUnscrolledPosition(
 			0, 0, &grectViewClient.x, &grectViewClient.y);
 		grectViewClient.width = m_sizeClientWindow.GetWidth(); // m_sizeClientWindow set in
-															   // the above call to SetClientWindowSizeAndLogicalDocWidth()
+								// the above call to SetClientWindowSizeAndLogicalDocWidth()
 		grectViewClient.height = m_sizeClientWindow.GetHeight();
 	}
+
 	// if we are printing, then we will want text extents (which use viewDC for their calculation)
 	// to be done for MM_LOENGLISH mapping mode
 	// whm notes:
@@ -1915,22 +1973,21 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	// also reverses the y axis component during printing.
 	viewDC.SetMapMode(wxMM_TEXT); // equivalent to MFC's MM_TEXT for drawing to the screen
 
-
-								  // RecalcLayout() depends on the app's m_nActiveSequNum value for where the active
-								  // location is to be; so we'll make that dependency explicit in the next few lines,
-								  // obtaining the active pile pointer which corresponds to that active location as well
+	// RecalcLayout() depends on the app's m_nActiveSequNum value for where the active
+	// location is to be; so we'll make that dependency explicit in the next few lines,
+	// obtaining the active pile pointer which corresponds to that active location as well
 	bool bAtDocEnd = FALSE; // set TRUE if m_nActiveSequNum is -1 (as is the case when at
 							// the end of the document)
 	CPile* pActivePile = NULL;
 	pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum); // will return NULL if sn is -1
-															  // Note, if in OnOpenDocument, the piles will not exist yet, so pActivePile will be NULL
+		// Note, if in OnOpenDocument, the piles will not exist yet, so pActivePile will be NULL
 
-															  // BEW added 2nd test, for sn == -1, because reliance on gbDoingInitialSetup is risky
-															  // -- for example, in collab mode the flag stayed TRUE, and so bAtDocEnd didn't get
-															  // set when the last bit of adapting in the file was done and the phrase box moved
-															  // past the doc end - giving a crash because the app thought the doc end was not yet
-															  // reached (at doc end, before RecalcLayout() is called, sn is set to -1, so we can
-															  // rely on this here)
+	// BEW added 2nd test, for sn == -1, because reliance on gbDoingInitialSetup is risky
+	// -- for example, in collab mode the flag stayed TRUE, and so bAtDocEnd didn't get
+	// set when the last bit of adapting in the file was done and the phrase box moved
+	// past the doc end - giving a crash because the app thought the doc end was not yet
+	// reached (at doc end, before RecalcLayout() is called, sn is set to -1, so we can
+	// rely on this here)
 	if (!gbDoingInitialSetup || m_pApp->m_nActiveSequNum == -1)
 	{
 		// the above test is to exclude setting bAtDocEnd to TRUE if the pActivePile is
@@ -1961,27 +2018,26 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	{
 		RecalcPileWidths(&m_pileList); // appropriate for font changes
 	}
-
 	int gap = m_nCurGapWidth; // distance in pixels for interpile gap
 	int nStripWidth = (GetLogicalDocSize()).x; // constant for any one RecalcLayout call,
-											   // and when printing, external functions will already have set the "logical"
-											   // size returned by this call to a size based on the physical page's printable width
-											   // before building or tweaking the strips, we want to ensure that the gap left for the
-											   // phrase box to be drawn in the layout is as wide as the phrase box is going to be
-											   // when it is made visible by CLayout::Draw(). When RecalcLayout() is called with its
-											   // third parameter phraseBoxWidthAdjustMode equal to expanding, if we destroyed and
-											   // recreated the piles in the block above,
-											   // CreatePile() will, at the active location, made use of the expanding value and set
-											   // the "hole" for the phrase box to be the appropriate width. But if piles were not
-											   // destroyed and recreated then the box may be about to be drawn expanded, and so we
-											   // must make sure that the strip rebuilding about to be done below has the right box
-											   // width value to be used for the pile at the active location. The safest way to ensure
-											   // this is the case is to make a call to doc class's ResetPartnerPileWidth(), passing
-											   // in the CSourcePhrase pointer at the active location - this call internally calls
-											   // CPile:CalcPhraseBoxGapWidth() to set CPile's m_nWidth value to the right width, and
-											   // then the strip layout code below can use that value via a call to
-											   // GetPhraseBoxGapWidth() to make the active pile's width have the right value.
-											   //TODO: Is the above paragraph completly correct??
+		// and when printing, external functions will already have set the "logical"
+		// size returned by this call to a size based on the physical page's printable width
+		// before building or tweaking the strips, we want to ensure that the gap left for the
+		// phrase box to be drawn in the layout is as wide as the phrase box is going to be
+		// when it is made visible by CLayout::Draw(). When RecalcLayout() is called with its
+		// third parameter phraseBoxWidthAdjustMode equal to expanding, if we destroyed and
+		// recreated the piles in the block above,
+		// CreatePile() will, at the active location, made use of the expanding value and set
+		// the "hole" for the phrase box to be the appropriate width. But if piles were not
+		// destroyed and recreated then the box may be about to be drawn expanded, and so we
+		// must make sure that the strip rebuilding about to be done below has the right box
+		// width value to be used for the pile at the active location. The safest way to ensure
+		// this is the case is to make a call to doc class's ResetPartnerPileWidth(), passing
+		// in the CSourcePhrase pointer at the active location - this call internally calls
+		// CPile:CalcPhraseBoxGapWidth() to set CPile's m_nWidth value to the right width, and
+		// then the strip layout code below can use that value via a call to
+		// GetPhraseBoxGapWidth() to make the active pile's width have the right value.
+		//TODO: Is the above paragraph completly correct??
 	if (!bAtDocEnd)
 	{
 		// when not at the end of the document, we will have a valid pile pointer for the
@@ -2007,18 +2063,18 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 				m_pDoc->ResetPartnerPileWidth(pSrcPhrase, FALSE); // FALSE is the boolean
 																  // bNoActiveLocationCalculation
 				m_bFrameResizeWanted = TRUE; // OnChar() uses to get an OnSize() done for the frame
-											 //#if defined(_DEBUG) && defined(_EXPAND)
-											 //				wxLogDebug(_T("%s():line %d, INSIDE TRUE block (boxMode == contracting): calls ResetPartnerPileWidth() with FALSE, sets m_bFrameResizeWanted to TRUE"),
-											 //					__func__, __LINE__);
-											 //#endif
+				//#if defined(_DEBUG) && defined(_EXPAND)
+				//				wxLogDebug(_T("%s():line %d, INSIDE TRUE block (boxMode == contracting): calls ResetPartnerPileWidth() with FALSE, sets m_bFrameResizeWanted to TRUE"),
+				//					__func__, __LINE__);
+				//#endif
 			}
 			else // not contracting, could be expanding or no size change
 			{
 				// allow the active location gap calculation to be done
 				m_pDoc->ResetPartnerPileWidth(pSrcPhrase); // bNoActiveLocationCalculation is default FALSE
 #if defined(_DEBUG) && defined(_EXPAND)
-				wxLogDebug(_T("%s():line %d, could be steadyAsSheGoes or expanding: calls ResetPartnerPileWidth() with default FALSE, no frame resize requested"),
-					__func__, __LINE__);
+//				wxLogDebug(_T("%s():line %d, could be steadyAsSheGoes or expanding: calls ResetPartnerPileWidth() with default FALSE, no frame resize requested"),
+//					__func__, __LINE__);
 #endif
 			}
 		}
@@ -2053,6 +2109,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	{
 		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 	}
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	// the loop which builds the strips & populates them with the piles
 	if (selector == create_strips_and_piles || selector == create_strips_keep_piles
@@ -2060,6 +2118,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	{
 		CreateStrips(nStripWidth, gap);
 	}
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	if (selector == keep_strips_keep_piles)
 	{
 		bool bLayoutTweakingWasSuccessful = TRUE;
@@ -2075,6 +2136,10 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		// area, then if calls RecalcLayout() to get a full strip recreation done instead,
 		// and returns FALSE; otherwise TRUE is returned
 		bLayoutTweakingWasSuccessful = AdjustForUserEdits(nStripWidth, gap);
+
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 		if (bLayoutTweakingWasSuccessful == FALSE)
 		{
 			// when FALSE was returned, RecalcLayout() will have been reentered internally
@@ -2101,11 +2166,16 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	}
 	#endif
 	*/
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	if (!m_pApp->m_bIsPrinting)
 	{
 		// the height of the document can now be calculated
 		SetLogicalDocHeight();
+
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 		// next line for debugging...
 		//wxSize theVirtualSize = m_pApp->GetMainFrame()->canvas->GetVirtualSize();
@@ -2134,12 +2204,18 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 
 		int newHeight = m_nCachedDocHeight + (m_numVisibleStrips / 2) * (m_nStripHeight + m_nCurLeading);
 		m_pApp->m_docSize.SetHeight(newHeight); // temporary, cached value restored below
+
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 	}
 	// next line for debugging...
 	//theVirtualSize = m_pApp->GetMainFrame()->canvas->GetVirtualSize();
 
 	if (!m_pApp->m_bIsPrinting)
 	{
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 		// The MFC identifiers m_pageDev and m_lineDev are internal members of CScrollView.
 		// I cannot find them anywhere in MFC docs, but looking at CScrollView's sources, it
 		// is evident that they are used to set the scrolling parameters within the scrolled
@@ -2192,7 +2268,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 			xPos, yPos,						// sets initial position of scrollbars NEEDED!
 			noRefresh);						// SetScrollPos called elsewhere
 
-											// BEW 17Jul18 restore the correct doc height from the value cached at function start
+		// BEW 17Jul18 restore the correct doc height from the value cached at function start
 		m_pApp->m_docSize.SetHeight(m_nCachedDocHeight); // restore true value
 	}
 
@@ -2211,6 +2287,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 			m_pApp->m_bFreeTranslationMode, m_pApp->m_bIsPrinting, gbCheckInclFreeTransText);
 	}
 #endif
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s   *** THE IMPORTANT ONE"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	if (m_pApp->m_bFreeTranslationMode && !m_pApp->m_bSuppressFreeTransRestoreAfterPrint
 		&& !gbCheckInclFreeTransText)
 	{
@@ -2237,6 +2316,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 			}
 		}
 	}
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	m_lastLayoutSelector = selector; // inform Draw() about what we did here
 
 									 //#if defined(_DEBUG) && defined(_EXPAND)

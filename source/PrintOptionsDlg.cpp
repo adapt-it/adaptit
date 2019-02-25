@@ -202,7 +202,7 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 ////////////////////////////////////////////////////////////////////////////////////////////
 CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
+	//CAdapt_ItApp* pApp = &wxGetApp();
 
 #if defined(Print_failure)
 #if defined(_DEBUG) && defined(__WXGTK__)
@@ -225,6 +225,13 @@ CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 	// Nevertheless, because Bill got that error, whether really transient or not, I
 	// am putting extra protection here in the form of a test for free translation mode
 	// being currently on.
+	// BEW 22Feb19 it was an error on my part to let the Print Options initialization
+	// get the free translation modality partly opened simply because the document
+	// contains free translations. So in InitDialog() I've commented out that bit
+	// of code, and commented out the bHideFreeTranslationsOnClose flag (a private flag
+	// in this class) as well - so there is no need to here try to close off the
+	// wrongly opened free translation modality. Similarly for glosses.
+	/*
 	if (pApp->m_bFreeTranslationMode)
 	{
 		// Do this block only when free translation mode is still current
@@ -256,6 +263,7 @@ CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 #endif
 #endif
 	}
+	*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -330,18 +338,8 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 
 	// whm 25Sep11 modified. Enable the box and put a check in it if the document actually
 	// contains free translations, otherwise uncheck and disable the check box.
-	// BEW 5Oct11, work out if we need to turn on the gloss or free tr modalities, and set
-	// booleans so that the dialog destructor can turn them back off when we are done
-	bHideFreeTranslationsOnClose = FALSE;
 	if (bDocHasFreeTrans)
 	{
-		if (!pApp->m_bFreeTranslationMode)
-		{
-			// if free trans mode is not on in the document, then we'll need to turn the
-			// mode back off when done
-			bHideFreeTranslationsOnClose = TRUE;
-			pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode(ftModeON);
-		}
 		pCheckInclFreeTransText->Enable(TRUE);
 		pCheckInclFreeTransText->SetValue(TRUE);
 		// Deprecated 19Nov11 --> Note the global flag gbCheckInclFreeTransText is set in OnOK()
@@ -364,19 +362,11 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
         gbCheckInclFreeTransText = FALSE;
 	}
 
-	bHideGlossesOnClose = FALSE;
 	if (bDocHasGlosses)
 	{
-		if (!gbGlossingVisible)
-		{
-			// if glosses are not visible, then we'll need to turn the
-			// mode back off when done
-			bHideGlossesOnClose = TRUE;
-			pApp->GetView()->ShowGlosses();
-		}
 		pCheckInclGlossesText->Enable(TRUE);
 		pCheckInclGlossesText->SetValue(TRUE);
-		// Deprecated 19Nov11 --> Note the global flag gbCheckInclGlossesText is set in OnOK()
+		// Deprecated 19Nov11 --> Note the global flag gbCheckInclGlossesText was set in OnOK()
 		// BEW 19Nov11, CLayout::SetPileAndStripHeight() needs to use gbCheckInclGlossesText
 		// to get the correct strip height to use in the PaginateDoc() call within the
 		// LayoutAndPaginate() call below, and the strip height will therefore not be correct
@@ -391,8 +381,8 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	{
 		pCheckInclGlossesText->Enable(FALSE);
 		pCheckInclGlossesText->SetValue(FALSE);
-		// Deprecated comment 19Nov11 --> Note the global flag gbCheckInclGlossesText is set
-		//  in OnOK()  -- for the reason, see the comment in the block above
+		// Deprecated comment 19Nov11 --> Note the global flag gbCheckInclGlossesText was set
+		//  in OnOK()  -- changed now, for the reason, see the comment in the block above
         gbCheckInclGlossesText = FALSE;
 	}
 #if defined(Print_failure)

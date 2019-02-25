@@ -111,6 +111,9 @@ CPile* CStrip::GetPileByIndex(int index)
 
 void CStrip::Draw(wxDC* pDC)
 {
+//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 #if !defined(__WXGTK__)
 	if (m_pLayout->m_pApp->m_bPagePrintInProgress)
 	{
@@ -145,6 +148,8 @@ void CStrip::Draw(wxDC* pDC)
 			this->m_nStrip, Left(), Top(), Width(), Height());
 	}
 #endif
+//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	int i;
 	int nPileCount = m_arrPiles.GetCount();
@@ -154,6 +159,9 @@ void CStrip::Draw(wxDC* pDC)
 		aPilePtr = ((CPile*)m_arrPiles[i]);
 		aPilePtr->Draw(pDC);
 	}
+
+//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 }
 
 // refactored CreateStrip() returns the iterator set for the CPile instance which is to be

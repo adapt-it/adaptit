@@ -1032,6 +1032,8 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 //	pApp->MyLogger();
 //#endif
 
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	if (GetLayout() == NULL)
 		return; // application not fully initialized yet
@@ -1075,6 +1077,10 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	CPile* pActivePile = pApp->m_pActivePile;
 	CPile* pPrevPile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum - 1);
 	wxUnusedVar(pPrevPile);
+
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	if (pActivePile != NULL && pApp->m_nActiveSequNum != -1)
 	{
 		//int activePileWidth = pActivePile->m_nWidth;
@@ -1141,10 +1147,10 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 		pApp->m_pActivePile->SetPhraseBoxGapWidth(); // BEW 13Aug18, required, as box and gap are no longer the same
 
 #if defined(_DEBUG) && defined(_EXPAND)
-		int boxWidth = pApp->m_pActivePile->GetPhraseBoxWidth();
-		int phraseBoxGapWidth = pApp->m_pActivePile->GetPhraseBoxGapWidth();
-		wxLogDebug(_T("\n%s():line %d, active pile, layout has: m_curBoxWidth: %d , layout's current phrasebox gap width (m_nWidth): %d"),
-			__func__, __LINE__, boxWidth, phraseBoxGapWidth);
+//		int boxWidth = pApp->m_pActivePile->GetPhraseBoxWidth();
+//		int phraseBoxGapWidth = pApp->m_pActivePile->GetPhraseBoxGapWidth();
+//		wxLogDebug(_T("\n%s():line %d, active pile, layout has: m_curBoxWidth: %d , layout's current phrasebox gap width (m_nWidth): %d"),
+//			__func__, __LINE__, boxWidth, phraseBoxGapWidth);
 #endif
 		
 		/*
@@ -1221,6 +1227,10 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	// by the app member m_nCurPage - which stores indices for first and last strip to be drawn
 	// KLB 9/2011 added check for gbCheckInclFreeTransText so free translations would
 	// print on print preview
+
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	if (pApp->m_bFreeTranslationMode && !pApp->m_bIsPrinting)
 	{
 		pApp->GetFreeTrans()->DrawFreeTranslations(pDC, GetLayout());
@@ -1233,6 +1243,9 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 		pApp->GetFreeTrans()->DrawFreeTranslationsForPrinting(pDC, GetLayout());
 #endif
 	}
+
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 }
 
 // UpdateAppearance() is simply intended to cause the view to redraw itself, if something that affects the visual
@@ -2970,6 +2983,10 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 #if defined (_DEBUG)
 	wxLogDebug(_T("\n\n*** Entering PlacePhraseBox()  , selector = %d"), selector);
 #endif
+
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 //#endif
@@ -4115,6 +4132,10 @@ recovery:						pApp->m_pTargetBox->bRemovedAdaptionReadyForInserting = TRUE;
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 //#endif
+
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 #if defined (_DEBUG)
 	wxLogDebug(_T("*** Leaving PlacePhraseBox()  , selector = %d"), selector);
 #endif
@@ -4136,6 +4157,8 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 {
 
 	CAdapt_ItApp* pApp = &wxGetApp();
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 // TODO: Remove the following conditional block after fixing the printing issues 
 // on Linux Xenial using WX3.x.
@@ -4165,6 +4188,8 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
     pApp->m_userPageRangeStartPage = 1; // we use this to get a correct number into the printed footer
 #endif
 
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	wxPrintDialogData printDialogData(*pApp->pPrintData);
 
@@ -4185,6 +4210,10 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
     // 6. A check box "[ ] Suppress printing of the footer".
 	CPrintOptionsDlg poDlg(pApp->GetMainFrame()); //,&printout);
 	poDlg.Centre();
+
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	// The CPrintOptionsDlg does all of its own initialization
 	if (poDlg.ShowModal() == wxID_OK)
 	{
@@ -4192,6 +4221,8 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
         // 1. Whether the user entered a "from" and a "to" page range so that this carries
         // over to the print dialog below.
 		// 2. Whether the user clicked on the "Selection" radio button (if enabled)
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 		// get user settings for Pages
 		if (poDlg.pRadioPages->GetValue() == TRUE)
@@ -4212,15 +4243,22 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
             pApp->m_userPageRangePrintEnd = nTo; // 1-based indexing
             pApp->m_userPageRangeStartPage = nFrom; //1-based indexing -- this one for footer
 #endif
+			wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __func__, __LINE__,
+				(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 		}
 		else if (poDlg.pRadioSelection->GetValue() == TRUE)
 		{
 			printDialogData.SetSelection(TRUE);
+			wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __func__, __LINE__,
+				(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 		}
 	}
 	else
 	{
-        // User cancelled the print options, so we assume we should also cancel the print
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
+		// User cancelled the print options, so we assume we should also cancel the print
         // dialog which happens if we simply return here. The MFC version did a lot of work
         // to get the document back into its original state, but the wx version doesn't
         // change the doc's state at this early stage.
@@ -4230,6 +4268,10 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 		//state back.
 		pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1;
 		pApp->DoPrintCleanup();
+
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 		pApp->m_nAIPrintout_Destructor_ReentrancyCount = 0;
 		pApp->m_bIsPrinting = FALSE;
 		pApp->LogUserAction(_T("Cancelled OnPrint()"));
@@ -4284,6 +4326,9 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 	// klb 9/2011 : toggle main screen to hide glosses again if necessary
 	if (bNeedToToggleGlossing == TRUE)
 		ShowGlosses();
+
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -6527,6 +6572,8 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 {
     CAdapt_ItApp* pApp = &wxGetApp();
     wxASSERT(pApp);
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
     //#if defined(_DEBUG) && defined(_EXPAND)
     //	pApp->MyLogger();
@@ -6588,6 +6635,8 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
     // convert to device coords
     wxClientDC aDC(pApp->GetMainFrame()->canvas);
     canvas->DoPrepareDC(aDC); // adjust origin
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
     // CalcScrolledPosition is the complement of CalcUnscrolledPosition;
     // CalcScrolledPosition translates logical coordinates to device ones.
@@ -6656,6 +6705,8 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
     // first 128 point positions. In wxMSW SetLayoutDirection() aligns these to the right
     // in the phrasebox but in wxGTK (under Pango) SetLahoutDirection() aligns these to the
     // left within the phrasebox.
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	if (pApp->m_bTgtRTL)
 	{
@@ -6702,8 +6753,11 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
     int adjustHeight = ((phraseboxHeight - buttonHeight) / 2) - 1;
     pApp->m_pTargetBox->GetPhraseBoxButton()->SetPosition(wxPoint(rectBox.GetRight() + 1, rectBox.GetTop() + adjustHeight));
 
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 #if defined(_DEBUG) && defined(_EXPAND)
-	{
+/*	{
 		int sequNum = 0; wxString srcStr = wxEmptyString; wxString tgt_or_glossStr = wxEmptyString;
 		wxString contents = wxEmptyString; int width = 0;
 		pApp->MyLogger(sequNum, srcStr, tgt_or_glossStr, contents, width);
@@ -6719,7 +6773,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 				__FILE__, __func__, __LINE__, sequNum, srcStr.c_str(), tgt_or_glossStr.c_str(),
 				contents.c_str(), width);
 		}
-	}
+	} */
 #endif
 
 	// whm 12Jul2018 addition - set the width of the dropdown list to be the same as the width of the
@@ -6750,6 +6804,9 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
         //ptSize = pApp->m_pTargetFont->GetPointSize();
         //ptSize = ptSize; // debug line
     }
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	// whm modified 29Mar12. As of this date, this is the only
 	// location in the whole code base where the m_pTargetBox->Show()
 	// call is made.
@@ -6781,6 +6838,9 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	pApp->m_nStartChar = (int)nStartingChar;
 	pApp->m_nEndChar = (int)nEndingChar;
 
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 	if (pApp->m_bFreeTranslationMode)
 	{
 		// prevent clicks and editing from being done in the phrase box
@@ -6810,6 +6870,9 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 		pApp->m_pTargetBox->SetBackgroundColour(wxColour(255,255,255)); // white
 		//}
 	}
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 //#endif
@@ -7545,6 +7608,7 @@ void CAdapt_ItView::OnUpdateFilePrint(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	//if (pApp->m_bClipboardAdaptMode || pApp->m_bFreeTranslationMode)
 	if (pApp->m_bClipboardAdaptMode)
 	{
 		event.Enable(FALSE);
@@ -7572,6 +7636,7 @@ void CAdapt_ItView::OnUpdateFilePrintPreview(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	//if (pApp->m_bClipboardAdaptMode || pApp->m_bFreeTranslationMode)
 	if (pApp->m_bClipboardAdaptMode)
 	{
 		event.Enable(FALSE);
@@ -21639,6 +21704,9 @@ bool CAdapt_ItView::IsUnstructuredData(SPList* pList)
 
 void CAdapt_ItView::OnSize(wxSizeEvent& event)
 {
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
  	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
     // wx note: event.Skip() must be called here in order to pass the size event
@@ -21657,6 +21725,8 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 	{
 		gbSuppressSetup = FALSE;
 	}
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	// need to initiate a recalc of the layout with new m_docSize value,
 	// since strip-wrap is on
@@ -21694,6 +21764,8 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 		// the strips rebuilt to be in sync with whatever the restored partner piles happen to
 		// be - otherwise there could be a crash because a pile has m_pOwningStrip still
 		// set to default NULL value
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 		if (pLayout->GetStripArray()->IsEmpty() || gbVerticalEditInProgress)
 		{
 			// we've come here probably from an MRU document opening, strips need building;
@@ -21703,6 +21775,8 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 #else
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
+			wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+				(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 		}
 		else
 		{
@@ -21719,11 +21793,20 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 #else
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
+			wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+				(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 		}
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 		Invalidate();
-        // whm 18Aug2018 PlaceBox() call here should use noDropDownInitialization enum value.
+
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
+		// whm 18Aug2018 PlaceBox() call here should use noDropDownInitialization enum value.
         GetLayout()->PlaceBox(noDropDownInitialization);
+		
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 	}
 }
 

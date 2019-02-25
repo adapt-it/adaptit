@@ -47432,7 +47432,10 @@ void CAdapt_ItApp::DoPrintCleanup()
     // and more often in the wx version (especially when doing print preview).
     CAdapt_ItView* pView = GetView();
 
-    if (m_nAIPrintout_Destructor_ReentrancyCount == 1)
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+	
+	if (m_nAIPrintout_Destructor_ReentrancyCount == 1)
     {
         // so do the stuff in this block only when we enter this function the first time
 
@@ -47482,6 +47485,8 @@ void CAdapt_ItApp::DoPrintCleanup()
         pView->ClearPagesList();
         // wx version: I think the All Pages button gets enabled
 
+		wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+			(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
         // BEW 18Nov13, moved this line back to be preceding the RecalcLayout() call,
         // because otherwise the layout width stays as for A4 printing. But a new boolean,
@@ -47535,6 +47540,9 @@ void CAdapt_ItApp::DoPrintCleanup()
         m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
     }
 
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+
     // if cleaning up when free translation mode is active, override the focus being in
     // the canvas's phrasebox, and put it instead in the compose bar's editbox
     if (m_bFreeTranslationMode && gbCheckInclFreeTransText)
@@ -47562,8 +47570,11 @@ void CAdapt_ItApp::DoPrintCleanup()
         }
     }
 
-    pView->Invalidate();
-    m_pLayout->PlaceBox();
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+	pView->Invalidate();
+   
+	m_pLayout->PlaceBox();
     //wxWindow* pWnd; // unused
     //pWnd = wxWindow::FindFocus(); // the box is not visible when the focus is set
     // by the above code, so unfortunately the cursor will have to be manually put
@@ -47580,6 +47591,8 @@ void CAdapt_ItApp::DoPrintCleanup()
     m_nAIPrintout_Destructor_ReentrancyCount++; // count the number of times this
                                                 // function is entered, we do nothing in this block if it is is entered more
                                                 // than once
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

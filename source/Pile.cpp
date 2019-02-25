@@ -358,8 +358,8 @@ void CPile::SetMinWidth()
 {
 	m_nMinWidth = CalcPileWidth();
 #if defined(_DEBUG) && defined(_EXPAND)
-	wxLogDebug(_T("%s():line %d, sets: m_nMinWidth to: %d, for box text: %s   *********** called CalcPileWidth() *****"),
-		__func__, __LINE__, m_nMinWidth, gpApp->m_pTargetBox->GetValue().c_str());
+//	wxLogDebug(_T("%s():line %d, sets: m_nMinWidth to: %d, for box text: %s   *********** called CalcPileWidth() *****"),
+//		__func__, __LINE__, m_nMinWidth, gpApp->m_pTargetBox->GetValue().c_str());
 #endif
 }
 
@@ -394,8 +394,8 @@ void CPile::SetPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	}
 */
 #if defined(_DEBUG) //&& defined(_NEWDRAW)
-	wxLogDebug(_T("%s():line %d, CalcPhraseBoxGapWidth() sets: m_nWidth (gap) = %d , for box text: %s"),
-		__func__, __LINE__, m_nWidth, gpApp->m_pTargetBox->GetValue().c_str());
+//	wxLogDebug(_T("%s():line %d, CalcPhraseBoxGapWidth() sets: m_nWidth (gap) = %d , for box text: %s"),
+//		__func__, __LINE__, m_nWidth, gpApp->m_pTargetBox->GetValue().c_str());
 #endif
 }
 
@@ -423,8 +423,8 @@ void CPile::SetPhraseBoxListWidth()
 {
 	gpApp->m_pLayout->m_curListWidth = CalcPhraseBoxListWidth();
 #if defined(_DEBUG) //&& defined(_NEWDRAW)
-	wxLogDebug(_T("CPile::SetPhraseBoxListWidth(), sets: m_nMinWidth = %d, for box text: %s"),
-		gpApp->m_pLayout->m_curListWidth, gpApp->m_pTargetBox->GetValue().c_str());
+//	wxLogDebug(_T("CPile::SetPhraseBoxListWidth(), sets: m_nMinWidth = %d, for box text: %s"),
+//		gpApp->m_pLayout->m_curListWidth, gpApp->m_pTargetBox->GetValue().c_str());
 #endif
 }
 
@@ -554,8 +554,8 @@ void CPile::SetPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 		SetMinWidth();
 
 #if defined(_DEBUG) //&& defined(_NEWDRAW)
-		wxLogDebug(_T("%s():line %d, returning from CalcPhraseBoxWidth() sets: m_curBoxWidth = %d, for box text: %s  [listWidth = wxNOT_FOUND]"),
-			__func__, __LINE__, gpApp->m_pLayout->m_curBoxWidth, gpApp->m_pTargetBox->GetValue().c_str());
+//		wxLogDebug(_T("%s():line %d, returning from CalcPhraseBoxWidth() sets: m_curBoxWidth = %d, for box text: %s  [listWidth = wxNOT_FOUND]"),
+//			__func__, __LINE__, gpApp->m_pLayout->m_curBoxWidth, gpApp->m_pTargetBox->GetValue().c_str());
 #endif
 	}
 	else
@@ -570,8 +570,8 @@ void CPile::SetPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 			gpApp->m_pLayout->m_curBoxWidth = listWidth;
 		}
 #if defined(_DEBUG) //&& defined(_NEWDRAW)
-		wxLogDebug(_T("%s():line %d, returning from CalcPhraseBoxWidth() sets: m_curBoxWidth = %d, for box text: %s  [listWidth = %d]"),
-			__func__, __LINE__, gpApp->m_pLayout->m_curBoxWidth, gpApp->m_pTargetBox->GetValue().c_str(), listWidth);
+//		wxLogDebug(_T("%s():line %d, returning from CalcPhraseBoxWidth() sets: m_curBoxWidth = %d, for box text: %s  [listWidth = %d]"),
+//			__func__, __LINE__, gpApp->m_pLayout->m_curBoxWidth, gpApp->m_pTargetBox->GetValue().c_str(), listWidth);
 #endif
 
 		// BEW 20Jul18 despite the claim in CalcPileWith() that setting m_nMinWidth
@@ -696,8 +696,8 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 	// the strips, and ensuring an adequate gap at the pile which is the active one.
 	int newBoxWidth = m_pLayout->m_curBoxWidth;
 #if defined(_DEBUG) && defined(_EXPAND)
-	wxLogDebug(_T("%s:%s():line %d, Layout's current WIDTH (might get augmented by FixBox):  %d , for box text [ %s ]"),
-		__FILE__, __func__, __LINE__, newBoxWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
+//	wxLogDebug(_T("%s:%s():line %d, Layout's current WIDTH (might get augmented by FixBox):  %d , for box text [ %s ]"),
+//		__FILE__, __func__, __LINE__, newBoxWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
 #endif
 
 	// The text-based calculations now follow...
@@ -726,8 +726,8 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 		boxWidth = wxMax(nStartingWidth, pileWidth);
 		boxWidth = wxMax(boxWidth, listWidth);
 		#if defined(_DEBUG) && defined(_EXPAND)
-				wxLogDebug(_T("%s:%s():line %d, initial WIDTHS: starting (no slop,no butn)  %d, CalcPileWidth() %d, listWidth %d , use max - for box text [ %s ]"),
-					__FILE__,__func__, __LINE__, nStartingWidth, pileWidth, listWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
+//				wxLogDebug(_T("%s:%s():line %d, initial WIDTHS: starting (no slop,no butn)  %d, CalcPileWidth() %d, listWidth %d , use max - for box text [ %s ]"),
+//					__FILE__,__func__, __LINE__, nStartingWidth, pileWidth, listWidth, m_pLayout->m_pApp->m_targetPhrase.c_str());
 		#endif
 		int nSaveInitialWidth = boxWidth;
 		// Sanity test
@@ -745,8 +745,8 @@ int CPile::CalcPhraseBoxWidth(enum phraseBoxWidthAdjustMode widthMode)
 		boxWidth += btnWidth;
 
 #if defined(_DEBUG) && defined(_EXPAND)
-		wxLogDebug(_T("%s:%s():line %d, WIDTHS: starting %d , final width (slop+btn) = %d ,  btn %d , slop %d , box text [ %s ]"),
-			__FILE__, __func__, __LINE__, nSaveInitialWidth, boxWidth, btnWidth, slop, mytext.c_str());
+//		wxLogDebug(_T("%s:%s():line %d, WIDTHS: starting %d , final width (slop+btn) = %d ,  btn %d , slop %d , box text [ %s ]"),
+//			__FILE__, __func__, __LINE__, nSaveInitialWidth, boxWidth, btnWidth, slop, mytext.c_str());
 #endif
 	}
 	// Now return whichever of the two widths is the larger
@@ -794,8 +794,8 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			boxGapWidth += 20; // Bill says Linux controls are wrapped in some whitespace
 #endif
 #if defined(_DEBUG) && defined(_EXPAND)
-			wxLogDebug(_T("%s():line %d  *** Final phrasebox gap width ***:  %d  , after adding interpile gap: %d (and +20 if Linux)"),
-				__func__, __LINE__, boxGapWidth, m_pLayout->GetGapWidth());
+//			wxLogDebug(_T("%s():line %d  *** Final phrasebox gap width ***:  %d  , after adding interpile gap: %d (and +20 if Linux)"),
+//				__func__, __LINE__, boxGapWidth, m_pLayout->GetGapWidth());
 #endif
 			// BEW comment 14Aug17 The value we have so far obtained should fit the 
 			// current box width, as the CreateStrip will will need to know the new
@@ -822,10 +822,10 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 					// The active CStrip, when being re-created, 
 					// will grab the enum value from CLayout
 #if defined(_DEBUG) && defined(_EXPAND)
-					wxString strExp(_T("expanding"));
-					wxLogDebug(_T("%s:%s():line %d, Layout's m_boxMode:  %s, sequNum: %d , text [ %s ]"),
-						__FILE__, __func__, __LINE__, strExp.c_str(), pActivePile->GetSrcPhrase()->m_nSequNumber,
-						m_pLayout->m_pApp->m_targetPhrase.c_str());
+//					wxString strExp(_T("expanding"));
+//					wxLogDebug(_T("%s:%s():line %d, Layout's m_boxMode:  %s, sequNum: %d , text [ %s ]"),
+//						__FILE__, __func__, __LINE__, strExp.c_str(), pActivePile->GetSrcPhrase()->m_nSequNumber,
+//						m_pLayout->m_pApp->m_targetPhrase.c_str());
 #endif
 				}
 			}

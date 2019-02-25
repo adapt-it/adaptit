@@ -3715,6 +3715,8 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty,
 	wxSize& textExtent, int nSelector)
 {
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	// destroys the phrase box and recreates it with a different size, depending on the
 	// nSelector value.
@@ -3967,6 +3969,9 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	dC.SetFont(SaveFont); // restore old font (ie "System")
 
 	pApp->GetView()->Invalidate(); // BEW added, 18/Aug/2018
+
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 #if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
