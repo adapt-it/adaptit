@@ -6493,7 +6493,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 			{
 				CSourcePhrase* pSP = pSPNode->GetData();
 				wxLogDebug(_T("%s():line %d, m_key = %s   m_adaption = %s  index = %d  ,  sequNum  %d"),
-					__func__, __LINE__, pSP->m_key.c_str(), pSP->m_adaption.c_str(), index, pSP->m_nSequNumber);
+					__FUNCTION__, __LINE__, pSP->m_key.c_str(), pSP->m_adaption.c_str(), index, pSP->m_nSequNumber);
 				pSPNode = pSPNode->GetNext();
 			}
 		}

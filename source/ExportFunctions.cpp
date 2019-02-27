@@ -14208,7 +14208,7 @@ wxString EscapeAnyEmbeddedRTFControlChars(wxString& textStr)
 #if defined (_DEBUG)
 	int break_here = 1;
 	wxLogDebug(_T("%s:%s():line %d: Initial src txt: %s"),
-		__FILE__, __func__, __LINE__, (textStr2.Left(200)).c_str());
+		__FILE__, __FUNCTION__, __LINE__, (textStr2.Left(200)).c_str());
 #endif
 */
 	return textStr2;
@@ -18498,7 +18498,7 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 #if defined (_DEBUG)
 	int break_here = 1;
 	wxLogDebug(_T("%s:%s():line %d: Initial src txt: %s"),
-		__FILE__, __func__, __LINE__, (text2.Left(200)).c_str());
+		__FILE__, __FUNCTION__, __LINE__, (text2.Left(200)).c_str());
 #endif
 */
 }
@@ -19294,7 +19294,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 #if defined (_DEBUG)
 	int break_here = 1;
 	wxLogDebug(_T("%s:%s():line %d: Initial src txt: %s"),
-		__FILE__, __func__, __LINE__, (textStr2.Left(200)).c_str());
+		__FILE__, __FUNCTION__, __LINE__, (textStr2.Left(200)).c_str());
 #endif
 */
 	return textStr2;
@@ -19615,7 +19615,7 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 #if defined (_DEBUG)
 		int break_here = 1;
 		wxLogDebug(_T("%s:%s():line %d: Initial src txt: %s"),
-			__FILE__, __func__, __LINE__, (textStr2.Left(200)).c_str());
+			__FILE__, __FUNCTION__, __LINE__, (textStr2.Left(200)).c_str());
 #endif
 */
 	return textStr2;
@@ -20012,7 +20012,7 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 		{
 			int break_here = 1;
 			wxLogDebug(_T("%s:%s():line %d: Initial src txt: %s"),
-				__FILE__, __func__, __LINE__, (text.Left(200)).c_str());
+				__FILE__, __FUNCTION__, __LINE__, (text.Left(200)).c_str());
 		}
 	#endif
 	*/

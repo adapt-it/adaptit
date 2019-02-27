@@ -330,12 +330,14 @@ inline int GetAISvnVersion()
 #define CF_CLIPBOARDFORMAT CF_TEXT
 #endif
 
+#if wxCHECK_VISUALC_VERSION(14)
 #if wxCHECK_VERSION(2,9,0)
 // whm 13Jan2017 added
 // The wx2.9 and wx3.x libraries enable asserts even in release builds. Use the following
 // macro to disable asserts in release builds.
 #include <wx/debug.h>
 wxDISABLE_ASSERTS_IN_RELEASE_BUILD();
+#endif
 #endif
 
 #if wxCHECK_VERSION(2,9,0)

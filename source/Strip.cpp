@@ -111,7 +111,7 @@ CPile* CStrip::GetPileByIndex(int index)
 
 void CStrip::Draw(wxDC* pDC)
 {
-//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 #if !defined(__WXGTK__)
@@ -148,7 +148,7 @@ void CStrip::Draw(wxDC* pDC)
 			this->m_nStrip, Left(), Top(), Width(), Height());
 	}
 #endif
-//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	int i;
@@ -160,7 +160,7 @@ void CStrip::Draw(wxDC* pDC)
 		aPilePtr->Draw(pDC);
 	}
 
-//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 //		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 }
 
@@ -242,18 +242,18 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 				if (boxMode == expanding)
 				{
 					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
-						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+						__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 				}
 				else if (boxMode == steadyAsSheGoes)
 				{
 					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
-						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+						__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 				}
 				else
 				{
 					// must be 'contracting'
 					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
-						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+						__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 				}
 #endif
 			}
@@ -323,18 +323,18 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 					if (boxMode == expanding)
 					{
 						wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
-							__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+							__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 					}
 					else if (boxMode == steadyAsSheGoes)
 					{
 						wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
-							__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+							__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 					}
 					else
 					{
 						// must be 'contracting'
 						wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
-							__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+							__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 					}
 #endif
 					*/
@@ -376,7 +376,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 				wxPoint bottomRight = pileRect.GetBottomRight();
 				int itsWidth = pileRect.width; // should be the same as pileWith above
 				wxLogDebug(_T("%s():line %d, in loop, pPile:  Left %d ,  Right %d , itsWidth %d , nCurrentSpan %d , srcPhrase %s"),
-					__func__, __LINE__, topLeft.x, bottomRight.x, itsWidth, nCurrentSpan, src.c_str());
+					__FUNCTION__, __LINE__, topLeft.x, bottomRight.x, itsWidth, nCurrentSpan, src.c_str());
 			}
 #endif
 */
@@ -468,18 +468,18 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			if (boxMode == expanding)
 			{
 				wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
-					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+					__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 			}
 			else if (boxMode == steadyAsSheGoes)
 			{
 				wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
-					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+					__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 			}
 			else
 			{
 				// must be 'contracting'
 				wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
-					__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+					__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 			}
 #endif
 */
@@ -603,18 +603,18 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 					pileWidth += m_pLayout->slop;
 
 					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: expanding"),
-						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+						__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 				}
 				else if (boxMode == steadyAsSheGoes)
 				{
 					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: steadyAsSheGoes"),
-						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+						__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 				}
 				else
 				{
 					// must be 'contracting'
 					wxLogDebug(_T("%s():line %d, sets: pileWidth gap = %d, for box text: %s   boxMode is: contracting"),
-						__func__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
+						__FUNCTION__, __LINE__, pileWidth, m_pLayout->m_pApp->m_pTargetBox->GetValue().c_str());
 				}
 #endif
 */
@@ -652,7 +652,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
 			wxLogDebug(_T("%s():line %d, in loop,  m_nStrip %d   pile[%d] , pileWidth %d , nHorzOffset_FromLeft %d , free left %d, numPlaced %d , srcPhrase %s"),
-				__func__, __LINE__, this->m_nStrip, pileIndex_InStrip, pileWidth, nHorzOffset_FromLeft, m_nFree, numPlaced, src.c_str());
+				__FUNCTION__, __LINE__, this->m_nStrip, pileIndex_InStrip, pileWidth, nHorzOffset_FromLeft, m_nFree, numPlaced, src.c_str());
 
 			// I want CRect values for (top)left, and width, and (bottom)right - to assist in working out where
 			// the pile following the active one gets drawn, and the src string to make sure pile is right one
@@ -661,7 +661,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			wxPoint bottomRight = pileRect.GetBottomRight();
 			int itsWidth = pileRect.width; // should be the same as pileWith above
 			wxLogDebug(_T("%s():line %d, in loop, pPile:  Left %d ,  Right %d , itsWidth %d , nCurrentSpan %d , srcPhrase %s"),
-				__func__, __LINE__, topLeft.x, bottomRight.x, itsWidth, nCurrentSpan, src.c_str());
+				__FUNCTION__, __LINE__, topLeft.x, bottomRight.x, itsWidth, nCurrentSpan, src.c_str());
 		}
 	} 
 #endif

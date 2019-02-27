@@ -3453,7 +3453,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// gets the contents of the phrasebox including the just typed character.
 		thePhrase = this->GetTextCtrl()->GetValue(); // current box text (including the character just typed)
 
-        wxLogDebug(_T("     ***%s() called - thePhrase is now:[%s]"),__func__, thePhrase.c_str());
+        wxLogDebug(_T("     ***%s() called - thePhrase is now:[%s]"),__FUNCTION__, thePhrase.c_str());
 
 		// BEW 6Jul09, try moving the auto-caps code from OnIdle() to here
 		if (gbAutoCaps && pApp->m_pActivePile != NULL)
@@ -3630,11 +3630,11 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 	int curBoxWidth = sizePhraseBox.x;
 #if defined(_DEBUG) && defined(_NEWDRAW)
 	wxLogDebug(_T("\n%s():line %d, on entry, curBoxWidth: %d , curTextWidth = %d, for box text: %s"),
-		__func__, __LINE__, curBoxWidth, curTextWidth, thePhrase.c_str());
+		__FUNCTION__, __LINE__, curBoxWidth, curTextWidth, thePhrase.c_str());
 #endif
 #if defined (_DEBUG) && defined (_EXPAND)
 	wxLogDebug(_T("\n%s():line %d, on entry: curBoxWidth: %d , inStr (char typed) = %s, for box text: %s"),
-		__func__, __LINE__, curBoxWidth, inStr.c_str(), thePhrase.c_str());
+		__FUNCTION__, __LINE__, curBoxWidth, inStr.c_str(), thePhrase.c_str());
 #endif
 
 	wxString wStr = _T('w');
@@ -3647,7 +3647,7 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 									// this boundary will trigger a widening of the box
 #if defined(_DEBUG) && defined(_NEWDRAW)
 	wxLogDebug(_T("%s():line %d curTextWidth %d , inStrWidth %d , slopWidth %d , boundary %d"),
-		__func__, __LINE__, curTextWidth, inStrWidth, slopWidth, boundary);
+		__FUNCTION__, __LINE__, curTextWidth, inStrWidth, slopWidth, boundary);
 #endif
 
 	// Do the calculation for a test for box expansion being needed
@@ -3657,7 +3657,7 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 
 #if defined(_DEBUG) && defined(_NEWDRAW)
 		wxLogDebug(_T("%s():line %d expand test: curTextWidth + inStrWidth > boundary  = TRUE, bUpdateNeeded set TRUE"),
-			__func__, __LINE__);
+			__FUNCTION__, __LINE__);
 #endif
 	}
 	else
@@ -3667,7 +3667,7 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 			bUpdateNeeded = TRUE;
 #if defined(_DEBUG) && defined(_NEWDRAW)
 			wxLogDebug(_T("%s():line %d, SAFETY TEST ENTERED: curBoxWidth < 40 is TRUE, bUpdateNeeded set TRUE"), 
-				__func__, __LINE__);
+				__FUNCTION__, __LINE__);
 #endif
 		}
 	}
@@ -3684,7 +3684,7 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 		pApp->m_pTargetBox->GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar);
 #if defined(_DEBUG) && defined(_NEWDRAW)
 		wxLogDebug(_T("%s():line %d, if (bUpdateNeeded) **** TRUE block entered **** -- caller will get expansion update done"), 
-			__func__, __LINE__);
+			__FUNCTION__, __LINE__);
 #endif
 	}
 	else
@@ -3692,7 +3692,7 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 		pApp->m_pTargetBox->m_bAbandonable = FALSE;
 #if defined(_DEBUG) && defined(_NEWDRAW)
 		wxLogDebug(_T("%s():line %d, if (bUpdateNeeded) **** FALSE block entered **** -- caller does nothing"), 
-			__func__, __LINE__);
+			__FUNCTION__, __LINE__);
 #endif
 	}
 	// If expanding is not needed, bUpdateNeeded will be returned as FALSE
@@ -3715,7 +3715,7 @@ bool CPhraseBox::UpdatePhraseBoxWidth_Expanding(wxString inStr)
 void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty,
 	wxSize& textExtent, int nSelector)
 {
-	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	// destroys the phrase box and recreates it with a different size, depending on the
@@ -3739,7 +3739,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 
 #if defined(_DEBUG) && defined(_EXPAND)
 	wxLogDebug(_T("\n%s():line %d, *********   FixBox() Entered *********"),
-		__func__, __LINE__);
+		__FUNCTION__, __LINE__);
 #endif
 
 	//GDLC Added 2010-02-09
@@ -3970,13 +3970,13 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 
 	pApp->GetView()->Invalidate(); // BEW added, 18/Aug/2018
 
-	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __func__, __LINE__,
+	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 #if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 	wxLogDebug(_T("\n%s():line %d, *********   Leaving  FixBox()  *********"),
-		__func__, __LINE__);
+		__FUNCTION__, __LINE__);
 #endif
 }
 
@@ -4063,7 +4063,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	pApp->m_nPlacePunctDlgCallNumber = 0; // initialize on every keystroke
 
 #ifdef _EXPAND
-	wxLogDebug(_T("%s():line %d, ** KEY TYPED **"), __func__, __LINE__);
+	wxLogDebug(_T("%s():line %d, ** KEY TYPED **"), __FUNCTION__, __LINE__);
 #endif
 	pApp->m_bMergeSucceeded = FALSE; //bool bMergeWasDone = FALSE;
 	//gbEnterTyped = FALSE; // BEW 13Aug18 appears to be no longer needed

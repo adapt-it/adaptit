@@ -3519,7 +3519,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 {
 #if defined(_DEBUG) && defined(_NEWDRAW)
 	wxLogDebug(_T("%s():line %d, *** Frame::OnSize() ENTERED ***"),
-		__func__, __LINE__);
+		__FUNCTION__, __LINE__);
 #endif
 
     // wx version notes about frame size changes:
@@ -3785,7 +3785,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	}
 #if defined(_DEBUG) && defined(_NEWDRAW)
 	wxLogDebug(_T("%s():line %d, *** Frame::OnSize() EXITING ***"),
-		__func__, __LINE__);
+		__FUNCTION__, __LINE__);
 #endif
 
 }
