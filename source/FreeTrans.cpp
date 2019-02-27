@@ -702,19 +702,6 @@ void CFreeTrans::GetCurSectionFirstAndLast(int* pIndexOfFirst, int* pIndexOfLast
 {
 	wxArrayPtrVoid*	pPiles = m_pCurFreeTransSectionPileArray;
 	wxASSERT(pPiles != NULL);
-
-	// BEW 20Feb19, added clear to fix a crash caused by m_pCurFreeTransSectionPileArray
-	// still having stored pile pointers, and the user does something (e.g. opens the
-	// print dialog) which looks at the above array - the pointers in it will be
-	// hanging at this point, and this would lead to the crash. The array needs to be
-	// cleared, but not itself deleted.
-	bool bIsEmpty = m_pCurFreeTransSectionPileArray->IsEmpty();
-	//if (!bIsEmpty && !m_pApp->m_bFreeTranslationMode)
-	if (!bIsEmpty)
-	{
-		m_pCurFreeTransSectionPileArray->clear();
-	}
-
 	if(pPiles->size() == 0)
 	{
 		// Cannot access the pile array, or it has nothing in it - send back bogus values (-1)
@@ -3237,6 +3224,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 #endif
    // when DrawFreeTranslations is called from the composebar's editbox, there should
     // certainly be a valid pPile to be found
+	wxASSERT(!m_pCurFreeTransSectionPileArray->IsEmpty());
 	wxASSERT(pPile != NULL && pPile->GetIsCurrentFreeTransSection());
     // if this is a new free translation which has not been entered at this location
     // before, and the user just typed the first character, the free trans flags on the
@@ -4774,7 +4762,7 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 		}
 
 		// First, redo the layout and redraw it, using the free translation inter-pile gap value
-		SetInterPileGapBeforeFreeTranslating();
+		SetInterPileGapBeforeFreeTranslating(); // Calls RecalcLayout() and sets active pile, & m_nActiveSequNum
 
 		SwitchScreenFreeTranslationMode(ftModeON);
 	}
@@ -4829,23 +4817,17 @@ void CFreeTrans::OnForceVerseSectioning(wxCommandEvent& event)
 // m_pActivePile being NULL. To prevent a crash do to accessing this member, we must
 // test for NULL and return before damage can be done. We do so in a couple of places.
 // BEW 27Feb12, added support for docV6's m_bSectionBtVerse flag
-// BEW 20Feb19, the function leaves the m_pCurFreeTransSectionPileArray contents intact,
-// and if the user does something that requires a pPile lookup of the source phrase
-// after there has been adapting mode recal of the layout, the array contents will have
-// invalid contents. So I've added clearing of the array when ftModeSwitch is turned to
-// the OFF value, so that CFreeTrans::GetCurSectionFirstAndLast(int* pIndexOfFirst, 
-// int* pIndexOfLast) will not fail when it tries to access a CSourcePhrase instance.
 void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftModeSwitch)
 {
 #if defined(Print_failure)
 #if defined(_DEBUG) && defined(__WXGTK__)
     if (ftModeSwitch == ftModeON)
     {
-        wxLogDebug(_T("FreeTrans.cpp line 4831    *** SwitchScreenFreeTranslationMode called ***  with ftModeSwitch = ftModeON"));
+        wxLogDebug(_T("FreeTrans.cpp line 4839    *** SwitchScreenFreeTranslationMode called ***  with ftModeSwitch = ftModeON"));
     }
     else
     {
-        wxLogDebug(_T("FreeTrans.cpp line 4835    *** SwitchScreenFreeTranslationMode called ***  with ftModeSwitch = ftModeOFF"));
+        wxLogDebug(_T("FreeTrans.cpp line 4843    *** SwitchScreenFreeTranslationMode called ***  with ftModeSwitch = ftModeOFF"));
     }
 #endif
 #endif
@@ -4886,25 +4868,6 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 			pAdvancedMenuFTMode->Check(TRUE);
 		}
 		m_pApp->m_bFreeTranslationMode = TRUE;
-	}
-
-	// BEW 20Feb19, added clear to fix a crash caused by m_pCurFreeTransSectionPileArray
-	// still having stored pile pointers, and the user does something (e.g. opens the
-	// print dialog) which looks at the above array - the pointers in it will be
-	// hanging at this point, and this would lead to the crash. The array needs to be
-	// cleared, but not itself deleted. Doing this is done here, because when entering
-	// free translation mode, m_pCurFreeTransSectionPileArray should have no content yet;
-	// and when leaving the free translation mode, likewise, the array should retain 
-	// none of its pile pointers because they are likely to be invalid at the time that 
-	// the user may do many things next - do this block is repeated below near the end
-	// of the code for exiting free translation mode
-	if (m_pApp->m_bFreeTranslationMode)
-	{
-		bool bIsEmpty = m_pCurFreeTransSectionPileArray->IsEmpty();
-		if (!bIsEmpty)
-		{
-			m_pCurFreeTransSectionPileArray->clear();
-		}
 	}
 
 	if (m_pApp->m_bFreeTranslationMode)
@@ -5229,19 +5192,6 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
         // scroll into view - otherwise these are not done and box can be off-window
 		m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases,keep_strips_keep_piles);
 		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
-
-		// BEW 20Feb19, as commented above, the array m_pCurFreeTransSectionPileArray 
-		// should retain none of its pile pointers because they are likely to be invalid
-		// at the time that the user may do something next - do this block also clears
-		// the array, when free translation mode is being exitted.
-		if (!m_pApp->m_bFreeTranslationMode)
-		{
-			bool bIsEmpty = m_pCurFreeTransSectionPileArray->IsEmpty();
-			if (!bIsEmpty)
-			{
-				m_pCurFreeTransSectionPileArray->clear();
-			}
-		}
 
 		// BEW 16Oct14, box got left at free trans anchor pile location, so move it to the
 		// active pile's hole - nothing I do here works, so just do the basics here,
@@ -5701,7 +5651,15 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 
 // FindSectionPiles() is called above in SetupCurrentFreeTransSection(), and can be called
 // elsewhere pPilesArray is for passing in which pile pointer array is to store the
-// section's pile ptrs
+// section's pile ptrs;
+// pFirstPile needs to be a valid pointer to the section's anchor pile,
+// pPilesArray needs to be the array the free translation functionality uses for storing the
+// current section's array of pointers to CPile instances
+// wordcount is computed internally (for example, if the array stores a pile which has a merger
+// CSourcePhrase instance of 4 piles, then when accessing that pile, the CSourcePhrase's count
+// m_nSrcWords with value 4 would be added to the accumulating wordcount value, rather than
+// adding 1) and the result is passed back to the caller - which can do whatever it wants with
+// the wordcount value, or ignore it
 void CFreeTrans::FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray, int& wordcount)
 {
 	CPile* pile = pFirstPile;
