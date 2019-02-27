@@ -1,4 +1,4 @@
-﻿Version 6.9.3 bug fix update 18 February 2019
+﻿Version 6.9.3 bug fix update 28 February 2019
 ----------------------------------------------
 Feature changes and new features in 6.9.3
 --------------------------------------------------------------------------------------------
@@ -7,11 +7,14 @@ and buttons.
 * Updated the list of 2-letter and 3-letter language codes that appear in the
 Languag Codes dialog. The codes come from the latest version of the IANA registry 
 of language codes.
+* The wxWidgets library has been upgraded to version 3.1.2 for Adapt It version 6.9.3
+(Windows and Mac versions). The Linux version utilizes whatever version of wxWidgets
+the comes with the Linux distribution being used on the host computer.
 ---------------------------------------------
 Bug fixes in 6.9.3 update
 ---------------------------------------------
 * Fixed a problem that could prevent the 2-letter and 3-letter language codes 
-from appearing in the list within the Lanugage Codes dialog.
+from appearing in the list within the Language Codes dialog.
 * Removed the potential for a "rare" crash, caused by moving the
 phrasebox to a new location before the application had gotten
 a valid pointer to where the phrasebox currently was located.
