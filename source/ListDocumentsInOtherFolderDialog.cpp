@@ -61,6 +61,10 @@ CListDocumentsInOtherFolderDialog::CListDocumentsInOtherFolderDialog(wxWindow* p
 	// size dialog.
 	ListDocInOtherFolderDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The ListDocInOtherFolderDlgFunc() has a single "Close" (wxID_OK) button
+    // aligned to the right of the dialog. It doesn't use wxStdDialogButtonSizer, nor does it need
+    // to call the ReverseOkCancelButtonsForMac() function.
 	
 	pLabel = (wxStaticText*)FindWindowById(IDC_STATIC_DOCS_IN_FOLDER);
 	wxASSERT(pLabel != NULL);

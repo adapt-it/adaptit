@@ -518,6 +518,9 @@ DVCSDlg::DVCSDlg(wxWindow *parent)
 {
 	m_dlgSizer = DVCSDlgFunc ( this, TRUE, TRUE );
 
+    // whm 5Mar2019 Note: The DVCSDlgFunc() now uses the wxStdDialogButtonSizer,
+    // and so no need to call the ReverseOkCancelButtonsForMac() function. 
+
     m_comment = (wxTextCtrl*) FindWindowById(IDC_COMMIT_COMMENT);
     m_blurb = (wxStaticText*) FindWindowById(IDC_COMMIT_BLURB);
 

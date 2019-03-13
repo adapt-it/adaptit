@@ -88,10 +88,20 @@ FreeTransSplitterDlg::FreeTransSplitterDlg(
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
 	m_pFreeTransSplitterSizer = SplitterDlgFunc(this, TRUE, TRUE);
-
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The SplitterDlgFunc() dialog cannot use the wxStdDialogButtonSizer
+    // since the wxID_OK labe is "Done" and there are other non-standard buttons including the 
+    // Cancel button within the same horizontal box sizer. So, we can call the 
+    // ReverseOkCancelButtonsForMac() function to cause the "Done" and "Cancel" buttons
+    // to switch places on the Mac platform.
 	
 	m_pApp = &wxGetApp();
+
+    bool bOK;
+    bOK = m_pApp->ReverseOkCancelButtonsForMac(this); // whm 5Mar2019 added
+    bOK = bOK; // avoid warning
+
 	m_pMainFrame = (CMainFrame*)parent;
 	m_pFreeTrans = m_pApp->GetFreeTrans(); // for access to the one and only CFreeTrans class's instance
 	//CentreOnParent();

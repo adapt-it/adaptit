@@ -85,6 +85,11 @@ CHtmlFileViewer::CHtmlFileViewer(wxWindow* parent, wxString* title, wxString* pa
 	// size dialog.
 	pHtmlFileViewerSizer = HtmlFileViewerDlgFunc(this, false, TRUE); // Note: false for Fit so we can resize it arbitrarily
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The HtmlFileViewerDlgFunc() dialog has no standard buttons, so 
+    // neither wxStdDialogButtonSizer, nor calling ReverseOkCancelButtonsForMac() is appropriate
+    // here.
+
 	// Note: the "Help for Administrators.htm" file should go into the m_helpInstallPath
 	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
 	adminHelpFilePath = *pathToHtmlFile; //m_pApp->GetDefaultPathForHelpFiles() + m_pApp->PathSeparator + m_pApp->m_adminHelpFileName;

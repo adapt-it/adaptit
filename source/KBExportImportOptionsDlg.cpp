@@ -72,6 +72,9 @@ CKBExportImportOptionsDlg::CKBExportImportOptionsDlg(wxWindow* parent) // dialog
 	pKBExportImportOptionsDlgSizer = KBExportImportOptionsFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+    // whm 5Mar2019 Note: The KBExportImportOptionsFunc() dialog now uses the wxStdDialogButtonSizer,
+    // and so there is no need to call the ReverseOkCancelButtonsForMac() function here.
+
 	// use wxValidator for simple dialog data transfer
 	// sample text control initialization below:
 	//wxTextCtrl* pEdit;

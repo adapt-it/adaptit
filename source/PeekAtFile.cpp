@@ -70,6 +70,10 @@ CPeekAtFileDlg::CPeekAtFileDlg(wxWindow* parent) // dialog constructor
 	PeekAtFileFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+    // whm 5Mar2019 Note: The PeekAtFileFunc() dialog has a "Close" (wxID_OK) button aligned to the
+    // right along with another non-standard button. Therefore we won't use the wxStdDialogButtonSizer
+    // nor the ReverseOkCancelButtonsForMac() function in this case.
+
 	m_pEditCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_LINES100);
 	wxASSERT(m_pEditCtrl != NULL);
 

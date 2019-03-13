@@ -75,9 +75,13 @@ KbSharingSetup::KbSharingSetup(wxWindow* parent) // dialog constructor
 	m_pApp = &wxGetApp();
 	kb_share_setup_or_remove_func(this, TRUE, TRUE);
 	// The declaration is: functionname( wxWindow *parent, bool call_fit, bool set_sizer );
-	bool bOK;
-	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
-	wxUnusedVar(bOK);
+
+    // whm 5Mar2019 Note: The kb_share_setup_or_remove_func() dialog now uses the
+    // wxStdDialogButtonSizer, and so we need not call the ReverseOkCancelButtonsForMac()
+    // function below.
+	//bool bOK;
+	//bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
+	//wxUnusedVar(bOK);
  }
 
 KbSharingSetup::~KbSharingSetup() // destructor

@@ -87,6 +87,10 @@ NavProtectNewDoc::NavProtectNewDoc(wxWindow* parent) // dialog constructor
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);
 
+    // whm 5Mar2019 Note: The NewDocFromSourceDataFolderFunc() dialog has an "Input file" (wxID_OK)
+    // button and a Cancel button, both aligned to the right in the right half of the dialog. We
+    // don't use the wxStdDialogButtonSizer, but we do use the ReverseOkCancelButtonsForMac() function
+    // to adjust the buttons for the platform.
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning

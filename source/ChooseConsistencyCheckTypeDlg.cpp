@@ -66,9 +66,12 @@ CChooseConsistencyCheckTypeDlg::CChooseConsistencyCheckTypeDlg(wxWindow* parent)
 	// size dialog.
 	ChooseConsistencyCheckTypeDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ChooseConsistencyCheckTypeDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	wxUnusedVar(bOK); // avoid warning
+
+    // whm 5Mar2019 Note: The ChooseConsistencyCheckTypeDlgFunc() now uses the wxStdDialogButtonSizer
+    // so we no longer need to call the ReverseOkCancelButtonsForMac() function below.
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//wxUnusedVar(bOK); // avoid warning
 	wxColor backgrndColor = this->GetBackgroundColour();
 
 	pTextCtrlAsStaticChooseConsChkType = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_MSG);

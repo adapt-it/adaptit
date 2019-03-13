@@ -67,9 +67,11 @@ CSetDelay::CSetDelay(wxWindow* parent) // dialog constructor
 	SetDelayDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+    // whm 5Mar2019 Note: The SetDelayDlgFunc() now uses the wxStdDialogButtonSizer, so we no longer
+    // call need to call the ReverseOkCancelButtonsForMac() function below.
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	
 	//BEW fixed 12Jan12, the return value in the call was wrongly cast to wxTextCtrl*, but
 	//the pointer returned is to the SpinCtrl (and the underlying wxTextCtrl is not

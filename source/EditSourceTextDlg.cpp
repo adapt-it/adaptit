@@ -95,6 +95,12 @@ CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	EditSourceTextDlgFunc(this, TRUE, TRUE);
 	// The declaration is: EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The EditSourceTextDlgFunc() is cramped for vertical space, so it puts
+    // the OK and Cancel buttons to the right of a static text that says: "Do your editing, including 
+    // punctuation, on the text in the box below." The OK and Cancel buttons also have tooltip text
+    // that should be preserved, so we should call our own ReverseOkCancelButtonsForMac() function
+    // below to make platform button adjustments.
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning

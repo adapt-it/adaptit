@@ -59,6 +59,10 @@ CInstallGitOptionsDlg::CInstallGitOptionsDlg(wxWindow* parent) // dialog constru
     GitInstallOptionsDlgFunc(this, TRUE, TRUE);
     // The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+    // whm 5Mar2019 Note: The GitInstallOptionsDlgFunc() dialog is now set/controlled by the
+    // wxStdDialogButtonSizer, and so there is no need to call the ReverseOkCancelButtonsForMac()
+    // function.
+
     pRadioBtnDoNotInstallGitNow = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_DO_NOT_INSTALL_GIT);
     wxASSERT(pRadioBtnDoNotInstallGitNow != NULL);
     pRadioBtnDownloadAndInstallGitFromInternet = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_INSTALL_GIT_FROM_INTERNET);

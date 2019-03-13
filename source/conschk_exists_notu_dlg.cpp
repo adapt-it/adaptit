@@ -72,7 +72,11 @@ conschk_exists_notu_dlg::conschk_exists_notu_dlg(
 	pConsChk_exists_notu_dlgSizer = ConsistencyCheck_ExistsNoTU_DlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	bool bOK;
+    // whm 5Mar2019 Note: The ConsistencyCheck_ExistsNoTU_DlgFunc() dialog has OK and Cancel
+    // buttons and they are aligned right, but they are grouped with a long check box control,
+    // so we don't use wxStdDialogButtonSizer but call the ReverseOkCancelButtonsForMac()
+    // function below.
+    bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning
 	m_bShowItCentered = bShowCentered;

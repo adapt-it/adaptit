@@ -64,6 +64,9 @@ CXMLErrorDlg::CXMLErrorDlg(wxWindow* parent) // dialog constructor
 	XMLErrorDlgFunc(this, TRUE, TRUE);
 	// The declaration is: XMLErrorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+    // whm 5Mar2019 Note: The XMLErrorDlgFunc() uses the wxStdDialogButtonSizer, and only
+    // has an "OK" button. No need to call the ReverseOkCancelButtonsForMac() function.
+
 	m_errorStr = ""; // a CBString
 	m_messageStr = _T("");
 	m_offsetStr = _T("");

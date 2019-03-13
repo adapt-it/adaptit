@@ -75,6 +75,10 @@ CMoveDialog::CMoveDialog(wxWindow* parent) // dialog constructor
 	// size dialog.
 	MoveDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The MoveDlgFunc() has a "Move Now" button and a "Close" (wxID_OK) button
+    // which are aligned at the right side of the dialog. It does not use the wxStdDialogButtonSizer, 
+    // nor should it call the ReverseOkCancelButtonsForMac().
 }
 
 CMoveDialog::~CMoveDialog() // destructor

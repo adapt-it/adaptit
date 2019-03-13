@@ -180,9 +180,12 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
     // The declaration is:
     // KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer);
 
-	bool bOK = false;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-        wxUnusedVar(bOK); // whm added 25Jun2015 to avoid gcc "not used" warning
+    // whm 5Mar2019 Note: The KBEditorDlgFunc() now uses the wxStdDialogButtonSizer, so
+    // we no longer need to call the ReverseOkCancelButtonsForMac() function below.
+	//bool bOK = false;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+    //    wxUnusedVar(bOK); // whm added 25Jun2015 to avoid gcc "not used" warning
+
 	// pointers to the controls common to each page (most of them) are obtained within
 	// the LoadDataForPage() function
 

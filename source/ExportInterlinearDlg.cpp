@@ -94,11 +94,11 @@ CExportInterlinearDlg::CExportInterlinearDlg(wxWindow* parent) // dialog constru
 	ExportInterlinearDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning (BEW 2Jan12, we have to retain this, the function must continue even
-			   // if the function returns FALSE (the buttons may not be reversed, but the
-			   // app won't fail)
+    // whm 5Mar2019 Note: The ExportInterlinearDlgFunc() now uses wxStdDialogButtonSizer, so there
+    // is no longer need to call the ReverseOkCancelButtonsForMac() function below.
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning 
 	m_bIncludeNavText = TRUE;
 	m_bIncludeSourceText = TRUE;
 	m_bIncludeTargetText = TRUE;

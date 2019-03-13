@@ -102,9 +102,12 @@ CNoteDlg::CNoteDlg(wxWindow* parent) // dialog constructor
 	NoteDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+    // whm 5Mar2019 Note: The NoteDlgFunc() now uses the wxStdDialogButtonSizer for its OK and Cancel
+    // button platform adjustments, so I've removed the ReverseOkCancelButtonsForMac() function call
+    // below.
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	pEditNote = (wxTextCtrl*)FindWindowById(IDC_EDIT_NOTE); // whm moved here to constructor
 	wxASSERT(pEditNote != NULL);
 

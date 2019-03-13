@@ -95,6 +95,10 @@ CSplitDialog::CSplitDialog(wxWindow* parent) // dialog constructor
 	// size dialog.
 	pSplitDialogSizer = SplitDialogFunc(this, TRUE, TRUE);
 	// The declaration is: SplitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The SplitDialogFunc() has a single "Close" (wxID_OK) button in
+    // a unique layout, so we do not use wxStdDialogButtonSizer, nor do we call the
+    // ReverseOkCancelButtonsForMac() function.
 }
 
 CSplitDialog::~CSplitDialog() // destructor

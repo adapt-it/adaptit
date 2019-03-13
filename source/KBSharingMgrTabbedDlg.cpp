@@ -119,9 +119,12 @@ KBSharingMgrTabbedDlg::KBSharingMgrTabbedDlg(wxWindow* parent) // dialog constru
 	SharedKBManagerNotebookFunc2(this, TRUE, TRUE);
 	// The declaration is: SharedKBManagerNotebookFunc2( wxWindow *parent, bool call_fit, bool set_sizer );
 
-	bool bOK;
-	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+    // whm 5Mar2019 Note: The SharedKBManagerNotebookFunc2() tabbed dialog now
+    // uses the wxStdDialogButtonSizer, and so we need not call the 
+    // ReverseOkCancelButtonsForMac() function below.
+	//bool bOK;
+	//bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	// pointers to the controls common to each page (most of them) are obtained within
 	// the LoadDataForPage() function
 

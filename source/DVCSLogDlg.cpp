@@ -55,8 +55,18 @@ DVCSLogDlg::DVCSLogDlg (wxWindow* parent)
                                     wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	m_dlgSizer = DVCSLogDlgFunc ( this, TRUE, TRUE );
+
+    // whm 5Mar2019 Note: The DVCSLogDlgFunc() dialog has a non-standard
+    // "Look at selected version" button along with a Cancel button, so we
+    // don't use the wxStdDialogButtonSizer, but we should call the
+    // ReverseOkCancelButtonsForMac() function below.
+
     m_pApp = &wxGetApp();
     wxASSERT(m_pApp != NULL);
+
+    bool bOK;
+    bOK = m_pApp->ReverseOkCancelButtonsForMac(this); // whm 5Mar2019 added
+    bOK = bOK; // avoid warning
 
     m_pDoc = m_pApp->GetDocument();
 }

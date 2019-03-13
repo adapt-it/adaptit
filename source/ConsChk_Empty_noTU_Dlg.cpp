@@ -79,6 +79,10 @@ ConsChk_Empty_noTU_Dlg::ConsChk_Empty_noTU_Dlg(
 	pConsChk_Empty_noTU_DlgSizer = ConsistencyCheck_EmptyNoTU_DlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+    // whm 5Mar2019 Note: The ConsistencyCheck_EmptyNoTU_DlgFunc() dialog has OK and Cancel
+    // buttons and they are aligned right, but they are grouped with a long check box control,
+    // so we don't use wxStdDialogButtonSizer but call the ReverseOkCancelButtonsForMac()
+    // function below.
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning

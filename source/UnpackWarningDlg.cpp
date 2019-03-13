@@ -60,6 +60,10 @@ CUnpackWarningDlg::CUnpackWarningDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	pUnpackDlgSizer = UnpackWarningDlgFunc(this, TRUE, TRUE);
 	// The declaration is: UnpackWarningDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The UnpackWarningDlgFunc() function renames the label of the wxID_OK button
+    // to "Stop Unpacking", and so we don't use the wxStdDialogButtonSizer, nor do we need to
+    // call the ReverseOkCancelButtonsForMac() function in this case.
 	
 }
 

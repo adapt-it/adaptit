@@ -115,6 +115,10 @@ CEarlierTranslationDlg::CEarlierTranslationDlg(wxWindow* parent) // dialog const
 	pEarlierTransSizer = EarlierTransDlgFunc(this, TRUE, TRUE);
 	// The declaration is: EarlierTransDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+    // whm 5Mar2019 Note: The EarlierTransDlgFunc() function does not use the wxStdDialogButtonSizer
+    // and has a "Close" button at the right end along with other controls in the same horizontal sizer. 
+    // Hence, we don't need to call the ReverseOkCancelButtonsForMac() function. 
+
 	// Get pointers to controls and set validators
 	m_pSrcTextBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_TEXT);
 	wxASSERT(m_pSrcTextBox != NULL);

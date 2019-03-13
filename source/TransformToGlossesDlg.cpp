@@ -64,7 +64,11 @@ CTransformToGlossesDlg::CTransformToGlossesDlg(wxWindow* parent) // dialog const
 	pTransformToGlossesDlgSizer = TransformToGlossesDlgFunc(this, TRUE, TRUE);
 	// The declaration is: TransformToGlossesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	bool bOK;
+
+    // whm 5Mar2019 Since wxStdDialogButtonsSizer is not used in the OpenExistingProjectDlgFunc(),
+    // we need to call App's ReverseOkCancelButtonsForMac() function to reverse the "Yes" (wxID_OK) 
+    // and "No" (wxID_CANCEL) buttons.
+    bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning
 	// dialog needs size hints, otherwise it is too tall and too narrow. The following sets the

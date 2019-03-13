@@ -70,10 +70,12 @@ CWhichBook::CWhichBook(wxWindow* parent)
 	// size dialog.
 	pWhichBookSizer = WhichBookDlgFunc(this, TRUE, TRUE);
 	// The declaration is: WhichBookDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+
+	// whm 5Mar2019 Note: The WhichBookDlgFunc() now uses wxStdDialogButtonSizer so use 
+    // of the ReverseOkCancelButtonsForMac() function below is not needed.
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	m_pComboChooseBook = (wxComboBox*)FindWindowById(IDC_COMBO_CHOOSE_BOOK);
 	wxASSERT(m_pComboChooseBook != NULL);
 	//m_pComboChooseBook->SetValidator(wxGenericValidator(&m_strBookName));

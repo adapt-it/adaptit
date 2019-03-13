@@ -82,7 +82,14 @@ CAssignLocationsForInputsAndOutputs::CAssignLocationsForInputsAndOutputs(wxWindo
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying
 	// color used for read-only text controls displaying static text info button face color
 	sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
-	
+
+    // whm 5Mar2019 Note: The AssignLocationsForInputsOutputsFunc() dialog has OK and Cancel buttons
+    // but they are grouped with two non-standard buttons. Therefore we won't use wxStdDialogButtonSizer
+    // but call the ReverseOkCancelButtonsForMac() function below.
+    bool bOK;
+    bOK = m_pApp->ReverseOkCancelButtonsForMac(this); // whm 5Mar2019 added
+    bOK = bOK; // avoid warning
+
 	pTextCtrlInfo = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_TOP_INFO);
 	wxASSERT(pTextCtrlInfo != NULL);
 	pTextCtrlInfo->SetBackgroundColour(sysColorBtnFace);

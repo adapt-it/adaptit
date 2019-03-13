@@ -63,9 +63,11 @@ CCCTableNameDlg::CCCTableNameDlg(wxWindow* parent) // dialog constructor
 	CCTableNameDlgFunc(this, TRUE, TRUE);
 	// The declaration is: CCTableNameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+    // whm 5Mar2019 Note: The CCTableNameDlgFunc() now uses the wxStdDialogButtonSizer, so we no
+    // longer need to call the ReverseOkCancelButtonsForMac() function below.
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	// use wxValidator for simple dialog data transfer
 	m_pEditTableName = (wxTextCtrl*)FindWindow(IDC_EDIT_TBLNAME);
 	//m_pEditTableName->SetValidator(wxGenericValidator(&m_tableName));

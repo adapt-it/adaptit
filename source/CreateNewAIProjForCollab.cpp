@@ -65,6 +65,9 @@ CCreateNewAIProjForCollab::CCreateNewAIProjForCollab(wxWindow* parent) // dialog
 	pCreateNewAIProjForCollabSizer = CreateNewAIProjForCollabFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+    // whm 5Mar2019 Note: The CreateNewAIProjForCollabFunc() dialog now uses the wxStdDialogButtonSizer,
+    // and does not need to call the ReverseOkCancelButtonsForMac() function.
+
 	m_pApp = &wxGetApp();
 
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying

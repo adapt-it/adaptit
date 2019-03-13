@@ -68,15 +68,20 @@ CServDisc_KBserversDlg::CServDisc_KBserversDlg(wxWindow* parent, wxArrayString* 
 	pServDisc_KBserversDlgSizer = ServDisc_KBserversDlg(this, TRUE, TRUE);
     // The declaration is: ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool
     // set_sizer );
+
+    // whm 5Mar2019 Note: The ServDisc_KBserversDlg() dialog now has the OK and Cancel
+    // buttons set/controlled by a wxStdDialogButtonSizer at the bottom of the dialog,
+    // so there is now no need to call the ReverseOkCancelButtonsForMac() function below.
+
 	m_pListCtrlUrls = (wxListView*)FindWindowById(ID_LISTCTRL_URLS);
 	m_pBtnRemoveSelection = (wxButton*)FindWindowById(ID_BUTTON_REMOVE_KBSERVER_SELECTION);
 
 	m_pListCtrlUrls->SetFocus(); // input focus should start off in the list control
 	m_urlsArr = wxArrayString(*pUrls); // copy the urls from the array in ConnectUsingDiscoveryResults()
 	m_hostnamesArr = wxArrayString(*pHostnames); // copy the associated hostnames
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	wxUnusedVar(bOK); // avoid warning
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//wxUnusedVar(bOK); // avoid warning
 
 	m_bUserCancelled = FALSE; // Set TRUE if user clicks Cancel button
 	count = pUrls->GetCount();

@@ -112,6 +112,10 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	pAdminMoveCopySizer = MoveOrCopyFilesOrFoldersFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+    // whm 5Mar2019 Note: The MoveOrCopyFilesOrFoldersFunc() dialog has a "Close" (wxID_OK) among 5 other 
+    // buttons within a horizontal box sizer. The "Close" button is the right most button. We cannot use 
+    // wxStdDialogButtonSizer, nor is there reason to use the ReverseOkCancelButtonsForMac() function in 
+    // this case.
 
 	m_strLeftFolderPath = _T("");
 	m_strRightFolderPath = _T("");

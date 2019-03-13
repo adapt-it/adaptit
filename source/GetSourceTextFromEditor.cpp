@@ -93,7 +93,7 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	// that the project change options are now contained in the friend class CChangeCollabProjectsDlg.
 	pGetSourceTextFromEditorSizer = GetSourceTextFromEditorDlgFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
+
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying
 	// color used for read-only text controls displaying static text info button face color
 	sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
@@ -139,9 +139,11 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	pUsingAIProjectName = (wxStaticText*)FindWindowById(ID_TEXT_AI_PROJ);
 	wxASSERT(pUsingAIProjectName != NULL);
 	
-	bool bOK;
-	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+    // whm 5Mar2019 Note: The GetSourceTextFromEditorDlgFunc() dialog now uses a wxStdDialogButtonSizer
+    // and so there is no longer need to call ReverseOkCancelButtonsForMac().
+    //bool bOK;
+	//bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	// other attribute initializations
 
     pGetSourceTextFromEditorSizer->Layout(); // update the layout for $s substitutions

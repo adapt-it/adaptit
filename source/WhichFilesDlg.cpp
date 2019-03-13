@@ -67,9 +67,12 @@ CWhichFilesDlg::CWhichFilesDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	pWhichFilesDlgSizer = WhichFilesDlgFunc(this, TRUE, TRUE);
 	// The declaration is: WhichFilesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning	
+
+    // whm 5Mar2019 Note: The WhichFilesDlgFunc() now uses the wxStdDialogButtonSizer, so
+    // we do not need to call the App's ReverseOkCancelButtonsForMac() function
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning	
 	// use wxValidator for simple dialog data transfer
 	m_pListBoxAccepted = (wxListBox*)FindWindowById(IDC_LIST_ACCEPTED);
 	m_pListBoxRejected = (wxListBox*)FindWindowById(IDC_LIST_REJECTED);

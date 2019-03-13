@@ -69,9 +69,14 @@ KbSvrHowGetUrl::KbSvrHowGetUrl(wxWindow* parent) // dialog constructor
 	m_pApp = &wxGetApp();
 	kb_ask_how_get_url_func(this, TRUE, TRUE);
 	// The declaration is: functionname( wxWindow *parent, bool call_fit, bool set_sizer );
-	bool bOK;
-	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
-	wxUnusedVar(bOK);
+
+    // whm 5Mar2019 Note: The kb_ask_how_get_url_func() dialog now has its OK and Cancel
+    // buttons at the bottom of the dialog and are set/controlled by the wxStdDialogButtonSizer,
+    // so there is no need to call the ReverseOkCancelButtonsForMac() function below.
+
+	//bool bOK;
+	//bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
+	//wxUnusedVar(bOK);
  }
 
 KbSvrHowGetUrl::~KbSvrHowGetUrl() // destructor

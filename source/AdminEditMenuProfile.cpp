@@ -117,9 +117,11 @@ CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constru
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);
 	
-	bool bOK;
-	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+    // whm 5Mar2019 Note: The MenuEditorDlgFunc() dialog now uses the wxStdDialogButtonSizer, so
+    // we need not use the ReverseOkCancelButtonsForMac() function below.
+	//bool bOK;
+	//bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	pNotebook = (wxNotebook*)FindWindowById(ID_MENU_EDITOR_NOTEBOOK);
 	wxASSERT(pNotebook != NULL);
 	pButtonResetToFactory = (wxButton*)FindWindowById(ID_BUTTON_RESET_TO_FACTORY);

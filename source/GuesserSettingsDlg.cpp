@@ -68,6 +68,14 @@ CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
 	
 	m_pApp = &wxGetApp();
 
+    // whm 5Mar2019 Note: The GuesserSettingsDlgFunc() dialog has an OK and Cancel button right aligned,
+    // but also has a "Suffix and Prefix Lists..." button in the same horizontal box sizer. We don't use
+    // the wxStdDialogButtonSizer in this case, but we use our ReverseOkCancelButtonsForMac() function
+    // for platform button adjustments.
+	bool bOK;
+	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
+	bOK = bOK; // avoid warning
+
 	// use wxValidator for simple dialog data transfer
 	// sample text control initialization below:
 	pCheckUseGuesser = (wxCheckBox*)FindWindowById(ID_CHECK_USE_GUESSER);
@@ -94,9 +102,6 @@ CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
 	m_pSuffixesAndPrefixesListsDlg = (wxButton*)FindWindowById(ID_BTN_GUESSER_HOW_TO_USE_DLG);
 	wxASSERT(m_pSuffixesAndPrefixesListsDlg != NULL);
 
-	bool bOK;
-	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
 	// other attribute initializations
 }
 

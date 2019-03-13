@@ -61,6 +61,9 @@ UsernameInputDlg::UsernameInputDlg(wxWindow* parent) // dialog constructor
 	UsernameInputFunc(this, TRUE, TRUE);
 	// The declaration is: UsernameInputFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+    // whm 5Mar2019 Note: The UsernameInputFunc() dialog now uses the wxStdDialogButtonSizer
+    // and so need not call the ReverseOkCancelButtonsForMac() function.
+
 	// other attribute initializations
 }
 

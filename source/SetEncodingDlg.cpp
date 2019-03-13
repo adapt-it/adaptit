@@ -96,6 +96,10 @@ CSetEncodingDlg::CSetEncodingDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	pSetEncDlgSizer = SetEncodingDlgFunc(this, TRUE, TRUE);
 	// The declaration is: SetEncodingDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019. The SetEncodingDlgFunc() dialog was only used in the non-Unicode version.
+    // It does not use wxStdDialogButtonSizer, but uses a call to ReverseOkCancelButtonsForMac()
+    // to adjust its buttons if it were ever used.
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);

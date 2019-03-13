@@ -67,9 +67,12 @@ CGoToDlg::CGoToDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	GoToDlgFunc(this, TRUE, TRUE);
 	// The declaration is: GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+
+    // whm 5Mar2019 Note: The GoToDlgFunc() now uses the wxStdDialogButtonSizer, so it is no
+    // longer necessary to call the ReverseOkCancelButtonsForMac() function below.
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	m_pSpinCtrlChapter = (wxSpinCtrl*)FindWindowById(IDC_EDIT_CHAPTER);
 	m_pSpinCtrlVerse = (wxSpinCtrl*)FindWindowById(IDC_EDIT_VERSE);
 }

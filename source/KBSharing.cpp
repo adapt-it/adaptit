@@ -76,9 +76,12 @@ KBSharing::KBSharing(wxWindow* parent) // dialog constructor
 	// size dialog.
 	kb_sharing_dlg_func(this, TRUE, TRUE);
 	// The declaration is: GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+
+    // whm 5Mar2019 Note: The kb_sharing_dlg_func() dialog now uses the wxStdDialogButtonSizer,
+    // and so the ReverseOkCancelButtonsForMac() call below is not required.
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	oldReceiveInterval = gpApp->m_nKbServerIncrementalDownloadInterval; // get the current value (minutes)
 	receiveInterval = oldReceiveInterval; // initialize to the current value
 }

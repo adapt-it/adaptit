@@ -81,10 +81,15 @@ KBSharingStatelessSetupDlg::KBSharingStatelessSetupDlg(wxWindow* parent, bool bU
 	// size dialog.
 	kb_sharing_stateless_setup_func(this, TRUE, TRUE);
 	// The declaration is: functionname( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The kb_sharing_stateless_setup_func() dialog now uses the
+    // wxStdDialogButtonSizer, and so it need not call the ReverseOkCancelButtonsForMac()
+    // function below.
+
 	m_pApp = &wxGetApp();
-	bool bOK;
-	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+	//bool bOK;
+	//bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	m_bStateless = TRUE;
 	m_strStatelessUsername.Empty();
 	m_strStatelessURL.Empty();

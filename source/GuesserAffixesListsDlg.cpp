@@ -65,6 +65,9 @@ GuesserAffixesListsDlg::GuesserAffixesListsDlg(wxWindow* parent) // dialog const
 	GuesserAffixListDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+    // whm 5Mar2019 Note: The GuesserAffixListDlgFunc() dialog now uses the wxStdDialogButtonSizer
+    // so we need not call the ReverseOkCancelButtonsForMac() below.
+
 	m_pApp = &wxGetApp();
 
 	m_pRadioSuffixesList = (wxRadioButton*)FindWindowById(ID_RADIO_SUFFIXES_LIST);
@@ -79,9 +82,9 @@ GuesserAffixesListsDlg::GuesserAffixesListsDlg(wxWindow* parent) // dialog const
 
 	m_pAffixPairsList = (wxListCtrl*)FindWindowById(ID_LISTCTRL_SRC_TGT_AFFIX_PAIR);
 
-	bool bOK;
-	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+	//bool bOK;
+	//bOK = m_pApp->ReverseOkCancelButtonsForMac(this); // whm 5Mar2019 removed
+	//bOK = bOK; // avoid warning
 	// other attribute initializations
 	m_bPrefixesLoaded = false; // Need to load affixes from app / file
 	m_bSuffixesLoaded = false;

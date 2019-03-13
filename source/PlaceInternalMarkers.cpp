@@ -66,6 +66,9 @@ CPlaceInternalMarkers::CPlaceInternalMarkers(wxWindow* parent) // dialog constru
 	// size dialog.
 	PlaceInternalMarkersDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The PlaceInternalMarkersDlgFunc() uses the wxStdDialogButtonSizer with
+    // a single "OK" button. We don't need to use the ReverseOkCancelButtonsForMac() function here.
 	
 	m_srcPhrase = _T("");
 	m_tgtPhrase = _T("");

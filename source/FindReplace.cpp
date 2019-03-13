@@ -151,8 +151,11 @@ CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 	pFindDlgSizer = FindDlgFunc(this, TRUE, TRUE);
 	// The declaration is: FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+    // whm 5Mar2019 Since wxStdDialogButtonsSizer is not used in the FindDlgFunc(),
+    // we need to call App's ReverseOkCancelButtonsForMac() function to reverse the "Find Next" (wxID_OK) 
+    // and "Cancel" buttons.
 	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this); 
 	bOK = bOK; // avoid warning (BEW 2Jan12, retain this)
 	m_marker = -1;
 	m_srcStr = _T("");
@@ -1174,7 +1177,10 @@ CReplaceDlg::CReplaceDlg(wxWindow* parent) // dialog constructor
 	pReplaceDlgSizer = ReplaceDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
-	bool bOK;
+    // whm 5Mar2019 Since wxStdDialogButtonsSizer is not used in the ReplaceDlgFunc(),
+    // we need to call App's ReverseOkCancelButtonsForMac() function to reverse the "Find Next" (wxID_OK) 
+    // and "Cancel" buttons.
+    bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning
 	//m_marker = -1;

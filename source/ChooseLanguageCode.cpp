@@ -54,6 +54,9 @@ ChooseLanguageCode::ChooseLanguageCode(wxWindow* parent) // constructor
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	LiftLangFilterFunc(this, TRUE, TRUE);
+
+    // whm 5Mar2019 Note: The LiftLangFilterFunc() dialog now uses the wxStdDialogButtonSizer
+    // and so no need to call the ReverseOkCancelButtonsForMac() function here.
 			
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);

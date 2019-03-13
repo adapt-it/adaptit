@@ -69,7 +69,12 @@ CPlaceInternalPunct::CPlaceInternalPunct(wxWindow* parent) // dialog constructor
 	// size dialog.
 	pPlaceInternalSizer = PlaceInternalPunctDlgFunc(this, TRUE, TRUE);
 	// The declaration is: PlaceInternalPunctDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
+
+    // whm 5Mar2019 Note: The PlaceInternalPunctDlgFunc() created by wxDesigner has a "Place" button
+    // along with an "OK" button in the same horizontal sizer. The "Place" button does not use wxID_CANCEL
+    // or any other standard identifier, so we will not call the ReverseOkCancelButtonsForMac()
+    // function in this case.
+
 	m_srcPhrase = _T("");
 	m_tgtPhrase = _T("");
 

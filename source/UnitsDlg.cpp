@@ -66,9 +66,13 @@ CUnitsDlg::CUnitsDlg(wxWindow* parent) // dialog constructor
 	UnitsDlgFunc(this, TRUE, TRUE);
 	// The declaration is: UnitsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+
+    // whm 5Mar2019 Note: the UnitsDlgFunc() now uses the wxStdDialogButtonsSizer which
+    // takes care of reversing buttons for the Mac, so we no longer call the App's 
+    // ReverseOkCancelButtonsForMac() function here.
+ //   bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	tempUseInches = FALSE; // in wx version page setup only has mm for margins, so we only use Metric for now
 	m_pRadioUseInches = (wxRadioButton*)FindWindowById(IDC_RADIO_INCHES);
 	m_pRadioUseCentimeters = (wxRadioButton*)FindWindowById(IDC_RADIO_CM);

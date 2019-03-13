@@ -103,6 +103,11 @@ KBEditSearch::KBEditSearch(wxWindow* parent) // dialog constructor
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp != NULL);
 	bool bOK;
+
+    // whm 5Mar2019 Note: The KBEditSearchFunc() dialog has an OK and Cancel buttons along with
+    // two other buttons in the same horizontal box sizer. We don't use the wxStdDialgoButtonSizer
+    // in the dialog, but we should use our ReverseOkCancelButtonsForMac() function to adjust
+    // buttons for the platform.
 	bOK = pApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning (keep this line as is)
 	pKBEditorDlg = (CKBEditor*)parent;

@@ -83,9 +83,11 @@ CSilConverterSelectDlg::CSilConverterSelectDlg(
 	SilConvertersDlgFunc(this, TRUE, TRUE);
 	// The declaration is: SilConvertersDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+    // whm 5Mar2019 Note: The SilConvertersDlgFunc() now uses the wxStdDialogButtonSizer, so the
+    // following call of ReverseOkCancelButtonsForMac() is not needed.
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	pEditSILConverterName = (wxTextCtrl*)FindWindowById(IDC_ED_SILCONVERTER_NAME);
 	wxASSERT(pEditSILConverterName != NULL);
 	pEditSILConverterInfo = (wxTextCtrl*)FindWindowById(IDC_ED_SILCONVERTER_INFO); // (read only)

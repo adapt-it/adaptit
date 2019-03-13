@@ -76,6 +76,10 @@ CRetranslationDlg::CRetranslationDlg(wxWindow* parent) // dialog constructor
 	pRetransSizer = RetranslationDlgFunc(this, TRUE, TRUE);
 	// The declaration is: RetranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+    // whm 5Mar2019 Note: The OK and Cancel buttons in the RetranslationDlgFunc() function
+    // are already right aligned to the right of the wxTextCtrl where new translation is typed,
+    // so we don't use the wxStdDialogButtonSizer within it, and we need to call the ReverseOkCancelButtonsForMac()
+    // function to reverse the OK and Cancel buttons.
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning

@@ -102,9 +102,11 @@ CViewFilteredMaterialDlg::CViewFilteredMaterialDlg(wxWindow* parent) // dialog c
 	pViewFilteredMaterialDlgSizer = ViewFilteredMaterialDlgFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+    // whm 5Mar2019 Note: The ViewFilteredMaterialDlgFunc() now uses the wxStdDialogButtonSizer, so it is
+    // no longer necessary to call the ReverseOkCancelButtonsForMac() function below.
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	// get pointers for dialog's controls
 	pMarkers = (wxListBox*)FindWindowById(IDC_LIST_MARKER);
 	wxASSERT(pMarkers != NULL);

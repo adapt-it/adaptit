@@ -67,6 +67,10 @@ DVCSNavDlg::DVCSNavDlg(wxWindow *parent)
     
 	m_pDlgSizer = DVCSNavDlgFunc ( this, TRUE, TRUE );                          wxASSERT(m_pDlgSizer != NULL);
 
+    // whm 5Mar2019 Note: The DVCSNavDlgFunc() dialog has only a single Cancel
+    // button. It now uses a wxStdDialogButtonSizer, and as such needs no
+    // call of the ReverseOkCancelButtonsForMac() function.
+
     m_pVersion_comment   = (wxTextCtrl*) FindWindowById(ID_VERSION_COMMENT);    wxASSERT(m_pVersion_comment != NULL);
     m_pVersion_date      = (wxStaticText*) FindWindowById(ID_VERSION_DATE);     wxASSERT(m_pVersion_date != NULL);
     m_pVersion_committer = (wxStaticText*) FindWindowById(ID_COMMITTER);        wxASSERT(m_pVersion_committer != NULL);

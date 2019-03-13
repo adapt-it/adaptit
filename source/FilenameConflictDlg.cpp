@@ -75,8 +75,13 @@ FilenameConflictDlg::FilenameConflictDlg(wxWindow* parent,
 	FilenameConflictFunc(this, TRUE, TRUE);
 	// The declaration is: functionname( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+ 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp != NULL);
+
+   // whm 5Mar2019 Note: The FilenameConflictFunc() dialog has a checkbox item as well as a
+    // "Close" (wxID_OK) button and a Cancel button. Close and Cancel are right aligned in the
+    // bottom of the dialog, so we won't use the wxStdDialogButtonSizer here, but we will use
+    // our ReverseOkCancelButtonsForMac() function to adjust the buttons for the Mac platform.
 	bool bOK;
 	bOK = pApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning

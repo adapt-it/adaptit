@@ -85,7 +85,11 @@ COpenExistingProjectDlg::COpenExistingProjectDlg(wxWindow* parent)
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
 	// The declaration is: OpenExistingProjectDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	bool bOK;
+
+    // whm 5Mar2019 Since wxStdDialogButtonsSizer is not used in the OpenExistingProjectDlgFunc(),
+    // we need to call App's ReverseOkCancelButtonsForMac() function to reverse the "Open" (wxID_OK) 
+    // and "Cancel" buttons.
+    bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning
 	m_projectName.Empty();

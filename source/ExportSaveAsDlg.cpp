@@ -125,6 +125,9 @@ CExportSaveAsDlg::CExportSaveAsDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	pExportSaveAsSizer = ExportSaveAsDlgFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The ExportSaveAsDlgFunc() uses the wxStdDialogButtonSizer, so there is
+    // no need to call the ReverseOkCancelButtonsForMac() function here.
 	
 	// edb 15June2012: This is a workaround for a difference between wxSmith and wxDesigner 2.20a.
 	// wxDesigner doesn't appear to let you add controls to a wxPanel (you can do this in wxSmith);

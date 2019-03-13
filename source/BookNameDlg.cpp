@@ -69,9 +69,12 @@ CBookName::CBookName(
 	m_pBookNameDlgSizer = BookNameDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+    // whm 5Mar2019 Note: The BookNameDlgFunc() dialog now uses the wxStdDialogButtonSizer, and
+    // so we should not call the ReverseOkCancelButtonsForMac() function.
+
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	m_bShowItCentered = bShowCentered;
 	m_bookCode = *pstrBookCode;
 

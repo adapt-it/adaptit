@@ -62,6 +62,12 @@ CConflictResActionDlg::CConflictResActionDlg(wxWindow* parent) // dialog constru
 	// size dialog.
 	ConflictResolutionActionFunc(this, TRUE, TRUE);
 	// The declaration is: ConflictResolutionActionFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The ConflictResolutionActionFunc() dialog has a normal OK button, but
+    // its Cancel button's label is "Cancel (Selects top radio button choice)", so we don't
+    // use the wxStdDialogButtonSizer, but we do use the ReverseOkCancelButtonsForMac() call
+    // below to swap those two buttons on the Mac.
+
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	wxUnusedVar(bOK); // avoid warning

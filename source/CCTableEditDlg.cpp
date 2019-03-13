@@ -55,9 +55,11 @@ CCCTableEditDlg::CCCTableEditDlg(wxWindow* parent) // dialog constructor
 	CCTableEditDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+    // whm 5Mar2019 Note: The CCTableEditDlgFunc() now uses the wxStdDialogButtonSizer, so we
+    // no longer need to call the ReverseOkCancelButtonsForMac() function below.
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	// use wxValidator for simple dialog data transfer
 	pEditCCTable = (wxTextCtrl*)FindWindowById(IDC_EDIT_CCT);
 	wxASSERT(pEditCCTable != NULL);

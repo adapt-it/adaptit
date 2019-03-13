@@ -71,6 +71,10 @@ CChooseCollabOptionsDlg::CChooseCollabOptionsDlg(wxWindow* parent) // dialog con
 	pChooseCollabOptionsDlgSizer = ChooseCollabOptionsDlgFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+    // whm 5Mar2019 Note: The ChooseCollabOptionsDlgFunc() dialog has a single OK button, and it
+    // now uses the wxStdDialogButtonSizer for that button, and so there is no need to call the
+    // ReverseOkCancelButtonsForMac() function in this case.
+
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying
 	// color used for read-only text controls displaying static text info button face color
 	sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);

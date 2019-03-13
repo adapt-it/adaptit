@@ -125,6 +125,10 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 	PrintOptionsDlgFunc(this, TRUE, TRUE);
 	// The declaration is: PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+    // whm 5Mar2019 Note: The PrintOptionsDlgFunc() has a "Print >>" (wxID_OK) button and a Cancel
+    // button that are aligned in the lower right part of the dialog. We don't use the 
+    // wxStdDialogButtonSizer, but we do use the ReverseOkCancelButtonsForMac() function to adjust
+    // the buttons for the appropriate platform.
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning

@@ -55,6 +55,10 @@ CCollabProjectMigrationDlg::CCollabProjectMigrationDlg(wxWindow* parent, wxStrin
     CollabProjectMigrationDlgFunc(this, TRUE, TRUE);
     // The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+    // whm 5Mar2019 Note: The CollabProjectMigrationDlgFunc() dialog now uses the
+    // wxStdDialogButtonSizer, and so there is no need to call the ReverseOkCancelButtonsForMac()
+    // function in this case.
+
     pRadioBtnPT8 = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_PT8);
     wxASSERT(pRadioBtnPT8 != NULL);
     pRadioBtnPT7 = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_PT7);

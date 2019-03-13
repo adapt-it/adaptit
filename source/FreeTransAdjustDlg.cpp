@@ -69,15 +69,16 @@ FreeTransAdjustDlg::FreeTransAdjustDlg(
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
 	m_pFreeTransAdjustSizer = FTAdjustFunc(this, TRUE, TRUE);
-
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The FTAdjustFunc() dialog now uses the wxStdDialogButtonSizer,
+    // so there is no need to call the ReverseOkCancelButtonsForMac() function below
 	
 	m_pApp = &wxGetApp();
 	m_pMainFrame = (CMainFrame*)parent;
 	m_pFreeTrans = m_pApp->GetFreeTrans(); // for access to the one and only CFreeTrans class's instance
 	//bool bOK;
-	//bOK = m_pApp->ReverseOkCancelButtonsForMac(this); // <- unneeded so long as we have
-														// no Cancel button
+	//bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 	//bOK = bOK; // avoid warning
 
 	CentreOnParent();

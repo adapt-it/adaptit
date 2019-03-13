@@ -71,7 +71,11 @@ CLanguageCodesDlg_Single::CLanguageCodesDlg_Single(wxWindow* parent) // dialog c
 	// size dialog.
 	SingleLanguageCodeDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	SetPointers();
+
+    // whm 5Mar2019 Note: The SingleLanguageCodeDlgFunc() now uses the wxStdDialogButtonSizer,
+    // and so we need not call the ReverseOkCancelButtonsForMac() function in this case.
+
+    SetPointers();
 	//m_enumLangCodesChoice = all_possibilities;
 }
 /*

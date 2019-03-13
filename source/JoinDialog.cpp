@@ -80,6 +80,11 @@ CJoinDialog::CJoinDialog(wxWindow* parent) // dialog constructor
 	// size dialog.
 	JoinDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The JoinDlgFunc() has a "Close" (wxID_OK) button at the right end of a
+    // horizontal box sizer with other programatic buttons. It doesn't use wxStdDialogButtonSizer,
+    // nor should it use the ReverseOkCancelButtonsForMac() function to make any platform button
+    // adjustments.
 }
 
 CJoinDialog::~CJoinDialog() // destructor

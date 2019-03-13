@@ -73,6 +73,13 @@ CCollabVerseConflictDlg::CCollabVerseConflictDlg(wxWindow* parent, wxArrayPtrVoi
 	pConflictDlgTopSizer = AI_PT_ConflictingVersesFunc(this, TRUE, TRUE);
 	// The declaration is: AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	wxUnusedVar(pConflictDlgTopSizer);
+
+    // whm 5Mar2019 Note: The AI_PT_ConflictingVersesFunc() dialog is complex and has a "Transfer The Listed Verses"
+    // (wxID_OK) button as well as a Cancel button with a "Show Slashes (/)" check box to their right within
+    // the same horizontal box sizer. While we can't use the wxStdDialogButtonSizer, we should call the
+    // ReverseOkCancelButtonsForMac() function to swap position of the "Transfer...Verses" and "Cancel"
+    // buttons for the Mac (the call is below).
+
 	m_pApp = gpApp;  // was (CAdapt_ItApp*)&wxGetApp();
 	pConflictsArray = pConfArr;
 

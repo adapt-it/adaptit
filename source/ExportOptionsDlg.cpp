@@ -101,9 +101,11 @@ CExportOptionsDlg::CExportOptionsDlg(wxWindow* parent) // dialog constructor
 	pExportOptionsSizer = ExportOptionsDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ExportOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+    // whm 5Mar2019 Note: The ExportOptionsDlgFunc() now uses the wxStdDialogButtonSizer, so we don't
+    // need to call the ReverseOkCancelButtonsForMac() function below.
+	//bool bOK;
+	//bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
 	// get pointers to our controls
 	pRadioExportAll = (wxRadioButton*)FindWindowById(IDC_RADIO_EXPORT_ALL);
 	wxASSERT(pRadioExportAll != NULL);

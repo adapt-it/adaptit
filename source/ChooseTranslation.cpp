@@ -140,6 +140,10 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
     pContSizerOfLB->Add(m_pMyListBox, 1, wxGROW|wxALL, 0);
     m_pMyListBox->SetFocus();
 
+    // whm 5Mar2019 Note: The ChooseTranslationDlgFunc2() dialog has OK and Cancel buttons,
+    // but there are within separate cells of a wxGridSizer rather than a single horizontal
+    // box sizer. Therefore don't use a wxStdDialogButtonSizer, but call the
+    // ReverseOkCancelButtonsForMac() function below. 
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning

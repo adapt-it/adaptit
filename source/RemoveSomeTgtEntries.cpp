@@ -97,6 +97,11 @@ RemoveSomeTgtEntries::RemoveSomeTgtEntries(
 	m_pRemoveSomeSizer = Bulk_Delete_Pairs_Func(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+    // whm 5Mar2019 Note: The Bulk_Delete_Pairs_Func() dialog has some non-standard buttons 
+    // within the same horizontal box sizer along with the Cancel button. The dialog doesn't
+    // make use of the wxStdDialogButtonSizer, so the ReverseOkCancelButtonsForMac() function
+    // needs to be called below.
+
 	m_pKBEditorDlg = (CKBEditor*)parent; // we'll want access to the parent dlg
 	m_pKB = m_pKBEditorDlg->pKB; // the parent knows what type of KB it is displaying (ie. adapting or glossing)
 	m_bIsGlossingKB = m_pKB->IsThisAGlossingKB();

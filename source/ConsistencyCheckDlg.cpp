@@ -94,6 +94,10 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	ConsistencyCheckDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+    // whm 5Mar2019 Note: The ConsistencyCheckDlgFunc() has an "Ignore it (do nothing)" button between
+    // the OK and Cancel buttons within the same horizontal sizer which is within the right side
+    // of the dialog, so it does not use wxStdDialogButtonSizer. Hence, we call our own 
+    // ReverseOkCancelButtonsForMac() function to make platform button adjustments.
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning

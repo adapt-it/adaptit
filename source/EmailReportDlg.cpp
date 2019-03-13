@@ -80,6 +80,11 @@ CLogViewer::CLogViewer(wxWindow* parent)
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	LogViewerFunc(this, TRUE, TRUE); // wxDesigner dialog function
+
+    // whm 5Mar2019 Note: The LogViewerFunc() dialog simply has a "Close" (wxID_OK) button that is
+    // aligned right at the bottom of the dialog. We need not use wxStdDialogButtonSizer, nor
+    // the ReverseOkCancelButtonsForMac() function in this case.
+
 	wxStaticText* pPathAndName;
 	pPathAndName = (wxStaticText*)FindWindowById(ID_TEXT_LOG_FILE_PATH_AND_NAME);
 	wxASSERT(pPathAndName != NULL);
@@ -127,7 +132,11 @@ CEmailReportDlg::CEmailReportDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	pEmailReportDlgSizer = EmailReportDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
+    
+    // whm 5Mar2019 Note: The EmailReportDlgFunc() dialog has a "Close" (wxID_OK), but it is grouped with
+    // other non-standard buttons in the left part of the dialog. We cannot use either the 
+    // wxStdDialogButtonSizer, nor the ReverseOkCancelButtonsForMac() function in this case.
+
 	bEmailSendSuccessful = FALSE;
 	
 	pTextDeveloperEmails = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_DEVS_EMAIL_ADDR);

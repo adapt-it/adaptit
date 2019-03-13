@@ -62,6 +62,10 @@ CWelcome::CWelcome(wxWindow* parent) // dialog constructor
 	// size dialog.
 	WelcomeDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The WelcomeDlgFunc() created by wxDesigner has a checkbox in the same
+    // horizontal sizer along with an OK button. We do not need to call the ReverseOkCancelButtonsForMac()
+    // function in this case.
 	
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp);

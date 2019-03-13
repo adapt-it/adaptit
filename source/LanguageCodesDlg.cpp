@@ -73,21 +73,6 @@ BEGIN_EVENT_TABLE(CLanguageCodesDlg, AIModalDialog)
 	EVT_TEXT_ENTER(ID_TEXTCTRL_SEARCH_LANG_NAME, CLanguageCodesDlg::OnEnterInSearchByName)
     EVT_TEXT_ENTER(ID_TEXTCTRL_SEARCH_LANG_CODE, CLanguageCodesDlg::OnEnterInSearchByCode)
 END_EVENT_TABLE()
-/*
-CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("Choose language codes for at least the Source and Target languages"),
-				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
-{
-	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
-	// for the dialog. The first parameter is the parent which should normally be "this".
-	// The second and third parameters should both be TRUE to utilize the sizers and create the right
-	// size dialog.
-	LanguageCodesDlgFunc(this, TRUE, TRUE);
-	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	SetPointers();
-	m_enumLangCodesChoice = all_possibilities;
-}
-*/
 
 CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent, enum LangCodesChoice choice)
 	: AIModalDialog(parent, -1,
@@ -106,6 +91,10 @@ CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent, enum LangCodesChoice choi
 	// size dialog.
 	LanguageCodesDialog2Func(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+    // whm 5Mar2019 Note: The LanguageCodesDialog2Func() dialog now uses the wxStdDialogButtonSizer,
+    // and so there is no need to call the ReverseOkCancelButtonsForMac() function in this case.
+
 	SetPointers();
 	m_enumLangCodesChoice = choice;
 
