@@ -2093,7 +2093,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	while (pos != NULL)
 	{
 	pPile = pos->GetData();
-	wxLogDebug(_T("m_srcPhrase:  %s  *BEFORE* pPile->m_pOwningStrip =  %x"),
+	wxLogDebug(_T("m_srcPhrase:  %s  *BEFORE* pPile->m_pOwningStrip =  %p"),
 	pPile->GetSrcPhrase()->m_srcPhrase,pPile->m_pOwningStrip);
 	pos = pos->GetNext();
 	}
@@ -2159,7 +2159,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	while (pos != NULL)
 	{
 	pPile = pos->GetData();
-	wxLogDebug(_T("m_srcPhrase:  %s  *AFTER* pPile->m_pOwningStrip =  %x"),
+	wxLogDebug(_T("m_srcPhrase:  %s  *AFTER* pPile->m_pOwningStrip =  %p"),
 	pPile->GetSrcPhrase()->m_srcPhrase,pPile->m_pOwningStrip);
 	pos = pos->GetNext();
 	}

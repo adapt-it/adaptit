@@ -5697,7 +5697,8 @@ bool AtLIFTTag(CBString& tag, CStack*& WXUNUSED(pStack))
 #ifdef _DEBUG
 		void* refstrPtr = (void*)gpRefStr;
 		void* tuPtr = (void*)gpTU;
-		wxLogDebug(_T("in <sense> AtLIFTTag gKeyStr= %s , new gpRefstr= %x , gpTU= %x"),
+        // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+		wxLogDebug(_T("in <sense> AtLIFTTag gKeyStr= %s , new gpRefstr= %p , gpTU= %p"),
 			gKeyStr.c_str(),refstrPtr,tuPtr);
 #endif
 #endif
@@ -5759,7 +5760,8 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 #ifdef _debugLIFT_
 #ifdef _DEBUG
 				wxLogDebug(_T("Block 1 in AtLIFTEmptyElemClose"));
-				wxLogDebug(_T("Block 1 in AtLIFTEmptyElemClose, stored gpTU = %x ; with gpRefStr = %x"),
+                // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+				wxLogDebug(_T("Block 1 in AtLIFTEmptyElemClose, stored gpTU = %p ; with gpRefStr = %p"),
 							gpTU,gpRefStr);
 #endif
 #endif
@@ -5779,7 +5781,8 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 				gpTU = new CTargetUnit;
 #ifdef _debugLIFT_
 #ifdef _DEBUG
-				wxLogDebug(_T("Block 1 in AtLIFTEmptyElemClose, replaced with gpTU = %x ; and gpRefStr = %x  before leaving block"),
+                // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+				wxLogDebug(_T("Block 1 in AtLIFTEmptyElemClose, replaced with gpTU = %p ; and gpRefStr = %p  before leaving block"),
 							gpTU,gpRefStr);
 #endif
 #endif
@@ -5817,7 +5820,8 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 #ifdef _debugLIFT_
 #ifdef _DEBUG
 					wxLogDebug(_T("Block 2 in AtLIFTEmptyElemClose"));
-					wxLogDebug(_T("Block 2 in AtLIFTEmptyElemClose, appended gpRefStr = %x ; to map's gpTU_FROM_MAP = %x"),
+                    // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+					wxLogDebug(_T("Block 2 in AtLIFTEmptyElemClose, appended gpRefStr = %p ; to map's gpTU_FROM_MAP = %p"),
 								gpRefStr,gpTU_From_Map);
 #endif
 #endif
@@ -5831,7 +5835,8 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 					gpRefStr = new CRefString; 
 #ifdef _debugLIFT_
 #ifdef _DEBUG
-					wxLogDebug(_T("Block 2, replaced old gpRefStr with: = %x ; unchanged gpTU = %x"),gpRefStr,gpTU);
+                    // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+					wxLogDebug(_T("Block 2, replaced old gpRefStr with: = %p ; unchanged gpTU = %p"),gpRefStr,gpTU);
 #endif
 #endif
 					// leave gpTU unchanged, so that the LIFT end-tag callback will delete it
@@ -5940,7 +5945,8 @@ bool AtLIFTEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 #ifdef _DEBUG
 		void* refstrPtr = (void*)gpRefStr;
 		void* tuPtr = (void*)gpTU;
-		wxLogDebug(_T("in </sense> AtLIFTEndTag gKeyStr= %s , gpRefstr= %x , gpTU= %x  [[ deleting that ref string ]]"),
+        // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+		wxLogDebug(_T("in </sense> AtLIFTEndTag gKeyStr= %s , gpRefstr= %p , gpTU= %p  [[ deleting that ref string ]]"),
 					gKeyStr.c_str(),refstrPtr,tuPtr);
 #endif
 #endif
@@ -5959,7 +5965,8 @@ bool AtLIFTEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 #ifdef _DEBUG
 		void* refstrPtr = (void*)gpRefStr;
 		void* tuPtr = (void*)gpTU;
-		wxLogDebug(_T("in </entry> AtLIFTEndTag gKeyStr= %s , gpRefstr= %x , gpTU= %x"),
+        // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+		wxLogDebug(_T("in </entry> AtLIFTEndTag gKeyStr= %s , gpRefstr= %p , gpTU= %p"),
 					gKeyStr.c_str(),refstrPtr,tuPtr);
 #endif
 #endif
@@ -6146,11 +6153,12 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 #ifdef _DEBUG
 		void* refstrPtr = (void*)gpRefStr;
 		void* tuPtr = (void*)gpTU;
+        // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
 		if (gpKB->IsThisAGlossingKB())
-			wxLogDebug(_T("within <lexical-unit> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %x , gpTU= %x , map[ %d ] GLOSSING_KB"),
+			wxLogDebug(_T("within <lexical-unit> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %p , gpTU= %p , map[ %d ] GLOSSING_KB"),
 					gKeyStr.c_str(),refstrPtr,tuPtr,numWords - 1);
 		else
-			wxLogDebug(_T("within <lexical-unit> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %x , gpTU= %x , map[ %d ] ADAPTING_KB"),
+			wxLogDebug(_T("within <lexical-unit> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %p , gpTU= %p , map[ %d ] ADAPTING_KB"),
 					gKeyStr.c_str(),refstrPtr,tuPtr,numWords - 1);
 #endif
 #endif
@@ -6177,7 +6185,8 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 			gpTU_From_Map = gpKB->GetTargetUnit(numWords, gKeyStr); // does an AutoCapsLookup()
 #ifdef _debugLIFT_
 #ifdef _DEBUG
-			wxLogDebug(_T("within <sense> AtLIFTPCDATA numWords= %d , gKeyStr= %s , gpTU_From_Map= %x"),
+            // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+			wxLogDebug(_T("within <sense> AtLIFTPCDATA numWords= %d , gKeyStr= %s , gpTU_From_Map= %p"),
 						numWords, gKeyStr.c_str(), gpTU_From_Map);
 #endif
 #endif
@@ -6192,7 +6201,8 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 #ifdef _DEBUG
 			void* refstrPtr = (void*)gpRefStr;
 			void* tuPtr = (void*)gpTU;
-			wxLogDebug(_T("in <sense> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %x , gpTU= %x, adaptation= %s"),
+            // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+			wxLogDebug(_T("in <sense> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %p , gpTU= %p, adaptation= %s"),
 						gKeyStr.c_str(),refstrPtr,tuPtr,textStr.c_str());
 #endif
 #endif
@@ -6220,7 +6230,8 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 #ifdef _debugLIFT_
 #ifdef _DEBUG
 				wxLogDebug(_T("Block 1"));
-				wxLogDebug(_T("Block 1, stored gpTU = %x ; with gpRefStr = %x"),gpTU,gpRefStr);
+                // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+				wxLogDebug(_T("Block 1, stored gpTU = %p ; with gpRefStr = %p"),gpTU,gpRefStr);
 #endif
 #endif
 				// we create a new pointer, as the map now manages the old one; we use the
@@ -6239,7 +6250,8 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 				gpTU = new CTargetUnit;
 #ifdef _debugLIFT_
 #ifdef _DEBUG
-				wxLogDebug(_T("Block 1, replaced with gpTU = %x ; and gpRefStr = %x  before leaving block"),
+                // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+				wxLogDebug(_T("Block 1, replaced with gpTU = %p ; and gpRefStr = %p  before leaving block"),
 							gpTU,gpRefStr);
 #endif
 #endif
@@ -6277,7 +6289,8 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 #ifdef _debugLIFT_
 #ifdef _DEBUG
 					wxLogDebug(_T("Block 2"));
-					wxLogDebug(_T("Block 2, appended gpRefStr = %x ; to map's gpTU_FROM_MAP = %x"),
+                    // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+					wxLogDebug(_T("Block 2, appended gpRefStr = %p ; to map's gpTU_FROM_MAP = %p"),
 								gpRefStr,gpTU_From_Map);
 #endif
 #endif
@@ -6291,7 +6304,8 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 					gpRefStr = new CRefString; 
 #ifdef _debugLIFT_
 #ifdef _DEBUG
-					wxLogDebug(_T("Block 2, replaced old gpRefStr with: = %x ; unchanged gpTU = %x"),
+                    // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+					wxLogDebug(_T("Block 2, replaced old gpRefStr with: = %p ; unchanged gpTU = %p"),
 								gpRefStr,gpTU);
 #endif
 #endif

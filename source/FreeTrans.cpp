@@ -1573,7 +1573,7 @@ void CFreeTrans::BuildFreeTransDisplayRectsForOneFreeTrans(wxArrayPtrVoid& arrPi
                 arrRectsForOneFreeTrans.Add(pElement);
 #if defined(_V6PRINT) && defined(_DEBUG)
 	{ // confine their scope to this conditional block
-		wxLogDebug(_T("BuildFreeTransDisplayRectsForOneFreeTrans(), HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %x , curPileCount_for_strip %d"),
+		wxLogDebug(_T("BuildFreeTransDisplayRectsForOneFreeTrans(), HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %p , curPileCount_for_strip %d"),
 			pElement->horizExtent, pElement->subRect.GetX(), pElement->subRect.GetY(), pElement->subRect.GetWidth(),
 			pElement->subRect.GetHeight(), curStripIndex, pElement, curPileCount_for_strip);
 	}
@@ -1599,7 +1599,7 @@ void CFreeTrans::BuildFreeTransDisplayRectsForOneFreeTrans(wxArrayPtrVoid& arrPi
 
 #if defined(_V6PRINT) && defined(_DEBUG)
 	{ // confine their scope to this conditional block
-		wxLogDebug(_T("BuildFreeTransDisplayRectsForOneFreeTrans(), Closing off a trip: HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %x , curPileCount_for_strip %d"),
+		wxLogDebug(_T("BuildFreeTransDisplayRectsForOneFreeTrans(), Closing off a trip: HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %p , curPileCount_for_strip %d"),
 			pElement->horizExtent, pElement->subRect.GetX(), pElement->subRect.GetY(), pElement->subRect.GetWidth(),
 			pElement->subRect.GetHeight(), curStripIndex, pElement, curPileCount_for_strip);
 	}
@@ -1900,7 +1900,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 #ifdef _V6PRINT
 #ifdef _DEBUG
 	{ // confine their scope to this conditional block
-		wxLogDebug(_T("BuildFreeTransDisplayRects(), Last: HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %x , curPileCount_for_strip %d"),
+		wxLogDebug(_T("BuildFreeTransDisplayRects(), Last: HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %p , curPileCount_for_strip %d"),
 			pElement->horizExtent, pElement->subRect.GetX(), pElement->subRect.GetY(), pElement->subRect.GetWidth(),
 			pElement->subRect.GetHeight(), curStripIndex, pElement, curPileCount_for_strip);
 	}
@@ -1928,7 +1928,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 #ifdef _V6PRINT
 #ifdef _DEBUG
 	{ // confine their scope to this conditional block
-		wxLogDebug(_T("BuildFreeTransDisplayRects(), Closing Strip: HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %x , curPileCount_for_strip %d"),
+		wxLogDebug(_T("BuildFreeTransDisplayRects(), Closing Strip: HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %p , curPileCount_for_strip %d"),
 			pElement->horizExtent, pElement->subRect.GetX(), pElement->subRect.GetY(), pElement->subRect.GetWidth(),
 			pElement->subRect.GetHeight(), curStripIndex, pElement, curPileCount_for_strip);
 	}

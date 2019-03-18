@@ -2190,7 +2190,8 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 	// BEW 3Jun14 added cast (void*) because without it, on Windows I got an assert trip saying that there was
 	// a format specifier which did not match its argument; %d is certainlyl save for the sequ num, so must have been
 	// the CPile pointer. The cast should fix it.
-	wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), (size_t)pApp->m_pActivePile, pApp->m_nActiveSequNum);
+    // whm 18Mar2019 removed the (size_t) cast and changed the %x to %p which eliminate the assert. %p is the format specifier for a pointer address.
+	wxLogDebug(_T("m_pActivePile = %p  , m_nActiveSequNum =  %d"), pApp->m_pActivePile, pApp->m_nActiveSequNum); 
 #endif
     pApp->m_bBackedUpForTrial = FALSE;
     if ( IsModified() )
@@ -2200,7 +2201,8 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 	// BEW 3Jun14 added cast (void*) because without it, on Windows I got an assert trip saying that there was
 	// a format specifier which did not match its argument; %d is certainlyl save for the sequ num, so must have been
 	// the CPile pointer. The cast should fix it.
-		wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), (size_t)pApp->m_pActivePile, pApp->m_nActiveSequNum);
+    // whm 18Mar2019 removed the (size_t) cast and changed the %x to %p which eliminate the assert. %p is the format specifier for a pointer address.
+    wxLogDebug(_T("m_pActivePile = %p  , m_nActiveSequNum =  %d"), pApp->m_pActivePile, pApp->m_nActiveSequNum);
 #endif
         needBackup = TRUE;
     }
@@ -6921,7 +6923,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletio
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
 				node = node->GetNext();
 #ifdef _DEBUG
-				//wxLogDebug(_T("   DeleteSourcePhrases pSrcPhrase at %x = %s"),
+				//wxLogDebug(_T("   DeleteSourcePhrases pSrcPhrase at %p = %s"),
 				//pSrcPhrase->m_srcPhrase, pSrcPhrase->m_srcPhrase.c_str());
 #endif
 				DeleteSingleSrcPhrase(pSrcPhrase, bDoPartnerPileDeletionAlso); // default
@@ -6988,7 +6990,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 			sequnum = pSrcPhrase->m_nSequNumber;
 			srcStr = pSrcPhrase->m_srcPhrase;
 			wxLogDebug(_T("\n ********************* Parent CSourcePhrase *************************"));
-			wxLogDebug(_T("sn = %d  srcPhrase = %s   HEX  %x"), sequnum, srcStr.c_str(), (unsigned int)pSrcPhrase);
+			wxLogDebug(_T("sn = %d  srcPhrase = %s   HEX  %p"), sequnum, srcStr.c_str(), pSrcPhrase);
 			if (!pSrcPhrase->m_pSavedWords->IsEmpty())
 			{
 			wxLogDebug(_T("\n              ********       Originals      ********"));
@@ -7002,8 +7004,8 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 					originalSN = pOriginalSP->m_nSequNumber;
 					originalSrcStr = pOriginalSP->m_srcPhrase;
 					// display info in the Output window
-					wxLogDebug(_T("              sn = %d  srcPhrase = %s   HEX  %x"),
-						originalSN, originalSrcStr.c_str(), (unsigned int)pOriginalSP);
+					wxLogDebug(_T("              sn = %d  srcPhrase = %s   HEX  %p"),
+						originalSN, originalSrcStr.c_str(), pOriginalSP);
 				}
 			}
 			wxLogDebug(_T("    -------------------------------------------------"));
@@ -18559,7 +18561,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 			sequnum = pSrcPhrase->m_nSequNumber;
 			srcStr = pSrcPhrase->m_srcPhrase;
 			wxLogDebug(_T("\n ********************* Parent CSourcePhrase *************************"));
-			wxLogDebug(_T("sn = %d  srcPhrase = %s   HEX  %x"), sequnum, srcStr.c_str(), (unsigned int)pSrcPhrase);
+			wxLogDebug(_T("sn = %d  srcPhrase = %s   HEX  %p"), sequnum, srcStr.c_str(), pSrcPhrase);
 			if (!pSrcPhrase->m_pSavedWords->IsEmpty())
 			{
 			wxLogDebug(_T("\n              ********       Originals      ********"));
@@ -18573,8 +18575,8 @@ bool CAdapt_ItDoc::OnCloseDocument()
 					originalSN = pOriginalSP->m_nSequNumber;
 					originalSrcStr = pOriginalSP->m_srcPhrase;
 					// display info in the Output window
-					wxLogDebug(_T("              sn = %d  srcPhrase = %s   HEX  %x"),
-						originalSN, originalSrcStr.c_str(), (unsigned int)pOriginalSP);
+					wxLogDebug(_T("              sn = %d  srcPhrase = %s   HEX  %p"),
+						originalSN, originalSrcStr.c_str(), pOriginalSP);
 				}
 			}
 			wxLogDebug(_T("    -------------------------------------------------"));

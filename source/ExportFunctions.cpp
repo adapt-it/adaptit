@@ -18900,7 +18900,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 	wxASSERT(*pEnd == _T('\0')); // ensure there is a null at end of Buffer
 	/*
 #if defined(_DEBUG)
-	wxLogDebug(_T("ApplyOutputFilterToText(): Beginning... pEndSaved = %x "), pEndSaved);
+	wxLogDebug(_T("ApplyOutputFilterToText(): Beginning... pEndSaved = %p "), pEndSaved);
 #endif
 	*/
 	//bool bHitMkr = FALSE; BEW 25Aug16 removed it, because once it is set TRUE it never got cleared to FALSE, making it uselesss as a testable value
@@ -19143,7 +19143,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 							if (((size_t)pNew - (size_t)pNewBuffStart) > (size_t)30)
 							{
 								wxString last30 = wxString(pNew - 30, 30);
-								wxLogDebug(_T("ApplyOutputFilterToText(): Getting corresponding end marker: pEnd = %x ,  Last 30 chars: %s"), pEnd, last30.c_str());
+								wxLogDebug(_T("ApplyOutputFilterToText(): Getting corresponding end marker: pEnd = %p ,  Last 30 chars: %s"), pEnd, last30.c_str());
 							}
 #endif
 							*/
@@ -19213,7 +19213,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 								if (((size_t)pNew - (size_t)pNewBuffStart) > (size_t)30)
 								{
 									wxString last30 = wxString(pNew - 30, 30);
-									wxLogDebug(_T("ApplyOutputFilterToText(): Filtering: pEnd = %x ,  Last 30 chars: %s"), pEnd, last30.c_str());
+									wxLogDebug(_T("ApplyOutputFilterToText(): Filtering: pEnd = %p ,  Last 30 chars: %s"), pEnd, last30.c_str());
 								}
 #endif
 								*/
@@ -19249,7 +19249,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 					if (((size_t)pNew - (size_t)pNewBuffStart) > (size_t)30)
 					{
 						wxString last30 = wxString(pNew - 30, 30);
-						wxLogDebug(_T("ApplyOutputFilterToText(): Not filtering the marker stuff: pEnd = %x ,  Last 30 chars: %s"), pEnd, last30.c_str());
+						wxLogDebug(_T("ApplyOutputFilterToText(): Not filtering the marker stuff: pEnd = %p ,  Last 30 chars: %s"), pEnd, last30.c_str());
 					}
 #endif
 					*/
@@ -19274,7 +19274,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 				if (((size_t)pNew - (size_t)pNewBuffStart) > (size_t)30)
 				{
 					wxString last30 = wxString(pNew - 30, 30);
-					wxLogDebug(_T("ApplyOutputFilterToText(): Not a marker, just text: pEnd = %x , Last 30 chars: %s"), pEnd, last30.c_str());
+					wxLogDebug(_T("ApplyOutputFilterToText(): Not a marker, just text: pEnd = %p , Last 30 chars: %s"), pEnd, last30.c_str());
 				}
 #endif
 				*/

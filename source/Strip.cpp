@@ -195,7 +195,8 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 	while (posDebug != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = posDebug->GetData();
-		wxLogDebug(_T("Index = %d   pSrcPhrase pointer  %x"),index,pSrcPhrase);
+        // whm 18Mar2019 changed the %x to %p. %p is the format specifier for a pointer address.
+		wxLogDebug(_T("Index = %d   pSrcPhrase pointer  %p"),index,pSrcPhrase);
 		posDebug = posDebug->GetNext();
 		index++;
 	}
@@ -717,12 +718,12 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			CPile* pile = pos->GetData();
 			wxString src = pile->GetSrcPhrase()->m_srcPhrase;
-			wxLogDebug(_T("2.3	inloop	CreateStrip: iterating loop: next pos %x, last pile was [%d] Placed %d Trying srcPhrase %s"),
+			wxLogDebug(_T("2.3	inloop	CreateStrip: iterating loop: next pos %p, last pile was [%d] Placed %d Trying srcPhrase %s"),
 				pos, pileIndex - 1, numPlaced, src);
 		}
 		else
 		{
-			wxLogDebug(_T("2.3	inloop	CreateStrip: iterating loop: next pos %x, last pile was [%d] Placed %d , and WILL EXIT since pos is NULL"),
+			wxLogDebug(_T("2.3	inloop	CreateStrip: iterating loop: next pos %p, last pile was [%d] Placed %d , and WILL EXIT since pos is NULL"),
 				pos, pileIndex - 1, numPlaced);
 		}
 	}

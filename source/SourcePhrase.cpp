@@ -171,10 +171,11 @@ CSourcePhrase::CSourcePhrase()
 	m_tgtWordBreak = _T("");
 
 //#ifdef _DEBUG
+// whm 18Mar2019 removed the (unsigned int) cast and changed the %x to %p. %p is the format specifier for a pointer address.
 // Leave this stuff here, commented out -- see comment in destructor for why
-//	wxLogDebug(_T("Creator: address = %x  first array = %x  second array = %x  SPList = %x"),
-//		(unsigned int)this, (unsigned int)this->m_pMedialMarkers, (unsigned int)this->m_pMedialPuncts,
-//		(unsigned int)this->m_pSavedWords);
+//	wxLogDebug(_T("Creator: address = %p  first array = %p  second array = %p  SPList = %p"),
+//		this, this->m_pMedialMarkers, this->m_pMedialPuncts,
+//		this->m_pSavedWords);
 //#endif
 }
 
@@ -192,9 +193,9 @@ CSourcePhrase::~CSourcePhrase()
 	// pSrcPhrase;" line somewhere in the code - a breakpoint in this destructor will then
 	// enable you to find where in the code the error is. (Try generate the error with a
 	// short document, to save yourself a lot of tedious button pressing.)
-	//wxLogDebug(_T("Destructor: address = %x  first array = %x  second array = %x  SPList = %x"),
-	//	(unsigned int)this, (unsigned int)this->m_pMedialMarkers, (unsigned int)this->m_pMedialPuncts,
-	//	(unsigned int)this->m_pSavedWords);
+	//wxLogDebug(_T("Destructor: address = %p  first array = %p  second array = %p  SPList = %p"),
+	//	this, this->m_pMedialMarkers, this->m_pMedialPuncts,
+	//	this->m_pSavedWords);
 //#endif
 }
 

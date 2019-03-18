@@ -1050,7 +1050,7 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	pApp->m_pActivePile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum);
 
 #if defined(_DEBUG) && defined(_NEWDRAW) && !defined(__WXGTK__)
-	wxLogDebug(_T("CAdapt_ItView::OnDraw(): Active pile's m_pOwningStrip: %x"), (unsigned int)pApp->m_pActivePile->GetStrip());
+	wxLogDebug(_T("CAdapt_ItView::OnDraw(): Active pile's m_pOwningStrip: %p"), pApp->m_pActivePile->GetStrip());
 #endif
 	//CPile* pActivePile = pApp->m_pActivePile;
 
@@ -26029,7 +26029,7 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList,
 			pSrcP = testpos->GetData();
 			pSrcP = pSrcP; // avoid warning
 			testpos = testpos->GetNext();
-			//wxLogDebug(_T("CopyCSourcePhrasesToExtendSpan() pOriginalList item %d at %x = %s"),
+			//wxLogDebug(_T("CopyCSourcePhrasesToExtendSpan() pOriginalList item %d at %p = %s"),
 			//ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
 		testpos = pDestinationList->GetFirst();
@@ -26040,7 +26040,7 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList,
 			pSrcP = testpos->GetData();
 			pSrcP = pSrcP; // avoid warning
 			testpos = testpos->GetNext();
-			//wxLogDebug(_T("CopyCSourcePhrasesToExtendSpan() pDestinationList item %d at %x = %s"),
+			//wxLogDebug(_T("CopyCSourcePhrasesToExtendSpan() pDestinationList item %d at %p = %s"),
 			//ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
 #endif
@@ -27422,7 +27422,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			pSrcP = testpos->GetData();
 			pSrcP = pSrcP; // avoid warning
 			testpos = testpos->GetNext();
-			//wxLogDebug(_T("pRec->modificationsSpan_SrcPhraseList item %d at %x = %s"),
+			//wxLogDebug(_T("pRec->modificationsSpan_SrcPhraseList item %d at %p = %s"),
 			//ct++, pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
 #endif
@@ -27435,7 +27435,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			pSrcP = testpos->GetData();
 			pSrcP = pSrcP; // avoid warning
 			testpos = testpos->GetNext();
-			//wxLogDebug(_T("pTempList item %d at %x = %s"),ct++,
+			//wxLogDebug(_T("pTempList item %d at %p = %s"),ct++,
 			//pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
 #endif
@@ -27468,7 +27468,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			pSrcP = pSrcP; // avoid warning
 			testpos = testpos->GetNext();
 			//wxLogDebug(_T(
-			//"After DeleteSourcePhrases pRec->modificationsSpan_SrcPhraseList item %d at %x = %s"),
+			//"After DeleteSourcePhrases pRec->modificationsSpan_SrcPhraseList item %d at %p = %s"),
 			//ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
 #endif

@@ -10622,18 +10622,18 @@ void ShowSPandPile(int atSequNum, int whereTis)
 	if (pPile->GetStrip() == NULL)
 	{
 		// strip pointer is NULL, so strip index is undefined
-		msg1 = msg1.Format(_T("\n              CPile: Where = %d ; m_pSrcPhrase %x ; m_pOwningStrip %x ; m_nPile %d ; Strip index is UNDEFINED"),
+		msg1 = msg1.Format(_T("\n              CPile: Where = %d ; m_pSrcPhrase %p ; m_pOwningStrip %p ; m_nPile %d ; Strip index is UNDEFINED"),
 		whereTis, pPile->GetSrcPhrase(), pPile->GetStrip(), pPile->GetPileIndex());
 	}
 	else
 	{
 		// strip pointer is not NULL, so can get value of strip index
-		msg1 = msg1.Format(_T("\n              CPile: Where = %d ; m_pSrcPhrase %x ; m_pOwningStrip %x ; m_nPile %d ; m_nStrip %d"),
+		msg1 = msg1.Format(_T("\n              CPile: Where = %d ; m_pSrcPhrase %p ; m_pOwningStrip %p ; m_nPile %d ; m_nStrip %d"),
 		whereTis, pPile->GetSrcPhrase(), pPile->GetStrip(), pPile->GetPileIndex(), pPile->GetStrip()->GetStripIndex());
 	}
 	wxLogDebug(msg1);
 	wxString msg2;
-	msg2 = msg2.Format(_T("CSourcePhrase:   SequNum %d ; m_pSrcPhrase %x ; m_srcPhrase %s ; m_targetStr %s ; m_gloss %s"),
+	msg2 = msg2.Format(_T("CSourcePhrase:   SequNum %d ; m_pSrcPhrase %p ; m_srcPhrase %s ; m_targetStr %s ; m_gloss %s"),
 		pSrcPhrase->m_nSequNumber, pSrcPhrase, pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_targetStr.c_str(),
 		pSrcPhrase->m_gloss.c_str());
 	wxLogDebug(msg2);
