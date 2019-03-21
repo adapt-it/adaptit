@@ -101,8 +101,9 @@ exit 1
 :buildEventOK
 echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
 echo Building using wxWidgets version at: %25WXWIN%25
-
-</Command>
+echo *** Calling bc20.ps1 powershell script (if installed) to pre-process wxDesigner sources if needed...
+IF NOT EXIST "C:\Program Files\PowerShell\6" ( echo *** PowerShell NOT installed, bypassing wxDesigner source processing ) Else (powershell.exe -ExecutionPolicy Bypass ..\..\scripts\bc20.ps1)
+echo *** End of powershell processing</Command>
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -241,7 +242,9 @@ exit 1
 :buildEventOK
 echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
 echo Building using wxWidgets version at: %25WXWIN%25
-
+echo *** Calling bc20.ps1 powershell script (if installed) to pre-process wxDesigner sources if needed...
+IF NOT EXIST "C:\Program Files\PowerShell\6" ( echo *** PowerShell NOT installed, bypassing wxDesigner source processing ) Else (powershell.exe -ExecutionPolicy Bypass ..\..\scripts\bc20.ps1)
+echo *** End of powershell processing
 </Command>
     </PreBuildEvent>
     <ClCompile>

@@ -1,4 +1,4 @@
-// This file was processed by the sedConvert.sh script
+// This file was processed by the powershell conversion script
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
 /// \file			ExportSaveAsDlg.cpp
