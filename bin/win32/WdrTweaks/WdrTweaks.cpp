@@ -975,7 +975,7 @@ int main(int argc, char **argv)
                 wxFFile fileOut;
                 const wxChar writemode[] = _T("w");
                 fileOut.Open(outputFilePathAndName, writemode);
-                wxPrintf("Writing output to file: %s\n", outputFilePathAndName.c_str()); // always print this
+                wxPrintf("    Writing output to file: %s\n", outputFilePathAndName.c_str()); // always print this
                 for (i = 0; i < totalLineCt; i++)
                 {
                     currLine = file.GetLine(i);
@@ -988,7 +988,7 @@ int main(int argc, char **argv)
             }
             else
             {
-                wxPrintf("Writing output to file: %s\n", outputFilePathAndName.c_str());
+                wxPrintf("    Writing output to file: %s\n", outputFilePathAndName.c_str());
                 file.Write(); // Write whole wxTextFile from memory to external file.
             }
         } // end of if (!bFileAlreadyProcessed)

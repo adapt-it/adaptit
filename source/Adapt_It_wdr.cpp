@@ -1020,7 +1020,7 @@ wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_CASE_PAGE_STATIC_TEXT, _("In the edit boxes type the lower case to upper case character equivalences for the source and target languages. (If you intend to do glossing, do it also for the glossing language). Do not type spaces. Type the equivalences as a series of two-character lines; each line is a lower case character followed by its upper case equivalent. (If using Adapt It Unicode, then for equivalences between any pair of composed characters, type just the lower case base character followed by the upper case base character.) For languages which read from right to left, type the lower case character first, and then the upper case equivalent next (that is, at its left)."), wxDefaultPosition, wxSize(-1,90), wxTE_MULTILINE|wxTE_READONLY );
     item0->Add( item4, 0, wxGROW|wxALL, 5 );
 
-    wxFlexGridSizer *item5 = new wxFlexGridSizer( 3, 0, 3 );
+    wxFlexGridSizer *item5 = new wxFlexGridSizer( 3, 0, 10 );
 
     wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_SL, _("Source Language"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -1098,7 +1098,7 @@ wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item22->SetToolTip( _("Use this when the source language does not have a case distinction but the target language does") );
     item0->Add( item22, 0, wxALIGN_CENTER|wxRIGHT|wxTOP, 5 );
 
-    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_TRIGGER_MSG, _("Type into the box below any punctuation characters that should cause the next adaptation word to be capitalized, for example:  ?.!>"), wxDefaultPosition, wxSize(-1,36), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_TRIGGER_MSG, _("Type into the box below any punctuation characters that should cause the next adaptation word to be capitalized, for example:  ?.!> (Note: do this only if the source text language has no distinction between upper versus lower case.)"), wxDefaultPosition, wxSize(-1,56), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
     item0->Add( item23, 0, wxGROW|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     wxTextCtrl *item24 = new wxTextCtrl( parent, ID_TEXTCTRL_CASE_TRIGGERS, wxT(""), wxDefaultPosition, wxSize(80,32), 0 );
@@ -1339,6 +1339,8 @@ wxSizer *UnitsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
+    item0->Add( 250, 5, 0, wxALIGN_CENTER, 5 );
+
     wxStdDialogButtonSizer *item5 = new wxStdDialogButtonSizer;
     { wxButton *button = new wxButton( parent, wxID_OK );
       button->SetDefault();
@@ -1366,14 +1368,14 @@ wxSizer *RetranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxTextCtrl *item2 = new wxTextCtrl( parent, IDC_EDIT_PRECONTEXT, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY );
     item2->SetToolTip( _("This is the preceding context") );
-    item0->Add( item2, 0, wxGROW|wxALL, 0 );
+    item0->Add( item2, 0, wxGROW|wxLEFT|wxRIGHT, 5 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("  Source language's text for the material to be translated:"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item3, 0, wxALL, 5 );
 
     wxTextCtrl *item4 = new wxTextCtrl( parent, IDC_EDIT_SOURCE_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY );
     item4->SetToolTip( _("This is the existing source text") );
-    item0->Add( item4, 0, wxGROW|wxALL, 0 );
+    item0->Add( item4, 0, wxGROW|wxLEFT|wxRIGHT, 5 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("  Type the new translation text here (be sure to type punctuation, in the location which is appropriate):"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item5, 0, wxALL, 5 );
@@ -1416,7 +1418,7 @@ wxSizer *RetranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxTextCtrl *item15 = new wxTextCtrl( parent, IDC_EDIT_FOLLCONTEXT, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY );
     item15->SetToolTip( _("This is the following context") );
-    item0->Add( item15, 0, wxGROW|wxALL, 0 );
+    item0->Add( item15, 0, wxGROW|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     if (set_sizer)
     {
@@ -2229,7 +2231,7 @@ wxSizer *NoteDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxTextCtrl *item1 = new wxTextCtrl( parent, IDC_EDIT_NOTE, wxT(""), wxDefaultPosition, wxSize(-1,150), wxTE_MULTILINE|wxEXPAND );
     item1->SetToolTip( _("Type or edit the text of the note here") );
-    item0->Add( item1, 1, wxGROW|wxALL, 0 );
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -2436,27 +2438,27 @@ wxSizer *ExportOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxCheckBox *item13 = new wxCheckBox( parent, IDC_CHECK_PLACE_FREE_TRANS, _("Place Fr&ee Translations in double boxed paragraphs within the exported text"), wxDefaultPosition, wxDefaultSize, 0 );
     item13->SetToolTip( _("When checked, free translations go in double boxed paragraphs; when unchecked they are formatted as footnotes") );
-    item0->Add( item13, 0, wxALL, 0 );
+    item0->Add( item13, 0, wxLEFT|wxRIGHT, 5 );
 
     wxCheckBox *item14 = new wxCheckBox( parent, IDC_CHECK_INTERLINEAR_PLACE_FREE_TRANS, _("Place Fr&ee Translations in a separate table row within the exported interlinear text"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->SetToolTip( _("When checked, free translations go in a separate table row in the interlinear display; when unchecked they are formatted as footnotes") );
-    item0->Add( item14, 0, wxALL, 0 );
+    item0->Add( item14, 0, wxLEFT|wxRIGHT, 5 );
 
     wxCheckBox *item15 = new wxCheckBox( parent, IDC_CHECK_PLACE_BACK_TRANS, _("Place &Back Translations in single boxed paragraphs within the exported text"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->SetToolTip( _("When checked, back translations go in single boxed paragraphs; when unchecked they are formatted as footnotes") );
-    item0->Add( item15, 0, wxALL, 0 );
+    item0->Add( item15, 0, wxLEFT|wxRIGHT, 5 );
 
     wxCheckBox *item16 = new wxCheckBox( parent, IDC_CHECK_INTERLINEAR_PLACE_BACK_TRANS, _("Place &Back Translations in a separate table row within the exported interlinear text"), wxDefaultPosition, wxDefaultSize, 0 );
     item16->SetToolTip( _("When checked, back translations go in a separate table row in the interlinear display; when unchecked they are formatted as footnotes") );
-    item0->Add( item16, 0, wxALL, 0 );
+    item0->Add( item16, 0, wxLEFT|wxRIGHT, 5 );
 
     wxCheckBox *item17 = new wxCheckBox( parent, IDC_CHECK_PLACE_AI_NOTES, _("Place Adapt It Notes in balloon text &Comments in the margin"), wxDefaultPosition, wxDefaultSize, 0 );
     item17->SetToolTip( _("When checked Adapt It Notes go in balloon text comments in the margin; when unchecked they are formatted as footnotes") );
-    item0->Add( item17, 0, wxALL, 0 );
+    item0->Add( item17, 0, wxLEFT|wxRIGHT, 5 );
 
     wxCheckBox *item18 = new wxCheckBox( parent, IDC_CHECK_INTERLINEAR_PLACE_AI_NOTES, _("Place Adapt It Notes in balloon text &Comments in the margin"), wxDefaultPosition, wxDefaultSize, 0 );
     item18->SetToolTip( _("When checked Adapt It Notes go in balloon text comments in the margin; when unchecked they are formatted as footnotes") );
-    item0->Add( item18, 0, wxALL, 0 );
+    item0->Add( item18, 0, wxLEFT|wxRIGHT, 5 );
 
     wxStdDialogButtonSizer *item19 = new wxStdDialogButtonSizer;
     { wxButton *button = new wxButton( parent, wxID_OK );
@@ -2772,7 +2774,7 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
     wxString *strs6 = (wxString*) NULL;
     wxListBox *item6 = new wxListBox( parent, IDC_LIST_MARKER, wxDefaultPosition, wxSize(80,80), 0, strs6, wxLB_SINGLE );
     item6->SetToolTip( _("This is a list of filtered markers at this location") );
-    item2->Add( item6, 1, wxGROW|wxALL, 0 );
+    item2->Add( item6, 1, wxGROW|wxLEFT, 5 );
 
     wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
 
@@ -2799,7 +2801,7 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
     wxString *strs12 = (wxString*) NULL;
     wxListBox *item12 = new wxListBox( parent, IDC_LIST_MARKER_END, wxDefaultPosition, wxSize(80,80), 0, strs12, wxLB_SINGLE );
     item12->SetToolTip( _("This list contains any end markers associated with the marker in the list at far left") );
-    item2->Add( item12, 1, wxGROW|wxALL, 0 );
+    item2->Add( item12, 1, wxGROW|wxRIGHT, 5 );
 
     wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Marker Description:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item13, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -2966,7 +2968,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     wxString *strs19 = (wxString*) NULL;
     wxListBox *item19 = new wxListBox( parent, IDC_LIST_TRANSLATIONS, wxDefaultPosition, wxSize(-1,100), 0, strs19, wxLB_SINGLE );
     item19->SetToolTip( _("This is a list of translations or glosses currently in the knowledge base") );
-    item15->Add( item19, 1, wxGROW|wxALL, 0 );
+    item15->Add( item19, 1, wxGROW|wxLEFT|wxBOTTOM, 5 );
 
     item14->Add( item15, 0, wxGROW|wxALL, 0 );
 
@@ -3101,51 +3103,43 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     item2->SetToolTip( _("This is the preceding context of the source text text shown below") );
     item0->Add( item2, 0, wxGROW|wxLEFT|wxRIGHT, 5 );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Original Source Text (including standard format markers, but lengthy filtered material within the selection is removed). The text in this box can be copied:"), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Original Source Text (including standard format markers). The text in this box can be copied:"), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
     item0->Add( item3, 0, wxGROW|wxALL, 5 );
 
-    wxTextCtrl *item4 = new wxTextCtrl( parent, IDC_EDIT_OLD_SOURCE_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxGROW );
+    wxTextCtrl *item4 = new wxTextCtrl( parent, IDC_EDIT_OLD_SOURCE_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxGROW );
     item4->SetToolTip( _("This is the original source text you selected  - it is read only") );
     item0->Add( item4, 0, wxGROW|wxLEFT|wxRIGHT, 5 );
 
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC1, _("You can edit the text, or the markers, or both. Do not edit the markers unless you know what you are doing. A marker must have a space following it; end markers (these end with *, for example \\f*)  can optionally have a following space omitted. If your selection included one or more notes or free translations, they were removed and stored in lists so that you will not have to deal with them here. Collected back translations in this section of the document were deleted."), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
-    item0->Add( item5, 0, wxGROW|wxLEFT|wxRIGHT, 5 );
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Do your editing, including punctuation, on the text in the box below."), wxDefaultPosition, wxDefaultSize, 0 );
+    item0->Add( item5, 0, wxALL, 5 );
 
-    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC2, _("After this dialog closes, Adapt It helps you. (1) It helps you do new adaptations; and glosses too when appropriate, for the new source text. (2) It  automatically restores removed notes ( their locations may differ a little bit). (3) It helps you to produce new free translations, or edit the old ones. (4) Any deleted back translations will be automatically collected again."), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
-    item0->Add( item6, 0, wxGROW|wxLEFT|wxRIGHT, 5 );
+    wxTextCtrl *item6 = new wxTextCtrl( parent, IDC_EDIT_NEW_SOURCE, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_PROCESS_ENTER|wxVSCROLL );
+    item6->SetToolTip( _("This is the source text you selected to edit - make your changes here") );
+    item0->Add( item6, 1, wxGROW|wxLEFT|wxRIGHT, 5 );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Following Context:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item0->Add( item7, 0, wxALL, 5 );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Do your editing, including punctuation, on the text in the box below."), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item8 = new wxTextCtrl( parent, IDC_EDIT_FOLLCONTEXT, wxT(""), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxGROW );
+    item8->SetToolTip( _("This is the following context of the source text text shown above") );
+    item0->Add( item8, 0, wxGROW|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item10 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->SetDefault();
-    item10->SetToolTip( _("Click OK when you are finished editing the source text ") );
-    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item10 = new wxButton( parent, ID_BUTTON_HELP_INFO, _("Help on Editing Source Text"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item9->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+    item9->Add( 60, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item11 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->SetToolTip( _("Click Cancel to discard any edits and close the dialog") );
-    item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStdDialogButtonSizer *item11 = new wxStdDialogButtonSizer;
+    { wxButton *button = new wxButton( parent, wxID_OK );
+      button->SetDefault();
+      item11->AddButton( button ); }
+    item11->AddButton( new wxButton( parent, wxID_CANCEL ) );
+    item11->Realize();
+    item9->Add( item11, 0, wxGROW|wxALL, 5 );
 
-    item7->Add( item9, 0, wxALIGN_CENTER|wxRIGHT, 5 );
-
-    item0->Add( item7, 0, wxALL, 0 );
-
-    wxTextCtrl *item12 = new wxTextCtrl( parent, IDC_EDIT_NEW_SOURCE, wxT(""), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_PROCESS_ENTER|wxVSCROLL );
-    item12->SetToolTip( _("This is the source text you selected to edit - make your changes here") );
-    item0->Add( item12, 1, wxGROW|wxLEFT|wxRIGHT, 5 );
-
-    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Following Context:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item13, 0, wxALL, 5 );
-
-    wxTextCtrl *item14 = new wxTextCtrl( parent, IDC_EDIT_FOLLCONTEXT, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxGROW );
-    item14->SetToolTip( _("This is the following context of the source text text shown above") );
-    item0->Add( item14, 0, wxGROW|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item0->Add( item9, 0, wxALIGN_RIGHT, 5 );
 
     if (set_sizer)
     {
