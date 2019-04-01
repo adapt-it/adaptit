@@ -102,7 +102,7 @@ exit 1
 echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
 echo Building using wxWidgets version at: %25WXWIN%25
 echo *** Calling WdrTweaks.exe to pre-process wxDesigner sources if needed...
-IF NOT EXIST "..\..\scripts\WdrTweaks.exe" ( echo *** The WdrTweaks.exe program doesn't exist, bypassing wxDesigner source processing ) Else (..\..\scripts\WdrTweaks.exe -v)
+IF NOT EXIST "..\..\scripts\WdrTweaks.exe" ( echo *** The WdrTweaks.exe program doesn't exist, bypassing wxDesigner source processing ) Else (..\..\scripts\WdrTweaks.exe)
 echo *** End of WdrTweaks.exe processing</Command>
     </PreBuildEvent>
     <ClCompile>
