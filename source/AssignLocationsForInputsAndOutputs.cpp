@@ -84,11 +84,12 @@ CAssignLocationsForInputsAndOutputs::CAssignLocationsForInputsAndOutputs(wxWindo
 	sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
 
     // whm 5Mar2019 Note: The AssignLocationsForInputsOutputsFunc() dialog has OK and Cancel buttons
-    // but they are grouped with two non-standard buttons. Therefore we won't use wxStdDialogButtonSizer
-    // but call the ReverseOkCancelButtonsForMac() function below.
-    bool bOK;
-    bOK = m_pApp->ReverseOkCancelButtonsForMac(this); // whm 5Mar2019 added
-    bOK = bOK; // avoid warning
+    // grouped with two non-standard buttons. I've added the wxStdDialogButtonSizer in the right-hand
+    // part of the bottom horiz sizer. Therefore we don't need to call the ReverseOkCancelButtonsForMac() 
+    // function below.
+    //bool bOK;
+    //bOK = m_pApp->ReverseOkCancelButtonsForMac(this); // whm 5Mar2019 added
+    //bOK = bOK; // avoid warning
 
 	pTextCtrlInfo = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_TOP_INFO);
 	wxASSERT(pTextCtrlInfo != NULL);
