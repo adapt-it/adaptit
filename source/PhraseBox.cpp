@@ -55,6 +55,7 @@
 #include "ChooseTranslation.h"
 #include "MainFrm.h"
 #include "Placeholder.h"
+#include "ExportFunctions.h"
 #include "helpers.h"
 // Other includes uncomment as implemented
 
@@ -83,6 +84,11 @@ extern bool	gbMatchedKB_UCentry;
 
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gcharNonSrcUC;
+
+// ditto, these ones
+extern wxChar gcharSrcUC;
+extern wxChar gcharSrcLC;
+extern wxChar gcharNonSrcLC;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
@@ -1367,7 +1373,6 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
 bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-
     // whm added 22Mar2018 for detecting callers of PlaceBox()
     pApp->m_bMovingToDifferentPile = TRUE;
 
@@ -4454,6 +4459,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+
 	pApp->m_preGuesserStr.Empty(); // BEW 27Nov14, in case a src string, or modified string
 		// is stored ready for user's Esc keypress to restore the pre-guesser
 		// form, clear it, because the box is gunna move and we want it
@@ -4841,6 +4847,7 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 bool CPhraseBox::MoveToImmedNextPile(CPile *pCurPile)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+
 	pApp->m_preGuesserStr.Empty(); // BEW 27Nov14, in case a src string, or modified string
 		// is stored ready for user's Esc keypress to restore the pre-guesser
 		// form, clear it, because the box is gunna move and we want it
@@ -5984,7 +5991,6 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	#endif
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-
 	CLayout* pLayout = GetLayout();
 	// BEW added 18Aug18 - ensure a large former m_curBoxWidth value is not retained in the move
 	pLayout->m_curBoxWidth = pApp->m_nMinPileWidth; // reset small for new location
@@ -7328,11 +7334,20 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
         // Get a count of the number of non-deleted ref string instances for the current target unit
         // (which may be adjusted by a prior instance of the ChooseTranslation dialog)
         int nRefStrCount = 0;
-        bool bNoAdaptationFlagPresent = FALSE; // the PopulateDropDownList() function may change this value
-        int indexOfNoAdaptation = -1; // the PopulateDropDownList() function may change this value
+        //bool bNoAdaptationFlagPresent = FALSE; // the PopulateDropDownList() function may change this value
+        //int indexOfNoAdaptation = -1; // the PopulateDropDownList() function may change this value
         if (pApp->pCurTargetUnit != NULL)
         {
             nRefStrCount = pApp->pCurTargetUnit->CountNonDeletedRefStringInstances();
+
+#if defined (_DEBUG)
+			// test code, arrow icon not present but only X button, because nRefStrCount returns 0
+			//if (nRefStrCount == 0)
+			//{
+			//	int aNewCount = pApp->pCurTargetUnit->CountNonDeletedRefStringInstances(); // for stepping
+			//	aNewCount = aNewCount;
+			//}
+#endif
 
 //#ifdef _DEBUG
 //			wxLogDebug(_T("PhraseBox.cpp at line %d ,nRefStringCount before a landing deletion = %d"), 6085, nRefStrCount);
@@ -7355,7 +7370,11 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             // below.
             if (pApp->pCurTargetUnit != NULL)
             {
-                pApp->m_pTargetBox->PopulateDropDownList(pApp->pCurTargetUnit, selectionIndex, bNoAdaptationFlagPresent, indexOfNoAdaptation);
+				// BEW 30Mar19 try setting m_bLandingBox here to TRUE, otherwise lots of code internally
+				// in the next call will be skipped - this is a first try, extra code may be needed to
+				// govern the flag setting more carefully
+				pApp->m_bLandingBox = TRUE;
+                pApp->m_pTargetBox->PopulateDropDownList(pApp->pCurTargetUnit, selectionIndex, indexOfNoAdaptation);
             }
 
             // Clear the current target unit pointer
@@ -7392,7 +7411,9 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             // dropdown's list item at the designated selectionIndex parameter. The
             // SetSelection() with two parameters operates to select a substring of text
             // within the dropdown's edit box, delineated by the two parameters.
+
             pApp->m_pTargetBox->GetDropDownList()->SetSelection(selectionIndex);
+
             // whm 7Mar2018 addition - SetSelection() highlights the item in the list, and it
             // also has a side effect in that it automatically copies the item string from the 
             // dropdown list (matching the selectionIndex) into the dropdown's edit box.
@@ -7426,26 +7447,24 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_targetPhrase;
             */
 
-            // Within this block we know that nRefStrCount > 0 ; or it could be > 1 if the insertion of saved adaptation happened
+            // Within this block we know that nRefStrCount > 0 ; or it could 
+			// be > 1 if the insertion of saved adaptation happened
 
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
-//			pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() before if (bNoAdaptationFlagPresent)"), _T("PhraseBox.cpp"), 6164);
+//			pApp->LogDropdownState(_T("%s::SetupDropDownPhraseBoxForThisLocation() line %d : after SetSelection(selectionIndex))"), __FILE__, __LINE__);
 //#endif
             // Note: The target unit's ref strings may include a "<no adaptation>" ref string which 
             // is stored internally as an empty ref string. An empty ref string is reconstituted 
             // (for display purposes to the user) as "<no adaptation>" when it resides in a list 
-            // (dropdown or ChooseTranslation). The default value of the bNoAdaptationFlagPresent is
-            // FALSE, but The PopulateDropDownList() function call above determines when the value
-            // of bNoAdaptationFlagPresent is TRUE.
+            // (dropdown or ChooseTranslation).
 
 			// BEW 9May18 -- refactored to take into account the possibility of restoration, in adapting
 			// mode, of a stored copy of a deleted adaptation, to the dropdown list. If there was
 			// restoration, the other values present were different and unique - and since nRefStrCount
 			// was determined by counting CRefString instances after the removal from the KB of the
 			// being restored, the list will be bigger by 1 than the nRefStrCount values used in the
-			// three test blocks below. I'll try refactor these blocks with minimal disturbance of the
-			// logic Bill describes
-            if (bNoAdaptationFlagPresent)
+			// test blocks below.
+            if (indexOfNoAdaptation >= 0)
             {
                 // A <no adaptation> ref string is present
                 if (nRefStrCount == 1)
@@ -7465,6 +7484,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     // empty, but I'll leave the wxASSERT() test commented out to avoid any unforseen
                     // spurious PlaceBox() calls where it may not be empty.
                     //wxASSERT(pApp->m_targetPhrase.IsEmpty());
+					pApp->m_targetPhrase = wxEmptyString;
                     this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
                     //this->GetTextCtrl()->SetFocus(); // handled below in SetFocusAndSetSelectionAtLanding()
 #if defined (_DEBUG) && defined (_ABANDONABLE)
@@ -7473,22 +7493,34 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 				}
                 else if (nRefStrCount > 1)
                 {
-                    // There is more than 1 ref string, and one of them should be <no adaptation>,
-                    // and the PopulateDropDownList() function determined that the <no adaptation> 
-                    // item should be selected. In this situation, the phrasebox's edit box will 
-                    // also be empty
-                    pApp->m_pTargetBox->GetDropDownList()->SetSelection(indexOfNoAdaptation);
-                    // The SetSelection call above has the side-effect of puting the list item 
-                    // <no adaptation> in the dropdown's edit box, so we have to make the box's
-                    // content be empty here.
-                    // Note: While m_targetPhrase should be empty, if any spurious calls of PlaceBox() 
-                    // happen before we get to the "real" one, the m_targetPhrase value may contain a  
-                    // value for the previous location instead of the current one, so the following 
-                    // wxASSERT cannot be relied on, and so to be safe, I've commented it out.
-                    //wxASSERT(pApp->m_targetPhrase.IsEmpty());
-                    this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+                    // There is more than 1 ref string, and one of them should be <no adaptation>.
+                    // BEW 30Mar19 comment changed. The <no adaptation> entry could be anywhere
+					// in the list; so we want to test indexOfNoAdaptation against selectionIndex;
+					// if they are the same, then the selection should be on the <no adaptation>
+					// line, and we can empty the phrasebox as well (manually). If the indices are
+					// different, selectionIndex wins, and the <no adaptation> list entry merely
+					// sits unselected in the list.
+					if (indexOfNoAdaptation == selectionIndex)
+					{
+						pApp->m_pTargetBox->GetDropDownList()->SetSelection(indexOfNoAdaptation);
+						// The SetSelection call above has the side-effect of puting the list item 
+						// <no adaptation> in the dropdown's edit box, so we have to make the box's
+						// content be empty here.
+						// Note: While m_targetPhrase should be empty, if any spurious calls of PlaceBox() 
+						// happen before we get to the "real" one, the m_targetPhrase value may contain a  
+						// value for the previous location instead of the current one, so the following 
+						// wxASSERT cannot be relied on, and so to be safe, I've commented it out.
+						//wxASSERT(pApp->m_targetPhrase.IsEmpty());
+						pApp->m_targetPhrase = wxEmptyString;
+						this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+					}
+					else
+					{
+						pApp->m_pTargetBox->GetDropDownList()->SetSelection(selectionIndex);
+					}
 #if defined (_DEBUG) && defined (_ABANDONABLE)
-					pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end TRUE  block for else if (nRefStrCount > 1)"), _T("PhraseBox.cpp"), 6215);
+	pApp->LogDropdownState(_T("%s::SetupDropDownPhraseBoxForThisLocation(), line %d : end TRUE  block for else if (nRefStrCount > 1)"),
+		__FILE__, __LINE__);
 #endif
 				}
             }
@@ -7694,6 +7726,194 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
     }
 }
 
+// BEW created 30Mar19, for use in re-inserting into the dropdown
+// list, a refCount = 1 entry, matching the phrasebox contents, when
+// it is going to be deleted at the landing of the phrasebox at the
+// active location. It sets some parameters in m_pTargetBox that
+// the PopulateDropDownList will use to get the deleted entry back
+// into view in the dropdown list at its former position in the list
+bool CPhraseBox::RestoreDeletedRefCount_1_ItemToDropDown()
+{
+	// BEW 8May18 This is where I'll place the code for implementing Bill's request that 
+	// the removed CRefString when landing at a location where the nRefCount for that
+	// removed string was 1 (hence deleted from KB on landing) is nevertheless retained
+	// in the combo control's list when it is dropped down at the PlaceBox() at end of
+	// this PlacePhraseBox() function. This is a new behaviour which we will implement only
+	// when not in glossing mode, and only when m_bLandingBox is TRUE, and various other 
+	// constraints are satisfied as well. m_bLandingBox is a new app member bool as of 10May18
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (!gbIsGlossing && pApp->m_bLandingBox)
+	{
+		// Initializations
+		wxString theBoxAdaptation = wxEmptyString; // initialize 
+		wxString strTheListEntry = wxEmptyString; // what's in the KB's CRefString (matched to box contents)
+		pApp->m_pTargetBox->bRemovedAdaptionReadyForInserting = FALSE;
+
+		// Get the phrasebox entry. It could be capitalized, and gbAutoCaps may
+		// ON or OFF. If ON, we must coerce any capitalized to-be-inserted adaptation
+		// to lower case; but if OFF, just take the phrasebox contents as is
+		if (pApp->m_pActivePile == NULL)
+		{
+			return FALSE;
+		}
+		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		wxString strKey = pSrcPhrase->m_key; // it could be upper case
+		if (gbAutoCaps)
+		{
+			bool bNoError = pApp->GetDocument()->SetCaseParameters(strKey, TRUE); // TRUE is bIsSrcText
+			if (bNoError && gbSourceIsUpperCase && (gcharSrcUC != _T('\0')))
+			{
+				// change it to lower case
+				strKey.SetChar(0, gcharSrcLC);
+			}
+		}
+
+		// Get the phrasebox's current value - remember, it could be upper case;
+		// or it could be empty (but its src text above it would not be empty)
+		theBoxAdaptation = pApp->m_pTargetBox->GetValue(); // as is, but it may need 
+														   // changing to lower case so as to match KB entries
+		if (!theBoxAdaptation.IsEmpty())
+		{
+			if (gbAutoCaps)
+			{
+				// check case, and change to lower case if it is capitalized
+				bool bNoError = pApp->GetDocument()->SetCaseParameters(theBoxAdaptation, FALSE); // FALSE is bIsSrcText
+				if (bNoError)
+				{
+					if (gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+					{
+						// change it to lower case
+						theBoxAdaptation.SetChar(0, gcharNonSrcLC);
+					}
+				}
+				else
+				{
+					return FALSE;
+				}
+			} // end of TRUE block for test: if (gbAutoCaps)
+		} // end of TRUE block for test: if (!theBoxAdaptation.IsEmpty())
+		int numberOfSrcWords = GetWordCount(strKey, NULL); // NULL means
+				// that an array of words is not wanted from the call
+
+		CTargetUnit* pTU = pApp->m_pKB->GetTargetUnit(numberOfSrcWords, strKey);
+		// pTU will be NULL if the lookup failed, so check and if okay, then proceed
+
+		// Check important flags do not disallow this location's list from
+		// receiving the insertion hack
+		if ((pTU != NULL) && !pSrcPhrase->m_bNotInKB &&
+			!pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation &&
+			!pApp->m_bFreeTranslationMode)
+		{
+			// The target text (now lowercase if not already so) won't be
+			// deleted yet; and is only going to be if the pTU's CRefstring
+			// has a refCount of 1 and the phrasebox is landing at the
+			// active pile. And we'll be inserting only provided the
+			// phrasebox's theBoxAdaptation value is identical to the
+			// pTU's CRefString's m_translation value. When those conditions
+			// apply, we can set the relevant members of m_pTargetBox so that
+			// PopulateDropDownList() can grab them. This block is the nitty
+			// gritty core of this function...
+
+			// Next, we must find the CRefString within pOwningTargetUnit which is the one
+			// that is going to be deleted later when the phrasebox finishes 'landing'.
+			// We are interested only in the case that it's m_refCount equals 1, because
+			// higher reference counts will only get decremented by 1 and so the
+			// adaptation for such as those will not get removed from the dropdown's list
+			// anyway - so we'll get the CRefString and exit this block (doing no more
+			// than re-initializing the hack variables) if the ref count is greater than 1.
+			// But if equal to 1, then we've a lot more to do - our goal is to know what
+			// the wxString is for the adaptation to be removed, and at what index it
+			// would appear in the dropdown list had it not been removed - those are the
+			// two bits of information that permit us to restore it to the list later
+			// when PopulateDropDownList gets called at the PlaceBox() call at end of
+			// this function
+			bool bIsDeleted = FALSE; // initialized
+			int nSelectionIndex = wxNOT_FOUND; // initialized to -1
+			bool bSuccessfulMatch = FALSE; // initialized
+
+			strTheListEntry = theBoxAdaptation; // RHS is lower case, target text
+			CRefString* pRefString = pApp->m_pKB->GetMatchingRefString(pTU, strTheListEntry, bIsDeleted);
+			// If no match, pRefString will be NULL, but if matched, it could be that bIsDeleted
+			// is TRUE - in which case that entry would not get shown in the GUI list anyway, and so
+			// would not be a candidate for re-insertion in the dropdown list. By now, it would
+			// have been deleted if it had a refCount = 1
+			if (pRefString == NULL || !bIsDeleted)
+			{
+				// Nothing qualifies, so return FALSE;
+				return FALSE;
+			}
+			else
+			{
+				// We've obtained a pRefString whose m_translation should
+				// be not be visible in the list, and is identical to the phrasebox's 
+				// target text (adjusted for lower case if necessary). 
+				// We now have to check it's refCount; if it was 1, then it will
+				// the one we wish to restore to the list after the box lands.
+				// (At this point, the phrasebox should already have landed and so
+				// if the phrasebox's contents have already been removed from the list
+				// because refCount was 1, bIsDeleted should be 1 here
+
+				// We are interested only in a CRefString which has its m_refCount equal to 1, as pRefString
+				// with m_refCount == 0 will have been auto-deleted from the KB already (such is illegal),
+				// and the only other option is m_refCount > 1, and these one's adaptation string will appear
+				// in the combobox's dropdown list without further intervention, because the decrement by
+				// 1 will not bring their count back to zero. So do our final stuff only when the count == 1
+				if (pRefString->m_refCount != 1)
+				{
+					__noop;
+				}
+				else
+				{
+#if defined (_DEBUG)
+					wxLogDebug(_T("View::%s at line %d , m_translation from CRefString that was deleted =  %s"),
+						__func__, __LINE__, strTheListEntry.c_str());
+#endif
+					// The adaptation we found will indeed be deleted, and removed from the KB. So we 
+					// here need to work out what the index of that adaptation would be if the
+					// dropdown list still retained it. The only way to work this out is to produce a
+					// temporary string array list populated with adaptations drawn from the pTU we
+					// we found above, and then search within it for a match with theAdaptation, including
+					// the deleted one, but not other deleted ones, in a function which returns the index. 
+					// Much work for a small result, but there's no other way. 
+					// We'll build an arrTempComboList using the function below which clones bits of code
+					// from Bill's PopulateDropDownList() function, but simplified, since we've already 
+					// excluded <Not In KB>-contained CRefString instances from consideration here
+					bSuccessfulMatch = pApp->BuildTempDropDownComboList(pTU, &strTheListEntry, nSelectionIndex);
+					if (bSuccessfulMatch && (nSelectionIndex != wxNOT_FOUND))
+					{
+						// Store the matched index into m_pTargetBox
+						this->nSaveComboBoxListIndex = nSelectionIndex;
+						// strTheListEntry could be a stored empty string - remember
+						this->strSaveListEntry = strTheListEntry; // first letter will already have 
+																				// been case-adjusted if necessary
+																				// Set the flag for PopulateDropDownList() to use for the re-insertion
+						this->bRemovedAdaptionReadyForInserting = TRUE;
+						this->nDeletedItem_refCount = 1; // has to be 1, no need for GetItemData() call
+#if defined(_DEBUG)
+						wxLogDebug(_T("%s:%s: line %d: nSaveComboBoxListIndex= %d , strSaveListEntry= %s , bRemovedAdaptionReadyForInserting= %d , nDeletedItem_refCount= %d"),
+							__FILE__, __func__, __LINE__, nSaveComboBoxListIndex, strSaveListEntry.c_str(),  
+							(int)bRemovedAdaptionReadyForInserting, nDeletedItem_refCount);
+#endif
+						return TRUE; // This is the only place where we return TRUE
+					} // end of TRUE block for test: 
+					  // if (bSuccessfulMatch && (nSelectionIndex != wxNOT_FOUND))
+				} // end of else block for test: if (pRefString->m_refCount != 1) 
+
+			} // end of else block for test: if (pRefString == NULL || bIsDeleted)
+
+		} // End of TRUE block for test: possibly can do the hack if pTU is not null,
+		  // it's not a placeholder, it's not a retranslation, and free translation 
+		  // mode is not ON
+		else
+		{
+			// Can't do the hack
+			return FALSE;
+		}
+	} // end of TRUE block for test: if (!gbIsGlossing && pApp->m_bLandingBox)
+	return FALSE;
+}
+
+
 // This code based on PopulateList() in the CChooseTranslation dialog class.
 // The pTU parameter is the pCurTargetUnit passed in from the dropdown setup
 // code in PlaceBox(), which determined the value of pCurTargetUnit at the
@@ -7722,14 +7942,52 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 // in PhraseBox, for that restoration-to-list purpose; namely, strSaveListEntry
 // and nSaveComboBoxListIndex. The insertion is done only when the boolean
 // bRemovedAdaptionReadyForInserting has been set TRUE
-void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptation)
+void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int& indexOfNoAdaptation)
 {
+#if defined(_DEBUG)
+	wxLogDebug(_T("PopulateDropDownList: %d, On Entry to PopulateDropDownList(), m_bLandingBox= %d"),
+		__LINE__, (int)gpApp->m_bLandingBox);
+#endif
+	// BEW 30Mar19 added, so that the reinsertion of the deleted item, when the item
+	// had a refCount of 1, can happen into the dropdown list at its former location
+	// when gpApp->m_bLandingBox is TRUE, and it is not glossing mode
+	bool bGotProcessed = FALSE; // initialization
+
+	if (!gbIsGlossing && gpApp->m_bLandingBox)
+	{
+		// It a refCount = 1 list item has been deleted by the current location becoming
+		// active when the phrasebox lands there, get the nSaveBoxListIndex value, and
+		// its associated strSaveListEntry string, added to app's m_pTargetBox (ptr to
+		// the phrasebox) where code further below can grab those two values so as to
+		// restore the deleted item to the dropdown list, rather than the list failing
+		// to have the deleted item. (KB *does* keep the deletion, at least temporarily)
+
+		// First, initialize by calling InitializeComboLandingParams(): 	
+		// nSaveComboBoxListIndex = -1;  // -1 indicates "index not yet set or known"
+		// strSaveListEntry.Empty();     // empty the string
+		// bRemovedAdaptionReadyForInserting = FALSE; // set to "not ready"
+		// nDeletedItem_refCount = 1; // defaulted to 1, but obviously, is only going to be 1
+		this->InitializeComboLandingParams();
+
+		bGotProcessed = this->RestoreDeletedRefCount_1_ItemToDropDown();
+		if (!bGotProcessed)
+		{
+			// It failed in the attempt, so safest thing to do is to
+			// ensure that the restoration parameters are initialized
+
+			// nSaveComboBoxListIndex = -1;  // -1 indicates "index not yet set or known"
+			// strSaveListEntry.Empty();     // empty the string
+			// bRemovedAdaptionReadyForInserting = FALSE; // set to "not ready"
+			// nDeletedItem_refCount = 1; // defaulted to 1, but obviously, is only going to be 1
+			this->InitializeComboLandingParams();
+		}
+	}
+
     selectionIndex = -1; // initialize to inform caller if no selection was possible
     this->GetDropDownList()->Clear();
     wxString initialBoxContent;
     // Get the initial phrasebox content so we can match it in dropdown list if it is there
     initialBoxContent = gpApp->m_targetPhrase;
-	bool bDeletionReinserted = FALSE;
     
     if (pTU == NULL)
     {
@@ -7737,99 +7995,84 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
     }
     wxString s = _("<no adaptation>");
 
-    // Populate the combobox's list contents with the translation or gloss strings 
+	// Populate the combobox's list contents with the translation or gloss strings 
     // stored in the global variable pCurTargetUnit (passed in as pTU).
-    // Ignore any CRefString instances for which m_bDeleted is TRUE.
     CRefString* pRefString;
     TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
     wxASSERT(pos != NULL);
-    int count = 0;
     // initialize the reference parameters
-    indexOfNoAdaptation = -1; // initialize to -1 or not found
-    bNoAdaptationFlagPresent = FALSE;
+	int nLocation = -1;
+	indexOfNoAdaptation = -1;
+	// BEW added 9May18 - there can only be one <no adaptation> in the list
+	bool bExcludeAnother_NoAdaptation = FALSE; // initialize
+	int count = 0;
+
+	// Our approach will be to create the visible list items, accumulating
+	// a count. If there is a deleted one, we'll insert it in its proper
+	// location after the loop has exited, of it it was the last item in
+	// the list, we'll append it after the loop has finished.
+	// With this protocol - initialization, followed by working out where
+	// the deleted item should be (if any was in fact deleted), and reinserting
+	// or appending as the last action, we will be able to call PopulateDropDownList()
+	// as many times as the latter function gets called, and whether or not
+	// the ChooseTranslation() dialog has been used by the user to alter the
+	// location in the list of the deleted item due to use of the Move Up or
+	// Move Down buttons in that dialog.
+	// One possible caveat: if the user elects to delete one of more other list item
+	// at the same time that our hack code for a deleted item of refCount = 1
+	// getting reinserted does it's job, what happens? I think the reinsertion will
+	// happen, and the other deletions will just remain undeleted - (because the
+	// reinsertion would just become a re-appending if the reinsertable item was 
+	// earlier last in the list) -- so, I think it would work seamlessly & as 
+	// expected by the user
     while (pos != NULL)
     {
         pRefString = (CRefString*)pos->GetData();
 #if defined(_DEBUG)
-		wxLogDebug(_T("PopulateDropDownList: m_translation= %s , m_bDeleted= %d , m_refCount= %d"),
-			pRefString->m_translation.c_str(), (int)pRefString->GetDeletedFlag(), pRefString->m_refCount);
+		wxLogDebug(_T("PopulateDropDownList: %d, TopOfLoop, m_translation= %s , m_bDeleted= %d , m_refCount= %d"),
+			__LINE__, pRefString->m_translation.c_str(), (int)pRefString->GetDeletedFlag(), pRefString->m_refCount);
 #endif
         pos = pos->GetNext();
         if (!pRefString->GetDeletedFlag())
         {
             // this one is not deleted, so show it to the user
             wxString str = pRefString->m_translation;
-			bool bExcludeAnother = FALSE; // BEW added 9May18 - there can only be one <no adaptation> in the list
 
-            // Note: If user clicked on <no adaptation> gpApp->m_targetPhrase and initialBoxContent 
-            // will also be an empty string.
-            if (str.IsEmpty())
-            {
-                str = s;
-                bNoAdaptationFlagPresent = TRUE;
-            }
-            int nLocation = this->GetDropDownList()->Append(str);
-            if (bNoAdaptationFlagPresent)
-            {
-                // Get index of the <no adaptation> string in the dropdown list for use below
-                indexOfNoAdaptation = nLocation;
-				bExcludeAnother = TRUE;
-            }
+			if (str.IsEmpty() && !bExcludeAnother_NoAdaptation)
+			{
+				str = s;
+				bExcludeAnother_NoAdaptation = TRUE;
+				nLocation = this->GetDropDownList()->Append(str);
+				indexOfNoAdaptation = nLocation; // used near end, & return to caller
+			}
+			else
+			{
+				nLocation = this->GetDropDownList()->Append(str);
+			}
 
             // whm 22Aug2018 Note: We handle the situation where <Not In KB> is present
-            // within the poppulated dropdown list in the caller SetupDropDownPhraseBoxForThisLocation().
-
-			// BEW addition 9May18 If there is a deleted adaptation ready for inserting because of
-			// the phrasebox landing, then we will have set TRUE m_bLandingBox in it at the right place
+            // within the populated dropdown list in the caller SetupDropDownPhraseBoxForThisLocation().
+/*
+#if defined(_DEBUG)
+			// Log, to see nothing got changed of what was stored on m_pTargetBox
+			bool bReadyToInsert = this->bRemovedAdaptionReadyForInserting;
+			wxString strBWSavedReinsertEntry = this->strSaveListEntry;
+			int nLocIndex = this->nSaveComboBoxListIndex;
+			wxLogDebug(_T("PopulateDropDownList: %d  In m_pTargetBox: bReadyToInsert= %d, savedTgtEntry= %s, nLocIndex= %d"),
+				__LINE__, (int)bReadyToInsert, strBWSavedReinsertEntry.c_str(), (int)nLocIndex);
+#endif
+*/
+#if defined(_DEBUG)
+			wxLogDebug(_T("PopulateDropDownList: %d  MID LOOP: gpApp->m_bLandingBox= %d bRemovedAdaptionReadyForInserting= %d"),
+				__LINE__, (int)gpApp->m_bLandingBox, (int)bRemovedAdaptionReadyForInserting);
+#endif
 			if (!gbIsGlossing && gpApp->m_bLandingBox && bRemovedAdaptionReadyForInserting)
 			{
-				if (nSaveComboBoxListIndex == count) // count is not yet augmented, so it
-													 // works as a valid index at this point
-				{
-					if (strSaveListEntry.IsEmpty())
-					{
-						if (!bExcludeAnother)
-						{
-							// The list entry already present before the insertion is not a <no adaptation> one
-							// and the one to be inserted therefore must be a <no adaptation> one - which
-							// we should show selected in the list
-							strSaveListEntry = s;
-							bNoAdaptationFlagPresent = TRUE;
+#if defined(_DEBUG)
+				wxLogDebug(_T("PopulateDropDownList: %d  Indices equal?: nSaveComboBoxListIndex= %d count(as an index)= %d"),
+					__LINE__, (int)nSaveComboBoxListIndex, count);
+#endif
 
-							int anIndex = (int)this->GetDropDownList()->Insert(strSaveListEntry, (unsigned int)count);
-							selectionIndex = anIndex; // there are are least two items, even if one is an 
-													  // empty string, so we DO want an empty string visible
-													  // (as <no adaptation> ) in the list, and if it was
-													  // what was inserted, we DO want it shown selected
-#if defined(_DEBUG)
-							wxLogDebug(_T("PopulateDropDownList: no adaptation is true, block: strSaveListEntry= %s , count= %d"),
-								strSaveListEntry, (unsigned int)count);
-#endif
-							count++; // count this re-inserted adaptation
-							bDeletionReinserted = TRUE; // used below
-							gpApp->m_pTargetBox->m_bAbandonable = FALSE;
-							indexOfNoAdaptation = anIndex;
-						}
-					}
-					else
-					{
-						// strSaveListEntry is not empty, but another in the list might be; anyway
-						// do the insertion and it should be shown selected
-						int anIndex = (int)this->GetDropDownList()->Insert(strSaveListEntry, (unsigned int)count);
-#if defined(_DEBUG)
-						wxLogDebug(_T("PopulateDropDownList: else block: strSaveListEntry= %s , count= %d"),
-							strSaveListEntry, (unsigned int)count);
-#endif
-						selectionIndex = anIndex; // there are are least two items, even if one is an 
-												  // empty string, so we DO want an empty string visible
-												  // (as <no adaptation> ) in the list, and we want the
-												  // inserted entry to be selected 
-						count++; // count this re-inserted adaptation
-						bDeletionReinserted = TRUE; // used below
-						gpApp->m_pTargetBox->m_bAbandonable = FALSE;
-						indexOfNoAdaptation = -1;
-					}
-				}
 			}
             count++;
             // The combobox's list is NOT sorted; the Append() command above returns the 
@@ -7838,53 +8081,70 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
             // appended to the dropdown list.
             wxASSERT(nLocation != -1); // we just added it so it must be there!
             this->GetDropDownList()->SetClientData(nLocation, &pRefString->m_refCount);
-        }
+        } // end of TRUE block for test: if (!pRefString->GetDeletedFlag())
+
     } // end of while loop
 
-	// BEW 12May18 It is possible for there to be a valid insert location index, and a valid
-	// entry waiting for reinsertion in the list, and both bRemovedAdaptionReadyForInserting
-	// and m_bLandingBox being TRUE, and nevertheless when control exits the above loop, the
-	// insertion into the list was not done (i.e. bDeletionReinserted still FALSE). It happens
-	// this way... If the pTU has the deleted entry last in its list of CRefString instances
-	// (which will always be the case if the user has just typed a new adaptation here, moved
-	// the box by any method elsewhere, and then clicked to move the box back to the location
-	// where he entered the new adaptation), then that new entry will have its deleted flag
-	// set TRUE because of the landing of the phrasebox back at that location. When the above
-	// loop executes, it then comes to the final iteration - and finds that the CRefString is
-	// a deleted one - and therefore skips to the loop end to iterate, finds pos has gone NULL
-	// and so exits. That skip jumps over the insertion code, and so the loop does not get
-	// the insertion done. Therefore, here, after the loop has exited, we must test for
-	// this scenario, and Append() the waiting-for-insertion adaptation to the end of the list.
-	// We do so now, if the felicity conditions are met. Bill's code further down will then
-	// match it at its proper location in the list and return the correct selectionIndex
-	// to return to the caller
-	if (!gbIsGlossing && gpApp->m_bLandingBox && 
-		bRemovedAdaptionReadyForInserting && !bDeletionReinserted)
+#if defined(_DEBUG)
+	wxLogDebug(_T("PopulateDropDownList: %d  AFTER LOOP, for restoring: strSaveListEntry= %s , m_bLandingBox= %d"),
+		__LINE__, strSaveListEntry.c_str(), (unsigned int)gpApp->m_bLandingBox);
+#endif
+#if defined(_DEBUG)
+	wxLogDebug(_T("PopulateDropDownList: %d  AFTER LOOP, for restoring: bRemovedAdaptionReadyForInserting= %d"),
+		__LINE__, (unsigned int)bRemovedAdaptionReadyForInserting);
+#endif
+
+	if (!gbIsGlossing && gpApp->m_bLandingBox && bRemovedAdaptionReadyForInserting)
 	{
 		if (strSaveListEntry.IsEmpty())
 		{
 			// The is a <no adaptation> one - which we should show selected in the list
 			strSaveListEntry = s;
-			bNoAdaptationFlagPresent = TRUE;
-
-			int anIndex = (int)this->GetDropDownList()->Insert(strSaveListEntry, (unsigned int)nSaveComboBoxListIndex);
+			int anIndex;
+			if (count < nSaveComboBoxListIndex)
+			{
+				// append, the item being restored was last in the list before it was deleted
+				anIndex = (int)this->GetDropDownList()->Append(strSaveListEntry);
+				this->GetDropDownList()->SetClientData(anIndex, &nDeletedItem_refCount);
+			}
+			else
+			{
+				anIndex = (int)this->GetDropDownList()->Insert(strSaveListEntry, (unsigned int)nSaveComboBoxListIndex);
+				this->GetDropDownList()->SetClientData(anIndex, &nDeletedItem_refCount);
+			}
 			selectionIndex = anIndex;
+#if defined(_DEBUG)
+			wxLogDebug(_T("PopulateDropDownList: %d, DOING EMPTY insert: strSaveListEntry= %s , selectionIndex= %d , m_bLandingBox"),
+				__LINE__, strSaveListEntry.c_str(), (int)selectionIndex, (int)gpApp->m_bLandingBox);
+#endif
 			count++; // count this re-inserted adaptation
-			bDeletionReinserted = TRUE;
 			gpApp->m_pTargetBox->m_bAbandonable = FALSE;
-			indexOfNoAdaptation = anIndex;
-		}
+
+		} // end of TRUE block for test: if (strSaveListEntry.IsEmpty())
 		else
 		{
 			// strSaveListEntry is not empty, but another in the list might be; anyway
 			// do the insertion and it should be shown selected
-			int anIndex = (int)this->GetDropDownList()->Insert(strSaveListEntry, (unsigned int)nSaveComboBoxListIndex);
+			int anIndex;
+			if (count < nSaveComboBoxListIndex)
+			{
+				anIndex = (int)this->GetDropDownList()->Append(strSaveListEntry);
+				this->GetDropDownList()->SetClientData(anIndex, &nDeletedItem_refCount);
+			}
+			else
+			{
+				anIndex = (int)this->GetDropDownList()->Insert(strSaveListEntry, (unsigned int)nSaveComboBoxListIndex);
+				this->GetDropDownList()->SetClientData(anIndex, &nDeletedItem_refCount);
+			}
 			selectionIndex = anIndex;
+#if defined(_DEBUG)
+			wxLogDebug(_T("PopulateDropDownList: %d, DOING INSERT: strSaveListEntry= %s , selectionIndex= %d , m_bLandingBox= %d"),
+				__LINE__, strSaveListEntry.c_str(), (int)selectionIndex, (int)gpApp->m_bLandingBox);
+#endif
 			count++; // count this re-inserted adaptation
-			bDeletionReinserted = TRUE; // used below
 			gpApp->m_pTargetBox->m_bAbandonable = FALSE;
-			indexOfNoAdaptation = -1;
-		}
+
+		} // end of else block for test: if (strSaveListEntry.IsEmpty())
 	}
 
     if (count > 0)
@@ -7899,14 +8159,21 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, boo
                 // Select the list item - if it exists in the list - that matches what was in the 
                 // phrasebox when we landed there. 
 				selectionIndex = indx;
-            }
+#if defined(_DEBUG)
+				wxLogDebug(_T("PopulateDropDownList: %d, MATCHED BOX STR, NO INSERT: initialBoxContent= %s , selectionIndex= %d"),
+					__LINE__, initialBoxContent.c_str(), (int)selectionIndex);
+#endif
+			}
         }
         else
         {
             // If the phrasebox had no content, then we just select first item in the list -
             // unless the phrasebox was empty because user clicked <no adaptation>, in which case 
             // we don't make a selection, but leave selectionIndex as -1 (as initialized at 
-            // the beginning of this function). 
+            // the beginning of this function -- BEW note 2Apr19: this convention is okay, but it
+			// must not be misunderstood. It is perfectly acceptable for a <no adaptation>
+			// click by the user to occur in a pTU with other non-empty adaptations, a
+			// <no adaptation> can legally occur first, last, or anywhere inbetween.). 
             if (indexOfNoAdaptation != -1)
             {
                 // User clicked <no adaptation>, leave selectionIndex with value of -1 
@@ -8730,9 +8997,8 @@ void CPhraseBox::ChangeValue(const wxString& value)
 void CPhraseBox::InitializeComboLandingParams()
 {
 	nSaveComboBoxListIndex = -1;  // -1 indicates "not yet set or known"
-	strSaveListEntry.empty();
+	strSaveListEntry.Empty();
 	bRemovedAdaptionReadyForInserting = FALSE; // into the combo box's dropdown list - at its former location
-	gpApp->m_bLandingBox = FALSE;
 }
 
 // whm 11Jul2018 added some access methods for the parts of our phrasebox

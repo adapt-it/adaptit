@@ -54987,7 +54987,7 @@ void CAdapt_ItApp::EnsureProperCapitalization(int nCurrSequNum, wxString& tgtTex
                 // If it doesn't have one, we should do the capitalizing. If it does, just
                 // return without making any change. We can't test what the source text may
                 // have as its first character, because the source text may well be an exotic
-                // language which does't have a case distinction
+                // language which doesn't have a case distinction
 
                 // First, make sure there is no punctuation on the passed in tgtText
                 GetView()->RemovePunctuation(GetDocument(), &tgtText, from_target_text);
@@ -55189,8 +55189,9 @@ void CAdapt_ItApp::LogDropdownState(wxString functionName, wxString fileName, in
 /// Returns: TRUE if the build and item matchup was successful, FALSE otherwise
 /// params
 /// pTU            ->  ptr to CTargetUnit containing the relevant list of ptr to CRefString instances
-/// pAdaption      ->  ptr to a copy of the adaptation string which is going to be removed when it's CRefString is removed
+/// pAdaption      ->  ptr to a copy of the adaptation string which is removed
 /// matchedItem    <-  location (0-based index) of the *pAdaptation string in the built wxArrayString
+///					     which has it's deleted flag TRUE				
 bool CAdapt_ItApp::BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdaption, int& matchedItem)
 {
 	wxArrayString arrTempComboList; // build the list box contents and store its adaptations here
@@ -55198,19 +55199,21 @@ bool CAdapt_ItApp::BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdapt
 	matchedItem = wxNOT_FOUND; // value -1,  initialize
 	wxString matchMe = *pAdaption; // work with a copy of the passed in string
 	wxASSERT(pTU != NULL);
-	// Ignore any CRefString instances for which m_bDeleted is TRUE.
 	CRefString* pRefString;
 	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
 	wxASSERT(pos != NULL);
 	int nLocation = 0;
+	wxString str;
 	while (pos != NULL)
 	{
 		pRefString = (CRefString*)pos->GetData();
 		pos = pos->GetNext();
-		if (!pRefString->GetDeletedFlag())
+		//if (!pRefString->GetDeletedFlag())
+		if (pRefString->GetDeletedFlag())
 		{
-			// this one is not deleted, so add it to the string array
-			wxString str = pRefString->m_translation;
+			// this one is deleted, so add it to the string array and also
+			// test if it is a match for what was earlier in the list
+			str = pRefString->m_translation;
 			// Note: str might be a (quite legal) empty adaptation string
 			nLocation = arrTempComboList.Add(str);
 			// The combobox's list is NOT sorted, so we just add to what is already
@@ -55227,10 +55230,17 @@ bool CAdapt_ItApp::BuildTempDropDownComboList(CTargetUnit* pTU, wxString* pAdapt
 				return TRUE;
 			}
 		}
+		else
+		{
+			// not a deleted entry, so just add it to the array and iterate
+			nLocation = arrTempComboList.Add(str);
+			// Note: str might be a (quite legal) empty adaptation string
+		}
 	}
 	// If control gets to here, no match was made. (Very unexpected, or impossible,
 	// but handle it safely anyway)
 	arrTempComboList.clear(); // don't leak memory
+	matchedItem = wxNOT_FOUND;
 	return FALSE;
 }
 

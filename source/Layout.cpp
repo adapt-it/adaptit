@@ -1033,10 +1033,10 @@ if (!m_bLayoutWithoutVisiblePhraseBox)
 			m_pApp->m_pTargetBox->SetupDropDownPhraseBoxForThisLocation();
 		}
 		m_pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding();// whm 13Aug2018 modified
-																 //m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus(); // SetFocusAndSetSelectionAtLanding() called below
-																 //wxWindow* fwin = wxWindow::FindFocus();
-																 //wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"), 
-																 //    fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl(), m_pApp->m_pTargetBox->GetDropDownList());
+		//m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus(); // SetFocusAndSetSelectionAtLanding() called below
+		//wxWindow* fwin = wxWindow::FindFocus();
+		//wxLogDebug(_T("Focused window* is %p\n   m_pTargetBox win is %p\n   m_pTargetBox->GetTextCtrl() win is: %p\n   m_pTargetBox->GetPopupControl() win is: %p"), 
+		//    fwin, m_pApp->m_pTargetBox, m_pApp->m_pTargetBox->GetTextCtrl(), m_pApp->m_pTargetBox->GetDropDownList());
 	}
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));

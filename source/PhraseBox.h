@@ -99,6 +99,7 @@ public:
 	int          nSaveComboBoxListIndex;
 	wxString	 strSaveListEntry;
 	bool		 bRemovedAdaptionReadyForInserting; // into the combo box's dropdown list - at its former location
+	int			 nDeletedItem_refCount;
 	void InitializeComboLandingParams(); // initialize the above member variables, I'll decline 
 										 // using the m_ prefix in their names, as these are very hacky
     wxSize  m_computedPhraseBoxSize; // stores the computed size of the phrasebox's sizer - accounting for its current layout state
@@ -167,7 +168,9 @@ public:
 
     // whm 10Jan2018 added members below to implement the dropdown phrasebox functionality
     void SetupDropDownPhraseBoxForThisLocation();
-    void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptatio);
+    //void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, bool& bNoAdaptationFlagPresent, int& indexOfNoAdaptation);
+	void PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int& indexOfNoAdaptation);
+	bool RestoreDeletedRefCount_1_ItemToDropDown();
 
     void ClearDropDownList();
     void CloseDropDown();
@@ -226,7 +229,7 @@ public:
     void OnTogglePhraseBoxButton(wxCommandEvent& event);
     void OnListBoxItemSelected(wxCommandEvent& event);
 
-
+	int indexOfNoAdaptation;
 private:
 
     wxTextCtrl* m_pTextCtrl;

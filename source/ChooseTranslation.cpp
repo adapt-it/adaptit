@@ -1227,7 +1227,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 			// Get a count of the number of non-deleted ref string instances for the target unit
 			// (as augmented by the StoreText() giving storage of a new CRefString with m_refCount of 1)
 			int nRefStrCount = 0; // initialize
-			bool bNoAdaptationFlagPresent = FALSE; // the PopulateDropDownList() function may change this value
+			//bool bNoAdaptationFlagPresent = FALSE; // the PopulateDropDownList() function may change this value
 			int indexOfNoAdaptation = -1; // the PopulateDropDownList() function may change this value
 			if (pTargetUnit != NULL)
 			{
@@ -1257,11 +1257,11 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 #endif
 				if (pTargetUnit != NULL)
 				{
-					pApp->m_pTargetBox->PopulateDropDownList(pTargetUnit, selectionIndex, bNoAdaptationFlagPresent, indexOfNoAdaptation);
+					pApp->m_pTargetBox->PopulateDropDownList(pTargetUnit, selectionIndex, indexOfNoAdaptation);
 					// BEW 2Jul18
 					// wxASSERT(selectionIndex == nRefStrCount - 1); // verify it is indeed last in the list
 					// With the dropdown combobox phrasebox I was able to generate a sequence of GUI ops that
-					// caused the above assert to trip. a. change the meaning b. click elsewhere. c click back
+					// caused the above assert to trip. a. change the meaning b. click elsewhere. c. click back
 					// on same location. Choose Translation, add new meaning in text control, click OK to 
 					// accept, and the assert tripped: with selectionIndex = 0 but nRefStrCount = 2, so that
 					// we get 0 == 1 which is a fail. So I'll force the selection to be last instead.

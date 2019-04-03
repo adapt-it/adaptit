@@ -3624,8 +3624,13 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 // BEW 13May10, moved here from CAdapt_ItView and removed pKB param from signature
 // BEW 21Jun10: no changes needed for support of kbVersion 2
 // BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
+// BEW 3Apr19, added top test for nSrcWords being zero
 CTargetUnit* CKB::GetTargetUnit(int nSrcWords, wxString keyStr)
 {
+	if (nSrcWords == 0)
+	{
+		return (CTargetUnit*)NULL;
+	}
 	MapKeyStringToTgtUnit* pMap = m_pMap[nSrcWords-1];
 	wxASSERT(pMap != NULL);
 	CTargetUnit* pTgtUnit;

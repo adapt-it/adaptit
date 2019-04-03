@@ -3690,206 +3690,16 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 		}
 	}
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3676,
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3693,
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
     pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_targetPhrase;
 	pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase); // BEW 7May18 added line, m_targetPhrase & contents of m_pTargetBox must stay in sync
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	pApp->LogDropdownState(_T("PlacePhraseBox() Landing, just set m_SaveTargetPhrase, & box contents, to m_targetPhrase"), _T("Adapt_ItView.cpp"), 3682);
-	wxLogDebug(_T("View, PlacePhraseBox() line  %d 'Landing' pApp->m_SaveTargetPhrase = %s"), 3683,pApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
+	wxLogDebug(_T("View, PlacePhraseBox() line  %d 'Landing' pApp->m_SaveTargetPhrase = %s"), 3700,pApp->m_pTargetBox->m_SaveTargetPhrase.c_str());
 
 #endif
-
-	// BEW 8May18 This is where I'll place the code for implementing Bill's request that 
-	// the removed CRefString when landing at a location where the nRefCount for that
-	// removed string was 1 (hence deleted from KB on landing) is nevertheless retained
-	// in the combo control's list when it is dropped down at the PlaceBox() at end of
-	// this PlacePhraseBox() function. This is a new behaviour which we will implement only
-	// when not in glossing mode, and only when m_bLandingBox is TRUE, and various other 
-	// constraints are satisfied as well. m_bLandingBox is a new app member bool as of 10May18
-	if (!gbIsGlossing && pApp->m_bLandingBox)
-	{
-		// In order to go further here, we must test that the now active pSrcPhrase is
-		// TRUE for m_bHasKBEntry, and FALSE for several other feature's flags
-		if (pSrcPhrase->m_bHasKBEntry && !pSrcPhrase->m_bNotInKB &&
-			!pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation &&
-			!pApp->m_bFreeTranslationMode)
-		{
-			// Okay, now we know that the active location we are landing on is going
-			// to have it's looked-up-in-the-KB target text (the adaptation value)
-			// removed from the KB in code further below this block within PlacePhraseBox(),
-			// so this location is a potential candidate for the hack we are doing - so
-			// proceed. Next step is to get the CTargetUnit pointer which stores the
-			// CRefString instance which will later be deleted due to the box 'landing'
-			// at the current location in the document. CKB class has what we want.
-			CTargetUnit* pTU = pApp->m_pKB->GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
-			// pTU will be NULL if the lookup failed, so check and if okay, then proceed
-			if (pTU != NULL)
-			{
-				// Next, we must find the CRefString within pOwningTargetUnit which is the one
-				// that is going to be deleted later when the phrasebox finishes 'landing'.
-				// We are interested only in the case that it's m_refCount equals 1, because
-				// higher reference counts will only get decremented by 1 and so the
-				// adaptation for such as those will not get removed from the dropdown's list
-				// anyway - so we'll get the CRefString and exit this block (doing no more
-				// than re-initializing the hack variables) if the ref count is greater than 1.
-				// But if equal to 1, then we've a lot more to do - our goal is to know what
-				// the wxString is for the adaptation to be removed, and at what index it
-				// would appear in the dropdown list had it not been removed - those are the
-				// two bits of information that permit us to restore it to the list later
-				// when PopulateDropDownList gets called at the PlaceBox() call at end of
-				// this function
-				bool bIsDeleted = FALSE; // initialize
-				wxString theAdaptation = wxEmptyString; // initialize
-				wxString strAdaptation = pSrcPhrase->m_adaption;
-				// BEW 10Sep18 Taking  m_adaption means that it could be a word or phrase
-				// with upper case initial character, but for auto-caps ON the KB stores
-				// lower case initial entries, and so GetMatchingRefString() would fail
-				// in matching and return NULL if the source phrase has capitalized source
-				// text key. So we first must check and convert to lower case here,
-				// before attempting the call
-				// NOTE: I have not tried to support word-medial capitalization here, but
-				// KB.cpp does support that. I will instead try a hack, so that returning
-				// NULL from the call in such a context will not cause loss of data
-
-				if (gbAutoCaps)
-				{
-					if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
-					{
-						bNoError = pApp->GetDocument()->SetCaseParameters(strAdaptation, FALSE); // param bIsSrcText is FALSE
-						if (bNoError && gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
-						{
-							// change to lower case initial letter
-							strAdaptation.SetChar(0, gcharNonSrcLC);
-							pApp->m_pTargetBox->m_bAbandonable = FALSE; 
-						}
-					}
-				}
-				int nSelectionIndex = wxNOT_FOUND; // initialize to -1
-				bool bSuccessfulMatch = FALSE; // initialize
-
-				CRefString* pRefString = pApp->m_pKB->GetMatchingRefString(pTU, strAdaptation, bIsDeleted);
-				if (pRefString == NULL)
-				{
-					// Didn't get the ref string - that ruins this hack, but some kind
-					// of recovery code is needed here - otherwise the result will be
-					// that an adaptation will get lost from the phrasebox and the list
-					// and another list entry would then sneak into the phrasebox - 
-					// possibly unnoticed, so a 'safety' hack is needed
-					// (NULL might be returned if capitalization is non-initial, as
-					// the above call won't make the match required)
-					if ( !pApp->m_pTargetBox->GetTextCtrl()->IsEmpty() && gbUCSrcCapitalAnywhere)
-					{
-						// assume that non-initial capitalization is the cause of the failure,
-						// and so recover by forcing strAdaptation to be taken as is, and
-						// put at the top of the list and in the phrasebox
-						nSelectionIndex = 0; // go for top of list, safest bet
-						pApp->m_pTargetBox->nSaveComboBoxListIndex = nSelectionIndex;
-						theAdaptation = strAdaptation;
-						pApp->m_pTargetBox->strSaveListEntry = theAdaptation;
-
-						goto recovery;
-					}
-					else
-					{
-						pApp->m_pTargetBox->InitializeComboLandingParams();
-					}
-				}
-				else
-				{
-					// We got the appropriate CRefString - so we can proceed
-
-					// The combobox dropdown does not show deleted adaptations, so check the bIsDeleted flag
-					// for FALSE - only then can we proceed further
-					if (bIsDeleted)
-					{
-						pApp->m_pTargetBox->InitializeComboLandingParams(); // no deal, forget the hack attempt
-					}
-					else
-					{
-						// We are interested only in a CRefString which has its m_refCount equal to 1, as pRefString
-						// with m_refCount == 0 will have been auto-deleted from the KB already (such is illegal),
-						// and the only other option is m_refCount > 1, and these one's adaptation string will appear
-						// in the combobox's dropdown list without further intervention, because the decrement by
-						// 1 will not bring their count back to zero. So do our final stuff only when the count == 1
-						if (pRefString->m_refCount != 1)
-						{
-							// No need to do anything more, clear the hack variables 
-							pApp->m_pTargetBox->InitializeComboLandingParams();  
-						}
-						else
-						{
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-	wxLogDebug(_T("View::PlacePhraseBox at line %d , strAdaptation from CRefString to be deleted =  %s"), 3807, strAdaptation.c_str());
-#endif
-#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-							wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3810,
-								(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
-#endif
-							// The adaptation we found will indeed be deleted, and removed from the KB. So before that
-							// happens we here need to work out what the index of that adaptation would be if the
-							// dropdown list were populated here. The only way to work this out is to produce a
-							// temporary string array list populated with non-deleted adaptations drawn from the pTU we
-							// we found above, and then search within it for a match with theAdaptation, in a function,
-							// which returns the index for the matched items. Much work for a small result, but
-							// there's no other way. We'll build an arrTempComboList using the function below which
-							// clones bits of code from Bill's PopulateDropDownList() function, but simplified, since
-							// we've already excluded <Not In KB>-contained CRefString instances from consideration here
-							bSuccessfulMatch = pApp->BuildTempDropDownComboList(pTU, &strAdaptation, nSelectionIndex);
-							if (bSuccessfulMatch && (nSelectionIndex != wxNOT_FOUND))
-							{
-								// Store the index into m_pTargetBox
-								pApp->m_pTargetBox->nSaveComboBoxListIndex = nSelectionIndex;
-								theAdaptation = strAdaptation;
-#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-								wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3829,
-									(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
-#endif
-								// The theAdaptation local variable is the adaptation string that will get removed 
-								// from the combobox dropdown due to the 'landing' of the box. Keep it also in the
-								// PhraseBox instance (m_pTargetBox)
-								pApp->m_pTargetBox->strSaveListEntry = theAdaptation; // first letter will already have 
-																					  // been case-adjusted if necessary
-								// Job done, m_pTargetBox has the two values it needs in order to restore the list entry
-
-								// The last thing is to tell m_pTargetBox that the hack was successfully done, 
-								// and it can grab what it needs from its own member variables and restore the
-								// deleted adaptation to its place in the list at the time it gets dropped down
-								// - but only when various constraints are satified
-recovery:						pApp->m_pTargetBox->bRemovedAdaptionReadyForInserting = TRUE;
-#ifdef _DEBUG 
-								wxLogDebug(_T("view::PlacePhraseBox at line %d , m_pTargetBox->bRemovedAdaptionReadyForInserting = TRUE  strSaveListEntry = %s  Index = %d"),
-									3845, pApp->m_pTargetBox->strSaveListEntry.c_str(), nSelectionIndex);
-#endif
-#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-								wxLogDebug(_T("view::PlacePhraseBox at line %d , m_pTargetBox->bRemovedAdaptionReadyForInserting = TRUE"),3849);
-#endif
-							}
-							else
-							{
-								// We failed to get the parameters we need for reinstating the list element,
-								// so just do nothing - the legacy protocol will then operate, the user would
-								// have to retype the lost entry for the KB to store, before moving the phrasebox
-								// elsewhere
-								pApp->m_pTargetBox->InitializeComboLandingParams();
-
-								// Ensure FALSE value, doing this should be redundant, but it makes sure just in case
-								pApp->m_pTargetBox->bRemovedAdaptionReadyForInserting = FALSE;
-//#ifdef _DEBUG
-//								wxLogDebug(_T("view::PlacePhraseBox at line %d , m_pTargetBox->bRemovedAdaptionReadyForInserting = FALSE"), 3863);
-//#endif
-#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-								wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3866,
-									(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
-#endif
-							}
-						} // end of else block for test: if (pRefString->m_refCount != 1) That is, m_refCount is 1
-					} // end of else block for test: if (bIsDeleted)
-				}
-			} // end of TRUE block for test: if (pTU != NULL)
-		} // ends test for a number of incompatible features, or locations, not being in effect
-	} // end of TRUE block for test: if (!gbIsGlossing && pApp->m_bLandingBox)
 
 	// BEW 1Jun10, moved to here from within DoGetSuitableText_ForPlacePhraseBox(), as it
 	// logically makes no sense in the latter, and is more relevant here (particularly as
@@ -4133,8 +3943,8 @@ recovery:						pApp->m_pTargetBox->bRemovedAdaptionReadyForInserting = TRUE;
 //	pApp->MyLogger();
 //#endif
 
-	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
-		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+//	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
+//		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 #if defined (_DEBUG)
 	wxLogDebug(_T("*** Leaving PlacePhraseBox()  , selector = %d"), selector);

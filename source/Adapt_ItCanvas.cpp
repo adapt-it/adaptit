@@ -1895,10 +1895,10 @@ x:					CCell* pCell = 0;
 							// and no punctuation copies done
                             pApp->m_pTargetBox->m_Translation = sp->m_adaption;
 							sp->m_targetStr = sp->m_adaption;
+
 							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
 							// is done at the leaving location, but a removal from the KB
 							// will be done at the landing location
-
 						}
 						else if (pApp->m_pTargetBox->m_bAbandonable)
 						{
