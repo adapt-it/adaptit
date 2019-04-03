@@ -7860,7 +7860,7 @@ bool CPhraseBox::RestoreDeletedRefCount_1_ItemToDropDown()
 				// 1 will not bring their count back to zero. So do our final stuff only when the count == 1
 				if (pRefString->m_refCount != 1)
 				{
-					__noop;
+                    ; // whm 3Apr2019 removed __noop;
 				}
 				else
 				{
