@@ -77,6 +77,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 BEGIN_EVENT_TABLE(CEditSourceTextDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CEditSourceTextDlg::InitDialog)
 	EVT_TEXT_ENTER(IDC_EDIT_NEW_SOURCE,CEditSourceTextDlg::ReinterpretEnterKeyPress)
+    EVT_BUTTON(ID_BUTTON_HELP_INFO, CEditSourceTextDlg::OnHelpOnEditingSourceText)
 	EVT_BUTTON(wxID_OK, CEditSourceTextDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CEditSourceTextDlg::OnCancel)
 END_EVENT_TABLE()
@@ -131,15 +132,31 @@ CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
 	//pOldSrcTextEdit->SetValidator(wxGenericValidator(&m_strOldSourceText)); // needed; OnEditSourceText() initializes this
 	pOldSrcTextEdit->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
 
+    pBtnOK = (wxButton*)FindWindowById(wxID_OK); // access for tooltip change
+    wxASSERT(pBtnOK != NULL);
+
+    pBtnCancel = (wxButton*)FindWindowById(wxID_CANCEL); // access for tooltip change
+    wxASSERT(pBtnCancel != NULL);
+
 	// The following two are for static text within read-only multi-line wxEditCtrls on the dialog
 	
-	pTextCtrlEditAsStatic1 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC1); // read only edit control
-	wxASSERT(pTextCtrlEditAsStatic1 != NULL);
-	pTextCtrlEditAsStatic1->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
+    // whm 1Apr2019 removed following two info text ctrls, putting the text into message box summoned by Help button.
+	//pTextCtrlEditAsStatic1 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC1); // read only edit control
+	//wxASSERT(pTextCtrlEditAsStatic1 != NULL);
+	//pTextCtrlEditAsStatic1->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
+    // "You can edit the text, or the markers, or both. Do not edit the markers unless you know what you are doing. 
+    // A marker must have a space following it; end markers (these end with *, for example \f*)  can optionally have a following space omitted. 
+    // If your selection included one or more notes or free translations, they were removed and stored in lists so that you will not have to deal with them here. 
+    // Collected back translations in this section of the document were deleted."
 	
-	pTextCtrlEditAsStatic2 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC2); // read only edit control
-	wxASSERT(pTextCtrlEditAsStatic2 != NULL);
-	pTextCtrlEditAsStatic2->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
+	//pTextCtrlEditAsStatic2 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC2); // read only edit control
+	//wxASSERT(pTextCtrlEditAsStatic2 != NULL);
+	//pTextCtrlEditAsStatic2->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
+    // "After this dialog closes, Adapt It helps you. 
+    // (1) It helps you do new adaptations; and glosses too when appropriate, for the new source text. 
+    // (2) It  automatically restores removed notes ( their locations may differ a little bit). 
+    // (3) It helps you to produce new free translations, or edit the old ones. 
+    // (4) Any deleted back translations will be automatically collected again."
 }
 
 CEditSourceTextDlg::~CEditSourceTextDlg() // destructor
@@ -171,9 +188,38 @@ void CEditSourceTextDlg::ReinterpretEnterKeyPress(wxCommandEvent& WXUNUSED(event
 	//wxString str = m_strNewSourceText;
 }
 
+void CEditSourceTextDlg::OnHelpOnEditingSourceText(wxCommandEvent& WXUNUSED(event))
+{
+    // "You can edit the text, or the markers, or both. Do not edit the markers unless you know what you are doing. 
+    // A marker must have a space following it; end markers (these end with *, for example \f*)  can optionally have a following space omitted. 
+    // If your selection included one or more notes or free translations, they were removed and stored in lists so that you will not have to deal with them here. 
+    // Collected back translations in this section of the document were deleted."
+
+    // "After this dialog closes, Adapt It helps you. 
+    // (1) It helps you do new adaptations; and glosses too when appropriate, for the new source text. 
+    // (2) It  automatically restores removed notes ( their locations may differ a little bit). 
+    // (3) It helps you to produce new free translations, or edit the old ones. 
+    // (4) Any deleted back translations will be automatically collected again."
+    wxString msg;
+    msg = _("You can edit the text, or the markers, or both. Do not edit the markers unless you know what you are doing. " \
+        "A marker must have a space following it; end markers(these end with *, for example \\f*)  can optionally have a following space omitted.\n\n" \
+        "If your selection included one or more notes or free translations, they were removed and stored in lists so that you will not have to deal with them here.\n\n" \
+        "Collected back translations in this section of the document were deleted.\n\n" \
+        "After this dialog closes, Adapt It helps you.\n" \
+        "  (1) It helps you do new adaptations; and glosses too when appropriate, for the new source text.\n" \
+        "  (2) It  automatically restores removed notes (their locations may differ a little bit).\n" \
+        "  (3) It helps you to produce new free translations, or edit the old ones.\n" \
+        "  (4) Any deleted back translations will be automatically collected again.");
+    wxMessageBox(msg, _("Help on Editing Source Text"), wxICON_INFORMATION | wxOK);
+}
+
 void CEditSourceTextDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
+
+    // Add tooltips to the OK and Cancel buttons within the wxStdDialogButtonSizer
+    pBtnOK->SetToolTip(_T("Click OK when you are finished editing the source text"));
+    pBtnCancel->SetToolTip(_T("Click Cancel to discard any edits and close the dialog"));
 
 	// next stuff copied from CRetranslationDlg's OnInitDialog() and then modified
 

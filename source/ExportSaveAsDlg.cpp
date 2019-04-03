@@ -1,4 +1,4 @@
-// This file was processed by the powershell conversion script
+// This file was processed by the WdrTweaks program
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
 /// \file			ExportSaveAsDlg.cpp

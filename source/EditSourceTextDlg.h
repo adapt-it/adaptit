@@ -39,8 +39,11 @@ public:
 	wxTextCtrl* pPreContextEdit;
 	wxTextCtrl* pFollContextEdit;
 	wxTextCtrl* pOldSrcTextEdit;
-	wxTextCtrl* pTextCtrlEditAsStatic1;
-	wxTextCtrl* pTextCtrlEditAsStatic2;
+    // TODO: Remove following two info text ctrls after Help button is implemented and tested.
+    //wxTextCtrl* pTextCtrlEditAsStatic1;
+	//wxTextCtrl* pTextCtrlEditAsStatic2;
+    wxButton* pBtnOK;
+    wxButton* pBtnCancel;
 
 	wxString	m_strNewSourceText;
 	wxString	m_preContext;
@@ -55,6 +58,7 @@ public:
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void ReinterpretEnterKeyPress(wxCommandEvent& WXUNUSED(event));
+    void OnHelpOnEditingSourceText(wxCommandEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	virtual void OnCancel(wxCommandEvent& WXUNUSED(event));
 
