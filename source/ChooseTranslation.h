@@ -85,6 +85,7 @@ private:
 	int  m_nWordsInPhrase;
 	MapKeyStringToTgtUnit* m_pMap;
 	void PopulateList(CTargetUnit* pTU, int selectionIndex, enum SelectionWanted doSel);
+	bool m_bRemovingEntryFromList;
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

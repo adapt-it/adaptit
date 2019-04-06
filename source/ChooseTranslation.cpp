@@ -67,6 +67,9 @@ extern bool gbVerticalEditInProgress;
 
 //extern int ID_PHRASE_BOX;
 
+//#define TRACK_PHRBOX_CHOOSETRANS_BOOL
+
+
 // ******************************************************************************************
 // ************************* CChooseTranslation dialog class ********************************
 // ******************************************************************************************
@@ -308,6 +311,8 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// place the dialog window so as not to obscure things
 	// work out where to place the dialog window
 	gpApp->GetView()->AdjustDialogPosition(this);
+
+	m_bRemovingEntryFromList = FALSE; // initialize
 
 	m_pMyListBox->SetFocus();
 
@@ -879,8 +884,9 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	wxString str2 = str;
 	wxString message;
 	if (str == s)
+	{
 		str = _T(""); // for comparison's with what is stored in the KB, it must be empty
-
+	}
 	// find the corresponding CRefString instance in the knowledge base, and set the
 	// nPreviousReferences variable for use in the message box; if user hits Yes
 	// then go ahead and do the removals.
@@ -901,7 +907,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	if (str.IsEmpty() && pRefString->m_translation.IsEmpty())
 	{
 		// both empty, so they match
-		;
+		; 
 	}
 	else
 	{
@@ -924,6 +930,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	int response = wxMessageBox(message, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 	if (!(response == wxYES))
 	{
+		m_bRemovingEntryFromList = FALSE; // so OnOK() will know what happened
 		return; // user backed out
 	}
 
@@ -987,6 +994,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	pRefString->SetDeletedFlag(TRUE);
 	pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
 	pRefString->m_refCount = 0;
+	m_bRemovingEntryFromList = TRUE; // so OnOK() will know what happened
 
 	// get the count of non-deleted CRefString instances for this CTargetUnit instance
 	int numNotDeleted = gpApp->pCurTargetUnit->CountNonDeletedRefStringInstances();
@@ -1104,31 +1112,99 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 		// as control will not enter this comment's block to set this new bool TRUE
 		pApp->m_bTypedNewAdaptationInChooseTranslation = TRUE;
 	}
-	else
+	else // next block is for test: if (!strNew.IsEmpty()) which just means that
+		 // no new meaning has been typed; it does not mean that <no adaptation>
+		 // is being deleted - though that could be the case; or some other non-empty
+		 // adaptation is being deleted; or neither might be the case
 	{
-		int nSel;
-		nSel = m_pMyListBox->GetSelection();
-		// whm Note: The following check for no valid selection is OK.
-		if (nSel == -1)// LB_ERR
+		pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE;
+
+		// Use m_bRemovingEntryFromList in what is below. Is this else
+		// block only for deletions?  Additions are handled by the TRUE block above. What about
+		// neither additions or deletions - as when moving entries up or down - that's also
+		// handled already, probably just be defaulting to what's in the phrasebox. Needs testing
+
+		if (m_bRemovingEntryFromList)
 		{
-			// assume its an empty listBox and just force an empty string
-			m_chosenTranslation = _T("");
-		}
+
+			wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
+				__FILE__, __func__, __LINE__, (int)pApp->m_pTargetBox->m_bAbandonable);
+
+			int nSel;
+			nSel = m_pMyListBox->GetSelection();  // <<-- nSel was 0, so TRUE block skipped
+			// whm Note: The following check for no valid selection is OK.
+			wxString str;
+			if (nSel == -1)// LB_ERR
+			{
+				// Checked, it's safe. Can get here like this: Have an adaptation at
+				// a location, click there, click <no adaptation> button, move elsewhere
+				// and then come back to same location, choose Choose Translation dialog,
+				// remove the <no adaptation> entry from the list, click OK. Then nSel
+				// will be -1, and control enters here. (If the original adaption was
+				// refCount, auto-deletion will delete it too as this is the active
+				// location. Letting control finish, the copied src text will be in
+				// the box, and be abandonable. To make it stick, edit and restore
+				// within the phrase box to get it to stick; a click isn't enough.
+				//int halt_here = 1; // for a break point
+
+				// assume its an empty listBox and just force an empty string
+				m_chosenTranslation = _T("");
+			}
+			else if (nSel == 0)
+			{
+				// For the nSel value, the code does not track the list item
+				// with the text to be removed, but rather where the selection
+				// was - which often is at the list's top item. So,
+				// deleting a non-top item in the list when the selection is
+				// at list top, will result in control entering here. str will
+				// then be set to the top of list item, and control will then
+				// go out of the block to set m_chosenTranslation to str value
+				// ( a user click will be needed to make the result 'stick' in
+				// in the phrasebox )
+				str = m_pMyListBox->GetString(nSel);
+				if (str == s)
+				{
+					// This block will remove a <no adaptation> entry which
+					// is sitting at the top of the list
+					str = _T(""); // restore null string
+					pApp->m_pTargetBox->m_bEmptyAdaptationChosen = TRUE; // this will be 
+						// used to set the m_bEmptyAdaptationChosen used by PlacePhraseBox
+				}
+				m_chosenTranslation = str;
+			} // end of TRUE block for test: else if (nSel == 0)
+			else
+			{
+				// int halt_here = 1; // for a break point
+				// I haven't been able to do a deletion that gets control
+				// to enter this block, but I'll leave it here just in case
+				str = m_pMyListBox->GetString(nSel);
+				if (str == s)
+				{
+					str = _T(""); // restore null string
+					pApp->m_pTargetBox->m_bEmptyAdaptationChosen = TRUE; // this will be 
+						// used to set the m_bEmptyAdaptationChosen used by PlacePhraseBox
+				}
+				m_chosenTranslation = str;
+			} // end of else block for test: else if (nSel == 0)
+
+		} // end of TRUE block for test: if (m_bRemovingEntryFromList)
 		else
 		{
-			wxString str;
-			str = m_pMyListBox->GetString(nSel);
-			if (str == s)
-			{
-				str = _T(""); // restore null string
-                pApp->m_pTargetBox->m_bEmptyAdaptationChosen = TRUE; // this will be used to set the
-										// m_bEmptyAdaptationChosen used by PlacePhraseBox
-			}
+			//int halt_here = 1; // can put a break point here
+			// Nothing to do here. Moves up or down are neither additions nor
+			// removals, so control goes to this block. The current code handles
+			// this correctly, the reordered items are reordered correctly and
+			// selection tracks the moved item faithfully
+			;
+		}  // end of else block for test: if (m_bRemovingEntryFromList)
 
-			m_chosenTranslation = str;
-		}
-	}
-	pApp->m_pTargetBox->m_bAbandonable = FALSE;
+		pApp->m_pTargetBox->m_bAbandonable = FALSE;
+
+	} // end of else block for test: if (!strNew.IsEmpty())
+
+	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
+		__FILE__, __func__, __LINE__, (int)pApp->m_pTargetBox->m_bAbandonable);
+
 
 //#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15 - in case the user typed a translation manually (with / as word-delimiter)
@@ -1172,20 +1248,22 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 			// in the phrasebox.
 		pApp->m_targetPhrase = m_chosenTranslation;
         wxString currentStr = pApp->m_pTargetBox->GetTextCtrl()->GetValue(); // whm 12Jul2018 added ->GetTextCtrl() part
-		wxLogDebug(_T("m_pTargetBox->GetTextCtrl()->GetValue(),  returns currentStr:  %s"), currentStr.c_str());
-		pApp->m_pTargetBox->SetModify(TRUE); // SetModify() internally calls this->GetTextCtrl()->MarkDirty() or this->GetTextCtrl()->DiscardEdits()
-
+		wxLogDebug(_T("%s:%s(): line %d: m_pTargetBox->GetTextCtrl()->GetValue(),  returns currentStr:  %s"), 
+			__FILE__, __func__, __LINE__, currentStr.c_str());
+		pApp->m_pTargetBox->SetModify(TRUE); // SetModify() internally calls this->GetTextCtrl()->MarkDirty() 
+											 // or this->GetTextCtrl()->DiscardEdits()
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-		wxLogDebug(_T("\n\nChooseTranslation OnOK(), line  %d  - Starting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 1153,
-			(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+		wxLogDebug(_T("\n\nChooseTranslation OnOK(), line  %d  - Starting, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"),
+			__LINE__, (int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 		// Get the chosen translation string into the dropdown combobox's text entry control
         pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(m_chosenTranslation); // doesn't generate a wxEVT_TEXT event
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-		wxLogDebug(_T("m_pTargetBox->GetTextCtrl()->GetModify()  returns 1 or 0: value is  %d"), (int)pApp->m_pTargetBox->GetTextCtrl()->GetModify());
+		wxLogDebug(_T("m_pTargetBox->GetModify()  returns 1 or 0: value is  %d , line = %d"), 
+			(int)pApp->m_pTargetBox->GetModify(), __LINE__);
 		// check if it got entered
-		wxString updatedStr = pTextEntry->GetValue();
-		wxLogDebug(_T("pTextEntry->GetValue() returns updatedStr:  %s"), updatedStr.c_str());
+		wxString updatedStr = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+		wxLogDebug(_T("pTextEntry->GetValue() line %d: returns updatedStr:  %s"), __LINE__, updatedStr.c_str());
 #endif
 		// Algorithm?  Try just deleting and remaking the list here; may be best to do a StoreText() call, 
 		// and then the rebuilding may go easier - append to end of pTU list, and that will get the new 
@@ -1200,13 +1278,13 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 		pApp->m_pTargetBox->m_nWordsInPhrase = 0; // initialize
 		pApp->m_pTargetBox->m_nWordsInPhrase = pSrcPhrase->m_nSrcWords;
 
-		// Do this only when in adapting mode; and we don't support empty string adaptations here
+		// Do this only when in adapting mode; and we don't support empty string adaptations here <<- perhaps we should?
 		if (!gbIsGlossing && !m_chosenTranslation.IsEmpty() && !pKB->IsThisAGlossingKB())
 		{
 			bool bSupportNoAdaptationButton = FALSE; // not supporting <no adaptation> choice in Choose Translation dlg
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-			wxLogDebug(_T("ChooseTranslation OnOK(), line  %d  - before StoreText(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 1182,
-				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+			wxLogDebug(_T("ChooseTranslation OnOK(), line  %d  - before StoreText(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"),
+				__LINE__, (int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 
 			// Handy to do StoreText() here, as we get a lot for free. In particular, KBserver support, and especially
@@ -1218,8 +1296,8 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 
 			// Plagiarizing code from SetupDropDownComboBox() in what follows, from PhraseBox.cpp ...
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-			wxLogDebug(_T("ChooseTranslation OnOK(), line  %d  - after StoreText(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 1195,
-				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+			wxLogDebug(_T("ChooseTranslation OnOK(), line  %d  - after StoreText(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"),
+				__LINE__, (int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 			// Get a pointer to the target unit for the current key - could be NULL
 			pTargetUnit = pKB->GetTargetUnit(pApp->m_pTargetBox->m_nWordsInPhrase, pSrcPhrase->m_key);
@@ -1233,7 +1311,8 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 			{
 				nRefStrCount = pTargetUnit->CountNonDeletedRefStringInstances();
 #if  defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-				wxLogDebug(_T("ChooseTranslation.cpp OnOK(), line  %d ,nRefStringCount (non-deleted ones) = %d"), 1199, nRefStrCount);
+				wxLogDebug(_T("ChooseTranslation.cpp OnOK(), line  %d ,nRefStringCount (non-deleted ones) = %d"),
+					__LINE__, nRefStrCount);
 #endif
 			}
 			// Close the dropdown list if not already closed, then clobber its contents
@@ -1252,8 +1331,8 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 						// because the StoreText() will have appended, and the user has had no
 						// chance to move it up or down)
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-				wxLogDebug(_T("ChooseTranslation OnOK(), line  %d  - before Populate...(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 1232,
-					(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+				wxLogDebug(_T("ChooseTranslation OnOK(), line  %d  - before Populate...(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"),
+					__LINE__, (int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 				if (pTargetUnit != NULL)
 				{
@@ -1286,8 +1365,8 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
                 }
 
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-				wxLogDebug(_T("ChooseTranslation OnOK(), line  %d  - after Populate...(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 1244,
-					(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+				wxLogDebug(_T("ChooseTranslation OnOK(), line  %d  - after Populate...(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"),
+					__LINE__, (int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 				// Set the dropdown's list selection to the selectionIndex determined by PopulatDropDownList above.
 				// If selectionIndex is -1, it removes any list selection from dropdown list
@@ -1299,7 +1378,10 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 				// whm 7Mar2018 addition - SetSelection() highlights the item in the list, and it
 				// also has a side effect in that it automatically copies the item string from the 
 				// dropdown list (matching the selectionIndex) into the dropdown's edit box.
-
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
+				wxLogDebug(_T("%s:%s(): line %d: GetDropDownList()->SetSelection(selectionIndex), selectionIndex= %d"),
+					__FILE__, __func__, __LINE__, selectionIndex);
+#endif
 				// Note: at this point no attempt has been made to capitalize the new list entry;
 				// if gbAutoCaps is TRUE, adjusting for case for what is in the dropdown's textEdit
 				// could be done here - but it may not be needed, adjustment on moving the phrasebox
@@ -1326,19 +1408,26 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 				// an apparent hole.
 #if defined (_DEBUG)  && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 				int another_nRefStrCount = pTargetUnit->CountNonDeletedRefStringInstances();
-				wxLogDebug(_T("ChooseTranslation.cpp OnOK() at end, line  %d ,nRefStringCount (non-deleted ones) = %d"), 1265, another_nRefStrCount);
-				wxLogDebug(_T("ChooseTranslation.cpp OnOK() at end, line  %d , m_targetStr= %s"), 1266, pSrcPhrase->m_targetStr.c_str());
+				wxLogDebug(_T("ChooseTranslation.cpp OnOK() at end, line  %d ,nRefStringCount (non-deleted ones) = %d"),
+					__LINE__, another_nRefStrCount);
+				wxLogDebug(_T("ChooseTranslation.cpp OnOK() at end, line  %d , m_targetStr= %s"),
+					__LINE__, pSrcPhrase->m_targetStr.c_str());
 #endif
 				// Clear the target unit pointer (unnecesary, it's an auto variable anyway)
 				pTargetUnit = (CTargetUnit*)NULL;
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
-				wxLogDebug(_T("ChooseTranslation OnOK(), line  %d  - end of OnOK(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 1288,
-					(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
+				wxLogDebug(_T("ChooseTranslation OnOK(), line  %d  - end of OnOK(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"),
+					__LINE__, (int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 
 			} // end TRUE block for test: if (nRefStrCount > 0)
             else if (pApp->m_pTargetBox->GetDropDownList()->GetCount() == 0) // whm 5Jul2018 added the following else block
             {
+#if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
+				wxLogDebug(_T("%s:%s(): line %d: control went to block: GetDropDownList()->GetCount() == 0 , just sets X button"),
+					__FILE__, __func__, __LINE__);
+#endif
+
                 // Set the "X" button
                 pApp->m_pTargetBox->SetButtonBitMapXDisabled();
             }
