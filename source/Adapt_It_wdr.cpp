@@ -1339,7 +1339,7 @@ wxSizer *UnitsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( 250, 5, 0, wxALIGN_CENTER, 5 );
+    item0->Add( 350, 5, 0, wxALIGN_CENTER, 5 );
 
     wxStdDialogButtonSizer *item5 = new wxStdDialogButtonSizer;
     { wxButton *button = new wxButton( parent, wxID_OK );
