@@ -4625,7 +4625,7 @@ wxString GetPathToBeRdwrt()
     {
         wxFileName fn(beRdwrtPathAndFileName);
         wxString msg = _("Adapt It cannot find the helper application %s at the following location:\n\n%s\n\nFor more information see the Trouble Shooting topic in Help for Administrators (HTML) on the Help Menu.");
-        msg = msg.Format(msg,fn.GetFullName().c_str(), beRdwrtPathAndFileName.c_str(),fn.GetFullName().c_str());
+        msg = msg.Format(msg, fn.GetFullName().c_str(), beRdwrtPathAndFileName.c_str()); // whm 8Apr2019 removed third (extraneous) argument , fn.GetFullName().c_str());
         wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
         gpApp->LogUserAction(msg);
     }
@@ -7335,7 +7335,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// in this block, wxLogDebug the last 5 Md5Arr lines for the postEditText from the array
 	{
         size_t count = postEditMd5Arr.GetCount();
-        wxLogDebug(_T("MD5 Lines count:  %s"), count);
+        wxLogDebug(_T("MD5 Lines count:  %zu"), count); // whm 8Apr2019 corrected %s to %zu - the format specifier for size_t - possibly produced Mike's asserts he reported 4Apr2019
         wxLogDebug(_T("MD5 Line, 5th last:  %s"), (postEditMd5Arr[count - 5]).c_str());
         wxLogDebug(_T("MD5 Line, 4th last:  %s"), (postEditMd5Arr[count - 4]).c_str());
         wxLogDebug(_T("MD5 Line, 3rd last:  %s"), (postEditMd5Arr[count - 3]).c_str());
@@ -7370,7 +7370,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// Show first ten
 	{
 		size_t count = postEditMd5Arr.GetCount();
-		wxLogDebug(_T("MD5 Lines count:   %d"), count);
+		wxLogDebug(_T("MD5 Lines count:   %zu"), count); // whm 8Apr2019 changed from %d to %zu - the format specifier for size_t
 		wxLogDebug(_T("MD5 Line, first:   %s"), (postEditMd5Arr[0]).c_str());
 		wxLogDebug(_T("MD5 Line, second:  %s"), (postEditMd5Arr[1]).c_str());
 		wxLogDebug(_T("MD5 Line, third:   %s"), (postEditMd5Arr[2]).c_str());
@@ -7393,7 +7393,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
         {
             int offset = postEditOffsetsArr[index];
             wxString s = postEditText.Mid(offset, 16);
-            wxLogDebug(_T("MD5 Line, count = %d, 5th last offset:  %d  , first 16 Chars: %s"),
+            wxLogDebug(_T("MD5 Line, count = %zu, 5th last offset:  %d  , first 16 Chars: %s"), // whm 8Apr2019 changed from %d to %zu - the format specifier for size_t
                        countPost, offset, s.c_str());
         }
 	}
@@ -8731,7 +8731,7 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 		// show what the subspan of text is
 		unsigned int nSpan = (unsigned int)((pStart + pMapStruct->endOffset) - pStrBegin);
 		wxString str = wxString(pStrBegin, nSpan);
-		wxLogDebug(_T("MapMd5ArrayToItsText(), map index = %d: nSpan = %d, textSpan = %s"),lineIndex, nSpan, str.c_str());
+		wxLogDebug(_T("MapMd5ArrayToItsText(), map index = %d: nSpan = %u, textSpan = %s"),lineIndex, nSpan, str.c_str()); // whm 8Apr2019 changed from %d to %u - unsigned int
 #endif
 #endif
 #if defined(_DEBUG) && defined(JUL15)
@@ -8741,7 +8741,7 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 			// show what the subspan of text is
 			unsigned int nSpan = (unsigned int)((pStart + pMapStruct->endOffset) - pStrBegin);
 			wxString str = wxString(pStrBegin, nSpan);
-			wxLogDebug(_T("map index = %d: nSpan = %d, textSpan = %s"),lineIndex, nSpan, str.c_str());
+			wxLogDebug(_T("map index = %d: nSpan = %u, textSpan = %s"),lineIndex, nSpan, str.c_str()); // whm 8Apr2019 changed from %d to %u - unsigned int
 		}
 #endif
 		// the next test should be superfluous, but no harm in it
@@ -9119,7 +9119,7 @@ wxString GetUpdatedText_UsfmsChanged(
 
 #if defined(_DEBUG) && defined(JUL15)
 			//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-			wxLogDebug(_T("PRE-\\v 1 Material: postEdit start & end indices [%d,%d], mapped to [%d,%d], Substring: %s"),
+			wxLogDebug(_T("PRE-\\v 1 Material: postEdit start & end indices [%d,%d], mapped to [%zu,%zu], Substring: %s"), // whm modified %d to %zu for size_t
 				postEditStart, postEditEnd, pPostEditArr_StartMap->startOffset,
 				pPostEditArr_LastMap->endOffset, substring.c_str());
 #endif
@@ -9315,7 +9315,7 @@ wxString GetUpdatedText_UsfmsChanged(
 				bStructureOrTextHasChanged = TRUE;
 #if defined(_DEBUG) && defined(JUL15)
 //#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-					wxString msg = _T("bPTorBE_verse_empty block: fromEditorStart %d  ,  fromEditorEnd %d  , fromEditorMd5Arr count %d  start: %s  end: %s");
+					wxString msg = _T("bPTorBE_verse_empty block: fromEditorStart %d  ,  fromEditorEnd %d  , fromEditorMd5Arr count %zu  start: %s  end: %s"); // whm modified %d to %zu for size_t
 					msg = msg.Format(msg, fromEditorStart, fromEditorEnd, fromEditorMd5Arr.GetCount(),
 						fromEditorMd5Arr.Item(fromEditorStart).c_str(), fromEditorMd5Arr.Item(fromEditorEnd).c_str());
 					wxLogDebug(msg);
@@ -9336,7 +9336,7 @@ wxString GetUpdatedText_UsfmsChanged(
 				{
 #if defined(_DEBUG) && defined(JUL15)
 //#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-					wxString msg = _T("bAI_verse_empty block: postEditStart %d  ,  postEditEnd %d  , postEditMd5Arr count %d  start: %s  end: %s");
+					wxString msg = _T("bAI_verse_empty block: postEditStart %d  ,  postEditEnd %d  , postEditMd5Arr count %zu  start: %s  end: %s"); // whm modified %d to %zu for size_t
 					msg = msg.Format(msg, postEditStart, postEditEnd, postEditMd5Arr.GetCount(),
 						postEditMd5Arr.Item(postEditStart).c_str(), postEditMd5Arr.Item(postEditEnd).c_str());
 					wxLogDebug(msg);
@@ -9483,7 +9483,7 @@ wxString GetUpdatedText_UsfmsChanged(
 #if defined(_DEBUG) && defined(JUL15)
 //#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 							// debug code
-							wxString msg = _T("Conflict: Retain PT: fromEditorStart %d  ,  fromEditorEnd %d  , count %d  substring: %s");
+							wxString msg = _T("Conflict: Retain PT: fromEditorStart %d  ,  fromEditorEnd %d  , count %zu  substring: %s"); // whm modified %d to %zu for size_t
 							msg = msg.Format(msg, fromEditorStart, fromEditorEnd, fromEditorOffsetsArr.GetCount(), substring.c_str());
 							wxLogDebug(msg);
 #endif
@@ -9499,7 +9499,7 @@ wxString GetUpdatedText_UsfmsChanged(
 #if defined(_DEBUG) && defined(JUL15)
 //#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 							// debug code
-							wxString msg = _T("Conflict: Forcing AI: postEditStart %d  ,  postEditEnd %d  , count %d  substring: %s");
+							wxString msg = _T("Conflict: Forcing AI: postEditStart %d  ,  postEditEnd %d  , count %zu  substring: %s"); // whm modified %d to %zu for size_t
 							msg = msg.Format(msg, postEditStart, postEditEnd, postEditOffsetsArr.GetCount(), substring.c_str());
 							wxLogDebug(msg);
 #endif
@@ -9841,7 +9841,7 @@ void MeldConflictResolutionsBackIntoActionsArray(wxArrayPtrVoid& collabActionsAr
 			// 	AI_verse_version has not been changed, so no need to update it
 //#if defined(_DEBUG) && defined(JUL15)
 #if defined(_DEBUG)
-			wxLogDebug(_T("MeldConflictResolutions...() actionsIndex %d:   [ USING AI VERSION]"), actionsIndex);
+			wxLogDebug(_T("MeldConflictResolutions...() actionsIndex %u:   [ USING AI VERSION]"), actionsIndex); // whm modified %d to %u for unsigned int
 #endif
 		}
 		else
@@ -9853,7 +9853,7 @@ void MeldConflictResolutionsBackIntoActionsArray(wxArrayPtrVoid& collabActionsAr
 			pAction->PTorBE_verse_version = pCR->PTorBEText_edited;
 //#if defined(_DEBUG) && defined(JUL15)
 #if defined(_DEBUG)
-			wxLogDebug(_T("MeldConflictResolutions...() actionsIndex %d:   [ USING PT VERSION]\n %s"),
+			wxLogDebug(_T("MeldConflictResolutions...() actionsIndex %u:   [ USING PT VERSION]\n %s"), // whm modified %d to %u for unsigned int
 				actionsIndex, pCR->PTorBEText_edited.c_str());
 #endif
 		}
@@ -9910,7 +9910,7 @@ void MeldConflictsUserCancelBackIntoActionsArray(wxArrayPtrVoid& collabActionsAr
 
 //#if defined(_DEBUG) && defined(JUL15)
 #if defined(_DEBUG)
-		wxLogDebug(_T("MeldConflictResolutions...() CANCEL by user: actionsIndex %d:   [ USING PT ORIGINAL VERSION]\n %s"),
+		wxLogDebug(_T("MeldConflictResolutions...() CANCEL by user: actionsIndex %u:   [ USING PT ORIGINAL VERSION]\n %s"), // whm modified %d to %u for unsigned int
 			actionsIndex, pAction->PTorBE_verse_version.c_str());
 #endif
 	}
