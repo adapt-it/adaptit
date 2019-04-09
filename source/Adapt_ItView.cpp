@@ -18080,18 +18080,16 @@ void CAdapt_ItView::AdjustDialogPosition(wxDialog* pDlg)
     // way is found to provide this info for all window managers, etc."
     // Note: All calls that have no wxDC as a parameter deal in display device/pixels, and
     // MM_TEXT mapping mode, never in logical coordinates (or other mapping modes).
-	int displayX;
-	int displayY;
-	int displayWidth;
-	int displayHeight;
+	//int displayX;
+	//int displayY;
+	//int displayWidth;
+	//int displayHeight;
 
     // whm 9Apr2019 modified to do dialog position adjustments taking into 
     // consideration the resolution of the particular display on which AI is 
     // actually running on. That makes for a more accurate positioning of the 
     // dialog, especially when running on a secondary monitor that has a 
     // significantly smaller vertical resolution than the primary monitor.
-    unsigned int numMonitors;
-    numMonitors = wxDisplay::GetCount();
     unsigned int mainFrmDisplayIndex = 0; // index 0 is the primary monitor, 1 and higher are secondary monitors
     // Detect which display index our AI main frame is displaying on
     mainFrmDisplayIndex = wxDisplay::GetFromWindow(pApp->GetMainFrame());
@@ -18099,10 +18097,6 @@ void CAdapt_ItView::AdjustDialogPosition(wxDialog* pDlg)
     // create an instance of wxDisplay for thisDisplay and get its rectScreen (may be primary or a secondary display)
     wxDisplay thisDisplay(mainFrmDisplayIndex);
     rectScreen = thisDisplay.GetClientArea();
-    displayX = rectScreen.GetLeft();
-    displayY = rectScreen.GetTop();
-    displayWidth = rectScreen.GetWidth();
-    displayHeight = rectScreen.GetHeight();
     // The following old coding only gets the rectScreen of the primary monitor.
     // If the app is running on a secondary monitor, the wxRect size returned in
     // the ::wxClientDisplayRect() ref parameters does not accurately represent the 
