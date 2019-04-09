@@ -77,6 +77,7 @@ extern size_t aSequNum; // use with TOKENIZE_BUG
 #include <wx/busyinfo.h>
 #include <wx/dynlib.h> // for wxDynamicLibrary
 #include <wx/odcombo.h>
+#include <wx/display.h>  // for wxDisplay
 
 // whm refactored printing 10Oct2016
 // ------------------------------------------------------------
@@ -18066,6 +18067,7 @@ void CAdapt_ItView::AdjustDialogPosition(wxDialog* pDlg)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CLayout* pLayout = GetLayout();
 	wxASSERT(pApp != NULL);
+
 	// place the dialog window so as not to obscure things
 	// work out where to place the dialog window
 	int nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
@@ -18082,9 +18084,34 @@ void CAdapt_ItView::AdjustDialogPosition(wxDialog* pDlg)
 	int displayY;
 	int displayWidth;
 	int displayHeight;
-	::wxClientDisplayRect(&displayX,&displayY,&displayWidth,&displayHeight);
+
+    // whm 9Apr2019 modified to do dialog position adjustments taking into 
+    // consideration the resolution of the particular display on which AI is 
+    // actually running on. That makes for a more accurate positioning of the 
+    // dialog, especially when running on a secondary monitor that has a 
+    // significantly smaller vertical resolution than the primary monitor.
+    unsigned int numMonitors;
+    numMonitors = wxDisplay::GetCount();
+    unsigned int mainFrmDisplayIndex = 0; // index 0 is the primary monitor, 1 and higher are secondary monitors
+    // Detect which display index our AI main frame is displaying on
+    mainFrmDisplayIndex = wxDisplay::GetFromWindow(pApp->GetMainFrame());
+    wxASSERT(mainFrmDisplayIndex != wxNOT_FOUND); // if wxNOT_FOUND value -1 is returned the main frame is not displaying on any monitor
+    // create an instance of wxDisplay for thisDisplay and get its rectScreen (may be primary or a secondary display)
+    wxDisplay thisDisplay(mainFrmDisplayIndex);
+    rectScreen = thisDisplay.GetClientArea();
+    displayX = rectScreen.GetLeft();
+    displayY = rectScreen.GetTop();
+    displayWidth = rectScreen.GetWidth();
+    displayHeight = rectScreen.GetHeight();
+    // The following old coding only gets the rectScreen of the primary monitor.
+    // If the app is running on a secondary monitor, the wxRect size returned in
+    // the ::wxClientDisplayRect() ref parameters does not accurately represent the 
+    // secondary monitor's rectangular resolution. If it has significantly lower
+    // resolution, this will skew the adjusted position placing the dialog partly 
+    // or completely out of view on the monitor the dialog is displaying on.
+	//::wxClientDisplayRect(&displayX,&displayY,&displayWidth,&displayHeight);
 	// units for returned values from next call are in screen/device coords (pixels)
-	rectScreen = wxRect(displayX,displayY,displayWidth,displayHeight);
+	//rectScreen = wxRect(displayX,displayY,displayWidth,displayHeight);
 	wxClientDC dc(pApp->GetMainFrame()->canvas);
 	canvas->DoPrepareDC(dc); //OnPrepareDC(&dc); // adjust origin
 
