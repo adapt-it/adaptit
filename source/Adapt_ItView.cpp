@@ -18135,6 +18135,19 @@ void CAdapt_ItView::AdjustDialogPosition(wxDialog* pDlg)
     // rectScreen.left) below: because the actual width (before items are hidden) is much
     // greater than the displayed width, the following calculations place the dialog much
     // left of center. We won't bother setting the horizontal position.
+    //
+    // whm 9Apr2019 Note: The more important reason to retain the horizontal position
+    // rather than using the ptBoxTopLeft.x value in width calculations here, is because
+    // the ptBoxTopLeft.x value as determined by the ClientToScreen() call gives a horizontal
+    // x-value based on the whole desktop - even when it represents the "screen" as it is 
+    // extended across two monitors - either left or right of the monitor which is displaying 
+    // the app's main frame window. Whereas the rectScreen value calculated above is based 
+    // on just the display monitor which the app's main frame window is displaying on.
+    // We note also that, although the ptBoxTopLeft.y vertical position in "screen coords" 
+    // may also differ on a secondary monitor due to a different vertical resolution, the 
+    // difference is not as great since the vertical resolution of most monitors doesn't 
+    // differ a lot between higher and lower resolution monitors especially with the trend 
+    // toward wide-screen monitors.
 	if (ptBoxTopLeft.y + height < rectScreen.GetBottom() - 50 - dlgHeight)
 	{
         // put dlg near the bottom of screen, or 30 pixels under the box's strip Roland

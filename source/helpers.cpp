@@ -10016,6 +10016,10 @@ bool HasParagraphMkr(wxString& str)
 //                  (a SetSize() call will do the job, after this function returns)
 // myLeftCoord  <-  left, in screen coords, where the left of the dialog is to be placed
 //                  (a SetSize() call will do the job, after this function returns)
+// whm 10Apr2019 modified to keep the dialog confined to the same monitor that the
+// application is running/displaying on. We employ a xOffsetToSecondaryMonitor to
+// ensure the dialog stays with the running/displaying app on the same monitor, and
+// we get a rectScreen specific to that monitor.
 void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w, int h,
 				int XPos, int YPos, int& myTopCoord, int& myLeftCoord)
 {
@@ -10025,10 +10029,26 @@ void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w,
 
 	//int displayWidth, displayHeight;
 	//::wxDisplaySize(&displayWidth,&displayHeight); // returns 1920 by 1080 on my XPS
-							//machine even when AI window is on left (smaller) monitor
+    //machine even when AI window is on left (smaller) monitor
 
 	wxRect rectScreen;
-	rectScreen = wxGetClientDisplayRect(); // a global wx function
+    // whm 9Apr2019 modified. Determine which monitor the app's main frame is displaying
+    // on and get its client area rectScreen.
+    unsigned int mainFrmDisplayIndex = 0; // index 0 is the primary monitor, 1 and higher are secondary monitors
+    // Detect which display index our AI main frame is displaying on
+    mainFrmDisplayIndex = wxDisplay::GetFromWindow(pApp->GetMainFrame());
+    wxASSERT(mainFrmDisplayIndex != wxNOT_FOUND); // if wxNOT_FOUND value -1 is returned the main frame is not displaying on any monitor
+    // whm 9Apr2019 removed call of wxGetClientDisplayRect() below as it only gets
+    // the primary display's screen, whereas the thisDisplay.GetClientArea() call
+    // replacing it, gets the rectScreen of the actual monitor the app is displaying on.
+	//rectScreen = wxGetClientDisplayRect(); // a global wx function
+    //
+    // Create an instance of wxDisplay for thisDisplay and get its rectScreen (may 
+    // be primary or a secondary display)
+    wxDisplay thisDisplay(mainFrmDisplayIndex);
+    rectScreen = thisDisplay.GetClientArea();
+    // whm Note: More adjustments are needed below to keep the dialog's horizontal
+    // positioning on the same monitor that the main frame's window is displaying on.
 	int stripheight = m_nTwoLineDepth;
 	wxRect rectDlg(x,y,w,h);
 	rectDlg = NormalizeRect(rectDlg); // in case we ever change from MM_TEXT mode // use our own
@@ -10041,6 +10061,22 @@ void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w,
 	int phraseBoxHeight;
 	int phraseBoxWidth;
 	pApp->m_pTargetBox->GetTextCtrl()->GetSize(&phraseBoxWidth,&phraseBoxHeight); // it's the width we want // whm 12Jul2018 added GetTextCtrl()-> part
+    // whm Note: The top-left corner of the phrasebox YPos and XPos, is calculated in the caller 
+    // via the CalcScrolledPosition() and ClientToScreen() calls. They are in screen pixels 
+    // based on the whole extended display from the 0,0 point on the primary monitor.
+    int xOffsetToSecondaryMonitor = 0; // default to no offset for single monitor calcs
+    // Calculate an xOffsetToSecondaryMonitor if thisDisplay is not the primary display.
+    if (!thisDisplay.IsPrimary())
+    {
+        // AI and its dialog is displaying on a secondary monitor, so get an xOffsetToSecondaryMonitor
+        // value for use in myLeftCoord below.
+        // The primary monitor is always the one having index 0, so get the primary monitor's
+        // metrics.
+        unsigned int primaryDisplayIndex = 0;
+        wxDisplay primaryDisplay(primaryDisplayIndex);
+        wxRect rectScreenPrimary = primaryDisplay.GetClientArea();
+        xOffsetToSecondaryMonitor = rectScreenPrimary.GetWidth();
+    }
 	int pixelsAvailableAtTop = YPos - stripheight; // remember box is in line 2 of strip
 	int pixelsAvailableAtBottom = rectScreen.GetBottom() - stripheight - pixelsAvailableAtTop - 20; // 20 for status bar
 	int pixelsAvailableAtLeft = XPos - 10; // -10 to clear away from the phrase box a little bit
@@ -10075,13 +10111,18 @@ void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w,
 				myTopCoord = myTopCoord + 20; // if we have to cut off any, cut off the dialog's top
 		}
 	}
+    // whm 10Apr2019 added the xOffsetToSecondaryMonitor to the myLeftCoord below. When the app is
+    // displaying on the primary monitor xOffsetToSecondaryMonitor is 0, but when the app is
+    // displaying on a secondary monitor xOffsetToSecondaryMonitor is the width of the primary
+    // monitor in pixels. This should work whether the secondary monitor is expanding the desktop
+    // to the right or to the left (with negative x offset) of the primary monitor.
 	if (bAtRightIsBetter)
 	{
-		myLeftCoord = rectScreen.GetWidth() - dlgWidth;
+		myLeftCoord = rectScreen.GetWidth() - dlgWidth + xOffsetToSecondaryMonitor;
 	}
 	else
 	{
-		myLeftCoord = 0;
+        myLeftCoord = xOffsetToSecondaryMonitor; // was 0;
 	}
 }
 
