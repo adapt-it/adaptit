@@ -18093,6 +18093,48 @@ void CAdapt_ItView::AdjustDialogPosition(wxDialog* pDlg)
     unsigned int mainFrmDisplayIndex = 0; // index 0 is the primary monitor, 1 and higher are secondary monitors
     // Detect which display index our AI main frame is displaying on
     mainFrmDisplayIndex = wxDisplay::GetFromWindow(pApp->GetMainFrame());
+   
+    unsigned int numMonitors;
+    numMonitors = wxDisplay::GetCount();
+    // whm 11Apr2019 added the following test to check whether mainFrmDisplayIndex is 
+    // within the range of detected monitors. If it is a bad value it will generate a crash.
+    // We can avoid the crash by checking for a bad mainFrmDisplayIndex value, and if so,
+    // we just set some reasonable myTopCoord and myLeftCoord values that would center the 
+    // dialog on the primary monitor.
+    if (mainFrmDisplayIndex == wxNOT_FOUND || mainFrmDisplayIndex < 0 || mainFrmDisplayIndex >(numMonitors - 1))
+    {
+        // Couldn't determine a valid myMonitor value, so just put the dialog
+        // centered on the primary monitor (index 0).
+        unsigned int primaryDisplay = 0;
+        wxDisplay thisDisplay(primaryDisplay);
+        rectScreen = thisDisplay.GetClientArea();
+        // Now get the dialog metrics - width and height
+        // whm note: Best to use GetSize() rather than GetClientSize() when determining 
+        // the rect of the dialog's window.
+        wxRect rectDlg = pDlg->GetSize();
+        rectDlg = NormalizeRect(rectDlg); // in case we ever change from MM_TEXT mode // use our own
+        int dlgHeight = rectDlg.GetHeight();
+        int dlgWidth = rectDlg.GetWidth();
+        wxASSERT(dlgHeight > 0);
+        int halfDisplayH, halfDisplayW, halfDlgH, halsDlgW, myTopCoord, myLeftCoord, x, y;
+        x = 0;
+        y = 0;
+        halfDisplayH = rectScreen.GetHeight() / 2;
+        halfDisplayW = rectScreen.GetWidth() / 2;
+        halfDlgH = dlgHeight / 2;
+        halsDlgW = dlgWidth / 2;
+        myTopCoord = y + halfDisplayH - halfDlgH;
+        myLeftCoord = x + halfDisplayW - halsDlgW;
+        pDlg->SetSize(
+            myLeftCoord, 
+            myTopCoord,
+            wxDefaultCoord, //300, // width, dummy value overridden by wxSIZE_USE_EXISTING below
+            wxDefaultCoord, //200, // height, ditto
+            wxSIZE_USE_EXISTING);
+        wxLogDebug("MainFrm NOT VISIBLE on any monitor - placing dialog centered on primary monitor!");
+        return;
+    }
+    
     wxASSERT(mainFrmDisplayIndex != wxNOT_FOUND); // if wxNOT_FOUND value -1 is returned the main frame is not displaying on any monitor
     // create an instance of wxDisplay for thisDisplay and get its rectScreen (may be primary or a secondary display)
     wxDisplay thisDisplay(mainFrmDisplayIndex);
@@ -18223,6 +18265,46 @@ void CAdapt_ItView::AdjustDialogPositionByClick(wxDialog* pDlg,wxPoint ptClick)
     unsigned int mainFrmDisplayIndex = 0; // index 0 is the primary monitor, 1 and higher are secondary monitors
                                           // Detect which display index our AI main frame is displaying on
     mainFrmDisplayIndex = wxDisplay::GetFromWindow(pApp->GetMainFrame());
+
+    unsigned int numMonitors;
+    numMonitors = wxDisplay::GetCount();
+    // whm 11Apr2019 added the following test to check whether mainFrmDisplayIndex is 
+    // within the range of detected monitors. If it is a bad value it will generate a crash.
+    // We can avoid the crash by checking for a bad mainFrmDisplayIndex value, and if so,
+    // we just set some reasonable myTopCoord and myLeftCoord values that would center the 
+    // dialog on the primary monitor.
+    if (mainFrmDisplayIndex == wxNOT_FOUND || mainFrmDisplayIndex < 0 || mainFrmDisplayIndex >(numMonitors - 1))
+    {
+        // Couldn't determine a valid myMonitor value, so just put the dialog
+        // centered on the primary monitor (index 0).
+        unsigned int primaryDisplay = 0;
+        wxDisplay thisDisplay(primaryDisplay);
+        rectScreen = thisDisplay.GetClientArea();
+        // Now get the dialog metrics - width and height
+        wxRect rectDlg = pDlg->GetSize();
+        rectDlg = NormalizeRect(rectDlg); // in case we ever change from MM_TEXT mode // use our own
+        int dlgHeight = rectDlg.GetHeight();
+        int dlgWidth = rectDlg.GetWidth();
+        wxASSERT(dlgHeight > 0);
+        int halfDisplayH, halfDisplayW, halfDlgH, halsDlgW, myTopCoord, myLeftCoord, x, y;
+        x = 0;
+        y = 0;
+        halfDisplayH = rectScreen.GetHeight() / 2;
+        halfDisplayW = rectScreen.GetWidth() / 2;
+        halfDlgH = dlgHeight / 2;
+        halsDlgW = dlgWidth / 2;
+        myTopCoord = y + halfDisplayH - halfDlgH;
+        myLeftCoord = x + halfDisplayW - halsDlgW;
+        pDlg->SetSize(
+            myLeftCoord,
+            myTopCoord,
+            wxDefaultCoord, //300, // width, dummy value overridden by wxSIZE_USE_EXISTING below
+            wxDefaultCoord, //200, // height, ditto
+            wxSIZE_USE_EXISTING);
+        wxLogDebug("MainFrm NOT VISIBLE on any monitor - placing dialog centered on primary monitor!");
+        return;
+    }
+
     wxASSERT(mainFrmDisplayIndex != wxNOT_FOUND); // if wxNOT_FOUND value -1 is returned the main frame is not displaying on any monitor
                                                   // create an instance of wxDisplay for thisDisplay and get its rectScreen (may be primary or a secondary display)
     wxDisplay thisDisplay(mainFrmDisplayIndex);
@@ -18256,8 +18338,11 @@ void CAdapt_ItView::AdjustDialogPositionByClick(wxDialog* pDlg,wxPoint ptClick)
 	// we need to know the location and size of the dialog which is to have
 	// its location adjusted
 	wxRect rectDlg;
-	pDlg->GetClientSize(&rectDlg.width,&rectDlg.height); // dialog's window
-	rectDlg = NormalizeRect(rectDlg); // use our own from helpers.h
+    // whm 11Apr2019 revised next call to use GetSize() rather than GetClientSize()
+    // when determining the rect of the dialog's window.
+    // pDlg->GetClientSize(&rectDlg.width, &rectDlg.height); // dialog's window
+    pDlg->GetSize(&rectDlg.width, &rectDlg.height); // dialog's window
+    rectDlg = NormalizeRect(rectDlg); // use our own from helpers.h
 	int dlgHeight = rectDlg.GetHeight();
 	int dlgWidth = rectDlg.GetWidth();
 	wxASSERT(dlgHeight > 0);

@@ -10037,6 +10037,37 @@ void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w,
     unsigned int mainFrmDisplayIndex = 0; // index 0 is the primary monitor, 1 and higher are secondary monitors
     // Detect which display index our AI main frame is displaying on
     mainFrmDisplayIndex = wxDisplay::GetFromWindow(pApp->GetMainFrame());
+
+    unsigned int numMonitors;
+    numMonitors = wxDisplay::GetCount();
+    // whm 11Apr2019 added the following test to check whether mainFrmDisplayIndex is 
+    // within the range of detected monitors. If it is a bad value it will generate a crash.
+    // We can avoid the crash by checking for a bad mainFrmDisplayIndex value, and if so,
+    // we just set some reasonable myTopCoord and myLeftCoord values that would center the 
+    // dialog on the primary monitor.
+    if (mainFrmDisplayIndex == wxNOT_FOUND || mainFrmDisplayIndex < 0 || mainFrmDisplayIndex >(numMonitors - 1))
+    {
+        // Couldn't determine a valid myMonitor value, so just put the dialog
+        // centered on the primary monitor (index 0).
+        unsigned int primaryDisplay = 0;
+        wxDisplay thisDisplay(primaryDisplay);
+        rectScreen = thisDisplay.GetClientArea();
+        // Now get the dialog metrics - width and height
+        wxRect rectDlg(x, y, w, h);
+        rectDlg = NormalizeRect(rectDlg); // in case we ever change from MM_TEXT mode // use our own
+        int dlgHeight = rectDlg.GetHeight();
+        int dlgWidth = rectDlg.GetWidth();
+        wxASSERT(dlgHeight > 0);
+        int halfDisplayH, halfDisplayW, halfDlgH, halsDlgW;
+        halfDisplayH = rectScreen.GetHeight() / 2;
+        halfDisplayW = rectScreen.GetWidth() / 2;
+        halfDlgH = dlgHeight / 2;
+        halsDlgW = dlgWidth / 2;
+        myTopCoord = y + halfDisplayH - halfDlgH;
+        myLeftCoord = x + halfDisplayW - halsDlgW;
+        wxLogDebug("MainFrm NOT VISIBLE on any monitor - placing dialog centered on primary monitor!");
+        return;
+    }
     wxASSERT(mainFrmDisplayIndex != wxNOT_FOUND); // if wxNOT_FOUND value -1 is returned the main frame is not displaying on any monitor
     // whm 9Apr2019 removed call of wxGetClientDisplayRect() below as it only gets
     // the primary display's screen, whereas the thisDisplay.GetClientArea() call
@@ -10229,8 +10260,42 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
 	phraseBoxTopLeft.x = XPos; // the 'left' value, in screen coords
 	phraseBoxTopLeft.y = YPos; // the 'top' value, in screen coords
 	// From this point we can get the monitor the phrasebox is displaying on
-	unsigned int myMonitor = wxDisplay::GetFromPoint(phraseBoxTopLeft);
-
+    //
+    // whm 11Apr2019 modified. The detection of myMonitor should not be done
+    // with the wxDisplay::GetFromPoint() function, because if the phrasebox
+    // is scrolled up or down and not visible - beyond the virtual boundary of 
+    // the monitor, or if the main frame is moved down so the phrasebox is not
+    // in view but below the boundary of the monitor, GetFromPoint() won't find it!
+    // It is better to attempt detection using the GetFromWindow(pApp->GetMainFrame())
+    // function, so I've changed the call below to use GetFromWindow().
+    // Testing shows that even with the phrasebox scrolled far above or below the
+    // virtual boundary of the monitor, or even when nearly all AI's main frame is
+    // moved off the monitor's screen, the GetFromWindow() call will still succeed.
+	//unsigned int myMonitor = wxDisplay::GetFromPoint(phraseBoxTopLeft);
+    unsigned int myMonitor = wxDisplay::GetFromWindow(pApp->GetMainFrame());
+    // whm 11Apr2019 added the following test to check whether myMonitor is within the
+    // range of detected monitors. If the user were to position AI's main frame down
+    // so that the phraseBoxTopLeft point is not visible on the monitor, then the 
+    // GetFromPoint(phraseBoxTopLeft) call above will fail and generate a crash.
+    // We can avoid the crash by checking for a bad myMonitor value, and if so, we just
+    // set some reasonable myTopCoord and myLeftCoord values that would center the 
+    // dialog on the primary monitor.
+    if (myMonitor == wxNOT_FOUND || myMonitor < 0 || myMonitor >(numMonitors - 1))
+    {
+        // Couldn't determine a valid myMonitor value, so just put the dialog
+        // centered on the primary monitor.
+        pArea = (wxRect*)arrAreas.Item(0); // get pArea of primary monitor (0)
+        int halfDisplayH, halfDisplayW, halfDlgH, halsDlgW;
+        halfDisplayH = pArea->GetHeight() / 2;
+        halfDisplayW = pArea->GetWidth() / 2;
+        halfDlgH = dlgHeight / 2;
+        halsDlgW = dlgWidth / 2;
+        myTopCoord = y + halfDisplayH - halfDlgH;
+        myLeftCoord = x + halfDisplayW - halsDlgW;
+        wxLogDebug("PhraseBox NOT VISIBLE on any monitor - placing dialog centered on primary monitor!");
+        return;
+    }
+    //
 	// Get the rectangle which is the client area (i.e. where our windows are able to be
 	// drawn) on myMonitor, and from it work out the displayWidth and displayHeight
 	// (maximums) for that monitor
