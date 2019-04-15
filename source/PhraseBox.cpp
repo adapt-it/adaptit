@@ -8416,22 +8416,40 @@ void CPhraseBox::OnTogglePhraseBoxButton(wxCommandEvent & WXUNUSED(event))
 // same name) simply calls the handler below. Since the list's parent is the 
 // canvas the event gets triggered there, but handled here. Hence, this handler
 // has no presence in the CPhraseBox event table at the beginning of this file.
-void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & WXUNUSED(event))
+void CPhraseBox::OnListBoxItemSelected(wxCommandEvent &event)
 {
     // This is only called when a list item is selected, not when Enter pressed 
     // within the dropdown's edit box
+
+	// BEW 10Apr19 experiment to hack round the occasional +1 selection error
+	// int GetSelection() and SetSelection(int n) are members of wxCommandEvent,
+	// and so to are long GetExtraLong() const, and void SetExtraLong(long extraLong);
+	// so I'll try getting the int value for the item clicked by the user, and if
+	// it is correct when returned here, I can build code to hack round the
+	// selection error which occasionally happens for the dropdown (I click a
+	// line in the list, but the end result is that the next item in the list
+	// gets selected and put into the phrasebox.)
+	//int nClickedItem = event.GetSelection();
+	//long extraLong = (long)nClickedItem;
+	//event.SetExtraLong(extraLong);
+	// BEW 10Apr19 - OUCH! nClickedItem is returned as 3, when I click on the
+	// 3rd list item, but wxListBox is a 0-based item list, it should have
+	// returned 2. So the hack attempt won't work. I have to find out how come
+	// the index is 1 greater than it should be. I'll continue adapting, and
+	// track success or failure using the wxLogDebug() call below, try find 
+	// a clue why sometimes it's right and sometimes it's 1 more
+	wxUnusedVar(event);
 
     // whm 21Aug2018 added code to prevent a selection from being entered into the
     // phrasebox during free translation mode
     if (!gpApp->m_bFreeTranslationMode)
     {
-
         wxString selItemStr;
         selItemStr = this->GetListItemAdjustedforPhraseBox(TRUE); // whm 17Jul2018 added TRUE sets m_bEmptyAdaptationChosen = TRUE
 
 #if defined(_DEBUG) //&& defined(_NEWDRAW)
-        wxLogDebug(_T("CPhraseBox::OnListBoxItemSelected() line %d: at start: selItemStr: %s , for replacing box text: %s , at index: %d , m_bEmptyAdaptationChosen %d"),
-            __LINE__, selItemStr.c_str(), gpApp->m_targetPhrase.c_str(), this->GetDropDownList()->GetSelection(), (int)m_bEmptyAdaptationChosen);
+        wxLogDebug(_T("%s::%s() line %d: at start: selItemStr: %s , for replacing box text: %s , at index: %d , m_bEmptyAdaptationChosen %d"),
+            __FILE__, __func__, __LINE__, selItemStr.c_str(), gpApp->m_targetPhrase.c_str(), this->GetDropDownList()->GetSelection(), (int)m_bEmptyAdaptationChosen);
 #endif
         gpApp->m_targetPhrase = selItemStr;
         this->GetTextCtrl()->ChangeValue(selItemStr); //this->GetTextCtrl()->ChangeValue(selItemStr); // use of ChangeValue() or SetValue() resets the IsModified() to FALSE
