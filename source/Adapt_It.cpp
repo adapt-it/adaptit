@@ -16261,12 +16261,12 @@ bool CAdapt_ItApp::ParatextIsRunning()
         do
         {
             wxString sProcess = pe32.szExeFile;
-            //wxLogDebug(_T("PROCESS NAME = %s"),sProcess); //
+            //wxLogDebug(_T("PROCESS NAME = %s"),sProcess,c_str()); //
 
             if (sProcess.Contains(_T("Paratext")))
             {
                 // Process found
-                wxLogDebug(_T("PARATEXT PROCESS FOUND = %s"), sProcess);
+                wxLogDebug(_T("PARATEXT PROCESS FOUND = %s"), sProcess.c_str());
                 bIsRunning = TRUE;
                 break;
             }

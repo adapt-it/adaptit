@@ -1,4 +1,22 @@
-﻿Version 6.9.3 bug fix update 28 February 2019
+﻿Version 6.9.4 update 12 April 2019
+----------------------------------------------
+Feature changes and new features in 6.9.4
+--------------------------------------------------------------------------------------------
+* Many dialogs have been tweaked to have a better arrangement and alignment of 
+the OK and Cancel buttons, as well as better margin settings between the dialog 
+elements and the dialog frame. Some dialogs, the Edit Source Text dialog, for 
+example, have been simplified by moving the dialog's comments to a separate
+"Help..." button.
+---------------------------------------------
+Bug fixes in 6.9.4 update
+---------------------------------------------
+* Fixed some selection inconsistencies between the phrasebox contents and which 
+line of the drop down list was selected.
+* Fixed problems with removing <no adaptation> entries from the drop down list.
+ 
+
+--------------------------------------------
+Version 6.9.3 bug fix update 28 February 2019
 ----------------------------------------------
 Feature changes and new features in 6.9.3
 --------------------------------------------------------------------------------------------
