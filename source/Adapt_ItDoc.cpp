@@ -23760,7 +23760,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									   // on the working directory having previously
 									   // being set in the caller at the call of
 									   // EnumerateDocFiles()
-		wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheck(): OnOpenDocument() failed, line 21,746 in Adapt_itDoc.cpp, so check was aborted"));
+		wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheck(): OnOpenDocument() failed, line 23,763 in Adapt_itDoc.cpp, so check was aborted"));
 
 		// update the progress bar
 		wxString msg;
@@ -23786,7 +23786,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
  
 		// BEW 30Jul16 Move active location now to sn = 0, because if the active location happened to
 		// have been at an inconsistency, the following UpdateDoc....() call will put a single instance of
-		// the inconsistency into the KB, and it it had been deliberately removed in order to allow
+		// the inconsistency into the KB, and if it had been deliberately removed in order to allow
 		// splitting the meaning, or correcting a typo occurring in many places, those inconsistencies
 		// would not be recognised for what they are. So safest place is to have the active location
 		// at the start - it's typically the Book Code's CSourcePhrase. ReOpenDocument() will eventually

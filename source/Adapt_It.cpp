@@ -626,27 +626,27 @@ bool gbFreeTranslationJustRemovedInVFMdialog = FALSE;
 /// toggle command is turned back off.
 bool gbSaveHilightingSetting = FALSE; // *** NOTE *** in version 6 & higher, this protection might not be needed - noone has checked as yet
 
-                                      // The above declarations moved here from the View's global space
+// The above declarations moved here from the View's global space
 
-                                      /// For support of book folders mode and the option of binary or xml intput/output when
-                                      /// doing the Transform Adaptations to Glosses operation - which needs to work whether book
-                                      /// mode is currently on or not and whether book folders are present or not, (and for any
-                                      /// possible mix of xml or binary kb files and document files; in fact, the same
-                                      /// considerations about file type and book folders mode are relevant to any operation
-                                      /// involving the enumerated set of documents - so also relevant to restoring the knowledge
-                                      /// base from the existing documents and reporting retranslatiszons). TRUE if the current
-                                      /// project's Adaptations folder contains Bible book folders (whether or not book mode is
-                                      /// currently on) (for XML or binary, a local Boolean will suffice).
+/// For support of book folders mode and the option of binary or xml intput/output when
+/// doing the Transform Adaptations to Glosses operation - which needs to work whether book
+/// mode is currently on or not and whether book folders are present or not, (and for any
+/// possible mix of xml or binary kb files and document files; in fact, the same
+/// considerations about file type and book folders mode are relevant to any operation
+/// involving the enumerated set of documents - so also relevant to restoring the knowledge
+/// base from the existing documents and reporting retranslatiszons). TRUE if the current
+/// project's Adaptations folder contains Bible book folders (whether or not book mode is
+/// currently on) (for XML or binary, a local Boolean will suffice).
 bool gbHasBookFolders = FALSE; //
 
-                               // for support of auto-capatalization
+// for support of auto-capatalization
 
-                               /// whm added 12Aug04 Initial flag for auto-cap support possible. This flag keeps track of
-                               /// initial checkbox on "Define Any Lower To Upper Case Equivalences" Wizard panel/Dialog
-                               /// that reads: [ ]Check here if the source text contains both capital letters (upper case)
-                               /// and small letters (lower case). The remaining controls on the panel do not appear
-                               /// unless this checkbox is checked. This value is now stored in the
-                               /// AI-ProjectConfiguration.aic file.
+/// whm added 12Aug04 Initial flag for auto-cap support possible. This flag keeps track of
+/// initial checkbox on "Define Any Lower To Upper Case Equivalences" Wizard panel/Dialog
+/// that reads: [ ]Check here if the source text contains both capital letters (upper case)
+/// and small letters (lower case). The remaining controls on the panel do not appear
+/// unless this checkbox is checked. This value is now stored in the
+/// AI-ProjectConfiguration.aic file.
 bool gbSrcHasUcAndLc = FALSE;
 
 /// Switch for turning auto-capitalization support on or off.
