@@ -56,6 +56,7 @@
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
+extern int ID_DROP_DOWN_LIST;
 
 IMPLEMENT_DYNAMIC_CLASS(CMyListBox, wxListBox)
 
@@ -64,7 +65,8 @@ BEGIN_EVENT_TABLE(CMyListBox, wxListBox)
 	//EVT_KEY_UP(CMyListBox::OnSysKeyUp)
 	EVT_KEY_DOWN(CMyListBox::OnSysKeyDown)
 	EVT_CHAR(CMyListBox::OnChar)
-END_EVENT_TABLE()
+    EVT_LISTBOX(ID_DROP_DOWN_LIST, CMyListBox::OnListBoxItemSelected) // detected here but handled by calling CPhraseBox::OnTogglePhraseBoxButton()
+    END_EVENT_TABLE()
 
 CMyListBox::CMyListBox() // default constructor
 {
@@ -214,4 +216,15 @@ void CMyListBox::OnChar(wxKeyEvent& event)
 	//wxChar ch;
 	//ch = event.GetKeyCode();
 	event.Skip();
+}
+
+void CMyListBox::OnListBoxItemSelected(wxCommandEvent & event)
+{
+    // for debugging the event
+    int eventID = event.GetId(); eventID = eventID; //int ID_DROP_DOWN_LIST = 22050;
+    int listBoxSel = event.GetSelection(); listBoxSel = listBoxSel;
+    wxString selStr = event.GetString(); selStr = selStr;
+    wxLogDebug("***InCMyListBox::OnListBoxItemSelected() selStr: %s at index %d", selStr.c_str(), listBoxSel);
+    // just testing!!!
+    event.Skip();
 }

@@ -108,9 +108,9 @@ public:
 		int nSelector); // BEW made public on 14Mar11, now called in view's OnDraw()
 
     // Some PhraseBox Getters
-    wxTextCtrl* GetTextCtrl(); // this gets the wxTextCtrl that has been created by the PhraseBoxDropDownFunc() in wxDesigner
-    CMyListBox* GetDropDownList(); // this gets the wxListBox that has been created by the PhraseBoxDropDownFunc() in wxDesigner
-    wxBitmapToggleButton* GetPhraseBoxButton(); // this gets the wxButton control that has been created by the PhraseBoxDropDownFunc() in wxDesigner
+    wxTextCtrl* GetTextCtrl(); // this gets the wxTextCtrl that was created by the App's DoCreatePhraseBox() function.
+    CMyListBox* GetDropDownList(); // this gets the CMyListBox (wxListBox) that was created by the App's CreatePhraseBox() function.
+    wxBitmapToggleButton* GetPhraseBoxButton(); // this gets the wxBitmapToggleButton control that was created by the App's CreatePhraseBox() function.
     // Some PhraseBox Setters
     void SetTextCtrl(wxTextCtrl* textCtrl);
     void SetDropDownList(CMyListBox* listBox);
@@ -221,17 +221,14 @@ public:
 	void OnEditUndo(wxCommandEvent& WXUNUSED(event));
 	void OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event));
 
-    // whm 12Jul2018 The events for the handlers below are actually caught in
-    // CAdapt_ItCanvas. The handlers there of the same name simply call these
-    // handlers below to do the actual handling of the events. Hence the handlers
-    // below do not have a presence in the CPhraseBox event table at the beginning
-    // of PhraseBox.cpp.
-    void OnTogglePhraseBoxButton(wxCommandEvent& event);
-    void OnListBoxItemSelected(wxCommandEvent& event);
+    // whm 12Apr2019 The events for the handlers below are actually caught in
+    // CAdapt_ItCanvas and are now handled there.
+    //void OnTogglePhraseBoxButton(wxCommandEvent& event);
+    //void OnListBoxItemSelected(wxCommandEvent& event);
 
 	int indexOfNoAdaptation;
 private:
-
+    // The private pointers of the components that make up the PhraseBox:
     wxTextCtrl* m_pTextCtrl;
     CMyListBox* m_pDropDownList;
     wxBitmapToggleButton* m_pPhraseBoxButton;

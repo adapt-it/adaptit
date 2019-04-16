@@ -2096,7 +2096,14 @@ class CAdapt_ItApp : public wxApp
 	wxTimer m_timer;
 
     // whm 12Jul2018 removed - no longer using FilterEvent() with new phrasebox
-    //virtual int FilterEvent(wxEvent& event);
+    virtual int FilterEvent(wxEvent& event);
+
+    // whm 15Apr2019 added the following m_nDropDownClickedItemIndex member in order to
+    // correct index of a clicked on item if a sudden scroll at left-click would cause
+    // a wrong index value for the item user intended to click on. It is initialized
+    // in OnInit() to -1. It is set by FilterEvent() to the index of the dropdown list
+    // item that user initially clicks on. It is interpreted by CPhraseBox::On
+    int m_nDropDownClickedItemIndex;
 
     // whm 12Jul2018 removed the following that were used with FilterEvent
     /*
