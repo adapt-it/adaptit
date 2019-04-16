@@ -1702,7 +1702,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 
     // whm modified 11July2018 to support quick selection of a translation equivalent.
     // The CPhraseBox stored on App's m_pTargetBox is created in the App's 
-    // DoCreatePhraseBox() fundtion. See comments there for more details.
+    // DoCreatePhraseBox() function. See comments there for more details.
     // The ID of the wxTextCtrl within the PhraseBox is set to a value of 22030 at the
     // beginning of the Adapt_It.cpp source file.
 

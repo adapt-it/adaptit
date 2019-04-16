@@ -39,6 +39,7 @@ protected:
 	//void OnSysKeyUp(wxKeyEvent& event);
 	void OnSysKeyDown(wxKeyEvent& event);
 	void OnChar(wxKeyEvent& event);
+    void OnListBoxItemSelected(wxCommandEvent & event);
 
 private:
 	// class attributes
