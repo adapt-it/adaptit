@@ -583,14 +583,31 @@ void CAdapt_ItCanvas::OnListBoxItemSelected(wxCommandEvent & event)
     // This is only called when a list item is selected, not when Enter pressed 
     // within the dropdown's edit box
 
-    // whm 15Apr2019 added a check to see if the list box index error has occurred,
-    // and if so, set the list box selection to what the user actually clicked on.
+    // whm 15Apr2019 Work-around for sudden scroll causing bad index value.
+    // This work-around checks to see if a drop down list box index error has occurred,
+    // and if so, sets the list box selection to what the user actually clicked on.
+    // The App's m_nDropDownClickedItemIndex value is set in the App's FilterEvent()
+    // function which detects the actual item the user clicked on before the class
+    // hierarchy messes with the vertical scroll position causing the click to be
+    // registered on a different item index. If that "true" index differs from what 
+    // has been passed on to OnListBoxItemSelected() handler, we force the index and
+    // list selection to be what the user actually clicked on.
+    // The index error usually only happens when there are a number of items in the
+    // drop down list, and the open list is partly below the client area of the main
+    // window. In this particular situation, when the user clicks on an item in the
+    // list, the screen content (including the list) suddenly scrolls up (enough to
+    // be able to see the entire list, presumably) resulting in the mouse click being 
+    // registered on an item farther down in the list than what the user intended.
+    // After a thorough investigation, the sudden scroll of the screen happens deep
+    // within the Windows-specific handling of its native list box - it is not the
+    // result of anything I can track down within AI's own code, nor within the 
+    // wxWidgets library routines for wxListBox.
     int eventID = event.GetId(); eventID = eventID; //int ID_DROP_DOWN_LIST = 22050;
     int listBoxSel = event.GetSelection();
     wxString selStr = event.GetString(); selStr = selStr;
-    wxLogDebug("***In CAdapt_ItCanvas::OnListBoxItemSelected() BEFORE correction selStr: %s at index %d", selStr.c_str(), listBoxSel);
     if (listBoxSel != pApp->m_nDropDownClickedItemIndex)
     {
+        wxLogDebug("***In CAdapt_ItCanvas::OnListBoxItemSelected() BEFORE correction selStr: %s at index %d", selStr.c_str(), listBoxSel);
         // The list box index error occurred, so set the selection back to what the user
         // just clicked on.
         event.SetId(pApp->m_nDropDownClickedItemIndex);
@@ -598,9 +615,9 @@ void CAdapt_ItCanvas::OnListBoxItemSelected(wxCommandEvent & event)
         // adjust the listBoxSel and selStr to their corrected values
         listBoxSel = pApp->m_pTargetBox->GetDropDownList()->GetSelection();
         selStr = pApp->m_pTargetBox->GetDropDownList()->GetString(listBoxSel);
+        wxLogDebug("***In CAdapt_ItCanvas::OnListBoxItemSelected() AFTER correction selStr: %s at index %d",selStr.c_str(),listBoxSel);
     }
     pApp->m_nDropDownClickedItemIndex = -1; // set the global back to -1
-    wxLogDebug("***In CAdapt_ItCanvas::OnListBoxItemSelected() AFTER correction selStr: %s at index %d",selStr.c_str(),listBoxSel);
 
     // whm 21Aug2018 added code to prevent a selection from being entered into the
     // phrasebox during free translation mode
