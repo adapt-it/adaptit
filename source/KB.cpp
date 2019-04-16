@@ -1296,7 +1296,7 @@ wxString CKB::AutoCapsMakeStorageString(wxString str, bool bIsSrc)
 	else
 	{
 		// must be a gloss or adaptation string
-		if (gbAutoCaps && gbSourceIsUpperCase)
+		if (gbAutoCaps && gbNonSourceIsUpperCase)
 		{
 			bNoError = m_pApp->GetDocument()->SetCaseParameters(str,FALSE);
 			if (bNoError && gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
@@ -2194,6 +2194,14 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 	bool bNoError = TRUE;
     m_pApp->m_pTargetBox->m_bBoxTextByCopyOnly = FALSE; // restore default value (should have been done in caller,
 						  // but this will make sure)
+	// BEW 15Apr19, a pTU has been found, so set pApp->nCount_NonDeleted = 0;
+	// prior to the testing loop below - we'll use the loop in a secondary way -
+	// to get a count of how many non-deleted translations are available in the
+	// pTU that has been found - we'll use this with a new enum value:
+	// member_exists_deleted_from_KB_KB_has_translations to support Mike Hore's
+	// need to edit KB and use ConsistencyCheck() to get the doc updated
+	m_pApp->nCount_NonDeleted = 0;
+
 	wxString adjusted = adaptation; // could have upper case initial character or non-initial location
 	if (gbAutoCaps)
 	{
@@ -2217,6 +2225,13 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 		pRefStr = (CRefString*)pos->GetData();
 		pos = pos->GetNext();
 		wxASSERT(pRefStr);
+
+		// BEW 15Apr19 added, augment counter if it is not a deleted KB entry
+		if (!pRefStr->m_bDeleted)
+		{
+			m_pApp->nCount_NonDeleted++;
+		}
+
 		//if (adaptation == pRefStr->m_translation) // BEW removed 8Feb13, to fix the logic
 													//error discussed above
 		if (adjusted == pRefStr->m_translation)

@@ -4185,6 +4185,8 @@ public:
 				// and there is only a single adaptation in KB for the source text, then it is
 				// used in the document at that location without asking the user via a dialog
 				// (requested by Mike Hore)
+	int     nCount_NonDeleted; // initialize to -1 for what would be the case if pTU is NULL
+
 
 public:
 

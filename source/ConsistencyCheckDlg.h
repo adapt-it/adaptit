@@ -102,6 +102,8 @@ protected:
 	void OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditTypeNew(wxCommandEvent& event);
 	void OnButtonIgnoreIt(wxCommandEvent& WXUNUSED(event));
+
+	int  GetMySelection(wxString& adaptn_str);
 private:
 	void EnableAdaptOrGlossBox(bool bEnable);
 	void EnableSourceBox(bool bEnable);

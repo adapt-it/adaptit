@@ -23855,6 +23855,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			pos1 = pos1->GetNext();
 			counter++;
 
+			pApp->nCount_NonDeleted = -1; // initialized to suit a pTU 'not found' result
+
 			// BEW added 23May16, to fix Mike's problem of lots of legacy upper-case-initial
 			// source text words & phrases in the KB causing lots of bogus inconsistencies
 			// when auto-capitalizing is ON. We want those just to be ignored
@@ -24400,8 +24402,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// First, check to make sure there is but a single translation
 							wxString newAdaption = _T("");
 							bool bIsUnique = pKBCopy->GetUniqueTranslation(nWords,key,newAdaption);
-							if (bIsUnique)
+							if (bIsUnique )
 							{
+								wxASSERT(pApp->nCount_NonDeleted == 1);
+
 								// Blind fix this one, do a StoreText() on pKB, then iterate the loop
 								pSrcPhrase->m_adaption = newAdaption; // StoreText() will do
 															// this, but no harm to do it here
@@ -24435,20 +24439,35 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 								continue;
 							}
-						}
+						}  // end TRUE block for test: if (bBlindFix)
+
 						// If bBlindFix was not chosen in the cons.chk.type dialog, then
 						// do the legacy showing of the consistency check dialog
-						bInconsistency = TRUE;
-						inconsistencyType = member_exists_flag_on_PTUexists_deleted_Refstr;
-						pAutoFixRec = new AutoFixRecord;
-						pAutoFixRec->nWords = nWords;
-						pAutoFixRec->key = key;
-						pAutoFixRec->oldAdaptation = adaption;
-						pAutoFixRec->finalAdaptation = adaption; // BEW 2nov12 initialize to this value
-						pAutoFixRec->incType = inconsistencyType;
-						pAutoFixRec->fixAction = no_GUI_needed; // a default value
-							// until such time as the dialog is shown and the user's
-							// fixit choice becomes known & replaces this value
+						if (pApp->nCount_NonDeleted < 1)
+						{
+							bInconsistency = TRUE;
+							inconsistencyType = member_exists_flag_on_PTUexists_deleted_Refstr;
+							pAutoFixRec = new AutoFixRecord;
+							pAutoFixRec->nWords = nWords;
+							pAutoFixRec->key = key;
+							pAutoFixRec->oldAdaptation = adaption;
+							pAutoFixRec->finalAdaptation = adaption; // BEW 2nov12 initialize to this value
+							pAutoFixRec->incType = inconsistencyType;
+							pAutoFixRec->fixAction = store_nonempty_meaning;
+						}
+						// BEW 15Apr19 handle Mike Hore's issue, it's basically the same stuff
+						else if (pApp->nCount_NonDeleted >= 1)
+						{
+							bInconsistency = TRUE;
+							inconsistencyType = member_exists_deleted_from_KB_KB_has_translations;
+							pAutoFixRec = new AutoFixRecord;
+							pAutoFixRec->nWords = nWords;
+							pAutoFixRec->key = key;
+							pAutoFixRec->oldAdaptation = adaption;
+							pAutoFixRec->finalAdaptation = adaption; // BEW 15Apr19 initialize to this value
+							pAutoFixRec->incType = inconsistencyType;
+							pAutoFixRec->fixAction = user_list_choice;
+						}
 #ifdef CONSCHK
 						wxLogDebug(_T("5. for DLG  member_exists_flag_on_PTUexists_deleted_Refstr (revamped legacy)  at sn = %d , m_key:  %s   m_adaption:  %s"),
 							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
@@ -24663,6 +24682,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							case no_GUI_needed:
 							case turn_flag_on:
 							case restore_meaning_to_doc:
+							case user_list_choice:
 							default:
 								{
 									// nothing to do for these here
@@ -24717,6 +24737,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							case turn_flag_on:
 							case turn_flag_off:
 							case restore_meaning_to_doc:
+							case user_list_choice:
 							default:
 								{
 									// nothing to do for these here
@@ -24728,6 +24749,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						break;
 					case member_exists_flag_on_PTUexists_deleted_Refstr:
 					case member_exists_flag_off_PTUexists_deleted_RefStr:
+					case member_exists_deleted_from_KB_KB_has_translations:
 						{
 							// if the adaptation is null, then assume user wants it that way
 							// and so store an empty string, else store whatever it is -- and
@@ -24889,6 +24911,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							case turn_flag_on:
 							case turn_flag_off:
 							case restore_meaning_to_doc:
+							case user_list_choice:
 							default:
 								{
 									// nothing to do for these here
@@ -25190,6 +25213,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						break;
 					case member_exists_flag_on_PTUexists_deleted_Refstr:
 					case member_exists_flag_off_PTUexists_deleted_RefStr:
+					case member_exists_deleted_from_KB_KB_has_translations:
 						{
 							// The revamped legacy dialog - now simplified; and if both an
 							// adaptation is available and <Not In KB> is available (which
@@ -25205,7 +25229,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						dlg.m_pApp = pApp;
 						dlg.m_pKBCopy = pKBCopy;
 						dlg.m_pTgtUnit = pTU; // could be null
-						pAutoFixRec->oldAdaptation = pSrcPhrase->m_adaption;; // BEW added 2Nov12
+						pAutoFixRec->oldAdaptation = pSrcPhrase->m_adaption; // BEW added 2Nov12
 						dlg.m_finalAdaptation = adaption; // initialize final chosen adaptation or gloss
 						dlg.m_pSrcPhrase = pSrcPhrase;
 						// get the chapter and verse
@@ -25229,9 +25253,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							}
 							else
 							{
-							// get and store the FixItAction (all 3 possibilities are storage
+							// get and store the FixItAction (all 4 possibilities are storage
 							// actions: store_nonempty_meaning, store_empty_meaning, or
-							// restore_meaning_to_doc); also get the user's final string
+							// restore_meaning_to_doc, or user_list_choice); also get the 
+							// user's final string
 							pAutoFixRec->fixAction = dlg.actionTaken;
 							pAutoFixRec->finalAdaptation = dlg.m_finalAdaptation; // could be "<Not In KB>"
 //#if defined(FWD_SLASH_DELIM)
