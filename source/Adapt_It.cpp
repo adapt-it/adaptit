@@ -7498,37 +7498,43 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
     return m_pMainFrame;
 }
 
-// whm 15Apr2019 testing use of App's FilterEvent() to see if we can keep the drop down list's index 
-// error from happening (when screen jumps up to show all of list), or force it to be the one 
-// actually clicked on before the screen jumps and index item gets wrong index selected. 
+// whm 15Apr2019 using the App's FilterEvent() to provide a work-around in the event that
+// the any drop down list's index error happens. This index error can happen when the drop
+// down list has many items in the list, and the list is open near the bottom of the main
+// window - usually with some items not visible below the window. The user clicks on a visible
+// item in the list, but in an instant the screen/canvas scrolls up a short distande (presumably
+// so that the whole list is in view) and the user's mouse click actually registers on a list
+// item farther down in the list. This FilterEvent() detects a wxEVT_LEFT_DOWN mouse event
+// made on the drop down list and sets the App's global m_nDropDownClickedItemIndex to the 
+// index of the actual item that the user intended to click on, so that the wrong index
+// and list selection can be detected and corrected in the Adapt_ItCanvas::OnListBoxItemSelected() 
+// handler.
 int CAdapt_ItApp::FilterEvent(wxEvent & event)
 {
     const wxEventType t = event.GetEventType();
     if (m_pTargetBox != NULL)
     {
-        // whm note: catching the wxEVT_LEFT_UP is too late, the index sel and str are already
-        // wrong by that time, so we have to intercept the wxEVT_LEFT_DOWN event.
+        // whm note: I tried catching the wxEVT_LEFT_UP event, but that is too late, the 
+        // index sel and str are already wrong by that time, so we have to intercept the 
+        // wxEVT_LEFT_DOWN event instead.
         if (t == wxEVT_LEFT_DOWN)
         {
-            int sel;
-            wxString str;
             if (event.GetId() == ID_DROP_DOWN_LIST)
             {
-                sel = this->m_pTargetBox->GetDropDownList()->GetSelection();
-                str = this->m_pTargetBox->GetDropDownList()->GetStringSelection();
-                // get the list item that is under the point where mouse clicked
-                wxPoint point;	// MFC passes CPoint point as second parameter to OnLButtonDown; wx gets it from the
-                                // wxMouseEvent via GetPosition. Both specify x an y coordinates relative to the upper
-                                // left corner of the window
-                                // Note: wxMouseEvent also has GetLogicalPosition() that automaticall translates to logical
-                                // position for the DC.
-                point = ((wxMouseEvent&)event).GetPosition();	// GetPosition() gets the point of the mouse click on the dropdown list
+                // The wxEVT_LEFT_DOWN event happened directly on the drop down list, so
+                // get the list item index that is under the point where mouse was clicked.
+                // GetPosition() gets the point of the mouse click on the dropdown list (screen coords).
+                wxPoint point;
+                point = ((wxMouseEvent&)event).GetPosition();	
                 int index = this->m_pTargetBox->GetDropDownList()->HitTest(point);
+                // Set the global m_nDropDownClickedItemIndex with the index value, which will be
+                // checked in Adapt_ItCanvas::OnListBoxItemSelected() against what propagated through
+                // to that handler. If what is propagated through to OnListBoxItemSelected() differs 
+                // from this m_nDropDownClickedItemIndex, the code there will correct the index and
+                // list selection to what it should be.
                 m_nDropDownClickedItemIndex = index;
-                wxLogDebug("FilterEvent: Hit test detected dropdown list item index %d was clicked on.",index);
+                wxLogDebug("In App's FilterEvent(): Hit test detected dropdown list item index %d was clicked on.",index);
             }
-            int debug = 0;
-            debug = debug;
         }
     }
     // Continue processing the event normally as well.
