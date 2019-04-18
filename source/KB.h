@@ -131,7 +131,7 @@ public:
 	bool			IsAlreadyInKB(int nWords, wxString key, wxString adaptation);
 	// overloaded version below, for use when Consistency Check is being done
 	bool			IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
-						CTargetUnit*& pTU, CRefString*& pRefStr, bool& bDeleted);
+						CTargetUnit*& pTU, CRefString*& pRefStr, bool& bDeleted, bool& bNonDeletedNonmatch );
 	bool			IsItNotInKB(CSourcePhrase* pSrcPhrase);
 	bool			IsNot_In_KB_inThisTargetUnit(CTargetUnit* pTU);
 	bool			IsDeleted_Not_In_KB_inThisTargetUnit(CTargetUnit* pTU);
@@ -153,8 +153,8 @@ public:
 	// save looking up which one is the deleted one in the caller a second time, return
 	// the pointer to the CRefString instance which the caller has to undelete, otherwise
 	// return NULL in that param
-	bool			IsAbsentFrom(CTargetUnit* pTU, wxString& str, bool& bItsPseudoDeleted, 
-						CRefString*& pRefStrDeleted); 
+	bool			IsAbsentFrom(CTargetUnit* pTU, wxString& str, bool& bItsPseudoDeleted,
+						CRefString*& pRefStrDeleted);
 	size_t			GetMinimumExtras(size_t& currEntriesAggregate); // BEW added 2Dec14
 	void			GuesserUpdate();
 
@@ -178,7 +178,7 @@ public:
 	void		StoreEntriesFromKbServer(KbServer* pKbServer);
 	// The following uses a KbEntryStruct instance, from the m_queue, to get the signature
 	// param values and merges that data to the local KB, in an OnIdle() call in CMainFrame
-	void		StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase, 
+	void		StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase,
 									wxString& username, bool bDeletedFlag);
 	// App's m_pKbServer[0] is associated with app's m_pKB; and m_pKbServer[1] is
 	// associated with m_pGlossingKB. Each CKB has a m_bGlossingKB member, FALSE for an
@@ -192,12 +192,12 @@ public:
 									wxString& username, bool bDeletedFlag);
 
 	// Does nothing if the project is not a KB sharing one, or if it is but sharing is
-	// currently disabled. Otherwise, it calls the create entry function synchronously. 
+	// currently disabled. Otherwise, it calls the create entry function synchronously.
 	// Error handling is encapsulated, and advisory only, so errors don't stop the app
 	void		DoCreateEntrySynchronously(wxString srcStr, CRefString* pRefString);
 
 	// Does nothing if the project is not a KB sharing one, or if it is but sharing is
-	// currently disabled. Otherwise, it call pseudo undelete function synchronously. 
+	// currently disabled. Otherwise, it call pseudo undelete function synchronously.
 	// Error handling is encapsulated, and advisory only, so errors don't stop the app
 	void		DoPseudoUndeleteSynchronously(wxString srcStr, CRefString* pRefString);
 
