@@ -2351,14 +2351,29 @@ void CPhraseBox::CloseDropDown()
 
 void CPhraseBox::PopupDropDownList()
 {
+    // whm 12Apr2019 modified.
+    // This PopupDropDownList() is only called from CMainFrame::OnIdle().
+    // I moved the ->Show() command to end of PopupDropDownList() (below)
+    // so that when painted on the screen, it will be in its final adjusted size.
+    // Perhaps this change will help eliminate any unexpected selection of 
+    // a different list item due to the list not being freshly painted.
     // Note: Button is not hidden, just show the list
-    this->GetDropDownList()->Show();
+    //this->GetDropDownList()->Show();
+    CAdapt_ItApp* pApp = &wxGetApp();
+    wxASSERT(pApp != NULL);
     int rectWidth = this->GetTextCtrl()->GetRect().GetWidth();
     // whm 24Jul2018 added. Extend the list horizontally so it spans the whole
     // area under the edit box and the dropdown button.
     int buttonWidth = this->GetPhraseBoxButton()->GetRect().GetWidth();
     rectWidth += (buttonWidth + 1); // incrememt rectWidth by width of button and 1-pixel space between.
+
+    // TODO for BEW: Check the following addition of a canvas Refresh() call to see if
+    // it helps prevent the list from registering a wrong index for list item click.
+    pApp->GetMainFrame()->canvas->Refresh();
+
     this->SetSizeAndHeightOfDropDownList(rectWidth);
+
+    this->GetDropDownList()->Show();
 }
 
 void CPhraseBox::HidePhraseBox()
@@ -6473,7 +6488,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
                 // We can just call the OnListBoxItemSelected() handler here as it
                 // does exactly what we need.
                 wxCommandEvent dummyevent;
-                OnListBoxItemSelected(dummyevent); 
+                pApp->GetMainFrame()->canvas->OnListBoxItemSelected(dummyevent);
                 // Note: The above OnListBoxItemSelected() call adjusts for <no adaptation> and 
                 // for case before putting the string selection into the phrasebox.
                 // 
@@ -7120,7 +7135,7 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
                     if (itemSel != -1)
                     {
                         wxCommandEvent dummyevent;
-                        this->OnListBoxItemSelected(dummyevent);
+                        pApp->GetMainFrame()->canvas->OnListBoxItemSelected(dummyevent);
                     }
                 }
             }
@@ -8372,12 +8387,12 @@ void CPhraseBox::OnLButtonUp(wxMouseEvent& event)
     GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar); //GetTextCtrl()->GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar);
 }
 
-// whm 12Jul2018 Note: The event for this PhraseBox button handler is detected 
-// in the event table of CAdapt_ItCanvas, but its handler (with the
-// same name) simply calls the handler below. Since the button's parent is the 
-// canvas the event gets triggered there, but handled here. Hence, this handler
-// has no presence in the CPhraseBox event table at the beginning of this file.
-void CPhraseBox::OnTogglePhraseBoxButton(wxCommandEvent & WXUNUSED(event))
+/*
+// whm 12Apr2019 removed. The OnTogglePhraseBoxButton() dropdown list button handler is 
+// detected and also handled in the event table of CAdapt_ItCanvas. Since the list's
+// parent is the canvas the event gets triggered there and not here in CPhraseBox.
+// Therefore, for efficiency we'll also handle it there. 
+void CPhraseBox::OnTogglePhraseBoxButton(wxCommandEvent & event)
 {
     CAdapt_ItApp* pApp = &wxGetApp();
     // whm 13Jul2018 note about focus. In our new 3-part phrasebox framework
@@ -8410,28 +8425,48 @@ void CPhraseBox::OnTogglePhraseBoxButton(wxCommandEvent & WXUNUSED(event))
     // in the phrasebox's edit box
     pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
 }
+*/
 
-// whm 12Jul2018 Note: The event for this PhraseBox dropdown list handler is 
-// detected in the event table of CAdapt_ItCanvas, but its handler (with the
-// same name) simply calls the handler below. Since the list's parent is the 
-// canvas the event gets triggered there, but handled here. Hence, this handler
-// has no presence in the CPhraseBox event table at the beginning of this file.
-void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & WXUNUSED(event))
+
+/*
+// whm 12Apr2019 removed. The OnListBoxItemSelected() dropdown list handler is 
+// detected and also handled in the event table of CAdapt_ItCanvas. Since the list's
+// parent is the canvas the event gets triggered there and not here in CPhraseBox.
+// Therefore, for efficiency we'll also handle it there. 
+void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & event)
 {
     // This is only called when a list item is selected, not when Enter pressed 
     // within the dropdown's edit box
+
+	// BEW 10Apr19 experiment to hack round the occasional +1 selection error
+	// int GetSelection() and SetSelection(int n) are members of wxCommandEvent,
+	// and so to are long GetExtraLong() const, and void SetExtraLong(long extraLong);
+	// so I'll try getting the int value for the item clicked by the user, and if
+	// it is correct when returned here, I can build code to hack round the
+	// selection error which occasionally happens for the dropdown (I click a
+	// line in the list, but the end result is that the next item in the list
+	// gets selected and put into the phrasebox.)
+	//int nClickedItem = event.GetSelection();
+	//long extraLong = (long)nClickedItem;
+	//event.SetExtraLong(extraLong);
+	// BEW 10Apr19 - OUCH! nClickedItem is returned as 3, when I click on the
+	// 3rd list item, but wxListBox is a 0-based item list, it should have
+	// returned 2. So the hack attempt won't work. I have to find out how come
+	// the index is 1 greater than it should be. I'll continue adapting, and
+	// track success or failure using the wxLogDebug() call below, try find 
+	// a clue why sometimes it's right and sometimes it's 1 more
+	wxUnusedVar(event);
 
     // whm 21Aug2018 added code to prevent a selection from being entered into the
     // phrasebox during free translation mode
     if (!gpApp->m_bFreeTranslationMode)
     {
-
         wxString selItemStr;
         selItemStr = this->GetListItemAdjustedforPhraseBox(TRUE); // whm 17Jul2018 added TRUE sets m_bEmptyAdaptationChosen = TRUE
 
 #if defined(_DEBUG) //&& defined(_NEWDRAW)
-        wxLogDebug(_T("CPhraseBox::OnListBoxItemSelected() line %d: at start: selItemStr: %s , for replacing box text: %s , at index: %d , m_bEmptyAdaptationChosen %d"),
-            __LINE__, selItemStr.c_str(), gpApp->m_targetPhrase.c_str(), this->GetDropDownList()->GetSelection(), (int)m_bEmptyAdaptationChosen);
+        wxLogDebug(_T("%s::%s() line %d: at start: selItemStr: %s , for replacing box text: %s , at index: %d , m_bEmptyAdaptationChosen %d"),
+            __FILE__, __func__, __LINE__, selItemStr.c_str(), gpApp->m_targetPhrase.c_str(), this->GetDropDownList()->GetSelection(), (int)m_bEmptyAdaptationChosen);
 #endif
         gpApp->m_targetPhrase = selItemStr;
         this->GetTextCtrl()->ChangeValue(selItemStr); //this->GetTextCtrl()->ChangeValue(selItemStr); // use of ChangeValue() or SetValue() resets the IsModified() to FALSE
@@ -8470,6 +8505,7 @@ void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & WXUNUSED(event))
         return;
     }
 }
+*/
 
 /*
 // whm 12Jul2018 removed - no longer using wxOwnerDrawnComboBox.

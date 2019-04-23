@@ -1129,6 +1129,21 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	// checked for above and prevented).
 	m_edTransStr = m_pEditOrAddTranslationBox->GetValue(); // keep showing the editable version
 	m_srcKeyStr = m_pTypeSourceBox->GetValue();
+	if (m_srcKeyStr.IsEmpty())
+	{
+		// BEW 16Apr19 m_pTypeSourceBox is the box for source list searching; but this
+		// is also used for case adjusting, and if empty, the case adjusting below which
+		// looks at the source text to see if making the case of the target text be
+		// lower case, won't do anything because there is no src text to check. So if
+		// empty, get the src text in there, so the case adjustments can work properly.
+		//  Get the source key from the src list selection.
+		int nSel = 0;
+		nSel = m_pListBoxKeys->GetSelection();
+		if (nSel != wxNOT_FOUND)
+		{
+			m_srcKeyStr = m_pListBoxKeys->GetString(nSel);
+		}
+	}
 	wxASSERT(pCurTgtUnit != 0);
 
 	// BEW 9Jun15, looking at what goes into KBserver, I noticed that no adjustment to

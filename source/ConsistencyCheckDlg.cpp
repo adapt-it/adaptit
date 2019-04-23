@@ -709,6 +709,10 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 	}
 	else
 	{
+		// Get latest choice by the user from the list
+		int nSel;
+		nSel = GetMySelection(m_adaptationStr);
+
 		// a new meaning is to be stored, and it might be an empty string, (so use the TRUE
 		// param in the StoreText() call later on, to support storing an empty string if
 		// it actually is empty)
@@ -718,10 +722,23 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 		}
 		else
 		{
-			actionTaken = store_nonempty_meaning;
+			// BEW 15Apr19 add this if-else block - not needed, but might be helpful sometime
+			if (m_pApp->nCount_NonDeleted == 1)
+			{
+				actionTaken = store_nonempty_meaning;
+				m_finalAdaptation = m_adaptationStr;
+			}
+			else
+			{
+				// must be two or more potential new adaptations
+				// (this use of nCount_NonDeleted is really not needed
+				// but I've supported it so that if it becomes important
+				// I can give differing end result)
+				actionTaken = user_list_choice;
+				m_finalAdaptation = m_adaptationStr;
+			}
 		}
 	}
-	m_finalAdaptation = m_adaptationStr;
 	event.Skip();
 }
 
@@ -772,6 +789,9 @@ void CConsistencyCheckDlg::OnRadioChangeInstead(wxCommandEvent& WXUNUSED(event))
 	m_pRadioChangeInstead->SetValue(TRUE);
 
 	EnableAdaptOrGlossBox(TRUE); // turns on both list and top right wxTextCtrl
+
+	// BEW 15Apr19, use the enum value member_exists_deleted_from_KB_KB_has_translations
+	// and FixItAction of user_list_choice, in OnOK(), if the user chooses a list entry
 	
 	//TransferDataToWindow(); // whm removed 21Nov11
 	m_pCheckAutoFix->SetValue(m_bDoAutoFix); // whm added 21Nov11
@@ -804,14 +824,8 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 	{
 		s = _("<no adaptation>");
 	}
-	int nSel;
-	nSel = m_pListBox->GetSelection();
-	wxString str = _T("");
-	if (nSel != wxNOT_FOUND)
-		str = m_pListBox->GetStringSelection();
-	if (str == s)
-		str = _T(""); // restore null string
-	m_adaptationStr = str;
+	int nSel; 
+	nSel = GetMySelection(m_adaptationStr);
 
 	// also ensure the relevant radio button is turned on
 	wxASSERT(m_pRadioAcceptHere != NULL);
@@ -826,3 +840,15 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 	m_pEditCtrlKey->ChangeValue(m_keyStr); // whm added 21Nov11
 }
 
+int CConsistencyCheckDlg::GetMySelection(wxString& adaptn_str)
+{
+	int nSeln = m_pListBox->GetSelection();
+	wxString s = _("<no adaptation>");
+	wxString str = _T("");
+	if (nSeln != wxNOT_FOUND)
+		str = m_pListBox->GetStringSelection();
+	if (str == s)
+		str = _T(""); // restore null string
+	adaptn_str = str;
+	return nSeln;
+}

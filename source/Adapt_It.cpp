@@ -7498,6 +7498,50 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
     return m_pMainFrame;
 }
 
+// whm 15Apr2019 using the App's FilterEvent() to provide a work-around in the event that
+// the any drop down list's index error happens. This index error can happen when the drop
+// down list has many items in the list, and the list is open near the bottom of the main
+// window - usually with some items not visible below the window. The user clicks on a visible
+// item in the list, but in an instant the screen/canvas scrolls up a short distande (presumably
+// so that the whole list is in view) and the user's mouse click actually registers on a list
+// item farther down in the list. This FilterEvent() detects a wxEVT_LEFT_DOWN mouse event
+// made on the drop down list and sets the App's global m_nDropDownClickedItemIndex to the 
+// index of the actual item that the user intended to click on, so that the wrong index
+// and list selection can be detected and corrected in the Adapt_ItCanvas::OnListBoxItemSelected() 
+// handler.
+int CAdapt_ItApp::FilterEvent(wxEvent & event)
+{
+    const wxEventType t = event.GetEventType();
+    if (m_pTargetBox != NULL)
+    {
+        // whm note: I tried catching the wxEVT_LEFT_UP event, but that is too late, the 
+        // index sel and str are already wrong by that time, so we have to intercept the 
+        // wxEVT_LEFT_DOWN event instead.
+        if (t == wxEVT_LEFT_DOWN)
+        {
+            if (event.GetId() == ID_DROP_DOWN_LIST)
+            {
+                // The wxEVT_LEFT_DOWN event happened directly on the drop down list, so
+                // get the list item index that is under the point where mouse was clicked.
+                // GetPosition() gets the point of the mouse click on the dropdown list (screen coords).
+                wxPoint point;
+                point = ((wxMouseEvent&)event).GetPosition();	
+                int index = this->m_pTargetBox->GetDropDownList()->HitTest(point);
+                // Set the global m_nDropDownClickedItemIndex with the index value, which will be
+                // checked in Adapt_ItCanvas::OnListBoxItemSelected() against what propagated through
+                // to that handler. If what is propagated through to OnListBoxItemSelected() differs 
+                // from this m_nDropDownClickedItemIndex, the code there will correct the index and
+                // list selection to what it should be.
+                m_nDropDownClickedItemIndex = index;
+                wxLogDebug("In App's FilterEvent(): Hit test detected dropdown list item index %d was clicked on.",index);
+            }
+        }
+    }
+    // Continue processing the event normally as well.
+    event.Skip();
+    return -1; // Event_Skip;
+}
+
 // whm 11July2018 disabling the contents of FilterEvent() as it should not be needed
 // in the refactored phrasebox
 /*
@@ -18252,6 +18296,8 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+    m_nDropDownClickedItemIndex = -1;
+
 	m_nOldSequNum = (int)wxNOT_FOUND; // initialize so I can jump code which expects a non
 									  // positive value, in PlacePhraseBox()
 	m_nCacheLeavingLocation = wxNOT_FOUND; // (-1) see full explanation in Adapt_It.h
@@ -30521,8 +30567,8 @@ CPlaceholder*	CAdapt_ItApp::GetPlaceholder()
 
 void CAdapt_ItApp::DoCreatePhraseBox()
 {
-    // Create the target box using custom constructor
-    // WX Note: Our TargetBox is now a child of the view's canvas (which
+    // Create the target box (PhraseBox) using this custom constructor.
+    // WX Note: Our PhraseBox is now a child of the view's canvas (which
     // itself is derived from wxScrolledWindow. As a child of the canvas
     // window, m_pTargetBox will be automatically destroyed when pView->canvas
     // is destroyed during doc/view's normal cleanup. That is, when our View is
@@ -30530,26 +30576,37 @@ void CAdapt_ItApp::DoCreatePhraseBox()
     // destroyed too. Therefore, the target box must not be deleted again in
     // the App's OnExit() method, when the App terminates.
 
-    // whm modified 11July2018 to support quick selection of a translation equivalent.
-    // The CPhraseBox stored on App's m_pTargetBox is now derived from a wxDesigner
-    // resource by the function PhraseBoxDropDownFunc(). It was previously derived
-    // from wxOwnerDrawnComboBox.
-    // The ID of the wxTextCtrl within the PhraseBoxDropDownFunc() is 
-    // const int ID_PHRASE_BOX, which has an int value of 22030 set at the beginning
-    // of this Adapt_It.cpp source file.
+    // whm modified 11July2018 to support quick selection of a translation equivalent
+    // via a dropdown list and dropdown button.
+    // The CPhraseBox stored on App's public pointer m_pTargetBox.
+    // While the PhraseBox is derived directly from wxTextCtrl, the PhraseBox class
+    // manages 3 separate controls that compose the entire PhraseBox:
+    //   1. an instance of CPhraseBox for its edit box control. CPhraseBox is derived
+    //      from wxTextCtrl. Its private pointer is m_pTextCtrl, but for historical
+    //      consistency, this pointer is directly assigned to its alias, the public 
+    //      member pointer m_pTargetBox.
+    //   2. an instance of CMyListBox for its drop down list. CMyListBox is derived
+    //      from wxListBox. Its private pointer is m_pDropDownList which is accessible
+    //      and setable via CPhraseBox::GetTextCtrl() and SetTextCtrl().
+    //   3. an instance of wxBitmapToggleButton for its drop down button. The button
+    //      has a private pointer m_pPhraseBoxButton which is accessible and setable
+    //      via CPhraseBox::GetDropDownList() and CPhraseBox::SetPhraseBoxButton().
+    // The PhraseBox is not created from a wxDesigner function, but is created here
+    // within DoCreatePhraseBox(). Since wxDesigner doesn't provide an ID for it,
+    // The ID of the PhraseBox is const int ID_PHRASE_BOX, which has an int value 
+    // of 22030 set at the beginning of this Adapt_It.cpp source file.
     wxArrayString dummyArrStr;
 
     // Now we use the CPhraseBox::CPhraseBox custom constructor to create the 
     // persistent phrasebox/targetbox assigning it to the App's m_pTargetBox 
-    // member. Its position and size is set programatically in code just as it
-    // was when it was derived from wxTextCtrl.
+    // member. Its position and size is set programatically in code.
 
     // When DoCreatePhraseBox() is called from the View's OnCreate() method at
     // program startup the m_pTargetBox pointer will be NULL. But when the
     // DoCreatePhraseBox() function is called after View creation, we must
     // first Destroy the old phrasebox objects, then create new ones. 
-    // First destroy any existing object pointed to by m_pTargetBox, then
-    // create it.
+    // First destroy any existing wxTextCtrl object pointed to by m_pTargetBox, 
+    // then create it.
     if (m_pTargetBox != NULL)
     {
         // whm 13Jul2018 note: calling m_pTargetBox->Hide() doesn't have any
@@ -30557,11 +30614,11 @@ void CAdapt_ItApp::DoCreatePhraseBox()
         // need to be hidden individually. Use the HidePhraseBox() function
         // instead.
         m_pTargetBox->HidePhraseBox(); // hides all parts of the new phrasebox
-        m_pTargetBox->Destroy();
+        m_pTargetBox->Destroy(); // destroys only the wxTextCtrl part
         m_pTargetBox = (CPhraseBox*)NULL;
     }
 
-    // Create the phrasebox's edit box. Like the dropdown list creation below, the
+    // Create the phrasebox's wxTextCtrl edit box. Like the dropdown list creation below, the
     // edit box is here created with a default position and size - it's size and position 
     // will be set dynamically by other code as the box changes locations and contents.
     m_pTargetBox = new CPhraseBox(
@@ -30577,12 +30634,13 @@ void CAdapt_ItApp::DoCreatePhraseBox()
     // Set the phrasebox's private pointer to the text control
     m_pTargetBox->SetTextCtrl(pTextCtrl);
 
-    // Now that m_pTarbetBox has been created, its methods, getters, setters, are available
-    // to us to set up the bitmap button and dropdown list that are associated with the new
-    // phrasebox.
+    // Now that a new CPhraseBox instance wxTextCtrl has been created, and its object
+    // pointer m_pTargetBox has been assigned above, CPhraseBox's methods, getters, setters, 
+    // are available to us to set up the bitmap button and dropdown list that are associated 
+    // with the new phrasebox.
 
-    // Next destroy any existing object pointed to by phrasebox's private member
-    // m_pPhraseBoxButton
+    // Next destroy any existing drop down button object pointed to by phrasebox's private member
+    // m_pPhraseBoxButton.
     wxBitmapToggleButton* pBitmapBtn = m_pTargetBox->GetPhraseBoxButton();
     if (pBitmapBtn != NULL)
     {
@@ -30593,14 +30651,20 @@ void CAdapt_ItApp::DoCreatePhraseBox()
 #if defined (__WXGTK__)
     pBitmapBtn = new wxBitmapToggleButton(GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, m_pTargetBox->bmp_dropbutton_normal, wxDefaultPosition, wxSize(30, 34));
 #else
-    pBitmapBtn = new wxBitmapToggleButton(GetMainFrame()->canvas, ID_BMTOGGLEBUTTON_PHRASEBOX, m_pTargetBox->bmp_dropbutton_normal, wxDefaultPosition, wxSize(22, 26));
+    pBitmapBtn = new wxBitmapToggleButton(
+        GetMainFrame()->canvas,
+        ID_BMTOGGLEBUTTON_PHRASEBOX,
+        m_pTargetBox->bmp_dropbutton_normal, 
+        wxDefaultPosition, 
+        wxSize(22, 26));
 #endif
     // Set the phrasebox's private pointer to the button
     m_pTargetBox->SetPhraseBoxButton(pBitmapBtn);
     
-    // Finally destroy any existing object pointed to by phrasebox's private member
-    // m_pDropDownList
-    // whm Note: Use our CMyListBox which is derived from wxListBox and is used in the Choose Translation dialog
+    // Finally destroy any existing drop down list object pointed to by phrasebox's private member
+    // m_pDropDownList.
+    // whm Note: Use our CMyListBox which is derived from wxListBox and is also used in the Choose 
+    // Translation dialog.
     CMyListBox* pListBox = m_pTargetBox->GetDropDownList();
     if (pListBox != NULL)
     {
@@ -30610,13 +30674,33 @@ void CAdapt_ItApp::DoCreatePhraseBox()
 
     // Create the dropdown list using a default position and size - it's size and position 
     // will be set dynamically by other code as the box changes locations and contents.
-    pListBox = new CMyListBox(GetMainFrame()->canvas, ID_DROP_DOWN_LIST, wxDefaultPosition, wxSize(80, 100), 0, NULL, wxLB_SINGLE);
+    // whm 15Apr2019 Note: The defs.h file defines the following flag
+    // /*  wxCommandEvents and the objects of the derived classes are forwarded to the */
+    // /*  parent window and so on recursively by default. Using this flag for the */
+    // /*  given window allows to block this propagation at this window, i.e. prevent */
+    // /*  the events from being propagated further upwards. The dialogs have this */
+    // /*  flag on by default. */
+    // #define wxWS_EX_BLOCK_EVENTS            0x00000002
+    // TODO: Determine if the wxWS_EX_BLOCK_EVENTS should be used in the new CMyListBox
+    // creation code below. Would this flag help prevent the sudden scroll that we've
+    // observed when clicking on an item in longer lists that result the wrong list
+    // item being selected (canvas and list scroll up before list item gets registered
+    // resulting in wrong item being selected).
+
+    pListBox = new CMyListBox(
+        GetMainFrame()->canvas,
+        ID_DROP_DOWN_LIST,
+        wxDefaultPosition, 
+        wxSize(80, 100), 
+        0, 
+        NULL, 
+        wxLB_SINGLE);
     // Set the phrasebox's private pointer to the list
     m_pTargetBox->SetDropDownList(pListBox);
 
     // whm 11July2018 Note: The above code creates the new PhraseBox.
     // To access the wxTextCtrl member of the phrasebox we use the access method 
-    // called GetTextCtrl() - using the same name that wxOwnerDrawnComboBox used to access
+    // called GetTextCtrl() - using the same name that wxOwnerDrawnComboBox uses to access
     // their text control. We set the pointer to the wxTextCtrl using SetTextCtrl().
     // To access the wxBitmapToggleButton member of the phrasebox we use the access method
     // called GetPhraseBoxButton(). We set the pointer to the wxBitmapToggleButton using
@@ -30629,7 +30713,7 @@ void CAdapt_ItApp::DoCreatePhraseBox()
 
     // [whm 13Jul2018 BELOW ARE OLD NOTES RE PROBLEM BEHAVIORS OF wxOwnerDrawnComboBox]
     // whm 16May2018 Note:
-    // TODO: Issue to resolve in Linux version: 
+    // Unique Issue to resolve in Linux version: 
     // Normal alphanumeric key presses in the Linux version do not get registered within
     // the phrasebox when the dropdown list is open. While the dropdown list is open the 
     // press of an alphanumeric key should close the dropdown list and the key should be

@@ -98,6 +98,11 @@ enum InconsistencyType {
 	flag_on_NotInKB_off_hasActiveNotInKB_in_KB, // done // use dlg for either normal entry or <Not In KB> 
 					// m_bNotInKB TRUE and ensure pTU have valid <Not In KB> entry
 	// BEW added next, 1Sep15, to support the "blind fix" feature Mike Hore requested
+	// ?? dunno what became of that!
+	// BEW 15Apr19 support Mike Hore's wish to edit KB extensively or a bit, and
+	// use ConsistencyCheck() to get his new adaptation choices into the doc at the
+	// right places
+	member_exists_deleted_from_KB_KB_has_translations
 };
 
 // some of these enum values are not actually needed, because they all are handled in ways
@@ -120,7 +125,11 @@ enum FixItAction {
 
     // next are the responses for member_empty_flag_on_PTUexists_deleted_Refstr (three
     // only), one is turn_flag_off, another is make_it_an_empty_entry, and another is
-	restore_meaning_to_doc
+	restore_meaning_to_doc,
+
+	// BEW 15Apr19 added this one to ensure the user gets a go at choosing from what
+	// the KB has for non-deleted entries for the given pTU
+	user_list_choice
 };
 
 // struct for storing auto-fix inconsistencies when doing "Consistency Check..." menu item;

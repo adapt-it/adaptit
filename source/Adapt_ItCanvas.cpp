@@ -530,18 +530,145 @@ void CAdapt_ItCanvas::DiscardEdits()
 
 // whm 12Jul2018 Note: This PhraseBox Button handler only forwards event handling
 // to the handler of the same name in CPhraseBox.
+// whm 12Apr2019 moved code from CPhraseBox::OnTogglePhraseBoxButton() to this 
+// CAdapt_ItCanvas::OnTogglePhraseBoxButton() handler to be handled here only.
 void CAdapt_ItCanvas::OnTogglePhraseBoxButton(wxCommandEvent & event)
 {
+    //CAdapt_ItApp* pApp = &wxGetApp();
     CAdapt_ItApp* pApp = &wxGetApp();
-    pApp->m_pTargetBox->OnTogglePhraseBoxButton(event);
+
+    // for debugging the event
+    int eventID = event.GetId(); eventID = eventID; //int ID_BMTOGGLEBUTTON_PHRASEBOX = 22040;
+                                 
+    // whm 13Jul2018 note about focus. In our new 3-part phrasebox framework
+    // we get to control focus. When the new phrasebox button is clicked, it
+    // grabs the focus, so we need to explicitly put the focus back to the
+    // phrasebox's edit box whenever the dropdown button is toggled.
+    // The focus is restored and proper selections done in the 
+    // SetFocusAndSetSelectionAtLanding() call at the end of this function
+
+    if (pApp->m_pTargetBox->GetDropDownList()->IsShown())
+    {
+        pApp->m_pTargetBox->GetDropDownList()->Hide();
+    }
+    else
+    {
+        if (pApp->m_pTargetBox->GetDropDownList()->GetCount() > 1)
+        {
+            pApp->m_pTargetBox->GetDropDownList()->Show();
+        }
+        else
+        {
+            pApp->m_pTargetBox->GetDropDownList()->Hide();
+        }
+    }
+    // When showing the list, we initially put focus into the phrasebox's 
+    // edit box. Within the phrasebox we detect any navigation key presses
+    // that are intended to move the list highlight and make actual selections
+    // from the list - such as WXK_DOWN and WXK_UP. 
+    // In any case, whether the list open or closed, our focus should be kept
+    // in the phrasebox's edit box
+    pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+
+    //pApp->m_pTargetBox->OnTogglePhraseBoxButton(event);
 }
 
 // whm 12Jul2018 Note: This PhraseBox Button handler only forwards event handling
 // to the handler of the same name in CPhraseBox.
+// whm 12Apr2019 moved code from CPhraseBox::OnListBoxItemSelected() to this 
+// CAdapt_ItCanvas::OnListBoxItemSelected() handler to be handled here only.
 void CAdapt_ItCanvas::OnListBoxItemSelected(wxCommandEvent & event)
 {
     CAdapt_ItApp* pApp = &wxGetApp();
-    pApp->m_pTargetBox->OnListBoxItemSelected(event);
+    // This is only called when a list item is selected, not when Enter pressed 
+    // within the dropdown's edit box
+
+    // whm 15Apr2019 Work-around for sudden scroll causing bad index value.
+    // This work-around checks to see if a drop down list box index error has occurred,
+    // and if so, sets the list box selection to what the user actually clicked on.
+    // The App's m_nDropDownClickedItemIndex value is set in the App's FilterEvent()
+    // function which detects the actual item the user clicked on before the class
+    // hierarchy messes with the vertical scroll position causing the click to be
+    // registered on a different item index. If that "true" index differs from what 
+    // has been passed on to OnListBoxItemSelected() handler, we force the index and
+    // list selection to be what the user actually clicked on.
+    // The index error usually only happens when there are a number of items in the
+    // drop down list, and the open list is partly below the client area of the main
+    // window. In this particular situation, when the user clicks on an item in the
+    // list, the screen content (including the list) suddenly scrolls up (enough to
+    // be able to see the entire list, presumably) resulting in the mouse click being 
+    // registered on an item farther down in the list than what the user intended.
+    // After a thorough investigation, the sudden scroll of the screen happens deep
+    // within the Windows-specific handling of its native list box - it is not the
+    // result of anything I can track down within AI's own code, nor within the 
+    // wxWidgets library routines for wxListBox.
+    int eventID = event.GetId(); eventID = eventID; //int ID_DROP_DOWN_LIST = 22050;
+    int listBoxSel = event.GetSelection();
+    wxString selStr = event.GetString(); selStr = selStr;
+    if (listBoxSel != pApp->m_nDropDownClickedItemIndex)
+    {
+        wxLogDebug("***In CAdapt_ItCanvas::OnListBoxItemSelected() BEFORE correction selStr: %s at index %d", selStr.c_str(), listBoxSel);
+        // The list box index error occurred, so set the selection back to what the user
+        // just clicked on.
+        event.SetId(pApp->m_nDropDownClickedItemIndex);
+        pApp->m_pTargetBox->GetDropDownList()->SetSelection(pApp->m_nDropDownClickedItemIndex);
+        // adjust the listBoxSel and selStr to their corrected values
+        listBoxSel = pApp->m_pTargetBox->GetDropDownList()->GetSelection();
+        selStr = pApp->m_pTargetBox->GetDropDownList()->GetString(listBoxSel);
+        wxLogDebug("***In CAdapt_ItCanvas::OnListBoxItemSelected() AFTER correction selStr: %s at index %d",selStr.c_str(),listBoxSel);
+    }
+    pApp->m_nDropDownClickedItemIndex = -1; // set the global back to -1
+
+    // whm 21Aug2018 added code to prevent a selection from being entered into the
+    // phrasebox during free translation mode
+    if (!pApp->m_bFreeTranslationMode)
+    {
+
+        wxString selItemStr;
+        selItemStr = pApp->m_pTargetBox->GetListItemAdjustedforPhraseBox(TRUE); // whm 17Jul2018 added TRUE sets m_bEmptyAdaptationChosen = TRUE
+
+#if defined(_DEBUG) //&& defined(_NEWDRAW)
+        wxLogDebug(_T("CPhraseBox::OnListBoxItemSelected() line %d: at start: selItemStr: %s , for replacing box text: %s , at index: %d , m_bEmptyAdaptationChosen %d"),
+            __LINE__, selItemStr.c_str(), pApp->m_targetPhrase.c_str(), pApp->m_pTargetBox->GetDropDownList()->GetSelection(), (int)pApp->m_pTargetBox->m_bEmptyAdaptationChosen);
+#endif
+        pApp->m_targetPhrase = selItemStr;
+        pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(selItemStr); //this->GetTextCtrl()->ChangeValue(selItemStr); // use of ChangeValue() or SetValue() resets the IsModified() to FALSE
+
+        if (!pApp->m_pTargetBox->GetTextCtrl()->IsModified()) // need to call SetModified on m_pTargetBox before calling SetValue
+        {
+            pApp->m_pTargetBox->GetTextCtrl()->SetModified(TRUE); // Set as modified so that CPhraseBox::OnPhraseBoxChanged() will do its work // whm 12Jul2018 added GetTextCtrl()->
+        }
+
+        // whm 15Sep2018 added the Modify(TRUE) statement below, otherwise the document is not made 'dirty' by simply
+        // selecting a dropdown list item. When a list box item is selected, it does not automatically trigger the 
+        // OnPhraseBoxChanged() function. The code below activates the "Save" button in the toolbar for situations 
+        // in which the document was not previously in a 'dirty' state, and the only edit performed after at that 
+        // point is to select a different translation from the dropdown list before attempting to save.
+        pApp->GetDocument()->Modify(TRUE);
+
+        pApp->m_pTargetBox->m_bAbandonable = FALSE; // this is done in CChooseTranslation::OnOK()
+                                      // whm 15Jul2018 added following flag settings to get selected string to stick
+        pApp->m_bUserTypedSomething = TRUE;
+
+        // whm 13Jul2018 added. The new phrasebox's list doesn't automatically closed upon
+        // making a selection, so we do it here, and ensure focus is in the edit box.
+        pApp->m_pTargetBox->CloseDropDown();
+
+        // BEW 27Jul18 we need to force gap recalculations etc here, before focus is put
+        // in the phrasebox
+        pApp->GetDocument()->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase());
+        pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); //3rd  is default steadyAsSheGoes
+
+        pApp->m_pTargetBox->SetFocusAndSetSelectionAtLanding(); // whm 13Aug2018 modified
+    }
+    else
+    {
+        // free translation mode in effect, just beep and return
+        ::wxBell();
+        return;
+    }
+
+    //pApp->m_pTargetBox->OnListBoxItemSelected(event);
 }
 
 // BEW 22Jun10, no changes needed for support of kbVersion 2
