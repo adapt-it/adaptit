@@ -8434,7 +8434,6 @@ void CPhraseBox::OnTogglePhraseBoxButton(wxCommandEvent & event)
 // parent is the canvas the event gets triggered there and not here in CPhraseBox.
 // Therefore, for efficiency we'll also handle it there. 
 void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & event)
->>>>>>> 1f523a17151bf9b60ae9b52e0509f637636afe72
 {
     // This is only called when a list item is selected, not when Enter pressed 
     // within the dropdown's edit box

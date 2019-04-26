@@ -1013,7 +1013,7 @@ KB_Entry CKB::GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRe
 /// BEW 8Jun10, updated for kbVersion 2 support (legacy code kept, commented out, in case
 /// at a future date we want to use it for a 'clear kb' [of deleted entries] capability)
 // BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
-// whm TODO: Remove the int m_nWordsInPhrase parameter which is not used 
+// whm TODO: Remove the int m_nWordsInPhrase parameter which is not used
 void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int m_nWordsInPhrase)
 {
 	if (m_bGlossingKB)
@@ -2148,10 +2148,12 @@ bool CKB::GetUniqueTranslation(int nWords, wxString key, wxString& adaptation)
 // matching non-deleted pRefStr matched (returning these saves a second lookup when the
 // function returns FALSE)
 bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
-						CTargetUnit*& pTgtUnit, CRefString*& pRefStr, bool& bDeleted)
+						CTargetUnit*& pTgtUnit, CRefString*& pRefStr, bool& bDeleted, bool& bNonDeletedNonmatch )
  {
+    CRefString* pNonDelRefStr = NULL;               // mrh
 	pTgtUnit = NULL;
 	bDeleted = FALSE;
+	bNonDeletedNonmatch = FALSE;
 
 	// is there a targetunit for this key in the KB?
 	// Note: FindMatchInKB() internally does an AutoCapsLookup(), so that does any needed
@@ -2220,6 +2222,9 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 	// of these in the loop below has to be deemed a non-match, so that only matches with
 	// the m_bDeleted flag with value FALSE qualify as a match
 	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst();
+
+	wxLogDebug("found KB entry for key " + key + " -- entering while loop:");
+
 	while (pos != 0)
 	{
 		pRefStr = (CRefString*)pos->GetData();
@@ -2230,6 +2235,7 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 		if (!pRefStr->m_bDeleted)
 		{
 			m_pApp->nCount_NonDeleted++;
+			pNonDelRefStr = pRefStr;        // mrh - remember where we found a non-deleted entry, even non-matching
 		}
 
 		//if (adaptation == pRefStr->m_translation) // BEW removed 8Feb13, to fix the logic
@@ -2240,20 +2246,30 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 			{
 				// not deleted, so this adaptation (or gloss) qualifies as a match,
 				// return the pTgtUnit and pRefStr values, and bDeleted as default FALSE
+            wxLogDebug ("found non-deleted entry with translation: " + pRefStr->m_translation + " -- returning true");
+
 				return TRUE;
 			}
 			else
 			{
-				// it's deleted, but return pTgtUnit & pRefStr values, and bDeleted as TRUE
+				// We have a match, but it's deleted. Return pTgtUnit & pRefStr values, and bDeleted as TRUE
 				bDeleted = TRUE;
+            wxLogDebug ("found deleted entry with translation: " + pRefStr->m_translation + " -- returning false");
+
 				return FALSE;
 			}
 		}
 	}
-	// return pTgtUnit value, but we didn't make any CRefString, so NULL for pRefStr
-	pRefStr = NULL;
-	bDeleted = FALSE; // default value
-	return FALSE; // did not find a match
+
+	// mrh - we didn't find a matching entry, but if we found any non-deleted entry, we set pRefStr pointing there
+	// since this translation may be what we want.  If we didn't find a non-deleted entry, pNonDelRefStr will be NULL.
+
+	if (pNonDelRefStr)
+        wxLogDebug ("loop fell thru but we had a non-deleted entry - returning non-null pRefStr with translation: " + pNonDelRefStr->m_translation);
+	pRefStr = pNonDelRefStr;
+	bDeleted = FALSE;               // default value
+	bNonDeletedNonmatch = TRUE;     // tell caller we did find a nondeleted entry, even though it's not a match
+	return FALSE;                   // did not find a match
 }
 
 
