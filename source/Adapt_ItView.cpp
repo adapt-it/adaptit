@@ -3275,20 +3275,56 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					if (pOldActivePile != NULL)
 					{
 #ifdef _DEBUG
-						wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"), 3237, pApp->m_nActiveSequNum);
+						wxLogDebug(_T("PlacePhraseBox at line %d ,  Active Sequ Num  %d"),
+							__LINE__, pApp->m_nActiveSequNum);
 #endif
-						wxLogDebug(_T("PlacePhraseBox at 3262 after DoStore...(), Leaving:  m_key = %s , m_bAbandonable = %d  sn = %d"),
-							pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
-							pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_adaption.c_str());
-					}
-#ifdef _DEBUG
-					CSourcePhrase* pSP = pApp->m_pActivePile->GetSrcPhrase();
-					wxLogDebug(_T("PlacePhraseBox at %d ,  m_targetStr =  %s"), 3268, pSP->m_targetStr.c_str());
+						wxLogDebug(_T("PlacePhraseBox at line %d after DoStore...(), Leaving:  m_key = %s , m_bAbandonable = %d  sn = %d m_targetStr = %s"),
+							__LINE__, pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
+							pOldActiveSrcPhrase->m_nSequNumber, pOldActiveSrcPhrase->m_adaption.c_str(),
+							pOldActiveSrcPhrase->m_targetStr.c_str());
 
-					// try a manual set... for debugging
-					//pSP->m_targetStr = pSP->m_adaption;  // YAY, it worked. So DoStore_ForPlacePhraseBox(pApp, pApp->m_targetPhrase) needs fixing
+						// BEW 26Apr19, m_targetStr would sometimes inexplicably be empty
+						// at this point, even though m_adaption was non empty; so I'm
+						// putting this code into the release build, doing a check for
+						// that circumstance, and if m_targtStr is wrongly empty, then
+						// setting it to what it should be
+						if (pOldActivePile == pApp->m_pActivePile)
+						{
+							// Check and fix if m_targetStr is empty when m_adaption
+							// isn't, then we need a hack to regenerate m_targetStr
+							CSourcePhrase* pSP = pApp->m_pActivePile->GetSrcPhrase();
+							wxString strAdaption = pSP->m_adaption;
+							wxString strTargetStr = pSP->m_targetStr;
+							if (!strAdaption.IsEmpty())
+							{
+								// Now test for empty strTargetStr - if it is, then
+								// we gotta fix it
+								if (strTargetStr.IsEmpty())
+								{
+									// The fix-it hack is needed
+
+wxLogDebug(_T("%s, %s() line %d  ** DETECTED TARGET TEXT WRONGLY EMPTIED ** at  sn = %d , m_key = %s , m_adaption = %s , m_targetStr = %s"),
+		__FILE__, __func__, __LINE__, pSP->m_nSequNumber, pSP->m_key.c_str(),
+		 pSP->m_adaption.c_str(), pSP->m_targetStr.c_str());
+#if defined (_DEBUG)
+wxBell();
 #endif
+									// Start by copying m_adaption to m_targetStr,
+									// and then all that remains is to restore any
+									// punctuation to m_targetStr
+									strTargetStr = strAdaption;
 
+									// Now deal with the punctuation restoration if needed
+									pApp->m_bTypedNewAdaptationInChooseTranslation = FALSE;
+									pApp->m_nPlacePunctDlgCallNumber = 0; // this allows
+										// the next call to do something, otherwise it does
+										// nothing useful
+									MakeTargetStringIncludingPunctuation(pSP, strTargetStr);
+								}
+							}
+							wxLogDebug(_T("PlacePhraseBox at %d ,  m_targetStr =  %s"), __LINE__, pSP->m_targetStr.c_str());
+						}
+					} // end of TRUE block for test: if (pOldActivePile != NULL)
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3275,pApp->m_nActiveSequNum);
 //#endif
@@ -16221,7 +16257,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			}
 			else
 			{
-				bEmptyTarget = TRUE; // BEW 20May16, the test being false is a rather excuse
+				bEmptyTarget = TRUE; // BEW 20May16, the test being false is an excuse
 						// for setting this boolean TRUE, since there's no test of the
 						// phrasebox contents - so make such a test next, as that's what matters
 			}
