@@ -22904,6 +22904,10 @@ void CAdapt_ItView::OnUpdateImportToKb(wxUpdateUIEvent& event)
 }
 
 // BEW 13May10, changes needed for support of glossing; calls CKB::DoKBImport( )
+// whm 5May2019 modified after redesigning the dialog resource in wxDesigner.
+// Previously the label for the wxRadioBox was being truncated on the Windows platform.
+// The label was also changed to whole strings for clarity and ease of localization.
+// Note the export version of the dialog is handled in CAdapt_ItApp::OnFileExportKb.
 void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -22928,16 +22932,28 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	dlg.Center();
 
 	wxString actionTypeStr = _("Import to Knowledge Base");
-	// set dialog's title
+    wxString radioBoxLabel = _("Choose type of format for import of data into the Knowledge Base:");
+    // whm 5May2019 Note: The wxDesigner KBExportImportOptionsFunc() is the only dialog currently
+    // in Adapt It that uses a %s format specifier within the label of a wxRadioBox. On the Windows
+    // port the internal calculation of the horizontal extent of the label text seems to be too 
+    // small by the amount of about 2-3 characters resulting in truncation of that label. To work
+    // arount this and keep the wxRadioBox control, I've programatically added some non-localizable 
+    // space to the right end of the wxRadioBox label. Only a little space is then truncated. I've
+    // conditionally compiled this only for the Windows port.
+#ifdef __WXMSW__
+    radioBoxLabel = radioBoxLabel + _T("       ");
+# endif
+    // set dialog's title
 	dlg.SetTitle(actionTypeStr);
 	// set the %s substitution strings in the dialog's controls
-	wxString tempStr;
-	tempStr = dlg.pRadioBoxSfmOrLIFT->GetLabel();
-	tempStr = tempStr.Format(tempStr,actionTypeStr.c_str());
-	dlg.pRadioBoxSfmOrLIFT->SetLabel(tempStr);
+	//wxString tempStr;
+	//tempStr = dlg.pRadioBoxSfmOrLIFT->GetLabel();
+	//tempStr = tempStr.Format(tempStr,actionTypeStr.c_str());
+    dlg.pRadioBoxSfmOrLIFT->SetLabel(radioBoxLabel); //dlg.pRadioBoxSfmOrLIFT->SetLabel(tempStr);
+    dlg.pRadioBoxSfmOrLIFT->Layout();
 
 	// for Import to KB, we hide the Filename options in the dialog, and resize the dialog
-	// Note: this requires that the first parameter of the call of
+	// Note: this requires that the second parameter of the call of
 	// KBExportImportOptionsFunc(this, false, TRUE) in KBExportImportOptionsDlg's
 	// constructor be false
 	dlg.pKBExportImportOptionsDlgSizer->Hide(pKBExpImpCheckBoxesSizer,TRUE);
@@ -22949,7 +22965,7 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	if (dlg.ShowModal() == wxID_CANCEL)
 	{
 		// user canceled
-		pApp->LogUserAction(_T("Cancelled from OnFileExportKb()"));
+		pApp->LogUserAction(_T("Cancelled from OnImportToKb()"));
 		return;
 	}
 

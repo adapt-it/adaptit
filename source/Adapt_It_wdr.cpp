@@ -6789,7 +6789,7 @@ wxSizer *KBExportImportOptionsFunc( wxWindow *parent, bool call_fit, bool set_si
         _("Standard Format (\\lx and \\ge)"), 
         _("LIFT (XML) Format")
     };
-    wxRadioBox *item1 = new wxRadioBox( parent, ID_RADIOBOX_KB_EXPORT_IMPORT_OPTIONS, _("Choose Type of %s, or Cancel to abort"), wxDefaultPosition, wxDefaultSize, 2, strs1, 1, wxRA_SPECIFY_COLS );
+    wxRadioBox *item1 = new wxRadioBox( parent, ID_RADIOBOX_KB_EXPORT_IMPORT_OPTIONS, wxT(""), wxDefaultPosition, wxDefaultSize, 2, strs1, 1, wxRA_SPECIFY_COLS );
     item0->Add( item1, 0, wxALL, 5 );
 
     wxStaticBox *item3 = new wxStaticBox( parent, -1, _("Filename options:") );

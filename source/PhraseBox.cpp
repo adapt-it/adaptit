@@ -2460,7 +2460,7 @@ void CPhraseBox::SetSizeAndHeightOfDropDownList(int width)
 // string before returning it:
 // 1. Removes any _("<no adaptation>") list item value as it doesn't belong in the phrasebox
 // 2. If the parameter bSetEmptyAdaptationChosen is TRUE, it sets the m_bEmptyAdaptationChosen
-//    member to TRUE to informs code elsewhere that the empty string represents a no adaptation
+//    member to TRUE to inform code elsewhere that the empty string represents a no adaptation
 //    choice on part of user.
 // 3. Calls FwdSlashtoZWSP() on the list item string.
 // 4. Adjusts the string for case if gbAutoCaps && gbSourceIsUpperCase.
