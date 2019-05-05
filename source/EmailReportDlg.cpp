@@ -737,7 +737,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
             {
                 wxString urlStr = pApp->m_serverURL + pApp->m_phpFileName;
                 CBString urlCStr = urlStr.ToUTF8();
-                curl_easy_setopt(curl, CURLOPT_URL, urlCStr); // Use this URL for SSL connection
+                curl_easy_setopt(curl, CURLOPT_URL, urlCStr.GetBuffer()); // Use this URL for SSL connection
             }
             else
             {
