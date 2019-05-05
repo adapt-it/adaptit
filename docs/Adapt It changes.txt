@@ -10,8 +10,6 @@ example, have been simplified by moving the dialog's comments to a separate
 ---------------------------------------------
 Bug fixes in 6.9.4 update
 ---------------------------------------------
-* Fixed some selection inconsistencies between the phrasebox contents and which 
-line of the drop down list was selected.
 * Fixed problems with removing <no adaptation> entries from the drop down list.
 * Fixed the Add button in the Knowledge Base Editor. If an upper case word or phrase
 was entered, when auto-capitalizing was turned on, it went into the translations list
@@ -19,6 +17,11 @@ as upper case. It should have gone into the list as lower-case. It now does.
 * Fixed problems with Consistency Check. If the user edited the KB to delete entries
 and add others, the new entries were not making it into the document. New the
 relevant dialog appears and the user can make the appropriate choice of adaptation.
+* Fixed a problem where a translated meaning would "drop out" of the layout 
+unexpectedly for no apparent reason.
+* Fixed a scrolling bug in the Windows build in which Microsoft's list object
+would sometimes scroll the screen up a little when the user was selecting in the
+ drop down list, resulting in the wrong list item being selected.
 
 --------------------------------------------
 Version 6.9.3 bug fix update 28 February 2019
