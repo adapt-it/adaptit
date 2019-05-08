@@ -2095,7 +2095,7 @@ class CAdapt_ItApp : public wxApp
 
 	wxTimer m_timer;
 
-    // whm 12Jul2018 removed - no longer using FilterEvent() with new phrasebox
+    // whm 15Apr2019 enabled FilterEvent()
     virtual int FilterEvent(wxEvent& event);
 
     // whm 15Apr2019 added the following m_nDropDownClickedItemIndex member in order to
@@ -2122,6 +2122,7 @@ class CAdapt_ItApp : public wxApp
     bool TypedSysKeyInPhraseBox(wxKeyEvent& event);
     bool TypedAlphanumericKeyInPhraseBox(wxKeyEvent& event);
     */
+
 	// BEW 12May16 We need a way to prevent OnIdle() events from asking the user for a KBserver
 	// login choice while the wizard is running. OnIdle() will, without this, check only for
 	// the flag m_bEnteringKBserverProject being true, and it is defaulted to true in OnInit()
@@ -2883,7 +2884,16 @@ public:
 
 	// /////////// Basic config file (AI-BasicConfiguration.aic) ///////////
 
-	/// Use: m_lastCcTablePath stores the last cc table path.
+
+    // whm 22Apr2019 added following two members for email Report and Feedback settings for AI-BasicConfiguration.aic
+
+    /// Use: m_serverURL stores the dir path of server for email reporting and feedback function
+    wxString m_serverURL;
+
+    /// Use: m_phpFileName stores the php file name for email reporting and feedback function
+    wxString m_phpFileName;
+    
+    /// Use: m_lastCcTablePath stores the last cc table path.
 	/// Now: in version 6.x.x saved in basic config file under LastCCTablePath.
 	/// Previously: saved in both basic and project config files under DefaultCCTablePath
 	/// Related Nav Protect folder: _CCTABLE_INPUTS_OUTPUTS

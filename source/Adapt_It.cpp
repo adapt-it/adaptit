@@ -6509,6 +6509,16 @@ wxString szLastXhtmlOutputPath = _T("LastXhtmlExportPath");
 wxString szLastPathwayOutputPath = _T("LastPathwayExportPath");
 // END of Last...Path variables
 
+// whm 22Apr2019 added nex two for email Reports and Feedback:
+
+/// The label that identifies the following string as the application's
+/// "ServerURL". This value is written in the basic configuration file.
+wxString szServerURL = _T("ServerURL"); // defaults to _T("https://adapt-it.org/"); // may be changed if basic config file changes it.
+
+/// The label that identifies the following string as the application's
+/// "PhpFileName". This value is written in the basic configuration file.
+wxString szPhpFileName = _T("PhpFileName"); // defaults to _T("feedback.php"); // may be changed if basic config file changes it.
+
 /// The label that identifies the following string as the project's
 /// "FoldersProtectedFromNavigation". This value is written in the "ProjectSettings" part
 /// of the project configuration file. Adapt It stores this path in the App's
@@ -19240,6 +19250,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_curProjectName = _T("");
     m_curGlossingKBName = _T("Glossing");
     m_curGlossingKBPath = _T("");
+
+    // whm 22Apr2019 added following two members for email Report and Feedback settings for AI-BasicConfiguration.aic
+    // TODO: Change default server URL to correct one when supplied by Michael J.
+    m_serverURL = _T("https://adapt-it.org/"); // default value - may be changed if basic config file changes it.
+    m_phpFileName = _T("feedback.php"); // default value - may be changed if basic config file changes it.
 
     // consistent changes pointers and paths
     m_pConsistentChanger[0] = (CConsistentChanger*)NULL; // whm added 19Jun07
@@ -34204,6 +34219,15 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 
     // end of m_last...Path values
 
+    // whm 22Apr2019 added next two for email Reports and Feedback. These are only saved in the AI-BasicConfiguration.aic file.
+    data.Empty();
+    data << szServerURL << tab << m_serverURL; // _T("https://adapt-it.org/"); // default value - may be changed if basic config file changes it.
+    pf->AddLine(data);
+
+    data.Empty();
+    data << szPhpFileName << tab << m_phpFileName; // _T("feedback.php"); // default value - may be changed if basic config file changes it.
+    pf->AddLine(data);
+
     data.Empty();
     data << szFoldersProtectedFromNavigation << tab << m_foldersProtectedFromNavigation;
     pf->AddLine(data);
@@ -35471,6 +35495,15 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
                 // replaced by more specific m_last...RTFOutputPath variables in the project
                 // config files, so we here just ignore any value from old config files.
                 ; //m_lastRtfOutputPath = strValue;
+            }
+            // whm 22Apr2019 added next two for email Report and Feedback settings
+            else if (name == szServerURL)
+            {
+                m_serverURL = strValue;
+            }
+            else if (name == szPhpFileName)
+            {
+                m_phpFileName = strValue;
             }
             else if (name == szFoldersProtectedFromNavigation)
             {
@@ -51818,6 +51851,10 @@ void CAdapt_ItApp::OnUpdateFileExportKb(wxUpdateUIEvent& event)
 #endif
 }
 
+// whm 5May2019 modified after redesigning the dialog resource in wxDesigner.
+// Previously the label for the wxRadioBox was being truncated on the Windows platform.
+// The label was also changed to whole strings for clarity and ease of localization.
+// Note the import version of the dialog is handled in Adapt_ItView::OnImportToKb().
 void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 {
     // get a pointer to either the glossing KB or the adaptation one
@@ -51846,13 +51883,24 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
     dlg.Center();
 
     wxString actionTypeStr = _("Export Knowledge Base");
+    wxString radioBoxLabel = _("Choose type of format for export of data from the Knowledge Base:");
+    // whm 5May2019 Note: The wxDesigner KBExportImportOptionsFunc() is the only dialog currently
+    // in Adapt It that uses a %s format specifier within the label of a wxRadioBox. On the Windows
+    // port the internal calculation of the horizontal extent of the label text seems to be too 
+    // small by the amount of about 2-3 characters resulting in truncation of that label. To work
+    // arount this and keep the wxRadioBox control, I've programatically added some non-localizable 
+    // space to the right end of the wxRadioBox label. Only a little space is then truncated. I've
+    // conditionally compiled this only for the Windows port.
+#ifdef __WXMSW__
+    radioBoxLabel = radioBoxLabel + _T("       ");
+#endif
     // set dialog's title
     dlg.SetTitle(actionTypeStr);
     // set the %s substitution strings in the dialog's controls
-    wxString tempStr;
-    tempStr = dlg.pRadioBoxSfmOrLIFT->GetLabel();
-    tempStr = tempStr.Format(tempStr, actionTypeStr.c_str());
-    dlg.pRadioBoxSfmOrLIFT->SetLabel(tempStr);
+    //wxString tempStr;
+    //tempStr = dlg.pRadioBoxSfmOrLIFT->GetLabel();
+    //tempStr = tempStr.Format(tempStr, actionTypeStr.c_str());
+    dlg.pRadioBoxSfmOrLIFT->SetLabel(radioBoxLabel); //dlg.pRadioBoxSfmOrLIFT->SetLabel(tempStr);
 
     // Note: OnFileExportKb() here and OnFileExportKb() in the App use the same dialog.
     // Since the View's OnImportToKb() required that the call of
