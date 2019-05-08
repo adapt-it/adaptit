@@ -1,4 +1,4 @@
-﻿Version 6.9.4 update 12 April 2019
+﻿Version 6.9.4 update 9 May 2019
 ----------------------------------------------
 Feature changes and new features in 6.9.4
 --------------------------------------------------------------------------------------------
@@ -7,6 +7,9 @@ the OK and Cancel buttons, as well as better margin settings between the dialog
 elements and the dialog frame. Some dialogs, the Edit Source Text dialog, for 
 example, have been simplified by moving the dialog's comments to a separate
 "Help..." button.
+* The consistency change functionality has been enhanced, so as to be
+accessible while collaborating with Paratext or Bibledit. Whether for a
+single Adapt It document, or a set of documents.
 ---------------------------------------------
 Bug fixes in 6.9.4 update
 ---------------------------------------------
