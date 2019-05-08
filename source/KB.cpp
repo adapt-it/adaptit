@@ -690,6 +690,11 @@ bool CKB::IgnoreLegacyUpperCaseEntry(CKB* pKB, int numWords, wxString srcKey)
 // changes of same date within StoreText() etc, of data entries in the KB maps.
 // BEW 23Apr15 changed to support / as a word-breaking whitespace char if m_bFwdSlashDelimiter
 // is TRUE
+
+
+extern CAdapt_ItApp* gpApp;     // bug chasing
+
+
 bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr)
 {
 	wxString saveKey;
@@ -715,8 +720,9 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 			goto a;
 
 		// auto capitalization is ON, so determine the relevant parameters etc.
+
 		bool bNoError = m_pApp->GetDocument()->SetCaseParameters(keyStr); // extra param
-													// is TRUE since it is source text
+                                                        // is TRUE since it is source text
 		if (!bNoError)
 			goto a; // keyStr must have been empty (impossible) or the user
 					// did not define any source language case correspondences
@@ -1386,11 +1392,14 @@ void CKB::GetAndRemoveRefString(CSourcePhrase* pSrcPhrase, wxString& targetPhras
 // BEW 13May10, moved here from CPhraseBox class
 // BEW 21Jun10, no changes needed for support of kbVersion 2
 // BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
+
 bool CKB::FindMatchInKB(int numWords, wxString keyStr, CTargetUnit *&pTargetUnit)
 {
 	MapKeyStringToTgtUnit* pMap = m_pMap[numWords-1];
 	CTargetUnit* pTU;
+
 	bool bOK = AutoCapsLookup(pMap,pTU,keyStr);
+
 	if (bOK)
 		pTargetUnit = pTU;	// makes pTargetUnit point to same object pointed to by pTU
 							// and shouldn't require use of an assignment operator. Since
@@ -2165,6 +2174,7 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 		bDeleted = FALSE;
 		return FALSE;
 	}
+
 	// BEW 8Mar13 bug fix. The loop below used adaptation without any autocapitalization
 	// adjustment being done, so if it contained a word or phrase with initial upper case
 	// letter, then the loop would match only upper case ones - if there were none of
@@ -2193,6 +2203,7 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 	// conversion to lowercase before we enter the loop, we'll have squashed this bug
 	// finally. It's only taken 7 years to get it fixed!!!! (And some good data from Ross
 	// Jones, bless him.)
+
 	bool bNoError = TRUE;
     m_pApp->m_pTargetBox->m_bBoxTextByCopyOnly = FALSE; // restore default value (should have been done in caller,
 						  // but this will make sure)
@@ -2222,8 +2233,6 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 	// of these in the loop below has to be deemed a non-match, so that only matches with
 	// the m_bDeleted flag with value FALSE qualify as a match
 	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst();
-
-	wxLogDebug("found KB entry for key " + key + " -- entering while loop:");
 
 	while (pos != 0)
 	{

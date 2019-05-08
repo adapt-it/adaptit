@@ -512,7 +512,7 @@ void CRetranslation::AccumulateText(SPList* pList, wxString& strSource, wxString
 				else
 					strAdapt += str;
 			}
-			// also accumulate the source language text (line 1), provided it 
+			// also accumulate the source language text (line 1), provided it
 			// is not a null source phrase
 			if (!pSrcPhrase->m_bNullSourcePhrase)
 			{
@@ -1008,7 +1008,7 @@ void CRetranslation::UnmergeMergersInSublist(SPList*& pList, SPList*& pSrcPhrase
 
 // BEW 17Feb10 updated to support doc version 5 (no changes were needed) BEW 11Oct10, made
 // a small change, but the essentials were already okay, it already copies the punctuated
-// m_srcPhrase string into m_targetStr 
+// m_srcPhrase string into m_targetStr
 // BEW refactored 21Jul14 to support storage of wordbreaks (eg. ZWSP, or space etc) in the
 // CSourcePhrase, so that exports can reconstitute them to the proper locations. For
 // retranslations, and only for retranslations, we store the wordbreaks gleaned here in the
@@ -1368,7 +1368,7 @@ void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,
 			m_pApp->GetPlaceholder()->InsertNullSourcePhrase(pDoc,pPile,nExtras,FALSE,TRUE); // FALSE for restoring
 			// the phrase box, TRUE for doing it for a retranslation, and default TRUE for
 			// bInsertBefore flag at end
-			 
+
 			// BEW 21Jul14, ZWSP support: add the most likely needed space type to the
 			// extra placeholder piles added, copying m_lastNonPlaceholderSrcWordBreak
 			int ii;
@@ -2016,7 +2016,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 					  // and so deleting them would destroy part of the document;
 					  // similarly in other places below in this function
 		pList = (SPList*)NULL;
-        // whm 13Aug2018 Note: The SetFocus() correctly precedes the 
+        // whm 13Aug2018 Note: The SetFocus() correctly precedes the
         // SetSelection(m_pApp->m_nStartChar, m_pApp->m_nEndChar) call below it.
         m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
         // whm 3Aug2018 Note: The following SetSelection() call restores a previous selection,
@@ -2039,7 +2039,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			delete pList;
 		pList = (SPList*)NULL;
 		m_pView->RemoveSelection();
-        // whm 13Aug2018 Note: The SetFocus() correctly precedes the 
+        // whm 13Aug2018 Note: The SetFocus() correctly precedes the
         // SetSelection(m_pApp->m_nStartChar, m_pApp->m_nEndChar) call below it.
         m_pApp->m_pTargetBox->GetTextCtrl()->SetFocus();
         // whm 3Aug2018 Note: The following SetSelection() call restores a previous selection,
@@ -2264,7 +2264,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		pSPhr->SetTgtWordBreak(pSPhr->GetSrcWordBreak());
 		if (index == count - 1)
 		{
-			m_lastNonPlaceholderSrcWordBreak = pSPhr->GetSrcWordBreak(); // set LHS, 
+			m_lastNonPlaceholderSrcWordBreak = pSPhr->GetSrcWordBreak(); // set LHS,
 					// in case placeholders are to be appended due to the user's edits
 		}
 	}
@@ -2677,7 +2677,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 // CSourcePhrase list of non-placeholders, prior to showing the dialog)
 // BEW 21Jul14 refactored for support of ZWSP
 // BEW 1Sep14, refactored to fix a crash reported by Roland Fumey, when the phrasebox
-// is a little ways off from where the retranslation is, using keep_strips_keep_piles was 
+// is a little ways off from where the retranslation is, using keep_strips_keep_piles was
 // not not getting m_stripArray pile pointers in sync with m_pileList changes when old
 // placeholders were removed, leading to OnDraw() crashing. OnDraw for a merger uses
 // CLayout's AdjustForUserEdits() function to erase and redraw the strips in the region
@@ -4226,6 +4226,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		// produced exports within the _REPORTS_OUTPUTS folder from those generated
 		// automatically by our collaboration code, we adjust the reportFilename having a
 		// "_Collab..." prefix so that it will have "_Retrans_Report" prefix instead.
+// qwqwqw - this bit's just interesting...
 		if (reportFilename.Find(_T("_Collab")) == 0)
 		{
 			// the reportFilename has a _Collab prefix

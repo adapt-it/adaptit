@@ -117,6 +117,7 @@ extern bool gbDoingInitialSetup;
 	// become global variables here, since the delayed handler function parts will become
 	// global functions of CollabUtilities.cpp - all this stuff is immediately below. We'll
 	// add a prefix  m_collab_<old name> to keep it clear which they are
+
 	bool m_collab_bTextOrPunctsChanged;
 	bool m_collab_bUsfmStructureChanged;
 	wxString m_collab_bareChapterSelectedStr;
@@ -613,7 +614,7 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 		// function's return value.
 		emptyVersesStr = AbbreviateColonSeparatedVerses(emptyVersesStr); // continue to abbreviate for emptyVersesStr
         //if (EmptyVerseRangeIncludesAllVersesOfChapter(emptyVersesStr))
-        // whm 20Sept2017 changed logic to just check value of nVersesWithContent == 0. 
+        // whm 20Sept2017 changed logic to just check value of nVersesWithContent == 0.
         // No longer need the flawed EmptyVerseRangeIncludesAllVersesOfChapter() function
         if (nVersesWithContent == 0)
         {
@@ -662,12 +663,12 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 }
 
 // whm 18Jul12 added. DoProjectAnalysis gets a list of all existing books for the given
-// compositeProjName from the PT/BE editor. Before version 6.8.1 it used the collab utility 
-// mechanism rdwrtp7.exe or bibledit-rdwrt to read all the books of the project into a buffer 
-// and analyze the contents to determine which books are empty (no verse content) and which 
-// books have verse text content, returning the respective lists in reference parameters 
+// compositeProjName from the PT/BE editor. Before version 6.8.1 it used the collab utility
+// mechanism rdwrtp7.exe or bibledit-rdwrt to read all the books of the project into a buffer
+// and analyze the contents to determine which books are empty (no verse content) and which
+// books have verse text content, returning the respective lists in reference parameters
 // emptyBooks and booksWithContent. From version 6.8.1 on, the data stores in PT/BE are read
-// directly into a buffer and processed from there. This speeds up the analysis time 
+// directly into a buffer and processed from there. This speeds up the analysis time
 // dramatically by an order of magnitude.
 // This function was prompted by a report from one user who was confused about which Paratext
 // project to use for obtaining source texts and which to use for receiving target texts - and
@@ -679,8 +680,8 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 // struct representing this selected project and determining the first book in its
 // <BooksPresent> string (consisting of 0 and 1 chars in which 1 represents an existing
 // book in the project).
-// 2. Determine the paths to the Scripture data for either PT/BE. Read the data for each 
-// Scripture file into a memory buffer by direct block reads for a fast analysis of 
+// 2. Determine the paths to the Scripture data for either PT/BE. Read the data for each
+// Scripture file into a memory buffer by direct block reads for a fast analysis of
 // potentially many books.
 // 3. Use the CollabUtilities' GetUsfmStructureAndExtent() function to get an idea of
 // the text content of the book storing the result in a TargetTextUsfmStructureAndExtentArray.
@@ -777,7 +778,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
     // the directory containing the actual paratext books we want to analyze. We can speed
     // up the analysis by reading the book contents into a buffer and analyzing it within
     // the buffer. This speeds up the analysis since block reading the file contents into a
-    // buffer will be much faster than getting the book contents via the rdwrtp7 utility 
+    // buffer will be much faster than getting the book contents via the rdwrtp7 utility
     // which is quite slow - especially when processing several dozen files as would be the
     // case for a whole NT or whole Bible.
     wxString filePathTemplate;
@@ -787,21 +788,21 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
     if (editor == _T("Paratext"))
     {
         // The real book names can be worked out from the Collab_Project_Info_Struct that is
-        // already in memory for this project by synthesizing the book file names from the 
-        // file name structure information in the PT project settings: 
-        // use these:  <FileNamePrePart /> 
+        // already in memory for this project by synthesizing the book file names from the
+        // file name structure information in the PT project settings:
+        // use these:  <FileNamePrePart />
         //             <FileNamePostPart>NYNT.SFM</FileNamePostPart>
         //             <FileNameBookNameForm>41MAT</FileNameBookNameForm>
         // The FileNameBookNameForm tag part of a PT project's Scripture book file name can
-        // be determined from examining two parallel wxArrayString arrays on the App: 
+        // be determined from examining two parallel wxArrayString arrays on the App:
         //    AllBookIds[]    - which contains the USFM book abbreviation/ID
         //    AllBookNumStr[] - which contains the USFM book number associated with the book ID
-        // Could create a function on the App's wxString GetFilenameForUSFMBookID(wxString bookID) which 
-        // returns a wxString in the form <FileNamePrePart><FileNameBookNameForm><FileNamePostPart>, 
+        // Could create a function on the App's wxString GetFilenameForUSFMBookID(wxString bookID) which
+        // returns a wxString in the form <FileNamePrePart><FileNameBookNameForm><FileNamePostPart>,
         // or for the values shown above would give 41MATNYNT.SFM, but better here would be to just
         // use a template string with %s%s substitutions for the number and ID substring parts of the
         // file name.
-        
+
         // Get a file path template for a book file that can be used for all book files in this project.
         wxString pathToProjectDir;
         wxString ptProjectsDirPath = gpApp->GetParatextProjectsDirPath(ptVersion);
@@ -813,11 +814,11 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
         wxASSERT(pCollabInfo != NULL);
         wxString fileNamePrePart = pCollabInfo->fileNamePrePart;
         wxString fileNameBookNameForm = pCollabInfo->fileNameBookNameForm;
-        
+
         wxString fileNamePostPart = pCollabInfo->fileNamePostPart;
         if (!fileNameBookNameForm.IsEmpty() && fileNameBookNameForm.Length() >= 2)
         {
-            // Check first two 
+            // Check first two
             if (fileNameBookNameForm.Mid(0, 2).IsNumber())
                 bFileNameNumPartPreceeds = TRUE;
         }
@@ -829,7 +830,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 
         // The booksPresentArray has the full names of the Scripture books we need to analyze.
         // In the loop below we get the individual file name for the book being analyzed from booksPresentArray.
-        // We use GetBookCodeFromBookName(wxString bookName) function in the App in the loop below to get the 
+        // We use GetBookCodeFromBookName(wxString bookName) function in the App in the loop below to get the
         // book code/ID from its full file name.
 
     }
@@ -869,7 +870,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
             // Ensure that a .temp folder exists in the m_workFolderPath
             // The tempFolder is needed for Bibledit because of the way Bibledit stores book
             // data by chapters in separate data folders. The temp folder consolidates the data
-            // into books before the whole books are read from temp files into the buffer. 
+            // into books before the whole books are read from temp files into the buffer.
             wxString tempFolder;
             tempFolder = gpApp->m_workFolderPath + gpApp->PathSeparator + _T(".temp");
             if (!::wxDirExists(tempFolder))
@@ -959,7 +960,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		usfmStructureAndExtentArray.Clear();
 		usfmStructureAndExtentArray = GetUsfmStructureAndExtent(wholeBookBuffer);
 
-		// Note: We can tell if the book hasn't been created by checking to see if 
+		// Note: We can tell if the book hasn't been created by checking to see if
         // there are any elements in the appropriate UsfmStructureAndExtentArrays.
 		if (usfmStructureAndExtentArray.GetCount() == 0)
 		{
@@ -1175,7 +1176,7 @@ wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
 
 	if (gpApp->m_bCollaboratingWithParatext)
 	{
-        // whm added 17March2017. To avoid possible error, we need to be absolutely sure of the path to the 
+        // whm added 17March2017. To avoid possible error, we need to be absolutely sure of the path to the
         // rdwrtp7.exe file which is different for PT7 and PT8, so I'm adding a parameter to GetPathToRdwrtp7()
         // to indicate the specific version of PT we want the path for.
         cmdLineAppPath = GetPathToRdwrtp7(gpApp->m_ParatextVersionForProject);
@@ -2055,7 +2056,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 		// NOT prevent the collaboration from being hooked up.
 		pApp->m_bEnteringKBserverProject = TRUE;
 
-	
+
 		/* The old code -- remove shortly
 		bool bUserCancelled = FALSE; // initialize
 		KbSvrHowGetUrl* pHowGetUrl = new KbSvrHowGetUrl(pApp->GetMainFrame());
@@ -2063,7 +2064,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 		int dlgReturnCode;
 		dlgReturnCode = pHowGetUrl->ShowModal();
 		if (dlgReturnCode == wxID_OK)
-		{ 
+		{
 			// m_bServiceDiscoveryWanted will have been set or cleared in
 			// the OnOK() handler of the above dialog
 			wxASSERT(pHowGetUrl->m_bUserClickedCancel == FALSE);
@@ -2091,7 +2092,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
             // collaboration from doing its job
             pApp->m_bUserAuthenticating = TRUE; // this means that the real user is
 				// logging in, or else someone who knows some other person's credentials
-				// is doing so (and the KBserver has to know those credentials too of 
+				// is doing so (and the KBserver has to know those credentials too of
 				// course if the login is to succeed)
 			bool bSuccess = AuthenticateCheckAndSetupKBSharing(pApp, pApp->m_bServiceDiscoveryWanted);
 			wxUnusedVar(bSuccess);
@@ -2653,7 +2654,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	gbDoingInitialSetup = FALSE; // ensure it's off, otherwise RecalcLayout() may
 			// fail after phrase box gets past end of doc
 
-	// BEW 21Aug15, Default the following flag to a TRUE value - just in case 
+	// BEW 21Aug15, Default the following flag to a TRUE value - just in case
 	// collaboration mode may be in effect
 	pApp->m_bConflictResolutionTurnedOn = TRUE;
 
@@ -2742,7 +2743,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 				char* pShort = pShortBuff;
 				while (*ptr != 0)
 				{
-					// copy the last 15 characters to the short buffer 
+					// copy the last 15 characters to the short buffer
 					// which should contain </AdaptItDoc> and maybe crlf after it)
 					*pShort++ = *ptr++;
 				}
@@ -2930,7 +2931,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		// Check for a parse error, abort the parse if there was a parse error
 		if (nHowMany == -1)
 		{
-			// Abort the document creation, there has been a significant parsing error. 
+			// Abort the document creation, there has been a significant parsing error.
 			// Do a diagnostic run (see View page of Preferences)
 			pApp->LogUserAction(msgEnglish);
 			wxMessageBox(msg, _T(""), wxICON_WARNING | wxOK);
@@ -2947,7 +2948,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 		if (nHowMany > 0)
 		{
-			bool bIsPossible = MergeUpdatedSourceText(*pApp->m_pSourcePhrases, 
+			bool bIsPossible = MergeUpdatedSourceText(*pApp->m_pSourcePhrases,
 										*pSourcePhrases, pMergedList, nSpanLimit);
             // take the pMergedList list, delete the app's m_pSourcePhrases list's
             // contents, & move to m_pSourcePhrases the pointers in pMergedList...
@@ -3204,9 +3205,9 @@ void UnloadKBs(CAdapt_ItApp* pApp)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \return                      a wxString representing the new collab protection string with 
+/// \return                      a wxString representing the new collab protection string with
 ///                              the bookIDsorChapters added to/merged into it
-/// \param currentString     ->  a wxString representing the current collab protection 
+/// \param currentString     ->  a wxString representing the current collab protection
 ///                              status string, for example: "MAT MRK MRK:1:2:16 LUK ROM 1CO:4:6..."
 ///                              where book(s) are delimited by spaces in the string.
 /// \param bookIDsorChapters ->  a wxString representing the book(s) and/or book:chapter(s)
@@ -3216,43 +3217,43 @@ void UnloadKBs(CAdapt_ItApp* pApp)
 ///                              again where books are delimited by spaces
 /// \remarks
 /// Called From: TODO:
-/// This function takes in the current string from the project config file's 
+/// This function takes in the current string from the project config file's
 /// CollabBooksProtectedFromSavingToEditor field and adds/merges the book(s)/chapter(s) specified
-/// by the bookIDsorChapters value into that string, then returns the resulting string. 
-/// The addition won't result in duplications since merge process is designed so that it will 
-/// not make a change for a specific book or book:chapter if the current string already has 
+/// by the bookIDsorChapters value into that string, then returns the resulting string.
+/// The addition won't result in duplications since merge process is designed so that it will
+/// not make a change for a specific book or book:chapter if the current string already has
 /// the specific book or book:chapter value within it.
-/// Since it is possible (but not recommended) for a collaboration project to swtich between 
-/// whole-book mode and single-chapter-only mode midway through a project, this function works 
-/// whether the incoming string contains book(s) and/or book(s):chapter(s) that match the  
-/// current whole-book-mode or chapter-only mode. 
-/// For example, if a chapter-only mode was previously set and it was marked as protected, 
-/// and then later, the project switched to whole-book-only mode, the protection that was set 
-/// for the chapter-only document would not apply to that chapter within the whole-document mode 
+/// Since it is possible (but not recommended) for a collaboration project to swtich between
+/// whole-book mode and single-chapter-only mode midway through a project, this function works
+/// whether the incoming string contains book(s) and/or book(s):chapter(s) that match the
+/// current whole-book-mode or chapter-only mode.
+/// For example, if a chapter-only mode was previously set and it was marked as protected,
+/// and then later, the project switched to whole-book-only mode, the protection that was set
+/// for the chapter-only document would not apply to that chapter within the whole-document mode
 /// collaboration. Note: The string associated with the CollabBooksProtectedFromSavingToEditor
 /// label may have a whole-book entry such as LUK, and also have a separate chapter-only entry
 /// that is indicated in the same string by a LUK:1. This allows the CollabBooksProtectedFromSavingToEditor
 /// value to keep the protection status independently for whole-book files and chapter-only files.
-/// Hence, the function operates equally well regardless of the current collab mode: whole book or 
+/// Hence, the function operates equally well regardless of the current collab mode: whole book or
 /// chapter-only mode.
 /// The ordering of book and/or book:chapter references within the returned string will be
 /// tailored to mimic the book ordering of the App's AllBookNumStr[] array.
 /// Note: This function does not validate the Book IDs or chapter numbers to ensure that they make
 /// sense, but it won't choke on a bad entry either.
-/// 
+///
 /// whm added 9March2017
 ////////////////////////////////////////////////////////////////////////////////
 wxString AddCollabBooksAndOrChaptersToProtectedCollabString(wxString currentString, wxString bookIDsorChapters)
 {
-    // We use a tempTokenArray to store the original, replaced, and/or added book and/or book:chapter 
+    // We use a tempTokenArray to store the original, replaced, and/or added book and/or book:chapter
     // tokens.
     wxString originalString = currentString;
     wxArrayString tempTokenArray;
     // Since the bookIDsorChapters string may have more than one bookID and/or bookID:chapter(s),
-    // the book(s) and book:chapter(s) all being delimited by spaces, we'll tokenize the incoming 
-    // bookIDsorChapters parameter storing its tokens in a mergeTokenArray. 
-    // Then we'll process each of the tokens to be merged individually (one at a time) into the 
-    // new collab protection string below. 
+    // the book(s) and book:chapter(s) all being delimited by spaces, we'll tokenize the incoming
+    // bookIDsorChapters parameter storing its tokens in a mergeTokenArray.
+    // Then we'll process each of the tokens to be merged individually (one at a time) into the
+    // new collab protection string below.
     wxString originalBookIDsOrChapters = bookIDsorChapters;
     wxArrayString mergeTokenArray;
 
@@ -3298,9 +3299,9 @@ wxString AddCollabBooksAndOrChaptersToProtectedCollabString(wxString currentStri
         // Tokenize the current incoming string currentString into "book" tokens.
         // We use space as the delimiter between books/tokens. Each token represents
         // either a whole book ID or a book ID followd by chapter(s) delimited by colons.
-        // We'll store the tokens in an array since we may need to make multiple passes 
+        // We'll store the tokens in an array since we may need to make multiple passes
         // over the array content.
-        // Note: For the second and any succesive iterations through the for loop the 
+        // Note: For the second and any succesive iterations through the for loop the
         // newString that was created in the previous iteration is used for the originalString
         // that gets tokenized in the next line.
         wxStringTokenizer tkz(originalString, _T(" ")); // books are delimited by spaces
@@ -3316,11 +3317,11 @@ wxString AddCollabBooksAndOrChaptersToProtectedCollabString(wxString currentStri
 
         // The tempTokenArray will usually have no more than one reference to a book by its ID.
         // In rare cases where a project has had some work done in whole-book collaboration
-        // and some work done in chapter-only collaboration, there should be no more than two 
+        // and some work done in chapter-only collaboration, there should be no more than two
         // references to a book by its ID; one reference to it as just a 3-letter code, and
-        // the other reference as a 3-letter code plus :chapter parts - using colon delimiters. 
+        // the other reference as a 3-letter code plus :chapter parts - using colon delimiters.
         // We attempt to keep the book and book:chapter IDs in scripture book order within
-        // the string as determined by the order established by the AllBookNumStr[] array 
+        // the string as determined by the order established by the AllBookNumStr[] array
         // which assigns books a quasi-numeric order, which we'll do by sorting a modified
         // array below.
 
@@ -3355,7 +3356,7 @@ wxString AddCollabBooksAndOrChaptersToProtectedCollabString(wxString currentStri
             }
         }
         // bIsChapterFormat tells us whether we are adding a chapter-only reference to
-        // the string. 
+        // the string.
         if (bRequiresChapterFormat)
         {
             if (!chapterTypeTokenFound)
@@ -3401,8 +3402,8 @@ wxString AddCollabBooksAndOrChaptersToProtectedCollabString(wxString currentStri
                     // so the string sort operation below will sort numbers like 002, 020, 200, correctly
                     // do comparisons with forced uppercase in this function
                     tokStr.Pad(3 - tokStr.Length(), _T('0'), FALSE); // FALSE pads with leading '0' char(s)
-                    // Total number of chapters per single book are limited (150), so just do a brute search 
-                    // to see if the tokStr is in chNumArray already or not. If it is there don't duplicate it. 
+                    // Total number of chapters per single book are limited (150), so just do a brute search
+                    // to see if the tokStr is in chNumArray already or not. If it is there don't duplicate it.
                     // If it is not already there add it.
                     bool bChFound = FALSE;
                     int tempCt;
@@ -3455,11 +3456,11 @@ wxString AddCollabBooksAndOrChaptersToProtectedCollabString(wxString currentStri
             }
         }
 
-        // To sort our tokens we can first give them with a numeric-string sorting prefix 
-        // while scanning through the now complete tempTokenArray, and copying each of the 
-        // composed string tokens to a newarray. In the newArray each token is prefixed 
-        // with a string number from the App's AllBookNumStr[] array that is retrieved from 
-        // a look up of the bookID in the parallel AllBookIds[] bookID array. 
+        // To sort our tokens we can first give them with a numeric-string sorting prefix
+        // while scanning through the now complete tempTokenArray, and copying each of the
+        // composed string tokens to a newarray. In the newArray each token is prefixed
+        // with a string number from the App's AllBookNumStr[] array that is retrieved from
+        // a look up of the bookID in the parallel AllBookIds[] bookID array.
         // The newArray can then be sorted by calling the newArray.Sort() command, and the
         // numeric string prefix removed.
         wxArrayString newArray;
@@ -3478,7 +3479,7 @@ wxString AddCollabBooksAndOrChaptersToProtectedCollabString(wxString currentStri
 
         newArray.Sort();
         // Go through the newArray in its new sorted order and remove the numeric sorting
-        // prefix, and any chapter "0" numeric prefixes for each array element, then using the result to make 
+        // prefix, and any chapter "0" numeric prefixes for each array element, then using the result to make
         // up a newString to return to the caller for saving as the new value for the CollabBooksProtectedFromSavingToEditor
         // label in the AI-ProjectConfiguration.aic file.
 
@@ -3494,15 +3495,15 @@ wxString AddCollabBooksAndOrChaptersToProtectedCollabString(wxString currentStri
         // For the next iteration of the for loop use the newString as originalString
         originalString = newString;
     } // end of for (tokenCt = 0; tokenCt < tokenTot; tokenCt++)
-    
+
     // Return the final form of the newString to the caller
     return newString;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \return                      a wxString representing the new collab protection string with 
+/// \return                      a wxString representing the new collab protection string with
 ///                              the bookIDsorChapters removed from it
-/// \param currentString     ->  a wxString representing the current collab protection 
+/// \param currentString     ->  a wxString representing the current collab protection
 ///                              status string, for example: "MAT MRK MRK:1:2:16 LUK ROM 1CO:4:6..."
 ///                              where book(s) are delimited by spaces in the string.
 /// \param bookIDsorChapters ->  a wxString representing the book(s) and/or book:chapter(s)
@@ -3512,40 +3513,40 @@ wxString AddCollabBooksAndOrChaptersToProtectedCollabString(wxString currentStri
 ///                              ignored that don't exist in currentString)
 /// \remarks
 /// Called From: TODO:
-/// This function takes in the current string from the project config file's 
+/// This function takes in the current string from the project config file's
 /// CollabBooksProtectedFromSavingToEditor field and removes the book(s)/chapter(s) specified
-/// by the bookIDsorChapters value from that string, then returns the resulting string. 
-/// Any specified removals that don't actually exist in currentString, are ignored. 
-/// Since it is possible (but not recommended) for a collaboration project to swtich between 
-/// whole-book mode and single-chapter-only mode midway through a project, this function works 
-/// whether the incoming string contains book(s) and/or book(s):chapter(s) that match the  
-/// current whole-book-mode or chapter-only mode. 
-/// For example, if a chapter-only mode was previously set and it was marked as protected, 
-/// and then later, the project switched to whole-book-only mode, the protection that was set 
-/// for the chapter-only document would not apply to that chapter within the whole-document mode 
+/// by the bookIDsorChapters value from that string, then returns the resulting string.
+/// Any specified removals that don't actually exist in currentString, are ignored.
+/// Since it is possible (but not recommended) for a collaboration project to swtich between
+/// whole-book mode and single-chapter-only mode midway through a project, this function works
+/// whether the incoming string contains book(s) and/or book(s):chapter(s) that match the
+/// current whole-book-mode or chapter-only mode.
+/// For example, if a chapter-only mode was previously set and it was marked as protected,
+/// and then later, the project switched to whole-book-only mode, the protection that was set
+/// for the chapter-only document would not apply to that chapter within the whole-document mode
 /// collaboration. Note: The string associated with the CollabBooksProtectedFromSavingToEditor
 /// label may have a whole-book entry such as LUK, and also have a separate chapter only entry
 /// that is indicated in the same string by a LUK:1. This allows the CollabBooksProtectedFromSavingToEditor
 /// value to keep the protection status independently for whole-book files and chapter-only files.
-/// Hence, the function operates equally well regardless of the current collab mode: whole book or 
+/// Hence, the function operates equally well regardless of the current collab mode: whole book or
 /// chapter-only mode.
 /// The ordering of book and/or book:chapter references within the returned string will be
 /// tailored to mimic the book ordering of the App's AllBookNumStr[] array.
 /// Note: This function does not validate the Book IDs or chapter numbers to ensure that they make
 /// sense, but it won't choke on a bad entry either.
-/// 
+///
 /// whm added 9March2017
 wxString RemoveCollabBooksOrChaptersFromProtectedCollabString(wxString currentString, wxString bookIDsorChapters)
 {
-    // We use a tempTokenArray to store the original, replaced, and/or added book and/or book:chapter 
+    // We use a tempTokenArray to store the original, replaced, and/or added book and/or book:chapter
     // tokens.
     wxString originalString = currentString;
     wxArrayString tempTokenArray;
     // Since the bookIDsorChapters string may have more than one bookID and/or bookID:chapter(s),
-    // the book(s) and book:chapter(s) all being delimited by spaces, we'll tokenize the incoming 
-    // bookIDsorChapters parameter storing its tokens in a removeTokenArray. 
+    // the book(s) and book:chapter(s) all being delimited by spaces, we'll tokenize the incoming
+    // bookIDsorChapters parameter storing its tokens in a removeTokenArray.
     // Then we'll process each of the tokens to be removed individually (one at a time) removing them
-    // from the new collab protection string below. 
+    // from the new collab protection string below.
     wxString originalBookIDsOrChapters = bookIDsorChapters;
     wxArrayString removeTokenArray;
 
@@ -3591,9 +3592,9 @@ wxString RemoveCollabBooksOrChaptersFromProtectedCollabString(wxString currentSt
         // Tokenize the current incoming string currentString into "book" tokens.
         // We use space as the delimiter between books/tokens. Each token represents
         // either a whole book ID or a book ID followd by chapter(s) delimited by colons.
-        // We'll store the tokens in an array since we may need to make multiple passes 
+        // We'll store the tokens in an array since we may need to make multiple passes
         // over the array content.
-        // Note: For the second and any succesive iterations through the for loop the 
+        // Note: For the second and any succesive iterations through the for loop the
         // newString that was created in the previous iteration is used for the originalString
         // that gets tokenized in the next line.
         wxStringTokenizer tkz(originalString, _T(" ")); // books are delimited by spaces
@@ -3609,11 +3610,11 @@ wxString RemoveCollabBooksOrChaptersFromProtectedCollabString(wxString currentSt
 
         // The tempTokenArray will usually have no more than one reference to a book by its ID.
         // In rare cases where a project has had some work done in whole-book collaboration
-        // and some work done in chapter-only collaboration, there should be no more than two 
+        // and some work done in chapter-only collaboration, there should be no more than two
         // references to a book by its ID; one reference to it as just a 3-letter code, and
-        // the other reference as a 3-letter code plus :chapter parts - using colon delimiters. 
+        // the other reference as a 3-letter code plus :chapter parts - using colon delimiters.
         // We attempt to keep the book and book:chapter IDs in scripture book order within
-        // the string as determined by the order established by the AllBookNumStr[] array 
+        // the string as determined by the order established by the AllBookNumStr[] array
         // which assigns books a quasi-numeric order, which we'll do by sorting a modified
         // array below.
 
@@ -3650,7 +3651,7 @@ wxString RemoveCollabBooksOrChaptersFromProtectedCollabString(wxString currentSt
         }
 
         // bIsChapterFormat tells us whether we are removing a chapter-only reference from
-        // the string. 
+        // the string.
         if (bRequiresChapterFormat)
         {
             if (!chapterTypeTokenFound)
@@ -3693,7 +3694,7 @@ wxString RemoveCollabBooksOrChaptersFromProtectedCollabString(wxString currentSt
                     // so the string sort operation below will sort numbers like 002, 020, 200, correctly
                     // do comparisons with forced uppercase in this function
                     tokStr.Pad(3 - tokStr.Length(), _T('0'), FALSE); // FALSE pads with leading '0' char(s)
-                                                                     // Total number of chapters per single book are limited (150), so just do a brute search 
+                                                                     // Total number of chapters per single book are limited (150), so just do a brute search
                                                                      // to see if the tokStr is in chNumArray already or not. If it is there remove it.
                     bool bChFound = FALSE;
                     int tempCt;
@@ -3746,16 +3747,16 @@ wxString RemoveCollabBooksOrChaptersFromProtectedCollabString(wxString currentSt
             // we only need to remove a BookID if it is present
             if (wholeBookTokenFound)
             {
-                // we need to remove a bookID token from the array. 
+                // we need to remove a bookID token from the array.
                 tempTokenArray.Remove(bkIDtoFind);
             }
         }
 
-        // To sort our tokens we can first give them with a numeric-string sorting prefix 
-        // while scanning through the now complete tempTokenArray, and copying each of the 
-        // composed string tokens to a newarray. In the newArray each token is prefixed 
-        // with a string number from the App's AllBookNumStr[] array that is retrieved from 
-        // a look up of the bookID in the parallel AllBookIds[] bookID array. 
+        // To sort our tokens we can first give them with a numeric-string sorting prefix
+        // while scanning through the now complete tempTokenArray, and copying each of the
+        // composed string tokens to a newarray. In the newArray each token is prefixed
+        // with a string number from the App's AllBookNumStr[] array that is retrieved from
+        // a look up of the bookID in the parallel AllBookIds[] bookID array.
         // The newArray can then be sorted by calling the newArray.Sort() command, and the
         // numeric string prefix removed.
         wxArrayString newArray;
@@ -3773,7 +3774,7 @@ wxString RemoveCollabBooksOrChaptersFromProtectedCollabString(wxString currentSt
 
         newArray.Sort();
         // Go through the newArray in its new sorted order and remove the numeric sorting
-        // prefix, and any chapter "0" numeric prefixes for each array element, then using the result to make 
+        // prefix, and any chapter "0" numeric prefixes for each array element, then using the result to make
         // up a newString to return to the caller for saving as the new value for the CollabBooksProtectedFromSavingToEditor
         // label in the AI-ProjectConfiguration.aic file.
 
@@ -3803,22 +3804,22 @@ wxString RemoveCollabBooksOrChaptersFromProtectedCollabString(wxString currentSt
 /// \remarks
 /// Called From: CAdapt_ItDoc::DoCollabFileSave().
 /// This function parses the App's m_CollabBooksProtectedFromSavingToEditor wxString value
-/// which was read in from the AI-ProjectConfiguration.aic file's string associated with the 
-/// CollabBooksProtectedFromSavingToEditor label, to determine if the book/chapter 
+/// which was read in from the AI-ProjectConfiguration.aic file's string associated with the
+/// CollabBooksProtectedFromSavingToEditor label, to determine if the book/chapter
 /// specified in the parameters is protected from saving changes to PT/BE or not.
-/// Since it is possible (but not recommended) for a collaboration project to swtich between 
-/// whole-book mode and single-chapter-only mode midway through a project, this function will 
-/// only make changes to documents that match the current whole-book-mode or chapter-only mode. 
-/// For example, if a chapter-only mode was previously set and it was marked as protected, 
-/// and then later, the project switched to whole-book-only mode, the protection that was set 
-/// for the chapter-only document would not apply to that chapter within the whole-document mode 
+/// Since it is possible (but not recommended) for a collaboration project to swtich between
+/// whole-book mode and single-chapter-only mode midway through a project, this function will
+/// only make changes to documents that match the current whole-book-mode or chapter-only mode.
+/// For example, if a chapter-only mode was previously set and it was marked as protected,
+/// and then later, the project switched to whole-book-only mode, the protection that was set
+/// for the chapter-only document would not apply to that chapter within the whole-document mode
 /// collaboration.
 /// whm added 2February2017
 ////////////////////////////////////////////////////////////////////////////////
 bool IsCollabDocProtectedFromSavingToEditor(wxString bookCode, bool bCollabByChapterOnly, wxString collabChapterSelected)
 {
     // The App's m_CollabBooksProtectedFromSavingToEditor wxString variable contains the string
-    // we need to parse. 
+    // we need to parse.
     wxString bkchCompositeStr = gpApp->m_CollabBooksProtectedFromSavingToEditor;
     // the following are for testing, comment out after debugging
     //bkchCompositeStr = _T("MAT MRK LUK ROM REV"); // whole book mode examples
@@ -3847,8 +3848,8 @@ bool IsCollabDocProtectedFromSavingToEditor(wxString bookCode, bool bCollabByCha
     // Note: Books are delimited by a space. Chapter documents are delimited by colons:chapternumber following the book code.
     wxString workStr;
     wxString tokenStr;
-    // books are delimited by spaces, so each token below represents either a single 3-letter book ID 
-    // or a 3-letter book ID suffixed with :chapter suffixes for each chapter of that book that is 
+    // books are delimited by spaces, so each token below represents either a single 3-letter book ID
+    // or a 3-letter book ID suffixed with :chapter suffixes for each chapter of that book that is
     // protected.
     wxStringTokenizer tkz(bkchCompositeStr, _T(" ")); // books are delimited by spaces
     workStr.Empty();
@@ -4268,7 +4269,7 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEd
 /// \param tgtCompositeProjName     ->  the PT/BE's target project's composite string
 /// \param freeTransCompositeProjName  ->  the PT/BE's free trans project's composite string
 /// \param collabEditor             -> the collaboration editor, either "Paratext" or "Bibledit"
-/// \param ptEditorVersion          -> the Paratext version, "PTVersion7", "PTVersion8", 
+/// \param ptEditorVersion          -> the Paratext version, "PTVersion7", "PTVersion8",
 ///                                   "PTLinuxVersion7", "PTLinuxVersion8", or wxEmptyString
 /// \param errorStr               <-  a wxString (multi-line) representing any error information
 ///                                     for when a FALSE value is returned from the function
@@ -4512,12 +4513,12 @@ wxString GetPathToRdwrtp7(wxString ptVersion)
 	// Adapt It installation.
     //
     // whm modified 4 April 2017 Tom H says that in the future the PT team will rename the
-    // rdwrtp7.exe utility to rdwrtp8.exe to bring its naming scheme up to date. This 
+    // rdwrtp7.exe utility to rdwrtp8.exe to bring its naming scheme up to date. This
     // means we need to be able to recognize when a user gets a PT update the implements
     // that change. We can do that by first testing to see if rdwrtp8.exe exists and if
     // so return the path that includes rdwrtp8.exe as the utility name, otherwise test
-    // for the presence of rdwrtp7.exe and return that one. 
-    // With this modification I am also removing the code that attempted to maintain 
+    // for the presence of rdwrtp7.exe and return that one.
+    // With this modification I am also removing the code that attempted to maintain
     // substitute a version of rdwrtp7.exe if it were missing from the PT installation.
     // The possibility of a missing rdwrtp7.exe was only a temporary possibility at the
     // beginning of Nathan's inclusion of the utility years ago. Also we have no need to
@@ -4554,13 +4555,13 @@ wxString GetPathToRdwrtp7(wxString ptVersion)
 #endif
 #ifdef __WXGTK__
     // whm revised 27Nov2016:
-    // For mono, we call a the paratext startup script (/usr/bin/paratext for PT7, or 
-    // /usr/bin/paratext8 for PT8, no extension). These startup scripts set the Paratext 
-    // and mono environment variables and then calls the "real" rdwrtp7.exe in the 
-    // Paratext installation directory. The script is needed to avoid a security exception 
+    // For mono, we call a the paratext startup script (/usr/bin/paratext for PT7, or
+    // /usr/bin/paratext8 for PT8, no extension). These startup scripts set the Paratext
+    // and mono environment variables and then calls the "real" rdwrtp7.exe in the
+    // Paratext installation directory. The script is needed to avoid a security exception
     // in ParatextShared.dll.
-    // By the time this GetPathToRdwrtp7 is called, the App's m_ParatextVersionForProject 
-    // variable will have been read/determined definitively for the PT Linux version being 
+    // By the time this GetPathToRdwrtp7 is called, the App's m_ParatextVersionForProject
+    // variable will have been read/determined definitively for the PT Linux version being
     // used.
 
     if (gpApp->m_ParatextVersionForProject == _T("PTLinuxVersion7"))
@@ -4669,14 +4670,14 @@ wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr)
 	wxASSERT(posSpace != wxNOT_FOUND);
 /* *** Apparent BUG manifests here:  postEditMd5Line has  "\\v:0:0" for an unknown reason - that is killing the production of the text
 // I have Kirsi's project -- it is the Mark document, with sn about 1:12, box at an upper case word like Besin  then try save in collab mode
-// It only happens in Kirsi's new laptop, it causes Mark 7:17 to be analysed wrong, the MD5 thingie gets \\v:0:0, instead of \\v 17:0:0 
+// It only happens in Kirsi's new laptop, it causes Mark 7:17 to be analysed wrong, the MD5 thingie gets \\v:0:0, instead of \\v 17:0:0
 // and the <sp>17 ends up in the document as 'text'. Solution, is to edit the bad 7:17 line in PT and 'Save All', close PT, and then
 // AI will do a Save or History save, in collab mode, once without failing - but it re-makes the \v \v 18 error in Mark 7, each time,.
 // so the PT edit has to be done before every save. Other documents save normally. On my machine here data saves perfectly normally.
 // BEW 19Oct16 this is probably a data error. In TPK project, Paratext, Psalm 44:16 has a line:   \v 16\v*
 // which causes the md5sum array for Psalms to get a bad line:  \v*:0:0
 // which then causes an assert to trip in GetNumberFromChapterOrVerseString() when setting up a collaboration - the latter checks all
-// available books, and so this data error clobbers the analysys of source text books giving an app crash. 
+// available books, and so this data error clobbers the analysys of source text books giving an app crash.
 */
 	// get the number and any following part
 	numStr = numStr.Mid(posSpace);
@@ -5336,10 +5337,10 @@ bool IsUsfmStructureChanged(wxString& oldText, wxString& newText)
 	}
 }
 
-// whm 20Mar2018 refactored to correct bad parse of Language Identifier field which in Paratext 8 may 
+// whm 20Mar2018 refactored to correct bad parse of Language Identifier field which in Paratext 8 may
 // add "Advanced" information that adds extra fields to the EthnologueCode, for example "ug:Arab:143:"
 // as found in at least one user's Paratext 8's Settings.xml file. The extra tokens delimited by ':'
-// characters resulted in the while loop overwriting the first 2 or 3 fields with the last 2 or 3 
+// characters resulted in the while loop overwriting the first 2 or 3 fields with the last 2 or 3
 // tokens garbling the composedProjStr.
 // The refactored version now puts the extra field tokens all in the EthnologueCode field.
 bool CollabProjectFoundInListOfEditorProjects(wxString projName, wxArrayString projList, wxString& composedProjStr)
@@ -5406,7 +5407,7 @@ bool CollabProjectFoundInListOfEditorProjects(wxString projName, wxArrayString p
                     }
                     else
                     {
-                        // Put extra tokens in the tmpEthnologueCode field, for example one user's 
+                        // Put extra tokens in the tmpEthnologueCode field, for example one user's
                         // EthnologueCode was "ug:Arab:143:"
                         tmpEthnologueCode += _T(":") + tokenStr; // don't pad these with spaces
                     }
@@ -5759,7 +5760,7 @@ bool DoVerseAnalysis(VerseAnalysis& refVAnal, const wxArrayString& md5Array, siz
 	// test we really do have a line beginning with a verse marker
 	wxString mkr = GetStrictUsfmMarkerFromStructExtentString(lineStr);
     // whm 12Sept2017 no modifications made here as it appears that the GetStrictUsfmMarkerFromStructExtentString() function above
-    // returns a base verse marker without any possibility of there being a following space. 
+    // returns a base verse marker without any possibility of there being a following space.
 	if (mkr != _T("\\v") || mkr != _T("\\vn"))
 	{
 		// don't expect the error, a message to developer will do
@@ -6614,6 +6615,7 @@ int  FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBefor
 // \free \note and \bt (and any \bt-initial markers) and the contents of those markers to
 // be excluded from the export
 // BEW 5Sep14 refactored to better sync with the filtered marker settings
+
 wxString ExportTargetText_For_Collab(SPList* pDocList)
 {
 	wxString text;
@@ -7833,9 +7835,14 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	// it is too late to begin creating and populating structs for a conflict resolution
 	// dialog at that point in time. We therefore do it for every verse, and use the
 	// stucts after the loop terminates, and the user's intentions are known.
-	gpApp->m_bRetainPTorBEversion = FALSE; // initialize (TRUE is the default option)
-	gpApp->m_bForceAIversion = FALSE;     // initialize (user can set TRUE using dlg)
-	gpApp->m_bUseConflictResolutionDlg = FALSE; // initialize (user can set TRUE using dlg)
+
+// mrh May19 - if we're doing a consistency check, we leave the flags unchanged:
+    if (!gbConsistencyCheckCurrent)
+	{   gpApp->m_bRetainPTorBEversion = FALSE;      // initialize (TRUE is the default option)
+        gpApp->m_bForceAIversion = FALSE;           // initialize (user can set TRUE using dlg)
+        gpApp->m_bUseConflictResolutionDlg = FALSE; // initialize (user can set TRUE using dlg)
+    }
+
     // Note, the dlg referred to just above is the ConflictResolutionActionFunc - it has 3
     // radio button choices and explanatory text for each. This dialog is not openable by
     // user choice, instead, it opens at the first detection of a conflict. The user can
@@ -8174,7 +8181,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 									gpApp->m_bRetainPTorBEversion = dlg.m_bLegacy_retain_PTorBE_version;
 									gpApp->m_bForceAIversion = dlg.m_bForce_AI_version_transfer;
 									gpApp->m_bUseConflictResolutionDlg = dlg.m_bUserWantsVisualConflictResolution;
-								}
+ 								}
 								else
 								{
 									// Set the legacy choice -- resolve in favour of
@@ -8434,9 +8441,12 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	} // end of loop: for (i=0; i< structsCount; i++) for building newText
 
 	// Tidy up (unneeded, but a good idea)
-	gpApp->m_bRetainPTorBEversion = FALSE;
-	gpApp->m_bForceAIversion = FALSE;
-	gpApp->m_bUseConflictResolutionDlg = FALSE;
+	// mrh May19 - if we're doing a consistency check, we leave the flags unchanged:
+    if (!gbConsistencyCheckCurrent)
+	{   gpApp->m_bRetainPTorBEversion = FALSE;      // initialize (TRUE is the default option)
+        gpApp->m_bForceAIversion = FALSE;           // initialize (user can set TRUE using dlg)
+        gpApp->m_bUseConflictResolutionDlg = FALSE; // initialize (user can set TRUE using dlg)
+    }
 
 	// destroy the ConflictRes structs
 	DestroyConflictResStructs(conflictsArr);
@@ -8797,7 +8807,7 @@ wxArrayString ObtainSubarray(const wxArrayString arr, size_t nStart, size_t nFin
 // chunk of mismatched marker lines which have to be deal with as a whole (e.g. user may
 // have added or removed markers, bridged some verses, etc and such changes appear in only
 // one of the texts).
-// BEW 10Jul15 conflict resolution protocals added. First conflict encountered shows the
+// BEW 10Jul15 conflict resolution protocols added. First conflict encountered shows the
 // 3-radio-button dialog ConflictResActionDlgFunc, which gives the user the legacy option,
 // or the option to force the AI verse version at each programmatically unsolvable
 // conflict, or to show a further dialog defined by Bill, AI_PT_COnflictingVersesFunc,
@@ -8914,9 +8924,13 @@ wxString GetUpdatedText_UsfmsChanged(
 	// The next three record the user's response to being asked for what level of
 	// conflict resolution he wants, via a dialog which shows at the first encounter of
 	// a conflict
-	gpApp->m_bRetainPTorBEversion = FALSE; // initialize (TRUE is the default option)
-	gpApp->m_bForceAIversion = FALSE;     // initialize (user can set TRUE using dlg)
-	gpApp->m_bUseConflictResolutionDlg = FALSE; // initialize (user can set TRUE using dlg)
+
+	// mrh May19 - if we're doing a consistency check, we leave the flags unchanged:
+    if (!gbConsistencyCheckCurrent)
+	{   gpApp->m_bRetainPTorBEversion = FALSE;      // initialize (TRUE is the default option)
+        gpApp->m_bForceAIversion = FALSE;           // initialize (user can set TRUE using dlg)
+        gpApp->m_bUseConflictResolutionDlg = FALSE; // initialize (user can set TRUE using dlg)
+    }
 
 	// BEW 22Jun15, refactored to remove unneeded complexity. Since I intend to unilaterally
 	// transfer whatever precedes \v 1 line in the file, whether or not a chapter marker is
@@ -9241,7 +9255,7 @@ wxString GetUpdatedText_UsfmsChanged(
 
 
 
-	}		
+	}
 		}
 #endif
 		postEditVerseNumStr = GetNumberFromChapterOrVerseStr(postEditMd5Line);
@@ -9787,9 +9801,12 @@ wxString GetUpdatedText_UsfmsChanged(
 	}
 
 	// Tidy up (unneeded, but a good idea)
-	gpApp->m_bRetainPTorBEversion = FALSE;
-	gpApp->m_bForceAIversion = FALSE;
-	gpApp->m_bUseConflictResolutionDlg = FALSE;
+	// mrh May19 - if we're doing a consistency check, we leave the flags unchanged:
+    if (!gbConsistencyCheckCurrent)
+	{   gpApp->m_bRetainPTorBEversion = FALSE;      // initialize (TRUE is the default option)
+        gpApp->m_bForceAIversion = FALSE;           // initialize (user can set TRUE using dlg)
+        gpApp->m_bUseConflictResolutionDlg = FALSE; // initialize (user can set TRUE using dlg)
+    }
 
 	// destroy the ConflictRes structs
 	DestroyConflictResStructs(conflictsArr);
@@ -10271,6 +10288,79 @@ bool HasInfoChanged(
 	return FALSE;
 }
 
+
+/*  (mrh comment)
+    OK_btn_delayedHandler_GetSourceTextFromEditor() is called when the "Get Source Text from Paratext/BibleEdit Project" dialog is OK'd.
+    This is in GetSourceTextfromEditor.cpp - see CGetSourceTextFromEditorDlg::OnOK().  At the end of that function,
+    m_pApp->m_bEnableDelayedGet_Handler is set TRUE, then when the function returns the dialog goes away, and on the next idle event
+    we get called here to actually read the document in.  Apparently this can be problematic if the dialog is still up.
+    Note that by now the App members such as m_CollabChapterSelected have all been set from within that OnOK() function.
+    This function has some lines that shouldn't be executed during a collaborative consistency check, since we're not changing projects
+    or KBs.  So we we use the global gbConsistencyCheckCurrent to skip them.  In particular, the KB mustn't be unloaded, and we can
+    dispense with the progress dialog.
+*/
+
+void  Get_collaboration_text_for_consistency_check (CAdapt_ItApp* pApp)
+{
+    // store the "pre-edit" version of the document's adaptation text in a member on the
+    // app class, and if free translation is wanted for tranfer to PT or BE as well, get
+    // the pre-edit free translation exported and stored in another app member for that
+    // purpose
+	if (pApp->m_bCollabByChapterOnly)
+	{
+		// targetChapterBuff, a wxString, stores temporarily the USFM target text as
+		// exported from the document prior to the user doing any work, and we store it
+        // persistently in the app private member m_targetTextBuffer_PreEdit; the
+        // post-edit translation will be compared to it at the next File / Save - after
+        // which the post-edit translation will replace the one held in
+        // m_targetTextBuffer_PreEdit
+
+		m_collab_targetChapterBuffer = ExportTargetText_For_Collab(pApp->m_pSourcePhrases);
+
+		m_collab_targetChapterBuffer = ZWSPtoFwdSlash(m_collab_targetChapterBuffer);
+		m_collab_targetChapterBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_targetChapterBuffer);
+
+		pApp->StoreTargetText_PreEdit(m_collab_targetChapterBuffer);
+
+		// likewise, if free translation transfer is expected, we get the pre-edit free
+		// translation exported and stored in app's private m_freeTransTextBuffer_PreEdit
+		if (pApp->m_bCollaborationExpectsFreeTrans)
+		{
+			// this might return an empty string, or USFMs only string, if no work has yet
+			// been done on the free translation
+			m_collab_freeTransChapterBuffer = ExportFreeTransText_For_Collab(pApp->m_pSourcePhrases);
+
+			m_collab_freeTransChapterBuffer = ZWSPtoFwdSlash(m_collab_freeTransChapterBuffer);
+			m_collab_freeTransChapterBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_freeTransChapterBuffer);
+
+			pApp->StoreFreeTransText_PreEdit(m_collab_freeTransChapterBuffer);
+		}
+	}
+	else
+	{
+		// we are working with a "whole book"
+		m_collab_targetWholeBookBuffer = ExportTargetText_For_Collab(pApp->m_pSourcePhrases);
+
+		m_collab_targetWholeBookBuffer = ZWSPtoFwdSlash(m_collab_targetWholeBookBuffer);
+		m_collab_targetWholeBookBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_targetWholeBookBuffer);
+
+		pApp->StoreTargetText_PreEdit(m_collab_targetWholeBookBuffer);
+
+		if (pApp->m_bCollaborationExpectsFreeTrans)
+		{
+			// this might return an empty string, or USFMs only string, if no work has yet
+			// been done on the free translation
+			m_collab_freeTransWholeBookBuffer = ExportFreeTransText_For_Collab(pApp->m_pSourcePhrases);
+
+			m_collab_freeTransWholeBookBuffer = ZWSPtoFwdSlash(m_collab_freeTransWholeBookBuffer);
+			m_collab_freeTransWholeBookBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_freeTransWholeBookBuffer);
+
+			pApp->StoreFreeTransText_PreEdit(m_collab_freeTransWholeBookBuffer);
+		}
+	}
+}
+
+
 long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 {
 	CAdapt_ItView* pView = pApp->GetView();
@@ -10280,6 +10370,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 	// returned, we set the following boolean which suppresses the call of
 	// PlacePhraseBox() until after OnOK() is called. Thereafter, OnIdle() detects the
 	// flag is TRUE, and does the required PlacePhraseBox() call, and clears the flag
+
 	pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = TRUE;
 
 	// whm 25Aug11 modified to use a wxProgressDialog rather than the CWaitDlg. I've
@@ -10338,10 +10429,12 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 	// be changed after the dialog is created. So any routine that gets passed the
 	// pProgDlg pointer, must make sure that value in its Update() function does not
 	// exceed the same maximum value (nTotal).
-	wxString msgDisplayed;
-	const int nTotal = 9; // we will do up to 9 Steps
-	int nStep = 0;
-	wxString progMsg;
+
+	wxString    msgDisplayed;
+	const int   nTotal = 9; // we will do up to 9 Steps
+	int         nStep = 0;
+	wxString    progMsg;
+
 	if (pApp->m_bCollabByChapterOnly)
 	{
 		progMsg = _("Getting the chapter and laying out the document... step %d of %d");
@@ -10350,6 +10443,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 	{
 		progMsg = _("Getting the book and laying out the document... step %d of %d");
 	}
+
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 	CStatusBar* pStatusBar = NULL;
 	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
@@ -10401,6 +10495,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 	// choice.)
 	long resultSrc = -1;
 	wxArrayString outputSrc, errorsSrc;
+
 	if (pApp->m_bCollabByChapterOnly)
 	{
 		nStep = 2;
@@ -10711,7 +10806,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 				chForDocName = m_collab_bareChapterSelectedStr;
 			else
 				chForDocName = _T("");
-
+// qwqwqw - check this bit:
 			wxString docTitle = pApp->GetFileNameForCollaboration(_T("_Collab"),
 							bookCode, _T(""), chForDocName, _T(""));
 			documentName = pApp->GetFileNameForCollaboration(_T("_Collab"),
@@ -11044,6 +11139,9 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 	pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 
+// mrh - at this point we can call the factored-out function:
+//	Get_collaboration_text_for_consistency_check (pApp);
+
     // store the "pre-edit" version of the document's adaptation text in a member on the
     // app class, and if free translation is wanted for tranfer to PT or BE as well, get
     // the pre-edit free translation exported and stored in another app member for that
@@ -11107,6 +11205,7 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 			pApp->StoreFreeTransText_PreEdit(m_collab_freeTransWholeBookBuffer);
 		}
 	}
+// end of the factored-out code
 
 	nStep = 9;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
@@ -11153,12 +11252,12 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 // call them - copy to here.)
 // BEW 30Aug16 refactored to use ExportTargetText_For_Collab() which is well behaved if
 // an errant endmarker, such as \x* is in the external editor's source text. My earlier
-// version, if the errant marker is in the AI document, would fail to send content after 
+// version, if the errant marker is in the AI document, would fail to send content after
 // such a marker was encountered - and I never was able to figure why - stepping *did not*
 // work.
 // BEW 5Sep18 - discovered to my consternation that in 30Aug16 I generated *** TARGET***
 // text and somehow expected it to miraculously become source text. Duh! Let's have a
-// second go at it - pinching code from the switch in RebuildSourceText() in 
+// second go at it - pinching code from the switch in RebuildSourceText() in
 // ExportFunctions.cpp  For the present, the legacy code is just commented out.
 wxString MakeSourceTextForCollabConflictResDlg()
 {
@@ -11173,7 +11272,7 @@ wxString MakeSourceTextForCollabConflictResDlg()
 
 	// get the CString which is the source text data, as ammended by any edits on it
 	// done so far; or the current target text data, or the current glosses data, or the
-	// current free translations data, as the case may be	wxString source;	
+	// current free translations data, as the case may be	wxString source;
 	//source.Empty();
 	bool bRTFOutput = FALSE;
 
@@ -11305,4 +11404,31 @@ void OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event))
 }
 */
 
+
+/*  mrh May19
+    With collaboration, the filename for a given book/chapter is e.g. _Collab_99_BBB_CH99.xml, where BBB is the standard book code.
+    These functions get the 3-letter book code and the full book name from the filename.
+*/
+
+wxString  Get_bookCode_from_filename ( wxString filename )
+{
+    wxASSERT (filename.Left(8) == "_Collab_" );     // sanity check
+    return ( filename.Mid(11, 3) );                  // zero-based index
+}
+
+// The chapter number is returned as a string, not a number:
+wxString  Get_chapter_from_filename ( wxString filename )
+{
+   wxASSERT (filename.Left(8) == "_Collab_" );     // sanity check
+   return ( filename.Mid(17, 2) );
+}
+
+
+wxString  Get_bookname_from_filename ( wxString filename )
+{
+    wxString    bookCode;
+
+    bookCode = Get_bookCode_from_filename ( filename );
+    return  gpApp->GetBookNameFromBookCode ( bookCode, "Paratext" );     // soon we must account for BibleEdit
+}
 
