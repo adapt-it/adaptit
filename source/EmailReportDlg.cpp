@@ -732,8 +732,18 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 		if(curl) 
 		{
 			// what URL receives this POST
-			curl_easy_setopt(curl, CURLOPT_URL, "https://adapt-it.org/feedback.php"); // Use this URL for SSL connection
-			//curl_easy_setopt(curl, CURLOPT_URL, "http://adapt-it.org/feedback.php"); // Use this URL for non-secured connection
+            // whm 22Apr2019 added - use the URL from AI-BasicConfiguration.aic file if it exists
+            if (!pApp->m_serverURL.IsEmpty() && !pApp->m_phpFileName.IsEmpty())
+            {
+                wxString urlStr = pApp->m_serverURL + pApp->m_phpFileName;
+                CBString urlCStr;
+                urlCStr = urlStr.ToUTF8();
+                curl_easy_setopt(curl, CURLOPT_URL, urlCStr.GetBuffer()); // Use this URL for SSL connection
+            }
+            else
+            {
+                curl_easy_setopt(curl, CURLOPT_URL, "https://adapt-it.org/feedback.php"); // Use this default URL for SSL connection
+            }
 			
 			// Note: the path in the following CRULOPT_CAINFO option is a path to the ca-buncle.crt file
 			// in the Windows distribution of Adapt It. During development the ca-bundle.crt file

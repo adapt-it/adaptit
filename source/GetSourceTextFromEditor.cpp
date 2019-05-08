@@ -7,17 +7,17 @@
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for two friend classes: the CGetSourceTextFromEditorDlg and
-/// the CChangeCollabProjectsDlg class. 
+/// the CChangeCollabProjectsDlg class.
 /// The CGetSourceTextFromEditorDlg class represents a dialog in which a user can obtain a source text
 /// for adaptation from an external editor such as Paratext or Bibledit.
 /// \derivation		The CGetSourceTextFromEditorDlg is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in GetSourceTextFromEditorDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -83,7 +83,7 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	// 
+	//
 	// whm 10Sep11 Note: Normally the second parameter in the call of the wxDesigner function
 	// below is true - which calls Fit() to make the dialog window itself size to fit the size of
 	// all controls in the dialog. But in the case of this dialog, we don't call Fit() so we can
@@ -97,10 +97,10 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying
 	// color used for read-only text controls displaying static text info button face color
 	sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
-	
+
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);
-	
+
 	pListBoxBookNames = (wxListBox*)FindWindowById(ID_LISTBOX_BOOK_NAMES);
 	wxASSERT(pListBoxBookNames != NULL);
 
@@ -122,10 +122,10 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 
 	pSrcProj = (wxStaticText*)FindWindowById(ID_STATIC_TEXT_SRC_PROJ);
 	wxASSERT(pSrcProj != NULL);
-	
+
 	pTgtProj = (wxStaticText*)FindWindowById(ID_STATIC_TEXT_TGT_PROJ);
 	wxASSERT(pTgtProj != NULL);
-	
+
 	pFreeTransProj = (wxStaticText*)FindWindowById(ID_STATIC_TEXT_FREETRANS_PROJ);
 	wxASSERT(pFreeTransProj != NULL);
 
@@ -138,7 +138,7 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 
 	pUsingAIProjectName = (wxStaticText*)FindWindowById(ID_TEXT_AI_PROJ);
 	wxASSERT(pUsingAIProjectName != NULL);
-	
+
     // whm 5Mar2019 Note: The GetSourceTextFromEditorDlgFunc() dialog now uses a wxStdDialogButtonSizer
     // and so there is no longer need to call ReverseOkCancelButtonsForMac().
     //bool bOK;
@@ -147,7 +147,7 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	// other attribute initializations
 
     pGetSourceTextFromEditorSizer->Layout(); // update the layout for $s substitutions
-                                             // Some control text may be truncated unless we resize the dialog to fit it. 
+                                             // Some control text may be truncated unless we resize the dialog to fit it.
                                              // Note: The constructor's call of GetSourceTextFromEditorDlgFunc(this, FALSE, TRUE)
                                              // has its second parameter as FALSE to allow this resize here in InitDialog().
     wxSize dlgSize;
@@ -158,9 +158,9 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 
 CGetSourceTextFromEditorDlg::~CGetSourceTextFromEditorDlg() // destructor
 {
-	// BEW 15Sep14, added next two lines 
+	// BEW 15Sep14, added next two lines
 	pListBoxBookNames->Clear();
-	pListCtrlChapterNumberAndStatus->DeleteAllItems(); 
+	pListCtrlChapterNumberAndStatus->DeleteAllItems();
 
 	if (pTheFirstColumn != NULL) // whm 11Jun12 added NULL test
 		delete pTheFirstColumn;
@@ -231,7 +231,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	if (m_pApp->m_bCollaboratingWithParatext) // if (!m_pApp->m_bCollaboratingWithBibledit)
 	{
-        // whm added 17March2017. To avoid possible error, we need to be absolutely sure of the path to the 
+        // whm added 17March2017. To avoid possible error, we need to be absolutely sure of the path to the
         // rdwrtp7.exe file which is different for PT7 and PT8, so I'm adding a parameter to GetPathToRdwrtp7()
         // to indicate the specific version of PT we want the path for.
 		//m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(); // see CollabUtilities.cpp
@@ -261,21 +261,21 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
             m_bibledit_rdwrtPathAndFileName = wxEmptyString;
         }
     }
-	// Generally when the "Get Source Text from Paratext/Bibledit Project" dialog is called, we 
+	// Generally when the "Get Source Text from Paratext/Bibledit Project" dialog is called, we
 	// can be sure that some checks have been done to ensure that Paratext/Bibledit is installed,
 	// that previously selected PT/BE projects are still valid/exist, etc. Those consistency and
 	// validity checks were done in the GetAIProjectCollabStatus() function call in ProjectPage's
 	// OnWizardPageChanging() just after the user has selected the project to open and the
 	// selected project's project config file has been read.
-	
-	// whm revised 1Mar12 at Bruce's request to use the whole composite string in 
+
+	// whm revised 1Mar12 at Bruce's request to use the whole composite string in
 	// the case of Paratext.
 	// whm Note: GetAILangNamesFromAIProjectNames() below issues error message if the
 	// m_TempCollabAIProjectName is mal-formed (empty, or has no " to " or " adaptations")
 	pSrcProj->SetLabel(m_TempCollabProjectForSourceInputs);
 	pTgtProj->SetLabel(m_TempCollabProjectForTargetExports);
 	pFreeTransProj->SetLabel(m_TempCollabProjectForFreeTransExports);
-	
+
 	pUsingAIProjectName->SetLabel(m_TempCollabAIProjectName); // whm added 28Jan12
 
 	LoadBookNamesIntoList();
@@ -289,7 +289,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	pTheSecondColumn->SetImage(-1);
 	pListCtrlChapterNumberAndStatus->InsertColumn(1, *pTheSecondColumn);
 
-	// select LastPTBookSelected 
+	// select LastPTBookSelected
 	if (!m_TempCollabBookSelected.IsEmpty())
 	{
 		int nSel = pListBoxBookNames->FindString(m_TempCollabBookSelected);
@@ -302,19 +302,19 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			aDC.SetFont(tempFont);
 			aDC.GetTextExtent(m_TempCollabBookSelected,&sizeOfBookNameAndCh.x,&sizeOfBookNameAndCh.y);
 			pTheFirstColumn->SetWidth(sizeOfBookNameAndCh.GetX() + 30); // 30 fudge factor
-			
+
 			int height,widthListCtrl,widthCol1;
 			pListCtrlChapterNumberAndStatus->GetClientSize(&widthListCtrl,&height);
 			widthCol1 = pTheFirstColumn->GetWidth();
 			pTheSecondColumn->SetWidth(widthListCtrl - widthCol1);
-			
+
 			pListCtrlChapterNumberAndStatus->InsertColumn(0, *pTheFirstColumn);
 			pListCtrlChapterNumberAndStatus->InsertColumn(1, *pTheSecondColumn);
-			
+
 			// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
 			pListBoxBookNames->SetSelection(nSel);
 			// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
-			pListBoxBookNames->SetFocus(); 
+			pListBoxBookNames->SetFocus();
 			wxCommandEvent evt;
 			OnLBBookSelected(evt);
 			// whm added 29Jul11. If "Get Whole Book" is ON, we can set the focus
@@ -328,15 +328,15 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	}
 	// Normally at this point the "Select a book" list will be populated and any previously
 	// selected book will now be selected. If a book is selected, the "Select a chapter" list
-	// will also be populated and, if any previously selected chaper will now again be 
+	// will also be populated and, if any previously selected chaper will now again be
 	// selected (from actions done within the OnLBBookSelected handler called above).
-	
+
 	// whm modified 7Jan12 to call RefreshStatusBarInfo which now incorporates collaboration
 	// info within its status bar message
 	m_pApp->RefreshStatusBarInfo();
 
 	pGetSourceTextFromEditorSizer->Layout(); // update the layout for $s substitutions
-	// Some control text may be truncated unless we resize the dialog to fit it. 
+	// Some control text may be truncated unless we resize the dialog to fit it.
 	// Note: The constructor's call of GetSourceTextFromEditorDlgFunc(this, FALSE, TRUE)
 	// has its second parameter as FALSE to allow this resize here in InitDialog().
 	wxSize dlgSize;
@@ -352,7 +352,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	}
  }
 
- // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
+// OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
@@ -365,7 +365,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 // up the mapping to the appropriate AI project, if there is one, each time - and load the
 // KBs for it.
 
-void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event) 
+void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 {
 	if (pListBoxBookNames->GetSelection() == wxNOT_FOUND)
 	{
@@ -373,7 +373,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		pListBoxBookNames->SetFocus();
 		return; // don't accept any changes until a book is selected
 	}
-	
+
 	// whm added 27Jul11 a test for whether we are working by chapter
 	if (m_bTempCollabByChapterOnly && pListCtrlChapterNumberAndStatus->GetNextItem(-1,wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED) == wxNOT_FOUND)
 	{
@@ -387,7 +387,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 
 	// BEW 22Jun15, the earlier logic down to the wxASSERT only worked provided \c 1 was in the target
 	// text book (Paratext does put \c  1 in 2JN 3JN & JUD but a user may decide to edit them out, and
-	// that would produce a crash here). For those short books the code needs to work whether the \c 1 is 
+	// that would produce a crash here). For those short books the code needs to work whether the \c 1 is
 	// retained or removed. So I've added extra code to handle either option (Note: chSel is not really
 	// a chapter selection, it's a list index variable; so interpretting it as 1 less than the actual
 	// chapter number only works when \c 1 is present in the book. When \c 1 is absent, the temp
@@ -417,7 +417,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// document was correctly saved as _Collab_45_3JN_CH01.xml, there was a problem lurking
 		// for the next time I opened that doc (because it no longer had a chapter number in it).
 		// So when I next used the GetSourceTextFromEditor dialog, and selected 3 John from
-		// the list, the dialog's code checks in the document text grabbed by AI to form the 
+		// the list, the dialog's code checks in the document text grabbed by AI to form the
 		// document again at next choice of the right hand list box's single item, there is no
 		// chapter number there. So I had a default below of "0" - what happened from that was
 		// the following. AI constructed a document name of _Collab_45_3JN_CH00.xml, but such
@@ -426,7 +426,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// with all the adaptations I'd formerly done gone entirely!!!! Imagine what a user would
 		// think! Then I noticed the title bar had the filename _Collab_45_3JN_CH00 and the penny
 		// dropped. The loss of the \c 1 was important for getting the filename right. If no
-		// chapter is present, then "1" has to be assumed - not "0", or the app puts up an empty 
+		// chapter is present, then "1" has to be assumed - not "0", or the app puts up an empty
 		// doc and the user will not have a clue what has gone wrong.
 		m_collab_bareChapterSelectedStr = _T("1");
 	}
@@ -442,12 +442,13 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		}
 		else
 		{
-			chSel = 0; // indicates we're dealing with Whole Book 
+			chSel = 0; // indicates we're dealing with Whole Book
 		}
 		// if chSel is 0, the string returned to derivedChStr will be _T("0")
 		m_collab_bareChapterSelectedStr.Empty();
 		m_collab_bareChapterSelectedStr << chSel;
 		wxString derivedChStr = GetBareChFromLBChSelection(m_TempCollabChapterSelected);
+
 		wxASSERT(m_collab_bareChapterSelectedStr == derivedChStr);
 	}
 
@@ -466,14 +467,14 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabBookSelected = m_TempCollabBookSelected;
 	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly;
-	m_pApp->m_CollabChapterSelected = m_collab_bareChapterSelectedStr; // use the 
+	m_pApp->m_CollabChapterSelected = m_collab_bareChapterSelectedStr; // use the
 						// bare number string rather than the list box's book + ' ' + chnumber
 	m_pApp->m_CollabSourceLangName = m_TempCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_TempCollabTargetProjLangName;
 
-	// whm 26Feb12 Note: With project-specific collaboration, the user's choice of 
+	// whm 26Feb12 Note: With project-specific collaboration, the user's choice of
 	// m_CollabBookSelected and m_CollabChapterSelected within the current dialog has
-	// been saved to the App's members, but has not yet been saved in the specific 
+	// been saved to the App's members, but has not yet been saved in the specific
 	// AI Project's config file. The HookUpToExistingAIProject() function below will
 	// read the AI-ProjectConfiguration.aic file to get the general project settings
 	// which would overwrite the above values for the App's m_CollabBookSelected and
@@ -494,13 +495,15 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
         // calls OK_btn_delayedHandler_GetSourceTextFromEditor(gpApp) and also
         // m_bEnableDelayedGet_Handler is then set FALSE to ensure only one call
 
-				
+    // mrh comment - by now, the values m_pApp->m_CollabBookSelected and m_pApp->m_CollabChapterSelected
+    // have been set.
+
 	/* not needed, I've put 2nd and 3rd lines instead into the class destructor
 	pListBoxBookNames->SetSelection(-1); // remove any selection
 	// clear lists and static text box at bottom of dialog
 	pListBoxBookNames->Clear();
 	// in next call don't use ClearAll() because it clobbers any columns too
-	pListCtrlChapterNumberAndStatus->DeleteAllItems(); 
+	pListCtrlChapterNumberAndStatus->DeleteAllItems();
 	pStaticTextCtrlNote->ChangeValue(_T(""));
 	*/
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
@@ -514,11 +517,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 // this function, could be replaced by a single line call
 // TransferTextBetweenAdaptItAndExternalEditor() from CollabUtilities() EXCEPT for one
 // vital condition, namely: what is done here may be Cancelled by the user in the dialog,
-// and so the code here uses various temporary variables; whereas 
+// and so the code here uses various temporary variables; whereas
 // TransferTextBetweenAdaptItAndExternalEditor() accesses persistent (for the session)
 // variables stored on the app, which get populated only after the user has clicked the
 // dialog's OK button, hence invoking the OnOK() handler.
-// 
+//
 // whm Note: OnLBBookSelected() is called from the OnComboBoxSelectSourceProject(), from
 // OnComboBoxSelectTargetProject(), and from the dialog's InitDialog() when it receives
 // config file values that enable it to select the last PT/BE book selected in a previous
@@ -533,7 +536,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	wxString waitMsg = _("Please wait while I query %s...");
 	waitMsg = waitMsg.Format(waitMsg,m_collabEditorName.c_str());
 	pStaticSelectAChapter->SetLabel(waitMsg);
-	
+
 	int nSel;
 	wxString fullBookName;
 	nSel = pListBoxBookNames->GetSelection();
@@ -546,20 +549,20 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// 3. Scan through the buffers, collecting their usfm markers - simultaneously counting
 	//    the number of characters associated with each marker (0 = empty).
 	// 4. Only the actual marker, plus a : delimiter, plus the character count associated with
-	//    the marker plus a : delimiter plus an MD5 checksum is collected and stored in two 
+	//    the marker plus a : delimiter plus an MD5 checksum is collected and stored in two
 	//    wxArrayStrings, one marker (and count and MD5 checksum) per array element.
-	// 5. This collection of the usfm structure (and extent) is done for both the source PT/BE 
+	// 5. This collection of the usfm structure (and extent) is done for both the source PT/BE
 	//    book's data and the destination PT/BE book's data.
-	// 6. The two wxArrayString collections will make it an easy matter to compare the 
+	// 6. The two wxArrayString collections will make it an easy matter to compare the
 	//    structure and extent of the two texts even though the actual textual content will,
 	//    of course, vary, because each text would normally be a different language.
 	// Using the two wxArrayStrings:
 	// a. We can easily find which verses of the destination text are empty and (if they are
 	// not also empty in the source text) conclude that those destination text verses have
 	// not yet been translated.
-	// b. We can easily compare the usfm structure between the source and 
-	// destination texts to see if the structure has changed. 
-	// 
+	// b. We can easily compare the usfm structure between the source and
+	// destination texts to see if the structure has changed.
+	//
 	// Each string element of the wxArrayStrings is of the following form:
 	// \mkr:nnnn, where \mkr could be \s, \p, \c 2, \v 23, \v 42-44, etc., followed by
 	// a colon (:), followed by a character count nnnn, followed by either another :0 or
@@ -623,22 +626,22 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// 	\v 6:151:4d6d314459a65318352266d9757567f1
 	//	\v 7:95:73a88b1d087bc4c5ad01dd423f3e45d0
 	//	\v 8:71:aaeb79b24bdd055275e94957c9fc13c2
-	// Note: The first number field after the usfm (delimited by ':') is a character count 
+	// Note: The first number field after the usfm (delimited by ':') is a character count
 	// for any text associated with that usfm. The last number field represents the MD5 checksum,
 	// except that only usfm markers that are associated with actual text have the 32 byte MD5
 	// checksums. Other markers, i.e., \c, \p, have 0 in the MD5 checksum field.
-	
+
 	// Bridged verses might look like the following:
 	// \v 23-25:nnnn:MD5
-	
+
 	// We also need to call rdwrtp7 to get a copy of the target text book (if it exists). We do the
 	// same scan on it collecting an wxArrayString of values that tell us what chapters exist and have
 	// been translated.
-	// 
+	//
 	// Usage: rdwrtp7 -r|-w project book chapter|0 fileName
 	wxString bookCode;
 	bookCode = m_pApp->GetBookCodeFromBookName(fullBookName);
-	
+
 	// ensure that a .temp folder exists in the m_workFolderPath
 	wxString tempFolder;
 	tempFolder = m_pApp->m_workFolderPath + m_pApp->PathSeparator + _T(".temp");
@@ -660,30 +663,30 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		freeTransProjShortName = GetShortNameFromProjectName(m_TempCollabProjectForFreeTransExports); // whm added 6Feb12
 	}
 	wxString bookNumAsStr = m_pApp->GetBookNumberAsStrFromName(fullBookName);
-	
+
 	wxString sourceTempFileName;
 	sourceTempFileName = tempFolder + m_pApp->PathSeparator;
 	sourceTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, sourceProjShortName, wxEmptyString, _T(".tmp"));
 	wxString targetTempFileName;
 	targetTempFileName = tempFolder + m_pApp->PathSeparator;
 	targetTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, targetProjShortName, wxEmptyString, _T(".tmp"));
-	
+
 	// whm added 6Feb12
 	wxString freeTransTempFileName;
 	freeTransTempFileName = tempFolder + m_pApp->PathSeparator;
 	freeTransTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, freeTransProjShortName, wxEmptyString, _T(".tmp"));
-	
+
 	// Build the command lines for reading the PT projects using rdwrtp7.exe
 	// and BE projects using bibledit-rdwrt (or adaptit-bibledit-rdwrt).
-	
-	// whm 23Aug11 Note: We are not using Bruce's BuildCommandLineFor() here to build the 
-	// commandline, because within GetSourceTextFromEditor() we are using temp variables 
-	// for passing to the GetShortNameFromProjectName() function above, whereas 
-	// BuildCommandLineFor() uses the App's values for m_CollabProjectForSourceInputs, 
-	// m_CollabProjectForTargetExports, and m_CollabProjectForFreeTransExports. Those App 
-	// values are not assigned until GetSourceTextFromEditor()::OnOK() is executed and the 
+
+	// whm 23Aug11 Note: We are not using Bruce's BuildCommandLineFor() here to build the
+	// commandline, because within GetSourceTextFromEditor() we are using temp variables
+	// for passing to the GetShortNameFromProjectName() function above, whereas
+	// BuildCommandLineFor() uses the App's values for m_CollabProjectForSourceInputs,
+	// m_CollabProjectForTargetExports, and m_CollabProjectForFreeTransExports. Those App
+	// values are not assigned until GetSourceTextFromEditor()::OnOK() is executed and the
 	// dialog is about to be closed.
-	
+
 	// whm 17Oct11 modified the commandline strings below to quote the source and target
 	// short project names (sourceProjShortName and targetProjShortName). This is especially
 	// important for the Bibledit projects, since we use the language name for the project
@@ -733,9 +736,9 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	wxArrayString outputTgt, errorsTgt;
 	wxArrayString outputFT, errorsFT; // whm added 6Feb12
 	// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
-	// Defined to 0 to use Bibledit's command-line interface to fetch text and write text 
+	// Defined to 0 to use Bibledit's command-line interface to fetch text and write text
 	// from/to its project data files. Defined as 0 is the normal setting.
-	// Defined to 1 to fetch text and write text directly from/to Bibledit's project data 
+	// Defined to 1 to fetch text and write text directly from/to Bibledit's project data
 	// files (not using command-line interface). Defined to 1 was for testing purposes
 	// only before Teus provided the command-line utility bibledit-rdwrt.
 	if (m_pApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
@@ -781,7 +784,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 
 	if (resultSrc != 0 || resultTgt != 0 || (m_bTempCollaborationExpectsFreeTrans && resultFT != 0))
 	{
-		// get the console output and error output, format into a string and 
+		// get the console output and error output, format into a string and
 		// include it with the message to user
 		wxString outputStr,errorsStr;
 		outputStr.Empty();
@@ -817,7 +820,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 				errorsStr += errorsTgt.Item(ct);
 			}
 		}
-		
+
 		if (m_bTempCollaborationExpectsFreeTrans && resultFT != 0)
 		{
 			for (ct = 0; ct < (int)outputFT.GetCount(); ct++)
@@ -865,12 +868,12 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 
 	// now read the tmp files into buffers in preparation for analyzing their chapter and
 	// verse status info (1:1:nnnn).
-	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
+	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a
 	// UNICODE BOM of ef bb bf
 
-	// whm 21Sep11 Note: When grabbing the source text, we need to ensure that 
-	// an \id XXX line is at the beginning of the text, therefore the second 
-	// parameter in the GetTextFromAbsolutePathAndRemoveBOM() call below is 
+	// whm 21Sep11 Note: When grabbing the source text, we need to ensure that
+	// an \id XXX line is at the beginning of the text, therefore the second
+	// parameter in the GetTextFromAbsolutePathAndRemoveBOM() call below is
 	// the bookCode. The addition of an \id XXX line will not normally be needed
 	// when grabbing whole books, but the check is made here to be safe. This
 	// call of GetTextFromAbsolutePathAndRemoveBOM() mainly gets the whole source
@@ -886,13 +889,13 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 //#endif
 
 	// whm 21Sep11 Note: When grabbing the target text, we don't need to add
-	// an \id XXX line at the beginning of the text, therefore the second 
-	// parameter in the GetTextFromAbsolutePathAndRemoveBOM() call below is 
+	// an \id XXX line at the beginning of the text, therefore the second
+	// parameter in the GetTextFromAbsolutePathAndRemoveBOM() call below is
 	// the wxEmptyString. Whole books will usually already have the \id XXX
 	// line, but we don't need to ensure that it exists for the target text.
-	// The call of GetTextFromAbsolutePathAndRemoveBOM() mainly gets the whole 
-	// target text for use in analyzing the chapter status, but I believe it 
-	// is also the main call that stores the text in the .temp folder which the 
+	// The call of GetTextFromAbsolutePathAndRemoveBOM() mainly gets the whole
+	// target text for use in analyzing the chapter status, but I believe it
+	// is also the main call that stores the text in the .temp folder which the
 	// app would use if the whole book is used for collaboration.
 	targetWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(targetTempFileName,wxEmptyString);
 //#if defined(FWD_SLASH_DELIM)
@@ -905,7 +908,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	SourceTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceWholeBookBuffer);
 	TargetTextUsfmStructureAndExtentArray.Clear();
 	TargetTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetWholeBookBuffer);
-	
+
 	// whm added 6Feb12
 	if (m_bTempCollaborationExpectsFreeTrans)
 	{
@@ -916,14 +919,14 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		freeTransWholeBookBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, freeTransWholeBookBuffer);
 //#endif
 		FreeTransTextUsfmStructureAndExtentArray.Clear();
-		FreeTransTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(freeTransWholeBookBuffer); 
+		FreeTransTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(freeTransWholeBookBuffer);
 	}
-	
+
 	/* !!!! whm testing below !!!!
 	// =====================================================================================
 	int testNum;
 	int totTestNum = 4;
-	// get the constant baseline buffer from the test cases which are on my 
+	// get the constant baseline buffer from the test cases which are on my
 	// local machine at: C:\Users\Bill Martin\Desktop\testing
 	//wxString basePathAndName = _T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_base1.SFM");
 	wxString basePathAndName = _T("C:\\Users\\Bill Martin\\Desktop\\testing\\49GALNYNT_base2_change_usfm_text_and_length_shorter incl bridged.SFM");
@@ -968,14 +971,14 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		// Note: the wxConvUTF8 parameter above works UNICODE builds and does nothing
 		// in ANSI builds so this should work for both ANSI and Unicode data.
 		free((void*)pTestByteBuf);
-		
+
 		wxArrayString testLineArray;
 		testLineArray = GetUsfmStructureAndExtent(testWholeBookBuffer);
 		CompareUsfmTexts compUsfmTextType;
 		compUsfmTextType = CompareUsfmTextStructureAndExtent(baseLineArray, testLineArray);
 		switch (compUsfmTextType)
 		{
-			 
+
 		case noDifferences:
 			 {
 				wxLogDebug(_T("compUsfmTextType = noDifferences"));
@@ -1000,13 +1003,13 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	}
 	// =====================================================================================
 	// !!!! whm testing above !!!!
-	*/ 
+	*/
 
 	// Note: The sourceWholeBookBuffer and targetWholeBookBuffer will not be completely empty even
 	// if no Paratext book yet exists, because there will be a FEFF UTF-16 BOM char in it
 	// after rdwrtp7.exe tries to copy the file and the result is stored in the wxString
 	// buffer. So, we can tell better whether the book hasn't been created within Paratext
-	// by checking to see if there are any elements in the appropriate 
+	// by checking to see if there are any elements in the appropriate
 	// UsfmStructureAndExtentArrays.
 	if (SourceTextUsfmStructureAndExtentArray.GetCount() == 0)
 	{
@@ -1035,7 +1038,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	}
 
 	pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
-	
+
 	wxArrayString chapterListFromSourceBook;
 	wxArrayString chapterStatusFromSourceBook;
 	bool bBookIsEmpty = FALSE; // assume book has some content. This will be modified by GetChapterListAndVerseStatusFromBook() below
@@ -1047,7 +1050,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		chapterListFromSourceBook,
 		chapterStatusFromSourceBook,
 		bBookIsEmpty); // whm 19Jul12 note: The bBookIsEmpty should be FALSE for a source text project book
-	
+
 	// If this source text book is "empty" notify user
 	if (bBookIsEmpty)
 	{
@@ -1056,7 +1059,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		pStaticSelectAChapter->SetLabel(_("Select a &chapter:"));
 		pStaticSelectAChapter->Refresh();
-		
+
 		// This book in the source project is "empty" of content. Do not allow this
 		// book to be selected for obtaining source texts, since no viable source text
 		// can be obtained for adaptation from this book.
@@ -1125,7 +1128,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	}
 	/*
 	pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
-	
+
 	wxArrayString chapterListFromSourceBook;
 	wxArrayString chapterStatusFromSourceBook;
 	bool bBookIsEmpty = FALSE; // assume book has some content. This will be modified by GetChapterListAndVerseStatusFromBook() below
@@ -1137,7 +1140,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		chapterListFromSourceBook,
 		chapterStatusFromSourceBook,
 		bBookIsEmpty); // whm 19Jul12 note: The bBookIsEmpty should be FALSE for a source text project book
-	
+
 	// If this source text book is "empty" notify user
 	if (bBookIsEmpty)
 	{
@@ -1170,7 +1173,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		chapterListFromTargetBook,
 		chapterStatusFromTargetBook,
 		bBookIsEmpty); // whm 19Jul12 note: The bBookIsEmpty is usually TRUE for the initial state of a target text project
-	
+
 	if (m_bTempCollaborationExpectsFreeTrans)
 	{
 		wxArrayString chapterListFromFreeTransBook;
@@ -1230,15 +1233,15 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			pTheFirstColumn->SetWidth(sizeOfBookNameAndCh.GetX() + 30); // 30 fudge factor
 		else
 			pTheFirstColumn->SetWidth(sizeOfFirstColHeader.GetX() + 30); // 30 fudge factor
-		
+
 		int height,widthListCtrl,widthCol1;
 		pListCtrlChapterNumberAndStatus->GetClientSize(&widthListCtrl,&height);
 		widthCol1 = pTheFirstColumn->GetWidth();
 		pTheSecondColumn->SetWidth(widthListCtrl - widthCol1);
-		
+
 		pListCtrlChapterNumberAndStatus->InsertColumn(0, *pTheFirstColumn);
 		pListCtrlChapterNumberAndStatus->InsertColumn(1, *pTheSecondColumn);
-		
+
 		int totItems = chapterListFromTargetBook.GetCount();
 		wxASSERT(totItems == (int)chapterStatusFromTargetBook.GetCount());
 		int ct;
@@ -1282,7 +1285,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			pListCtrlChapterNumberAndStatus->Select(nSel,TRUE);
 			//pListCtrlChapterNumberAndStatus->SetFocus(); // better to set focus on OK button (see below)
 			// Update the wxTextCtrl at the bottom of the dialog with more detailed
-			// info about the book and/or chapter that is selected. 
+			// info about the book and/or chapter that is selected.
 			wxString noteStrToDisplay = m_staticBoxTargetDescriptionArray.Item(nSel);
 			if (m_bTempCollaborationExpectsFreeTrans)
 			{
@@ -1307,16 +1310,16 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			pListCtrlChapterNumberAndStatus->SetFocus();
 		}
 	}
-	
+
 	wxASSERT(pListBoxBookNames->GetSelection() != wxNOT_FOUND);
 	m_TempCollabBookSelected = pListBoxBookNames->GetStringSelection();
-	
+
 	// whm added 27Jul11. Adjust the interface to Whole Book mode
 	if (!m_bTempCollabByChapterOnly)
-	{ 
+	{
 		// For Whole Book mode we need to:
 		// 1. Remove the chapter list's selection and disable it
-		// 2. Change its listbox static text heading from "Select a chapter:" 
+		// 2. Change its listbox static text heading from "Select a chapter:"
 		//    to "Chapter status of selected book:"
 		// 3. Change the informational text in the bottom edit box to something
 		//    informative (see TODO: below)
@@ -1337,8 +1340,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pStaticSelectAChapter->SetLabel(_("Chapter status of selected book:"));
 		pStaticSelectAChapter->Refresh();
 		wxString noteStr;
-		// whm TODO: For now I'm blanking out the text. Eventually we may want to compose 
-		// a noteStr that says something about the status of the whole book, i.e., 
+		// whm TODO: For now I'm blanking out the text. Eventually we may want to compose
+		// a noteStr that says something about the status of the whole book, i.e.,
 		// "All chapters have content", or "The following chapters have verses
 		// that do not yet have content: 1, 5, 12-29"
 		noteStr = _T("");
@@ -1370,7 +1373,7 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(even
 			// the book in terms of chapters
 			pListCtrlChapterNumberAndStatus->Select(nSel,FALSE); // deselect
 			pListCtrlChapterNumberAndStatus->Refresh();
-			return; 
+			return;
 		}
 		// Continue on, when the "by chapter only" option is in effect
 		wxString tempStr = pListCtrlChapterNumberAndStatus->GetItemText(nSel);
@@ -1385,7 +1388,7 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(even
 		}
 		//wxLogDebug(noteStrToDisplay);
 		pStaticTextCtrlNote->ChangeValue(noteStrToDisplay);
-		// whm note 29Jul11 We can't set focus on the OK button whenever the 
+		// whm note 29Jul11 We can't set focus on the OK button whenever the
 		// chapter selection changes, because working via keyboard, the up and
 		// down button especially will them move the focus from OK to to one of
 		// the combo boxes resulting in changing a project!
@@ -1429,13 +1432,13 @@ void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
 	{
 		wxString message;
-		message = message.Format(_("Collaborating with %s: getting source text was Cancelled"), 
+		message = message.Format(_("Collaborating with %s: getting source text was Cancelled"),
 									m_pApp->m_collaborationEditor.c_str());
 		pStatusBar->SetStatusText(message,0); // use first field 0
 		m_pApp->LogUserAction(message);
 	}
 
-	// whm 19Sep11 modified: 
+	// whm 19Sep11 modified:
 	// Previously, OnCancel() here emptied the m_pApp->m_curProjectPath. But that I think should
 	// not be done. It is not done when the user Cancel's from the Start Working Wizard when
 	// not collaboration with PT/BE.
@@ -1443,7 +1446,7 @@ void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 	//{
 	//	m_pApp->m_curProjectPath.Empty();
 	//}
-	
+
 	// Restore the App's original collab values before exiting the dialog
 	m_pApp->m_CollabProjectForSourceInputs = m_SaveCollabProjectForSourceInputs;
 	m_pApp->m_CollabProjectForTargetExports = m_SaveCollabProjectForTargetExports;
@@ -1473,7 +1476,7 @@ EthnologueCodePair*  CGetSourceTextFromEditorDlg::MatchAIProjectUsingEthnologueC
 	if (!bSuccessful || codePairs.IsEmpty())
 	{
 		// for either of the above conditions, the count of items in codePairs array will
-		// be zero, so no heap instances of EthnologueCodePair have to be deleted here 
+		// be zero, so no heap instances of EthnologueCodePair have to be deleted here
 		// first -- but then again, safety lies in being conservative...
 		int count2 = codePairs.GetCount();
 		int index2;
