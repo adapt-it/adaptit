@@ -17722,6 +17722,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	// folder (or whatever folder) is not associated with a particular project, but is
 	// located directly within the Adapt It Unicode Work folder.
 	exportFilename = gpApp->m_sourceName + _T('-') + gpApp->m_targetName + _T('_') + exportFilename;
+
 	// Remove any _Collab_ part of the name which isn't really necessary.
 	exportFilename.Replace(_T("_Collab_"),_T(""),TRUE);
 
@@ -23737,38 +23738,73 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 		return TRUE;
 	}
+
 	CStatusBar *pStatusBar = NULL;
 	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
 	pStatusBar->StartProgress(_("Consistency Check"), _("Starting Consistency Check"), nCount);
 
 	wxASSERT(nCount > 0);
 	int nTotal = 0;
-	bool bBlindFix = pApp->m_bBlindFixInConsCheck; // a nice short synonym is helpful
+	bool bBlindFix = pApp->m_bBlindFixInConsCheck;      // a nice short synonym is helpful
 
-	// iterate over the document files
-	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope
-								 // of the extern global of the same name
+    bool        bUserCancelled = FALSE;                 // whm note: Caution: This bUserCancelled overrides the scope
+                                                        // of the extern global of the same name
+    wxString    bookCode;
+    wxString    bookName;
+    wxString    chapterName;
+
+    // mrh - If we're collaborating, We'll be changing the App variables for these during the loop, and we'll restore them at the end.
+    wxString    original_bookName = pApp->m_CollabBookSelected;
+    wxString    original_chapterName = pApp->m_CollabChapterSelected;
+
+    // Also we set the flags for inconsistency resolution all FALSE, so the CConflictResActionDlg will be shown and the user can
+    // make a choice for the whole consistency run:
+    pApp->m_bRetainPTorBEversion = FALSE;
+	pApp->m_bForceAIversion = FALSE;
+	pApp->m_bUseConflictResolutionDlg = FALSE;
+
+    bool        bOK;
+
+
+//  ****************************  iteration over the document files  ******************************
+
 	int i;
 	for (i=0; i < nCount; i++)
 	{
 		wxString newName = pList->Item(i);
 		wxASSERT(!newName.IsEmpty());
 
-#ifdef CONSCHK
+//#ifdef CONSCHK
 		wxLogDebug(_T("\n\n  *** CHECKING FILE       %s\n\n"), newName.c_str());
-#endif
+//#endif
         // for debugging- check pile count before & after (failure to close doc before
         // calling this function resulted in the following OnOpenDocument() call appending
         // a copy of the document's contents to itself -- the fix is to ensure
         // OnFileClose() is done in the caller before DoConsistencyCheck() is called
 		// int piles = pApp->m_pSourcePhrases->GetCount();
-		bool bOK;
-		bOK = OnOpenDocument(newName, false); // passing in just a filename, so we are relying
-									   // on the working directory having previously
-									   // being set in the caller at the call of
-									   // EnumerateDocFiles()
-		wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheck(): OnOpenDocument() failed, line 21,746 in Adapt_itDoc.cpp, so check was aborted"));
+        if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
+        {
 
+            bookCode = Get_bookCode_from_filename (newName);
+            bookName = Get_bookname_from_filename (newName);
+            chapterName = Get_chapter_from_filename (newName);
+
+            pApp->m_CollabBookSelected    = bookName;
+            pApp->m_CollabChapterSelected = chapterName;
+
+            bOK = OnOpenDocument(newName, false);                   // Open the document
+            wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheck(): OnOpenDocument() failed, line 23798 in Adapt_itDoc.cpp, so check was aborted"));
+
+            Get_collaboration_text_for_consistency_check (pApp);       // Store the pre-edit text ready for export at the end of the loop
+        }
+        else            // non-collaboration case
+        {
+            bOK = OnOpenDocument(newName, false);   // passing in just a filename, so we are relying
+                                                    // on the working directory having previously
+                                                    // being set in the caller at the call of
+                                                    // EnumerateDocFiles()
+            wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheck(): OnOpenDocument() failed, line 23822 in Adapt_itDoc.cpp, so check was aborted"));
+    }
 		// update the progress bar
 		wxString msg;
 		msg = msg.Format(_("Checking: %s (file %d of %d)"), newName.c_str(), i, nCount);
@@ -23793,7 +23829,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 		// BEW 30Jul16 Move active location now to sn = 0, because if the active location happened to
 		// have been at an inconsistency, the following UpdateDoc....() call will put a single instance of
-		// the inconsistency into the KB, and it it had been deliberately removed in order to allow
+		// the inconsistency into the KB, and if it had been deliberately removed in order to allow
 		// splitting the meaning, or correcting a typo occurring in many places, those inconsistencies
 		// would not be recognised for what they are. So safest place is to have the active location
 		// at the start - it's typically the Book Code's CSourcePhrase. ReOpenDocument() will eventually
@@ -23856,6 +23892,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		// later change my mind and want to code differently - as thinking of what enum
         // variable fits a given situation takes time and energy, and I don't want to have
         // to do that thinking more than once
+
 		while (pos1 != NULL)
 		{
 			pSrcPhrase = (CSourcePhrase*)pos1->GetData();
@@ -23909,14 +23946,16 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			bDeleted = FALSE;
 			bDeleted_OnOrig = FALSE;
 
-			// Does key have an entry (that is, a ptr to CTargetUnit, and a CRefString
-			// within it which has a non-deleted string in its m_translation member which
-			// matches the passed in adaption parameter's contents) in the copied adaptation
-			// KB's map? (Note, this is not a test for a non-NULL pTU, it tests all the
-			// way to the adaptation contents, returning TRUE only when that matches. To
-			// test only for a pTU matching the key value, instead use AutoCapsLookup() )
+        // Does key have an entry (that is, a ptr to CTargetUnit, and a CRefString
+        // within it which has a non-deleted string in its m_translation member which
+        // matches the passed in adaption parameter's contents) in the copied adaptation
+        // KB's map? (Note, this is not a test for a non-NULL pTU, it tests all the
+        // way to the adaptation contents, returning TRUE only when that matches. To
+        // test only for a pTU matching the key value, instead use AutoCapsLookup() )
+
 			bIsInKB = pKBCopy->IsAlreadyInKB(nWords, key, adaption, pTU, pRefStr, bDeleted, bNonDeletedNonmatch );
 			bIsInKB_OnOrig = pKB->IsAlreadyInKB(nWords, key, adaption, pTU_OnOrig, pRefStr_OnOrig, bDeleted_OnOrig, bNonDeletedNonmatch_OnOrig);
+
 			bIsInKB_OnOrig = bIsInKB_OnOrig; // avoid warning
 #ifdef CONSCHK2
 			wxLogDebug(_T("CONSCHK2: key = %s, adaption = %s, sn = %d, active sn = %d"),
@@ -23940,6 +23979,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			// the test functions in the CTargetUnit class rather than the equivalent in
 			// the CKB class, for speed. Be careful to distinguish between what belongs to
 			// pKB and what belongs to pKBCopy!!
+
 			if (pTU != NULL)
 			{
 				// The first subtext checks for the pTU storing a <Not In KB> entry
@@ -25575,9 +25615,11 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					delete pAutoFixRec;
 			}
 			pAutoFixRec = NULL;
+
 		}// end of while (pos1 != NULL)
 
-		// save document and KB
+	// mrh - The check on this file is done, so we need to save it.  The exact call depends on whether we're collaborating or not.
+
         pApp->m_pTargetBox->HidePhraseBox(); // hides all three parts of the new phrasebox
 
         // store to kb with a source phrase with m_bHasKBEntry flag
@@ -25585,19 +25627,32 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(_T("")); // need to set it to null str
 											     // since it won't get recreated
 
-        // BEW 9July10, added test and changed param to FALSE if doing bible book folders
-        // loop, as we don't want time wasted for a progress dialog for what are probably a
-        // lot of short files. DoFileSave_Protected() computes pApp->m_curOutputPath for
-        // each doc file that we check in the currently accessed folder
-		bool bSavedOK = DoFileSave_Protected(FALSE,_T("")); // FALSE - dodn't show wait/progress dialog
-		if (!bSavedOK)
+
+        wxString    msgDisplayed = "";
+        bool        bSavedOK = FALSE;
+
+		if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
+		{
+            bSavedOK = DoCollabFileSave(_("Saving File"), msgDisplayed);
+		}
+		else
+		{
+            // BEW 9July10, added test and changed param to FALSE if doing bible book folders
+            // loop, as we don't want time wasted for a progress dialog for what are probably a
+            // lot of short files. DoFileSave_Protected() computes pApp->m_curOutputPath for
+            // each doc file that we check in the currently accessed folder
+
+            bSavedOK = DoFileSave_Protected(FALSE,_T(""));         // FALSE - dodn't show wait/progress dialog
+        }
+
+  		if (!bSavedOK)
 		{
 			wxMessageBox(_("Warning: failure on document save operation."),
 			_T(""), wxICON_EXCLAMATION | wxOK);
 		}
 		pApp->GetView()->ClobberDocument();
 
-		// delete the buffer containing the filed-in source text
+		// delete the buffer containing the filled-in source text
 		if (pApp->m_pBuffer != NULL)
 		{
 			delete pApp->m_pBuffer;
@@ -25605,15 +25660,34 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		}
 		if (bUserCancelled)
 			break; // don't do any more saves of the KB if user cancelled
-	} // end iteration of document files for (int i=0; i < nCount; i++)
+
+	}
+
+// *******************   end iteration of document files for (int i=0; i < nCount; i++)  ********************
 
 	pStatusBar->FinishProgress(_("Consistency Check"));
 
 	gbConsistencyCheckCurrent = FALSE;	// restore normal default
 
+// mrh - Finally if we're collaborating, we should restore the App variables for the open document. But I see the caller calls
+// ReOpenDocument() which I think does all this anyway.  Still it's better practice to restore something we changed.
+    if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
+    {
+        pApp->m_CollabBookSelected    = original_bookName;
+        pApp->m_CollabChapterSelected = original_chapterName;
+
+    // And restore normal defaults for inconsistency resolution:
+        pApp->m_bRetainPTorBEversion = FALSE;
+        pApp->m_bForceAIversion = FALSE;
+        pApp->m_bUseConflictResolutionDlg = FALSE;
+    }
+
 	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
-	return (!bUserCancelled); // edb 26 Sept 2012 -- wasn't returning whether the operation cancelled
+
+	return (!bUserCancelled);           // edb 26 Sept 2012 -- wasn't returning whether the operation cancelled
 }
+
+
 // the "glossing mode is on" variant
 // Returns TRUE if process runs to completion, FALSE if the user clicks the Cancel button
 // in any dialog which is shown - the FALSE is then passed back to the caller,
@@ -26493,7 +26567,8 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 		}
 		if (bUserCancelled)
 			break; // don't do any more saves of the KB if user cancelled
-	} // end iteration of document files for (int i=0; i < nCount; i++)
+	}
+	// ****************  end iteration of document files for (int i=0; i < nCount; i++)  ************************
 
 	gbConsistencyCheckCurrent = FALSE;	// restore normal default
 

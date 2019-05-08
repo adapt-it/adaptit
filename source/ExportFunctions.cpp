@@ -647,8 +647,8 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	// which defines the markers not to be included in the export
 	// BEW 5Sep14, ExcludeCustomMarkersAndRemFromExport() also checks filter settings for various
 	// markers and excludes them too if they are filtered, but it doesn't handle footnotes - because
-	// Jeff Webster (SAL) wanted filtered footnotes to get transferred to Paratext without content 
-	// when footnotes are filtered - so that job was done in the caller of 
+	// Jeff Webster (SAL) wanted filtered footnotes to get transferred to Paratext without content
+	// when footnotes are filtered - so that job was done in the caller of
 	// ExcludeCustomMarkersAndRemFromExport(). But here, the xhtml is not to get emptied footnote
 	// markers, that would be crazy, so here we'll instead ask for them to be fully removed if
 	// filtered, then ApplyOutputFilterToText() call will remove them too.
@@ -708,7 +708,7 @@ void RemoveContentFromFootnotes(wxString* pText, bool bAlsoRemoveTheMarkers)
 			text = right; // text may still have more footnotes in it, so we loop until there are none
 		}
 		else
-		{ 
+		{
 			left += text.Left((size_t)offset1 + 3); // include the begin-marker's following space
 			right = text.Mid((size_t)offset2); // leave \f* in the remainder
 
@@ -1042,6 +1042,7 @@ void DoExportAsType(enum ExportType exportType)
 	// those generated automatically by the collaboration process, we remove the
 	// "_Collab_" prefix. We then add an exportType prefix if the user ticked
 	// the checkbox for using export type prefixes in the ExportSaveAsDlg.
+// qwqwqw - just look at this bit too:
 	wxString collabPrefix = _T("_Collab_"); // include the following _ here for removal
 	int pos_Collab_;
 	pos_Collab_ = exportFilename.Find(collabPrefix);
@@ -1645,7 +1646,7 @@ void DoExportAsType(enum ExportType exportType)
 
 	// Rebuild the text and apply the output filter to it.
 	bool bIsFiltered = FALSE; // initializations
-	wxString footnote = _T("\\f "); 
+	wxString footnote = _T("\\f ");
 	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
 	switch (exportType)
 	{
@@ -1690,15 +1691,15 @@ void DoExportAsType(enum ExportType exportType)
 	case glossesTextExport:
 		nTextLength = RebuildGlossesText(glosses);
 
-		// BEW 5Sep15 added the next 24 lines so that manual exports will filter out from the 
+		// BEW 5Sep15 added the next 24 lines so that manual exports will filter out from the
 		// export, automatically, any marker and content which is filtered (not all such,
 		// but the main ones, like \x, \f, \fe, \r, \rp, etc) - extra to this, the user
 		// can use the export dialog's Options button to excluded particular other ones
-		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp 
+		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp
 		// cause the markers set for exclusion, plus their contents, to be removed
 		// from the exported text
 
-		// Handle \f ...\f* -- remove there, if relevant. For collaboration the 
+		// Handle \f ...\f* -- remove there, if relevant. For collaboration the
 		// behaviour, requested by Jeff Webset (SAL), was for filtered footnotes to
 		// go to the output minus their markers' contents; but for our manual normal
 		// from-the-menu exports, if footnotes are filtered, we totally exclude them
@@ -1741,15 +1742,15 @@ void DoExportAsType(enum ExportType exportType)
 	case freeTransTextExport:
 		nTextLength = RebuildFreeTransText(freeTrans);
 
-		// BEW 5Sep15 added the next 24 lines so that manual exports will filter out from the 
+		// BEW 5Sep15 added the next 24 lines so that manual exports will filter out from the
 		// export, automatically, any marker and content which is filtered (not all such,
 		// but the main ones, like \x, \f, \fe, \r, \rp, etc) - extra to this, the user
 		// can use the export dialog's Options button to excluded particular other ones
-		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp 
+		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp
 		// cause the markers set for exclusion, plus their contents, to be removed
 		// from the exported text
 
-		// Handle \f ...\f* -- remove there, if relevant. For collaboration the 
+		// Handle \f ...\f* -- remove there, if relevant. For collaboration the
 		// behaviour, requested by Jeff Webset (SAL), was for filtered footnotes to
 		// go to the output minus their markers' contents; but for our manual normal
 		// from-the-menu exports, if footnotes are filtered, we totally exclude them
@@ -1796,15 +1797,15 @@ void DoExportAsType(enum ExportType exportType)
 #if defined(_DEBUG) && defined(TRUNCATED)
 		wxLogDebug(_T("DoExportAsType() after RebuildTargetText(): nTextLength = %d"), nTextLength);
 #endif
-		// BEW 5Sep15 added the next 24 lines so that manual exports will filter out from the 
+		// BEW 5Sep15 added the next 24 lines so that manual exports will filter out from the
 		// export, automatically, any marker and content which is filtered (not all such,
 		// but the main ones, like \x, \f, \fe, \r, \rp, etc) - extra to this, the user
 		// can use the export dialog's Options button to excluded particular other ones
-		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp 
+		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp
 		// cause the markers set for exclusion, plus their contents, to be removed
 		// from the exported text
 
-		// Handle \f ...\f* -- remove there, if relevant. For collaboration the 
+		// Handle \f ...\f* -- remove there, if relevant. For collaboration the
 		// behaviour, requested by Jeff Webset (SAL), was for filtered footnotes to
 		// go to the output minus their markers' contents; but for our manual normal
 		// from-the-menu exports, if footnotes are filtered, we totally exclude them
@@ -2271,7 +2272,7 @@ void ExcludeCustomMarkersAndRemFromExport()
 			m_exportFilterFlags[index] = 1; // this gets it filtered from the export
 		}
 	}
-	
+
 	// Handle \fig .... \fig* , figures (ie. captions)
 	wxString fig = _T("\\fig ");
 	bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, fig);
@@ -2353,7 +2354,7 @@ void ExcludeCustomMarkersAndRemFromExport()
 	// Handle \f ...\f* -- when filtered, Jeff Webster (Nepal) wants the markers only
 	// to still get transferred to PT or BE, but without any content, so we have to
 	// use a function that looks for \f and stops at \f*, and at any intervening marker,
-	// and removes the content preceding the marker, leaving a single space between 
+	// and removes the content preceding the marker, leaving a single space between
 	// markers. We will do this in the caller, because we need access to the exported
 	// text, which we don't have from here
 }
@@ -2772,6 +2773,7 @@ void DoExportInterlinearRTF()
 	// automatically by our collaboration code, we remove the "_Collab..." prefix. We
 	// then add an exportType prefix "_Interlinear" if the user ticked the checkbox for
 	// using export type prefixes in the ExportInterlinearDlg.
+// qwqwqw - this bit too:
 	wxString collabPrefix = _T("_Collab_"); // include the following _ here for removal
 	int pos_Collab_;
 	pos_Collab_ = exportFilename.Find(collabPrefix);
@@ -9776,7 +9778,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 		}
 
 		// whm note: In TokenizeText special handling is given for '[' and ']' brackets to store them
-		// in their own CSourcePhrase instances, but we allow them to pass through as is, in this 
+		// in their own CSourcePhrase instances, but we allow them to pass through as is, in this
 		// export routine.
 
 		// are we at the end of the text?
@@ -9799,7 +9801,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 		// We have to test for both within a while loop and handle each test result within the while loop.
 		while (IsRTFControlWord(ptr, pEnd) || IsMarkerRTF(ptr, pBufStart))
 		{
-//b:		
+//b:
 			if (IsRTFControlWord(ptr, pEnd))
 			{
 				// whm 8Nov07 comment: The IsRTFControlWord block is placed here to bleed off the cases
@@ -14198,7 +14200,7 @@ wxString EscapeAnyEmbeddedRTFControlChars(wxString& textStr)
 		}
 		*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
 		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
-		// had the unfortunate effect of text2 never receiving the processed 
+		// had the unfortunate effect of text2 never receiving the processed
 		// results, so do it here now
 		textStr2 = wxString(pBuffer2, (size_t)(pNew - pBuffer2));
 
@@ -16806,7 +16808,7 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersS
 			markersPrefix.Trim();
 			markersPrefix += aSpace + xrefStr;
 			}
-			
+
 		}
 		else
 		{
@@ -18487,7 +18489,7 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 		*pNew = (wxChar)0; // terminate the new buffer string with null char
 
 		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
-		// had the unfortunate effect of text2 never receiving the processed 
+		// had the unfortunate effect of text2 never receiving the processed
 		// results, so do it here now
 		text2 = wxString(pBuff2, (size_t)(pNew - pBuff2));
 
@@ -18905,8 +18907,8 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 	*/
 	//bool bHitMkr = FALSE; BEW 25Aug16 removed it, because once it is set TRUE it never got cleared to FALSE, making it uselesss as a testable value
 	bool bIsAMarker = FALSE;
-	// BEW 25Aug16 added next ones, it is only when embedded content markers (footnotes, 
-	// cross references or endnotes) are improperly removed (by a human), leaving their 
+	// BEW 25Aug16 added next ones, it is only when embedded content markers (footnotes,
+	// cross references or endnotes) are improperly removed (by a human), leaving their
 	// endmarker in the text, that the old algorithm failed to do what we want - so I'll
 	// code explicitly for these three...
 	bool bSaw_backslash_x = FALSE; // for cross references \x ... \x*
@@ -19004,17 +19006,17 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 				}
 				if (!bIsEndMarker && wholeMarker == _T("\\x"))
 				{
-					bSaw_backslash_x = TRUE; // leave it set TRUE until a matching \x* terminates the x-ref, 
+					bSaw_backslash_x = TRUE; // leave it set TRUE until a matching \x* terminates the x-ref,
 											 // and we clear this boolean to FALSE, and bHitMkr to FALSE also
 				}
 				if (!bIsEndMarker && wholeMarker == _T("\\f"))
 				{
-					bSaw_backslash_f = TRUE; // leave it set TRUE until a matching \f* terminates the x-ref, 
+					bSaw_backslash_f = TRUE; // leave it set TRUE until a matching \f* terminates the x-ref,
 											 // and we clear this boolean to FALSE, and bHitMkr to FALSE also
 				}
 				if (!bIsEndMarker && wholeMarker == _T("\\fe"))
 				{
-					bSaw_backslash_fe = TRUE; // leave it set TRUE until a matching \fe* terminates the x-ref, 
+					bSaw_backslash_fe = TRUE; // leave it set TRUE until a matching \fe* terminates the x-ref,
 											 // and we clear this boolean to FALSE, and bHitMkr to FALSE also
 				}
 
@@ -19053,7 +19055,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 				// code blocks further down - if it did so, the filtering attempt would never end,
 				// and cause the rest of the text to be removed from output!
 				bool bRemoveIt = FALSE;
-				if (bIsEndMarker) 
+				if (bIsEndMarker)
 				{
 					if (wholeMarker == _T("\\x*"))
 					{
@@ -19195,7 +19197,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 						// call in RebuildTargetText(), jumped over when m_bFwdSlashDelimiter is TRUE.
 						// That latin space then appears in the export, which is not wanted for ZWSP
 						// delimited text. So I've added code here to fix this. (The tweak is more
-						// complex than strictly necessary, because someone may un-#define 
+						// complex than strictly necessary, because someone may un-#define
 						// FWD_SLASH_DELIM, and without the #else block, that would break the app.)
 						if (gpApp->m_bFwdSlashDelimiter)
 						{
@@ -19283,7 +19285,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 		*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
 
 		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
-		// had the unfortunate effect of text2 never receiving the processed 
+		// had the unfortunate effect of text2 never receiving the processed
 		// results, so do it here now
 		textStr2 = wxString(pBuffer2, (size_t)(pNew - pBuffer2));
 
@@ -19332,8 +19334,8 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 	wxASSERT(*pEnd == _T('\0')); // ensure there is a null at end of Buffer
 	//bool bHitMkr = FALSE; // BEW 25Aug16 removed, it plays no useful function
 	bool bIsAMarker = FALSE;
-	// BEW 25Aug16 added next ones, it is only when embedded content markers (footnotes, 
-	// cross references or endnotes) are improperly removed (by a human), leaving their 
+	// BEW 25Aug16 added next ones, it is only when embedded content markers (footnotes,
+	// cross references or endnotes) are improperly removed (by a human), leaving their
 	// endmarker in the text, that the old algorithm failed to do what we want - so I'll
 	// code explicitly for these three...
 	bool bSaw_backslash_x = FALSE; // for cross references \x ... \x*
@@ -19405,17 +19407,17 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 				bIsEndMarker = pDoc->IsEndMarker(pOld, pEnd);
 				if (!bIsEndMarker && wholeMarker == _T("\\x"))
 				{
-					bSaw_backslash_x = TRUE; // leave it set TRUE until a matching \x* terminates the x-ref, 
+					bSaw_backslash_x = TRUE; // leave it set TRUE until a matching \x* terminates the x-ref,
 											 // and we clear this boolean to FALSE, and bHitMkr to FALSE also
 				}
 				if (!bIsEndMarker && wholeMarker == _T("\\f"))
 				{
-					bSaw_backslash_f = TRUE; // leave it set TRUE until a matching \f* terminates the x-ref, 
+					bSaw_backslash_f = TRUE; // leave it set TRUE until a matching \f* terminates the x-ref,
 											 // and we clear this boolean to FALSE, and bHitMkr to FALSE also
 				}
 				if (!bIsEndMarker && wholeMarker == _T("\\fe"))
 				{
-					bSaw_backslash_fe = TRUE; // leave it set TRUE until a matching \fe* terminates the x-ref, 
+					bSaw_backslash_fe = TRUE; // leave it set TRUE until a matching \fe* terminates the x-ref,
 											  // and we clear this boolean to FALSE, and bHitMkr to FALSE also
 				}
 
@@ -19564,7 +19566,7 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 						// call in RebuildTargetText(), jumped over when m_bFwdSlashDelimiter is TRUE.
 						// That latin space then appears in the export, which is not wanted for ZWSP
 						// delimited text. So I've added code here to fix this. (The tweak is more
-						// complex than strictly necessary, because someone may un-#define 
+						// complex than strictly necessary, because someone may un-#define
 						// FWD_SLASH_DELIM, and without the #else block, that would break the app.)
 						if (gpApp->m_bFwdSlashDelimiter)
 						{
@@ -19606,7 +19608,7 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 		}
 		*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
 		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
-		// had the unfortunate effect of text2 never receiving the processed 
+		// had the unfortunate effect of text2 never receiving the processed
 		// results, so do it here now
 		textStr2 = wxString(pBuffer2, (size_t)(pNew - pBuffer2));
 	} // end of special scoping block
@@ -19999,7 +20001,7 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 		} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
 		*pNew = (wxChar)0; // terminate the new buffer string with null char
 		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
-		// had the unfortunate effect of text2 never receiving the processed 
+		// had the unfortunate effect of text2 never receiving the processed
 		// results, so do it here now
 		text2 = wxString(pBuff2, (size_t)(pNew - pBuff2));
 	} // end of special scoping block
@@ -20150,7 +20152,7 @@ void FormatUnstructuredTextBufferForOutput(wxString& text, bool bRTFOutput)
 		*pNew = (wxChar)0; // add a null at the end of the string in pBuff2
 
 		// BEW 6Sep18, Bill's commenting out below the UngetWriteBuf()
-		// had the unfortunate effect of text2 never receiving the processed 
+		// had the unfortunate effect of text2 never receiving the processed
 		// results, so do it here now
 		text2 = wxString(pBuff2, (size_t)(pNew - pBuff2));
 
@@ -20320,7 +20322,7 @@ a:		if (pSrcPhrase->m_bEndFreeTrans)
 // BEW 22Jun15, refactored - filtered information does NOT belong in a target text
 // export, ever! Such info is either source text, or different text affiliated with
 // the target text (such as a note or backtranslation or free translation) but is
-// not ever to be considered as embeddable within the target text. Refactored to 
+// not ever to be considered as embeddable within the target text. Refactored to
 // effect this understanding.
 SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 	SPList* pSrcPhrases, wxString& Tstr)
@@ -20357,7 +20359,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 	wxString aSpace = _T(" ");
 	wxString markersStr;
 	wxString endMarkersStr;
-	 
+
 	// These no longer, as of 22Jun15, belong in an export, and for an export of
 	// the free translation text the present function is not called. I'll retain
 	// these because they are passed to function calls below, but in those functions
@@ -20400,7 +20402,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 			GetMarkersAndFilteredStrings(pSrcPhrase, markersStr, endMarkersStr,
 							freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
 			{
-				// BEW 22Jun15 refactoring, we just empty these of any content - no filtered 
+				// BEW 22Jun15 refactoring, we just empty these of any content - no filtered
 				// data should be in the export
 				freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
 			}
@@ -20918,7 +20920,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					Tstr.Trim();
 					Tstr << PutTgtWordBreak(pSrcPhrase) << pSrcPhrase->m_targetStr; //BEW 13May15, exported tgt from retranslation
 									// from the retranslation was not getting the word delimiter from m_tgtWordBreak, but a space
-									// was unilaterally uses, so I've fixed it by putting PutTgtWordBreak() here		
+									// was unilaterally uses, so I've fixed it by putting PutTgtWordBreak() here
 				}
 				// now build up the inner part of the source text word(s)
 				wxString s = pSrcPhrase->m_key;

@@ -7,7 +7,7 @@
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is a header file containing some utility functions used by Adapt It's
-///                 collaboration feature - collaborating with either Paratext or Bibledit. 
+///                 collaboration feature - collaborating with either Paratext or Bibledit.
 /////////////////////////////////////////////////////////////////////////////
 //
 #ifndef collabUtilities_h
@@ -31,7 +31,7 @@
 
 struct VerseAnalysis {
 	bool				bIsComplex; // TRUE if verse num is a range, or something like 6b,
-								// or is a gap in the chapter/verses; set to FALSE if 
+								// or is a gap in the chapter/verses; set to FALSE if
 								// just a simple number
 	wxString			strDelimiter; // delimiter string used in a range, eg. - in 3-5
 	wxString			strStartingVerse; // string version of the verse number or first verse number of a range
@@ -40,7 +40,7 @@ struct VerseAnalysis {
 	wxChar				charEndingVerseSuffix; // for the a in something like 15-17a
 };
 // enum SendBackType has been moved to Adapt_It.h, because it is not needed in ExportFunctions.cpp
-enum DoFor 
+enum DoFor
 {
 	collab_source_text,
 	collab_target_text,
@@ -127,7 +127,7 @@ struct ConflictRes  {
 };
 
 class CBString;
-class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPList); macro 
+class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPList); macro
 				// and defined in SourcePhrase.cpp WX_DEFINE_LIST(SPList); macro
 class CSourcePhrase;
 class CSetupEditorCollaboration;
@@ -155,12 +155,12 @@ class CSetupEditorCollaboration;
 	wxString		GetFinalMD5FromStructExtentString(const wxString str);
 	int				GetCharCountFromStructExtentString(const wxString str);
 	wxString		GetNumberFromChapterOrVerseStr(const wxString& verseStr);
-	void			GetRemainingMd5VerseLines(const wxArrayString& md5Arr, int nStart, 
+	void			GetRemainingMd5VerseLines(const wxArrayString& md5Arr, int nStart,
 												wxArrayPtrVoid& verseLinesArr);
-	void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType, 
+	void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
 								wxArrayString& usfmStructureAndExtentArray,
 								wxString collabCompositeProjectName,
-								wxString targetBookFullName, 
+								wxString targetBookFullName,
 								wxArrayString& staticBoxDescriptionArray,
 								wxArrayString& chapterList,
 								wxArrayString& statusList,
@@ -180,7 +180,7 @@ class CSetupEditorCollaboration;
 	bool FindAMatchingVerseInf(
 		VerseInf*   matchThisOne, // the struct instance for what a matchup is being tried in the being-scanned preEditVerseArr
 		int&		atIndex, // the index into the being-scanned VerseInf array at which the matchup succeeded
-		const wxArrayPtrVoid& inWhichVerseArr); // the temporary array of VerseInf structs, 
+		const wxArrayPtrVoid& inWhichVerseArr); // the temporary array of VerseInf structs,
 												// will be either preEdit data or sourceText data
 	bool GetMatchedChunksUsingVerseInfArrays(int postEditStart, // index of non-matched verse md5 line in postEditMd5Arr
 		int   fromEditorStart, // index of non-matched verse md5 line in fromEditorMd5Arr
@@ -219,7 +219,7 @@ class CSetupEditorCollaboration;
 		bool&	bTheTwoTextsDiffer	// return FALSE if there was no detected punctuation difference AND
 									// no detected overall text difference; but TRUE if either kind of
 									// difference was detected (BEW added 10Jul15, for conflict res support)
-		);        
+		);
 
 	int				FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& verseNum);
 	int				FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBeforeChapterOne);
@@ -228,9 +228,9 @@ class CSetupEditorCollaboration;
 	bool			IsVerseLine(const wxArrayString& usfmText, int index);
 
 	// The next subset are the main workhorses for the creation of the updated text...
-	
+
 	// Next function includes the nStart & nFinish items within the subarray
-	wxArrayString	ObtainSubarray(const wxArrayString arr, size_t nStart, size_t nFinish); 
+	wxArrayString	ObtainSubarray(const wxArrayString arr, size_t nStart, size_t nFinish);
 	// BEW added 11July, to get changes to the adaptation and free translation back to the
 	// respective PT or BE projects; the post-edit text from the document at the time of
 	// File / Save is returned in the postEditText parameter - it will be either target
@@ -238,28 +238,28 @@ class CSetupEditorCollaboration;
 	// the relevant app member for the pre-edit tgt or freeTrans text. The returned
 	// wxString is the updated USFM text string to be sent to PT or BE - or an empty
 	// string if there was an error.
-	wxString		MakeUpdatedTextForExternalEditor(SPList* pDocList, 
+	wxString		MakeUpdatedTextForExternalEditor(SPList* pDocList,
 							enum SendBackTextType makeTextType, wxString& postEditText);
-	bool			OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText, 
+	bool			OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText,
 						    bool bDoMerger, bool bDoLayout, bool bCopySourceWanted);
 	wxString		GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
 							wxString& sourceText, wxArrayString& sourceTextMd5Arr,
-							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
-							wxArrayString& fromEditorMd5Arr,wxArrayPtrVoid& postEditOffsetsArr, 
+							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr,
+							wxArrayString& fromEditorMd5Arr,wxArrayPtrVoid& postEditOffsetsArr,
 							wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr);
 	wxString		GetUpdatedText_UsfmsChanged(wxString& postEditText, wxString& fromEditorText,
 							wxString& sourceText, wxArrayString& sourceTextMd5Arr,
-							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
-							wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr, 
+							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr,
+							wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr,
 							wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr);
 	// BEW 10Jul15, next ones needed for conflict resolution dialog, and imposing verse-based advances
     // on the former marker-based advancing in the loop in GetUpdatedText_UsfmsUnchanged() function
 	wxString		MakeSourceTextForCollabConflictResDlg();
-	bool            DelineateThisVerse(const wxArrayString& md5Arr, int& nStart, int& nEnd, 
+	bool            DelineateThisVerse(const wxArrayString& md5Arr, int& nStart, int& nEnd,
 		                            wxArrayInt* lineIndicesArr, wxString& chapNumReached);
 	bool			IsPTorBEverseEmpty(const wxArrayString& md5Arr, wxArrayInt& lineIndices);
 	bool			IsAIverseEmpty(const wxArrayString& md5Arr, wxArrayInt& lineIndices);
-	bool			AreTheseTwoTextVersionsDifferent(const wxArrayString& preEditMd5Arr, 
+	bool			AreTheseTwoTextVersionsDifferent(const wxArrayString& preEditMd5Arr,
 						const wxArrayString& postEditMd5Arr, wxArrayInt& lineIndices);
 	void			SetCollabActionDefaults(CollabAction* p);
 	// Next one used in GetUpdatedText_UsfmsChanged(), 'chunk' here could be a chunk defined
@@ -282,16 +282,16 @@ class CSetupEditorCollaboration;
     wxString        RemoveCollabBooksOrChaptersFromProtectedCollabString(wxString currentString, wxString bookIDsorChapters);
     bool            IsCollabDocProtectedFromSavingToEditor(wxString bookCode, bool bCollabByChapterOnly, wxString collabChapterSelected); // whm added 2February2017
 	bool			CollabProjectIsEditable(wxString projShortName);
-	bool			CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, 
-							wxString& tgtLangName, wxString& srcEthnologueCode, 
+	bool			CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName,
+							wxString& tgtLangName, wxString& srcEthnologueCode,
 							wxString& tgtEthnologueCode, bool bDisableBookMode);
 	wxString		ExportTargetText_For_Collab(SPList* pDocList);
 	wxString		ExportFreeTransText_For_Collab(SPList* pDocList);
-	wxString		GetAIProjectFolderForCollab(wxString& aiProjName, wxString& aiSrcLangName, 
+	wxString		GetAIProjectFolderForCollab(wxString& aiProjName, wxString& aiSrcLangName,
 						wxString& aiTgtLangName, wxString editorSrcProjStr, wxString editorTgtProjStr);
 	// The next function is created from OnWizardPageChanging() in Projectpage.cpp, and
 	// tweaked so as to remove support for the latter's context of a wizard dialog
-	bool			HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, 
+	bool			HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName,
 							wxString* pProjectFolderPath);
 	bool			IsEthnologueCodeValid(wxString& code);
 	bool			CollabProjectFoundInListOfEditorProjects(wxString projName, wxArrayString projList,wxString& composedProjStr); // whm added 19Apr12
@@ -304,7 +304,7 @@ class CSetupEditorCollaboration;
 	/////////////////////////////////////////////////////////////////////////////////////
 	///     Functions for MD5 checksums and their manipulation
 	/////////////////////////////////////////////////////////////////////////////////////
-	enum			CompareUsfmTexts CompareUsfmTextStructureAndExtent(const wxArrayString& usfmText1, 
+	enum			CompareUsfmTexts CompareUsfmTextStructureAndExtent(const wxArrayString& usfmText1,
 							const wxArrayString& usfmText2);
 	void			DeleteMD5MapStructs(wxArrayPtrVoid& structsArr);
 	wxArrayString	GetUsfmStructureAndExtent(wxString& sourceFileBuffer);
@@ -313,7 +313,7 @@ class CSetupEditorCollaboration;
 	bool			IsTextOrPunctsChanged(wxArrayString& oldMd5Arr, int oldStart, int oldEnd,
 							wxArrayString& newMd5Arr, int newStart, int newEnd);
 	bool			IsUsfmStructureChanged(wxString& oldText, wxString& newText);
-	void			MapMd5ArrayToItsText(wxString& itsText, wxArrayPtrVoid& mappingsArr, 
+	void			MapMd5ArrayToItsText(wxString& itsText, wxArrayPtrVoid& mappingsArr,
 							wxArrayString& md5Arr);
 
 
@@ -323,10 +323,10 @@ class CSetupEditorCollaboration;
 	/////////////////////////////////////////////////////////////////////////////////////
 	bool			BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName);
 	bool			CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEditor,wxString ptEditorVersion);
-	bool			CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName, 
+	bool			CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName,
 							wxString frtrCompositeProjName, wxString collabEditor, wxString ptEditorVersion,
 							wxString& errorStr, wxString& errorProjects);
-    bool            CollabProjectsMigrated(wxString CollabSrcProjStr, wxString CollabTgtProjStr, wxString CollabFreeTransProjStr, 
+    bool            CollabProjectsMigrated(wxString CollabSrcProjStr, wxString CollabTgtProjStr, wxString CollabFreeTransProjStr,
                             wxString CollabEditor, wxString PT7Version, wxString PT8Version);
     wxString        GetCollabProjectGUID(wxString projCompositeName, wxString collabEditor, wxString ptEditorVersion);
 	wxString		GetPathToRdwrtp7(wxString ptVersion); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp // whm added parameter 17March2017
@@ -351,7 +351,7 @@ class CSetupEditorCollaboration;
 	// .temp folder, to the __SOURCE_INPUTS folder, creating the latter folder if it doesn't
 	// already exist, and storing in a file with filename constructed from fileTitle plus an
 	// added .txt extension; if a file of that name already exists there, overwrite it.
-	bool			MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath, 
+	bool			MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath,
 							wxString& pathCreationErrors, wxString& theText, wxString& fileTitle,
 							bool bAddBOM = FALSE);
 	// The following is similar to MoveTextToFolderAndSave() except that it computes
@@ -359,9 +359,9 @@ class CSetupEditorCollaboration;
 	// internally) and so fewer parameters are needed in the signature
 	bool			MoveTextToTempFolderAndSave(enum DoFor textKind, wxString& theText, bool bAddBOM = FALSE);
 	// The next two move text to or from Bibledit's native storage structures
-	bool			CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName, 
+	bool			CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName,
 							int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
-	bool			CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName, 
+	bool			CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName,
 							int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
 	// Returns the absolute path to the folder being used as the Adapt It work folder, whether
 	// in standard location or in a custom location - but for the custom location only
@@ -382,19 +382,20 @@ class CSetupEditorCollaboration;
 	// OnExit() isn't called (eg. an abnormal shutdown) it won't matter, they can be removed
 	// at the next normal shutdown
 	void	EmptyCollaborationTempFolder();
+
+	void    Get_collaboration_text_for_consistency_check (CAdapt_ItApp* pApp);
 	long	OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp);
-	//void	OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
 
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	///     Functions for support of the conflict resolution process
 	/////////////////////////////////////////////////////////////////////////////////////
-	
-	void CollectConflicts(wxArrayPtrVoid& collabActionsArr, wxArrayPtrVoid& conflictsArr); 
+
+	void CollectConflicts(wxArrayPtrVoid& collabActionsArr, wxArrayPtrVoid& conflictsArr);
 	void DestroyConflictResStructs(wxArrayPtrVoid& arr);
-	void MeldConflictResolutionsBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
+	void MeldConflictResolutionsBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr,
 					wxArrayPtrVoid& conflictsArr);
-	void MeldConflictsUserCancelBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr, 
+	void MeldConflictsUserCancelBackIntoActionsArray(wxArrayPtrVoid& collabActionsArr,
 					wxArrayPtrVoid& conflictsArr);
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -407,6 +408,13 @@ class CSetupEditorCollaboration;
         wxString collabProjForTgt,
         wxString collabProjForFreeTrans
     );
+
+
+    wxString  Get_bookCode_from_filename ( wxString filename );
+    wxString  Get_chapter_from_filename ( wxString filename );
+    wxString  Get_bookname_from_filename ( wxString filename );
+
+
 
 #endif
 
