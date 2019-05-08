@@ -20282,6 +20282,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                 wxLogDebug(_T("The existing instance may be too busy to respond. Close any open dialogs and retry."));
             }
             wxString msg = _("Adapt It is already running. Aborting attempt to run a second instance of Adapt It...");
+            
+            // whm 5May2019 added some logging here to console, otherwise the console output simply stops even under 
+            // the gdb debugger if another instance of the process (even a hung one) is detected.
+            wxLogDebug(msg);
+
             LogUserAction(msg);
             // If only a single instance is to be allowed, we will return FALSE here
             // from OnInit() after deallocating some memory items below.
