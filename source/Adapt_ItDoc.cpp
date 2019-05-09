@@ -22652,10 +22652,15 @@ bool CAdapt_ItDoc::ReOpenDocument (
 	wxASSERT(bOK);
 	*/
 
-//	pApp->m_nActiveSequNum = curSequNum;
 	bOK = OnOpenDocument (curOutputPath, false);
 	SetFilename (curOutputPath,TRUE); // get the window Title set
 
+    if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
+    {
+        Get_collaboration_text_for_consistency_check (pApp);       // mrh May19 - If collaborating, we must store the pre-edit text from PT/BE
+    }
+
+//	pApp->m_nActiveSequNum = curSequNum;
 //	if (curSequNum == -1)
 //	{
 //		// if the phrase box wasn't visible, relocate it to the doc's start
@@ -23782,9 +23787,16 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
         // a copy of the document's contents to itself -- the fix is to ensure
         // OnFileClose() is done in the caller before DoConsistencyCheck() is called
 		// int piles = pApp->m_pSourcePhrases->GetCount();
-        if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
-        {
 
+        bOK = OnOpenDocument(newName, false);       // passing in just a filename, so we are relying
+                                                    // on the working directory having previously
+                                                    // being set in the caller at the call of
+                                                    // EnumerateDocFiles()
+        wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheck(): OnOpenDocument() failed, line 23796 in Adapt_itDoc.cpp, so check was aborted"));
+
+        if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
+        {                                           // mrh May19 - with collaboration, we need to update the App's variables for the current
+                                                    // file, so we access the PT/BE data properly
             bookCode = Get_bookCode_from_filename (newName);
             bookName = Get_bookname_from_filename (newName);
             chapterName = Get_chapter_from_filename (newName);
@@ -23792,19 +23804,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
             pApp->m_CollabBookSelected    = bookName;
             pApp->m_CollabChapterSelected = chapterName;
 
-            bOK = OnOpenDocument(newName, false);                   // Open the document
-            wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheck(): OnOpenDocument() failed, line 23798 in Adapt_itDoc.cpp, so check was aborted"));
-
-            Get_collaboration_text_for_consistency_check (pApp);       // Store the pre-edit text ready for export at the end of the loop
+            Get_collaboration_text_for_consistency_check (pApp);     // and we also store the pre-edit text ready for export at the end of the loop
         }
-        else            // non-collaboration case
-        {
-            bOK = OnOpenDocument(newName, false);   // passing in just a filename, so we are relying
-                                                    // on the working directory having previously
-                                                    // being set in the caller at the call of
-                                                    // EnumerateDocFiles()
-            wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheck(): OnOpenDocument() failed, line 23822 in Adapt_itDoc.cpp, so check was aborted"));
-    }
+
 		// update the progress bar
 		wxString msg;
 		msg = msg.Format(_("Checking: %s (file %d of %d)"), newName.c_str(), i, nCount);
