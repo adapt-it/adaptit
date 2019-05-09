@@ -712,6 +712,7 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 		// Get latest choice by the user from the list
 		int nSel;
 		nSel = GetMySelection(m_adaptationStr);
+        nSel = nSel; // avoid gcc warning
 
 		// a new meaning is to be stored, and it might be an empty string, (so use the TRUE
 		// param in the StoreText() call later on, to support storing an empty string if
