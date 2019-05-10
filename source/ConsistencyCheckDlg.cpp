@@ -827,6 +827,7 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 	}
 	int nSel; 
 	nSel = GetMySelection(m_adaptationStr);
+    nSel = nSel; // avoid gcc warning
 
 	// also ensure the relevant radio button is turned on
 	wxASSERT(m_pRadioAcceptHere != NULL);
