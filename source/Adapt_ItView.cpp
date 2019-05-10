@@ -3304,7 +3304,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 									// The fix-it hack is needed
 
 wxLogDebug(_T("%s, %s() line %d  ** DETECTED TARGET TEXT WRONGLY EMPTIED ** at  sn = %d , m_key = %s , m_adaption = %s , m_targetStr = %s"),
-		__FILE__, __func__, __LINE__, pSP->m_nSequNumber, pSP->m_key.c_str(),
+		__FILE__, __FUNCTION__, __LINE__, pSP->m_nSequNumber, pSP->m_key.c_str(),
 		 pSP->m_adaption.c_str(), pSP->m_targetStr.c_str());
 #if defined (_DEBUG)
 wxBell();

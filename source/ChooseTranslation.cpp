@@ -1128,7 +1128,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 		{
 
 			wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
-				__FILE__, __func__, __LINE__, (int)pApp->m_pTargetBox->m_bAbandonable);
+				__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_pTargetBox->m_bAbandonable);
 
 			int nSel;
 			nSel = m_pMyListBox->GetSelection();  // <<-- nSel was 0, so TRUE block skipped
@@ -1203,7 +1203,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 	} // end of else block for test: if (!strNew.IsEmpty())
 
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
-		__FILE__, __func__, __LINE__, (int)pApp->m_pTargetBox->m_bAbandonable);
+		__FILE__, __FUNCTION__, __LINE__, (int)pApp->m_pTargetBox->m_bAbandonable);
 
 
 //#if defined(FWD_SLASH_DELIM)
@@ -1249,7 +1249,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 		pApp->m_targetPhrase = m_chosenTranslation;
         wxString currentStr = pApp->m_pTargetBox->GetTextCtrl()->GetValue(); // whm 12Jul2018 added ->GetTextCtrl() part
 		wxLogDebug(_T("%s:%s(): line %d: m_pTargetBox->GetTextCtrl()->GetValue(),  returns currentStr:  %s"), 
-			__FILE__, __func__, __LINE__, currentStr.c_str());
+			__FILE__, __FUNCTION__, __LINE__, currentStr.c_str());
 		pApp->m_pTargetBox->SetModify(TRUE); // SetModify() internally calls this->GetTextCtrl()->MarkDirty() 
 											 // or this->GetTextCtrl()->DiscardEdits()
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
@@ -1380,7 +1380,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 				// dropdown list (matching the selectionIndex) into the dropdown's edit box.
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 				wxLogDebug(_T("%s:%s(): line %d: GetDropDownList()->SetSelection(selectionIndex), selectionIndex= %d"),
-					__FILE__, __func__, __LINE__, selectionIndex);
+					__FILE__, __FUNCTION__, __LINE__, selectionIndex);
 #endif
 				// Note: at this point no attempt has been made to capitalize the new list entry;
 				// if gbAutoCaps is TRUE, adjusting for case for what is in the dropdown's textEdit
@@ -1425,7 +1425,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
             {
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 				wxLogDebug(_T("%s:%s(): line %d: control went to block: GetDropDownList()->GetCount() == 0 , just sets X button"),
-					__FILE__, __func__, __LINE__);
+					__FILE__, __FUNCTION__, __LINE__);
 #endif
 
                 // Set the "X" button

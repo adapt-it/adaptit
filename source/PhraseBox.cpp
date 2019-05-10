@@ -7914,7 +7914,7 @@ bool CPhraseBox::RestoreDeletedRefCount_1_ItemToDropDown()
 				{
 #if defined (_DEBUG)
 					wxLogDebug(_T("View::%s at line %d , m_translation from CRefString that was deleted =  %s"),
-						__func__, __LINE__, strTheListEntry.c_str());
+						__FUNCTION__, __LINE__, strTheListEntry.c_str());
 #endif
 					// The adaptation we found will indeed be deleted, and removed from the KB. So we 
 					// here need to work out what the index of that adaptation would be if the
@@ -7939,7 +7939,7 @@ bool CPhraseBox::RestoreDeletedRefCount_1_ItemToDropDown()
 						this->nDeletedItem_refCount = 1; // has to be 1, no need for GetItemData() call
 #if defined(_DEBUG)
 						wxLogDebug(_T("%s:%s: line %d: nSaveComboBoxListIndex= %d , strSaveListEntry= %s , bRemovedAdaptionReadyForInserting= %d , nDeletedItem_refCount= %d"),
-							__FILE__, __func__, __LINE__, nSaveComboBoxListIndex, strSaveListEntry.c_str(),  
+							__FILE__, __FUNCTION__, __LINE__, nSaveComboBoxListIndex, strSaveListEntry.c_str(),  
 							(int)bRemovedAdaptionReadyForInserting, nDeletedItem_refCount);
 #endif
 						return TRUE; // This is the only place where we return TRUE
@@ -7997,7 +7997,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 		__LINE__, (int)gpApp->m_bLandingBox);
 #endif
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
-		__FILE__, __func__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
+		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
 
 
 
@@ -8036,7 +8036,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 		}
 	}
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
-		__FILE__, __func__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
+		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
 
     selectionIndex = -1; // initialize to inform caller if no selection was possible
     this->GetDropDownList()->Clear();
@@ -8140,7 +8140,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 
     } // end of while loop
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
-		__FILE__, __func__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
+		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
 
 #if defined(_DEBUG)
 	wxLogDebug(_T("PopulateDropDownList: %d  AFTER LOOP, for restoring: strSaveListEntry= %s , m_bLandingBox= %d"),
@@ -8204,7 +8204,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
 		} // end of else block for test: if (strSaveListEntry.IsEmpty())
 	}
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
-		__FILE__, __func__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
+		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
 
     if (count > 0)
     {
@@ -8247,7 +8247,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
         }
     }
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
-		__FILE__, __func__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
+		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
 
     // See notes in CChooseTranslation::OnOK().
     // If the ChooseTranslation dialog was just called up and a new translation string was entered
@@ -8273,7 +8273,7 @@ void CPhraseBox::PopulateDropDownList(CTargetUnit* pTU, int& selectionIndex, int
         m_Translation.Empty(); // We've used it so clear it
     }
 	wxLogDebug(_T("%s:%s(): line %d: pApp->m_pTargetBox->m_bAbandonable = %d"),
-		__FILE__, __func__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
+		__FILE__, __FUNCTION__, __LINE__, (int)gpApp->m_pTargetBox->m_bAbandonable);
 
 }
 
@@ -8466,7 +8466,7 @@ void CPhraseBox::OnListBoxItemSelected(wxCommandEvent & event)
 
 #if defined(_DEBUG) //&& defined(_NEWDRAW)
         wxLogDebug(_T("%s::%s() line %d: at start: selItemStr: %s , for replacing box text: %s , at index: %d , m_bEmptyAdaptationChosen %d"),
-            __FILE__, __func__, __LINE__, selItemStr.c_str(), gpApp->m_targetPhrase.c_str(), this->GetDropDownList()->GetSelection(), (int)m_bEmptyAdaptationChosen);
+            __FILE__, __FUNCTION__, __LINE__, selItemStr.c_str(), gpApp->m_targetPhrase.c_str(), this->GetDropDownList()->GetSelection(), (int)m_bEmptyAdaptationChosen);
 #endif
         gpApp->m_targetPhrase = selItemStr;
         this->GetTextCtrl()->ChangeValue(selItemStr); //this->GetTextCtrl()->ChangeValue(selItemStr); // use of ChangeValue() or SetValue() resets the IsModified() to FALSE
