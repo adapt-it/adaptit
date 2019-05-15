@@ -5369,9 +5369,19 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 // GetMaxInCommonSubspan_ByWordGroupSampling() itself, and it then becomes a problem to 
 // return the imperative for abandonment up through multiple layers of recursion.
 // BEW added 30Jun16. Called in MergeUpdatedSourceText()
+// BEW 15May19, bug fix - the do loop looped infinitely because for a
+// small document (e.g. a score of words) the 'sampling' method for
+// the determination of the existence of a common subspan doesn't 
+// handle a small data set, and that function never returns. I'll 
+// therefore build a new function suited to a limited data set -
+// it will scan across all the words and look for a matchup of at
+// least one word in four. So, for a total of 20 words, we assume
+// that there has to be at least 5 matches - we'll ignore where they
+// occur, we'll only be checking that the languages are the same
+// and old and new data has at least a few words which are identical.
 bool IsImportPossible(SPArray& arrOld, SPArray& arrNew)
 {
-	int limit = 80; // supply an arbitrary value, it is not used in the call below
+	int limit = 80; // supply an arbitrary value for a 'small doc'
 	/*
 	struct Subspan {
 	int			oldStartPos;		// index in oldSPArray where CSourcePhrase instances commence
@@ -5394,31 +5404,146 @@ bool IsImportPossible(SPArray& arrOld, SPArray& arrNew)
 	pParentSubspan->bClosedEnd = TRUE;
 	wxArrayPtrVoid* pSubspansArray = new wxArrayPtrVoid;
 	wxArrayInt* pWidthsArray = new wxArrayInt;
-	// In the next call, TRUE is bool bSanityTest
-	Subspan* pMaxSubspan = GetMaxInCommonSubspan_ByWordGroupSampling(arrOld, arrNew,
-								pParentSubspan, limit, pSubspansArray, pWidthsArray, TRUE);
-	if (pMaxSubspan != NULL)
+	// BEW additions, for bug fix, 15May19
+	Subspan* pMaxSubspan = NULL; // default - assume import is impossible
+	// Test for a short document - if true, call function that counts word matchups
+	if (pParentSubspan->oldEndPos <= limit)
 	{
-		bIsValidImport = TRUE;
+		// count word matches
+		int nMinimumNumber = pParentSubspan->oldEndPos / 4;
 
-		// Delete the content of the arrays
-		int widthsCount = pWidthsArray->GetCount();
-		pWidthsArray->Clear();
-		int i;
-		for (i = 0; i < widthsCount; i++)
+		int nMatchesFound = CountWordMatches(arrOld, arrNew);
+
+		// The validity test:
+		if (nMatchesFound >= nMinimumNumber)
 		{
-			// delete all
-			if ((Subspan*)pSubspansArray->Item(i) != NULL)
-			{
-				delete (Subspan*)pSubspansArray->Item(i);
-			}
+			bIsValidImport = TRUE;
 		}
-		pSubspansArray->Clear();
+		else
+		{
+			bIsValidImport = FALSE;
+		}
+		delete pSubspansArray;
+		delete pWidthsArray;
+		delete pParentSubspan;
 	}
-	delete pSubspansArray;
-	delete pWidthsArray;
-	delete pParentSubspan;
+	else
+	{
+		// In the next call, TRUE is bool bSanityTest
+		pMaxSubspan = GetMaxInCommonSubspan_ByWordGroupSampling(arrOld, arrNew,
+			pParentSubspan, limit, pSubspansArray, pWidthsArray, TRUE);
+		if (pMaxSubspan != NULL)
+		{
+			bIsValidImport = TRUE;
+
+			// Delete the content of the arrays
+			int widthsCount = pWidthsArray->GetCount();
+			pWidthsArray->Clear();
+			int i;
+			for (i = 0; i < widthsCount; i++)
+			{
+				// delete all
+				if ((Subspan*)pSubspansArray->Item(i) != NULL)
+				{
+					delete (Subspan*)pSubspansArray->Item(i);
+				}
+			}
+			pSubspansArray->Clear();
+		}
+		delete pSubspansArray;
+		delete pWidthsArray;
+		delete pParentSubspan;
+	}
 	return bIsValidImport;
+}
+
+
+// BEW added 15May19 
+// If nMatches returns 0, then for sure these two data
+// sets can't be merged; if > 0, then the caller can
+// decide how many matches are required for a "validity
+// TRUE" result
+int	CountWordMatches(SPArray& arrOld, SPArray& arrNew)
+{
+	int oldLength = arrOld.GetCount();
+	int newLength = arrNew.GetCount();
+	int count = -1; // initialise
+	int nMatches = 0;
+	if (oldLength == 0 || newLength == 0)
+		return nMatches; // return 0
+	CSourcePhrase* pSrcPhrase = NULL; // initialize
+	bool bMatchedOne = FALSE;
+	int i;
+	if (oldLength >= newLength)
+	{
+		count = oldLength;
+		for (i = 0; i < count; i++)
+		{
+			if (i < newLength)
+			{
+				wxString word = wxEmptyString;
+				pSrcPhrase = arrOld.Item(i);
+				if (pSrcPhrase == NULL)
+					continue;
+				word = pSrcPhrase->m_key;
+				bMatchedOne = IsWordInSPArray(word, arrNew);
+				if (bMatchedOne)
+				{
+					nMatches++;
+				}
+			}
+			else
+			{
+				break; // no more comparisons possible
+			}
+		} // end of for loop
+	}
+	else
+	{
+		count = newLength;
+		for (i = 0; i < count; i++)
+		{
+			if (i < oldLength)
+			{
+				wxString word = wxEmptyString;
+				pSrcPhrase = arrNew.Item(i);
+				if (pSrcPhrase == NULL)
+					continue;
+				word = pSrcPhrase->m_key;
+				bMatchedOne = IsWordInSPArray(word, arrOld);
+				if (bMatchedOne)
+				{
+					nMatches++;
+				}
+			}
+			else
+			{
+				break; // no more comparisons possible
+			}
+		} // end of for loop
+	}
+	return nMatches;
+}
+
+// BEW 15May19 return TRUE if the passed in SPArray contains
+// a m_key string matching the passed in word; else FALSE
+bool IsWordInSPArray(wxString word, SPArray& arr)
+{
+	int nLength = arr.GetCount();
+	if (nLength == 0)
+		return FALSE;
+	CSourcePhrase* pSrcPhrase = NULL; // initialize
+	int i; // iterator
+	for (i = 0; i < nLength; i++)
+	{
+		pSrcPhrase = arr.Item(i);
+		if (pSrcPhrase == NULL)
+			return FALSE;
+		if (pSrcPhrase->m_key == word)
+			return TRUE;
+	}
+	// No match was made
+	return FALSE;
 }
 
 // BEW created 18Dec12 to handle efficiently finding largest in-common span when the passed

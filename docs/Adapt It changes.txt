@@ -1,4 +1,16 @@
-﻿Version 6.9.4 update 9 May 2019
+﻿Version 6.9.5 update ?? Month 2019
+----------------------------------------------
+Feature changes and new features in 6.9.5
+--------------------------------------------------------------------------------------------
+
+---------------------------------------------
+Bug fixes in 6.9.4 update
+---------------------------------------------
+* Fixed infinite loop hanging of the Import Edited Source Text
+feature, when the document is short - less than 80 words long
+
+----------------------------------------------
+Version 6.9.4 update 9 May 2019
 ----------------------------------------------
 Feature changes and new features in 6.9.4
 --------------------------------------------------------------------------------------------

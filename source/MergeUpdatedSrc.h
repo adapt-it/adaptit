@@ -246,6 +246,8 @@ void	ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 void	CopySubArray(SPArray& arr, int fromIndex, int toIndex, SPArray& subArray);
 void	CopyToList(SPArray& arr, int fromIndex, int toIndex, SPList* pList);
 int		CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, int lastChunk);
+int		CountWordMatches(SPArray& arrOld, SPArray& arrNew); // BEW added 15May19
+bool	IsWordInSPArray(wxString word, SPArray& arr);
 bool	DoesChunkContainSourceText(SPArray* pArray, int startsAt, int endsAt);
 // Next one BEW refactored 21Jul14 to add support for the -srcRespell switch (one new param
 // added, and code internally added to for called functions, to copy m_key and m_srcPhrase)

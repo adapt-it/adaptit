@@ -4143,15 +4143,15 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
             // determine the int ID of a main menu item in a round-about way.
 
             pMainMenuItem->mainMenuIDint = GetTopLevelMenuID(mbMainMenuText); // Note: a top level menu cannot be menuSeparator
-                                                                              //pMainMenuItem->mainMenuID = // we can get along without this string representation mainMenuID
-                                                                              // Consider: When the compiled all of the menu item IDs are determined and those const int values
-                                                                              // are used at run time. They don't change during execution or even from session to session of a
-                                                                              // given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
-                                                                              // especially since the mainMenuIDint value never changes.
+            //pMainMenuItem->mainMenuID = // we can get along without this string representation mainMenuID
+            // Consider: When the compiled all of the menu item IDs are determined and those const int values
+            // are used at run time. They don't change during execution or even from session to session of a
+            // given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
+            // especially since the mainMenuIDint value never changes.
 
-                                                                              // insert the main menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
-                                                                              // Note: we remove menu decorations since we want to be able to look up the plain label in
-                                                                              // the map
+            // insert the main menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
+            // Note: we remove menu decorations since we want to be able to look up the plain label in
+            // the map
             wxString mainMenuItemLabelPlain = mbMainMenuText; //RemoveMenuLabelDecorations(mbMainMenuText);
             iter = m_mapMenuLabelStrToIdInt.find(mainMenuItemLabelPlain);
             if (iter != m_mapMenuLabelStrToIdInt.end())
@@ -4164,11 +4164,11 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
                 // key not in the map
                 // The [] index operator can be used either of two ways in assignment statement
                 m_mapMenuLabelStrToIdInt[mainMenuItemLabelPlain] = pMainMenuItem->mainMenuIDint; // clearest
-                                                                                                 // or, the following is equivalent, but not so clear
-                                                                                                 //pThisMap->operator[](mbMainMenuText) = pMainMenuItem->mainMenuIDint;
-                                                                                                 // NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
-                                                                                                 // The only difference is that if the given key is not present in the hash map,
-                                                                                                 // an element with the default value_type() is inserted in the table."
+                // or, the following is equivalent, but not so clear
+                //pThisMap->operator[](mbMainMenuText) = pMainMenuItem->mainMenuIDint;
+                // NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
+                // The only difference is that if the given key is not present in the hash map,
+                // an element with the default value_type() is inserted in the table."
             }
 
             int i;
@@ -4224,11 +4224,11 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
                     // key not in the map
                     // The [] index operator can be used either of two ways in assignment statement
                     m_mapMenuLabelStrToIdInt[subMenuItemLabelPlain] = pSubMenuItem->subMenuIDint; // clearest
-                                                                                                  // or, the following is equivalent, but not so clear
-                                                                                                  //pThisMap->operator[](keyCopy) = pSubMenuItem->subMenuIDint;
-                                                                                                  // NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
-                                                                                                  // The only difference is that if the given key is not present in the hash map,
-                                                                                                  // an element with the default value_type() is inserted in the table."
+                    // or, the following is equivalent, but not so clear
+                    // pThisMap->operator[](keyCopy) = pSubMenuItem->subMenuIDint;
+                    // NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
+                    // The only difference is that if the given key is not present in the hash map,
+                    // an element with the default value_type() is inserted in the table."
                 }
                 // add pSubMenuItem to the pMainMenuItem's aiSubMenuItems list
                 pMainMenuItem->aiSubMenuItems.Append(pSubMenuItem);
@@ -4281,21 +4281,21 @@ void CAdapt_ItApp::SetupUnTranslatedMapMenuLabelStrToIdInt(MapMenuLabelStrToIdIn
 
             // get values for pMainMenuItem's members from the temp AI menu bar pMenuBar
             wxString mbMainMenuText = pMenuBar->GetMenuLabel(ct); // includes accelerator chars
-                                                                  //pMainMenuItem->mainMenuLabel = mbMainMenuText;
-                                                                  // For some reason a wxMenu item (top level or sub menu item) does not have a
-                                                                  // GetId() method. Only a wxMenuItem has a GetId() method. Hence, we have to
-                                                                  // determine the int ID of a main menu item in a round-about way.
+            //pMainMenuItem->mainMenuLabel = mbMainMenuText;
+            // For some reason a wxMenu item (top level or sub menu item) does not have a
+            // GetId() method. Only a wxMenuItem has a GetId() method. Hence, we have to
+            // determine the int ID of a main menu item in a round-about way.
 
-                                                                  //pMainMenuItem->mainMenuIDint = GetTopLevelMenuID(mbMainMenuText); // Note: a top level menu cannot be menuSeparator
-                                                                  //pMainMenuItem->mainMenuID = // we can get along without this string representation mainMenuID
-                                                                  // Consider: When the compiled all of the menu item IDs are determined and those const int values
-                                                                  // are used at run time. They don't change during execution or even from session to session of a
-                                                                  // given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
-                                                                  // especially since the mainMenuIDint value never changes.
+            //pMainMenuItem->mainMenuIDint = GetTopLevelMenuID(mbMainMenuText); // Note: a top level menu cannot be menuSeparator
+            //pMainMenuItem->mainMenuID = // we can get along without this string representation mainMenuID
+            // Consider: When the compiled all of the menu item IDs are determined and those const int values
+            // are used at run time. They don't change during execution or even from session to session of a
+            // given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
+            // especially since the mainMenuIDint value never changes.
 
-                                                                  // insert the main menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
-                                                                  // Note: we remove menu decorations since we want to be able to look up the plain label in
-                                                                  // the map
+            // insert the main menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
+            // Note: we remove menu decorations since we want to be able to look up the plain label in
+            // the map
             wxString mainMenuItemLabelPlain = mbMainMenuText; //RemoveMenuLabelDecorations(mbMainMenuText);
             iter = m_mapMenuLabelStrToIdInt.find(mainMenuItemLabelPlain);
             if (iter != m_mapMenuLabelStrToIdInt.end())
@@ -4308,11 +4308,11 @@ void CAdapt_ItApp::SetupUnTranslatedMapMenuLabelStrToIdInt(MapMenuLabelStrToIdIn
                 // key not in the map
                 // The [] index operator can be used either of two ways in assignment statement
                 m_mapMenuLabelStrToIdInt[mainMenuItemLabelPlain] = GetTopLevelMenuID(mbMainMenuText); //pMainMenuItem->mainMenuIDint; // clearest
-                                                                                                      // or, the following is equivalent, but not so clear
-                                                                                                      //pThisMap->operator[](mbMainMenuText) = pMainMenuItem->mainMenuIDint;
-                                                                                                      // NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
-                                                                                                      // The only difference is that if the given key is not present in the hash map,
-                                                                                                      // an element with the default value_type() is inserted in the table."
+                // or, the following is equivalent, but not so clear
+                // pThisMap->operator[](mbMainMenuText) = pMainMenuItem->mainMenuIDint;
+                // NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
+                // The only difference is that if the given key is not present in the hash map,
+                // an element with the default value_type() is inserted in the table."
             }
 
             int i;
@@ -4368,11 +4368,11 @@ void CAdapt_ItApp::SetupUnTranslatedMapMenuLabelStrToIdInt(MapMenuLabelStrToIdIn
                     // key not in the map
                     // The [] index operator can be used either of two ways in assignment statement
                     m_mapMenuLabelStrToIdInt[subMenuItemLabelPlain] = pmbSubMenuItem->GetId(); //pSubMenuItem->subMenuIDint; // clearest
-                                                                                               // or, the following is equivalent, but not so clear
-                                                                                               //pThisMap->operator[](keyCopy) = pSubMenuItem->subMenuIDint;
-                                                                                               // NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
-                                                                                               // The only difference is that if the given key is not present in the hash map,
-                                                                                               // an element with the default value_type() is inserted in the table."
+                    // or, the following is equivalent, but not so clear
+                    //pThisMap->operator[](keyCopy) = pSubMenuItem->subMenuIDint;
+                    // NOTE: The docs say of the wxHashMap::operator[] "Use it as an array subscript.
+                    // The only difference is that if the given key is not present in the hash map,
+                    // an element with the default value_type() is inserted in the table."
                 }
                 // add pSubMenuItem to the pMainMenuItem's aiSubMenuItems list
                 //pMainMenuItem->aiSubMenuItems.Append(pSubMenuItem);
