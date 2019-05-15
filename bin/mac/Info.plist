@@ -26,26 +26,26 @@
 		<string>zh</string>
 	</array>
 	<key>CFBundleLongVersionString</key>
-	<string>6.9.3, (c) 2019 Bruce Waters, Bill Martin, SIL International</string>
+	<string>6.9.4, (c) 2019 Bruce Waters, Bill Martin, SIL International</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>6.9.3</string>
+	<string>6.9.4</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>6.9.3</string>
+	<string>6.9.4</string>
 	<key>CSResourcesFileMapped</key>
 	<true/>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.productivity</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright 2019 Bruce Waters, Bill Martin, SIL International</string>
 	<key>NSPrincipalClass</key>
 	<string>wxNSApplication</string>
-	<key>NSHighResolutionCapable</key>
-	<true/>
 </dict>
 </plist>
