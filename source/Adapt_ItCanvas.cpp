@@ -602,10 +602,16 @@ void CAdapt_ItCanvas::OnListBoxItemSelected(wxCommandEvent & event)
     // within the Windows-specific handling of its native list box - it is not the
     // result of anything I can track down within AI's own code, nor within the 
     // wxWidgets library routines for wxListBox.
+    //
+    // whm 30May2019 Correction. If the user moved the up/down arrow to highlight a
+    // list item, then presses the Enter key to select it, the App's m_nDropDownClickedItemIndex
+    // will still be -1 (no click was made), so to avoid an assert below, we must test for
+    // that situation (arrow key and Enter to select an item), and not try to set the
+    // list item selection to a -1 value.
     int eventID = event.GetId(); eventID = eventID; //int ID_DROP_DOWN_LIST = 22050;
     int listBoxSel = event.GetSelection();
     wxString selStr = event.GetString(); selStr = selStr;
-    if (listBoxSel != pApp->m_nDropDownClickedItemIndex)
+    if (pApp->m_nDropDownClickedItemIndex != -1 && listBoxSel != pApp->m_nDropDownClickedItemIndex)
     {
         wxLogDebug("***In CAdapt_ItCanvas::OnListBoxItemSelected() BEFORE correction selStr: %s at index %d", selStr.c_str(), listBoxSel);
         // The list box index error occurred, so set the selection back to what the user
