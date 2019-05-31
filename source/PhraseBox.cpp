@@ -9137,6 +9137,7 @@ void CPhraseBox::SetButtonBitMapNormal()
     gpApp->m_pTargetBox->SetPhraseBoxButton(pBitmapBtn);
     //this->GetPhraseBoxButton()->SetBitmapLabel(wxBitmap(xpm_dropbutton_normal));
     this->GetPhraseBoxButton()->SetPosition(currPosn);
+    this->GetPhraseBoxButton()->Refresh(); // whm added 31May2019 in attempt to address Bruce's reports that some Windows computers are not showing the "normal" button consistently
 }
 
 void CPhraseBox::SetButtonBitMapXDisabled()
@@ -9151,6 +9152,7 @@ void CPhraseBox::SetButtonBitMapXDisabled()
     gpApp->m_pTargetBox->SetPhraseBoxButton(pBitmapBtn);
     //this->GetPhraseBoxButton()->SetBitmapLabel(dropbutton_X);
     this->GetPhraseBoxButton()->SetPosition(currPosn);
+    this->GetPhraseBoxButton()->Refresh(); // whm added 31May2019 in attempt to address Bruce's reports that some Windows computers are not showing the "normal" button consistently
 }
 
 
