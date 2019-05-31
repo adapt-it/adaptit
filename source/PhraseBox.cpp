@@ -1127,9 +1127,11 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
 {
     bool m_bCancelAndSelect_temp = FALSE; // whm 22Feb2018 added for temp fix
     bool gbUserCancelledChooseTranslationDlg_temp = FALSE; // whm 22Feb2018 added for temp fix
-
+#if defined (ABANDON_NOT)
+	pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
     pApp->m_pTargetBox->m_bAbandonable = TRUE;
-
+#endif
     // it is single step mode & no adaptation available, so see if we can find a
     // translation, or gloss, for the single src word at the active location, if not,
     // depending on the m_bCopySource flag, either initialize the targetPhrase to
@@ -1145,8 +1147,11 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
         MakeCopyOrSetNothing(pApp, pView, pNewPile, bWantSelect);
 
         // BEW added 1Jul09, the flag should be TRUE if nothing was found
+#if defined (ABANDON_NOT)
+		pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
         pApp->m_pTargetBox->m_bAbandonable = TRUE;
-
+#endif
     }
     else
     {
@@ -1215,7 +1220,11 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
             MakeCopyOrSetNothing(pApp, pView, pNewPile, bWantSelect);
 
             // BEW added 1Jul09, the flag should be TRUE if nothing was found
+#if defined (ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
             pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
         }
     } // BEW removed 16Mar18, whm restored 16Mar2018
  }
@@ -1258,7 +1267,11 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
     {
         // user cancelled CChooseTranslation dialog because he wants instead to
         // select for a merger of two or more source words
+#if defined (ABANDON_NOT)
+		pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
         pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 
         // no adaptation available, so depending on the m_bCopySource flag, either
         // initialize the targetPhrase to an empty string, or to a copy of the
@@ -1351,7 +1364,11 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
 #endif
 
             // BEW added 1Jul09, the flag should be TRUE if nothing was found
+#if defined (ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
             pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
         }
 
         // is "Accept Defaults" turned on? If so, make processing continue
@@ -1649,7 +1666,11 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
                 m_Translation = pNewPile->GetSrcPhrase()->m_targetStr; // probably empty
 				pApp->m_targetPhrase = m_Translation;
 				bWantSelect = FALSE;
+#if defined (ABANDON_NOT)
+				pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 				pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 				pNewPile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				pNewPile->GetSrcPhrase()->m_bNotInKB = TRUE; // ensures * shows above
 															 // this srcPhrase
@@ -2135,7 +2156,11 @@ b:	pApp->m_bSaveToKB = TRUE;
  				CSourcePhrase* pSrcPhr = pNewPile->GetSrcPhrase();
 				wxString str = pView->CopySourceKey(pSrcPhr, pApp->m_bUseConsistentChanges);
 				bWantSelect = FALSE;
+#if defined (ABANDON_NOT)
+				pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 				pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 				pSrcPhr->m_bHasKBEntry = FALSE;
 				pSrcPhr->m_bNotInKB = TRUE; // ensures * shows above
 				pSrcPhr->m_adaption = str;
@@ -2153,7 +2178,11 @@ b:	pApp->m_bSaveToKB = TRUE;
                 m_Translation = pNewPile->GetSrcPhrase()->m_targetStr; // probably empty
 				pApp->m_targetPhrase = m_Translation;
 				bWantSelect = FALSE;
+#if defined (ABANDON_NOT)
+				pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 				pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 				pNewPile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				pNewPile->GetSrcPhrase()->m_bNotInKB = TRUE; // ensures * shows above this srcPhrase
 			}
@@ -6996,7 +7025,11 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
             this->GetTextCtrl()->ChangeValue(str);
 			pApp->m_targetPhrase = str; // Required, otherwise the guess persists and gets used in auto-inserts subsequently
 			this->SetBackgroundColour(wxColour(255,255,255)); // white;
+#if defined (ABANDON_NOT)
+			this->m_bAbandonable = FALSE;
+#else
 			this->m_bAbandonable = TRUE;
+#endif
 			pApp->m_bIsGuess = FALSE;
 			pApp->m_preGuesserStr.Empty(); // clear this to empty, it's job is done
 			this->Refresh();
@@ -7309,7 +7342,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
         // abandonable at least here when setting up the dropdown phrasebox for display to the user.
         // Certain actions at the current location may change the flag to FALSE before the phrasebox
         // moves - such as any key press that changes the phrasebox contents. 
-        this->m_bAbandonable = TRUE;
+        //this->m_bAbandonable = TRUE; keep it FALSE BEW 31May19
 		*/
         // If the caller was LookAhead(), or if the ChooseTranslation dialog was just dismissed before
         // this SetupDropDownPhraseBoxForThisLocation() call, the global pCurTargetUnit will have been 

@@ -1695,7 +1695,11 @@ void CRetranslation::RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& st
 		{
 			// copy source key
 			str = m_pView->CopySourceKey(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_bUseConsistentChanges);
+#if defined (ABANDON_NOT)
+			m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 		}
 		else
 		{
@@ -2616,7 +2620,11 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		if (pSrcPhrase->m_targetStr.IsEmpty() &&
 			!pSrcPhrase->m_bHasKBEntry && !pSrcPhrase->m_bNotInKB)
 		{
+#if defined (ABANDON_NOT)
+			m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 			RestoreTargetBoxText(pSrcPhrase,str3); // for getting a suitable m_targetStr contents
 		}
 		else
@@ -3370,7 +3378,11 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
             // nonempty target string, we'll use that. Otherwise, get it by a lookup.
 			if (pSrcPhrase->m_targetStr.IsEmpty())
 			{
+#if defined (ABANDON_NOT)
+				m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 				m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 				RestoreTargetBoxText(pSrcPhrase,str3); // for getting a suitable
 				// m_targetStr contents
 			}
@@ -4027,7 +4039,11 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	if (pSrcPhrase->m_targetStr.IsEmpty() && !pSrcPhrase->m_bHasKBEntry &&
 		!pSrcPhrase->m_bNotInKB)
 	{
+#if defined (ABANDON_NOT)
+		m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 		m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 		RestoreTargetBoxText(pSrcPhrase,str3); // for getting a suitable
 		// m_targetStr contents by looking up pSrcPhrase's m_key to try get an adaptation
 		// to put in str3

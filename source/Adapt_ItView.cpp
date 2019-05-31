@@ -2572,7 +2572,11 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 	if (bHasNothing)
 	{
 		// there is as yet no translation for this source phrase & no copy from source
+#if defined(ABANDON_NOT)
+		pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 		pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
         pApp->m_pTargetBox->m_bBoxTextByCopyOnly = FALSE;
 	}
 	else
@@ -2798,7 +2802,11 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 					// if its a null source phrase, or the copy source flag is turned off,
 					// or the user stored a null string as the adaption, we don't show anything
 					// - but either way it's abandonable
+#if defined(ABANDON_NOT)
+					pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 					pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 				}
 			} // end of block for m_bDrafting == TRUE, for Reviewing mode we
 			  // don't want a copy done
@@ -3800,7 +3808,11 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 					{
 						if (pSP->m_adaption.IsEmpty() || pApp->m_pKB->IsItNotInKB(pSP))
 						{
+#if defined(ABANDON_NOT)
+							pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 							pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 	pApp->LogDropdownState(_T("PlacePhraseBox() landing, forcing m_bAbandonable to TRUE at hole which has KB entry available, selector == 0 or 2"), _T("Adapt_ItView.cpp"), 3942);
@@ -3827,7 +3839,11 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
                     // command.
 					if (pApp->m_pActivePile->GetSrcPhrase()->m_adaption.IsEmpty())
 					{
+#if defined(ABANDON_NOT)
+						pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 						pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 					}
 					// make sure idle events are continuing
 					wxWakeUpIdle();
@@ -9218,7 +9234,11 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 		}
 		else // the location is a "hole" (ie. empty)
 		{
+#if defined(ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 			pApp->m_targetPhrase.Empty();// added 31Jul03
 			pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
 			// the above is better, since then the user can use the To End button and not get
@@ -9236,7 +9256,11 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 			pApp->m_bSaveToKB = FALSE;
 			pApp->m_targetPhrase.Empty();
 			pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+#if defined(ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 		}
 		else if (!pSrcPhrase->m_adaption.IsEmpty())
 		{
@@ -9246,7 +9270,11 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 		}
 		else // the location is a "hole" (ie. empty)
 		{
+#if defined(ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 			pApp->m_targetPhrase.Empty();// added 31Jul03
 			pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
 			// the above is better, since then the user can use the To End button and not get
@@ -9304,7 +9332,11 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 			pApp->m_bSaveToKB = FALSE;
 			pApp->m_targetPhrase.Empty();
 			pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+#if defined(ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 		}
 		else
 		{
@@ -9324,7 +9356,11 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 			}
 			else
 			{
+#if defined(ABANDON_NOT)
+				pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 				pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 				if (pApp->m_bCopySource)
 				{
 					pApp->m_targetPhrase = CopySourceKey(pSrcPhrase, pApp->m_bUseConsistentChanges);
@@ -9567,7 +9603,11 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 		}
 		else
 		{
+#if defined(ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 			pApp->m_targetPhrase.Empty(); // added 31Jul03
 			pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
 			// the above is better, since then the user can use the To Start button and not get
@@ -9584,7 +9624,11 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 			pApp->m_bSaveToKB = FALSE;
 			pApp->m_targetPhrase.Empty();
 			pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+#if defined(ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 		}
 		else if (!pSrcPhrase->m_adaption.IsEmpty())
 		{
@@ -9594,7 +9638,11 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 		}
 		else
 		{
+#if defined(ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 			pApp->m_targetPhrase.Empty(); // added 31Jul03
 			pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
 			// the above is better, since then the user can use the To Start button and not get
@@ -9652,7 +9700,11 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 			pApp->m_bSaveToKB = FALSE;
 			pApp->m_targetPhrase.Empty();
 			pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+#if defined(ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 		}
 		else
 		{
@@ -9672,7 +9724,11 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 			}
 			else
 			{
+#if defined (ABANDON_NOT)
+				pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 				pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 				if (pApp->m_bCopySource)
 				{
 					pApp->m_targetPhrase = CopySourceKey(pSrcPhrase, pApp->m_bUseConsistentChanges);
@@ -9895,7 +9951,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
             // location
 			pApp->m_bSaveToKB = FALSE;
 			pApp->m_targetPhrase.Empty();
-			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+			pApp->m_pTargetBox->m_bAbandonable = FALSE; // was TRUE;
 		}
 		else if (!pSrcPhr->m_adaption.IsEmpty())
 		{
@@ -9918,7 +9974,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 		else
 		{
 			// the location is a "hole"
-			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+			pApp->m_pTargetBox->m_bAbandonable = FALSE; // was TRUE;
 			pApp->m_pTargetBox->GetTextCtrl()->Clear();
 			pApp->m_targetPhrase.Empty();
 		}
@@ -9994,7 +10050,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 				// setting at this location
 				pApp->m_bSaveToKB = FALSE;
 				pApp->m_targetPhrase.Empty();
-				pApp->m_pTargetBox->m_bAbandonable = TRUE;
+				pApp->m_pTargetBox->m_bAbandonable = FALSE; // was TRUE;
 			}
 			else // it's not a <Not In KB> location, ie. it's normal
 			{
@@ -10014,7 +10070,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 				}
 				else
 				{
-					pApp->m_pTargetBox->m_bAbandonable = TRUE;
+					pApp->m_pTargetBox->m_bAbandonable = FALSE; // BEW 31May19 was TRUE;
 					if (pApp->m_bCopySource)
 					{
 						pApp->m_targetPhrase = CopySourceKey(pSrcPhr,pApp->m_bUseConsistentChanges);
@@ -10186,7 +10242,11 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
             // location
 			pApp->m_bSaveToKB = FALSE;
 			pApp->m_targetPhrase.Empty();
+#if defined (ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 		}
 		else if (!pSrcPhrase->m_adaption.IsEmpty())
 		{
@@ -10195,7 +10255,11 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 		}
 		else
 		{
+#if defined (ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 			pApp->m_targetPhrase.Empty();// added 31Jul03
             // the above is better, since then the user can use the Step Up button
             // repeatedly and not get spurious copied source text entered into the KB each
@@ -10243,7 +10307,11 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 				// checkbox if he wants to override the "not in kb" earlier setting at this location
 				pApp->m_bSaveToKB = FALSE;
 				pApp->m_targetPhrase.Empty();
+#if defined (ABANDON_NOT)
+				pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 				pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 			}
 			else // it's not a <Not In KB> location
 			{
@@ -10261,7 +10329,11 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 				}
 				else
 				{
+#if defined (ABANDON_NOT)
+					pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 					pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 					if (pApp->m_bCopySource)
 					{
 						pApp->m_targetPhrase = CopySourceKey(
@@ -10526,7 +10598,11 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
             // location
 			pApp->m_bSaveToKB = FALSE;
 			pApp->m_targetPhrase.Empty();
+#if defined (ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 		}
 		else if (!pSrcPhrase->m_adaption.IsEmpty())
 		{
@@ -10535,7 +10611,11 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 		}
 		else
 		{
+#if defined (ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 			pApp->m_targetPhrase.Empty();// added 31Jul03
             // the above is better, since then the user can use the Step Up button
             // repeatedly and not get spurious copied source text entered into the KB each
@@ -10585,7 +10665,11 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
                 // setting at this location
 				pApp->m_bSaveToKB = FALSE;
 				pApp->m_targetPhrase.Empty();
+#if defined (ABANDON_NOT)
+				pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 				pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 			}
 			else // it's not a <Not In KB> location
 			{
@@ -10603,7 +10687,11 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 				}
 				else
 				{
+#if defined (ABANDON_NOT)
+					pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 					pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 					if (pApp->m_bCopySource)
 					{
 						pApp->m_targetPhrase = CopySourceKey(pSrcPhrase,pApp->m_bUseConsistentChanges);
@@ -11468,7 +11556,11 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		// compose a default adaptation string, as best we can
 		if (strOldAdaptation.IsEmpty())
 		{
+#if defined (ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 		}
 	} // end of for loop which merges all the non-first to the first in the selection
 
@@ -12452,7 +12544,11 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 					CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),
 									pApp->m_bUseConsistentChanges);
 			bWantSelect = TRUE;
+#if defined (ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 		}
 		else
 		{
@@ -13404,7 +13500,11 @@ void CAdapt_ItView::OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event))
 			wxASSERT(pCell != NULL);
 			int selector = 1; // this value suppresses both removal from the KB and storing
 							  // prior adaptation
+#if defined (ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 			PlacePhraseBox(pCell,selector);
 		}
 	}
@@ -13490,7 +13590,11 @@ void CAdapt_ItView::OnUseSilConverter(wxCommandEvent& WXUNUSED(event))
 			wxASSERT(pCell != NULL);
 			int selector = 1; // this value suppresses both removal from the KB and storing
 							  // prior adaptation
+#if defined (ABANDON_NOT)
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 			PlacePhraseBox(pCell,selector);
 		}
 	}
@@ -14567,8 +14671,13 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 			if (str3 != saveWord)
 			{
 				// Prevent the result from being abandonable
-				//pApp->m_pTargetBox->m_bAbandonable = FALSE; <- llegacy behaviour
-				pApp->m_pTargetBox->m_bAbandonable = TRUE; // BEW 27Apr18 changed, because 
+				//pApp->m_pTargetBox->m_bAbandonable = FALSE; <- legacy behaviour
+#if defined (ABANDON_NOT)
+				pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
+				pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
+				// BEW 27Apr18 changed, because 
 						// a copy, no matter how much it is modified programmatically, 
 						// should be abandonable until user does something in the GUI 
 						//to make it non-abandonable
@@ -14629,8 +14738,12 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 			pApp->m_bIsGuess = bIsGuess;
 		}
 	}
+#if defined (ABANDON_NOT)
+	pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 	pApp->m_pTargetBox->m_bAbandonable = TRUE; // BEW 27Apr18 added this line, a copy, even if programmatically
 			// modified, should be abandonable until the user does something to make it not so
+#endif
 	return str2;
 }
 
@@ -17181,7 +17294,11 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 			}
 			else
 			{
+#if defined (ABANDON_NOT)
+				pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 				pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 				pApp->m_targetPhrase.Empty();
 				bSkipStorage = TRUE;
 			}

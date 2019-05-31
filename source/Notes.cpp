@@ -1075,7 +1075,11 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 		// location
 		m_pApp->m_bSaveToKB = FALSE;
 		m_pApp->m_targetPhrase.Empty();
+#if defined (ABANDON_NOT)
+		m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 		m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 	}
 	else
 	{
@@ -1086,7 +1090,11 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 		}
 		else
 		{
+#if defined (ABANDON_NOT)
+			m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 			if (m_pApp->m_bCopySource)
 			{
 				m_pApp->m_targetPhrase = m_pView->CopySourceKey(pSrcPhrase,
@@ -1285,7 +1293,11 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 		// location
 		m_pApp->m_bSaveToKB = FALSE;
 		m_pApp->m_targetPhrase.Empty();
+#if defined (ABANDON_NOT)
+		m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 		m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 	}
 	else
 	{
@@ -1296,7 +1308,11 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 		}
 		else
 		{
+#if defined (ABANDON_NOT)
+			m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
+#else
 			m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
+#endif
 			if (m_pApp->m_bCopySource)
 			{
 				m_pApp->m_targetPhrase = 

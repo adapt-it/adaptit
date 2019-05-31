@@ -71,6 +71,13 @@
 //#define _KBSERVER
 //#endif
 
+// BEW changed to force m_bAbandonable to forever by FALSE everywhere - lesser of two
+// evils, because of users forgetting to click in box to make an abandonable adaptation
+// (typically a source copy) "stick" - leading to holes unexpected back in the translation
+// and unnoticed
+#define ABANDON_NOT
+
+
 // BEW added 10Dec12, a #define for the workaround for scrollPos bug in GTK build;
 // the added code needs to be present in the app permanently because the problem comes
 // from an structural defect in wxWidgets which won't change soon if ever; but I'll
@@ -103,7 +110,6 @@ class TranslationsList; // the CTargetUnit's list of CRefString instances
 
 #if defined(_KBSERVER)
 
-//class CServiceDiscovery; // BEW 4Jan16
 class CServDisc_KBserversDlg; // BEW 12Jan16
 class CWaitDlg; // BEW 8Feb16
 
