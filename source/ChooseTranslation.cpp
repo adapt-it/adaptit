@@ -1357,11 +1357,13 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
                 {
                     // Set the "X" button
                     pApp->m_pTargetBox->SetButtonBitMapXDisabled();
+                    wxLogDebug(_T("Set button XDisabled - list count = %d in CChooseTranslation::OnOK()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
                 }
                 else
                 {
                     // Set the normal down-arrow button
                     pApp->m_pTargetBox->SetButtonBitMapNormal();
+                    wxLogDebug(_T("Set button Normal - list count = %d in CChooseTranslation::OnOK()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
                 }
 
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
@@ -1430,6 +1432,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 
                 // Set the "X" button
                 pApp->m_pTargetBox->SetButtonBitMapXDisabled();
+                wxLogDebug(_T("Set button XDisabled - list count = %d in CChooseTranslation::OnOK()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
             }
 
 		}

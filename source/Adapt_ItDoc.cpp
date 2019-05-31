@@ -14950,7 +14950,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// causes a buffer overrun of the iterator in a call within AddParagraphMarkers(),
 		// so avoid this by Trim(ing off) any CRLF or CR or LF at the end first
 		rBuffer = rBuffer.Trim();
-		AddParagraphMarkers(rBuffer, nDerivedLength);
+        // whm 30May2019 Bruce requested that paragraph markers \p not be added to the 
+        // text being tokenized when the App's m_bClipboardAdaptMode flag is TRUE. 
+        // TODO: Bruce should verify that this change doesn't adversely affect the TokenizeText() 
+        // fuction, and that is does what he wants when adapting unstructured text from the clipboard.
+        if (!pApp->m_bClipboardAdaptMode)
+        {
+            AddParagraphMarkers(rBuffer, nDerivedLength);
+        }
 		wxASSERT(nDerivedLength >= nTextLength);
 	}
 

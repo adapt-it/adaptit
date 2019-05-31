@@ -7430,15 +7430,18 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
             if (pApp->m_bFreeTranslationMode)
             {
                 this->SetButtonBitMapXDisabled();
+                wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
             }
             else if (pApp->m_pTargetBox->GetDropDownList()->GetCount() <= 1)
             {
                 this->SetButtonBitMapXDisabled();
+                wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
             }
             else
             {
                 this->SetButtonBitMapNormal();
-            }
+                 wxLogDebug(_T("Set button Normal - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
+           }
 
             // Set the dropdown's list selection to the selectionIndex determined by 
 			// PopulatDropDownList above.
@@ -7775,6 +7778,7 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
 
                 //We should be able to put it in the m_pTargetBox here.
                 this->GetTextCtrl()->ChangeValue(pApp->m_targetPhrase);
+                wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
                 //this->GetTextCtrl()->SetFocus(); // handled below in SetFocusAndSetSelectionAtLanding()
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 				pApp->LogDropdownState(_T("SetupDropDownPhraseBoxForThisLocation() end of block for nRefStrCount == 0"), _T("PhraseBox.cpp"), 6348);
@@ -7794,7 +7798,8 @@ void CPhraseBox::SetupDropDownPhraseBoxForThisLocation()
                     this->GetDropDownList()->Append(strSaveListEntry);
 					this->m_bAbandonable = FALSE;
 					this->GetDropDownList()->SetSelection(0);
-				}
+                    wxLogDebug(_T("Set button XDisabled - list count = %d in CPhraseBox::SetupDropDownPhraseBoxForThisLocation()"), (int)pApp->m_pTargetBox->GetDropDownList()->GetCount());
+                }
 			}
             // whm 3Aug2018 Note: The SetSelection call is made in the outer block near the
             // end of SetupDropDownPhraseBoxForThisLocation(). See below.
@@ -9165,6 +9170,7 @@ void CPhraseBox::SetButtonBitMapNormal()
     gpApp->m_pTargetBox->SetPhraseBoxButton(pBitmapBtn);
     //this->GetPhraseBoxButton()->SetBitmapLabel(wxBitmap(xpm_dropbutton_normal));
     this->GetPhraseBoxButton()->SetPosition(currPosn);
+    this->GetPhraseBoxButton()->Refresh(); // whm added 31May2019 in attempt to address Bruce's reports that some Windows computers are not showing the "normal" button consistently
 }
 
 void CPhraseBox::SetButtonBitMapXDisabled()
@@ -9179,6 +9185,7 @@ void CPhraseBox::SetButtonBitMapXDisabled()
     gpApp->m_pTargetBox->SetPhraseBoxButton(pBitmapBtn);
     //this->GetPhraseBoxButton()->SetBitmapLabel(dropbutton_X);
     this->GetPhraseBoxButton()->SetPosition(currPosn);
+    this->GetPhraseBoxButton()->Refresh(); // whm added 31May2019 in attempt to address Bruce's reports that some Windows computers are not showing the "normal" button consistently
 }
 
 
