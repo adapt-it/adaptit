@@ -2996,6 +2996,10 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s"), __FILE__, __FUNCTION__, __LINE__,
 		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
+	wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+		pApp->m_pTargetBox->GetTextCtrl()->GetValue());
+
+
 //#if defined(_DEBUG) && defined(_EXPAND)
 //	pApp->MyLogger();
 //#endif
@@ -3063,6 +3067,10 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
 	wxASSERT(pCell);
+
+	wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+		pApp->m_pTargetBox->GetTextCtrl()->GetValue());
+
 	if (pCell->GetCellIndex() != 1) // index == 1 is the line of cells
 									// which has the phrase box
 	{
@@ -3120,6 +3128,10 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
         // Next> or Advance buttons, if they land the box in a retranslation, the phrase
         // box text that get's set up is the old location's adaptation, not to mention a
         // spurious save of <Not In KB> to the KB as well.
+		wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+			pApp->m_pTargetBox->GetTextCtrl()->GetValue());
+
+
 		if (!gbIsGlossing && pApp->m_pActivePile &&
 			!pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry &&
 			pApp->m_pActivePile->GetSrcPhrase()->m_bNotInKB &&
@@ -3157,7 +3169,10 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 			wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3114,
 				(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif			
-            if (selector == 0 || selector == 3)
+			wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+				pApp->m_pTargetBox->GetTextCtrl()->GetValue());
+
+			if (selector == 0 || selector == 3)
 			{
                 // mark invalid the strip preceding the active strip, so as to allow
                 // migration upwards of a small pile at start of active strip if the active
@@ -3195,6 +3210,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 				// set by the contents of m_targetPhrase (and m_pTargetBox should have the same contents)
 				pApp->m_pTargetBox->RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
 
+				wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+					pApp->m_pTargetBox->GetTextCtrl()->GetValue());
+
 				// BEW 30Apr18  added next test to fix a bug where 'landing' the phrasebox can get a wrong m_adaption
 				// when box moves off - i.e. leaves, because a non-empty list copies top entry to the box before 
 				// the store gets done, even though user did not alter the box nor a click in the box happened.
@@ -3205,25 +3223,64 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 				// NULL, so we have to test for that and skip code which assumed it would be a valid pointer
 				if (pOldActivePile != NULL)
 				{
-					if ((!gbVerticalEditInProgress && !pApp->m_bUserTypedSomething) ||
-						(gbVerticalEditInProgress && (gEditStep == 2 || gEditStep == 3)))
+					if ((!gbVerticalEditInProgress && !pApp->m_bUserTypedSomething))
 					{
+						// BEW 1Jun19, now that m_bAbandonable is forced to always be FALSE, we want content
+						// in the phrase box to 'stick' if the user clicks at some other location without
+						// clicking in the box. In this scenario m_bHasKBEntry should still be FALSE, because
+						// KB storage has not been done. If it is TRUE, then this block should be skipped.
+						// When control gets to here, m_adaption and m_targetStr should also be empty if
+						// the box is at a hole; if not at a hole, this block should be skipped likewise.
+						CSourcePhrase* pSrcPhrase = pOldActivePile->GetSrcPhrase();
+						if (!  // if none of these apply, then keep the box contents
+							(pApp->m_pTargetBox->m_bAbandonable ||
+							pApp->m_pTargetBox->GetTextCtrl()->GetValue().IsEmpty() ||
+							pSrcPhrase->m_bHasKBEntry)
+						   )
+						{
+							wxString adaption = pApp->m_pTargetBox->GetTextCtrl()->GetValue();
+
+							pApp->m_pTargetBox->m_SaveTargetPhrase = adaption;
+							pApp->m_targetPhrase = adaption;
+							pApp->m_pTargetBox->RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
+							wxString tgtStr = adaption;
+							pApp->GetView()->RemovePunctuation(GetDocument(), &adaption, from_target_text);
+							pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(tgtStr); // should make it 'modified'
+									// and a block further below will do the store, and the content will 'stick'
+						}
+					}
+					else 
+					// BEW 1Jun19 split the test, to preserve this block for vertical editing
+					if (gbVerticalEditInProgress && (gEditStep == 2 || gEditStep == 3))
+					{
+						wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s , m_targetPhrase = %s , m_bUserTypedSomething = %d"),
+							__FILE__, __FUNCTION__, __LINE__,
+							pApp->m_pTargetBox->GetTextCtrl()->GetValue(), pApp->m_targetPhrase.c_str(),
+							pApp->m_bUserTypedSomething);
+
+
 						// User did not type something, AND no user click in the box
-						// In this circumstance, the earlier value of m_adaption should be restored. pApp->m_pActivePile->GetSrcPhrase()
-						// still has the old values for src and tgt retained, so restore the box from its m_adaption member
-						// and likewise m_targetPhrase  and re-do the call of RemoveFinalSpaces() for safety's sake
+						// In this circumstance, the earlier value of m_adaption should be restored. 
+						// pApp->m_pActivePile->GetSrcPhrase() still has the old values for src and tgt retained, 
+						// so restore the box from its m_adaption member, and likewise m_targetPhrase  and 
+						// re-do the call of RemoveFinalSpaces() for safety's sake.
 						//pApp->m_pTargetBox->m_SaveTargetPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;  // BEW added 19May18
 						pApp->m_pTargetBox->m_SaveTargetPhrase = pOldActivePile->GetSrcPhrase()->m_adaption;  // BEW changed 6Jul18
-#if defined (_DEBUG) && defined (_ABANDONABLE)
-						pApp->LogDropdownState(_T("PlacePhraseBox() leaving, about to use  m_SaveTargetText, selector = 0"), _T("Adapt_ItView.cpp"), 3192);
-						wxLogDebug(_T("PlacePhraseBox() leaving, m_SaveTargetText= %s  at line %d"), pApp->m_pTargetBox->m_SaveTargetPhrase.c_str(), 3192);
-#endif
+//#if defined (_DEBUG) && defined (_ABANDONABLE)
+						pApp->LogDropdownState(_T("In function %s, line = %d , leaving, about to use  m_SaveTargetText, selector = 0"),
+							__FUNCTION__, __LINE__);
+						wxLogDebug(_T("PlacePhraseBox() leaving, m_SaveTargetText= %s  at line %d"),
+							pApp->m_pTargetBox->m_SaveTargetPhrase.c_str(), __LINE__);
+//#endif
 						pApp->m_pTargetBox->m_bAbandonable = FALSE;
 						wxString adaption = pApp->m_pTargetBox->m_SaveTargetPhrase;
 						pApp->m_targetPhrase = adaption;
 						pApp->m_pTargetBox->GetTextCtrl()->ChangeValue(adaption);
 
 						pApp->m_pTargetBox->RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
+
+						wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+							pApp->m_pTargetBox->GetTextCtrl()->GetValue());
 					}
 				} // end test for a valid pOldActivePile pointer
 
@@ -3238,7 +3295,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 				if (pOldActivePile != NULL)
 				{
 					pOldActiveSrcPhrase = pOldActivePile->GetSrcPhrase();
-					wxLogDebug(_T("PlacePhraseBox at 3215, Leaving:  m_key = %s , m_bAbandonable = %d"),
+					wxLogDebug(_T("PlacePhraseBox at %d, Leaving:  m_key = %s , m_bAbandonable = %d"), __LINE__,
 						pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable);
 				}
 				// any existing phraseBox text must be saved to the KB, unless its empty
@@ -3269,13 +3326,21 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					wxLogDebug(_T("View, PlacePhraseBox() line  %d , pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3243,
 						(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
-					wxLogDebug(_T("PlacePhraseBox at 3246, Leaving:  m_key = %s , m_bAbandonable = %d"),
+					wxLogDebug(_T("PlacePhraseBox at line %d, Leaving:  m_key = %s , m_bAbandonable = %d"), __LINE__,
 						pApp->m_pActivePile->GetSrcPhrase()->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable);
+
+					wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s"), __FILE__, __FUNCTION__, __LINE__,
+						pApp->m_pTargetBox->GetTextCtrl()->GetValue());
 
 					// it has to be saved to the relevant KB now
 					if (!pApp->m_pTargetBox->m_bAbandonable || !pApp->m_pTargetBox->m_bBoxTextByCopyOnly)
 					{
 						bOK = pApp->m_pTargetBox->DoStore_ForPlacePhraseBox(pApp, pApp->m_targetPhrase);
+
+						wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s , m_targetPhrase = %s"),
+							__FILE__, __FUNCTION__, __LINE__,
+							pApp->m_pTargetBox->GetTextCtrl()->GetValue(), pApp->m_targetPhrase.c_str());
+
 					}
 #if defined (_DEBUG) && defined (TRACK_PHRBOX_CHOOSETRANS_BOOL)
 					wxLogDebug(_T("View, PlacePhraseBox() line  %d - after DoStore_ForPlacePhraseBox(), pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3255,  (int)pApp->m_bTypedNewAdaptationInChooseTranslation);
@@ -3294,7 +3359,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 						// BEW 26Apr19, m_targetStr would sometimes inexplicably be empty
 						// at this point, even though m_adaption was non empty; so I'm
 						// putting this code into the release build, doing a check for
-						// that circumstance, and if m_targtStr is wrongly empty, then
+						// that circumstance, and if m_targetStr is wrongly empty, then
 						// setting it to what it should be
 						if (pOldActivePile == pApp->m_pActivePile)
 						{
@@ -3337,6 +3402,10 @@ wxBell();
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3275,pApp->m_nActiveSequNum);
 //#endif
 
+					wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s , m_targetPhrase = %s"),
+						__FILE__, __FUNCTION__, __LINE__,
+						pApp->m_pTargetBox->GetTextCtrl()->GetValue(), pApp->m_targetPhrase.c_str());
+
 #if defined (_DEBUG) && defined (_ABANDONABLE)
 pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE block  for non-empty m_targetPhrase test, selector = 0"), _T("Adapt_ItView.cpp"), 3279);
 #endif
@@ -3363,7 +3432,7 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 						::wxBell(); // ring the bell to say that something wasn't right
 						pLayout->m_docEditOperationType = relocate_box_op;
 #ifdef _DEBUG
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3304,pApp->m_nActiveSequNum);
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),__LINE__,pApp->m_nActiveSequNum);
 #endif
 //#if defined (_DEBUG) && defined (_ABANDONABLE)
 //pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE block, selector = 0 ELSE block for empty m_targetPhrase test, will now return to caller"), _T("Adapt_ItView.cpp"), 3282);
@@ -3373,6 +3442,10 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 						wxLogDebug(_T("View, PlacePhraseBox() line  %d - end of leaving code, pApp->m_bTypedNewAdaptationInChooseTranslation = %d"), 3311,
 							(int)pApp->m_bTypedNewAdaptationInChooseTranslation);
 #endif
+						wxLogDebug(_T("%s:%s():line %d, *************Phrasebox contents %s , m_targetPhrase = %s"),
+							__FILE__, __FUNCTION__, __LINE__,
+							pApp->m_pTargetBox->GetTextCtrl()->GetValue(), pApp->m_targetPhrase.c_str());
+
 						return;
 					}
 					
@@ -3385,8 +3458,8 @@ pApp->LogDropdownState(_T("PlacePhraseBox() leaving, after DoStore() in TRUE blo
 			pApp->m_nCacheLeavingLocation);
 		if (pOldActivePile != NULL)
 		{
-			wxLogDebug(_T("PlacePhraseBox 3326, at end of Leaving:  m_key = %s , m_bAbandonable = %d , m_adaption = %s"),
-				pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
+			wxLogDebug(_T("PlacePhraseBox line %d, at end of Leaving:  m_key = %s , m_bAbandonable = %d , m_adaption = %s"),
+				__LINE__, pOldActiveSrcPhrase->m_key.c_str(), (int)pApp->m_pTargetBox->m_bAbandonable,
 				pOldActiveSrcPhrase->m_adaption.c_str());
 		}
 

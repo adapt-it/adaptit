@@ -1260,7 +1260,7 @@ x:					CCell* pCell = 0;
 					// BEW 28Jun18 cache this value for using within PlacePhraseBox() to enable 
 					// recalculating the correct pOldActivePile pointer 
 					pApp->m_nCacheLeavingLocation = pApp->m_nOldSequNum;
-					wxLogDebug(_T(" OnLButtonDown() 1102, setting m_nCacheLeavingLocation, cached sequ num = %d"),
+					wxLogDebug(_T(" OnLButtonDown() 1263, setting m_nCacheLeavingLocation, cached sequ num = %d"),
 						pApp->m_nCacheLeavingLocation);
 
 					pApp->m_bLandingBox = TRUE;
