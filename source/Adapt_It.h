@@ -2419,6 +2419,14 @@ public:
     /// frame, and also serves as the doc template name.
 	wxString m_FrameAndDocProgramTitle; // title for main frame and doc template name
 
+	// BEW 13Jun19 need a flag which, when TRUE, indicates that the application when
+	// processing OnInit(), is currently doing a first launch which is creating the
+	// Adapt It Unicode Work folder, at the standard path location, also m_workFolderPath,
+	// and current working directory, as determined internally by EnsureWorkFolderPresent()
+	// in OnInit(). This is so that we can limit initial setting up of the frame window
+	// to the one OnInit() which gets the work folder created.
+	bool m_bWorkFolderBeingSetUp;  // default FALSE, set TRUE only in EnsureWorkFolderPresent()
+
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Variable declarations below were moved here from the Doc's public area because the
     // wxWidgets doc/view framework deletes the Doc and recreates it afresh (calling the

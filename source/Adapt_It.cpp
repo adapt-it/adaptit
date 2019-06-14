@@ -18515,27 +18515,27 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //m_bEnableDelayedGetChapterHandler = FALSE; // BEW added 15Sep14
     m_bEnableDelayedGet_Handler = FALSE; // BEW changed to this on 7Oct14
 
-                                         // bug fixed 24Sept13 BEW
-                                         //limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from
-                                         // being done more than once in a series of OnIdle() calls. It's reset to
-                                         // 0 in OnLButtonDown() and in the CPhraseBox functions MoveToNextPile(),
-                                         // MoveToImmediateNextPile() and MoveToPrevPile(); otherwise once the hack
-                                         // has worked once, before its block is exitted limiter is set to be 1,
-                                         // and a test at the block's start for limiter == 0 then prevents further
-                                         // running of the hack until the above places restore the 0 value. Used to
-                                         // get round a problem first reported by Ross Jones (ex-SIM) who noticed
-                                         // that an edited phrasebox value, when the box moved on, would not be
-                                         // displayed as edited, but the pre-edit value (always identical to
-                                         // pre-edit value of m_adaption) of m_targetStr is shown. But the correct
-                                         // m_adaption value goes to the KB for storage, and putting the phrasebox
-                                         // back at that location shows the edited value correctly - this used to
-                                         // be the only way to fix the problem. The problem is very rare, but
-                                         // happens enough to be noticed now and then, and no cause has been found;
-                                         // it occurs on both Linux and Windows versions (probably Mac too but not
-                                         // enough users to get it manifested and reported there)
+    // bug fixed 24Sept13 BEW
+    //limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from
+    // being done more than once in a series of OnIdle() calls. It's reset to
+    // 0 in OnLButtonDown() and in the CPhraseBox functions MoveToNextPile(),
+    // MoveToImmediateNextPile() and MoveToPrevPile(); otherwise once the hack
+    // has worked once, before its block is exitted limiter is set to be 1,
+    // and a test at the block's start for limiter == 0 then prevents further
+    // running of the hack until the above places restore the 0 value. Used to
+    // get round a problem first reported by Ross Jones (ex-SIM) who noticed
+    // that an edited phrasebox value, when the box moved on, would not be
+    // displayed as edited, but the pre-edit value (always identical to
+    // pre-edit value of m_adaption) of m_targetStr is shown. But the correct
+    // m_adaption value goes to the KB for storage, and putting the phrasebox
+    // back at that location shows the edited value correctly - this used to
+    // be the only way to fix the problem. The problem is very rare, but
+    // happens enough to be noticed now and then, and no cause has been found;
+    // it occurs on both Linux and Windows versions (probably Mac too but not
+    // enough users to get it manifested and reported there)
 
-                                         // BEW added 7Feb13 (see comments in Adapt_It.h where it is declared, for an
-                                         // explanation of why we need this)
+    // BEW added 7Feb13 (see comments in Adapt_It.h where it is declared, for an
+    // explanation of why we need this)
     m_bKeepBoxMidscreen = TRUE; // the project config file's value will override this initialization
 
                                 // Mike & BEW added 20May13, for across-the-app username support
@@ -19315,10 +19315,38 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     m_ptViewTopLeft.x = 20;
     m_ptViewTopLeft.y = 20;
-    m_szView.x = 640;
-    m_szView.y = 580;
-    m_bMarkerWrapsStrip = TRUE;
+	//m_szView.x = 640; unhelpful values
+	//m_szView.y = 580;   "        "
+	// restore them for present; m_wxSize is storage in 
+	// GetBasicSettingConfiguration() for WinSizeCX and WinSizeCY (frame)
+	m_szView.x = 640; //unhelpful values
+	m_szView.y = 580; //  "        "
+	/*
+	// BEW 12Jun19 simplify the user experience - set initial window size
+	// to 20 pixels in from each edge, if possible
+	int adjustedWidth = nDisplayWidthInPixels - 2 * 20;
+	int adjustedHeight = nDisplayHeightInPixels - 2 * 20;
+	if (adjustedWidth < 640)
+	{
+		m_szView.x = nDisplayWidthInPixels;
+	}
+	else
+	{
+		m_szView.x = adjustedWidth;
+	}
+	if (adjustedHeight < 480)
+	{
+		m_szView.y = nDisplayHeightInPixels;
+	}
+	else
+	{
+		m_szView.y = adjustedHeight;
+	}
+	*/
+	m_bMarkerWrapsStrip = TRUE;
     m_bZoomed = FALSE;
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		__LINE__, m_szView.x, m_szView.y);
 
     m_bIsInches = FALSE; // Default to Metric for wx version, especially since in the
                          // Windows page setup we can only use mm for margins
@@ -19417,6 +19445,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_nTotalBooks = 67;
     m_bDisableBookMode = FALSE; // start off enabled
                                 //gbAbortMRUOpen = FALSE; whm 1Oct12 removed
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		__LINE__, m_szView.x, m_szView.y);
 
                                 // !!! whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering
     m_bUsingDefaultUsfmStyles = FALSE;
@@ -19520,6 +19550,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                          // There are 15 of these m_last... paths that are associated with
                          // each project.
     SetAllProjectLastPathStringsToEmpty();
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		__LINE__, m_szView.x, m_szView.y);
 
     // whm 26Jan13 added. A new project should start with all of the
     // App's language name and code variables reset to empty strings.
@@ -19558,7 +19590,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                                                          // whm 12Jun11 added in support of inputs and outputs navigation protection
                                                                          // folder navigation protection defaults to FALSE but project config file
                                                                          // value stored in m_foldersProtectedFromNavigation
-    m_bProtectSourceInputsFolder = FALSE;
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		__LINE__, m_szView.x, m_szView.y);
+	m_bProtectSourceInputsFolder = FALSE;
     m_bProtectFreeTransOutputsFolder = FALSE;
     m_bProtectFreeTransRTFOutputsFolder = FALSE;
     m_bProtectGlossOutputsFolder = FALSE;
@@ -19628,7 +19662,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bNotesExist = FALSE; // 12Sep05 BEW
     m_bUnpacking = FALSE; // BEW added 10Jan06
 
-                          // RDE: added 3 Apr 06 in support of calling SilEncConverters for preprocessing
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		__LINE__, m_szView.x, m_szView.y);
+	// RDE: added 3 Apr 06 in support of calling SilEncConverters for preprocessing
                           // the target word form (c.f. Consistent Changes)
     m_strSilEncConverterName.Empty();
     m_bSilConverterDirForward = TRUE;
@@ -19673,6 +19709,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             // with the error message.
             secPath = LIB_NAME;
         }
+		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+			__LINE__, m_szView.x, m_szView.y);
 
         bECDriverDLLLoaded = ecDriverDynamicLibrary.Load(secPath);
         if (!ecDriverDynamicLibrary.IsLoaded())
@@ -19696,6 +19734,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     bECDriverDLLLoaded = bECDriverDLLLoaded; // avoids "local variable is initialized but
                                              // not referenced" warning when define is not set
 #endif	// end of if USE_SIL_CONVERTERS
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		__LINE__, m_szView.x, m_szView.y);
 
                                              // BEW added 2Sep08
     gbAdaptBeforeGloss = TRUE; // in vertical edit, do adaptations updating
@@ -19855,367 +19895,369 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bLegacySourceTextCopy = TRUE; // default is legacy behaviour,
                                    // to copy the source text (unless the project config file establishes the
                                    // FALSE value instead)
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
                                    // The following initializations are for refactored view layout support
     m_pLayout = new CLayout(); // persists on the heap for as long as the session is alive
 
-                               // *** The variable initializations above were moved here from the View ***
+    // *** The variable initializations above were moved here from the View ***
 
-                               /*
-                               // Testing the GetBookCodeFastFromDiskFile() function
-                               wxString testPathXML, testPathUSFM, testPathUSFMLongNoId, testPathUSFMShortHasId, testPathUSFMShortNoId;
-                               wxString testResultXML, testResultUSFM,testResultLongNoId, testResultUSFMShortHasId, testResultUSFMShortNoId;
-                               // test a typical AI xml document file
-                               testPathXML = _T("C:\\Users\\Bill Martin\\Documents\\Adapt It Unicode Work\\X to Y adaptations\\Adaptations\\_Hezekiah 7 USFM.xml");
-                               testResultXML = GetBookCodeFastFromDiskFile(testPathXML);
-                               // test a typical USFM formatted file
-                               testPathUSFM = _T("C:\\Users\\Bill Martin\\Documents\\Adapt It Source Texts\\All Tok Pisin Book Files\\01-MAT-DTP.txt");
-                               testResultUSFM = GetBookCodeFastFromDiskFile(testPathUSFM);
-                               // test a malformed file longer than 4K that has no \id NNN line in the first 4K of the file
-                               testPathUSFMLongNoId = _T("C:\\Users\\Bill Martin\\Desktop\\Junk\\01-MAT-Long-without id.txt");
-                               testResultLongNoId = GetBookCodeFastFromDiskFile(testPathUSFMLongNoId);
-                               // test a file shorter than 4K which has the \id NNN in the file
-                               testPathUSFMShortHasId = _T("C:\\Users\\Bill Martin\\Desktop\\Junk\\01-MAT-Short-with id.txt");
-                               testResultUSFMShortHasId = GetBookCodeFastFromDiskFile(testPathUSFMShortHasId);
-                               // test a file shorter than 4K which has no \id NNN in the file
-                               testPathUSFMShortNoId = _T("C:\\Users\\Bill Martin\\Desktop\\Junk\\01-MAT-Short-without id.txt");
-                               testResultUSFMShortNoId = GetBookCodeFastFromDiskFile(testPathUSFMShortNoId);
-                               */
+    /*
+    // Testing the GetBookCodeFastFromDiskFile() function
+    wxString testPathXML, testPathUSFM, testPathUSFMLongNoId, testPathUSFMShortHasId, testPathUSFMShortNoId;
+    wxString testResultXML, testResultUSFM,testResultLongNoId, testResultUSFMShortHasId, testResultUSFMShortNoId;
+    // test a typical AI xml document file
+    testPathXML = _T("C:\\Users\\Bill Martin\\Documents\\Adapt It Unicode Work\\X to Y adaptations\\Adaptations\\_Hezekiah 7 USFM.xml");
+    testResultXML = GetBookCodeFastFromDiskFile(testPathXML);
+    // test a typical USFM formatted file
+    testPathUSFM = _T("C:\\Users\\Bill Martin\\Documents\\Adapt It Source Texts\\All Tok Pisin Book Files\\01-MAT-DTP.txt");
+    testResultUSFM = GetBookCodeFastFromDiskFile(testPathUSFM);
+    // test a malformed file longer than 4K that has no \id NNN line in the first 4K of the file
+    testPathUSFMLongNoId = _T("C:\\Users\\Bill Martin\\Desktop\\Junk\\01-MAT-Long-without id.txt");
+    testResultLongNoId = GetBookCodeFastFromDiskFile(testPathUSFMLongNoId);
+    // test a file shorter than 4K which has the \id NNN in the file
+    testPathUSFMShortHasId = _T("C:\\Users\\Bill Martin\\Desktop\\Junk\\01-MAT-Short-with id.txt");
+    testResultUSFMShortHasId = GetBookCodeFastFromDiskFile(testPathUSFMShortHasId);
+    // test a file shorter than 4K which has no \id NNN in the file
+    testPathUSFMShortNoId = _T("C:\\Users\\Bill Martin\\Desktop\\Junk\\01-MAT-Short-without id.txt");
+    testResultUSFMShortNoId = GetBookCodeFastFromDiskFile(testPathUSFMShortNoId);
+    */
 
-                               // Testing the FindBookFileContainingThisReference() function
-                               //wxString testRes;
-                               //wxString testPath = _T("C:\\Users\\Bill Martin\\Documents\\Adapt It Unicode Work\\X to Y adaptations\\Adaptations");
-                               //wxString testRef = _T("2JN 1:5");
-                               //wxString testExt = _T(".XML");
-                               //testRes = FindBookFileContainingThisReference(testPath, testRef, testExt);
-                               //int junk;
-                               //junk = 1;
+    // Testing the FindBookFileContainingThisReference() function
+    //wxString testRes;
+    //wxString testPath = _T("C:\\Users\\Bill Martin\\Documents\\Adapt It Unicode Work\\X to Y adaptations\\Adaptations");
+    //wxString testRef = _T("2JN 1:5");
+    //wxString testExt = _T(".XML");
+    //testRes = FindBookFileContainingThisReference(testPath, testRef, testExt);
+    //int junk;
+    //junk = 1;
 
-                               // Testing the FindBookFileContainingThisReference() function
-                               //wxString testStr1 = GetFileNameForCollaboration(_T("Collab"), _T("MAT"), _T("NYNT"), _T("3"), _T("xml"));
-                               //wxString testStr2 = GetFileNameForCollaboration(wxEmptyString, _T("GEN"), _T("NYNT"), _T("11"), _T(".xml"));
-                               //wxString testStr3 = GetFileNameForCollaboration(wxEmptyString, _T("MAL"), wxEmptyString, wxEmptyString, _T(".xml"));
-                               //wxString testStr4 = GetFileNameForCollaboration(_T("Collab"), _T("MAL"), _T("NYNT"), _T("01"), _T("tmp"));
-                               //int junk;
-                               //junk = 1;
-                               /*
+    // Testing the FindBookFileContainingThisReference() function
+    //wxString testStr1 = GetFileNameForCollaboration(_T("Collab"), _T("MAT"), _T("NYNT"), _T("3"), _T("xml"));
+    //wxString testStr2 = GetFileNameForCollaboration(wxEmptyString, _T("GEN"), _T("NYNT"), _T("11"), _T(".xml"));
+    //wxString testStr3 = GetFileNameForCollaboration(wxEmptyString, _T("MAL"), wxEmptyString, wxEmptyString, _T(".xml"));
+    //wxString testStr4 = GetFileNameForCollaboration(_T("Collab"), _T("MAL"), _T("NYNT"), _T("01"), _T("tmp"));
+    //int junk;
+    //junk = 1;
+    /*
 
-                               // testing function used in FilenameConflictDlg & AdminMoveOrCopy (see lines 3120 to
-                               // 3198 above)
+    // testing function used in FilenameConflictDlg & AdminMoveOrCopy (see lines 3120 to
+    // 3198 above)
 
-                               wxString filename = _T("Filename.xml");
-                               wxString anOutput = BuildChangedFilenameForCopy(&filename);
-                               const wxChar* pOutput = anOutput.c_str();
-                               wxString anOutput2 = BuildChangedFilenameForCopy(&anOutput);
-                               const wxChar* pOutput2 = anOutput2.c_str();
-                               filename = _T("file(3)name.txt");
-                               wxString anOutput3 = BuildChangedFilenameForCopy(&filename);
-                               const wxChar* pOutput3 = anOutput3.c_str();
-                               filename = _T("filename(abc).txt");
-                               wxString anOutput4 = BuildChangedFilenameForCopy(&filename);
-                               const wxChar* pOutput4 = anOutput4.c_str();
-                               filename = _T("filename().txt");
-                               wxString anOutput5 = BuildChangedFilenameForCopy(&filename);
-                               const wxChar* pOutput5 = anOutput5.c_str();
-                               filename = _T("filename).txt");
-                               wxString anOutput6 = BuildChangedFilenameForCopy(&filename);
-                               const wxChar* pOutput6 = anOutput6.c_str();
-                               filename = _T("filename.");
-                               wxString anOutput7 = BuildChangedFilenameForCopy(&filename);
-                               const wxChar* pOutput7 = anOutput7.c_str();
-                               filename = _T("filename");
-                               wxString anOutput8 = BuildChangedFilenameForCopy(&filename);
-                               const wxChar* pOutput8 = anOutput8.c_str();
-                               // end test of function used in FilenameConflictDlg & AdminMoveOrCopy
+    wxString filename = _T("Filename.xml");
+    wxString anOutput = BuildChangedFilenameForCopy(&filename);
+    const wxChar* pOutput = anOutput.c_str();
+    wxString anOutput2 = BuildChangedFilenameForCopy(&anOutput);
+    const wxChar* pOutput2 = anOutput2.c_str();
+    filename = _T("file(3)name.txt");
+    wxString anOutput3 = BuildChangedFilenameForCopy(&filename);
+    const wxChar* pOutput3 = anOutput3.c_str();
+    filename = _T("filename(abc).txt");
+    wxString anOutput4 = BuildChangedFilenameForCopy(&filename);
+    const wxChar* pOutput4 = anOutput4.c_str();
+    filename = _T("filename().txt");
+    wxString anOutput5 = BuildChangedFilenameForCopy(&filename);
+    const wxChar* pOutput5 = anOutput5.c_str();
+    filename = _T("filename).txt");
+    wxString anOutput6 = BuildChangedFilenameForCopy(&filename);
+    const wxChar* pOutput6 = anOutput6.c_str();
+    filename = _T("filename.");
+    wxString anOutput7 = BuildChangedFilenameForCopy(&filename);
+    const wxChar* pOutput7 = anOutput7.c_str();
+    filename = _T("filename");
+    wxString anOutput8 = BuildChangedFilenameForCopy(&filename);
+    const wxChar* pOutput8 = anOutput8.c_str();
+    // end test of function used in FilenameConflictDlg & AdminMoveOrCopy
 
-                               //////////////// BEGIN WXWIDGETS LIBRARY CODE FRAGMENT TESTING //////////////////
+    //////////////// BEGIN WXWIDGETS LIBRARY CODE FRAGMENT TESTING //////////////////
 
-                               // Testing of general C++ code fragments (not depending on Adapt It code) can be done
-                               // here to save time in loading the Adapt It main frame, etc.
+    // Testing of general C++ code fragments (not depending on Adapt It code) can be done
+    // here to save time in loading the Adapt It main frame, etc.
 
-                               // Testing the weird world of rectangles in MFC and wxWidgets!!!
-                               const int MAXITERATIONS = 18;
-                               bool bNormalize = TRUE;
-                               struct coord
-                               {
-                               int x;
-                               int y;
-                               int xx;
-                               int yy;
-                               int w;
-                               int h;
-                               double quadrant;
-                               };
-                               //
-                               coord c[MAXITERATIONS] = {
-                               //    point 1   point 2 width,height                           (relative posn of
-                               //		x,y,    xx,yy,      w,h  Q    Test #  Cartesian Quadrant points in constructor)
-                               //		----------------------------------------------------------------------
-                               2,3,	10,7,		8,4, 4,   // Test 1  4th - lower right topL and botR
-                               10,7,	2,3,		8,4, 4,   // Test 2  4th - lower right topL and botR swapped
-                               2,-3,	10,-7,		8,4, 1,   // Test 3  1st - upper right botL and topR
-                               10,-7,	2,-3,		8,4, 1,   // Test 4  1st - upper right botL and topR swapped
-                               -2,3,	-10,7,		8,4, 3,   // Test 5  3rd - lower left  topR and botL
-                               -10,7,	-2,3,		8,4, 3,   // Test 6  3rd - lower left  topR and botL swapped
-                               -2,-3,	-10,-7,		8,4, 2,   // Test 7  2nd - upper left  botR and topL
-                               -10,-7,	-2,-3,		8,4, 2,   // Test 8  2nd - upper left  botR and topL swapped
-                               2,1,	10,-3,		8,4, 4.1, // Test 9  spans 4th & 1st   botL and topR
-                               10,-3,	2,1,		8,4, 4.1, // Test 10 spans 4th & 1st   botL and topR swapped
-                               -10,1,	-2,-3,		8,4, 2.3, // Test 11 spans 2nd & 3rd   botL and topR
-                               -2,-3,	-10,1,		8,4, 3.3, // Test 12 spans 2nd & 3rd   botL and topR swapped
-                               -3,3,	5,7,		8,4, 3.4, // Test 13 spans 3rd & 4th   topL and botR
-                               5,7,	-3,3,		8,4, 3.4, // Test 14 spans 3rd & 4th   topL and botR swapped
-                               -3,-3,	5,-7,		8,4, 1.2, // Test 15 spans 1st & 2nd   botL and topR
-                               5,-7,	-3,-3,		8,4, 1.2, // Test 16 spans 1st & 2nd   botL and topR swapped
-                               -3,3,	5,-1,		8,4, 0,   // Test 17 spand all quads   botL and topR
-                               5,-1,	-3,3,		8,4, 0,   // Test 18 spand all quads   botL and topR swapped
-                               };
-                               int recttop, rectbottom;
-                               int recttopx, rectbottomx;
-                               int recttopn, rectbottomn;
-                               int rectleft, rectright;
-                               int rectleftx, rectrightx;
-                               int rectleftn, rectrightn;
-                               int rectwidth, rectheight;
-                               int rectwidthx, rectheightx;
-                               int rectwidthn, rectheightn;
-                               int ct;
-                               for (ct = 0; ct < MAXITERATIONS; ct++)
-                               {
-                               //if (c[ct].x > c[ct].xx)
-                               //{
-                               //	int tmp = c[ct].x;
-                               //	c[ct].x = c[ct].xx;
-                               //	c[ct].xx = tmp;
-                               //}
-                               //if (c[ct].y > c[ct].yy)
-                               //{
-                               //	int tmp = c[ct].y;
-                               //	c[ct].y = c[ct].yy;
-                               //	c[ct].yy = tmp;
-                               //}
-                               wxPoint topLeft(c[ct].x,c[ct].y);
-                               wxPoint botRight(c[ct].xx,c[ct].yy);
-                               wxRect rect(topLeft,botRight); // create rect with two points
-                               wxSize sz(abs(c[ct].xx - c[ct].x),abs(c[ct].yy - c[ct].y)); // calculated size (ignore c[ct].w and c[ct].h)
-                               wxRect rectx(topLeft,sz); // create rects with point and size
-                               wxRect rectn(topLeft.x,topLeft.y,c[ct].w,c[ct].h); // x,y, width and height come directly from the constants
-                               if (bNormalize)
-                               {
-                               rect = NormalizeRect(rect);
-                               rectx = NormalizeRect(rectx);
-                               rectn = NormalizeRect(rectn);
-                               }
-                               recttop = rect.GetTop();
-                               recttopx = rectx.GetTop();
-                               recttopn = rectn.GetTop();
-                               rectbottom = rect.GetBottom();
-                               rectbottomx = rectx.GetBottom();
-                               rectbottomn = rectn.GetBottom();
-                               rectleft = rect.GetLeft();
-                               rectleftx = rectx.GetLeft();
-                               rectleftn = rectn.GetLeft();
-                               rectright = rect.GetRight();
-                               rectrightx = rectx.GetRight();
-                               rectrightn = rectn.GetRight();
-                               rectwidth = rect.GetWidth();
-                               rectwidthx = rectx.GetWidth();
-                               rectwidthn = rectn.GetWidth();
-                               rectheight = rect.GetHeight();
-                               rectheightx = rectx.GetHeight();
-                               rectheightn = rectn.GetHeight();
-                               if (bNormalize)
-                               wxLogDebug(_T("-------------Test %d Quadrant %1.1f !!NORMALIZED!!-------------:"),ct+1,c[ct].quadrant);
-                               else
-                               wxLogDebug(_T("-------------Test %d Quadrant %1.1f-------------:"),ct+1,c[ct].quadrant);
-                               wxLogDebug(_T("rect created with topLeft(%d,%d) botRight(%d,%d):"),topLeft.x,topLeft.y,botRight.x,botRight.y);
-                               wxLogDebug(_T("x coord diff = %d  y coord diff = %d"),c[ct].xx - c[ct].x,c[ct].yy - c[ct].y);
-                               wxLogDebug(_T("CSize sz.x = %d CSize sz.y = %d"),sz.x,sz.y);
-                               wxLogDebug(_T("rectx created with topLeft(%d,%d),wxSize(%d,%d) from calc coords:"),c[ct].x,c[ct].y,sz.x,sz.y);
-                               wxLogDebug(_T("rectn created with topLeft(%d,%d) width %d, height %d direct from constants w & h:"),c[ct].x,c[ct].y,c[ct].w,c[ct].h);
-                               wxLogDebug(_T("   recttop    = %3d  recttopx    = %3d  recttopn    = %3d"),recttop,recttopx,recttopn);
-                               wxLogDebug(_T("   rectbottom = %3d  rectbottomx = %3d  rectbottomn = %3d"),rectbottom,rectbottomx,rectbottomn);
-                               wxLogDebug(_T("   rectleft   = %3d  rectleftx   = %3d  rectleftn   = %3d"),rectleft,rectleftx,rectleftn);
-                               wxLogDebug(_T("   rectright  = %3d  rectrightx  = %3d  rectrightn  = %3d"),rectright,rectrightx,rectrightn);
-                               wxLogDebug(_T("   rectwidth  = %3d  rectwidthx  = %3d  rectwidthn  = %3d"),rectwidth,rectwidthx,rectwidthn);
-                               wxLogDebug(_T("   rectheight = %3d  rectheightx = %3d  rectheightn = %3d"),rectheight,rectheightx,rectheightn);
-                               int i;
-                               i = 1;
-                               }
-                               // The Set methods are sensitive to the order they are called on a wxRect
+    // Testing the weird world of rectangles in MFC and wxWidgets!!!
+    const int MAXITERATIONS = 18;
+    bool bNormalize = TRUE;
+    struct coord
+    {
+    int x;
+    int y;
+    int xx;
+    int yy;
+    int w;
+    int h;
+    double quadrant;
+    };
+    //
+    coord c[MAXITERATIONS] = {
+    //    point 1   point 2 width,height                           (relative posn of
+    //		x,y,    xx,yy,      w,h  Q    Test #  Cartesian Quadrant points in constructor)
+    //		----------------------------------------------------------------------
+    2,3,	10,7,		8,4, 4,   // Test 1  4th - lower right topL and botR
+    10,7,	2,3,		8,4, 4,   // Test 2  4th - lower right topL and botR swapped
+    2,-3,	10,-7,		8,4, 1,   // Test 3  1st - upper right botL and topR
+    10,-7,	2,-3,		8,4, 1,   // Test 4  1st - upper right botL and topR swapped
+    -2,3,	-10,7,		8,4, 3,   // Test 5  3rd - lower left  topR and botL
+    -10,7,	-2,3,		8,4, 3,   // Test 6  3rd - lower left  topR and botL swapped
+    -2,-3,	-10,-7,		8,4, 2,   // Test 7  2nd - upper left  botR and topL
+    -10,-7,	-2,-3,		8,4, 2,   // Test 8  2nd - upper left  botR and topL swapped
+    2,1,	10,-3,		8,4, 4.1, // Test 9  spans 4th & 1st   botL and topR
+    10,-3,	2,1,		8,4, 4.1, // Test 10 spans 4th & 1st   botL and topR swapped
+    -10,1,	-2,-3,		8,4, 2.3, // Test 11 spans 2nd & 3rd   botL and topR
+    -2,-3,	-10,1,		8,4, 3.3, // Test 12 spans 2nd & 3rd   botL and topR swapped
+    -3,3,	5,7,		8,4, 3.4, // Test 13 spans 3rd & 4th   topL and botR
+    5,7,	-3,3,		8,4, 3.4, // Test 14 spans 3rd & 4th   topL and botR swapped
+    -3,-3,	5,-7,		8,4, 1.2, // Test 15 spans 1st & 2nd   botL and topR
+    5,-7,	-3,-3,		8,4, 1.2, // Test 16 spans 1st & 2nd   botL and topR swapped
+    -3,3,	5,-1,		8,4, 0,   // Test 17 spand all quads   botL and topR
+    5,-1,	-3,3,		8,4, 0,   // Test 18 spand all quads   botL and topR swapped
+    };
+    int recttop, rectbottom;
+    int recttopx, rectbottomx;
+    int recttopn, rectbottomn;
+    int rectleft, rectright;
+    int rectleftx, rectrightx;
+    int rectleftn, rectrightn;
+    int rectwidth, rectheight;
+    int rectwidthx, rectheightx;
+    int rectwidthn, rectheightn;
+    int ct;
+    for (ct = 0; ct < MAXITERATIONS; ct++)
+    {
+    //if (c[ct].x > c[ct].xx)
+    //{
+    //	int tmp = c[ct].x;
+    //	c[ct].x = c[ct].xx;
+    //	c[ct].xx = tmp;
+    //}
+    //if (c[ct].y > c[ct].yy)
+    //{
+    //	int tmp = c[ct].y;
+    //	c[ct].y = c[ct].yy;
+    //	c[ct].yy = tmp;
+    //}
+    wxPoint topLeft(c[ct].x,c[ct].y);
+    wxPoint botRight(c[ct].xx,c[ct].yy);
+    wxRect rect(topLeft,botRight); // create rect with two points
+    wxSize sz(abs(c[ct].xx - c[ct].x),abs(c[ct].yy - c[ct].y)); // calculated size (ignore c[ct].w and c[ct].h)
+    wxRect rectx(topLeft,sz); // create rects with point and size
+    wxRect rectn(topLeft.x,topLeft.y,c[ct].w,c[ct].h); // x,y, width and height come directly from the constants
+    if (bNormalize)
+    {
+    rect = NormalizeRect(rect);
+    rectx = NormalizeRect(rectx);
+    rectn = NormalizeRect(rectn);
+    }
+    recttop = rect.GetTop();
+    recttopx = rectx.GetTop();
+    recttopn = rectn.GetTop();
+    rectbottom = rect.GetBottom();
+    rectbottomx = rectx.GetBottom();
+    rectbottomn = rectn.GetBottom();
+    rectleft = rect.GetLeft();
+    rectleftx = rectx.GetLeft();
+    rectleftn = rectn.GetLeft();
+    rectright = rect.GetRight();
+    rectrightx = rectx.GetRight();
+    rectrightn = rectn.GetRight();
+    rectwidth = rect.GetWidth();
+    rectwidthx = rectx.GetWidth();
+    rectwidthn = rectn.GetWidth();
+    rectheight = rect.GetHeight();
+    rectheightx = rectx.GetHeight();
+    rectheightn = rectn.GetHeight();
+    if (bNormalize)
+    wxLogDebug(_T("-------------Test %d Quadrant %1.1f !!NORMALIZED!!-------------:"),ct+1,c[ct].quadrant);
+    else
+    wxLogDebug(_T("-------------Test %d Quadrant %1.1f-------------:"),ct+1,c[ct].quadrant);
+    wxLogDebug(_T("rect created with topLeft(%d,%d) botRight(%d,%d):"),topLeft.x,topLeft.y,botRight.x,botRight.y);
+    wxLogDebug(_T("x coord diff = %d  y coord diff = %d"),c[ct].xx - c[ct].x,c[ct].yy - c[ct].y);
+    wxLogDebug(_T("CSize sz.x = %d CSize sz.y = %d"),sz.x,sz.y);
+    wxLogDebug(_T("rectx created with topLeft(%d,%d),wxSize(%d,%d) from calc coords:"),c[ct].x,c[ct].y,sz.x,sz.y);
+    wxLogDebug(_T("rectn created with topLeft(%d,%d) width %d, height %d direct from constants w & h:"),c[ct].x,c[ct].y,c[ct].w,c[ct].h);
+    wxLogDebug(_T("   recttop    = %3d  recttopx    = %3d  recttopn    = %3d"),recttop,recttopx,recttopn);
+    wxLogDebug(_T("   rectbottom = %3d  rectbottomx = %3d  rectbottomn = %3d"),rectbottom,rectbottomx,rectbottomn);
+    wxLogDebug(_T("   rectleft   = %3d  rectleftx   = %3d  rectleftn   = %3d"),rectleft,rectleftx,rectleftn);
+    wxLogDebug(_T("   rectright  = %3d  rectrightx  = %3d  rectrightn  = %3d"),rectright,rectrightx,rectrightn);
+    wxLogDebug(_T("   rectwidth  = %3d  rectwidthx  = %3d  rectwidthn  = %3d"),rectwidth,rectwidthx,rectwidthn);
+    wxLogDebug(_T("   rectheight = %3d  rectheightx = %3d  rectheightn = %3d"),rectheight,rectheightx,rectheightn);
+    int i;
+    i = 1;
+    }
+    // The Set methods are sensitive to the order they are called on a wxRect
 
-                               // set left and top first
-                               // a 5 by 5 rect with top left at 120,120
-                               // and bottom right at 125,115
-                               wxRect r1;
-                               r1.SetLeft(120);
-                               r1.SetTop(120);
-                               r1.SetRight(125);
-                               r1.SetBottom(125);
-                               // set right & bottom first, then left & top
-                               // to "same" points as above
-                               wxRect r2;
-                               r2.SetRight(125);
-                               r2.SetBottom(125);
-                               r2.SetLeft(120);
-                               r2.SetTop(120);
+    // set left and top first
+    // a 5 by 5 rect with top left at 120,120
+    // and bottom right at 125,115
+    wxRect r1;
+    r1.SetLeft(120);
+    r1.SetTop(120);
+    r1.SetRight(125);
+    r1.SetBottom(125);
+    // set right & bottom first, then left & top
+    // to "same" points as above
+    wxRect r2;
+    r2.SetRight(125);
+    r2.SetBottom(125);
+    r2.SetLeft(120);
+    r2.SetTop(120);
 
-                               // Only setting the bottom and right points
-                               wxRect r3;
-                               r3.SetRight(125);
-                               r3.SetBottom(115);
+    // Only setting the bottom and right points
+    wxRect r3;
+    r3.SetRight(125);
+    r3.SetBottom(115);
 
-                               wxLogDebug (_T("r1.x           = %d"),r1.x);
-                               wxLogDebug (_T("r1.y           = %d"),r1.y);
-                               wxLogDebug (_T("r1.GetRight()  = %d"),r1.GetRight());
-                               wxLogDebug (_T("r1.GetBottom() = %d"),r1.GetBottom());
-                               wxLogDebug (_T("r1.GetWidth()  = %d"),r1.GetWidth());
-                               wxLogDebug (_T("r1.GetHeight() = %d"),r1.GetHeight());
+    wxLogDebug (_T("r1.x           = %d"),r1.x);
+    wxLogDebug (_T("r1.y           = %d"),r1.y);
+    wxLogDebug (_T("r1.GetRight()  = %d"),r1.GetRight());
+    wxLogDebug (_T("r1.GetBottom() = %d"),r1.GetBottom());
+    wxLogDebug (_T("r1.GetWidth()  = %d"),r1.GetWidth());
+    wxLogDebug (_T("r1.GetHeight() = %d"),r1.GetHeight());
 
-                               wxLogDebug (_T("r2.x           = %d"),r2.x);
-                               wxLogDebug (_T("r2.y           = %d"),r2.y);
-                               wxLogDebug (_T("r2.GetRight()  = %d"),r2.GetRight());
-                               wxLogDebug (_T("r2.GetBottom() = %d"),r2.GetBottom());
-                               wxLogDebug (_T("r2.GetWidth()  = %d"),r2.GetWidth());
-                               wxLogDebug (_T("r2.GetHeight() = %d"),r2.GetHeight());
+    wxLogDebug (_T("r2.x           = %d"),r2.x);
+    wxLogDebug (_T("r2.y           = %d"),r2.y);
+    wxLogDebug (_T("r2.GetRight()  = %d"),r2.GetRight());
+    wxLogDebug (_T("r2.GetBottom() = %d"),r2.GetBottom());
+    wxLogDebug (_T("r2.GetWidth()  = %d"),r2.GetWidth());
+    wxLogDebug (_T("r2.GetHeight() = %d"),r2.GetHeight());
 
-                               wxLogDebug (_T("r3.x           = %d"),r3.x);
-                               wxLogDebug (_T("r3.y           = %d"),r3.y);
-                               wxLogDebug (_T("r3.GetRight()  = %d"),r3.GetRight());
-                               wxLogDebug (_T("r3.GetBottom() = %d"),r3.GetBottom());
-                               wxLogDebug (_T("r3.GetWidth()  = %d"),r3.GetWidth());
-                               wxLogDebug (_T("r3.GetHeight() = %d"),r3.GetHeight());
+    wxLogDebug (_T("r3.x           = %d"),r3.x);
+    wxLogDebug (_T("r3.y           = %d"),r3.y);
+    wxLogDebug (_T("r3.GetRight()  = %d"),r3.GetRight());
+    wxLogDebug (_T("r3.GetBottom() = %d"),r3.GetBottom());
+    wxLogDebug (_T("r3.GetWidth()  = %d"),r3.GetWidth());
+    wxLogDebug (_T("r3.GetHeight() = %d"),r3.GetHeight());
 
-                               int stop;
-                               stop = 1;
+    int stop;
+    stop = 1;
 
-                               ////////////// END OF WXWIDGETS LIBRARY CODE FRAGMENT TESTING ////////////////
-                               */
+    ////////////// END OF WXWIDGETS LIBRARY CODE FRAGMENT TESTING ////////////////
+    */
 
-                               /*
-                               // GDLC 9Nov12 Testing the wxUUID class
-                               wxString uuid_test = GetUuid();
-                               wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-                               uuid_test = GetUuid();
-                               wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-                               uuid_test = GetUuid();
-                               wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-                               uuid_test = GetUuid();
-                               wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-                               uuid_test = GetUuid();
-                               wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-                               uuid_test = GetUuid();
-                               wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-                               uuid_test = GetUuid();
-                               wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-                               uuid_test = GetUuid();
-                               wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-                               uuid_test = GetUuid();
-                               wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-                               uuid_test = GetUuid();
-                               wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-                               */
+    /*
+    // GDLC 9Nov12 Testing the wxUUID class
+    wxString uuid_test = GetUuid();
+    wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+    uuid_test = GetUuid();
+    wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+    uuid_test = GetUuid();
+    wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+    uuid_test = GetUuid();
+    wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+    uuid_test = GetUuid();
+    wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+    uuid_test = GetUuid();
+    wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+    uuid_test = GetUuid();
+    wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+    uuid_test = GetUuid();
+    wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+    uuid_test = GetUuid();
+    wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+    uuid_test = GetUuid();
+    wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+    */
 
-                               // BEW 6April2011 **** DO NOT REMOVE COMMENTED OUT CODE BELOW **** THIS IS VALUABLE FOR BEW ****
-                               //
-                               // Some code to get the sequence of utf-8 bytes for a given utf-16 character
-                               // in the output window -- run this in the Unicode build, it's useless in the ANSI build
-                               // Designed for Doulos SIL font (using utf8 CC I couldn't get to work right, but this
-                               // bit of quick & dirty code below is what I can use for perhaps a little applet with
-                               // a minimal GUI - just a standard file in dialog to get a file, and a standard file out
-                               // dialog to write to a given folder).
-                               // Input a file of Takia ANSI data and convert it to utf-8 and write to disk;
-                               // I only need to convert upper and lower case velar n, for Takia data. And I only
-                               // need do this on each Takia NT book - therefore 27 times. So having it here is enough.
-                               /*
-                               //CBString inStr = "Ãai Ã½ieg abag ari gup tamol aÃ½al san maÃ½au Ã½ipiteÃ½anaÃ½ a."; // test string, hacked ANSI legacy Takia text
-                               // get a file dialog to file in the wanted Takia sfm text file to inStr
-                               wxString fullPath = _T("");
-                               wxString takia_message = _T("Select Takia SFM file for conversion");
-                               wxString default_path = _T("C:\\Users\\watersb\\Documents");
-                               fullPath = ::wxFileSelector(takia_message,default_path);
-                               if (!fullPath.IsEmpty())
-                               {
-                               wxFileName fn(fullPath);
-                               wxString itsFilename = fn.GetFullName();
-                               wxString itsPath = fn.GetPath();
-                               wxFile fileIn;
-                               bool bOpen = fileIn.Open(fullPath);
-                               if (bOpen)
-                               {
-                               size_t aSafeLength = 320000; // about .3Mb, Takia Luke is 177MB so
-                               // this will get all of any Takia NT file
-                               // need a big enough byte buffer
-                               char* pBuff = new char[aSafeLength];
-                               memset(pBuff,0,aSafeLength);
-                               size_t actualNumBytes = fileIn.Read((void*)pBuff, aSafeLength);
-                               // make a CBString with a copy of the buffer contents
-                               CBString inStr(pBuff);
-                               if (pBuff != NULL) // whm 11Jun12 added NULL test
-                               delete pBuff; // no longer needed
-                               wxString outStr;
-                               int length = inStr.GetLength();
-                               for (int i = 0; i < length; i++)
-                               {
-                               unsigned char ch = inStr[i];
-                               unsigned char lcEng = 0xFD; // in PNG SIL Doulos
-                               unsigned char ucEng = 0xDE; // ditto
-                               wxChar lcEngW = 0x014B;
-                               wxChar ucEngW = 0x14A;
-                               wxString s;
-                               if (ch == lcEng)
-                               {
-                               outStr += lcEngW;
-                               }
-                               else if (ch == ucEng)
-                               {
-                               outStr += ucEngW;
-                               }
-                               else
-                               {
-                               CBString byteStr;
-                               byteStr = ch;
-                               s = Convert8to16(byteStr);
-                               outStr += s;
-                               }
-                               }
-                               CBString utf8Str = Convert16to8(outStr); // convert to utf-8
-                               int itsLength = utf8Str.GetLength();
-                               //wxString outfilename = _T("C:\\CC\\MyTest_AsUtf8.txt");
-                               wxString outfilename = itsPath; // initialize with the path to the folder
-                               wxString newName = itsFilename;
-                               int offset = newName.Find(_T('.'));
-                               if (offset != wxNOT_FOUND)
-                               {
-                               newName = newName.Left(offset);
-                               }
-                               newName += _T("_utf8.txt"); // keep the old file unchanged
-                               outfilename += _T('\\');
-                               outfilename += newName; // store in the same folder as the original
-                               wxFile f;
-                               f.Create(outfilename,TRUE);
-                               size_t writtenCount = f.Write((void*)(char*)utf8Str,itsLength);
-                               f.Close(); // load into AI Unicode and select Doulos SIL and see how it looks
-                               // (it works nice - is correctly converted; or Notepad)
-                               }
-                               }
-                               int stop_here = 1;	// put a break point here; cancel the run & reenter debugger to do next book
-                               */
+    // BEW 6April2011 **** DO NOT REMOVE COMMENTED OUT CODE BELOW **** THIS IS VALUABLE FOR BEW ****
+    //
+    // Some code to get the sequence of utf-8 bytes for a given utf-16 character
+    // in the output window -- run this in the Unicode build, it's useless in the ANSI build
+    // Designed for Doulos SIL font (using utf8 CC I couldn't get to work right, but this
+    // bit of quick & dirty code below is what I can use for perhaps a little applet with
+    // a minimal GUI - just a standard file in dialog to get a file, and a standard file out
+    // dialog to write to a given folder).
+    // Input a file of Takia ANSI data and convert it to utf-8 and write to disk;
+    // I only need to convert upper and lower case velar n, for Takia data. And I only
+    // need do this on each Takia NT book - therefore 27 times. So having it here is enough.
+    /*
+    //CBString inStr = "Ãai Ã½ieg abag ari gup tamol aÃ½al san maÃ½au Ã½ipiteÃ½anaÃ½ a."; // test string, hacked ANSI legacy Takia text
+    // get a file dialog to file in the wanted Takia sfm text file to inStr
+    wxString fullPath = _T("");
+    wxString takia_message = _T("Select Takia SFM file for conversion");
+    wxString default_path = _T("C:\\Users\\watersb\\Documents");
+    fullPath = ::wxFileSelector(takia_message,default_path);
+    if (!fullPath.IsEmpty())
+    {
+    wxFileName fn(fullPath);
+    wxString itsFilename = fn.GetFullName();
+    wxString itsPath = fn.GetPath();
+    wxFile fileIn;
+    bool bOpen = fileIn.Open(fullPath);
+    if (bOpen)
+    {
+    size_t aSafeLength = 320000; // about .3Mb, Takia Luke is 177MB so
+    // this will get all of any Takia NT file
+    // need a big enough byte buffer
+    char* pBuff = new char[aSafeLength];
+    memset(pBuff,0,aSafeLength);
+    size_t actualNumBytes = fileIn.Read((void*)pBuff, aSafeLength);
+    // make a CBString with a copy of the buffer contents
+    CBString inStr(pBuff);
+    if (pBuff != NULL) // whm 11Jun12 added NULL test
+    delete pBuff; // no longer needed
+    wxString outStr;
+    int length = inStr.GetLength();
+    for (int i = 0; i < length; i++)
+    {
+    unsigned char ch = inStr[i];
+    unsigned char lcEng = 0xFD; // in PNG SIL Doulos
+    unsigned char ucEng = 0xDE; // ditto
+    wxChar lcEngW = 0x014B;
+    wxChar ucEngW = 0x14A;
+    wxString s;
+    if (ch == lcEng)
+    {
+    outStr += lcEngW;
+    }
+    else if (ch == ucEng)
+    {
+    outStr += ucEngW;
+    }
+    else
+    {
+    CBString byteStr;
+    byteStr = ch;
+    s = Convert8to16(byteStr);
+    outStr += s;
+    }
+    }
+    CBString utf8Str = Convert16to8(outStr); // convert to utf-8
+    int itsLength = utf8Str.GetLength();
+    //wxString outfilename = _T("C:\\CC\\MyTest_AsUtf8.txt");
+    wxString outfilename = itsPath; // initialize with the path to the folder
+    wxString newName = itsFilename;
+    int offset = newName.Find(_T('.'));
+    if (offset != wxNOT_FOUND)
+    {
+    newName = newName.Left(offset);
+    }
+    newName += _T("_utf8.txt"); // keep the old file unchanged
+    outfilename += _T('\\');
+    outfilename += newName; // store in the same folder as the original
+    wxFile f;
+    f.Create(outfilename,TRUE);
+    size_t writtenCount = f.Write((void*)(char*)utf8Str,itsLength);
+    f.Close(); // load into AI Unicode and select Doulos SIL and see how it looks
+    // (it works nice - is correctly converted; or Notepad)
+    }
+    }
+    int stop_here = 1;	// put a break point here; cancel the run & reenter debugger to do next book
+    */
 
-                               // *** Variable initializations below moved here from the App's constructor ***
+    // *** Variable initializations below moved here from the App's constructor ***
 
-                               // BEW 24Aug10, changed comment. Reinit of KB structures is done in view->OnCreate().
-                               // This is because with only 1 doc allowed in WX, it first deletes the current doc and
-                               // view and recreates new ones before calling OnNewDocument(). The MFC version did not
-                               // do this, but reused its old doc and view pointers under the CSingleDocTemplate()
-                               // that MFC Adapt It uses. OnInit() calls OnNewDocument() to get the doc/view
-                               // structures set up; and hence because of the destruction of the view that is
-                               // entailed, view->OnCreate() will be called when control is here within OnInit(). This
-                               // would result in a crash, when OnCreate() tried to load KBs prematurely. We prevent
-                               // this by using the app member boolean, m_bControlIsWithinOnInit which is TRUE only
-                               // while control is here within OnInit(), testing for a TRUE value in OnCreate() and if
-                               // we find that it is so, we exit from OnCreate() prematurely. (Formerly we used a
-                               // different boolean, but I have eliminated it from the app today.)
+    // BEW 24Aug10, changed comment. Reinit of KB structures is done in view->OnCreate().
+    // This is because with only 1 doc allowed in WX, it first deletes the current doc and
+    // view and recreates new ones before calling OnNewDocument(). The MFC version did not
+    // do this, but reused its old doc and view pointers under the CSingleDocTemplate()
+    // that MFC Adapt It uses. OnInit() calls OnNewDocument() to get the doc/view
+    // structures set up; and hence because of the destruction of the view that is
+    // entailed, view->OnCreate() will be called when control is here within OnInit(). This
+    // would result in a crash, when OnCreate() tried to load KBs prematurely. We prevent
+    // this by using the app member boolean, m_bControlIsWithinOnInit which is TRUE only
+    // while control is here within OnInit(), testing for a TRUE value in OnCreate() and if
+    // we find that it is so, we exit from OnCreate() prematurely. (Formerly we used a
+    // different boolean, but I have eliminated it from the app today.)
 
     m_pDocManager = (wxDocManager*)NULL;// was originally in App constructor's preamble
     m_pMainFrame = (CMainFrame*)NULL;// was originally in App constructor's preamble
@@ -20228,6 +20270,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     m_pChecker = (wxSingleInstanceChecker*)NULL;
     m_pServer = (AI_Server*)NULL;
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // Note: The wxSingleInstanceChecker class determines if another instance of Adapt It
     // is running by the same user on the same local machine.
@@ -20336,6 +20380,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                 if (m_pRemovedMenuItemArray != NULL) // whm 11Jun12 added NULL test
                     delete m_pRemovedMenuItemArray;
             }
+//			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//				__LINE__, m_szView.x, m_szView.y);
 
             aTot = m_pArrayOfCollabProjects->GetCount();
             if (aTot == 0L)
@@ -20449,6 +20495,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             }
             if (m_pMappedObjectPointers != NULL) // whm 11Jun12 added NULL test
                 delete m_pMappedObjectPointers;
+//			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//				__LINE__, m_szView.x, m_szView.y);
 
             return FALSE; // this terminates the current instance of the application
         }
@@ -20556,6 +20604,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxLogDebug(_T("The wxStandardPaths::GetInstallPrefix() = %s"), installPrefix.c_str());
 #endif
 #endif // #if wxCHECK_VERSION(2, 7, 0)
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // whm added 6Dec11
     // Get the prefix for Linux installed files needed by the App. The m_PathPrefix will
@@ -20678,6 +20728,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_wxFileConfigPathAndName = m_appUserConfigDir + PathSeparator + _T(".Adapt_It_WX");
 #endif
     wxLogDebug(_T("The m_wxFileConfigPathAndName = %s"), m_wxFileConfigPathAndName.c_str());
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
 
     // !!!!!!!!!!! SET UP SOME STANDARD PATHS ABOVE !!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -20806,35 +20858,37 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pParser = new wxCmdLineParser(cmdLineDesc, argc, argv);
 
     int itsokay = m_pParser->Parse(); // continue if it fails
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
-                                      /*
-                                      if (m_pParser->Found(_T("v")))
-                                      {
-                                      // command-line -v or -version option was specified, so report the version number
-                                      // as standard output.
-                                      wxString strVersionNumber;
-                                      strVersionNumber.Empty();
-                                      strVersionNumber << VERSION_MAJOR_PART;
-                                      strVersionNumber += _T(".");
-                                      strVersionNumber << VERSION_MINOR_PART;
-                                      strVersionNumber += _T(".");
-                                      strVersionNumber << VERSION_BUILD_PART;
-                                      // whm Note: This version reporting switch need not be implemented unless there is
-                                      // a specific need for it such as a script that needs to check the version of Adapt
-                                      // It for use in some routine that is designed to verify that a certain version is
-                                      // installed, such as Alistair Imrie's bootstrap routine (he however is checking
-                                      // the version number by inspecting the first line in the Adapt It changes.txt
-                                      // file).
-                                      // TODO: In order to use wxLogStream the wxWidgets library must be compiled with
-                                      // wxUSE_STD_IOSTREAM set to 1 (default is 0) in setup.h. This will be necessary to
-                                      // actually output to the std::cout standard output.
+    /*
+    if (m_pParser->Found(_T("v")))
+    {
+    // command-line -v or -version option was specified, so report the version number
+    // as standard output.
+    wxString strVersionNumber;
+    strVersionNumber.Empty();
+    strVersionNumber << VERSION_MAJOR_PART;
+    strVersionNumber += _T(".");
+    strVersionNumber << VERSION_MINOR_PART;
+    strVersionNumber += _T(".");
+    strVersionNumber << VERSION_BUILD_PART;
+    // whm Note: This version reporting switch need not be implemented unless there is
+    // a specific need for it such as a script that needs to check the version of Adapt
+    // It for use in some routine that is designed to verify that a certain version is
+    // installed, such as Alistair Imrie's bootstrap routine (he however is checking
+    // the version number by inspecting the first line in the Adapt It changes.txt
+    // file).
+    // TODO: In order to use wxLogStream the wxWidgets library must be compiled with
+    // wxUSE_STD_IOSTREAM set to 1 (default is 0) in setup.h. This will be necessary to
+    // actually output to the std::cout standard output.
 
-                                      //wxLog *logger = new wxLogStream(&std::cout);
-                                      //wxLog::SetActiveTarget(logger);
-                                      //cout << strVersionNumber;
-                                      return false;
-                                      }
-                                      */
+    //wxLog *logger = new wxLogStream(&std::cout);
+    //wxLog::SetActiveTarget(logger);
+    //cout << strVersionNumber;
+    return false;
+    }
+    */
 
     int paramCount = m_pParser->GetParamCount();// this is relevant only to commands with params, like export
 
@@ -20957,6 +21011,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             // because it would turn off important functionality irrevokably on every launch
             m_bForce_Review_Mode = TRUE;
         }
+//		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//			__LINE__, m_szView.x, m_szView.y);
 
         //m_bForce_Review_Mode = TRUE; // for debugging the frm switch, comment out for
         // normal behaviours
@@ -21052,6 +21108,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // the old registry key, so that the transition to using the file-on-disk format
     // needs to happen only once.
     TransitionWindowsRegistryEntriesTowxFileConfig();
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // Change the registry key to something appropriate
     // MFC used: SetRegistryKey(_T("SIL-PNG Applications"));
@@ -21119,6 +21177,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_systemEncodingName = wxLocale::GetSystemEncodingName();	// Windows: m_systemEncodingName = "windows-1252"
                                                                 //  Ubuntu: m_systemEncodingName = "UTF-8"
                                                                 //     Mac: m_systemEncodingName = ???
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 #ifdef __WXMAC__
     switch (m_systemEncoding)
     {
@@ -21194,11 +21254,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     //wxASSERT(!m_appInstallPathOnly.IsEmpty()); //wxASSERT(!m_setupFolder.IsEmpty());
 
-                                               // At this point - just before loading any non-English localization catalog, we
-                                               // populate the m_mapMenuLabelStrToIdint with the English menu label items and
-                                               // their menu id int associations. This shouldn't strictly be needed, but is a
-                                               // precaution in case something goes awry with the localization - there will be
-                                               // English defaults for menu item labels in the mapping.
+    // At this point - just before loading any non-English localization catalog, we
+    // populate the m_mapMenuLabelStrToIdint with the English menu label items and
+    // their menu id int associations. This shouldn't strictly be needed, but is a
+    // precaution in case something goes awry with the localization - there will be
+    // English defaults for menu item labels in the mapping.
     SetupUnTranslatedMapMenuLabelStrToIdInt(m_mapMenuLabelStrToIdInt);
 
     // NOTE: We determine Adapt It's user interface language here early in OnInit() before
@@ -21213,7 +21273,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // currLocalizationInfo.
     // BEW added 4Dec09, so that a locale-related message doesn't come up when the
     // m_bAutoExport flag is TRUE (for use of the app with SendIt.exe, by John Hatton)
-    if (!m_bAutoExport)
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
+	if (!m_bAutoExport)
     {
         currLocalizationInfo = ProcessUILanguageInfoFromConfig(); // this needs to come after
                                                                   // the m_languageInfo is defined above
@@ -21295,6 +21357,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     fontAvail = wxFontMapper::Get()->IsEncodingAvailable(fontenc);
     // Windows: fontAvail = true
     //  Ubuntu: fontAvail = true
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
 
 	wxCHECK_MSG(fontAvail, FALSE, _T("OnInit() wxFontMapper returned FALSE (no font available) line 14500"));
@@ -21309,6 +21373,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     m_pDocManager = new wxDocManager; // must delete m_pDocManager in OnExit()
     wxASSERT(m_pDocManager != NULL);
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // whm 1Oct12 removed MRU code.
     // As of AI version 6.3.1 and following we do not store
@@ -21380,9 +21446,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         CLASSINFO(CAdapt_ItDoc),
         CLASSINFO(CAdapt_ItView));
     // pDocTemplate above will be destroyed when m_pDocManager is deleted in OnExit()
-    wxCHECK_MSG(pDocTemplate != NULL, FALSE, _T("OnInit() new wxDocTemplate returned NULL ptr, line 14544"));
+    wxCHECK_MSG(pDocTemplate != NULL, FALSE, _T("OnInit() new wxDocTemplate returned NULL ptr, line 121449"));
     // Note: We could have another wxDocTemplate instance for plain text documents if we
     // wanted them to be managed by the doc/view framework.
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // The following are for HTML Help
     m_pHelpController = new wxHtmlHelpController(wxHF_DEFAULT_STYLE | wxHF_OPEN_FILES);
@@ -21402,22 +21470,22 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Required for images in the online documentation
     wxInitAllImageHandlers(); // the help sample program does this, although it is not
                               // documented anywhere in wxWidgets!
-                              // Note: There are also individual handlers, i.e., wxImage::AddHandler(new
-                              // wxGIFHandler), wxFileSystem::AddHandler(new wxZipFSHandler), etc., but ones used
-                              // here are what the help sample uses.
+    // Note: There are also individual handlers, i.e., wxImage::AddHandler(new
+    // wxGIFHandler), wxFileSystem::AddHandler(new wxZipFSHandler), etc., but ones used
+    // here are what the help sample uses.
 
-                              // Note: The docs for wxHelpController say, "Note that if you use .zip or .htb formats
-                              // for your books, you must add this line to your application initialization:
-                              // wxFileSystem::AddHandler(new wxArchiveFSHandler); or nothing will be shown in your
-                              // help window."
+    // Note: The docs for wxHelpController say, "Note that if you use .zip or .htb formats
+    // for your books, you must add this line to your application initialization:
+    // wxFileSystem::AddHandler(new wxArchiveFSHandler); or nothing will be shown in your
+    // help window."
     wxFileSystem::AddHandler(new wxArchiveFSHandler); // docs say to use this one
 
 
-                                                      // whm note: The new CMainFrame call below creates AI's top level Main Frame window.
-                                                      // It also calls m_pMenuBar = AIMenuBarFunc() to create the menuBar and calls
-                                                      // SetMenuBar(m_pMenuBar) to associate the menuBar with the Main Frame. All the
-                                                      // other panels and bars (tool bar, mode bar, compose bar, status bar, etc.) are
-                                                      // also created within the CMainFrame's constructor.
+    // whm note: The new CMainFrame call below creates AI's top level Main Frame window.
+    // It also calls m_pMenuBar = AIMenuBarFunc() to create the menuBar and calls
+    // SetMenuBar(m_pMenuBar) to associate the menuBar with the Main Frame. All the
+    // other panels and bars (tool bar, mode bar, compose bar, status bar, etc.) are
+    // also created within the CMainFrame's constructor.
 
     m_pMainFrame = new CMainFrame(m_pDocManager, (wxFrame*)NULL, -1, m_FrameAndDocProgramTitle,
         wxPoint(0, 0), wxSize(735, 500),
@@ -21429,6 +21497,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                     // from any child view windows.
                                     // m_pMainFrame above will be destroyed when m_pDocManager is deleted in OnExit()
     wxASSERT(m_pMainFrame != NULL);
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // Notes: about Menu differences on the Mac:
     // 1. On the Mac, the "About" menu item should go in a particular place (in the Apple
@@ -22671,6 +22741,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     wxIcon icon32x32(xpm_data32x32);
 
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // whm modification 22May09 to add multiple icons to the top level frame window
     // using wxIconBundle
@@ -22721,7 +22793,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //#ifdef _UNICODE
     //	RenameNRtoUnicode(); // not used in wx version
     //#endif
-    EnsureWorkFolderPresent();
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
+	EnsureWorkFolderPresent();
     // m_workFolderPath is set in EnsureWorkFolderPresent(), and this becomes the current
     // working directory. m_localPathPrefix is also set in here and is used in
     // MakeForeignBasicConfigFileSafe() below.
@@ -22779,6 +22853,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         wxKill(::wxGetProcessId(), wxSIGKILL); // abort();
         return FALSE;
     }
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // Bibledit testing below
     /*
@@ -22806,20 +22882,26 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Bibledit testing above
 
     m_backgroundMode = wxSOLID;	// whm added 6July2006 Set to wxSOLID here in App's
-                                // OnInit because wxDC's SetTextBackground uses by default background mode
-                                // of wxTRANSPARENT which doesn't show up on screen regardless of what
-                                // color we set with SetTextBackground(). Each call to SetTextBackground
-                                // should have a prior call to SetBackgroundMode(m_backgroundMode), in
-                                // which the m_backgroundMode = wxSOLID.
+		// OnInit because wxDC's SetTextBackground uses by default background mode
+		// of wxTRANSPARENT which doesn't show up on screen regardless of what
+		// color we set with SetTextBackground(). Each call to SetTextBackground
+		// should have a prior call to SetBackgroundMode(m_backgroundMode), in
+		// which the m_backgroundMode = wxSOLID.
 
-                                // whm Note: In MFC version Bruce first created an off-screen temporary static control
-                                // window to get a valid CWnd*, but there is a simpler way in wxWidgets by using
-                                // wxGetClientDisplayRect() which I'm using here. According to wx docs, the
-                                // wxGetClientDisplayRect() function "returns the dimensions of the work area on the
-                                // display. On Windows this means the area not covered by the taskbar, etc. Other
-                                // platforms are currently defaulting to the whole display until a way is found to
-                                // provide this infor for all windows managers, etc."
+		// whm Note: In MFC version Bruce first created an off-screen temporary static control
+		// window to get a valid CWnd*, but there is a simpler way in wxWidgets by using
+		// wxGetClientDisplayRect() which I'm using here. According to wx docs, the
+		// wxGetClientDisplayRect() function "returns the dimensions of the work area on the
+		// display. On Windows this means the area not covered by the taskbar, etc. Other
+		// platforms are currently defaulting to the whole display until a way is found to
+		// provide this infor for all windows managers, etc."
     wxRect desktopWndRect = wxGetClientDisplayRect();
+	wxLogDebug(_T("%s:%s line %d, desktopWndRect: x = %d , y = %d , width = %d , height = %d , Display_w = %d, Display_h = %d"), 
+		__FILE__, __func__,__LINE__, 
+		desktopWndRect.x , desktopWndRect.y , desktopWndRect.GetWidth(), desktopWndRect.GetHeight(),
+		nDisplayWidthInPixels, nDisplayHeightInPixels);
+
+
     // whm Note: If the user changes the screen resolution during program execution then
     // desktopWndRect could change. Also the MFC checks do not work when more than one
     // monitor are connected to the user's computer, especially when the application
@@ -22828,7 +22910,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // in such configurations. Checking for multiple monitors can be done with the
     // wxDisplay class.
     //
-    unsigned int numMonitors;
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		__LINE__, m_szView.x, m_szView.y);
+	unsigned int numMonitors;
     numMonitors = wxDisplay::GetCount();
     if (numMonitors > 1)
     {
@@ -22836,11 +22920,21 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		const unsigned int monitorTwo = 1;
         wxDisplay displayOne(monitorOne);
         wxDisplay displayTwo(monitorTwo);
+
+		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+			__LINE__, m_szView.x, m_szView.y);
+
         wxRect dispOneRect = displayOne.GetClientArea(); // x=0, y=0, width=1920,
                                                          // height=1140 // doesn't include taskbar on Windows
         wxRect dispTwoRect = displayTwo.GetClientArea(); // x=1920, y=0, width=1920,
                                                          // height=1200
-        if (dispTwoRect.x > 0 || dispOneRect.x > 0)
+        // BEW 13Jun19 this text fails if the extra monitor is above the primary
+		// one at the same x-coordinate (zero for example) - in which case
+		// desktopWndRect beyond the test block gets values just from the
+		// size of the primary display (monitorOne). It's not worth the bother
+		// to consider splitting a frame window across the boundary of stacked
+		// monitors.
+		if (dispTwoRect.x > 0 || dispOneRect.x > 0)
         {
             // The second or first monitor's x coordinate is positive (instead of 0),
             // therefore we can assume that the desktop is extended from one display
@@ -22848,8 +22942,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             int maxDispRectX, maxDispRectY;
             maxDispRectX = dispOneRect.GetWidth() + dispTwoRect.GetWidth();
             maxDispRectY = wxMin(dispOneRect.GetHeight(), dispTwoRect.GetHeight()); // account
-                                                                                    // for task bar's presence
-                                                                                    // set the adjusted width and height of combined desktop display rect
+                    // for task bar's presence
+                    // set the adjusted width and height of combined desktop display rect
             desktopWndRect.SetWidth(maxDispRectX);
             desktopWndRect.SetHeight(maxDispRectY);
         }
@@ -22857,11 +22951,44 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxLogDebug(_T(
         "desktopWndRect.x = %d, desktopWndRect.y = %d, desktopWndRect.width = %d, desktopWndRect.height = %d"),
         desktopWndRect.x, desktopWndRect.y, desktopWndRect.GetWidth(), desktopWndRect.GetHeight());
-    //
+
+	// BEW 13Jun19, there is enough information in desktopWndRect for us
+	// to assign suitable large but not full screen initial size to Adapt It
+	// on a first run which created a work folder - we need to set m_szView.x and .y
+	// for the client area's width and height dimensions, and m_ptViewTopLeft.x and .y
+	// for the client area's top-left position coordinates. We'll then deliver those
+	// values to the appropriate m_pMainFrame->SetSize() and Position() calls below.
+	// BEWARE: a deficient basic configuration file gets called first (if not dealing
+	// with a custom location) and that would erase values established here - so we
+	// also provide saved copies of the values we establish so as to restore what
+	// we want for a suitably sized first frame window
+	int myAllSidesMargin = 40; // put a margin around the frame window - for starters
+	int nClientWidth = desktopWndRect.GetWidth() - 2 * myAllSidesMargin;
+	int nClientHeight = desktopWndRect.GetHeight() - 2 * myAllSidesMargin;
+	m_szView.x = nClientWidth; // these two are where the Basic config file saves the 
+							   // frame's width & height
+	m_szView.y = nClientHeight;
+
+	wxSize clientTopLeft;
+	clientTopLeft.x = desktopWndRect.x + myAllSidesMargin;
+	clientTopLeft.y = desktopWndRect.y + myAllSidesMargin;
+	m_ptViewTopLeft.x = clientTopLeft.x; // these two are where the Basic config file 
+										 // saves the frame's top-left position 
+	m_ptViewTopLeft.y = clientTopLeft.y;
+
+	// Next bits of the equation are at the GetBasicConfigurationFile() call below, and
+	// below that, at about line 23,180 or so, where the frame instance is sized & positioned.
+
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		__LINE__, m_szView.x, m_szView.y);
+	//
     // The wndTopLeft and wndBotRight point coordinates below are used within the App's
     // GetBasicSettingsConfiguration() function
     wndTopLeft = wxPoint(desktopWndRect.GetLeft(), desktopWndRect.GetTop());
     wndBotRight = wxPoint(desktopWndRect.GetRight(), desktopWndRect.GetBottom());
+
+	wxLogDebug(_T("%s:%s line %d, wndTopLeft = { %d , %d } , wndBotRight = { %d , %d }"), __FILE__, __func__,
+		__LINE__, wndTopLeft.x, wndTopLeft.y , wndBotRight.x , wndBotRight.y);
 
     // The original position of MFC's Initialize() was here. In wx version it is divided up
     // into InitializeFonts() and InitializePunctuation() which are both called earler in
@@ -22898,6 +23025,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     (*pPrintData) = pPgSetupDlgData->GetPrintData();
     pPrintData->SetPaperSize(wxSize(210, 297)); // BEW added 21Oct because the m_paperSize was remaining (-1,-1)
 
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		__LINE__, m_szView.x, m_szView.y);
+
 /*
 #if wxUSE_POSTSCRIPT
     wxPrintNativeDataBase * const nativeData = pPrintData->GetNativeData();
@@ -22922,7 +23052,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     }
 #endif // wxUSE_POSTSCRIPT
 */
-
+	
     //////////////////////////////////////////////////////////////////////////////////
     // Since we are about to read the config files, any data structures containing data
     // that might be changed from the reading of config files need to be created by this
@@ -22956,10 +23086,47 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // at the custom location (provided the user or admin doesn't change the location
         // using the Administrator menu).
         // !!!!!!!!!!!!!!!! BASIC CONFIG FILE IS READ HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        bConfigFilesRead = GetBasicConfiguration(); // GetBasicConfiguration
-                                                    // detects SHIFT-DOWN
+        bConfigFilesRead = GetBasicConfiguration(); // GetBasicConfiguration 
+													// detects SHIFT-DOWN
+		if (m_bWorkFolderBeingSetUp)
+		{
+			// BEW 13Jun19 added next lines to this block, as the config
+			// file won't yet exist; so we need to establish our initial values for
+			// size and position, and copy the code for adjusting these in here too,
+			// because otherwise bConfigFilesRead, having been returned as FALSE,
+			// the block below will be skipped
+			m_szView.x = nClientWidth;
+			m_szView.y = nClientHeight;
+			m_ptViewTopLeft.x = clientTopLeft.x;
+			m_ptViewTopLeft.y = clientTopLeft.y;
+
+			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+				__LINE__, m_szView.x, m_szView.y);
+
+			// Adjust frame's position and size to comply with the new choice, BEW 13Jun19
+			wxPoint myTopLeft(m_ptViewTopLeft.x, m_ptViewTopLeft.y);
+
+			wxLogDebug(_T("%s:%s line %d, myTopLeft.x = %d , myTopLeft.y = %d"), __FILE__, __func__,
+				__LINE__, myTopLeft.x, myTopLeft.y);
+
+			wxSize mySize(m_szView.x, m_szView.y);
+			m_pMainFrame->SetPosition(myTopLeft);
+			m_pMainFrame->SetSize(mySize);
+
+			if (m_bZoomed)
+			{
+				m_pMainFrame->Maximize(TRUE);
+			}
+
+			m_bWorkFolderBeingSetUp = FALSE; // clear now that EnsureWOrkFolderPresent()
+				// has determined that the Adapt It Unicode Work folder is being
+				// created in this run of OnInit(), and has been used as needed above
+		}
     }
-    m_bSkipBasicConfigFileCall = FALSE; // restore default value
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		__LINE__, m_szView.x, m_szView.y);
+
+	m_bSkipBasicConfigFileCall = FALSE; // restore default value
     if (bConfigFilesRead)
     {
         // this block won't be entered if the call of GetBasicConfiguration() above
@@ -22991,6 +23158,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         m_tableFolderPath[2] = m_lastCcTablePath;
         m_tableFolderPath[3] = m_lastCcTablePath;
 
+		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+			__LINE__, m_szView.x, m_szView.y);
+
         // whm added 14Apr09. The basic config file contains position and size information
         // for the main frame and that information has now been read from the config file,
         // so here is where we should update the position and size of the CMainFrame
@@ -23006,13 +23176,30 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // should be "safe" to use in our SetSize() call on the main frame below, which is
         // called first to establish any non-zoomed window size, before re-establishing any
         // zoomed state.
+		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+			__LINE__, m_szView.x, m_szView.y);
 
-        m_pMainFrame->SetSize(m_ptViewTopLeft.x, m_ptViewTopLeft.y, m_szView.x, m_szView.y, wxSIZE_AUTO);
+		// Adjust frame's position and size to comply with the new choice, BEW 13Jun19
+		wxPoint myTopLeft(m_ptViewTopLeft.x, m_ptViewTopLeft.y);
+
+		wxLogDebug(_T("%s:%s line %d, myTopLeft.x = %d , myTopLeft.y = %d"), __FILE__, __func__,
+			__LINE__, myTopLeft.x, myTopLeft.y);
+
+		wxSize mySize(m_szView.x, m_szView.y);
+		m_pMainFrame->SetPosition(myTopLeft);
+		m_pMainFrame->SetSize(mySize);
+
+        //m_pMainFrame->SetSize(m_ptViewTopLeft.x, m_ptViewTopLeft.y, m_szView.x, m_szView.y, wxSIZE_AUTO); deprecated 13Jun19
         if (m_bZoomed)
         {
             m_pMainFrame->Maximize(TRUE);
         }
-    }
+
+		m_bWorkFolderBeingSetUp = FALSE; // ensure it's back to default value
+
+//		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//			__LINE__, m_szView.x, m_szView.y);
+	}
 
     // MFC: Dispatch commands specified on the command line
     //if (!ProcessShellCommand(cmdInfo))
@@ -23039,6 +23226,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //
     wxCommandEvent event = wxID_NEW;
     OnFileNew(event);
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     /* don't need this, as use in OnNewDocument() of m_bControlIsWithinOnInit makes it unneeded
     // we'll want to remove the ~AIROP*.lock file that may get set up here, so
@@ -23189,6 +23378,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pMainFrame->Show(TRUE);
     SetTopWindow(m_pMainFrame);
 
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
+
     // MFC has this code for drag and drop at this point
     // Enable drag/drop open
     // wxWidgets has various drag and drop classes, but I'm not going to try to
@@ -23210,6 +23402,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // box will also at that point not be in existence, and otherwise a crash would happen
     // when in OnButtonMerge()
     gbDoingInitialSetup = TRUE;
+
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		__LINE__, m_szView.x, m_szView.y);
 
     // change the unnamedN title to "Untitled - Adapt It"
     wxString viewTitle = _("Untitled - Adapt It");
@@ -23262,6 +23457,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             }
         }
     }
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     if (bBooksFileExists)
     {
@@ -23327,6 +23524,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         m_nDefaultBookIndex = 39; // so we'd get "Matthew" if the Bible books
                                   // are set up as here
     }
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // !!! whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering below
     // If the AI_USFM.xml file is absent from the work folder, then
@@ -23408,6 +23607,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_ccTableInputsAndOutputsFolderPath = AIccTableFolderPathOnly; //m_ccTableFilePathOnly = AIccTableFolderPathOnly;
 
     m_userLogFile = new wxFile(m_usageLogFilePathAndName, wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
                                                                                  // Now the user log file is set up, we can call git:
     m_DVCS_installed = (m_pDVCS->DoDVCS(DVCS_CHECK, 0) == 0);       // if this call returns an error, assume DVCS not installed
@@ -23449,7 +23650,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                                                 // CC folder of m_xmlInstallPath folder until we confirm it is there
     bool bInstallFolderCcFwdSlashRemoveTableFileExists = FALSE; // initialize, assume it is not in
                                                                 // CC folder of m_xmlInstallPath folder until we confirm it is there
-    if (bCcInstallFolderExists)
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
+	if (bCcInstallFolderExists)
     {
         m_ccTableInstallPath = AIccTableInstallFolderPathOnly; // the path to CC folder is valid
         pathToFwdSlashInsertCcFileInCcFolder = m_ccTableInstallPath + PathSeparator + _T("FwdSlashInsertAtPuncts.cct");
@@ -23528,6 +23731,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             }
         } // end of else block for test: if (!bWorkCcFwdSlashInsertTableFileExists)
 
+//		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//			__LINE__, m_szView.x, m_szView.y);
+
           // Now an identical logic, but for the FwdSlashRemoveAtPuncts.cct table file...
 
         if (!bWorkCcFwdSlashRemoveTableFileExists) // Dealing with FwdSlashRemoveAtPuncts.cpp
@@ -23590,6 +23796,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     } // end of TRUE block for test: if (bCcInstallFolderExists)
       //#endif
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
       // test code
       //CSourcePhrase sp;
@@ -23624,7 +23832,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // If the AI_USFM.xml file does not exist in the work folder, look for it in the
     // setup folder and, if there, then copy it to the work folder before opening it
     // from the latter location.
-    if (!bWorkStyleFileExists)
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
+	if (!bWorkStyleFileExists)
     {
         // There is no AI_USFM.xml file in the work folder, so get one from
         // the setup folder if one is there, and copy it to the work folder preserving
@@ -23666,7 +23876,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                 LogUserAction(msg);
             }
         }
-    }
+		//wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		//	__LINE__, m_szView.x, m_szView.y);
+	}
     else
     {
         bool bSetupFolderHasNewerVersion = FALSE;
@@ -23732,11 +23944,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                     LogUserAction(msg);
                 }
             }
-        }
+		}
     }
 
     //wxLogDebug(_T("gnDefaultSFMs has %d strings in array."),gnDefaultSFMs);
-    if (bWorkStyleFileExists)
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
+	if (bWorkStyleFileExists)
     {
         // parse the file, and set up the three CMapStringToOb maps containing
         // mappings between usfm tags and the usfm analysis structs on the heap;
@@ -23768,6 +23982,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         SetupDefaultStylesMap(); // hard coded for 282 default usfm styles
     }
 
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // Create the m_pAI_MenuStructure based on the default AI menu bar as found
     // in the wxDesigner's AIMenuBarFunc() function. This also populates the
@@ -23794,7 +24010,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // There is no AI_UserProfiles.xml file in the work folder, so get one from
         // the setup folder if one is there, and copy it to the work folder preserving
         // the date it had in the setup folder.
-        if (bInstallFolderUserProfileFileExists)
+//		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//			__LINE__, m_szView.x, m_szView.y);
+		if (bInstallFolderUserProfileFileExists)
         {
             // copy the file to the work folder
             bool copyOK;
@@ -24109,6 +24327,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                 }
                 }
             }
+//			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//				__LINE__, m_szView.x, m_szView.y);
 
             // Note: The checking for modification times of files is not appropriate for our
             // AI_UserProfiles.xml file handling in regards to upgrades or downgrades.
@@ -24147,6 +24367,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             }
         }
     }
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // Now, do the normal reading of AI_UserProfiles.xml which creates the m_pUserProfiles struct on
     // the heap.
@@ -24191,6 +24413,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // default unix-like strings.
         SetupDefaultUserProfiles(m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
     }
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // At this point the config files have been read and the AI_UserProfiles.xml file has been
     // read and the m_pUserProfiles and m_pFactoryUserProfiles data structures have been
@@ -24225,85 +24449,87 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bShowAdministratorMenu = TRUE; // on launch, Administrator menu shown (debugging only)
 #endif
 
-                                     // whm 1Oct12 removed MRU code
-                                     /*
-                                     // whm Note: We should associate the file history with the File menu, and load
-                                     // the File History AFTER calling ConfigureInterfaceForUserProfile() above.
-                                     //
-                                     // Get the File Menu, tell the doc manager that we want the File History on the
-                                     // File Menu, and Load the File History (MRU) to it
-                                     wxMenu* pFileMenu = m_pMainFrame->GetMenuBar()->GetMenu(fileMenu);
-                                     wxASSERT(pFileMenu != NULL);
+    // whm 1Oct12 removed MRU code
+    /*
+    // whm Note: We should associate the file history with the File menu, and load
+    // the File History AFTER calling ConfigureInterfaceForUserProfile() above.
+    //
+    // Get the File Menu, tell the doc manager that we want the File History on the
+    // File Menu, and Load the File History (MRU) to it
+    wxMenu* pFileMenu = m_pMainFrame->GetMenuBar()->GetMenu(fileMenu);
+    wxASSERT(pFileMenu != NULL);
 
-                                     m_pDocManager->FileHistoryUseMenu(pFileMenu);
-                                     // This must come after Main Menu is created and FileHistoryUseMenu call
-                                     m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU)
-                                     // list from *m_pConfig
-                                     */
+    m_pDocManager->FileHistoryUseMenu(pFileMenu);
+    // This must come after Main Menu is created and FileHistoryUseMenu call
+    m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU)
+    // list from *m_pConfig
+    */
 
-                                     // whm 29Feb12 removed the sanity checks that check for an installed
-                                     // collaboration editor (Paratext or Bibledit) along with the routines that
-                                     // would save the m_pConfig saving routines for collaboration values.
-                                     // Adapt It now does project-specific collaboration and the user always has
-                                     // control over  whether collaboration with a particular AI project gets
-                                     // turned ON or OFF. The ChooseCollabOptionsDlg now does the sanity check.
-                                     // If neither Paratext or Bibledit is installed the ChooseCollabOptionsDlg
-                                     // actually disables the Turn Collaboration ON radio button and changes its
-                                     // label to "%s is NOT INSTALLED on this computer. No collaboration is
-                                     // possible".
+    // whm 29Feb12 removed the sanity checks that check for an installed
+    // collaboration editor (Paratext or Bibledit) along with the routines that
+    // would save the m_pConfig saving routines for collaboration values.
+    // Adapt It now does project-specific collaboration and the user always has
+    // control over  whether collaboration with a particular AI project gets
+    // turned ON or OFF. The ChooseCollabOptionsDlg now does the sanity check.
+    // If neither Paratext or Bibledit is installed the ChooseCollabOptionsDlg
+    // actually disables the Turn Collaboration ON radio button and changes its
+    // label to "%s is NOT INSTALLED on this computer. No collaboration is
+    // possible".
 
-                                     // Note: The code in MakeMenuInitializationsAndPlatformAdjustments() below was originally
-                                     // called much earlier in OnInit(), but now that we have ConfigureInterfaceForUserProfile()
-                                     // it makes better sense to do the menu modifications (mostly for the Mac) here at this
-                                     // point in OnInit(). It also configures the initial state of the Administrator menu
-                                     // according to the m_bShowAdministratorMenu flag set above.
-                                     // whm Note: The following MakeMenuInitializationsAndPlatformAdjustments() need to occur
-                                     // within OnInit() after the above m_collaborationEditor string has been assigned.
+    // Note: The code in MakeMenuInitializationsAndPlatformAdjustments() below was originally
+    // called much earlier in OnInit(), but now that we have ConfigureInterfaceForUserProfile()
+    // it makes better sense to do the menu modifications (mostly for the Mac) here at this
+    // point in OnInit(). It also configures the initial state of the Administrator menu
+    // according to the m_bShowAdministratorMenu flag set above.
+    // whm Note: The following MakeMenuInitializationsAndPlatformAdjustments() need to occur
+    // within OnInit() after the above m_collaborationEditor string has been assigned.
     MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
-                                                     // whm 28Mar11 TESTING BELOW !!!
-                                                     // Test results. The ParatextShared.dll is a managed .NET dll and as such cannot be
-                                                     // loaded by the wxDynamicLibrary::Load() method.
-                                                     /*
-                                                     if (m_bParatextIsInstalled)
-                                                     {
-                                                     // try loading the managed code ParatextShared.dll
-                                                     if (wxGetWinVersion() >= wxWinVersion_5)
-                                                     {
-                                                     // Turn off system message "Failed to load shared library...(error 126: the specified
-                                                     // module could not be found", which pops up in idle time if following .Load() call
-                                                     // fails. We have our own message.
-                                                     wxLogNull logNo;	// eliminates any spurious messages from the system while
-                                                     // reading read-only folders/files
-                                                     bParatextSharedDLLLoaded = ptSharedDynamicLibrary.Load(PT_LIB_NAME);
-                                                     if (!ptSharedDynamicLibrary.IsLoaded())
-                                                     {
-                                                     // the ParatextShared.dll file was not found or could not be loaded
-                                                     bParatextSharedDLLLoaded = FALSE;
-                                                     wxString msg;
-                                                     // This error shouldn't happen with normal install, so it can remain in English
-                                                     msg = msg.Format(_T(
-                                                     "Could not find the %s dynamic library file. Paratext collaboration will not be available, however the rest of the application will work fine."),
-                                                     PT_LIB_NAME);
-                                                     wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION | wxOK);
-                                                     }
-                                                     else
-                                                     {
-                                                     bParatextSharedDLLLoaded = TRUE;
-                                                     }
-                                                     }
+	// whm 28Mar11 TESTING BELOW !!!
+	// Test results. The ParatextShared.dll is a managed .NET dll and as such cannot be
+	// loaded by the wxDynamicLibrary::Load() method.
+	/*
+	if (m_bParatextIsInstalled)
+	{
+	// try loading the managed code ParatextShared.dll
+	if (wxGetWinVersion() >= wxWinVersion_5)
+	{
+	// Turn off system message "Failed to load shared library...(error 126: the specified
+	// module could not be found", which pops up in idle time if following .Load() call
+	// fails. We have our own message.
+	wxLogNull logNo;	// eliminates any spurious messages from the system while
+	// reading read-only folders/files
+	bParatextSharedDLLLoaded = ptSharedDynamicLibrary.Load(PT_LIB_NAME);
+	if (!ptSharedDynamicLibrary.IsLoaded())
+	{
+	// the ParatextShared.dll file was not found or could not be loaded
+	bParatextSharedDLLLoaded = FALSE;
+	wxString msg;
+	// This error shouldn't happen with normal install, so it can remain in English
+	msg = msg.Format(_T(
+	"Could not find the %s dynamic library file. Paratext collaboration will not be available, however the rest of the application will work fine."),
+	PT_LIB_NAME);
+	wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION | wxOK);
+	}
+	else
+	{
+	bParatextSharedDLLLoaded = TRUE;
+	}
+	}
 
-                                                     }
-                                                     // whm 28Mar11 TESTING ABOVE !!!
-                                                     */
+	}
+	// whm 28Mar11 TESTING ABOVE !!!
+	*/
 
-                                                     // Next, initialise the help system. We do it here because our m_setupFolder was
-                                                     // determined above and we now know the path to the setup folder where any help
-                                                     // file is installed.
-                                                     //
-                                                     // Determine the path to the installation folder where Adapt_It.xxx is located
-                                                     // Note: Our function FindAppPath() determined the most likely path where the
-                                                     // Adapt It executable program is located and stored it in m_setupFolder.
+	// Next, initialise the help system. We do it here because our m_setupFolder was
+	// determined above and we now know the path to the setup folder where any help
+	// file is installed.
+	//
+	// Determine the path to the installation folder where Adapt_It.xxx is located
+	// Note: Our function FindAppPath() determined the most likely path where the
+	// Adapt It executable program is located and stored it in m_setupFolder.
 
     wxString appName;
     appName = GetAppName();
@@ -24324,6 +24550,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxLogDebug(_T("wxUSE_LIBMSPACK is NOT DEFINED! The MS Windows Adapt_It_Help.chm help file will not display properly."));
 #endif
 #endif
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     helpFilePath = helpFilePath + PathSeparator + helpFileName;
     // Display message in status bar that we are initializing the help system
@@ -24375,6 +24603,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         this->GetLayout()->buttonWidth = 22;
 #endif
     }
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
 	// Also use the above wxClientDC to get an initial value for the slop width
 	// for the phrasebox's wxTextCtrl - store it in CLayout as a public int called
@@ -24415,6 +24645,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                            // Working... wizard, so indicate it is safe for OnNewDocument() to be able to write
                                            // out the project config file once the user's setting for book mode is in place
     m_bPassedAppInitialization = TRUE;
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // curl needs to be initialized just once per run of the application
     // Note: curl leaks this small heap block; and openssl also leaks a small heap block.
@@ -24826,7 +25058,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bSkipBasicConfigFileCall = FALSE; // ensure it is returned to default FALSE
 
                                         // override the default for m_bDrafting if the frm switch was found
-    if (m_bForce_Review_Mode)
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
+	if (m_bForce_Review_Mode)
     {
         m_bDrafting = FALSE; // turn review mode on
 
@@ -24885,6 +25119,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bControlIsWithinOnInit = FALSE;
 
     CMainFrame* pFrame = GetMainFrame();
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     //GDLC 2010-02-12
     // Create the free translation display handler
@@ -24957,6 +25193,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     CAdapt_ItView* pView = (CAdapt_ItView*)GetView();
     pView->m_pDoc = GetDocument(); // BEW added m_pDoc to CAdapt_ItView on 14Nov11
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     /* Nah, the "Debugger (debug)" log window collects all the wxLogDebug() returns in CodeBlocks IDE
     // BEW Mar2012, only problem is, I can't find any way to get it to show! So I'll reinstitute this for my present debugging job
@@ -25006,6 +25244,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Next call prevents old userprofiles files from accumulating on disk
     RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13 (UserProfiles support is handled
                                           // in this OnInit() function at lines 19780 to 20,420 approximately)
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		__LINE__, m_szView.x, m_szView.y);
 
     pFrame->SendSizeEvent(); // needed to force redraw
 #if defined(_DEBUG) && defined(__WXGTK__)
@@ -25040,6 +25280,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     int value = wxMessageBox(messageT, _("The URL Has Changed"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 
     */
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
 
     // Run Service Discovery
 #if defined(_KBSERVER)
@@ -25063,7 +25305,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// the user changes the punctuation inventory in the Punctuation tab
 	m_strSpacelessSourcePuncts = MakeSpacelessPunctsString(this, sourceLang);
 	m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(this, targetLang);
-    return TRUE;
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		__LINE__, m_szView.x, m_szView.y);
+	return TRUE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -30892,102 +31136,102 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 
     workFolder = m_theWorkFolder; // always "Adapt It Work" or "Adapt It Unicode Work"
 
-                                  // whm Design Notes:
-                                  // We want to provide a default work folder path for most users who will use the
-                                  // default location without second thought. The wxStandardPaths::GetDocumentsDir()
-                                  // method tells us the standard place to put documents on all platforms. It also works
-                                  // if, in Windows, the user changes/moves the location of his "Documents" folder (on
-                                  // Vista) or "My Documents" folder (on 2000/XP) to a non-default drive or folder
-                                  // location.
-                                  //
-                                  // We also want to accommodate the power-user who may want to set up a work folder
-                                  // path in a non-default location.
-                                  // Some possibilities for accommodating a power user's desire to use a non-default
-                                  // location for his work folder:
-                                  // 1. Provide a Browse button on the Project page that would allow the user to select a
-                                  // different path for the project folder. There could also be a "Restore Default Path"
-                                  // button next to it on the Project page. This makes it easy to change (or too easy -
-                                  // could get naive users in trouble?).
-                                  // BEW note 17Sep09: Interpretting "Project page" literally as meaning where a project
-                                  // folder is to be placed, I don't think we should allow a project folder to be
-                                  // relocated independently (and therefore potentially outside of) its work folder -
-                                  // relocating a work folder is all that is needed, and that can take some or all of the
-                                  // earlier location's project folders with it. I've built an Administrator menu which
-                                  // allows for relocating the work folder etc, and I don't think we should let the
-                                  // typical user have access to this feature and therefore I don't think we should
-                                  // provide buttons in the Project page as suggested above.
-                                  // 2. Allow for command-line arguments to be passed at application startup that would
-                                  // allow the setting of a non-default work folder location. The commane-line arguments
-                                  // can be set by right clicking on a menu or desktop shortcut to Adapt It and selecting
-                                  // "Properties". Then on the "Shortcut" tab, a power user could add arguments to the
-                                  // existing Target: edit box to indicate a non-default work folder location. For
-                                  // example, the default Target string that calls the executable on Windows is something
-                                  // like this:
-                                  //    "C:\Program Files\Adapt It WX\Adapt_It.exe"
-                                  // A power user could add the -wf command-line followed by the work folder path so that
-                                  // the whole Target edit box would look like this:
-                                  //    "C:\Program Files\Adapt It WX\Adapt_It.exe" -wf "E:\Adapt It\Data"
-                                  // The -wf switch means that the following string is a path to the work folder (in the
-                                  // above example the work folder is at E:\Adapt It\Data). Option 2 would be difficult
-                                  // for all but power users to do, but that may help prevent naive users from
-                                  // accidentally misplacing their data. At any rate, providing a way to set up a work
-                                  // folder path in a non-default location is a feature that should be capable of being
-                                  // turned off by an advisor if/when we provide such an adjustable interface.
-                                  // In case 1 (and possible also case 2) we could save the indicated non-default path as
-                                  // a key-value pair in the m_pConfig settings. The key value could be something like
-                                  // "user_defined_work_folder_path" with the data being the string representing the path
-                                  // to the non-default location.
-                                  // whm Note 5Jun09: I am initially providing the -wf <path> command-line option (2
-                                  // above). This option could eventually be supplemented with other options including
-                                  // option 1 above.
+    // whm Design Notes:
+    // We want to provide a default work folder path for most users who will use the
+    // default location without second thought. The wxStandardPaths::GetDocumentsDir()
+    // method tells us the standard place to put documents on all platforms. It also works
+    // if, in Windows, the user changes/moves the location of his "Documents" folder (on
+    // Vista) or "My Documents" folder (on 2000/XP) to a non-default drive or folder
+    // location.
+    //
+    // We also want to accommodate the power-user who may want to set up a work folder
+    // path in a non-default location.
+    // Some possibilities for accommodating a power user's desire to use a non-default
+    // location for his work folder:
+    // 1. Provide a Browse button on the Project page that would allow the user to select a
+    // different path for the project folder. There could also be a "Restore Default Path"
+    // button next to it on the Project page. This makes it easy to change (or too easy -
+    // could get naive users in trouble?).
+    // BEW note 17Sep09: Interpretting "Project page" literally as meaning where a project
+    // folder is to be placed, I don't think we should allow a project folder to be
+    // relocated independently (and therefore potentially outside of) its work folder -
+    // relocating a work folder is all that is needed, and that can take some or all of the
+    // earlier location's project folders with it. I've built an Administrator menu which
+    // allows for relocating the work folder etc, and I don't think we should let the
+    // typical user have access to this feature and therefore I don't think we should
+    // provide buttons in the Project page as suggested above.
+    // 2. Allow for command-line arguments to be passed at application startup that would
+    // allow the setting of a non-default work folder location. The commane-line arguments
+    // can be set by right clicking on a menu or desktop shortcut to Adapt It and selecting
+    // "Properties". Then on the "Shortcut" tab, a power user could add arguments to the
+    // existing Target: edit box to indicate a non-default work folder location. For
+    // example, the default Target string that calls the executable on Windows is something
+    // like this:
+    //    "C:\Program Files\Adapt It WX\Adapt_It.exe"
+    // A power user could add the -wf command-line followed by the work folder path so that
+    // the whole Target edit box would look like this:
+    //    "C:\Program Files\Adapt It WX\Adapt_It.exe" -wf "E:\Adapt It\Data"
+    // The -wf switch means that the following string is a path to the work folder (in the
+    // above example the work folder is at E:\Adapt It\Data). Option 2 would be difficult
+    // for all but power users to do, but that may help prevent naive users from
+    // accidentally misplacing their data. At any rate, providing a way to set up a work
+    // folder path in a non-default location is a feature that should be capable of being
+    // turned off by an advisor if/when we provide such an adjustable interface.
+    // In case 1 (and possible also case 2) we could save the indicated non-default path as
+    // a key-value pair in the m_pConfig settings. The key value could be something like
+    // "user_defined_work_folder_path" with the data being the string representing the path
+    // to the non-default location.
+    // whm Note 5Jun09: I am initially providing the -wf <path> command-line option (2
+    // above). This option could eventually be supplemented with other options including
+    // option 1 above.
 
-                                  // whm Note: I first used the wxWidgets ::wxGetHomeDir() function to determine the
-                                  // users home directory and then augment it to include "Documents" or "My Documents"
-                                  // folder (if Windows). The wxGetHomeDir() function however, does not detect the
-                                  // situation where a user "Moves" his "Documents" (or My Documents) folder to a
-                                  // non-default location. Testing shows that using the
-                                  // wxStandardPaths::GetDocumentsDir() function does get the right folder, regardless of
-                                  // whether the user has "moved" it or not.
+    // whm Note: I first used the wxWidgets ::wxGetHomeDir() function to determine the
+    // users home directory and then augment it to include "Documents" or "My Documents"
+    // folder (if Windows). The wxGetHomeDir() function however, does not detect the
+    // situation where a user "Moves" his "Documents" (or My Documents) folder to a
+    // non-default location. Testing shows that using the
+    // wxStandardPaths::GetDocumentsDir() function does get the right folder, regardless of
+    // whether the user has "moved" it or not.
 
-                                  // Get the "documents" directory for the current system/platform.
-                                  //	GDLC 11JUL13 In WX2.9.5 we can no longer create a wxStandardPaths object
-                                  // wxStandardPaths stdPaths;
+    // Get the "documents" directory for the current system/platform.
+    //	GDLC 11JUL13 In WX2.9.5 we can no longer create a wxStandardPaths object
+    // wxStandardPaths stdPaths;
 #ifdef __WXMAC__
-                                  // GDLC 18JUL13 The change in wxStandardPaths means that we need to go back to the
-                                  // wxGetHomeDir() function for the Mac but use GetDocumentsDir() for the others.
-                                  // This is done in order to keep putting the Adapt It Work folder in the same place on
-                                  // Mac as AI since version 4 has been using.
-                                  // whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program
-                                  // crash when compiled for Mac OS X 10.3 Panther, so I'm using the older
-                                  // ::wxGetHomeDir() function for the Mac which should return the same directory string
-                                  // on the Mac that wxStandardPaths::GetDocumentsDir() does.
-                                  // GDLC 29Sep11 Not needed now that we are not targeting MacOS Panther or PPC.
+    // GDLC 18JUL13 The change in wxStandardPaths means that we need to go back to the
+    // wxGetHomeDir() function for the Mac but use GetDocumentsDir() for the others.
+    // This is done in order to keep putting the Adapt It Work folder in the same place on
+    // Mac as AI since version 4 has been using.
+    // whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program
+    // crash when compiled for Mac OS X 10.3 Panther, so I'm using the older
+    // ::wxGetHomeDir() function for the Mac which should return the same directory string
+    // on the Mac that wxStandardPaths::GetDocumentsDir() does.
+    // GDLC 29Sep11 Not needed now that we are not targeting MacOS Panther or PPC.
     stdDocsDir = ::wxGetHomeDir();
 #else
     stdDocsDir = wxStandardPaths::Get().GetDocumentsDir(); // The GetDocumentsDir() function is new since
                                                            // wxWidgets version 2.7.0
 #endif
-                                                           // Typically the "documents" directory depends on the system:
-                                                           // Unix: ~/(the home directory, i.e., /home/<username>/)
-                                                           // Windows (earlier and Vista): C:\Documents and Settings\username\Documents
-                                                           // Windows (2000 and XP): C:\Documents and Settings\username\My Documents
-                                                           // Mac: ~/Documents (i.e., /Users/<username>/Documents	GDLC 18JUL13 Corrected to the
-                                                           // standard Mac placement of the users documents.
+    // Typically the "documents" directory depends on the system:
+    // Unix: ~/(the home directory, i.e., /home/<username>/)
+    // Windows (earlier and Vista): C:\Documents and Settings\username\Documents
+    // Windows (2000 and XP): C:\Documents and Settings\username\My Documents
+    // Mac: ~/Documents (i.e., /Users/<username>/Documents	GDLC 18JUL13 Corrected to the
+    // standard Mac placement of the users documents.
 
-                                                           // whm note: In the cross-platform version we never refer to a specific "Documents" or
-                                                           // "My Documents" folder and so we do not need to localize the name of the folder that
-                                                           // is returned by the "GetDocumentsDir() function call.
-                                                           //
-                                                           // Set the current working directory to point to the standard docs directory which
-                                                           // would normally be the "Documents" or "My Documents" folder on Windows, the ~ (home
-                                                           // directory) on Linux, or the ~/Documents directory on the Mac.
+    // whm note: In the cross-platform version we never refer to a specific "Documents" or
+    // "My Documents" folder and so we do not need to localize the name of the folder that
+    // is returned by the "GetDocumentsDir() function call.
+    //
+    // Set the current working directory to point to the standard docs directory which
+    // would normally be the "Documents" or "My Documents" folder on Windows, the ~ (home
+    // directory) on Linux, or the ~/Documents directory on the Mac.
     ::wxSetWorkingDirectory(stdDocsDir);
     dirPath = ::wxGetCwd();
     m_localPathPrefix = dirPath; // m_localPathPrefix used in MakeForeignBasicConfigFileSafe
                                  // which gets called subsequently in OnInit().
 
-                                 // whm modified 5Jun09 to use m_wf_forced_workFolderPath if it was defined on the
-                                 // command-line
+    // whm modified 5Jun09 to use m_wf_forced_workFolderPath if it was defined on the
+    // command-line
     if (!m_wf_forced_workFolderPath.IsEmpty())
     {
         // Ensure that the user supplied work folder path does not end with a path separator
@@ -31019,6 +31263,7 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
         workFolderPath = dirPath + PathSeparator + workFolder;
     }
 
+	m_bWorkFolderBeingSetUp = FALSE;
     if (!::wxDirExists(workFolderPath))
     {
         // we did not find the required directory, so create it now - it has to be present
@@ -31036,6 +31281,7 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
             // whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
             wxKill(::wxGetProcessId(), wxSIGKILL); // abort();
         }
+		m_bWorkFolderBeingSetUp = TRUE;
     }
 
     // be sure to set the m_workFolderPath variable (path to the Adapt It Work folder, or
