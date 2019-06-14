@@ -598,7 +598,7 @@ int CTargetUnit::CountNonDeletedRefStringInstances()
 		else
 		{
 			wxLogDebug(_T("%s:%s(): line %d, Deleted pRefStr's m_translation: %s , m_bDeleted= %d , m_refCount= %d"),
-				__FILE__, __func__, __LINE__, pRefStr->m_translation.c_str(),
+				__FILE__, __FUNCTION__, __LINE__, pRefStr->m_translation.c_str(),
 				(int)pRefStr->GetDeletedFlag(), pRefStr->m_refCount);
 		}
 #endif

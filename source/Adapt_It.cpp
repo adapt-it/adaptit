@@ -19345,7 +19345,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	*/
 	m_bMarkerWrapsStrip = TRUE;
     m_bZoomed = FALSE;
-	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 
     m_bIsInches = FALSE; // Default to Metric for wx version, especially since in the
@@ -19445,7 +19445,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_nTotalBooks = 67;
     m_bDisableBookMode = FALSE; // start off enabled
                                 //gbAbortMRUOpen = FALSE; whm 1Oct12 removed
-	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 
                                 // !!! whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering
@@ -19550,7 +19550,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                          // There are 15 of these m_last... paths that are associated with
                          // each project.
     SetAllProjectLastPathStringsToEmpty();
-	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 
     // whm 26Jan13 added. A new project should start with all of the
@@ -19590,7 +19590,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                                                          // whm 12Jun11 added in support of inputs and outputs navigation protection
                                                                          // folder navigation protection defaults to FALSE but project config file
                                                                          // value stored in m_foldersProtectedFromNavigation
-	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 	m_bProtectSourceInputsFolder = FALSE;
     m_bProtectFreeTransOutputsFolder = FALSE;
@@ -19662,7 +19662,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bNotesExist = FALSE; // 12Sep05 BEW
     m_bUnpacking = FALSE; // BEW added 10Jan06
 
-	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 	// RDE: added 3 Apr 06 in support of calling SilEncConverters for preprocessing
                           // the target word form (c.f. Consistent Changes)
@@ -19709,7 +19709,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             // with the error message.
             secPath = LIB_NAME;
         }
-		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 			__LINE__, m_szView.x, m_szView.y);
 
         bECDriverDLLLoaded = ecDriverDynamicLibrary.Load(secPath);
@@ -19734,7 +19734,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     bECDriverDLLLoaded = bECDriverDLLLoaded; // avoids "local variable is initialized but
                                              // not referenced" warning when define is not set
 #endif	// end of if USE_SIL_CONVERTERS
-	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 
                                              // BEW added 2Sep08
@@ -19895,7 +19895,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bLegacySourceTextCopy = TRUE; // default is legacy behaviour,
                                    // to copy the source text (unless the project config file establishes the
                                    // FALSE value instead)
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
                                    // The following initializations are for refactored view layout support
@@ -20270,7 +20270,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     m_pChecker = (wxSingleInstanceChecker*)NULL;
     m_pServer = (AI_Server*)NULL;
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // Note: The wxSingleInstanceChecker class determines if another instance of Adapt It
@@ -20380,7 +20380,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                 if (m_pRemovedMenuItemArray != NULL) // whm 11Jun12 added NULL test
                     delete m_pRemovedMenuItemArray;
             }
-//			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //				__LINE__, m_szView.x, m_szView.y);
 
             aTot = m_pArrayOfCollabProjects->GetCount();
@@ -20495,7 +20495,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             }
             if (m_pMappedObjectPointers != NULL) // whm 11Jun12 added NULL test
                 delete m_pMappedObjectPointers;
-//			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //				__LINE__, m_szView.x, m_szView.y);
 
             return FALSE; // this terminates the current instance of the application
@@ -20604,7 +20604,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxLogDebug(_T("The wxStandardPaths::GetInstallPrefix() = %s"), installPrefix.c_str());
 #endif
 #endif // #if wxCHECK_VERSION(2, 7, 0)
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // whm added 6Dec11
@@ -20728,7 +20728,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_wxFileConfigPathAndName = m_appUserConfigDir + PathSeparator + _T(".Adapt_It_WX");
 #endif
     wxLogDebug(_T("The m_wxFileConfigPathAndName = %s"), m_wxFileConfigPathAndName.c_str());
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
 
@@ -20858,7 +20858,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pParser = new wxCmdLineParser(cmdLineDesc, argc, argv);
 
     int itsokay = m_pParser->Parse(); // continue if it fails
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     /*
@@ -21011,7 +21011,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             // because it would turn off important functionality irrevokably on every launch
             m_bForce_Review_Mode = TRUE;
         }
-//		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //			__LINE__, m_szView.x, m_szView.y);
 
         //m_bForce_Review_Mode = TRUE; // for debugging the frm switch, comment out for
@@ -21108,7 +21108,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // the old registry key, so that the transition to using the file-on-disk format
     // needs to happen only once.
     TransitionWindowsRegistryEntriesTowxFileConfig();
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // Change the registry key to something appropriate
@@ -21177,7 +21177,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_systemEncodingName = wxLocale::GetSystemEncodingName();	// Windows: m_systemEncodingName = "windows-1252"
                                                                 //  Ubuntu: m_systemEncodingName = "UTF-8"
                                                                 //     Mac: m_systemEncodingName = ???
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 #ifdef __WXMAC__
     switch (m_systemEncoding)
@@ -21273,7 +21273,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // currLocalizationInfo.
     // BEW added 4Dec09, so that a locale-related message doesn't come up when the
     // m_bAutoExport flag is TRUE (for use of the app with SendIt.exe, by John Hatton)
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 	if (!m_bAutoExport)
     {
@@ -21357,7 +21357,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     fontAvail = wxFontMapper::Get()->IsEncodingAvailable(fontenc);
     // Windows: fontAvail = true
     //  Ubuntu: fontAvail = true
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
 
@@ -21373,7 +21373,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     m_pDocManager = new wxDocManager; // must delete m_pDocManager in OnExit()
     wxASSERT(m_pDocManager != NULL);
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // whm 1Oct12 removed MRU code.
@@ -21449,7 +21449,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxCHECK_MSG(pDocTemplate != NULL, FALSE, _T("OnInit() new wxDocTemplate returned NULL ptr, line 121449"));
     // Note: We could have another wxDocTemplate instance for plain text documents if we
     // wanted them to be managed by the doc/view framework.
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // The following are for HTML Help
@@ -21497,7 +21497,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                     // from any child view windows.
                                     // m_pMainFrame above will be destroyed when m_pDocManager is deleted in OnExit()
     wxASSERT(m_pMainFrame != NULL);
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // Notes: about Menu differences on the Mac:
@@ -22741,7 +22741,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     wxIcon icon32x32(xpm_data32x32);
 
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // whm modification 22May09 to add multiple icons to the top level frame window
@@ -22793,7 +22793,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //#ifdef _UNICODE
     //	RenameNRtoUnicode(); // not used in wx version
     //#endif
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 	EnsureWorkFolderPresent();
     // m_workFolderPath is set in EnsureWorkFolderPresent(), and this becomes the current
@@ -22853,7 +22853,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         wxKill(::wxGetProcessId(), wxSIGKILL); // abort();
         return FALSE;
     }
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // Bibledit testing below
@@ -22897,7 +22897,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// provide this infor for all windows managers, etc."
     wxRect desktopWndRect = wxGetClientDisplayRect();
 	wxLogDebug(_T("%s:%s line %d, desktopWndRect: x = %d , y = %d , width = %d , height = %d , Display_w = %d, Display_h = %d"), 
-		__FILE__, __func__,__LINE__, 
+		__FILE__, __FUNCTION__,__LINE__, 
 		desktopWndRect.x , desktopWndRect.y , desktopWndRect.GetWidth(), desktopWndRect.GetHeight(),
 		nDisplayWidthInPixels, nDisplayHeightInPixels);
 
@@ -22910,7 +22910,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // in such configurations. Checking for multiple monitors can be done with the
     // wxDisplay class.
     //
-	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 	unsigned int numMonitors;
     numMonitors = wxDisplay::GetCount();
@@ -22921,7 +22921,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         wxDisplay displayOne(monitorOne);
         wxDisplay displayTwo(monitorTwo);
 
-		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 			__LINE__, m_szView.x, m_szView.y);
 
         wxRect dispOneRect = displayOne.GetClientArea(); // x=0, y=0, width=1920,
@@ -22979,7 +22979,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Next bits of the equation are at the GetBasicConfigurationFile() call below, and
 	// below that, at about line 23,180 or so, where the frame instance is sized & positioned.
 
-	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 	//
     // The wndTopLeft and wndBotRight point coordinates below are used within the App's
@@ -22987,7 +22987,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wndTopLeft = wxPoint(desktopWndRect.GetLeft(), desktopWndRect.GetTop());
     wndBotRight = wxPoint(desktopWndRect.GetRight(), desktopWndRect.GetBottom());
 
-	wxLogDebug(_T("%s:%s line %d, wndTopLeft = { %d , %d } , wndBotRight = { %d , %d }"), __FILE__, __func__,
+	wxLogDebug(_T("%s:%s line %d, wndTopLeft = { %d , %d } , wndBotRight = { %d , %d }"), __FILE__, __FUNCTION__,
 		__LINE__, wndTopLeft.x, wndTopLeft.y , wndBotRight.x , wndBotRight.y);
 
     // The original position of MFC's Initialize() was here. In wx version it is divided up
@@ -23025,7 +23025,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     (*pPrintData) = pPgSetupDlgData->GetPrintData();
     pPrintData->SetPaperSize(wxSize(210, 297)); // BEW added 21Oct because the m_paperSize was remaining (-1,-1)
 
-	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 
 /*
@@ -23100,13 +23100,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			m_ptViewTopLeft.x = clientTopLeft.x;
 			m_ptViewTopLeft.y = clientTopLeft.y;
 
-			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 				__LINE__, m_szView.x, m_szView.y);
 
 			// Adjust frame's position and size to comply with the new choice, BEW 13Jun19
 			wxPoint myTopLeft(m_ptViewTopLeft.x, m_ptViewTopLeft.y);
 
-			wxLogDebug(_T("%s:%s line %d, myTopLeft.x = %d , myTopLeft.y = %d"), __FILE__, __func__,
+			wxLogDebug(_T("%s:%s line %d, myTopLeft.x = %d , myTopLeft.y = %d"), __FILE__, __FUNCTION__,
 				__LINE__, myTopLeft.x, myTopLeft.y);
 
 			wxSize mySize(m_szView.x, m_szView.y);
@@ -23123,7 +23123,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				// created in this run of OnInit(), and has been used as needed above
 		}
     }
-	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 
 	m_bSkipBasicConfigFileCall = FALSE; // restore default value
@@ -23158,7 +23158,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         m_tableFolderPath[2] = m_lastCcTablePath;
         m_tableFolderPath[3] = m_lastCcTablePath;
 
-		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 			__LINE__, m_szView.x, m_szView.y);
 
         // whm added 14Apr09. The basic config file contains position and size information
@@ -23176,13 +23176,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // should be "safe" to use in our SetSize() call on the main frame below, which is
         // called first to establish any non-zoomed window size, before re-establishing any
         // zoomed state.
-		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 			__LINE__, m_szView.x, m_szView.y);
 
 		// Adjust frame's position and size to comply with the new choice, BEW 13Jun19
 		wxPoint myTopLeft(m_ptViewTopLeft.x, m_ptViewTopLeft.y);
 
-		wxLogDebug(_T("%s:%s line %d, myTopLeft.x = %d , myTopLeft.y = %d"), __FILE__, __func__,
+		wxLogDebug(_T("%s:%s line %d, myTopLeft.x = %d , myTopLeft.y = %d"), __FILE__, __FUNCTION__,
 			__LINE__, myTopLeft.x, myTopLeft.y);
 
 		wxSize mySize(m_szView.x, m_szView.y);
@@ -23197,7 +23197,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 		m_bWorkFolderBeingSetUp = FALSE; // ensure it's back to default value
 
-//		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //			__LINE__, m_szView.x, m_szView.y);
 	}
 
@@ -23226,7 +23226,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //
     wxCommandEvent event = wxID_NEW;
     OnFileNew(event);
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     /* don't need this, as use in OnNewDocument() of m_bControlIsWithinOnInit makes it unneeded
@@ -23378,7 +23378,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pMainFrame->Show(TRUE);
     SetTopWindow(m_pMainFrame);
 
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // MFC has this code for drag and drop at this point
@@ -23403,7 +23403,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // when in OnButtonMerge()
     gbDoingInitialSetup = TRUE;
 
-	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 
     // change the unnamedN title to "Untitled - Adapt It"
@@ -23457,7 +23457,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             }
         }
     }
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     if (bBooksFileExists)
@@ -23524,7 +23524,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         m_nDefaultBookIndex = 39; // so we'd get "Matthew" if the Bible books
                                   // are set up as here
     }
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // !!! whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering below
@@ -23607,7 +23607,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_ccTableInputsAndOutputsFolderPath = AIccTableFolderPathOnly; //m_ccTableFilePathOnly = AIccTableFolderPathOnly;
 
     m_userLogFile = new wxFile(m_usageLogFilePathAndName, wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
                                                                                  // Now the user log file is set up, we can call git:
@@ -23650,7 +23650,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                                                 // CC folder of m_xmlInstallPath folder until we confirm it is there
     bool bInstallFolderCcFwdSlashRemoveTableFileExists = FALSE; // initialize, assume it is not in
                                                                 // CC folder of m_xmlInstallPath folder until we confirm it is there
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 	if (bCcInstallFolderExists)
     {
@@ -23731,7 +23731,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             }
         } // end of else block for test: if (!bWorkCcFwdSlashInsertTableFileExists)
 
-//		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //			__LINE__, m_szView.x, m_szView.y);
 
           // Now an identical logic, but for the FwdSlashRemoveAtPuncts.cct table file...
@@ -23796,7 +23796,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     } // end of TRUE block for test: if (bCcInstallFolderExists)
       //#endif
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
       // test code
@@ -23832,7 +23832,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // If the AI_USFM.xml file does not exist in the work folder, look for it in the
     // setup folder and, if there, then copy it to the work folder before opening it
     // from the latter location.
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 	if (!bWorkStyleFileExists)
     {
@@ -23876,7 +23876,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                 LogUserAction(msg);
             }
         }
-		//wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+		//wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		//	__LINE__, m_szView.x, m_szView.y);
 	}
     else
@@ -23948,7 +23948,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     }
 
     //wxLogDebug(_T("gnDefaultSFMs has %d strings in array."),gnDefaultSFMs);
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 	if (bWorkStyleFileExists)
     {
@@ -23982,7 +23982,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         SetupDefaultStylesMap(); // hard coded for 282 default usfm styles
     }
 
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // Create the m_pAI_MenuStructure based on the default AI menu bar as found
@@ -24010,7 +24010,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // There is no AI_UserProfiles.xml file in the work folder, so get one from
         // the setup folder if one is there, and copy it to the work folder preserving
         // the date it had in the setup folder.
-//		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //			__LINE__, m_szView.x, m_szView.y);
 		if (bInstallFolderUserProfileFileExists)
         {
@@ -24327,7 +24327,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                 }
                 }
             }
-//			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //				__LINE__, m_szView.x, m_szView.y);
 
             // Note: The checking for modification times of files is not appropriate for our
@@ -24367,7 +24367,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             }
         }
     }
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // Now, do the normal reading of AI_UserProfiles.xml which creates the m_pUserProfiles struct on
@@ -24413,7 +24413,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // default unix-like strings.
         SetupDefaultUserProfiles(m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
     }
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // At this point the config files have been read and the AI_UserProfiles.xml file has been
@@ -24484,7 +24484,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm Note: The following MakeMenuInitializationsAndPlatformAdjustments() need to occur
     // within OnInit() after the above m_collaborationEditor string has been assigned.
     MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
 	// whm 28Mar11 TESTING BELOW !!!
@@ -24550,7 +24550,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxLogDebug(_T("wxUSE_LIBMSPACK is NOT DEFINED! The MS Windows Adapt_It_Help.chm help file will not display properly."));
 #endif
 #endif
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     helpFilePath = helpFilePath + PathSeparator + helpFileName;
@@ -24603,7 +24603,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         this->GetLayout()->buttonWidth = 22;
 #endif
     }
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
 	// Also use the above wxClientDC to get an initial value for the slop width
@@ -24645,7 +24645,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                            // Working... wizard, so indicate it is safe for OnNewDocument() to be able to write
                                            // out the project config file once the user's setting for book mode is in place
     m_bPassedAppInitialization = TRUE;
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // curl needs to be initialized just once per run of the application
@@ -25058,7 +25058,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bSkipBasicConfigFileCall = FALSE; // ensure it is returned to default FALSE
 
                                         // override the default for m_bDrafting if the frm switch was found
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 	if (m_bForce_Review_Mode)
     {
@@ -25119,7 +25119,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bControlIsWithinOnInit = FALSE;
 
     CMainFrame* pFrame = GetMainFrame();
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     //GDLC 2010-02-12
@@ -25193,7 +25193,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     CAdapt_ItView* pView = (CAdapt_ItView*)GetView();
     pView->m_pDoc = GetDocument(); // BEW added m_pDoc to CAdapt_ItView on 14Nov11
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     /* Nah, the "Debugger (debug)" log window collects all the wxLogDebug() returns in CodeBlocks IDE
@@ -25244,7 +25244,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Next call prevents old userprofiles files from accumulating on disk
     RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13 (UserProfiles support is handled
                                           // in this OnInit() function at lines 19780 to 20,420 approximately)
-	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 
     pFrame->SendSizeEvent(); // needed to force redraw
@@ -25280,7 +25280,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     int value = wxMessageBox(messageT, _("The URL Has Changed"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 
     */
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
     // Run Service Discovery
@@ -25305,7 +25305,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// the user changes the punctuation inventory in the Punctuation tab
 	m_strSpacelessSourcePuncts = MakeSpacelessPunctsString(this, sourceLang);
 	m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(this, targetLang);
-//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
+//	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 	return TRUE;
 }
