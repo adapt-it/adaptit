@@ -22909,6 +22909,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // multiple monitor setup, and determine the boundaries for valid main frame positions
     // in such configurations. Checking for multiple monitors can be done with the
     // wxDisplay class.
+	// BEW 13Jun19, refactored to put the first launch's frame (when creating the work folder)
+	// on the largest width monitor of the two. Checked that the frame's OnSize() compensates
+	// appropriately if the user disconnects the external monitor - the app is reframed on
+	//the remaining (primary) monitor (which could be smaller)
     //
 	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
 		__LINE__, m_szView.x, m_szView.y);
@@ -22924,30 +22928,46 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __func__,
 			__LINE__, m_szView.x, m_szView.y);
 
-        wxRect dispOneRect = displayOne.GetClientArea(); // x=0, y=0, width=1920,
-                                                         // height=1140 // doesn't include taskbar on Windows
-        wxRect dispTwoRect = displayTwo.GetClientArea(); // x=1920, y=0, width=1920,
-                                                         // height=1200
-        // BEW 13Jun19 this text fails if the extra monitor is above the primary
-		// one at the same x-coordinate (zero for example) - in which case
-		// desktopWndRect beyond the test block gets values just from the
-		// size of the primary display (monitorOne). It's not worth the bother
-		// to consider splitting a frame window across the boundary of stacked
-		// monitors.
-		if (dispTwoRect.x > 0 || dispOneRect.x > 0)
-        {
-            // The second or first monitor's x coordinate is positive (instead of 0),
-            // therefore we can assume that the desktop is extended from one display
-            // monitor onto the other
-            int maxDispRectX, maxDispRectY;
-            maxDispRectX = dispOneRect.GetWidth() + dispTwoRect.GetWidth();
-            maxDispRectY = wxMin(dispOneRect.GetHeight(), dispTwoRect.GetHeight()); // account
-                    // for task bar's presence
-                    // set the adjusted width and height of combined desktop display rect
-            desktopWndRect.SetWidth(maxDispRectX);
-            desktopWndRect.SetHeight(maxDispRectY);
-        }
-    }
+        wxRect dispOneRect = displayOne.GetClientArea(); // doesn't include taskbar on Windows
+        wxRect dispTwoRect = displayTwo.GetClientArea(); 
+
+		// BEW 13Jun19, Bill's legacy code was fine for a 2nd monitor to the left
+		// of the primary, but not if the 2nd monitor is to the right - as it
+		// added the two monitor widths resulting in an Adapt It initial frame
+		// which spreads across the two monitors; so I'll refactor to put the
+		// frame window on whichever is the wider one
+		int maxDispRectX, maxDispRectY;
+		wxPoint topleftPt;
+		int monitorOneRectWidth, monitorTwoRectWidth;
+		monitorOneRectWidth = dispOneRect.GetWidth();
+		monitorTwoRectWidth = dispTwoRect.GetWidth();
+		if (monitorOneRectWidth > monitorTwoRectWidth)
+		{
+			// Primary monitor is wider
+			maxDispRectX = monitorOneRectWidth;
+			maxDispRectY = dispOneRect.GetHeight();
+			
+			// define origin point
+			topleftPt = dispOneRect.GetTopLeft();
+		}
+		else
+		{
+			// Extension monitor is wider
+			maxDispRectX = monitorTwoRectWidth;
+			maxDispRectY = dispTwoRect.GetHeight();
+			
+			// define origin point below
+			topleftPt = dispTwoRect.GetTopLeft();
+		}
+		//maxDispRectX = dispOneRect.GetWidth() + dispTwoRect.GetWidth();
+		//maxDispRectY = wxMin(dispOneRect.GetHeight(), dispTwoRect.GetHeight()); // account
+		// for task bar's presence
+		// set the adjusted width and height of combined desktop display rect
+		desktopWndRect.SetWidth(maxDispRectX);
+		desktopWndRect.SetHeight(maxDispRectY);
+		desktopWndRect.x = topleftPt.x;
+		desktopWndRect.y = topleftPt.y;	
+	}
     wxLogDebug(_T(
         "desktopWndRect.x = %d, desktopWndRect.y = %d, desktopWndRect.width = %d, desktopWndRect.height = %d"),
         desktopWndRect.x, desktopWndRect.y, desktopWndRect.GetWidth(), desktopWndRect.GetHeight());
@@ -23002,7 +23022,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxASSERT(pPrintData != NULL);
 
     // copy over initial paper size from print record
-    (*pPgSetupDlgData) = (*pPrintData); // whm Note: Don't do this after setting defaults below - resets the default pPgSetupDlgData!
+    (*pPgSetupDlgData) = (*pPrintData); // whm Note: Don't do this after setting 
+							// defaults below - resets the default pPgSetupDlgData!
 
     // Set some defaults for the page setup dialog so they will show as defaults if the
     // user accesses the page setup dialog.
@@ -23085,6 +23106,28 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // it would fail. The app's next shut down will write a correct basic config file
         // at the custom location (provided the user or admin doesn't change the location
         // using the Administrator menu).
+
+		// BEW 13Ju19, notice the code above and below involves 3 attempts at the
+		// appropriate topleft, width and height for where the app will show:
+		// (1) First shot - above, based on monitor locations, and whether or
+		// not the Adapt It Unicode Work folder is currently being setup or not.
+		// If it is, there is no basic config file to supply size information for
+		// the frame window. Adjustments are done at this step also, to provide a
+		// frame window which has a margin of 80 pixels on all sizes.
+		// (2) OnInit() is called many times - once every session, and the work folder
+		// needs to be created only on the very first. So the GetBasicConfiguration()
+		// call gets the next shot at populating the size information from the latter;
+		// but a boolean is checked (set only in EnsureWorkFolderPresent()) for a
+		// situation where the work folder does not yet exist, to provide defaults
+		// from situationi (1) instead - otherwise, the config file's values are used.
+		// (3) Final setup details are then done after the config file read - and
+		// that's where the frame m_pMainFrame() gets the ->Size() and ->Position()
+		// calls which defines what gets seen on the screen.
+		// (4) However, if m_bSkipBasicConfigFileCall is TRUE, then what's in this
+		// block is skipped; and therefore minimal size information is provided further
+		// below so as to get acceptable position, width and height information just
+		// before the frame gets sized (as above).
+
         // !!!!!!!!!!!!!!!! BASIC CONFIG FILE IS READ HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         bConfigFilesRead = GetBasicConfiguration(); // GetBasicConfiguration 
 													// detects SHIFT-DOWN
@@ -23094,7 +23137,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// file won't yet exist; so we need to establish our initial values for
 			// size and position, and copy the code for adjusting these in here too,
 			// because otherwise bConfigFilesRead, having been returned as FALSE,
-			// the block below will be skipped
+			// the code immediately below would be skipped
 			m_szView.x = nClientWidth;
 			m_szView.y = nClientHeight;
 			m_ptViewTopLeft.x = clientTopLeft.x;
@@ -23188,8 +23231,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		wxSize mySize(m_szView.x, m_szView.y);
 		m_pMainFrame->SetPosition(myTopLeft);
 		m_pMainFrame->SetSize(mySize);
-
-        //m_pMainFrame->SetSize(m_ptViewTopLeft.x, m_ptViewTopLeft.y, m_szView.x, m_szView.y, wxSIZE_AUTO); deprecated 13Jun19
         if (m_bZoomed)
         {
             m_pMainFrame->Maximize(TRUE);
