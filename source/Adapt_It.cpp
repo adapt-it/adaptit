@@ -19318,7 +19318,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//m_szView.x = 640; unhelpful values
 	//m_szView.y = 580;   "        "
 	// restore them for present; m_wxSize is storage in 
-	// GetBasicSettingConfiguration() for WinSizeCX and WinSizeCY (frame)
+	// GetBasicConfiguration() for WinSizeCX and WinSizeCY (frame)
 	m_szView.x = 640; //unhelpful values
 	m_szView.y = 580; //  "        "
 	/*
@@ -22902,23 +22902,22 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		nDisplayWidthInPixels, nDisplayHeightInPixels);
 
 
-    // whm Note: If the user changes the screen resolution during program execution then
-    // desktopWndRect could change. Also the MFC checks do not work when more than one
-    // monitor are connected to the user's computer, especially when the application
-    // position might have been on a second monitor. Therefore we need to check for
-    // multiple monitor setup, and determine the boundaries for valid main frame positions
-    // in such configurations. Checking for multiple monitors can be done with the
-    // wxDisplay class.
-    //
+    // whm 26Jun2019 Note: Detect if there is more than one monitor connected to the 
+    // user's computer, and if so, check whether the desktop has been extended from the  
+    // primary monitor in some direction to create a larger virtual desktop onto a secondary 
+    // monitor. If such a larger virtual desktop has been made available by the system, we 
+    // need to determine the boundarry rect for valid main frame sizes and positions.
+    // Checking for multiple monitors and their sizes can be done with the wxDisplay 
+    // class.
 	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 	unsigned int numMonitors;
     numMonitors = wxDisplay::GetCount();
-    if (numMonitors > 1)
+ 	const unsigned int monitorOne = 0;
+	const unsigned int monitorTwo = 1;
+    wxDisplay displayOne(monitorOne);
+   if (numMonitors > 1)
     {
-		const unsigned int monitorOne = 0;
-		const unsigned int monitorTwo = 1;
-        wxDisplay displayOne(monitorOne);
         wxDisplay displayTwo(monitorTwo);
 
 		wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
@@ -22934,11 +22933,32 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// size of the primary display (monitorOne). It's not worth the bother
 		// to consider splitting a frame window across the boundary of stacked
 		// monitors.
-		if (dispTwoRect.x > 0 || dispOneRect.x > 0)
+        //
+        // whm 26Jun2019 Notes:
+        // 1. The wxWidgets' class wxDisplay docs say that the wxDisplay instance created with an index of 0 
+        //    is "the Primary Monitor". Hence, in our case, displayOne is the "Primary Monitor", and a call to
+        //    displayOne(monitorOne).IsPrimary() will always return TRUE, and the IsPrimary() call on any other 
+        //    attached monitor will return FALSE.
+        // 2. The "Primary Monitor" also will always have its start coordinates at x=0, y=0 (the "origin")
+        //    as detected by a call to GetClientArea() or GetGeometry() made on the primary monitor.
+        // 3. When two monitors are attached and the system's displays are set to "extend the desktop" to
+        //    a second monitor, the second monitor's x coordinate can be negative, depending on its position
+        //    on the overall virtual "desktop" in relation to the primary monitor's 0,0 origin.
+        // 4. When two monitors are attached and the non-primary display is set to simply "mirror" the
+        //    primary display, then the second monitor should return its upper-left coordinates at x=0, y=0
+        //    (the "origin"). 
+        // Hence, for cases such as the case Bruce postulates above (secondary monitor extends desktop
+        // "above" the primary monitor), I've changed the test below to simply test whether the x coord 
+        // value of the non-primary monitor is other than 0 (a positive or negative value other than 0).
+        // The if test below simply sets the size of the virtual desktopWndRect. The position of AI's
+        // main frame window within the virtual desktopWndRect is determined farther below once the basic  
+        // config file's settings have been read - if it exists.
+        if (dispTwoRect.x != 0) // if (dispTwoRect.x > 0 || dispOneRect.x > 0)
         {
-            // The second or first monitor's x coordinate is positive (instead of 0),
+            // The second monitor's x coordinate is other than 0 (positive or negative),
             // therefore we can assume that the desktop is extended from one display
-            // monitor onto the other
+            // monitor onto the other, so we calculate the overall virtual desktopWndRect that
+            // is available in this session to the application here.
             int maxDispRectX, maxDispRectY;
             maxDispRectX = dispOneRect.GetWidth() + dispTwoRect.GetWidth();
             maxDispRectY = wxMin(dispOneRect.GetHeight(), dispTwoRect.GetHeight()); // account
@@ -22952,6 +22972,31 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         "desktopWndRect.x = %d, desktopWndRect.y = %d, desktopWndRect.width = %d, desktopWndRect.height = %d"),
         desktopWndRect.x, desktopWndRect.y, desktopWndRect.GetWidth(), desktopWndRect.GetHeight());
 
+    // whm 26Jun2019 Note:
+    // While the following code to "assign suitable large but not full screen initial size..."
+    // currently executes on all runs of Adapt It, it only sets the value of the m_ptViewTopLeft
+    // point when the basic config file does not get read by the application at startup.
+    // When the basic config file is read, the values there overwrite what is set below.
+    // However, the code below doesn't work as intended on my dual monitor setup which has
+    // a dual monitor setup within VirtualBox. I don't know exactly how Windows - apart from
+    // VirtualBox - reacts, but on my system the desktopWndRect rectangle representing the
+    // extended desktop is currently 3639 pixels wide and 1042 pixels high. Bruce's code
+    // below originally set the main frame to have a larger window that goes outward to within
+    // 40 pixels of the desktopWndRect. Doing it like that, however, makes the main frame span
+    // both dual monitors with the application divided in the middle and the Welcome screen
+    // residing at the middle area within the primary monitors screen!
+    // Therefore, I've made some modifications to his code below to initially keep the 
+    // application on the primary monitor, leaving a 40 pixel space around the main window
+    // but only on that primary monitor.
+    //
+    // I've also corrected a hack in the App's GetBasicConfiguration() function that
+    // attempted to restrict the minimum value of m_ptViewTopLeft.x to -6. When AI was positioned
+    // on a secondary monitor that extends the desktop to the left of the primary monitor (which
+    // always has a x-coordinate of 0), the value of m_ptViewTopLeft.x can actually be a large 
+    // number such as -1920 on my 1920 x 1200 secondary monitor. The x coordinate
+    // of the main frame positioned on such a secondary monitor can be a negative value up to
+    // horizontal resolution of that secondary monitor.
+
 	// BEW 13Jun19, there is enough information in desktopWndRect for us
 	// to assign suitable large but not full screen initial size to Adapt It
 	// on a first run which created a work folder - we need to set m_szView.x and .y
@@ -22962,28 +23007,38 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// with a custom location) and that would erase values established here - so we
 	// also provide saved copies of the values we establish so as to restore what
 	// we want for a suitably sized first frame window
-	int myAllSidesMargin = 40; // put a margin around the frame window - for starters
-	int nClientWidth = desktopWndRect.GetWidth() - 2 * myAllSidesMargin;
-	int nClientHeight = desktopWndRect.GetHeight() - 2 * myAllSidesMargin;
-	m_szView.x = nClientWidth; // these two are where the Basic config file saves the 
+ 
+    // put a margin around the frame window - for starters
+	int myAllSidesMargin = 40;
+    // whm 26Jun2019 Correction. Adjusted code below to only put the main frame on the 
+    // primary monitor sized to have 40 pixel margin.
+    //int nClientWidth = desktopWndRect.GetWidth() - 2 * myAllSidesMargin;
+    //int nClientHeight = desktopWndRect.GetHeight() - 2 * myAllSidesMargin;
+    int nClientWidth = displayOne.GetClientArea().GetWidth () - 2 * myAllSidesMargin;
+    int nClientHeight = displayOne.GetClientArea().GetHeight() - 2 * myAllSidesMargin;
+    m_szView.x = nClientWidth; // these two are where the Basic config file saves the 
 							   // frame's width & height
 	m_szView.y = nClientHeight;
 
 	wxSize clientTopLeft;
-	clientTopLeft.x = desktopWndRect.x + myAllSidesMargin;
-	clientTopLeft.y = desktopWndRect.y + myAllSidesMargin;
+    // whm 26Jun2019 Correction. Adjusted code below to only put the main frame on the 
+    // primary monitor at a position to have 40 pixel margin.
+    //clientTopLeft.x = desktopWndRect.x + myAllSidesMargin;
+	//clientTopLeft.y = desktopWndRect.y + myAllSidesMargin;
+	clientTopLeft.x = displayOne.GetClientArea().GetTopLeft().x + myAllSidesMargin;
+	clientTopLeft.y = displayOne.GetClientArea().GetTopLeft().x + myAllSidesMargin;
 	m_ptViewTopLeft.x = clientTopLeft.x; // these two are where the Basic config file 
 										 // saves the frame's top-left position 
 	m_ptViewTopLeft.y = clientTopLeft.y;
 
-	// Next bits of the equation are at the GetBasicConfigurationFile() call below, and
+	// Next bits of the equation are at the GetBasicConfiguration() call below, and
 	// below that, at about line 23,180 or so, where the frame instance is sized & positioned.
 
 	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 	//
     // The wndTopLeft and wndBotRight point coordinates below are used within the App's
-    // GetBasicSettingsConfiguration() function
+    // GetBasicConfiguration() function
     wndTopLeft = wxPoint(desktopWndRect.GetLeft(), desktopWndRect.GetTop());
     wndBotRight = wxPoint(desktopWndRect.GetRight(), desktopWndRect.GetBottom());
 
@@ -23095,6 +23150,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// size and position, and copy the code for adjusting these in here too,
 			// because otherwise bConfigFilesRead, having been returned as FALSE,
 			// the block below will be skipped
+            //
+            // whm 26Jun2019 Note: The nClientWidth and nClientHeight used below were
+            // calculated above to be only for the primary monitor, and set the clientTopLeft.x
+            // and clientTopLeft.y value to provide a 40 pixel margin around the main frame.
 			m_szView.x = nClientWidth;
 			m_szView.y = nClientHeight;
 			m_ptViewTopLeft.x = clientTopLeft.x;
@@ -31263,7 +31322,16 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
         workFolderPath = dirPath + PathSeparator + workFolder;
     }
 
-	m_bWorkFolderBeingSetUp = FALSE;
+    // whm 26Jun2019 Note: It might be better to check for the existence of the 
+    // AI-BasicConfiguration.aic file within the Adapt It Unicode Work folder before 
+    // setting m_bWorkFolderBeingSetUp flag to TRUE, rather than only the existence of the
+    // work folder. Otherwise, if only existence of the work folder is tested for, an 
+    // aborted first run of the application will create a mostly empty work folder (without 
+    // a basic config file), and the next (successful initial) run will detect the existence 
+    // of the Adapt It Unicode Work folder, and the small frame window will still appear in 
+    // what essentially became the first successful startup of the application.
+    // For now I'll leave the following test for only the work folder as is.
+    m_bWorkFolderBeingSetUp = FALSE;
     if (!::wxDirExists(workFolderPath))
     {
         // we did not find the required directory, so create it now - it has to be present
@@ -31281,7 +31349,7 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
             // whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
             wxKill(::wxGetProcessId(), wxSIGKILL); // abort();
         }
-		m_bWorkFolderBeingSetUp = TRUE;
+        m_bWorkFolderBeingSetUp = TRUE;
     }
 
     // be sure to set the m_workFolderPath variable (path to the Adapt It Work folder, or
@@ -36642,6 +36710,16 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
             // for the top left would place the main window to the right or below the point
             // near the bottom right of the screen, or too narrow or high a window size etc.
             // (Bill Martin got, one time, -32000 values for top left in Unicode app!)
+            //
+            // whm 26Jun2019 modification:
+            // The hack described above that arbitrarily restricts the range of valid values for 
+            // the "TopLeftX" config value here causes a problem with certain arrangements of
+            // desktops spread across multiple monitors. For example, this value can easily be
+            // a fairly large negative value - such as -1500 for when the desktop extends to 
+            // the left of the primary monitor. Therefore, I am removing the hack below which
+            // prevents the positioning of the main frame at a previously used position on a
+            // secondary monitor. The constriction on the m_szView.x and m_szView.y values
+            // farther below are OK to leave as is.
 
             else if (name == szTopLeftX)
             {
@@ -36649,11 +36727,12 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
                 // whm Note: The wndBotRight and wndTopLeft coordinate points are determined in
                 // the App's OnInit() by a call to the wxGetClientDisplayRect() function
                 // adjusted for any extended desktop support over dual monitors.
-                if (num < -6 || num > wndBotRight.x - 5) // -4 is maximized window's x value
-                {
-                    //bAdjusted = TRUE; // it's too far left or right
-                    num = 5;
-                }
+                // whm 26Jun2019 removed the following hack
+                //if (num < -6 || num > wndBotRight.x - 5) // -4 is maximized window's x value
+                //{
+                //    //bAdjusted = TRUE; // it's too far left or right
+                //    num = 5;
+                //}
                 m_ptViewTopLeft.x = num;
             }
             else if (name == szTopLeftY)
@@ -36662,11 +36741,11 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
                 // whm Note: The wndBotRight and wndTopLeft coordinate points are determined in
                 // the App's OnInit() by a call to the wxGetClientDisplayRect() function
                 // adjusted for any extended desktop support over dual monitors.
-                if (num < -6 || num > wndBotRight.y - 5) // -4 is maximized window's y value
-                {
-                    //bAdjusted = TRUE; // it's too far up or down
-                    num = 5;
-                }
+                //if (num < -6 || num > wndBotRight.y - 5) // -4 is maximized window's y value
+                //{
+                //    //bAdjusted = TRUE; // it's too far up or down
+                //    num = 5;
+                //}
                 m_ptViewTopLeft.y = num;
             }
             else if (name == szWSizeCX)
