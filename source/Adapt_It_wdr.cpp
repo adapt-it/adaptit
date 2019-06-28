@@ -2949,7 +2949,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item17 = new wxTextCtrl( parent, IDC_EDIT_CH_VERSE, wxT(""), wxDefaultPosition, wxSize(36,-1), 0 );
+    wxTextCtrl *item17 = new wxTextCtrl( parent, IDC_EDIT_CH_VERSE, wxT(""), wxDefaultPosition, wxSize(50,-1), 0 );
     item17->SetToolTip( _("The number of translations or glosses in the KB") );
     item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
 
