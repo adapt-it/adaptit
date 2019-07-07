@@ -19292,7 +19292,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     m_bExecutingOnXO = FALSE; // whm added 13Apr09 - can be set to TRUE by
                               // use of command-line parameter -xo
-    m_toolbarSize = btnSmall; // set initial value of the toolbar size
+
+    // whm 7Jul2019 changed default tool bar size to medium at BEW's request
+    // For most monitors (which have 1200 pixel horizontal resolution, the medium
+    // tool bar icons will fit the larger initial main fram window (allowing for
+    // 40 pixel margins left and right). If the horizontal resolution is smaller
+    // than about 1200 pixels (on Windows systems), the right-most icon (Help)
+    // begins to get truncated off the right side of main frame window. Smaller
+    // resolutions have more tool bar icons hidden so that a resolution of 1080
+    // would have the last three icons out of view (View Translation or Glosses
+    // Elsewhere in the Document, No Punctuation Copy, and Help). To deal with 
+    // potential tool bar visibility, we'll check the available resolution during
+    // the 'if (m_bWorkFolderBeingSetUp)' block on OnInit() below starting at
+    // about line 23160.
+    m_toolbarSize = btnMedium; // btnSmall; // set initial value of the toolbar size
 
     m_bSuppressWelcome = FALSE;
     m_bSuppressTargetHighlighting = FALSE;
@@ -23158,6 +23171,22 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			m_szView.y = nClientHeight;
 			m_ptViewTopLeft.x = clientTopLeft.x;
 			m_ptViewTopLeft.y = clientTopLeft.y;
+
+            // whm 7Jul2019 added another test to determine initial tool bar icon sizes.
+            // If the adjusted nClientWidth is less than 1200, not all of the medium 
+            // sized tool bar icons will be in view (one or more at right end will be out 
+            // of view within the initial sized main frame window (on Windows).
+            // We can deal with this by programatically setting the initial default of
+            // the m_toolbarSize member back to btnSmall. BEW suggested the possibility 
+            // of just removing 3 of the not-often used tool bar buttons, Open, New and
+            // View Translation or Glosses Elsewhere in the document. But attempting
+            // to remove/hide individual buttons would take a lot more work and messing
+            // especially with Open and New would possibly be problematic because of their 
+            // 'black-box' roles within the Doc-View framework.
+            if (nClientWidth < 1200)
+            {
+                m_toolbarSize = btnSmall;
+            }
 
 			wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 				__LINE__, m_szView.x, m_szView.y);
