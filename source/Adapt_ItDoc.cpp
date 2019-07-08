@@ -14950,9 +14950,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// causes a buffer overrun of the iterator in a call within AddParagraphMarkers(),
 		// so avoid this by Trim(ing off) any CRLF or CR or LF at the end first
 		rBuffer = rBuffer.Trim();
-        // whm 30May2019 Bruce requested that paragraph markers \p not be added to the 
-        // text being tokenized when the App's m_bClipboardAdaptMode flag is TRUE. 
-        // TODO: Bruce should verify that this change doesn't adversely affect the TokenizeText() 
+        // whm 30May2019 Bruce requested that paragraph markers \p not be added to the
+        // text being tokenized when the App's m_bClipboardAdaptMode flag is TRUE.
+        // TODO: Bruce should verify that this change doesn't adversely affect the TokenizeText()
         // fuction, and that is does what he wants when adapting unstructured text from the clipboard.
         if (!pApp->m_bClipboardAdaptMode)
         {
@@ -25016,6 +25016,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 					case member_empty_flag_on_PTUexists_deleted_Refstr:
 						{
+                        pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);   // mrh June19 - ensure phrasebox is on screen before we put the dialog up
 						wxString titleStr = _("Inconsistency Found");
 						wxString aSrcStr = pSrcPhrase->m_key;
 						wxString aTgtStr = pSrcPhrase->m_adaption;
@@ -25176,6 +25177,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					case member_exists_flag_on_noPTU:
 					case member_exists_flag_off_noPTU:
 						{
+                        pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);   // mrh June19 - ensure phrasebox is on screen before we put the dialog up
 						wxString titleStr = _("Inconsistency Found");
 						wxString aSrcStr = pSrcPhrase->m_key;
 						wxString aTgtStr = pSrcPhrase->m_adaption;
@@ -25285,6 +25287,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// adaptation's CRefString and all others in that pTU as well,
 							// except for the <Not In KB> - so we can handle this extra
 							// inconsistency within the simplified dialog
+                        pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);   // mrh June19 - ensure phrasebox is on screen before we put the dialog up
 						CConsistencyCheckDlg dlg(pApp->GetMainFrame());
 						dlg.m_bFoundTgtUnit = bFoundTgtUnit;
 						dlg.m_bDoAutoFix = FALSE;
@@ -25437,6 +25440,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						break;
 					case flag_on_NotInKB_off_hasActiveNotInKB_in_KB:
 						{
+                        pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);   // mrh June19 - ensure phrasebox is on screen before we put the dialog up
 						wxString titleStr = _("Inconsistency Found");
 						wxString aSrcStr = pSrcPhrase->m_key;
 						wxString aTgtStr = pSrcPhrase->m_adaption;
@@ -26290,6 +26294,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					case member_empty_flag_on_noPTU:
 					case member_empty_flag_on_PTUexists_deleted_Refstr:
 						{
+                        pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);   // mrh June19 - ensure phrasebox is on screen before we put the dialog up
 						wxString titleStr = _("Inconsistency Found");
 						wxString aSrcStr = pSrcPhrase->m_key;
 						wxString aTgtStr = pSrcPhrase->m_gloss;
@@ -26402,6 +26407,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					case member_exists_flag_off_PTUexists_deleted_RefStr:
 						{
 						// The revamped legacy dialog - now simplified
+                        pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);   // mrh June19 - ensure phrasebox is on screen before we put the dialog up
 						CConsistencyCheckDlg dlg(pApp->GetMainFrame());
 						dlg.m_bFoundTgtUnit = bFoundTgtUnit;
 						dlg.m_bDoAutoFix = FALSE;
