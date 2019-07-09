@@ -469,7 +469,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					{
 						// check this entry out for a match, it's not deleted nor empty
 						#ifdef _DEBUG
-						wxLogDebug(_T("KB (map=%zu):  %s"),numWords,testStr.c_str()); // %zu is the format specifier for size_t type
+						wxLogDebug(_T("KB (map=%d):  %s"),(int)numWords,testStr.c_str()); // %zu is the format specifier for size_t type, but it asserts in VS2008, so cast to int and use %d
 						anItemsCount++;
 						#endif //_DEBUG
 
@@ -520,7 +520,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 						{
 							// check this entry out for a match, it's not deleted nor empty
 							#ifdef _DEBUG
-							wxLogDebug(_T("KB (map=%zu):  %s"),numWords,testStr.c_str()); // %zu is the format specifier for size_t type
+							wxLogDebug(_T("KB (map=%d):  %s"),(int)numWords,testStr.c_str()); // %zu is the format specifier for size_t type, but it asserts in VS2008, so cast to int and use %d
 							anItemsCount++;
 							#endif //_DEBUG
 

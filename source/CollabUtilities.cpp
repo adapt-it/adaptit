@@ -7395,8 +7395,8 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
         {
             int offset = postEditOffsetsArr[index];
             wxString s = postEditText.Mid(offset, 16);
-            wxLogDebug(_T("MD5 Line, count = %zu, 5th last offset:  %d  , first 16 Chars: %s"), // whm 8Apr2019 changed from %d to %zu - the format specifier for size_t
-                       countPost, offset, s.c_str());
+            wxLogDebug(_T("MD5 Line, count = %zu, 5th last offset:  %d  , first 16 Chars: %s"), // %zu is the format specifier for size_t type, but it asserts in VS2008, so cast to int and use %d the format specifier for size_t
+                       (int)countPost, offset, s.c_str());
         }
 	}
 #endif
@@ -7671,8 +7671,8 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr)
 {
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
-	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %zu  pre count: %zu  from count: %zu  sourceText count: %zu"); // %zu is the format specifier for size_t type
-    msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(), preEditMd5Arr.GetCount(), fromEditorMd5Arr.GetCount(), sourceTextMd5Arr.GetCount());
+	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %zu  pre count: %zu  from count: %zu  sourceText count: %zu"); // %zu is the format specifier for size_t type, but it asserts in VS2008, so cast to int and use %d
+    msg1 = msg1.Format(msg1, (int)postEditMd5Arr.GetCount(), (int)preEditMd5Arr.GetCount(), (int)fromEditorMd5Arr.GetCount(), (int)sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
 #endif
 
@@ -8840,8 +8840,8 @@ wxString GetUpdatedText_UsfmsChanged(
 										  // which corresponds to a single line of info from sourceTextMd5Arr
 {
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
-	wxString msg1 = _T("GetUpdatedText_UsfmsChanged() called: post count: %zu  pre count: %zu  from count: %zu  sourceText count: %zu"); // %zu is the format specifier for size_t type
-	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
+	wxString msg1 = _T("GetUpdatedText_UsfmsChanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d"); // %zu is the format specifier for size_t type, but it asserts in VS2008, so cast to int and use %d
+	msg1 = msg1.Format(msg1, (int)postEditMd5Arr.GetCount(),(int)preEditMd5Arr.GetCount(),(int)fromEditorMd5Arr.GetCount(),(int)sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
 #endif
 	wxString newText; newText.Empty();
