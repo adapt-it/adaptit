@@ -25400,7 +25400,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
-	gpApp->m_pMainFrame->Show();
+    // whm 10Jul2019 Show whether _KBSERVER flag is set in log output window for this build
+#if defined(_KBSERVER)
+    wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
+#endif // _KBSERVER
+
+	//gpApp->m_pMainFrame->Show(); // whm 10Jul2019 removed: BEW added 9Jul2019 but call was already made above in OnInit()
 	return TRUE;
 }
 
