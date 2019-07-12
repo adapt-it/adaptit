@@ -18240,7 +18240,11 @@ bool CAdapt_ItDoc::DeleteContents()
 // function to implement an "Edit Clear All" or similar command that deletes all of the
 // document's data. The default implementation of this function does nothing. Override this
 // function to delete the data in your document."
+/// BEW 12Jul19 moved mutex to start & end of function, because Evelyn at Gali'winku
+/// (Warramiri - Matata) had a doc contents emptying experience
 {
+	s_AutoSaveMutex.Lock();
+
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// zero the contents of the read-in file of source text data
 	if (pApp->m_pBuffer != 0)
@@ -18248,14 +18252,11 @@ bool CAdapt_ItDoc::DeleteContents()
 		pApp->m_pBuffer->Empty();
 	}
 
-	s_AutoSaveMutex.Lock();
-
 	// delete the source phrases
 	DeleteSourcePhrases(); // this does not delete the partner piles as
 		// the internal DeleteSingleSrcPhrase() has the 2nd param FALSE so
 		// that it does not call DeletePartnerPile() -- so delete those
 		// separately below en masse with the DestroyPiles() call
-	s_AutoSaveMutex.Unlock();
 
 	// the strips, piles and cells have to be destroyed to make way for the new ones
 	CAdapt_ItView* pView = (CAdapt_ItView*)NULL;
@@ -18278,6 +18279,8 @@ bool CAdapt_ItDoc::DeleteContents()
 	}
 
     pApp->m_pTargetBox->m_Translation.Empty(); // make sure the global var is clear
+
+	s_AutoSaveMutex.Unlock();
 
 	return wxDocument::DeleteContents(); // just returns TRUE
 }

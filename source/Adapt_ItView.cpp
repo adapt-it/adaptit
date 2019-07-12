@@ -15956,8 +15956,12 @@ void CAdapt_ItView::RestoreKBStorageForSourceKey(wxString sourceKey, CKB* pKB)
 
 // BEW changed 25Aug11, removed the code for unloading the KBs, it is bad design to have
 // it in here
+/// BEW 12Jul19 moved mutex to start & end of function, because Evelyn at Gali'winku
+/// (Warramiri - Matata) had a doc contents emptying experience
 void CAdapt_ItView::ClobberDocument()
 {
+	s_AutoSaveMutex.Lock();
+
 	NormalizeState();
 
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -16017,11 +16021,7 @@ void CAdapt_ItView::ClobberDocument()
     // document object
 	pDoc->Modify(FALSE); // MFC has SetModifiedFlag(FALSE)
 
-	s_AutoSaveMutex.Lock();
-
 	pDoc->DeleteSourcePhrases();
-
-	s_AutoSaveMutex.Unlock();
 
 	pLayout->GetInvalidStripArray()->Clear();
 	pLayout->DestroyStrips();
@@ -16055,6 +16055,8 @@ void CAdapt_ItView::ClobberDocument()
 
 	msg = _T("ClobberDocument() exiting");
 	pApp->LogUserAction(msg);
+
+	s_AutoSaveMutex.Unlock();
 }
 
 void CAdapt_ItView::CloseProject()

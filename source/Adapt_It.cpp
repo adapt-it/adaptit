@@ -32949,12 +32949,15 @@ void CAdapt_ItApp::OnUpdateInstallGit(wxUpdateUIEvent & event)
 /// can't have m_pSourcePhrases being accessed for making XML to save at the same time
 /// that the same array is being emmptied out. We use a mutex for this protection here
 /// and at other places where emptying of the doc list can happen
+/// BEW 12Jul19 moved mutex to start & end of function, because Evelyn at Gali'winku
+/// (Warramiri - Matata) had a doc contents emptying experience
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DoAutoSaveDoc()
 // with additions for handling glossing versus adapting (ie. to get the stuff in the
 // phrase box into the appropriate KB before the save is done)
 {
-    bool bOkay;
+	s_AutoSaveMutex.Lock();
+	bool bOkay;
 	// BEW 5Mar18, added test to skip the save attempt on empty list
 	// and on 1Apr18 added subtest of m_bClipboardAdaptMode -- because the
 	// real doc is cached and the tempory one, if saved, would take on real
@@ -32963,7 +32966,6 @@ void CAdapt_ItApp::DoAutoSaveDoc()
 	// a data loss problem, we have a chance of finding out easily
 	if (!m_pSourcePhrases->IsEmpty() && !m_bClipboardAdaptMode)
 	{
-		s_AutoSaveMutex.Lock();
 
 		wxString msg = _T("DoAutoSaveDoc() calling DoFileSave_Protected(); m_pSourcePhrases size = %d");
 		int size = 0;
@@ -32975,18 +32977,18 @@ void CAdapt_ItApp::DoAutoSaveDoc()
 		this->LogUserAction(msg);
 
 		bOkay = GetDocument()->DoFileSave_Protected(FALSE, _T("")); // FALSE - don't show wait/progress dialog
-		wxCHECK_RET(bOkay, _T("DoAutoSaveDoc(): DoFileSave_Protected() failed, line 23,425 approx, in Adapt_It.cpp"));
+		wxCHECK_RET(bOkay, _T("DoAutoSaveDoc(): DoFileSave_Protected() failed, line 32980 in file: Adapt_It.cpp"));
 
 		msg = _T("DoAutoSave: DoFileSave_Protected() has returned");
 		this->LogUserAction(msg);
-
-		s_AutoSaveMutex.Unlock();
 	}
     // update the time it was last saved, or the attempt was made
     wxDateTime time = wxDateTime::Now();
     m_timeSettings.m_tLastDocSave = time;
     m_timeSettings.m_tLastKBSave = time;
     nSequNumForLastAutoSave = m_pTargetBox->m_nCurrentSequNum;
+
+	s_AutoSaveMutex.Unlock();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -46592,15 +46594,18 @@ wxString CAdapt_ItApp::ApplyDefaultDocFileExtension(wxString s)
 /// SplitIntoChapters_Interactive().
 /// Deletes the source phrases from the list pointed to by l. Does nothing if there
 /// are no source phrases in l.
+/// BEW 12Jul19 moved mutex to start & end of function, because Evelyn at Gali'winku
+/// (Warramiri - Matata) had a doc contents emptying experience
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
 {
-    // BEW modified 02Nov05, because earlier version leaked memory (so I plagiarized
+	s_AutoSaveMutex.Lock();
+
+	// BEW modified 02Nov05, because earlier version leaked memory (so I plagiarized
     // the DeleteSourcePhrases() function in the doc class for safe deletion code)
     CAdapt_ItDoc* pDoc = GetDocument();
     if (!l->IsEmpty())
     {
-		s_AutoSaveMutex.Lock();
 
 		// delete all the tokenizations of the source text
         SPList::Node* pos = l->GetFirst();
@@ -46609,16 +46614,15 @@ void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
             CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
             pos = pos->GetNext();
             pDoc->DeleteSingleSrcPhrase(pSrcPhrase); // Note, it would be more efficient
-                                                     // to use (pSrcPhrase,FALSE) and then destroy the partner piles enmasse with
-                                                     // a call such as DestroyPiles(PileList* piles) -- but we don't have such a
-                                                     // function defined in AI yet, and the sublist corresponding to the sublist l
-                                                     // passed in above, would have to be calculated -- all of which could be done,
-                                                     // but the returns are diminished, so I'll not bother
+            // to use (pSrcPhrase,FALSE) and then destroy the partner piles enmasse with
+            // a call such as DestroyPiles(PileList* piles) -- but we don't have such a
+            // function defined in AI yet, and the sublist corresponding to the sublist l
+            // passed in above, would have to be calculated -- all of which could be done,
+            // but the returns are diminished, so I'll not bother
         }
         l->Clear();
-
-		s_AutoSaveMutex.Unlock();
     }
+	s_AutoSaveMutex.Unlock();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
