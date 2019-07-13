@@ -4734,7 +4734,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 			// does a Rebuild Knowledge Base, the m_selection array will retain hanging
 			// pointers, and Rebuild Knowledge Base's RemoveSelection() call will cause a
 			// crash
-	pView->ClobberDocument();
+	pView->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
 
 	// delete the buffer containing the filed-in source text
 	if (pApp->m_pBuffer != NULL)
@@ -23479,10 +23479,10 @@ bool CAdapt_ItDoc::ConsistencyCheck_ClobberDoc(CAdapt_ItApp* pApp, bool& bDocIsC
         // to whatever is in m_pSourcePhrases, so the latter list must be
         // cleared to avoid the data doubling bug
 		bDocForcedToClose = TRUE;
-		pApp->GetView()->ClobberDocument();
+		pApp->GetView()->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
 		pApp->m_acceptedFilesList.Clear();
 	} // end of TRUE block for test: if (!bDocIsClosed)
-	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+	//pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 	return TRUE;
 }
 
@@ -25700,8 +25700,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			wxMessageBox(_("Warning: failure on document save operation."),
 			_T(""), wxICON_EXCLAMATION | wxOK);
 		}
-		pApp->GetView()->ClobberDocument();
-		pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+		pApp->GetView()->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
+		//pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
 		// delete the buffer containing the filled-in source text
 		if (pApp->m_pBuffer != NULL)
@@ -26610,8 +26610,8 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 			wxMessageBox(_("Warning: failure on document save operation."),
 			_T(""), wxICON_EXCLAMATION | wxOK);
 		}
-		pApp->GetView()->ClobberDocument();
-		pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+		pApp->GetView()->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
+		//pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
 		// delete the buffer containing the filed-in source text
 		if (pApp->m_pBuffer != NULL)

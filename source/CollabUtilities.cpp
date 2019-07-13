@@ -1471,6 +1471,17 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 			// also redirects the output and suppresses the dos console window during execution.
 			wxString commandLine = BuildCommandLineFor(lineFor, textKind);
 			resultCode = ::wxExecute(commandLine,textIOArray,errorsIOArray);
+			gpApp->m_bDocumentDestroyed = FALSE; // BEW 13Jul19, opening any AID document
+				// the code pointer will pass thru here, so it's a suitable place to
+				// reinitialize the flag to FALSE; because operations which open and close
+				// documents in order to do some kind of aggegation, will need to protect
+				// from the timer firing to get DoAutoSaveDoc() attempted when or after
+				// ClobberDocument() has acted to destroy the m_pSourcePhrases list.
+				// We don't want a timing accident between closing a previous document in
+				// a loop clobbering the m_pSourcePhrases list to try building a document
+				// by a call of DoAutoSaveDoc() before there is a new list ready for such
+				// a build to happen
+
 		}
 		else if (gpApp->m_bCollaboratingWithBibledit)
 		{
@@ -1484,6 +1495,7 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 				resultCode = 0; // 0 means same as wxExecute() success
 			else // bWriteOK was FALSE
 				resultCode = 1; // 1 means same as wxExecute() ERROR, errorsIOArray will contain error message(s)
+			gpApp->m_bDocumentDestroyed = FALSE; // BEW 13Jul19
 		}
 	} // end of TRUE block for test:  if (lineFor == reading)
 	else // lineFor == writing
@@ -1635,6 +1647,7 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 			pTempFile = (wxFile*)NULL;
 			return FALSE;
 		}
+		gpApp->m_bDocumentDestroyed = FALSE; // BEW 13Jul19
 	}
 	else
 	{
@@ -1677,6 +1690,7 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 	if (pTempFile != NULL) // whm 11Jun12 added NULL test
 		delete pTempFile;
 	pTempFile = (wxFile*)NULL;
+	gpApp->m_bDocumentDestroyed = FALSE; // BEW 13Jul19
 	return TRUE;
 }
 

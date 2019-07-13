@@ -33133,10 +33133,8 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
         // append to whatever is in m_pSourcePhrases.
         // whm Note: ClobberDocument() is a potentially time consuming operation for long
         // documents.
-        GetView()->ClobberDocument();
+        GetView()->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
 
-		m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
-											// done -- update the embedded status bar
         ((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Saving File"));
     }
     bool bOK;
@@ -43647,9 +43645,9 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
             bSavedOK = pDoc->DoTransformedDocFileSave(curOutputPath);
             wxCHECK_MSG(bSavedOK, TRUE, _T("DoTransformationsToGlosses(): DoTransformedDocFileSave() failed, line 31,322 in Adapt_It.cpp"));
 
-            pView->ClobberDocument();
+            pView->ClobberDocument();  // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
 
-			gpApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+			//gpApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
             // remove the progress indicator window
             ((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Transformations To Glosses"));
@@ -46270,7 +46268,7 @@ void CAdapt_ItApp::DiscardDocChanges()
 {
     CAdapt_ItDoc* pDoc = gpApp->GetDocument();
     CAdapt_ItView* pView = gpApp->GetView();
-    pView->ClobberDocument();
+    pView->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
     wxString reversionPath = m_curOutputPath;
     wxASSERT(!reversionPath.IsEmpty());
     bool bOK = pDoc->OnOpenDocument(reversionPath, true);
@@ -46292,7 +46290,7 @@ void CAdapt_ItApp::DiscardDocChanges()
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::CloseDocDiscardingAnyUnsavedChanges()
 {
-    GetView()->ClobberDocument();
+    GetView()->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

@@ -7575,6 +7575,17 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, const wxString& progressIte
 	// whm Note: the progress indicator window gets destroyed when it
 	// goes out of scope in the caller
 	
+	gpApp->m_bDocumentDestroyed = FALSE; // BEW 13Jul19, opening any AID document
+		// the code pointer will pass thru here, so it's a suitable place to
+		// reinitialize the flag to FALSE; because operations which open and close
+		// documents in order to do some kind of aggegation, will need to protect
+		// from the timer firing to get DoAutoSaveDoc() attempted when or after
+		// ClobberDocument() has acted to destroy the m_pSourcePhrases list.
+		// We don't want a timing accident between closing a previous document in
+		// a loop clobbering the m_pSourcePhrases list to try building a document
+		// by a call of DoAutoSaveDoc() before there is a new list ready for such
+		// a build to happen
+
 	return bXMLok;
 }	
 
