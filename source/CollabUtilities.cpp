@@ -1903,6 +1903,9 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	// ensure there is no document currently open (we also must call UnloadKBs() & set their
 	// pointers to NULL)
 	pApp->GetView()->ClobberDocument();
+
+	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+
 	if (pApp->m_bCollaboratingWithBibledit || pApp->m_bCollaboratingWithParatext)
 	{
         // Closure of the document, whether a collaboration one or not, should clobber the
@@ -2125,7 +2128,8 @@ void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle)
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 
-	// get the title bar, and output path set up right...
+	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+										// get the title bar, and output path set up right...
 	wxString typeName = _T(" - Adapt It");
 	#ifdef _UNICODE
 	typeName += _T(" Unicode");
@@ -2644,6 +2648,9 @@ wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath, wxString bookCod
 bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText,
 		 bool bDoMerger, bool bDoLayout, bool bCopySourceWanted)
 {
+
+	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+
 	wxASSERT(pApp->m_pSourcePhrases->IsEmpty());
 	int nActiveSequNum = 0; // default
 	if (!pApp->m_pSourcePhrases->IsEmpty())
@@ -3982,7 +3989,11 @@ bool CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgt
 {
 	// ensure there is no document currently open (we also call UnloadKBs() & set their
 	// pointers to NULL) -- note, if the doc is dirty, too bad, recent changes will be lost
-	pApp->GetView()->ClobberDocument();
+	pApp->GetView()->ClobberDocument(); // sets m_bDocumentDestroyed to TRUE, so
+		// now immediately restore the flag to FALSE
+
+	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+
 	if (pApp->m_bCollaboratingWithBibledit || pApp->m_bCollaboratingWithParatext)
 	{
         // Closure of the document, whether a collaboration one or not, should clobber the

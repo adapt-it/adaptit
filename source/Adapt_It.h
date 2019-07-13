@@ -4172,6 +4172,15 @@ public:
 	bool	m_bNotesExist; // set TRUE by OnIdle() if there are one or more Adapt It notes
 				// in the document, else FALSE
 
+	bool	m_bDocumentDestroyed; // BEW added 13Jul19 as insurance against document
+				// closure and auto-saving running concurrently so that the auto-saving
+				// fails to save the m_pSourcePhrases list's contents - because if that
+				// happens the user's work is permanently lost, and recovery depends on
+				// their being a .BAK undestroyed or a recent snapshot in GIT repository - 
+				// neither of which are guaranteed to exist, especially with novice users.
+				// So, if this flag goes true, DoAutoSaveDoc() will exit immediately
+				// without doing any attempt to construct the xml for the doc save. The
+				// flag will stay true until a new doc, previous doc, or unpack, is done.
 	// BEW added 10Jan06
 	bool	m_bUnpacking;	// TRUE when Unpack Document... is in progress, else FALSE
 				// (used in SetupDirectories())

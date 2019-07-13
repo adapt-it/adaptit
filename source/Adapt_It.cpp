@@ -18306,6 +18306,8 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bDocumentDestroyed = FALSE; // initialize - used to prevent DoAutoSaveDOc() doing
+								  // anything when the doc is being or has been clobbered
     m_nDropDownClickedItemIndex = -1;
 
 	m_nOldSequNum = (int)wxNOT_FOUND; // initialize so I can jump code which expects a non
@@ -32961,6 +32963,17 @@ void CAdapt_ItApp::DoAutoSaveDoc()
 // with additions for handling glossing versus adapting (ie. to get the stuff in the
 // phrase box into the appropriate KB before the save is done)
 {
+	if (m_bDocumentDestroyed == TRUE)
+	{
+		// Never allow an auto-save event to succeed if the m_pSourcePhrases list
+		// is about to be, is currently, or has been destroyed (the mutex below is
+		// some extra protection, from earlier code; the data loss happened despite
+		// it in July2019 for Evelyn Djotja Dhayina at Galiwin'ku, so this boolean
+		// was added now at 13July19 to give extra protection). Opening a document
+		// will set the flag FALSE again.
+		return;
+	}
+
 	s_AutoSaveMutex.Lock();
 	bool bOkay;
 	// BEW 5Mar18, added test to skip the save attempt on empty list
@@ -33121,7 +33134,9 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
         // whm Note: ClobberDocument() is a potentially time consuming operation for long
         // documents.
         GetView()->ClobberDocument();
-        // done -- update the embedded status bar
+
+		m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+											// done -- update the embedded status bar
         ((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Saving File"));
     }
     bool bOK;
@@ -43634,6 +43649,8 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 
             pView->ClobberDocument();
 
+			gpApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+
             // remove the progress indicator window
             ((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Transformations To Glosses"));
         }
@@ -46604,6 +46621,8 @@ wxString CAdapt_ItApp::ApplyDefaultDocFileExtension(wxString s)
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
 {
+	m_bDocumentDestroyed = TRUE;
+
 	s_AutoSaveMutex.Lock();
 
 	// BEW modified 02Nov05, because earlier version leaked memory (so I plagiarized
