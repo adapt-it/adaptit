@@ -1,6 +1,15 @@
+c CC table for reversing lx and ge fields, and keeping \del \wc \cr unchanged. It has commented out
+c support for the \mdt (modified date time) marker in it; it is commented out because if the input
+c data has no \mdt marker, a warning shows which looks like an error message - but canceling the
+c message the table processing completes successfully. So to avoid confusing the user, it's better
+c to comment out the \mdt support -- but if included, then "\mdt " out(mdt) would need to be added to the line beginning "xxx" >  just before the text " nl use(starter)" at the line's end.
+c Also some records have a single blank line separating, others have two. This difference is benign, it's
+c convenient to not bother to make it always be just a single line. It won't make any difference when
+c importing the reversed KB data into an Adapt It project.
+c
 begin > use(starter)
 group(starter)
-"" > omit(1)
+"xxx" > "\lx " out(ge) "\ge " out(lx)  "\del " out(del) "\wc " out(wc) "\cdt " out(cdt) nl use(starter)
 "\" > dup back(1) use(maingroup)
 
 group(maingroup)
@@ -8,7 +17,12 @@ group(maingroup)
 "\lx ..." nl > use(starter)
 "\ge " nl > use(starter)
 "\ge " > store(ge) use(targetscan)
-nl > fwd(1)
+"\del " > store(del) use(delscan)
+"\wc " > store(wc) use(wcscan)
+"\cdt " > store(cdt) use(cdtscan)
+c Comment out, but uncomment out if input contains at least one \mdt (modified date time) marker
+c "\mdt " > store(mdt) use(mdt) c This marker, if present, we'll swallow & remove
+nl > omit(1)
 endfile > endfile
 nl endfile > endstore endfile
 
@@ -18,4 +32,24 @@ nl > dup endstore use(maingroup)
 
 group(targetscan)
 "" > fwd(1)
-nl > dup endstore "\lx " out(ge) "\ge " out(lx) nl use(starter)
+nl > dup endstore use(maingroup)
+
+c ==================
+
+group(delscan)
+"" > fwd(1)
+nl > dup endstore use(maingroup)
+
+group(wcscan)
+"" > fwd(1)
+nl > dup endstore use(maingroup)
+
+c Comment out, but uncomment out if input contains at least one \mdt (modified date time) marker
+c group(mdtscan)
+c "" > fwd(1)
+c nl > dup endstore use(maingroup)
+
+group(cdtscan)
+"" > fwd(1)
+nl > dup endstore "xxx" back(3) use(starter)
+ 
