@@ -512,6 +512,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 				msg = msg.Format(msg,dirPath.c_str());
 				wxMessageBox(msg,_T(""), wxICON_ERROR | wxOK);
 				pApp->LogUserAction(msg);
+
+				pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+
 				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if
 							 // you want the doc/view framework to keep working right
 			}
@@ -726,6 +729,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 "Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."),
 				_T(""), wxICON_INFORMATION | wxOK);
 
+				pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+
 				// check if there was a document current, and if so, reinitialize everything
 				if (pView != 0)
 				{
@@ -801,7 +806,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 	"Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."),
 					_T(""), wxICON_INFORMATION | wxOK);
 
-					// check if there was a document current, and if so, reinitialize everything
+					pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+														// check if there was a document current, and if so, reinitialize everything
 					if (pView != 0)
 					{
 						pApp->m_pTargetBox->GetTextCtrl()->SetValue(_T("")); // whm 12Jul2018 added GetTextCtrl()-> part
@@ -840,6 +846,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 					{
 						bGotLoadableFile = TRUE;
 					}
+
+					pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+
 				} // end of else wxID_OK
 				  // & fileDlg goes out of scope here
 			} // end of while
@@ -935,6 +944,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 							pApp->m_bZWSPinDoc = FALSE; // BEW 6Oct14 restore default
 
+							pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+
 							return TRUE; // returns to OnWizardFinish() in DocPage.cpp (BEW 24Aug10, if
 										// that claim always is true, then no harm will be done;
 										// but if it returns FALSE to the wxWidgets doc/view
@@ -963,6 +974,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 					;
 				}
 			}
+
+			pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
 			// get a suitable output filename for use with the auto-save feature
 			// BEW 23Aug10, changed so that if user navigation protection is in force,
@@ -1216,8 +1229,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 			pApp->m_bMakeDocCreationLogfile = FALSE; // turn this OFF to prevent user
 				// leaving it turned on, and wondering why doc creation takes minutes to complete
 
-
-
 #if defined(_DEBUG) //&& defined(FWD_SLASH_DELIM)
 			if (pApp->m_bFwdSlashDelimiter)
 			{
@@ -1235,7 +1246,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 				} while (pos != NULL);
 			}
 #endif
-
             // Get any unknown markers stored in the m_markers member of the Doc's
             // source phrases whm ammended 29May06: Bruce desired that the filter
             // status of unk markers be preserved for new documents created within the
@@ -1378,6 +1388,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			wxMessageBox(strMessage,_T(""), wxICON_ERROR | wxOK);
 			gpApp->m_lastSourceInputPath = gpApp->m_workFolderPath;
 			pApp->LogUserAction(strMessage);
+			pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 			break;
 		}
 		case getNewFile_error_opening_binary:
@@ -1408,6 +1419,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			wxMessageBox(strMessage2,_T(""), wxICON_ERROR | wxOK);
 			gpApp->m_lastSourceInputPath = gpApp->m_workFolderPath;
 			pApp->LogUserAction(strMessage2);
+			pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 			break;
 		}
 		case getNewFile_error_ansi_CRLF_not_in_sequence:
@@ -1419,6 +1431,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			wxMessageBox(_T("Input data malformed: CR and LF not in sequence"),
 			_T(""),wxICON_ERROR | wxOK);
 			pApp->LogUserAction(_T("Input data malformed: CR and LF not in sequence"));
+			pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 			break;
 		}
 		case getNewFile_error_no_data_read:
@@ -1426,6 +1439,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// we got no data, so this constitutes a read failure
 			wxMessageBox(_("File read error: no data was read in"),_T(""),wxICON_ERROR | wxOK);
 			pApp->LogUserAction(_T("File read error: no data was read in"));
+			pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 			break;
 		}
 		case getNewFile_error_unicode_in_ansi:
@@ -1446,6 +1460,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			wxMessageBox(strMessage2,_T(""), wxICON_ERROR | wxOK);
 			gpApp->m_lastSourceInputPath = gpApp->m_workFolderPath;
 			pApp->LogUserAction(strMessage2);
+			pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 			break;
 		}
 		}// end of switch()
@@ -1492,6 +1507,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			pApp->LogUserAction(_T("In OnNewDocument WriteConfigurationFile() failed"));
 			wxMessageBox(_T("Adapt_ItDoc.cpp, WriteConfigurationFile() failed, for project config file or admin project config file, in OnNewDocument() at lines 1393+"));
 		}
+		pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 	}
 
 	// whm 1Oct12 removed MRU code
@@ -1560,12 +1576,14 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// now, instead of waiting for a user action requiring a canvas redraw
 			pApp->GetView()->canvas->Refresh(); // needed? the call in OnIdle() is more efffective
 		}
+		pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 	}
 	pApp->LogUserAction(_T("Return TRUE from OnNewDocument()"));
 
 	// BEW added 7Oct14
 	pApp->m_bZWSPinDoc = pApp->IsZWSPinDoc(pApp->m_pSourcePhrases);
 
+	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 	return TRUE;
 }
 
@@ -4716,7 +4734,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 			// does a Rebuild Knowledge Base, the m_selection array will retain hanging
 			// pointers, and Rebuild Knowledge Base's RemoveSelection() call will cause a
 			// crash
-	pView->ClobberDocument();
+	pView->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
 
 	// delete the buffer containing the filed-in source text
 	if (pApp->m_pBuffer != NULL)
@@ -6298,7 +6316,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// CBookName dialog which opens for that purpose
 	pApp->m_bookName_Current.Empty();
 
-
 	// BEW 19Apr18 Provide more failure diagnostics here, for LogUserAction() - we want to know
 	// the filesize (in case it got trucated; the path and filename - tells us from where and
 	// whether it is a collaboration file, and the last 15 characters which should contain the
@@ -6340,6 +6357,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 			delete[] pShortBuff;
 			f.Close();
 		}
+		pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 	}
 
 	wxFileName fn(filename);
@@ -6356,6 +6374,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		fullFileName = fn.GetFullName();
 
 		bool bReadOK = ReadDoc_XML(thePath, this, _("Opening the Document"), nTotal); // pProgDlg can be NULL
+
+		pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
 		if (!bReadOK)
 		{
@@ -6426,6 +6446,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		{
 			pStatusBar->FinishProgress(_("Opening the Document"));
 		}
+		pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 		return TRUE; // Added by JF.
 	}
 
@@ -6460,7 +6481,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
         {
             pStatusBar->FinishProgress(_("Opening the Document"));
         }
-        return FALSE;
+		pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+		return FALSE;
     }
 
 	// filenames and paths for the doc and any backup are now guaranteed to be
@@ -6533,6 +6555,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		{
 			pStatusBar->FinishProgress(_("Opening the Document"));
 		}
+		pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 		return FALSE;
 	}
 
@@ -6809,7 +6832,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		pApp->m_bEnteringKBserverProject = TRUE;
 	}
 #endif
-		return TRUE;
+	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+	return TRUE;
 }
 
 CLayout* CAdapt_ItDoc::GetLayout()
@@ -18240,22 +18264,25 @@ bool CAdapt_ItDoc::DeleteContents()
 // function to implement an "Edit Clear All" or similar command that deletes all of the
 // document's data. The default implementation of this function does nothing. Override this
 // function to delete the data in your document."
+/// BEW 12Jul19 moved mutex to start & end of function, because Evelyn at Gali'winku
+/// (Warramiri - Matata) had a doc contents emptying experience
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->m_bDocumentDestroyed = TRUE;
+
+	s_AutoSaveMutex.Lock();
+
 	// zero the contents of the read-in file of source text data
 	if (pApp->m_pBuffer != 0)
 	{
 		pApp->m_pBuffer->Empty();
 	}
 
-	s_AutoSaveMutex.Lock();
-
 	// delete the source phrases
 	DeleteSourcePhrases(); // this does not delete the partner piles as
 		// the internal DeleteSingleSrcPhrase() has the 2nd param FALSE so
 		// that it does not call DeletePartnerPile() -- so delete those
 		// separately below en masse with the DestroyPiles() call
-	s_AutoSaveMutex.Unlock();
 
 	// the strips, piles and cells have to be destroyed to make way for the new ones
 	CAdapt_ItView* pView = (CAdapt_ItView*)NULL;
@@ -18278,6 +18305,8 @@ bool CAdapt_ItDoc::DeleteContents()
 	}
 
     pApp->m_pTargetBox->m_Translation.Empty(); // make sure the global var is clear
+
+	s_AutoSaveMutex.Unlock();
 
 	return wxDocument::DeleteContents(); // just returns TRUE
 }
@@ -21838,6 +21867,8 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 {
 	CAdapt_ItView* pView = gpApp->GetView();
 
+	gpApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+
 	// get the file size
 	int nFileSize = (int)pFile->Length();
 	int nResult;
@@ -22617,6 +22648,8 @@ bool CAdapt_ItDoc::ReOpenDocument (
             )
 {
     wxASSERT(pApp->m_pSourcePhrases->GetCount() == 0);
+
+	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
 	bool bOK = TRUE;
 	pApp->m_acceptedFilesList.Clear();
@@ -23406,6 +23439,9 @@ bool CAdapt_ItDoc::ConsistencyCheck_ClobberDoc(CAdapt_ItApp* pApp, bool& bDocIsC
 	// save and remove open doc, if a doc is open
 	if (!bDocIsClosed)
 	{
+
+		pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+
 	   // Save the Doc (and DoFileSave() also automatically saves, without backup,
 		// both the glossing and adapting KBs)
 		// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
@@ -23443,9 +23479,10 @@ bool CAdapt_ItDoc::ConsistencyCheck_ClobberDoc(CAdapt_ItApp* pApp, bool& bDocIsC
         // to whatever is in m_pSourcePhrases, so the latter list must be
         // cleared to avoid the data doubling bug
 		bDocForcedToClose = TRUE;
-		pApp->GetView()->ClobberDocument();
+		pApp->GetView()->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
 		pApp->m_acceptedFilesList.Clear();
 	} // end of TRUE block for test: if (!bDocIsClosed)
+	//pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 	return TRUE;
 }
 
@@ -25663,7 +25700,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			wxMessageBox(_("Warning: failure on document save operation."),
 			_T(""), wxICON_EXCLAMATION | wxOK);
 		}
-		pApp->GetView()->ClobberDocument();
+		pApp->GetView()->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
+		//pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
 		// delete the buffer containing the filled-in source text
 		if (pApp->m_pBuffer != NULL)
@@ -26572,7 +26610,8 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 			wxMessageBox(_("Warning: failure on document save operation."),
 			_T(""), wxICON_EXCLAMATION | wxOK);
 		}
-		pApp->GetView()->ClobberDocument();
+		pApp->GetView()->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
+		//pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
 		// delete the buffer containing the filed-in source text
 		if (pApp->m_pBuffer != NULL)

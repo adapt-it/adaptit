@@ -15723,7 +15723,10 @@ bool CAdapt_ItView::DoGlobalRestoreOfSaveToKB(wxString sourceKey)
 		// the document because editing of the source text has taken place - and this is
 		// not likely to ever be the case when doing global restoring of <Not In KB> to having
 		// a kb entry in all the places the src/tgt pair occur in all docs.
-		pApp->GetView()->ClobberDocument();
+		pApp->GetView()->ClobberDocument(); // BEW 13Jul19 I think m_bDocumentDestroyed should
+			// be allowed to stand as TRUE after this clobber call, as it will prevent (at
+		    // least temporarily) DoAutoSaveDoc(), if it gets fired by the timer, from
+			// doing anything during this function's operation
 		pApp->m_acceptedFilesList.Clear();
 		bDocForcedToClose = TRUE;
 	} // end of TRUE block for test: if (!bDocIsClosed)
@@ -15789,7 +15792,7 @@ bool CAdapt_ItView::DoGlobalRestoreOfSaveToKB(wxString sourceKey)
 		{
 			// If we fail to read in a document, just skip it, but inform the user
 			pLayout->m_bLayoutWithoutVisiblePhraseBox = TRUE; // suppresses phrasebox stuff
-			ClobberDocument();
+			ClobberDocument(); // let m_bDocumentDestroyed stay TRUE
 			// Inform the user
 			wxString title = _("File read failure");
 			wxFileName fn(aPath);
@@ -15817,7 +15820,7 @@ bool CAdapt_ItView::DoGlobalRestoreOfSaveToKB(wxString sourceKey)
 			}
 			// Clobber the document - clearing pSrcPhrases to empty
 			pLayout->m_bLayoutWithoutVisiblePhraseBox = TRUE; // suppresses phrasebox stuff
-			ClobberDocument(); // clears pSrcPhrases list
+			ClobberDocument(); // clears pSrcPhrases list; & let m_bDocumentDestroyed stay TRUE
 		}
 
 		// Update the progress bar
@@ -15956,11 +15959,17 @@ void CAdapt_ItView::RestoreKBStorageForSourceKey(wxString sourceKey, CKB* pKB)
 
 // BEW changed 25Aug11, removed the code for unloading the KBs, it is bad design to have
 // it in here
+/// BEW 12Jul19 moved mutex to start & end of function, because Evelyn at Gali'winku
+/// (Warramiri - Matata) had a doc contents emptying experience
 void CAdapt_ItView::ClobberDocument()
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->m_bDocumentDestroyed = TRUE;
+
+	s_AutoSaveMutex.Lock();
+
 	NormalizeState();
 
-	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
 	wxString msg = _T("ClobberDocument() entered; m_pSourcePhrases size = %d");
@@ -16017,11 +16026,7 @@ void CAdapt_ItView::ClobberDocument()
     // document object
 	pDoc->Modify(FALSE); // MFC has SetModifiedFlag(FALSE)
 
-	s_AutoSaveMutex.Lock();
-
 	pDoc->DeleteSourcePhrases();
-
-	s_AutoSaveMutex.Unlock();
 
 	pLayout->GetInvalidStripArray()->Clear();
 	pLayout->DestroyStrips();
@@ -16055,6 +16060,8 @@ void CAdapt_ItView::ClobberDocument()
 
 	msg = _T("ClobberDocument() exiting");
 	pApp->LogUserAction(msg);
+
+	s_AutoSaveMutex.Unlock();
 }
 
 void CAdapt_ItView::CloseProject()

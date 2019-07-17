@@ -18306,6 +18306,8 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bDocumentDestroyed = FALSE; // initialize - used to prevent DoAutoSaveDOc() doing
+								  // anything when the doc is being or has been clobbered
     m_nDropDownClickedItemIndex = -1;
 
 	m_nOldSequNum = (int)wxNOT_FOUND; // initialize so I can jump code which expects a non
@@ -18336,12 +18338,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bALT_KEY_DOWN = FALSE;
 
 	m_bDoNormalProjectOpening = TRUE; // default value
-	m_bUserWantsNoCollabInShiftLaunch = FALSE; // set TRUE in GetAIProjectCollabStatus() is
-				// called with the user's finger still holding down the SHIFT key in a
-				// SHiFT-Launch; in order to carry his choice for "no collaboration restoration
-				// wanted" (the non-default option) to the DocPage.cpp OnSetActive() block which
-				// removes _Collab_*.xml documents, so as to not remove them and to have
-				// m_bCollaboratingWithParatext and m_bCollaboratingWithBibledit both cleared to FALSE
+	m_bUserWantsNoCollabInShiftLaunch = FALSE; // set TRUE in GetAIProjectCollabStatus()
+		//  is called with the user's finger still holding down the SHIFT key in a
+		// SHIFT-Launch; in order to carry his choice for "no collaboration restoration
+		// wanted" (the non-default option) to the DocPage.cpp OnSetActive() block which
+		// removes _Collab_*.xml documents, so as to not remove them and to have
+		// m_bCollaboratingWithParatext and m_bCollaboratingWithBibledit both cleared to FALSE
 
 	// BEW added, 19Jan17, the following 5 public strings in support of ParseWord2()'s
 	// post-word filtering of filterable markers and their content (eg. \x,  \f, \fe ...)
@@ -18404,7 +18406,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 #endif
 
-                                  // initialize these collaboration variables, which are relevant to conflict resolution
+    // initialize these collaboration variables, which are relevant to conflict resolution
     m_bRetainPTorBEversion = FALSE;
     m_bForceAIversion = FALSE;
     m_bUseConflictResolutionDlg = FALSE;
@@ -18439,8 +18441,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
                               //bool bMain = wxThread::IsMain(); // yep, correctly returns true
     m_bRestorePhraseBoxToActiveLocAfterFreeTransExited = FALSE; // used to relocate the
-                                                                // phrasebox to the active pile's hole when free trans mode is exited. (Because
-                                                                // it stubbornly stayed at old anchor location on the screen)
+        // phrasebox to the active pile's hole when free trans mode is exited. (Because
+        // it stubbornly stayed at old anchor location on the screen)
     m_nMinPileWidth = 20; // BEW added 19May15, a safe default (basic config file may override)
     m_preGuesserStr.Empty();
     m_bZWSPinDoc = FALSE; // set default value; each loaded doc will be checked for
@@ -18450,15 +18452,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                           // done on se asian languages with ZWSP word delimiters, and
                           // also in mergers for handling free trans, notes, collected
                           // back translations - see PutSrcWordBreakFrTr() in helpers.cpp
-                          //#if defined(FWD_SLASH_DELIM)
-                          // BEW 23Apr15 support / as a word-breaking character for some asian languages during prepublication processing
-                          //m_bFwdSlashDelimiter = TRUE; // forced to TRUE when experimenting (before GUI support added)
+    //#if defined(FWD_SLASH_DELIM)
+    // BEW 23Apr15 support / as a word-breaking character for some asian languages during prepublication processing
+    //m_bFwdSlashDelimiter = TRUE; // forced to TRUE when experimenting (before GUI support added)
     m_bFwdSlashDelimiter = FALSE; // default, only needed for a few languages
                                   //#endif
     m_bNoFootnotesInCollabToPTorBE = FALSE; // BEW 20May15 default is FALSE (i.e. PT or BE will
-                                            // get sent the footnote markers with no content). Basic config
-                                            // file may change this to TRUE; Backups and Misc in Preferences
-                                            // is where the user can tick a checkbox to make this TRUE
+                        // get sent the footnote markers with no content). Basic config
+                        // file may change this to TRUE; Backups and Misc in Preferences
+                        // is where the user can tick a checkbox to make this TRUE
 
     m_nExtraPixelsForDiacritics = 0; // default, but Project config file may override it
                                      // (see View page of Prefs, the slider control)
@@ -18466,13 +18468,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                      // Used when collaborating with PT or BE
     m_bPunctChangesDetectedInSourceTextMerge = FALSE; // BEW 21May14
 
-                                                      // BEW added 17Jul14 in support of languages like Lao, Kmer, etc
+    // BEW added 17Jul14 in support of languages like Lao, Kmer, etc
     m_bUseSrcWordBreak = true; // default until the project config file is read
 
-                               // Support ZWSP insertion if user turns it on, see View page in Preferences
+    // Support ZWSP insertion if user turns it on, see View page in Preferences
     m_bEnableZWSPInsertion = FALSE; // initialize to FALSE
 
-                                    // Initialize for no clipboard adaptation mode turned on yet
+    // Initialize for no clipboard adaptation mode turned on yet
     m_bClipboardAdaptMode = FALSE;
     m_nSaveSequNumForDocRestore = 0; // 0 is a safer default than -1
     m_pSavedDocForClipboardAdapt = new SPList; // destroy it in OnExit()
@@ -18516,9 +18518,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bEnableDelayedGet_Handler = FALSE; // BEW changed to this on 7Oct14
 
     // bug fixed 24Sept13 BEW
-    //limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from
-    // being done more than once in a series of OnIdle() calls. It's reset to
-    // 0 in OnLButtonDown() and in the CPhraseBox functions MoveToNextPile(),
+    //limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent
+    // a hack from being done more than once in a series of OnIdle() calls. It's
+    // reset to 0 in OnLButtonDown() and in the CPhraseBox functions MoveToNextPile(),
     // MoveToImmediateNextPile() and MoveToPrevPile(); otherwise once the hack
     // has worked once, before its block is exitted limiter is set to be 1,
     // and a test at the block's start for limiter == 0 then prevents further
@@ -18538,17 +18540,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // explanation of why we need this)
     m_bKeepBoxMidscreen = TRUE; // the project config file's value will override this initialization
 
-                                // Mike & BEW added 20May13, for across-the-app username support
-    m_strUserID = NOOWNER;  // it's set from the basic config file, or if still empty, then
-                            // at the wxTextCtrl on Bruce's dialog.  If not set, NOOWNER is a good
-                            // anonymous value and simplifies some later tests.
-                            // NOTE: NOOWNER is #defined as _T("****")
+    // Mike & BEW added 20May13, for across-the-app username support
+    m_strUserID = NOOWNER;  // it's set from the basic config file, or if still empty,
+            // then at the wxTextCtrl on Bruce's dialog.  If not set, NOOWNER is a good
+            // anonymous value and simplifies some later tests.
+            // NOTE: NOOWNER is #defined as _T("****")
     m_strUsername.Empty(); // GIT uses it, also used as a human-readable informal name in KBserver
                            // and is stored in the basic config file as is m_strUserID
 
     m_bClosingDown = FALSE; // gets set to TRUE at start of OnExit()
 #if defined(SCROLLPOS) && defined(__WXGTK__)
-                            // boolean used for a workaround for the scrollPos bug (position goes back to old position unbidden)
+    // boolean used for a workaround for the scrollPos bug (position goes back to old position unbidden)
     m_bAdjustScrollPos = FALSE;
 #endif
 
@@ -18558,10 +18560,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pKbServer[0] = NULL; // for adapting; always NULL, except when a KB sharing project is active
     m_pKbServer[1] = NULL; // for glossing; always NULL, except when a KB sharing project is active
     m_bIsKBServerProject = FALSE; m_bIsGlossingKBServerProject = FALSE; // initialise both flags
-                                                                        // start off with the timer not instantiated; only set a single one in first call of
-                                                                        // SetupForKbServer(), a second call (for the glossing KB) should check for NULL and do
-                                                                        // nothing if the timer already exists; use similar logic for destroying the timer in
-                                                                        // ReleaseKbServer()
+            // start off with the timer not instantiated; only set a single one in first call of
+            // SetupForKbServer(), a second call (for the glossing KB) should check for NULL and do
+            // nothing if the timer already exists; use similar logic for destroying the timer in
+            // ReleaseKbServer()
     m_pKbServerDownloadTimer = NULL;
 
     // flag initializations
@@ -18597,10 +18599,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bBackedUpForTrial = FALSE;
     m_pDVCS = new (DVCS);           // the single object we use for all DVCS ops
 
-                                    // Note: our check for git being installed is now moved down to after the user log file
-                                    // setup, so we can log the git calls.
+    // Note: our check for git being installed is now moved down to after the user log file
+    // setup, so we can log the git calls.
 
-                                    // initialize Printing support members
+    // initialize Printing support members
     m_bFrozenForPrinting = FALSE;
     m_bIsPrinting = FALSE;
     m_bPrintingRange = FALSE;
@@ -18614,9 +18616,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bShowToolbarIconAndText = FALSE;
     std::fill_n(m_bToolbarButtons, sizeof(m_bToolbarButtons), true); // initialize all values to true
 
-                                                                     // default substring delimiters possibly used within LIFT file <text> elements - we
-                                                                     // assume only two, comma and semicolon
-    m_LIFT_subfield_delimiters = _T(",;");
+	// default substring delimiters possibly used within LIFT file <text> elements - we
+	// assume only two, comma and semicolon
+	m_LIFT_subfield_delimiters = _T(",;");
 
     // whm added 10Oct2016
 #if wxUSE_GRAPHICS_CONTEXT
@@ -18640,13 +18642,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bPagePrintInProgress = FALSE; // default value, it's true only while OnPrintPage()
                                     // is being executed
 
-                                    // BEW added 31Aug11 -- strings needed in the consistency check dialogs
+    // BEW added 31Aug11 -- strings needed in the consistency check dialogs
     m_modeWordAdapt = _("adaptation");
     m_modeWordGloss = _("gloss");
     m_modeWordAdaptPlusArticle = _("an adaptation");
     m_modeWordGlossPlusArticle = _("a gloss");
     m_strNotInKB = _T("<Not In KB>"); // this one is never localizable,
-                                      // and this KB entry type is not available in glossing mode either
+                 // and this KB entry type is not available in glossing mode either
     m_strNoAdapt = _("<no adaptation>");
     m_strNoGloss = _("<no gloss>");
     m_strTitle = _("Inconsistency Found");
@@ -18662,22 +18664,22 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bDocReopeningInProgress = FALSE;		// mrh 2May12
 
     bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // in support of Collaboration with
-                                                          // PT or BE; set when setting up a doc in collab mode, used to suppress the
-                                                          // PlacePhraseBox() call until the next OnIdle() call is made - and cleared there
+            // PT or BE; set when setting up a doc in collab mode, used to suppress the
+            // PlacePhraseBox() call until the next OnIdle() call is made - and cleared there
 
     m_adminHelpFileName = _T("Help_for_Administrators.htm");
     m_quickStartHelpFileName = _T("Adapt_It_Quick_Start.htm");
     m_rfc5646MessageFileName = _T("RFC5646message.htm"); // whm added 30Jul13 for BEW
     m_GuesserExplanationMessageFileName = _T("GuesserExplanation.htm"); // BEW added 7Mar14
 
-                                                                        // whm added 8Jan11. Based on feedback from LSdev Linux group in Calgary, AI should
-                                                                        // check to see that the computer hardware has a certain minimum resolution, especially
-                                                                        // the screen's vertical pixels should be at least 480 pixels in height. Width should
-                                                                        // be at lease 640 pixels. Anything smaller especially in height makes the sizers for
-                                                                        // the Start Working wizard shrink the wizard to an unusable size in which nothing
-                                                                        // can be seen and the only response possible is to hit the Esc key to close the wizard.
-                                                                        // Hence, if the screen size is below 480h x 640w we notify the user and shut down the
-                                                                        // application.
+    // whm added 8Jan11. Based on feedback from LSdev Linux group in Calgary, AI should
+    // check to see that the computer hardware has a certain minimum resolution, especially
+    // the screen's vertical pixels should be at least 480 pixels in height. Width should
+    // be at lease 640 pixels. Anything smaller especially in height makes the sizers for
+    // the Start Working wizard shrink the wizard to an unusable size in which nothing
+    // can be seen and the only response possible is to hit the Esc key to close the wizard.
+    // Hence, if the screen size is below 480h x 640w we notify the user and shut down the
+    // application.
     int nDisplayHeightInPixels;
     int nDisplayWidthInPixels;
     ::wxDisplaySize(&nDisplayWidthInPixels, &nDisplayHeightInPixels);
@@ -18788,26 +18790,26 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pEmailReportData = (EmailReportData*)NULL; // whm added 10Nov10
 
     m_bForceFullConsistencyCheck = FALSE; // set true if user has respellings in the KB and
-                                          // after the KB save to disk and the message comes up asking if he wants a full
-                                          // consistency check done, and he responds by clicking Yes button
+            // after the KB save to disk and the message comes up asking if he wants a full
+            // consistency check done, and he responds by clicking Yes button
     m_bAdminMoveOrCopyIsInitializing = FALSE; // default
     maxProgDialogValue = 2147483647; //MAXINT;
     m_bControlIsWithinOnInit = TRUE;
     m_bAutoExport = FALSE; // this flag can only be set TRUE by use of the commandline command
-                           // export, which takes three obligatory string parameters following
-                           // BEW added 12Nov09 for John Hatton & Steve McEvoy; if set in OnInit()
-                           // the app is launched does an automated default USFM adapation
-                           // export from a given doc in given project and saves to a given
-                           // folder and then shuts down, no GUI is displayed (John H will
-                           // build a SendIt app to grab the resulting file and send it over
-                           // HF radio email link to Steve McEvoy
-    PathSeparator = wxFileName::GetPathSeparator(); // need this defined early, because the
-                                                    // ReadOnlyProtection class uses it
-                                                    // set m_pROPwxFile, on heap; delete it in OnExit()
+            // export, which takes three obligatory string parameters following
+            // BEW added 12Nov09 for John Hatton & Steve McEvoy; if set in OnInit()
+            // the app is launched does an automated default USFM adapation
+            // export from a given doc in given project and saves to a given
+            // folder and then shuts down, no GUI is displayed (John H will
+            // build a SendIt app to grab the resulting file and send it over
+            // HF radio email link to Steve McEvoy
+    PathSeparator = wxFileName::GetPathSeparator(); // need this defined early,
+                            // because the ReadOnlyProtection class uses it
+                            // set m_pROPwxFile, on heap; delete it in OnExit()
     m_pROPwxFile = new wxFile;	// use default constructor; call Open() later when project
                                 // path is known
 
-                                // initialize for Read-Only support when accessing a remote project folder
+    // initialize for Read-Only support when accessing a remote project folder
     m_bReadOnlyAccess = FALSE; // default, allows current user write access to projects
     m_bFictitiousReadOnlyAccess = FALSE; // default unless explicitly turned on by advisor or consultant
     m_pROP = new ReadOnlyProtection(this);
@@ -19107,32 +19109,32 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                  // flag set at that point
     m_bDoNotWriteConfigFiles = FALSE; // default is allow them to be written
     m_adminPassword = _T(""); // nothing initially, basic config file can store one
-                              // and "admin" will always work, but not be stored in basic
-                              // config file ever
-                              //m_bPwdProtectCollabSwitching = TRUE; // whm added 2Feb12
-                              //m_collabSwitchingPassword = _T(""); // nothing initially, basic config file stores on
-                              // and "switch" will always work, but isn't stored in
-                              // the basic config file
+        // and "admin" will always work, but not be stored in basic
+        // config file ever
+        //m_bPwdProtectCollabSwitching = TRUE; // whm added 2Feb12
+        //m_collabSwitchingPassword = _T(""); // nothing initially, basic config file stores on
+        // and "switch" will always work, but isn't stored in
+        // the basic config file
 
-                              // wxWidgets NOTES:
-                              // 1. Do NOT attempt to call or manipulate anything from within the CMainFrame
-                              // constructor (see MainFrm.cpp) before a CMainFrame object is constructed here (see
-                              // the new CMainFrame() statement below. For example, removing a menu from the main
-                              // frame cannot be done in the CMainFrame constructor because the main frame menu
-                              // itself is not loaded and constructed until the SetMenuBar call here in
-                              // CAdapt_ItApp::OnInit() is executed with:
-                              // m_pMainFrame->SetMenuBar(AIMenuBarFunc(m_pDocManager));
-                              // 2. All Application initialization should be done here in OnInit() rather than in the
-                              // App's constructor CAdapt_ItApp::CAdapt_ItApp(). This is especially true for versions
-                              // of wxWidgets after 2.4.2 (2.5.x, 2.6.x, 2.7.x, 2.8.x etc), because in the more
-                              // recent wxWidgets' versions the application's constructor is "called much earlier
-                              // than previously." Also Note that any application level cleanup should be done in
-                              // CAdapt_ItApp::OnExit(), and NOT in the application's destructor
-                              // CAdapt_ItApp:~CAdapt_ItApp(), for similar reasons (i.e., the app's destructor gets
-                              // called much later than in previous versions).
+        // wxWidgets NOTES:
+        // 1. Do NOT attempt to call or manipulate anything from within the CMainFrame
+        // constructor (see MainFrm.cpp) before a CMainFrame object is constructed here (see
+        // the new CMainFrame() statement below. For example, removing a menu from the main
+        // frame cannot be done in the CMainFrame constructor because the main frame menu
+        // itself is not loaded and constructed until the SetMenuBar call here in
+        // CAdapt_ItApp::OnInit() is executed with:
+        // m_pMainFrame->SetMenuBar(AIMenuBarFunc(m_pDocManager));
+        // 2. All Application initialization should be done here in OnInit() rather than in the
+        // App's constructor CAdapt_ItApp::CAdapt_ItApp(). This is especially true for versions
+        // of wxWidgets after 2.4.2 (2.5.x, 2.6.x, 2.7.x, 2.8.x etc), because in the more
+        // recent wxWidgets' versions the application's constructor is "called much earlier
+        // than previously." Also Note that any application level cleanup should be done in
+        // CAdapt_ItApp::OnExit(), and NOT in the application's destructor
+        // CAdapt_ItApp:~CAdapt_ItApp(), for similar reasons (i.e., the app's destructor gets
+        // called much later than in previous versions).
 
-                              // whm moved initialization of global pointer to the appliction gpApp here at the
-                              // beginning of OnInit() to make it available sooner.
+        // whm moved initialization of global pointer to the appliction gpApp here at the
+        // beginning of OnInit() to make it available sooner.
     gpApp = this;
 
     // whm added for wx version:
@@ -19182,11 +19184,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     m_bTablesLoaded = FALSE; // whm added 23May04 not initialized in MFC
 
-                             // BEW 8Jun10, removed support for checkbox "Recognise standard format
-                             // markers only following newlines"
-                             //gbSfmOnlyAfterNewlines = FALSE; // default, so sfm escape char anywhere defines a sfm
+    // BEW 8Jun10, removed support for checkbox "Recognise standard format
+    // markers only following newlines"
+    //gbSfmOnlyAfterNewlines = FALSE; // default, so sfm escape char anywhere defines a sfm
 #ifdef _RTL_FLAGS
-                             // default reading order should be LTR unless user changes it, or config file changes it
+    // default reading order should be LTR unless user changes it, or config file changes it
     m_bSrcRTL = FALSE;
     m_bTgtRTL = FALSE;
     m_bNavTextRTL = FALSE;
@@ -19218,17 +19220,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_logsEmailReportsFolderPath = _T("");
     m_usageLogFilePathAndName = _T(""); // whm added 8Nov10
     m_userLogFile = (wxFile*)NULL; // whm added 12Nov10
-                                   //m_packedDocumentFilePathOnly = _T(""); // whm added 8Nov10
-                                   //m_ccTableFilePathOnly = _T(""); // whm added 14Jul11
+        //m_packedDocumentFilePathOnly = _T(""); // whm added 8Nov10
+        //m_ccTableFilePathOnly = _T(""); // whm added 14Jul11
 
-                                   // The following use the _T() macro as they shouldn't be translated/localized
+    // The following use the _T() macro as they shouldn't be translated/localized
     m_theWorkFolder = m_theWorkFolder.Format(_T("Adapt It %sWork"), m_strNR.c_str());
     // whm Note: In the MFC version the "Adaptations" folder is localizable, so we
     // will do the same here
     // TODO: check the Unpack process when unpacking a packed file coming from
     // a different localization.
     m_adaptationsFolder = _("Adaptations");
-    m_lastSourceInputPath = m_workFolderPath; // m_workFolderPath is set to _T("") above - don't do alternative custom loc'n here
+    m_lastSourceInputPath = m_workFolderPath; // m_workFolderPath is set 
+		// to _T("") above - don't do alternative custom loc'n here
     m_curProjectPath = _T("");
     m_sourceInputsFolderPath = _T("");
     m_freeTransOutputsFolderPath = _T("");
@@ -19305,7 +19308,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // potential tool bar visibility, we'll check the available resolution during
     // the 'if (m_bWorkFolderBeingSetUp)' block on OnInit() below starting at
     // about line 23160.
-    m_toolbarSize = btnMedium; // btnSmall; // set initial value of the toolbar size
+    m_toolbarSize = btnMedium; //btnSmall; // set initial value of the toolbar size
 
     m_bSuppressWelcome = FALSE;
     m_bSuppressTargetHighlighting = FALSE;
@@ -19366,9 +19369,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bIsPortraitOrientation = TRUE;
     m_paperSizeCode = 9; // always mapped to MFC's enum for paper size code = 9; // A4
 
-                         //englishToMetric = 2.5;	// Bruce uses this as an approximation...
-                         // The following are OK for maintaining compatibility with MFC's config files, but they
-                         // should not be used for conversions relating to screen and printer display contexts.
+    //englishToMetric = 2.5;	// Bruce uses this as an approximation...
+    // The following are OK for maintaining compatibility with MFC's config files, but they
+    // should not be used for conversions relating to screen and printer display contexts.
     config_only_thousandthsInchToMillimetres = (float)0.025; // conversion factor rounded from 0.0254
     config_only_millimetresToThousandthsInch = (float)40.00; // conversion factor rounded from 39.37
 
@@ -19377,15 +19380,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     millimetresToThousandthsInch = (float)39.37;  // more precise conversion factor for display
                                                   // context calculations
 
-                                                  // Default values are set here and stored in config file in MFC's MM_LOENGLISH mapping
-                                                  // mode units (thousandths of an inch). The conversion between English and Metric in
-                                                  // MFC used two different degrees of precision for the conversion; MFC uses a
-                                                  // conversion factor of 0.025 when converting margins but a more precise 0.0254 when
-                                                  // converting page size dimensions. This creates a bit of a mismatch for the wxWidgets
-                                                  // version which handles page setup and printing values throughout in millimeters and
-                                                  // does those conversions regularly with the more precise 0.0254 conversion factor. To
-                                                  // keep compatibility with the MFC version and its config files, we need to use 0.025
-                                                  // for calculating margin values, but 0.0254 for calculating page dimensions.
+    // Default values are set here and stored in config file in MFC's MM_LOENGLISH mapping
+    // mode units (thousandths of an inch). The conversion between English and Metric in
+    // MFC used two different degrees of precision for the conversion; MFC uses a
+    // conversion factor of 0.025 when converting margins but a more precise 0.0254 when
+    // converting page size dimensions. This creates a bit of a mismatch for the wxWidgets
+    // version which handles page setup and printing values throughout in millimeters and
+    // does those conversions regularly with the more precise 0.0254 conversion factor. To
+    // keep compatibility with the MFC version and its config files, we need to use 0.025
+    // for calculating margin values, but 0.0254 for calculating page dimensions.
     m_pageWidth = 8267;		// 210mm / 0.0254mm/in (result truncated to whole int) in thousandths of an inch = 8267 A4
     m_pageWidthMM = wxRound(m_pageWidth * thousandthsInchToMillimetres); // 210mm	A4 page width in mm
     m_pageLength = 11692;	// 297mm / 0.0254mm/in (result truncated to whole int) in thousandths of an inch = 11692 A4
@@ -19461,7 +19464,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 
-                                // !!! whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering
+    // !!! whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering
     m_bUsingDefaultUsfmStyles = FALSE;
 
     // whm added 19Oct10 for user workflow profiles support
@@ -19473,9 +19476,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                     // default is 50 unless changed by config file settings
     m_nCorrespondencesLoadedInAdaptationsGuesser = 0;
     m_nCorrespondencesLoadedInGlossingGuesser = 0;
-    m_bAllowGuesseronUnchangedCCOutput = FALSE; // If TRUE the Guesser can operate on unchanged
-                                                // Consistent Chantes output; default is FALSE unless changed
-                                                // by config file settings
+    m_bAllowGuesseronUnchangedCCOutput = FALSE; // If TRUE the Guesser can operate
+            // on unchanged Consistent Chantes output; default is FALSE
+            // unless changed by config file settings
     m_pAdaptationsGuesser = (Guesser*)NULL;
     m_pGlossesGuesser = (Guesser*)NULL;
     m_iMaxPrefixes = -1; // unset, until user supplies a value, at which point project
@@ -19484,84 +19487,84 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                          // config file will perpetuate his setting, until next changed
 
 
-                         /*  MD5 SUM TESTING
-                         #if defined(_DEBUG)
-                         // md5 tests - official results from rfc1321
-                         //The MD5 test suite (driver option "-x") should print the following
-                         //results:
-                         //MD5 test suite:
-                         //MD5 ("") = d41d8cd98f00b204e9800998ecf8427e
-                         //MD5 ("a") = 0cc175b9c0f1b6a831c399e269772661
-                         //MD5 ("abc") = 900150983cd24fb0d6963f7d28e17f72
-                         //MD5 ("message digest") = f96b697d7cb7938d525a2f31aaf161d0
-                         //MD5 ("abcdefghijklmnopqrstuvwxyz") = c3fcd3d76192e4007dfb496cca67e13b
-                         //MD5 ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") = d174ab98d277d9f5a5611c2c9f419d9f
-                         //MD5 ("12345678901234567890123456789012345678901234567890123456789012345678901234567890") = 57edf4a22be3c955ac49da2e2107b67a
+    /*  MD5 SUM TESTING
+    #if defined(_DEBUG)
+    // md5 tests - official results from rfc1321
+    //The MD5 test suite (driver option "-x") should print the following
+    //results:
+    //MD5 test suite:
+    //MD5 ("") = d41d8cd98f00b204e9800998ecf8427e
+    //MD5 ("a") = 0cc175b9c0f1b6a831c399e269772661
+    //MD5 ("abc") = 900150983cd24fb0d6963f7d28e17f72
+    //MD5 ("message digest") = f96b697d7cb7938d525a2f31aaf161d0
+    //MD5 ("abcdefghijklmnopqrstuvwxyz") = c3fcd3d76192e4007dfb496cca67e13b
+    //MD5 ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") = d174ab98d277d9f5a5611c2c9f419d9f
+    //MD5 ("12345678901234567890123456789012345678901234567890123456789012345678901234567890") = 57edf4a22be3c955ac49da2e2107b67a
 
 
-                         // Check MD5 sums -- the sums are based on string data converted to utf8, and so do
-                         // not match the rfc1321 standard's results
-                         // This stuff using wxMD5 class, needs an #include "md5.h"
-                         //wxMD5* pmd5 = new wxMD5;
-                         //wxString str = _T("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
-                         //wxString str = _T("12345678901234567890123456789012345678901234567890123456789012345678901234567890");
-                         //wxString str = _T("message digest");
-                         //wxString str = _T("a");
-                         //wxString str = _T("");
-                         //wxString sum = pmd5->GetMD5(str);
-                         //wxLogDebug(_T("md5sum = %s"), sum.c_str());
-                         //delete pmd5;
-                         //int ii=1;
+    // Check MD5 sums -- the sums are based on string data converted to utf8, and so do
+    // not match the rfc1321 standard's results
+    // This stuff using wxMD5 class, needs an #include "md5.h"
+    //wxMD5* pmd5 = new wxMD5;
+    //wxString str = _T("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+    //wxString str = _T("12345678901234567890123456789012345678901234567890123456789012345678901234567890");
+    //wxString str = _T("message digest");
+    //wxString str = _T("a");
+    //wxString str = _T("");
+    //wxString sum = pmd5->GetMD5(str);
+    //wxLogDebug(_T("md5sum = %s"), sum.c_str());
+    //delete pmd5;
+    //int ii=1;
 
-                         //This re-implementation using CBString needs an #include "md5_SB.h";
-                         //and matches the rfc1321 standard's results
-                         //md5_SB* pmd5 = new md5_SB;
-                         //CBString str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-                         //CBString str = "12345678901234567890123456789012345678901234567890123456789012345678901234567890";
-                         //CBString str = "message digest";
-                         //CBString str = "a";
-                         ////CBString str = "";
-                         //CBString str = "bruce_waters@sil.org:kbserver:XXXXXXX"; <<-- password obfuscated
-                         //wxString s = _T("message digest"); // <<-- when starting from a wxString, use these two lines
-                         //CBString str(Convert16to8(s));
-                         //CBString str = "message digest";
-                         //CBString sum = pmd5->GetMD5(str);
-                         wxString user = _T("bruce_waters@sil.org");
-                         wxString password = _T("XXXXXX"); // <<- password obfuscated
-                         CBString sum = MakeDigestPassword(user, password); // from helpers.cpp
-                         wxLogDebug(_T("md5sum = %s"), sum.Convert8To16().c_str());
-                         //delete pmd5;
-                         int ii=1; // put a break point here to halt execution, & then examine Ouput window result
+    //This re-implementation using CBString needs an #include "md5_SB.h";
+    //and matches the rfc1321 standard's results
+    //md5_SB* pmd5 = new md5_SB;
+    //CBString str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    //CBString str = "12345678901234567890123456789012345678901234567890123456789012345678901234567890";
+    //CBString str = "message digest";
+    //CBString str = "a";
+    ////CBString str = "";
+    //CBString str = "bruce_waters@sil.org:kbserver:XXXXXXX"; <<-- password obfuscated
+    //wxString s = _T("message digest"); // <<-- when starting from a wxString, use these two lines
+    //CBString str(Convert16to8(s));
+    //CBString str = "message digest";
+    //CBString sum = pmd5->GetMD5(str);
+    wxString user = _T("bruce_waters@sil.org");
+    wxString password = _T("XXXXXX"); // <<- password obfuscated
+    CBString sum = MakeDigestPassword(user, password); // from helpers.cpp
+    wxLogDebug(_T("md5sum = %s"), sum.Convert8To16().c_str());
+    //delete pmd5;
+    int ii=1; // put a break point here to halt execution, & then examine Ouput window result
 
-                         // 1st run: MakeDigestPassword() produced  b9b0c1de14f16080c72a5497f806b178  (it's correct) NO: the correct one is 9969ec e68a14 32d346 b53fe6 058f40 ef
+    // 1st run: MakeDigestPassword() produced  b9b0c1de14f16080c72a5497f806b178  (it's correct) NO: the correct one is 9969ec e68a14 32d346 b53fe6 058f40 ef
 
-                         // Results of md5 tests, using md5_SB and CBString
-                         // empty:   md5sum = d41d8cd98f00b204e9800998ecf8427e  ;correct
-                         // "a":  md5sum = 0cc175b9c0f1b6a831c399e269772661  ;correct
-                         // "message digest": md5sum = f96b697d7cb7938d525a2f31aaf161d0  ;correct
-                         // "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":  md5sum = d174ab98d277d9f5a5611c2c9f419d9f  ;correct
-                         // "12345678901234567890123456789012345678901234567890123456789012345678901234567890": md5sum = 57edf4a22be3c955ac49da2e2107b67a  ;correct
-                         // and most importantly...
-                         // "bruce_waters@sil.org:kbserver:<my pwd here>": generates: b9b0c1de14f16080c72a5497f806b178
-                         // Comparing with, e.g. from the web (http://jesin.tk/htdigest-generator-tool):
-                         // bruce_waters@sil.org:kbserver:b9b0c1de14f16080c72a5497f806b178
-                         // So I'm getting the correct password generated from the htdigest string.
-                         // Starting from a wxString, this also gives the same (correct) result (and it also
-                         // did for the digest string using my password):
-                         //wxString s = _T("message digest");
-                         //CBString str(Convert16to8(s));
-                         //CBString sum = pmd5->GetMD5(str);
-                         // that gives the result: f96b697d7cb7938d525a2f31aaf161d0 which is correct
+    // Results of md5 tests, using md5_SB and CBString
+    // empty:   md5sum = d41d8cd98f00b204e9800998ecf8427e  ;correct
+    // "a":  md5sum = 0cc175b9c0f1b6a831c399e269772661  ;correct
+    // "message digest": md5sum = f96b697d7cb7938d525a2f31aaf161d0  ;correct
+    // "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":  md5sum = d174ab98d277d9f5a5611c2c9f419d9f  ;correct
+    // "12345678901234567890123456789012345678901234567890123456789012345678901234567890": md5sum = 57edf4a22be3c955ac49da2e2107b67a  ;correct
+    // and most importantly...
+    // "bruce_waters@sil.org:kbserver:<my pwd here>": generates: b9b0c1de14f16080c72a5497f806b178
+    // Comparing with, e.g. from the web (http://jesin.tk/htdigest-generator-tool):
+    // bruce_waters@sil.org:kbserver:b9b0c1de14f16080c72a5497f806b178
+    // So I'm getting the correct password generated from the htdigest string.
+    // Starting from a wxString, this also gives the same (correct) result (and it also
+    // did for the digest string using my password):
+    //wxString s = _T("message digest");
+    //CBString str(Convert16to8(s));
+    //CBString sum = pmd5->GetMD5(str);
+    // that gives the result: f96b697d7cb7938d525a2f31aaf161d0 which is correct
 
 
-                         #endif
-                         */
-                         // whm 24Jan13. The following functions set up new project defaults and
-                         // should be called in OnInit() and the <New Project> clode block of the ProjectPage
-                         // whm 24Jan13 added. A new project should start with all of the
-                         // App's m_last...path variables reset to empty strings.
-                         // There are 15 of these m_last... paths that are associated with
-                         // each project.
+    #endif
+    */
+    // whm 24Jan13. The following functions set up new project defaults and
+    // should be called in OnInit() and the <New Project> clode block of the ProjectPage
+    // whm 24Jan13 added. A new project should start with all of the
+    // App's m_last...path variables reset to empty strings.
+    // There are 15 of these m_last... paths that are associated with
+    // each project.
     SetAllProjectLastPathStringsToEmpty();
 	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
@@ -19600,9 +19603,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_packedInputsAndOutputsFolderName = _T("_PACKED_INPUTS_OUTPUTS"); // located in m_workFolderPath or m_customWorkFolderPath
     m_ccTableInputsAndOutputsFolderName = _T("_CCTABLE_INPUTS_OUTPUTS"); // located in m_workFolderPath or m_customWorkFolderPath
 
-                                                                         // whm 12Jun11 added in support of inputs and outputs navigation protection
-                                                                         // folder navigation protection defaults to FALSE but project config file
-                                                                         // value stored in m_foldersProtectedFromNavigation
+    // whm 12Jun11 added in support of inputs and outputs navigation protection
+    // folder navigation protection defaults to FALSE but project config file
+    // value stored in m_foldersProtectedFromNavigation
 	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 	m_bProtectSourceInputsFolder = FALSE;
@@ -19638,25 +19641,25 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                                  // structs on the heap - for ease of
                                                  // deletion in the app destructor
     gCurrentSfmSet = UsfmOnly;	// A code block at the end of GetProjectSettingsConfiguration()
-                                // will check if there was a project config file line for storing the project's
-                                // last in-operation SFM set (either UsfmOnly, PngOnly, or UsfmAndPng), if the
-                                // line is not present then at code block forces the set to be PngOnly -- because
-                                // that means that the project was created prior to Version 3.x. If that line is
-                                // present however, the code block is not entered, and the project setting is just
-                                // taken from whatever the config file stores there - the value is then put in the
-                                // app member variable, gProjectSfmSetForConfig.
+        // will check if there was a project config file line for storing the project's
+        // last in-operation SFM set (either UsfmOnly, PngOnly, or UsfmAndPng), if the
+        // line is not present then at code block forces the set to be PngOnly -- because
+        // that means that the project was created prior to Version 3.x. If that line is
+        // present however, the code block is not entered, and the project setting is just
+        // taken from whatever the config file stores there - the value is then put in the
+        // app member variable, gProjectSfmSetForConfig.
 
     gProjectSfmSetForConfig = UsfmOnly;	// Retains any value set in the project config file
-                                        // unless user explicitly changes it in Edit Preferences
-                                        // USFM and Filtering tab or the Start Working... wizard
-                                        // USFM and Filtering page when creating a new project.
+        // unless user explicitly changes it in Edit Preferences
+        // USFM and Filtering tab or the Start Working... wizard
+        // USFM and Filtering page when creating a new project.
 
 	//m_bSingleQuoteAsPunct = FALSE; // BEW added March 17, 2005
-	m_bSingleQuoteAsPunct = TRUE; // BEW changed November 2, 2016 because a sequence like '\it word
-								  // causes ' to be made a word on its own CSourcePhrase. Yuck.
-								  // Some Pacific languages which mark a word initial strong vowel
-								  // with preceding ', eg. 'I 'A etc, will just have to lump it
-								  // when the ' gets stripped off for the KB store of the word
+	m_bSingleQuoteAsPunct = TRUE; // BEW changed November 2, 2016 because a sequence like
+		// '\it word causes ' to be made a word on its own CSourcePhrase. Yuck.
+		// Some Pacific languages which mark a word initial strong vowel
+		// with preceding ', eg. 'I 'A etc, will just have to lump it
+		// when the ' gets stripped off for the KB store of the word
 	m_bDoubleQuoteAsPunct = TRUE; // BEW added April 28, 2005
     m_bCopySourcePunctuation = TRUE;// BEW added April 20, 2005
 
@@ -19750,15 +19753,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 		__LINE__, m_szView.x, m_szView.y);
 
-                                             // BEW added 2Sep08
+     // BEW added 2Sep08
     gbAdaptBeforeGloss = TRUE; // in vertical edit, do adaptations updating
                                // before doing glosses updating
 
-                               // Above initializations are from MFC's CAdapt_ItApp's constructor
+    // Above initializations are from MFC's CAdapt_ItApp's constructor
 
     m_eolStr = wxTextFile::GetEOL(); // this retrieves the platform specific end-of-line
-                                     // character string for external text files:
-                                     // On Windows it is "\r\n"; on Linux it is "\n"; on Macintosh it is "\r"
+        // character string for external text files:
+        // On Windows it is "\r\n"; on Linux it is "\n"; on Macintosh it is "\r"
 
     // BEW added 01Oct06, we set it TRUE when program counter reaches the end of
     // InitInstance() because there is a framework call of OnNewDocument() made in
@@ -19783,7 +19786,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_currentUnknownMarkersStr = _T(""); // whm added 31May05
     m_pSourcePhrases = (SPList*)NULL; // MFC had = 0
 
-                                      // Set text colors (see below)
+    // Set text colors (see below)
 
     int width = wxSystemSettings::GetMetric(wxSYS_SCREEN_X);
 #ifdef _RTL_FLAGS
@@ -19813,7 +19816,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                                       // 10Jun05 for Bruce
     m_bWantSourcePhrasesOnly = FALSE; // Added by JF.
 
-                                      // *** Initializations above were originally in the Doc in the MFC version ***
+    // *** Initializations above were originally in the Doc in the MFC version ***
 
                                       // TokenizeText() makes use of these
     m_poetryMkrs = _T("\\q \\q1 \\q2 \\q3 \\q4 \\qc \\qm \\qm1 \\qm2 \\qm3 \\qr \\qa \\b ");
@@ -19837,9 +19840,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pNoteDlg = (CNoteDlg*)NULL; // needed in wx version
     m_pViewFilteredMaterialDlg = (CViewFilteredMaterialDlg*)NULL; // needed in wx version
 
-                                                                  //m_pBundle = (CSourceBundle*)NULL;
+    //m_pBundle = (CSourceBundle*)NULL;
     m_pActivePile = (CPile*)NULL; // start with null, in case user invokes Allow Glossing
-                                  // in the Advanced menu after launching and only a project is open but not a document
+        // in the Advanced menu after launching and only a project is open but not a document
     m_pAnchor = (CCell*)NULL;
     m_selectionLine = -1;
     m_nActiveSequNum = -1; // negative until set after a file is read in and laid out
@@ -19906,12 +19909,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bIgnoreScriptureReference_Send = TRUE;
 
     m_bLegacySourceTextCopy = TRUE; // default is legacy behaviour,
-                                   // to copy the source text (unless the project config file establishes the
-                                   // FALSE value instead)
+        // to copy the source text (unless the project config file establishes the
+        // FALSE value instead)
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
-                                   // The following initializations are for refactored view layout support
+    // The following initializations are for refactored view layout support
     m_pLayout = new CLayout(); // persists on the heap for as long as the session is alive
 
     // *** The variable initializations above were moved here from the View ***
@@ -20275,7 +20278,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pDocManager = (wxDocManager*)NULL;// was originally in App constructor's preamble
     m_pMainFrame = (CMainFrame*)NULL;// was originally in App constructor's preamble
 
-                                     // *** Initializations above were originally in the App's constructor in the MFC version ***
+    // *** Initializations above were originally in the App's constructor in the MFC version ***
 
     const wxString name = wxString::Format(_T("Adapt_ItApp-%s"), wxGetUserId().c_str());
     // on my Windows machine name = "Adapt_ItApp-Bill Martin"
@@ -20301,7 +20304,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         wxString serverName;
         serverName = name.Lower();
         wxString topic = _T("bring_to_front"); // an arbitrary topic name - can be anything as long as it is not an empty string
-                                               // Some of the code below is taken from the wxWidgets book pages 506-510.
+               // Some of the code below is taken from the wxWidgets book pages 506-510.
         if (!m_pChecker->IsAnotherRunning())
         {
             // There is no other instance running currently so create a new server
@@ -20427,9 +20430,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                 delete m_pROP; // delete the ReadOnlyProtection class's only instance
             if (m_pROPwxFile != NULL) // whm 11Jun12 added NULL test
                 delete m_pROPwxFile; // delete the wxFile object on the heap for support of an
-                                     // open read-only protection file of form
-                                     // ~AIRIOP-machinename-username.lock while the owning user
-                                     // has a project folder open (on this or a remote machine)
+                // open read-only protection file of form
+                // ~AIRIOP-machinename-username.lock while the owning user
+                // has a project folder open (on this or a remote machine)
             if (m_pLayout != NULL)
             {
                 // add code here to ensure the CLayout's lists are cleared before deleting it, we
@@ -20766,15 +20769,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_nMoves = 100; // initial default, save every 100 phrase box moves
     m_bIsDocTimeButton = TRUE; // initial default, save according to time interval, not moves
 
-                               // whm moved/changed 13Apr09 Command-line processing implemented in wx version and
-                               // moved earlier in OnInit() to this location after most variable initializations and
-                               // just before the application wxFileConfig processing. The command line processing must be
-                               // done before CMainFrame is created since the parameter -xo determines which toolbar
-                               // and commandbar is used in the main frame.
-                               // BEW 23Oct09 added frm 'force review mode' switch for no lookup when back translating
-                               // (intended for Bob Eaton, for shell opening of the application only, for a given doc)
+    // whm moved/changed 13Apr09 Command-line processing implemented in wx version and
+    // moved earlier in OnInit() to this location after most variable initializations and
+    // just before the application wxFileConfig processing. The command line processing must be
+    // done before CMainFrame is created since the parameter -xo determines which toolbar
+    // and commandbar is used in the main frame.
+    // BEW 23Oct09 added frm 'force review mode' switch for no lookup when back translating
+    // (intended for Bob Eaton, for shell opening of the application only, for a given doc)
 
-                               // whm 13May12 note: must remove the _T() macros below for wxWidgets-2.9.3
+    // whm 13May12 note: must remove the _T() macros below for wxWidgets-2.9.3
     static const wxCmdLineEntryDesc cmdLineDesc[] =
     {
 #if wxCHECK_VERSION(2,9,1)
@@ -21398,16 +21401,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // which are no longer used.
     { // do in restricted scope block
         wxLogNull logNo; // eliminates spurious message from the system
-                         // Get rid of both Unicode and ANSI app's file history (both
-                         // could exist in the external settings file).
-                         // Note: These DeleteGroup() calls will also remove extraneous
-                         // groups that may have gotten assigned names such as
-                         // [Recent_File_List_Unicode/wxHtmlWindow], etc. If the user
-                         // has viewed the HTML help via the help viewer the size and
-                         // position settings for the wxHtmlWindow will also be removed
-                         // as a side effect of the way they were stored previously.
-                         // The deleting of the "/Recent_FILE_LIST..." groups will only
-                         // happen once and never again afterwards.
+        // Get rid of both Unicode and ANSI app's file history (both
+        // could exist in the external settings file).
+        // Note: These DeleteGroup() calls will also remove extraneous
+        // groups that may have gotten assigned names such as
+        // [Recent_File_List_Unicode/wxHtmlWindow], etc. If the user
+        // has viewed the HTML help via the help viewer the size and
+        // position settings for the wxHtmlWindow will also be removed
+        // as a side effect of the way they were stored previously.
+        // The deleting of the "/Recent_FILE_LIST..." groups will only
+        // happen once and never again afterwards.
         if (m_pConfig->HasGroup(_T("/Recent_File_List_Unicode")))
         {
             // whm Note: wxConfig::DeleteGroup() deletes the group and all
@@ -21529,7 +21532,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // 4. Keyboard shortcuts for menu items on the Mac are also automatically changed from
     // "CTRL" on the menu to use the clover leaf shaped Command key symbol plus the
     // appropriate key.
-
 
     // Give the main frame a 16x16 pixel icon (frame icons and task bar icons use 16x16
     // icons) This xpm format should work for all platforms. It embeds the icon resource
@@ -22006,9 +22008,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     //wxImage image( 16, 16, (unsigned char*)data, TRUE );
     wxIcon icon16x16(AI_16_xpm); // wxIcon icon16x16( xpm_data16x16 );
 
-                                 // Also give the main frame a 32x32 pixel icon (Alt+Tab uses a 32x32 pixel icon) This
-                                 // xpm format should work for all platforms. It embeds the icon resource inside the
-                                 // executable file, so no need to have to hunt for it from an external resource file.
+    // Also give the main frame a 32x32 pixel icon (Alt+Tab uses a 32x32 pixel icon) This
+    // xpm format should work for all platforms. It embeds the icon resource inside the
+    // executable file, so no need to have to hunt for it from an external resource file.
 #if defined (IconBlueShadesOn32x32WhiteRectangularBackground)
                                  /* XPM */
     static const char * xpm_data32x32[] = {
@@ -22224,8 +22226,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         "                                                                " };
 
 #elif defined (IconBlueShadesOn32x32WhiteDiskBackground)
-                                 /* XPM */
-                                 // The following xpm icon contains the 32x32 blue shades ai logo on a white disk.
+    /* XPM */
+    // The following xpm icon contains the 32x32 blue shades ai logo on a white disk.
     static const char * xpm_data32x32[] = {
         "32 32 177 2",
         "  	c None",
@@ -22439,8 +22441,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         "              . . . . . . . . . . . . . . . . . .               " };
 
 #elif defined (IconBlueShadesOn32x32AllTransparentBackground)
-                                 // The following xpm icon contains the 32x32 blue shades ai logo on a transparent background
-                                 /* XPM */
+    // The following xpm icon contains the 32x32 blue shades ai logo on a transparent background
+    /* XPM */
     static const char * xpm_data32x32[] = {
         "32 32 82 1",
         " 	c None",
@@ -22559,8 +22561,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         "                                " };
 
 #else // IconWhiteBlueOn32x32BlueDiskBackground
-                                 // The following xpm icon contains the 32x32 white-blue ai logo on a blue disk
-                                 /* XPM */
+    // The following xpm icon contains the 32x32 white-blue ai logo on a blue disk
+    /* XPM */
     static const char * xpm_data32x32[] = {
         "32 32 155 2",
         "  	c None",
@@ -22764,11 +22766,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     iconBundle.AddIcon(icon32x32);
 
     m_pMainFrame->SetIcons(iconBundle); //m_pMainFrame->SetIcon(icon);
-                                        //m_pMainFrame->SetIcon(wxIcon(wxICON(adaptit)));	// "adaptit" is a resource name
-                                        // of an ICON defined in Adapt_It.rc
-                                        // Only allow one document at a time to be open
+    //m_pMainFrame->SetIcon(wxIcon(wxICON(adaptit)));	// "adaptit" is a resource name
+    // of an ICON defined in Adapt_It.rc
+    // Only allow one document at a time to be open
     m_pDocManager->SetMaxDocsOpen(1);
-
 
     // The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
     // However, the wx version does not use serialized .adt type data files. I don't think
@@ -22799,7 +22800,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // for richer memory leak dumps
     // whm - wxWidgets has its own memory leak facilities built into its library
     //_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-
 
     // some extra initializations, required for Adapt It
     m_bKBReady = FALSE;
@@ -23036,10 +23036,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxSize clientTopLeft;
     // whm 26Jun2019 Correction. Adjusted code below to only put the main frame on the 
     // primary monitor at a position to have 40 pixel margin.
+	// BEW 9Jul19, minor correction. Edited a .x rather than .y in second line below,
+	// which fixed the frame being displayed totally offscreen above where it should
+	// have been (made clicking AI icon in taskbar appear to not work, but actually
+	// it was indeed displaying, but off screen, which prevented all work). Also
+	// my primary monitor is on the left for my win7 machine, and the frame window
+	// opens on the secondary one, to the right, not the primary. That's fine though.
     //clientTopLeft.x = desktopWndRect.x + myAllSidesMargin;
 	//clientTopLeft.y = desktopWndRect.y + myAllSidesMargin;
 	clientTopLeft.x = displayOne.GetClientArea().GetTopLeft().x + myAllSidesMargin;
-	clientTopLeft.y = displayOne.GetClientArea().GetTopLeft().x + myAllSidesMargin;
+	clientTopLeft.y = displayOne.GetClientArea().GetTopLeft().y + myAllSidesMargin;
 	m_ptViewTopLeft.x = clientTopLeft.x; // these two are where the Basic config file 
 										 // saves the frame's top-left position 
 	m_ptViewTopLeft.y = clientTopLeft.y;
@@ -23499,17 +23505,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     GetDocument()->SetTitle(viewTitle);
     GetDocument()->SetFilename(viewTitle, TRUE); // here TRUE means "notify the views"
 
-                                                 // Display message in status bar that we are loading the books.xml and
-                                                 // AI_USFM.xml files (brief)
+    // Display message in status bar that we are loading the books.xml and
+    // AI_USFM.xml files (brief)
     wxString message = _("Loading books.xml and AI_USFM.xml ...");
     wxStatusBar* pStatusBar = m_pMainFrame->GetStatusBar();//CStatusBar* pStatusBar;
     wxASSERT(pStatusBar != NULL);
     pStatusBar->SetStatusText(message, 0); // use first field 0
 
-                                           // Bible book folder support (accessing books.xml file, which can have its Christian
-                                           // content removed if users want to fiddle with it) - if the file is absent from the
-                                           // work folder, then default English bible book names plus "Other Texts" are set up;
-                                           // and the default radio button labels would be "History books", .... etc.
+    // Bible book folder support (accessing books.xml file, which can have its Christian
+    // content removed if users want to fiddle with it) - if the file is absent from the
+    // work folder, then default English bible book names plus "Other Texts" are set up;
+    // and the default radio button labels would be "History books", .... etc.
     wxString booksfilePath;
     if (!m_customWorkFolderPath.IsEmpty() && m_bUseCustomWorkFolderPath)
     {
@@ -23581,19 +23587,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                 "Warning: book folder mode will be disabled until a books.xml file is stored \nin the work folder and it is read in and parsed correctly.\nYou should exit the application and fix the books.xml file\nbefore trying to do more work."),
                 _T(""), wxICON_EXCLAMATION | wxOK);
             m_bDisableBookMode = TRUE; // it will stay disabled until we exit the app &
-                                       // fix the books.xml file disabling the mode does not change the m_bBookMode
-                                       // value, nor the m_nBookIndex value, and these continue to be saved in the
-                                       // document; however, m_bDisableBookMode will force the paths to be set to the
-                                       // Adaptations folder in the project, and so the document saved formerly under
-                                       // book mode will not be accessible (unless the user moves it to the
-                                       // Adaptations folder using Windows Explorer) until the disabling is removed,
-                                       // and if the document were to be saved it would get saved in the Adaptations
-                                       // folder. To remove disabling, fix the books.xml file so it parses correctly,
-                                       // or if it did not get read in, so that it gets read in. However, it is
-                                       // unlikely that it did not get read in; most likely there was a parse error -
-                                       // and the user should have seen an error message to that effect originating
-                                       // from the ReadBooks_XML call above. If there was not such, then it must have
-                                       // been a bad file read.
+            // fix the books.xml file disabling the mode does not change the m_bBookMode
+            // value, nor the m_nBookIndex value, and these continue to be saved in the
+            // document; however, m_bDisableBookMode will force the paths to be set to the
+            // Adaptations folder in the project, and so the document saved formerly under
+            // book mode will not be accessible (unless the user moves it to the
+            // Adaptations folder using Windows Explorer) until the disabling is removed,
+            // and if the document were to be saved it would get saved in the Adaptations
+            // folder. To remove disabling, fix the books.xml file so it parses correctly,
+            // or if it did not get read in, so that it gets read in. However, it is
+            // unlikely that it did not get read in; most likely there was a parse error -
+            // and the user should have seen an error message to that effect originating
+            // from the ReadBooks_XML call above. If there was not such, then it must have
+            // been a bad file read.
         }
     }
     else
@@ -23602,10 +23608,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // pointer is already created but as yet has no content
         SetupDefaultBooksArray(m_pBibleBooks); // hard coded for 67 folders
 
-                                               //wxLogDebug(_T("No books.xml file found in work folder, so setting defaults via SetupDefaultBooksArray()."));
+        //wxLogDebug(_T("No books.xml file found in work folder, so setting defaults via SetupDefaultBooksArray()."));
 
-                                               // assume not in book mode, project config file will override this, so no
-                                               // point to set a default here
+        // assume not in book mode, project config file will override this, so no
+        // point to set a default here
         m_nBookIndex = -1;
         m_pCurrBookNamePair = NULL;
         m_bBookMode = FALSE;
@@ -23634,9 +23640,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxString AIccTableFolderPathOnly;
     //#if defined(FWD_SLASH_DELIM)
     wxString AIccTableInstallFolderPathOnly; // will point to m_xmlInstallPath\CC folder on Win,
-                                             // but /usr/share/adaptit folder on Linux, or AdaptIt.app/Contents/Resources
-                                             // folder on Mac (those Linux and Mac ones are each also m_xmlInstallPath...)
-                                             //#endif
+    // but /usr/share/adaptit folder on Linux, or AdaptIt.app/Contents/Resources
+    // folder on Mac (those Linux and Mac ones are each also m_xmlInstallPath...)
+    //#endif
     wxString strUserID = ::wxGetUserId(); // returns empty string if unsuccessful
     if (strUserID.IsEmpty())
     {
@@ -23698,19 +23704,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 
-                                                                                 // Now the user log file is set up, we can call git:
+    // Now the user log file is set up, we can call git:
     m_DVCS_installed = (m_pDVCS->DoDVCS(DVCS_CHECK, 0) == 0);       // if this call returns an error, assume DVCS not installed
 
-                                                                    //#if defined(FWD_SLASH_DELIM)
-                                                                    // BEW 23Apr15. The _CC_INPUTS_OUTPUTS folder now exists in the work folder. Path to
-                                                                    // it is:  m_ccTableInputsAndOutputsFolderPath, which will not be an empty string.
-                                                                    // whm: 15May15 corrected the value to be stored in AIccTableInstallFolderPathOnly
-                                                                    // to reflect the fact that the two CC table files, FwdSlashInsertAtPuncts.cct and
-                                                                    // FwdSlashRemoveAtPuncts.cct are stored in a CC subfolder on Windows' installations,
-                                                                    // but not stored in a CC subfolder on Linux nor Mac installations. We set up a path
-                                                                    // to that CC subfolder on Windows, but not to a CC subfolder on the other
-                                                                    // two platforms. Then we check if those .cct table files are present etc. We'll
-                                                                    // eventually store the path in a new wxString, m_ccTableInstallPath
+    //#if defined(FWD_SLASH_DELIM)
+    // BEW 23Apr15. The _CC_INPUTS_OUTPUTS folder now exists in the work folder. Path to
+    // it is:  m_ccTableInputsAndOutputsFolderPath, which will not be an empty string.
+    // whm: 15May15 corrected the value to be stored in AIccTableInstallFolderPathOnly
+    // to reflect the fact that the two CC table files, FwdSlashInsertAtPuncts.cct and
+    // FwdSlashRemoveAtPuncts.cct are stored in a CC subfolder on Windows' installations,
+    // but not stored in a CC subfolder on Linux nor Mac installations. We set up a path
+    // to that CC subfolder on Windows, but not to a CC subfolder on the other
+    // two platforms. Then we check if those .cct table files are present etc. We'll
+    // eventually store the path in a new wxString, m_ccTableInstallPath
 
 #ifdef __WXMSW__
     AIccTableInstallFolderPathOnly = m_xmlInstallPath + PathSeparator + _T("CC");
@@ -24082,17 +24088,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // call above within OnInit().
     SetupDefaultUserProfiles(m_pFactoryUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
 
-                                                      // Now, check that the AI_UserProfiles.xml file exists in the work folder (make a
-                                                      // copy there if necessary from the installation resources.
+    // Now, check that the AI_UserProfiles.xml file exists in the work folder (make a
+    // copy there if necessary from the installation resources.
     message = _("Loading AI_UserProfiles.xml ...");
     wxASSERT(pStatusBar != NULL);
     pStatusBar->SetStatusText(message, 0); // use first field 0
 
-                                           // If the AI_UserProfiles.xml file does not exist in the work folder, look for it in the
-                                           // setup install folder and, if there, decide how to handle version differences due to
-                                           // possible upgrades/downgrades which may require merging of any changes made to
-                                           // AI_UserProfiles.xml by an administrator who has customized one or more profiles
-                                           // using the User Workflow Profiles dialog from the Administrator menu.
+    // If the AI_UserProfiles.xml file does not exist in the work folder, look for it in the
+    // setup install folder and, if there, decide how to handle version differences due to
+    // possible upgrades/downgrades which may require merging of any changes made to
+    // AI_UserProfiles.xml by an administrator who has customized one or more profiles
+    // using the User Workflow Profiles dialog from the Administrator menu.
     if (!bWorkFolderUserProfilesFileExists)
     {
         // There is no AI_UserProfiles.xml file in the work folder, so get one from
@@ -24729,9 +24735,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Display message in status bar that startup initialization is complete
     message = _("Initialization complete. Call Start Working...");
     pStatusBar->SetStatusText(message, 0); // use first field 0
-                                           // we are passed all the MFC initialization stuff, and about to enter the Start
-                                           // Working... wizard, so indicate it is safe for OnNewDocument() to be able to write
-                                           // out the project config file once the user's setting for book mode is in place
+        // we are passed all the MFC initialization stuff, and about to enter the Start
+        // Working... wizard, so indicate it is safe for OnNewDocument() to be able to write
+        // out the project config file once the user's setting for book mode is in place
     m_bPassedAppInitialization = TRUE;
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
@@ -25145,14 +25151,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     m_bSkipBasicConfigFileCall = FALSE; // ensure it is returned to default FALSE
 
-                                        // override the default for m_bDrafting if the frm switch was found
+    // override the default for m_bDrafting if the frm switch was found
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
 	if (m_bForce_Review_Mode)
     {
         m_bDrafting = FALSE; // turn review mode on
 
-                             // hide the radio buttons
+        // hide the radio buttons
         CMainFrame *pFrame = GetMainFrame();
         wxASSERT(pFrame != NULL);
         wxPanel* pControlBar;
@@ -25395,6 +25401,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_strSpacelessTargetPuncts = MakeSpacelessPunctsString(this, targetLang);
 //	wxLogDebug(_T("%s:%s line %d, m_szView.x = %d , m_szView.y = %d"), __FILE__, __FUNCTION__,
 //		__LINE__, m_szView.x, m_szView.y);
+
+    // whm 10Jul2019 Show whether _KBSERVER flag is set in log output window for this build
+#if defined(_KBSERVER)
+    wxLogDebug(_T("**** The _KBSERVER flag is set for this build (logged at end of OnInit()) ***"));
+#endif // _KBSERVER
+
+	//gpApp->m_pMainFrame->Show(); // whm 10Jul2019 removed: BEW added 9Jul2019 but call was already made above in OnInit()
 	return TRUE;
 }
 
@@ -32943,12 +32956,26 @@ void CAdapt_ItApp::OnUpdateInstallGit(wxUpdateUIEvent & event)
 /// can't have m_pSourcePhrases being accessed for making XML to save at the same time
 /// that the same array is being emmptied out. We use a mutex for this protection here
 /// and at other places where emptying of the doc list can happen
+/// BEW 12Jul19 moved mutex to start & end of function, because Evelyn at Gali'winku
+/// (Warramiri - Matata) had a doc contents emptying experience
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DoAutoSaveDoc()
 // with additions for handling glossing versus adapting (ie. to get the stuff in the
 // phrase box into the appropriate KB before the save is done)
 {
-    bool bOkay;
+	if (m_bDocumentDestroyed == TRUE)
+	{
+		// Never allow an auto-save event to succeed if the m_pSourcePhrases list
+		// is about to be, is currently, or has been destroyed (the mutex below is
+		// some extra protection, from earlier code; the data loss happened despite
+		// it in July2019 for Evelyn Djotja Dhayina at Galiwin'ku, so this boolean
+		// was added now at 13July19 to give extra protection). Opening a document
+		// will set the flag FALSE again.
+		return;
+	}
+
+	s_AutoSaveMutex.Lock();
+	bool bOkay;
 	// BEW 5Mar18, added test to skip the save attempt on empty list
 	// and on 1Apr18 added subtest of m_bClipboardAdaptMode -- because the
 	// real doc is cached and the tempory one, if saved, would take on real
@@ -32957,7 +32984,6 @@ void CAdapt_ItApp::DoAutoSaveDoc()
 	// a data loss problem, we have a chance of finding out easily
 	if (!m_pSourcePhrases->IsEmpty() && !m_bClipboardAdaptMode)
 	{
-		s_AutoSaveMutex.Lock();
 
 		wxString msg = _T("DoAutoSaveDoc() calling DoFileSave_Protected(); m_pSourcePhrases size = %d");
 		int size = 0;
@@ -32969,18 +32995,18 @@ void CAdapt_ItApp::DoAutoSaveDoc()
 		this->LogUserAction(msg);
 
 		bOkay = GetDocument()->DoFileSave_Protected(FALSE, _T("")); // FALSE - don't show wait/progress dialog
-		wxCHECK_RET(bOkay, _T("DoAutoSaveDoc(): DoFileSave_Protected() failed, line 23,425 approx, in Adapt_It.cpp"));
+		wxCHECK_RET(bOkay, _T("DoAutoSaveDoc(): DoFileSave_Protected() failed, line 32980 in file: Adapt_It.cpp"));
 
 		msg = _T("DoAutoSave: DoFileSave_Protected() has returned");
 		this->LogUserAction(msg);
-
-		s_AutoSaveMutex.Unlock();
 	}
     // update the time it was last saved, or the attempt was made
     wxDateTime time = wxDateTime::Now();
     m_timeSettings.m_tLastDocSave = time;
     m_timeSettings.m_tLastKBSave = time;
     nSequNumForLastAutoSave = m_pTargetBox->m_nCurrentSequNum;
+
+	s_AutoSaveMutex.Unlock();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -33107,8 +33133,8 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
         // append to whatever is in m_pSourcePhrases.
         // whm Note: ClobberDocument() is a potentially time consuming operation for long
         // documents.
-        GetView()->ClobberDocument();
-        // done -- update the embedded status bar
+        GetView()->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
+
         ((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Saving File"));
     }
     bool bOK;
@@ -43619,7 +43645,9 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
             bSavedOK = pDoc->DoTransformedDocFileSave(curOutputPath);
             wxCHECK_MSG(bSavedOK, TRUE, _T("DoTransformationsToGlosses(): DoTransformedDocFileSave() failed, line 31,322 in Adapt_It.cpp"));
 
-            pView->ClobberDocument();
+            pView->ClobberDocument();  // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
+
+			//gpApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
 
             // remove the progress indicator window
             ((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Transformations To Glosses"));
@@ -46240,7 +46268,7 @@ void CAdapt_ItApp::DiscardDocChanges()
 {
     CAdapt_ItDoc* pDoc = gpApp->GetDocument();
     CAdapt_ItView* pView = gpApp->GetView();
-    pView->ClobberDocument();
+    pView->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
     wxString reversionPath = m_curOutputPath;
     wxASSERT(!reversionPath.IsEmpty());
     bool bOK = pDoc->OnOpenDocument(reversionPath, true);
@@ -46262,7 +46290,7 @@ void CAdapt_ItApp::DiscardDocChanges()
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::CloseDocDiscardingAnyUnsavedChanges()
 {
-    GetView()->ClobberDocument();
+    GetView()->ClobberDocument(); // BEW 13Jul19 sets m_bDocumentDestroyed to TRUE (only DoAutoSaveDoc() uses)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -46586,15 +46614,20 @@ wxString CAdapt_ItApp::ApplyDefaultDocFileExtension(wxString s)
 /// SplitIntoChapters_Interactive().
 /// Deletes the source phrases from the list pointed to by l. Does nothing if there
 /// are no source phrases in l.
+/// BEW 12Jul19 moved mutex to start & end of function, because Evelyn at Gali'winku
+/// (Warramiri - Matata) had a doc contents emptying experience
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
 {
-    // BEW modified 02Nov05, because earlier version leaked memory (so I plagiarized
+	m_bDocumentDestroyed = TRUE;
+
+	s_AutoSaveMutex.Lock();
+
+	// BEW modified 02Nov05, because earlier version leaked memory (so I plagiarized
     // the DeleteSourcePhrases() function in the doc class for safe deletion code)
     CAdapt_ItDoc* pDoc = GetDocument();
     if (!l->IsEmpty())
     {
-		s_AutoSaveMutex.Lock();
 
 		// delete all the tokenizations of the source text
         SPList::Node* pos = l->GetFirst();
@@ -46603,16 +46636,15 @@ void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
             CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
             pos = pos->GetNext();
             pDoc->DeleteSingleSrcPhrase(pSrcPhrase); // Note, it would be more efficient
-                                                     // to use (pSrcPhrase,FALSE) and then destroy the partner piles enmasse with
-                                                     // a call such as DestroyPiles(PileList* piles) -- but we don't have such a
-                                                     // function defined in AI yet, and the sublist corresponding to the sublist l
-                                                     // passed in above, would have to be calculated -- all of which could be done,
-                                                     // but the returns are diminished, so I'll not bother
+            // to use (pSrcPhrase,FALSE) and then destroy the partner piles enmasse with
+            // a call such as DestroyPiles(PileList* piles) -- but we don't have such a
+            // function defined in AI yet, and the sublist corresponding to the sublist l
+            // passed in above, would have to be calculated -- all of which could be done,
+            // but the returns are diminished, so I'll not bother
         }
         l->Clear();
-
-		s_AutoSaveMutex.Unlock();
     }
+	s_AutoSaveMutex.Unlock();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

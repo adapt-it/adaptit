@@ -1471,6 +1471,17 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 			// also redirects the output and suppresses the dos console window during execution.
 			wxString commandLine = BuildCommandLineFor(lineFor, textKind);
 			resultCode = ::wxExecute(commandLine,textIOArray,errorsIOArray);
+			gpApp->m_bDocumentDestroyed = FALSE; // BEW 13Jul19, opening any AID document
+				// the code pointer will pass thru here, so it's a suitable place to
+				// reinitialize the flag to FALSE; because operations which open and close
+				// documents in order to do some kind of aggegation, will need to protect
+				// from the timer firing to get DoAutoSaveDoc() attempted when or after
+				// ClobberDocument() has acted to destroy the m_pSourcePhrases list.
+				// We don't want a timing accident between closing a previous document in
+				// a loop clobbering the m_pSourcePhrases list to try building a document
+				// by a call of DoAutoSaveDoc() before there is a new list ready for such
+				// a build to happen
+
 		}
 		else if (gpApp->m_bCollaboratingWithBibledit)
 		{
@@ -1484,6 +1495,7 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 				resultCode = 0; // 0 means same as wxExecute() success
 			else // bWriteOK was FALSE
 				resultCode = 1; // 1 means same as wxExecute() ERROR, errorsIOArray will contain error message(s)
+			gpApp->m_bDocumentDestroyed = FALSE; // BEW 13Jul19
 		}
 	} // end of TRUE block for test:  if (lineFor == reading)
 	else // lineFor == writing
@@ -1635,6 +1647,7 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 			pTempFile = (wxFile*)NULL;
 			return FALSE;
 		}
+		gpApp->m_bDocumentDestroyed = FALSE; // BEW 13Jul19
 	}
 	else
 	{
@@ -1677,6 +1690,7 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 	if (pTempFile != NULL) // whm 11Jun12 added NULL test
 		delete pTempFile;
 	pTempFile = (wxFile*)NULL;
+	gpApp->m_bDocumentDestroyed = FALSE; // BEW 13Jul19
 	return TRUE;
 }
 
@@ -1903,6 +1917,9 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	// ensure there is no document currently open (we also must call UnloadKBs() & set their
 	// pointers to NULL)
 	pApp->GetView()->ClobberDocument();
+
+	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+
 	if (pApp->m_bCollaboratingWithBibledit || pApp->m_bCollaboratingWithParatext)
 	{
         // Closure of the document, whether a collaboration one or not, should clobber the
@@ -2125,7 +2142,8 @@ void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle)
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 
-	// get the title bar, and output path set up right...
+	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+										// get the title bar, and output path set up right...
 	wxString typeName = _T(" - Adapt It");
 	#ifdef _UNICODE
 	typeName += _T(" Unicode");
@@ -2644,6 +2662,9 @@ wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath, wxString bookCod
 bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText,
 		 bool bDoMerger, bool bDoLayout, bool bCopySourceWanted)
 {
+
+	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+
 	wxASSERT(pApp->m_pSourcePhrases->IsEmpty());
 	int nActiveSequNum = 0; // default
 	if (!pApp->m_pSourcePhrases->IsEmpty())
@@ -3982,7 +4003,11 @@ bool CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgt
 {
 	// ensure there is no document currently open (we also call UnloadKBs() & set their
 	// pointers to NULL) -- note, if the doc is dirty, too bad, recent changes will be lost
-	pApp->GetView()->ClobberDocument();
+	pApp->GetView()->ClobberDocument(); // sets m_bDocumentDestroyed to TRUE, so
+		// now immediately restore the flag to FALSE
+
+	pApp->m_bDocumentDestroyed = FALSE; // re-initialize (to permit DoAutoSaveDoc() to work)
+
 	if (pApp->m_bCollaboratingWithBibledit || pApp->m_bCollaboratingWithParatext)
 	{
         // Closure of the document, whether a collaboration one or not, should clobber the
@@ -7337,7 +7362,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// in this block, wxLogDebug the last 5 Md5Arr lines for the postEditText from the array
 	{
         size_t count = postEditMd5Arr.GetCount();
-        wxLogDebug(_T("MD5 Lines count:  %zu"), count); // whm 8Apr2019 corrected %s to %zu - the format specifier for size_t - possibly produced Mike's asserts he reported 4Apr2019
+        wxLogDebug(_T("MD5 Lines count:  %d"), (int)count); // whm 15Jul2019 modified to use %d after casting count to an int, i.e., (int)count
         wxLogDebug(_T("MD5 Line, 5th last:  %s"), (postEditMd5Arr[count - 5]).c_str());
         wxLogDebug(_T("MD5 Line, 4th last:  %s"), (postEditMd5Arr[count - 4]).c_str());
         wxLogDebug(_T("MD5 Line, 3rd last:  %s"), (postEditMd5Arr[count - 3]).c_str());
@@ -7372,7 +7397,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// Show first ten
 	{
 		size_t count = postEditMd5Arr.GetCount();
-		wxLogDebug(_T("MD5 Lines count:   %zu"), count); // whm 8Apr2019 changed from %d to %zu - the format specifier for size_t
+		wxLogDebug(_T("MD5 Lines count:   %d"), (int)count); // whm 15Jul2019 modified to use %d after casting size_t value to an int, i.e., (int)count
 		wxLogDebug(_T("MD5 Line, first:   %s"), (postEditMd5Arr[0]).c_str());
 		wxLogDebug(_T("MD5 Line, second:  %s"), (postEditMd5Arr[1]).c_str());
 		wxLogDebug(_T("MD5 Line, third:   %s"), (postEditMd5Arr[2]).c_str());
@@ -7395,8 +7420,8 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
         {
             int offset = postEditOffsetsArr[index];
             wxString s = postEditText.Mid(offset, 16);
-            wxLogDebug(_T("MD5 Line, count = %zu, 5th last offset:  %d  , first 16 Chars: %s"), // whm 8Apr2019 changed from %d to %zu - the format specifier for size_t
-                       countPost, offset, s.c_str());
+            wxLogDebug(_T("MD5 Line, count = %d, 5th last offset:  %d  , first 16 Chars: %s"), // whm 15Jul2019 modified to use %d after casting size_t value to an int, i.e., (int)count
+                       (int)count, (int)countPost, offset, s.c_str());
         }
 	}
 #endif
@@ -7671,8 +7696,8 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr)
 {
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
-	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %zu  pre count: %zu  from count: %zu  sourceText count: %zu"); // %zu is the format specifier for size_t type
-    msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(), preEditMd5Arr.GetCount(), fromEditorMd5Arr.GetCount(), sourceTextMd5Arr.GetCount());
+	wxString msg1 = _T("GetUpdatedText_UsfmsUnchanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d"); // whm 15Jul2019 modified to use %d after casting size_t value to an int, i.e., (int)count
+    msg1 = msg1.Format(msg1, (int)postEditMd5Arr.GetCount(), (int)preEditMd5Arr.GetCount(), (int)fromEditorMd5Arr.GetCount(), (int)sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
 #endif
 
@@ -8054,7 +8079,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			aVerseNum = GetNumberFromChapterOrVerseStr(aLine);
 			aCount = lineIndicesArr.GetCount();
 			wxLogDebug(_T("\nGet...UsfmsUnchanged(): Line grouping for verse:  %s   Number of lines: %d  postEditStart %d  postEditEnd %d"),
-				aVerseNum.c_str(), aCount, postEditStart, postEditEnd);
+				aVerseNum.c_str(), (int)aCount, (int)postEditStart, (int)postEditEnd);
 			int anIndex;
 			for (anIndex = 0; anIndex < aCount; anIndex++)
 			{
@@ -8840,8 +8865,8 @@ wxString GetUpdatedText_UsfmsChanged(
 										  // which corresponds to a single line of info from sourceTextMd5Arr
 {
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
-	wxString msg1 = _T("GetUpdatedText_UsfmsChanged() called: post count: %zu  pre count: %zu  from count: %zu  sourceText count: %zu"); // %zu is the format specifier for size_t type
-	msg1 = msg1.Format(msg1, postEditMd5Arr.GetCount(),preEditMd5Arr.GetCount(),fromEditorMd5Arr.GetCount(),sourceTextMd5Arr.GetCount());
+	wxString msg1 = _T("GetUpdatedText_UsfmsChanged() called: post count: %d  pre count: %d  from count: %d  sourceText count: %d"); // %zu is the format specifier for size_t type, but it asserts in VS2008, so cast to int and use %d
+	msg1 = msg1.Format(msg1, (int)postEditMd5Arr.GetCount(),(int)preEditMd5Arr.GetCount(),(int)fromEditorMd5Arr.GetCount(),(int)sourceTextMd5Arr.GetCount());
 	wxLogDebug(msg1);
 #endif
 	wxString newText; newText.Empty();
@@ -9133,9 +9158,9 @@ wxString GetUpdatedText_UsfmsChanged(
 
 #if defined(_DEBUG) && defined(JUL15)
 			//#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-			wxLogDebug(_T("PRE-\\v 1 Material: postEdit start & end indices [%d,%d], mapped to [%zu,%zu], Substring: %s"), // whm modified %d to %zu for size_t
-				postEditStart, postEditEnd, pPostEditArr_StartMap->startOffset,
-				pPostEditArr_LastMap->endOffset, substring.c_str());
+			wxLogDebug(_T("PRE-\\v 1 Material: postEdit start & end indices [%d,%d], mapped to [%d,%d], Substring: %s"), // whm 15Jul2019 modified to use %d after casting size_t value to an int, i.e., (int)count
+				postEditStart, postEditEnd, (int)pPostEditArr_StartMap->startOffset,
+				(int)pPostEditArr_LastMap->endOffset, substring.c_str());
 #endif
 			// Do the same settings operations for the pre-edit indices; we don't
 			// extract any of this stuff since the user's edits will have changed
@@ -9329,8 +9354,8 @@ wxString GetUpdatedText_UsfmsChanged(
 				bStructureOrTextHasChanged = TRUE;
 #if defined(_DEBUG) && defined(JUL15)
 //#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-					wxString msg = _T("bPTorBE_verse_empty block: fromEditorStart %d  ,  fromEditorEnd %d  , fromEditorMd5Arr count %zu  start: %s  end: %s"); // whm modified %d to %zu for size_t
-					msg = msg.Format(msg, fromEditorStart, fromEditorEnd, fromEditorMd5Arr.GetCount(),
+					wxString msg = _T("bPTorBE_verse_empty block: fromEditorStart %d  ,  fromEditorEnd %d  , fromEditorMd5Arr count %d  start: %s  end: %s"); // whm 15Jul2019 modified to use %d after casting count to an int, i.e., (int)count
+					msg = msg.Format(msg, fromEditorStart, fromEditorEnd, (int)fromEditorMd5Arr.GetCount(),
 						fromEditorMd5Arr.Item(fromEditorStart).c_str(), fromEditorMd5Arr.Item(fromEditorEnd).c_str());
 					wxLogDebug(msg);
 #endif
@@ -9350,8 +9375,8 @@ wxString GetUpdatedText_UsfmsChanged(
 				{
 #if defined(_DEBUG) && defined(JUL15)
 //#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-					wxString msg = _T("bAI_verse_empty block: postEditStart %d  ,  postEditEnd %d  , postEditMd5Arr count %zu  start: %s  end: %s"); // whm modified %d to %zu for size_t
-					msg = msg.Format(msg, postEditStart, postEditEnd, postEditMd5Arr.GetCount(),
+					wxString msg = _T("bAI_verse_empty block: postEditStart %d  ,  postEditEnd %d  , postEditMd5Arr count %d  start: %s  end: %s"); // whm 15Jul2019 modified to use %d after casting count to an int, i.e., (int)count
+					msg = msg.Format(msg, postEditStart, postEditEnd, (int)postEditMd5Arr.GetCount(),
 						postEditMd5Arr.Item(postEditStart).c_str(), postEditMd5Arr.Item(postEditEnd).c_str());
 					wxLogDebug(msg);
 #endif
@@ -9497,8 +9522,8 @@ wxString GetUpdatedText_UsfmsChanged(
 #if defined(_DEBUG) && defined(JUL15)
 //#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 							// debug code
-							wxString msg = _T("Conflict: Retain PT: fromEditorStart %d  ,  fromEditorEnd %d  , count %zu  substring: %s"); // whm modified %d to %zu for size_t
-							msg = msg.Format(msg, fromEditorStart, fromEditorEnd, fromEditorOffsetsArr.GetCount(), substring.c_str());
+							wxString msg = _T("Conflict: Retain PT: fromEditorStart %d  ,  fromEditorEnd %d  , count %d  substring: %s"); // whm 15Jul2019 modified to use %d after casting size_t value to an int, i.e., (int)count
+							msg = msg.Format(msg, fromEditorStart, fromEditorEnd, (int)fromEditorOffsetsArr.GetCount(), substring.c_str());
 							wxLogDebug(msg);
 #endif
 						}
@@ -9513,8 +9538,8 @@ wxString GetUpdatedText_UsfmsChanged(
 #if defined(_DEBUG) && defined(JUL15)
 //#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 							// debug code
-							wxString msg = _T("Conflict: Forcing AI: postEditStart %d  ,  postEditEnd %d  , count %zu  substring: %s"); // whm modified %d to %zu for size_t
-							msg = msg.Format(msg, postEditStart, postEditEnd, postEditOffsetsArr.GetCount(), substring.c_str());
+							wxString msg = _T("Conflict: Forcing AI: postEditStart %d  ,  postEditEnd %d  , count %d  substring: %s"); // whm modified %d to %zu for size_t
+							msg = msg.Format(msg, postEditStart, postEditEnd, (int)postEditOffsetsArr.GetCount(), substring.c_str());
 							wxLogDebug(msg);
 #endif
 						}
