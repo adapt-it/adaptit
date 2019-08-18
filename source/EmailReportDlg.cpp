@@ -49,6 +49,7 @@
 #include <wx/zipstrm.h> // for wxZipInputStream & wxZipOutputStream
 #include <wx/mstream.h> // for wxMemoryInputStream
 #include <wx/tooltip.h> // for wxToolTip
+#include <wx/hyperlink.h> // whm 6Aug2019 added
 
 // whm 9Jun12 added the following for wxWidgets 2.9.3
 #if wxCHECK_VERSION(2,9,1)
@@ -116,7 +117,10 @@ BEGIN_EVENT_TABLE(CEmailReportDlg, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_VIEW_USAGE_LOG, CEmailReportDlg::OnBtnViewUsageLog)
 	EVT_BUTTON(ID_BUTTON_ATTACH_PACKED_DOC, CEmailReportDlg::OnBtnAttachPackedDoc)
 	EVT_BUTTON(wxID_OK, CEmailReportDlg::OnBtnClose) // The "Close" button uses wxID_OK symbol
-	EVT_TEXT(ID_TEXTCTRL_MY_EMAIL_ADDR, CEmailReportDlg::OnYourEmailAddressEditBoxChanged)
+    EVT_RADIOBUTTON(ID_RADIOBUTTON_SEND_DIRECTLY_FROM_AI, CEmailReportDlg::OnRadioBtnSendDirectlyFromAI)
+    EVT_RADIOBUTTON(ID_RADIOBUTTON_SEND_TO_MY_EMAIL, CEmailReportDlg::OnRadioBtnSendToEmail)
+    EVT_HYPERLINK(ID_HYPERLINK_MAILTO, CEmailReportDlg::OnHyperLinkMailToClicked)
+    EVT_TEXT(ID_TEXTCTRL_MY_EMAIL_ADDR, CEmailReportDlg::OnYourEmailAddressEditBoxChanged)
 	EVT_TEXT(ID_TEXTCTRL_SUMMARY_SUBJECT, CEmailReportDlg::OnSubjectSummaryEditBoxChanged)
 	EVT_TEXT(ID_TEXTCTRL_DESCRIPTION_BODY, CEmailReportDlg::OnDescriptionBodyEditBoxChanged)
 	EVT_TEXT(ID_TEXTCTRL_SENDERS_NAME, CEmailReportDlg::OnSendersNameEditBoxChanged)
@@ -144,13 +148,20 @@ CEmailReportDlg::CEmailReportDlg(wxWindow* parent) // dialog constructor
 	
 	pTextYourEmailAddr = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_MY_EMAIL_ADDR);
 	wxASSERT(pTextYourEmailAddr != NULL);
+    // Set background color of required fields to light yellow
+    pTextYourEmailAddr->SetBackgroundColour(wxColour(255, 255, 150)); // light yellow
 	
 	pTextEmailSubject = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SUMMARY_SUBJECT);
 	wxASSERT(pTextEmailSubject != NULL);
+    // Set background color of required fields to light yellow
+    pTextEmailSubject->SetBackgroundColour(wxColour(255, 255, 150)); // light yellow
+
 
 	pTextSendersName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SENDERS_NAME);
 	wxASSERT(pTextSendersName != NULL);
-	
+    // Set background color of required fields to light yellow
+    pTextSendersName->SetBackgroundColour(wxColour(255, 255, 150)); // light yellow
+
 	// Note: STATIC_TEXT_DESCRIPTION is a pointer to a wxStaticBoxSizer which wxDesigner casts back
 	// to the more generic wxSizer*, so we'll use a wxDynamicCast() to cast it back to its original
 	// object class. Then we can call wxStaticBoxSizer::GetStaticBox() in it.
@@ -160,14 +171,21 @@ CEmailReportDlg::CEmailReportDlg(wxWindow* parent) // dialog constructor
 
 	pTextDescriptionBody = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_DESCRIPTION_BODY);
 	wxASSERT(pTextDescriptionBody != NULL);
-	
+    // Set background color of required fields to light yellow
+    pTextDescriptionBody->SetBackgroundColour(wxColour(255, 255, 150)); // light yellow
+
 	pLetAIDevsKnowHowIUseAI = (wxCheckBox*)FindWindowById(ID_CHECKBOX_LET_DEVS_KNOW_AI_USAGE);
 	wxASSERT(pLetAIDevsKnowHowIUseAI != NULL);
 	
 	pButtonViewUsageLog = (wxButton*)FindWindowById(ID_BUTTON_VIEW_USAGE_LOG);
 	wxASSERT(pButtonViewUsageLog != NULL);
 	
-	pStaticAIVersion = (wxStaticText*)FindWindowById(ID_TEXT_AI_VERSION);
+    pTextFillOutYellowAreas = (wxStaticText*)FindWindowById(ID_TEXT_FILL_OUT_YELLOW_AREAS);
+    wxASSERT(pTextFillOutYellowAreas != NULL);
+    // Set background color of required fields to light yellow
+    pTextFillOutYellowAreas->SetBackgroundColour(wxColour(255, 255, 150)); // light yellow
+
+    pStaticAIVersion = (wxStaticText*)FindWindowById(ID_TEXT_AI_VERSION);
 	wxASSERT(pStaticAIVersion != NULL);
 	
 	pStaticReleaseDate = (wxStaticText*)FindWindowById(ID_TEXT_RELEASE_DATE);
@@ -211,6 +229,9 @@ CEmailReportDlg::CEmailReportDlg(wxWindow* parent) // dialog constructor
 	
 	pRadioSendItToMyEmailPgm = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_SEND_TO_MY_EMAIL);
 	wxASSERT(pRadioSendItToMyEmailPgm != NULL);
+
+    pHTMLHyperLinkSendToEmailPgm = (wxHyperlinkCtrl*)FindWindowById(ID_HYPERLINK_MAILTO);
+    wxASSERT(pHTMLHyperLinkSendToEmailPgm != NULL);
 	
 	pButtonAttachAPackedDoc = (wxButton*)FindWindowById(ID_BUTTON_ATTACH_PACKED_DOC);
 	wxASSERT(pButtonAttachAPackedDoc != NULL);
@@ -294,7 +315,11 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	saveMyEmailAddress = pTextYourEmailAddr->GetValue(); // it will be empty
 	saveSendersName = pTextSendersName->GetValue(); // it will be empty
 	
-	pRadioSendItToMyEmailPgm->Disable(); // for 6.0.0 we probably won't get to implementing this option
+    // whm 6Aug2019 implemented send to email program, so commented out line below
+	//pRadioSendItToMyEmailPgm->Disable(); // for 6.0.0 we probably won't get to implementing this option
+
+    // Set background color of required fields to a light yellow
+
 
 	// Fill in the System Information fields
 	pStaticAIVersion->SetLabel(pApp->GetAppVersionOfRunningAppAsString()); //ID_TEXT_AI_VERSION
@@ -742,7 +767,8 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
             }
             else
             {
-                curl_easy_setopt(curl, CURLOPT_URL, "https://adapt-it.org/feedback.php"); // Use this default URL for SSL connection
+                // whm 17Jul2019 modified the CURLOPT_URL to use the feedback_phpMailer.php file instead of the feedback.php used in the past (before Michael's change to smtp.ionos.com).
+                curl_easy_setopt(curl, CURLOPT_URL, "https://adapt-it.org/feedback_phpMailer.php"); // Use this default URL for SSL connection
             }
 			
 			// Note: the path in the following CRULOPT_CAINFO option is a path to the ca-buncle.crt file
@@ -808,8 +834,12 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
-		// TODO: Add code to send the email to the user's default email client
-	}
+		// This block should perform the same work that the OnHyperLinkMailToClicked handler performs.
+        // That handler collects all pertinent information from the fields filled out by user, as well
+        // as system info, etc, and send that via the hyperlink
+        wxHyperlinkEvent hevent;
+        OnHyperLinkMailToClicked(hevent);
+    }
 
 	// If the email cannot be sent, automatically invoke the OnBtnSaveReportAsXmlFile() 
 	// handler so the user can save any edits made before closing the dialog.
@@ -854,7 +884,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 		else
 		{
 			wxString msg1;
-			msg1 = msg1.Format(_("Your email was sent to the Adapt It developers.\nThank you for your report.\nThe email contained %d bytes of data.\nAdapt It will put a copy of the sent report in your work folder at:\n   %s"),totalBytesSent,nameUsed.c_str());
+			msg1 = msg1.Format(_("Your email was sent to the Adapt It developers at support@adapt-it.org.\nThank you for your report.\nThe email contained %d bytes of data.\nAdapt It will put a copy of the sent report in your work folder at:\n   %s"),totalBytesSent,nameUsed.c_str());
 			wxMessageBox(msg1,_T(""),wxICON_INFORMATION | wxOK);
 		}
 	}
@@ -1254,6 +1284,67 @@ void CEmailReportDlg::OnBtnViewUsageLog(wxCommandEvent& WXUNUSED(event))
 	pApp->LogUserAction(_T("Initiated OnBtnViewUsageLog()"));
 	CLogViewer logDlg((wxWindow*)pApp->GetMainFrame());
 	logDlg.ShowModal();
+}
+
+void CEmailReportDlg::OnRadioBtnSendDirectlyFromAI(wxCommandEvent& WXUNUSED(event))
+{
+    CAdapt_ItApp* pApp = &wxGetApp();
+    pApp->LogUserAction(_T("Initiated OnBtnSendDirectlyFromAI()"));
+    this->pButtonSendNow->Disable(); // always enable "Send Now" button here
+    pRadioSendItDirectlyFromAI->SetValue(TRUE);
+    pRadioSendItToMyEmailPgm->SetValue(FALSE);
+}
+
+void CEmailReportDlg::OnRadioBtnSendToEmail(wxCommandEvent& WXUNUSED(event))
+{
+    CAdapt_ItApp* pApp = &wxGetApp();
+    pApp->LogUserAction(_T("Initiated OnBtnSendToEmail()"));
+    pRadioSendItDirectlyFromAI->SetValue(FALSE);
+    pRadioSendItToMyEmailPgm->SetValue(TRUE);
+}
+
+void CEmailReportDlg::OnHyperLinkMailToClicked(wxHyperlinkEvent& event)
+{
+    CAdapt_ItApp* pApp = &wxGetApp();
+    pApp->LogUserAction(_T("Initiated OnHyperLinkMailToClicked()"));
+    // Note: We want, I think, a click on this hyperlink itself to immediately send 
+    // the email text info to the user's email program - as most users would expect.
+    // So, I think it best to disable the "Send Now" button to prevent a subsequent
+    // click on that button while the user's email program is loading/displaying the email there.
+    this->pButtonSendNow->Disable();
+    // Also Note: Disabling the Send Now button here might be considered problematic, should the 
+    // user change their mind and decide to send the email directly from AI using the top radio button. 
+    // In that case the "Send Now" button would still be disabled. But, that is OK I think, 
+    // a change of mind would involve the user subsequently clicking the top radio button, and 
+    // the handler for that bittpm will always enable the "Send Now" button.
+    // Probably we should just keep the email report dialog open and let the user click
+    // the dialog's "Close" button themselves after interacting with the hyperlink/email pgm.
+    //
+    wxString launchURLStr;
+    // Note: The launchURLStr should contain all the text for the TO:, Subject:, and Body: fields of the
+    // user's email. It could be formatted as plain text or as HTML for a nicer appearance.
+    //
+    // Flesh out the URL call string for launchURLStr, then explicitly call the wx function 
+    // bool wxLaunchDefaultBrowser (const wxString & url, int flags = 0)
+    // TODO:
+    launchURLStr = _T("mailto:bill_martin@sil.org"); // for testing only!!
+    // Note: curl has a function called curl_easy_escape() that can be used to encode chars for this:
+    // CURL *curl = curl_easy_init();
+    //if (curl) {
+    //    char *output = curl_easy_escape(curl, "data to convert", 15);
+    //    if (output) {
+    //        printf("Encoded: %s\n", output);
+    //        curl_free(output);
+    //    }
+    //}
+    //
+    // Call wxLaunchDefaultBrowser() function to manually send the text info for the user's default email program.
+    bool bLaunchedOK = FALSE;
+    bLaunchedOK = wxLaunchDefaultBrowser(launchURLStr);
+
+    // Note: the dialog stays open at end of this handler so the user can close it or
+    // other action such as "Save report as text file (xml)", etc.
+    event.Skip(); // call Skip since we've handled the call of wxLaunchDefaultBrowser manually above
 }
 
 // Builds the xml report as Problem or Feedback report

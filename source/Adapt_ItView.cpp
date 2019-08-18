@@ -21901,8 +21901,8 @@ bool CAdapt_ItView::IsUnstructuredData(SPList* pList)
 
 void CAdapt_ItView::OnSize(wxSizeEvent& event)
 {
-	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __FUNCTION__, __LINE__,
-		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+	//wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __FUNCTION__, __LINE__,
+	//	(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
  	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
@@ -21922,8 +21922,8 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 	{
 		gbSuppressSetup = FALSE;
 	}
-	wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __FUNCTION__, __LINE__,
-		(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
+	//wxLogDebug(_T("%s:%s():line %d, m_bFreeTranslationMode = %s  gbSuppressSetup set FALSE"), __FILE__, __FUNCTION__, __LINE__,
+	//	(&wxGetApp())->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"));
 
 	// need to initiate a recalc of the layout with new m_docSize value,
 	// since strip-wrap is on

@@ -78,6 +78,8 @@
 #include "GuesserAffix.h"
 //#include "XML_UserProfiles.h"
 
+#include "BString.h"
+
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding.
 #define nBOMLen 3
@@ -1104,7 +1106,8 @@ bool ParseXML(wxString& path, const wxString& progressTitle, wxUint32 nProgMax,
 
 #ifdef _UNICODE
 	wxString dwpath;
-	gpApp->Convert8to16(dpath,dwpath);
+    CBString dp(dpath.c_str()); // whm 17Aug2019 modified to use CBString for first param of Convert8t016()
+	gpApp->Convert8to16(dp,dwpath);
 	const wxChar* dpathP = dwpath;
 #else
 	const char* dpathP = (const char*)dpath;
@@ -1750,62 +1753,160 @@ bool ParseXMLAttribute(CBString& WXUNUSED(tagname),char*& WXUNUSED(pBuff),char*&
 	// by using a string integer value for the enum values rather than storing 
 	// the string name of the StyleType, TextType, and Justification enums, we
 	// can save a lot of program code memory space. 
+    // whm 17Aug2019 modified below to avoid use of _itot() which doesn't work in wx 2.0 & 3.X
+    wxString aTemp;
 	if (strcmp(attrName, texttypeStr) == 0)
 	{
-		if (strcmp(attrTemp, noTypeStr) == 0)
-			_itot(noType, attrTemp, 10); //"0"	// get string equiv of enum integral value
-		else if (strcmp(attrTemp,verseStr) == 0)
-			_itot(verse, attrTemp, 10); //"1"	// in case it gets explicitly put in AI_stlye.xml
-		else if (strcmp(attrTemp, poetryStr) == 0)
-			_itot(poetry, attrTemp, 10); //"2"
-		else if (strcmp(attrTemp, sectionHeadStr) == 0) 
-			_itot(sectionHead, attrTemp, 10); //"3"
-		else if (strcmp(attrTemp, mainTitleStr) == 0) 
-			_itot(mainTitle, attrTemp, 10); //"4"
-		else if (strcmp(attrTemp, secondaryTitleStr) == 0) 
-			_itot(secondaryTitle, attrTemp, 10); //"5"
-		else if (strcmp(attrTemp, noneStr) == 0) 
-			_itot(none, attrTemp, 10); //"6" BEW added 23May05
-		else if (strcmp(attrTemp, footnoteStr) == 0) 
-			_itot(footnote, attrTemp, 10); //"9"
-		else if (strcmp(attrTemp, headerStr) == 0)  
-			_itot(header, attrTemp, 10); //"10"
-		else if (strcmp(attrTemp, identificationStr) == 0) 
-			_itot(identification, attrTemp, 10); //"11"
-		else if (strcmp(attrTemp, rightMarginReferenceStr) == 0) 
-			_itot(rightMarginReference, attrTemp, 10); //"32"
-		else if (strcmp(attrTemp, crossReferenceStr) == 0) 
-			_itot(crossReference, attrTemp, 10); //"33"
-		else if (strcmp(attrTemp, noteStr) == 0) 
-			_itot(note, attrTemp, 10); //"34"
+        if (strcmp(attrTemp, noTypeStr) == 0)
+        {
+            //_itot(noType, attrTemp, 10); //"0"	// get string equiv of enum integral value
+            aTemp << (int)noType;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, verseStr) == 0)
+        {
+            //_itot(verse, attrTemp, 10); //"1"	// in case it gets explicitly put in AI_stlye.xml
+            aTemp << (int)verse;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, poetryStr) == 0)
+        {
+            //_itot(poetry, attrTemp, 10); //"2"
+            aTemp << (int)poetry;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, sectionHeadStr) == 0)
+        {
+            //_itot(sectionHead, attrTemp, 10); //"3"
+            aTemp << (int)sectionHead;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, mainTitleStr) == 0)
+        {
+            //_itot(mainTitle, attrTemp, 10); //"4"
+            aTemp << (int)mainTitle;
+            attrTemp = aTemp.c_str();
+       }
+        else if (strcmp(attrTemp, secondaryTitleStr) == 0)
+        {
+            //_itot(secondaryTitle, attrTemp, 10); //"5"
+            aTemp << (int)secondaryTitle;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, noneStr) == 0)
+        {
+            //_itot(none, attrTemp, 10); //"6" BEW added 23May05
+            aTemp << (int)none;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, footnoteStr) == 0)
+        {
+            //_itot(footnote, attrTemp, 10); //"9"
+            aTemp << (int)footnote;
+            attrTemp = aTemp.c_str();
+       }
+        else if (strcmp(attrTemp, headerStr) == 0)
+        {
+            //_itot(header, attrTemp, 10); //"10"
+            aTemp << (int)header;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, identificationStr) == 0)
+        {
+            //_itot(identification, attrTemp, 10); //"11"
+            aTemp << (int)identification;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, rightMarginReferenceStr) == 0)
+        {
+            //_itot(rightMarginReference, attrTemp, 10); //"32"
+            aTemp << (int)rightMarginReference;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, crossReferenceStr) == 0)
+        {
+            //_itot(crossReference, attrTemp, 10); //"33"
+            aTemp << (int)crossReference;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, noteStr) == 0)
+        {
+            //_itot(note, attrTemp, 10); //"34"
+            aTemp << (int)note;
+            attrTemp = aTemp.c_str();
+        }
 		else
 			attrTemp = "??"; // use "??" to flag unknown TextType in output text strings
 	}
 	else if (strcmp(attrName, styletypeStr) == 0)
 	{
 		// this group are for the styleType equivalent string names
-		if (strcmp(attrTemp, paragraphStr) == 0) 
-			_itot(paragraph, attrTemp, 10); // "0" // in case it gets explicitly put in AI_stlye.xml
-		else if (strcmp(attrTemp, characterStr) == 0) 
-			_itot(character, attrTemp, 10); // "1"
-		else if (strcmp(attrTemp, tableStr) == 0)
-			_itot(table_type, attrTemp, 10); // "2"
-		else if (strcmp(attrTemp, footnote_callerStr) == 0)
-			_itot(footnote_caller, attrTemp, 10); // "3"
-		else if (strcmp(attrTemp, footnote_textStr) == 0)
-			_itot(footnote_text, attrTemp, 10); // "4"
-		else if (strcmp(attrTemp, default_para_fontStr) == 0)
-			_itot(default_para_font, attrTemp, 10); // "5"
-		else if (strcmp(attrTemp, footerStyStr) == 0)
-			_itot(footerSty, attrTemp, 10); // "6"
-		else if (strcmp(attrTemp, headerStyStr) == 0)
-			_itot(headerSty, attrTemp, 10); // "7"
-		else if (strcmp(attrTemp, horiz_ruleStr) == 0)
-			_itot(horiz_rule, attrTemp, 10); // "8"
-		else if (strcmp(attrTemp, boxed_paraStr) == 0)
-			_itot(boxed_para, attrTemp, 10); // "10"
-		else if (strcmp(attrTemp, hnoteStr) == 0)
-			_itot(hidden_note, attrTemp, 10); // "11"
+        if (strcmp(attrTemp, paragraphStr) == 0)
+        {
+            //_itot(paragraph, attrTemp, 10); // "0" // in case it gets explicitly put in AI_stlye.xml
+            aTemp << (int)paragraph;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, characterStr) == 0)
+        {
+            //_itot(character, attrTemp, 10); // "1"
+            aTemp << (int)character;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, tableStr) == 0)
+        {
+            //_itot(table_type, attrTemp, 10); // "2"
+            aTemp << (int)table_type;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, footnote_callerStr) == 0)
+        {
+            //_itot(footnote_caller, attrTemp, 10); // "3"
+            aTemp << (int)footnote_caller;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, footnote_textStr) == 0)
+        {
+            //_itot(footnote_text, attrTemp, 10); // "4"
+            aTemp << (int)footnote_text;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, default_para_fontStr) == 0)
+        {
+            //_itot(default_para_font, attrTemp, 10); // "5"
+            aTemp << (int)default_para_font;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, footerStyStr) == 0)
+        {
+            //_itot(footerSty, attrTemp, 10); // "6"
+            aTemp << (int)footerSty;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, headerStyStr) == 0)
+        {
+            //_itot(headerSty, attrTemp, 10); // "7"
+            aTemp << (int)headerSty;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, horiz_ruleStr) == 0)
+        {
+            //_itot(horiz_rule, attrTemp, 10); // "8"
+            aTemp << (int)horiz_rule;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, boxed_paraStr) == 0)
+        {
+            //_itot(boxed_para, attrTemp, 10); // "10"
+            aTemp << (int)boxed_para;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, hnoteStr) == 0)
+        {
+            //_itot(hidden_note, attrTemp, 10); // "11"
+            aTemp << (int)hidden_note;
+            attrTemp = aTemp.c_str();
+        }
 		else
 			attrTemp = "??";  // use "??" to flag unknown StyleType in output text strings
 		//noteStr note // UBS uses this as a StyleType
@@ -1813,14 +1914,30 @@ bool ParseXMLAttribute(CBString& WXUNUSED(tagname),char*& WXUNUSED(pBuff),char*&
 	else if (strcmp(attrName, justificationStr) == 0)
 	{
 		// this group are for the justification equivalent string names
-		if (strcmp(attrTemp, leadingStr) == 0) 
-			_itot(leading, attrTemp, 10); // "0"; // in case it gets explicitly put in AI_stlye.xml
-		else if (strcmp(attrTemp, followingStr) == 0) 
-			_itot(following, attrTemp, 10); // "1";
-		else if (strcmp(attrTemp, centerStr) == 0) 
-			_itot(center, attrTemp, 10); // "2";
-		else if (strcmp(attrTemp, justifiedStr) == 0) // added for version 3
-			_itot(justified, attrTemp, 10); // "3";
+        if (strcmp(attrTemp, leadingStr) == 0)
+        {
+            //_itot(leading, attrTemp, 10); // "0"; // in case it gets explicitly put in AI_stlye.xml
+            aTemp << (int)leading;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, followingStr) == 0)
+        {
+            //_itot(following, attrTemp, 10); // "1";
+            aTemp << (int)following;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, centerStr) == 0)
+        {
+            //_itot(center, attrTemp, 10); // "2";
+            aTemp << (int)center;
+            attrTemp = aTemp.c_str();
+        }
+        else if (strcmp(attrTemp, justifiedStr) == 0) // added for version 3
+        {
+            //_itot(justified, attrTemp, 10); // "3";
+            aTemp << (int)justified;
+            attrTemp = aTemp.c_str();
+        }
 		else
 			attrTemp = "??";  // use "??" to flag unknown Justification in output text strings
 	}

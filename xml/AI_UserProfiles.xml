@@ -3,7 +3,7 @@
 Filename:	AI_UserProfiles.xml
 Author: 	Bill Martin
 Date Created:	27 August 2010
-Last Updated:	18 September 2018, by Bill Martin
+Last Updated:	13 August 2019, by Bill Martin
 Description:	This file contains the user profile definitions and
 		attributes for Adapt It's interface menus and settings.
 		Adapt It reads and parses this AI_UserProfiles.xml file
@@ -417,6 +417,33 @@ Description:	This file contains the user profile definitions and
 <MENU itemID="ID_COPY_SOURCE"
 	itemType="subMenu"
 	itemText="Copy Sourc&amp;e"
+	itemDescr="View menu"
+	adminCanChange="1"
+	>
+		<PROFILE userProfile="Novice"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Experienced"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Skilled"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+</MENU>
+<MENU itemID="ID_SELECT_COPIED_SOURCE"
+	itemType="subMenu"
+	itemText="Se&amp;lect Copied Source"
 	itemDescr="View menu"
 	adminCanChange="1"
 	>
