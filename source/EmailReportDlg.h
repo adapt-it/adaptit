@@ -74,6 +74,7 @@ public:
 	wxTextCtrl* pTextDescriptionBody;
 	wxCheckBox* pLetAIDevsKnowHowIUseAI;
 	wxButton* pButtonViewUsageLog;
+    wxStaticText* pTextFillOutYellowAreas;
 	wxStaticText* pStaticAIVersion;
 	wxStaticText* pStaticReleaseDate;
 	wxStaticText* pStaticDataType;
@@ -89,6 +90,7 @@ public:
 	wxButton* pButtonClose;
 	wxRadioButton* pRadioSendItDirectlyFromAI;
 	wxRadioButton* pRadioSendItToMyEmailPgm;
+    wxHyperlinkCtrl* pHTMLHyperLinkSendToEmailPgm;
 	wxButton* pButtonAttachAPackedDoc;
 	wxButton* pButtonSendNow;
 	wxSizer* pEmailReportDlgSizer;
@@ -101,6 +103,9 @@ protected:
 	void OnBtnClose(wxCommandEvent& WXUNUSED(event));
 	void OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event));
 	void OnBtnViewUsageLog(wxCommandEvent& WXUNUSED(event));
+    void OnRadioBtnSendDirectlyFromAI(wxCommandEvent& WXUNUSED(event));
+    void OnRadioBtnSendToEmail(wxCommandEvent& WXUNUSED(event));
+    void OnHyperLinkMailToClicked(wxHyperlinkEvent& event);
 	void OnYourEmailAddressEditBoxChanged(wxCommandEvent& WXUNUSED(event));
 	void OnSubjectSummaryEditBoxChanged(wxCommandEvent& WXUNUSED(event));
 	void OnDescriptionBodyEditBoxChanged(wxCommandEvent& WXUNUSED(event));
