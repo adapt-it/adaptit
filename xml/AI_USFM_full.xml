@@ -2363,7 +2363,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	filter="0" userCanSetFilter="0"
 	inLine="1" special="0" bdryOnLast="1"
 	inform="0" navigationText=""
-	textType=verse" wrap="0"
+	textType="verse" wrap="0"
 	styleName="qs...qs* - Poetry Text - Selah"
 	styleType="character" fontSize="12" color="0"
 	italic="1" bold="0" underline="0"

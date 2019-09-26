@@ -70,10 +70,10 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item8 = new wxStaticText( parent, ID_ABOUT_VERSION_LABEL, _("WX Version"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.9.4"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.9.5"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("April 12, 2019"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("September 25, 2019"), wxDefaultPosition, wxDefaultSize, 0 );
     item10->SetToolTip( wxT("This date should be the same as the executable file") );
     item7->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
