@@ -66,7 +66,7 @@ enum TextType {
 		  // and the appropriate treatment of m_bFirstOfType & m_bBoundary (on pLast in 
 		  // AnalyzeMarker() ); and we will include footnotes in this behaviour even though we 
 		  // do not set them to have this TextType value - the doc functions AnalyzeMarker() and 
-		  // IsTextTypeNoneOrFootnote() implement this protocol)
+		  // ??? (what?) implement this protocol)
 	footnote = 9,
 	header,
 	identification,
@@ -346,6 +346,13 @@ public:
 	wxString GetMarkers();
 	void SetMarkers(wxString markers);
 */
+	// BEW 30Sep19, three functions in support of caching attributes-having
+	// metadata in the m_punctsPattern wxString member; it houses this kind
+	// of data first, and a delimiter string +$+ follows, and any end of word
+	// mix of puncts and/or endmarkers or both, after the +$+
+	void     ClearCachedAttributesMetadata();
+	void     InsertCachedAttributesMetadata(wxString metadata);
+	wxString ExtractCachedAttributesMetadata();
 
 private:
 	DECLARE_DYNAMIC_CLASS(CSourcePhrase)

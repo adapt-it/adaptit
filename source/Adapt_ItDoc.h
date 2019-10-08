@@ -160,8 +160,13 @@ struct	AutoFixRecordG
 	enum InconsistencyType incType;
 	enum FixItAction fixAction;
 };
-
-
+// Next one for support of hiding (and restoring) USFM3 
+// attribute-having metadata
+enum AttrMkrType {
+	notAttrMkr,
+	attrBeginMkr,
+	attrEndMkr
+};
 
 // If we need another list based on CSourcePhrase, we don't declare it
 // with another macro like the one above, but instead we simply use 
@@ -176,6 +181,7 @@ struct	AutoFixRecordG
 /// separate from and independent of the view class's in-memory data structures. 
 /// This schema is an implementation of the document/view framework. 
 /// \derivation		The CAdapt_ItDoc class is derived from wxDocument.
+
 
 class CAdapt_ItDoc : public wxDocument
 {
@@ -258,8 +264,10 @@ protected:
 	inline bool		IsFixedSpace(wxChar* ptr); // TRUE if it is a ~ (tilde), the USFM fixed-space character
 	wxString		m_spacelessPuncts; // populated by a TokenizeText() call (IsInWordProper() uses it)
 	wxString		m_spacelessPuncts_NoTilde; // same as m_spacelessPuncts, but lacking a ~ character
+public:
+	// public because USFM3Support.cpp uses it too (BEW 3Sep19)
 	bool			m_bTokenizingTargetText; // set by fourth parameter of a TokenizeText() call (IsInWordProper() uses it)
-
+protected:
 	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, 
 							wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr, 
 							wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts,
@@ -473,6 +481,23 @@ public:
 							wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); //BEW created 27Jan11
 	wxString		SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, wxString& spacelessPuncts); // BEW
 								// created 31Jan11, a helper for round tripping punctuation changes
+
+	// BEW 30Sep19 created this (valid for ParseWord() or ParseWord2()) to pull out
+	// pre-word-proper processing into TokenizeText() - because things like \fig were
+	// being stored wrongly in m_markers instead of m_inlineNonbindingMarkers.
+	// The int returned is a count of the characters parsed over, so that the iterator
+	// ptr can be updated correctly from an int len counter internally, which uses int
+	// itemLen for parsing over things like puncts, beginMarkers, etc.
+	int ParsePreWord(wxChar *pChar,
+		wxChar* pEnd,
+		CSourcePhrase* pSrcPhrase,
+		wxString& spacelessPuncts, // caller determines whether it's src set or tgt set
+		wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
+		wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
+		bool& bIsInlineNonbindingMkr,
+		bool& bIsInlineBindingMkr,
+		bool bTokenizingTargetText);
+
 	// BEW 11Oct10, changed contents of ParseWord() majorly, so need new signature
 	//int				ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
 	int				ParseWord(wxChar *pChar, // pointer to next wxChar to be parsed
@@ -650,6 +675,138 @@ private:
 	void	RemoveAutoFixGList(AFGList& afgList); // for glossing data
 	bool	m_bHasPrecedingStraightQuote; // default FALSE, set TRUE when a straight quote
 	bool	m_bReopeningAfterClosing;	  // default FALSE - set true when we're going to reopen the doc
+	public:
+	// Next line, BEW 3Sep19 in support of USFM3, and hiding attributes metadata
+	CSourcePhrase* m_pCreatingSrcPhrase; // set this to whatever TokenizeText is currently populating
+	protected:
+
+		// Prototypes for helpers in support of USFM3 markup, regarding metadata
+		// which follows bar ( | ) immediately prior to certain endmarkers
+public:
+		bool m_bWithinMkrAttributeSpan;
+		bool m_bHiddenMetadataDone;
+
+		bool bSaveWithinAttributesSpanValue; // If editing source text, m_bWithinMkrAttributeSpan
+			// has to be FALSE until the source text edit is done with; so here cache the 
+			// boolean's value across the handler for editing source text
+protected:
+		wxChar* m_ptr;
+		wxChar* m_auxPtr; // an auxiliary ptr for use in scanning when changing 
+						  // m_ptr is not wanted
+		const wxString m_strBar = _T("|");
+		const wxString m_strSpace = _T(" ");
+		const wxUniChar m_asterisk = '*';
+		const wxUniChar m_barChar = '|';
+		size_t   m_nBeginMkrLen; // includes the trailing whitespace character (typically latin space)
+		size_t   m_nEndMarkerLen; // includes the trailing asterisk
+		size_t   m_nSpanLength; // the length of the span of characters to be skipped
+			// over in the input text stream, so that AI no longer "sees" the metadata while
+			// running its tokenizing function
+		wxString m_cachedAttributeData;  // store everything from the first bar (strBar) to the
+			// end of the matching endmarker here. The CSourcePhrase which gets to
+			// store the hidden stuff cached here may not be the current one - it 
+		    // could be further along, and not yet created because the parse has not 
+			// gotten that far yet
+		wxString m_cachedWordBeforeBar; // get the word preceding the bar (including any puncts)
+			// back to the preceding whitespace, cache it here, to enable identifying which
+			// CSourcePhrase instance is the one where we need to skip the metadata when parsing
+			// but retain the count of metadata characters so that itemLen stays correct
+		CSourcePhrase* m_pCachedSourcePhrase; // Submit m_pCachedWordBeforeBar to TokenizeTextSring()
+			// (in CAdapt_ItView.cpp) and store the result in m_pCachedWordBeforeBar. This gives 
+			// a filled out CSourcePhrase instance (on heap) quickly without writing any new code. 
+			// Since this internally calls TokenizeText() at a time when the latter is processing
+			// the m_pSourcePhrases document list, with the boolean m_bWithinMkrAttributeSpan
+			// set to TRUE, be sure to save and restore that boolean's value across the call
+			// of TokenizeTextString() because we want to call the latter with that boolean
+			// set to FALSE to prevent re-entrancy to the USFM3 supporting code.
+		size_t m_offsetToFirstBar; // the offset to the first bar ( | ) character, starting from
+			// the begin-marker
+			// If there is no bar before the endmarker is reached, then this will be -1
+		size_t m_offsetToMatchingEndMkr; // the offset to whatever endmarker matches the begin-mkr,
+			// as that endmarker marks the end of the attribute-having span (offset to its start)
+			// But cachedAttributeData will contain the intervening metadata, with the endmarker
+			// appended to it as well (to simplify robust replacement on export to Paratext)
+
+		AttrMkrType enumMkrTypeValue; // when parsing, and an attribute-having 
+									  // marker type is current, store the type here
+		wxString m_strAttrBeginMkr;	  // if a begin-marker is found which is one of the 
+									  // set taking attributes, store here
+		wxString m_strAttrEndMkr;	  // if an end-marker is found which is one of the 
+									  // set taking attributes, store here
+		wxString m_strMatchedMkr;	  // after parsing a marker, store it here temporarily
+
+		void ClearAttributeMkrStorage(); // Before moving to a new location in the
+										   // document, call this to clear the above variables
+		bool CheckForAttrMarker(wxString&  attrMkr, wxString& matchedMkr, AttrMkrType enumMkrType);
+		// Looks up CheckForAttrMarker fast access string, or the
+		// CheckForAttrEndMarker fast access string. Returns what
+		// was matched, and whether a begin marker or end marker type
+
+		// Return the word-proper, assuming there are no pre-word punctuation chars present,
+		// and any ending punctuation characters in the string pointed at by pEndPuncts.
+		// Assume also, the input word is from source text
+		wxString SimpleWordParser(wxString word, wxString*  pEndPuncts);
+		// This variant is for parsing the source text from which m_pSourcePhrases
+		// is being constructed, up until bar ( | ) character is reached. It assumes
+		// that pChar is passed in when pointing at the start of the "word proper"
+		// and that there is definitely a bar ahead which will halt the parse
+		wxString SimpleWordParser2(wxChar* pChar, wxString*  pEndPuncts, wxChar* pGoNoFurther, bool& bHasBar);
+
+		// A utility function to get the above m_cachedSourcePhrase instance populated correctly
+		// from a parse of the word stored in m_cachedWordBeforeBar (see above), using 
+		// TokenizeTextString() from the view class
+		void ParseWordBeforeBar2SourcePhrase(wxString& srcTextInput, CSourcePhrase& srcPhrase);
+
+		wxString CacheWordBeforeBar(wxChar* ptrToBar);
+
+		wxString ConvertToEndMarker(wxString strBeginMkrAndSpace); // Change trailing space into *
+
+		bool IsAttributeMarker(wxChar* ptr); // Test for an
+			// attribute marker, and if found, return TRUE if it is one - provided it has a 
+			// bar (|) within its content. Else return FALSE because no hiding of anything
+			// is required. If there is a bar in the internal scan, then its a begin-marker,
+			// then store it in strAttrBeginMkr; and create its matched endmarker & store it
+			// in strAttrEndMkr; and the returned boolean should be set to TRUE. Return the
+			// marker as well - useful for checking
+
+		bool IsAttributeBeginMarker(wxChar* ptr, wxString& beginMkr); // does no more than 
+			// check for such a marker in the relevant fast-access string, returning TRUE 
+			// if found, and which it is in the signature
+
+		bool IsXRefNext(wxChar* ptr, wxChar* pEnd); // does a \x marker occur at ptr?
+
+		// Return TRUE if searching pSrcPhrase's m_endMarkers string for an instance of pEndMarker
+		// returns an offset which is not wxNOT_FOUND.The source phrase may be storing more than
+		// one endmarker, and if so, the attribute having one should be first
+		bool IsThisEndMarkerStoredHere(CSourcePhrase* pSrcPhrase, wxString* pEndMkr);
+
+		// Return TRUE if ptr has reached the location where the creation of a new CSourcePhrase
+		// will be creating the instance on which the cached metadata will need to be stored in
+		// its m_punctsPattern member. For this test, TokenizeText() will have to be in the
+		// function, but with m_bWithinMkrAttributeSpan temporaraily FALSE, but restore to TRUE
+		// after the temporary CSourcePhrase is created in a temporary SPList. All this so as
+		// to get at this instances m_srcPhrase member, so that the caller can compare with
+		// the cached last word before the bar character. If there's a match, then the caller
+		// can proceed with the hiding of the metadata and jump the program execution counter
+		// to where the TokenizeText() caller can proceed to test for the endmarker, etc.
+		bool IsTheCSourcePhraseForHidingMetadataNext(wxChar* pChar, wxChar* pEnd);
+
+		// None of wxString's Find() or find() variants are suitable, so I need to create my own
+		// Returns the offset to the matchingEndMkr, as int. wx_NOT_FOUND ( -1 ) if there is
+		// no bar ( | ) in that span of text
+		int FindBarWithinSpan(wxChar* auxPtr, wxString matchingEndMkr, int endMkrLen);
+		int FindEndMarkerWithinSpan(wxChar* auxPtr, wxString matchingEndMkr, int endMkrLen, 
+									CSourcePhrase* pCurSrcPhrase);
+		// end of new prototypes in support of USFM3 markup
+
+	private:
+		const wxUniChar uselessDegreeChar = '°';
+		bool IsAnUnwantedDegreeSymbolPriorToAMarker(wxChar* ptr);
+		wxChar* m_pPreservePreParseWordLocation;
+
+		// a debugging function to check initial m_nSequNumber values in the m_pSoucePhrases list
+		// up to a maximum of n (a digit passed in)
+		void LogSequNumbers_LimitTo(int nLimit, SPList* pList);
 
 	DECLARE_EVENT_TABLE()
 };

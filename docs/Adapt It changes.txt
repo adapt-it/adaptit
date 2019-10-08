@@ -2,7 +2,13 @@
 ----------------------------------------------
 Feature changes and new features in 6.9.5
 --------------------------------------------------------------------------------------------
-
+* Removed the prohibition against removing < and > from the list of punctuation characters.
+  This gives Adapt It more flexibility for handling unusual custom markup. Such removal 
+  should not be done without good reason; but now it can be done. For example, if curly quotes are being used for speech markup, and the custom markup in the document uses < and/or > as word-building characters, that would be a scenario where removing the wedges from the punctuation list makes good sense.
+* Made the app compliant with USFM 3.0 new attribute marker features.
+* Made the app not show metadata with attributes in the GUI, but auto-restoring them
+  to the document when the document is being exported to Paratext or Bibledit in a
+  collaboration.
 ---------------------------------------------
 Bug fixes in 6.9.4 update
 ---------------------------------------------

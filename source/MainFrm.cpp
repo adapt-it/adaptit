@@ -4738,9 +4738,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
         if (curFocus)
             className = curFocus->GetClassInfo()->GetClassName();
         lastFocus = curFocus;
-        wxLogDebug(wxT("FOCUSED: %s %p"),
-            className,
-            curFocus);
+//        wxLogDebug(wxT("FOCUSED: %s %p"),
+//            className,
+//            curFocus);
     }
 //#endif
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

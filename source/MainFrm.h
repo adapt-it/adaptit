@@ -29,7 +29,7 @@
 
 #include "Adapt_It.h"
 
-#define _VERTEDIT
+//#define _VERTEDIT
 // comment out the above to turn off logging for vertical edit wxLogDebug() calls
 
 // whm 24Nov2015 moved here from Adapt_It.h

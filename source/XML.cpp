@@ -298,6 +298,9 @@ const char followingStr[] = "following";
 const char centerStr[] = "center";
 const char justifiedStr[] = "justified"; // added for version 3
 
+// BEW 30Sep19 added
+const wxString strPatternDelim = _T("+$+");
+
 #ifdef Output_Default_Style_Strings
 
 // static CString is used to accumulate a Unix-style data string for output
@@ -4210,7 +4213,48 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (gnDocVersion >= 6 && attrName == xml_pupat)
 				{
-					gpEmbeddedSrcPhrase->m_punctsPattern = gpApp->Convert8to16(attrValue);
+					// BEW 30Sep19 these tests added to support the +$+ delimiter for m_punctsPattern
+					wxString strAttrValue = gpApp->Convert8to16(attrValue);
+					if (strAttrValue.IsEmpty())
+					{
+						gpEmbeddedSrcPhrase->m_punctsPattern = strPatternDelim; // add +$+
+					}
+					else
+					{
+						// strAttrValue has some content, deal with it
+						int offset = wxNOT_FOUND;
+						offset = strAttrValue.Find(strPatternDelim);
+						if (offset != wxNOT_FOUND)
+						{
+							// The delimiter string, _T("+$++") is present somewhere,
+							// so the division into two spaces is well-formed; so
+							// accept whatever content strAttrValue has 'as is'
+							gpEmbeddedSrcPhrase->m_punctsPattern = strAttrValue;
+						}
+						else
+						{
+							// The delimiter string, _T("+$++") is not present somewhere,
+							// so check out if hidden attributes metadata is present or
+							// not - if present, bar ( | ) will be somewhere in the string
+							wxString bar = _T("|");
+							offset = strAttrValue.Find(bar);
+							if (offset == wxNOT_FOUND)
+							{
+								// There is no hidden attributes metadata, so we've no
+								// reason for appending the strPatternDelim string,
+								// so instead we'll insert it before whatever is in
+								// the strAttrValue string
+								gpEmbeddedSrcPhrase->m_punctsPattern = strPatternDelim + strAttrValue;
+							}
+							else
+							{
+								// There *is* hidden attributes metadata, so it must come
+								// first and be followed by strPatternDelim, so append the latter
+								wxASSERT(offset == 0);
+								gpEmbeddedSrcPhrase->m_punctsPattern = strAttrValue + strPatternDelim;
+							}
+						} // end of else block for test: if (offset != wxNOT_FOUND)
+					} // end of else block for test: if (strAttrValue.IsEmpty())
 				}
 				else
 				{
@@ -4366,8 +4410,50 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (gnDocVersion >= 6 && attrName == xml_pupat)
 				{
-					gpSrcPhrase->m_punctsPattern = gpApp->Convert8to16(attrValue);
-				}
+					// BEW 30Sep19 these tests added to support the +$+ delimiter for m_punctsPattern
+					wxString strAttrValue = gpApp->Convert8to16(attrValue);
+					if (strAttrValue.IsEmpty())
+					{
+						gpSrcPhrase->m_punctsPattern = strPatternDelim; // add +$+
+					}
+					else
+					{
+						// strAttrValue has some content, deal with it
+						int offset = wxNOT_FOUND;
+						offset = strAttrValue.Find(strPatternDelim);
+						if (offset != wxNOT_FOUND)
+						{
+							// The delimiter string, _T("+$++") is present somewhere,
+							// so the division into two spaces is well-formed; so
+							// accept whatever content strAttrValue has 'as is'
+							gpSrcPhrase->m_punctsPattern = strAttrValue;
+						}
+						else
+						{
+							// The delimiter string, _T("+$++") is not present somewhere,
+							// so check out if hidden attributes metadata is present or
+							// not - if present, bar ( | ) will be somewhere in the string
+							wxString bar = _T("|");
+							offset = strAttrValue.Find(bar);
+							if (offset == wxNOT_FOUND)
+							{
+								// There is no hidden attributes metadata, so we've no
+								// reason for appending the strPatternDelim string,
+								// so instead we'll insert it before whatever is in
+								// the strAttrValue string
+								gpSrcPhrase->m_punctsPattern = strPatternDelim + strAttrValue;
+							}
+							else
+							{
+								// There *is* hidden attributes metadata, so it must come
+								// first and be followed by strPatternDelim, so append the latter
+								wxASSERT(offset == 0);
+								gpSrcPhrase->m_punctsPattern = strAttrValue + strPatternDelim;
+							}
+						} // end of else block for test: if (offset != wxNOT_FOUND)
+					} // end of else block for test: if (strAttrValue.IsEmpty())
+					
+				} // end of TRUE block for test: if (gnDocVersion >= 6 && attrName == xml_pupat)
 				else
 				{
 					// unknown attribute
@@ -4736,7 +4822,8 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 				pSrcPhrase->m_lastAdaptionsPattern = _T("");
 				pSrcPhrase->m_tgtMkrPattern = _T("");
 				pSrcPhrase->m_glossMkrPattern = _T("");
-				pSrcPhrase->m_punctsPattern = _T("");
+				// BEW 30Sep19 can no longer clear this - it may contain data
+				//pSrcPhrase->m_punctsPattern = _T("");
 			}
 		} // end of else block for test: if (offset == wxNOT_FOUND) -- looking for \~FILTER
 	} // end of TRUE block for test: if (!strModifiers.IsEmpty())

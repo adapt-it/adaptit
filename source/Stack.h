@@ -17,7 +17,7 @@
 /// app, these single-byte characters will be interpretted as UTF-8, and the
 /// callback functions which the XML parser uses will internally convert the
 /// byte string to UTF-16; and so the signature of these callbacks has to have
-/// a MFC CString so as to accept the UTF-16 for a unicode build. Elsewhere
+/// a wxString so as to accept the UTF-16 for a unicode build. Elsewhere
 /// in the XML module, where strings are required, I will use my CBString class.
 /// \derivation		The CStack class is not a derived class.
 /////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ typedef int Int32;
 /// app, these single-byte characters will be interpretted as UTF-8, and the
 /// callback functions which the XML parser uses will internally convert the
 /// byte string to UTF-16; and so the signature of these callbacks has to have
-/// a MFC CString so as to accept the UTF-16 for a unicode build. Elsewhere
+/// a widgets wxString so as to accept the UTF-16 for a unicode build. Elsewhere
 /// in the XML module, where strings are required, I will use my CBString class.
 /// \derivation		The CStack class is not a derived class.
 class CStack
@@ -76,5 +76,12 @@ public:
 							// doesn't pop; returns empty char array (all nulls) 
 							// if stack is empty
 };
+
+/// New stack type for use in refactoring TokenizeText() to handle USFM marker - endmarker
+/// spans which contain attributes, and the delimiters | (bar) and : (colon)  This stack
+/// type handles structs, and utilizes wxStack<t> which uses wxVector<T>.
+
+
+
 
 #endif
