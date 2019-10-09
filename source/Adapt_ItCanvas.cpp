@@ -580,8 +580,11 @@ void CAdapt_ItCanvas::OnTogglePhraseBoxButton(wxCommandEvent & event)
 void CAdapt_ItCanvas::OnListBoxItemSelected(wxCommandEvent & event)
 {
     CAdapt_ItApp* pApp = &wxGetApp();
-    // This is only called when a list item is selected, not when Enter pressed 
-    // within the dropdown's edit box
+    // This is called when a list item is selected. It is also explicitly called
+    // by the CPhraseBox::OnKeyUp() handler when the Enter key _WXT_RETURN is pressed 
+    // in the edit box after a up/down arrow selection has been made in the drop down 
+    // list. In the later case (up/down arrow + Enter), the event passed in is a
+    // dummyevent, i.e., invalid for accessing the current event's methods.
 
     // whm 15Apr2019 Work-around for sudden scroll causing bad index value.
     // This work-around checks to see if a drop down list box index error has occurred,
@@ -608,9 +611,23 @@ void CAdapt_ItCanvas::OnListBoxItemSelected(wxCommandEvent & event)
     // will still be -1 (no click was made), so to avoid an assert below, we must test for
     // that situation (arrow key and Enter to select an item), and not try to set the
     // list item selection to a -1 value.
-    int eventID = event.GetId(); eventID = eventID; //int ID_DROP_DOWN_LIST = 22050;
-    int listBoxSel = event.GetSelection();
-    wxString selStr = event.GetString(); selStr = selStr;
+    //
+    // whm 25Sep2019 Further correction from a bug reported by Stefanie S in which she
+    // would get a library debug error (assert "IsValid(n)" failed in wxListBox::GetStgring()) 
+    // due to a bad listbox index - even in release mode. The problem was evident when
+    // the user moved the list selection with up/down arrow key and presses Enter at a
+    // new location (that had not previously been adapted). The _WXK_RETURN handling block 
+    // in canvas' OnKeyUp() creates and passes in a dummyevent to this OnListBoxItemSelected() 
+    // handler. That means that we cannot use the event object here reliably in that scenario 
+    // to determine the listBoxSel, nor the selStr for the initiating event (which was a key
+    // press rather than a mouse click on a list item.
+    // The solution is to not use the passed in event argument to determine listBoxSel and 
+    // setStr, but instead get those current values directly from the list box control.
+    //int eventID = event.GetId(); eventID = eventID; //int ID_DROP_DOWN_LIST = 22050; // Note: only valid eventID for mouse click selection
+    wxString selStr = pApp->m_pTargetBox->GetDropDownList()->GetStringSelection();
+    int listBoxSel = pApp->m_pTargetBox->GetDropDownList()->GetSelection();
+    //int listBoxSel = event.GetSelection();
+    //wxString selStr = event.GetString(); selStr = selStr;
     if (pApp->m_nDropDownClickedItemIndex != -1 && listBoxSel != pApp->m_nDropDownClickedItemIndex)
     {
         wxLogDebug("***In CAdapt_ItCanvas::OnListBoxItemSelected() BEFORE correction selStr: %s at index %d", selStr.c_str(), listBoxSel);

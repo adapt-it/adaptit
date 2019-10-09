@@ -10737,56 +10737,101 @@ bool CAdapt_ItDoc::CannotBeClosingQuote(wxChar* ptr, wxChar* pPunctStart)
 // BEW 15Dec10, changes needed to handle PNG 1998 marker set's \fe and \F
 // BEW 24Oct14 no changes needed for support of USFM nested markers, the ones dealt
 // with here never take +
+// BEW 30Sep19 added \fig* to this, as for USFM3 it needs to be m_bSpecialText TRUE
+// when not filtered, so that the caption text is in the special text colour (red)
+// Required a significant amount of refactoring, as the earlier version was not all
+// that hot anyway!
 bool CAdapt_ItDoc::IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase)
 {
-	if (gpApp->gCurrentSfmSet == PngOnly || gpApp->gCurrentSfmSet == UsfmAndPng)
-	{
-		// in the PNG 1998 set, there is no marker for endnotes, and cross references were
-		// not included in the standard but inserted manually from a separate file, and so
-		// there is no \x nor any endmarker for a cross reference either; there were only
-		// two marker synonyms for ending a footnote, \fe or \F
-		wxString fnoteEnd1 = _T("\\fe");
-		wxString fnoteEnd2 = _T("\\F");
-		wxString endmarkers = pSrcPhrase->GetEndMarkers();
-		if (endmarkers.IsEmpty())
-			return FALSE;
-		if (endmarkers.Find(fnoteEnd1) != wxNOT_FOUND)
-		{
-			return TRUE;
-		}
-		else if (endmarkers.Find(fnoteEnd2) != wxNOT_FOUND)
-		{
-			return TRUE;
-		}
-	}
-	else
-	{
-		wxString fnoteEnd = _T("\\f*");
-		wxString endnoteEnd = _T("\\fe*");
-		wxString crossRefEnd = _T("\\x*");
-		wxString endmarkers = pSrcPhrase->GetEndMarkers();
-		if (endmarkers.IsEmpty())
-			return FALSE;
-		if (endmarkers.Find(fnoteEnd) != wxNOT_FOUND)
-		{
-			return TRUE;
-		}
-		else if (endmarkers.Find(endnoteEnd) != wxNOT_FOUND)
-		{
-			return TRUE;
-		}
-		else if (endmarkers.Find(crossRefEnd) != wxNOT_FOUND)
-		{
-			return TRUE;
-		}
-		// BEW added 24Oct14 for support of USFM nested markers; nested markers
-		// are typically not ones which change the textType, so return FALSE
-		else if (endmarkers.GetChar(1) == _T('+'))
-		{
-			return FALSE;
-		}
-	}
-	return FALSE;
+    if (gpApp->gCurrentSfmSet == PngOnly || gpApp->gCurrentSfmSet == UsfmAndPng)
+    {
+        // in the PNG 1998 set, there is no marker for endnotes, and cross references were
+        // not included in the standard but inserted manually from a separate file, and so
+        // there is no \x nor any endmarker for a cross reference either; there were only
+        // two marker synonyms for ending a footnote, \fe or \F
+        wxString fnoteEnd1 = _T("\\fe");
+        wxString fnoteEnd2 = _T("\\F");
+        wxString endmarkers = pSrcPhrase->GetEndMarkers();
+        if (endmarkers.IsEmpty())
+            return FALSE;
+        if (endmarkers.Find(fnoteEnd1) != wxNOT_FOUND)
+        {
+            return TRUE;
+        }
+        else if (endmarkers.Find(fnoteEnd2) != wxNOT_FOUND)
+        {
+            return TRUE;
+        }
+    }
+    else
+    {
+        wxString fnoteEnd = _T("\\f*");
+        wxString endnoteEnd = _T("\\fe*");
+        wxString crossRefEnd = _T("\\x*");
+        wxString figEnd = _T("\\fig*"); // BEW 30Sep19, added (the endmarker will be in the
+                                        // 'inline non-binding endmarkers' member variable
+        wxString endmarkers = pSrcPhrase->GetEndMarkers();
+        wxString inlineNonbindingEndMarkers = pSrcPhrase->GetInlineNonbindingEndMarkers(); // BEW 30Sep19 added
+        if (endmarkers.IsEmpty() && inlineNonbindingEndMarkers.IsEmpty())
+        {
+            return FALSE;
+        }
+        else
+        {
+            // \fig* should be tried first (bleeding order)
+            if (!inlineNonbindingEndMarkers.IsEmpty())
+            {
+                if (inlineNonbindingEndMarkers.Find(figEnd) != wxNOT_FOUND)
+                {
+                    return TRUE;
+                }
+                else
+                {
+                    // If there is no \fig* marker to end a figure, then
+                    // we want the legacy tests done, so jump there
+                    goto jmp;
+                }
+            } // end of TRUE block for test: if (!inlineNonbindingEndMarkers.IsEmpty())
+            else
+            {
+                if (!endmarkers.IsEmpty())
+                {
+                    // BEW added 24Oct14 for support of USFM nested markers; nested markers
+                    // are typically not ones which change the textType, so return FALSE
+                    // bleed out these two cases before the ones after them
+    jmp:            if (endmarkers.GetChar(1) == _T('+'))
+                    {
+                        return FALSE;
+                    }
+                    // BEW 30Sep19 added next one
+                    if (inlineNonbindingEndMarkers.GetChar(1) == _T('+'))
+                    {
+                        return FALSE;
+                    }
+
+                    // Okay, there are endmarkers and they are not nested, so
+                    // do the legacy tests; and these don't include \fig*
+                    if (endmarkers.Find(fnoteEnd) != wxNOT_FOUND)
+                    {
+                        return TRUE;
+                    }
+                    else if (endmarkers.Find(endnoteEnd) != wxNOT_FOUND)
+                    {
+                        return TRUE;
+                    }
+                    else if (endmarkers.Find(crossRefEnd) != wxNOT_FOUND)
+                    {
+                        return TRUE;
+                    }
+                } // end of TRUE block for test: if (!endmarkers.IsEmpty())
+
+            } // end of else block for test: if (!inlineNonbindingEndMarkers.IsEmpty())
+              // if (endmarkers.IsEmpty() && inlineNonbindingEndMarkers.IsEmpty())
+        } // end of else block for test:
+          // if (endmarkers.IsEmpty() && inlineNonbindingEndMarkers.IsEmpty())
+    } // end of else block for test:
+      // if (gpApp->gCurrentSfmSet == PngOnly || gpApp->gCurrentSfmSet == UsfmAndPng)
+    return FALSE;
 }
 
 bool CAdapt_ItDoc::IsPunctuation(wxChar* ptr, bool bSource) // bSource is default TRUE

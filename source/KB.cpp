@@ -2310,7 +2310,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 	wxString adaptionMarker = ss1 + _T("ge");
 	bool bKeyDefined = FALSE;
 	int nOffset = -1;
-	//m_pApp->m_bSaveToKB = TRUE;{
+	//m_pApp->m_bSaveToKB = TRUE;
 	// BEW added 17Jul11
 	bool bUndeleting = FALSE;
 

@@ -2053,7 +2053,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	description="Poetry text, Selah"
 	usfm="1"
 	inLine="1" bdryOnLast="1"
-	textType=verse"
+	textType="verse"
 	styleName="qs...qs* - Poetry Text - Selah"
 	styleType="character"
 	italic="1"
